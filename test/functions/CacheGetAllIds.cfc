@@ -26,13 +26,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			cacheRemove(arrayToList(cacheGetAllIds()));
 			cachePut('abc','123');
 			cachePut('def','123');
-		    assertEquals("ABC,DEF","#ListSort(arrayToList(cacheGetAllIds()),'textnocase')#");
+		    assertEquals("ABC,DEF",ListSort(arrayToList(cacheGetAllIds()),'textnocase'));
 			cacheClear();
 			cachePut('abc','123');
 			cachePut('abd','123');
 			cachePut('def','123');
-		    assertEquals("ABC,ABD","#ListSort(arrayToList(cacheGetAllIds("ab*")),'textnocase')#");
-		    assertEquals("ABC,ABD","#ListSort(arrayToList(cacheGetAllIds("ab*")),'textnocase')#");
+		    assertEquals("ABC,ABD",ListSort(arrayToList(cacheGetAllIds("ab*")),'textnocase'));
+		    assertEquals("ABC,ABD",ListSort(arrayToList(cacheGetAllIds("ab*")),'textnocase'));
 		}
 	}
 

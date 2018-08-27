@@ -28,9 +28,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 		lock timeout="1" scope="server" { 
 			cacheClear();
 			cachePut('abc','123');
-		    valueEquals("true","#cacheKeyExists('abc')#");
-		    valueEquals("false","#cacheKeyExists('def')#");
-		    valueEquals("false","#cacheKeyExists('def',cacheName)#");
+			assertEquals("true",cacheKeyExists('abc'));
+		    assertEquals("false",cacheKeyExists('def'));
+		    assertEquals("false",cacheKeyExists('def',cacheName));
 		}
 	}
 	
