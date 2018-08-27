@@ -1,13 +1,8 @@
-<cftry>
-	<cfset datasources=getPageContext().getConfig().getDatasources()>
-	<cfcatch>
-		<cfadmin 
-			action="getDatasources"
-			type="#request.adminType#"
-			password="#session["password"&request.adminType]#"
-			returnVariable="datasources">
-	</cfcatch>
-</cftry>
+<cfadmin 
+	action="getDatasources"
+	type="#request.adminType#"
+	password="#session["password"&request.adminType]#"
+	returnVariable="datasources">
 
 <table class="darker" cellpadding="2" cellspacing="1">
 <tr>

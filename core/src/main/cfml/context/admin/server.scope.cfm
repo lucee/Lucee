@@ -408,23 +408,18 @@ Error Output --->
 					<th scope="row">#stText.Scopes.sessionStorage#</th>
 					<td>
 						<cfadmin 
-							action="getDatasources"
-							type="#request.adminType#"
-							password="#session["password"&request.adminType]#"
-							returnVariable="datasourcesQuery">
-							<cfset datasources = ValueArray(datasourcesQuery.name)>
-						<cftry>
-							<cfset cacheConnections = getPageContext().getConfig().getCacheConnections().keySet().toArray()>
-							<cfcatch>
-								<cfadmin 
-								action="getCacheConnections"
-								type="#request.adminType#"
-								password="#session["password"&request.adminType]#"
-								returnVariable="cacheConnectionsQuery">
-								<cfset cacheConnections = ValueArray(cacheConnectionsQuery.name)>
-							</cfcatch>
-						</cftry>
-
+						action="getDatasources"
+						type="#request.adminType#"
+						password="#session["password"&request.adminType]#"
+						returnVariable="datasourcesQuery">
+						<cfset datasources = ValueArray(datasourcesQuery.name)>
+						
+						<cfadmin 
+						action="getCacheConnections"
+						type="#request.adminType#"
+						password="#session["password"&request.adminType]#"
+						returnVariable="cacheConnectionsQuery">
+						<cfset cacheConnections = ValueArray(cacheConnectionsQuery.name)>
 						
 						<select name="sessionStorage" class="medium">
 							<option value="memory" <cfif scope.sessionStorage EQ "memory">selected</cfif>>#ucFirst(stText.Scopes.memory)#</option>
