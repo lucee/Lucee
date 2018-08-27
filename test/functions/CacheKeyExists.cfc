@@ -34,33 +34,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 		}
 	}
 	
-	<cffunction access="private" name="testCacheKeyExists" localMode="modern">
-
-<!--- begin old test code --->
-<cfif server.ColdFusion.ProductName EQ "lucee">
-<cflock scope="server" timeout="1">
-	<cfset cacheClear()>
-	
-	<cfset cachePut('abc','123')>
-    <cfset valueEquals(left="#cacheKeyExists('abc')#", right="true")>
-    <cfset valueEquals(left="#cacheKeyExists('def')#", right="false")>
-    <cfset valueEquals(left="#cacheKeyExists('def',cacheName)#", right="false")>
-</cflock>
-
-</cfif>
-
-<!--- end old test code --->
-	
-		
-		<!--- <cfset assertEquals("","")> --->
-	</cffunction>
-	
-	<cffunction access="private" name="valueEquals">
-		<cfargument name="left">
-		<cfargument name="right">
-		<cfset assertEquals(arguments.right,arguments.left)>
-	</cffunction>
-<cfscript>
 	private function createRAMCache(){
 		admin 
 				action="updateCacheConnection"
@@ -125,5 +98,4 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			name="#cacheName#";
 						
 	}
-</cfscript>	
-</cfcomponent>
+}
