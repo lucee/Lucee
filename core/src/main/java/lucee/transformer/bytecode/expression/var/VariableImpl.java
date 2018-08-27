@@ -23,6 +23,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import lucee.commons.io.SystemUtil;
+import lucee.commons.lang.ClassException;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.SystemOut;
 import lucee.commons.lang.types.RefInteger;
@@ -206,7 +207,16 @@ public class VariableImpl extends ExpressionBase implements Variable {
 	}
 	
 	@Override
-	public final Type writeOutCollection(Context c, int mode) throws TransformerException {
+	public final Class<?> writeOutCollection(Context c, int mode) throws TransformerException {
+		try {
+			return Types.toClass(writeOutCollectionAsType(c, mode));
+		}
+		catch (ClassException e) {
+			throw new TransformerException(e, null);
+		}
+    }
+	
+	public final Type writeOutCollectionAsType(Context c, int mode) throws TransformerException {
 		BytecodeContext bc=(BytecodeContext) c;
         ExpressionUtil.visitLine(bc, getStart());
     	Type type = _writeOut(bc,mode, Boolean.TRUE);

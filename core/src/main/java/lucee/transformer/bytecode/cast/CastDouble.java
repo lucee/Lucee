@@ -84,7 +84,7 @@ public final class CastDouble extends ExpressionBase implements ExprDouble,Cast 
             else adapter.invokeStatic(Types.CASTER,Methods.METHOD_TO_DOUBLE_FROM_STRING);
         }
         else {
-        	Type rtn = expr.writeOut(bc,mode);
+        	Type rtn = ((ExpressionBase)expr).writeOutAsType(bc,mode);
         	if(mode==MODE_VALUE) {
         		if(!Types.isPrimitiveType(rtn))	{
         			adapter.invokeStatic(Types.CASTER,Methods.METHOD_TO_DOUBLE_VALUE);

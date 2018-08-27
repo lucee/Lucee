@@ -22,6 +22,7 @@ import lucee.transformer.Factory;
 import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BytecodeContext;
+import lucee.transformer.bytecode.expression.ExpressionBase;
 import lucee.transformer.bytecode.util.ASMUtil;
 import lucee.transformer.expression.Expression;
 
@@ -35,7 +36,7 @@ public final class TagSet extends TagBaseNoFinal  {
 
 	@Override
 	public void _writeOut(BytecodeContext bc) throws TransformerException {
-		Type rtn = getAttribute("noname").getValue().writeOut(bc, Expression.MODE_VALUE);
+		Type rtn = ((ExpressionBase)getAttribute("noname").getValue()).writeOutAsType(bc, Expression.MODE_VALUE);
 		// TODO sollte nicht auch long geprueft werden?
 		ASMUtil.pop(bc.getAdapter(), rtn);
 		//if(rtn.equals(Types.DOUBLE_VALUE))bc.getAdapter().pop2();

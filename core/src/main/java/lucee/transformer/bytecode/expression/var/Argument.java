@@ -65,12 +65,12 @@ public class Argument extends ExpressionBase {
 		 */
 		@Override
 		public Type _writeOut(BytecodeContext bc, int mode) throws TransformerException {
-			return getValue().writeOut(bc, mode);
+			return ((ExpressionBase)getValue()).writeOutAsType(bc, mode);
 		}
 		
 		public Type writeOutValue(BytecodeContext bc, int mode) throws TransformerException {
 			ExpressionUtil.visitLine(bc, getStart());
-			Type t = getValue().writeOut(bc, mode);
+			Type t = ((ExpressionBase)getValue()).writeOutAsType(bc, mode);
 			ExpressionUtil.visitLine(bc, getEnd());
 			return t;
 		}

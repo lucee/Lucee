@@ -23,9 +23,6 @@ import lucee.transformer.Factory;
 import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
 
-import org.objectweb.asm.Type;
-
-
 /**
  * A Expression (Operation, Literal aso.)
  */
@@ -47,7 +44,7 @@ public interface Expression {
      * @return return Type of expression
      * @throws TemplateException
      */
-    public Type writeOut(Context bc, int mode) throws TransformerException;
+    public Class<?> writeOut(Context bc, int mode) throws TransformerException;
 
     public Position getStart();
 

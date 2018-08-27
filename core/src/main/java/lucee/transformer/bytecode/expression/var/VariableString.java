@@ -48,7 +48,7 @@ public final class VariableString extends ExpressionBase implements ExprString {
  
 	@Override
 	public Type _writeOut(BytecodeContext bc, int mode) throws TransformerException {
-		return translateVariableToExprString(expr,false).writeOut(bc, mode);
+		return ((ExpressionBase)translateVariableToExprString(expr,false)).writeOutAsType(bc, mode);
 	}
 
 	public static ExprString toExprString(Expression expr) {

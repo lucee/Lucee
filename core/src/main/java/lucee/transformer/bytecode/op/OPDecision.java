@@ -105,8 +105,8 @@ public final class OPDecision extends ExpressionBase implements ExprBoolean {
         	adapter.invokeStatic(Types.OPERATOR,Methods_Operator.OPERATOR_NEEQ);
         }
         else {
-            int iLeft = Types.getType(left.writeOut(bc,MODE_VALUE));
-            int iRight = Types.getType(right.writeOut(bc,MODE_VALUE));
+            int iLeft = Types.getType(((ExpressionBase)left).writeOutAsType(bc,MODE_VALUE));
+            int iRight = Types.getType(((ExpressionBase)right).writeOutAsType(bc,MODE_VALUE));
             
             adapter.invokeStatic(Types.OPERATOR,Methods_Operator.OPERATORS[iLeft][iRight]);
             

@@ -53,7 +53,7 @@ public interface Variable extends Expression, Invoker {
 	public void setAsCollection(Boolean asCollection);
 
 	public int getCount();
-	public Type writeOutCollection(Context c, int mode) throws TransformerException;
+	public Class<?> writeOutCollection(Context c, int mode) throws TransformerException;
 
 
 	Member removeMember(int index);

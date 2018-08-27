@@ -91,7 +91,7 @@ public final class CastBoolean extends ExpressionBase implements ExprBoolean,Cas
             else adapter.invokeStatic(Types.CASTER,Methods.METHOD_TO_BOOLEAN_FROM_STRING);
         }
         else {
-        	Type rtn = expr.writeOut(bc,mode);
+        	Type rtn = ((ExpressionBase)expr).writeOutAsType(bc,mode);
         	
         	if(mode==MODE_VALUE) {
         		if(!Types.isPrimitiveType(rtn))	{
