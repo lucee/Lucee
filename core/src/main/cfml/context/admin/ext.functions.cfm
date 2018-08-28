@@ -198,15 +198,15 @@
 			<cfset data=toBinary(src)>
 
 		</cfif>
+		<cfif isValid("URL", src)>
+				<cftry>
+					<cffile action="readbinary" file="#src#" variable="data">
+					<cfset src=toBase64(data)>
+					<cfcatch><cfrethrow></cfcatch>
+				</cftry>
+			</cfif>
+		<cffile action="write" file="#tmpfile#" output="#src#" createPath="true">
 		<cfif extensionExists("B737ABC4-D43F-4D91-8E8E973E37C40D1B")> <!--- image extension --->
-			<cfif isValid("URL", src)>
-					<cftry>
-						<cffile action="readbinary" file="#src#" variable="data">
-						<cfset src=toBase64(data)>
-						<cfcatch><cfrethrow></cfcatch>
-					</cftry>
-				</cfif>
-			<cffile action="write" file="#tmpfile#" output="#src#" createPath="true">
 
 			<cfset img=imageRead(data)>
 
@@ -260,7 +260,7 @@
 					};
 
 					var data = "imgSrc="+encodeURIComponent(realData);
-					var ajaxURL = "/context/admin/ImgProcess.cfm?file=#fileName#";
+					var ajaxURL = "/lucee/admin/ImgProcess.cfm?file=#fileName#";
 					oAjax.open("POST", ajaxURL, true);
 					oAjax.send(data);
 
