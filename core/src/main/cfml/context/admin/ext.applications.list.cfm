@@ -318,3 +318,8 @@ Categories: #arrayToList(cat)#"><cfif hasUpdate>
 	</style>
 	</cfhtmlbody>
 </cfoutput>
+<cfif structKeyExists(request, "refresh") && request.refresh EQ true>
+	<script type="text/javascript">
+		location.reload(); 
+	</script>
+</cfif>
