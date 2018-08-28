@@ -111,7 +111,7 @@
 				</tfoot>
 				<cfif not arrayIsEmpty(logs)>
 					<tbody>
-						<cfloop from="1" to="#arrayLen(logs)#" index="i">
+						<cfloop from="#arrayLen(logs)#" to="1" index="i" step="-1">
 							<cfset el=logs[i]>
 							<cfset _total=0><cfloop query="el.pages"><cfset _total+=el.pages.total></cfloop>
 							<cfset _query=0><cfloop query="el.pages"><cfset _query+=el.pages.query></cfloop>
