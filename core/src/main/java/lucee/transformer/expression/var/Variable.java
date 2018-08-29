@@ -23,8 +23,6 @@ import lucee.transformer.bytecode.expression.var.Assign;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.Invoker;
 
-import org.objectweb.asm.Type;
-
 public interface Variable extends Expression, Invoker {
 
 	public int getScope();
