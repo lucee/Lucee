@@ -5,13 +5,14 @@
 				it(title="checking cfhttp call", body=function(){
 					var result = httpCall();
 					expect(result.errordetail).toBe('');
-					expect(result.statuscode).toBe('200 OK');
+					expect(result.status_code).toBe(200);
 				});
 			});
 		}
 	</cfscript>
- 	<cffunction name="httpCall" access="private" returntype="any">
+
+	<cffunction name="httpCall" access="private" returntype="any">
 		<cfhttp url="https://lucee.org" timeout="10" method="HEAD">
 		<cfreturn cfhttp />
 	</cffunction>
-</cfcomponent> 
+</cfcomponent>
