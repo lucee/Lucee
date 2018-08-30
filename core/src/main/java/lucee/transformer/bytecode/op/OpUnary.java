@@ -40,7 +40,7 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
 
-public class OPUnary extends ExpressionBase implements ExprDouble {
+public class OpUnary extends ExpressionBase implements ExprDouble {
 
 	
 	final static Method UNARY_POST_PLUS_1= new Method("unaryPoPl",
@@ -115,7 +115,7 @@ public class OPUnary extends ExpressionBase implements ExprDouble {
 	private final short type;
 	private final int operation;
 
-	public OPUnary(Variable var, Expression value, short type, int operation, Position start, Position end) { 
+	public OpUnary(Variable var, Expression value, short type, int operation, Position start, Position end) { 
 		super(var.getFactory(),start, end);
 		this.var=var;
 		this.value=value;
