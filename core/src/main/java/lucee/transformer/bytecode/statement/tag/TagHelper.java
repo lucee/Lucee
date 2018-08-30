@@ -500,7 +500,7 @@ public final class TagHelper {
 				}
 				else {
 					Type type = CastOther.getType(attr.getType());
-					methodName=tag.getTagLibTag().getSetter(attr,type);
+					methodName=tag.getTagLibTag().getSetter(attr,type==null?null:type.getClassName());
 					adapter.loadLocal(currLocal);
 					attr.getValue().writeOut(bc, Types.isPrimitiveType(type)?Expression.MODE_VALUE:Expression.MODE_REF);
 					adapter.invokeVirtual(currType, new Method(methodName,Type.VOID_TYPE,new Type[]{type}));
@@ -527,8 +527,10 @@ public final class TagHelper {
 	private static Type getTagType(Tag tag) throws TransformerException {
 		TagLibTag tlt = tag.getTagLibTag();
 		try {
-			return tlt.getTagType();
-		} catch(Throwable t) {
+			return Type.getType(tlt.getTagClassDefinition().getClazz());
+			//return tlt.getTagType();
+		}
+		catch(Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
 			throw new TransformerException(t,tag.getStart());
 		}

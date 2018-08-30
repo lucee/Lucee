@@ -24,6 +24,7 @@ import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.expression.ExpressionBase;
 import lucee.transformer.bytecode.util.Methods;
 import lucee.transformer.bytecode.util.Types;
+import lucee.transformer.cast.Cast;
 import lucee.transformer.expression.ExprBoolean;
 import lucee.transformer.expression.ExprDouble;
 import lucee.transformer.expression.ExprString;

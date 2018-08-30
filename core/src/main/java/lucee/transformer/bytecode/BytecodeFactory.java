@@ -17,13 +17,13 @@
  */
 package lucee.transformer.bytecode;
 
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.transformer.Context;
 import lucee.transformer.Factory;
+import lucee.transformer.FactoryBase;
 import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.cast.CastBoolean;
@@ -75,7 +75,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.Method;
 
-public class BytecodeFactory extends Factory {
+public class BytecodeFactory extends FactoryBase {
 	private final static Method INIT= new Method("init",
 			Types.COLLECTION_KEY,
 			new Type[]{Types.STRING});
@@ -201,20 +201,6 @@ public class BytecodeFactory extends Factory {
 	@Override
 	public DataMember createDataMember(ExprString name) {
 		return new DataMemberImpl(name);
-	}
-
-	@Override
-	public Literal createLiteral(Object obj,Literal defaultValue) {
-		if(obj instanceof Boolean) return createLitBoolean(((Boolean)obj).booleanValue());
-		if(obj instanceof Number) {
-			if(obj instanceof Float)return createLitFloat(((Float)obj).floatValue());
-			else if(obj instanceof Integer)return createLitInteger(((Integer)obj).intValue());
-			else if(obj instanceof Long)return createLitLong(((Long)obj).longValue());
-			else return createLitDouble(((Number)obj).doubleValue());
-		}
-		String str = Caster.toString(obj,null);
-		if(str!=null) return createLitString(str);
-		return defaultValue;
 	}
 
 	@Override

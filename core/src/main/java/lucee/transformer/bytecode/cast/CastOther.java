@@ -29,6 +29,7 @@ import lucee.transformer.bytecode.expression.var.VariableImpl;
 import lucee.transformer.bytecode.expression.var.VariableString;
 import lucee.transformer.bytecode.util.Methods_Caster;
 import lucee.transformer.bytecode.util.Types;
+import lucee.transformer.cast.Cast;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.var.Variable;
 
