@@ -2718,6 +2718,12 @@ public final class Caster {
     	
     	return ValidateCreditCard.toCreditcard(str,defaultValue);
 	}
+    
+    public static String toBase64(Object o) throws PageException {
+        String str=toBase64(o,"UTF-8",null);
+        if(str==null) throw new CasterException(o,"base 64");
+        return str;
+    }
      
     /**
      * cast a Object to a Base64 value
@@ -2730,6 +2736,8 @@ public final class Caster {
         if(str==null) throw new CasterException(o,"base 64");
         return str;
     }
+    
+    
     
     /**
      * cast a Object to a Base64 value
