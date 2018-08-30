@@ -34,7 +34,7 @@ public abstract class WebserviceClient implements Objects, Iteratorable {
 	public abstract WebserviceClient init(PageContext pc,String wsdlUrl, String username, String password, ProxyData proxyData) throws PageException;
 		
 	
-	//public abstract void addHeader(SOAPHeaderElement header) throws PageException;
+	//public abstract void addHeader(Object header) throws PageException;
 	//public abstract Call getLastCall()throws PageException;
 	public abstract Object callWithNamedValues(Config config, Collection.Key methodName, Struct arguments) throws PageException;
 	@Override
