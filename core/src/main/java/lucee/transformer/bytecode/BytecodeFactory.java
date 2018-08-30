@@ -46,7 +46,7 @@ import lucee.transformer.bytecode.literal.LitStringImpl;
 import lucee.transformer.bytecode.literal.Null;
 import lucee.transformer.bytecode.literal.NullConstant;
 import lucee.transformer.bytecode.op.OPDecision;
-import lucee.transformer.bytecode.op.OPUnary;
+import lucee.transformer.bytecode.op.OpUnary;
 import lucee.transformer.bytecode.op.OpBool;
 import lucee.transformer.bytecode.op.OpContional;
 import lucee.transformer.bytecode.op.OpDouble;
@@ -370,7 +370,7 @@ public class BytecodeFactory extends FactoryBase {
 
 	@Override
 	public ExprDouble opUnary(Variable var, Expression value, short type, int operation, Position start, Position end) {
-		return new OPUnary(var, value, type, operation, start, end);
+		return new OpUnary(var, value, type, operation, start, end);
 	}
 
 	@Override
