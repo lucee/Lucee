@@ -45,7 +45,7 @@ import lucee.transformer.bytecode.literal.LitLongImpl;
 import lucee.transformer.bytecode.literal.LitStringImpl;
 import lucee.transformer.bytecode.literal.Null;
 import lucee.transformer.bytecode.literal.NullConstant;
-import lucee.transformer.bytecode.op.OPDecision;
+import lucee.transformer.bytecode.op.OpDecision;
 import lucee.transformer.bytecode.op.OpUnary;
 import lucee.transformer.bytecode.op.OpBool;
 import lucee.transformer.bytecode.op.OpContional;
@@ -380,7 +380,7 @@ public class BytecodeFactory extends FactoryBase {
 
 	@Override
 	public ExprBoolean opDecision(Expression left, Expression right, int operation) {
-		return OPDecision.toExprBoolean(left, right, operation);
+		return OpDecision.toExprBoolean(left, right, operation);
 	}
 
 	@Override

@@ -34,7 +34,7 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
 
-public final class OPDecision extends ExpressionBase implements ExprBoolean {
+public final class OpDecision extends ExpressionBase implements ExprBoolean {
     /*
 	public static final int LT=GeneratorAdapter.LT;
     public static final int LTE=GeneratorAdapter.LE;
@@ -56,7 +56,7 @@ public final class OPDecision extends ExpressionBase implements ExprBoolean {
 			Types.INT_VALUE,
 			new Type[]{Types.OBJECT,Types.OBJECT});
 	
-    private OPDecision(Expression left, Expression right, int operation) {
+    private OpDecision(Expression left, Expression right, int operation) {
         super(left.getFactory(),left.getStart(),right.getEnd());
         this.left=left;
         this.right=right;  
@@ -71,7 +71,7 @@ public final class OPDecision extends ExpressionBase implements ExprBoolean {
      * @return String expression
      */
     public static ExprBoolean toExprBoolean(Expression left, Expression right, int operation) {
-        return new OPDecision(left,right,operation);
+        return new OpDecision(left,right,operation);
     }
     
     
