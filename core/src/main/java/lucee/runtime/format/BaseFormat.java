@@ -48,7 +48,6 @@ public abstract class BaseFormat implements Format {
 			}
 		}
 		return new DateFormatSymbols(locale).getMonths()[month-1];
-		
 	}
 	
 	protected final String getMonthShortAsString(int month) {
@@ -69,10 +68,9 @@ public abstract class BaseFormat implements Format {
 				default: return null;
 			}
 		}
-		return new DateFormatSymbols(locale).getShortMonths()[month-1];
-		
+		return clean(new DateFormatSymbols(locale).getShortMonths()[month-1]);	
 	}
-	
+
 	protected final String getDayOfWeekAsString(int dayOfWeek) {
 		if(getLocale().equals(Locale.US)) {
 			switch(dayOfWeek) {
@@ -87,7 +85,6 @@ public abstract class BaseFormat implements Format {
 			}
 		}
 		return new DateFormatSymbols(locale).getWeekdays()[dayOfWeek];
-		
 	}
 	
 	protected final String getDayOfWeekShortAsString(int dayOfWeek) {
@@ -103,7 +100,14 @@ public abstract class BaseFormat implements Format {
 				default:  return null;
 			}
 		}
-		return new DateFormatSymbols(locale).getShortWeekdays()[dayOfWeek];
+		return clean(new DateFormatSymbols(locale).getShortWeekdays()[dayOfWeek]);
+	}
+	
+	private String clean(String str) {
+		// Java 10 added a dot in case it abbreviate a name
+		if(str.charAt(str.length()-1)=='.')
+			return str.substring(0, str.length()-1);
+		return str;
 	}
 	
 	protected final Locale getLocale() {

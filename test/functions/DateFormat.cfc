@@ -23,23 +23,26 @@
 		org=getTimeZone();
 		try{
 			setTimeZone("UTC");
-			assertEquals('UTC',dateFormat(dt,'z'));
-			assertEquals('UTC',dateFormat(dt,'zz'));
-			assertEquals('UTC',dateFormat(dt,'zzz'));
+			var tzi=getTimeZoneInfo();
 
-			assertEquals('Coordinated Universal Time',dateFormat(dt,'zzzz'));
-			assertEquals('Coordinated Universal Time',dateFormat(dt,'zzzzz'));
-			assertEquals('Coordinated Universal Time',dateFormat(dt,'zzzzzz'));
+			assertEquals(tzi.id,dateFormat(dt,'z'));
+			assertEquals(tzi.id,dateFormat(dt,'zz'));
+			assertEquals(tzi.id,dateFormat(dt,'zzz'));
 
-			setTimeZone("Europe/Zurich");
-			assertEquals('CET',dateFormat(dt,'z'));
-			assertEquals('CET',dateFormat(dt,'zz'));
-			assertEquals('CET',dateFormat(dt,'zzz'));
+			assertEquals(tzi.name,dateFormat(dt,'zzzz'));
+			assertEquals(tzi.name,dateFormat(dt,'zzzzz'));
+			assertEquals(tzi.name,dateFormat(dt,'zzzzzz'));
 
+			setTimeZone("CET");
+			var tzi=getTimeZoneInfo();
+			assertEquals(tzi.id,dateFormat(dt,'z'));
+			assertEquals(tzi.id,dateFormat(dt,'zz'));
+			assertEquals(tzi.id,dateFormat(dt,'zzz'));
 
-			assertEquals('Central European Time',dateFormat(dt,'zzzz'));
-			assertEquals('Central European Time',dateFormat(dt,'zzzzz'));
-			assertEquals('Central European Time',dateFormat(dt,'zzzzzz'));
+			// depending on JVM version we have different names
+			assertEquals(tzi.name,dateFormat(dt,'zzzz'));
+			assertEquals(tzi.name,dateFormat(dt,'zzzzz'));
+			assertEquals(tzi.name,dateFormat(dt,'zzzzzz'));
 		}
 		finally {
 			setTimeZone(org);

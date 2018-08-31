@@ -22,26 +22,10 @@ English (Australian) --->
 <!--- 
 German (Standard)) --->
 <cfset setLocale("German (Standard)")>
-<cfset valueEquals(left="#LSCurrencyFormat(100000,"local")#", right="100.000,00 #euro#")>
-<cfset valueEquals(left="#replace(LSCurrencyFormat(100000,"international"),' ','')#", right="EUR100.000,00")>
+<cfset valueEquals(left="#asc(right(LSCurrencyFormat(100000,"local"),1))#", right="#asc(euro)#")>
+<cfset valueEquals(left="#trim(LSCurrencyFormat(100000,"local"))#", right="100.000,00 #euro#")>
+<cfset valueEquals(left="#LSCurrencyFormat(100000,"international")#", right="EUR 100.000,00")>
 <cfset valueEquals(left="#LSCurrencyFormat(100000,"none")#", right="100.000,00")>
-
-<!--- 
-German (Swiss) --->
-<cfset setLocale("German (Swiss)")>
-<cfset valueEquals(left="#LSCurrencyFormat(100000,"local")#", right="SFr. 100'000.00")>
-<cfset valueEquals(left="#replace(LSCurrencyFormat(100000,"international"),' ','')#", right="CHF100'000.00")>
-<cfset valueEquals(left="#LSCurrencyFormat(100000,"none")#", right="100'000.00")>
-
-<!--- 
-German (Standard) --->
-<cfset setLocale("German (Swiss)")>
-<cfset valueEquals(left="#LSCurrencyFormat(1)#", right="SFr. 1.00")>
-<cfset valueEquals(left="#LSCurrencyFormat(1.2)#", right="SFr. 1.20")>
-
-<cfset valueEquals(left="#LSCurrencyFormat(1.2,"local")#", right="SFr. 1.20")>
-<cfset valueEquals(left="#replace(LSCurrencyFormat(1.2,"international")," ","")#", right="CHF1.20")>
-<cfset valueEquals(left="#LSCurrencyFormat(1.2,"none")#", right="1.20")>
 
 <cftry>
 	<cfset valueEquals(left="#LSCurrencyFormat(1.2,"susi")#", right="x")>
@@ -61,36 +45,19 @@ German (Standard) --->
 <cfset valueEquals(left="#replace(LSCurrencyFormat(1.2,"international")," ","")#", right="EUR1,20")>
 <cfset valueEquals(left="#LSCurrencyFormat(1.2,"none")#", right="1,20")>
 
- 
-
-
-
-
-<cfset setLocale("German (Swiss)")>
-
-
-<cfset value="250.000">
-<cfset valueEquals(left="#LSParseNumber(value)#", right="250")>
-<cfset valueEquals(left="#LSCurrencyFormat(value,"local")#", right="SFR. 250.00")>
-<cfset valueEquals(left="#replace(LSCurrencyFormat(value,'international'),' ','','all')#", right="CHF250.00")>
-<cfset valueEquals(left="#LSCurrencyFormat(value,'none')#", right="250.00")>
-<cfset valueEquals(left="#LSCurrencyFormat(value)#", right="SFR. 250.00")>
-
-
-
 <cfset setLocale("Portuguese (Brazilian)")>
 
 <cfset value=250000>
 <cfset valueEquals(left="#LSParseNumber(value)#", right="250000")>
-<cfset valueEquals(left="#LSCurrencyFormat(value)#", right="R$ 250.000,00")>
+<cfset valueEquals(left="#replace(LSCurrencyFormat(value),' ','')#", right="R$250.000,00")>
 
 <cfset value=250.000>
 <cfset valueEquals(left="#LSParseNumber(value)#", right="250")>
-<cfset valueEquals(left="#LSCurrencyFormat(value)#", right="R$ 250,00")>
+<cfset valueEquals(left="#replace(LSCurrencyFormat(value),' ','')#", right="R$250,00")>
 
 <cfset value="250000">
 <cfset valueEquals(left="#LSParseNumber(value)#", right="250000")>
-<cfset valueEquals(left="#LSCurrencyFormat(value)#", right="R$ 250.000,00")>
+<cfset valueEquals(left="#replace(LSCurrencyFormat(value),' ','')#", right="R$250.000,00")>
 
 <cfset value="250,000">
 <cfset valueEquals(left="#LSParseNumber(value)#", right="250")>
@@ -98,10 +65,10 @@ German (Standard) --->
 
 <cfset value="250.000">
 <cfset valueEquals(left="#LSParseNumber(value)#", right="250000")>
-<cfset valueEquals(left="#LSCurrencyFormat(value,"local","Portuguese (Brazilian)")#", right="R$ 250,00")>
+<cfset valueEquals(left="#replace(LSCurrencyFormat(value,"local","Portuguese (Brazilian)"),' ','','all')#", right="R$250,00")>
 <cfset valueEquals(left="#replace(LSCurrencyFormat(value,'international'),' ','','all')#", right="BRL250,00")>
 <cfset valueEquals(left="#LSCurrencyFormat(value,'none')#", right="250,00")>
-<cfset valueEquals(left="#LSCurrencyFormat(value)#", right="R$ 250,00")>
+<cfset valueEquals(left="#replace(LSCurrencyFormat(value),' ','','all')#", right="R$250,00")>
 
 <cfset setLocale(orgLocale)>
 

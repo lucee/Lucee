@@ -4398,8 +4398,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			// providers
 			Element[] xmlProviders = getChildren(xmlExtParent, "rhprovider");
 			String strProvider;
-			Map<RHExtensionProvider,String> providers = new HashMap<RHExtensionProvider,String>();
-
+			Map<RHExtensionProvider,String> providers = new LinkedHashMap<RHExtensionProvider,String>();
+			
 			for (int i = 0; i < Constants.RH_EXTENSION_PROVIDERS.length; i++) {
 				providers.put(Constants.RH_EXTENSION_PROVIDERS[i], "");
 			}

@@ -410,31 +410,6 @@
       <version>1.2.4</version>
       <scope>provided</scope>
     </dependency>
-  <!-- Axis?
-    <dependency>
-    	<groupId>org.lucee</groupId>
-    	<artifactId>jaxrpc</artifactId>
-    	<version>1.4.0</version>
-      <scope>provided</scope>
-    </dependency>
-  -->
-  <!-- Axis?
-    <dependency>
-    	<groupId>org.lucee</groupId>
-    	<artifactId>wsdl4j</artifactId>
-    	<version>1.5.1</version>
-      <scope>provided</scope>
-    </dependency>
-   -->
-     <!-- Axis?
-     <dependency>
-    	<groupId>org.lucee</groupId>
-    	<artifactId>saaj</artifactId>
-    	<version>1.4.0</version>
-      <scope>provided</scope>
-    </dependency>
-  -->
-
     <dependency>
       <groupId>tagsoup</groupId>
       <artifactId>tagsoup</artifactId>

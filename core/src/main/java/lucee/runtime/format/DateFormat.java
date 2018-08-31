@@ -38,7 +38,6 @@ public final class DateFormat extends BaseFormat implements Format {
 	public DateFormat(Locale locale) {
 		super(locale);
 	}
-	
 
 	/**
 	 * formats a date to a cfml date format (short)
@@ -60,9 +59,11 @@ public final class DateFormat extends BaseFormat implements Format {
 	public String format(Date date,String mask) {
 		return format(date,mask,null);
 	}
+
 	public String format(Date date,String mask, TimeZone tz) {
 		return format(date.getTime(), mask, tz);
 	}
+
 	public String format(long time,String mask, TimeZone tz) {
 		TimeZone def=null;
 		try {
@@ -81,9 +82,7 @@ public final class DateFormat extends BaseFormat implements Format {
 			if(len==0) return "";
 			
 			StringBuilder formated=new StringBuilder();
-			
-			
-			
+
 			for(;pos<len;pos++) {
 				char c=mask.charAt(pos);
 				char next=(len>pos+1)?mask.charAt(pos+1):(char)0;
@@ -234,8 +233,6 @@ public final class DateFormat extends BaseFormat implements Format {
 			if(def!=null) TimeZone.setDefault(def);
 		}
 	}
-	
-
 
 	private String toEra(int era, String defaultValue) {
 		if(GregorianCalendar.AD==era) return "AD";
@@ -252,7 +249,6 @@ public final class DateFormat extends BaseFormat implements Format {
 		//String h=(res.charAt(1)=='0')? h=res.substring(2, 3):res.substring(1, 3);
 		return res.substring(0, 1)+res.substring(1, 3)+":"+res.substring(3);
 	}
-
 
 	public static String z(long time, TimeZone tz, int count) {
 		Calendar c = Calendar.getInstance(tz,Locale.US);
@@ -302,12 +298,9 @@ public final class DateFormat extends BaseFormat implements Format {
         return sb;
     }
 
-
-
 	private String getAsString(Calendar c,int style, TimeZone tz) {
 		java.text.DateFormat df = java.text.DateFormat.getDateInstance(style,getLocale());
 		df.setTimeZone(tz);
 		return df.format(c.getTime());	
 	}
-	
 }

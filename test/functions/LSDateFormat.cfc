@@ -96,23 +96,41 @@
 <cfset valueEquals(left="#lsDateFormat('6. April 2008','medium')#", right="06.04.2008")>
 
 
+<cfscript>
+	setlocale('french (standard)');
 
-<cfset setlocale('french (standard)')>
-<cfset valueEquals(left="#lsDateFormat(d,'short')#x", right="06/04/08x")>
-<cfset valueEquals(left="#lsDateFormat(('06/04/08'),'short')#", right="06/04/08")>
-<cfset valueEquals(left="#lsDateFormat('6 avr. 2008','short')#", right="06/04/08")>
-<cfset valueEquals(left="#lsDateFormat('6 avril 2008','short')#", right="06/04/08")>
-<cfset valueEquals(left="#lsDateFormat('dimanche 6 avril 2008','short')#", right="06/04/08")>
+	if(getJavaVersion()>=10) {
+		assertEquals("06/04/2008",lsDateFormat(d,'short'));
+		assertEquals("06/04/2008",lsDateFormat(('06/04/08'),'short'));
+		assertEquals("06/04/2008",lsDateFormat('6 avr. 2008','short'));
+		assertEquals("06/04/2008",lsDateFormat('6 avril 2008','short'));
+		assertEquals("06/04/2008",lsDateFormat('dimanche 6 avril 2008','short'));
+
+	}
+	else {
+		assertEquals("06/04/08",lsDateFormat(d,'short'));
+		assertEquals("06/04/08",lsDateFormat(('06/04/08'),'short'));
+		assertEquals("06/04/08",lsDateFormat('6 avr. 2008','short'));
+		assertEquals("06/04/08",lsDateFormat('6 avril 2008','short'));
+		assertEquals("06/04/08",lsDateFormat('dimanche 6 avril 2008','short'));
+	}
+	
+
+
+</cfscript>
+
 <cfset valueEquals(left="#lsDateFormat(d,'medium')#", right="6 avr. 2008")>
 <cfset valueEquals(left="#lsDateFormat('06/04/08','medium')#", right="6 avr. 2008")>
 <cfset valueEquals(left="#lsDateFormat('6 avr. 2008','medium')#", right="6 avr. 2008")>
 <cfset valueEquals(left="#lsDateFormat('6 avril 2008','medium')#", right="6 avr. 2008")>
 <cfset valueEquals(left="#lsDateFormat('dimanche 6 avril 2008','medium')#", right="6 avr. 2008")>
+
 <cfset valueEquals(left="#lsDateFormat(d,'long')#", right="6 avril 2008")>
 <cfset valueEquals(left="#lsDateFormat('06/04/08','long')#", right="6 avril 2008")>
 <cfset valueEquals(left="#lsDateFormat('6 avr. 2008','long')#", right="6 avril 2008")>
 <cfset valueEquals(left="#lsDateFormat('6 avril 2008','long')#", right="6 avril 2008")>
 <cfset valueEquals(left="#lsDateFormat('dimanche 6 avril 2008','long')#", right="6 avril 2008")>
+
 <cfset valueEquals(left="#lsDateFormat(d,'full')#", right="dimanche 6 avril 2008")>
 <cfset valueEquals(left="#lsDateFormat('06/04/08','full')#", right="dimanche 6 avril 2008")>
 <cfset valueEquals(left="#lsDateFormat('6 avr. 2008','full')#", right="dimanche 6 avril 2008")>
@@ -140,23 +158,43 @@
 <cfset valueEquals(left="#lsDateFormat('Apr 6, 2008','full')#", right="Sunday, April 6, 2008")>
 <cfset valueEquals(left="#lsDateFormat('April 6, 2008','full')#", right="Sunday, April 6, 2008")>
 <cfset valueEquals(left="#lsDateFormat('Sunday, April 6, 2008','full')#", right="Sunday, April 6, 2008")>
+<cfscript>
+	setlocale('English (UK)');
 
-<cfset setlocale('English (UK)')>
-<cfset valueEquals(left="#lsDateFormat(d,'short')#", right="06/04/08")>
-<cfset valueEquals(left="#lsDateFormat('06/04/08','short')#", right="06/04/08")>
-<cfset valueEquals(left="#lsDateFormat('06-Apr-2008','short')#", right="06/04/08")>
-<cfset valueEquals(left="#lsDateFormat('06 April 2008','short')#", right="06/04/08")>
-<cfset valueEquals(left="#lsDateFormat('Sunday, 6 April 2008','short')#", right="06/04/08")>
-<cfset valueEquals(left="#lsDateFormat(d,'medium')#", right="06-Apr-2008")>
-<cfset valueEquals(left="#lsDateFormat('06/04/08','medium')#", right="06-Apr-2008")>
-<cfset valueEquals(left="#lsDateFormat('06-Apr-2008','medium')#", right="06-Apr-2008")>
-<cfset valueEquals(left="#lsDateFormat('06 April 2008','medium')#", right="06-Apr-2008")>
-<cfset valueEquals(left="#lsDateFormat('Sunday, 6 April 2008','medium')#", right="06-Apr-2008")>
-<cfset valueEquals(left="#lsDateFormat(d,'long')#", right="06 April 2008")>
-<cfset valueEquals(left="#lsDateFormat('06/04/08','long')#", right="06 April 2008")>
-<cfset valueEquals(left="#lsDateFormat('06-Apr-2008','long')#", right="06 April 2008")>
-<cfset valueEquals(left="#lsDateFormat('06 April 2008','long')#", right="06 April 2008")>
-<cfset valueEquals(left="#lsDateFormat('Sunday, 6 April 2008','long')#", right="06 April 2008")>
+	if(getJavaVersion()>=10) {
+		shortResult="06/04/2008";
+		medResult="6 Apr 2008";
+		longResult="6 April 2008";
+	}
+	else {
+		shortResult="06/04/08";
+		medResult="06-Apr-2008";
+		longResult="06 April 2008";
+	}
+	
+
+
+</cfscript>
+
+
+<cfset valueEquals(left="#lsDateFormat(d,'short')#", right=shortResult)>
+<cfset valueEquals(left="#lsDateFormat('06/04/08','short')#", right=shortResult)>
+<cfset valueEquals(left="#lsDateFormat('06-Apr-2008','short')#", right=shortResult)>
+<cfset valueEquals(left="#lsDateFormat('06 April 2008','short')#", right=shortResult)>
+<cfset valueEquals(left="#lsDateFormat('Sunday, 6 April 2008','short')#", right=shortResult	)>
+
+<cfset valueEquals(left="#lsDateFormat(d,'medium')#", right=medResult)>
+<cfset valueEquals(left="#lsDateFormat('06/04/08','medium')#", right=medResult)>
+<cfset valueEquals(left="#lsDateFormat('06-Apr-2008','medium')#", right=medResult)>
+<cfset valueEquals(left="#lsDateFormat('06 April 2008','medium')#", right=medResult)>
+<cfset valueEquals(left="#lsDateFormat('Sunday, 6 April 2008','medium')#", right=medResult)>
+
+<cfset valueEquals(left="#lsDateFormat(d,'long')#", right=longResult)>
+<cfset valueEquals(left="#lsDateFormat('06/04/08','long')#", right=longResult)>
+<cfset valueEquals(left="#lsDateFormat('06-Apr-2008','long')#", right=longResult)>
+<cfset valueEquals(left="#lsDateFormat('06 April 2008','long')#", right=longResult)>
+<cfset valueEquals(left="#lsDateFormat('Sunday, 6 April 2008','long')#", right=longResult)>
+
 <cfset valueEquals(left="#lsDateFormat(d,'full')#", right="Sunday, 6 April 2008")>
 <cfset valueEquals(left="#lsDateFormat('06/04/08','full')#", right="Sunday, 6 April 2008")>
 <cfset valueEquals(left="#lsDateFormat('06-Apr-2008','full')#", right="Sunday, 6 April 2008")>
@@ -186,4 +224,17 @@
 		<cfargument name="right">
 		<cfset assertEquals(arguments.right,arguments.left)>
 	</cffunction>
+
+<cfscript>
+
+	private function getJavaVersion() {
+	    var raw=server.java.version;
+	    var arr=listToArray(raw,'.');
+	    if(arr[1]==1) // version 1-9
+	        return arr[2];
+	    return arr[1];
+	}
+
+</cfscript>
+
 </cfcomponent>

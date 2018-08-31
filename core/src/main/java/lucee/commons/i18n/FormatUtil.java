@@ -24,6 +24,7 @@ import java.nio.charset.Charset;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -73,8 +74,9 @@ public class FormatUtil {
 			list.add(DateFormat.getDateTimeInstance(DateFormat.SHORT,DateFormat.LONG,locale));
 			list.add(DateFormat.getDateTimeInstance(DateFormat.SHORT,DateFormat.MEDIUM,locale));
 			list.add(DateFormat.getDateTimeInstance(DateFormat.SHORT,DateFormat.SHORT,locale));
-			add24(list, locale);
+			add24AndRemoveComma(list, locale,true,true);
 			addCustom(list, locale, FORMAT_TYPE_DATE_TIME);
+			
 			df=list.toArray(new DateFormat[list.size()]);
 			
 			for(int i=0;i<df.length;i++){
@@ -96,6 +98,7 @@ public class FormatUtil {
 			list.add(DateFormat.getDateInstance(DateFormat.LONG,locale));
 			list.add(DateFormat.getDateInstance(DateFormat.MEDIUM,locale));
 			list.add(DateFormat.getDateInstance(DateFormat.SHORT,locale));
+			add24AndRemoveComma(list, locale,true,false);
 			addCustom(list, locale, FORMAT_TYPE_DATE);
 			df=list.toArray(new DateFormat[list.size()]);
 			
@@ -125,7 +128,7 @@ public class FormatUtil {
 			list.add(DateFormat.getTimeInstance(DateFormat.LONG,locale));
 			list.add(DateFormat.getTimeInstance(DateFormat.MEDIUM,locale));
 			list.add(DateFormat.getTimeInstance(DateFormat.SHORT,locale));
-			add24(list, locale);
+			add24AndRemoveComma(list, locale,false,true);
 			addCustom(list, locale, FORMAT_TYPE_TIME);
 			df=list.toArray(new DateFormat[list.size()]);
 			
@@ -139,41 +142,65 @@ public class FormatUtil {
 	}
 	
 
-	private static void add24(List<DateFormat> list,Locale locale) {
+	private static void add24AndRemoveComma(List<DateFormat> list,Locale locale, boolean isDate, boolean isTime) {
 		
-		// if found h:mm:ss a add H:mm:ss ...
-		String p;
-		int index;
-		SimpleDateFormat sdf;
 		DateFormat[] df=list.toArray(new DateFormat[list.size()]);
 		for(int i=0;i<df.length;i++){
 			if(df[i] instanceof SimpleDateFormat) {
-				p=((SimpleDateFormat) df[i]).toPattern()+"";
-				
-				if(check(list,p,locale,"hh:mm:ss a","HH:mm:ss")) continue;
-				if(check(list,p,locale,"h:mm:ss a","H:mm:ss")) continue;
-				if(check(list,p,locale,"hh:mm a","HH:mm")) continue;
-				if(check(list,p,locale,"h:mm a","H:mm")) continue;
-				
-				if(check(list,p,locale,"hh:mm:ssa","HH:mm:ss")) continue;
-				if(check(list,p,locale,"h:mm:ssa","H:mm:ss")) continue;
-				if(check(list,p,locale,"hh:mma","HH:mm")) continue;
-				if(check(list,p,locale,"h:mma","H:mm")) continue;
-				
-				//if(check(list,p,locale,"HH:mm:ss","hh:mm:ss a")) continue;
-				//if(check(list,p,locale,"H:mm:ss","h:mm:ss a")) continue;
-				//if(check(list,p,locale,"HH:mm","hh:mm a")) continue;
-				//if(check(list,p,locale,"H:mm","h:mm a")) continue;
+				add24AndRemoveComma(list,(SimpleDateFormat)df[i], locale, isDate, isTime);
 			}
 		}
 	}
 	
-	private static boolean check(List<DateFormat> list, String p,Locale locale, String from, String to) {
-		int index = p.indexOf(from);
+	private static void add24AndRemoveComma(List<DateFormat> list,SimpleDateFormat sdf,Locale locale, boolean isDate, boolean isTime) {
+		String p;
+		
+		List<SimpleDateFormat> results=new ArrayList<SimpleDateFormat>();
+		p=sdf.toPattern()+"";
+		//print.e("----- "+p);
+		if(isDate && isTime) {
+			if((check(results,p,locale," 'um' "," ")));
+			if((check(results,p,locale," 'à' "," ")));
+			if((check(results,p,locale," 'at' "," ")));
+			if((check(results,p,locale," 'de' "," ")));
+			
+			
+		}
+		if(isTime) {
+			if((check(results,p,locale,"hh:mm:ss a","HH:mm:ss")));
+			else if((check(results,p,locale,"h:mm:ss a","H:mm:ss")));
+			else if((check(results,p,locale,"hh:mm a","HH:mm")));
+			else if((check(results,p,locale,"h:mm a","H:mm")));
+			else if((check(results,p,locale,"hh:mm:ssa","HH:mm:ss")));
+			else if((check(results,p,locale,"h:mm:ssa","H:mm:ss")));
+			else if((check(results,p,locale,"hh:mma","HH:mm")));
+			else if((check(results,p,locale,"h:mma","H:mm")));
+		}
+		if(isDate) {
+			if((check(results,p,locale,"y,","y")));
+			if((check(results,p,locale,"d MMMM ","d. MMMM ")));
+			if((check(results,p,locale,"d MMM y","d-MMM-y")));
+		}
+		if(results.size()>0) {
+			Iterator<SimpleDateFormat> it = results.iterator();
+			SimpleDateFormat _sdf;
+			while(it.hasNext()) {
+				_sdf = it.next();
+				if(!list.contains(_sdf)) {
+					list.add(_sdf);
+					add24AndRemoveComma(list,_sdf,locale, isDate, isTime);
+				}
+			}
+		}
+		
+	}
+	
+	private static boolean check(List<SimpleDateFormat> results, String orgPattern,Locale locale, String from, String to) {
+		int index = orgPattern.indexOf(from);
 		if(index!=-1) {
-			p=StringUtil.replace(p, from, to, true);
+			String p=StringUtil.replace(orgPattern, from, to, true);
 			SimpleDateFormat sdf = new SimpleDateFormat(p,locale);
-			if(!list.contains(sdf))list.add(sdf);
+			results.add(sdf);
 			return true;
 		}
 		return false;

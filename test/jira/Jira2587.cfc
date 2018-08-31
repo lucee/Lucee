@@ -244,7 +244,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 	
 	public void function testPredefined(){
-		assertEquals("6/9/09 2:30 PM",DateTimeFormat(date,"short"));
+		if(getJavaVersion()>=10) {
+			assertEquals("6/9/09, 2:30 PM",DateTimeFormat(date,"short"));
+
+		}
+		else {
+			assertEquals("6/9/09 2:30 PM",DateTimeFormat(date,"short"));
+		}
 		assertEquals("Jun 9, 2009 2:30:03 PM",DateTimeFormat(date,"medium"));
 		assertEquals("June 9, 2009 2:30:03 PM CEST",DateTimeFormat(date,"long"));
 		assertEquals("Tuesday, June 9, 2009 2:30:03 PM CEST",DateTimeFormat(date,"full"));
@@ -256,5 +262,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertEquals("3 t 3",DateTimeFormat(date,"s 't' s"));
 		
 	}
+
+	private function getJavaVersion() {
+	    var raw=server.java.version;
+	    var arr=listToArray(raw,'.');
+	    if(arr[1]==1) // version 1-9
+	        return arr[2];
+	    return arr[1];
+	}
+
 }
 </cfscript>

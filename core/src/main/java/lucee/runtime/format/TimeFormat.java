@@ -32,9 +32,7 @@ import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.DateTimeImpl;
 
 public final class TimeFormat extends BaseFormat implements Format {
-	
-	
-	
+
 	/**
 	 * constructor of the class
 	 * @param locale
@@ -42,7 +40,6 @@ public final class TimeFormat extends BaseFormat implements Format {
 	public TimeFormat(Locale locale) {
 		super(locale);
 	}
-	
 
 	/**
 	 * formats a date to a cfml date format (short)
@@ -65,11 +62,11 @@ public final class TimeFormat extends BaseFormat implements Format {
 		DateTime dt=(date instanceof DateTime)?(DateTime)date:new DateTimeImpl(date.getTime(),false);
 		return format(dt,mask,null);
 	}
-	
 
 	public String format(DateTime date,String mask, TimeZone tz) {
 		return format(date.getTime(), mask, tz);
 	}
+
 	public String format(long time,String mask, TimeZone tz) {
 		TimeZone def = null;
 		try {
@@ -90,9 +87,7 @@ public final class TimeFormat extends BaseFormat implements Format {
 			if(len==0) return "";
 			
 			StringBuilder formated=new StringBuilder();
-			
-			
-			
+
 			for(;pos<len;pos++) {
 				char c=mask.charAt(pos);
 				char next=(len>pos+1)?mask.charAt(pos+1):(char)0;
@@ -253,5 +248,4 @@ public final class TimeFormat extends BaseFormat implements Format {
 		df.setTimeZone(tz);
 		return df.format(c.getTime());	
 	}
-
 }

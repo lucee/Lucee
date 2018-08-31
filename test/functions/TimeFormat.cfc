@@ -23,23 +23,26 @@
 		org=getTimeZone();
 		try{
 			setTimeZone("UTC");
-			assertEquals('UTC',timeFormat(dt,'z'));
-			assertEquals('UTC',timeFormat(dt,'zz'));
-			assertEquals('UTC',timeFormat(dt,'zzz'));
+			var tzi=getTimeZoneInfo();
+			assertEquals(tzi.id,timeFormat(dt,'z'));
+			assertEquals(tzi.id,timeFormat(dt,'zz'));
+			assertEquals(tzi.id,timeFormat(dt,'zzz'));
 
-			assertEquals('Coordinated Universal Time',timeFormat(dt,'zzzz'));
-			assertEquals('Coordinated Universal Time',timeFormat(dt,'zzzzz'));
-			assertEquals('Coordinated Universal Time',timeFormat(dt,'zzzzzz'));
-
-			setTimeZone("Europe/Zurich");
-			assertEquals('CET',timeFormat(dt,'z'));
-			assertEquals('CET',timeFormat(dt,'zz'));
-			assertEquals('CET',timeFormat(dt,'zzz'));
+			assertEquals(tzi.name,timeFormat(dt,'zzzz'));
+			assertEquals(tzi.name,timeFormat(dt,'zzzzz'));
+			assertEquals(tzi.name,timeFormat(dt,'zzzzzz'));
 
 
-			assertEquals('Central European Time',timeFormat(dt,'zzzz'));
-			assertEquals('Central European Time',timeFormat(dt,'zzzzz'));
-			assertEquals('Central European Time',timeFormat(dt,'zzzzzz'));
+			setTimeZone("CET");
+			var tzi=getTimeZoneInfo();
+			assertEquals(tzi.id,timeFormat(dt,'z'));
+			assertEquals(tzi.id,timeFormat(dt,'zz'));
+			assertEquals(tzi.id,timeFormat(dt,'zzz'));
+
+
+			assertEquals(tzi.name,timeFormat(dt,'zzzz'));
+			assertEquals(tzi.name,timeFormat(dt,'zzzzz'));
+			assertEquals(tzi.name,timeFormat(dt,'zzzzzz'));
 		}
 		finally {
 			setTimeZone(org);
@@ -137,7 +140,13 @@
 		assertEquals("#timeFormat(dt,"short")#x", "2:00 PMx");
 		assertEquals("#timeFormat(dt,"medium")#x", "2:00:00 PMx");
 		assertEquals("#timeFormat(dt,"long")#x", "2:00:00 PM CETx");
-		assertEquals("#timeFormat(dt,"full")#x", "2:00:00 PM CETx");
+
+		// Java 10 changed the timezone output for full, what actually makes more sense than before
+		if(getJavaVersion()>=10)
+			assertEquals("#timeFormat(dt,"full")#x", "2:00:00 PM Central European Timex");
+		else
+			assertEquals("#timeFormat(dt,"full")#x", "2:00:00 PM CETx");
+			
 		assertEquals("#timeFormat(dt)#x", "02:00 PMx"); 
 		assertEquals("#timeFormat('')#", ""); 
 
@@ -222,5 +231,13 @@
 		assertEquals("#timeFormat(0.9583333276,"HH:mm:ss:ll")#x", "23:00:00:00x");
 		assertEquals("#timeFormat(0.95833333,"HH:mm:ss:ll")#x", "23:00:00:00x");
 
+	}
+
+	private function getJavaVersion() {
+	    var raw=server.java.version;
+	    var arr=listToArray(raw,'.');
+	    if(arr[1]==1) // version 1-9
+	        return arr[2];
+	    return arr[1];
 	}
 }
