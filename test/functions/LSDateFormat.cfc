@@ -99,7 +99,7 @@
 <cfscript>
 	setlocale('french (standard)');
 
-	if(getJavaVersion()>=10) {
+	if(getJavaVersion()>=9) {
 		assertEquals("06/04/2008",lsDateFormat(d,'short'));
 		assertEquals("06/04/2008",lsDateFormat(('06/04/08'),'short'));
 		assertEquals("06/04/2008",lsDateFormat('6 avr. 2008','short'));
@@ -161,7 +161,7 @@
 <cfscript>
 	setlocale('English (UK)');
 
-	if(getJavaVersion()>=10) {
+	if(getJavaVersion()>=9) {
 		shortResult="06/04/2008";
 		medResult="6 Apr 2008";
 		longResult="6 April 2008";

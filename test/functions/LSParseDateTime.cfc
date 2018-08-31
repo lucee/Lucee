@@ -127,7 +127,10 @@ foramts for German (swiss) are not the same in Java 8 and 10
 <cfscript>
     setlocale('German (swiss)');
 
-    if(getJavaVersion()>=10) {
+    if(getJavaVersion()>=9) {
+        if(getJavaVersion()<=10)
+            valueEquals(left="-#lsParseDateTime("01:02:03 BST")#", right="-{ts '1899-12-30 00:02:03'}"); // BST no longer is British summer time, Bangladesh Standard instead
+
         valueEquals(left="-#lsParseDateTime("06.02.2008, 01:02:01 MEZ")#", right="-{ts '2008-02-06 01:02:01'}");
         valueEquals(left="-#lsParseDateTime("06.06.2008, 01:02:02 MESZ")#", right="-{ts '2008-06-06 01:02:02'}");
         valueEquals(left="-#lsParseDateTime("06.02.2008, 01:02:03 MESZ")#", right="-{ts '2008-02-06 00:02:03'}");
@@ -171,7 +174,7 @@ foramts for German (swiss) are not the same in Java 8 and 10
 <cfset valueEquals(left="-#lsParseDateTime("01:02:03 MEZ")#", right="-{ts '1899-12-30 01:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("01:02:03 MESZ")#", right="-{ts '1899-12-30 00:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("01:02:03 GMT")#", right="-{ts '1899-12-30 02:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("01:02:03 BST")#", right="-{ts '1899-12-30 00:02:03'}")>
+
 
 <cfset valueEquals(left="-#lsParseDateTime("01:02:03 MESZ")#", right="-{ts '1899-12-30 00:02:03'}")>
 
@@ -197,7 +200,7 @@ foramts for German (swiss) are not the same in Java 8 and 10
 
 <cfset setlocale('french (swiss)')>
 <cfscript>
-    if(getJavaVersion()>=10) {
+    if(getJavaVersion()>=9) {
         valueEquals(left="-#lsParseDateTime("6 avril 2008")#", right="-{ts '2008-04-06 00:00:00'}");
     }
     else {
@@ -231,7 +234,7 @@ foramts for German (swiss) are not the same in Java 8 and 10
 
 <cfset setlocale('italian (swiss)')>
 <cfscript>
-    if(getJavaVersion()>=10) {
+    if(getJavaVersion()>=9) {
     }
     else {
         valueEquals(left="-#lsParseDateTime("1.02 h CEST")#", right="-{ts '1899-12-30 00:02:00'}");
@@ -293,7 +296,7 @@ foramts for German (swiss) are not the same in Java 8 and 10
 
 <cfset setlocale('English (UK)')>
 <cfscript>
-    if(getJavaVersion()>=10) {
+    if(getJavaVersion()>=9) {
     }
     else {
         valueEquals(left="-#lsParseDateTime("01:02:03 o'clock CEST")#", right="-{ts '1899-12-30 00:02:03'}");
@@ -333,7 +336,8 @@ foramts for German (swiss) are not the same in Java 8 and 10
 
 <cfset setlocale('German (swiss)')>
 <cfscript>
-    if(getJavaVersion()>=10) {
+    if(getJavaVersion()>=9) {
+        valueEquals(left="-#lsParseDateTime("06.04.08 01:02:03 MESZ")#", right="-{ts '2008-04-06 01:02:03'}");
     }
     else {
         valueEquals(left="-#lsParseDateTime("1:02 Uhr MEZ")#", right="-{ts '1899-12-30 01:02:00'}");
@@ -341,6 +345,7 @@ foramts for German (swiss) are not the same in Java 8 and 10
         valueEquals(left="-#lsParseDateTime("Sonntag, 6. April 2008 1:02 Uhr MESZ")#", right="-{ts '2008-04-06 01:02:00'}");
         valueEquals(left="-#lsParseDateTime("06.04.2008 1:02 Uhr MESZ")#", right="-{ts '2008-04-06 01:02:00'}");
         valueEquals(left="-#lsParseDateTime("6. April 2008 1:02 Uhr MESZ")#", right="-{ts '2008-04-06 01:02:00'}");
+        valueEquals(left="-#lsParseDateTime("06.04.08 01:02:03 MESZ")#", right="-{ts '2008-04-06 00:02:03'}");
     }
 
 </cfscript>
@@ -353,16 +358,16 @@ foramts for German (swiss) are not the same in Java 8 and 10
 <cfset valueEquals(left="-#lsParseDateTime("Sonntag, 6. April 2008")#", right="-{ts '2008-04-06 00:00:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("06.04.08 01:02")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("06.04.08 01:02:03")#", right="-{ts '2008-04-06 01:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("06.04.08 01:02:03 MEZ")#", right="-{ts '2008-04-06 01:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("06.04.2008 01:02")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("06.04.2008 01:02:03")#", right="-{ts '2008-04-06 01:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("06.04.2008 01:02:03 MEZ")#", right="-{ts '2008-04-06 01:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("6. April 2008 01:02")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("6. April 2008 01:02:03")#", right="-{ts '2008-04-06 01:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("6. April 2008 01:02:03 MEZ")#", right="-{ts '2008-04-06 01:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("Sonntag, 6. April 2008 01:02")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("Sonntag, 6. April 2008 01:02:03")#", right="-{ts '2008-04-06 01:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("Sonntag, 6. April 2008 01:02:03 MEZ")#", right="-{ts '2008-04-06 01:02:03'}")>
+
+<cfset valueEquals(left="-#lsParseDateTime("06.04.2008 01:02:03 MESZ")#", right="-{ts '2008-04-06 01:02:03'}")>
+<cfset valueEquals(left="-#lsParseDateTime("6. April 2008 01:02:03 MESZ")#", right="-{ts '2008-04-06 01:02:03'}")>
+<cfset valueEquals(left="-#lsParseDateTime("Sonntag, 6. April 2008 01:02:03 MESZ")#", right="-{ts '2008-04-06 01:02:03'}")>
 
 <cfset setlocale('french (swiss)')>
 <cfset valueEquals(left="-#lsParseDateTime("06.04.08")#", right="-{ts '2008-04-06 00:00:00'}")>

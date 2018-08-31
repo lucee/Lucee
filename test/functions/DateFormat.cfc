@@ -18,7 +18,7 @@
  component extends="org.lucee.cfml.test.LuceeTestCase" {
 
  	public function testDateFormatTimeZone_lz() localMode="modern" {
-
+ 		setLocale("en_US");
 		dt=createDateTime(2000);
 		org=getTimeZone();
 		try{
