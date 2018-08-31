@@ -353,16 +353,16 @@ foramts for German (swiss) are not the same in Java 8 and 10
 <cfset valueEquals(left="-#lsParseDateTime("Sonntag, 6. April 2008")#", right="-{ts '2008-04-06 00:00:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("06.04.08 01:02")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("06.04.08 01:02:03")#", right="-{ts '2008-04-06 01:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("06.04.08 01:02:03 MESZ")#", right="-{ts '2008-04-06 01:02:03'}")>
+<cfset valueEquals(left="-#lsParseDateTime("06.04.08 01:02:03 MEZ")#", right="-{ts '2008-04-06 01:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("06.04.2008 01:02")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("06.04.2008 01:02:03")#", right="-{ts '2008-04-06 01:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("06.04.2008 01:02:03 MESZ")#", right="-{ts '2008-04-06 01:02:03'}")>
+<cfset valueEquals(left="-#lsParseDateTime("06.04.2008 01:02:03 MEZ")#", right="-{ts '2008-04-06 01:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("6. April 2008 01:02")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("6. April 2008 01:02:03")#", right="-{ts '2008-04-06 01:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("6. April 2008 01:02:03 MESZ")#", right="-{ts '2008-04-06 01:02:03'}")>
+<cfset valueEquals(left="-#lsParseDateTime("6. April 2008 01:02:03 MEZ")#", right="-{ts '2008-04-06 01:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("Sonntag, 6. April 2008 01:02")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("Sonntag, 6. April 2008 01:02:03")#", right="-{ts '2008-04-06 01:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("Sonntag, 6. April 2008 01:02:03 MESZ")#", right="-{ts '2008-04-06 01:02:03'}")>
+<cfset valueEquals(left="-#lsParseDateTime("Sonntag, 6. April 2008 01:02:03 MEZ")#", right="-{ts '2008-04-06 01:02:03'}")>
 
 <cfset setlocale('french (swiss)')>
 <cfset valueEquals(left="-#lsParseDateTime("06.04.08")#", right="-{ts '2008-04-06 00:00:00'}")>

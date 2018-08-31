@@ -20,6 +20,7 @@
  	public function testTimeFormatTimeZone_lz() localMode="modern" {
 
 		dt=createDateTime(2000);
+		setLocale("en_US");
 		org=getTimeZone();
 		try{
 			setTimeZone("UTC");
