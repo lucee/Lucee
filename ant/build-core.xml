@@ -200,7 +200,7 @@
         var version=attrs.getValue("Bundle-Version");
 
         var exist=reqBundle.indexOf(name+";bundle-version="+version)!=-1 ||
-          reqBundleFrag.indexOf(name+";bundle-version="+version)!=-1;
+          (reqBundleFrag!=null && reqBundleFrag.indexOf(name+";bundle-version="+version)!=-1);
 
         // not a bundle lucee defines in the manifest
         if(!exist) continue;

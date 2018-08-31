@@ -224,6 +224,8 @@ public class BundleLoader {
 	private static Map<String, String> readRequireBundle(final String rb)
 			throws IOException {
 		final HashMap<String, String> rtn = new HashMap<String, String>();
+		if(Util.isEmpty(rb)) return rtn;
+		
 		final StringTokenizer st = new StringTokenizer(rb, ",");
 		StringTokenizer stl;
 		String line, jarName, jarVersion = null, token;
