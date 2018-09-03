@@ -1039,6 +1039,7 @@
 
       <jvmarg value="-Dtest=${test}"/>
       <jvmarg value="-Dtemp=${temp}"/>
+      <!-- <jvmarg value="-Djdk.attach.allowAttachSelf=true"/> -->
       <jvmarg value="-DtestboxArchive=${temp}/archive/testbox.lar"/>
       <jvmarg value="-Dexecute=${testcases}"/>
       <jvmarg value="-DindividualStorageKeys=false"/>
