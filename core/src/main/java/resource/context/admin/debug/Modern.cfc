@@ -702,6 +702,10 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 					}
 					clickAjax(section);
 				</script>
+			<cfelseif REQUEST.admin=true>
+				<cfscript>
+					clickAjax("debug");
+				</cfscript>
 			</cfif>
 		</cfoutput>
 	</cffunction><!--- output() !--->
@@ -758,8 +762,12 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			<cfset local.totCnt   = 0>
 			<cfset local.q        = 0>
 			<cfset local.totAvg   = 0>
-			<cfset queryAddColumn(pages, "method")>
-			<cfset queryAddColumn(pages, "path")>
+			<cfif !QueryColumnExists( pages, "method" )>
+				<cfset queryAddColumn(pages, "method")>
+			</cfif>
+			<cfif !QueryColumnExists( pages, "path" )>
+				<cfset queryAddColumn(pages, "path")>
+			</cfif>
 			<cfloop query="pages">
 				<cfset querySetCell(pages, "total", pages.app + pages.load + pages.query, pages.currentRow)>
 				<cfset querySetCell(pages, "avg", (pages.app + pages.load + pages.query) / pages.count, pages.currentRow)>
