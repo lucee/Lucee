@@ -6,7 +6,17 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			Offset: dateTimeFormat(dateandtime, "Z")
 		};
 	}
+
+	private function getJavaVersion() {
+        var raw=server.java.version;
+        var arr=listToArray(raw,'.');
+        if(arr[1]==1) // version 1-9
+            return arr[2];
+        return arr[1];
+    }
+
 	function run( testResults , testBox ) {
+		setTimeZone("CEST");
 		describe( "Test suite for LDEV-1025", function() {
 			describe("checking 'DateFormat' function with all mask", function() {
 				it("checking 'date' mask parsing", function() {
@@ -236,25 +246,68 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					expect(ds_timeZone.dtfu_Z).toBe("#serverTZ.Offset#");
 				});
 
-				it("checking predefined date parsing", function() {
+				it("checking predefined date parsing short", function() {
 					ds_predefined = {
 						df_short : DateTimeFormat(dateandtime, "short"),
+						dfu_SHORT : DateTimeFormat(dateandtime, "SHORT")
+					};
+					
+					if(getJavaVersion()>=9) {
+						expect(ds_predefined.df_short) .toBe('8/9/09, 11:22 AM');
+						expect(ds_predefined.dfu_SHORT).toBe('8/9/09, 11:22 AM');
+
+					}
+					else {	
+						expect(ds_predefined.df_short) .toBe('8/9/09 11:22 AM');
+						expect(ds_predefined.dfu_SHORT).toBe('8/9/09 11:22 AM');
+					}
+				});
+
+				it("checking predefined date parsing medium", function() {
+					ds_predefined = {
 						df_medium : DateTimeFormat(dateandtime, "medium"),
+						dfu_MEDIUM : DateTimeFormat(dateandtime, "MEDIUM")
+					};
+					
+					if(getJavaVersion()>=9) {
+						expect(ds_predefined.df_medium) .toBe('Aug 9, 2009, 11:22:33 AM');
+						expect(ds_predefined.dfu_MEDIUM).toBe('Aug 9, 2009, 11:22:33 AM');	
+					}
+					else {	
+						expect(ds_predefined.df_medium) .toBe('Aug 9, 2009 11:22:33 AM');
+						expect(ds_predefined.dfu_MEDIUM).toBe('Aug 9, 2009 11:22:33 AM');
+					}
+				});
+				
+				it("checking predefined date parsing long", function() {
+					ds_predefined = {
 						df_long : DateTimeFormat(dateandtime, "long"),
+						dfu_LONG : DateTimeFormat(dateandtime, "LONG")
+					};
+					
+					if(getJavaVersion()>=9) {
+						expect(ds_predefined.df_long) .toBe('August 9, 2009 at 11:22:33 AM #serverTZ.TZ#');
+						expect(ds_predefined.dfu_LONG).toBe('August 9, 2009 at 11:22:33 AM #serverTZ.TZ#');
+					}
+					else {	
+						expect(ds_predefined.df_long) .toBe('August 9, 2009 11:22:33 AM #serverTZ.TZ#');
+						expect(ds_predefined.dfu_LONG).toBe('August 9, 2009 11:22:33 AM #serverTZ.TZ#');
+					}
+				});
+				it("checking predefined date parsing", function() {
+					ds_predefined = {
 						df_full : DateTimeFormat(dateandtime, "full"),
-						dfu_SHORT : DateTimeFormat(dateandtime, "SHORT"),
-						dfu_MEDIUM : DateTimeFormat(dateandtime, "MEDIUM"),
-						dfu_LONG : DateTimeFormat(dateandtime, "LONG"),
 						dfu_FULL : DateTimeFormat(dateandtime, "full")
 					};
-					expect(ds_predefined.df_short).toBe('8/9/09 11:22 AM');
-					expect(ds_predefined.df_medium).toBe('Aug 9, 2009 11:22:33 AM');
-					expect(ds_predefined.df_long).toBe('August 9, 2009 11:22:33 AM #serverTZ.TZ#');
-					expect(ds_predefined.df_full).toBe('Sunday, August 9, 2009 11:22:33 AM #serverTZ.TZ#');
-					expect(ds_predefined.dfu_SHORT).toBe('8/9/09 11:22 AM');
-					expect(ds_predefined.dfu_MEDIUM).toBe('Aug 9, 2009 11:22:33 AM');
-					expect(ds_predefined.dfu_LONG).toBe('August 9, 2009 11:22:33 AM #serverTZ.TZ#');
-					expect(ds_predefined.dfu_FULL).toBe('Sunday, August 9, 2009 11:22:33 AM #serverTZ.TZ#');
+					var tzi=getTimeZoneInfo();
+					if(getJavaVersion()>=9) {
+						expect(ds_predefined.df_full) .toBe('Sunday, August 9, 2009 at 11:22:33 AM Central European Summer Time');
+						expect(ds_predefined.dfu_FULL).toBe('Sunday, August 9, 2009 at 11:22:33 AM Central European Summer Time');
+					}
+					else {	
+						expect(ds_predefined.df_full) .toBe('Sunday, August 9, 2009 11:22:33 AM CEST');
+						expect(ds_predefined.dfu_FULL).toBe('Sunday, August 9, 2009 11:22:33 AM CEST');
+					}
 				});
 
 			});

@@ -244,16 +244,18 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 	
 	public void function testPredefined(){
-		if(getJavaVersion()>=10) {
+		if(getJavaVersion()>=9) {
 			assertEquals("6/9/09, 2:30 PM",DateTimeFormat(date,"short"));
-
+			assertEquals("Jun 9, 2009, 2:30:03 PM",DateTimeFormat(date,"medium"));
+			assertEquals("June 9, 2009 at 2:30:03 PM CEST",DateTimeFormat(date,"long"));
+			assertEquals("Tuesday, June 9, 2009 at 2:30:03 PM Central European Summer Time",DateTimeFormat(date,"full"));
 		}
 		else {
 			assertEquals("6/9/09 2:30 PM",DateTimeFormat(date,"short"));
+			assertEquals("Jun 9, 2009 2:30:03 PM",DateTimeFormat(date,"medium"));
+			assertEquals("June 9, 2009 2:30:03 PM CEST",DateTimeFormat(date,"long"));
+			assertEquals("Tuesday, June 9, 2009 2:30:03 PM CEST",DateTimeFormat(date,"full"));
 		}
-		assertEquals("Jun 9, 2009 2:30:03 PM",DateTimeFormat(date,"medium"));
-		assertEquals("June 9, 2009 2:30:03 PM CEST",DateTimeFormat(date,"long"));
-		assertEquals("Tuesday, June 9, 2009 2:30:03 PM CEST",DateTimeFormat(date,"full"));
 		assertEquals("09-Jun-2009 14:30:03",DateTimeFormat(date));
 		
 	}
