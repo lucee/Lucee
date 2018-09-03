@@ -106,7 +106,6 @@ import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
-import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpOptions;
@@ -2032,8 +2031,6 @@ class Executor4 extends PageContextThread {
 
 }
 
-
-@NotThreadSafe
 class HttpDeleteWithBody extends HttpEntityEnclosingRequestBase {
 	public static final String METHOD_NAME = "DELETE";
 	public String getMethod() { return METHOD_NAME; }
@@ -2045,7 +2042,6 @@ class HttpDeleteWithBody extends HttpEntityEnclosingRequestBase {
 }
 
 
-@NotThreadSafe
 class HttpGetWithBody extends HttpEntityEnclosingRequestBase {
 	public static final String METHOD_NAME = "GET";
 	public String getMethod() { return METHOD_NAME; }
