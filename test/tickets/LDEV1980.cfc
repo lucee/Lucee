@@ -13,7 +13,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				adminWeb.updateDatasource(argumentCollection = deserialiZejson(local.result.filecontent));
 				variables.dsn=deserialiZejson(local.result.filecontent);
 				tableCreation();
-				cfdbinfo(datasource=variables.dsn.newname,name="return_variable",type= "column",table="TestDsnTBL");
+				cfdbinfo(datasource=variables.dsn.newname,name="return_variable",type= "columns",table="TestDsnTBL");
 				expect(IsQuery(return_variable)).toBe('true');
 			});
 
@@ -25,7 +25,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				adminWeb.updateDatasource(argumentCollection = deserialiZejson(local.result.filecontent));
 				variables.dsn=deserialiZejson(local.result.filecontent);
 				tableCreation();
-				cfdbinfo(datasource=variables.dsn.newname,name="return_variable",type= "column",table="TestDsnTBL",dbname=variables.dsn.database);
+				cfdbinfo(datasource=variables.dsn.newname,name="return_variable",type= "columns",table="TestDsnTBL",dbname=variables.dsn.database);
 				expect(IsQuery(return_variable)).toBe('true');
 			});
 		});
