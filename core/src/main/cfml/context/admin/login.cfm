@@ -61,45 +61,47 @@
 						</select>
 					</td>
 				</tr>
-				<cfif loginSettings.captcha and extensionExists("B737ABC4-D43F-4D91-8E8E973E37C40D1B")>
-					<cfset cap=createRandomText(6)>
-					<cfset session.cap=cap>
-					<tr>
-						<th scope="row" class="right">#stText.login.captchaHelp#</th>
-						<td>
-							<cfset ImageWriteToBrowser(imageCaptcha(cap,180,180,"medium"))>
-							<a style="font-size : 10px" href="#request.self#<cfif structKeyExists(url,"action")>?action=#url.action#</cfif>">Reload</a><br />
-							<cfinputClassic type="text" name="captcha" value="" passthrough='autocomplete="off"'
-								class="medium" required="yes" message="#stText.login.captchaHelpMiss#">
-							<div class="comment">#stText.login.captchaHelpDesc#</div>
-						</td>
-					</tr>
-				<cfelse>
-					<cfset structDelete(SESSION, "cap") >
-					<tr>
-						<th scope="row" class="right">#stText.login.captchaHelp#</th>
-						<td>
-							<input type="hidden" name="captchaValue" value="" id="captchaValue">
-							<div style="height:50px;opacity:.7;text-align:center;" id="capBack">
-								<h1 style="padding-top:15px;font-weight:800;color:black;font-style: oblique;font-family:Palatino Linotype,cosmic sans;" id="capt"></h1>
-							</div>
-							<script type="text/javascript">
-								var val1 = Math.ceil(Math.random() * 10).toString(32);
-								var val2 = Math.ceil(Math.random() * 1000).toString(32).toUpperCase();
-								var val3 = Math.ceil(Math.random() * 5);
-								var val4 = Math.ceil(Math.random() * 5);
-								var val5 = Math.ceil(Math.random() * 5);
-								res=val1+val2+val3+val4+val5;
-								document.getElementById('captchaValue').value=res;
-								document.getElementById('capt').innerHTML=res;	
-								document.getElementById("capBack").style.backgroundColor = "rgb("+val3*100+","+val4*100+","+val5*100+")"; 
-							</script>
-							<a style="font-size : 10px" href="#request.self#<cfif structKeyExists(url,"action")>?action=#url.action#</cfif>">Reload</a><br />
-							<cfinputClassic type="text" name="captcha" value="" passthrough='autocomplete="off"'
-								class="medium" required="yes" message="#stText.login.captchaHelpMiss#">
-							<div class="comment">#stText.login.captchaHelpDesc#</div>
-						</td>
-					</tr>
+				<cfif loginSettings.captcha>
+					<cfif extensionExists("B737ABC4-D43F-4D91-8E8E973E37C40D1B")>
+						<cfset cap=createRandomText(6)>
+						<cfset session.cap=cap>
+						<tr>
+							<th scope="row" class="right">#stText.login.captchaHelp#</th>
+							<td>
+								<cfset ImageWriteToBrowser(imageCaptcha(cap,180,180,"medium"))>
+								<a style="font-size : 10px" href="#request.self#<cfif structKeyExists(url,"action")>?action=#url.action#</cfif>">Reload</a><br />
+								<cfinputClassic type="text" name="captcha" value="" passthrough='autocomplete="off"'
+									class="medium" required="yes" message="#stText.login.captchaHelpMiss#">
+								<div class="comment">#stText.login.captchaHelpDesc#</div>
+							</td>
+						</tr>
+					<cfelse>
+						<cfset structDelete(SESSION, "cap") >
+						<tr>
+							<th scope="row" class="right">#stText.login.captchaHelp#</th>
+							<td>
+								<input type="hidden" name="captchaValue" value="" id="captchaValue">
+								<div style="height:50px;opacity:.7;text-align:center;" id="capBack">
+									<h1 style="padding-top:15px;font-weight:800;color:black;font-style: oblique;font-family:Palatino Linotype,cosmic sans;" id="capt"></h1>
+								</div>
+								<script type="text/javascript">
+									var val1 = Math.ceil(Math.random() * 10).toString(32);
+									var val2 = Math.ceil(Math.random() * 1000).toString(32).toUpperCase();
+									var val3 = Math.ceil(Math.random() * 5);
+									var val4 = Math.ceil(Math.random() * 5);
+									var val5 = Math.ceil(Math.random() * 5);
+									res=val1+val2+val3+val4+val5;
+									document.getElementById('captchaValue').value=res;
+									document.getElementById('capt').innerHTML=res;	
+									document.getElementById("capBack").style.backgroundColor = "rgb("+val3*100+","+val4*100+","+val5*100+")"; 
+								</script>
+								<a style="font-size : 10px" href="#request.self#<cfif structKeyExists(url,"action")>?action=#url.action#</cfif>">Reload</a><br />
+								<cfinputClassic type="text" name="captcha" value="" passthrough='autocomplete="off"'
+									class="medium" required="yes" message="#stText.login.captchaHelpMiss#">
+								<div class="comment">#stText.login.captchaHelpDesc#</div>
+							</td>
+						</tr>
+					</cfif>
 				</cfif>
 				<cfif loginSettings.rememberMe>
 				<tr>
