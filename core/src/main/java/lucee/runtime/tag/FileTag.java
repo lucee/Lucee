@@ -661,6 +661,15 @@ public final class FileTag extends BodyTagImpl {
         if(output==null)
             throw new ApplicationException("attribute output is not defined for tag file");
         checkFile(pageContext, securityManager, file, serverPassword,createPath,true,false,true);
+        if(file.exists()) {
+	    	//Error
+	    	if(nameconflict==NAMECONFLICT_ERROR) throw new ApplicationException("destination file ["+file+"] already exist");
+	    	// SKIP
+	    	else if(nameconflict==NAMECONFLICT_SKIP) return;
+			// OVERWRITE
+			else if(nameconflict==NAMECONFLICT_OVERWRITE) file.delete();
+	    }
+
 
         setACL(pageContext,file,acl);
         try {
