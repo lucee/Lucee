@@ -57,6 +57,9 @@ a {
 	text-decoration:underline
 }
 
+tr > th > a {
+    color: #ffffff !important;
+}
 
 .admin-server a {
 	color:#bf4f36;

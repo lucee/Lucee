@@ -194,16 +194,30 @@ Redirtect to entry --->
 		</div>
 
 		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
+			<cfset sort = "asc">
+			<cfif sort EQ 'asc'>
+				<cfset sorting = "desc">
+			<cfelse>
+				<cfset sorting = "asc">
+			</cfif>
+			
 			<table class="maintbl checkboxtbl">
 				<thead>
 					<tr>
+						<cfif structKeyExists(URL, "sort")>
+							<cfset sorting = URL.sort EQ 'desc' ? 'asc' : 'desc'>
+						</cfif>
 						<th width="3%"><input type="checkbox" class="checkbox" name="rro" onclick="selectAll(this)" /></th>
-						<th><a href="#request.self#?action=#url.action#&order=task">#stText.Schedule.Name#
-							<cfif session.st.sortName EQ "task" and len(session.st.sortOrder)><img src="resources/img/arrow-#session.st.sortOrder EQ 'asc' ? 'up':'down'#.gif.cfm" hspace="4" vspace="4" border="0"></cfif></a></th>
-						<th><a href="#request.self#?action=#url.action#&order=interval">#stText.Schedule.Interval#
-							<cfif session.st.sortName EQ "interval" and len(session.st.sortOrder)><img src="resources/img/arrow-#session.st.sortOrder EQ 'asc' ? 'up':'down'#.gif.cfm" hspace="4" vspace="2" border="0"></cfif></a></th>
-						<th><a href="#request.self#?action=#url.action#&order=url">#stText.Schedule.URL#
-							<cfif session.st.sortName EQ "url" and len(session.st.sortOrder)><img src="resources/img/arrow-#session.st.sortOrder EQ 'asc' ? 'up':'down'#.gif.cfm" hspace="4" vspace="2" border="0"></cfif></a></th>
+						<th><a href="#request.self#?action=#url.action#&order=task&sort=#sorting#">#stText.Schedule.Name#
+							<cfif session.st.sortName EQ "task" and len(session.st.sortOrder)>
+								<img src="../res/img/arrow-#session.st.sortOrder EQ 'asc' ? 'up':'down'#.gif.cfm" hspace="4" vspace="4" border="0">
+							</cfif></a></th>
+						<th><a href="#request.self#?action=#url.action#&order=interval&sort=#sorting#">#stText.Schedule.Interval#
+							<cfif session.st.sortName EQ "interval" and len(session.st.sortOrder)><img src="../res/img/arrow-#session.st.sortOrder EQ 'asc' ? 'up':'down'#.gif.cfm" hspace="4" vspace="2" border="0"></cfif></a></th>
+
+						<th><a href="#request.self#?action=#url.action#&order=url&sort=#sorting#">#stText.Schedule.URL#
+							<cfif session.st.sortName EQ "url" and len(session.st.sortOrder)><img src="../res/img/arrow-#session.st.sortOrder EQ 'asc' ? 'up':'down'#.gif.cfm" hspace="4" vspace="2" border="0"></cfif></a></th>
+
 						<th>#stText.Schedule.paused#</th>
 						<th width="3%">&nbsp;</th>
 					</tr>
