@@ -185,6 +185,7 @@
 	
 	<cfset fileName = id&"."&ext>
 	<cfif cache && fileExists(tmpfile)>
+		<cfset request.refresh = false>
 		<cffile action="read" file="#tmpfile#" variable="b64">
 	<cfelseif len(src) ==0>
 		<cfset local.b64=("R0lGODlhMQApAIAAAGZmZgAAACH5BAEAAAAALAAAAAAxACkAAAIshI+py+0Po5y02ouz3rz7D4biSJbmiabqyrbuC8fyTNf2jef6zvf+DwwKeQUAOw==")>
@@ -198,6 +199,11 @@
 			<cfset data=toBinary(src)>
 
 		</cfif>
+		<cfif isValid("URL", src)>
+			<cffile action="readbinary" file="#src#" variable="data">
+			<cfset src=toBase64(data)>
+		</cfif>
+		<cffile action="write" file="#tmpfile#" output="#src#" createPath="true">
 		<cfif extensionExists("B737ABC4-D43F-4D91-8E8E973E37C40D1B")> <!--- image extension --->
 			<cfset img=imageRead(data)>
 
@@ -215,16 +221,13 @@
 				</cftry>
 				<cftry>
 					<cfset local.b64=toBase64(data)>
+					<cffile action="write" file="#tmpfile#" output="#local.b64#" createPath="true">
 					<cfcatch><cfrethrow></cfcatch><!--- if it fails because there is no permission --->
 				</cftry>
 			</cfif>
 		<cfelse>
 			<cfoutput>
-				<cfif isValid("URL", src)>
-					<cffile action="readbinary" file="#src#" variable="data">
-					<cfset src=toBase64(data)>
-				</cfif>
-				<cffile action="write" file="#tmpfile#" output="#src#" createPath="true">
+				<cfset request.refresh = true>
 				<cfset imgSrc = "data:image/png;base64,#src#" >
 				<img src="#imgSrc#" id="img_#id#" style="display:none" />
 				<canvas id="myCanvas_#id#"  style="display:none" ></canvas>
@@ -252,7 +255,7 @@
 					};
 
 					var data = "imgSrc="+encodeURIComponent(realData);
-					var ajaxURL = "/test.cfm?file=#fileName#";
+					var ajaxURL = "/lucee/admin/ImgProcess.cfm?file=#fileName#";
 					oAjax.open("POST", ajaxURL, true);
 					oAjax.send(data);
 
