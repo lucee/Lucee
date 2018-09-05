@@ -114,13 +114,6 @@
 			</tbody>
 		</table>
 	</div>
-	<div id="blockerContainer" class="jquery-modal current">
-		<div id="mdlWnd" class="modal">
-			<a href="##close-modal" rel="modal:close" class="close-modal ">Close</a>
-			<div class="modal-body"></div>
-		</div>
-	</div>
-	<cfinclude template="navigation.cfm">
 
 	<cfinclude template="navigation.cfm">
 	
