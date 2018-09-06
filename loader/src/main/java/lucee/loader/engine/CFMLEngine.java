@@ -175,9 +175,7 @@ public interface CFMLEngine {
 	 * @return returns the state of the version (alpha,beta,rc,final)
 	 * @deprecated use instead getInfo()
 	 */
-	@Deprecated
-	//public String getState();
-
+	
 	/**
 	 * @return returns how this engine will be updated (auto, manual)
 	 */

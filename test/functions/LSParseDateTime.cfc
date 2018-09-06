@@ -1,4 +1,4 @@
-<cfcomponent extends="org.lucee.cfml.test.LuceeTestCase">
+﻿<cfcomponent extends="org.lucee.cfml.test.LuceeTestCase">
 	<!---
 	<cffunction name="beforeTests"></cffunction>
 	<cffunction name="afterTests"></cffunction>
@@ -66,9 +66,18 @@
     <cfcatch></cfcatch>
 </cftry>
 
+<cfscript>
+    setlocale('french (standard)');
 
+    if(getJavaVersion()>=10) {
+        assertEquals("{ts '2008-02-29 00:00:00'}",lsParseDateTime( "29 Feb 2008",'english (uk)'));
 
-<cfset valueEquals(left="#lsParseDateTime( "29-Feb-2008",'english (uk)')#", right="{ts '2008-02-29 00:00:00'}")>
+    }
+    else {
+        assertEquals("{ts '2008-02-29 00:00:00'}",lsParseDateTime( "29-Feb-2008",'english (uk)'));
+    }
+</cfscript>
+
 <cfset valueEquals(left="#lsParseDateTime( "29 February 2008",'english (uk)')#", right="{ts '2008-02-29 00:00:00'}")>
 <cfset valueEquals(left="#lsParseDateTime( "Friday, 29 February 2008",'english (uk)')#", right="{ts '2008-02-29 00:00:00'}")>
 <cftry>
@@ -111,17 +120,61 @@
 <cfset valueEquals(left="-#lsParseDateTime("4/6/2008","english (UK)")#", right="-{ts '2008-06-04 00:00:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("4/6/2008","english (US)")#", right="-{ts '2008-04-06 00:00:00'}")>
 
+<!---
+foramts for German (swiss) are not the same in Java 8 and 10
 
-<cfset setlocale('German (swiss)')>
+--->
+<cfscript>
+    setlocale('German (swiss)');
+
+    if(getJavaVersion()>=9) {
+        if(getJavaVersion()<=10)
+            valueEquals(left="-#lsParseDateTime("01:02:03 BST")#", right="-{ts '1899-12-30 00:02:03'}"); // BST no longer is British summer time, Bangladesh Standard instead
+
+        valueEquals(left="-#lsParseDateTime("06.02.2008, 01:02:01 MEZ")#", right="-{ts '2008-02-06 01:02:01'}");
+        valueEquals(left="-#lsParseDateTime("06.06.2008, 01:02:02 MESZ")#", right="-{ts '2008-06-06 01:02:02'}");
+        valueEquals(left="-#lsParseDateTime("06.02.2008, 01:02:03 MESZ")#", right="-{ts '2008-02-06 00:02:03'}");
+        valueEquals(left="-#lsParseDateTime("06.06.2008, 01:02:04 MESZ")#", right="-{ts '2008-06-06 01:02:04'}");
+        valueEquals(left="-#lsParseDateTime("06.04.08, 01:02")#", right="-{ts '2008-04-06 01:02:00'}");
+        valueEquals(left="-#lsParseDateTime("06.04.08, 01:02:03")#", right="-{ts '2008-04-06 01:02:03'}");
+        valueEquals(left="-#lsParseDateTime("06.04.08, 01:02:03 MESZ")#", right="-{ts '2008-04-06 01:02:03'}");
+        valueEquals(left="-#lsParseDateTime("06.04.2008, 01:02:03 Mitteleuropäische Normalzeit")#", right="-{ts '2008-04-06 02:02:03'}");
+        valueEquals(left="-#lsParseDateTime("06.04.2008, 01:02")#", right="-{ts '2008-04-06 01:02:00'}");
+
+    }
+    else {
+        valueEquals(left="-#lsParseDateTime("06.04.08 1:02 Uhr MESZ")#", right="-{ts '2008-04-06 00:02:00'}");
+        valueEquals(left="-#lsParseDateTime("06.04.08 1:02 Uhr MEZ")#", right="-{ts '2008-04-06 01:02:00'}");
+        valueEquals(left="-#lsParseDateTime("06.04.08 1:02 Uhr MEZ")#", right="-{ts '2008-04-06 01:02:00'}");
+
+        valueEquals(left="-#lsParseDateTime("06.01.2008 1:02 Uhr MEZ")#", right="-{ts '2008-01-06 01:02:00'}");
+        valueEquals(left="-#lsParseDateTime("06.01.2008 1:02 Uhr MEZ")#", right="-{ts '2008-01-06 01:02:00'}");
+        valueEquals(left="-#lsParseDateTime("06.04.08 01:02:03 MESZ")#", right="-{ts '2008-04-06 00:02:03'}");
+        valueEquals(left="-#lsParseDateTime("06.01.2008 1:02 Uhr MESZ")#", right="-{ts '2008-01-06 00:02:00'}");
+        valueEquals(left="-#lsParseDateTime("06.01.2008 1:02 Uhr MEZ")#", right="-{ts '2008-01-06 01:02:00'}");
+        valueEquals(left="-#lsParseDateTime("06.01.2008 1:02 Uhr MEZ")#", right="-{ts '2008-01-06 01:02:00'}");
+        valueEquals(left="-#lsParseDateTime("6. April 2008 1:02 Uhr MESZ")#", right="-{ts '2008-04-06 01:02:00'}");
+        valueEquals(left="-#lsParseDateTime("11:02 Uhr MEZ")#", right="-{ts '1899-12-30 11:02:00'}");
+        valueEquals(left="-#lsParseDateTime("06.06.2008 1:02 Uhr MESZ")#", right="-{ts '2008-06-06 01:02:00'}");
+        valueEquals(left="-#lsParseDateTime("Sonntag, 6. April 2008 1:02 Uhr MESZ")#", right="-{ts '2008-04-06 01:02:00'}");
+    }
+
+
+    valueEquals(left="-#lsParseDateTime("06.02.2008 01:02:01 MEZ")#", right="-{ts '2008-02-06 01:02:01'}");
+    valueEquals(left="-#lsParseDateTime("06.06.2008 01:02:02 MESZ")#", right="-{ts '2008-06-06 01:02:02'}");
+    valueEquals(left="-#lsParseDateTime("06.02.2008 01:02:03 MESZ")#", right="-{ts '2008-02-06 00:02:03'}");
+    valueEquals(left="-#lsParseDateTime("06.06.2008 01:02:04 MESZ")#", right="-{ts '2008-06-06 01:02:04'}");
+    valueEquals(left="-#lsParseDateTime("06.04.08 01:02")#", right="-{ts '2008-04-06 01:02:00'}");
+    valueEquals(left="-#lsParseDateTime("06.04.08 01:02:03")#", right="-{ts '2008-04-06 01:02:03'}");
+    valueEquals(left="-#lsParseDateTime("06.04.2008 01:02")#", right="-{ts '2008-04-06 01:02:00'}");
+
+
+</cfscript>
+
 <cfset valueEquals(left="-#lsParseDateTime("01:02:03 MEZ")#", right="-{ts '1899-12-30 01:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("01:02:03 MESZ")#", right="-{ts '1899-12-30 00:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("01:02:03 GMT")#", right="-{ts '1899-12-30 02:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("01:02:03 BST")#", right="-{ts '1899-12-30 00:02:03'}")>
 
-<cfset valueEquals(left="-#lsParseDateTime("06.02.2008 01:02:01 MEZ")#", right="-{ts '2008-02-06 01:02:01'}")>
-<cfset valueEquals(left="-#lsParseDateTime("06.06.2008 01:02:02 MESZ")#", right="-{ts '2008-06-06 01:02:02'}")>
-<cfset valueEquals(left="-#lsParseDateTime("06.02.2008 01:02:03 MESZ")#", right="-{ts '2008-02-06 00:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("06.06.2008 01:02:04 MESZ")#", right="-{ts '2008-06-06 01:02:04'}")>
 
 <cfset valueEquals(left="-#lsParseDateTime("01:02:03 MESZ")#", right="-{ts '1899-12-30 00:02:03'}")>
 
@@ -132,60 +185,66 @@
 <cfset valueEquals(left="-#lsParseDateTime("6. April 2008")#", right="-{ts '2008-04-06 00:00:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("01:02:03 MESZ")#", right="-{ts '1899-12-30 00:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("Sonntag, 6. April 2008")#", right="-{ts '2008-04-06 00:00:00'}")>
-<cfset valueEquals(left="-#lsParseDateTime("06.04.08 01:02")#", right="-{ts '2008-04-06 01:02:00'}")>
-<cfset valueEquals(left="-#lsParseDateTime("06.04.08 01:02:03")#", right="-{ts '2008-04-06 01:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("06.04.08 01:02:03 MESZ")#", right="-{ts '2008-04-06 00:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("06.04.08 1:02 Uhr MESZ")#", right="-{ts '2008-04-06 00:02:00'}")>
-<cfset valueEquals(left="-#lsParseDateTime("06.04.08 1:02 Uhr MEZ")#", right="-{ts '2008-04-06 01:02:00'}")>
-<cfset valueEquals(left="-#lsParseDateTime("06.04.08 1:02 Uhr MEZ")#", right="-{ts '2008-04-06 01:02:00'}")>
-<cfset valueEquals(left="-#lsParseDateTime("06.04.2008 01:02")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("06.04.2008 01:02:03")#", right="-{ts '2008-04-06 01:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("06.01.2008 01:02:03 MEZ")#", right="-{ts '2008-01-06 01:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("06.01.2008 1:02 Uhr MEZ")#", right="-{ts '2008-01-06 01:02:00'}")>
-<cfset valueEquals(left="-#lsParseDateTime("06.01.2008 1:02 Uhr MEZ")#", right="-{ts '2008-01-06 01:02:00'}")>
+
 <cfset valueEquals(left="-#lsParseDateTime("06.01.2008 01:02:03 MESZ")#", right="-{ts '2008-01-06 00:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("06.01.2008 1:02 Uhr MESZ")#", right="-{ts '2008-01-06 00:02:00'}")>
-<cfset valueEquals(left="-#lsParseDateTime("06.01.2008 1:02 Uhr MEZ")#", right="-{ts '2008-01-06 01:02:00'}")>
-<cfset valueEquals(left="-#lsParseDateTime("06.01.2008 1:02 Uhr MEZ")#", right="-{ts '2008-01-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("06.06.2008 01:02:03 MESZ")#", right="-{ts '2008-06-06 01:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("06.06.2008 1:02 Uhr MESZ")#", right="-{ts '2008-06-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("6. April 2008 01:02")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("6. April 2008 01:02:03")#", right="-{ts '2008-04-06 01:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("6. April 2008 01:02:03 MESZ")#", right="-{ts '2008-04-06 01:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("6. April 2008 1:02 Uhr MESZ")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("Sonntag, 6. April 2008 01:02")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("Sonntag, 6. April 2008 01:02:03")#", right="-{ts '2008-04-06 01:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("Sonntag, 6. April 2008 01:02:03 MESZ")#", right="-{ts '2008-04-06 01:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("Sonntag, 6. April 2008 1:02 Uhr MESZ")#", right="-{ts '2008-04-06 01:02:00'}")>
-<cfset valueEquals(left="-#lsParseDateTime("11:02 Uhr MEZ")#", right="-{ts '1899-12-30 11:02:00'}")>
 
 
 <cfset setlocale('french (swiss)')>
+<cfscript>
+    if(getJavaVersion()>=9) {
+        valueEquals(left="-#lsParseDateTime("6 avril 2008")#", right="-{ts '2008-04-06 00:00:00'}");
+    }
+    else {
+        valueEquals(left="-#lsParseDateTime("6. avril 2008")#", right="-{ts '2008-04-06 00:00:00'}");
+        valueEquals(left="-#lsParseDateTime("01.02. h CEST")#", right="-{ts '1899-12-30 00:02:00'}");
+        valueEquals(left="-#lsParseDateTime("06.04.08 01.02. h CEST")#", right="-{ts '2008-04-06 01:02:00'}");
+        valueEquals(left="-#lsParseDateTime("6 avr. 2008 01.02. h CEST")#", right="-{ts '2008-04-06 01:02:00'}");
+        valueEquals(left="-#lsParseDateTime("6. avril 2008 01.02. h CEST")#", right="-{ts '2008-04-06 01:02:00'}");
+        valueEquals(left="-#lsParseDateTime("dimanche, 6. avril 2008 01.02. h CEST")#", right="-{ts '2008-04-06 01:02:00'}");
+    }
+
+</cfscript>
 <cfset valueEquals(left="-#lsParseDateTime("06.04.08")#", right="-{ts '2008-04-06 00:00:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("01:02")#", right="-{ts '1899-12-30 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("6 avr. 2008")#", right="-{ts '2008-04-06 00:00:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("01:02:03")#", right="-{ts '1899-12-30 01:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("6. avril 2008")#", right="-{ts '2008-04-06 00:00:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("01:02:03 CEST")#", right="-{ts '1899-12-30 00:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("dimanche, 6. avril 2008")#", right="-{ts '2008-04-06 00:00:00'}")>
-<cfset valueEquals(left="-#lsParseDateTime("01.02. h CEST")#", right="-{ts '1899-12-30 00:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("06.04.08 01:02")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("06.04.08 01:02:03")#", right="-{ts '2008-04-06 01:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("06.04.08 01:02:03 CEST")#", right="-{ts '2008-04-06 01:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("06.04.08 01.02. h CEST")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("6 avr. 2008 01:02")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("6 avr. 2008 01:02:03")#", right="-{ts '2008-04-06 01:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("6 avr. 2008 01:02:03 CEST")#", right="-{ts '2008-04-06 01:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("6 avr. 2008 01.02. h CEST")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("6. avril 2008 01:02")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("6. avril 2008 01:02:03")#", right="-{ts '2008-04-06 01:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("6. avril 2008 01:02:03 CEST")#", right="-{ts '2008-04-06 01:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("6. avril 2008 01.02. h CEST")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("dimanche, 6. avril 2008 01:02")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("dimanche, 6. avril 2008 01:02:03")#", right="-{ts '2008-04-06 01:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("dimanche, 6. avril 2008 01:02:03 CEST")#", right="-{ts '2008-04-06 01:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("dimanche, 6. avril 2008 01.02. h CEST")#", right="-{ts '2008-04-06 01:02:00'}")>
+
 <cfset setlocale('italian (swiss)')>
+<cfscript>
+    if(getJavaVersion()>=9) {
+    }
+    else {
+        valueEquals(left="-#lsParseDateTime("1.02 h CEST")#", right="-{ts '1899-12-30 00:02:00'}");
+        valueEquals(left="-#lsParseDateTime("06.04.08 1.02 h CEST")#", right="-{ts '2008-04-06 01:02:00'}");
+        valueEquals(left="-#lsParseDateTime("6-apr-2008 1.02 h CEST")#", right="-{ts '2008-04-06 01:02:00'}");
+        valueEquals(left="-#lsParseDateTime("6. aprile 2008 1.02 h CEST")#", right="-{ts '2008-04-06 01:02:00'}");
+        valueEquals(left="-#lsParseDateTime("domenica, 6. aprile 2008 1.02 h CEST")#", right="-{ts '2008-04-06 01:02:00'}");
+    }
+
+</cfscript>
 <cfset valueEquals(left="-#lsParseDateTime("06.04.08")#", right="-{ts '2008-04-06 00:00:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("01:02")#", right="-{ts '1899-12-30 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("6-apr-2008")#", right="-{ts '2008-04-06 00:00:00'}")>
@@ -193,23 +252,20 @@
 <cfset valueEquals(left="-#lsParseDateTime("6. aprile 2008")#", right="-{ts '2008-04-06 00:00:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("01:02:03 CEST")#", right="-{ts '1899-12-30 00:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("domenica, 6. aprile 2008")#", right="-{ts '2008-04-06 00:00:00'}")>
-<cfset valueEquals(left="-#lsParseDateTime("1.02 h CEST")#", right="-{ts '1899-12-30 00:02:00'}")>
+
 <cfset valueEquals(left="-#lsParseDateTime("06.04.08 01:02")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("06.04.08 01:02:03")#", right="-{ts '2008-04-06 01:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("06.04.08 01:02:03 CEST")#", right="-{ts '2008-04-06 01:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("06.04.08 1.02 h CEST")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("6-apr-2008 01:02")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("6-apr-2008 01:02:03")#", right="-{ts '2008-04-06 01:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("6-apr-2008 01:02:03 CEST")#", right="-{ts '2008-04-06 01:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("6-apr-2008 1.02 h CEST")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("6. aprile 2008 01:02")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("6. aprile 2008 01:02:03")#", right="-{ts '2008-04-06 01:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("6. aprile 2008 01:02:03 CEST")#", right="-{ts '2008-04-06 01:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("6. aprile 2008 1.02 h CEST")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("domenica, 6. aprile 2008 01:02")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("domenica, 6. aprile 2008 01:02:03")#", right="-{ts '2008-04-06 01:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("domenica, 6. aprile 2008 01:02:03 CEST")#", right="-{ts '2008-04-06 01:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("domenica, 6. aprile 2008 1.02 h CEST")#", right="-{ts '2008-04-06 01:02:00'}")>
+
 <cfset setlocale('English (US)')>
 <cfset valueEquals(left="-#lsParseDateTime("4/6/08")#", right="-{ts '2008-04-06 00:00:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("1:02 AM")#", right="-{ts '1899-12-30 01:02:00'}")>
@@ -234,8 +290,28 @@
 <cfset valueEquals(left="-#lsParseDateTime("Sunday, April 6, 2008 1:02 AM")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("Sunday, April 6, 2008 1:02:03 AM")#", right="-{ts '2008-04-06 01:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("Sunday, April 6, 2008 1:02:03 AM CEST")#", right="-{ts '2008-04-06 01:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("Sunday, April 6, 2008 1:02:03 AM CEST")#", right="-{ts '2008-04-06 01:02:03'}")>
+<cfset valueEquals(left="-#lsParseDateTime("01:02:03 AM CET")#", right="-{ts '1899-12-30 01:02:03'}")>
+<cfset valueEquals(left="-#lsParseDateTime("01:02:03 AM UTC")#", right="-{ts '1899-12-30 02:02:03'}")>
+<cfset valueEquals(left="-#lsParseDateTime("01:02:03 AM NST")#", right="-{ts '1899-12-30 05:32:03'}")>
+
 <cfset setlocale('English (UK)')>
+<cfscript>
+    if(getJavaVersion()>=9) {
+    }
+    else {
+        valueEquals(left="-#lsParseDateTime("01:02:03 o'clock CEST")#", right="-{ts '1899-12-30 00:02:03'}");
+        valueEquals(left="-#lsParseDateTime("06/04/08 01:02:03 o'clock CEST")#", right="-{ts '2008-04-06 01:02:03'}");
+        valueEquals(left="-#lsParseDateTime("06-Apr-2008 01:02:03 o'clock CEST")#", right="-{ts '2008-04-06 01:02:03'}");
+        valueEquals(left="-#lsParseDateTime("06 April 2008 01:02:03 o'clock CEST")#", right="-{ts '2008-04-06 01:02:03'}");
+        valueEquals(left="-#lsParseDateTime("Sunday, 6 April 2008 01:02:03 o'clock CEST")#", right="-{ts '2008-04-06 01:02:03'}");
+        valueEquals(left="-#lsParseDateTime("06 February 2008 01:02:03 o'clock CEST","english (uk)")#", right="-{ts '2008-02-06 00:02:03'}");
+        valueEquals(left="-#lsParseDateTime("06 June 2008 01:02:03 o'clock CEST","english (uk)")#", right="-{ts '2008-06-06 01:02:03'}");
+        valueEquals(left="-#lsParseDateTime("06 June 2008 01:02:03 o'clock PDT","english (uk)")#", right="-{ts '2008-06-06 10:02:03'}");
+        valueEquals(left="-#lsParseDateTime("06 April 2008 01:02:03 o'clock GMT")#", right="-{ts '2008-04-06 03:02:03'}");
+        valueEquals(left="-#lsParseDateTime("06 April 2008 01:02:03 o'clock NST")#", right="-{ts '2008-04-06 06:32:03'}");
+    }
+
+</cfscript>
 <cfset valueEquals(left="-#lsParseDateTime("06/04/08")#", right="-{ts '2008-04-06 00:00:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("01:02")#", right="-{ts '1899-12-30 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("06-Apr-2008")#", right="-{ts '2008-04-06 00:00:00'}")>
@@ -243,67 +319,36 @@
 <cfset valueEquals(left="-#lsParseDateTime("06 April 2008")#", right="-{ts '2008-04-06 00:00:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("01:02:03 CEST")#", right="-{ts '1899-12-30 00:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("Sunday, 6 April 2008")#", right="-{ts '2008-04-06 00:00:00'}")>
-<cfset valueEquals(left="-#lsParseDateTime("01:02:03 o'clock CEST")#", right="-{ts '1899-12-30 00:02:03'}")>
+
 <cfset valueEquals(left="-#lsParseDateTime("06/04/08 01:02")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("06/04/08 01:02:03")#", right="-{ts '2008-04-06 01:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("06/04/08 01:02:03 CEST")#", right="-{ts '2008-04-06 01:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("06/04/08 01:02:03 o'clock CEST")#", right="-{ts '2008-04-06 01:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("06-Apr-2008 01:02")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("06-Apr-2008 01:02:03")#", right="-{ts '2008-04-06 01:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("06-Apr-2008 01:02:03 CEST")#", right="-{ts '2008-04-06 01:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("06-Apr-2008 01:02:03 o'clock CEST")#", right="-{ts '2008-04-06 01:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("06 April 2008 01:02")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("06 April 2008 01:02:03")#", right="-{ts '2008-04-06 01:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("06 April 2008 01:02:03 CEST")#", right="-{ts '2008-04-06 01:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("06 April 2008 01:02:03 o'clock CEST")#", right="-{ts '2008-04-06 01:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("Sunday, 6 April 2008 01:02")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("Sunday, 6 April 2008 01:02:03")#", right="-{ts '2008-04-06 01:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("Sunday, 6 April 2008 01:02:03 CEST")#", right="-{ts '2008-04-06 01:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("Sunday, 6 April 2008 01:02:03 o'clock CEST")#", right="-{ts '2008-04-06 01:02:03'}")>
-
-
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
-
-<cfset setlocale('english (us)')>
-<cfset valueEquals(left="-#lsParseDateTime("01:02:03 AM CET")#", right="-{ts '1899-12-30 01:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("01:02:03 AM UTC")#", right="-{ts '1899-12-30 02:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("01:02:03 AM NST")#", right="-{ts '1899-12-30 05:32:03'}")>
-
-<cfset setlocale('english (uk)')>
-<cfset valueEquals(left="-#lsParseDateTime("06 June 2008 01:02:03 o'clock CEST","english (uk)")#", right="-{ts '2008-06-06 01:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("06 February 2008 01:02:03 o'clock CEST","english (uk)")#", right="-{ts '2008-02-06 00:02:03'}")>
-
-
-<cfset valueEquals(left="-#lsParseDateTime("06 June 2008 01:02:03 o'clock PDT","english (uk)")#", right="-{ts '2008-06-06 10:02:03'}")>
-
-<cfset valueEquals(left="-#lsParseDateTime("06 April 2008 01:02:03 o'clock GMT")#", right="-{ts '2008-04-06 03:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("06 April 2008 01:02:03 o'clock NST")#", right="-{ts '2008-04-06 06:32:03'}")>
 
 
 <cfset setlocale('German (swiss)')>
+<cfscript>
+    if(getJavaVersion()>=9) {
+        valueEquals(left="-#lsParseDateTime("06.04.08 01:02:03 MESZ")#", right="-{ts '2008-04-06 01:02:03'}");
+    }
+    else {
+        valueEquals(left="-#lsParseDateTime("1:02 Uhr MEZ")#", right="-{ts '1899-12-30 01:02:00'}");
+        valueEquals(left="-#lsParseDateTime("06.04.08 1:02 Uhr MESZ")#", right="-{ts '2008-04-06 00:02:00'}");
+        valueEquals(left="-#lsParseDateTime("Sonntag, 6. April 2008 1:02 Uhr MESZ")#", right="-{ts '2008-04-06 01:02:00'}");
+        valueEquals(left="-#lsParseDateTime("06.04.2008 1:02 Uhr MESZ")#", right="-{ts '2008-04-06 01:02:00'}");
+        valueEquals(left="-#lsParseDateTime("6. April 2008 1:02 Uhr MESZ")#", right="-{ts '2008-04-06 01:02:00'}");
+        valueEquals(left="-#lsParseDateTime("06.04.08 01:02:03 MESZ")#", right="-{ts '2008-04-06 00:02:03'}");
+    }
+
+</cfscript>
 <cfset valueEquals(left="-#lsParseDateTime("06.04.08")#", right="-{ts '2008-04-06 00:00:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("01:02")#", right="-{ts '1899-12-30 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("06.04.2008")#", right="-{ts '2008-04-06 00:00:00'}")>
@@ -311,23 +356,19 @@
 <cfset valueEquals(left="-#lsParseDateTime("6. April 2008")#", right="-{ts '2008-04-06 00:00:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("01:02:03 MESZ")#", right="-{ts '1899-12-30 00:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("Sonntag, 6. April 2008")#", right="-{ts '2008-04-06 00:00:00'}")>
-<cfset valueEquals(left="-#lsParseDateTime("1:02 Uhr MEZ")#", right="-{ts '1899-12-30 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("06.04.08 01:02")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("06.04.08 01:02:03")#", right="-{ts '2008-04-06 01:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("06.04.08 01:02:03 MESZ")#", right="-{ts '2008-04-06 00:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("06.04.08 1:02 Uhr MESZ")#", right="-{ts '2008-04-06 00:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("06.04.2008 01:02")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("06.04.2008 01:02:03")#", right="-{ts '2008-04-06 01:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("06.04.2008 01:02:03 MESZ")#", right="-{ts '2008-04-06 01:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("06.04.2008 1:02 Uhr MESZ")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("6. April 2008 01:02")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("6. April 2008 01:02:03")#", right="-{ts '2008-04-06 01:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("6. April 2008 01:02:03 MESZ")#", right="-{ts '2008-04-06 01:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("6. April 2008 1:02 Uhr MESZ")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("Sonntag, 6. April 2008 01:02")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("Sonntag, 6. April 2008 01:02:03")#", right="-{ts '2008-04-06 01:02:03'}")>
+
+<cfset valueEquals(left="-#lsParseDateTime("06.04.2008 01:02:03 MESZ")#", right="-{ts '2008-04-06 01:02:03'}")>
+<cfset valueEquals(left="-#lsParseDateTime("6. April 2008 01:02:03 MESZ")#", right="-{ts '2008-04-06 01:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("Sonntag, 6. April 2008 01:02:03 MESZ")#", right="-{ts '2008-04-06 01:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("Sonntag, 6. April 2008 1:02 Uhr MESZ")#", right="-{ts '2008-04-06 01:02:00'}")>
+
 <cfset setlocale('french (swiss)')>
 <cfset valueEquals(left="-#lsParseDateTime("06.04.08")#", right="-{ts '2008-04-06 00:00:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("01:02")#", right="-{ts '1899-12-30 01:02:00'}")>
@@ -336,23 +377,19 @@
 <cfset valueEquals(left="-#lsParseDateTime("6. avril 2008")#", right="-{ts '2008-04-06 00:00:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("01:02:03 CEST")#", right="-{ts '1899-12-30 00:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("dimanche, 6. avril 2008")#", right="-{ts '2008-04-06 00:00:00'}")>
-<cfset valueEquals(left="-#lsParseDateTime("01.02. h CEST")#", right="-{ts '1899-12-30 00:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("06.04.08 01:02")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("06.04.08 01:02:03")#", right="-{ts '2008-04-06 01:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("06.04.08 01:02:03 CEST")#", right="-{ts '2008-04-06 01:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("06.04.08 01.02. h CEST")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("6 avr. 2008 01:02")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("6 avr. 2008 01:02:03")#", right="-{ts '2008-04-06 01:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("6 avr. 2008 01:02:03 CEST")#", right="-{ts '2008-04-06 01:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("6 avr. 2008 01.02. h CEST")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("6. avril 2008 01:02")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("6. avril 2008 01:02:03")#", right="-{ts '2008-04-06 01:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("6. avril 2008 01:02:03 CEST")#", right="-{ts '2008-04-06 01:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("6. avril 2008 01.02. h CEST")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("dimanche, 6. avril 2008 01:02")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("dimanche, 6. avril 2008 01:02:03")#", right="-{ts '2008-04-06 01:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("dimanche, 6. avril 2008 01:02:03 CEST")#", right="-{ts '2008-04-06 01:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("dimanche, 6. avril 2008 01.02. h CEST")#", right="-{ts '2008-04-06 01:02:00'}")>
+
 <cfset setlocale('italian (swiss)')>
 <cfset valueEquals(left="-#lsParseDateTime("06.04.08")#", right="-{ts '2008-04-06 00:00:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("01:02")#", right="-{ts '1899-12-30 01:02:00'}")>
@@ -361,23 +398,18 @@
 <cfset valueEquals(left="-#lsParseDateTime("6. aprile 2008")#", right="-{ts '2008-04-06 00:00:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("01:02:03 CEST")#", right="-{ts '1899-12-30 00:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("domenica, 6. aprile 2008")#", right="-{ts '2008-04-06 00:00:00'}")>
-<cfset valueEquals(left="-#lsParseDateTime("1.02 h CEST")#", right="-{ts '1899-12-30 00:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("06.04.08 01:02")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("06.04.08 01:02:03")#", right="-{ts '2008-04-06 01:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("06.04.08 01:02:03 CEST")#", right="-{ts '2008-04-06 01:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("06.04.08 1.02 h CEST")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("6-apr-2008 01:02")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("6-apr-2008 01:02:03")#", right="-{ts '2008-04-06 01:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("6-apr-2008 01:02:03 CEST")#", right="-{ts '2008-04-06 01:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("6-apr-2008 1.02 h CEST")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("6. aprile 2008 01:02")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("6. aprile 2008 01:02:03")#", right="-{ts '2008-04-06 01:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("6. aprile 2008 01:02:03 CEST")#", right="-{ts '2008-04-06 01:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("6. aprile 2008 1.02 h CEST")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("domenica, 6. aprile 2008 01:02")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("domenica, 6. aprile 2008 01:02:03")#", right="-{ts '2008-04-06 01:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("domenica, 6. aprile 2008 01:02:03 CEST")#", right="-{ts '2008-04-06 01:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("domenica, 6. aprile 2008 1.02 h CEST")#", right="-{ts '2008-04-06 01:02:00'}")>
 
 <cfset setlocale('English (US)')>
 <cfset valueEquals(left="-#lsParseDateTime("4/6/08")#", right="-{ts '2008-04-06 00:00:00'}")>
@@ -420,25 +452,18 @@
 <cfset valueEquals(left="-#lsParseDateTime("06 April 2008")#", right="-{ts '2008-04-06 00:00:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("01:02:03 CEST")#", right="-{ts '1899-12-30 00:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("Sunday, 6 April 2008")#", right="-{ts '2008-04-06 00:00:00'}")>
-<cfset valueEquals(left="-#lsParseDateTime("01:02:03 o'clock CEST")#", right="-{ts '1899-12-30 00:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("06/04/08 01:02")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("06/04/08 01:02:03")#", right="-{ts '2008-04-06 01:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("06/04/08 01:02:03 CEST")#", right="-{ts '2008-04-06 01:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("06/04/08 01:02:03 o'clock CEST")#", right="-{ts '2008-04-06 01:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("06-Apr-2008 01:02")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("06-Apr-2008 01:02:03")#", right="-{ts '2008-04-06 01:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("06-Apr-2008 01:02:03 CEST")#", right="-{ts '2008-04-06 01:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("06-Apr-2008 01:02:03 o'clock CEST")#", right="-{ts '2008-04-06 01:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("06 April 2008 01:02")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("06 April 2008 01:02:03")#", right="-{ts '2008-04-06 01:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("06 April 2008 01:02:03 CEST")#", right="-{ts '2008-04-06 01:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("06 April 2008 01:02:03 o'clock CEST")#", right="-{ts '2008-04-06 01:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("06 April 2008 01:02:03 o'clock GMT")#", right="-{ts '2008-04-06 03:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("06 April 2008 01:02:03 o'clock NST")#", right="-{ts '2008-04-06 06:32:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("Sunday, 6 April 2008 01:02")#", right="-{ts '2008-04-06 01:02:00'}")>
 <cfset valueEquals(left="-#lsParseDateTime("Sunday, 6 April 2008 01:02:03")#", right="-{ts '2008-04-06 01:02:03'}")>
 <cfset valueEquals(left="-#lsParseDateTime("Sunday, 6 April 2008 01:02:03 CEST")#", right="-{ts '2008-04-06 01:02:03'}")>
-<cfset valueEquals(left="-#lsParseDateTime("Sunday, 6 April 2008 01:02:03 o'clock CEST")#", right="-{ts '2008-04-06 01:02:03'}")>
 
 <cfset setLocale("German (Swiss)")>
 <cfset dt=CreateDateTime(2004,1,2,4,5,6)>
@@ -514,4 +539,16 @@
 		<cfargument name="right">
 		<cfset assertEquals(arguments.right,arguments.left)>
 	</cffunction>
+
+<cfscript>
+
+    private function getJavaVersion() {
+        var raw=server.java.version;
+        var arr=listToArray(raw,'.');
+        if(arr[1]==1) // version 1-9
+            return arr[2];
+        return arr[1];
+    }
+
+</cfscript>
 </cfcomponent>

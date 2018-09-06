@@ -47,11 +47,11 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.KeyConstants;
+import lucee.runtime.type.util.ListUtil;
 
 public class DeployHandler {
 
 	private static final ResourceFilter ALL_EXT = new ExtensionResourceFilter(new String[]{".lex",".lar",".lco"});
-	//private static final ResourceFilter ARCHIVE_EXT = new ExtensionResourceFilter(new String[]{".ra",".ras"});
 
 	/**
 	 * deploys all files found 
@@ -284,34 +284,31 @@ public class DeployHandler {
 		String apiKey = config.getIdentification().getApiKey();
 		URL url;
 		RHExtensionProvider[] providers = ((ConfigImpl)config).getRHExtensionProviders();
-		for(int i=0;i<providers.length;i++){
+
+		for(int i=0;i<providers.length;i++) {
 			HTTPResponse rsp=null;
 			try{
 				url=providers[i].getURL();
-				
 				StringBuilder qs=new StringBuilder();
 				addQueryParam(qs,"ioid",apiKey);
 				addQueryParam(qs,"version",ed.getVersion());
-				
-				
+
 				url=new URL(url,"/rest/extension/provider/full/"+ed.getId()+qs);
-				
-				
-				
+				if(log!=null)log.info("main","check for extension at : "+url);
+
 				rsp = HTTPEngine.get(url, null, null, -1, false, "UTF-8", "", null, new Header[]{new HeaderImpl("accept","application/cfml")});
 				if(rsp.getStatusCode()!=200)
-					throw new IOException("failed to load extension: "+ed);
+					throw new IOException("failed ("+rsp.getStatusCode()+") to load extension: "+ed+" from "+url);
 				
 				// copy it locally
 				Resource res = SystemUtil.getTempDirectory().getRealResource(ed.getId()+"-"+ed.getVersion()+".lex");
 				ResourceUtil.touch(res);
 				IOUtil.copy(rsp.getContentAsStream(), res, true);
-				
+				if(log!=null)log.info("main","downloaded extension ["+ed+"] to ["+res+"]");
 				return res;
 			}
-			catch(Throwable t) {
-				ExceptionUtil.rethrowIfNecessary(t);
-				if(log!=null)log.error("extension", t);
+			catch(Exception e) {
+				if(log!=null)log.error("extension", e);
 			}
 			finally {
 				HTTPEngine.closeEL(rsp);
@@ -319,8 +316,6 @@ public class DeployHandler {
 		}
 		return null;
 	}
-	
-	
 
 	private static void addQueryParam(StringBuilder qs, String name,String value) {
 		if(StringUtil.isEmpty(value)) return;
@@ -346,12 +341,10 @@ public class DeployHandler {
 			}
 			catch(Exception e){}
 		}
-		
 		// remote
 		return downloadExtension(config, ed, log);
 	}
-	
-	
+
 	public static ExtensionDefintion getLocalExtension(Config config, ExtensionDefintion ed, ExtensionDefintion defaultValue) {
 		Iterator<ExtensionDefintion> it = getLocalExtensions(config).iterator();
 		ExtensionDefintion ext;

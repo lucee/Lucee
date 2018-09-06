@@ -23,8 +23,6 @@ import lucee.transformer.bytecode.expression.var.Assign;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.Invoker;
 
-import org.objectweb.asm.Type;
-
 public interface Variable extends Expression, Invoker {
 
 	public int getScope();
@@ -53,7 +51,7 @@ public interface Variable extends Expression, Invoker {
 	public void setAsCollection(Boolean asCollection);
 
 	public int getCount();
-	public Type writeOutCollection(Context c, int mode) throws TransformerException;
+	public Class<?> writeOutCollection(Context c, int mode) throws TransformerException;
 
 
 	Member removeMember(int index);

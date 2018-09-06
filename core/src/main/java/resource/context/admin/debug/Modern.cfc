@@ -81,7 +81,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 		variables.cookieName_docs = "lucee_docs_modern";
 
 		function buildSectionStruct() {
-			var otherSections = [ "ALL", "Dump", "ExecTime", "ExecOrder", "Exceptions", "ImpAccess", "Info", "Query", "Timer", "Trace", "More", "Expression", "memChart", "cpuChart", "docs_Info", "tags", "functions", "components", "scopesInMemory", "request_Threads", "datasource_connection", "task_Spooler" ];
+			var otherSections = [ "ALL", "Dump", "ExecTime", "ExecOrder", "Exceptions", "ImpAccess", "Info", "Scopes", "Application", "Session", "Form", "URL", "Client", "Cookie", "Request", "_Cgi", "Query", "Timer", "Trace", "More", "Expression", "memChart", "cpuChart", "docs_Info", "tags", "functions", "components", "scopesInMemory", "request_Threads", "datasource_connection", "task_Spooler" ];
 			var i = 0;
 			var result = {};
 			for ( var k in otherSections )
@@ -702,6 +702,10 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 					}
 					clickAjax(section);
 				</script>
+			<cfelseif REQUEST.admin=true>
+				<cfscript>
+					clickAjax("debug");
+				</cfscript>
 			</cfif>
 		</cfoutput>
 	</cffunction><!--- output() !--->
@@ -735,7 +739,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			<!--- <cfset arguments.custom.sort_charts 		= (arguments.custom.sort_charts ?: '1,2,3,4')> --->
 
 
-			<cfset var _cgi=structKeyExists(arguments.debugging,'cgi')?arguments.debugging.cgi:cgi />
+			<cfset var _cgi=structKeyExists(arguments.debugging.scope,'cgi')?arguments.debugging.scope.cgi:cgi />
 			<cfset var pages=arguments.debugging.pages />
 			<cfset var queries=arguments.debugging.queries />
 			<cfif not isDefined('arguments.debugging.timers')>
@@ -758,8 +762,12 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			<cfset local.totCnt   = 0>
 			<cfset local.q        = 0>
 			<cfset local.totAvg   = 0>
-			<cfset queryAddColumn(pages, "method")>
-			<cfset queryAddColumn(pages, "path")>
+			<cfif !QueryColumnExists( pages, "method" )>
+				<cfset queryAddColumn(pages, "method")>
+			</cfif>
+			<cfif !QueryColumnExists( pages, "path" )>
+				<cfset queryAddColumn(pages, "path")>
+			</cfif>
 			<cfloop query="pages">
 				<cfset querySetCell(pages, "total", pages.app + pages.load + pages.query, pages.currentRow)>
 				<cfset querySetCell(pages, "avg", (pages.app + pages.load + pages.query) / pages.count, pages.currentRow)>
@@ -1356,6 +1364,126 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 						</td><!--- #-lucee-debug-#sectionId# !--->
 					</tr>
 				</table>
+			</cfif>
+
+
+			<!--- Scopes --->
+
+			<cfset local.appSettings = getApplicationSettings()>
+			<cfif structKeyExists( arguments.debugging, "scope" )>
+				<div class="section-title">Scopes</div>
+				<cfif  structKeyExists( arguments.debugging.scope, "Application" )>
+					<cfset sectionId = "Application">
+					<cfset isOpen = this.isSectionOpen( sectionId, "debugging" )>
+
+					<table>
+						<tr>
+						<cfset renderSectionHeadTR( sectionId, "debugging", "Application")>
+						<td  id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
+							<cfdump var="#arguments.debugging.scope.application#" />
+						<td>
+						</tr>
+					</table>
+				</cfif>
+
+				<cfif  structKeyExists( arguments.debugging.scope, "Session" ) && local.appSettings.sessionManagement>
+					<cfset sectionId = "Session">
+					<cfset isOpen = this.isSectionOpen( sectionId, "debugging" )>
+
+					<table>
+						<tr>
+						<cfset renderSectionHeadTR( sectionId, "debugging", "session")>
+						<td  id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
+							<cfdump var="#arguments.debugging.scope.session#" />
+						<td>
+						</tr>
+					</table>
+				</cfif>
+
+				<cfif  structKeyExists( arguments.debugging.scope, "client" ) && local.appSettings.clientManagement>
+					<cfset sectionId = "client">
+					<cfset isOpen = this.isSectionOpen( sectionId, "debugging" )>
+
+					<table>
+						<tr>
+						<cfset renderSectionHeadTR( sectionId, "debugging", "client")>
+						<td  id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
+							<cfdump var="#arguments.debugging.scope.client#" />
+						<td>
+						</tr>
+					</table>
+				</cfif>
+
+
+				<cfif  structKeyExists( arguments.debugging.scope, "Form" )>
+					<cfset sectionId = "Form">
+					<cfset isOpen = this.isSectionOpen( sectionId, "debugging" )>
+
+					<table>
+						<tr>
+						<cfset renderSectionHeadTR( sectionId, "debugging", "Form")>
+						<td  id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
+							<cfdump var="#arguments.debugging.scope.form#" />
+						<td>
+						</tr>
+					</table>
+				</cfif>
+
+				<cfif  structKeyExists( arguments.debugging.scope, "URL" )>
+					<cfset sectionId = "URL">
+					<cfset isOpen = this.isSectionOpen( sectionId, "debugging" )>
+
+					<table>
+						<tr>
+						<cfset renderSectionHeadTR( sectionId, "debugging", "URL")>
+						<td  id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
+							<cfdump var="#arguments.debugging.scope.URL#" />
+						<td>
+						</tr>
+					</table>
+				</cfif>
+
+				<cfif  structKeyExists( arguments.debugging.scope, "cgi" )>
+					<cfset sectionId = "_Cgi">
+					<cfset isOpen = this.isSectionOpen( sectionId, "debugging" )>
+
+					<table>
+						<tr>
+						<cfset renderSectionHeadTR( sectionId, "debugging", "cgi")>
+						<td  id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
+							<cfdump var="#arguments.debugging.scope.cgi#" />
+						<td>
+						</tr>
+					</table>
+				</cfif>
+
+				<cfif  structKeyExists( arguments.debugging.scope, "Request" )>
+					<cfset sectionId = "Request">
+					<cfset isOpen = this.isSectionOpen( sectionId, "debugging" )>
+
+					<table>
+						<tr>
+						<cfset renderSectionHeadTR( sectionId, "debugging", "Request")>
+						<td  id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
+							<cfdump var="#arguments.debugging.scope.Request#" />
+						<td>
+						</tr>
+					</table>
+				</cfif>
+
+				<cfif  structKeyExists( arguments.debugging.scope, "cookie" )>
+					<cfset sectionId = "Cookie">
+					<cfset isOpen = this.isSectionOpen( sectionId, "debugging" )>
+
+					<table>
+						<tr>
+						<cfset renderSectionHeadTR( sectionId, "debugging", "Cookie")>
+						<td  id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
+							<cfdump var="#arguments.debugging.scope.Cookie#" />
+						<td>
+						</tr>
+					</table>
+				</cfif>
 			</cfif>
 
 			<!--- Implicit variable Access --->

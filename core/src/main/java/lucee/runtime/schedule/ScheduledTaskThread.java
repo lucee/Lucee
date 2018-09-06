@@ -48,23 +48,18 @@ public class ScheduledTaskThread extends Thread {
 
 	private int cIntervall;
 	
-	private Config config;
 	private ScheduleTask task;
-	private String charset;
 	private final CFMLEngineImpl engine;
 	private TimeZone timeZone;
 	private SchedulerImpl scheduler;
 
 	
-	public ScheduledTaskThread(CFMLEngineImpl engine,SchedulerImpl scheduler, Config config, ScheduleTask task, String charset) {
+	public ScheduledTaskThread(CFMLEngineImpl engine,Scheduler scheduler, ScheduleTask task) {
 		util = DateTimeUtil.getInstance();
 		this.engine=engine;
-		this.scheduler=scheduler;
-		this.config=config;
+		this.scheduler=(SchedulerImpl) scheduler;
 		this.task=task;
-		this.charset=charset;
-		timeZone=ThreadLocalPageContext.getTimeZone(config);
-		
+		timeZone=ThreadLocalPageContext.getTimeZone(this.scheduler.getConfig());
 		this.startDate=util.getMilliSecondsAdMidnight(timeZone,task.getStartDate().getTime());
 		this.startTime=util.getMilliSecondsInDay(timeZone, task.getStartTime().getTime());
 		this.endDate=task.getEndDate()==null?Long.MAX_VALUE:util.getMilliSecondsAdMidnight(timeZone,task.getEndDate().getTime());
@@ -123,7 +118,7 @@ public class ScheduledTaskThread extends Thread {
 		
 		log(Log.LEVEL_INFO,"First execution");
 
-		while(true){
+		while(true) {
 
 			sleepEL(execution,today);
 			
@@ -163,11 +158,11 @@ public class ScheduledTaskThread extends Thread {
 
 	private void log(int level, String msg) {
 		String logName="schedule task:"+task.getTask();
-		((ConfigImpl)config).getLog("scheduler").log(level,logName, msg);
+		((ConfigImpl)scheduler.getConfig()).getLog("scheduler").log(level,logName, msg);
 	}
 	private void log(int level, Exception e) {
 		String logName="schedule task:"+task.getTask();
-		((ConfigImpl)config).getLog("scheduler").log(level,logName, e);
+		((ConfigImpl)scheduler.getConfig()).getLog("scheduler").log(level,logName, e);
 	}
 
 
@@ -189,7 +184,7 @@ public class ScheduledTaskThread extends Thread {
 	}
 
 	private void execute() {
-		if(config!=null)new ExecutionThread(config,task,charset).start();
+		if(scheduler.getConfig()!=null)new ExecutionThread(scheduler.getConfig(),task,scheduler.getCharset()).start();
 	}
 
 	private long calculateNextExecution(long now, boolean notNow) {
@@ -242,7 +237,7 @@ public class ScheduledTaskThread extends Thread {
 	
 
 	public Config getConfig() {
-		return config;
+		return scheduler.getConfig();
 	}
 
 

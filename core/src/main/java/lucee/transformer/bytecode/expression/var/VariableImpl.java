@@ -23,6 +23,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import lucee.commons.io.SystemUtil;
+import lucee.commons.lang.ClassException;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.SystemOut;
 import lucee.commons.lang.types.RefInteger;
@@ -37,7 +38,6 @@ import lucee.transformer.Factory;
 import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BytecodeContext;
-import lucee.transformer.bytecode.cast.CastOther;
 import lucee.transformer.bytecode.expression.ExpressionBase;
 import lucee.transformer.bytecode.util.ASMConstants;
 import lucee.transformer.bytecode.util.ASMUtil;
@@ -207,7 +207,16 @@ public class VariableImpl extends ExpressionBase implements Variable {
 	}
 	
 	@Override
-	public final Type writeOutCollection(Context c, int mode) throws TransformerException {
+	public final Class<?> writeOutCollection(Context c, int mode) throws TransformerException {
+		try {
+			return Types.toClass(writeOutCollectionAsType(c, mode));
+		}
+		catch (ClassException e) {
+			throw new TransformerException(e, null);
+		}
+    }
+	
+	public final Type writeOutCollectionAsType(Context c, int mode) throws TransformerException {
 		BytecodeContext bc=(BytecodeContext) c;
         ExpressionUtil.visitLine(bc, getStart());
     	Type type = _writeOut(bc,mode, Boolean.TRUE);
@@ -782,7 +791,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 				return new VT(factory.DOUBLE_ZERO(),type,-1);
 			return new VT(null,type,-1);
 		}
-		return new VT(CastOther.toExpression(factory.createLitString(defaultValue), type),type,-1);
+		return new VT( factory.toExpression(factory.createLitString(defaultValue), type),type,-1);
 	}
 
 	private static String getName(Expression expr) throws TransformerException {

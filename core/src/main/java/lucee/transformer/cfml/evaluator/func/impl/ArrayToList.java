@@ -19,9 +19,9 @@
 package lucee.transformer.cfml.evaluator.func.impl;
 
 import lucee.runtime.exp.TemplateException;
-import lucee.transformer.bytecode.cast.Cast;
 import lucee.transformer.bytecode.expression.var.Argument;
 import lucee.transformer.bytecode.expression.var.BIF;
+import lucee.transformer.cast.Cast;
 import lucee.transformer.cfml.evaluator.EvaluatorException;
 import lucee.transformer.cfml.evaluator.FunctionEvaluator;
 import lucee.transformer.expression.Expression;

@@ -25,6 +25,8 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageSource;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
+import lucee.runtime.type.scope.Application;
+import lucee.runtime.type.scope.Session;
 
 public final class NoneAppListener  extends AppListenerSupport {
 
@@ -47,7 +49,18 @@ public final class NoneAppListener  extends AppListenerSupport {
 	}
 
 	@Override
+	public boolean onApplicationStart(PageContext pc, Application application) throws PageException {
+		// do nothing
+		return true;
+	}
+
+	@Override
 	public void onSessionStart(PageContext pc) throws PageException {
+		// do nothing
+	}
+
+	@Override
+	public void onSessionStart(PageContext pc, Session session) throws PageException {
 		// do nothing
 	}
 

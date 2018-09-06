@@ -137,6 +137,7 @@ import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.wrap.ArrayAsList;
 import lucee.runtime.type.wrap.ListAsArray;
 import lucee.runtime.type.wrap.MapAsStruct;
+import lucee.runtime.type.wrap.StructAsArray;
 import lucee.runtime.util.ForEachUtil;
 
 import org.osgi.framework.BundleException;
@@ -2304,8 +2305,8 @@ public final class Caster {
         		}	
         	}
         	
-        	
-            Struct sct=(Struct) o;
+        	return StructAsArray.toArray((Struct) o);
+            /*Struct sct=(Struct) o;
             Array arr=new ArrayImpl();
             
             Iterator<Entry<Key, Object>> it = sct.entryIterator();
@@ -2319,7 +2320,7 @@ public final class Caster {
             catch (ExpressionException ee) {
                 throw new ExpressionException("can't cast struct to an array, key ["+e.getKey().getString()+"] is not a number");
             }
-            return arr;
+            return arr;*/
         }
         else if(o instanceof boolean[])return new ArrayImpl(ArrayUtil.toReferenceType((boolean[])o));
         else if(o instanceof byte[])return new ArrayImpl(ArrayUtil.toReferenceType((byte[])o));
@@ -2468,7 +2469,9 @@ public final class Caster {
             //if(io!=null)return toArray(io,defaultValue);
         }
         else if(o instanceof Struct) {
-            Struct sct=(Struct) o;
+        	return StructAsArray.toArray((Struct) o,defaultValue);
+            
+        	/*Struct sct=(Struct) o;
             Array arr=new ArrayImpl();
             
             Iterator<Entry<Key, Object>> it = sct.entryIterator();
@@ -2482,7 +2485,7 @@ public final class Caster {
             catch (ExpressionException ee) {
                 return defaultValue;
             }
-            return arr;
+            return arr;*/
         }
         else if(o instanceof boolean[])return new ArrayImpl(ArrayUtil.toReferenceType((boolean[])o));
         else if(o instanceof byte[])return new ArrayImpl(ArrayUtil.toReferenceType((byte[])o));
@@ -2715,6 +2718,12 @@ public final class Caster {
     	
     	return ValidateCreditCard.toCreditcard(str,defaultValue);
 	}
+    
+    public static String toBase64(Object o) throws PageException {
+        String str=toBase64(o,"UTF-8",null);
+        if(str==null) throw new CasterException(o,"base 64");
+        return str;
+    }
      
     /**
      * cast a Object to a Base64 value
@@ -2727,6 +2736,8 @@ public final class Caster {
         if(str==null) throw new CasterException(o,"base 64");
         return str;
     }
+    
+    
     
     /**
      * cast a Object to a Base64 value

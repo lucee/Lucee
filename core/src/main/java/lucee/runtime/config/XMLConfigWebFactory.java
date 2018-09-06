@@ -147,9 +147,6 @@ import lucee.runtime.net.mail.Server;
 import lucee.runtime.net.mail.ServerImpl;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.proxy.ProxyDataImpl;
-import lucee.runtime.net.rpc.DummyWSHandler;
-import lucee.runtime.net.rpc.WSHandler;
-import lucee.runtime.net.rpc.ref.WSHandlerReflector;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.op.date.DateCaster;
@@ -4401,8 +4398,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			// providers
 			Element[] xmlProviders = getChildren(xmlExtParent, "rhprovider");
 			String strProvider;
-			Map<RHExtensionProvider,String> providers = new HashMap<RHExtensionProvider,String>();
-
+			Map<RHExtensionProvider,String> providers = new LinkedHashMap<RHExtensionProvider,String>();
+			
 			for (int i = 0; i < Constants.RH_EXTENSION_PROVIDERS.length; i++) {
 				providers.put(Constants.RH_EXTENSION_PROVIDERS[i], "");
 			}

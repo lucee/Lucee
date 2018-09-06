@@ -24,6 +24,7 @@ import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.expression.ExpressionBase;
 import lucee.transformer.bytecode.util.Methods;
 import lucee.transformer.bytecode.util.Types;
+import lucee.transformer.cast.Cast;
 import lucee.transformer.expression.ExprInt;
 import lucee.transformer.expression.ExprString;
 import lucee.transformer.expression.Expression;
@@ -42,7 +43,7 @@ public final class CastInt extends ExpressionBase implements ExprInt,Cast {
     
     private CastInt(Expression expr) {
         super(expr.getFactory(),expr.getStart(),expr.getEnd());
-    	this.expr=expr;
+    	this.expr = expr;
     }
     
     /**
@@ -73,7 +74,7 @@ public final class CastInt extends ExpressionBase implements ExprInt,Cast {
             else adapter.invokeStatic(Types.CASTER,Methods.METHOD_TO_INTEGER_FROM_STRING);
         }
         else {
-        	Type rtn = expr.writeOut(bc,mode);
+        	Type rtn = ((ExpressionBase)expr).writeOutAsType(bc,mode);
         	if(mode==MODE_VALUE) {
         		if(!Types.isPrimitiveType(rtn))	{
         			adapter.invokeStatic(Types.CASTER,Methods.METHOD_TO_INT_VALUE);

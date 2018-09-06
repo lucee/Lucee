@@ -181,7 +181,7 @@ Redirtect to entry --->
 					</td>
 				</tr>
 
-
+<!---
 			</tbody>
 		</table>
 
@@ -190,7 +190,7 @@ Redirtect to entry --->
 		
 		<table class="maintbl">
 			<tbody>
-
+--->
 				<!--- Null Support --->
 				<tr>
 					<th scope="row">#stText.compiler.nullSupport#</th>

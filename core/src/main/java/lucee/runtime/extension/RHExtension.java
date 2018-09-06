@@ -44,6 +44,7 @@ import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.SystemOut;
+import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.util.Util;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
@@ -288,6 +289,7 @@ public class RHExtension implements Serializable {
 		String _img=null;
 		String path;
 		String fileName,sub;
+		boolean isPack200;
 		
 		List<BundleInfo> bundles=new ArrayList<BundleInfo>();
 		List<String> jars=new ArrayList<String>();
@@ -303,11 +305,13 @@ public class RHExtension implements Serializable {
 		List<String> plugins=new ArrayList<String>();
 		List<String> gateways=new ArrayList<String>();
 		List<String> archives=new ArrayList<String>();
+		
 		try {
 			while ( ( entry = zis.getNextEntry()) != null ) {
 				path=entry.getName();
 				fileName=fileName(entry);
 				sub=subFolder(entry);
+				isPack200=false;
 				
 				if(!entry.isDirectory() && path.equalsIgnoreCase("META-INF/MANIFEST.MF")) {
 					manifest = toManifest(config,zis,null);
@@ -315,16 +319,16 @@ public class RHExtension implements Serializable {
 				else if(!entry.isDirectory() && path.equalsIgnoreCase("META-INF/logo.png")) {
 					_img = toBase64(zis,null);
 				}
-				
-				
+
 				// jars
 				else if(!entry.isDirectory() && 
 					(startsWith(path,type,"jars") || startsWith(path,type,"jar") 
 					|| startsWith(path,type,"bundles") || startsWith(path,type,"bundle") 
-					|| startsWith(path,type,"lib") || startsWith(path,type,"libs")) && StringUtil.endsWithIgnoreCase(path, ".jar")) {
-					//print.e("xxxxxx-------- "+fileName+" -------xxxxxx");
+					|| startsWith(path,type,"lib") || startsWith(path,type,"libs")) && 
+					(StringUtil.endsWithIgnoreCase(path, ".jar") || (isPack200=StringUtil.endsWithIgnoreCase(path, ".jar.pack.gz")))) {
+					
 					jars.add(fileName);
-					BundleInfo bi = BundleInfo.getInstance(fileName,zis, false);
+					BundleInfo bi = BundleInfo.getInstance(fileName,zis, false, isPack200);
 					if(bi.isBundle()) bundles.add(bi);
 				}
 				
@@ -659,18 +663,20 @@ public class RHExtension implements Serializable {
 		ZipEntry entry;
 		String path;
 		String fileName;
-		
+		boolean isPack200;
 		try {
 			while ( ( entry = zis.getNextEntry()) != null ) {
 				path=entry.getName();
 				fileName=fileName(entry);
+				isPack200=false;
 				// jars
 				if(!entry.isDirectory() && 
 					(startsWith(path,type,"jars") || startsWith(path,type,"jar") 
 					|| startsWith(path,type,"bundles") || startsWith(path,type,"bundle") 
-					|| startsWith(path,type,"lib") || startsWith(path,type,"libs")) && StringUtil.endsWithIgnoreCase(path, ".jar")) {
+					|| startsWith(path,type,"lib") || startsWith(path,type,"libs")) && 
+					(StringUtil.endsWithIgnoreCase(path, ".jar") || (isPack200=StringUtil.endsWithIgnoreCase(path, ".jar.pack.gz")))) {
 					
-					Object obj = XMLConfigAdmin.installBundle(config,zis,fileName,version,false,false);
+					Object obj = XMLConfigAdmin.installBundle(config,zis,fileName,version,false,false,isPack200);
 					// jar is not a bundle, only a regular jar
 					if(!(obj instanceof BundleFile)) {
 						Resource tmp=(Resource)obj;

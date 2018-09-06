@@ -517,6 +517,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements
 			rtn = component.callWithNamedValues(pc, methodName, args);
 		} catch (PageException e) {
 			RestUtil.setStatus(pc, 500, ExceptionUtil.getMessage(e));
+			pc.getConfig().getLog("rest").error("REST", e);
 		} finally {
 			if (suppressContent)
 				pc.unsetSilent();

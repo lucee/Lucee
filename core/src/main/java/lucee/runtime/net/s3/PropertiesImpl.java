@@ -29,6 +29,7 @@ public final class PropertiesImpl implements Properties {
 	private String defaultLocation=null;
 	private String host="s3.amazonaws.com";
 	private String acl;
+	private long cache;
 	
 	
 
@@ -131,5 +132,13 @@ public final class PropertiesImpl implements Properties {
 		
 		
 		return location;
+	}
+
+	public void setCache(long millis) {
+		this.cache=millis;
+	}
+
+	public long getCache() { // FUTURE add to interface
+		return this.cache;
 	}
 }

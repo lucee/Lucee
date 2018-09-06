@@ -13,6 +13,19 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				});
 
 				it(title="Checking cfimap action = 'CreateFolder' ", body = function( currentSpec ) {
+					
+					try{
+						cfimap(
+							action = "DeleteFolder",
+							folder="NewFolderFromIMAP123",
+							server = "#imapSettings.Imap.SERVER#",
+							port = "#imapSettings.Imap.SECUREPORT#",
+							username = "#imapSettings.USERNAME#",
+							password = "#imapSettings.PASSWORD#",
+							secure = true
+						);
+					}catch(ee) {}
+
 					cfimap(
 						action = "CreateFolder",
 						server = "#imapSettings.Imap.SERVER#",
@@ -20,17 +33,17 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 						username = "#imapSettings.USERNAME#",
 						password = "#imapSettings.PASSWORD#",
 						secure = true,
-						folder = "NewFolderFromIMAP"
+						folder = "NewFolderFromIMAP123"
 					);
 
-					var result = ListAllFolders("NewFolderFromIMAP", "SECUREPORT");
+					var result = ListAllFolders("NewFolderFromIMAP123", "SECUREPORT");
 					expect(result).toBe(1);
 				});
 
 				it(title="Checking cfimap action = 'RenameFolder' ", body = function( currentSpec ) {
 					cfimap(
 						action = "RenameFolder",
-						folder="NewFolderFromIMAP",
+						folder="NewFolderFromIMAP123",
 						newFolder="RenameFolderFromIMAP",
 						server = "#imapSettings.Imap.SERVER#",
 						port = "#imapSettings.Imap.SECUREPORT#",
@@ -145,21 +158,21 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					cfimap(
 						action = "CreateFolder",
 						server = "#imapSettings.Imap.SERVER#",
-						folder = "NewFolderFromIMAP"
+						folder = "NewFolderFromIMAP123"
 						port = "#imapSettings.Imap.INSECUREPORT#",
 						username = "#imapSettings.USERNAME#",
 						password = "#imapSettings.PASSWORD#",
 						secure = false
 					);
 
-					var result = ListAllFolders("NewFolderFromIMAP", "INSECUREPORT");
+					var result = ListAllFolders("NewFolderFromIMAP123", "INSECUREPORT");
 					expect(result).toBe(1);
 				});
 
 				it(title="Checking cfimap action = 'RenameFolder' ", body = function( currentSpec ) {
 					cfimap(
 						action = "RenameFolder",
-						folder="NewFolderFromIMAP"
+						folder="NewFolderFromIMAP123"
 						newFolder="RenameFolderFromIMAP",
 						server = "#imapSettings.Imap.SERVER#",
 						port = "#imapSettings.Imap.INSECUREPORT#",

@@ -1558,7 +1558,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		ConfigServerImpl server = (ConfigServerImpl)config;
 
 		try {
-			admin.removeContext(server, true, strRealpath);
+			admin.removeContext(server, true,config.getLog("deploy"), strRealpath);
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
@@ -4974,7 +4974,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private void doUpdateLogSettings() throws PageException {
 		String str = getString("admin", "UpdateLogSettings", "level", true);
 		int l = LogUtil.toLevel(str, -1);
-		if(l !=-1)
+		if(l ==-1)
 			throw new ApplicationException("invalid log level name [" + str + "], valid log level names are [INFO,DEBUG,WARN,ERROR,FATAL,TRACE]");
 
 		ClassDefinition acd = new ClassDefinitionImpl(getString("admin", action, "appenderClass", true), getString("appenderBundleName", null),

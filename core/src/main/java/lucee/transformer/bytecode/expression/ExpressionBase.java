@@ -18,6 +18,7 @@
  **/
 package lucee.transformer.bytecode.expression;
 
+import lucee.commons.lang.ClassException;
 import lucee.runtime.exp.TemplateException;
 import lucee.transformer.Context;
 import lucee.transformer.Factory;
@@ -25,6 +26,7 @@ import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.util.ExpressionUtil;
+import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.expression.Expression;
 
 import org.objectweb.asm.Type;
@@ -45,7 +47,15 @@ public abstract class ExpressionBase implements Expression {
     }
 
     @Override
-    public final Type writeOut(Context c, int mode) throws TransformerException {
+    public final Class<?> writeOut(Context c, int mode) throws TransformerException {
+    	try {
+			return Types.toClass(writeOutAsType(c, mode));
+		} catch (ClassException e) {
+			throw new TransformerException(e, null);
+		}
+    }
+    
+    public final Type writeOutAsType(Context c, int mode) throws TransformerException {
     	BytecodeContext bc=(BytecodeContext) c;
     	ExpressionUtil.visitLine(bc, start);
     	Type type = _writeOut(bc,mode);

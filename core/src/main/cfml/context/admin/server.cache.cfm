@@ -4,6 +4,8 @@
 
 <cfset stText.setting.typeChecking="UDF Type Checking">
 <cfset stText.setting.typeCheckingDesc="If disabled Lucee ignores type definitions with function arguments and return values">
+<cfset stText.setting.developMode="If enabled the Admininstrator no longer cache data.">
+<cfset stText.setting.ctCacheDesc="Press the button above to clear the custom tag path cache.">
 <cfparam name="stText.general.elements" default="item(s)">
 
 <cfadmin 
@@ -319,7 +321,7 @@ Create Datasource --->
 					<th scope="row">#stText.setting.ctCache#</th>
 					<td class="fieldPadded">
 						<input class="button submit" type="submit" name="mainAction" value="#btnClearCTCache#">
-						<div class="comment">#stText.setting.ctCacheClearDesc#</div>
+						<div class="comment">#stText.setting.ctCacheDesc#</div>
 						
 
 						<cfsavecontent variable="codeSample">
@@ -341,7 +343,7 @@ Create Datasource --->
 							<label>
 								<input class="checkbox" type="checkbox" name="mode" value="true"<cfif  mode.developMode EQ true> checked="checked"</cfif>>
 							</label>
-							<div class="comment">develop Mode id mode automatically detects the extension deploy</div>
+							<div class="comment">#stText.setting.developMode#</div>
 						</td>
 					</tr>
 				</cfif>

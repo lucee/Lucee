@@ -32,9 +32,7 @@ import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.DateTimeImpl;
 
 public final class TimeFormat extends BaseFormat implements Format {
-	
-	
-	
+
 	/**
 	 * constructor of the class
 	 * @param locale
@@ -42,7 +40,6 @@ public final class TimeFormat extends BaseFormat implements Format {
 	public TimeFormat(Locale locale) {
 		super(locale);
 	}
-	
 
 	/**
 	 * formats a date to a cfml date format (short)
@@ -65,11 +62,11 @@ public final class TimeFormat extends BaseFormat implements Format {
 		DateTime dt=(date instanceof DateTime)?(DateTime)date:new DateTimeImpl(date.getTime(),false);
 		return format(dt,mask,null);
 	}
-	
 
 	public String format(DateTime date,String mask, TimeZone tz) {
 		return format(date.getTime(), mask, tz);
 	}
+
 	public String format(long time,String mask, TimeZone tz) {
 		TimeZone def = null;
 		try {
@@ -90,9 +87,7 @@ public final class TimeFormat extends BaseFormat implements Format {
 			if(len==0) return "";
 			
 			StringBuilder formated=new StringBuilder();
-			
-			
-			
+
 			for(;pos<len;pos++) {
 				char c=mask.charAt(pos);
 				char next=(len>pos+1)?mask.charAt(pos+1):(char)0;
@@ -162,10 +157,12 @@ public final class TimeFormat extends BaseFormat implements Format {
 	
 				// m: Minutes; no leading zero for single-digit minutes 
 				// mm: Minutes; leading zero for single-digit minutes 
+					case 'N':
+					case 'n':
 					case 'M':
 					case 'm':
 						int minute=calendar.get(Calendar.MINUTE);
-						if(next=='M' || next=='m') {
+						if(next=='M' || next=='m' || next=='N' || next=='n') {
 							formated.append(minute<10?"0"+minute:""+minute);
 							pos++;
 						}
@@ -251,5 +248,4 @@ public final class TimeFormat extends BaseFormat implements Format {
 		df.setTimeZone(tz);
 		return df.format(c.getTime());	
 	}
-
 }

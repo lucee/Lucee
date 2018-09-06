@@ -278,7 +278,7 @@ public final class LocaleFactory {
     /**
      * @return Returns the locales.
      */
-    public static Map getLocales() {
+    public static Map<String,Locale> getLocales() {
         return locales;
     }
     public static String getLocaleList() {

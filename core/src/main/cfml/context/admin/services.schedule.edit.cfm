@@ -53,6 +53,8 @@ function _toInt(str) {
 	if(isNumeric(str)) return str;
 	return 0;
 }
+
+
 </cfscript>
 
 <cfparam name="error" default="#struct(message:"",detail:"")#">
@@ -60,8 +62,11 @@ function _toInt(str) {
 <!---
 ACTIONS --->
 <cftry>
-	<cfif StructKeyExists(form,"port")>
-
+	<cfif StructKeyExists(form,"url")>
+		<cfset sctURL=splitURLAndPort(form.url)>
+		<cfset form.url=sctURL.url>
+		<cfset form.port=sctURL.port>
+		
 		<!--- Check Values --->
 		<cfif not IsNumeric(form.port)><cfset form.port=-1></cfif>
 		<cfif not IsNumeric(form.timeout)><cfset form.timeout=-1></cfif>
@@ -86,7 +91,7 @@ ACTIONS --->
 		<cfelse>
 			<cfset variables.passwordserver="">
 		</cfif>
-
+			
 			<cfadmin
 				action="schedule"
 				type="#request.adminType#"
@@ -153,6 +158,7 @@ Error Output--->
 		<cfset task=queryRow2Struct(tasks,tasks.currentrow)>
 	</cfif>
 </cfloop>
+<cfset task.urlAndPort=mergeURLAndPort(task.url,task.port)>
 
 <cfset translateDateTime(task,"startdate","starttime","start")>
 <cfset translateDateTime(task,"enddate","endtime","end")>
@@ -174,17 +180,17 @@ Error Output--->
 				<tr>
 					<th scope="row">#stText.Schedule.URL#</th>
 					<td>
-						<cfinputClassic type="text" name="url" value="#task.url#" class="xlarge" required="yes"
+						<cfinputClassic type="text" name="url" value="#task.urlAndPort#" class="xlarge" required="yes"
 						message="#stText.Schedule.URLMissing#">
 						<div class="comment">#stText.Schedule.NameDescEdit#</div></td>
 				</tr>
-				<tr>
+				<!---<tr>
 					<th scope="row">#stText.Schedule.Port#</th>
 					<td>
 						<cfinputClassic type="text" name="port" value="#task.port#" class="number" required="no" validate="integer">
 						<div class="comment">#stText.Schedule.PortDescription#</div>
 					</td>
-				</tr>
+				</tr> --->
 				<tr>
 					<th scope="row">#stText.Schedule.Timeout#</th>
 					<td>

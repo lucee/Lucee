@@ -1,18 +1,22 @@
-<cfset datasources=getPageContext().getConfig().getDatasources()>
-
+<cfadmin 
+	action="getDatasources"
+	type="#request.adminType#"
+	password="#session["password"&request.adminType]#"
+	returnVariable="datasources">
 
 <table class="darker" cellpadding="2" cellspacing="1">
 <tr>
-	<td>Name</td>
-	<td>DNS</td>
+    <td>Name</td>
+    <td>DSN</td>
 </tr>
-<cfoutput><cfloop collection="#datasources#" item="key">
-<cfif key NEQ "_queryofquerydb">
-<cfset datasource=datasources[key]>
-<tr>
-	<td class="brigther">#key#</td>
-	<td class="brigther">#datasource.getDSN()#</td>
-</tr>
-</cfif>
-</cfloop></cfoutput>
+<cfoutput>
+    <cfloop query="#datasources#">
+        <cfif !(datasources.keyExists('_queryofquerydb'))>
+            <tr>
+                <td class="brigther">#datasources.currentrow#</td>
+                <td class="brigther">#datasources.name#</td>
+            </tr>
+        </cfif>
+    </cfloop>
+</cfoutput>
 </table>

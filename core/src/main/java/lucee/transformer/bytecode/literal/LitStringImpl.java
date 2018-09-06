@@ -29,7 +29,6 @@ import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.Page;
 import lucee.transformer.bytecode.Range;
 import lucee.transformer.bytecode.expression.ExpressionBase;
-import lucee.transformer.bytecode.op.OpString;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.expression.ExprString;
 import lucee.transformer.expression.literal.LitString;
@@ -135,7 +134,7 @@ public class LitStringImpl extends ExpressionBase implements LitString,ExprStrin
     	String r = str.substring(size);
     	ExprString left =toBig(l)? _toExpr(factory,l):factory.createLitString(l);
     	ExprString right =toBig(r)? _toExpr(factory,r):factory.createLitString(r);
-    	return OpString.toExprString(left, right, false);
+    	return factory.opString(left, right, false);
 	}
 
     @Override

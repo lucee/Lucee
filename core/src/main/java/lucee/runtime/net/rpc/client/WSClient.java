@@ -27,13 +27,11 @@ import lucee.runtime.type.Iteratorable;
 import lucee.runtime.type.Objects;
 import lucee.runtime.type.Struct;
 
-import javax.xml.soap.SOAPHeaderElement;
-
 import org.w3c.dom.Node;
 
 public interface WSClient extends Objects, Iteratorable {
 
-	public void addHeader(SOAPHeaderElement header) throws PageException;
+	public void addHeader(Object header) throws PageException; // Object instead of header because Java 11 no longer support javax.xml.soap.SOAPHeaderElement
 	public Object callWithNamedValues(Config config, Collection.Key methodName, Struct arguments) throws PageException;
 	public void addSOAPRequestHeader(String namespace, String name, Object value, boolean mustUnderstand) throws PageException;
 	public Node getSOAPRequest() throws PageException;

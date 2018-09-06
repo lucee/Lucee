@@ -48,6 +48,13 @@ script:
     fi
   fi
 
+
+- if [ "${TRAVIS_PULL_REQUEST}" == "false" ]; then
+    if [ "${TRAVIS_BRANCH}" == "5.3" ]; then
+      export DO_DEPLOY="true";
+    fi
+  fi
+
 - echo "DO_DEPLOY ${DO_DEPLOY}"
 
 

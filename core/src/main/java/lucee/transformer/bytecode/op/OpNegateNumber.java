@@ -19,6 +19,7 @@
 package lucee.transformer.bytecode.op;
 
 import lucee.runtime.exp.TemplateException;
+import lucee.transformer.Factory;
 import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BytecodeContext;
@@ -38,8 +39,8 @@ public final class OpNegateNumber extends ExpressionBase implements ExprDouble {
 	private ExprDouble expr;
 	
 
-	public static final int PLUS = 0;
-	public static final int MINUS = 1;
+	//public static final int PLUS = 0;
+	//public static final int MINUS = 1;
 
 	private OpNegateNumber(Expression expr, Position start, Position end) {
         super(expr.getFactory(),start,end);
@@ -65,7 +66,7 @@ public final class OpNegateNumber extends ExpressionBase implements ExprDouble {
     }
     
     public static ExprDouble toExprDouble(Expression expr, int operation, Position start, Position end) {
-    	if(operation==MINUS) return toExprDouble(expr, start,end);
+    	if(operation==Factory.OP_NEG_NBR_MINUS) return toExprDouble(expr, start,end);
     	return expr.getFactory().toExprDouble(expr);
     }
 	
