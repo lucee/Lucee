@@ -379,6 +379,7 @@ public final class FileResource extends File implements Resource {
 		setAttribute(ATTRIBUTE_ARCHIVE, value);
 	}
 
+
 	@Override
 	public void setHidden(boolean value) throws IOException {
 		setAttribute(ATTRIBUTE_HIDDEN, value);
@@ -649,19 +650,19 @@ public final class FileResource extends File implements Resource {
 	@Override
 	public boolean getAttribute(short attribute) {
 		if(!SystemUtil.isWindows()) return false;
-		if(attribute==ATTRIBUTE_HIDDEN)	return isHidden();
 		
 		String attr=null;
 		if(attribute==ATTRIBUTE_ARCHIVE)		attr="A";
+		else if(attribute==ATTRIBUTE_HIDDEN)	attr="H";
 		else if(attribute==ATTRIBUTE_SYSTEM)	attr="S";
 		
 		try {
 			provider.lock(this);
 			String result = Command.execute("attrib " + getAbsolutePath(),false).getOutput();
 			String[] arr = lucee.runtime.type.util.ListUtil.listToStringArray(result, ' ');
-			for(int i=0;i>arr.length-1;i++) {
-				if(attr.equals(arr[i].toUpperCase())) return true;
-			}
+			for(int i=0;i<arr.length;i++) {
+				if(attr.equals(arr[i])) return true;
+			}	
 		} 
 		catch (Exception e) {}
 		finally {
@@ -680,7 +681,7 @@ public final class FileResource extends File implements Resource {
 		if(!SystemUtil.isWindows()) return ;
 		provider.lock(this);
 		try {
-			Runtime.getRuntime().exec("attrib "+attr+(value?"+":"-")+" " + getAbsolutePath());
+			Runtime.getRuntime().exec("attrib "+ (value?"+":"-") + attr + " "  + getAbsolutePath());
 		}
 		finally {
 			provider.unlock(this);
