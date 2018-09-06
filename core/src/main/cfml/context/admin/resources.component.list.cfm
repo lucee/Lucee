@@ -14,11 +14,14 @@
 				
 				<tr>
 					<th scope="row">#stText.Components.BaseComponent# </th>
-					<td class="tblContent">
+<cfset css=iif(len(component["baseComponentTemplateCFML"]) EQ 0 and len(component["strBaseComponentTemplateCFML"]) NEQ 0,de('Red'),de(''))>
+					<td class="tblContent#css#" title="#component["strBaseComponentTemplateCFML"]#
+#component["BaseComponentTemplateCFML"]#">
 						
-						<table class="maintbl">
-						<cfloop list="CFML,Lucee" item="dialect">
 
+
+						<!---<table class="maintbl">
+						<cfloop list="CFML,Lucee" item="dialect">
 					<cfset css=iif(len(component["baseComponentTemplate"&dialect]) EQ 0 and
 					 len(component["strBaseComponentTemplate"&dialect]) NEQ 0,de('Red'),de(''))>
 							<tr>
@@ -34,8 +37,19 @@
 							</cfif>
 							</td>
 							</tr>
-						</cfloop>
-						</table>
+						</cfloop>--->
+
+
+							<cfif hasAccess>
+								<cfinputClassic type="text" name="baseComponentTemplateCFML" value="#component["strBaseComponentTemplateCFML"]#" style="width:350px" 
+									required="no" 
+									message="#stText.Components.BaseComponentMissing#">
+							<cfelse>
+								<b>#component["strBaseComponentTemplateCFML"]#</b>
+							</cfif>
+							
+						<cfoutput><input type="hidden" name="baseComponentTemplateLucee" value="#component["strBaseComponentTemplateLucee"]#" ></cfoutput>
+
 
 						<div class="comment">#stText.Components.BaseComponentDescription#</div>
 					</td>
@@ -119,7 +133,7 @@
 						<div class="comment">#replace(stText.Components.ComponentDumpTemplateDescription,'{url}',"<a href=""#_url#"">#_url#</a>",'all')#</div>
 					</td>
 				</tr>
-				
+<!---			
 			</tbody>
 		</table>
 
@@ -128,6 +142,7 @@
 		
 		<table class="maintbl">
 			<tbody>
+--->
 				<!--- Data Member Access Type --->
 				<tr>
 					<th scope="row">#stText.Components.DataMemberAccessType#</th>

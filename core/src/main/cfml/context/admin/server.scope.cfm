@@ -490,7 +490,7 @@ Error Output --->
 						<cfset renderCodingTip( codeSample )>
 					</td>
 				</tr>
-
+<!---
 			</tbody>
 		</table>
 
@@ -499,7 +499,7 @@ Error Output --->
 		
 		<table class="maintbl">
 			<tbody>
-
+--->
 
 
 
