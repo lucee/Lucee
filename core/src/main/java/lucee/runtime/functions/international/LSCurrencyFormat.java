@@ -34,7 +34,7 @@ import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
 
 public final class LSCurrencyFormat extends BIF {
-
+	private static final char NBSP=(char)160;
 	private static final long serialVersionUID = -3173006221339130136L;
 
 	public static String call(PageContext pc, Object number) throws PageException {
@@ -77,21 +77,23 @@ public final class LSCurrencyFormat extends BIF {
 
 	public static String none(Locale locale, double number) {
 		NumberFormat nf = NumberFormat.getCurrencyInstance(locale);
-		
-		return StringUtil.replace(nf.format(number), nf.getCurrency().getSymbol(locale), "", false).trim();
+		return clean(StringUtil.replace(nf.format(number), nf.getCurrency().getSymbol(locale), "", false));
 	}
 
 	public static String local(Locale locale, double number) {
-		return NumberFormat.getCurrencyInstance(locale).format(number);
+		return clean(NumberFormat.getCurrencyInstance(locale).format(number));
 	}
 
 	public static String international(Locale locale, double number) {
 		NumberFormat nf = NumberFormat.getCurrencyInstance(locale);
 		Currency currency = nf.getCurrency();
-
-		String str = StringUtil.replace(nf.format(number), nf.getCurrency().getSymbol(locale), "", false).trim();
-
+		String str = clean(StringUtil.replace(nf.format(number), nf.getCurrency().getSymbol(locale), "", false));
 		return currency.getCurrencyCode() + " " + str;
+	}
+	
+	private static String clean(String str) {
+		// Java 10 returns nbsp instead of a regular space
+		return str.replace(NBSP, ' ').trim();
 	}
 
 	public static double toDouble(Object number) throws PageException {

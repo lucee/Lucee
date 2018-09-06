@@ -48,13 +48,9 @@ import lucee.transformer.bytecode.BodyBase;
 import lucee.transformer.bytecode.FunctionBody;
 import lucee.transformer.bytecode.ScriptBody;
 import lucee.transformer.bytecode.Statement;
-import lucee.transformer.bytecode.cast.CastBoolean;
-import lucee.transformer.bytecode.cast.CastOther;
 import lucee.transformer.bytecode.expression.FunctionAsExpression;
 import lucee.transformer.bytecode.expression.var.Assign;
 import lucee.transformer.bytecode.expression.var.VariableString;
-import lucee.transformer.bytecode.op.OPDecision;
-import lucee.transformer.bytecode.op.OpDouble;
 import lucee.transformer.bytecode.statement.Argument;
 import lucee.transformer.bytecode.statement.Condition;
 import lucee.transformer.bytecode.statement.Condition.Pair;
@@ -756,7 +752,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 				throw new TemplateException(data.srcCode,"invalid syntax in for statement");
 	}
 	
-	private TagLoop asLoop(Factory factory, Expression expLeft, Expression expMiddle, Expression expRight,
+	/*private TagLoop asLoop(Factory factory, Expression expLeft, Expression expMiddle, Expression expRight,
 			Body body, Position start, Position end, String label) {
 		
 	// LEFT
@@ -795,7 +791,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		// must be a literal number
 		if(!(opRight.getRight() instanceof LitDouble)) return null;
 		LitDouble rightIncValue=(LitDouble) opRight.getRight();
-		if(opRight.getOperation()!=OpDouble.PLUS) return null;
+		if(opRight.getOperation()!=Factory.OP_DBL_PLUS) return null;
 		
 		// create loop tag
 		TagLoop tl=new TagLoop(factory, start, end);
@@ -821,7 +817,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			)
 		);
 		// to
-		ExprDouble val = isLT?OpDouble.toExprDouble(middle.getLeft(), factory.createLitDouble(1), OpDouble.MINUS):factory.toExprDouble(middle.getLeft());
+		ExprDouble val = isLT? factory.opDouble(middle.getLeft(), factory.createLitDouble(1), Factory.OP_DBL_MINUS):factory.toExprDouble(middle.getLeft());
 		tl.addAttribute(
 			new Attribute(
 				false, 
@@ -841,7 +837,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		);
 		
 		return tl;
-	}
+	}*/
 
 	private String toVariableName(Expression variable) {
 		if(!(variable instanceof Variable)) return null;
@@ -1983,7 +1979,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		if(attrValue!=null){
 			attrName=attr.getName();
 			TagLibTagAttr tlta = tlt.getAttribute(attr.getName(),true);
-			tag.addAttribute(new Attribute(false,attrName,CastOther.toExpression(attrValue,tlta.getType()),tlta.getType()));
+			tag.addAttribute(new Attribute(false,attrName,data.factory.toExpression(attrValue,tlta.getType()),tlta.getType()));
 		}
 		else if(ATTR_TYPE_REQUIRED==attrType){
 			data.srcCode.setPos(pos);
@@ -2221,7 +2217,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 	private final ExprBoolean condition(Data data) throws TemplateException {
 		ExprBoolean condition=null;
 		comments(data);
-		condition=CastBoolean.toExprBoolean(super.expression(data));
+		condition=data.factory.toExprBoolean(super.expression(data));
 		comments(data);
 		return condition;
 	}
@@ -2479,7 +2475,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			tlta = tlt.getAttribute(nameLC,true);
 			if(tlta!=null && tlta.getName()!=null)nameLC=tlta.getName();
 		}
-		return new Attribute(dynamic.toBooleanValue(),name,tlta!=null?CastOther.toExpression(value, tlta.getType()):value,sbType.toString(),!hasValue);
+		return new Attribute(dynamic.toBooleanValue(),name,tlta!=null?data.factory.toExpression(value, tlta.getType()):value,sbType.toString(),!hasValue);
     }
 
 	private final String attributeName(SourceCode cfml, ArrayList<String> args,TagLibTag tag, RefBoolean dynamic, StringBuffer sbType, boolean allowTwiceAttr, boolean allowColon) throws TemplateException {

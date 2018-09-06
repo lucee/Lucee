@@ -19,6 +19,7 @@
 package lucee.runtime.schedule;
 
 import java.io.IOException;
+import java.lang.Thread.State;
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -26,6 +27,7 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.lang.Md5;
 import lucee.commons.net.HTTPUtil;
 import lucee.commons.security.Credentials;
+import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.dt.Date;
@@ -62,10 +64,9 @@ public final class ScheduleTaskImpl implements ScheduleTask {
 	private boolean paused;
 	private boolean autoDelete;
 	private String md5;
+	private ScheduledTaskThread thread;
+	private Scheduler scheduler;
 
-    
-    
-    
     /**
      * constructor of the class
      * @param task Task name
@@ -87,12 +88,12 @@ public final class ScheduleTaskImpl implements ScheduleTask {
      * @throws IOException
      * @throws ScheduleException
      */
-    public ScheduleTaskImpl(String task, Resource file, Date startDate, Time startTime, 
+    public ScheduleTaskImpl(Scheduler scheduler,String task, Resource file, Date startDate, Time startTime, 
             Date endDate, Time endTime, String url, int port, String interval,
             long timeout, Credentials credentials, ProxyData proxy, boolean resolveURL, boolean publish,boolean hidden, 
             boolean readonly,boolean paused, boolean autoDelete) throws IOException, ScheduleException {
     	
-    	
+    	this.scheduler= scheduler;
     	String md5=task.toLowerCase()+file+startDate+startTime+endDate+endTime+url+port+interval+timeout+
     	credentials+proxy+resolveURL+publish+hidden+readonly+paused;
     	md5=Md5.getDigestAsString(md5);
@@ -230,20 +231,21 @@ public final class ScheduleTaskImpl implements ScheduleTask {
     
     @Override
     public String getStringInterval() {	return strInterval;	}
+    
     @Override
     public boolean isPublish() {
         return publish;
     }
+
     @Override
     public boolean isValid() {
         return valid;
     }
+
     @Override
     public void setValid(boolean valid) {
         this.valid = valid;
     }
-
-
 
 	/**
 	 * @return the hidden
@@ -253,8 +255,6 @@ public final class ScheduleTaskImpl implements ScheduleTask {
 		return hidden;
 	}
 
-
-
 	/** 
 	 * @param hidden the hidden to set
 	 */
@@ -263,16 +263,12 @@ public final class ScheduleTaskImpl implements ScheduleTask {
 		this.hidden = hidden;
 	}
 
-
-
 	/**
 	 * @return the readonly
 	 */
 	public boolean isReadonly() {
 		return readonly;
 	}
-
-
 
 	/**
 	 * @param readonly the readonly to set
@@ -281,33 +277,42 @@ public final class ScheduleTaskImpl implements ScheduleTask {
 		this.readonly = readonly;
 	}
 
-
-
 	@Override
 	public boolean isPaused() {
 		return paused;
 	}
 
-
-
 	public void setPaused(boolean paused) {
 		this.paused=paused;
 	}
-	
 
 	public boolean isAutoDelete() {
 		return autoDelete;
 	}
 
-
-
 	public void setAutoDelete(boolean autoDelete) {
 		this.autoDelete=autoDelete;
 	}
 
-
-
 	public String md5() {
 		return md5;
+	}
+
+	public void startIfNecessary(CFMLEngineImpl engine) {
+		if(thread!=null) {
+			if(thread.isAlive()) {
+				if(thread.getState()==State.BLOCKED) {
+					((SchedulerImpl)scheduler).getConfig().getLog("scheduler").info("scheduler", "thread is blocked");
+					thread.stop();
+				}
+				else if(thread.getState()!=State.TERMINATED) {
+					return; // existing is still fine, so nothing to start
+				}
+			}
+			((SchedulerImpl)scheduler).getConfig().getLog("scheduler").info("scheduler", "thread needs a restart ("+thread.getState().name()+")");
+			
+		}
+		this.thread = new ScheduledTaskThread(engine,scheduler,this);
+		thread.start();
 	}
 }

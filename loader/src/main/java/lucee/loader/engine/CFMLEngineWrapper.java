@@ -167,6 +167,10 @@ public class CFMLEngineWrapper implements CFMLEngine {
 		this.engine = engine;
 	}
 
+	public CFMLEngine getEngine() {
+		return this.engine;
+	}
+
 	public boolean isIdentical(final CFMLEngine engine) {
 		return this.engine == engine;
 	}

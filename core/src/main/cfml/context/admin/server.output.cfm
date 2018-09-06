@@ -148,7 +148,7 @@ Defaults --->
 					</td>
 				</tr>
 
-				
+<!---				
 			</tbody>
 		</table>
 
@@ -157,7 +157,7 @@ Defaults --->
 		
 		<table class="maintbl">
 			<tbody>
-
+--->
 				<!--- Buffer Output --->
 				<tr>
 					<th scope="row">#stText.setting.bufferOutput#</th>

@@ -445,7 +445,6 @@ public final class Feed extends TagImpl	{
 					new Pair<String,Object>("content",query.getAt(FeedQuery.CONTENT, row, null)),
 					new Pair[]{
 						new Pair<String,Object>("src",query.getAt(FeedQuery.CONTENTSRC, row, null)),
-						new Pair<String,Object>("type",query.getAt(FeedQuery.CONTENTTYPE, row, null)),
 						new Pair<String,Object>("type",query.getAt(FeedQuery.CONTENTTYPE, row, null))
 					},false,splitString
 			);

@@ -51,9 +51,7 @@ import lucee.transformer.Position;
 import lucee.transformer.bytecode.Body;
 import lucee.transformer.bytecode.BodyBase;
 import lucee.transformer.bytecode.Page;
-import lucee.transformer.bytecode.Root;
 import lucee.transformer.bytecode.Statement;
-import lucee.transformer.bytecode.cast.CastOther;
 import lucee.transformer.bytecode.statement.PrintOut;
 import lucee.transformer.bytecode.statement.StatementBase;
 import lucee.transformer.bytecode.statement.tag.Attribute;
@@ -978,7 +976,7 @@ public final class CFMLTransformer {
 				    	
 						Attribute attr=new Attribute(tag.getAttributeType()==TagLibTag.ATTRIBUTE_TYPE_DYNAMIC,
 						att.getName(),
-						CastOther.toExpression(data.factory.createLitString(Caster.toString(att.getDefaultValue(),null)),att.getType()),att.getType()
+						data.factory.toExpression(data.factory.createLitString(Caster.toString(att.getDefaultValue(),null)),att.getType()),att.getType()
 				    	);
 						attr.setDefaultAttribute(true);
 						parent.addAttribute(attr);
@@ -1110,7 +1108,7 @@ public final class CFMLTransformer {
     		else value=tag.getAttributeUndefinedValue(data.factory);
     		
     		if(sbType.toString().length()>0) {
-    			value=CastOther.toExpression(value, sbType.toString());
+    			value = data.factory.toExpression(value, sbType.toString());
     		}
     	}		
     	comment(data.srcCode,true);
@@ -1243,7 +1241,7 @@ public final class CFMLTransformer {
 				else expr=transfomer.transform(data);
 			}
 			if(type.length()>0) {
-				expr=CastOther.toExpression(expr, type);
+				expr=data.factory.toExpression(expr, type);
 			}
 		} catch (TagLibException e) {
 			throw new TemplateException(data.srcCode,e);

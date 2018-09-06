@@ -728,8 +728,7 @@ public final class JSONConverter extends ConverterSupport {
 	 * @throws ConverterException
 	 */
 	public String serialize(PageContext pc, Object object, boolean serializeQueryByColumns) throws ConverterException {
-
-		StringBuilder sb = new StringBuilder();
+		StringBuilder sb = new StringBuilder(256);
 		_serialize(pc, null, object, sb, serializeQueryByColumns, new HashSet());
 		return sb.toString();
 	}

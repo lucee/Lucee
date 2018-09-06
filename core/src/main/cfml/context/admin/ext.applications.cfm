@@ -115,7 +115,7 @@ Error Output --->
 <!---
 Redirtect to entry --->
 <cfif cgi.request_method EQ "POST" and error.message EQ "">
-	<cflocation url="#request.self#?action=#url.action#" addtoken="no">
+	<cflocation url="#request.self#?action=#url.action#&reinit=true" addtoken="no">
 </cfif>
 
 <cfoutput>#inc#</cfoutput>

@@ -17,18 +17,20 @@
  */
 package lucee.transformer.bytecode;
 
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.transformer.Context;
 import lucee.transformer.Factory;
+import lucee.transformer.FactoryBase;
 import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.cast.CastBoolean;
 import lucee.transformer.bytecode.cast.CastDouble;
+import lucee.transformer.bytecode.cast.CastFloat;
 import lucee.transformer.bytecode.cast.CastInt;
+import lucee.transformer.bytecode.cast.CastOther;
 import lucee.transformer.bytecode.cast.CastString;
 import lucee.transformer.bytecode.expression.var.DataMemberImpl;
 import lucee.transformer.bytecode.expression.var.EmptyArray;
@@ -43,11 +45,19 @@ import lucee.transformer.bytecode.literal.LitLongImpl;
 import lucee.transformer.bytecode.literal.LitStringImpl;
 import lucee.transformer.bytecode.literal.Null;
 import lucee.transformer.bytecode.literal.NullConstant;
+import lucee.transformer.bytecode.op.OpDecision;
+import lucee.transformer.bytecode.op.OpUnary;
 import lucee.transformer.bytecode.op.OpBool;
+import lucee.transformer.bytecode.op.OpContional;
+import lucee.transformer.bytecode.op.OpDouble;
+import lucee.transformer.bytecode.op.OpElvis;
+import lucee.transformer.bytecode.op.OpNegate;
+import lucee.transformer.bytecode.op.OpNegateNumber;
 import lucee.transformer.bytecode.op.OpString;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.expression.ExprBoolean;
 import lucee.transformer.expression.ExprDouble;
+import lucee.transformer.expression.ExprFloat;
 import lucee.transformer.expression.ExprInt;
 import lucee.transformer.expression.ExprString;
 import lucee.transformer.expression.Expression;
@@ -65,7 +75,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.Method;
 
-public class BytecodeFactory extends Factory {
+public class BytecodeFactory extends FactoryBase {
 	private final static Method INIT= new Method("init",
 			Types.COLLECTION_KEY,
 			new Type[]{Types.STRING});
@@ -194,20 +204,6 @@ public class BytecodeFactory extends Factory {
 	}
 
 	@Override
-	public Literal createLiteral(Object obj,Literal defaultValue) {
-		if(obj instanceof Boolean) return createLitBoolean(((Boolean)obj).booleanValue());
-		if(obj instanceof Number) {
-			if(obj instanceof Float)return createLitFloat(((Float)obj).floatValue());
-			else if(obj instanceof Integer)return createLitInteger(((Integer)obj).intValue());
-			else if(obj instanceof Long)return createLitLong(((Long)obj).longValue());
-			else return createLitDouble(((Number)obj).doubleValue());
-		}
-		String str = Caster.toString(obj,null);
-		if(str!=null) return createLitString(str);
-		return defaultValue;
-	}
-
-	@Override
 	public LitBoolean TRUE() {
 		return TRUE;
 	}
@@ -258,6 +254,16 @@ public class BytecodeFactory extends Factory {
 	}
 
 	@Override
+	public ExprFloat toExprFloat(Expression expr) {
+		return CastFloat.toExprFloat(expr);
+	}
+	
+	@Override
+	public Expression toExpression(Expression expr, String type) {
+		return CastOther.toExpression(expr, type);
+	}
+
+	@Override
 	public Variable createVariable(Position start, Position end) {
 		return new VariableImpl(this, start, end);
 	}
@@ -281,6 +287,36 @@ public class BytecodeFactory extends Factory {
 	@Override
 	public ExprBoolean opBool(Expression left,Expression right,int operation){
 		return OpBool.toExprBoolean(left, right,operation);
+	}
+	
+	@Override
+	public ExprDouble opDouble(Expression left, Expression right, int operation) {
+		return OpDouble.toExprDouble(left, right, operation);
+	}
+
+	@Override
+	public Expression opNegate(Expression expr, Position start, Position end) {
+		return OpNegate.toExprBoolean(expr, start, end);
+	}
+	
+	public Expression removeCastString(Expression expr) {
+		while(true) {
+			if(expr instanceof CastString){
+				expr=((CastString)expr).getExpr();
+				
+			}
+			else if(
+					expr instanceof CastOther && 
+					(
+							((CastOther) expr).getType().equalsIgnoreCase("String") || 
+							((CastOther) expr).getType().equalsIgnoreCase("java.lang.String")
+					)
+				){
+					expr=((CastOther) expr).getExpr();
+			}
+			else break;
+		}
+		return expr; 
 	}
 
 	@Override
@@ -330,5 +366,30 @@ public class BytecodeFactory extends Factory {
 	@Override
 	public Expression createArray() {
 		return new EmptyArray(this);
+	}
+
+	@Override
+	public ExprDouble opUnary(Variable var, Expression value, short type, int operation, Position start, Position end) {
+		return new OpUnary(var, value, type, operation, start, end);
+	}
+
+	@Override
+	public Expression opContional(Expression cont, Expression left, Expression right) {
+		return OpContional.toExpr(cont, left, right);
+	}
+
+	@Override
+	public ExprBoolean opDecision(Expression left, Expression right, int operation) {
+		return OpDecision.toExprBoolean(left, right, operation);
+	}
+
+	@Override
+	public Expression opElvis(Variable left, Expression right) {
+		return OpElvis.toExpr(left, right);
+	}
+
+	@Override
+	public ExprDouble opNegateNumber(Expression expr, int operation, Position start, Position end) {
+		return OpNegateNumber.toExprDouble(expr, operation, start, end);
 	}
 }

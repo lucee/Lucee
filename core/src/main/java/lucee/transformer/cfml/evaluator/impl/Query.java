@@ -28,8 +28,6 @@ import lucee.runtime.functions.other.QuotedValueList;
 import lucee.runtime.functions.query.ValueList;
 import lucee.transformer.bytecode.Body;
 import lucee.transformer.bytecode.Statement;
-import lucee.transformer.bytecode.cast.CastOther;
-import lucee.transformer.bytecode.cast.CastString;
 import lucee.transformer.bytecode.expression.var.Argument;
 import lucee.transformer.bytecode.expression.var.BIF;
 import lucee.transformer.bytecode.expression.var.UDF;
@@ -75,7 +73,7 @@ public final class Query extends EvaluatorSupport {
 				PrintOut printOut = ((PrintOut)stat);
 				Expression e = printOut.getExpr();
 				if(!(e instanceof Literal)) {
-					Expression expr=removeCastString(e);
+					Expression expr=printOut.getFactory().removeCastString(e);
 					
 					if(expr instanceof Variable) {
 						// do not preserve BIF PreserveSingleQuotes return value
@@ -133,25 +131,5 @@ public final class Query extends EvaluatorSupport {
 				translateChildren(((Body)stat).getStatements().iterator());
 			}
 		}
-	}
-
-	private Expression removeCastString(Expression expr) {
-		while(true) {
-			if(expr instanceof CastString){
-				expr=((CastString)expr).getExpr();
-				
-			}
-			else if(
-					expr instanceof CastOther && 
-					(
-							((CastOther) expr).getType().equalsIgnoreCase("String") || 
-							((CastOther) expr).getType().equalsIgnoreCase("java.lang.String")
-					)
-				){
-					expr=((CastOther) expr).getExpr();
-			}
-			else break;
-		}
-		return expr;
 	}
 }

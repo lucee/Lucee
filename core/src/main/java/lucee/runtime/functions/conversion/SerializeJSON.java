@@ -101,9 +101,12 @@ public final class SerializeJSON implements Function {
 					// check Application.cfc setting this.serialization.serializeQueryAs == "struct"
 					ApplicationContextSupport acs = (ApplicationContextSupport) pc.getApplicationContext();
 					SerializationSettings settings = acs.getSerializationSettings();
-					if(settings.getSerializeQueryAs()==SerializationSettings.SERIALIZE_AS_STRUCT)
-							serializeQueryAsStruct = true;
-					
+
+					if (settings.getSerializeQueryAs() == SerializationSettings.SERIALIZE_AS_COLUMN)
+						return json.serialize(pc, var, true);
+
+					if (settings.getSerializeQueryAs() == SerializationSettings.SERIALIZE_AS_STRUCT)
+						serializeQueryAsStruct = true;
 				}
 
 				if(serializeQueryAsStruct) {

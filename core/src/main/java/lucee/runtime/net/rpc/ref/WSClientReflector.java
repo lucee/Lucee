@@ -4,8 +4,6 @@ import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
-import javax.xml.soap.SOAPHeaderElement;
-
 import org.w3c.dom.Node;
 
 import lucee.runtime.PageContext;
@@ -161,10 +159,10 @@ public class WSClientReflector implements WSClient {
 	}
 
 	@Override
-	public void addHeader(SOAPHeaderElement header) throws PageException {
+	public void addHeader(Object header) throws PageException { // Object instead of header because Java 11 no longer support javax.xml.soap.SOAPHeaderElement
 		try {
 			if(addHeader==null) 
-				addHeader=clazz.getMethod("addHeader", new Class[]{SOAPHeaderElement.class});
+				addHeader=clazz.getMethod("addHeader", new Class[]{Class.forName("javax.xml.soap.SOAPHeaderElement")});
 			addHeader.invoke(obj, new Object[]{header});
 		}
 		catch(Exception e) {

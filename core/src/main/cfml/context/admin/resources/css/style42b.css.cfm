@@ -708,6 +708,7 @@ div.percentagebar div {
 	background-color:#eee2d4;
 	border-right:1px solid #999;
 	padding-left:2px;
+	display: flex;
 }
 div.percentagebar span {
 	position: absolute;

@@ -22,13 +22,10 @@ package lucee.transformer.bytecode.statement;
 import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BytecodeContext;
-import lucee.transformer.bytecode.cast.CastString;
 import lucee.transformer.bytecode.util.Types;
-import lucee.transformer.expression.ExprInt;
 import lucee.transformer.expression.ExprString;
 import lucee.transformer.expression.Expression;
 
-import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
@@ -123,6 +120,6 @@ public final class PrintOut extends StatementBaseNoFinal {
 	
 
 	public void setEncodeFor(Expression encodeFor) {
-		this.encodeFor=CastString.toExprString(encodeFor);
+		this.encodeFor=expr.getFactory().toExprString(encodeFor);
 	}
 }

@@ -9,7 +9,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					var result = e.message;
 				}
 				assertEquals(true, isstruct(result));
-				assertEquals("By-line,Caption/Abstract,City,Copyright Notice,Country/Primary Location Name,Credit,Date Created,Keywords,Object Name,Originating Program,Province/State,Sub-location,Subject Reference ", listSort(structKeyList(result), "textnocase"));
+				assertEquals("Pacific Palisades", result.city);
 			});
 		});
 	}

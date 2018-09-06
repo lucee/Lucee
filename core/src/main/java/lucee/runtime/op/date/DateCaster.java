@@ -21,6 +21,7 @@ package lucee.runtime.op.date;
 
 import java.text.DateFormat;
 import java.text.ParsePosition;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
@@ -35,7 +36,6 @@ import lucee.runtime.Component;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.functions.dateTime.DateAdd;
 import lucee.runtime.i18n.LocaleFactory;
 import lucee.runtime.op.Castable;
 import lucee.runtime.op.Caster;
@@ -197,6 +197,36 @@ public final class DateCaster {
         return dt;
     }
 	
+    /*public static void main(String[] args) throws PageException {
+
+    	Locale[] locales = Locale.getAvailableLocales();
+    	Iterator<Locale> it = LocaleFactory.getLocales().values().iterator();
+
+    	//print.e(toDateTime(new Locale("de","CH"), "06.02.2008 01:02:01 MEZ", TimeZone.getDefault(),null, false));
+    	String str="dimanche, 6. avril 2008 01:02:03";
+    	str="06.02.2008, 01:02:01 MEZ";
+    	str="01.02. h CEST";
+    	str="6-apr-2008";
+    	str="Sunday, April 6, 2008 1:02:03 AM CEST";
+    	str="Sunday, April 6, 2008 1:02:03 AM CEST";
+    	str="01:02:03 o'clock CEST";
+    	str="1:02 Uhr MEZ";
+    	Locale l=new Locale("fr","CH");
+    	l=new Locale("it","CH");
+    	l=new Locale("en","US");
+    	l=new Locale("en","UK");
+    	l=new Locale("de","CH");
+    	//l=new Locale("es","ES");
+    	//l=LocaleConstant.PORTUGUESE_BRASIL;
+    	//l=LocaleConstant.DUTCH_NETHERLANDS;
+    	//l=LocaleConstant.ARABIC_ALGERIA;
+    	//l=Locale.CHINA;
+    	print.e(str);
+    	print.e(toDateTime(l, str, TimeZone.getDefault(),null, false));
+    	
+    	
+	}*/
+    
     /**
      * parse a string to a Datetime Object, returns null if can't convert
      * @param locale 
@@ -218,10 +248,12 @@ public final class DateCaster {
 		df=FormatUtil.getDateTimeFormats(locale,tz,false);//dfc[FORMATS_DATE_TIME];
 		Date d;
 		for(int i=0;i<df.length;i++) {
+			SimpleDateFormat sdf=(SimpleDateFormat) df[i];
+			//print.e(sdf.format(new Date(108,3,6,1,2,1)) + " : "+sdf.toPattern());
 			pp.setErrorIndex(-1);
 			pp.setIndex(0);
-			df[i].setTimeZone(tz);
-			d = df[i].parse(str,pp);
+			sdf.setTimeZone(tz);
+			d = sdf.parse(str,pp);
 			if (pp.getIndex() == 0 || d==null || pp.getIndex()<str.length()) continue;	
 
 			optimzeDate(c,tz,d);
@@ -231,10 +263,12 @@ public final class DateCaster {
 		// date
 		df=FormatUtil.getDateFormats(locale,tz,false);
 		for(int i=0;i<df.length;i++) {
+			SimpleDateFormat sdf=(SimpleDateFormat) df[i];
+			//print.e(sdf.format(new Date(108,3,6,1,2,1)) + " : "+sdf.toPattern());
 			pp.setErrorIndex(-1);
 			pp.setIndex(0);
-			df[i].setTimeZone(tz);
-			d=df[i].parse(str,pp);
+			sdf.setTimeZone(tz);
+			d=sdf.parse(str,pp);
 			if (pp.getIndex() == 0 || d==null || pp.getIndex()<str.length()) continue;	
 			optimzeDate(c,tz,d);
 			return new DateTimeImpl(c.getTime());
@@ -243,10 +277,12 @@ public final class DateCaster {
 		// time
 		df=FormatUtil.getTimeFormats(locale,tz,false);//dfc[FORMATS_TIME];
 		for(int i=0;i<df.length;i++) {
+			SimpleDateFormat sdf=(SimpleDateFormat) df[i];
+			//print.e(sdf.format(new Date(108,3,6,1,2,1))+ " : "+sdf.toPattern());
 			pp.setErrorIndex(-1);
 			pp.setIndex(0);
-			df[i].setTimeZone(tz);
-			d=df[i].parse(str,pp);
+			sdf.setTimeZone(tz);
+			d=sdf.parse(str,pp);
 			if (pp.getIndex() == 0 || d==null || pp.getIndex()<str.length()) continue;	
 			c.setTimeZone(tz);
 			c.setTime(d);

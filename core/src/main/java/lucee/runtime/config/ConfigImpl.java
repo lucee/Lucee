@@ -39,6 +39,7 @@ import java.util.TimeZone;
 
 import lucee.print;
 import lucee.commons.io.CharsetUtil;
+import lucee.commons.io.FileUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.cache.Cache;
 import lucee.commons.io.log.Log;
@@ -116,9 +117,7 @@ import lucee.runtime.listener.ApplicationListener;
 import lucee.runtime.net.mail.Server;
 import lucee.runtime.net.ntp.NtpClient;
 import lucee.runtime.net.proxy.ProxyData;
-import lucee.runtime.net.rpc.DummyWSHandler;
 import lucee.runtime.net.rpc.WSHandler;
-import lucee.runtime.net.rpc.ref.WSHandlerReflector;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.orm.ORMConfiguration;
@@ -2635,6 +2634,10 @@ public abstract class ConfigImpl implements Config {
 	 * @return the remoteClientDirectory
 	 */
 	public Resource getRemoteClientDirectory() {
+		if(remoteClientDirectory==null) {
+			return ConfigWebUtil.getFile(getRootDirectory(),"client-task", "client-task", getConfigDir(), FileUtil.TYPE_DIR, this);
+		}
+		
 		return remoteClientDirectory;
 	}
 

@@ -1277,8 +1277,6 @@ public class OSGiUtil {
 			}
 		}
 		return rtn;
-		// (&(osgi.wiring.bundle=slf4j.api)(bundle-version>=1.6.4))
-		
 	}
 	
 

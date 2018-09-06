@@ -75,7 +75,7 @@ public final class UDFSetterProperty extends UDFGSProperty {
 	@Override
 	public UDF duplicate() {
 		try {
-			return new UDFSetterProperty(component,prop);
+			return new UDFSetterProperty(_component,prop);
 		} catch (PageException e) {
 			return null;
 		}
@@ -86,14 +86,14 @@ public final class UDFSetterProperty extends UDFGSProperty {
 		if(args.length<1)
 			throw new ExpressionException("The parameter "+prop.getName()+" to function "+getFunctionName()+" is required but was not passed in.");
 		validate(validate,validateParams,args[0]);
-		component.getComponentScope().set(propName, cast(pageContext,this.arguments[0],args[0],1));
+		getOwnerComponent(pageContext).getComponentScope().set(propName, cast(pageContext,this.arguments[0],args[0],1));
 
 		// make sure it is reconized that set is called by hibernate
 		//if(component.isPersistent())ORMUtil.getSession(pageContext);
 		ApplicationContext appContext = pageContext.getApplicationContext();
-		if(appContext.isORMEnabled() && component.isPersistent())ORMUtil.getSession(pageContext);
+		if(appContext.isORMEnabled() && getOwnerComponent(pageContext).isPersistent())ORMUtil.getSession(pageContext);
 		
-		return component;
+		return getOwnerComponent(pageContext);
 	}
 
 	@Override
@@ -108,14 +108,14 @@ public final class UDFSetterProperty extends UDFGSProperty {
 			}
 			else throw new ExpressionException("The parameter "+prop.getName()+" to function "+getFunctionName()+" is required but was not passed in.");
 		}
-		component.getComponentScope().set(propName, cast(pageContext,arguments[0],value,1));
+		getOwnerComponent(pageContext).getComponentScope().set(propName, cast(pageContext,arguments[0],value,1));
 
 		// make sure it is reconized that set is called by hibernate
 		//if(component.isPersistent())ORMUtil.getSession(pageContext);
 		ApplicationContext appContext = pageContext.getApplicationContext();
-		if(appContext.isORMEnabled() && component.isPersistent())ORMUtil.getSession(pageContext);
+		if(appContext.isORMEnabled() && getOwnerComponent(pageContext).isPersistent())ORMUtil.getSession(pageContext);
 		
-		return component;
+		return getOwnerComponent(pageContext);
 	}
 
 	@Override

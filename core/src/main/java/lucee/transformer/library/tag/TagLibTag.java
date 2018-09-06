@@ -52,7 +52,7 @@ import lucee.transformer.cfml.tag.TagDependentBodyTransformer;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.library.ClassDefinitionImpl;
 
-import org.objectweb.asm.Type;
+//import org.objectweb.asm.Type;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 import org.xml.sax.Attributes;
@@ -108,7 +108,7 @@ public final class TagLibTag {
 	private ClassDefinition<? extends AttributeEvaluator> cdAttributeEvaluator;
 	private boolean handleException;
     private boolean hasDefaultValue=false;
-	private Type tagType;
+	//private Type tagType;
 	private Constructor  tttConstructor;
 	private boolean allowRemovingLiteral;
 	private TagLibTagAttr defaultAttribute;
@@ -145,7 +145,7 @@ public final class TagLibTag {
 		tlt.cdAttributeEvaluator=cdAttributeEvaluator;
 		tlt.handleException=handleException;
 		tlt.hasDefaultValue=hasDefaultValue;
-		tlt.tagType=tagType;
+		//tlt.tagType=tagType;
 		tlt.tttCD=tttCD;
 		tlt.tttConstructor=tttConstructor;
 		tlt.allowRemovingLiteral=allowRemovingLiteral;
@@ -301,12 +301,13 @@ public final class TagLibTag {
 	
 	
 	
-	public Type getTagType() throws ClassException, BundleException {
+	/*public Type getTagTypeX() throws ClassException, BundleException {
 		if(tagType==null) {
 			tagType=Type.getType(getTagClassDefinition().getClazz());
 		}
 		return tagType;
-	}
+	}*/
+	
 	/**
 	 * @return the status (TagLib.,TagLib.STATUS_IMPLEMENTED,TagLib.STATUS_DEPRECATED,TagLib.STATUS_UNIMPLEMENTED)
 	 */
@@ -751,7 +752,7 @@ public final class TagLibTag {
 		return sb.toString();
 	}
 
-	public String getSetter(Attribute attr, Type type) {
+	public String getSetter(Attribute attr, String typeClassName) {
 		if(tagLib.isCore())
 			return "set"+StringUtil.ucFirst(attr.getName());
 		
@@ -760,9 +761,9 @@ public final class TagLibTag {
 		setter = "set"+StringUtil.ucFirst(attr.getName());
 		Class clazz;
 		try {
-			if(type==null) type = CastOther.getType(attr.getType());
+			if(StringUtil.isEmpty(typeClassName)) typeClassName = CastOther.getType(attr.getType()).getClassName();
 			clazz=getTagClassDefinition().getClazz();
-			java.lang.reflect.Method m = ClassUtil.getMethodIgnoreCase(clazz,setter,new Class[]{ClassUtil.loadClass(type.getClassName())});
+			java.lang.reflect.Method m = ClassUtil.getMethodIgnoreCase(clazz,setter,new Class[]{ClassUtil.loadClass(typeClassName)});
 			setter=m.getName();
 		} 
 		catch (Exception e) {

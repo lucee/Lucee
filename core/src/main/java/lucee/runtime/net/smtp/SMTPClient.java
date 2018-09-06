@@ -966,7 +966,7 @@ public final class SMTPClient implements Serializable  {
 	
 	private void fillHTMLText(Config config,MimePart mp) throws MessagingException {
 		if(htmlTextCharset==null) htmlTextCharset=getMailDefaultCharset(config);
-		mp.setDataHandler(new DataHandler(new StringDataSource(htmlText,TEXT_HTML ,htmlTextCharset, 78)));
+		mp.setDataHandler(new DataHandler(new StringDataSource(htmlText,TEXT_HTML ,htmlTextCharset, 998)));
 		mp.setHeader("Content-Transfer-Encoding", "7bit");
 		mp.setHeader("Content-Type", TEXT_HTML+"; charset="+htmlTextCharset);
 	}

@@ -19,6 +19,7 @@
 package lucee.transformer.bytecode.op;
 
 import lucee.runtime.exp.TemplateException;
+import lucee.transformer.Factory;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.expression.ExpressionBase;
@@ -43,15 +44,15 @@ public final class OpDouble extends ExpressionBase implements ExprDouble {
 	private static final Method DIVIDE_REF=new Method("divideRef",Types.DOUBLE,new Type[]{Types.OBJECT,Types.OBJECT});
 	private static final Method MULTIPLY_REF=new Method("multiplyRef",Types.DOUBLE,new Type[]{Types.OBJECT,Types.OBJECT});
 	
-	public static final int PLUS=GeneratorAdapter.ADD;
+	/*public static final int PLUS=GeneratorAdapter.ADD;
     public static final int MINUS=GeneratorAdapter.SUB;
     public static final int MODULUS=GeneratorAdapter.REM;
     public static final int DIVIDE=GeneratorAdapter.DIV;
     public static final int MULTIPLY=GeneratorAdapter.MUL;
 	public static final int EXP = 2000;
-	public static final int INTDIV = 2001;
+	public static final int INTDIV = 2001;*/
 	
-    private int operation;
+    private int op;
 	private Expression left;
 	private Expression right;
     
@@ -59,7 +60,7 @@ public final class OpDouble extends ExpressionBase implements ExprDouble {
         super(left.getFactory(),left.getStart(),right.getEnd());
         this.left=	left;
         this.right=	right;   
-        this.operation=operation;
+        this.op=operation;
     }
     
 
@@ -72,7 +73,7 @@ public final class OpDouble extends ExpressionBase implements ExprDouble {
 	}
 	
 	public int getOperation() {
-		return operation;
+		return op;
 	}
     
     /**
@@ -104,28 +105,28 @@ public final class OpDouble extends ExpressionBase implements ExprDouble {
         right.writeOut(bc,MODE_REF);
     	
     	
-        if(operation==EXP) {
+        if(op==Factory.OP_DBL_EXP) {
         	adapter.invokeStatic(Types.OPERATOR,EXP_REF);
         }
-        else if(operation==DIVIDE) {
+        else if(op==Factory.OP_DBL_DIVIDE) {
         	adapter.invokeStatic(Types.OPERATOR,DIV_REF);
         }
-        else if(operation==INTDIV) {
+        else if(op==Factory.OP_DBL_INTDIV) {
         	adapter.invokeStatic(Types.OPERATOR,INTDIV_REF);
         }
-        else if(operation==PLUS) {
+        else if(op==Factory.OP_DBL_PLUS) {
         	adapter.invokeStatic(Types.OPERATOR,PLUS_REF);
         }
-        else if(operation==MINUS) {
+        else if(op==Factory.OP_DBL_MINUS) {
         	adapter.invokeStatic(Types.OPERATOR,MINUS_REF);
         }
-        else if(operation==MODULUS) {
+        else if(op==Factory.OP_DBL_MODULUS) {
         	adapter.invokeStatic(Types.OPERATOR,MODULUS_REF);
         }
-        else if(operation==DIVIDE) {
+        else if(op==Factory.OP_DBL_DIVIDE) {
         	adapter.invokeStatic(Types.OPERATOR,DIVIDE_REF);
         }
-        else if(operation==MULTIPLY) {
+        else if(op==Factory.OP_DBL_MULTIPLY) {
         	adapter.invokeStatic(Types.OPERATOR,MULTIPLY_REF);
         }
         

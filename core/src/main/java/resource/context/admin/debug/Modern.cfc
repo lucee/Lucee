@@ -81,7 +81,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 		variables.cookieName_docs = "lucee_docs_modern";
 
 		function buildSectionStruct() {
-			var otherSections = [ "ALL", "Dump", "ExecTime", "ExecOrder", "Exceptions", "ImpAccess", "Info", "Query", "Timer", "Trace", "More", "Expression", "memChart", "cpuChart", "docs_Info", "tags", "functions", "components", "scopesInMemory", "request_Threads", "datasource_connection", "task_Spooler" ];
+			var otherSections = [ "ALL", "Dump", "ExecTime", "ExecOrder", "Exceptions", "ImpAccess", "Info", "Scopes", "Application", "Session", "Form", "URL", "Client", "Cookie", "Request", "_Cgi", "Query", "Timer", "Trace", "More", "Expression", "memChart", "cpuChart", "docs_Info", "tags", "functions", "components", "scopesInMemory", "request_Threads", "datasource_connection", "task_Spooler" ];
 			var i = 0;
 			var result = {};
 			for ( var k in otherSections )
@@ -97,7 +97,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 		<cfparam name="arguments.custom.size" default="medium">
 		<cfset this.allSections  = this.buildSectionStruct()>
 		<cfset variables.tabsPresent = "">
-		<cfloop list="#structKeyList(arguments.CUSTOM)#" index="local.i">
+		<cfloop list="#structKeyList(arguments.CUSTOM)#" index="i">
 			<cfif i EQ "Tab_Debug">
 				<cfset variables.tabsPresent = listAppend(variables.tabsPresent, "debug")>
 			<cfelseif i EQ "tab_Metrics">
@@ -129,16 +129,14 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			</cfif>
 		</cfloop>
 
-		<script>
-			<cfset this.includeFileInline( "/lucee/res/js/jquery-1.12.4.min.js" )>
-		</script>
-		<style>
-			<cfset this.includeFileInline( "/lucee/res/css/modernDebug.css" )>
-		</style>
 
-		<cfset local.sFileName_Debug = createUUID() & "_debug.cfm">
-		<cfset local.sFileName_Metrics = createUUID() & "_metrics.cfm">
-		<cfset local.sFileName_Docs = createUUID() & "_docs.cfm">
+		<script>
+			if (typeof jQuery == 'undefined') {
+				document.write("<script src='/lucee/res/js/util.min.js.cfm'><\/script>")
+			}
+		</script>
+		<link rel="stylesheet" href="/lucee/res/css/modernDebug.css.cfm" type="text/css">
+
 		<cfif arguments.context EQ "web">
 			</td></td></td></th></th></th></tr></tr></tr></table></table></table></a></abbrev></acronym></address></applet></au></b></banner></big></blink></blockquote></bq></caption></center></cite></code></comment></del></dfn></dir></div></div></dl></em></fig></fn></font></form></frame></frameset></h1></h2></h3></h4></h5></h6></head></i></ins></kbd></listing></map></marquee></menu></multicol></nobr></noframes></noscript></note></ol></p></param></person></plaintext></pre></q></s></samp></script></select></small></strike></strong></sub></sup></table></td></textarea></th></title></tr></tt></u></ul></var></wbr></xmp>
 		</cfif>
@@ -236,18 +234,18 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 					</div>
 				</div>
 			</cfif>
-
+			<script src="/lucee/res/js/util.min.js.cfm" type="text/javascript"></script>
+			<script src="/lucee/res/js/echarts-all.js.cfm" type="text/javascript"></script>
+			<script src="/lucee/res/js/typeahead.min.js.cfm" type="text/javascript"></script>
+			<script src="/lucee/res/js/base.min.js.cfm" type="text/javascript"></script>
+			<cfif !structKeyExists(url, "isAjaxRequest")>
+				<script src="/lucee/res/js/jquery.modal.min.js.cfm" type="text/javascript"></script>
+			</cfif>
 			<script>
-				<cfset this.includeFileInline( "/lucee/res/js/util.min.js" )>
-				<cfset this.includeFileInline( "/lucee/res/js/echarts-all.js" )>
-				<cfset this.includeFileInline( "/lucee/res/js/typeahead.min.js" )>
-				<cfset this.includeFileInline( "/lucee/res/js/base.min.js" )>
-				<cfif !structKeyExists(url, "isAjaxRequest")>
-				<cfset this.includeFileInline( "/lucee/res/js/jquery.modal.min.js" )>
-				</cfif>
+
 				var __LUCEE = __LUCEE || {};
 				var oLastObj = false;
-				sectionArray = [];
+				__LUCEE.sectionArray = [];
 
 				__LUCEE.debug = {
 
@@ -400,44 +398,42 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 				};
 
 				function clickAjax(section){
-					var lcl = #serializeJson(local)#;
-					var i = sectionArray.indexOf(section);
+					var i = __LUCEE.sectionArray.indexOf(section);
 					if(i == -1){
-						sectionArray.push(section);
-						$.each(lcl, function(i, data) {
-							if(i=="SFILENAME_"+section.toUpperCase()){
-								var fileName =  lcl[i];
-								var oAjax = new XMLHttpRequest();
-								oAjax.onreadystatechange = function() {
-									if(this.readyState == 4 && this.status == 200) {
-										//var result = $.parseHTML(this.responseText);
-										if(section == 'metrics'){
-											$("##-lucee-"+section+"-data").removeClass('collapsed');
-											$("##-lucee-"+section+"-data").html(this.responseText);
-										} else{
-											$("##-lucee-"+section+"-ALL").html(this.responseText);
-											if(section == 'docs'){
-												bindTypeaheadJS();
-											}
-										}
+						__LUCEE.sectionArray.push(section);
+						var oAjax = new XMLHttpRequest();
+						oAjax.onreadystatechange = function() {
+							if(this.readyState == 4 && this.status == 200) {
+								//var result = $.parseHTML(this.responseText);
+								if(section == 'metrics'){
+									$("##-lucee-"+section+"-data").removeClass('collapsed');
+									$("##-lucee-"+section+"-data").html(this.responseText);
+								} else{
+									$("##-lucee-"+section+"-ALL").html(this.responseText);
+									if(section == 'docs'){
+										bindTypeaheadJS();
 									}
-								};
-								var ajaxURL = "/lucee/appLogs/readDebug.cfm?id=#arguments.debugging.id#&TAB="+section;
-								<cfif structKeyExists(request, "fromAdmin") AND request.fromAdmin EQ true>
-									ajaxURL += "&fromAdmin=true";
-								</cfif>
-								oAjax.open("GET", ajaxURL, true);
-								oAjax.send();
+								}
 							}
-						});
+						};
+						var ajaxURL = "/lucee/appLogs/readDebug.cfm?id=#debugging.id#&TAB="+section;
+						<cfif structKeyExists(request, "fromAdmin") AND request.fromAdmin EQ true>
+							ajaxURL += "&fromAdmin=true";
+						</cfif>
+						oAjax.open("GET", ajaxURL, true);
+						oAjax.send();
 					}
 				}
 			</script>
 
 			<cfif enableTab("metrics") && structCount(variables.chartStr) NEQ 0>
 				<script>
-					labels={'heap':"Heap",'nonheap':"Non-Heap",'cpuSystem':"Whole System"};
+					__LUCEE.debugCharts = {};
+					__LUCEE.debugCharts.charts = {};
+					__LUCEE.debugCharts.chartsOption = {};
 
+					labels={'heap':"Heap",'nonheap':"Non-Heap",'cpuSystem':"Whole System"};
+					stAjaxTime = new Date();
 					function requestData(){
 						if($( "##-lucee-metrics-btn-ALL").hasClass( "btnActive" )){
 							jQuery.ajax({
@@ -446,41 +442,55 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 								success: function(result){
 									$.each(#serializeJSON( variables.chartStr )#,function(index,chrt){
 										if(index == "WholeSystem") {
-											cpuSystemSeries1 = cpuSystemChartOption.series[0].data; //*charts*.series[0].data
+											cpuSystemSeries1 = __LUCEE.debugCharts.chartsOption.cpuSystemChartOption.series[0].data; //*charts*.series[0].data
 											cpuSystemSeries1.push(result["cpuSystem"]); // push the value into series[0].data
-											cpuSystemSeries2 = cpuSystemChartOption.series[1].data; //*charts*.series[0].data
+											cpuSystemSeries2 = __LUCEE.debugCharts.chartsOption.cpuSystemChartOption.series[1].data; //*charts*.series[0].data
 											cpuSystemSeries2.push(result["cpuProcess"]); // push the value into series[0].data
-											cpuSystemChartOption.series[0].data = cpuSystemSeries1;
-											cpuSystemChartOption.series[1].data = cpuSystemSeries2;
-											if(cpuSystemChartOption.series[0].data.length > 60){
-												cpuSystemChartOption.series[0].data.shift(); //shift the array
+											__LUCEE.debugCharts.chartsOption.cpuSystemChartOption.series[0].data = cpuSystemSeries1;
+											__LUCEE.debugCharts.chartsOption.cpuSystemChartOption.series[1].data = cpuSystemSeries2;
+											if(__LUCEE.debugCharts.chartsOption.cpuSystemChartOption.series[0].data.length > 60){
+												__LUCEE.debugCharts.chartsOption.cpuSystemChartOption.series[0].data.shift(); //shift the array
 											}
-											if(cpuSystemChartOption.series[1].data.length > 60){
-												cpuSystemChartOption.series[1].data.shift(); //shift the array
+											if(__LUCEE.debugCharts.chartsOption.cpuSystemChartOption.series[1].data.length > 60){
+												__LUCEE.debugCharts.chartsOption.cpuSystemChartOption.series[1].data.shift(); //shift the array
 											}
-											cpuSystemChartOption.xAxis[0].data.push(new Date().toLocaleTimeString()); // current time
-											if(cpuSystemChartOption.xAxis[0].data.length > 60){
-											cpuSystemChartOption.xAxis[0].data.shift(); //shift the Time value
+											__LUCEE.debugCharts.chartsOption.cpuSystemChartOption.xAxis[0].data.push(new Date().toLocaleTimeString()); // current time
+											if(__LUCEE.debugCharts.chartsOption.cpuSystemChartOption.xAxis[0].data.length > 60){
+											__LUCEE.debugCharts.chartsOption.cpuSystemChartOption.xAxis[0].data.shift(); //shift the Time value
 											}
-											window[chrt].setOption(cpuSystemChartOption); // passed the data into the chats
+											__LUCEE.debugCharts.charts.cpuSystem.setOption(__LUCEE.debugCharts.chartsOption.cpuSystemChartOption); // passed the data into the chats
 				 							return true;
 										}
-										window["series_"+chrt] = window[chrt+"Chart"].series[0].data; //*charts*.series[0].data
+										window["series_"+chrt] = window["__LUCEE.debugCharts.chartsOption."+chrt].series[0].data; //*charts*.series[0].data
 										window["series_"+chrt].push(result[chrt]); // push the value into series[0].data
-										window[chrt+"Chart"].series[0].data = window["series_"+chrt];
-										if(window[chrt+"Chart"].series[0].data.length > 60){
-										window[chrt+"Chart"].series[0].data.shift(); //shift the array
+										window["__LUCEE.debugCharts.chartsOption."+chrt].series[0].data = window["series_"+chrt];
+										if(window["__LUCEE.debugCharts.chartsOption."+chrt].series[0].data.length > 60){
+										window["__LUCEE.debugCharts.chartsOption."+chrt].series[0].data.shift(); //shift the array
 										}
-										window[chrt+"Chart"].xAxis[0].data.push(new Date().toLocaleTimeString()); // current time
-										if(window[chrt+"Chart"].xAxis[0].data.length > 60){
-										window[chrt+"Chart"].xAxis[0].data.shift(); //shift the Time value
+										window["__LUCEE.debugCharts.chartsOption."+chrt].xAxis[0].data.push(new Date().toLocaleTimeString()); // current time
+										if(window["__LUCEE.debugCharts.chartsOption."+chrt].xAxis[0].data.length > 60){
+										window["__LUCEE.debugCharts.chartsOption."+chrt].xAxis[0].data.shift(); //shift the Time value
 										}
-										window[chrt].setOption(window[chrt+"Chart"]); // passed the data into the chats
+										window["__LUCEE.debugCharts.charts."+chrt].setOption(window["__LUCEE.debugCharts.chartsOption."+chrt]); // passed the data into the chats
 									});
+
 								}
-							})
+							});
+							var endAjaxTime = new Date();
+						} else {
+							stAjaxTime = new Date();
+							var endAjaxTime = new Date();
 						}
-						setTimeout(requestData, 1000);
+						var seconds = Math.floor((endAjaxTime-stAjaxTime) / (1000));
+						if(seconds <= 20 ){
+							setTimeout(requestData, 1000);
+						} else if ( seconds <= 40 ) {
+							setTimeout(requestData, 2000);
+						} else if ( seconds <=  80 ) {
+							setTimeout(requestData, 5000);
+						} else if ( seconds <= 120 ){
+							setTimeout(requestData, 10000);
+						}
 					}
 					var dDate=[new Date().toLocaleTimeString()]; // current time
 
@@ -488,8 +498,10 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 
 					$.each(#serializeJSON( variables.chartStr )#, function(i, data){
 						if(i == "WholeSystem") {
-							cpuSystem = echarts.init(document.getElementById('cpuSystem'),'macarons'); // intialize echarts
-							cpuSystemChartOption = {
+							__LUCEE.debugCharts.charts.cpuSystem = {};
+							__LUCEE.debugCharts.chartsOption.cpuSystemChartOption = {};
+							__LUCEE.debugCharts.charts.cpuSystem = echarts.init(document.getElementById('cpuSystem'),'macarons'); // intialize echarts
+							__LUCEE.debugCharts.chartsOption.cpuSystemChartOption = {
 								backgroundColor: ["##EFEDE5"],
 								tooltip : {'trigger':'axis',
 									formatter : function (params) {
@@ -540,12 +552,15 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 
 								]
 							};
-							cpuSystem.setOption(cpuSystemChartOption); // passed the data into the chats
+							__LUCEE.debugCharts.charts.cpuSystem.setOption(__LUCEE.debugCharts.chartsOption.cpuSystemChartOption); // passed the data into the chats
 				 			return true;
 						}
 						// console.log(i);
-						window[data] = echarts.init(document.getElementById(data),'macarons'); // intialize echarts
-						window[data+"Chart"] = {
+						__LUCEE.debugCharts.charts[data]={};
+						__LUCEE.debugCharts.chartsOption[data] = {};
+
+						window["__LUCEE.debugCharts.charts."+data] = echarts.init(document.getElementById(data),'macarons'); // intialize echarts
+						window["__LUCEE.debugCharts.chartsOption."+data] = {
 							backgroundColor: ["##EFEDE5"],
 							tooltip : {'trigger':'axis',
 								formatter : function (params) {
@@ -581,7 +596,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 								}
 							]
 						}; // data
-						window[data].setOption(window[data+"Chart"]); // passed the data into the chats
+						window["__LUCEE.debugCharts.charts."+data].setOption(window["__LUCEE.debugCharts.chartsOption."+data]); // passed the data into the chats
 					});
 					 // data
 					// console.log(cpuSystemChartOption);
@@ -687,6 +702,10 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 					}
 					clickAjax(section);
 				</script>
+			<cfelseif REQUEST.admin=true>
+				<cfscript>
+					clickAjax("debug");
+				</cfscript>
 			</cfif>
 		</cfoutput>
 	</cffunction><!--- output() !--->
@@ -720,7 +739,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			<!--- <cfset arguments.custom.sort_charts 		= (arguments.custom.sort_charts ?: '1,2,3,4')> --->
 
 
-			<cfset var _cgi=structKeyExists(arguments.debugging,'cgi')?arguments.debugging.cgi:cgi />
+			<cfset var _cgi=structKeyExists(arguments.debugging.scope,'cgi')?arguments.debugging.scope.cgi:cgi />
 			<cfset var pages=arguments.debugging.pages />
 			<cfset var queries=arguments.debugging.queries />
 			<cfif not isDefined('arguments.debugging.timers')>
@@ -743,8 +762,12 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			<cfset local.totCnt   = 0>
 			<cfset local.q        = 0>
 			<cfset local.totAvg   = 0>
-			<cfset queryAddColumn(pages, "method")>
-			<cfset queryAddColumn(pages, "path")>
+			<cfif !QueryColumnExists( pages, "method" )>
+				<cfset queryAddColumn(pages, "method")>
+			</cfif>
+			<cfif !QueryColumnExists( pages, "path" )>
+				<cfset queryAddColumn(pages, "path")>
+			</cfif>
 			<cfloop query="pages">
 				<cfset querySetCell(pages, "total", pages.app + pages.load + pages.query, pages.currentRow)>
 				<cfset querySetCell(pages, "avg", (pages.app + pages.load + pages.query) / pages.count, pages.currentRow)>
@@ -772,6 +795,16 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			<cfset this.allSections  = this.buildSectionStruct()>
 			<cfset var isExecOrder   = this.isSectionOpen( "ExecOrder", "debugging" )>
 			<cfset local.sCookieSort = cookie[variables.cookieSortOrder] ?: ' '>
+			<cfloop query="pages">
+				<cfset tot=tot+pages.total>
+				<cfset q=q+pages.query>
+				<cfif pages.avg LT arguments.custom.minimal*1000>
+					<cfcontinue>
+				</cfif>
+				<cfset local.bad=pages.avg GTE arguments.custom.highlight*1000>
+				<cfset loa=loa+pages.load />
+			</cfloop>
+			<cfset querySort(pages, "src","asc")>
 			<cfif structKeyExists(pages, sCookieSort)>
 				<cfif listFind("id,src", sCookieSort)>
 					<cfset querySort(pages, sCookieSort,"asc")>
@@ -1027,96 +1060,121 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 							<cfset loa=0 />
 							<cfset tot=0 />
 							<cfset q=0 />
-							<cfloop query="pages">
-								<cfset tot += pages.total - (pages.count * pages.avg) />
-								<cfset q += pages.query />
-								<cfif pages.avg LT arguments.custom.minimal*1000>
-									<cfcontinue>
-								</cfif>
-								<cfset bad = pages.avg GTE arguments.custom.highlight*1000 />
-								<cfset loa += pages.load />
-								<cfset local.iPctTotal = pages.total / (iTotalTime eq 0 ? 1 : iTotalTime)>
-								<cfset local.iPctCount = pages.count / (iTotalCount eq 0 ? 1 : iTotalCount)>
-								<cfset local.iPctQuery = pages.query / (iTotalQuery eq 0 ? 1 : iTotalQuery)>
-								<cfset local.iPctLucee = pages.app / (iTotalLucee eq 0 ? 1 : iTotalLucee)>
-								<cfset local.iPctAvg   = pages.avg / (iTotalAvg eq 0 ? 1 : iTotalAvg)>
-								<cfset local.sColor    = RGBtoHex(255 * iPctTotal, 160 * (1 - iPctTotal), 0)>
-								<cfset sStyle = ''>
-								<cfif arguments.custom.colorHighlight>
-									<cfset sStyle = sColor>
-								</cfif>
-								<cfif bad><cfset sStyle = "red"></cfif>
-								<tr class="#bad ? 'red': ''#">
-									<td class="txt-r faded #sCookieSort eq 'id' ? 'sorted' : ''#" title="#pages.id#">#ordermap[pages.id]#</td>
-									<td align="right" class="tblContent #sCookieSort eq 'total' ? 'sorted' : ''#">
-										<font color="#sStyle#">#unitFormat(arguments.custom.unit, pages.app + pages.query)#</font>
-										<cfif !bDisplayLongExec AND bad>
-											<cfset bDisplayLongExec = true>
+							<cfloop query="pages" group="src">
+									<cfset page.stckTrace = []>
+									<cfset arrayAppend(page.stckTrace, listLast(pages.src))>
+									<cfquery dbtype="query" name="resultQry">
+										select * from pages where src='#pages.src#' AND id != '#pages.id#'
+									</cfquery>
+									<cfloop query="resultQry">
+										<cfset pages.total += resultQry.total>
+										<cfset pages.count += resultQry.count>
+										<cfset pages.avg += resultQry.avg>
+										<cfset pages.query += resultQry.query>
+										<cfset pages.total += resultQry.total>
+										<cfset pages.app += resultQry.app>
+										<cfset arrayAppend(page.stckTrace, listLast(resultQry.src, "$"))>
+									</cfloop>
+									<cfset tot += pages.total - (pages.count * pages.avg) />
+									<cfset q += pages.query />
+									<cfif pages.avg LT arguments.custom.minimal*1000>
+										<cfcontinue>
+									</cfif>
+									<cfset bad = pages.avg GTE arguments.custom.highlight*1000 />
+									<cfset loa += pages.load />
+									<cfset local.iPctTotal = pages.total / (iTotalTime eq 0 ? 1 : iTotalTime)>
+									<cfset local.iPctCount = pages.count / (iTotalCount eq 0 ? 1 : iTotalCount)>
+									<cfset local.iPctQuery = pages.query / (iTotalQuery eq 0 ? 1 : iTotalQuery)>
+									<cfset local.iPctLucee = pages.app / (iTotalLucee eq 0 ? 1 : iTotalLucee)>
+									<cfset local.iPctAvg   = pages.avg / (iTotalAvg eq 0 ? 1 : iTotalAvg)>
+									<cfset local.sColor    = RGBtoHex(255 * iPctTotal, 160 * (1 - iPctTotal), 0)>
+
+
+									<cfset sStyle = ''>
+									<cfif arguments.custom.colorHighlight>
+										<cfset sStyle = sColor>
+									</cfif>
+									<cfif bad><cfset sStyle = "red"></cfif>
+									<tr class="#bad ? 'red': ''#">
+										<td class="txt-r faded #sCookieSort eq 'id' ? 'sorted' : ''#" title="#pages.id#">#ordermap[pages.id]#</td>
+										<td align="right" class="tblContent #sCookieSort eq 'total' ? 'sorted' : ''#">
+											<font color="#sStyle#">#unitFormat(arguments.custom.unit, pages.app + pages.query)#</font>
+											<cfif !bDisplayLongExec AND bad>
+												<cfset bDisplayLongExec = true>
+											</cfif>
+										</td>
+										<cfif arguments.custom.displayPercentages>
+											<td align="right" class="tblContent" style="#sStyle#">
+												<font color="#sStyle#">#numberFormat(iPctTotal*100, '999.9')#</font>
+											</td>
 										</cfif>
-									</td>
-									<cfif arguments.custom.displayPercentages>
-										<td align="right" class="tblContent" style="#sStyle#">
-											<font color="#sStyle#">#numberFormat(iPctTotal*100, '999.9')#</font>
+										<td align="right" class="tblContent #sCookieSort eq 'query' ? 'sorted' : ''#" style="#sStyle#">
+											<font color="#sStyle#">#unitFormat(arguments.custom.unit, pages.query)#</font>
 										</td>
-									</cfif>
-									<td align="right" class="tblContent #sCookieSort eq 'query' ? 'sorted' : ''#" style="#sStyle#">
-										<font color="#sStyle#">#unitFormat(arguments.custom.unit, pages.query)#</font>
-									</td>
-									<cfif arguments.custom.displayPercentages>
-										<td align="right" class="tblContent" style="#sStyle#">
-											<font color="#sStyle#">#numberFormat(iPctQuery*100, '999.9')#</font>
+										<cfif arguments.custom.displayPercentages>
+											<td align="right" class="tblContent" style="#sStyle#">
+												<font color="#sStyle#">#numberFormat(iPctQuery*100, '999.9')#</font>
+											</td>
+										</cfif>
+										<td align="right" class="tblContent #sCookieSort eq 'app' ? 'sorted' : ''#" style="#sStyle#">
+											<font color="#sStyle#">#unitFormat(arguments.custom.unit, pages.app)#</font>
 										</td>
-									</cfif>
-									<td align="right" class="tblContent #sCookieSort eq 'app' ? 'sorted' : ''#" style="#sStyle#">
-										<font color="#sStyle#">#unitFormat(arguments.custom.unit, pages.app)#</font>
-									</td>
-									<cfif arguments.custom.displayPercentages>
-										<td align="right" class="tblContent" style="#sStyle#">
-											<font color="#sStyle#">#numberFormat(iPctLucee*100, '999.9')#</font>
+										<cfif arguments.custom.displayPercentages>
+											<td align="right" class="tblContent" style="#sStyle#">
+												<font color="#sStyle#">#numberFormat(iPctLucee*100, '999.9')#</font>
+											</td>
+										</cfif>
+										<td align="center" class="tblContent #sCookieSort eq 'count' ? 'sorted' : ''#" style="#sStyle#">
+											<font color="#sStyle#">#pages.count#</font>
 										</td>
-									</cfif>
-									<td align="center" class="tblContent #sCookieSort eq 'count' ? 'sorted' : ''#" style="#sStyle#">
-										<font color="#sStyle#">#pages.count#</font>
-									</td>
-									<cfif arguments.custom.displayPercentages>
-										<td align="right" class="tblContent" style="#sStyle#">
-											<font color="#sStyle#">#numberFormat(iPctCount*100, '999.9')#</font>
+										<cfif arguments.custom.displayPercentages>
+											<td align="right" class="tblContent" style="#sStyle#">
+												<font color="#sStyle#">#numberFormat(iPctCount*100, '999.9')#</font>
+											</td>
+										</cfif>
+										<td align="right" class="tblContent #sCookieSort eq 'avg' ? 'sorted' : ''#" style="#sStyle#">
+											<font color="#sStyle#">#unitFormat(arguments.custom.unit, pages.avg)#</font>
 										</td>
-									</cfif>
-									<td align="right" class="tblContent #sCookieSort eq 'avg' ? 'sorted' : ''#" style="#sStyle#">
-										<font color="#sStyle#">#unitFormat(arguments.custom.unit, pages.avg)#</font>
-									</td>
-									<cfif arguments.custom.displayPercentages>
-										<td align="right" class="tblContent" style="#sStyle#">
-											<font color="#sStyle#">#numberFormat(iPctAvg*100, '999.9')#</font>
+										<cfif arguments.custom.displayPercentages>
+											<td align="right" class="tblContent" style="#sStyle#">
+												<font color="#sStyle#">#numberFormat(iPctAvg*100, '999.9')#</font>
+											</td>
+										</cfif>
+										<td align="left" class="tblContent #sCookieSort eq 'src' ? 'sorted' : ''#" style="#sStyle#" title="#pages.path#">
+											<font color="#sStyle#">#listFirst(pages.src, "$")#</font>
 										</td>
-									</cfif>
-									<td align="left" class="tblContent #sCookieSort eq 'src' ? 'sorted' : ''#" style="#sStyle#" title="#pages.path#">
-										<font color="#sStyle#">#listFirst(pages.src, "$")#</font>
-									</td>
-									<td align="left" class="tblContent" style="#sStyle#">
-										<font color="#sStyle#">
-											<cfif arguments.custom.callStack>
-												<div style="width:80px;float:left"><b>Stacktrace:</b></div>
-												<div style="float:left">#dspCallStackTrace(pages.id, stPages, arguments.debugging.history)#</div>
-											</cfif>
-											<cfif listLen(pages.src, "$") gt 1><br>
-												<div style="width:80px;float:left"><b>Method:</b></div>
-												<div style="float:left">#listLast(pages.src, "$")#</div>
-											</cfif>
-										</font>
-									</td>
-									<cfset local.sPage = replace(listFirst(pages.path, '$'), '\', '/', 'ALL')>
-									<td>
-										<a onClick="__LUCEE.debug.setTemplateFilter('#sPage#', 0)" title="Debug this file only.">
-											<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB98KEwgeMjUl220AAAEISURBVDjLxZM9SgNxEMV/M/nASEDFLJJOPIO92wmWsbdZNugRRLCwySXcxtia1jIL6g08RbLgVlFh9z8Wi8JKSGATyGuHefPemxnYBHauXji4fAOgXoWgkWXkTgDQVdUsJfCCGC+Ie5UJUEB58sLxNZj8LwtAJ4gBzqxmE3W2r0JqQptcugCmMgQw7GF367OffrW+cUIS+UWIUui4k5xXp3qM2btDDlU5LU+Ti4/Z9lHDaS9TN60WolKyUQcwB8Ct1Zioc88qpCLWJpfHkgVjuNeahb8W/jJYuIUwLnqNm+T+ZABinXBMKYOFKNSdJ5E/mldeSjCNfIBR9TtY9RLnodnMQGU9n/kD+19X1oivU2EAAAAASUVORK5CYII="/>
-										</a>
-										&nbsp;
-										<a onClick="__LUCEE.debug.setTemplateFilter('#sPage#', 1)" title="Debug this file and all included ones.">
-											<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB98KEwglA1hJNG8AAAGuSURBVDjL3ZI9aFNhFIaf80WDQ7c0QjepuKc4FCnFm9LJUekQbTE2iSCKIJihmFAtpqAp+EuX9NafNjYiKU4OLt5iFQfBDp0KtkJ1aTpER02+41BuG+mtq+A7Hc7hvN9zXj741xK/aE95J8TwQi0Dm67zanR2UScXGgBccvYzeqZHggyMX2hIN7C6oiHdAJhcaDCXjZFLdPLQ+wVAOjWsMzNPtdVg37aT1Yg1ptNYGwHIdDdIFJcAON/doFCCKXdaptzpYAIj1I3qVyPUAcbT/TJy5B3f7nTdyg10Hd4rg50ThDYrclCFNr/3symYcLj//uvVz9GMp9GMp4XKh+ATaEqHMbTTlI7WjB/cu3t0YuUYc9kYy+vfKVTWADiXPKvHnfgOQZCa1nIlOyIXew2J4hKFyhoXerZmjx4/kWQyKRJNeScxVHdtW05dPvS2ms/n5W+PmJrrzFtLrrWpqtdqrjPvb068/KR+BrerHzX4I6XflEXktGLLm6W+QYCxG9f1QDhEcbWXZ1djLK/XGX/+hVrJkaGhQY3H+/7EiQx7P4Iwb5bfbxOMzS4q/5d+A67apf+Ijp6WAAAAAElFTkSuQmCC"/>
-										</a>
-									</td>
-								</tr>
+										<td align="left" class="tblContent" style="#sStyle#">
+											<table>
+												<cfloop array="#page.stckTrace#" index="i">
+													<tr>
+														<td>
+														<font color="#sStyle#">
+															<cfif arguments.custom.callStack>
+																<div style="width:80px;float:left"><b>Stacktrace:</b></div>
+																<div style="float:left">#dspCallStackTrace(pages.id, stPages, arguments.debugging.history)#</div>
+															</cfif>
+
+															<cfif listLen(i, "$") gt 1><br>
+																<div style="width:80px;float:left"><b>Method:</b></div>
+																<div style="float:left">#listLast(i, "$")#</div>
+															</cfif>
+														</font>
+														</td>
+													</tr>
+												</cfloop>
+											</table>
+										</td>
+										<cfset local.sPage = replace(listFirst(pages.path, '$'), '\', '/', 'ALL')>
+										<td>
+											<a onClick="__LUCEE.debug.setTemplateFilter('#sPage#', 0)" title="Debug this file only.">
+												<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB98KEwgeMjUl220AAAEISURBVDjLxZM9SgNxEMV/M/nASEDFLJJOPIO92wmWsbdZNugRRLCwySXcxtia1jIL6g08RbLgVlFh9z8Wi8JKSGATyGuHefPemxnYBHauXji4fAOgXoWgkWXkTgDQVdUsJfCCGC+Ie5UJUEB58sLxNZj8LwtAJ4gBzqxmE3W2r0JqQptcugCmMgQw7GF367OffrW+cUIS+UWIUui4k5xXp3qM2btDDlU5LU+Ti4/Z9lHDaS9TN60WolKyUQcwB8Ct1Zioc88qpCLWJpfHkgVjuNeahb8W/jJYuIUwLnqNm+T+ZABinXBMKYOFKNSdJ5E/mldeSjCNfIBR9TtY9RLnodnMQGU9n/kD+19X1oivU2EAAAAASUVORK5CYII="/>
+											</a>
+											&nbsp;
+											<a onClick="__LUCEE.debug.setTemplateFilter('#sPage#', 1)" title="Debug this file and all included ones.">
+												<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB98KEwglA1hJNG8AAAGuSURBVDjL3ZI9aFNhFIaf80WDQ7c0QjepuKc4FCnFm9LJUekQbTE2iSCKIJihmFAtpqAp+EuX9NafNjYiKU4OLt5iFQfBDp0KtkJ1aTpER02+41BuG+mtq+A7Hc7hvN9zXj741xK/aE95J8TwQi0Dm67zanR2UScXGgBccvYzeqZHggyMX2hIN7C6oiHdAJhcaDCXjZFLdPLQ+wVAOjWsMzNPtdVg37aT1Yg1ptNYGwHIdDdIFJcAON/doFCCKXdaptzpYAIj1I3qVyPUAcbT/TJy5B3f7nTdyg10Hd4rg50ThDYrclCFNr/3symYcLj//uvVz9GMp9GMp4XKh+ATaEqHMbTTlI7WjB/cu3t0YuUYc9kYy+vfKVTWADiXPKvHnfgOQZCa1nIlOyIXew2J4hKFyhoXerZmjx4/kWQyKRJNeScxVHdtW05dPvS2ms/n5W+PmJrrzFtLrrWpqtdqrjPvb068/KR+BrerHzX4I6XflEXktGLLm6W+QYCxG9f1QDhEcbWXZ1djLK/XGX/+hVrJkaGhQY3H+/7EiQx7P4Iwb5bfbxOMzS4q/5d+A67apf+Ijp6WAAAAAElFTkSuQmCC"/>
+											</a>
+										</td>
+									</tr>
 							</cfloop>
 						</table>
 						<cfif bDisplayLongExec>
@@ -1306,6 +1364,126 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 						</td><!--- #-lucee-debug-#sectionId# !--->
 					</tr>
 				</table>
+			</cfif>
+
+
+			<!--- Scopes --->
+
+			<cfset local.appSettings = getApplicationSettings()>
+			<cfif structKeyExists( arguments.debugging, "scope" )>
+				<div class="section-title">Scopes</div>
+				<cfif  structKeyExists( arguments.debugging.scope, "Application" )>
+					<cfset sectionId = "Application">
+					<cfset isOpen = this.isSectionOpen( sectionId, "debugging" )>
+
+					<table>
+						<tr>
+						<cfset renderSectionHeadTR( sectionId, "debugging", "Application")>
+						<td  id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
+							<cfdump var="#arguments.debugging.scope.application#" />
+						<td>
+						</tr>
+					</table>
+				</cfif>
+
+				<cfif  structKeyExists( arguments.debugging.scope, "Session" ) && local.appSettings.sessionManagement>
+					<cfset sectionId = "Session">
+					<cfset isOpen = this.isSectionOpen( sectionId, "debugging" )>
+
+					<table>
+						<tr>
+						<cfset renderSectionHeadTR( sectionId, "debugging", "session")>
+						<td  id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
+							<cfdump var="#arguments.debugging.scope.session#" />
+						<td>
+						</tr>
+					</table>
+				</cfif>
+
+				<cfif  structKeyExists( arguments.debugging.scope, "client" ) && local.appSettings.clientManagement>
+					<cfset sectionId = "client">
+					<cfset isOpen = this.isSectionOpen( sectionId, "debugging" )>
+
+					<table>
+						<tr>
+						<cfset renderSectionHeadTR( sectionId, "debugging", "client")>
+						<td  id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
+							<cfdump var="#arguments.debugging.scope.client#" />
+						<td>
+						</tr>
+					</table>
+				</cfif>
+
+
+				<cfif  structKeyExists( arguments.debugging.scope, "Form" )>
+					<cfset sectionId = "Form">
+					<cfset isOpen = this.isSectionOpen( sectionId, "debugging" )>
+
+					<table>
+						<tr>
+						<cfset renderSectionHeadTR( sectionId, "debugging", "Form")>
+						<td  id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
+							<cfdump var="#arguments.debugging.scope.form#" />
+						<td>
+						</tr>
+					</table>
+				</cfif>
+
+				<cfif  structKeyExists( arguments.debugging.scope, "URL" )>
+					<cfset sectionId = "URL">
+					<cfset isOpen = this.isSectionOpen( sectionId, "debugging" )>
+
+					<table>
+						<tr>
+						<cfset renderSectionHeadTR( sectionId, "debugging", "URL")>
+						<td  id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
+							<cfdump var="#arguments.debugging.scope.URL#" />
+						<td>
+						</tr>
+					</table>
+				</cfif>
+
+				<cfif  structKeyExists( arguments.debugging.scope, "cgi" )>
+					<cfset sectionId = "_Cgi">
+					<cfset isOpen = this.isSectionOpen( sectionId, "debugging" )>
+
+					<table>
+						<tr>
+						<cfset renderSectionHeadTR( sectionId, "debugging", "cgi")>
+						<td  id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
+							<cfdump var="#arguments.debugging.scope.cgi#" />
+						<td>
+						</tr>
+					</table>
+				</cfif>
+
+				<cfif  structKeyExists( arguments.debugging.scope, "Request" )>
+					<cfset sectionId = "Request">
+					<cfset isOpen = this.isSectionOpen( sectionId, "debugging" )>
+
+					<table>
+						<tr>
+						<cfset renderSectionHeadTR( sectionId, "debugging", "Request")>
+						<td  id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
+							<cfdump var="#arguments.debugging.scope.Request#" />
+						<td>
+						</tr>
+					</table>
+				</cfif>
+
+				<cfif  structKeyExists( arguments.debugging.scope, "cookie" )>
+					<cfset sectionId = "Cookie">
+					<cfset isOpen = this.isSectionOpen( sectionId, "debugging" )>
+
+					<table>
+						<tr>
+						<cfset renderSectionHeadTR( sectionId, "debugging", "Cookie")>
+						<td  id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
+							<cfdump var="#arguments.debugging.scope.Cookie#" />
+						<td>
+						</tr>
+					</table>
+				</cfif>
 			</cfif>
 
 			<!--- Implicit variable Access --->
@@ -1823,12 +2001,6 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			}
 
 			return arguments.size & 'B';
-		}
-
-
-		function includeFileInline( filename ) cachedWithin=createTimeSpan(0, 1, 0, 0) {
-
-			echo( fileRead( expandPath( arguments.filename ) ) );
 		}
 
 		function getAllFunctions() {

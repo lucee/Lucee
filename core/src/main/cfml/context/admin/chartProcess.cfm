@@ -19,21 +19,23 @@
 		<cfset str = {}>
 		<cfloop query="usage">
 			<cfset str.pused=int(100/arguments.usage.max*arguments.usage.used)>
+			<cfset str.pused =(str.pused GT 100)?100:(str.pused LT 0)?0:str.pused>
    			<cfset str.pfree=100-str.pused>
 		</cfloop>
 		<cfreturn str>
 </cffunction>
 
-
 <cffunction name="sysMetric" returnType="struct" access="remote">
 	<cfset systemInfo=GetSystemMetrics()>
 	<cfset heap = printMemory(getmemoryUsage("heap"),false)>
 	<cfset nonHeap = printMemory(getmemoryUsage("non_heap"),false)>
+	<cfset cpuSystemData = int((systemInfo.cpuSystem ?: 0) *100)>
+	<cfset  cpuProcessData= int((systemInfo.cpuProcess ?: 0) *100)>
 	<cfset result = {
 		"heap":heap.pused,
 		"nonheap":nonHeap.pused,
-		"cpuSystem": int((systemInfo.cpuSystem ?: 0) * 100),
-		"cpuProcess": int((systemInfo.cpuProcess ?: 0) *100)
+		"cpuSystem": (cpuSystemData GT 100) ? 100 :cpuSystemData,
+		"cpuProcess": (cpuProcessData GT 100) ? 100 :cpuProcessData
 	}>
 	<cfreturn result>
 </cffunction>

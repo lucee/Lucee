@@ -61,7 +61,7 @@ public final class UDFAddProperty extends UDFGSProperty {
  
 	@Override
 	public UDF duplicate() {
-		return new UDFAddProperty(component,prop);
+		return new UDFAddProperty(_component,prop);
 	}
 	
 	@Override
@@ -80,7 +80,7 @@ public final class UDFAddProperty extends UDFGSProperty {
 		}
 		
 		// never reached
-		return component;
+		return getOwnerComponent(pageContext);
 		
 	}
 
@@ -117,14 +117,14 @@ public final class UDFAddProperty extends UDFGSProperty {
 		}
 
 		// never reached
-		return component;
+		return getOwnerComponent(pageContext);
 	}
 	
 	
 	private Object _call(PageContext pageContext, Object key, Object value) throws PageException {
 		
 		
-		Object propValue = component.getComponentScope().get(propName,null);
+		Object propValue = getOwnerComponent(pageContext).getComponentScope().get(propName,null);
 		
 		// struct
 		if(this.arguments.length==2) {
@@ -132,7 +132,7 @@ public final class UDFAddProperty extends UDFGSProperty {
 			value=cast(pageContext,arguments[1],value,2);
 			if(propValue==null){
 				HashMap map=new HashMap();
-				component.getComponentScope().setEL(propName,map);
+				getOwnerComponent(pageContext).getComponentScope().setEL(propName,map);
 				propValue=map;
 			}	
 			if(propValue instanceof Struct) {
@@ -152,7 +152,7 @@ public final class UDFAddProperty extends UDFGSProperty {
 				propValue=new PersistentList(s);
 				component.getComponentScope().setEL(propName,propValue);*/
 				Array arr=new ArrayImpl();
-				component.getComponentScope().setEL(propName,arr);
+				getOwnerComponent(pageContext).getComponentScope().setEL(propName,arr);
 				propValue=arr;
 			}	
 			if(propValue instanceof Array) {
@@ -162,7 +162,7 @@ public final class UDFAddProperty extends UDFGSProperty {
 				((java.util.List)propValue).add(value);
 			}
 		}
-		return component;
+		return getOwnerComponent(pageContext);
 	}
 
 	@Override

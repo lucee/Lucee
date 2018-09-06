@@ -299,6 +299,10 @@ public abstract class _Mail extends TagImpl {
             else if(getType()==MailClient.TYPE_IMAP && action.equals("listallfolders")) {
             	pageContext.setVariable(name,client.listAllFolder(folder, recurse,startrow,maxrows));
             }
+            else if(getType()==MailClient.TYPE_IMAP && action.equals("movemail")) {
+                required(getTagName(),action,"newfolder",newfolder);
+                client.moveMail(folder,newfolder,messageNumber,uid);
+            }
             else {
             	String actions="getHeaderOnly,getAll,delete";
             	if(getType()==MailClient.TYPE_IMAP) actions+="open,close,markread,createfolder,deletefolder,renamefolder,listallfolders";

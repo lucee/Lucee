@@ -24,6 +24,7 @@ import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.expression.ExpressionBase;
 import lucee.transformer.bytecode.util.Methods;
 import lucee.transformer.bytecode.util.Types;
+import lucee.transformer.cast.Cast;
 import lucee.transformer.expression.ExprBoolean;
 import lucee.transformer.expression.ExprDouble;
 import lucee.transformer.expression.ExprString;
@@ -84,7 +85,7 @@ public final class CastDouble extends ExpressionBase implements ExprDouble,Cast 
             else adapter.invokeStatic(Types.CASTER,Methods.METHOD_TO_DOUBLE_FROM_STRING);
         }
         else {
-        	Type rtn = expr.writeOut(bc,mode);
+        	Type rtn = ((ExpressionBase)expr).writeOutAsType(bc,mode);
         	if(mode==MODE_VALUE) {
         		if(!Types.isPrimitiveType(rtn))	{
         			adapter.invokeStatic(Types.CASTER,Methods.METHOD_TO_DOUBLE_VALUE);

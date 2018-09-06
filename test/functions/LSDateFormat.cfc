@@ -1,5 +1,5 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"{	
-	function testMemberFunction(){
+function testMemberFunction(){
 		local.orgLocale=getLocale();
 		setLocale("German (Swiss)");
 		setTimeZone('CET');
@@ -15,7 +15,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			setLocale(orgLocale);
 		}
 	}
-
+ 
 	function testLuceeMemberFunction(){
 		local.testcase=new LSDateFormat.LSDateFormat();
 		testcase.testMemberFunction();
@@ -24,6 +24,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 		local.testcase=new LSDateFormat.LSDateFormat();
 		testcase.testFunction();
 	}
+
 
 	function run( testResults , testBox ) {
 		describe( "test case for LSDateFormat", function() {
@@ -164,3 +165,4 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 		});	
 	}
 }
+

@@ -20,7 +20,6 @@ package lucee.transformer.bytecode.expression.var;
 
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BytecodeContext;
-import lucee.transformer.bytecode.cast.CastOther;
 import lucee.transformer.bytecode.expression.ExpressionBase;
 import lucee.transformer.bytecode.util.ExpressionUtil;
 import lucee.transformer.expression.Expression;
@@ -43,7 +42,7 @@ public class Argument extends ExpressionBase {
 		 * @return the value
 		 */
 		public Expression getValue() {
-			return CastOther.toExpression(raw,type);
+			return raw.getFactory().toExpression(raw,type);
 		}
 		
 		/**
@@ -66,12 +65,12 @@ public class Argument extends ExpressionBase {
 		 */
 		@Override
 		public Type _writeOut(BytecodeContext bc, int mode) throws TransformerException {
-			return getValue().writeOut(bc, mode);
+			return ((ExpressionBase)getValue()).writeOutAsType(bc, mode);
 		}
 		
 		public Type writeOutValue(BytecodeContext bc, int mode) throws TransformerException {
 			ExpressionUtil.visitLine(bc, getStart());
-			Type t = getValue().writeOut(bc, mode);
+			Type t = ((ExpressionBase)getValue()).writeOutAsType(bc, mode);
 			ExpressionUtil.visitLine(bc, getEnd());
 			return t;
 		}

@@ -20,6 +20,7 @@ package lucee.transformer.bytecode.op;
 
 import java.math.BigDecimal;
 
+import lucee.transformer.Factory;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.expression.ExpressionBase;
@@ -63,7 +64,7 @@ public final class OpBigDecimal extends ExpressionBase {
     
     public Type writeOutDouble(BytecodeContext bc, int mode) throws TransformerException {
 
-        if(operation==OpDouble.EXP) {
+        if(operation==Factory.OP_DBL_EXP) {
         	return new OpDouble(left, right, operation).writeOutDouble(bc, mode);
         }
     	
@@ -75,27 +76,27 @@ public final class OpBigDecimal extends ExpressionBase {
     	
     	
     	//Caster.toBigDecimal("1").add(Caster.toBigDecimal("1"));
-        if(operation==OpDouble.PLUS) {
+        if(operation==Factory.OP_DBL_PLUS) {
         	adapter.invokeVirtual(Types.BIG_DECIMAL, _ADD);
         }
-        else if(operation==OpDouble.MINUS) {
+        else if(operation==Factory.OP_DBL_MINUS) {
         	adapter.invokeVirtual(Types.BIG_DECIMAL, _SUBSTRACT);
         }
-        else if(operation==OpDouble.DIVIDE) {
+        else if(operation==Factory.OP_DBL_DIVIDE) {
         	adapter.push(34);
         	adapter.push( BigDecimal.ROUND_HALF_EVEN);
         	adapter.invokeVirtual(Types.BIG_DECIMAL, _DIVIDE);
         }
-        else if(operation==OpDouble.INTDIV) {
+        else if(operation==Factory.OP_DBL_INTDIV) {
         	adapter.push(0);
         	adapter.push( BigDecimal.ROUND_DOWN);
         	adapter.invokeVirtual(Types.BIG_DECIMAL, _DIVIDE);
         }
-        else if(operation==OpDouble.MULTIPLY) {
+        else if(operation==Factory.OP_DBL_MULTIPLY) {
         	adapter.invokeVirtual(Types.BIG_DECIMAL, _MULTIPLY);
         }
         
-        else if(operation==OpDouble.MODULUS) {
+        else if(operation==Factory.OP_DBL_MODULUS) {
         	adapter.invokeVirtual(Types.BIG_DECIMAL, _REMAINER);
         }
         return Types.BIG_DECIMAL;

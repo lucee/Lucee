@@ -661,6 +661,15 @@ public final class FileTag extends BodyTagImpl {
         if(output==null)
             throw new ApplicationException("attribute output is not defined for tag file");
         checkFile(pageContext, securityManager, file, serverPassword,createPath,true,false,true);
+        if(file.exists()) {
+	    	//Error
+	    	if(nameconflict==NAMECONFLICT_ERROR) throw new ApplicationException("destination file ["+file+"] already exist");
+	    	// SKIP
+	    	else if(nameconflict==NAMECONFLICT_SKIP) return;
+			// OVERWRITE
+			else if(nameconflict==NAMECONFLICT_OVERWRITE) file.delete();
+	    }
+
 
         setACL(pageContext,file,acl);
         try {
@@ -864,7 +873,6 @@ public final class FileTag extends BodyTagImpl {
 		boolean fileExisted=false;
 		boolean fileWasOverwritten=false;
 
-		String contentType = ResourceUtil.getMimeType(formItem.getResource(), formItem.getContentType());
 		
 		// set cffile struct
 		Struct cffile=new StructImpl();
@@ -875,16 +883,20 @@ public final class FileTag extends BodyTagImpl {
 		cffile.set("datelastaccessed",new DateImpl(pageContext));
 		cffile.set("oldfilesize",Long.valueOf(length));
 		cffile.set("filesize",Long.valueOf(length));
-		cffile.set("contenttype",ListFirst.call(pageContext,contentType,"/",false,1));
-		cffile.set("contentsubtype",ListLast.call(pageContext,contentType,"/",false,1));
-		
+
 		// client file
 		String strClientFile=formItem.getName();
 		while(strClientFile.indexOf('\\')!=-1)
 			strClientFile=strClientFile.replace('\\','/');
 		Resource clientFile=pageContext.getConfig().getResource(strClientFile);
 		String clientFileName=clientFile.getName();
-
+		
+		
+		// content type
+		String contentType = ResourceUtil.getMimeType(formItem.getResource(),clientFile.getName(), formItem.getContentType());
+		cffile.set("contenttype",ListFirst.call(pageContext,contentType,"/",false,1));
+		cffile.set("contentsubtype",ListLast.call(pageContext,contentType,"/",false,1));
+		
 		// check file type
 		checkContentType(contentType,accept,getFileExtension(clientFile),strict);
 	

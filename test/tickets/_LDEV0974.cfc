@@ -35,14 +35,13 @@
 				});
 
 				it(title="Checking serializeJSON() with metadata for object to be serialized", body=function(){
-					uri = createURI("LDEV0974/app5/index.cfm");
-					local.result = _InternalRequest(template:uri);
-					local.tmpData = deserializeJSON(local.result.FileContent.trim());
-					expect(find("DESIGNATION", local.result.FileContent.trim())).toBeGT(0);
-					expect(find("Name", local.result.FileContent.trim())).toBeGT(0);
-					expect(find("id", local.result.FileContent.trim())).toBeGT(0);
-					expect(local.tmpData).toBeTypeOf("struct");
-					expect(local.tmpData.id).toBeTypeOf("string");
+					local.uri = createURI("LDEV0974/app5/index.cfm");
+					local.result = _InternalRequest(template:local.uri);
+					local.tmpData = deserializeJSON(local.result);
+					expect(structKeyList(local.tmpData)).toBe("DESIGNATION,fname,id");
+					expect(structKeyList(local.tmpData.fname)).toBeTypeOf("string");
+					expect(structKeyList(local.tmpData.id)).toBeTypeOf("string");
+
 				});
 
 				it(title="Checking serializeJSON() with custom serializer", body=function(){
@@ -95,14 +94,16 @@
 					mystruct.id = 1;
 					mystruct.Name = "POTHYS";
 					mystruct.DESIGNATION = "Associate Software Engineer";
-					metadata = {id: {type:"string"}};
+					metadata = {id: {type:"string"}, name: {type:"string",name:"fname"}};
 					mystruct.setMetadata(metadata);
 
 					local.result = serializeJSON(myStruct);
 					local.tmpData = deserializeJSON(local.result);
 
 					expect(local.tmpData).toBeTypeOf("struct");
-					expect(local.tmpData.id).toBeTypeOf("string");
+					expect(structKeyList(local.tmpData)).toBe("DESIGNATION,fname,id");
+					expect(structKeyList(local.tmpData.fname)).toBeTypeOf("string");
+					expect(structKeyList(local.tmpData.id)).toBeTypeOf("string");
 				});
 
 				// it(title="Checking serializeJSON() with custom serializer", body=function(){

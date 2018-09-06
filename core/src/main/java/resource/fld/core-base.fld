@@ -242,6 +242,7 @@ All elements in the array must contain values that can be converted to numeric.<
 		<name>arrayDelete</name>
 		<class>lucee.runtime.functions.arrays.ArrayDelete</class>
 		<member-name>delete</member-name>
+		<member-chaining>true</member-chaining>
 		<keywords>array</keywords>
 		<description>Deletes specified object from given array</description>
 		<argument>
@@ -274,6 +275,7 @@ All elements in the array must contain values that can be converted to numeric.<
 		<name>arrayDeleteNoCase</name>
 		<class>lucee.runtime.functions.arrays.ArrayDeleteNoCase</class>
 		<member-name>deleteNoCase</member-name>
+		<member-chaining>true</member-chaining>
 		<keywords>array</keywords>
 		<description>Deletes specified object from given array, in case of a string the case of the string does not matter.</description>
 		<argument>
@@ -3431,6 +3433,7 @@ type of the result returned:
 	<function>
 		<name>DeserializeJSON</name>
 		<class>lucee.runtime.functions.conversion.DeserializeJSON</class>
+		<member-name>deserializeJSON</member-name>
 		<keywords>string,parsing,json,javascript</keywords>
 		<description>Converts a JSON (JavaScript Object Notation) string data representation into CFML data, such as a struct or array.</description>
 		<argument>

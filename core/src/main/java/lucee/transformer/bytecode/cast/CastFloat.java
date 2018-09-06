@@ -25,6 +25,7 @@ import lucee.transformer.bytecode.expression.ExpressionBase;
 import lucee.transformer.bytecode.op.OpDouble;
 import lucee.transformer.bytecode.util.Methods;
 import lucee.transformer.bytecode.util.Types;
+import lucee.transformer.cast.Cast;
 import lucee.transformer.expression.ExprBoolean;
 import lucee.transformer.expression.ExprDouble;
 import lucee.transformer.expression.ExprFloat;
@@ -96,7 +97,7 @@ public final class CastFloat extends ExpressionBase implements ExprFloat,Cast {
             else adapter.invokeStatic(Types.CASTER,Methods.METHOD_TO_FLOAT_FROM_STRING);
         }
         else {
-        	Type rtn = expr.writeOut(bc,mode);
+        	Type rtn = ((ExpressionBase)expr).writeOutAsType(bc,mode);
         	if(mode==MODE_VALUE) {
         		if(!Types.isPrimitiveType(rtn))	{
         			adapter.invokeStatic(Types.CASTER,Methods.METHOD_TO_FLOAT_VALUE);

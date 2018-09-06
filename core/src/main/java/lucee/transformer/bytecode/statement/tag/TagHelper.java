@@ -60,6 +60,7 @@ public final class TagHelper {
 	private static final Type MISSING_ATTRIBUTE_ARRAY = Type.getType(MissingAttribute[].class);
 	private static final Type BODY_TAG = Type.getType(BodyTag.class);
 	private static final Type TAG=Type.getType(javax.servlet.jsp.tagext.Tag.class);
+	private static final Type TRY_CATCH_FINALLY_TAG = Type.getType(javax.servlet.jsp.tagext.TryCatchFinally.class);
 	private static final Type TAG_UTIL=Type.getType(lucee.runtime.tag.TagUtil.class);
 	
 	// TagUtil.setAttributeCollection(Tag, Struct)
@@ -183,6 +184,7 @@ public final class TagHelper {
 			Types.VOID,
 			new Type[]{Types.TAG,Types.STRING,Types.STRING});
 	
+	
 	/**
 	 * writes out the tag
 	 * @param tag
@@ -199,17 +201,23 @@ public final class TagHelper {
 		final ClassDefinition cd = tlt.getTagClassDefinition();
 		final boolean fromBundle=cd.getName()!=null;
 		final Type currType;
+		final Type currDoFinallyType;
+		
 		if(fromBundle) {
 			try {
 				if(Reflector.isInstaneOf(cd.getClazz(), BodyTag.class)) currType=BODY_TAG;
 				else currType=TAG;
+				currDoFinallyType=TRY_CATCH_FINALLY_TAG;
 			}
 			catch (Exception e) {
 				if(e instanceof TransformerException) throw (TransformerException)e;
 				throw new TransformerException(e, tag.getStart());
 			}
 		}
-		else currType=getTagType(tag);
+		else {
+			currDoFinallyType=currType=getTagType(tag);
+			
+		}
 		
 		final int currLocal=adapter.newLocal(currType);
 		Label tagBegin=new Label();
@@ -391,7 +399,7 @@ public final class TagHelper {
 						// tag.doFinally();
 						if(tlt.handleException()) {
 							adapter.loadLocal(currLocal);
-							ASMUtil.invoke(fromBundle?ASMUtil.INTERFACE:ASMUtil.VIRTUAL,adapter,currType,DO_FINALLY);
+							ASMUtil.invoke(fromBundle?ASMUtil.INTERFACE:ASMUtil.VIRTUAL,adapter,currDoFinallyType,DO_FINALLY);
 							//adapter.invokeVirtual(currType, DO_FINALLY);
 						}
 						// GOTO after execution body, used when a continue/break was called before
@@ -413,7 +421,7 @@ public final class TagHelper {
 						adapter.loadLocal(currLocal);
 						adapter.loadLocal(t);
 						//adapter.visitVarInsn(Opcodes.ALOAD,t);
-						ASMUtil.invoke(fromBundle?ASMUtil.INTERFACE:ASMUtil.VIRTUAL,adapter,currType,DO_CATCH);
+						ASMUtil.invoke(fromBundle?ASMUtil.INTERFACE:ASMUtil.VIRTUAL,adapter,currDoFinallyType,DO_CATCH);
 						//adapter.invokeVirtual(currType, DO_CATCH);
 					tcfv.visitCatchEnd(bc);
 				}
@@ -492,7 +500,7 @@ public final class TagHelper {
 				}
 				else {
 					Type type = CastOther.getType(attr.getType());
-					methodName=tag.getTagLibTag().getSetter(attr,type);
+					methodName=tag.getTagLibTag().getSetter(attr,type==null?null:type.getClassName());
 					adapter.loadLocal(currLocal);
 					attr.getValue().writeOut(bc, Types.isPrimitiveType(type)?Expression.MODE_VALUE:Expression.MODE_REF);
 					adapter.invokeVirtual(currType, new Method(methodName,Type.VOID_TYPE,new Type[]{type}));
@@ -519,8 +527,10 @@ public final class TagHelper {
 	private static Type getTagType(Tag tag) throws TransformerException {
 		TagLibTag tlt = tag.getTagLibTag();
 		try {
-			return tlt.getTagType();
-		} catch(Throwable t) {
+			return Type.getType(tlt.getTagClassDefinition().getClazz());
+			//return tlt.getTagType();
+		}
+		catch(Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
 			throw new TransformerException(t,tag.getStart());
 		}

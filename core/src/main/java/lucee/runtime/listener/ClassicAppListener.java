@@ -29,6 +29,8 @@ import lucee.runtime.exp.MissingIncludeException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.UDF;
+import lucee.runtime.type.scope.Application;
+import lucee.runtime.type.scope.Session;
 
 /*
  * only use by CFML dialect so checking for dialect is not necessary
@@ -93,7 +95,18 @@ public final class ClassicAppListener extends AppListenerSupport {
 	}
 
 	@Override
+	public boolean onApplicationStart(PageContext pc, Application application) throws PageException {
+		// do nothing
+		return true;
+	}
+
+	@Override
 	public void onSessionStart(PageContext pc) throws PageException {
+		// do nothing
+	}
+
+	@Override
+	public void onSessionStart(PageContext pc, Session session) throws PageException {
 		// do nothing
 	}
 

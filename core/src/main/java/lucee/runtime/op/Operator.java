@@ -937,7 +937,9 @@ public final class Operator {
      * @return result of the opertions
      */
     public static double modulus(double left, double right) {
-        return left%right;
+    	if(right==0d)
+			throw new ArithmeticException("Division by zero is not possible");
+		return left%right;
     }
     
     /**
@@ -979,7 +981,6 @@ public final class Operator {
     public static double bitor(double left, double right) {
         return (int)left|(int)right;
     }
-    
 
     public static Double divRef(Object left, Object right) throws PageException {
 		double r = Caster.toDoubleValue(right);

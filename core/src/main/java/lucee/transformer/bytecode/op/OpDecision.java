@@ -18,6 +18,7 @@
  **/
 package lucee.transformer.bytecode.op;
 
+import lucee.transformer.Factory;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.expression.ExpressionBase;
@@ -33,8 +34,8 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
 
-public final class OPDecision extends ExpressionBase implements ExprBoolean {
-    
+public final class OpDecision extends ExpressionBase implements ExprBoolean {
+    /*
 	public static final int LT=GeneratorAdapter.LT;
     public static final int LTE=GeneratorAdapter.LE;
     public static final int GTE=GeneratorAdapter.GE;
@@ -45,21 +46,21 @@ public final class OPDecision extends ExpressionBase implements ExprBoolean {
     public static final int NCT = 1001;
     public static final int EEQ = 1002;
     public static final int NEEQ = 1003;
-    
+    */
     private final Expression left;
     private final Expression right;
-    private final int operation;
+    private final int op;
 
     // int compare (Object, Object)
     final public static Method METHOD_COMPARE = new Method("compare",
 			Types.INT_VALUE,
 			new Type[]{Types.OBJECT,Types.OBJECT});
 	
-    private OPDecision(Expression left, Expression right, int operation) {
+    private OpDecision(Expression left, Expression right, int operation) {
         super(left.getFactory(),left.getStart(),right.getEnd());
         this.left=left;
         this.right=right;  
-        this.operation=operation;
+        this.op=operation;
     }
     
     /**
@@ -70,7 +71,7 @@ public final class OPDecision extends ExpressionBase implements ExprBoolean {
      * @return String expression
      */
     public static ExprBoolean toExprBoolean(Expression left, Expression right, int operation) {
-        return new OPDecision(left,right,operation);
+        return new OpDecision(left,right,operation);
     }
     
     
@@ -83,29 +84,29 @@ public final class OPDecision extends ExpressionBase implements ExprBoolean {
             return Types.BOOLEAN;
         }
 
-        if(operation==CT)	{
+        if(op==Factory.OP_DEC_CT)	{
             left.writeOut(bc,MODE_REF);
             right.writeOut(bc,MODE_REF);
         	adapter.invokeStatic(Types.OPERATOR,Methods_Operator.OPERATOR_CT);
         }
-        else if(operation==NCT)	{
+        else if(op==Factory.OP_DEC_NCT)	{
             left.writeOut(bc,MODE_REF);
             right.writeOut(bc,MODE_REF);
         	adapter.invokeStatic(Types.OPERATOR,Methods_Operator.OPERATOR_NCT);
         }
-        else if(operation==EEQ)	{
+        else if(op==Factory.OP_DEC_EEQ)	{
             left.writeOut(bc,MODE_REF);
             right.writeOut(bc,MODE_REF);
         	adapter.invokeStatic(Types.OPERATOR,Methods_Operator.OPERATOR_EEQ);
         }
-        else if(operation==NEEQ)	{
+        else if(op==Factory.OP_DEC_NEEQ)	{
             left.writeOut(bc,MODE_REF);
             right.writeOut(bc,MODE_REF);
         	adapter.invokeStatic(Types.OPERATOR,Methods_Operator.OPERATOR_NEEQ);
         }
         else {
-            int iLeft = Types.getType(left.writeOut(bc,MODE_VALUE));
-            int iRight = Types.getType(right.writeOut(bc,MODE_VALUE));
+            int iLeft = Types.getType(((ExpressionBase)left).writeOutAsType(bc,MODE_VALUE));
+            int iRight = Types.getType(((ExpressionBase)right).writeOutAsType(bc,MODE_VALUE));
             
             adapter.invokeStatic(Types.OPERATOR,Methods_Operator.OPERATORS[iLeft][iRight]);
             
@@ -114,7 +115,7 @@ public final class OPDecision extends ExpressionBase implements ExprBoolean {
 	        
 	        Label l1 = new Label();
 	        Label l2 = new Label();
-	        adapter.ifCmp(Type.INT_TYPE,operation,l1);
+	        adapter.ifCmp(Type.INT_TYPE,toASMOperation(op),l1);
 	        //adapter.visitJumpInsn(Opcodes.IF_ICMPEQ, l1);
 	        adapter.visitInsn(Opcodes.ICONST_0);
 	        adapter.visitJumpInsn(Opcodes.GOTO, l2);
@@ -125,6 +126,17 @@ public final class OPDecision extends ExpressionBase implements ExprBoolean {
         return Types.BOOLEAN_VALUE;
     }
 
+	private int toASMOperation(int op) throws TransformerException {
+		if(Factory.OP_DEC_LT==op) return GeneratorAdapter.LT;
+		if(Factory.OP_DEC_LTE==op) return GeneratorAdapter.LE;
+		if(Factory.OP_DEC_GT==op) return GeneratorAdapter.GT;
+		if(Factory.OP_DEC_GTE==op) return GeneratorAdapter.GE;
+		if(Factory.OP_DEC_EQ==op) return GeneratorAdapter.EQ;
+		if(Factory.OP_DEC_NEQ==op) return GeneratorAdapter.NE;
+		
+		throw new TransformerException("cannot convert operation ["+op+"] to an ASM Operation", left.getStart());
+	}
+
 	public Expression getLeft() {
 		return left;
 	}
@@ -134,6 +146,6 @@ public final class OPDecision extends ExpressionBase implements ExprBoolean {
 	}
 
 	public int getOperation() {
-		return operation;
+		return op;
 	}
 }

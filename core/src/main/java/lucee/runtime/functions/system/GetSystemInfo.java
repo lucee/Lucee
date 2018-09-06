@@ -20,9 +20,12 @@ package lucee.runtime.functions.system;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.Iterator;
+
+import javax.management.Attribute;
+import javax.management.AttributeList;
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
 
 import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.PageContext;
@@ -68,35 +71,36 @@ public final class GetSystemInfo implements Function {
 		return sct;
 	}
 	
+	public static void getCPU(Struct data) {
+		Object process=Double.valueOf(0);
+	    Object system=Double.valueOf(0);
+	    try {
+	    	MBeanServer mbs    = ManagementFactory.getPlatformMBeanServer();
+	    	ObjectName name    = ObjectName.getInstance("java.lang:type=OperatingSystem");
+	    	AttributeList list = mbs.getAttributes(name, new String[]{ "ProcessCpuLoad","SystemCpuLoad" });
+		    // Process
+		    if (list.size()>=1) {  
+			    Attribute attr = (Attribute)list.get(0);
+			    Object obj  = attr.getValue();
+			    if(obj instanceof Double) process=obj; 
+		    }
 	
-	private static void getCPU(Struct data) {
-		OperatingSystemMXBean mxBean = ManagementFactory.getOperatingSystemMXBean();
-		// need to use reflection as the impl class is not visible
-		for (Method method : mxBean.getClass().getDeclaredMethods()) {
-			method.setAccessible(true);
-			String methodName = method.getName();
-			if(
-					methodName.startsWith("get") && 
-					methodName.contains("Cpu") && 
-					methodName.contains("Load") && 
-					Modifier.isPublic(method.getModifiers())) {
-				
-				Double value=1d;
-				try {
-					value = (Double)method.invoke(mxBean);
-				}
-				catch (Exception e) {}
-				if(value>0) { //cpuSystem
-					if("getSystemCpuLoad".equals(methodName)) {
-						data.setEL("cpuSystem", value);
-					}
-					if("getProcessCpuLoad".equals(methodName)) {
-						data.setEL("cpuProcess", value);
-					}
-				}
-			}
-		}
+		    // System
+		    if (list.size()>=2) {  
+			    Attribute attr = (Attribute)list.get(1);
+			    Object obj  = attr.getValue();
+			    if(obj instanceof Double) system=obj; 
+		    }
+	    }
+	    catch(Exception e) {
+	    	e.printStackTrace();
+	    }
+	    finally {
+	    	data.setEL("cpuProcess", process);
+	    	data.setEL("cpuSystem", system);
+	    }
 	}
+
 
 	public static int getConnections(ConfigWebImpl config) {
 		int count = 0;
