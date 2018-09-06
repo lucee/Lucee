@@ -14,13 +14,14 @@
 		<cfset tmp=createObject('component',fn)>
 		<cfset drivers[trim(tmp.getId())]=tmp>
 	</cfloop>
+	<cfset template ="" >
 	<cfif IsEmpty(entries.type)>
 		<cfset driver=drivers["lucee-modern"]>
+		<cfset template= "lucee-modern">
 	<cfelse>
 		<cfset driver=drivers["#entries.type#"]>
 	</cfif>
 		<cfset entry={}>
-		<cfset template ="" >
 		<cfloop query="entries">
 			<cfif entries.type EQ "lucee-modern" OR entries.type EQ "lucee-classic" OR entries.type EQ "lucee-comment">
 				<cfset entry=querySlice(entries, entries.currentrow ,1)>
@@ -37,7 +38,6 @@
 				<cfset log=el>
 			</cfif>
 		</cfloop>
-		
 		<table width="100%">
 		<tr>
 			<td>
@@ -45,8 +45,7 @@
 				<cfset request.fromAdmin = true>
 				<cfif !isSimpleValue(log)>
 					<cfif NOT isDebugMode()>
-						<cfset modernStruct ={callStack:"Enabled",colorHighlight:"Enabled",displayPercentages:"Enabled",expression:"Enabled",general:"Enabled",highlight:"Enabled",metrics_charts:"HeapChart,NonHeapChart,WholeSystem",minimal:"0",sessionSize:"100",size:"medium",Tab_Debug:"Enabled",tab_Metrics:"Enabled",tab_Reference:"Enabled"} >
-							<cfset c=structKeyExists(entry,'custom')?entry.custom:modernStruct>
+						<cfset c ={callStack:"Enabled",colorHighlight:"Enabled",displayPercentages:"Enabled",expression:"Enabled",general:"Enabled",highlight:"0",metrics_charts:"HeapChart,NonHeapChart,WholeSystem",minimal:"0",sessionSize:"100",size:"medium",Tab_Debug:"Enabled",tab_Metrics:"Enabled",tab_Reference:"Enabled"} >
 					<cfelse>
 						<cfset c=structKeyExists(entry,'custom')?entry.custom:{}>
 					</cfif>
