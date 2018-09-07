@@ -38,20 +38,21 @@
 			}
 			div.tabs a {
 				float:left;
-				height:20px;
-				border: 1px solid #ddd;
-				border-bottom-color:#ccc;
-				padding:0 10px;
-				margin: 0 0 0 4px;
-				background-color: #eee;
-				font-size: 12px;
-    			text-decoration: none;
-			}
-			div.tabs a.activTab {
-				background-color:#fff;
-				border-color: #ccc;
+				background-color: #bf4f36;
+				color : white;	
 				border-bottom-color:#fff;
 				font-weight:bold;
+				padding: 3px 23px;
+				margin: 0 0 0 5px;
+				font-size: 12px;
+    			text-decoration: none; 
+			}
+			div.tabs a.activTab {
+				border: 1px solid #ddd;
+				border-bottom-color:#ccc;
+				background-color: #efede5;
+    			border-bottom-color: #efede5 !important;
+    			color : black !important;
 			}
 			div.tabcontainer {
 				border: 1px solid #ccc;
