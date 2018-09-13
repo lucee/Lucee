@@ -174,9 +174,7 @@
 						</cfif>
 						<div class="comment">#stText.Components.triggerDataMemberDescription#</div>
 						<!--- Tip --->
-						<div class="tip">
-							#stText.settings.appcfcDesc#:
-							<pre>this.invokeImplicitAccessor=#component.triggerDataMember#;</pre></div>
+						<cfset renderCodingTip( "this.invokeImplicitAccessor = "&component.triggerDataMember&";" )>
 					</td>
 				</tr>
 				<!---
