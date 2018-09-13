@@ -118,6 +118,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private static final Collection.Key SCRIPT_PROTECT = KeyImpl.intern("scriptProtect");
 	private static final Collection.Key CUSTOM_TAG_PATHS = KeyImpl.intern("customtagpaths");
 	private static final Collection.Key COMPONENT_PATHS = KeyImpl.intern("componentpaths");
+	private static final Collection.Key FUNCTION_PATHS = KeyImpl.intern("functionpaths");
 	private static final Collection.Key SECURE_JSON_PREFIX = KeyImpl.intern("secureJsonPrefix");
 	private static final Collection.Key SECURE_JSON = KeyImpl.intern("secureJson");
 	private static final Collection.Key LOCAL_MODE = KeyImpl.intern("localMode");
@@ -274,6 +275,9 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean initLog;
 
 	private Map<Collection.Key,Pair<Log,Struct>> logs;
+
+	private List<Resource> funcDirs;
+	private boolean initFuncDirs=false;
 
 		
 	public ModernApplicationContext(PageContext pc, Component cfc, RefBoolean throwsErrorWhileInit) {
@@ -1042,6 +1046,22 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		}
 		return cmappings;
 	}
+	
+	@Override
+	public List<Resource> getFunctionDirectories() {
+		if(!initFuncDirs) {
+			Object o = get(component,FUNCTION_PATHS,null);
+			if(o!=null)funcDirs=AppListenerUtil.loadResources(config, null, o,true);
+			initFuncDirs=true; 
+		}
+		return funcDirs;
+	}
+	
+	@Override
+	public void setFunctionDirectories(List<Resource> resources) {
+		funcDirs=resources;
+		initFuncDirs=true;
+	}
 
 	@Override
 	public int getLocalMode() {
@@ -1520,7 +1540,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 				// cfclocation
 				Object obj = sct.get(KeyConstants._cfcLocation,null);
 				if(obj==null) obj = sct.get(KeyConstants._cfcLocations,null);
-				List<Resource> list = ORMConfigurationImpl.loadCFCLocation(config, null, obj,true);
+				List<Resource> list = AppListenerUtil.loadResources(config, null, obj,true);
 				restCFCLocations=list==null?null:list.toArray(new Resource[list.size()]);
 				
 				// skipCFCWithError
@@ -1629,7 +1649,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 					if(path==null) continue;
 					//print.e("--------------------------------------------------");
 					//print.e(path);
-					res=ORMConfigurationImpl.toResourceExisting(pc.getConfig(), pc.getApplicationContext(), path, false);
+					res=AppListenerUtil.toResourceExisting(pc.getConfig(), pc.getApplicationContext(), path, false);
 					
 					//print.e(res+"->"+(res!=null && res.exists()));
 					if(res==null || !res.exists())

@@ -141,6 +141,7 @@ public final class Application extends TagImpl {
 	private boolean cgiReadOnly=true;
 	private SessionCookieData sessionCookie;
 	private AuthCookieData authCookie;
+	private String functionpaths;
 
      
     @Override
@@ -166,6 +167,7 @@ public final class Application extends TagImpl {
         suppress=null;
         loginstorage=Scope.SCOPE_UNDEFINED;
         scriptrotect=null;
+        functionpaths=null;
         datasource=null;
         defaultdatasource=null;
         datasources=null;
@@ -551,6 +553,10 @@ public final class Application extends TagImpl {
     public void setScriptprotect(String strScriptrotect) {
 		this.scriptrotect=strScriptrotect;
 	}
+	
+    public void setFunctionpaths(String strFunctionpaths) {
+		this.functionpaths=strFunctionpaths;
+	}
     
     public void setTypechecking(boolean typeChecking) {
 		this.typeChecking=typeChecking;
@@ -696,6 +702,8 @@ public final class Application extends TagImpl {
 		}
 
 		if(scriptrotect!=null)					ac.setScriptProtect(AppListenerUtil.translateScriptProtect(scriptrotect));
+		if(functionpaths!=null)					((ApplicationContextSupport) ac)
+		.setFunctionDirectories(AppListenerUtil.loadResources(pageContext.getConfig(), ac, functionpaths, true));
 		if(bufferOutput!=null)					ac.setBufferOutput(bufferOutput.booleanValue());
 		if(secureJson!=null)					ac.setSecureJson(secureJson.booleanValue());
 		if(typeChecking!=null)					ac.setTypeChecking(typeChecking.booleanValue());

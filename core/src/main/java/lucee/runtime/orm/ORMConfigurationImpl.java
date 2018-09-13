@@ -33,6 +33,7 @@ import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
+import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
@@ -137,7 +138,7 @@ public class ORMConfigurationImpl implements ORMConfiguration {
 		Object obj = settings.get(KeyConstants._cfcLocation,null);
 		
 		if(obj!=null){
-			java.util.List<Resource> list=loadCFCLocation(config,ac,obj,true);
+			java.util.List<Resource> list=AppListenerUtil.loadResources(config,ac,obj,true);
 			
 			if(list!=null && list.size()>0){
 				c.cfcLocations=list.toArray(new Resource[list.size()]);
@@ -234,44 +235,6 @@ public class ORMConfigurationImpl implements ORMConfiguration {
 		
 		return c;
 	}	
-	
-	public static java.util.List<Resource> loadCFCLocation(Config config, ApplicationContext ac,Object obj, boolean onlyDir) {
-		Resource res;
-		if(!Decision.isArray(obj)){
-			String list = Caster.toString(obj,null);
-			if(!StringUtil.isEmpty(list)) {
-				obj=ListUtil.listToArray(list, ',');
-			}
-		}
-		
-		if(Decision.isArray(obj)) {
-			Array arr=Caster.toArray(obj,null);
-			java.util.List<Resource> list=new ArrayList<Resource>();
-			Iterator<Object> it = arr.valueIterator();
-			while(it.hasNext()){
-				try	{
-					String path = Caster.toString(it.next(),null);
-					if(path==null) continue;
-					
-					//res=ResourceUtil.toResourceExisting(config, path,null);
-					//if(res==null || (onlyDir && !res.isDirectory()))
-						res=toResourceExisting(config,ac,path,onlyDir);
-					
-					if(res!=null) list.add(res);
-				}
-				catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
-			}
-			return list;
-		}
-		
-		
-		return null;
-	}
-
-
-
-
-
 
 	private static Resource toRes(Config config, Object obj, boolean existing) throws ExpressionException {
 		PageContext pc = ThreadLocalPageContext.get();
@@ -279,67 +242,8 @@ public class ORMConfigurationImpl implements ORMConfiguration {
 		return Caster.toResource(config, obj, existing);
 	}
 
-	public static Resource toResourceExisting(Config config, ApplicationContext ac,Object obj, boolean onlyDir) {
-		//Resource root = config.getRootDirectory();
-		String path = Caster.toString(obj,null);
-		if(StringUtil.isEmpty(path,true)) return null;
-		path=path.trim();
-		Resource res;
-		PageContext pc = ThreadLocalPageContext.get();
-		
-		// first check relative to application . cfc
-		if(pc!=null) {
-			if(ac==null) ac= pc.getApplicationContext();
-			
-			// abs path
-			if(path.startsWith("/")){
-				ConfigWebImpl cwi=(ConfigWebImpl) config;
-				PageSource ps = cwi.getPageSourceExisting(pc, ac==null?null:ac.getMappings(), path, false, false, true, false);
-				if(ps!=null){
-					res=ps.getResource();
-					if(res!=null && (!onlyDir || res.isDirectory())) return res;
-				}
-				
-			}
-			// real path
-			else {
-				Resource src= ac!=null?ac.getSource():null;
-				if(src!=null) {
-					res=src.getParentResource().getRealResource(path);
-					if(res!=null && (!onlyDir || res.isDirectory())) return res;
-				}
-				// happens when this is called from within the application . cfc (init)
-				else {
-					res=ResourceUtil.toResourceNotExisting(pc, path);
-					if(res!=null && (!onlyDir || res.isDirectory())) return res;
-				}
-			}
-		}
-		
-		
-		
-		// then in the webroot
-		res=config.getRootDirectory().getRealResource(path);
-		if(res!=null && (!onlyDir || res.isDirectory())) return res;
-		
-		// then absolute
-		res = ResourceUtil.toResourceNotExisting(config, path);
-		
-		if(res!=null && (!onlyDir || res.isDirectory())) return res;
-		return null;
-	}
-
-
-
-
-
-
 	private ORMConfigurationImpl duplicate() {
-		
 		ORMConfigurationImpl other = new ORMConfigurationImpl();
-		
-		
-		
 		other.autogenmap=autogenmap;
 		other.catalog=catalog;
 		other.cfcLocations=cfcLocations;
@@ -385,14 +289,11 @@ public class ORMConfigurationImpl implements ORMConfiguration {
 		}
 	}
 
-
-
-
-
 	private String toStr(Resource res) {
 		if(res==null) return "";
 		return res.getAbsolutePath();
 	}
+
 	private String toStr(Resource[] reses) {
 		if(reses==null) return "";
 		StringBuilder sb=new StringBuilder();
@@ -401,11 +302,6 @@ public class ORMConfigurationImpl implements ORMConfiguration {
 		}
 		return sb.toString();
 	}
-
-
-
-
-
 
 	/**
 	 * @return the autogenmap
@@ -430,6 +326,7 @@ public class ORMConfigurationImpl implements ORMConfiguration {
 	public Resource[] getCfcLocations() {
 		return cfcLocations;
 	}
+
 	@Override
 	public boolean isDefaultCfcLocation() {
 		return isDefaultCfcLocation;
@@ -469,8 +366,6 @@ public class ORMConfigurationImpl implements ORMConfiguration {
 		return namingStrategy;
 	}
 	
-	
-
 	/**
 	 * @return the flushAtRequestEnd
 	 */
@@ -560,9 +455,6 @@ public class ORMConfigurationImpl implements ORMConfiguration {
 		return autoManageSession;
 	}
 
-
-
-
 	@Override
 	public Object toStruct() {
 		
@@ -591,22 +483,13 @@ public class ORMConfigurationImpl implements ORMConfiguration {
 		sct.setEL(CACHE_CONFIG,getAbsolutePath(getCacheConfig()));
 		sct.setEL(CACHE_PROVIDER,StringUtil.emptyIfNull(getCacheProvider()));
 		sct.setEL(ORM_CONFIG,getAbsolutePath(getOrmConfig()));
-		
-		
-		
 		return sct;
 	}
-
 
 	private static String getAbsolutePath(Resource res) {
 		if(res==null )return "";
 		return res.getAbsolutePath();
 	}
-
-
-
-
-
 
 	public static int dbCreateAsInt(String dbCreate) {
 		if(dbCreate==null)dbCreate="";
@@ -615,12 +498,8 @@ public class ORMConfigurationImpl implements ORMConfiguration {
 		if("update".equals(dbCreate))return DBCREATE_UPDATE;
 		if("dropcreate".equals(dbCreate))return DBCREATE_DROP_CREATE;
 		if("drop-create".equals(dbCreate))return DBCREATE_DROP_CREATE;
-		
 		return DBCREATE_NONE;
 	}
-	
-
-
 
 	public static String dbCreateAsString(int dbCreate) {
 		
@@ -631,22 +510,6 @@ public class ORMConfigurationImpl implements ORMConfiguration {
 		
 		return "none";
 	}
-
-
-
-
-
-
-	
-
-	
-
-
-
-
-	
-	
-	
 }
 
 interface _Get {

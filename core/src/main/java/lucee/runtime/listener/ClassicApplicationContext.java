@@ -20,6 +20,7 @@ package lucee.runtime.listener;
 
 import java.nio.charset.Charset;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
@@ -83,6 +84,7 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	private Mapping[] mappings;
 	private Mapping[] ctmappings;
 	private Mapping[] cmappings;
+	private List<Resource> funcDirs;
 	private boolean bufferOutput;
 	private boolean secureJson;
 	private String secureJsonPrefix="//";
@@ -215,6 +217,7 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 		dbl.dataSources=dataSources;
 		dbl.ctmappings=ctmappings;
 		dbl.cmappings=cmappings;
+		dbl.funcDirs=funcDirs;
 		dbl.bufferOutput=bufferOutput;
 		dbl.allowCompression=allowCompression;
 		dbl.suppressRemoteComponentContent=suppressRemoteComponentContent;
@@ -977,5 +980,15 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	@Override
 	public void setWSMaintainSession(boolean wsMaintainSession) {
 		this.wsMaintainSession=wsMaintainSession;
+	}
+
+	@Override
+	public List<Resource> getFunctionDirectories() {
+		return funcDirs;
+	}
+
+	@Override
+	public void setFunctionDirectories(List<Resource> resources) {
+		this.funcDirs=resources;
 	}
 }

@@ -20,10 +20,12 @@ package lucee.runtime.functions.system;
 
 import java.io.File;
 
+import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.Mapping;
 import lucee.runtime.Page;
 import lucee.runtime.PageContext;
+import lucee.runtime.PageSource;
 import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
@@ -103,14 +105,25 @@ public class CFFunction {
 		return ((UDFImpl)udf).callWithNamedValues(pc,name, namedArguments, false);
 	}
 
+	public static UDF loadUDF(PageContext pc, Resource res,Collection.Key name,boolean isweb, boolean cache) throws PageException {
+		PageSource ps = pc.toPageSource(res, null);
+		if(ps==null) throw new ExpressionException("could not load template ["+res+"]");
+		return loadUDF(pc,ps,name,isweb,cache);	
+	}
+	
 	public static UDF loadUDF(PageContext pc, String filename,Collection.Key name,boolean isweb) throws PageException {
 		ConfigWebImpl config = (ConfigWebImpl) pc.getConfig();
+		Mapping mapping=isweb?config.getFunctionMapping():config.getServerFunctionMapping();
+		return loadUDF(pc,mapping.getPageSource(filename),name,isweb,true);	
+	}
+
+	public static UDF loadUDF(PageContext pc, PageSource ps,Collection.Key name,boolean isweb, boolean cache) throws PageException {
+		ConfigWebImpl config = (ConfigWebImpl) pc.getConfig();
 		String key=isweb?name.getString()+config.getIdentification().getId():name.getString();
-    	UDF udf=config.getFromFunctionCache(key);
+    	UDF udf=cache?config.getFromFunctionCache(key):null;
 		if(udf!=null) return udf;
 		
-		Mapping mapping=isweb?config.getFunctionMapping():config.getServerFunctionMapping();
-    	Page p = mapping.getPageSource(filename).loadPage(pc,false);	
+		Page p = ps.loadPage(pc,false);	
 
     	// execute page
     	Variables old = pc.variablesScope();
@@ -121,10 +134,10 @@ public class CFFunction {
 			Object o= pc.variablesScope().get(name,null);
 			if(o instanceof UDF) {
 				udf= (UDF) o;
-				config.putToFunctionCache(key, udf);
+				if(cache)config.putToFunctionCache(key, udf);
 				return udf;
 			}
-			throw new ExpressionException("there is no Function defined with name ["+name+"] in template ["+mapping.getStrPhysical()+File.separator+filename+"]");
+			throw new ExpressionException("there is no Function defined with name ["+name+"] in template ["+ps.getDisplayPath()+"]");
 		} 
     	catch(Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);

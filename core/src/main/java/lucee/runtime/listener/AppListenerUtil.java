@@ -27,6 +27,7 @@ import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.type.ftp.FTPConnectionData;
+import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Mapping;
@@ -812,6 +813,84 @@ public final class AppListenerUtil {
 		int port=Caster.toIntValue(o,0);
 
 		return new FTPConnectionData(host,user,pass,port);
+	}
+	
+	public static java.util.List<Resource> loadResources(Config config, ApplicationContext ac,Object obj, boolean onlyDir) {
+		Resource res;
+		if(!Decision.isArray(obj)){
+			String list = Caster.toString(obj,null);
+			if(!StringUtil.isEmpty(list)) {
+				obj=ListUtil.listToArray(list, ',');
+			}
+		}
+		
+		if(Decision.isArray(obj)) {
+			Array arr=Caster.toArray(obj,null);
+			java.util.List<Resource> list=new ArrayList<Resource>();
+			Iterator<Object> it = arr.valueIterator();
+			while(it.hasNext()){
+				try	{
+					String path = Caster.toString(it.next(),null);
+					if(path==null) continue;
+					res=toResourceExisting(config,ac,path,onlyDir);
+					if(res!=null) list.add(res);
+				}
+				catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
+			}
+			return list;
+		}
+		return null;
+	}
+	
+
+	public static Resource toResourceExisting(Config config, ApplicationContext ac,Object obj, boolean onlyDir) {
+		//Resource root = config.getRootDirectory();
+		String path = Caster.toString(obj,null);
+		if(StringUtil.isEmpty(path,true)) return null;
+		path=path.trim();
+		Resource res;
+		PageContext pc = ThreadLocalPageContext.get();
+		
+		// first check relative to application . cfc
+		if(pc!=null) {
+			if(ac==null) ac= pc.getApplicationContext();
+			
+			// abs path
+			if(path.startsWith("/")){
+				ConfigWebImpl cwi=(ConfigWebImpl) config;
+				PageSource ps = cwi.getPageSourceExisting(pc, ac==null?null:ac.getMappings(), path, false, false, true, false);
+				if(ps!=null){
+					res=ps.getResource();
+					if(res!=null && (!onlyDir || res.isDirectory())) return res;
+				}
+				
+			}
+			// real path
+			else {
+				Resource src= ac!=null?ac.getSource():null;
+				if(src!=null) {
+					res=src.getParentResource().getRealResource(path);
+					if(res!=null && (!onlyDir || res.isDirectory())) return res;
+				}
+				// happens when this is called from within the application . cfc (init)
+				else {
+					res=ResourceUtil.toResourceNotExisting(pc, path);
+					if(res!=null && (!onlyDir || res.isDirectory())) return res;
+				}
+			}
+		}
+		
+		
+		
+		// then in the webroot
+		res=config.getRootDirectory().getRealResource(path);
+		if(res!=null && (!onlyDir || res.isDirectory())) return res;
+		
+		// then absolute
+		res = ResourceUtil.toResourceNotExisting(config, path);
+		
+		if(res!=null && (!onlyDir || res.isDirectory())) return res;
+		return null;
 	}
 
 }

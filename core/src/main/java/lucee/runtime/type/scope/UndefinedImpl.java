@@ -22,6 +22,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.filter.ResourceNameFilter;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.ComponentScope;
@@ -29,11 +31,15 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigWeb;
+import lucee.runtime.config.Constants;
 import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.functions.system.CFFunction;
+import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;
@@ -797,13 +803,19 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
 	}
 
 	@Override
-	public Object call(PageContext pc, Key methodName, Object[] args) throws PageException {
+	public Object call(PageContext pc, final Key methodName, Object[] args) throws PageException {
 		Object obj = get(methodName, null); // every none UDF value is fine as default argument
 		if(obj instanceof UDFPlus) {
 			return ((UDFPlus)obj).call(pc, methodName, args, false);
 		}
+		UDF udf=getUDF(pc,methodName);
+		if(udf instanceof UDFPlus) {
+			return ((UDFPlus)udf).call(pc, methodName, args, false);
+		}
 		throw new ExpressionException("No matching function [" + methodName + "] found");
 	}
+
+	
 
 	@Override
 	public Object callWithNamedValues(PageContext pc, Key methodName, Struct args) throws PageException {
@@ -811,7 +823,45 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
 		if(obj instanceof UDFPlus) {
 			return ((UDFPlus)obj).callWithNamedValues(pc, methodName, args, false);
 		}
+		UDF udf=getUDF(pc,methodName);
+		if(udf instanceof UDFPlus) {
+			return ((UDFPlus)udf).callWithNamedValues(pc, methodName, args, false);
+		}
 		throw new ExpressionException("No matching function [" + methodName + "] found");
+	}
+	
+	private UDF getUDF(PageContext pc, Key methodName) throws PageException {
+		ApplicationContextSupport ac=(ApplicationContextSupport) pc.getApplicationContext();
+		if(ac!=null) {
+			List<Resource> dirs = ac.getFunctionDirectories();
+			Resource[] files;
+			if(dirs!=null && dirs.size()>0) {
+				Resource file=null;
+				Iterator<Resource> it = dirs.iterator();
+				Resource dir;
+				while(it.hasNext()) {
+					dir = it.next();
+					files = dir.listResources(new ResourceNameFilter() {
+						@Override
+						public boolean accept(Resource dir, String name) {
+							String[] exts = Constants.getTemplateExtensions();
+							for(String ex:exts) {
+								if(name.equalsIgnoreCase(methodName+"."+ex)) return true;
+							}
+							return false;
+						}
+					});
+					if(files!=null && files.length>0) {
+						file = files[0];
+						break;
+					}
+				}
+				if(file!=null) {
+					return CFFunction.loadUDF(pc, file, methodName, pc.getConfig() instanceof ConfigWeb, false);
+				}
+			}
+		}
+		return null;
 	}
 
 	public short getScopeCascadingType() {

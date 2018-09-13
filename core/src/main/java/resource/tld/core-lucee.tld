@@ -238,6 +238,13 @@ Specifies how Lucee stores session variables:
 			<description>Specifies whether to protect variables from cross-site scripting attacks</description>
 		</attribute>
 		<attribute>
+			<type>any</type>
+			<name>functionpaths</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Array or String list of paths where you have your functions.</description>
+		</attribute>
+		<attribute>
 			<type>struct</type>
 			<name>mappings</name>
 			<required>false</required>

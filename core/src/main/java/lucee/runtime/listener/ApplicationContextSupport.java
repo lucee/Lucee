@@ -20,6 +20,7 @@ package lucee.runtime.listener;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
@@ -494,4 +495,6 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 	public abstract SerializationSettings getSerializationSettings();
 	public abstract void setSerializationSettings(SerializationSettings settings);
 
+	public abstract List<Resource> getFunctionDirectories();
+	public abstract void setFunctionDirectories(List<Resource> resources);
 }
