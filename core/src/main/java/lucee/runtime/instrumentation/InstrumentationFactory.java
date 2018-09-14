@@ -42,7 +42,6 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SystemOut;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lang.types.RefBooleanImpl;
-import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWebUtil;
@@ -50,13 +49,14 @@ import lucee.runtime.config.Constants;
 import lucee.runtime.engine.InfoImpl;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageRuntimeException;
+import lucee.runtime.op.Caster;
 
 
 /**
  * Factory for obtaining an {@link Instrumentation} instance.
  */
 public class InstrumentationFactory {
-    private static final String _name = InstrumentationFactory.class.getName();
+    //private static final String _name = InstrumentationFactory.class.getName();
 	private static final String SEP = File.separator;
 	private static final String TOOLS_VERSION = "7u25";
 	private static final String AGENT_CLASS_NAME = "lucee.runtime.instrumentation.ExternalAgent";
@@ -67,7 +67,7 @@ public class InstrumentationFactory {
     public static synchronized Instrumentation getInstrumentation(final Config config) {
 
     	final Log log=config.getLog("application");
-    	final CFMLEngine engine = ConfigWebUtil.getEngine(config);
+    	//final CFMLEngine engine = ConfigWebUtil.getEngine(config);
     	Instrumentation instr=_getInstrumentation(log,config);
         
     	// agent already exist
@@ -126,10 +126,19 @@ public class InstrumentationFactory {
         // longer be null.
         instr=_getInstrumentation(log, config);
         if(instr==null) {
+        	instr=InstrumentationFactoryExternal.install();
+        }
+        if(instr==null) {
         	try{
+        		boolean allowAttachSelf=Caster.toBooleanValue(System.getProperty("jdk.attach.allowAttachSelf"),false);
         		Resource agentJar = createAgentJar(log,config);
-        		throw new PageRuntimeException(new ApplicationException(Constants.NAME+" was not able to load a Agent dynamically! " +
-        				"You need to load one manually by adding the following to your JVM arguments [-javaagent:\""+(agentJar)+"\"]"));
+        		        		
+        		throw new PageRuntimeException(
+        				new ApplicationException(
+        Constants.NAME+" was not able to load a Agent dynamically! "
+        + "You may add this manually by adding the following to your JVM arguments [-javaagent:\""+(agentJar)+"\"] "
+        + (allowAttachSelf?".":"or supply -Djdk.attach.allowAttachSelf as system property.")
+        ));
         	}
         	catch(IOException ioe){
                 SystemOut.printDate(ioe);}

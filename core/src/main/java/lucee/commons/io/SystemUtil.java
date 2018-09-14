@@ -48,7 +48,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.servlet.ServletContext;
 
 import lucee.commons.digest.MD5;
-import lucee.commons.io.SystemUtil.TemplateLine;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
@@ -118,17 +117,17 @@ public final class SystemUtil {
 	public static final char CHAR_POUND = (char)163;
 	public static final char CHAR_EURO = (char)8364;
 
-	public static final int JAVA_VERSION_1_0 = lucee.runtime.util.SystemUtil.JAVA_VERSION_1_0;
-	public static final int JAVA_VERSION_1_1 = lucee.runtime.util.SystemUtil.JAVA_VERSION_1_1;
-	public static final int JAVA_VERSION_1_2 = lucee.runtime.util.SystemUtil.JAVA_VERSION_1_2;
-	public static final int JAVA_VERSION_1_3 = lucee.runtime.util.SystemUtil.JAVA_VERSION_1_3;
-	public static final int JAVA_VERSION_1_4 = lucee.runtime.util.SystemUtil.JAVA_VERSION_1_4;
-	public static final int JAVA_VERSION_1_5 = lucee.runtime.util.SystemUtil.JAVA_VERSION_1_5;
-	public static final int JAVA_VERSION_1_6 = lucee.runtime.util.SystemUtil.JAVA_VERSION_1_6;
-	public static final int JAVA_VERSION_1_7 = lucee.runtime.util.SystemUtil.JAVA_VERSION_1_7;
-	public static final int JAVA_VERSION_1_8 = lucee.runtime.util.SystemUtil.JAVA_VERSION_1_8;
-	public static final int JAVA_VERSION_1_9 = lucee.runtime.util.SystemUtil.JAVA_VERSION_1_9;
+	public static final int JAVA_VERSION_6 = lucee.runtime.util.SystemUtil.JAVA_VERSION_1_6;
+	public static final int JAVA_VERSION_7 = lucee.runtime.util.SystemUtil.JAVA_VERSION_1_7;
+	public static final int JAVA_VERSION_8 = lucee.runtime.util.SystemUtil.JAVA_VERSION_1_8;
+	public static final int JAVA_VERSION_9 = lucee.runtime.util.SystemUtil.JAVA_VERSION_1_9;
 
+	public static final int JAVA_VERSION_10 = 10; // FUTURE lucee.runtime.util.SystemUtil.JAVA_VERSION_10;
+	public static final int JAVA_VERSION_11 = 11; // FUTURE lucee.runtime.util.SystemUtil.JAVA_VERSION_11;
+	public static final int JAVA_VERSION_12 = 12; // FUTURE lucee.runtime.util.SystemUtil.JAVA_VERSION_12;
+	public static final int JAVA_VERSION_13 = 13; // FUTURE lucee.runtime.util.SystemUtil.JAVA_VERSION_13;
+	public static final int JAVA_VERSION_14 = 14; // FUTURE lucee.runtime.util.SystemUtil.JAVA_VERSION_14;
+	
 	public static final int OUT = lucee.runtime.util.SystemUtil.OUT;
 	public static final int ERR = lucee.runtime.util.SystemUtil.ERR;
 
@@ -188,29 +187,30 @@ public final class SystemUtil {
 		MemoryPoolMXBean tmp = getPermGenSpaceBean();
 		if(tmp != permGenSpaceBean)
 			permGenSpaceBean = null;
-
-		if(JAVA_VERSION_STRING.startsWith("1.9."))
-			JAVA_VERSION = JAVA_VERSION_1_9;
+		
+		
+		if(JAVA_VERSION_STRING.startsWith("1.14.") || JAVA_VERSION_STRING.startsWith("14"))
+			JAVA_VERSION = JAVA_VERSION_14;
+		else if(JAVA_VERSION_STRING.startsWith("1.13.") || JAVA_VERSION_STRING.startsWith("13"))
+			JAVA_VERSION = JAVA_VERSION_13;
+		else if(JAVA_VERSION_STRING.startsWith("1.12.") || JAVA_VERSION_STRING.startsWith("12"))
+			JAVA_VERSION = JAVA_VERSION_12;
+		else if(JAVA_VERSION_STRING.startsWith("1.11.") || JAVA_VERSION_STRING.startsWith("11"))
+			JAVA_VERSION = JAVA_VERSION_11;
+		else if(JAVA_VERSION_STRING.startsWith("1.10.") || JAVA_VERSION_STRING.startsWith("10"))
+			JAVA_VERSION = JAVA_VERSION_10;
+		else if(JAVA_VERSION_STRING.startsWith("1.9.") || JAVA_VERSION_STRING.startsWith("9."))
+			JAVA_VERSION = JAVA_VERSION_9;
 		else if(JAVA_VERSION_STRING.startsWith("1.8."))
-			JAVA_VERSION = JAVA_VERSION_1_8;
+			JAVA_VERSION = JAVA_VERSION_8;
 		else if(JAVA_VERSION_STRING.startsWith("1.7."))
-			JAVA_VERSION = JAVA_VERSION_1_7;
+			JAVA_VERSION = JAVA_VERSION_7;
 		else if(JAVA_VERSION_STRING.startsWith("1.6."))
-			JAVA_VERSION = JAVA_VERSION_1_6;
-		else if(JAVA_VERSION_STRING.startsWith("1.5."))
-			JAVA_VERSION = JAVA_VERSION_1_5;
-		else if(JAVA_VERSION_STRING.startsWith("1.4."))
-			JAVA_VERSION = JAVA_VERSION_1_4;
-		else if(JAVA_VERSION_STRING.startsWith("1.3."))
-			JAVA_VERSION = JAVA_VERSION_1_3;
-		else if(JAVA_VERSION_STRING.startsWith("1.2."))
-			JAVA_VERSION = JAVA_VERSION_1_2;
-		else if(JAVA_VERSION_STRING.startsWith("1.1."))
-			JAVA_VERSION = JAVA_VERSION_1_1;
-		else
-			JAVA_VERSION = JAVA_VERSION_1_0;
+			JAVA_VERSION = JAVA_VERSION_6;
+		else 
+			JAVA_VERSION = 0;
 	}
-
+	
 	private static ClassLoader loaderCL;
 	private static ClassLoader coreCL;
 

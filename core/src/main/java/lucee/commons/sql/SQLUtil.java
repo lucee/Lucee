@@ -123,7 +123,7 @@ public class SQLUtil {
 		if(value instanceof Blob) return (Blob) value;
 		
 		// Java >= 1.6
-		if(SystemUtil.JAVA_VERSION>=SystemUtil.JAVA_VERSION_1_6) {
+		if(SystemUtil.JAVA_VERSION>=SystemUtil.JAVA_VERSION_6) {
 			try {
 				Blob blob = conn.createBlob();
 				blob.setBytes(1, Caster.toBinary(value));
@@ -154,7 +154,7 @@ public class SQLUtil {
 	public static Clob toClob(Connection conn, Object value) throws PageException, SQLException {
 		if(value instanceof Clob) return (Clob) value;
 		// Java >= 1.6
-		if(SystemUtil.JAVA_VERSION>=SystemUtil.JAVA_VERSION_1_6) {
+		if(SystemUtil.JAVA_VERSION>=SystemUtil.JAVA_VERSION_6) {
 			Clob clob = conn.createClob();
 			clob.setString(1, Caster.toString(value));
 			return clob;

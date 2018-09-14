@@ -57,6 +57,21 @@ public interface SystemUtil {
 	public final int JAVA_VERSION_1_7 = 7;
 	public final int JAVA_VERSION_1_8 = 8;
 	public final int JAVA_VERSION_1_9 = 9;
+/* FUTURE
+	public final int JAVA_VERSION_1_10 = 10;
+	public final int JAVA_VERSION_1_11 = 11;
+	public final int JAVA_VERSION_1_12 = 12;
+	public final int JAVA_VERSION_1_13 = 13;
+	public final int JAVA_VERSION_1_14 = 14;
+	
+	public final int JAVA_VERSION_9 = JAVA_VERSION_1_9;
+	public final int JAVA_VERSION_10 = JAVA_VERSION_1_10;
+	public final int JAVA_VERSION_11 = JAVA_VERSION_1_11;
+	public final int JAVA_VERSION_12 = JAVA_VERSION_1_12;
+	public final int JAVA_VERSION_13 = JAVA_VERSION_1_13;
+	public final int JAVA_VERSION_14 = JAVA_VERSION_1_14;
+*/	
+	
 
 	public final int OUT = 0;
 	public final int ERR = 1;
