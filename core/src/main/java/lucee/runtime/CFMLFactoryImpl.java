@@ -198,15 +198,65 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 	 */
 	@Override
 	public void releaseLuceePageContext(PageContext pc, boolean unregisterFromThread) {
+		releaseLuceePageContext(pc, unregisterFromThread, false);
+	}
+	public void releaseLuceePageContext(PageContext pc, boolean unregisterFromThread, boolean async) {
 		if(pc.getId() < 0) return;
-		
-		SpoolerEngineImpl spooler=(SpoolerEngineImpl) pc.getConfig().getSpoolerEngine();
+	
 		((PageContextImpl)pc).releaseInSync();
-		spooler.add(new ReleaseTask(this,pc));
-
+		
+		if(async) {
+			SpoolerEngineImpl spooler=(SpoolerEngineImpl) pc.getConfig().getSpoolerEngine();
+			spooler.add(new ReleaseTask(this,pc));
+		}
+		else {
+			_execute(this, pc);
+		}
+		
+		//SystemUtil.sleep(1000);
 		if(unregisterFromThread) ThreadLocalPageContext.release();
 	
 	}
+	
+	private static Object _execute(CFMLFactoryImpl factory,PageContext pc) {
+		boolean isChild=pc.getParentPageContext() != null; // we need to get this check before release is executed
+		
+		// when pc was registered with an other thread, we register with this thread when calling release
+		PageContext beforePC = ThreadLocalPageContext.get();
+		boolean tmpRegister=false;
+		if(beforePC!=pc) {
+			ThreadLocalPageContext.register(pc);
+			tmpRegister=true;
+		}
+		boolean releaseFailed=false;
+		try{
+			pc.release();
+		}
+		catch(Exception e) {e.printStackTrace();
+			releaseFailed=true;
+			pc.getConfig().getLog("application").error("release page context", e);
+		}
+		finally {
+			if(tmpRegister)ThreadLocalPageContext.register(beforePC);
+		}
+		
+		
+		
+		factory.runningPcs.remove(Integer.valueOf(pc.getId()));
+		if(isChild) {
+			factory.runningChildPcs.remove(Integer.valueOf(pc.getId()));
+		}
+		if(factory.pcs.size() < 100 && !pc.hasFamily() && ((PageContextImpl)pc).getTimeoutStackTrace() == null && !releaseFailed)// not more than 100 PCs
+			factory.pcs.push((PageContextImpl)pc);
+
+		if(factory.runningPcs.size()>MAX_SIZE) factory.clean(factory.runningPcs);
+		if(factory.runningChildPcs.size()>MAX_SIZE) factory.clean(factory.runningChildPcs);
+		
+		return null;
+	}
+
+
+
 	
 	private static class ReleaseTask implements Task {
 
@@ -219,43 +269,9 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		}
 
 		@Override
-		public Object execute(Config config) throws PageException {
-			boolean isChild=pc.getParentPageContext() != null; // we need to get this check before release is executed
-			
-			// when pc was registered with an other thread, we register with this thread when calling release
-			PageContext beforePC = ThreadLocalPageContext.get();
-			boolean tmpRegister=false;
-			if(beforePC!=pc) {
-				ThreadLocalPageContext.register(pc);
-				tmpRegister=true;
-			}
-			boolean releaseFailed=false;
-			try{
-				pc.release();
-			}
-			catch(Exception e) {e.printStackTrace();
-				releaseFailed=true;
-				config.getLog("application").error("release page context", e);
-			}
-			finally {
-				if(tmpRegister)ThreadLocalPageContext.register(beforePC);
-			}
-			
-			
-			
-			factory.runningPcs.remove(Integer.valueOf(pc.getId()));
-			if(isChild) {
-				factory.runningChildPcs.remove(Integer.valueOf(pc.getId()));
-			}
-			if(factory.pcs.size() < 100 && !pc.hasFamily() && ((PageContextImpl)pc).getTimeoutStackTrace() == null && !releaseFailed)// not more than 100 PCs
-				factory.pcs.push((PageContextImpl)pc);
-
-			if(factory.runningPcs.size()>MAX_SIZE) factory.clean(factory.runningPcs);
-			if(factory.runningChildPcs.size()>MAX_SIZE) factory.clean(factory.runningChildPcs);
-			
-			return null;
+		public Object execute(Config config) {
+			return _execute(factory, pc);
 		}
-
 	}
 
 	private void clean(Map<Integer, PageContextImpl> map) {

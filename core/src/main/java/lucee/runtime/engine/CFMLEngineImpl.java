@@ -1103,7 +1103,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				}
 			}
 		} finally {
-			factory.releaseLuceePageContext(pc, !exeReqAsync);
+			factory.releaseLuceePageContext(pc, !exeReqAsync,true);
 		}
 	}
 

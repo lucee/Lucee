@@ -23,6 +23,7 @@ import java.util.Stack;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
@@ -131,13 +132,13 @@ public final class XMLEventParser extends DefaultHandler {
 			Attributes attributes) throws SAXException {
 		bodies.add(new StringBuilder());
 		att = toStruct(attributes);
-		call(startElement,new Object[]{uri,localName,qName,att});
+		call(startElement,new Object[]{uri,StringUtil.isEmpty(localName)?qName:localName,qName,att});
 	}
 
 	@Override
 	public void endElement(String uri, String localName, String qName) throws SAXException {
 		call(body,new Object[]{bodies.pop().toString()});
-		call(endElement,new Object[]{uri,localName,qName,att});
+		call(endElement,new Object[]{uri,StringUtil.isEmpty(localName)?qName:localName,qName,att});
 	}
 	
 	@Override
