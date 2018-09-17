@@ -3441,6 +3441,9 @@ public final class Caster {
                     else if(type.equals("binary")) {
                         return toBinary(o);
                     }
+                    else if(type.equals("byte[]")) {
+                        return toBinary(o);
+                    }
                     else if(type.equals("base64")) {
                         return toBase64(o,null);
                     }
@@ -4525,6 +4528,7 @@ public final class Caster {
 		if(trgClass==null)return Caster.toNull(obj); 
 		else if(obj.getClass()==trgClass)	return obj;
 		
+		else if(trgClass==byte[].class)return Caster.toBinary(obj); 
 		else if(trgClass==boolean.class)return Caster.toBoolean(obj); 
 		else if(trgClass==byte.class)return Caster.toByte(obj); 
 		else if(trgClass==short.class)return Caster.toShort(obj); 
@@ -4548,7 +4552,7 @@ public final class Caster {
 		
 		if(Reflector.isInstaneOf(obj.getClass(), trgClass)) return obj;
 		
-		return Caster.castTo(pc, trgClass.getName(), obj,false);
+		return Caster.castTo(pc, Caster.toClassName(trgClass), obj,false);
 	}
 
 	public static Objects toObjects(PageContext pc,Object obj) throws PageException {

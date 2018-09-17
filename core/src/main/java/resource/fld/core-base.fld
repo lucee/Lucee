@@ -3910,7 +3910,7 @@ The following options to customize the output (only used when second argument is
     </argument>
 		<argument>
 			<name>id</name>
-			<type>string</type>
+			<type>any</type>
 			<required>yes</required>
 		<description>The primary key value of the entity that must be loaded</description>
     </argument>
