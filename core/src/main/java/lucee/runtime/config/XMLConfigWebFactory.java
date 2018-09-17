@@ -47,6 +47,7 @@ import java.util.UUID;
 
 import javax.servlet.ServletConfig;
 
+import lucee.Info;
 import lucee.aprint;
 import lucee.print;
 import lucee.commons.collection.MapFactory;
@@ -1397,10 +1398,16 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		FunctionLib[] cflds = config.getFLDs(CFMLEngine.DIALECT_CFML);
 		FunctionLib[] lflds = config.getFLDs(CFMLEngine.DIALECT_LUCEE);
 		
+		StringBuilder sb = new StringBuilder();
+		
+		// version
+		if(config instanceof ConfigWebImpl) {
+			Info info=((ConfigWebImpl)config).getFactory().getEngine().getInfo();
+			sb.append(info.getVersion().toString()).append(';');
+		}
 		
 		// charset
-		StringBuilder sb = new StringBuilder(config.getTemplateCharset().name());
-		sb.append(';');
+		sb.append(config.getTemplateCharset().name()).append(';');
 
 		// dot notation upper case
 		_getDotNotationUpperCase(sb,config.getMappings());
@@ -1453,7 +1460,6 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			sb.append(";").append(((ConfigWebImpl)config).getConfigServerImpl().getLibHash());
 			try {
 				String hashValue = HashUtil.create64BitHashAsString(sb.toString());
-	
 				// check and compare lib version file
 				Resource libHash = config.getConfigDir().getRealResource("lib-hash");
 	
@@ -1469,6 +1475,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			}
 			catch (IOException e) {
 			}
+			
 			// change Compile type
 			if (hasChanged) {
 				try {
