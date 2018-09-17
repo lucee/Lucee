@@ -61,7 +61,7 @@ public final class UDFAddProperty extends UDFGSProperty {
  
 	@Override
 	public UDF duplicate() {
-		return new UDFAddProperty(_component,prop);
+		return new UDFAddProperty(srcComponent,prop);
 	}
 	
 	@Override

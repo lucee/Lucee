@@ -43,7 +43,7 @@ public final class UDFGetterProperty extends UDFGSProperty {
 
 	@Override
 	public UDF duplicate() {
-		return new UDFGetterProperty(_component,prop);
+		return new UDFGetterProperty(srcComponent,prop);
 	}
 	
 	@Override

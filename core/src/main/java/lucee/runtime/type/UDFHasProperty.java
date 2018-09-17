@@ -68,7 +68,7 @@ public final class UDFHasProperty extends UDFGSProperty {
  
 	@Override
 	public UDF duplicate() {
-		return new UDFHasProperty(_component,prop);
+		return new UDFHasProperty(srcComponent,prop);
 	}
 	
 	@Override

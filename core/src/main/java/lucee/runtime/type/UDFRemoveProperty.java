@@ -70,7 +70,7 @@ public final class UDFRemoveProperty extends UDFGSProperty {
 
 	@Override
 	public UDF duplicate() {
-		return new UDFRemoveProperty(_component,prop);
+		return new UDFRemoveProperty(srcComponent,prop);
 	}
 	
 	@Override

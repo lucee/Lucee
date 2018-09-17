@@ -25,6 +25,7 @@ import lucee.commons.digest.Hash;
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Component;
+import lucee.runtime.ComponentScope;
 import lucee.runtime.Page;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
@@ -42,6 +43,7 @@ import lucee.runtime.functions.decision.IsValid;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.type.Collection.Key;
+import lucee.runtime.type.scope.Variables;
 import lucee.runtime.type.util.ComponentUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.UDFUtil;
@@ -55,7 +57,7 @@ public abstract class UDFGSProperty extends MemberSupport implements UDFPlus {
 	
 	protected final FunctionArgument[] arguments;
 	protected final String name;
-	protected Component _component;
+	protected Component srcComponent;
 	private UDFPropertiesBase properties;
 	private String id;
 
@@ -67,10 +69,9 @@ public abstract class UDFGSProperty extends MemberSupport implements UDFPlus {
 				name,
 				rtnType
 		);
-		
 		this.name=name;
 		this.arguments=arguments;
-		this._component=component;
+		this.srcComponent=component;
 	}
 	
 	private static UDFPropertiesBase UDFProperties(
@@ -109,7 +110,7 @@ public abstract class UDFGSProperty extends MemberSupport implements UDFPlus {
 	
 	@Override
 	public String getSource() {
-		PageSource ps = _component.getPageSource();
+		PageSource ps = srcComponent.getPageSource();
 		if(ps!=null) return ps.getDisplayPath();
 		return "";
 	}
@@ -119,10 +120,10 @@ public abstract class UDFGSProperty extends MemberSupport implements UDFPlus {
 	public String id() {
 		if(id==null) {
 			try {
-				id=Hash.md5(_component.id()+":"+getFunctionName());
+				id=Hash.md5(srcComponent.id()+":"+getFunctionName());
 			}
 			catch (NoSuchAlgorithmException e) {
-				id=_component.id()+":"+getFunctionName();
+				id=srcComponent.id()+":"+getFunctionName();
 			}
 		}
 		return id;
@@ -142,15 +143,35 @@ public abstract class UDFGSProperty extends MemberSupport implements UDFPlus {
 	public Component getOwnerComponent(PageContext pc) {
 		if(pc==null) pc=ThreadLocalPageContext.get();
 		if(pc!=null) {
+			Variables var = pc.variablesScope();
+
+			
+			
+			if(var instanceof ComponentScope) {
+				Component comp = ((ComponentScope)var).getComponent();
+				if(comp!=null)return comp;
+			}
+			
+			/*
+			if(var!=null) print.e("var:"+var.getClass().getName());
+			if(var instanceof ComponentScope) print.e("ComponentScope:"+(((ComponentScope)var).getComponent().getAbsName()));
+			
 			Component ac = pc.getActiveComponent();
-			if(ac!=null) return ac;
+			if(ac!=null) print.e("ActiveComponent:"+(pc.getActiveComponent().getAbsName()));
+			
+			if(srcComponent!=null) print.e("srcComponent:"+(srcComponent.getAbsName()));
+			*/
+			//Component ac = pc.getActiveComponent();
+			//if(ac!=null) return ac;
 		}
-		return _component;
+		
+			
+		return srcComponent;
 	}
 
 	@Override
 	public void setOwnerComponent(Component component) {
-		this._component = component;
+		this.srcComponent = component;
 	}
 	
 	public Page getPage() {
@@ -303,7 +324,7 @@ public abstract class UDFGSProperty extends MemberSupport implements UDFPlus {
 
 	@Override
 	public PageSource getPageSource() {
-		return _component.getPageSource();
+		return srcComponent.getPageSource();
 		//return this.properties.getPageSource();
 	}
 

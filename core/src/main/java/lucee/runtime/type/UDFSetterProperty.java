@@ -25,6 +25,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.component.Property;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
@@ -36,6 +37,11 @@ import lucee.runtime.type.util.UDFUtil;
 
 public final class UDFSetterProperty extends UDFGSProperty {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 378348754607851563L;
+	
 	private static final Collection.Key VALIDATE_PARAMS = KeyImpl.intern("validateParams");
 	private final Property prop;
 	private final Key propName;
@@ -75,9 +81,9 @@ public final class UDFSetterProperty extends UDFGSProperty {
 	@Override
 	public UDF duplicate() {
 		try {
-			return new UDFSetterProperty(_component,prop);
-		} catch (PageException e) {
-			return null;
+			return new UDFSetterProperty(srcComponent,prop);
+		} catch (PageException pe) {
+			throw new PageRuntimeException(pe);
 		}
 	}
 	
