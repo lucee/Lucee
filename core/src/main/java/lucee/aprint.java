@@ -25,8 +25,10 @@ import java.io.Reader;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.ResultSet;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
@@ -69,6 +71,25 @@ public class aprint {
 	public static void ds(boolean useOutStream) {
 		new Exception("Stack trace").printStackTrace(useOutStream?System.out:System.err);
 	}
+
+	public static void ds(int max,boolean useOutStream) {
+		printStackTrace(useOutStream?System.out:System.err,max);
+	}
+	
+	private static void printStackTrace(PrintStream ps, int max) {
+		
+        // Guard against malicious overrides of Throwable.equals by
+        // using a Set with identity equality semantics.
+        
+            // Print our stack trace
+            StackTraceElement[] traces = new Exception("Stack trace").getStackTrace();
+            for (int i=0;i<traces.length && i<max;i++) {
+            	StackTraceElement trace=traces[i];
+                ps.println("\tat " + trace);
+            }
+            
+        
+    }
 	
 	public static void ds(Object label,boolean useOutStream) {
 		_eo(useOutStream?System.out:System.err, label);
@@ -76,6 +97,7 @@ public class aprint {
 	}
 	
 	public static void ds() {ds(false);}
+	public static void ds(int max) {ds(max,false);}
 	public static void ds(Object label) {ds(label,false);}
 	public static void dumpStack() {ds(false);}
 	public static void dumpStack(boolean useOutStream) {ds(useOutStream);}
