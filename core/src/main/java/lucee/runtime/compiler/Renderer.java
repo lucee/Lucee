@@ -105,10 +105,8 @@ public class Renderer {
 		// execute
 		Result res=new Result();
 		BodyContent bc=null;
-		//Variables before = pc.variablesScope();
 		try{
 			if(catchOutput)bc = pc.pushBody();
-			//if(variables!=null)pc.setVariablesScope(variables);
 			
 			res.value=loadPage(pc.getConfig(), null, cfml,dialect,ignoreScopes).call(pc);
 		}
@@ -117,12 +115,10 @@ public class Renderer {
 			throw Caster.toPageException(t);
 		}
 		finally{
-			//if(variables!=null)pc.setVariablesScope(before);
 			if(catchOutput) {
 				if(bc!=null)res.output=bc.getString();
 				pc.popBody();
 			}
-			//pc.flush();
 		}
 		return res;
 	}
