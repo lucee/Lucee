@@ -88,24 +88,26 @@ public final class UDFSetterProperty extends UDFGSProperty {
 	}
 	
 	@Override
-	public Object call(PageContext pageContext, Object[] args,boolean doIncludePath) throws PageException {
+	public Object _call(PageContext pageContext, Object[] args,boolean doIncludePath) throws PageException {
 		if(args.length<1)
 			throw new ExpressionException("The parameter "+prop.getName()+" to function "+getFunctionName()+" is required but was not passed in.");
 		validate(validate,validateParams,args[0]);
-		getOwnerComponent(pageContext).getComponentScope().set(propName, cast(pageContext,this.arguments[0],args[0],1));
+		Component c = getComponent(pageContext);
+		c.getComponentScope().set(propName, cast(pageContext,this.arguments[0],args[0],1));
 
 		// make sure it is reconized that set is called by hibernate
 		//if(component.isPersistent())ORMUtil.getSession(pageContext);
 		ApplicationContext appContext = pageContext.getApplicationContext();
-		if(appContext.isORMEnabled() && getOwnerComponent(pageContext).isPersistent())ORMUtil.getSession(pageContext);
+		if(appContext.isORMEnabled() && c.isPersistent())ORMUtil.getSession(pageContext);
 		
-		return getOwnerComponent(pageContext);
+		return c;
 	}
 
 	@Override
-	public Object callWithNamedValues(PageContext pageContext, Struct values,boolean doIncludePath) throws PageException {
+	public Object _callWithNamedValues(PageContext pageContext, Struct values,boolean doIncludePath) throws PageException {
 		UDFUtil.argumentCollection(values,getFunctionArguments());
 		Object value = values.get(propName,null);
+		Component c = getComponent(pageContext);
 		
 		if(value==null){
 			Key[] keys = CollectionUtil.keys(values);
@@ -114,14 +116,14 @@ public final class UDFSetterProperty extends UDFGSProperty {
 			}
 			else throw new ExpressionException("The parameter "+prop.getName()+" to function "+getFunctionName()+" is required but was not passed in.");
 		}
-		getOwnerComponent(pageContext).getComponentScope().set(propName, cast(pageContext,arguments[0],value,1));
+		c.getComponentScope().set(propName, cast(pageContext,arguments[0],value,1));
 
 		// make sure it is reconized that set is called by hibernate
 		//if(component.isPersistent())ORMUtil.getSession(pageContext);
 		ApplicationContext appContext = pageContext.getApplicationContext();
-		if(appContext.isORMEnabled() && getOwnerComponent(pageContext).isPersistent())ORMUtil.getSession(pageContext);
+		if(appContext.isORMEnabled() && c.isPersistent())ORMUtil.getSession(pageContext);
 		
-		return getOwnerComponent(pageContext);
+		return c;
 	}
 
 	@Override

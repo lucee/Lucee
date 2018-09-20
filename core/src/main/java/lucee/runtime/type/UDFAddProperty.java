@@ -65,28 +65,30 @@ public final class UDFAddProperty extends UDFGSProperty {
 	}
 	
 	@Override
-	public Object call(PageContext pageContext, Object[] args,boolean doIncludePath) throws PageException {
+	public Object _call(PageContext pageContext, Object[] args,boolean doIncludePath) throws PageException {
+		Component c=getComponent(pageContext);
 		// struct
 		if(this.arguments.length==2) {
 			if(args.length<2)
 				throw new ExpressionException("The function "+getFunctionName()+" need 2 arguments, only "+args.length+" argment"+(args.length==1?" is":"s are")+" passed in.");
-			return _call(pageContext, args[0], args[1]);
+			return _call(pageContext, c, args[0], args[1]);
 		}
 		// array
 		else if(this.arguments.length==1) {
 			if(args.length<1)
 				throw new ExpressionException("The parameter "+this.arguments[0].getName()+" to function "+getFunctionName()+" is required but was not passed in.");
-			return _call(pageContext, null, args[0]);
+			return _call(pageContext, c, null, args[0]);
 		}
 		
 		// never reached
-		return getOwnerComponent(pageContext);
+		return c;
 		
 	}
 
 	@Override
-	public Object callWithNamedValues(PageContext pageContext, Struct values,boolean doIncludePath) throws PageException {
+	public Object _callWithNamedValues(PageContext pageContext, Struct values,boolean doIncludePath) throws PageException {
 		UDFUtil.argumentCollection(values,getFunctionArguments());
+		Component c=getComponent(pageContext);
 		
 		
 		// struct
@@ -100,7 +102,7 @@ public final class UDFAddProperty extends UDFGSProperty {
 			if(value==null)
 				throw new ExpressionException("The parameter "+valueName+" to function "+getFunctionName()+" is required but was not passed in.");
 			
-			return _call(pageContext, key, value);
+			return _call(pageContext, c, key, value);
 		}
 		// array
 		else if(this.arguments.length==1) {
@@ -113,18 +115,18 @@ public final class UDFAddProperty extends UDFGSProperty {
 				}
 				else throw new ExpressionException("The parameter "+valueName+" to function "+getFunctionName()+" is required but was not passed in.");
 			}
-			return _call(pageContext, null, value);
+			return _call(pageContext, c, null, value);
 		}
 
 		// never reached
-		return getOwnerComponent(pageContext);
+		return getComponent(pageContext);
 	}
 	
 	
-	private Object _call(PageContext pageContext, Object key, Object value) throws PageException {
+	private Object _call(PageContext pageContext, Component c, Object key, Object value) throws PageException {
 		
 		
-		Object propValue = getOwnerComponent(pageContext).getComponentScope().get(propName,null);
+		Object propValue = c.getComponentScope().get(propName,null);
 		
 		// struct
 		if(this.arguments.length==2) {
@@ -132,7 +134,7 @@ public final class UDFAddProperty extends UDFGSProperty {
 			value=cast(pageContext,arguments[1],value,2);
 			if(propValue==null){
 				HashMap map=new HashMap();
-				getOwnerComponent(pageContext).getComponentScope().setEL(propName,map);
+				c.getComponentScope().setEL(propName,map);
 				propValue=map;
 			}	
 			if(propValue instanceof Struct) {
@@ -152,7 +154,7 @@ public final class UDFAddProperty extends UDFGSProperty {
 				propValue=new PersistentList(s);
 				component.getComponentScope().setEL(propName,propValue);*/
 				Array arr=new ArrayImpl();
-				getOwnerComponent(pageContext).getComponentScope().setEL(propName,arr);
+				c.getComponentScope().setEL(propName,arr);
 				propValue=arr;
 			}	
 			if(propValue instanceof Array) {
@@ -162,7 +164,7 @@ public final class UDFAddProperty extends UDFGSProperty {
 				((java.util.List)propValue).add(value);
 			}
 		}
-		return getOwnerComponent(pageContext);
+		return c;
 	}
 
 	@Override

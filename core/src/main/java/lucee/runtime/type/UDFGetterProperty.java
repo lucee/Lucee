@@ -47,18 +47,18 @@ public final class UDFGetterProperty extends UDFGSProperty {
 	}
 	
 	@Override
-	public Object call(PageContext pageContext, Object[] args,boolean doIncludePath) throws PageException {
-		return getOwnerComponent(pageContext).getComponentScope().get(pageContext, propName,null);
+	public Object _call(PageContext pageContext, Object[] args,boolean doIncludePath) throws PageException {
+		return getComponent(pageContext).getComponentScope().get(pageContext, propName,null);
 	}
 
 	@Override
-	public Object callWithNamedValues(PageContext pageContext, Struct values,boolean doIncludePath) throws PageException {
-		return getOwnerComponent(pageContext).getComponentScope().get(pageContext,propName,null);
+	public Object _callWithNamedValues(PageContext pageContext, Struct values,boolean doIncludePath) throws PageException {
+		return getComponent(pageContext).getComponentScope().get(pageContext,propName,null);
 	}
 
 	@Override
 	public Object implementation(PageContext pageContext) throws Throwable {
-		return getOwnerComponent(pageContext).getComponentScope().get(pageContext,propName,null);
+		return getComponent(pageContext).getComponentScope().get(pageContext,propName,null);
 	}
 	
 	@Override

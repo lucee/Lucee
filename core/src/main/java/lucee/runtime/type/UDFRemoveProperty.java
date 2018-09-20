@@ -74,7 +74,7 @@ public final class UDFRemoveProperty extends UDFGSProperty {
 	}
 	
 	@Override
-	public Object call(PageContext pageContext, Object[] args,boolean doIncludePath) throws PageException {
+	public Object _call(PageContext pageContext, Object[] args,boolean doIncludePath) throws PageException {
 		if(args.length<1)
 			throw new ExpressionException("The parameter "+this.arguments[0].getName()+" to function "+getFunctionName()+" is required but was not passed in.");
 		
@@ -82,7 +82,7 @@ public final class UDFRemoveProperty extends UDFGSProperty {
 	}
 
 	@Override
-	public Object callWithNamedValues(PageContext pageContext, Struct values,boolean doIncludePath) throws PageException {
+	public Object _callWithNamedValues(PageContext pageContext, Struct values,boolean doIncludePath) throws PageException {
 		UDFUtil.argumentCollection(values,getFunctionArguments());
 		Key key = arguments[0].getName();
 		Object value = values.get(key,null);
@@ -99,13 +99,14 @@ public final class UDFRemoveProperty extends UDFGSProperty {
 	
 	
 	private boolean remove(PageContext pageContext, Object value) throws PageException {
-		Object propValue = getOwnerComponent(pageContext).getComponentScope().get(propName,null);
+		Component c=getComponent(pageContext);
+		Object propValue = c.getComponentScope().get(propName,null);
 		value=cast(pageContext,arguments[0],value,1);
 		
 		// make sure it is reconized that set is called by hibernate
 		//if(component.isPersistent())ORMUtil.getSession(pageContext);
 		ApplicationContext appContext = pageContext.getApplicationContext();
-		if(appContext.isORMEnabled() && getOwnerComponent(pageContext).isPersistent())ORMUtil.getSession(pageContext);
+		if(appContext.isORMEnabled() && c.isPersistent())ORMUtil.getSession(pageContext);
 		
 		// struct
 		if(isStruct()) {

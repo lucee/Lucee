@@ -72,13 +72,13 @@ public final class UDFHasProperty extends UDFGSProperty {
 	}
 	
 	@Override
-	public Object call(PageContext pageContext, Object[] args,boolean doIncludePath) throws PageException {
+	public Object _call(PageContext pageContext, Object[] args,boolean doIncludePath) throws PageException {
 		if(args.length<1) return has(pageContext);
 		return has(pageContext, args[0]);
 	}
 
 	@Override
-	public Object callWithNamedValues(PageContext pageContext, Struct values,boolean doIncludePath) throws PageException {
+	public Object _callWithNamedValues(PageContext pageContext, Struct values,boolean doIncludePath) throws PageException {
 		UDFUtil.argumentCollection(values,getFunctionArguments());
 		Key key = arguments[0].getName();
 		Object value = values.get(key,null);
@@ -94,7 +94,7 @@ public final class UDFHasProperty extends UDFGSProperty {
 	}
 	
 	private boolean has(PageContext pageContext) {
-		Object propValue = getOwnerComponent(pageContext).getComponentScope().get(propName,null);
+		Object propValue = getComponent(pageContext).getComponentScope().get(propName,null);
 		
 		// struct
 		if(isStruct()) {
@@ -118,7 +118,7 @@ public final class UDFHasProperty extends UDFGSProperty {
 	}
 	
 	private boolean has(PageContext pageContext, Object value) throws PageException {
-		Object propValue = getOwnerComponent(pageContext).getComponentScope().get(propName,null);
+		Object propValue = getComponent(pageContext).getComponentScope().get(propName,null);
 		
 		// struct
 		if(isStruct()) {

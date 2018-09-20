@@ -141,31 +141,6 @@ public abstract class UDFGSProperty extends MemberSupport implements UDFPlus {
 	}
 	
 	public Component getOwnerComponent(PageContext pc) {
-		if(pc==null) pc=ThreadLocalPageContext.get();
-		if(pc!=null) {
-			Variables var = pc.variablesScope();
-
-			
-			
-			if(var instanceof ComponentScope) {
-				Component comp = ((ComponentScope)var).getComponent();
-				if(comp!=null)return comp;
-			}
-			
-			/*
-			if(var!=null) print.e("var:"+var.getClass().getName());
-			if(var instanceof ComponentScope) print.e("ComponentScope:"+(((ComponentScope)var).getComponent().getAbsName()));
-			
-			Component ac = pc.getActiveComponent();
-			if(ac!=null) print.e("ActiveComponent:"+(pc.getActiveComponent().getAbsName()));
-			
-			if(srcComponent!=null) print.e("srcComponent:"+(srcComponent.getAbsName()));
-			*/
-			//Component ac = pc.getActiveComponent();
-			//if(ac!=null) return ac;
-		}
-		
-			
 		return srcComponent;
 	}
 
@@ -184,8 +159,11 @@ public abstract class UDFGSProperty extends MemberSupport implements UDFPlus {
 	}
  
 	@Override
-	public UDF duplicate(boolean deep) {
-		return duplicate(); // deep has no influence here, because a UDF is not a collection
+	public final UDF duplicate(boolean deep) {
+		UDFPlus udf = (UDFPlus) duplicate(); // deep has no influence here, because a UDF is not a collection
+		udf.setOwnerComponent(srcComponent);
+		udf.setAccess(getAccess());
+		return udf;
 	}
 
 	@Override
@@ -293,28 +271,62 @@ public abstract class UDFGSProperty extends MemberSupport implements UDFPlus {
 	@Override
 	public Object callWithNamedValues(PageContext pc, Key calledName, Struct values, boolean doIncludePath) throws PageException {
 		PageContextImpl pci = ((PageContextImpl)pc);
-		Key old =pci.getActiveUDFCalledName();
+		UDF parent = pc.getActiveUDF();
+		Key parentName =pci.getActiveUDFCalledName();
+		pci.setActiveUDF(this);
 		pci.setActiveUDFCalledName(calledName);
 		try{
 			return callWithNamedValues(pci, values, doIncludePath);
 		}
 		finally{
-			pci.setActiveUDFCalledName(old);
+			pci.setActiveUDF(parent);
+			pci.setActiveUDFCalledName(parentName);
 		}
 	}
 
 	@Override
 	public Object call(PageContext pc, Key calledName, Object[] args, boolean doIncludePath) throws PageException {
 		PageContextImpl pci = ((PageContextImpl)pc);
-		Key old =pci.getActiveUDFCalledName();
+		UDF parent = pc.getActiveUDF();
+		Key parentName =pci.getActiveUDFCalledName();
 		pci.setActiveUDFCalledName(calledName);
+		pci.setActiveUDF(this);
 		try{
 			return call(pci, args, doIncludePath);
 		}
 		finally{
-			pci.setActiveUDFCalledName(old);
+			pci.setActiveUDF(parent);
+			pci.setActiveUDFCalledName(parentName);
 		}
 	}
+	
+	public final Object call(PageContext pageContext, Object[] args,boolean doIncludePath) throws PageException {
+		PageContextImpl pci=(PageContextImpl) pageContext;
+		UDF parent = pci.getActiveUDF();
+		pci.setActiveUDF(this);
+		try {
+			return _call(pageContext, args, doIncludePath);
+		}
+		finally {
+			pci.setActiveUDF(parent);
+		}
+	}
+	public abstract Object _call(PageContext pageContext, Object[] args,boolean doIncludePath) throws PageException;
+
+	@Override
+	public final Object callWithNamedValues(PageContext pageContext, Struct values,boolean doIncludePath) throws PageException {
+		PageContextImpl pci=(PageContextImpl) pageContext;
+		UDF parent = pci.getActiveUDF();
+		pci.setActiveUDF(this);
+		try {
+			return _callWithNamedValues(pageContext, values, doIncludePath);
+		}
+		finally {
+			pci.setActiveUDF(parent);
+		}
+	}
+	public abstract Object _callWithNamedValues(PageContext pageContext, Struct values,boolean doIncludePath) throws PageException;
+	
 
 	private static String createMessage(String format, Object value) {
     	if(Decision.isSimpleValue(value)) return "the value ["+Caster.toString(value,null)+"] is not in  ["+format+"] format";
@@ -331,5 +343,17 @@ public abstract class UDFGSProperty extends MemberSupport implements UDFPlus {
 	@Override
 	public boolean getBufferOutput(PageContext pc) {
 		return pc.getApplicationContext().getBufferOutput();
+	}
+	
+	public Component getComponent(PageContext pc) {
+		if(pc==null) pc=ThreadLocalPageContext.get();
+		if(pc!=null) {
+			Variables var = pc.variablesScope();
+			if(var instanceof ComponentScope) {
+				Component comp = ((ComponentScope)var).getComponent();
+				if(comp!=null) return comp;
+			}
+		}
+		return srcComponent;
 	}
 }

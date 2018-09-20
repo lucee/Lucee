@@ -1289,9 +1289,4 @@ public class InstrumentationFactoryExternal {
             }
         }
     }
-    
-    public static void main(String[] args) {
-		print.e("->"+install());
-		print.e("->"+getInstrumentation());
-	}
 }

@@ -619,7 +619,6 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	}
 
 	Object _call(PageContext pc, Collection.Key calledName, UDFPlus udf, Struct namedArgs, Object[] args) throws PageException {
-
 		Object rtn = null;
 		Variables parent = null;
 
@@ -944,7 +943,6 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		if(pc == null)
 			return true;
 		Component ac = pc.getActiveComponent();
-
 		return (ac != null && (ac == this || ((ComponentImpl)ac).top.pageSource.equals(this.top.pageSource)));
 	}
 
@@ -1707,18 +1705,16 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	 */
 	private Object _set(PageContext pc, Collection.Key key, Object value) throws ExpressionException {
 		if(value instanceof Member) {
-			if(value instanceof UDFPlus) {
-				UDFPlus udf = (UDFPlus)((UDFPlus)value).duplicate();
-				// udf.isComponentMember(true);///+++
-				udf.setOwnerComponent(this);
-				if(udf.getAccess() > Component.ACCESS_PUBLIC)
-					udf.setAccess(Component.ACCESS_PUBLIC);
+			Member m=(Member)value;
+			if(m instanceof UDFPlus) {
+				UDFPlus udf=(UDFPlus) m;
+				if(udf.getAccess()>Component.ACCESS_PUBLIC) udf.setAccess(Component.ACCESS_PUBLIC);
 				_data.put(key, udf);
 				_udfs.put(key, udf);
 				hasInjectedFunctions = true;
 			}
 			else
-				_data.put(key, (Member)value);
+				_data.put(key, m);
 		}
 		else {
 			Member existing = _data.get(key);

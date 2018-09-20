@@ -3264,20 +3264,20 @@ public final class PageContextImpl extends PageContext {
 		return activeUDF;
 	}
 
-	public Collection.Key getActiveUDFCalledName() {
-		return activeUDFCalledName;
-	}
-
-	public void setActiveUDFCalledName(Collection.Key activeUDFCalledName) {
-		this.activeUDFCalledName = activeUDFCalledName;
-	}
-
 	/**
 	 * @param activeUDF
 	 *            the activeUDF to set
 	 */
 	public void setActiveUDF(UDF activeUDF) {
 		this.activeUDF = activeUDF;
+	}
+
+	public Collection.Key getActiveUDFCalledName() {
+		return activeUDFCalledName;
+	}
+
+	public void setActiveUDFCalledName(Collection.Key activeUDFCalledName) {
+		this.activeUDFCalledName = activeUDFCalledName;
 	}
 
 	@Override
