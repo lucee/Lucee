@@ -61,7 +61,7 @@ public final class Update extends TagImpl {
 	private String password;
 
 	/** Name of the data source that contains a table. */
-	private String datasource;
+	private DataSource datasource;
 
 	/** If specified, username overrides the username value specified in the ODBC setup. */
 	private String username;
@@ -106,8 +106,11 @@ public final class Update extends TagImpl {
 	*  Name of the data source that contains a table.
 	* @param datasource value to set
 	**/
-	public void setDatasource(String datasource)	{
-		this.datasource=datasource;
+	public void setDatasource(String datasource) throws PageException { // exist for old bytecode in archives
+		this.datasource = lucee.runtime.tag.Query.toDatasource(pageContext, datasource);
+	}
+	public void setDatasource(Object datasource) throws PageException {
+		this.datasource = lucee.runtime.tag.Query.toDatasource(pageContext, datasource);
 	}
 
 	/** set the value username

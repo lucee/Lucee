@@ -102,14 +102,9 @@ public final class DBInfo extends TagImpl {
 	private static final int TYPE_TERMS = 10;
 	private static final Collection.Key CARDINALITY = KeyImpl.init("CARDINALITY");
 
-	
-	//private static final String[] ALL_TABLE_TYPES = {"TABLE", "VIEW", "SYSTEM TABLE", "SYNONYM"};
-	
-	private String datasource;
+	private DataSource datasource;
 	private String name;
 	private int type;
-	
-	
 	private String dbname;
 	private String password;
 	private String pattern;
@@ -117,7 +112,6 @@ public final class DBInfo extends TagImpl {
 	private String procedure;
 	private String username;
 	private String strType;
-	
 	
 	@Override
 	public void release()	{
@@ -146,8 +140,11 @@ public final class DBInfo extends TagImpl {
 	/**
 	 * @param datasource the datasource to set
 	 */
-	public void setDatasource(String datasource) {
-		this.datasource = datasource;
+	public void setDatasource(String datasource) throws PageException { // exist for old bytecode in archives
+		this.datasource = lucee.runtime.tag.Query.toDatasource(pageContext, datasource);
+	}
+	public void setDatasource(Object datasource) throws PageException {
+		this.datasource = lucee.runtime.tag.Query.toDatasource(pageContext, datasource);
 	}
 
 	/**
@@ -252,12 +249,14 @@ public final class DBInfo extends TagImpl {
 	@Override
 	public int doStartTag() throws PageException	{
 		Object ds=getDatasource(pageContext, datasource);
+		
 		DataSourceManager manager = pageContext.getDataSourceManager();
 		DatasourceConnection dc=ds instanceof DataSource?
 	    		manager.getConnection(pageContext,(DataSource)ds,username,password):
 	    		manager.getConnection(pageContext,Caster.toString(ds),username,password);
-		try {
-			
+	    
+	    		
+	    try {
 			if(type==TYPE_TABLE_COLUMNS)	typeColumns(dc.getConnection().getMetaData());
 			else if(type==TYPE_DBNAMES)		typeDBNames(dc.getConnection().getMetaData());
 			else if(type==TYPE_FOREIGNKEYS)	typeForeignKeys(dc.getConnection().getMetaData());
@@ -290,25 +289,26 @@ public final class DBInfo extends TagImpl {
 		
 		Stopwatch stopwatch=new Stopwatch(Stopwatch.UNIT_NANO);
 		stopwatch.start();
-
 		table=setCase(metaData, table);
 		pattern=setCase(metaData, pattern);
 		if(StringUtil.isEmpty(pattern,true)) pattern=null;
+		
+		
 		String schema=null;
 		int index=table.indexOf('.');
 		if(index>0) {
 			schema=table.substring(0,index);
 			table=table.substring(index+1);
 		}
-		checkTable(metaData);
 		
+		checkTable(metaData);
         Query qry = new QueryImpl(
         		metaData.getColumns(dbname, schema, table, pattern),
         		"query",
         		pageContext.getTimeZone());
         
 		int len=qry.getRecordcount();
-
+		
 		if(qry.getColumn(COLUMN_DEF,null) != null)
 			qry.rename(COLUMN_DEF,COLUMN_DEFAULT_VALUE);
 		else if(qry.getColumn(COLUMN_DEFAULT,null) != null)
@@ -326,23 +326,31 @@ public final class DBInfo extends TagImpl {
 		
 		
 		// add is primary
-		Map primaries = new HashMap();
-		String tblName;
+		Map<String,Set<String>> primaries = new HashMap<>();
 		Array isPrimary=new ArrayImpl();
-		Set set;
+		Set<String> set;
 		Object o;
+		String tblCat,tblScheme,tblName;
 		for(int i=1;i<=len;i++) {
 			
 			// decimal digits
 			o=qry.getAt(DECIMAL_DIGITS, i,null);
 			if(o==null)qry.setAtEL(DECIMAL_DIGITS, i,lucee.runtime.op.Constants.DOUBLE_ZERO);
 			
-			set=(Set) primaries.get(tblName=(String) qry.getAt(TABLE_NAME, i));
+			tblCat = StringUtil.emptyAsNull(Caster.toString(qry.getAt(TABLE_CAT, i),null),true);
+			tblScheme = StringUtil.emptyAsNull(Caster.toString(qry.getAt(TABLE_SCHEM, i),null),true);
+			tblName = StringUtil.emptyAsNull(Caster.toString(qry.getAt(TABLE_NAME, i),null),true);
+			
+			
+			set=primaries.get(tblName);
 			if(set==null) {
-				set=toSet(metaData.getPrimaryKeys(dbname, null, tblName),true,"COLUMN_NAME");
-				primaries.put(tblName,set);
+				try {
+			        set=toSet(metaData.getPrimaryKeys(tblCat, tblScheme, tblName),true,"COLUMN_NAME");
+					primaries.put(tblName,set);
+				}
+				catch(Exception e) {}
 			}
-			isPrimary.append(set.contains(qry.getAt(COLUMN_NAME, i))?"YES":"NO"); 
+			isPrimary.append(set!=null && set.contains(qry.getAt(COLUMN_NAME, i))?"YES":"NO"); 
 		}
 		qry.addColumn(IS_PRIMARYKEY, isPrimary);
 		
@@ -355,10 +363,16 @@ public final class DBInfo extends TagImpl {
 		Map<String, Map<String, SVArray>> map;
 		Map<String, SVArray> inner;
 		for(int i=1;i<=len;i++) {
-			map=(Map) foreigns.get(tblName=(String) qry.getAt(TABLE_NAME, i));
+			
+			tblCat = StringUtil.emptyAsNull(Caster.toString(qry.getAt(TABLE_CAT, i),null),true);
+			tblScheme = StringUtil.emptyAsNull(Caster.toString(qry.getAt(TABLE_SCHEM, i),null),true);
+			tblName = StringUtil.emptyAsNull(Caster.toString(qry.getAt(TABLE_NAME, i),null),true);
+			
+			
+			map=(Map) foreigns.get(tblName);
 			if(map==null) {
 				map=toMap(
-						metaData.getImportedKeys(dbname, schema, table),
+						metaData.getImportedKeys(tblCat, tblScheme, tblName),
 						true,
 						"FKCOLUMN_NAME",
 						new String[]{"PKCOLUMN_NAME","PKTABLE_NAME"});
@@ -508,7 +522,6 @@ public final class DBInfo extends TagImpl {
 
 	private void checkTable(DatabaseMetaData metaData) throws SQLException, ApplicationException {
 		ResultSet tables =null;
-		
 		try {
 			tables = metaData.getTables(null, null, setCase(metaData,table), null);
 			if(!tables.next()) throw new ApplicationException("there is no table that match the following pattern ["+table+"]");
@@ -714,8 +727,8 @@ public final class DBInfo extends TagImpl {
 	}
 	
 
-	public static Object getDatasource(PageContext pageContext, String datasource) throws ApplicationException {
-		if(StringUtil.isEmpty(datasource)){
+	public static Object getDatasource(PageContext pageContext, DataSource datasource) throws ApplicationException {
+		if(datasource==null){
 			Object ds=pageContext.getApplicationContext().getDefDataSource();
 
 			if(StringUtil.isEmpty(ds)) {

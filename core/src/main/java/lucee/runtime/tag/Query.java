@@ -26,7 +26,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TimeZone;
 
-import lucee.print;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.SystemUtil.TemplateLine;
 import lucee.commons.io.log.Log;
@@ -242,7 +241,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		data.datasource = toDatasource(pageContext,datasource);
 	}
 	
-	private static DataSource toDatasource(PageContext pageContext, Object datasource) throws PageException {
+	public static DataSource toDatasource(PageContext pageContext, Object datasource) throws PageException {
 		if(Decision.isStruct(datasource)) {
 			return AppListenerUtil.toDataSource(pageContext.getConfig(), "__temp__", Caster.toStruct(datasource),
 					pageContext.getConfig().getLog("application"));
@@ -497,7 +496,6 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 			}
 			data.datasource = obj instanceof DataSource ? (DataSource)obj : pageContext.getDataSource(Caster.toString(obj));
 		}
-
 		// timeout
 		if(data.datasource instanceof DataSourceImpl && ((DataSourceImpl)data.datasource).getAlwaysSetTimeout()) {
 			TimeSpan remaining = PageContextUtil.remainingTime(pageContext, true);

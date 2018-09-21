@@ -956,7 +956,7 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 		<description>Lets you retrieve information about a data source, including details about the database, tables, queries, procedures, foreign keys, indexes, and version information about the database, driver, and JDBC. This tag supports only JDBC drivers, and does not support ODBC-based drivers, including the Microsoft Access driver.</description>
 		<attribute-type>fixed</attribute-type>
 		<attribute>
-			<type>string</type>
+			<type>object</type>
 			<name>datasource</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
@@ -4276,7 +4276,7 @@ Permits searching collections by title or displaying a separate title from the k
 		<description>Inserts records in data sources.</description>
 		<attribute-type>fixed</attribute-type>
 		<attribute>
-			<type>string</type>
+			<type>object</type>
 			<name>dataSource</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
@@ -7909,7 +7909,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		<description>Updates existing records in data sources.</description>
 		<attribute-type>fixed</attribute-type>
 		<attribute>
-			<type>string</type>
+			<type>object</type>
 			<name>dataSource</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>

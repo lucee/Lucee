@@ -1427,7 +1427,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 					else if(o instanceof Clob)
 						sb.append(getToStringField(Caster.toString(o)));
 					else
-						sb.append(getToStringField(o.toString()));
+						sb.append(getToStringField(o==null?"[null]":o.toString()));
 				}
 				catch (PageException e) {
 					sb.append(getToStringField("[empty]"));
