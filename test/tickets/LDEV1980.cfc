@@ -103,13 +103,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			mySQLStruct.database=server.system.properties.MYSQL_DATABASE;
 		}
 
-		mySQLStruct.server="localhost";
-		mySQLStruct.username="root";
-		mySQLStruct.password="encrypted:aa88d4e79d84789e13ae74313d9bd97a7eacb5d15a1d5d07";
-		mySQLStruct.port="3306";
-		mySQLStruct.database="test";
-
-
 		return mySQLStruct;
 	}
 }
