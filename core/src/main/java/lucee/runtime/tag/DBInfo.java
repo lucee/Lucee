@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import lucee.print;
 import lucee.commons.io.IOUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.sql.SQLUtil;
@@ -302,6 +303,12 @@ public final class DBInfo extends TagImpl {
 		}
 		
 		checkTable(metaData);
+
+		print.e("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+		print.e("dbname:"+dbname);
+		print.e("schema:"+schema);
+		print.e("table:"+table);
+		print.e("pattern:"+pattern);
         Query qry = new QueryImpl(
         		metaData.getColumns(dbname, schema, table, pattern),
         		"query",
