@@ -7431,7 +7431,7 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<description>timeout for the stored procedure.</description>
 		</attribute>
 		<attribute>
-			<type>string</type>
+			<type>object</type>
 			<name>dataSource</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>

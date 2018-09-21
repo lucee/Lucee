@@ -104,7 +104,7 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 	private Array results = new ArrayImpl();
 
 	private String procedure;
-	private String datasource = null;
+	private DataSource datasource = null;
 	private String username;
 	private String password;
 	private int blockfactor = -1;
@@ -195,8 +195,11 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 	 * @param datasource
 	 *            The datasource to set.
 	 */
-	public void setDatasource(String datasource) {
-		this.datasource = datasource;
+	public void setDatasource(String datasource) throws PageException {
+		this.datasource = Query.toDatasource(pageContext, datasource);
+	}
+	public void setDatasource(Object datasource) throws PageException {
+		this.datasource =  Query.toDatasource(pageContext, datasource);
 	}
 
 	/**
@@ -502,7 +505,7 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 		long startNS = System.nanoTime();
 
 		Object ds = datasource;
-		if(StringUtil.isEmpty(datasource)) {
+		if(datasource==null) {
 			ds = pageContext.getApplicationContext().getDefDataSource();
 			if(StringUtil.isEmpty(ds)) {
 				boolean isCFML = pageContext.getRequestDialect() == CFMLEngine.DIALECT_CFML;
