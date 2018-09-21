@@ -304,13 +304,13 @@ public final class DBInfo extends TagImpl {
 		
 		checkTable(metaData);
 
-		print.e("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+		/*print.e("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 		print.e("dbname:"+dbname);
 		print.e("schema:"+schema);
 		print.e("table:"+table);
-		print.e("pattern:"+pattern);
+		print.e("pattern:"+pattern);*/
         Query qry = new QueryImpl(
-        		metaData.getColumns(dbname, schema, table, pattern),
+        		metaData.getColumns(dbname, schema, table, StringUtil.isEmpty(pattern)?"%":pattern),
         		"query",
         		pageContext.getTimeZone());
         
@@ -612,7 +612,7 @@ public final class DBInfo extends TagImpl {
 		}
 		
         lucee.runtime.type.Query qry = new QueryImpl(
-        		metaData.getProcedures(dbname, schema, pattern),
+        		metaData.getProcedures(dbname, schema, StringUtil.isEmpty(pattern)?"%":pattern),
         		"query",
         		pageContext.getTimeZone());
         qry.setExecutionTime(stopwatch.time());
@@ -639,7 +639,7 @@ public final class DBInfo extends TagImpl {
 		
 		
 		lucee.runtime.type.Query qry = new QueryImpl(
-				metaData.getProcedureColumns(dbname, schema, procedure, pattern),
+				metaData.getProcedureColumns(dbname, schema, StringUtil.isEmpty(procedure)?"%":procedure, StringUtil.isEmpty(pattern)?"%":pattern),
 				"query",
 				pageContext.getTimeZone());
 		qry.setExecutionTime(stopwatch.time());
@@ -667,7 +667,7 @@ public final class DBInfo extends TagImpl {
 		pattern=setCase(metaData, pattern);
 		
         lucee.runtime.type.Query qry = new QueryImpl(
-        		metaData.getTables(dbname, null, pattern, null),
+        		metaData.getTables(dbname, null, StringUtil.isEmpty(pattern)?"%":pattern, null),
         		"query",
         		pageContext.getTimeZone());
         qry.setExecutionTime(stopwatch.time());
