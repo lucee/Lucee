@@ -269,13 +269,6 @@ END
 			mySQL.database=server.system.properties.MYSQL_DATABASE;
 		}
 
-		mySQL.server="localhost";
-		mySQL.username="root";
-		mySQL.password="encrypted:aa88d4e79d84789e13ae74313d9bd97a7eacb5d15a1d5d07";
-		mySQL.port="3306";
-		mySQL.database="test";
-
-
 		return mysql;
 	}
 
