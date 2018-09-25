@@ -9,6 +9,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					template:"#variables.uri#/test.cfm");
 				expect(result.filecontent.trim()).toBe("true");
 			});
+			it( title='Checking encryptionAlgorithm attribute in CFZIP', body=function( currentSpec ) {
+				local.result = _InternalRequest(
+					template:"#variables.uri#/test2.cfm");
+				expect(result.filecontent.trim()).toBe("true");
+			});
 		});
 	}
 	private string function createURI(string calledName){
