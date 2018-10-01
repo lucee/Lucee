@@ -4,7 +4,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 		if(!directoryExists(variables.uri)) directoryCreate(variables.uri);
 		
 		fileWrite("#variables.uri#/test.cfc",'component {
-				this.name = "test";
 				public any function test() {
 					return this;
 				}
@@ -27,8 +26,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			it( title='checking ',body=function( currentSpec ) {
 				var obj = new LDEV2012.test();
 				assertEquals(true, isStruct(obj));
-				assertEquals(2, ArrayLen(structKeyArray(obj)));
-				assertEquals(2, ArrayLen(obj.keyArray()));
+				assertEquals(1, ArrayLen(structKeyArray(obj)));
+				assertEquals(1, ArrayLen(obj.keyArray()));
 			});
 		});
 	}
