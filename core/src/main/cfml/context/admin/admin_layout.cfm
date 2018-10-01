@@ -115,13 +115,13 @@
 		</table>
 	</div>
 
-	<cfinclude template="navigation.cfm">
 	
 	<script src="../res/js/jquery-1.12.4.min.js.cfm" type="text/javascript"></script>
 	<script src="../res/js/jquery.modal.min.js.cfm" type="text/javascript"></script>
 	<script src="../res/js/jquery.blockUI-#resNameAppendix#.js.cfm" type="text/javascript"></script>
 	<script src="../res/js/admin-#resNameAppendix#.js.cfm" type="text/javascript"></script>
 	<script src="../res/js/util-#resNameAppendix#.min.js.cfm"></script>
+	<cfinclude template="navigation.cfm">
 	<script>
 		$(function(){
 
