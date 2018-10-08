@@ -36,6 +36,7 @@ import lucee.runtime.db.SQLImpl;
 import lucee.runtime.db.SQLItem;
 import lucee.runtime.db.SQLItemImpl;
 import lucee.runtime.debug.DebuggerImpl;
+import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.TagImpl;
 import lucee.runtime.functions.displayFormatting.DecimalFormat;
@@ -175,14 +176,7 @@ public final class Insert extends TagImpl {
 	    		manager.getConnection(pageContext,Caster.toString(ds),username,password);
 	    try {
 	    	
-	    	Struct meta =null;
-	    	try {
-	    		meta=getMeta(dc,tablequalifier,tableowner,tablename);
-	    	}
-	    	catch(SQLException se){
-	    		meta=new StructImpl();
-	    	}
-		    
+	    	Struct meta = getMeta(dc,tablequalifier,tableowner,tablename);
 	    	
 	    	SQL sql=createSQL(meta);
 			if(sql!=null) {
@@ -218,23 +212,42 @@ public final class Insert extends TagImpl {
 	    }
 	}
 
-	public static Struct getMeta(DatasourceConnection dc,String tableQualifier, String tableOwner, String tableName) throws SQLException {
-    	DatabaseMetaData md = dc.getConnection().getMetaData();
-    	Struct  sct=new StructImpl();
-		ResultSet columns = md.getColumns(tableQualifier, tableOwner, tableName, null);
-		
-		try{
+	public static Struct getMeta(DatasourceConnection dc,String tableQualifier, String tableOwner, String tableName) throws PageException {
+		ResultSet columns=null;
+		Struct  sct=new StructImpl();
+		try {
+			DatabaseMetaData md = dc.getConnection().getMetaData();
+	    	columns = md.getColumns(tableQualifier, tableOwner, tableName, null);
+			
 			String name;
 			while(columns.next()) {
 				name=columns.getString("COLUMN_NAME");
-				sct.setEL(name, new ColumnInfo(name,columns.getInt("DATA_TYPE"),columns.getBoolean("IS_NULLABLE")));
-				
+				sct.setEL(name, new ColumnInfo(name,getInt(columns,"DATA_TYPE"),getBoolean(columns,"IS_NULLABLE")));
 			}
+		}
+		catch(SQLException sqle) {
+			throw new DatabaseException(sqle, dc);
 		}
 		finally {
 			DBUtil.closeEL(columns);
 		}
 		return sct;
+	}
+
+	private static int getInt(ResultSet columns, String columnLabel) throws PageException, SQLException {
+		try {
+			return columns.getInt(columnLabel);
+		} catch (Exception e) {
+			return  Caster.toIntValue(columns.getObject(columnLabel));
+		}
+	}
+
+	private static boolean getBoolean(ResultSet columns, String columnLabel) throws PageException, SQLException {
+		try {
+			return columns.getBoolean(columnLabel);
+		} catch (Exception e) {
+			return  Caster.toBooleanValue(columns.getObject(columnLabel));
+		}
 	}
 
 	/**

@@ -175,14 +175,8 @@ public final class Update extends TagImpl {
 	    		manager.getConnection(pageContext,Caster.toString(ds),username,password);
 		try {
 			
-			Struct meta =null;
-	    	try {
-	    		meta=Insert.getMeta(dc,tablequalifier,tableowner,tablename);
-	    	}
-	    	catch(SQLException se){
-	    		meta=new StructImpl();
-	    	}
-			
+			Struct meta = Insert.getMeta(dc,tablequalifier,tableowner,tablename);
+	    	
 		    String[] pKeys=getPrimaryKeys(dc);
 			SQL sql=createSQL(dc,pKeys,meta);
 			if(sql!=null) {

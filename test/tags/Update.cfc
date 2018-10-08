@@ -1,11 +1,13 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function beforeAll(){
+		if(isNotSupported()) return;
 		request.mySQL = getCredentials();
 		variables.str = {
 					class: 'com.mysql.cj.jdbc.Driver'
 					, bundleName:'com.mysql.cj'
 					, bundleVersion:'8.0.9'
-					, connectionString: 'jdbc:mysql://'&request.mySQL.server&':'&request.mySQL.port&'/'&request.mySQL.database&'?useUnicode=true&characterEncoding=UTF-8&useLegacyDatetimeCode=true'
+					, connectionString: 'jdbc:mysql://'&request.mySQL.server&':'&request.mySQL.port&'/'&request.mySQL.database
+					&'?useUnicode=true&characterEncoding=UTF-8&useLegacyDatetimeCode=true&serverTimezone=CET'
 					, username: request.mySQL.username
 					, password: request.mySQL.password
 					,storage:true
@@ -14,7 +16,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	}
 
 	function run( testResults , testBox ) {
-		describe( title="Test suite for CFupdate", body=function() {
+		describe( title="Test suite for CFupdate",skip=isNotSupported(), body=function() {
 			it(title = "checking CFUPDATE tag", body = function( currentSpec ) {
 				form.id =1; 
 				form.myValue ="LuceeTestCase";
@@ -42,6 +44,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				INSERT INTO `cfupdatetbl` values(1,'testCase')"
 				);
 		}
+	}
+
+
+	private boolean function isNotSupported() {
+		var cred=getCredentials();
+		return isNull(cred) || structCount(cred)==0;
 	}
 
 	private struct function getCredentials() {
@@ -72,11 +80,23 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			mySQLStruct.port=server.system.properties.MYSQL_PORT;
 			mySQLStruct.database=server.system.properties.MYSQL_DATABASE;
 		}
+		/*
+		mySQLStruct = {
+			server:'localhost'
+			, port:'3306'
+			, database:'test'
+			, username: 'root'
+			, password: "..."
+		};*/
+
+
+
 		return mySQLStruct;
 	}
 
 
 	Function afterAll(){
+		if(isNotSupported()) return;
 		query datasource=str{
 			echo("DROP TABLE IF EXISTS `cfupdatetbl`");
 		}
