@@ -105,7 +105,7 @@ public class DataSourceUtil {
 		return className.equals("com.microsoft.jdbc.sqlserver.SQLServerDriver") || className.equals("com.microsoft.sqlserver.jdbc.SQLServerDriver");
 	}
 
-	public static boolean isValid(DatasourceConnection dc, int timeout) throws Throwable {
+	public static boolean isValid(DatasourceConnection dc, int timeout) throws SQLException {
 		return dc.getConnection().isValid(timeout);
 	}
 

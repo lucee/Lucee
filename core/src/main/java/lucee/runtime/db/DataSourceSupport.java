@@ -47,6 +47,7 @@ public abstract class DataSourceSupport implements DataSource, Cloneable, Serial
 	private final TimeZone timezone;
 	private final String name;
 	private final boolean storage;
+	private final boolean validate;
 	protected final int allow;
 	private final boolean readOnly;
 	private final String username;
@@ -62,7 +63,7 @@ public abstract class DataSourceSupport implements DataSource, Cloneable, Serial
 			ClassDefinition cd, String username, String password, TagListener listener, boolean blob,
 			boolean clob, int connectionLimit, int connectionTimeout,
 			long metaCacheTimeout, TimeZone timezone, int allow,
-			boolean storage, boolean readOnly, Log log) {
+			boolean storage, boolean readOnly, boolean validate, Log log) {
 		this.name = name;
 		this.cd = cd;//_initializeCD(null, cd, config);
 		this.blob = blob;
@@ -77,6 +78,7 @@ public abstract class DataSourceSupport implements DataSource, Cloneable, Serial
 		this.username = username;
 		this.password = password;
 		this.listener=listener;
+		this.validate=validate;
 		this.log = log;
 	}
 	
@@ -247,6 +249,11 @@ public abstract class DataSourceSupport implements DataSource, Cloneable, Serial
 	}
 
 	@Override
+	public final boolean validate() {
+		return validate;
+	}
+
+	@Override
 	public Log getLog() {
 		// can be null if deserialized
 		if(log==null)log=ThreadLocalPageContext.getConfig().getLog("application");
@@ -288,6 +295,8 @@ public abstract class DataSourceSupport implements DataSource, Cloneable, Serial
 				.append(getUsername())
 				.append(':')
 				.append(getPassword())
+				.append(':')
+				.append(validate())
 				.append(':')
 				.append(cd.toString())
 				.append(':')

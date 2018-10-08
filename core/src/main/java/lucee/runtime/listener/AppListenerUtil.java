@@ -85,7 +85,6 @@ public final class AppListenerUtil {
 	public static final Collection.Key SECRET_KEY = KeyImpl.intern("secretKey");
 	public static final Collection.Key DEFAULT_LOCATION = KeyImpl.intern("defaultLocation");
 	public static final Collection.Key ACL = KeyImpl.intern("acl");
-	public static final Collection.Key CACHE = KeyImpl.intern("cache");
 	public static final Collection.Key CONNECTION_STRING = KeyImpl.intern("connectionString");
 	
 	public static final Collection.Key BLOB = KeyImpl.intern("blob");
@@ -93,11 +92,7 @@ public final class AppListenerUtil {
 	public static final Collection.Key CONNECTION_LIMIT = KeyImpl.intern("connectionLimit");
 	public static final Collection.Key CONNECTION_TIMEOUT = KeyImpl.intern("connectionTimeout");
 	public static final Collection.Key META_CACHE_TIMEOUT = KeyImpl.intern("metaCacheTimeout");
-	public static final Collection.Key TIMEZONE = KeyImpl.intern("timezone");
 	public static final Collection.Key ALLOW = KeyImpl.intern("allow");
-	public static final Collection.Key STORAGE = KeyImpl.intern("storage");
-	public static final Collection.Key READ_ONLY = KeyImpl.intern("readOnly");
-	public static final Collection.Key DATABASE = KeyConstants._database;
 	public static final Collection.Key DISABLE_UPDATE = KeyImpl.intern("disableUpdate"); 
 	
 
@@ -230,10 +225,12 @@ public final class AppListenerUtil {
 					Caster.toIntValue(data.get(CONNECTION_LIMIT,null),-1), 
 					Caster.toIntValue(data.get(CONNECTION_TIMEOUT,null),1), 
 					Caster.toLongValue(data.get(META_CACHE_TIMEOUT,null),60000L), 
-					Caster.toTimeZone(data.get(TIMEZONE,null),null), 
+					Caster.toTimeZone(data.get(KeyConstants._timezone,null),null), 
 					Caster.toIntValue(data.get(ALLOW,null),DataSource.ALLOW_ALL),
-					Caster.toBooleanValue(data.get(STORAGE,null),false),
-					Caster.toBooleanValue(data.get(READ_ONLY,null),false),log);
+					Caster.toBooleanValue(data.get(KeyConstants._storage,null),false),
+					Caster.toBooleanValue(data.get(KeyConstants._readonly,null),false),
+					Caster.toBooleanValue(data.get(KeyConstants._validate,null),false),
+					log);
 				}
 				catch(Exception cnfe){
 					throw Caster.toPageException(cnfe);
@@ -249,7 +246,7 @@ public final class AppListenerUtil {
 					dbt.classDefinition, 
 					Caster.toString(data.get(KeyConstants._host)), 
 					dbt.connectionString,
-					Caster.toString(data.get(DATABASE)), 
+					Caster.toString(data.get(KeyConstants._database)), 
 					Caster.toIntValue(data.get(KeyConstants._port,null),-1), 
 					user,pass, 
 					listener,
@@ -260,10 +257,10 @@ public final class AppListenerUtil {
 					Caster.toBooleanValue(data.get(CLOB,null),false), 
 					DataSource.ALLOW_ALL, 
 					Caster.toStruct(data.get(KeyConstants._custom,null),null,false), 
-					Caster.toBooleanValue(data.get(READ_ONLY,null),false), 
+					Caster.toBooleanValue(data.get(KeyConstants._readonly,null),false), 
 					true, 
-					Caster.toBooleanValue(data.get(STORAGE,null),false), 
-					Caster.toTimeZone(data.get(TIMEZONE,null),null),
+					Caster.toBooleanValue(data.get(KeyConstants._storage,null),false), 
+					Caster.toTimeZone(data.get(KeyConstants._timezone,null),null),
 					"",
 					ParamSyntax.toParamSyntax(data,ParamSyntax.DEFAULT),
 					Caster.toBooleanValue(data.get("literalTimestampWithTSOffset",null),false),
@@ -498,7 +495,7 @@ public final class AppListenerUtil {
 				Caster.toString(sct.get(DEFAULT_LOCATION, null), null), 
 				host, 
 				Caster.toString(sct.get(ACL, null), null), 
-				Caster.toTimespan(sct.get(CACHE, null), null)
+				Caster.toTimespan(sct.get(KeyConstants._cache, null), null)
 		);
 
 	}

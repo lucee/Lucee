@@ -49,7 +49,6 @@ public final class DataSourceImpl extends DataSourceSupport {
 	private int port;
 	private String connStrTranslated;
 	private Struct custom;
-	private boolean validate;
 	private String dbdriver;
 	private final ParamSyntax paramSyntax;
 	private final boolean literalTimestampWithTSOffset;
@@ -94,7 +93,7 @@ public final class DataSourceImpl extends DataSourceSupport {
 			boolean literalTimestampWithTSOffset, boolean alwaysSetTimeout, Log log) throws BundleException, ClassException, SQLException {
 
 		super(config, name, cd, username, ConfigWebUtil.decrypt(password), listener, blob, clob, connectionLimit, connectionTimeout, metaCacheTimeout, timezone,
-				allow < 0 ? ALLOW_ALL : allow, storage, readOnly, log);
+				allow < 0 ? ALLOW_ALL : allow, storage, readOnly,validate, log);
 
 		this.host = host;
 		this.database = database;
@@ -102,7 +101,6 @@ public final class DataSourceImpl extends DataSourceSupport {
 		this.port = port;
 
 		this.custom = custom;
-		this.validate = validate;
 
 		this.connStrTranslated = connStr;
 		this.paramSyntax = (paramSyntax == null) ? ParamSyntax.DEFAULT : paramSyntax;
@@ -211,7 +209,7 @@ public final class DataSourceImpl extends DataSourceSupport {
 	public DataSource _clone(boolean readOnly) {
 		try {
 			return new DataSourceImpl(ThreadLocalPageContext.getConfig(), getName(), getClassDefinition(), host, connStr, database, port, getUsername(),
-					getPassword(), getListener(), getConnectionLimit(), getConnectionTimeout(), getMetaCacheTimeout(), isBlob(), isClob(), allow, custom, readOnly, validate,
+					getPassword(), getListener(), getConnectionLimit(), getConnectionTimeout(), getMetaCacheTimeout(), isBlob(), isClob(), allow, custom, readOnly, validate(),
 					isStorage(), getTimeZone(), dbdriver, getParamSyntax(), literalTimestampWithTSOffset, alwaysSetTimeout, getLog());
 		}
 		catch (RuntimeException re) {
@@ -235,11 +233,6 @@ public final class DataSourceImpl extends DataSourceSupport {
 	@Override
 	public Struct getCustoms() {
 		return (Struct)custom.clone();
-	}
-
-	@Override
-	public boolean validate() {
-		return validate;
 	}
 
 	public String getDbDriver() {

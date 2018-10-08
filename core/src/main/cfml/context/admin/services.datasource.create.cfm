@@ -537,8 +537,8 @@ if(!isNull(driver.literalTimestampWithTSOffset) && driver.literalTimestampWithTS
 if(!isNull(driver.alwaysSetTimeout) && driver.alwaysSetTimeout()) 
 	optional.append('alwaysSetTimeout:true // default: false');
 
+optional.append('validate:#datasource.validate?:false# // default: false');
 </cfscript>
-
 <cfsavecontent variable="codeSample">
 	this.datasources["#datasource.name#"] = {
 	  class: '#datasource.classname#'#isNull(datasource.bundleName)?"":"

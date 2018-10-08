@@ -350,11 +350,11 @@ public class GetApplicationSettings extends BIF {
 		if(source.getMetaCacheTimeout() != 60000)s.setEL(AppListenerUtil.META_CACHE_TIMEOUT, Caster.toDouble(source.getMetaCacheTimeout()));
 		s.setEL(KeyConstants._username, source.getUsername());
 		s.setEL(KeyConstants._password, source.getPassword());
-		if(source.getTimeZone()!=null)s.setEL(AppListenerUtil.TIMEZONE, source.getTimeZone().getID());
+		if(source.getTimeZone()!=null)s.setEL(KeyConstants._timezone, source.getTimeZone().getID());
 		if(source.isBlob())s.setEL(AppListenerUtil.BLOB, source.isBlob());
 		if(source.isClob())s.setEL(AppListenerUtil.CLOB, source.isClob());
-		if(source.isReadOnly())s.setEL(AppListenerUtil.READ_ONLY, source.isReadOnly());
-		if(source.isStorage())s.setEL(AppListenerUtil.STORAGE, source.isStorage());
+		if(source.isReadOnly())s.setEL(KeyConstants._readonly, source.isReadOnly());
+		if(source.isStorage())s.setEL(KeyConstants._storage, source.isStorage());
 		return s;
 	}
 
