@@ -34,6 +34,6 @@ component {
 	this.ormsettings.datasource				= "#dbname#";				// default DB for ORM
 	this.ormsettings.dialect				= "mysql";
 	this.ormsettings.useDBForMapping		= false;					// false = do not walk the db on startup trying to create ORM definitions
-	//this.ormsettings.cacheconfig = "ehcache.xml"
+	this.ormsettings.cacheconfig = "ehcache.xml"
 
 }
