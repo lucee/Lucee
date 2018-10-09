@@ -140,7 +140,7 @@ ACTIONS --->
 						remoteClients="#request.getRemoteClients()#">
 	</cfif>
 
-		<!--- <cflocation url="#request.self#?action=#url.action#" addtoken="no"> --->
+		<cflocation url="#request.self#?action=#url.action#" addtoken="no">
 	</cfif>
 	<cfcatch>
 		<cfset error.message=cfcatch.message>
