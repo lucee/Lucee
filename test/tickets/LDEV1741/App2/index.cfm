@@ -1,6 +1,6 @@
 <cfscript>
-	ormReload();
-	
+	//ormReload();
+
 	transaction {
 		e=entityNew("foo");
 		e.setLabel("Bar");

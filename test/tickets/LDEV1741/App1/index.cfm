@@ -1,5 +1,5 @@
 <cfscript>
-	ormReload();
+	//ormReload();
 
 	transaction {
 		e=entityNew("foo");
