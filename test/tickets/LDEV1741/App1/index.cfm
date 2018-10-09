@@ -8,7 +8,7 @@
 		entitySave(e);
 		transactionCommit();
 	}	
-	ormReload();
+	//ormReload();
 
 	obj = entityLoad("Foo");
 	systemOutput(obj,1,1);

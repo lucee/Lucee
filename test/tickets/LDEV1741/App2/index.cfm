@@ -8,7 +8,7 @@
 		entitySave(e);
 		transactionCommit();
 	}	
-	ormReload();
+	//ormReload();
 
 	obj = entityLoad("Foo");
 	writeOutput(obj[1].getLabel());
