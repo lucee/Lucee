@@ -19,24 +19,18 @@
 package lucee.runtime.orm;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
 
-import lucee.commons.digest.MD5;
 import lucee.commons.io.res.Resource;
-import lucee.commons.io.res.util.ResourceUtil;
-import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.loader.engine.CFMLEngine;
+import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.PageContext;
-import lucee.runtime.PageSource;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.op.Caster;
-import lucee.runtime.op.Decision;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
@@ -45,7 +39,6 @@ import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
-import lucee.runtime.type.util.ListUtil;
 
 import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
@@ -267,40 +260,60 @@ public class ORMConfigurationImpl implements ORMConfiguration {
 		other.skipCFCWithError=skipCFCWithError;
 		return other;
 	}
-
+	
 	@Override
-	public String hash() {
+	public String hash() { // no longer used in Hibernate 3.5.5.72 and above
 		ApplicationContext _ac=ac;
 		if(_ac==null) _ac=ThreadLocalPageContext.get().getApplicationContext();
 		Object ds = _ac.getORMDataSource();
+		ORMConfiguration ormConf=_ac.getORMConfiguration();
 		
-		String data=autogenmap+":"+catalog+":"+isDefaultCfcLocation
-		+":"+dbCreate+":"+dialect+":"+eventHandling+":"+namingStrategy+":"+eventHandler+":"+flushAtRequestEnd+":"+logSQL+":"+autoManageSession+":"+skipCFCWithError+":"+saveMapping+":"+schema+":"+secondaryCacheEnabled+":"+
-		useDBForMapping+":"+cacheProvider
-		+"datasource:"+ds
+		StringBuilder data=new StringBuilder()
+			.append(ormConf.autogenmap()).append(':')
+			.append(ormConf.getCatalog()).append(':')
+			.append(ormConf.isDefaultCfcLocation()).append(':')
+			.append(ormConf.getDbCreate()).append(':')
+			.append(ormConf.getDialect()).append(':')
+			.append(ormConf.eventHandling()).append(':')
+			.append(ormConf.namingStrategy()).append(':')
+			.append(ormConf.eventHandler()).append(':')
+			.append(ormConf.flushAtRequestEnd()).append(':')
+			.append(ormConf.logSQL()).append(':')
+			.append(ormConf.autoManageSession()).append(':')
+			.append(ormConf.skipCFCWithError()).append(':')
+			.append(ormConf.saveMapping()).append(':')
+			.append(ormConf.getSchema()).append(':')
+			.append(ormConf.secondaryCacheEnabled()).append(':')
+			.append(ormConf.useDBForMapping()).append(':')
+			.append(ormConf.getCacheProvider()).append(':')
+			.append(ds).append(':');
 		
-		+":"+toStr(cfcLocations)+":"+toStr(sqlScript)+":"+toStr(cacheConfig)+":"+toStr(ormConfig)
-		;
+		append(data, ormConf.getCfcLocations());
+		append(data, ormConf.getSqlScript());
+		append(data, ormConf.getCacheConfig());
+		append(data, ormConf.getOrmConfig());
 		
-		try {
-			return MD5.getDigestAsString(data);
-		} catch (IOException e) {
-			return null;
-		}
+		return CFMLEngineFactory.getInstance().getSystemUtil().hash64b(data.toString());
 	}
 
-	private String toStr(Resource res) {
-		if(res==null) return "";
-		return res.getAbsolutePath();
-	}
-
-	private String toStr(Resource[] reses) {
-		if(reses==null) return "";
-		StringBuilder sb=new StringBuilder();
-		for(int i=0;i<reses.length;i++){
-			sb.append(toStr(reses[i]));
+	private void append(StringBuilder data,Resource[] reses) {
+		if(reses==null) return;
+		for(int i=0;i<reses.length;i++) {
+			append(data,reses[i]);
 		}
-		return sb.toString();
+	}
+	
+	private void append(StringBuilder data,Resource res) {
+		if(res==null) return ;
+		if(res.isFile()) {
+			CFMLEngine eng = CFMLEngineFactory.getInstance();
+			try {
+				data.append(eng.getSystemUtil().hash64b(eng.getIOUtil().toString(res, null)));
+				return;
+			}
+			catch (IOException e) {}
+		}
+		data.append(res.getAbsolutePath()).append(':');
 	}
 
 	/**

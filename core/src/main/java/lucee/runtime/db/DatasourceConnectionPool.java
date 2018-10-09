@@ -248,9 +248,7 @@ public class DatasourceConnectionPool {
 			if (dc.getDatasource().validate()
 					&& !DataSourceUtil.isValid(dc, 1000))
 				return false;
-		} catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
-		} // not all driver support this, because of that we ignore a error
+		} catch (Exception e) {} // not all driver support this, because of that we ignore a error
 			// here, also protect from java 5
 
 		try {

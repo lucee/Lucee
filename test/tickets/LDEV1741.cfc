@@ -13,10 +13,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					urls:{appName:"MyAppTwo"}
 				);
 
-				assertEquals(200, result2);
+				assertEquals(200, result2.status_code);
 
 				if( result2.status_code == 200  )
-				assertEquals("Goodbye World! ", result2.filecontent.trim());
+				assertEquals("Bar", result2.filecontent.trim());
 			});
 
 			it( title='checking ORM secondary ehcache without cacheconfig',body=function( currentSpec ) {
@@ -33,7 +33,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 				assertEquals(200, result2.status_code);
 				if( result2.status_code == 200  )
-				assertEquals("Goodbye World!", result2.filecontent.trim());
+				assertEquals("Bar", result2.filecontent.trim());
 			});
 		});
 	}
