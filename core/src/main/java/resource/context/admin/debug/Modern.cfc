@@ -751,6 +751,12 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			<cfif not isDefined('arguments.debugging.dumps')>
 				<cfset arguments.debugging.traces=queryNew('output,template,line') />
 			</cfif>
+			<cfif not isDefined('arguments.custom.minimal')>
+				<cfset arguments.custom.minimal=0 />
+			</cfif>
+			<cfif not isDefined('arguments.custom.highlight')>
+				<cfset arguments.custom.highlight=0 />
+			</cfif>
 			<cfset var timers=arguments.debugging.timers />
 			<cfset var traces=arguments.debugging.traces />
 			<cfset var dumps=arguments.debugging.dumps />
