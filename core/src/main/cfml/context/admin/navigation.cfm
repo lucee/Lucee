@@ -28,7 +28,6 @@
 
 	<cfhtmlbody>
 	 	<script src="../res/js/typeahead.min.js.cfm" type="text/javascript"></script>
-	 	<script src="../res/js/base.min.js.cfm" type="text/javascript"></script>
 		<script type="text/javascript">
 			var allArr = #serializeJson(arr)#;
 			var adminKeys = #serializeJson(adminKey)#;
@@ -53,27 +52,30 @@
 					cb(matches);
 				};
 			};
-
 			$( function() {
-
 				$( '##lucee-admin-search-input' ).typeahead(
 					{
 						hint: true,
 						highlight: true,
-						minLength: 1
+						local: adminKeys,
+						minLength: 1,
+						highlight: true,
+						limit:5
 					},
-					{
-					  name: 'keyWords',
-					  source: substringMatcher(adminKeys),
-					   templates: {
-						    empty:  '<div class="moreResults"><a><span onclick="moreInfo()">Click here for More Results</a></span></div>'
-					  	}
-				}
+					{	
+						source: substringMatcher(adminKeys),
+						templates: {
+						    notFound:  function () {
+								    console.log('test');
+							}
+				  		}
+			  		}
+					
 			).on('typeahead:selected', typeaheadSelected);
 				function typeaheadSelected($e, datum){
 					$.each(allArr, function(i, data) {
 						$.each(data, function(x, y){
-							if(datum.toString() == x){
+							if(datum.value == x){
 								action = data[x];
 							}
 						});
@@ -81,37 +83,38 @@
 					window.location.href = '#request.self#?action='+ action;
 				}
 			});
-			function moreInfo() {
-				val = $( '##lucee-admin-search-input' ).val();
-				window.location.href = '#request.self#?action=admin.search&q='+ val;
-			}
+
+			$('##lucee-admin-search-input').keypress(function(){
+				if(!$('.tt-dropdown-menu').is(':visible')){
+					var input = $('##lucee-admin-search-input').val();
+					if(input != '') {
+						$('.tt-dropdown-menu').html('');
+					}
+				}
+			}); 
+			
 		</script>
 		<style type="text/css">
 			.twitter-typeahead{
 				width: 94% !important;
 			}
-			.tt-suggestion.tt-selectable p{
+			.tt-suggestion p{
 				margin: 0px !important;
 			}
 			.tt-suggestion.tt-selectable{
 				cursor: pointer;
 			}
 			/*show suggestion words */
-			.tt-menu.tt-open{
+			.tt-suggestions{
 				background-color: white !important;
-				width: 110% !important;
+				width: 200% !important;
 				font-size:14px !important; 
 				padding:2% 1% 2% 2% !important;
 			}
-			.tt-suggestion.tt-selectable:hover{
+
+			.tt-suggestion:hover{
 				background-color: #request.adminType=="web"?'##39c':'##BF4F36'# !important;
 				color: white;
-			}
-			/*show more Results*/
-			.moreResults{
-				font-size: 10px;
-				font-style: italic;
-				padding: 2% 1% 2% 1% ;
 			}
 			.navSearch{
 				border-color:  #request.adminType=="web"?'##39c':'##BF4F36'# !important;
