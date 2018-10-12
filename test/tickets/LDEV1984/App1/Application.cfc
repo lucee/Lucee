@@ -27,6 +27,7 @@ component {
 	this.ormsettings.dbcreate				= 'update';					// valid settings: none | update | dropcreate
 	this.ormsettings.datasource				= "#dbname#";				// default DB for ORM
 	this.ormsettings.dialect				= "mysql";
+	this.ormsettings.cfclocation			= ['/model/'];
 
 	if(url.AppName EQ "AppTwo"){
 		this.ormsettings.secondarycacheenabled	= true;						// use secondary cache
