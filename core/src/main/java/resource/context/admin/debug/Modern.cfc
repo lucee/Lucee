@@ -236,7 +236,6 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			</cfif>
 			<script src="/lucee/res/js/util.min.js.cfm" type="text/javascript"></script>
 			<script src="/lucee/res/js/echarts-all.js.cfm" type="text/javascript"></script>
-			<script src="/lucee/res/js/typeahead.min.js.cfm" type="text/javascript"></script>
 			<script src="/lucee/res/js/base.min.js.cfm" type="text/javascript"></script>
 			<cfif !structKeyExists(url, "isAjaxRequest")>
 				<script src="/lucee/res/js/jquery.modal.min.js.cfm" type="text/javascript"></script>
@@ -750,6 +749,12 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			</cfif>
 			<cfif not isDefined('arguments.debugging.dumps')>
 				<cfset arguments.debugging.traces=queryNew('output,template,line') />
+			</cfif>
+			<cfif not isDefined('arguments.custom.minimal')>
+				<cfset arguments.custom.minimal=0 />
+			</cfif>
+			<cfif not isDefined('arguments.custom.highlight')>
+				<cfset arguments.custom.highlight=0 />
 			</cfif>
 			<cfset var timers=arguments.debugging.timers />
 			<cfset var traces=arguments.debugging.traces />
