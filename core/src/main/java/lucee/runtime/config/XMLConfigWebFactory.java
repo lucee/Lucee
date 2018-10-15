@@ -35,6 +35,7 @@ import java.security.NoSuchAlgorithmException;
 import java.sql.Driver;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -1413,7 +1414,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		_getDotNotationUpperCase(sb,config.getMappings());
 		_getDotNotationUpperCase(sb,config.getCustomTagMappings());
 		_getDotNotationUpperCase(sb,config.getComponentMappings());
-		_getDotNotationUpperCase(sb,config.getFunctionMapping());
+		_getDotNotationUpperCase(sb,config.getFunctionMappings());
 		_getDotNotationUpperCase(sb,config.getTagMapping());
 		//_getDotNotationUpperCase(sb,config.getServerTagMapping());
 		//_getDotNotationUpperCase(sb,config.getServerFunctionMapping());
@@ -1486,8 +1487,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					flushPageSourcePool(config.getMappings());
 					flushPageSourcePool(config.getCustomTagMappings());
 					flushPageSourcePool(config.getComponentMappings());
-					flushPageSourcePool(config.getFunctionMapping());
-					flushPageSourcePool(config.getTagMapping());
+					flushPageSourcePool(config.getFunctionMappings());
 					flushPageSourcePool(config.getTagMapping());
 					
 					if(config instanceof ConfigWeb) {
@@ -1519,10 +1519,28 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				((MappingImpl)mappings[i]).flush(); // FUTURE make "flush" part of the interface
 		}
 	}
+	
+	private static void flushPageSourcePool(Collection<Mapping> mappings) {
+		Iterator<Mapping> it = mappings.iterator();
+		Mapping m;
+		while(it.hasNext()) {
+			m=it.next();
+			if(m instanceof MappingImpl)
+				((MappingImpl)m).flush(); // FUTURE make "flush" part of the interface
+		}
+	}
 
 	private static void _getDotNotationUpperCase(StringBuilder sb, Mapping... mappings) {
 		for(int i=0;i<mappings.length;i++){
 			sb.append(((MappingImpl)mappings[i]).getDotNotationUpperCase()).append(';');
+		}
+	}
+	private static void _getDotNotationUpperCase(StringBuilder sb, Collection<Mapping> mappings) {
+		Iterator<Mapping> it = mappings.iterator();
+		Mapping m;
+		while(it.hasNext()) {
+			m=it.next();
+			sb.append(((MappingImpl)m).getDotNotationUpperCase()).append(';');
 		}
 	}
 
@@ -2867,43 +2885,54 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 		boolean hasCS = configServer != null;
 
-		Element fileSystem = getChildByName(doc.getDocumentElement(), "file-system");
-		if (fileSystem == null)
-			fileSystem = getChildByName(doc.getDocumentElement(), "filesystem");
-
+		
 		String strAllowRealPath = null;
 		String strDeployDirectory = null;
 		// String strTempDirectory=null;
 
 		// system.property or env var
+		String strDefaultFLDDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.fld", null);
+		String strDefaultTLDDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.tld", null);
+		String strDefaultFuncDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.function", null);
+		String strDefaultTagDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.tag", null);
+		if(StringUtil.isEmpty(strDefaultFLDDirectory))strDefaultFLDDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.default.fld", null);
+		if(StringUtil.isEmpty(strDefaultTLDDirectory))strDefaultTLDDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.default.tld", null);
+		if(StringUtil.isEmpty(strDefaultFuncDirectory))strDefaultFuncDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.default.function", null);
+		if(StringUtil.isEmpty(strDefaultTagDirectory))strDefaultTagDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.default.tag", null);
 		
-			String strFLDDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.fld", null);
-			String strTLDDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.tld", null);
-			String strFunctionDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.function", null);
-			String strTagDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.tag", null);
+		//String strFLDDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.addional.fld", null);
+		//String strTLDDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.addional.tld", null);
+		String strFuncDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.addional.function", null);
+		//String strTagDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.addional.tag", null);
 		
+		Element fileSystem = getChildByName(doc.getDocumentElement(), "file-system");
+		if (fileSystem == null) fileSystem = getChildByName(doc.getDocumentElement(), "filesystem");
+
 		// get library directories
 		if (fileSystem != null) {
 			strAllowRealPath = getAttr(fileSystem,"allow-realpath");
 			strDeployDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("deploy-directory"));
-			if(StringUtil.isEmpty(strTLDDirectory)) strTLDDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("tld-directory"));
-			if(StringUtil.isEmpty(strFLDDirectory)) strFLDDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("fld-directory"));
-			if(StringUtil.isEmpty(strTagDirectory)) strTagDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("tag-directory"));
-			if(StringUtil.isEmpty(strFunctionDirectory)) strFunctionDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("function-directory"));
+			if(StringUtil.isEmpty(strDefaultTLDDirectory)) strDefaultTLDDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("tld-directory"));
+			if(StringUtil.isEmpty(strDefaultFLDDirectory)) strDefaultFLDDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("fld-directory"));
+			if(StringUtil.isEmpty(strDefaultTagDirectory)) strDefaultTagDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("tag-directory"));
+			if(StringUtil.isEmpty(strDefaultFuncDirectory)) strDefaultFuncDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("function-directory"));
+			if(StringUtil.isEmpty(strDefaultTLDDirectory)) strDefaultTLDDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("tld-default-directory"));
+			if(StringUtil.isEmpty(strDefaultFLDDirectory)) strDefaultFLDDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("fld-default-directory"));
+			if(StringUtil.isEmpty(strDefaultTagDirectory)) strDefaultTagDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("tag-default-directory"));
+			if(StringUtil.isEmpty(strDefaultFuncDirectory)) strDefaultFuncDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("function-default-directory"));
+			
+			//if(StringUtil.isEmpty(strTLDDirectory)) strTLDDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("tld-addional-directory"));
+			//if(StringUtil.isEmpty(strFLDDirectory)) strFLDDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("fld-addional-directory"));
+			//if(StringUtil.isEmpty(strTagDirectory)) strTagDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("tag-addional-directory"));
+			if(StringUtil.isEmpty(strFuncDirectory)) strFuncDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("function-addional-directory"));
 		}
-		
-		
-		
-		// set default directories if necessary
-		if (StringUtil.isEmpty(strFLDDirectory))
-			strFLDDirectory = "{lucee-config}/library/fld/";
-		if (StringUtil.isEmpty(strTLDDirectory))
-			strTLDDirectory = "{lucee-config}/library/tld/";
-		if (StringUtil.isEmpty(strFunctionDirectory))
-			strFunctionDirectory = "{lucee-config}/library/function/";
-		if (StringUtil.isEmpty(strTagDirectory))
-			strTagDirectory = "{lucee-config}/library/tag/";
 
+		// set default directories if necessary
+		if (StringUtil.isEmpty(strDefaultFLDDirectory))		strDefaultFLDDirectory = "{lucee-config}/library/fld/";
+		if (StringUtil.isEmpty(strDefaultTLDDirectory))		strDefaultTLDDirectory = "{lucee-config}/library/tld/";
+		if (StringUtil.isEmpty(strDefaultFuncDirectory))	strDefaultFuncDirectory = "{lucee-config}/library/function/";
+		if (StringUtil.isEmpty(strDefaultTagDirectory))		strDefaultTagDirectory = "{lucee-config}/library/tag/";
+		
 		// Deploy Dir
 		Resource dd = ConfigWebUtil.getFile(configDir, strDeployDirectory, "cfclasses", configDir, FileUtil.TYPE_DIR, config);
 		config.setDeployDirectory(dd);
@@ -2923,22 +2952,32 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		
 
 		// TLD Dir
-		if (!StringUtil.isEmpty(strTLDDirectory)) {
-			Resource tld = ConfigWebUtil.getFile(config, configDir, strTLDDirectory, FileUtil.TYPE_DIR);
+		if (!StringUtil.isEmpty(strDefaultTLDDirectory)) {
+			Resource tld = ConfigWebUtil.getFile(config, configDir, strDefaultTLDDirectory, FileUtil.TYPE_DIR);
 			if (tld != null)
 				config.setTldFile(tld,CFMLEngine.DIALECT_BOTH);
 		}
 
 		// Tag Directory
-		if (!StringUtil.isEmpty(strTagDirectory)) {
-			Resource dir = ConfigWebUtil.getFile(config, configDir, strTagDirectory, FileUtil.TYPE_DIR);
+		if (!StringUtil.isEmpty(strDefaultTagDirectory)) {
+			Resource dir = ConfigWebUtil.getFile(config, configDir, strDefaultTagDirectory, FileUtil.TYPE_DIR);
 			createTagFiles(config, configDir, dir, doNew);
 			if (dir != null) {
 				config.setTagDirectory(dir);
 			}
 		}
+		/*if (!StringUtil.isEmpty(strTagDirectory)) {
+			String[] arr = ListUtil.listToStringArray(strTagDirectory, ',');
+			for(String str:arr) {
+				str=str.trim();
+				if(StringUtil.isEmpty(str)) continue;
+				Resource dir = ConfigWebUtil.getFile(config, configDir, str, FileUtil.TYPE_DIR);
+				if (dir != null) {
+					config.setTagDirectory(dir);
+				}
+			}
+		}*/
 
-		
 		// allow realpath
 		if (hasCS) {
 			config.setAllowRealPath(configServer.allowRealPath());
@@ -2962,20 +3001,33 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		}
 
 		// FLDs
-		if (!StringUtil.isEmpty(strFLDDirectory)) {
-			Resource fld = ConfigWebUtil.getFile(config, configDir, strFLDDirectory, FileUtil.TYPE_DIR);
+		if (!StringUtil.isEmpty(strDefaultFLDDirectory)) {
+			Resource fld = ConfigWebUtil.getFile(config, configDir, strDefaultFLDDirectory, FileUtil.TYPE_DIR);
 			if (fld != null)
 				config.setFldFile(fld,CFMLEngine.DIALECT_BOTH);
 		}
 
 		// Function files (CFML)
-		if (!StringUtil.isEmpty(strFunctionDirectory)) {
-			Resource dir = ConfigWebUtil.getFile(config, configDir, strFunctionDirectory, FileUtil.TYPE_DIR);
+		List<Resource> listFuncs=new ArrayList<Resource>();
+		if (!StringUtil.isEmpty(strDefaultFuncDirectory)) {
+			Resource dir = ConfigWebUtil.getFile(config, configDir, strDefaultFuncDirectory, FileUtil.TYPE_DIR);
 			createFunctionFiles(config, configDir, dir, doNew);
-			if (dir != null)
-				config.setFunctionDirectory(dir);
+			if (dir != null) listFuncs.add(dir);
+			//if (dir != null) config.setFunctionDirectory(dir);
 		}
+		if (!StringUtil.isEmpty(strFuncDirectory)) {
+			String[] arr = ListUtil.listToStringArray(strFuncDirectory, ',');
+			for(String str:arr) {
+				str=str.trim();
+				if(StringUtil.isEmpty(str)) continue;
+				Resource dir = ConfigWebUtil.getFile(config, configDir, str, FileUtil.TYPE_DIR);
+				if (dir != null) listFuncs.add(dir);
+				//if (dir != null) config.setFunctionDirectory(dir);
+			}
+		}
+		config.setFunctionDirectory(listFuncs);
 	}
+	
 
 	private static void createTagFiles(Config config, Resource configDir, Resource dir, boolean doNew) {
 		if (config instanceof ConfigServer) {

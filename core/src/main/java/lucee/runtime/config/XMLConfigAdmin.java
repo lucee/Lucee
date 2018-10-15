@@ -5593,7 +5593,7 @@ public final class XMLConfigAdmin {
 		write(config.getTagMapping().getPhysical(),is,name,closeStream);
 	}
 	void updateFunction(InputStream is,String name, boolean closeStream) throws IOException {
-		write(config.getFunctionMapping().getPhysical(),is,name,closeStream);
+		write(config.getDefaultFunctionMapping().getPhysical(),is,name,closeStream);
 	}
 	void updateEventGateway(InputStream is,String name, boolean closeStream) throws IOException {
 		write(config.getEventGatewayDirectory(),is,name,closeStream);
@@ -5639,7 +5639,7 @@ public final class XMLConfigAdmin {
 
 	public void removeFunctions(Log logger,String[] relpath) throws IOException {
 		if(ArrayUtil.isEmpty(relpath)) return;
-		Resource file = config.getFunctionMapping().getPhysical();
+		Resource file = config.getDefaultFunctionMapping().getPhysical();
 		for(int i=0;i<relpath.length;i++){
 			logger.log(Log.LEVEL_INFO,"extension","remove Function "+relpath[i]);
 			removeFromDirectory(file,relpath[i]);

@@ -21,6 +21,9 @@
  */
 package lucee.runtime.functions.system;
 
+import java.util.Collection;
+import java.util.Iterator;
+
 import lucee.runtime.Mapping;
 import lucee.runtime.MappingImpl;
 import lucee.runtime.PageContext;
@@ -35,12 +38,19 @@ public final class PagePoolClear implements Function {
 		clear(config.getCustomTagMappings());
 		clear(pc.getApplicationContext().getMappings());
 		clear(config.getComponentMappings());
-		clear(config.getFunctionMapping());
-		clear(config.getServerFunctionMapping());
+		clear(config.getFunctionMappings());
+		clear(config.getServerFunctionMappings());
 		clear(config.getTagMapping());
 		clear(config.getServerTagMapping());
     	
 		return true;
+	}
+	public static void clear(Collection<Mapping> mappings) {
+		if(mappings==null)return;
+		Iterator<Mapping> it = mappings.iterator();
+		while(it.hasNext())	{
+			clear(it.next());
+		}	
 	}
 	public static void clear(Mapping[] mappings) {
 		if(mappings==null)return;

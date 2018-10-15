@@ -550,14 +550,23 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 		count+=shrink(config.getMappings(),force);
 		count+=shrink(config.getCustomTagMappings(),force);
 		count+=shrink(config.getComponentMappings(),force);
-		count+=shrink(config.getFunctionMapping(),force);
-		count+=shrink(config.getServerFunctionMapping(),force);
+		count+=shrink(config.getFunctionMappings(),force);
+		count+=shrink(config.getServerFunctionMappings(),force);
 		count+=shrink(config.getTagMapping(),force);
 		count+=shrink(config.getServerTagMapping(),force);
 		//count+=shrink(config.getServerTagMapping(),force);
 		return count;
 	}
 
+	private static int shrink(Collection<Mapping> mappings, boolean force) {
+		int count=0;
+		Iterator<Mapping> it = mappings.iterator();
+		while(it.hasNext()){
+			count+=shrink(it.next(),force);
+		}
+		return count;
+	}
+	
 	private static int shrink(Mapping[] mappings, boolean force) {
 		int count=0;
 		for(int i=0;i<mappings.length;i++){

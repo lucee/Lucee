@@ -18,7 +18,6 @@
  **/
 package lucee.runtime.functions.system;
 
-import java.io.File;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ExceptionUtil;
@@ -58,8 +57,19 @@ public class CFFunction {
 		Collection.Key name=KeyImpl.toKey((((FunctionValue) objArr[1]).getValue()));
 		boolean isweb=Caster.toBooleanValue((((FunctionValue) objArr[2]).getValue()));
 		
-		
-		UDF udf=loadUDF(pc, filename, name, isweb);
+		// function from archive may come without mapping definition
+		int offset=3;
+		String mappingName="mapping-function";
+		// clearly no mapping definition
+		if(objArr.length>3 && objArr[3] instanceof FunctionValue) {
+			FunctionValue fv=(FunctionValue) objArr[3];
+			if(fv.getName().equals("__mapping")) {
+				mappingName=Caster.toString(fv.getValue());
+				offset=4;
+			}
+		}
+
+		UDF udf=loadUDF(pc, filename, mappingName,name, isweb);
 		Struct meta = udf.getMetaData(pc);
 		boolean callerScopes=(meta==null)?false:Caster.toBooleanValue(meta.get("callerScopes",Boolean.FALSE),false);
 		boolean caller=meta==null?false:Caster.toBooleanValue(meta.get(KeyConstants._caller,Boolean.FALSE),false);
@@ -75,29 +85,28 @@ public class CFFunction {
 		}
 		
 		Object[] arguments=null;
-		if(objArr.length<=3)arguments=ArrayUtil.OBJECT_EMPTY;
-		else if(objArr[3] instanceof FunctionValue){
+		if(objArr.length<=offset)arguments=ArrayUtil.OBJECT_EMPTY;
+		else if(objArr[offset] instanceof FunctionValue){
 			FunctionValue fv;
 			namedArguments=new StructImpl(Struct.TYPE_LINKED);
 			if(callerScopes)	namedArguments.setEL(KeyConstants._caller, cs);
 			else if(caller)		namedArguments.setEL(KeyConstants._caller, Duplicator.duplicate(pc.undefinedScope(),false));
-			for(int i=3;i<objArr.length;i++){
+			for(int i=offset;i<objArr.length;i++){
 				fv=toFunctionValue(name,objArr[i]);
 				namedArguments.set(fv.getName(), fv.getValue());
 			}
 		}
 		else {
-			int offset=(caller||callerScopes?2:3);
-			arguments=new Object[objArr.length-offset];
+			int off=(caller||callerScopes?3:4);
+			arguments=new Object[objArr.length-off];
 			if(callerScopes) arguments[0]=cs;
 			else if(caller)arguments[0]=Duplicator.duplicate(pc.undefinedScope(),false);
-			for(int i=3;i<objArr.length;i++){
-				arguments[i-offset]=toObject(name,objArr[i]);
+			for(int i=offset;i<objArr.length;i++){
+				arguments[i-off]=toObject(name,objArr[i]);
 			}
-		}
-		
+		}	
 		// execute UDF
-		if(namedArguments==null){
+		if(namedArguments==null) {
 			return ((UDFImpl)udf).call(pc,name, arguments, false);
 		}
 		
@@ -111,9 +120,9 @@ public class CFFunction {
 		return loadUDF(pc,ps,name,isweb,cache);	
 	}
 	
-	public static UDF loadUDF(PageContext pc, String filename,Collection.Key name,boolean isweb) throws PageException {
+	public static UDF loadUDF(PageContext pc, String filename,String mappingName,Collection.Key name,boolean isweb) throws PageException {
 		ConfigWebImpl config = (ConfigWebImpl) pc.getConfig();
-		Mapping mapping=isweb?config.getFunctionMapping():config.getServerFunctionMapping();
+		Mapping mapping=isweb?config.getFunctionMapping(mappingName):config.getServerFunctionMapping(mappingName);
 		return loadUDF(pc,mapping.getPageSource(filename),name,isweb,true);	
 	}
 

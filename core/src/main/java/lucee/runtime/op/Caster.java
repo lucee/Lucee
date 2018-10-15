@@ -791,6 +791,12 @@ public final class Caster {
         return defaultValue;
     }
     
+    public static int toIntValue(Integer i, int defaultValue) {
+    	if(i==null) return defaultValue;
+    	return i.intValue();
+    }
+        
+    
 
     /**
      * cast a String to a int value (primitive value type)

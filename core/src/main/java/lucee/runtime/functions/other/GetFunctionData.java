@@ -158,7 +158,8 @@ public final class GetFunctionData implements Function {
 		String filename = Caster.toString(args.get(0).getDefaultValue());
 		Key name = KeyImpl.toKey(args.get(1).getDefaultValue());
 		boolean isWeb = Caster.toBooleanValue(args.get(2).getDefaultValue());
-		UDF udf = CFFunction.loadUDF(pc, filename, name, isWeb);
+		String mappingName = Caster.toString(args.get(3).getDefaultValue());
+		UDF udf = CFFunction.loadUDF(pc, filename, mappingName, name, isWeb);
 		
 		sct.set(KeyConstants._name,function.getName());
         sct.set(ARGUMENT_TYPE,"fixed");

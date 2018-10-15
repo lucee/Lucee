@@ -99,8 +99,8 @@ public final class SystemCacheClear implements Function {
 	private static void functionCache(PageContext pc) {
 		ConfigWebImpl config=(ConfigWebImpl) pc.getConfig();
 		config.clearFunctionCache();
-		PagePoolClear.clear(config.getServerFunctionMapping());
-		PagePoolClear.clear(config.getFunctionMapping());
+		PagePoolClear.clear(config.getServerFunctionMappings());
+		PagePoolClear.clear(config.getFunctionMappings());
 		
 	}
 }

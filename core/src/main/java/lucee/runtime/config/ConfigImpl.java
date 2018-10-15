@@ -400,11 +400,13 @@ public abstract class ConfigImpl implements Config {
 	private String[] customTagExtensions=Constants.getExtensions();
 	private Class videoExecuterClass=VideoExecuterNotSupported.class;
 	
-	protected MappingImpl tagMapping;
 	protected MappingImpl scriptMapping;
 	
 	//private Resource tagDirectory;
-	protected MappingImpl functionMapping;
+	protected Mapping defaultFunctionMapping;
+	protected Map<String,Mapping> functionMappings=new HashMap<String,Mapping>();
+	protected MappingImpl tagMapping;
+	
 	private short inspectTemplate=INSPECT_ONCE;
 	private boolean typeChecking=true;
 	private String serial="";
@@ -1246,7 +1248,9 @@ public abstract class ConfigImpl implements Config {
     
     protected void setTagDirectory(Resource tagDirectory) {
     	//this.tagDirectory=tagDirectory;
-    	this.tagMapping= new MappingImpl(this,"/mapping-tag/",tagDirectory.getAbsolutePath(),null,ConfigImpl.INSPECT_NEVER,true,true,true,true,false,true,null,-1,-1);
+    	String mappingName="/mapping-tag/";
+    	
+    	this.tagMapping=new MappingImpl(this,mappingName,tagDirectory.getAbsolutePath(),null,ConfigImpl.INSPECT_NEVER,true,true,true,true,false,true,null,-1,-1);
 
     	TagLib tlc=getCoreTagLib(CFMLEngine.DIALECT_CFML);
     	TagLib tll=getCoreTagLib(CFMLEngine.DIALECT_LUCEE);
@@ -1258,13 +1262,13 @@ public abstract class ConfigImpl implements Config {
                 	Constants.getComponentExtensions():
                 	Constants.getExtensions()));
             for(int i=0;i<files.length;i++) {
-            	if(tlc!=null)createTag(tlc, files[i]);
-            	if(tll!=null)createTag(tll, files[i]);
+            	if(tlc!=null)createTag(tlc, files[i],mappingName);
+            	if(tll!=null)createTag(tll, files[i],mappingName);
             }
         }
     }
     
-    public void createTag(TagLib tl,String filename) {// Jira 1298
+    public void createTag(TagLib tl,String filename, String mappingName) {// Jira 1298
     	String name=toName(filename);//filename.substring(0,filename.length()-(getCFCExtension().length()+1));
         
     	TagLibTag tlt = new TagLibTag(tl);
@@ -1304,10 +1308,19 @@ public abstract class ConfigImpl implements Config {
         tlta.setDefaultValue(this instanceof ConfigWeb?"true":"false");
         tlt.setAttribute(tlta);
         
+        /*tlta = new TagLibTagAttr(tlt);
+        tlta.setName("__mapping");
+        tlta.setRequired(true);
+        tlta.setRtexpr(true);
+        tlta.setHidden(true);
+        tlta.setType("string");
+        tlta.setDefaultValue(mappingName);
+        tlt.setAttribute(tlta);*/
+        
         tl.setTag(tlt);
     }
     
-    protected void setFunctionDirectory(Resource functionDirectory) {
+    /*protected void setFunctionDirectory(Resource functionDirectory) {
     	this.functionMapping= new MappingImpl(this,"/mapping-function/",functionDirectory.getAbsolutePath(),null,ConfigImpl.INSPECT_NEVER,true,true,true,true,false,true,null,-1,-1);
     	FunctionLib flc=cfmlFlds[cfmlFlds.length-1];
     	FunctionLib fll=luceeFlds[luceeFlds.length-1];
@@ -1316,23 +1329,56 @@ public abstract class ConfigImpl implements Config {
         if(functionDirectory.isDirectory()) {
         	String[] files=functionDirectory.list(new ExtensionResourceFilter(Constants.getTemplateExtensions()));
         	
-            for(int i=0;i<files.length;i++) {
-            	if(flc!=null)createFunction(flc, files[i]);
-            	if(fll!=null)createFunction(fll, files[i]);
-                    
+            for(String file:files) {
+            	if(flc!=null)createFunction(flc, file);
+            	if(fll!=null)createFunction(fll, file);
             }
             combinedCFMLFLDs=null;
             combinedLuceeFLDs=null;
         }
+    }*/
+    
+    protected void setFunctionDirectory(List<Resource> listFunctionDirectory) {
+    	Iterator<Resource> it = listFunctionDirectory.iterator();
+    	int index=-1;
+    	String mappingName;
+    	Resource functionDirectory;
+    	boolean isDefault;
+    	while(it.hasNext()) {
+    		functionDirectory=it.next();
+    		index++;
+    		isDefault=index==0;
+    		mappingName="/mapping-function"+(isDefault?"":index)+"";
+    		print.e("mapping-name:"+mappingName);
+    		MappingImpl mapping = new MappingImpl(this,mappingName,functionDirectory.getAbsolutePath(),null,ConfigImpl.INSPECT_NEVER,true,true,true,true,false,true,null,-1,-1);
+    		if(isDefault)defaultFunctionMapping=mapping;
+    		this.functionMappings.put(mappingName, mapping);
+	    	
+    		FunctionLib flc=cfmlFlds[cfmlFlds.length-1];
+	    	FunctionLib fll=luceeFlds[luceeFlds.length-1];
+	        
+	        // now overwrite with new data
+	        if(functionDirectory.isDirectory()) {
+	        	String[] files=functionDirectory.list(new ExtensionResourceFilter(Constants.getTemplateExtensions()));
+	        	
+	            for(String file:files) {
+	            	if(flc!=null)createFunction(flc, file,mappingName);
+	            	if(fll!=null)createFunction(fll, file,mappingName);
+	            }
+	            combinedCFMLFLDs=null;
+	            combinedLuceeFLDs=null;
+	        }
+    	}
     }
     
-    public void createFunction(FunctionLib fl,String filename) {
+    public void createFunction(FunctionLib fl,String filename, String mapping) {
     	String name=toName(filename);//filename.substring(0,filename.length()-(getCFMLExtensions().length()+1));
         FunctionLibFunction flf = new FunctionLibFunction(fl,true);
     	flf.setArgType(FunctionLibFunction.ARG_DYNAMIC);
     	flf.setFunctionClass("lucee.runtime.functions.system.CFFunction",null,null);
     	flf.setName(name);
     	flf.setReturn("object");
+    	
     	FunctionLibFunctionArg arg = new FunctionLibFunctionArg(flf);
         arg.setName("__filename");
         arg.setRequired(true);
@@ -1355,6 +1401,14 @@ public abstract class ConfigImpl implements Config {
         arg.setHidden(true);
         arg.setType("boolean");
         arg.setDefaultValue(this instanceof ConfigWeb?"true":"false");
+        flf.setArg(arg);
+        
+        arg = new FunctionLibFunctionArg(flf);
+        arg.setName("__mapping");
+        arg.setRequired(true);
+        arg.setHidden(true);
+        arg.setType("string");
+        arg.setDefaultValue(mapping);
         flf.setArg(arg);
     	
     	
@@ -2823,9 +2877,15 @@ public abstract class ConfigImpl implements Config {
 	public Mapping getTagMapping() {
 		return tagMapping;
 	}
-	
-	public Mapping getFunctionMapping() {
-		return functionMapping;
+
+	public Mapping getFunctionMapping(String mappingName) {
+		return functionMappings.get(mappingName);
+	}
+	public Mapping getDefaultFunctionMapping() {
+		return defaultFunctionMapping;
+	}
+	public Collection<Mapping> getFunctionMappings() {
+		return functionMappings.values();
 	}
 
 	/* *

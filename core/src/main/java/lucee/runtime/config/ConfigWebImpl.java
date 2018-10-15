@@ -24,9 +24,11 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Collection;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
@@ -66,6 +68,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.SecurityException;
 import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.RHExtension;
+import lucee.runtime.functions.string.Hash;
 import lucee.runtime.gateway.GatewayEngineImpl;
 import lucee.runtime.gateway.GatewayEntry;
 import lucee.runtime.lock.LockManager;
@@ -110,7 +113,7 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
     private CIPage baseComponentPageCFML;
     private CIPage baseComponentPageLucee;
     private MappingImpl serverTagMapping;
-	private MappingImpl serverFunctionMapping;
+	private Map<String,Mapping> serverFunctionMappings;
 	private KeyLock<String> contextLock=new KeyLockImpl<String>();
 	private GatewayEngineImpl gatewayEngine;
     private DebuggerPool debuggerPool;
@@ -286,11 +289,22 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 	    	}
 			return serverTagMapping;
 		}
-	    public Mapping getServerFunctionMapping() {
-	    	if(serverFunctionMapping==null){
-	    		serverFunctionMapping=getConfigServerImpl().functionMapping.cloneReadOnly(this);
+	    public Collection<Mapping> getServerFunctionMappings() {
+	    	if(serverFunctionMappings==null){
+	    		Iterator<Entry<String, Mapping>> it = getConfigServerImpl().functionMappings.entrySet().iterator();
+	    		Entry<String, Mapping> e;
+	    		serverFunctionMappings=new HashMap<String,Mapping>();
+	    		while(it.hasNext()) {
+	    			e = it.next();
+	    			serverFunctionMappings.put(e.getKey(), ((MappingImpl)e.getValue()).cloneReadOnly(this));
+	    		}
 	    	}
-			return serverFunctionMapping;
+			return serverFunctionMappings.values();
+		}
+	    
+	    public Mapping getServerFunctionMapping(String mappingName) {
+	    	getServerFunctionMappings();// call this to make sure it exists
+			return serverFunctionMappings.get(mappingName);
 		}
 	    private Map<String,Mapping> applicationMappings=new ReferenceMap<String,Mapping>(SOFT,SOFT);
 
