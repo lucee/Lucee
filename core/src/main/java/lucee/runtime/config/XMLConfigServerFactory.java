@@ -259,7 +259,7 @@ public final class XMLConfigServerFactory extends XMLConfigFactory{
 		// Gateway Drivers
 		Resource gDir = adminDir.getRealResource("gdriver");
 		create("/resource/context/admin/gdriver/",new String[]{
-		"TaskGatewayDriver.cfc","DirectoryWatcher.cfc","MailWatcher.cfc","Gateway.cfc","Field.cfc","Group.cfc"}
+		"TaskGatewayDriver.cfc","AsynchronousEvents.cfc", "DirectoryWatcher.cfc","MailWatcher.cfc","Gateway.cfc","Field.cfc","Group.cfc"}
 		,gDir,doNew);
 		
 		// Logging/appender
