@@ -1275,6 +1275,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		,"DirectoryWatcher."+COMPONENT_EXTENSION
 		,"DirectoryWatcherListener."+COMPONENT_EXTENSION
 		,"MailWatcher."+COMPONENT_EXTENSION
+		,"AsynchronousEvents."+COMPONENT_EXTENSION
 		,"MailWatcherListener."+COMPONENT_EXTENSION
 				},gwDir,doNew);
 
