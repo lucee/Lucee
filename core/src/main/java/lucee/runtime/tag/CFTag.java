@@ -357,7 +357,7 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
 			Mapping m = source.getPageSource().getMapping();
 			
 			ConfigWebImpl c=(ConfigWebImpl) pageContext.getConfig();
-			if(m==c.getTagMapping()) m=c.getServerTagMapping();
+			if(m==c.getDefaultTagMapping()) m=c.getDefaultServerTagMapping();
 			else m=null;
 			// is te page source from a tag mapping, so perhaps it was moved from server to web context
 			if(m!=null) {

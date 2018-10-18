@@ -5590,7 +5590,7 @@ public final class XMLConfigAdmin {
 	
 
 	void updateTag(InputStream is,String name, boolean closeStream) throws IOException {
-		write(config.getTagMapping().getPhysical(),is,name,closeStream);
+		write(config.getDefaultTagMapping().getPhysical(),is,name,closeStream);
 	}
 	void updateFunction(InputStream is,String name, boolean closeStream) throws IOException {
 		write(config.getDefaultFunctionMapping().getPhysical(),is,name,closeStream);
@@ -5684,7 +5684,7 @@ public final class XMLConfigAdmin {
 
 	public void removeTags(Log logger,String[] relpath) throws IOException {
 		if(ArrayUtil.isEmpty(relpath)) return;
-		Resource file = config.getTagMapping().getPhysical();
+		Resource file = config.getDefaultTagMapping().getPhysical();
 		for(int i=0;i<relpath.length;i++){
 			logger.log(Log.LEVEL_INFO,"extension","remove Tag "+relpath[i]);
 			removeFromDirectory(file,relpath[i]);

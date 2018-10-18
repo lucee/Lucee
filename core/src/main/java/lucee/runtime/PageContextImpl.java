@@ -2455,7 +2455,7 @@ public final class PageContextImpl extends PageContext {
 			if(index > -1) {
 				String type = realPath.substring(9, index);
 				if(type.equalsIgnoreCase("tag")) {
-					base = getPageSource(new Mapping[] { config.getTagMapping(), config.getServerTagMapping() }, realPath.substring(index));
+					base = getPageSource(new Mapping[] { config.getDefaultTagMapping(), config.getDefaultServerTagMapping() }, realPath.substring(index));
 				}
 				else if(type.equalsIgnoreCase("customtag")) {
 					base = getPageSource(config.getCustomTagMappings(), realPath.substring(index));

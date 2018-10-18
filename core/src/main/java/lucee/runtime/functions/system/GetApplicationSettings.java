@@ -103,6 +103,8 @@ public class GetApplicationSettings extends BIF {
 		sct.setEL("localMode", ac.getLocalMode()==Undefined.MODE_LOCAL_OR_ARGUMENTS_ALWAYS?Boolean.TRUE:Boolean.FALSE);
 		sct.setEL(KeyConstants._locale,LocaleFactory.toString(pc.getLocale()));
 		sct.setEL(KeyConstants._timezone,TimeZoneUtil.toString(pc.getTimeZone()));
+		//sct.setEL(KeyConstants._timeout,TimeZoneUtil.toString(pc.getRequestTimeout()));
+		
 		sct.setEL("nullSupport",((ApplicationContextSupport) ac).getFullNullSupport());
 		sct.setEL("enableNullSupport",((ApplicationContextSupport) ac).getFullNullSupport());
 		

@@ -40,8 +40,8 @@ public final class PagePoolClear implements Function {
 		clear(config.getComponentMappings());
 		clear(config.getFunctionMappings());
 		clear(config.getServerFunctionMappings());
-		clear(config.getTagMapping());
-		clear(config.getServerTagMapping());
+		clear(config.getTagMappings());
+		clear(config.getServerTagMappings());
     	
 		return true;
 	}

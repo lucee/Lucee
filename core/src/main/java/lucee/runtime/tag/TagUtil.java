@@ -283,8 +283,8 @@ public class TagUtil {
 	}
 
 	private static void _addTagMetaData(PageContext pc, ConfigWebImpl cw, int dialect) {
-		TagLibTagAttr attrFileName, attrIsWeb;
-		String filename;
+		TagLibTagAttr attrFileName,attrMapping, attrIsWeb;
+		String filename,mappingName;
 		Boolean isWeb;
 		TagLibTag tlt;
 		TagLib[] tlds = cw.getTLDs(dialect);
@@ -295,12 +295,14 @@ public class TagUtil {
 				tlt = it.next();
 				if(tlt.getTagClassDefinition().isClassNameEqualTo("lucee.runtime.tag.CFTagCore")) {
 					attrFileName = tlt.getAttribute("__filename");
+					attrMapping = tlt.getAttribute("__mapping");
 					attrIsWeb = tlt.getAttribute("__isweb");
 					if(attrFileName != null && attrIsWeb != null) {
 						filename = Caster.toString(attrFileName.getDefaultValue(), null);
+						mappingName = Caster.toString(attrMapping.getDefaultValue(), "mapping-tag");
 						isWeb = Caster.toBoolean(attrIsWeb.getDefaultValue(), null);
 						if(filename != null && isWeb != null) {
-							addTagMetaData(pc, tlds[i], tlt, filename, isWeb.booleanValue());
+							addTagMetaData(pc, tlds[i], tlt, filename, mappingName,isWeb.booleanValue());
 						}
 					}
 				}
@@ -308,12 +310,12 @@ public class TagUtil {
 		}
 	}
 
-	private static void addTagMetaData(PageContext pc, TagLib tl, TagLibTag tlt, String filename, boolean isWeb) {
+	private static void addTagMetaData(PageContext pc, TagLib tl, TagLibTag tlt, String filename, String mappingName, boolean isWeb) {
 		if(pc == null)
 			return;
 		try {
 			ConfigWebImpl config = (ConfigWebImpl)pc.getConfig();
-			PageSource ps = isWeb ? config.getTagMapping().getPageSource(filename) : config.getServerTagMapping().getPageSource(filename);
+			PageSource ps = isWeb ? config.getTagMapping(mappingName).getPageSource(filename) : config.getServerTagMapping(mappingName).getPageSource(filename);
 
 			// Page p = ps.loadPage(pc);
 			ComponentImpl c = ComponentLoader.loadComponent(pc, ps, filename, true, true);

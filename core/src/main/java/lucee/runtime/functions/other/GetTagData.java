@@ -26,6 +26,7 @@ import java.util.Map.Entry;
 
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.Component;
 import lucee.runtime.ComponentSpecificAccess;
 import lucee.runtime.PageContext;
@@ -100,13 +101,15 @@ public final class GetTagData implements Function {
 		//Map attrs = tag.getAttributes();
 
 		TagLibTagAttr attrFilename = tag.getAttribute("__filename");
-		//TagLibTagAttr attrName = tag.getAttribute("__name");
+		TagLibTagAttr attrMapping = tag.getAttribute("__mapping");
 		TagLibTagAttr attrIsWeb = tag.getAttribute("__isweb");
 		
 		String filename = Caster.toString(attrFilename.getDefaultValue());
 		String name = Caster.toString(attrFilename.getDefaultValue());
+		String mapping = Caster.toString(attrMapping.getDefaultValue());
+		if(StringUtil.isEmpty(mapping)) mapping="mapping-tag";
 		boolean isWeb = Caster.toBooleanValue(attrIsWeb.getDefaultValue());
-		InitFile source = CFTagCore.createInitFile(pc, isWeb, filename);
+		InitFile source = CFTagCore.createInitFile(pc, isWeb, filename,mapping);
 		String callPath=ResourceUtil.removeExtension(source.getFilename(),source.getFilename());
 		
 		

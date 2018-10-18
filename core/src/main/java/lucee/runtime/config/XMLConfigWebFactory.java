@@ -1415,7 +1415,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		_getDotNotationUpperCase(sb,config.getCustomTagMappings());
 		_getDotNotationUpperCase(sb,config.getComponentMappings());
 		_getDotNotationUpperCase(sb,config.getFunctionMappings());
-		_getDotNotationUpperCase(sb,config.getTagMapping());
+		_getDotNotationUpperCase(sb,config.getTagMappings());
 		//_getDotNotationUpperCase(sb,config.getServerTagMapping());
 		//_getDotNotationUpperCase(sb,config.getServerFunctionMapping());
 
@@ -1488,7 +1488,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					flushPageSourcePool(config.getCustomTagMappings());
 					flushPageSourcePool(config.getComponentMappings());
 					flushPageSourcePool(config.getFunctionMappings());
-					flushPageSourcePool(config.getTagMapping());
+					flushPageSourcePool(config.getTagMappings());
 					
 					if(config instanceof ConfigWeb) {
 						flushPageSourcePool(((ConfigWebImpl)config).getApplicationMapping());
@@ -2903,7 +2903,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		//String strFLDDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.addional.fld", null);
 		//String strTLDDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.addional.tld", null);
 		String strFuncDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.addional.function", null);
-		//String strTagDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.addional.tag", null);
+		String strTagDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.addional.tag", null);
 		
 		Element fileSystem = getChildByName(doc.getDocumentElement(), "file-system");
 		if (fileSystem == null) fileSystem = getChildByName(doc.getDocumentElement(), "filesystem");
@@ -2923,7 +2923,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			
 			//if(StringUtil.isEmpty(strTLDDirectory)) strTLDDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("tld-addional-directory"));
 			//if(StringUtil.isEmpty(strFLDDirectory)) strFLDDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("fld-addional-directory"));
-			//if(StringUtil.isEmpty(strTagDirectory)) strTagDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("tag-addional-directory"));
+			if(StringUtil.isEmpty(strTagDirectory)) strTagDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("tag-addional-directory"));
 			if(StringUtil.isEmpty(strFuncDirectory)) strFuncDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("function-addional-directory"));
 		}
 
@@ -2959,24 +2959,22 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		}
 
 		// Tag Directory
+		List<Resource> listTags=new ArrayList<Resource>();
 		if (!StringUtil.isEmpty(strDefaultTagDirectory)) {
 			Resource dir = ConfigWebUtil.getFile(config, configDir, strDefaultTagDirectory, FileUtil.TYPE_DIR);
 			createTagFiles(config, configDir, dir, doNew);
-			if (dir != null) {
-				config.setTagDirectory(dir);
-			}
+			if (dir != null) listTags.add(dir);
 		}
-		/*if (!StringUtil.isEmpty(strTagDirectory)) {
+		if (!StringUtil.isEmpty(strTagDirectory)) {
 			String[] arr = ListUtil.listToStringArray(strTagDirectory, ',');
 			for(String str:arr) {
 				str=str.trim();
 				if(StringUtil.isEmpty(str)) continue;
 				Resource dir = ConfigWebUtil.getFile(config, configDir, str, FileUtil.TYPE_DIR);
-				if (dir != null) {
-					config.setTagDirectory(dir);
-				}
+				if (dir != null) listTags.add(dir);
 			}
-		}*/
+		}
+		config.setTagDirectory(listTags);
 
 		// allow realpath
 		if (hasCS) {

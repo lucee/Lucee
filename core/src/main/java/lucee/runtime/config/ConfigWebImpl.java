@@ -29,6 +29,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
@@ -112,7 +113,7 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
     private final CFMLCompilerImpl compiler=new CFMLCompilerImpl();
     private CIPage baseComponentPageCFML;
     private CIPage baseComponentPageLucee;
-    private MappingImpl serverTagMapping;
+    private Map<String,Mapping> serverTagMappings;
 	private Map<String,Mapping> serverFunctionMappings;
 	private KeyLock<String> contextLock=new KeyLockImpl<String>();
 	private GatewayEngineImpl gatewayEngine;
@@ -281,19 +282,32 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 	}
 
 
-		
+	public Collection<Mapping> getServerTagMappings() {
+    	if(serverTagMappings==null){
+    		Iterator<Entry<String, Mapping>> it = getConfigServerImpl().tagMappings.entrySet().iterator();//.cloneReadOnly(this);
+    		Entry<String, Mapping> e;
+    		serverTagMappings=new ConcurrentHashMap<String,Mapping>();
+    		while(it.hasNext()) {
+    			e = it.next();
+    			serverTagMappings.put(e.getKey(), ((MappingImpl)e.getValue()).cloneReadOnly(this));
+    		}
+    	}
+		return serverTagMappings.values();
+	}
 
-	    public Mapping getServerTagMapping() {
-	    	if(serverTagMapping==null){
-	    		serverTagMapping=getConfigServerImpl().tagMapping.cloneReadOnly(this);
-	    	}
-			return serverTagMapping;
-		}
+    public Mapping getDefaultServerTagMapping() {
+    	return defaultTagMapping;
+	}
+    public Mapping getServerTagMapping(String mappingName) {
+    	getServerTagMappings();
+    	return serverTagMappings.get(mappingName);
+	}
+    
 	    public Collection<Mapping> getServerFunctionMappings() {
 	    	if(serverFunctionMappings==null){
 	    		Iterator<Entry<String, Mapping>> it = getConfigServerImpl().functionMappings.entrySet().iterator();
 	    		Entry<String, Mapping> e;
-	    		serverFunctionMappings=new HashMap<String,Mapping>();
+	    		serverFunctionMappings=new ConcurrentHashMap<String,Mapping>();
 	    		while(it.hasNext()) {
 	    			e = it.next();
 	    			serverFunctionMappings.put(e.getKey(), ((MappingImpl)e.getValue()).cloneReadOnly(this));

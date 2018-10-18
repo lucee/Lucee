@@ -36,6 +36,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TimeZone;
+import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.print;
 import lucee.commons.io.CharsetUtil;
@@ -404,8 +405,10 @@ public abstract class ConfigImpl implements Config {
 	
 	//private Resource tagDirectory;
 	protected Mapping defaultFunctionMapping;
-	protected Map<String,Mapping> functionMappings=new HashMap<String,Mapping>();
-	protected MappingImpl tagMapping;
+	protected Map<String,Mapping> functionMappings=new ConcurrentHashMap<String,Mapping>();
+	
+	protected Mapping defaultTagMapping;
+	protected Map<String,Mapping> tagMappings=new ConcurrentHashMap<String,Mapping>();
 	
 	private short inspectTemplate=INSPECT_ONCE;
 	private boolean typeChecking=true;
@@ -848,7 +851,7 @@ public abstract class ConfigImpl implements Config {
         if(useSpecialMappings && lcRealPath.startsWith("/mapping-",0)){
         	String virtual="/mapping-tag";
         	// tag mappings
-        	Mapping[] tagMappings=(this instanceof ConfigWebImpl)?new Mapping[]{((ConfigWebImpl)this).getServerTagMapping(),getTagMapping()}:new Mapping[]{getTagMapping()};
+        	Mapping[] tagMappings=(this instanceof ConfigWebImpl)?new Mapping[]{((ConfigWebImpl)this).getDefaultServerTagMapping(),getDefaultTagMapping()}:new Mapping[]{getDefaultTagMapping()};
         	if(lcRealPath.startsWith(virtual,0)){
 	        	for(int i=0;i<tagMappings.length;i++) {
 		            mapping = tagMappings[i];
@@ -960,7 +963,7 @@ public abstract class ConfigImpl implements Config {
         if(useSpecialMappings && lcRealPath.startsWith("/mapping-",0)){
         	String virtual="/mapping-tag";
         	// tag mappings
-        	Mapping[] tagMappings=(this instanceof ConfigWebImpl)?new Mapping[]{((ConfigWebImpl)this).getServerTagMapping(),getTagMapping()}:new Mapping[]{getTagMapping()};
+        	Mapping[] tagMappings=(this instanceof ConfigWebImpl)?new Mapping[]{((ConfigWebImpl)this).getDefaultServerTagMapping(),getDefaultTagMapping()}:new Mapping[]{getDefaultTagMapping()};
         	if(lcRealPath.startsWith(virtual,0)){
 	        	for(int i=0;i<tagMappings.length;i++) {
 		            ps=tagMappings[i].getPageSource(realPath.substring(virtual.length()));
@@ -1246,26 +1249,40 @@ public abstract class ConfigImpl implements Config {
     	throw new RuntimeException("no core taglib found"); // this should never happen
     }
     
-    protected void setTagDirectory(Resource tagDirectory) {
-    	//this.tagDirectory=tagDirectory;
-    	String mappingName="/mapping-tag/";
-    	
-    	this.tagMapping=new MappingImpl(this,mappingName,tagDirectory.getAbsolutePath(),null,ConfigImpl.INSPECT_NEVER,true,true,true,true,false,true,null,-1,-1);
-
-    	TagLib tlc=getCoreTagLib(CFMLEngine.DIALECT_CFML);
-    	TagLib tll=getCoreTagLib(CFMLEngine.DIALECT_LUCEE);
-    	
-        // now overwrite with new data
-        if(tagDirectory.isDirectory()) {
-        	String[] files=tagDirectory.list(new ExtensionResourceFilter(
-        			getMode() == ConfigImpl.MODE_STRICT?
-                	Constants.getComponentExtensions():
-                	Constants.getExtensions()));
-            for(int i=0;i<files.length;i++) {
-            	if(tlc!=null)createTag(tlc, files[i],mappingName);
-            	if(tll!=null)createTag(tll, files[i],mappingName);
-            }
-        }
+    protected void setTagDirectory(List<Resource> listTagDirectory) {
+    	Iterator<Resource> it = listTagDirectory.iterator();
+    	int index=-1;
+    	String mappingName;
+    	Resource tagDirectory;
+    	Mapping m;
+    	boolean isDefault;
+    	while(it.hasNext()) {
+    		tagDirectory=it.next();
+    		index++;
+    		isDefault=index==0;
+    		mappingName="/mapping-tag"+(isDefault?"":index)+"";
+    		
+    		
+    			
+	    	m=new MappingImpl(this,mappingName,tagDirectory.getAbsolutePath(),null,ConfigImpl.INSPECT_NEVER,true,true,true,true,false,true,null,-1,-1);
+	    	if(isDefault) defaultTagMapping=m;
+	    	tagMappings.put(mappingName, m);
+	    	
+	    	TagLib tlc=getCoreTagLib(CFMLEngine.DIALECT_CFML);
+	    	TagLib tll=getCoreTagLib(CFMLEngine.DIALECT_LUCEE);
+	    	
+	        // now overwrite with new data
+	        if(tagDirectory.isDirectory()) {
+	        	String[] files=tagDirectory.list(new ExtensionResourceFilter(
+	        			getMode() == ConfigImpl.MODE_STRICT?
+	                	Constants.getComponentExtensions():
+	                	Constants.getExtensions()));
+	            for(int i=0;i<files.length;i++) {
+	            	if(tlc!=null)createTag(tlc, files[i],mappingName);
+	            	if(tll!=null)createTag(tll, files[i],mappingName);
+	            }
+	        }
+    	}
     }
     
     public void createTag(TagLib tl,String filename, String mappingName) {// Jira 1298
@@ -1308,14 +1325,14 @@ public abstract class ConfigImpl implements Config {
         tlta.setDefaultValue(this instanceof ConfigWeb?"true":"false");
         tlt.setAttribute(tlta);
         
-        /*tlta = new TagLibTagAttr(tlt);
+        tlta = new TagLibTagAttr(tlt);
         tlta.setName("__mapping");
         tlta.setRequired(true);
         tlta.setRtexpr(true);
         tlta.setHidden(true);
         tlta.setType("string");
         tlta.setDefaultValue(mappingName);
-        tlt.setAttribute(tlta);*/
+        tlt.setAttribute(tlta);
         
         tl.setTag(tlt);
     }
@@ -2874,8 +2891,14 @@ public abstract class ConfigImpl implements Config {
 	/**
 	 * @return the tagMappings
 	 */
-	public Mapping getTagMapping() {
-		return tagMapping;
+	public Collection<Mapping> getTagMappings() {
+		return tagMappings.values();
+	}
+	public Mapping getTagMapping(String mappingName) {
+		return tagMappings.get(mappingName);
+	}
+	public Mapping getDefaultTagMapping() {
+		return defaultTagMapping;
 	}
 
 	public Mapping getFunctionMapping(String mappingName) {
