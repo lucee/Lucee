@@ -1315,19 +1315,11 @@ public final class XMLConfigAdmin {
     	// datasource
     	Element src = XMLConfigWebFactory.getChildByName(doc.getDocumentElement(), "datasource");
     	fixLogging(cs,doc,src, "datasource",false,"{lucee-config}/logs/datasource.log");
-    	
-    	
+
     	setVersion(doc,ConfigWebUtil.getEngine(config).getInfo().getVersion());
     	
     	if(version>=4.2D) return true;
 		
-    	
-    	
-    	
-    		
-    	//setVersion(Caster.toDoubleValue(Info.getVersionAsString().substring(0,3),1.0D));
-        
-    	
     	// mapping
     	src = XMLConfigWebFactory.getChildByName(doc.getDocumentElement(), "mappings");
     	fixLogging(cs,doc,src, "mapping",false,"{lucee-config}/logs/mapping.log");
@@ -1384,8 +1376,7 @@ public final class XMLConfigAdmin {
     	fixLogging(cs,doc,app, "requesttimeout","requesttimeout-log","requesttimeout-log-level",false,"{lucee-config}/logs/requesttimeout.log");
     	
     	setVersion(doc,ConfigWebUtil.getEngine(config).getInfo().getVersion());
-    	
-    	
+
     	return true;
     }
 
@@ -1454,16 +1445,18 @@ public final class XMLConfigAdmin {
         
         // replace extension class with core class
         boolean fixed=false;
-        for(int i=0;i<providers.length;i++) {
-        	if("s3".equalsIgnoreCase(providers[i].getAttribute("scheme"))) {
-        		if(
-        			"lucee.extension.io.resource.type.s3.S3ResourceProvider".equalsIgnoreCase(providers[i].getAttribute("class"))
-        			|| "lucee.commons.io.res.type.s3.S3ResourceProvider".equalsIgnoreCase(providers[i].getAttribute("class"))
-        			){
-        			resources.removeChild(providers[i]);
-        			fixed=true;
-        		}
-        	}
+        if(providers!=null) {
+	        for(int i=0;i<providers.length;i++) {
+	        	if("s3".equalsIgnoreCase(providers[i].getAttribute("scheme"))) {
+	        		if(
+	        			"lucee.extension.io.resource.type.s3.S3ResourceProvider".equalsIgnoreCase(providers[i].getAttribute("class"))
+	        			|| "lucee.commons.io.res.type.s3.S3ResourceProvider".equalsIgnoreCase(providers[i].getAttribute("class"))
+	        			){
+	        			resources.removeChild(providers[i]);
+	        			fixed=true;
+	        		}
+	        	}
+	        }
         }
         return fixed;
 	}
@@ -6800,21 +6793,23 @@ public final class XMLConfigAdmin {
         
         // replace extension class with core class
         boolean fixed=false;
-        for(int i=0;i<extensions.length;i++) {
-        	if(extensions[i].hasAttribute("start-bundles")) continue;
-        	// this will load the data from the .lex file
-        	try {
-        		
-        		Resource res = RHExtension.toResource(config, extensions[i],null);
-        		Manifest mf = (res==null) ? null : RHExtension.getManifestFromFile(config, res);
-        		if(mf!=null) {
-        			RHExtension.populate(extensions[i],mf);
-        			fixed=true;
-        		}
-			}
-        	catch (Exception e) {
-				SystemOut.printDate(e);
-			}
+        if(extensions!=null) {
+	        for(int i=0;i<extensions.length;i++) {
+	        	if(extensions[i].hasAttribute("start-bundles")) continue;
+	        	// this will load the data from the .lex file
+	        	try {
+	        		
+	        		Resource res = RHExtension.toResource(config, extensions[i],null);
+	        		Manifest mf = (res==null) ? null : RHExtension.getManifestFromFile(config, res);
+	        		if(mf!=null) {
+	        			RHExtension.populate(extensions[i],mf);
+	        			fixed=true;
+	        		}
+				}
+	        	catch (Exception e) {
+					SystemOut.printDate(e);
+				}
+	        }
         }
         return fixed;
 	}

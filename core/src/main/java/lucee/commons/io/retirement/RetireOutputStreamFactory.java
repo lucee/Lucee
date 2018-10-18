@@ -73,6 +73,7 @@ public class RetireOutputStreamFactory {
 					//SystemUtil.sleep(sleepTime);
 					RetireOutputStream[] arr = list.toArray(new RetireOutputStream[list.size()]); // not using iterator to avoid ConcurrentModificationException
 					for(int i=0;i<arr.length;i++){
+						if(arr[i]==null) continue;
 						if(_close) arr[i].retireNow();
 						else arr[i].retire();
 					}

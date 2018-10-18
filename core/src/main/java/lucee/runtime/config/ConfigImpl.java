@@ -1366,7 +1366,6 @@ public abstract class ConfigImpl implements Config {
     		index++;
     		isDefault=index==0;
     		mappingName="/mapping-function"+(isDefault?"":index)+"";
-    		print.e("mapping-name:"+mappingName);
     		MappingImpl mapping = new MappingImpl(this,mappingName,functionDirectory.getAbsolutePath(),null,ConfigImpl.INSPECT_NEVER,true,true,true,true,false,true,null,-1,-1);
     		if(isDefault)defaultFunctionMapping=mapping;
     		this.functionMappings.put(mappingName, mapping);

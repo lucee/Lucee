@@ -45,6 +45,7 @@ import lucee.runtime.PageSource;
 import lucee.runtime.component.ComponentLoader;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.XMLConfigWebFactory;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
@@ -251,7 +252,7 @@ public class TagUtil {
 	 * @param cs
 	 * @param config
 	 */
-	public static void addTagMetaData(ConfigWebImpl cw) {
+	public static void addTagMetaData(ConfigWebImpl cw, lucee.commons.io.log.Log log) {
 		if(true)
 			return;
 
@@ -274,9 +275,10 @@ public class TagUtil {
 			_addTagMetaData(pc, cw, CFMLEngine.DIALECT_LUCEE);
 
 		}
-		catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
-		} finally {
+		catch(Exception e) {
+			XMLConfigWebFactory.log(cw,log,e);
+		}
+		finally {
 			pc.getConfig().getFactory().releaseLuceePageContext(pc, true);
 			ThreadLocalPageContext.register(orgPC);
 		}

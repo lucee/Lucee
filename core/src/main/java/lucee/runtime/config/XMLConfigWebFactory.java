@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -356,70 +357,82 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * @throws PageException
 	 * @throws BundleException 
 	 */
-	synchronized static void load(ConfigServerImpl cs, ConfigImpl config, Document doc, boolean isReload, boolean doNew) throws ClassException, PageException, IOException,
-			TagLibException, FunctionLibException, BundleException {
+	synchronized static void load(ConfigServerImpl cs, ConfigImpl config, Document doc, boolean isReload, boolean doNew) throws IOException  {
 		if(LOG)SystemOut.printDate("start reading config");
 		
 		ThreadLocalConfig.register(config);
 		boolean reload=false;
 		
-		// fix stuff from older config files
-		if(XMLConfigAdmin.fixLFI(doc)) {
-			String xml = XMLCaster.toString(doc);
-			// TODO 4.5->5.0
-			xml=StringUtil.replace(xml, "<lucee-configuration", "<cfLuceeConfiguration",false);
-			xml=StringUtil.replace(xml, "</lucee-configuration", "</cfLuceeConfiguration",false);
-			IOUtil.write(config.getConfigFile(), xml, CharsetUtil.UTF8, false);
-			try {
-				doc = XMLConfigWebFactory.loadDocument(config.getConfigFile());
+		try {
+			// fix stuff from older config files
+			if(XMLConfigAdmin.fixLFI(doc)) {
+				String xml = XMLCaster.toString(doc);
+				// TODO 4.5->5.0
+				xml=StringUtil.replace(xml, "<lucee-configuration", "<cfLuceeConfiguration",false);
+				xml=StringUtil.replace(xml, "</lucee-configuration", "</cfLuceeConfiguration",false);
+				IOUtil.write(config.getConfigFile(), xml, CharsetUtil.UTF8, false);
+				try {
+					doc = XMLConfigWebFactory.loadDocument(config.getConfigFile());
+				}
+				catch (SAXException e) {
+				}
 			}
-			catch (SAXException e) {
+			if(LOG)SystemOut.printDate("fixed LFI");
+			
+			if(XMLConfigAdmin.fixSalt(doc)) reload=true;
+			if(LOG)SystemOut.printDate("fixed salt");
+			
+			if(XMLConfigAdmin.fixS3(doc)) reload=true;
+			if(LOG)SystemOut.printDate("fixed S3");
+			
+			if(XMLConfigAdmin.fixPSQ(doc)) reload=true;
+			if(LOG)SystemOut.printDate("fixed PSQ");
+			
+			if(XMLConfigAdmin.fixLogging(cs,config,doc)) reload=true;
+			if(LOG)SystemOut.printDate("fixed logging");
+			
+			if(XMLConfigAdmin.fixExtension(config,doc)) reload=true;
+			if(LOG)SystemOut.printDate("fixed Extension");
+			
+			if(XMLConfigAdmin.fixComponentMappings(config,doc)) reload=true;
+			if(LOG)SystemOut.printDate("fixed component mappings");
+	
+			// delete to big felix.log (there is also code in the loader to do this, but if the loader is not updated ...)
+			if(config instanceof ConfigServerImpl) {
+				try {
+					ConfigServerImpl _cs=(ConfigServerImpl) config;
+					File root = _cs.getCFMLEngine().getCFMLEngineFactory().getResourceRoot();
+					File log = new File(root,"context/logs/felix.log");
+					if(log.isFile() && log.length()>GB1) {
+						SystemOut.printDate("delete felix log: "+log);
+						if(log.delete()) ResourceUtil.touch(log);
+						
+					}
+				}
+				catch(Exception e) {
+					log(config,null,e);
+				}
 			}
-		}
-		if(LOG)SystemOut.printDate("fixed LFI");
-		
-		if(XMLConfigAdmin.fixSalt(doc)) reload=true;
-		if(LOG)SystemOut.printDate("fixed salt");
-		
-		if(XMLConfigAdmin.fixS3(doc)) reload=true;
-		if(LOG)SystemOut.printDate("fixed S3");
-		
-		if(XMLConfigAdmin.fixPSQ(doc)) reload=true;
-		if(LOG)SystemOut.printDate("fixed PSQ");
-		
-		if(XMLConfigAdmin.fixLogging(cs,config,doc)) reload=true;
-		if(LOG)SystemOut.printDate("fixed logging");
-		
-		if(XMLConfigAdmin.fixExtension(config,doc)) reload=true;
-		if(LOG)SystemOut.printDate("fixed Extension");
-		
-		if(XMLConfigAdmin.fixComponentMappings(config,doc)) reload=true;
-		if(LOG)SystemOut.printDate("fixed component mappings");
-
-		// delete to big felix.log (there is also code in the loader to do this, but if the loader is not updated ...)
-		if(config instanceof ConfigServerImpl) {
-			ConfigServerImpl _cs=(ConfigServerImpl) config;
-			File root = _cs.getCFMLEngine().getCFMLEngineFactory().getResourceRoot();
-			File log = new File(root,"context/logs/felix.log");
-			if(log.isFile() && log.length()>GB1) {
-				SystemOut.printDate("delete felix log: "+log);
-				if(log.delete()) ResourceUtil.touch(log);
+			if(LOG)SystemOut.printDate("fixed to big felix.log");
+			
+			
+			if (reload) {
+				XMLCaster.writeTo(doc, config.getConfigFile());
+				try {
+					doc = XMLConfigWebFactory.loadDocument(config.getConfigFile());
+				}
+				catch (SAXException e) {
+				}
+				if(LOG)SystemOut.printDate("reload xml");
 				
 			}
-		}
-		if(LOG)SystemOut.printDate("fixed to big felix.log");
-		
-		
-		if (reload) {
-			XMLCaster.writeTo(doc, config.getConfigFile());
-			try {
-				doc = XMLConfigWebFactory.loadDocument(config.getConfigFile());
-			}
-			catch (SAXException e) {
-			}
-			if(LOG)SystemOut.printDate("reload xml");
 			
 		}
+		catch(Exception e) {
+			log(config,null,e);
+		}
+		
+		
 		config.setLastModified();
 		if(config instanceof ConfigWeb)ConfigWebUtil.deployWebContext(cs,(ConfigWeb)config,false);
 		if(config instanceof ConfigWeb)ConfigWebUtil.deployWeb(cs,(ConfigWeb)config,false);
@@ -428,27 +441,27 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		int mode = config.getMode();
 		Log log = config.getLog("application");
 		if(LOG)SystemOut.printDate("loaded config");
-		loadConstants(cs, config, doc);
+		loadConstants(cs, config, doc,log);
 		if(LOG)SystemOut.printDate("loaded constants");
-		loadLoggers(cs, config, doc, isReload);
+		loadLoggers(cs, config, doc, isReload,log);
 		log = config.getLog("application");
 		//loadServerLibDesc(cs, config, doc,log);
 		if(LOG)SystemOut.printDate("loaded loggers");
-		loadTempDirectory(cs, config, doc, isReload);
+		loadTempDirectory(cs, config, doc, isReload,log);
 		if(LOG)SystemOut.printDate("loaded temp dir");
-		loadId(cs,config,doc);
+		loadId(cs,config,doc,log);
 		if(LOG)SystemOut.printDate("loaded id");
-		loadVersion(config, doc);
+		loadVersion(config, doc,log);
 		if(LOG)SystemOut.printDate("loaded version");
-		loadSecurity(cs, config, doc);
+		loadSecurity(cs, config, doc,log);
 		if(LOG)SystemOut.printDate("loaded security");
-		ConfigWebUtil.loadLib(cs, config);
+		try {ConfigWebUtil.loadLib(cs, config);}catch(Exception e) {log(config,log,e);}
 		if(LOG)SystemOut.printDate("loaded lib");
-		loadSystem(cs, config, doc);
+		loadSystem(cs, config, doc,log);
 		if(LOG)SystemOut.printDate("loaded system");
-		loadResourceProvider(cs, config, doc);
+		loadResourceProvider(cs, config, doc,log);
 		if(LOG)SystemOut.printDate("loaded resource providers");
-		loadFilesystem(cs, config, doc, doNew); // load this before execute any code, what for example loadxtension does (json)
+		loadFilesystem(cs, config, doc, doNew,log); // load this before execute any code, what for example loadxtension does (json)
 		if(LOG)SystemOut.printDate("loaded filesystem");
 		loadExtensionBundles(cs,config,doc,log);
 		if(LOG)SystemOut.printDate("loaded extension bundles");
@@ -458,82 +471,82 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		if(LOG)SystemOut.printDate("loaded orm");
 		loadCacheHandler(cs, config, doc,log);
 		if(LOG)SystemOut.printDate("loaded cache handlers");
-		loadCharset(cs, config, doc);
+		loadCharset(cs, config, doc,log);
 		if(LOG)SystemOut.printDate("loaded charset");
-		loadApplication(cs, config, doc, mode);
+		loadApplication(cs, config, doc, mode,log);
 		if(LOG)SystemOut.printDate("loaded application");
-		loadMappings(cs, config, doc, mode); // it is important this runs after
+		loadMappings(cs, config, doc, mode,log); // it is important this runs after
 		if(LOG)SystemOut.printDate("loaded mappings");
 												// loadApplication
-		loadRest(cs, config, doc);
+		loadRest(cs, config, doc,log);
 		if(LOG)SystemOut.printDate("loaded rest");
-		loadExtensions(cs, config, doc);
+		loadExtensions(cs, config, doc,log);
 		if(LOG)SystemOut.printDate("loaded extensions");
-		loadPagePool(cs, config, doc);
+		loadPagePool(cs, config, doc,log);
 		if(LOG)SystemOut.printDate("loaded page pool");
 		loadDataSources(cs, config, doc,log);
 		if(LOG)SystemOut.printDate("loaded datasources");
 		loadCache(cs, config, doc,log);
 		if(LOG)SystemOut.printDate("loaded cache");
-		loadCustomTagsMappings(cs, config, doc, mode);
+		loadCustomTagsMappings(cs, config, doc, mode,log);
 		if(LOG)SystemOut.printDate("loaded custom tag mappings");
 		//loadFilesystem(cs, config, doc, doNew); // load tlds
-		loadTag(cs, config, doc); // load tlds
+		loadTag(cs, config, doc,log); // load tlds
 		if(LOG)SystemOut.printDate("loaded tags");
-		loadRegional(cs, config, doc);
+		loadRegional(cs, config, doc,log);
 		if(LOG)SystemOut.printDate("loaded regional");
-		loadCompiler(cs, config, doc, mode);
+		loadCompiler(cs, config, doc, mode,log);
 		if(LOG)SystemOut.printDate("loaded compiler");
-		loadScope(cs, config, doc, mode);
+		loadScope(cs, config, doc, mode,log);
 		if(LOG)SystemOut.printDate("loaded scope");
-		loadMail(cs, config, doc);
+		loadMail(cs, config, doc,log);
 		if(LOG)SystemOut.printDate("loaded mail");
-		loadSearch(cs, config, doc);
+		loadSearch(cs, config, doc,log);
 		if(LOG)SystemOut.printDate("loaded search");
-		loadScheduler(cs, config, doc);
+		loadScheduler(cs, config, doc,log);
 		if(LOG)SystemOut.printDate("loaded scheduled tasks");
-		loadDebug(cs, config, doc);
+		loadDebug(cs, config, doc,log);
 		if(LOG)SystemOut.printDate("loaded debug");
-		loadError(cs, config, doc);
+		loadError(cs, config, doc,log);
 		if(LOG)SystemOut.printDate("loaded error");
-		loadCFX(cs, config, doc);
+		loadCFX(cs, config, doc,log);
 		if(LOG)SystemOut.printDate("loaded cfx");
-		loadComponent(cs, config, doc, mode);
+		loadComponent(cs, config, doc, mode,log);
 		if(LOG)SystemOut.printDate("loaded component");
-		loadUpdate(cs, config, doc);
+		loadUpdate(cs, config, doc,log);
 		if(LOG)SystemOut.printDate("loaded update");
-		loadJava(cs, config, doc); // define compile type
+		loadJava(cs, config, doc,log); // define compile type
 		if(LOG)SystemOut.printDate("loaded java");
-		loadSetting(cs, config, doc);
+		loadSetting(cs, config, doc,log);
 		if(LOG)SystemOut.printDate("loaded setting");
-		loadProxy(cs, config, doc);
+		loadProxy(cs, config, doc,log);
 		if(LOG)SystemOut.printDate("loaded proxy");
-		loadRemoteClient(cs, config, doc);
+		loadRemoteClient(cs, config, doc,log);
 		if(LOG)SystemOut.printDate("loaded remote clients");
-		loadVideo(cs, config, doc);
+		loadVideo(cs, config, doc,log);
 		if(LOG)SystemOut.printDate("loaded video");
-		loadFlex(cs, config, doc);
+		loadFlex(cs, config, doc,log);
 		if(LOG)SystemOut.printDate("loaded flex");
-		settings(config);
+		settings(config,log);
 		if(LOG)SystemOut.printDate("loaded settings2");
-		loadListener(cs, config, doc);
+		loadListener(cs, config, doc,log);
 		if(LOG)SystemOut.printDate("loaded listeners");
-		loadDumpWriter(cs, config, doc);
+		loadDumpWriter(cs, config, doc,log);
 		if(LOG)SystemOut.printDate("loaded dump writers");
-		loadGatewayEL(cs, config, doc);
+		loadGatewayEL(cs, config, doc,log);
 		if(LOG)SystemOut.printDate("loaded gateways");
-		loadExeLog(cs, config, doc);
+		loadExeLog(cs, config, doc,log);
 		if(LOG)SystemOut.printDate("loaded exe log");
-		loadQueue(cs, config, doc);
+		loadQueue(cs, config, doc,log);
 		if(LOG)SystemOut.printDate("loaded queue");
-		loadMonitors(cs, config, doc);
+		loadMonitors(cs, config, doc,log);
 		if(LOG)SystemOut.printDate("loaded monitors");
-		loadLogin(cs, config, doc);
+		loadLogin(cs, config, doc,log);
 		if(LOG)SystemOut.printDate("loaded login");
 		config.setLoadTime(System.currentTimeMillis());
 
 		if (config instanceof ConfigWebImpl) {
-			TagUtil.addTagMetaData((ConfigWebImpl) config);
+			TagUtil.addTagMetaData((ConfigWebImpl) config,log);
 			if(LOG)SystemOut.printDate("added tag meta data");
 		}
 		//ThreadLocalConfig.release();
@@ -542,101 +555,106 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	
 	
 
-	private static void loadResourceProvider(ConfigServerImpl configServer, ConfigImpl config, Document doc) throws ClassException, BundleException {
-		boolean hasCS = configServer != null;
-		config.clearResourceProviders();
-		Element resources = getChildByName(doc.getDocumentElement(), "resources");
-		Element[] providers = getChildren(resources, "resource-provider");
-		Element[] defaultProviders = getChildren(resources, "default-resource-provider");
-
-		// Default Resource Provider
-		if (hasCS)
-			config.setDefaultResourceProvider(configServer.getDefaultResourceProvider());
-		if (defaultProviders != null && defaultProviders.length > 0) {
-			Element defaultProvider = defaultProviders[defaultProviders.length - 1];
-			ClassDefinition defProv=getClassDefinition(defaultProvider,"",config.getIdentification());
-			
-			String strDefaultProviderComponent = getAttr(defaultProvider,"component");
-			if (StringUtil.isEmpty(strDefaultProviderComponent))
-				strDefaultProviderComponent = getAttr(defaultProvider,"class");
-			
-			// class
-			if (defProv.hasClass()) {
-				config.setDefaultResourceProvider(defProv.getClazz(), toArguments(getAttr(defaultProvider,"arguments"), true));
+	private static void loadResourceProvider(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+		try {
+			boolean hasCS = configServer != null;
+			config.clearResourceProviders();
+			Element resources = getChildByName(doc.getDocumentElement(), "resources");
+			Element[] providers = getChildren(resources, "resource-provider");
+			Element[] defaultProviders = getChildren(resources, "default-resource-provider");
+	
+			// Default Resource Provider
+			if (hasCS)
+				config.setDefaultResourceProvider(configServer.getDefaultResourceProvider());
+			if (defaultProviders != null && defaultProviders.length > 0) {
+				Element defaultProvider = defaultProviders[defaultProviders.length - 1];
+				ClassDefinition defProv=getClassDefinition(defaultProvider,"",config.getIdentification());
+				
+				String strDefaultProviderComponent = getAttr(defaultProvider,"component");
+				if (StringUtil.isEmpty(strDefaultProviderComponent))
+					strDefaultProviderComponent = getAttr(defaultProvider,"class");
+				
+				// class
+				if (defProv.hasClass()) {
+					config.setDefaultResourceProvider(defProv.getClazz(), toArguments(getAttr(defaultProvider,"arguments"), true));
+				}
+	
+				// component
+				else if (!StringUtil.isEmpty(strDefaultProviderComponent)) {
+					strDefaultProviderComponent = strDefaultProviderComponent.trim();
+					Map<String, String> args = toArguments(getAttr(defaultProvider,"arguments"), true);
+					args.put("component", strDefaultProviderComponent);
+					config.setDefaultResourceProvider(CFMLResourceProvider.class, args);
+				}
 			}
-
-			// component
-			else if (!StringUtil.isEmpty(strDefaultProviderComponent)) {
-				strDefaultProviderComponent = strDefaultProviderComponent.trim();
-				Map<String, String> args = toArguments(getAttr(defaultProvider,"arguments"), true);
-				args.put("component", strDefaultProviderComponent);
-				config.setDefaultResourceProvider(CFMLResourceProvider.class, args);
+			// Resource Provider
+			if (hasCS)
+				config.setResourceProviderFactories(configServer.getResourceProviderFactories());
+			if (providers != null && providers.length > 0) {
+				ClassDefinition prov;
+				String strProviderCFC;
+				String strProviderScheme;
+				ClassDefinition httpClass = null;
+				Map httpArgs = null;
+				boolean hasHTTPs = false;
+				for (int i = 0; i < providers.length; i++) {
+					try {
+						prov=getClassDefinition(providers[i], "",config.getIdentification());
+						strProviderCFC = getAttr(providers[i],"component");
+						if(StringUtil.isEmpty(strProviderCFC))
+							strProviderCFC = getAttr(providers[i],"class");
+						
+						// ignore OLD S3 extension from 4.0
+						// lucee.commons.io.res.type.s3.S3ResourceProvider
+						if ("lucee.extension.io.resource.type.s3.S3ResourceProvider".equals(prov.getClassName()) || 
+							"lucee.commons.io.res.type.s3.S3ResourceProvider".equals(prov.getClassName()))
+							continue;
+							//prov=new ClassDefinitionImpl(S3ResourceProvider.class);
+		
+						strProviderScheme = getAttr(providers[i],"scheme");
+						// class
+						if (prov.hasClass() && !StringUtil.isEmpty(strProviderScheme)) {
+							strProviderScheme = strProviderScheme.trim().toLowerCase();
+							config.addResourceProvider(strProviderScheme, prov, toArguments(getAttr(providers[i],"arguments"), true));
+		
+							// patch for user not having
+							if (strProviderScheme.equalsIgnoreCase("http")) {
+								httpClass = prov;
+								httpArgs = toArguments(getAttr(providers[i],"arguments"), true);
+							}
+							else if (strProviderScheme.equalsIgnoreCase("https"))
+								hasHTTPs = true;
+						}
+		
+						// cfc
+						else if (!StringUtil.isEmpty(strProviderCFC) && !StringUtil.isEmpty(strProviderScheme)) {
+							strProviderCFC = strProviderCFC.trim();
+							strProviderScheme = strProviderScheme.trim().toLowerCase();
+							Map<String, String> args = toArguments(getAttr(providers[i],"arguments"), true);
+							args.put("component", strProviderCFC);
+							config.addResourceProvider(strProviderScheme, new ClassDefinitionImpl(CFMLResourceProvider.class), args);
+						}
+					}
+					catch(Throwable t){ // TODO log the exception
+						ExceptionUtil.rethrowIfNecessary(t);
+					}
+				}
+	
+				// adding https when not exist
+				if (!hasHTTPs && httpClass != null) {
+					config.addResourceProvider("https", httpClass, httpArgs);
+				}
+				// adding s3 when not exist
+				
+				// we make sure we have the default on server level
+				if (!hasCS && !config.hasResourceProvider("s3")) {
+					ClassDefinition s3Class = new ClassDefinitionImpl(DummyS3ResourceProvider.class);;
+					config.addResourceProvider("s3", s3Class, toArguments("lock-timeout:10000;", false));
+				}
 			}
 		}
-		// Resource Provider
-		if (hasCS)
-			config.setResourceProviderFactories(configServer.getResourceProviderFactories());
-		if (providers != null && providers.length > 0) {
-			ClassDefinition prov;
-			String strProviderCFC;
-			String strProviderScheme;
-			ClassDefinition httpClass = null;
-			Map httpArgs = null;
-			boolean hasHTTPs = false;
-			for (int i = 0; i < providers.length; i++) {
-				try {
-					prov=getClassDefinition(providers[i], "",config.getIdentification());
-					strProviderCFC = getAttr(providers[i],"component");
-					if(StringUtil.isEmpty(strProviderCFC))
-						strProviderCFC = getAttr(providers[i],"class");
-					
-					// ignore OLD S3 extension from 4.0
-					// lucee.commons.io.res.type.s3.S3ResourceProvider
-					if ("lucee.extension.io.resource.type.s3.S3ResourceProvider".equals(prov.getClassName()) || 
-						"lucee.commons.io.res.type.s3.S3ResourceProvider".equals(prov.getClassName()))
-						continue;
-						//prov=new ClassDefinitionImpl(S3ResourceProvider.class);
-	
-					strProviderScheme = getAttr(providers[i],"scheme");
-					// class
-					if (prov.hasClass() && !StringUtil.isEmpty(strProviderScheme)) {
-						strProviderScheme = strProviderScheme.trim().toLowerCase();
-						config.addResourceProvider(strProviderScheme, prov, toArguments(getAttr(providers[i],"arguments"), true));
-	
-						// patch for user not having
-						if (strProviderScheme.equalsIgnoreCase("http")) {
-							httpClass = prov;
-							httpArgs = toArguments(getAttr(providers[i],"arguments"), true);
-						}
-						else if (strProviderScheme.equalsIgnoreCase("https"))
-							hasHTTPs = true;
-					}
-	
-					// cfc
-					else if (!StringUtil.isEmpty(strProviderCFC) && !StringUtil.isEmpty(strProviderScheme)) {
-						strProviderCFC = strProviderCFC.trim();
-						strProviderScheme = strProviderScheme.trim().toLowerCase();
-						Map<String, String> args = toArguments(getAttr(providers[i],"arguments"), true);
-						args.put("component", strProviderCFC);
-						config.addResourceProvider(strProviderScheme, new ClassDefinitionImpl(CFMLResourceProvider.class), args);
-					}
-				}
-				catch(Throwable t){ // TODO log the exception
-					ExceptionUtil.rethrowIfNecessary(t);
-				}
-			}
-
-			// adding https when not exist
-			if (!hasHTTPs && httpClass != null) {
-				config.addResourceProvider("https", httpClass, httpArgs);
-			}
-			// adding s3 when not exist
-			
-			// we make sure we have the default on server level
-			if (!hasCS && !config.hasResourceProvider("s3")) {
-				ClassDefinition s3Class = new ClassDefinitionImpl(DummyS3ResourceProvider.class);;
-				config.addResourceProvider("s3", s3Class, toArguments("lock-timeout:10000;", false));
-			}
+		catch(Exception e) {
+			log(config,log,e);
 		}
 	}
 	
@@ -656,115 +674,122 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		return cd;
 	}
 
-	private static void loadCacheHandler(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) throws ClassException, BundleException {
-		boolean hasCS = configServer != null;
-		//!!!! config.clearResourceProviders();
-		
-		
-
-		// first of all we make sure we have a request and timespan cachehandler
-		if (!hasCS) {
-			config.addCacheHandler("request",new ClassDefinitionImpl(RequestCacheHandler.class)); 
-			config.addCacheHandler("timespan", new ClassDefinitionImpl(TimespanCacheHandler.class)); 
-				
-		}
-		
-		
-		
-		// add CacheHandlers from server context to web context
-		if (hasCS) {
-			Iterator<Entry<String, Class<CacheHandler>>> it = configServer.getCacheHandlers();
-			Entry<String, Class<CacheHandler>> entry;
-			while(it.hasNext()){
-				entry = it.next();
-				config.addCacheHandler(entry.getKey(), entry.getValue());
+	private static void loadCacheHandler(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+		try {
+			boolean hasCS = configServer != null;
+			//!!!! config.clearResourceProviders();
+	
+			// first of all we make sure we have a request and timespan cachehandler
+			if (!hasCS) {
+				config.addCacheHandler("request",new ClassDefinitionImpl(RequestCacheHandler.class)); 
+				config.addCacheHandler("timespan", new ClassDefinitionImpl(TimespanCacheHandler.class)); 
 			}
-		}
-		
-		Element root = getChildByName(doc.getDocumentElement(), "cache-handlers");
-		Element[] handlers = getChildren(root, "cache-handler");
-		if (!ArrayUtil.isEmpty(handlers)) {
-			ClassDefinition cd;
-			String strId;
-			for (int i = 0; i < handlers.length; i++) {
-				cd=getClassDefinition(handlers[i], "",config.getIdentification());
-				strId = getAttr(handlers[i],"id");
-				
-				if (cd.hasClass() && !StringUtil.isEmpty(strId)) {
-					strId = strId.trim().toLowerCase();
-					try {
-						config.addCacheHandler(strId,cd);
-					}
-					catch(Throwable t){
-						ExceptionUtil.rethrowIfNecessary(t);
-						log.error("Cache-Handler",t);
+			
+			// add CacheHandlers from server context to web context
+			if (hasCS) {
+				Iterator<Entry<String, Class<CacheHandler>>> it = configServer.getCacheHandlers();
+				if(it!=null) {
+					Entry<String, Class<CacheHandler>> entry;
+					while(it.hasNext()){
+						entry = it.next();
+						config.addCacheHandler(entry.getKey(), entry.getValue());
 					}
 				}
 			}
+			
+			Element root = getChildByName(doc.getDocumentElement(), "cache-handlers");
+			Element[] handlers = getChildren(root, "cache-handler");
+			if (!ArrayUtil.isEmpty(handlers)) {
+				ClassDefinition cd;
+				String strId;
+				for (int i = 0; i < handlers.length; i++) {
+					cd=getClassDefinition(handlers[i], "",config.getIdentification());
+					strId = getAttr(handlers[i],"id");
+					
+					if (cd.hasClass() && !StringUtil.isEmpty(strId)) {
+						strId = strId.trim().toLowerCase();
+						try {
+							config.addCacheHandler(strId,cd);
+						}
+						catch(Throwable t){
+							ExceptionUtil.rethrowIfNecessary(t);
+							log.error("Cache-Handler",t);
+						}
+					}
+				}
+			}
+		}
+		catch(Exception e) {
+			log(config,log,e);
 		}
 	}
 
-	private static void loadDumpWriter(ConfigServerImpl configServer, ConfigImpl config, Document doc) throws ClassException {
-		boolean hasCS = configServer != null;
-
-		Element coll = getChildByName(doc.getDocumentElement(), "dump-writers");
-		Element[] writers = getChildren(coll, "dump-writer");
-
-		Struct sct = new StructImpl();
-
-		boolean hasPlain = false;
-		boolean hasRich = false;
-		if (hasCS) {
-			DumpWriterEntry[] entries = configServer.getDumpWritersEntries();
-			if (entries != null)
-				for (int i = 0; i < entries.length; i++) {
-					if (entries[i].getDefaultType() == HTMLDumpWriter.DEFAULT_PLAIN)
-						hasPlain = true;
-					if (entries[i].getDefaultType() == HTMLDumpWriter.DEFAULT_RICH)
-						hasRich = true;
-					sct.put(entries[i].getName(), entries[i]);
-				}
-		}
-
-		if (writers != null && writers.length > 0) {
-			ClassDefinition cd;
-			String strName;
-			String strDefault;
-			Class clazz;
-			int def = HTMLDumpWriter.DEFAULT_NONE;
-			for (int i = 0; i < writers.length; i++) {
-				cd=getClassDefinition(writers[i], "", config.getIdentification());
-				strName = getAttr(writers[i],"name");
-				strDefault = getAttr(writers[i],"default");
-				clazz = cd.getClazz(null);
-				if (clazz != null && !StringUtil.isEmpty(strName)) {
-					if (StringUtil.isEmpty(strDefault))
-						def = HTMLDumpWriter.DEFAULT_NONE;
-					else if ("browser".equalsIgnoreCase(strDefault))
-						def = HTMLDumpWriter.DEFAULT_RICH;
-					else if ("console".equalsIgnoreCase(strDefault))
-						def = HTMLDumpWriter.DEFAULT_PLAIN;
-					sct.put(strName, new DumpWriterEntry(def, strName, (DumpWriter) ClassUtil.loadInstance(clazz)));
+	private static void loadDumpWriter(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+		try {
+			boolean hasCS = configServer != null;
+	
+			Element coll = getChildByName(doc.getDocumentElement(), "dump-writers");
+			Element[] writers = getChildren(coll, "dump-writer");
+	
+			Struct sct = new StructImpl();
+	
+			boolean hasPlain = false;
+			boolean hasRich = false;
+			if (hasCS) {
+				DumpWriterEntry[] entries = configServer.getDumpWritersEntries();
+				if (entries != null)
+					for (int i = 0; i < entries.length; i++) {
+						if (entries[i].getDefaultType() == HTMLDumpWriter.DEFAULT_PLAIN)
+							hasPlain = true;
+						if (entries[i].getDefaultType() == HTMLDumpWriter.DEFAULT_RICH)
+							hasRich = true;
+						sct.put(entries[i].getName(), entries[i]);
+					}
+			}
+	
+			if (writers != null && writers.length > 0) {
+				ClassDefinition cd;
+				String strName;
+				String strDefault;
+				Class clazz;
+				int def = HTMLDumpWriter.DEFAULT_NONE;
+				for (int i = 0; i < writers.length; i++) {
+					cd=getClassDefinition(writers[i], "", config.getIdentification());
+					strName = getAttr(writers[i],"name");
+					strDefault = getAttr(writers[i],"default");
+					clazz = cd.getClazz(null);
+					if (clazz != null && !StringUtil.isEmpty(strName)) {
+						if (StringUtil.isEmpty(strDefault))
+							def = HTMLDumpWriter.DEFAULT_NONE;
+						else if ("browser".equalsIgnoreCase(strDefault))
+							def = HTMLDumpWriter.DEFAULT_RICH;
+						else if ("console".equalsIgnoreCase(strDefault))
+							def = HTMLDumpWriter.DEFAULT_PLAIN;
+						sct.put(strName, new DumpWriterEntry(def, strName, (DumpWriter) ClassUtil.loadInstance(clazz)));
+					}
 				}
 			}
+			else {
+				// print.err("yep");
+				if (!hasRich)
+					sct.setEL(KeyConstants._html, new DumpWriterEntry(HTMLDumpWriter.DEFAULT_RICH, "html", new HTMLDumpWriter()));
+				if (!hasPlain)
+					sct.setEL(KeyConstants._text, new DumpWriterEntry(HTMLDumpWriter.DEFAULT_PLAIN, "text", new TextDumpWriter()));
+	
+				sct.setEL(KeyConstants._classic, new DumpWriterEntry(HTMLDumpWriter.DEFAULT_NONE, "classic", new ClassicHTMLDumpWriter()));
+				sct.setEL(KeyConstants._simple, new DumpWriterEntry(HTMLDumpWriter.DEFAULT_NONE, "simple", new SimpleHTMLDumpWriter()));
+	
+			}
+			Iterator<Object> it = sct.valueIterator();
+			java.util.List<DumpWriterEntry> entries = new ArrayList<DumpWriterEntry>();
+			while (it.hasNext()) {
+				entries.add((DumpWriterEntry) it.next());
+			}
+			config.setDumpWritersEntries(entries.toArray(new DumpWriterEntry[entries.size()]));
 		}
-		else {
-			// print.err("yep");
-			if (!hasRich)
-				sct.setEL(KeyConstants._html, new DumpWriterEntry(HTMLDumpWriter.DEFAULT_RICH, "html", new HTMLDumpWriter()));
-			if (!hasPlain)
-				sct.setEL(KeyConstants._text, new DumpWriterEntry(HTMLDumpWriter.DEFAULT_PLAIN, "text", new TextDumpWriter()));
-
-			sct.setEL(KeyConstants._classic, new DumpWriterEntry(HTMLDumpWriter.DEFAULT_NONE, "classic", new ClassicHTMLDumpWriter()));
-			sct.setEL(KeyConstants._simple, new DumpWriterEntry(HTMLDumpWriter.DEFAULT_NONE, "simple", new SimpleHTMLDumpWriter()));
-
+		catch(Exception e) {
+			log(config,log,e);
 		}
-		Iterator<Object> it = sct.valueIterator();
-		java.util.List<DumpWriterEntry> entries = new ArrayList<DumpWriterEntry>();
-		while (it.hasNext()) {
-			entries.add((DumpWriterEntry) it.next());
-		}
-		config.setDumpWritersEntries(entries.toArray(new DumpWriterEntry[entries.size()]));
 	}
 
 	static Map<String, String> toArguments(String attributes, boolean decode) {
@@ -801,81 +826,101 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		return URLDecoder.decode(str, false);
 	}
 
-	private static void loadListener(ConfigServerImpl configServer, ConfigImpl config, Document doc) {
-		if (config instanceof ConfigServer) {
-			ConfigServer cs = (ConfigServer) config;
-			Element listener = getChildByName(doc.getDocumentElement(), "listener");
-			ClassDefinition cd = getClassDefinition(listener, "",config.getIdentification());
-			String strArguments = getAttr(listener,"arguments");
-			if (strArguments == null)
-				strArguments = "";
-
-			if (cd.hasClass()) {
-				try {
-
-					Object obj = ClassUtil.loadInstance(cd.getClazz(), new Object[] { strArguments }, null);
-					if (obj instanceof ConfigListener) {
-						ConfigListener cl = (ConfigListener) obj;
-						cs.setConfigListener(cl);
-					}
-				}
-				catch(Throwable t) {
-					ExceptionUtil.rethrowIfNecessary(t);
-					t.printStackTrace(config.getErrWriter());
-
-				}
-
-			}
-		}
-		else if (configServer != null) {
-			ConfigListener listener = configServer.getConfigListener();
-			if (listener != null)
-				listener.onLoadWebContext(configServer, (ConfigWeb) config);
-		}
-	}
-
-	private static void settings(ConfigImpl config) {
-		doCheckChangesInLibraries( config);
-	}
-
-	private static void loadVersion(ConfigImpl config, Document doc) {
-		Element luceeConfiguration = doc.getDocumentElement();
-		String strVersion = getAttr(luceeConfiguration,"version");
-		config.setVersion(Caster.toDoubleValue(strVersion, 1.0d));
-	}
-
-	private static void loadId(ConfigServerImpl configServer, ConfigImpl config, Document doc) {
-		// Security key
-		Resource res = config.getConfigDir().getRealResource("id");
-		String securityKey = null;
+	private static void loadListener(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
 		try {
-			if (!res.exists()) {
-				res.createNewFile();
-				IOUtil.write(res, securityKey = UUID.randomUUID().toString(), SystemUtil.getCharset(), false);
+			if (config instanceof ConfigServer) {
+				ConfigServer cs = (ConfigServer) config;
+				Element listener = getChildByName(doc.getDocumentElement(), "listener");
+				ClassDefinition cd = getClassDefinition(listener, "",config.getIdentification());
+				String strArguments = getAttr(listener,"arguments");
+				if (strArguments == null)
+					strArguments = "";
+	
+				if (cd.hasClass()) {
+					try {
+	
+						Object obj = ClassUtil.loadInstance(cd.getClazz(), new Object[] { strArguments }, null);
+						if (obj instanceof ConfigListener) {
+							ConfigListener cl = (ConfigListener) obj;
+							cs.setConfigListener(cl);
+						}
+					}
+					catch(Throwable t) {
+						ExceptionUtil.rethrowIfNecessary(t);
+						t.printStackTrace(config.getErrWriter());
+	
+					}
+	
+				}
 			}
-			else {
-				securityKey = IOUtil.toString(res, SystemUtil.getCharset());
+			else if (configServer != null) {
+				ConfigListener listener = configServer.getConfigListener();
+				if (listener != null)
+					listener.onLoadWebContext(configServer, (ConfigWeb) config);
 			}
 		}
-		catch (IOException ioe) {
+		catch(Exception e) {
+			log(config,log,e);
 		}
+	}
 
-		if (StringUtil.isEmpty(securityKey))
-			securityKey = UUID.randomUUID().toString();
+	private static void settings(ConfigImpl config, Log log) {
+		try {
+			doCheckChangesInLibraries( config);
+		}
+		catch(Exception e) {
+			log(config,log,e);
+		}
+	}
 
-		
-		// API Key
-		String apiKey=null;
-		String str = getAttr(doc.getDocumentElement(),"api-key");
-		if(!StringUtil.isEmpty(str,true)) apiKey=str.trim();
-		else if(configServer != null)
-			apiKey=configServer.getIdentification().getApiKey(); // if there is no web api key the server api key is used
-		
-		if(config instanceof ConfigWebImpl) 
-			((ConfigWebImpl)config).setIdentification(new IdentificationWebImpl((ConfigWebImpl) config, securityKey, apiKey));
-		else
-			((ConfigServerImpl)config).setIdentification(new IdentificationServerImpl((ConfigServerImpl) config, securityKey, apiKey));
-		
+	private static void loadVersion(ConfigImpl config, Document doc, Log log) {
+		try {
+			Element luceeConfiguration = doc.getDocumentElement();
+			String strVersion = getAttr(luceeConfiguration,"version");
+			config.setVersion(Caster.toDoubleValue(strVersion, 1.0d));
+		}
+		catch(Exception e) {
+			log(config,log,e);
+		}
+	}
+
+	private static void loadId(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) { 
+		try {
+			// Security key
+			Resource res = config.getConfigDir().getRealResource("id");
+			String securityKey = null;
+			try {
+				if (!res.exists()) {
+					res.createNewFile();
+					IOUtil.write(res, securityKey = UUID.randomUUID().toString(), SystemUtil.getCharset(), false);
+				}
+				else {
+					securityKey = IOUtil.toString(res, SystemUtil.getCharset());
+				}
+			}
+			catch(Exception ioe) {
+				log(config,log,ioe);
+			}
+	
+			if (StringUtil.isEmpty(securityKey))
+				securityKey = UUID.randomUUID().toString();
+	
+			
+			// API Key
+			String apiKey=null;
+			String str = getAttr(doc.getDocumentElement(),"api-key");
+			if(!StringUtil.isEmpty(str,true)) apiKey=str.trim();
+			else if(configServer != null)
+				apiKey=configServer.getIdentification().getApiKey(); // if there is no web api key the server api key is used
+			
+			if(config instanceof ConfigWebImpl) 
+				((ConfigWebImpl)config).setIdentification(new IdentificationWebImpl((ConfigWebImpl) config, securityKey, apiKey));
+			else
+				((ConfigServerImpl)config).setIdentification(new IdentificationServerImpl((ConfigServerImpl) config, securityKey, apiKey));
+		}
+		catch(Exception e) {
+			log(config,log,e);
+		}
 	}
 
 	private static boolean equal(Resource[] srcs, Resource[] trgs) {
@@ -912,55 +957,59 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * @param config
 	 * @param doc
 	 */
-	private static void loadSecurity(ConfigServerImpl configServer, ConfigImpl config, Document doc) {
-
-		// Serial Number
-		if (config instanceof ConfigServer) {
-			Element luceeConfiguration = doc.getDocumentElement();
-			String serial = getAttr(luceeConfiguration,"serial-number");
-			if (!StringUtil.isEmpty(serial))
-				config.setSerialNumber(serial);
-		}
-		else if (configServer != null) {
-			config.setSerialNumber(configServer.getSerialNumber());
-		}
-
-		// Security Manger
-		SecurityManager securityManager = null;
-		if (config instanceof ConfigServerImpl) {
-			ConfigServerImpl cs = (ConfigServerImpl) config;
-			Element security = getChildByName(doc.getDocumentElement(), "security");
-
-			// Default SecurityManager
-			SecurityManagerImpl sm = _toSecurityManager(security);
-
-			// additional file access directories
-			Element[] elFileAccesses = getChildren(security, "file-access");
-			sm.setCustomFileAccess(_loadFileAccess(config, elFileAccesses));
-
-			cs.setDefaultSecurityManager(sm);
-
-			// Web SecurityManager
-			Element[] accessors = getChildren(security, "accessor");
-			for (int i = 0; i < accessors.length; i++) {
-				String id = getAttr(accessors[i],"id");
-				if (id != null) {
-					sm = _toSecurityManager(accessors[i]);
-					elFileAccesses = getChildren(accessors[i], "file-access");
-					sm.setCustomFileAccess(_loadFileAccess(config, elFileAccesses));
-					cs.setSecurityManager(id, sm);
-				}
+	private static void loadSecurity(ConfigServerImpl configServer, ConfigImpl config, Document doc,Log log) {
+		try {
+			// Serial Number
+			if (config instanceof ConfigServer) {
+				Element luceeConfiguration = doc.getDocumentElement();
+				String serial = getAttr(luceeConfiguration,"serial-number");
+				if (!StringUtil.isEmpty(serial))
+					config.setSerialNumber(serial);
 			}
-
+			else if (configServer != null) {
+				config.setSerialNumber(configServer.getSerialNumber());
+			}
+	
+			// Security Manger
+			SecurityManager securityManager = null;
+			if (config instanceof ConfigServerImpl) {
+				ConfigServerImpl cs = (ConfigServerImpl) config;
+				Element security = getChildByName(doc.getDocumentElement(), "security");
+	
+				// Default SecurityManager
+				SecurityManagerImpl sm = _toSecurityManager(security);
+	
+				// additional file access directories
+				Element[] elFileAccesses = getChildren(security, "file-access");
+				sm.setCustomFileAccess(_loadFileAccess(config, elFileAccesses));
+	
+				cs.setDefaultSecurityManager(sm);
+	
+				// Web SecurityManager
+				Element[] accessors = getChildren(security, "accessor");
+				for (int i = 0; i < accessors.length; i++) {
+					String id = getAttr(accessors[i],"id");
+					if (id != null) {
+						sm = _toSecurityManager(accessors[i]);
+						elFileAccesses = getChildren(accessors[i], "file-access");
+						sm.setCustomFileAccess(_loadFileAccess(config, elFileAccesses));
+						cs.setSecurityManager(id, sm);
+					}
+				}
+	
+			}
+	
+			else if (configServer != null) {
+				securityManager = configServer.getSecurityManager(config.getIdentification().getId());
+			}
+			if (config instanceof ConfigWebImpl) {
+				if (securityManager == null)
+					securityManager = SecurityManagerImpl.getOpenSecurityManager();
+				((ConfigWebImpl) config).setSecurityManager(securityManager);
+			}
 		}
-
-		else if (configServer != null) {
-			securityManager = configServer.getSecurityManager(config.getIdentification().getId());
-		}
-		if (config instanceof ConfigWebImpl) {
-			if (securityManager == null)
-				securityManager = SecurityManagerImpl.getOpenSecurityManager();
-			((ConfigWebImpl) config).setSecurityManager(securityManager);
+		catch(Exception e) {
+			log(config,log,e);
 		}
 	}
 
@@ -1552,136 +1601,143 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * @param doc
 	 * @throws IOException
 	 */
-	private static void loadMappings(ConfigServerImpl configServer, ConfigImpl config, Document doc, int mode) throws IOException {
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_MAPPING);
-		Element el = getChildByName(doc.getDocumentElement(), "mappings");
-		Element[] _mappings = getChildren(el, "mapping");
-
-		Map<String,Mapping> mappings = MapFactory.<String,Mapping>getConcurrentMap();
-		Mapping tmp;
-
-		boolean finished = false;
-
-		if (configServer != null && config instanceof ConfigWeb) {
-			Mapping[] sm = configServer.getMappings();
-			for (int i = 0; i < sm.length; i++) {
-				if (!sm[i].isHidden()) {
-					if ("/".equals(sm[i].getVirtual())) finished = true;
-					if (sm[i] instanceof MappingImpl) {
-						tmp = ((MappingImpl) sm[i]).cloneReadOnly(config);
-						mappings.put(tmp.getVirtualLowerCase(), tmp);
-
-					}
-					else {
-						tmp = sm[i];
-						mappings.put(tmp.getVirtualLowerCase(), tmp);
+	private static void loadMappings(ConfigServerImpl configServer, ConfigImpl config, Document doc, int mode, Log log) throws IOException {
+		try {
+			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_MAPPING);
+			Element el = getChildByName(doc.getDocumentElement(), "mappings");
+			Element[] _mappings = getChildren(el, "mapping");
+	
+			Map<String,Mapping> mappings = MapFactory.<String,Mapping>getConcurrentMap();
+			Mapping tmp;
+	
+			boolean finished = false;
+	
+			if (configServer != null && config instanceof ConfigWeb) {
+				Mapping[] sm = configServer.getMappings();
+				if(sm!=null) {
+					for (int i = 0; i < sm.length; i++) {
+						if (!sm[i].isHidden()) {
+							if ("/".equals(sm[i].getVirtual())) finished = true;
+							if (sm[i] instanceof MappingImpl) {
+								tmp = ((MappingImpl) sm[i]).cloneReadOnly(config);
+								mappings.put(tmp.getVirtualLowerCase(), tmp);
+		
+							}
+							else {
+								tmp = sm[i];
+								mappings.put(tmp.getVirtualLowerCase(), tmp);
+							}
+						}
 					}
 				}
 			}
-		}
-
-		if (hasAccess) {
-			boolean hasServerContext=false;
-			for (int i = 0; i < _mappings.length; i++) {
-				el = _mappings[i];
-
-				String physical = el.getAttribute("physical");
-				String archive = el.getAttribute("archive");
-				String virtual = getAttr(el,"virtual");
-				String listType = getAttr(el,"listener-type");
-				String listMode = getAttr(el,"listener-mode");
-				
-				boolean readonly = toBoolean(getAttr(el,"readonly"), false);
-				boolean hidden = toBoolean(getAttr(el,"hidden"), false);
-				boolean toplevel = toBoolean(getAttr(el,"toplevel"), true);
-				
-				if(config instanceof ConfigServer && (virtual.equalsIgnoreCase("/lucee-server/") || virtual.equalsIgnoreCase("/lucee-server-context/"))) {
-					hasServerContext=true;
-				}
-				
-				// lucee
-				if (virtual.equalsIgnoreCase("/lucee/")) {
-					if (StringUtil.isEmpty(listType, true))
-						listType = "modern";
-					if (StringUtil.isEmpty(listMode, true))
-						listMode = "curr2root";
-					toplevel = true;
-				}
-
-				int listenerMode = ConfigWebUtil.toListenerMode(listMode, -1);
-				int listenerType = ConfigWebUtil.toListenerType(listType, -1);
-				ApplicationListener listener = ConfigWebUtil.loadListener(listenerType, null);
-				if (listener != null || listenerMode != -1) {
-					// type
-					if (mode == ConfigImpl.MODE_STRICT)
-						listener = new ModernAppListener();
-					else if (listener == null)
-						listener = ConfigWebUtil.loadListener(ConfigWebUtil.toListenerType(config.getApplicationListener().getType(),-1), null);
-					if (listener == null)// this should never be true
-						listener = new ModernAppListener();
-
-					// mode
-					if (listenerMode == -1) {
-						listenerMode = config.getApplicationListener().getMode();
+	
+			if (hasAccess) {
+				boolean hasServerContext=false;
+				for (int i = 0; i < _mappings.length; i++) {
+					el = _mappings[i];
+	
+					String physical = el.getAttribute("physical");
+					String archive = el.getAttribute("archive");
+					String virtual = getAttr(el,"virtual");
+					String listType = getAttr(el,"listener-type");
+					String listMode = getAttr(el,"listener-mode");
+					
+					boolean readonly = toBoolean(getAttr(el,"readonly"), false);
+					boolean hidden = toBoolean(getAttr(el,"hidden"), false);
+					boolean toplevel = toBoolean(getAttr(el,"toplevel"), true);
+					
+					if(config instanceof ConfigServer && (virtual.equalsIgnoreCase("/lucee-server/") || virtual.equalsIgnoreCase("/lucee-server-context/"))) {
+						hasServerContext=true;
 					}
-					listener.setMode(listenerMode);
-
+					
+					// lucee
+					if (virtual.equalsIgnoreCase("/lucee/")) {
+						if (StringUtil.isEmpty(listType, true))
+							listType = "modern";
+						if (StringUtil.isEmpty(listMode, true))
+							listMode = "curr2root";
+						toplevel = true;
+					}
+	
+					int listenerMode = ConfigWebUtil.toListenerMode(listMode, -1);
+					int listenerType = ConfigWebUtil.toListenerType(listType, -1);
+					ApplicationListener listener = ConfigWebUtil.loadListener(listenerType, null);
+					if (listener != null || listenerMode != -1) {
+						// type
+						if (mode == ConfigImpl.MODE_STRICT)
+							listener = new ModernAppListener();
+						else if (listener == null)
+							listener = ConfigWebUtil.loadListener(ConfigWebUtil.toListenerType(config.getApplicationListener().getType(),-1), null);
+						if (listener == null)// this should never be true
+							listener = new ModernAppListener();
+	
+						// mode
+						if (listenerMode == -1) {
+							listenerMode = config.getApplicationListener().getMode();
+						}
+						listener.setMode(listenerMode);
+	
+					}
+	
+					// physical!=null &&
+					if ((physical != null || archive != null)) {
+						
+						short insTemp=inspectTemplate(el);
+						if("/lucee/".equalsIgnoreCase(virtual) || "/lucee".equalsIgnoreCase(virtual) ||
+							"/lucee-server/".equalsIgnoreCase(virtual) || "/lucee-server-context".equalsIgnoreCase(virtual))
+							insTemp=ConfigImpl.INSPECT_ONCE;
+						
+						
+						String primary = getAttr(el,"primary");
+						boolean physicalFirst = primary == null || !primary.equalsIgnoreCase("archive");
+	
+						tmp = new MappingImpl(config, virtual, physical, archive, insTemp, physicalFirst, hidden, readonly, toplevel, false, false, listener,listenerMode,listenerType);
+						mappings.put(tmp.getVirtualLowerCase(), tmp);
+						if (virtual.equals("/")) {
+							finished = true;
+							// break;
+						}
+					}
 				}
-
-				// physical!=null &&
-				if ((physical != null || archive != null)) {
+				
+				// set default lucee-server-context
+				if(config instanceof ConfigServer && !hasServerContext) {
+					ApplicationListener listener = ConfigWebUtil.loadListener(ApplicationListener.TYPE_MODERN, null);
+					listener.setMode(ApplicationListener.MODE_CURRENT2ROOT);
 					
-					short insTemp=inspectTemplate(el);
-					if("/lucee/".equalsIgnoreCase(virtual) || "/lucee".equalsIgnoreCase(virtual) ||
-						"/lucee-server/".equalsIgnoreCase(virtual) || "/lucee-server-context".equalsIgnoreCase(virtual))
-						insTemp=ConfigImpl.INSPECT_ONCE;
-					
-					
-					String primary = getAttr(el,"primary");
-					boolean physicalFirst = primary == null || !primary.equalsIgnoreCase("archive");
-
-					tmp = new MappingImpl(config, virtual, physical, archive, insTemp, physicalFirst, hidden, readonly, toplevel, false, false, listener,listenerMode,listenerType);
+					tmp = new MappingImpl(config, "/lucee-server", "{lucee-server}/context/", null, ConfigImpl.INSPECT_ONCE, true, false, true, true, false, false, listener,ApplicationListener.MODE_CURRENT2ROOT,ApplicationListener.TYPE_MODERN);
 					mappings.put(tmp.getVirtualLowerCase(), tmp);
-					if (virtual.equals("/")) {
-						finished = true;
-						// break;
-					}
 				}
 			}
-			
-			// set default lucee-server-context
-			if(config instanceof ConfigServer && !hasServerContext) {
-				ApplicationListener listener = ConfigWebUtil.loadListener(ApplicationListener.TYPE_MODERN, null);
-				listener.setMode(ApplicationListener.MODE_CURRENT2ROOT);
-				
-				tmp = new MappingImpl(config, "/lucee-server", "{lucee-server}/context/", null, ConfigImpl.INSPECT_ONCE, true, false, true, true, false, false, listener,ApplicationListener.MODE_CURRENT2ROOT,ApplicationListener.TYPE_MODERN);
-				mappings.put(tmp.getVirtualLowerCase(), tmp);
+	
+	
+			if ( !finished ) {
+	
+				if ( (config instanceof ConfigWebImpl) && ResourceUtil.isUNCPath( config.getRootDirectory().getPath() ) ) {
+	
+					tmp = new MappingImpl( config, "/", config.getRootDirectory().getPath(), null, ConfigImpl.INSPECT_UNDEFINED, true, true, true, true, false, false, null ,-1,-1);
+				} else {
+	
+					tmp = new MappingImpl( config, "/", "/", null, ConfigImpl.INSPECT_UNDEFINED, true, true, true, true, false, false, null ,-1,-1);
+				}
+	
+				mappings.put( "/", tmp );
 			}
-		}
-
-
-		if ( !finished ) {
-
-			if ( (config instanceof ConfigWebImpl) && ResourceUtil.isUNCPath( config.getRootDirectory().getPath() ) ) {
-
-				tmp = new MappingImpl( config, "/", config.getRootDirectory().getPath(), null, ConfigImpl.INSPECT_UNDEFINED, true, true, true, true, false, false, null ,-1,-1);
-			} else {
-
-				tmp = new MappingImpl( config, "/", "/", null, ConfigImpl.INSPECT_UNDEFINED, true, true, true, true, false, false, null ,-1,-1);
+	
+			Mapping[] arrMapping = new Mapping[mappings.size()];
+			int index = 0;
+			Iterator it = mappings.keySet().iterator();
+			while (it.hasNext()) {
+				arrMapping[index++] = mappings.get(it.next());
 			}
-
-			mappings.put( "/", tmp );
+			config.setMappings(arrMapping);
+			// config.setMappings((Mapping[]) mappings.toArray(new
+			// Mapping[mappings.size()]));
 		}
-
-		Mapping[] arrMapping = new Mapping[mappings.size()];
-		int index = 0;
-		Iterator it = mappings.keySet().iterator();
-		while (it.hasNext()) {
-			arrMapping[index++] = mappings.get(it.next());
+		catch(Exception e) {
+			log(config,log,e);
 		}
-		config.setMappings(arrMapping);
-		// config.setMappings((Mapping[]) mappings.toArray(new
-		// Mapping[mappings.size()]));
 	}
 
 	private static short inspectTemplate(Element el) {
@@ -1698,80 +1754,91 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		return ConfigWebUtil.inspectTemplate(strInsTemp,ConfigImpl.INSPECT_UNDEFINED);	
 	}
 
-	private static void loadRest(ConfigServerImpl configServer, ConfigImpl config, Document doc) {
-		boolean hasAccess = true;// MUST
-									// ConfigWebUtil.hasAccess(config,SecurityManager.TYPE_REST);
-		boolean hasCS = configServer != null;
-		Element el = getChildByName(doc.getDocumentElement(), "rest");
-
-		// list
-		Boolean list = Caster.toBoolean(getAttr(el,"list"), null);
-		if (list != null) {
-			config.setRestList(list.booleanValue());
-		}
-		else if (hasCS) {
-			config.setRestList(configServer.getRestList());
-		}
-
-		Element[] _mappings = getChildren(el, "mapping");
-
-		// first get mapping defined in server admin (read-only)
-		Map<String, lucee.runtime.rest.Mapping> mappings = new HashMap<String, lucee.runtime.rest.Mapping>();
-		lucee.runtime.rest.Mapping tmp;
-		if (configServer != null && config instanceof ConfigWeb) {
-			lucee.runtime.rest.Mapping[] sm = configServer.getRestMappings();
-			for (int i = 0; i < sm.length; i++) {
-
-				if (!sm[i].isHidden()) {
-					tmp = sm[i].duplicate(config, Boolean.TRUE);
-					mappings.put(tmp.getVirtual(), tmp);
+	private static void loadRest(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+		try {
+			boolean hasAccess = true;// MUST
+										// ConfigWebUtil.hasAccess(config,SecurityManager.TYPE_REST);
+			boolean hasCS = configServer != null;
+			Element el = getChildByName(doc.getDocumentElement(), "rest");
+	
+			// list
+			Boolean list = Caster.toBoolean(getAttr(el,"list"), null);
+			if (list != null) {
+				config.setRestList(list.booleanValue());
+			}
+			else if (hasCS) {
+				config.setRestList(configServer.getRestList());
+			}
+	
+			Element[] _mappings = getChildren(el, "mapping");
+	
+			// first get mapping defined in server admin (read-only)
+			Map<String, lucee.runtime.rest.Mapping> mappings = new HashMap<String, lucee.runtime.rest.Mapping>();
+			lucee.runtime.rest.Mapping tmp;
+			if (configServer != null && config instanceof ConfigWeb) {
+				lucee.runtime.rest.Mapping[] sm = configServer.getRestMappings();
+				if(sm!=null) {
+					for (int i = 0; i < sm.length; i++) {
+		
+						if (!sm[i].isHidden()) {
+							tmp = sm[i].duplicate(config, Boolean.TRUE);
+							mappings.put(tmp.getVirtual(), tmp);
+						}
+					}
 				}
 			}
-		}
-
-		// get current mappings
-		if (hasAccess) {
-			for (int i = 0; i < _mappings.length; i++) {
-				el = _mappings[i];
-				String physical = el.getAttribute("physical");
-				String virtual = getAttr(el,"virtual");
-				boolean readonly = toBoolean(getAttr(el,"readonly"), false);
-				boolean hidden = toBoolean(getAttr(el,"hidden"), false);
-				boolean _default = toBoolean(getAttr(el,"default"), false);
-				if (physical != null) {
-					tmp = new lucee.runtime.rest.Mapping(config, virtual, physical, hidden, readonly, _default);
-					mappings.put(tmp.getVirtual(), tmp);
+	
+			// get current mappings
+			if (hasAccess) {
+				for (int i = 0; i < _mappings.length; i++) {
+					el = _mappings[i];
+					String physical = el.getAttribute("physical");
+					String virtual = getAttr(el,"virtual");
+					boolean readonly = toBoolean(getAttr(el,"readonly"), false);
+					boolean hidden = toBoolean(getAttr(el,"hidden"), false);
+					boolean _default = toBoolean(getAttr(el,"default"), false);
+					if (physical != null) {
+						tmp = new lucee.runtime.rest.Mapping(config, virtual, physical, hidden, readonly, _default);
+						mappings.put(tmp.getVirtual(), tmp);
+					}
 				}
 			}
+	
+			config.setRestMappings(mappings.values().toArray(new lucee.runtime.rest.Mapping[mappings.size()]));
 		}
-
-		config.setRestMappings(mappings.values().toArray(new lucee.runtime.rest.Mapping[mappings.size()]));
+		catch(Exception e) {
+			log(config,log,e);
+		}
 	}
 
-	private static void loadFlex(ConfigServerImpl configServer, ConfigImpl config, Document doc) throws IOException {
-
-		Element el = getChildByName(doc.getDocumentElement(), "flex");
-		
-		// engine - we init a engine for every context, but only the server context defines the eggine class
-		if(config instanceof ConfigServerImpl) { // only server context
+	private static void loadFlex(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+		try {
+			Element el = getChildByName(doc.getDocumentElement(), "flex");
 			
-			// arguments
-			Map<String, String> args = new HashMap<String, String>();
-			String _caster = getAttr(el,"caster");
-			if(_caster!=null) args.put("caster", _caster);
-			String _config = getAttr(el,"configuration");
-			if(_config!=null) args.put("configuration", _config);
-			
-			ClassDefinition<AMFEngine> cd = getClassDefinition(el, "", config.getIdentification());
-			if (cd.hasClass())
-				((ConfigServerImpl)config).setAMFEngine(cd,args);
+			// engine - we init a engine for every context, but only the server context defines the eggine class
+			if(config instanceof ConfigServerImpl) { // only server context
+				
+				// arguments
+				Map<String, String> args = new HashMap<String, String>();
+				String _caster = getAttr(el,"caster");
+				if(_caster!=null) args.put("caster", _caster);
+				String _config = getAttr(el,"configuration");
+				if(_config!=null) args.put("configuration", _config);
+				
+				ClassDefinition<AMFEngine> cd = getClassDefinition(el, "", config.getIdentification());
+				if (cd.hasClass())
+					((ConfigServerImpl)config).setAMFEngine(cd,args);
+			}
+			else if(configServer!=null && configServer.getAMFEngineClassDefinition()!=null && configServer.getAMFEngineClassDefinition().hasClass()) { // only web contexts
+				AMFEngine engine = toAMFEngine(config, configServer.getAMFEngineClassDefinition(), null);
+				if(engine!=null) {
+					engine.init((ConfigWeb)config, configServer.getAMFEngineArgs());
+					((ConfigWebImpl)config).setAMFEngine(engine);
+				};
+			}
 		}
-		else if(configServer!=null && configServer.getAMFEngineClassDefinition()!=null && configServer.getAMFEngineClassDefinition().hasClass()) { // only web contexts
-			AMFEngine engine = toAMFEngine(config, configServer.getAMFEngineClassDefinition(), null);
-			if(engine!=null) {
-				engine.init((ConfigWeb)config, configServer.getAMFEngineArgs());
-				((ConfigWebImpl)config).setAMFEngine(engine);
-			};
+		catch(Exception e) {
+			log(config,log,e);
 		}
 	}
 	private static AMFEngine toAMFEngine(Config config,ClassDefinition<AMFEngine> cd, AMFEngine defaultValue) {
@@ -1790,157 +1857,164 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
         return defaultValue;
 	}
 	
-	private static void loadLoggers(ConfigServerImpl configServer, ConfigImpl config, Document doc, boolean isReload) {
-		config.clearLoggers(Boolean.FALSE);
-		Element parent = getChildByName(doc.getDocumentElement(), "logging");
-		Element[] children = getChildren(parent, "logger");
-		Element child;
-		String name,appenderArgs,tmp,layoutArgs;
-		ClassDefinition cdAppender,cdLayout;
-		int level=Log.LEVEL_ERROR;
-		boolean readOnly=false;
-		for(int i=0;i<children.length;i++){
-			child=children[i];
-			name=StringUtil.trim(getAttr(child,"name"),"");
-			
-			// appender
-			cdAppender = getClassDefinition(child, "appender-", config.getIdentification());
-			if(!cdAppender.hasClass()) {
-				tmp=StringUtil.trim(getAttr(child,"appender"),"");
-				cdAppender=Log4jUtil.appenderClassDefintion(tmp);
-			}
-			appenderArgs=StringUtil.trim(getAttr(child,"appender-arguments"),"");
-			
-			// layout
-			cdLayout = getClassDefinition(child, "layout-", config.getIdentification());
-			if(!cdLayout.hasClass()) {
-				tmp=StringUtil.trim(getAttr(child,"layout"),"");
-				cdLayout=Log4jUtil.layoutClassDefintion(tmp);
-			}
-			layoutArgs=StringUtil.trim(getAttr(child,"layout-arguments"),"");
-			
-			
-			String strLevel=getAttr(child,"level");
-			if(StringUtil.isEmpty(strLevel,true))strLevel=getAttr(child,"log-level");
-			level=LogUtil.toLevel(StringUtil.trim(strLevel,""),Log.LEVEL_ERROR);
-			readOnly=Caster.toBooleanValue(getAttr(child,"read-only"),false);
-			// ignore when no appender/name is defined
-			if(cdAppender.hasClass() && !StringUtil.isEmpty(name)) {
-				Map<String, String> appArgs = cssStringToMap(appenderArgs, true,true);
-				if(cdLayout.hasClass()) {
-					Map<String, String> layArgs = cssStringToMap(layoutArgs, true,true);
-					config.addLogger(name,level,cdAppender,appArgs,cdLayout,layArgs,readOnly,false);
-				}
-				else
-					config.addLogger(name,level,cdAppender,appArgs,null,null,readOnly,false);
-			}
-		}
-		
-		if(configServer != null) {
-			Iterator<Entry<String, LoggerAndSourceData>> it = configServer.getLoggers().entrySet().iterator();
-			Entry<String, LoggerAndSourceData> e;
-			LoggerAndSourceData data;
-			while(it.hasNext()){
-				e = it.next();
+	private static void loadLoggers(ConfigServerImpl configServer, ConfigImpl config, Document doc, boolean isReload, Log log) {
+		try {
+			config.clearLoggers(Boolean.FALSE);
+			Element parent = getChildByName(doc.getDocumentElement(), "logging");
+			Element[] children = getChildren(parent, "logger");
+			Element child;
+			String name,appenderArgs,tmp,layoutArgs;
+			ClassDefinition cdAppender,cdLayout;
+			int level=Log.LEVEL_ERROR;
+			boolean readOnly=false;
+			for(int i=0;i<children.length;i++){
+				child=children[i];
+				name=StringUtil.trim(getAttr(child,"name"),"");
 				
-				// logger only exists in server context
-				if(config.getLog(e.getKey(),false)==null) {
-					data = e.getValue();
-					config.addLogger(e.getKey(), data.getLevel(), 
-							data.getAppenderClassDefinition(), data.getAppenderArgs(), 
-							data.getLayoutClassDefinition(), data.getLayoutArgs(),true,false);
+				// appender
+				cdAppender = getClassDefinition(child, "appender-", config.getIdentification());
+				if(!cdAppender.hasClass()) {
+					tmp=StringUtil.trim(getAttr(child,"appender"),"");
+					cdAppender=Log4jUtil.appenderClassDefintion(tmp);
+				}
+				appenderArgs=StringUtil.trim(getAttr(child,"appender-arguments"),"");
+				
+				// layout
+				cdLayout = getClassDefinition(child, "layout-", config.getIdentification());
+				if(!cdLayout.hasClass()) {
+					tmp=StringUtil.trim(getAttr(child,"layout"),"");
+					cdLayout=Log4jUtil.layoutClassDefintion(tmp);
+				}
+				layoutArgs=StringUtil.trim(getAttr(child,"layout-arguments"),"");
+				
+				
+				String strLevel=getAttr(child,"level");
+				if(StringUtil.isEmpty(strLevel,true))strLevel=getAttr(child,"log-level");
+				level=LogUtil.toLevel(StringUtil.trim(strLevel,""),Log.LEVEL_ERROR);
+				readOnly=Caster.toBooleanValue(getAttr(child,"read-only"),false);
+				// ignore when no appender/name is defined
+				if(cdAppender.hasClass() && !StringUtil.isEmpty(name)) {
+					Map<String, String> appArgs = cssStringToMap(appenderArgs, true,true);
+					if(cdLayout.hasClass()) {
+						Map<String, String> layArgs = cssStringToMap(layoutArgs, true,true);
+						config.addLogger(name,level,cdAppender,appArgs,cdLayout,layArgs,readOnly,false);
+					}
+					else
+						config.addLogger(name,level,cdAppender,appArgs,null,null,readOnly,false);
 				}
 			}
 			
+			if(configServer != null) {
+				Iterator<Entry<String, LoggerAndSourceData>> it = configServer.getLoggers().entrySet().iterator();
+				Entry<String, LoggerAndSourceData> e;
+				LoggerAndSourceData data;
+				while(it.hasNext()){
+					e = it.next();
+					
+					// logger only exists in server context
+					if(config.getLog(e.getKey(),false)==null) {
+						data = e.getValue();
+						config.addLogger(e.getKey(), data.getLevel(), 
+								data.getAppenderClassDefinition(), data.getAppenderArgs(), 
+								data.getLayoutClassDefinition(), data.getLayoutArgs(),true,false);
+					}
+				}
+			}
 		}
-		
+		catch(Exception e) {
+			log(config,log,e);
+		}
 	}
 
-	private static void loadExeLog(ConfigServerImpl configServer, ConfigImpl config, Document doc) {
-
-		boolean hasServer = configServer != null;
-
-		Element el = getChildByName(doc.getDocumentElement(), "execution-log");
-
-		// enabled
-		Boolean bEnabled = Caster.toBoolean(getAttr(el,"enabled"), null);
-		if (bEnabled == null) {
-			if (hasServer)
-				config.setExecutionLogEnabled(configServer.getExecutionLogEnabled());
-		}
-		else
-			config.setExecutionLogEnabled(bEnabled.booleanValue());
-
-		boolean hasChanged = false;
-		String val = Caster.toString(config.getExecutionLogEnabled());
+	private static void loadExeLog(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
 		try {
-			Resource contextDir = config.getConfigDir();
-			Resource exeLog = contextDir.getRealResource("exe-log");
-
-			if (!exeLog.exists()) {
-				exeLog.createNewFile();
-				IOUtil.write(exeLog, val, SystemUtil.getCharset(), false);
-				hasChanged = true;
+			boolean hasServer = configServer != null;
+	
+			Element el = getChildByName(doc.getDocumentElement(), "execution-log");
+	
+			// enabled
+			Boolean bEnabled = Caster.toBoolean(getAttr(el,"enabled"), null);
+			if (bEnabled == null) {
+				if (hasServer)
+					config.setExecutionLogEnabled(configServer.getExecutionLogEnabled());
 			}
-			else if (!IOUtil.toString(exeLog, SystemUtil.getCharset()).equals(val)) {
-				IOUtil.write(exeLog, val, SystemUtil.getCharset(), false);
-				hasChanged = true;
-			}
-		}
-		catch (IOException e) {
-			e.printStackTrace(config.getErrWriter());
-		}
-
-		if (hasChanged) {
+			else
+				config.setExecutionLogEnabled(bEnabled.booleanValue());
+	
+			boolean hasChanged = false;
+			String val = Caster.toString(config.getExecutionLogEnabled());
 			try {
-				if (config.getClassDirectory().exists())
-					config.getClassDirectory().remove(true);
+				Resource contextDir = config.getConfigDir();
+				Resource exeLog = contextDir.getRealResource("exe-log");
+	
+				if (!exeLog.exists()) {
+					exeLog.createNewFile();
+					IOUtil.write(exeLog, val, SystemUtil.getCharset(), false);
+					hasChanged = true;
+				}
+				else if (!IOUtil.toString(exeLog, SystemUtil.getCharset()).equals(val)) {
+					IOUtil.write(exeLog, val, SystemUtil.getCharset(), false);
+					hasChanged = true;
+				}
 			}
 			catch (IOException e) {
 				e.printStackTrace(config.getErrWriter());
 			}
-		}
-
-		// class
-		String strClass = getAttr(el,"class");
-		Class clazz;
-		if (!StringUtil.isEmpty(strClass)) {
-			try {
-				if ("console".equalsIgnoreCase(strClass))
-					clazz = ConsoleExecutionLog.class;
-				else {
-					ClassDefinition cd=getClassDefinition(el, "", config.getIdentification());
-					
-					Class c = cd.getClazz();
-					if ((c.newInstance() instanceof ExecutionLog)) {
-						clazz = c;
-					}
-					else {
-						clazz = ConsoleExecutionLog.class;
-						SystemOut.printDate(config.getErrWriter(), "class [" + strClass + "] must implement the interface " + ExecutionLog.class.getName());
-					}
+	
+			if (hasChanged) {
+				try {
+					if (config.getClassDirectory().exists())
+						config.getClassDirectory().remove(true);
+				}
+				catch (IOException e) {
+					e.printStackTrace(config.getErrWriter());
 				}
 			}
-			catch (Exception e) {
-				SystemOut.printDate(e);
-				clazz = ConsoleExecutionLog.class;
+	
+			// class
+			String strClass = getAttr(el,"class");
+			Class clazz;
+			if (!StringUtil.isEmpty(strClass)) {
+				try {
+					if ("console".equalsIgnoreCase(strClass))
+						clazz = ConsoleExecutionLog.class;
+					else {
+						ClassDefinition cd=getClassDefinition(el, "", config.getIdentification());
+						
+						Class c = cd.getClazz();
+						if ((c.newInstance() instanceof ExecutionLog)) {
+							clazz = c;
+						}
+						else {
+							clazz = ConsoleExecutionLog.class;
+							SystemOut.printDate(config.getErrWriter(), "class [" + strClass + "] must implement the interface " + ExecutionLog.class.getName());
+						}
+					}
+				}
+				catch (Exception e) {
+					SystemOut.printDate(e);
+					clazz = ConsoleExecutionLog.class;
+				}
+				if (clazz != null)
+					SystemOut.printDate(config.getOutWriter(), "loaded ExecutionLog class " + clazz.getName());
+	
+				// arguments
+				String strArgs = getAttr(el,"arguments");
+				if (StringUtil.isEmpty(strArgs))
+					strArgs = getAttr(el,"class-arguments");
+				Map<String, String> args = toArguments(strArgs, true);
+	
+				config.setExecutionLogFactory(new ExecutionLogFactory(clazz, args));
 			}
-			if (clazz != null)
-				SystemOut.printDate(config.getOutWriter(), "loaded ExecutionLog class " + clazz.getName());
-
-			// arguments
-			String strArgs = getAttr(el,"arguments");
-			if (StringUtil.isEmpty(strArgs))
-				strArgs = getAttr(el,"class-arguments");
-			Map<String, String> args = toArguments(strArgs, true);
-
-			config.setExecutionLogFactory(new ExecutionLogFactory(clazz, args));
+			else {
+				if (hasServer)
+					config.setExecutionLogFactory(configServer.getExecutionLogFactory());
+				else
+					config.setExecutionLogFactory(new ExecutionLogFactory(ConsoleExecutionLog.class, new HashMap<String, String>()));
+			}
 		}
-		else {
-			if (hasServer)
-				config.setExecutionLogFactory(configServer.getExecutionLogFactory());
-			else
-				config.setExecutionLogFactory(new ExecutionLogFactory(ConsoleExecutionLog.class, new HashMap<String, String>()));
+		catch(Exception e) {
+			log(config,log,e);
 		}
 	}
 
@@ -1951,7 +2025,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * @param config
 	 * @param doc
 	 */
-	private static void loadPagePool(ConfigServer configServer, Config config, Document doc) {
+	private static void loadPagePool(ConfigServer configServer, Config config, Document doc,Log log) {
 		// TODO xml configuration fuer das erstellen
 		// config.setPagePool( new PagePool(10000,1000));
 	}
@@ -1966,148 +2040,149 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * @throws ClassNotFoundException
 	 */
 	private static void loadDataSources(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
-		
-		// load JDBC Driver definition
-		config.setJDBCDrivers(loadJDBCDrivers(configServer,config, doc, log));
-		
-		
-		
-		
-		// When set to true, makes JDBC use a representation for DATE data that
-		// is compatible with the Oracle8i database.
-		System.setProperty("oracle.jdbc.V8Compatible", "true");
-
-		boolean hasCS = configServer != null;
-		Map<String, DataSource> datasources = new HashMap<String, DataSource>();
-
-		// Copy Parent datasources as readOnly
-		if (hasCS) {
-			Map<String, DataSource> ds = configServer.getDataSourcesAsMap();
-			Iterator<Entry<String, DataSource>> it = ds.entrySet().iterator();
-			Entry<String, DataSource> entry;
-			while (it.hasNext()) {
-				entry = it.next();
-				if (!entry.getKey().equals(QOQ_DATASOURCE_NAME))
-					datasources.put(entry.getKey(), entry.getValue().cloneReadOnly());
-			}
-		}
-
-		// TODO support H2
-		// Default query of query DB
-		/*
-		 * setDatasource(datasources, QOQ_DATASOURCE_NAME, "org.h2.Driver" ,"" ,""
-		 * ,-1 ,"jdbc:h2:.;MODE=HSQLDB" ,"sa" ,"" ,-1 ,-1 ,true ,true
-		 * ,DataSource.ALLOW_ALL, new StructImpl() );
-		 */
-		// Default query of query DB
 		try {
-			setDatasource(config, datasources, QOQ_DATASOURCE_NAME, 
-					new ClassDefinitionImpl("org.hsqldb.jdbcDriver","hsqldb","1.8.0",config.getIdentification()), 
-					"hypersonic-hsqldb", "", -1, "jdbc:hsqldb:.", "sa", "",null, DEFAULT_MAX_CONNECTION, -1, 60000, true, true, DataSource.ALLOW_ALL,
-					false, false, null, new StructImpl(), "",ParamSyntax.DEFAULT,false,false);
-		} catch (Exception e) {
-			log.error("Datasource", e);
-		}
-		
-		SecurityManager sm = config.getSecurityManager();
-		short access = sm.getAccess(SecurityManager.TYPE_DATASOURCE);
-		int accessCount = -1;
-		if (access == SecurityManager.VALUE_YES)
-			accessCount = -1;
-		else if (access == SecurityManager.VALUE_NO)
-			accessCount = 0;
-		else if (access >= SecurityManager.VALUE_1 && access <= SecurityManager.VALUE_10) {
-			accessCount = access - SecurityManager.NUMBER_OFFSET;
-		}
-
-		// Databases
-		Element databases = getChildByName(doc.getDocumentElement(), "data-sources");
-		// if(databases==null)databases=doc.createElement("data-sources");
-
-		// PSQ
-		String strPSQ = getAttr(databases,"psq");
-		if (StringUtil.isEmpty(strPSQ)) {
-			// prior version was buggy, was the opposite
-			strPSQ = getAttr(databases,"preserve-single-quote");
-			if (!StringUtil.isEmpty(strPSQ)) {
-				Boolean b = Caster.toBoolean(strPSQ, null);
-				if (b != null)
-					strPSQ = b.booleanValue() ? "false" : "true";
-			}
-		}
-		if (access != SecurityManager.VALUE_NO && !StringUtil.isEmpty(strPSQ)) {
-			config.setPSQL(toBoolean(strPSQ, true));
-		}
-		else if (hasCS)
-			config.setPSQL(configServer.getPSQL());
-
-		// Data Sources
-		Element[] dataSources = getChildren(databases, "data-source");
-		if (accessCount == -1)
-			accessCount = dataSources.length;
-		if (dataSources.length < accessCount)
-			accessCount = dataSources.length;
-
-		// if(hasAccess) {
-		JDBCDriver jdbc;
-		ClassDefinition cd;
-		String id;
-		for (int i = 0; i < accessCount; i++) {
-			Element dataSource = dataSources[i];
-			if (dataSource.hasAttribute("database")) {
-				try {
-					// do we have an id?
-					jdbc=config.getJDBCDriverById(getAttr(dataSource,"id"),null);
-					if(jdbc!=null && jdbc.cd!=null) {
-						cd=jdbc.cd;
-					}
-					else cd=getClassDefinition(dataSource, "", config.getIdentification());
-					
-					// we only have a class
-					if(!cd.isBundle()) {
-						jdbc = config.getJDBCDriverByClassName(cd.getClassName(),null);
-						if(jdbc!=null && jdbc.cd!=null && jdbc.cd.isBundle())cd=jdbc.cd;
-					}
-					
-					// still no bundle!
-					if(!cd.isBundle())cd=patchJDBCClass(config,cd);
-					
-					setDatasource(config, datasources
-						,getAttr(dataSource,"name")
-						,cd
-						,getAttr(dataSource,"host")
-						,getAttr(dataSource,"database")
-						,Caster.toIntValue(getAttr(dataSource,"port"), -1)
-						,getAttr(dataSource,"dsn")
-						,getAttr(dataSource,"username")
-						,ConfigWebUtil.decrypt(getAttr(dataSource,"password"))
-						,null
-						,Caster.toIntValue(getAttr(dataSource,"connectionLimit"), DEFAULT_MAX_CONNECTION)
-						,Caster.toIntValue(getAttr(dataSource,"connectionTimeout"), -1)
-						,Caster.toLongValue(getAttr(dataSource,"metaCacheTimeout"), 60000)
-						,toBoolean(getAttr(dataSource,"blob"), true)
-						,toBoolean(getAttr(dataSource,"clob"), true)
-						,Caster.toIntValue(getAttr(dataSource,"allow"), DataSource.ALLOW_ALL)
-						,toBoolean(getAttr(dataSource,"validate"), false)
-						,toBoolean(getAttr(dataSource,"storage"), false)
-						,getAttr(dataSource,"timezone")
-						,toStruct(getAttr(dataSource,"custom"))
-						,getAttr(dataSource,"dbdriver")
-						,ParamSyntax.toParamSyntax(dataSource,ParamSyntax.DEFAULT)
-						,toBoolean(getAttr(dataSource,"literal-timestamp-with-tsoffset"), false)
-						,toBoolean(getAttr(dataSource,"always-set-timeout"), false)
-						
-						);
-				} catch (Exception e) {
-					log.error("Datasource", e);
+			// load JDBC Driver definition
+			config.setJDBCDrivers(loadJDBCDrivers(configServer,config, doc, log));
+			
+			
+			
+			
+			// When set to true, makes JDBC use a representation for DATE data that
+			// is compatible with the Oracle8i database.
+			System.setProperty("oracle.jdbc.V8Compatible", "true");
+	
+			boolean hasCS = configServer != null;
+			Map<String, DataSource> datasources = new HashMap<String, DataSource>();
+	
+			// Copy Parent datasources as readOnly
+			if (hasCS) {
+				Map<String, DataSource> ds = configServer.getDataSourcesAsMap();
+				Iterator<Entry<String, DataSource>> it = ds.entrySet().iterator();
+				Entry<String, DataSource> entry;
+				while (it.hasNext()) {
+					entry = it.next();
+					if (!entry.getKey().equals(QOQ_DATASOURCE_NAME))
+						datasources.put(entry.getKey(), entry.getValue().cloneReadOnly());
 				}
 			}
+	
+			// TODO support H2
+			// Default query of query DB
+			/*
+			 * setDatasource(datasources, QOQ_DATASOURCE_NAME, "org.h2.Driver" ,"" ,""
+			 * ,-1 ,"jdbc:h2:.;MODE=HSQLDB" ,"sa" ,"" ,-1 ,-1 ,true ,true
+			 * ,DataSource.ALLOW_ALL, new StructImpl() );
+			 */
+			// Default query of query DB
+			try {
+				setDatasource(config, datasources, QOQ_DATASOURCE_NAME, 
+						new ClassDefinitionImpl("org.hsqldb.jdbcDriver","hsqldb","1.8.0",config.getIdentification()), 
+						"hypersonic-hsqldb", "", -1, "jdbc:hsqldb:.", "sa", "",null, DEFAULT_MAX_CONNECTION, -1, 60000, true, true, DataSource.ALLOW_ALL,
+						false, false, null, new StructImpl(), "",ParamSyntax.DEFAULT,false,false);
+			} catch (Exception e) {
+				log.error("Datasource", e);
+			}
+			
+			SecurityManager sm = config.getSecurityManager();
+			short access = sm.getAccess(SecurityManager.TYPE_DATASOURCE);
+			int accessCount = -1;
+			if (access == SecurityManager.VALUE_YES)
+				accessCount = -1;
+			else if (access == SecurityManager.VALUE_NO)
+				accessCount = 0;
+			else if (access >= SecurityManager.VALUE_1 && access <= SecurityManager.VALUE_10) {
+				accessCount = access - SecurityManager.NUMBER_OFFSET;
+			}
+	
+			// Databases
+			Element databases = getChildByName(doc.getDocumentElement(), "data-sources");
+			// if(databases==null)databases=doc.createElement("data-sources");
+	
+			// PSQ
+			String strPSQ = getAttr(databases,"psq");
+			if (StringUtil.isEmpty(strPSQ)) {
+				// prior version was buggy, was the opposite
+				strPSQ = getAttr(databases,"preserve-single-quote");
+				if (!StringUtil.isEmpty(strPSQ)) {
+					Boolean b = Caster.toBoolean(strPSQ, null);
+					if (b != null)
+						strPSQ = b.booleanValue() ? "false" : "true";
+				}
+			}
+			if (access != SecurityManager.VALUE_NO && !StringUtil.isEmpty(strPSQ)) {
+				config.setPSQL(toBoolean(strPSQ, true));
+			}
+			else if (hasCS)
+				config.setPSQL(configServer.getPSQL());
+	
+			// Data Sources
+			Element[] dataSources = getChildren(databases, "data-source");
+			if (accessCount == -1)
+				accessCount = dataSources.length;
+			if (dataSources.length < accessCount)
+				accessCount = dataSources.length;
+	
+			// if(hasAccess) {
+			JDBCDriver jdbc;
+			ClassDefinition cd;
+			String id;
+			for (int i = 0; i < accessCount; i++) {
+				Element dataSource = dataSources[i];
+				if (dataSource.hasAttribute("database")) {
+					try {
+						// do we have an id?
+						jdbc=config.getJDBCDriverById(getAttr(dataSource,"id"),null);
+						if(jdbc!=null && jdbc.cd!=null) {
+							cd=jdbc.cd;
+						}
+						else cd=getClassDefinition(dataSource, "", config.getIdentification());
+						
+						// we only have a class
+						if(!cd.isBundle()) {
+							jdbc = config.getJDBCDriverByClassName(cd.getClassName(),null);
+							if(jdbc!=null && jdbc.cd!=null && jdbc.cd.isBundle())cd=jdbc.cd;
+						}
+						
+						// still no bundle!
+						if(!cd.isBundle())cd=patchJDBCClass(config,cd);
+						
+						setDatasource(config, datasources
+							,getAttr(dataSource,"name")
+							,cd
+							,getAttr(dataSource,"host")
+							,getAttr(dataSource,"database")
+							,Caster.toIntValue(getAttr(dataSource,"port"), -1)
+							,getAttr(dataSource,"dsn")
+							,getAttr(dataSource,"username")
+							,ConfigWebUtil.decrypt(getAttr(dataSource,"password"))
+							,null
+							,Caster.toIntValue(getAttr(dataSource,"connectionLimit"), DEFAULT_MAX_CONNECTION)
+							,Caster.toIntValue(getAttr(dataSource,"connectionTimeout"), -1)
+							,Caster.toLongValue(getAttr(dataSource,"metaCacheTimeout"), 60000)
+							,toBoolean(getAttr(dataSource,"blob"), true)
+							,toBoolean(getAttr(dataSource,"clob"), true)
+							,Caster.toIntValue(getAttr(dataSource,"allow"), DataSource.ALLOW_ALL)
+							,toBoolean(getAttr(dataSource,"validate"), false)
+							,toBoolean(getAttr(dataSource,"storage"), false)
+							,getAttr(dataSource,"timezone")
+							,toStruct(getAttr(dataSource,"custom"))
+							,getAttr(dataSource,"dbdriver")
+							,ParamSyntax.toParamSyntax(dataSource,ParamSyntax.DEFAULT)
+							,toBoolean(getAttr(dataSource,"literal-timestamp-with-tsoffset"), false)
+							,toBoolean(getAttr(dataSource,"always-set-timeout"), false)
+							
+							);
+					} catch (Exception e) {
+						log.error("Datasource", e);
+					}
+				}
+			}
+			// }
+			config.setDataSources(datasources);
 		}
-		// }
-		config.setDataSources(datasources);
-		
-		
-		
+		catch(Exception e) {
+			log(config,log,e);
+		}
 	}
 
 	private static ClassDefinition patchJDBCClass(ConfigImpl config, ClassDefinition cd) {
@@ -2152,8 +2227,10 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		// first add the server drivers, so they can be overwritten
 		if(configServer!=null) {
 			JDBCDriver[] sds = configServer.getJDBCDrivers();
-			for(JDBCDriver sd:sds){
-				map.put(sd.cd.toString(), sd);
+			if(sds!=null) {
+				for(JDBCDriver sd:sds){
+					map.put(sd.cd.toString(), sd);
+				}
 			}
 		}
 		
@@ -2220,204 +2297,209 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * @param doc
 	 */
 	private static void loadCache(ConfigServerImpl configServer, ConfigImpl config, Document doc,Log log) {
-		boolean hasCS = configServer != null;
-		
-		
-		// load Cache info
-		{
-			Element parent = getChildByName(doc.getDocumentElement(), "caches");
-			Element[] children = getChildren(parent, "cache");
-			Map<String,ClassDefinition> map=new HashMap<String,ClassDefinition>();
+		try {
+			boolean hasCS = configServer != null;
 			
-
-			// first add the server drivers, so they can be overwritten
-			if(configServer!=null) {
-				Iterator<ClassDefinition> it = configServer.getCacheDefinitions().values().iterator();
+			
+			// load Cache info
+			{
+				Element parent = getChildByName(doc.getDocumentElement(), "caches");
+				Element[] children = getChildren(parent, "cache");
+				Map<String,ClassDefinition> map=new HashMap<String,ClassDefinition>();
+				
+	
+				// first add the server drivers, so they can be overwritten
+				if(configServer!=null) {
+					Iterator<ClassDefinition> it = configServer.getCacheDefinitions().values().iterator();
+					ClassDefinition cd;
+					while(it.hasNext()){
+						cd = it.next();
+						map.put(cd.getClassName(), cd);
+					}
+				}
+				
 				ClassDefinition cd;
-				while(it.hasNext()){
-					cd = it.next();
+				String label;
+				for(Element child:children){
+					cd=getClassDefinition(child, "", config.getIdentification());
+					
+					// check if it is a bundle
+					if(!cd.isBundle()) {
+						log.error("Datasource", "["+cd+"] does not have bundle info");
+						continue;
+					}
 					map.put(cd.getClassName(), cd);
 				}
+				config.setCacheDefinitions(map);
 			}
 			
-			ClassDefinition cd;
-			String label;
-			for(Element child:children){
-				cd=getClassDefinition(child, "", config.getIdentification());
-				
-				// check if it is a bundle
-				if(!cd.isBundle()) {
-					log.error("Datasource", "["+cd+"] does not have bundle info");
-					continue;
+			
+			
+			
+			
+			
+			Map<String, CacheConnection> caches = new HashMap<String, CacheConnection>();
+	
+			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManagerImpl.TYPE_CACHE);
+			// print.o("LOAD CACHE:"+hasAccess+":"+hasCS);
+	
+			Element eCache = getChildByName(doc.getDocumentElement(), "cache");
+	
+			// has changes
+	
+			String md5 = getMD5(eCache, hasCS ? configServer.getCacheMD5() : "");
+			if (md5.equals(config.getCacheMD5()))
+				return;
+			config.setCacheMD5(md5);
+			
+			String[] typeNames=new String[]{"resource","function","include","query","template","object","file","http","webservice"};
+			int[] types=new int[]{ConfigImpl.CACHE_TYPE_RESOURCE,ConfigImpl.CACHE_TYPE_FUNCTION,ConfigImpl.CACHE_TYPE_INCLUDE
+					,ConfigImpl.CACHE_TYPE_QUERY,ConfigImpl.CACHE_TYPE_TEMPLATE,ConfigImpl.CACHE_TYPE_OBJECT
+					,ConfigImpl.CACHE_TYPE_FILE,ConfigImpl.CACHE_TYPE_HTTP,ConfigImpl.CACHE_TYPE_WEBSERVICE};
+	
+			// default cache
+			for(int i=0;i<types.length;i++){
+				String def = getAttr(eCache,"default-"+typeNames[i]);
+				if (hasAccess && !StringUtil.isEmpty(def)) {
+					config.setCacheDefaultConnectionName(types[i], def);
 				}
-				map.put(cd.getClassName(), cd);
-			}
-			config.setCacheDefinitions(map);
-		}
-		
-		
-		
-		
-		
-		
-		Map<String, CacheConnection> caches = new HashMap<String, CacheConnection>();
-
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManagerImpl.TYPE_CACHE);
-		// print.o("LOAD CACHE:"+hasAccess+":"+hasCS);
-
-		Element eCache = getChildByName(doc.getDocumentElement(), "cache");
-
-		// has changes
-
-		String md5 = getMD5(eCache, hasCS ? configServer.getCacheMD5() : "");
-		if (md5.equals(config.getCacheMD5()))
-			return;
-		config.setCacheMD5(md5);
-		
-		String[] typeNames=new String[]{"resource","function","include","query","template","object","file","http","webservice"};
-		int[] types=new int[]{ConfigImpl.CACHE_TYPE_RESOURCE,ConfigImpl.CACHE_TYPE_FUNCTION,ConfigImpl.CACHE_TYPE_INCLUDE
-				,ConfigImpl.CACHE_TYPE_QUERY,ConfigImpl.CACHE_TYPE_TEMPLATE,ConfigImpl.CACHE_TYPE_OBJECT
-				,ConfigImpl.CACHE_TYPE_FILE,ConfigImpl.CACHE_TYPE_HTTP,ConfigImpl.CACHE_TYPE_WEBSERVICE};
-
-		// default cache
-		for(int i=0;i<types.length;i++){
-			String def = getAttr(eCache,"default-"+typeNames[i]);
-			if (hasAccess && !StringUtil.isEmpty(def)) {
-				config.setCacheDefaultConnectionName(types[i], def);
-			}
-			else if (hasCS) {
-				if (eCache.hasAttribute("default-"+typeNames[i]))
-					config.setCacheDefaultConnectionName(types[i], "");
-				else
-					config.setCacheDefaultConnectionName(types[i], configServer.getCacheDefaultConnectionName(types[i]));
-			}
-			else
-				config.setCacheDefaultConnectionName(+types[i], "");
-		}
-
-
-		// cache connections
-		Element[] eConnections = getChildren(eCache, "connection");
-
-		// if(hasAccess) {
-		ClassDefinition cd;
-		String name;
-		CacheConnection cc;
-		//Class cacheClazz;
-		// caches
-		if (hasAccess)
-			for (int i = 0; i < eConnections.length; i++) {
-				Element eConnection = eConnections[i];
-				name = getAttr(eConnection,"name");
-				cd = getClassDefinition(eConnection, "", config.getIdentification());
-				if(!cd.isBundle()) {
-					ClassDefinition _cd = config.getCacheDefinition(cd.getClassName());
-					if(_cd!=null) cd=_cd;
-				}
-				
-				
-				 {
-					Struct custom = toStruct(getAttr(eConnection,"custom"));
-					
-					// Workaround for old EHCache class definitions
-					if (cd.getClassName()!=null && cd.getClassName().endsWith(".EHCacheLite")) {
-						cd=new ClassDefinitionImpl("org.lucee.extension.cache.eh.EHCache");
-						if(!custom.containsKey("distributed")) 
-							custom.setEL("distributed", "off");
-						if(!custom.containsKey("asynchronousReplicationIntervalMillis")) 
-							custom.setEL("asynchronousReplicationIntervalMillis", "1000");
-						if(!custom.containsKey("maximumChunkSizeBytes")) 
-							custom.setEL("maximumChunkSizeBytes", "5000000");
-						
-						
-					}// 
-					else if (cd.getClassName()!=null 
-							&& (cd.getClassName().endsWith(".extension.io.cache.eh.EHCache")
-							|| cd.getClassName().endsWith("lucee.runtime.cache.eh.EHCache")))
-						cd=new ClassDefinitionImpl("org.lucee.extension.cache.eh.EHCache");
-					// else cacheClazz = cd.getClazz();
-
-					cc = new CacheConnectionImpl(config, name, cd, custom, 
-							Caster.toBooleanValue(getAttr(eConnection,"read-only"), false), 
-							Caster.toBooleanValue(getAttr(eConnection,"storage"), false));
-					if (!StringUtil.isEmpty(name)) {
-						caches.put(name.toLowerCase(), cc);
-					}
+				else if (hasCS) {
+					if (eCache.hasAttribute("default-"+typeNames[i]))
+						config.setCacheDefaultConnectionName(types[i], "");
 					else
-						SystemOut.print(config.getErrWriter(), "missing cache name");
-
+						config.setCacheDefaultConnectionName(types[i], configServer.getCacheDefaultConnectionName(types[i]));
 				}
-				
+				else
+					config.setCacheDefaultConnectionName(+types[i], "");
 			}
-		// }
-
-		// call static init once per driver
-		{
-			// group by classes
-			final Map<ClassDefinition,List<CacheConnection>> _caches = new HashMap<ClassDefinition,List<CacheConnection>>();
+	
+	
+			// cache connections
+			Element[] eConnections = getChildren(eCache, "connection");
+	
+			// if(hasAccess) {
+			ClassDefinition cd;
+			String name;
+			CacheConnection cc;
+			//Class cacheClazz;
+			// caches
+			if (hasAccess)
+				for (int i = 0; i < eConnections.length; i++) {
+					Element eConnection = eConnections[i];
+					name = getAttr(eConnection,"name");
+					cd = getClassDefinition(eConnection, "", config.getIdentification());
+					if(!cd.isBundle()) {
+						ClassDefinition _cd = config.getCacheDefinition(cd.getClassName());
+						if(_cd!=null) cd=_cd;
+					}
+					
+					
+					 {
+						Struct custom = toStruct(getAttr(eConnection,"custom"));
+						
+						// Workaround for old EHCache class definitions
+						if (cd.getClassName()!=null && cd.getClassName().endsWith(".EHCacheLite")) {
+							cd=new ClassDefinitionImpl("org.lucee.extension.cache.eh.EHCache");
+							if(!custom.containsKey("distributed")) 
+								custom.setEL("distributed", "off");
+							if(!custom.containsKey("asynchronousReplicationIntervalMillis")) 
+								custom.setEL("asynchronousReplicationIntervalMillis", "1000");
+							if(!custom.containsKey("maximumChunkSizeBytes")) 
+								custom.setEL("maximumChunkSizeBytes", "5000000");
+							
+							
+						}// 
+						else if (cd.getClassName()!=null 
+								&& (cd.getClassName().endsWith(".extension.io.cache.eh.EHCache")
+								|| cd.getClassName().endsWith("lucee.runtime.cache.eh.EHCache")))
+							cd=new ClassDefinitionImpl("org.lucee.extension.cache.eh.EHCache");
+						// else cacheClazz = cd.getClazz();
+	
+						cc = new CacheConnectionImpl(config, name, cd, custom, 
+								Caster.toBooleanValue(getAttr(eConnection,"read-only"), false), 
+								Caster.toBooleanValue(getAttr(eConnection,"storage"), false));
+						if (!StringUtil.isEmpty(name)) {
+							caches.put(name.toLowerCase(), cc);
+						}
+						else
+							SystemOut.print(config.getErrWriter(), "missing cache name");
+	
+					}
+					
+				}
+			// }
+	
+			// call static init once per driver
 			{
-				Iterator<Entry<String, CacheConnection>> it = caches.entrySet().iterator();
-				Entry<String, CacheConnection> entry;
+				// group by classes
+				final Map<ClassDefinition,List<CacheConnection>> _caches = new HashMap<ClassDefinition,List<CacheConnection>>();
+				{
+					Iterator<Entry<String, CacheConnection>> it = caches.entrySet().iterator();
+					Entry<String, CacheConnection> entry;
+					List<CacheConnection> list;
+					while (it.hasNext()) {
+						entry = it.next();
+						cc = entry.getValue();
+						if(cc==null) continue;// Jira 3196 ?!
+						list = _caches.get(cc.getClassDefinition());
+						if (list == null) {
+							list = new ArrayList<CacheConnection>();
+							_caches.put(cc.getClassDefinition(), list);
+						}
+						list.add(cc);
+					}
+				}
+				// call
+				Iterator<Entry<ClassDefinition, List<CacheConnection>>> it = _caches.entrySet().iterator();
+				Entry<ClassDefinition, List<CacheConnection>> entry;
 				List<CacheConnection> list;
+				ClassDefinition _cd;
+				while (it.hasNext()) {
+					entry = it.next();
+					list = entry.getValue();
+					_cd = entry.getKey();
+					try {
+						Method m = _cd.getClazz().getMethod("init", new Class[] { Config.class, String[].class, Struct[].class });
+						if(Modifier.isStatic(m.getModifiers()))
+							m.invoke(null, new Object[] { config, _toCacheNames(list), _toArguments(list) });
+						else
+							SystemOut.print(config.getErrWriter(), "method [init(Config,String[],Struct[]):void] for class [" + _cd.toString() + "] is not static");
+						
+					}
+					catch (InvocationTargetException e) {
+						log.error("Cache", e.getTargetException());
+					}
+					catch (RuntimeException e) {
+						log.error("Cache", e);
+					}
+					catch (NoSuchMethodException e) {
+						log.error("Cache", "missing method [public static init(Config,String[],Struct[]):void] for class [" + _cd.toString() + "] ");
+						//SystemOut.print(config.getErrWriter(), "missing method [public static init(Config,String[],Struct[]):void] for class [" + _cd.toString() + "] ");
+					}
+					catch (Throwable e) {
+						ExceptionUtil.rethrowIfNecessary(e);
+						log.error("Cache", e);
+					}
+				}
+			}
+	
+			// Copy Parent caches as readOnly
+			if (hasCS) {
+				Map<String, CacheConnection> ds = configServer.getCacheConnections();
+				Iterator<Entry<String, CacheConnection>> it = ds.entrySet().iterator();
+				Entry<String, CacheConnection> entry;
 				while (it.hasNext()) {
 					entry = it.next();
 					cc = entry.getValue();
-					if(cc==null) continue;// Jira 3196 ?!
-					list = _caches.get(cc.getClassDefinition());
-					if (list == null) {
-						list = new ArrayList<CacheConnection>();
-						_caches.put(cc.getClassDefinition(), list);
-					}
-					list.add(cc);
+					if (!caches.containsKey(entry.getKey()))
+						caches.put(entry.getKey(), new ServerCacheConnection(configServer, cc));
 				}
 			}
-			// call
-			Iterator<Entry<ClassDefinition, List<CacheConnection>>> it = _caches.entrySet().iterator();
-			Entry<ClassDefinition, List<CacheConnection>> entry;
-			List<CacheConnection> list;
-			ClassDefinition _cd;
-			while (it.hasNext()) {
-				entry = it.next();
-				list = entry.getValue();
-				_cd = entry.getKey();
-				try {
-					Method m = _cd.getClazz().getMethod("init", new Class[] { Config.class, String[].class, Struct[].class });
-					if(Modifier.isStatic(m.getModifiers()))
-						m.invoke(null, new Object[] { config, _toCacheNames(list), _toArguments(list) });
-					else
-						SystemOut.print(config.getErrWriter(), "method [init(Config,String[],Struct[]):void] for class [" + _cd.toString() + "] is not static");
-					
-				}
-				catch (InvocationTargetException e) {
-					log.error("Cache", e.getTargetException());
-				}
-				catch (RuntimeException e) {
-					log.error("Cache", e);
-				}
-				catch (NoSuchMethodException e) {
-					log.error("Cache", "missing method [public static init(Config,String[],Struct[]):void] for class [" + _cd.toString() + "] ");
-					//SystemOut.print(config.getErrWriter(), "missing method [public static init(Config,String[],Struct[]):void] for class [" + _cd.toString() + "] ");
-				}
-				catch (Throwable e) {
-					ExceptionUtil.rethrowIfNecessary(e);
-					log.error("Cache", e);
-				}
-			}
+			config.setCaches(caches);
 		}
-
-		// Copy Parent caches as readOnly
-		if (hasCS) {
-			Map<String, CacheConnection> ds = configServer.getCacheConnections();
-			Iterator<Entry<String, CacheConnection>> it = ds.entrySet().iterator();
-			Entry<String, CacheConnection> entry;
-			while (it.hasNext()) {
-				entry = it.next();
-				cc = entry.getValue();
-				if (!caches.containsKey(entry.getKey()))
-					caches.put(entry.getKey(), new ServerCacheConnection(configServer, cc));
-			}
+		catch(Exception e) {
+			log(config,log,e);
 		}
-		config.setCaches(caches);
 	}
 
 	private static String getMD5(Node node, String parentMD5) {
@@ -2429,11 +2511,13 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		}
 	}
 
-	private static void loadGatewayEL(ConfigServerImpl configServer, ConfigImpl config, Document doc) {
+	private static void loadGatewayEL(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
 		try {
 			loadGateway(configServer, config, doc);
 		}
-		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
+		catch(Exception e) {
+			log(config,log,e);
+		}
 	}
 
 	private static void loadGateway(ConfigServerImpl configServer, ConfigImpl config, Document doc) {
@@ -2561,139 +2645,144 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * @param doc
 	 * @throws IOException
 	 */
-	private static void loadCustomTagsMappings(ConfigServerImpl configServer, ConfigImpl config, Document doc, int mode) {
-
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_CUSTOM_TAG);
-		boolean hasCS = configServer != null;
-
-		Element customTag = getChildByName(doc.getDocumentElement(), "custom-tag");
-		Element[] ctMappings = getChildren(customTag, "mapping");
-		// String virtualx="/custom-tag/";
-
-		// do patch cache
-		String strDoPathcache = getAttr(customTag,"use-cache-path");
-		if (hasAccess && !StringUtil.isEmpty(strDoPathcache, true)) {
-			config.setUseCTPathCache(Caster.toBooleanValue(strDoPathcache.trim(), true));
-		}
-		else if (hasCS) {
-			config.setUseCTPathCache(configServer.useCTPathCache());
-		}
-
-		// do custom tag local search
-		if (mode == ConfigImpl.MODE_STRICT) {
-			config.setDoLocalCustomTag(false);
-		}
-		else {
-			String strDoCTLocalSearch = getAttr(customTag,"custom-tag-local-search");
-			if (hasAccess && !StringUtil.isEmpty(strDoCTLocalSearch)) {
-				config.setDoLocalCustomTag(Caster.toBooleanValue(strDoCTLocalSearch.trim(), true));
+	private static void loadCustomTagsMappings(ConfigServerImpl configServer, ConfigImpl config, Document doc, int mode, Log log) {
+		try {
+			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_CUSTOM_TAG);
+			boolean hasCS = configServer != null;
+	
+			Element customTag = getChildByName(doc.getDocumentElement(), "custom-tag");
+			Element[] ctMappings = getChildren(customTag, "mapping");
+			// String virtualx="/custom-tag/";
+	
+			// do patch cache
+			String strDoPathcache = getAttr(customTag,"use-cache-path");
+			if (hasAccess && !StringUtil.isEmpty(strDoPathcache, true)) {
+				config.setUseCTPathCache(Caster.toBooleanValue(strDoPathcache.trim(), true));
 			}
 			else if (hasCS) {
-				config.setDoLocalCustomTag(configServer.doLocalCustomTag());
+				config.setUseCTPathCache(configServer.useCTPathCache());
 			}
-		}
-
-		// do custom tag deep search
-		if (mode == ConfigImpl.MODE_STRICT) {
-			config.setDoCustomTagDeepSearch(false);
-		}
-		else {
-			String strDoCTDeepSearch = getAttr(customTag,"custom-tag-deep-search");
-			if (hasAccess && !StringUtil.isEmpty(strDoCTDeepSearch)) {
-				config.setDoCustomTagDeepSearch(Caster.toBooleanValue(strDoCTDeepSearch.trim(), false));
+	
+			// do custom tag local search
+			if (mode == ConfigImpl.MODE_STRICT) {
+				config.setDoLocalCustomTag(false);
 			}
-			else if (hasCS) {
-				config.setDoCustomTagDeepSearch(configServer.doCustomTagDeepSearch());
-			}
-		}
-
-		// extensions
-		if (mode == ConfigImpl.MODE_STRICT) {
-			config.setCustomTagExtensions(Constants.getComponentExtensions());
-		}
-		else {
-			String strExtensions = getAttr(customTag,"extensions");
-			if (hasAccess && !StringUtil.isEmpty(strExtensions)) {
-				try {
-					String[] arr = ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(strExtensions, ","));
-					config.setCustomTagExtensions(ListUtil.trimItems(arr));
+			else {
+				String strDoCTLocalSearch = getAttr(customTag,"custom-tag-local-search");
+				if (hasAccess && !StringUtil.isEmpty(strDoCTLocalSearch)) {
+					config.setDoLocalCustomTag(Caster.toBooleanValue(strDoCTLocalSearch.trim(), true));
 				}
-				catch (PageException e) {
+				else if (hasCS) {
+					config.setDoLocalCustomTag(configServer.doLocalCustomTag());
 				}
 			}
-			else if (hasCS) {
-				config.setCustomTagExtensions(configServer.getCustomTagExtensions());
+	
+			// do custom tag deep search
+			if (mode == ConfigImpl.MODE_STRICT) {
+				config.setDoCustomTagDeepSearch(false);
 			}
-		}
-
-		// Web Mapping
-		boolean hasSet = false;
-		Mapping[] mappings = null;
-		if (hasAccess && ctMappings.length > 0) {
-			mappings = new Mapping[ctMappings.length];
-			for (int i = 0; i < ctMappings.length; i++) {
-				Element ctMapping = ctMappings[i];
-				String physical = ctMapping.getAttribute("physical");
-				String archive = ctMapping.getAttribute("archive");
-				boolean readonly = toBoolean(getAttr(ctMapping,"readonly"), false);
-				boolean hidden = toBoolean(getAttr(ctMapping,"hidden"), false);
-				//boolean trusted = toBoolean(getAttr(ctMapping,"trusted"), false);
-				short inspTemp=inspectTemplate(ctMapping);
-				//int clMaxEl = toInt(getAttr(ctMapping,"classloader-max-elements"), 100);
-
-				String primary = getAttr(ctMapping,"primary");
-
-				boolean physicalFirst = archive == null || !primary.equalsIgnoreCase("archive");
-				hasSet = true;
-				mappings[i] = new MappingImpl(config, XMLConfigAdmin.createVirtual(ctMapping), physical, archive, inspTemp, physicalFirst, hidden, readonly, true, false, true,
-						null,-1,-1);
-				// print.out(mappings[i].isPhysicalFirst());
+			else {
+				String strDoCTDeepSearch = getAttr(customTag,"custom-tag-deep-search");
+				if (hasAccess && !StringUtil.isEmpty(strDoCTDeepSearch)) {
+					config.setDoCustomTagDeepSearch(Caster.toBooleanValue(strDoCTDeepSearch.trim(), false));
+				}
+				else if (hasCS) {
+					config.setDoCustomTagDeepSearch(configServer.doCustomTagDeepSearch());
+				}
 			}
-
-			config.setCustomTagMappings(mappings);
-
-		}
-
-		// Server Mapping
-		if (hasCS) {
-			Mapping[] originals = configServer.getCustomTagMappings();
-			Mapping[] clones = new Mapping[originals.length];
-			LinkedHashMap map = new LinkedHashMap();
-			Mapping m;
-			for (int i = 0; i < clones.length; i++) {
-				m = ((MappingImpl) originals[i]).cloneReadOnly(config);
-				map.put(toKey(m), m);
-				// clones[i]=((MappingImpl)m[i]).cloneReadOnly(config);
+	
+			// extensions
+			if (mode == ConfigImpl.MODE_STRICT) {
+				config.setCustomTagExtensions(Constants.getComponentExtensions());
 			}
-
-			if (mappings != null) {
-				for (int i = 0; i < mappings.length; i++) {
-					m = mappings[i];
+			else {
+				String strExtensions = getAttr(customTag,"extensions");
+				if (hasAccess && !StringUtil.isEmpty(strExtensions)) {
+					try {
+						String[] arr = ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(strExtensions, ","));
+						config.setCustomTagExtensions(ListUtil.trimItems(arr));
+					}
+					catch (PageException e) {
+					}
+				}
+				else if (hasCS) {
+					config.setCustomTagExtensions(configServer.getCustomTagExtensions());
+				}
+			}
+	
+			// Web Mapping
+			boolean hasSet = false;
+			Mapping[] mappings = null;
+			if (hasAccess && ctMappings.length > 0) {
+				mappings = new Mapping[ctMappings.length];
+				for (int i = 0; i < ctMappings.length; i++) {
+					Element ctMapping = ctMappings[i];
+					String physical = ctMapping.getAttribute("physical");
+					String archive = ctMapping.getAttribute("archive");
+					boolean readonly = toBoolean(getAttr(ctMapping,"readonly"), false);
+					boolean hidden = toBoolean(getAttr(ctMapping,"hidden"), false);
+					//boolean trusted = toBoolean(getAttr(ctMapping,"trusted"), false);
+					short inspTemp=inspectTemplate(ctMapping);
+					//int clMaxEl = toInt(getAttr(ctMapping,"classloader-max-elements"), 100);
+	
+					String primary = getAttr(ctMapping,"primary");
+	
+					boolean physicalFirst = archive == null || !primary.equalsIgnoreCase("archive");
+					hasSet = true;
+					mappings[i] = new MappingImpl(config, XMLConfigAdmin.createVirtual(ctMapping), physical, archive, inspTemp, physicalFirst, hidden, readonly, true, false, true,
+							null,-1,-1);
+					// print.out(mappings[i].isPhysicalFirst());
+				}
+	
+				config.setCustomTagMappings(mappings);
+	
+			}
+	
+			// Server Mapping
+			if (hasCS) {
+				Mapping[] originals = configServer.getCustomTagMappings();
+				if(originals==null) originals=new Mapping[0];
+				Mapping[] clones = new Mapping[originals.length];
+				LinkedHashMap map = new LinkedHashMap();
+				Mapping m;
+				for (int i = 0; i < clones.length; i++) {
+					m = ((MappingImpl) originals[i]).cloneReadOnly(config);
 					map.put(toKey(m), m);
+					// clones[i]=((MappingImpl)m[i]).cloneReadOnly(config);
+				}
+	
+				if (mappings != null) {
+					for (int i = 0; i < mappings.length; i++) {
+						m = mappings[i];
+						map.put(toKey(m), m);
+					}
+				}
+				if (originals.length > 0) {
+					clones = new Mapping[map.size()];
+					Iterator it = map.entrySet().iterator();
+					Map.Entry entry;
+					int index = 0;
+					while (it.hasNext()) {
+						entry = (Entry) it.next();
+						clones[index++] = (Mapping) entry.getValue();
+						// print.out("c:"+clones[index-1]);
+					}
+					hasSet = true;
+					// print.err("set:"+clones.length);
+	
+					config.setCustomTagMappings(clones);
 				}
 			}
-			if (originals.length > 0) {
-				clones = new Mapping[map.size()];
-				Iterator it = map.entrySet().iterator();
-				Map.Entry entry;
-				int index = 0;
-				while (it.hasNext()) {
-					entry = (Entry) it.next();
-					clones[index++] = (Mapping) entry.getValue();
-					// print.out("c:"+clones[index-1]);
-				}
-				hasSet = true;
-				// print.err("set:"+clones.length);
-
-				config.setCustomTagMappings(clones);
+	
+			if (!hasSet) {
+				// MappingImpl m=new
+				// MappingImpl(config,"/default-customtags/","{lucee-web}/customtags/",null,false,true,false,false,true,false,true);
+				// config.setCustomTagMappings(new
+				// Mapping[]{m.cloneReadOnly(config)});
 			}
 		}
-
-		if (!hasSet) {
-			// MappingImpl m=new
-			// MappingImpl(config,"/default-customtags/","{lucee-web}/customtags/",null,false,true,false,false,true,false,true);
-			// config.setCustomTagMappings(new
-			// Mapping[]{m.cloneReadOnly(config)});
+		catch(Exception e) {
+			log(config,log,e);
 		}
 
 	}
@@ -2711,7 +2800,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * @throws IOException 
 	 * @throws NoSuchAlgorithmException 
 	 */
-	private static void loadConfig(ConfigServerImpl configServer, ConfigImpl config, Document doc) throws IOException  {
+	private static void loadConfig(ConfigServerImpl configServer, ConfigImpl config, Document doc)   {
 		Element luceeConfiguration = doc.getDocumentElement();
 		
 		// salt (every context need to have a salt)
@@ -2733,7 +2822,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			if(!StringUtil.isEmpty(keyList)) {
 				String[] keys = ListUtil.trimItems(ListUtil.toStringArray(ListUtil.toListRemoveEmpty(keyList, ',')));
 				for(int i=0;i<keys.length;i++){
-					keys[i]=URLDecoder.decode(keys[i], "UTF-8", true);
+					try {
+						keys[i]=URLDecoder.decode(keys[i], "UTF-8", true);
+						}catch(UnsupportedEncodingException e) {}
 				}
 				
 				csi.setAuthenticationKeys(keys);
@@ -2784,85 +2875,90 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * config.getFactory().setLabel(label); } } } }
 	 */
 
-	private static void loadTag(ConfigServerImpl configServer, ConfigImpl config, Document doc) {
-		Element parent = getChildByName(doc.getDocumentElement(), "tags");
-		
-		
-		{
-			Element[] tags = getChildren(parent, "tag");
-			Element tag;
-			ClassDefinition cd;
-			String nss, ns, n;
-			if (tags != null) {
-				for (int i = 0; i < tags.length; i++) {
-					tag = tags[i];
-					ns = getAttr(tag,"namespace");
-					nss = getAttr(tag,"namespace-seperator");
-					n = getAttr(tag,"name");
-					cd=getClassDefinition(tag, "", config.getIdentification());
-					config.addTag(ns, nss, n,CFMLEngine.DIALECT_BOTH, cd);
+	private static void loadTag(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+		try {
+			Element parent = getChildByName(doc.getDocumentElement(), "tags");
+			{
+				Element[] tags = getChildren(parent, "tag");
+				Element tag;
+				ClassDefinition cd;
+				String nss, ns, n;
+				if (tags != null) {
+					for (int i = 0; i < tags.length; i++) {
+						tag = tags[i];
+						ns = getAttr(tag,"namespace");
+						nss = getAttr(tag,"namespace-seperator");
+						n = getAttr(tag,"name");
+						cd=getClassDefinition(tag, "", config.getIdentification());
+						config.addTag(ns, nss, n,CFMLEngine.DIALECT_BOTH, cd);
+					}
 				}
 			}
-		}
-		
-		// set tag default values
-		Element[] defaults = getChildren(parent, "default");
-		if(!ArrayUtil.isEmpty(defaults)){
-			Element def;
-			String tagName,attrName,attrValue;
-			Struct tags=new StructImpl(),tag;
-			Map<Key, Map<Key, Object>> trg=new HashMap<Key, Map<Key,Object>>();
-			for (int i = 0; i < defaults.length; i++) {
-				def = defaults[i];
-				tagName = getAttr(def,"tag");
-				attrName = getAttr(def,"attribute-name");
-				attrValue = getAttr(def,"attribute-value");
-				if(StringUtil.isEmpty(tagName) || StringUtil.isEmpty(attrName) || StringUtil.isEmpty(attrValue)) continue;
+			
+			// set tag default values
+			Element[] defaults = getChildren(parent, "default");
+			if(!ArrayUtil.isEmpty(defaults)){
+				Element def;
+				String tagName,attrName,attrValue;
+				Struct tags=new StructImpl(),tag;
+				Map<Key, Map<Key, Object>> trg=new HashMap<Key, Map<Key,Object>>();
+				for (int i = 0; i < defaults.length; i++) {
+					def = defaults[i];
+					tagName = getAttr(def,"tag");
+					attrName = getAttr(def,"attribute-name");
+					attrValue = getAttr(def,"attribute-value");
+					if(StringUtil.isEmpty(tagName) || StringUtil.isEmpty(attrName) || StringUtil.isEmpty(attrValue)) continue;
+					
+					tag=(Struct) tags.get(tagName,null);
+					if(tag==null) {
+						tag=new StructImpl();
+						tags.setEL(tagName, tag);
+					}
+					tag.setEL(attrName, attrValue);
+					ApplicationContextSupport.initTagDefaultAttributeValues(config, trg, tags,CFMLEngine.DIALECT_CFML);
+					ApplicationContextSupport.initTagDefaultAttributeValues(config, trg, tags,CFMLEngine.DIALECT_LUCEE);
+					config.setTagDefaultAttributeValues(trg);
+				}
 				
-				tag=(Struct) tags.get(tagName,null);
-				if(tag==null) {
-					tag=new StructImpl();
-					tags.setEL(tagName, tag);
-				}
-				tag.setEL(attrName, attrValue);
-				ApplicationContextSupport.initTagDefaultAttributeValues(config, trg, tags,CFMLEngine.DIALECT_CFML);
-				ApplicationContextSupport.initTagDefaultAttributeValues(config, trg, tags,CFMLEngine.DIALECT_LUCEE);
-				config.setTagDefaultAttributeValues(trg);
+				// initTagDefaultAttributeValues
+				
+				
 			}
-			
-			// initTagDefaultAttributeValues
-			
-			
 		}
-		
-
+		catch(Exception e) {
+			log(config,log,e);
+		}
 	}
 
-	private static void loadTempDirectory(ConfigServerImpl configServer, ConfigImpl config, Document doc, boolean isReload) throws ExpressionException {
-		Resource configDir = config.getConfigDir();
-		boolean hasCS = configServer != null;
-
-		Element fileSystem = getChildByName(doc.getDocumentElement(), "file-system");
-		if (fileSystem == null)
-			fileSystem = getChildByName(doc.getDocumentElement(), "filesystem");
-
-		String strTempDirectory = null;
-		if (fileSystem != null)
-			strTempDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("temp-directory"));
-
-		Resource cst = null;
-		// Temp Dir
-		if (!StringUtil.isEmpty(strTempDirectory))
-			cst = ConfigWebUtil.getFile(configDir, strTempDirectory, null, configDir, FileUtil.TYPE_DIR, config);
-
-		if (cst == null && hasCS)
-			cst = configServer.getTempDirectory();
-
-		if (cst == null)
-			cst = ConfigWebUtil.getFile(configDir, "temp", null, configDir, FileUtil.TYPE_DIR, config);
-
-		config.setTempDirectory(cst, !isReload);
-
+	private static void loadTempDirectory(ConfigServerImpl configServer, ConfigImpl config, Document doc, boolean isReload, Log log)  {
+		try {
+			Resource configDir = config.getConfigDir();
+			boolean hasCS = configServer != null;
+	
+			Element fileSystem = getChildByName(doc.getDocumentElement(), "file-system");
+			if (fileSystem == null)
+				fileSystem = getChildByName(doc.getDocumentElement(), "filesystem");
+	
+			String strTempDirectory = null;
+			if (fileSystem != null)
+				strTempDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("temp-directory"));
+	
+			Resource cst = null;
+			// Temp Dir
+			if (!StringUtil.isEmpty(strTempDirectory))
+				cst = ConfigWebUtil.getFile(configDir, strTempDirectory, null, configDir, FileUtil.TYPE_DIR, config);
+	
+			if (cst == null && hasCS)
+				cst = configServer.getTempDirectory();
+	
+			if (cst == null)
+				cst = ConfigWebUtil.getFile(configDir, "temp", null, configDir, FileUtil.TYPE_DIR, config);
+	
+			config.setTempDirectory(cst, !isReload);
+		}
+		catch(Exception e) {
+			log(config,log,e);
+		}
 	}
 
 	/**
@@ -2873,157 +2969,160 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * @throws TagLibException
 	 * @throws FunctionLibException
 	 */
-	private static void loadFilesystem(ConfigServerImpl configServer, ConfigImpl config, Document doc, boolean doNew) throws ExpressionException, TagLibException,
-			FunctionLibException {
-		
-		if (configServer != null) {
-			Resource src = configServer.getConfigDir().getRealResource("distribution");
-			Resource trg = config.getConfigDir().getRealResource("context/");
-			copyContextFiles(src, trg);
-		}
-		Resource configDir = config.getConfigDir();
-
-		boolean hasCS = configServer != null;
-
-		
-		String strAllowRealPath = null;
-		String strDeployDirectory = null;
-		// String strTempDirectory=null;
-
-		// system.property or env var
-		String strDefaultFLDDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.fld", null);
-		String strDefaultTLDDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.tld", null);
-		String strDefaultFuncDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.function", null);
-		String strDefaultTagDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.tag", null);
-		if(StringUtil.isEmpty(strDefaultFLDDirectory))strDefaultFLDDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.default.fld", null);
-		if(StringUtil.isEmpty(strDefaultTLDDirectory))strDefaultTLDDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.default.tld", null);
-		if(StringUtil.isEmpty(strDefaultFuncDirectory))strDefaultFuncDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.default.function", null);
-		if(StringUtil.isEmpty(strDefaultTagDirectory))strDefaultTagDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.default.tag", null);
-		
-		//String strFLDDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.addional.fld", null);
-		//String strTLDDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.addional.tld", null);
-		String strFuncDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.addional.function", null);
-		String strTagDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.addional.tag", null);
-		
-		Element fileSystem = getChildByName(doc.getDocumentElement(), "file-system");
-		if (fileSystem == null) fileSystem = getChildByName(doc.getDocumentElement(), "filesystem");
-
-		// get library directories
-		if (fileSystem != null) {
-			strAllowRealPath = getAttr(fileSystem,"allow-realpath");
-			strDeployDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("deploy-directory"));
-			if(StringUtil.isEmpty(strDefaultTLDDirectory)) strDefaultTLDDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("tld-directory"));
-			if(StringUtil.isEmpty(strDefaultFLDDirectory)) strDefaultFLDDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("fld-directory"));
-			if(StringUtil.isEmpty(strDefaultTagDirectory)) strDefaultTagDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("tag-directory"));
-			if(StringUtil.isEmpty(strDefaultFuncDirectory)) strDefaultFuncDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("function-directory"));
-			if(StringUtil.isEmpty(strDefaultTLDDirectory)) strDefaultTLDDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("tld-default-directory"));
-			if(StringUtil.isEmpty(strDefaultFLDDirectory)) strDefaultFLDDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("fld-default-directory"));
-			if(StringUtil.isEmpty(strDefaultTagDirectory)) strDefaultTagDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("tag-default-directory"));
-			if(StringUtil.isEmpty(strDefaultFuncDirectory)) strDefaultFuncDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("function-default-directory"));
+	private static void loadFilesystem(ConfigServerImpl configServer, ConfigImpl config, Document doc, boolean doNew, Log log) {
+		try {
+			if (configServer != null) {
+				Resource src = configServer.getConfigDir().getRealResource("distribution");
+				Resource trg = config.getConfigDir().getRealResource("context/");
+				copyContextFiles(src, trg);
+			}
+			Resource configDir = config.getConfigDir();
+	
+			boolean hasCS = configServer != null;
+	
 			
-			//if(StringUtil.isEmpty(strTLDDirectory)) strTLDDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("tld-addional-directory"));
-			//if(StringUtil.isEmpty(strFLDDirectory)) strFLDDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("fld-addional-directory"));
-			if(StringUtil.isEmpty(strTagDirectory)) strTagDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("tag-addional-directory"));
-			if(StringUtil.isEmpty(strFuncDirectory)) strFuncDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("function-addional-directory"));
-		}
-
-		// set default directories if necessary
-		if (StringUtil.isEmpty(strDefaultFLDDirectory))		strDefaultFLDDirectory = "{lucee-config}/library/fld/";
-		if (StringUtil.isEmpty(strDefaultTLDDirectory))		strDefaultTLDDirectory = "{lucee-config}/library/tld/";
-		if (StringUtil.isEmpty(strDefaultFuncDirectory))	strDefaultFuncDirectory = "{lucee-config}/library/function/";
-		if (StringUtil.isEmpty(strDefaultTagDirectory))		strDefaultTagDirectory = "{lucee-config}/library/tag/";
-		
-		// Deploy Dir
-		Resource dd = ConfigWebUtil.getFile(configDir, strDeployDirectory, "cfclasses", configDir, FileUtil.TYPE_DIR, config);
-		config.setDeployDirectory(dd);
-		
-	// TAG
-		
-		// init TLDS
-		if(hasCS) {
-			config.setTLDs(ConfigImpl.duplicate(configServer.getTLDs(CFMLEngine.DIALECT_CFML),false),CFMLEngine.DIALECT_CFML);
-			config.setTLDs(ConfigImpl.duplicate(configServer.getTLDs(CFMLEngine.DIALECT_LUCEE),false),CFMLEngine.DIALECT_LUCEE);
-		}
-		else {
-			ConfigServerImpl cs=(ConfigServerImpl) config;
-			config.setTLDs(ConfigImpl.duplicate(new TagLib[]{cs.cfmlCoreTLDs},false),CFMLEngine.DIALECT_CFML);
-			config.setTLDs(ConfigImpl.duplicate(new TagLib[]{cs.luceeCoreTLDs},false),CFMLEngine.DIALECT_LUCEE);
-		}
-		
-
-		// TLD Dir
-		if (!StringUtil.isEmpty(strDefaultTLDDirectory)) {
-			Resource tld = ConfigWebUtil.getFile(config, configDir, strDefaultTLDDirectory, FileUtil.TYPE_DIR);
-			if (tld != null)
-				config.setTldFile(tld,CFMLEngine.DIALECT_BOTH);
-		}
-
-		// Tag Directory
-		List<Resource> listTags=new ArrayList<Resource>();
-		if (!StringUtil.isEmpty(strDefaultTagDirectory)) {
-			Resource dir = ConfigWebUtil.getFile(config, configDir, strDefaultTagDirectory, FileUtil.TYPE_DIR);
-			createTagFiles(config, configDir, dir, doNew);
-			if (dir != null) listTags.add(dir);
-		}
-		if (!StringUtil.isEmpty(strTagDirectory)) {
-			String[] arr = ListUtil.listToStringArray(strTagDirectory, ',');
-			for(String str:arr) {
-				str=str.trim();
-				if(StringUtil.isEmpty(str)) continue;
-				Resource dir = ConfigWebUtil.getFile(config, configDir, str, FileUtil.TYPE_DIR);
+			String strAllowRealPath = null;
+			String strDeployDirectory = null;
+			// String strTempDirectory=null;
+	
+			// system.property or env var
+			String strDefaultFLDDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.fld", null);
+			String strDefaultTLDDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.tld", null);
+			String strDefaultFuncDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.function", null);
+			String strDefaultTagDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.tag", null);
+			if(StringUtil.isEmpty(strDefaultFLDDirectory))strDefaultFLDDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.default.fld", null);
+			if(StringUtil.isEmpty(strDefaultTLDDirectory))strDefaultTLDDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.default.tld", null);
+			if(StringUtil.isEmpty(strDefaultFuncDirectory))strDefaultFuncDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.default.function", null);
+			if(StringUtil.isEmpty(strDefaultTagDirectory))strDefaultTagDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.default.tag", null);
+			
+			//String strFLDDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.addional.fld", null);
+			//String strTLDDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.addional.tld", null);
+			String strFuncDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.addional.function", null);
+			String strTagDirectory = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.addional.tag", null);
+			
+			Element fileSystem = getChildByName(doc.getDocumentElement(), "file-system");
+			if (fileSystem == null) fileSystem = getChildByName(doc.getDocumentElement(), "filesystem");
+	
+			// get library directories
+			if (fileSystem != null) {
+				strAllowRealPath = getAttr(fileSystem,"allow-realpath");
+				strDeployDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("deploy-directory"));
+				if(StringUtil.isEmpty(strDefaultTLDDirectory)) strDefaultTLDDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("tld-directory"));
+				if(StringUtil.isEmpty(strDefaultFLDDirectory)) strDefaultFLDDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("fld-directory"));
+				if(StringUtil.isEmpty(strDefaultTagDirectory)) strDefaultTagDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("tag-directory"));
+				if(StringUtil.isEmpty(strDefaultFuncDirectory)) strDefaultFuncDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("function-directory"));
+				if(StringUtil.isEmpty(strDefaultTLDDirectory)) strDefaultTLDDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("tld-default-directory"));
+				if(StringUtil.isEmpty(strDefaultFLDDirectory)) strDefaultFLDDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("fld-default-directory"));
+				if(StringUtil.isEmpty(strDefaultTagDirectory)) strDefaultTagDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("tag-default-directory"));
+				if(StringUtil.isEmpty(strDefaultFuncDirectory)) strDefaultFuncDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("function-default-directory"));
+				
+				//if(StringUtil.isEmpty(strTLDDirectory)) strTLDDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("tld-addional-directory"));
+				//if(StringUtil.isEmpty(strFLDDirectory)) strFLDDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("fld-addional-directory"));
+				if(StringUtil.isEmpty(strTagDirectory)) strTagDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("tag-addional-directory"));
+				if(StringUtil.isEmpty(strFuncDirectory)) strFuncDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("function-addional-directory"));
+			}
+	
+			// set default directories if necessary
+			if (StringUtil.isEmpty(strDefaultFLDDirectory))		strDefaultFLDDirectory = "{lucee-config}/library/fld/";
+			if (StringUtil.isEmpty(strDefaultTLDDirectory))		strDefaultTLDDirectory = "{lucee-config}/library/tld/";
+			if (StringUtil.isEmpty(strDefaultFuncDirectory))	strDefaultFuncDirectory = "{lucee-config}/library/function/";
+			if (StringUtil.isEmpty(strDefaultTagDirectory))		strDefaultTagDirectory = "{lucee-config}/library/tag/";
+			
+			// Deploy Dir
+			Resource dd = ConfigWebUtil.getFile(configDir, strDeployDirectory, "cfclasses", configDir, FileUtil.TYPE_DIR, config);
+			config.setDeployDirectory(dd);
+			
+		// TAG
+			
+			// init TLDS
+			if(hasCS) {
+				config.setTLDs(ConfigImpl.duplicate(configServer.getTLDs(CFMLEngine.DIALECT_CFML),false),CFMLEngine.DIALECT_CFML);
+				config.setTLDs(ConfigImpl.duplicate(configServer.getTLDs(CFMLEngine.DIALECT_LUCEE),false),CFMLEngine.DIALECT_LUCEE);
+			}
+			else {
+				ConfigServerImpl cs=(ConfigServerImpl) config;
+				config.setTLDs(ConfigImpl.duplicate(new TagLib[]{cs.cfmlCoreTLDs},false),CFMLEngine.DIALECT_CFML);
+				config.setTLDs(ConfigImpl.duplicate(new TagLib[]{cs.luceeCoreTLDs},false),CFMLEngine.DIALECT_LUCEE);
+			}
+			
+	
+			// TLD Dir
+			if (!StringUtil.isEmpty(strDefaultTLDDirectory)) {
+				Resource tld = ConfigWebUtil.getFile(config, configDir, strDefaultTLDDirectory, FileUtil.TYPE_DIR);
+				if (tld != null)
+					config.setTldFile(tld,CFMLEngine.DIALECT_BOTH);
+			}
+	
+			// Tag Directory
+			List<Resource> listTags=new ArrayList<Resource>();
+			if (!StringUtil.isEmpty(strDefaultTagDirectory)) {
+				Resource dir = ConfigWebUtil.getFile(config, configDir, strDefaultTagDirectory, FileUtil.TYPE_DIR);
+				createTagFiles(config, configDir, dir, doNew);
 				if (dir != null) listTags.add(dir);
 			}
-		}
-		config.setTagDirectory(listTags);
-
-		// allow realpath
-		if (hasCS) {
-			config.setAllowRealPath(configServer.allowRealPath());
-		}
-		if (!StringUtil.isEmpty(strAllowRealPath, true)) {
-			config.setAllowRealPath(Caster.toBooleanValue(strAllowRealPath, true));
-		}
-		
-		
-	// FUNCTIONS
-		
-		// Init flds
-		if(hasCS){
-			config.setFLDs(ConfigImpl.duplicate(configServer.getFLDs(CFMLEngine.DIALECT_CFML),false),CFMLEngine.DIALECT_CFML);
-			config.setFLDs(ConfigImpl.duplicate(configServer.getFLDs(CFMLEngine.DIALECT_LUCEE),false),CFMLEngine.DIALECT_LUCEE);
-		}
-		else {
-			ConfigServerImpl cs=(ConfigServerImpl) config;
-			config.setFLDs(ConfigImpl.duplicate(new FunctionLib[]{cs.cfmlCoreFLDs},false),CFMLEngine.DIALECT_CFML);
-			config.setFLDs(ConfigImpl.duplicate(new FunctionLib[]{cs.luceeCoreFLDs},false),CFMLEngine.DIALECT_LUCEE);
-		}
-
-		// FLDs
-		if (!StringUtil.isEmpty(strDefaultFLDDirectory)) {
-			Resource fld = ConfigWebUtil.getFile(config, configDir, strDefaultFLDDirectory, FileUtil.TYPE_DIR);
-			if (fld != null)
-				config.setFldFile(fld,CFMLEngine.DIALECT_BOTH);
-		}
-
-		// Function files (CFML)
-		List<Resource> listFuncs=new ArrayList<Resource>();
-		if (!StringUtil.isEmpty(strDefaultFuncDirectory)) {
-			Resource dir = ConfigWebUtil.getFile(config, configDir, strDefaultFuncDirectory, FileUtil.TYPE_DIR);
-			createFunctionFiles(config, configDir, dir, doNew);
-			if (dir != null) listFuncs.add(dir);
-			//if (dir != null) config.setFunctionDirectory(dir);
-		}
-		if (!StringUtil.isEmpty(strFuncDirectory)) {
-			String[] arr = ListUtil.listToStringArray(strFuncDirectory, ',');
-			for(String str:arr) {
-				str=str.trim();
-				if(StringUtil.isEmpty(str)) continue;
-				Resource dir = ConfigWebUtil.getFile(config, configDir, str, FileUtil.TYPE_DIR);
+			if (!StringUtil.isEmpty(strTagDirectory)) {
+				String[] arr = ListUtil.listToStringArray(strTagDirectory, ',');
+				for(String str:arr) {
+					str=str.trim();
+					if(StringUtil.isEmpty(str)) continue;
+					Resource dir = ConfigWebUtil.getFile(config, configDir, str, FileUtil.TYPE_DIR);
+					if (dir != null) listTags.add(dir);
+				}
+			}
+			config.setTagDirectory(listTags);
+	
+			// allow realpath
+			if (hasCS) {
+				config.setAllowRealPath(configServer.allowRealPath());
+			}
+			if (!StringUtil.isEmpty(strAllowRealPath, true)) {
+				config.setAllowRealPath(Caster.toBooleanValue(strAllowRealPath, true));
+			}
+			
+			
+		// FUNCTIONS
+			
+			// Init flds
+			if(hasCS){
+				config.setFLDs(ConfigImpl.duplicate(configServer.getFLDs(CFMLEngine.DIALECT_CFML),false),CFMLEngine.DIALECT_CFML);
+				config.setFLDs(ConfigImpl.duplicate(configServer.getFLDs(CFMLEngine.DIALECT_LUCEE),false),CFMLEngine.DIALECT_LUCEE);
+			}
+			else {
+				ConfigServerImpl cs=(ConfigServerImpl) config;
+				config.setFLDs(ConfigImpl.duplicate(new FunctionLib[]{cs.cfmlCoreFLDs},false),CFMLEngine.DIALECT_CFML);
+				config.setFLDs(ConfigImpl.duplicate(new FunctionLib[]{cs.luceeCoreFLDs},false),CFMLEngine.DIALECT_LUCEE);
+			}
+	
+			// FLDs
+			if (!StringUtil.isEmpty(strDefaultFLDDirectory)) {
+				Resource fld = ConfigWebUtil.getFile(config, configDir, strDefaultFLDDirectory, FileUtil.TYPE_DIR);
+				if (fld != null)
+					config.setFldFile(fld,CFMLEngine.DIALECT_BOTH);
+			}
+	
+			// Function files (CFML)
+			List<Resource> listFuncs=new ArrayList<Resource>();
+			if (!StringUtil.isEmpty(strDefaultFuncDirectory)) {
+				Resource dir = ConfigWebUtil.getFile(config, configDir, strDefaultFuncDirectory, FileUtil.TYPE_DIR);
+				createFunctionFiles(config, configDir, dir, doNew);
 				if (dir != null) listFuncs.add(dir);
 				//if (dir != null) config.setFunctionDirectory(dir);
 			}
+			if (!StringUtil.isEmpty(strFuncDirectory)) {
+				String[] arr = ListUtil.listToStringArray(strFuncDirectory, ',');
+				for(String str:arr) {
+					str=str.trim();
+					if(StringUtil.isEmpty(str)) continue;
+					Resource dir = ConfigWebUtil.getFile(config, configDir, str, FileUtil.TYPE_DIR);
+					if (dir != null) listFuncs.add(dir);
+					//if (dir != null) config.setFunctionDirectory(dir);
+				}
+			}
+			config.setFunctionDirectory(listFuncs);
 		}
-		config.setFunctionDirectory(listFuncs);
+		catch(Exception e) {
+			log(config,log,e);
+		}
 	}
 	
 
@@ -3178,53 +3277,60 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * @param config
 	 * @param doc
 	 */
-	private static void loadUpdate(ConfigServer configServer, Config config, Document doc) {
-
-		// Server
-		if (config instanceof ConfigServer) {
-			ConfigServer cs = (ConfigServer) config;
-			Element update = getChildByName(doc.getDocumentElement(), "update");
-
-			if (update != null) {
-				cs.setUpdateType(getAttr(update,"type"));
-				
-				String location = getAttr(update,"location");
-				if(location!=null) {
-					location=location.trim();
-					if("http://snapshot.lucee.org".equals(location)) location="http://update.lucee.org";
-					if("http://release.lucee.org".equals(location)) location="http://update.lucee.org";
+	private static void loadUpdate(ConfigServer configServer, Config config, Document doc, Log log) {
+		try {
+			// Server
+			if (config instanceof ConfigServer) {
+				ConfigServer cs = (ConfigServer) config;
+				Element update = getChildByName(doc.getDocumentElement(), "update");
+	
+				if (update != null) {
+					cs.setUpdateType(getAttr(update,"type"));
+					
+					String location = getAttr(update,"location");
+					if(location!=null) {
+						location=location.trim();
+						if("http://snapshot.lucee.org".equals(location)) location="http://update.lucee.org";
+						if("http://release.lucee.org".equals(location)) location="http://update.lucee.org";
+					}
 				}
 			}
 		}
+		catch(Exception e) {
+			log(config,log,e);
+		}
 	}
 
-	private static void loadVideo(ConfigServerImpl configServer, ConfigImpl config, Document doc) {
-
-		Element video = config instanceof ConfigServerImpl ? getChildByName(doc.getDocumentElement(), "video") : null;
-		boolean hasCS = configServer != null;
-		ClassDefinition cd=null;
-		// video-executer
-		if (video != null) {
-			cd=getClassDefinition(video, "video-executer-", config.getIdentification());
-		}
-		
-		if (cd!=null && cd.hasClass()) {
-			
-			
-			try {
-				Class clazz = cd.getClazz();
-				if (!Reflector.isInstaneOf(clazz, VideoExecuter.class))
-					throw new ApplicationException("class [" + cd + "] does not implement interface [" + VideoExecuter.class.getName() + "]");
-				config.setVideoExecuterClass(clazz);
-
+	private static void loadVideo(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+		try {
+			Element video = config instanceof ConfigServerImpl ? getChildByName(doc.getDocumentElement(), "video") : null;
+			boolean hasCS = configServer != null;
+			ClassDefinition cd=null;
+			// video-executer
+			if (video != null) {
+				cd=getClassDefinition(video, "video-executer-", config.getIdentification());
 			}
-			catch (Exception e) {
-				SystemOut.printDate(e);
+			
+			if (cd!=null && cd.hasClass()) {
+				
+				
+				try {
+					Class clazz = cd.getClazz();
+					if (!Reflector.isInstaneOf(clazz, VideoExecuter.class))
+						throw new ApplicationException("class [" + cd + "] does not implement interface [" + VideoExecuter.class.getName() + "]");
+					config.setVideoExecuterClass(clazz);
+	
+				}
+				catch (Exception e) {
+					SystemOut.printDate(e);
+				}
 			}
+			else if (hasCS)
+				config.setVideoExecuterClass(configServer.getVideoExecuterClass());
 		}
-		else if (hasCS)
-			config.setVideoExecuterClass(configServer.getVideoExecuterClass());
-
+		catch(Exception e) {
+			log(config,log,e);
+		}
 	}
 
 	/**
@@ -3232,252 +3338,265 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * @param config
 	 * @param doc
 	 */
-	private static void loadSetting(ConfigServerImpl configServer, ConfigImpl config, Document doc) {
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-
-		Element setting = hasAccess ? getChildByName(doc.getDocumentElement(), "setting") : null;
-		boolean hasCS = configServer != null;
-		String str = null;
-
-		// suppress whitespace
-		str = null;
-		if (setting != null) {
-			str = getAttr(setting,"suppress-content");
+	private static void loadSetting(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+		try {
+			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+	
+			Element setting = hasAccess ? getChildByName(doc.getDocumentElement(), "setting") : null;
+			boolean hasCS = configServer != null;
+			String str = null;
+	
+			// suppress whitespace
+			str = null;
+			if (setting != null) {
+				str = getAttr(setting,"suppress-content");
+			}
+			if (!StringUtil.isEmpty(str) && hasAccess) {
+				config.setSuppressContent(toBoolean(str, false));
+			}
+			else if (hasCS)
+				config.setSuppressContent(configServer.isSuppressContent());
+	
+			// CFML Writer
+			if (setting != null) {
+				str = getAttr(setting,"cfml-writer");
+			}
+			if (!StringUtil.isEmpty(str) && hasAccess) {
+				if ("white-space".equalsIgnoreCase(str))
+					config.setCFMLWriterType(ConfigImpl.CFML_WRITER_WS);
+				else if ("white-space-pref".equalsIgnoreCase(str))
+					config.setCFMLWriterType(ConfigImpl.CFML_WRITER_WS_PREF);
+				else if ("regular".equalsIgnoreCase(str))
+					config.setCFMLWriterType(ConfigImpl.CFML_WRITER_REFULAR);
+				// FUTURE add support for classes implementing CFMLWriter interface
+			}
+			else if (hasCS)
+				config.setCFMLWriterType(configServer.getCFMLWriterType());
+	
+			
+	
+			// show version
+			str = null;
+			if (setting != null) {
+				str = getAttr(setting,"show-version");
+				if (StringUtil.isEmpty(str))
+					str = getAttr(setting,"showversion");
+			}
+			if (!StringUtil.isEmpty(str) && hasAccess) {
+				config.setShowVersion(toBoolean(str, false));
+			}
+			else if (hasCS)
+				config.setShowVersion(configServer.isShowVersion());
+	
+			// close connection
+			str = null;
+			if (setting != null) {
+				str = getAttr(setting,"close-connection");
+				if (StringUtil.isEmpty(str))
+					str = getAttr(setting,"closeconnection");
+			}
+			if (!StringUtil.isEmpty(str) && hasAccess) {
+				config.setCloseConnection(toBoolean(str, false));
+			}
+			else if (hasCS)
+				config.setCloseConnection(configServer.closeConnection());
+	
+			// content-length
+			str = null;
+			if (setting != null) {
+				str = getAttr(setting,"content-length");
+				if (StringUtil.isEmpty(str))
+					str = getAttr(setting,"contentlength");
+			}
+			if (!StringUtil.isEmpty(str) && hasAccess) {
+				config.setContentLength(toBoolean(str, true));
+			}
+			else if (hasCS)
+				config.setContentLength(configServer.contentLength());
+	
+			// buffer-output
+			str = null;
+			if (setting != null) {
+				str = getAttr(setting,"buffering-output");
+				if(StringUtil.isEmpty(str))str = getAttr(setting,"buffer-output");
+			}
+			Boolean b = Caster.toBoolean(str, null);
+			if (b != null && hasAccess) {
+				config.setBufferOutput(b.booleanValue());
+			}
+			else if (hasCS)
+				config.setBufferOutput(configServer.getBufferOutput());
+	
+			// allow-compression
+			str = null;
+			if (setting != null) {
+				str = getAttr(setting,"allow-compression");
+				if (StringUtil.isEmpty(str))
+					str = getAttr(setting,"allowcompression");
+			}
+			if (!StringUtil.isEmpty(str) && hasAccess) {
+				config.setAllowCompression(toBoolean(str, true));
+			}
+			else if (hasCS)
+				config.setAllowCompression(configServer.allowCompression());
+			Element mode = getChildByName(doc.getDocumentElement(), "mode");
+			// mode
+			String developMode = getAttr(mode,"develop");
+			if (!StringUtil.isEmpty(developMode) && hasAccess) {
+				config.setDevelopMode(toBoolean(developMode, false));
+			}
+			else if (hasCS)
+				config.setDevelopMode(configServer.isDevelopMode());
 		}
-		if (!StringUtil.isEmpty(str) && hasAccess) {
-			config.setSuppressContent(toBoolean(str, false));
+		catch(Exception e) {
+			log(config,log,e);
 		}
-		else if (hasCS)
-			config.setSuppressContent(configServer.isSuppressContent());
-
-		// CFML Writer
-		if (setting != null) {
-			str = getAttr(setting,"cfml-writer");
-		}
-		if (!StringUtil.isEmpty(str) && hasAccess) {
-			if ("white-space".equalsIgnoreCase(str))
-				config.setCFMLWriterType(ConfigImpl.CFML_WRITER_WS);
-			else if ("white-space-pref".equalsIgnoreCase(str))
-				config.setCFMLWriterType(ConfigImpl.CFML_WRITER_WS_PREF);
-			else if ("regular".equalsIgnoreCase(str))
-				config.setCFMLWriterType(ConfigImpl.CFML_WRITER_REFULAR);
-			// FUTURE add support for classes implementing CFMLWriter interface
-		}
-		else if (hasCS)
-			config.setCFMLWriterType(configServer.getCFMLWriterType());
-
-		
-
-		// show version
-		str = null;
-		if (setting != null) {
-			str = getAttr(setting,"show-version");
-			if (StringUtil.isEmpty(str))
-				str = getAttr(setting,"showversion");
-		}
-		if (!StringUtil.isEmpty(str) && hasAccess) {
-			config.setShowVersion(toBoolean(str, false));
-		}
-		else if (hasCS)
-			config.setShowVersion(configServer.isShowVersion());
-
-		// close connection
-		str = null;
-		if (setting != null) {
-			str = getAttr(setting,"close-connection");
-			if (StringUtil.isEmpty(str))
-				str = getAttr(setting,"closeconnection");
-		}
-		if (!StringUtil.isEmpty(str) && hasAccess) {
-			config.setCloseConnection(toBoolean(str, false));
-		}
-		else if (hasCS)
-			config.setCloseConnection(configServer.closeConnection());
-
-		// content-length
-		str = null;
-		if (setting != null) {
-			str = getAttr(setting,"content-length");
-			if (StringUtil.isEmpty(str))
-				str = getAttr(setting,"contentlength");
-		}
-		if (!StringUtil.isEmpty(str) && hasAccess) {
-			config.setContentLength(toBoolean(str, true));
-		}
-		else if (hasCS)
-			config.setContentLength(configServer.contentLength());
-
-		// buffer-output
-		str = null;
-		if (setting != null) {
-			str = getAttr(setting,"buffering-output");
-			if(StringUtil.isEmpty(str))str = getAttr(setting,"buffer-output");
-		}
-		Boolean b = Caster.toBoolean(str, null);
-		if (b != null && hasAccess) {
-			config.setBufferOutput(b.booleanValue());
-		}
-		else if (hasCS)
-			config.setBufferOutput(configServer.getBufferOutput());
-
-		// allow-compression
-		str = null;
-		if (setting != null) {
-			str = getAttr(setting,"allow-compression");
-			if (StringUtil.isEmpty(str))
-				str = getAttr(setting,"allowcompression");
-		}
-		if (!StringUtil.isEmpty(str) && hasAccess) {
-			config.setAllowCompression(toBoolean(str, true));
-		}
-		else if (hasCS)
-			config.setAllowCompression(configServer.allowCompression());
-		Element mode = getChildByName(doc.getDocumentElement(), "mode");
-		// mode
-		String developMode = getAttr(mode,"develop");
-		if (!StringUtil.isEmpty(developMode) && hasAccess) {
-			config.setDevelopMode(toBoolean(developMode, false));
-		}
-		else if (hasCS)
-			config.setDevelopMode(configServer.isDevelopMode());
-
 	}
 
-	private static void loadRemoteClient(ConfigServerImpl configServer, ConfigImpl config, Document doc) {
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManagerImpl.TYPE_REMOTE);
-
-		// SNSN
-		// RemoteClientUsage
-
-		// boolean hasCS=configServer!=null;
-		Element _clients = getChildByName(doc.getDocumentElement(), "remote-clients");
-
-		// usage
-		String strUsage = getAttr(_clients,"usage");
-		Struct sct;
-		if (!StringUtil.isEmpty(strUsage))
-			sct = toStruct(strUsage);// config.setRemoteClientUsage(toStruct(strUsage));
-		else
-			sct = new StructImpl();
-		// TODO make this generic
-		if (configServer != null) {
-			String sync = Caster.toString(configServer.getRemoteClientUsage().get("synchronisation", ""), "");
-			if (!StringUtil.isEmpty(sync)) {
-				sct.setEL("synchronisation", sync);
-			}
-		}
-		config.setRemoteClientUsage(sct);
-
-		// max-threads
-		int maxThreads = Caster.toIntValue(getAttr(_clients,"max-threads"), -1);
-		if(maxThreads<1 && configServer!=null) {
-			SpoolerEngineImpl engine = (SpoolerEngineImpl) configServer.getSpoolerEngine();
-			if(engine!=null) maxThreads=engine.getMaxThreads();
-		}
-		if(maxThreads<1)maxThreads=20;
-
-		// directory
-		Resource file = ConfigWebUtil.getFile(config.getRootDirectory(), _clients.getAttribute("directory"), "client-task", config.getConfigDir(), FileUtil.TYPE_DIR, config);
-		config.setRemoteClientDirectory(file);
-
-		Element[] clients;
-		Element client;
-
-		if (!hasAccess)
-			clients = new Element[0];
-		else
-			clients = getChildren(_clients, "remote-client");
-		java.util.List<RemoteClient> list = new ArrayList<RemoteClient>();
-		for (int i = 0; i < clients.length; i++) {
-			client = clients[i];
-			// type
-			String type = getAttr(client,"type");
-			if (StringUtil.isEmpty(type))
-				type = "web";
-			// url
-			String url = getAttr(client,"url");
-			String label = getAttr(client,"label");
-			if (StringUtil.isEmpty(label))
-				label = url;
-			String sUser = getAttr(client,"server-username");
-			String sPass = ConfigWebUtil.decrypt(getAttr(client,"server-password"));
-			String aPass = ConfigWebUtil.decrypt(getAttr(client,"admin-password"));
-			String aCode = ConfigWebUtil.decrypt(getAttr(client,"security-key"));
-			// if(aCode!=null && aCode.indexOf('-')!=-1)continue;
-			String usage = getAttr(client,"usage");
-			if (usage == null)
-				usage = "";
-
-			String pUrl = getAttr(client,"proxy-server");
-			int pPort = Caster.toIntValue(getAttr(client,"proxy-port"), -1);
-			String pUser = getAttr(client,"proxy-username");
-			String pPass = ConfigWebUtil.decrypt(getAttr(client,"proxy-password"));
-
-			ProxyData pd = null;
-			if (!StringUtil.isEmpty(pUrl, true)) {
-				pd = new ProxyDataImpl();
-				pd.setServer(pUrl);
-				if (!StringUtil.isEmpty(pUser)) {
-					pd.setUsername(pUser);
-					pd.setPassword(pPass);
+	private static void loadRemoteClient(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+		try {
+			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManagerImpl.TYPE_REMOTE);
+	
+			// SNSN
+			// RemoteClientUsage
+	
+			// boolean hasCS=configServer!=null;
+			Element _clients = getChildByName(doc.getDocumentElement(), "remote-clients");
+	
+			// usage
+			String strUsage = getAttr(_clients,"usage");
+			Struct sct;
+			if (!StringUtil.isEmpty(strUsage))
+				sct = toStruct(strUsage);// config.setRemoteClientUsage(toStruct(strUsage));
+			else
+				sct = new StructImpl();
+			// TODO make this generic
+			if (configServer != null) {
+				String sync = Caster.toString(configServer.getRemoteClientUsage().get("synchronisation", ""), "");
+				if (!StringUtil.isEmpty(sync)) {
+					sct.setEL("synchronisation", sync);
 				}
-				if (pPort > 0)
-					pd.setPort(pPort);
 			}
-			list.add(new RemoteClientImpl(label, type, url, sUser, sPass, aPass, pd, aCode, usage));
+			config.setRemoteClientUsage(sct);
+	
+			// max-threads
+			int maxThreads = Caster.toIntValue(getAttr(_clients,"max-threads"), -1);
+			if(maxThreads<1 && configServer!=null) {
+				SpoolerEngineImpl engine = (SpoolerEngineImpl) configServer.getSpoolerEngine();
+				if(engine!=null) maxThreads=engine.getMaxThreads();
+			}
+			if(maxThreads<1)maxThreads=20;
+	
+			// directory
+			Resource file = ConfigWebUtil.getFile(config.getRootDirectory(), _clients.getAttribute("directory"), "client-task", config.getConfigDir(), FileUtil.TYPE_DIR, config);
+			config.setRemoteClientDirectory(file);
+	
+			Element[] clients;
+			Element client;
+	
+			if (!hasAccess)
+				clients = new Element[0];
+			else
+				clients = getChildren(_clients, "remote-client");
+			java.util.List<RemoteClient> list = new ArrayList<RemoteClient>();
+			for (int i = 0; i < clients.length; i++) {
+				client = clients[i];
+				// type
+				String type = getAttr(client,"type");
+				if (StringUtil.isEmpty(type))
+					type = "web";
+				// url
+				String url = getAttr(client,"url");
+				String label = getAttr(client,"label");
+				if (StringUtil.isEmpty(label))
+					label = url;
+				String sUser = getAttr(client,"server-username");
+				String sPass = ConfigWebUtil.decrypt(getAttr(client,"server-password"));
+				String aPass = ConfigWebUtil.decrypt(getAttr(client,"admin-password"));
+				String aCode = ConfigWebUtil.decrypt(getAttr(client,"security-key"));
+				// if(aCode!=null && aCode.indexOf('-')!=-1)continue;
+				String usage = getAttr(client,"usage");
+				if (usage == null)
+					usage = "";
+	
+				String pUrl = getAttr(client,"proxy-server");
+				int pPort = Caster.toIntValue(getAttr(client,"proxy-port"), -1);
+				String pUser = getAttr(client,"proxy-username");
+				String pPass = ConfigWebUtil.decrypt(getAttr(client,"proxy-password"));
+	
+				ProxyData pd = null;
+				if (!StringUtil.isEmpty(pUrl, true)) {
+					pd = new ProxyDataImpl();
+					pd.setServer(pUrl);
+					if (!StringUtil.isEmpty(pUser)) {
+						pd.setUsername(pUser);
+						pd.setPassword(pPass);
+					}
+					if (pPort > 0)
+						pd.setPort(pPort);
+				}
+				list.add(new RemoteClientImpl(label, type, url, sUser, sPass, aPass, pd, aCode, usage));
+			}
+			if (list.size() > 0)
+				config.setRemoteClients(list.toArray(new RemoteClient[list.size()]));
+			else
+				config.setRemoteClients(new RemoteClient[0]);
+	
+			// init spooler engine
+			Resource dir = config.getRemoteClientDirectory();
+			if (dir != null && !dir.exists())
+				dir.mkdirs();
+			if (config.getSpoolerEngine() == null) {
+				config.setSpoolerEngine(new SpoolerEngineImpl(config, dir, "Remote Client Spooler", config.getLog("remoteclient"), maxThreads));
+			}
+			else {
+				SpoolerEngineImpl engine = (SpoolerEngineImpl) config.getSpoolerEngine();
+				engine.setConfig(config);
+				engine.setLog(config.getLog("remoteclient"));
+				engine.setPersisDirectory(dir);
+				engine.setMaxThreads(maxThreads);
+	
+			}
 		}
-		if (list.size() > 0)
-			config.setRemoteClients(list.toArray(new RemoteClient[list.size()]));
-		else
-			config.setRemoteClients(new RemoteClient[0]);
-
-		// init spooler engine
-		Resource dir = config.getRemoteClientDirectory();
-		if (dir != null && !dir.exists())
-			dir.mkdirs();
-		if (config.getSpoolerEngine() == null) {
-			config.setSpoolerEngine(new SpoolerEngineImpl(config, dir, "Remote Client Spooler", config.getLog("remoteclient"), maxThreads));
-		}
-		else {
-			SpoolerEngineImpl engine = (SpoolerEngineImpl) config.getSpoolerEngine();
-			engine.setConfig(config);
-			engine.setLog(config.getLog("remoteclient"));
-			engine.setPersisDirectory(dir);
-			engine.setMaxThreads(maxThreads);
-
+		catch(Exception e) {
+			log(config,log,e);
 		}
 	}
 
-	private static void loadSystem(ConfigServerImpl configServer, ConfigImpl config, Document doc) {
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-		Element sys = hasAccess ? getChildByName(doc.getDocumentElement(), "system") : null;
-
-		boolean hasCS = configServer != null;
-
-		String out = null, err = null;
-		
-		// sys prop or env var
-		out=hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.system.out", null);
-		err=hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.system.err", null);
-		
-		if (sys != null) {
-			if(StringUtil.isEmpty(out)) out = getAttr(sys,"out");
-			if(StringUtil.isEmpty(err)) err = getAttr(sys,"err");
+	private static void loadSystem(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+		try {
+			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+			Element sys = hasAccess ? getChildByName(doc.getDocumentElement(), "system") : null;
+	
+			boolean hasCS = configServer != null;
+	
+			String out = null, err = null;
+			
+			// sys prop or env var
+			out=hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.system.out", null);
+			err=hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.system.err", null);
+			
+			if (sys != null) {
+				if(StringUtil.isEmpty(out)) out = getAttr(sys,"out");
+				if(StringUtil.isEmpty(err)) err = getAttr(sys,"err");
+			}
+			
+			
+			if (!StringUtil.isEmpty(out) && hasAccess) {
+				config.setOut(toPrintwriter(config, out, false));
+			}
+			else if (hasCS)
+				config.setOut(configServer.getOutWriter());
+	
+			if (!StringUtil.isEmpty(err) && hasAccess) {
+				config.setErr(toPrintwriter(config, err, true));
+			}
+			else if (hasCS)
+				config.setErr(configServer.getErrWriter());
 		}
-		
-		
-		if (!StringUtil.isEmpty(out) && hasAccess) {
-			config.setOut(toPrintwriter(config, out, false));
+		catch(Exception e) {
+			log(config,log,e);
 		}
-		else if (hasCS)
-			config.setOut(configServer.getOutWriter());
-
-		if (!StringUtil.isEmpty(err) && hasAccess) {
-			config.setErr(toPrintwriter(config, err, true));
-		}
-		else if (hasCS)
-			config.setErr(configServer.getErrWriter());
-
 	}
 
 	private static PrintWriter toPrintwriter(ConfigImpl config, String streamtype, boolean iserror) {
@@ -3515,84 +3634,89 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * @param config
 	 * @param doc
 	 */
-	private static void loadCharset(ConfigServer configServer, ConfigImpl config, Document doc) {
-
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-
-		Element charset = hasAccess ? getChildByName(doc.getDocumentElement(), "charset") : null;
-		Element regional = hasAccess ? getChildByName(doc.getDocumentElement(), "regional") : null;
-		Element fileSystem = hasAccess ? getChildByName(doc.getDocumentElement(), "file-system") : null;
-
-		boolean hasCS = configServer != null;
-
-		// template
-		String template = null, fsCharset = null, fsEncoding = null;
-		if (charset != null)
-			template = getAttr(charset,"template-charset");
-		if (fileSystem != null)
-			fsCharset = getAttr(fileSystem,"charset"); // deprecated but
-															// still supported
-		if (fileSystem != null)
-			fsEncoding = getAttr(fileSystem,"encoding"); // deprecated but
-																// still
-																// supported
-
-		if (!StringUtil.isEmpty(template))
-			config.setTemplateCharset(template);
-		else if (!StringUtil.isEmpty(fsCharset))
-			config.setTemplateCharset(fsCharset);
-		else if (!StringUtil.isEmpty(fsEncoding))
-			config.setTemplateCharset(fsEncoding);
-		else if (hasCS)
-			config.setTemplateCharset(configServer.getTemplateCharset());
-
-		// web
-		String web = null, defaultEncoding = null;
-		if (charset != null)
-			web = getAttr(charset,"web-charset");
-		if (regional != null)
-			defaultEncoding = getAttr(regional,"default-encoding"); // deprecated
-																			// but
-																			// still
-																			// supported
-		if (!StringUtil.isEmpty(web))
-			config.setWebCharset(web);
-		else if (!StringUtil.isEmpty(defaultEncoding))
-			config.setWebCharset(defaultEncoding);
-		else if (hasCS)
-			config.setWebCharset(configServer.getWebCharset());
-
-		// resource
-		String resource = null;
-		if (charset != null)
-			resource = getAttr(charset,"resource-charset");
-		if (!StringUtil.isEmpty(resource))
-			config.setResourceCharset(resource);
-		else if (hasCS)
-			config.setResourceCharset(configServer.getResourceCharset());
-
+	private static void loadCharset(ConfigServer configServer, ConfigImpl config, Document doc, Log log) {
+		try {
+			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+	
+			Element charset = hasAccess ? getChildByName(doc.getDocumentElement(), "charset") : null;
+			Element regional = hasAccess ? getChildByName(doc.getDocumentElement(), "regional") : null;
+			Element fileSystem = hasAccess ? getChildByName(doc.getDocumentElement(), "file-system") : null;
+	
+			boolean hasCS = configServer != null;
+	
+			// template
+			String template = null, fsCharset = null, fsEncoding = null;
+			if (charset != null)
+				template = getAttr(charset,"template-charset");
+			if (fileSystem != null)
+				fsCharset = getAttr(fileSystem,"charset"); // deprecated but
+																// still supported
+			if (fileSystem != null)
+				fsEncoding = getAttr(fileSystem,"encoding"); // deprecated but
+																	// still
+																	// supported
+	
+			if (!StringUtil.isEmpty(template))
+				config.setTemplateCharset(template);
+			else if (!StringUtil.isEmpty(fsCharset))
+				config.setTemplateCharset(fsCharset);
+			else if (!StringUtil.isEmpty(fsEncoding))
+				config.setTemplateCharset(fsEncoding);
+			else if (hasCS)
+				config.setTemplateCharset(configServer.getTemplateCharset());
+	
+			// web
+			String web = null, defaultEncoding = null;
+			if (charset != null)
+				web = getAttr(charset,"web-charset");
+			if (regional != null)
+				defaultEncoding = getAttr(regional,"default-encoding"); // deprecated
+																				// but
+																				// still
+																				// supported
+			if (!StringUtil.isEmpty(web))
+				config.setWebCharset(web);
+			else if (!StringUtil.isEmpty(defaultEncoding))
+				config.setWebCharset(defaultEncoding);
+			else if (hasCS)
+				config.setWebCharset(configServer.getWebCharset());
+	
+			// resource
+			String resource = null;
+			if (charset != null)
+				resource = getAttr(charset,"resource-charset");
+			if (!StringUtil.isEmpty(resource))
+				config.setResourceCharset(resource);
+			else if (hasCS)
+				config.setResourceCharset(configServer.getResourceCharset());
+		}
+		catch(Exception e) {
+			log(config,log,e);
+		}
 	}
 
-	private static void loadQueue(ConfigServerImpl configServer, ConfigImpl config, Document doc) {
-		Element queue = getChildByName(doc.getDocumentElement(), "queue");
-
-		// Server
-		if (config instanceof ConfigServerImpl) {
-			config.setQueueMax(Caster.toIntValue(getAttr(queue,"max"), 100));
-			config.setQueueTimeout(Caster.toLongValue(getAttr(queue,"timeout"), 0L));
-			config.setQueueEnable(Caster.toBooleanValue(getAttr(queue,"enable"), false));
-			((ConfigServerImpl)config).setThreadQueue(config.getQueueEnable()?new ThreadQueueImpl():new ThreadQueueNone());
-
+	private static void loadQueue(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+		try {
+			Element queue = getChildByName(doc.getDocumentElement(), "queue");
+	
+			// Server
+			if (config instanceof ConfigServerImpl) {
+				config.setQueueMax(Caster.toIntValue(getAttr(queue,"max"), 100));
+				config.setQueueTimeout(Caster.toLongValue(getAttr(queue,"timeout"), 0L));
+				config.setQueueEnable(Caster.toBooleanValue(getAttr(queue,"enable"), false));
+				((ConfigServerImpl)config).setThreadQueue(config.getQueueEnable()?new ThreadQueueImpl():new ThreadQueueNone());
+	
+			}
+			// Web
+			else {
+				config.setQueueMax(configServer.getQueueMax());
+				config.setQueueTimeout(configServer.getQueueTimeout());
+				config.setQueueEnable(configServer.getQueueEnable());
+			}
 		}
-		// Web
-		else {
-			config.setQueueMax(configServer.getQueueMax());
-			config.setQueueTimeout(configServer.getQueueTimeout());
-			config.setQueueEnable(configServer.getQueueEnable());
+		catch(Exception e) {
+			log(config,log,e);
 		}
-		
-		
-		
 	}
 
 	/**
@@ -3600,121 +3724,134 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * @param config
 	 * @param doc
 	 */
-	private static void loadRegional(ConfigServer configServer, ConfigImpl config, Document doc) {
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-
-		Element regional = hasAccess ? getChildByName(doc.getDocumentElement(), "regional") : null;
-		boolean hasCS = configServer != null;
-
-		// timeZone
-		String strTimeZone = null;
-		if (regional != null)
-			strTimeZone = getAttr(regional,"timezone");
-
-		if (!StringUtil.isEmpty(strTimeZone))
-			config.setTimeZone(TimeZone.getTimeZone(strTimeZone));
-		else if (hasCS)
-			config.setTimeZone(configServer.getTimeZone());
-		else {
-			TimeZone def = TimeZone.getDefault();
-			if(def==null) {
-				def=TimeZoneConstants.EUROPE_LONDON;
+	private static void loadRegional(ConfigServer configServer, ConfigImpl config, Document doc, Log log) {
+		try {
+			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+	
+			Element regional = hasAccess ? getChildByName(doc.getDocumentElement(), "regional") : null;
+			boolean hasCS = configServer != null;
+	
+			// timeZone
+			String strTimeZone = null;
+			if (regional != null)
+				strTimeZone = getAttr(regional,"timezone");
+	
+			if (!StringUtil.isEmpty(strTimeZone))
+				config.setTimeZone(TimeZone.getTimeZone(strTimeZone));
+			else if (hasCS)
+				config.setTimeZone(configServer.getTimeZone());
+			else {
+				TimeZone def = TimeZone.getDefault();
+				if(def==null) {
+					def=TimeZoneConstants.EUROPE_LONDON;
+				}
+				config.setTimeZone(def);
 			}
-			config.setTimeZone(def);
+			
+			// this is necessary, otherwise travis has no default 
+			if(TimeZone.getDefault()==null)TimeZone.setDefault(config.getTimeZone());
+			
+			// timeserver
+			String strTimeServer = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.timeserver", null);
+			Boolean useTimeServer=null;
+			if(!StringUtil.isEmpty(strTimeServer)) useTimeServer=Boolean.TRUE;
+			
+			
+			if (regional != null) {
+				if(StringUtil.isEmpty(strTimeServer))strTimeServer = getAttr(regional,"timeserver");
+				if(useTimeServer==null)useTimeServer = Caster.toBoolean(getAttr(regional,"use-timeserver"), null);
+			}
+	
+			if (!StringUtil.isEmpty(strTimeServer))
+				config.setTimeServer(strTimeServer);
+			else if (hasCS)
+				config.setTimeServer(configServer.getTimeServer());
+	
+			if (useTimeServer != null)
+				config.setUseTimeServer(useTimeServer.booleanValue());
+			else if (hasCS)
+				config.setUseTimeServer(((ConfigImpl) configServer).getUseTimeServer());
+	
+			// locale
+			String strLocale = null;
+			if (regional != null)
+				strLocale = getAttr(regional,"locale");
+	
+			if (!StringUtil.isEmpty(strLocale))
+				config.setLocale(strLocale);
+			else if (hasCS)
+				config.setLocale(configServer.getLocale());
+			else
+				config.setLocale(Locale.US);
 		}
-		
-		// this is necessary, otherwise travis has no default 
-		if(TimeZone.getDefault()==null)TimeZone.setDefault(config.getTimeZone());
-		
-		// timeserver
-		String strTimeServer = hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.timeserver", null);
-		Boolean useTimeServer=null;
-		if(!StringUtil.isEmpty(strTimeServer)) useTimeServer=Boolean.TRUE;
-		
-		
-		if (regional != null) {
-			if(StringUtil.isEmpty(strTimeServer))strTimeServer = getAttr(regional,"timeserver");
-			if(useTimeServer==null)useTimeServer = Caster.toBoolean(getAttr(regional,"use-timeserver"), null);
+		catch(Exception e) {
+			log(config,log,e);
 		}
-
-		if (!StringUtil.isEmpty(strTimeServer))
-			config.setTimeServer(strTimeServer);
-		else if (hasCS)
-			config.setTimeServer(configServer.getTimeServer());
-
-		if (useTimeServer != null)
-			config.setUseTimeServer(useTimeServer.booleanValue());
-		else if (hasCS)
-			config.setUseTimeServer(((ConfigImpl) configServer).getUseTimeServer());
-
-		// locale
-		String strLocale = null;
-		if (regional != null)
-			strLocale = getAttr(regional,"locale");
-
-		if (!StringUtil.isEmpty(strLocale))
-			config.setLocale(strLocale);
-		else if (hasCS)
-			config.setLocale(configServer.getLocale());
-		else
-			config.setLocale(Locale.US);
-
 	}
 	
 
 	private static void loadWS(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
-		Element el =getChildByName(doc.getDocumentElement(), "webservice") ;
-		ClassDefinition cd = getClassDefinition(el, "", config.getIdentification());
-
-		if(cd!=null && !StringUtil.isEmpty(cd.getClassName()))	
-			config.setWSHandlerClassDefinition(cd);
+		try {
+			Element el =getChildByName(doc.getDocumentElement(), "webservice") ;
+			ClassDefinition cd = getClassDefinition(el, "", config.getIdentification());
+	
+			if(cd!=null && !StringUtil.isEmpty(cd.getClassName()))	
+				config.setWSHandlerClassDefinition(cd);
+		}
+		catch(Exception e) {
+			log(config,log,e);
+		}
 	}
 	
 	private static void loadORM(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManagerImpl.TYPE_ORM);
-
-		Element orm = hasAccess ? getChildByName(doc.getDocumentElement(), "orm") : null;
-		boolean hasCS = configServer != null;
-		
-		// engine
-		ClassDefinition cdDefault = new ClassDefinitionImpl(DummyORMEngine.class);
-
-		ClassDefinition cd = null;
-		if (orm != null) {
-			cd=getClassDefinition(orm, "engine-", config.getIdentification());
-			if(cd==null || cd.isClassNameEqualTo(DummyORMEngine.class.getName()) 
-					|| cd.isClassNameEqualTo("lucee.runtime.orm.hibernate.HibernateORMEngine"))
-				cd=getClassDefinition(orm, "", config.getIdentification());
+		try {
+			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManagerImpl.TYPE_ORM);
+	
+			Element orm = hasAccess ? getChildByName(doc.getDocumentElement(), "orm") : null;
+			boolean hasCS = configServer != null;
 			
-			if(cd!=null && (cd.isClassNameEqualTo(DummyORMEngine.class.getName()) 
-					|| cd.isClassNameEqualTo("lucee.runtime.orm.hibernate.HibernateORMEngine")))
-				cd=null;
+			// engine
+			ClassDefinition cdDefault = new ClassDefinitionImpl(DummyORMEngine.class);
+	
+			ClassDefinition cd = null;
+			if (orm != null) {
+				cd=getClassDefinition(orm, "engine-", config.getIdentification());
+				if(cd==null || cd.isClassNameEqualTo(DummyORMEngine.class.getName()) 
+						|| cd.isClassNameEqualTo("lucee.runtime.orm.hibernate.HibernateORMEngine"))
+					cd=getClassDefinition(orm, "", config.getIdentification());
+				
+				if(cd!=null && (cd.isClassNameEqualTo(DummyORMEngine.class.getName()) 
+						|| cd.isClassNameEqualTo("lucee.runtime.orm.hibernate.HibernateORMEngine")))
+					cd=null;
+			}
+			
+			if (cd==null || !cd.hasClass()) {
+				if(configServer!=null) cd=configServer.getORMEngineClass();
+				else cd = cdDefault;
+			}
+	
+			// load class (removed because this unnecessary loads the orm engine)
+			/*try {
+				cd.getClazz();
+				// TODO check interface as well
+			}
+			catch (Exception e) {
+				log.error("ORM", e);
+				cd=cdDefault;
+			}*/
+			
+			config.setORMEngineClass(cd);
+	
+			// config
+			if (orm == null)
+				orm = doc.createElement("orm"); // this is just a dummy
+			ORMConfiguration def = hasCS ? configServer.getORMConfig() : null;
+			ORMConfiguration ormConfig = ORMConfigurationImpl.load(config, null, orm, config.getRootDirectory(), def);
+			config.setORMConfig(ormConfig);
 		}
-		
-		if (cd==null || !cd.hasClass()) {
-			if(configServer!=null) cd=configServer.getORMEngineClass();
-			else cd = cdDefault;
+		catch(Exception e) {
+			log(config,log,e);
 		}
-
-		// load class (removed because this unnecessary loads the orm engine)
-		/*try {
-			cd.getClazz();
-			// TODO check interface as well
-		}
-		catch (Exception e) {
-			log.error("ORM", e);
-			cd=cdDefault;
-		}*/
-		
-		config.setORMEngineClass(cd);
-
-		// config
-		if (orm == null)
-			orm = doc.createElement("orm"); // this is just a dummy
-		ORMConfiguration def = hasCS ? configServer.getORMConfig() : null;
-		ORMConfiguration ormConfig = ORMConfigurationImpl.load(config, null, orm, config.getRootDirectory(), def);
-		config.setORMConfig(ormConfig);
-
 	}
 
 	/**
@@ -3724,286 +3861,321 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * @throws PageException
 	 * @throws IOException
 	 */
-	private static void loadScope(ConfigServerImpl configServer, ConfigImpl config, Document doc, int mode) throws PageException {
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-
-		Element scope = getChildByName(doc.getDocumentElement(), "scope");
-		boolean hasCS = configServer != null;
-
-		// Cluster Scope
-		if (!hasCS) {
-			ClassDefinition cd = getClassDefinition(scope, "cluster-", config.getIdentification());
-			if (hasAccess && cd.hasClass()) {
-				try {
-					Class clazz = cd.getClazz();
-					if (!Reflector.isInstaneOf(clazz, Cluster.class) && !Reflector.isInstaneOf(clazz, ClusterRemote.class))
-						throw new ApplicationException("class [" + clazz.getName() + "] does not implement interface [" + Cluster.class.getName() + "] or ["
-								+ ClusterRemote.class.getName() + "]");
-
-					config.setClusterClass(clazz);
-
+	private static void loadScope(ConfigServerImpl configServer, ConfigImpl config, Document doc, int mode,Log log) {
+		try {
+			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+	
+			Element scope = getChildByName(doc.getDocumentElement(), "scope");
+			boolean hasCS = configServer != null;
+	
+			// Cluster Scope
+			if (!hasCS) {
+				ClassDefinition cd = getClassDefinition(scope, "cluster-", config.getIdentification());
+				if (hasAccess && cd.hasClass()) {
+					try {
+						Class clazz = cd.getClazz();
+						if (!Reflector.isInstaneOf(clazz, Cluster.class) && !Reflector.isInstaneOf(clazz, ClusterRemote.class))
+							throw new ApplicationException("class [" + clazz.getName() + "] does not implement interface [" + Cluster.class.getName() + "] or ["
+									+ ClusterRemote.class.getName() + "]");
+	
+						config.setClusterClass(clazz);
+	
+					}
+					catch (Exception e) {
+						SystemOut.printDate(e);
+					}
+	
 				}
-				catch (Exception e) {
-					SystemOut.printDate(e);
+			}
+			// else if(hasCS)
+			// config.setClassClusterScope(configServer.getClassClusterScope());
+	
+			// Local Mode
+			if (mode == ConfigImpl.MODE_STRICT) {
+				config.setLocalMode(Undefined.MODE_LOCAL_OR_ARGUMENTS_ALWAYS);
+			}
+			else {
+				String strLocalMode = getAttr(scope,"local-mode");
+				if (hasAccess && !StringUtil.isEmpty(strLocalMode)) {
+					config.setLocalMode(strLocalMode);
 				}
-
+				else if (hasCS)
+					config.setLocalMode(configServer.getLocalMode());
 			}
-		}
-		// else if(hasCS)
-		// config.setClassClusterScope(configServer.getClassClusterScope());
-
-		// Local Mode
-		if (mode == ConfigImpl.MODE_STRICT) {
-			config.setLocalMode(Undefined.MODE_LOCAL_OR_ARGUMENTS_ALWAYS);
-		}
-		else {
-			String strLocalMode = getAttr(scope,"local-mode");
-			if (hasAccess && !StringUtil.isEmpty(strLocalMode)) {
-				config.setLocalMode(strLocalMode);
-			}
-			else if (hasCS)
-				config.setLocalMode(configServer.getLocalMode());
-		}
-		
-
-		// CGI readonly
-		String strCGIReadonly = getAttr(scope,"cgi-readonly");
-		if (hasAccess && !StringUtil.isEmpty(strCGIReadonly)) {
-			config.setCGIScopeReadonly(Caster.toBooleanValue(strCGIReadonly,true));
-		}
-		else if (hasCS)
-			config.setCGIScopeReadonly(configServer.getCGIScopeReadonly());
-
-		// Session-Type
-		String strSessionType = getAttr(scope,"session-type");
-		if (hasAccess && !StringUtil.isEmpty(strSessionType)) {
-			config.setSessionType(AppListenerUtil.toSessionType(strSessionType,hasCS?configServer.getSessionType():Config.SESSION_TYPE_APPLICATION));
-		}
-		else if (hasCS)
-			config.setSessionType(configServer.getSessionType());
-
-		// Cascading
-		if (mode == ConfigImpl.MODE_STRICT) {
-			config.setScopeCascadingType(Config.SCOPE_STRICT);
-		}
-		else {
-			String strScopeCascadingType = getAttr(scope,"cascading");
-			if (hasAccess && !StringUtil.isEmpty(strScopeCascadingType)) {
-				config.setScopeCascadingType(ConfigWebUtil.toScopeCascading(strScopeCascadingType,Config.SCOPE_STANDARD));
-			}
-			else if (hasCS)
-				config.setScopeCascadingType(configServer.getScopeCascadingType());
-		}
-
-		// cascade-to-resultset
-		if (mode == ConfigImpl.MODE_STRICT) {
-			config.setAllowImplicidQueryCall(false);
-		}
-		else {
-			String strAllowImplicidQueryCall = getAttr(scope,"cascade-to-resultset");
-			if (hasAccess && !StringUtil.isEmpty(strAllowImplicidQueryCall)) {
-				config.setAllowImplicidQueryCall(toBoolean(strAllowImplicidQueryCall, true));
-			}
-			else if (hasCS)
-				config.setAllowImplicidQueryCall(configServer.allowImplicidQueryCall());
-		}
-
-		// Merge url and Form
-		String strMergeFormAndURL = getAttr(scope,"merge-url-form");
-		if (hasAccess && !StringUtil.isEmpty(strMergeFormAndURL)) {
-			config.setMergeFormAndURL(toBoolean(strMergeFormAndURL, false));
-		}
-		else if (hasCS)
-			config.setMergeFormAndURL(configServer.mergeFormAndURL());
-
-		// Client-Storage
-		{
-			String clientStorage = getAttr(scope,"clientstorage");
-			if (StringUtil.isEmpty(clientStorage, true)) 
-				clientStorage = getAttr(scope,"client-storage");
 			
-			if (hasAccess && !StringUtil.isEmpty(clientStorage)) {
-				config.setClientStorage(clientStorage);
+	
+			// CGI readonly
+			String strCGIReadonly = getAttr(scope,"cgi-readonly");
+			if (hasAccess && !StringUtil.isEmpty(strCGIReadonly)) {
+				config.setCGIScopeReadonly(Caster.toBooleanValue(strCGIReadonly,true));
 			}
 			else if (hasCS)
-				config.setClientStorage(configServer.getClientStorage());
-		}
-		
-		// Session-Storage
-		{
-			String sessionStorage = getAttr(scope,"sessionstorage");
-			if (StringUtil.isEmpty(sessionStorage, true)) 
-				sessionStorage = getAttr(scope,"session-storage");
+				config.setCGIScopeReadonly(configServer.getCGIScopeReadonly());
+	
+			// Session-Type
+			String strSessionType = getAttr(scope,"session-type");
+			if (hasAccess && !StringUtil.isEmpty(strSessionType)) {
+				config.setSessionType(AppListenerUtil.toSessionType(strSessionType,hasCS?configServer.getSessionType():Config.SESSION_TYPE_APPLICATION));
+			}
+			else if (hasCS)
+				config.setSessionType(configServer.getSessionType());
+	
+			// Cascading
+			if (mode == ConfigImpl.MODE_STRICT) {
+				config.setScopeCascadingType(Config.SCOPE_STRICT);
+			}
+			else {
+				String strScopeCascadingType = getAttr(scope,"cascading");
+				if (hasAccess && !StringUtil.isEmpty(strScopeCascadingType)) {
+					config.setScopeCascadingType(ConfigWebUtil.toScopeCascading(strScopeCascadingType,Config.SCOPE_STANDARD));
+				}
+				else if (hasCS)
+					config.setScopeCascadingType(configServer.getScopeCascadingType());
+			}
+	
+			// cascade-to-resultset
+			if (mode == ConfigImpl.MODE_STRICT) {
+				config.setAllowImplicidQueryCall(false);
+			}
+			else {
+				String strAllowImplicidQueryCall = getAttr(scope,"cascade-to-resultset");
+				if (hasAccess && !StringUtil.isEmpty(strAllowImplicidQueryCall)) {
+					config.setAllowImplicidQueryCall(toBoolean(strAllowImplicidQueryCall, true));
+				}
+				else if (hasCS)
+					config.setAllowImplicidQueryCall(configServer.allowImplicidQueryCall());
+			}
+	
+			// Merge url and Form
+			String strMergeFormAndURL = getAttr(scope,"merge-url-form");
+			if (hasAccess && !StringUtil.isEmpty(strMergeFormAndURL)) {
+				config.setMergeFormAndURL(toBoolean(strMergeFormAndURL, false));
+			}
+			else if (hasCS)
+				config.setMergeFormAndURL(configServer.mergeFormAndURL());
+	
+			// Client-Storage
+			{
+				String clientStorage = getAttr(scope,"clientstorage");
+				if (StringUtil.isEmpty(clientStorage, true)) 
+					clientStorage = getAttr(scope,"client-storage");
+				
+				if (hasAccess && !StringUtil.isEmpty(clientStorage)) {
+					config.setClientStorage(clientStorage);
+				}
+				else if (hasCS)
+					config.setClientStorage(configServer.getClientStorage());
+			}
 			
-			if (hasAccess && !StringUtil.isEmpty(sessionStorage)) {
-				config.setSessionStorage(sessionStorage);
+			// Session-Storage
+			{
+				String sessionStorage = getAttr(scope,"sessionstorage");
+				if (StringUtil.isEmpty(sessionStorage, true)) 
+					sessionStorage = getAttr(scope,"session-storage");
+				
+				if (hasAccess && !StringUtil.isEmpty(sessionStorage)) {
+					config.setSessionStorage(sessionStorage);
+				}
+				else if (hasCS)
+					config.setSessionStorage(configServer.getSessionStorage());
+			}
+			
+			// Client Timeout
+			String clientTimeout = getAttr(scope,"clienttimeout");
+			if(StringUtil.isEmpty(clientTimeout, true)) clientTimeout = getAttr(scope,"client-timeout");
+			if (StringUtil.isEmpty(clientTimeout, true)) {
+				// deprecated
+				clientTimeout = getAttr(scope,"client-max-age");
+				int days = Caster.toIntValue(clientTimeout, -1);
+				if (days > 0)
+					clientTimeout = days + ",0,0,0";
+				else
+					clientTimeout = "";
+			}
+			if (hasAccess && !StringUtil.isEmpty(clientTimeout)) {
+				config.setClientTimeout(clientTimeout);
 			}
 			else if (hasCS)
-				config.setSessionStorage(configServer.getSessionStorage());
+				config.setClientTimeout(configServer.getClientTimeout());
+	
+			// Session Timeout
+			String sessionTimeout = getAttr(scope,"sessiontimeout");
+			if (hasAccess && !StringUtil.isEmpty(sessionTimeout)) {
+				config.setSessionTimeout(sessionTimeout);
+			}
+			else if (hasCS)
+				config.setSessionTimeout(configServer.getSessionTimeout());
+	
+			// App Timeout
+			
+			String appTimeout = getAttr(scope,"applicationtimeout");
+			if (hasAccess && !StringUtil.isEmpty(appTimeout)) {
+				config.setApplicationTimeout(appTimeout);
+			}
+			else if (hasCS)
+				config.setApplicationTimeout(configServer.getApplicationTimeout());
+	
+			// Client Type
+			String strClientType = getAttr(scope,"clienttype");
+			if (hasAccess && !StringUtil.isEmpty(strClientType)) {
+				config.setClientType(strClientType);
+			}
+			else if (hasCS)
+				config.setClientType(configServer.getClientType());
+	
+			// Client
+			Resource configDir = config.getConfigDir();
+			String strClientDirectory = getAttr(scope,"client-directory");
+			if (hasAccess && !StringUtil.isEmpty(strClientDirectory)) {
+				strClientDirectory = ConfigWebUtil.translateOldPath(strClientDirectory);
+				Resource res = ConfigWebUtil.getFile(configDir, strClientDirectory, "client-scope", configDir, FileUtil.TYPE_DIR, config);
+				config.setClientScopeDir(res);
+			}
+			else {
+				config.setClientScopeDir(configDir.getRealResource("client-scope"));
+			}
+	
+			String strMax = getAttr(scope,"client-directory-max-size");
+			if (hasAccess && !StringUtil.isEmpty(strMax)) {
+				config.setClientScopeDirSize(ByteSizeParser.parseByteSizeDefinition(strMax, config.getClientScopeDirSize()));
+			}
+			else if (hasCS)
+				config.setClientScopeDirSize(configServer.getClientScopeDirSize());
+	
+			// Session Management
+			String strSessionManagement = getAttr(scope,"sessionmanagement");
+			if (hasAccess && !StringUtil.isEmpty(strSessionManagement)) {
+				config.setSessionManagement(toBoolean(strSessionManagement, true));
+			}
+			else if (hasCS)
+				config.setSessionManagement(configServer.isSessionManagement());
+	
+			// Client Management
+			String strClientManagement = getAttr(scope,"clientmanagement");
+			if (hasAccess && !StringUtil.isEmpty(strClientManagement)) {
+				config.setClientManagement(toBoolean(strClientManagement, false));
+			}
+			else if (hasCS)
+				config.setClientManagement(configServer.isClientManagement());
+	
+			// Client Cookies
+			String strClientCookies = getAttr(scope,"setclientcookies");
+			if (hasAccess && !StringUtil.isEmpty(strClientCookies)) {
+				config.setClientCookies(toBoolean(strClientCookies, true));
+			}
+			else if (hasCS)
+				config.setClientCookies(configServer.isClientCookies());
+	
+			// Domain Cookies
+			String strDomainCookies = getAttr(scope,"setdomaincookies");
+			if (hasAccess && !StringUtil.isEmpty(strDomainCookies)) {
+				config.setDomainCookies(toBoolean(strDomainCookies, false));
+			}
+			else if (hasCS)
+				config.setDomainCookies(configServer.isDomainCookies());
 		}
-		
-		// Client Timeout
-		String clientTimeout = getAttr(scope,"clienttimeout");
-		if(StringUtil.isEmpty(clientTimeout, true)) clientTimeout = getAttr(scope,"client-timeout");
-		if (StringUtil.isEmpty(clientTimeout, true)) {
-			// deprecated
-			clientTimeout = getAttr(scope,"client-max-age");
-			int days = Caster.toIntValue(clientTimeout, -1);
-			if (days > 0)
-				clientTimeout = days + ",0,0,0";
-			else
-				clientTimeout = "";
+		catch(Exception e) {
+			log(config,log,e);
 		}
-		if (hasAccess && !StringUtil.isEmpty(clientTimeout)) {
-			config.setClientTimeout(clientTimeout);
-		}
-		else if (hasCS)
-			config.setClientTimeout(configServer.getClientTimeout());
-
-		// Session Timeout
-		String sessionTimeout = getAttr(scope,"sessiontimeout");
-		if (hasAccess && !StringUtil.isEmpty(sessionTimeout)) {
-			config.setSessionTimeout(sessionTimeout);
-		}
-		else if (hasCS)
-			config.setSessionTimeout(configServer.getSessionTimeout());
-
-		// App Timeout
-		
-		String appTimeout = getAttr(scope,"applicationtimeout");
-		if (hasAccess && !StringUtil.isEmpty(appTimeout)) {
-			config.setApplicationTimeout(appTimeout);
-		}
-		else if (hasCS)
-			config.setApplicationTimeout(configServer.getApplicationTimeout());
-
-		// Client Type
-		String strClientType = getAttr(scope,"clienttype");
-		if (hasAccess && !StringUtil.isEmpty(strClientType)) {
-			config.setClientType(strClientType);
-		}
-		else if (hasCS)
-			config.setClientType(configServer.getClientType());
-
-		// Client
-		Resource configDir = config.getConfigDir();
-		String strClientDirectory = getAttr(scope,"client-directory");
-		if (hasAccess && !StringUtil.isEmpty(strClientDirectory)) {
-			strClientDirectory = ConfigWebUtil.translateOldPath(strClientDirectory);
-			Resource res = ConfigWebUtil.getFile(configDir, strClientDirectory, "client-scope", configDir, FileUtil.TYPE_DIR, config);
-			config.setClientScopeDir(res);
-		}
-		else {
-			config.setClientScopeDir(configDir.getRealResource("client-scope"));
-		}
-
-		String strMax = getAttr(scope,"client-directory-max-size");
-		if (hasAccess && !StringUtil.isEmpty(strMax)) {
-			config.setClientScopeDirSize(ByteSizeParser.parseByteSizeDefinition(strMax, config.getClientScopeDirSize()));
-		}
-		else if (hasCS)
-			config.setClientScopeDirSize(configServer.getClientScopeDirSize());
-
-		// Session Management
-		String strSessionManagement = getAttr(scope,"sessionmanagement");
-		if (hasAccess && !StringUtil.isEmpty(strSessionManagement)) {
-			config.setSessionManagement(toBoolean(strSessionManagement, true));
-		}
-		else if (hasCS)
-			config.setSessionManagement(configServer.isSessionManagement());
-
-		// Client Management
-		String strClientManagement = getAttr(scope,"clientmanagement");
-		if (hasAccess && !StringUtil.isEmpty(strClientManagement)) {
-			config.setClientManagement(toBoolean(strClientManagement, false));
-		}
-		else if (hasCS)
-			config.setClientManagement(configServer.isClientManagement());
-
-		// Client Cookies
-		String strClientCookies = getAttr(scope,"setclientcookies");
-		if (hasAccess && !StringUtil.isEmpty(strClientCookies)) {
-			config.setClientCookies(toBoolean(strClientCookies, true));
-		}
-		else if (hasCS)
-			config.setClientCookies(configServer.isClientCookies());
-
-		// Domain Cookies
-		String strDomainCookies = getAttr(scope,"setdomaincookies");
-		if (hasAccess && !StringUtil.isEmpty(strDomainCookies)) {
-			config.setDomainCookies(toBoolean(strDomainCookies, false));
-		}
-		else if (hasCS)
-			config.setDomainCookies(configServer.isDomainCookies());
 	}
 
-	private static void loadJava(ConfigServerImpl configServer, ConfigImpl config, Document doc) {
-		boolean hasCS = configServer != null;
-		Element java = getChildByName(doc.getDocumentElement(), "java");
-
-		//
-		String strInspectTemplate = getAttr(java,"inspect-template");
-		if (!StringUtil.isEmpty(strInspectTemplate, true)) {
-			config.setInspectTemplate(ConfigWebUtil.inspectTemplate(strInspectTemplate, ConfigImpl.INSPECT_ONCE));
-		}
-		else if (hasCS) {
-			config.setInspectTemplate(configServer.getInspectTemplate());
-		}
-
-		//
-		String strCompileType = getAttr(java,"compile-type");
-		if (!StringUtil.isEmpty(strCompileType)) {
-			strCompileType = strCompileType.trim().toLowerCase();
-			if (strCompileType.equals("after-startup")) {
-				config.setCompileType(Config.RECOMPILE_AFTER_STARTUP);
+	private static void loadJava(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+		try {
+			boolean hasCS = configServer != null;
+			Element java = getChildByName(doc.getDocumentElement(), "java");
+	
+			//
+			String strInspectTemplate = getAttr(java,"inspect-template");
+			if (!StringUtil.isEmpty(strInspectTemplate, true)) {
+				config.setInspectTemplate(ConfigWebUtil.inspectTemplate(strInspectTemplate, ConfigImpl.INSPECT_ONCE));
 			}
-			else if (strCompileType.equals("always")) {
-				config.setCompileType(Config.RECOMPILE_ALWAYS);
+			else if (hasCS) {
+				config.setInspectTemplate(configServer.getInspectTemplate());
+			}
+	
+			//
+			String strCompileType = getAttr(java,"compile-type");
+			if (!StringUtil.isEmpty(strCompileType)) {
+				strCompileType = strCompileType.trim().toLowerCase();
+				if (strCompileType.equals("after-startup")) {
+					config.setCompileType(Config.RECOMPILE_AFTER_STARTUP);
+				}
+				else if (strCompileType.equals("always")) {
+					config.setCompileType(Config.RECOMPILE_ALWAYS);
+				}
+			}
+			else if (hasCS) {
+				config.setCompileType(configServer.getCompileType());
 			}
 		}
-		else if (hasCS) {
-			config.setCompileType(configServer.getCompileType());
+		catch(Exception e) {
+			log(config,log,e);
 		}
-
 	}
 
-	private static void loadConstants(ConfigServerImpl configServer, ConfigImpl config, Document doc) {
-
-		boolean hasCS = configServer != null;
-		Element constant = getChildByName(doc.getDocumentElement(), "constants");
-
-		// Constants
-		Element[] elConstants = getChildren(constant, "constant");
-		Struct sct = null;
-		if (hasCS) {
-			sct = configServer.getConstants();
-			if (sct != null)
-				sct = (Struct) sct.duplicate(false);
+	private static void loadConstants(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) { 
+		try {
+			boolean hasCS = configServer != null;
+			Element constant = getChildByName(doc.getDocumentElement(), "constants");
+	
+			// Constants
+			Element[] elConstants = getChildren(constant, "constant");
+			Struct sct = null;
+			if (hasCS) {
+				sct = configServer.getConstants();
+				if (sct != null)
+					sct = (Struct) sct.duplicate(false);
+			}
+			if (sct == null)
+				sct = new StructImpl();
+			String name;
+			for (int i = 0; i < elConstants.length; i++) {
+				name = getAttr(elConstants[i],"name");
+				if (StringUtil.isEmpty(name))
+					continue;
+				sct.setEL(KeyImpl.getInstance(name.trim()), getAttr(elConstants[i],"value"));
+			}
+			config.setConstants(sct);
 		}
-		if (sct == null)
-			sct = new StructImpl();
-		String name;
-		for (int i = 0; i < elConstants.length; i++) {
-			name = getAttr(elConstants[i],"name");
-			if (StringUtil.isEmpty(name))
-				continue;
-			sct.setEL(KeyImpl.getInstance(name.trim()), getAttr(elConstants[i],"value"));
+		catch(Exception e) {
+			log(config,log,e);
 		}
-		config.setConstants(sct);
 	}
 
-	private static void loadLogin(ConfigServerImpl configServer, ConfigImpl config, Document doc) {
-		// server context
-		if (config instanceof ConfigServer) {
-			Element login = getChildByName(doc.getDocumentElement(), "login");
-			boolean captcha = Caster.toBooleanValue(getAttr(login,"captcha"), false);
-			boolean rememberme = Caster.toBooleanValue(getAttr(login,"rememberme"), true);
-			
-			int delay = Caster.toIntValue(getAttr(login,"delay"), 1);
-			ConfigServerImpl cs = (ConfigServerImpl) config;
-			cs.setLoginDelay(delay);
-			cs.setLoginCaptcha(captcha);
-			cs.setRememberMe(rememberme);
+	public static void log(Config config,Log log, Exception e) {
+		try {
+		if(log!=null) log.error("configuration", e);
+		else {
+			PrintWriter pw = null;
+			if(config!=null) {
+				pw = config.getErrWriter();
+			}
+			if(pw==null) pw=new PrintWriter(System.err);
+			SystemOut.printDate(config.getErrWriter(), ExceptionUtil.getStacktrace(e, true));
+		}
+		}
+		catch(Exception ee) {
+			ee.printStackTrace();
+		}
+	}
+
+	private static void loadLogin(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+		try {
+			// server context
+			if (config instanceof ConfigServer) {
+				Element login = getChildByName(doc.getDocumentElement(), "login");
+				boolean captcha = Caster.toBooleanValue(getAttr(login,"captcha"), false);
+				boolean rememberme = Caster.toBooleanValue(getAttr(login,"rememberme"), true);
+				
+				int delay = Caster.toIntValue(getAttr(login,"delay"), 1);
+				ConfigServerImpl cs = (ConfigServerImpl) config;
+				cs.setLoginDelay(delay);
+				cs.setLoginCaptcha(captcha);
+				cs.setRememberMe(rememberme);
+			}
+		}
+		catch(Exception e) {
+			log(config,log,e);
 		}
 	}
 
@@ -4013,166 +4185,177 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * @param doc
 	 * @throws IOException
 	 */
-	private static void loadMail(ConfigServerImpl configServer, ConfigImpl config, Document doc) throws IOException {
-
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_MAIL);
-
-		boolean hasCS = configServer != null;
-		Element mail = getChildByName(doc.getDocumentElement(), "mail");
-		
-		// Send partial 
-		String strSendPartial = mail.getAttribute("send-partial");
-		if (!StringUtil.isEmpty(strSendPartial) && hasAccess) {
-			config.setMailSendPartial(toBoolean(strSendPartial, false));
-		}
-		else if (hasCS)
-			config.setMailSendPartial(configServer.isMailSendPartial());
-		
-		// Spool Interval
-		String strSpoolInterval = getAttr(mail,"spool-interval");
-		if (!StringUtil.isEmpty(strSpoolInterval) && hasAccess) {
-			config.setMailSpoolInterval(Caster.toIntValue(strSpoolInterval, 30));
-		}
-		else if (hasCS)
-			config.setMailSpoolInterval(configServer.getMailSpoolInterval());
-
-		String strEncoding = getAttr(mail,"default-encoding");
-		if (!StringUtil.isEmpty(strEncoding) && hasAccess)
-			config.setMailDefaultEncoding(strEncoding);
-		else if (hasCS)
-			config.setMailDefaultEncoding(configServer.getMailDefaultCharset());
-
-		// Spool Enable
-		String strSpoolEnable = getAttr(mail,"spool-enable");
-		if (!StringUtil.isEmpty(strSpoolEnable) && hasAccess) {
-			config.setMailSpoolEnable(toBoolean(strSpoolEnable, false));
-		}
-		else if (hasCS)
-			config.setMailSpoolEnable(configServer.isMailSpoolEnable());
-
-		// Timeout
-		String strTimeout = getAttr(mail,"timeout");
-		if (!StringUtil.isEmpty(strTimeout) && hasAccess) {
-			config.setMailTimeout(Caster.toIntValue(strTimeout, 60));
-		}
-		else if (hasCS)
-			config.setMailTimeout(configServer.getMailTimeout());
-
-		// Servers
-		int index = 0;
-		//Server[] servers = null;
-		Element[] elServers = getChildren(mail, "server");
-		List<Server> servers=new ArrayList<Server>();
-		if (hasCS) {
-			Server[] readOnlyServers = configServer.getMailServers();
-			for (int i = 0; i < readOnlyServers.length; i++) {
-				servers.add(readOnlyServers[index++].cloneReadOnly());
+	private static void loadMail(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+		try {
+			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_MAIL);
+	
+			boolean hasCS = configServer != null;
+			Element mail = getChildByName(doc.getDocumentElement(), "mail");
+			
+			// Send partial 
+			String strSendPartial = mail.getAttribute("send-partial");
+			if (!StringUtil.isEmpty(strSendPartial) && hasAccess) {
+				config.setMailSendPartial(toBoolean(strSendPartial, false));
 			}
-		}
-		/*else {
-			servers = new Server[elServers.length];
-		}*/
-		if (hasAccess) {
-			for (int i = 0; i < elServers.length; i++) {
-				Element el = elServers[i];
-				if (el.getNodeName().equals("server"))
-					servers.add(i, new ServerImpl(
-							Caster.toIntValue(getAttr(el,"id"), i+1), 
-							getAttr(el,"smtp"), 
-							Caster.toIntValue(getAttr(el,"port"), 25), 
-							getAttr(el,"username"),
-							ConfigWebUtil.decrypt(getAttr(el,"password")), 
-							toLong(el.getAttribute("life"), 1000*60*5),
-							toLong(el.getAttribute("idle"), 1000*60*1),
-							toBoolean(getAttr(el,"tls"), false), 
-							toBoolean(getAttr(el,"ssl"), false), 
-							toBoolean(getAttr(el,"reuse-connection"), true),
-							hasCS?ServerImpl.TYPE_LOCAL:ServerImpl.TYPE_GLOBAL)
-					);
+			else if (hasCS)
+				config.setMailSendPartial(configServer.isMailSendPartial());
+			
+			// Spool Interval
+			String strSpoolInterval = getAttr(mail,"spool-interval");
+			if (!StringUtil.isEmpty(strSpoolInterval) && hasAccess) {
+				config.setMailSpoolInterval(Caster.toIntValue(strSpoolInterval, 30));
 			}
+			else if (hasCS)
+				config.setMailSpoolInterval(configServer.getMailSpoolInterval());
+	
+			String strEncoding = getAttr(mail,"default-encoding");
+			if (!StringUtil.isEmpty(strEncoding) && hasAccess)
+				config.setMailDefaultEncoding(strEncoding);
+			else if (hasCS)
+				config.setMailDefaultEncoding(configServer.getMailDefaultCharset());
+	
+			// Spool Enable
+			String strSpoolEnable = getAttr(mail,"spool-enable");
+			if (!StringUtil.isEmpty(strSpoolEnable) && hasAccess) {
+				config.setMailSpoolEnable(toBoolean(strSpoolEnable, false));
+			}
+			else if (hasCS)
+				config.setMailSpoolEnable(configServer.isMailSpoolEnable());
+	
+			// Timeout
+			String strTimeout = getAttr(mail,"timeout");
+			if (!StringUtil.isEmpty(strTimeout) && hasAccess) {
+				config.setMailTimeout(Caster.toIntValue(strTimeout, 60));
+			}
+			else if (hasCS)
+				config.setMailTimeout(configServer.getMailTimeout());
+	
+			// Servers
+			int index = 0;
+			//Server[] servers = null;
+			Element[] elServers = getChildren(mail, "server");
+			List<Server> servers=new ArrayList<Server>();
+			if (hasCS) {
+				Server[] readOnlyServers = configServer.getMailServers();
+				if(readOnlyServers!=null) {
+					for (int i = 0; i < readOnlyServers.length; i++) {
+						servers.add(readOnlyServers[index++].cloneReadOnly());
+					}
+				}
+			}
+			/*else {
+				servers = new Server[elServers.length];
+			}*/
+			if (hasAccess) {
+				for (int i = 0; i < elServers.length; i++) {
+					Element el = elServers[i];
+					if (el.getNodeName().equals("server"))
+						servers.add(i, new ServerImpl(
+								Caster.toIntValue(getAttr(el,"id"), i+1), 
+								getAttr(el,"smtp"), 
+								Caster.toIntValue(getAttr(el,"port"), 25), 
+								getAttr(el,"username"),
+								ConfigWebUtil.decrypt(getAttr(el,"password")), 
+								toLong(el.getAttribute("life"), 1000*60*5),
+								toLong(el.getAttribute("idle"), 1000*60*1),
+								toBoolean(getAttr(el,"tls"), false), 
+								toBoolean(getAttr(el,"ssl"), false), 
+								toBoolean(getAttr(el,"reuse-connection"), true),
+								hasCS?ServerImpl.TYPE_LOCAL:ServerImpl.TYPE_GLOBAL)
+						);
+				}
+			}
+			config.setMailServers(servers.toArray(new Server[servers.size()]));
 		}
-		config.setMailServers(servers.toArray(new Server[servers.size()]));
+		catch(Exception e) {
+			log(config,log,e);
+		}
 	}
 
-	private static void loadMonitors(ConfigServerImpl configServer, ConfigImpl config, Document doc) throws IOException {
-		// only load in server context
-		if (configServer != null) return;
-
-		configServer = (ConfigServerImpl) config;
-
-		Element parent = getChildByName(doc.getDocumentElement(), "monitoring");
-		boolean enabled = Caster.toBooleanValue(getAttr(parent,"enabled"), false);
-		configServer.setMonitoringEnabled(enabled);
-		SystemOut.printDate(config.getOutWriter(), "monitoring is "+(enabled?"enabled":"disabled"));
-		
-		Element[] children = getChildren(parent, "monitor");
-		
-		java.util.List<IntervallMonitor> intervalls = new ArrayList<IntervallMonitor>();
-		java.util.List<RequestMonitor> requests = new ArrayList<RequestMonitor>();
-		java.util.List<MonitorTemp> actions = new ArrayList<MonitorTemp>();
-		String strType, name;
-		ClassDefinition cd;
-		boolean log,async;
-		short type;
-		for (int i = 0; i < children.length; i++) {
-			Element el = children[i];
-			cd=getClassDefinition(el, "", config.getIdentification());
-			strType = getAttr(el,"type");
-			name = getAttr(el,"name");
-			async = Caster.toBooleanValue(getAttr(el,"async"),false);
-			log = Caster.toBooleanValue(getAttr(el,"log"), true);
+	private static void loadMonitors(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+		try {
+			// only load in server context
+			if (configServer != null) return;
+	
+			configServer = (ConfigServerImpl) config;
+	
+			Element parent = getChildByName(doc.getDocumentElement(), "monitoring");
+			boolean enabled = Caster.toBooleanValue(getAttr(parent,"enabled"), false);
+			configServer.setMonitoringEnabled(enabled);
+			SystemOut.printDate(config.getOutWriter(), "monitoring is "+(enabled?"enabled":"disabled"));
 			
-			if ("request".equalsIgnoreCase(strType))
-				type = IntervallMonitor.TYPE_REQUEST;
-			else if ("action".equalsIgnoreCase(strType))
-				type = Monitor.TYPE_ACTION;
-			else
-				type = IntervallMonitor.TYPE_INTERVAL;
-
+			Element[] children = getChildren(parent, "monitor");
 			
-			if (cd.hasClass() && !StringUtil.isEmpty(name)) {
-				name = name.trim();
-				try {
-					Class clazz = cd.getClazz();
-					Object obj;
-					ConstructorInstance constr = Reflector.getConstructorInstance(clazz, new Object[] { configServer }, null);
-					if (constr != null)
-						obj = constr.invoke();
-					else
-						obj = clazz.newInstance();
-					SystemOut.printDate(config.getOutWriter(), "loaded "+(strType)+" monitor ["+clazz.getName()+"]");
-					if (type == IntervallMonitor.TYPE_INTERVAL) {
-						IntervallMonitor m = obj instanceof IntervallMonitor ? (IntervallMonitor) obj : new IntervallMonitorWrap(obj);
-						m.init(configServer, name, log);
-						intervalls.add(m);
+			java.util.List<IntervallMonitor> intervalls = new ArrayList<IntervallMonitor>();
+			java.util.List<RequestMonitor> requests = new ArrayList<RequestMonitor>();
+			java.util.List<MonitorTemp> actions = new ArrayList<MonitorTemp>();
+			String strType, name;
+			ClassDefinition cd;
+			boolean _log,async;
+			short type;
+			for (int i = 0; i < children.length; i++) {
+				Element el = children[i];
+				cd=getClassDefinition(el, "", config.getIdentification());
+				strType = getAttr(el,"type");
+				name = getAttr(el,"name");
+				async = Caster.toBooleanValue(getAttr(el,"async"),false);
+				_log = Caster.toBooleanValue(getAttr(el,"log"), true);
+				
+				if ("request".equalsIgnoreCase(strType))
+					type = IntervallMonitor.TYPE_REQUEST;
+				else if ("action".equalsIgnoreCase(strType))
+					type = Monitor.TYPE_ACTION;
+				else
+					type = IntervallMonitor.TYPE_INTERVAL;
+	
+				
+				if (cd.hasClass() && !StringUtil.isEmpty(name)) {
+					name = name.trim();
+					try {
+						Class clazz = cd.getClazz();
+						Object obj;
+						ConstructorInstance constr = Reflector.getConstructorInstance(clazz, new Object[] { configServer }, null);
+						if (constr != null)
+							obj = constr.invoke();
+						else
+							obj = clazz.newInstance();
+						SystemOut.printDate(config.getOutWriter(), "loaded "+(strType)+" monitor ["+clazz.getName()+"]");
+						if (type == IntervallMonitor.TYPE_INTERVAL) {
+							IntervallMonitor m = obj instanceof IntervallMonitor ? (IntervallMonitor) obj : new IntervallMonitorWrap(obj);
+							m.init(configServer, name, _log);
+							intervalls.add(m);
+						}
+						else if (type == Monitor.TYPE_ACTION) {
+							ActionMonitor am = obj instanceof ActionMonitor ? 
+									(ActionMonitor) obj : new ActionMonitorWrap(obj);
+							actions.add(new MonitorTemp(am, name, _log));
+						}
+						else {
+							RequestMonitorPro m = new RequestMonitorProImpl(obj instanceof RequestMonitor ? (RequestMonitor) obj : new RequestMonitorWrap(obj));
+							if(async) m=new AsyncRequestMonitor(m);
+							m.init(configServer, name, _log);
+							SystemOut.printDate(config.getOutWriter(), "initialize "+(strType)+" monitor ["+clazz.getName()+"]");
+							
+							requests.add(m);
+						}
 					}
-					else if (type == Monitor.TYPE_ACTION) {
-						ActionMonitor am = obj instanceof ActionMonitor ? 
-								(ActionMonitor) obj : new ActionMonitorWrap(obj);
-						actions.add(new MonitorTemp(am, name, log));
-					}
-					else {
-						RequestMonitorPro m = new RequestMonitorProImpl(obj instanceof RequestMonitor ? (RequestMonitor) obj : new RequestMonitorWrap(obj));
-						if(async) m=new AsyncRequestMonitor(m);
-						m.init(configServer, name, log);
-						SystemOut.printDate(config.getOutWriter(), "initialize "+(strType)+" monitor ["+clazz.getName()+"]");
-						
-						requests.add(m);
+					catch(Throwable t) {
+						ExceptionUtil.rethrowIfNecessary(t);
+						SystemOut.printDate(config.getErrWriter(), ExceptionUtil.getStacktrace(t, true));
 					}
 				}
-				catch(Throwable t) {
-					ExceptionUtil.rethrowIfNecessary(t);
-					SystemOut.printDate(config.getErrWriter(), ExceptionUtil.getStacktrace(t, true));
-				}
+	
 			}
-
+			configServer.setRequestMonitors(requests.toArray(new RequestMonitor[requests.size()]));
+			configServer.setIntervallMonitors(intervalls.toArray(new IntervallMonitor[intervalls.size()]));
+			ActionMonitorCollector actionMonitorCollector = ActionMonitorFatory.getActionMonitorCollector(configServer, actions.toArray(new MonitorTemp[actions.size()]));
+			configServer.setActionMonitorCollector(actionMonitorCollector);
+	
+			((CFMLEngineImpl) configServer.getCFMLEngine()).touchMonitor(configServer);
 		}
-		configServer.setRequestMonitors(requests.toArray(new RequestMonitor[requests.size()]));
-		configServer.setIntervallMonitors(intervalls.toArray(new IntervallMonitor[intervalls.size()]));
-		ActionMonitorCollector actionMonitorCollector = ActionMonitorFatory.getActionMonitorCollector(configServer, actions.toArray(new MonitorTemp[actions.size()]));
-		configServer.setActionMonitorCollector(actionMonitorCollector);
-
-		((CFMLEngineImpl) configServer.getCFMLEngine()).touchMonitor(configServer);
+		catch(Exception e) {
+			log(config,log,e);
+		}
 	}
 
 	/**
@@ -4181,32 +4364,34 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * @param doc
 	 * @throws PageException
 	 */
-	private static void loadSearch(ConfigServer configServer, ConfigImpl config, Document doc) {
-		
-		Element search = getChildByName(doc.getDocumentElement(), "search");
-		
-		// class
-		ClassDefinition<SearchEngine> cd = getClassDefinition(search, "engine-", config.getIdentification());
-		if(!cd.hasClass() || "lucee.runtime.search.lucene.LuceneSearchEngine".equals(cd.getClassName())) {
-			if(configServer!=null)
-				cd=((ConfigImpl)configServer).getSearchEngineClassDefinition();
-			else
-				cd=new ClassDefinitionImpl(DummySearchEngine.class);
+	private static void loadSearch(ConfigServer configServer, ConfigImpl config, Document doc,Log log) {
+		try {
+			Element search = getChildByName(doc.getDocumentElement(), "search");
+			
+			// class
+			ClassDefinition<SearchEngine> cd = getClassDefinition(search, "engine-", config.getIdentification());
+			if(!cd.hasClass() || "lucee.runtime.search.lucene.LuceneSearchEngine".equals(cd.getClassName())) {
+				if(configServer!=null)
+					cd=((ConfigImpl)configServer).getSearchEngineClassDefinition();
+				else
+					cd=new ClassDefinitionImpl(DummySearchEngine.class);
+			}
+			
+			// directory
+			String dir = search.getAttribute("directory");
+			if(StringUtil.isEmpty(dir)) {
+				if(configServer!=null)
+					dir=((ConfigImpl)configServer).getSearchEngineDirectory();
+				else
+					dir="{lucee-web}/search/";
+			}
+	
+			
+			config.setSearchEngine(cd,dir);
 		}
-		
-		// directory
-		String dir = search.getAttribute("directory");
-		if(StringUtil.isEmpty(dir)) {
-			if(configServer!=null)
-				dir=((ConfigImpl)configServer).getSearchEngineDirectory();
-			else
-				dir="{lucee-web}/search/";
+		catch(Exception e) {
+			log(config,log,e);
 		}
-
-		
-		config.setSearchEngine(cd,dir);
-		
-		// directory=
 	}
 
 	/**
@@ -4217,16 +4402,21 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * @throws IOException
 	 * @throws PageException
 	 */
-	private static void loadScheduler(ConfigServer configServer, ConfigImpl config, Document doc) throws PageException, IOException {
-		if (config instanceof ConfigServer)
-			return;
-
-		Resource configDir = config.getConfigDir();
-		Element scheduler = getChildByName(doc.getDocumentElement(), "scheduler");
-
-		// set scheduler
-		Resource file = ConfigWebUtil.getFile(config.getRootDirectory(), scheduler.getAttribute("directory"), "scheduler", configDir, FileUtil.TYPE_DIR, config);
-		config.setScheduler(configServer.getCFMLEngine(), file);
+	private static void loadScheduler(ConfigServer configServer, ConfigImpl config, Document doc, Log log) {
+		try {
+			if (config instanceof ConfigServer)
+				return;
+	
+			Resource configDir = config.getConfigDir();
+			Element scheduler = getChildByName(doc.getDocumentElement(), "scheduler");
+	
+			// set scheduler
+			Resource file = ConfigWebUtil.getFile(config.getRootDirectory(), scheduler.getAttribute("directory"), "scheduler", configDir, FileUtil.TYPE_DIR, config);
+			config.setScheduler(configServer.getCFMLEngine(), file);
+		}
+		catch(Exception e) {
+			log(config,log,e);
+		}
 	}
 
 	/**
@@ -4234,182 +4424,191 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * @param config
 	 * @param doc
 	 */
-	private static void loadDebug(ConfigServerImpl configServer, ConfigImpl config, Document doc) {
-		boolean hasCS = configServer != null;
-		Element debugging = getChildByName(doc.getDocumentElement(), "debugging");
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_DEBUGGING);
-
-		// Entries
-		Element[] entries = getChildren(debugging, "debug-entry");
-		Map<String, DebugEntry> list = new HashMap<String, DebugEntry>();
-		if (hasCS) {
-			DebugEntry[] _entries = ((ConfigImpl) configServer).getDebugEntries();
-			for (int i = 0; i < _entries.length; i++) {
-				list.put(_entries[i].getId(), _entries[i].duplicate(true));
-			}
-		}
-		Element e;
-		String id;
-		for (int i = 0; i < entries.length; i++) {
-			e = entries[i];
-			id = getAttr(e,"id");
-			try {
-				list.put(id, new DebugEntry(id, 
-						getAttr(e,"type"), getAttr(e,"iprange"), getAttr(e,"label"), e.getAttribute("path"), 
-						getAttr(e,"fullname"),toStruct(getAttr(e,"custom"))));
-			}
-			catch (IOException ioe) {
-			}
-		}
-		config.setDebugEntries(list.values().toArray(new DebugEntry[list.size()]));
-
-		// debug
-		String strDebug = getAttr(debugging,"debug");
-		if (hasAccess && !StringUtil.isEmpty(strDebug)) {
-			config.setDebug(toBoolean(strDebug, false) ? ConfigImpl.CLIENT_BOOLEAN_TRUE : ConfigImpl.CLIENT_BOOLEAN_FALSE);
-		}
-		else if (hasCS)
-			config.setDebug(configServer.debug() ? ConfigImpl.SERVER_BOOLEAN_TRUE : ConfigImpl.SERVER_BOOLEAN_FALSE);
-
-		// debug-log-output
-		String strDLO = getAttr(debugging,"debug-log-output");
-		if (hasAccess && !StringUtil.isEmpty(strDLO)) {
-			config.setDebugLogOutput(toBoolean(strDLO, false) ? ConfigImpl.CLIENT_BOOLEAN_TRUE : ConfigImpl.CLIENT_BOOLEAN_FALSE);
-		}
-		else if (hasCS)
-			config.setDebugLogOutput(configServer.debugLogOutput() ? ConfigImpl.SERVER_BOOLEAN_TRUE : ConfigImpl.SERVER_BOOLEAN_FALSE);
-
-		// debug options
-		int options = 0;
-		String str = getAttr(debugging,"database");
-		if (hasAccess && !StringUtil.isEmpty(str)) {
-			if (toBoolean(str, false))
-				options += ConfigImpl.DEBUG_DATABASE;
-		}
-		else if (hasCS && configServer.hasDebugOptions(ConfigImpl.DEBUG_DATABASE))
-			options += ConfigImpl.DEBUG_DATABASE;
-
-		str = getAttr(debugging,"exception");
-		if (hasAccess && !StringUtil.isEmpty(str)) {
-			if (toBoolean(str, false))
-				options += ConfigImpl.DEBUG_EXCEPTION;
-		}
-		else if (hasCS && configServer.hasDebugOptions(ConfigImpl.DEBUG_EXCEPTION))
-			options += ConfigImpl.DEBUG_EXCEPTION;
-
-		
-		str = getAttr(debugging,"dump");
-		if (hasAccess && !StringUtil.isEmpty(str)) {
-			if (toBoolean(str, false))
-				options += ConfigImpl.DEBUG_DUMP;
-		}
-		else if (hasCS && configServer.hasDebugOptions(ConfigImpl.DEBUG_DUMP))
-			options += ConfigImpl.DEBUG_DUMP;
-
-		
-		
-		str = getAttr(debugging,"tracing");
-		if (hasAccess && !StringUtil.isEmpty(str)) {
-			if (toBoolean(str, false))
-				options += ConfigImpl.DEBUG_TRACING;
-		}
-		else if (hasCS && configServer.hasDebugOptions(ConfigImpl.DEBUG_TRACING))
-			options += ConfigImpl.DEBUG_TRACING;
-
-		str = getAttr(debugging,"timer");
-		if (hasAccess && !StringUtil.isEmpty(str)) {
-			if (toBoolean(str, false))
-				options += ConfigImpl.DEBUG_TIMER;
-		}
-		else if (hasCS && configServer.hasDebugOptions(ConfigImpl.DEBUG_TIMER))
-			options += ConfigImpl.DEBUG_TIMER;
-
-		str = getAttr(debugging,"implicit-access");
-		if (hasAccess && !StringUtil.isEmpty(str)) {
-			if (toBoolean(str, false))
-				options += ConfigImpl.DEBUG_IMPLICIT_ACCESS;
-		}
-		else if (hasCS && configServer.hasDebugOptions(ConfigImpl.DEBUG_IMPLICIT_ACCESS))
-			options += ConfigImpl.DEBUG_IMPLICIT_ACCESS;
-
-		str = getAttr(debugging,"query-usage");
-		if (StringUtil.isEmpty(str))
-			str = getAttr(debugging,"show-query-usage");
-		if (hasAccess && !StringUtil.isEmpty(str)) {
-			if (toBoolean(str, false))
-				options += ConfigImpl.DEBUG_QUERY_USAGE;
-		}
-		else if (hasCS && configServer.hasDebugOptions(ConfigImpl.DEBUG_QUERY_USAGE))
-			options += ConfigImpl.DEBUG_QUERY_USAGE;
-
-		// max records logged
-		String strMax = getAttr(debugging,"max-records-logged");
-		if (hasAccess && !StringUtil.isEmpty(strMax)) {
-			config.setDebugMaxRecordsLogged(Caster.toIntValue(strMax, 10));
-		}
-		else if (hasCS)
-			config.setDebugMaxRecordsLogged(configServer.getDebugMaxRecordsLogged());
-
-		config.setDebugOptions(options);
-	}
-
-	/**
-	 * @param configServer
-	 * @param config
-	 * @param doc
-	 */
-	private static void loadCFX(ConfigServerImpl configServer, ConfigImpl config, Document doc) {
-
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_CFX_SETTING);
-
-		Map<String,CFXTagClass> map = MapFactory.<String,CFXTagClass>getConcurrentMap();
-		if (configServer != null) {
-			try {
-				if (configServer.getCFXTagPool() != null) {
-					Map<String,CFXTagClass> classes = configServer.getCFXTagPool().getClasses();
-					Iterator<Entry<String, CFXTagClass>> it = classes.entrySet().iterator();
-					Entry<String, CFXTagClass> e;
-					while (it.hasNext()) {
-						e = it.next();
-						map.put(e.getKey(), e.getValue().cloneReadOnly());
-					}
+	private static void loadDebug(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+		try {
+			boolean hasCS = configServer != null;
+			Element debugging = getChildByName(doc.getDocumentElement(), "debugging");
+			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_DEBUGGING);
+	
+			// Entries
+			Element[] entries = getChildren(debugging, "debug-entry");
+			Map<String, DebugEntry> list = new HashMap<String, DebugEntry>();
+			if (hasCS) {
+				DebugEntry[] _entries = ((ConfigImpl) configServer).getDebugEntries();
+				for (int i = 0; i < _entries.length; i++) {
+					list.put(_entries[i].getId(), _entries[i].duplicate(true));
 				}
 			}
-			catch (SecurityException e) {
+			Element e;
+			String id;
+			for (int i = 0; i < entries.length; i++) {
+				e = entries[i];
+				id = getAttr(e,"id");
+				try {
+					list.put(id, new DebugEntry(id, 
+							getAttr(e,"type"), getAttr(e,"iprange"), getAttr(e,"label"), e.getAttribute("path"), 
+							getAttr(e,"fullname"),toStruct(getAttr(e,"custom"))));
+				}
+				catch (IOException ioe) {
+				}
 			}
+			config.setDebugEntries(list.values().toArray(new DebugEntry[list.size()]));
+	
+			// debug
+			String strDebug = getAttr(debugging,"debug");
+			if (hasAccess && !StringUtil.isEmpty(strDebug)) {
+				config.setDebug(toBoolean(strDebug, false) ? ConfigImpl.CLIENT_BOOLEAN_TRUE : ConfigImpl.CLIENT_BOOLEAN_FALSE);
+			}
+			else if (hasCS)
+				config.setDebug(configServer.debug() ? ConfigImpl.SERVER_BOOLEAN_TRUE : ConfigImpl.SERVER_BOOLEAN_FALSE);
+	
+			// debug-log-output
+			String strDLO = getAttr(debugging,"debug-log-output");
+			if (hasAccess && !StringUtil.isEmpty(strDLO)) {
+				config.setDebugLogOutput(toBoolean(strDLO, false) ? ConfigImpl.CLIENT_BOOLEAN_TRUE : ConfigImpl.CLIENT_BOOLEAN_FALSE);
+			}
+			else if (hasCS)
+				config.setDebugLogOutput(configServer.debugLogOutput() ? ConfigImpl.SERVER_BOOLEAN_TRUE : ConfigImpl.SERVER_BOOLEAN_FALSE);
+	
+			// debug options
+			int options = 0;
+			String str = getAttr(debugging,"database");
+			if (hasAccess && !StringUtil.isEmpty(str)) {
+				if (toBoolean(str, false))
+					options += ConfigImpl.DEBUG_DATABASE;
+			}
+			else if (hasCS && configServer.hasDebugOptions(ConfigImpl.DEBUG_DATABASE))
+				options += ConfigImpl.DEBUG_DATABASE;
+	
+			str = getAttr(debugging,"exception");
+			if (hasAccess && !StringUtil.isEmpty(str)) {
+				if (toBoolean(str, false))
+					options += ConfigImpl.DEBUG_EXCEPTION;
+			}
+			else if (hasCS && configServer.hasDebugOptions(ConfigImpl.DEBUG_EXCEPTION))
+				options += ConfigImpl.DEBUG_EXCEPTION;
+	
+			
+			str = getAttr(debugging,"dump");
+			if (hasAccess && !StringUtil.isEmpty(str)) {
+				if (toBoolean(str, false))
+					options += ConfigImpl.DEBUG_DUMP;
+			}
+			else if (hasCS && configServer.hasDebugOptions(ConfigImpl.DEBUG_DUMP))
+				options += ConfigImpl.DEBUG_DUMP;
+	
+			
+			
+			str = getAttr(debugging,"tracing");
+			if (hasAccess && !StringUtil.isEmpty(str)) {
+				if (toBoolean(str, false))
+					options += ConfigImpl.DEBUG_TRACING;
+			}
+			else if (hasCS && configServer.hasDebugOptions(ConfigImpl.DEBUG_TRACING))
+				options += ConfigImpl.DEBUG_TRACING;
+	
+			str = getAttr(debugging,"timer");
+			if (hasAccess && !StringUtil.isEmpty(str)) {
+				if (toBoolean(str, false))
+					options += ConfigImpl.DEBUG_TIMER;
+			}
+			else if (hasCS && configServer.hasDebugOptions(ConfigImpl.DEBUG_TIMER))
+				options += ConfigImpl.DEBUG_TIMER;
+	
+			str = getAttr(debugging,"implicit-access");
+			if (hasAccess && !StringUtil.isEmpty(str)) {
+				if (toBoolean(str, false))
+					options += ConfigImpl.DEBUG_IMPLICIT_ACCESS;
+			}
+			else if (hasCS && configServer.hasDebugOptions(ConfigImpl.DEBUG_IMPLICIT_ACCESS))
+				options += ConfigImpl.DEBUG_IMPLICIT_ACCESS;
+	
+			str = getAttr(debugging,"query-usage");
+			if (StringUtil.isEmpty(str))
+				str = getAttr(debugging,"show-query-usage");
+			if (hasAccess && !StringUtil.isEmpty(str)) {
+				if (toBoolean(str, false))
+					options += ConfigImpl.DEBUG_QUERY_USAGE;
+			}
+			else if (hasCS && configServer.hasDebugOptions(ConfigImpl.DEBUG_QUERY_USAGE))
+				options += ConfigImpl.DEBUG_QUERY_USAGE;
+	
+			// max records logged
+			String strMax = getAttr(debugging,"max-records-logged");
+			if (hasAccess && !StringUtil.isEmpty(strMax)) {
+				config.setDebugMaxRecordsLogged(Caster.toIntValue(strMax, 10));
+			}
+			else if (hasCS)
+				config.setDebugMaxRecordsLogged(configServer.getDebugMaxRecordsLogged());
+	
+			config.setDebugOptions(options);
 		}
+		catch(Exception e) {
+			log(config,log,e);
+		}
+	}
 
-		if (hasAccess) {
-			if (configServer == null) {
-				System.setProperty("cfx.bin.path", config.getConfigDir().getRealResource("bin").getAbsolutePath());
-			}
-
-			// Java CFX Tags
-			Element cfxTagsParent = getChildByName(doc.getDocumentElement(), "ext-tags", false, true);
-			if (cfxTagsParent == null)
-				cfxTagsParent = getChildByName(doc.getDocumentElement(), "cfx-tags", false, true);
-			if (cfxTagsParent == null)
-				cfxTagsParent = getChildByName(doc.getDocumentElement(), "ext-tags");
-
-			boolean oldStyle = cfxTagsParent.getNodeName().equals("cfx-tags");
-
-			Element[] cfxTags = oldStyle ? getChildren(cfxTagsParent, "cfx-tag") : getChildren(cfxTagsParent, "ext-tag");
-			for (int i = 0; i < cfxTags.length; i++) {
-				String type = getAttr(cfxTags[i],"type");
-				if (type != null) {
-					// Java CFX Tags
-					if (type.equalsIgnoreCase("java")) {
-						String name = getAttr(cfxTags[i],"name");
-						ClassDefinition cd = getClassDefinition(cfxTags[i], "", config.getIdentification());
-						if (!StringUtil.isEmpty(name) && cd.hasClass()) {
-							map.put(name.toLowerCase(), new JavaCFXTagClass(name, cd));
+	/**
+	 * @param configServer
+	 * @param config
+	 * @param doc
+	 */
+	private static void loadCFX(ConfigServerImpl configServer, ConfigImpl config, Document doc,Log log) {
+		try {
+			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_CFX_SETTING);
+	
+			Map<String,CFXTagClass> map = MapFactory.<String,CFXTagClass>getConcurrentMap();
+			if (configServer != null) {
+				try {
+					if (configServer.getCFXTagPool() != null) {
+						Map<String,CFXTagClass> classes = configServer.getCFXTagPool().getClasses();
+						Iterator<Entry<String, CFXTagClass>> it = classes.entrySet().iterator();
+						Entry<String, CFXTagClass> e;
+						while (it.hasNext()) {
+							e = it.next();
+							map.put(e.getKey(), e.getValue().cloneReadOnly());
 						}
 					}
 				}
+				catch (SecurityException e) {
+				}
 			}
-
+	
+			if (hasAccess) {
+				if (configServer == null) {
+					System.setProperty("cfx.bin.path", config.getConfigDir().getRealResource("bin").getAbsolutePath());
+				}
+	
+				// Java CFX Tags
+				Element cfxTagsParent = getChildByName(doc.getDocumentElement(), "ext-tags", false, true);
+				if (cfxTagsParent == null)
+					cfxTagsParent = getChildByName(doc.getDocumentElement(), "cfx-tags", false, true);
+				if (cfxTagsParent == null)
+					cfxTagsParent = getChildByName(doc.getDocumentElement(), "ext-tags");
+	
+				boolean oldStyle = cfxTagsParent.getNodeName().equals("cfx-tags");
+	
+				Element[] cfxTags = oldStyle ? getChildren(cfxTagsParent, "cfx-tag") : getChildren(cfxTagsParent, "ext-tag");
+				for (int i = 0; i < cfxTags.length; i++) {
+					String type = getAttr(cfxTags[i],"type");
+					if (type != null) {
+						// Java CFX Tags
+						if (type.equalsIgnoreCase("java")) {
+							String name = getAttr(cfxTags[i],"name");
+							ClassDefinition cd = getClassDefinition(cfxTags[i], "", config.getIdentification());
+							if (!StringUtil.isEmpty(name) && cd.hasClass()) {
+								map.put(name.toLowerCase(), new JavaCFXTagClass(name, cd));
+							}
+						}
+					}
+				}
+	
+			}
+			config.setCFXTagPool(map);
 		}
-		config.setCFXTagPool(map);
+		catch(Exception e) {
+			log(config,log,e);
+		}
 	}
 	
 	/**
@@ -4420,110 +4619,118 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * @param log
 	 */
 	private static void loadExtensionBundles(ConfigServerImpl cs, ConfigImpl config, Document doc, Log log) {
-		Element parent = getChildByName(doc.getDocumentElement(), "extensions");
-		Element[] children = getChildren(parent, "rhextension");
-		String strBundles;
-		List<RHExtension> extensions=new ArrayList<RHExtension>();
-		
-		RHExtension rhe;
-		for(Element child:children) {
-			BundleInfo[] bfsq;
-			try {
-				rhe=new RHExtension(config, child);
-				
-				if(rhe.getStartBundles()) rhe.deployBundles(config);
-				extensions.add(rhe);
-			} catch (Exception e) {
-				log.error("load-extension", e);
-				continue;
+		try {
+			Element parent = getChildByName(doc.getDocumentElement(), "extensions");
+			Element[] children = getChildren(parent, "rhextension");
+			String strBundles;
+			List<RHExtension> extensions=new ArrayList<RHExtension>();
+			
+			RHExtension rhe;
+			for(Element child:children) {
+				BundleInfo[] bfsq;
+				try {
+					rhe=new RHExtension(config, child);
+					
+					if(rhe.getStartBundles()) rhe.deployBundles(config);
+					extensions.add(rhe);
+				} catch (Exception e) {
+					log.error("load-extension", e);
+					continue;
+				}
 			}
+			config.setExtensions(extensions.toArray(new RHExtension[extensions.size()]));
 		}
-		config.setExtensions(extensions.toArray(new RHExtension[extensions.size()]));
+		catch(Exception e) {
+			log(config,log,e);
+		}
 	}
 
-	private static void loadExtensions(ConfigServerImpl configServer, ConfigImpl config, Document doc) {
-
-		Element xmlExtParent = getChildByName(doc.getDocumentElement(), "extensions");
-
-		String strEnabled = getAttr(xmlExtParent,"enabled");
-		if (!StringUtil.isEmpty(strEnabled)) {
-			config.setExtensionEnabled(Caster.toBooleanValue(strEnabled, false));
-		}
-		
-		// RH Providers
-		{
-			// providers
-			Element[] xmlProviders = getChildren(xmlExtParent, "rhprovider");
-			String strProvider;
-			Map<RHExtensionProvider,String> providers = new LinkedHashMap<RHExtensionProvider,String>();
+	private static void loadExtensions(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+		try {
+			Element xmlExtParent = getChildByName(doc.getDocumentElement(), "extensions");
+	
+			String strEnabled = getAttr(xmlExtParent,"enabled");
+			if (!StringUtil.isEmpty(strEnabled)) {
+				config.setExtensionEnabled(Caster.toBooleanValue(strEnabled, false));
+			}
 			
-			for (int i = 0; i < Constants.RH_EXTENSION_PROVIDERS.length; i++) {
-				providers.put(Constants.RH_EXTENSION_PROVIDERS[i], "");
-			}
-			for (int i = 0; i < xmlProviders.length; i++) {
-				strProvider = getAttr(xmlProviders[i],"url");
-				if (!StringUtil.isEmpty(strProvider, true)) {
-					try {
-						providers.put(new RHExtensionProvider(strProvider.trim(),false), "");
-					}
-					catch (MalformedURLException e) {
-						SystemOut.printDate(e);
+			// RH Providers
+			{
+				// providers
+				Element[] xmlProviders = getChildren(xmlExtParent, "rhprovider");
+				String strProvider;
+				Map<RHExtensionProvider,String> providers = new LinkedHashMap<RHExtensionProvider,String>();
+				
+				for (int i = 0; i < Constants.RH_EXTENSION_PROVIDERS.length; i++) {
+					providers.put(Constants.RH_EXTENSION_PROVIDERS[i], "");
+				}
+				for (int i = 0; i < xmlProviders.length; i++) {
+					strProvider = getAttr(xmlProviders[i],"url");
+					if (!StringUtil.isEmpty(strProvider, true)) {
+						try {
+							providers.put(new RHExtensionProvider(strProvider.trim(),false), "");
+						}
+						catch (MalformedURLException e) {
+							SystemOut.printDate(e);
+						}
 					}
 				}
+				config.setRHExtensionProviders(providers.keySet().toArray(new RHExtensionProvider[providers.size()]));
 			}
-			config.setRHExtensionProviders(providers.keySet().toArray(new RHExtensionProvider[providers.size()]));
-		}
-		
-		
-
-		// classic providers
-		{
-			Element[] xmlProviders = getChildren(xmlExtParent, "provider");
-			String provider;
-			Map list = new HashMap();
+			
+			
 	
-			for (int i = 0; i < Constants.CLASSIC_EXTENSION_PROVIDERS.length; i++) {
-				list.put(Constants.CLASSIC_EXTENSION_PROVIDERS[i], "");
-			}
-	
-			for (int i = 0; i < xmlProviders.length; i++) {
-				provider = getAttr(xmlProviders[i],"url");
-				if (!StringUtil.isEmpty(provider, true)) {
-					list.put(new ExtensionProviderImpl(provider.trim(), false), "");
+			// classic providers
+			{
+				Element[] xmlProviders = getChildren(xmlExtParent, "provider");
+				String provider;
+				Map list = new HashMap();
+		
+				for (int i = 0; i < Constants.CLASSIC_EXTENSION_PROVIDERS.length; i++) {
+					list.put(Constants.CLASSIC_EXTENSION_PROVIDERS[i], "");
 				}
-			}
-			config.setExtensionProviders((ExtensionProvider[]) list.keySet().toArray(new ExtensionProvider[list.size()]));
-		}
 		
-		// extensions
-		Element[] xmlExtensions = getChildren(xmlExtParent, "extension");
-		Extension[] extensions = new Extension[xmlExtensions.length];
-		Element xmlExtension;
-		for (int i = 0; i < xmlExtensions.length; i++) {
-			xmlExtension = xmlExtensions[i];
-			extensions[i] = new ExtensionImpl(
-					getAttr(xmlExtension,"config"), 
-					getAttr(xmlExtension,"id"), 
-					getAttr(xmlExtension,"provider"),
-					getAttr(xmlExtension,"version"),
-					getAttr(xmlExtension,"name"), 
-					getAttr(xmlExtension,"label"), 
-					getAttr(xmlExtension,"description"), 
-					getAttr(xmlExtension,"category"),
-					getAttr(xmlExtension,"image"), 
-					getAttr(xmlExtension,"author"), 
-					getAttr(xmlExtension,"codename"), 
-					getAttr(xmlExtension,"video"),
-					getAttr(xmlExtension,"support"), 
-					getAttr(xmlExtension,"documentation"), 
-					getAttr(xmlExtension,"forum"), 
-					getAttr(xmlExtension,"mailinglist"),
-					getAttr(xmlExtension,"network"), 
-					DateCaster.toDateAdvanced(getAttr(xmlExtension,"created"), null, null), 
-					getAttr(xmlExtension,"type"));
+				for (int i = 0; i < xmlProviders.length; i++) {
+					provider = getAttr(xmlProviders[i],"url");
+					if (!StringUtil.isEmpty(provider, true)) {
+						list.put(new ExtensionProviderImpl(provider.trim(), false), "");
+					}
+				}
+				config.setExtensionProviders((ExtensionProvider[]) list.keySet().toArray(new ExtensionProvider[list.size()]));
+			}
+			
+			// extensions
+			Element[] xmlExtensions = getChildren(xmlExtParent, "extension");
+			Extension[] extensions = new Extension[xmlExtensions.length];
+			Element xmlExtension;
+			for (int i = 0; i < xmlExtensions.length; i++) {
+				xmlExtension = xmlExtensions[i];
+				extensions[i] = new ExtensionImpl(
+						getAttr(xmlExtension,"config"), 
+						getAttr(xmlExtension,"id"), 
+						getAttr(xmlExtension,"provider"),
+						getAttr(xmlExtension,"version"),
+						getAttr(xmlExtension,"name"), 
+						getAttr(xmlExtension,"label"), 
+						getAttr(xmlExtension,"description"), 
+						getAttr(xmlExtension,"category"),
+						getAttr(xmlExtension,"image"), 
+						getAttr(xmlExtension,"author"), 
+						getAttr(xmlExtension,"codename"), 
+						getAttr(xmlExtension,"video"),
+						getAttr(xmlExtension,"support"), 
+						getAttr(xmlExtension,"documentation"), 
+						getAttr(xmlExtension,"forum"), 
+						getAttr(xmlExtension,"mailinglist"),
+						getAttr(xmlExtension,"network"), 
+						DateCaster.toDateAdvanced(getAttr(xmlExtension,"created"), null, null), 
+						getAttr(xmlExtension,"type"));
+			}
+			config.setExtensions(extensions);
 		}
-		config.setExtensions(extensions);
-
+		catch(Exception e) {
+			log(config,log,e);
+		}
 	}
 
 	/**
@@ -4532,413 +4739,431 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * @param doc
 	 * @throws IOException
 	 */
-	private static void loadComponent(ConfigServer configServer, ConfigImpl config, Document doc, int mode) {
-		Element component = getChildByName(doc.getDocumentElement(), "component");
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-		boolean hasSet = false;
-		boolean hasCS = configServer != null;
-
-		// String virtual="/component/";
-
-		if (component != null && hasAccess) {
-
-			// component-default-import
-			String strCDI = getAttr(component,"component-default-import");
-			if (StringUtil.isEmpty(strCDI, true) && configServer != null) {
-				strCDI = ((ConfigServerImpl) configServer).getComponentDefaultImport().toString();
-			}
-			if (!StringUtil.isEmpty(strCDI, true))
-				config.setComponentDefaultImport(strCDI);
-
-			// Base CFML
-			String strBase = getAttr(component,"base-cfml");
-			if(StringUtil.isEmpty(strBase,true))strBase = getAttr(component,"base");
-			if (StringUtil.isEmpty(strBase, true) && configServer != null) {
-				strBase = configServer.getBaseComponentTemplate(CFMLEngine.DIALECT_CFML);
-			}
-			config.setBaseComponentTemplate(CFMLEngine.DIALECT_CFML,strBase);
-			
-			// Base Lucee
-			strBase = getAttr(component,"base-lucee");
-			if (StringUtil.isEmpty(strBase, true)) {
-				if(configServer != null)strBase = configServer.getBaseComponentTemplate(CFMLEngine.DIALECT_LUCEE);
-				else strBase = "/lucee/Component.lucee";
+	private static void loadComponent(ConfigServer configServer, ConfigImpl config, Document doc, int mode, Log log) {
+		try {
+			Element component = getChildByName(doc.getDocumentElement(), "component");
+			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+			boolean hasSet = false;
+			boolean hasCS = configServer != null;
+	
+			// String virtual="/component/";
+	
+			if (component != null && hasAccess) {
+	
+				// component-default-import
+				String strCDI = getAttr(component,"component-default-import");
+				if (StringUtil.isEmpty(strCDI, true) && configServer != null) {
+					strCDI = ((ConfigServerImpl) configServer).getComponentDefaultImport().toString();
+				}
+				if (!StringUtil.isEmpty(strCDI, true))
+					config.setComponentDefaultImport(strCDI);
+	
+				// Base CFML
+				String strBase = getAttr(component,"base-cfml");
+				if(StringUtil.isEmpty(strBase,true))strBase = getAttr(component,"base");
+				if (StringUtil.isEmpty(strBase, true) && configServer != null) {
+					strBase = configServer.getBaseComponentTemplate(CFMLEngine.DIALECT_CFML);
+				}
+				config.setBaseComponentTemplate(CFMLEngine.DIALECT_CFML,strBase);
 				
-			}
-			config.setBaseComponentTemplate(CFMLEngine.DIALECT_LUCEE,strBase);
-						
-			
-			
-
-			// deep search
-			if (mode == ConfigImpl.MODE_STRICT) {
-				config.setDoComponentDeepSearch(false);
-			}
-			else {
-				String strDeepSearch = getAttr(component,"deep-search");
-				if (!StringUtil.isEmpty(strDeepSearch)) {
-					config.setDoComponentDeepSearch(Caster.toBooleanValue(strDeepSearch.trim(), false));
+				// Base Lucee
+				strBase = getAttr(component,"base-lucee");
+				if (StringUtil.isEmpty(strBase, true)) {
+					if(configServer != null)strBase = configServer.getBaseComponentTemplate(CFMLEngine.DIALECT_LUCEE);
+					else strBase = "/lucee/Component.lucee";
+					
 				}
-				else if (hasCS) {
-					config.setDoComponentDeepSearch(((ConfigServerImpl) configServer).doComponentDeepSearch());
+				config.setBaseComponentTemplate(CFMLEngine.DIALECT_LUCEE,strBase);
+							
+				
+				
+	
+				// deep search
+				if (mode == ConfigImpl.MODE_STRICT) {
+					config.setDoComponentDeepSearch(false);
 				}
-			}
-
-			// Dump-Template
-			String strDumpRemplate = component.getAttribute("dump-template");
-			if ((strDumpRemplate == null || strDumpRemplate.trim().length() == 0) && configServer != null) {
-				strDumpRemplate = configServer.getComponentDumpTemplate();
-			}
-			config.setComponentDumpTemplate(strDumpRemplate);
-
-			// data-member-default-access
-			if (mode == ConfigImpl.MODE_STRICT) {
-				config.setComponentDataMemberDefaultAccess(Component.ACCESS_PRIVATE);
-			}
-			else {
-				String strDmda = getAttr(component,"data-member-default-access");
-				if (strDmda != null && strDmda.trim().length() > 0) {
-					strDmda = strDmda.toLowerCase().trim();
-					if (strDmda.equals("remote"))
-						config.setComponentDataMemberDefaultAccess(Component.ACCESS_REMOTE);
-					else if (strDmda.equals("public"))
-						config.setComponentDataMemberDefaultAccess(Component.ACCESS_PUBLIC);
-					else if (strDmda.equals("package"))
-						config.setComponentDataMemberDefaultAccess(Component.ACCESS_PACKAGE);
-					else if (strDmda.equals("private"))
-						config.setComponentDataMemberDefaultAccess(Component.ACCESS_PRIVATE);
+				else {
+					String strDeepSearch = getAttr(component,"deep-search");
+					if (!StringUtil.isEmpty(strDeepSearch)) {
+						config.setDoComponentDeepSearch(Caster.toBooleanValue(strDeepSearch.trim(), false));
+					}
+					else if (hasCS) {
+						config.setDoComponentDeepSearch(((ConfigServerImpl) configServer).doComponentDeepSearch());
+					}
 				}
+	
+				// Dump-Template
+				String strDumpRemplate = component.getAttribute("dump-template");
+				if ((strDumpRemplate == null || strDumpRemplate.trim().length() == 0) && configServer != null) {
+					strDumpRemplate = configServer.getComponentDumpTemplate();
+				}
+				config.setComponentDumpTemplate(strDumpRemplate);
+	
+				// data-member-default-access
+				if (mode == ConfigImpl.MODE_STRICT) {
+					config.setComponentDataMemberDefaultAccess(Component.ACCESS_PRIVATE);
+				}
+				else {
+					String strDmda = getAttr(component,"data-member-default-access");
+					if (strDmda != null && strDmda.trim().length() > 0) {
+						strDmda = strDmda.toLowerCase().trim();
+						if (strDmda.equals("remote"))
+							config.setComponentDataMemberDefaultAccess(Component.ACCESS_REMOTE);
+						else if (strDmda.equals("public"))
+							config.setComponentDataMemberDefaultAccess(Component.ACCESS_PUBLIC);
+						else if (strDmda.equals("package"))
+							config.setComponentDataMemberDefaultAccess(Component.ACCESS_PACKAGE);
+						else if (strDmda.equals("private"))
+							config.setComponentDataMemberDefaultAccess(Component.ACCESS_PRIVATE);
+					}
+					else if (configServer != null) {
+						config.setComponentDataMemberDefaultAccess(configServer.getComponentDataMemberDefaultAccess());
+					}
+				}
+	
+				// trigger-properties
+				if (mode == ConfigImpl.MODE_STRICT) {
+					config.setTriggerComponentDataMember(true);
+				}
+				else {
+					Boolean tp = Caster.toBoolean(getAttr(component,"trigger-data-member"), null);
+					if (tp != null)
+						config.setTriggerComponentDataMember(tp.booleanValue());
+					else if (configServer != null) {
+						config.setTriggerComponentDataMember(configServer.getTriggerComponentDataMember());
+					}
+				}
+	
+				// local search
+				if (mode == ConfigImpl.MODE_STRICT) {
+					config.setComponentLocalSearch(false);
+				}
+				else {
+					Boolean ls = Caster.toBoolean(getAttr(component,"local-search"), null);
+					if (ls != null)
+						config.setComponentLocalSearch(ls.booleanValue());
+					else if (configServer != null) {
+						config.setComponentLocalSearch(((ConfigServerImpl) configServer).getComponentLocalSearch());
+					}
+				}
+	
+				// use cache path
+				Boolean ucp = Caster.toBoolean(getAttr(component,"use-cache-path"), null);
+				if (ucp != null)
+					config.setUseComponentPathCache(ucp.booleanValue());
 				else if (configServer != null) {
+					config.setUseComponentPathCache(((ConfigServerImpl) configServer).useComponentPathCache());
+				}
+	
+				// use component shadow
+				if (mode == ConfigImpl.MODE_STRICT) {
+					config.setUseComponentShadow(false);
+				}
+				else {
+					Boolean ucs = Caster.toBoolean(getAttr(component,"use-shadow"), null);
+					if (ucs != null)
+						config.setUseComponentShadow(ucs.booleanValue());
+					else if (configServer != null) {
+						config.setUseComponentShadow(configServer.useComponentShadow());
+					}
+				}
+	
+			}
+			else if (configServer != null) {
+				config.setBaseComponentTemplate(CFMLEngine.DIALECT_CFML,configServer.getBaseComponentTemplate(CFMLEngine.DIALECT_CFML));
+				config.setBaseComponentTemplate(CFMLEngine.DIALECT_LUCEE,configServer.getBaseComponentTemplate(CFMLEngine.DIALECT_LUCEE));
+				config.setComponentDumpTemplate(configServer.getComponentDumpTemplate());
+				if (mode == ConfigImpl.MODE_STRICT) {
+					config.setComponentDataMemberDefaultAccess(Component.ACCESS_PRIVATE);
+					config.setTriggerComponentDataMember(true);
+				}
+				else {
 					config.setComponentDataMemberDefaultAccess(configServer.getComponentDataMemberDefaultAccess());
-				}
-			}
-
-			// trigger-properties
-			if (mode == ConfigImpl.MODE_STRICT) {
-				config.setTriggerComponentDataMember(true);
-			}
-			else {
-				Boolean tp = Caster.toBoolean(getAttr(component,"trigger-data-member"), null);
-				if (tp != null)
-					config.setTriggerComponentDataMember(tp.booleanValue());
-				else if (configServer != null) {
 					config.setTriggerComponentDataMember(configServer.getTriggerComponentDataMember());
 				}
 			}
-
-			// local search
+	
 			if (mode == ConfigImpl.MODE_STRICT) {
-				config.setComponentLocalSearch(false);
-			}
-			else {
-				Boolean ls = Caster.toBoolean(getAttr(component,"local-search"), null);
-				if (ls != null)
-					config.setComponentLocalSearch(ls.booleanValue());
-				else if (configServer != null) {
-					config.setComponentLocalSearch(((ConfigServerImpl) configServer).getComponentLocalSearch());
-				}
-			}
-
-			// use cache path
-			Boolean ucp = Caster.toBoolean(getAttr(component,"use-cache-path"), null);
-			if (ucp != null)
-				config.setUseComponentPathCache(ucp.booleanValue());
-			else if (configServer != null) {
-				config.setUseComponentPathCache(((ConfigServerImpl) configServer).useComponentPathCache());
-			}
-
-			// use component shadow
-			if (mode == ConfigImpl.MODE_STRICT) {
-				config.setUseComponentShadow(false);
-			}
-			else {
-				Boolean ucs = Caster.toBoolean(getAttr(component,"use-shadow"), null);
-				if (ucs != null)
-					config.setUseComponentShadow(ucs.booleanValue());
-				else if (configServer != null) {
-					config.setUseComponentShadow(configServer.useComponentShadow());
-				}
-			}
-
-		}
-		else if (configServer != null) {
-			config.setBaseComponentTemplate(CFMLEngine.DIALECT_CFML,configServer.getBaseComponentTemplate(CFMLEngine.DIALECT_CFML));
-			config.setBaseComponentTemplate(CFMLEngine.DIALECT_LUCEE,configServer.getBaseComponentTemplate(CFMLEngine.DIALECT_LUCEE));
-			config.setComponentDumpTemplate(configServer.getComponentDumpTemplate());
-			if (mode == ConfigImpl.MODE_STRICT) {
+				config.setDoComponentDeepSearch(false);
 				config.setComponentDataMemberDefaultAccess(Component.ACCESS_PRIVATE);
 				config.setTriggerComponentDataMember(true);
+				config.setComponentLocalSearch(false);
+				config.setUseComponentShadow(false);
+	
 			}
-			else {
-				config.setComponentDataMemberDefaultAccess(configServer.getComponentDataMemberDefaultAccess());
-				config.setTriggerComponentDataMember(configServer.getTriggerComponentDataMember());
+	
+			// Web Mapping
+	
+			Element[] cMappings = getChildren(component, "mapping");
+			hasSet = false;
+			Mapping[] mappings = null;
+			if (hasAccess && cMappings.length > 0) {
+				mappings = new Mapping[cMappings.length];
+				for (int i = 0; i < cMappings.length; i++) {
+					Element cMapping = cMappings[i];
+					String physical = cMapping.getAttribute("physical");
+					String archive = cMapping.getAttribute("archive");
+					boolean readonly = toBoolean(getAttr(cMapping,"readonly"), false);
+					boolean hidden = toBoolean(getAttr(cMapping,"hidden"), false);
+	
+					int listMode=ConfigWebUtil.toListenerMode(getAttr(cMapping,"listener-mode"), -1);
+					int listType=ConfigWebUtil.toListenerType(getAttr(cMapping,"listener-type"), -1);
+					short inspTemp = inspectTemplate(cMapping);
+					String virtual = XMLConfigAdmin.createVirtual(cMapping);
+	
+					String primary = getAttr(cMapping,"primary");
+	
+					boolean physicalFirst = archive == null || !primary.equalsIgnoreCase("archive");
+					hasSet = true;
+					mappings[i] = new MappingImpl(config, virtual, physical, archive, inspTemp, physicalFirst, hidden, readonly, true, false, true, null,listMode,listType);
+				}
+	
+				config.setComponentMappings(mappings);
+	
 			}
-		}
-
-		if (mode == ConfigImpl.MODE_STRICT) {
-			config.setDoComponentDeepSearch(false);
-			config.setComponentDataMemberDefaultAccess(Component.ACCESS_PRIVATE);
-			config.setTriggerComponentDataMember(true);
-			config.setComponentLocalSearch(false);
-			config.setUseComponentShadow(false);
-
-		}
-
-		// Web Mapping
-
-		Element[] cMappings = getChildren(component, "mapping");
-		hasSet = false;
-		Mapping[] mappings = null;
-		if (hasAccess && cMappings.length > 0) {
-			mappings = new Mapping[cMappings.length];
-			for (int i = 0; i < cMappings.length; i++) {
-				Element cMapping = cMappings[i];
-				String physical = cMapping.getAttribute("physical");
-				String archive = cMapping.getAttribute("archive");
-				boolean readonly = toBoolean(getAttr(cMapping,"readonly"), false);
-				boolean hidden = toBoolean(getAttr(cMapping,"hidden"), false);
-
-				int listMode=ConfigWebUtil.toListenerMode(getAttr(cMapping,"listener-mode"), -1);
-				int listType=ConfigWebUtil.toListenerType(getAttr(cMapping,"listener-type"), -1);
-				short inspTemp = inspectTemplate(cMapping);
-				String virtual = XMLConfigAdmin.createVirtual(cMapping);
-
-				String primary = getAttr(cMapping,"primary");
-
-				boolean physicalFirst = archive == null || !primary.equalsIgnoreCase("archive");
-				hasSet = true;
-				mappings[i] = new MappingImpl(config, virtual, physical, archive, inspTemp, physicalFirst, hidden, readonly, true, false, true, null,listMode,listType);
-			}
-
-			config.setComponentMappings(mappings);
-
-		}
-
-		// Server Mapping
-		if (hasCS) {
-			Mapping[] originals = ((ConfigServerImpl) configServer).getComponentMappings();
-			Mapping[] clones = new Mapping[originals.length];
-			LinkedHashMap map = new LinkedHashMap();
-			Mapping m;
-			for (int i = 0; i < clones.length; i++) {
-				m = ((MappingImpl) originals[i]).cloneReadOnly(config);
-				map.put(toKey(m), m);
-				// clones[i]=((MappingImpl)m[i]).cloneReadOnly(config);
-			}
-
-			if (mappings != null) {
-				for (int i = 0; i < mappings.length; i++) {
-					m = mappings[i];
+	
+			// Server Mapping
+			if (hasCS) {
+				Mapping[] originals = ((ConfigServerImpl) configServer).getComponentMappings();
+				Mapping[] clones = new Mapping[originals.length];
+				LinkedHashMap map = new LinkedHashMap();
+				Mapping m;
+				for (int i = 0; i < clones.length; i++) {
+					m = ((MappingImpl) originals[i]).cloneReadOnly(config);
 					map.put(toKey(m), m);
+					// clones[i]=((MappingImpl)m[i]).cloneReadOnly(config);
+				}
+	
+				if (mappings != null) {
+					for (int i = 0; i < mappings.length; i++) {
+						m = mappings[i];
+						map.put(toKey(m), m);
+					}
+				}
+				if (originals.length > 0) {
+					clones = new Mapping[map.size()];
+					Iterator it = map.entrySet().iterator();
+					Map.Entry entry;
+					int index = 0;
+					while (it.hasNext()) {
+						entry = (Entry) it.next();
+						clones[index++] = (Mapping) entry.getValue();
+						// print.out("c:"+clones[index-1]);
+					}
+					hasSet = true;
+					// print.err("set:"+clones.length);
+	
+					config.setComponentMappings(clones);
 				}
 			}
-			if (originals.length > 0) {
-				clones = new Mapping[map.size()];
-				Iterator it = map.entrySet().iterator();
-				Map.Entry entry;
-				int index = 0;
-				while (it.hasNext()) {
-					entry = (Entry) it.next();
-					clones[index++] = (Mapping) entry.getValue();
-					// print.out("c:"+clones[index-1]);
-				}
-				hasSet = true;
-				// print.err("set:"+clones.length);
-
-				config.setComponentMappings(clones);
+	
+			if (!hasSet) {
+				MappingImpl m = new MappingImpl(config, "/default", "{lucee-web}/components/", null, ConfigImpl.INSPECT_UNDEFINED, true, false, false, true, false, true, null,-1,-1);
+				config.setComponentMappings(new Mapping[] { m.cloneReadOnly(config) });
 			}
-		}
-
-		if (!hasSet) {
-			MappingImpl m = new MappingImpl(config, "/default", "{lucee-web}/components/", null, ConfigImpl.INSPECT_UNDEFINED, true, false, false, true, false, true, null,-1,-1);
-			config.setComponentMappings(new Mapping[] { m.cloneReadOnly(config) });
-		}
 		
-		
+		}
+		catch(Exception e) {
+			log(config,log,e);
+		}
 	}
 
-	private static void loadProxy(ConfigServerImpl configServer, ConfigImpl config, Document doc) {
-
-		boolean hasCS = configServer != null;
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-		Element proxy = getChildByName(doc.getDocumentElement(), "proxy");
-
-		// proxy server
-		String server = getAttr(proxy,"server");
-		String username = getAttr(proxy,"username");
-		String password = getAttr(proxy,"password");
-		int port = Caster.toIntValue(getAttr(proxy,"port"), -1);
-
-		if (hasAccess && !StringUtil.isEmpty(server)) {
-			config.setProxyData(ProxyDataImpl.getInstance(server, port, username, password));
+	private static void loadProxy(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+		try {
+			boolean hasCS = configServer != null;
+			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+			Element proxy = getChildByName(doc.getDocumentElement(), "proxy");
+	
+			// proxy server
+			String server = getAttr(proxy,"server");
+			String username = getAttr(proxy,"username");
+			String password = getAttr(proxy,"password");
+			int port = Caster.toIntValue(getAttr(proxy,"port"), -1);
+	
+			if (hasAccess && !StringUtil.isEmpty(server)) {
+				config.setProxyData(ProxyDataImpl.getInstance(server, port, username, password));
+			}
+			else if (hasCS)
+				config.setProxyData(configServer.getProxyData());
 		}
-		else if (hasCS)
-			config.setProxyData(configServer.getProxyData());
+		catch(Exception e) {
+			log(config,log,e);
+		}
 	}
 
-	private static void loadError(ConfigServerImpl configServer, ConfigImpl config, Document doc) {
-		Element error = getChildByName(doc.getDocumentElement(), "error");
-		boolean hasCS = configServer != null;
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_DEBUGGING);
-
-		// error template
-		String template = error.getAttribute("template");
-
-		// 500
-		String template500 = error.getAttribute("template-500");
-		if (StringUtil.isEmpty(template500))
-			template500 = error.getAttribute("template500");
-		if (StringUtil.isEmpty(template500))
-			template500 = error.getAttribute("500");
-		if (StringUtil.isEmpty(template500))
-			template500 = template;
-		if (hasAccess && !StringUtil.isEmpty(template500)) {
-			config.setErrorTemplate(500, template500);
+	private static void loadError(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+		try {
+			Element error = getChildByName(doc.getDocumentElement(), "error");
+			boolean hasCS = configServer != null;
+			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_DEBUGGING);
+	
+			// error template
+			String template = error.getAttribute("template");
+	
+			// 500
+			String template500 = error.getAttribute("template-500");
+			if (StringUtil.isEmpty(template500))
+				template500 = error.getAttribute("template500");
+			if (StringUtil.isEmpty(template500))
+				template500 = error.getAttribute("500");
+			if (StringUtil.isEmpty(template500))
+				template500 = template;
+			if (hasAccess && !StringUtil.isEmpty(template500)) {
+				config.setErrorTemplate(500, template500);
+			}
+			else if (hasCS)
+				config.setErrorTemplate(500, configServer.getErrorTemplate(500));
+			else
+				config.setErrorTemplate(500, "/lucee/templates/error/error."+TEMPLATE_EXTENSION);
+	
+			// 404
+			String template404 = error.getAttribute("template-404");
+			if (StringUtil.isEmpty(template404))
+				template404 = error.getAttribute("template404");
+			if (StringUtil.isEmpty(template404))
+				template404 = error.getAttribute("404");
+			if (StringUtil.isEmpty(template404))
+				template404 = template;
+			if (hasAccess && !StringUtil.isEmpty(template404)) {
+				config.setErrorTemplate(404, template404);
+			}
+			else if (hasCS)
+				config.setErrorTemplate(404, configServer.getErrorTemplate(404));
+			else
+				config.setErrorTemplate(404, "/lucee/templates/error/error."+TEMPLATE_EXTENSION);
+	
+			// status code
+			String strStausCode = getAttr(error,"status-code");
+			if (StringUtil.isEmpty(strStausCode))
+				strStausCode = getAttr(error,"statusCode");
+			if (StringUtil.isEmpty(strStausCode))
+				strStausCode = getAttr(error,"status");
+	
+			if (!StringUtil.isEmpty(strStausCode) && hasAccess) {
+				config.setErrorStatusCode(toBoolean(strStausCode, true));
+			}
+			else if (hasCS)
+				config.setErrorStatusCode(configServer.getErrorStatusCode());
 		}
-		else if (hasCS)
-			config.setErrorTemplate(500, configServer.getErrorTemplate(500));
-		else
-			config.setErrorTemplate(500, "/lucee/templates/error/error."+TEMPLATE_EXTENSION);
-
-		// 404
-		String template404 = error.getAttribute("template-404");
-		if (StringUtil.isEmpty(template404))
-			template404 = error.getAttribute("template404");
-		if (StringUtil.isEmpty(template404))
-			template404 = error.getAttribute("404");
-		if (StringUtil.isEmpty(template404))
-			template404 = template;
-		if (hasAccess && !StringUtil.isEmpty(template404)) {
-			config.setErrorTemplate(404, template404);
+		catch(Exception e) {
+			log(config,log,e);
 		}
-		else if (hasCS)
-			config.setErrorTemplate(404, configServer.getErrorTemplate(404));
-		else
-			config.setErrorTemplate(404, "/lucee/templates/error/error."+TEMPLATE_EXTENSION);
-
-		// status code
-		String strStausCode = getAttr(error,"status-code");
-		if (StringUtil.isEmpty(strStausCode))
-			strStausCode = getAttr(error,"statusCode");
-		if (StringUtil.isEmpty(strStausCode))
-			strStausCode = getAttr(error,"status");
-
-		if (!StringUtil.isEmpty(strStausCode) && hasAccess) {
-			config.setErrorStatusCode(toBoolean(strStausCode, true));
-		}
-		else if (hasCS)
-			config.setErrorStatusCode(configServer.getErrorStatusCode());
 
 	}
 
-	private static void loadCompiler(ConfigServerImpl configServer, ConfigImpl config, Document doc, int mode) {
-		boolean hasCS = configServer != null;
-
-		Element compiler = getChildByName(doc.getDocumentElement(), "compiler");
-
-		// suppress WS between cffunction and cfargument
-		if (mode == ConfigImpl.MODE_STRICT) {
-			config.setSuppressWSBeforeArg(true);
-		}
-		else {
-			String suppress = getAttr(compiler,"suppress-ws-before-arg");
-			if(StringUtil.isEmpty(suppress, true)) 
-				suppress = getAttr(compiler,"supress-ws-before-arg");
-			if(!StringUtil.isEmpty(suppress, true)) {
-				config.setSuppressWSBeforeArg(Caster.toBooleanValue(suppress, true));
-			}
-			else if (hasCS) {
-				config.setSuppressWSBeforeArg(configServer.getSuppressWSBeforeArg());
-			}
-		}
-
-		// do dot notation keys upper case
-		if (mode == ConfigImpl.MODE_STRICT) {
-			config.setDotNotationUpperCase(false);
-		}
-		else {
-			
-			// Env Var
-			if(!hasCS) {
-				Boolean tmp = Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.preserve.case",null),null);
-				if(tmp!=null) {
-					config.setDotNotationUpperCase(!tmp.booleanValue());
-				}
-			}
-			String _case = getAttr(compiler,"dot-notation-upper-case");
-			if (!StringUtil.isEmpty(_case, true)) {
-				config.setDotNotationUpperCase(Caster.toBooleanValue(_case, true));
-			}
-			else if (hasCS) {
-				config.setDotNotationUpperCase(configServer.getDotNotationUpperCase());
-			}
-		}
-
-		// full null support
-		//if (!hasCS) {
-			boolean fns = hasCS?configServer.getFullNullSupport():false;
+	private static void loadCompiler(ConfigServerImpl configServer, ConfigImpl config, Document doc, int mode, Log log) {
+		try {
+			boolean hasCS = configServer != null;
+	
+			Element compiler = getChildByName(doc.getDocumentElement(), "compiler");
+	
+			// suppress WS between cffunction and cfargument
 			if (mode == ConfigImpl.MODE_STRICT) {
-				fns = true;
+				config.setSuppressWSBeforeArg(true);
 			}
 			else {
-				String str = getAttr(compiler,"full-null-support"); // TODO move to an other place, no longer a compiler setting
-				if(StringUtil.isEmpty(str, true)) str=SystemUtil.getSystemPropOrEnvVar("lucee.full.null.support",null);
-				
-				if(!StringUtil.isEmpty(str, true)) {
-					fns = Caster.toBooleanValue(str, hasCS?configServer.getFullNullSupport():false);
+				String suppress = getAttr(compiler,"suppress-ws-before-arg");
+				if(StringUtil.isEmpty(suppress, true)) 
+					suppress = getAttr(compiler,"supress-ws-before-arg");
+				if(!StringUtil.isEmpty(suppress, true)) {
+					config.setSuppressWSBeforeArg(Caster.toBooleanValue(suppress, true));
+				}
+				else if (hasCS) {
+					config.setSuppressWSBeforeArg(configServer.getSuppressWSBeforeArg());
 				}
 			}
-			
-			// when FNS is true or the lucee dialect is disabled we have no flip flop within a request. FNS is always the same
-			/*if(fns || !Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.enable.dialect",null),false)) {
-				NullSupportHelper.fullNullSupport = fns;
-				NullSupportHelper.simpleMode = true;
-			}*/
-			config.setFullNullSupport(fns);
-		//}
-		
-		// default output setting
-		String output = getAttr(compiler,"default-function-output");
-		if (!StringUtil.isEmpty(output, true)) {
-			config.setDefaultFunctionOutput(Caster.toBooleanValue(output, true));
-		}
-		else if (hasCS) {
-			config.setDefaultFunctionOutput(configServer.getDefaultFunctionOutput());
-		}
-		
-		// suppress WS between cffunction and cfargument
-		String str = getAttr(compiler,"externalize-string-gte");
-		if (Decision.isNumber(str)) {
-			config.setExternalizeStringGTE(Caster.toIntValue(str,-1));
-		}
-		else if (hasCS) {
-			config.setExternalizeStringGTE(configServer.getExternalizeStringGTE());
-		}
-		
-		// allow-lucee-dialect
-		if(!hasCS) {
-			str = getAttr(compiler,"allow-lucee-dialect");
-			if(str==null || !Decision.isBoolean(str)) str=SystemUtil.getSystemPropOrEnvVar("lucee.enable.dialect",null);
-			if (str!=null && Decision.isBoolean(str)) {
-				config.setAllowLuceeDialect(Caster.toBooleanValue(str,false));
+	
+			// do dot notation keys upper case
+			if (mode == ConfigImpl.MODE_STRICT) {
+				config.setDotNotationUpperCase(false);
 			}
-		}
-		else {
-			config.setAllowLuceeDialect(configServer.allowLuceeDialect());
-		}
-		
-		// Handle Unquoted Attribute Values As String
-		if (mode == ConfigImpl.MODE_STRICT) {
-			config.setHandleUnQuotedAttrValueAsString(false);
-		}
-		else {
-			str = getAttr(compiler,"handle-unquoted-attribute-value-as-string");
-			if (Decision.isBoolean(str)) {
-				config.setHandleUnQuotedAttrValueAsString(Caster.toBooleanValue(str,true));
+			else {
+				
+				// Env Var
+				if(!hasCS) {
+					Boolean tmp = Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.preserve.case",null),null);
+					if(tmp!=null) {
+						config.setDotNotationUpperCase(!tmp.booleanValue());
+					}
+				}
+				String _case = getAttr(compiler,"dot-notation-upper-case");
+				if (!StringUtil.isEmpty(_case, true)) {
+					config.setDotNotationUpperCase(Caster.toBooleanValue(_case, true));
+				}
+				else if (hasCS) {
+					config.setDotNotationUpperCase(configServer.getDotNotationUpperCase());
+				}
+			}
+	
+			// full null support
+			//if (!hasCS) {
+				boolean fns = hasCS?configServer.getFullNullSupport():false;
+				if (mode == ConfigImpl.MODE_STRICT) {
+					fns = true;
+				}
+				else {
+					String str = getAttr(compiler,"full-null-support"); // TODO move to an other place, no longer a compiler setting
+					if(StringUtil.isEmpty(str, true)) str=SystemUtil.getSystemPropOrEnvVar("lucee.full.null.support",null);
+					
+					if(!StringUtil.isEmpty(str, true)) {
+						fns = Caster.toBooleanValue(str, hasCS?configServer.getFullNullSupport():false);
+					}
+				}
+				
+				// when FNS is true or the lucee dialect is disabled we have no flip flop within a request. FNS is always the same
+				/*if(fns || !Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.enable.dialect",null),false)) {
+					NullSupportHelper.fullNullSupport = fns;
+					NullSupportHelper.simpleMode = true;
+				}*/
+				config.setFullNullSupport(fns);
+			//}
+			
+			// default output setting
+			String output = getAttr(compiler,"default-function-output");
+			if (!StringUtil.isEmpty(output, true)) {
+				config.setDefaultFunctionOutput(Caster.toBooleanValue(output, true));
 			}
 			else if (hasCS) {
-				config.setHandleUnQuotedAttrValueAsString(configServer.getHandleUnQuotedAttrValueAsString());
+				config.setDefaultFunctionOutput(configServer.getDefaultFunctionOutput());
 			}
+			
+			// suppress WS between cffunction and cfargument
+			String str = getAttr(compiler,"externalize-string-gte");
+			if (Decision.isNumber(str)) {
+				config.setExternalizeStringGTE(Caster.toIntValue(str,-1));
+			}
+			else if (hasCS) {
+				config.setExternalizeStringGTE(configServer.getExternalizeStringGTE());
+			}
+			
+			// allow-lucee-dialect
+			if(!hasCS) {
+				str = getAttr(compiler,"allow-lucee-dialect");
+				if(str==null || !Decision.isBoolean(str)) str=SystemUtil.getSystemPropOrEnvVar("lucee.enable.dialect",null);
+				if (str!=null && Decision.isBoolean(str)) {
+					config.setAllowLuceeDialect(Caster.toBooleanValue(str,false));
+				}
+			}
+			else {
+				config.setAllowLuceeDialect(configServer.allowLuceeDialect());
+			}
+			
+			// Handle Unquoted Attribute Values As String
+			if (mode == ConfigImpl.MODE_STRICT) {
+				config.setHandleUnQuotedAttrValueAsString(false);
+			}
+			else {
+				str = getAttr(compiler,"handle-unquoted-attribute-value-as-string");
+				if (Decision.isBoolean(str)) {
+					config.setHandleUnQuotedAttrValueAsString(Caster.toBooleanValue(str,true));
+				}
+				else if (hasCS) {
+					config.setHandleUnQuotedAttrValueAsString(configServer.getHandleUnQuotedAttrValueAsString());
+				}
+			}
+		}
+		catch(Exception e) {
+			log(config,log,e);
 		}
 		
 	}
@@ -4951,151 +5176,156 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * @throws IOException
 	 * @throws PageException
 	 */
-	private static void loadApplication(ConfigServerImpl configServer, ConfigImpl config, Document doc, int mode) throws IOException, PageException {
-		boolean hasCS = configServer != null;
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-
-		Element application = getChildByName(doc.getDocumentElement(), "application");
-		Element scope = getChildByName(doc.getDocumentElement(), "scope");
-
-		// Listener type
-		ApplicationListener listener;
-		if (mode == ConfigImpl.MODE_STRICT) {
-			listener = new ModernAppListener();
-		}
-		else {
-
-			listener = ConfigWebUtil.loadListener(getAttr(application,"listener-type"), null);
-
-			if (listener == null) {
-				if (hasCS && configServer.getApplicationListener() != null)
-					listener = ConfigWebUtil.loadListener(configServer.getApplicationListener().getType(), null);
-				if (listener == null)
-					listener = new MixedAppListener();
-			}
-		}
-		
-		String[] strTypes=new String[]{"function","include","query","resource","http","file","webservice"};
-		int[] types=new int[]{Config.CACHEDWITHIN_FUNCTION,Config.CACHEDWITHIN_INCLUDE,Config.CACHEDWITHIN_QUERY
-				,Config.CACHEDWITHIN_RESOURCE,Config.CACHEDWITHIN_HTTP,Config.CACHEDWITHIN_FILE,Config.CACHEDWITHIN_WEBSERVICE};
-
-		// cachedwithin 
-		for(int i=0;i<types.length;i++){
-			String cw = getAttr(application,"cached-within-"+strTypes[i]);
-			if (!StringUtil.isEmpty(cw,true)) config.setCachedWithin(types[i], cw);
-			else if(hasCS) config.setCachedWithin(types[i],configServer.getCachedWithin(types[i]));
-		}
-		
-		// Type Checking
-		Boolean typeChecking = Caster.toBoolean(getAttr(application,"type-checking"),null);
-		if (typeChecking !=null) config.setTypeChecking(typeChecking.booleanValue());
-		else if(hasCS) config.setTypeChecking(configServer.getTypeChecking());
-		
-		
-		// Listener Mode
-		int listenerMode = ConfigWebUtil.toListenerMode(getAttr(application,"listener-mode"), -1);
-		if (listenerMode == -1) {
-			if (hasCS)
-				listenerMode = 
-					configServer.getApplicationListener() == null ? 
-							ApplicationListener.MODE_CURRENT2ROOT : 
-							configServer.getApplicationListener().getMode();
-			else
-				listenerMode = ApplicationListener.MODE_CURRENT2ROOT;
-		}
-
-		listener.setMode(listenerMode);
-		config.setApplicationListener(listener);
-
-		// Req Timeout URL
-		if (mode == ConfigImpl.MODE_STRICT) {
-			config.setAllowURLRequestTimeout(false);
-		}
-		else {
-			String allowURLReqTimeout = getAttr(application,"allow-url-requesttimeout");
-			if (hasAccess && !StringUtil.isEmpty(allowURLReqTimeout)) {
-				config.setAllowURLRequestTimeout(Caster.toBooleanValue(allowURLReqTimeout, false));
-			}
-			else if (hasCS)
-				config.setAllowURLRequestTimeout(configServer.isAllowURLRequestTimeout());
-		}
-
-		// Req Timeout
-		TimeSpan ts=null;
-		if(hasAccess) {
-			String reqTimeoutApplication = getAttr(application,"requesttimeout");
-			String reqTimeoutScope = getAttr(scope,"requesttimeout"); // deprecated
-			
-			if (!StringUtil.isEmpty(reqTimeoutApplication)) ts=Caster.toTimespan(reqTimeoutApplication);
-			if (ts==null && !StringUtil.isEmpty(reqTimeoutScope))  ts=Caster.toTimespan(reqTimeoutScope);
-		}
-		
-		if (ts!=null && ts.getMillis()>0) config.setRequestTimeout(ts);
-		else if (hasCS) config.setRequestTimeout(configServer.getRequestTimeout());
-
-		// script-protect
-		String strScriptProtect = getAttr(application,"script-protect");
-
-		if (hasAccess && !StringUtil.isEmpty(strScriptProtect)) {
-			// print.err("sp:"+strScriptProtect);
-			config.setScriptProtect(AppListenerUtil.translateScriptProtect(strScriptProtect));
-		}
-		else if (hasCS)
-			config.setScriptProtect(configServer.getScriptProtect());
-
-		// classic-date-parsing
-		if (config instanceof ConfigServer) {
+	private static void loadApplication(ConfigServerImpl configServer, ConfigImpl config, Document doc, int mode, Log log) {
+		try {
+			boolean hasCS = configServer != null;
+			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+	
+			Element application = getChildByName(doc.getDocumentElement(), "application");
+			Element scope = getChildByName(doc.getDocumentElement(), "scope");
+	
+			// Listener type
+			ApplicationListener listener;
 			if (mode == ConfigImpl.MODE_STRICT) {
-				DateCaster.classicStyle = true;
+				listener = new ModernAppListener();
 			}
 			else {
-				String strClassicDateParsing = getAttr(application,"classic-date-parsing");
-
-				if (!StringUtil.isEmpty(strClassicDateParsing)) {
-					DateCaster.classicStyle = Caster.toBooleanValue(strClassicDateParsing, false);
+	
+				listener = ConfigWebUtil.loadListener(getAttr(application,"listener-type"), null);
+	
+				if (listener == null) {
+					if (hasCS && configServer.getApplicationListener() != null)
+						listener = ConfigWebUtil.loadListener(configServer.getApplicationListener().getType(), null);
+					if (listener == null)
+						listener = new MixedAppListener();
 				}
 			}
-		}
-
-		// Cache
-		Resource configDir = config.getConfigDir();
-		String strCacheDirectory = application.getAttribute("cache-directory");
-		if (hasAccess && !StringUtil.isEmpty(strCacheDirectory)) {
-			strCacheDirectory = ConfigWebUtil.translateOldPath(strCacheDirectory);
-			Resource res = ConfigWebUtil.getFile(configDir, strCacheDirectory, "cache", configDir, FileUtil.TYPE_DIR, config);
-			config.setCacheDir(res);
-		}
-		else {
-			config.setCacheDir(configDir.getRealResource("cache"));
-		}
-
-		String strMax = getAttr(application,"cache-directory-max-size");
-		if (hasAccess && !StringUtil.isEmpty(strMax)) {
-			config.setCacheDirSize(ByteSizeParser.parseByteSizeDefinition(strMax, config.getCacheDirSize()));
-		}
-		else if (hasCS)
-			config.setCacheDirSize(configServer.getCacheDirSize());
-
-		// admin sync
-		ClassDefinition asc=getClassDefinition(application, "admin-sync-", config.getIdentification());
-		if (!asc.hasClass())
-			asc=getClassDefinition(application, "admin-synchronisation-", config.getIdentification());
-		
-
-		if (hasAccess && asc.hasClass()) {
-			try {
-				Class clazz = asc.getClazz();
-				if (!Reflector.isInstaneOf(clazz, AdminSync.class))
-					throw new ApplicationException("class [" + clazz.getName() + "] does not implement interface [" + AdminSync.class.getName() + "]");
-				config.setAdminSyncClass(clazz);
-
+			
+			String[] strTypes=new String[]{"function","include","query","resource","http","file","webservice"};
+			int[] types=new int[]{Config.CACHEDWITHIN_FUNCTION,Config.CACHEDWITHIN_INCLUDE,Config.CACHEDWITHIN_QUERY
+					,Config.CACHEDWITHIN_RESOURCE,Config.CACHEDWITHIN_HTTP,Config.CACHEDWITHIN_FILE,Config.CACHEDWITHIN_WEBSERVICE};
+	
+			// cachedwithin 
+			for(int i=0;i<types.length;i++){
+				String cw = getAttr(application,"cached-within-"+strTypes[i]);
+				if (!StringUtil.isEmpty(cw,true)) config.setCachedWithin(types[i], cw);
+				else if(hasCS) config.setCachedWithin(types[i],configServer.getCachedWithin(types[i]));
 			}
-			catch (Exception e) {
-				SystemOut.printDate(e);
+			
+			// Type Checking
+			Boolean typeChecking = Caster.toBoolean(getAttr(application,"type-checking"),null);
+			if (typeChecking !=null) config.setTypeChecking(typeChecking.booleanValue());
+			else if(hasCS) config.setTypeChecking(configServer.getTypeChecking());
+			
+			
+			// Listener Mode
+			int listenerMode = ConfigWebUtil.toListenerMode(getAttr(application,"listener-mode"), -1);
+			if (listenerMode == -1) {
+				if (hasCS)
+					listenerMode = 
+						configServer.getApplicationListener() == null ? 
+								ApplicationListener.MODE_CURRENT2ROOT : 
+								configServer.getApplicationListener().getMode();
+				else
+					listenerMode = ApplicationListener.MODE_CURRENT2ROOT;
 			}
+	
+			listener.setMode(listenerMode);
+			config.setApplicationListener(listener);
+	
+			// Req Timeout URL
+			if (mode == ConfigImpl.MODE_STRICT) {
+				config.setAllowURLRequestTimeout(false);
+			}
+			else {
+				String allowURLReqTimeout = getAttr(application,"allow-url-requesttimeout");
+				if (hasAccess && !StringUtil.isEmpty(allowURLReqTimeout)) {
+					config.setAllowURLRequestTimeout(Caster.toBooleanValue(allowURLReqTimeout, false));
+				}
+				else if (hasCS)
+					config.setAllowURLRequestTimeout(configServer.isAllowURLRequestTimeout());
+			}
+	
+			// Req Timeout
+			TimeSpan ts=null;
+			if(hasAccess) {
+				String reqTimeoutApplication = getAttr(application,"requesttimeout");
+				String reqTimeoutScope = getAttr(scope,"requesttimeout"); // deprecated
+				
+				if (!StringUtil.isEmpty(reqTimeoutApplication)) ts=Caster.toTimespan(reqTimeoutApplication);
+				if (ts==null && !StringUtil.isEmpty(reqTimeoutScope))  ts=Caster.toTimespan(reqTimeoutScope);
+			}
+			
+			if (ts!=null && ts.getMillis()>0) config.setRequestTimeout(ts);
+			else if (hasCS) config.setRequestTimeout(configServer.getRequestTimeout());
+	
+			// script-protect
+			String strScriptProtect = getAttr(application,"script-protect");
+	
+			if (hasAccess && !StringUtil.isEmpty(strScriptProtect)) {
+				// print.err("sp:"+strScriptProtect);
+				config.setScriptProtect(AppListenerUtil.translateScriptProtect(strScriptProtect));
+			}
+			else if (hasCS)
+				config.setScriptProtect(configServer.getScriptProtect());
+	
+			// classic-date-parsing
+			if (config instanceof ConfigServer) {
+				if (mode == ConfigImpl.MODE_STRICT) {
+					DateCaster.classicStyle = true;
+				}
+				else {
+					String strClassicDateParsing = getAttr(application,"classic-date-parsing");
+	
+					if (!StringUtil.isEmpty(strClassicDateParsing)) {
+						DateCaster.classicStyle = Caster.toBooleanValue(strClassicDateParsing, false);
+					}
+				}
+			}
+	
+			// Cache
+			Resource configDir = config.getConfigDir();
+			String strCacheDirectory = application.getAttribute("cache-directory");
+			if (hasAccess && !StringUtil.isEmpty(strCacheDirectory)) {
+				strCacheDirectory = ConfigWebUtil.translateOldPath(strCacheDirectory);
+				Resource res = ConfigWebUtil.getFile(configDir, strCacheDirectory, "cache", configDir, FileUtil.TYPE_DIR, config);
+				config.setCacheDir(res);
+			}
+			else {
+				config.setCacheDir(configDir.getRealResource("cache"));
+			}
+	
+			String strMax = getAttr(application,"cache-directory-max-size");
+			if (hasAccess && !StringUtil.isEmpty(strMax)) {
+				config.setCacheDirSize(ByteSizeParser.parseByteSizeDefinition(strMax, config.getCacheDirSize()));
+			}
+			else if (hasCS)
+				config.setCacheDirSize(configServer.getCacheDirSize());
+	
+			// admin sync
+			ClassDefinition asc=getClassDefinition(application, "admin-sync-", config.getIdentification());
+			if (!asc.hasClass())
+				asc=getClassDefinition(application, "admin-synchronisation-", config.getIdentification());
+			
+	
+			if (hasAccess && asc.hasClass()) {
+				try {
+					Class clazz = asc.getClazz();
+					if (!Reflector.isInstaneOf(clazz, AdminSync.class))
+						throw new ApplicationException("class [" + clazz.getName() + "] does not implement interface [" + AdminSync.class.getName() + "]");
+					config.setAdminSyncClass(clazz);
+	
+				}
+				catch (Exception e) {
+					SystemOut.printDate(e);
+				}
+			}
+			else if (hasCS)
+				config.setAdminSyncClass(configServer.getAdminSyncClass());
 		}
-		else if (hasCS)
-			config.setAdminSyncClass(configServer.getAdminSyncClass());
+		catch(Exception e) {
+			log(config,log,e);
+		}
 	}
 
 	/**
