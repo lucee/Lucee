@@ -268,6 +268,7 @@ public class KeyConstants {
 	public static final Key __COUNT = KeyImpl._const("_COUNT");
 	public static final Key __TIME = KeyImpl._const("_TIME");
 	public static final Key ___filename = KeyImpl._const("__filename");
+	public static final Key ___mapping = KeyImpl._const("__mapping");
 	public static final Key ___isweb = KeyImpl._const("__isweb");
 	public static final Key ___name = KeyImpl._const("__name");
 	public static final Key __count = KeyImpl._const("_count");

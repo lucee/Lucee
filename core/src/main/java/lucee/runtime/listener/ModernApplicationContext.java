@@ -138,7 +138,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private static final Collection.Key SCOPE_CASCADING = KeyImpl.intern("scopeCascading");
 	private static final Collection.Key SEARCH_IMPLICIT_SCOPES = KeyImpl.intern("searchImplicitScopes");
 	private static final Collection.Key TYPE_CHECKING = KeyImpl.intern("typeChecking");
-	private static final Collection.Key CGI_READONLY = KeyImpl.intern("CGIReadOnly");;
+	private static final Collection.Key CGI_READONLY = KeyImpl.intern("CGIReadOnly");
 	private static final Collection.Key SUPPRESS_CONTENT = KeyImpl.intern("suppressRemoteComponentContent");
 	private static final Collection.Key LOGS = KeyImpl.intern("logs");
 	private static final Collection.Key LOG = KeyImpl.intern("log");

@@ -210,7 +210,12 @@ public final class CGIImplReadOnly extends ReadOnlyStruct implements CGI,ScriptP
 			}
 			if(key.equals(KeyConstants._remote_host))		return toString(req.getRemoteHost());
 			if(key.equals(KeyConstants._request_method))		return req.getMethod();
-			if(key.equals(KeyConstants._request_url))		return ReqRspUtil.getRequestURL( req, true );
+			if(key.equals(KeyConstants._request_url))		{
+				try {
+					return ReqRspUtil.getRequestURL( req, true );
+				}
+				catch(Exception e) {}
+			}
 			if(key.equals(KeyConstants._request_uri))		return toString(req.getAttribute("javax.servlet.include.request_uri"));
 			if(key.getUpperString().startsWith("REDIRECT_")){
 				// from attributes (key sensitive)

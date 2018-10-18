@@ -219,7 +219,7 @@ public final class CGIImpl extends StructSupport implements CGI,ScriptProtected,
 		if(req != null) {
 
 			String lkey = key.getLowerString();
-			char first = key.charAt(0);
+			char first = lkey.charAt(0);
 
 			try{
             if(first=='a') {
