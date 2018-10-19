@@ -87,7 +87,7 @@ public final class Execute extends BodyTagImpl {
 	public void setArguments(Object args)	{
 		
 	    if(args instanceof lucee.runtime.type.Collection) {
-		    StringBuffer sb=new StringBuffer();
+		    StringBuilder sb=new StringBuilder();
 		    lucee.runtime.type.Collection coll=(lucee.runtime.type.Collection)args;
 		    //lucee.runtime.type.Collection.Key[] keys=coll.keys();
 		    Iterator<Object> it = coll.valueIterator();
@@ -95,7 +95,7 @@ public final class Execute extends BodyTagImpl {
 		        sb.append(' ');
 		        sb.append(it.next());
 		    }
-		    arguments=args.toString();
+		    arguments=sb.toString();
 		}
 	    else if(args instanceof String) {
 	        arguments=" "+args.toString();

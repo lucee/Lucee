@@ -971,16 +971,16 @@ public final class PageContextImpl extends PageContext {
 	public Array getTemplatePath() throws PageException {
 		int len = includePathList.size();
 		SVArray sva = new SVArray();
-		PageSource ps;
+		PageSource ps,bps;
 		for (int i = 0; i < len; i++) {
 			ps = includePathList.get(i);
 			if(i == 0) {
-				if(!ps.equals(getBasePageSource()))
-					sva.append(getBasePageSource().getResourceTranslated(this).getAbsolutePath());
+				bps=getBasePageSource();
+				if(bps!=null && !ps.equals(bps))
+					sva.append(bps.getResourceTranslated(this).getAbsolutePath());
 			}
 			sva.append(ps.getResourceTranslated(this).getAbsolutePath());
 		}
-		// sva.setPosition(sva.size());
 		return sva;
 	}
 
