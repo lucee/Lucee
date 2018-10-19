@@ -64,7 +64,7 @@ public final class LocalNotSupportedScope extends StructSupport implements Scope
 	
 	@Override
 	public Object remove(Key key) throws PageException {
-	    throw new ExpressionException("Unsupported Context for Local Scope","Can't invoke key "+key+", Local Scope can only invoked inside a Function");
+	    throw new ExpressionException("Unsupported Context for Local Scope","Can't invoke key "+key+", Local Scope can only be invoked inside a Function");
 	}
 	
 	@Override
@@ -72,7 +72,7 @@ public final class LocalNotSupportedScope extends StructSupport implements Scope
 	}
 	@Override
 	public Object get(Collection.Key key) throws ExpressionException {
-		throw new ExpressionException("Unsupported Context for Local Scope","Can't invoke key "+key.getString()+", Local Scope can only invoked inside a Function");
+		throw new ExpressionException("Unsupported Context for Local Scope","Can't invoke key "+key.getString()+", Local Scope can only be invoked inside a Function");
 	}
 
 	@Override
@@ -82,7 +82,7 @@ public final class LocalNotSupportedScope extends StructSupport implements Scope
 
 	@Override
 	public Object set(Key key, Object value) throws ExpressionException {
-		throw new ExpressionException("Unsupported Context for Local Scope","Can't invoke key "+key.getString()+", Local Scope can only invoked inside a Function");
+		throw new ExpressionException("Unsupported Context for Local Scope","Can't invoke key "+key.getString()+", Local Scope can only be invoked inside a Function");
 	}
 	
     @Override
@@ -92,18 +92,18 @@ public final class LocalNotSupportedScope extends StructSupport implements Scope
 	
 	@Override
 	public Iterator<Collection.Key> keyIterator() {
-		throw new PageRuntimeException(new ExpressionException("Unsupported Context for Local Scope","Local Scope can only invoked inside a Function"));
+		throw new PageRuntimeException(new ExpressionException("Unsupported Context for Local Scope","Local Scope can only be invoked inside a Function"));
 	}
 	
 	@Override
 	public Iterator<Entry<Key, Object>> entryIterator() {
-		throw new PageRuntimeException(new ExpressionException("Unsupported Context for Local Scope","Local Scope can only invoked inside a Function"));
+		throw new PageRuntimeException(new ExpressionException("Unsupported Context for Local Scope","Local Scope can only be invoked inside a Function"));
 	}
 
 	
 	@Override
 	public Iterator<Object> valueIterator() {
-		throw new PageRuntimeException(new ExpressionException("Unsupported Context for Local Scope","Local Scope can only invoked inside a Function"));
+		throw new PageRuntimeException(new ExpressionException("Unsupported Context for Local Scope","Local Scope can only be invoked inside a Function"));
 	}
 
 	@Override
