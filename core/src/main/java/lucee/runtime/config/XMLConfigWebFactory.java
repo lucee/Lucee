@@ -3488,7 +3488,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			if(maxThreads<1)maxThreads=20;
 	
 			// directory
-			Resource file = ConfigWebUtil.getFile(config.getRootDirectory(), _clients.getAttribute("directory"), "client-task", config.getConfigDir(), FileUtil.TYPE_DIR, config);
+			String strDir=SystemUtil.getSystemPropOrEnvVar("lucee.task.directory",null);
+			if(StringUtil.isEmpty(strDir)) strDir=_clients.getAttribute("directory");
+			Resource file = ConfigWebUtil.getFile(config.getRootDirectory(), strDir, "client-task", config.getConfigDir(), FileUtil.TYPE_DIR, config);
 			config.setRemoteClientDirectory(file);
 	
 			Element[] clients;
