@@ -26,59 +26,60 @@ import lucee.transformer.expression.Expression;
 
 import org.objectweb.asm.Type;
 
-
 public class Argument extends ExpressionBase {
-		
-		private Expression raw;
-		private String type;
 
-		public Argument(Expression value, String type) {
-			super(value.getFactory(),value.getStart(),value.getEnd());
-			this.raw=value;//Cast.toExpression(value,type);
-			this.type=type;
-		}
+    private Expression raw;
+    private String type;
 
-		/**
-		 * @return the value
-		 */
-		public Expression getValue() {
-			return raw.getFactory().toExpression(raw,type);
-		}
-		
-		/**
-		 * return the uncasted value
-		 * @return
-		 */
-		public Expression getRawValue() {
-			return raw;
-		}
-		
-		public void setValue(Expression value,String type) {
-			this.raw = value;
-			this.type=type;
-			
-		}
+    public Argument(Expression value, String type) {
+	super(value.getFactory(), value.getStart(), value.getEnd());
+	this.raw = value;// Cast.toExpression(value,type);
+	this.type = type;
+    }
 
-		/**
-		 *
-		 * @see lucee.transformer.bytecode.expression.ExpressionBase#_writeOut(org.objectweb.asm.commons.GeneratorAdapter, int)
-		 */
-		@Override
-		public Type _writeOut(BytecodeContext bc, int mode) throws TransformerException {
-			return ((ExpressionBase)getValue()).writeOutAsType(bc, mode);
-		}
-		
-		public Type writeOutValue(BytecodeContext bc, int mode) throws TransformerException {
-			ExpressionUtil.visitLine(bc, getStart());
-			Type t = ((ExpressionBase)getValue()).writeOutAsType(bc, mode);
-			ExpressionUtil.visitLine(bc, getEnd());
-			return t;
-		}
+    /**
+     * @return the value
+     */
+    public Expression getValue() {
+	return raw.getFactory().toExpression(raw, type);
+    }
 
-		/**
-		 * @return the type
-		 */
-		public String getStringType() {
-			return type;
-		}
-	}
+    /**
+     * return the uncasted value
+     * 
+     * @return
+     */
+    public Expression getRawValue() {
+	return raw;
+    }
+
+    public void setValue(Expression value, String type) {
+	this.raw = value;
+	this.type = type;
+
+    }
+
+    /**
+     *
+     * @see lucee.transformer.bytecode.expression.ExpressionBase#_writeOut(org.objectweb.asm.commons.GeneratorAdapter,
+     *      int)
+     */
+    @Override
+    public Type _writeOut(BytecodeContext bc, int mode) throws TransformerException {
+	return ((ExpressionBase) getValue()).writeOutAsType(bc, mode);
+    }
+
+    public Type writeOutValue(BytecodeContext bc, int mode) throws TransformerException {
+	ExpressionUtil.visitLine(bc, getStart());
+	Type t = ((ExpressionBase) getValue()).writeOutAsType(bc, mode);
+	ExpressionUtil.visitLine(bc, getEnd());
+	return t;
+    }
+
+    /**
+     * @return the type
+     */
+    public String getStringType() {
+	return type;
+    }
+}

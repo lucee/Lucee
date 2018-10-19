@@ -38,35 +38,37 @@ public abstract class ExpressionBase implements Expression {
 
     private Position start;
     private Position end;
-	private Factory factory;
+    private Factory factory;
 
-    public ExpressionBase(Factory factory,Position start,Position end) {
-        this.start=start;
-        this.end=end;
-        this.factory=factory;
+    public ExpressionBase(Factory factory, Position start, Position end) {
+	this.start = start;
+	this.end = end;
+	this.factory = factory;
     }
 
     @Override
     public final Class<?> writeOut(Context c, int mode) throws TransformerException {
-    	try {
-			return Types.toClass(writeOutAsType(c, mode));
-		} catch (ClassException e) {
-			throw new TransformerException(e, null);
-		}
+	try {
+	    return Types.toClass(writeOutAsType(c, mode));
+	}
+	catch (ClassException e) {
+	    throw new TransformerException(e, null);
+	}
     }
-    
+
     public final Type writeOutAsType(Context c, int mode) throws TransformerException {
-    	BytecodeContext bc=(BytecodeContext) c;
-    	ExpressionUtil.visitLine(bc, start);
-    	Type type = _writeOut(bc,mode);
-        ExpressionUtil.visitLine(bc, end);
-        return type;
+	BytecodeContext bc = (BytecodeContext) c;
+	ExpressionUtil.visitLine(bc, start);
+	Type type = _writeOut(bc, mode);
+	ExpressionUtil.visitLine(bc, end);
+	return type;
     }
 
     /**
      * write out the statement to the adapter
+     * 
      * @param adapter
-     * @param mode 
+     * @param mode
      * @return return Type of expression
      * @throws TemplateException
      */
@@ -74,27 +76,27 @@ public abstract class ExpressionBase implements Expression {
 
     @Override
     public Factory getFactory() {
-        return factory;
+	return factory;
     }
-    
-	@Override
+
+    @Override
     public Position getStart() {
-        return start;
+	return start;
     }
-    
+
     @Override
     public Position getEnd() {
-        return end;
+	return end;
     }
-   
+
     @Override
     public void setStart(Position start) {
-        this.start= start;
+	this.start = start;
     }
+
     @Override
     public void setEnd(Position end) {
-        this.end= end;
+	this.end = end;
     }
-    
-    
+
 }

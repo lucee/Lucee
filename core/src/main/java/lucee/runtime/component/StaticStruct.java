@@ -20,18 +20,18 @@ package lucee.runtime.component;
 import lucee.commons.collection.concurrent.ConcurrentHashMapPro;
 import lucee.runtime.type.Collection.Key;
 
-public class StaticStruct extends ConcurrentHashMapPro<Key,Member> {
-	
-	private boolean init;
-	
-	public StaticStruct(){
-	}
-	public boolean isInit(){
-		return init;
-	}
-	
-	public void setInit(boolean init){
-		this.init= init;
-	}
+public class StaticStruct extends ConcurrentHashMapPro<Key, Member> {
+
+    private boolean init;
+
+    public StaticStruct() {}
+
+    public boolean isInit() {
+	return init;
+    }
+
+    public void setInit(boolean init) {
+	this.init = init;
+    }
 
 }

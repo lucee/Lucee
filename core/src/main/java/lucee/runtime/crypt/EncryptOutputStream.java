@@ -28,26 +28,30 @@ public final class EncryptOutputStream extends OutputStream {
 
     @Override
     public void close() throws IOException {
-        super.close();
+	super.close();
     }
+
     @Override
     public void flush() throws IOException {
-        super.flush();
+	super.flush();
     }
+
     @Override
     public void write(byte[] b, int off, int len) throws IOException {
-        super.write(b, off, len);
+	super.write(b, off, len);
     }
+
     @Override
     public void write(byte[] b) throws IOException {
-        super.write(b);
+	super.write(b);
     }
+
     @Override
     public void write(int b) throws IOException {
-        
+
     }
 
     public static void main(String[] args) {
-        
+
     }
 }

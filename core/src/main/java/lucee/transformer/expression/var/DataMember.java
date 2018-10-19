@@ -20,9 +20,9 @@ package lucee.transformer.expression.var;
 import lucee.transformer.expression.ExprString;
 
 public interface DataMember extends Member {
-	
-	/**
-	 * @return the name
-	 */
-	public ExprString getName();
+
+    /**
+     * @return the name
+     */
+    public ExprString getName();
 }

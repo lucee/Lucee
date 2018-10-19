@@ -18,7 +18,6 @@
  **/
 package lucee.runtime.writer;
 
-
 public interface WhiteSpaceWriter {
-	
+
 }

@@ -31,16 +31,17 @@ import lucee.runtime.text.xml.XMLUtil;
 import org.w3c.dom.Node;
 
 public final class XmlNew implements Function {
-	public static Node call(PageContext pc) throws PageException {
-		return call(pc,false);
+    public static Node call(PageContext pc) throws PageException {
+	return call(pc, false);
+    }
+
+    public static Node call(PageContext pc, boolean caseSensitive) throws PageException {
+	try {
+	    return XMLCaster.toXMLStruct(XMLUtil.newDocument(), caseSensitive);
 	}
-	public static Node call(PageContext pc, boolean caseSensitive) throws PageException {
-		try {
-			return XMLCaster.toXMLStruct(XMLUtil.newDocument(),caseSensitive);
-		} 
-		catch (Exception e) {
-			throw Caster.toPageException(e);
-		}
+	catch (Exception e) {
+	    throw Caster.toPageException(e);
 	}
-	
+    }
+
 }

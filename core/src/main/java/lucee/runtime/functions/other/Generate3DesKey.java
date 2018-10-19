@@ -14,13 +14,13 @@ public class Generate3DesKey implements Function {
 
     public static String call(PageContext pc) throws PageException {
 
-        return GenerateSecretKey.call(pc, "DESede");
+	return GenerateSecretKey.call(pc, "DESede");
     }
 
     public static String call(PageContext pc, String input) throws PageException {
 
-        SecretKeySpec keySpec = new SecretKeySpec(input.getBytes(), "DESede");
+	SecretKeySpec keySpec = new SecretKeySpec(input.getBytes(), "DESede");
 
-        return Base64Coder.encode(keySpec.getEncoded());
+	return Base64Coder.encode(keySpec.getEncoded());
     }
 }

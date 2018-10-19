@@ -24,17 +24,17 @@
  */
 package lucee.transformer.cfml.attributes;
 
-
 /**
  * Exception of the AttributeEvaluator Class
  */
 public final class AttributeEvaluatorException extends Exception {
 
-	/**
-	 * Error Message
-	 * @param message
-	 */
-	public AttributeEvaluatorException(String message) {
-		super(message);
-	}
+    /**
+     * Error Message
+     * 
+     * @param message
+     */
+    public AttributeEvaluatorException(String message) {
+	super(message);
+    }
 }

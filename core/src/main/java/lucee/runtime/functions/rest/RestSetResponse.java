@@ -26,15 +26,14 @@ import lucee.runtime.rest.Result;
 import lucee.runtime.type.Struct;
 
 public class RestSetResponse {
-	public static String call(PageContext pc , Struct rsp) throws ApplicationException {
-		HttpServletRequest req = pc.getHttpServletRequest();
-		
-		Result result = (Result) req.getAttribute("rest-result");
-		if(result==null)throw new ApplicationException("not inside a REST Request");
-		
-		result.setCustomResponse(rsp);
-		
-		
-		return null;
-	}
+    public static String call(PageContext pc, Struct rsp) throws ApplicationException {
+	HttpServletRequest req = pc.getHttpServletRequest();
+
+	Result result = (Result) req.getAttribute("rest-result");
+	if (result == null) throw new ApplicationException("not inside a REST Request");
+
+	result.setCustomResponse(rsp);
+
+	return null;
+    }
 }

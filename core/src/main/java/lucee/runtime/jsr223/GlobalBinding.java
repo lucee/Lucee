@@ -28,72 +28,71 @@ import lucee.runtime.type.scope.ScopeContext;
 import lucee.runtime.type.scope.Server;
 
 public class GlobalBinding implements Bindings {
-	
-	private final Server server;
-	
-	public GlobalBinding(PageContext pc) {
-		this.server=ScopeContext.getServerScope(pc,true);
-	}
-	
-	
-	@Override
-	public int size() {
-		return server.size();
-	}
 
-	@Override
-	public boolean isEmpty() {
-		return server.isEmpty();
-	}
+    private final Server server;
 
-	@Override
-	public boolean containsValue(Object value) {
-		return server.containsValue(value);
-	}
+    public GlobalBinding(PageContext pc) {
+	this.server = ScopeContext.getServerScope(pc, true);
+    }
 
-	@Override
-	public void clear() {
-		server.clear();
-	}
+    @Override
+    public int size() {
+	return server.size();
+    }
 
-	@Override
-	public Set<String> keySet() {
-		return server.keySet();
-	}
+    @Override
+    public boolean isEmpty() {
+	return server.isEmpty();
+    }
 
-	@Override
-	public Collection<Object> values() {
-		return server.values();
-	}
+    @Override
+    public boolean containsValue(Object value) {
+	return server.containsValue(value);
+    }
 
-	@Override
-	public Set<java.util.Map.Entry<String, Object>> entrySet() {
-		return server.entrySet();
-	}
+    @Override
+    public void clear() {
+	server.clear();
+    }
 
-	@Override
-	public Object put(String name, Object value) {
-		return server.put(name, value);
-	}
+    @Override
+    public Set<String> keySet() {
+	return server.keySet();
+    }
 
-	@Override
-	public void putAll(Map<? extends String, ? extends Object> toMerge) {
-		server.putAll(toMerge);
-	}
+    @Override
+    public Collection<Object> values() {
+	return server.values();
+    }
 
-	@Override
-	public boolean containsKey(Object key) {
-		return server.containsKey(key);
-	}
+    @Override
+    public Set<java.util.Map.Entry<String, Object>> entrySet() {
+	return server.entrySet();
+    }
 
-	@Override
-	public Object get(Object key) {
-		return server.get(key);
-	}
+    @Override
+    public Object put(String name, Object value) {
+	return server.put(name, value);
+    }
 
-	@Override
-	public Object remove(Object key) {
-		return server.remove(key);
-	}
+    @Override
+    public void putAll(Map<? extends String, ? extends Object> toMerge) {
+	server.putAll(toMerge);
+    }
+
+    @Override
+    public boolean containsKey(Object key) {
+	return server.containsKey(key);
+    }
+
+    @Override
+    public Object get(Object key) {
+	return server.get(key);
+    }
+
+    @Override
+    public Object remove(Object key) {
+	return server.remove(key);
+    }
 
 }

@@ -18,48 +18,48 @@
  **/
 package lucee.runtime.dump;
 
-
 /**
- * this class is to hold all information to a dumpwriter together in a single class, Dumpwriter, name and if it is a default.
+ * this class is to hold all information to a dumpwriter together in a single class, Dumpwriter,
+ * name and if it is a default.
  */
 public class DumpWriterEntry {
-	private String name;
-	private DumpWriter writer;
-	private int defaultType;
-	
-	public DumpWriterEntry(int defaultType, String name, DumpWriter writer) {
-		//print.err(name+":"+defaultType);
-		this.defaultType = defaultType;
-		this.name = name;
-		this.writer = writer;
-	}
+    private String name;
+    private DumpWriter writer;
+    private int defaultType;
 
-	/**
-	 * @return the def
-	 */
-	public int getDefaultType() {
-		return defaultType;
-	}
+    public DumpWriterEntry(int defaultType, String name, DumpWriter writer) {
+	// print.err(name+":"+defaultType);
+	this.defaultType = defaultType;
+	this.name = name;
+	this.writer = writer;
+    }
 
-	/**
-	 * @param def the def to set
-	 */
-	public void setDefaultType(int defaultType) {
-		this.defaultType = defaultType;
-	}
+    /**
+     * @return the def
+     */
+    public int getDefaultType() {
+	return defaultType;
+    }
 
-	/**
-	 * @return the name
-	 */
-	public String getName() {
-		return name;
-	}
+    /**
+     * @param def the def to set
+     */
+    public void setDefaultType(int defaultType) {
+	this.defaultType = defaultType;
+    }
 
-	/**
-	 * @return the writer
-	 */
-	public DumpWriter getWriter() {
-		return writer;
-	}
-	
+    /**
+     * @return the name
+     */
+    public String getName() {
+	return name;
+    }
+
+    /**
+     * @return the writer
+     */
+    public DumpWriter getWriter() {
+	return writer;
+    }
+
 }

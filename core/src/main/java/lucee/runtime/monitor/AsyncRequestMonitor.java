@@ -33,87 +33,87 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Query;
 
 public class AsyncRequestMonitor implements RequestMonitorPro {
-	
+
+    private RequestMonitorPro monitor;
+    private boolean logEnabled;
+
+    public AsyncRequestMonitor(RequestMonitorPro monitor) {
+	this.monitor = monitor;
+    }
+
+    @Override
+    public void init(ConfigServer configServer, String name, boolean logEnabled) {
+	monitor.init(configServer, name, logEnabled);
+	this.logEnabled = logEnabled;
+    }
+
+    @Override
+    public short getType() {
+	return monitor.getType();
+    }
+
+    @Override
+    public String getName() {
+	return monitor.getName();
+    }
+
+    @Override
+    public Class getClazz() {
+	return monitor.getClazz();
+    }
+
+    @Override
+    public boolean isLogEnabled() {
+	return monitor.isLogEnabled();
+    }
+
+    @Override
+    public Query getData(ConfigWeb config, Map<String, Object> arguments) throws PageException {
+	return monitor.getData(config, arguments);
+    }
+
+    @Override
+    public void init(PageContext pc) throws IOException {
+	new _Log(monitor, pc, false, logEnabled, true).start();
+    }
+
+    @Override
+    public void log(PageContext pc, boolean error) throws IOException {
+	new _Log(monitor, pc, error, logEnabled, false).start();
+    }
+
+    static class _Log extends PageContextThread {
 	private RequestMonitorPro monitor;
+	private boolean error;
 	private boolean logEnabled;
+	private boolean init;
 
-	public AsyncRequestMonitor(RequestMonitorPro monitor){
-		this.monitor=monitor;
-	}
-	
-	@Override
-	public void init(ConfigServer configServer, String name, boolean logEnabled) {
-		monitor.init(configServer, name, logEnabled);
-		this.logEnabled=logEnabled;
-	}
-
-	@Override
-	public short getType() {
-		return monitor.getType();
+	public _Log(RequestMonitorPro monitor, PageContext pc, boolean error, boolean logEnabled, boolean init) {
+	    super(pc);
+	    this.monitor = monitor;
+	    this.error = error;
+	    this.logEnabled = logEnabled;
+	    this.init = init;
 	}
 
 	@Override
-	public String getName() {
-		return monitor.getName();
-	}
-
-	@Override
-	public Class getClazz() {
-		return monitor.getClazz();
-	}
-
-	@Override
-	public boolean isLogEnabled() {
-		return monitor.isLogEnabled();
-	}
-
-	@Override
-	public Query getData(ConfigWeb config, Map<String, Object> arguments) throws PageException {
-		return monitor.getData(config, arguments);
-	}
-
-	@Override
-	public void init(PageContext pc) throws IOException {
-		new _Log(monitor,pc,false,logEnabled,true).start();
-	}
-
-	@Override
-	public void log(PageContext pc, boolean error) throws IOException {
-		new _Log(monitor,pc,error,logEnabled,false).start();
-	}
-
-	static class _Log extends PageContextThread {
-		private RequestMonitorPro monitor;
-		private boolean error;
-		private boolean logEnabled;
-		private boolean init;
-
-		public _Log(RequestMonitorPro monitor, PageContext pc, boolean error, boolean logEnabled, boolean init) {
-			super(pc);
-			this.monitor=monitor;
-			this.error=error;
-			this.logEnabled=logEnabled;
-			this.init=init;
+	public void run(PageContext pc) {
+	    try {
+		ThreadLocalPageContext.register(pc);
+		try {
+		    if (init) monitor.log(pc, error);
+		    else monitor.init(pc);
 		}
-
-		@Override
-		public void run(PageContext pc){
-			try{
-				ThreadLocalPageContext.register(pc);
-				try {
-					if(init)monitor.log(pc, error);
-					else monitor.init(pc);
-				}
-				catch (IOException e) {
-					if(logEnabled) {
-						Log log=((ConfigImpl)pc.getConfig()).getLog("io");
-						if(log!=null) log.log( Log.LEVEL_ERROR, "io", e);
-					}
-				}
-			}
-			finally{
-				ThreadLocalPageContext.release();
-			}
+		catch (IOException e) {
+		    if (logEnabled) {
+			Log log = ((ConfigImpl) pc.getConfig()).getLog("io");
+			if (log != null) log.log(Log.LEVEL_ERROR, "io", e);
+		    }
 		}
+	    }
+	    finally {
+		ThreadLocalPageContext.release();
+	    }
 	}
+    }
 }

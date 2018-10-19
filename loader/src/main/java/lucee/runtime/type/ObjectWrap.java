@@ -24,19 +24,19 @@ import lucee.runtime.exp.PageException;
  */
 public interface ObjectWrap {
 
-	/**
-	 * returns embedded Object EL
-	 * 
-	 * @return embedded Object
-	 */
-	public Object getEmbededObject(Object defaultValue);
+    /**
+     * returns embedded Object EL
+     * 
+     * @return embedded Object
+     */
+    public Object getEmbededObject(Object defaultValue);
 
-	/**
-	 * returns embedded Object
-	 * 
-	 * @return embedded Object
-	 * @throws PageException
-	 */
-	public Object getEmbededObject() throws PageException;
+    /**
+     * returns embedded Object
+     * 
+     * @return embedded Object
+     * @throws PageException
+     */
+    public Object getEmbededObject() throws PageException;
 
 }

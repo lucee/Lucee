@@ -33,71 +33,66 @@ import lucee.loader.engine.CFMLEngineFactorySupport;
  */
 public class VersionInfo {
 
-	private static org.osgi.framework.Version version = null;
-	private static long created = -1;
+    private static org.osgi.framework.Version version = null;
+    private static long created = -1;
 
-	/**
-	 * @return returns the current version
-	 */
-	public static org.osgi.framework.Version getIntVersion() {
-		init();
-		return version;
-	}
+    /**
+     * @return returns the current version
+     */
+    public static org.osgi.framework.Version getIntVersion() {
+	init();
+	return version;
+    }
 
-	/**
-	 * return creation time of this version
-	 * 
-	 * @return creation time
-	 */
-	public static long getCreateTime() {
-		init();
-		return created;
-	}
+    /**
+     * return creation time of this version
+     * 
+     * @return creation time
+     */
+    public static long getCreateTime() {
+	init();
+	return created;
+    }
 
-	private static void init() {
-		if (version != null)
-			return;
-		String content = "9000000:" + System.currentTimeMillis();
-		try {
-			content = getContentAsString(new TP().getClass().getClassLoader()
-					.getResourceAsStream("lucee/version"), "UTF-8");
-
-		} catch (final IOException e) {
-		}
-
-		final int index = content.indexOf(':');
-		version = CFMLEngineFactorySupport.toVersion(
-				content.substring(0, index), CFMLEngineFactory.VERSION_ZERO);
-		final String d = content.substring(index + 1);
-		try {
-			created = Long.parseLong(d);
-		} catch (final NumberFormatException nfe) {
-			try {
-				created = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss z")
-						.parse(d).getTime();
-			} catch (final ParseException pe) {
-				pe.printStackTrace();
-				created = 0;
-			}
-		}
+    private static void init() {
+	if (version != null) return;
+	String content = "9000000:" + System.currentTimeMillis();
+	try {
+	    content = getContentAsString(new TP().getClass().getClassLoader().getResourceAsStream("lucee/version"), "UTF-8");
 
 	}
+	catch (final IOException e) {}
 
-	private static String getContentAsString(final InputStream is,
-			final String charset) throws IOException {
-
-		final BufferedReader br = (charset == null) ? new BufferedReader(
-				new InputStreamReader(is)) : new BufferedReader(
-				new InputStreamReader(is, charset));
-		final StringBuffer content = new StringBuffer();
-
-		String line = br.readLine();
-		if (line != null) {
-			content.append(line);
-			while ((line = br.readLine()) != null)
-				content.append("\n" + line);
-		}
-		br.close();
-		return content.toString();
+	final int index = content.indexOf(':');
+	version = CFMLEngineFactorySupport.toVersion(content.substring(0, index), CFMLEngineFactory.VERSION_ZERO);
+	final String d = content.substring(index + 1);
+	try {
+	    created = Long.parseLong(d);
 	}
+	catch (final NumberFormatException nfe) {
+	    try {
+		created = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss z").parse(d).getTime();
+	    }
+	    catch (final ParseException pe) {
+		pe.printStackTrace();
+		created = 0;
+	    }
+	}
+
+    }
+
+    private static String getContentAsString(final InputStream is, final String charset) throws IOException {
+
+	final BufferedReader br = (charset == null) ? new BufferedReader(new InputStreamReader(is)) : new BufferedReader(new InputStreamReader(is, charset));
+	final StringBuffer content = new StringBuffer();
+
+	String line = br.readLine();
+	if (line != null) {
+	    content.append(line);
+	    while ((line = br.readLine()) != null)
+		content.append("\n" + line);
+	}
+	br.close();
+	return content.toString();
+    }
 }

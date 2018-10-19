@@ -19,40 +19,33 @@ import lucee.commons.io.retirement.RetireListener;
 import lucee.runtime.config.Config;
 
 public class Log4jEngine implements LogEngine {
-	
-	private static final String DEFAULT_PATTERN = "%d{dd.MM.yyyy HH:mm:ss,SSS} %-5p [%c] %m%n"; 
 
-	
-	private Config config;
+    private static final String DEFAULT_PATTERN = "%d{dd.MM.yyyy HH:mm:ss,SSS} %-5p [%c] %m%n";
 
-	public Log4jEngine(Config config) {
-		this.config=config;
+    private Config config;
+
+    public Log4jEngine(Config config) {
+	this.config = config;
+    }
+
+    @Override
+    public Log getConsoleLog(boolean errorStream, String name, int level) {
+
+	PrintWriter pw = errorStream ? config.getErrWriter() : config.getOutWriter();
+	if (pw == null) pw = new PrintWriter(errorStream ? System.err : System.out);
+
+	return new LogAdapter(Log4jUtil._getLogger(config, new ConsoleAppender(pw, new PatternLayout(DEFAULT_PATTERN)), name, level));
+    }
+
+    @Override
+    public Log getResourceLog(Resource res, Charset charset, String name, int level, int timeout, RetireListener listener, boolean async) throws IOException {
+	Appender a = new RollingResourceAppender(new ClassicLayout(), res, charset, true, RollingResourceAppender.DEFAULT_MAX_FILE_SIZE,
+		RollingResourceAppender.DEFAULT_MAX_BACKUP_INDEX, timeout, listener); // no open stream at all
+
+	if (async) {
+	    a = new TaskAppender(config, a);
 	}
-	
-	@Override
-	public Log getConsoleLog(boolean errorStream, String name, int level) {
-		
-		PrintWriter pw=errorStream?config.getErrWriter():config.getOutWriter();
-		if(pw==null)pw=new PrintWriter(errorStream?System.err:System.out);
-		
-		return new LogAdapter(Log4jUtil._getLogger(config, new ConsoleAppender(pw,new PatternLayout(DEFAULT_PATTERN)), name, level));
-	}
-	
-	@Override
-	public Log getResourceLog(Resource res, Charset charset, String name, int level, int timeout,RetireListener listener, boolean async) throws IOException {
-		Appender a = new RollingResourceAppender(
-				new ClassicLayout()
-				,res
-				,charset
-				,true
-				,RollingResourceAppender.DEFAULT_MAX_FILE_SIZE
-				,RollingResourceAppender.DEFAULT_MAX_BACKUP_INDEX
-				,timeout,listener); // no open stream at all
-		
-		if(async) {
-			a=new TaskAppender(config, a);
-		}
-		return new LogAdapter(Log4jUtil._getLogger(config, a, name, level));
-	}
-	
+	return new LogAdapter(Log4jUtil._getLogger(config, a, name, level));
+    }
+
 }

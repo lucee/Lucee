@@ -26,27 +26,26 @@ import lucee.runtime.net.mail.MailClient;
 
 import com.sun.mail.pop3.POP3Folder;
 
-
 public final class PopClient extends MailClient {
 
-	public PopClient(String server, int port, String username, String password, boolean secure) {
-		super(server, port, username, password,secure);
-	}
+    public PopClient(String server, int port, String username, String password, boolean secure) {
+	super(server, port, username, password, secure);
+    }
 
-	@Override
-	protected String _getId(Folder folder,Message message) throws MessagingException {
-		
-		return ((POP3Folder)folder).getUID(message);
-	}
+    @Override
+    protected String _getId(Folder folder, Message message) throws MessagingException {
 
-	@Override
-	protected String getTypeAsString() {
-		return "pop3";
-	}
+	return ((POP3Folder) folder).getUID(message);
+    }
 
-	@Override
-	protected int getType() {
-		return TYPE_POP3;
-	}
-	
+    @Override
+    protected String getTypeAsString() {
+	return "pop3";
+    }
+
+    @Override
+    protected int getType() {
+	return TYPE_POP3;
+    }
+
 }

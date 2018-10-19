@@ -61,56 +61,49 @@ import org.apache.log4j.PatternLayout;
 import org.apache.log4j.xml.XMLLayout;
 
 public class Log4jUtil {
-	
-	public static final long MAX_FILE_SIZE=1024*1024*10;
-    public static final int MAX_FILES=10;
-	
-	
 
-	
-	public static final Log getLogger(Config config,Appender appender, String name, int level){
-		return new LogAdapter(_getLogger(config, appender, name, level));
+    public static final long MAX_FILE_SIZE = 1024 * 1024 * 10;
+    public static final int MAX_FILES = 10;
+
+    public static final Log getLogger(Config config, Appender appender, String name, int level) {
+	return new LogAdapter(_getLogger(config, appender, name, level));
+    }
+
+    static final Logger _getLogger(Config config, Appender appender, String name, int level) {
+	// fullname
+	String fullname = name;
+	if (config instanceof ConfigWeb) {
+	    ConfigWeb cw = (ConfigWeb) config;
+	    fullname = "web." + cw.getLabel() + "." + name;
 	}
-	
-	static final Logger _getLogger(Config config,Appender appender, String name, int level){
-		// fullname
-		String fullname=name;
-		if(config instanceof ConfigWeb) {
-	    	ConfigWeb cw=(ConfigWeb) config;
-	    	fullname="web."+cw.getLabel()+"."+name;
-	    }
-		else fullname="server."+name;
-		
-		Logger l = LogManager.exists(fullname);
-		if(l!=null) l.removeAllAppenders();
-		else l = LogManager.getLogger(fullname);
-		l.setAdditivity(false);
-    	l.addAppender(appender);
-    	l.setLevel(LogAdapter.toLevel(level));
-    	return l;
-	}
-	
-    
-    
+	else fullname = "server." + name;
+
+	Logger l = LogManager.exists(fullname);
+	if (l != null) l.removeAllAppenders();
+	else l = LogManager.getLogger(fullname);
+	l.setAdditivity(false);
+	l.addAppender(appender);
+	l.setLevel(LogAdapter.toLevel(level));
+	return l;
+    }
 
     public static ClassDefinition<Appender> appenderClassDefintion(String className) {
-    	if("console".equalsIgnoreCase(className))return new ClassDefinitionImpl( ConsoleAppender.class);
-    	if("resource".equalsIgnoreCase(className))return new ClassDefinitionImpl( RollingResourceAppender.class);
-    	if("datasource".equalsIgnoreCase(className))return new ClassDefinitionImpl( DatasourceAppender.class);
-    		
-    	return new ClassDefinitionImpl( className);
-    }
-    
-    
-    public static ClassDefinition<Layout> layoutClassDefintion(String className) {
-    	if("classic".equalsIgnoreCase(className))return new ClassDefinitionImpl( ClassicLayout.class);
-    	if("datasource".equalsIgnoreCase(className))return new ClassDefinitionImpl( DatasourceLayout.class);
-    	if("html".equalsIgnoreCase(className))return new ClassDefinitionImpl( HTMLLayout.class);
-    	if("xml".equalsIgnoreCase(className))return new ClassDefinitionImpl( XMLLayout.class);
-    	if("pattern".equalsIgnoreCase(className))return new ClassDefinitionImpl( PatternLayout.class);
+	if ("console".equalsIgnoreCase(className)) return new ClassDefinitionImpl(ConsoleAppender.class);
+	if ("resource".equalsIgnoreCase(className)) return new ClassDefinitionImpl(RollingResourceAppender.class);
+	if ("datasource".equalsIgnoreCase(className)) return new ClassDefinitionImpl(DatasourceAppender.class);
 
-    	return new ClassDefinitionImpl( className);
+	return new ClassDefinitionImpl(className);
     }
-    
-    //private static LoggerRepository repository=new Hierarchy(null); 
+
+    public static ClassDefinition<Layout> layoutClassDefintion(String className) {
+	if ("classic".equalsIgnoreCase(className)) return new ClassDefinitionImpl(ClassicLayout.class);
+	if ("datasource".equalsIgnoreCase(className)) return new ClassDefinitionImpl(DatasourceLayout.class);
+	if ("html".equalsIgnoreCase(className)) return new ClassDefinitionImpl(HTMLLayout.class);
+	if ("xml".equalsIgnoreCase(className)) return new ClassDefinitionImpl(XMLLayout.class);
+	if ("pattern".equalsIgnoreCase(className)) return new ClassDefinitionImpl(PatternLayout.class);
+
+	return new ClassDefinitionImpl(className);
+    }
+
+    // private static LoggerRepository repository=new Hierarchy(null);
 }

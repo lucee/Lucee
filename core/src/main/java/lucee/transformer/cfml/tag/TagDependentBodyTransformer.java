@@ -26,24 +26,20 @@ import lucee.transformer.cfml.Data;
  * Interface zum implementieren von individullen Parsersn fuer einezelne Tags (cfscript)
  */
 public interface TagDependentBodyTransformer {
-	
-	/**
-	 * @param parent
-	 * @param flibs
-	 * @param cfxdTag
-	 * @param tagLibTag
-	 * @param cfml
-	 * @throws TemplateException
-	 */
-	//public Body transform(Factory factory,Root root,EvaluatorPool ep,TagLib[][] tlibs, FunctionLib[] flibs, String surroundingTagName, 
-	// TagLibTag[] scriptTags, SourceCode cfml,TransfomerSettings setting)
-	//		throws TemplateException;
-	
-	
-	public Body transform(Data data,String surroundingTagName) throws TemplateException;
-		
-	
-	
 
+    /**
+     * @param parent
+     * @param flibs
+     * @param cfxdTag
+     * @param tagLibTag
+     * @param cfml
+     * @throws TemplateException
+     */
+    // public Body transform(Factory factory,Root root,EvaluatorPool ep,TagLib[][] tlibs, FunctionLib[]
+    // flibs, String surroundingTagName,
+    // TagLibTag[] scriptTags, SourceCode cfml,TransfomerSettings setting)
+    // throws TemplateException;
+
+    public Body transform(Data data, String surroundingTagName) throws TemplateException;
 
 }

@@ -26,17 +26,18 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 
 public final class IsNull implements Function {
-	public static boolean call(PageContext pc , Object object) {
-		return object==null;
+    public static boolean call(PageContext pc, Object object) {
+	return object == null;
+    }
+
+    // called by modifed call from translation time evaluator
+    public static boolean call(PageContext pc, String str) {
+
+	try {
+	    return pc.evaluate(str) == null;
 	}
-	// called by modifed call from translation time evaluator
-	public static boolean call(PageContext pc , String str) {
-		
-		try {
-			return pc.evaluate(str)==null;
-		} 
-		catch (PageException e) {
-			return true;
-		}
+	catch (PageException e) {
+	    return true;
 	}
+    }
 }

@@ -38,130 +38,125 @@ import lucee.runtime.util.IO;
  */
 public abstract class Page implements Serializable {
 
-	private static final long serialVersionUID = 7844636300784565040L;
+    private static final long serialVersionUID = 7844636300784565040L;
 
-	private static final ImportDefintion[] NO_IMPORTS = new ImportDefintion[0];
-	private static final CIPage[] NO_SUB_PAGES = new CIPage[0];
+    private static final ImportDefintion[] NO_IMPORTS = new ImportDefintion[0];
+    private static final CIPage[] NO_SUB_PAGES = new CIPage[0];
 
-	public static boolean FALSE = false;
-	public static boolean TRUE = true;
+    public static boolean FALSE = false;
+    public static boolean TRUE = true;
 
-	private PageSource pageSource;
-	private byte loadType;
+    private PageSource pageSource;
+    private byte loadType;
 
-	private Resource staticTextLocation;
+    private Resource staticTextLocation;
 
-	/**
-	 * return version definition of the page
-	 * 
-	 * @return version
-	 */
-	public long getVersion() {
-		return -1;
+    /**
+     * return version definition of the page
+     * 
+     * @return version
+     */
+    public long getVersion() {
+	return -1;
+    }
+
+    /**
+     * method to invoke a page
+     * 
+     * @param pc PageContext
+     * @throws Throwable
+     */
+    public Object call(final PageContext pc) throws Throwable {
+	return null;
+    }
+
+    /**
+     * return when the source file last time was modified
+     * 
+     * @return last modification of source file
+     */
+    public long getSourceLastModified() {
+	return 0;
+    }
+
+    /**
+     * return the time when the file was compiled
+     */
+    public long getCompileTime() {
+	return 0;
+    }
+
+    public String str(PageContext pc, int off, int len) throws IOException, PageException {
+	if (staticTextLocation == null) {
+	    PageSource ps = getPageSource();
+	    Mapping m = ps.getMapping();
+	    staticTextLocation = m.getClassRootDirectory();
+	    staticTextLocation = staticTextLocation.getRealResource(ps.getJavaName() + ".txt");
+	}
+	CFMLEngine e = CFMLEngineFactory.getInstance();
+	IO io = e.getIOUtil();
+
+	Reader reader = io.getReader(staticTextLocation, e.getCastUtil().toCharset("UTF-8"));
+	char[] carr = new char[len];
+	try {
+	    if (off > 0) reader.skip(off);
+	    reader.read(carr);
+	}
+	finally {
+	    io.closeSilent(reader);
 	}
 
-	/**
-	 * method to invoke a page
-	 * 
-	 * @param pc PageContext
-	 * @throws Throwable
-	 */
-	public Object call(final PageContext pc) throws Throwable {
-		return null;
-	}
+	// print.e(carr);
+	return new String(carr);
+    }
 
-	/**
-	 * return when the source file last time was modified
-	 * 
-	 * @return last modification of source file
-	 */
-	public long getSourceLastModified() {
-		return 0;
-	}
+    /**
+     * @param pageSource
+     */
+    public void setPageSource(final PageSource pageSource) {
+	this.pageSource = pageSource;
+    }
 
-	/**
-	 * return the time when the file was compiled
-	 */
-	public long getCompileTime() {
-		return 0;
-	}
-	
-	public String str(PageContext pc, int off, int len) throws IOException, PageException {
-		if(staticTextLocation==null) {
-			PageSource ps = getPageSource();
-			Mapping m = ps.getMapping();
-			staticTextLocation=m.getClassRootDirectory();
-			staticTextLocation=staticTextLocation.getRealResource(ps.getJavaName()+".txt");
-		}
-		CFMLEngine e = CFMLEngineFactory.getInstance();
-		IO io = e.getIOUtil();
-		
-		Reader reader = io.getReader(staticTextLocation, e.getCastUtil().toCharset("UTF-8"));
-		char[] carr=new char[len];
-		try {
-			if(off>0)reader.skip(off);
-			reader.read(carr);
-		}
-		finally {
-			io.closeSilent(reader);
-		}
-		
-		//print.e(carr);
-		return new String(carr);
-	}
+    /**
+     * @return Returns the pageResource.
+     */
+    public PageSource getPageSource() {
+	return pageSource;
+    }
 
-	/**
-	 * @param pageSource
-	 */
-	public void setPageSource(final PageSource pageSource) {
-		this.pageSource = pageSource;
-	}
+    /**
+     * @return gets the load type
+     */
+    public byte getLoadType() {
+	return loadType;
+    }
 
-	/**
-	 * @return Returns the pageResource.
-	 */
-	public PageSource getPageSource() {
-		return pageSource;
-	}
+    /**
+     * @param loadType sets the load type
+     */
+    public void setLoadType(final byte loadType) {
+	this.loadType = loadType;
+    }
 
-	/**
-	 * @return gets the load type
-	 */
-	public byte getLoadType() {
-		return loadType;
-	}
+    public Object udfCall(final PageContext pageContext, final UDF udf, final int functionIndex) throws Throwable {
+	return null;
+    }
 
-	/**
-	 * @param loadType sets the load type
-	 */
-	public void setLoadType(final byte loadType) {
-		this.loadType = loadType;
-	}
+    public void threadCall(final PageContext pageContext, final int threadIndex) throws Throwable {}
 
-	public Object udfCall(final PageContext pageContext, final UDF udf,
-			final int functionIndex) throws Throwable {
-		return null;
-	}
+    public Object udfDefaultValue(final PageContext pc, final int functionIndex, final int argumentIndex, final Object defaultValue) {
+	return null;
+    }
 
-	public void threadCall(final PageContext pageContext, final int threadIndex)
-			throws Throwable {
-	}
+    public ImportDefintion[] getImportDefintions() {
+	return NO_IMPORTS;
+    }
 
-	public Object udfDefaultValue(final PageContext pc,
-			final int functionIndex, final int argumentIndex,
-			final Object defaultValue) {
-		return null;
-	}
+    public CIPage[] getSubPages() {
+	return NO_SUB_PAGES;
+    }
 
-	public ImportDefintion[] getImportDefintions() {
-		return NO_IMPORTS;
-	}
+    public transient SoftReference<Struct> metaData;
 
-	public CIPage[] getSubPages() {
-		return NO_SUB_PAGES;
-	}
-
-	public transient SoftReference<Struct> metaData;
-
-	public UDFProperties[] udfs;
+    public UDFProperties[] udfs;
 }

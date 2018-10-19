@@ -22,15 +22,15 @@ import lucee.transformer.Factory;
 import lucee.transformer.Position;
 import lucee.transformer.bytecode.statement.FlowControlFinal;
 
-public abstract class TagBaseNoFinal extends TagBase { 
+public abstract class TagBaseNoFinal extends TagBase {
 
-	public TagBaseNoFinal(Factory factory,Position start, Position end) {
-		super(factory,start, end);
-	}
+    public TagBaseNoFinal(Factory factory, Position start, Position end) {
+	super(factory, start, end);
+    }
 
-	@Override
-	public FlowControlFinal getFlowControlFinal() {
-		return null;
-	}
+    @Override
+    public FlowControlFinal getFlowControlFinal() {
+	return null;
+    }
 
 }

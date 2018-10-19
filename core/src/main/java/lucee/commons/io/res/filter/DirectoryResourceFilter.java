@@ -27,9 +27,9 @@ public final class DirectoryResourceFilter implements ResourceFilter {
 
     public final static DirectoryResourceFilter FILTER = new DirectoryResourceFilter();
 
-	@Override
+    @Override
     public boolean accept(Resource pathname) {
-        return pathname.isDirectory();
+	return pathname.isDirectory();
     }
 
 }

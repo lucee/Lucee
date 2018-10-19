@@ -38,12 +38,12 @@ public final class _Execute extends PageContextThread {
     private String errorVariable;
     private boolean aborted;
     private String command;
-    //private static final int BLOCK_SIZE=4096;
+    // private static final int BLOCK_SIZE=4096;
     private Object monitor;
-	private Exception exception;
-	//private String body;
-	private boolean finished;
-	private Process process;
+    private Exception exception;
+    // private String body;
+    private boolean finished;
+    private Process process;
 
     /**
      * @param pageContext
@@ -51,78 +51,81 @@ public final class _Execute extends PageContextThread {
      * @param process
      * @param outputfile
      * @param variable
-     * @param body 
-     * @param terminateOnTimeout 
+     * @param body
+     * @param terminateOnTimeout
      */
     public _Execute(PageContext pageContext, Object monitor, String command, Resource outputfile, String variable, Resource errorFile, String errorVariable) {
-         super(pageContext); 
-         this.monitor=monitor;
-         this.command=command;
-         this.outputfile=outputfile;
-         this.variable=variable;
+	super(pageContext);
+	this.monitor = monitor;
+	this.command = command;
+	this.outputfile = outputfile;
+	this.variable = variable;
 
-		this.errorFile = errorFile;
-	    this.errorVariable = errorVariable;
-         //this.body=body;
+	this.errorFile = errorFile;
+	this.errorVariable = errorVariable;
+	// this.body=body;
     }
-    
+
     @Override
     public void run(PageContext pc) {
-        try {
-            _run(pc);
-        } catch (Exception e) {}
+	try {
+	    _run(pc);
+	}
+	catch (Exception e) {}
     }
-     void _run(PageContext pc) {
-			try {
 
-				process = Command.createProcess(command,true);
+    void _run(PageContext pc) {
+	try {
 
-				CommandResult result = Command.execute(process);
-				String rst = result.getOutput();
+	    process = Command.createProcess(command, true);
 
-				finished = true;
-				if(!aborted) {
-					if(outputfile==null && variable==null) pc.write(rst);
-					else {
-						if(outputfile!=null)	IOUtil.write(outputfile, rst, SystemUtil.getCharset(), false);
-						if(variable!=null)	pc.setVariable(variable,rst);
-					}
+	    CommandResult result = Command.execute(process);
+	    String rst = result.getOutput();
 
-					if(errorFile != null)	    IOUtil.write(errorFile, result.getError(), SystemUtil.getCharset(), false);
-					if(errorVariable != null)	pc.setVariable(errorVariable, result.getError());
-				}
-			}
-			catch(Exception ioe){
-				exception=ioe;
-			}
-			finally {
-				synchronized(monitor){
-					monitor.notify();
-				}
-			}
-		//}
+	    finished = true;
+	    if (!aborted) {
+		if (outputfile == null && variable == null) pc.write(rst);
+		else {
+		    if (outputfile != null) IOUtil.write(outputfile, rst, SystemUtil.getCharset(), false);
+		    if (variable != null) pc.setVariable(variable, rst);
+		}
+
+		if (errorFile != null) IOUtil.write(errorFile, result.getError(), SystemUtil.getCharset(), false);
+		if (errorVariable != null) pc.setVariable(errorVariable, result.getError());
+	    }
+	}
+	catch (Exception ioe) {
+	    exception = ioe;
+	}
+	finally {
+	    synchronized (monitor) {
+		monitor.notify();
+	    }
+	}
+	// }
     }
 
     /**
      * define that execution is aborted
      */
     public void abort(boolean terminateProcess) {
-        aborted=true;
-    	if(terminateProcess)process.destroy();
+	aborted = true;
+	if (terminateProcess) process.destroy();
     }
 
-	public boolean hasException() {
-		return exception!=null;
-	}
-	public boolean hasFinished() {
-		return finished;
-	}
+    public boolean hasException() {
+	return exception != null;
+    }
 
-	/**
-	 * @return the exception
-	 */
-	public Exception getException() {
-		return exception;
-	}
+    public boolean hasFinished() {
+	return finished;
+    }
+
+    /**
+     * @return the exception
+     */
+    public Exception getException() {
+	return exception;
+    }
 
 }

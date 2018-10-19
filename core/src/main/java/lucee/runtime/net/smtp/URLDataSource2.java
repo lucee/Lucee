@@ -39,7 +39,7 @@ public final class URLDataSource2 implements DataSource {
      * Creates a URLDataSource from a URL object
      */
     public URLDataSource2(URL url) {
-        this.url = url;
+	this.url = url;
     }
 
     /**
@@ -47,16 +47,15 @@ public final class URLDataSource2 implements DataSource {
      * 
      */
     @Override
-	public String getContentType() {
-        URLConnection connection = null;
-        try {
-            connection = url.openConnection();
-        } catch (IOException e) {
-        }
-        if (connection == null)
-            return DEFAULT_CONTENT_TYPE;
+    public String getContentType() {
+	URLConnection connection = null;
+	try {
+	    connection = url.openConnection();
+	}
+	catch (IOException e) {}
+	if (connection == null) return DEFAULT_CONTENT_TYPE;
 
-        return connection.getContentType();
+	return connection.getContentType();
 
     }
 
@@ -64,39 +63,38 @@ public final class URLDataSource2 implements DataSource {
      * Returns the file name of the URL object
      */
     @Override
-	public String getName() {
-        return url.getFile();
+    public String getName() {
+	return url.getFile();
     }
 
     /**
      * Returns an InputStream obtained from the data source
      */
     @Override
-	public InputStream getInputStream() throws IOException {
-    	if(barr==null) {
-    		barr=IOUtil.toBytes(url.openStream());
-    	}
-        return new ByteArrayInputStream(barr);
+    public InputStream getInputStream() throws IOException {
+	if (barr == null) {
+	    barr = IOUtil.toBytes(url.openStream());
+	}
+	return new ByteArrayInputStream(barr);
     }
 
     /**
      * Returns an OutputStream obtained from the data source
      */
     @Override
-	public OutputStream getOutputStream() throws IOException {
+    public OutputStream getOutputStream() throws IOException {
 
-        URLConnection connection = url.openConnection();
-        if (connection == null)
-            return null;
+	URLConnection connection = url.openConnection();
+	if (connection == null) return null;
 
-        connection.setDoOutput(true); //is it necessary?
-        return connection.getOutputStream();
+	connection.setDoOutput(true); // is it necessary?
+	return connection.getOutputStream();
     }
 
     /**
      * Returns the URL of the data source
      */
     public URL getURL() {
-        return url;
+	return url;
     }
 }

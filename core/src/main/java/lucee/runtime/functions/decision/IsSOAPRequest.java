@@ -29,10 +29,10 @@ import lucee.runtime.net.rpc.WSHandler;
  * 
  */
 public final class IsSOAPRequest implements Function {
-	
-	private static final long serialVersionUID = 5616044662863702066L;
 
-	public static boolean call(PageContext pc) throws PageException {
-		return ((ConfigImpl)ThreadLocalPageContext.getConfig(pc)).getWSHandler().isSOAPRequest();
-	}
+    private static final long serialVersionUID = 5616044662863702066L;
+
+    public static boolean call(PageContext pc) throws PageException {
+	return ((ConfigImpl) ThreadLocalPageContext.getConfig(pc)).getWSHandler().isSOAPRequest();
+    }
 }

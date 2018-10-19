@@ -29,24 +29,21 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.type.util.ListUtil;
 
 public final class ListContainsNoCase extends BIF {
-	
-	private static final long serialVersionUID = 4955787566835292639L;
-	
-	public static double call(PageContext pc , String list, String value, String delimter, boolean includeEmptyFields, boolean multiCharacterDelimiter) {
-		return ListUtil.listContainsNoCase(list,value,delimter,includeEmptyFields,multiCharacterDelimiter)+1;
-	}
+
+    private static final long serialVersionUID = 4955787566835292639L;
+
+    public static double call(PageContext pc, String list, String value, String delimter, boolean includeEmptyFields, boolean multiCharacterDelimiter) {
+	return ListUtil.listContainsNoCase(list, value, delimter, includeEmptyFields, multiCharacterDelimiter) + 1;
+    }
 
     @Override
-	public Object invoke(PageContext pc, Object[] args) throws PageException {
-    	if(args.length==2)
-			return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), ",", false, false);
-    	if(args.length==3)
-			return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]),false, false);
-    	if(args.length==4)
-			return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), Caster.toBooleanValue(args[3]),false);
-    	if(args.length==5)
-			return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), Caster.toBooleanValue(args[3]), Caster.toBooleanValue(args[4]));
-    	
-		throw new FunctionException(pc, "ListContainsNoCase", 2, 5, args.length);
-	}
+    public Object invoke(PageContext pc, Object[] args) throws PageException {
+	if (args.length == 2) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), ",", false, false);
+	if (args.length == 3) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), false, false);
+	if (args.length == 4) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), Caster.toBooleanValue(args[3]), false);
+	if (args.length == 5)
+	    return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]), Caster.toBooleanValue(args[3]), Caster.toBooleanValue(args[4]));
+
+	throw new FunctionException(pc, "ListContainsNoCase", 2, 5, args.length);
+    }
 }

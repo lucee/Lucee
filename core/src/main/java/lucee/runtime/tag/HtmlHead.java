@@ -18,7 +18,6 @@
  */
 package lucee.runtime.tag;
 
-
 import java.io.IOException;
 
 import lucee.commons.lang.StringUtil;
@@ -27,48 +26,48 @@ import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 
 /**
-* Writes the text specified in the text attribute to the 'head' section of a generated HTML page. 
-* 	 The cfhtmlhead tag can be useful for embedding CSS code, or placing other HTML tags such, as
-* 	 META, LINK, TITLE, or BASE in an HTML page header.
-*/
+ * Writes the text specified in the text attribute to the 'head' section of a generated HTML page.
+ * The cfhtmlhead tag can be useful for embedding CSS code, or placing other HTML tags such, as
+ * META, LINK, TITLE, or BASE in an HTML page header.
+ */
 public final class HtmlHead extends HtmlHeadBodyBase {
 
-	@Override
-	public String getTagName() {
-		return "htmlhead";
-	}
+    @Override
+    public String getTagName() {
+	return "htmlhead";
+    }
 
-	@Override
-	public void actionAppend() throws IOException, ApplicationException {
-		((PageContextImpl) pageContext).getRootOut().appendHTMLHead(text);
-	}
+    @Override
+    public void actionAppend() throws IOException, ApplicationException {
+	((PageContextImpl) pageContext).getRootOut().appendHTMLHead(text);
+    }
 
-	@Override
-	public void actionWrite() throws IOException, ApplicationException {
+    @Override
+    public void actionWrite() throws IOException, ApplicationException {
 
-		((PageContextImpl) pageContext).getRootOut().writeHTMLHead(text);
-	}
+	((PageContextImpl) pageContext).getRootOut().writeHTMLHead(text);
+    }
 
-	@Override
-	public void actionReset() throws IOException {
+    @Override
+    public void actionReset() throws IOException {
 
-		((PageContextImpl) pageContext).getRootOut().resetHTMLHead();
-	}
+	((PageContextImpl) pageContext).getRootOut().resetHTMLHead();
+    }
 
-	@Override
-	public void actionRead() throws PageException, IOException {
+    @Override
+    public void actionRead() throws PageException, IOException {
 
-		String str = ((PageContextImpl) pageContext).getRootOut().getHTMLHead();
-		pageContext.setVariable(!StringUtil.isEmpty(variable) ? variable : "cfhtmlhead", str);
-	}
+	String str = ((PageContextImpl) pageContext).getRootOut().getHTMLHead();
+	pageContext.setVariable(!StringUtil.isEmpty(variable) ? variable : "cfhtmlhead", str);
+    }
 
-	@Override
-	public void actionFlush() throws IOException {
+    @Override
+    public void actionFlush() throws IOException {
 
-		PageContextImpl pci = (PageContextImpl)pageContext;
+	PageContextImpl pci = (PageContextImpl) pageContext;
 
-		pci.write(pci.getRootOut().getHTMLHead());
-		pci.getRootOut().resetHTMLHead();
-	}
+	pci.write(pci.getRootOut().getHTMLHead());
+	pci.getRootOut().resetHTMLHead();
+    }
 
 }

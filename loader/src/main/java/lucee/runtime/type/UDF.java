@@ -32,181 +32,169 @@ import lucee.runtime.ext.function.Function;
  */
 public interface UDF extends Function, Dumpable, Member, Cloneable {
 
-	public static final int RETURN_FORMAT_WDDX = 0;
-	public static final int RETURN_FORMAT_JSON = 1;
-	public static final int RETURN_FORMAT_PLAIN = 2;
-	public static final int RETURN_FORMAT_SERIALIZE = 3;
-	public static final int RETURN_FORMAT_XML = 4;
-	public static final int RETURN_FORMAT_JAVA = 5;
+    public static final int RETURN_FORMAT_WDDX = 0;
+    public static final int RETURN_FORMAT_JSON = 1;
+    public static final int RETURN_FORMAT_PLAIN = 2;
+    public static final int RETURN_FORMAT_SERIALIZE = 3;
+    public static final int RETURN_FORMAT_XML = 4;
+    public static final int RETURN_FORMAT_JAVA = 5;
 
-	/**
-	 * abstract method for the function Body
-	 * 
-	 * @param pageContext
-	 * @throws Throwable
-	 */
-	public abstract Object implementation(PageContext pageContext)
-			throws Throwable;
+    /**
+     * abstract method for the function Body
+     * 
+     * @param pageContext
+     * @throws Throwable
+     */
+    public abstract Object implementation(PageContext pageContext) throws Throwable;
 
-	/**
-	 * return all function arguments of this UDF
-	 * 
-	 * @return the arguments.
-	 */
-	public abstract FunctionArgument[] getFunctionArguments();
+    /**
+     * return all function arguments of this UDF
+     * 
+     * @return the arguments.
+     */
+    public abstract FunctionArgument[] getFunctionArguments();
 
-	/**
-	 * @deprecated use instead
-	 *             <code> getDefaultValue(PageContext pc, int index, Object defaultValue)</code>
-	 * @param pc
-	 * @param index
-	 * @return default value
-	 * @throws PageException
-	 */
-	@Deprecated
-	public Object getDefaultValue(PageContext pc, int index)
-			throws PageException;
+    /**
+     * @deprecated use instead
+     *             <code> getDefaultValue(PageContext pc, int index, Object defaultValue)</code>
+     * @param pc
+     * @param index
+     * @return default value
+     * @throws PageException
+     */
+    @Deprecated
+    public Object getDefaultValue(PageContext pc, int index) throws PageException;
 
-	public Object getDefaultValue(PageContext pc, int index, Object defaultValue)
-			throws PageException;
+    public Object getDefaultValue(PageContext pc, int index, Object defaultValue) throws PageException;
 
-	public int getIndex();
+    public int getIndex();
 
-	/**
-	 * @return Returns the functionName.
-	 */
-	public abstract String getFunctionName();
+    /**
+     * @return Returns the functionName.
+     */
+    public abstract String getFunctionName();
 
-	/**
-	 * @return Returns the output.
-	 */
-	public abstract boolean getOutput();
+    /**
+     * @return Returns the output.
+     */
+    public abstract boolean getOutput();
 
-	/**
-	 * @return Returns the returnType.
-	 */
-	public int getReturnType();
-	
-	public boolean getBufferOutput(PageContext pc);
+    /**
+     * @return Returns the returnType.
+     */
+    public int getReturnType();
 
-	/**
-	 * 
-	 * @deprecated use instead
-	 * @see #getReturnFormat(int)
-	 */
-	public int getReturnFormat();
-	
-	public int getReturnFormat(int defaultFormat);
+    public boolean getBufferOutput(PageContext pc);
 
-	/**
-	 * returns null when not defined
-	 * 
-	 * @return value of attribute securejson
-	 */
-	public abstract Boolean getSecureJson();
+    /**
+     * 
+     * @deprecated use instead
+     * @see #getReturnFormat(int)
+     */
+    public int getReturnFormat();
 
-	/**
-	 * returns null when not defined
-	 * 
-	 * @return value of attribute verifyclient
-	 */
-	public abstract Boolean getVerifyClient();
+    public int getReturnFormat(int defaultFormat);
 
-	/**
-	 * @return Returns the returnType.
-	 */
-	public abstract String getReturnTypeAsString();
+    /**
+     * returns null when not defined
+     * 
+     * @return value of attribute securejson
+     */
+    public abstract Boolean getSecureJson();
 
-	public abstract String getDescription();
+    /**
+     * returns null when not defined
+     * 
+     * @return value of attribute verifyclient
+     */
+    public abstract Boolean getVerifyClient();
 
-	/**
-	 * call user defined Function with a hashmap of named values
-	 * 
-	 * @param pageContext
-	 * @param values named values
-	 * @param doIncludePath
-	 * @return return value of the function
-	 * @throws PageException
-	 */
-	public abstract Object callWithNamedValues(PageContext pageContext,
-			Struct values, boolean doIncludePath) throws PageException;
+    /**
+     * @return Returns the returnType.
+     */
+    public abstract String getReturnTypeAsString();
 
-	/**
-	 * call user defined Function with parameters as Object Array
-	 * 
-	 * @param pageContext
-	 * @param args parameters for the function
-	 * @param doIncludePath
-	 * @return return value of the function
-	 * @throws PageException
-	 */
-	public abstract Object call(PageContext pageContext, Object[] args,
-			boolean doIncludePath) throws PageException;
+    public abstract String getDescription();
 
-	/**
-	 * @return Returns the displayName.
-	 */
-	public abstract String getDisplayName();
+    /**
+     * call user defined Function with a hashmap of named values
+     * 
+     * @param pageContext
+     * @param values named values
+     * @param doIncludePath
+     * @return return value of the function
+     * @throws PageException
+     */
+    public abstract Object callWithNamedValues(PageContext pageContext, Struct values, boolean doIncludePath) throws PageException;
 
-	/**
-	 * @return Returns the hint.
-	 */
-	public abstract String getHint();
+    /**
+     * call user defined Function with parameters as Object Array
+     * 
+     * @param pageContext
+     * @param args parameters for the function
+     * @param doIncludePath
+     * @return return value of the function
+     * @throws PageException
+     */
+    public abstract Object call(PageContext pageContext, Object[] args, boolean doIncludePath) throws PageException;
 
-	//public abstract PageSource getPageSource();
+    /**
+     * @return Returns the displayName.
+     */
+    public abstract String getDisplayName();
 
-	public abstract String getSource();
+    /**
+     * @return Returns the hint.
+     */
+    public abstract String getHint();
 
-	public abstract Struct getMetaData(PageContext pc) throws PageException;
+    // public abstract PageSource getPageSource();
 
-	public UDF duplicate();
+    public abstract String getSource();
 
-	/**
-	 * it is the component in which this udf is constructed, must not be the
-	 * same as active udf
-	 * 
-	 * @return owner component
-	 * @deprecated
-	 */
-	@Deprecated
-	public Component getOwnerComponent();
+    public abstract Struct getMetaData(PageContext pc) throws PageException;
 
-	/**
-	 * call user defined Function with a struct
-	 * 
-	 * @param pageContext
-	 * @param values named values
-	 * @param doIncludePath
-	 * @return return value of the function
-	 * @throws PageException
-	 */
-	public abstract Object callWithNamedValues(PageContext pageContext,
-			Collection.Key calledName, Struct values, boolean doIncludePath)
-			throws PageException;
+    public UDF duplicate();
 
-	/**
-	 * call user defined Function with parameters as Object Array
-	 * 
-	 * @param pageContext
-	 * @param args parameters for the function
-	 * @param doIncludePath
-	 * @return return value of the function
-	 * @throws PageException
-	 */
-	public abstract Object call(PageContext pageContext,
-			Collection.Key calledName, Object[] args, boolean doIncludePath)
-			throws PageException;
+    /**
+     * it is the component in which this udf is constructed, must not be the same as active udf
+     * 
+     * @return owner component
+     * @deprecated
+     */
+    @Deprecated
+    public Component getOwnerComponent();
 
+    /**
+     * call user defined Function with a struct
+     * 
+     * @param pageContext
+     * @param values named values
+     * @param doIncludePath
+     * @return return value of the function
+     * @throws PageException
+     */
+    public abstract Object callWithNamedValues(PageContext pageContext, Collection.Key calledName, Struct values, boolean doIncludePath) throws PageException;
 
-	/**
-	 * unique identifier for the function
-	 * 
-	 * @return
-	 */
-	public abstract String id();
-	
+    /**
+     * call user defined Function with parameters as Object Array
+     * 
+     * @param pageContext
+     * @param args parameters for the function
+     * @param doIncludePath
+     * @return return value of the function
+     * @throws PageException
+     */
+    public abstract Object call(PageContext pageContext, Collection.Key calledName, Object[] args, boolean doIncludePath) throws PageException;
 
-	public PageSource getPageSource();
+    /**
+     * unique identifier for the function
+     * 
+     * @return
+     */
+    public abstract String id();
 
-	//public abstract Page getPage(PageContext pc);
+    public PageSource getPageSource();
+
+    // public abstract Page getPage(PageContext pc);
 }

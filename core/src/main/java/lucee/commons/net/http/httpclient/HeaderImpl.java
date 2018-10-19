@@ -21,8 +21,8 @@ package lucee.commons.net.http.httpclient;
 import org.apache.http.message.BasicHeader;
 
 public class HeaderImpl extends BasicHeader implements lucee.commons.net.http.Header {
-	
-	public HeaderImpl(String name,String value){
-		super(name,value);
-	}
+
+    public HeaderImpl(String name, String value) {
+	super(name, value);
+    }
 }

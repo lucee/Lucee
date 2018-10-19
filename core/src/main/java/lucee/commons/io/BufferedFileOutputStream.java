@@ -23,19 +23,18 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 
-
 /**
- * this class is the short form for  <code>new BufferedOutputStream(new FileOutputStream())</code>
+ * this class is the short form for <code>new BufferedOutputStream(new FileOutputStream())</code>
  */
 public final class BufferedFileOutputStream extends BufferedOutputStream {
 
     /**
      * @param file
-     * @param append 
+     * @param append
      * @throws FileNotFoundException
      */
     public BufferedFileOutputStream(File file, boolean append) throws FileNotFoundException {
-        super(new FileOutputStream(file,append));
+	super(new FileOutputStream(file, append));
     }
 
     /**
@@ -43,7 +42,7 @@ public final class BufferedFileOutputStream extends BufferedOutputStream {
      * @throws FileNotFoundException
      */
     public BufferedFileOutputStream(File file) throws FileNotFoundException {
-        super(new FileOutputStream(file));
+	super(new FileOutputStream(file));
     }
 
 }

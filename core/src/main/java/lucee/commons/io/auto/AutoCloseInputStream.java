@@ -27,66 +27,66 @@ import lucee.commons.io.IOUtil;
  * Close the Stream automatically when object will destroyed by the garbage
  */
 public final class AutoCloseInputStream extends InputStream {
-	
-	private final InputStream is;
 
-	/**
-	 * constructor of the class
-	 * @param is
-	 */
-	public AutoCloseInputStream(InputStream is) {
-		this.is=is;
-	}
-	
-	@Override
-	public int read() throws IOException {
-		return is.read();
-	}
+    private final InputStream is;
 
-	@Override
-	public int available() throws IOException {
-		return is.available();
-	}
+    /**
+     * constructor of the class
+     * 
+     * @param is
+     */
+    public AutoCloseInputStream(InputStream is) {
+	this.is = is;
+    }
 
-	@Override
-	public void close() throws IOException {
-		is.close();
-	}
+    @Override
+    public int read() throws IOException {
+	return is.read();
+    }
 
-	@Override
-	public synchronized void mark(int readlimit) {
-		is.mark(readlimit);
-	}
+    @Override
+    public int available() throws IOException {
+	return is.available();
+    }
 
-	@Override
-	public boolean markSupported() {
-		return is.markSupported();
-	}
+    @Override
+    public void close() throws IOException {
+	is.close();
+    }
 
-	@Override
-	public int read(byte[] b, int off, int len) throws IOException {
-		return is.read(b, off, len);
-	}
+    @Override
+    public synchronized void mark(int readlimit) {
+	is.mark(readlimit);
+    }
 
-	@Override
-	public int read(byte[] b) throws IOException {
-		return is.read(b);
-	}
+    @Override
+    public boolean markSupported() {
+	return is.markSupported();
+    }
 
-	@Override
-	public synchronized void reset() throws IOException {
-		is.reset();
-	}
+    @Override
+    public int read(byte[] b, int off, int len) throws IOException {
+	return is.read(b, off, len);
+    }
 
-	@Override
-	public long skip(long n) throws IOException {
-		return is.skip(n);
-	}
+    @Override
+    public int read(byte[] b) throws IOException {
+	return is.read(b);
+    }
 
-	
-	@Override
-	public void finalize() throws Throwable {
-		super.finalize();
-		IOUtil.closeEL(is);
-	}
+    @Override
+    public synchronized void reset() throws IOException {
+	is.reset();
+    }
+
+    @Override
+    public long skip(long n) throws IOException {
+	return is.skip(n);
+    }
+
+    @Override
+    public void finalize() throws Throwable {
+	super.finalize();
+	IOUtil.closeEL(is);
+    }
 }

@@ -28,35 +28,35 @@ import org.objectweb.asm.commons.Method;
 
 public final class ParseBodyVisitor {
 
-	// void outputStart()
-	public final static Method OUTPUT_START = new Method("outputStart",Types.VOID,new Type[]{});
-	
-	// void outputEnd()
-	public final static Method OUTPUT_END = new Method("outputEnd",Types.VOID,new Type[]{});
-	private TryFinallyVisitor tfv;
+    // void outputStart()
+    public final static Method OUTPUT_START = new Method("outputStart", Types.VOID, new Type[] {});
 
-	public void visitBegin(BytecodeContext bc) {
-		GeneratorAdapter adapter = bc.getAdapter();
+    // void outputEnd()
+    public final static Method OUTPUT_END = new Method("outputEnd", Types.VOID, new Type[] {});
+    private TryFinallyVisitor tfv;
 
-		tfv=new TryFinallyVisitor(new OnFinally() {
-			@Override
-			public void _writeOut(BytecodeContext bc) {
-				//ExpressionUtil.visitLine(bc, line);
-				bc.getAdapter().loadArg(0);
-				bc.getAdapter().invokeVirtual(Types.PAGE_CONTEXT,OUTPUT_END);
-			}
-		},null);
+    public void visitBegin(BytecodeContext bc) {
+	GeneratorAdapter adapter = bc.getAdapter();
 
-		//ExpressionUtil.visitLine(bc, line);
-		adapter.loadArg(0);
-		adapter.invokeVirtual(Types.PAGE_CONTEXT,OUTPUT_START);
-		tfv.visitTryBegin(bc);
+	tfv = new TryFinallyVisitor(new OnFinally() {
+	    @Override
+	    public void _writeOut(BytecodeContext bc) {
+		// ExpressionUtil.visitLine(bc, line);
+		bc.getAdapter().loadArg(0);
+		bc.getAdapter().invokeVirtual(Types.PAGE_CONTEXT, OUTPUT_END);
+	    }
+	}, null);
 
+	// ExpressionUtil.visitLine(bc, line);
+	adapter.loadArg(0);
+	adapter.invokeVirtual(Types.PAGE_CONTEXT, OUTPUT_START);
+	tfv.visitTryBegin(bc);
 
-	}
-	public void visitEnd(BytecodeContext bc) throws TransformerException {
-		
-		tfv.visitTryEnd(bc);
+    }
 
-	}
+    public void visitEnd(BytecodeContext bc) throws TransformerException {
+
+	tfv.visitTryEnd(bc);
+
+    }
 }

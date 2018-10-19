@@ -43,297 +43,289 @@ import lucee.runtime.type.dt.TimeSpan;
  */
 public interface ApplicationContext extends Serializable {
 
-	public static final short WS_TYPE_AXIS1 = 1;
-	public static final short WS_TYPE_AXIS2 = 2;
-	public static final short WS_TYPE_JAX_WS = 4;
-	public static final short WS_TYPE_CXF = 8;
+    public static final short WS_TYPE_AXIS1 = 1;
+    public static final short WS_TYPE_AXIS2 = 2;
+    public static final short WS_TYPE_JAX_WS = 4;
+    public static final short WS_TYPE_CXF = 8;
 
-	public static final int SCRIPT_PROTECT_NONE = 0;
-	public static final int SCRIPT_PROTECT_FORM = 1;
-	public static final int SCRIPT_PROTECT_URL = 2;
-	public static final int SCRIPT_PROTECT_CGI = 4;
-	public static final int SCRIPT_PROTECT_COOKIE = 8;
-	public static final int SCRIPT_PROTECT_ALL = SCRIPT_PROTECT_CGI
-			+ SCRIPT_PROTECT_COOKIE + SCRIPT_PROTECT_FORM + SCRIPT_PROTECT_URL;
+    public static final int SCRIPT_PROTECT_NONE = 0;
+    public static final int SCRIPT_PROTECT_FORM = 1;
+    public static final int SCRIPT_PROTECT_URL = 2;
+    public static final int SCRIPT_PROTECT_CGI = 4;
+    public static final int SCRIPT_PROTECT_COOKIE = 8;
+    public static final int SCRIPT_PROTECT_ALL = SCRIPT_PROTECT_CGI + SCRIPT_PROTECT_COOKIE + SCRIPT_PROTECT_FORM + SCRIPT_PROTECT_URL;
 
-	/**
-	 * @return Returns the applicationTimeout.
-	 */
-	public abstract TimeSpan getApplicationTimeout();
+    /**
+     * @return Returns the applicationTimeout.
+     */
+    public abstract TimeSpan getApplicationTimeout();
 
-	/**
-	 * @return Returns the loginStorage.
-	 */
-	public abstract int getLoginStorage();
+    /**
+     * @return Returns the loginStorage.
+     */
+    public abstract int getLoginStorage();
 
-	/**
-	 * @return Returns the name.
-	 */
-	public abstract String getName();
+    /**
+     * @return Returns the name.
+     */
+    public abstract String getName();
 
-	/**
-	 * @return Returns the sessionTimeout.
-	 */
-	public abstract TimeSpan getSessionTimeout();
+    /**
+     * @return Returns the sessionTimeout.
+     */
+    public abstract TimeSpan getSessionTimeout();
 
-	/**
-	 * @return Returns the setClientCookies.
-	 */
-	public abstract boolean isSetClientCookies();
+    /**
+     * @return Returns the setClientCookies.
+     */
+    public abstract boolean isSetClientCookies();
 
-	/**
-	 * @return Returns the setClientManagement.
-	 */
-	public abstract boolean isSetClientManagement();
+    /**
+     * @return Returns the setClientManagement.
+     */
+    public abstract boolean isSetClientManagement();
 
-	/**
-	 * @return Returns the setDomainCookies.
-	 */
-	public abstract boolean isSetDomainCookies();
+    /**
+     * @return Returns the setDomainCookies.
+     */
+    public abstract boolean isSetDomainCookies();
 
-	/**
-	 * @return Returns the setSessionManagement.
-	 */
-	public abstract boolean isSetSessionManagement();
+    /**
+     * @return Returns the setSessionManagement.
+     */
+    public abstract boolean isSetSessionManagement();
 
-	/**
-	 * @return Returns the clientstorage.
-	 */
-	public abstract String getClientstorage();
+    /**
+     * @return Returns the clientstorage.
+     */
+    public abstract String getClientstorage();
 
-	/**
-	 * @return if application context has a name
-	 */
-	public abstract boolean hasName();
+    /**
+     * @return if application context has a name
+     */
+    public abstract boolean hasName();
 
-	/**
-	 * @return return script protect setting
-	 */
-	public int getScriptProtect();
+    /**
+     * @return return script protect setting
+     */
+    public int getScriptProtect();
 
-	public Mapping[] getMappings();
+    public Mapping[] getMappings();
 
-	public Mapping[] getCustomTagMappings();
+    public Mapping[] getCustomTagMappings();
 
-	public String getSecureJsonPrefix();
+    public String getSecureJsonPrefix();
 
-	public boolean getSecureJson();
+    public boolean getSecureJson();
 
-	/**
-	 * @deprecated use instead getDefDataSource()
-	 */
-	@Deprecated
-	public String getDefaultDataSource();
+    /**
+     * @deprecated use instead getDefDataSource()
+     */
+    @Deprecated
+    public String getDefaultDataSource();
 
-	public boolean isORMEnabled();
+    public boolean isORMEnabled();
 
-	/**
-	 * @deprecated use instead getDefaultDataSource()
-	 */
-	@Deprecated
-	public String getORMDatasource();
+    /**
+     * @deprecated use instead getDefaultDataSource()
+     */
+    @Deprecated
+    public String getORMDatasource();
 
-	public ORMConfiguration getORMConfiguration();
+    public ORMConfiguration getORMConfiguration();
 
-	public Properties getS3();
-	
-	public int getLocalMode();
+    public Properties getS3();
 
-	public String getSessionstorage();
+    public int getLocalMode();
 
-	public TimeSpan getClientTimeout();
+    public String getSessionstorage();
 
-	public short getSessionType();
+    public TimeSpan getClientTimeout();
 
-	public boolean getSessionCluster();
+    public short getSessionType();
 
-	public boolean getClientCluster();
+    public boolean getSessionCluster();
 
-	public Mapping[] getComponentMappings();
+    public boolean getClientCluster();
 
-	public void setApplicationTimeout(TimeSpan applicationTimeout);
+    public Mapping[] getComponentMappings();
 
-	public void setSessionTimeout(TimeSpan sessionTimeout);
+    public void setApplicationTimeout(TimeSpan applicationTimeout);
 
-	public void setClientTimeout(TimeSpan clientTimeout);
+    public void setSessionTimeout(TimeSpan sessionTimeout);
 
-	public void setClientstorage(String clientstorage);
+    public void setClientTimeout(TimeSpan clientTimeout);
 
-	public void setSessionstorage(String sessionstorage);
+    public void setClientstorage(String clientstorage);
 
-	public void setCustomTagMappings(Mapping[] customTagMappings);
+    public void setSessionstorage(String sessionstorage);
 
-	public void setComponentMappings(Mapping[] componentMappings);
+    public void setCustomTagMappings(Mapping[] customTagMappings);
 
-	public void setMappings(Mapping[] mappings);
+    public void setComponentMappings(Mapping[] componentMappings);
 
-	public void setLoginStorage(int loginstorage);
+    public void setMappings(Mapping[] mappings);
 
-	public void setDefaultDataSource(String datasource);
+    public void setLoginStorage(int loginstorage);
 
-	public void setScriptProtect(int scriptrotect);
+    public void setDefaultDataSource(String datasource);
 
-	public void setSecureJson(boolean secureJson);
+    public void setScriptProtect(int scriptrotect);
 
-	public void setSecureJsonPrefix(String secureJsonPrefix);
+    public void setSecureJson(boolean secureJson);
 
-	public void setSetClientCookies(boolean setClientCookies);
+    public void setSecureJsonPrefix(String secureJsonPrefix);
 
-	public void setSetClientManagement(boolean setClientManagement);
+    public void setSetClientCookies(boolean setClientCookies);
 
-	public void setSetDomainCookies(boolean setDomainCookies);
+    public void setSetClientManagement(boolean setClientManagement);
 
-	public void setSetSessionManagement(boolean setSessionManagement);
+    public void setSetDomainCookies(boolean setDomainCookies);
 
-	public void setLocalMode(int localMode);
+    public void setSetSessionManagement(boolean setSessionManagement);
 
-	public void setSessionType(short sessionType);
+    public void setLocalMode(int localMode);
 
-	public void setClientCluster(boolean clientCluster);
+    public void setSessionType(short sessionType);
 
-	public void setSessionCluster(boolean sessionCluster);
+    public void setClientCluster(boolean clientCluster);
 
-	public void setS3(Properties s3);
+    public void setSessionCluster(boolean sessionCluster);
 
-	public void setORMEnabled(boolean ormenabled);
+    public void setS3(Properties s3);
 
-	public void setORMConfiguration(ORMConfiguration ormConf);
+    public void setORMEnabled(boolean ormenabled);
 
-	public void setORMDatasource(String string);
+    public void setORMConfiguration(ORMConfiguration ormConf);
 
-	public String getSecurityApplicationToken();
+    public void setORMDatasource(String string);
 
-	public String getSecurityCookieDomain();
+    public String getSecurityApplicationToken();
 
-	public int getSecurityIdleTimeout();
+    public String getSecurityCookieDomain();
 
-	public void setSecuritySettings(String applicationtoken,
-			String cookiedomain, int idletimeout);
+    public int getSecurityIdleTimeout();
 
-	public void reinitORM(PageContext pc) throws PageException;
+    public void setSecuritySettings(String applicationtoken, String cookiedomain, int idletimeout);
 
-	public Resource getSource();
+    public void reinitORM(PageContext pc) throws PageException;
 
-	public boolean getTriggerComponentDataMember();
+    public Resource getSource();
 
-	public void setTriggerComponentDataMember(boolean triggerComponentDataMember);
+    public boolean getTriggerComponentDataMember();
 
-	/**
-	 * return the default cache name for a certain type
-	 * 
-	 * @param type can be one of the following constants
-	 *            Config.CACHE_DEFAULT_OBJECT, Config.CACHE_DEFAULT_TEMPLATE,
-	 *            Config.CACHE_DEFAULT_QUERY, Config.CACHE_DEFAULT_RESOURCE,
-	 *            Config.CACHE_DEFAULT_FUNCTION
-	 * @return name of the cache defined
-	 */
-	public String getDefaultCacheName(int type);
+    public void setTriggerComponentDataMember(boolean triggerComponentDataMember);
 
-	public void setDefaultCacheName(int type, String cacheName);
+    /**
+     * return the default cache name for a certain type
+     * 
+     * @param type can be one of the following constants Config.CACHE_DEFAULT_OBJECT,
+     *            Config.CACHE_DEFAULT_TEMPLATE, Config.CACHE_DEFAULT_QUERY,
+     *            Config.CACHE_DEFAULT_RESOURCE, Config.CACHE_DEFAULT_FUNCTION
+     * @return name of the cache defined
+     */
+    public String getDefaultCacheName(int type);
 
-	/**
-	 * merge the field with same name to array if true, otherwise to a comma
-	 * separated string list
-	 * 
-	 * @param scope scope type, one of the following: Scope.SCOPE_FORM or
-	 *            Scope.SCOPE_URL
-	 * @return
-	 */
-	public boolean getSameFieldAsArray(int scope);
+    public void setDefaultCacheName(int type, String cacheName);
 
-	public RestSettings getRestSettings();
+    /**
+     * merge the field with same name to array if true, otherwise to a comma separated string list
+     * 
+     * @param scope scope type, one of the following: Scope.SCOPE_FORM or Scope.SCOPE_URL
+     * @return
+     */
+    public boolean getSameFieldAsArray(int scope);
 
-	public JavaSettings getJavaSettings();
+    public RestSettings getRestSettings();
 
-	public Resource[] getRestCFCLocations();
+    public JavaSettings getJavaSettings();
 
-	public DataSource[] getDataSources();
+    public Resource[] getRestCFCLocations();
 
-	public DataSource getDataSource(String dataSourceName) throws PageException;
+    public DataSource[] getDataSources();
 
-	public DataSource getDataSource(String dataSourceName,
-			DataSource defaultValue);
+    public DataSource getDataSource(String dataSourceName) throws PageException;
 
-	public void setDataSources(DataSource[] dataSources);
+    public DataSource getDataSource(String dataSourceName, DataSource defaultValue);
 
-	/**
-	 * default datasource name (String) or datasource (DataSource Object)
-	 * 
-	 * @return
-	 */
-	public Object getDefDataSource();
+    public void setDataSources(DataSource[] dataSources);
 
-	/**
-	 * orm datasource name (String) or datasource (DataSource Object)
-	 * 
-	 * @return
-	 */
-	public Object getORMDataSource();
+    /**
+     * default datasource name (String) or datasource (DataSource Object)
+     * 
+     * @return
+     */
+    public Object getDefDataSource();
 
-	public void setDefDataSource(Object datasource);
+    /**
+     * orm datasource name (String) or datasource (DataSource Object)
+     * 
+     * @return
+     */
+    public Object getORMDataSource();
 
-	public void setORMDataSource(Object string);
+    public void setDefDataSource(Object datasource);
 
-	public abstract boolean getBufferOutput();
+    public void setORMDataSource(Object string);
 
-	public abstract void setBufferOutput(boolean bufferOutput);
+    public abstract boolean getBufferOutput();
 
-	public abstract Locale getLocale();
+    public abstract void setBufferOutput(boolean bufferOutput);
 
-	public abstract void setLocale(Locale locale);
+    public abstract Locale getLocale();
 
-	public abstract void setTimeZone(TimeZone timeZone);
+    public abstract void setLocale(Locale locale);
 
-	public abstract TimeZone getTimeZone();
+    public abstract void setTimeZone(TimeZone timeZone);
 
-	public abstract Charset getResourceCharset();
+    public abstract TimeZone getTimeZone();
 
-	public abstract Charset getWebCharset();
+    public abstract Charset getResourceCharset();
 
-	public abstract void setResourceCharset(Charset cs);
+    public abstract Charset getWebCharset();
 
-	public abstract void setWebCharset(Charset cs);
+    public abstract void setResourceCharset(Charset cs);
 
-	public void setScopeCascading(short scopeCascading);
+    public abstract void setWebCharset(Charset cs);
 
-	public short getScopeCascading();
+    public void setScopeCascading(short scopeCascading);
 
-	public boolean getTypeChecking();
+    public short getScopeCascading();
 
-	public void setTypeChecking(boolean typeChecking);
+    public boolean getTypeChecking();
 
-	Map<Collection.Key, Map<Collection.Key, Object>> getTagAttributeDefaultValues(
-			PageContext pc);
+    public void setTypeChecking(boolean typeChecking);
 
-	public Map<Collection.Key, Object> getTagAttributeDefaultValues(
-			PageContext pc, String fullName);
+    Map<Collection.Key, Map<Collection.Key, Object>> getTagAttributeDefaultValues(PageContext pc);
 
-	public void setTagAttributeDefaultValues(PageContext pc, Struct sct);
+    public Map<Collection.Key, Object> getTagAttributeDefaultValues(PageContext pc, String fullName);
 
-	public TimeSpan getRequestTimeout();
+    public void setTagAttributeDefaultValues(PageContext pc, Struct sct);
 
-	public void setRequestTimeout(TimeSpan timeout);
+    public TimeSpan getRequestTimeout();
 
-	public CustomType getCustomType(String strType);
+    public void setRequestTimeout(TimeSpan timeout);
 
-	public boolean getAllowCompression();
+    public CustomType getCustomType(String strType);
 
-	public void setAllowCompression(boolean allowCompression);
+    public boolean getAllowCompression();
 
-	public boolean getSuppressContent();
+    public void setAllowCompression(boolean allowCompression);
 
-	public void setSuppressContent(boolean suppressContent);
+    public boolean getSuppressContent();
 
-	public short getWSType();
+    public void setSuppressContent(boolean suppressContent);
 
-	public void setWSType(short wstype);
+    public short getWSType();
 
-	public Object getCachedWithin(int type);
+    public void setWSType(short wstype);
 
-	public void setCachedWithin(int type, Object value);
+    public Object getCachedWithin(int type);
 
-	public abstract boolean getCGIScopeReadonly();
+    public void setCachedWithin(int type, Object value);
 
-	public void setCGIScopeReadonly(boolean cgiScopeReadonly);
+    public abstract boolean getCGIScopeReadonly();
+
+    public void setCGIScopeReadonly(boolean cgiScopeReadonly);
 
 }

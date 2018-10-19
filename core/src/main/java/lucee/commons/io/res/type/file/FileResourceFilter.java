@@ -22,7 +22,6 @@ import java.io.FileFilter;
 
 import lucee.commons.io.res.filter.ResourceFilter;
 
-
 /**
  * combine ResourceFilter and FileFilter
  */

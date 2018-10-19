@@ -30,98 +30,100 @@ import lucee.runtime.type.Struct;
 
 public class RamCacheEntry implements CacheEntry {
 
-	private String key;
-	private Object value;
-	private long idleTime;
-	private long until;
-	private long created;
-	private long modifed;
-	private long accessed;
-	private int hitCount;
+    private String key;
+    private Object value;
+    private long idleTime;
+    private long until;
+    private long created;
+    private long modifed;
+    private long accessed;
+    private int hitCount;
 
-	public RamCacheEntry(String key, Object value, long idleTime, long until) {
-		this.key=key;
-		this.value=value;
-		this.idleTime=idleTime;
-		this.until=until;
-		created=modifed=accessed=System.currentTimeMillis();
-		hitCount=1;
-	}
+    public RamCacheEntry(String key, Object value, long idleTime, long until) {
+	this.key = key;
+	this.value = value;
+	this.idleTime = idleTime;
+	this.until = until;
+	created = modifed = accessed = System.currentTimeMillis();
+	hitCount = 1;
+    }
 
-	@Override
-	public Date created() {
-		return new Date(created);
-	}
+    @Override
+    public Date created() {
+	return new Date(created);
+    }
 
-	@Override
-	public Struct getCustomInfo() {
-		return CacheUtil.getInfo(this);
-	}
+    @Override
+    public Struct getCustomInfo() {
+	return CacheUtil.getInfo(this);
+    }
 
-	@Override
-	public String getKey() {
-		return key;
-	}
+    @Override
+    public String getKey() {
+	return key;
+    }
 
-	@Override
-	public Object getValue() {
-		return value;
-	}
+    @Override
+    public Object getValue() {
+	return value;
+    }
 
-	@Override
-	public int hitCount() {
-		return hitCount;
-	}
+    @Override
+    public int hitCount() {
+	return hitCount;
+    }
 
-	@Override
-	public long idleTimeSpan() {
-		return idleTime;
-	}
+    @Override
+    public long idleTimeSpan() {
+	return idleTime;
+    }
 
-	@Override
-	public Date lastHit() {
-		return new Date(accessed);
-	}
+    @Override
+    public Date lastHit() {
+	return new Date(accessed);
+    }
 
-	@Override
-	public Date lastModified() {
-		return new Date(modifed);
-	}
+    @Override
+    public Date lastModified() {
+	return new Date(modifed);
+    }
 
-	@Override
-	public long liveTimeSpan() {
-		return until;
-	}
+    @Override
+    public long liveTimeSpan() {
+	return until;
+    }
 
-	@Override
-	public long size() {
-		return sizeOf(value);
-	}
+    @Override
+    public long size() {
+	return sizeOf(value);
+    }
 
-	public void update(Object value) {
-		this.value=value;
-		modifed=accessed=System.currentTimeMillis();
-		hitCount++;
-	}
+    public void update(Object value) {
+	this.value = value;
+	modifed = accessed = System.currentTimeMillis();
+	hitCount++;
+    }
 
-	public RamCacheEntry read() {
-		accessed=System.currentTimeMillis();
-		hitCount++;
-		return this;
+    public RamCacheEntry read() {
+	accessed = System.currentTimeMillis();
+	hitCount++;
+	return this;
+    }
+
+    private static int sizeOf(Object o) {
+	// System.err.println(o.getClass().getName());
+	ByteArrayOutputStream os = new ByteArrayOutputStream();
+	ObjectOutputStream oos = null;
+	try {
+	    oos = new ObjectOutputStream(os);
+	    oos.writeObject(o);
 	}
-	
-	private static int sizeOf(Object o) {
-		//System.err.println(o.getClass().getName());
-		ByteArrayOutputStream os = new ByteArrayOutputStream();
-		ObjectOutputStream oos=null;
-        try {
-	        oos = new ObjectOutputStream(os);
-	        oos.writeObject(o);
-        }
-        catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
-        finally {
-        	IOUtil.closeEL(oos);
-        }
-        return os.toByteArray().length;
+	catch (Throwable t) {
+	    ExceptionUtil.rethrowIfNecessary(t);
+	}
+	finally {
+	    IOUtil.closeEL(oos);
+	}
+	return os.toByteArray().length;
     }
 }

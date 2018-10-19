@@ -25,47 +25,43 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.type.Null;
 
 public class NullSupportHelper {
-	private static final Null NULL=Null.NULL;
-	
-	//protected static boolean fullNullSupport=false;
-	//protected static boolean simpleMode;
+    private static final Null NULL = Null.NULL;
 
-	
-	private static boolean _full(PageContext pc) {
-		pc=ThreadLocalPageContext.get(pc);
-		if(pc==null) return false;
-		return pc.getCurrentTemplateDialect()!=CFMLEngine.DIALECT_CFML || ((PageContextImpl)pc).getFullNullSupport();
-	}
-	
-	public static Object NULL(PageContext pc) {
-		return full(pc)?NULL:null;
-	}
-	
-	public static Object empty(PageContext pc) {
-		return full(pc)?null:"";
-	}
-	
+    // protected static boolean fullNullSupport=false;
+    // protected static boolean simpleMode;
 
-	public static boolean full(PageContext pc) {
-		//if(simpleMode) return fullNullSupport;
-		return _full(pc);
-	}
-	
-	public static boolean full() {
-		// if simple mode, we have no diff between the dialects or the lucee dialect is disabled
-		//if(simpleMode) return fullNullSupport;
-		
-		
-		PageContext pc = ThreadLocalPageContext.get();
-		//print.ds("has-pc:"+(ThreadLocalPageContext.get()!=null));
-		if(pc!=null) return _full(pc);
-		//print.ds("has-config:"+(ThreadLocalPageContext.getConfig()!=null));
-		
-		
-		return true;
-	}
-	
-	public static Object NULL() {
-		return full()?NULL:null;
-	}
+    private static boolean _full(PageContext pc) {
+	pc = ThreadLocalPageContext.get(pc);
+	if (pc == null) return false;
+	return pc.getCurrentTemplateDialect() != CFMLEngine.DIALECT_CFML || ((PageContextImpl) pc).getFullNullSupport();
+    }
+
+    public static Object NULL(PageContext pc) {
+	return full(pc) ? NULL : null;
+    }
+
+    public static Object empty(PageContext pc) {
+	return full(pc) ? null : "";
+    }
+
+    public static boolean full(PageContext pc) {
+	// if(simpleMode) return fullNullSupport;
+	return _full(pc);
+    }
+
+    public static boolean full() {
+	// if simple mode, we have no diff between the dialects or the lucee dialect is disabled
+	// if(simpleMode) return fullNullSupport;
+
+	PageContext pc = ThreadLocalPageContext.get();
+	// print.ds("has-pc:"+(ThreadLocalPageContext.get()!=null));
+	if (pc != null) return _full(pc);
+	// print.ds("has-config:"+(ThreadLocalPageContext.getConfig()!=null));
+
+	return true;
+    }
+
+    public static Object NULL() {
+	return full() ? NULL : null;
+    }
 }

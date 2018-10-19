@@ -23,28 +23,28 @@ import lucee.runtime.reflection.Reflector;
 
 public class OracleCaster {
 
-	private static final Object[] ZERO_ARGS = new Object[0];
+    private static final Object[] ZERO_ARGS = new Object[0];
 
-	//private static final Class OPAQUE=ClassUtil.loadClass("oracle.sql.OPAQUE", null);
-	
-	public static Object OPAQUE(Object o) {
-		if(o==null) return null;
-			
-		try {
-			
-			byte[] bytes = Caster.toBytes(Reflector.callMethod(o, "getBytes", ZERO_ARGS),null);
-			return new String(bytes,"UTF-8");
-		}
-		catch (Exception e) {
-			//print.printST(e);
-		}
-		
-		return o;
+    // private static final Class OPAQUE=ClassUtil.loadClass("oracle.sql.OPAQUE", null);
+
+    public static Object OPAQUE(Object o) {
+	if (o == null) return null;
+
+	try {
+
+	    byte[] bytes = Caster.toBytes(Reflector.callMethod(o, "getBytes", ZERO_ARGS), null);
+	    return new String(bytes, "UTF-8");
+	}
+	catch (Exception e) {
+	    // print.printST(e);
 	}
 
-	/*private static boolean equals(Class left, Class right) {
-		if(left==right)return true;
-		return left.equals(right.getName());
-	}*/
+	return o;
+    }
+
+    /*
+     * private static boolean equals(Class left, Class right) { if(left==right)return true; return
+     * left.equals(right.getName()); }
+     */
 
 }

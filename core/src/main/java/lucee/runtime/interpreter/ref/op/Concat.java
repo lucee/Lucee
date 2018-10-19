@@ -29,30 +29,31 @@ import lucee.runtime.op.Caster;
  * Concat operation
  */
 public final class Concat extends RefSupport implements Ref {
-    
+
     private Ref right;
     private Ref left;
-	private boolean limited;
+    private boolean limited;
 
     /**
      * constructor of the class
+     * 
      * @param left
      * @param right
      */
     public Concat(Ref left, Ref right, boolean limited) {
-    	this.left=left;
-        this.right=right;
-		this.limited=limited;
+	this.left = left;
+	this.right = right;
+	this.limited = limited;
     }
-    
+
     @Override
     public Object getValue(PageContext pc) throws PageException {
-    	if(limited) throw new InterpreterException("invalid syntax, this operation is not supported in a json string.");
-        return Caster.toString(left.getValue(pc))+Caster.toString(right.getValue(pc));
+	if (limited) throw new InterpreterException("invalid syntax, this operation is not supported in a json string.");
+	return Caster.toString(left.getValue(pc)) + Caster.toString(right.getValue(pc));
     }
 
     @Override
     public String getTypeName() {
-        return "operation";
+	return "operation";
     }
 }

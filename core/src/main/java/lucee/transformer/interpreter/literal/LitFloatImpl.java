@@ -13,74 +13,74 @@ import lucee.transformer.expression.literal.LitFloat;
 import lucee.transformer.interpreter.InterpreterContext;
 import lucee.transformer.interpreter.expression.ExpressionBase;
 
-
 /**
  * Literal Double Value
  */
-public final class LitFloatImpl extends ExpressionBase implements LitFloat,ExprFloat {
+public final class LitFloatImpl extends ExpressionBase implements LitFloat, ExprFloat {
 
     private float f;
-    
+
     /**
      * constructor of the class
+     * 
      * @param d
-     * @param line 
+     * @param line
      */
-	public LitFloatImpl(Factory f,float fl, Position start,Position end) {
-        super(f,start,end);
-        
-        this.f=fl;
+    public LitFloatImpl(Factory f, float fl, Position start, Position end) {
+	super(f, start, end);
+
+	this.f = fl;
     }
 
-	@Override
-	public Class<?> _writeOut(InterpreterContext ic, int mode) {
-		if(mode==MODE_REF) {
-			ic.stack(Float.valueOf(f));
-    		return Float.class;
-    	}
-		ic.stack(f);
-		return float.class;
+    @Override
+    public Class<?> _writeOut(InterpreterContext ic, int mode) {
+	if (mode == MODE_REF) {
+	    ic.stack(Float.valueOf(f));
+	    return Float.class;
 	}
-    
+	ic.stack(f);
+	return float.class;
+    }
+
     /**
      * @see lucee.transformer.expression.literal.Literal#getString()
      */
     @Override
-	public String getString() {
-        return Caster.toString(f);
+    public String getString() {
+	return Caster.toString(f);
     }
-    
+
     /**
      * @return return value as a Boolean Object
      */
     public Boolean getBoolean() {
-        return Caster.toBoolean(f);
+	return Caster.toBoolean(f);
     }
-    
+
     /**
      * @return return value as a boolean value
      */
     public boolean getBooleanValue() {
-        return Caster.toBooleanValue(f);
+	return Caster.toBooleanValue(f);
     }
 
     @Override
     public Double getDouble(Double defaultValue) {
-        return new Double(getFloatValue());
+	return new Double(getFloatValue());
     }
 
     @Override
     public Boolean getBoolean(Boolean defaultValue) {
-        return getBoolean();
+	return getBoolean();
     }
 
-	@Override
-	public float getFloatValue() {
-		return f;
-	}
+    @Override
+    public float getFloatValue() {
+	return f;
+    }
 
-	@Override
-	public Float getFloat() {
-		return f;
-	}
+    @Override
+    public Float getFloat() {
+	return f;
+    }
 }

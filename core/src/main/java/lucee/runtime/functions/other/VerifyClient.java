@@ -18,16 +18,14 @@
  **/
 package lucee.runtime.functions.other;
 
-
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.FunctionNotSupported;
 import lucee.runtime.ext.function.Function;
 
 public final class VerifyClient implements Function {
-    
+
     public static String call(PageContext pc) throws FunctionNotSupported {
-    	throw new FunctionNotSupported("VerifyClient");
+	throw new FunctionNotSupported("VerifyClient");
     }
-    
 
 }

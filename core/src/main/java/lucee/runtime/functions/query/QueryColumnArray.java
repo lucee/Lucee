@@ -30,15 +30,15 @@ import lucee.runtime.type.Query;
  * Implements the CFML Function querynew
  */
 public final class QueryColumnArray extends BIF {
- 
-	private static final long serialVersionUID = 8166886589713144047L;
 
-	public static Array call(PageContext pc , Query qry) {
-        return new ArrayImpl(qry.getColumnNamesAsString());
+    private static final long serialVersionUID = 8166886589713144047L;
+
+    public static Array call(PageContext pc, Query qry) {
+	return new ArrayImpl(qry.getColumnNamesAsString());
     }
-	
-	@Override
-	public Object invoke(PageContext pc, Object[] args) throws PageException {
-		return call(pc,Caster.toQuery(args[0]));
-	}
+
+    @Override
+    public Object invoke(PageContext pc, Object[] args) throws PageException {
+	return call(pc, Caster.toQuery(args[0]));
+    }
 }

@@ -49,266 +49,241 @@ import lucee.transformer.util.AlreadyClassException;
 import lucee.transformer.util.PageSourceCode;
 import lucee.transformer.util.SourceCode;
 
-
-
 /**
  * CFML Compiler compiles CFML source templates
  */
 public final class CFMLCompilerImpl implements CFMLCompiler {
 
-	private CFMLTransformer cfmlTransformer;
-	private ConcurrentLinkedQueue<WatchEntry> watched=new ConcurrentLinkedQueue<WatchEntry>(); 
-	
+    private CFMLTransformer cfmlTransformer;
+    private ConcurrentLinkedQueue<WatchEntry> watched = new ConcurrentLinkedQueue<WatchEntry>();
 
-	
-	/**
-	 * Constructor of the compiler
-	 * @param config
-	 */
-	public CFMLCompilerImpl() {
-		cfmlTransformer=new CFMLTransformer();
-	}
-	
-	public Result compile(ConfigImpl config,PageSource ps, TagLib[] tld, FunctionLib[] fld, 
-        Resource classRootDir, boolean returnValue, boolean ignoreScopes) throws TemplateException, IOException {
-		return _compile(config, ps, null,null, tld, fld, classRootDir,returnValue,ignoreScopes);
-	}
-	
-	public Result compile(ConfigImpl config,SourceCode sc, TagLib[] tld, FunctionLib[] fld, 
-		Resource classRootDir, String className, boolean returnValue,boolean ignoreScopes) throws TemplateException, IOException {
-		
-		// just to be sure
-		PageSource ps=(sc instanceof PageSourceCode)?((PageSourceCode)sc).getPageSource():null;
-		
-		return _compile(config, ps, sc,className, tld, fld, classRootDir,returnValue,ignoreScopes);
-	}
-	
-	/*private byte[] _compiless(ConfigImpl config,PageSource ps,SourceCode sc,String className, TagLib[] tld, FunctionLib[] fld, 
-			Resource classRootDir,TransfomerSettings settings) throws TemplateException {
-		Factory factory = BytecodeFactory.getInstance(config);
-		
-		Page page=null;
-		
-		TagLib[][] _tlibs=new TagLib[][]{null,new TagLib[0]};
-		_tlibs[CFMLTransformer.TAG_LIB_GLOBAL]=tld;
-		// reset page tlds
-		if(_tlibs[CFMLTransformer.TAG_LIB_PAGE].length>0) {
-			_tlibs[CFMLTransformer.TAG_LIB_PAGE]=new TagLib[0];
+    /**
+     * Constructor of the compiler
+     * 
+     * @param config
+     */
+    public CFMLCompilerImpl() {
+	cfmlTransformer = new CFMLTransformer();
+    }
+
+    public Result compile(ConfigImpl config, PageSource ps, TagLib[] tld, FunctionLib[] fld, Resource classRootDir, boolean returnValue, boolean ignoreScopes)
+	    throws TemplateException, IOException {
+	return _compile(config, ps, null, null, tld, fld, classRootDir, returnValue, ignoreScopes);
+    }
+
+    public Result compile(ConfigImpl config, SourceCode sc, TagLib[] tld, FunctionLib[] fld, Resource classRootDir, String className, boolean returnValue, boolean ignoreScopes)
+	    throws TemplateException, IOException {
+
+	// just to be sure
+	PageSource ps = (sc instanceof PageSourceCode) ? ((PageSourceCode) sc).getPageSource() : null;
+
+	return _compile(config, ps, sc, className, tld, fld, classRootDir, returnValue, ignoreScopes);
+    }
+
+    /*
+     * private byte[] _compiless(ConfigImpl config,PageSource ps,SourceCode sc,String className,
+     * TagLib[] tld, FunctionLib[] fld, Resource classRootDir,TransfomerSettings settings) throws
+     * TemplateException { Factory factory = BytecodeFactory.getInstance(config);
+     * 
+     * Page page=null;
+     * 
+     * TagLib[][] _tlibs=new TagLib[][]{null,new TagLib[0]}; _tlibs[CFMLTransformer.TAG_LIB_GLOBAL]=tld;
+     * // reset page tlds if(_tlibs[CFMLTransformer.TAG_LIB_PAGE].length>0) {
+     * _tlibs[CFMLTransformer.TAG_LIB_PAGE]=new TagLib[0]; }
+     * 
+     * CFMLScriptTransformer scriptTransformer = new CFMLScriptTransformer();
+     * scriptTransformer.transform( BytecodeFactory.getInstance(config) , page , new EvaluatorPool() ,
+     * _tlibs, fld , null , config.getCoreTagLib(ps.getDialect()).getScriptTags() , sc , settings);
+     * 
+     * //CFMLExprTransformer extr=new CFMLExprTransformer(); //extr.transform(factory, page, ep, tld,
+     * fld, scriptTags, cfml, settings)
+     * 
+     * return null; }
+     */
+
+    private Result _compile(ConfigImpl config, PageSource ps, SourceCode sc, String className, TagLib[] tld, FunctionLib[] fld, Resource classRootDir, boolean returnValue,
+	    boolean ignoreScopes) throws TemplateException, IOException {
+	if (className == null) className = ps.getClassName();
+
+	Result result = null;
+	// byte[] barr = null;
+	Page page = null;
+	Factory factory = BytecodeFactory.getInstance(config);
+	try {
+	    page = sc == null ? cfmlTransformer.transform(factory, config, ps, tld, fld, returnValue, ignoreScopes)
+		    : cfmlTransformer.transform(factory, config, sc, tld, fld, System.currentTimeMillis(),
+			    sc.getDialect() == CFMLEngine.DIALECT_CFML && config.getDotNotationUpperCase(), returnValue, ignoreScopes);
+	    page.setSplitIfNecessary(false);
+	    try {
+		result = new Result(page, page.execute(className));
+	    }
+	    catch (RuntimeException re) {
+		String msg = StringUtil.emptyIfNull(re.getMessage());
+		if (StringUtil.indexOfIgnoreCase(msg, "Method code too large!") != -1) {
+		    page = sc == null ? cfmlTransformer.transform(factory, config, ps, tld, fld, returnValue, ignoreScopes)
+			    : cfmlTransformer.transform(factory, config, sc, tld, fld, System.currentTimeMillis(),
+				    sc.getDialect() == CFMLEngine.DIALECT_CFML && config.getDotNotationUpperCase(), returnValue, ignoreScopes);
+
+		    page.setSplitIfNecessary(true);
+		    result = new Result(page, page.execute(className));
 		}
-		
-		CFMLScriptTransformer scriptTransformer = new CFMLScriptTransformer();
-		scriptTransformer.transform(
-				BytecodeFactory.getInstance(config)
-				, page
-				, new EvaluatorPool()
-				, _tlibs, fld
-				, null
-				, config.getCoreTagLib(ps.getDialect()).getScriptTags()
-				, sc
-				, settings);
-		
-		//CFMLExprTransformer extr=new CFMLExprTransformer();
-		//extr.transform(factory, page, ep, tld, fld, scriptTags, cfml, settings)
-		
-		return null;
-	}*/
-	
-	private Result _compile(ConfigImpl config,PageSource ps,SourceCode sc,String className, TagLib[] tld, FunctionLib[] fld, 
-        Resource classRootDir, boolean returnValue, boolean ignoreScopes) throws TemplateException, IOException {
-		if(className==null) className=ps.getClassName();
-        	
-		Result result=null;
-		//byte[] barr = null;
-			Page page = null;
-			Factory factory = BytecodeFactory.getInstance(config);
-	        try {
-	        	page = sc==null? 
-	        			cfmlTransformer.transform(factory,config,ps,tld,fld,returnValue,ignoreScopes):
-	        			cfmlTransformer.transform(factory,config,sc,tld,fld,System.currentTimeMillis(),
-	        					sc.getDialect()==CFMLEngine.DIALECT_CFML && config.getDotNotationUpperCase(),returnValue,ignoreScopes);
-	        	page.setSplitIfNecessary(false);
-	        	try {
-	        		result=new Result(page,page.execute(className));
-	        	}
-	        	catch(RuntimeException re) {
-	        		String msg=StringUtil.emptyIfNull(re.getMessage());
-	        		if(StringUtil.indexOfIgnoreCase(msg, "Method code too large!")!=-1) {
-	        			page = sc==null? 
-	    	        			cfmlTransformer.transform(factory,config,ps,tld,fld,returnValue,ignoreScopes):
-	    	        			cfmlTransformer.transform(factory,config,sc,tld,fld,
-	    	        					System.currentTimeMillis(),
-	    	        					sc.getDialect()==CFMLEngine.DIALECT_CFML && config.getDotNotationUpperCase(),returnValue,ignoreScopes);
+		else throw re;
+	    }
+	    catch (ClassFormatError cfe) {
+		String msg = StringUtil.emptyIfNull(cfe.getMessage());
+		if (StringUtil.indexOfIgnoreCase(msg, "Invalid method Code length") != -1) {
+		    page = ps != null ? cfmlTransformer.transform(factory, config, ps, tld, fld, returnValue, ignoreScopes)
+			    : cfmlTransformer.transform(factory, config, sc, tld, fld, System.currentTimeMillis(),
+				    sc.getDialect() == CFMLEngine.DIALECT_CFML && config.getDotNotationUpperCase(), returnValue, ignoreScopes);
 
-	        			page.setSplitIfNecessary(true);
-	        			result = new Result(page,page.execute(className));
-	        		}
-	        		else throw re;
-	        	}
-		        catch(ClassFormatError cfe) {
-		        	String msg=StringUtil.emptyIfNull(cfe.getMessage());
-		        	if(StringUtil.indexOfIgnoreCase(msg, "Invalid method Code length")!=-1) {
-		        		page = ps!=null? 
-			        			cfmlTransformer.transform(factory,config,ps,tld,fld,returnValue,ignoreScopes):
-			        			cfmlTransformer.transform(factory,config,sc,tld,fld,System.currentTimeMillis(),
-			        					sc.getDialect()==CFMLEngine.DIALECT_CFML && config.getDotNotationUpperCase(),returnValue,ignoreScopes);
-			        	
-		        		
-		        		
-			        	page.setSplitIfNecessary(true);
-		        		result = new Result(page,page.execute(className));
-		        	}
-		        	else throw cfe;
-		        }
-		        
-	        	// store
-	        	if(classRootDir!=null) {
-		        	Resource classFile = classRootDir.getRealResource(page.getClassName()+".class");
-					Resource classFileDirectory=classFile.getParentResource();
-			        if(!classFileDirectory.exists()) classFileDirectory.mkdirs(); 
-					IOUtil.copy(new ByteArrayInputStream(result.barr), classFile,true);
-	        	}
-				
-		        return result;
-			} 
-	        catch (AlreadyClassException ace) {
-	        	
-        		byte[] bytes = ace.getEncrypted()?readEncrypted(ace):readPlain(ace);
-        		
-        		
-        		result = new Result(null,bytes);
-        		
-        		String displayPath=ps!=null?"["+ps.getDisplayPath()+"] ":"";
-        		String srcName = ASMUtil.getClassName(result.barr);
-        		
-        		int dialect =sc==null?ps.getDialect():sc.getDialect();
-	        	// source is cfm and target cfc
-        		if(dialect==CFMLEngine.DIALECT_CFML &&
-        				endsWith(srcName,Constants.getCFMLTemplateExtensions(),dialect)
-        				&& 
-        				className.endsWith("_"+Constants.getCFMLComponentExtension()+
-        					(dialect==CFMLEngine.DIALECT_CFML?Constants.CFML_CLASS_SUFFIX:Constants.LUCEE_CLASS_SUFFIX))) {
-        				throw new TemplateException("source file "+displayPath+"contains the bytecode for a regular cfm template not for a component");
-        		}
-        		// source is cfc and target cfm
-        		if(dialect==CFMLEngine.DIALECT_CFML &&
-        				srcName.endsWith("_"+Constants.getCFMLComponentExtension()+(dialect==CFMLEngine.DIALECT_CFML?Constants.CFML_CLASS_SUFFIX:Constants.LUCEE_CLASS_SUFFIX)) && 
-        				endsWith(className,Constants.getCFMLTemplateExtensions(),dialect)
-        				)
-        				throw new TemplateException("source file "+displayPath+"contains a component not a regular cfm template");
-        		
-        		// rename class name when needed
-        		if(!srcName.equals(className))result=new Result(result.page, ClassRenamer.rename(result.barr, className));
-        		// store
-	        	if(classRootDir!=null) {
-	        		Resource classFile=classRootDir.getRealResource(className+".class");
-	    			Resource classFileDirectory=classFile.getParentResource();
-	    			if(!classFileDirectory.exists()) classFileDirectory.mkdirs(); 
-	    			result=new Result(result.page, Page.setSourceLastModified(result.barr,ps!=null?ps.getPhyscalFile().lastModified():System.currentTimeMillis()));
-	        		IOUtil.copy(new ByteArrayInputStream(result.barr), classFile,true);
-	        	}
-        		
-	        	
-	        	return result;
-	        }
-	        catch (TransformerException bce) {
-	        	Position pos = bce.getPosition();
-	        	int line=pos==null?-1:pos.line;
-	        	int col=pos==null?-1:pos.column;
-	        	if(ps!=null)bce.addContext(ps, line, col,null);
-	        	throw bce;
-			}
-	}
-
-	private byte[] readPlain(AlreadyClassException ace) throws IOException {
-		return IOUtil.toBytes(ace.getInputStream(),true);
-	}
-
-	private byte[] readEncrypted(AlreadyClassException ace) throws IOException {
-		
-		String str = System.getenv("PUBLIC_KEY");
-		if(str==null) str=System.getProperty("PUBLIC_KEY");
-		if(str==null) throw new RuntimeException("to decrypt encrypted bytecode, you need to set PUBLIC_KEY as system property or or enviroment variable");
-		
-		byte[] bytes = IOUtil.toBytes(ace.getInputStream(),true);
-		try {	
-			PublicKey publicKey = RSA.toPublicKey(str);
-			// first 2 bytes are just a mask to detect encrypted code, so we need to set offset 2
-			bytes=RSA.decrypt(bytes, publicKey,2);
+		    page.setSplitIfNecessary(true);
+		    result = new Result(page, page.execute(className));
 		}
-		catch (IOException ioe) {
-			throw ioe;
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-		
-		return bytes;
+		else throw cfe;
+	    }
+
+	    // store
+	    if (classRootDir != null) {
+		Resource classFile = classRootDir.getRealResource(page.getClassName() + ".class");
+		Resource classFileDirectory = classFile.getParentResource();
+		if (!classFileDirectory.exists()) classFileDirectory.mkdirs();
+		IOUtil.copy(new ByteArrayInputStream(result.barr), classFile, true);
+	    }
+
+	    return result;
+	}
+	catch (AlreadyClassException ace) {
+
+	    byte[] bytes = ace.getEncrypted() ? readEncrypted(ace) : readPlain(ace);
+
+	    result = new Result(null, bytes);
+
+	    String displayPath = ps != null ? "[" + ps.getDisplayPath() + "] " : "";
+	    String srcName = ASMUtil.getClassName(result.barr);
+
+	    int dialect = sc == null ? ps.getDialect() : sc.getDialect();
+	    // source is cfm and target cfc
+	    if (dialect == CFMLEngine.DIALECT_CFML && endsWith(srcName, Constants.getCFMLTemplateExtensions(), dialect) && className
+		    .endsWith("_" + Constants.getCFMLComponentExtension() + (dialect == CFMLEngine.DIALECT_CFML ? Constants.CFML_CLASS_SUFFIX : Constants.LUCEE_CLASS_SUFFIX))) {
+		throw new TemplateException("source file " + displayPath + "contains the bytecode for a regular cfm template not for a component");
+	    }
+	    // source is cfc and target cfm
+	    if (dialect == CFMLEngine.DIALECT_CFML
+		    && srcName.endsWith(
+			    "_" + Constants.getCFMLComponentExtension() + (dialect == CFMLEngine.DIALECT_CFML ? Constants.CFML_CLASS_SUFFIX : Constants.LUCEE_CLASS_SUFFIX))
+		    && endsWith(className, Constants.getCFMLTemplateExtensions(), dialect))
+		throw new TemplateException("source file " + displayPath + "contains a component not a regular cfm template");
+
+	    // rename class name when needed
+	    if (!srcName.equals(className)) result = new Result(result.page, ClassRenamer.rename(result.barr, className));
+	    // store
+	    if (classRootDir != null) {
+		Resource classFile = classRootDir.getRealResource(className + ".class");
+		Resource classFileDirectory = classFile.getParentResource();
+		if (!classFileDirectory.exists()) classFileDirectory.mkdirs();
+		result = new Result(result.page, Page.setSourceLastModified(result.barr, ps != null ? ps.getPhyscalFile().lastModified() : System.currentTimeMillis()));
+		IOUtil.copy(new ByteArrayInputStream(result.barr), classFile, true);
+	    }
+
+	    return result;
+	}
+	catch (TransformerException bce) {
+	    Position pos = bce.getPosition();
+	    int line = pos == null ? -1 : pos.line;
+	    int col = pos == null ? -1 : pos.column;
+	    if (ps != null) bce.addContext(ps, line, col, null);
+	    throw bce;
+	}
+    }
+
+    private byte[] readPlain(AlreadyClassException ace) throws IOException {
+	return IOUtil.toBytes(ace.getInputStream(), true);
+    }
+
+    private byte[] readEncrypted(AlreadyClassException ace) throws IOException {
+
+	String str = System.getenv("PUBLIC_KEY");
+	if (str == null) str = System.getProperty("PUBLIC_KEY");
+	if (str == null) throw new RuntimeException("to decrypt encrypted bytecode, you need to set PUBLIC_KEY as system property or or enviroment variable");
+
+	byte[] bytes = IOUtil.toBytes(ace.getInputStream(), true);
+	try {
+	    PublicKey publicKey = RSA.toPublicKey(str);
+	    // first 2 bytes are just a mask to detect encrypted code, so we need to set offset 2
+	    bytes = RSA.decrypt(bytes, publicKey, 2);
+	}
+	catch (IOException ioe) {
+	    throw ioe;
+	}
+	catch (Exception e) {
+	    throw new RuntimeException(e);
 	}
 
-	private boolean endsWith(String name, String[] extensions, int dialect) {
-		for(int i=0;i<extensions.length;i++){
-			if(name.endsWith("_"+extensions[i]+(dialect==CFMLEngine.DIALECT_CFML?Constants.CFML_CLASS_SUFFIX:Constants.LUCEE_CLASS_SUFFIX))) return true;
-		}
-		return false;
+	return bytes;
+    }
+
+    private boolean endsWith(String name, String[] extensions, int dialect) {
+	for (int i = 0; i < extensions.length; i++) {
+	    if (name.endsWith("_" + extensions[i] + (dialect == CFMLEngine.DIALECT_CFML ? Constants.CFML_CLASS_SUFFIX : Constants.LUCEE_CLASS_SUFFIX))) return true;
+	}
+	return false;
+    }
+
+    public Page transform(ConfigImpl config, PageSource source, TagLib[] tld, FunctionLib[] fld, boolean returnValue, boolean ignoreScopes) throws TemplateException, IOException {
+	return cfmlTransformer.transform(BytecodeFactory.getInstance(config), config, source, tld, fld, returnValue, ignoreScopes);
+    }
+
+    public class Result {
+
+	public Page page;
+	public byte[] barr;
+
+	public Result(Page page, byte[] barr) {
+	    this.page = page;
+	    this.barr = barr;
+	}
+    }
+
+    public void watch(PageSource ps, long now) {
+	watched.offer(new WatchEntry(ps, now, ps.getPhyscalFile().length(), ps.getPhyscalFile().lastModified()));
+    }
+
+    public void checkWatched() {
+	WatchEntry we;
+	long now = System.currentTimeMillis();
+	Stack<WatchEntry> tmp = new Stack<WatchEntry>();
+	while ((we = watched.poll()) != null) {
+	    // to young
+	    if (we.now + 1000 > now) {
+		tmp.add(we);
+		continue;
+	    }
+
+	    if (we.length != we.ps.getPhyscalFile().length() && we.ps.getPhyscalFile().length() > 0) { // TODO this is set to avoid that removed files are removed from pool, remove
+												       // this line if a UDF still wprks fine when the page is gone
+		((PageSourceImpl) we.ps).flush();
+	    }
 	}
 
-	
-	public Page transform(ConfigImpl config,PageSource source, TagLib[] tld, FunctionLib[] fld, boolean returnValue, boolean ignoreScopes) throws TemplateException, IOException {
-		return cfmlTransformer.transform(BytecodeFactory.getInstance(config),config,source,tld,fld,returnValue,ignoreScopes);
+	// add again entries that was to young for next round
+	Iterator<WatchEntry> it = tmp.iterator();
+	while (it.hasNext()) {
+	    watched.add(we = it.next());
 	}
-	
+    }
 
-	public class Result {
+    private class WatchEntry {
 
-		public Page page;
-		public byte[] barr;
+	private final PageSource ps;
+	private final long now;
+	private final long length;
+	private final long lastModified;
 
-		public Result(Page page, byte[] barr) {
-			this.page=page;
-			this.barr=barr;
-		}
+	public WatchEntry(PageSource ps, long now, long length, long lastModified) {
+	    this.ps = ps;
+	    this.now = now;
+	    this.length = length;
+	    this.lastModified = lastModified;
 	}
-	
-	public void watch(PageSource ps, long now) {
-		watched.offer(new WatchEntry(ps,now,ps.getPhyscalFile().length(),ps.getPhyscalFile().lastModified()));
-	}
-	
-	public void checkWatched() {
-		WatchEntry we;
-		long now=System.currentTimeMillis();
-		Stack<WatchEntry> tmp =new Stack<WatchEntry>();
-		while((we=watched.poll())!=null) {
-			// to young 
-			if(we.now+1000>now) {
-				tmp.add(we);
-				continue;
-			}
-			
-			if(we.length!=we.ps.getPhyscalFile().length() 
-					&& we.ps.getPhyscalFile().length()>0) { // TODO this is set to avoid that removed files are removed from pool, remove this line if a UDF still wprks fine when the page is gone
-				((PageSourceImpl)we.ps).flush();
-			}
-		}
-		
-		// add again entries that was to young for next round
-		Iterator<WatchEntry> it = tmp.iterator();
-		while(it.hasNext()) {
-			watched.add(we=it.next());
-		}
-	}
-	
-	private class WatchEntry {
-
-		private final PageSource ps;
-		private final long now;
-		private final long length;
-		private final long lastModified;
-
-		public WatchEntry(PageSource ps, long now, long length, long lastModified) {
-			this.ps=ps;
-			this.now=now;
-			this.length=length;
-			this.lastModified=lastModified;
-		}
-	}
+    }
 }

@@ -7,25 +7,26 @@ import lucee.runtime.ext.function.BIF;
 
 public class IsInThread extends BIF {
 
-	private static final long serialVersionUID = 9100222392353284434L;
+    private static final long serialVersionUID = 9100222392353284434L;
 
-	@Override
-	public Object invoke( PageContext pc, Object[] args ) throws PageException{
-		// No arguments allowed
-		if( args.length > 0 ){
-			throw new FunctionException( pc, "isInThread", 0, 0, args.length );
-		}
-		return call( pc );
+    @Override
+    public Object invoke(PageContext pc, Object[] args) throws PageException {
+	// No arguments allowed
+	if (args.length > 0) {
+	    throw new FunctionException(pc, "isInThread", 0, 0, args.length);
 	}
-	
-	/**
-	 * Verify if in thread or not
-	 * @param pc
-	 * @return 
-	 * @throws PageException
-	 */
-	public static boolean call( PageContext pc ) throws PageException{
-		return pc.getParentPageContext() != null;
-	}
+	return call(pc);
+    }
+
+    /**
+     * Verify if in thread or not
+     * 
+     * @param pc
+     * @return
+     * @throws PageException
+     */
+    public static boolean call(PageContext pc) throws PageException {
+	return pc.getParentPageContext() != null;
+    }
 
 }

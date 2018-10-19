@@ -22,9 +22,9 @@ import lucee.commons.io.res.type.cache.CacheResourceProvider;
 import lucee.commons.io.res.util.ResourceProviderWrapper;
 
 // FUTURE this is just a wrapper for the cacheprovider, replace this with the real cacheprovider
-public class RamResourceProvider  extends ResourceProviderWrapper {
+public class RamResourceProvider extends ResourceProviderWrapper {
 
-	public RamResourceProvider(){
-		super(new CacheResourceProvider());
-	}
+    public RamResourceProvider() {
+	super(new CacheResourceProvider());
+    }
 }

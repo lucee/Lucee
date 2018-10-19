@@ -40,145 +40,148 @@ import org.objectweb.asm.commons.GeneratorAdapter;
 /**
  * A Literal String
  */
-public class LitStringImpl extends ExpressionBase implements LitString,ExprString {
-    
-	public static final int MAX_SIZE = 65535;
-	public static final int TYPE_ORIGINAL = 0;
-	public static final int TYPE_UPPER = 1;
-	public static final int TYPE_LOWER = 2;
-	 
-	private String str;
-	private boolean fromBracket;
+public class LitStringImpl extends ExpressionBase implements LitString, ExprString {
 
-	/*public static ExprString toExprString(String str, Position start,Position end) {
-		return new LitStringImpl(str,start,end);
-	}
+    public static final int MAX_SIZE = 65535;
+    public static final int TYPE_ORIGINAL = 0;
+    public static final int TYPE_UPPER = 1;
+    public static final int TYPE_LOWER = 2;
 
-	public static ExprString toExprString(String str) {
-		return new LitStringImpl(str,null,null);
-	}
+    private String str;
+    private boolean fromBracket;
 
-	public static LitString toLitString(String str) {
-		return new LitStringImpl(str,null,null);
-	}*/
+    /*
+     * public static ExprString toExprString(String str, Position start,Position end) { return new
+     * LitStringImpl(str,start,end); }
+     * 
+     * public static ExprString toExprString(String str) { return new LitStringImpl(str,null,null); }
+     * 
+     * public static LitString toLitString(String str) { return new LitStringImpl(str,null,null); }
+     */
 
     /**
      * constructor of the class
+     * 
      * @param str
-     * @param line 
+     * @param line
      */
-	public LitStringImpl(Factory f, String str, Position start,Position end) {
-        super(f,start,end);
-        this.str=str;
+    public LitStringImpl(Factory f, String str, Position start, Position end) {
+	super(f, start, end);
+	this.str = str;
     }
-    
-	@Override
+
+    @Override
     public String getString() {
-        return str;
+	return str;
     }
 
     /**
-     * @see lucee.transformer.expression.Expression#_writeOut(org.objectweb.asm.commons.GeneratorAdapter, int)
+     * @see lucee.transformer.expression.Expression#_writeOut(org.objectweb.asm.commons.GeneratorAdapter,
+     *      int)
      */
-    private static  Type _writeOut(BytecodeContext bc, int mode,String str) throws TransformerException {
-        // write to a file instead to the bytecode
-    	// str(0,10);
-    	//print.ds(str);
-    	int externalizeStringGTE=((ConfigImpl)bc.getConfig()).getExternalizeStringGTE();
-    	
-    	if(externalizeStringGTE>-1 && str.length()>externalizeStringGTE && StringUtil.indexOfIgnoreCase(bc.getMethod().getName(),"call")!=-1) {
-    		try{
-	    		GeneratorAdapter ga = bc.getAdapter();
-	    		Page page = bc.getPage();
-	    		Range range= page.registerString(bc,str);
-	    		if(range!=null) {
-		    		ga.visitVarInsn(Opcodes.ALOAD, 0);
-		    		ga.visitVarInsn(Opcodes.ALOAD, 1);
-		    		ga.push(range.from);
-		    		ga.push(range.to);
-		    		ga.visitMethodInsn(Opcodes.INVOKEVIRTUAL, bc.getClassName(), "str", "(Llucee/runtime/PageContext;II)Ljava/lang/String;");
-		    		return Types.STRING;
-	    		}
-    		}
-    		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
-    	}
-    	
-    	
-    	if(toBig(str)) {
-        	_toExpr(bc.getFactory(),str).writeOut(bc, mode);
-        }
-        else {
-        	bc.getAdapter().push(str);
-        }
-        return Types.STRING;
-    }
-    @Override
-	public Type _writeOut(BytecodeContext bc, int mode) throws TransformerException {
-        return _writeOut(bc, mode, str);
-    }
-    
-    public Type writeOut(BytecodeContext bc, int mode, int caseType) throws TransformerException {
-    	if(TYPE_UPPER==caseType)	return _writeOut(bc, mode, str.toUpperCase());
-    	if(TYPE_LOWER==caseType)	return _writeOut(bc, mode, str.toLowerCase());
-        return _writeOut(bc, mode, str);
-    }
-    
-    private static boolean toBig(String str) {
-		if(str.length()<(MAX_SIZE/2)) return false; // a char is max 2 bytes
-    	return str.getBytes(CharsetUtil.UTF8).length>MAX_SIZE;
+    private static Type _writeOut(BytecodeContext bc, int mode, String str) throws TransformerException {
+	// write to a file instead to the bytecode
+	// str(0,10);
+	// print.ds(str);
+	int externalizeStringGTE = ((ConfigImpl) bc.getConfig()).getExternalizeStringGTE();
+
+	if (externalizeStringGTE > -1 && str.length() > externalizeStringGTE && StringUtil.indexOfIgnoreCase(bc.getMethod().getName(), "call") != -1) {
+	    try {
+		GeneratorAdapter ga = bc.getAdapter();
+		Page page = bc.getPage();
+		Range range = page.registerString(bc, str);
+		if (range != null) {
+		    ga.visitVarInsn(Opcodes.ALOAD, 0);
+		    ga.visitVarInsn(Opcodes.ALOAD, 1);
+		    ga.push(range.from);
+		    ga.push(range.to);
+		    ga.visitMethodInsn(Opcodes.INVOKEVIRTUAL, bc.getClassName(), "str", "(Llucee/runtime/PageContext;II)Ljava/lang/String;");
+		    return Types.STRING;
+		}
+	    }
+	    catch (Throwable t) {
+		ExceptionUtil.rethrowIfNecessary(t);
+	    }
 	}
 
-    private static ExprString _toExpr(Factory factory,String str) {
-    	int size=str.length()/2;
-    	String l = str.substring(0,size);
-    	String r = str.substring(size);
-    	ExprString left =toBig(l)? _toExpr(factory,l):factory.createLitString(l);
-    	ExprString right =toBig(r)? _toExpr(factory,r):factory.createLitString(r);
-    	return factory.opString(left, right, false);
+	if (toBig(str)) {
+	    _toExpr(bc.getFactory(), str).writeOut(bc, mode);
 	}
+	else {
+	    bc.getAdapter().push(str);
+	}
+	return Types.STRING;
+    }
+
+    @Override
+    public Type _writeOut(BytecodeContext bc, int mode) throws TransformerException {
+	return _writeOut(bc, mode, str);
+    }
+
+    public Type writeOut(BytecodeContext bc, int mode, int caseType) throws TransformerException {
+	if (TYPE_UPPER == caseType) return _writeOut(bc, mode, str.toUpperCase());
+	if (TYPE_LOWER == caseType) return _writeOut(bc, mode, str.toLowerCase());
+	return _writeOut(bc, mode, str);
+    }
+
+    private static boolean toBig(String str) {
+	if (str.length() < (MAX_SIZE / 2)) return false; // a char is max 2 bytes
+	return str.getBytes(CharsetUtil.UTF8).length > MAX_SIZE;
+    }
+
+    private static ExprString _toExpr(Factory factory, String str) {
+	int size = str.length() / 2;
+	String l = str.substring(0, size);
+	String r = str.substring(size);
+	ExprString left = toBig(l) ? _toExpr(factory, l) : factory.createLitString(l);
+	ExprString right = toBig(r) ? _toExpr(factory, r) : factory.createLitString(r);
+	return factory.opString(left, right, false);
+    }
 
     @Override
     public Double getDouble(Double defaultValue) {
-        return Caster.toDouble(getString(),defaultValue);
+	return Caster.toDouble(getString(), defaultValue);
     }
 
     @Override
     public Boolean getBoolean(Boolean defaultValue) {
-        return Caster.toBoolean(getString(),defaultValue);
+	return Caster.toBoolean(getString(), defaultValue);
     }
 
-	@Override
-	public boolean equals(Object obj) {
-		if(this==obj) return true;
-		if(!(obj instanceof LitString)) return false;
-		
-		return str.equals(((LitStringImpl)obj).getString());
-	}
+    @Override
+    public boolean equals(Object obj) {
+	if (this == obj) return true;
+	if (!(obj instanceof LitString)) return false;
 
-	@Override
-	public String toString() {
-		return str;
-	}
+	return str.equals(((LitStringImpl) obj).getString());
+    }
 
-	@Override
-	public void upperCase() {
-		str=str.toUpperCase(); 
-	}
-	public void lowerCase() {
-		str=str.toLowerCase();
-	}
+    @Override
+    public String toString() {
+	return str;
+    }
 
-	@Override
-	public LitString duplicate() {
-		return new LitStringImpl(getFactory(),str,getStart(),getEnd());
-	}
+    @Override
+    public void upperCase() {
+	str = str.toUpperCase();
+    }
 
-	@Override
-	public void fromBracket(boolean fromBracket) {
-		this.fromBracket=fromBracket;
-	}
-	@Override
-	public boolean fromBracket() {
-		return fromBracket;
-	}
+    public void lowerCase() {
+	str = str.toLowerCase();
+    }
+
+    @Override
+    public LitString duplicate() {
+	return new LitStringImpl(getFactory(), str, getStart(), getEnd());
+    }
+
+    @Override
+    public void fromBracket(boolean fromBracket) {
+	this.fromBracket = fromBracket;
+    }
+
+    @Override
+    public boolean fromBracket() {
+	return fromBracket;
+    }
 }
