@@ -1,42 +1,15 @@
-<!--- 
- *
- * Copyright (c) 2014, the Railo Company LLC. All rights reserved.
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
- * version 2.1 of the License, or (at your option) any later version.
- * 
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
- * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
- ---><cfcomponent extends="org.lucee.cfml.test.LuceeTestCase">
-	<!---
-	<cffunction name="beforeTests"></cffunction>
-	<cffunction name="afterTests"></cffunction>
-	<cffunction name="setUp"></cffunction>
-	--->
-	<cffunction name="testEncodeForXMLAttribute" localMode="modern">
-<cfscript>
-enc=EncodeForXMLAttribute('<script>');
-valueEquals(enc,'&##x3c;script&##x3e;');
-</cfscript>
-	</cffunction>
-	<cffunction name="testEncodeForXMLAttributeMember" localMode="modern">
-<cfscript>
-enc='<script>'.EncodeForXMLAttribute();
-valueEquals(enc,'&##x3c;script&##x3e;');
-</cfscript>
-	</cffunction>
-	
-	<cffunction access="private" name="valueEquals">
-		<cfargument name="left">
-		<cfargument name="right">
-		<cfset assertEquals(arguments.right,arguments.left)>
-	</cffunction>
-</cfcomponent>
+component extends="org.lucee.cfml.test.LuceeTestCase"{
+	function run( testResults , testBox ) {
+		describe( "test case for EncodeForXMLAttribute", function() {
+			it(title = "Checking with EncodeForXMLAttribute", body = function( currentSpec ) {
+				enc=EncodeForXMLAttribute('<script>');
+				assertEquals('&##x3c;script&##x3e;',enc);
+			});
+
+			it(title = "Checking with EncodeForXMLAttributeMember", body = function( currentSpec ) {
+				enc='<script>'.EncodeForXMLAttribute();
+				assertEquals('&##x3c;script&##x3e;',enc);
+			});
+		});	
+	}
+}
