@@ -22,12 +22,12 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.TimeZone;
 
+import org.osgi.framework.BundleException;
+
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.ClassException;
 import lucee.runtime.config.Config;
 import lucee.runtime.type.Struct;
-
-import org.osgi.framework.BundleException;
 
 /**
  * interface for a datasource

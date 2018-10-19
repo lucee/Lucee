@@ -9,7 +9,6 @@ import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
-import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
@@ -17,7 +16,6 @@ import javax.servlet.ServletResponse;
 import lucee.cli.util.EnumerationWrapper;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
-import lucee.loader.servlet.LuceeServletContextListener.LuceeServletContextListenerImpl;
 
 public class LuceeFilter implements Filter {
 

@@ -24,14 +24,14 @@ import java.nio.charset.Charset;
 
 import javax.servlet.ServletContext;
 
+import org.osgi.framework.Bundle;
+
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.Struct;
-
-import org.osgi.framework.Bundle;
 
 public interface SystemUtil {
 

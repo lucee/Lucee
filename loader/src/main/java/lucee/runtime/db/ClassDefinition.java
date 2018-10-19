@@ -17,10 +17,10 @@
  */
 package lucee.runtime.db;
 
-import lucee.commons.lang.ClassException;
-
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
+
+import lucee.commons.lang.ClassException;
 
 public interface ClassDefinition<T> {
 

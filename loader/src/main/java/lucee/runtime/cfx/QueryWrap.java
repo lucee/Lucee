@@ -41,14 +41,14 @@ import java.util.Calendar;
 import java.util.Iterator;
 import java.util.Map;
 
+import com.allaire.cfx.Query;
+
 import lucee.runtime.PageContext;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
-
-import com.allaire.cfx.Query;
 
 /**
  * Implementation of the Query Interface

@@ -24,18 +24,17 @@ import java.io.InputStream;
 import java.util.Iterator;
 import java.util.List;
 
-import lucee.commons.io.log.Log;
-import lucee.commons.io.res.Resource;
-import lucee.loader.engine.CFMLEngineFactory;
-import lucee.loader.engine.CFMLEngineFactorySupport;
-import lucee.loader.util.Util;
-import lucee.runtime.util.ClassUtil;
-
 import org.apache.felix.framework.Logger;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
+
+import lucee.commons.io.log.Log;
+import lucee.commons.io.res.Resource;
+import lucee.loader.engine.CFMLEngineFactory;
+import lucee.loader.engine.CFMLEngineFactorySupport;
+import lucee.loader.util.Util;
 
 public class BundleUtil {
     /*

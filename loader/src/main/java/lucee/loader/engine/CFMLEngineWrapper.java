@@ -35,6 +35,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.JspException;
 
+import org.osgi.framework.BundleContext;
+
 import lucee.Info;
 import lucee.loader.osgi.BundleCollection;
 import lucee.runtime.CFMLFactory;
@@ -63,8 +65,6 @@ import lucee.runtime.util.SystemUtil;
 import lucee.runtime.util.TemplateUtil;
 import lucee.runtime.util.ZipUtil;
 import lucee.runtime.video.VideoUtil;
-
-import org.osgi.framework.BundleContext;
 
 /**
  * wrapper for a CFMlEngine

@@ -33,14 +33,14 @@ import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 
-import lucee.loader.engine.CFMLEngineFactory;
-import lucee.loader.engine.CFMLEngineFactorySupport;
-import lucee.loader.util.Util;
-
 import org.apache.felix.framework.Felix;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
+
+import lucee.loader.engine.CFMLEngineFactory;
+import lucee.loader.engine.CFMLEngineFactorySupport;
+import lucee.loader.util.Util;
 
 public class BundleLoader {
 

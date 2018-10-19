@@ -24,9 +24,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 
-import lucee.loader.TP;
-
 import org.osgi.framework.Version;
+
+import lucee.loader.TP;
 
 public abstract class CFMLEngineFactorySupport {
     private static File tempFile;

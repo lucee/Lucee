@@ -18,9 +18,9 @@
  **/
 package lucee.runtime.cfx.customtag;
 
-import lucee.runtime.cfx.CFXTagException;
-
 import com.allaire.cfx.CustomTag;
+
+import lucee.runtime.cfx.CFXTagException;
 
 /**
  * interface for a CustomTag Class, a CustomTag Class is Base to generate a Custom Tag

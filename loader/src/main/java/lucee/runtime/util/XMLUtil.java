@@ -29,16 +29,16 @@ import javax.xml.transform.Result;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 
-import lucee.commons.io.res.Resource;
-import lucee.runtime.exp.PageException;
-import lucee.runtime.type.Struct;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+
+import lucee.commons.io.res.Resource;
+import lucee.runtime.exp.PageException;
+import lucee.runtime.type.Struct;
 
 public interface XMLUtil {
 

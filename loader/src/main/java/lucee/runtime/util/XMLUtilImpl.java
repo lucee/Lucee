@@ -48,14 +48,6 @@ import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
-import lucee.commons.io.res.Resource;
-import lucee.loader.engine.CFMLEngine;
-import lucee.loader.engine.CFMLEngineFactory;
-import lucee.loader.util.Util;
-import lucee.runtime.PageContext;
-import lucee.runtime.exp.PageException;
-import lucee.runtime.type.Struct;
-
 import org.ccil.cowan.tagsoup.Parser;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -68,6 +60,14 @@ import org.xml.sax.SAXParseException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.helpers.XMLReaderFactory;
+
+import lucee.commons.io.res.Resource;
+import lucee.loader.engine.CFMLEngine;
+import lucee.loader.engine.CFMLEngineFactory;
+import lucee.loader.util.Util;
+import lucee.runtime.PageContext;
+import lucee.runtime.exp.PageException;
+import lucee.runtime.type.Struct;
 
 // FUTURE all this needs to come from core
 

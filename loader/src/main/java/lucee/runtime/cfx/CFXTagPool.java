@@ -20,9 +20,9 @@ package lucee.runtime.cfx;
 
 import java.util.Map;
 
-import lucee.runtime.cfx.customtag.CFXTagClass;
-
 import com.allaire.cfx.CustomTag;
+
+import lucee.runtime.cfx.customtag.CFXTagClass;
 
 /**
  * Pool for cfx tags

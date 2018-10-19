@@ -32,7 +32,6 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.net.s3.Properties;
 import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.rest.RestSettings;
-import lucee.runtime.security.Credential;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.CustomType;
 import lucee.runtime.type.Struct;

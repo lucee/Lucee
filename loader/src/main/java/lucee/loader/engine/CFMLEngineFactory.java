@@ -38,7 +38,6 @@ import java.net.UnknownHostException;
 import java.security.CodeSource;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -56,6 +55,18 @@ import javax.servlet.ServletException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.apache.felix.framework.Felix;
+import org.apache.felix.framework.Logger;
+import org.osgi.framework.BundleException;
+import org.osgi.framework.Constants;
+import org.osgi.framework.Version;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
+import com.intergral.fusiondebug.server.FDControllerFactory;
+
 import lucee.VersionInfo;
 import lucee.commons.io.log.Log;
 import lucee.loader.TP;
@@ -70,20 +81,6 @@ import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.Identification;
 import lucee.runtime.config.Password;
 import lucee.runtime.util.Pack200Util;
-
-import org.apache.felix.framework.Felix;
-import org.apache.felix.framework.Logger;
-import org.osgi.framework.BundleException;
-import org.osgi.framework.Constants;
-import org.osgi.framework.FrameworkEvent;
-import org.osgi.framework.Version;
-import org.osgi.framework.launch.Framework;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
-import com.intergral.fusiondebug.server.FDControllerFactory;
 
 /**
  * Factory to load CFML Engine
