@@ -33,7 +33,6 @@ import java.lang.reflect.Modifier;
 import java.net.MalformedURLException;
 import java.nio.charset.Charset;
 import java.security.NoSuchAlgorithmException;
-import java.sql.Driver;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -49,9 +48,15 @@ import java.util.UUID;
 
 import javax.servlet.ServletConfig;
 
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.xml.sax.SAXException;
+
 import lucee.Info;
 import lucee.aprint;
-import lucee.print;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.date.TimeZoneConstants;
 import lucee.commons.date.TimeZoneUtil;
@@ -90,7 +95,6 @@ import lucee.runtime.cache.tag.CacheHandler;
 import lucee.runtime.cache.tag.request.RequestCacheHandler;
 import lucee.runtime.cache.tag.timespan.TimespanCacheHandler;
 import lucee.runtime.cfx.customtag.CFXTagClass;
-import lucee.runtime.cfx.customtag.CPPCFXTagClass;
 import lucee.runtime.cfx.customtag.JavaCFXTagClass;
 import lucee.runtime.component.ImportDefintion;
 //import lucee.runtime.config.ajax.AjaxFactory;
@@ -185,13 +189,6 @@ import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.function.FunctionLibException;
 import lucee.transformer.library.tag.TagLib;
 import lucee.transformer.library.tag.TagLibException;
-
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleException;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.xml.sax.SAXException;
 
 /**
  * 
@@ -3109,7 +3106,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	    else if (hasCS) config.setSuppressContent(configServer.isSuppressContent());
 
 	    // CFML Writer
-	    if (setting != null) {
+	    str = SystemUtil.getSystemPropOrEnvVar("lucee.cfml.writer", null);
+	    if (StringUtil.isEmpty(str) && setting != null) {
 		str = getAttr(setting, "cfml-writer");
 	    }
 	    if (!StringUtil.isEmpty(str) && hasAccess) {
@@ -3166,8 +3164,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	    else if (hasCS) config.setBufferOutput(configServer.getBufferOutput());
 
 	    // allow-compression
-	    str = null;
-	    if (setting != null) {
+	    str = SystemUtil.getSystemPropOrEnvVar("lucee.allow.compression", null);
+	    if (StringUtil.isEmpty(str) && setting != null) {
 		str = getAttr(setting, "allow-compression");
 		if (StringUtil.isEmpty(str)) str = getAttr(setting, "allowcompression");
 	    }
@@ -3370,12 +3368,10 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 	    // template
 	    String template = null, fsCharset = null, fsEncoding = null;
-	    if (charset != null) template = getAttr(charset, "template-charset");
-	    if (fileSystem != null) fsCharset = getAttr(fileSystem, "charset"); // deprecated but
-										// still supported
-	    if (fileSystem != null) fsEncoding = getAttr(fileSystem, "encoding"); // deprecated but
-										  // still
-										  // supported
+	    template = SystemUtil.getSystemPropOrEnvVar("lucee.template.charset", null);
+	    if (charset != null && StringUtil.isEmpty(template)) template = getAttr(charset, "template-charset");
+	    if (fileSystem != null) fsCharset = getAttr(fileSystem, "charset"); // deprecated but still supported
+	    if (fileSystem != null) fsEncoding = getAttr(fileSystem, "encoding"); // deprecated but still supported
 
 	    if (!StringUtil.isEmpty(template)) config.setTemplateCharset(template);
 	    else if (!StringUtil.isEmpty(fsCharset)) config.setTemplateCharset(fsCharset);
@@ -3384,10 +3380,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 	    // web
 	    String web = null, defaultEncoding = null;
-	    if (charset != null) web = getAttr(charset, "web-charset");
+	    web = SystemUtil.getSystemPropOrEnvVar("lucee.web.charset", null);
+	    if (charset != null && StringUtil.isEmpty(web)) web = getAttr(charset, "web-charset");
 	    if (regional != null) defaultEncoding = getAttr(regional, "default-encoding"); // deprecated
-											   // but
-											   // still
 											   // supported
 	    if (!StringUtil.isEmpty(web)) config.setWebCharset(web);
 	    else if (!StringUtil.isEmpty(defaultEncoding)) config.setWebCharset(defaultEncoding);
@@ -3395,7 +3390,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 	    // resource
 	    String resource = null;
-	    if (charset != null) resource = getAttr(charset, "resource-charset");
+	    resource = SystemUtil.getSystemPropOrEnvVar("lucee.resource.charset", null);
+	    if (charset != null && StringUtil.isEmpty(resource)) resource = getAttr(charset, "resource-charset");
 	    if (!StringUtil.isEmpty(resource)) config.setResourceCharset(resource);
 	    else if (hasCS) config.setResourceCharset(configServer.getResourceCharset());
 	}
@@ -3410,9 +3406,22 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 	    // Server
 	    if (config instanceof ConfigServerImpl) {
-		config.setQueueMax(Caster.toIntValue(getAttr(queue, "max"), 100));
-		config.setQueueTimeout(Caster.toLongValue(getAttr(queue, "timeout"), 0L));
-		config.setQueueEnable(Caster.toBooleanValue(getAttr(queue, "enable"), false));
+
+		// max
+		Integer max = Caster.toInteger(SystemUtil.getSystemPropOrEnvVar("lucee.queue.max", null), null);
+		if (max == null) max = Caster.toInteger(getAttr(queue, "max"), null);
+		config.setQueueMax(Caster.toIntValue(max, 100));
+
+		// timeout
+		Long timeout = Caster.toLong(SystemUtil.getSystemPropOrEnvVar("lucee.queue.timeout", null), null);
+		if (timeout == null) timeout = Caster.toLong(getAttr(queue, "timeout"), null);
+		config.setQueueTimeout(Caster.toLongValue(timeout, 0L));
+
+		// enable
+		Boolean enable = Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.queue.enable", null), null);
+		if (enable == null) enable = Caster.toBoolean(getAttr(queue, "enable"), null);
+		config.setQueueEnable(Caster.toBooleanValue(enable, false));
+
 		((ConfigServerImpl) config).setThreadQueue(config.getQueueEnable() ? new ThreadQueueImpl() : new ThreadQueueNone());
 
 	    }
@@ -3619,9 +3628,10 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		config.setAllowImplicidQueryCall(false);
 	    }
 	    else {
-		String strAllowImplicidQueryCall = getAttr(scope, "cascade-to-resultset");
-		if (hasAccess && !StringUtil.isEmpty(strAllowImplicidQueryCall)) {
-		    config.setAllowImplicidQueryCall(toBoolean(strAllowImplicidQueryCall, true));
+		Boolean allowImplicidQueryCall = Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.cascade.to.resultset", null), null);
+		if (allowImplicidQueryCall == null) allowImplicidQueryCall = Caster.toBoolean(getAttr(scope, "cascade-to-resultset"), null);
+		if (hasAccess && allowImplicidQueryCall != null) {
+		    config.setAllowImplicidQueryCall(allowImplicidQueryCall.booleanValue());
 		}
 		else if (hasCS) config.setAllowImplicidQueryCall(configServer.allowImplicidQueryCall());
 	    }
@@ -4603,12 +4613,13 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	    else config.setErrorTemplate(404, "/lucee/templates/error/error." + TEMPLATE_EXTENSION);
 
 	    // status code
-	    String strStausCode = getAttr(error, "status-code");
-	    if (StringUtil.isEmpty(strStausCode)) strStausCode = getAttr(error, "statusCode");
-	    if (StringUtil.isEmpty(strStausCode)) strStausCode = getAttr(error, "status");
+	    Boolean bStausCode = Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.status.code", null), null);
+	    if (bStausCode == null) bStausCode = Caster.toBoolean(getAttr(error, "status-code"), null);
+	    if (bStausCode == null) bStausCode = Caster.toBoolean(getAttr(error, "statusCode"), null);
+	    if (bStausCode == null) bStausCode = Caster.toBoolean(getAttr(error, "status"), null);
 
-	    if (!StringUtil.isEmpty(strStausCode) && hasAccess) {
-		config.setErrorStatusCode(toBoolean(strStausCode, true));
+	    if (bStausCode != null && hasAccess) {
+		config.setErrorStatusCode(bStausCode.booleanValue());
 	    }
 	    else if (hasCS) config.setErrorStatusCode(configServer.getErrorStatusCode());
 	}
@@ -4629,7 +4640,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		config.setSuppressWSBeforeArg(true);
 	    }
 	    else {
-		String suppress = getAttr(compiler, "suppress-ws-before-arg");
+		String suppress = SystemUtil.getSystemPropOrEnvVar("lucee.suppress.ws.before.arg", null);
+		if (StringUtil.isEmpty(suppress, true)) suppress = getAttr(compiler, "suppress-ws-before-arg");
 		if (StringUtil.isEmpty(suppress, true)) suppress = getAttr(compiler, "supress-ws-before-arg");
 		if (!StringUtil.isEmpty(suppress, true)) {
 		    config.setSuppressWSBeforeArg(Caster.toBooleanValue(suppress, true));
@@ -4757,8 +4769,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		listener = new ModernAppListener();
 	    }
 	    else {
-
-		listener = ConfigWebUtil.loadListener(getAttr(application, "listener-type"), null);
+		String strLT = SystemUtil.getSystemPropOrEnvVar("lucee.listener.type", null);
+		if (StringUtil.isEmpty(strLT)) strLT = getAttr(application, "listener-type");
+		listener = ConfigWebUtil.loadListener(strLT, null);
 
 		if (listener == null) {
 		    if (hasCS && configServer.getApplicationListener() != null) listener = ConfigWebUtil.loadListener(configServer.getApplicationListener().getType(), null);
@@ -4778,12 +4791,15 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	    }
 
 	    // Type Checking
-	    Boolean typeChecking = Caster.toBoolean(getAttr(application, "type-checking"), null);
+	    Boolean typeChecking = Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.type.checking", null), null);
+	    if (typeChecking == null) typeChecking = Caster.toBoolean(getAttr(application, "type-checking"), null);
 	    if (typeChecking != null) config.setTypeChecking(typeChecking.booleanValue());
 	    else if (hasCS) config.setTypeChecking(configServer.getTypeChecking());
 
 	    // Listener Mode
-	    int listenerMode = ConfigWebUtil.toListenerMode(getAttr(application, "listener-mode"), -1);
+	    String strLM = SystemUtil.getSystemPropOrEnvVar("lucee.listener.mode", null);
+	    if (StringUtil.isEmpty(strLM)) strLM = getAttr(application, "listener-mode");
+	    int listenerMode = ConfigWebUtil.toListenerMode(strLM, -1);
 	    if (listenerMode == -1) {
 		if (hasCS) listenerMode = configServer.getApplicationListener() == null ? ApplicationListener.MODE_CURRENT2ROOT : configServer.getApplicationListener().getMode();
 		else listenerMode = ApplicationListener.MODE_CURRENT2ROOT;
@@ -4818,10 +4834,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	    else if (hasCS) config.setRequestTimeout(configServer.getRequestTimeout());
 
 	    // script-protect
-	    String strScriptProtect = getAttr(application, "script-protect");
-
+	    String strScriptProtect = SystemUtil.getSystemPropOrEnvVar("lucee.script.protect", null);
+	    if (StringUtil.isEmpty(strScriptProtect)) strScriptProtect = getAttr(application, "script-protect");
 	    if (hasAccess && !StringUtil.isEmpty(strScriptProtect)) {
-		// print.err("sp:"+strScriptProtect);
 		config.setScriptProtect(AppListenerUtil.translateScriptProtect(strScriptProtect));
 	    }
 	    else if (hasCS) config.setScriptProtect(configServer.getScriptProtect());
