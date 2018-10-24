@@ -96,8 +96,8 @@ public final class DateDiff extends BIF {
 
 		if (!exists) {
 		    Map<String, String> map = new HashMap<>();
-		    map.put("DateDiff.DatePart", "With the function DateDiff the argument [datePart] changed it's meaning in other CFML Engines from [weeks] to [weekdays]. "
-			    + "Lucee did not follow this change so far to avoid breakig existing code. "
+		    map.put("DateDiff.DatePart", "With the function DateDiff the argument [datePart] changed its meaning in other CFML Engines from [weeks] to [weekdays]. "
+			    + "Lucee did not follow this change so far to avoid breaking existing code. "
 			    + "Please change your code to [dateDiff(\"wd\",...)] in case you want to have weekdays and to [dateDiff(\\\"ww\\\",...)] in case you want to have weeks, to futureproof your code.");
 		    pc.getDebugger().addGenericData("Warning", map);
 		}
