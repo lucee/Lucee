@@ -27,7 +27,6 @@
 
 
 	<cfhtmlbody>
-	 	<script src="../res/js/base.min.js.cfm" type="text/javascript"></script>
 		<script type="text/javascript">
 			var allArr = #serializeJson(arr)#;
 			var adminKeys = #serializeJson(adminKey)#;
