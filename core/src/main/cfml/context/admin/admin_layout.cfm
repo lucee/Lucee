@@ -115,8 +115,7 @@
 		</table>
 	</div>
 
-	
-	<script src="../res/js/jquery-1.12.4.min.js.cfm" type="text/javascript"></script>
+	<script src="../res/js/base.min.js.cfm" type="text/javascript"></script>
 	<script src="../res/js/jquery.modal.min.js.cfm" type="text/javascript"></script>
 	<script src="../res/js/jquery.blockUI-#resNameAppendix#.js.cfm" type="text/javascript"></script>
 	<script src="../res/js/admin-#resNameAppendix#.js.cfm" type="text/javascript"></script>
