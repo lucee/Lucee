@@ -38,7 +38,12 @@ import java.util.Map.Entry;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 
-import lucee.print;
+import org.apache.commons.collections4.map.ReferenceMap;
+import org.apache.log4j.Layout;
+import org.apache.log4j.PatternLayout;
+import org.osgi.framework.BundleException;
+import org.osgi.framework.Version;
+
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.FileUtil;
 import lucee.commons.io.SystemUtil;
@@ -144,7 +149,6 @@ import lucee.runtime.type.scope.ClusterNotSupported;
 import lucee.runtime.type.scope.Undefined;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.video.VideoExecuterNotSupported;
-import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.function.FunctionLibException;
 import lucee.transformer.library.function.FunctionLibFactory;
@@ -155,12 +159,6 @@ import lucee.transformer.library.tag.TagLibException;
 import lucee.transformer.library.tag.TagLibFactory;
 import lucee.transformer.library.tag.TagLibTag;
 import lucee.transformer.library.tag.TagLibTagAttr;
-
-import org.apache.commons.collections4.map.ReferenceMap;
-import org.apache.log4j.Layout;
-import org.apache.log4j.PatternLayout;
-import org.osgi.framework.BundleException;
-import org.osgi.framework.Version;
 
 /**
  * Hold the definitions of the Lucee configuration.
@@ -735,6 +733,7 @@ public abstract class ConfigImpl implements Config {
     /**
      * @return return the Scheduler
      */
+    @Override
     public Scheduler getScheduler() {
 	return scheduler;
     }
@@ -788,10 +787,12 @@ public abstract class ConfigImpl implements Config {
 	this.restMappings = restMappings;
     }
 
+    @Override
     public PageSource getPageSource(Mapping[] mappings, String realPath, boolean onlyTopLevel) {
 	throw new PageRuntimeException(new DeprecatedException("method not supported"));
     }
 
+    @Override
     public PageSource getPageSourceExisting(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping,
 	    boolean onlyPhysicalExisting) {
 	realPath = realPath.replace('\\', '/');
@@ -1001,16 +1002,19 @@ public abstract class ConfigImpl implements Config {
      * @param alsoDefaultMapping ignore default mapping (/) or not
      * @return physical path from mapping
      */
+    @Override
     public Resource getPhysical(Mapping[] mappings, String realPath, boolean alsoDefaultMapping) {
 	throw new PageRuntimeException(new DeprecatedException("method not supported"));
     }
 
+    @Override
     public Resource[] getPhysicalResources(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping) {
 	// now that archives can be used the same way as physical resources, there is no need anymore to
 	// limit to that
 	throw new PageRuntimeException(new DeprecatedException("method not supported"));
     }
 
+    @Override
     public Resource getPhysicalResourceExisting(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping) {
 	// now that archives can be used the same way as physical resources, there is no need anymore to
 	// limit to that
@@ -1815,6 +1819,7 @@ public abstract class ConfigImpl implements Config {
     /**
      * @return pagesource of the base component
      */
+    @Override
     public PageSource getBaseComponentPageSource(int dialect) {
 	return getBaseComponentPageSource(dialect, ThreadLocalPageContext.get());
     }
@@ -2043,6 +2048,7 @@ public abstract class ConfigImpl implements Config {
      * 
      * @return value suppresswhitespace
      */
+    @Override
     public boolean isSuppressWhitespace() {
 	return suppresswhitespace;
     }
@@ -2135,6 +2141,7 @@ public abstract class ConfigImpl implements Config {
 	this.webCharset = CharsetUtil.toCharSet(webCharset);
     }
 
+    @Override
     public SecurityManager getSecurityManager() {
 	return null;
     }
@@ -2162,6 +2169,7 @@ public abstract class ConfigImpl implements Config {
 	return ds;
     }
 
+    @Override
     public Map<String, DataSource> getDataSourcesAsMap() {
 	Map<String, DataSource> map = new HashMap<String, DataSource>();
 	Iterator<Entry<String, DataSource>> it = datasources.entrySet().iterator();
@@ -2176,6 +2184,7 @@ public abstract class ConfigImpl implements Config {
     /**
      * @return the mailDefaultCharset
      */
+    @Override
     public Charset getMailDefaultCharset() {
 	return mailDefaultCharset.toCharset();
     }
@@ -2215,6 +2224,7 @@ public abstract class ConfigImpl implements Config {
     /**
      * @return the defaultResourceProvider
      */
+    @Override
     public ResourceProvider getDefaultResourceProvider() {
 	return resources.getDefaultResourceProvider();
     }
@@ -2252,6 +2262,7 @@ public abstract class ConfigImpl implements Config {
     /**
      * @return return the resource providers
      */
+    @Override
     public ResourceProvider[] getResourceProviders() {
 	return resources.getResourceProviders();
     }
@@ -2297,6 +2308,7 @@ public abstract class ConfigImpl implements Config {
     /**
      * @return the scriptProtect
      */
+    @Override
     public int getScriptProtect() {
 	return scriptProtect;
     }
@@ -2311,6 +2323,7 @@ public abstract class ConfigImpl implements Config {
     /**
      * @return the proxyPassword
      */
+    @Override
     public ProxyData getProxyData() {
 	return proxy;
     }
@@ -2330,6 +2343,7 @@ public abstract class ConfigImpl implements Config {
     /**
      * @return the triggerComponentDataMember
      */
+    @Override
     public boolean getTriggerComponentDataMember() {
 	return triggerComponentDataMember;
     }
@@ -2408,10 +2422,12 @@ public abstract class ConfigImpl implements Config {
 	this.cacheDir = cacheDir;
     }
 
+    @Override
     public Resource getCacheDir() {
 	return this.cacheDir;
     }
 
+    @Override
     public long getCacheDirSize() {
 	return cacheDirSize;
     }
@@ -2444,6 +2460,7 @@ public abstract class ConfigImpl implements Config {
 	throw new DeprecatedException("this method is no longer supported");
     }
 
+    @Override
     public DumpWriter getDumpWriter(String name, int defaultType) throws ExpressionException {
 	if (StringUtil.isEmpty(name)) return getDefaultDumpWriter(defaultType);
 
@@ -2546,6 +2563,7 @@ public abstract class ConfigImpl implements Config {
 	return pool;
     }
 
+    @Override
     public boolean doLocalCustomTag() {
 	return doLocalCustomTag;
     }
@@ -2590,6 +2608,7 @@ public abstract class ConfigImpl implements Config {
     /**
      * @return the version
      */
+    @Override
     public double getVersion() {
 	return version;
     }
@@ -2621,6 +2640,7 @@ public abstract class ConfigImpl implements Config {
     /**
      * @return the constants
      */
+    @Override
     public Struct getConstants() {
 	return constants;
     }
@@ -2635,6 +2655,7 @@ public abstract class ConfigImpl implements Config {
     /**
      * @return the showVersion
      */
+    @Override
     public boolean isShowVersion() {
 	return showVersion;
     }
@@ -2650,11 +2671,13 @@ public abstract class ConfigImpl implements Config {
 	this.remoteClients = remoteClients;
     }
 
+    @Override
     public RemoteClient[] getRemoteClients() {
 	if (remoteClients == null) return new RemoteClient[0];
 	return remoteClients;
     }
 
+    @Override
     public SpoolerEngine getSpoolerEngine() {
 	return remoteClientSpoolerEngine;
     }
@@ -2666,6 +2689,7 @@ public abstract class ConfigImpl implements Config {
     /**
      * @return the remoteClientDirectory
      */
+    @Override
     public Resource getRemoteClientDirectory() {
 	if (remoteClientDirectory == null) {
 	    return ConfigWebUtil.getFile(getRootDirectory(), "client-task", "client-task", getConfigDir(), FileUtil.TYPE_DIR, this);
@@ -2694,6 +2718,7 @@ public abstract class ConfigImpl implements Config {
     /**
      * @return if error status code will be returned or not
      */
+    @Override
     public boolean getErrorStatusCode() {
 	return errorStatusCode;
     }
@@ -2724,6 +2749,7 @@ public abstract class ConfigImpl implements Config {
 	this.localMode = AppListenerUtil.toLocalMode(strLocalMode, this.localMode);
     }
 
+    @Override
     public Resource getVideoDirectory() {
 	// TODO take from tag <video>
 	Resource dir = getConfigDir().getRealResource("video");
@@ -2731,6 +2757,7 @@ public abstract class ConfigImpl implements Config {
 	return dir;
     }
 
+    @Override
     public Resource getExtensionDirectory() {
 	// TODO take from tag <extensions>
 	Resource dir = getConfigDir().getRealResource("extensions/installed");
@@ -2756,6 +2783,7 @@ public abstract class ConfigImpl implements Config {
 	return rhextensionProviders;
     }
 
+    @Override
     public Extension[] getExtensions() {
 	return extensions;
     }
@@ -2778,10 +2806,12 @@ public abstract class ConfigImpl implements Config {
 	this.extensionEnabled = extensionEnabled;
     }
 
+    @Override
     public boolean isExtensionEnabled() {
 	return extensionEnabled;
     }
 
+    @Override
     public boolean allowRealPath() {
 	return allowRealPath;
     }
@@ -2793,6 +2823,7 @@ public abstract class ConfigImpl implements Config {
     /**
      * @return the classClusterScope
      */
+    @Override
     public Class getClusterClass() {
 	return clusterClass;
     }
@@ -2901,6 +2932,7 @@ public abstract class ConfigImpl implements Config {
 	return scriptMapping;
     }
 
+    @Override
     public String getDefaultDataSource() {
 	// TODO Auto-generated method stub
 	return null;
@@ -2913,6 +2945,7 @@ public abstract class ConfigImpl implements Config {
     /**
      * @return the inspectTemplate
      */
+    @Override
     public short getInspectTemplate() {
 	return inspectTemplate;
     }
@@ -3273,7 +3306,7 @@ public abstract class ConfigImpl implements Config {
     private final Map<String, Compress> compressResources = new ReferenceMap<String, Compress>(SOFT, SOFT);
 
     public Compress getCompressInstance(Resource zipFile, int format, boolean caseSensitive) throws IOException {
-	Compress compress = (Compress) compressResources.get(zipFile.getPath());
+	Compress compress = compressResources.get(zipFile.getPath());
 	if (compress == null) {
 	    compress = new Compress(zipFile, format, caseSensitive);
 	    compressResources.put(zipFile.getPath(), compress);
@@ -3281,10 +3314,12 @@ public abstract class ConfigImpl implements Config {
 	return compress;
     }
 
+    @Override
     public boolean getSessionCluster() {
 	return false;
     }
 
+    @Override
     public boolean getClientCluster() {
 	return false;
     }
@@ -3745,6 +3780,7 @@ public abstract class ConfigImpl implements Config {
 
     private Resource deployDir;
 
+    @Override
     public Resource getDeployDirectory() {
 	if (deployDir == null) {
 	    // config web

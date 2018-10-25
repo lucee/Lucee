@@ -38,7 +38,6 @@ import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.engine.ThreadLocalPageContext;
-import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
@@ -362,7 +361,7 @@ public class GetApplicationSettings extends BIF {
 		sct = new StructImpl();
 		// physical
 		str = m.getStrPhysical();
-		if (!StringUtil.isEmpty(str, true)) sct.setEL("primary", str.trim());
+		if (!StringUtil.isEmpty(str, true)) sct.setEL("physical", str.trim());
 		// archive
 		str = m.getStrArchive();
 		if (!StringUtil.isEmpty(str, true)) sct.setEL("archive", str.trim());

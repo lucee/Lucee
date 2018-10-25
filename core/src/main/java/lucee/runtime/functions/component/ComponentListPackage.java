@@ -130,6 +130,14 @@ public class ComponentListPackage implements Function {
 	    if (!ArrayUtil.isEmpty(list)) rtn = add(rtn, list);
 	}
 
+	// check application component mappings
+	mappings = pc.getApplicationContext().getComponentMappings();
+	for (int i = 0; i < mappings.length; i++) {
+	    mapping = mappings[i];
+	    list = _listMapping(pc, mapping, path);
+	    if (!ArrayUtil.isEmpty(list)) rtn = add(rtn, list);
+	}
+
 	if (rtn == null) throw new ApplicationException("no package with name [" + packageName + "] found");
 	return rtn;
     }

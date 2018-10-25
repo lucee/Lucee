@@ -1,6 +1,7 @@
 package lucee.commons.digest;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.KeyFactory;
@@ -22,6 +23,7 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
 import lucee.runtime.coder.CoderException;
+import lucee.runtime.crypt.Cryptor;
 
 public class RSA {
 
@@ -74,6 +76,11 @@ public class RSA {
 	return kpg.genKeyPair();
     }
 
+    public static byte[] encrypt(String data, Key key)
+	    throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, UnsupportedEncodingException {
+	return encrypt(data.getBytes(Cryptor.DEFAULT_CHARSET), key);
+    }
+
     public static byte[] encrypt(byte[] data, Key key)
 	    throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
 	Cipher cipher = Cipher.getInstance("RSA");
@@ -105,6 +112,11 @@ public class RSA {
 	}
 
 	return bytes;
+    }
+
+    public static String decryptAsString(byte[] data, Key key, int offset)
+	    throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, UnsupportedEncodingException {
+	return new String(decrypt(data, key, offset), Cryptor.DEFAULT_CHARSET);
     }
 
     public static byte[] decrypt(byte[] data, Key key, int offset)
