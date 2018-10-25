@@ -36,7 +36,7 @@ public final class StructGet extends BIF {
     public static Object call(PageContext pc, String string) throws PageException {
 	try {
 	    Object obj = pc.getVariable(string);
-	    if (obj instanceof Struct) return obj;
+	    return obj;
 	}
 	catch (PageException e) {}
 	return pc.setVariable(string, new StructImpl());
