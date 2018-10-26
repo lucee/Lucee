@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Collection;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +36,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.JspWriter;
 
-import lucee.print;
+import org.apache.commons.collections4.map.ReferenceMap;
+import org.osgi.framework.BundleException;
+import org.xml.sax.SAXException;
+
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.FileUtil;
 import lucee.commons.io.SystemUtil;
@@ -69,7 +71,6 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.SecurityException;
 import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.RHExtension;
-import lucee.runtime.functions.string.Hash;
 import lucee.runtime.gateway.GatewayEngineImpl;
 import lucee.runtime.gateway.GatewayEntry;
 import lucee.runtime.lock.LockManager;
@@ -96,10 +97,6 @@ import lucee.runtime.writer.CFMLWriterImpl;
 import lucee.runtime.writer.CFMLWriterWS;
 import lucee.runtime.writer.CFMLWriterWSPref;
 
-import org.apache.commons.collections4.map.ReferenceMap;
-import org.osgi.framework.BundleException;
-import org.xml.sax.SAXException;
-
 /**
  * Web Context
  */
@@ -113,8 +110,12 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
     private final CFMLCompilerImpl compiler = new CFMLCompilerImpl();
     private CIPage baseComponentPageCFML;
     private CIPage baseComponentPageLucee;
+
     private Map<String, Mapping> serverTagMappings;
     private Map<String, Mapping> serverFunctionMappings;
+    private Mapping defaultServerFunctionMapping;
+    private Mapping defaultServerTagMapping;
+
     private KeyLock<String> contextLock = new KeyLockImpl<String>();
     private GatewayEngineImpl gatewayEngine;
     private DebuggerPool debuggerPool;
@@ -279,6 +280,7 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 
     public Collection<Mapping> getServerTagMappings() {
 	if (serverTagMappings == null) {
+	    defaultServerTagMapping = getConfigServerImpl().defaultTagMapping;
 	    Iterator<Entry<String, Mapping>> it = getConfigServerImpl().tagMappings.entrySet().iterator();// .cloneReadOnly(this);
 	    Entry<String, Mapping> e;
 	    serverTagMappings = new ConcurrentHashMap<String, Mapping>();
@@ -291,16 +293,19 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
     }
 
     public Mapping getDefaultServerTagMapping() {
-	return defaultTagMapping;
+	getServerTagMappings(); // necessary to make sure it exists
+	return defaultServerTagMapping;
     }
 
     public Mapping getServerTagMapping(String mappingName) {
-	getServerTagMappings();
+	getServerTagMappings(); // necessary to make sure it exists
 	return serverTagMappings.get(mappingName);
     }
 
     public Collection<Mapping> getServerFunctionMappings() {
 	if (serverFunctionMappings == null) {
+	    defaultServerFunctionMapping = getConfigServerImpl().defaultFunctionMapping;
+
 	    Iterator<Entry<String, Mapping>> it = getConfigServerImpl().functionMappings.entrySet().iterator();
 	    Entry<String, Mapping> e;
 	    serverFunctionMappings = new ConcurrentHashMap<String, Mapping>();
@@ -315,6 +320,11 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
     public Mapping getServerFunctionMapping(String mappingName) {
 	getServerFunctionMappings();// call this to make sure it exists
 	return serverFunctionMappings.get(mappingName);
+    }
+
+    public Mapping getDefaultServerFunctionMapping() {
+	getServerFunctionMappings(); // necessary to make sure it exists
+	return defaultServerFunctionMapping;
     }
 
     private Map<String, Mapping> applicationMappings = new ReferenceMap<String, Mapping>(SOFT, SOFT);
@@ -377,10 +387,12 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 	return contextLock;
     }
 
+    @Override
     public Map<String, GatewayEntry> getGatewayEntries() {
 	return getGatewayEngine().getEntries();
     }
 
+    @Override
     protected void setGatewayEntries(Map<String, GatewayEntry> gatewayEntries) {
 	try {
 	    getGatewayEngine().addEntries(this, gatewayEntries);
@@ -659,6 +671,7 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 
     private WSHandler wsHandler;
 
+    @Override
     public WSHandler getWSHandler() throws PageException {
 	if (wsHandler == null) {
 	    ClassDefinition cd = getWSHandlerClassDefinition();
