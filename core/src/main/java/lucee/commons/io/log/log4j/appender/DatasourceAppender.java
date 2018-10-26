@@ -21,11 +21,14 @@ package lucee.commons.io.log.log4j.appender;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-import lucee.print;
+import org.apache.log4j.Appender;
+import org.apache.log4j.Layout;
+import org.apache.log4j.Logger;
+import org.apache.log4j.jdbc.JDBCAppender;
+import org.apache.log4j.spi.LoggingEvent;
+import org.apache.log4j.spi.ThrowableInformation;
+
 import lucee.commons.io.IOUtil;
-import lucee.commons.io.log.Log;
-import lucee.commons.io.log.LoggerAndSourceData;
-import lucee.commons.io.log.log4j.Log4jUtil;
 import lucee.commons.io.log.log4j.LogAdapter;
 import lucee.commons.io.log.log4j.layout.DatasourceLayout;
 import lucee.commons.lang.SystemOut;
@@ -43,15 +46,6 @@ import lucee.runtime.db.SQLImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.type.QueryImpl;
-
-import org.apache.log4j.Appender;
-import org.apache.log4j.Layout;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
-import org.apache.log4j.jdbc.JDBCAppender;
-import org.apache.log4j.spi.LoggingEvent;
-import org.apache.log4j.spi.ThrowableInformation;
 
 public class DatasourceAppender extends JDBCAppender implements Appender {
 
@@ -129,7 +123,8 @@ public class DatasourceAppender extends JDBCAppender implements Appender {
 
     private void touchTable(DatasourceConnection dc) throws PageException {
 	PageContext optionalPC = ThreadLocalPageContext.get();
-	SQLImpl sql = new SQLImpl("select * from " + tableName);
+	// SQLImpl sql = new SQLImpl("select * from " + tableName);
+	SQLImpl sql = new SQLImpl("select 1 from " + tableName + " where 1=0");
 	try {
 	    new QueryImpl(optionalPC, dc, sql, -1, -1, null, "query");
 	}
