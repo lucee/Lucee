@@ -113,8 +113,6 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 
     private Map<String, Mapping> serverTagMappings;
     private Map<String, Mapping> serverFunctionMappings;
-    private Mapping defaultServerFunctionMapping;
-    private Mapping defaultServerTagMapping;
 
     private KeyLock<String> contextLock = new KeyLockImpl<String>();
     private GatewayEngineImpl gatewayEngine;
@@ -280,7 +278,6 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 
     public Collection<Mapping> getServerTagMappings() {
 	if (serverTagMappings == null) {
-	    defaultServerTagMapping = getConfigServerImpl().defaultTagMapping;
 	    Iterator<Entry<String, Mapping>> it = getConfigServerImpl().tagMappings.entrySet().iterator();// .cloneReadOnly(this);
 	    Entry<String, Mapping> e;
 	    serverTagMappings = new ConcurrentHashMap<String, Mapping>();
@@ -293,8 +290,7 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
     }
 
     public Mapping getDefaultServerTagMapping() {
-	getServerTagMappings(); // necessary to make sure it exists
-	return defaultServerTagMapping;
+	return getConfigServerImpl().defaultTagMapping;
     }
 
     public Mapping getServerTagMapping(String mappingName) {
@@ -304,8 +300,6 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 
     public Collection<Mapping> getServerFunctionMappings() {
 	if (serverFunctionMappings == null) {
-	    defaultServerFunctionMapping = getConfigServerImpl().defaultFunctionMapping;
-
 	    Iterator<Entry<String, Mapping>> it = getConfigServerImpl().functionMappings.entrySet().iterator();
 	    Entry<String, Mapping> e;
 	    serverFunctionMappings = new ConcurrentHashMap<String, Mapping>();
@@ -323,8 +317,7 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
     }
 
     public Mapping getDefaultServerFunctionMapping() {
-	getServerFunctionMappings(); // necessary to make sure it exists
-	return defaultServerFunctionMapping;
+	return getConfigServerImpl().defaultFunctionMapping;
     }
 
     private Map<String, Mapping> applicationMappings = new ReferenceMap<String, Mapping>(SOFT, SOFT);
