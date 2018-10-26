@@ -46,6 +46,13 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.ServletContext;
 
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleReference;
+
+import com.jezhumble.javasysmon.CpuTimes;
+import com.jezhumble.javasysmon.JavaSysMon;
+import com.jezhumble.javasysmon.MemoryStats;
+
 import lucee.commons.digest.MD5;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
@@ -90,13 +97,6 @@ import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleReference;
-
-import com.jezhumble.javasysmon.CpuTimes;
-import com.jezhumble.javasysmon.JavaSysMon;
-import com.jezhumble.javasysmon.MemoryStats;
-
 /**
  * 
  */
@@ -112,9 +112,9 @@ public final class SystemUtil {
 
 	public static final String SETTING_CONTROLLER_DISABLED = "lucee.controller.disabled";
 
-	public static final char CHAR_DOLLAR = (char)36;
-	public static final char CHAR_POUND = (char)163;
-	public static final char CHAR_EURO = (char)8364;
+	public static final char CHAR_DOLLAR = (char) 36;
+	public static final char CHAR_POUND = (char) 163;
+	public static final char CHAR_EURO = (char) 8364;
 
 	public static final int JAVA_VERSION_1_0 = lucee.runtime.util.SystemUtil.JAVA_VERSION_1_0;
 	public static final int JAVA_VERSION_1_1 = lucee.runtime.util.SystemUtil.JAVA_VERSION_1_1;
@@ -157,7 +157,7 @@ public final class SystemUtil {
 
 	private static final String JAVA_VERSION_STRING = System.getProperty("java.version");
 	public static final int JAVA_VERSION;
-	
+
 	private static final Class[] EMPTY_CLASS = new Class[0];
 	private static final Object[] EMPTY_OBJ = new Object[0];
 
@@ -171,12 +171,12 @@ public final class SystemUtil {
 		isUnix = !isWindows && File.separatorChar == '/'; // deprecated
 
 		String strCharset = System.getProperty("file.encoding");
-		if(strCharset == null || strCharset.equalsIgnoreCase("MacRoman"))
+		if (strCharset == null || strCharset.equalsIgnoreCase("MacRoman"))
 			strCharset = "cp1252";
 
-		if(strCharset.equalsIgnoreCase("utf-8"))
+		if (strCharset.equalsIgnoreCase("utf-8"))
 			charset = CharSet.UTF8;
-		else if(strCharset.equalsIgnoreCase("iso-8859-1"))
+		else if (strCharset.equalsIgnoreCase("iso-8859-1"))
 			charset = CharSet.ISO88591;
 		else
 			charset = CharsetUtil.toCharSet(strCharset, null);
@@ -185,26 +185,26 @@ public final class SystemUtil {
 		permGenSpaceBean = getPermGenSpaceBean();
 		// make sure the JVM does not always a new bean
 		MemoryPoolMXBean tmp = getPermGenSpaceBean();
-		if(tmp != permGenSpaceBean)
+		if (tmp != permGenSpaceBean)
 			permGenSpaceBean = null;
 
-		if(JAVA_VERSION_STRING.startsWith("1.9."))
+		if (JAVA_VERSION_STRING.startsWith("1.9."))
 			JAVA_VERSION = JAVA_VERSION_1_9;
-		else if(JAVA_VERSION_STRING.startsWith("1.8."))
+		else if (JAVA_VERSION_STRING.startsWith("1.8."))
 			JAVA_VERSION = JAVA_VERSION_1_8;
-		else if(JAVA_VERSION_STRING.startsWith("1.7."))
+		else if (JAVA_VERSION_STRING.startsWith("1.7."))
 			JAVA_VERSION = JAVA_VERSION_1_7;
-		else if(JAVA_VERSION_STRING.startsWith("1.6."))
+		else if (JAVA_VERSION_STRING.startsWith("1.6."))
 			JAVA_VERSION = JAVA_VERSION_1_6;
-		else if(JAVA_VERSION_STRING.startsWith("1.5."))
+		else if (JAVA_VERSION_STRING.startsWith("1.5."))
 			JAVA_VERSION = JAVA_VERSION_1_5;
-		else if(JAVA_VERSION_STRING.startsWith("1.4."))
+		else if (JAVA_VERSION_STRING.startsWith("1.4."))
 			JAVA_VERSION = JAVA_VERSION_1_4;
-		else if(JAVA_VERSION_STRING.startsWith("1.3."))
+		else if (JAVA_VERSION_STRING.startsWith("1.3."))
 			JAVA_VERSION = JAVA_VERSION_1_3;
-		else if(JAVA_VERSION_STRING.startsWith("1.2."))
+		else if (JAVA_VERSION_STRING.startsWith("1.2."))
 			JAVA_VERSION = JAVA_VERSION_1_2;
-		else if(JAVA_VERSION_STRING.startsWith("1.1."))
+		else if (JAVA_VERSION_STRING.startsWith("1.1."))
 			JAVA_VERSION = JAVA_VERSION_1_1;
 		else
 			JAVA_VERSION = JAVA_VERSION_1_0;
@@ -214,13 +214,13 @@ public final class SystemUtil {
 	private static ClassLoader coreCL;
 
 	public static ClassLoader getLoaderClassLoader() {
-		if(loaderCL == null)
+		if (loaderCL == null)
 			loaderCL = new TP().getClass().getClassLoader();
 		return loaderCL;
 	}
 
 	public static ClassLoader getCoreClassLoader() {
-		if(coreCL == null)
+		if (coreCL == null)
 			coreCL = new ClassLoaderHelper().getClass().getClassLoader();
 		return coreCL;
 	}
@@ -230,37 +230,38 @@ public final class SystemUtil {
 		MemoryPoolMXBean bean;
 		// PERM GEN
 		Iterator<MemoryPoolMXBean> it = manager.iterator();
-		while(it.hasNext()) {
+		while (it.hasNext()) {
 			bean = it.next();
-			if("Perm Gen".equalsIgnoreCase(bean.getName()) || "CMS Perm Gen".equalsIgnoreCase(bean.getName())) {
+			if ("Perm Gen".equalsIgnoreCase(bean.getName()) || "CMS Perm Gen".equalsIgnoreCase(bean.getName())) {
 				return bean;
 			}
 		}
 		it = manager.iterator();
-		while(it.hasNext()) {
+		while (it.hasNext()) {
 			bean = it.next();
-			if(StringUtil.indexOfIgnoreCase(bean.getName(), "Perm Gen") != -1 || StringUtil.indexOfIgnoreCase(bean.getName(), "PermGen") != -1) {
+			if (StringUtil.indexOfIgnoreCase(bean.getName(), "Perm Gen") != -1
+					|| StringUtil.indexOfIgnoreCase(bean.getName(), "PermGen") != -1) {
 				return bean;
 			}
 		}
 		// take none-heap when only one
 		it = manager.iterator();
 		LinkedList<MemoryPoolMXBean> beans = new LinkedList<MemoryPoolMXBean>();
-		while(it.hasNext()) {
+		while (it.hasNext()) {
 			bean = it.next();
-			if(bean.getType().equals(MemoryType.NON_HEAP)) {
+			if (bean.getType().equals(MemoryType.NON_HEAP)) {
 				beans.add(bean);
 				return bean;
 			}
 		}
-		if(beans.size() == 1)
+		if (beans.size() == 1)
 			return beans.getFirst();
 
 		// Class Memory/ClassBlock Memory?
 		it = manager.iterator();
-		while(it.hasNext()) {
+		while (it.hasNext()) {
 			bean = it.next();
-			if(StringUtil.indexOfIgnoreCase(bean.getName(), "Class Memory") != -1) {
+			if (StringUtil.indexOfIgnoreCase(bean.getName(), "Class Memory") != -1) {
 				return bean;
 			}
 		}
@@ -280,18 +281,16 @@ public final class SystemUtil {
 	 * @return is the file system case sensitive or not
 	 */
 	public static boolean isFSCaseSensitive() {
-		if(isFSCaseSensitive == null) {
+		if (isFSCaseSensitive == null) {
 			try {
 				_isFSCaseSensitive(File.createTempFile("abcx", "txt"));
-			}
-			catch (IOException e) {
+			} catch (IOException e) {
 				File f = new File("abcx.txt").getAbsoluteFile();
 				try {
 					f.createNewFile();
 					_isFSCaseSensitive(f);
 
-				}
-				catch (IOException e1) {
+				} catch (IOException e1) {
 					throw new RuntimeException(e1.getMessage());
 				}
 			}
@@ -306,13 +305,14 @@ public final class SystemUtil {
 	}
 
 	/**
-	 * fixes a java canonical path to a Windows path e.g. /C:/Windows/System32 will be changed to C:\Windows\System32
+	 * fixes a java canonical path to a Windows path e.g. /C:/Windows/System32 will
+	 * be changed to C:\Windows\System32
 	 *
 	 * @param path
 	 * @return
 	 */
 	public static String fixWindowsPath(String path) {
-		if(isWindows && path.length() > 3 && path.charAt(0) == '/' && path.charAt(2) == ':') {
+		if (isWindows && path.length() > 3 && path.charAt(0) == '/' && path.charAt(2) == ':') {
 			path = path.substring(1).replace('/', '\\');
 		}
 		return path;
@@ -360,14 +360,19 @@ public final class SystemUtil {
 	 * @throws IOException
 	 */
 	public static Resource getTempDirectory() {
-		return ResourcesImpl.getFileResourceProvider().getResource(CFMLEngineFactory.getTempDirectory().getAbsolutePath());
+		return ResourcesImpl.getFileResourceProvider()
+				.getResource(CFMLEngineFactory.getTempDirectory().getAbsolutePath());
 
 		/*
-		 * if(tempFile!=null) return tempFile; ResourceProvider fr = ResourcesImpl.getFileResourceProvider(); String tmpStr =
-		 * System.getProperty("java.io.tmpdir"); if(tmpStr!=null) { tempFile=fr.getResource(tmpStr); if(tempFile.exists()) {
-		 * tempFile=ResourceUtil.getCanonicalResourceEL(tempFile); return tempFile; } } File tmp =null; try { tmp = File.createTempFile("a","a");
-		 * tempFile=fr.getResource(tmp.getParent()); tempFile=ResourceUtil.getCanonicalResourceEL(tempFile); } catch(IOException ioe) {} finally {
-		 * if(tmp!=null)tmp.delete(); } return tempFile;
+		 * if(tempFile!=null) return tempFile; ResourceProvider fr =
+		 * ResourcesImpl.getFileResourceProvider(); String tmpStr =
+		 * System.getProperty("java.io.tmpdir"); if(tmpStr!=null) {
+		 * tempFile=fr.getResource(tmpStr); if(tempFile.exists()) {
+		 * tempFile=ResourceUtil.getCanonicalResourceEL(tempFile); return tempFile; } }
+		 * File tmp =null; try { tmp = File.createTempFile("a","a");
+		 * tempFile=fr.getResource(tmp.getParent());
+		 * tempFile=ResourceUtil.getCanonicalResourceEL(tempFile); } catch(IOException
+		 * ioe) {} finally { if(tmp!=null)tmp.delete(); } return tempFile;
 		 */
 	}
 
@@ -380,14 +385,14 @@ public final class SystemUtil {
 	 */
 	public static Resource getTempFile(String extension, boolean touch) throws IOException {
 		String filename = CreateUniqueId.invoke();
-		if(!StringUtil.isEmpty(extension, true)) {
-			if(extension.startsWith("."))
+		if (!StringUtil.isEmpty(extension, true)) {
+			if (extension.startsWith("."))
 				filename += extension;
 			else
 				filename += "." + extension;
 		}
 		Resource file = getTempDirectory().getRealResource(filename);
-		if(touch)
+		if (touch)
 			ResourceUtil.touch(file);
 		return file;
 	}
@@ -396,24 +401,35 @@ public final class SystemUtil {
 	 * @return return System directory
 	 */
 	public static Resource getSystemDirectory() {
-		return ResourcesImpl.getFileResourceProvider().getResource(CFMLEngineFactory.getSystemDirectory().getAbsolutePath());
+		return ResourcesImpl.getFileResourceProvider()
+				.getResource(CFMLEngineFactory.getSystemDirectory().getAbsolutePath());
 
 		/*
-		 * String pathes=System.getProperty("java.library.path"); ResourceProvider fr = ResourcesImpl.getFileResourceProvider(); if(pathes!=null) { String[]
-		 * arr=ListUtil.toStringArrayEL(ListUtil.listToArray(pathes,File.pathSeparatorChar)); for(int i=0;i<arr.length;i++) {
-		 * if(arr[i].toLowerCase().indexOf("windows\\system")!=-1) { Resource file = fr.getResource(arr[i]); if(file.exists() && file.isDirectory() &&
+		 * String pathes=System.getProperty("java.library.path"); ResourceProvider fr =
+		 * ResourcesImpl.getFileResourceProvider(); if(pathes!=null) { String[]
+		 * arr=ListUtil.toStringArrayEL(ListUtil.listToArray(pathes,File.
+		 * pathSeparatorChar)); for(int i=0;i<arr.length;i++) {
+		 * if(arr[i].toLowerCase().indexOf("windows\\system")!=-1) { Resource file =
+		 * fr.getResource(arr[i]); if(file.exists() && file.isDirectory() &&
 		 * file.isWriteable()) return ResourceUtil.getCanonicalResourceEL(file);
 		 * 
-		 * } } for(int i=0;i<arr.length;i++) { if(arr[i].toLowerCase().indexOf("windows")!=-1) { Resource file = fr.getResource(arr[i]); if(file.exists() &&
-		 * file.isDirectory() && file.isWriteable()) return ResourceUtil.getCanonicalResourceEL(file);
+		 * } } for(int i=0;i<arr.length;i++) {
+		 * if(arr[i].toLowerCase().indexOf("windows")!=-1) { Resource file =
+		 * fr.getResource(arr[i]); if(file.exists() && file.isDirectory() &&
+		 * file.isWriteable()) return ResourceUtil.getCanonicalResourceEL(file);
 		 * 
-		 * } } for(int i=0;i<arr.length;i++) { if(arr[i].toLowerCase().indexOf("winnt")!=-1) { Resource file = fr.getResource(arr[i]); if(file.exists() &&
-		 * file.isDirectory() && file.isWriteable()) return ResourceUtil.getCanonicalResourceEL(file);
+		 * } } for(int i=0;i<arr.length;i++) {
+		 * if(arr[i].toLowerCase().indexOf("winnt")!=-1) { Resource file =
+		 * fr.getResource(arr[i]); if(file.exists() && file.isDirectory() &&
+		 * file.isWriteable()) return ResourceUtil.getCanonicalResourceEL(file);
 		 * 
-		 * } } for(int i=0;i<arr.length;i++) { if(arr[i].toLowerCase().indexOf("win")!=-1) { Resource file = fr.getResource(arr[i]); if(file.exists() &&
-		 * file.isDirectory() && file.isWriteable()) return ResourceUtil.getCanonicalResourceEL(file);
+		 * } } for(int i=0;i<arr.length;i++) {
+		 * if(arr[i].toLowerCase().indexOf("win")!=-1) { Resource file =
+		 * fr.getResource(arr[i]); if(file.exists() && file.isDirectory() &&
+		 * file.isWriteable()) return ResourceUtil.getCanonicalResourceEL(file);
 		 * 
-		 * } } for(int i=0;i<arr.length;i++) { Resource file = fr.getResource(arr[i]); if(file.exists() && file.isDirectory() && file.isWriteable()) return
+		 * } } for(int i=0;i<arr.length;i++) { Resource file = fr.getResource(arr[i]);
+		 * if(file.exists() && file.isDirectory() && file.isWriteable()) return
 		 * ResourceUtil.getCanonicalResourceEL(file); } } return null;
 		 */
 	}
@@ -426,14 +442,12 @@ public final class SystemUtil {
 
 		try {
 			return frp.getResource(".").getCanonicalResource();
-		}
-		catch (IOException e) {
+		} catch (IOException e) {
 		}
 		URL url = InfoImpl.class.getClassLoader().getResource(".");
 		try {
 			return frp.getResource(FileUtil.URLToFile(url).getAbsolutePath());
-		}
-		catch (MalformedURLException e) {
+		} catch (MalformedURLException e) {
 			return null;
 		}
 	}
@@ -444,13 +458,13 @@ public final class SystemUtil {
 	 * @return home directory
 	 */
 	public static Resource getHomeDirectory() {
-		if(homeFile != null)
+		if (homeFile != null)
 			return homeFile;
 
 		ResourceProvider frp = ResourcesImpl.getFileResourceProvider();
 
 		String homeStr = System.getProperty("user.home");
-		if(homeStr != null) {
+		if (homeStr != null) {
 			homeFile = frp.getResource(homeStr);
 			homeFile = ResourceUtil.getCanonicalResourceEL(homeFile);
 		}
@@ -472,15 +486,15 @@ public final class SystemUtil {
 	private static void getClassPathesFromClassLoader(URLClassLoader ucl, ArrayList<Resource> pathes) {
 		ClassLoader pcl = ucl.getParent();
 		// parent first
-		if(pcl instanceof URLClassLoader)
-			getClassPathesFromClassLoader((URLClassLoader)pcl, pathes);
+		if (pcl instanceof URLClassLoader)
+			getClassPathesFromClassLoader((URLClassLoader) pcl, pathes);
 
 		ResourceProvider frp = ResourcesImpl.getFileResourceProvider();
 		// get all pathes
 		URL[] urls = ucl.getURLs();
 		for (int i = 0; i < urls.length; i++) {
 			Resource file = frp.getResource(urls[i].getPath());
-			if(file.exists())
+			if (file.exists())
 				pathes.add(ResourceUtil.getCanonicalResourceEL(file));
 		}
 
@@ -491,12 +505,12 @@ public final class SystemUtil {
 	 */
 	public static Resource[] getClassPathes() {
 
-		if(classPathes != null)
+		if (classPathes != null)
 			return classPathes;
 
 		ArrayList<Resource> pathes = new ArrayList<Resource>();
 		String pathSeperator = System.getProperty("path.separator");
-		if(pathSeperator == null)
+		if (pathSeperator == null)
 			pathSeperator = ";";
 
 		// java.ext.dirs
@@ -504,22 +518,22 @@ public final class SystemUtil {
 
 		// paths from system properties
 		String strPathes = System.getProperty("java.class.path");
-		if(strPathes != null) {
+		if (strPathes != null) {
 			Array arr = ListUtil.listToArrayRemoveEmpty(strPathes, pathSeperator);
 			int len = arr.size();
 			for (int i = 1; i <= len; i++) {
 				Resource file = frp.getResource(Caster.toString(arr.get(i, ""), "").trim());
-				if(file.exists())
+				if (file.exists())
 					pathes.add(ResourceUtil.getCanonicalResourceEL(file));
 			}
 		}
 
 		// paths from url class Loader (dynamic loaded classes)
 		ClassLoader cl = InfoImpl.class.getClassLoader();
-		if(cl instanceof URLClassLoader)
-			getClassPathesFromClassLoader((URLClassLoader)cl, pathes);
+		if (cl instanceof URLClassLoader)
+			getClassPathesFromClassLoader((URLClassLoader) cl, pathes);
 
-		return classPathes = (Resource[])pathes.toArray(new Resource[pathes.size()]);
+		return classPathes = pathes.toArray(new Resource[pathes.size()]);
 	}
 
 	public static long getUsedMemory() {
@@ -533,7 +547,8 @@ public final class SystemUtil {
 	}
 
 	/**
-	 * replace path placeholder with the real path, placeholders are [{temp-directory},{system-directory},{home-directory}]
+	 * replace path placeholder with the real path, placeholders are
+	 * [{temp-directory},{system-directory},{home-directory}]
 	 * 
 	 * @param path
 	 * @return updated path
@@ -545,26 +560,25 @@ public final class SystemUtil {
 	public static String addPlaceHolder(Resource file, String defaultValue) {
 		// Temp
 		String path = addPlaceHolder(getTempDirectory(), file, "{temp-directory}");
-		if(!StringUtil.isEmpty(path))
+		if (!StringUtil.isEmpty(path))
 			return path;
 		// System
 		path = addPlaceHolder(getSystemDirectory(), file, "{system-directory}");
-		if(!StringUtil.isEmpty(path))
+		if (!StringUtil.isEmpty(path))
 			return path;
 		// Home
 		path = addPlaceHolder(getHomeDirectory(), file, "{home-directory}");
-		if(!StringUtil.isEmpty(path))
+		if (!StringUtil.isEmpty(path))
 			return path;
 
 		return defaultValue;
 	}
 
 	private static String addPlaceHolder(Resource dir, Resource file, String placeholder) {
-		if(ResourceUtil.isChildOf(file, dir)) {
+		if (ResourceUtil.isChildOf(file, dir)) {
 			try {
 				return StringUtil.replace(file.getCanonicalPath(), dir.getCanonicalPath(), placeholder, true);
-			}
-			catch (IOException e) {
+			} catch (IOException e) {
 			}
 		}
 		return null;
@@ -576,33 +590,33 @@ public final class SystemUtil {
 		// temp
 		Resource dir = config.getTempDirectory();
 		String path = addPlaceHolder(dir, file, "{temp-directory}");
-		if(!StringUtil.isEmpty(path))
+		if (!StringUtil.isEmpty(path))
 			return path;
 
 		// Config
 		dir = config.getConfigDir();
 		path = addPlaceHolder(dir, file, "{lucee-config-directory}");
-		if(!StringUtil.isEmpty(path))
+		if (!StringUtil.isEmpty(path))
 			return path;
 
 		// Web root
 		dir = config.getRootDirectory();
 		path = addPlaceHolder(dir, file, "{web-root-directory}");
-		if(!StringUtil.isEmpty(path))
+		if (!StringUtil.isEmpty(path))
 			return path;
 
 		return addPlaceHolder(file, defaultValue);
 	}
 
 	public static String parsePlaceHolder(String path, ServletContext sc, Map<String, String> labels) {
-		if(path == null)
+		if (path == null)
 			return null;
-		if(path.indexOf('{') != -1) {
-			if((path.indexOf("{web-context-label}")) != -1) {
+		if (path.indexOf('{') != -1) {
+			if ((path.indexOf("{web-context-label}")) != -1) {
 				String id = hash(sc);
 
 				String label = labels.get(id);
-				if(StringUtil.isEmpty(label))
+				if (StringUtil.isEmpty(label))
 					label = id;
 
 				path = StringUtil.replace(path, "{web-context-label}", label, false);
@@ -614,26 +628,28 @@ public final class SystemUtil {
 	public static String parsePlaceHolder(String path, ServletContext sc) {
 		ResourceProvider frp = ResourcesImpl.getFileResourceProvider();
 
-		if(path == null)
+		if (path == null)
 			return null;
-		if(path.indexOf('{') != -1) {
-			if(StringUtil.startsWith(path, '{')) {
+		if (path.indexOf('{') != -1) {
+			if (StringUtil.startsWith(path, '{')) {
 
 				// Web Root
-				if(path.startsWith("{web-root")) {
-					if(path.startsWith("}", 9))
-						path = frp.getResource(ReqRspUtil.getRootPath(sc)).getRealResource(path.substring(10)).toString();
-					else if(path.startsWith("-dir}", 9))
-						path = frp.getResource(ReqRspUtil.getRootPath(sc)).getRealResource(path.substring(14)).toString();
-					else if(path.startsWith("-directory}", 9))
-						path = frp.getResource(ReqRspUtil.getRootPath(sc)).getRealResource(path.substring(20)).toString();
+				if (path.startsWith("{web-root")) {
+					if (path.startsWith("}", 9))
+						path = frp.getResource(ReqRspUtil.getRootPath(sc)).getRealResource(path.substring(10))
+								.toString();
+					else if (path.startsWith("-dir}", 9))
+						path = frp.getResource(ReqRspUtil.getRootPath(sc)).getRealResource(path.substring(14))
+								.toString();
+					else if (path.startsWith("-directory}", 9))
+						path = frp.getResource(ReqRspUtil.getRootPath(sc)).getRealResource(path.substring(20))
+								.toString();
 
-				}
-				else
+				} else
 					path = SystemUtil.parsePlaceHolder(path);
 			}
 
-			if((path.indexOf("{web-context-hash}")) != -1) {
+			if ((path.indexOf("{web-context-hash}")) != -1) {
 				String id = hash(sc);
 				path = StringUtil.replace(path, "{web-context-hash}", id, false);
 			}
@@ -645,8 +661,7 @@ public final class SystemUtil {
 		String id = null;
 		try {
 			id = MD5.getDigestAsString(ReqRspUtil.getRootPath(sc));
-		}
-		catch (IOException e) {
+		} catch (IOException e) {
 		}
 		return id;
 	}
@@ -674,24 +689,21 @@ public final class SystemUtil {
 	public static void sleep(int time) {
 		try {
 			Thread.sleep(time);
-		}
-		catch (InterruptedException e) {
+		} catch (InterruptedException e) {
 		}
 	}
 
 	public static void sleep(long time) {
 		try {
 			Thread.sleep(time);
-		}
-		catch (InterruptedException e) {
+		} catch (InterruptedException e) {
 		}
 	}
 
 	public static void join(Thread t) {
 		try {
 			t.join();
-		}
-		catch (InterruptedException e) {
+		} catch (InterruptedException e) {
 		}
 	}
 
@@ -707,8 +719,7 @@ public final class SystemUtil {
 			synchronized (lock) {
 				lock.wait(timeout);
 			}
-		}
-		catch (InterruptedException e) {
+		} catch (InterruptedException e) {
 		}
 	}
 
@@ -723,8 +734,7 @@ public final class SystemUtil {
 			synchronized (lock) {
 				lock.wait();
 			}
-		}
-		catch (InterruptedException e) {
+		} catch (InterruptedException e) {
 		}
 	}
 
@@ -757,34 +767,37 @@ public final class SystemUtil {
 	/**
 	 * return the operating system architecture
 	 * 
-	 * @return one of the following SystemUtil.ARCH_UNKNOW, SystemUtil.ARCH_32, SystemUtil.ARCH_64
+	 * @return one of the following SystemUtil.ARCH_UNKNOW, SystemUtil.ARCH_32,
+	 *         SystemUtil.ARCH_64
 	 */
 	public static int getOSArch() {
-		if(osArch == -1) {
+		if (osArch == -1) {
 			osArch = toIntArch(System.getProperty("os.arch.data.model"));
-			if(osArch == ARCH_UNKNOW)
+			if (osArch == ARCH_UNKNOW)
 				osArch = toIntArch(System.getProperty("os.arch"));
 		}
 		return osArch;
 	}
 
 	/**
-	 * return the JRE (Java Runtime Engine) architecture, this can be different from the operating system architecture
+	 * return the JRE (Java Runtime Engine) architecture, this can be different from
+	 * the operating system architecture
 	 * 
-	 * @return one of the following SystemUtil.ARCH_UNKNOW, SystemUtil.ARCH_32, SystemUtil.ARCH_64
+	 * @return one of the following SystemUtil.ARCH_UNKNOW, SystemUtil.ARCH_32,
+	 *         SystemUtil.ARCH_64
 	 */
 	public static int getJREArch() {
-		if(jreArch == -1) {
+		if (jreArch == -1) {
 			jreArch = toIntArch(System.getProperty("sun.arch.data.model"));
-			if(jreArch == ARCH_UNKNOW)
+			if (jreArch == ARCH_UNKNOW)
 				jreArch = toIntArch(System.getProperty("com.ibm.vm.bitmode"));
-			if(jreArch == ARCH_UNKNOW)
+			if (jreArch == ARCH_UNKNOW)
 				jreArch = toIntArch(System.getProperty("java.vm.name"));
-			if(jreArch == ARCH_UNKNOW) {
+			if (jreArch == ARCH_UNKNOW) {
 				int addrSize = getAddressSize();
-				if(addrSize == 4)
+				if (addrSize == 4)
 					return ARCH_32;
-				if(addrSize == 8)
+				if (addrSize == 8)
 					return ARCH_64;
 			}
 
@@ -793,14 +806,14 @@ public final class SystemUtil {
 	}
 
 	private static int toIntArch(String strArch) {
-		if(!StringUtil.isEmpty(strArch)) {
-			if(strArch.indexOf("64") != -1)
+		if (!StringUtil.isEmpty(strArch)) {
+			if (strArch.indexOf("64") != -1)
 				return ARCH_64;
-			if(strArch.indexOf("32") != -1)
+			if (strArch.indexOf("32") != -1)
 				return ARCH_32;
-			if(strArch.indexOf("i386") != -1)
+			if (strArch.indexOf("i386") != -1)
 				return ARCH_32;
-			if(strArch.indexOf("x86") != -1)
+			if (strArch.indexOf("x86") != -1)
 				return ARCH_32;
 		}
 		return ARCH_UNKNOW;
@@ -809,7 +822,7 @@ public final class SystemUtil {
 	public static int getAddressSize() {
 		try {
 			Class<?> unsafe = ClassUtil.loadClass("sun.misc.Unsafe", null);
-			if(unsafe == null)
+			if (unsafe == null)
 				return 0;
 
 			Field unsafeField = unsafe.getDeclaredField("theUnsafe");
@@ -819,28 +832,32 @@ public final class SystemUtil {
 
 			Object res = addressSize.invoke(obj, new Object[0]);
 			return Caster.toIntValue(res, 0);
-		}
-		catch (Throwable t) {
+		} catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
 			return 0;
 		}
 
 	}
 	/*
-	 * private static MemoryUsage getPermGenSpaceSize() { MemoryUsage mu = getPermGenSpaceSize(null); if(mu!=null) return mu;
+	 * private static MemoryUsage getPermGenSpaceSize() { MemoryUsage mu =
+	 * getPermGenSpaceSize(null); if(mu!=null) return mu;
 	 * 
-	 * // create error message including info about available memory blocks StringBuilder sb=new StringBuilder(); java.util.List<MemoryPoolMXBean> manager =
-	 * ManagementFactory.getMemoryPoolMXBeans(); Iterator<MemoryPoolMXBean> it = manager.iterator(); MemoryPoolMXBean bean; while(it.hasNext()){ bean =
-	 * it.next(); if(sb.length()>0)sb.append(", "); sb.append(bean.getName()); } throw new
-	 * RuntimeException("PermGen Space information not available, available Memory blocks are ["+sb+"]"); }
+	 * // create error message including info about available memory blocks
+	 * StringBuilder sb=new StringBuilder(); java.util.List<MemoryPoolMXBean>
+	 * manager = ManagementFactory.getMemoryPoolMXBeans();
+	 * Iterator<MemoryPoolMXBean> it = manager.iterator(); MemoryPoolMXBean bean;
+	 * while(it.hasNext()){ bean = it.next(); if(sb.length()>0)sb.append(", ");
+	 * sb.append(bean.getName()); } throw new
+	 * RuntimeException("PermGen Space information not available, available Memory blocks are ["
+	 * +sb+"]"); }
 	 */
 
 	private static MemoryUsage getPermGenSpaceSize(MemoryUsage defaultValue) {
-		if(permGenSpaceBean != null)
+		if (permGenSpaceBean != null)
 			return permGenSpaceBean.getUsage();
 		// create on the fly when the bean is not permanent
 		MemoryPoolMXBean tmp = getPermGenSpaceBean();
-		if(tmp != null)
+		if (tmp != null)
 			return tmp.getUsage();
 
 		return defaultValue;
@@ -848,60 +865,60 @@ public final class SystemUtil {
 
 	public static long getFreePermGenSpaceSize() {
 		MemoryUsage mu = getPermGenSpaceSize(null);
-		if(mu == null)
+		if (mu == null)
 			return -1;
 
 		long max = mu.getMax();
 		long used = mu.getUsed();
-		if(max < 0 || used < 0)
+		if (max < 0 || used < 0)
 			return -1;
 		return max - used;
 	}
 
 	public static int getPermGenFreeSpaceAsAPercentageOfAvailable() {
 		MemoryUsage mu = getPermGenSpaceSize(null);
-		if(mu == null)
+		if (mu == null)
 			return -1;
 
 		long max = mu.getMax();
 		long used = mu.getUsed();
-		if(max < 0 || used < 0)
+		if (max < 0 || used < 0)
 			return -1;
 
 		// return a value that equates to a percentage of available free memory
-		return 100 - ((int)(100 * (((double)used) / ((double)max))));
+		return 100 - ((int) (100 * (((double) used) / ((double) max))));
 	}
 
 	public static int getFreePermGenSpacePromille() {
 		MemoryUsage mu = getPermGenSpaceSize(null);
-		if(mu == null)
+		if (mu == null)
 			return -1;
 
 		long max = mu.getMax();
 		long used = mu.getUsed();
-		if(max < 0 || used < 0)
+		if (max < 0 || used < 0)
 			return -1;
-		return (int)(1000L - (1000L * used / max));
+		return (int) (1000L - (1000L * used / max));
 	}
 
 	public static Query getMemoryUsageAsQuery(int type) throws DatabaseException {
 
 		java.util.List<MemoryPoolMXBean> manager = ManagementFactory.getMemoryPoolMXBeans();
 		Iterator<MemoryPoolMXBean> it = manager.iterator();
-		Query qry = new QueryImpl(new Collection.Key[] { KeyConstants._name, KeyConstants._type, KeyConstants._used, KeyConstants._max, KeyConstants._init }, 0,
-				"memory");
+		Query qry = new QueryImpl(new Collection.Key[] { KeyConstants._name, KeyConstants._type, KeyConstants._used,
+				KeyConstants._max, KeyConstants._init }, 0, "memory");
 
 		int row = 0;
 		MemoryPoolMXBean bean;
 		MemoryUsage usage;
 		MemoryType _type;
-		while(it.hasNext()) {
+		while (it.hasNext()) {
 			bean = it.next();
 			usage = bean.getUsage();
 			_type = bean.getType();
-			if(type == MEMORY_TYPE_HEAP && _type != MemoryType.HEAP)
+			if (type == MEMORY_TYPE_HEAP && _type != MemoryType.HEAP)
 				continue;
-			if(type == MEMORY_TYPE_NON_HEAP && _type != MemoryType.NON_HEAP)
+			if (type == MEMORY_TYPE_NON_HEAP && _type != MemoryType.NON_HEAP)
 				continue;
 
 			row++;
@@ -924,11 +941,12 @@ public final class SystemUtil {
 		MemoryUsage usage;
 		MemoryType _type;
 		long used = 0, max = 0, init = 0;
-		while(it.hasNext()) {
+		while (it.hasNext()) {
 			bean = it.next();
 			usage = bean.getUsage();
 			_type = bean.getType();
-			if((type == MEMORY_TYPE_HEAP && _type == MemoryType.HEAP) || (type == MEMORY_TYPE_NON_HEAP && _type == MemoryType.NON_HEAP)) {
+			if ((type == MEMORY_TYPE_HEAP && _type == MemoryType.HEAP)
+					|| (type == MEMORY_TYPE_NON_HEAP && _type == MemoryType.NON_HEAP)) {
 				used += usage.getUsed();
 				max += usage.getMax();
 				init += usage.getInit();
@@ -950,16 +968,16 @@ public final class SystemUtil {
 		MemoryUsage usage;
 		MemoryType _type;
 		Struct sct = new StructImpl();
-		while(it.hasNext()) {
+		while (it.hasNext()) {
 			bean = it.next();
 			usage = bean.getUsage();
 			_type = bean.getType();
-			if(type == MEMORY_TYPE_HEAP && _type != MemoryType.HEAP)
+			if (type == MEMORY_TYPE_HEAP && _type != MemoryType.HEAP)
 				continue;
-			if(type == MEMORY_TYPE_NON_HEAP && _type != MemoryType.NON_HEAP)
+			if (type == MEMORY_TYPE_NON_HEAP && _type != MemoryType.NON_HEAP)
 				continue;
 
-			double d = ((int)(100D / usage.getMax() * usage.getUsed())) / 100D;
+			double d = ((int) (100D / usage.getMax() * usage.getUsed())) / 100D;
 			sct.setEL(KeyImpl.init(bean.getName()), Caster.toDouble(d));
 		}
 		return sct;
@@ -968,21 +986,20 @@ public final class SystemUtil {
 	public static String getPropertyEL(String key) {
 		try {
 			String str = System.getProperty(key);
-			if(!StringUtil.isEmpty(str, true))
+			if (!StringUtil.isEmpty(str, true))
 				return str;
 
 			Iterator<Entry<Object, Object>> it = System.getProperties().entrySet().iterator();
 			Entry<Object, Object> e;
 			String n;
-			while(it.hasNext()) {
+			while (it.hasNext()) {
 				e = it.next();
-				n = (String)e.getKey();
-				if(key.equalsIgnoreCase(n))
-					return (String)e.getValue();
+				n = (String) e.getKey();
+				if (key.equalsIgnoreCase(n))
+					return (String) e.getValue();
 			}
 
-		}
-		catch (Throwable t) {
+		} catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
 		}
 		return null;
@@ -1002,7 +1019,8 @@ public final class SystemUtil {
 		for (int i = 0; i < traces.length; i++) {
 			trace = traces[i];
 			template = trace.getFileName();
-			if(trace.getLineNumber() <= 0 || template == null || ResourceUtil.getExtension(template, "").equals("java"))
+			if (trace.getLineNumber() <= 0 || template == null
+					|| ResourceUtil.getExtension(template, "").equals("java"))
 				continue;
 			line = trace.getLineNumber();
 			return new TemplateLine(template, line);
@@ -1037,12 +1055,12 @@ public final class SystemUtil {
 	}
 
 	public static double getCpuUsage(long time) throws ApplicationException {
-		if(time < 1)
+		if (time < 1)
 			throw new ApplicationException("time has to be bigger than 0");
-		if(jsm == null)
+		if (jsm == null)
 			jsm = new JavaSysMon();
 		CpuTimes cput = jsm.cpuTimes();
-		if(cput == null)
+		if (cput == null)
 			throw new ApplicationException("CPU information are not available for this OS");
 		CpuTimes previous = new CpuTimes(cput.getUserMillis(), cput.getSystemMillis(), cput.getIdleMillis());
 		sleep(time);
@@ -1051,10 +1069,10 @@ public final class SystemUtil {
 	}
 
 	private synchronized static MemoryStats physical() throws ApplicationException {
-		if(jsm == null)
+		if (jsm == null)
 			jsm = new JavaSysMon();
 		MemoryStats p = jsm.physical();
-		if(p == null)
+		if (p == null)
 			throw new ApplicationException("Memory information are not available for this OS");
 		return p;
 	}
@@ -1064,8 +1082,8 @@ public final class SystemUtil {
 	}
 
 	public static PrintWriter getPrintWriter(int type) {
-		if(printWriter[type] == null) {
-			if(type == OUT)
+		if (printWriter[type] == null) {
+			if (type == OUT)
 				printWriter[OUT] = PRINTWRITER_OUT;
 			else
 				printWriter[ERR] = PRINTWRITER_ERR;
@@ -1074,23 +1092,23 @@ public final class SystemUtil {
 	}
 
 	public static boolean isCLICall() {
-		if(isCLI == null) {
+		if (isCLI == null) {
 			isCLI = Caster.toBoolean(System.getProperty("lucee.cli.call"), Boolean.FALSE);
 		}
 		return isCLI.booleanValue();
 	}
 
 	public static double getLoaderVersion() {
-		// this is done via reflection to make it work in older version, where the class lucee.loader.Version does not exist
-		if(loaderVersion == 0D) {
+		// this is done via reflection to make it work in older version, where the class
+		// lucee.loader.Version does not exist
+		if (loaderVersion == 0D) {
 			loaderVersion = 4D;
 			Class<?> cVersion = ClassUtil.loadClass(getLoaderClassLoader(), "lucee.loader.Version", null);
-			if(cVersion != null) {
+			if (cVersion != null) {
 				try {
 					Field f = cVersion.getField("VERSION");
 					loaderVersion = f.getDouble(null);
-				}
-				catch (Throwable t) {
+				} catch (Throwable t) {
 					ExceptionUtil.rethrowIfNecessary(t);
 				}
 			}
@@ -1105,9 +1123,11 @@ public final class SystemUtil {
 			return defaultValue;
 		}
 	}
-	
+
 	/**
-	 * loading Mac address is very slow, this method loads only a wrapper that then loads the mac address itself on demand
+	 * loading Mac address is very slow, this method loads only a wrapper that then
+	 * loads the mac address itself on demand
+	 * 
 	 * @return
 	 */
 	public static MacAddressWrap getMacAddressAsWrap() {
@@ -1115,21 +1135,21 @@ public final class SystemUtil {
 	}
 
 	public static String getMacAddress() throws UnknownHostException, SocketException {
-		if(!hasMacAddress) {
-			
+		if (!hasMacAddress) {
+
 			InetAddress ip = InetAddress.getLocalHost();
 			NetworkInterface network = NetworkInterface.getByInetAddress(ip);
-			if(network == null) {
+			if (network == null) {
 				hasMacAddress = true;
 				return null;
 			}
 
 			byte[] mac = network.getHardwareAddress();
-			if(mac == null) {
+			if (mac == null) {
 				hasMacAddress = true;
 				return null;
 			}
-			
+
 			StringBuilder sb = new StringBuilder();
 			for (int i = 0; i < mac.length; i++) {
 				sb.append(String.format("%02X%s", mac[i], (i < mac.length - 1) ? "-" : ""));
@@ -1142,31 +1162,29 @@ public final class SystemUtil {
 
 	public static URL getResource(Bundle bundle, String path) {
 		String pws, pns;
-		if(path.startsWith("/")) {
+		if (path.startsWith("/")) {
 			pws = path;
 			pns = path.substring(1);
-		}
-		else {
+		} else {
 			pws = "/" + path;
 			pns = path;
 		}
 
 		URL url = null;
-		if(bundle != null) {
+		if (bundle != null) {
 			try {
 				url = bundle.getEntry(pns);
-			}
-			catch (Throwable t) {
+			} catch (Throwable t) {
 				ExceptionUtil.rethrowIfNecessary(t);
 			}
 		}
 
 		// core class loader
-		if(url == null) {
+		if (url == null) {
 			Class<?> clazz = PageSourceImpl.class;
 			ClassLoader cl = clazz.getClassLoader();
 			url = cl.getResource(pns);
-			if(url == null) {
+			if (url == null) {
 				url = cl.getResource(pws);
 			}
 		}
@@ -1175,30 +1193,34 @@ public final class SystemUtil {
 	}
 
 	/**
-	 * returns a system setting by either a Java property name or a System environment variable
+	 * returns a system setting by either a Java property name or a System
+	 * environment variable
 	 * 
 	 * @param name
-	 *            - either a lowercased Java property name (e.g. lucee.controller.disabled) or an UPPERCASED Environment variable name ((e.g.
-	 *            LUCEE_CONTROLLER_DISABLED))
+	 *            - either a lowercased Java property name (e.g.
+	 *            lucee.controller.disabled) or an UPPERCASED Environment variable
+	 *            name ((e.g. LUCEE_CONTROLLER_DISABLED))
 	 * @param defaultValue
-	 *            - value to return if the neither the property nor the environment setting was found
-	 * @return - the value of the property referenced by propOrEnv or the defaultValue if not found
+	 *            - value to return if the neither the property nor the environment
+	 *            setting was found
+	 * @return - the value of the property referenced by propOrEnv or the
+	 *         defaultValue if not found
 	 */
 	public static String getSystemPropOrEnvVar(String name, String defaultValue) {
 		// env
 		String value = System.getenv(name);
-		if(!StringUtil.isEmpty(value))
+		if (!StringUtil.isEmpty(value))
 			return value;
 
 		// prop
 		value = System.getProperty(name);
-		if(!StringUtil.isEmpty(value))
+		if (!StringUtil.isEmpty(value))
 			return value;
 
 		// env 2
 		name = name.replace('.', '_').toUpperCase();
 		value = System.getenv(name);
-		if(!StringUtil.isEmpty(value))
+		if (!StringUtil.isEmpty(value))
 			return value;
 
 		return defaultValue;
@@ -1207,16 +1229,14 @@ public final class SystemUtil {
 	public static void addLibraryPathIfNoExist(Resource res, Log log) {
 		String existing = System.getProperty("java.library.path");
 
-		if(StringUtil.isEmpty(existing)) {
-			if(log != null)
+		if (StringUtil.isEmpty(existing)) {
+			if (log != null)
 				log.info("Instrumentation", "add " + res.getAbsolutePath() + " to library path");
 			System.setProperty("java.library.path", res.getAbsolutePath());
-		}
-		else if(existing.indexOf(res.getAbsolutePath()) != -1) {
+		} else if (existing.indexOf(res.getAbsolutePath()) != -1) {
 			return;
-		}
-		else {
-			if(log != null)
+		} else {
+			if (log != null)
 				log.info("Instrumentation", "add " + res.getAbsolutePath() + " to library path");
 			System.setProperty("java.library.path", res.getAbsolutePath() + (isWindows() ? ";" : ":") + existing);
 		}
@@ -1226,8 +1246,7 @@ public final class SystemUtil {
 			Field fieldSysPath = ClassLoader.class.getDeclaredField("sys_paths");
 			fieldSysPath.setAccessible(true);
 			fieldSysPath.set(null, null);
-		}
-		catch (Throwable t) {
+		} catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
 		}
 
@@ -1235,17 +1254,18 @@ public final class SystemUtil {
 
 	@Deprecated
 	public static void stop(Thread thread) {
-		if(thread.isAlive()) {
+		if (thread.isAlive()) {
 			thread.stop();
 			/*
-			 * try{ thread.stop(new StopException(thread)); } catch(UnsupportedOperationException uoe){// Java 8 does not support Thread.stop(Throwable)
-			 * thread.stop(); }
+			 * try{ thread.stop(new StopException(thread)); }
+			 * catch(UnsupportedOperationException uoe){// Java 8 does not support
+			 * Thread.stop(Throwable) thread.stop(); }
 			 */
 		}
 	}
 
 	public static void stop(PageContext pc, boolean async) {
-		if(async)
+		if (async)
 			new StopThread(pc).start();
 		else
 			new StopThread(pc).run();
@@ -1255,13 +1275,12 @@ public final class SystemUtil {
 
 		String result = System.getenv(isWindows() ? "COMPUTERNAME" : "HOSTNAME");
 
-		if(!StringUtil.isEmpty(result))
+		if (!StringUtil.isEmpty(result))
 			return result;
 
 		try {
 			return InetAddress.getLocalHost().getHostName();
-		}
-		catch (UnknownHostException ex) {
+		} catch (UnknownHostException ex) {
 			return "";
 		}
 	}
@@ -1269,13 +1288,12 @@ public final class SystemUtil {
 	public static InputStream getResourceAsStream(Bundle bundle, String path) {
 		// check the bundle for the resource
 		InputStream is;
-		if(bundle != null) {
+		if (bundle != null) {
 			try {
 				is = bundle.getEntry(path).openStream();
-				if(is != null)
+				if (is != null)
 					return is;
-			}
-			catch (Throwable t) {
+			} catch (Throwable t) {
 				ExceptionUtil.rethrowIfNecessary(t);
 			}
 		}
@@ -1284,10 +1302,9 @@ public final class SystemUtil {
 		ClassLoader cl = PageSourceImpl.class.getClassLoader();
 		try {
 			is = cl.getResourceAsStream(path);
-			if(is != null)
+			if (is != null)
 				return is;
-		}
-		catch (Throwable t) {
+		} catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
 		}
 
@@ -1295,10 +1312,9 @@ public final class SystemUtil {
 		cl = PageSource.class.getClassLoader();
 		try {
 			is = cl.getResourceAsStream(path);
-			if(is != null)
+			if (is != null)
 				return is;
-		}
-		catch (Throwable t) {
+		} catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
 		}
 
@@ -1306,10 +1322,9 @@ public final class SystemUtil {
 		cl = ClassLoader.getSystemClassLoader();
 		try {
 			is = cl.getResourceAsStream(path);
-			if(is != null)
+			if (is != null)
 				return is;
-		}
-		catch (Throwable t) {
+		} catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
 		}
 
@@ -1334,7 +1349,8 @@ public final class SystemUtil {
 
 	/**
 	 * 
-	 * @return the class calling me and the first class not in bootdelegation if the the is in bootdelegation
+	 * @return the class calling me and the first class not in bootdelegation if the
+	 *         the is in bootdelegation
 	 */
 	public static Caller getCallerClass() {
 		final Ref ref = new Ref();
@@ -1353,58 +1369,56 @@ public final class SystemUtil {
 		Class<?> clazz = _getCallerClass(ref.context, caller, index, true, true);
 
 		// analyze the first result
-		if(clazz == null)
+		if (clazz == null)
 			return rtn;
-		if(isFromBundle(clazz)) {
+		if (isFromBundle(clazz)) {
 			rtn.fromBundle = clazz;
 			return rtn;
 		}
-		if(!OSGiUtil.isClassInBootelegation(clazz.getName())) {
+		if (!OSGiUtil.isClassInBootelegation(clazz.getName())) {
 			rtn.fromSystem = clazz;
-		}
-		else {
+		} else {
 			rtn.fromBootDelegation = clazz;
 		}
 
 		clazz = null;
-		if(rtn.fromBootDelegation != null) {
+		if (rtn.fromBootDelegation != null) {
 			index = new RefIntegerImpl(3);
 			clazz = _getCallerClass(ref.context, caller, index, false, true);
-			if(clazz == null)
+			if (clazz == null)
 				return rtn;
-			if(isFromBundle(clazz)) {
+			if (isFromBundle(clazz)) {
 				rtn.fromBundle = clazz;
 				return rtn;
-			}
-			else
+			} else
 				rtn.fromSystem = clazz;
 		}
 
 		clazz = _getCallerClass(ref.context, caller, index, false, false);
-		if(clazz == null)
+		if (clazz == null)
 			return rtn;
 		rtn.fromBundle = clazz;
 
 		return rtn;
 	}
 
-	private static Class<?> _getCallerClass(Class<?>[] context, Class<?> caller, RefInteger index, boolean acceptBootDelegation, boolean acceptSystem) {
+	private static Class<?> _getCallerClass(Class<?>[] context, Class<?> caller, RefInteger index,
+			boolean acceptBootDelegation, boolean acceptSystem) {
 		Class<?> callerCaller;
 		do {
 			callerCaller = context[index.toInt()];
 			index.plus(1);
-			if(callerCaller == caller || _isSystem(callerCaller)) {
+			if (callerCaller == caller || _isSystem(callerCaller)) {
 				callerCaller = null;
 			}
 
-			if(callerCaller != null && !acceptSystem && !isFromBundle(callerCaller)) {
+			if (callerCaller != null && !acceptSystem && !isFromBundle(callerCaller)) {
+				callerCaller = null;
+			} else if (callerCaller != null && !acceptBootDelegation
+					&& OSGiUtil.isClassInBootelegation(callerCaller.getName())) {
 				callerCaller = null;
 			}
-			else if(callerCaller != null && !acceptBootDelegation && OSGiUtil.isClassInBootelegation(callerCaller.getName())) {
-				callerCaller = null;
-			}
-		}
-		while(callerCaller == null && index.toInt() < context.length);
+		} while (callerCaller == null && index.toInt() < context.length);
 		return callerCaller;
 	}
 
@@ -1414,8 +1428,10 @@ public final class SystemUtil {
 		public Class<?> fromSystem;
 		public Class<?> fromBundle;
 
+		@Override
 		public String toString() {
-			return "fromBootDelegation:" + fromBootDelegation + ";fromSystem:" + fromSystem + ";fromBundle:" + fromBundle;
+			return "fromBootDelegation:" + fromBootDelegation + ";fromSystem:" + fromSystem + ";fromBundle:"
+					+ fromBundle;
 		}
 
 		public boolean isEmpty() {
@@ -1423,10 +1439,10 @@ public final class SystemUtil {
 		}
 
 		public Class<?> fromClasspath() {
-			if(fromSystem != null) {
-				if(fromSystem.getClassLoader() != null)
+			if (fromSystem != null) {
+				if (fromSystem.getClassLoader() != null)
 					return fromSystem;
-				if(fromBootDelegation != null && fromBootDelegation.getClassLoader() != null)
+				if (fromBootDelegation != null && fromBootDelegation.getClassLoader() != null)
 					return fromBootDelegation;
 				return fromSystem;
 			}
@@ -1435,36 +1451,36 @@ public final class SystemUtil {
 	}
 
 	private static boolean isFromBundle(Class<?> clazz) {
-		if(clazz == null)
+		if (clazz == null)
 			return false;
-		if(!(clazz.getClassLoader() instanceof BundleReference))
+		if (!(clazz.getClassLoader() instanceof BundleReference))
 			return false;
 
-		BundleReference br = (BundleReference)clazz.getClassLoader();
+		BundleReference br = (BundleReference) clazz.getClassLoader();
 		return !OSGiUtil.isFrameworkBundle(br.getBundle());
 	}
 
 	private static boolean _isSystem(Class<?> clazz) {
-		if(clazz.getName() == "java.lang.Class")
+		if (clazz.getName() == "java.lang.Class")
 			return true; // Class.forName(className)
-		if(clazz.getName().startsWith("com.sun.beans.finder."))
+		if (clazz.getName().startsWith("com.sun.beans.finder."))
 			return true;
-		if(clazz.getName().startsWith("java.beans."))
+		if (clazz.getName().startsWith("java.beans."))
 			return true;
-		if(clazz.getName().startsWith("java.util.ServiceLoader"))
+		if (clazz.getName().startsWith("java.util.ServiceLoader"))
 			return true;
 
 		return false;
 	}
 
 	private static Map<String, Integer> logs = new ConcurrentHashMap<String, Integer>();
-	private static Boolean booted=null;
+	private static Boolean booted = null;
 
 	public static void logUsage() {
 		String st = ExceptionUtil.getStacktrace(new Throwable(), false);
 		Integer res = logs.get(st);
 
-		if(res == null)
+		if (res == null)
 			res = 1;
 		else
 			res = res.intValue() + 1;
@@ -1476,17 +1492,17 @@ public final class SystemUtil {
 		return logs;
 	}
 
-
 	/**
-	 * checks if both paths are the same ignoring CaSe, file separator type, and whether one path ends with a
-	 * separator while the other does not.  if either path is empty then false is returned.
+	 * checks if both paths are the same ignoring CaSe, file separator type, and
+	 * whether one path ends with a separator while the other does not. if either
+	 * path is empty then false is returned.
 	 *
 	 * @param path1
 	 * @param path2
-	 * @return true if neither path is empty and the paths are the same ignoring case, separator, and whether
-	 * either path ends with a separator.
+	 * @return true if neither path is empty and the paths are the same ignoring
+	 *         case, separator, and whether either path ends with a separator.
 	 */
-	public static boolean arePathsSame(String path1, String path2){
+	public static boolean arePathsSame(String path1, String path2) {
 
 		if (StringUtil.isEmpty(path1, true) || StringUtil.isEmpty(path2, true))
 			return false;
@@ -1503,22 +1519,24 @@ public final class SystemUtil {
 	}
 
 	public static double millis() {
-		return System.nanoTime()/1000000d;
+		return System.nanoTime() / 1000000d;
 	}
 
 	public static boolean isBooted() {
-		if(Boolean.TRUE.equals(booted)) return true;
-		
-		Class clazz = ClassUtil.loadClass("jdk.internal.misc.VM",null); // Java == 9
-		if(clazz==null)  clazz = ClassUtil.loadClass("sun.misc.VM",null); // Java < 9
-		
-		if(clazz!=null) {
+		if (Boolean.TRUE.equals(booted))
+			return true;
+
+		Class clazz = ClassUtil.loadClass("jdk.internal.misc.VM", null); // Java == 9
+		if (clazz == null)
+			clazz = ClassUtil.loadClass("sun.misc.VM", null); // Java < 9
+
+		if (clazz != null) {
 			try {
 				Method m = clazz.getMethod("isBooted", EMPTY_CLASS);
 				booted = Caster.toBoolean(m.invoke(null, EMPTY_OBJ));
 				return booted.booleanValue();
+			} catch (Exception e) {
 			}
-			catch(Exception e) {}
 		}
 		return true;
 	}
@@ -1533,25 +1551,26 @@ class Ref {
 class StopThread extends Thread {
 
 	private final PageContext pc;
-	//private final Log log;
+	// private final Log log;
 
 	public StopThread(PageContext pc) {
 		this.pc = pc;
 	}
 
+	@Override
 	public void run() {
-		PageContextImpl pci = (PageContextImpl)pc;
+		PageContextImpl pci = (PageContextImpl) pc;
 		Thread thread = pc.getThread();
-		if(thread == null)
+		if (thread == null)
 			return;
-		if(thread.isAlive()) {
+		if (thread.isAlive()) {
 			pci.setTimeoutStackTrace();
 			thread.stop();
 		}
 	}
 }
 
-class MacAddressWrap implements ObjectWrap, Castable,Serializable {
+class MacAddressWrap implements ObjectWrap, Castable, Serializable {
 
 	private static final long serialVersionUID = 8707984359031327783L;
 
@@ -1559,8 +1578,7 @@ class MacAddressWrap implements ObjectWrap, Castable,Serializable {
 	public Object getEmbededObject() throws PageException {
 		try {
 			return SystemUtil.getMacAddress();
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
 	}
@@ -1568,46 +1586,49 @@ class MacAddressWrap implements ObjectWrap, Castable,Serializable {
 	@Override
 	public Object getEmbededObject(Object defaultValue) {
 		String address = SystemUtil.getMacAddress(null);
-		if(address==null) return defaultValue;
+		if (address == null)
+			return defaultValue;
 		return address;
 	}
-	
 
 	@Override
 	public boolean castToBooleanValue() throws PageException {
 		return Caster.toBooleanValue(toString());
 	}
-    
-    @Override
-    public Boolean castToBoolean(Boolean defaultValue) {
-    	Object obj=getEmbededObject(null);
-    	if(obj==null) return defaultValue;
-        return Caster.toBoolean(obj.toString(),defaultValue);
-    }
+
+	@Override
+	public Boolean castToBoolean(Boolean defaultValue) {
+		Object obj = getEmbededObject(null);
+		if (obj == null)
+			return defaultValue;
+		return Caster.toBoolean(obj.toString(), defaultValue);
+	}
 
 	@Override
 	public DateTime castToDateTime() throws PageException {
-		return Caster.toDatetime(toString(),null);
+		return Caster.toDatetime(toString(), null);
 	}
-    
-    @Override
-    public DateTime castToDateTime(DateTime defaultValue) {
-    	Object obj=getEmbededObject(null);
-    	if(obj==null) return defaultValue;
-        return DateCaster.toDateAdvanced(obj.toString(),DateCaster.CONVERTING_TYPE_OFFSET,null,defaultValue);
-    }
+
+	@Override
+	public DateTime castToDateTime(DateTime defaultValue) {
+		Object obj = getEmbededObject(null);
+		if (obj == null)
+			return defaultValue;
+		return DateCaster.toDateAdvanced(obj.toString(), DateCaster.CONVERTING_TYPE_OFFSET, null, defaultValue);
+	}
 
 	@Override
 	public double castToDoubleValue() throws PageException {
 		return Caster.toDoubleValue(toString());
 	}
-    
-    @Override
-    public double castToDoubleValue(double defaultValue) {
-    	Object obj=getEmbededObject(null);
-    	if(obj==null) return defaultValue;
-        return Caster.toDoubleValue(obj.toString(),defaultValue);
-    }
+
+	@Override
+	public double castToDoubleValue(double defaultValue) {
+		Object obj = getEmbededObject(null);
+		if (obj == null)
+			return defaultValue;
+		return Caster.toDoubleValue(obj.toString(), defaultValue);
+	}
 
 	@Override
 	public String castToString() throws PageException {
@@ -1617,7 +1638,10 @@ class MacAddressWrap implements ObjectWrap, Castable,Serializable {
 	@Override
 	public String toString() {
 		try {
-			return getEmbededObject().toString();
+			Object obj = getEmbededObject();
+			if (obj == null)
+				return "";
+			return obj.toString();
 		} catch (PageException pe) {
 			throw new PageRuntimeException(pe);
 		}
@@ -1625,7 +1649,7 @@ class MacAddressWrap implements ObjectWrap, Castable,Serializable {
 
 	@Override
 	public String castToString(String defaultValue) {
-		return (String)getEmbededObject(defaultValue);
+		return (String) getEmbededObject(defaultValue);
 	}
 
 	@Override
