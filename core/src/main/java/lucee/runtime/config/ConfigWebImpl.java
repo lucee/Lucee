@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Collection;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +36,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.JspWriter;
 
-import lucee.print;
+import org.apache.commons.collections4.map.ReferenceMap;
+import org.osgi.framework.BundleException;
+import org.xml.sax.SAXException;
+
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.FileUtil;
 import lucee.commons.io.SystemUtil;
@@ -69,7 +71,6 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.SecurityException;
 import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.RHExtension;
-import lucee.runtime.functions.string.Hash;
 import lucee.runtime.gateway.GatewayEngineImpl;
 import lucee.runtime.gateway.GatewayEntry;
 import lucee.runtime.lock.LockManager;
@@ -95,10 +96,6 @@ import lucee.runtime.writer.CFMLWriter;
 import lucee.runtime.writer.CFMLWriterImpl;
 import lucee.runtime.writer.CFMLWriterWS;
 import lucee.runtime.writer.CFMLWriterWSPref;
-
-import org.apache.commons.collections4.map.ReferenceMap;
-import org.osgi.framework.BundleException;
-import org.xml.sax.SAXException;
 
 /**
  * Web Context
@@ -291,7 +288,7 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
     }
 
     public Mapping getDefaultServerTagMapping() {
-	return defaultTagMapping;
+	return getConfigServerImpl().defaultTagMapping;
     }
 
     public Mapping getServerTagMapping(String mappingName) {
@@ -377,10 +374,12 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 	return contextLock;
     }
 
+    @Override
     public Map<String, GatewayEntry> getGatewayEntries() {
 	return getGatewayEngine().getEntries();
     }
 
+    @Override
     protected void setGatewayEntries(Map<String, GatewayEntry> gatewayEntries) {
 	try {
 	    getGatewayEngine().addEntries(this, gatewayEntries);
@@ -659,6 +658,7 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 
     private WSHandler wsHandler;
 
+    @Override
     public WSHandler getWSHandler() throws PageException {
 	if (wsHandler == null) {
 	    ClassDefinition cd = getWSHandlerClassDefinition();
