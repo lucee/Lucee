@@ -1,7 +1,7 @@
 language: java
 
 jdk:
-  - oraclejdk9
+  - oraclejdk8
 
 # build only commits to branch master or where pattern matches "n.n" (where n is a number), e.g. 5.2
 branches:
