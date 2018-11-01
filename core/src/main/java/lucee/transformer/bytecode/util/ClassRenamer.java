@@ -18,14 +18,14 @@
  */
 package lucee.transformer.bytecode.util;
 
-import lucee.commons.lang.StringUtil;
-import lucee.runtime.type.util.ListUtil;
-
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+
+import lucee.commons.lang.StringUtil;
+import lucee.runtime.type.util.ListUtil;
 
 public class ClassRenamer extends ClassVisitor implements Opcodes {
 

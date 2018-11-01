@@ -18,10 +18,10 @@
  **/
 package lucee.transformer.library.function;
 
-import lucee.runtime.config.Constants;
-
 import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
+
+import lucee.runtime.config.Constants;
 
 /**
  * Hilfsklasse fuer die FunctionLibFactory, diese Klasse definiert den DTDHandler fuer den Sax

@@ -23,6 +23,9 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+
 import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
@@ -30,9 +33,6 @@ import lucee.runtime.config.Config;
 import lucee.runtime.config.Constants;
 import lucee.runtime.functions.system.ExpandPath;
 import lucee.runtime.type.util.ListUtil;
-
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassVisitor;
 
 public class SourceNameClassVisitor extends ClassVisitor {
 

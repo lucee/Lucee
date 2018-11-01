@@ -21,10 +21,10 @@ package coldfusion.server;
 import java.io.IOException;
 import java.sql.SQLException;
 
+import coldfusion.sql.DataSource;
 import lucee.runtime.exp.SecurityException;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Struct;
-import coldfusion.sql.DataSource;
 
 public interface DataSourceService extends Service {
 

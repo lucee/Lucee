@@ -3,10 +3,10 @@ package lucee.transformer.interpreter.literal;
 import lucee.runtime.op.Caster;
 import lucee.transformer.Factory;
 import lucee.transformer.Position;
-import lucee.transformer.interpreter.InterpreterContext;
-import lucee.transformer.interpreter.expression.ExpressionBase;
 import lucee.transformer.expression.ExprBoolean;
 import lucee.transformer.expression.literal.LitBoolean;
+import lucee.transformer.interpreter.InterpreterContext;
+import lucee.transformer.interpreter.expression.ExpressionBase;
 
 /**
  * Literal Boolean

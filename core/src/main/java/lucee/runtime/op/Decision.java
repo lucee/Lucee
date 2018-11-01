@@ -20,7 +20,6 @@ package lucee.runtime.op;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import java.lang.reflect.Method;
 import java.net.URI;
 import java.sql.Blob;
 import java.sql.Clob;
@@ -35,28 +34,26 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.util.regex.Pattern;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 import lucee.commons.date.DateTimeUtil;
 import lucee.commons.i18n.FormatUtil;
 import lucee.commons.lang.CFTypes;
-import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.coder.Base64Util;
-import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
-import lucee.runtime.config.Identification;
 import lucee.runtime.converter.WDDXConverter;
 import lucee.runtime.engine.ThreadLocalPageContext;
-import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.image.ImageUtil;
 import lucee.runtime.java.JavaObject;
 import lucee.runtime.net.mail.MailUtil;
-import lucee.runtime.type.Pojo;
-import lucee.runtime.net.rpc.WSHandler;
 import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.op.validators.ValidateCreditCard;
 import lucee.runtime.text.xml.XMLCaster;
@@ -69,17 +66,12 @@ import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Lambda;
 import lucee.runtime.type.ObjectWrap;
 import lucee.runtime.type.Objects;
+import lucee.runtime.type.Pojo;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryColumn;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.DateTime;
-
-import org.osgi.framework.Version;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 /**
  * Object to test if a Object is a specific type

@@ -6,8 +6,6 @@ import java.util.TimeZone;
 
 import org.w3c.dom.Node;
 
-import lucee.commons.lang.ClassException;
-import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Component;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -19,13 +17,8 @@ import lucee.runtime.type.Query;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.TimeSpan;
-import lucee.transformer.TransformerException;
-import lucee.transformer.bytecode.expression.var.VariableImpl;
-import lucee.transformer.bytecode.util.Methods_Caster;
-import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.cast.Cast;
 import lucee.transformer.expression.Expression;
-import lucee.transformer.expression.var.Variable;
 import lucee.transformer.interpreter.InterpreterContext;
 import lucee.transformer.interpreter.expression.ExpressionBase;
 

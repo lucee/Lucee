@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import javax.servlet.jsp.tagext.Tag;
+import org.osgi.framework.Version;
 
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ExceptionUtil;
@@ -32,14 +32,11 @@ import lucee.commons.lang.Md5;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.OSGiUtil;
-import lucee.runtime.tag.Query;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.util.ListUtil;
 import lucee.transformer.Factory;
 import lucee.transformer.expression.Expression;
-
-import org.osgi.framework.Version;
 
 /**
  * Die Klasse TagLibTagAttr repraesentiert ein einzelnes Attribute eines Tag und haelt saemtliche

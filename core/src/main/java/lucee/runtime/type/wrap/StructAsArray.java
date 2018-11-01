@@ -19,7 +19,6 @@ import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
-import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.util.ArraySupport;
 
 public class StructAsArray extends ArraySupport implements Array, List {

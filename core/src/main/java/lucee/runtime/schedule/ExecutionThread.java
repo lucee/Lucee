@@ -25,7 +25,6 @@ import java.nio.charset.Charset;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.Log;
-import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.ContentType;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;

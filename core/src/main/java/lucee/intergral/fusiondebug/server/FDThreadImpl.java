@@ -21,6 +21,10 @@ package lucee.intergral.fusiondebug.server;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.intergral.fusiondebug.server.IFDController;
+import com.intergral.fusiondebug.server.IFDStackFrame;
+import com.intergral.fusiondebug.server.IFDThread;
+
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
@@ -30,10 +34,6 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.transformer.bytecode.util.ASMUtil;
-
-import com.intergral.fusiondebug.server.IFDController;
-import com.intergral.fusiondebug.server.IFDStackFrame;
-import com.intergral.fusiondebug.server.IFDThread;
 
 public class FDThreadImpl implements IFDThread {
 

@@ -6,13 +6,13 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.SocketException;
 
-import lucee.commons.lang.ExceptionUtil;
-import lucee.commons.lang.StringUtil;
-
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 import org.apache.commons.net.ftp.FTPReply;
+
+import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.StringUtil;
 
 public class FTPClientImpl extends AFTPClient {
 

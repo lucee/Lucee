@@ -48,7 +48,6 @@ import lucee.runtime.tag.HttpParamBean;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.FunctionArgument;
 import lucee.runtime.type.Struct;
-import lucee.runtime.type.UDF;
 import lucee.runtime.type.UDFImpl;
 import lucee.runtime.type.util.KeyConstants;
 

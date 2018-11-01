@@ -17,12 +17,12 @@
  */
 package lucee.transformer.bytecode.expression;
 
+import org.objectweb.asm.Type;
+
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.statement.udf.Function;
 import lucee.transformer.bytecode.util.Types;
-
-import org.objectweb.asm.Type;
 
 public class FunctionAsExpression extends ExpressionBase {
 

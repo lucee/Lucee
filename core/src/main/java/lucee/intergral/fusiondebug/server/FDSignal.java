@@ -21,6 +21,8 @@ package lucee.intergral.fusiondebug.server;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.intergral.fusiondebug.server.FDSignalException;
+
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.StringUtil;
@@ -32,8 +34,6 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.TemplateException;
 import lucee.runtime.op.Caster;
 import lucee.transformer.bytecode.util.ASMUtil;
-
-import com.intergral.fusiondebug.server.FDSignalException;
 
 public class FDSignal {
     private static ThreadLocal hash = new ThreadLocal();

@@ -17,10 +17,10 @@
  */
 package lucee.runtime.engine;
 
-import lucee.loader.engine.CFMLEngine;
-
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
+
+import lucee.loader.engine.CFMLEngine;
 
 public class CFMLEngineActivator {
 

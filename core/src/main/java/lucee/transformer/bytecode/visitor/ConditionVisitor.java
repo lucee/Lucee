@@ -18,10 +18,10 @@
  **/
 package lucee.transformer.bytecode.visitor;
 
-import lucee.transformer.bytecode.BytecodeContext;
-
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
+
+import lucee.transformer.bytecode.BytecodeContext;
 
 public final class ConditionVisitor {
 

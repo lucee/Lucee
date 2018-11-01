@@ -23,6 +23,9 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+
 import lucee.runtime.PageContext;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
@@ -37,9 +40,6 @@ import lucee.runtime.type.it.KeyIterator;
 import lucee.runtime.type.it.StringIterator;
 import lucee.runtime.type.util.ArraySupport;
 import lucee.runtime.type.wrap.ArrayAsArrayList;
-
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
 public class XMLMultiElementArray extends ArraySupport {
 

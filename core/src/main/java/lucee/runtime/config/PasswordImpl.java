@@ -20,15 +20,15 @@ package lucee.runtime.config;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 
+import org.osgi.framework.BundleException;
+import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
+
 import lucee.commons.digest.Hash;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.crypt.BlowfishEasy;
 import lucee.runtime.exp.PageException;
-
-import org.osgi.framework.BundleException;
-import org.w3c.dom.Element;
-import org.xml.sax.SAXException;
 
 public class PasswordImpl implements Password {
 

@@ -23,6 +23,8 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.TimeZone;
 
+import org.osgi.framework.BundleException;
+
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.StringUtil;
@@ -35,8 +37,6 @@ import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.CollectionUtil;
-
-import org.osgi.framework.BundleException;
 
 /**
  * 

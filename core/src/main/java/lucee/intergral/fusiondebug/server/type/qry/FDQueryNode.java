@@ -18,13 +18,13 @@
  **/
 package lucee.intergral.fusiondebug.server.type.qry;
 
-import lucee.intergral.fusiondebug.server.type.FDNodeValueSupport;
-import lucee.intergral.fusiondebug.server.util.FDCaster;
-import lucee.runtime.type.Query;
-
 import com.intergral.fusiondebug.server.FDLanguageException;
 import com.intergral.fusiondebug.server.FDMutabilityException;
 import com.intergral.fusiondebug.server.IFDStackFrame;
+
+import lucee.intergral.fusiondebug.server.type.FDNodeValueSupport;
+import lucee.intergral.fusiondebug.server.util.FDCaster;
+import lucee.runtime.type.Query;
 
 public class FDQueryNode extends FDNodeValueSupport {
 

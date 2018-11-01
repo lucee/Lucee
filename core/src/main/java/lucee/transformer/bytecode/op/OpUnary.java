@@ -21,6 +21,10 @@ package lucee.transformer.bytecode.op;
 import java.util.Iterator;
 import java.util.List;
 
+import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.GeneratorAdapter;
+import org.objectweb.asm.commons.Method;
+
 import lucee.runtime.interpreter.VariableInterpreter;
 import lucee.transformer.Factory;
 import lucee.transformer.Position;
@@ -35,10 +39,6 @@ import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.var.DataMember;
 import lucee.transformer.expression.var.Member;
 import lucee.transformer.expression.var.Variable;
-
-import org.objectweb.asm.Type;
-import org.objectweb.asm.commons.GeneratorAdapter;
-import org.objectweb.asm.commons.Method;
 
 public class OpUnary extends ExpressionBase implements ExprDouble {
 

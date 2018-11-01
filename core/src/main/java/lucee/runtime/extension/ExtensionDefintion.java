@@ -6,15 +6,15 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.osgi.framework.BundleException;
+import org.osgi.framework.Version;
+
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.osgi.OSGiUtil;
-
-import org.osgi.framework.BundleException;
-import org.osgi.framework.Version;
 
 public class ExtensionDefintion {
 

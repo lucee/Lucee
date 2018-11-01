@@ -20,6 +20,8 @@ package lucee.runtime.type.scope;
 
 import java.io.File;
 
+import org.osgi.framework.Version;
+
 import lucee.Info;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.ClassUtil;
@@ -39,8 +41,6 @@ import lucee.runtime.type.dt.DateTimeImpl;
 import lucee.runtime.type.scope.util.EnvStruct;
 import lucee.runtime.type.scope.util.SystemPropStruct;
 import lucee.runtime.type.util.KeyConstants;
-
-import org.osgi.framework.Version;
 
 /**
  * Server Scope

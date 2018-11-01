@@ -28,18 +28,14 @@ import lucee.runtime.converter.JSONConverter;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
-import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.listener.ApplicationContextSupport;
-import lucee.runtime.listener.ModernApplicationContext;
 import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Query;
-import lucee.runtime.type.Struct;
 import lucee.runtime.type.it.ForEachQueryIterator;
-import lucee.runtime.type.util.KeyConstants;
 
 /**
  * Decodes Binary Data that are encoded as String

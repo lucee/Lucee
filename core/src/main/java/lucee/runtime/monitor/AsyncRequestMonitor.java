@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.util.Map;
 
 import lucee.commons.io.log.Log;
-import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.PageContextThread;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigImpl;

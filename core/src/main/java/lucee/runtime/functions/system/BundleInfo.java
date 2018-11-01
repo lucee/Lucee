@@ -20,6 +20,10 @@ package lucee.runtime.functions.system;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.felix.framework.BundleWiringImpl.BundleClassLoader;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleException;
+
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.FunctionException;
@@ -37,10 +41,6 @@ import lucee.runtime.type.ObjectWrap;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
-
-import org.apache.felix.framework.BundleWiringImpl.BundleClassLoader;
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleException;
 
 public class BundleInfo implements Function {
 

@@ -21,6 +21,9 @@ package lucee.runtime.services;
 import java.io.IOException;
 import java.sql.SQLException;
 
+import coldfusion.server.DataSourceService;
+import coldfusion.server.ServiceException;
+import coldfusion.sql.DataSource;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.io.res.util.ResourceUtil;
@@ -40,9 +43,6 @@ import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
-import coldfusion.server.DataSourceService;
-import coldfusion.server.ServiceException;
-import coldfusion.sql.DataSource;
 
 public class DataSourceServiceImpl extends ServiceSupport implements DataSourceService {
 

@@ -23,6 +23,8 @@ import java.util.Iterator;
 
 import javax.servlet.ServletInputStream;
 
+import org.apache.commons.fileupload.disk.DiskFileItem;
+
 import lucee.runtime.PageContext;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
@@ -32,8 +34,6 @@ import lucee.runtime.op.Duplicator;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.util.StructSupport;
-
-import org.apache.commons.fileupload.disk.DiskFileItem;
 
 public final class UrlFormImpl extends StructSupport implements URLForm {
 

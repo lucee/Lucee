@@ -51,12 +51,15 @@ import javax.mail.internet.MimeMultipart;
 import javax.mail.internet.MimePart;
 import javax.mail.internet.MimeUtility;
 
+import org.apache.commons.collections4.map.ReferenceMap;
+
+import com.sun.mail.smtp.SMTPMessage;
+
 import lucee.commons.activation.ResourceDataSource;
 import lucee.commons.digest.MD5;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
-import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CharSet;
@@ -95,10 +98,6 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ListUtil;
-
-import org.apache.commons.collections4.map.ReferenceMap;
-
-import com.sun.mail.smtp.SMTPMessage;
 
 public final class SMTPClient implements Serializable {
 

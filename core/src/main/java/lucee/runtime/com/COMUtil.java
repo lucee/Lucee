@@ -20,13 +20,13 @@ package lucee.runtime.com;
 
 import java.lang.reflect.Method;
 
+import com.jacob.com.Variant;
+
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.dt.DateTimeImpl;
-
-import com.jacob.com.Variant;
 
 /**
  * 

@@ -18,6 +18,8 @@
  **/
 package lucee.transformer.bytecode.statement.tag;
 
+import org.objectweb.asm.Type;
+
 import lucee.transformer.Factory;
 import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
@@ -25,8 +27,6 @@ import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.expression.ExpressionBase;
 import lucee.transformer.bytecode.util.ASMUtil;
 import lucee.transformer.expression.Expression;
-
-import org.objectweb.asm.Type;
 
 public final class TagSet extends TagBaseNoFinal {
 

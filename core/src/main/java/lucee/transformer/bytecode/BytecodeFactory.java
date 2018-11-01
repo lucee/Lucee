@@ -17,9 +17,12 @@
  */
 package lucee.transformer.bytecode;
 
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.Method;
+
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalPageContext;
-import lucee.runtime.op.Caster;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.transformer.Context;
 import lucee.transformer.Factory;
@@ -45,15 +48,15 @@ import lucee.transformer.bytecode.literal.LitLongImpl;
 import lucee.transformer.bytecode.literal.LitStringImpl;
 import lucee.transformer.bytecode.literal.Null;
 import lucee.transformer.bytecode.literal.NullConstant;
-import lucee.transformer.bytecode.op.OpDecision;
-import lucee.transformer.bytecode.op.OpUnary;
 import lucee.transformer.bytecode.op.OpBool;
 import lucee.transformer.bytecode.op.OpContional;
+import lucee.transformer.bytecode.op.OpDecision;
 import lucee.transformer.bytecode.op.OpDouble;
 import lucee.transformer.bytecode.op.OpElvis;
 import lucee.transformer.bytecode.op.OpNegate;
 import lucee.transformer.bytecode.op.OpNegateNumber;
 import lucee.transformer.bytecode.op.OpString;
+import lucee.transformer.bytecode.op.OpUnary;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.expression.ExprBoolean;
 import lucee.transformer.expression.ExprDouble;
@@ -70,10 +73,6 @@ import lucee.transformer.expression.literal.LitString;
 import lucee.transformer.expression.literal.Literal;
 import lucee.transformer.expression.var.DataMember;
 import lucee.transformer.expression.var.Variable;
-
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
-import org.objectweb.asm.commons.Method;
 
 public class BytecodeFactory extends FactoryBase {
     private final static Method INIT = new Method("init", Types.COLLECTION_KEY, new Type[] { Types.STRING });

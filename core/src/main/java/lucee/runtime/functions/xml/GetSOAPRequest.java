@@ -19,12 +19,9 @@
 package lucee.runtime.functions.xml;
 
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigImpl;
-import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
-import lucee.runtime.net.rpc.WSHandler;
 import lucee.runtime.net.rpc.client.WSClient;
 
 /**

@@ -47,18 +47,13 @@ import java.io.IOException;
 import java.io.InvalidObjectException;
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.ConcurrentModificationException;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
-import lucee.aprint;
-import lucee.commons.collection.concurrent.ConcurrentHashMapPro;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 
 public class HashMapPro<K, V> extends AbstractMapPro<K, V> implements Map<K, V>, MapPro<K, V>, Cloneable, Serializable {

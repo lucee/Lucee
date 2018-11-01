@@ -33,6 +33,9 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import org.osgi.framework.BundleException;
+import org.osgi.framework.Version;
+
 import lucee.commons.collection.MapFactory;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.FileUtil;
@@ -48,9 +51,6 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.util.ListUtil;
-
-import org.osgi.framework.BundleException;
-import org.osgi.framework.Version;
 
 public final class ClassUtil {
 

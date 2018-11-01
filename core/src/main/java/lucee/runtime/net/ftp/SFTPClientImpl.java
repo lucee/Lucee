@@ -1,17 +1,5 @@
 package lucee.runtime.net.ftp;
 
-import com.jcraft.jsch.Channel;
-import com.jcraft.jsch.ChannelSftp;
-import com.jcraft.jsch.JSch;
-import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.Session;
-import com.jcraft.jsch.SftpATTRS;
-import com.jcraft.jsch.SftpException;
-import lucee.commons.io.SystemUtil;
-import lucee.commons.lang.StringUtil;
-import lucee.runtime.op.Caster;
-import org.apache.commons.net.ftp.FTPFile;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -22,6 +10,20 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Vector;
+
+import org.apache.commons.net.ftp.FTPFile;
+
+import com.jcraft.jsch.Channel;
+import com.jcraft.jsch.ChannelSftp;
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.Session;
+import com.jcraft.jsch.SftpATTRS;
+import com.jcraft.jsch.SftpException;
+
+import lucee.commons.io.SystemUtil;
+import lucee.commons.lang.StringUtil;
+import lucee.runtime.op.Caster;
 
 public class SFTPClientImpl extends AFTPClient {
 

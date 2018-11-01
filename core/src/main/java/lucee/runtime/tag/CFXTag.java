@@ -18,6 +18,10 @@
  **/
 package lucee.runtime.tag;
 
+import com.allaire.cfx.CustomTag;
+import com.allaire.cfx.Request;
+import com.allaire.cfx.Response;
+
 import lucee.runtime.cfx.CFXTagException;
 import lucee.runtime.cfx.CFXTagPool;
 import lucee.runtime.cfx.RequestImpl;
@@ -31,10 +35,6 @@ import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
-
-import com.allaire.cfx.CustomTag;
-import com.allaire.cfx.Request;
-import com.allaire.cfx.Response;
 
 /**
  * Creates a CFML CFX Tag

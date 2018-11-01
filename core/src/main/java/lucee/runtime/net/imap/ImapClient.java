@@ -22,10 +22,10 @@ import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 
+import com.sun.mail.imap.IMAPFolder;
+
 import lucee.runtime.net.mail.MailClient;
 import lucee.runtime.op.Caster;
-
-import com.sun.mail.imap.IMAPFolder;
 
 public final class ImapClient extends MailClient {
 

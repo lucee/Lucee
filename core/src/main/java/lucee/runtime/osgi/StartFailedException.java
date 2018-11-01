@@ -1,9 +1,9 @@
 package lucee.runtime.osgi;
 
-import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
-
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
+
+import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
 
 public class StartFailedException extends Exception {
 

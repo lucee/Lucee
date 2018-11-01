@@ -18,6 +18,10 @@
  **/
 package lucee.transformer.bytecode.op;
 
+import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.GeneratorAdapter;
+import org.objectweb.asm.commons.Method;
+
 import lucee.runtime.exp.TemplateException;
 import lucee.transformer.Factory;
 import lucee.transformer.TransformerException;
@@ -27,10 +31,6 @@ import lucee.transformer.bytecode.util.Methods;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.expression.ExprDouble;
 import lucee.transformer.expression.Expression;
-
-import org.objectweb.asm.Type;
-import org.objectweb.asm.commons.GeneratorAdapter;
-import org.objectweb.asm.commons.Method;
 
 public final class OpDouble extends ExpressionBase implements ExprDouble {
 

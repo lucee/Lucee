@@ -22,6 +22,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import org.w3c.dom.Node;
+
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
@@ -39,8 +41,6 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.UDFPlus;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.it.KeyAsStringIterator;
-
-import org.w3c.dom.Node;
 
 public abstract class StructSupport implements Map, Struct {
 

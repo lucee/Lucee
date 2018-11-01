@@ -20,17 +20,17 @@ package lucee.runtime.text.xml.struct;
 
 import java.lang.reflect.Method;
 
-import lucee.runtime.exp.PageRuntimeException;
-import lucee.runtime.op.Caster;
-import lucee.runtime.type.Collection;
-import lucee.runtime.type.util.ArrayUtil;
-
 import org.w3c.dom.Attr;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.TypeInfo;
+
+import lucee.runtime.exp.PageRuntimeException;
+import lucee.runtime.op.Caster;
+import lucee.runtime.type.Collection;
+import lucee.runtime.type.util.ArrayUtil;
 
 /**
  * 

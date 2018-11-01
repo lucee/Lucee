@@ -18,47 +18,24 @@
  */
 package lucee.commons.io.log.log4j;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.nio.charset.Charset;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import lucee.commons.io.CharsetUtil;
-import lucee.commons.io.log.Log;
-import lucee.commons.io.log.LogUtil;
-import lucee.commons.io.log.log4j.appender.ConsoleAppender;
-import lucee.commons.io.log.log4j.appender.DatasourceAppender;
-import lucee.commons.io.log.log4j.appender.RollingResourceAppender;
-import lucee.commons.io.log.log4j.appender.TaskAppender;
-import lucee.commons.io.log.log4j.layout.ClassicLayout;
-import lucee.commons.io.log.log4j.layout.DatasourceLayout;
-import lucee.commons.io.res.Resource;
-import lucee.commons.io.res.util.ResourceUtil;
-import lucee.commons.io.retirement.RetireListener;
-import lucee.commons.lang.ClassUtil;
-import lucee.commons.lang.StringUtil;
-import lucee.commons.lang.SystemOut;
-import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.config.ConfigWebUtil;
-import lucee.runtime.db.ClassDefinition;
-import lucee.runtime.exp.PageException;
-import lucee.runtime.op.Caster;
-import lucee.runtime.reflection.Reflector;
-import lucee.transformer.library.ClassDefinitionImpl;
-
 import org.apache.log4j.Appender;
-import org.apache.log4j.AppenderSkeleton;
 import org.apache.log4j.HTMLLayout;
 import org.apache.log4j.Layout;
-import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 import org.apache.log4j.xml.XMLLayout;
+
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.log4j.appender.ConsoleAppender;
+import lucee.commons.io.log.log4j.appender.DatasourceAppender;
+import lucee.commons.io.log.log4j.appender.RollingResourceAppender;
+import lucee.commons.io.log.log4j.layout.ClassicLayout;
+import lucee.commons.io.log.log4j.layout.DatasourceLayout;
+import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigWeb;
+import lucee.runtime.db.ClassDefinition;
+import lucee.transformer.library.ClassDefinitionImpl;
 
 public class Log4jUtil {
 

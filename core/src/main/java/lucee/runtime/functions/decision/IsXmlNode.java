@@ -18,12 +18,12 @@
  **/
 package lucee.runtime.functions.decision;
 
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 import lucee.runtime.PageContext;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.text.xml.struct.XMLStruct;
-
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 /**
  * Check if a value is a XML Node

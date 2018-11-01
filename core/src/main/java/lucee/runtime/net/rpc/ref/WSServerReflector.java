@@ -7,14 +7,11 @@ import javax.servlet.http.HttpServletResponse;
 
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
-import lucee.runtime.config.Config;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.net.rpc.WSHandler;
 import lucee.runtime.net.rpc.server.WSServer;
 import lucee.runtime.op.Caster;
-import lucee.runtime.type.Struct;
-import lucee.runtime.type.Collection.Key;
 
 public class WSServerReflector implements WSServer {
 

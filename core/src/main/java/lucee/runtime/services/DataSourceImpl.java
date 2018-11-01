@@ -24,11 +24,11 @@ import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.util.logging.Logger;
 
+import coldfusion.sql.DataSource;
+import coldfusion.sql.DataSourceDef;
 import lucee.runtime.PageContext;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
-import coldfusion.sql.DataSource;
-import coldfusion.sql.DataSourceDef;
 
 public class DataSourceImpl implements DataSource {
 

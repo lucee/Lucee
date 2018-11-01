@@ -21,12 +21,12 @@ package lucee.commons.io.res.type.ftp;
 import java.io.IOException;
 import java.util.Map;
 
+import org.apache.commons.net.ftp.FTPClient;
+import org.apache.commons.net.ftp.FTPFile;
+
 import lucee.commons.collection.MapFactory;
 import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.StringUtil;
-
-import org.apache.commons.net.ftp.FTPClient;
-import org.apache.commons.net.ftp.FTPFile;
 
 public final class FTPResourceClient extends FTPClient {
 

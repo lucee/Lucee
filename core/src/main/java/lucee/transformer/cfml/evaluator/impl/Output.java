@@ -21,7 +21,6 @@ package lucee.transformer.cfml.evaluator.impl;
 
 import java.util.Iterator;
 
-import lucee.runtime.esapi.ESAPIUtil;
 import lucee.transformer.bytecode.Body;
 import lucee.transformer.bytecode.Statement;
 import lucee.transformer.bytecode.expression.var.BIF;
@@ -36,7 +35,6 @@ import lucee.transformer.expression.literal.Literal;
 import lucee.transformer.expression.var.Member;
 import lucee.transformer.expression.var.Variable;
 import lucee.transformer.library.function.FunctionLib;
-import lucee.transformer.library.function.FunctionLibFunction;
 import lucee.transformer.library.tag.TagLibTag;
 
 /**

@@ -18,6 +18,8 @@
  */
 package lucee.transformer.bytecode.statement.udf;
 
+import org.objectweb.asm.commons.GeneratorAdapter;
+
 import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.Body;
@@ -26,8 +28,6 @@ import lucee.transformer.bytecode.Root;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.Literal;
-
-import org.objectweb.asm.commons.GeneratorAdapter;
 
 public final class FunctionImpl extends Function {
 

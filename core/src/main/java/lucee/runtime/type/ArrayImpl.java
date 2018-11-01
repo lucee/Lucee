@@ -21,7 +21,6 @@ package lucee.runtime.type;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map.Entry;
-import java.util.Vector;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.dump.DumpData;

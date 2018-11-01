@@ -6,9 +6,6 @@ import lucee.transformer.FactoryBase;
 import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.cast.CastOther;
-import lucee.transformer.interpreter.cast.*;
-import lucee.transformer.interpreter.literal.LitStringImpl;
-import lucee.transformer.interpreter.op.*;
 import lucee.transformer.expression.ExprBoolean;
 import lucee.transformer.expression.ExprDouble;
 import lucee.transformer.expression.ExprFloat;
@@ -24,9 +21,25 @@ import lucee.transformer.expression.literal.LitString;
 import lucee.transformer.expression.var.DataMember;
 import lucee.transformer.expression.var.Variable;
 import lucee.transformer.interpreter.cast.CastBoolean;
+import lucee.transformer.interpreter.cast.CastDouble;
+import lucee.transformer.interpreter.cast.CastFloat;
+import lucee.transformer.interpreter.cast.CastInt;
+import lucee.transformer.interpreter.cast.CastString;
 import lucee.transformer.interpreter.expression.var.EmptyArray;
 import lucee.transformer.interpreter.expression.var.EmptyStruct;
-import lucee.transformer.interpreter.literal.*;
+import lucee.transformer.interpreter.literal.Empty;
+import lucee.transformer.interpreter.literal.LitBooleanImpl;
+import lucee.transformer.interpreter.literal.LitDoubleImpl;
+import lucee.transformer.interpreter.literal.LitFloatImpl;
+import lucee.transformer.interpreter.literal.LitIntegerImpl;
+import lucee.transformer.interpreter.literal.LitLongImpl;
+import lucee.transformer.interpreter.literal.LitStringImpl;
+import lucee.transformer.interpreter.literal.Null;
+import lucee.transformer.interpreter.literal.NullConstant;
+import lucee.transformer.interpreter.op.OpBool;
+import lucee.transformer.interpreter.op.OpDecision;
+import lucee.transformer.interpreter.op.OpDouble;
+import lucee.transformer.interpreter.op.OpString;
 
 public class InterpreterFactory extends FactoryBase {
 

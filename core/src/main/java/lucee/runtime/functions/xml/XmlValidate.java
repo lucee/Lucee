@@ -18,6 +18,8 @@
  **/
 package lucee.runtime.functions.xml;
 
+import org.xml.sax.InputSource;
+
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
@@ -25,8 +27,6 @@ import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
 import lucee.runtime.text.xml.XMLUtil;
 import lucee.runtime.type.Struct;
-
-import org.xml.sax.InputSource;
 
 /**
  * 

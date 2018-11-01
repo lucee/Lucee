@@ -1,11 +1,7 @@
 package lucee.runtime.net.rpc.ref;
 
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Set;
 
-import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
@@ -14,10 +10,6 @@ import lucee.runtime.net.rpc.WSHandler;
 import lucee.runtime.net.rpc.client.WSClient;
 import lucee.runtime.net.rpc.server.WSServer;
 import lucee.runtime.op.Caster;
-import lucee.runtime.type.Pojo;
-import lucee.runtime.type.Struct;
-
-import org.w3c.dom.Node;
 
 public class WSHandlerReflector implements WSHandler {
 

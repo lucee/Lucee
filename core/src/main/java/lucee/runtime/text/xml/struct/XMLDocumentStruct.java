@@ -20,11 +20,6 @@ package lucee.runtime.text.xml.struct;
 
 import java.lang.reflect.Method;
 
-import lucee.runtime.exp.PageRuntimeException;
-import lucee.runtime.op.Caster;
-import lucee.runtime.type.Collection;
-import lucee.runtime.type.util.ArrayUtil;
-
 import org.w3c.dom.Attr;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Comment;
@@ -40,6 +35,11 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.ProcessingInstruction;
 import org.w3c.dom.Text;
+
+import lucee.runtime.exp.PageRuntimeException;
+import lucee.runtime.op.Caster;
+import lucee.runtime.type.Collection;
+import lucee.runtime.type.util.ArrayUtil;
 
 /**
  * 

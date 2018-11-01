@@ -18,10 +18,10 @@
  **/
 package lucee.transformer.library.tag;
 
-import lucee.runtime.config.Constants;
-
 import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
+
+import lucee.runtime.config.Constants;
 
 /**
  * Hilfsklasse fuer die TagLibFactory, diese Klasse definiert den DTDHandler fuer den Sax Parser.

@@ -1,15 +1,9 @@
 package lucee.transformer.interpreter.cast;
 
-import java.util.Stack;
-
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.TemplateException;
-import lucee.runtime.op.Caster;
-import lucee.transformer.TransformerException;
 import lucee.transformer.cast.Cast;
 import lucee.transformer.expression.ExprBoolean;
-import lucee.transformer.expression.ExprDouble;
-import lucee.transformer.expression.ExprString;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.Literal;
 import lucee.transformer.interpreter.InterpreterContext;

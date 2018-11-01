@@ -22,13 +22,13 @@ import java.io.IOException;
 import java.io.Writer;
 import java.nio.charset.Charset;
 
-import lucee.commons.io.res.Resource;
-import lucee.commons.io.retirement.RetireListener;
-
 import org.apache.log4j.Layout;
 import org.apache.log4j.helpers.CountingQuietWriter;
 import org.apache.log4j.helpers.LogLog;
 import org.apache.log4j.spi.LoggingEvent;
+
+import lucee.commons.io.res.Resource;
+import lucee.commons.io.retirement.RetireListener;
 
 public class RollingResourceAppender extends ResourceAppender {
 

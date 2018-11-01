@@ -4,6 +4,8 @@ import java.awt.image.BufferedImage;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 
+import org.osgi.framework.Version;
+
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ClassUtil;
 import lucee.runtime.PageContext;
@@ -13,8 +15,6 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
-
-import org.osgi.framework.Version;
 
 public class ImageUtil {
 

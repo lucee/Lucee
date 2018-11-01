@@ -20,13 +20,13 @@ package lucee.transformer.bytecode;
 import java.util.ArrayList;
 import java.util.List;
 
-import lucee.runtime.PageSource;
-import lucee.transformer.bytecode.statement.udf.Function;
-import lucee.transformer.expression.literal.LitString;
-
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
+
+import lucee.runtime.PageSource;
+import lucee.transformer.bytecode.statement.udf.Function;
+import lucee.transformer.expression.literal.LitString;
 
 public class ConstrBytecodeContext extends BytecodeContext {
 

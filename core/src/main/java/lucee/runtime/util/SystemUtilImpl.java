@@ -25,6 +25,8 @@ import java.security.NoSuchAlgorithmException;
 
 import javax.servlet.ServletContext;
 
+import org.osgi.framework.Bundle;
+
 import lucee.commons.digest.Hash;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.log.Log;
@@ -33,8 +35,6 @@ import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.Struct;
-
-import org.osgi.framework.Bundle;
 
 public class SystemUtilImpl implements SystemUtil {
 

@@ -1,12 +1,10 @@
 package lucee.runtime.tag.listener;
 
-import lucee.commons.io.SystemUtil.TemplateLine;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Struct;
-import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
 
 public class ComponentTagListener extends TagListenerSupport {

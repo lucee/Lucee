@@ -22,7 +22,6 @@ import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.net.rpc.WSHandler;
 import lucee.runtime.op.Caster;
 
 public class AddSOAPResponseHeader {

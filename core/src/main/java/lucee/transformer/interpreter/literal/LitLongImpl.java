@@ -1,10 +1,8 @@
 package lucee.transformer.interpreter.literal;
 
 import lucee.runtime.op.Caster;
-import lucee.transformer.Context;
 import lucee.transformer.Factory;
 import lucee.transformer.Position;
-import lucee.transformer.TransformerException;
 import lucee.transformer.expression.literal.LitLong;
 import lucee.transformer.interpreter.InterpreterContext;
 import lucee.transformer.interpreter.expression.ExpressionBase;

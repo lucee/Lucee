@@ -20,11 +20,11 @@ package lucee.intergral.fusiondebug.server.type;
 
 import java.util.List;
 
-import lucee.intergral.fusiondebug.server.util.FDCaster;
-import lucee.runtime.op.Decision;
-
 import com.intergral.fusiondebug.server.IFDStackFrame;
 import com.intergral.fusiondebug.server.IFDValue;
+
+import lucee.intergral.fusiondebug.server.util.FDCaster;
+import lucee.runtime.op.Decision;
 
 public abstract class FDValueSupport implements IFDValue {
 

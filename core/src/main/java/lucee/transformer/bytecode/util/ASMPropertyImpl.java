@@ -18,9 +18,9 @@
  **/
 package lucee.transformer.bytecode.util;
 
-import lucee.runtime.exp.PageException;
-
 import org.objectweb.asm.Type;
+
+import lucee.runtime.exp.PageException;
 
 public final class ASMPropertyImpl implements ASMProperty {
 

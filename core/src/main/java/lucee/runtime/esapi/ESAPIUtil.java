@@ -1,6 +1,5 @@
 package lucee.runtime.esapi;
 
-import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;

@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import lucee.commons.io.log.Log;
-import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.type.ftp.FTPConnectionData;
 import lucee.commons.io.res.util.ResourceUtil;
@@ -57,8 +56,6 @@ import lucee.runtime.net.s3.PropertiesImpl;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.orm.ORMConfigurationImpl;
-import lucee.runtime.security.Credential;
-import lucee.runtime.security.CredentialImpl;
 import lucee.runtime.tag.Query;
 import lucee.runtime.tag.listener.TagListener;
 import lucee.runtime.type.Array;

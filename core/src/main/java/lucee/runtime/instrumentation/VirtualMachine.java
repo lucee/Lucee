@@ -1,13 +1,13 @@
 package lucee.runtime.instrumentation;
 
-import lucee.runtime.instrumentation.unix.UNIXSocket;
-import lucee.runtime.instrumentation.unix.UNIXSocketAddress;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
+
+import lucee.runtime.instrumentation.unix.UNIXSocket;
+import lucee.runtime.instrumentation.unix.UNIXSocketAddress;
 
 /**
  * <p>

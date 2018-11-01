@@ -22,12 +22,12 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import org.apache.http.entity.mime.MIME;
+import org.apache.http.entity.mime.content.AbstractContentBody;
+
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
-
-import org.apache.http.entity.mime.MIME;
-import org.apache.http.entity.mime.content.AbstractContentBody;
 
 public class ResourceBody extends AbstractContentBody {
 

@@ -25,6 +25,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import com.intergral.fusiondebug.server.IFDController;
+import com.intergral.fusiondebug.server.IFDThread;
+
 import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.SystemOut;
 import lucee.runtime.CFMLFactory;
@@ -37,9 +40,6 @@ import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.op.Caster;
 import lucee.runtime.security.SerialNumber;
-
-import com.intergral.fusiondebug.server.IFDController;
-import com.intergral.fusiondebug.server.IFDThread;
 
 /**
  * 

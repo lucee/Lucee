@@ -47,15 +47,15 @@ import java.util.zip.ZipFile;
 
 import javax.mail.Transport;
 
+import org.apache.tika.Tika;
+import org.apache.tika.metadata.Metadata;
+
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.URLEncoder;
 import lucee.runtime.exp.PageException;
-
-import org.apache.tika.Tika;
-import org.apache.tika.metadata.Metadata;
 
 /**
  * I/O Util

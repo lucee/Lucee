@@ -26,15 +26,14 @@ import java.sql.SQLException;
 import java.util.Map;
 import java.util.TimeZone;
 
+import org.apache.commons.collections4.map.ReferenceMap;
+import org.osgi.framework.BundleException;
+
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.ClassException;
 import lucee.runtime.config.Config;
-import lucee.runtime.engine.ThreadLocalConfig;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.tag.listener.TagListener;
-
-import org.apache.commons.collections4.map.ReferenceMap;
-import org.osgi.framework.BundleException;
 
 public abstract class DataSourceSupport implements DataSource, Cloneable, Serializable {
 

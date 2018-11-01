@@ -25,6 +25,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 
+import org.w3c.dom.Node;
+
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
@@ -54,8 +56,6 @@ import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.MemberUtil;
 import lucee.runtime.type.util.Type;
 import lucee.runtime.type.wrap.MapAsStruct;
-
-import org.w3c.dom.Node;
 
 /**
  * Class to handle CF Variables (set,get,call)

@@ -5,7 +5,6 @@ import java.io.PrintWriter;
 import java.nio.charset.Charset;
 
 import org.apache.log4j.Appender;
-import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 
 import lucee.commons.io.log.Log;

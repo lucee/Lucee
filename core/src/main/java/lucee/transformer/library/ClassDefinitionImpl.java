@@ -21,7 +21,10 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-import java.io.Serializable;
+
+import org.osgi.framework.BundleException;
+import org.osgi.framework.Version;
+import org.xml.sax.Attributes;
 
 import lucee.commons.digest.HashUtil;
 import lucee.commons.lang.ClassException;
@@ -31,10 +34,6 @@ import lucee.commons.lang.StringUtil;
 import lucee.runtime.config.Identification;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.osgi.OSGiUtil;
-
-import org.osgi.framework.BundleException;
-import org.osgi.framework.Version;
-import org.xml.sax.Attributes;
 
 public class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externalizable {
 

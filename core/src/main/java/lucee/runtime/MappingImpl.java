@@ -22,25 +22,25 @@ import static org.apache.commons.collections4.map.AbstractReferenceMap.Reference
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 import java.io.Serializable;
 import java.lang.instrument.UnmodifiableClassException;
 import java.util.Map;
 
 import javax.servlet.ServletContext;
 
+import org.apache.commons.collections4.map.ReferenceMap;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+
 import lucee.commons.io.FileUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ExceptionUtil;
-import lucee.commons.lang.ExternalizableUtil;
 import lucee.commons.lang.MappingUtil;
 import lucee.commons.lang.PCLCollection;
 import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
-import lucee.runtime.MappingImpl.SerMapping;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWebImpl;
@@ -49,10 +49,6 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.listener.ApplicationListener;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.type.util.ArrayUtil;
-
-import org.apache.commons.collections4.map.ReferenceMap;
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
 
 /**
  * Mapping class

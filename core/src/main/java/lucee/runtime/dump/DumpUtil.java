@@ -39,6 +39,12 @@ import java.util.TimeZone;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpSession;
 
+import org.apache.felix.framework.BundleWiringImpl.BundleClassLoader;
+import org.osgi.framework.Bundle;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 import lucee.commons.date.TimeZoneUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.CharSet;
@@ -51,7 +57,6 @@ import lucee.runtime.converter.WDDXConverter;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.i18n.LocaleFactory;
-import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.osgi.OSGiUtil;
@@ -70,12 +75,6 @@ import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.dt.DateTimeImpl;
 import lucee.runtime.type.scope.CookieImpl;
 import lucee.runtime.type.util.KeyConstants;
-
-import org.apache.felix.framework.BundleWiringImpl.BundleClassLoader;
-import org.osgi.framework.Bundle;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 public class DumpUtil {
 

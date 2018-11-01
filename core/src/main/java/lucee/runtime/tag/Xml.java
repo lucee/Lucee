@@ -20,14 +20,14 @@ package lucee.runtime.tag;
 
 import java.io.StringReader;
 
+import org.xml.sax.InputSource;
+
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.BodyTagImpl;
 import lucee.runtime.op.Caster;
 import lucee.runtime.text.xml.XMLCaster;
 import lucee.runtime.text.xml.XMLUtil;
-
-import org.xml.sax.InputSource;
 
 /**
  * Creates a XML document object that contains the markup in the tag body. This tag can include XML

@@ -18,11 +18,11 @@
  **/
 package lucee.commons.net.http.httpclient.entity;
 
-import lucee.commons.net.HTTPUtil;
-
 import org.apache.http.Header;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.ContentType;
+
+import lucee.commons.net.HTTPUtil;
 
 public class ByteArrayHttpEntity extends ByteArrayEntity implements Entity4 {
 

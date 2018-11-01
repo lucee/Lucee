@@ -30,6 +30,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 
+import org.apache.commons.collections4.map.ReferenceMap;
+
 import lucee.commons.date.TimeZoneConstants;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
@@ -37,8 +39,6 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalPageContext;
-
-import org.apache.commons.collections4.map.ReferenceMap;
 
 public class FormatUtil {
 

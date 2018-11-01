@@ -25,6 +25,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
+import com.intergral.fusiondebug.server.FDLanguageException;
+import com.intergral.fusiondebug.server.IFDStackFrame;
+import com.intergral.fusiondebug.server.IFDThread;
+import com.intergral.fusiondebug.server.IFDVariable;
+
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.SystemOut;
@@ -38,11 +43,6 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.scope.ClusterNotSupported;
 import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.util.KeyConstants;
-
-import com.intergral.fusiondebug.server.FDLanguageException;
-import com.intergral.fusiondebug.server.IFDStackFrame;
-import com.intergral.fusiondebug.server.IFDThread;
-import com.intergral.fusiondebug.server.IFDVariable;
 
 public class FDStackFrameImpl implements IFDStackFrame {
 

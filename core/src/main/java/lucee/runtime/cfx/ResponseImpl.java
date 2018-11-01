@@ -20,11 +20,11 @@ package lucee.runtime.cfx;
 
 import java.io.IOException;
 
-import lucee.runtime.PageContext;
-import lucee.runtime.exp.PageException;
-
 import com.allaire.cfx.Query;
 import com.allaire.cfx.Response;
+
+import lucee.runtime.PageContext;
+import lucee.runtime.exp.PageException;
 
 /**
  * 

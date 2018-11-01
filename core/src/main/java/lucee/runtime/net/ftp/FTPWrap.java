@@ -21,10 +21,10 @@ package lucee.runtime.net.ftp;
 import java.io.IOException;
 import java.net.InetAddress;
 
-import lucee.runtime.net.proxy.Proxy;
-
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
+
+import lucee.runtime.net.proxy.Proxy;
 
 /**
  * Wrap a Client and a Connection

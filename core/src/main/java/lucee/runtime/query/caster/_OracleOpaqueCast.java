@@ -23,10 +23,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import lucee.commons.lang.ClassUtil;
-import lucee.commons.lang.ExceptionUtil;
-import lucee.runtime.exp.PageException;
-import lucee.runtime.op.Caster;
-import lucee.runtime.reflection.Reflector;
 
 public class _OracleOpaqueCast {
 

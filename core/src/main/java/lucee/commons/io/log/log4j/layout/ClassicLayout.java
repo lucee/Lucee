@@ -21,15 +21,15 @@ package lucee.commons.io.log.log4j.layout;
 import java.util.Locale;
 import java.util.TimeZone;
 
+import org.apache.log4j.Layout;
+import org.apache.log4j.spi.LoggingEvent;
+import org.apache.log4j.spi.ThrowableInformation;
+
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.format.DateFormat;
 import lucee.runtime.format.TimeFormat;
 import lucee.runtime.op.Caster;
-
-import org.apache.log4j.Layout;
-import org.apache.log4j.spi.LoggingEvent;
-import org.apache.log4j.spi.ThrowableInformation;
 
 public class ClassicLayout extends Layout {
     private static final String LINE_SEPARATOR = System.getProperty("line.separator");

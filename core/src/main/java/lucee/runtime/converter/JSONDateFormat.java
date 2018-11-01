@@ -24,10 +24,10 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
+import org.apache.commons.collections4.map.ReferenceMap;
+
 import lucee.commons.lang.SerializableObject;
 import lucee.runtime.engine.ThreadLocalPageContext;
-
-import org.apache.commons.collections4.map.ReferenceMap;
 
 public class JSONDateFormat {
 

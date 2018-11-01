@@ -1,14 +1,9 @@
 package lucee.transformer.interpreter.literal;
 
-import lucee.commons.color.ConstantsDouble;
 import lucee.runtime.op.Caster;
-import lucee.transformer.Context;
 import lucee.transformer.Factory;
 import lucee.transformer.Position;
-import lucee.transformer.TransformerException;
-import lucee.transformer.expression.ExprDouble;
 import lucee.transformer.expression.ExprFloat;
-import lucee.transformer.expression.literal.LitDouble;
 import lucee.transformer.expression.literal.LitFloat;
 import lucee.transformer.interpreter.InterpreterContext;
 import lucee.transformer.interpreter.expression.ExpressionBase;

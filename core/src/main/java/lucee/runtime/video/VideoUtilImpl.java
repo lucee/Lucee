@@ -22,6 +22,8 @@ import static org.apache.commons.collections4.map.AbstractReferenceMap.Reference
 
 import java.util.Map;
 
+import org.apache.commons.collections4.map.ReferenceMap;
+
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.type.file.FileResource;
 import lucee.commons.io.res.type.http.HTTPResource;
@@ -35,8 +37,6 @@ import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.functions.string.Hash;
 import lucee.runtime.op.Caster;
-
-import org.apache.commons.collections4.map.ReferenceMap;
 
 public class VideoUtilImpl implements VideoUtil {
 

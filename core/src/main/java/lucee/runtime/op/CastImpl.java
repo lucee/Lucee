@@ -30,6 +30,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 import lucee.commons.color.ColorCaster;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.res.Resource;
@@ -56,9 +59,6 @@ import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.dt.TimeSpanImpl;
 import lucee.runtime.type.util.StructUtil;
 import lucee.runtime.util.Cast;
-
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 /**
  * Implementation of the cast interface

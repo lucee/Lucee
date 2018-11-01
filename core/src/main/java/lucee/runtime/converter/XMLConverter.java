@@ -28,6 +28,10 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.TimeZone;
 
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 import lucee.commons.lang.NumberUtil;
 import lucee.runtime.Component;
 import lucee.runtime.ComponentScope;
@@ -55,10 +59,6 @@ import lucee.runtime.type.dt.DateTimeImpl;
 import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.ComponentUtil;
 import lucee.runtime.type.util.KeyConstants;
-
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 /**
  * class to serialize and desirilize WDDX Packes

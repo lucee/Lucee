@@ -1,28 +1,20 @@
 package lucee.commons.io.log.log4j.layout;
 
 import java.sql.Types;
-import java.util.Enumeration;
-import java.util.TimeZone;
-
-import lucee.print;
-import lucee.commons.io.log.log4j.appender.DatasourceAppender;
-import lucee.commons.lang.ExceptionUtil;
-import lucee.commons.lang.StringUtil;
-import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
-import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.config.ConfigWebImpl;
-import lucee.runtime.config.ConfigWebUtil;
-import lucee.runtime.db.SQLCaster;
-import lucee.runtime.db.SQLImpl;
-import lucee.runtime.db.SQLItemImpl;
-import lucee.runtime.engine.ThreadLocalPageContext;
-import lucee.runtime.op.Caster;
-import lucee.runtime.type.dt.DateTimeImpl;
 
 import org.apache.log4j.Layout;
 import org.apache.log4j.spi.LoggingEvent;
 import org.apache.log4j.spi.ThrowableInformation;
+
+import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.StringUtil;
+import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigWeb;
+import lucee.runtime.db.SQLCaster;
+import lucee.runtime.db.SQLItemImpl;
+import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.op.Caster;
+import lucee.runtime.type.dt.DateTimeImpl;
 
 public class DatasourceLayout extends Layout {
 

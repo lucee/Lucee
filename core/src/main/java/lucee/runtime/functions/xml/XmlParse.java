@@ -21,6 +21,9 @@
  */
 package lucee.runtime.functions.xml;
 
+import org.w3c.dom.Node;
+import org.xml.sax.InputSource;
+
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
@@ -28,9 +31,6 @@ import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
 import lucee.runtime.text.xml.XMLCaster;
 import lucee.runtime.text.xml.XMLUtil;
-
-import org.w3c.dom.Node;
-import org.xml.sax.InputSource;
 
 public final class XmlParse implements Function {
     public static Node call(PageContext pc, String string) throws PageException {

@@ -18,11 +18,11 @@
  **/
 package lucee.runtime.exp;
 
+import org.apache.commons.net.ftp.FTPClient;
+
 import lucee.runtime.config.Config;
 import lucee.runtime.net.ftp.AFTPClient;
 import lucee.runtime.op.Caster;
-
-import org.apache.commons.net.ftp.FTPClient;
 
 public class FTPException extends ApplicationException {
 

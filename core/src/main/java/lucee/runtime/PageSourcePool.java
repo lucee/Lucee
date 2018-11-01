@@ -25,6 +25,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.collections4.map.ReferenceMap;
+
 import lucee.commons.collection.LongKeyList;
 import lucee.commons.lang.SystemOut;
 import lucee.runtime.config.ConfigImpl;
@@ -35,8 +37,6 @@ import lucee.runtime.dump.DumpUtil;
 import lucee.runtime.dump.Dumpable;
 import lucee.runtime.dump.SimpleDumpData;
 import lucee.runtime.type.dt.DateTimeImpl;
-
-import org.apache.commons.collections4.map.ReferenceMap;
 
 /**
  * pool to handle pages

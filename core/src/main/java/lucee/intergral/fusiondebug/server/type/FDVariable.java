@@ -18,12 +18,12 @@
  **/
 package lucee.intergral.fusiondebug.server.type;
 
-import lucee.runtime.type.Collection;
-import lucee.runtime.type.KeyImpl;
-
 import com.intergral.fusiondebug.server.IFDStackFrame;
 import com.intergral.fusiondebug.server.IFDValue;
 import com.intergral.fusiondebug.server.IFDVariable;
+
+import lucee.runtime.type.Collection;
+import lucee.runtime.type.KeyImpl;
 
 public class FDVariable implements IFDVariable {
 

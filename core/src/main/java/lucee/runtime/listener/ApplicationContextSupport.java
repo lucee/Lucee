@@ -25,10 +25,14 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.log4j.HTMLLayout;
+import org.apache.log4j.PatternLayout;
+import org.apache.log4j.xml.XMLLayout;
+import org.osgi.framework.Version;
+
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.log.LoggerAndSourceData;
-import lucee.commons.io.log.log4j.Log4jUtil;
 import lucee.commons.io.log.log4j.appender.ConsoleAppender;
 import lucee.commons.io.log.log4j.appender.DatasourceAppender;
 import lucee.commons.io.log.log4j.appender.RollingResourceAppender;
@@ -59,11 +63,6 @@ import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.tag.TagLib;
 import lucee.transformer.library.tag.TagLibTag;
 import lucee.transformer.library.tag.TagLibTagAttr;
-
-import org.apache.log4j.HTMLLayout;
-import org.apache.log4j.PatternLayout;
-import org.apache.log4j.xml.XMLLayout;
-import org.osgi.framework.Version;
 
 public abstract class ApplicationContextSupport implements ApplicationContext {
 

@@ -19,18 +19,10 @@
 package lucee.transformer.cfml.expression;
 
 import lucee.runtime.exp.TemplateException;
-import lucee.transformer.Factory;
-import lucee.transformer.bytecode.Root;
 import lucee.transformer.cfml.Data;
 import lucee.transformer.cfml.ExprTransformer;
-import lucee.transformer.cfml.TransfomerSettings;
-import lucee.transformer.cfml.evaluator.EvaluatorPool;
 import lucee.transformer.cfml.script.AbstrCFMLScriptTransformer;
 import lucee.transformer.expression.Expression;
-import lucee.transformer.library.function.FunctionLib;
-import lucee.transformer.library.tag.TagLib;
-import lucee.transformer.library.tag.TagLibTag;
-import lucee.transformer.util.SourceCode;
 
 public class CFMLExprTransformer extends AbstrCFMLScriptTransformer implements ExprTransformer {
 

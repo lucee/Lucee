@@ -18,10 +18,10 @@
  **/
 package lucee.runtime.text.xml.struct;
 
+import org.w3c.dom.Node;
+
 import lucee.runtime.text.xml.XMLNodeList;
 import lucee.runtime.type.Struct;
-
-import org.w3c.dom.Node;
 
 /**
  * 

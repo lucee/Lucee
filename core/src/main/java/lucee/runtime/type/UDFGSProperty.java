@@ -20,7 +20,6 @@ package lucee.runtime.type;
 
 import java.security.NoSuchAlgorithmException;
 
-import lucee.print;
 import lucee.commons.digest.Hash;
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.StringUtil;

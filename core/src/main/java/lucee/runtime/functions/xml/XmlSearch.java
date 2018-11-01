@@ -31,6 +31,13 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import org.w3c.dom.Document;
+//import org.apache.xpath.XPathAPI;
+//import org.apache.xpath.objects.XObject;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
+
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
@@ -42,13 +49,6 @@ import lucee.runtime.text.xml.struct.XMLObject;
 import lucee.runtime.text.xml.struct.XMLStruct;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
-
-import org.w3c.dom.Document;
-//import org.apache.xpath.XPathAPI;
-//import org.apache.xpath.objects.XObject;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
 
 /**
  * Implements the CFML Function xmlsearch
