@@ -21,10 +21,11 @@ package lucee.runtime.cache;
 import java.io.IOException;
 import java.util.Arrays;
 
+import org.osgi.framework.BundleException;
+
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.cache.Cache;
 import lucee.commons.io.cache.exp.CacheException;
-import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.db.ClassDefinition;
@@ -34,8 +35,6 @@ import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
-
-import org.osgi.framework.BundleException;
 
 public class CacheConnectionImpl implements CacheConnectionPlus {
 
@@ -60,7 +59,7 @@ public class CacheConnectionImpl implements CacheConnectionPlus {
 	if (cache == null) {
 	    try {
 		Class<Cache> clazz = classDefinition.getClazz();
-		if (!Reflector.isInstaneOf(clazz, Cache.class))
+		if (!Reflector.isInstaneOf(clazz, Cache.class, false))
 		    throw new CacheException("class [" + clazz.getName() + "] does not implement interface [" + Cache.class.getName() + "]");
 		cache = (Cache) ClassUtil.loadInstance(clazz);
 		cache.init(config, getName(), getCustom());
@@ -73,6 +72,7 @@ public class CacheConnectionImpl implements CacheConnectionPlus {
 	return cache;
     }
 
+    @Override
     public Cache getLoadedInstance() {
 	return cache;
     }

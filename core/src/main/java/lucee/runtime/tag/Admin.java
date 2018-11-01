@@ -43,8 +43,11 @@ import java.util.jar.Manifest;
 import javax.servlet.ServletConfig;
 import javax.servlet.jsp.tagext.Tag;
 
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleException;
+import org.osgi.framework.Version;
+
 import lucee.VersionInfo;
-import lucee.print;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
@@ -54,7 +57,6 @@ import lucee.commons.io.cache.CachePro;
 import lucee.commons.io.compress.CompressUtil;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.log.LoggerAndSourceData;
-import lucee.commons.io.log.log4j.Log4jUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.filter.DirectoryResourceFilter;
 import lucee.commons.io.res.filter.ExtensionResourceFilter;
@@ -96,12 +98,10 @@ import lucee.runtime.config.PasswordImpl;
 import lucee.runtime.config.RemoteClient;
 import lucee.runtime.config.RemoteClientImpl;
 import lucee.runtime.config.XMLConfigAdmin;
-import lucee.runtime.config.XMLConfigFactory;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DataSourceImpl;
 import lucee.runtime.db.DataSourceManager;
-import lucee.runtime.db.DataSourceSupport;
 import lucee.runtime.db.DatasourceConnectionImpl;
 import lucee.runtime.db.JDBCDriver;
 import lucee.runtime.db.ParamSyntax;
@@ -116,13 +116,9 @@ import lucee.runtime.exp.PageExceptionImpl;
 import lucee.runtime.exp.SecurityException;
 import lucee.runtime.ext.tag.DynamicAttributes;
 import lucee.runtime.ext.tag.TagImpl;
-import lucee.runtime.extension.Extension;
 import lucee.runtime.extension.ExtensionDefintion;
-import lucee.runtime.extension.ExtensionImpl;
-import lucee.runtime.extension.ExtensionProvider;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.extension.RHExtensionProvider;
-import lucee.runtime.functions.other.CreateObject;
 import lucee.runtime.functions.query.QuerySort;
 import lucee.runtime.gateway.GatewayEngineImpl;
 import lucee.runtime.gateway.GatewayEntry;
@@ -186,10 +182,6 @@ import lucee.runtime.type.util.ListUtil;
 import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.tag.TagLib;
-
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleException;
-import org.osgi.framework.Version;
 
 /**
  * 
@@ -264,6 +256,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	attributes.setEL(KeyImpl.getInstance(localName), value);
     }
 
+    @Override
     public void setDynamicAttribute(String uri, Collection.Key localName, Object value) {
 	attributes.setEL(localName, value);
     }
@@ -2546,7 +2539,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		qry.setAt(KeyConstants._name, i + 1, children[i].getName());
 		qry.setAt(KeyConstants._source, i + 1, children[i].getAbsolutePath());
 		try {
-		    qry.setAt(KeyConstants._info, i + 1, new BundleFile(children[i]).info());
+		    qry.setAt(KeyConstants._info, i + 1, BundleFile.getInstance(children[i]).info());
 		}
 		catch (Exception e) {}
 	    }
@@ -3448,7 +3441,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
     }
 
     private void findExtension(Set<String> extensions, BundleDefinition bd) {
-	ConfigImpl ci = (ConfigImpl) config;
+	ConfigImpl ci = config;
 	_findExtension(ci.getRHExtensions(), bd, extensions);
 	_findExtension(ci.getServerRHExtensions(), bd, extensions);
     }
@@ -4672,7 +4665,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	if (!res.isFile()) throw new ApplicationException("[" + res + "] is not a file");
 	try {
 	    Struct sct = new StructImpl();
-	    pageContext.setVariable(ret, new BundleFile(res).info());
+	    pageContext.setVariable(ret, BundleFile.getInstance(res).info());
 	}
 	catch (Exception e) {
 	    throw Caster.toPageException(e);

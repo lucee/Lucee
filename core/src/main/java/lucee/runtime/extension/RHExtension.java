@@ -34,6 +34,10 @@ import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import org.osgi.framework.BundleException;
+import org.osgi.framework.Version;
+import org.w3c.dom.Element;
+
 import lucee.Info;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
@@ -43,8 +47,6 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.lang.SystemOut;
-import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.util.Util;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
@@ -76,10 +78,6 @@ import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
-
-import org.osgi.framework.BundleException;
-import org.osgi.framework.Version;
-import org.w3c.dom.Element;
 
 /**
  * Extension completely handled by the engine and not by the Install/config.xml
@@ -1121,7 +1119,7 @@ public class RHExtension implements Serializable {
 	Resource tmp = SystemUtil.getTempDirectory().getRealResource(name);
 	try {
 	    IOUtil.copy(is, tmp, closeStream);
-	    BundleFile bf = new BundleFile(tmp);
+	    BundleFile bf = BundleFile.getInstance(tmp);
 	    if (bf.isBundle()) throw new ApplicationException("Jar [" + name + "] is not a valid OSGi Bundle");
 	    return new BundleDefinition(bf.getSymbolicName(), bf.getVersion());
 	}

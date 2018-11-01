@@ -29,9 +29,7 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
@@ -54,6 +52,9 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.Vector;
 import java.util.concurrent.ExecutionException;
+
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import lucee.commons.date.DateTimeUtil;
 import lucee.commons.date.JREDateTimeUtil;
@@ -81,8 +82,6 @@ import lucee.runtime.component.Member;
 import lucee.runtime.component.Property;
 import lucee.runtime.component.PropertyImpl;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
-import lucee.runtime.config.Identification;
 import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.ScriptConverter;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -99,8 +98,6 @@ import lucee.runtime.image.ImageUtil;
 import lucee.runtime.interpreter.CFMLExpressionInterpreter;
 import lucee.runtime.interpreter.VariableInterpreter;
 import lucee.runtime.java.JavaObject;
-import lucee.runtime.type.Pojo;
-import lucee.runtime.net.rpc.WSHandler;
 import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.op.validators.ValidateCreditCard;
 import lucee.runtime.reflection.Reflector;
@@ -119,6 +116,7 @@ import lucee.runtime.type.FunctionValueImpl;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.ObjectWrap;
 import lucee.runtime.type.Objects;
+import lucee.runtime.type.Pojo;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryColumn;
 import lucee.runtime.type.QueryImpl;
@@ -139,11 +137,6 @@ import lucee.runtime.type.wrap.ListAsArray;
 import lucee.runtime.type.wrap.MapAsStruct;
 import lucee.runtime.type.wrap.StructAsArray;
 import lucee.runtime.util.ForEachUtil;
-
-import org.osgi.framework.BundleException;
-import org.osgi.framework.Version;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 /**
  * This class can cast object of one type to a other by CFML rules
@@ -405,7 +398,7 @@ public final class Caster {
 	else if (o instanceof ObjectWrap) return toDoubleValue(((ObjectWrap) o).getEmbededObject());
 	else if (o instanceof Date) return DateTimeUtil.getInstance().toDoubleValue(((Date) o).getTime());
 	else if (o instanceof Calendar) return DateTimeUtil.getInstance().toDoubleValue(((Calendar) o).getTimeInMillis());
-	else if (o instanceof Character) return (double) (((Character) o).charValue());
+	else if (o instanceof Character) return (((Character) o).charValue());
 	throw new CasterException(o, "number");
     }
 
@@ -557,7 +550,7 @@ public final class Caster {
 	else if (o instanceof ObjectWrap) return toDoubleValue(((ObjectWrap) o).getEmbededObject(new Double(defaultValue)), true, defaultValue);
 	else if (o instanceof Date) return DateTimeUtil.getInstance().toDoubleValue(((Date) o).getTime());
 	else if (o instanceof Calendar) return DateTimeUtil.getInstance().toDoubleValue(((Calendar) o).getTimeInMillis());
-	else if (o instanceof Character) return (double) (((Character) o).charValue());
+	else if (o instanceof Character) return (((Character) o).charValue());
 	return defaultValue;
     }
 
@@ -704,7 +697,7 @@ public final class Caster {
 	if (o instanceof Number) return ((Number) o).intValue();
 	else if (o instanceof Boolean) return ((Boolean) o).booleanValue() ? 1 : 0;
 	else if (o instanceof CharSequence) return toIntValue(o.toString().trim());
-	else if (o instanceof Character) return (int) (((Character) o).charValue());
+	else if (o instanceof Character) return (((Character) o).charValue());
 	// else if(o instanceof Clob) return toIntValue(toString(o));
 	else if (o instanceof Castable) return (int) ((Castable) o).castToDoubleValue();
 	else if (o instanceof Date) return (int) new DateTimeImpl((Date) o).castToDoubleValue();
@@ -728,7 +721,7 @@ public final class Caster {
 	else if (o instanceof Boolean) return ((Boolean) o).booleanValue() ? 1 : 0;
 	else if (o instanceof CharSequence) return toIntValue(o.toString().trim(), defaultValue);
 	// else if(o instanceof Clob) return toIntValue(toString(o));
-	else if (o instanceof Character) return (int) (((Character) o).charValue());
+	else if (o instanceof Character) return (((Character) o).charValue());
 	else if (o instanceof Castable) {
 	    return (int) ((Castable) o).castToDoubleValue(defaultValue);
 
@@ -1464,7 +1457,7 @@ public final class Caster {
 	else if (o instanceof Castable) {
 	    return (long) ((Castable) o).castToDoubleValue(defaultValue);
 	}
-	else if (o instanceof Character) return (long) (((Character) o).charValue());
+	else if (o instanceof Character) return (((Character) o).charValue());
 	else if (o instanceof ObjectWrap) return toLongValue(((ObjectWrap) o).getEmbededObject(toLong(defaultValue)), defaultValue);
 
 	return defaultValue;
@@ -1692,7 +1685,7 @@ public final class Caster {
 	else if (o instanceof Boolean) return ((((Boolean) o).booleanValue()) ? 1F : 0F);
 	else if (o instanceof Number) return (((Number) o).floatValue());
 	else if (o instanceof CharSequence) return (float) toDoubleValue(o.toString(), defaultValue);
-	else if (o instanceof Character) return (float) (((Character) o).charValue());
+	else if (o instanceof Character) return (((Character) o).charValue());
 	else if (o instanceof Castable) {
 	    return (float) ((Castable) o).castToDoubleValue(defaultValue);
 
@@ -3290,14 +3283,14 @@ public final class Caster {
     }
 
     public static String toTypeName(Class clazz) {
-	if (Reflector.isInstaneOf(clazz, String.class)) return "string";
-	if (Reflector.isInstaneOf(clazz, Boolean.class)) return "boolean";
-	if (Reflector.isInstaneOf(clazz, Number.class)) return "numeric";
-	if (Reflector.isInstaneOf(clazz, Array.class)) return "array";
-	if (Reflector.isInstaneOf(clazz, Struct.class)) return "struct";
-	if (Reflector.isInstaneOf(clazz, Query.class)) return "query";
-	if (Reflector.isInstaneOf(clazz, DateTime.class)) return "datetime";
-	if (Reflector.isInstaneOf(clazz, byte[].class)) return "binary";
+	if (Reflector.isInstaneOf(clazz, String.class, false)) return "string";
+	if (Reflector.isInstaneOf(clazz, Boolean.class, false)) return "boolean";
+	if (Reflector.isInstaneOf(clazz, Number.class, false)) return "numeric";
+	if (Reflector.isInstaneOf(clazz, Array.class, false)) return "array";
+	if (Reflector.isInstaneOf(clazz, Struct.class, false)) return "struct";
+	if (Reflector.isInstaneOf(clazz, Query.class, false)) return "query";
+	if (Reflector.isInstaneOf(clazz, DateTime.class, false)) return "datetime";
+	if (Reflector.isInstaneOf(clazz, byte[].class, false)) return "binary";
 
 	String className = clazz.getName();
 	if (className.startsWith("java.lang.")) {
@@ -4621,7 +4614,7 @@ public final class Caster {
 	else if (trgClass == Object.class) return obj;
 	else if (trgClass == String.class) return Caster.toString(obj);
 
-	if (Reflector.isInstaneOf(obj.getClass(), trgClass)) return obj;
+	if (Reflector.isInstaneOf(obj.getClass(), trgClass, false)) return obj;
 
 	return Caster.castTo(pc, Caster.toClassName(trgClass), obj, false);
     }
@@ -4639,7 +4632,7 @@ public final class Caster {
 	}
 	else if (o instanceof Boolean) return new BigDecimal(((Boolean) o).booleanValue() ? 1 : 0);
 	else if (o instanceof CharSequence) return new BigDecimal(o.toString());
-	else if (o instanceof Character) return new BigDecimal((int) (((Character) o).charValue()));
+	else if (o instanceof Character) return new BigDecimal((((Character) o).charValue()));
 	else if (o instanceof Castable) return new BigDecimal(((Castable) o).castToDoubleValue());
 	else if (o == null) return BigDecimal.ZERO;
 	else if (o instanceof ObjectWrap) return toBigDecimal(((ObjectWrap) o).getEmbededObject());

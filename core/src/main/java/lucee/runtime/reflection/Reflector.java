@@ -45,7 +45,6 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefInteger;
 import lucee.commons.lang.types.RefIntegerImpl;
 import lucee.runtime.Component;
-import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.Constants;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
@@ -54,8 +53,6 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.exp.SecurityException;
 import lucee.runtime.java.JavaObject;
-import lucee.runtime.type.Pojo;
-import lucee.runtime.net.rpc.WSHandler;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.op.Duplicator;
@@ -70,6 +67,7 @@ import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.ObjectWrap;
+import lucee.runtime.type.Pojo;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.ArrayUtil;
@@ -99,7 +97,7 @@ public final class Reflector {
     public static boolean isInstaneOf(String srcClassName, Class trg) {
 	Class clazz = ClassUtil.loadClass(srcClassName, null);
 	if (clazz == null) return false;
-	return isInstaneOf(clazz, trg);
+	return isInstaneOf(clazz, trg, false);
     }
 
     /**
@@ -122,16 +120,17 @@ public final class Reflector {
      * @param trgClassName Class name to check
      * @return is Class Class of...
      */
-    public static boolean isInstaneOf(Class src, String trgClassName) {
+    public static boolean isInstaneOfOld(Class src, String trgClassName) {
 	Class clazz = ClassUtil.loadClass(trgClassName, null);
 	if (clazz == null) return false;
-	return isInstaneOf(src, clazz);
+	return isInstaneOf(src, clazz, false);
     }
 
     public static boolean isInstaneOf(ClassLoader cl, Class src, String trgClassName) {
+	long start = System.currentTimeMillis();
 	Class clazz = ClassUtil.loadClass(cl, trgClassName, null);
 	if (clazz == null) return false;
-	return isInstaneOf(src, clazz);
+	return isInstaneOf(src, clazz, false);
     }
 
     public static boolean isInstaneOfIgnoreCase(Class src, String trg) {
@@ -142,7 +141,7 @@ public final class Reflector {
 	if (src.getName().equalsIgnoreCase(trg)) return true;
 
 	// Interface
-	if (_checkInterfaces(src, trg)) {
+	if (_checkInterfaces(src, trg, false)) {
 	    return true;
 	}
 	// Extends
@@ -151,52 +150,78 @@ public final class Reflector {
 	return false;
     }
 
+    public static boolean isInstaneOf(Class src, String trg) {
+	if (src.isArray()) {
+	    return isInstaneOf(src.getComponentType(), trg);
+	}
+
+	if (src.getName().equals(trg)) return true;
+
+	// Interface
+	if (_checkInterfaces(src, trg, false)) {
+	    return true;
+	}
+	// Extends
+	src = src.getSuperclass();
+	if (src != null) return isInstaneOf(src, trg);
+	return false;
+    }
+
     /**
      * check if Class is instanceof a a other Class
      * 
      * @param src Class to check
      * @param trg is Class of?
+     * @param exatctMatch if false a valid match is when thy have the same full name, if true they also
+     *            need to have the same classloader
      * @return is Class Class of...
+     * 
      */
-    public static boolean isInstaneOf(Class src, Class trg) {
+    public static boolean isInstaneOf(Class src, Class trg, boolean exatctMatch) {
 	if (src.isArray() && trg.isArray()) {
-	    return isInstaneOf(src.getComponentType(), trg.getComponentType());
+	    return isInstaneOf(src.getComponentType(), trg.getComponentType(), exatctMatch);
 	}
 
-	if (src == trg) return true;
+	if (src == trg || (!exatctMatch && src.getName().equals(trg.getName()))) return true;
 
 	// Interface
 	if (trg.isInterface()) {
-	    return _checkInterfaces(src, trg);
+	    return _checkInterfaces(src, trg, exatctMatch);
 	}
 	// Extends
 
 	while (src != null) {
-	    if (src == trg) return true;
+	    if (src == trg || (!exatctMatch && src.getName().equals(trg.getName()))) return true;
 	    src = src.getSuperclass();
 	}
 	return trg == Object.class;
     }
 
-    private static boolean _checkInterfaces(Class src, String trg) {
+    private static boolean _checkInterfaces(Class src, String trg, boolean caseSensitive) {
 	Class[] interfaces = src.getInterfaces();
 	if (interfaces == null) return false;
 	for (int i = 0; i < interfaces.length; i++) {
-	    if (interfaces[i].getName().equalsIgnoreCase(trg)) return true;
-	    if (_checkInterfaces(interfaces[i], trg)) return true;
+	    if (caseSensitive) {
+		if (interfaces[i].getName().equalsIgnoreCase(trg)) return true;
+	    }
+	    else {
+		if (interfaces[i].getName().equals(trg)) return true;
+	    }
+
+	    if (_checkInterfaces(interfaces[i], trg, caseSensitive)) return true;
 	}
 	return false;
     }
 
-    private static boolean _checkInterfaces(Class src, Class trg) {
+    private static boolean _checkInterfaces(Class src, Class trg, boolean exatctMatch) {
 	Class[] interfaces = src.getInterfaces();
 	if (interfaces == null) return false;
 	for (int i = 0; i < interfaces.length; i++) {
-	    if (interfaces[i] == trg) return true;
-	    if (_checkInterfaces(interfaces[i], trg)) return true;
+	    if (interfaces[i] == trg || (!exatctMatch && interfaces[i].getName().equals(trg.getName()))) return true;
+	    if (_checkInterfaces(interfaces[i], trg, exatctMatch)) return true;
 	}
 	src = src.getSuperclass();
-	if (src != null) return _checkInterfaces(src, trg);
+	if (src != null) return _checkInterfaces(src, trg, exatctMatch);
 	return false;
     }
 
@@ -259,7 +284,7 @@ public final class Reflector {
      */
     public static boolean like(Class src, Class trg) {
 	if (src == trg) return true;
-	return isInstaneOf(src, trg);
+	return isInstaneOf(src, trg, true);
     }
 
     /**
@@ -282,7 +307,7 @@ public final class Reflector {
 		rating.plus(0);
 		return trg;
 	    }
-	    if (isInstaneOf(src.getClass(), trg.getClass())) {
+	    if (isInstaneOf(src.getClass(), trg.getClass(), true)) {
 		rating.plus(9);
 		return trg;
 	    }
@@ -366,10 +391,10 @@ public final class Reflector {
 	    if (trgClass.isArray()) {
 		return toNativeArray(trgClass, src);
 	    }
-	    else if (isInstaneOf(trgClass, List.class)) {
+	    else if (isInstaneOf(trgClass, List.class, true)) {
 		return Caster.toList(src);
 	    }
-	    else if (isInstaneOf(trgClass, Array.class)) {
+	    else if (isInstaneOf(trgClass, Array.class, true)) {
 		return Caster.toArray(src);
 	    }
 	}
@@ -391,7 +416,7 @@ public final class Reflector {
 	else if (trgClass == TimeZone.class && Decision.isString(src)) return Caster.toTimeZone(Caster.toString(src));
 	else if (trgClass == Collection.Key.class) return KeyImpl.toKey(src);
 	else if (trgClass == Locale.class && Decision.isString(src)) return Caster.toLocale(Caster.toString(src));
-	else if (Reflector.isInstaneOf(trgClass, Pojo.class) && src instanceof Map) {
+	else if (Reflector.isInstaneOf(trgClass, Pojo.class, true) && src instanceof Map) {
 	    Struct sct = Caster.toStruct(src);
 	    try {
 		Pojo pojo = (Pojo) trgClass.newInstance();
@@ -1451,7 +1476,7 @@ public final class Reflector {
 	    if (isGetter(methods[i])) list.add(methods[i]);
 	}
 	if (list.size() == 0) return new Method[0];
-	return (Method[]) list.toArray(new Method[list.size()]);
+	return list.toArray(new Method[list.size()]);
     }
 
     /**

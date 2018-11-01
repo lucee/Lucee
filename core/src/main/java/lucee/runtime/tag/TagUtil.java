@@ -29,6 +29,8 @@ import java.util.Map.Entry;
 import javax.servlet.http.Cookie;
 import javax.servlet.jsp.tagext.Tag;
 
+import org.osgi.framework.BundleException;
+
 import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
@@ -66,8 +68,6 @@ import lucee.runtime.type.util.KeyConstants;
 import lucee.transformer.library.tag.TagLib;
 import lucee.transformer.library.tag.TagLibTag;
 import lucee.transformer.library.tag.TagLibTagAttr;
-
-import org.osgi.framework.BundleException;
 
 public class TagUtil {
 
@@ -358,7 +358,7 @@ public class TagUtil {
 	try {
 	    Class<?> clazz = ClassUtil.loadClassByBundle(className, bundleName, bundleVersion, pc.getConfig().getIdentification());
 	    BIF bif;
-	    if (Reflector.isInstaneOf(clazz, BIF.class)) bif = (BIF) clazz.newInstance();
+	    if (Reflector.isInstaneOf(clazz, BIF.class, false)) bif = (BIF) clazz.newInstance();
 	    else bif = new BIFProxy(clazz);
 
 	    return bif.invoke(pc, args);

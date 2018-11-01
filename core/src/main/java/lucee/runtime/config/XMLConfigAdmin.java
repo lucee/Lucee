@@ -44,6 +44,16 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleException;
+import org.osgi.framework.Version;
+import org.w3c.dom.DOMException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
+
+import com.allaire.cfx.CustomTag;
+
 import lucee.commons.digest.MD5;
 import lucee.commons.io.FileUtil;
 import lucee.commons.io.IOUtil;
@@ -144,16 +154,6 @@ import lucee.runtime.video.VideoExecuterNotSupported;
 import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.function.FunctionLibException;
 import lucee.transformer.library.tag.TagLibException;
-
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleException;
-import org.osgi.framework.Version;
-import org.w3c.dom.DOMException;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.xml.sax.SAXException;
-
-import com.allaire.cfx.CustomTag;
 
 /**
  * 
@@ -989,7 +989,7 @@ public final class XMLConfigAdmin {
     }
 
     public static void updateJar(Config config, Resource resJar, boolean reloadWhenClassicJar) throws IOException, BundleException {
-	BundleFile bf = new BundleFile(resJar);
+	BundleFile bf = BundleFile.getInstance(resJar);
 
 	// resJar is a bundle
 	if (bf.isBundle()) {
@@ -1015,7 +1015,7 @@ public final class XMLConfigAdmin {
      */
     static BundleFile installBundle(Config config, Resource resJar, String extVersion, boolean convert2bundle) throws IOException, BundleException {
 
-	BundleFile bf = new BundleFile(resJar);
+	BundleFile bf = BundleFile.getInstance(resJar);
 
 	// resJar is a bundle
 	if (bf.isBundle()) {
@@ -1038,7 +1038,7 @@ public final class XMLConfigAdmin {
 	bbf.setIgnoreExistingManifest(false);
 	bbf.build();
 
-	bf = new BundleFile(resJar);
+	bf = BundleFile.getInstance(resJar);
 	SystemOut.printDate("converted  [" + resJar + "] to an OSGi Bundle");
 	return installBundle(config, bf);
     }
@@ -1064,7 +1064,7 @@ public final class XMLConfigAdmin {
 	    IOUtil.closeEL(is, os);
 	}
 
-	return new BundleFile(jar);
+	return BundleFile.getInstance(jar);
     }
 
     /**
@@ -1449,7 +1449,8 @@ public final class XMLConfigAdmin {
     public void verifyJavaCFX(String name, ClassDefinition cd) throws PageException {
 	try {
 	    Class clazz = cd.getClazz();
-	    if (!Reflector.isInstaneOf(clazz, CustomTag.class)) throw new ExpressionException("class [" + cd + "] must implement interface [" + CustomTag.class.getName() + "]");
+	    if (!Reflector.isInstaneOf(clazz, CustomTag.class, false))
+		throw new ExpressionException("class [" + cd + "] must implement interface [" + CustomTag.class.getName() + "]");
 	}
 	catch (ClassException e) {
 	    throw Caster.toPageException(e);
@@ -1891,7 +1892,7 @@ public final class XMLConfigAdmin {
 		clazz = ClassUtil.loadClass(config.getClassLoader(), "org.lucee.extension.cache.eh.EHCache");
 	    else clazz = ClassUtil.loadClass(config.getClassLoader(), cd.getClassName());
 
-	    if (!Reflector.isInstaneOf(clazz, Cache.class)) throw new ExpressionException("class [" + clazz.getName() + "] is not of type [" + Cache.class.getName() + "]");
+	    if (!Reflector.isInstaneOf(clazz, Cache.class, false)) throw new ExpressionException("class [" + clazz.getName() + "] is not of type [" + Cache.class.getName() + "]");
 	}
 	catch (ClassException e) {
 	    throw new ExpressionException(e.getMessage());
@@ -4410,7 +4411,7 @@ public final class XMLConfigAdmin {
 	try {
 	    // get patches directory
 	    CFMLEngine engine = ConfigWebUtil.getEngine(config);
-	    ConfigServerImpl cs = (ConfigServerImpl) config;
+	    ConfigServerImpl cs = config;
 	    Version v;
 	    v = CFMLEngineFactory.toVersion(core.getName(), null);
 	    Log logger = cs.getLog("deploy");
@@ -5367,7 +5368,7 @@ public final class XMLConfigAdmin {
     }
 
     public void removeArchive(Resource archive) throws IOException, PageException {
-	Log logger = ((ConfigImpl) config).getLog("deploy");
+	Log logger = config.getLog("deploy");
 	String virtual = null, type = null;
 	InputStream is = null;
 	ZipFile file = null;
@@ -5449,7 +5450,7 @@ public final class XMLConfigAdmin {
 	catch (Exception e) {
 	    throw Caster.toPageException(e);
 	}
-	if (!Reflector.isInstaneOf(clazz, Cluster.class) && !Reflector.isInstaneOf(clazz, ClusterRemote.class)) throw new ApplicationException(
+	if (!Reflector.isInstaneOf(clazz, Cluster.class, false) && !Reflector.isInstaneOf(clazz, ClusterRemote.class, false)) throw new ApplicationException(
 		"class [" + clazz.getName() + "] does not implement interface [" + Cluster.class.getName() + "] or [" + ClusterRemote.class.getName() + "]");
 
 	Element scope = _getRootElement("scope");
@@ -6409,7 +6410,7 @@ public final class XMLConfigAdmin {
 	try {
 	    Class clazz = cd.getClazz();
 
-	    if (instanceOfClass != null && !Reflector.isInstaneOf(clazz, instanceOfClass))
+	    if (instanceOfClass != null && !Reflector.isInstaneOf(clazz, instanceOfClass, false))
 		throw new ApplicationException("class [" + clazz.getName() + "] is not of type [" + instanceOfClass.getName() + "]");
 	}
 	catch (Exception e) {

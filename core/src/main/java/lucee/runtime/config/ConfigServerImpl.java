@@ -625,11 +625,11 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
     public Cluster createClusterScope() throws PageException {
 	Cluster cluster = null;
 	try {
-	    if (Reflector.isInstaneOf(getClusterClass(), Cluster.class)) {
+	    if (Reflector.isInstaneOf(getClusterClass(), Cluster.class, false)) {
 		cluster = (Cluster) ClassUtil.loadInstance(getClusterClass(), ArrayUtil.OBJECT_EMPTY);
 		cluster.init(this);
 	    }
-	    else if (Reflector.isInstaneOf(getClusterClass(), ClusterRemote.class)) {
+	    else if (Reflector.isInstaneOf(getClusterClass(), ClusterRemote.class, false)) {
 		ClusterRemote cb = (ClusterRemote) ClassUtil.loadInstance(getClusterClass(), ArrayUtil.OBJECT_EMPTY);
 
 		cluster = new ClusterWrap(this, cb);
@@ -900,10 +900,12 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 	return HashUtil.create64BitHash(sb);
     }
 
+    @Override
     protected void setGatewayEntries(Map<String, GatewayEntry> gatewayEntries) {
 	this.gatewayEntries = gatewayEntries;
     }
 
+    @Override
     public Map<String, GatewayEntry> getGatewayEntries() {
 	return gatewayEntries;
     }
