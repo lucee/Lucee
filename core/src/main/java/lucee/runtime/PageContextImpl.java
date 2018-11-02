@@ -25,6 +25,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -316,8 +317,12 @@ public final class PageContextImpl extends PageContext {
 
     private DatasourceManagerImpl manager;
     private Struct threads;
+    private Map<Key, Threads> allThreads;
     private boolean hasFamily = false;
     private PageContextImpl parent = null;
+    private PageContextImpl root = null;
+
+    private List<String> parentTags;
     private List<PageContext> children = null;
     private List<Statement> lazyStats;
     private boolean fdEnabled;
@@ -338,7 +343,7 @@ public final class PageContextImpl extends PageContext {
 
     private int appListenerType = ApplicationListener.TYPE_NONE;
 
-    private ThreadsImpl currentThread;
+    private ThreadsImpl currentThread = null;
 
     private StackTraceElement[] timeoutStacktrace;
 
@@ -419,6 +424,7 @@ public final class PageContextImpl extends PageContext {
     public PageContextImpl initialize(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp, String errorPageURL, boolean needsSession, int bufferSize,
 	    boolean autoFlush, boolean isChild, boolean ignoreScopes) {
 	parent = null;
+	root = null;
 	requestId = counter++;
 
 	appListenerType = ApplicationListener.TYPE_NONE;
@@ -521,6 +527,7 @@ public final class PageContextImpl extends PageContext {
 
 	// boolean isChild=parent!=null; // isChild is defined in the class outside this method
 	parent = null;
+	root = null;
 	// Attention have to be before close
 	if (client != null) {
 	    client.touchAfterRequest(this);
@@ -549,6 +556,7 @@ public final class PageContextImpl extends PageContext {
 	    variablesRoot = null;
 	    // if(threads!=null && threads.size()>0) threads.clear();
 	    threads = null;
+	    allThreads = null;
 	    currentThread = null;
 	}
 	else {
@@ -630,6 +638,8 @@ public final class PageContextImpl extends PageContext {
 	pe = null;
 	this.literalTimestampWithTSOffset = false;
 	thread = null;
+	tagName = null;
+	parentTags = null;
     }
 
     private void releaseORM() throws PageException {
@@ -981,6 +991,13 @@ public final class PageContextImpl extends PageContext {
 	hasFamily = true;
 	other.hasFamily = true;
 	other.parent = this;
+	other.root = root == null ? this : root;
+	other.tagName = tagName;
+	other.parentTags = parentTags == null ? null : (List) ((ArrayList) parentTags).clone();
+	/*
+	 * if (!StringUtil.isEmpty(tagName)) { if (other.parentTags == null) other.parentTags = new
+	 * ArrayList<String>(); other.parentTags.add(tagName); }
+	 */
 	if (children == null) children = new ArrayList<PageContext>();
 	children.add(other);
 	other.applicationContext = applicationContext;
@@ -3145,7 +3162,14 @@ public final class PageContextImpl extends PageContext {
 
     @Override
     public PageContext getParentPageContext() {
+	// DebuggerImpl.deprecated(this, "PageContext.getParentPageContext", "the method
+	// PageContext.getParentPageContext should no longer be used");
+
 	return parent;
+    }
+
+    public PageContext getRootPageContext() {
+	return root;
     }
 
     public List<PageContext> getChildPageContexts() {
@@ -3201,6 +3225,21 @@ public final class PageContextImpl extends PageContext {
 	threads.setEL(name, ct);
     }
 
+    /**
+     * 
+     * @param name
+     * @param ct
+     */
+    public void setAllThreadScope(Collection.Key name, Threads ct) {
+	hasFamily = true;
+	if (allThreads == null) allThreads = new HashMap<Collection.Key, Threads>();
+	allThreads.put(name, ct);
+    }
+
+    public Map<Collection.Key, Threads> getAllThreadScope() {
+	return allThreads;
+    }
+
     @Override
     public boolean hasFamily() {
 	return hasFamily;
@@ -3233,6 +3272,8 @@ public final class PageContextImpl extends PageContext {
     private Stack<ActiveLock> activeLocks = new Stack<ActiveLock>();
 
     private boolean literalTimestampWithTSOffset;
+
+    private String tagName;
 
     public boolean isTrusted(Page page) {
 	if (page == null) return false;
@@ -3568,5 +3609,24 @@ public final class PageContextImpl extends PageContext {
 
     public boolean getTimestampWithTSOffset() {
 	return literalTimestampWithTSOffset;
+    }
+
+    public void setTagName(String tagName) {
+	this.tagName = tagName;
+    }
+
+    public String getTagName() {
+	return this.tagName;
+    }
+
+    public List<String> getParentTagNames() {
+	return this.parentTags;
+    }
+
+    public void addParentTag(String tagName) {
+	if (!StringUtil.isEmpty(tagName)) {
+	    if (parentTags == null) parentTags = new ArrayList<String>();
+	    parentTags.add(tagName);
+	}
     }
 }

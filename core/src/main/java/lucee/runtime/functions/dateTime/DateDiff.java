@@ -22,14 +22,12 @@
 package lucee.runtime.functions.dateTime;
 
 import java.util.Calendar;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.TimeZone;
 
 import lucee.commons.date.JREDateTimeUtil;
 import lucee.runtime.PageContext;
+import lucee.runtime.debug.DebuggerImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.FunctionException;
@@ -82,26 +80,11 @@ public final class DateDiff extends BIF {
 	else if ("m".equals(datePart)) dp = DATEPART_M;
 	else if ("w".equals(datePart)) {
 	    // if debug enabled we are warning about using this
-	    if (pc.getConfig().debug()) {
-
-		// do we already have set?
-		boolean exists = false;
-		Map<String, Map<String, List<String>>> gd = pc.getDebugger().getGenericData();
-		if (gd != null) {
-		    Map<String, List<String>> warning = gd.get("Warning");
-		    if (warning != null) {
-			exists = warning.containsKey("DateDiff.DatePart");
-		    }
-		}
-
-		if (!exists) {
-		    Map<String, String> map = new HashMap<>();
-		    map.put("DateDiff.DatePart", "With the function DateDiff the argument [datePart] changed its meaning in other CFML Engines from [weeks] to [weekdays]. "
+	    DebuggerImpl.deprecated(pc, "DateDiff.DatePart",
+		    "With the function DateDiff the argument [datePart] changed its meaning in other CFML Engines from [weeks] to [weekdays]. "
 			    + "Lucee did not follow this change so far to avoid breaking existing code. "
-			    + "Please change your code to [dateDiff(\"wd\",...)] in case you want to have weekdays and to [dateDiff(\\\"ww\\\",...)] in case you want to have weeks, to futureproof your code.");
-		    pc.getDebugger().addGenericData("Warning", map);
-		}
-	    }
+			    + "Please change your code to [dateDiff(\"wd\",...)] in case you want to have weekdays and to [dateDiff(\"ww\",...)] in case you want to have weeks, to futureproof your code.");
+
 	    dp = DATEPART_WW; // weeks
 	}
 	else if ("ww".equals(datePart)) dp = DATEPART_WW; // weeks

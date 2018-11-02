@@ -75,6 +75,7 @@ import lucee.runtime.CFMLFactory;
 import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.Mapping;
 import lucee.runtime.MappingImpl;
+import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
@@ -2312,7 +2313,9 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	    qry.setAt("Id", row, new Double(pc.getId()));
 	    qry.setAt("Start", row, new DateTimeImpl(pc.getStartTime(), false));
 	    qry.setAt("Timeout", row, new Double(pc.getRequestTimeout() / 1000));
-	    qry.setAt("ThreadType", row, pc.getParentPageContext() == null ? "main" : "child");
+
+	    PageContext root = pc.getRootPageContext();
+	    qry.setAt("ThreadType", row, (root != null && root != pc) ? "main" : "child");
 	    qry.setAt("StackTrace", row, toString(st));
 	    qry.setAt("TagContext", row, PageExceptionImpl.getTagContext(pc.getConfig(), st));
 

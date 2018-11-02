@@ -122,6 +122,9 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 		catch (ConcurrentModificationException e) {// MUST search for:hhlhgiug
 		    this.pc = ThreadUtil.clonePageContext(parent, output, false, false, true);
 		}
+		// tag names
+		this.pc.setTagName(tagName);
+		this.pc.addParentTag(parent.getTagName());
 	    }
 	}
 	else {

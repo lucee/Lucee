@@ -122,7 +122,7 @@ public final class XMLConverter extends ConverterSupport {
 	 * lucee.runtime.format.TimeFormat(Locale.US).format(dateTime,"HH:mm:ss"); return
 	 * goIn()+strDate+" "+strTime;
 	 */
-	return goIn() + JSONDateFormat.format(dateTime, null);
+	return goIn() + JSONDateFormat.format(dateTime, null, JSONDateFormat.PATTERN_CF);
     }
 
     /**

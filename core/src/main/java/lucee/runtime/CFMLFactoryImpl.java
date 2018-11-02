@@ -214,7 +214,8 @@ public final class CFMLFactoryImpl extends CFMLFactory {
     }
 
     private static Object _execute(CFMLFactoryImpl factory, PageContext pc) {
-	boolean isChild = pc.getParentPageContext() != null; // we need to get this check before release is executed
+	PageContext root = ((PageContextImpl) pc).getRootPageContext();
+	boolean isChild = root != null && root != pc; // we need to get this check before release is executed
 
 	// when pc was registered with an other thread, we register with this thread when calling release
 	PageContext beforePC = ThreadLocalPageContext.get();
@@ -304,8 +305,9 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		if (pc.getStartTime() + timeout < System.currentTimeMillis() && Long.MAX_VALUE != timeout) {
 		    Log log = ((ConfigImpl) pc.getConfig()).getLog("requesttimeout");
 		    if (log != null) {
+			PageContext root = pc.getRootPageContext();
 			log.log(Log.LEVEL_ERROR, "controller",
-				"stop " + (pc.getParentPageContext() == null ? "request" : "thread") + " (" + pc.getId() + ") because run into a timeout " + getPath(pc) + "."
+				"stop " + (root != null && root != pc ? "thread" : "request") + " (" + pc.getId() + ") because run into a timeout " + getPath(pc) + "."
 					+ MonitorState.getBlockedThreads(pc) + RequestTimeoutException.locks(pc) + "\n" + MonitorState.toString(pc.getThread().getStackTrace()));
 		    }
 		    terminate(pc, true);
@@ -316,8 +318,9 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		else if (pc.getStartTime() + 10000 < System.currentTimeMillis() && pc.getThread().getPriority() != Thread.MIN_PRIORITY) {
 		    Log log = ((ConfigImpl) pc.getConfig()).getLog("requesttimeout");
 		    if (log != null) {
-			log.log(Log.LEVEL_WARN, "controller", "downgrade priority of the a " + (pc.getParentPageContext() == null ? "request" : "thread") + " at " + getPath(pc)
-				+ ". " + MonitorState.getBlockedThreads(pc) + RequestTimeoutException.locks(pc) + "\n" + MonitorState.toString(pc.getThread().getStackTrace()));
+			PageContext root = pc.getRootPageContext();
+			log.log(Log.LEVEL_WARN, "controller", "downgrade priority of the a " + (root != null && root != pc ? "thread" : "request") + " at " + getPath(pc) + ". "
+				+ MonitorState.getBlockedThreads(pc) + RequestTimeoutException.locks(pc) + "\n" + MonitorState.toString(pc.getThread().getStackTrace()));
 		    }
 		    try {
 			pc.getThread().setPriority(Thread.MIN_PRIORITY);

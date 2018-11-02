@@ -92,13 +92,21 @@ public final class JSONConverter extends ConverterSupport {
 
     private CharsetEncoder charsetEncoder;
 
+    private String pattern;
+
     /**
      * @param ignoreRemotingFetch
      * @param charset if set, characters not supported by the charset are escaped.
+     * @param patternCf
      */
     public JSONConverter(boolean ignoreRemotingFetch, Charset charset) {
+	this(ignoreRemotingFetch, charset, JSONDateFormat.PATTERN_CF);
+    }
+
+    public JSONConverter(boolean ignoreRemotingFetch, Charset charset, String pattern) {
 	this.ignoreRemotingFetch = ignoreRemotingFetch;
 	charsetEncoder = charset != null ? charset.newEncoder() : null;// .canEncode("string");
+	this.pattern = pattern;
     }
 
     /**
@@ -175,7 +183,7 @@ public final class JSONConverter extends ConverterSupport {
      */
     private void _serializeDateTime(DateTime dateTime, StringBuilder sb) {
 
-	sb.append(StringUtil.escapeJS(JSONDateFormat.format(dateTime, null), '"', charsetEncoder));
+	sb.append(StringUtil.escapeJS(JSONDateFormat.format(dateTime, null, pattern), '"', charsetEncoder));
 
 	/*
 	 * try { sb.append(goIn()); sb.append("createDateTime(");

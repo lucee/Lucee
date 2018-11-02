@@ -1,6 +1,7 @@
 package lucee.runtime.functions.thread;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.PageContextImpl;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
@@ -26,7 +27,8 @@ public class IsInThread extends BIF {
      * @throws PageException
      */
     public static boolean call(PageContext pc) throws PageException {
-	return pc.getParentPageContext() != null;
+	PageContext root = ((PageContextImpl) pc).getRootPageContext();
+	return root != null && root != pc;
     }
 
 }

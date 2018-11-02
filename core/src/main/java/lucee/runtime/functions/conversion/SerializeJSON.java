@@ -25,6 +25,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.JSONConverter;
+import lucee.runtime.converter.JSONDateFormat;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
@@ -71,7 +72,7 @@ public final class SerializeJSON implements Function {
     private static String _call(PageContext pc, Object var, Object options, Charset charset) throws PageException {
 	try {
 
-	    JSONConverter json = new JSONConverter(true, charset);
+	    JSONConverter json = new JSONConverter(true, charset, JSONDateFormat.PATTERN_CF);
 
 	    // default == false == row | true == column
 	    String sOpt = "";
