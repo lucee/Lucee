@@ -191,6 +191,10 @@ public abstract class ConfigImpl implements Config {
     public static final String DEFAULT_STORAGE_SESSION = "memory";
     public static final String DEFAULT_STORAGE_CLIENT = "cookie";
 
+    public static final int QUERY_VAR_USAGE_IGNORE = 1;
+    public static final int QUERY_VAR_USAGE_WARN = 2;
+    public static final int QUERY_VAR_USAGE_ERROR = 4;
+
     private int mode = MODE_CUSTOM;
 
     private PhysicalClassLoader rpcClassLoader;
@@ -431,6 +435,7 @@ public abstract class ConfigImpl implements Config {
     private int queueMax = 100;
     private long queueTimeout = 0;
     private boolean queueEnable = false;
+    private int varUsage;
 
     public static boolean onlyFirstMatch = false;
 
@@ -653,6 +658,14 @@ public abstract class ConfigImpl implements Config {
     @Override
     public boolean getPSQL() {
 	return psq;
+    }
+
+    protected void setQueryVarUsage(int varUsage) {
+	this.varUsage = varUsage;
+    }
+
+    public int getQueryVarUsage() {
+	return varUsage;
     }
 
     @Override

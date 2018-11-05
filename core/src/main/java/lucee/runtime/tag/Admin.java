@@ -664,6 +664,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	else if (check("getCfxTags", ACCESS_FREE) && check2(ACCESS_READ)) doGetCFXTags();
 	else if (check("getJavaCfxTags", ACCESS_FREE) && check2(ACCESS_READ)) doGetJavaCFXTags();
 	else if (check("getDebug", ACCESS_FREE) && check2(ACCESS_READ)) doGetDebug();
+	else if (check("getSecurity", ACCESS_FREE) && check2(ACCESS_READ)) doGetSecurity();
 	else if (check("getDebugEntry", ACCESS_FREE)) doGetDebugEntry();
 	else if (check("getError", ACCESS_FREE) && check2(ACCESS_READ)) doGetError();
 	else if (check("verifyremoteclient", ACCESS_FREE) && check2(ACCESS_READ)) doVerifyRemoteClient();
@@ -713,6 +714,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	else if (check("updatejavacfx", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateJavaCFX();
 	else if (check("updatedebug", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateDebug();
+	else if (check("updatesecurity", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateSecurity();
 	else if (check("updatedebugentry", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateDebugEntry();
 	else if (check("updatedebugsetting", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateDebugSetting();
 
@@ -1378,6 +1380,13 @@ public final class Admin extends TagImpl implements DynamicAttributes {
      * ,action,"newPassword")); } catch (Exception e) { throw Caster.toPageException(e); } //store(); }
      */
 
+    private void doGetSecurity() throws PageException {
+	Struct sct = new StructImpl();
+	pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
+
+	sct.set("varUsage", AppListenerUtil.toVariableUsage(config.getQueryVarUsage(), "ignore"));
+    }
+
     /**
      * @throws PageException
      * 
@@ -1663,6 +1672,13 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	    return Caster.toDouble(10);
 	}
 	return Caster.toDouble(-1);
+    }
+
+    private void doUpdateSecurity() throws PageException {
+
+	admin.updateSecurity(getString("varUsage", ""));
+	store();
+	adminSync.broadcast(attributes, config);
     }
 
     /**

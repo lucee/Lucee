@@ -138,6 +138,9 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
     private boolean fullNullSupport;
     private SerializationSettings serializationSettings = SerializationSettings.DEFAULT;
 
+    private boolean queryPSQ;
+    private int queryVarUsage;
+
     /**
      * constructor of the class
      * 
@@ -161,6 +164,9 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	this.isDefault = isDefault;
 	this.defaultDataSource = config.getDefaultDataSource();
 	this.localMode = config.getLocalMode();
+	this.queryPSQ = config.getPSQL();
+	this.queryVarUsage = ((ConfigImpl) config).getQueryVarUsage();
+
 	this.locale = config.getLocale();
 	this.timeZone = config.getTimeZone();
 	this.fullNullSupport = config.getFullNullSupport();
@@ -228,6 +234,8 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	dbl.cookiedomain = cookiedomain;
 	dbl.idletimeout = idletimeout;
 	dbl.localMode = localMode;
+	dbl.queryPSQ = queryPSQ;
+	dbl.queryVarUsage = queryVarUsage;
 	dbl.locale = locale;
 	dbl.timeZone = timeZone;
 	dbl.fullNullSupport = fullNullSupport;
@@ -892,6 +900,7 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	return antiSamyPolicy;
     }
 
+    @Override
     public void setAntiSamyPolicyResource(Resource antiSamyPolicy) {
 	this.antiSamyPolicy = antiSamyPolicy;
     }
@@ -991,5 +1000,25 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
     @Override
     public void setFunctionDirectories(List<Resource> resources) {
 	this.funcDirs = resources;
+    }
+
+    @Override
+    public boolean getQueryPSQ() {
+	return queryPSQ;
+    }
+
+    @Override
+    public void setQueryPSQ(boolean psq) {
+	this.queryPSQ = psq;
+    }
+
+    @Override
+    public int getQueryVarUsage() {
+	return queryVarUsage;
+    }
+
+    @Override
+    public void setQueryVarUsage(int varUsage) {
+	this.queryVarUsage = varUsage;
     }
 }

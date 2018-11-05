@@ -226,6 +226,7 @@
 	<data key="menu.server.regional">Regional</data>
 	<data key="overview.langPerf">Performance/Language</data>
 	<data key="menu.server.compiler">Language/Compiler</data>
+	<data key="menu.server.security">Security</data>
 	<data key="menu.server.charset">Charset</data>
 	<data key="menu.server.scope">Scope</data>
 	<data key="menu.server.request">Request</data>

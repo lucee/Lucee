@@ -284,7 +284,7 @@ public final class PageContextImpl extends PageContext {
     private int id;
     private int requestId;
 
-    private boolean psq;
+    private Boolean _psq;
     private Locale locale;
     private TimeZone timeZone;
 
@@ -305,8 +305,8 @@ public final class PageContextImpl extends PageContext {
     private PageException exception;
     private PageSource base;
 
-    ApplicationContext applicationContext;
-    ApplicationContext defaultApplicationContext;
+    ApplicationContextSupport applicationContext;
+    ApplicationContextSupport defaultApplicationContext;
 
     private ScopeFactory scopeFactory = new ScopeFactory();
 
@@ -488,7 +488,7 @@ public final class PageContextImpl extends PageContext {
 	// form.initialize(this);
 	// undefined.initialize(this);
 
-	psq = config.getPSQL();
+	_psq = null;
 
 	fdEnabled = !config.allowRequestTimeout();
 
@@ -640,6 +640,7 @@ public final class PageContextImpl extends PageContext {
 	thread = null;
 	tagName = null;
 	parentTags = null;
+	_psq = null;
     }
 
     private void releaseORM() throws PageException {
@@ -670,11 +671,26 @@ public final class PageContextImpl extends PageContext {
 
     @Override
     public void writePSQ(Object o) throws IOException, PageException {
+	// is var usage allowed?
+	if (applicationContext != null && applicationContext.getQueryVarUsage() != ConfigImpl.QUERY_VAR_USAGE_IGNORE) {
+	    // Warning
+	    if (applicationContext.getQueryVarUsage() == ConfigImpl.QUERY_VAR_USAGE_WARN) {
+		DebuggerImpl.deprecated(this, "query.variableUsage",
+			"Please do not use variables within the cfquery tag, instead use the tag \"cfqueryparam\" or the attribute \"params\"");
+
+	    }
+	    // Error
+	    else if (applicationContext.getQueryVarUsage() == ConfigImpl.QUERY_VAR_USAGE_ERROR) {
+		throw new ApplicationException("Variables are not allowed within cfquery, please use the tag <cfqueryparam> or the attribute \"params\" instead.");
+	    }
+	}
+
+	// preserve single quote
 	if (o instanceof Date || Decision.isDate(o, false)) {
 	    writer.write(Caster.toString(o));
 	}
 	else {
-	    writer.write(psq ? Caster.toString(o) : StringUtil.replace(Caster.toString(o), "'", "''", false));
+	    writer.write(getPsq() ? Caster.toString(o) : StringUtil.replace(Caster.toString(o), "'", "''", false));
 	}
     }
 
@@ -1033,7 +1049,7 @@ public final class PageContextImpl extends PageContext {
 	other.writer = other.bodyContentStack.getWriter();
 	other.forceWriter = other.writer;
 
-	other.psq = psq;
+	other._psq = _psq;
 	other.gatewayContext = gatewayContext;
 
 	// initialize stuff
@@ -2681,12 +2697,17 @@ public final class PageContextImpl extends PageContext {
 
     @Override
     public void setPsq(boolean psq) {
-	this.psq = psq;
+	this._psq = psq;
     }
 
     @Override
     public boolean getPsq() {
-	return psq;
+	if (_psq != null) return _psq.booleanValue();
+
+	if (applicationContext != null) {
+	    return applicationContext.getQueryPSQ();
+	}
+	return config.getPSQL();
     }
 
     @Override
@@ -2964,7 +2985,7 @@ public final class PageContextImpl extends PageContext {
 	session = null;
 	application = null;
 	client = null;
-	this.applicationContext = applicationContext;
+	this.applicationContext = (ApplicationContextSupport) applicationContext;
 
 	int scriptProtect = applicationContext.getScriptProtect();
 
@@ -3496,7 +3517,7 @@ public final class PageContextImpl extends PageContext {
     // FUTURE add to interface
     public lucee.runtime.net.mail.Server[] getMailServers() {
 	if (applicationContext != null) {
-	    lucee.runtime.net.mail.Server[] appms = ((ApplicationContextSupport) applicationContext).getMailServers();
+	    lucee.runtime.net.mail.Server[] appms = applicationContext.getMailServers();
 	    if (ArrayUtil.isEmpty(appms)) return config.getMailServers();
 
 	    lucee.runtime.net.mail.Server[] cms = config.getMailServers();
@@ -3511,7 +3532,7 @@ public final class PageContextImpl extends PageContext {
     // FUTURE add to interface
     public boolean getFullNullSupport() {
 	if (applicationContext != null) {
-	    return ((ApplicationContextSupport) applicationContext).getFullNullSupport();
+	    return applicationContext.getFullNullSupport();
 	}
 	return config.getFullNullSupport();
     }
@@ -3575,7 +3596,7 @@ public final class PageContextImpl extends PageContext {
 
     public Log getLog(String name, boolean createIfNecessary) {
 	if (applicationContext != null) {
-	    Log log = ((ApplicationContextSupport) applicationContext).getLog(name);
+	    Log log = applicationContext.getLog(name);
 	    if (log != null) return log;
 	}
 	return config.getLog(name, createIfNecessary);
@@ -3584,7 +3605,7 @@ public final class PageContextImpl extends PageContext {
     public java.util.Collection<String> getLogNames() {
 	java.util.Collection<String> cnames = config.getLoggers().keySet();
 	if (applicationContext != null) {
-	    java.util.Collection<Collection.Key> anames = ((ApplicationContextSupport) applicationContext).getLogNames();
+	    java.util.Collection<Collection.Key> anames = applicationContext.getLogNames();
 
 	    java.util.Collection<String> names = new HashSet<String>();
 

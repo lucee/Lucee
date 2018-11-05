@@ -469,4 +469,12 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
     public abstract List<Resource> getFunctionDirectories();
 
     public abstract void setFunctionDirectories(List<Resource> resources);
+
+    public abstract boolean getQueryPSQ();
+
+    public abstract void setQueryPSQ(boolean psq);
+
+    public abstract int getQueryVarUsage();
+
+    public abstract void setQueryVarUsage(int varUsage);
 }

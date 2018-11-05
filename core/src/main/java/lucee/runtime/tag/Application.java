@@ -104,6 +104,9 @@ public final class Application extends TagImpl {
     private Locale locale;
     private TimeZone timeZone;
     private Boolean nullSupport;
+    private Boolean queryPSQ;
+    private int queryVarUsage;
+
     private CharSet webCharset;
     private CharSet resourceCharset;
     private short sessionType = -1;
@@ -180,6 +183,8 @@ public final class Application extends TagImpl {
 	locale = null;
 	timeZone = null;
 	nullSupport = null;
+	queryPSQ = null;
+	queryVarUsage = 0;
 	webCharset = null;
 	resourceCharset = null;
 	sessionType = -1;
@@ -313,8 +318,12 @@ public final class Application extends TagImpl {
 	this.nullSupport = nullSupport;
     }
 
-    public void setEnablenullsupport(boolean nullSupport) {
-	this.nullSupport = nullSupport;
+    public void setVariableusage(String varUsage) throws ApplicationException {
+	this.queryVarUsage = AppListenerUtil.toVariableUsage(varUsage);
+    }
+
+    public void setPsq(boolean psq) {
+	this.queryPSQ = psq;
     }
 
     public void setScopecascading(String scopeCascading) throws ApplicationException {
@@ -736,6 +745,8 @@ public final class Application extends TagImpl {
 	if (locale != null) ac.setLocale(locale);
 	if (timeZone != null) ac.setTimeZone(timeZone);
 	if (nullSupport != null) ((ApplicationContextSupport) ac).setFullNullSupport(nullSupport);
+	if (queryPSQ != null) ((ApplicationContextSupport) ac).setQueryPSQ(queryPSQ);
+	if (queryVarUsage != 0) ((ApplicationContextSupport) ac).setQueryVarUsage(queryVarUsage);
 	if (webCharset != null) ac.setWebCharset(webCharset.toCharset());
 	if (resourceCharset != null) ac.setResourceCharset(resourceCharset.toCharset());
 	if (sessionType != -1) ac.setSessionType(sessionType);

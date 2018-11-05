@@ -146,6 +146,8 @@ und Optimierungen innerhalb ihrer Version einspielen.</data>
 	<data key="customtags.customtagmappingsdesc">Verzeichnisse, welche Lucee nach Custom tags überprüft.</data>
 	<data key="customtags.customtagsetting">Einstellungen</data>
 	<data key="customtags.extensionsdesc">Dies sind die Extensions welche für Customtags verwendet werden und die Rheinefolge in welcher sie gesucht werden.</data>
+	
+
 	<data key="menu.info.label">Info</data>
 	<data key="menu.info.bundle">Bundle (jar)</data>
  	<data key="menu.overview.label">Überblick</data>
@@ -155,6 +157,7 @@ und Optimierungen innerhalb ihrer Version einspielen.</data>
 	<data key="menu.server.regional">Regionales</data>
 	<data key="overview.langPerf">Performance/Language</data>
 	<data key="menu.server.compiler">Language/Compiler</data>
+	<data key="menu.server.security">Sicherheit</data>
 	<data key="menu.server.charset">Charset</data>
 	<data key="menu.server.scope">Scope</data>
 	<data key="menu.server.request">Request</data>

@@ -632,6 +632,7 @@ public final class AppListenerUtil {
 	String str = "";
 	KeyImpl cs = new KeyImpl(str) {
 
+	    @Override
 	    public String getString() {
 		return null;
 	    }
@@ -826,6 +827,36 @@ public final class AppListenerUtil {
 
 	if (res != null && (!onlyDir || res.isDirectory())) return res;
 	return null;
+    }
+
+    public static int toVariableUsage(String str) throws ApplicationException {
+	int i = toVariableUsage(str, 0);
+	if (i != 0) return i;
+	throw new ApplicationException("variable usage [" + str + "] is invalid, valid values are [ignore,warn,error]");
+    }
+
+    public static int toVariableUsage(String str, int defaultValue) {
+	if (str == null) return defaultValue;
+	str = str.trim().toLowerCase();
+	if ("ignore".equals(str)) return ConfigImpl.QUERY_VAR_USAGE_IGNORE;
+	if ("warn".equals(str)) return ConfigImpl.QUERY_VAR_USAGE_WARN;
+	if ("warning".equals(str)) return ConfigImpl.QUERY_VAR_USAGE_WARN;
+	if ("error".equals(str)) return ConfigImpl.QUERY_VAR_USAGE_ERROR;
+
+	Boolean b = Caster.toBoolean(str, null);
+	if (b != null) {
+	    return b.booleanValue() ? ConfigImpl.QUERY_VAR_USAGE_ERROR : ConfigImpl.QUERY_VAR_USAGE_IGNORE;
+	}
+
+	return defaultValue;
+    }
+
+    public static String toVariableUsage(int i, String defaultValue) {
+	if (ConfigImpl.QUERY_VAR_USAGE_IGNORE == i) return "ignore";
+	if (ConfigImpl.QUERY_VAR_USAGE_WARN == i) return "warn";
+	if (ConfigImpl.QUERY_VAR_USAGE_ERROR == i) return "error";
+
+	return defaultValue;
     }
 
 }

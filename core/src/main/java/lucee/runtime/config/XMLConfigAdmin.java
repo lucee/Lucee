@@ -3068,6 +3068,17 @@ public final class XMLConfigAdmin {
 	scope.setAttribute("use-cache-path", Caster.toString(ctPathCache, ""));
     }
 
+    public void updateSecurity(String varUsage) throws SecurityException {
+	checkWriteAccess();
+	Element el = _getRootElement("security");
+
+	if (el != null) {
+	    if (!StringUtil.isEmpty(varUsage)) el.setAttribute("variable-usage", Caster.toString(varUsage));
+	    else el.removeAttribute("variable-usage");
+	}
+
+    }
+
     /**
      * updates if debugging or not
      * 

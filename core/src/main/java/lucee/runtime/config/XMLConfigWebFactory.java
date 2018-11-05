@@ -972,6 +972,13 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		if (securityManager == null) securityManager = SecurityManagerImpl.getOpenSecurityManager();
 		((ConfigWebImpl) config).setSecurityManager(securityManager);
 	    }
+
+	    Element security = getChildByName(doc.getDocumentElement(), "security");
+	    if (security != null) {
+		int vu = AppListenerUtil.toVariableUsage(security.getAttribute("variable-usage"), ConfigImpl.QUERY_VAR_USAGE_IGNORE);
+		config.setQueryVarUsage(vu);
+	    }
+
 	}
 	catch (Exception e) {
 	    log(config, log, e);

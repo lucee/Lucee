@@ -756,6 +756,20 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<rtexprvalue>true</rtexprvalue>
 			<description>enable or disable full null support</description>
 		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>psq</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>preserve single quote in injected variables into cfquery.</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>variableUsage</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>how to handle variable usage within cfquery, possible values are ignore,warn,error</description>
+		</attribute>
 	</tag>
 
 	<!-- Argument -->
