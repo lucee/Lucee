@@ -580,7 +580,7 @@ public final class PageContextImpl extends PageContext {
 
 	cookie.release(this);
 	application = null;// not needed at the moment -> application.releaseAfterRequest();
-	applicationContext = null;
+	applicationContext = null;// do not release may used by child threads
 
 	// Properties
 	requestTimeout = -1;
@@ -641,6 +641,7 @@ public final class PageContextImpl extends PageContext {
 	tagName = null;
 	parentTags = null;
 	_psq = null;
+	dummy = false;
     }
 
     private void releaseORM() throws PageException {
@@ -3296,6 +3297,8 @@ public final class PageContextImpl extends PageContext {
 
     private String tagName;
 
+    private boolean dummy;
+
     public boolean isTrusted(Page page) {
 	if (page == null) return false;
 
@@ -3649,5 +3652,14 @@ public final class PageContextImpl extends PageContext {
 	    if (parentTags == null) parentTags = new ArrayList<String>();
 	    parentTags.add(tagName);
 	}
+    }
+
+    public boolean isDummy() {
+	return dummy;
+    }
+
+    public PageContextImpl setDummy(boolean dummy) {
+	this.dummy = dummy;
+	return this;
     }
 }

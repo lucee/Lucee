@@ -595,5 +595,4 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
     public PageSource getPageSource() {
 	return this.properties.getPageSource();
     }
-
 }

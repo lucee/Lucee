@@ -24,11 +24,9 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import lucee.commons.io.DevNullOutputStream;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.config.Constants;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
@@ -55,11 +53,10 @@ public class JavaProxy {
 	    pc = ThreadLocalPageContext.get();
 	    // create PageContext if necessary
 	    if (pc == null) {
-		pc = ThreadUtil.createPageContext(config, DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, Constants.NAME, "/", "", null, null, null, null, null, true, -1);
+		pc = ThreadUtil.createDummyPageContext(config);
 		unregister = true;
 		pc.addPageSource(cfc.getPageSource(), true);
 	    }
-
 	    return cfc.call(pc, methodName, arguments);
 	}
 	catch (PageException pe) {

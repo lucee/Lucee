@@ -1,7 +1,5 @@
 package lucee.runtime.spooler;
 
-import javax.servlet.http.Cookie;
-
 import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.io.SystemUtil.TemplateLine;
 import lucee.commons.lang.Pair;
@@ -42,7 +40,8 @@ public abstract class CFMLSpoolerTaskListener extends SpoolerTaskListener {
 	    pcCreated = true;
 	    Pair[] parr = new Pair[0];
 	    DevNullOutputStream os = DevNullOutputStream.DEV_NULL_OUTPUT_STREAM;
-	    pc = ThreadUtil.createPageContext(cw, os, "localhost", "/", "", new Cookie[0], parr, null, parr, new StructImpl(), true, -1);
+	    pc = ThreadUtil.createDummyPageContext(cw);
+
 	    pc.setRequestTimeout(config.getRequestTimeout().getMillis());
 	}
 	try {

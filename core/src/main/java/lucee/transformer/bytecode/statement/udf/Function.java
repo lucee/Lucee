@@ -332,11 +332,11 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
     }
 
     public final void createFunction(BytecodeContext bc, int index, int type) throws TransformerException {
-	// new UDF(...)
+
 	GeneratorAdapter adapter = bc.getAdapter();
 	Type t;
-	if (TYPE_CLOSURE == type) t = Types.CLOSURE;
-	else if (TYPE_LAMBDA == type) t = Types.LAMBDA;
+	if (TYPE_CLOSURE == type) t = arguments.size() > 1 ? Types.CLOSURE_MULTI : Types.CLOSURE_SINGLE;
+	else if (TYPE_LAMBDA == type) t = arguments.size() > 1 ? Types.LAMBDA_MULTI : Types.LAMBDA_SINGLE;
 	else t = Types.UDF_IMPL;
 	adapter.newInstance(t);
 

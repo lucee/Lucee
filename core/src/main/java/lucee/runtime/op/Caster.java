@@ -4041,7 +4041,7 @@ public final class Caster {
      * @return casted Double
      */
     public static Double toRef(double d) {
-	return new Double(d);
+	return Double.valueOf(d);
     }
 
     /**
