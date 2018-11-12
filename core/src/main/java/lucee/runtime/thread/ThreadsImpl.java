@@ -199,15 +199,17 @@ public class ThreadsImpl extends StructSupport implements lucee.runtime.type.sco
 
     @Override
     public Object get(Key key, Object defaultValue) {
-	Object meta = getMeta(key, NullSupportHelper.NULL());
-	if (meta != NullSupportHelper.NULL()) return meta;
+	Object _null = NullSupportHelper.NULL();
+	Object meta = getMeta(key, _null);
+	if (meta != _null) return meta;
 	return ct.content.get(key, defaultValue);
     }
 
     @Override
     public Object get(Key key) throws PageException {
-	Object meta = getMeta(key, NullSupportHelper.NULL());
-	if (meta != NullSupportHelper.NULL()) return meta;
+	Object _null = NullSupportHelper.NULL();
+	Object meta = getMeta(key, _null);
+	if (meta != _null) return meta;
 	return ct.content.get(key);
     }
 
@@ -235,9 +237,10 @@ public class ThreadsImpl extends StructSupport implements lucee.runtime.type.sco
 
     @Override
     public Object remove(Key key) throws PageException {
+	Object _null = NullSupportHelper.NULL();
 	if (isReadonly()) throw errorOutside();
-	Object meta = getMeta(key, NullSupportHelper.NULL());
-	if (meta != NullSupportHelper.NULL()) throw errorMeta(key);
+	Object meta = getMeta(key, _null);
+	if (meta != _null) throw errorMeta(key);
 	return ct.content.remove(key);
     }
 
@@ -251,16 +254,18 @@ public class ThreadsImpl extends StructSupport implements lucee.runtime.type.sco
     public Object set(Key key, Object value) throws PageException {
 
 	if (isReadonly()) throw errorOutside();
-	Object meta = getMeta(key, NullSupportHelper.NULL());
-	if (meta != NullSupportHelper.NULL()) throw errorMeta(key);
+	Object _null = NullSupportHelper.NULL();
+	Object meta = getMeta(key, _null);
+	if (meta != _null) throw errorMeta(key);
 	return ct.content.set(key, value);
     }
 
     @Override
     public Object setEL(Key key, Object value) {
 	if (isReadonly()) return null;
-	Object meta = getMeta(key, NullSupportHelper.NULL());
-	if (meta != NullSupportHelper.NULL()) return null;
+	Object _null = NullSupportHelper.NULL();
+	Object meta = getMeta(key, _null);
+	if (meta != _null) return null;
 	return ct.content.setEL(key, value);
     }
 

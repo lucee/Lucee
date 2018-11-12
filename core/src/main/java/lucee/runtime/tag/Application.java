@@ -614,6 +614,7 @@ public final class Application extends TagImpl {
 	    if (!StringUtil.isEmpty(name) && !name.equalsIgnoreCase(ac.getName())) ac = null;
 	    else {
 		initORM = set(ac, true);
+		pageContext.setApplicationContext(ac); // we need to make this, so Lucee does not miss any change
 	    }
 	}
 	// if we do not update we have to create a new one

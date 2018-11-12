@@ -91,6 +91,7 @@ public class StructImpl extends StructSupport {
 	else map = MapFactory.getConcurrentMap(initialCapacity);
     }
 
+    @Override
     public int getType() {
 	return StructUtil.getType(map);
     }

@@ -98,7 +98,6 @@ import lucee.runtime.type.UDFGSProperty;
 import lucee.runtime.type.UDFImpl;
 import lucee.runtime.type.UDFPlus;
 import lucee.runtime.type.UDFProperties;
-import lucee.runtime.type.UDFPropertiesBase;
 import lucee.runtime.type.cfc.ComponentEntryIterator;
 import lucee.runtime.type.cfc.ComponentValueIterator;
 import lucee.runtime.type.comparator.ArrayOfStructComparator;
@@ -740,6 +739,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
      * @param parent
      * @throws ApplicationException
      */
+    @Deprecated
     public void afterCall(PageContext pc, Variables parent) throws ApplicationException {
 	afterConstructor(pc, parent);
     }
@@ -756,6 +756,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
      * @param access
      * @return size
      */
+    @Override
     public int size(int access) {
 	return keys(access).length;
     }
@@ -768,6 +769,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
      * @param doBase
      * @return key set
      */
+    @Override
     public Set<Key> keySet(int access) {
 
 	Set<Key> set = new LinkedHashSet<Key>();
@@ -1132,10 +1134,12 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	return properties.modifier;
     }
 
+    @Override
     public String getBaseAbsName() {
 	return top.base.pageSource.getComponentName();
     }
 
+    @Override
     public boolean isBasePeristent() {
 	return top.base != null && top.base.properties.persistent;
     }
@@ -1224,6 +1228,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	return false;
     }
 
+    @Override
     public boolean equalTo(String type) {
 	ComponentImpl c = top;
 
@@ -1461,6 +1466,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	return getMetaData(ACCESS_PRIVATE, pc, top, false);
     }
 
+    @Override
     public Object getMetaStructItem(Collection.Key name) {
 	if (top.properties.meta != null) {
 	    return top.properties.meta.get(name, null);
@@ -1610,7 +1616,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	    if (udf instanceof UDFGSProperty) continue;
 	    if (udf.getAccess() > access) continue;
 	    if (!udf.getPageSource().equals(comp._getPageSource())) continue;
-	    arr.append(ComponentUtil.getMetaData(pc, (UDFPropertiesBase) ((UDFImpl) udf).properties));
+	    arr.append(ComponentUtil.getMetaData(pc, ((UDFImpl) udf).properties));
 	}
     }
 
@@ -1708,6 +1714,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	return _data.remove(key);
     }
 
+    @Override
     public Object removeEL(Collection.Key key) {
 	// MUST access muss beruecksichtigt werden
 	return _data.remove(key);
@@ -1840,6 +1847,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	return get(access, KeyImpl.init(name));
     }
 
+    @Override
     public Object get(int access, Collection.Key key) throws PageException {
 	Member member = getMember(access, key, true, false);
 	if (member != null) return member.getValue();
@@ -1886,6 +1894,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
      * @param defaultValue
      * @return
      */
+    @Override
     public Object get(int access, Collection.Key key, Object defaultValue) {
 	Member member = getMember(access, key, true, false);
 	if (member != null) return member.getValue();
@@ -1913,6 +1922,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	return _call(pc, KeyImpl.init(name), null, args, false);
     }
 
+    @Override
     public Object call(PageContext pc, Collection.Key name, Object[] args) throws PageException {
 	return _call(pc, name, null, args, false);
     }
@@ -1921,6 +1931,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	return _call(pc, access, KeyImpl.init(name), null, args, false);
     }
 
+    @Override
     public Object call(PageContext pc, int access, Collection.Key name, Object[] args) throws PageException {
 	return _call(pc, access, name, null, args, false);
     }
@@ -1930,6 +1941,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	return _call(pc, KeyImpl.init(name), args, null, false);
     }
 
+    @Override
     public Object callWithNamedValues(PageContext pc, Collection.Key methodName, Struct args) throws PageException {
 	return _call(pc, methodName, args, null, false);
     }
@@ -1938,12 +1950,14 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	return _call(pc, access, KeyImpl.init(name), args, null, false);
     }
 
+    @Override
     public Object callWithNamedValues(PageContext pc, int access, Collection.Key name, Struct args) throws PageException {
 	return _call(pc, access, name, args, null, false);
     }
 
     public boolean contains(PageContext pc, String name) {
-	return get(pc, KeyImpl.init(name), NullSupportHelper.NULL(pc)) != NullSupportHelper.NULL(pc);
+	Object _null = NullSupportHelper.NULL(pc);
+	return get(pc, KeyImpl.init(name), _null) != _null;
     }
 
     /**
@@ -1951,8 +1965,10 @@ public final class ComponentImpl extends StructSupport implements Externalizable
      * @param key
      * @return
      */
+    @Override
     public boolean contains(PageContext pc, Key key) {
-	return get(pc, key, NullSupportHelper.NULL(pc)) != NullSupportHelper.NULL(pc);
+	Object _null = NullSupportHelper.NULL(pc);
+	return get(pc, key, _null) != _null;
     }
 
     @Override
@@ -1961,11 +1977,14 @@ public final class ComponentImpl extends StructSupport implements Externalizable
     }
 
     public boolean contains(int access, String name) {
-	return get(access, name, NullSupportHelper.NULL()) != NullSupportHelper.NULL();
+	Object _null = NullSupportHelper.NULL();
+	return get(access, name, _null) != _null;
     }
 
+    @Override
     public boolean contains(int access, Key name) {
-	return get(access, name, NullSupportHelper.NULL()) != NullSupportHelper.NULL();
+	Object _null = NullSupportHelper.NULL();
+	return get(access, name, _null) != _null;
     }
 
     @Override
@@ -2023,14 +2042,17 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	return props.javaAccessClass;
     }
 
+    @Override
     public boolean isPersistent() {
 	return top.properties.persistent;
     }
 
+    @Override
     public boolean isAccessors() {
 	return top.properties.accessors;
     }
 
+    @Override
     public void setProperty(Property property) throws PageException {
 	top.properties.properties.put(StringUtil.toLowerCase(property.getName()), property);
 	if (property.getDefault() != null) scope.setEL(KeyImpl.init(property.getName()), property.getDefault());
@@ -2059,10 +2081,12 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	}
     }
 
+    @Override
     public Property[] getProperties(boolean onlyPeristent) {
 	return getProperties(onlyPeristent, false, false, false);
     }
 
+    @Override
     public Property[] getProperties(boolean onlyPeristent, boolean includeBaseProperties, boolean preferBaseProperties, boolean inheritedMappedSuperClassOnly) {
 	Map<String, Property> props = new LinkedHashMap<String, Property>();
 	_getProperties(top, props, onlyPeristent, includeBaseProperties, preferBaseProperties, inheritedMappedSuperClassOnly);
@@ -2097,6 +2121,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 
     }
 
+    @Override
     public ComponentScope getComponentScope() {
 	return scope;
     }
@@ -2130,6 +2155,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
     }
 
     // MUST more native impl
+    @Override
     public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
 	boolean pcCreated = false;
 	PageContext pc = ThreadLocalPageContext.get();
@@ -2248,6 +2274,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	}
     }
 
+    @Override
     public void writeExternal(ObjectOutput out) throws IOException {
 	ComponentSpecificAccess cw = new ComponentSpecificAccess(Component.ACCESS_PRIVATE, this);
 	Struct _this = new StructImpl();

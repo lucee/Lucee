@@ -223,12 +223,13 @@ public final class VariableInterpreter {
     public static Object getVariableEL(PageContext pc, String var, Object defaultValue) {
 	StringList list = parse(pc, new ParserString(var), false);
 	if (list == null) return defaultValue;
+	Object _null = NullSupportHelper.NULL(pc);
 
 	int scope = scopeString2Int(pc.ignoreScopes(), list.next());
 	Object coll = null;
 	if (scope == Scope.SCOPE_UNDEFINED) {
-	    coll = pc.undefinedScope().get(KeyImpl.init(list.current()), NullSupportHelper.NULL());
-	    if (coll == NullSupportHelper.NULL()) return defaultValue;
+	    coll = pc.undefinedScope().get(KeyImpl.init(list.current()), _null);
+	    if (coll == _null) return defaultValue;
 	}
 	else {
 	    try {
@@ -241,8 +242,8 @@ public final class VariableInterpreter {
 	}
 
 	while (list.hasNext()) {
-	    coll = pc.getVariableUtil().get(pc, coll, KeyImpl.init(list.next()), NullSupportHelper.NULL());
-	    if (coll == NullSupportHelper.NULL()) return defaultValue;
+	    coll = pc.getVariableUtil().get(pc, coll, KeyImpl.init(list.next()), _null);
+	    if (coll == _null) return defaultValue;
 	}
 	return coll;
     }

@@ -200,15 +200,17 @@ public final class CGIImpl extends StructSupport implements CGI, ScriptProtected
     public Object get(Collection.Key key, Object defaultValue) {
 
 	// do we have internal?
-	Object res = internal.get(key, NullSupportHelper.NULL());
-	if (res != NullSupportHelper.NULL()) return res;
+
+	Object _null = NullSupportHelper.NULL();
+	Object res = internal.get(key, _null);
+	if (res != _null) return res;
 
 	// do we have an alias
 	{
 	    Key k = aliases.get(key);
 	    if (k != null) {
-		res = internal.get(k, NullSupportHelper.NULL());
-		if (res != NullSupportHelper.NULL()) return res;
+		res = internal.get(k, _null);
+		if (res != _null) return res;
 	    }
 	}
 
@@ -229,8 +231,8 @@ public final class CGIImpl extends StructSupport implements CGI, ScriptProtected
 
 		    // _http_if_modified_since
 		    if (key.equals(KeyConstants._http_if_modified_since)) {
-			Object o = internal.get(KeyConstants._last_modified, NullSupportHelper.NULL());
-			if (o != NullSupportHelper.NULL()) return store(key, (String) o);
+			Object o = internal.get(KeyConstants._last_modified, _null);
+			if (o != _null) return store(key, (String) o);
 		    }
 		    else if (key.equals(KeyConstants._https)) return store(key, req.isSecure() ? "on" : "off");
 		}

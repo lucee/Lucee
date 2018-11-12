@@ -160,10 +160,11 @@ public class ClosureScope extends ScopeSupport implements Variables, Externaliza
 
     @Override
     public Object get(Key key) throws PageException {
-	Object value = local.get(key, NullSupportHelper.NULL());
-	if (value != NullSupportHelper.NULL()) return value;
-	value = arg.get(key, NullSupportHelper.NULL());
-	if (value != NullSupportHelper.NULL()) {
+	Object _null = NullSupportHelper.NULL();
+	Object value = local.get(key, _null);
+	if (value != _null) return value;
+	value = arg.get(key, _null);
+	if (value != _null) {
 	    if (debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(), arg.getTypeAsString(), key);
 	    return value;
 	}
@@ -175,15 +176,16 @@ public class ClosureScope extends ScopeSupport implements Variables, Externaliza
 
     @Override
     public Object get(Key key, Object defaultValue) {
-	Object value = local.get(key, NullSupportHelper.NULL());
-	if (value != NullSupportHelper.NULL()) return value;
-	value = arg.get(key, NullSupportHelper.NULL());
-	if (value != NullSupportHelper.NULL()) {
+	Object _null = NullSupportHelper.NULL();
+	Object value = local.get(key, _null);
+	if (value != _null) return value;
+	value = arg.get(key, _null);
+	if (value != _null) {
 	    if (debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(), arg.getTypeAsString(), key);
 	    return value;
 	}
-	value = var.get(key, NullSupportHelper.NULL());
-	if (value != NullSupportHelper.NULL()) {
+	value = var.get(key, _null);
+	if (value != _null) {
 	    if (debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(), var.getTypeAsString(), key);
 	    return value;
 	}

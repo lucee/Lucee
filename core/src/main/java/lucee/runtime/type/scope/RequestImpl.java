@@ -139,8 +139,9 @@ public final class RequestImpl extends StructSupport implements Request {
 
     @Override
     public Object remove(Key key) throws PageException {
-	Object value = remove(key, NullSupportHelper.NULL());
-	if (value != NullSupportHelper.NULL()) return value;
+	Object _null = NullSupportHelper.NULL();
+	Object value = remove(key, _null);
+	if (value != _null) return value;
 	throw new ExpressionException("can't remove key [" + key + "] from struct, key doesn't exist");
     }
 
@@ -156,8 +157,9 @@ public final class RequestImpl extends StructSupport implements Request {
 
     @Override
     public Object get(Key key) throws PageException {
-	Object value = get(key, NullSupportHelper.NULL());
-	if (value == NullSupportHelper.NULL()) throw invalidKey(null, this, key, "request scope");
+	Object _null = NullSupportHelper.NULL();
+	Object value = get(key, _null);
+	if (value == _null) throw invalidKey(null, this, key, "request scope");
 	return value;
     }
 
@@ -228,7 +230,8 @@ public final class RequestImpl extends StructSupport implements Request {
 
     @Override
     public boolean containsKey(Key key) {
-	return get(key, NullSupportHelper.NULL()) != NullSupportHelper.NULL();
+	Object _null = NullSupportHelper.NULL();
+	return get(key, _null) != _null;
     }
 
     @Override
