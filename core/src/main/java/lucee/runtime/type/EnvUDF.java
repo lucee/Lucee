@@ -21,11 +21,6 @@ package lucee.runtime.type;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-import java.util.function.BooleanSupplier;
-import java.util.function.DoubleSupplier;
-import java.util.function.IntSupplier;
-import java.util.function.LongSupplier;
-import java.util.function.Supplier;
 
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
@@ -34,13 +29,12 @@ import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.listener.ApplicationContext;
-import lucee.runtime.op.Caster;
 import lucee.runtime.type.scope.ClosureScope;
 import lucee.runtime.type.scope.Variables;
 
-public abstract class EnvUDF extends UDFImpl implements Supplier, BooleanSupplier, DoubleSupplier, IntSupplier, LongSupplier {
+// implements Supplier, BooleanSupplier, DoubleSupplier, IntSupplier, LongSupplier
+public abstract class EnvUDF extends UDFImpl {
 
     private static final long serialVersionUID = -7200106903813254844L; // do not change
 
@@ -171,56 +165,26 @@ public abstract class EnvUDF extends UDFImpl implements Supplier, BooleanSupplie
     public Struct getMetaData(PageContext pc) throws PageException {
 	return _getMetaData(pc);
     }
-
-    @Override
-    public Object get() {
-	try {
-	    return call(ThreadLocalPageContext.get(), new Object[] {}, true);
-	}
-	catch (PageException pe) {
-	    throw new PageRuntimeException(pe);
-	}
-    }
-
-    @Override
-    public boolean getAsBoolean() {
-	try {
-	    return Caster.toBooleanValue(call(ThreadLocalPageContext.get(), new Object[] {}, true));
-	}
-	catch (PageException pe) {
-	    throw new PageRuntimeException(pe);
-	}
-    }
-
-    @Override
-    public double getAsDouble() {
-	try {
-	    return Caster.toDoubleValue(call(ThreadLocalPageContext.get(), new Object[] {}, true));
-	}
-	catch (PageException pe) {
-	    throw new PageRuntimeException(pe);
-	}
-    }
-
-    @Override
-    public int getAsInt() {
-	try {
-	    return Caster.toIntValue(call(ThreadLocalPageContext.get(), new Object[] {}, true));
-	}
-	catch (PageException pe) {
-	    throw new PageRuntimeException(pe);
-	}
-    }
-
-    @Override
-    public long getAsLong() {
-	try {
-	    return Caster.toLongValue(call(ThreadLocalPageContext.get(), new Object[] {}, true));
-	}
-	catch (PageException pe) {
-	    throw new PageRuntimeException(pe);
-	}
-    }
+    /*
+     * @Override public Object get() { try { return call(ThreadLocalPageContext.get(), new Object[] {},
+     * true); } catch (PageException pe) { throw new PageRuntimeException(pe); } }
+     * 
+     * @Override public boolean getAsBoolean() { try { return
+     * Caster.toBooleanValue(call(ThreadLocalPageContext.get(), new Object[] {}, true)); } catch
+     * (PageException pe) { throw new PageRuntimeException(pe); } }
+     * 
+     * @Override public double getAsDouble() { try { return
+     * Caster.toDoubleValue(call(ThreadLocalPageContext.get(), new Object[] {}, true)); } catch
+     * (PageException pe) { throw new PageRuntimeException(pe); } }
+     * 
+     * @Override public int getAsInt() { try { return
+     * Caster.toIntValue(call(ThreadLocalPageContext.get(), new Object[] {}, true)); } catch
+     * (PageException pe) { throw new PageRuntimeException(pe); } }
+     * 
+     * @Override public long getAsLong() { try { return
+     * Caster.toLongValue(call(ThreadLocalPageContext.get(), new Object[] {}, true)); } catch
+     * (PageException pe) { throw new PageRuntimeException(pe); } }
+     */
 
     public abstract Struct _getMetaData(PageContext pc) throws PageException;
 

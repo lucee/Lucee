@@ -38,6 +38,7 @@ import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryColumn;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
+import lucee.runtime.type.UDF;
 import lucee.runtime.type.util.ArrayUtil;
 
 /**
@@ -45,6 +46,26 @@ import lucee.runtime.type.util.ArrayUtil;
  * interface or class
  */
 public class JavaProxy {
+    public static Object call(ConfigWeb config, UDF udf, Object... arguments) {
+	boolean unregister = false;
+	PageContext pc = null;
+	try {
+	    pc = ThreadLocalPageContext.get();
+	    // create PageContext if necessary
+	    if (pc == null) {
+		pc = ThreadUtil.createDummyPageContext(config);
+		unregister = true;
+		// pc.addPageSource(udf.getPageSource(), true);
+	    }
+	    return udf.call(pc, arguments, true);
+	}
+	catch (PageException pe) {
+	    throw new PageRuntimeException(pe);
+	}
+	finally {
+	    if (unregister) config.getFactory().releaseLuceePageContext(pc, true);
+	}
+    }
 
     public static Object call(ConfigWeb config, Component cfc, String methodName, Object... arguments) {
 	boolean unregister = false;

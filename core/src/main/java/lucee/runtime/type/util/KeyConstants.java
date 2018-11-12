@@ -947,6 +947,7 @@ public class KeyConstants {
     public static final Key _param = KeyImpl._const("param");
     public static final Key _stacktrace = KeyImpl._const("stacktrace");
     public static final Key _interface = KeyImpl._const("interface");
+    public static final Key _interfaces = KeyImpl._const("interfaces");
 
     private static MapPro<String, Key> _____keys;
 

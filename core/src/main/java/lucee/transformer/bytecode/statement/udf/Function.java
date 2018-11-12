@@ -335,8 +335,8 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 
 	GeneratorAdapter adapter = bc.getAdapter();
 	Type t;
-	if (TYPE_CLOSURE == type) t = arguments.size() > 1 ? Types.CLOSURE_MULTI : Types.CLOSURE_SINGLE;
-	else if (TYPE_LAMBDA == type) t = arguments.size() > 1 ? Types.LAMBDA_MULTI : Types.LAMBDA_SINGLE;
+	if (TYPE_CLOSURE == type) t = Types.CLOSURE;
+	else if (TYPE_LAMBDA == type) t = Types.LAMBDA;
 	else t = Types.UDF_IMPL;
 	adapter.newInstance(t);
 

@@ -45,6 +45,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefInteger;
 import lucee.commons.lang.types.RefIntegerImpl;
 import lucee.runtime.Component;
+import lucee.runtime.PageContext;
 import lucee.runtime.config.Constants;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
@@ -52,6 +53,7 @@ import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.exp.SecurityException;
+import lucee.runtime.functions.conversion.DeserializeJSON;
 import lucee.runtime.java.JavaObject;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
@@ -70,8 +72,12 @@ import lucee.runtime.type.ObjectWrap;
 import lucee.runtime.type.Pojo;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.UDF;
 import lucee.runtime.type.util.ArrayUtil;
+import lucee.runtime.type.util.KeyConstants;
+import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.type.util.Type;
+import lucee.transformer.bytecode.util.JavaProxyFactory;
 
 /**
  * Class to reflect on Objects and classes
@@ -366,12 +372,33 @@ public final class Reflector {
 	    return null;
 	}
 	if (like(src.getClass(), trgClass)) return src;
-	String className = trgClass.getName();
-
 	if (src instanceof ObjectWrap) {
 	    src = ((ObjectWrap) src).getEmbededObject();
 	    return _convert(src, trgClass);
 	}
+
+	// component as class
+
+	PageContext pc;
+	if (src instanceof Component && trgClass.isInterface() && (pc = ThreadLocalPageContext.get()) != null) {
+	    return componentToClass(pc, (Component) src, trgClass);
+	}
+
+	// UDF as @FunctionalInterface
+	if (src instanceof UDF && (pc = ThreadLocalPageContext.get()) != null) {
+	    FunctionalInterface fi = (FunctionalInterface) trgClass.getAnnotation(FunctionalInterface.class);
+	    if (fi != null) {
+		try {
+		    return JavaProxyFactory.createProxy(pc, (UDF) src, trgClass);
+		}
+		catch (Exception e) {
+		    throw Caster.toPageException(e);
+		}
+	    }
+	}
+
+	// java.lang.String
+	String className = trgClass.getName();
 	if (className.startsWith("java.lang.")) {
 	    if (trgClass == Boolean.class) return Caster.toBoolean(src);
 	    if (trgClass == Integer.class) return Caster.toInteger(src);
@@ -432,6 +459,93 @@ public final class Reflector {
 	    return _convert(src, toReferenceClass(trgClass));
 	}
 	throw new ApplicationException("can't convert [" + Caster.toClassName(src) + "] to [" + Caster.toClassName(trgClass) + "]");
+    }
+
+    public static Object componentToClass(PageContext pc, Component src, Class trgClass) throws PageException {
+
+	try {
+	    JavaAnnotation ja = getJavaAnnotation(pc, trgClass.getClassLoader(), src);
+	    // print.e(ja);
+	    // print.e(trgClass);
+
+	    return JavaProxyFactory.createProxy(pc, src, ja != null && ja.extend != null ? ja.extend : null,
+		    ja != null && ja.interfaces != null ? ja.interfaces : new Class[] { trgClass });
+	}
+	catch (Exception e) {
+	    throw Caster.toPageException(e);
+	}
+    }
+
+    private static JavaAnnotation getJavaAnnotation(PageContext pc, ClassLoader cl, Component src) {
+	Struct md = null;
+	try {
+	    md = src.getMetaData(pc);
+	}
+	catch (PageException pe) {}
+
+	String str;
+	JavaAnnotation ja = null;
+	if (md != null && (str = Caster.toString(md.get(KeyConstants._java, null), null)) != null) {
+	    Struct sct = null;
+	    try {
+		sct = Caster.toStruct(DeserializeJSON.call(pc, str), null);
+	    }
+	    catch (Exception e) {}
+	    if (sct == null) return null;
+
+	    // interfaces
+	    Object o = sct.get(KeyConstants._interface, null);
+	    if (o == null) o = sct.get(KeyConstants._interfaces, null);
+	    if (o != null) {
+		Array arr = null;
+		if (Decision.isArray(o)) {
+		    arr = Caster.toArray(o, null);
+		}
+		else {
+		    str = Caster.toString(o, null);
+		    if (!StringUtil.isEmpty(str)) arr = ListUtil.listToArray(str, ",");
+		}
+		if (arr != null && arr.size() > 0) {
+		    List<Class<?>> _interfaces = new ArrayList<>();
+		    Iterator<?> it = arr.getIterator();
+		    while (it.hasNext()) {
+			str = Caster.toString(it.next(), null);
+			if (!StringUtil.isEmpty(str, true)) _interfaces.add(ClassUtil.loadClass(cl, str, null));
+		    }
+		    if (ja == null) ja = new JavaAnnotation();
+		    ja.interfaces = _interfaces.toArray(new Class<?>[_interfaces.size()]);
+		}
+	    }
+
+	    // extends
+	    o = sct.get(KeyConstants._extends, null);
+	    if (o != null) {
+		if (ja == null) ja = new JavaAnnotation();
+		str = Caster.toString(o, null);
+		if (!StringUtil.isEmpty(str, true)) ja.extend = ClassUtil.loadClass(cl, str, null);
+	    }
+	}
+
+	return ja;
+    }
+
+    public static class JavaAnnotation {
+	private Class<?> extend;
+	private Class<?>[] interfaces;
+
+	@Override
+	public String toString() {
+	    StringBuilder sb = new StringBuilder();
+	    if (interfaces != null && interfaces.length > 0) {
+		for (Class<?> clazz: interfaces) {
+		    if (sb.length() > 0) sb.append(',');
+		    sb.append(clazz.getName());
+		}
+	    }
+	    else sb.append("null");
+
+	    return "extends:" + (extend == null ? "null" : extend.getName()) + "; interfaces:" + sb;
+	}
     }
 
     /**
