@@ -846,7 +846,11 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	if (index != -1) {
 	    // we only return default value if row exists
 	    // LDEV-1201
-	    if (row > 0 && row <= recordcount) return columns[index].get(row, NullSupportHelper.full() ? null : "");
+	    if (row > 0 && row <= recordcount) {
+		Object val = columns[index].get(row, StructImpl.NULL);
+		if (val != StructImpl.NULL) return val;
+		return NullSupportHelper.full() ? null : "";
+	    }
 	    else return defaultValue;
 	    // */
 	    // return columns[index].get(row,defaultValue);
@@ -868,7 +872,9 @@ public class QueryImpl implements Query, Objects, QueryResult {
     public Object getAt(Collection.Key key, int row) throws PageException {
 	int index = getIndexFromKey(key);
 	if (index != -1) {
-	    return columns[index].get(row, NullSupportHelper.full() ? null : "");
+	    Object val = columns[index].get(row, StructImpl.NULL);
+	    if (val != StructImpl.NULL) return val;
+	    return NullSupportHelper.full() ? null : "";
 	}
 	if (key.length() >= 10) {
 	    if (key.equals(KeyConstants._RECORDCOUNT)) return new Double(getRecordcount());

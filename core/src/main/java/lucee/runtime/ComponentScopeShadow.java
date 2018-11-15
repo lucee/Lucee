@@ -118,10 +118,8 @@ public class ComponentScopeShadow extends StructSupport implements ComponentScop
 
     @Override
     public Object get(Key key) throws PageException {
-
-	Object _null = NullSupportHelper.NULL();
-	Object o = get(key, _null);
-	if (o != _null) return o;
+	Object o = get(key, StructImpl.NULL);
+	if (o != StructImpl.NULL) return o;
 	throw new ExpressionException("Component [" + component.getCallName() + "] has no accessible Member with name [" + key + "]");
     }
 
@@ -134,12 +132,10 @@ public class ComponentScopeShadow extends StructSupport implements ComponentScop
 	if (key.equalsIgnoreCase(KeyConstants._THIS)) return component.top;
 	if (key.equalsIgnoreCase(KeyConstants._STATIC)) return component.staticScope();
 
-	if (NullSupportHelper.full()) return shadow.g(key, defaultValue);
-
-	Object o = shadow.get(key);
-	if (o != null) return o;
-	return defaultValue;
-
+	Object val = shadow.g(key, StructImpl.NULL);
+	if (val == StructImpl.NULL) return defaultValue;
+	if (val == null && !NullSupportHelper.full()) return defaultValue;
+	return val;
     }
 
     @Override

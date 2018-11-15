@@ -27,7 +27,6 @@ import java.util.Iterator;
 import lucee.runtime.Component;
 import lucee.runtime.ComponentScope;
 import lucee.runtime.PageContext;
-import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.dump.DumpTable;
@@ -160,7 +159,7 @@ public class ClosureScope extends ScopeSupport implements Variables, Externaliza
 
     @Override
     public Object get(Key key) throws PageException {
-	Object _null = NullSupportHelper.NULL();
+	Object _null = StructImpl.NULL;
 	Object value = local.get(key, _null);
 	if (value != _null) return value;
 	value = arg.get(key, _null);
@@ -176,14 +175,20 @@ public class ClosureScope extends ScopeSupport implements Variables, Externaliza
 
     @Override
     public Object get(Key key, Object defaultValue) {
-	Object _null = NullSupportHelper.NULL();
+	Object _null = StructImpl.NULL;
+
+	// local
 	Object value = local.get(key, _null);
 	if (value != _null) return value;
+
+	// arg
 	value = arg.get(key, _null);
 	if (value != _null) {
 	    if (debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(), arg.getTypeAsString(), key);
 	    return value;
 	}
+
+	// var
 	value = var.get(key, _null);
 	if (value != _null) {
 	    if (debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(), var.getTypeAsString(), key);

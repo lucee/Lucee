@@ -30,14 +30,6 @@ public class NullSupportHelper {
     }
 
     public static boolean full() {
-	// StructImpl.java:189,125,108
-	// ComponentScopeShadow.java:122,137
-	/*
-	 * StackTraceElement[] traces = new Throwable().getStackTrace();
-	 * print.e("................................"); print.e(traces[1]); print.e(traces[2]);
-	 * print.e(traces[3]);
-	 */
-
 	PageContext pc = ThreadLocalPageContext.get();
 	if (pc == null) return false;
 	return ((PageContextImpl) pc).getFullNullSupport();
