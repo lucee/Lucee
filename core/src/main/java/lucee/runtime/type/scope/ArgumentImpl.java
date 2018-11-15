@@ -391,8 +391,8 @@ public final class ArgumentImpl extends ScopeSupport implements Argument, ArrayP
 
     @Override
     public boolean containsKey(Collection.Key key) {
-	Object val = super.g(key, StructImpl.NULL);
-	if (val == StructImpl.NULL) return false;
+	Object val = super.g(key, CollectionUtil.NULL);
+	if (val == CollectionUtil.NULL) return false;
 	if (val == null && !NullSupportHelper.full()) return false;
 	return true;
     }

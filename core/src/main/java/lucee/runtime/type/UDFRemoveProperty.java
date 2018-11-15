@@ -39,12 +39,10 @@ import lucee.runtime.type.util.UDFUtil;
 
 public final class UDFRemoveProperty extends UDFGSProperty {
 
+    private static final long serialVersionUID = -7030615729484825208L;
+
     private final Property prop;
-    // private ComponentScope scope;
-
     private final Key propName;
-
-    private static final Object NULL = new Object();
 
     public UDFRemoveProperty(Component component, Property prop) {
 	super(component, "remove" + StringUtil.ucFirst(PropertyFactory.getSingularName(prop)), getFunctionArgument(prop), CFTypes.TYPE_BOOLEAN);

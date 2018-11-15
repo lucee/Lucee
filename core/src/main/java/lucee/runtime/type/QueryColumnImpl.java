@@ -216,8 +216,8 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 
 	Collection coll = Caster.toCollection(QueryUtil.getValue(this, query.getCurrentrow(pc.getId())), null);
 	if (coll != null) {
-	    Object res = coll.get(key, QueryImpl.NULL);
-	    if (res != QueryImpl.NULL) return res;
+	    Object res = coll.get(key, CollectionUtil.NULL);
+	    if (res != CollectionUtil.NULL) return res;
 	}
 
 	// column and query has same name

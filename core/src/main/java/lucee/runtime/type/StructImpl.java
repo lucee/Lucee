@@ -44,6 +44,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.op.ThreadLocalDuplication;
 import lucee.runtime.type.it.StringIterator;
+import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.StructSupport;
 import lucee.runtime.type.util.StructUtil;
 
@@ -53,7 +54,6 @@ import lucee.runtime.type.util.StructUtil;
 public class StructImpl extends StructSupport {
     private static final long serialVersionUID = 1421746759512286393L;
     private static final int TYPE_LINKED_NOT_SYNC = 100;
-    public static final Object NULL = new Object();
 
     private MapPro<Collection.Key, Object> map;
 
@@ -107,8 +107,8 @@ public class StructImpl extends StructSupport {
 
     @Override
     public Object get(Collection.Key key, Object defaultValue) {
-	Object val = map.g(key, NULL);
-	if (val == NULL) return defaultValue;
+	Object val = map.g(key, CollectionUtil.NULL);
+	if (val == CollectionUtil.NULL) return defaultValue;
 	if (val == null && !NullSupportHelper.full()) return defaultValue;
 	return val;
     }
@@ -189,8 +189,8 @@ public class StructImpl extends StructSupport {
 
     @Override
     public Object remove(Collection.Key key, Object defaultValue) {
-	Object val = map.r(key, NULL);
-	if (val == NULL) return defaultValue;
+	Object val = map.r(key, CollectionUtil.NULL);
+	if (val == CollectionUtil.NULL) return defaultValue;
 	if (val == null && !NullSupportHelper.full()) return defaultValue;
 	return val;
     }

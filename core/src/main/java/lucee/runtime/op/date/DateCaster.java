@@ -45,6 +45,7 @@ import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.DateTimeImpl;
 import lucee.runtime.type.dt.Time;
 import lucee.runtime.type.dt.TimeImpl;
+import lucee.runtime.type.util.CollectionUtil;
 
 /**
  * Class to cast Strings to Date Objects
@@ -54,8 +55,6 @@ public final class DateCaster {
     public static final short CONVERTING_TYPE_NONE = 0;
     public static final short CONVERTING_TYPE_YEAR = 1;
     public static final short CONVERTING_TYPE_OFFSET = 2;
-
-    private static final Object NULL = new Object();
 
     // private static short MODE_DAY_STR=1;
     // private static short MODE_MONTH_STR=2;
@@ -402,8 +401,8 @@ public final class DateCaster {
 	else if (o instanceof Number) return util.toDateTime(((Number) o).doubleValue());
 	else if (o instanceof Calendar) return new DateTimeImpl((Calendar) o);
 	else if (o instanceof ObjectWrap) {
-	    Object eo = ((ObjectWrap) o).getEmbededObject(NULL);
-	    if (eo == NULL) return defaultValue;
+	    Object eo = ((ObjectWrap) o).getEmbededObject(CollectionUtil.NULL);
+	    if (eo == CollectionUtil.NULL) return defaultValue;
 	    return toDateSimple(eo, convertingType, alsoMonthString, timeZone, defaultValue);
 	}
 	else if (o instanceof Calendar) {

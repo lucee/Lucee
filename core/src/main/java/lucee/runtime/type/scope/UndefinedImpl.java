@@ -177,7 +177,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
 
     @Override
     public Object get(Collection.Key key) throws PageException {
-	Object _null = StructImpl.NULL;
+	Object _null = CollectionUtil.NULL;
 	Object rtn;
 	if (checkArguments) {
 	    rtn = local.get(key, _null);
@@ -257,7 +257,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
     public Struct getScope(Collection.Key key) {
 	Object rtn = null;
 	Struct sct = new StructImpl(Struct.TYPE_LINKED);
-	Object _null = StructImpl.NULL;
+	Object _null = CollectionUtil.NULL;
 
 	if (checkArguments) {
 	    rtn = local.get(key, _null);
@@ -304,7 +304,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
      */
     public Collection getScopeFor(Collection.Key key, Scope defaultValue) {
 	Object rtn = null;
-	Object _null = StructImpl.NULL;
+	Object _null = CollectionUtil.NULL;
 
 	if (checkArguments) {
 	    rtn = local.get(key, _null);
@@ -375,7 +375,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
     @Override
     public Object getCollection(Key key) throws PageException {
 	Object rtn = null;
-	Object _null = StructImpl.NULL;
+	Object _null = CollectionUtil.NULL;
 
 	if (checkArguments) {
 	    rtn = local.get(key, _null);
@@ -428,7 +428,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
     @Override
     public Object get(Collection.Key key, Object defaultValue) {
 	Object rtn = null;
-	Object _null = StructImpl.NULL;
+	Object _null = CollectionUtil.NULL;
 
 	if (checkArguments) {
 	    rtn = local.get(key, _null);
@@ -491,7 +491,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
 
 	// get a scope value (only CFML is searching additional scopes)
 	if (pc.getCurrentTemplateDialect() == CFMLEngine.DIALECT_CFML) {
-	    Object _null = StructImpl.NULL;
+	    Object _null = CollectionUtil.NULL;
 	    for (int i = 0; i < scopes.length; i++) {
 		rtn = scopes[i].get(key, _null);
 		if (rtn != _null) {

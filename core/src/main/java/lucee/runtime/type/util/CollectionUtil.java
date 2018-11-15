@@ -32,7 +32,7 @@ import lucee.runtime.type.KeyImpl;
 
 public class CollectionUtil {
 
-    private static final Object NULL = new Object();
+    public static final Object NULL = new Object();
 
     public static boolean equals(Collection left, Collection right) {
 	if (left.size() != right.size()) return false;

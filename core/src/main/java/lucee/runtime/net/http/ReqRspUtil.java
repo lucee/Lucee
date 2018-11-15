@@ -63,10 +63,10 @@ import lucee.runtime.security.ScriptProtect;
 import lucee.runtime.text.xml.XMLCaster;
 import lucee.runtime.text.xml.XMLUtil;
 import lucee.runtime.type.UDF;
+import lucee.runtime.type.util.CollectionUtil;
 
 public final class ReqRspUtil {
 
-    private static final Object NULL = new Object();
     private static final Cookie[] EMPTY = new Cookie[0];
 
     public static String get(Pair<String, Object>[] items, String name) {
@@ -454,13 +454,13 @@ public final class ReqRspUtil {
 	    ServletInputStream is = null;
 	    try {
 		byte[] data = IOUtil.toBytes(is = req.getInputStream());// new byte[req.getContentLength()];
-		Object obj = NULL;
+		Object obj = CollectionUtil.NULL;
 
 		if (deserialized) {
 		    int format = MimeType.toFormat(contentType, -1);
 		    obj = toObject(pc, data, format, cs, obj);
 		}
-		if (obj == NULL) {
+		if (obj == CollectionUtil.NULL) {
 		    if (isBinary) obj = data;
 		    else obj = toString(data, cs);
 		}

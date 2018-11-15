@@ -35,11 +35,10 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.StructImpl;
+import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.KeyConstants;
 
 public class ClosureScope extends ScopeSupport implements Variables, Externalizable {
-
-    private static final Object NULL = new Object();
 
     private Argument arg;
     private Local local;
@@ -159,7 +158,7 @@ public class ClosureScope extends ScopeSupport implements Variables, Externaliza
 
     @Override
     public Object get(Key key) throws PageException {
-	Object _null = StructImpl.NULL;
+	Object _null = CollectionUtil.NULL;
 	Object value = local.get(key, _null);
 	if (value != _null) return value;
 	value = arg.get(key, _null);
@@ -175,7 +174,7 @@ public class ClosureScope extends ScopeSupport implements Variables, Externaliza
 
     @Override
     public Object get(Key key, Object defaultValue) {
-	Object _null = StructImpl.NULL;
+	Object _null = CollectionUtil.NULL;
 
 	// local
 	Object value = local.get(key, _null);
@@ -228,7 +227,7 @@ public class ClosureScope extends ScopeSupport implements Variables, Externaliza
 
     @Override
     public boolean containsKey(Key key) {
-	return get(key, NULL) != NULL;
+	return get(key, CollectionUtil.NULL) != CollectionUtil.NULL;
     }
 
     @Override
