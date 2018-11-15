@@ -3543,25 +3543,11 @@ public final class PageContextImpl extends PageContext {
 
     // FUTURE add to interface
     public boolean getFullNullSupport() {
-	/*
-	 * if (applicationContext != null) { // get++; if (fullNullSupport !=
-	 * applicationContext.getFullNullSupport()) print.e(":getFullNullSupport(" + (currentTemplateDialect
-	 * != CFMLEngine.DIALECT_CFML) + ":" + (applicationContext.getFullNullSupport()) + "):" +
-	 * fullNullSupport); return applicationContext.getFullNullSupport(); } return
-	 * config.getFullNullSupport();
-	 */
 	return fullNullSupport;
     }
 
-    // static long get = 0;
-    // static long set = 0;
-
     private void setFullNullSupport() {
 	fullNullSupport = currentTemplateDialect != CFMLEngine.DIALECT_CFML || applicationContext.getFullNullSupport();
-	// set++;
-	// if ((set % 1000) == 0) print
-	// .e((set) + ":setFullNullSupport(" + (currentTemplateDialect != CFMLEngine.DIALECT_CFML) + ":" +
-	// (applicationContext.getFullNullSupport()) + "):" + fullNullSupport);
     }
 
     public void registerLazyStatement(Statement s) {
