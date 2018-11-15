@@ -36,12 +36,10 @@ import lucee.runtime.type.util.UDFUtil;
 
 public final class UDFAddProperty extends UDFGSProperty {
 
+    private static final long serialVersionUID = 94007529373807331L;
+
     private final Property prop;
-    // private ComponentScope scope;
-
     private final Key propName;
-
-    private static final Object NULL = new Object();
 
     public UDFAddProperty(Component component, Property prop) {
 	super(component, "add" + StringUtil.ucFirst(PropertyFactory.getSingularName(prop)), getFunctionArgument(prop), CFTypes.TYPE_ANY);

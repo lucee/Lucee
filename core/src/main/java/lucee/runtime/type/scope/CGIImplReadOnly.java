@@ -143,6 +143,7 @@ public final class CGIImplReadOnly extends ReadOnlyStruct implements CGI, Script
 	return keys.length;
     }
 
+    @Override
     public Collection.Key[] keys() {
 	return keys;
     }
@@ -188,9 +189,11 @@ public final class CGIImplReadOnly extends ReadOnlyStruct implements CGI, Script
 	else if (first == 'h') {
 
 	    if (lkey.startsWith("http_")) {
-		Object o = https.get(key, NullSupportHelper.NULL());
-		if (o == NullSupportHelper.NULL() && key.equals(KeyConstants._http_if_modified_since)) o = https.get(KeyConstants._last_modified, NullSupportHelper.NULL());
-		if (o != NullSupportHelper.NULL()) return doScriptProtect((String) o);
+
+		Object _null = NullSupportHelper.NULL();
+		Object o = https.get(key, _null);
+		if (o == _null && key.equals(KeyConstants._http_if_modified_since)) o = https.get(KeyConstants._last_modified, _null);
+		if (o != _null) return doScriptProtect((String) o);
 	    }
 	    else if (key.equals(KeyConstants._https)) return (req.isSecure() ? "on" : "off");
 	}
@@ -351,6 +354,7 @@ public final class CGIImplReadOnly extends ReadOnlyStruct implements CGI, Script
 	return "cgi";
     }
 
+    @Override
     public boolean isScriptProtected() {
 	return scriptProtected == ScriptProtected.YES;
     }

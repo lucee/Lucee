@@ -305,8 +305,8 @@ public final class PageContextImpl extends PageContext {
     private PageException exception;
     private PageSource base;
 
-    ApplicationContextSupport applicationContext;
-    ApplicationContextSupport defaultApplicationContext;
+    private ApplicationContextSupport applicationContext;
+    private final ApplicationContextSupport defaultApplicationContext;
 
     private ScopeFactory scopeFactory = new ScopeFactory();
 
@@ -346,6 +346,8 @@ public final class PageContextImpl extends PageContext {
     private ThreadsImpl currentThread = null;
 
     private StackTraceElement[] timeoutStacktrace;
+
+    private boolean fullNullSupport;
 
     /**
      * default Constructor
@@ -434,6 +436,7 @@ public final class PageContextImpl extends PageContext {
 	this.isChild = isChild;
 
 	applicationContext = defaultApplicationContext;
+	setFullNullSupport();
 
 	startTime = System.currentTimeMillis();
 	thread = Thread.currentThread();
@@ -1018,6 +1021,7 @@ public final class PageContextImpl extends PageContext {
 	if (children == null) children = new ArrayList<PageContext>();
 	children.add(other);
 	other.applicationContext = applicationContext;
+	other.setFullNullSupport();
 	other.thread = Thread.currentThread();
 	other.startTime = System.currentTimeMillis();
 
@@ -1610,9 +1614,10 @@ public final class PageContextImpl extends PageContext {
 	Object value = null;
 	boolean isNew = false;
 
+	Object _null = NullSupportHelper.NULL(this);
 	// get value
-	value = VariableInterpreter.getVariableEL(this, name, NullSupportHelper.NULL(this));
-	if (NullSupportHelper.NULL(this) == value) {
+	value = VariableInterpreter.getVariableEL(this, name, _null);
+	if (_null == value) {
 	    if (defaultValue == null) throw new ExpressionException("The required parameter [" + name + "] was not provided.");
 	    value = defaultValue;
 	    isNew = true;
@@ -2357,12 +2362,14 @@ public final class PageContextImpl extends PageContext {
     @Override
     public final void execute(String realPath, boolean throwExcpetion, boolean onlyTopLevel) throws PageException {
 	requestDialect = currentTemplateDialect = CFMLEngine.DIALECT_LUCEE;
+	setFullNullSupport();
 	_execute(realPath, throwExcpetion, onlyTopLevel);
     }
 
     @Override
     public final void executeCFML(String realPath, boolean throwExcpetion, boolean onlyTopLevel) throws PageException {
 	requestDialect = currentTemplateDialect = CFMLEngine.DIALECT_CFML;
+	setFullNullSupport();
 	_execute(realPath, throwExcpetion, onlyTopLevel);
     }
 
@@ -2936,12 +2943,14 @@ public final class PageContextImpl extends PageContext {
     @Override
     public void addPageSource(PageSource ps, boolean alsoInclude) {
 	currentTemplateDialect = ps.getDialect();
+	setFullNullSupport();
 	pathList.add(ps);
 	if (alsoInclude) includePathList.add(ps);
     }
 
     public void addPageSource(PageSource ps, PageSource psInc) {
 	currentTemplateDialect = ps.getDialect();
+	setFullNullSupport();
 	pathList.add(ps);
 	if (psInc != null) includePathList.add(psInc);
     }
@@ -2949,7 +2958,10 @@ public final class PageContextImpl extends PageContext {
     @Override
     public void removeLastPageSource(boolean alsoInclude) {
 	if (!pathList.isEmpty()) pathList.removeLast();
-	if (!pathList.isEmpty()) currentTemplateDialect = pathList.getLast().getDialect();
+	if (!pathList.isEmpty()) {
+	    currentTemplateDialect = pathList.getLast().getDialect();
+	    setFullNullSupport();
+	}
 	if (alsoInclude && !includePathList.isEmpty()) includePathList.removeLast();
     }
 
@@ -2987,7 +2999,7 @@ public final class PageContextImpl extends PageContext {
 	application = null;
 	client = null;
 	this.applicationContext = (ApplicationContextSupport) applicationContext;
-
+	setFullNullSupport();
 	int scriptProtect = applicationContext.getScriptProtect();
 
 	// ScriptProtecting
@@ -3534,10 +3546,11 @@ public final class PageContextImpl extends PageContext {
 
     // FUTURE add to interface
     public boolean getFullNullSupport() {
-	if (applicationContext != null) {
-	    return applicationContext.getFullNullSupport();
-	}
-	return config.getFullNullSupport();
+	return fullNullSupport;
+    }
+
+    private void setFullNullSupport() {
+	fullNullSupport = currentTemplateDialect != CFMLEngine.DIALECT_CFML || applicationContext.getFullNullSupport();
     }
 
     public void registerLazyStatement(Statement s) {

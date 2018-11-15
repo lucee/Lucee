@@ -43,6 +43,7 @@ import lucee.runtime.type.it.EntryIterator;
 import lucee.runtime.type.it.KeyIterator;
 import lucee.runtime.type.it.StringIterator;
 import lucee.runtime.type.it.ValueIterator;
+import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.ComponentUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.MemberUtil;
@@ -118,8 +119,8 @@ public class ComponentScopeShadow extends StructSupport implements ComponentScop
 
     @Override
     public Object get(Key key) throws PageException {
-	Object o = get(key, NullSupportHelper.NULL());
-	if (o != NullSupportHelper.NULL()) return o;
+	Object o = get(key, CollectionUtil.NULL);
+	if (o != CollectionUtil.NULL) return o;
 	throw new ExpressionException("Component [" + component.getCallName() + "] has no accessible Member with name [" + key + "]");
     }
 
@@ -132,12 +133,10 @@ public class ComponentScopeShadow extends StructSupport implements ComponentScop
 	if (key.equalsIgnoreCase(KeyConstants._THIS)) return component.top;
 	if (key.equalsIgnoreCase(KeyConstants._STATIC)) return component.staticScope();
 
-	if (NullSupportHelper.full()) return shadow.g(key, defaultValue);
-
-	Object o = shadow.get(key);
-	if (o != null) return o;
-	return defaultValue;
-
+	Object val = shadow.g(key, CollectionUtil.NULL);
+	if (val == CollectionUtil.NULL) return defaultValue;
+	if (val == null && !NullSupportHelper.full()) return defaultValue;
+	return val;
     }
 
     @Override

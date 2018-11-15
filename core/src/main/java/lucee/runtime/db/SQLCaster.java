@@ -142,6 +142,7 @@ public final class SQLCaster {
 	    return;
 	}
 	int type = item.getType();
+	boolean fns = NullSupportHelper.full(pc);
 	switch (type) {
 	/*
 	 * case Types.ARRAY: stat.setArray(parameterIndex,toArray(item.getValue())); return;
@@ -151,7 +152,7 @@ public final class SQLCaster {
 		stat.setLong(parameterIndex, Caster.toLongValue(value));
 	    }
 	    catch (PageException pe) {
-		if (!NullSupportHelper.full(pc) && value instanceof String && StringUtil.isEmpty((String) value)) stat.setNull(parameterIndex, item.getType());
+		if (!fns && value instanceof String && StringUtil.isEmpty((String) value)) stat.setNull(parameterIndex, item.getType());
 		else throw pe;
 	    }
 	    return;
@@ -160,7 +161,7 @@ public final class SQLCaster {
 		stat.setBoolean(parameterIndex, Caster.toBooleanValue(value));
 	    }
 	    catch (PageException pe) {
-		if (!NullSupportHelper.full(pc) && value instanceof String && StringUtil.isEmpty((String) value)) stat.setNull(parameterIndex, item.getType());
+		if (!fns && value instanceof String && StringUtil.isEmpty((String) value)) stat.setNull(parameterIndex, item.getType());
 		else throw pe;
 	    }
 	    return;
@@ -169,7 +170,7 @@ public final class SQLCaster {
 		stat.setBlob(parameterIndex, SQLUtil.toBlob(stat.getConnection(), value));
 	    }
 	    catch (PageException pe) {
-		if (!NullSupportHelper.full(pc) && value instanceof String && StringUtil.isEmpty((String) value)) stat.setNull(parameterIndex, item.getType());
+		if (!fns && value instanceof String && StringUtil.isEmpty((String) value)) stat.setNull(parameterIndex, item.getType());
 		else throw pe;
 	    }
 	    return;
@@ -185,7 +186,7 @@ public final class SQLCaster {
 		 */
 	    }
 	    catch (PageException pe) {
-		if (!NullSupportHelper.full(pc) && value instanceof String && StringUtil.isEmpty((String) value)) stat.setNull(parameterIndex, item.getType());
+		if (!fns && value instanceof String && StringUtil.isEmpty((String) value)) stat.setNull(parameterIndex, item.getType());
 		else throw pe;
 	    }
 	    return;
@@ -201,7 +202,7 @@ public final class SQLCaster {
 		stat.setDouble(parameterIndex, (Caster.toDoubleValue(value)));
 	    }
 	    catch (PageException pe) {
-		if (!NullSupportHelper.full(pc) && value instanceof String && StringUtil.isEmpty((String) value)) stat.setNull(parameterIndex, item.getType());
+		if (!fns && value instanceof String && StringUtil.isEmpty((String) value)) stat.setNull(parameterIndex, item.getType());
 		else throw pe;
 	    }
 	    return;
@@ -214,7 +215,7 @@ public final class SQLCaster {
 		else stat.setObject(parameterIndex, Caster.toDouble(value), type);
 	    }
 	    catch (PageException pe) {
-		if (!NullSupportHelper.full(pc) && value instanceof String && StringUtil.isEmpty((String) value)) stat.setNull(parameterIndex, item.getType());
+		if (!fns && value instanceof String && StringUtil.isEmpty((String) value)) stat.setNull(parameterIndex, item.getType());
 		else throw pe;
 	    }
 	    return;
@@ -226,7 +227,7 @@ public final class SQLCaster {
 		//// stat.setBytes(parameterIndex,Caster.toBinary(value));
 	    }
 	    catch (PageException pe) {
-		if (!NullSupportHelper.full(pc) && value instanceof String && StringUtil.isEmpty((String) value)) stat.setNull(parameterIndex, item.getType());
+		if (!fns && value instanceof String && StringUtil.isEmpty((String) value)) stat.setNull(parameterIndex, item.getType());
 		else throw pe;
 	    }
 	    return;
@@ -236,7 +237,7 @@ public final class SQLCaster {
 		//// stat.setFloat(parameterIndex,Caster.toFloatValue(value));
 	    }
 	    catch (PageException pe) {
-		if (!NullSupportHelper.full(pc) && value instanceof String && StringUtil.isEmpty((String) value)) stat.setNull(parameterIndex, item.getType());
+		if (!fns && value instanceof String && StringUtil.isEmpty((String) value)) stat.setNull(parameterIndex, item.getType());
 		else throw pe;
 	    }
 	    return;
@@ -246,7 +247,7 @@ public final class SQLCaster {
 		//// stat.setByte(parameterIndex,Caster.toByteValue(value));
 	    }
 	    catch (PageException pe) {
-		if (!NullSupportHelper.full(pc) && value instanceof String && StringUtil.isEmpty((String) value)) stat.setNull(parameterIndex, item.getType());
+		if (!fns && value instanceof String && StringUtil.isEmpty((String) value)) stat.setNull(parameterIndex, item.getType());
 		else throw pe;
 	    }
 	    return;
@@ -256,7 +257,7 @@ public final class SQLCaster {
 		//// stat.setShort(parameterIndex,Caster.toShortValue(value));
 	    }
 	    catch (PageException pe) {
-		if (!NullSupportHelper.full(pc) && value instanceof String && StringUtil.isEmpty((String) value)) stat.setNull(parameterIndex, item.getType());
+		if (!fns && value instanceof String && StringUtil.isEmpty((String) value)) stat.setNull(parameterIndex, item.getType());
 		else throw pe;
 	    }
 	    return;
@@ -266,7 +267,7 @@ public final class SQLCaster {
 		//// stat.setInt(parameterIndex,Caster.toIntValue(value));
 	    }
 	    catch (PageException pe) {
-		if (!NullSupportHelper.full(pc) && value instanceof String && StringUtil.isEmpty((String) value)) stat.setNull(parameterIndex, item.getType());
+		if (!fns && value instanceof String && StringUtil.isEmpty((String) value)) stat.setNull(parameterIndex, item.getType());
 		else throw pe;
 	    }
 	    return;
@@ -283,7 +284,7 @@ public final class SQLCaster {
 		// stat.setDate(parameterIndex,new Date((Caster.toDate(value,null).getTime())));
 	    }
 	    catch (PageException pe) {
-		if (!NullSupportHelper.full(pc) && value instanceof String && StringUtil.isEmpty((String) value)) stat.setNull(parameterIndex, item.getType());
+		if (!fns && value instanceof String && StringUtil.isEmpty((String) value)) stat.setNull(parameterIndex, item.getType());
 		else throw pe;
 	    }
 	    return;
@@ -294,7 +295,7 @@ public final class SQLCaster {
 		stat.setTime(parameterIndex, new Time(Caster.toDate(value, tz).getTime()), JREDateTimeUtil.getThreadCalendar(tz));
 	    }
 	    catch (PageException pe) {
-		if (!NullSupportHelper.full(pc) && value instanceof String && StringUtil.isEmpty((String) value)) stat.setNull(parameterIndex, item.getType());
+		if (!fns && value instanceof String && StringUtil.isEmpty((String) value)) stat.setNull(parameterIndex, item.getType());
 		else throw pe;
 	    }
 	    return;
@@ -305,7 +306,7 @@ public final class SQLCaster {
 		stat.setTimestamp(parameterIndex, new Timestamp(Caster.toDate(value, tz).getTime()), JREDateTimeUtil.getThreadCalendar(tz));
 	    }
 	    catch (PageException pe) {
-		if (!NullSupportHelper.full(pc) && value instanceof String && StringUtil.isEmpty((String) value)) stat.setNull(parameterIndex, item.getType());
+		if (!fns && value instanceof String && StringUtil.isEmpty((String) value)) stat.setNull(parameterIndex, item.getType());
 		else throw pe;
 	    }
 

@@ -85,7 +85,6 @@ public final class JSONConverter extends ConverterSupport {
     private static final Collection.Key REMOTING_FETCH = KeyImpl.intern("remotingFetch");
 
     private static final Key TO_JSON = KeyImpl.intern("_toJson");
-    private static final Object NULL = new Object();
     private static final String NULL_STRING = "";
 
     private boolean ignoreRemotingFetch;
@@ -140,7 +139,7 @@ public final class JSONConverter extends ConverterSupport {
 	    // setters
 	    Method[] setters = Reflector.getSetters(clazz);
 	    for (int i = 0; i < setters.length; i++) {
-		sct.setEL(setters[i].getName().substring(3), NULL);
+		sct.setEL(setters[i].getName().substring(3), CollectionUtil.NULL);
 	    }
 	    // getters
 	    Method[] getters = Reflector.getGetters(clazz);
@@ -518,7 +517,7 @@ public final class JSONConverter extends ConverterSupport {
     private void _serialize(PageContext pc, Set test, Object object, StringBuilder sb, boolean serializeQueryByColumns, Set done) throws ConverterException {
 
 	// NULL
-	if (object == null || object == NULL) {
+	if (object == null || object == CollectionUtil.NULL) {
 	    sb.append(goIn());
 	    sb.append("null");
 	    return;

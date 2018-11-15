@@ -119,7 +119,9 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 
     private void defineArguments(PageContext pc, FunctionArgument[] funcArgs, Object[] args, Argument newArgs) throws PageException {
 	// define argument scope
-	boolean fns = pc.getCurrentTemplateDialect() != CFMLEngine.DIALECT_CFML || pc.getConfig().getFullNullSupport();
+	boolean fns = NullSupportHelper.full(pc);
+	Object _null = NullSupportHelper.NULL(fns);
+
 	for (int i = 0; i < funcArgs.length; i++) {
 	    // argument defined
 	    if (args.length > i && (args[i] != null || fns)) {
@@ -127,12 +129,12 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 	    }
 	    // argument not defined
 	    else {
-		Object d = getDefaultValue(pc, i, NullSupportHelper.NULL(pc));
-		if (d == NullSupportHelper.NULL(pc)) {
+		Object d = getDefaultValue(pc, i, _null);
+		if (d == _null) {
 		    if (funcArgs[i].isRequired()) {
 			throw new ExpressionException("The parameter " + funcArgs[i].getName() + " to function " + getFunctionName() + " is required but was not passed in.");
 		    }
-		    if (!NullSupportHelper.full(pc)) newArgs.setEL(funcArgs[i].getName(), Argument.NULL);
+		    if (!fns) newArgs.setEL(funcArgs[i].getName(), Argument.NULL);
 		}
 		else {
 		    newArgs.setEL(funcArgs[i].getName(), castTo(pc, funcArgs[i], d, i + 1));
@@ -150,24 +152,25 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 	// print.out(values.size());
 	Object value;
 	Collection.Key name;
+	Object _null = NullSupportHelper.NULL(pageContext);
 
 	for (int i = 0; i < funcArgs.length; i++) {
 	    // argument defined
 	    name = funcArgs[i].getName();
-	    value = values.remove(name, NullSupportHelper.NULL(pageContext));
-	    if (value != NullSupportHelper.NULL(pageContext)) {
+	    value = values.remove(name, _null);
+	    if (value != _null) {
 		newArgs.set(name, castToAndClone(pageContext, funcArgs[i], value, i + 1));
 		continue;
 	    }
-	    value = values.remove(ArgumentIntKey.init(i + 1), NullSupportHelper.NULL(pageContext));
-	    if (value != NullSupportHelper.NULL(pageContext)) {
+	    value = values.remove(ArgumentIntKey.init(i + 1), _null);
+	    if (value != _null) {
 		newArgs.set(name, castToAndClone(pageContext, funcArgs[i], value, i + 1));
 		continue;
 	    }
 
 	    // default argument or exception
-	    Object defaultValue = getDefaultValue(pageContext, i, NullSupportHelper.NULL(pageContext));// funcArgs[i].getDefaultValue();
-	    if (defaultValue == NullSupportHelper.NULL(pageContext)) {
+	    Object defaultValue = getDefaultValue(pageContext, i, _null);// funcArgs[i].getDefaultValue();
+	    if (defaultValue == _null) {
 		if (funcArgs[i].isRequired()) {
 		    throw new ExpressionException("The parameter " + funcArgs[i].getName() + " to function " + getFunctionName() + " is required but was not passed in.");
 		}

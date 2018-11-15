@@ -49,6 +49,7 @@ import lucee.runtime.type.UDFPlus;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.DateTimeImpl;
 import lucee.runtime.type.ref.VariableReference;
+import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.wrap.ListAsArray;
 import lucee.runtime.type.wrap.MapAsStruct;
@@ -59,8 +60,6 @@ import lucee.runtime.type.wrap.MapAsStruct;
  * 
  */
 public final class Operator {
-
-    private static final Object NULL = new Object();
 
     /**
      * compares two Objects
@@ -723,9 +722,9 @@ public final class Operator {
 	Object l, r;
 	while (it.hasNext()) {
 	    k = it.next();
-	    l = left.get(k, NULL);
-	    r = right.get(k, NULL);
-	    if (l == NULL || r == NULL) {
+	    l = left.get(k, CollectionUtil.NULL);
+	    r = right.get(k, CollectionUtil.NULL);
+	    if (l == CollectionUtil.NULL || r == CollectionUtil.NULL) {
 		if (l == r) continue;
 		return false;
 	    }
@@ -774,9 +773,9 @@ public final class Operator {
 	Object l, r;
 	while (it.hasNext()) {
 	    k = it.next();
-	    r = right.get(k, NULL);
-	    if (r == NULL) return false;
-	    l = left.get(k, NULL);
+	    r = right.get(k, CollectionUtil.NULL);
+	    if (r == CollectionUtil.NULL) return false;
+	    l = left.get(k, CollectionUtil.NULL);
 	    if (!_equalsComplex(done, r, l, caseSensitive)) return false;
 	}
 	return true;

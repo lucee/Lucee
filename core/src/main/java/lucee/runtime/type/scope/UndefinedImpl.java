@@ -177,14 +177,14 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
 
     @Override
     public Object get(Collection.Key key) throws PageException {
-	// print.e();
+	Object _null = CollectionUtil.NULL;
 	Object rtn;
 	if (checkArguments) {
-	    rtn = local.get(key, NullSupportHelper.NULL());
-	    if (rtn != NullSupportHelper.NULL()) return rtn;
+	    rtn = local.get(key, _null);
+	    if (rtn != _null) return rtn;
 
-	    rtn = argument.getFunctionArgument(key, NullSupportHelper.NULL());
-	    if (rtn != NullSupportHelper.NULL()) {
+	    rtn = argument.getFunctionArgument(key, _null);
+	    if (rtn != _null) {
 		if (debug) debugCascadedAccess(pc, argument.getTypeAsString(), key);
 		return rtn;
 	    }
@@ -192,17 +192,17 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
 
 	// get data from queries
 	if (allowImplicidQueryCall && pc.getCurrentTemplateDialect() == CFMLEngine.DIALECT_CFML && !qryStack.isEmpty()) {
-	    rtn = qryStack.getDataFromACollection(pc, key, NullSupportHelper.NULL());
-	    if (rtn != NullSupportHelper.NULL()) {
+	    rtn = qryStack.getDataFromACollection(pc, key, _null);
+	    if (rtn != _null) {
 		if (debug) debugCascadedAccess(pc, "query", key);
-		if (!NullSupportHelper.full() && rtn == null) return "";
+		if (rtn == null && !NullSupportHelper.full(pc)) return "";
 		return rtn;
 	    }
 	}
 
 	// variable
-	rtn = variable.get(key, NullSupportHelper.NULL());
-	if (rtn != NullSupportHelper.NULL()) {
+	rtn = variable.get(key, _null);
+	if (rtn != _null) {
 	    if (debug && checkArguments) debugCascadedAccess(pc, variable, rtn, key);
 	    return rtn;
 	}
@@ -210,8 +210,8 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
 	// thread scopes
 	if (pc.hasFamily()) {
 	    rtn = // ThreadTag.getThreadScope(pc, key, ThreadTag.LEVEL_CURRENT+ThreadTag.LEVEL_KIDS);
-		    pc.getThreadScope(key, NullSupportHelper.NULL());
-	    if (rtn != NullSupportHelper.NULL()) {
+		    pc.getThreadScope(key, _null);
+	    if (rtn != _null) {
 		if (debug) debugCascadedAccess(pc, "thread", key);
 		return rtn;
 	    }
@@ -220,8 +220,8 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
 	// get a scope value (only CFML is searching additional scopes)
 	if (pc.getCurrentTemplateDialect() == CFMLEngine.DIALECT_CFML) {
 	    for (int i = 0; i < scopes.length; i++) {
-		rtn = scopes[i].get(key, NullSupportHelper.NULL());
-		if (rtn != NullSupportHelper.NULL()) {
+		rtn = scopes[i].get(key, _null);
+		if (rtn != _null) {
 		    if (debug) debugCascadedAccess(pc, scopes[i].getTypeAsString(), key);
 		    return rtn;
 		}
@@ -257,12 +257,13 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
     public Struct getScope(Collection.Key key) {
 	Object rtn = null;
 	Struct sct = new StructImpl(Struct.TYPE_LINKED);
+	Object _null = CollectionUtil.NULL;
 
 	if (checkArguments) {
-	    rtn = local.get(key, NullSupportHelper.NULL());
-	    if (rtn != NullSupportHelper.NULL()) sct.setEL(KeyConstants._local, rtn);
-	    rtn = argument.getFunctionArgument(key, NullSupportHelper.NULL());
-	    if (rtn != NullSupportHelper.NULL()) sct.setEL(KeyConstants._arguments, rtn);
+	    rtn = local.get(key, _null);
+	    if (rtn != _null) sct.setEL(KeyConstants._local, rtn);
+	    rtn = argument.getFunctionArgument(key, _null);
+	    if (rtn != _null) sct.setEL(KeyConstants._arguments, rtn);
 	}
 
 	// get data from queries
@@ -272,22 +273,22 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
 	}
 
 	// variable
-	rtn = variable.get(key, NullSupportHelper.NULL());
-	if (rtn != NullSupportHelper.NULL()) {
+	rtn = variable.get(key, _null);
+	if (rtn != _null) {
 	    sct.setEL(KeyConstants._variables, rtn);
 	}
 
 	// thread scopes
 	if (pc.hasFamily()) {
-	    rtn = pc.getThreadScope(key, NullSupportHelper.NULL());
-	    if (rtn != NullSupportHelper.NULL()) sct.setEL(KeyConstants._thread, rtn);
+	    rtn = pc.getThreadScope(key, _null);
+	    if (rtn != _null) sct.setEL(KeyConstants._thread, rtn);
 	}
 
 	// get a scope value (only cfml is searching addional scopes)
 	if (pc.getCurrentTemplateDialect() == CFMLEngine.DIALECT_CFML) {
 	    for (int i = 0; i < scopes.length; i++) {
-		rtn = scopes[i].get(key, NullSupportHelper.NULL());
-		if (rtn != NullSupportHelper.NULL()) {
+		rtn = scopes[i].get(key, _null);
+		if (rtn != _null) {
 		    sct.setEL(KeyImpl.init(scopes[i].getTypeAsString()), rtn);
 		}
 	    }
@@ -303,12 +304,13 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
      */
     public Collection getScopeFor(Collection.Key key, Scope defaultValue) {
 	Object rtn = null;
+	Object _null = CollectionUtil.NULL;
 
 	if (checkArguments) {
-	    rtn = local.get(key, NullSupportHelper.NULL());
-	    if (rtn != NullSupportHelper.NULL()) return local;
-	    rtn = argument.getFunctionArgument(key, NullSupportHelper.NULL());
-	    if (rtn != NullSupportHelper.NULL()) return argument;
+	    rtn = local.get(key, _null);
+	    if (rtn != _null) return local;
+	    rtn = argument.getFunctionArgument(key, _null);
+	    if (rtn != _null) return argument;
 	}
 
 	// get data from queries
@@ -318,22 +320,22 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
 	}
 
 	// variable
-	rtn = variable.get(key, NullSupportHelper.NULL());
-	if (rtn != NullSupportHelper.NULL()) {
+	rtn = variable.get(key, _null);
+	if (rtn != _null) {
 	    return variable;
 	}
 
 	// thread scopes
 	if (pc.hasFamily()) {
-	    Threads t = (Threads) pc.getThreadScope(key, NullSupportHelper.NULL());
-	    if (rtn != NullSupportHelper.NULL()) return t;
+	    Threads t = (Threads) pc.getThreadScope(key, _null);
+	    if (rtn != _null) return t;
 	}
 
 	// get a scope value (only cfml is searcing additional scopes)
 	if (pc.getCurrentTemplateDialect() == CFMLEngine.DIALECT_CFML) {
 	    for (int i = 0; i < scopes.length; i++) {
-		rtn = scopes[i].get(key, NullSupportHelper.NULL());
-		if (rtn != NullSupportHelper.NULL()) {
+		rtn = scopes[i].get(key, _null);
+		if (rtn != _null) {
 		    return scopes[i];
 		}
 	    }
@@ -373,12 +375,13 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
     @Override
     public Object getCollection(Key key) throws PageException {
 	Object rtn = null;
+	Object _null = CollectionUtil.NULL;
 
 	if (checkArguments) {
-	    rtn = local.get(key, NullSupportHelper.NULL());
-	    if (rtn != NullSupportHelper.NULL()) return rtn;
-	    rtn = argument.getFunctionArgument(key, NullSupportHelper.NULL());
-	    if (rtn != NullSupportHelper.NULL()) {
+	    rtn = local.get(key, _null);
+	    if (rtn != _null) return rtn;
+	    rtn = argument.getFunctionArgument(key, _null);
+	    if (rtn != _null) {
 		if (debug) debugCascadedAccess(pc, argument.getTypeAsString(), key);
 		return rtn;
 	    }
@@ -394,16 +397,16 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
 	}
 
 	// variable
-	rtn = variable.get(key, NullSupportHelper.NULL());
-	if (rtn != NullSupportHelper.NULL()) {
+	rtn = variable.get(key, _null);
+	if (rtn != _null) {
 	    if (debug && checkArguments) debugCascadedAccess(pc, variable, rtn, key);
 	    return rtn;
 	}
 
 	// thread scopes
 	if (pc.hasFamily()) {
-	    rtn = pc.getThreadScope(key, NullSupportHelper.NULL());
-	    if (rtn != NullSupportHelper.NULL()) {
+	    rtn = pc.getThreadScope(key, _null);
+	    if (rtn != _null) {
 		if (debug) debugCascadedAccess(pc, "thread", key);
 		return rtn;
 	    }
@@ -412,8 +415,8 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
 	// get a scope value (only CFML is searching addioanl scopes)
 	if (pc.getCurrentTemplateDialect() == CFMLEngine.DIALECT_CFML) {
 	    for (int i = 0; i < scopes.length; i++) {
-		rtn = scopes[i].get(key, NullSupportHelper.NULL());
-		if (rtn != NullSupportHelper.NULL()) {
+		rtn = scopes[i].get(key, _null);
+		if (rtn != _null) {
 		    if (debug) debugCascadedAccess(pc, scopes[i].getTypeAsString(), key);
 		    return rtn;
 		}
@@ -425,12 +428,14 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
     @Override
     public Object get(Collection.Key key, Object defaultValue) {
 	Object rtn = null;
-	if (checkArguments) {
-	    rtn = local.get(key, NullSupportHelper.NULL());
-	    if (rtn != NullSupportHelper.NULL()) return rtn;
+	Object _null = CollectionUtil.NULL;
 
-	    rtn = argument.getFunctionArgument(key, NullSupportHelper.NULL());
-	    if (rtn != NullSupportHelper.NULL()) {
+	if (checkArguments) {
+	    rtn = local.get(key, _null);
+	    if (rtn != _null) return rtn;
+
+	    rtn = argument.getFunctionArgument(key, _null);
+	    if (rtn != _null) {
 		if (debug) debugCascadedAccess(pc, argument.getTypeAsString(), key);
 		return rtn;
 	    }
@@ -438,24 +443,24 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
 
 	// get data from queries
 	if (allowImplicidQueryCall && pc.getCurrentTemplateDialect() == CFMLEngine.DIALECT_CFML && !qryStack.isEmpty()) {
-	    rtn = qryStack.getDataFromACollection(pc, key, NullSupportHelper.NULL());
-	    if (rtn != NullSupportHelper.NULL()) {
+	    rtn = qryStack.getDataFromACollection(pc, key, _null);
+	    if (rtn != _null) {
 		if (debug) debugCascadedAccess(pc, "query", key);
 		return rtn;
 	    }
 	}
 
 	// variable
-	rtn = variable.get(key, NullSupportHelper.NULL());
-	if (rtn != NullSupportHelper.NULL()) {
+	rtn = variable.get(key, _null);
+	if (rtn != _null) {
 	    if (debug && checkArguments) debugCascadedAccess(pc, variable, rtn, key);
 	    return rtn;
 	}
 
 	// thread scopes
 	if (pc.hasFamily()) {
-	    rtn = pc.getThreadScope(key, NullSupportHelper.NULL());
-	    if (rtn != NullSupportHelper.NULL()) {
+	    rtn = pc.getThreadScope(key, _null);
+	    if (rtn != _null) {
 		if (debug && checkArguments) debugCascadedAccess(pc, "thread", key);
 		return rtn;
 	    }
@@ -464,8 +469,8 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
 	// get a scope value (only CFML is searching additional scopes)
 	if (pc.getCurrentTemplateDialect() == CFMLEngine.DIALECT_CFML) {
 	    for (int i = 0; i < scopes.length; i++) {
-		rtn = scopes[i].get(key, NullSupportHelper.NULL());
-		if (rtn != NullSupportHelper.NULL()) {
+		rtn = scopes[i].get(key, _null);
+		if (rtn != _null) {
 		    if (debug) debugCascadedAccess(pc, scopes[i].getTypeAsString(), key);
 		    return rtn;
 		}
@@ -486,9 +491,10 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
 
 	// get a scope value (only CFML is searching additional scopes)
 	if (pc.getCurrentTemplateDialect() == CFMLEngine.DIALECT_CFML) {
+	    Object _null = CollectionUtil.NULL;
 	    for (int i = 0; i < scopes.length; i++) {
-		rtn = scopes[i].get(key, NullSupportHelper.NULL());
-		if (rtn != NullSupportHelper.NULL()) {
+		rtn = scopes[i].get(key, _null);
+		if (rtn != _null) {
 		    return rtn;
 		}
 	    }

@@ -391,10 +391,10 @@ public final class ArgumentImpl extends ScopeSupport implements Argument, ArrayP
 
     @Override
     public boolean containsKey(Collection.Key key) {
-	if (NullSupportHelper.full()) return super.containsKey(key);
-
-	return super.g(key, null) != null;
-	// return get(key,NullSupportHelper.NULL())!=NullSupportHelper.NULL() && super.containsKey(key);
+	Object val = super.g(key, CollectionUtil.NULL);
+	if (val == CollectionUtil.NULL) return false;
+	if (val == null && !NullSupportHelper.full()) return false;
+	return true;
     }
     /*
      * public boolean containsKey(Collection.Key key) { return get(key,null)!=null &&

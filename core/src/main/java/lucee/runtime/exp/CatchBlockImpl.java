@@ -46,6 +46,7 @@ import lucee.runtime.type.it.KeyIterator;
 import lucee.runtime.type.it.StringIterator;
 import lucee.runtime.type.it.ValueIterator;
 import lucee.runtime.type.util.ArrayUtil;
+import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.MemberUtil;
 import lucee.runtime.type.util.StructSupport;
@@ -63,7 +64,6 @@ public class CatchBlockImpl extends StructImpl implements CatchBlock, Castable, 
     public static final Key TAG_CONTEXT = KeyImpl.intern("TagContext");
     public static final Key STACK_TRACE = KeyImpl.intern("StackTrace");
     public static final Key ADDITIONAL = KeyImpl.intern("additional");
-    private static final Object NULL = new Object();
 
     private PageException exception;
 
@@ -465,8 +465,8 @@ public class CatchBlockImpl extends StructImpl implements CatchBlock, Castable, 
 
     @Override
     public Object get(Key key) throws PageException {
-	Object res = get(key, NULL);
-	if (res != NULL) return res;
+	Object res = get(key, CollectionUtil.NULL);
+	if (res != CollectionUtil.NULL) return res;
 	throw StructSupport.invalidKey(null, this, key, "catch block");
     }
 

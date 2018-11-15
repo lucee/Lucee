@@ -34,7 +34,8 @@ public final class ArrayIndexExists extends BIF {
     private static final long serialVersionUID = -4490011932571314711L;
 
     public static boolean call(PageContext pc, Array array, double index) {
-	return array.get((int) index, NullSupportHelper.NULL(pc)) != NullSupportHelper.NULL(pc);
+	Object _null = NullSupportHelper.NULL(pc);
+	return array.get((int) index, _null) != _null;
     }
 
     @Override

@@ -76,6 +76,8 @@ import lucee.runtime.type.UDF;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
+
+import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.Type;
 import lucee.transformer.bytecode.util.JavaProxyFactory;
 
@@ -83,8 +85,6 @@ import lucee.transformer.bytecode.util.JavaProxyFactory;
  * Class to reflect on Objects and classes
  */
 public final class Reflector {
-
-    private static final Object NULL = new Object();
 
     private static final Collection.Key SET_ACCESSIBLE = KeyImpl.intern("setAccessible");
     private static final Collection.Key EXIT = KeyImpl.intern("exit");
@@ -1336,8 +1336,8 @@ public final class Reflector {
      * @throws PageException
      */
     public static Object getProperty(Object obj, String prop) throws PageException {
-	Object rtn = getField(obj, prop, NULL);// NULL is used because the field can contain null as well
-	if (rtn != NULL) return rtn;
+	Object rtn = getField(obj, prop, CollectionUtil.NULL);// NULL is used because the field can contain null as well
+	if (rtn != CollectionUtil.NULL) return rtn;
 
 	char first = prop.charAt(0);
 	if (first >= '0' && first <= '9') throw new ApplicationException("there is no property with name [" + prop + "]  found in [" + Caster.toTypeName(obj) + "]");

@@ -204,8 +204,9 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
     public Object get(PageContext pc, Collection.Key key) throws PageException {
 	int row = Caster.toIntValue(key.getString(), Integer.MIN_VALUE);
 	if (row == Integer.MIN_VALUE) {
-	    Object child = getChildElement(pc, key, NullSupportHelper.NULL(pc));
-	    if (child != NullSupportHelper.NULL(pc)) return child;
+	    Object _null = NullSupportHelper.NULL(pc);
+	    Object child = getChildElement(pc, key, _null);
+	    if (child != _null) return child;
 	    throw new DatabaseException("key [" + key + "] not found", null, null, null);
 	}
 	return QueryUtil.getValue(this, row);
@@ -215,8 +216,8 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 
 	Collection coll = Caster.toCollection(QueryUtil.getValue(this, query.getCurrentrow(pc.getId())), null);
 	if (coll != null) {
-	    Object res = coll.get(key, QueryImpl.NULL);
-	    if (res != QueryImpl.NULL) return res;
+	    Object res = coll.get(key, CollectionUtil.NULL);
+	    if (res != CollectionUtil.NULL) return res;
 	}
 
 	// column and query has same name
@@ -227,11 +228,12 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 	// get it from undefined scope
 	pc = ThreadLocalPageContext.get(pc);
 	if (pc != null) {
+	    Object _null = NullSupportHelper.NULL(pc);
 	    Undefined undefined = pc.undefinedScope();
 	    boolean old = undefined.setAllowImplicidQueryCall(false);
-	    Object sister = undefined.get(this.key, NullSupportHelper.NULL(pc));
+	    Object sister = undefined.get(this.key, _null);
 	    undefined.setAllowImplicidQueryCall(old);
-	    if (sister != NullSupportHelper.NULL(pc)) {
+	    if (sister != _null) {
 		try {
 		    return pc.get(sister, key);
 		}
@@ -502,8 +504,9 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 
     @Override
     public String castToString(String defaultValue) {
-	Object value = get(query.getCurrentrow(ThreadLocalPageContext.get().getId()), NullSupportHelper.NULL());
-	if (value == NullSupportHelper.NULL()) return defaultValue;
+	Object _null = NullSupportHelper.NULL();
+	Object value = get(query.getCurrentrow(ThreadLocalPageContext.get().getId()), _null);
+	if (value == _null) return defaultValue;
 	return Caster.toString(value, defaultValue);
     }
 
@@ -514,8 +517,9 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 
     @Override
     public Boolean castToBoolean(Boolean defaultValue) {
-	Object value = get(query.getCurrentrow(ThreadLocalPageContext.get().getId()), NullSupportHelper.NULL());
-	if (value == NullSupportHelper.NULL()) return defaultValue;
+	Object _null = NullSupportHelper.NULL();
+	Object value = get(query.getCurrentrow(ThreadLocalPageContext.get().getId()), _null);
+	if (value == _null) return defaultValue;
 	return Caster.toBoolean(value, defaultValue);
     }
 
@@ -526,8 +530,9 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 
     @Override
     public double castToDoubleValue(double defaultValue) {
-	Object value = get(query.getCurrentrow(ThreadLocalPageContext.get().getId()), NullSupportHelper.NULL());
-	if (value == NullSupportHelper.NULL()) return defaultValue;
+	Object _null = NullSupportHelper.NULL();
+	Object value = get(query.getCurrentrow(ThreadLocalPageContext.get().getId()), _null);
+	if (value == _null) return defaultValue;
 	return Caster.toDoubleValue(value, true, defaultValue);
     }
 
@@ -538,8 +543,9 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 
     @Override
     public DateTime castToDateTime(DateTime defaultValue) {
-	Object value = get(query.getCurrentrow(ThreadLocalPageContext.get().getId()), NullSupportHelper.NULL());
-	if (value == NullSupportHelper.NULL()) return defaultValue;
+	Object _null = NullSupportHelper.NULL();
+	Object value = get(query.getCurrentrow(ThreadLocalPageContext.get().getId()), _null);
+	if (value == _null) return defaultValue;
 	return DateCaster.toDateAdvanced(value, DateCaster.CONVERTING_TYPE_OFFSET, null, defaultValue);
     }
 
@@ -624,7 +630,8 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 
     @Override
     public boolean containsKey(Collection.Key key) {
-	return get(key, NullSupportHelper.NULL()) != NullSupportHelper.NULL();
+	Object _null = NullSupportHelper.NULL();
+	return get(key, _null) != _null;
     }
 
     public Iterator iterator() {
@@ -899,7 +906,8 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 
     @Override
     public boolean containsKey(int key) {
-	return get(key, NullSupportHelper.NULL()) != NullSupportHelper.NULL();
+	Object _null = NullSupportHelper.NULL();
+	return get(key, _null) != _null;
     }
 
     /*
