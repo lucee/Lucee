@@ -503,14 +503,6 @@ public final class PageContextImpl extends PageContext {
 	return this;
     }
 
-    public void releaseInSync() {
-	bodyContentStack.release();
-	if (hasFamily && !isChild) {
-	    req.disconnect(this);
-	}
-	close();
-    }
-
     @Override
     public void release() {
 	config.releaseCacheHandlers(this);
@@ -547,6 +539,10 @@ public final class PageContextImpl extends PageContext {
 
 	// Scopes
 	if (hasFamily) {
+	    if (hasFamily && !isChild) {
+		req.disconnect(this);
+	    }
+	    close();
 	    base = null;
 	    if (children != null) children.clear();
 
@@ -563,6 +559,7 @@ public final class PageContextImpl extends PageContext {
 	    currentThread = null;
 	}
 	else {
+	    close();
 	    base = null;
 	    if (variables.isBind()) {
 		variables = null;
@@ -613,6 +610,8 @@ public final class PageContextImpl extends PageContext {
 	pathList.clear();
 	includePathList.clear();
 	executionTime = 0;
+
+	bodyContentStack.release();
 
 	// activeComponent=null;
 	remoteUser = null;
