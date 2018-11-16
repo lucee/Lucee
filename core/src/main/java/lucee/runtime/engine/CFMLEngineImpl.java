@@ -60,6 +60,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.JspException;
 
+import org.apache.felix.framework.Felix;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.Constants;
+import org.osgi.framework.Version;
+
 import lucee.Info;
 import lucee.cli.servlet.HTTPServletImpl;
 import lucee.commons.collection.MapFactory;
@@ -169,11 +174,6 @@ import lucee.runtime.util.ZipUtil;
 import lucee.runtime.util.ZipUtilImpl;
 import lucee.runtime.video.VideoUtil;
 import lucee.runtime.video.VideoUtilImpl;
-
-import org.apache.felix.framework.Felix;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.Constants;
-import org.osgi.framework.Version;
 
 /**
  * The CFMl Engine
@@ -1057,7 +1057,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	    }
 	}
 	finally {
-	    factory.releaseLuceePageContext(pc, !exeReqAsync, true);
+	    factory.releaseLuceePageContext(pc, !exeReqAsync, false); // false because of LDEV-2077
 	}
     }
 
@@ -1575,6 +1575,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	    this.reload = reload;
 	}
 
+	@Override
 	public void run() {
 	    boolean isWeb = config instanceof ConfigWeb;
 
