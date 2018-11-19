@@ -91,7 +91,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	  		class: 'org.hsqldb.jdbcDriver'
 			, bundleName: 'org.hsqldb.hsqldb'
 			//, bundleVersion: arguments.version
-			, connectionString: 'jdbc:hsqldb:file:#getDirectoryFromPath(getCurrentTemplatePath())#/LDEV1304/db/db#replace(arguments.version,'.','_','all')#'
+			, connectionString: 'jdbc:hsqldb:file:#getDirectoryFromPath(getCurrentTemplatePath())#/LDEV1304/db'
 		};
 	}
 } 
