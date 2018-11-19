@@ -26,9 +26,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 	public void function test(){
-		//defineDatasource('org.hsqldb.hsqldb','2.4.0');
-		testConnection();
-
+		defineDatasource();
 		try{
 			query {
 				echo("drop TABLE T1304");
@@ -87,7 +85,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	}
 
-	private void function defineDatasource(bundle){
+	private void function defineDatasource(){
 		application action="update" 
 			datasource={
 	  		class: 'org.hsqldb.jdbcDriver'

@@ -144,6 +144,7 @@ import lucee.runtime.op.Operator;
 import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.orm.ORMEngine;
 import lucee.runtime.orm.ORMSession;
+import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.regex.Perl5Util;
 import lucee.runtime.rest.RestRequestListener;
 import lucee.runtime.rest.RestUtil;
@@ -3357,8 +3358,10 @@ public final class PageContextImpl extends PageContext {
 
 	JavaSettingsImpl js = (JavaSettingsImpl) applicationContext.getJavaSettings();
 
-	if (js != null) return config.getResourceClassLoader().getCustomResourceClassLoader(js.getResourcesTranslated());
-
+	if (js != null) {
+	    Resource[] jars = OSGiUtil.extractAndLoadBundles(this, js.getResourcesTranslated());
+	    if (jars.length > 0) return config.getResourceClassLoader().getCustomResourceClassLoader(jars);
+	}
 	return config.getResourceClassLoader();
     }
 
@@ -3370,9 +3373,9 @@ public final class PageContextImpl extends PageContext {
 	JavaSettingsImpl js = (JavaSettingsImpl) applicationContext.getJavaSettings();
 	ClassLoader cl = config.getRPCClassLoader(reload, parents);
 	if (js != null) {
-	    return ((PhysicalClassLoader) cl).getCustomClassLoader(js.getResourcesTranslated(), reload);
+	    Resource[] jars = OSGiUtil.extractAndLoadBundles(this, js.getResourcesTranslated());
+	    if (jars.length > 0) return ((PhysicalClassLoader) cl).getCustomClassLoader(jars, reload);
 	}
-
 	return cl;
     }
 
