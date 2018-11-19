@@ -1982,6 +1982,7 @@ class Executor4 extends PageContextThread {
 class HttpDeleteWithBody extends HttpEntityEnclosingRequestBase {
     public static final String METHOD_NAME = "DELETE";
 
+    @Override
     public String getMethod() {
 	return METHOD_NAME;
     }
@@ -1995,6 +1996,7 @@ class HttpDeleteWithBody extends HttpEntityEnclosingRequestBase {
 class HttpGetWithBody extends HttpEntityEnclosingRequestBase {
     public static final String METHOD_NAME = "GET";
 
+    @Override
     public String getMethod() {
 	return METHOD_NAME;
     }
