@@ -87,14 +87,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	}
 
-	private void function testConnection(){
-		
-
-		query name="local.qry" {
-			echo("SELECT * FROM INFORMATION_SCHEMA.SYSTEM_USERS");
-		}
-	}
-
 	private void function defineDatasource(bundle){
 		application action="update" 
 			datasource={
