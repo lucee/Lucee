@@ -1,0 +1,108 @@
+<!--- 
+ *
+ * Copyright (c) 2016, Lucee Assosication Switzerland. All rights reserved.*
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either 
+ * version 2.1 of the License, or (at your option) any later version.
+ * 
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public 
+ * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
+ * 
+ ---><cfscript>
+component extends="org.lucee.cfml.test.LuceeTestCase"	{
+	
+	
+	//public function afterTests(){}
+	
+	public function setUp(){
+		
+	}
+
+	public void function test(){
+		//defineDatasource('org.hsqldb.hsqldb','2.4.0');
+		testConnection();
+
+		try{
+			query {
+				echo("drop TABLE T1304");
+			}
+		}
+		catch(local.e){}
+		
+		query  {
+			echo("CREATE TABLE T1304 (");
+			echo("id int NOT NULL,");
+			echo("i int,");		
+			echo("vc varchar(255)");		
+			echo(") ");
+		}
+
+		query  {
+			echo("insert into T1304(id, i, vc) values(1,2,'3')");
+		}
+
+
+		local.past=createDateTime(2018,11,19,13,35,0);
+		local.future=createDateTime(year(now())+1,11,19,13,35,0);
+
+		query name="local.q" cachedWithin=1 cachedAfter=past  {
+			echo("select * from T1304 where id=1");
+		}
+		assertEquals(2,q.i);
+
+		query  {
+			echo("update T1304 set i=3 where id=1");
+		}
+
+		query name="local.q" cachedAfter=future  {
+			echo("select * from T1304 where id=1");
+		}
+		assertEquals(3,q.i);
+
+
+		query  {
+			echo("update T1304 set i=4 where id=1");
+		}
+
+
+		query name="local.q" cachedAfter=past  {
+			echo("select * from T1304 where id=1");
+		}
+		assertEquals(2,q.i);
+
+		query name="local.q" {
+			echo("select * from T1304 where id=1");
+		}
+		assertEquals(4,q.i);
+
+
+
+
+	}
+
+	private void function testConnection(){
+		
+
+		query name="local.qry" {
+			echo("SELECT * FROM INFORMATION_SCHEMA.SYSTEM_USERS");
+		}
+	}
+
+	private void function defineDatasource(bundle){
+		application action="update" 
+			datasource={
+	  		class: 'org.hsqldb.jdbcDriver'
+			, bundleName: 'org.hsqldb.hsqldb'
+			//, bundleVersion: arguments.version
+			, connectionString: 'jdbc:hsqldb:file:#getDirectoryFromPath(getCurrentTemplatePath())#/LDEV1304/db/db#replace(arguments.version,'.','_','all')#'
+		};
+	}
+} 
+</cfscript>

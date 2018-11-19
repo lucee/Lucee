@@ -6391,7 +6391,7 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 			<name>cachedAfter</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>This is the age of which the query data can be</description>
+			<description>Sets a date/time from when the tag will start to cache the query. In difference to other CFML Engines this attribute only works in combination with the tag "cachedWithin", so you still have to set with "cachedWithin" how long the query remains in the cache. To match other CFML engines simply set "cachedWithin" to "36500", that will hold it in cache for 100 years!</description>
 		</attribute>
 		<attribute>
 			<type>object</type>
