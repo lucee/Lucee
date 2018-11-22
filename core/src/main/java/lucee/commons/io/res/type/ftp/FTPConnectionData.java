@@ -20,6 +20,7 @@ package lucee.commons.io.res.type.ftp;
 
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.net.proxy.ProxyData;
+import lucee.runtime.net.proxy.ProxyDataImpl;
 
 public final class FTPConnectionData {
 
@@ -129,7 +130,7 @@ public final class FTPConnectionData {
     }
 
     public boolean hasProxyData() {
-	return data != null;
+	return ProxyDataImpl.isValid(data);
     }
 
     public ProxyData getProxyData() {

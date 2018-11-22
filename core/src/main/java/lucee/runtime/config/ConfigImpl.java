@@ -123,6 +123,7 @@ import lucee.runtime.listener.ApplicationListener;
 import lucee.runtime.net.mail.Server;
 import lucee.runtime.net.ntp.NtpClient;
 import lucee.runtime.net.proxy.ProxyData;
+import lucee.runtime.net.proxy.ProxyDataImpl;
 import lucee.runtime.net.rpc.WSHandler;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Duplicator;
@@ -438,6 +439,7 @@ public abstract class ConfigImpl implements Config {
     private int varUsage;
 
     public static boolean onlyFirstMatch = false;
+    // private TimeSpan cachedAfterTimeRange;
 
     /**
      * @return the allowURLRequestTimeout
@@ -2349,8 +2351,8 @@ public abstract class ConfigImpl implements Config {
     }
 
     @Override
-    public boolean isProxyEnableFor(String host) {
-	return false;// TODO proxyEnable;
+    public boolean isProxyEnableFor(String host) { // FUTURE remove
+	return ProxyDataImpl.isProxyEnableFor(getProxyData(), host);
     }
 
     /**
@@ -3889,4 +3891,10 @@ public abstract class ConfigImpl implements Config {
 	if (logEngine == null) logEngine = new Log4jEngine(this);
 	return logEngine;
     }
+
+    /*
+     * protected void setCachedAfterTimeRange(TimeSpan ts) { this.cachedAfterTimeRange = ts; }
+     * 
+     * public TimeSpan getCachedAfterTimeRange() { return this.cachedAfterTimeRange; }
+     */
 }

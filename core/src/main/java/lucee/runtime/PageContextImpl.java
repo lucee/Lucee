@@ -138,6 +138,7 @@ import lucee.runtime.net.ftp.FTPPoolImpl;
 import lucee.runtime.net.http.HTTPServletRequestWrap;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.net.mail.ServerImpl;
+import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.op.Operator;
@@ -3664,5 +3665,14 @@ public final class PageContextImpl extends PageContext {
 	    if (parentTags == null) parentTags = new ArrayList<String>();
 	    parentTags.add(tagName);
 	}
+    }
+
+    public ProxyData getProxyData() {
+	if (applicationContext != null) {
+	    ProxyData pd = applicationContext.getProxyData();
+	    if (pd != null) return pd;
+	}
+	// TODO check applcation context
+	return config.getProxyData();
     }
 }

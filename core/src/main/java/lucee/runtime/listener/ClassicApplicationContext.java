@@ -44,6 +44,7 @@ import lucee.runtime.exp.DeprecatedException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.net.mail.Server;
+import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.s3.Properties;
 import lucee.runtime.net.s3.PropertiesImpl;
 import lucee.runtime.op.Duplicator;
@@ -140,6 +141,8 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 
     private boolean queryPSQ;
     private int queryVarUsage;
+
+    private ProxyData proxyData;
 
     /**
      * constructor of the class
@@ -1021,4 +1024,15 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
     public void setQueryVarUsage(int varUsage) {
 	this.queryVarUsage = varUsage;
     }
+
+    @Override
+    public ProxyData getProxyData() {
+	return proxyData;
+    }
+
+    @Override
+    public void setProxyData(ProxyData data) {
+	this.proxyData = data;
+    }
+
 }

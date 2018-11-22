@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.UUID;
 
@@ -4577,8 +4578,16 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	    String password = getAttr(proxy, "password");
 	    int port = Caster.toIntValue(getAttr(proxy, "port"), -1);
 
+	    // includes/excludes
+	    Set<String> includes = ProxyDataImpl.toStringSet(getAttr(proxy, "includes"));
+	    Set<String> excludes = ProxyDataImpl.toStringSet(getAttr(proxy, "excludes"));
+
 	    if (hasAccess && !StringUtil.isEmpty(server)) {
-		config.setProxyData(ProxyDataImpl.getInstance(server, port, username, password));
+		ProxyDataImpl pd = (ProxyDataImpl) ProxyDataImpl.getInstance(server, port, username, password);
+		pd.setExcludes(excludes);
+		pd.setIncludes(includes);
+		config.setProxyData(pd);
+
 	    }
 	    else if (hasCS) config.setProxyData(configServer.getProxyData());
 	}
@@ -4801,6 +4810,13 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	    if (typeChecking == null) typeChecking = Caster.toBoolean(getAttr(application, "type-checking"), null);
 	    if (typeChecking != null) config.setTypeChecking(typeChecking.booleanValue());
 	    else if (hasCS) config.setTypeChecking(configServer.getTypeChecking());
+
+	    // cached after
+	    /*
+	     * TimeSpan ts = null; if (hasAccess) { String ca = getAttr(application, "cached-after"); if
+	     * (!StringUtil.isEmpty(ca)) ts = Caster.toTimespan(ca); } if (ts != null && ts.getMillis() > 0)
+	     * config.setCachedAfterTimeRange(ts);
+	     */
 
 	    // Listener Mode
 	    String strLM = SystemUtil.getSystemPropOrEnvVar("lucee.listener.mode", null);

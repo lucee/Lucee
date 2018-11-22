@@ -69,6 +69,8 @@ import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.i18n.LocaleFactory;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.net.mail.Server;
+import lucee.runtime.net.proxy.ProxyData;
+import lucee.runtime.net.proxy.ProxyDataImpl;
 import lucee.runtime.net.s3.Properties;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
@@ -200,9 +202,9 @@ public class ModernApplicationContext extends ApplicationContextSupport {
     private TagListener queryListener;
     private boolean fullNullSupport;
     private SerializationSettings serializationSettings;
-
     private boolean queryPSQ;
     private int queryVarUsage;
+    private ProxyData proxyData;
 
     private Mapping[] mappings;
     private boolean initMappings;
@@ -265,6 +267,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
     private boolean initSerializationSettings;
     private boolean initQueryPSQ;
     private boolean initQueryVarUsage;
+    private boolean initProxyData;
 
     private Resource antiSamyPolicyResource;
 
@@ -310,6 +313,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	this.fullNullSupport = ci.getFullNullSupport();
 	this.queryPSQ = ci.getPSQL();
 	this.queryVarUsage = ci.getQueryVarUsage();
+	this.proxyData = config.getProxyData();
 
 	this.sessionCluster = config.getSessionCluster();
 	this.clientCluster = config.getClientCluster();
@@ -1854,6 +1858,22 @@ public class ModernApplicationContext extends ApplicationContextSupport {
     public void setQueryVarUsage(int varUsage) {
 	this.queryVarUsage = varUsage;
 	this.initQueryVarUsage = true;
+    }
+
+    @Override
+    public ProxyData getProxyData() {
+	if (!initProxyData) {
+	    Struct sct = Caster.toStruct(get(component, KeyConstants._proxy, null), null);
+	    proxyData = ProxyDataImpl.toProxyData(sct);
+	    initProxyData = true;
+	}
+	return proxyData;
+    }
+
+    @Override
+    public void setProxyData(ProxyData data) {
+	this.proxyData = data;
+	this.initProxyData = true;
     }
 
 }

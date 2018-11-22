@@ -91,9 +91,9 @@ class ExecutionThread extends Thread {
 	}
 
 	// Proxy
-	ProxyData proxy = task.getProxyData();
-	if (!ProxyDataImpl.isValid(proxy) && config.isProxyEnableFor(task.getUrl().getHost())) {
-	    proxy = config.getProxyData();
+	ProxyData proxy = ProxyDataImpl.validate(task.getProxyData(), task.getUrl().getHost());
+	if (proxy == null) {
+	    proxy = ProxyDataImpl.validate(config.getProxyData(), task.getUrl().getHost());
 	}
 
 	HTTPResponse rsp = null;

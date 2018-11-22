@@ -246,6 +246,14 @@ Specifies how Lucee stores session variables:
 		</attribute>
 		<attribute>
 			<type>struct</type>
+			<name>proxy</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>general proxy that should be used for all connections with the following format:
+			{server:"localhost", port:12345, username:"susi", password: "sorglos"}</description>
+		</attribute>
+		<attribute>
+			<type>struct</type>
 			<name>mappings</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>

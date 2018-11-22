@@ -50,6 +50,7 @@ import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.exp.ApplicationException;
+import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.osgi.OSGiUtil;
@@ -477,4 +478,9 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
     public abstract int getQueryVarUsage();
 
     public abstract void setQueryVarUsage(int varUsage);
+
+    public abstract ProxyData getProxyData();
+
+    public abstract void setProxyData(ProxyData data);
+
 }
