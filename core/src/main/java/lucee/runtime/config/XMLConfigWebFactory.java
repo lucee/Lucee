@@ -4812,11 +4812,14 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	    else if (hasCS) config.setTypeChecking(configServer.getTypeChecking());
 
 	    // cached after
-	    /*
-	     * TimeSpan ts = null; if (hasAccess) { String ca = getAttr(application, "cached-after"); if
-	     * (!StringUtil.isEmpty(ca)) ts = Caster.toTimespan(ca); } if (ts != null && ts.getMillis() > 0)
-	     * config.setCachedAfterTimeRange(ts);
-	     */
+	    TimeSpan ts = null;
+	    if (hasAccess) {
+		String ca = getAttr(application, "cached-after");
+		if (!StringUtil.isEmpty(ca)) ts = Caster.toTimespan(ca);
+	    }
+	    if (ts != null) config.setCachedAfterTimeRange(ts);
+	    else if (hasCS) config.setCachedAfterTimeRange(configServer.getCachedAfterTimeRange());
+	    else config.setCachedAfterTimeRange(null);
 
 	    // Listener Mode
 	    String strLM = SystemUtil.getSystemPropOrEnvVar("lucee.listener.mode", null);
@@ -4843,7 +4846,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	    }
 
 	    // Req Timeout
-	    TimeSpan ts = null;
+	    ts = null;
 	    if (hasAccess) {
 		String reqTimeoutApplication = getAttr(application, "requesttimeout");
 		String reqTimeoutScope = getAttr(scope, "requesttimeout"); // deprecated

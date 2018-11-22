@@ -2432,6 +2432,19 @@ public final class XMLConfigAdmin {
 
     }
 
+    public void updateCachedAfterTimeRange(TimeSpan ts) throws SecurityException, ApplicationException {
+	checkWriteAccess();
+	boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+	if (!hasAccess) throw new SecurityException("no access to update");
+
+	Element el = _getRootElement("application");
+	if (ts == null) el.removeAttribute("cached-after");
+	else {
+	    if (ts.getMillis() < 0) throw new ApplicationException("value cannot be a negative number");
+	    el.setAttribute("cached-after", ts.getDay() + "," + ts.getHour() + "," + ts.getMinute() + "," + ts.getSecond());
+	}
+    }
+
     /**
      * sets the scope cascading type
      * 

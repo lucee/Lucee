@@ -439,7 +439,7 @@ public abstract class ConfigImpl implements Config {
     private int varUsage;
 
     public static boolean onlyFirstMatch = false;
-    // private TimeSpan cachedAfterTimeRange;
+    private TimeSpan cachedAfterTimeRange;
 
     /**
      * @return the allowURLRequestTimeout
@@ -3892,9 +3892,12 @@ public abstract class ConfigImpl implements Config {
 	return logEngine;
     }
 
-    /*
-     * protected void setCachedAfterTimeRange(TimeSpan ts) { this.cachedAfterTimeRange = ts; }
-     * 
-     * public TimeSpan getCachedAfterTimeRange() { return this.cachedAfterTimeRange; }
-     */
+    protected void setCachedAfterTimeRange(TimeSpan ts) {
+	this.cachedAfterTimeRange = ts;
+    }
+
+    public TimeSpan getCachedAfterTimeRange() {
+	if (this.cachedAfterTimeRange != null && this.cachedAfterTimeRange.getMillis() <= 0) this.cachedAfterTimeRange = null;
+	return this.cachedAfterTimeRange;
+    }
 }

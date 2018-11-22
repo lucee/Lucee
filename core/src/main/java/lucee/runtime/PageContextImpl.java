@@ -3667,6 +3667,10 @@ public final class PageContextImpl extends PageContext {
 	}
     }
 
+    public TimeSpan getCachedAfterTimeRange() { // FUTURE add to interface
+	return config.getCachedAfterTimeRange();
+    }
+
     public ProxyData getProxyData() {
 	if (applicationContext != null) {
 	    ProxyData pd = applicationContext.getProxyData();

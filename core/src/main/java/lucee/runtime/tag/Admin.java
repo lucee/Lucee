@@ -174,6 +174,7 @@ import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.DateTimeImpl;
 import lucee.runtime.type.dt.TimeSpan;
+import lucee.runtime.type.dt.TimeSpanImpl;
 import lucee.runtime.type.scope.Cluster;
 import lucee.runtime.type.scope.ClusterEntryImpl;
 import lucee.runtime.type.util.ArrayUtil;
@@ -3042,6 +3043,14 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	admin.updateInspectTemplate(getString("admin", action, "inspectTemplate"));
 
 	admin.updateTypeChecking(getBoolObject("admin", action, "typeChecking"));
+
+	// cached after
+	Object obj = getObject("cachedAfter", null);
+	if (StringUtil.isEmpty(obj)) obj = null;
+
+	if (obj != null) admin.updateCachedAfterTimeRange(Caster.toTimeSpan(obj));
+	else admin.updateCachedAfterTimeRange(null);
+
 	store();
 	adminSync.broadcast(attributes, config);
     }
@@ -3151,6 +3160,17 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	else if (it == ConfigImpl.INSPECT_NEVER) str = "never";
 	sct.set("inspectTemplate", str);
 	sct.set("typeChecking", config.getTypeChecking());
+
+	// cached within
+	TimeSpan cachedAfter = config.getCachedAfterTimeRange();
+	if (cachedAfter == null) cachedAfter = new TimeSpanImpl(0, 0, 0, 0);
+
+	sct.set("cachedAfter", cachedAfter);
+	sct.set("cachedAfter_day", cachedAfter.getDay());
+	sct.set("cachedAfter_hour", cachedAfter.getHour());
+	sct.set("cachedAfter_minute", cachedAfter.getMinute());
+	sct.set("cachedAfter_second", cachedAfter.getSecond());
+
     }
 
     private void doGetCustomTagSetting() throws PageException {
@@ -3863,18 +3883,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	    sct.setEL("open", engine.getOpenTaskCount());
 	    sct.setEL("closed", engine.getClosedTaskCount());
 	}
-
-	/*
-	 * SpoolerTask[] open = config.getSpoolerEngine().getOpenTasks(); SpoolerTask[] closed =
-	 * config.getSpoolerEngine().getClosedTasks(); String v="VARCHAR"; lucee.runtime.type.Query qry=new
-	 * QueryImpl( new
-	 * String[]{"type","name","detail","id","lastExecution","nextExecution","closed","tries",
-	 * "exceptions","triesmax"}, new String[]{v,v,"object",v,d,d,"boolean","int","object","int"},
-	 * open.length+closed.length,"query");
-	 * 
-	 * int row=0; row=doGetRemoteClientTasks(qry,open,row); doGetRemoteClientTasks(qry,closed,row);
-	 * pageContext.setVariable(getString("admin",action,"returnVariable"),qry);
-	 */
 
     }
 
