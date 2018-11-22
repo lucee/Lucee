@@ -194,9 +194,31 @@ public final class DateFormat extends BaseFormat implements Format {
 		    }
 		    break;
 
+	    // w: Week of the year; no leading zero for single-digit week
+		// ww: Week of the month; leading zero for single-digit week
+		// W: Week of the month; no leading zero for single-digit week
+		// WW: Month. Week of the month; leading zero for single-digit week
+
+		case 'w':
+		case 'W':
+			int week;
+			if(next=='W') week = calendar.get(Calendar.WEEK_OF_MONTH);
+			else week = calendar.get(Calendar.WEEK_OF_YEAR);
+		    
+		    char next_1 = (len > pos + 1) ? mask.charAt(pos + 1) : (char) 0;
+		    if (next == 'w' || next == 'W' && next_1 == 'w' || next_1 == 'W'){
+		   		formated.append(week < 10 ? "0" + week : "" + week);
+		   		pos++;
+		    }
+		    else{
+		    	formated.append(week);
+		    }
+		    break;
+
 		// y: Year. Last two digits; no leading zero for years less than 10
 		// yy: Year. Last two digits; leading zero for years less than 10
 		// yyyy: Year. Four digits
+
 		case 'y':
 		case 'Y':
 		    char next__2 = (len > pos + 2) ? mask.charAt(pos + 2) : (char) 0;
