@@ -201,9 +201,9 @@ public final class DateFormat extends BaseFormat implements Format {
 
 		case 'w':
 		case 'W':
-			int week;
-			if(next=='W') week = calendar.get(Calendar.WEEK_OF_MONTH);
-			else week = calendar.get(Calendar.WEEK_OF_YEAR);
+			int week=0;
+			if(c=='W' || next=='W') week = calendar.get(Calendar.WEEK_OF_MONTH);
+			if(c=='w' || next=='w') week = calendar.get(Calendar.WEEK_OF_YEAR);
 		    
 		    char next_1 = (len > pos + 1) ? mask.charAt(pos + 1) : (char) 0;
 		    if (next == 'w' || next == 'W' && next_1 == 'w' || next_1 == 'W'){
