@@ -137,6 +137,31 @@
 			});
 			
 		});
+
+		describe( title="Test suite for DeserializeJson() with arguments", body=function() {
+			it(title="checking DeSerializeJSON() function with first argument JSONVar argument", body = function( currentSpec ) {
+				var serdata = queryNew("ID, DateJoined", "INTEGER, TIMESTAMP", [{ID=1, DateJoined="2017-01-03 10:57:54"}, {ID=2, DateJoined="2017-01-03 10:57:54"}, {ID=3, DateJoined="2017-01-03 10:57:54"}]);
+				var jsonObject = serializeJSON( var = serdata);
+				local.tmpData = deserializeJSON(JSONVar = jsonObject);
+				assertEquals(true,isStruct(local.tmpData));
+			});
+
+			it(title="checking DeSerializeJSON() function with second argument strictMapping argument", body = function( currentSpec ) {
+				var serdata = queryNew("ID, DateJoined", "INTEGER, TIMESTAMP", [{ID=1, DateJoined="2017-01-03 10:57:54"}, {ID=2, DateJoined="2017-01-03 10:57:54"}, {ID=3, DateJoined="2017-01-03 10:57:54"}]);
+				var jsonObject = serializeJSON( var = serdata);
+				local.tmpData = deserializeJSON(JSONVar = jsonObject);
+				assertEquals(true,isStruct(local.tmpData));
+				local.tmpData2 = deserializeJSON(JSONVar = jsonObject, strictMapping=false);
+				assertEquals(true,isQuery(local.tmpData2));
+			});
+
+			it(title="checking DeSerializeJSON() function with third argument useCustomSerializer argument", body = function( currentSpec ) {
+				var uri = createURI("custom");
+				local.result = _InternalRequest(
+					template:"#uri#/index.cfm");
+				expect(result.filecontent.trim()).toBe("DESERIALISED");
+			});
+		});
 	}
 
 	private function toHex(nbr){
@@ -154,6 +179,11 @@
 			res&=asc(mid(str,i,1));
 		}
 		return res;
+	}
+
+	private string function createURI(string calledName){
+		var baseURI="/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
+		return baseURI&""&calledName;
 	}
 	</cfscript>
 
