@@ -95,6 +95,7 @@ public class SimpleQuery implements Query, ResultSet, Objects, QueryResult {
 
     static final Object DEFAULT_VALUE = new Object();
     private ResultSet res;
+    private Statement stat;
     private ResultSetMetaData meta;
     private Collection.Key[] columnNames;
     private Map<String, SimpleQueryColumn> columns = new LinkedHashMap<String, SimpleQueryColumn>();
@@ -116,7 +117,7 @@ public class SimpleQuery implements Query, ResultSet, Objects, QueryResult {
 	this.sql = sql;
 
 	// ResultSet result=null;
-	Statement stat = null;
+	stat = null;
 	// check SQL Restrictions
 	if (dc.getDatasource().hasSQLRestriction()) {
 	    QueryUtil.checkSQLRestriction(dc, sql);
@@ -996,7 +997,12 @@ public class SimpleQuery implements Query, ResultSet, Objects, QueryResult {
     @Override
 
     public synchronized void close() throws SQLException {
-	res.close();
+        if(!res.isClosed()){
+            res.close();
+        }
+        if(!stat.isClosed()){
+            stat.close();
+        }
     }
 
     @Override
