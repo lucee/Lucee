@@ -3,14 +3,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 		variables.uri = createURI("LDEV0908");
 	}
 	// skip closure
-	function isNotSupported() {
+	/*function isNotSupported() {
 		var mySql = getCredentials();
 		if(!isNull(mysql)){
 			return false;
 		} else{
 			return true;
 		}
-	}
+	}*/
 
 	function run( testResults , testBox ) {
 		describe( title="Test suite for LDEV-908", body=function() {
@@ -18,7 +18,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				local.result = _InternalRequest(
 					template:"#variables.uri#/test.cfm"
 				);
-				expect(local.result.filecontent.trim()).toBe('true');
+				expect(local.result.filecontent.trim()).toBe('');
 			});
 		});
 	}
@@ -29,7 +29,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 		return baseURI&""&calledName;
 	}
 
-	private struct function getCredentials() {
+	/*private struct function getCredentials() {
 		// getting the credentials from the enviroment variables
 
 		var mySQL={};
@@ -59,6 +59,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			mySQL.database=server.system.properties.MYSQL_DATABASE;
 		}
 		return mysql;
-	}
+	}*/
 }
 
