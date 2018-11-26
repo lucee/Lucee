@@ -59,7 +59,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			echo("update T1304 set i=3 where id=1");
 		}
 
-		query name="local.q" cachedAfter=future  {
+		query name="local.q" cachedWithin=0 cachedAfter=future  {
 			echo("select * from T1304 where id=1");
 		}
 		assertEquals(3,q.i);
@@ -70,7 +70,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		}
 
 
-		query name="local.q" cachedAfter=past  {
+		query name="local.q" cachedWithin=1 cachedAfter=past  {
 			echo("select * from T1304 where id=1");
 		}
 		assertEquals(2,q.i);

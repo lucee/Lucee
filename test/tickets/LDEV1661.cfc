@@ -5,11 +5,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	// skip closure
 	function isNotSupported() {
 		var mySql = getCredentials();
-		if(!isNull(mysql)){
-			return false;
-		} else{
-			return true;
-		}
+		return isNull(mysql) || structCount(mySQL)==0;
 	}
 	function run( testResults , testBox ) {
 		describe( title="Test suite for LDEV-1661", body=function() {
