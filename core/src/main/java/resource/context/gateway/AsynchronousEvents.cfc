@@ -1,29 +1,20 @@
-/** 
- * Copyright (c) 2014, the Railo Company Ltd. All rights reserved.
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
- * version 2.1 of the License, or (at your option) any later version.
- * 
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
- * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- */ 
-component {
+component accessors=true{
+
+    property name="listener" type="component";
+    property name="config" type="struct";
 
     this.logfile    = "AsynGateWay";
 
     variables.state = "stopped";
 
 
-    public function init( string id, Struct component) {
+    public function init( string id, Struct component, Struct config, Component listener) {
 
         variables.id       = arguments.id;
+        setListener(arguments.listener);
+        setConfig(arguments.config);
+
+        writeDump(var="#arguments#", output="C:\Users\HP\Desktop\test.html", format ="classic");
      
         log text="Asyn CFC initialized path #arguments.config.component#" file=this.logfile;
     }
@@ -44,9 +35,9 @@ component {
 
 
             }
-            catch ( ex ) {
+            catch ( e ) {
 
-                log text="Event Gateway #variables.id# error: #ex.message#" file=this.logfile type="error";
+                log text="Event Gateway #variables.id# error: #e.message#" file=this.logfile type="error";
             }
 
             // sleep( variables.interval );
@@ -82,9 +73,51 @@ component {
 
 
     public function sendMessage( struct data={} ) {
-
-        return "sendGatewayMessage() has not been implemented for the event gateway [TaskGateway]. If you want to modify it, please edit the following CFC:"& expandpath("./") & "TaskGateway.cfc";
+        log text="sendMessage - Event Listener" file=this.logfile;
+        try {
+            // thread {
+            local.event ={
+                 cfcpath = "",
+                 method="",
+                 timeout="",
+                 OriginatorID = "#createUUID()#",
+                 CfcMethod = "",
+                 Data = arguments.data,
+                GatewayType="",
+                hostName="#getHostName()#"
+             };
+            log text="sendMessage - Event Listener HostName: [#local.event.hostName#] OriginatorID: [#local.event.OriginatorId#] Available objects [#structKeyList(arguments.data)#] listenerObject:[#isobject(variables.listener)#]" file=this.logfile;
+             getListener().onIncomingMessage(local.event);
+            
+            // }
+        } catch ( any e ){
+             log text="Event Gateway #e.message#" file=this.logfile;
+             return false;
+        }
+        return true;
+        // return "sendGatewayMessage() has not been implemented for the event gateway [TaskGateway]. If you want to modify it, please edit the following CFC:"& expandpath("./") & "TaskGateway.cfc";
     }
+
+     private function getHostName() {
+        try{ 
+            return createObject("java", "java.net.InetAddress").getLocalHost().getHostName(); 
+        }
+        catch(any e) {
+            _handlerError(e,'getHostName');
+        }
+         var sys = createObject("java", "java.lang.System");
+         var hostname = sys.getenv('HOSTNAME');
+        if(!isNull(hostname)) return hostname;
+         var hostname = sys.getenv('COMPUTERNAME');
+        if(!isNull(hostname)) return hostname;
+         return 'unknown';
+     }
+
+     private void function _handlerError(required any catchData, string functionName="unknown"){
+       // systemOutput('handleError',true);
+       log text="#catchData.message#" file=#this.logfile#;
+       // writeDump(var="#catchData#",output="console");
+     }  
 
 
 }
