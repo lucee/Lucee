@@ -13,28 +13,28 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	}
 	function run( testResults , testBox ) {
 		describe( title="Test suite for LDEV-1661", body=function() {
-			it(title = "Checking timestamp with createDateTime()", body = function( currentSpec ) {
+			it(title = "Checking timestamp with createDateTime()",skip=isNotSupported(), body = function( currentSpec ) {
 				local.result = _InternalRequest(
 					template:"#variables.uri#/test.cfm",
 					forms:{Scene:1}
 				);
 				expect(local.result.filecontent.trim()).toBe("{ts '2018-08-01 12:00:00'}");
 			});
-			it(title = "Checking timestamp with createOdbcDateTime()", body = function( currentSpec ) {
+			it(title = "Checking timestamp with createOdbcDateTime()",skip=isNotSupported(), body = function( currentSpec ) {
 				local.result = _InternalRequest(
 					template:"#variables.uri#/test.cfm",
 					forms:{Scene:2}
 				);
 				expect(local.result.filecontent.trim()).toBe("{ts '2018-08-01 12:00:00'}");
 			});
-			it(title = "Checking timestamp column in string format", body = function( currentSpec ) {
+			it(title = "Checking timestamp column in string format",skip=isNotSupported(), body = function( currentSpec ) {
 				local.result = _InternalRequest(
 					template:"#variables.uri#/test.cfm",
 					forms:{Scene:3}
 				);
 				expect(local.result.filecontent.trim()).toBe("{ts '2018-08-01 12:00:00'}");
 			});
-			it(title = "Checking timestamp with cfqueryparam", body = function( currentSpec ) {
+			it(title = "Checking timestamp with cfqueryparam",skip=isNotSupported(), body = function( currentSpec ) {
 				local.result = _InternalRequest(
 					template:"#variables.uri#/test.cfm",
 					forms:{Scene:4}
