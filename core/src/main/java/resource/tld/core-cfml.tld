@@ -778,6 +778,13 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<rtexprvalue>true</rtexprvalue>
 			<description>how to handle variable usage within cfquery, possible values are ignore,warn,error</description>
 		</attribute>
+		<attribute>
+			<type>timespan</type>
+			<name>cachedAfter</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>set the timespan for the attribute "cachedAfter" from tag "query".</description>
+		</attribute>
 	</tag>
 
 	<!-- Argument -->

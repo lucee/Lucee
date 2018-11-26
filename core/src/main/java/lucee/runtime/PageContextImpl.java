@@ -3668,6 +3668,9 @@ public final class PageContextImpl extends PageContext {
     }
 
     public TimeSpan getCachedAfterTimeRange() { // FUTURE add to interface
+	if (applicationContext != null) {
+	    return applicationContext.getQueryCachedAfter();
+	}
 	return config.getCachedAfterTimeRange();
     }
 

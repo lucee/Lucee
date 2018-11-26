@@ -59,6 +59,7 @@ import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.tag.TagLib;
@@ -478,6 +479,10 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
     public abstract int getQueryVarUsage();
 
     public abstract void setQueryVarUsage(int varUsage);
+
+    public abstract TimeSpan getQueryCachedAfter();
+
+    public abstract void setQueryCachedAfter(TimeSpan ts);
 
     public abstract ProxyData getProxyData();
 

@@ -107,6 +107,7 @@ public final class Application extends TagImpl {
     private Boolean nullSupport;
     private Boolean queryPSQ;
     private int queryVarUsage;
+    private TimeSpan queryCachedAfter;
 
     private CharSet webCharset;
     private CharSet resourceCharset;
@@ -188,6 +189,7 @@ public final class Application extends TagImpl {
 	nullSupport = null;
 	queryPSQ = null;
 	queryVarUsage = 0;
+	queryCachedAfter = null;
 	webCharset = null;
 	resourceCharset = null;
 	sessionType = -1;
@@ -323,6 +325,10 @@ public final class Application extends TagImpl {
 
     public void setVariableusage(String varUsage) throws ApplicationException {
 	this.queryVarUsage = AppListenerUtil.toVariableUsage(varUsage);
+    }
+
+    public void setCachedafter(TimeSpan ts) throws ApplicationException {
+	this.queryCachedAfter = ts;
     }
 
     public void setPsq(boolean psq) {
@@ -758,6 +764,7 @@ public final class Application extends TagImpl {
 	if (nullSupport != null) ((ApplicationContextSupport) ac).setFullNullSupport(nullSupport);
 	if (queryPSQ != null) ((ApplicationContextSupport) ac).setQueryPSQ(queryPSQ);
 	if (queryVarUsage != 0) ((ApplicationContextSupport) ac).setQueryVarUsage(queryVarUsage);
+	if (queryCachedAfter != null) ((ApplicationContextSupport) ac).setQueryCachedAfter(queryCachedAfter);
 	if (webCharset != null) ac.setWebCharset(webCharset.toCharset());
 	if (resourceCharset != null) ac.setResourceCharset(resourceCharset.toCharset());
 	if (sessionType != -1) ac.setSessionType(sessionType);

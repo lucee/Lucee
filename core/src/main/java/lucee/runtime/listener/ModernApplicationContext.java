@@ -152,6 +152,8 @@ public class ModernApplicationContext extends ApplicationContextSupport {
     private static final Key VAR_USAGE = KeyImpl.intern("varusage");
     private static final Key VARIABLE_USAGE = KeyImpl.intern("variableusage");
 
+    private static final Key CACHED_AFTER = KeyImpl.intern("cachedAfter");
+
     private static Map<String, CacheConnection> initCacheConnections = new ConcurrentHashMap<String, CacheConnection>();
 
     private Component component;
@@ -203,6 +205,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
     private boolean fullNullSupport;
     private SerializationSettings serializationSettings;
     private boolean queryPSQ;
+    private TimeSpan queryCachedAfter;
     private int queryVarUsage;
     private ProxyData proxyData;
 
@@ -266,6 +269,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
     private boolean initAuthCookie;
     private boolean initSerializationSettings;
     private boolean initQueryPSQ;
+    private boolean initQueryCacheAfter;
     private boolean initQueryVarUsage;
     private boolean initProxyData;
 
@@ -312,6 +316,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	this.cgiScopeReadonly = ci.getCGIScopeReadonly();
 	this.fullNullSupport = ci.getFullNullSupport();
 	this.queryPSQ = ci.getPSQL();
+	this.queryCachedAfter = ci.getCachedAfterTimeRange();
 	this.queryVarUsage = ci.getQueryVarUsage();
 	this.proxyData = config.getProxyData();
 
@@ -1838,6 +1843,25 @@ public class ModernApplicationContext extends ApplicationContextSupport {
     public void setQueryPSQ(boolean psq) {
 	this.queryPSQ = psq;
 	this.initQueryPSQ = true;
+    }
+
+    @Override
+    public TimeSpan getQueryCachedAfter() {
+	if (!initQueryCacheAfter) {
+	    Struct qry = Caster.toStruct(get(component, KeyConstants._query, null), null);
+	    if (qry != null) {
+		TimeSpan ts = Caster.toTimespan(qry.get(CACHED_AFTER, null), null);
+		if (ts != null) queryCachedAfter = ts;
+	    }
+	    initQueryCacheAfter = true;
+	}
+	return queryCachedAfter;
+    }
+
+    @Override
+    public void setQueryCachedAfter(TimeSpan ts) {
+	this.queryCachedAfter = ts;
+	this.initQueryCacheAfter = true;
     }
 
     @Override

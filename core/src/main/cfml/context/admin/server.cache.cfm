@@ -275,7 +275,7 @@ Create Datasource --->
 				</tr>
 
 				<!--- Query.chachedAfter --->
-				<cfif false>
+				<cfif true>
 				<tr>
 					<th scope="row">#stText.setting.cachedAfter#</th>
 					<td>
@@ -308,6 +308,11 @@ Create Datasource --->
 							</tbody>
 						</table>
 						<div class="comment">#stText.setting.cachedAfterDesc#</div>
+
+						<cfsavecontent variable="codeSample">
+							this.query.cachedAfter = createTimeSpan(#settings.cachedAfter_day#,#settings.cachedAfter_hour#,#settings.cachedAfter_minute#,#settings.cachedAfter_second#);
+						</cfsavecontent>
+						<cfset renderCodingTip( codeSample )>
 						<!---
 						<cfsavecontent variable="codeSample">
 							this.applicationTimeout = createTimeSpan( #settings.cachedAfter_day#, #settings.cachedAfter_hour#, #settings.cachedAfter_minute#, #settings.cachedAfter_second# );
