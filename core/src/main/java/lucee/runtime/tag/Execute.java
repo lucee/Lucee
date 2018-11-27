@@ -26,6 +26,8 @@ import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.type.Array;
+import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.exp.SecurityException;
 import lucee.runtime.ext.tag.BodyTagImpl;
 import lucee.runtime.op.Caster;
@@ -40,7 +42,7 @@ import lucee.runtime.security.SecurityManager;
 public final class Execute extends BodyTagImpl {
 
     /** Command-line arguments passed to the application. */
-    private String arguments = null;
+    private Array arguments = null;
 
     /**
      * Indicates how long, in seconds, the CFML executing thread waits for the spawned process. A
@@ -91,22 +93,23 @@ public final class Execute extends BodyTagImpl {
      * @param args value to set
      **/
     public void setArguments(Object args) {
-
+    Array arr = new ArrayImpl();
 	if (args instanceof lucee.runtime.type.Collection) {
 	    StringBuilder sb = new StringBuilder();
 	    lucee.runtime.type.Collection coll = (lucee.runtime.type.Collection) args;
 	    // lucee.runtime.type.Collection.Key[] keys=coll.keys();
 	    Iterator<Object> it = coll.valueIterator();
 	    while (it.hasNext()) {
-		sb.append(' ');
-		sb.append(it.next());
+		// array.append(' ');
+		arr.appendEL(it.next());
 	    }
-	    arguments = sb.toString();
+	    arguments = arr;
 	}
 	else if (args instanceof String) {
-	    arguments = " " + args.toString();
+		arr.appendEL(args.toString());
+		arguments = arr;
 	}
-	else this.arguments = "";
+	else arguments = arr;
     }
 
     /**
@@ -218,7 +221,7 @@ public final class Execute extends BodyTagImpl {
 	}
 	else {
 	    if (arguments == null) command = name;
-	    else command = name + arguments;
+	    else command = name + ' '+arguments;
 	}
 
 	_Execute execute = new _Execute(pageContext, monitor, command, outputfile, variable, errorFile, errorVariable);
