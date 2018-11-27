@@ -17,6 +17,8 @@
  */
 package lucee.commons.io.compress;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -38,6 +40,10 @@ import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
+
+import org.apache.commons.compress.archivers.sevenz.SevenZArchiveEntry;
+import org.apache.commons.compress.archivers.sevenz.SevenZFile;
+import org.apache.commons.compress.archivers.sevenz.SevenZOutputFile;
 
 import lucee.aprint;
 import lucee.commons.io.IOUtil;
@@ -90,6 +96,11 @@ public final class CompressUtil {
      */
     public static final int FORMAT_TBZ2 = 5;
 
+       /**
+     * Field <code>FORMAT_7Z</code>
+     */
+    public static final int FORMAT_7Z = 6;
+
     /**
      * Constructor of the class
      */
@@ -110,6 +121,7 @@ public final class CompressUtil {
 	else if (format == FORMAT_BZIP) extractBZip(source, target);
 	else if (format == FORMAT_TGZ) extractTGZ(source, target);
 	else if (format == FORMAT_TBZ) extractTBZ(source, target);
+	else if (format == FORMAT_7Z) extract7z(source, target);
 	else throw new IOException("can't extract in given format");
     }
 
@@ -176,6 +188,35 @@ public final class CompressUtil {
 	    IOUtil.closeEL(is, os);
 	}
     }
+
+    public static void extract7z(Resource source, Resource target) throws IOException {
+        SevenZFile sevenZFile = new SevenZFile(new File(source.getName()));
+        SevenZArchiveEntry entry;
+        while ((entry = sevenZFile.getNextEntry()) != null){
+            if (entry.isDirectory()){
+                continue;
+            }
+
+            File curfile = new File(entry.getName());
+            File parent = curfile.getParentFile();
+            if (!parent.exists()) {
+                parent.mkdirs();
+            }
+            FileOutputStream out = new FileOutputStream(curfile);
+            byte[] content = new byte[(int) entry.getSize()];
+            sevenZFile.read(content, 0, content.length);
+            out.write(content);
+            out.close();
+        }
+    }
+
+ //    private File[] toFiles(Resource[] resources) {
+	// File[] files = new File[resources.length];
+	// for (int i = 0; i < resources.length; i++) {
+	//     files[i] = new FileWrapper(resources[i]);
+	// }
+	// return files;
+ //    }
 
     /**
      * extract a zip file to a directory
@@ -372,6 +413,7 @@ public final class CompressUtil {
 	else if (format == FORMAT_TAR) compressTar(sources, target, mode);
 	else if (format == FORMAT_TGZ) compressTGZ(sources, target, mode);
 	else if (format == FORMAT_TBZ2) compressTBZ2(sources, target, mode);
+	else if (format == FORMAT_7Z) compress7z(sources, target);
 
 	else throw new IOException("can't compress in given format");
     }
@@ -411,6 +453,41 @@ public final class CompressUtil {
 	finally {
 	    tmpTarget.delete();
 	}
+    }
+
+    public static void compress7z(Resource[] sources, Resource target) throws IOException {
+     
+     	try (SevenZOutputFile out = new SevenZOutputFile(new File(target.getName()))){
+            for (int i = 0; i < sources.length; i++){
+                compress7zFormat(out, new File(sources[i].getName()), ".");
+            }
+        }
+    }
+
+
+     private static void compress7zFormat(SevenZOutputFile out, File file, String dir) throws IOException {
+     	InputStream is = null;
+        String name = dir + File.separator + file.getName();
+        if (file.isFile()){
+            SevenZArchiveEntry entry = out.createArchiveEntry(file, name);
+            out.putArchiveEntry(entry);
+
+            FileInputStream in = new FileInputStream(file);
+            byte[] b = new byte[1024];
+            int count = 0;
+            while ((count = in.read(b)) > 0) {
+                out.write(b, 0, count);
+            }
+            out.closeArchiveEntry();
+
+        } else if (file.isDirectory()) {
+            File[] children = file.listFiles();
+            if (children != null){
+                for (int i = 0; i < children.length; i++){
+                    compress7zFormat(out, children[i], name);
+                }
+            }
+        }
     }
 
     /**

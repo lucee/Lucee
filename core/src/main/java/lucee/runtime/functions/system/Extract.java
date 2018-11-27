@@ -59,6 +59,8 @@ public final class Extract implements Function {
 	else if (strFormat.startsWith("tar.gz")) format = CompressUtil.FORMAT_TGZ;
 	else if (strFormat.equals("tgz")) format = CompressUtil.FORMAT_TGZ;
 	else if (strFormat.equals("zip")) format = CompressUtil.FORMAT_ZIP;
+	else if (strFormat.equals("7z")) format = CompressUtil.FORMAT_7Z;
+
 	else throw new FunctionException(pc, "compress", 1, "format",
 		"invalid format definition [" + strFormat + "]," + " valid formats are [bzip,gzip,tar,tbz (tar bzip),tgz (tar gzip) and zip]");
 
