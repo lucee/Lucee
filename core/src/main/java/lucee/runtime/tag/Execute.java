@@ -19,6 +19,8 @@
 package lucee.runtime.tag;
 
 import java.util.Iterator;
+import java.util.ArrayList;
+import java.util.List;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
@@ -26,11 +28,10 @@ import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.type.Array;
-import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.exp.SecurityException;
 import lucee.runtime.ext.tag.BodyTagImpl;
 import lucee.runtime.op.Caster;
+import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.security.SecurityManager;
 
 /**
@@ -42,7 +43,7 @@ import lucee.runtime.security.SecurityManager;
 public final class Execute extends BodyTagImpl {
 
     /** Command-line arguments passed to the application. */
-    private Array arguments = null;
+    private List<String> arguments = null;
 
     /**
      * Indicates how long, in seconds, the CFML executing thread waits for the spawned process. A
@@ -93,23 +94,23 @@ public final class Execute extends BodyTagImpl {
      * @param args value to set
      **/
     public void setArguments(Object args) {
-    Array arr = new ArrayImpl();
+    List<String> arr = new ArrayList<String>();
+    	
 	if (args instanceof lucee.runtime.type.Collection) {
-	    StringBuilder sb = new StringBuilder();
 	    lucee.runtime.type.Collection coll = (lucee.runtime.type.Collection) args;
 	    // lucee.runtime.type.Collection.Key[] keys=coll.keys();
 	    Iterator<Object> it = coll.valueIterator();
 	    while (it.hasNext()) {
 		// array.append(' ');
-		arr.appendEL(it.next());
+		arr.add(it.next().toString());
 	    }
 	    arguments = arr;
 	}
 	else if (args instanceof String) {
-		arr.appendEL(args.toString());
+		arr.add(args.toString());
 		arguments = arr;
 	}
-	else arguments = arr;
+	else this.arguments = arr;
     }
 
     /**
@@ -221,7 +222,7 @@ public final class Execute extends BodyTagImpl {
 	}
 	else {
 	    if (arguments == null) command = name;
-	    else command = name + ' '+arguments;
+	    else command = name + ' '+ ListUtil.listToList(arguments, ",");
 	}
 
 	_Execute execute = new _Execute(pageContext, monitor, command, outputfile, variable, errorFile, errorVariable);
