@@ -53,9 +53,15 @@ import lucee.commons.io.res.ResourceProvider;
 import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.io.res.filter.OrResourceFilter;
+import lucee.commons.io.res.type.file.FileResource;
+import lucee.commons.io.res.type.file.FileResourceProvider;
 import lucee.commons.io.res.filter.ResourceFilter;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.op.Caster;
+import lucee.commons.digest.HashUtil;
+import lucee.runtime.type.util.ListUtil;
+import lucee.commons.lang.types.RefBoolean;
+import lucee.commons.lang.types.RefBooleanImpl;
 
 /**
  * Util to manipulate zip files
@@ -189,27 +195,71 @@ public final class CompressUtil {
 	}
     }
 
-    public static void extract7z(Resource source, Resource target) throws IOException {
-        SevenZFile sevenZFile = new SevenZFile(new File(source.getName()));
-        SevenZArchiveEntry entry;
-        while ((entry = sevenZFile.getNextEntry()) != null){
-            if (entry.isDirectory()){
-                continue;
-            }
+	public static void extract7z(Resource source, Resource targetDir) throws IOException {
+		// TODO test arguments
+		RefBoolean isTempFile = new RefBooleanImpl();
+		File srcFile = toFile(source, isTempFile);
+		// SOURCE
+		SevenZFile src = new SevenZFile(srcFile); // FileResource does extend file
 
-            File curfile = new File(entry.getName());
-            File parent = curfile.getParentFile();
-            if (!parent.exists()) {
-                parent.mkdirs();
-            }
-            FileOutputStream out = new FileOutputStream(curfile);
-            byte[] content = new byte[(int) entry.getSize()];
-            sevenZFile.read(content, 0, content.length);
-            out.write(content);
-            out.close();
-        }
-    }
+		try {
+		    SevenZArchiveEntry entry;
+		    Resource trg;
+		    while ((entry = src.getNextEntry()) != null) {
 
+			trg = toResource(targetDir, entry);
+			// we also want to have empty directories
+			if (entry.isDirectory()) {
+			    trg.mkdirs();
+			}
+			else {
+			    Resource parent = trg.getParentResource();
+			    if (!parent.exists()) parent.mkdirs();
+			    if (!trg.exists()) copy(src, trg);
+			}
+			trg.setLastModified(entry.getLastModifiedDate().getTime());
+		    }
+		}
+		finally {
+		    IOUtil.closeEL(src);
+		    if (isTempFile.toBooleanValue()) srcFile.delete();
+		}
+	}
+
+	private static File toFile(Resource res, RefBoolean isTempFile) throws IOException {
+		if (res instanceof FileResource) {
+		    isTempFile.setValue(false);
+		    return (File) res; // FileResource does extend File
+		}
+		isTempFile.setValue(true);
+		File localFile = File.createTempFile(HashUtil.create64BitHashAsString(res.getAbsolutePath(), 16), "7z");
+		IOUtil.copy(res, new FileOutputStream(localFile), true);
+		return localFile;
+	}
+
+	private static Resource toResource(Resource targetDir, SevenZArchiveEntry entry) throws IOException {
+		Resource target = targetDir.getRealResource(entry.getName());
+
+		// SECURITY: in case a file is outside the target directory, we copy it to the target directory
+		if (!target.getCanonicalPath().startsWith(targetDir.getCanonicalPath())) {
+		    target = targetDir.getRealResource(ListUtil.last(entry.getName(), "\\/", true));
+		}
+		return target;
+	}
+
+	private static final void copy(SevenZFile in, Resource trg) throws IOException {
+	OutputStream out = trg.getOutputStream();
+	try {
+	    byte[] buffer = new byte[0xffff];
+	    int len;
+	    while ((len = in.read(buffer)) != -1) {
+		out.write(buffer, 0, len);
+	    }
+	}
+	finally {
+	    IOUtil.closeEL(out);
+	}
+	}
  //    private File[] toFiles(Resource[] resources) {
 	// File[] files = new File[resources.length];
 	// for (int i = 0; i < resources.length; i++) {
@@ -434,7 +484,7 @@ public final class CompressUtil {
 	    try {
 		compressTar(sources, tmpOs, mode);
 	    }
-	    finally {
+	    finally {  
 		IOUtil.closeEL(tmpOs);
 	    }
 
@@ -456,39 +506,50 @@ public final class CompressUtil {
     }
 
     public static void compress7z(Resource[] sources, Resource target) throws IOException {
-     
-     	try (SevenZOutputFile out = new SevenZOutputFile(new File(target.getName()))){
-            for (int i = 0; i < sources.length; i++){
-                compress7zFormat(out, new File(sources[i].getName()), ".");
-            }
-        }
+    	// TODO test arguments
+		RefBoolean isTempFile = new RefBooleanImpl();
+		File trgtFile = toFile(target, isTempFile);
+     	SevenZOutputFile out = new SevenZOutputFile(trgtFile);
+     	for (int i = 0; i < sources.length; i++) {
+     		compress7zFormat(out, sources[i], target);
+     	}
     }
 
 
-     private static void compress7zFormat(SevenZOutputFile out, File file, String dir) throws IOException {
-     	InputStream is = null;
-        String name = dir + File.separator + file.getName();
-        if (file.isFile()){
-            SevenZArchiveEntry entry = out.createArchiveEntry(file, name);
-            out.putArchiveEntry(entry);
-
-            FileInputStream in = new FileInputStream(file);
-            byte[] b = new byte[1024];
-            int count = 0;
-            while ((count = in.read(b)) > 0) {
-                out.write(b, 0, count);
-            }
-            out.closeArchiveEntry();
-
-        } else if (file.isDirectory()) {
-            File[] children = file.listFiles();
-            if (children != null){
-                for (int i = 0; i < children.length; i++){
-                    compress7zFormat(out, children[i], name);
-                }
-            }
-        }
+     private static void compress7zFormat(SevenZOutputFile out, Resource file, Resource targetDir) throws IOException {
+		Resource trg;
+		 // write Gzip
+	    InputStream is = null;
+	    OutputStream os = null;
+		RefBoolean isTempFile2 = new RefBooleanImpl();
+		File srcFile = toFile(file, isTempFile2);
+	    is = new FileInputStream(srcFile);
+		try {
+	     	SevenZArchiveEntry entry = out.createArchiveEntry(srcFile, file.getName());
+	        out.putArchiveEntry(entry);
+	        trg = toResource(targetDir, entry);
+	        copy(is, trg);
+	        trg.setLastModified(entry.getLastModifiedDate().getTime());
+	        out.closeArchiveEntry();
+        } finally {
+        	IOUtil.closeEL(is, os);
+		    if (isTempFile2.toBooleanValue()) srcFile.delete();
+		}
     }
+
+    private static final void copy(InputStream in, Resource trg) throws IOException {
+	OutputStream out = trg.getOutputStream();
+	try {
+	    byte[] buffer = new byte[0xffff];
+	    int len;
+	    while ((len = in.read(buffer)) != -1) {
+		out.write(buffer, 0, len);
+	    }
+	}
+	finally {
+	    IOUtil.closeEL(out);
+	}
+	}
 
     /**
      * compress a source file/directory to a tar/bzip2 file
