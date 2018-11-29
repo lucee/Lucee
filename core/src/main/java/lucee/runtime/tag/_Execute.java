@@ -19,6 +19,7 @@
 
 package lucee.runtime.tag;
 
+import java.util.List;
 import java.util.ArrayList;
 import lucee.commons.cli.Command;
 import lucee.commons.cli.CommandResult;
@@ -38,7 +39,11 @@ public final class _Execute extends PageContextThread {
     private String variable;
     private String errorVariable;
     private boolean aborted;
-    private ArrayList command = null;
+    // Passed command will be a String, or a List<String>
+    // If parseCmdLine is true, we use index 0 as our command line for parsing.
+    // Otherwise we use the array as the command+arguments.
+    private List<String> command = null;
+    private boolean parseCmdLine = false;
     // private static final int BLOCK_SIZE=4096;
     private Object monitor;
     private Exception exception;
@@ -49,16 +54,18 @@ public final class _Execute extends PageContextThread {
     /**
      * @param pageContext
      * @param monitor
-     * @param process
+     * @param command Command line, in List form
+     * @param parseCmdLine If false, list has all our arguments, otherwise, parse the item at index 0.
      * @param outputfile
      * @param variable
      * @param body
      * @param terminateOnTimeout
      */
-    public _Execute(PageContext pageContext, Object monitor, ArrayList<String> command, Resource outputfile, String variable, Resource errorFile, String errorVariable) {
+    public _Execute(PageContext pageContext, Object monitor, List<String> command, boolean parseCmdLine, Resource outputfile, String variable, Resource errorFile, String errorVariable) {
 	super(pageContext);
 	this.monitor = monitor;
 	this.command = command;
+	this.parseCmdLine = parseCmdLine;
 	this.outputfile = outputfile;
 	this.variable = variable;
 
@@ -78,9 +85,14 @@ public final class _Execute extends PageContextThread {
     void _run(PageContext pc) {
 	try {
 
-	    //process = Command.createProcess(command, true);
 
-	    CommandResult result = Command.execute(command);
+	    if (parseCmdLine) {
+		process = Command.createProcess(command.get(0), true);
+	    } else {
+		process = Command.createProcess(command.toArray(new String[command.size()]));
+	    }
+
+	    CommandResult result = Command.execute(process);
 	    String rst = result.getOutput();
 
 	    finished = true;

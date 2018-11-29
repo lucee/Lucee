@@ -43,6 +43,7 @@ public final class Execute extends BodyTagImpl {
 
     /** Command-line arguments passed to the application. */
     private ArrayList<String> arguments = null;
+    private boolean parseCmdLine = false;
 
     /**
      * Indicates how long, in seconds, the CFML executing thread waits for the spawned process. A
@@ -93,8 +94,8 @@ public final class Execute extends BodyTagImpl {
      * @param args value to set
      **/
     public void setArguments(Object args) {
-    ArrayList<String> arr = new ArrayList<String>();
-    	
+	ArrayList<String> arr = new ArrayList<String>();
+	parseCmdLine = false;
 	if (args instanceof lucee.runtime.type.Collection) {
 	    lucee.runtime.type.Collection coll = (lucee.runtime.type.Collection) args;
 	    // lucee.runtime.type.Collection.Key[] keys=coll.keys();
@@ -108,6 +109,7 @@ public final class Execute extends BodyTagImpl {
 	else if (args instanceof String) {
 		arr.add(args.toString());
 		arguments = arr;
+		parseCmdLine = true;
 	}
 	else this.arguments = arr;
     }
@@ -223,7 +225,7 @@ public final class Execute extends BodyTagImpl {
 	   arguments.add(0,name);
 	}
 
-	_Execute execute = new _Execute(pageContext, monitor, arguments, outputfile, variable, errorFile, errorVariable);
+	_Execute execute = new _Execute(pageContext, monitor, arguments, parseCmdLine, outputfile, variable, errorFile, errorVariable);
 
 	// if(timeout<=0)execute._run();
 	// else {

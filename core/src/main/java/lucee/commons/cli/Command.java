@@ -33,6 +33,10 @@ public class Command {
 	return Runtime.getRuntime().exec(toArray(cmdline));
     }
 
+    public static Process createProcess(String cmdline[]) throws IOException {
+	return Runtime.getRuntime().exec(cmdline);
+    }
+
     /**
      * @param cmdline command line
      * @param translate translate the command line or not
