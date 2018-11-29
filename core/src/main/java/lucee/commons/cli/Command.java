@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 
+
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.StringUtil;
@@ -47,6 +48,10 @@ public class Command {
 
     public static CommandResult execute(String[] cmdline) throws IOException, InterruptedException {
 	return execute(Runtime.getRuntime().exec(cmdline));
+    }
+
+    public static CommandResult execute(ArrayList<String> cmdline) throws IOException, InterruptedException {
+	return execute(Runtime.getRuntime().exec(cmdline.toArray(new String[cmdline.size()])));
     }
 
     public static CommandResult execute(String cmd, String[] args) throws IOException, InterruptedException {
