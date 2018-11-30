@@ -484,7 +484,7 @@ public final class Zip extends BodyTagImpl {
 					continue;
 				}
 
-				target = destination.getRealResource(entry.getName());
+				target = ZipUtil.toResource(destination, entry);
 
 				// filter
 				if(filter != null && !filter.accept(target)) {
