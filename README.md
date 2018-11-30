@@ -33,7 +33,7 @@ If you are [looking for commercial support](http://lucee.org/members.html), you 
 
 Lucee is a JVM language running as a servlet on just about any servlet container; including [Apache Tomcat](http://tomcat.apache.org/), [Eclipse Jetty](http://eclipse.org/jetty/), [JBoss AS](http://jbossas.jboss.org/), and [GlassFish](https://glassfish.java.net/).
 
-_We stadardise on Apache Tomcat for installers and Docker containers as there is only so much time in the day._
+_We standardise on Apache Tomcat for installers and Docker containers as there is only so much time in the day._
 
 ## Philosophy
 
