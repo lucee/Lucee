@@ -3,10 +3,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 		describe( title="Test suite for LDEV-2056", body=function() {
 			it( title='checking closure after using dynamic proxy function',body=function( currentSpec ) {
 				var aNames = [ 
-					new Base( "luis" ),
-					new Base( "joe" ),
-					new Base( "majano" ),
-					new Base( "brad" )
+					new LDEV2056.Base( "luis" ),
+					new LDEV2056.Base( "joe" ),
+					new LDEV2056.Base( "majano" ),
+					new LDEV2056.Base( "brad" )
 				];
 
 				var castType 			= "java.lang.Object[]";

@@ -36,6 +36,7 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.thread.ThreadUtil;
 import lucee.runtime.type.Array;
+import lucee.runtime.type.Collection;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryColumn;
 import lucee.runtime.type.Struct;
@@ -249,42 +250,44 @@ public class JavaProxy {
 	if (value instanceof byte[]) {
 	    return value;
 	}
-	if (Decision.isArray(value)) {
-	    Array a = Caster.toArray(value);
-	    int len = a.size();
-	    Object o;
-	    for (int i = 1; i <= len; i++) {
-		o = a.get(i, null);
-		if (o != null) a.setEL(i, toCFML(o));
-	    }
-	    return a;
-	}
-	if (value instanceof Map) {
-	    Struct sct = new StructImpl();
-	    Iterator it = ((Map) value).entrySet().iterator();
-	    Map.Entry entry;
-	    while (it.hasNext()) {
-		entry = (Entry) it.next();
-		sct.setEL(Caster.toString(entry.getKey()), toCFML(entry.getValue()));
-	    }
-	    return sct;
-
-	    // return StructUtil.copyToStruct((Map)value);
-	}
-	if (Decision.isQuery(value)) {
-	    Query q = Caster.toQuery(value);
-	    int recorcount = q.getRecordcount();
-	    String[] strColumns = q.getColumns();
-
-	    QueryColumn col;
-	    int row;
-	    for (int i = 0; i < strColumns.length; i++) {
-		col = q.getColumn(strColumns[i]);
-		for (row = 1; row <= recorcount; row++) {
-		    col.set(row, toCFML(col.get(row, null)));
+	if (!(value instanceof Collection)) {
+	    if (Decision.isArray(value)) {
+		Array a = Caster.toArray(value);
+		int len = a.size();
+		Object o;
+		for (int i = 1; i <= len; i++) {
+		    o = a.get(i, null);
+		    if (o != null) a.setEL(i, toCFML(o));
 		}
+		return a;
 	    }
-	    return q;
+	    if (value instanceof Map) {
+		Struct sct = new StructImpl();
+		Iterator it = ((Map) value).entrySet().iterator();
+		Map.Entry entry;
+		while (it.hasNext()) {
+		    entry = (Entry) it.next();
+		    sct.setEL(Caster.toString(entry.getKey()), toCFML(entry.getValue()));
+		}
+		return sct;
+
+		// return StructUtil.copyToStruct((Map)value);
+	    }
+	    if (Decision.isQuery(value)) {
+		Query q = Caster.toQuery(value);
+		int recorcount = q.getRecordcount();
+		String[] strColumns = q.getColumns();
+
+		QueryColumn col;
+		int row;
+		for (int i = 0; i < strColumns.length; i++) {
+		    col = q.getColumn(strColumns[i]);
+		    for (row = 1; row <= recorcount; row++) {
+			col.set(row, toCFML(col.get(row, null)));
+		    }
+		}
+		return q;
+	    }
 	}
 	return value;
     }
