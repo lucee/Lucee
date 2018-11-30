@@ -32,7 +32,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.PrintStream;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
@@ -1054,7 +1053,6 @@ public final class IOUtil {
      * @throws IOException
      */
     public static String getMimeType(byte[] barr, String defaultValue) {
-	PrintStream out = System.out;
 	try {
 	    Tika tika = new Tika();
 	    return tika.detect(barr);

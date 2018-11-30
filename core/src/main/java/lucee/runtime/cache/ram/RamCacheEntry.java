@@ -111,7 +111,6 @@ public class RamCacheEntry implements CacheEntry {
     }
 
     private static int sizeOf(Object o) {
-	// System.err.println(o.getClass().getName());
 	ByteArrayOutputStream os = new ByteArrayOutputStream();
 	ObjectOutputStream oos = null;
 	try {

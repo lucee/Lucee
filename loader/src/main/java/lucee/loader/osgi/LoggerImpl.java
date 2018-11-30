@@ -82,9 +82,7 @@ public class LoggerImpl extends Logger {
 	    bw.write(toLevel(level) + " [" + new Date() + "]:\n" + msg + "\n");
 	    bw.flush();
 	}
-	catch (final IOException ioe) {
-	    // System.out.println(level + " [" + new Date() + "]:\n" + msg + "\n");
-	}
+	catch (final IOException ioe) {}
 	finally {
 	    if (bw != null) try {
 		bw.close();
