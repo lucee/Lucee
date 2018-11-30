@@ -465,22 +465,20 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				logLevel = 4;
 		}
 		config.put("felix.log.level", "" + logLevel);
-		
-		{
-			// Allow felix.cache.locking to be overriden by env var (true/false)
-			// Enables or disables bundle cache locking, which is used to prevent concurrent access to the bundle cache. 
-			String strCacheLocking = getSystemPropOrEnvVar("felix.cache.locking", null);
-			if(!Util.isEmpty(strCacheLocking)) {
-				config.put("felix.cache.locking", strCacheLocking);
-			}
-	
-			// Allow FRAMEWORK_STORAGE_CLEAN to be overriden by env var
-			// The value can either be "none" or "onFirstInit", where "none" does not flush the bundle cache 
-			// and "onFirstInit" flushes the bundle cache when the framework instance is first initialized.
-			String strStorageClean = getSystemPropOrEnvVar("felix.storage.clean", null);
-			if(!Util.isEmpty(strStorageClean)) {
-				config.put(Constants.FRAMEWORK_STORAGE_CLEAN, strStorageClean);
-			}
+
+		// Allow felix.cache.locking to be overriden by env var (true/false)
+		// Enables or disables bundle cache locking, which is used to prevent concurrent access to the bundle cache. 
+		String strCacheLocking = getSystemPropOrEnvVar("felix.cache.locking", null);
+		if(!Util.isEmpty(strCacheLocking)) {
+			config.put("felix.cache.locking", strCacheLocking);
+		}
+
+		// Allow FRAMEWORK_STORAGE_CLEAN to be overriden by env var
+		// The value can either be "none" or "onFirstInit", where "none" does not flush the bundle cache 
+		// and "onFirstInit" flushes the bundle cache when the framework instance is first initialized.
+		String strStorageClean = getSystemPropOrEnvVar("felix.storage.clean", null);
+		if(!Util.isEmpty(strStorageClean)) {
+			config.put(Constants.FRAMEWORK_STORAGE_CLEAN, strStorageClean);
 		}
 		
 		// Default storage clean if not set above

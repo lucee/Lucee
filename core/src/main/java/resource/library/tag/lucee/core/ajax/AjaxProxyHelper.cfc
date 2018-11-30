@@ -111,6 +111,4 @@
 		</cfloop>
 		<cfreturn result />
 	</cffunction>
-	
-	
 </cfcomponent>

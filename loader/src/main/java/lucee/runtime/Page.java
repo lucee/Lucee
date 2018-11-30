@@ -161,7 +161,7 @@ public abstract class Page implements Serializable {
 		return NO_SUB_PAGES;
 	}
 
-	public SoftReference<Struct> metaData;
+	public transient SoftReference<Struct> metaData;
 
 	public UDFProperties[] udfs;
 }

@@ -52,10 +52,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	public function testStoreAddACLBucket() localMode=true {
 		if(variables.s3Supported) {
 			try{
-				testStoreACL("s3://testStoreAddACLBucket",true,true);
+				testStoreACL("s3://teststoreaddaclbucket",true,true);
 			}
 			finally {
-	    		directoryDelete("s3://testStoreAddACLBucket",true);
+	    		directoryDelete("s3://teststoreaddaclbucket",true);
 	    	}
 		}
 	}
@@ -63,10 +63,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	public function testStoreSetACLBucket() localMode=true {
 		if(variables.s3Supported) {
 			try{
-				testStoreACL("s3://testStoreSetACLBucket",true,false);
+				testStoreACL("s3://teststoresetaclbucket2",true,false);
 			}
 			finally {
-	    		//directoryDelete("s3://testStoreSetACLBucket",true);
+	    		directoryDelete("s3://teststoresetaclbucket2",true);
 	    	}
 		}
 	}
@@ -74,10 +74,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	public function testStoreAddACLObject() localMode=true {
 		if(variables.s3Supported) {
 			try{
-				testStoreACL("s3://testStoreAddACLObject/sub12234",false,true);
+				testStoreACL("s3://teststoreaddaclobject/sub12234",false,true);
 			}
 			finally {
-	    		directoryDelete("s3://testStoreAddACLObject",true);
+	    		directoryDelete("s3://teststoreaddaclobject",true);
 	    	}
 		}
 	}
@@ -85,10 +85,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	public function testStoreSetACLObject() localMode=true {
 		if(variables.s3Supported) {
 			try{
-				testStoreACL("s3://testStoreSetACLObject/sub12234",false,false);
+				testStoreACL("s3://teststoresetaclobject2/sub12234",false,false);
 			}
 			finally {
-	    		directoryDelete("s3://testStoreSetACLObject",true);
+	    		directoryDelete("s3://teststoresetaclobject2",true);
 	    	}
 		}
 	}

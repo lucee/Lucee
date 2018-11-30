@@ -62,9 +62,9 @@ public class IKHandlerCache implements IKHandler {
 						new Long(storageScope.getTimeSpan()), null);
 			}
 		} 
-		catch (Exception pe) {
-            SystemOut.printDate(pe);
-        }
+		catch (Exception e) {
+			ScopeContext.error(log, e);
+		}
 	}
 	
 	private boolean deserializeIKStorageValueSupported(Cache cache) {

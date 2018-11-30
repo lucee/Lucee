@@ -85,11 +85,12 @@ public final class ExceptionUtil {
 	/**
 	 * creates a message for key not found with soundex check for similar key
 	 * 
-	 * @param keys
+	 * @param _keys
 	 * @param keyLabel
 	 * @return
 	 */
 	public static String similarKeyMessage(Collection.Key[] _keys, String keySearched, String keyLabel, String keyLabels, String in, boolean listAll) {
+
 		String inThe = StringUtil.isEmpty(in, true) ? "" : " in the " + in;
 
 		boolean empty = _keys.length == 0;
@@ -102,10 +103,17 @@ public final class ExceptionUtil {
 			Arrays.sort(_keys);
 			list = ListUtil.arrayToList(_keys, ",");
 		}
+
 		String keySearchedSoundex = StringUtil.soundex(keySearched);
 
 		for (int i = 0; i < _keys.length; i++) {
-			if(StringUtil.soundex(_keys[i].getString()).equals(keySearchedSoundex)) {
+
+			String k = _keys[i].getString();
+			if(StringUtil.soundex(k).equals(keySearchedSoundex)) {
+
+				if (keySearched.equalsIgnoreCase(k))
+					continue;		// must be a null value in a partial null-support environment
+
 				String appendix;
 				if(listAll)
 					appendix = ". Here is a complete list of all available " + keyLabels + ": [" + list + "].";
@@ -114,7 +122,7 @@ public final class ExceptionUtil {
 				else
 					appendix = ".";
 
-				return "The " + keyLabel + " [" + keySearched + "] does not exist " + inThe + ", but there is a similar " + keyLabel + " with name ["
+				return "The " + keyLabel + " [" + keySearched + "] does not exist" + inThe + ", but there is a similar " + keyLabel + " with name ["
 						+ _keys[i].getString() + "] available" + appendix;
 			}
 		}
@@ -125,6 +133,7 @@ public final class ExceptionUtil {
 			appendix = ", the structure is empty";
 		else
 			appendix = ".";
+		
 		return "The " + keyLabel + " [" + keySearched + "] does not exist" + inThe + appendix;
 	}
 
@@ -176,11 +185,11 @@ public final class ExceptionUtil {
 	}
 
 	/**
-	 * A java.lang.ThreadDeath must never be caught, so any catch(Throwable t)
-	 * must go through this method in order to ensure that the throwable is not
-	 * of type ThreadDeath
+	 * A java.lang.ThreadDeath must never be caught, so any catch(Throwable t) must go through this method in order to ensure that the throwable is not of type
+	 * ThreadDeath
 	 *
-	 * @param t the thrown Throwable
+	 * @param t
+	 *            the thrown Throwable
 	 */
 	public static void rethrowIfNecessary(Throwable t) {
 		if(unwrap(t) instanceof ThreadDeath)
@@ -189,30 +198,36 @@ public final class ExceptionUtil {
 
 	public static TemplateLine getThrowingPosition(PageContext pc, Throwable t) {
 		Throwable cause = t.getCause();
-		if(cause!=null)getThrowingPosition(pc, cause);
+		if(cause != null)
+			getThrowingPosition(pc, cause);
 		StackTraceElement[] traces = t.getStackTrace();
 
 		String template;
-		for(StackTraceElement trace:traces) {
-			template=trace.getFileName();
-			if(trace.getLineNumber()<=0 || template==null || ResourceUtil.getExtension(template,"").equals("java")) continue;	
-			return new TemplateLine(abs((PageContextImpl)pc,template), trace.getLineNumber());
+		for (StackTraceElement trace : traces) {
+			template = trace.getFileName();
+			if(trace.getLineNumber() <= 0 || template == null || ResourceUtil.getExtension(template, "").equals("java"))
+				continue;
+			return new TemplateLine(abs((PageContextImpl)pc, template), trace.getLineNumber());
 		}
 		return null;
 	}
+
 	private static String abs(PageContextImpl pc, String template) {
 		ConfigWeb config = pc.getConfig();
-		
+
 		Resource res = config.getResource(template);
-		if(res.exists()) return template;
-		
-		PageSource ps = pc==null?null:pc.getPageSource(template);
-		res = ps==null?null:ps.getPhyscalFile();
-		if(res==null || !res.exists()) {
-			res=config.getResource(ps.getDisplayPath());
-			if(res!=null && res.exists()) return res.getAbsolutePath();
+		if(res.exists())
+			return template;
+
+		PageSource ps = pc == null ? null : pc.getPageSource(template);
+		res = ps == null ? null : ps.getPhyscalFile();
+		if(res == null || !res.exists()) {
+			res = config.getResource(ps.getDisplayPath());
+			if(res != null && res.exists())
+				return res.getAbsolutePath();
 		}
-		else return res.getAbsolutePath();
+		else
+			return res.getAbsolutePath();
 		return template;
 	}
 

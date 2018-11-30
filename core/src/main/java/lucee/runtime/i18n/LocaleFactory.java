@@ -129,6 +129,7 @@ public final class LocaleFactory {
 	    setLocalAlias("spanish (modern)",new Locale("es","ES"));
 	    setLocalAlias("spanish (standard)",new Locale("es","ES"));
 	    setLocalAlias("swedish",new Locale("sv","SE"));
+	    setLocalAlias("welsh",new Locale("cy","GB"));
 	}
 	
 	private LocaleFactory(){}

@@ -219,7 +219,7 @@ All elements in the array must contain values that can be converted to numeric.<
 		</argument>
 		<argument>
 			<name>needle</name>
-			<alias>object,obj,o</alias>
+			<alias>value,object,obj,o</alias>
 			<type>object</type>
 			<required>Yes</required>
 			<description>The substring to search for (not case sensitive)</description>
@@ -308,6 +308,7 @@ All elements in the array must contain values that can be converted to numeric.<
 		</argument>
 		<argument>
 			<name>position</name>
+			<alias>index</alias>
 			<type>number</type>
 			<required>Yes</required>
 			<description>The numeric position of the element. Remember that CFML arrays start at 1 not 0.</description>
@@ -331,7 +332,7 @@ All elements in the array must contain values that can be converted to numeric.<
 		</argument>
 		<argument>
 			<name>value_or_closure</name>
-			<alias>value,closure,function,udf</alias>
+			<alias>object,value,closure,function,udf</alias>
 			<type>any</type>
 			<required>Yes</required>
 			<description>The value to find or a closure/function that gets every value of the array as input and returns true if the given value is right.</description>
@@ -355,7 +356,7 @@ All elements in the array must contain values that can be converted to numeric.<
 		</argument>
 		<argument>
 			<name>value_or_closure</name>
-			<alias>value,closure,function,udf</alias>
+			<alias>object,value,closure,function,udf</alias>
 			<type>any</type>
 			<required>Yes</required>
 			<description>The value to find or a closure/function that gets every value of the array as input and returns true if the given value is right.</description>
@@ -403,7 +404,7 @@ All elements in the array must contain values that can be converted to numeric.<
 		</argument>
 		<argument>
 			<name>closure</name>
-			<alias>udf,function</alias>
+			<alias>function,callback,udf</alias>
 			<type>function</type>
 			<required>Yes</required>
 			<description>UDF/Closure that call with the values from array</description>
@@ -442,7 +443,7 @@ All elements in the array must contain values that can be converted to numeric.<
 		</argument>
 		<argument>
 			<name>closure</name>
-			<alias>udf,function</alias>
+			<alias>function,callback,udf</alias>
 			<type>function</type>
 			<required>Yes</required>
 			<description>function/closure that implements the following constructor [function(any value, numeric index,string list, string delimiter):void].</description>
@@ -541,6 +542,7 @@ All elements in the array must contain values that can be converted to numeric.<
 		</argument>
 		<argument>
 			<name>value</name>
+			<alias>object</alias>
 			<type>any</type>
 			<required>Yes</required>
 			<description>The value to find</description>
@@ -694,7 +696,7 @@ Remember CFML arrays start at 1 not 0.</description>
     	</argument>
 		<argument>
 			<name>closure</name>
-			<alias>udf,function</alias>
+			<alias>function,callback,udf</alias>
 			<type>function</type>
 			<required>Yes</required>
 			<description>UDF/Closure that is called with every value in the collection</description>
@@ -733,7 +735,7 @@ Remember CFML arrays start at 1 not 0.</description>
     	</argument>
 		<argument>
 			<name>closure</name>
-			<alias>udf,function</alias>
+			<alias>function,callback,udf</alias>
 			<type>function</type>
 			<required>Yes</required>
 			<description>filter can be a function/closure that implements the following constructor [function(any value[, number index, array array]):any].</description>
@@ -772,7 +774,7 @@ Remember CFML arrays start at 1 not 0.</description>
     	</argument>
 		<argument>
 			<name>closure</name>
-			<alias>udf,function</alias>
+			<alias>function,callback,udf</alias>
 			<type>function</type>
 			<required>Yes</required>
 			<description>filter can be a function/closure that implements the following constructor [function(any value, number index, string list, string delimiter):any].</description>
@@ -827,13 +829,14 @@ Remember CFML arrays start at 1 not 0.</description>
 		the function returns a struct that contains all values returned by the closure.</description>
 		<argument>
 			<name>struct</name>
+			<alias>structure</alias>
 			<type>struct</type>
 			<required>Yes</required>
 			<description>struct to iterate</description>
     	</argument>
 		<argument>
 			<name>closure</name>
-			<alias>udf,function</alias>
+			<alias>function,callback,udf</alias>
 			<type>function</type>
 			<required>Yes</required>
 			<description>filter can be a function/closure that implements the following constructor [function(string key, any value[, struct struct]):any].</description>
@@ -873,7 +876,7 @@ Remember CFML arrays start at 1 not 0.</description>
     	</argument>
 		<argument>
 			<name>closure</name>
-			<alias>udf,function</alias>
+			<alias>function,callback,udf</alias>
 			<type>function</type>
 			<required>Yes</required>
 			<description>filter can be a function/closure that implements the following constructor [function(struct row[, number rowNumber, query query]):struct].
@@ -1048,6 +1051,7 @@ Remember CFML arrays start at 1 not 0.</description>
     </argument>
 		<argument>
 			<name>minimum_size</name>
+			<alias>minimum,size</alias>
 			<type>number</type>
 			<required>Yes</required>
 			<description>minimum size of the array</description>
@@ -1091,12 +1095,14 @@ Remember CFML arrays start at 1 not 0.</description>
     </argument>
 		<argument>
 			<name>start_pos</name>
+			<alias>start,startPos</alias>
 			<type>number</type>
 			<required>Yes</required>
 		<description>Starting index position of range to set.</description>
     </argument>
 		<argument>
 			<name>end_pos</name>
+			<alias>end,endPos</alias>
 			<type>number</type>
 			<required>Yes</required>
 		<description>Ending index position of range to set. If this value is greater than array length, Lucee adds elements to array.</description>
@@ -1361,12 +1367,14 @@ sort direction:
         back into binary data.</description>
 		<argument>
 			<name>encoded_binary</name>
+			<alias>encodedBinary,string,value</alias>
 			<type>string</type>
 			<required>Yes</required>
 		<description>A string containing encoded binary data.</description>
     </argument>
 		<argument>
 			<name>binaryencoding</name>
+			<alias>encoding</alias>
 			<type>string</type>
 			<required>Yes</required>
 		<description>A string specifying the algorithm used to encode the original
@@ -1387,6 +1395,7 @@ sort direction:
 		<description>Converts binary data to a string.</description>
 		<argument>
 			<name>binary</name>
+			<alias>binaryData</alias>
 			<type>binary</type>
 			<required>Yes</required>
 		<description>A variable containing the binary data to encode.</description>
@@ -1412,6 +1421,7 @@ sort direction:
 		<description>Converts as string to a binary representation.</description>
 		<argument>
 			<name>encoded_binary</name>
+			<alias>string,encodedBinary</alias>
 			<type>string</type>
 			<required>Yes</required>
 		<description>A string containing data to encode in binary format.</description>
@@ -1434,6 +1444,7 @@ sort direction:
 		<description>Uses the specified encoding to convert binary data to a string.</description>
 		<argument>
 			<name>binary</name>
+			<alias>binaryData</alias>
 			<type>binary</type>
 			<required>Yes</required>
 		<description>A variable containing binary data to decode into text.</description>
@@ -2724,6 +2735,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<description>this function is no longer supported!</description>
 		<argument>
 			<name>conversion_type</name>
+			<alias>conversionType</alias>
 			<type>string</type>
 			<required>Yes</required>
 		<description>
@@ -2822,6 +2834,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<description>Determines the day of the week as a string from 1-7</description>
 		<argument>
 			<name>day_of_week</name>
+			<alias>dayofweek</alias>
 			<type>number</type>
 			<required>Yes</required>
 		<description>Integer, in the range 1 (Sunday) - 7 (Saturday).</description>
@@ -2955,7 +2968,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>closure</name>
-			<alias>udf,function</alias>
+			<alias>function,callback,udf</alias>
 			<type>function</type>
 			<required>Yes</required>
 			<description>UDF/Closure that call with the entries from struct</description>
@@ -2980,7 +2993,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>closure</name>
-			<alias>udf,function</alias>
+			<alias>function,callback,udf</alias>
 			<type>function</type>
 			<required>Yes</required>
 			<description>UDF/Closure that call with the entries from struct</description>
@@ -3016,7 +3029,6 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</return>
 	</function>
 	
-	
 	<!-- decrypt -->
 	<function>
 		<name>decrypt</name>
@@ -3024,6 +3036,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<description>Decrypts a string that is encrypted with the Encrypt function.</description>
 		<argument>
 			<name>encrypted_string</name>
+			<alias>encryptedString,string</alias>
 			<type>string</type>
 			<required>Yes</required>
 		<description>String to decrypt.</description>
@@ -3061,6 +3074,7 @@ You may also specify other algorithm names as well as the feedback mode and padd
         </argument>
         <argument>
             <name>IVorSalt</name>
+            <alias>IV,Salt</alias>
             <type>any</type>
             <required>no</required>
             <description>Initialization Vector for algorithms with Feedback Mode that is not ECB, or Salt for Password Based Encryption algorithms</description>
@@ -3082,7 +3096,8 @@ You may also specify other algorithm names as well as the feedback mode and padd
 		<keywords>binary</keywords>
 		<description>Decrypts the given binary with the optional parameters</description>
 		<argument>
-			<name>input</name>
+			<name>binaryData</name>
+			<alias>input</alias>
 			<type>any</type>
 			<required>Yes</required>
 		    <description>Binary data to decrypt.</description>
@@ -3112,6 +3127,7 @@ You may also specify other algorithm names as well as the feedback mode and padd
         </argument>
         <argument>
             <name>IVorSalt</name>
+            <alias>IV,Salt,prefix</alias>
             <type>any</type>
             <required>no</required>
             <description>Initialization Vector for algorithms with Feedback Mode that is not ECB, or Salt for Password Based Encryption algorithms</description>
@@ -4107,6 +4123,7 @@ You may also specify other algorithm names as well as the feedback mode and padd
         </argument>
         <argument>
             <name>IVorSalt</name>
+            <alias>IV,Salt</alias>
             <type>any</type>
             <required>no</required>
             <description>Initialization Vector for algorithms with Feedback Mode that is not ECB, or Salt for Password Based Encryption algorithms</description>
@@ -4130,6 +4147,7 @@ You may also specify other algorithm names as well as the feedback mode and padd
 EntityDelete(entity)</description>
 		<argument>
 			<name>name</name>
+			<alias>entity</alias>
 			<type>object</type>
 			<required>Yes</required>
 		<description>Name of the entity being deleted.</description>
@@ -4138,7 +4156,7 @@ EntityDelete(entity)</description>
 			<type>void</type>
 		</return>
 	</function>
-	
+
 	<!-- EntityLoad -->
 	<function>
 		<name>entityLoad</name>
@@ -4148,12 +4166,14 @@ EntityLoad (entityname, filtercriteria [,unique]
 EntityLoad(entityname, filtercriteria, sortorder [, options])</description>
 		<argument>
 			<name>name</name>
+			<alias>entityName,entity_name</alias>
 			<type>string</type>
 			<required>Yes</required>
 		<description>Name of the entity to be loaded.</description>
     </argument>
 		<argument>
 			<name>idOrFilter</name>
+			<alias>id,filter</alias>
 			<type>any</type>
 			<required>no</required>
 		<description>The primary key value of the entity that must be loaded or Key-value pair (Struct) of property names and values. 
@@ -4161,6 +4181,7 @@ EntityLoad(entityname, filtercriteria, sortorder [, options])</description>
     </argument>
 		<argument>
 			<name>uniqueOrOrder</name>
+			<alias>unique,order</alias>
 			<type>any</type>
 			<required>no</required>
 		<description>when the second argument is a id then this argument defines the boolean "unique" otherwise it defines the order.
@@ -4483,7 +4504,7 @@ EntitySave(entity, [forceinsert])</description>
     	    
     	    <argument>
     			<name>options</name>
-    			<alias>option</alias>
+    			<alias>option,queryOptions</alias>
     			<type>struct</type>
     			<required>No</required>
     			<description>Struct containing query options, all cfquery tag attributes are supported except the name attribute.</description>
@@ -4579,6 +4600,7 @@ EntitySave(entity, [forceinsert])</description>
         or relative path in the relative_path attribute</description>
 		<argument>
 			<name>relative_path</name>
+			<alias>relativePath,path</alias>
 			<type>string</type>
 			<required>Yes</required>
 		<description>Relative or absolute directory reference or filename, within the current directory, (.\\ and ..\\) to convert to an absolute path. Can include forward or backward slashes.</description>
@@ -4627,6 +4649,7 @@ EntitySave(entity, [forceinsert])</description>
 		<description>appends the entire content to the specified file. </description>
 		<argument>
 			<name>file</name>
+			<alias>filePath</alias>
 			<type>string</type>
 			<required>Yes</required>
 			<description>file path</description>
@@ -4674,13 +4697,14 @@ EntitySave(entity, [forceinsert])</description>
 		<description>Returns the mimetype of the given file</description>
 		<argument>
 			<name>file</name>
+			<alias>FilePath,source</alias>
 			<type>any</type>
 			<required>Yes</required>
 			<description>file path or object</description>
 		</argument>
 		<argument>
-			<name>checkHeader</name>
-			<name>checkNotExtension</name>
+			<name>strict</name>
+			<alias>checkHeader,checkNotExtension</alias>
 			<type>boolean</type>
 			<required>No</required>
 			<default>true</default>
@@ -4697,7 +4721,8 @@ EntitySave(entity, [forceinsert])</description>
 		<class>lucee.runtime.functions.file.FileOpen</class>
 		<description>Opens an file to read, write, or append.</description>
 		<argument>
-			<name>path</name>
+			<name>file</name>
+			<alias>path,filepath,source</alias>
 			<type>string</type>
 			<required>Yes</required>
 		<description>a file path</description>
@@ -4759,7 +4784,8 @@ If you do not specify the mode, Lucee opens the file in read mode.</description>
 		<class>lucee.runtime.functions.file.FileReadLine</class>
 		<description>Reads a line from an file.</description>
 		<argument>
-			<name>fileObj</name>
+			<name>file</name>
+			<alias>source,filepath,fileObj</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The file object</description>
@@ -4774,7 +4800,8 @@ If you do not specify the mode, Lucee opens the file in read mode.</description>
 		<class>lucee.runtime.functions.file.FileSeek</class>
 		<description>Shifts the file pointer to the given position. The file must be opened with seekable option</description>
 		<argument>
-			<name>fileObj</name>
+			<name>file</name>
+			<alias>source,filepath,fileObj</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The file object.</description>
@@ -4795,7 +4822,8 @@ If you do not specify the mode, Lucee opens the file in read mode.</description>
 		<class>lucee.runtime.functions.file.FileSkipBytes</class>
 		<description>Shifts the file pointer by the given number of bytes.</description>
 		<argument>
-			<name>fileObj</name>
+			<name>file</name>
+			<alias>fileObj,source</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The file object.</description>
@@ -4865,8 +4893,7 @@ If omitted, the file's attributes are maintained.</description>
 			<type>struct</type>
 		</return>
 	</function>
-	
-	
+
 	<!-- FileUploadAll -->
 	<function>
 		<name>FileUploadAll</name>
@@ -4880,6 +4907,7 @@ If omitted, the file's attributes are maintained.</description>
     	</argument>
 		<argument>
 			<name>accept</name>
+			<alias>mimeType</alias>
 			<type>string</type>
 			<required>no</required>
 			<description>Limits the MIME types to accept. Comma-delimited list. For example, to permit JPG and Microsoft Word file uploads:
@@ -4888,12 +4916,14 @@ The browser uses file extension to determine file type. </description>
     	</argument>
 		<argument>
 			<name>nameConflict</name>
+			<alias>onConflict</alias>
 			<type>string</type>
 			<required>no</required>
 			<description>Action to take if filename is the same as that of a file in the directory.</description>
     	</argument>
 		<argument>
 			<name>mode</name>
+			<name>strict</name>
 			<type>string</type>
 			<required>no</required>
 			<description>Applies only to Solaris and HP-UX. Permissions. Octal values of UNIX chmod command. Assigned to owner, group, and other, respectively.</description>
@@ -4922,7 +4952,8 @@ If omitted, the file's attributes are maintained.</description>
 		<class>lucee.runtime.functions.file.FileClose</class>
 		<description>Closes an file that is open.</description>
 		<argument>
-			<name>fileObj</name>
+			<name>file</name>
+			<alias>fileObj</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The file to close.</description>
@@ -5003,7 +5034,8 @@ If omitted, the file's attributes are maintained.</description>
 		<class>lucee.runtime.functions.file.FileDelete</class>
 		<description>Deletes the specified file on the server.</description>
 		<argument>
-			<name>source</name>
+			<name>file</name>
+			<alias>source,filePath</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>file to delete.</description>
@@ -5041,7 +5073,8 @@ If omitted, the file's attributes are maintained.</description>
 		<class>lucee.runtime.functions.file.FileIsEOF</class>
 		<description>Determines whether Lucee has reached the end of the file while reading it.</description>
 		<argument>
-			<name>source</name>
+			<name>file</name>
+			<alias>source,filePath</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The file object.</description>
@@ -5057,7 +5090,8 @@ If omitted, the file's attributes are maintained.</description>
 		<keywords>binary</keywords>
 		<description>Reads an on-disk or in-memory binary file (such as an executable or image file) on the server, into a binary object</description>
 		<argument>
-			<name>source</name>
+			<name>file</name>
+			<alias>source,filePath,path</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>file path</description>
@@ -5072,7 +5106,8 @@ If omitted, the file's attributes are maintained.</description>
 		<class>lucee.runtime.functions.file.FileSetAccessMode</class>
 		<description>Sets the attributes of an on-disk file on UNIX or Linux. This function does not work with in-memory files.</description>
 		<argument>
-			<name>source</name>
+			<name>file</name>
+			<alias>filePath,source,path</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>file path</description>
@@ -5111,7 +5146,8 @@ For example, 400 specifies that only the owner can read the file; 004 specifies 
 		<class>lucee.runtime.functions.file.FileSetAttribute</class>
 		<description>For the given path, sets the file attributes.</description>
 		<argument>
-			<name>source</name>
+			<name>file</name>
+			<alias>filePath,source,path</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>file path</description>
@@ -5136,7 +5172,8 @@ Set the attribute to normal to make a file not read-only and not hidden.</descri
 		<class>lucee.runtime.functions.file.FileSetLastModified</class>
 		<description>For the given file, set the last modification date</description>
 		<argument>
-			<name>source</name>
+			<name>file</name>
+			<alias>filePath,source,path</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>file path</description>
@@ -5159,6 +5196,7 @@ Set the attribute to normal to make a file not read-only and not hidden.</descri
 		<description>If you specify a file path, writes the entire content to the specified file. If you specify a file object, writes text or binary data to the file object.</description>
 		<argument>
 			<name>file</name>
+			<alias>filePath,source</alias>
 			<type>any</type>
 			<required>Yes</required>
 			<description>file path or object</description>
@@ -5596,6 +5634,7 @@ Example Values:
 		<description>Gets metadata (such as the functions and implemented interfaces of a component) for a CFC or Interface. </description>
 		<argument>
 			<name>pathOrCFC</name>
+			<alias>path</alias>
 			<type>object</type>
 			<required>yes</required>
 			<description>path to a component or component itself</description>
@@ -5748,7 +5787,8 @@ Example Values:
 The returned number of unallocated bytes is a hint, but not a guarantee, that it is possible to use most or any of these bytes. The number of unallocated bytes is most likely to be accurate immediately after this call. It is likely to be made inaccurate by any external I/O operations including those made on the system outside of this virtual machine. This method makes no guarantee that write operations to this file system will succeed.
 </description>
 		<argument>
-			<name>filepath</name>
+			<name>file</name>
+			<alias>path,filePath</alias>
 			<type>object</type>
 			<required>Yes</required>
 			<description>file path</description>
@@ -5766,7 +5806,8 @@ The returned number of unallocated bytes is a hint, but not a guarantee, that it
 		<class>lucee.runtime.functions.file.GetTotalSpace</class>
 		<description>Returns the size of the partition named by this abstract pathname.</description>
 		<argument>
-			<name>filepath</name>
+			<name>file</name>
+			<alias>filepath,path</alias>
 			<type>object</type>
 			<required>Yes</required>
 			<description>file path</description>
@@ -5847,6 +5888,7 @@ The returned number of unallocated bytes is a hint, but not a guarantee, that it
 		<description>Retrieves information about file.</description>
 		<argument>
 			<name>file</name>
+			<alias>filePath,source</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>file path</description>
@@ -5886,6 +5928,7 @@ The returned number of unallocated bytes is a hint, but not a guarantee, that it
     </argument>
 		<argument>
 			<name>dspLocale</name>
+			<alias>inlocale</alias>
 			<type>locale</type>
 			<required>No</required>
 		<description>The locale in which to return the name. The default is the locale defined for the request.</description>
@@ -6103,7 +6146,8 @@ The returned number of unallocated bytes is a hint, but not a guarantee, that it
 		<class>lucee.runtime.functions.dateTime.GetHttpTimeString</class>
 		<description>Gets the current time, in the Universal Time code (UTC).</description>
 		<argument>
-			<name>date_time_object</name>
+			<name>date</name>
+			<alias>datetime,date_time_object</alias>
 			<type>datetime</type>
 			<required>No</required>
 		<description>A date-time value</description>
@@ -6161,6 +6205,7 @@ if this attribute is not provided all types are returned.</description>
 		<description>Returns back meta information depending on the object passed in</description>
 		<argument>
 			<name>object</name>
+			<alias>value</alias>
 			<type>any</type>
 			<required>No</required>
 			<description>A component, user-defined function, query object, XML, ... . Within a CFC, the parameter can also specify the This scope</description>
@@ -6678,6 +6723,7 @@ Default list delimiter: comma character.</description>
         32-byte, hexadecimal string</description>
 		<argument>
 			<name>input</name>
+			<alias>string</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>String to hash.</description>
@@ -6858,7 +6904,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<keywords>image</keywords>
 		<description>Adds a rectangular border around the outside edge of a image.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -6881,6 +6928,7 @@ Only valid if the borderType is not specified or if borderType = "constant".</de
     </argument>
 		<argument>
 			<name>borderType</name>
+			<alias>border,type</alias>
 			<type>string</type>
 			<required>No</required>
 			<default>constant</default>
@@ -7082,7 +7130,8 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 		<keywords>image</keywords>
 		<description>Copies a rectangular area of an image.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -7136,7 +7185,8 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 		<class>lucee.runtime.functions.image.ImageCrop</class>
 		<description>Crops a image to a specified rectangular area.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -7176,7 +7226,8 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 		<class>lucee.runtime.functions.image.ImageDrawArc</class>
 		<description>Draws a circular or elliptical arc.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -7236,7 +7287,8 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 		<class>lucee.runtime.functions.image.ImageDrawBeveledRect</class>
 		<description>Draws a rectangle with beveled edges.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -7292,7 +7344,8 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 		<class>lucee.runtime.functions.image.ImageDrawCubicCurve</class>
 		<description>Draws a cubic curve.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -7357,7 +7410,8 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 		<keywords>image</keywords>
 		<description>Draws a single line defined by two sets of x and y coordinates on a image.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -7397,7 +7451,8 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 		<keywords>image</keywords>
 		<description>Draws a sequence of connected lines defined by arrays of x and y coordinates.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -7441,7 +7496,8 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 		<keywords>image</keywords>
 		<description>Draws an oval.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -7489,7 +7545,8 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 		<keywords>image</keywords>
 		<description>Draws a point at the specified (x,y) coordinate.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -7517,7 +7574,8 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 		<keywords>image</keywords>
 		<description>Draws a curved line. The curve is controlled by a single point.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -7569,7 +7627,8 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 		<keywords>image</keywords>
 		<description>Draws a rectangle.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -7617,7 +7676,8 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 		<keywords>image</keywords>
 		<description>Draws a rectangle with rounded corners.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -7679,13 +7739,15 @@ Value must be greater than or equal to 3 and less than or equal to 10. The defau
 		<keywords>image</keywords>
 		<description>Draws a text string on a image with the baseline of the first character positioned at (x,y) in the image.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
     </argument>
 		<argument>
-			<name>str</name>
+			<name>string</name>
+			<alias>str</alias>
 			<type>string</type>
 			<required>Yes</required>
 		<description>the text to draw.</description>
@@ -9244,7 +9306,8 @@ wood
 		<keywords>image</keywords>
 		<description>Flips an image across an axis.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -9272,7 +9335,8 @@ wood
 		<keywords>image</keywords>
 		<description>Retrieves the bytes of the underlying image. The bytes are in the same image format as the source image.</description>
 		<argument>
-			<name>source</name>
+			<name>image</name>
+			<alias>name,source</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -9288,7 +9352,8 @@ wood
 		<keywords>image</keywords>
 		<description>Returns the java.awt.BufferedImage object underlying the current image.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name,source</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -9304,7 +9369,8 @@ wood
 		<keywords>image</keywords>
 		<description>Retrieves the Exchangeable Image File Format (EXIF) headers in an image as a CFML structure.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name,source</alias>
 			<type>any</type>
 			<required>Yes</required>
 			<description>The image on which this operation is performed.</description>
@@ -9320,7 +9386,8 @@ wood
 		<keywords>image</keywords>
 		<description>Retrieves the specified EXIF tag in an image.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name,source</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -9379,7 +9446,8 @@ wood
 		<keywords>image</keywords>
 		<description>Retrieves the value of the IPTC tag for a image.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name,source</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -9401,7 +9469,8 @@ wood
 		<keywords>image</keywords>
 		<description>Converts a image to grayscale.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name,source</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -9437,7 +9506,8 @@ wood
 		<keywords>image</keywords>
 		<description>Returns a structure that contains information about the image, such as height, width, color model, size, and filename.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name,source</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -9453,7 +9523,8 @@ wood
 		<keywords>image</keywords>
 		<description>Inverts the pixel values of a image.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name,source</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -9488,6 +9559,7 @@ wood
     </argument>
 		<argument>
 			<name>imageType</name>
+			<alias>type</alias>
 			<type>string</type>
 			<required>no</required>
 		<description>The type of the image to create (Valid only when width and height are specified):
@@ -9572,6 +9644,7 @@ wood
 		<description>Creates a image from a Base64 string.</description>
 		<argument>
 			<name>b64str</name>
+			<alias>data,string</alias>
 			<type>string</type>
 			<required>Yes</required>
 		<description>a variable or Base64 string.</description>
@@ -9603,7 +9676,8 @@ wood
 		<keywords>image</keywords>
 		<description>Resizes a image.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name,source</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -9663,7 +9737,8 @@ wood
 		<keywords>image</keywords>
 		<description>Rotates a image at a specified point by a specified angle.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name,source</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -9710,7 +9785,8 @@ wood
 		<keywords>image</keywords>
 		<description>Rotates all subsequent drawing on a image at a specified point by a specified angle.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name,source</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -9744,7 +9820,8 @@ wood
 		<keywords>image</keywords>
 		<description>Creates a resized image with the aspect ratio maintained.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name,source</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -9878,7 +9955,8 @@ The file format is derived from the extension of the filename. The default value
 		<keywords>image</keywords>
 		<description>Switches antialiasing on or off in rendered graphics.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name,source</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -9903,7 +9981,8 @@ The file format is derived from the extension of the filename. The default value
 		<keywords>image</keywords>
 		<description>Sets the background color for the image. The background color is used for clearing a region. Setting the background color only affects the subsequent ImageClearRect calls</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name,source</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -9929,7 +10008,8 @@ The file format is derived from the extension of the filename. The default value
 		<keywords>image</keywords>
 		<description>Sets the current drawing alpha for images. All subsequent graphics operations use the specified alpha.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name,source</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -9951,7 +10031,8 @@ The file format is derived from the extension of the filename. The default value
 		<keywords>image</keywords>
 		<description>Sets the current drawing color for images. All subsequent graphics operations use the specified color.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name,source</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -9977,7 +10058,8 @@ The file format is derived from the extension of the filename. The default value
 		<keywords>image</keywords>
 		<description>Sets the drawing stroke for points and lines in subsequent images.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name,source</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -10005,7 +10087,8 @@ The file format is derived from the extension of the filename. The default value
 		<keywords>image</keywords>
 		<description>Specifies the degree of transparency of drawing functions.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name,source</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -10028,7 +10111,8 @@ The file format is derived from the extension of the filename. The default value
 		<keywords>image</keywords>
 		<description>Sharpens a image by using the unsharp mask filter.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name,source</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -10055,7 +10139,8 @@ The value determines whether the image is blurred or sharpened:
 		<keywords>image</keywords>
 		<description>Shears an image either horizontally or vertically.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name,source</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -10096,7 +10181,8 @@ The value determines whether the image is blurred or sharpened:
 		<keywords>image</keywords>
 		<description>Shears the drawing canvas.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name,source</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -10124,7 +10210,8 @@ The value determines whether the image is blurred or sharpened:
 		<keywords>image</keywords>
 		<description>Copies an image to a new location on the plane.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name,source</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -10163,7 +10250,8 @@ The value determines whether the image is blurred or sharpened:
 		<description>Translates the origin of the image context to the point (x,y) in the current coordinate system. 
 		Modifies the image context so that its new origin corresponds to the point (x,y) in the image's original coordinate system.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name,source</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -10191,7 +10279,8 @@ The value determines whether the image is blurred or sharpened:
 		<keywords>image</keywords>
 		<description>Sets the paint mode of the image to alternate between the image's current color and the new specified color.</description>
 		<argument>
-			<name>name</name>
+			<name>image</name>
+			<alias>name,source</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The image on which this operation is performed.</description>
@@ -10293,6 +10382,7 @@ The following things are considered to be empty:
 		<description>Determines whether a variable returns a image.</description>
 		<argument>
 			<name>name</name>
+			<alias>value</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The variable that is checked.</description>
@@ -10309,6 +10399,7 @@ The following things are considered to be empty:
 		<description>Verifies whether an image file is valid.</description>
 		<argument>
 			<name>path</name>
+			<alias>value</alias>
 			<type>string</type>
 			<required>Yes</required>
 		<description>The pathname of the file to be checked. The pathname can be absolute or relative to the CFM page and must be enclosed in quotation marks.</description>
@@ -10351,6 +10442,7 @@ The following things are considered to be empty:
 		<description>Evaluates whether a string is in valid JSON (JavaScript Object Notation) data interchange format.</description>
 		<argument>
 			<name>var</name>
+			<alias>value</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>A string or variable that represents one.</description>
@@ -10367,6 +10459,7 @@ The following things are considered to be empty:
 		<description>checks if given IP is of IPV6 format</description>
 		<argument>
 			<name>hostname</name>
+			<alias>value</alias>
 			<type>string</type>
 			<required>no</required>
 		<description>the hostname to check</description>
@@ -10647,6 +10740,7 @@ The following things are considered to be empty:
 		<description>Determines whether a DDX file exists and is valid, or if a string contains valid DDX instructions.</description>
 		<argument>
 			<name>pathOrString</name>
+			<alias>value,path,string</alias>
 			<type>string</type>
 			<required>Yes</required>
 		<description>Pathname to the DDX file or a string of DDX instructions. The pathname can be absolute or relative to the CFM page that calls it and must be enclosed in quotation marks.</description>
@@ -10663,6 +10757,7 @@ The following things are considered to be empty:
 		<description>Determines whether an object is an instance of a Lucee interface or component, or of a Java class.</description>
 		<argument>
 			<name>obj</name>
+			<alias>value</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>The CFC instance or Java object that you are testing</description>
@@ -10698,6 +10793,7 @@ The following things are considered to be empty:
 		<description>Determines whether a year is a leap year.</description>
 		<argument>
 			<name>year</name>
+			<alias>value</alias>
 			<type>number</type>
 			<required>Yes</required>
 		<description>Number representing a year</description>
@@ -10714,6 +10810,7 @@ The following things are considered to be empty:
 		<description>Determines whether the specified IP address is the localhost.</description>
 		<argument>
 			<name>ip</name>
+			<alias>value</alias>
 			<type>String</type>
 			<required>Yes</required>
 		<description>Valid IP address.</description>
@@ -10824,6 +10921,7 @@ The following things are considered to be empty:
 		<description>Determines if the object is a structure</description>
 		<argument>
 			<name>variable</name>
+			<alias>value</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>Variable name</description>
@@ -11140,7 +11238,7 @@ The following things are considered to be empty:
 		<description>Determines the length of a string, array,struct,query ...</description>
 		<argument>
 			<name>value</name>
-			<alias>string</alias>
+			<alias>string,object</alias>
 			<type>object</type>
 			<required>Yes</required>
 		<description>the length of a string</description>
@@ -12478,14 +12576,14 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<description>compares simply and complex objects for equality, attention string comparsion is case sensitive</description>
 		<argument>
 			<name>left</name>
-			<alias>param1</alias>
+			<alias>param1,clientobject</alias>
 			<type>any</type>
 			<required>yes</required>
 			<description>left operant</description>
    		</argument>
 		<argument>
 			<name>right</name>
-			<alias>param2</alias>
+			<alias>param2,originalobject</alias>
 			<type>any</type>
 			<required>yes</required>
 			<description>right operant</description>
@@ -12502,6 +12600,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<description>loads a object serialized in a binary form from a file or as binary input</description>
 		<argument>
 			<name>input</name>
+			<alias>object</alias>
 			<type>any</type>
 			<required>no</required>
 			<description>a binary represenation of a object or a path to a file that contains this</description>
@@ -12518,6 +12617,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<description>serialize a (Serialiable) object to a binary repersentation of th object</description>
 		<argument>
 			<name>input</name>
+			<alias>object</alias>
 			<type>any</type>
 			<required>yes</required>
 			<description>object to serialize</description>
@@ -12546,12 +12646,14 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     </argument>
 		<argument>
 			<name>paramsOrUnique</name>
+			<alias>params</alias>
 			<type>any</type>
 			<required>no</required>
 		<description></description>
     </argument>
 		<argument>
 			<name>uniqueOrQueryOptions</name>
+			<alias>unique</alias>
 			<type>any</type>
 			<required>no</required>
 		<description></description>
@@ -12996,7 +13098,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	    </argument>	
 		<argument>
 			<name>closure</name>
-			<alias>udf,function</alias>
+			<alias>function,callback,udf</alias>
 			<type>function</type>
 			<required>No</required>
 			<description>UDF/Closure that call with the values from column</description>
@@ -13214,12 +13316,14 @@ You can find a list of all available timezones in the Lucee administrator (Setti
         the cell on the last row is set.</description>
 		<argument>
 			<name>query</name>
+			<alias>query</alias>
 			<type>query</type>
 			<required>Yes</required>
 		<description>Name of an executed query. </description>
     </argument>
 		<argument>
 			<name>column_name</name>
+			<alias>columnName</alias>
 			<type>string</type>
 			<required>Yes</required>
 		<description></description>
@@ -13232,6 +13336,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     </argument>
 		<argument>
 			<name>row_number</name>
+			<alias>row,number</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>-9999</default>
@@ -13369,6 +13474,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<description>Releases a COM Object and frees up resources that it used. </description>
 		<argument>
 			<name>comObject</name>
+			<alias>com</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>Variable name of a COM object that was created using the function or tag. </description>
@@ -13389,28 +13495,34 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>reg_expression</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description>Regular expression for which to search. Case sensitive.</description>
-    </argument>
+			<description>Regular expression for which to search. Case sensitive.</description>
+    	</argument>
 		<argument>
 			<name>string</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description>String in which
+			<description>String in which
             to search.</description>
-    </argument>
+    	</argument>
 		<argument>
 			<name>start</name>
 			<type>number</type>
 			<required>No</required>
 			<default>1</default>
-		<description>A positive integer. Position in the string at which to start search. The default value is 1.</description>
-    </argument>
+			<description>A positive integer. Position in the string at which to start search. The default value is 1.</description>
+    	</argument>
 		<argument>
 			<name>returnsubexpressions</name>
 			<type>boolean</type>
 			<required>No</required>
 		<description></description>
-    </argument>
+    	</argument>
+    	<argument>
+			<name>scope</name>
+			<type>string</type>
+			<required>No</required>
+			<description></description>
+    	</argument>
 		<return>
 			<type>any</type>
 		</return>
@@ -13430,26 +13542,26 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>string</type>
 			<required>Yes</required>
 		<description>Regular expression for which to search. Case-insensitive.</description>
-    </argument>
+    	</argument>
 		<argument>
 			<name>string</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description>String in which
+			<description>String in which
             to search.</description>
-    </argument>
+    	</argument>
 		<argument>
 			<name>start</name>
 			<type>number</type>
 			<required>No</required>
 			<default>1</default>
-		<description></description>
-    </argument>
+			<description></description>
+    	</argument>
 		<argument>
 			<name>returnsubexpressions</name>
 			<type>boolean</type>
 			<required>No</required>
-		<description>True: if the regular expression is found, the first array
+			<description>True: if the regular expression is found, the first array
                 element contains the length and position, respectively,
                 of the first match.
                 If the regular expression contains parentheses that
@@ -13460,7 +13572,13 @@ You can find a list of all available timezones in the Lucee administrator (Setti
                     contain one element with the value 0.
             False: the function returns the position in the string
                 where the match begins. Default.</description>
-    </argument>
+    	</argument>
+    	<argument>
+			<name>scope</name>
+			<type>string</type>
+			<required>No</required>
+			<description></description>
+    	</argument>
 		<return>
 			<type>any</type>
 		</return>
@@ -13500,6 +13618,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<description>Uses a regular expression (RE) to search a string for a pattern, starting from a specified position.</description>
 		<argument>
 			<name>reg_expression</name>
+			<alias>regex</alias>
 			<type>string</type>
 			<required>Yes</required>
 		<description>Regular expression for which to search. Case-insensitive.</description>
@@ -13582,15 +13701,15 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<description>String in which to search. </description>
 		</argument>
 		<argument>
-			<name>substring1</name>
-			<alias>sub1,find</alias>
+			<name>substring</name>
+			<alias>sub1,find,substring1</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>Substring for which to search.  Optionally pass a Struct with key/value pairs to do a replace all</description>
 		</argument>
 		<argument>
-			<name>substring2</name>
-			<alias>sub2,repl</alias>
+			<name>replacement</name>
+			<alias>sub2,repl,substring2</alias>
 			<type>any</type>
 			<required>No</required>
 			<description>Substring with which to replace the found matches.  This arg is required if the substring1 arg is a string</description>
@@ -13637,13 +13756,14 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	    </argument>
 		<argument>
 			<name>delimiter_list1</name>
-			<alias>delimiter</alias>
+			<alias>delimiter,delimiterList1</alias>
 			<type>string</type>
 			<required>no</required>
 			<description>Delimiter for search, or if no replacement delimiter is defined, this delimiter is used for search and replacement.</description>
 	    </argument>
 		<argument>
 			<name>delimiter_list2</name>
+			<alias>delimiterList2</alias>
 			<type>string</type>
 			<required>no</required>
 			<description>Delimiter for replacement.</description>
@@ -13690,13 +13810,14 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	    </argument>
 		<argument>
 			<name>delimiter_list1</name>
-			<alias>delimiter</alias>
+			<alias>delimiter,delimiterList1</alias>
 			<type>string</type>
 			<required>no</required>
 			<description>Delimiter for search, or if no replacement delimiter is defined, this delimiter is used for search and replacement.</description>
 	    </argument>
 		<argument>
 			<name>delimiter_list2</name>
+			<alias>delimiterList2</alias>
 			<type>string</type>
 			<required>no</required>
 			<description>Delimiter for replacement.</description>
@@ -13729,13 +13850,15 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<description>A string (or variable that contains one) within which to replace substring.</description>
 		</argument>
 		<argument>
-			<name>substring1</name>
+			<name>substring</name>
+			<alias>substring1</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>Substring for which to search.  Optionally pass a Struct with key/value pairs to do a replace all</description>
 		</argument>
 		<argument>
-			<name>substring2</name>
+			<name>replacement</name>
+			<alias>substring2</alias>
 			<type>string</type>
 			<required>No</required>
 			<description>Substring with which to replace the found matches.  This arg is required if the substring1 arg is a string</description>
@@ -13769,7 +13892,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<description>String within which to search. </description>
     </argument>
 		<argument>
-			<name>reg_expression</name>
+			<name>regex</name>
+			<alias>reg_expression</alias>
 			<type>string</type>
 			<required>Yes</required>
 		<description>Regular expression to replace.</description>
@@ -13809,7 +13933,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<description>A string or a variable that contains one.</description>
     </argument>
 		<argument>
-			<name>reg_expression</name>
+			<name>regex</name>
+			<alias>reg_expression</alias>
 			<type>string</type>
 			<required>Yes</required>
 		<description>Regular expression to replace.</description>
@@ -14461,6 +14586,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
         conventions.</description>
 		<argument>
 			<name>new_locale</name>
+			<alias>locale</alias>
 			<type>locale</type>
 			<required>Yes</required>
 		<description>The name of a locale; for example, \"English (US)\"</description>
@@ -14761,7 +14887,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<keywords>struct</keywords>
 		<description>Removes all data from a structure.</description>
 		<argument>
-			<name>structure</name>
+			<name>struct</name>
+			<alias>structure,object</alias>
 			<type>struct</type>
 			<required>Yes</required>
 		<description>Structure to clear</description>
@@ -14780,7 +14907,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
         in the structure by value; copies nested structures by
         reference.</description>
 		<argument>
-			<name>structure</name>
+			<name>struct</name>
+			<alias>structure,object</alias>
 			<type>struct</type>
 			<required>Yes</required>
 		<description>Structure to copy</description>
@@ -14797,7 +14925,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<keywords>struct</keywords>
 		<description>Counts the keys in a structure.</description>
 		<argument>
-			<name>structure</name>
+			<name>struct</name>
+			<alias>structure,object</alias>
 			<type>struct</type>
 			<required>Yes</required>
 		<description>Structure to access</description>
@@ -14814,7 +14943,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<keywords>struct</keywords>
 		<description>Removes an element from a structure.</description>
 		<argument>
-			<name>structure</name>
+			<name>struct</name>
+			<alias>structure,object</alias>
 			<type>struct</type>
 			<required>Yes</required>
 		<description>Structure contains element to remove.</description>
@@ -14827,6 +14957,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     </argument>
 		<argument>
 			<name>indicatenotexisting</name>
+			<alias>indicateExists</alias>
 			<type>boolean</type>
 			<required>No</required>
 		<description></description>
@@ -14846,13 +14977,14 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<description>call the given UDF/Closure with every entry (key/value) in the struct.</description>
 		<argument>
 			<name>struct</name>
+			<alias>structure</alias>
 			<type>struct</type>
 			<required>Yes</required>
 			<description>struct to take values from</description>
 		</argument>
 		<argument>
 			<name>closure</name>
-			<alias>udf,function</alias>
+			<alias>function,callback,udf</alias>
 			<type>function</type>
 			<required>Yes</required>
 			<description>UDF/Closure that call with the entries from struct</description>
@@ -14891,7 +15023,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>closure</name>
-			<alias>udf,function</alias>
+			<alias>function,callback,udf</alias>
 			<type>function</type>
 			<required>Yes</required>
 			<description>UDF/Closure that call with the entries from the query</description>
@@ -14929,7 +15061,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>closure</name>
-			<alias>udf,function</alias>
+			<alias>function,callback,udf</alias>
 			<type>function</type>
 			<required>Yes</required>
 			<description>UDF/Closure that call with the entries from struct</description>
@@ -15044,13 +15176,14 @@ You can find a list of all available timezones in the Lucee administrator (Setti
         </argument>
 		<argument>
 			<name>closure</name>
+			<alias>function,callback,udf</alias>
 			<type>function</type>
 			<required>Yes</required>
 			<description>function/closure that implements the following constructor [function(... depending on the given collection ...):any].</description>
 		</argument>
 		<argument>
-			<name>initalValue</name>
-			<alias>inital</alias>
+			<name>initialValue</name>
+			<alias>initial,initalValue</alias>
 			<type>object</type>
 			<required>No</required>
             <description>inital value passed as part of the first closure call</description>
@@ -15077,13 +15210,14 @@ You can find a list of all available timezones in the Lucee administrator (Setti
         </argument>
 		<argument>
 			<name>closure</name>
+			<alias>function,callback,udf</alias>
 			<type>function</type>
 			<required>Yes</required>
 			<description>function/closure that implements the following constructor [function(any result, object value, [, numericindex [, array]]):any].</description>
 		</argument>
 		<argument>
-			<name>initalValue</name>
-			<alias>inital</alias>
+			<name>initialValue</name>
+			<alias>initial,initalValue</alias>
 			<type>object</type>
 			<required>No</required>
             <description>inital value passed as part of the first closure call</description>
@@ -15110,13 +15244,14 @@ You can find a list of all available timezones in the Lucee administrator (Setti
         </argument>
 		<argument>
 			<name>closure</name>
+			<alias>function,callback,udf</alias>
 			<type>function</type>
 			<required>Yes</required>
 			<description>function/closure that implements the following constructor [function(any result, object value, numeric index , string list, string delimiter):any].</description>
 		</argument>
 		<argument>
-			<name>initalValue</name>
-			<alias>inital</alias>
+			<name>initialValue</name>
+			<alias>initial,initalValue</alias>
 			<type>object</type>
 			<required>No</required>
             <description>inital value passed as part of the first closure call</description>
@@ -15157,20 +15292,21 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		This function will reduce the struct to a single value and will return this value.</description>
 		<argument>
 			<name>struct</name>
-			<alias>object</alias>
+			<alias>structure,object</alias>
 			<type>struct</type>
 			<required>Yes</required>
             <description>struct to iterate</description>
         </argument>
 		<argument>
 			<name>closure</name>
+			<alias>function,callback,udf</alias>
 			<type>function</type>
 			<required>Yes</required>
 			<description>function/closure that implements the following constructor [function(any result, string key, object value[, struct struct]):any].</description>
 		</argument>
 		<argument>
-			<name>initalValue</name>
-			<alias>inital</alias>
+			<name>initialValue</name>
+			<alias>initial,initalValue</alias>
 			<type>object</type>
 			<required>No</required>
             <description>inital value passed as part of the first closure call</description>
@@ -15198,13 +15334,14 @@ You can find a list of all available timezones in the Lucee administrator (Setti
         </argument>
 		<argument>
 			<name>closure</name>
+			<alias>function,callback,udf</alias>
 			<type>function</type>
 			<required>Yes</required>
 			<description>function/closure that implements the following constructor [function(any result, struct row[, number rowNumber, query query]):any].</description>
 		</argument>
 		<argument>
-			<name>initalValue</name>
-			<alias>inital</alias>
+			<name>initialValue</name>
+			<alias>initial,initalValue</alias>
 			<type>object</type>
 			<required>No</required>
             <description>inital value passed as part of the first closure call</description>
@@ -15268,7 +15405,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>closure</name>
-			<alias>function</alias>
+			<alias>function,callback,udf</alias>
 			<type>function</type>
 			<required>Yes</required>
 			<description>function/closure that implements the following constructor [function(... depends on the given collection ...):boolean].</description>
@@ -15307,7 +15444,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>closure</name>
-			<alias>function</alias>
+			<alias>function,callback,udf</alias>
 			<type>function</type>
 			<required>Yes</required>
 			<description>function/closure that implements the following constructor [function(any value[, numeric index,array array]):boolean].</description>
@@ -15347,7 +15484,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>closure</name>
-			<alias>function</alias>
+			<alias>function,callback,udf</alias>
 			<type>function</type>
 			<required>Yes</required>
 			<description>function/closure that implements the following constructor [function(any value, numeric index,string list, string delimiter):boolean].</description>
@@ -15401,14 +15538,14 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<description>This function calls a given closure/function with every element in a given struct and returns true, if one of the closure calls returns true.</description>
 		<argument>
 			<name>struct</name>
-			<alias>object</alias>
+			<alias>structure,object</alias>
 			<type>struct</type>
 			<required>Yes</required>
 			<description>struct to iterate</description>
 		</argument>
 		<argument>
 			<name>closure</name>
-			<alias>function</alias>
+			<alias>function,callback,udf</alias>
 			<type>function</type>
 			<required>Yes</required>
 			<description>function/closure that implements the following constructor [function(string key, any value[array array]):boolean].</description>
@@ -15447,7 +15584,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>closure</name>
-			<alias>function</alias>
+			<alias>function,callback,udf</alias>
 			<type>function</type>
 			<required>Yes</required>
 			<description>function/closure that implements the following constructor [function(struct row [, number rowNumber, query query]):boolean].</description>
@@ -15485,7 +15622,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>closure</name>
-			<alias>function</alias>
+			<alias>function,callback,udf</alias>
 			<type>function</type>
 			<required>Yes</required>
 			<description>function/closure that implements the following constructor [function(... depends on the given collection ...):boolean].</description>
@@ -15525,7 +15662,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>closure</name>
-			<alias>function</alias>
+			<alias>function,callback,udf</alias>
 			<type>function</type>
 			<required>Yes</required>
 			<description>function/closure that implements the following constructor [function(any value[, numeric index,array array]):boolean].</description>
@@ -15564,7 +15701,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>closure</name>
-			<alias>function</alias>
+			<alias>function,callback,udf</alias>
 			<type>function</type>
 			<required>Yes</required>
 			<description>function/closure that implements the following constructor [function(any value, numeric index, string list, string delimiter):boolean].</description>
@@ -15618,14 +15755,14 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<description>This function calls a given closure/function with every element in a given struct and returns true, if all of the closure calls returns true.</description>
 		<argument>
 			<name>struct</name>
-			<alias>object</alias>
+			<alias>structure,object</alias>
 			<type>struct</type>
 			<required>Yes</required>
 			<description>struct to iterate</description>
 		</argument>
 		<argument>
 			<name>closure</name>
-			<alias>function</alias>
+			<alias>function,callback,udf</alias>
 			<type>function</type>
 			<required>Yes</required>
 			<description>function/closure that implements the following constructor [function(string key, any value[array array]):boolean].</description>
@@ -15664,7 +15801,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>closure</name>
-			<alias>function</alias>
+			<alias>function,callback,udf</alias>
 			<type>function</type>
 			<required>Yes</required>
 			<description>function/closure that implements the following constructor [function(struct row [number rownumber, query query]):boolean].</description>
@@ -15696,7 +15833,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<keywords>struct,find</keywords>
 		<description>Determines the value associated with a key in a structure.</description>
 		<argument>
-			<name>structure</name>
+			<name>struct</name>
+			<alias>structure,object</alias>
 			<type>struct</type>
 			<required>Yes</required>
             <description>Structure that contains the value to return</description>
@@ -15728,6 +15866,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
         match the search key in the value parameter.</description>
 		<argument>
 			<name>Top</name>
+			<alias>struct</alias>
 			<type>struct</type>
 			<required>Yes</required>
 		<description>object from which to start search. This parameter requires an object, not a name of an object.</description>
@@ -15793,6 +15932,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<description>Gets a structure(s) from a specified path.</description>
 		<argument>
 			<name>PathDesired</name>
+			<alias>path</alias>
 			<type>string</type>
 			<required>Yes</required>
 		<description>Pathname of variable that contains structure or array from which Lucee retrieves structure.</description>
@@ -15810,7 +15950,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<keywords>struct,iterator</keywords>
 		<description>Inserts a key-value pair into a structure.</description>
 		<argument>
-			<name>structure</name>
+			<name>struct</name>
+			<alias>structure,object</alias>
 			<type>struct</type>
 			<required>Yes</required>
 		<description>Structure to contain the new key-value pair.</description>
@@ -15829,6 +15970,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     </argument>
 		<argument>
 			<name>allowoverwrite</name>
+			<alias>overwrite</alias>
 			<type>boolean</type>
 			<required>No</required>
 		<description>Whether to allow overwriting a key. Default: False.</description>
@@ -15845,7 +15987,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<keywords>struct,decision</keywords>
 		<description>Determines whether a structure contains data.</description>
 		<argument>
-			<name>structure</name>
+			<name>struct</name>
+			<alias>structure,object</alias>
 			<type>struct</type>
 			<required>Yes</required>
 		<description>Structure to test</description>
@@ -15864,7 +16007,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
         An array of keys; if structure does not exist, CFML
         throws an exception.</description>
 		<argument>
-			<name>structure</name>
+			<name>struct</name>
+			<alias>structure,object</alias>
 			<type>struct</type>
 			<required>Yes</required>
 		<description>Structure from which to extract a list of keys</description>
@@ -15882,7 +16026,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<keywords>struct</keywords>
 		<description>Determines whether a specific key is present in a structure.</description>
 		<argument>
-			<name>structure</name>
+			<name>struct</name>
+			<alias>structure,object</alias>
 			<type>struct</type>
 			<required>Yes</required>
 		<description>Name of structure to test</description>
@@ -15905,7 +16050,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<keywords>struct</keywords>
 		<description>Extracts keys from a struct.</description>
 		<argument>
-			<name>structure</name>
+			<name>struct</name>
+			<alias>structure,object</alias>
 			<type>struct</type>
 			<required>Yes</required>
 		<description>Structure from which to extract a list of keys.</description>
@@ -15930,7 +16076,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<keywords>struct</keywords>
 		<description></description>
 		<argument>
-			<name>structure</name>
+			<name>struct</name>
+			<alias>structure,object</alias>
 			<type>struct</type>
 			<required>Yes</required>
 		<description></description>
@@ -16036,7 +16183,8 @@ _- asc (default): ascending (a to z) sort order
 		<keywords>struct</keywords>
 		<description>Updates a key with a value.</description>
 		<argument>
-			<name>structure</name>
+			<name>struct</name>
+			<alias>structure,object</alias>
 			<type>struct</type>
 			<required>Yes</required>
 		<description>Structure to update</description>
@@ -16101,7 +16249,7 @@ _- asc (default): ascending (a to z) sort order
 			<type>number</type>
 		</return>
 	</function>
-	
+
 	<!-- toBase64 -->
 	<function>
 		<name>toBase64</name>
@@ -16112,6 +16260,7 @@ _- asc (default): ascending (a to z) sort order
         database or file.</description>
 		<argument>
 			<name>strOrBin</name>
+			<alias>string,BinaryData</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>A string, the name of a string, or a binary object.</description>
@@ -16383,6 +16532,7 @@ _- asc (default): ascending (a to z) sort order
         string to a number. If conversion fails, returns zero.</description>
 		<argument>
 			<name>value</name>
+			<alias>string</alias>
 			<type>string</type>
 			<required>Yes</required>
 		<description>A string or a variable that contains one</description>
@@ -16450,7 +16600,7 @@ _- asc (default): ascending (a to z) sort order
         has the specified name.</description>
 		<argument>
 			<name>node</name>
-			<alias>xmlObj,xmlDoc,xml</alias>
+			<alias>xmlNode,xmlObj,xmlDoc,xml</alias>
 			<type>xml</type>
 			<required>Yes</required>
 		<description>XML element within which to search.</description>
@@ -16480,7 +16630,7 @@ _- asc (default): ascending (a to z) sort order
 		<description>Creates an XML document object element</description>
 		<argument>
 			<name>xmlObj</name>
-			<alias>node,element,xml,xmlDoc</alias>
+			<alias>xmlNode,node,element,xml,xmlDoc</alias>
 			<type>xml</type>
 			<required>Yes</required>
 		<description>Name of the XML document object in which you are creating the element</description>
@@ -16563,7 +16713,7 @@ _- asc (default): ascending (a to z) sort order
         variable into an XML document object.</description>
 		<argument>
 			<name>xmlString</name>
-			<alias>xmlText,xml</alias>
+			<alias>xmlStr,xmlText,xml</alias>
 			<type>string</type>
 			<required>Yes</required>
 		<description>Any of the following:</description>
@@ -16651,7 +16801,7 @@ _- asc (default): ascending (a to z) sort order
         Language (XSL) stylesheet to it.</description>
 		<argument>
 			<name>xml</name>
-			<alias>xmlObj,xmlDoc,node</alias>
+			<alias>xmlNode,xmlObj,xmlDoc,node</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>An XML document in string format, or an XML document object</description>
@@ -16665,6 +16815,7 @@ _- asc (default): ascending (a to z) sort order
     </argument>
 		<argument>
 			<name>parameters</name>
+			<alias>params</alias>
 			<type>struct</type>
 			<required>false</required>
 			<status>unimplemeted</status>
@@ -16685,7 +16836,7 @@ _- asc (default): ascending (a to z) sort order
 		<description>Uses a Document Type Definition (DTD) or XML Schema to validate an XML text document or an XML document object.</description>
 		<argument>
 			<name>xmlDoc</name>
-			<alias>xml,xmlText,xmlString</alias>
+			<alias>xml,xmlText,xmlString,xmlStr</alias>
 			<type>string</type>
 			<required>Yes</required>
 			<description>The XML to validate</description>

@@ -51,7 +51,7 @@ public final class ListLast extends BIF {
     	if(args.length==3)
 			return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toBooleanValue(args[2]));
     	
-		throw new FunctionException(pc, "ListFirst", 1, 3, args.length);
+		throw new FunctionException(pc, "ListLast", 1, 3, args.length);
 	}
 	
 }

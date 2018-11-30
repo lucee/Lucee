@@ -3,7 +3,6 @@
 	password="#session["password"&request.adminType]#" 
 	action="getBundles" 
 	returnvariable="bundles">
-
 <cfoutput>
 	<cfif not hasAccess><cfset noAccess(stText.setting.noAccess)></cfif>
 	<div class="pageintro">#stText.bundles.introText#</div>
@@ -51,7 +50,7 @@
 							</td>
 
 							<!--- usedBy --->
-							<td nowrap="nowrap">
+							<td>
 								#bundles.usedBy#
 							</td>
 

@@ -207,8 +207,8 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 	        ois = new ObjectInputStream(is);
 	        task = (SpoolerTask) ois.readObject();
         } 
-        catch(Throwable t) {
-        	ExceptionUtil.rethrowIfNecessary(t);
+        catch(Exception e) {
+        	SystemOut.printDate(e);
         	IOUtil.closeEL(is);
         	IOUtil.closeEL(ois);
         	res.delete();
@@ -297,11 +297,12 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 
 	@Override
 	public Query getAllTasksAsQuery(int startrow, int maxrow) throws PageException {
+		if(maxrow<0) maxrow=Integer.MAX_VALUE;
+		
 		Query query = createQuery();
 		//print.o(startrow+":"+maxrow);
 		getTasksAsQuery(query,openDirectory,startrow, maxrow);
 		int records = query.getRecordcount();
-		if(maxrow<0) maxrow=Integer.MAX_VALUE;
 		// no open tasks
 		if(records==0) {
 			startrow-=getOpenTaskCount();
@@ -622,9 +623,10 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 				store(task);
 				task=null;
 			}
-			else 
+			else {
 				log(task,e,false);
 				store(task);
+			}
 			
 			return Caster.toPageException(e);
 		}

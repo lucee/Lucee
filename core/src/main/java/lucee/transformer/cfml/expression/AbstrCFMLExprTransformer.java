@@ -1370,7 +1370,9 @@ public abstract class AbstrCFMLExprTransformer {
 	private Expression closure(Data data) throws TemplateException {
 		if(!data.srcCode.forwardIfCurrent("function",'('))return null;
 		data.srcCode.previous();
-		return new FunctionAsExpression(closurePart(data, "closure_"+CreateUniqueId.invoke(), Component.ACCESS_PUBLIC,Component.MODIFIER_NONE, "any", data.srcCode.getPosition(),true));
+		Function func = closurePart(data, "closure_"+CreateUniqueId.invoke(), Component.ACCESS_PUBLIC,Component.MODIFIER_NONE, "any", data.srcCode.getPosition(),true);
+		func.setParent(data.getParent());
+		return new FunctionAsExpression(func);
 	}
 	
 	protected  abstract Function closurePart(Data data, String id, int access,int modifier, String rtnType, Position line,boolean closure) throws TemplateException;

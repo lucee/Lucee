@@ -344,8 +344,7 @@ div.pageintro {
 	margin: 0 0 20px 0;
 }
 /* intro text for a section (i.e. under an h2; above a table) */
-.itemintro {
-	font-style:italic;
+.itemintro {	
 	margin: -3px 0 10px 0;
 }
 
@@ -412,12 +411,9 @@ td.fieldPadded {
 
 
 /* display boxes etc. */
-.commentError{font-size : 10px;color:#bf4f36;text-decoration:none;}
-.comment{
-	font-size:11px;
-	color:#999;
-	text-decoration:none;
-	font-style: italic;
+.commentError{color:#bf4f36;text-decoration:none;}
+.comment{	
+	text-decoration:none;	
 	padding: 1px 0px;
 	/* PK: when using mouseover helptexts, this padding might be better:
 	 * padding:2px 0 5px 0;
@@ -669,12 +665,12 @@ a.edit {
 	background-color:#333;
 	border-width:0;
 }
-
-
-.admin-web .btn-search  		{ background-position: -125px -80px; }
-.admin-server .btn-search  		{ background-position: -125px -100px; }
-
-
+.admin-server .btn-search  		{ background-position: -125px -100px; margin-left: -2%; margin-bottom: -10%; padding-bottom: 10%;}
+.admin-web .btn-search  		{ background-position: -125px -80px; margin-left: -2%; margin-bottom: -10%; padding-bottom: 10%;}
+ 
+.tt-hint{ width: 88% ;}
+.tt-input{ width: 88% ;}
+ 
 
 .btn-mini span {
 	display:none;
@@ -1232,6 +1228,11 @@ body.full #logo { display: block; position: absolute; top: 0px; left: 0; width: 
 /* resizewin */
 .admin-web #resizewin  		{ background-position: -85px 0px; }
 .admin-server #resizewin  		{ background-position: -85px -20px; }
+
+
+/* edit */
+.admin-web .edit  		{ background-position: -145px 0px; }
+.admin-server .edit  		{ background-position: -145px -16px; }
 
 
 .icon		{ background-image: url( '../img/admin-sprite.png.cfm' ); margin: 3px; width: 9px; height: 9px; cursor: pointer; }

@@ -5,6 +5,7 @@
 	stText.info.bundles.vendor="Vendor";
 	stText.info.bundles.type="Type";
 	stText.info.bundles.state="State";
+	stText.info.bundles.created="Created";
 	stText.info.bundles.states.active="active";
 	stText.info.bundles.states.installed="loaded";
 	stText.info.bundles.states.notinstalled="not loaded";
@@ -15,6 +16,8 @@
 	stText.info.bundles.path="Path";
 	stText.info.bundles.manifestHeaders="Manifest Headers";
 	stText.bundles.introText="These are all the OSGi bundles (jars) available locally.";
+
+
 </cfscript>
 
 

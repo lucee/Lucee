@@ -1,23 +1,37 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"{
+	function isMySqlNotSupported() {
+		var mySql = mySqlCredentials();
+		if(!isNull(mysql)){
+			return false;
+		} else{
+			return true;
+		}
+	}
 
-	function run(){
-		describe( title="Test suite for LDEV-215", skip=checkMySqlEnvVarsAvailable(), body=function(){
-			it(title="Checking MYSQL, INDEX for the client storage table", body=function(){
-				var uri = createURI("LDEV0215/test.cfm");
+	function isMsSqlNotSupported() {
+		var msSql = msSqlCredentials();
+		if(!isNull(mysql)){
+			return false;
+		} else{
+			return true;
+		}
+	}
+
+	function run( testResults , testBox ) {
+		describe( title="Test suite for LDEV-215", body=function() {
+			it( title='Checking MYSQL, INDEX for the client/session storage table',skip=isMySqlNotSupported(),body=function( currentSpec ) {
+				var uri = createURI("LDEV0215");
 				var result = _InternalRequest(
-					template:uri,
-					forms:{Scene=1}
+					template:"#uri#/App1/test.cfm"
 				);
-				expect(result.fileContent.trim() > 0).toBeTrue();
+				expect(result.fileContent.trim()).toBe("True");
 			});
-
-			it(title="Checking MSSQL db, INDEX value for the client storage table", skip=checkMsSqlEnvVarsAvailable(), body=function(){
-				var uri = createURI("LDEV0215/test.cfm");
+			it( title='Checking MsSQL, INDEX for the client/session storage table',skip=isMsSqlNotSupported(),body=function( currentSpec ) {
+				var uri = createURI("LDEV0215");
 				var result = _InternalRequest(
-					template:uri,
-					forms:{Scene=2}
+					template:"#uri#/App2/test.cfm"
 				);
-				expect(result.fileContent.trim() > 0).toBeTrue();
+				expect(result.fileContent.trim()).toBe("True");
 			});
 		});
 	}
@@ -28,16 +42,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 		return baseURI & "" & calledName;
 	}
 
-	private boolean function checkMySqlEnvVarsAvailable() {
-		// getting the credentials from the environment variables
+	private struct function mySqlCredentials() {
+		// getting the credentials from the enviroment variables
 		var mySQL={};
-		if(isNull(server.system)){
-			server.system = structNew();
-			currSystem = createObject("java", "java.lang.System");
-			server.system.environment = currSystem.getenv();
-			server.system.properties = currSystem.getproperties();
-		}
-
 		if(
 			!isNull(server.system.environment.MYSQL_SERVER) &&
 			!isNull(server.system.environment.MYSQL_USERNAME) &&
@@ -63,10 +70,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			mySQL.port=server.system.properties.MYSQL_PORT;
 			mySQL.database=server.system.properties.MYSQL_DATABASE;
 		}
-		return structIsEmpty(mySQL);
+		return mysql;
 	}
 
-	private boolean function checkMsSqlEnvVarsAvailable() {
+	private struct function msSqlCredentials() {
 		// getting the credentials from the environment variables
 		var msSQL={};
 		if(isNull(server.system)){
@@ -101,6 +108,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			msSQL.port=server.system.properties.MsSQL_PORT;
 			msSQL.database=server.system.properties.MsSQL_DATABASE;
 		}
-		return structIsEmpty(msSQL);
+		return msSQL;
 	}
 }

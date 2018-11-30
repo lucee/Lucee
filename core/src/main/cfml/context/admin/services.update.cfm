@@ -310,25 +310,13 @@ stText.services.update.downUpDesc=replace(stText.services.update.downUpDesc,'{ve
 							<p>#replace(stText.services.update.downUpSub,'{version}',"<b>"&server.lucee.version&"</b>") #</p>
 							<select name="version"  class="large" style="margin-top:8px">
 								<cfset qry=updateData.qryotherVersions>
-								<cfset downCount=0>
-								<cfset allowedRow=-1>
 								<cfloop query="#qry#">
-									<cfif allowedRow NEQ -1>
-										<cfif  allowedRow NEQ qry.currentrow>
-											<cfcontinue>
-										<cfelse>
-											<cfset allowedRow+=5>
-										</cfif>
-									</cfif>
 									<cfset btn="">
 
 									<cfset comp=compare(currVS,qry.versionSortable)>
 									<cfif compare(minVS,qry.versionSortable) GT 0>
 										<cfcontinue>
 									<cfelseif comp GT 0>
-										<cfif ++downCount GT 50 and allowedRow EQ -1 >
-											<cfset allowedRow = qry.currentrow+5>
-										</cfif>
 										<cfset btn=stText.services.update.downgradeTo>
 									<cfelseif comp LT 0>
 										<cfif !hasUpdate><cfcontinue></cfif>

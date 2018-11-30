@@ -1,7 +1,11 @@
 package lucee.runtime.type.scope.storage;
 
 import java.sql.SQLException;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.Map.Entry;
 
+import lucee.commons.collection.HashMapPro;
 import lucee.commons.collection.MapPro;
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.ExceptionUtil;
@@ -18,7 +22,9 @@ import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection.Key;
+import lucee.runtime.type.Collection;
 import lucee.runtime.type.Query;
+import lucee.runtime.type.Struct;
 import lucee.runtime.type.scope.ScopeContext;
 import lucee.runtime.type.scope.storage.db.SQLExecutionFactory;
 import lucee.runtime.type.scope.storage.db.SQLExecutor;
@@ -61,7 +67,17 @@ public class IKHandlerDatasource implements IKHandler {
 	    }
 	    String str=Caster.toString(query.getAt(KeyConstants._data,1));
 	    
-	    if(str.startsWith("struct:")) return null;
+	    // old style
+	    boolean b;
+	    if((b=str.startsWith("struct:")) || (str.startsWith("{") && str.endsWith("}"))) {
+	    	if(b) str=str.substring(7);
+	    	try {
+	    		return toIKStorageValue((Struct)pc.evaluate(str));
+	    	}
+	    	catch(Exception e) {}
+	    	return null;
+	    }
+
 	    try{
 		    IKStorageValue data=(IKStorageValue) JavaConverter.deserialize(str);
 		    ScopeContext.info(log,"load existing data from ["+name+"."+PREFIX+"_"+strType+"_data] to create "+strType+" scope for "+pc.getApplicationContext().getName()+"/"+pc.getCFID());
@@ -72,6 +88,29 @@ public class IKHandlerDatasource implements IKHandler {
 	    	return null;
 	    	//throw Caster.toPageException(e);
 	    }
+	}
+
+	public static IKStorageValue toIKStorageValue(Struct sct) throws PageException {
+		// last modified
+		long lastModified=0;
+		Object o=sct.get(KeyConstants._lastvisit,null);
+		if(o instanceof Date) lastModified=((Date)o).getTime();
+		else {
+			 o=sct.get(KeyConstants._timecreated,null);
+			if(o instanceof Date) lastModified=((Date)o).getTime();
+		}
+		if(lastModified==0) lastModified=System.currentTimeMillis();
+		
+		
+		
+		MapPro<Collection.Key,IKStorageScopeItem> map=new HashMapPro<Collection.Key,IKStorageScopeItem>();
+		Iterator<Entry<Key, Object>> it = sct.entryIterator();
+		Entry<Key, Object> e;
+		while(it.hasNext()) {
+			e = it.next();
+			map.put(e.getKey(), new IKStorageScopeItem(e.getValue(),lastModified));
+		}
+		return new IKStorageValue(map);
 	}
 
 	@Override
@@ -91,9 +130,8 @@ public class IKHandlerDatasource implements IKHandler {
 			IKStorageValue sv = new IKStorageValue(IKStorageScopeSupport.prepareToStore(data,existingVal,storageScope.lastModified()));
 			executor.update(ci, cfid,appName, dc, storageScope.getType(), sv, storageScope.getTimeSpan(),log);
 		} 
-		catch(Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
-			ScopeContext.error(log, t);
+		catch(Exception e) {
+			ScopeContext.error(log, e);
 		}
 		finally {
 			if(dc!=null) pool.releaseDatasourceConnection(dc);

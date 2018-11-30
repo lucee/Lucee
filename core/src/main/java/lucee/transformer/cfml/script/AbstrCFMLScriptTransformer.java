@@ -225,7 +225,6 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		else if((child=ifStatement(data))!=null) 				parent.addStatement(child);
 		else if((child=propertyStatement(data,parent))!=null)	parent.addStatement(child);
 		else if((child=paramStatement(data,parent))!=null)		parent.addStatement(child);
-		//else if(funcStatement(data,parent)); // do nothing, happen already inside the method
 		else if((child=funcStatement(data,parent))!=null)		parent.addStatement(child);
 		else if((child=whileStatement(data))!=null) 			parent.addStatement(child);
 		else if((child=doStatement(data))!=null) 				parent.addStatement(child);
@@ -268,7 +267,9 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		
 		if(!data.srcCode.forwardIfCurrent(')')) throw new TemplateException(data.srcCode,"if statement must end with a [)]");
 		// ex block
+		Body prior = data.setParent(body);
 		statement(data,body,CTX_IF);
+		data.setParent(prior);
 		// else if
 		comments(data);
 		while(elseifStatement(data,cont)) {
@@ -308,7 +309,10 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		if(!data.srcCode.forwardIfCurrent(')'))
 			throw new TemplateException(data.srcCode,"else if statement must end with a [)]");
 		// ex block
+		Body prior = data.setParent(body);
 		statement(data,body,CTX_ELSE_IF);
+		data.setParent(prior);
+		
 		pair.end=data.srcCode.getPosition();
 		return true;
 	}
@@ -331,7 +335,12 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		// ex block
 		Body body=new BodyBase(data.factory);
 		Pair p = cont.setElse(body, data.srcCode.getPosition(),null);
+		
+
+		Body prior = data.setParent(body);
 		statement(data,body,CTX_ELSE);
+		data.setParent(prior);
+		
 		p.end=data.srcCode.getPosition();
 		return true;
 	}
@@ -346,7 +355,10 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		// ex block
 		Body body=new BodyBase(data.factory);
 		tcf.setFinally(body, data.srcCode.getPosition());
+		
+		Body prior = data.setParent(body);
 		statement(data,body,CTX_FINALLY);
+		data.setParent(prior);
 		
 		return true;
 	}
@@ -396,8 +408,11 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		
 		if(!data.srcCode.forwardIfCurrent(')'))
 			throw new TemplateException(data.srcCode,"while statement must end with a [)]");
-		
+
+		Body prior = data.setParent(body);
 		statement(data,body,CTX_WHILE);
+		data.setParent(prior);
+		
 		whil.setEnd(data.srcCode.getPosition());
 		return whil;
 	}
@@ -539,7 +554,10 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			comments(data);
 			if(data.srcCode.isCurrent("case ") || data.srcCode.isCurrent("default",':') || data.srcCode.isCurrent('}')) 
 				return;
+
+			Body prior = data.setParent(body);
 			statement(data,body,CTX_SWITCH);
+			data.setParent(prior);
 		}
 	}
 	
@@ -590,7 +608,10 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		Body body=new BodyBase(data.factory);
 		
 		//data.srcCode.previous();
+
+		Body prior = data.setParent(body);
 		statement(data,body,CTX_DO_WHILE);
+		data.setParent(prior);
 		
 		
 		comments(data);
@@ -689,7 +710,9 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 				if(!data.srcCode.forwardIfCurrent(')'))
 					throw new TemplateException(data.srcCode,"invalid syntax in for statement, for statement must end with a [)]");
 				// ex block
+				Body prior = data.setParent(body);
 				statement(data,body,CTX_FOR);
+				data.setParent(prior);
 		
 				return new For(data.factory,left,cont,update,body,line,data.srcCode.getPosition(),id);					
 			}
@@ -703,7 +726,10 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 					throw new TemplateException(data.srcCode,"invalid syntax in for statement, for statement must end with a [)]");
 				
 				// ex block
+				Body prior = data.setParent(body);
 				statement(data,body,CTX_FOR);
+				data.setParent(prior);
+				
 				if(!(left instanceof Variable))
 					throw new TemplateException(data.srcCode,"invalid syntax in for statement, left value is invalid");
 				
@@ -1063,7 +1089,9 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		data.insideFunction=true;
 		try {
 		// ex block
+		Body prior = data.setParent(body);
 		statement(data,body,CTX_FUNCTION);
+		data.setParent(prior);
 		}
 		finally{
 			data.insideFunction=oldInsideFunction;
@@ -1097,7 +1125,9 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 				
 		try {
 			if(data.srcCode.isCurrent('{')) {
+				Body prior = data.setParent(body);
 				statement(data,body,CTX_FUNCTION);
+				data.setParent(prior);
 			}
 			else {
 				if(data.srcCode.forwardIfCurrent("return ")) {
@@ -1225,11 +1255,11 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		// body
 		if(tlt.getHasBody()){
 			Body body=new BodyBase(data.factory);
+			Body prior = data.setParent(body);
 			boolean wasSemiColon=statement(data,body,script.getContext());
 			if(!wasSemiColon || !tlt.isBodyFree() || body.hasStatements())
 				tag.setBody(body);
-			
-			
+			data.setParent(prior);
 			
 		}
 		else checkSemiColonLineFeed(data,true,true,true);
@@ -1352,12 +1382,11 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		// body
 		if(tlt.getHasBody()){
 			Body body=new BodyBase(data.factory);
+			Body prior = data.setParent(body);
 			boolean wasSemiColon=statement(data,body,context);
 			if(!wasSemiColon || !tlt.isBodyFree() || body.hasStatements())
 				tag.setBody(body);
-			
-			
-			
+			data.setParent(prior);			
 		}
 		else checkSemiColonLineFeed(data,true,true,true);
 		
@@ -1514,7 +1543,10 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		Position start = data.srcCode.getPosition();
 		
 		TagOther tag = createStaticTag(data,start);
-		statement(data,tag.getBody(),CTX_STATIC);
+		Body body=tag.getBody();
+		Body prior = data.setParent(body);
+		statement(data,body,CTX_STATIC);
+		data.setParent(prior);
 		return tag;
 	}
 	
@@ -1834,9 +1866,11 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		// body
 		if(tlt.getHasBody()){
 			Body body=new BodyBase(data.factory);
+			Body prior = data.setParent(body);
 			boolean wasSemiColon=statement(data,body,tlt.getScript().getContext());
 			if(!wasSemiColon || !tlt.isBodyFree() || body.hasStatements())
 				tag.setBody(body);
+			data.setParent(prior);
 		}
 		else checkSemiColonLineFeed(data,true,true,true);
 		
@@ -1984,10 +2018,9 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 				comments(data);
 			}
 		}
-		
-		
-		
+		Body prior = data.setParent(parent);
 		Expression expr=expression(data);
+		data.setParent(prior);
 		checkSemiColonLineFeed(data,true,true,false);
 		
 		// variable declaration (variable in body)
@@ -2082,8 +2115,10 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 		Body body=new BodyBase(data.factory);
 		TryCatchFinally tryCatchFinally=new TryCatchFinally(data.factory,body,data.srcCode.getPosition(),null);
-		
+
+		Body prior = data.setParent(body);
 		statement(data,body,CTX_TRY);
+		data.setParent(prior);
 		comments(data);
 		
 		// catches
@@ -2144,8 +2179,10 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			comments(data);
 			
 			if(!data.srcCode.forwardIfCurrent(')')) throw new TemplateException(data.srcCode,"invalid catch statement, missing closing )");
-			
-            statement(data,b,CTX_CATCH);
+
+			Body _prior = data.setParent(b);
+			statement(data,b,CTX_CATCH);
+			data.setParent(_prior);
 			comments(data);	
 		}
         

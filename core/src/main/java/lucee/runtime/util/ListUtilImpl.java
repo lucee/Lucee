@@ -254,7 +254,7 @@ public class ListUtilImpl implements ListUtil {
 
 	@Override
 	public int getDelimIndex(String list, int itemPos, char[] delims, boolean ignoreEmpty) {
-		return lucee.runtime.type.util.ListUtil.getDelimIndex(list, itemPos, delims, ignoreEmpty);
+		return lucee.runtime.type.util.ListUtil.getDelimIndex(new StringBuilder(list), itemPos, delims, ignoreEmpty);
 	}
 
 	@Override

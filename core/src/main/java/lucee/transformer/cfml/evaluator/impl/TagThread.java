@@ -32,8 +32,11 @@ public final class TagThread extends EvaluatorSupport {
 		lucee.transformer.bytecode.statement.tag.TagThread tt=(lucee.transformer.bytecode.statement.tag.TagThread) tag;
         try {
 			tt.init();
-		} catch (TransformerException te) {
-			throw new EvaluatorException(te.getMessage());
+		}
+        catch (TransformerException te) {
+			EvaluatorException ee = new EvaluatorException(te.getMessage());
+			ee.initCause(te);
+			throw ee;
 		}
 	}
 }

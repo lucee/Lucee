@@ -36,7 +36,30 @@ before_script:
 
 script:
 # maven deploy process (builds lucee and deploys to sonatype)
- - mvn -e -f loader/pom.xml clean deploy --settings travis-settings.xml #target/travis/settings.xml
+- echo "${TRAVIS_PULL_REQUEST} $TRAVIS_BRANCH"
+
+#- if [ "${TRAVIS_PULL_REQUEST}" == "false" && ${TRAVIS_BRANCH} == "5.2" ]; then  always false even both seperatly are true
+#- if [ "${TRAVIS_PULL_REQUEST}" == "false" ]; then
+
+- export DO_DEPLOY="false"
+- if [ "${TRAVIS_PULL_REQUEST}" == "false" ]; then
+    if [ "${TRAVIS_BRANCH}" == "5.2" ]; then
+      export DO_DEPLOY="true";
+    fi
+  fi
+
+- echo "DO_DEPLOY ${DO_DEPLOY}"
+
+
+
+
+- if [ "${DO_DEPLOY}" == "true" ]; then
+    echo "------- Maven Deploy -------";
+    mvn -e -f loader/pom.xml clean deploy --settings travis-settings.xml;
+  else
+    echo "------- Maven Install ---------";
+    mvn -e -f loader/pom.xml clean install --settings travis-settings.xml;
+  fi
 
 ############ increment maven version (not working) ###########
 # - mvn --batch-mode -f loader/pom.xml release:update-versions
@@ -61,7 +84,7 @@ notifications:
 after_success:
 # - version=$(mvn org.apache.maven.plugins:maven-help-plugin:2.1.1:evaluate -Dexpression=project.version | egrep -v '^\[|Downloading:' | tr -d ' \n')
 - curl "http://stable.lucee.org/rest/update/provider/buildLatest"
-- curl "http://download.lucee.org/?reset=1"
+- curl "http://download.lucee.org/?type=snapshots&reset=force"
 
 
 

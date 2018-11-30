@@ -46,6 +46,7 @@ import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.KeyConstants;
+import lucee.runtime.type.util.ListUtil;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.function.FunctionLibFunction;
 import lucee.transformer.library.function.FunctionLibFunctionArg;
@@ -138,7 +139,8 @@ public final class GetFunctionData implements Function {
 				_arg.set(KeyConstants._name,StringUtil.emptyIfNull(arg.getName()));
 				_arg.set(KeyConstants._status,TagLibFactory.toStatus(arg.getStatus()));
 				if(arg.getIntroduced()!=null)_arg.set(INTRODUCED,arg.getIntroduced().toString());
-		        
+				if(!StringUtil.isEmpty(arg.getAlias(),true))_arg.set(KeyConstants._alias,arg.getAlias());
+				
 				_arg.set("defaultValue",arg.getDefaultValue());
 				_arg.set(KeyConstants._description,StringUtil.toStringEmptyIfNull(arg.getDescription()));
 				

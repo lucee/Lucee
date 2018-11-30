@@ -18,6 +18,10 @@
  **/
 package lucee.runtime.type;
 
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.dump.DumpData;
@@ -44,8 +48,9 @@ public abstract class EnvUDF extends UDFImpl {
 	EnvUDF(UDFProperties properties) {
 		super(properties);
 		PageContext pc = ThreadLocalPageContext.get();
-		if(pc.undefinedScope().getCheckArguments())
+		if(pc.undefinedScope().getCheckArguments()) {
 			this.variables=new ClosureScope(pc,pc.argumentsScope(),pc.localScope(),pc.variablesScope());
+		}
 		else{
 			this.variables=pc.variablesScope();
 			variables.setBind(true);
@@ -109,6 +114,18 @@ public abstract class EnvUDF extends UDFImpl {
 		finally {
 			pc.setVariablesScope(parent);
 		}
+	}
+	
+	@Override
+	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+		variables=(Variables) in.readObject();
+		super.readExternal(in);
+	}
+
+	@Override
+	public void writeExternal(ObjectOutput out) throws IOException {
+		out.writeObject(ClosureScope.prepare(variables));
+		super.writeExternal(out);
 	}
 
 	@Override

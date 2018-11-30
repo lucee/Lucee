@@ -27,6 +27,7 @@ import java.util.Set;
 import java.util.TimeZone;
 
 import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
@@ -62,9 +63,11 @@ public class Ansi92 extends SQLExecutorSupport {
 	@Override
 	public Query select(Config config, String cfid, String applicationName, DatasourceConnection dc, int type, Log log, boolean createTableIfNotExist)
 			throws PageException {
-		String strType = VariableInterpreter.scopeInt2String(type);
+
+		String scopeName = VariableInterpreter.scopeInt2String(type);
+		String tableName = PREFIX + "_" + scopeName + "_data";
 		Query query = null;
-		SQL sqlSelect = new SQLImpl("select data from " + PREFIX + "_" + strType + "_data where cfid=? and name=? and expires > ?", new SQLItem[] {
+		SQL sqlSelect = new SQLImpl("SELECT data FROM " + tableName + " WHERE cfid=? AND name=? AND expires > ?", new SQLItem[] {
 				new SQLItemImpl(cfid, Types.VARCHAR), new SQLItemImpl(applicationName, Types.VARCHAR), new SQLItemImpl(now(config), Types.VARCHAR) });
 
 		PageContext pc = ThreadLocalPageContext.get();
@@ -73,32 +76,36 @@ public class Ansi92 extends SQLExecutorSupport {
 			query = new QueryImpl(pc, dc, sqlSelect, -1, -1, null, "query");
 		}
 		catch (DatabaseException de) {
+
 			if(dc == null || !createTableIfNotExist)
 				throw de;
-			// table does not exist???
+
+			// create table for storage
+			SQL sql;
 			try {
-				SQL sql = createSQL(dc, DataSourceUtil.isMySQL(dc) ? "longtext" : "ntext", strType);
+				sql = createStorageTableSql(dc, scopeName, null);
 				ScopeContext.info(log, sql.toString());
+				// execute create table
 				new QueryImpl(pc, dc, sql, -1, -1, null, "query");
 			}
 			catch (DatabaseException _de) {
-				// don't like "ntext", try text
+				// failed, try text
 				try {
-					SQL sql = createSQL(dc, "text", strType);
+					sql = createStorageTableSql(dc, scopeName, "text");
 					ScopeContext.info(log, sql.toString());
 					new QueryImpl(pc, dc, sql, -1, -1, null, "query");
 				}
 				catch (DatabaseException __de) {
-					// don't like text, try "memo"
+					// failed, try "memo"
 					try {
-						SQL sql = createSQL(dc, "memo", strType);
+						sql = createStorageTableSql(dc, scopeName, "memo");
 						ScopeContext.info(log, sql.toString());
 						new QueryImpl(pc, dc, sql, -1, -1, null, "query");
 					}
 					catch (DatabaseException ___de) {
-						// don't like "memo", try clob
+						// failed, try clob
 						try {
-							SQL sql = createSQL(dc, "clob", strType);
+							sql = createStorageTableSql(dc, scopeName, "clob");
 							ScopeContext.info(log, sql.toString());
 							new QueryImpl(pc, dc, sql, -1, -1, null, "query");
 						}
@@ -106,19 +113,28 @@ public class Ansi92 extends SQLExecutorSupport {
 							___de.initCause(__de);
 							__de.initCause(_de);
 							_de.initCause(de);
-							// we could not create the table, so there seem to be an other ecception we cannot solve
+							// we could not create the table, so there seem to be an other exception we cannot solve
 							DatabaseException exp = new DatabaseException(
-									"Unable to select from your client storage database, and was also unable to create the tables. Here's the exceptions we encountered.",
-									null, null, dc);
+									"Unable to select " + scopeName + " information from database, and/or to create the table.", null, null, dc);
 							exp.initCause(de);
 							throw exp;
-
 						}
 					}
 				}
 			}
+
+			// database table created, now create index
+			try {
+				sql = new SQLImpl("CREATE UNIQUE INDEX ix_" + tableName + " ON " + tableName + "(cfid, name, expires)");
+				new QueryImpl(pc, dc, sql, -1, -1, null, "query");
+			}
+			catch (DatabaseException _de) {
+				throw new DatabaseException("Failed to create unique index on " + tableName, null, sql, dc);
+			}
+
 			query = new QueryImpl(pc, dc, sqlSelect, -1, -1, null, "query");
 		}
+
 		ScopeContext.info(log, sqlSelect.toString());
 		return query;
 	}
@@ -129,7 +145,7 @@ public class Ansi92 extends SQLExecutorSupport {
 		String strType = VariableInterpreter.scopeInt2String(type);
 		TimeZone tz = ThreadLocalPageContext.getTimeZone();
 		int recordsAffected = _update(config, dc.getConnection(), cfid, applicationName,
-				"update " + PREFIX + "_" + strType + "_data set expires=?,data=? where cfid=? and name=?", data, timeSpan, log, tz);
+				"UPDATE " + PREFIX + "_" + strType + "_data SET expires=?, data=? WHERE cfid=? AND name=?", data, timeSpan, log, tz);
 
 		if(recordsAffected > 1) {
 			delete(config, cfid, applicationName, dc, type, log);
@@ -137,7 +153,7 @@ public class Ansi92 extends SQLExecutorSupport {
 		}
 		if(recordsAffected == 0) {
 			_update(config, dc.getConnection(), cfid, applicationName,
-					"insert into " + PREFIX + "_" + strType + "_data (expires,data,cfid,name) values(?,?,?,?)", data, timeSpan, log, tz);
+					"INSERT INTO " + PREFIX + "_" + strType + "_data (expires, data, cfid, name) VALUES(?, ?, ?, ?)", data, timeSpan, log, tz);
 		}
 	}
 
@@ -166,7 +182,7 @@ public class Ansi92 extends SQLExecutorSupport {
 	@Override
 	public void delete(Config config, String cfid, String applicationName, DatasourceConnection dc, int type, Log log) throws PageException, SQLException {
 		String strType = VariableInterpreter.scopeInt2String(type);
-		String strSQL = "delete from " + PREFIX + "_" + strType + "_data where cfid=? and name=?";
+		String strSQL = "DELETE FROM " + PREFIX + "_" + strType + "_data WHERE cfid=? AND name=?";
 		SQLImpl sql = new SQLImpl(strSQL, new SQLItem[] { new SQLItemImpl(cfid, Types.VARCHAR), new SQLItemImpl(applicationName, Types.VARCHAR) });
 		execute(null, dc.getConnection(), sql, ThreadLocalPageContext.getTimeZone());
 		ScopeContext.info(log, sql.toString());
@@ -178,7 +194,7 @@ public class Ansi92 extends SQLExecutorSupport {
 			StorageScopeListener listener, Log log) throws PageException {
 		String strType = VariableInterpreter.scopeInt2String(type);
 		// select
-		SQL sqlSelect = new SQLImpl("select cfid,name from " + PREFIX + "_" + strType + "_data where expires<=?",
+		SQL sqlSelect = new SQLImpl("SELECT cfid, name FROM " + PREFIX + "_" + strType + "_data WHERE expires <= ?",
 				new SQLItem[] { new SQLItemImpl(System.currentTimeMillis(), Types.VARCHAR) });
 		Query query;
 		try {
@@ -202,7 +218,7 @@ public class Ansi92 extends SQLExecutorSupport {
 
 			ScopeContext.info(log, "remove " + strType + "/" + name + "/" + cfid + " from datasource " + dc.getDatasource().getName());
 			engine.remove(type, name, cfid);
-			SQLImpl sql = new SQLImpl("delete from " + StorageScopeDatasource.PREFIX + "_" + strType + "_data where cfid=? and name=?",
+			SQLImpl sql = new SQLImpl("DELETE FROM " + StorageScopeDatasource.PREFIX + "_" + strType + "_data WHERE cfid=? and name=?",
 					new SQLItem[] { new SQLItemImpl(cfid, Types.VARCHAR), new SQLItemImpl(name, Types.VARCHAR) });
 			new QueryImpl(ThreadLocalPageContext.get(), dc, sql, -1, -1, null, "query");
 
@@ -224,30 +240,27 @@ public class Ansi92 extends SQLExecutorSupport {
 		return count;
 	}
 
-	private static SQL createSQL(DatasourceConnection dc, String textType, String type) {
-		StringBuilder sb = new StringBuilder("CREATE TABLE ");
+	private static SQL createStorageTableSql(DatasourceConnection dc, String scopeName, String textSqlType) {
 
-		if(DataSourceUtil.isMSSQL(dc))
+		if(textSqlType == null)
+			textSqlType = DataSourceUtil.getLargeTextSqlTypeName(dc);
+
+		StringBuilder sb = new StringBuilder(256);
+		sb.append("CREATE TABLE ");
+
+		if(DataSourceUtil.isMSSQL(dc)) // TODO: why set schema for MSSQL but not other DBMSs?
 			sb.append("dbo.");
-		sb.append(PREFIX + "_" + type + "_data (");
 
-		// expires
-		sb.append("expires varchar(64) NOT NULL, ");
-		// cfid
-		sb.append("cfid varchar(64) NOT NULL, ");
-		// name
-		sb.append("name varchar(255) NOT NULL, ");
-		// data
+		sb.append(PREFIX + "_" + scopeName + "_data (");
+		sb.append("expires VARCHAR(64) NOT NULL, "); // TODO: why expires is VARCHAR and not BIGINT?
+		sb.append("cfid VARCHAR(64) NOT NULL, ");
+		sb.append("name VARCHAR(255) NOT NULL, ");
 		sb.append("data ");
-		if(DataSourceUtil.isHSQLDB(dc))
-			sb.append("varchar ");
-		else if(DataSourceUtil.isOracle(dc))
-			sb.append("CLOB ");
-		else
-			sb.append(textType + " ");
+		sb.append(textSqlType + " ");
 		sb.append(" NOT NULL");
-
 		sb.append(")");
+
 		return new SQLImpl(sb.toString());
 	}
+
 }

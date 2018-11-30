@@ -327,7 +327,7 @@ public final class Caster {
     public static boolean toBooleanValue(String str) throws PageException {
     	Boolean b = toBoolean(str,null);
     	if(b!=null) return b.booleanValue();
-    	throw new CasterException("Can't cast String ["+str+"] to a boolean");
+    	throw new CasterException("Can't cast String ["+CasterException.crop(str)+"] to a boolean");
     }
     
     public static Boolean toBoolean(String str, Boolean defaultValue) {
@@ -748,7 +748,7 @@ public final class Caster {
         else if(o instanceof Date) return (int)new DateTimeImpl((Date)o).castToDoubleValue();
         
         if(o instanceof String)
-            throw new ExpressionException("Can't cast String ["+o.toString()+"] to a number");
+            throw new ExpressionException("Can't cast String ["+CasterException.crop(o)+"] to a number");
         else if(o instanceof ObjectWrap) return toIntValue(((ObjectWrap)o).getEmbededObject());
 		
         
@@ -1822,7 +1822,7 @@ public final class Caster {
         str=StringUtil.toLowerCase(str.trim());
         if(str.equals("yes") || str.equals("true")) return true;
         else if(str.equals("no") || str.equals("false")) return false;
-        throw new CasterException("Can't cast String ["+str+"] to boolean");
+        throw new CasterException("Can't cast String ["+CasterException.crop(str)+"] to boolean");
     }
     
     /**
@@ -2222,7 +2222,7 @@ public final class Caster {
                 }
             } 
             catch (ExpressionException ee) {
-                throw new ExpressionException("can't cast struct to a array, key ["+(e!=null?e.getKey():"")+"] is not a number");
+                throw new ExpressionException("can't cast struct to an array, key ["+(e!=null?e.getKey():"")+"] is not a number");
             }
             return arr;
         }
@@ -2305,7 +2305,7 @@ public final class Caster {
                 }
             } 
             catch (ExpressionException ee) {
-                throw new ExpressionException("can't cast struct to a array, key ["+e.getKey().getString()+"] is not a number");
+                throw new ExpressionException("can't cast struct to an array, key ["+e.getKey().getString()+"] is not a number");
             }
             return arr;
         }
@@ -2722,6 +2722,7 @@ public final class Caster {
         ;
         if(o instanceof byte[])return toB64((byte[]) o,defaultValue);
         else if(o instanceof String)return toB64((String)o, charset,defaultValue);
+        else if(o instanceof Number)return toB64(toString(((Number)o)), charset,defaultValue);
         else if(o instanceof ObjectWrap) {
             return toBase64(((ObjectWrap)o).getEmbededObject(defaultValue),charset,defaultValue);
         }

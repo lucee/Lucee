@@ -24,7 +24,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	public function setUp(){
 		if(isNotSupported()) return;
 		s3Details = getCredentials();
-		bucketName = "testcaseS3";
+		bucketName = "testcases3";
 		base = "s3://#s3Details.ACCESSKEYID#:#s3Details.AWSSECRETKEY#@/#bucketName#";
 
 	}
@@ -34,7 +34,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		
 		if( directoryExists(base))
 			directoryDelete(base, true);
-		
+		try{
 		assertFalse(directoryExists(base));
 		assertFalse(fileExists(base));
 		directoryCreate(base);
@@ -62,7 +62,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 		children = directoryList(sub, true,'query');
 		assertEquals(1,children.recordcount);
-		
+		}
+		finally {
+			if( directoryExists(base))
+				directoryDelete(base, true);
+		}
 	}
 
 

@@ -1109,12 +1109,14 @@ public final class ScopeContext {
 		removeClientScope(pc);
 
 		pc.resetIdAndToken();
+		pc.resetSession();
+		pc.resetClient();
 
 		if(oldSession != null)
 			migrate(pc, oldSession, getCFSessionScope(pc, isNew), migrateSessionData);
 		if(oldClient != null)
 			migrate(pc, oldClient, getClientScope(pc), migrateClientData);
-
+		
 	}
 
 	private static void migrate(PageContextImpl pc, UserScope oldScope, UserScope newScope, boolean migrate) {

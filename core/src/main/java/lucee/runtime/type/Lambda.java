@@ -50,21 +50,14 @@ public class Lambda extends EnvUDF {
 	}
 	
 
+
 	@Override
 	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-		// access
-		setAccess(in.readInt());
-		
-		// properties
-		properties=(UDFPropertiesBase) in.readObject();
+		super.readExternal(in);
 	}
 
 	@Override
 	public void writeExternal(ObjectOutput out) throws IOException {
-		// access
-		out.writeInt(getAccess());
-		
-		// properties
-		out.writeObject(properties);
+		super.writeExternal(out);
 	}
 }

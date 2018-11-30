@@ -44,6 +44,8 @@ import lucee.commons.collection.MapFactory;
 import lucee.commons.collection.MapPro;
 import lucee.commons.digest.Hash;
 import lucee.commons.io.DevNullOutputStream;
+import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Pair;
@@ -52,6 +54,7 @@ import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lang.types.RefBooleanImpl;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.component.AbstractFinal;
+import lucee.runtime.component.AbstractFinal.UDFB;
 import lucee.runtime.component.ComponentLoader;
 import lucee.runtime.component.DataMember;
 import lucee.runtime.component.ImportDefintion;
@@ -256,7 +259,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 				}
 			}
 
-			// at the moment this makes no sense, becuae this map is no more used after constructor has runned and for a clone the constructo is not executed,
+			// at the moment this makes no sense, because this map is no more used after constructor has runned and for a clone the constructor is not executed,
 			// but perhaps this is used in future
 			/*
 			 * if(constructorUDFs!=null){ trg.constructorUDFs=new HashMap<Collection.Key, UDF>(); addUDFS(trg, constructorUDFs, trg.constructorUDFs); }
@@ -455,14 +458,17 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 
 		// ABSTRACT: check if the component define all functions defined in interfaces and abstract components
 		if(getModifier() != MODIFIER_ABSTRACT && absFin.hasAbstractUDFs()) {
-			Map<Key, UDF> udfs = absFin.removeAbstractUDFs();
+			Map<Key, AbstractFinal.UDFB> udfs = absFin.getAbstractUDFBs();
 			// print.e(udfs);
-			Iterator<Entry<Key, UDF>> it = udfs.entrySet().iterator();
-			Entry<Key, UDF> entry;
+			Iterator<Entry<Key, AbstractFinal.UDFB>> it = udfs.entrySet().iterator();
+			Entry<Key, AbstractFinal.UDFB> entry;
 			UDFPlus iUdf, cUdf;
+			UDFB udfb;
 			while(it.hasNext()) {
 				entry = it.next();
-				iUdf = (UDFPlus)entry.getValue();
+				udfb = entry.getValue();
+				udfb.used=true;
+				iUdf = (UDFPlus)udfb.udf;
 				cUdf = (UDFPlus)_udfs.get(entry.getKey());
 				checkFunction(pc, componentPage, iUdf, cUdf);
 			}
@@ -735,7 +741,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		/*
 		 * if(constructorUDFs!=null){ Iterator<Entry<Key, UDF>> it = constructorUDFs.entrySet().iterator(); Map.Entry<Key, UDF> entry; Key key; UDFPlus udf;
 		 * PageSource ps; while(it.hasNext()){ entry=it.next(); key=entry.getKey(); udf=(UDFPlus) entry.getValue(); ps=udf.getPageSource(); //if(ps!=null &&
-		 * ps.equals(getPageSource()))continue; // TODO can we avoid that udfs from the compinent itself are here? registerUDF(key, udf,false,true); } }
+		 * ps.equals(getPageSource()))continue; // TODO can we avoid that udfs from the component itself are here? registerUDF(key, udf,false,true); } }
 		 */
 	}
 
@@ -1630,12 +1636,15 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		ArrayImpl arr = new ArrayImpl();
 		if(comp.absFin != null) {
 			// we not to add abstract separately because they are not real Methods, more a rule
-			if(comp.absFin.hasAbstractUDFs())
-				getUDFs(pc, comp.absFin.getAbstractUDFs().values().iterator(), comp, access, arr);
+			if(comp.absFin.hasAbstractUDFs()) {
+				java.util.Collection<UDF> absUdfs = ComponentUtil.toUDFs(comp.absFin.getAbstractUDFBs().values(),false);
+				getUDFs(pc, absUdfs.iterator(), comp, access, arr);
+			}
 		}
-		if(comp._udfs != null)
-			getUDFs(pc, comp._udfs.values().iterator(), comp, access, arr);
 
+		if(comp._udfs != null) {
+			getUDFs(pc, comp._udfs.values().iterator(), comp, access, arr);
+		}
 		// property functions
 		Iterator<Entry<Key, UDF>> it = comp._udfs.entrySet().iterator();
 		Entry<Key, UDF> entry;
@@ -1715,7 +1724,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			Member existing = _data.get(key);
 			if(loaded && !isAccessible(pc, existing != null ? existing.getAccess() : dataMemberDefaultAccess))
 				throw new ExpressionException("Component [" + getCallName() + "] has no accessible Member with name [" + key + "]",
-						"enable [trigger data member] in admininistrator to also invoke getters and setters");
+						"enable [trigger data member] in administrator to also invoke getters and setters");
 			_data.put(key, new DataMember(existing != null ? existing.getAccess() : dataMemberDefaultAccess,
 					existing != null ? existing.getModifier() : Member.MODIFIER_NONE, value));
 		}
@@ -1849,7 +1858,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			return callGetter(pc, key);
 		}
 		throw new ExpressionException("Component [" + getCallName() + "] has no accessible Member with name [" + key + "]",
-				"enable [trigger data member] in admininistrator to also invoke getters and setters");
+				"enable [trigger data member] in administrator to also invoke getters and setters");
 		// throw new ExpressionException("Component ["+getCallName()+"] has no accessible Member with name ["+name+"]");
 	}
 
@@ -2105,9 +2114,9 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 
 	public void setProperty(Property property) throws PageException {
 		top.properties.properties.put(StringUtil.toLowerCase(property.getName()), property);
+		if(property.getDefault() != null)
+			scope.setEL(KeyImpl.init(property.getName()), property.getDefault());
 		if(top.properties.persistent || top.properties.accessors) {
-			if(property.getDefault() != null)
-				scope.setEL(KeyImpl.init(property.getName()), property.getDefault());
 			PropertyFactory.createPropertyUDFs(this, property);
 		}
 	}
@@ -2212,26 +2221,62 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 				Pair[] parr = new Pair[0];
 				pc = ThreadUtil.createPageContext(config, DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, "localhost", "/", "", new Cookie[0], parr, null, parr,
 						new StructImpl(), true, -1);
+				
 			}
 
 			// reading fails for serialized data from Lucee version 4.1.2.002
 			String name = in.readUTF();
-
+			
+			// oldest style of serialisation 
 			if(name.startsWith("evaluateComponent('") && name.endsWith("})")) {
 				readExternalOldStyle(pc, name);
 				return;
 			}
-
+			
+			// newest version (5.2.8.16) also holds the path
+			String path=null;
+			int index=name.indexOf('|');
+			if(index!=-1) {
+				path=name.substring(index+1);
+				name=name.substring(0, index);
+			}
+			
 			String md5 = in.readUTF();
 			Struct _this = Caster.toStruct(in.readObject(), null);
 			Struct _var = Caster.toStruct(in.readObject(), null);
+			String template=in.readUTF();
+			
+			if(pc!=null && pc.getBasePageSource()==null && !StringUtil.isEmpty(template)) {
+				Resource res = ResourceUtil.toResourceNotExisting(pc, template);
+				PageSource ps = pc.toPageSource(res, null);
+				if(ps!=null) {
+					((PageContextImpl)pc).setBase(ps);
+				}
+			}
 
 			try {
 				ComponentImpl other = (ComponentImpl)EvaluateComponent.invoke(pc, name, md5, _this, _var);
 				_readExternal(other);
 			}
-			catch (PageException e) {
-				throw ExceptionUtil.toIOException(e);
+			catch (PageException pe) {
+				boolean done=false;
+				if(!StringUtil.isEmpty(path)) {
+					Resource res = ResourceUtil.toResourceExisting(pc, path,false,null);
+					if(res!=null) {
+						PageSource ps = pc.toPageSource(res, null);
+						if(ps!=null) {
+							try {
+								ComponentImpl other = ComponentLoader.loadComponent(pc, ps, name, false, true);
+								_readExternal(other);
+								done=true;
+							}
+							catch(PageException pe2) {
+								throw ExceptionUtil.toIOException(pe2);
+							}
+						}
+					}
+				}
+				if(!done)throw ExceptionUtil.toIOException(pe);
 			}
 		} finally {
 			if(pcCreated)
@@ -2321,11 +2366,21 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			}
 		}
 
-		out.writeUTF(getAbsName());
+		out.writeUTF(getAbsName()+"|"+getPageSource().getResource().getCanonicalPath());
 		out.writeUTF(ComponentUtil.md5(cw));
 		out.writeObject(_this);
 		out.writeObject(_var);
-
+		
+		// base template
+		String template="";
+		PageContext pc = ThreadLocalPageContext.get();
+		if(pc!=null) {
+			PageSource ps = pc.getBasePageSource();
+			if(ps!=null) {
+				template=ps.getDisplayPath();
+			}
+		}
+		out.writeUTF(template);
 	}
 
 	@Override
