@@ -37,7 +37,9 @@ import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.exp.ApplicationException;
+import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.ext.function.BIF;
 import lucee.runtime.i18n.LocaleFactory;
 import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.listener.ApplicationContext;
@@ -64,7 +66,7 @@ import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 
-public class GetApplicationSettings {
+public class GetApplicationSettings extends BIF {
 
 	public static Struct call(PageContext pc) {
 		return call(pc, false);
@@ -410,5 +412,12 @@ public class GetApplicationSettings {
 				sct.setEL(KeyImpl.init(mappings[i].getVirtual()), mappings[i].getStrPhysical());
 			}
 		return sct;
+	}
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if(args.length==1) return call(pc,Caster.toBooleanValue(args[0]));
+		if(args.length==0) return call(pc);
+		throw new FunctionException(pc, "GetApplicationSettings", 0, 1, args.length);
 	}
 }

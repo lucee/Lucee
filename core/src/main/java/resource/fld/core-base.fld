@@ -233,6 +233,7 @@ All elements in the array must contain values that can be converted to numeric.<
 		<name>arrayDelete</name>
 		<class>lucee.runtime.functions.arrays.ArrayDelete</class>
 		<member-name>delete</member-name>
+		<member-chaining>true</member-chaining>
 		<keywords>array</keywords>
 		<description>Deletes specified object from given array</description>
 		<argument>
@@ -265,6 +266,7 @@ All elements in the array must contain values that can be converted to numeric.<
 		<name>arrayDeleteNoCase</name>
 		<class>lucee.runtime.functions.arrays.ArrayDeleteNoCase</class>
 		<member-name>deleteNoCase</member-name>
+		<member-chaining>true</member-chaining>
 		<keywords>array</keywords>
 		<description>Deletes specified object from given array, in case of a string the case of the string does not matter.</description>
 		<argument>
@@ -298,6 +300,7 @@ All elements in the array must contain values that can be converted to numeric.<
 		<name>arrayDeleteAt</name>
 		<class>lucee.runtime.functions.arrays.ArrayDeleteAt</class>
 		<member-name>deleteAt</member-name>
+		<member-chaining>true</member-chaining>
 		<keywords>array</keywords>
 		<description>Deletes an element from an array and resizes the array so that the deleted element doesn't leave a gap.</description>
 		<argument>
@@ -1038,6 +1041,7 @@ Remember CFML arrays start at 1 not 0.</description>
 		<name>arrayResize</name>
 		<class>lucee.runtime.functions.arrays.ArrayResize</class>
 		<member-name>resize</member-name>
+		<member-chaining>true</member-chaining>
 		<keywords>array</keywords>
 		<description>Resets an array to a specified minimum number of elements.
         This can improve performance, if used to size an array to its
@@ -3371,6 +3375,7 @@ type of the result returned:
 	<function>
 		<name>DeserializeJSON</name>
 		<class>lucee.runtime.functions.conversion.DeserializeJSON</class>
+		<!-- <member-name>deserializeJSON</member-name> -->
 		<keywords>string,parsing,json,javascript</keywords>
 		<description>Converts a JSON (JavaScript Object Notation) string data representation into CFML data, such as a struct or array.</description>
 		<argument>

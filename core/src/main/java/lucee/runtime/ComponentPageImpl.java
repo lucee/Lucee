@@ -457,6 +457,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 		}
 		catch (PageException e) {
 			RestUtil.setStatus(pc, 500, ExceptionUtil.getMessage(e));
+			pc.getConfig().getLog("rest").error("REST", e);
 		} finally {
 			if(suppressContent)
 				pc.unsetSilent();

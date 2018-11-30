@@ -486,4 +486,6 @@ public final class Types {
 		if(Types.BYTE_VALUE_ARRAY.equals(type)) return byte[].class;
 		return ClassUtil.toClass(type.getClassName());
 	}
+	
+
 }

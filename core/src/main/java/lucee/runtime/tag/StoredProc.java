@@ -314,38 +314,52 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 			}
 
 			try {
-				// if(procedureColumnCache==null)procedureColumnCache=new ReferenceMap();
-				// ProcMetaCollection coll=procedureColumnCache.get(procedure);
-				DataSourceSupport d = ((DataSourceSupport)dc.getDatasource());
-				long cacheTimeout = d.getMetaCacheTimeout();
-				Map<String, ProcMetaCollection> procedureColumnCache = d.getProcedureColumnCache();
+				// if(procParamsCache==null)procParamsCache=new ReferenceMap();
+				// ProcMetaCollection procParams=procParamsCache.get(procedure);
+				DataSourceSupport ds = ((DataSourceSupport)dc.getDatasource());
+				long cacheTimeout = ds.getMetaCacheTimeout();
+				Map<String, ProcMetaCollection> procParamsCache = ds.getProcedureColumnCache();
 				String cacheId = procedure.toLowerCase();
-				ProcMetaCollection coll = procedureColumnCache.get(cacheId);
+				ProcMetaCollection procParams = procParamsCache.get(cacheId);
 
-				if(coll == null || (cacheTimeout >= 0 && (coll.created + cacheTimeout) < System.currentTimeMillis())) {
+				if(procParams == null || (cacheTimeout >= 0 && (procParams.created + cacheTimeout) < System.currentTimeMillis())) {
 
 					// get PROC information and resolve synonym if needed per LDEV-1147
-					String sql = "SELECT  PROC.OWNER, PROC.OBJECT_NAME, PROC.PROCEDURE_NAME \n" +
+					String sql =
+							"SELECT  PROC.OWNER, PROC.OBJECT_NAME, PROC.PROCEDURE_NAME, PROC.OBJECT_TYPE \n" +
 							"FROM    ALL_PROCEDURES PROC \n" +
 							"    LEFT JOIN ALL_SYNONYMS SYNO \n" +
 							"       ON PROC.OBJECT_NAME = SYNO.TABLE_NAME AND PROC.OWNER = SYNO.TABLE_OWNER \n" +
-							"WHERE   PROC.PROCEDURE_NAME = ? \n" +
-							"    AND (PROC.OBJECT_NAME = ? OR SYNO.SYNONYM_NAME = ?)";
+							"WHERE   (PROC.PROCEDURE_NAME = ? OR (PROC.OBJECT_NAME = ? AND PROC.OBJECT_TYPE = 'PROCEDURE')) \n";
+
+					if (catalog != null)
+						sql += "    AND (PROC.OBJECT_NAME = ? OR SYNO.SYNONYM_NAME = ?)";
 
 					PreparedStatement preparedStatement = conn.prepareStatement(sql);
 					preparedStatement.setString(1, name);
-					preparedStatement.setString(2, catalog);
-					preparedStatement.setString(3, catalog);
+					preparedStatement.setString(2, name);
+
+					if (catalog != null) {
+						preparedStatement.setString(3, catalog);
+						preparedStatement.setString(4, catalog);
+					}
+
 					ResultSet resultSet = preparedStatement.executeQuery();
 
 					if(resultSet.next()) {
-						String _schema  = resultSet.getString(1);
-						String _catalog = resultSet.getString(2);
-						String _name    = resultSet.getString(3);
+						String _schema  = resultSet.getString(1);	// OWNER
+						String _catalog = resultSet.getString(2);	// OBJECT_NAME
+						String _name    = resultSet.getString(3);	// PROCEDURE_NAME
 
-						ResultSet res = conn.getMetaData().getProcedureColumns(_catalog, _schema, _name, "%");
-						coll = createProcMetaCollection(res);
-						procedureColumnCache.put(cacheId, coll);
+						if (_name == null && _catalog != null){
+							// when the PROC is not scoped the PROCEDURE_NAME is actually the OBJECT_NAME, see LDEV-1833
+							_name = _catalog;
+							_catalog = null;
+						}
+
+						ResultSet procColumns = conn.getMetaData().getProcedureColumns(_catalog, _schema, _name, "%");
+						procParams = createProcMetaCollection(procColumns);
+						procParamsCache.put(cacheId, procParams);
 					}
 					else {
 						Log log = pageContext.getConfig().getLog("datasource");
@@ -355,8 +369,8 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 				}
 
 				int ct, index = -1;
-				if(coll != null) {
-					Iterator<ProcMeta> it = coll.metas.iterator();
+				if(procParams != null) {
+					Iterator<ProcMeta> it = procParams.metas.iterator();
 					ProcMeta pm;
 					while(it.hasNext()) {
 						index++;

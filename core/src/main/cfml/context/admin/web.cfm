@@ -232,6 +232,9 @@
         <cfloop query="plugindirs">
             <cfif plugindirs.type EQ "dir">
                 <cfset _lang=loadPluginLanguage(pluginDir,plugindirs.name)>
+                <cfif isNull(_lang.__group)>
+					<cfcontinue>
+				</cfif>
                 <cfset _act=_lang.__action>
 				<cfset _group=_lang.__group>
 				<cfset _pos=_lang.__position>
@@ -445,6 +448,13 @@
 						setTimeout(createWaitBlockUI(<cfoutput>"#JSStringFormat(stText.general.wait)#"</cfoutput>),1000);
 					}
 					$('.submit,.menu_inactive,.menu_active').click(__blockUI);
+				});
+				$("input[type='submit']").on("click", function(){
+					if($('span').hasClass( "commentError" )){
+						$("span.commentError").each(function () {
+							$(this).remove();
+						});
+					}
 				});
 			</script>
 		</cfhtmlbody>

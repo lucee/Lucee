@@ -57,6 +57,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import lucee.VersionInfo;
+import lucee.commons.io.log.Log;
 import lucee.loader.TP;
 import lucee.loader.osgi.BundleCollection;
 import lucee.loader.osgi.BundleLoader;
@@ -65,6 +66,7 @@ import lucee.loader.osgi.LoggerImpl;
 import lucee.loader.util.ExtensionFilter;
 import lucee.loader.util.Util;
 import lucee.loader.util.ZipUtil;
+import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.Identification;
 import lucee.runtime.config.Password;
 import lucee.runtime.util.Pack200Util;
@@ -334,23 +336,38 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				log(Logger.LOG_DEBUG, "Load Build in Core");
 				// 
 				
-				
+
 				final String coreExt = "lco";
-				
+				final String coreExtPack = "lco.pack.gz";
+				boolean isPack200=false;
 				// copy core
 				
 				final File rc = new File(getTempDirectory(), "tmp_"+ System.currentTimeMillis() + "."+coreExt);
+				File rcPack200 = new File(getTempDirectory(), "tmp_"+ System.currentTimeMillis() + "."+coreExtPack);
 				InputStream is=null;
 				OutputStream os=null;
 				try {
 					is = new TP().getClass().getResourceAsStream("/core/core." + coreExt);
-					os = new BufferedOutputStream(new FileOutputStream(rc));
+					if(is==null) {
+						is = new TP().getClass().getResourceAsStream("/core/core." + coreExtPack);
+						isPack200=true;
+					}
+					os = new BufferedOutputStream(new FileOutputStream(isPack200?rcPack200:rc));
 					copy(is, os);
 				}
 				finally {
 					closeEL(is);
 					closeEL(os);
 				}
+				
+				// unpack if necessary
+				if(isPack200) {
+					Pack200Util.pack2Jar(rcPack200, rc);
+					log(Logger.LOG_DEBUG,"unpack "+rcPack200+" to "+rc);
+					rcPack200.delete();
+				}
+				
+				
 				
 				lucee = new File(patcheDir, getVersion(rc) + "." + coreExt);
 				try {
@@ -365,17 +382,6 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				}
 				
 				setEngine(_getCore(lucee));
-
-				
-				/*if (PATCH_ENABLED) {
-					final InputStream bis = new TP().getClass()
-							.getResourceAsStream("/core/core." + coreExt);
-					final OutputStream bos = new BufferedOutputStream(
-							new FileOutputStream(lucee));
-					copy(bis, bos);
-					closeEL(bis);
-					closeEL(bos);
-				}*/
 			}
 			else {
 
@@ -411,7 +417,6 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 	}
 
-	
 	private static String getVersion(File file) throws IOException, BundleException {
 		JarFile jar = new JarFile(file);
 		try {
@@ -533,7 +538,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			sb.append("\n- ").append(e.getKey()).append(':')
 					.append(e.getValue());
 		}
-		log(Logger.LOG_INFO, sb.toString());
+		//log(Logger.LOG_INFO, sb.toString());
 
 		felix = new Felix(config);
 		try {
@@ -657,6 +662,12 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			singelton.reset();
 		
 		initEngine();
+		
+		ConfigServer cs = getConfigServer(singelton);
+		if(cs!=null) {
+			Log log = cs.getLog("application");
+			log.info("loader", "Lucee restarted");
+		} 
 		System.gc();
 		return true;
 	}
@@ -670,14 +681,13 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	 */
 	private boolean _update(final Identification id) throws IOException,
 			ServletException {
-		
-		if(singelton!=null)
-			singelton.reset();
-		
+
 		final File newLucee = downloadCore(id);
 		if (newLucee == null)
 			return false;
 
+		if(singelton!=null)
+			singelton.reset();
 
 		final Version v = null;
 		try {
@@ -693,6 +703,15 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			setEngine(e);
 			//e.reset();
 			callListeners(e);
+			
+			
+			ConfigServer cs = getConfigServer(e);
+			if(cs!=null) {
+				Log log = cs.getLog("deploy");
+				log.info("loader", "Lucee Version [" + v + "] installed");
+			} 
+			
+			
 		} catch (final Exception e) {
 			System.gc();
 			try {
@@ -703,9 +722,24 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			e.printStackTrace();
 			return false;
 		}
-
+		
 		log(Logger.LOG_DEBUG, "Version (" + v + ")installed");
 		return true;
+	}
+
+	private ConfigServer getConfigServer(CFMLEngine engine) {
+		if(engine==null) return null;
+		if(engine instanceof CFMLEngineWrapper)
+			engine=((CFMLEngineWrapper)engine).getEngine();
+		
+		try {
+			Method m = engine.getClass().getDeclaredMethod("getConfigServerImpl", new Class[]{});
+			m.setAccessible(true);
+			return (ConfigServer)m.invoke(engine, new Object[] {});
+		}
+		catch(Exception e) {e.printStackTrace();}
+
+		return null;
 	}
 
 	public File downloadBundle(final String symbolicName,
@@ -799,7 +833,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		String sub="bundles/";
 		String nameAndVersion=symbolicName+"|"+symbolicVersion;
 		String osgiFileName=symbolicName+"-"+symbolicVersion+".jar";
-		String pack20Ext=".pack.gz";
+		String pack20Ext=".jar.pack.gz";
 		boolean isPack200=false;
 		
 		// first we look for a exact match

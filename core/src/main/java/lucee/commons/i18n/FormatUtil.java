@@ -50,7 +50,7 @@ public class FormatUtil {
 	
 	public static DateFormat[] getDateTimeFormats(Locale locale,TimeZone tz,boolean lenient) {
 
-		String id="dt-"+locale.hashCode()+"-"+tz.getID()+"-"+lenient;
+		String id="dt-"+locale.toString()+"-"+tz.getID()+"-"+lenient;
 		DateFormat[] df=formats.get(id);
 		if(df==null) {
 			List<DateFormat> list=new ArrayList<DateFormat>();
@@ -84,13 +84,11 @@ public class FormatUtil {
 			
 			formats.put(id, df);
 		}
-		
-		return df;
+		return clone(df);
 	}
 
-	
 	public static DateFormat[] getDateFormats(Locale locale,TimeZone tz,boolean lenient) {
-		String id="d-"+locale.hashCode()+"-"+tz.getID()+"-"+lenient;
+		String id="d-"+locale.toString()+"-"+tz.getID()+"-"+lenient;
 		DateFormat[] df= formats.get(id);
 		if(df==null) {
 			List<DateFormat> list=new ArrayList<DateFormat>();
@@ -107,11 +105,19 @@ public class FormatUtil {
 			}
 			formats.put(id, df);
 		}
-		return df;
+		return clone(df);
 	}
 	
+	private static DateFormat[] clone(DateFormat[] src) {
+		DateFormat[] trg=new DateFormat[src.length];
+		for(int i=0;i<src.length;i++) {
+			trg[i]=(DateFormat) ((SimpleDateFormat)src[i]).clone();
+		}
+		return trg;
+	}
+
 	public static DateFormat[] getTimeFormats(Locale locale,TimeZone tz,boolean lenient) {
-		String id="t-"+locale.hashCode()+"-"+tz.getID()+"-"+lenient;
+		String id="t-"+locale.toString()+"-"+tz.getID()+"-"+lenient;
 		DateFormat[] df= formats.get(id);
 		if(df==null) {
 			List<DateFormat> list=new ArrayList<DateFormat>();
@@ -129,7 +135,7 @@ public class FormatUtil {
 			}
 			formats.put(id, df);
 		}
-		return df;
+		return clone(df);
 	}
 	
 
@@ -211,7 +217,7 @@ public class FormatUtil {
 	 * @return
 	 */
 	public static DateFormat[] getCFMLFormats(TimeZone tz,boolean lenient) {
-		String id="cfml-"+Locale.ENGLISH.hashCode()+"-"+tz.getID()+"-"+lenient;
+		String id="cfml-"+Locale.ENGLISH.toString()+"-"+tz.getID()+"-"+lenient;
 		DateFormat[] df= formats.get(id);
 		if(df==null) {
 			df= new SimpleDateFormat[]{
@@ -246,7 +252,7 @@ public class FormatUtil {
 			}
 			formats.put(id, df);
 		}
-		return df;
+		return clone(df);
 	}
 
 	public static DateFormat[] getFormats(Locale locale,TimeZone tz,boolean lenient, short formatType) {

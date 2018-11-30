@@ -143,9 +143,15 @@ public final class SchedulerImpl implements Scheduler {
             init(tasks[i]);
         }
     }
+    
+    public void startIfNecessary() {
+        for(int i=0;i<tasks.length;i++) {
+            init(tasks[i]);
+        }
+    }
 
 	private void init(ScheduleTask task) {
-		new ScheduledTaskThread(engine,this,config,task,charset).start();
+		((ScheduleTaskImpl)task).startIfNecessary(engine);
 	}
 
 	/**
@@ -181,7 +187,7 @@ public final class SchedulerImpl implements Scheduler {
         if(timeout>0 && timeout<1000)timeout*=1000;
         if(timeout<0)timeout=600000;
         try {
-            ScheduleTaskImpl  st = new ScheduleTaskImpl(
+            ScheduleTaskImpl  st = new ScheduleTaskImpl(this,
                     su.toString(el,"name").trim(),
                     su.toResource(config,el,"file"),
                     su.toDate(config,el,"startDate"),
@@ -410,4 +416,14 @@ public final class SchedulerImpl implements Scheduler {
     public void execute(ScheduleTask task) {
     	new ExecutionThread(config,task,charset).start();
     }
+
+
+	public Config getConfig() {
+		return config;
+	}
+
+
+	public String getCharset() {
+		return charset;
+	}
 }

@@ -120,6 +120,7 @@ import lucee.runtime.functions.dynamicEvaluation.Serialize;
 import lucee.runtime.functions.owasp.ESAPIEncode;
 import lucee.runtime.interpreter.CFMLExpressionInterpreter;
 import lucee.runtime.interpreter.VariableInterpreter;
+import lucee.runtime.listener.AppListenerSupport;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.listener.ApplicationListener;
@@ -167,6 +168,7 @@ import lucee.runtime.type.it.ItAsEnum;
 import lucee.runtime.type.ref.Reference;
 import lucee.runtime.type.ref.VariableReference;
 import lucee.runtime.type.scope.Application;
+import lucee.runtime.type.scope.ApplicationImpl;
 import lucee.runtime.type.scope.Argument;
 import lucee.runtime.type.scope.ArgumentImpl;
 import lucee.runtime.type.scope.CGI;
@@ -3108,7 +3110,7 @@ public final class PageContextImpl extends PageContext {
 				application = scopeContext.getApplicationScope(this, isNew);// this is needed that the application scope is initilized
 				if(isNew.toBooleanValue()) {
 					try {
-						if(!listener.onApplicationStart(this)) {
+						if(!((AppListenerSupport)listener).onApplicationStart(this,application)) {
 							scopeContext.removeApplicationScope(this);
 							return false;
 						}
@@ -3125,8 +3127,8 @@ public final class PageContextImpl extends PageContext {
 
 			// init session
 			if(initSession) {
-				scopeContext.getSessionScope(this, DUMMY_BOOL);// this is needed that the session scope is initilized
-				listener.onSessionStart(this);
+				// session must be initlaized here
+				((AppListenerSupport)listener).onSessionStart(this, scopeContext.getSessionScope(this, DUMMY_BOOL));
 			}
 		} finally {
 			// print.o("outer-unlock:"+token);

@@ -513,7 +513,7 @@ public final class XMLUtilImpl implements XMLUtil {
 		if(value instanceof byte[]) {
 			return new InputSource(new ByteArrayInputStream((byte[])value));
         }
-		throw engine.getExceptionUtil().createXMLException("can't cast object of type ["+value+"] to an Input for xml parser");
+		throw engine.getExceptionUtil().createXMLException("cat cast object of type ["+value+"] to a Input for xml parser");
 	}
 	
 	public InputSource toInputSource(PageContext pc, String xml) throws IOException, PageException {

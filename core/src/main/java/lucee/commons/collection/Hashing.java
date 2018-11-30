@@ -26,6 +26,7 @@ package lucee.commons.collection;
 
 import java.util.Random;
 
+import lucee.commons.io.SystemUtil;
 import sun.misc.JavaLangAccess;
 import sun.misc.SharedSecrets;
 
@@ -229,7 +230,7 @@ public class Hashing {
 
         /**
          * Access to {@code String.hash32()}
-         */
+         
         static final JavaLangAccess LANG_ACCESS;
 
         static {
@@ -237,12 +238,12 @@ public class Hashing {
             if (null == LANG_ACCESS) {
                 throw new Error("Shared secrets not initialized");
             }
-        }
+        }*/
     }
 
     public static int randomHashSeed(Object instance) {
         int seed;
-        if (sun.misc.VM.isBooted()) {
+        if (SystemUtil.isBooted()) {
             seed = Holder.SEED_MAKER.nextInt();
         } else {
             // lower quality "random" seed value--still better than zero and not
