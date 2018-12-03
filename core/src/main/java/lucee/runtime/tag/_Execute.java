@@ -19,6 +19,7 @@
 
 package lucee.runtime.tag;
 
+import java.util.ArrayList;
 import lucee.commons.cli.Command;
 import lucee.commons.cli.CommandResult;
 import lucee.commons.io.IOUtil;
@@ -37,7 +38,7 @@ public final class _Execute extends PageContextThread {
     private String variable;
     private String errorVariable;
     private boolean aborted;
-    private String command;
+    private ArrayList command = null;
     // private static final int BLOCK_SIZE=4096;
     private Object monitor;
     private Exception exception;
@@ -54,7 +55,7 @@ public final class _Execute extends PageContextThread {
      * @param body
      * @param terminateOnTimeout
      */
-    public _Execute(PageContext pageContext, Object monitor, String command, Resource outputfile, String variable, Resource errorFile, String errorVariable) {
+    public _Execute(PageContext pageContext, Object monitor, ArrayList<String> command, Resource outputfile, String variable, Resource errorFile, String errorVariable) {
 	super(pageContext);
 	this.monitor = monitor;
 	this.command = command;
@@ -77,9 +78,9 @@ public final class _Execute extends PageContextThread {
     void _run(PageContext pc) {
 	try {
 
-	    process = Command.createProcess(command, true);
+	    //process = Command.createProcess(command, true);
 
-	    CommandResult result = Command.execute(process);
+	    CommandResult result = Command.execute(command);
 	    String rst = result.getOutput();
 
 	    finished = true;

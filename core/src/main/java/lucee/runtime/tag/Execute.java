@@ -19,6 +19,7 @@
 package lucee.runtime.tag;
 
 import java.util.Iterator;
+import java.util.ArrayList;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
@@ -29,6 +30,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.SecurityException;
 import lucee.runtime.ext.tag.BodyTagImpl;
 import lucee.runtime.op.Caster;
+import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.security.SecurityManager;
 
 /**
@@ -40,7 +42,7 @@ import lucee.runtime.security.SecurityManager;
 public final class Execute extends BodyTagImpl {
 
     /** Command-line arguments passed to the application. */
-    private String arguments = null;
+    private ArrayList<String> arguments = null;
 
     /**
      * Indicates how long, in seconds, the CFML executing thread waits for the spawned process. A
@@ -91,22 +93,23 @@ public final class Execute extends BodyTagImpl {
      * @param args value to set
      **/
     public void setArguments(Object args) {
-
+    ArrayList<String> arr = new ArrayList<String>();
+    	
 	if (args instanceof lucee.runtime.type.Collection) {
-	    StringBuilder sb = new StringBuilder();
 	    lucee.runtime.type.Collection coll = (lucee.runtime.type.Collection) args;
 	    // lucee.runtime.type.Collection.Key[] keys=coll.keys();
 	    Iterator<Object> it = coll.valueIterator();
 	    while (it.hasNext()) {
-		sb.append(' ');
-		sb.append(it.next());
+		// array.append(' ');
+		arr.add(it.next().toString());
 	    }
-	    arguments = sb.toString();
+	    arguments = arr;
 	}
 	else if (args instanceof String) {
-	    arguments = " " + args.toString();
+		arr.add(args.toString());
+		arguments = arr;
 	}
-	else this.arguments = "";
+	else this.arguments = arr;
     }
 
     /**
@@ -217,11 +220,10 @@ public final class Execute extends BodyTagImpl {
 	    else command = body;
 	}
 	else {
-	    if (arguments == null) command = name;
-	    else command = name + arguments;
+	   arguments.add(0,name);
 	}
 
-	_Execute execute = new _Execute(pageContext, monitor, command, outputfile, variable, errorFile, errorVariable);
+	_Execute execute = new _Execute(pageContext, monitor, arguments, outputfile, variable, errorFile, errorVariable);
 
 	// if(timeout<=0)execute._run();
 	// else {
