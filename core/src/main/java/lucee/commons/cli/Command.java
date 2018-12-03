@@ -21,7 +21,7 @@ package lucee.commons.cli;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-
+import java.util.List;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
@@ -50,7 +50,7 @@ public class Command {
 	return execute(Runtime.getRuntime().exec(cmdline));
     }
 
-    public static CommandResult execute(ArrayList<String> cmdline) throws IOException, InterruptedException {
+    public static CommandResult execute(List<String> cmdline) throws IOException, InterruptedException {
 	return execute(Runtime.getRuntime().exec(cmdline.toArray(new String[cmdline.size()])));
     }
 
