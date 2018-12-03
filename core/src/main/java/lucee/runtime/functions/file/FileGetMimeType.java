@@ -18,6 +18,7 @@
  **/
 package lucee.runtime.functions.file;
 
+import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.StringUtil;
@@ -33,7 +34,11 @@ public class FileGetMimeType {
 
     public static String call(PageContext pc, Object oSrc, boolean checkHeader) throws PageException {
 	Resource src = Caster.toResource(pc, oSrc, false);
-	if (!src.exists()) throw new FunctionException(pc, "FileGetMimeType", 1, "file", "file [" + src + "] does not exist");
+	if (!src.exists()) {
+	    String mimeType = IOUtil.getMimeType(src.getName(), null);
+	    if (!StringUtil.isEmpty(mimeType)) return mimeType;
+	    throw new FunctionException(pc, "FileGetMimeType", 1, "file", "file [" + src + "] does not exist and was not able to detect mimetype from file name extension.");
+	}
 	pc.getConfig().getSecurityManager().checkFileLocation(src);
 
 	String mimeType = ResourceUtil.getMimeType(src, null);

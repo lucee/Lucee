@@ -23,6 +23,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				expect(FileGetMimeType(StructFind(structPath, "path"))).toBe('audio/mp4');
 			});
 
+			it(title = "not existing file", body = function( currentSpec ) {
+				expect(fileExists("notexisting.m4a")).toBe(FALSE);
+				expect(FileGetMimeType("notexisting.m4a")).toBe('audio/mp4');
+			});
+
 			it(title = "FileGetMimeType() for .txt file", body = function( currentSpec ) {
 				expect(fileExists(StructFind(structPath, "txtPath"))).toBe(TRUE);
 				expect(FileGetMimeType(StructFind(structPath, "txtPath"))).toBe('text/plain');
