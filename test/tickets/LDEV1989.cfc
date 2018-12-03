@@ -16,6 +16,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			});
 		});
 	}
+
+	function afterAll(){
+		var dir=getDirectoryFromPath(getCurrenttemplatepath()) & "LDEV1989/zip";
+		if (directoryExists( dir)) directoryDelete(dir,true);
+	}
+
+
 	private string function createURI(string calledName){
 		var baseURI="/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
 		return baseURI&""&calledName;

@@ -635,6 +635,9 @@
         <!-- Esapi -->
         <not><isset property="extEsapi"/></not>
         <not><isset property="extEsapiVersion"/></not>
+        <!-- Compress -->
+        <not><isset property="extCompress"/></not>
+        <not><isset property="extCompressVersion"/></not>
         </or>
     </condition>
     </fail>
@@ -737,6 +740,7 @@
     <available file="${cache}/${extAxis}-${extAxisVersion}.lex" property="axis.present"/>
     <available file="${cache}/${extImage}-${extImageVersion}.lex" property="image.present"/>
     <available file="${cache}/${extEsapi}-${extEsapiVersion}.lex" property="esapi.present"/>
+    <available file="${cache}/${extCompress}-${extCompressVersion}.lex" property="compress.present"/>
   </target>
 
 
@@ -788,12 +792,15 @@
   <target name="check-esapi" depends="check-cache" unless="esapi.present">
       <get src="${extURL}${extEsapi}?version=${extEsapiVersion}" dest="${cache}/${extEsapi}-${extEsapiVersion}.lex"/>
   </target>
+  <target name="check-compress" depends="check-cache" unless="compress.present">
+      <get src="${extURL}${extCompress}?version=${extCompressVersion}" dest="${cache}/${extCompress}-${extCompressVersion}.lex"/>
+  </target>
   <target name="check-testbox" depends="check-cache" unless="testbox.present">
       <get src="${testboxURL}" dest="${cache}/testbox-${testboxVersion}.zip"/>
   </target> 
 
 
-  <target name="check" depends="check-mysql,check-mssql,check-postgre,check-jdts,check-chart,check-s3,check-ehcache,check-hibernate,check-lucene,check-pdf,check-admin,check-doc,check-form,check-axis,check-image,check-esapi,check-testbox">
+  <target name="check" depends="check-mysql,check-mssql,check-postgre,check-jdts,check-chart,check-s3,check-ehcache,check-hibernate,check-lucene,check-pdf,check-admin,check-doc,check-form,check-axis,check-image,check-esapi,check-compress,check-testbox">
     
     <mkdir dir="${temp}/loader/extensions/"/>
 
@@ -1376,6 +1383,18 @@
       tofile="${goal}/extensions/${ext_esapi.filename}"/>
     <echo>add:${goal}/extensions/${ext_esapi.filename}</echo>
     <echo file="${goal}/extensions/.index" append="true">${ext_esapi.filename};</echo>
+
+    <!-- add extension Compress -->
+    <loadmf jar="${cache}/${extCompress}-${extCompressVersion}.lex" prefix="ext_compress."/>
+    <toFileName id="${ext_compress.id}" name="${ext_compress.name}" version="${ext_compress.version}" property="ext_compress.filename"/>
+    <copy 
+      file="${cache}/${extCompress}-${extCompressVersion}.lex" 
+      todir="${goal}/extensions/"/>
+    <move 
+      file="${goal}/extensions/${extCompress}-${extCompressVersion}.lex" 
+      tofile="${goal}/extensions/${ext_compress.filename}"/>
+    <echo>add:${goal}/extensions/${ext_compress.filename}</echo>
+    <echo file="${goal}/extensions/.index" append="true">${ext_compress.filename};</echo>
 
   </target>
 

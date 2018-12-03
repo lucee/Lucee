@@ -8767,7 +8767,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<description>used to a address this loop from a "break" or "continue" statement (instead of the nearest one).</description>
 		</attribute>
 	</tag>
-	<!-- Zip -->
+	<!-- Zip
 	<tag>
 		<name>Zip</name>
 		<tag-class>lucee.runtime.tag.Zip</tag-class>
@@ -8934,8 +8934,8 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<rtexprvalue>true</rtexprvalue>
 		<description>Variable in which the read content is stored. </description>
     </attribute>
-	</tag>
-	<!-- ZipParam -->
+	</tag> -->
+	<!-- ZipParam
 	<tag>
 		<name>ZipParam</name>
 		<tag-class>lucee.runtime.tag.ZipParam</tag-class>
@@ -9027,7 +9027,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		<description>Recurse the directory to be zipped, unzipped, or deleted,
             as specified by the cfzip parent tag. (optional, default=yes)</description>
     </attribute>
-	</tag>
+	</tag> -->
 
 	<!-- Form -->
 	<tag>
