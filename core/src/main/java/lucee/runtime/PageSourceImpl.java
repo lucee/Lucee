@@ -638,6 +638,7 @@ public final class PageSourceImpl implements PageSource {
 	return fileName;
     }
 
+    @Override
     public String getJavaName() {
 	if (javaName == null) createClassAndPackage();
 	return javaName;
@@ -912,8 +913,9 @@ public final class PageSourceImpl implements PageSource {
      * @param cl
      */
     public void clear(ClassLoader cl) {
+	Page page = this.page;
 	if (page != null && page.getClass().getClassLoader().equals(cl)) {
-	    page = null;
+	    this.page = null;
 	}
     }
 
