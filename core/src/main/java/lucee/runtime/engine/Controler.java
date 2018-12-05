@@ -46,6 +46,7 @@ import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.config.DeployHandler;
 import lucee.runtime.config.XMLConfigAdmin;
+import lucee.runtime.functions.system.PagePoolClear;
 import lucee.runtime.lock.LockManagerImpl;
 import lucee.runtime.net.smtp.SMTPConnectionPool;
 import lucee.runtime.op.Caster;
@@ -339,8 +340,10 @@ public final class Controler extends Thread {
 		 * t){ExceptionUtil.rethrowIfNecessary(t);}
 		 */
 		// contract Page Pool
-		// try{doClearPagePools((ConfigWebImpl) config);}catch(Throwable t)
-		// {ExceptionUtil.rethrowIfNecessary(t);}
+		try {
+		    doClearPagePools((ConfigWebImpl) config);
+		}
+		catch (Exception e) {}
 		// try{checkPermGenSpace((ConfigWebImpl) config);}catch(Throwable t)
 		// {ExceptionUtil.rethrowIfNecessary(t);}
 		try {
@@ -419,6 +422,10 @@ public final class Controler extends Thread {
 	finally {
 	    ThreadLocalConfig.release();
 	}
+    }
+
+    private void doClearPagePools(ConfigWebImpl config) {
+	PagePoolClear.clear(null, config, true);
     }
 
     private CFMLFactoryImpl[] toFactories(CFMLFactoryImpl[] factories, Map contextes) {
@@ -586,6 +593,7 @@ public final class Controler extends Thread {
 	    this.time = time;
 	}
 
+	@Override
 	public boolean accept(Resource res) {
 
 	    if (res.isDirectory()) return allowDir;

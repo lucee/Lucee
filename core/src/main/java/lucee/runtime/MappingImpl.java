@@ -57,6 +57,8 @@ public final class MappingImpl implements Mapping {
 
     private static final long serialVersionUID = 6431380676262041196L;
 
+    private static final int MAX_SIZE = 6783;
+
     private String virtual;
     private String lcVirtual;
     private boolean topLevel;
@@ -220,6 +222,11 @@ public final class MappingImpl implements Mapping {
 	if (pcl == null) {
 	    pcl = new PhysicalClassLoader(config, getClassRootDirectory());
 	}
+	else if (pcl.getSize() > MAX_SIZE) {
+	    pageSourcePool.clearPages(pcl);
+	    pcl.clear();
+	    pcl = new PhysicalClassLoader(config, getClassRootDirectory());
+	}
 	return pcl;
     }
 
@@ -238,6 +245,7 @@ public final class MappingImpl implements Mapping {
 	}
     }
 
+    @Override
     public Class<?> getPhysicalClass(String className, byte[] code) throws IOException {
 
 	try {
@@ -484,6 +492,7 @@ public final class MappingImpl implements Mapping {
 		+ physicalFirst + ";" + "readonly:" + readonly + ";" + "hidden:" + hidden + ";";
     }
 
+    @Override
     public boolean equals(Object o) {
 	if (o == this) return true;
 	if (!(o instanceof MappingImpl)) return false;
