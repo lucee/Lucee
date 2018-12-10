@@ -33,120 +33,120 @@ import lucee.runtime.util.IO;
 
 public class IOImpl implements IO {
 
-	private static IO singelton;
+    private static IO singelton;
 
-	public static IO getInstance() {
-		if(singelton==null)singelton=new IOImpl();
-		return singelton;
-	}
-	
-	@Override
-	public void closeSilent(InputStream is) {
-		IOUtil.closeEL(is);
-	}
-	
-	@Override
-	public void closeSilent(OutputStream os) {
-		IOUtil.closeEL(os);
-	}
-	
-	@Override
-	public void closeSilent(InputStream is,OutputStream os) {
-		IOUtil.closeEL(is,os);
-	}
+    public static IO getInstance() {
+	if (singelton == null) singelton = new IOImpl();
+	return singelton;
+    }
 
-	@Override
-	public void closeSilent(Reader r) {
-		IOUtil.closeEL(r);
-	}
+    @Override
+    public void closeSilent(InputStream is) {
+	IOUtil.closeEL(is);
+    }
 
-	@Override
-	public void closeSilent(Writer w) {
-		IOUtil.closeEL(w);
-	}
+    @Override
+    public void closeSilent(OutputStream os) {
+	IOUtil.closeEL(os);
+    }
 
-	@Override
-	public void closeSilent(Object o) {
-		IOUtil.closeEL(o);
-	}
+    @Override
+    public void closeSilent(InputStream is, OutputStream os) {
+	IOUtil.closeEL(is, os);
+    }
 
-	@Override
-	public String toString(InputStream is, Charset charset) throws IOException {
-		return IOUtil.toString(is, charset);
-	}
+    @Override
+    public void closeSilent(Reader r) {
+	IOUtil.closeEL(r);
+    }
 
-	@Override
-	public String toString(Reader r) throws IOException {
-		return IOUtil.toString(r);
-	}
+    @Override
+    public void closeSilent(Writer w) {
+	IOUtil.closeEL(w);
+    }
 
-	@Override
-	public String toString(byte[] barr, Charset charset) throws IOException {
-		return IOUtil.toString(barr, charset);
-	}
+    @Override
+    public void closeSilent(Object o) {
+	IOUtil.closeEL(o);
+    }
 
-	@Override
-	public String toString(Resource res, Charset charset) throws IOException {
-		return IOUtil.toString(res, charset);
-	}
+    @Override
+    public String toString(InputStream is, Charset charset) throws IOException {
+	return IOUtil.toString(is, charset);
+    }
 
-	@Override
-	public void copy(InputStream in, OutputStream out, boolean closeIS, boolean closeOS) throws IOException {
-		IOUtil.copy(in, out, closeIS, closeOS);
-	}
+    @Override
+    public String toString(Reader r) throws IOException {
+	return IOUtil.toString(r);
+    }
 
-	@Override
-	public void copy(Reader r, Writer w, boolean closeR, boolean closeW) throws IOException {
-		IOUtil.copy(r,w,closeR,closeW);
-	}
+    @Override
+    public String toString(byte[] barr, Charset charset) throws IOException {
+	return IOUtil.toString(barr, charset);
+    }
 
-	@Override
-	public void copy(Resource src, Resource trg) throws IOException {
-		IOUtil.copy(src,trg);
-	}
+    @Override
+    public String toString(Resource res, Charset charset) throws IOException {
+	return IOUtil.toString(res, charset);
+    }
 
-	@Override
-	public BufferedInputStream toBufferedInputStream(InputStream is) {
-		return IOUtil.toBufferedInputStream(is);
-	}
+    @Override
+    public void copy(InputStream in, OutputStream out, boolean closeIS, boolean closeOS) throws IOException {
+	IOUtil.copy(in, out, closeIS, closeOS);
+    }
 
-	@Override
-	public BufferedOutputStream toBufferedOutputStream(OutputStream os) {
-		return IOUtil.toBufferedOutputStream(os);
-	}
+    @Override
+    public void copy(Reader r, Writer w, boolean closeR, boolean closeW) throws IOException {
+	IOUtil.copy(r, w, closeR, closeW);
+    }
 
-	@Override
-	public void write(Resource res, String content, boolean append,Charset charset) throws IOException {
-		IOUtil.write(res, content, charset, append);
-	}
+    @Override
+    public void copy(Resource src, Resource trg) throws IOException {
+	IOUtil.copy(src, trg);
+    }
 
-	@Override
-	public void write(Resource res, byte[] content, boolean append) throws IOException {
-		IOUtil.write(res, content, append);
-	}
+    @Override
+    public BufferedInputStream toBufferedInputStream(InputStream is) {
+	return IOUtil.toBufferedInputStream(is);
+    }
 
-	@Override
-	public Reader getReader(InputStream is, Charset charset) throws IOException {
-		return IOUtil.getReader(is, charset);
-	}
+    @Override
+    public BufferedOutputStream toBufferedOutputStream(OutputStream os) {
+	return IOUtil.toBufferedOutputStream(os);
+    }
 
-	@Override
-	public Reader getReader(Resource res, Charset charset) throws IOException {
-		return IOUtil.getReader(res, charset);
-	}
+    @Override
+    public void write(Resource res, String content, boolean append, Charset charset) throws IOException {
+	IOUtil.write(res, content, charset, append);
+    }
 
-	@Override
-	public Reader toBufferedReader(Reader reader) {
-		return IOUtil.toBufferedReader(reader);
-	}
+    @Override
+    public void write(Resource res, byte[] content, boolean append) throws IOException {
+	IOUtil.write(res, content, append);
+    }
 
-	@Override
-	public void copy(InputStream is, Resource out, boolean closeIS) throws IOException {
-		IOUtil.copy(is, out, closeIS);
-	}
+    @Override
+    public Reader getReader(InputStream is, Charset charset) throws IOException {
+	return IOUtil.getReader(is, charset);
+    }
 
-	@Override
-	public OutputStream createTemporaryStream() {
-		return new TemporaryStream();
-	}
+    @Override
+    public Reader getReader(Resource res, Charset charset) throws IOException {
+	return IOUtil.getReader(res, charset);
+    }
+
+    @Override
+    public Reader toBufferedReader(Reader reader) {
+	return IOUtil.toBufferedReader(reader);
+    }
+
+    @Override
+    public void copy(InputStream is, Resource out, boolean closeIS) throws IOException {
+	IOUtil.copy(is, out, closeIS);
+    }
+
+    @Override
+    public OutputStream createTemporaryStream() {
+	return new TemporaryStream();
+    }
 }

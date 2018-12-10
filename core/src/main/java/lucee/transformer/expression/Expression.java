@@ -31,16 +31,17 @@ public interface Expression {
     /**
      * Field <code>MODE_REF</code>
      */
-    public static final int MODE_REF=0;
+    public static final int MODE_REF = 0;
     /**
      * Field <code>MODE_VALUE</code>
      */
-    public static final int MODE_VALUE=1;
-    
+    public static final int MODE_VALUE = 1;
+
     /**
      * write out the stament to adapter
+     * 
      * @param adapter
-     * @param mode 
+     * @param mode
      * @return return Type of expression
      * @throws TemplateException
      */
@@ -53,6 +54,6 @@ public interface Expression {
     public void setStart(Position start);
 
     public void setEnd(Position end);
-    
-	public Factory getFactory();
+
+    public Factory getFactory();
 }

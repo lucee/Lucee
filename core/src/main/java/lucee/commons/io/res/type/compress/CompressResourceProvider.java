@@ -34,118 +34,118 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.op.Caster;
 
 public abstract class CompressResourceProvider implements ResourceProviderPro {
-	
-	private static final long serialVersionUID = 5930090603192203086L;
-	
-	private Resources resources;
-	protected String scheme=null;
-	protected boolean caseSensitive=true;
-	boolean async=true; 
-	private long lockTimeout=10000;
-	private final ResourceLockImpl lock=new ResourceLockImpl(lockTimeout,caseSensitive);
-	private Map arguments;
 
-	@Override
-	public ResourceProvider init(String scheme, Map arguments) {
-		if(!StringUtil.isEmpty(scheme))this.scheme=scheme;
-		if(arguments!=null) {
-			this.arguments=arguments;
-			// case-sensitive
-			String strCaseSensitive=(String) arguments.get("case-sensitive");
-			if(strCaseSensitive!=null) {
-				caseSensitive=Caster.toBooleanValue(strCaseSensitive,true);
-			}
-			
-			// sync
-			String strASync=(String) arguments.get("asynchronus");
-			if(strASync==null)strASync=(String) arguments.get("async");
-			if(strASync!=null) {
-				async=Caster.toBooleanValue(strASync,true);
-			}
-			
-			// lock-timeout
-			String strTimeout = (String) arguments.get("lock-timeout");
-			if(strTimeout!=null) {
-				lockTimeout=Caster.toLongValue(arguments.get("lock-timeout"),lockTimeout);
-			}
-		}
-		lock.setLockTimeout(lockTimeout);
-		lock.setCaseSensitive(caseSensitive);
-		
-		return this;
-	}
-	
-	public ResourceProvider init(String scheme, boolean caseSensitive, boolean async) {
-		if(!StringUtil.isEmpty(scheme))this.scheme=scheme;
-		this.caseSensitive=caseSensitive;
-		this.async=async;
-		return this;
-	}
+    private static final long serialVersionUID = 5930090603192203086L;
 
-	@Override
-	public Resource getResource(String path) { 
-		path=ResourceUtil.removeScheme(scheme,path);
-		int index=path.lastIndexOf('!');
-		if(index!=-1) {
-			Resource file = toResource(path.substring(0,index));//resources.getResource(path.substring(0,index));
-			try {
-				return new CompressResource(this,getCompress(file),path.substring(index+1),caseSensitive);
-			} catch (IOException e) {
-				throw ExceptionUtil.toRuntimeException(e);
-			}
-		}
-		Resource file = toResource(path);//resources.getResource(path);
-		try {
-			return new CompressResource(this,getCompress(file),"/",caseSensitive);
-		} catch (IOException e) {
-			throw ExceptionUtil.toRuntimeException(e);
-		}
-	}
-	
-	private Resource toResource(String path) {
-		PageContext pc = ThreadLocalPageContext.get();
-		if(pc!=null) {
-			return ResourceUtil.toResourceNotExisting(ThreadLocalPageContext.get(), path,true,false);
-		}
-		return resources.getResource(path);
-	}
+    private Resources resources;
+    protected String scheme = null;
+    protected boolean caseSensitive = true;
+    boolean async = true;
+    private long lockTimeout = 10000;
+    private final ResourceLockImpl lock = new ResourceLockImpl(lockTimeout, caseSensitive);
+    private Map arguments;
 
-	public abstract Compress getCompress(Resource file) throws IOException;
+    @Override
+    public ResourceProvider init(String scheme, Map arguments) {
+	if (!StringUtil.isEmpty(scheme)) this.scheme = scheme;
+	if (arguments != null) {
+	    this.arguments = arguments;
+	    // case-sensitive
+	    String strCaseSensitive = (String) arguments.get("case-sensitive");
+	    if (strCaseSensitive != null) {
+		caseSensitive = Caster.toBooleanValue(strCaseSensitive, true);
+	    }
 
-	@Override
-	public String getScheme() {
-		return scheme;
+	    // sync
+	    String strASync = (String) arguments.get("asynchronus");
+	    if (strASync == null) strASync = (String) arguments.get("async");
+	    if (strASync != null) {
+		async = Caster.toBooleanValue(strASync, true);
+	    }
+
+	    // lock-timeout
+	    String strTimeout = (String) arguments.get("lock-timeout");
+	    if (strTimeout != null) {
+		lockTimeout = Caster.toLongValue(arguments.get("lock-timeout"), lockTimeout);
+	    }
 	}
+	lock.setLockTimeout(lockTimeout);
+	lock.setCaseSensitive(caseSensitive);
 
+	return this;
+    }
 
+    public ResourceProvider init(String scheme, boolean caseSensitive, boolean async) {
+	if (!StringUtil.isEmpty(scheme)) this.scheme = scheme;
+	this.caseSensitive = caseSensitive;
+	this.async = async;
+	return this;
+    }
 
-	@Override
-	public void setResources(Resources resources) {
-		this.resources=resources;
+    @Override
+    public Resource getResource(String path) {
+	path = ResourceUtil.removeScheme(scheme, path);
+	int index = path.lastIndexOf('!');
+	if (index != -1) {
+	    Resource file = toResource(path.substring(0, index));// resources.getResource(path.substring(0,index));
+	    try {
+		return new CompressResource(this, getCompress(file), path.substring(index + 1), caseSensitive);
+	    }
+	    catch (IOException e) {
+		throw ExceptionUtil.toRuntimeException(e);
+	    }
 	}
+	Resource file = toResource(path);// resources.getResource(path);
+	try {
+	    return new CompressResource(this, getCompress(file), "/", caseSensitive);
+	}
+	catch (IOException e) {
+	    throw ExceptionUtil.toRuntimeException(e);
+	}
+    }
 
-	@Override
-	public void lock(Resource res) throws IOException {
-		lock.lock(res);
+    private Resource toResource(String path) {
+	PageContext pc = ThreadLocalPageContext.get();
+	if (pc != null) {
+	    return ResourceUtil.toResourceNotExisting(ThreadLocalPageContext.get(), path, true, false);
 	}
+	return resources.getResource(path);
+    }
 
-	@Override
-	public void unlock(Resource res) {
-		lock.unlock(res);
-	}
+    public abstract Compress getCompress(Resource file) throws IOException;
 
-	@Override
-	public void read(Resource res) throws IOException {
-		lock.read(res);
-	}
+    @Override
+    public String getScheme() {
+	return scheme;
+    }
 
-	@Override
-	public Map getArguments() {
-		return arguments;
-	}
-	
-	@Override
-	public char getSeparator() {
-		return '/';
-	}
+    @Override
+    public void setResources(Resources resources) {
+	this.resources = resources;
+    }
+
+    @Override
+    public void lock(Resource res) throws IOException {
+	lock.lock(res);
+    }
+
+    @Override
+    public void unlock(Resource res) {
+	lock.unlock(res);
+    }
+
+    @Override
+    public void read(Resource res) throws IOException {
+	lock.read(res);
+    }
+
+    @Override
+    public Map getArguments() {
+	return arguments;
+    }
+
+    @Override
+    public char getSeparator() {
+	return '/';
+    }
 }

@@ -18,37 +18,36 @@
  **/
 package lucee.transformer.library.function;
 
-import lucee.runtime.config.Constants;
-
 import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 
- 
+import lucee.runtime.config.Constants;
 
 /**
- * Hilfsklasse fuer die FunctionLibFactory, diese Klasse definiert den DTDHandler fuer den Sax Parser. 
- * Die Klasse laedt wenn moeglich die DTD, anhand der Public-id vom lokalen System.
+ * Hilfsklasse fuer die FunctionLibFactory, diese Klasse definiert den DTDHandler fuer den Sax
+ * Parser. Die Klasse laedt wenn moeglich die DTD, anhand der Public-id vom lokalen System.
  * 
- * @see  org.xml.sax.EntityResolver
+ * @see org.xml.sax.EntityResolver
  */
 public final class FunctionLibEntityResolver implements EntityResolver {
-	/**
-	 * Definert den DTD welche eine FLD validieren kann
-	 */
-	public final static String DTD_1_0=	"/resource/dtd/web-cfmfunctionlibrary_1_0.dtd";
-		
-	/**
-	 * Laedt die DTD vom lokalen System.
-	 * @see org.xml.sax.EntityResolver#resolveEntity(java.lang.String, java.lang.String)
-	 */
-	@Override
-	public InputSource resolveEntity(String publicId, String systemId) {
-		for(int i=0;i<Constants.DTDS_FLD.length;i++){
-			if ( publicId.equals( Constants.DTDS_FLD[i] ) ) {
-				return new InputSource( getClass().getResourceAsStream(DTD_1_0) );
-			}
-		}
-		return null;
-	}
+    /**
+     * Definert den DTD welche eine FLD validieren kann
+     */
+    public final static String DTD_1_0 = "/resource/dtd/web-cfmfunctionlibrary_1_0.dtd";
 
- }
+    /**
+     * Laedt die DTD vom lokalen System.
+     * 
+     * @see org.xml.sax.EntityResolver#resolveEntity(java.lang.String, java.lang.String)
+     */
+    @Override
+    public InputSource resolveEntity(String publicId, String systemId) {
+	for (int i = 0; i < Constants.DTDS_FLD.length; i++) {
+	    if (publicId.equals(Constants.DTDS_FLD[i])) {
+		return new InputSource(getClass().getResourceAsStream(DTD_1_0));
+	    }
+	}
+	return null;
+    }
+
+}

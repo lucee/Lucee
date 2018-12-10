@@ -21,12 +21,12 @@ package lucee.transformer.cfml.evaluator.impl;
 import lucee.transformer.cfml.evaluator.ChildEvaluator;
 
 /**
- * Prueft den Kontext des Tag <code>catch</code>.
- * Das Tag darf sich nur direkt innerhalb des Tag <code>try</code> befinden.
+ * Prueft den Kontext des Tag <code>catch</code>. Das Tag darf sich nur direkt innerhalb des Tag
+ * <code>try</code> befinden.
  */
 public final class Catch extends ChildEvaluator {
 
-	public Catch(){
-		super("try");
-	}
+    public Catch() {
+	super("try");
+    }
 }

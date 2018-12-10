@@ -18,36 +18,32 @@
  **/
 package lucee.runtime.net.ipsettings;
 
-
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-
 /**
- * this class represents the * match so it is used as a root of the node tree and matches all addresses
+ * this class represents the * match so it is used as a root of the node tree and matches all
+ * addresses
  *
  * @param <T>
  */
 public final class IPRangeNodeRoot<T> extends IPRangeNode<T> {
 
+    public IPRangeNodeRoot() throws UnknownHostException {
 
-	public IPRangeNodeRoot() throws UnknownHostException {
+	super("0");
+    }
 
-		super( "0" );
-	}
+    @Override
+    public boolean isInRange(InetAddress addr) {
 
+	return true;
+    }
 
-	@Override
-	public boolean isInRange(InetAddress addr) {
+    @Override
+    public boolean containsRange(IPRangeNode other) {
 
-		return true;
-	}
-
-
-	@Override
-	public boolean containsRange(IPRangeNode other) {
-
-		return true;
-	}
+	return true;
+    }
 
 }

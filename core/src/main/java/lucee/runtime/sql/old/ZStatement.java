@@ -20,7 +20,4 @@ package lucee.runtime.sql.old;
 
 import java.io.Serializable;
 
-public interface ZStatement
-    extends Serializable
-{
-}
+public interface ZStatement extends Serializable {}

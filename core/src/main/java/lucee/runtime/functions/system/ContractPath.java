@@ -21,7 +21,6 @@
  */
 package lucee.runtime.functions.system;
 
-
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
@@ -31,31 +30,31 @@ import lucee.runtime.PageSource;
 import lucee.runtime.ext.function.Function;
 
 public final class ContractPath implements Function {
-	public static String call(PageContext pc , String absPath) {
-		return call(pc, absPath,false);
+    public static String call(PageContext pc, String absPath) {
+	return call(pc, absPath, false);
+    }
+
+    public static String call(PageContext pc, String absPath, boolean placeHolder) {
+	Resource res = ResourceUtil.toResourceNotExisting(pc, absPath);
+	if (!res.exists()) return absPath;
+
+	if (placeHolder) {
+	    String cp = SystemUtil.addPlaceHolder(res, null);
+	    if (!StringUtil.isEmpty(cp)) return cp;
 	}
-	
-	public static String call(PageContext pc , String absPath, boolean placeHolder) {
-		Resource res = ResourceUtil.toResourceNotExisting(pc, absPath);
-		if(!res.exists()) return absPath;
-		
-		if(placeHolder){
-			String cp = SystemUtil.addPlaceHolder(res, null);
-			if(!StringUtil.isEmpty(cp))return cp;
-		}
-		
-		//Config config=pc.getConfig();
-		PageSource ps = pc.toPageSource(res,null);
-		if(ps==null) return absPath;
-		
-		String realPath = ps.getRealpath();
-		realPath=realPath.replace('\\', '/');
-		if(StringUtil.endsWith(realPath,'/'))realPath=realPath.substring(0,realPath.length()-1);
-		
-		String mapping=ps.getMapping().getVirtual();
-		mapping=mapping.replace('\\', '/');
-		if(StringUtil.endsWith(mapping,'/'))mapping=mapping.substring(0,mapping.length()-1);
-		
-		return mapping+realPath;
-	}
+
+	// Config config=pc.getConfig();
+	PageSource ps = pc.toPageSource(res, null);
+	if (ps == null) return absPath;
+
+	String realPath = ps.getRealpath();
+	realPath = realPath.replace('\\', '/');
+	if (StringUtil.endsWith(realPath, '/')) realPath = realPath.substring(0, realPath.length() - 1);
+
+	String mapping = ps.getMapping().getVirtual();
+	mapping = mapping.replace('\\', '/');
+	if (StringUtil.endsWith(mapping, '/')) mapping = mapping.substring(0, mapping.length() - 1);
+
+	return mapping + realPath;
+    }
 }

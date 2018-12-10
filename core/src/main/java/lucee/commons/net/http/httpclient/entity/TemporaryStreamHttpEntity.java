@@ -22,56 +22,55 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import lucee.commons.io.IOUtil;
-import lucee.commons.io.TemporaryStream;
-
 import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.entity.ContentType;
 
+import lucee.commons.io.IOUtil;
+import lucee.commons.io.TemporaryStream;
 
 public class TemporaryStreamHttpEntity extends AbstractHttpEntity implements Entity4 {
 
-	private final TemporaryStream ts;
-	private ContentType ct;
+    private final TemporaryStream ts;
+    private ContentType ct;
 
-	public TemporaryStreamHttpEntity(TemporaryStream ts,ContentType contentType) {
-		this.ts=ts;
-		this.ct=contentType;
-		setContentType(ct!=null?ct.toString():null);
-	}
-	
-	@Override
-	public long getContentLength() {
-		return ts.length();
-	}
+    public TemporaryStreamHttpEntity(TemporaryStream ts, ContentType contentType) {
+	this.ts = ts;
+	this.ct = contentType;
+	setContentType(ct != null ? ct.toString() : null);
+    }
 
-	@Override
-	public boolean isRepeatable() {
-		return false;
-	}
+    @Override
+    public long getContentLength() {
+	return ts.length();
+    }
 
-	@Override
-	public void writeTo(OutputStream os) throws IOException {
-		IOUtil.copy(ts.getInputStream(), os,true,false);
-	}
+    @Override
+    public boolean isRepeatable() {
+	return false;
+    }
 
-	@Override
-	public InputStream getContent() throws IOException, IllegalStateException {
-		return ts.getInputStream();
-	}
+    @Override
+    public void writeTo(OutputStream os) throws IOException {
+	IOUtil.copy(ts.getInputStream(), os, true, false);
+    }
 
-	@Override
-	public boolean isStreaming() {
-		return false;
-	}
+    @Override
+    public InputStream getContent() throws IOException, IllegalStateException {
+	return ts.getInputStream();
+    }
 
-	@Override
-	public long contentLength() {
-		return getContentLength();
-	}
+    @Override
+    public boolean isStreaming() {
+	return false;
+    }
 
-	@Override
-	public String contentType() {
-		return ct!=null?ct.toString():null;
-	}
+    @Override
+    public long contentLength() {
+	return getContentLength();
+    }
+
+    @Override
+    public String contentType() {
+	return ct != null ? ct.toString() : null;
+    }
 }

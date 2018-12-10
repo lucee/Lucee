@@ -17,25 +17,22 @@
  */
 package lucee.runtime.engine;
 
-import lucee.loader.engine.CFMLEngine;
-
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 
-public class CFMLEngineActivator  {
-    
-private ServiceRegistration<?> registration;
+import lucee.loader.engine.CFMLEngine;
 
-	//@Override
+public class CFMLEngineActivator {
+
+    private ServiceRegistration<?> registration;
+
+    // @Override
     public void start(BundleContext bundleContext) throws Exception {
-        registration = bundleContext.registerService(
-                CFMLEngine.class.getName(),
-                CFMLEngineImpl.getInstance(),
-                null);
+	registration = bundleContext.registerService(CFMLEngine.class.getName(), CFMLEngineImpl.getInstance(), null);
     }
-  
-    //@Override
+
+    // @Override
     public void stop(BundleContext bundleContext) throws Exception {
-        registration.unregister();
+	registration.unregister();
     }
 }

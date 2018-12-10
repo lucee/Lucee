@@ -22,7 +22,7 @@ import lucee.runtime.config.Config;
 import lucee.runtime.exp.PageException;
 
 public interface Task {
-	
-	public Object execute(Config config) throws PageException;
+
+    public Object execute(Config config) throws PageException;
 
 }

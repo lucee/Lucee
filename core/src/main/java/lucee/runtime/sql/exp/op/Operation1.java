@@ -23,38 +23,37 @@ import lucee.runtime.sql.exp.ExpressionSupport;
 
 public class Operation1 extends ExpressionSupport implements Operation {
 
-	private Expression exp;
-	private int operator;
+    private Expression exp;
+    private int operator;
 
+    /**
+     * @return the exp
+     */
+    public Expression getExp() {
+	return exp;
+    }
 
-	/**
-	 * @return the exp
-	 */
-	public Expression getExp() {
-		return exp;
+    /**
+     * @return the operator
+     */
+    public int getOperator() {
+	return operator;
+    }
+
+    public Operation1(Expression exp, int operator) {
+	this.exp = exp;
+	this.operator = operator;
+    }
+
+    @Override
+    public String toString(boolean noAlias) {
+	if (!hasAlias() || noAlias) {
+	    if (operator == OPERATION1_IS_NULL || operator == OPERATION1_IS_NOT_NULL) {
+		return exp.toString(true) + " " + Operation2.toString(operator);
+	    }
+	    return Operation2.toString(operator) + " " + exp.toString(true);
 	}
+	return toString(true) + " as " + getAlias();
+    }
 
-	/**
-	 * @return the operator
-	 */
-	public int getOperator() {
-		return operator;
-	}
-
-	public Operation1(Expression exp, int operator) {
-		this.exp=exp;
-		this.operator=operator;
-	}
-
-	@Override
-	public String toString(boolean noAlias) {
-		if(!hasAlias() || noAlias) {
-			if(operator==OPERATION1_IS_NULL || operator==OPERATION1_IS_NOT_NULL) {
-				return exp.toString(true)+" "+Operation2.toString(operator);
-			}
-			return Operation2.toString(operator)+" "+exp.toString(true);
-		}
-		return toString(true)+" as "+getAlias();
-	}
-	
 }

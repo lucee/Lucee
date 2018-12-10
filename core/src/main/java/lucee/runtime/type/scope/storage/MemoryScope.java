@@ -21,14 +21,14 @@ package lucee.runtime.type.scope.storage;
 import lucee.runtime.type.scope.Scope;
 
 public interface MemoryScope extends Scope {
-	/**
-	 * is the scope expired?
-	 */
-	public boolean isExpired();
-	
-	/**
-	 * set lastvistit to now
-	 */
-	public abstract void touch();
-	
+    /**
+     * is the scope expired?
+     */
+    public boolean isExpired();
+
+    /**
+     * set lastvistit to now
+     */
+    public abstract void touch();
+
 }

@@ -16,7 +16,6 @@
  **/
 package lucee.runtime.type.scope.session;
 
-
 import lucee.commons.collection.MapPro;
 import lucee.runtime.PageContext;
 import lucee.runtime.type.Collection;
@@ -26,23 +25,24 @@ import lucee.runtime.type.scope.storage.IKStorageScopeItem;
 import lucee.runtime.type.scope.storage.IKStorageScopeSupport;
 
 public final class IKStorageScopeSession extends IKStorageScopeSupport implements Session {
-	
-	private static final long serialVersionUID = -875719423763891692L;
 
-	public IKStorageScopeSession(PageContext pc, IKHandler handler, String appName ,String name, MapPro<Collection.Key,IKStorageScopeItem> data, long lastModified) { 
-		super(pc,handler, appName,name,"session",SCOPE_SESSION,data, lastModified);
-	}
+    private static final long serialVersionUID = -875719423763891692L;
 
-	/**
-	 * Constructor of the class, clone existing
-	 * @param other
-	 */
-	private IKStorageScopeSession(IKStorageScopeSupport other,boolean deepCopy) {
-		super(other,deepCopy);
-	}
-	
-	@Override
-	public Collection duplicate(boolean deepCopy) {
-    	return new IKStorageScopeSession(this,deepCopy);
-	}
+    public IKStorageScopeSession(PageContext pc, IKHandler handler, String appName, String name, MapPro<Collection.Key, IKStorageScopeItem> data, long lastModified) {
+	super(pc, handler, appName, name, "session", SCOPE_SESSION, data, lastModified);
+    }
+
+    /**
+     * Constructor of the class, clone existing
+     * 
+     * @param other
+     */
+    private IKStorageScopeSession(IKStorageScopeSupport other, boolean deepCopy) {
+	super(other, deepCopy);
+    }
+
+    @Override
+    public Collection duplicate(boolean deepCopy) {
+	return new IKStorageScopeSession(this, deepCopy);
+    }
 }

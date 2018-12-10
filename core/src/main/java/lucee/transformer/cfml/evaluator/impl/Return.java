@@ -23,22 +23,21 @@ import lucee.transformer.cfml.evaluator.EvaluatorException;
 import lucee.transformer.cfml.evaluator.EvaluatorSupport;
 import lucee.transformer.library.tag.TagLibTag;
 
-
-
 /**
- * Prueft den Kontext des Tag case.
- * Das Tag <code>return</code> darf nur innerhalb des Tag <code>function</code> liegen.
+ * Prueft den Kontext des Tag case. Das Tag <code>return</code> darf nur innerhalb des Tag
+ * <code>function</code> liegen.
  */
 public final class Return extends EvaluatorSupport {
 
-	@Override
-	public void evaluate(Tag tag,TagLibTag libTag) throws EvaluatorException { 
-		//String ns=libTag.getTagLib().getNameSpaceAndSeperator();
-		//	String funcName=ns+"function";
-		
-		// check if tag is direct inside if
-		//if(!ASMUtil.hasAncestorTag(tag,funcName))
-		//	throw new EvaluatorException("Wrong Context, tag "+libTag.getFullName()+" must be inside a "+funcName+" tag");	
-	}
+    @Override
+    public void evaluate(Tag tag, TagLibTag libTag) throws EvaluatorException {
+	// String ns=libTag.getTagLib().getNameSpaceAndSeperator();
+	// String funcName=ns+"function";
+
+	// check if tag is direct inside if
+	// if(!ASMUtil.hasAncestorTag(tag,funcName))
+	// throw new EvaluatorException("Wrong Context, tag "+libTag.getFullName()+" must be inside a
+	// "+funcName+" tag");
+    }
 
 }

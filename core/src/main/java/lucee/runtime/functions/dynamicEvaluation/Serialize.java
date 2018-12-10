@@ -18,7 +18,6 @@
  **/
 package lucee.runtime.functions.dynamicEvaluation;
 
-
 import lucee.runtime.PageContext;
 import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.ScriptConverter;
@@ -30,13 +29,14 @@ import lucee.runtime.op.Caster;
  * Implements the CFML Function Serialize
  */
 public final class Serialize implements Function {
-	
-	public static String call(PageContext pc , Object o) throws PageException {
-	    try {
-            return new ScriptConverter().serialize(o);
-        } catch (ConverterException e) {
-            throw Caster.toPageException(e);
-        }
+
+    public static String call(PageContext pc, Object o) throws PageException {
+	try {
+	    return new ScriptConverter().serialize(o);
 	}
-	
+	catch (ConverterException e) {
+	    throw Caster.toPageException(e);
+	}
+    }
+
 }

@@ -1,8 +1,5 @@
-<cfcomponent extends="org.lucee.cfml.test.LuceeTestCase">
-	
-	<cfscript>
-	
-	function testMemberFunction(){
+component extends="org.lucee.cfml.test.LuceeTestCase"{	
+function testMemberFunction(){
 		local.orgLocale=getLocale();
 		setLocale("German (Swiss)");
 		setTimeZone('CET');
@@ -18,7 +15,7 @@
 			setLocale(orgLocale);
 		}
 	}
-
+ 
 	function testLuceeMemberFunction(){
 		local.testcase=new LSDateFormat.LSDateFormat();
 		testcase.testMemberFunction();
@@ -28,213 +25,187 @@
 		testcase.testFunction();
 	}
 
-	</cfscript>
 
+	function run( testResults , testBox ) {
+		describe( "test case for LSDateFormat", function() {
+			it(title = "Checking with LSDateFormat", body = function( currentSpec ) {
+				orgLocale=getLocale();
+				setLocale("German (Swiss)");
+				dt=CreateDateTime(2004,1,2,4,5,6);
 
+				assertEquals("02.01.2004", "#lsdateFormat(dt)#");
+				assertEquals("02.01.04x", "#lsdateFormat(dt,"short")#x");
+				assertEquals("02.01.2004x", "#lsdateFormat(dt,"medium")#x");
+				assertEquals("2. Januar 2004x", "#lsdateFormat(dt,"long")#x");
+				assertEquals("Freitag, 2. Januar 2004x", "#lsdateFormat(dt,"full")#x");
+				assertEquals("Freitag, 2. Januar 2004x", "#lsdateFormat(dt,"full")#x");
 
-	<cffunction name="testLSDateFormatClassic" localMode="modern">
+				assertEquals("2004", "#lsdateFormat(dt,"yyyy")#");
+				assertEquals("04", "#lsdateFormat(dt,"yy")#");
+				assertEquals("2004", "#lsdateFormat(dt,"y")#");
+				assertEquals("2004", "#lsdateFormat(dt,"YYYY")#");
+				assertEquals("04", "#lsdateFormat(dt,"YY")#");
+				assertEquals("2004", "#lsdateFormat(dt,"Y")#");
+				assertEquals("Januar", "#lsdateFormat(dt,"MMMM")#");
 
-<!--- begin old test code --->
-<cfset orgLocale=getLocale()>
-<cfset setLocale("German (Swiss)")>
-<cfset dt=CreateDateTime(2004,1,2,4,5,6)>
+				assertEquals("Jan", "#lsdateFormat(dt,"mmm")#");
+				assertEquals("01x", "#lsdateFormat(dt,"mm")#x");
+				assertEquals("1x", "#lsdateFormat(dt,"m")#x");
+				assertEquals("Freitag", "#lsdateFormat(dt,"dddd")#");
+				assertEquals("Fr", "#lsdateFormat(dt,"ddd")#");
+				assertEquals("02x", "#lsdateFormat(dt,"dd")#x");
+				assertEquals("2x", "#lsdateFormat(dt,"d")#x");
+				assertEquals("02.01.2004x", "#lsdateFormat(dt,"dd.mm.yyyy")#x");
+				assertEquals("", "#lsdateFormat('',"dd.mm.yyyy")#");
 
-<cfset valueEquals(left="#lsdateFormat(dt)#", right="02.01.2004")>
-<cfset valueEquals(left="#lsdateFormat(dt,"short")#x", right="02.01.04x")>
-<cfset valueEquals(left="#lsdateFormat(dt,"medium")#x", right="02.01.2004x")>
-<cfset valueEquals(left="#lsdateFormat(dt,"long")#x", right="2. Januar 2004x")>
-<cfset valueEquals(left="#lsdateFormat(dt,"full")#x", right="Freitag, 2. Januar 2004x")>
-<cfset valueEquals(left="#lsdateFormat(dt,"full")#x", right="Freitag, 2. Januar 2004x")>
+				setLocale(orgLocale);
+				assertEquals("31","#LSDateFormat(1,"dd")#");
+						
+				d=CreateDateTime(2008,4,6,1,2,3);
+					
+				setlocale('German (swiss)');
+				assertEquals("06.04.08", "#lsDateFormat(d,'short')#");
+				assertEquals("06.04.08", "#lsDateFormat('06.04.08','short')#");
+				assertEquals("06.04.08", "#lsDateFormat('06.04.2008','short')#");
+				assertEquals("06.04.08", "#lsDateFormat('6. April 2008','short')#");
+				assertEquals("06.04.2008", "#lsDateFormat(d,'medium')#");
+				assertEquals("06.04.2008", "#lsDateFormat('06.04.08','medium')#");
+				assertEquals("06.04.2008", "#lsDateFormat('06.04.2008','medium')#");
+				assertEquals("06.04.2008", "#lsDateFormat('Sonntag, 6. April 2008','medium')#");
+				assertEquals("6. April 2008", "#lsDateFormat(d,'long')#");
+				assertEquals("6. April 2008", "#lsDateFormat('06.04.08','long')#");
+				assertEquals("6. April 2008", "#lsDateFormat('06.04.2008','long')#");
+				assertEquals("6. April 2008", "#lsDateFormat('Sonntag, 6. April 2008','long')#");
+				assertEquals("Sonntag, 6. April 2008", "#lsDateFormat(d,'full')#");
+				assertEquals("Sonntag, 6. April 2008", "#lsDateFormat('06.04.08','full')#");
+				assertEquals("Sonntag, 6. April 2008", "#lsDateFormat('06.04.2008','full')#");
+				assertEquals("Sonntag, 6. April 2008", "#lsDateFormat('Sonntag, 6. April 2008','full')#");
 
+				<!--- only supported by railo --->
+				assertEquals("06.04.08", "#lsDateFormat('Sonntag, 6. April 2008','short')#");
+				assertEquals("06.04.2008", "#lsDateFormat('6. April 2008','medium')#");
 
-<cfset valueEquals(left="#lsdateFormat(dt,"yyyy")#", right="2004")>
-<cfset valueEquals(left="#lsdateFormat(dt,"yy")#", right="04")>
-<cfset valueEquals(left="#lsdateFormat(dt,"y")#", right="2004")>
-<cfset valueEquals(left="#lsdateFormat(dt,"YYYY")#", right="2004")>
-<cfset valueEquals(left="#lsdateFormat(dt,"YY")#", right="04")>
-<cfset valueEquals(left="#lsdateFormat(dt,"Y")#", right="2004")>
-<cfset valueEquals(left="#lsdateFormat(dt,"MMMM")#", right="Januar")>
+				setlocale('french (standard)');
+				if(getJavaVersion()>=9) {
+					assertEquals("06/04/2008", "#lsDateFormat(d,'short')#");
+					assertEquals("06/04/2008", "#lsDateFormat(('06/04/08'),'short')#");
+					assertEquals("06/04/2008", "#lsDateFormat('6 avr. 2008','short')#");
+					assertEquals("06/04/2008", "#lsDateFormat('6 avril 2008','short')#");
+					assertEquals("06/04/2008", "#lsDateFormat('dimanche 6 avril 2008','short')#");
+				}
+				else {
+					assertEquals("06/04/08", "#lsDateFormat(d,'short')#");
+					assertEquals("06/04/08", "#lsDateFormat(('06/04/08'),'short')#");
+					assertEquals("06/04/08", "#lsDateFormat('6 avr. 2008','short')#");
+					assertEquals("06/04/08", "#lsDateFormat('6 avril 2008','short')#");
+					assertEquals("06/04/08", "#lsDateFormat('dimanche 6 avril 2008','short')#");
+				}
+				
+				assertEquals("6 avr. 2008", "#lsDateFormat(d,'medium')#");
+				assertEquals("6 avr. 2008", "#lsDateFormat('06/04/08','medium')#");
+				assertEquals("6 avr. 2008", "#lsDateFormat('6 avr. 2008','medium')#");
+				assertEquals("6 avr. 2008", "#lsDateFormat('6 avril 2008','medium')#");
+				assertEquals("6 avr. 2008", "#lsDateFormat('dimanche 6 avril 2008','medium')#");
+				assertEquals("6 avril 2008", "#lsDateFormat(d,'long')#");
+				assertEquals("6 avril 2008", "#lsDateFormat('06/04/08','long')#");
+				assertEquals("6 avril 2008", "#lsDateFormat('6 avr. 2008','long')#");
+				assertEquals("6 avril 2008", "#lsDateFormat('6 avril 2008','long')#");
+				assertEquals("6 avril 2008", "#lsDateFormat('dimanche 6 avril 2008','long')#");
+				assertEquals("dimanche 6 avril 2008", "#lsDateFormat(d,'full')#");
+				assertEquals("dimanche 6 avril 2008", "#lsDateFormat('06/04/08','full')#");
+				assertEquals("dimanche 6 avril 2008", "#lsDateFormat('6 avr. 2008','full')#");
+				assertEquals("dimanche 6 avril 2008", "#lsDateFormat('6 avril 2008','full')#");
+				assertEquals("dimanche 6 avril 2008", "#lsDateFormat('dimanche 6 avril 2008','full')#");
 
-<cfset valueEquals(left="#lsdateFormat(dt,"mmm")#", right="Jan")>
-<cfset valueEquals(left="#lsdateFormat(dt,"mm")#x", right="01x")>
-<cfset valueEquals(left="#lsdateFormat(dt,"m")#x", right="1x")>
-<cfset valueEquals(left="#lsdateFormat(dt,"dddd")#", right="Freitag")>
-<cfset valueEquals(left="#lsdateFormat(dt,"ddd")#", right="Fr")>
-<cfset valueEquals(left="#lsdateFormat(dt,"dd")#x", right="02x")>
-<cfset valueEquals(left="#lsdateFormat(dt,"d")#x", right="2x")>
-<cfset valueEquals(left="#lsdateFormat(dt,"dd.mm.yyyy")#x", right="02.01.2004x")>
-<cfset valueEquals(left="#lsdateFormat('',"dd.mm.yyyy")#", right="")>
+				setlocale('English (US)');
+				assertEquals("4/6/08", "#lsDateFormat(d,'short')#");
+				assertEquals("4/6/08", "#lsDateFormat('4/6/08','short')#");
+				assertEquals("4/6/08", "#lsDateFormat('Apr 6, 2008','short')#");
+				assertEquals("4/6/08", "#lsDateFormat('April 6, 2008','short')#");
+				assertEquals("4/6/08", "#lsDateFormat('Sunday, April 6, 2008','short')#");
+				assertEquals("Apr 6, 2008", "#lsDateFormat(d,'medium')#");
+				assertEquals("Apr 6, 2008", "#lsDateFormat('4/6/08','medium')#");
+				assertEquals("Apr 6, 2008", "#lsDateFormat('Apr 6, 2008','medium')#");
+				assertEquals("Apr 6, 2008", "#lsDateFormat('April 6, 2008','medium')#");
+				assertEquals("Apr 6, 2008", "#lsDateFormat('Sunday, April 6, 2008','medium')#");
+				assertEquals("April 6, 2008", "#lsDateFormat(d,'long')#");
+				assertEquals("April 6, 2008", "#lsDateFormat('4/6/08','long')#");
+				assertEquals("April 6, 2008", "#lsDateFormat('Apr 6, 2008','long')#");
+				assertEquals("April 6, 2008", "#lsDateFormat('April 6, 2008','long')#");
+				assertEquals("April 6, 2008", "#lsDateFormat('Sunday, April 6, 2008','long')#");
+				assertEquals("Sunday, April 6, 2008", "#lsDateFormat(d,'full')#");
+				assertEquals("Sunday, April 6, 2008", "#lsDateFormat('4/6/08','full')#");
+				assertEquals("Sunday, April 6, 2008", "#lsDateFormat('Apr 6, 2008','full')#");
+				assertEquals("Sunday, April 6, 2008", "#lsDateFormat('April 6, 2008','full')#");
+				assertEquals("Sunday, April 6, 2008", "#lsDateFormat('Sunday, April 6, 2008','full')#");
 
-<cfset setLocale(orgLocale)>
-<cfset valueEquals(left="31",right="#LSDateFormat(1,"dd")#")>
-	
-		
-	
-	
-<cfset d=CreateDateTime(2008,4,6,1,2,3)>
-	
-<cfset setlocale('German (swiss)')>
-<cfset valueEquals(left="#lsDateFormat(d,'short')#", right="06.04.08")>
-<cfset valueEquals(left="#lsDateFormat('06.04.08','short')#", right="06.04.08")>
-<cfset valueEquals(left="#lsDateFormat('06.04.2008','short')#", right="06.04.08")>
-<cfset valueEquals(left="#lsDateFormat('6. April 2008','short')#", right="06.04.08")>
-<cfset valueEquals(left="#lsDateFormat(d,'medium')#", right="06.04.2008")>
-<cfset valueEquals(left="#lsDateFormat('06.04.08','medium')#", right="06.04.2008")>
-<cfset valueEquals(left="#lsDateFormat('06.04.2008','medium')#", right="06.04.2008")>
-<cfset valueEquals(left="#lsDateFormat('Sonntag, 6. April 2008','medium')#", right="06.04.2008")>
-<cfset valueEquals(left="#lsDateFormat(d,'long')#", right="6. April 2008")>
-<cfset valueEquals(left="#lsDateFormat('06.04.08','long')#", right="6. April 2008")>
-<cfset valueEquals(left="#lsDateFormat('06.04.2008','long')#", right="6. April 2008")>
-<cfset valueEquals(left="#lsDateFormat('Sonntag, 6. April 2008','long')#", right="6. April 2008")>
-<cfset valueEquals(left="#lsDateFormat(d,'full')#", right="Sonntag, 6. April 2008")>
-<cfset valueEquals(left="#lsDateFormat('06.04.08','full')#", right="Sonntag, 6. April 2008")>
-<cfset valueEquals(left="#lsDateFormat('06.04.2008','full')#", right="Sonntag, 6. April 2008")>
-<cfset valueEquals(left="#lsDateFormat('Sonntag, 6. April 2008','full')#", right="Sonntag, 6. April 2008")>
+				setlocale('English (UK)');
+				if(getJavaVersion()>=9) {
+					assertEquals("06/04/2008", "#lsDateFormat(d,'short')#");
+					assertEquals("06/04/2008", "#lsDateFormat('06/04/08','short')#");
+					assertEquals("06/04/2008", "#lsDateFormat('06-Apr-2008','short')#");
+					assertEquals("06/04/2008", "#lsDateFormat('06 April 2008','short')#");
+					assertEquals("06/04/2008", "#lsDateFormat('Sunday, 6 April 2008','short')#");
 
-<!--- only supported by railo --->
-<cfset valueEquals(left="#lsDateFormat('Sonntag, 6. April 2008','short')#", right="06.04.08")>
-<cfset valueEquals(left="#lsDateFormat('6. April 2008','medium')#", right="06.04.2008")>
+					assertEquals("6 Apr 2008", "#lsDateFormat(d,'medium')#");
+					assertEquals("6 Apr 2008", "#lsDateFormat('06/04/08','medium')#");
+					assertEquals("6 Apr 2008", "#lsDateFormat('06-Apr-2008','medium')#");
+					assertEquals("6 Apr 2008", "#lsDateFormat('06 April 2008','medium')#");
+					assertEquals("6 Apr 2008", "#lsDateFormat('Sunday, 6 April 2008','medium')#");
+					
+					assertEquals("6 April 2008", "#lsDateFormat(d,'long')#");
+					assertEquals("6 April 2008", "#lsDateFormat('06/04/08','long')#");
+					assertEquals("6 April 2008", "#lsDateFormat('06-Apr-2008','long')#");
+					assertEquals("6 April 2008", "#lsDateFormat('06 April 2008','long')#");
+					assertEquals("6 April 2008", "#lsDateFormat('Sunday, 6 April 2008','long')#");
+				}
+				else {
+					assertEquals("06/04/08", "#lsDateFormat(d,'short')#");
+					assertEquals("06/04/08", "#lsDateFormat('06/04/08','short')#");
+					assertEquals("06/04/08", "#lsDateFormat('06-Apr-2008','short')#");
+					assertEquals("06/04/08", "#lsDateFormat('06 April 2008','short')#");
+					assertEquals("06/04/08", "#lsDateFormat('Sunday, 6 April 2008','short')#");
 
+					assertEquals("06-Apr-2008", "#lsDateFormat(d,'medium')#");
+					assertEquals("06-Apr-2008", "#lsDateFormat('06/04/08','medium')#");
+					assertEquals("06-Apr-2008", "#lsDateFormat('06-Apr-2008','medium')#");
+					assertEquals("06-Apr-2008", "#lsDateFormat('06 April 2008','medium')#");
+					assertEquals("06-Apr-2008", "#lsDateFormat('Sunday, 6 April 2008','medium')#");
 
-<cfscript>
-	setlocale('french (standard)');
+					assertEquals("06 April 2008", "#lsDateFormat(d,'long')#");
+					assertEquals("06 April 2008", "#lsDateFormat('06/04/08','long')#");
+					assertEquals("06 April 2008", "#lsDateFormat('06-Apr-2008','long')#");
+					assertEquals("06 April 2008", "#lsDateFormat('06 April 2008','long')#");
+					assertEquals("06 April 2008", "#lsDateFormat('Sunday, 6 April 2008','long')#");
+				}
+				assertEquals("Sunday, 6 April 2008", "#lsDateFormat(d,'full')#");
+				assertEquals("Sunday, 6 April 2008", "#lsDateFormat('06/04/08','full')#");
+				assertEquals("Sunday, 6 April 2008", "#lsDateFormat('06-Apr-2008','full')#");
+				assertEquals("Sunday, 6 April 2008", "#lsDateFormat('06 April 2008','full')#");
+				assertEquals("Sunday, 6 April 2008", "#lsDateFormat('Sunday, 6 April 2008','full')#");
 
-	if(getJavaVersion()>=9) {
-		assertEquals("06/04/2008",lsDateFormat(d,'short'));
-		assertEquals("06/04/2008",lsDateFormat(('06/04/08'),'short'));
-		assertEquals("06/04/2008",lsDateFormat('6 avr. 2008','short'));
-		assertEquals("06/04/2008",lsDateFormat('6 avril 2008','short'));
-		assertEquals("06/04/2008",lsDateFormat('dimanche 6 avril 2008','short'));
+				testDate = "2009-06-13 17:04:06";
+				setLocale("Dutch (Standard)");
+				assertEquals("zaterdag 13 juni 2009", "#lsDateFormat(testDate, 'dddd d mmmm yyyy')#");
+				assertEquals("zaterdag 13 juni 2009", "#lsDateFormat(parseDateTime(testDate), 'dddd d mmmm yyyy')#");
 
+				setLocale("german (swiss)");
+				assertEquals("Samstag 13 Juni 2009", "#lsDateFormat(testDate, 'dddd d mmmm yyyy')#");
+				assertEquals("Samstag 13 Juni 2009", "#lsDateFormat(parseDateTime(testDate), 'dddd d mmmm yyyy')#");
+
+				setLocale(orgLocale);
+			});
+		});	
 	}
-	else {
-		assertEquals("06/04/08",lsDateFormat(d,'short'));
-		assertEquals("06/04/08",lsDateFormat(('06/04/08'),'short'));
-		assertEquals("06/04/08",lsDateFormat('6 avr. 2008','short'));
-		assertEquals("06/04/08",lsDateFormat('6 avril 2008','short'));
-		assertEquals("06/04/08",lsDateFormat('dimanche 6 avril 2008','short'));
-	}
+
 	
-
-
-</cfscript>
-
-<cfset valueEquals(left="#lsDateFormat(d,'medium')#", right="6 avr. 2008")>
-<cfset valueEquals(left="#lsDateFormat('06/04/08','medium')#", right="6 avr. 2008")>
-<cfset valueEquals(left="#lsDateFormat('6 avr. 2008','medium')#", right="6 avr. 2008")>
-<cfset valueEquals(left="#lsDateFormat('6 avril 2008','medium')#", right="6 avr. 2008")>
-<cfset valueEquals(left="#lsDateFormat('dimanche 6 avril 2008','medium')#", right="6 avr. 2008")>
-
-<cfset valueEquals(left="#lsDateFormat(d,'long')#", right="6 avril 2008")>
-<cfset valueEquals(left="#lsDateFormat('06/04/08','long')#", right="6 avril 2008")>
-<cfset valueEquals(left="#lsDateFormat('6 avr. 2008','long')#", right="6 avril 2008")>
-<cfset valueEquals(left="#lsDateFormat('6 avril 2008','long')#", right="6 avril 2008")>
-<cfset valueEquals(left="#lsDateFormat('dimanche 6 avril 2008','long')#", right="6 avril 2008")>
-
-<cfset valueEquals(left="#lsDateFormat(d,'full')#", right="dimanche 6 avril 2008")>
-<cfset valueEquals(left="#lsDateFormat('06/04/08','full')#", right="dimanche 6 avril 2008")>
-<cfset valueEquals(left="#lsDateFormat('6 avr. 2008','full')#", right="dimanche 6 avril 2008")>
-<cfset valueEquals(left="#lsDateFormat('6 avril 2008','full')#", right="dimanche 6 avril 2008")>
-<cfset valueEquals(left="#lsDateFormat('dimanche 6 avril 2008','full')#", right="dimanche 6 avril 2008")>
-
-<cfset setlocale('English (US)')>
-<cfset valueEquals(left="#lsDateFormat(d,'short')#", right="4/6/08")>
-<cfset valueEquals(left="#lsDateFormat('4/6/08','short')#", right="4/6/08")>
-<cfset valueEquals(left="#lsDateFormat('Apr 6, 2008','short')#", right="4/6/08")>
-<cfset valueEquals(left="#lsDateFormat('April 6, 2008','short')#", right="4/6/08")>
-<cfset valueEquals(left="#lsDateFormat('Sunday, April 6, 2008','short')#", right="4/6/08")>
-<cfset valueEquals(left="#lsDateFormat(d,'medium')#", right="Apr 6, 2008")>
-<cfset valueEquals(left="#lsDateFormat('4/6/08','medium')#", right="Apr 6, 2008")>
-<cfset valueEquals(left="#lsDateFormat('Apr 6, 2008','medium')#", right="Apr 6, 2008")>
-<cfset valueEquals(left="#lsDateFormat('April 6, 2008','medium')#", right="Apr 6, 2008")>
-<cfset valueEquals(left="#lsDateFormat('Sunday, April 6, 2008','medium')#", right="Apr 6, 2008")>
-<cfset valueEquals(left="#lsDateFormat(d,'long')#", right="April 6, 2008")>
-<cfset valueEquals(left="#lsDateFormat('4/6/08','long')#", right="April 6, 2008")>
-<cfset valueEquals(left="#lsDateFormat('Apr 6, 2008','long')#", right="April 6, 2008")>
-<cfset valueEquals(left="#lsDateFormat('April 6, 2008','long')#", right="April 6, 2008")>
-<cfset valueEquals(left="#lsDateFormat('Sunday, April 6, 2008','long')#", right="April 6, 2008")>
-<cfset valueEquals(left="#lsDateFormat(d,'full')#", right="Sunday, April 6, 2008")>
-<cfset valueEquals(left="#lsDateFormat('4/6/08','full')#", right="Sunday, April 6, 2008")>
-<cfset valueEquals(left="#lsDateFormat('Apr 6, 2008','full')#", right="Sunday, April 6, 2008")>
-<cfset valueEquals(left="#lsDateFormat('April 6, 2008','full')#", right="Sunday, April 6, 2008")>
-<cfset valueEquals(left="#lsDateFormat('Sunday, April 6, 2008','full')#", right="Sunday, April 6, 2008")>
-<cfscript>
-	setlocale('English (UK)');
-
-	if(getJavaVersion()>=9) {
-		shortResult="06/04/2008";
-		medResult="6 Apr 2008";
-		longResult="6 April 2008";
-	}
-	else {
-		shortResult="06/04/08";
-		medResult="06-Apr-2008";
-		longResult="06 April 2008";
-	}
-	
-
-
-</cfscript>
-
-
-<cfset valueEquals(left="#lsDateFormat(d,'short')#", right=shortResult)>
-<cfset valueEquals(left="#lsDateFormat('06/04/08','short')#", right=shortResult)>
-<cfset valueEquals(left="#lsDateFormat('06-Apr-2008','short')#", right=shortResult)>
-<cfset valueEquals(left="#lsDateFormat('06 April 2008','short')#", right=shortResult)>
-<cfset valueEquals(left="#lsDateFormat('Sunday, 6 April 2008','short')#", right=shortResult	)>
-
-<cfset valueEquals(left="#lsDateFormat(d,'medium')#", right=medResult)>
-<cfset valueEquals(left="#lsDateFormat('06/04/08','medium')#", right=medResult)>
-<cfset valueEquals(left="#lsDateFormat('06-Apr-2008','medium')#", right=medResult)>
-<cfset valueEquals(left="#lsDateFormat('06 April 2008','medium')#", right=medResult)>
-<cfset valueEquals(left="#lsDateFormat('Sunday, 6 April 2008','medium')#", right=medResult)>
-
-<cfset valueEquals(left="#lsDateFormat(d,'long')#", right=longResult)>
-<cfset valueEquals(left="#lsDateFormat('06/04/08','long')#", right=longResult)>
-<cfset valueEquals(left="#lsDateFormat('06-Apr-2008','long')#", right=longResult)>
-<cfset valueEquals(left="#lsDateFormat('06 April 2008','long')#", right=longResult)>
-<cfset valueEquals(left="#lsDateFormat('Sunday, 6 April 2008','long')#", right=longResult)>
-
-<cfset valueEquals(left="#lsDateFormat(d,'full')#", right="Sunday, 6 April 2008")>
-<cfset valueEquals(left="#lsDateFormat('06/04/08','full')#", right="Sunday, 6 April 2008")>
-<cfset valueEquals(left="#lsDateFormat('06-Apr-2008','full')#", right="Sunday, 6 April 2008")>
-<cfset valueEquals(left="#lsDateFormat('06 April 2008','full')#", right="Sunday, 6 April 2008")>
-<cfset valueEquals(left="#lsDateFormat('Sunday, 6 April 2008','full')#", right="Sunday, 6 April 2008")>
-
-<cfset testDate = "2009-06-13 17:04:06" />
-<cfset setLocale("Dutch (Standard)")>
-<cfset valueEquals(left="#lsDateFormat(testDate, 'dddd d mmmm yyyy')#", right="zaterdag 13 juni 2009")>
-<cfset valueEquals(left="#lsDateFormat(parseDateTime(testDate), 'dddd d mmmm yyyy')#", right="zaterdag 13 juni 2009")>
-
-<cfset setLocale("german (swiss)")>
-<cfset valueEquals(left="#lsDateFormat(testDate, 'dddd d mmmm yyyy')#", right="Samstag 13 Juni 2009")>
-<cfset valueEquals(left="#lsDateFormat(parseDateTime(testDate), 'dddd d mmmm yyyy')#", right="Samstag 13 Juni 2009")>
-
-
-<cfset setLocale(orgLocale)>
-
-<!--- end old test code --->
-	
-		
-		<!--- <cfset assertEquals("","")> --->
-	</cffunction>
-	
-	<cffunction access="private" name="valueEquals">
-		<cfargument name="left">
-		<cfargument name="right">
-		<cfset assertEquals(arguments.right,arguments.left)>
-	</cffunction>
-
-<cfscript>
 
 	private function getJavaVersion() {
-	    var raw=server.java.version;
-	    var arr=listToArray(raw,'.');
-	    if(arr[1]==1) // version 1-9
-	        return arr[2];
-	    return arr[1];
-	}
+        var raw=server.java.version;
+        var arr=listToArray(raw,'.');
+        if(arr[1]==1) // version 1-9
+            return arr[2];
+        return arr[1];
+    }
+}
 
-</cfscript>
-
-</cfcomponent>

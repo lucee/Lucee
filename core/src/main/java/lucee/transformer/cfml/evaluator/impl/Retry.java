@@ -26,38 +26,33 @@ import lucee.transformer.cfml.evaluator.EvaluatorSupport;
 import lucee.transformer.library.tag.TagLib;
 import lucee.transformer.library.tag.TagLibTag;
 
-
-
 /**
- * Prueft den Kontext des Tag break.
- * Das Tag <code>break</code> darf nur innerhalb des Tag <code>loop, while, foreach</code> liegen.
+ * Prueft den Kontext des Tag break. Das Tag <code>break</code> darf nur innerhalb des Tag
+ * <code>loop, while, foreach</code> liegen.
  */
 public final class Retry extends EvaluatorSupport {
 
-	@Override
-	public void evaluate(Tag tag,TagLibTag libTag) throws EvaluatorException { 
-		String ns=libTag.getTagLib().getNameSpaceAndSeparator();
-		String name=ns+"catch";
-		
-		if(getAncestorCatch(libTag.getTagLib(),tag)==null)
-			throw new EvaluatorException("Wrong Context, tag "+libTag.getFullName()+" must be inside a "+name+" tag");
+    @Override
+    public void evaluate(Tag tag, TagLibTag libTag) throws EvaluatorException {
+	String ns = libTag.getTagLib().getNameSpaceAndSeparator();
+	String name = ns + "catch";
+
+	if (getAncestorCatch(libTag.getTagLib(), tag) == null) throw new EvaluatorException("Wrong Context, tag " + libTag.getFullName() + " must be inside a " + name + " tag");
+    }
+
+    public static Statement getAncestorCatch(TagLib tagLib, Statement stat) {
+	String name = tagLib.getNameSpaceAndSeparator() + "catch";
+	Tag tag;
+	Statement parent = stat;
+	while (true) {
+	    parent = parent.getParent();
+	    if (parent == null) return null;
+	    if (parent instanceof Tag) {
+		tag = (Tag) parent;
+		if (tag.getFullname().equalsIgnoreCase(name)) return tag;
+	    }
+	    else if (parent instanceof TryCatchFinally) return parent;
 	}
-	
-	public static Statement getAncestorCatch(TagLib tagLib, Statement stat) {
-		String name=tagLib.getNameSpaceAndSeparator()+"catch";
-		Tag tag;
-		Statement parent=stat;
-		while(true)	{
-			parent=parent.getParent();
-			if(parent==null)return null;
-			if(parent instanceof Tag)	{
-				tag=(Tag) parent;
-				if(tag.getFullname().equalsIgnoreCase(name))
-					return tag;
-			}
-			else if(parent instanceof TryCatchFinally)
-				return parent;
-		}
-	}
+    }
 
 }

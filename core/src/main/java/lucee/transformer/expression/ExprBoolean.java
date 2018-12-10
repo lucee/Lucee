@@ -17,9 +17,6 @@
  */
 package lucee.transformer.expression;
 
-
-
-
 public interface ExprBoolean extends Expression {
 
 }

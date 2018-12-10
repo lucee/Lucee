@@ -22,18 +22,18 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageExceptionBox;
 
 public class PageGatewayException extends GatewayException implements PageExceptionBox {
-	
-	private PageException pe;
 
-	public PageGatewayException(PageException pe){
-		super(pe.getMessage());
-		this.pe=pe;
-		
-	}
+    private PageException pe;
 
-	@Override
-	public PageException getPageException() {
-		return pe;
-	}
-	
+    public PageGatewayException(PageException pe) {
+	super(pe.getMessage());
+	this.pe = pe;
+
+    }
+
+    @Override
+    public PageException getPageException() {
+	return pe;
+    }
+
 }

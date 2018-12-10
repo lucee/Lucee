@@ -23,33 +23,33 @@ import lucee.runtime.cache.tag.CacheHandlerFilter;
 import lucee.runtime.type.Query;
 
 public class QueryCacheHandlerFilter implements CacheHandlerFilter {
-	
-	private WildCardFilter filter;
 
-	public QueryCacheHandlerFilter(String wildcard, boolean ignoreCase) {
-		filter=new WildCardFilter(wildcard,ignoreCase);
-	}
+    private WildCardFilter filter;
 
-	@Override
-	public boolean accept(Object obj) {
-		Query qry;
-		if(!(obj instanceof Query)) {
-			if(obj instanceof QueryCacheItem) {
-				qry=((QueryCacheItem)obj).getQuery();
-			}
-			else return false;
-		}
-		else qry=(Query) obj;
-		
-		String sql = qry.getSql().toString();
-		StringBuilder sb=new StringBuilder();
-		char[] text = sql.toCharArray();
-		for(int i=0;i<text.length;i++) {
-			if(text[i]=='\n' || text[i]=='\r') {
-				sb.append(' ');
-			}
-			else sb.append(text[i]);
-		}
-		return filter.accept(sb.toString());
+    public QueryCacheHandlerFilter(String wildcard, boolean ignoreCase) {
+	filter = new WildCardFilter(wildcard, ignoreCase);
+    }
+
+    @Override
+    public boolean accept(Object obj) {
+	Query qry;
+	if (!(obj instanceof Query)) {
+	    if (obj instanceof QueryCacheItem) {
+		qry = ((QueryCacheItem) obj).getQuery();
+	    }
+	    else return false;
 	}
+	else qry = (Query) obj;
+
+	String sql = qry.getSql().toString();
+	StringBuilder sb = new StringBuilder();
+	char[] text = sql.toCharArray();
+	for (int i = 0; i < text.length; i++) {
+	    if (text[i] == '\n' || text[i] == '\r') {
+		sb.append(' ');
+	    }
+	    else sb.append(text[i]);
+	}
+	return filter.accept(sb.toString());
+    }
 }

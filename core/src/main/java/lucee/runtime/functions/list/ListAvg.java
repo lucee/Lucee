@@ -30,23 +30,19 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ListUtil;
 
-
 public final class ListAvg extends BIF {
 
-	private static final long serialVersionUID = -7365055491706152507L;
+    private static final long serialVersionUID = -7365055491706152507L;
 
-    public static double call(PageContext pc , String list, String delimiter, boolean multiCharacterDelimiter) throws ExpressionException {
-        return ArrayUtil.avg(ListUtil.listToArray(list, delimiter,false, multiCharacterDelimiter));
+    public static double call(PageContext pc, String list, String delimiter, boolean multiCharacterDelimiter) throws ExpressionException {
+	return ArrayUtil.avg(ListUtil.listToArray(list, delimiter, false, multiCharacterDelimiter));
     }
 
     @Override
-	public Object invoke(PageContext pc, Object[] args) throws PageException {
-    	if(args.length==1)
-			return call(pc, Caster.toString(args[0]),",",false);
-    	if(args.length==2)
-			return call(pc, Caster.toString(args[0]), Caster.toString(args[1]),false);
-    	if(args.length==3)
-			return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toBooleanValue(args[2]));
-		throw new FunctionException(pc, "ListAvg", 1, 3, args.length);
-	}
+    public Object invoke(PageContext pc, Object[] args) throws PageException {
+	if (args.length == 1) return call(pc, Caster.toString(args[0]), ",", false);
+	if (args.length == 2) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), false);
+	if (args.length == 3) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toBooleanValue(args[2]));
+	throw new FunctionException(pc, "ListAvg", 1, 3, args.length);
+    }
 }

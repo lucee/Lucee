@@ -18,6 +18,8 @@
  */
 package lucee.transformer.bytecode.expression.type;
 
+import org.objectweb.asm.Type;
+
 import lucee.transformer.Factory;
 import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
@@ -25,26 +27,24 @@ import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.expression.ExpressionBase;
 import lucee.transformer.bytecode.util.Types;
 
-import org.objectweb.asm.Type;
-
 public class CollectionKey extends ExpressionBase {
 
-	private String value;
+    private String value;
 
-	public CollectionKey(Factory factory,String value) {
-		super(factory,null,null);
-		this.value=value;
-	}
+    public CollectionKey(Factory factory, String value) {
+	super(factory, null, null);
+	this.value = value;
+    }
 
-	public CollectionKey(Factory factory,String value,Position start,Position end) {
-		super(factory,start,end);
-		this.value=value;
-	}
+    public CollectionKey(Factory factory, String value, Position start, Position end) {
+	super(factory, start, end);
+	this.value = value;
+    }
 
-	@Override
-	public Type _writeOut(BytecodeContext bc, int mode) throws TransformerException {
-		getFactory().registerKey(bc, bc.getFactory().createLitString(value),false);
-		return Types.COLLECTION_KEY;
-	}
+    @Override
+    public Type _writeOut(BytecodeContext bc, int mode) throws TransformerException {
+	getFactory().registerKey(bc, bc.getFactory().createLitString(value), false);
+	return Types.COLLECTION_KEY;
+    }
 
 }

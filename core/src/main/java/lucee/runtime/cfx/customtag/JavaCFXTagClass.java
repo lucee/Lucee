@@ -18,101 +18,106 @@
  */
 package lucee.runtime.cfx.customtag;
 
+import org.osgi.framework.BundleException;
+
+import com.allaire.cfx.CustomTag;
+
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.cfx.CFXTagException;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.reflection.Reflector;
 
-import org.osgi.framework.BundleException;
-
-import com.allaire.cfx.CustomTag;
-
 /**
  * 
  */
 public final class JavaCFXTagClass implements CFXTagClass {
-	
-	private String name;
-	private ClassDefinition cd;
-	private boolean readOnly=false;
 
-    
-	public JavaCFXTagClass(String name, ClassDefinition cd) {
-		name=name.toLowerCase();
-		if(name.startsWith("cfx_"))name=name.substring(4);
-		this.name=name;
-		this.cd=cd;
-	}
-	private JavaCFXTagClass(String name, ClassDefinition cd,boolean readOnly) {
-		
-		this.name=name;
-		this.cd=cd;
-		this.readOnly=readOnly;
-	}
-	
-	@Override
-	public CustomTag newInstance() throws CFXTagException {
-		try {
-			return _newInstance();
-		} catch (Throwable e) {
-			ExceptionUtil.rethrowIfNecessary(e);
-			throw new CFXTagException(e);
-		}
-	}
+    private String name;
+    private ClassDefinition cd;
+    private boolean readOnly = false;
 
-	public CustomTag _newInstance() throws InstantiationException, IllegalAccessException, ClassException, BundleException  {
-		
-		Object o=getClazz().newInstance();
-		return (CustomTag)o;
+    public JavaCFXTagClass(String name, ClassDefinition cd) {
+	name = name.toLowerCase();
+	if (name.startsWith("cfx_")) name = name.substring(4);
+	this.name = name;
+	this.cd = cd;
+    }
+
+    private JavaCFXTagClass(String name, ClassDefinition cd, boolean readOnly) {
+
+	this.name = name;
+	this.cd = cd;
+	this.readOnly = readOnly;
+    }
+
+    @Override
+    public CustomTag newInstance() throws CFXTagException {
+	try {
+	    return _newInstance();
 	}
+	catch (Throwable e) {
+	    ExceptionUtil.rethrowIfNecessary(e);
+	    throw new CFXTagException(e);
+	}
+    }
+
+    public CustomTag _newInstance() throws InstantiationException, IllegalAccessException, ClassException, BundleException {
+
+	Object o = getClazz().newInstance();
+	return (CustomTag) o;
+    }
+
     /**
      * @return Returns the clazz.
-     * @throws BundleException 
-     * @throws ClassException 
+     * @throws BundleException
+     * @throws ClassException
      */
     public Class<CustomTag> getClazz() throws ClassException, BundleException {
-        return cd.getClazz();
+	return cd.getClazz();
     }
-    
+
     /**
      * @return Returns the name.
      */
     public String getName() {
-        return name;
+	return name;
     }
+
     /**
      * @return Returns the strClass.
      */
     public ClassDefinition getClassDefinition() {
-        return cd;
+	return cd;
     }
 
     @Override
     public boolean isReadOnly() {
-        return readOnly;
+	return readOnly;
     }
 
     @Override
     public CFXTagClass cloneReadOnly() {
-        return new JavaCFXTagClass(name,cd,true);
+	return new JavaCFXTagClass(name, cd, true);
     }
+
     @Override
     public String getDisplayType() {
-        return "Java";
+	return "Java";
     }
+
     @Override
     public String getSourceName() {
-        return cd.getClassName();
+	return cd.getClassName();
     }
-    
+
     @Override
     public boolean isValid() {
-        try {
-            return Reflector.isInstaneOf(getClazz(),CustomTag.class);
-        } 
-        catch (Exception e) {
-            return false;
-        }
+	try {
+	    return Reflector.isInstaneOf(getClazz(), CustomTag.class, false);
+	}
+	catch (Exception e) {
+	    return false;
+	}
     }
 }

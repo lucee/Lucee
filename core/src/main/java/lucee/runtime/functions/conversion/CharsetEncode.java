@@ -29,12 +29,13 @@ import lucee.runtime.op.Caster;
  * Decodes Binary Data that are encoded as String
  */
 public final class CharsetEncode implements Function {
-	
-	public static String call(PageContext pc, byte[] binary,String encoding) throws PageException {
-	    try {
-            return new String(binary, encoding);
-        } catch (UnsupportedEncodingException e) {
-            throw Caster.toPageException(e);
-        }
+
+    public static String call(PageContext pc, byte[] binary, String encoding) throws PageException {
+	try {
+	    return new String(binary, encoding);
 	}
+	catch (UnsupportedEncodingException e) {
+	    throw Caster.toPageException(e);
+	}
+    }
 }

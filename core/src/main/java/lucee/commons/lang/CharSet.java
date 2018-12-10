@@ -22,47 +22,48 @@ import java.io.ObjectOutput;
 
 import lucee.commons.io.CharsetUtil;
 
-public final class CharSet implements Externalizable  {
+public final class CharSet implements Externalizable {
 
-	public static final CharSet UTF8 = new CharSet(CharsetUtil.UTF8);
-	public static final CharSet ISO88591 = new CharSet(CharsetUtil.ISO88591);
-	public static final CharSet UTF16BE = new CharSet(CharsetUtil.UTF16BE);
-	public static final CharSet UTF16LE = new CharSet(CharsetUtil.UTF16LE);
-	public static final CharSet UTF32BE = new CharSet(CharsetUtil.UTF32BE);
-		
-	private transient java.nio.charset.Charset charset;
+    public static final CharSet UTF8 = new CharSet(CharsetUtil.UTF8);
+    public static final CharSet ISO88591 = new CharSet(CharsetUtil.ISO88591);
+    public static final CharSet UTF16BE = new CharSet(CharsetUtil.UTF16BE);
+    public static final CharSet UTF16LE = new CharSet(CharsetUtil.UTF16LE);
+    public static final CharSet UTF32BE = new CharSet(CharsetUtil.UTF32BE);
 
-	/**
-	 * NEVER USE THIS CONSTRUCTOR DIRECTLY, THIS IS FOR Externalizable ONLY
-	 */
-	public CharSet(){
-	}
-	public CharSet(String charsetName){
-		this.charset=java.nio.charset.Charset.forName(charsetName);
-	}
-	public CharSet(java.nio.charset.Charset charset){
-		this.charset=charset;
-	}
+    private transient java.nio.charset.Charset charset;
 
-	@Override
-	public void writeExternal(ObjectOutput out) throws IOException {
-		out.writeUTF(charset.name());
-	}
+    /**
+     * NEVER USE THIS CONSTRUCTOR DIRECTLY, THIS IS FOR Externalizable ONLY
+     */
+    public CharSet() {}
 
-	@Override
-	public void readExternal(ObjectInput in) throws IOException,ClassNotFoundException {
-		this.charset=java.nio.charset.Charset.forName(in.readUTF());
-	}
+    public CharSet(String charsetName) {
+	this.charset = java.nio.charset.Charset.forName(charsetName);
+    }
 
-	public String toString() {
-		return charset.name();
-	}
-	
-	public String name() {
-		return charset.name();
-	}
-	
-	public java.nio.charset.Charset toCharset() {
-		return charset;
-	}
+    public CharSet(java.nio.charset.Charset charset) {
+	this.charset = charset;
+    }
+
+    @Override
+    public void writeExternal(ObjectOutput out) throws IOException {
+	out.writeUTF(charset.name());
+    }
+
+    @Override
+    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+	this.charset = java.nio.charset.Charset.forName(in.readUTF());
+    }
+
+    public String toString() {
+	return charset.name();
+    }
+
+    public String name() {
+	return charset.name();
+    }
+
+    public java.nio.charset.Charset toCharset() {
+	return charset;
+    }
 }

@@ -1,4 +1,4 @@
-component extends="base"{
+component extends="HelperBase"{
 		
 	variables.tagname = "http";
 					

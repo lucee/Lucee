@@ -6,6 +6,10 @@
 <cfset stText.setting.typeCheckingDesc="If disabled Lucee ignores type definitions with function arguments and return values">
 <cfset stText.setting.developMode="If enabled the Admininstrator no longer cache data.">
 <cfset stText.setting.ctCacheDesc="Press the button above to clear the custom tag path cache.">
+
+<cfset stText.setting.cachedAfter="Query cachedAfter">
+<cfset stText.setting.cachedAfterDesc="In case the attribute ""cacheAfter"" is set without the attribute ""cachedwithin"" in the tag ""query"" this time span is used for the element cached.">
+				
 <cfparam name="stText.general.elements" default="item(s)">
 
 <cfadmin 
@@ -137,11 +141,18 @@ Defaults --->
 			</cfcase>
 			<!--- Update ---->
 			<cfcase value="#stText.Buttons.Update#">
+				<cfset cachedAfter=isNull(form.cachedAfter_days)?"":
+					CreateTimeSpan(
+						form.cachedAfter_days,
+						form.cachedAfter_hours,
+						form.cachedAfter_minutes,
+						form.cachedAfter_seconds
+					)>
 				<cfadmin 
 					action="updatePerformanceSettings"
 					type="#request.adminType#"
 					password="#session["password"&request.adminType]#"
-					
+					cachedAfter="#cachedAfter#"
 					inspectTemplate="#form.inspectTemplate#"
 					typeChecking="#!isNull(form.typeChecking) and form.typeChecking EQ true#"
 					remoteClients="#request.getRemoteClients()#"
@@ -164,6 +175,7 @@ Defaults --->
 					type="#request.adminType#"
 					password="#session["password"&request.adminType]#"
 					
+					cachedAfter=""
 					inspectTemplate=""
 					typeChecking=""
 					
@@ -261,6 +273,55 @@ Create Datasource --->
 						<cfset renderCodingTip( "this.typeChecking = "&settings.typeChecking&";" )>
 					</td>
 				</tr>
+
+				<!--- Query.chachedAfter --->
+				<cfif true>
+				<tr>
+					<th scope="row">#stText.setting.cachedAfter#</th>
+					<td>
+						<cfset timeout=settings.cachedAfter>
+						<table class="maintbl" style="width:auto">
+							<thead>
+								<tr>
+									<th>#stText.General.Days#</td>
+									<th>#stText.General.Hours#</td>
+									<th>#stText.General.Minutes#</td>
+									<th>#stText.General.Seconds#</td>
+								</tr>
+							</thead>
+							<tbody>
+								<cfif hasAccess>
+									<tr>
+										<td><cfinputClassic type="text" name="cachedAfter_days" value="#settings.cachedAfter_day#" class="number" required="yes" validate="integer" message="#stText.Scopes.TimeoutDaysValue#application#stText.Scopes.TimeoutEndValue#"></td>
+										<td><cfinputClassic type="text" name="cachedAfter_hours" value="#settings.cachedAfter_hour#" class="number" required="yes" validate="integer" message="#stText.Scopes.TimeoutHoursValue#application#stText.Scopes.TimeoutEndValue#"></td>
+										<td><cfinputClassic type="text" name="cachedAfter_minutes" value="#settings.cachedAfter_minute#" class="number" required="yes" validate="integer" message="#stText.Scopes.TimeoutMinutesValue#application#stText.Scopes.TimeoutEndValue#"></td>
+										<td><cfinputClassic type="text" name="cachedAfter_seconds" value="#settings.cachedAfter_second#" class="number" required="yes" validate="integer" message="#stText.Scopes.TimeoutSecondsValue#application#stText.Scopes.TimeoutEndValue#"></td>
+									</tr>
+								<cfelse>
+									<tr>
+										<td align="center"><b>#settings.cachedAfter_day#</b></td>
+										<td align="center"><b>#settings.cachedAfter_hour#</b></td>
+										<td align="center"><b>#settings.cachedAfter_minute#</b></td>
+										<td align="center"><b>#settings.cachedAfter_second#</b></td>
+									</tr>
+								</cfif>
+							</tbody>
+						</table>
+						<div class="comment">#stText.setting.cachedAfterDesc#</div>
+
+						<cfsavecontent variable="codeSample">
+							this.query.cachedAfter = createTimeSpan(#settings.cachedAfter_day#,#settings.cachedAfter_hour#,#settings.cachedAfter_minute#,#settings.cachedAfter_second#);
+						</cfsavecontent>
+						<cfset renderCodingTip( codeSample )>
+						<!---
+						<cfsavecontent variable="codeSample">
+							this.applicationTimeout = createTimeSpan( #settings.cachedAfter_day#, #settings.cachedAfter_hour#, #settings.cachedAfter_minute#, #settings.cachedAfter_second# );
+						</cfsavecontent>
+						<cfset renderCodingTip( codeSample )>--->
+					</td>
+				</tr>
+				</cfif>
+
 				
 				<!--- PagePool --->
 				<tr>

@@ -29,23 +29,26 @@ import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.LitString;
 import lucee.transformer.library.function.FunctionLibFunction;
 
-public class StructKeyExists implements FunctionEvaluator{
+public class StructKeyExists implements FunctionEvaluator {
 
-	@Override
-	public void execute(BIF bif, FunctionLibFunction flf) throws TemplateException {
-		Argument arg = bif.getArguments()[1];
-		Expression value = arg.getValue();
-		if(value instanceof LitString) {
-			String str=((LitString)value).getString();
-			
-			// update first arg
-			arg.setValue(new CollectionKey(bif.getFactory(),str),Collection.Key.class.getName());
-		}
+    @Override
+    public void execute(BIF bif, FunctionLibFunction flf) throws TemplateException {
+	Argument arg = bif.getArguments()[1];
+	Expression value = arg.getValue();
+	if (value instanceof LitString) {
+	    String str = ((LitString) value).getString();
+
+	    // update first arg
+	    arg.setValue(new CollectionKey(bif.getFactory(), str), Collection.Key.class.getName());
 	}
+    }
 
-	@Override
-	public void evaluate(BIF bif, FunctionLibFunction flf) throws EvaluatorException {}
-	@Override
-	public FunctionLibFunction pre(BIF bif, FunctionLibFunction flf) throws TemplateException {return null;}
+    @Override
+    public void evaluate(BIF bif, FunctionLibFunction flf) throws EvaluatorException {}
+
+    @Override
+    public FunctionLibFunction pre(BIF bif, FunctionLibFunction flf) throws TemplateException {
+	return null;
+    }
 
 }

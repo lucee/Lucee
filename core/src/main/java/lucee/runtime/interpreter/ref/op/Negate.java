@@ -24,32 +24,32 @@ import lucee.runtime.interpreter.ref.Ref;
 import lucee.runtime.interpreter.ref.RefSupport;
 import lucee.runtime.op.Caster;
 
-
 /**
  * Plus operation
  */
 public final class Negate extends RefSupport implements Ref {
 
     private Ref ref;
-	private boolean limited;
+    private boolean limited;
 
     /**
      * constructor of the class
+     * 
      * @param ref
      */
     public Negate(Ref ref, boolean limited) {
-        this.ref=ref;
-		this.limited=limited;
+	this.ref = ref;
+	this.limited = limited;
     }
 
     @Override
-	public Object getValue(PageContext pc) throws PageException {
-    	return new Double(-Caster.toDoubleValue(ref.getValue(pc)));
+    public Object getValue(PageContext pc) throws PageException {
+	return new Double(-Caster.toDoubleValue(ref.getValue(pc)));
     }
 
     @Override
     public String getTypeName() {
-        return "operation";
+	return "operation";
     }
 
 }

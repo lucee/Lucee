@@ -27,35 +27,33 @@ import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 
-
 public final class DevNullHttpServletRequest extends HttpServletRequestWrapper {
 
-    
     private ByteArrayInputStream barr;
 
     public DevNullHttpServletRequest(HttpServletRequest req) {
-        super(req);
-        barr=new ByteArrayInputStream(new byte[]{});
+	super(req);
+	barr = new ByteArrayInputStream(new byte[] {});
     }
 
     @Override
     public int getContentLength() {
-        return -1;
+	return -1;
     }
 
     @Override
     public String getContentType() {
-        return null;
+	return null;
     }
 
     @Override
     public ServletInputStream getInputStream() throws IOException {
-        return new ServletInputStreamDummy(barr);
+	return new ServletInputStreamDummy(barr);
     }
 
     @Override
     public BufferedReader getReader() throws IOException {
-        return new BufferedReader(new InputStreamReader(barr));
+	return new BufferedReader(new InputStreamReader(barr));
     }
-    
+
 }

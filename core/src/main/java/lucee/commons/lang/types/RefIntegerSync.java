@@ -30,66 +30,67 @@ public class RefIntegerSync implements RefInteger {
      * @param value
      */
     public RefIntegerSync(int value) {
-        this.value=value;
+	this.value = value;
     }
-    public RefIntegerSync() {
-    }
-    
+
+    public RefIntegerSync() {}
+
     /**
      * @param value
      */
     @Override
-	public synchronized void setValue(int value) {
-        this.value = value;
+    public synchronized void setValue(int value) {
+	this.value = value;
     }
-    
+
     /**
      * operation plus
+     * 
      * @param value
      */
     @Override
-	public synchronized void plus(int value) {
-        this.value+=value;
+    public synchronized void plus(int value) {
+	this.value += value;
     }
-    
+
     /**
      * operation minus
+     * 
      * @param value
      */
     @Override
-	public synchronized void minus(int value) {
-        this.value-=value;
+    public synchronized void minus(int value) {
+	this.value -= value;
     }
 
     /**
      * @return returns value as integer
      */
     @Override
-	public synchronized Integer toInteger() {
-        return Integer.valueOf(value);
+    public synchronized Integer toInteger() {
+	return Integer.valueOf(value);
     }
+
     /**
      * @return returns value as integer
      */
     @Override
-	public synchronized Double toDouble() {
-        return new Double(value);
+    public synchronized Double toDouble() {
+	return new Double(value);
     }
-    
 
-	@Override
-	public synchronized double toDoubleValue() {
-		return value;
-	}
-	
-	@Override
-	public synchronized int toInt() {
-		return value;
-	}
-    
-    
+    @Override
+    public synchronized double toDoubleValue() {
+	return value;
+    }
+
+    @Override
+    public synchronized int toInt() {
+	return value;
+    }
+
     @Override
     public synchronized String toString() {
-        return String.valueOf(value);
+	return String.valueOf(value);
     }
 }

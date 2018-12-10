@@ -2,13 +2,8 @@ package lucee.transformer.interpreter.cast;
 
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.TemplateException;
-import lucee.runtime.op.Caster;
-import lucee.transformer.TransformerException;
 import lucee.transformer.cast.Cast;
-import lucee.transformer.expression.ExprBoolean;
-import lucee.transformer.expression.ExprDouble;
 import lucee.transformer.expression.ExprFloat;
-import lucee.transformer.expression.ExprString;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.Literal;
 import lucee.transformer.interpreter.InterpreterContext;
@@ -17,45 +12,47 @@ import lucee.transformer.interpreter.expression.ExpressionBase;
 /**
  * cast a Expression to a Double
  */
-public final class CastFloat extends ExpressionBase implements ExprFloat,Cast {
-    
+public final class CastFloat extends ExpressionBase implements ExprFloat, Cast {
+
     private Expression expr;
-    
+
     private CastFloat(Expression expr) {
-        super(expr.getFactory(),expr.getStart(),expr.getEnd());
-    	this.expr=expr;
+	super(expr.getFactory(), expr.getStart(), expr.getEnd());
+	this.expr = expr;
     }
-    
+
     /**
      * Create a String expression from a Expression
+     * 
      * @param expr
      * @return String expression
-     * @throws TemplateException 
+     * @throws TemplateException
      */
-    public static ExprFloat toExprFloat(Expression expr)  {
-        if(expr instanceof ExprFloat) return (ExprFloat) expr;
-        if(expr instanceof Literal) {
-            Double dbl = ((Literal)expr).getDouble(null);
-            if(dbl!=null) return expr.getFactory().createLitFloat((float)dbl.doubleValue(),expr.getStart(),expr.getEnd());
-        }
-        return new CastFloat(expr);
+    public static ExprFloat toExprFloat(Expression expr) {
+	if (expr instanceof ExprFloat) return (ExprFloat) expr;
+	if (expr instanceof Literal) {
+	    Double dbl = ((Literal) expr).getDouble(null);
+	    if (dbl != null) return expr.getFactory().createLitFloat((float) dbl.doubleValue(), expr.getStart(), expr.getEnd());
+	}
+	return new CastFloat(expr);
     }
 
     /**
-     * @see lucee.transformer.expression.Expression#_writeOut(org.objectweb.asm.commons.GeneratorAdapter, int)
+     * @see lucee.transformer.expression.Expression#_writeOut(org.objectweb.asm.commons.GeneratorAdapter,
+     *      int)
      */
     @Override
-	public Class<?> _writeOut(InterpreterContext ic, int mode) throws PageException {
-    	if(mode==MODE_VALUE) {
-        	ic.stack(ic.getValueAsFloatValue(expr));
-        	return float.class;
-        }
-    	ic.stack(ic.getValueAsFloat(expr));
-        return Float.class;
+    public Class<?> _writeOut(InterpreterContext ic, int mode) throws PageException {
+	if (mode == MODE_VALUE) {
+	    ic.stack(ic.getValueAsFloatValue(expr));
+	    return float.class;
+	}
+	ic.stack(ic.getValueAsFloat(expr));
+	return Float.class;
     }
 
-	@Override
-	public Expression getExpr() {
-		return expr;
-	}
+    @Override
+    public Expression getExpr() {
+	return expr;
+    }
 }

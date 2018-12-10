@@ -24,72 +24,65 @@ import java.util.Map;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lang.types.RefBooleanImpl;
 
-
 public class ThreadLocalDuplication {
 
-	private static ThreadLocal<Map<Object,Object>> local=new ThreadLocal<Map<Object,Object>>();
-	private static ThreadLocal<RefBoolean> inside=new ThreadLocal<RefBoolean>();
+    private static ThreadLocal<Map<Object, Object>> local = new ThreadLocal<Map<Object, Object>>();
+    private static ThreadLocal<RefBoolean> inside = new ThreadLocal<RefBoolean>();
 
-	public static boolean set(Object o, Object c) {
-		touch(true).put(o,c);
-		return isInside();
-	}
+    public static boolean set(Object o, Object c) {
+	touch(true).put(o, c);
+	return isInside();
+    }
 
-	/*public static Map<Object, Object> getMap() {
-		return touch();
-	}
-	
-	public static void removex(Object o) {
-		touch().remove(o);
-	}*/
-	
-	/*private static Object get(Object obj) {
-		Map<Object,Object> list = touch();
-		return list.get(obj);
-	}*/
-	
+    /*
+     * public static Map<Object, Object> getMap() { return touch(); }
+     * 
+     * public static void removex(Object o) { touch().remove(o); }
+     */
 
+    /*
+     * private static Object get(Object obj) { Map<Object,Object> list = touch(); return list.get(obj);
+     * }
+     */
 
-	public static Object get(Object object, RefBoolean before) {
-		if(!isInside()){
-			reset();
-			setIsInside(true);
-			before.setValue(false);
-		}
-		else
-			before.setValue(true);
-		
-		Map<Object,Object> list = touch(false);
-		return list==null?null: list.get(object);
+    public static Object get(Object object, RefBoolean before) {
+	if (!isInside()) {
+	    reset();
+	    setIsInside(true);
+	    before.setValue(false);
 	}
-	
+	else before.setValue(true);
 
-	private static Map<Object,Object> touch(boolean createIfNecessary) {
-		Map<Object,Object> set = local.get();
-		if(set==null) {
-			if(!createIfNecessary) return null;
-			
-			set = new IdentityHashMap<Object,Object>();// it is importend to have a reference comparsion here
-			local.set(set);
-		}
-		return set;
-	}
-	
-	public static void reset() {
-		Map<Object,Object> set = local.get();
-		if(set!=null) set.clear();
-		setIsInside(false);
-	}
+	Map<Object, Object> list = touch(false);
+	return list == null ? null : list.get(object);
+    }
 
-	private static boolean isInside() {
-		RefBoolean b = inside.get();
-		return b!=null && b.toBooleanValue();
+    private static Map<Object, Object> touch(boolean createIfNecessary) {
+	Map<Object, Object> set = local.get();
+	if (set == null) {
+	    if (!createIfNecessary) return null;
+
+	    set = new IdentityHashMap<Object, Object>();// it is importend to have a reference comparsion here
+	    local.set(set);
 	}
-	
-	private static void setIsInside(boolean isInside) {
-		RefBoolean b = inside.get();
-		if(b==null)inside.set(new RefBooleanImpl(isInside));
-		else b.setValue(isInside);
-	}
+	return set;
+    }
+
+    public static void reset() {
+	Map<Object, Object> set = local.get();
+	if (set != null) set.clear();
+	setIsInside(false);
+    }
+
+    private static boolean isInside() {
+	RefBoolean b = inside.get();
+	return b != null && b.toBooleanValue();
+    }
+
+    private static void setIsInside(boolean isInside) {
+	RefBoolean b = inside.get();
+	if (b == null) inside.set(new RefBooleanImpl(isInside));
+	else b.setValue(isInside);
+    }
 
 }

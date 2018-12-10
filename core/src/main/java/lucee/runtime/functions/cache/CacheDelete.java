@@ -34,34 +34,35 @@ import lucee.runtime.op.Caster;
  * 
  */
 public final class CacheDelete extends BIF {
-	
-	private static final long serialVersionUID = 4148677299207997607L;
 
-	public static String call(PageContext pc, String id) throws PageException {
-		return call(pc, id, false,null);
-	}
-	public static String call(PageContext pc, String id, boolean throwOnError) throws PageException {
-		return call(pc, id, throwOnError, null);
-	}
-	
-	public static String call(PageContext pc, String id, boolean throwOnError, String cacheName) throws PageException {
-		try {
-			Cache cache = CacheUtil.getCache(pc,cacheName,Config.CACHE_TYPE_OBJECT);
-			if(!cache.remove(CacheUtil.key(id)) && throwOnError){
-				throw new ApplicationException("can not remove the element with the following id ["+id+"]");
-			}	
-		} 
-		catch (IOException e) {
-			throw Caster.toPageException(e);
-		}
-		return null;
-	}
+    private static final long serialVersionUID = 4148677299207997607L;
 
-	@Override
-	public Object invoke(PageContext pc, Object[] args) throws PageException {
-		if(args.length==1)return call(pc, Caster.toString(args[0]));
-		if(args.length==2)return call(pc, Caster.toString(args[0]),Caster.toBooleanValue(args[1]));
-		if(args.length==3)return call(pc, Caster.toString(args[0]),Caster.toBooleanValue(args[1]),Caster.toString(args[2]));
-		throw new FunctionException(pc, "CacheDelete", 1, 3, args.length);
+    public static String call(PageContext pc, String id) throws PageException {
+	return call(pc, id, false, null);
+    }
+
+    public static String call(PageContext pc, String id, boolean throwOnError) throws PageException {
+	return call(pc, id, throwOnError, null);
+    }
+
+    public static String call(PageContext pc, String id, boolean throwOnError, String cacheName) throws PageException {
+	try {
+	    Cache cache = CacheUtil.getCache(pc, cacheName, Config.CACHE_TYPE_OBJECT);
+	    if (!cache.remove(CacheUtil.key(id)) && throwOnError) {
+		throw new ApplicationException("can not remove the element with the following id [" + id + "]");
+	    }
 	}
+	catch (IOException e) {
+	    throw Caster.toPageException(e);
+	}
+	return null;
+    }
+
+    @Override
+    public Object invoke(PageContext pc, Object[] args) throws PageException {
+	if (args.length == 1) return call(pc, Caster.toString(args[0]));
+	if (args.length == 2) return call(pc, Caster.toString(args[0]), Caster.toBooleanValue(args[1]));
+	if (args.length == 3) return call(pc, Caster.toString(args[0]), Caster.toBooleanValue(args[1]), Caster.toString(args[2]));
+	throw new FunctionException(pc, "CacheDelete", 1, 3, args.length);
+    }
 }

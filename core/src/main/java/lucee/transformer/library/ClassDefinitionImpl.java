@@ -21,7 +21,10 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-import java.io.Serializable;
+
+import org.osgi.framework.BundleException;
+import org.osgi.framework.Version;
+import org.xml.sax.Attributes;
 
 import lucee.commons.digest.HashUtil;
 import lucee.commons.lang.ClassException;
@@ -32,185 +35,175 @@ import lucee.runtime.config.Identification;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.osgi.OSGiUtil;
 
-import org.osgi.framework.BundleException;
-import org.osgi.framework.Version;
-import org.xml.sax.Attributes;
+public class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externalizable {
 
-public class ClassDefinitionImpl<T> implements ClassDefinition<T>,Externalizable {
+    /**
+     * do not use to load class!!!
+     */
+    private String className;
+    private String name;
+    private Version version;
+    private Identification id;
 
-	/**
-	 * do not use to load class!!!
-	 */
-	private String className; 
-	private String name;
-	private Version version;
-	private Identification id;
-	
-	private transient Class<T> clazz;
+    private transient Class<T> clazz;
 
-	public ClassDefinitionImpl(String className, String name, String version, Identification id) {
-		this.className=className==null?null:className.trim();
-		this.name=StringUtil.isEmpty(name,true)?null:name.trim();
-		this.version=OSGiUtil.toVersion(version,null);
-		this.id=id;
-	}
-	
-	public ClassDefinitionImpl(Identification id,String className, String name, Version version) {
-		this.className=className==null?null:className.trim();
-		this.name=StringUtil.isEmpty(name,true)?null:name.trim();
-		this.version=version;
-		this.id=id;
-	}
+    public ClassDefinitionImpl(String className, String name, String version, Identification id) {
+	this.className = className == null ? null : className.trim();
+	this.name = StringUtil.isEmpty(name, true) ? null : name.trim();
+	this.version = OSGiUtil.toVersion(version, null);
+	this.id = id;
+    }
 
-	public ClassDefinitionImpl(String className) {
-		this.className=className==null?null:className.trim();
-		this.name=null;
-		this.version=null;
-		this.id=null;
-	}
-	public ClassDefinitionImpl(Class<T> clazz) {
-		this.className=clazz.getName();
-		this.clazz=clazz;
-		this.name=null;
-		this.version=null;
-		this.id=null;
-	}
-	
-	/**
-	 * only used by deserializer!
-	 */
-	public ClassDefinitionImpl() {}
+    public ClassDefinitionImpl(Identification id, String className, String name, Version version) {
+	this.className = className == null ? null : className.trim();
+	this.name = StringUtil.isEmpty(name, true) ? null : name.trim();
+	this.version = version;
+	this.id = id;
+    }
 
-	@Override
-	public void writeExternal(ObjectOutput out) throws IOException {
-		out.writeObject(className);
-		out.writeObject(name);
-		out.writeObject(version==null?null:version.toString());
-		out.writeObject(id);
-	}
+    public ClassDefinitionImpl(String className) {
+	this.className = className == null ? null : className.trim();
+	this.name = null;
+	this.version = null;
+	this.id = null;
+    }
 
-	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-		className=(String) in.readObject();
-		name=(String) in.readObject();
-		String tmp = (String) in.readObject();
-		if(tmp!=null)this.version=OSGiUtil.toVersion(tmp,null);
-		id=(Identification) in.readObject();
-	}
-	
-	
-	
+    public ClassDefinitionImpl(Class<T> clazz) {
+	this.className = clazz.getName();
+	this.clazz = clazz;
+	this.name = null;
+	this.version = null;
+	this.id = null;
+    }
 
-	@Override
-	public Class<T> getClazz() throws ClassException, BundleException {
-		if(clazz!=null) return clazz;
-		
-		// regular class definition
-		if(name==null) 
-			return clazz=ClassUtil.loadClass(className);
-		
-		return clazz=ClassUtil.loadClassByBundle(className, name, version,id);
-	}
-	
-	@Override
-	public Class<T> getClazz(Class<T> defaultValue) {
-		try {
-			return getClazz();
-		}
-		catch(Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
-			return defaultValue;
-		}
-	}
-	
+    /**
+     * only used by deserializer!
+     */
+    public ClassDefinitionImpl() {}
 
+    @Override
+    public void writeExternal(ObjectOutput out) throws IOException {
+	out.writeObject(className);
+	out.writeObject(name);
+	out.writeObject(version == null ? null : version.toString());
+	out.writeObject(id);
+    }
 
-	@Override
-	public boolean hasClass() {
-		return !StringUtil.isEmpty(className,true);
-	}
-	@Override
-	public boolean isBundle(){
-		return !StringUtil.isEmpty(name,true);
-	}
-	@Override
-	public boolean hasVersion(){
-		return version!=null;
-	}
-	
+    @Override
+    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+	className = (String) in.readObject();
+	name = (String) in.readObject();
+	String tmp = (String) in.readObject();
+	if (tmp != null) this.version = OSGiUtil.toVersion(tmp, null);
+	id = (Identification) in.readObject();
+    }
 
-	@Override
-	public boolean isClassNameEqualTo(String otherClassName){
-		return isClassNameEqualTo(otherClassName,false);
-	}
-	
-	@Override
-	public boolean isClassNameEqualTo(String otherClassName, boolean ignoreCase){
-		if(otherClassName==null) return false;
-		otherClassName=otherClassName.trim();
-		return ignoreCase?otherClassName.equalsIgnoreCase(className):otherClassName.equals(className);
-	}
-	
-	
-	@Override
-	public boolean equals(Object obj) {
-		if(!(obj instanceof ClassDefinition)) return false;
-		ClassDefinition other=(ClassDefinition) obj;
-		return StringUtil.emptyIfNull(other.getClassName()).equals(StringUtil.emptyIfNull(className)) 
-				&& StringUtil.emptyIfNull(other.getName()).equals(StringUtil.emptyIfNull(name))
-				&& (other.getVersion()!=null?other.getVersion().equals(version):version==null);
-	}
+    @Override
+    public Class<T> getClazz() throws ClassException, BundleException {
+	if (clazz != null) return clazz;
 
-	@Override
-	public String toString() { // do not remove, this is used as key in ConfigWebFactory
-		if(isBundle())
-			return "class:"+className+";name:"+name+";version:"+version+";";
-		return className;
-	}
-	
-	@Override
-	public int hashCode() {
-		return toString().hashCode();
-	}
-	
-	public static ClassDefinition toClassDefinition(String className,Identification id,Attributes attributes) {
-		if(StringUtil.isEmpty(className,true)) return null;
-		
-		String bn=null,bv=null;
-		if(attributes!=null) {
-			// name
-			bn=attributes.getValue("name");
-			if(StringUtil.isEmpty(bn))bn=attributes.getValue("bundle-name");
-			
-			// version
-			bv=attributes.getValue("version");
-			if(StringUtil.isEmpty(bv))bv=attributes.getValue("bundle-version");
-		}
-		return new ClassDefinitionImpl(className,bn,bv, id);
-	}
+	// regular class definition
+	if (name == null) return clazz = ClassUtil.loadClass(className);
 
-	@Override
-	public String getClassName() {
-		return className;
-	}
+	return clazz = ClassUtil.loadClassByBundle(className, name, version, id);
+    }
 
-	@Override
-	public String getName() {
-		return name;
+    @Override
+    public Class<T> getClazz(Class<T> defaultValue) {
+	try {
+	    return getClazz();
 	}
+	catch (Throwable t) {
+	    ExceptionUtil.rethrowIfNecessary(t);
+	    return defaultValue;
+	}
+    }
 
-	@Override
-	public Version getVersion() {
-		return version;
-	}
+    @Override
+    public boolean hasClass() {
+	return !StringUtil.isEmpty(className, true);
+    }
 
-	@Override
-	public String getVersionAsString() {
-		return version==null?null:version.toString();
-	}
+    @Override
+    public boolean isBundle() {
+	return !StringUtil.isEmpty(name, true);
+    }
 
-	@Override
-	public String getId() {
-		return HashUtil.create64BitHashAsString(toString());
+    @Override
+    public boolean hasVersion() {
+	return version != null;
+    }
+
+    @Override
+    public boolean isClassNameEqualTo(String otherClassName) {
+	return isClassNameEqualTo(otherClassName, false);
+    }
+
+    @Override
+    public boolean isClassNameEqualTo(String otherClassName, boolean ignoreCase) {
+	if (otherClassName == null) return false;
+	otherClassName = otherClassName.trim();
+	return ignoreCase ? otherClassName.equalsIgnoreCase(className) : otherClassName.equals(className);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+	if (!(obj instanceof ClassDefinition)) return false;
+	ClassDefinition other = (ClassDefinition) obj;
+	return StringUtil.emptyIfNull(other.getClassName()).equals(StringUtil.emptyIfNull(className))
+		&& StringUtil.emptyIfNull(other.getName()).equals(StringUtil.emptyIfNull(name))
+		&& (other.getVersion() != null ? other.getVersion().equals(version) : version == null);
+    }
+
+    @Override
+    public String toString() { // do not remove, this is used as key in ConfigWebFactory
+	if (isBundle()) return "class:" + className + ";name:" + name + ";version:" + version + ";";
+	return className;
+    }
+
+    @Override
+    public int hashCode() {
+	return toString().hashCode();
+    }
+
+    public static ClassDefinition toClassDefinition(String className, Identification id, Attributes attributes) {
+	if (StringUtil.isEmpty(className, true)) return null;
+
+	String bn = null, bv = null;
+	if (attributes != null) {
+	    // name
+	    bn = attributes.getValue("name");
+	    if (StringUtil.isEmpty(bn)) bn = attributes.getValue("bundle-name");
+
+	    // version
+	    bv = attributes.getValue("version");
+	    if (StringUtil.isEmpty(bv)) bv = attributes.getValue("bundle-version");
 	}
+	return new ClassDefinitionImpl(className, bn, bv, id);
+    }
+
+    @Override
+    public String getClassName() {
+	return className;
+    }
+
+    @Override
+    public String getName() {
+	return name;
+    }
+
+    @Override
+    public Version getVersion() {
+	return version;
+    }
+
+    @Override
+    public String getVersionAsString() {
+	return version == null ? null : version.toString();
+    }
+
+    @Override
+    public String getId() {
+	return HashUtil.create64BitHashAsString(toString());
+    }
 }

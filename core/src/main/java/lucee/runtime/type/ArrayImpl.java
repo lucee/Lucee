@@ -21,7 +21,6 @@ package lucee.runtime.type;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map.Entry;
-import java.util.Vector;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.dump.DumpData;
@@ -35,88 +34,78 @@ import lucee.runtime.op.ThreadLocalDuplication;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.wrap.ListAsArray;
 
-
-
 /**
  * CFML array object implements Array,List,Objects
  */
 public class ArrayImpl extends ListAsArray {
 
-	private static final long serialVersionUID = -6187994169003839005L;
-	
-	public ArrayImpl() {
-		this(32);
+    private static final long serialVersionUID = -6187994169003839005L;
+
+    public ArrayImpl() {
+	this(32);
+    }
+
+    public ArrayImpl(int initalCap) {
+	// super(sync?new Vector(initalCap):new ArrayList(initalCap));
+	super(new ArrayList(initalCap));
+    }
+
+    public ArrayImpl(Object[] objects) {
+	this(ArrayUtil.isEmpty(objects) ? 32 : objects.length);
+
+	for (int i = 0; i < objects.length; i++) {
+	    setEL(i + 1, objects[i]);
+	}
+    }
+
+    @Override
+    public Collection duplicate(boolean deepCopy) {
+	return duplicate(new ArrayImpl(), deepCopy);
+    }
+
+    protected Collection duplicate(ArrayImpl arr, boolean deepCopy) {
+	Iterator<Entry<Key, Object>> it = entryIterator();
+	boolean inside = deepCopy ? ThreadLocalDuplication.set(this, arr) : true;
+	Entry<Key, Object> e;
+	try {
+	    while (it.hasNext()) {
+		e = it.next();
+		if (deepCopy) arr.set(e.getKey(), Duplicator.duplicate(e.getValue(), deepCopy));
+		else arr.set(e.getKey(), e.getValue());
+	    }
+	}
+	catch (PageException ee) {} // MUST habdle this
+	finally {
+	    if (!inside) ThreadLocalDuplication.reset();
 	}
 
-	public ArrayImpl(int initalCap) {
-		//super(sync?new Vector(initalCap):new ArrayList(initalCap));
-		super(new ArrayList(initalCap));
+	return arr;
+    }
+
+    @Override
+    public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp) {
+	DumpTable table = new DumpTable("array", "#99cc33", "#ccff33", "#000000");
+	table.setTitle("Array");
+
+	int top = dp.getMaxlevel();
+
+	if (size() > top) table.setComment("Rows: " + size() + " (showing top " + top + ")");
+	else if (size() > 10 && dp.getMetainfo()) table.setComment("Rows: " + size());
+
+	int length = size();
+
+	for (int i = 1; i <= length; i++) {
+	    Object o = null;
+	    try {
+		o = getE(i);
+	    }
+	    catch (Exception e) {}
+
+	    table.appendRow(1, new SimpleDumpData(i), DumpUtil.toDumpData(o, pageContext, maxlevel, dp));
+
+	    if (i == top) break;
 	}
-	
-	public ArrayImpl(Object[] objects) {
-		this(ArrayUtil.isEmpty(objects)?32:objects.length);
-		
-		for(int i=0;i<objects.length;i++) {
-			setEL(i+1, objects[i]);
-		}
-	}
-	
 
-	@Override
-	public Collection duplicate(boolean deepCopy) {
-		return duplicate(new ArrayImpl(),deepCopy);
-	}
-	
-	
-	
-	protected Collection duplicate(ArrayImpl arr,boolean deepCopy) {
-		Iterator<Entry<Key, Object>> it = entryIterator();
-		boolean inside=deepCopy?ThreadLocalDuplication.set(this, arr):true;
-		Entry<Key, Object> e;
-		try {
-			while(it.hasNext()){
-				e = it.next();
-				if(deepCopy)arr.set(e.getKey(),Duplicator.duplicate(e.getValue(),deepCopy));
-				else arr.set(e.getKey(),e.getValue());
-			}
-		}
-		catch (PageException ee) {} // MUST habdle this
-		finally{
-			if(!inside)ThreadLocalDuplication.reset();
-		}
-		
-		return arr;
-	}
-	
-	@Override
-	public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp) {
-		DumpTable table = new DumpTable("array","#99cc33","#ccff33","#000000");
-		table.setTitle("Array");
-
-		int top = dp.getMaxlevel();
-
-		if( size() > top )
-			table.setComment("Rows: " + size() + " (showing top " + top + ")");
-		else if(size()>10 && dp.getMetainfo()) 
-			table.setComment("Rows: "+size()); 
-		
-			
-			
-		int length=size();
-
-		for(int i=1;i<=length;i++) {
-			Object o=null;
-			try {
-				o = getE(i);
-			} 
-			catch (Exception e) {}
-
-			table.appendRow( 1, new SimpleDumpData(i), DumpUtil.toDumpData(o, pageContext, maxlevel, dp) );
-
-			if ( i == top )
-				break;
-		}
-
-		return table;
-	}
+	return table;
+    }
 }

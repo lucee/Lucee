@@ -29,66 +29,67 @@ public class RefIntegerImpl implements RefInteger {
      * @param value
      */
     public RefIntegerImpl(int value) {
-        this.value=value;
+	this.value = value;
     }
-    public RefIntegerImpl() {
-    }
-    
+
+    public RefIntegerImpl() {}
+
     /**
      * @param value
      */
     @Override
-	public void setValue(int value) {
-        this.value = value;
+    public void setValue(int value) {
+	this.value = value;
     }
-    
+
     /**
      * operation plus
+     * 
      * @param value
      */
     @Override
-	public void plus(int value) {
-        this.value+=value;
+    public void plus(int value) {
+	this.value += value;
     }
-    
+
     /**
      * operation minus
+     * 
      * @param value
      */
     @Override
-	public void minus(int value) {
-        this.value-=value;
+    public void minus(int value) {
+	this.value -= value;
     }
 
     /**
      * @return returns value as integer
      */
     @Override
-	public Integer toInteger() {
-        return Integer.valueOf(value);
+    public Integer toInteger() {
+	return Integer.valueOf(value);
     }
+
     /**
      * @return returns value as integer
      */
     @Override
-	public Double toDouble() {
-        return new Double(value);
+    public Double toDouble() {
+	return new Double(value);
     }
-    
 
-	@Override
-	public double toDoubleValue() {
-		return value;
-	}
-	
-	@Override
-	public int toInt() {
-		return value;
-	}
-    
-    
+    @Override
+    public double toDoubleValue() {
+	return value;
+    }
+
+    @Override
+    public int toInt() {
+	return value;
+    }
+
     @Override
     public String toString() {
-        return String.valueOf(value);
+	return String.valueOf(value);
     }
 }

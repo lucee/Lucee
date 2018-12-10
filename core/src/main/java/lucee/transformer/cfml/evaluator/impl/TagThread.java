@@ -23,20 +23,18 @@ import lucee.transformer.cfml.evaluator.EvaluatorSupport;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.tag.TagLibTag;
 
-
-
 public final class TagThread extends EvaluatorSupport {
 
-	@Override
-	public void evaluate(Tag tag,TagLibTag tagLibTag,FunctionLib[] flibs) throws EvaluatorException {
-		lucee.transformer.bytecode.statement.tag.TagThread tt=(lucee.transformer.bytecode.statement.tag.TagThread) tag;
-        try {
-			tt.init();
-		}
-        catch (TransformerException te) {
-			EvaluatorException ee = new EvaluatorException(te.getMessage());
-			ee.initCause(te);
-			throw ee;
-		}
+    @Override
+    public void evaluate(Tag tag, TagLibTag tagLibTag, FunctionLib[] flibs) throws EvaluatorException {
+	lucee.transformer.bytecode.statement.tag.TagThread tt = (lucee.transformer.bytecode.statement.tag.TagThread) tag;
+	try {
+	    tt.init();
 	}
+	catch (TransformerException te) {
+	    EvaluatorException ee = new EvaluatorException(te.getMessage());
+	    ee.initCause(te);
+	    throw ee;
+	}
+    }
 }
