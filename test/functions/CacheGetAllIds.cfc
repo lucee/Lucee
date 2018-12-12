@@ -35,6 +35,12 @@
 		<cfset testCacheGetAllIds()>
 		<cfset deleteCache()>
 	</cffunction>
+	<cffunction name="testCacheGetAllIdsRedisCache" localMode="modern">
+		<cfif !variables.hasRedis><cfreturn></cfif>
+		<cfset createRedisCache()>
+		<cfset testCacheGetAllIds()>
+		<cfset deleteCache()>
+	</cffunction>
 	
 	<cffunction access="private" name="testCacheGetAllIds" localMode="modern">
 
@@ -125,6 +131,53 @@
 					,memoryEvictionPolicy:"LRU"
 					,timeToIdleSeconds:86400
 					,maxElementsInMemory:10000}#";
+	}
+
+	private function createRedisCache() {
+		admin 
+				action="updateCacheConnection"
+				type="web"
+				password="#request.webadminpassword#"
+				
+				default="object"
+				name="#cacheName#" 
+				class="lucee.extension.io.cache.redis.simple.RedisCache"
+				bundleName= 'redis.extension'
+				bundleVersion= '2.9.0.2-BETA'
+				storage="false"
+				custom='#{"minIdle":"0",
+				"maxTotal":"8",
+				"maxIdle":"10",
+				"host":"localhost",
+				"password":variables.redis.password, 
+				"port":variables.redis.port,
+				"timeout":"2000",
+				"timeToLiveSeconds":"60"}#';
+	}
+
+	private struct function getRedisCredencials() {
+		// getting the credetials from the enviroment variables
+		var sct={};
+
+		if(
+			!isNull(server.system.environment.REDIS_PORT) && 
+			!isNull(server.system.environment.REDIS_PASSWORD)) {
+			sct.port=server.system.environment.REDIS_PORT;
+			sct.password=server.system.environment.REDIS_PASSWORD;
+		}
+		// getting the credetials from the system variables
+		else if(
+			!isNull(server.system.properties.REDIS_PORT) && 
+			!isNull(server.system.properties.REDIS_PASSWORD)) {
+			sct.port=server.system.properties.REDIS_PORT;
+			sct.password=server.system.properties.REDIS_PASSWORD;
+		}
+		return sct;
+	}
+
+	public function setUp(){
+		variables.redis=getRedisCredencials();	
+		variables.hasRedis=structCount(variables.redis);		
 	}
 				
 	private function deleteCache(){

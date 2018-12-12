@@ -151,6 +151,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		testCacheClear();
 		deleteCache();
 	}
+	function testCacheClearRedisCache() {
+		if(!variables.hasRedis) return;
+		createRedisCache();
+		testCacheClear();
+		deleteCache();
+	}
 	function testCacheClearJBossCache() {
 		if(!isNull(request.testJBossExtension) and request.testJBossExtension) {
 			createJBossCache();
@@ -214,6 +220,28 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 					,timeToIdleSeconds:86400
 					,maxElementsInMemory:10000}#";
 	}
+		
+	private function createRedisCache() {
+		admin 
+				action="updateCacheConnection"
+				type="web"
+				password="#request.webadminpassword#"
+				
+				default="object"
+				name="#cacheName#" 
+				class="lucee.extension.io.cache.redis.simple.RedisCache"
+				bundleName= 'redis.extension'
+				bundleVersion= '2.9.0.1-BETA'
+				storage="false"
+				custom='#{"minIdle":"0",
+				"maxTotal":"8",
+				"maxIdle":"10",
+				"host":"localhost",
+				"password":variables.redis.password, 
+				"port":variables.redis.port,
+				"timeout":"2000",
+				"timeToLiveSeconds":"60"}#';
+	}
 				
 	private function deleteCache(){
 		admin 
@@ -251,5 +279,30 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		    cacheClear("ab*",cacheName);
 		    assertEquals("#cacheCount(cacheName)#", "1");
     	}
+	}
+
+	private struct function getRedisCredencials() {
+		// getting the credetials from the enviroment variables
+		var sct={};
+
+		if(
+			!isNull(server.system.environment.REDIS_PORT) && 
+			!isNull(server.system.environment.REDIS_PASSWORD)) {
+			sct.port=server.system.environment.REDIS_PORT;
+			sct.password=server.system.environment.REDIS_PASSWORD;
+		}
+		// getting the credetials from the system variables
+		else if(
+			!isNull(server.system.properties.REDIS_PORT) && 
+			!isNull(server.system.properties.REDIS_PASSWORD)) {
+			sct.port=server.system.properties.REDIS_PORT;
+			sct.password=server.system.properties.REDIS_PASSWORD;
+		}
+		return sct;
+	}
+
+	public function setUp(){
+		variables.redis=getRedisCredencials();	
+		variables.hasRedis=structCount(variables.redis);		
 	}
 }
