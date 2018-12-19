@@ -1,7 +1,7 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function run( testResults , testBox ) {
-		describe( "test case for LDEV-2114", function() {
-			it(title = "IsIpInRange() returns incorrect false values", body = function( currentSpec ) {
+		describe( "test case for LDEV-2122", function() {
+			it(title = "IsValid('email', 'email@example.com,') inconsistency with ACF", body = function( currentSpec ) {
 				// Checking with valid emails
 				expect(isValid( 'email', 'example@example.in' )).toBe(True);
 				expect(isValid( 'email', 'test@test.com' )).toBe(True);
