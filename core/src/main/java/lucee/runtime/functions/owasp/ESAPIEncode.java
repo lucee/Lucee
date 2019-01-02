@@ -146,7 +146,8 @@ public class ESAPIEncode implements Function {
 	}
 
 	public static String canonicalize(String input, boolean restrictMultiple, boolean restrictMixed) {
-		if(StringUtil.isEmpty(input)) return null;
+		if(StringUtil.isEmpty(input)) return input;
+
 		PrintStream out = System.out;
 		try {
 			 System.setOut(new PrintStream(DevNullOutputStream.DEV_NULL_OUTPUT_STREAM));

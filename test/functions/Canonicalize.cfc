@@ -23,17 +23,16 @@
 	--->
 	<cffunction name="testCanonicalize" localMode="modern">
 
-<!--- begin old test code --->
-<cfscript>
-valueEquals(canonicalize("&lt;",false,false),'<');
-valueEquals(canonicalize("%26lt; %26lt; %2526lt%253B %2526lt%253B%2526lt%253B",false,false),'< < < <<');
-valueEquals(canonicalize("&##X25;3c",false,false),'<');
-valueEquals(canonicalize("&##x25;3c",false,false),'<');
-</cfscript>
-<!--- end old test code --->
-	
-		
-		<!--- <cfset assertEquals("","")> --->
+		<!--- begin old test code --->
+		<cfscript>
+			valueEquals(canonicalize("&lt;",false,false),'<');
+			valueEquals(canonicalize("%26lt; %26lt; %2526lt%253B %2526lt%253B%2526lt%253B",false,false),'< < < <<');
+			valueEquals(canonicalize("&##X25;3c",false,false),'<');
+			valueEquals(canonicalize("&##x25;3c",false,false),'<');
+			valueEquals(canonicalize("",false,false),'');
+		</cfscript>
+		<!--- end old test code --->
+
 	</cffunction>
 	
 	<cffunction access="private" name="valueEquals">
