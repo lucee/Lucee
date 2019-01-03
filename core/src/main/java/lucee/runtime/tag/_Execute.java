@@ -98,11 +98,6 @@ public final class _Execute extends PageContextThread {
 	catch (Exception ioe) {
 	    exception = ioe;
 	}
-	finally {
-	    synchronized (monitor) {
-		monitor.notify();
-	    }
-	}
 	// }
     }
 
