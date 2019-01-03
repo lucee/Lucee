@@ -19,8 +19,6 @@
 
 package lucee.runtime.tag;
 
-import java.util.List;
-
 import lucee.commons.cli.Command;
 import lucee.commons.cli.CommandResult;
 import lucee.commons.io.IOUtil;
@@ -39,7 +37,7 @@ public final class _Execute extends PageContextThread {
     private String variable;
     private String errorVariable;
     private boolean aborted;
-    private List<String> command = null;
+    private String[] commands;
     // private static final int BLOCK_SIZE=4096;
     private Object monitor;
     private Exception exception;
@@ -56,10 +54,10 @@ public final class _Execute extends PageContextThread {
      * @param body
      * @param terminateOnTimeout
      */
-    public _Execute(PageContext pageContext, Object monitor, List<String> command, Resource outputfile, String variable, Resource errorFile, String errorVariable) {
+    public _Execute(PageContext pageContext, Object monitor, String[] commands, Resource outputfile, String variable, Resource errorFile, String errorVariable) {
 	super(pageContext);
 	this.monitor = monitor;
-	this.command = command;
+	this.commands = commands;
 	this.outputfile = outputfile;
 	this.variable = variable;
 
@@ -73,17 +71,18 @@ public final class _Execute extends PageContextThread {
 	try {
 	    _run(pc);
 	}
-	catch (Exception e) {}
+	catch (Exception e) {
+	    e.printStackTrace();
+	}
     }
 
     void _run(PageContext pc) {
 	try {
 
-	    // process = Command.createProcess(command, true);
+	    process = Command.createProcess(commands);
 
-	    CommandResult result = Command.execute(command);
+	    CommandResult result = Command.execute(process);
 	    String rst = result.getOutput();
-
 	    finished = true;
 	    if (!aborted) {
 		if (outputfile == null && variable == null) pc.write(rst);

@@ -1216,7 +1216,7 @@ public final class PageContextImpl extends PageContext {
 
     @Override
     public CGI cgiScope() {
-	CGI cgi = applicationContext.getCGIScopeReadonly() ? cgiR : cgiRW;
+	CGI cgi = applicationContext == null || applicationContext.getCGIScopeReadonly() ? cgiR : cgiRW;
 	if (!cgi.isInitalized()) cgi.initialize(this);
 	return cgi;
     }

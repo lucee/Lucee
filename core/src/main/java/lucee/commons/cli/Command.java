@@ -34,6 +34,10 @@ public class Command {
 	return Runtime.getRuntime().exec(toArray(cmdline));
     }
 
+    public static Process createProcess(String[] commands) throws IOException {
+	return Runtime.getRuntime().exec(commands);
+    }
+
     /**
      * @param cmdline command line
      * @param translate translate the command line or not
@@ -84,8 +88,8 @@ public class Command {
 	}
     }
 
-    private static String[] toArray(String str) {
-	if (StringUtil.isEmpty(str)) return new String[] { "" };
+    public static List<String> toList(String str) {
+	if (StringUtil.isEmpty(str)) return new ArrayList<String>();
 	str = str.trim();
 	StringBuilder sb = new StringBuilder();
 	ArrayList<String> list = new ArrayList<String>();
@@ -132,6 +136,11 @@ public class Command {
 	}
 	populateList(sb, list);
 
+	return list;
+    }
+
+    public static String[] toArray(String str) {
+	List<String> list = toList(str);
 	return list.toArray(new String[list.size()]);
     }
 
