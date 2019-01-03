@@ -31,6 +31,7 @@ import lucee.runtime.converter.JSONConverter;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
@@ -61,7 +62,7 @@ public final class CallStackGet implements Function {
 
 	if (type.equalsIgnoreCase("json")) {
 	    try {
-		return new JSONConverter(true, null).serialize(pc, arr, false);
+		return new JSONConverter(true, null).serialize(pc, arr, SerializationSettings.SERIALIZE_AS_ROW);
 	    }
 	    catch (Throwable t) {
 		ExceptionUtil.rethrowIfNecessary(t);

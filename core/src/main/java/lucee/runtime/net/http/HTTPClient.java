@@ -53,6 +53,7 @@ import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
+import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.rpc.RPCException;
 import lucee.runtime.op.Caster;
@@ -263,7 +264,7 @@ public class HTTPClient implements Objects, Iteratorable {
 	try {
 	    if (UDF.RETURN_FORMAT_JSON == argumentsCollectionFormat) {
 		Charset cs = pc.getWebCharset();
-		str = new JSONConverter(true, cs).serialize(pc, args, false);
+		str = new JSONConverter(true, cs).serialize(pc, args, SerializationSettings.SERIALIZE_AS_ROW);
 		formfields.put("argumentCollectionFormat", "json");
 	    }
 	    else if (UDF.RETURN_FORMAT_SERIALIZE == argumentsCollectionFormat) {

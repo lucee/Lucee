@@ -32,11 +32,6 @@ import lucee.runtime.ext.function.Function;
 import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.op.Caster;
-import lucee.runtime.op.Decision;
-import lucee.runtime.type.Array;
-import lucee.runtime.type.ArrayImpl;
-import lucee.runtime.type.Query;
-import lucee.runtime.type.it.ForEachQueryIterator;
 
 /**
  * Decodes Binary Data that are encoded as String
@@ -74,53 +69,16 @@ public final class SerializeJSON implements Function {
 
 	    JSONConverter json = new JSONConverter(true, charset, JSONDateFormat.PATTERN_CF);
 
-	    // default == false == row | true == column
-	    String sOpt = "";
-	    if (Decision.isSimpleValue(options)) sOpt = Caster.toString(options);
-
-	    Boolean bOpt = null;
-	    if (Decision.isBoolean(options)) bOpt = Caster.toBoolean(options);
-	    else if ("row".equalsIgnoreCase(sOpt)) bOpt = Boolean.FALSE;
-	    else if ("column".equalsIgnoreCase(sOpt)) bOpt = Boolean.TRUE;
-
-	    if (bOpt != null) return json.serialize(pc, var, bOpt);
-
-	    if (Decision.isQuery(var)) {
-
-		boolean serializeQueryAsStruct = "struct".equalsIgnoreCase(sOpt);
-
-		if (!serializeQueryAsStruct) {
-		    // check Application.cfc setting this.serialization.serializeQueryAs == "struct"
-		    ApplicationContextSupport acs = (ApplicationContextSupport) pc.getApplicationContext();
-		    SerializationSettings settings = acs.getSerializationSettings();
-
-		    if (settings.getSerializeQueryAs() == SerializationSettings.SERIALIZE_AS_COLUMN) return json.serialize(pc, var, true);
-
-		    if (settings.getSerializeQueryAs() == SerializationSettings.SERIALIZE_AS_STRUCT) serializeQueryAsStruct = true;
-		}
-
-		if (serializeQueryAsStruct) {
-
-		    Array arr = new ArrayImpl();
-		    ForEachQueryIterator it = new ForEachQueryIterator((Query) var, pc.getId());
-		    try {
-			while (it.hasNext()) {
-			    arr.append(it.next()); // append each record from the query as a struct
-			}
-		    }
-		    finally {
-			it.reset();
-		    }
-
-		    return json.serialize(pc, arr, false);
-		}
-
-		if (!sOpt.isEmpty()) throw new FunctionException(pc, SerializeJSON.class.getSimpleName(), 2, "options",
+	    int queryFormat = JSONConverter.toQueryFormat(options, SerializationSettings.SERIALIZE_AS_UNDEFINED);
+	    if (queryFormat == SerializationSettings.SERIALIZE_AS_UNDEFINED) {
+		if (!StringUtil.isEmpty(options)) throw new FunctionException(pc, SerializeJSON.class.getSimpleName(), 2, "options",
 			"When var is a Query, argument [options] must be either a boolean value or a string with the value of [struct], [row], or [column]");
+		ApplicationContextSupport acs = (ApplicationContextSupport) pc.getApplicationContext();
+		SerializationSettings settings = acs.getSerializationSettings();
+		queryFormat = settings.getSerializeQueryAs();
 	    }
 
-	    // var is not a query, or options were not set explicitly
-	    return json.serialize(pc, var, false);
+	    return json.serialize(pc, var, queryFormat);
 	}
 	catch (ConverterException e) {
 	    throw Caster.toPageException(e);
