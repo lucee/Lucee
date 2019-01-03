@@ -948,6 +948,8 @@ public class KeyConstants {
     public static final Key _stacktrace = KeyImpl._const("stacktrace");
     public static final Key _interface = KeyImpl._const("interface");
     public static final Key _proxy = KeyImpl._const("proxy");
+    public static final Key _offset = KeyImpl._const("offset");
+    public static final Key _shortName = KeyImpl._const("shortName");
 
     private static MapPro<String, Key> _____keys;
 
