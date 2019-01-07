@@ -24,6 +24,7 @@ import static org.apache.commons.collections4.map.AbstractReferenceMap.Reference
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.InetAddress;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -3396,19 +3397,18 @@ public abstract class ConfigImpl implements Config {
 
     public DebugEntry getDebugEntry(String ip, DebugEntry defaultValue) {
 	if (debugEntries.length == 0) return defaultValue;
-	short[] sarr;
+	InetAddress ia;
 
 	try {
-	    sarr = IPRange.toShortArray(ip);
+	    ia = IPRange.toInetAddress(ip);
 	}
 	catch (IOException e) {
 	    return defaultValue;
 	}
 
 	for (int i = 0; i < debugEntries.length; i++) {
-	    if (debugEntries[i].getIpRange().inRange(sarr)) return debugEntries[i];
+	    if (debugEntries[i].getIpRange().inRange(ia)) return debugEntries[i];
 	}
-
 	return defaultValue;
     }
 
