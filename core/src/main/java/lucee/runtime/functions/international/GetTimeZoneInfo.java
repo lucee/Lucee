@@ -64,7 +64,9 @@ public final class GetTimeZoneInfo implements Function {
 	struct.setEL("utcMinuteOffset", new Double(minutes));
 	struct.setEL("isDSTon", (dstOffset > 0) ? Boolean.TRUE : Boolean.FALSE);
 	struct.setEL(KeyConstants._name, tz.getDisplayName(dspLocale));
+	struct.setEL(KeyConstants._nameDST, tz.getDisplayName(Boolean.TRUE, TimeZone.LONG, dspLocale));
 	struct.setEL(KeyConstants._shortName, tz.getDisplayName(Boolean.FALSE, TimeZone.SHORT, dspLocale));
+	struct.setEL(KeyConstants._shortNameDST, tz.getDisplayName(Boolean.TRUE, TimeZone.SHORT, dspLocale));
 	struct.setEL(KeyConstants._id, tz.getID());
 	struct.setEL(KeyConstants._offset, new Double(-total));
 	struct.setEL("DSTOffset", new Double(dstOffset / 1000));

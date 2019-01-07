@@ -6270,7 +6270,7 @@ if this attribute is not provided all types are returned.</description>
 		<name>getTimeZoneInfo</name>
 		<class>lucee.runtime.functions.international.GetTimeZoneInfo</class>
 		<member-name>info</member-name>
-		<description>Returns back a structure regarding the current timezone; utctotaloffset, utchouroffset, utcminuteoffset, isdston</description>
+		<description>Returns back a structure regarding the current timezone; isDSTon, DSTOffset, id, name, shortName, nameDST, shortNameDST, utcHourOffset, offset, utcTotalOffset, utcMinuteOffset</description>
 		<argument>
 			<name>timezone</name>
 			<type>timezone</type>
