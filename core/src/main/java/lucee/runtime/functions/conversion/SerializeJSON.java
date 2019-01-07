@@ -32,6 +32,7 @@ import lucee.runtime.ext.function.Function;
 import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.op.Caster;
+import lucee.runtime.op.Decision;
 
 /**
  * Decodes Binary Data that are encoded as String
@@ -41,44 +42,61 @@ public final class SerializeJSON implements Function {
     private static final long serialVersionUID = -4632952919389635891L;
 
     public static String call(PageContext pc, Object var) throws PageException {
-	return _call(pc, var, "", pc.getWebCharset());
+	return _call(pc, var, "", pc.getWebCharset(), false);
     }
 
     // FUTURE remove, this methods are only used by compiled code in archives older than 5.2.3
     public static String call(PageContext pc, Object var, boolean serializeQueryByColumns) throws PageException {
-	return _call(pc, var, serializeQueryByColumns, pc.getWebCharset());
+	return _call(pc, var, serializeQueryByColumns, pc.getWebCharset(), false);
     }
 
     // FUTURE remove, this methods are only used by compiled code in archives older than 5.2.3
     public static String call(PageContext pc, Object var, boolean serializeQueryByColumns, String strCharset) throws PageException {
 	Charset cs = StringUtil.isEmpty(strCharset) ? pc.getWebCharset() : CharsetUtil.toCharset(strCharset);
-	return _call(pc, var, serializeQueryByColumns, cs);
+	return _call(pc, var, serializeQueryByColumns, cs, false);
+    }
+
+    // FUTURE remove, this methods are only used by compiled code in archives older than 5.2.3
+    public static String call(PageContext pc, Object var, Object options, String strCharset) throws PageException {
+	Charset cs = StringUtil.isEmpty(strCharset) ? pc.getWebCharset() : CharsetUtil.toCharset(strCharset);
+	return _call(pc, var, options, cs, false);
     }
 
     public static String call(PageContext pc, Object var, Object options) throws PageException {
-	return _call(pc, var, options, pc.getWebCharset());
+	return _call(pc, var, options, pc.getWebCharset(), false);
     }
 
-    public static String call(PageContext pc, Object var, Object options, String strCharset) throws PageException {
-	Charset cs = StringUtil.isEmpty(strCharset) ? pc.getWebCharset() : CharsetUtil.toCharset(strCharset);
-	return _call(pc, var, options, cs);
+    public static String call(PageContext pc, Object var, Object options, Object useSecureJSONPrefixOrCharset) throws PageException {
+	// TODO all options to be a struct
+
+	// useSecureJSONPrefix
+	Charset cs = pc.getWebCharset();
+	boolean useSecureJSONPrefix = false;
+	if (Decision.isBoolean(useSecureJSONPrefixOrCharset)) {
+	    useSecureJSONPrefix = Caster.toBooleanValue(useSecureJSONPrefixOrCharset);
+	}
+	// charset
+	else if (!StringUtil.isEmpty(useSecureJSONPrefixOrCharset)) {
+	    cs = CharsetUtil.toCharset(Caster.toString(useSecureJSONPrefixOrCharset));
+	}
+	return _call(pc, var, options, cs, useSecureJSONPrefix);
     }
 
-    private static String _call(PageContext pc, Object var, Object options, Charset charset) throws PageException {
+    private static String _call(PageContext pc, Object var, Object queryFormat, Charset charset, boolean useSecureJSONPrefix) throws PageException {
 	try {
-
 	    JSONConverter json = new JSONConverter(true, charset, JSONDateFormat.PATTERN_CF);
 
-	    int queryFormat = JSONConverter.toQueryFormat(options, SerializationSettings.SERIALIZE_AS_UNDEFINED);
-	    if (queryFormat == SerializationSettings.SERIALIZE_AS_UNDEFINED) {
-		if (!StringUtil.isEmpty(options)) throw new FunctionException(pc, SerializeJSON.class.getSimpleName(), 2, "options",
+	    int qf = JSONConverter.toQueryFormat(queryFormat, SerializationSettings.SERIALIZE_AS_UNDEFINED);
+	    if (qf == SerializationSettings.SERIALIZE_AS_UNDEFINED) {
+		if (!StringUtil.isEmpty(queryFormat)) throw new FunctionException(pc, SerializeJSON.class.getSimpleName(), 2, "options",
 			"When var is a Query, argument [options] must be either a boolean value or a string with the value of [struct], [row], or [column]");
 		ApplicationContextSupport acs = (ApplicationContextSupport) pc.getApplicationContext();
 		SerializationSettings settings = acs.getSerializationSettings();
-		queryFormat = settings.getSerializeQueryAs();
+		qf = settings.getSerializeQueryAs();
 	    }
 
-	    return json.serialize(pc, var, queryFormat);
+	    // TODO get secure prefix from application.cfc
+	    return useSecureJSONPrefix ? "// " + json.serialize(pc, var, qf) : json.serialize(pc, var, qf);
 	}
 	catch (ConverterException e) {
 	    throw Caster.toPageException(e);
