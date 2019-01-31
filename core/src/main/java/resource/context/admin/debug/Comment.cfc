@@ -231,7 +231,11 @@ component extends="Debug" {
 		for(i=1;i LTE data.recordcount;i=i+1) {
 			writeOutput(RepeatString("-",total)&NL);
 			for(y=1;y LTE collen;y=y+1) {
-				writeOutput(ljustify("| "&data[labels[y]][i]&" " ,lengths[y]));
+				if(labels[y] == "src"){
+					writeOutput(ljustify("| "&contractPath(data[labels[y]][i])&" " ,lengths[y]));
+				}else{
+					writeOutput(ljustify("| "&data[labels[y]][i]&" " ,lengths[y]));
+				}
 			}
 			writeOutput("|"&NL);
 		}
