@@ -13,6 +13,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 ,field("Display percentages","displayPercentages","Enabled",false,"Display percentages for each entry","checkbox","Enabled")
 ,field("Highlight colored","colorHighlight","Enabled",true,"Color the output based on the overall percentages","checkbox","Enabled")
 ,field("Warn Session size","sessionSize","100",true,{_appendix:"KB",_bottom:"Warn in debugging, if the current session is above the following (in KB) size."},"text50")
+,field("Scope Variables","scopesList","Application,CGI,Client,Cookie,Form,Request,Session,URL",true,"Enable Scope reporting","checkbox","Application,CGI,Client,Cookie,Form,Request,Server,Session,URL")
 ,group("Metrics Tab","",2)
 ,field("Metrics","tab_Metrics","Enabled",true,"Select the Metrics tab to show on debugOutput","checkbox","Enabled")
 ,field("Charts","metrics_charts","HeapChart,NonHeapChart,WholeSystem",false,"Select the chart to show on metrics Tab. It will show only if the metrics tabs is enabled","checkbox","HeapChart,NonHeapChart,WholeSystem")
@@ -129,12 +130,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			</cfif>
 		</cfloop>
 
-
-		<script>
-			if (typeof jQuery == 'undefined') {
-				document.write("<script src='/lucee/res/js/util.min.js.cfm'><\/script>")
-			}
-		</script>
+		<script src="/lucee/res/js/util.min.js.cfm" type="text/javascript"></script>
 		<link rel="stylesheet" href="/lucee/res/css/modernDebug.css.cfm" type="text/css">
 
 		<cfif arguments.context EQ "web">
@@ -234,7 +230,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 					</div>
 				</div>
 			</cfif>
-			<script src="/lucee/res/js/util.min.js.cfm" type="text/javascript"></script>
+			
 			<script src="/lucee/res/js/echarts-all.js.cfm" type="text/javascript"></script>
 			<script src="/lucee/res/js/base.min.js.cfm" type="text/javascript"></script>
 			<cfif !structKeyExists(url, "isAjaxRequest")>
@@ -1377,7 +1373,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			<cfset local.appSettings = getApplicationSettings()>
 			<cfif structKeyExists( arguments.debugging, "scope" )>
 				<div class="section-title">Scopes</div>
-				<cfif  structKeyExists( arguments.debugging.scope, "Application" )>
+				<cfif  structKeyExists( arguments.debugging.scope, "Application" ) && listFindNocase(arguments.custom.scopesList, "Application") GT 0>
 					<cfset sectionId = "Application">
 					<cfset isOpen = this.isSectionOpen( sectionId, "debugging" )>
 
@@ -1391,7 +1387,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 					</table>
 				</cfif>
 
-				<cfif  structKeyExists( arguments.debugging.scope, "Session" ) && local.appSettings.sessionManagement>
+				<cfif  structKeyExists( arguments.debugging.scope, "Session" ) && local.appSettings.sessionManagement && listFindNocase(arguments.custom.scopesList, "Session") GT 0>
 					<cfset sectionId = "Session">
 					<cfset isOpen = this.isSectionOpen( sectionId, "debugging" )>
 
@@ -1405,7 +1401,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 					</table>
 				</cfif>
 
-				<cfif  structKeyExists( arguments.debugging.scope, "client" ) && local.appSettings.clientManagement>
+				<cfif  structKeyExists( arguments.debugging.scope, "client" ) && local.appSettings.clientManagement && listFindNocase(arguments.custom.scopesList, "client") GT 0>
 					<cfset sectionId = "client">
 					<cfset isOpen = this.isSectionOpen( sectionId, "debugging" )>
 
@@ -1420,7 +1416,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 				</cfif>
 
 
-				<cfif  structKeyExists( arguments.debugging.scope, "Form" )>
+				<cfif  structKeyExists( arguments.debugging.scope, "Form" ) && listFindNocase(arguments.custom.scopesList, "Form") GT 0 >
 					<cfset sectionId = "Form">
 					<cfset isOpen = this.isSectionOpen( sectionId, "debugging" )>
 
@@ -1434,7 +1430,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 					</table>
 				</cfif>
 
-				<cfif  structKeyExists( arguments.debugging.scope, "URL" )>
+				<cfif  structKeyExists( arguments.debugging.scope, "URL" ) && listFindNocase(arguments.custom.scopesList, "URL") GT 0>
 					<cfset sectionId = "URL">
 					<cfset isOpen = this.isSectionOpen( sectionId, "debugging" )>
 
@@ -1448,7 +1444,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 					</table>
 				</cfif>
 
-				<cfif  structKeyExists( arguments.debugging.scope, "cgi" )>
+				<cfif  structKeyExists( arguments.debugging.scope, "cgi" ) &&  listFindNocase(arguments.custom.scopesList, "cgi") GT 0>
 					<cfset sectionId = "_Cgi">
 					<cfset isOpen = this.isSectionOpen( sectionId, "debugging" )>
 
@@ -1462,7 +1458,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 					</table>
 				</cfif>
 
-				<cfif  structKeyExists( arguments.debugging.scope, "Request" )>
+				<cfif  structKeyExists( arguments.debugging.scope, "Request" ) && listFindNocase(arguments.custom.scopesList, "Request") GT 0>
 					<cfset sectionId = "Request">
 					<cfset isOpen = this.isSectionOpen( sectionId, "debugging" )>
 
@@ -1476,7 +1472,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 					</table>
 				</cfif>
 
-				<cfif  structKeyExists( arguments.debugging.scope, "cookie" )>
+				<cfif  structKeyExists( arguments.debugging.scope, "cookie" ) && listFindNocase(arguments.custom.scopesList, "cookie") GT 0>
 					<cfset sectionId = "Cookie">
 					<cfset isOpen = this.isSectionOpen( sectionId, "debugging" )>
 
