@@ -738,7 +738,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			
 
 
-			<cfset var _cgi=structKeyExists(arguments.debugging.scope,'cgi')?arguments.debugging.scope.cgi:cgi />
+			<cfset var _cgi=isNull(arguments.debugging.scope.cgi)?cgi:arguments.debugging.scope.cgi />
 			<cfset var pages=arguments.debugging.pages />
 			<cfset var queries=arguments.debugging.queries />
 			<cfif not isDefined('arguments.debugging.timers')>

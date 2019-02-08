@@ -636,6 +636,11 @@ public final class DebuggerImpl implements Debugger {
 	}
 
 	// sopes
+	if (addAddionalInfo) {
+	    Struct scopes = new StructImpl();
+	    scopes.setEL("cgi", pc.cgiScope());
+	    debugging.setEL(KeyConstants._scope, scopes);
+	}
 	/*
 	 * Struct scopes = new StructImpl(); try { scopes.setEL("application", pc.applicationScope());
 	 * scopes.setEL("session", pc.sessionScope()); scopes.setEL("client", pc.clientScope()); } catch
