@@ -622,6 +622,8 @@ public class KeyConstants {
     public static final Key _top = KeyImpl._const("top");
     public static final Key _total = KeyImpl._const("total");
     public static final Key _traces = KeyImpl._const("traces");
+    public static final Key _dump = KeyImpl._const("dump");
+    public static final Key _dumps = KeyImpl._const("dumps");
     public static final Key _transfer = KeyImpl._const("transfer");
     public static final Key _tree = KeyImpl._const("tree");
     public static final Key _type = KeyImpl._const("type");
