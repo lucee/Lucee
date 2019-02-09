@@ -450,8 +450,7 @@ public final class Directory extends TagImpl {
 
             if (namesOnly) {
                 if (typeArray) {
-                    // performance optimization, sort and recurse are ignored for LIST_INFO_ARRAY_NAME
-                    _fillArrayName(array, directory, filter, 0);
+                    _fillArrayPathOrName(array, directory, filter, 0, recurse, namesOnly);
                     return array;
                 }
 
@@ -496,7 +495,10 @@ public final class Directory extends TagImpl {
             java.util.Iterator it = query.getIterator();
             while (it.hasNext()) {
                 Struct row = (Struct) it.next();
-                array.appendEL(row.get("directory") + lucee.commons.io.FileUtil.FILE_SEPERATOR_STRING + row.get("name"));
+                if (namesOnly)
+                    array.appendEL(row.get("name"));
+                else
+                    array.appendEL(row.get("directory") + lucee.commons.io.FileUtil.FILE_SEPERATOR_STRING + row.get("name"));
             }
         }
 
