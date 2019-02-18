@@ -123,6 +123,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
     /**
      * @return the template
      */
+    @Override
     public String getTemplate() {
 	return template;
     }
@@ -368,14 +369,17 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	}
     }
 
+    @Override
     public int getUpdateCount() {
 	return updateCount;
     }
 
+    @Override
     public void setUpdateCount(int updateCount) {
 	this.updateCount = updateCount;
     }
 
+    @Override
     public Query getGeneratedKeys() {
 	return generatedKeys;
     }
@@ -530,6 +534,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
      * @deprecated use instead
      *             <code>QueryImpl(Collection.Key[] columnKeys, int rowNumber,String name)</code>
      */
+    @Deprecated
     public QueryImpl(String[] strColumns, int rowNumber, String name) {
 	this.name = name;
 	columncount = strColumns.length;
@@ -907,10 +912,10 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	QueryColumn removed = removeColumnEL(key);
 	if (removed == null) {
 	    if (key.equals(KeyConstants._RECORDCOUNT) || key.equals(KeyConstants._CURRENTROW) || key.equals(KeyConstants._COLUMNLIST))
-		throw new DatabaseException("can't remove " + key + " this is not a row", "existing rows are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get())) + "]",
+		throw new DatabaseException("can't remove " + key + " this is not a column", "existing rows are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get())) + "]",
 			null, null);
-	    throw new DatabaseException("can't remove row [" + key + "], this row doesn't exist",
-		    "existing rows are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get())) + "]", null, null);
+	    throw new DatabaseException("can't remove column [" + key + "], this column doesn't exist",
+		    "existing columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get())) + "]", null, null);
 	}
 	return removed;
     }
@@ -920,6 +925,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	return removeColumnEL(KeyImpl.init(key));
     }
 
+    @Override
     public synchronized QueryColumn removeColumnEL(Collection.Key key) {
 	// TODO should in that case not all method accessing columnNames,columns been locked down?
 
@@ -971,6 +977,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	return setAt(KeyImpl.init(key), row, value);
     }
 
+    @Override
     public Object setAt(Collection.Key key, int row, Object value) throws PageException {
 	int index = getIndexFromKey(key);
 	if (index != -1) {
@@ -984,6 +991,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	return setAtEL(KeyImpl.init(key), row, value);
     }
 
+    @Override
     public Object setAtEL(Collection.Key key, int row, Object value) {
 	int index = getIndexFromKey(key);
 	if (index != -1) {
@@ -1011,6 +1019,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	reset(getPid());
     }
 
+    @Override
     public void reset(int pid) {
 	currRow.remove(pid);
 	// arrCurrentRow.set(pid, 0);
@@ -1052,6 +1061,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	return go(index, getPid());
     }
 
+    @Override
     public boolean go(int index, int pid) {
 	if (index > 0 && index <= recordcount) {
 	    currRow.put(pid, index);
@@ -1077,6 +1087,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
      * @param column colun to sort
      * @throws PageException
      */
+    @Override
     public void sort(String column) throws PageException {
 	sort(column, Query.ORDER_ASC);
     }
@@ -1093,6 +1104,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
      * @param order sort type (Query.ORDER_ASC or Query.ORDER_DESC)
      * @throws PageException
      */
+    @Override
     public synchronized void sort(String strColumn, int order) throws PageException {
 	// disconnectCache();
 	sort(getColumn(strColumn), order);
@@ -1149,6 +1161,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	return addColumn(columnName, content, Types.OTHER);
     }
 
+    @Override
     public boolean addColumn(Collection.Key columnName, Array content) throws PageException {
 	return addColumn(columnName, content, Types.OTHER);
     }
@@ -1284,6 +1297,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	}
     }
 
+    @Override
     public synchronized void rename(Collection.Key columnName, Collection.Key newColumnName) throws ExpressionException {
 	int index = getIndexFromKey(columnName);
 	if (index == -1) throw new ExpressionException("invalid column name definitions");
@@ -1495,10 +1509,12 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	return false;
     }
 
+    @Override
     public void setCacheType(String cacheType) {
 	this.cacheType = cacheType;
     }
 
+    @Override
     public String getCacheType() {
 	return cacheType;
     }
@@ -1547,6 +1563,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	return rtn;
     }
 
+    @Override
     public void setColumnNames(Collection.Key[] trg) throws PageException {
 	columncount = trg.length;
 	Collection.Key[] src = keys();
@@ -1588,6 +1605,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	return CollectionUtil.keysAsString(this);
     }
 
+    @Override
     public int getColumnCount() {
 	return columncount;
     }
@@ -1698,6 +1716,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	throw new ExpressionException("can't compare Complex Object Type Query with a String");
     }
 
+    @Override
     public synchronized Array getMetaDataSimple() {
 	Array cols = new ArrayImpl();
 	Struct column;
@@ -1714,6 +1733,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
     /**
      * @return the sql
      */
+    @Override
     public SQL getSql() {
 	return sql;
     }
@@ -1865,10 +1885,12 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	return absolute(1);
     }
 
+    @Override
     public java.sql.Array getArray(int i) throws SQLException {
 	throw new SQLException("method is not implemented");
     }
 
+    @Override
     public java.sql.Array getArray(String colName) throws SQLException {
 	throw new SQLException("method is not implemented");
     }
@@ -2192,11 +2214,13 @@ public class QueryImpl implements Query, Objects, QueryResult {
     }
 
     // used only with java 7, do not set @Override
+    @Override
     public <T> T getObject(int columnIndex, Class<T> type) throws SQLException {
 	return (T) QueryUtil.getObject(this, columnIndex, type);
     }
 
     // used only with java 7, do not set @Override
+    @Override
     public <T> T getObject(String columnLabel, Class<T> type) throws SQLException {
 	return (T) QueryUtil.getObject(this, columnLabel, type);
     }
@@ -2240,6 +2264,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	}
     }
 
+    @Override
     public Statement getStatement() throws SQLException {
 	throw new SQLException("method is not implemented");
     }
@@ -2376,26 +2401,32 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	return currRow.g(getPid(), 0) == 1;
     }
 
+    @Override
     public boolean isLast() throws SQLException {
 	return currRow.g(getPid(), 0) == recordcount;
     }
 
+    @Override
     public boolean last() throws SQLException {
 	return absolute(recordcount);
     }
 
+    @Override
     public void moveToCurrentRow() throws SQLException {
 	// ignore
     }
 
+    @Override
     public void moveToInsertRow() throws SQLException {
 	// ignore
     }
 
+    @Override
     public boolean previous() {
 	return previous(getPid());
     }
 
+    @Override
     public boolean previous(int pid) {
 	if (0 < (currRow.put(pid, currRow.g(pid, 0) - 1))) {
 	    return true;
@@ -2404,6 +2435,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	return false;
     }
 
+    @Override
     public void refreshRow() throws SQLException {
 	// ignore
 
@@ -2429,10 +2461,12 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	return false;
     }
 
+    @Override
     public void setFetchDirection(int direction) throws SQLException {
 	// ignore
     }
 
+    @Override
     public void setFetchSize(int rows) throws SQLException {
 	// ignore
     }
@@ -2677,6 +2711,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	updateObject(columnName, x.getObject());
     }
 
+    @Override
     public void updateRow() throws SQLException {
 	throw new SQLException("method is not implemented");
     }
@@ -2741,6 +2776,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	return new EntryIterator(this, keys());
     }
 
+    @Override
     public Iterator<Object> valueIterator() {
 	return new CollectionIterator(keys(), this);
     }
@@ -2775,204 +2811,254 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	}
     }
 
+    @Override
     public int getHoldability() throws SQLException {
 	throw notSupported();
     }
 
+    @Override
     public boolean isClosed() throws SQLException {
 	return false;
     }
 
+    @Override
     public void updateNString(int columnIndex, String nString) throws SQLException {
 	updateString(columnIndex, nString);
     }
 
+    @Override
     public void updateNString(String columnLabel, String nString) throws SQLException {
 	updateString(columnLabel, nString);
     }
 
+    @Override
     public String getNString(int columnIndex) throws SQLException {
 	return getString(columnIndex);
     }
 
+    @Override
     public String getNString(String columnLabel) throws SQLException {
 	return getString(columnLabel);
     }
 
+    @Override
     public Reader getNCharacterStream(int columnIndex) throws SQLException {
 	return getCharacterStream(columnIndex);
     }
 
+    @Override
     public Reader getNCharacterStream(String columnLabel) throws SQLException {
 	return getCharacterStream(columnLabel);
     }
 
+    @Override
     public void updateNCharacterStream(int columnIndex, Reader x, long length) throws SQLException {
 	updateCharacterStream(columnIndex, x, length);
     }
 
+    @Override
     public void updateNCharacterStream(String columnLabel, Reader reader, long length) throws SQLException {
 	throw notSupported();
     }
 
+    @Override
     public void updateAsciiStream(int columnIndex, InputStream x, long length) throws SQLException {
 	throw notSupported();
     }
 
+    @Override
     public void updateBinaryStream(int columnIndex, InputStream x, long length) throws SQLException {
 	throw notSupported();
     }
 
+    @Override
     public void updateCharacterStream(int columnIndex, Reader x, long length) throws SQLException {
 	throw notSupported();
     }
 
+    @Override
     public void updateAsciiStream(String columnLabel, InputStream x, long length) throws SQLException {
 	throw notSupported();
     }
 
+    @Override
     public void updateBinaryStream(String columnLabel, InputStream x, long length) throws SQLException {
 	throw notSupported();
     }
 
+    @Override
     public void updateCharacterStream(String columnLabel, Reader reader, long length) throws SQLException {
 	throw notSupported();
     }
 
+    @Override
     public void updateBlob(int columnIndex, InputStream inputStream, long length) throws SQLException {
 	throw notSupported();
     }
 
+    @Override
     public void updateBlob(String columnLabel, InputStream inputStream, long length) throws SQLException {
 	throw notSupported();
     }
 
+    @Override
     public void updateClob(int columnIndex, Reader reader, long length) throws SQLException {
 	throw notSupported();
     }
 
+    @Override
     public void updateClob(String columnLabel, Reader reader, long length) throws SQLException {
 	throw notSupported();
     }
 
+    @Override
     public void updateNClob(int columnIndex, Reader reader, long length) throws SQLException {
 	updateClob(columnIndex, reader, length);
     }
 
+    @Override
     public void updateNClob(String columnLabel, Reader reader, long length) throws SQLException {
 	updateClob(columnLabel, reader, length);
     }
 
+    @Override
     public void updateNCharacterStream(int columnIndex, Reader x) throws SQLException {
 	updateCharacterStream(columnIndex, x);
     }
 
+    @Override
     public void updateNCharacterStream(String columnLabel, Reader reader) throws SQLException {
 	throw notSupported();
     }
 
+    @Override
     public void updateAsciiStream(int columnIndex, InputStream x) throws SQLException {
 	throw notSupported();
     }
 
+    @Override
     public void updateBinaryStream(int columnIndex, InputStream x) throws SQLException {
 	throw notSupported();
     }
 
+    @Override
     public void updateCharacterStream(int columnIndex, Reader x) throws SQLException {
 	throw notSupported();
     }
 
+    @Override
     public void updateAsciiStream(String columnLabel, InputStream x) throws SQLException {
 	throw notSupported();
     }
 
+    @Override
     public void updateBinaryStream(String columnLabel, InputStream x) throws SQLException {
 	throw notSupported();
     }
 
+    @Override
     public void updateCharacterStream(String columnLabel, Reader reader) throws SQLException {
 	throw notSupported();
     }
 
+    @Override
     public void updateBlob(int columnIndex, InputStream inputStream) throws SQLException {
 	throw notSupported();
     }
 
+    @Override
     public void updateBlob(String columnLabel, InputStream inputStream) throws SQLException {
 	throw notSupported();
     }
 
+    @Override
     public void updateClob(int columnIndex, Reader reader) throws SQLException {
 	throw notSupported();
     }
 
+    @Override
     public void updateClob(String columnLabel, Reader reader) throws SQLException {
 	throw notSupported();
     }
 
+    @Override
     public void updateNClob(int columnIndex, Reader reader) throws SQLException {
 	updateClob(columnIndex, reader);
     }
 
+    @Override
     public void updateNClob(String columnLabel, Reader reader) throws SQLException {
 	updateClob(columnLabel, reader);
     }
 
+    @Override
     public <T> T unwrap(Class<T> iface) throws SQLException {
 	throw notSupported();
     }
 
+    @Override
     public boolean isWrapperFor(Class<?> iface) throws SQLException {
 	throw notSupported();
     }
 
     // JDK6: uncomment this for compiling with JDK6
 
+    @Override
     public void updateNClob(int columnIndex, NClob nClob) throws SQLException {
 	throw notSupported();
     }
 
+    @Override
     public void updateNClob(String columnLabel, NClob nClob) throws SQLException {
 	throw notSupported();
     }
 
+    @Override
     public NClob getNClob(int columnIndex) throws SQLException {
 	throw notSupported();
     }
 
+    @Override
     public NClob getNClob(String columnLabel) throws SQLException {
 	throw notSupported();
     }
 
+    @Override
     public SQLXML getSQLXML(int columnIndex) throws SQLException {
 	throw notSupported();
     }
 
+    @Override
     public SQLXML getSQLXML(String columnLabel) throws SQLException {
 	throw notSupported();
     }
 
+    @Override
     public void updateSQLXML(int columnIndex, SQLXML xmlObject) throws SQLException {
 	throw notSupported();
     }
 
+    @Override
     public void updateSQLXML(String columnLabel, SQLXML xmlObject) throws SQLException {
 	throw notSupported();
     }
 
+    @Override
     public RowId getRowId(int columnIndex) throws SQLException {
 	throw notSupported();
     }
 
+    @Override
     public RowId getRowId(String columnLabel) throws SQLException {
 	throw notSupported();
     }
 
+    @Override
     public void updateRowId(int columnIndex, RowId x) throws SQLException {
 	throw notSupported();
     }
 
+    @Override
     public void updateRowId(String columnLabel, RowId x) throws SQLException {
 	throw notSupported();
     }
@@ -2985,6 +3071,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	return new SQLException("this feature is not supported");
     }
 
+    @Override
     public synchronized void enableShowQueryUsage() {
 	if (columns != null) for (int i = 0; i < columns.length; i++) {
 	    columns[i] = columns[i]._toDebugColumn();
