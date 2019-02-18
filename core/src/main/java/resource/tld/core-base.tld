@@ -3274,6 +3274,14 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<description>ID of the snippet that is added, used to ensure that the same snippet will not be added more than once.</description>
 		</attribute>
 		<attribute>
+			<type>boolean</type>
+			<name>force</name>
+			<required>false</required>
+			<default>false</default>
+			<rtexprvalue>true</rtexprvalue>
+			<description>if set to true, it works even within a silent block</description>
+		</attribute>
+		<attribute>
 			<type>string</type>
 			<name>action</name>
 			<values>append,read,reset,write</values>
@@ -3310,6 +3318,14 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<rtexprvalue>true</rtexprvalue>
 			<description>The text to add to the 'head' area of an HTML page. Everything inside the quotation marks is
 		placed in the 'head' section</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>force</name>
+			<required>false</required>
+			<default>true</default>
+			<rtexprvalue>true</rtexprvalue>
+			<description>if set to true, it works even within a silent block</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
