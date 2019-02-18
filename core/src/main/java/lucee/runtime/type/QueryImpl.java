@@ -912,10 +912,10 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	QueryColumn removed = removeColumnEL(key);
 	if (removed == null) {
 	    if (key.equals(KeyConstants._RECORDCOUNT) || key.equals(KeyConstants._CURRENTROW) || key.equals(KeyConstants._COLUMNLIST))
-		throw new DatabaseException("can't remove " + key + " this is not a row", "existing rows are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get())) + "]",
-			null, null);
-	    throw new DatabaseException("can't remove row [" + key + "], this row doesn't exist",
-		    "existing rows are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get())) + "]", null, null);
+		throw new DatabaseException("can't remove " + key + " this is not a column",
+			"existing columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get())) + "]", null, null);
+	    throw new DatabaseException("can't remove column [" + key + "], this column doesn't exist",
+		    "existing columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get())) + "]", null, null);
 	}
 	return removed;
     }
