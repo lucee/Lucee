@@ -18,10 +18,18 @@
  **/
 package lucee.commons.lang.types;
 
+import java.util.Date;
+
+import lucee.runtime.exp.PageException;
+import lucee.runtime.op.Castable;
+import lucee.runtime.op.Caster;
+import lucee.runtime.op.Operator;
+import lucee.runtime.type.dt.DateTime;
+
 /**
  * Integer Type that can be modified
  */
-public class RefIntegerImpl implements RefInteger {
+public class RefIntegerImpl implements RefInteger, Castable {
 
     private int value;
 
@@ -91,5 +99,65 @@ public class RefIntegerImpl implements RefInteger {
     @Override
     public String toString() {
 	return String.valueOf(value);
+    }
+
+    @Override
+    public Boolean castToBoolean(Boolean defaultValue) {
+	return Caster.toBoolean(value);
+    }
+
+    @Override
+    public boolean castToBooleanValue() {
+	return Caster.toBooleanValue(value);
+    }
+
+    @Override
+    public DateTime castToDateTime() throws PageException {
+	return Caster.toDatetime(value, null);
+    }
+
+    @Override
+    public DateTime castToDateTime(DateTime defaultValue) {
+	return Caster.toDate(value, false, null, defaultValue);
+    }
+
+    @Override
+    public double castToDoubleValue() throws PageException {
+	return Caster.toDoubleValue(value);
+    }
+
+    @Override
+    public double castToDoubleValue(double defaultValue) {
+	return Caster.toDoubleValue(value);
+    }
+
+    @Override
+    public String castToString() throws PageException {
+	return toString();
+    }
+
+    @Override
+    public String castToString(String defaultValue) {
+	return toString();
+    }
+
+    @Override
+    public int compareTo(String other) throws PageException {
+	return Operator.compare(castToString(), other);
+    }
+
+    @Override
+    public int compareTo(boolean other) throws PageException {
+	return Operator.compare(castToBooleanValue(), other);
+    }
+
+    @Override
+    public int compareTo(double other) throws PageException {
+	return Operator.compare(castToDoubleValue(), other);
+    }
+
+    @Override
+    public int compareTo(DateTime other) throws PageException {
+	return Operator.compare((Date) castToDateTime(), (Date) other);
     }
 }
