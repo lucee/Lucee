@@ -1510,7 +1510,8 @@ public final class XMLConfigAdmin {
      */
     public void updateDataSource(String id, String name, String newName, ClassDefinition cd, String dsn, String username, String password, String host, String database, int port,
 	    int connectionLimit, int connectionTimeout, long metaCacheTimeout, boolean blob, boolean clob, int allow, boolean validate, boolean storage, String timezone,
-	    Struct custom, String dbdriver, ParamSyntax paramSyntax, boolean literalTimestampWithTSOffset, boolean alwaysSetTimeout) throws PageException {
+	    Struct custom, String dbdriver, ParamSyntax paramSyntax, boolean literalTimestampWithTSOffset, boolean alwaysSetTimeout, boolean requestExclusive)
+	    throws PageException {
 
 	checkWriteAccess();
 	SecurityManager sm = config.getSecurityManager();
@@ -1586,6 +1587,9 @@ public final class XMLConfigAdmin {
 		if (alwaysSetTimeout) el.setAttribute("always-set-timeout", "true");
 		else if (el.hasAttribute("always-set-timeout")) el.removeAttribute("always-set-timeout");
 
+		if (requestExclusive) el.setAttribute("request-exclusive", "true");
+		else if (el.hasAttribute("request-exclusive")) el.removeAttribute("request-exclusive");
+
 		return;
 	    }
 	}
@@ -1630,6 +1634,8 @@ public final class XMLConfigAdmin {
 
 	if (literalTimestampWithTSOffset) el.setAttribute("literal-timestamp-with-tsoffset", "true");
 	if (alwaysSetTimeout) el.setAttribute("always-set-timeout", "true");
+	if (requestExclusive) el.setAttribute("request-exclusive", "true");
+
     }
 
     static void removeJDBCDriver(ConfigImpl config, ClassDefinition cd, boolean reload) throws IOException, SAXException, PageException, BundleException {

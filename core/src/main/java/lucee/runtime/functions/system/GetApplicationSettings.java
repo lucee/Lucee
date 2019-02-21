@@ -37,6 +37,8 @@ import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
+import lucee.runtime.db.DataSourceImpl;
+import lucee.runtime.db.DataSourcePro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
@@ -351,6 +353,16 @@ public class GetApplicationSettings extends BIF {
 	if (source.isClob()) s.setEL(AppListenerUtil.CLOB, source.isClob());
 	if (source.isReadOnly()) s.setEL(KeyConstants._readonly, source.isReadOnly());
 	if (source.isStorage()) s.setEL(KeyConstants._storage, source.isStorage());
+	if (source instanceof DataSourcePro) {
+	    DataSourcePro dsp = (DataSourcePro) source;
+	    if (dsp.isRequestExclusive()) s.setEL("requestExclusive", dsp.isRequestExclusive());
+	}
+	if (source instanceof DataSourceImpl) {
+	    DataSourceImpl di = ((DataSourceImpl) source);
+	    s.setEL("literalTimestampWithTSOffset", Boolean.valueOf(di.getLiteralTimestampWithTSOffset()));
+	    s.setEL("alwaysSetTimeout", Boolean.valueOf(di.getAlwaysSetTimeout()));
+	    s.setEL("dbdriver", Caster.toString(di.getDbDriver(), ""));
+	}
 	return s;
     }
 
