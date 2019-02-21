@@ -36,6 +36,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.net.proxy.Proxy;
+import lucee.runtime.net.proxy.ProxyDataImpl;
 import lucee.runtime.op.Caster;
 
 // TODO check connection timeout
@@ -106,7 +107,7 @@ public final class FTPResourceProvider implements ResourceProviderPro {
 	}
 
 	if (!client.isConnected()) {
-	    if (data.hasProxyData()) {
+	    if (ProxyDataImpl.isValid(data.getProxyData(), data.host)) {
 		try {
 		    Proxy.start(data.getProxyData());
 		    connect(client, data);

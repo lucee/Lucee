@@ -3301,6 +3301,12 @@ public final class Caster {
 
     public static String toClassName(Object o) {
 	if (o == null) return "null";
+	if (o instanceof ObjectWrap) {
+	    try {
+		return toClassName(((ObjectWrap) o).getEmbededObject());
+	    }
+	    catch (PageException e) {}
+	}
 	return toClassName(o.getClass());
     }
 

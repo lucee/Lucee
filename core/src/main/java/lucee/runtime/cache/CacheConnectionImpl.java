@@ -62,11 +62,17 @@ public class CacheConnectionImpl implements CacheConnectionPlus {
 		if (!Reflector.isInstaneOf(clazz, Cache.class, false))
 		    throw new CacheException("class [" + clazz.getName() + "] does not implement interface [" + Cache.class.getName() + "]");
 		cache = (Cache) ClassUtil.loadInstance(clazz);
-		cache.init(config, getName(), getCustom());
 
 	    }
 	    catch (BundleException be) {
 		throw new PageRuntimeException(be);
+	    }
+	    try {
+		cache.init(config, getName(), getCustom());
+	    }
+	    catch (IOException ioe) {
+		cache = null;
+		throw ioe;
 	    }
 	}
 	return cache;

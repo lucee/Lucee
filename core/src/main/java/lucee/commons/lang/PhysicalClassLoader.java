@@ -56,8 +56,8 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
     private ConfigImpl config;
     private final ClassLoader[] parents;
 
-    Set<String> loadedClasses = new HashSet<>();
-    Set<String> unavaiClasses = new HashSet<>();
+    private Set<String> loadedClasses = new HashSet<>();
+    private Set<String> unavaiClasses = new HashSet<>();
 
     private Map<String, PhysicalClassLoader> customCLs;
 
@@ -197,6 +197,10 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	return null;
     }
 
+    public int getSize() {
+	return loadedClasses.size();
+    }
+
     @Override
     public InputStream getResourceAsStream(String name) {
 	InputStream is = super.getResourceAsStream(name);
@@ -265,5 +269,10 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	    sb.append(';');
 	}
 	return HashUtil.create64BitHashAsString(sb.toString(), Character.MAX_RADIX);
+    }
+
+    public void clear() {
+	this.loadedClasses.clear();
+	this.unavaiClasses.clear();
     }
 }

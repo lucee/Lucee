@@ -24,6 +24,7 @@ import static org.apache.commons.collections4.map.AbstractReferenceMap.Reference
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.InetAddress;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -123,6 +124,7 @@ import lucee.runtime.listener.ApplicationListener;
 import lucee.runtime.net.mail.Server;
 import lucee.runtime.net.ntp.NtpClient;
 import lucee.runtime.net.proxy.ProxyData;
+import lucee.runtime.net.proxy.ProxyDataImpl;
 import lucee.runtime.net.rpc.WSHandler;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Duplicator;
@@ -438,6 +440,7 @@ public abstract class ConfigImpl implements Config {
     private int varUsage;
 
     public static boolean onlyFirstMatch = false;
+    private TimeSpan cachedAfterTimeRange;
 
     /**
      * @return the allowURLRequestTimeout
@@ -2349,8 +2352,8 @@ public abstract class ConfigImpl implements Config {
     }
 
     @Override
-    public boolean isProxyEnableFor(String host) {
-	return false;// TODO proxyEnable;
+    public boolean isProxyEnableFor(String host) { // FUTURE remove
+	return ProxyDataImpl.isProxyEnableFor(getProxyData(), host);
     }
 
     /**
@@ -3394,19 +3397,18 @@ public abstract class ConfigImpl implements Config {
 
     public DebugEntry getDebugEntry(String ip, DebugEntry defaultValue) {
 	if (debugEntries.length == 0) return defaultValue;
-	short[] sarr;
+	InetAddress ia;
 
 	try {
-	    sarr = IPRange.toShortArray(ip);
+	    ia = IPRange.toInetAddress(ip);
 	}
 	catch (IOException e) {
 	    return defaultValue;
 	}
 
 	for (int i = 0; i < debugEntries.length; i++) {
-	    if (debugEntries[i].getIpRange().inRange(sarr)) return debugEntries[i];
+	    if (debugEntries[i].getIpRange().inRange(ia)) return debugEntries[i];
 	}
-
 	return defaultValue;
     }
 
@@ -3888,5 +3890,14 @@ public abstract class ConfigImpl implements Config {
     public LogEngine getLogEngine() {
 	if (logEngine == null) logEngine = new Log4jEngine(this);
 	return logEngine;
+    }
+
+    protected void setCachedAfterTimeRange(TimeSpan ts) {
+	this.cachedAfterTimeRange = ts;
+    }
+
+    public TimeSpan getCachedAfterTimeRange() {
+	if (this.cachedAfterTimeRange != null && this.cachedAfterTimeRange.getMillis() <= 0) this.cachedAfterTimeRange = null;
+	return this.cachedAfterTimeRange;
     }
 }

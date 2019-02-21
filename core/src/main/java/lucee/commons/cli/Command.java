@@ -21,6 +21,7 @@ package lucee.commons.cli;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.List;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
@@ -31,6 +32,10 @@ public class Command {
     public static Process createProcess(String cmdline, boolean translate) throws IOException {
 	if (!translate) return Runtime.getRuntime().exec(cmdline);
 	return Runtime.getRuntime().exec(toArray(cmdline));
+    }
+
+    public static Process createProcess(String[] commands) throws IOException {
+	return Runtime.getRuntime().exec(commands);
     }
 
     /**
@@ -47,6 +52,10 @@ public class Command {
 
     public static CommandResult execute(String[] cmdline) throws IOException, InterruptedException {
 	return execute(Runtime.getRuntime().exec(cmdline));
+    }
+
+    public static CommandResult execute(List<String> cmdline) throws IOException, InterruptedException {
+	return execute(Runtime.getRuntime().exec(cmdline.toArray(new String[cmdline.size()])));
     }
 
     public static CommandResult execute(String cmd, String[] args) throws IOException, InterruptedException {
@@ -79,8 +88,8 @@ public class Command {
 	}
     }
 
-    private static String[] toArray(String str) {
-	if (StringUtil.isEmpty(str)) return new String[] { "" };
+    public static List<String> toList(String str) {
+	if (StringUtil.isEmpty(str)) return new ArrayList<String>();
 	str = str.trim();
 	StringBuilder sb = new StringBuilder();
 	ArrayList<String> list = new ArrayList<String>();
@@ -127,6 +136,11 @@ public class Command {
 	}
 	populateList(sb, list);
 
+	return list;
+    }
+
+    public static String[] toArray(String str) {
+	List<String> list = toList(str);
 	return list.toArray(new String[list.size()]);
     }
 

@@ -117,12 +117,14 @@ public final class HTTPUtil {
     public static URL toURL(String strUrl, int port, boolean encodeIfNecessary) throws MalformedURLException {
 	URL url;
 	try {
+	    if (encodeIfNecessary) strUrl = strUrl.replace('+', ' ');
 	    url = new URL(strUrl);
 	}
 	catch (MalformedURLException mue) {
 	    url = new URL("http://" + strUrl);
 	}
 	if (!encodeIfNecessary) return url;
+
 	return encodeURL(url, port);
     }
 

@@ -138,12 +138,14 @@ import lucee.runtime.net.ftp.FTPPoolImpl;
 import lucee.runtime.net.http.HTTPServletRequestWrap;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.net.mail.ServerImpl;
+import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.op.Operator;
 import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.orm.ORMEngine;
 import lucee.runtime.orm.ORMSession;
+import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.regex.Perl5Util;
 import lucee.runtime.rest.RestRequestListener;
 import lucee.runtime.rest.RestUtil;
@@ -503,14 +505,6 @@ public final class PageContextImpl extends PageContext {
 	return this;
     }
 
-    public void releaseInSync() {
-	bodyContentStack.release();
-	if (hasFamily && !isChild) {
-	    req.disconnect(this);
-	}
-	close();
-    }
-
     @Override
     public void release() {
 	config.releaseCacheHandlers(this);
@@ -547,6 +541,10 @@ public final class PageContextImpl extends PageContext {
 
 	// Scopes
 	if (hasFamily) {
+	    if (hasFamily && !isChild) {
+		req.disconnect(this);
+	    }
+	    close();
 	    base = null;
 	    if (children != null) children.clear();
 
@@ -563,6 +561,7 @@ public final class PageContextImpl extends PageContext {
 	    currentThread = null;
 	}
 	else {
+	    close();
 	    base = null;
 	    if (variables.isBind()) {
 		variables = null;
@@ -613,6 +612,8 @@ public final class PageContextImpl extends PageContext {
 	pathList.clear();
 	includePathList.clear();
 	executionTime = 0;
+
+	bodyContentStack.release();
 
 	// activeComponent=null;
 	remoteUser = null;
@@ -1216,7 +1217,7 @@ public final class PageContextImpl extends PageContext {
 
     @Override
     public CGI cgiScope() {
-	CGI cgi = applicationContext.getCGIScopeReadonly() ? cgiR : cgiRW;
+	CGI cgi = applicationContext == null || applicationContext.getCGIScopeReadonly() ? cgiR : cgiRW;
 	if (!cgi.isInitalized()) cgi.initialize(this);
 	return cgi;
     }
@@ -3361,8 +3362,10 @@ public final class PageContextImpl extends PageContext {
 
 	JavaSettingsImpl js = (JavaSettingsImpl) applicationContext.getJavaSettings();
 
-	if (js != null) return config.getResourceClassLoader().getCustomResourceClassLoader(js.getResourcesTranslated());
-
+	if (js != null) {
+	    Resource[] jars = OSGiUtil.extractAndLoadBundles(this, js.getResourcesTranslated());
+	    if (jars.length > 0) return config.getResourceClassLoader().getCustomResourceClassLoader(jars);
+	}
 	return config.getResourceClassLoader();
     }
 
@@ -3374,9 +3377,9 @@ public final class PageContextImpl extends PageContext {
 	JavaSettingsImpl js = (JavaSettingsImpl) applicationContext.getJavaSettings();
 	ClassLoader cl = config.getRPCClassLoader(reload, parents);
 	if (js != null) {
-	    return ((PhysicalClassLoader) cl).getCustomClassLoader(js.getResourcesTranslated(), reload);
+	    Resource[] jars = OSGiUtil.extractAndLoadBundles(this, js.getResourcesTranslated());
+	    if (jars.length > 0) return ((PhysicalClassLoader) cl).getCustomClassLoader(jars, reload);
 	}
-
 	return cl;
     }
 
@@ -3674,5 +3677,21 @@ public final class PageContextImpl extends PageContext {
     public PageContextImpl setDummy(boolean dummy) {
 	this.dummy = dummy;
 	return this;
+    }
+
+    public TimeSpan getCachedAfterTimeRange() { // FUTURE add to interface
+	if (applicationContext != null) {
+	    return applicationContext.getQueryCachedAfter();
+	}
+	return config.getCachedAfterTimeRange();
+    }
+
+    public ProxyData getProxyData() {
+	if (applicationContext != null) {
+	    ProxyData pd = applicationContext.getProxyData();
+	    if (pd != null) return pd;
+	}
+	// TODO check applcation context
+	return config.getProxyData();
     }
 }

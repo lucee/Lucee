@@ -44,9 +44,8 @@ public class IsIPInRange {
 
 	}
 	catch (IOException e) {
+	    e.printStackTrace();
 	    throw Caster.toPageException(e);
 	}
-
     }
-
 }

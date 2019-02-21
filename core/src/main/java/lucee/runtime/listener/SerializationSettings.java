@@ -7,6 +7,7 @@ import lucee.runtime.type.StructImpl;
 
 public class SerializationSettings {
 
+    public static int SERIALIZE_AS_UNDEFINED = 0;
     public static int SERIALIZE_AS_ROW = 1;
     public static int SERIALIZE_AS_COLUMN = 2;
     public static int SERIALIZE_AS_STRUCT = 4;

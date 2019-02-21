@@ -247,6 +247,8 @@ public class HTTPEngine4Impl {
     private static HTTPResponse _invoke(URL url, HttpUriRequest request, String username, String password, long timeout, boolean redirect, String charset, String useragent,
 	    ProxyData proxy, lucee.commons.net.http.Header[] headers, Map<String, String> formfields) throws IOException {
 
+	proxy = ProxyDataImpl.validate(proxy, url.getHost());
+
 	HttpClientBuilder builder = getHttpClientBuilder();
 
 	// redirect
@@ -260,7 +262,7 @@ public class HTTPEngine4Impl {
 	setUserAgent(request, useragent);
 	if (timeout > 0) Http.setTimeout(builder, TimeSpanImpl.fromMillis(timeout));
 	HttpContext context = setCredentials(builder, hh, username, password, false);
-	setProxy(builder, request, proxy);
+	setProxy(url.getHost(), builder, request, proxy);
 	CloseableHttpClient client = builder.build();
 	if (context == null) context = new BasicHttpContext();
 	return new HTTPResponse4Impl(url, context, request, client.execute(request, context));
@@ -341,11 +343,11 @@ public class HTTPEngine4Impl {
 	if (body != null) req.setEntity(toHttpEntity(body, mimetype, charset));
     }
 
-    public static void setProxy(HttpClientBuilder builder, HttpUriRequest request, ProxyData proxy) {
+    public static void setProxy(String host, HttpClientBuilder builder, HttpUriRequest request, ProxyData proxy) {
 	// set Proxy
-	if (ProxyDataImpl.isValid(proxy)) {
-	    HttpHost host = new HttpHost(proxy.getServer(), proxy.getPort() == -1 ? 80 : proxy.getPort());
-	    builder.setProxy(host);
+	if (ProxyDataImpl.isValid(proxy, host)) {
+	    HttpHost hh = new HttpHost(proxy.getServer(), proxy.getPort() == -1 ? 80 : proxy.getPort());
+	    builder.setProxy(hh);
 
 	    // username/password
 	    if (!StringUtil.isEmpty(proxy.getUsername())) {

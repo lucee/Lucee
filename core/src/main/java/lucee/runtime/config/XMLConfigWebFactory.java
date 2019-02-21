@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.UUID;
 
@@ -1933,7 +1934,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	    try {
 		setDatasource(config, datasources, QOQ_DATASOURCE_NAME, new ClassDefinitionImpl("org.hsqldb.jdbcDriver", "hsqldb", "1.8.0", config.getIdentification()),
 			"hypersonic-hsqldb", "", -1, "jdbc:hsqldb:.", "sa", "", null, DEFAULT_MAX_CONNECTION, -1, 60000, true, true, DataSource.ALLOW_ALL, false, false, null,
-			new StructImpl(), "", ParamSyntax.DEFAULT, false, false);
+			new StructImpl(), "", ParamSyntax.DEFAULT, false, false, false);
 	    }
 	    catch (Exception e) {
 		log.error("Datasource", e);
@@ -2004,7 +2005,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				Caster.toIntValue(getAttr(dataSource, "allow"), DataSource.ALLOW_ALL), toBoolean(getAttr(dataSource, "validate"), false),
 				toBoolean(getAttr(dataSource, "storage"), false), getAttr(dataSource, "timezone"), toStruct(getAttr(dataSource, "custom")),
 				getAttr(dataSource, "dbdriver"), ParamSyntax.toParamSyntax(dataSource, ParamSyntax.DEFAULT),
-				toBoolean(getAttr(dataSource, "literal-timestamp-with-tsoffset"), false), toBoolean(getAttr(dataSource, "always-set-timeout"), false)
+				toBoolean(getAttr(dataSource, "literal-timestamp-with-tsoffset"), false), toBoolean(getAttr(dataSource, "always-set-timeout"), false),
+				toBoolean(getAttr(dataSource, "request-exclusive"), false)
 
 			);
 		    }
@@ -2423,12 +2425,12 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
     private static void setDatasource(ConfigImpl config, Map<String, DataSource> datasources, String datasourceName, ClassDefinition cd, String server, String databasename,
 	    int port, String dsn, String user, String pass, TagListener listener, int connectionLimit, int connectionTimeout, long metaCacheTimeout, boolean blob, boolean clob,
 	    int allow, boolean validate, boolean storage, String timezone, Struct custom, String dbdriver, ParamSyntax ps, boolean literalTimestampWithTSOffset,
-	    boolean alwaysSetTimeout) throws BundleException, ClassException, SQLException {
+	    boolean alwaysSetTimeout, boolean requestExclusive) throws BundleException, ClassException, SQLException {
 
 	datasources.put(datasourceName.toLowerCase(),
 		new DataSourceImpl(config, datasourceName, cd, server, dsn, databasename, port, user, pass, listener, connectionLimit, connectionTimeout, metaCacheTimeout, blob,
 			clob, allow, custom, false, validate, storage, StringUtil.isEmpty(timezone, true) ? null : TimeZoneUtil.toTimeZone(timezone, null), dbdriver, ps,
-			literalTimestampWithTSOffset, alwaysSetTimeout, config.getLog("application")));
+			literalTimestampWithTSOffset, alwaysSetTimeout, requestExclusive, config.getLog("application")));
 
     }
 
@@ -4577,8 +4579,16 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	    String password = getAttr(proxy, "password");
 	    int port = Caster.toIntValue(getAttr(proxy, "port"), -1);
 
+	    // includes/excludes
+	    Set<String> includes = ProxyDataImpl.toStringSet(getAttr(proxy, "includes"));
+	    Set<String> excludes = ProxyDataImpl.toStringSet(getAttr(proxy, "excludes"));
+
 	    if (hasAccess && !StringUtil.isEmpty(server)) {
-		config.setProxyData(ProxyDataImpl.getInstance(server, port, username, password));
+		ProxyDataImpl pd = (ProxyDataImpl) ProxyDataImpl.getInstance(server, port, username, password);
+		pd.setExcludes(excludes);
+		pd.setIncludes(includes);
+		config.setProxyData(pd);
+
 	    }
 	    else if (hasCS) config.setProxyData(configServer.getProxyData());
 	}
@@ -4802,6 +4812,16 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	    if (typeChecking != null) config.setTypeChecking(typeChecking.booleanValue());
 	    else if (hasCS) config.setTypeChecking(configServer.getTypeChecking());
 
+	    // cached after
+	    TimeSpan ts = null;
+	    if (hasAccess) {
+		String ca = getAttr(application, "cached-after");
+		if (!StringUtil.isEmpty(ca)) ts = Caster.toTimespan(ca);
+	    }
+	    if (ts != null) config.setCachedAfterTimeRange(ts);
+	    else if (hasCS) config.setCachedAfterTimeRange(configServer.getCachedAfterTimeRange());
+	    else config.setCachedAfterTimeRange(null);
+
 	    // Listener Mode
 	    String strLM = SystemUtil.getSystemPropOrEnvVar("lucee.listener.mode", null);
 	    if (StringUtil.isEmpty(strLM)) strLM = getAttr(application, "listener-mode");
@@ -4827,7 +4847,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	    }
 
 	    // Req Timeout
-	    TimeSpan ts = null;
+	    ts = null;
 	    if (hasAccess) {
 		String reqTimeoutApplication = getAttr(application, "requesttimeout");
 		String reqTimeoutScope = getAttr(scope, "requesttimeout"); // deprecated

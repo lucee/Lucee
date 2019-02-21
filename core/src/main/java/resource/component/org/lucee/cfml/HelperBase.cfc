@@ -18,7 +18,7 @@
 	variables.parts = [];
 	variables.tagname = "";
 
-	public Base function init() {
+	public HelperBase function init() {
 		setAttributes(argumentCollection=arguments);
 		return this;
 	}
@@ -26,7 +26,7 @@
 	/**
 	* Add a new param
 	*/
-	public Base function addParam() {
+	public HelperBase function addParam() {
 		ArrayAppend(variables.params,arguments);
 		return this;
 	}
@@ -34,7 +34,7 @@
 	/**
 	* Clear the stored params Array
 	*/
-	public Base function clearParams() {
+	public HelperBase function clearParams() {
 		variables.params = [];
 		return this;
 	}
@@ -42,7 +42,7 @@
 	/**
 	* add a new part
 	*/
-	public Base function addPart() {
+	public HelperBase function addPart() {
 		ArrayAppend(variables.parts,arguments);
 		return this;
 	}
@@ -50,22 +50,22 @@
 	/**
 	* Clear the stored parts Array
 	*/
-	public Base function clearParts() {
+	public HelperBase function clearParts() {
 		variables.parts = [];
 	    return this;
 	}
 
-	public Base function setAttributes() {
+	public HelperBase function setAttributes() {
 		StructAppend(variables.attributes, arguments, true);
 		return this;
 	}
 
-	public Base function clearAttributes() {
+	public HelperBase function clearAttributes() {
 		variables.attributes = {};
 		return this;
 	}
 
-	public Base function clear() {
+	public HelperBase function clear() {
 		clearAttributes();
 		clearParams();
 		clearParts();

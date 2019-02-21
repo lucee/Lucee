@@ -69,6 +69,8 @@ import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.i18n.LocaleFactory;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.net.mail.Server;
+import lucee.runtime.net.proxy.ProxyData;
+import lucee.runtime.net.proxy.ProxyDataImpl;
 import lucee.runtime.net.s3.Properties;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
@@ -150,6 +152,8 @@ public class ModernApplicationContext extends ApplicationContextSupport {
     private static final Key VAR_USAGE = KeyImpl.intern("varusage");
     private static final Key VARIABLE_USAGE = KeyImpl.intern("variableusage");
 
+    private static final Key CACHED_AFTER = KeyImpl.intern("cachedAfter");
+
     private static Map<String, CacheConnection> initCacheConnections = new ConcurrentHashMap<String, CacheConnection>();
 
     private Component component;
@@ -200,9 +204,10 @@ public class ModernApplicationContext extends ApplicationContextSupport {
     private TagListener queryListener;
     private boolean fullNullSupport;
     private SerializationSettings serializationSettings;
-
     private boolean queryPSQ;
+    private TimeSpan queryCachedAfter;
     private int queryVarUsage;
+    private ProxyData proxyData;
 
     private Mapping[] mappings;
     private boolean initMappings;
@@ -264,7 +269,9 @@ public class ModernApplicationContext extends ApplicationContextSupport {
     private boolean initAuthCookie;
     private boolean initSerializationSettings;
     private boolean initQueryPSQ;
+    private boolean initQueryCacheAfter;
     private boolean initQueryVarUsage;
+    private boolean initProxyData;
 
     private Resource antiSamyPolicyResource;
 
@@ -309,7 +316,9 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	this.cgiScopeReadonly = ci.getCGIScopeReadonly();
 	this.fullNullSupport = ci.getFullNullSupport();
 	this.queryPSQ = ci.getPSQL();
+	this.queryCachedAfter = ci.getCachedAfterTimeRange();
 	this.queryVarUsage = ci.getQueryVarUsage();
+	this.proxyData = config.getProxyData();
 
 	this.sessionCluster = config.getSessionCluster();
 	this.clientCluster = config.getClientCluster();
@@ -1837,6 +1846,25 @@ public class ModernApplicationContext extends ApplicationContextSupport {
     }
 
     @Override
+    public TimeSpan getQueryCachedAfter() {
+	if (!initQueryCacheAfter) {
+	    Struct qry = Caster.toStruct(get(component, KeyConstants._query, null), null);
+	    if (qry != null) {
+		TimeSpan ts = Caster.toTimespan(qry.get(CACHED_AFTER, null), null);
+		if (ts != null) queryCachedAfter = ts;
+	    }
+	    initQueryCacheAfter = true;
+	}
+	return queryCachedAfter;
+    }
+
+    @Override
+    public void setQueryCachedAfter(TimeSpan ts) {
+	this.queryCachedAfter = ts;
+	this.initQueryCacheAfter = true;
+    }
+
+    @Override
     public int getQueryVarUsage() {
 	if (!initQueryVarUsage) {
 	    Struct qry = Caster.toStruct(get(component, KeyConstants._query, null), null);
@@ -1854,6 +1882,22 @@ public class ModernApplicationContext extends ApplicationContextSupport {
     public void setQueryVarUsage(int varUsage) {
 	this.queryVarUsage = varUsage;
 	this.initQueryVarUsage = true;
+    }
+
+    @Override
+    public ProxyData getProxyData() {
+	if (!initProxyData) {
+	    Struct sct = Caster.toStruct(get(component, KeyConstants._proxy, null), null);
+	    proxyData = ProxyDataImpl.toProxyData(sct);
+	    initProxyData = true;
+	}
+	return proxyData;
+    }
+
+    @Override
+    public void setProxyData(ProxyData data) {
+	this.proxyData = data;
+	this.initProxyData = true;
     }
 
 }

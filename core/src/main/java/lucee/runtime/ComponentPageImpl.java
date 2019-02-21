@@ -57,6 +57,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.gateway.GatewayEngineImpl;
 import lucee.runtime.interpreter.CFMLExpressionInterpreter;
 import lucee.runtime.interpreter.JSONExpressionInterpreter;
+import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Constants;
@@ -101,10 +102,12 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
     public abstract ComponentImpl newInstance(PageContext pc, String callPath, boolean isRealPath, boolean isExtendedComponent, boolean executeConstr)
 	    throws lucee.runtime.exp.PageException;
 
+    @Override
     public int getHash() {
 	return 0;
     }
 
+    @Override
     public long getSourceLength() {
 	return 0;
     }
@@ -784,12 +787,11 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 	}
 	// JSON
 	else if (UDF.RETURN_FORMAT_JSON == props.format) {
-	    boolean byColumn = false;
-	    if (queryFormat instanceof String) {
-		String strQF = ((String) queryFormat).trim();
-		if (strQF.equalsIgnoreCase("row")) ;
-		else if (strQF.equalsIgnoreCase("column")) byColumn = true;
-		else throw new ApplicationException("invalid queryformat definition [" + strQF + "], valid formats are [row,column]");
+	    int qf = SerializationSettings.SERIALIZE_AS_ROW;
+	    if (queryFormat != null) {
+		qf = JSONConverter.toQueryFormat(queryFormat, SerializationSettings.SERIALIZE_AS_UNDEFINED);
+		if (qf == SerializationSettings.SERIALIZE_AS_UNDEFINED)
+		    throw new ApplicationException("invalid queryformat definition [" + queryFormat + "], valid formats are [row,column,struct]");
 	    }
 	    JSONConverter converter = new JSONConverter(false, cs);
 	    String prefix = "";
@@ -797,7 +799,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 		prefix = pc.getApplicationContext().getSecureJsonPrefix();
 		if (prefix == null) prefix = "";
 	    }
-	    pc.forceWrite(prefix + converter.serialize(pc, rtn, byColumn));
+	    pc.forceWrite(prefix + converter.serialize(pc, rtn, qf));
 	}
 	// CFML
 	else if (UDF.RETURN_FORMAT_SERIALIZE == props.format) {
@@ -896,10 +898,10 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 
 	// JSON
 	else if (UDF.RETURN_FORMAT_JSON == format) {
-	    boolean byColumn = false;
+	    int qf = SerializationSettings.SERIALIZE_AS_ROW;
 	    cs = getCharset(pc);
 	    JSONConverter converter = new JSONConverter(false, cs);
-	    String str = converter.serialize(pc, rtn, byColumn);
+	    String str = converter.serialize(pc, rtn, qf);
 	    is = new ByteArrayInputStream(str.getBytes(cs));
 
 	}

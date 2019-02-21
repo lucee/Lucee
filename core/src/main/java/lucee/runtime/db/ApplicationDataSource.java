@@ -35,19 +35,19 @@ public class ApplicationDataSource extends DataSourceSupport {
 
     private ApplicationDataSource(Config config, String name, ClassDefinition cd, String connStr, String username, String password, TagListener listener, boolean blob,
 	    boolean clob, int connectionLimit, int connectionTimeout, long metaCacheTimeout, TimeZone timezone, int allow, boolean storage, boolean readOnly, boolean validate,
-	    Log log) {
+	    boolean requestExclusive, Log log) {
 	super(config, name, cd, username, ConfigWebUtil.decrypt(password), listener, blob, clob, connectionLimit, connectionTimeout, metaCacheTimeout, timezone,
-		allow < 0 ? ALLOW_ALL : allow, storage, readOnly, validate, log);
+		allow < 0 ? ALLOW_ALL : allow, storage, readOnly, validate, requestExclusive, log);
 
 	this.connStr = connStr;
     }
 
     public static DataSource getInstance(Config config, String name, ClassDefinition cd, String connStr, String username, String password, TagListener listener, boolean blob,
 	    boolean clob, int connectionLimit, int connectionTimeout, long metaCacheTimeout, TimeZone timezone, int allow, boolean storage, boolean readOnly, boolean validate,
-	    Log log) {
+	    boolean requestExclusive, Log log) {
 
 	return new ApplicationDataSource(config, name, cd, connStr, username, password, listener, blob, clob, connectionLimit, connectionTimeout, metaCacheTimeout, timezone, allow,
-		storage, readOnly, validate, log);
+		storage, readOnly, validate, requestExclusive, log);
     }
 
     @Override
@@ -89,7 +89,8 @@ public class ApplicationDataSource extends DataSourceSupport {
     public DataSource cloneReadOnly() {
 	try {
 	    return new ApplicationDataSource(ThreadLocalPageContext.getConfig(), getName(), getClassDefinition(), connStr, getUsername(), getPassword(), getListener(), isBlob(),
-		    isClob(), getConnectionLimit(), getConnectionTimeout(), getMetaCacheTimeout(), getTimeZone(), allow, isStorage(), isReadOnly(), validate(), getLog());
+		    isClob(), getConnectionLimit(), getConnectionTimeout(), getMetaCacheTimeout(), getTimeZone(), allow, isStorage(), isReadOnly(), validate(),
+		    isRequestExclusive(), getLog());
 	}
 	catch (Exception e) {
 	    throw new RuntimeException(e);// this should never happens, because the class was already loaded in this object

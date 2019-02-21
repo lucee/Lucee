@@ -18,8 +18,12 @@
  **/
 package lucee.runtime.tag;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
+import lucee.commons.cli.Command;
+import lucee.commons.cli.CommandResult;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.SerializableObject;
@@ -30,6 +34,7 @@ import lucee.runtime.exp.SecurityException;
 import lucee.runtime.ext.tag.BodyTagImpl;
 import lucee.runtime.op.Caster;
 import lucee.runtime.security.SecurityManager;
+import lucee.runtime.type.util.ListUtil;
 
 /**
  * Enables CFML developers to execute a process on a server computer.
@@ -40,7 +45,7 @@ import lucee.runtime.security.SecurityManager;
 public final class Execute extends BodyTagImpl {
 
     /** Command-line arguments passed to the application. */
-    private String arguments = null;
+    private List<String> arguments;
 
     /**
      * Indicates how long, in seconds, the CFML executing thread waits for the spawned process. A
@@ -89,24 +94,26 @@ public final class Execute extends BodyTagImpl {
      * set the value arguments Command-line arguments passed to the application.
      * 
      * @param args value to set
+     * @throws PageException
      **/
-    public void setArguments(Object args) {
-
+    public void setArguments(Object args) throws PageException {
 	if (args instanceof lucee.runtime.type.Collection) {
-	    StringBuilder sb = new StringBuilder();
+	    this.arguments = new ArrayList<String>();
 	    lucee.runtime.type.Collection coll = (lucee.runtime.type.Collection) args;
-	    // lucee.runtime.type.Collection.Key[] keys=coll.keys();
 	    Iterator<Object> it = coll.valueIterator();
 	    while (it.hasNext()) {
-		sb.append(' ');
-		sb.append(it.next());
+		arguments.add(Caster.toString(it.next()));
 	    }
-	    arguments = sb.toString();
 	}
-	else if (args instanceof String) {
-	    arguments = " " + args.toString();
+	else {
+	    arguments = Command.toList(Caster.toString(args));
 	}
-	else this.arguments = "";
+    }
+
+    public static void main(String[] args) throws Exception {
+	CommandResult cr = Command.execute("curl http://snapshot.lucee.org/rest/update/provider/echoGet", true);
+	_Execute e = new _Execute(null, null, new String[] { "curl", "http://snapshot.lucee.org/rest/update/provider/echoGet" }, null, null, null, null);
+	e._run(null);
     }
 
     /**
@@ -207,39 +214,33 @@ public final class Execute extends BodyTagImpl {
 
     private void _execute() throws Exception {
 	Object monitor = new SerializableObject();
-
-	String command = "";
 	if (name == null) {
 	    if (StringUtil.isEmpty(body)) {
 		required("execute", "name", name);
 		required("execute", "arguments", arguments);
 	    }
-	    else command = body;
+	    else {
+		name = body;
+	    }
+	}
+	if (arguments == null || arguments.size() == 0) {
+	    arguments = Command.toList(name);
 	}
 	else {
-	    if (arguments == null) command = name;
-	    else command = name + arguments;
+	    arguments.add(0, name);
 	}
-
-	_Execute execute = new _Execute(pageContext, monitor, command, outputfile, variable, errorFile, errorVariable);
+	_Execute execute = new _Execute(pageContext, monitor, arguments.toArray(new String[arguments.size()]), outputfile, variable, errorFile, errorVariable);
 
 	// if(timeout<=0)execute._run();
 	// else {
 	execute.start();
-	if (timeout > 0) {
-	    try {
-		synchronized (monitor) {
-		    monitor.wait(timeout);
-		}
-	    }
-	    finally {
-		execute.abort(terminateOnTimeout);
-	    }
-	    if (execute.hasException()) {
-		throw execute.getException();
-	    }
-	    if (!execute.hasFinished()) throw new ApplicationException("timeout [" + (timeout) + " ms] expired while executing [" + command + "]");
-	    // }
+	long start = System.currentTimeMillis();
+	if (timeout > 0) execute.join(timeout);
+	else execute.join();
+	if (execute.hasException()) throw execute.getException();
+	if (!execute.hasFinished()) {
+	    execute.abort(true);
+	    throw new ApplicationException("timeout [" + (timeout) + " ms] expired while executing [" + ListUtil.listToList(arguments, " ") + "]");
 	}
 
     }

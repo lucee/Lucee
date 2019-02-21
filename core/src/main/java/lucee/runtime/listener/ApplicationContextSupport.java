@@ -50,6 +50,7 @@ import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.exp.ApplicationException;
+import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.osgi.OSGiUtil;
@@ -58,6 +59,7 @@ import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.tag.TagLib;
@@ -477,4 +479,13 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
     public abstract int getQueryVarUsage();
 
     public abstract void setQueryVarUsage(int varUsage);
+
+    public abstract TimeSpan getQueryCachedAfter();
+
+    public abstract void setQueryCachedAfter(TimeSpan ts);
+
+    public abstract ProxyData getProxyData();
+
+    public abstract void setProxyData(ProxyData data);
+
 }

@@ -69,7 +69,7 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 
     @Override
     public DatasourceConnection getConnection(PageContext pc, DataSource ds, String user, String pass) throws PageException {
-	if (autoCommit) {
+	if (autoCommit && !((DataSourcePro) ds).isRequestExclusive()) {
 	    return config.getDatasourceConnectionPool().getDatasourceConnection(ThreadLocalPageContext.getConfig(pc), ds, user, pass);
 	}
 
@@ -82,24 +82,45 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 	    // first time that datasource is used within this transaction
 	    if (existingDC == null) {
 		DatasourceConnection newDC = config.getDatasourceConnectionPool().getDatasourceConnection(config, ds, user, pass);
-
-		newDC.getConnection().setAutoCommit(false);
-		if (isolation != Connection.TRANSACTION_NONE) newDC.getConnection().setTransactionIsolation(isolation);
+		if (!autoCommit) {
+		    newDC.setAutoCommit(false);
+		    if (isolation != Connection.TRANSACTION_NONE) newDC.setTransactionIsolation(isolation);
+		}
 		transConns.put(ds, newDC);
 		return newDC;
 	    }
 
 	    // we have already the same datasource but with different credentials
 	    if (!DatasourceConnectionImpl.equals(existingDC, ds, user, pass)) {
-		if (QOQ_DATASOURCE_NAME.equalsIgnoreCase(ds.getName())) return existingDC;
-
+		if (QOQ_DATASOURCE_NAME.equalsIgnoreCase(ds.getName())) {
+		    if (autoCommit) {
+			if (!existingDC.getAutoCommit()) {
+			    existingDC.setAutoCommit(true);
+			}
+		    }
+		    else {
+			if (existingDC.getAutoCommit()) {
+			    existingDC.setAutoCommit(false);
+			    if (isolation != Connection.TRANSACTION_NONE) existingDC.setTransactionIsolation(isolation);
+			}
+		    }
+		    return existingDC;
+		}
 		throw new DatabaseException("can't use different connections to the same datasource inside a single transaction.", null, null, existingDC);
 	    }
 
-	    // make sure we have auto commit disabled TODO i dont think this is necessary anymore
-	    if (existingDC.isAutoCommit()) {
-		existingDC.setAutoCommit(false);
+	    if (autoCommit) {
+		if (!existingDC.getAutoCommit()) {
+		    existingDC.setAutoCommit(true);
+		}
 	    }
+	    else {
+		if (existingDC.getAutoCommit()) {
+		    existingDC.setAutoCommit(false);
+		    if (isolation != Connection.TRANSACTION_NONE) existingDC.setTransactionIsolation(isolation);
+		}
+	    }
+
 	    return existingDC;
 	}
 	catch (SQLException e) {
@@ -157,7 +178,11 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 
     @Override
     public void releaseConnection(PageContext pc, DatasourceConnection dc) {
-	if (autoCommit) {
+	releaseConnection(pc, dc, false);
+    }
+
+    private void releaseConnection(PageContext pc, DatasourceConnection dc, boolean ignoreRequestExclusive) {
+	if (autoCommit && (ignoreRequestExclusive || !((DataSourcePro) dc.getDatasource()).isRequestExclusive())) {
 	    config.getDatasourceConnectionPool().releaseDatasourceConnection(dc, pc != null && ((PageContextImpl) pc).getTimeoutStackTrace() != null);
 	}
     }
@@ -321,7 +346,7 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 		    }
 		}
 
-		releaseConnection(null, dc);
+		releaseConnection(null, dc, true);
 	    }
 	    transConns.clear();
 	    if (onlyORM) transConns = tmp;

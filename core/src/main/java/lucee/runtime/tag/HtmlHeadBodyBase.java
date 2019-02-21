@@ -45,6 +45,7 @@ public abstract class HtmlHeadBodyBase extends BodyTagTryCatchFinallyImpl {
 
     private String action = null;
     private String id = null;
+    private boolean force = getDefaultForce();
 
     @Override
     public void release() {
@@ -53,7 +54,10 @@ public abstract class HtmlHeadBodyBase extends BodyTagTryCatchFinallyImpl {
 	variable = null;
 	action = null;
 	id = null;
+	force = getDefaultForce();
     }
+
+    public abstract boolean getDefaultForce();
 
     public abstract String getTagName();
 
@@ -95,6 +99,10 @@ public abstract class HtmlHeadBodyBase extends BodyTagTryCatchFinallyImpl {
 
     public void setId(String id) {
 	this.id = id;
+    }
+
+    public void setForce(boolean force) {
+	this.force = force;
     }
 
     @Override
@@ -154,7 +162,7 @@ public abstract class HtmlHeadBodyBase extends BodyTagTryCatchFinallyImpl {
      */
     protected boolean isValid() {
 
-	if (pageContext instanceof PageContextImpl && ((PageContextImpl) pageContext).isSilent()) return false;
+	if (!force && pageContext instanceof PageContextImpl && ((PageContextImpl) pageContext).isSilent()) return false;
 
 	if (StringUtil.isEmpty(id)) return true;
 

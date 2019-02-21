@@ -36,6 +36,7 @@ import lucee.runtime.converter.JSONConverter;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.interpreter.JSONExpressionInterpreter;
+import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
@@ -75,7 +76,7 @@ public abstract class SpoolerTaskHTTPCall extends SpoolerTaskSupport {
 	params.put("returnFormat", "json");
 	try {
 	    Charset cs = pc.getWebCharset();
-	    params.put("argumentCollection", new JSONConverter(true, cs).serialize(pc, args, false));
+	    params.put("argumentCollection", new JSONConverter(true, cs).serialize(pc, args, SerializationSettings.SERIALIZE_AS_ROW));
 
 	    HTTPResponse res = HTTPEngine4Impl.post(HTTPUtil.toURL(url, true), client.getServerUsername(), client.getServerPassword(), -1L, true, pc.getWebCharset().name(),
 		    Constants.NAME + " Remote Invocation", client.getProxyData(), null, params);

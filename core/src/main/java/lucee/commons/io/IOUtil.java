@@ -32,7 +32,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.PrintStream;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
@@ -1054,7 +1053,6 @@ public final class IOUtil {
      * @throws IOException
      */
     public static String getMimeType(byte[] barr, String defaultValue) {
-	PrintStream out = System.out;
 	try {
 	    Tika tika = new Tika();
 	    return tika.detect(barr);
@@ -1069,6 +1067,16 @@ public final class IOUtil {
 	return getMimeType(res, null, defaultValue);
     }
 
+    public static String getMimeType(String fileName, String defaultValue) {
+	try {
+	    Tika tika = new Tika();
+	    return tika.detect(fileName);
+	}
+	catch (Exception e) {
+	    return defaultValue;
+	}
+    }
+
     public static String getMimeType(Resource res, String fileName, String defaultValue) {
 	Metadata md = new Metadata();
 
@@ -1080,7 +1088,6 @@ public final class IOUtil {
 	InputStream is = null;
 	try {
 	    Tika tika = new Tika();
-
 	    String result = tika.detect(is = res.getInputStream(), md);
 	    if (result.indexOf("tika") != -1) {
 		String tmp = ResourceUtil.EXT_MT.get(ext != null ? ext : ResourceUtil.getExtension(res, "").toLowerCase());

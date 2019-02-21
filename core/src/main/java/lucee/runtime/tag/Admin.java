@@ -103,6 +103,7 @@ import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DataSourceImpl;
 import lucee.runtime.db.DataSourceManager;
+import lucee.runtime.db.DataSourcePro;
 import lucee.runtime.db.DatasourceConnectionImpl;
 import lucee.runtime.db.JDBCDriver;
 import lucee.runtime.db.ParamSyntax;
@@ -174,6 +175,7 @@ import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.DateTimeImpl;
 import lucee.runtime.type.dt.TimeSpan;
+import lucee.runtime.type.dt.TimeSpanImpl;
 import lucee.runtime.type.scope.Cluster;
 import lucee.runtime.type.scope.ClusterEntryImpl;
 import lucee.runtime.type.util.ArrayUtil;
@@ -2604,6 +2606,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	//
 	boolean literalTimestampWithTSOffset = getBoolV("literalTimestampWithTSOffset", false);
 	boolean alwaysSetTimeout = getBoolV("alwaysSetTimeout", false);
+	boolean requestExclusive = getBoolV("requestExclusive", false);
 
 	String id = getString("id", null);
 	String dsn = getString("admin", action, "dsn");
@@ -2630,7 +2633,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	DataSource ds = null;
 	try {
 	    ds = new DataSourceImpl(config, name, cd, host, dsn, database, port, username, password, null, connLimit, connTimeout, metaCacheTimeout, blob, clob, allow, custom,
-		    false, validate, storage, null, dbdriver, ps, literalTimestampWithTSOffset, alwaysSetTimeout, config.getLog("application"));
+		    false, validate, storage, null, dbdriver, ps, literalTimestampWithTSOffset, alwaysSetTimeout, requestExclusive, config.getLog("application"));
 	}
 	catch (Exception e) {
 	    throw Caster.toPageException(e);
@@ -2639,7 +2642,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	if (verify) _doVerifyDatasource(ds, username, password);
 	// print.out("limit:"+connLimit);
 	admin.updateDataSource(id, name, newName, cd, dsn, username, password, host, database, port, connLimit, connTimeout, metaCacheTimeout, blob, clob, allow, validate, storage,
-		timezone, custom, dbdriver, ps, literalTimestampWithTSOffset, alwaysSetTimeout);
+		timezone, custom, dbdriver, ps, literalTimestampWithTSOffset, alwaysSetTimeout, requestExclusive);
 	store();
 	adminSync.broadcast(attributes, config);
     }
@@ -3042,6 +3045,14 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	admin.updateInspectTemplate(getString("admin", action, "inspectTemplate"));
 
 	admin.updateTypeChecking(getBoolObject("admin", action, "typeChecking"));
+
+	// cached after
+	Object obj = getObject("cachedAfter", null);
+	if (StringUtil.isEmpty(obj)) obj = null;
+
+	if (obj != null) admin.updateCachedAfterTimeRange(Caster.toTimeSpan(obj));
+	else admin.updateCachedAfterTimeRange(null);
+
 	store();
 	adminSync.broadcast(attributes, config);
     }
@@ -3151,6 +3162,17 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	else if (it == ConfigImpl.INSPECT_NEVER) str = "never";
 	sct.set("inspectTemplate", str);
 	sct.set("typeChecking", config.getTypeChecking());
+
+	// cached within
+	TimeSpan cachedAfter = config.getCachedAfterTimeRange();
+	if (cachedAfter == null) cachedAfter = new TimeSpanImpl(0, 0, 0, 0);
+
+	sct.set("cachedAfter", cachedAfter);
+	sct.set("cachedAfter_day", cachedAfter.getDay());
+	sct.set("cachedAfter_hour", cachedAfter.getHour());
+	sct.set("cachedAfter_minute", cachedAfter.getMinute());
+	sct.set("cachedAfter_second", cachedAfter.getSecond());
+
     }
 
     private void doGetCustomTagSetting() throws PageException {
@@ -3798,11 +3820,15 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		sct.setEL("clob", Boolean.valueOf(d.isClob()));
 		sct.setEL("validate", Boolean.valueOf(d.validate()));
 		sct.setEL("storage", Boolean.valueOf(d.isStorage()));
+		if (d instanceof DataSourcePro) {
+		    DataSourcePro dp = ((DataSourcePro) d);
+		    sct.setEL("requestExclusive", Boolean.valueOf(dp.isRequestExclusive()));
+		}
+
 		if (d instanceof DataSourceImpl) {
 		    DataSourceImpl di = ((DataSourceImpl) d);
 		    sct.setEL("literalTimestampWithTSOffset", Boolean.valueOf(di.getLiteralTimestampWithTSOffset()));
 		    sct.setEL("alwaysSetTimeout", Boolean.valueOf(di.getAlwaysSetTimeout()));
-
 		    sct.setEL("dbdriver", Caster.toString(di.getDbDriver(), ""));
 		}
 		pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
@@ -3863,18 +3889,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	    sct.setEL("open", engine.getOpenTaskCount());
 	    sct.setEL("closed", engine.getClosedTaskCount());
 	}
-
-	/*
-	 * SpoolerTask[] open = config.getSpoolerEngine().getOpenTasks(); SpoolerTask[] closed =
-	 * config.getSpoolerEngine().getClosedTasks(); String v="VARCHAR"; lucee.runtime.type.Query qry=new
-	 * QueryImpl( new
-	 * String[]{"type","name","detail","id","lastExecution","nextExecution","closed","tries",
-	 * "exceptions","triesmax"}, new String[]{v,v,"object",v,d,d,"boolean","int","object","int"},
-	 * open.length+closed.length,"query");
-	 * 
-	 * int row=0; row=doGetRemoteClientTasks(qry,open,row); doGetRemoteClientTasks(qry,closed,row);
-	 * pageContext.setVariable(getString("admin",action,"returnVariable"),qry);
-	 */
 
     }
 

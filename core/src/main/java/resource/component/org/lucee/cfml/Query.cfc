@@ -1,4 +1,4 @@
-component output="false" extends="Base" accessors="true"{
+component output="false" extends="HelperBase" accessors="true"{
 
 	property name="name" type="String";
 	property name="qArray" type="Array";
@@ -12,7 +12,7 @@ component output="false" extends="Base" accessors="true"{
 	/**
 	 * @hint Constructor
 	 */
-	public Base function init(){
+	public HelperBase function init(){
 		super.init(argumentCollection=arguments);
 		return this;
 	}
@@ -199,7 +199,7 @@ component output="false" extends="Base" accessors="true"{
 
 
 	/**
-		this function overrides Base.invokeTag()
+		this function overrides HelperBase.invokeTag()
 	*/
 	private function invokeTag() {
 		var tagname = getTagName();

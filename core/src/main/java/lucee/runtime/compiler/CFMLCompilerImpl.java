@@ -35,6 +35,7 @@ import lucee.runtime.PageSourceImpl;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.Constants;
 import lucee.runtime.exp.TemplateException;
+import lucee.runtime.type.util.ListUtil;
 import lucee.transformer.Factory;
 import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
@@ -103,7 +104,14 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 
     private Result _compile(ConfigImpl config, PageSource ps, SourceCode sc, String className, TagLib[] tld, FunctionLib[] fld, Resource classRootDir, boolean returnValue,
 	    boolean ignoreScopes) throws TemplateException, IOException {
-	if (className == null) className = ps.getClassName();
+	String javaName;
+	if (className == null) {
+	    javaName = ListUtil.trim(ps.getJavaName(), "\\/", false);
+	    className = ps.getClassName();
+	}
+	else {
+	    javaName = className.replace('.', '/');
+	}
 
 	Result result = null;
 	// byte[] barr = null;
@@ -175,10 +183,13 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 		throw new TemplateException("source file " + displayPath + "contains a component not a regular cfm template");
 
 	    // rename class name when needed
-	    if (!srcName.equals(className)) result = new Result(result.page, ClassRenamer.rename(result.barr, className));
+	    if (!srcName.equals(javaName)) {
+		byte[] barr = ClassRenamer.rename(result.barr, javaName);
+		if (barr != null) result = new Result(result.page, barr);
+	    }
 	    // store
 	    if (classRootDir != null) {
-		Resource classFile = classRootDir.getRealResource(className + ".class");
+		Resource classFile = classRootDir.getRealResource(javaName + ".class");
 		Resource classFileDirectory = classFile.getParentResource();
 		if (!classFileDirectory.exists()) classFileDirectory.mkdirs();
 		result = new Result(result.page, Page.setSourceLastModified(result.barr, ps != null ? ps.getPhyscalFile().lastModified() : System.currentTimeMillis()));

@@ -1,24 +1,41 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function beforeAll(){
-		variables.uri = createURI("LDEV0908");
+		variables.uri = createURI("LDEV1661");
 	}
 	// skip closure
 	function isNotSupported() {
 		var mySql = getCredentials();
-		if(!isNull(mysql)){
-			return false;
-		} else{
-			return true;
-		}
+		return isNull(mysql) || structCount(mySQL)==0;
 	}
-
 	function run( testResults , testBox ) {
-		describe( title="Test suite for LDEV-908", body=function() {
-			it(title = "Checking ", body = function( currentSpec ) {
+		describe( title="Test suite for LDEV-1661", body=function() {
+			it(title = "Checking timestamp with createDateTime()",skip=isNotSupported(), body = function( currentSpec ) {
 				local.result = _InternalRequest(
-					template:"#variables.uri#/test.cfm"
+					template:"#variables.uri#/test.cfm",
+					forms:{Scene:1}
 				);
-				expect(local.result.filecontent.trim()).toBe('true');
+				expect(local.result.filecontent.trim()).toBe("{ts '2018-08-01 12:00:00'}");
+			});
+			it(title = "Checking timestamp with createOdbcDateTime()",skip=isNotSupported(), body = function( currentSpec ) {
+				local.result = _InternalRequest(
+					template:"#variables.uri#/test.cfm",
+					forms:{Scene:2}
+				);
+				expect(local.result.filecontent.trim()).toBe("{ts '2018-08-01 12:00:00'}");
+			});
+			it(title = "Checking timestamp column in string format",skip=isNotSupported(), body = function( currentSpec ) {
+				local.result = _InternalRequest(
+					template:"#variables.uri#/test.cfm",
+					forms:{Scene:3}
+				);
+				expect(local.result.filecontent.trim()).toBe("{ts '2018-08-01 12:00:00'}");
+			});
+			it(title = "Checking timestamp with cfqueryparam",skip=isNotSupported(), body = function( currentSpec ) {
+				local.result = _InternalRequest(
+					template:"#variables.uri#/test.cfm",
+					forms:{Scene:4}
+				);
+				expect(local.result.filecontent.trim()).toBe("{ts '2018-08-01 12:00:00'}");
 			});
 		});
 	}
@@ -60,5 +77,5 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 		}
 		return mysql;
 	}
-}
+} 
 

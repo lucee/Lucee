@@ -73,7 +73,7 @@ public class BundleInfo implements Function {
 	    }
 	    return sct;
 	}
-	throw new ApplicationException(obj + "given object is not from a OSGi bundle");
+	throw new ApplicationException("object [" + clazz + "] is not from a OSGi bundle");
     }
 
     private static Array toArray1(List<BundleDefinition> list) {

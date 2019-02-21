@@ -573,6 +573,17 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	    String cacheId = null;
 
 	    long exe = 0;
+	    final long now = System.currentTimeMillis();
+
+	    if (data.cachedAfter != null) {
+		// not yet
+		if (data.cachedAfter.getTime() > now) data.cachedWithin = null;
+		// no time range set
+		else if (data.cachedWithin == null) {
+		    data.cachedWithin = ((PageContextImpl) pageContext).getCachedAfterTimeRange();
+		}
+	    }
+
 	    boolean useCache = (data.cachedWithin != null) || (data.cachedAfter != null);
 	    CacheHandler cacheHandler = null;
 
@@ -672,7 +683,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		}
 		// else query=executeDatasoure(sql,result!=null,pageContext.getTimeZone());
 
-		if (data.cachedWithin != null) {
+		if (data.cachedWithin != null && (data.cachedAfter == null || data.cachedAfter.getTime() <= now)) {
 		    CacheItem cacheItem = QueryResultCacheItem.newInstance(queryResult, data.tags, data.datasource, null);
 		    if (cacheItem != null) cacheHandler.set(pageContext, cacheId, data.cachedWithin, cacheItem);
 		}

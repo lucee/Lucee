@@ -70,7 +70,7 @@ Error Output --->
 <cfscript>
 
 
-	stText.security.desc="All settings that concerns securiry in Lucee.";
+	stText.security.desc="All settings that concerns security in Lucee.";
 	stText.security.varUsage="Variable Usage in Queries";
 	stText.security.varUsageDesc="With this setting you can control how Lucee handles variables used within queries.";
 

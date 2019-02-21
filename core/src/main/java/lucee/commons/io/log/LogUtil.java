@@ -23,31 +23,6 @@ package lucee.commons.io.log;
  */
 public final class LogUtil {
 
-    /*
-     * public static void log(Log log, int level, String logName, Throwable t) {
-     * log(log,level,logName,"",t); }
-     * 
-     * public static void log(Log log, int level, String logName,String msg, Throwable t) { if(log
-     * instanceof LogAdapter) { log.log(level, logName, msg,t); } else { String em =
-     * ExceptionUtil.getMessage(t); String est = ExceptionUtil.getStacktrace(t, false);
-     * if(msg.equals(em)) msg=em+";"+est; else msg+=";"+em+";"+est;
-     * 
-     * if(log!=null) { log.log(level, logName,msg); } else { PrintStream
-     * ps=(level>=Log.LEVEL_WARN)?System.err:System.out; ps.println(logName+";"+msg); }
-     * 
-     * } }
-     * 
-     * public static void log(Log log, int level, String logName, String msg, StackTraceElement[]
-     * stackTrace) { Throwable t = new Throwable(); t.setStackTrace(stackTrace);
-     * log(log,level,logName,msg,t); }
-     * 
-     * public static Log getLog(PageContext pc, String name) { return
-     * ((PageContextImpl)pc).getLog(name); }
-     * 
-     * public static Log getLog(PageContext pc, String name, boolean createIfNecessary) { return
-     * ((PageContextImpl)pc).getLog(name,createIfNecessary); }
-     */
-
     public static int toLevel(String strLevel, int defaultValue) {
 	if (strLevel == null) return defaultValue;
 	strLevel = strLevel.toLowerCase().trim();

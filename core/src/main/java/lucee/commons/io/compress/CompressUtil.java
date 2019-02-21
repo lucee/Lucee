@@ -36,6 +36,7 @@ import java.util.zip.ZipOutputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
+import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
 
 import lucee.aprint;
@@ -106,7 +107,9 @@ public final class CompressUtil {
 	if (format == FORMAT_ZIP) extractZip(source, target);
 	else if (format == FORMAT_TAR) extractTar(source, target);
 	else if (format == FORMAT_GZIP) extractGZip(source, target);
+	else if (format == FORMAT_BZIP) extractBZip(source, target);
 	else if (format == FORMAT_TGZ) extractTGZ(source, target);
+	else if (format == FORMAT_TBZ) extractTBZ(source, target);
 	else throw new IOException("can't extract in given format");
     }
 
@@ -133,6 +136,34 @@ public final class CompressUtil {
 	}
     }
 
+    private static void extractTBZ(Resource source, Resource target) throws IOException {
+	// File tmpTarget = File.createTempFile("_temp","tmp");
+	Resource tmp = SystemUtil.getTempDirectory().getRealResource(System.currentTimeMillis() + ".tmp");
+	try {
+	    // read bzip
+	    extractBZip(source, tmp);
+
+	    // read Tar
+	    extractTar(tmp, target);
+	}
+	finally {
+	    tmp.delete();
+	}
+    }
+
+    private static void extractBZip(Resource source, Resource target) throws IOException {
+	InputStream is = null;
+	OutputStream os = null;
+	try {
+	    is = new BZip2CompressorInputStream(IOUtil.toBufferedInputStream(source.getInputStream()));
+	    os = IOUtil.toBufferedOutputStream(target.getOutputStream());
+	    IOUtil.copy(is, os, false, false);
+	}
+	finally {
+	    IOUtil.closeEL(is, os);
+	}
+    }
+
     private static void extractGZip(Resource source, Resource target) throws IOException {
 	InputStream is = null;
 	OutputStream os = null;
@@ -155,12 +186,9 @@ public final class CompressUtil {
      * @throws IOException
      */
     public static void extract(int format, Resource[] sources, Resource target) throws IOException {
-	if (format == FORMAT_ZIP || format == FORMAT_TAR) {
-	    for (int i = 0; i < sources.length; i++) {
-		extract(format, sources[i], target);
-	    }
+	for (int i = 0; i < sources.length; i++) {
+	    extract(format, sources[i], target);
 	}
-	else throw new IOException("can't extract in given format");
     }
 
     private static void extractTar(Resource tarFile, Resource targetDir) throws IOException {

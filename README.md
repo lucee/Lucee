@@ -1,6 +1,6 @@
 ![Lucee](https://bitbucket.org/repo/rX87Rq/images/3392835614-logo-1-color-black-small.png)
 
-[![Build Status](https://travis-ci.org/lucee/Lucee.svg?branch=master)](https://travis-ci.org/lucee/Lucee)
+[![Build Status](https://travis-ci.org/lucee/Lucee.svg?branch=5.3)](https://travis-ci.org/lucee/Lucee)
 
 ## Lucee Server
 

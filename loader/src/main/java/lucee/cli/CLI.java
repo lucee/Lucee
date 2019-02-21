@@ -59,8 +59,6 @@ public class CLI {
 	    root.mkdirs();
 	}
 
-	// System.out.println("set webroot to: " + root.getAbsolutePath());
-
 	String servletName = config.get("servlet-name");
 
 	if (Util.isEmpty(servletName, true)) servletName = "CFMLServlet";

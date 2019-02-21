@@ -1057,7 +1057,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	    }
 	}
 	finally {
-	    factory.releaseLuceePageContext(pc, !exeReqAsync, true);
+	    factory.releaseLuceePageContext(pc, !exeReqAsync);
 	}
     }
 
@@ -1575,6 +1575,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	    this.reload = reload;
 	}
 
+	@Override
 	public void run() {
 	    boolean isWeb = config instanceof ConfigWeb;
 

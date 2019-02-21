@@ -44,6 +44,7 @@ import lucee.runtime.exp.DeprecatedException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.net.mail.Server;
+import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.s3.Properties;
 import lucee.runtime.net.s3.PropertiesImpl;
 import lucee.runtime.op.Duplicator;
@@ -141,6 +142,10 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
     private boolean queryPSQ;
     private int queryVarUsage;
 
+    private ProxyData proxyData;
+
+    private TimeSpan queryCachedAfter;
+
     /**
      * constructor of the class
      * 
@@ -166,6 +171,7 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	this.localMode = config.getLocalMode();
 	this.queryPSQ = config.getPSQL();
 	this.queryVarUsage = ((ConfigImpl) config).getQueryVarUsage();
+	this.queryCachedAfter = ((ConfigImpl) config).getCachedAfterTimeRange();
 
 	this.locale = config.getLocale();
 	this.timeZone = config.getTimeZone();
@@ -236,6 +242,7 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	dbl.localMode = localMode;
 	dbl.queryPSQ = queryPSQ;
 	dbl.queryVarUsage = queryVarUsage;
+	dbl.queryCachedAfter = queryCachedAfter;
 	dbl.locale = locale;
 	dbl.timeZone = timeZone;
 	dbl.fullNullSupport = fullNullSupport;
@@ -1021,4 +1028,25 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
     public void setQueryVarUsage(int varUsage) {
 	this.queryVarUsage = varUsage;
     }
+
+    @Override
+    public TimeSpan getQueryCachedAfter() {
+	return queryCachedAfter;
+    }
+
+    @Override
+    public void setQueryCachedAfter(TimeSpan ts) {
+	this.queryCachedAfter = ts;
+    }
+
+    @Override
+    public ProxyData getProxyData() {
+	return proxyData;
+    }
+
+    @Override
+    public void setProxyData(ProxyData data) {
+	this.proxyData = data;
+    }
+
 }

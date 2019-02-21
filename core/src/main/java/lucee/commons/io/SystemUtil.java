@@ -33,10 +33,14 @@ import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
+import java.security.CodeSource;
+import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
@@ -44,6 +48,10 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipException;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
 
 import javax.servlet.ServletContext;
 
@@ -497,7 +505,7 @@ public final class SystemUtil {
 	ClassLoader cl = InfoImpl.class.getClassLoader();
 	if (cl instanceof URLClassLoader) getClassPathesFromClassLoader((URLClassLoader) cl, pathes);
 
-	return classPathes = (Resource[]) pathes.toArray(new Resource[pathes.size()]);
+	return classPathes = pathes.toArray(new Resource[pathes.size()]);
     }
 
     public static long getUsedMemory() {
@@ -1361,6 +1369,7 @@ public final class SystemUtil {
 	public Class<?> fromSystem;
 	public Class<?> fromBundle;
 
+	@Override
 	public String toString() {
 	    return "fromBootDelegation:" + fromBootDelegation + ";fromSystem:" + fromSystem + ";fromBundle:" + fromBundle;
 	}
@@ -1472,6 +1481,7 @@ class StopThread extends Thread {
 	this.pc = pc;
     }
 
+    @Override
     public void run() {
 	PageContextImpl pci = (PageContextImpl) pc;
 	Thread thread = pc.getThread();
@@ -1578,5 +1588,75 @@ class MacAddressWrap implements ObjectWrap, Castable, Serializable {
     @Override
     public int compareTo(DateTime dt) throws PageException {
 	return Operator.compare(toString(), dt.castToString());
+    }
+
+    public static long size(Class clazz) throws URISyntaxException, ZipException, IOException {
+	ProtectionDomain pd = clazz.getProtectionDomain();
+	if (pd == null) return 0L;
+	CodeSource sc = pd.getCodeSource();
+	if (sc == null) return 0L;
+	URL url = sc.getLocation();
+	if (url == null) return 0L;
+
+	if (url.getProtocol().equalsIgnoreCase("file")) {
+	    URI uri = url.toURI();
+
+	    File file = new File(uri);
+
+	    // lose file
+	    if (file.isDirectory()) {
+		String relPath = clazz.getName().replace('.', File.separatorChar) + ".class";
+		File f = new File(file, relPath);
+		return f.length();
+	    }
+	    // zip file
+	    else if (file.isFile()) {
+		String relPath = clazz.getName().replace('.', '/') + ".class";
+
+		long size = 0;
+		ZipFile zf = null;
+		try {
+		    zf = new ZipFile(file);
+		    String name;
+		    ZipEntry entry;
+		    Enumeration<? extends ZipEntry> en = zf.entries();
+		    while (en.hasMoreElements()) {
+			entry = en.nextElement();
+			if (!entry.isDirectory()) {
+			    name = entry.getName().replace('\\', '/');
+			    if (name.startsWith("/")) name = name.substring(1); // some zip path start with "/" some not
+			    if (relPath.equals(name)) {
+				size = entry.getSize();
+				break;
+			    }
+			}
+		    }
+		}
+		finally {
+		    zf.close();
+		}
+		return size;
+	    }
+	}
+	else {
+	    long size = 0;
+	    String relPath = clazz.getName().replace('.', '/') + ".class";
+	    ZipInputStream zis = new ZipInputStream(url.openStream());
+	    String name;
+	    ZipEntry entry;
+	    while ((entry = zis.getNextEntry()) != null) {
+		if (!entry.isDirectory()) {
+		    name = entry.getName().replace('\\', '/');
+		    if (name.startsWith("/")) name = name.substring(1); // some zip path start with "/" some not
+		    if (relPath.equals(name)) {
+			size = entry.getSize();
+			break;
+		    }
+		}
+		zis.closeEntry();
+	    }
+	    return size;
+	}
+	return 0L;
     }
 }

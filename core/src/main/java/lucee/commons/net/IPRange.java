@@ -20,6 +20,7 @@ package lucee.commons.net;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.math.BigInteger;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -40,39 +41,32 @@ public class IPRange implements Serializable {
     int max = 0;
 
     private static class Range {
-	private final short[] from;
-	private final short[] to;
-	private final boolean equality;
+	private final InetAddress from;
+	private final InetAddress to;
+	private BigInteger bgFrom;
+	private BigInteger bgTo;
 
-	private Range(short[] from, short[] to) throws IOException {
-	    if (from.length != to.length) throw new IOException("both ip address must be from same type, IPv4 or IPv6");
-
+	public Range(InetAddress from, InetAddress to) {
 	    this.from = from;
 	    this.to = to;
-	    this.equality = equal(from, to);
+	    this.bgFrom = new BigInteger(1, from.getAddress());
+	    this.bgTo = from.equals(to) ? bgFrom : new BigInteger(1, to.getAddress());
+
 	}
 
-	private Range(short[] from) {
-	    this.from = from;
-	    this.to = from;
-	    this.equality = true;
+	public Range(InetAddress ip) {
+	    this(ip, ip);
 	}
 
-	private boolean inRange(short[] sarr) {
-	    if (from.length != sarr.length) return false;
-
-	    if (equality) return equal(from, sarr);
-
-	    for (int i = 0; i < from.length; i++) {
-		if (from[i] > sarr[i] || to[i] < sarr[i]) return false;
-	    }
-	    return true;
+	private boolean inRange(InetAddress ia) {
+	    BigInteger bgIA = new BigInteger(1, ia.getAddress());
+	    return bgIA.compareTo(bgFrom) >= 0 && bgIA.compareTo(bgTo) <= 0;
 	}
 
 	@Override
 	public String toString() {
-	    if (equality) return toString(from);
-	    return toString(from) + "-" + toString(to);
+	    if (bgTo.compareTo(bgFrom) == 0) return from.getHostAddress();// toString(from);
+	    return from.getHostAddress() + "-" + to.getHostAddress();
 	}
 
 	private String toString(short[] sarr) {
@@ -113,7 +107,7 @@ public class IPRange implements Serializable {
 	ip = ip.trim();
 	// no wildcard defined
 	if (ip.indexOf('*') == -1) {
-	    add(new Range(toShortArray(toInetAddress(ip))));
+	    add(new Range(toInetAddress(ip)));
 	    return;
 	}
 
@@ -128,11 +122,11 @@ public class IPRange implements Serializable {
 	InetAddress addr1 = toInetAddress(from);
 	if (addr1 instanceof Inet6Address) to = StringUtil.replace(ip, "*", "ffff", false);
 	else to = StringUtil.replace(ip, "*", "255", false);
-	add(new Range(toShortArray(addr1), toShortArray(toInetAddress(to))));
+	add(new Range(addr1, toInetAddress(to)));
     }
 
     private void add(String ip1, String ip2) throws IOException {
-	add(new Range(toShortArray(toInetAddress(ip1)), toShortArray(toInetAddress(ip2))));
+	add(new Range(toInetAddress(ip1), toInetAddress(ip2)));
     }
 
     public static IPRange getInstance(String raw) throws IOException {
@@ -148,8 +142,12 @@ public class IPRange implements Serializable {
 	    str = arr[i];
 	    if (str.length() > 0) {
 		index = str.indexOf('-');
-		if (index != -1) range.add(str.substring(0, index), str.substring(index + 1));
-		else range.add(str);
+		if (index != -1) {
+		    range.add(str.substring(0, index), str.substring(index + 1));
+		}
+		else {
+		    range.add(str);
+		}
 	    }
 	}
 	return range;
@@ -168,10 +166,10 @@ public class IPRange implements Serializable {
     }
 
     public boolean inRange(String ip) throws IOException {
-	return inRange(toShortArray(ip));
+	return inRange(toInetAddress(ip));
     }
 
-    public boolean inRange(short[] ip) {
+    public boolean inRange(InetAddress ip) {
 	for (int i = 0; i < max; i++) {
 	    if (ranges[i].inRange(ip)) return true;
 	}
@@ -192,7 +190,7 @@ public class IPRange implements Serializable {
 	return toShortArray(toInetAddress(ip));
     }
 
-    private static InetAddress toInetAddress(String ip) throws IOException {
+    public static InetAddress toInetAddress(String ip) throws IOException {
 	// TODO Auto-generated method stub
 	try {
 	    return InetAddress.getByName(ip);

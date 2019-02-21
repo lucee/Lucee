@@ -45,6 +45,7 @@ import lucee.runtime.listener.ClassicApplicationContext;
 import lucee.runtime.listener.ModernApplicationContext;
 import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.listener.SessionCookieData;
+import lucee.runtime.net.proxy.ProxyDataImpl;
 import lucee.runtime.op.Caster;
 import lucee.runtime.orm.ORMUtil;
 import lucee.runtime.tag.listener.TagListener;
@@ -106,6 +107,7 @@ public final class Application extends TagImpl {
     private Boolean nullSupport;
     private Boolean queryPSQ;
     private int queryVarUsage;
+    private TimeSpan queryCachedAfter;
 
     private CharSet webCharset;
     private CharSet resourceCharset;
@@ -143,6 +145,7 @@ public final class Application extends TagImpl {
     private SessionCookieData sessionCookie;
     private AuthCookieData authCookie;
     private String functionpaths;
+    private Struct proxy;
 
     @Override
     public void release() {
@@ -168,6 +171,7 @@ public final class Application extends TagImpl {
 	loginstorage = Scope.SCOPE_UNDEFINED;
 	scriptrotect = null;
 	functionpaths = null;
+	proxy = null;
 	datasource = null;
 	defaultdatasource = null;
 	datasources = null;
@@ -185,6 +189,7 @@ public final class Application extends TagImpl {
 	nullSupport = null;
 	queryPSQ = null;
 	queryVarUsage = 0;
+	queryCachedAfter = null;
 	webCharset = null;
 	resourceCharset = null;
 	sessionType = -1;
@@ -320,6 +325,10 @@ public final class Application extends TagImpl {
 
     public void setVariableusage(String varUsage) throws ApplicationException {
 	this.queryVarUsage = AppListenerUtil.toVariableUsage(varUsage);
+    }
+
+    public void setCachedafter(TimeSpan ts) throws ApplicationException {
+	this.queryCachedAfter = ts;
     }
 
     public void setPsq(boolean psq) {
@@ -586,6 +595,10 @@ public final class Application extends TagImpl {
 	this.functionpaths = strFunctionpaths;
     }
 
+    public void setProxy(Struct proxy) {
+	this.proxy = proxy;
+    }
+
     public void setTypechecking(boolean typeChecking) {
 	this.typeChecking = typeChecking;
     }
@@ -728,8 +741,11 @@ public final class Application extends TagImpl {
 	    ((ClassicApplicationContext) ac).setOnMissingTemplate(onmissingtemplate);
 	}
 
+	ApplicationContextSupport acs = (ApplicationContextSupport) ac;
+
 	if (scriptrotect != null) ac.setScriptProtect(AppListenerUtil.translateScriptProtect(scriptrotect));
-	if (functionpaths != null) ((ApplicationContextSupport) ac).setFunctionDirectories(AppListenerUtil.loadResources(pageContext.getConfig(), ac, functionpaths, true));
+	if (functionpaths != null) acs.setFunctionDirectories(AppListenerUtil.loadResources(pageContext.getConfig(), ac, functionpaths, true));
+	if (proxy != null) acs.setProxyData(ProxyDataImpl.toProxyData(proxy));
 	if (bufferOutput != null) ac.setBufferOutput(bufferOutput.booleanValue());
 	if (secureJson != null) ac.setSecureJson(secureJson.booleanValue());
 	if (typeChecking != null) ac.setTypeChecking(typeChecking.booleanValue());
@@ -748,6 +764,7 @@ public final class Application extends TagImpl {
 	if (nullSupport != null) ((ApplicationContextSupport) ac).setFullNullSupport(nullSupport);
 	if (queryPSQ != null) ((ApplicationContextSupport) ac).setQueryPSQ(queryPSQ);
 	if (queryVarUsage != 0) ((ApplicationContextSupport) ac).setQueryVarUsage(queryVarUsage);
+	if (queryCachedAfter != null) ((ApplicationContextSupport) ac).setQueryCachedAfter(queryCachedAfter);
 	if (webCharset != null) ac.setWebCharset(webCharset.toCharset());
 	if (resourceCharset != null) ac.setResourceCharset(resourceCharset.toCharset());
 	if (sessionType != -1) ac.setSessionType(sessionType);
@@ -764,15 +781,8 @@ public final class Application extends TagImpl {
 	if (cacheFile != null) ac.setDefaultCacheName(Config.CACHE_TYPE_FILE, cacheFile);
 	if (cacheWebservice != null) ac.setDefaultCacheName(Config.CACHE_TYPE_WEBSERVICE, cacheWebservice);
 	if (antiSamyPolicyResource != null) ((ApplicationContextSupport) ac).setAntiSamyPolicyResource(antiSamyPolicyResource);
-	if (sessionCookie != null) {
-	    ApplicationContextSupport acs = (ApplicationContextSupport) ac;
-	    acs.setSessionCookie(sessionCookie);
-	}
-	if (authCookie != null) {
-	    ApplicationContextSupport acs = (ApplicationContextSupport) ac;
-	    acs.setAuthCookie(authCookie);
-	}
-
+	if (sessionCookie != null) acs.setSessionCookie(sessionCookie);
+	if (authCookie != null) acs.setAuthCookie(authCookie);
 	if (tag != null) ac.setTagAttributeDefaultValues(pageContext, tag);
 	ac.setClientCluster(clientCluster);
 	ac.setSessionCluster(sessionCluster);
