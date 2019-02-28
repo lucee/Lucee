@@ -761,11 +761,11 @@ public abstract class MailClient implements PoolItem {
 		amessage[i++] = map.get(iterator.next());
 	    }
 	    srcFolder.copyMessages(amessage, trgFolder);
-	    srcFolder.setFlags(amessage, new Flags(Flags.Flag.DELETED), true);
+	    srcFolder.setFlags(amessage, new Flags(javax.mail.Flags.Flag.DELETED), true);
 	}
 	finally {
-	    IOUtil.closeEL(srcFolder);
-	    IOUtil.closeEL(trgFolder);
+	    srcFolder.close(true);
+	    trgFolder.close(true);
 	}
     }
 
