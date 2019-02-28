@@ -18,6 +18,10 @@
  **/
 package lucee.commons.io.log;
 
+import lucee.commons.lang.SystemOut;
+import lucee.runtime.config.Config;
+import lucee.runtime.engine.ThreadLocalPageContext;
+
 /**
  * Helper class for the logs
  */
@@ -44,5 +48,23 @@ public final class LogUtil {
 	if (Log.LEVEL_TRACE == level) return "trace";
 
 	return defaultValue;
+    }
+
+    public static void log(Config config, String type, Exception e) {
+	config = ThreadLocalPageContext.getConfig(config);
+	Log log = null;
+	if (config != null) log = config.getLog("application");
+
+	if (log != null) log.error(type, e);
+	else SystemOut.printDate(e);
+    }
+
+    public static void log(Config config, int level, String type, String msg) {
+	config = ThreadLocalPageContext.getConfig(config);
+	Log log = null;
+	if (config != null) log = config.getLog("application");
+
+	if (log != null) log.log(level, type, msg);
+	else SystemOut.printDate(msg);
     }
 }

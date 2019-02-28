@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Set;
 
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.log.LogUtil;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Collection;
@@ -69,7 +70,7 @@ public class SizeAndCount {
 		raw = toNode.invoke(obj, new Object[0]);
 	    }
 	    catch (Exception e) {
-		SystemOut.printDate(e);
+		LogUtil.log(null, "lang", e);
 	    }
 	}
 

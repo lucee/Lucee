@@ -23,6 +23,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.filter.DirectoryResourceFilter;
 import lucee.commons.io.res.filter.ExtensionResourceFilter;
@@ -87,7 +88,7 @@ public class MappingUtil {
 		}
 	    }
 	    catch (IOException ioe) {
-		SystemOut.printDate(ioe);
+		LogUtil.log(mapping.getConfig(), "mapping", ioe);
 	    }
 	    finally {
 		IOUtil.closeEL(zis);

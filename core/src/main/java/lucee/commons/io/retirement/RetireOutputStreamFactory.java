@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import lucee.commons.io.SystemUtil;
-import lucee.commons.lang.SystemOut;
+import lucee.commons.io.log.LogUtil;
 
 public class RetireOutputStreamFactory {
 
@@ -78,7 +78,7 @@ public class RetireOutputStreamFactory {
 		    if (_close) break;
 		}
 		catch (Exception e) {
-		    SystemOut.printDate(e);
+		    LogUtil.log(null, "file", e);
 		}
 	    }
 	    // print.e("stop thread");

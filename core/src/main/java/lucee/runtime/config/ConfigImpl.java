@@ -51,6 +51,7 @@ import lucee.commons.io.SystemUtil;
 import lucee.commons.io.cache.Cache;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogEngine;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.log.LoggerAndSourceData;
 import lucee.commons.io.log.log4j.Log4jEngine;
 import lucee.commons.io.log.log4j.Log4jUtil;
@@ -73,7 +74,6 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Md5;
 import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.lang.SystemOut;
 import lucee.commons.net.IPRange;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.CIPage;
@@ -1203,7 +1203,7 @@ public abstract class ConfigImpl implements Config {
 		    else overwrite(map.get(key), tl);
 		}
 		catch (TagLibException tle) {
-		    SystemOut.printDate(out, "can't load tld " + files[i]);
+		    LogUtil.log(this, Log.LEVEL_ERROR, "loading", "can't load tld " + files[i]);
 		    tle.printStackTrace(getErrWriter());
 		}
 
@@ -1464,7 +1464,7 @@ public abstract class ConfigImpl implements Config {
 
 		}
 		catch (FunctionLibException fle) {
-		    SystemOut.printDate(out, "can't load fld " + files[i]);
+		    LogUtil.log(this, Log.LEVEL_ERROR, "loading", "can't load fld " + files[i]);
 		    fle.printStackTrace(getErrWriter());
 		}
 	    }
@@ -1653,11 +1653,12 @@ public abstract class ConfigImpl implements Config {
      */
     protected void setTempDirectory(Resource tempDirectory, boolean flush) throws ExpressionException {
 	if (!isDirectory(tempDirectory) || !tempDirectory.isWriteable()) {
-	    SystemOut.printDate(getErrWriter(),
+	    LogUtil.log(this, Log.LEVEL_ERROR, "loading",
 		    "temp directory [" + tempDirectory + "] is not writable or can not be created, using directory [" + SystemUtil.getTempDirectory() + "] instead");
+
 	    tempDirectory = SystemUtil.getTempDirectory();
 	    if (!tempDirectory.isWriteable()) {
-		SystemOut.printDate(getErrWriter(), "temp directory [" + tempDirectory + "] is not writable");
+		LogUtil.log(this, Log.LEVEL_ERROR, "loading", "temp directory [" + tempDirectory + "] is not writable");
 	    }
 	}
 	if (flush) ResourceUtil.removeChildrenEL(tempDirectory);// start with a empty temp directory
