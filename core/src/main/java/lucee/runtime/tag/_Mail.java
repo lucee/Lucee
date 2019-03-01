@@ -262,11 +262,11 @@ public abstract class _Mail extends TagImpl {
 
 	    if (action.equals("getheaderonly")) {
 		required(getTagName(), action, "name", name);
-		pageContext.setVariable(name, client.getMails(messageNumber, uid, false));
+		pageContext.setVariable(name, client.getMails(messageNumber, uid, false,folder));
 	    }
 	    else if (action.equals("getall")) {
 		required(getTagName(), action, "name", name);
-		pageContext.setVariable(name, client.getMails(messageNumber, uid, true));
+		pageContext.setVariable(name, client.getMails(messageNumber, uid, true,folder));
 	    }
 	    else if (action.equals("delete")) {
 		client.deleteMails(messageNumber, uid);
