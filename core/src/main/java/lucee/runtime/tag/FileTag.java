@@ -889,7 +889,7 @@ public final class FileTag extends BodyTagImpl {
 		cffile.set("contentsubtype",ListLast.call(pageContext,contentType,"/"));
 		
 		// check file type
-		checkContentType(contentType,accept,getFileExtension(clientFile),strict);
+		checkContentType(contentType, accept, getFileExtension(clientFile), strict);
 	
 		cffile.set("clientdirectory",getParent(clientFile));
 		cffile.set("clientfile",clientFile.getName());
@@ -1007,11 +1007,22 @@ public final class FileTag extends BodyTagImpl {
 	 * @throws PageException
 	 */
 	private static void checkContentType(String contentType,String accept,String ext,boolean strict) throws PageException {
-		
+
 		if(!StringUtil.isEmpty(ext,true)){
 			ext=ext.trim().toLowerCase();
 			if(ext.startsWith("*."))ext=ext.substring(2);
 			if(ext.startsWith("."))ext=ext.substring(1);
+
+			String blacklistedTypes = SystemUtil.getSystemPropOrEnvVar(
+					SystemUtil.SETTING_UPLOAD_EXT_BLACKLIST, SystemUtil.DEFAULT_UPLOAD_EXT_BLACKLIST
+			).toLowerCase();
+			Array blacklist = ListUtil.listToArrayRemoveEmpty(blacklistedTypes, ',');
+
+			for (int i=blacklist.size(); i > 0; i--){
+				if (ext.equals(Caster.toString(blacklist.getE(i)).trim())){
+					throw new ApplicationException("Upload of files with extension [" + ext + "] is not permitted");
+				}
+			}
 		}
 		else ext=null;
 		
