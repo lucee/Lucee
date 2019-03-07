@@ -113,7 +113,7 @@ public final class SystemUtil {
 	public static final String SETTING_CONTROLLER_DISABLED = "lucee.controller.disabled";
 	public static final String SETTING_UPLOAD_EXT_BLACKLIST = "lucee.upload.blacklist";
 
-	public static final String DEFAULT_UPLOAD_EXT_BLACKLIST = "asp,aspx,cfc,cfm,cfml,jsp,php";
+	public static final String DEFAULT_UPLOAD_EXT_BLACKLIST = "asp,aspx,cfc,cfm,cfml,htm,html,jsp,php";
 
 	public static final char CHAR_DOLLAR = (char) 36;
 	public static final char CHAR_POUND = (char) 163;
@@ -1195,6 +1195,18 @@ public final class SystemUtil {
 
 	}
 
+
+	/**
+	 * converts a System property format to its equivalent Environment variable, e.g.
+	 * an input of "lucee.conf.name" will return "LUCEE_CONF_NAME"
+	 *
+	 * @param name the System property name
+	 * @return the equivalent Environment variable name
+	 */
+	public static String convertSystemPropToEnvVar(String name) {
+		return name.replace('.', '_').toUpperCase();
+	}
+
 	/**
 	 * returns a system setting by either a Java property name or a System
 	 * environment variable
@@ -1221,7 +1233,7 @@ public final class SystemUtil {
 			return value;
 
 		// env 2
-		name = name.replace('.', '_').toUpperCase();
+		name = convertSystemPropToEnvVar(name);
 		value = System.getenv(name);
 		if (!StringUtil.isEmpty(value))
 			return value;
