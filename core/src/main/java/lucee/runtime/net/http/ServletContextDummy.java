@@ -318,7 +318,7 @@ public class ServletContextDummy implements ServletContext {
 
 
     
-    
+    /* implement noop for abstract methods added in Servlet 4.0 */
     public ServletRegistration.Dynamic addJspFile(String s, String s1) {
         return null;
     }
