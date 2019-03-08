@@ -48,7 +48,7 @@ The Lucee team is always open to feedback and active at CFML community events, a
 ## Copyright / License
 
 Copyright 2006-2014 Various contributing authors
-Copyright 2015-2016 Lucee Association Switzerland
+Copyright 2015-2019 Lucee Association Switzerland
 
 The Lucee code base was forked from the [Railo Server Project](https://en.wikipedia.org/wiki/Railo) (Version 4.2) in January 2015. The Lucee Association Switzerland  (LAS) is the legal custodian of the code base, and contributors are required accept the [LAS Contributor License Agreement (CLA)](http://lang.lucee.org/t/las-contributor-license-agreement-cla/181).
 
