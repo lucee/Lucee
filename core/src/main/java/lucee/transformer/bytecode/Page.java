@@ -20,10 +20,12 @@ package lucee.transformer.bytecode;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -36,10 +38,12 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
 
+import lucee.commons.digest.HashUtil;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.compiler.JavaFunction;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.Component;
 import lucee.runtime.ComponentPageImpl;
@@ -51,6 +55,7 @@ import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.component.ImportDefintionImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.Constants;
+import lucee.runtime.op.Caster;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.scope.Undefined;
@@ -246,6 +251,8 @@ public final class Page extends BodyBase implements Root {
     private Config config;
     private SourceCode sourceCode;
     private int hash;
+    private List<JavaFunction> javaFunctions;
+    private Set<String> javaFunctionNames;
 
     /**
      * @param factory
@@ -286,7 +293,9 @@ public final class Page extends BodyBase implements Root {
      * @return
      * @throws TransformerException
      */
+    @Override
     public byte[] execute(String className) throws TransformerException {
+	javaFunctions = null;// most likely not necessary
 	// not exists in any case, so every usage must have a plan b for not existence
 	PageSource optionalPS = sourceCode instanceof PageSourceCode ? ((PageSourceCode) sourceCode).getPageSource() : null;
 
@@ -893,6 +902,7 @@ public final class Page extends BodyBase implements Root {
 
 	TryCatchFinallyVisitor tcf = new TryCatchFinallyVisitor(new OnFinally() {
 
+	    @Override
 	    public void _writeOut(BytecodeContext bc) {
 
 		// undefined.setMode(oldMode);
@@ -1022,6 +1032,7 @@ public final class Page extends BodyBase implements Root {
 
 	TryCatchFinallyVisitor tcf = new TryCatchFinallyVisitor(new OnFinally() {
 
+	    @Override
 	    public void _writeOut(BytecodeContext bc) {
 
 		// undefined.setMode(oldMode);
@@ -1159,6 +1170,7 @@ public final class Page extends BodyBase implements Root {
 	return threads;
     }
 
+    @Override
     public void _writeOut(BytecodeContext bc) throws TransformerException {
 
     }
@@ -1577,6 +1589,7 @@ public final class Page extends BodyBase implements Root {
 	return lastModifed;
     }
 
+    @Override
     public int[] addFunction(IFunction function) {
 	int[] indexes = new int[2];
 	Iterator<IFunction> it = functions.iterator();
@@ -1586,6 +1599,21 @@ public final class Page extends BodyBase implements Root {
 	indexes[IFunction.VALUE_INDEX] = functions.size();
 	functions.add(function);
 	return indexes;
+    }
+
+    @Override
+    public String registerJavaFunctionName(String functionName) {
+	String fn = Caster.toVariableName(functionName, null);
+	if (fn == null) fn = "tmp" + HashUtil.create64BitHashAsString(functionName); // should never happen
+
+	int count = 0;
+	if (javaFunctionNames == null) javaFunctionNames = new HashSet<String>();
+	String tmp = fn;
+	while (javaFunctionNames.contains(tmp)) {
+	    tmp = fn + (count++);
+	}
+	javaFunctionNames.add(tmp);
+	return tmp;
     }
 
     public int addThread(TagThread thread) {
@@ -1669,6 +1697,15 @@ public final class Page extends BodyBase implements Root {
 	ExpressionUtil.visitLine(bc, getEnd());
     }
 
+    public void registerJavaFunction(JavaFunction javaFunction) {
+	if (javaFunctions == null) javaFunctions = new ArrayList<>();
+	javaFunctions.add(javaFunction);
+    }
+
+    public List<JavaFunction> getJavaFunctions() {
+	return javaFunctions;
+    }
+
 }
 
 class SourceLastModifiedClassAdapter extends ClassVisitor {
@@ -1680,6 +1717,7 @@ class SourceLastModifiedClassAdapter extends ClassVisitor {
 	this.lastModified = lastModified;
     }
 
+    @Override
     public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
 
 	if (!name.equals("getSourceLastModified")) return super.visitMethod(access, name, desc, signature, exceptions);

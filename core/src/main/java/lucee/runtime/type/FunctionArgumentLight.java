@@ -52,6 +52,10 @@ public final class FunctionArgumentLight implements FunctionArgument, Externaliz
 	this(name, CFTypes.toString(type, "any"), type);
     }
 
+    public FunctionArgumentLight(String name, short type) {
+	this(KeyImpl.init(name), CFTypes.toString(type, "any"), type);
+    }
+
     public FunctionArgumentLight(Collection.Key name, String strType, short type) {
 	this.name = name;
 	this.strType = strType;

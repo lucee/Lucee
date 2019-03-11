@@ -56,6 +56,7 @@ import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringList;
 import lucee.commons.lang.StringUtil;
@@ -1848,5 +1849,28 @@ public class OSGiUtil {
 	}
 	return classic.toArray(new Resource[classic.size()]);
 
+    }
+
+    public static String getClassPath() {
+	BundleClassLoader bcl = (BundleClassLoader) OSGiUtil.class.getClassLoader();
+	Bundle bundle = bcl.getBundle();
+	BundleContext bc = bundle.getBundleContext();
+	// DataMember
+
+	Set<String> set = new HashSet<>();
+	set.add(ClassUtil.getSourcePathForClass(CFMLEngineFactory.class, null));
+	set.add(ClassUtil.getSourcePathForClass(javax.servlet.jsp.JspException.class, null));
+	set.add(ClassUtil.getSourcePathForClass(javax.servlet.Servlet.class, null));
+
+	StringBuilder sb = new StringBuilder();
+	for (String path: set) {
+	    sb.append(path).append(File.pathSeparator);
+	}
+
+	for (Bundle b: bc.getBundles()) {
+	    if ("System Bundle".equalsIgnoreCase(b.getLocation())) continue;
+	    sb.append(b.getLocation()).append(File.pathSeparator);
+	}
+	return sb.toString();
     }
 }

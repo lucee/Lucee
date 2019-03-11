@@ -277,7 +277,7 @@ public final class TagFunction extends TagBase implements IFunction {
 
 	Function func = new FunctionImpl(page, name, returnType, returnFormat, output, bufferOutput, acc, displayname, description, hint, secureJson, verifyClient, localMode,
 		cachedWithin, modifier, body, getStart(), getEnd());
-
+	func.register();
 	// %**%
 	Map attrs = getAttributes();
 	Iterator it = attrs.entrySet().iterator();

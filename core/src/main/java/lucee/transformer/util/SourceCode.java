@@ -77,6 +77,10 @@ public class SourceCode {
 	this.writeLog = writeLog;
     }
 
+    public boolean hasPrevious() {
+	return pos > 0;
+    }
+
     /**
      * returns if the internal pointer is not on the last positions
      */
@@ -128,6 +132,11 @@ public class SourceCode {
      */
     public char charAtLower(int pos) {
 	return lcText[pos];
+    }
+
+    public boolean isPrevious(char c) {
+	if (!hasPrevious()) return false;
+	return lcText[pos - 1] == c;
     }
 
     /**

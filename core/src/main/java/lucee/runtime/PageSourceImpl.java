@@ -32,6 +32,7 @@ import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.SystemOut;
+import lucee.commons.lang.compiler.JavaFunction;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lang.types.RefBooleanImpl;
 import lucee.commons.lang.types.RefIntegerSync;
@@ -402,6 +403,12 @@ public final class PageSourceImpl implements PageSource {
 
 	try {
 	    Class<?> clazz = mapping.getPhysicalClass(getClassName(), result.barr);
+	    // make sure all children are updated
+	    if (result.javaFunctions != null && !result.javaFunctions.isEmpty()) {
+		for (JavaFunction jf: result.javaFunctions) {
+		    mapping.getPhysicalClass(jf.getClassName(), jf.byteCode);
+		}
+	    }
 	    return newInstance(clazz);
 	}
 	catch (Throwable t) {

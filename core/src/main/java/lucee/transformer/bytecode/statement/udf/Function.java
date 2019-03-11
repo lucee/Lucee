@@ -30,6 +30,7 @@ import org.objectweb.asm.commons.Method;
 
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.compiler.JavaFunction;
 import lucee.runtime.Component;
 import lucee.runtime.exp.TemplateException;
 import lucee.runtime.listener.AppListenerUtil;
@@ -121,6 +122,8 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 	    INIT_FAI_KEY9 };
     private static final Method[] INIT_FAI_KEY_LIGHT = new Method[] { INIT_FAI_KEY1, INIT_FAI_KEY3 };
 
+    protected static final Method USE_JAVA_FUNCTION = new Method("useJavaFunction", Types.OBJECT, new Type[] { Types.PAGE, Types.STRING });
+
     ExprString name;
     ExprString returnType;
     ExprBoolean output;
@@ -137,10 +140,12 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
     ExprBoolean secureJson;
     ExprBoolean verifyClient;
     ExprInt localMode;
-    protected int valueIndex;
-    protected int arrayIndex;
+    protected int valueIndex = -1;
+    protected int arrayIndex = -1;
     private Literal cachedWithin;
     private int modifier;
+    protected JavaFunction jf;
+    private final Root root;
 
     public Function(Root root, String name, int access, int modifier, String returnType, Body body, Position start, Position end) {
 	super(body.getFactory(), start, end);
@@ -151,12 +156,10 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 	else this.returnType = body.getFactory().createLitString("any");
 	this.body = body;
 	body.setParent(this);
-	int[] indexes = root.addFunction(this);
-	valueIndex = indexes[VALUE_INDEX];
-	arrayIndex = indexes[ARRAY_INDEX];
 	output = body.getFactory().TRUE();
 	displayName = body.getFactory().EMPTY();
 	hint = body.getFactory().EMPTY();
+	this.root = root;
     }
 
     public Function(Root root, Expression name, Expression returnType, Expression returnFormat, Expression output, Expression bufferOutput, int access, Expression displayName,
@@ -178,9 +181,15 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 	this.cachedWithin = cachedWithin;
 	this.modifier = modifier;
 	this.localMode = toLocalMode(localMode, null);
-
+	this.root = root;
 	this.body = body;
 	body.setParent(this);
+
+    }
+
+    public void register() {
+	if (valueIndex != -1) throw new RuntimeException("you can register only once!"); // just to be safe
+
 	int[] indexes = root.addFunction(this);
 	valueIndex = indexes[VALUE_INDEX];
 	arrayIndex = indexes[ARRAY_INDEX];
@@ -598,4 +607,7 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 	return eb;
     }
 
+    public void setJavaFunction(JavaFunction jf) {
+	this.jf = jf;
+    }
 }

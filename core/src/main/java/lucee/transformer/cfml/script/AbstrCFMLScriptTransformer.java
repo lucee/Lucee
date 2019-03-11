@@ -24,8 +24,12 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.compiler.JavaCCompiler;
+import lucee.commons.lang.compiler.JavaCompilerException;
+import lucee.commons.lang.compiler.JavaFunction;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lang.types.RefBooleanImpl;
 import lucee.loader.engine.CFMLEngine;
@@ -74,10 +78,14 @@ import lucee.transformer.cfml.Data;
 import lucee.transformer.cfml.evaluator.EvaluatorException;
 import lucee.transformer.cfml.evaluator.impl.ProcessingDirectiveException;
 import lucee.transformer.cfml.expression.AbstrCFMLExprTransformer;
+import lucee.transformer.cfml.script.java.JavaSourceException;
+import lucee.transformer.cfml.script.java.function.FunctionDef;
+import lucee.transformer.cfml.script.java.function.FunctionDefFactory;
 import lucee.transformer.cfml.tag.CFMLTransformer;
 import lucee.transformer.expression.ExprBoolean;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.LitBoolean;
+import lucee.transformer.expression.literal.LitString;
 import lucee.transformer.expression.var.Variable;
 import lucee.transformer.library.function.FunctionLibFunction;
 import lucee.transformer.library.tag.TagLib;
@@ -981,7 +989,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 	    if (idName == null) throw new TemplateException(data.srcCode, "invalid argument definition");
 	    comments(data);
 	    if (!data.srcCode.isCurrent(')') && !data.srcCode.isCurrent('=') && !data.srcCode.isCurrent(':') && !data.srcCode.isCurrent(',')) {
-		typeName = idName.toLowerCase();
+		typeName = idName;
 		idName = identifier(data, false); // MUST was upper case before, is this a problem?
 	    }
 	    else if (idName.indexOf('.') != -1 || idName.indexOf('[') != -1) {
@@ -1053,7 +1061,6 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
     @Override
     protected final Function closurePart(Data data, String id, int access, int modifier, String rtnType, Position line, boolean closure) throws TemplateException {
-
 	Body body = new FunctionBody(data.factory);
 	Function func = closure ? new Closure(data.root, id, access, modifier, rtnType, body, line, null)
 		: new FunctionImpl(data.root, id, access, modifier, rtnType, body, line, null);
@@ -1075,16 +1082,9 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 	// TagLibTag tlt = CFMLTransformer.getTLT(data.srcCode,"function");
 
 	// doc comment
+	String hint = null;
 	if (data.docComment != null) {
-	    func.setHint(data.factory, data.docComment.getHint());
-
-	    // params
-	    /*
-	     * Map<String, Attribute> params = data.docComment.getParams(); Iterator<Attribute> it =
-	     * params.values().iterator(); Attribute attr; String name; while(it.hasNext()){ attr=it.next();
-	     * name=attr.getName(); }
-	     */
-
+	    func.setHint(data.factory, hint = data.docComment.getHint());
 	    func.setMetaData(data.docComment.getParams());
 	    data.docComment = null;
 	}
@@ -1093,9 +1093,17 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 	// attributes
 	Attribute[] attrs = attributes(null, null, data, SEMI_BLOCK, data.factory.EMPTY(), Boolean.TRUE, null, false, NO_ATTR_SEP, true);
+	boolean isJava = false;
+	for (Attribute attr: attrs) {
+	    // check type
+	    if ("type".equalsIgnoreCase(attr.getName())) {
+		if (attr.getValue() instanceof LitString) {
+		    if (((LitString) attr.getValue()).getString().equalsIgnoreCase("java")) isJava = true;
+		}
+		else throw new TemplateException(data.srcCode, "attribute type must be a literal string, ");
+	    }
 
-	for (int i = 0; i < attrs.length; i++) {
-	    func.addAttribute(attrs[i]);
+	    func.addAttribute(attr);
 	}
 
 	// body
@@ -1104,7 +1112,13 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 	try {
 	    // ex block
 	    Body prior = data.setParent(body);
-	    statement(data, body, CTX_FUNCTION);
+	    if (isJava) {
+		func.setJavaFunction(java(data, body, id, hint, args, rtnType));
+	    }
+	    else {
+		func.register();
+		statement(data, body, CTX_FUNCTION);
+	    }
 	    data.setParent(prior);
 	}
 	finally {
@@ -1117,12 +1131,106 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 	return func;
     }
 
+    private JavaFunction java(Data data, Body body, String functionName, String hint, ArrayList<Argument> args, String rtnType) throws TemplateException {
+	FunctionDef fd = null;
+	try {
+	    fd = FunctionDefFactory.getFunctionDef(args, rtnType);
+	}
+	catch (JavaSourceException e) {
+	    throw new TemplateException(data.srcCode, e.getMessage());
+	}
+	catch (ClassException e) {
+	    throw new TemplateException(data.srcCode, e.getMessage());
+	}
+
+	// print.e("+++++++++++++++++++++++++++++++++++");
+	// print.e(fd);
+
+	PageSourceCode psc = (PageSourceCode) data.srcCode;// TODO get PS in an other way
+	PageSource ps = psc.getPageSource();
+
+	SourceCode sc = data.srcCode;
+	Position start = sc.getPosition();
+	findTheEnd(data, start.line);
+	Position end = sc.getPosition();
+	String javaCode = sc.substring(start.pos, end.pos - start.pos);
+	try {
+	    String id = data.root.registerJavaFunctionName(functionName);
+
+	    JavaFunction jf = JavaCCompiler.compile(ps, fd.createSourceCode(ps, javaCode, id, functionName, hint, args));
+	    // print.e("-->" + (jf.byteCode == null ? -1 : jf.byteCode.length));
+	    // jf.setTemplateName(ps.getRealpathWithVirtual());
+	    // jf.setFunctionName(fn);
+	    return jf;
+	}
+	catch (JavaCompilerException e) {
+	    TemplateException te = new TemplateException(data.srcCode, (int) (start.line + e.getLineNumber()), (int) e.getColumnNumber(), e.getMessage());
+	    te.setStackTrace(e.getStackTrace());
+	    throw te;
+	}
+	catch (Exception e) {
+	    TemplateException te = new TemplateException(data.srcCode, start.line, 0, e.getMessage());
+	    te.setStackTrace(e.getStackTrace());
+	    throw te;
+	}
+
+    }
+
+    private void findTheEnd(Data data, int lineOffset) throws TemplateException {
+	comments(data);
+	SourceCode sc = data.srcCode;
+
+	if (!sc.forwardIfCurrent('{')) throw new TemplateException(sc, "missing starting {");
+
+	boolean insideD = false;
+	boolean insideS = false;
+	int depth = 0;
+	char c;
+	do {
+	    c = sc.getCurrent();
+	    if (insideD) {
+		if (c == '"') {
+		    if (!sc.isPrevious('\\')) insideD = false;
+		}
+	    }
+	    // only can have a single character escaped or not
+	    else if (insideS) {
+		if (c == '\'') {
+		    if (!sc.isPrevious('\\')) insideS = false;
+		}
+	    }
+	    else {
+		if (c == '{') {
+		    depth++;
+		}
+		else if (c == '}') {
+		    if (depth == 0) {
+			sc.next();
+			return;
+		    }
+		    else depth--;
+		}
+		else if (c == '\'') {
+		    insideS = true;
+		}
+		else if (c == '"') {
+		    insideD = true;
+		}
+	    }
+	    if (sc.hasNext()) sc.next();
+	    else {
+		Position pos = sc.getPosition();
+		throw new TemplateException(sc, pos.line + lineOffset, pos.column, "reached end without finding the ending }");
+	    }
+	}
+	while (true);
+    }
+
     @Override
     protected final Function lambdaPart(Data data, String id, int access, int modifier, String rtnType, Position line, ArrayList<Argument> args) throws TemplateException {
 	Body body = new FunctionBody(data.factory);
 	Function func = new Lambda(data.root, id, access, modifier, rtnType, body, line, null);
-	// new FunctionImpl(data.page,id,access,rtnType,body,line,null);
-
+	func.register();// TODO may add support for java functions
 	comments(data);
 
 	// add arguments
@@ -1141,6 +1249,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 	    if (data.srcCode.isCurrent('{')) {
 		Body prior = data.setParent(body);
 		statement(data, body, CTX_FUNCTION);
+
 		data.setParent(prior);
 	    }
 	    else {
@@ -1153,20 +1262,16 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		data.context = CTX_FUNCTION;
 		comments(data);
 		Expression expr = expression(data);
-		// checkSemiColonLineFeed( data, true ,true );
 		Return rtn = new Return(expr, line, data.srcCode.getPosition());
 		body.addStatement(rtn);
 		data.docComment = null;
 		data.context = prior;
+
 	    }
 	}
 	finally {
 	    data.insideFunction = oldInsideFunction;
 	}
-	/*
-	 * try { // ex block statement(data,body,CTX_FUNCTION); } finally{
-	 * data.insideFunction=oldInsideFunction; }
-	 */
 
 	func.setEnd(data.srcCode.getPosition());
 

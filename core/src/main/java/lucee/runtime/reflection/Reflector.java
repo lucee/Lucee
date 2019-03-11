@@ -1528,4 +1528,13 @@ public final class Reflector {
 	}
     }
 
+    public static Method getMethod(Class<?> clazz, String methodName, Class<?>[] args, Method defaultValue) {
+	try {
+	    return clazz.getMethod(methodName, args);
+	}
+	catch (Exception e) {
+	    return defaultValue;
+	}
+    }
+
 }
