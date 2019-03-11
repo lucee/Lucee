@@ -60,9 +60,13 @@ public final class LogUtil {
     }
 
     public static void log(Config config, int level, String type, String msg) {
+	log(config, level, "application", type, msg);
+    }
+
+    public static void log(Config config, int level, String logName, String type, String msg) {
 	config = ThreadLocalPageContext.getConfig(config);
 	Log log = null;
-	if (config != null) log = config.getLog("application");
+	if (config != null) log = config.getLog(logName);
 
 	if (log != null) log.log(level, type, msg);
 	else SystemOut.printDate(msg);

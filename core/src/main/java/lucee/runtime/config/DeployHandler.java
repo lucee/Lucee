@@ -215,6 +215,7 @@ public class DeployHandler {
 		    if (apiKey != null) qs.append("&ioid=").append(apiKey);
 
 		    url = new URL(url, "/rest/extension/provider/info/" + ed.getId() + qs);
+		    if (log != null) log.info("extension", "check for a newer version at " + url);
 		    rsp = HTTPEngine.get(url, null, null, -1, false, "UTF-8", "", null, new Header[] { new HeaderImpl("accept", "application/json") });
 
 		    if (rsp.getStatusCode() != 200) continue;
