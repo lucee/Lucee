@@ -999,7 +999,7 @@ public final class FileTag extends BodyTagImpl {
     }
 
     /**
-     * check if the content ii ok
+     * check if the content type is permitted
      * 
      * @param contentType
      * @throws PageException
@@ -1010,6 +1010,23 @@ public final class FileTag extends BodyTagImpl {
 	    ext = ext.trim().toLowerCase();
 	    if (ext.startsWith("*.")) ext = ext.substring(2);
 	    if (ext.startsWith(".")) ext = ext.substring(1);
+
+		String blacklistedTypes = SystemUtil.getSystemPropOrEnvVar(
+				SystemUtil.SETTING_UPLOAD_EXT_BLACKLIST, SystemUtil.DEFAULT_UPLOAD_EXT_BLACKLIST
+		).toLowerCase();
+		Array blacklist = ListUtil.listToArrayRemoveEmpty(blacklistedTypes, ',');
+
+		for (int i=blacklist.size(); i > 0; i--) {
+			if (ext.equals(Caster.toString(blacklist.getE(i)).trim())){
+				throw new ApplicationException("Upload of files with extension [" + ext + "] is not permitted.  "
+						+ "You can configure the "
+						+ SystemUtil.SETTING_UPLOAD_EXT_BLACKLIST
+						+ " System property or the "
+						+ SystemUtil.convertSystemPropToEnvVar(SystemUtil.SETTING_UPLOAD_EXT_BLACKLIST)
+						+ " Environment variable to allow that file type."
+				);
+			}
+		}
 	}
 	else ext = null;
 

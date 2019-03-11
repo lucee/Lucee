@@ -316,4 +316,41 @@ public class ServletContextDummy implements ServletContext {
 	throw new RuntimeException("not supported");
     }
 
+
+    
+    /* implement noop for abstract methods added in Servlet 4.0 */
+    public ServletRegistration.Dynamic addJspFile(String s, String s1) {
+        return null;
+    }
+
+
+    public int getSessionTimeout() {
+        return 0;
+    }
+
+
+    public void setSessionTimeout(int i) {
+
+    }
+
+
+    public String getRequestCharacterEncoding() {
+        return null;
+    }
+
+
+    public void setRequestCharacterEncoding(String s) {
+
+    }
+
+
+    public String getResponseCharacterEncoding() {
+        return null;
+    }
+
+
+    public void setResponseCharacterEncoding(String s) {
+
+    }
+
 }
