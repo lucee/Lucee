@@ -48,7 +48,6 @@ import lucee.runtime.type.QueryColumn;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
-import lucee.runtime.type.UDFPlus;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.KeyConstants;
@@ -762,12 +761,12 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
     @Override
     public Object call(PageContext pc, final Key methodName, Object[] args) throws PageException {
 	Object obj = get(methodName, null); // every none UDF value is fine as default argument
-	if (obj instanceof UDFPlus) {
-	    return ((UDFPlus) obj).call(pc, methodName, args, false);
+	if (obj instanceof UDF) {
+	    return ((UDF) obj).call(pc, methodName, args, false);
 	}
 	UDF udf = getUDF(pc, methodName);
-	if (udf instanceof UDFPlus) {
-	    return ((UDFPlus) udf).call(pc, methodName, args, false);
+	if (udf instanceof UDF) {
+	    return udf.call(pc, methodName, args, false);
 	}
 	throw new ExpressionException("No matching function [" + methodName + "] found");
     }
@@ -775,12 +774,12 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
     @Override
     public Object callWithNamedValues(PageContext pc, Key methodName, Struct args) throws PageException {
 	Object obj = get(methodName, null);
-	if (obj instanceof UDFPlus) {
-	    return ((UDFPlus) obj).callWithNamedValues(pc, methodName, args, false);
+	if (obj instanceof UDF) {
+	    return ((UDF) obj).callWithNamedValues(pc, methodName, args, false);
 	}
 	UDF udf = getUDF(pc, methodName);
-	if (udf instanceof UDFPlus) {
-	    return ((UDFPlus) udf).callWithNamedValues(pc, methodName, args, false);
+	if (udf instanceof UDF) {
+	    return udf.callWithNamedValues(pc, methodName, args, false);
 	}
 	throw new ExpressionException("No matching function [" + methodName + "] found");
     }

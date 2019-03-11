@@ -74,7 +74,6 @@ import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
-import lucee.runtime.type.UDFPlus;
 import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.CollectionUtil;
@@ -733,8 +732,8 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 	props.strType = "any";
 	props.secureJson = pc.getApplicationContext().getSecureJson();
 	int udfReturnFormat = -1;
-	if (o instanceof UDFPlus) {
-	    UDFPlus udf = ((UDFPlus) o);
+	if (o instanceof UDF) {
+	    UDF udf = ((UDF) o);
 	    udfReturnFormat = udf.getReturnFormat(-1);
 	    props.type = udf.getReturnType();
 	    props.strType = udf.getReturnTypeAsString();

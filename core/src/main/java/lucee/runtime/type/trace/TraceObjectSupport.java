@@ -26,7 +26,7 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.Struct;
-import lucee.runtime.type.UDFPlus;
+import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.DateTime;
 
 public class TraceObjectSupport implements TraceObject {
@@ -129,7 +129,7 @@ public class TraceObjectSupport implements TraceObject {
 
     public static TraceObject toTraceObject(Debugger debugger, Object obj, int type, String category, String text) {
 	if (obj instanceof TraceObject) return (TraceObject) obj;
-	else if (obj instanceof UDFPlus) return new TOUDF(debugger, (UDFPlus) obj, type, category, text);
+	else if (obj instanceof UDF) return new TOUDF(debugger, (UDF) obj, type, category, text);
 	else if (obj instanceof Query) return new TOQuery(debugger, (Query) obj, type, category, text);
 	else if (obj instanceof Array) return new TOArray(debugger, (Array) obj, type, category, text);
 	else if (obj instanceof Struct) return new TOStruct(debugger, (Struct) obj, type, category, text);

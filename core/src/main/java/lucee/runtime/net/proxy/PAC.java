@@ -1,7 +1,5 @@
 package lucee.runtime.net.proxy;
 
-import lucee.print;
-
 // Proxy Auto Config
 public class PAC {
     private static String str = "function FindProxyForURL(url, host)\n" + "\n" + "    {\n" + "\n" + "        if (shExpMatch(host, \"192.168.*\") ||\n" + "\n"
@@ -26,9 +24,5 @@ public class PAC {
 	    + "                 shExpMatch(host, \"*helsana-preprod02.ch\")       ||\n" + "\n" + "                 shExpMatch(host, \"*helsana-preprod.ch\") )   {\n" + "\n"
 	    + "                 return \"PROXY Client-Proxy-PreProd.hel.kko.ch:8080\"; }\n" + "\n" + "        else { return \"PROXY Client-Proxy.hel.kko.ch:8080\"; }\n" + "\n"
 	    + "    }";
-
-    public static void main(String[] args) {
-	print.e(str);
-    }
 
 }

@@ -37,7 +37,6 @@ import lucee.runtime.type.Collection;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
-import lucee.runtime.type.UDFPlus;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.it.EntryIterator;
 import lucee.runtime.type.it.KeyIterator;
@@ -292,14 +291,14 @@ public class ComponentScopeShadow extends StructSupport implements ComponentScop
     public Object call(PageContext pc, Collection.Key key, Object[] arguments) throws PageException {
 	// first check variables
 	Object o = shadow.get(key);
-	if (o instanceof UDFPlus) {
-	    return ((UDFPlus) o).call(pc, key, arguments, false);
+	if (o instanceof UDF) {
+	    return ((UDF) o).call(pc, key, arguments, false);
 	}
 
 	// then check in component
 	Member m = component.getMember(access, key, false, false);
 	if (m != null) {
-	    if (m instanceof UDFPlus) return ((UDFPlus) m).call(pc, key, arguments, false);
+	    if (m instanceof UDF) return ((UDF) m).call(pc, key, arguments, false);
 	}
 
 	return MemberUtil.call(pc, this, key, arguments, new short[] { CFTypes.TYPE_STRUCT }, new String[] { "struct" });
@@ -315,13 +314,13 @@ public class ComponentScopeShadow extends StructSupport implements ComponentScop
     public Object callWithNamedValues(PageContext pc, Key key, Struct args) throws PageException {
 	// first check variables
 	Object o = shadow.get(key);
-	if (o instanceof UDFPlus) {
-	    return ((UDFPlus) o).callWithNamedValues(pc, key, args, false);
+	if (o instanceof UDF) {
+	    return ((UDF) o).callWithNamedValues(pc, key, args, false);
 	}
 
 	Member m = component.getMember(access, key, false, false);
 	if (m != null) {
-	    if (m instanceof UDFPlus) return ((UDFPlus) m).callWithNamedValues(pc, key, args, false);
+	    if (m instanceof UDF) return ((UDF) m).callWithNamedValues(pc, key, args, false);
 	    return MemberUtil.callWithNamedValues(pc, this, key, args, CFTypes.TYPE_STRUCT, "struct");
 	    // throw ComponentUtil.notFunction(component, key, m.getValue(),access);
 	}

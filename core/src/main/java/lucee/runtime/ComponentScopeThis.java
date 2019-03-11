@@ -30,7 +30,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
-import lucee.runtime.type.UDFPlus;
+import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.MemberUtil;
@@ -272,7 +272,7 @@ public final class ComponentScopeThis extends StructSupport implements Component
     public Object call(PageContext pc, Collection.Key key, Object[] arguments) throws PageException {
 	Member m = component.getMember(access, key, false, false);
 	if (m != null) {
-	    if (m instanceof UDFPlus) return ((UDFPlus) m).call(pc, key, arguments, false);
+	    if (m instanceof UDF) return ((UDF) m).call(pc, key, arguments, false);
 	    return MemberUtil.call(pc, this, key, arguments, new short[] { CFTypes.TYPE_STRUCT }, new String[] { "struct" });
 	    // throw ComponentUtil.notFunction(component, key, m.getValue(),access);
 	}
@@ -289,7 +289,7 @@ public final class ComponentScopeThis extends StructSupport implements Component
     public Object callWithNamedValues(PageContext pc, Collection.Key key, Struct args) throws PageException {
 	Member m = component.getMember(access, key, false, false);
 	if (m != null) {
-	    if (m instanceof UDFPlus) return ((UDFPlus) m).callWithNamedValues(pc, key, args, false);
+	    if (m instanceof UDF) return ((UDF) m).callWithNamedValues(pc, key, args, false);
 	    return MemberUtil.callWithNamedValues(pc, this, key, args, CFTypes.TYPE_STRUCT, "struct");
 	    // throw ComponentUtil.notFunction(component, key, m.getValue(),access);
 	}

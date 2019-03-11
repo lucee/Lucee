@@ -54,7 +54,7 @@ public class TOUDF extends TOObjects implements UDF {
 
     public void setAccess(int access) {
 	log(ComponentUtil.toStringAccess(access, null));
-	((UDFPlus) udf).setAccess(access);
+	if (udf instanceof UDFPlus) ((UDFPlus) udf).setAccess(access);
     }
 
     @Override
@@ -230,7 +230,7 @@ public class TOUDF extends TOObjects implements UDF {
 
     public void setOwnerComponent(ComponentImpl cfc) {
 	log(null);
-	((UDFPlus) udf).setOwnerComponent(cfc);
+	if (udf instanceof UDFPlus) ((UDFPlus) udf).setOwnerComponent(cfc);
     }
 
     @Override

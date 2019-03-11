@@ -64,6 +64,8 @@ import lucee.commons.io.cache.exp.CacheException;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceClassLoader;
+import lucee.commons.lang.ClassException;
+import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.StringUtil;
@@ -166,7 +168,6 @@ import lucee.runtime.type.SVArray;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
-import lucee.runtime.type.UDFPlus;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.it.ItAsEnum;
 import lucee.runtime.type.ref.Reference;
@@ -2282,7 +2283,7 @@ public final class PageContextImpl extends PageContext {
 	    }
 	    else if (StringUtil.endsWithIgnoreCase(pathInfo, ".java")) {
 		pathInfo = pathInfo.substring(0, pathInfo.length() - 5);
-		format = UDFPlus.RETURN_FORMAT_JAVA;
+		format = UDF.RETURN_FORMAT_JAVA;
 		accept.clear();
 		accept.add(MimeType.APPLICATION_JAVA);
 		hasFormatExtension = true;
@@ -2781,6 +2782,10 @@ public final class PageContextImpl extends PageContext {
 	    }
 	}
 	return currentTag;
+    }
+
+    public Object useJavaFunction(Page page, String className) throws ClassException, ClassNotFoundException, IOException {
+	return ClassUtil.loadInstance(page.getPageSource().getMapping().getPhysicalClass(className));
     }
 
     public void reuse(Tag tag) {
