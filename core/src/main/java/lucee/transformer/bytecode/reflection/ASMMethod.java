@@ -23,8 +23,8 @@ import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ClassUtil;
-import lucee.commons.lang.SystemOut;
 
 /**
  * A {@code Method} provides information about, and access to, a single method on a class or
@@ -132,7 +132,7 @@ public abstract class ASMMethod {
 	    returnType = m.getReturnType();
 	}
 	catch (Exception e) {
-	    SystemOut.printDate(e);
+	    LogUtil.log(null, ASMMethod.class.getName(), e);
 	}
 
     }

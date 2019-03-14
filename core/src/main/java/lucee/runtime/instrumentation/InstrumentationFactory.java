@@ -33,13 +33,13 @@ import java.security.PrivilegedAction;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.io.res.type.file.FileResource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
-import lucee.commons.lang.SystemOut;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lang.types.RefBooleanImpl;
 import lucee.loader.engine.CFMLEngineFactory;
@@ -47,6 +47,7 @@ import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.config.Constants;
 import lucee.runtime.engine.InfoImpl;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.op.Caster;
@@ -134,7 +135,7 @@ public class InstrumentationFactory {
 				+ (agentJar) + "\"] " + (allowAttachSelf ? "." : "or supply -Djdk.attach.allowAttachSelf as system property.")));
 	    }
 	    catch (IOException ioe) {
-		SystemOut.printDate(ioe);
+		LogUtil.log(ThreadLocalPageContext.getConfig(config), InstrumentationFactory.class.getName(), ioe);
 	    }
 	}
 	return instr;

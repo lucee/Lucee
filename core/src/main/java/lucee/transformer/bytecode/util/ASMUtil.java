@@ -1066,7 +1066,6 @@ public final class ASMUtil {
     public static void size(ClassWriter cw) {
 	try {
 	    MethodVisitor mw = null;
-
 	    Field[] fields = cw.getClass().getDeclaredFields();
 	    Field f;
 	    for (int i = 0; i < fields.length; i++) {

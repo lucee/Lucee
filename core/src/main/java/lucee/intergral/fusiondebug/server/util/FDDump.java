@@ -23,12 +23,13 @@ import java.util.Iterator;
 import com.intergral.fusiondebug.server.IFDValue;
 import com.intergral.fusiondebug.server.IFDVariable;
 
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
+
 public class FDDump {
 
-    // private static PrintStream out=System.out;
-
     public static void dump(IFDVariable var) {
-	System.out.print(toString(var));
+	LogUtil.log(null, Log.LEVEL_INFO, FDDump.class.getName(), toString(var));
     }
 
     public static String toString(Object value) {

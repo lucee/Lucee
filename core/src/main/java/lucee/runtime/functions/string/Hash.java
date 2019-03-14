@@ -24,11 +24,13 @@ package lucee.runtime.functions.string;
 import java.security.MessageDigest;
 
 import lucee.commons.digest.HashUtil;
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.lang.SystemOut;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
@@ -73,7 +75,8 @@ public final class Hash implements Function {
 	else algorithm = algorithm.trim().toLowerCase();
 	if ("cfmx_compat".equals(algorithm)) algorithm = "md5";
 	else if ("quick".equals(algorithm)) {
-	    if (numIterations > 1) SystemOut.printDate("for algorithm [quick], argument numIterations makes no sense, because this algorithm has no security in mind");
+	    if (numIterations > 1) LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_INFO, Hash.class.getName(),
+		    "for algorithm [quick], argument numIterations makes no sense, because this algorithm has no security in mind");
 	    return HashUtil.create64BitHashAsString(Caster.toString(input), 16);
 	}
 

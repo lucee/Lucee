@@ -18,8 +18,20 @@
  **/
 package lucee.commons.io.log;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Date;
+
+import lucee.print;
+import lucee.commons.io.CharsetUtil;
+import lucee.commons.io.IOUtil;
+import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SystemOut;
+import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.engine.ThreadLocalPageContext;
 
 /**
@@ -50,25 +62,58 @@ public final class LogUtil {
 	return defaultValue;
     }
 
+    public static void log(Config config, int level, String type, String msg) {
+	log(config, level, "application", type, msg);
+    }
+
     public static void log(Config config, String type, Exception e) {
 	config = ThreadLocalPageContext.getConfig(config);
 	Log log = null;
-	if (config != null) log = config.getLog("application");
+	if (config != null) {
+	    log = config.getLog("application");
+	}
 
 	if (log != null) log.error(type, e);
-	else SystemOut.printDate(e);
-    }
-
-    public static void log(Config config, int level, String type, String msg) {
-	log(config, level, "application", type, msg);
+	else logGlobal(config, Log.LEVEL_ERROR, type, ExceptionUtil.getStacktrace(e, true));
+	// else if (config == null) SystemOut.printDate(e);
+	// else SystemOut.printDate(config.getErrWriter(), e);
     }
 
     public static void log(Config config, int level, String logName, String type, String msg) {
 	config = ThreadLocalPageContext.getConfig(config);
 	Log log = null;
-	if (config != null) log = config.getLog(logName);
+	if (config != null) {
+	    log = config.getLog(logName);
+	}
 
 	if (log != null) log.log(level, type, msg);
-	else SystemOut.printDate(msg);
+	else {
+	    logGlobal(config, level, logName + ":" + type, msg);
+	    // if (config == null) SystemOut.printDate(msg);
+	    // else if (level == Log.LEVEL_ERROR || level == Log.LEVEL_FATAL)
+	    // SystemOut.printDate(config.getErrWriter(), msg);
+	    // else SystemOut.printDate(config.getOutWriter(), msg);
+	}
+    }
+
+    public static void logGlobal(Config config, int level, String type, String msg) {
+	try {
+	    CFMLEngine engine = ConfigWebUtil.getEngine(config);
+	    File root = engine.getCFMLEngineFactory().getResourceRoot();
+	    File flog = new File(root, "context/logs/global.log");
+	    Resource log = ResourceUtil.toResource(flog);
+	    if (!log.isFile()) {
+		log.getParentResource().mkdirs();
+		log.createNewFile();
+	    }
+	    IOUtil.write(log, SystemOut.FORMAT.format(new Date(System.currentTimeMillis())) + " " + type + " " + msg + "\n", CharsetUtil.UTF8, true);
+	}
+	catch (IOException ioe) {
+	    print.e(ioe);
+	}
+    }
+
+    public static void logGlobal(Config config, String type, Exception e) {
+	logGlobal(config, Log.LEVEL_ERROR, type, ExceptionUtil.getStacktrace(e, true));
     }
 }

@@ -146,27 +146,20 @@ public class RSA {
 	return bytes;
     }
 
-    public static void main(String[] args) throws Exception {
-	KeyPair kp = createKeyPair();
-	String str = "";
-	for (int i = 0; i <= 1700; i++) {
-
-	    str += i + "Hello there how are you?\n";
-	}
-	byte[] bytes = str.getBytes();
-
-	long start = System.currentTimeMillis();
-	byte[] enc = encrypt(bytes, kp.getPrivate());
-	byte[] encPlus = new byte[enc.length + 2];
-
-	for (int i = 0; i < enc.length; i++) {
-	    encPlus[i + 2] = enc[i];
-	}
-
-	System.out.println(enc.length);
-	byte[] dec = decrypt(encPlus, kp.getPublic(), 2);
-	System.out.println(new String(dec));
-	System.out.println("->" + (System.currentTimeMillis() - start));
-    }
+    /*
+     * public static void main(String[] args) throws Exception { KeyPair kp = createKeyPair(); String
+     * str = ""; for (int i = 0; i <= 1700; i++) {
+     * 
+     * str += i + "Hello there how are you?\n"; } byte[] bytes = str.getBytes();
+     * 
+     * long start = System.currentTimeMillis(); byte[] enc = encrypt(bytes, kp.getPrivate()); byte[]
+     * encPlus = new byte[enc.length + 2];
+     * 
+     * for (int i = 0; i < enc.length; i++) { encPlus[i + 2] = enc[i]; }
+     * 
+     * System. out.println(enc.length); byte[] dec = decrypt(encPlus, kp.getPublic(), 2); System
+     * .out.println(new String(dec)); System .out.println("->" + (System.currentTimeMillis() - start));
+     * }
+     */
 
 }

@@ -26,9 +26,9 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
 
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.lang.SystemOut;
 import lucee.commons.lang.types.RefInteger;
 import lucee.commons.lang.types.RefIntegerImpl;
 import lucee.runtime.db.ClassDefinition;
@@ -373,7 +373,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 	    clazz = bifCD.getClazz();
 	}
 	catch (Exception e) {
-	    SystemOut.printDate(e);
+	    LogUtil.log(null, VariableImpl.class.getName(), e);
 	}
 	Type rtnType = Types.toType(bif.getReturnType());
 	if (rtnType == Types.VOID) rtnType = Types.STRING;
@@ -557,7 +557,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 	    }
 	}
 	catch (Exception e) {
-	    SystemOut.printDate(e);
+	    LogUtil.log(null, VariableImpl.class.getName(), e);
 	    return null;
 	}
     }

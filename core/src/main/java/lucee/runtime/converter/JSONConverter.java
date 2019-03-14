@@ -39,10 +39,10 @@ import java.util.TimeZone;
 
 import org.w3c.dom.Node;
 
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.lang.SystemOut;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.Component;
 import lucee.runtime.ComponentScope;
@@ -51,6 +51,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.coder.Base64Coder;
 import lucee.runtime.component.Property;
 import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.engine.Controler;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.i18n.LocaleFactory;
@@ -133,7 +134,7 @@ public final class JSONConverter extends ConverterSupport {
 		sct.setEL(field.getName(), testRecusrion(test, field.get(obj)));
 	    }
 	    catch (Exception e) {
-		SystemOut.printDate(e);
+		LogUtil.log(ThreadLocalPageContext.getConfig(pc), Controler.class.getName(), e);
 	    }
 	}
 	if (obj != null) {

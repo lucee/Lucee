@@ -43,6 +43,8 @@ import org.osgi.framework.Version;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.util.Util;
@@ -563,6 +565,6 @@ public class BundleBuilderFactory {
     }
 
     public void log(String str) {
-	System.out.println(str);
+	LogUtil.log(null, Log.LEVEL_INFO, BundleBuilderFactory.class.getName(), str);
     }
 }

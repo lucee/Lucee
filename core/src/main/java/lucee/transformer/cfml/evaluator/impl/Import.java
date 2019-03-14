@@ -25,11 +25,11 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.Md5;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.lang.SystemOut;
 import lucee.runtime.PageSource;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
@@ -209,7 +209,7 @@ public final class Import extends EvaluatorSupport {
 	    byte[] barr;
 	    while ((ze = zis.getNextEntry()) != null) {
 		if (!ze.isDirectory() && (StringUtil.endsWithIgnoreCase(ze.getName(), ".tld") || StringUtil.endsWithIgnoreCase(ze.getName(), ".tldx"))) {
-		    SystemOut.printDate(c.getOutWriter(), "found tld in file [" + jarFile + "] at position " + ze.getName());
+		    LogUtil.log(c, lucee.commons.io.log.Log.LEVEL_INFO, Import.class.getName(), "found tld in file [" + jarFile + "] at position " + ze.getName());
 		    ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		    while ((bytes_read = zis.read(buffer)) != -1)
 			baos.write(buffer, 0, bytes_read);

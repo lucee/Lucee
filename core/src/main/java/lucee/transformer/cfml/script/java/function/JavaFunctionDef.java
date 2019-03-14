@@ -72,10 +72,6 @@ public class JavaFunctionDef implements FunctionDef {
 	return sb.append(toStringShort()).append('+').append(toString(rtn)).toString();
     }
 
-    public static void main(String[] args) {
-	System.err.println(toString(StringBuilder.class));
-    }
-
     @Override
     public SourceCode createSourceCode(PageSource ps, String javaCode, final String id, final String functionName, String hint, List<Argument> listArgs) {
 	String pack;

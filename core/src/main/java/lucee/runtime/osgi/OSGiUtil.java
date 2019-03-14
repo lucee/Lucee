@@ -54,13 +54,13 @@ import org.osgi.resource.Requirement;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringList;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.lang.SystemOut;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.osgi.BundleCollection;
@@ -488,7 +488,7 @@ public class OSGiUtil {
 		b = _loadBundle(bc, bf.getFile());
 	    }
 	    catch (IOException e) {
-		SystemOut.printDate(e);
+		LogUtil.log(ThreadLocalPageContext.getConfig(), OSGiUtil.class.getName(), e);
 	    }
 	    if (b != null) {
 		if (startIfNecessary) {
@@ -572,7 +572,6 @@ public class OSGiUtil {
 	catch (UnknownHostException e) {
 	    throw new IOException("could not download the bundle  [" + symbolicName + ":" + symbolicVersion + "] from " + updateUrl, e);
 	}
-	// System.out.println("SC:" + code+"->"+conn.getFollowRedirects());
 	// the update provider is not providing a download for this
 	if (code != 200) {
 
@@ -582,7 +581,7 @@ public class OSGiUtil {
 		// just in case we check invalid names
 		if (location == null) location = conn.getHeaderField("location");
 		if (location == null) location = conn.getHeaderField("LOCATION");
-		System.out.println("download redirected:" + location); // MUST remove
+		LogUtil.log(null, Log.LEVEL_INFO, OSGiUtil.class.getName(), "download redirected:" + location); // MUST remove
 
 		conn.disconnect();
 		URL url = new URL(location);
@@ -1656,10 +1655,8 @@ public class OSGiUtil {
 	    Log log = config != null ? config.getLog("application") : null;
 	    if (log != null) log.log(level, "OSGi", msg);
 	}
-	catch (Throwable t) {
-	    ExceptionUtil.rethrowIfNecessary(t);
-	    /* this can fail when called from an old loader */
-	    System.out.println(msg);
+	catch (Exception t) {
+	    LogUtil.log(null, level, BundleBuilderFactory.class.getName(), msg);
 	}
     }
 
@@ -1669,10 +1666,9 @@ public class OSGiUtil {
 	    Log log = config != null ? config.getLog("application") : null;
 	    if (log != null) log.log(Log.LEVEL_ERROR, "OSGi", t);
 	}
-	catch (Throwable _t) {
-	    ExceptionUtil.rethrowIfNecessary(_t);
+	catch (Exception _t) {
 	    /* this can fail when called from an old loader */
-	    System.out.println(t.getMessage());
+	    LogUtil.log(null, OSGiUtil.class.getName(), _t);
 	}
     }
 

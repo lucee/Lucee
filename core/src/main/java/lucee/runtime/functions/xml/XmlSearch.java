@@ -19,11 +19,9 @@
 
 package lucee.runtime.functions.xml;
 
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
@@ -31,12 +29,10 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import org.w3c.dom.Document;
 //import org.apache.xpath.XPathAPI;
 //import org.apache.xpath.objects.XObject;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
 
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
@@ -44,7 +40,6 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
 import lucee.runtime.text.xml.XMLCaster;
-import lucee.runtime.text.xml.XMLUtil;
 import lucee.runtime.text.xml.struct.XMLObject;
 import lucee.runtime.text.xml.struct.XMLStruct;
 import lucee.runtime.type.Array;
@@ -122,19 +117,18 @@ public final class XmlSearch implements Function {
 	return rtn;
     }
 
-    public static void main(String[] args) throws Exception {
-	String str = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><aaa>parent<fff ggg=\"3\">eee</fff><fff ggg=\"hhh\">iii</fff></aaa>";
-	InputSource is = new InputSource(new StringReader(str));
-	DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
-	Document doc = XMLUtil.parse(is, null, false);
-
-	// System.out.println(_call(doc, "/aaa", false));
-	// System.out.println(_call(doc, "/aaa/fff/text()", false));
-
-	// returns a number
-	System.out.println(_call(doc, "/aaa/fff/@ggg+4", false));
-
-	// returns a boolean
-	// System.out.println(_call(doc, "/aaa/fff/@ggg+1=4", false));
-    }
+    /*
+     * public static void main(String[] args) throws Exception { String str =
+     * "<?xml version=\"1.0\" encoding=\"UTF-8\"?><aaa>parent<fff ggg=\"3\">eee</fff><fff ggg=\"hhh\">iii</fff></aaa>"
+     * ; InputSource is = new InputSource(new StringReader(str)); DocumentBuilderFactory
+     * documentBuilderFactory = DocumentBuilderFactory.newInstance(); Document doc = XMLUtil.parse(is,
+     * null, false);
+     * 
+     * // System .out.println(_call(doc, "/aaa", false)); // System .out.println(_call(doc,
+     * "/aaa/fff/text()", false));
+     * 
+     * // returns a number // System .out.println(_call(doc, "/aaa/fff/@ggg+4", false));
+     * 
+     * // returns a boolean // System .out.println(_call(doc, "/aaa/fff/@ggg+1=4", false)); }
+     */
 }

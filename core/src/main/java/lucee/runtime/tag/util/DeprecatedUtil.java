@@ -18,7 +18,8 @@
  **/
 package lucee.runtime.tag.util;
 
-import lucee.commons.lang.SystemOut;
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.engine.ThreadLocalPageContext;
 
@@ -31,19 +32,21 @@ public class DeprecatedUtil {
     public static void tagAttribute(PageContext pc, String tagName, String attrName) {
 	pc = ThreadLocalPageContext.get(pc);
 	if (pc == null) return;
-	SystemOut.printDate(pc.getConfig().getErrWriter(), "attribute " + attrName + " of the tag " + tagName + " is no longer supported and ignored.");
+	LogUtil.log(ThreadLocalPageContext.getConfig(pc), Log.LEVEL_ERROR, DeprecatedUtil.class.getName(),
+		"attribute " + attrName + " of the tag " + tagName + " is no longer supported and ignored.");
     }
 
     public static void function(PageContext pc, String old) {
 	pc = ThreadLocalPageContext.get(pc);
 	if (pc == null) return;
-	SystemOut.printDate(pc.getConfig().getErrWriter(), "function " + old + " is deprecated");
+	LogUtil.log(ThreadLocalPageContext.getConfig(pc), Log.LEVEL_ERROR, DeprecatedUtil.class.getName(), "function " + old + " is deprecated");
     }
 
     public static void function(PageContext pc, String old, String replacement) {
 	pc = ThreadLocalPageContext.get(pc);
 	if (pc == null) return;
-	SystemOut.printDate(pc.getConfig().getErrWriter(), "function " + old + " is deprecated, please use instead function " + replacement);
+	LogUtil.log(ThreadLocalPageContext.getConfig(pc), Log.LEVEL_ERROR, DeprecatedUtil.class.getName(),
+		"function " + old + " is deprecated, please use instead function " + replacement);
     }
 
 }

@@ -641,15 +641,6 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	    return;
 	}
 
-	// FUTURE remove and add a new method for it (search:FUTURE add exeFilter)
-	/*
-	 * if("LuceeFilter".equals(config.getServletName())) { try { String status =
-	 * config.getInitParameter("status"); if("filter".equalsIgnoreCase(status)) { filter(
-	 * (ServletRequest)_get(config,"getServletRequest"),
-	 * (ServletResponse)_get(config,"getServletResponse"), (FilterChain)_get(config,"getFilterChain"));
-	 * } } catch (Exception e) { SystemOut.printDate(e); } return; }
-	 */
-
 	// add EventListener
 	if (scl == null) {
 	    addEventListener(config.getServletContext());
@@ -814,7 +805,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	// static path is not allowed
 	if (countExistingContextes > 1 && strConfig != null && strConfig.indexOf('{') == -1) {
 	    String text = "static path [" + strConfig + "] for servlet init param [lucee-web-directory] is not allowed, path must use a web-context specific placeholder.";
-	    System.err.println(text);
+	    LogUtil.log(configServer, Log.LEVEL_ERROR, CFMLEngineImpl.class.getName(), text);
 	    throw new PageServletException(new ApplicationException(text));
 	}
 	strConfig = SystemUtil.parsePlaceHolder(strConfig, sc, configServer.getLabels());
@@ -1417,7 +1408,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 	serviceCFML(servlet, req, rsp);
 	String res = os.toString(ReqRspUtil.getCharacterEncoding(null, rsp).name());
-	System.out.println(res);
+	// System. out.println(res);
     }
 
     @Override

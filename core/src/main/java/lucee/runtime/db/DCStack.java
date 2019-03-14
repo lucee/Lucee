@@ -21,10 +21,12 @@ package lucee.runtime.db;
 import java.sql.Connection;
 import java.sql.SQLException;
 
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ExceptionUtil;
-import lucee.commons.lang.SystemOut;
 import lucee.commons.lang.types.RefInteger;
 import lucee.commons.lang.types.RefIntegerImpl;
+import lucee.runtime.engine.ThreadLocalPageContext;
 
 class DCStack {
 
@@ -58,7 +60,7 @@ class DCStack {
 	Item test = item;
 	while (test != null) {
 	    if (test.dc == dc) {
-		SystemOut.print("a datasource connection was released twice!");
+		LogUtil.log(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, DCStack.class.getName(), "a datasource connection was released twice!");
 		return;
 	    }
 	    test = test.prev;

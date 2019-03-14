@@ -139,7 +139,7 @@ public final class SystemOut {
     }
 
     public PrintStream setErr(PrintStream ps) {
-	PrintStream org = System.out;
+	PrintStream org = System.err;
 	if (ps == null) ps = new PrintStream(DevNullOutputStream.DEV_NULL_OUTPUT_STREAM);
 	System.setErr(ps);
 	return org;

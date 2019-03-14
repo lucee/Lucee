@@ -25,7 +25,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
@@ -680,7 +679,7 @@ public final class Http extends BodyTagImpl {
     public int doEndTag() throws PageException {
 
 	// because commons
-	PrintStream out = System.out;
+	// PrintStream out = System .out;
 	try {
 	    // System.setOut(new PrintStream(DevNullOutputStream.DEV_NULL_OUTPUT_STREAM));
 	    _doEndTag();
@@ -690,7 +689,7 @@ public final class Http extends BodyTagImpl {
 	    throw Caster.toPageException(e);
 	}
 	finally {
-	    System.setOut(out);
+	    // System.setOut(out);
 	}
 
     }

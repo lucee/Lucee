@@ -39,7 +39,6 @@ import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
 
-import lucee.aprint;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
@@ -113,13 +112,12 @@ public final class CompressUtil {
 	else throw new IOException("can't extract in given format");
     }
 
-    public static void list(int format, Resource source) throws IOException {
-	if (format == FORMAT_ZIP) listZip(source);
-	// else if(format==FORMAT_TAR) listar(source);
-	// else if(format==FORMAT_GZIP)listGZip(source);
-	// else if(format==FORMAT_TGZ) listTGZ(source);
-	else throw new IOException("can't list in given format, atm only zip files are supported");
-    }
+    /*
+     * public static void listt(int format, Resource source) throws IOException { if (format ==
+     * FORMAT_ZIP) listZipp(source); // else if(format==FORMAT_TAR) listar(source); // else
+     * if(format==FORMAT_GZIP)listGZip(source); // else if(format==FORMAT_TGZ) listTGZ(source); else
+     * throw new IOException("can't list in given format, atm only zip files are supported"); }
+     */
 
     private static void extractTGZ(Resource source, Resource target) throws IOException {
 	// File tmpTarget = File.createTempFile("_temp","tmp");
@@ -286,30 +284,19 @@ public final class CompressUtil {
 	}
     }
 
-    private static void listZip(Resource zipFile) throws IOException {
-	if (!zipFile.exists()) throw new IOException(zipFile + " is not a existing file");
-
-	if (zipFile.isDirectory()) {
-	    throw new IOException(zipFile + " is a directory");
-	}
-
-	ZipInputStream zis = null;
-	try {
-	    zis = new ZipInputStream(IOUtil.toBufferedInputStream(zipFile.getInputStream()));
-	    ZipEntry entry;
-	    while ((entry = zis.getNextEntry()) != null) {
-		if (!entry.isDirectory()) {
-		    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		    IOUtil.copy(zis, baos, false, false);
-		    byte[] barr = baos.toByteArray();
-		    aprint.o(entry.getName() + ":" + barr.length);
-		}
-	    }
-	}
-	finally {
-	    IOUtil.closeEL(zis);
-	}
-    }
+    /*
+     * private static void listZipp(Resource zipFile) throws IOException { if (!zipFile.exists()) throw
+     * new IOException(zipFile + " is not a existing file");
+     * 
+     * if (zipFile.isDirectory()) { throw new IOException(zipFile + " is a directory"); }
+     * 
+     * ZipInputStream zis = null; try { zis = new
+     * ZipInputStream(IOUtil.toBufferedInputStream(zipFile.getInputStream())); ZipEntry entry; while
+     * ((entry = zis.getNextEntry()) != null) { if (!entry.isDirectory()) { ByteArrayOutputStream baos =
+     * new ByteArrayOutputStream(); IOUtil.copy(zis, baos, false, false); byte[] barr =
+     * baos.toByteArray(); ap rint.o(entry.getName() + ":" + barr.length); } } } finally {
+     * IOUtil.closeEL(zis); } }
+     */
 
     private static void unzip2(File zipFile, Resource targetDir) throws IOException {
 	ZipFile zf = null;

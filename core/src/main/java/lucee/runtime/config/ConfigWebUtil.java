@@ -37,13 +37,13 @@ import lucee.commons.digest.MD5;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.lang.SystemOut;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.Mapping;
@@ -114,7 +114,7 @@ public final class ConfigWebUtil {
 	}
 	catch (IOException ioe) {
 	    if (throwError) throw ioe;
-	    SystemOut.printDate(cw.getErrWriter(), ExceptionUtil.getStacktrace(ioe, true));
+	    LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs), ConfigWebUtil.class.getName(), ioe);
 	}
     }
 
@@ -136,7 +136,7 @@ public final class ConfigWebUtil {
 	}
 	catch (IOException ioe) {
 	    if (throwError) throw ioe;
-	    SystemOut.printDate(cw.getErrWriter(), ExceptionUtil.getStacktrace(ioe, true));
+	    LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs != null ? cs : cw), XMLConfigAdmin.class.getName(), ioe);
 	}
     }
 
@@ -155,7 +155,7 @@ public final class ConfigWebUtil {
 	    if (_src.isFile()) {
 		if (_src.length() != _trg.length()) {
 		    _src.copyTo(_trg, false);
-		    SystemOut.printDate(cw.getOutWriter(), "write file:" + _trg);
+		    LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cw), Log.LEVEL_INFO, ConfigWebUtil.class.getName(), "write file:" + _trg);
 
 		}
 	    }

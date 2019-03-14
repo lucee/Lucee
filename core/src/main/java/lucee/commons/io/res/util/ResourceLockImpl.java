@@ -88,11 +88,9 @@ public final class ResourceLockImpl implements ResourceLock {
 	Thread t;
 	do {
 	    if ((t = resources.get(path)) == null) {
-		// print.ln("read ok");
 		return;
 	    }
 	    if (t == Thread.currentThread()) {
-		// aprint.err(path);
 		Config config = ThreadLocalPageContext.getConfig();
 		LogUtil.log(config, Log.LEVEL_ERROR, "file", "conflict in same thread: on " + path);
 		return;

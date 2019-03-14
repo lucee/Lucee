@@ -21,7 +21,8 @@ package lucee.runtime.engine;
 import java.io.PrintWriter;
 import java.util.Map;
 
-import lucee.commons.lang.SystemOut;
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.runtime.PageContext;
 
 public class ConsoleExecutionLog extends ExecutionLogSupport {
@@ -46,7 +47,8 @@ public class ConsoleExecutionLog extends ExecutionLogSupport {
     protected void _log(int startPos, int endPos, long startTime, long endTime) {
 
 	long diff = endTime - startTime;
-	SystemOut.print(pw, pc.getId() + ":" + pc.getCurrentPageSource().getDisplayPath() + ":" + positons(startPos, endPos) + " > " + timeLongToString(diff));
+	LogUtil.log(ThreadLocalPageContext.getConfig(pc), Log.LEVEL_INFO, Controler.class.getName(),
+		pc.getId() + ":" + pc.getCurrentPageSource().getDisplayPath() + ":" + positons(startPos, endPos) + " > " + timeLongToString(diff));
     }
 
     @Override

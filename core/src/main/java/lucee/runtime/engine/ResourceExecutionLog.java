@@ -27,11 +27,11 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
-import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.lang.SystemOut;
 import lucee.runtime.PageContext;
 import lucee.runtime.functions.other.CreateUUID;
 import lucee.runtime.op.Caster;
@@ -87,8 +87,7 @@ public class ResourceExecutionLog extends ExecutionLogSupport {
 			err(pc, "can not create directory [" + dir + "], there is already a file with same name.");
 		    }
 		}
-		catch (Throwable t) {
-		    ExceptionUtil.rethrowIfNecessary(t);
+		catch (Exception t) {
 		    err(pc, t);
 		    dir = getTemp(pc);
 		}
@@ -165,11 +164,10 @@ public class ResourceExecutionLog extends ExecutionLogSupport {
     }
 
     private void err(PageContext pc, String msg) {
-	SystemOut.print(pc.getConfig().getErrWriter(), msg);
+	LogUtil.log(ThreadLocalPageContext.getConfig(pc), Log.LEVEL_ERROR, ResourceExecutionLog.class.getName(), msg);
     }
 
-    private void err(PageContext pc, Throwable t) {
-	String msg = ExceptionUtil.getStacktrace(t, true);
-	SystemOut.print(pc.getConfig().getErrWriter(), msg);
+    private void err(PageContext pc, Exception e) {
+	LogUtil.log(ThreadLocalPageContext.getConfig(pc), ResourceExecutionLog.class.getName(), e);
     }
 }

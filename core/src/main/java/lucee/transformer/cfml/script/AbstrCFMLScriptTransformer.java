@@ -2048,14 +2048,6 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 	catch (TagLibException e) {
 	    throw new TemplateException(data.srcCode, e);
 	}
-	/*
-	 * if(StringUtil.isEmpty(tlt.getTttClassName()))tag= new TagBase(line); else { try { Class<Tag>
-	 * clazz = ClassUtil.loadClass(tlt.getTttClassName()); Constructor<Tag> constr =
-	 * clazz.getConstructor(new Class[]{Position.class}); tag = constr.newInstance(new Object[]{line});
-	 * 
-	 * } catch (Exception e) { SystemOut.printDate(e); tag= new TagBase(line); } }
-	 */
-
     }
 
     /**

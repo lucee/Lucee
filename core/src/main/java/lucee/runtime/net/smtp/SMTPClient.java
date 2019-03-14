@@ -60,13 +60,13 @@ import lucee.commons.digest.MD5;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CharSet;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.lang.SystemOut;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
@@ -852,7 +852,7 @@ public final class SMTPClient implements Serializable {
 			break;
 		    }
 		    catch (Exception e) {
-			SystemOut.printDate(e);
+			LogUtil.log(ThreadLocalPageContext.getConfig(config), SMTPClient.class.getName(), e);
 			if (i + 1 == servers.length) {
 
 			    listener(config, server, log, e, System.nanoTime() - start);
