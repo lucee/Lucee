@@ -26,17 +26,18 @@ import java.util.List;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.io.res.filter.ResourceFilter;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.lang.SystemOut;
 import lucee.commons.net.http.HTTPEngine;
 import lucee.commons.net.http.HTTPResponse;
 import lucee.commons.net.http.Header;
 import lucee.commons.net.http.httpclient.HeaderImpl;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.extension.ExtensionDefintion;
@@ -194,7 +195,7 @@ public class DeployHandler {
 	    }
 	    catch (Exception e) {
 		ext = null;
-		SystemOut.printDate(e);
+		LogUtil.log(ThreadLocalPageContext.getConfig(config), DeployHandler.class.getName(), e);
 	    }
 	}
 
@@ -215,6 +216,7 @@ public class DeployHandler {
 		    if (apiKey != null) qs.append("&ioid=").append(apiKey);
 
 		    url = new URL(url, "/rest/extension/provider/info/" + ed.getId() + qs);
+		    if (log != null) log.info("extension", "check for a newer version at " + url);
 		    rsp = HTTPEngine.get(url, null, null, -1, false, "UTF-8", "", null, new Header[] { new HeaderImpl("accept", "application/json") });
 
 		    if (rsp.getStatusCode() != 200) continue;

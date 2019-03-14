@@ -69,9 +69,7 @@ public class Constants {
 	try {
 	    DEFAULT_UPDATE_URL = new URL("http://update.lucee.org");
 	}
-	catch (MalformedURLException e) {
-	    SystemOut.printDate(e);
-	}
+	catch (MalformedURLException e) {}
     }
 
     // old

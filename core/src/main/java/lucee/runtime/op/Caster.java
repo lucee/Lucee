@@ -123,7 +123,6 @@ import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
-import lucee.runtime.type.UDFPlus;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.DateTimeImpl;
 import lucee.runtime.type.dt.TimeSpan;
@@ -2336,8 +2335,8 @@ public final class Caster {
 		if (pc != null) {
 		    Member member = c.getMember(Component.ACCESS_PRIVATE, KeyConstants.__toArray, false, false);
 		    // Object o = get(pc,"_toString",null);
-		    if (member instanceof UDFPlus) {
-			UDFPlus udf = (UDFPlus) member;
+		    if (member instanceof UDF) {
+			UDF udf = (UDF) member;
 			if (udf.getReturnType() == CFTypes.TYPE_ARRAY && udf.getFunctionArguments().length == 0) {
 			    return Caster.toArray(c.call(pc, KeyConstants.__toArray, new Object[0]));
 			}
@@ -2957,8 +2956,8 @@ public final class Caster {
 	if (o instanceof ResultSet) return new QueryImpl((ResultSet) o, "query", ThreadLocalPageContext.getTimeZone());
 	if (o instanceof Component) {
 	    Member member = ((Component) o).getMember(Component.ACCESS_PRIVATE, KeyConstants.__toQuery, false, false);
-	    if (member instanceof UDFPlus) {
-		UDFPlus udf = (UDFPlus) member;
+	    if (member instanceof UDF) {
+		UDF udf = (UDF) member;
 		if (udf.getReturnType() == CFTypes.TYPE_QUERY && udf.getFunctionArguments().length == 0) {
 		    return Caster.toQuery(((Component) o).call(ThreadLocalPageContext.get(), KeyConstants.__toQuery, new Object[] {}));
 		}

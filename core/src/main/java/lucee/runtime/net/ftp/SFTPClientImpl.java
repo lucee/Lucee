@@ -54,7 +54,7 @@ public class SFTPClientImpl extends AFTPClient {
 
 		@Override
 		public void log(int i, String s) {
-		    System.out.println("JSch: " + s);
+		    // System. out.println("JSch: " + s);
 		}
 	    });
 	}

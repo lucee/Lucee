@@ -57,7 +57,6 @@ import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
 import lucee.Info;
-import lucee.aprint;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.date.TimeZoneConstants;
 import lucee.commons.date.TimeZoneUtil;
@@ -82,7 +81,6 @@ import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.lang.SystemOut;
 import lucee.commons.net.URLDecoder;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.CFMLFactoryImpl;
@@ -117,6 +115,7 @@ import lucee.runtime.engine.ExecutionLog;
 import lucee.runtime.engine.ExecutionLogFactory;
 import lucee.runtime.engine.InfoImpl;
 import lucee.runtime.engine.ThreadLocalConfig;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.engine.ThreadQueueImpl;
 import lucee.runtime.engine.ThreadQueueNone;
 import lucee.runtime.exp.ApplicationException;
@@ -245,7 +244,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	    }
 	}
 
-	SystemOut.print(SystemUtil.getPrintWriter(SystemUtil.OUT),
+	LogUtil.logGlobal(configServer, Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(),
 		"===================================================================\n" + "WEB CONTEXT (" + label + ")\n"
 			+ "-------------------------------------------------------------------\n" + "- config:" + configDir + (isConfigDirACustomSetting ? " (custom setting)" : "")
 			+ "\n" + "- webroot:" + ReqRspUtil.getRootPath(servletConfig.getServletContext()) + "\n" + "- hash:" + hash + "\n" + "- label:" + label + "\n"
@@ -354,7 +353,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
      */
     synchronized static void load(ConfigServerImpl cs, ConfigImpl config, Document doc, boolean isReload, boolean doNew) throws IOException {
 	double start = System.currentTimeMillis();
-	if (LOG) SystemOut.printDate("start reading config");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "start reading config");
 
 	ThreadLocalConfig.register(config);
 	boolean reload = false;
@@ -372,25 +371,25 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		}
 		catch (SAXException e) {}
 	    }
-	    if (LOG) SystemOut.printDate("fixed LFI");
+	    if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "fixed LFI");
 
 	    if (XMLConfigAdmin.fixSalt(doc)) reload = true;
-	    if (LOG) SystemOut.printDate("fixed salt");
+	    if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "fixed salt");
 
 	    if (XMLConfigAdmin.fixS3(doc)) reload = true;
-	    if (LOG) SystemOut.printDate("fixed S3");
+	    if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "fixed S3");
 
 	    if (XMLConfigAdmin.fixPSQ(doc)) reload = true;
-	    if (LOG) SystemOut.printDate("fixed PSQ");
+	    if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "fixed PSQ");
 
 	    if (XMLConfigAdmin.fixLogging(cs, config, doc)) reload = true;
-	    if (LOG) SystemOut.printDate("fixed logging");
+	    if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "fixed logging");
 
 	    if (XMLConfigAdmin.fixExtension(config, doc)) reload = true;
-	    if (LOG) SystemOut.printDate("fixed Extension");
+	    if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "fixed Extension");
 
 	    if (XMLConfigAdmin.fixComponentMappings(config, doc)) reload = true;
-	    if (LOG) SystemOut.printDate("fixed component mappings");
+	    if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "fixed component mappings");
 
 	    // delete to big felix.log (there is also code in the loader to do this, but if the loader is not
 	    // updated ...)
@@ -400,7 +399,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		    File root = _cs.getCFMLEngine().getCFMLEngineFactory().getResourceRoot();
 		    File log = new File(root, "context/logs/felix.log");
 		    if (log.isFile() && log.length() > GB1) {
-			SystemOut.printDate("delete felix log: " + log);
+			// LogUtil.logFelix(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO,
+			// XMLConfigWebFactory.class.getName(), "delete felix log: " + log);
 			if (log.delete()) ResourceUtil.touch(log);
 
 		    }
@@ -409,7 +409,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		    log(config, null, e);
 		}
 	    }
-	    if (LOG) SystemOut.printDate("fixed to big felix.log");
+	    // if (LOG) LogUtil.logFelix(ThreadLocalPageContext.getConfig(cs == null ? config : cs),
+	    // Log.LEVEL_INFO,
+	    // XMLConfigWebFactory.class.getName(), "fixed to big felix.log");
 
 	    if (reload) {
 		XMLCaster.writeTo(doc, config.getConfigFile());
@@ -417,7 +419,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		    doc = XMLConfigWebFactory.loadDocument(config.getConfigFile());
 		}
 		catch (SAXException e) {}
-		if (LOG) SystemOut.printDate("reload xml");
+		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "reload xml");
 
 	    }
 
@@ -429,123 +431,123 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	config.setLastModified();
 	if (config instanceof ConfigWeb) ConfigWebUtil.deployWebContext(cs, (ConfigWeb) config, false);
 	if (config instanceof ConfigWeb) ConfigWebUtil.deployWeb(cs, (ConfigWeb) config, false);
-	if (LOG) SystemOut.printDate("deploy web context");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "deploy web context");
 	loadConfig(cs, config, doc);
 	int mode = config.getMode();
 	Log log = config.getLog("application");
-	if (LOG) SystemOut.printDate("loaded config");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded config");
 	loadConstants(cs, config, doc, log);
-	if (LOG) SystemOut.printDate("loaded constants");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded constants");
 	loadLoggers(cs, config, doc, isReload, log);
 	log = config.getLog("application");
 	// loadServerLibDesc(cs, config, doc,log);
-	if (LOG) SystemOut.printDate("loaded loggers");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded loggers");
 	loadTempDirectory(cs, config, doc, isReload, log);
-	if (LOG) SystemOut.printDate("loaded temp dir");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded temp dir");
 	loadId(cs, config, doc, log);
-	if (LOG) SystemOut.printDate("loaded id");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded id");
 	loadVersion(config, doc, log);
-	if (LOG) SystemOut.printDate("loaded version");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded version");
 	loadSecurity(cs, config, doc, log);
-	if (LOG) SystemOut.printDate("loaded security");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded security");
 	try {
 	    ConfigWebUtil.loadLib(cs, config);
 	}
 	catch (Exception e) {
 	    log(config, log, e);
 	}
-	if (LOG) SystemOut.printDate("loaded lib");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded lib");
 	loadSystem(cs, config, doc, log);
-	if (LOG) SystemOut.printDate("loaded system");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded system");
 	loadResourceProvider(cs, config, doc, log);
-	if (LOG) SystemOut.printDate("loaded resource providers");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded resource providers");
 	loadFilesystem(cs, config, doc, doNew, log); // load this before execute any code, what for example loadxtension does (json)
-	if (LOG) SystemOut.printDate("loaded filesystem");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded filesystem");
 	loadExtensionBundles(cs, config, doc, log);
-	if (LOG) SystemOut.printDate("loaded extension bundles");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded extension bundles");
 	loadWS(cs, config, doc, log);
-	if (LOG) SystemOut.printDate("loaded webservice");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded webservice");
 	loadORM(cs, config, doc, log);
-	if (LOG) SystemOut.printDate("loaded orm");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded orm");
 	loadCacheHandler(cs, config, doc, log);
-	if (LOG) SystemOut.printDate("loaded cache handlers");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded cache handlers");
 	loadCharset(cs, config, doc, log);
-	if (LOG) SystemOut.printDate("loaded charset");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded charset");
 	loadApplication(cs, config, doc, mode, log);
-	if (LOG) SystemOut.printDate("loaded application");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded application");
 	loadMappings(cs, config, doc, mode, log); // it is important this runs after
-	if (LOG) SystemOut.printDate("loaded mappings");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded mappings");
 	// loadApplication
 	loadRest(cs, config, doc, log);
-	if (LOG) SystemOut.printDate("loaded rest");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded rest");
 	loadExtensions(cs, config, doc, log);
-	if (LOG) SystemOut.printDate("loaded extensions");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded extensions");
 	loadPagePool(cs, config, doc, log);
-	if (LOG) SystemOut.printDate("loaded page pool");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded page pool");
 	loadDataSources(cs, config, doc, log);
-	if (LOG) SystemOut.printDate("loaded datasources");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded datasources");
 	loadCache(cs, config, doc, log);
-	if (LOG) SystemOut.printDate("loaded cache");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded cache");
 	loadCustomTagsMappings(cs, config, doc, mode, log);
-	if (LOG) SystemOut.printDate("loaded custom tag mappings");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded custom tag mappings");
 	// loadFilesystem(cs, config, doc, doNew); // load tlds
 	loadTag(cs, config, doc, log); // load tlds
-	if (LOG) SystemOut.printDate("loaded tags");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded tags");
 	loadRegional(cs, config, doc, log);
-	if (LOG) SystemOut.printDate("loaded regional");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded regional");
 	loadCompiler(cs, config, doc, mode, log);
-	if (LOG) SystemOut.printDate("loaded compiler");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded compiler");
 	loadScope(cs, config, doc, mode, log);
-	if (LOG) SystemOut.printDate("loaded scope");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded scope");
 	loadMail(cs, config, doc, log);
-	if (LOG) SystemOut.printDate("loaded mail");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded mail");
 	loadSearch(cs, config, doc, log);
-	if (LOG) SystemOut.printDate("loaded search");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded search");
 	loadScheduler(cs, config, doc, log);
-	if (LOG) SystemOut.printDate("loaded scheduled tasks");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded scheduled tasks");
 	loadDebug(cs, config, doc, log);
-	if (LOG) SystemOut.printDate("loaded debug");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded debug");
 	loadError(cs, config, doc, log);
-	if (LOG) SystemOut.printDate("loaded error");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded error");
 	loadCFX(cs, config, doc, log);
-	if (LOG) SystemOut.printDate("loaded cfx");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded cfx");
 	loadComponent(cs, config, doc, mode, log);
-	if (LOG) SystemOut.printDate("loaded component");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded component");
 	loadUpdate(cs, config, doc, log);
-	if (LOG) SystemOut.printDate("loaded update");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded update");
 	loadJava(cs, config, doc, log); // define compile type
-	if (LOG) SystemOut.printDate("loaded java");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded java");
 	loadSetting(cs, config, doc, log);
-	if (LOG) SystemOut.printDate("loaded setting");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded setting");
 	loadProxy(cs, config, doc, log);
-	if (LOG) SystemOut.printDate("loaded proxy");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded proxy");
 	loadRemoteClient(cs, config, doc, log);
-	if (LOG) SystemOut.printDate("loaded remote clients");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded remote clients");
 	loadVideo(cs, config, doc, log);
-	if (LOG) SystemOut.printDate("loaded video");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded video");
 	loadFlex(cs, config, doc, log);
-	if (LOG) SystemOut.printDate("loaded flex");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded flex");
 	settings(config, log);
-	if (LOG) SystemOut.printDate("loaded settings2");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded settings2");
 	loadListener(cs, config, doc, log);
-	if (LOG) SystemOut.printDate("loaded listeners");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded listeners");
 	loadDumpWriter(cs, config, doc, log);
-	if (LOG) SystemOut.printDate("loaded dump writers");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded dump writers");
 	loadGatewayEL(cs, config, doc, log);
-	if (LOG) SystemOut.printDate("loaded gateways");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded gateways");
 	loadExeLog(cs, config, doc, log);
-	if (LOG) SystemOut.printDate("loaded exe log");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded exe log");
 	loadQueue(cs, config, doc, log);
-	if (LOG) SystemOut.printDate("loaded queue");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded queue");
 	loadMonitors(cs, config, doc, log);
-	if (LOG) SystemOut.printDate("loaded monitors");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded monitors");
 	loadLogin(cs, config, doc, log);
-	if (LOG) SystemOut.printDate("loaded login");
+	if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded login");
 	config.setLoadTime(System.currentTimeMillis());
 
 	if (config instanceof ConfigWebImpl) {
 	    TagUtil.addTagMetaData((ConfigWebImpl) config, log);
-	    if (LOG) SystemOut.printDate("added tag meta data");
+	    if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "added tag meta data");
 	}
     }
 
@@ -1049,9 +1051,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	    createFileFromResourceCheckSizeDiff(resource, file);
 	}
 	catch (Exception e) {
-	    aprint.err(resource);
-	    aprint.err(file);
-	    SystemOut.printDate(e);
+	    LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_ERROR, XMLConfigWebFactory.class.getName(), resource);
+	    LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_ERROR, XMLConfigWebFactory.class.getName(), file + "");
+	    LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), XMLConfigWebFactory.class.getName(), e);
 	}
     }
 
@@ -1072,14 +1074,12 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	    long srcSize = barr.length;
 	    if (srcSize == trgSize) return;
 
-	    SystemOut.printDate(SystemUtil.getPrintWriter(SystemUtil.OUT), "update file:" + file);
-	    SystemOut.printDate(SystemUtil.getPrintWriter(SystemUtil.OUT), " - source:" + srcSize);
-	    SystemOut.printDate(SystemUtil.getPrintWriter(SystemUtil.OUT), " - target:" + trgSize);
+	    LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "update file:" + file);
+	    LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), " - source:" + srcSize);
+	    LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), " - target:" + trgSize);
 
 	}
 	else file.createNewFile();
-
-	// SystemOut.printDate("write file:"+file);
 	IOUtil.copy(new ByteArrayInputStream(barr), file, true);
     }
 
@@ -1853,15 +1853,17 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			}
 			else {
 			    clazz = ConsoleExecutionLog.class;
-			    SystemOut.printDate(config.getErrWriter(), "class [" + strClass + "] must implement the interface " + ExecutionLog.class.getName());
+			    LogUtil.logGlobal(configServer == null ? config : configServer, Log.LEVEL_ERROR, XMLConfigWebFactory.class.getName(),
+				    "class [" + strClass + "] must implement the interface " + ExecutionLog.class.getName());
 			}
 		    }
 		}
 		catch (Exception e) {
-		    SystemOut.printDate(e);
+		    LogUtil.logGlobal(ThreadLocalPageContext.getConfig(configServer == null ? config : configServer), XMLConfigWebFactory.class.getName(), e);
 		    clazz = ConsoleExecutionLog.class;
 		}
-		if (clazz != null) SystemOut.printDate(config.getOutWriter(), "loaded ExecutionLog class " + clazz.getName());
+		if (clazz != null) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(configServer == null ? config : configServer), Log.LEVEL_INFO,
+			XMLConfigWebFactory.class.getName(), "loaded ExecutionLog class " + clazz.getName());
 
 		// arguments
 		String strArgs = getAttr(el, "arguments");
@@ -2235,7 +2237,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		    if (!StringUtil.isEmpty(name)) {
 			caches.put(name.toLowerCase(), cc);
 		    }
-		    else SystemOut.print(config.getErrWriter(), "missing cache name");
+		    else LogUtil.logGlobal(ThreadLocalPageContext.getConfig(configServer == null ? config : configServer), Log.LEVEL_ERROR, XMLConfigWebFactory.class.getName(),
+			    "missing cache name");
 
 		}
 
@@ -2274,7 +2277,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		    try {
 			Method m = _cd.getClazz().getMethod("init", new Class[] { Config.class, String[].class, Struct[].class });
 			if (Modifier.isStatic(m.getModifiers())) m.invoke(null, new Object[] { config, _toCacheNames(list), _toArguments(list) });
-			else SystemOut.print(config.getErrWriter(), "method [init(Config,String[],Struct[]):void] for class [" + _cd.toString() + "] is not static");
+			else LogUtil.logGlobal(ThreadLocalPageContext.getConfig(configServer == null ? config : configServer), Log.LEVEL_ERROR, XMLConfigWebFactory.class.getName(),
+				"method [init(Config,String[],Struct[]):void] for class [" + _cd.toString() + "] is not static");
 
 		    }
 		    catch (InvocationTargetException e) {
@@ -2285,8 +2289,6 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		    }
 		    catch (NoSuchMethodException e) {
 			log.error("Cache", "missing method [public static init(Config,String[],Struct[]):void] for class [" + _cd.toString() + "] ");
-			// SystemOut.print(config.getErrWriter(), "missing method [public static
-			// init(Config,String[],Struct[]):void] for class [" + _cd.toString() + "] ");
 		    }
 		    catch (Throwable e) {
 			ExceptionUtil.rethrowIfNecessary(e);
@@ -2375,7 +2377,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		if (!StringUtil.isEmpty(id)) {
 		    mapGateways.put(id.toLowerCase(), ge);
 		}
-		else SystemOut.print(config.getErrWriter(), "missing id");
+		else LogUtil.logGlobal(ThreadLocalPageContext.getConfig(configServer == null ? config : configServer), Log.LEVEL_ERROR, XMLConfigWebFactory.class.getName(),
+			"missing id");
 	    }
 	    config.setGatewayEntries(mapGateways);
 	}
@@ -3025,7 +3028,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		    src.copyTo(trg, false);
 		}
 		catch (IOException e) {
-		    SystemOut.printDate(e);
+		    LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), XMLConfigWebFactory.class.getName(), e);
 		}
 	    }
 
@@ -3081,7 +3084,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 		}
 		catch (Exception e) {
-		    SystemOut.printDate(e);
+		    LogUtil.logGlobal(ThreadLocalPageContext.getConfig(configServer == null ? config : configServer), XMLConfigWebFactory.class.getName(), e);
 		}
 	    }
 	    else if (hasCS) config.setVideoExecuterClass(configServer.getVideoExecuterClass());
@@ -3586,7 +3589,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 		    }
 		    catch (Exception e) {
-			SystemOut.printDate(e);
+			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(configServer == null ? config : configServer), XMLConfigWebFactory.class.getName(), e);
 		    }
 
 		}
@@ -3826,12 +3829,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	try {
 	    if (log != null) log.error("configuration", e);
 	    else {
-		PrintWriter pw = null;
-		if (config != null) {
-		    pw = config.getErrWriter();
-		}
-		if (pw == null) pw = new PrintWriter(System.err);
-		SystemOut.printDate(config.getErrWriter(), ExceptionUtil.getStacktrace(e, true));
+		LogUtil.logGlobal(config, XMLConfigWebFactory.class.getName(), e);
 	    }
 	}
 	catch (Exception ee) {
@@ -3945,8 +3943,6 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	    Element parent = getChildByName(doc.getDocumentElement(), "monitoring");
 	    Boolean enabled = Caster.toBoolean(getAttr(parent, "enabled"), null);
 	    if (enabled != null) configServer.setMonitoringEnabled(enabled.booleanValue());
-	    // SystemOut.printDate(config.getOutWriter(), "monitoring is " + (enabled ? "enabled" :
-	    // "disabled"));
 
 	    Element[] children = getChildren(parent, "monitor");
 
@@ -3977,7 +3973,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			ConstructorInstance constr = Reflector.getConstructorInstance(clazz, new Object[] { configServer }, null);
 			if (constr != null) obj = constr.invoke();
 			else obj = clazz.newInstance();
-			SystemOut.printDate(config.getOutWriter(), "loaded " + (strType) + " monitor [" + clazz.getName() + "]");
+			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(configServer == null ? config : configServer), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(),
+				"loaded " + (strType) + " monitor [" + clazz.getName() + "]");
 			if (type == IntervallMonitor.TYPE_INTERVAL) {
 			    IntervallMonitor m = obj instanceof IntervallMonitor ? (IntervallMonitor) obj : new IntervallMonitorWrap(obj);
 			    m.init(configServer, name, _log);
@@ -3991,14 +3988,14 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			    RequestMonitorPro m = new RequestMonitorProImpl(obj instanceof RequestMonitor ? (RequestMonitor) obj : new RequestMonitorWrap(obj));
 			    if (async) m = new AsyncRequestMonitor(m);
 			    m.init(configServer, name, _log);
-			    SystemOut.printDate(config.getOutWriter(), "initialize " + (strType) + " monitor [" + clazz.getName() + "]");
+			    LogUtil.logGlobal(ThreadLocalPageContext.getConfig(configServer == null ? config : configServer), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(),
+				    "initialize " + (strType) + " monitor [" + clazz.getName() + "]");
 
 			    requests.add(m);
 			}
 		    }
-		    catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
-			SystemOut.printDate(config.getErrWriter(), ExceptionUtil.getStacktrace(t, true));
+		    catch (Exception e) {
+			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(configServer == null ? config : configServer), XMLConfigWebFactory.class.getName(), e);
 		    }
 		}
 
@@ -4298,7 +4295,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			    providers.put(new RHExtensionProvider(strProvider.trim(), false), "");
 			}
 			catch (MalformedURLException e) {
-			    SystemOut.printDate(e);
+			    LogUtil.logGlobal(ThreadLocalPageContext.getConfig(configServer == null ? config : configServer), XMLConfigWebFactory.class.getName(), e);
 			}
 		    }
 		}
@@ -4912,7 +4909,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 		}
 		catch (Exception e) {
-		    SystemOut.printDate(e);
+		    LogUtil.logGlobal(configServer == null ? config : configServer, XMLConfigWebFactory.class.getName(), e);
 		}
 	    }
 	    else if (hasCS) config.setAdminSyncClass(configServer.getAdminSyncClass());

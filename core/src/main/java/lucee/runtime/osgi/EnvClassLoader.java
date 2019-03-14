@@ -171,27 +171,6 @@ public class EnvClassLoader extends URLClassLoader {
 	return obj;
     }
 
-    /*
-     * private void test(Bundle[] bundles, short type, String name) { Bundle b=null; List<Bundle>
-     * list=new ArrayList<Bundle>(); Object obj; for(int i=0;i<bundles.length;i++) { b=bundles[i];
-     * if(b.getSymbolicName().equalsIgnoreCase("hibernate.extension") &&
-     * "org.lucee.extension.orm.hibernate.jdbc.ConnectionProviderImpl".equals(name)) {
-     * print.e("=>"+b+":"+b.hashCode()); try { Class<?> clazz = b.loadClass(name); ClassLoader cl =
-     * clazz.getClassLoader(); print.e("-=>"+cl+":"+cl.hashCode()); } catch (ClassNotFoundException e) {
-     * SystemOut.printDate(e); } }
-     * 
-     * try { if(type==CLASS)obj = b.loadClass(name); else if(type==URL)obj = b.getResource(name); else
-     * obj = ((ClassLoader)b).getResourceAsStream(name); if(obj!=null) { list.add(b); } }
-     * catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t); b=null; }
-     * 
-     * } if(list.size()>1) { print.e("nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn");
-     * print.e("found in more than one bundle!"); Iterator<Bundle> it = list.iterator();
-     * while(it.hasNext()){ b=it.next(); print.e("- "+b); } } if(list.size()==0) {
-     * print.e("000000000000000000000000000000000000000000000000000000"); print.e("not found:"+name);
-     * 
-     * } }
-     */
-
     private String toType(short type) {
 	if (CLASS == type) return "class";
 	if (STREAM == type) return "stream";

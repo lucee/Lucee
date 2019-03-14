@@ -20,7 +20,6 @@
 package lucee.runtime.engine;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -29,12 +28,12 @@ import java.util.Map;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.io.res.filter.ResourceFilter;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
-import lucee.commons.lang.SystemOut;
 import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.Mapping;
 import lucee.runtime.MappingImpl;
@@ -297,7 +296,7 @@ public final class Controler extends Thread {
 		    ((SchedulerImpl) ((ConfigWebImpl) config).getScheduler()).startIfNecessary();
 		}
 		catch (Exception e) {
-		    SystemOut.printDate(e);
+		    LogUtil.log(ThreadLocalPageContext.getConfig(configServer), Controler.class.getName(), e);
 		}
 
 		// double check templates
@@ -305,7 +304,7 @@ public final class Controler extends Thread {
 		    ((ConfigWebImpl) config).getCompiler().checkWatched();
 		}
 		catch (Exception e) {
-		    SystemOut.printDate(e);
+		    LogUtil.log(ThreadLocalPageContext.getConfig(configServer), Controler.class.getName(), e);
 		}
 
 		// deploy extensions, archives ...
@@ -480,10 +479,9 @@ public final class Controler extends Thread {
 	Resource res = null;
 	int count = ArrayUtil.size(filter == null ? dir.list() : dir.list(filter));
 	long size = ResourceUtil.getRealSize(dir, filter);
-	PrintWriter out = config.getOutWriter();
-	SystemOut.printDate(out, "check size of directory [" + dir + "]");
-	SystemOut.printDate(out, "- current size	[" + size + "]");
-	SystemOut.printDate(out, "- max size 	[" + maxSize + "]");
+	LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_WARN, Controler.class.getName(), "check size of directory [" + dir + "]");
+	LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_WARN, Controler.class.getName(), "- current size	[" + size + "]");
+	LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_WARN, Controler.class.getName(), "- max size 	[" + maxSize + "]");
 	int len = -1;
 	while (count > 100000 || size > maxSize) {
 	    Resource[] files = filter == null ? dir.listResources() : dir.listResources(filter);
@@ -501,7 +499,7 @@ public final class Controler extends Thread {
 		    count--;
 		}
 		catch (IOException e) {
-		    SystemOut.printDate(out, "cannot remove resource " + res.getAbsolutePath());
+		    LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_WARN, Controler.class.getName(), "cannot remove resource " + res.getAbsolutePath());
 		    break;
 		}
 	    }

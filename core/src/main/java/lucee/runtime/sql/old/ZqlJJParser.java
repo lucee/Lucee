@@ -19,9 +19,6 @@
 
 package lucee.runtime.sql.old;
 
-import java.io.DataInputStream;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.util.Enumeration;
@@ -45,27 +42,18 @@ public final class ZqlJJParser implements ZqlJJParserConstants {
 	JJCalls() {}
     }
 
-    public static void main(String args[]) throws ParseException {
-	ZqlJJParser zqljjparser = null;
-	if (args.length < 1) {
-	    System.out.println("Reading from stdin (exit; to finish)");
-	    zqljjparser = new ZqlJJParser(System.in);
-	}
-	else {
-	    try {
-		zqljjparser = new ZqlJJParser(new DataInputStream(new FileInputStream(args[0])));
-	    }
-	    catch (FileNotFoundException filenotfoundexception) {
-		System.out.println("File " + args[0] + " not found. Reading from stdin");
-		zqljjparser = new ZqlJJParser(System.in);
-	    }
-	}
-	if (args.length > 0) System.out.println(args[0]);
-	for (ZStatement zstatement = null; (zstatement = zqljjparser.SQLStatement()) != null;)
-	    System.out.println(zstatement.toString());
-
-	System.out.println("Parse Successful");
-    }
+    /*
+     * public static void main(String args[]) throws ParseException { ZqlJJParser zqljjparser = null; if
+     * (args.length < 1) { //System.out.println("Reading from stdin (exit; to finish)"); zqljjparser =
+     * new ZqlJJParser(System.in); } else { try { zqljjparser = new ZqlJJParser(new DataInputStream(new
+     * FileInputStream(args[0]))); } catch (FileNotFoundException filenotfoundexception) {
+     * //System.out.println("File " + args[0] + " not found. Reading from stdin"); zqljjparser = new
+     * ZqlJJParser(System.in); } } if (args.length > 0) System.out.println(args[0]); for (ZStatement
+     * zstatement = null; (zstatement = zqljjparser.SQLStatement()) != null;)
+     * //System.out.println(zstatement.toString());
+     * 
+     * System.out.println("Parse Successful"); }
+     */
 
     public final void BasicDataTypeDeclaration() throws ParseException {
 	switch (jj_ntk != -1 ? jj_ntk : jj_ntk()) {
@@ -3537,7 +3525,7 @@ public final class ZqlJJParser implements ZqlJJParserConstants {
 
     private final Token jj_consume_token(int i) throws ParseException {
 
-	// System.out.println("char:"+((char)i));
+	// System. out.println("char:"+((char)i));
 	Token token1;
 	if ((token1 = token).next != null) token = token.next;
 	else token = token.next = token_source.getNextToken();

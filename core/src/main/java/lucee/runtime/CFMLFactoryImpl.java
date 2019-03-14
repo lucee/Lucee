@@ -39,14 +39,13 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.JspApplicationContext;
 import javax.servlet.jsp.JspEngineInfo;
 
-import lucee.aprint;
 import lucee.cli.servlet.HTTPServletImpl;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SizeOf;
-import lucee.commons.lang.SystemOut;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWeb;
@@ -97,7 +96,6 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 
     public CFMLFactoryImpl(CFMLEngineImpl engine, ServletConfig sg) {
 	this.engine = engine;
-	if (engine == null) aprint.ds();
 	this.servletConfig = sg;
     }
 
@@ -106,7 +104,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
      */
     @Override
     public void resetPageContext() {
-	SystemOut.printDate(config.getOutWriter(), "Reset " + pcs.size() + " Unused PageContexts");
+	LogUtil.log(config, Log.LEVEL_INFO, CFMLFactoryImpl.class.getName(), "Reset " + pcs.size() + " Unused PageContexts");
 	pcs.clear();
 	Iterator<PageContextImpl> it = runningPcs.values().iterator();
 	while (it.hasNext()) {

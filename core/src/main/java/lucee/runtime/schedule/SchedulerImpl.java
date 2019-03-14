@@ -30,13 +30,14 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.lang.SystemOut;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.CFMLEngineImpl;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.proxy.ProxyDataImpl;
@@ -195,7 +196,7 @@ public final class SchedulerImpl implements Scheduler {
 	    return st;
 	}
 	catch (Exception e) {
-	    SystemOut.printDate(e);
+	    LogUtil.log(ThreadLocalPageContext.getConfig(config), SchedulerImpl.class.getName(), e);
 	    throw Caster.toPageException(e);
 	}
     }

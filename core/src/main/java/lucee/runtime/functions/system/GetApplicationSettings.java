@@ -23,9 +23,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import lucee.commons.date.TimeZoneUtil;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.lang.SystemOut;
 import lucee.runtime.Component;
 import lucee.runtime.ComponentSpecificAccess;
 import lucee.runtime.Mapping;
@@ -330,7 +330,7 @@ public class GetApplicationSettings extends BIF {
 		}
 	    }
 	    catch (PageException e) {
-		SystemOut.printDate(e);
+		LogUtil.log(ThreadLocalPageContext.getConfig(pc), GetApplicationSettings.class.getName(), e);
 	    }
 	}
 	return sct;

@@ -62,12 +62,14 @@ import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.cache.exp.CacheException;
 import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceClassLoader;
+import lucee.commons.lang.ClassException;
+import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.lang.SystemOut;
 import lucee.commons.lang.mimetype.MimeType;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lang.types.RefBooleanImpl;
@@ -166,7 +168,6 @@ import lucee.runtime.type.SVArray;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
-import lucee.runtime.type.UDFPlus;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.it.ItAsEnum;
 import lucee.runtime.type.ref.Reference;
@@ -724,7 +725,7 @@ public final class PageContextImpl extends PageContext {
     }
 
     public PageSource getRelativePageSource(String realPath) {
-	SystemOut.print(config.getOutWriter(), "method getRelativePageSource is deprecated");
+	LogUtil.log(config, Log.LEVEL_INFO, PageContextImpl.class.getName(), "method getRelativePageSource is deprecated");
 	if (StringUtil.startsWith(realPath, '/')) return PageSourceImpl.best(getPageSources(realPath));
 	if (pathList.size() == 0) return null;
 	return pathList.getLast().getRealPage(realPath);
@@ -2283,7 +2284,7 @@ public final class PageContextImpl extends PageContext {
 	    }
 	    else if (StringUtil.endsWithIgnoreCase(pathInfo, ".java")) {
 		pathInfo = pathInfo.substring(0, pathInfo.length() - 5);
-		format = UDFPlus.RETURN_FORMAT_JAVA;
+		format = UDF.RETURN_FORMAT_JAVA;
 		accept.clear();
 		accept.add(MimeType.APPLICATION_JAVA);
 		hasFormatExtension = true;
@@ -2784,6 +2785,10 @@ public final class PageContextImpl extends PageContext {
 	return currentTag;
     }
 
+    public Object useJavaFunction(Page page, String className) throws ClassException, ClassNotFoundException, IOException {
+	return ClassUtil.loadInstance(page.getPageSource().getMapping().getPhysicalClass(className));
+    }
+
     public void reuse(Tag tag) {
 	currentTag = tag.getParent();
 	tagHandlerPool.reuse(tag);
@@ -3125,7 +3130,7 @@ public final class PageContextImpl extends PageContext {
 
     @Override
     public void compile(String realPath) throws PageException {
-	SystemOut.printDate("method PageContext.compile(String) should no longer be used!");
+	LogUtil.log(config, Log.LEVEL_INFO, PageContextImpl.class.getName(), "method PageContext.compile(String) should no longer be used!");
 	compile(PageSourceImpl.best(getRelativePageSources(realPath)));
     }
 

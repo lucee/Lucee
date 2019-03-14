@@ -75,7 +75,6 @@ import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.lang.SystemOut;
 import lucee.commons.net.HTTPUtil;
 import lucee.commons.net.IPRange;
 import lucee.commons.net.URLEncoder;
@@ -255,7 +254,7 @@ public final class XMLConfigAdmin {
 	try {
 	    XMLConfigAdmin admin = XMLConfigAdmin.newInstance(ci, null);
 	    admin._reload();
-	    SystemOut.printDate(ci.getOutWriter(), "reloaded the configuration [" + file + "] automatically");
+	    LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_INFO, XMLConfigAdmin.class.getName(), "reloaded the configuration [" + file + "] automatically");
 	}
 	catch (Throwable t) {
 	    ExceptionUtil.rethrowIfNecessary(t);
@@ -1032,14 +1031,14 @@ public final class XMLConfigAdmin {
 	Version version = bf.getVersion();
 	if (version == null) version = OSGiUtil.toVersion(extVersion);
 
-	SystemOut.printDate("failed to load [" + resJar + "] as OSGi Bundle");
+	LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_INFO, XMLConfigAdmin.class.getName(), "failed to load [" + resJar + "] as OSGi Bundle");
 	BundleBuilderFactory bbf = new BundleBuilderFactory(resJar, name);
 	bbf.setVersion(version);
 	bbf.setIgnoreExistingManifest(false);
 	bbf.build();
 
 	bf = BundleFile.getInstance(resJar);
-	SystemOut.printDate("converted  [" + resJar + "] to an OSGi Bundle");
+	LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_INFO, XMLConfigAdmin.class.getName(), "converted  [" + resJar + "] to an OSGi Bundle");
 	return installBundle(config, bf);
     }
 
@@ -1352,7 +1351,7 @@ public final class XMLConfigAdmin {
 		}
 	    }
 
-	    SystemOut.printDate("move " + name + " logging");
+	    LogUtil.log(ThreadLocalPageContext.getConfig(cs), Log.LEVEL_INFO, XMLConfigAdmin.class.getName(), "move " + name + " logging");
 	    Element logger = doc.createElement("logger");
 	    logger.setAttribute("name", name);
 	    if ("console".equalsIgnoreCase(path)) {
@@ -3676,7 +3675,7 @@ public final class XMLConfigAdmin {
 	final URL updateUrl = new URL(updateProvider,
 		"/rest/update/provider/download/" + version.toString() + (id != null ? id.toQueryString() : "") + (id == null ? "?" : "&") + "allowRedirect=true");
 	// log.debug("Admin", "download "+version+" from " + updateUrl);
-	System.out.println(updateUrl);
+	// System. out.println(updateUrl);
 
 	// local resource
 	final File patchDir = factory.getPatchDirectory();
@@ -3707,7 +3706,7 @@ public final class XMLConfigAdmin {
 		if (location == null) location = conn.getHeaderField("location");
 		if (location == null) location = conn.getHeaderField("LOCATION");
 		if (location == null) break;
-		System.out.println("download redirected:" + location); // MUST remove
+		// System. out.println("download redirected:" + location); // MUST remove
 
 		conn.disconnect();
 		URL url = new URL(location);
@@ -3741,13 +3740,13 @@ public final class XMLConfigAdmin {
 	    // when it is a loader extract the core from it
 	    File tmp = CFMLEngineFactory.extractCoreIfLoader(newLucee);
 	    if (tmp != null) {
-		System.out.println("extract core from loader"); // MUST remove
+		// System .out.println("extract core from loader"); // MUST remove
 		// log.debug("Admin", "extract core from loader");
 
 		newLucee.delete();
 		tmp.renameTo(newLucee);
 		tmp.delete();
-		System.out.println("exist?" + newLucee.exists()); // MUST remove
+		// System. out.println("exist?" + newLucee.exists()); // MUST remove
 
 	    }
 	}
@@ -6518,7 +6517,7 @@ public final class XMLConfigAdmin {
 		    }
 		}
 		catch (Exception e) {
-		    SystemOut.printDate(e);
+		    LogUtil.log(ThreadLocalPageContext.getConfig(config), XMLConfigAdmin.class.getName(), e);
 		}
 	    }
 	}

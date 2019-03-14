@@ -23,10 +23,10 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
-import lucee.commons.io.SystemUtil;
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.lang.SystemOut;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
@@ -74,7 +74,7 @@ public class ORMUtil {
 	config.resetORMEngine(pc, force);
     }
 
-    public static void printError(Throwable t, ORMEngine engine) {
+    public static void printError(Exception t, ORMEngine engine) {
 	printError(t, engine, t.getMessage());
     }
 
@@ -82,7 +82,7 @@ public class ORMUtil {
 	printError(null, engine, msg);
     }
 
-    public static void printError(Throwable t) {
+    public static void printError(Exception t) {
 	printError(t, null, t.getMessage());
     }
 
@@ -90,11 +90,12 @@ public class ORMUtil {
 	printError(null, null, msg);
     }
 
-    private static void printError(Throwable t, ORMEngine engine, String msg) {
-	if (engine != null) SystemOut.printDate("{" + engine.getLabel().toUpperCase() + "} - " + msg, SystemUtil.ERR);
-	else SystemOut.printDate(msg, SystemUtil.ERR);
-	if (t == null) t = new Throwable();
-	t.printStackTrace(SystemOut.getPrinWriter(SystemUtil.ERR));
+    private static void printError(Exception t, ORMEngine engine, String msg) {
+	if (engine != null) LogUtil.log(ThreadLocalPageContext.getConfig(), Log.LEVEL_ERROR, ORMUtil.class.getName(), "{" + engine.getLabel().toUpperCase() + "} - " + msg);
+	else LogUtil.log(ThreadLocalPageContext.getConfig(), Log.LEVEL_ERROR, ORMUtil.class.getName(), msg);
+
+	if (t == null) t = new Exception();
+	LogUtil.log(ThreadLocalPageContext.getConfig(), ORMUtil.class.getName(), t);
     }
 
     public static boolean equals(Object left, Object right) {

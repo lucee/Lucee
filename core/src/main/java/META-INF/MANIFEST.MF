@@ -316,7 +316,8 @@ Export-Package: coldfusion,
  lucee.transformer.library,
  lucee.transformer.library.function,
  lucee.transformer.library.tag,
- lucee.transformer.util
+ lucee.transformer.util,
+ lucee.transformer.cfml.script.java.function
 Require-Bundle: org.apache.commons.codec;bundle-version=1.9.0,
  org.apache.commons.collections4;bundle-version=4.0.0,
  org.lucee.commons.compress;bundle-version=1.9.0,

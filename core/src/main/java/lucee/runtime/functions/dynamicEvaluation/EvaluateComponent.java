@@ -21,11 +21,13 @@ package lucee.runtime.functions.dynamicEvaluation;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
-import lucee.commons.lang.SystemOut;
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.runtime.Component;
 import lucee.runtime.ComponentScope;
 import lucee.runtime.ComponentSpecificAccess;
 import lucee.runtime.PageContext;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection;
@@ -51,10 +53,8 @@ public final class EvaluateComponent {
 	try {
 	    comp = pc.loadComponent(name);
 	    if (!ComponentUtil.md5(comp).equals(md5)) {
-		SystemOut.printDate(pc.getConfig().getErrWriter(), "component [" + name
+		LogUtil.log(ThreadLocalPageContext.getConfig(pc), Log.LEVEL_ERROR, EvaluateComponent.class.getName(), "component [" + name
 			+ "] in this enviroment has not the same interface as the component to load, it is possible that one off the components has Functions added dynamicly.");
-		// throw new ExpressionException("component ["+name+"] in this enviroment has not the same interface
-		// as the component to load");
 	    }
 	}
 	catch (Exception e) {

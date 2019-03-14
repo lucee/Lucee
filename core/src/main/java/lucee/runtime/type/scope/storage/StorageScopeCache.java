@@ -23,7 +23,7 @@ import java.io.IOException;
 
 import lucee.commons.io.cache.Cache;
 import lucee.commons.io.log.Log;
-import lucee.commons.lang.SystemOut;
+import lucee.commons.io.log.LogUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.CacheUtil;
@@ -144,7 +144,7 @@ public abstract class StorageScopeCache extends StorageScopeImpl {
 		// cached data changed in meantime
 
 		if (existingVal instanceof StorageValue && ((StorageValue) existingVal).lastModified() > lastModified()) {
-		    Struct trg = ((Struct) ((StorageValue) existingVal).getValue());
+		    Struct trg = (((StorageValue) existingVal).getValue());
 		    StructUtil.copy(sct, trg, true);
 		    sct = trg;
 		}
@@ -152,7 +152,7 @@ public abstract class StorageScopeCache extends StorageScopeImpl {
 	    }
 	}
 	catch (Exception pe) {
-	    SystemOut.printDate(pe);
+	    LogUtil.log(ThreadLocalPageContext.getConfig(pc), StorageScopeCache.class.getName(), pe);
 	}
     }
 

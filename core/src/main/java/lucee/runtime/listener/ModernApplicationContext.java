@@ -38,6 +38,7 @@ import lucee.commons.date.TimeZoneUtil;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.cache.exp.CacheException;
 import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.type.ftp.FTPConnectionData;
 import lucee.commons.io.res.util.ResourceUtil;
@@ -46,7 +47,6 @@ import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.lang.SystemOut;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.runtime.Component;
 import lucee.runtime.ComponentSpecificAccess;
@@ -929,7 +929,8 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	try {
 	    Method m = cd.getClazz().getMethod("init", new Class[] { Config.class, String[].class, Struct[].class });
 	    if (Modifier.isStatic(m.getModifiers())) m.invoke(null, new Object[] { config, new String[] { cc.getName() }, new Struct[] { cc.getCustom() } });
-	    else SystemOut.print(config.getErrWriter(), "method [init(Config,String[],Struct[]):void] for class [" + cd.toString() + "] is not static");
+	    else LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_ERROR, ModernApplicationContext.class.getName(),
+		    "method [init(Config,String[],Struct[]):void] for class [" + cd.toString() + "] is not static");
 
 	    initCacheConnections.put(id, cc);
 	}
@@ -1617,7 +1618,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		    if (res != null) list.add(res);
 		}
 		catch (Exception e) {
-		    SystemOut.printDate(e);
+		    LogUtil.log(ThreadLocalPageContext.getConfig(), ModernApplicationContext.class.getName(), e);
 		}
 	    }
 	    return list;

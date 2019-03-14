@@ -29,7 +29,6 @@ import java.util.jar.Attributes;
 import java.util.jar.Attributes.Name;
 import java.util.jar.Manifest;
 
-import lucee.aprint;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.type.util.ListUtil;
@@ -94,7 +93,6 @@ public class ManifestUtil {
 	    name = ((Name) e.getKey()).toString();
 	    value = (String) e.getValue();
 	    if (StringUtil.isEmpty(value)) continue;
-	    // aprint.e("Export-Package:"+name+":"+("Export-Package".equals(name)));
 	    if ("Import-Package".equals(name) || "Export-Package".equals(name) || "Require-Bundle".equals(name)) {
 		value = splitByComma(value);
 
@@ -203,7 +201,6 @@ public class ManifestUtil {
 
 		if (str.indexOf("resolution:=optional") != -1) {
 		    removed = true;
-		    aprint.e("+" + str);
 		    continue;
 		}
 

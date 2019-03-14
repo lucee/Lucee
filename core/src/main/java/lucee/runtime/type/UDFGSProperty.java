@@ -143,9 +143,12 @@ public abstract class UDFGSProperty extends MemberSupport implements UDFPlus {
 
     @Override
     public final UDF duplicate(boolean deep) {
-	UDFPlus udf = (UDFPlus) duplicate(); // deep has no influence here, because a UDF is not a collection
-	udf.setOwnerComponent(srcComponent);
-	udf.setAccess(getAccess());
+	UDF udf = duplicate(); // deep has no influence here, because a UDF is not a collection
+	if (udf instanceof UDFPlus) {
+	    UDFPlus udfp = (UDFPlus) udf;
+	    udfp.setOwnerComponent(srcComponent);
+	    udfp.setAccess(getAccess());
+	}
 	return udf;
     }
 
@@ -277,6 +280,7 @@ public abstract class UDFGSProperty extends MemberSupport implements UDFPlus {
 	}
     }
 
+    @Override
     public final Object call(PageContext pageContext, Object[] args, boolean doIncludePath) throws PageException {
 	PageContextImpl pci = (PageContextImpl) pageContext;
 	UDF parent = pci.getActiveUDF();

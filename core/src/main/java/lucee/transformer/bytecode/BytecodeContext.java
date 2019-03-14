@@ -27,6 +27,7 @@ import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
 
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.compiler.JavaFunction;
 import lucee.runtime.PageSource;
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -184,6 +185,10 @@ public class BytecodeContext implements Context {
 
 	return keys.size() - 1;
 	// }
+    }
+
+    public void registerJavaFunction(JavaFunction jbc) {
+	this.page.registerJavaFunction(jbc);
     }
 
     public List<LitString> getKeys() {

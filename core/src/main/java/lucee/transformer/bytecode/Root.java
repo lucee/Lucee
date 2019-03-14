@@ -26,4 +26,6 @@ public interface Root {
 
     public byte[] execute(String className) throws TransformerException;
 
+    public String registerJavaFunctionName(String functionName);
+
 }

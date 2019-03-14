@@ -32,8 +32,9 @@ import org.objectweb.asm.commons.Remapper;
 import org.objectweb.asm.commons.RemappingClassAdapter;
 
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
-import lucee.commons.lang.SystemOut;
+import lucee.runtime.engine.ThreadLocalPageContext;
 
 public class JarUtil {
 
@@ -76,7 +77,7 @@ public class JarUtil {
 	    }
 	}
 	catch (IOException ioe) {
-	    SystemOut.printDate(ioe);
+	    LogUtil.log(ThreadLocalPageContext.getConfig(), JarUtil.class.getName(), ioe);
 	}
 	finally {
 	    IOUtil.closeEL(zis);

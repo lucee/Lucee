@@ -31,15 +31,16 @@ import java.util.List;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.filter.ResourceNameFilter;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.lang.SystemOut;
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalConfig;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
@@ -197,7 +198,7 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 	    task = (SpoolerTask) ois.readObject();
 	}
 	catch (Exception e) {
-	    SystemOut.printDate(e);
+	    LogUtil.log(ThreadLocalPageContext.getConfig(), SpoolerEngineImpl.class.getName(), e);
 	    IOUtil.closeEL(is);
 	    IOUtil.closeEL(ois);
 	    res.delete();
@@ -216,7 +217,7 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 	    oos.writeObject(task);
 	}
 	catch (IOException e) {
-	    SystemOut.printDate(e);
+	    LogUtil.log(ThreadLocalPageContext.getConfig(), SpoolerEngineImpl.class.getName(), e);
 	}
 	finally {
 	    IOUtil.closeEL(oos);

@@ -19,9 +19,6 @@
 
 package lucee.runtime.sql.old;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.FileReader;
 import java.sql.SQLException;
 import java.util.Vector;
 
@@ -190,29 +187,17 @@ public final class ZEval {
 	return obj;
     }
 
-    public static void main(String args[]) {
-	try {
-	    BufferedReader bufferedreader = new BufferedReader(new FileReader("test.db"));
-	    String s = bufferedreader.readLine();
-	    ZTuple ztuple = new ZTuple(s);
-	    ZqlParser zqlparser = new ZqlParser();
-	    ZEval zeval = new ZEval();
-	    while ((s = bufferedreader.readLine()) != null) {
-		ztuple.setRow(s);
-		BufferedReader bufferedreader1 = new BufferedReader(new FileReader("test.sql"));
-		String s1;
-		while ((s1 = bufferedreader1.readLine()) != null) {
-		    zqlparser.initParser(new ByteArrayInputStream(s1.getBytes()));
-		    ZExp zexp = zqlparser.readExpression();
-		    System.out.print(s + ", " + s1 + ", ");
-		    System.out.println(zeval.eval(ztuple, zexp));
-		}
-		bufferedreader1.close();
-	    }
-	    bufferedreader.close();
-	}
-	catch (Exception exception) {
-
-	}
-    }
+    /*
+     * public static void main(String args[]) { try { BufferedReader bufferedreader = new
+     * BufferedReader(new FileReader("test.db")); String s = bufferedreader.readLine(); ZTuple ztuple =
+     * new ZTuple(s); ZqlParser zqlparser = new ZqlParser(); ZEval zeval = new ZEval(); while ((s =
+     * bufferedreader.readLine()) != null) { ztuple.setRow(s); BufferedReader bufferedreader1 = new
+     * BufferedReader(new FileReader("test.sql")); String s1; while ((s1 = bufferedreader1.readLine())
+     * != null) { zqlparser.initParser(new ByteArrayInputStream(s1.getBytes())); ZExp zexp =
+     * zqlparser.readExpression(); System.out.print(s + ", " + s1 + ", ");
+     * System.out.println(zeval.eval(ztuple, zexp)); } bufferedreader1.close(); }
+     * bufferedreader.close(); } catch (Exception exception) {
+     * 
+     * } }
+     */
 }

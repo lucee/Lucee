@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.lang.instrument.ClassDefinition;
 import java.lang.instrument.UnmodifiableClassException;
 
-import lucee.aprint;
 import lucee.commons.io.SystemUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.instrumentation.InstrumentationFactory;
@@ -94,7 +93,6 @@ public final class MemoryClassLoader extends ExtendableClassLoader {
 		// the documentation clearly sais that this exception only exists for backward compatibility and
 		// never happen
 	    }
-	    aprint.e("redefined:memory:" + clazz.getName());
 	    return clazz;
 	}
 	// class not exists yet

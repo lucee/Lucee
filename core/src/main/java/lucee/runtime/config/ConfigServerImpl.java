@@ -39,13 +39,14 @@ import lucee.commons.collection.MapFactory;
 import lucee.commons.digest.Hash;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.SystemUtil;
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.lang.SystemOut;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.util.ExtensionFilter;
@@ -55,6 +56,7 @@ import lucee.runtime.Mapping;
 import lucee.runtime.MappingImpl;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.engine.CFMLEngineImpl;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.engine.ThreadQueue;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
@@ -516,12 +518,13 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 		setPermGenCleanUpThreshold(permGenCleanUpThreshold - 5);
 	    }
 	    else {
-		SystemOut.printDate(getErrWriter(),
+		LogUtil.log(ThreadLocalPageContext.getConfig(this), Log.LEVEL_WARN, ConfigServerImpl.class.getName(),
 			" Free Perm Gen Space is less than 5% free: shrinking all template classloaders : consider increasing allocated Perm Gen Space");
 	    }
 	}
 	else if (check && kbFreePermSpace < 2048) {
-	    SystemOut.printDate(getErrWriter(),
+	    LogUtil.log(ThreadLocalPageContext.getConfig(this), Log.LEVEL_WARN, ConfigServerImpl.class.getName(),
+
 		    " Free Perm Gen Space is less than 2Mb (free:" + ((SystemUtil.getFreePermGenSpaceSize() / 1024)) + "kb), shrinking all template classloaders");
 	    // first request a GC and then check if it helps
 	    System.gc();
@@ -870,7 +873,7 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 
 		    }
 		    catch (Exception e) {
-			SystemOut.printDate(e);
+			LogUtil.log(ThreadLocalPageContext.getConfig(this), ConfigServerImpl.class.getName(), e);
 		    }
 		}
 

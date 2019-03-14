@@ -22,7 +22,6 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.Set;
 
-import lucee.aprint;
 import lucee.commons.lang.ParserString;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.op.Caster;
@@ -131,24 +130,4 @@ public class ClientScopeConverter {
 
 	throw new ConverterException("can't convert complex value " + Caster.toTypeName(object) + " to a simple value");
     }
-
-    public static void main(String[] args) throws ConverterException {
-	Struct sct = new StructImpl();
-	sct.setEL("a", "b");
-	sct.setEL("pe#=ter", "ab##c");
-	sct.setEL("susi", Boolean.TRUE);
-	sct.setEL("peter", "abc");
-	sct.setEL("x", "");
-
-	/*
-	 * sct.setEL("abc=def", "abc"); sct.setEL("abc#def", "ab#=c");
-	 */
-	String str;
-	aprint.out(sct);
-	aprint.out(str = ClientScopeConverter.serialize(sct));
-	aprint.out(ClientScopeConverter.unserialize(str));
-	// aprint.out(new ScriptConverter().serialize(sct));
-
-    }
-
 }

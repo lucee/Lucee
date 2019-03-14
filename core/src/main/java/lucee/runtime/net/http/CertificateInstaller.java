@@ -126,16 +126,6 @@ public class CertificateInstaller {
 	}
     }
 
-    public void printCertificates() {
-	System.out.println("Server sent " + tm.chain.length + " certificate(s):");
-	for (int i = 0; i < tm.chain.length; i++) {
-	    X509Certificate cert = tm.chain[i];
-	    System.out.println(" " + (i + 1) + " Subject " + cert.getSubjectDN());
-	    System.out.println("   Issuer  " + cert.getIssuerDN());
-	    System.out.println();
-	}
-    }
-
     public X509Certificate[] getCertificates() {
 	return tm.chain;
     }

@@ -67,7 +67,6 @@ import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.IDGenerator;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.lang.SystemOut;
 import lucee.commons.surveillance.HeapDumper;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.osgi.BundleCollection;
@@ -1081,7 +1080,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		    // pageContext.compile(ps);
 		}
 		catch (PageException pe) {
-		    SystemOut.printDate(pe);
+		    LogUtil.log(ThreadLocalPageContext.getConfig(pageContext), Admin.class.getName(), pe);
 		    String template = ps.getDisplayPath();
 		    StringBuilder msg = new StringBuilder(pe.getMessage());
 		    msg.append(", Error Occurred in File [");
@@ -1121,7 +1120,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	    admin.removePassword(getString("contextPath", null));
 	}
 	catch (Exception e) {
-	    SystemOut.printDate(e);
+	    LogUtil.log(ThreadLocalPageContext.getConfig(pageContext), Admin.class.getName(), e);
 	}
 	store();
     }
@@ -4724,7 +4723,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	    relatedPackages = JarUtil.getExternalImports(jar, new String[0]);// OSGiUtil.getBootdelegation()
 	}
 	catch (IOException e1) {
-	    SystemOut.printDate(e1);
+	    LogUtil.log(ThreadLocalPageContext.getConfig(pageContext), Admin.class.getName(), e1);
 	}
 	if (relatedPackages == null) relatedPackages = new HashSet<String>();
 

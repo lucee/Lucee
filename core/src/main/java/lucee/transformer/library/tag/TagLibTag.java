@@ -32,12 +32,12 @@ import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 import org.xml.sax.Attributes;
 
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Md5;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.lang.SystemOut;
 import lucee.runtime.config.Identification;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.op.Caster;
@@ -789,7 +789,7 @@ public final class TagLibTag {
 	    setter = m.getName();
 	}
 	catch (Exception e) {
-	    SystemOut.printDate(e);
+	    LogUtil.log(null, TagLibTag.class.getName(), e);
 	}
 	setters.put(attr.getName(), setter);
 	return setter;
