@@ -51,7 +51,6 @@ public class RetireOutputStream extends OutputStream {
     private OutputStream getOutputStream() throws IOException {
 
 	if (os == null) {
-	    // print.e("start "+res);
 	    os = res.getOutputStream(append);
 	    if (os == null) throw new IOException("could not open a connection to [" + res + "]");
 	    RetireOutputStreamFactory.list.add(this);
