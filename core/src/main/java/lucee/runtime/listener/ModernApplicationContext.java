@@ -1796,7 +1796,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	Object oLogs = get(component, LOGS, null);
 	if (oLogs == null) oLogs = get(component, LOG, null);
 	Struct sct = Caster.toStruct(oLogs, null);
-	logs = initLog(sct);
+	logs = initLog(ThreadLocalPageContext.getConfig(config), sct);
 	initLog = true;
     }
 

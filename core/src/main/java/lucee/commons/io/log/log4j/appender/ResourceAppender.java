@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.nio.charset.Charset;
 
+import org.apache.log4j.Appender;
 import org.apache.log4j.Layout;
 import org.apache.log4j.RollingFileAppender;
 import org.apache.log4j.WriterAppender;
@@ -34,7 +35,7 @@ import lucee.commons.io.retirement.RetireListener;
 import lucee.commons.io.retirement.RetireOutputStream;
 import lucee.commons.lang.SerializableObject;
 
-public class ResourceAppender extends WriterAppender implements AppenderState {
+public class ResourceAppender extends WriterAppender implements AppenderState, Appender {
 
     private static final int DEFAULT_BUFFER_SIZE = 8 * 1024;
 

@@ -686,7 +686,7 @@ public final class Application extends TagImpl {
 	if (logs != null) {
 	    try {
 		ApplicationContextSupport acs = (ApplicationContextSupport) ac;
-		acs.setLoggers(ApplicationContextSupport.initLog(logs));
+		acs.setLoggers(ApplicationContextSupport.initLog(pageContext.getConfig(), logs));
 	    }
 	    catch (Exception e) {
 		throw Caster.toPageException(e);

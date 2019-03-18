@@ -265,6 +265,7 @@ public final class ConfigWebUtil {
 	return file;
     }
 
+    // do not change, used in extension
     public static String replacePlaceholder(String str, Config config) {
 	if (StringUtil.isEmpty(str)) return str;
 

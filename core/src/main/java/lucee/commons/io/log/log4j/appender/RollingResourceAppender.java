@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.nio.charset.Charset;
 
+import org.apache.log4j.Appender;
 import org.apache.log4j.Layout;
 import org.apache.log4j.helpers.CountingQuietWriter;
 import org.apache.log4j.helpers.LogLog;
@@ -30,7 +31,7 @@ import org.apache.log4j.spi.LoggingEvent;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.retirement.RetireListener;
 
-public class RollingResourceAppender extends ResourceAppender {
+public class RollingResourceAppender extends ResourceAppender implements Appender {
 
     public static final long DEFAULT_MAX_FILE_SIZE = 10 * 1024 * 1024;
     public static final int DEFAULT_MAX_BACKUP_INDEX = 10;

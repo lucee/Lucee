@@ -23,6 +23,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
+import org.osgi.framework.Version;
+
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.type.ftp.FTPConnectionData;
@@ -56,6 +58,7 @@ import lucee.runtime.net.s3.PropertiesImpl;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.orm.ORMConfigurationImpl;
+import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.tag.Query;
 import lucee.runtime.tag.listener.TagListener;
 import lucee.runtime.type.Array;
@@ -860,4 +863,29 @@ public final class AppListenerUtil {
 	return defaultValue;
     }
 
+    public static String toClassName(Struct sct) {
+	if (sct == null) return null;
+	String className = Caster.toString(sct.get("class", null), null);
+	if (StringUtil.isEmpty(className)) className = Caster.toString(sct.get("classname", null), null);
+	if (StringUtil.isEmpty(className)) className = Caster.toString(sct.get("class-name", null), null);
+	if (StringUtil.isEmpty(className)) return null;
+	return className;
+    }
+
+    public static String toBundleName(Struct sct) {
+	if (sct == null) return null;
+	String name = Caster.toString(sct.get("bundlename", null), null);
+	if (StringUtil.isEmpty(name)) name = Caster.toString(sct.get("bundle-name", null), null);
+	if (StringUtil.isEmpty(name)) name = Caster.toString(sct.get("name", null), null);
+	if (StringUtil.isEmpty(name)) return null;
+	return name;
+    }
+
+    public static Version toBundleVersion(Struct sct) {
+	if (sct == null) return null;
+	Version version = OSGiUtil.toVersion(Caster.toString(sct.get("bundleversion", null), null), null);
+	if (version == null) version = OSGiUtil.toVersion(Caster.toString(sct.get("bundle-version", null), null), null);
+	if (version == null) version = OSGiUtil.toVersion(Caster.toString(sct.get("version", null), null), null);
+	return version;
+    }
 }

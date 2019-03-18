@@ -70,7 +70,6 @@ import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.log.LoggerAndSourceData;
-import lucee.commons.io.log.log4j.Log4jUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.io.res.type.cfml.CFMLResourceProvider;
@@ -1748,7 +1747,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		cdAppender = getClassDefinition(child, "appender-", config.getIdentification());
 		if (!cdAppender.hasClass()) {
 		    tmp = StringUtil.trim(getAttr(child, "appender"), "");
-		    cdAppender = Log4jUtil.appenderClassDefintion(tmp);
+		    cdAppender = config.getLogEngine().appenderClassDefintion(tmp);
 		}
 		appenderArgs = StringUtil.trim(getAttr(child, "appender-arguments"), "");
 
@@ -1756,7 +1755,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		cdLayout = getClassDefinition(child, "layout-", config.getIdentification());
 		if (!cdLayout.hasClass()) {
 		    tmp = StringUtil.trim(getAttr(child, "layout"), "");
-		    cdLayout = Log4jUtil.layoutClassDefintion(tmp);
+		    cdLayout = config.getLogEngine().layoutClassDefintion(tmp);
 		}
 		layoutArgs = StringUtil.trim(getAttr(child, "layout-arguments"), "");
 

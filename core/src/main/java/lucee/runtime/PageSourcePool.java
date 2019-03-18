@@ -162,8 +162,8 @@ public final class PageSourcePool implements Dumpable {
      * clear unused pages from page pool
      */
     public void clearUnused(ConfigImpl config) {
-	LogUtil.log(config, Log.LEVEL_INFO, PageSourcePool.class.getName(), "PagePool: " + size() + ">(" + maxSize + ")");
 	if (size() > maxSize) {
+	    LogUtil.log(config, Log.LEVEL_INFO, PageSourcePool.class.getName(), "PagePool: " + size() + ">(" + maxSize + ")");
 	    String[] keys = keys();
 	    LongKeyList list = new LongKeyList();
 	    for (int i = 0; i < keys.length; i++) {

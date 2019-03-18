@@ -63,7 +63,6 @@ import lucee.commons.io.compress.Pack200Util;
 import lucee.commons.io.compress.ZipUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
-import lucee.commons.io.log.log4j.Log4jUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
 import lucee.commons.io.res.ResourcesImpl;
@@ -349,7 +348,8 @@ public final class XMLConfigAdmin {
      * @param level
      * @throws PageException
      */
-    public void setMailLog(String logFile, String level) throws PageException {
+    public void setMailLog(Config config, String logFile, String level) throws PageException {
+	ConfigImpl ci = (ConfigImpl) config;
 	checkWriteAccess();
 	boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_MAIL);
 
@@ -372,12 +372,12 @@ public final class XMLConfigAdmin {
 	}
 	logger.setAttribute("name", "mail");
 	if ("console".equalsIgnoreCase(logFile)) {
-	    setClass(logger, null, "appender-", Log4jUtil.appenderClassDefintion("console"));
-	    setClass(logger, null, "layout-", Log4jUtil.layoutClassDefintion("pattern"));
+	    setClass(logger, null, "appender-", ci.getLogEngine().appenderClassDefintion("console"));
+	    setClass(logger, null, "layout-", ci.getLogEngine().layoutClassDefintion("pattern"));
 	}
 	else {
-	    setClass(logger, null, "appender-", Log4jUtil.appenderClassDefintion("resource"));
-	    setClass(logger, null, "layout-", Log4jUtil.layoutClassDefintion("classic"));
+	    setClass(logger, null, "appender-", ci.getLogEngine().appenderClassDefintion("resource"));
+	    setClass(logger, null, "layout-", ci.getLogEngine().layoutClassDefintion("classic"));
 	    logger.setAttribute("appender-arguments", "path:" + logFile);
 	}
 	logger.setAttribute("log-level", level);
@@ -1356,15 +1356,15 @@ public final class XMLConfigAdmin {
 	    logger.setAttribute("name", name);
 	    if ("console".equalsIgnoreCase(path)) {
 		try {
-		    setClass(logger, null, "appender-", Log4jUtil.appenderClassDefintion("console"));
-		    setClass(logger, null, "layout-", Log4jUtil.layoutClassDefintion("pattern"));
+		    setClass(logger, null, "appender-", cs.getLogEngine().appenderClassDefintion("console"));
+		    setClass(logger, null, "layout-", cs.getLogEngine().layoutClassDefintion("pattern"));
 		}
 		catch (PageException e) {}
 	    }
 	    else {
 		try {
-		    setClass(logger, null, "appender-", Log4jUtil.appenderClassDefintion("resource"));
-		    setClass(logger, null, "layout-", Log4jUtil.layoutClassDefintion("classic"));
+		    setClass(logger, null, "appender-", cs.getLogEngine().appenderClassDefintion("resource"));
+		    setClass(logger, null, "layout-", cs.getLogEngine().layoutClassDefintion("classic"));
 		}
 		catch (PageException e) {}
 

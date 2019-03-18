@@ -40,8 +40,6 @@ import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.collections4.map.ReferenceMap;
-import org.apache.log4j.Layout;
-import org.apache.log4j.PatternLayout;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 
@@ -53,8 +51,6 @@ import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogEngine;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.log.LoggerAndSourceData;
-import lucee.commons.io.log.log4j.Log4jEngine;
-import lucee.commons.io.log.log4j.Log4jUtil;
 import lucee.commons.io.log.log4j.layout.ClassicLayout;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
@@ -426,8 +422,8 @@ public abstract class ConfigImpl implements Config {
     private boolean checkForChangesInConfigFile;
     // protected String apiKey=null;
 
-    private List<Layout> consoleLayouts = new ArrayList<Layout>();
-    private List<Layout> resourceLayouts = new ArrayList<Layout>();
+    private List consoleLayouts = new ArrayList();
+    private List resourceLayouts = new ArrayList();
 
     private Map<Key, Map<Key, Object>> tagDefaultAttributeValues;
     private boolean handleUnQuotedAttrValueAsString = true;
@@ -3531,24 +3527,24 @@ public abstract class ConfigImpl implements Config {
 	return externalizeStringGTE;
     }
 
-    protected void addConsoleLayout(Layout layout) {
+    protected void addConsoleLayout(Object layout) {
 	consoleLayouts.add(layout);
 
     }
 
-    protected void addResourceLayout(Layout layout) {
+    protected void addResourceLayout(Object layout) {
 	resourceLayouts.add(layout);
     }
 
-    public Layout[] getConsoleLayouts() {
-	if (consoleLayouts.isEmpty()) consoleLayouts.add(new PatternLayout("%d{dd.MM.yyyy HH:mm:ss,SSS} %-5p [%c] %m%n"));
-	return consoleLayouts.toArray(new Layout[consoleLayouts.size()]);
+    public Object[] getConsoleLayouts() {
+	if (consoleLayouts.isEmpty()) consoleLayouts.add(getLogEngine().getDefaultLayout());
+	return consoleLayouts.toArray(new Object[consoleLayouts.size()]);
 
     }
 
-    public Layout[] getResourceLayouts() {
+    public Object[] getResourceLayouts() {
 	if (resourceLayouts.isEmpty()) resourceLayouts.add(new ClassicLayout());
-	return resourceLayouts.toArray(new Layout[resourceLayouts.size()]);
+	return resourceLayouts.toArray(new Object[resourceLayouts.size()]);
     }
 
     protected void clearLoggers(Boolean dyn) {
@@ -3618,7 +3614,7 @@ public abstract class ConfigImpl implements Config {
 	LoggerAndSourceData las = loggers.get(name.toLowerCase());
 	if (las == null) {
 	    if (!createIfNecessary) return null;
-	    return addLogger(name, Log.LEVEL_ERROR, Log4jUtil.appenderClassDefintion("console"), null, Log4jUtil.layoutClassDefintion("pattern"), null, true, true);
+	    return addLogger(name, Log.LEVEL_ERROR, getLogEngine().appenderClassDefintion("console"), null, getLogEngine().layoutClassDefintion("pattern"), null, true, true);
 	}
 	return las;
     }
@@ -3886,10 +3882,10 @@ public abstract class ConfigImpl implements Config {
 	return fullNullSupport;
     }
 
-    private Log4jEngine logEngine;
+    private LogEngine logEngine;
 
     public LogEngine getLogEngine() {
-	if (logEngine == null) logEngine = new Log4jEngine(this);
+	if (logEngine == null) logEngine = LogEngine.getInstance(this);
 	return logEngine;
     }
 
