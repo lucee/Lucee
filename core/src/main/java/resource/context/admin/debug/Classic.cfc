@@ -242,7 +242,7 @@ millisecond:"ms"
 			<td class="cfdebug" nowrap>#exp.type#</td>
 			<td class="cfdebug" nowrap>#exp.message#</td>
 			<td class="cfdebug" nowrap>#exp.detail#</td>
-			<td class="cfdebug" nowrap>#exp.TagContext[1].template#:#exp.TagContext[1].line#</td>
+			<td class="cfdebug" nowrap><cftry>#exp.TagContext[1].template#:<cftry>#exp.TagContext[1].line#<cfcatch></cfcatch></cftry><cfcatch></cfcatch></cftry></td>
 		</tr>
 </cfloop>                
  </table>
