@@ -295,10 +295,14 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 	final File[] patches = PATCH_ENABLED ? patcheDir.listFiles(new ExtensionFilter(new String[] { ".lco" })) : null;
 	File lucee = null;
-	if (patches != null) for (final File patche: patches)
-	    if (patche.getName().startsWith("tmp.lco")) patche.delete();
-	    else if (patche.lastModified() < coreCreated) patche.delete();
-	    else if (lucee == null || Util.isNewerThan(toVersion(patche.getName(), VERSION_ZERO), toVersion(lucee.getName(), VERSION_ZERO))) lucee = patche;
+	if (patches != null) {
+	    for (final File patche: patches) {
+		if (patche.getName().startsWith("tmp.lco")) patche.delete();
+		else if (patche.lastModified() < coreCreated) patche.delete();
+		else if (patche.length() < 1000000L) patche.delete();
+		else if (lucee == null || Util.isNewerThan(toVersion(patche.getName(), VERSION_ZERO), toVersion(lucee.getName(), VERSION_ZERO))) lucee = patche;
+	    }
+	}
 	if (lucee != null && Util.isNewerThan(coreVersion, toVersion(lucee.getName(), VERSION_ZERO))) lucee = null;
 
 	// Load Lucee
