@@ -18,6 +18,7 @@
  **/
 package lucee.runtime.tag;
 
+import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -254,14 +255,14 @@ public final class DBInfo extends TagImpl {
 		: manager.getConnection(pageContext, Caster.toString(ds), username, password);
 
 	try {
-	    if (type == TYPE_TABLE_COLUMNS) typeColumns(dc.getConnection().getMetaData());
+	    if (type == TYPE_TABLE_COLUMNS) typeColumns(dc.getConnection());
 	    else if (type == TYPE_DBNAMES) typeDBNames(dc.getConnection().getMetaData());
-	    else if (type == TYPE_FOREIGNKEYS) typeForeignKeys(dc.getConnection().getMetaData());
-	    else if (type == TYPE_INDEX) typeIndex(dc.getConnection().getMetaData());
-	    else if (type == TYPE_PROCEDURES) typeProcedures(dc.getConnection().getMetaData());
-	    else if (type == TYPE_PROCEDURE_COLUMNS) typeProcedureColumns(dc.getConnection().getMetaData());
+	    else if (type == TYPE_FOREIGNKEYS) typeForeignKeys(dc.getConnection());
+	    else if (type == TYPE_INDEX) typeIndex(dc.getConnection());
+	    else if (type == TYPE_PROCEDURES) typeProcedures(dc.getConnection());
+	    else if (type == TYPE_PROCEDURE_COLUMNS) typeProcedureColumns(dc.getConnection());
 	    else if (type == TYPE_TERMS) typeTerms(dc.getConnection().getMetaData());
-	    else if (type == TYPE_TABLES) typeTables(dc.getConnection().getMetaData());
+	    else if (type == TYPE_TABLES) typeTables(dc.getConnection());
 	    else if (type == TYPE_VERSION) typeVersion(dc.getConnection().getMetaData());
 	    else if (type == TYPE_USERS) typeUsers(dc.getConnection().getMetaData());
 
@@ -276,9 +277,9 @@ public final class DBInfo extends TagImpl {
 	return SKIP_BODY;
     }
 
-    private void typeColumns(DatabaseMetaData metaData) throws PageException, SQLException {
+    private void typeColumns(Connection conn) throws PageException, SQLException {
 	required("table", table);
-
+	DatabaseMetaData metaData = conn.getMetaData();
 	Stopwatch stopwatch = new Stopwatch(Stopwatch.UNIT_NANO);
 	stopwatch.start();
 	table = setCase(metaData, table);
@@ -294,11 +295,7 @@ public final class DBInfo extends TagImpl {
 
 	checkTable(metaData);
 
-	/*
-	 * print.e("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"); print.e("dbname:"+dbname);
-	 * print.e("schema:"+schema); print.e("table:"+table); print.e("pattern:"+pattern);
-	 */
-	Query qry = new QueryImpl(metaData.getColumns(dbname, schema, table, StringUtil.isEmpty(pattern) ? "%" : pattern), "query", pageContext.getTimeZone());
+	Query qry = new QueryImpl(metaData.getColumns(dbname(conn), schema, table, StringUtil.isEmpty(pattern) ? "%" : pattern), "query", pageContext.getTimeZone());
 
 	int len = qry.getRecordcount();
 
@@ -474,9 +471,9 @@ public final class DBInfo extends TagImpl {
 	pageContext.setVariable(name, qry);
     }
 
-    private void typeForeignKeys(DatabaseMetaData metaData) throws PageException, SQLException {
+    private void typeForeignKeys(Connection conn) throws PageException, SQLException {
 	required("table", table);
-
+	DatabaseMetaData metaData = conn.getMetaData();
 	Stopwatch stopwatch = new Stopwatch(Stopwatch.UNIT_NANO);
 	stopwatch.start();
 	table = setCase(metaData, table);
@@ -489,7 +486,7 @@ public final class DBInfo extends TagImpl {
 
 	checkTable(metaData);
 
-	lucee.runtime.type.Query qry = new QueryImpl(metaData.getExportedKeys(dbname, schema, table), "query", pageContext.getTimeZone());
+	lucee.runtime.type.Query qry = new QueryImpl(metaData.getExportedKeys(dbname(conn), schema, table), "query", pageContext.getTimeZone());
 	qry.setExecutionTime(stopwatch.time());
 
 	pageContext.setVariable(name, qry);
@@ -507,16 +504,16 @@ public final class DBInfo extends TagImpl {
     }
 
     private String setCase(DatabaseMetaData metaData, String id) throws SQLException {
-	if (id == null) return null;
+	if (StringUtil.isEmpty(id)) return "%";
 
 	if (metaData.storesLowerCaseIdentifiers()) return id.toLowerCase();
 	if (metaData.storesUpperCaseIdentifiers()) return id.toUpperCase();
 	return id;
     }
 
-    private void typeIndex(DatabaseMetaData metaData) throws PageException, SQLException {
+    private void typeIndex(Connection conn) throws PageException, SQLException {
 	required("table", table);
-
+	DatabaseMetaData metaData = conn.getMetaData();
 	Stopwatch stopwatch = new Stopwatch(Stopwatch.UNIT_NANO);
 	stopwatch.start();
 
@@ -530,7 +527,7 @@ public final class DBInfo extends TagImpl {
 
 	checkTable(metaData);
 
-	ResultSet tables = metaData.getIndexInfo(dbname, schema, table, false, true);
+	ResultSet tables = metaData.getIndexInfo(dbname(conn), schema, table, false, true);
 	lucee.runtime.type.Query qry = new QueryImpl(tables, "query", pageContext.getTimeZone());
 
 	// type int 2 string
@@ -568,25 +565,25 @@ public final class DBInfo extends TagImpl {
 	pageContext.setVariable(name, qry);
     }
 
-    private void typeProcedures(DatabaseMetaData metaData) throws SQLException, PageException {
+    private void typeProcedures(Connection conn) throws SQLException, PageException {
 	Stopwatch stopwatch = new Stopwatch(Stopwatch.UNIT_NANO);
 	stopwatch.start();
-
+	DatabaseMetaData metaData = conn.getMetaData();
 	String schema = null;
 	pattern = setCase(metaData, pattern);
 	if (StringUtil.isEmpty(pattern, true)) {
 	    pattern = null;
 	}
 
-	lucee.runtime.type.Query qry = new QueryImpl(metaData.getProcedures(dbname, schema, StringUtil.isEmpty(pattern) ? "%" : pattern), "query", pageContext.getTimeZone());
+	lucee.runtime.type.Query qry = new QueryImpl(metaData.getProcedures(dbname(conn), schema, StringUtil.isEmpty(pattern) ? "%" : pattern), "query", pageContext.getTimeZone());
 	qry.setExecutionTime(stopwatch.time());
 
 	pageContext.setVariable(name, qry);
     }
 
-    private void typeProcedureColumns(DatabaseMetaData metaData) throws SQLException, PageException {
+    private void typeProcedureColumns(Connection conn) throws SQLException, PageException {
 	required("procedure", procedure);
-
+	DatabaseMetaData metaData = conn.getMetaData();
 	Stopwatch stopwatch = new Stopwatch(Stopwatch.UNIT_NANO);
 	stopwatch.start();
 
@@ -601,7 +598,7 @@ public final class DBInfo extends TagImpl {
 	}
 
 	lucee.runtime.type.Query qry = new QueryImpl(
-		metaData.getProcedureColumns(dbname, schema, StringUtil.isEmpty(procedure) ? "%" : procedure, StringUtil.isEmpty(pattern) ? "%" : pattern), "query",
+		metaData.getProcedureColumns(dbname(conn), schema, StringUtil.isEmpty(procedure) ? "%" : procedure, StringUtil.isEmpty(pattern) ? "%" : pattern), "query",
 		pageContext.getTimeZone());
 	qry.setExecutionTime(stopwatch.time());
 
@@ -617,17 +614,26 @@ public final class DBInfo extends TagImpl {
 	pageContext.setVariable(name, sct);
     }
 
-    private void typeTables(DatabaseMetaData metaData) throws PageException, SQLException {
-
+    private void typeTables(Connection conn) throws PageException, SQLException {
+	DatabaseMetaData metaData = conn.getMetaData();
 	Stopwatch stopwatch = new Stopwatch(Stopwatch.UNIT_NANO);
 	stopwatch.start();
 
 	pattern = setCase(metaData, pattern);
-
-	lucee.runtime.type.Query qry = new QueryImpl(metaData.getTables(dbname, null, StringUtil.isEmpty(pattern) ? "%" : pattern, null), "query", pageContext.getTimeZone());
+	lucee.runtime.type.Query qry = new QueryImpl(metaData.getTables(dbname(conn), null, StringUtil.isEmpty(pattern) ? "%" : pattern, null), "query", pageContext.getTimeZone());
 	qry.setExecutionTime(stopwatch.time());
 
 	pageContext.setVariable(name, qry);
+    }
+
+    private String dbname(Connection conn) {
+	if (!StringUtil.isEmpty(dbname, true)) return dbname.trim();
+	try {
+	    return conn.getCatalog();
+	}
+	catch (SQLException e) {
+	    return null;
+	}
     }
 
     private void typeVersion(DatabaseMetaData metaData) throws PageException, SQLException {
