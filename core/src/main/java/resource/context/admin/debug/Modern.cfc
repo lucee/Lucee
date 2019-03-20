@@ -1360,8 +1360,8 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 										<td>#exp.type#</td>
 										<td>#exp.message#</td>
 										<td>#exp.detail#</td>
-										<td>#exp.TagContext[1].template#</td>
-										<td class="txt-r">#exp.TagContext[1].line#</td>
+										<td>#exp.TagContext[1].template?:''#</td>
+										<td class="txt-r">#exp.TagContext[1].line?:''#</td>
 									</tr>
 								</cfloop>
 
