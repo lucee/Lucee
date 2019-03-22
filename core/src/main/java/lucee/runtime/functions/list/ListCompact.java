@@ -32,6 +32,14 @@ public final class ListCompact extends BIF {
 
     private static final long serialVersionUID = 533751863889168299L;
 
+    public static String call(PageContext pc, String list) {
+	return call(pc, list, ",", false);
+    }
+
+    public static String call(PageContext pc, String list, String delimiter) {
+	return call(pc, list, delimiter, false);
+    }
+
     public static String call(PageContext pc, String list, String delimiter, boolean multiCharacterDelimiter) {
 	return ListUtil.trim(list, delimiter, multiCharacterDelimiter);
     }

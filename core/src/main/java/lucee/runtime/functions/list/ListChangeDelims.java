@@ -32,6 +32,18 @@ public final class ListChangeDelims extends BIF {
 
     private static final long serialVersionUID = 8979553735693035787L;
 
+    public static String call(PageContext pc, String list, String newDel) throws PageException {
+	return call(pc, list, newDel, ",", false, false);
+    }
+
+    public static String call(PageContext pc, String list, String newDel, String oldDel) throws PageException {
+	return call(pc, list, newDel, oldDel, false, false);
+    }
+
+    public static String call(PageContext pc, String list, String newDel, String oldDel, boolean includeEmptyFields) throws PageException {
+	return call(pc, list, newDel, oldDel, includeEmptyFields, false);
+    }
+
     public static String call(PageContext pc, String list, String newDel, String oldDel, boolean includeEmptyFields, boolean multiCharacterDelimiter) throws PageException {
 	return ListUtil.arrayToList(ListUtil.listToArray(list, oldDel, includeEmptyFields, multiCharacterDelimiter), newDel);
     }

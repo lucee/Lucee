@@ -31,6 +31,11 @@ public final class ListAppend extends BIF {
 
     private static final long serialVersionUID = -4893447489733907241L;
 
+    public static String call(PageContext pc, String list, String value) {
+	if (list.length() == 0) return value;
+	return new StringBuilder(list).append(',').append(value).toString();
+    }
+
     public static String call(PageContext pc, String list, String value, String delimiter) {
 	if (list.length() == 0) return value;
 	switch (delimiter.length()) {

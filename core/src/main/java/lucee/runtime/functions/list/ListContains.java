@@ -32,6 +32,18 @@ public final class ListContains extends BIF {
 
     private static final long serialVersionUID = -7580788340022587225L;
 
+    public static double call(PageContext pc, String list, String value) {
+	return call(pc, list, value, ",", false, false);
+    }
+
+    public static double call(PageContext pc, String list, String value, String delimter) {
+	return call(pc, list, value, delimter, false, false);
+    }
+
+    public static double call(PageContext pc, String list, String value, String delimter, boolean includeEmptyFields) {
+	return call(pc, list, value, delimter, includeEmptyFields, false);
+    }
+
     public static double call(PageContext pc, String list, String value, String delimter, boolean includeEmptyFields, boolean multiCharacterDelimiter) {
 	return ListUtil.listContains(list, value, delimter, includeEmptyFields, multiCharacterDelimiter) + 1;
     }

@@ -32,6 +32,18 @@ public final class ListLast extends BIF {
 
     private static final long serialVersionUID = 2822477678831478329L;
 
+    public static String call(PageContext pc, String list) {
+	return ListUtil.last(list, ",", true);
+    }
+
+    public static String call(PageContext pc, String list, String delimiter) {
+	return ListUtil.last(list, delimiter, true);
+    }
+
+    public static String call(PageContext pc, String list, String delimiter, boolean includeEmptyFields) {
+	return ListUtil.last(list, delimiter, !includeEmptyFields);
+    }
+
     public static String call(PageContext pc, String list, String delimiter, boolean includeEmptyFields, double count) {
 	if (count == 1d) return ListUtil.last(list, delimiter, !includeEmptyFields);
 	return ListUtil.last(list, delimiter, !includeEmptyFields, (int) count);

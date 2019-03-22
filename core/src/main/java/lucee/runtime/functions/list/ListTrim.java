@@ -32,6 +32,11 @@ public final class ListTrim extends BIF {
 
     private static final long serialVersionUID = 2354456835027080741L;
 
+    public static String call(PageContext pc, String list) {
+	DeprecatedUtil.function(pc, "ListTrim", "ListCompact");
+	return ListCompact.call(pc, list, ",");
+    }
+
     public static String call(PageContext pc, String list, String delimiter) {
 	DeprecatedUtil.function(pc, "ListTrim", "ListCompact");
 	return ListCompact.call(pc, list, delimiter, false);
