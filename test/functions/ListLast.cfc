@@ -37,4 +37,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		assertEquals("b,c,d",ListLast(list:',a,,b,,c,,d,',count:3));
 		assertEquals(",d,",ListLast(list:',a,,b,,c,,d,',count:3,includeEmptyFields:true));
 	}
+
+	function testListLastMemberFunction(){
+		var list = 'abba,xx,xxxx,xxxx,xxx,bb,'
+		assertEquals("bb",list.ListLast(","));
+		assertEquals("",list.ListLast(includeEmptyFields=true));
+		var list2 = 'abba||xx||xxxx||xxx||bb||';
+		assertEquals("bb",list2.ListLast(delimiters="||"));
+		assertEquals("",list2.ListLast(delimiters="||", includeEmptyFields=true));
+	}
 }

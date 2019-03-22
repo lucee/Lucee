@@ -32,6 +32,18 @@ public final class ListLast extends BIF {
 
     private static final long serialVersionUID = 2822477678831478329L;
 
+    public static String call(PageContext pc, String list) {
+	return ListUtil.last(list, ",", true);
+    }
+
+    public static String call(PageContext pc, String list, String delimiter) {
+	return ListUtil.last(list, delimiter, true);
+    }
+
+    public static String call(PageContext pc, String list, String delimiter, boolean includeEmptyFields) {
+	return ListUtil.last(list, delimiter, !includeEmptyFields);
+    }
+
     public static String call(PageContext pc, String list, String delimiter, boolean includeEmptyFields, double count) {
 	if (count == 1d) return ListUtil.last(list, delimiter, !includeEmptyFields);
 	return ListUtil.last(list, delimiter, !includeEmptyFields, (int) count);
@@ -39,11 +51,10 @@ public final class ListLast extends BIF {
 
     @Override
     public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 1) return ListUtil.last(Caster.toString(args[0]), ",", false);
-	if (args.length == 2) return ListUtil.last(Caster.toString(args[0]), Caster.toString(args[1]), false);
-	if (args.length == 3) return ListUtil.last(Caster.toString(args[0]), Caster.toString(args[1]), Caster.toBooleanValue(args[2]));
-	if (args.length == 4) return ListUtil.last(Caster.toString(args[0]), Caster.toString(args[1]), Caster.toBooleanValue(args[2]), Caster.toIntValue(args[3]));
-
+	if (args.length == 1) return ListUtil.last(Caster.toString(args[0]), ",", true);
+	if (args.length == 2) return ListUtil.last(Caster.toString(args[0]), Caster.toString(args[1]), true);
+	if (args.length == 3) return ListUtil.last(Caster.toString(args[0]), Caster.toString(args[1]), !Caster.toBooleanValue(args[2]));
+	if (args.length == 4) return ListUtil.last(Caster.toString(args[0]), Caster.toString(args[1]), !Caster.toBooleanValue(args[2]), Caster.toIntValue(args[3]));
 	throw new FunctionException(pc, "ListLast", 1, 4, args.length);
     }
 

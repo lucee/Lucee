@@ -31,6 +31,15 @@ import lucee.runtime.op.Caster;
 public final class ListDeleteAt extends BIF {
 
     private static final long serialVersionUID = 7050644316663288912L;
+    private static char[] DEFAULT_DELIMITER = new char[] { ',' };
+
+    public static String call(PageContext pc, String list, double posNumber) throws ExpressionException {
+	return _call(pc, list, (int) posNumber, DEFAULT_DELIMITER, false);
+    }
+
+    public static String call(PageContext pc, String list, double posNumber, String del) throws ExpressionException {
+	return _call(pc, list, (int) posNumber, del.toCharArray(), false);
+    }
 
     public static String call(PageContext pc, String list, double posNumber, String del, boolean includeEmptyFields) throws ExpressionException {
 	return _call(pc, list, (int) posNumber, del.toCharArray(), includeEmptyFields);

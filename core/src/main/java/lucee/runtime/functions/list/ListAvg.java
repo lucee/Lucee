@@ -34,6 +34,14 @@ public final class ListAvg extends BIF {
 
     private static final long serialVersionUID = -7365055491706152507L;
 
+    public static double call(PageContext pc, String list) throws ExpressionException {
+	return call(pc, list, ",", false);
+    }
+
+    public static double call(PageContext pc, String list, String delimiter) throws ExpressionException {
+	return call(pc, list, delimiter, false);
+    }
+
     public static double call(PageContext pc, String list, String delimiter, boolean multiCharacterDelimiter) throws ExpressionException {
 	return ArrayUtil.avg(ListUtil.listToArray(list, delimiter, false, multiCharacterDelimiter));
     }
