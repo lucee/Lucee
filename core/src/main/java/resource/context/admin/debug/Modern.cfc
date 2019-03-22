@@ -702,9 +702,9 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 					clickAjax(section);
 				</script>
 			<cfelseif REQUEST.admin=true>
-				<cfscript>
+				<script>
 					clickAjax("debug");
-				</cfscript>
+				</script>
 			</cfif>
 		</cfoutput>
 	</cffunction><!--- output() !--->
