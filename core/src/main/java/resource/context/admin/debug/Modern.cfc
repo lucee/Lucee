@@ -701,7 +701,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 					}
 					clickAjax(section);
 				</script>
-			<cfelseif REQUEST.admin=true>
+			<cfelseif !isNull(REQUEST.admin) and REQUEST.admin EQ true>
 				<script>
 					clickAjax("debug");
 				</script>
