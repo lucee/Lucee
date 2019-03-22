@@ -697,10 +697,10 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 					}
 					clickAjax(section);
 				</script>
-			<cfelseif REQUEST.admin=true>
-				<cfscript>
+			<cfelseif !isNull(REQUEST.admin) and REQUEST.admin EQ true>
+				<script>
 					clickAjax("debug");
-				</cfscript>
+				</script>
 			</cfif>
 		</cfoutput>
 	</cffunction><!--- output() !--->
