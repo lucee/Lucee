@@ -60,27 +60,35 @@ public final class FunctionImpl extends Function {
 
 	bc.getFactory().registerKey(bc, name, true);
 	if (pageType == PAGE_TYPE_COMPONENT) {
-	    loadUDFProperties(bc, valueIndex, arrayIndex, TYPE_UDF);
-	    adapter.invokeVirtual(Types.COMPONENT_IMPL, REG_UDF_KEY);
+	    if (this.jf != null) {
+		bc.registerJavaFunction(jf);
+		adapter.push(jf.getClassName());
+		adapter.invokeVirtual(Types.COMPONENT_IMPL, REG_JAVA_FUNCTION);
+	    }
+	    else {
+		loadUDFProperties(bc, valueIndex, arrayIndex, TYPE_UDF);
+		adapter.invokeVirtual(Types.COMPONENT_IMPL, REG_UDF_KEY);
+	    }
 	}
 	else if (pageType == PAGE_TYPE_INTERFACE) {
-	    loadUDFProperties(bc, valueIndex, arrayIndex, TYPE_UDF);
-	    adapter.invokeVirtual(Types.INTERFACE_IMPL, REG_UDF_KEY);
+	    if (this.jf != null) {
+		bc.registerJavaFunction(jf);
+		adapter.push(jf.getClassName());
+		adapter.invokeVirtual(Types.INTERFACE_IMPL, REG_JAVA_FUNCTION);
+	    }
+	    else {
+		loadUDFProperties(bc, valueIndex, arrayIndex, TYPE_UDF);
+		adapter.invokeVirtual(Types.INTERFACE_IMPL, REG_UDF_KEY);
+	    }
 	}
 	else {
 	    if (this.jf != null) {
 		bc.registerJavaFunction(jf);
-
-		if (pageType == PAGE_TYPE_COMPONENT) adapter.loadArg(1);
-		else adapter.loadArg(0);
+		adapter.loadArg(0);
 		adapter.checkCast(Types.PAGE_CONTEXT_IMPL);
-		// adapter.push(jf.getParent().getRealpathWithVirtual());
-
 		adapter.visitVarInsn(ALOAD, 0);
 		adapter.push(jf.getClassName());
-
 		adapter.invokeVirtual(Types.PAGE_CONTEXT_IMPL, USE_JAVA_FUNCTION);
-		// adapter.push(jbc.getClassName());
 	    }
 	    else {
 		adapter.newInstance(Types.UDF_IMPL);

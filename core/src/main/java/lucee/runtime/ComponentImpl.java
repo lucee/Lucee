@@ -47,6 +47,8 @@ import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CFTypes;
+import lucee.commons.lang.ClassException;
+import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
@@ -1663,6 +1665,10 @@ public final class ComponentImpl extends StructSupport implements Externalizable
     @Override
     public void registerUDF(Collection.Key key, UDFProperties prop) throws ApplicationException {
 	registerUDF(key, new UDFImpl(prop), useShadow, false);
+    }
+
+    public void regJavaFunction(Collection.Key key, String className) throws ClassException, ClassNotFoundException, IOException, ApplicationException {
+	registerUDF(key, (UDF) ClassUtil.loadInstance(getPageSource().getMapping().getPhysicalClass(className)));
     }
 
     /*

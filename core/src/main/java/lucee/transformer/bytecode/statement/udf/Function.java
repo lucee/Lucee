@@ -123,6 +123,7 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
     private static final Method[] INIT_FAI_KEY_LIGHT = new Method[] { INIT_FAI_KEY1, INIT_FAI_KEY3 };
 
     protected static final Method USE_JAVA_FUNCTION = new Method("useJavaFunction", Types.OBJECT, new Type[] { Types.PAGE, Types.STRING });
+    protected static final Method REG_JAVA_FUNCTION = new Method("regJavaFunction", Types.VOID, new Type[] { Types.COLLECTION_KEY, Types.STRING });
 
     ExprString name;
     ExprString returnType;
@@ -341,20 +342,32 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
     }
 
     public final void createFunction(BytecodeContext bc, int index, int type) throws TransformerException {
-	// new UDF(...)
-	GeneratorAdapter adapter = bc.getAdapter();
-	Type t;
-	if (TYPE_CLOSURE == type) t = Types.CLOSURE;
-	else if (TYPE_LAMBDA == type) t = Types.LAMBDA;
-	else t = Types.UDF_IMPL;
-	adapter.newInstance(t);
 
-	adapter.dup();
+	if (this.jf != null) {
+	    GeneratorAdapter adapter = bc.getAdapter();
+	    bc.registerJavaFunction(jf);
+	    adapter.loadArg(0);
+	    adapter.checkCast(Types.PAGE_CONTEXT_IMPL);
+	    adapter.visitVarInsn(ALOAD, 0);
+	    adapter.push(jf.getClassName());
+	    adapter.invokeVirtual(Types.PAGE_CONTEXT_IMPL, USE_JAVA_FUNCTION);
+	}
+	else {
+	    // new UDF(...)
+	    GeneratorAdapter adapter = bc.getAdapter();
+	    Type t;
+	    if (TYPE_CLOSURE == type) t = Types.CLOSURE;
+	    else if (TYPE_LAMBDA == type) t = Types.LAMBDA;
+	    else t = Types.UDF_IMPL;
+	    adapter.newInstance(t);
 
-	createUDFProperties(bc, index, type);
-	// loadUDFProperties(bc, index,closure);
+	    adapter.dup();
 
-	adapter.invokeConstructor(t, INIT_UDF_IMPL_PROP);
+	    createUDFProperties(bc, index, type);
+
+	    adapter.invokeConstructor(t, INIT_UDF_IMPL_PROP);
+	}
+
     }
 
     private final void createArguments(BytecodeContext bc) throws TransformerException {

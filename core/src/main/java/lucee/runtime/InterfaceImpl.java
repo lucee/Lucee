@@ -18,6 +18,7 @@
  */
 package lucee.runtime;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -26,6 +27,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import lucee.commons.lang.ClassException;
+import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.component.ComponentLoader;
 import lucee.runtime.component.MetaDataSoftReference;
@@ -149,6 +152,10 @@ public class InterfaceImpl implements Interface {
     @Override
     public void registerUDF(Collection.Key key, UDFProperties props) throws ApplicationException {
 	registerUDF(key, new UDFImpl(props));
+    }
+
+    public void regJavaFunction(Collection.Key key, String className) throws ClassException, ClassNotFoundException, IOException, ApplicationException {
+	registerUDF(key, (UDF) ClassUtil.loadInstance(getPageSource().getMapping().getPhysicalClass(className)));
     }
 
     @Override

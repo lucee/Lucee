@@ -169,7 +169,7 @@ public class FunctionDefFactory {
 	     * "], for the arguments defined, valid argument combinations are [" + sb + "]");
 	     */
 	}
-	return new JavaFunctionDef(null, "invoke", argTypes, rtnType);
+	return new JavaFunctionDef(null, "invoke", argTypes, rtnType, true);
 
     }
 

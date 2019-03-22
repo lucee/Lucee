@@ -34,12 +34,18 @@ public class JavaFunctionDef implements FunctionDef {
     private String javaMethodName;
     protected Class<?>[] args;
     protected Class<?> rtn;
+    protected boolean throwException;
 
     public JavaFunctionDef(Class<?> javaClassName, String javaMethodName, Class<?>[] args, Class<?> rtn) {
+	this(javaClassName, javaMethodName, args, rtn, false);
+    }
+
+    public JavaFunctionDef(Class<?> javaClassName, String javaMethodName, Class<?>[] args, Class<?> rtn, boolean throwException) {
 	this.javaClass = javaClassName;
 	this.javaMethodName = javaMethodName;
 	this.args = args;
 	this.rtn = rtn;
+	this.throwException = throwException;
     }
 
     /*
@@ -103,9 +109,13 @@ public class JavaFunctionDef implements FunctionDef {
 	    del = true;
 	}
 
-	sb.append(") throws Exception ");
-	sb.append(StringUtil.replace(javaCode, "{",
-		"{\nlucee.loader.engine.CFMLEngine engine = CFMLEngineFactory.getInstance();\n" + "PageContext pc = engine.getThreadPageContext();\n", true));
+	sb.append(") ");
+	if (throwException) sb.append(" throws Exception ");
+
+	sb.append(StringUtil.replace(javaCode, "{", "{\n" + (throwException ? "" : "\ntry {") + "\nlucee.loader.engine.CFMLEngine engine = CFMLEngineFactory.getInstance();\n"
+		+ "PageContext pc = engine.getThreadPageContext();\n", true));
+
+	if (!throwException) sb.append(" catch(Exception eeeee){throw new RuntimeException(eeeee);}} ");
 	sb.append(createConstructor(className, id, functionName, hint));
 	sb.append(createCallFunction(javaClass));
 	sb.append(createGetFunctionArguments(argNames, argHints));
@@ -208,7 +218,7 @@ public class JavaFunctionDef implements FunctionDef {
 	sb.append("	return new FunctionArgument[] {");
 	for (int i = 0; i < argNames.length; i++) {
 	    if (i > 0) sb.append(',');
-	    sb.append("new FunctionArgumentImpl(lucee.runtime.type.KeyImpl.init(").append(esc(argNames[i])).append("),").append(esc(Caster.toTypeName(args[i]))).append(",")
+	    sb.append("new FunctionArgumentImpl(lucee.runtime.type.KeyImpl.init(").append(esc(argNames[i])).append("),").append(esc(Caster.toClassName(args[i]))).append(",")
 		    .append("(short)").append(CFTypes.toShortStrict(Caster.toTypeName(args[i]), (short) 0)).append(',')
 		    .append("false,FunctionArgument.DEFAULT_TYPE_NULL, true,\"\",").append(esc(argHints[i])).append(")\n");
 	}

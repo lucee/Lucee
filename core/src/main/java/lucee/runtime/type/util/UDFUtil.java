@@ -314,8 +314,12 @@ public class UDFUtil {
 	else if (TYPE_BIF == type) atts = new DumpTable("udf", "#e1c039", "#f1e2a3", "#000000");
 	else atts = new DumpTable("udf", "#f3d5bd", "#f6e4cc", "#000000");
 
-	atts.appendRow(new DumpRow(63, new DumpData[] { new SimpleDumpData("label"), new SimpleDumpData("name"), new SimpleDumpData("required"), new SimpleDumpData("type"),
-		new SimpleDumpData("default"), new SimpleDumpData("hint") }));
+	atts.appendRow(new DumpRow(63, isJavaFunction
+		? new DumpData[] { new SimpleDumpData("label"), new SimpleDumpData("name"), new SimpleDumpData("required"), new SimpleDumpData("type"), new SimpleDumpData("hint") }
+		: new DumpData[] { new SimpleDumpData("label"), new SimpleDumpData("name"), new SimpleDumpData("required"), new SimpleDumpData("type"),
+			new SimpleDumpData("default"), new SimpleDumpData("hint") }
+
+	));
 	for (int i = 0; i < args.length; i++) {
 	    FunctionArgument arg = args[i];
 	    DumpData def;
@@ -327,7 +331,9 @@ public class UDFUtil {
 	    catch (PageException e) {
 		def = new SimpleDumpData("");
 	    }
-	    atts.appendRow(new DumpRow(0, new DumpData[] { new SimpleDumpData(arg.getDisplayName()), new SimpleDumpData(arg.getName().getString()),
+	    if (isJavaFunction) atts.appendRow(new DumpRow(0, new DumpData[] { new SimpleDumpData(arg.getDisplayName()), new SimpleDumpData(arg.getName().getString()),
+		    new SimpleDumpData(arg.isRequired()), new SimpleDumpData(arg.getTypeAsString()), new SimpleDumpData(arg.getHint()) }));
+	    else atts.appendRow(new DumpRow(0, new DumpData[] { new SimpleDumpData(arg.getDisplayName()), new SimpleDumpData(arg.getName().getString()),
 		    new SimpleDumpData(arg.isRequired()), new SimpleDumpData(arg.getTypeAsString()), def, new SimpleDumpData(arg.getHint()) }));
 	    // atts.setRow(0,arg.getHint());
 
@@ -336,7 +342,7 @@ public class UDFUtil {
 	String label = udf.getDisplayName();
 	if (TYPE_CLOSURE == type) {
 	    func = new DumpTable("#9cb770", "#c7e1ba", "#000000");
-	    func.setTitle(StringUtil.isEmpty(label) ? "Closure" : "Closure " + label);
+	    func.setTitle((isJavaFunction ? "Java " : "") + (StringUtil.isEmpty(label) ? "Closure" : "Closure " + label));
 	}
 	else if (TYPE_UDF == type) {
 	    func = isJavaFunction ? new DumpTable("#7aa7ce", "#e2eb8b", "#000000") : new DumpTable("#ca5095", "#e9accc", "#000000");
