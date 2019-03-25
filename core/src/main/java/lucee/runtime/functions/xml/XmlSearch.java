@@ -19,17 +19,24 @@
 
 package lucee.runtime.functions.xml;
 
-import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
-import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.XMLConstants;
+import javax.xml.namespace.NamespaceContext;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+
+import org.w3c.dom.Document;
+//import org.apache.xpath.XPathAPI;
+//import org.apache.xpath.objects.XObject;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
@@ -42,13 +49,6 @@ import lucee.runtime.text.xml.struct.XMLObject;
 import lucee.runtime.text.xml.struct.XMLStruct;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
-
-import org.w3c.dom.Document;
-//import org.apache.xpath.XPathAPI;
-//import org.apache.xpath.objects.XObject;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
 
 /**
  * Implements the CFML Function xmlsearch
@@ -81,6 +81,7 @@ public final class XmlSearch implements Function {
 	try {
 	    XPathFactory factory = XPathFactory.newInstance();
 	    XPath path = factory.newXPath();
+	    path.setNamespaceContext(new UniversalNamespaceResolver(XMLUtil.getDocument(node)));
 	    expr = path.compile(strExpr);
 	}
 	catch (Exception e) {
@@ -122,19 +123,48 @@ public final class XmlSearch implements Function {
 	return rtn;
     }
 
-    public static void main(String[] args) throws Exception {
-	String str = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><aaa>parent<fff ggg=\"3\">eee</fff><fff ggg=\"hhh\">iii</fff></aaa>";
-	InputSource is = new InputSource(new StringReader(str));
-	DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
-	Document doc = XMLUtil.parse(is, null, false);
+    private static class UniversalNamespaceResolver implements NamespaceContext {
+	// the delegate
+	private Document sourceDocument;
 
-	// System.out.println(_call(doc, "/aaa", false));
-	// System.out.println(_call(doc, "/aaa/fff/text()", false));
+	/**
+	 * This constructor stores the source document to search the namespaces in it.
+	 * 
+	 * @param document source document
+	 */
+	public UniversalNamespaceResolver(Document document) {
+	    sourceDocument = document;
+	}
 
-	// returns a number
-	System.out.println(_call(doc, "/aaa/fff/@ggg+4", false));
+	/**
+	 * The lookup for the namespace uris is delegated to the stored document.
+	 * 
+	 * @param prefix to search for
+	 * @return uri
+	 */
+	@Override
+	public String getNamespaceURI(String prefix) {
+	    if (prefix.equals(XMLConstants.DEFAULT_NS_PREFIX)) {
+		return sourceDocument.lookupNamespaceURI(null);
+	    }
+	    else {
+		return sourceDocument.lookupNamespaceURI(prefix);
+	    }
+	}
 
-	// returns a boolean
-	// System.out.println(_call(doc, "/aaa/fff/@ggg+1=4", false));
+	/**
+	 * This method is not needed in this context, but can be implemented in a similar way.
+	 */
+	@Override
+	public String getPrefix(String namespaceURI) {
+	    return sourceDocument.lookupPrefix(namespaceURI);
+	}
+
+	@Override
+	public Iterator getPrefixes(String namespaceURI) {
+	    // not implemented yet
+	    return null;
+	}
+
     }
 }
