@@ -32,6 +32,14 @@ public final class ListGetAt extends BIF {
 
     private static final long serialVersionUID = -8227074223983816122L;
 
+    public static String call(PageContext pc, String list, double posNumber) throws PageException {
+	return call(pc, list, posNumber, ",", false);
+    }
+
+    public static String call(PageContext pc, String list, double posNumber, String delimiter) throws PageException {
+	return call(pc, list, posNumber, delimiter, false);
+    }
+
     public static String call(PageContext pc, String list, double posNumber, String delimiter, boolean includeEmptyFields) throws PageException {
 	int pos = (int) posNumber;
 	String rtn = ListUtil.getAt(list, delimiter, pos - 1, !includeEmptyFields, null);
