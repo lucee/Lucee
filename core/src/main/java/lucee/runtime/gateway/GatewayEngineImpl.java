@@ -29,6 +29,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.osgi.framework.BundleException;
 
 import lucee.commons.io.DevNullOutputStream;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ClassException;
@@ -217,9 +218,14 @@ public class GatewayEngineImpl implements GatewayEngine {
 	    if (g.getState() == Gateway.RUNNING) {
 		try {
 		    g.doStop();
+		    if (g instanceof GatewaySupport) {
+			Thread t = ((GatewaySupport) g).getThread();
+			t.interrupt();
+			SystemUtil.patienceStop(t, 1000);
+		    }
 		}
 		catch (IOException e) {
-		    log(g, LOGLEVEL_ERROR, e.getMessage());
+		    log(g.getId(), LOGLEVEL_ERROR, e.getMessage(), e);
 		}
 	    }
 	    if (ge.getStartupMode() == GatewayEntry.STARTUP_MODE_AUTOMATIC) start(g);

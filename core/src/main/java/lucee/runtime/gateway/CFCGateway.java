@@ -26,7 +26,7 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 
-public class CFCGateway implements Gateway {
+public class CFCGateway implements GatewaySupport {
 
     // private static final Object OBJ = new Object();
     // private Component _cfc;
@@ -37,6 +37,7 @@ public class CFCGateway implements Gateway {
     // private String requestURI;
     // private Resource cfcDirectory;
     private GatewayEngineImpl engine;
+    private Thread thread;
 
     public CFCGateway(String cfcPath) {
 	this.cfcPath = cfcPath;
@@ -171,5 +172,15 @@ public class CFCGateway implements Gateway {
 
     private Object call(String methodName, Struct arguments, Object defaultValue) throws PageException {
 	return engine.call(cfcPath, id, methodName, arguments, true, defaultValue);
+    }
+
+    @Override
+    public void setThread(Thread thread) {
+	this.thread = thread;
+    }
+
+    @Override
+    public Thread getThread() {
+	return thread;
     }
 }

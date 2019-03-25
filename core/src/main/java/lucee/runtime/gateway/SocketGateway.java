@@ -41,7 +41,7 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.util.Cast;
 import lucee.runtime.util.Creation;
 
-public class SocketGateway implements Gateway {
+public class SocketGateway implements GatewaySupport {
 
     private GatewayEngine engine;
     private int port;
@@ -55,6 +55,7 @@ public class SocketGateway implements Gateway {
     private ServerSocket serverSocket;
     protected int state = STOPPED;
     private String cfcPath;
+    private Thread thread;
 
     @Override
     public void init(GatewayEngine engine, String id, String cfcPath, Map config) throws GatewayException {
@@ -316,4 +317,13 @@ public class SocketGateway implements Gateway {
 	}
     }
 
+    @Override
+    public void setThread(Thread thread) {
+	this.thread = thread;
+    }
+
+    @Override
+    public Thread getThread() {
+	return thread;
+    }
 }

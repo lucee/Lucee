@@ -120,9 +120,9 @@ public final class SystemUtil {
     public static final int ARCH_64 = lucee.runtime.util.SystemUtil.ARCH_64;
 
     public static final String SETTING_CONTROLLER_DISABLED = "lucee.controller.disabled";
-	public static final String SETTING_UPLOAD_EXT_BLACKLIST = "lucee.upload.blacklist";
+    public static final String SETTING_UPLOAD_EXT_BLACKLIST = "lucee.upload.blacklist";
 
-	public static final String DEFAULT_UPLOAD_EXT_BLACKLIST = "asp,aspx,cfc,cfm,cfml,do,htm,html,jsp,jspx,php";
+    public static final String DEFAULT_UPLOAD_EXT_BLACKLIST = "asp,aspx,cfc,cfm,cfml,do,htm,html,jsp,jspx,php";
 
     public static final char CHAR_DOLLAR = (char) 36;
     public static final char CHAR_POUND = (char) 163;
@@ -1148,18 +1148,16 @@ public final class SystemUtil {
 
     }
 
-
-	/**
-	 * converts a System property format to its equivalent Environment variable, e.g.
-	 * an input of "lucee.conf.name" will return "LUCEE_CONF_NAME"
-	 *
-	 * @param name the System property name
-	 * @return the equivalent Environment variable name
-	 */
-	public static String convertSystemPropToEnvVar(String name) {
-		return name.replace('.', '_').toUpperCase();
-	}
-
+    /**
+     * converts a System property format to its equivalent Environment variable, e.g. an input of
+     * "lucee.conf.name" will return "LUCEE_CONF_NAME"
+     *
+     * @param name the System property name
+     * @return the equivalent Environment variable name
+     */
+    public static String convertSystemPropToEnvVar(String name) {
+	return name.replace('.', '_').toUpperCase();
+    }
 
     /**
      * returns a system setting by either a Java property name or a System environment variable
@@ -1223,6 +1221,27 @@ public final class SystemUtil {
 	     * does not support Thread.stop(Throwable) thread.stop(); }
 	     */
 	}
+    }
+
+    public static void patienceStop(Thread thread, int max) {
+	StackTraceElement[] stes;
+	StackTraceElement ste;
+	for (int y = 0; y < max; y++) {
+	    sleep(1);
+	    for (int i = 0; i < 10; i++) {
+		if (!thread.isAlive()) return;
+		stes = thread.getStackTrace();
+		if (stes != null && stes.length > 0) {
+		    ste = stes[0];
+		    if (!ste.isNativeMethod()) {
+			stop(thread);
+			sleep(1);
+			if (!thread.isAlive()) break;
+		    }
+		}
+	    }
+	}
+	stop(thread);
     }
 
     public static void stop(PageContext pc, boolean async) {
