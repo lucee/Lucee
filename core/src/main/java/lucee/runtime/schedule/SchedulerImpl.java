@@ -154,6 +154,12 @@ public final class SchedulerImpl implements Scheduler {
 	((ScheduleTaskImpl) task).startIfNecessary(engine);
     }
 
+    public void stop() {
+	for (int i = 0; i < tasks.length; i++) {
+	    tasks[i].stop();
+	}
+    }
+
     /**
      * read in all schedule tasks
      * 

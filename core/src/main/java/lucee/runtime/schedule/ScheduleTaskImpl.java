@@ -23,6 +23,7 @@ import java.lang.Thread.State;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.Md5;
 import lucee.commons.net.HTTPUtil;
@@ -344,5 +345,13 @@ public final class ScheduleTaskImpl implements ScheduleTask {
 	}
 	this.thread = new ScheduledTaskThread(engine, scheduler, this);
 	thread.start();
+    }
+
+    public void stop() {
+	if (thread == null || !thread.isAlive()) return;
+	thread.setStop(true);
+	thread.interrupt();
+	SystemUtil.sleep(1);
+	SystemUtil.stop(thread);
     }
 }

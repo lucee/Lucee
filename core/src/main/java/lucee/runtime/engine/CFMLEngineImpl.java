@@ -66,6 +66,7 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
 
 import lucee.Info;
+import lucee.aprint;
 import lucee.cli.servlet.HTTPServletImpl;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.io.CharsetUtil;
@@ -145,6 +146,7 @@ import lucee.runtime.op.JavaProxyUtilImpl;
 import lucee.runtime.op.OperationImpl;
 import lucee.runtime.op.StringsImpl;
 import lucee.runtime.osgi.OSGiUtil;
+import lucee.runtime.schedule.SchedulerImpl;
 import lucee.runtime.thread.ThreadUtil;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
@@ -1132,6 +1134,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
     @Override
     public void reset(String configId) {
+	if (!controlerState.active()) return;
 	LogUtil.log(configServer, Log.LEVEL_INFO, "startup", "reset CFML Engine");
 	getControler().close();
 	RetireOutputStreamFactory.close();
@@ -1144,11 +1147,19 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	CFMLFactoryImpl cfmlFactory;
 	// ScopeContext scopeContext;
 	try {
-	    Iterator<String> it = contextes.keySet().iterator();
+	    Iterator<Entry<String, CFMLFactory>> it = initContextes.entrySet().iterator();
+	    Entry<String, CFMLFactory> e;
+	    ConfigWebImpl config;
 	    while (it.hasNext()) {
+		e = it.next();
 		try {
-		    cfmlFactory = (CFMLFactoryImpl) contextes.get(it.next());
-		    if (configId != null && !configId.equals(cfmlFactory.getConfigWebImpl().getIdentification().getId())) continue;
+		    cfmlFactory = (CFMLFactoryImpl) e.getValue();
+		    config = cfmlFactory.getConfigWebImpl();
+
+		    if (configId != null && !configId.equals(config.getIdentification().getId())) continue;
+
+		    // scheduled tasks
+		    ((SchedulerImpl) config.getScheduler()).stop();
 
 		    // scopes
 		    try {
@@ -1192,8 +1203,8 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		    releaseCache(cfmlFactory.getConfigWebImpl());
 
 		}
-		catch (Throwable t) {
-		    ExceptionUtil.rethrowIfNecessary(t);
+		catch (Exception ex) {
+		    aprint.e(ex);
 		}
 	    }
 
@@ -1206,6 +1217,15 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	    controlerState.setActive(false);
 	}
     }
+
+    /*
+     * private void dump() { Iterator<Entry<Thread, StackTraceElement[]>> it =
+     * Thread.getAllStackTraces().entrySet().iterator(); while (it.hasNext()) { Entry<Thread,
+     * StackTraceElement[]> e = it.next(); print.e(e.getKey().getContextClassLoader());
+     * print.e(e.getValue()); }
+     * 
+     * }
+     */
 
     private void shutdownFelix() {
 	CFMLEngineFactory f = getCFMLEngineFactory();

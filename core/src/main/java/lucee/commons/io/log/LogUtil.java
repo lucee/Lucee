@@ -22,7 +22,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 
-import lucee.print;
+import lucee.aprint;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
@@ -109,7 +109,7 @@ public final class LogUtil {
 	    IOUtil.write(log, SystemOut.FORMAT.format(new Date(System.currentTimeMillis())) + " " + type + " " + msg + "\n", CharsetUtil.UTF8, true);
 	}
 	catch (IOException ioe) {
-	    print.e(ioe);
+	    aprint.e(ioe);
 	}
     }
 

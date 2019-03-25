@@ -41,6 +41,7 @@ public class ScheduledTaskThread extends Thread {
     private long endTime;
     private int intervall;
     private int amount;
+    private boolean stop;
 
     private DateTimeUtil util;
 
@@ -70,6 +71,10 @@ public class ScheduledTaskThread extends Thread {
 	else amount = 1;
 
 	cIntervall = toCalndarIntervall(intervall);
+    }
+
+    public void setStop(boolean stop) {
+	this.stop = stop;
     }
 
     @Override
@@ -119,7 +124,7 @@ public class ScheduledTaskThread extends Thread {
 	while (true) {
 
 	    sleepEL(execution, today);
-
+	    if (stop) break;
 	    if (!engine.isRunning()) {
 		log(Log.LEVEL_ERROR, "Engine is not running");
 		break;
