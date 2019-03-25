@@ -34,6 +34,27 @@ public final class ListEach extends BIF {
 
     private static final long serialVersionUID = -2271260656749514177L;
 
+    public static String call(PageContext pc, String list, UDF udf) throws PageException {
+	return _call(pc, list, udf, ",", false, true, false, 20);
+    }
+
+    public static String call(PageContext pc, String list, UDF udf, String delimiter) throws PageException {
+	return _call(pc, list, udf, delimiter, false, true, false, 20);
+    }
+
+    public static String call(PageContext pc, String list, UDF udf, String delimiter, boolean includeEmptyFields) throws PageException {
+	return _call(pc, list, udf, delimiter, includeEmptyFields, true, false, 20);
+    }
+
+    public static String call(PageContext pc, String list, UDF udf, String delimiter, boolean includeEmptyFields, boolean multiCharacterDelimiter) throws PageException {
+	return _call(pc, list, udf, delimiter, includeEmptyFields, multiCharacterDelimiter, false, 20);
+    }
+
+    public static String call(PageContext pc, String list, UDF udf, String delimiter, boolean includeEmptyFields, boolean multiCharacterDelimiter, boolean parallel)
+	    throws PageException {
+	return _call(pc, list, udf, delimiter, includeEmptyFields, multiCharacterDelimiter, parallel, 20);
+    }
+
     public static String call(PageContext pc, String list, UDF udf, String delimiter, boolean includeEmptyFields, boolean multiCharacterDelimiter, boolean parallel,
 	    double maxThreads) throws PageException {
 	return _call(pc, list, udf, delimiter, includeEmptyFields, multiCharacterDelimiter, parallel, (int) maxThreads);

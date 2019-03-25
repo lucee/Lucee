@@ -32,15 +32,15 @@ public final class ListFirst extends BIF {
 
     private static final long serialVersionUID = 1098339742182832847L;
 
-    public static String call(PageContext pc, String list) throws FunctionException {
+    public static String call(PageContext pc, String list) {
 	return ListUtil.first(list, ",", true, 1);
     }
 
-    public static String call(PageContext pc, String list, String delimiter) throws FunctionException {
+    public static String call(PageContext pc, String list, String delimiter) {
 	return ListUtil.first(list, delimiter, true, 1);
     }
 
-    public static String call(PageContext pc, String list, String delimiter, boolean includeEmptyFields) throws FunctionException {
+    public static String call(PageContext pc, String list, String delimiter, boolean includeEmptyFields) {
 	return ListUtil.first(list, delimiter, !includeEmptyFields, 1);
     }
 

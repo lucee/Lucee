@@ -36,6 +36,27 @@ public final class ListFilter extends BIF {
 
     private static final long serialVersionUID = 2182867537570796564L;
 
+    public static String call(PageContext pc, String list, UDF filter) throws PageException {
+	return call(pc, list, filter, ",", false, true, false, 20);
+    }
+
+    public static String call(PageContext pc, String list, UDF filter, String delimiter) throws PageException {
+	return call(pc, list, filter, delimiter, false, true, false, 20);
+    }
+
+    public static String call(PageContext pc, String list, UDF filter, String delimiter, boolean includeEmptyFields) throws PageException {
+	return call(pc, list, filter, delimiter, includeEmptyFields, true, false, 20);
+    }
+
+    public static String call(PageContext pc, String list, UDF filter, String delimiter, boolean includeEmptyFields, boolean multiCharacterDelimiter) throws PageException {
+	return call(pc, list, filter, delimiter, includeEmptyFields, multiCharacterDelimiter, false, 20);
+    }
+
+    public static String call(PageContext pc, String list, UDF filter, String delimiter, boolean includeEmptyFields, boolean multiCharacterDelimiter, boolean parallel)
+	    throws PageException {
+	return call(pc, list, filter, delimiter, includeEmptyFields, multiCharacterDelimiter, parallel, 20);
+    }
+
     public static String call(PageContext pc, String list, UDF filter, String delimiter, boolean includeEmptyFields, boolean multiCharacterDelimiter, boolean parallel,
 	    double maxThreads) throws PageException {
 	return ListUtil.arrayToList((Array) Filter.call(pc, new StringListData(list, delimiter, includeEmptyFields, multiCharacterDelimiter), filter, parallel, maxThreads),
