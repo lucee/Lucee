@@ -276,6 +276,9 @@ public final class XMLUtil {
 	    // EnvClassLoader((ConfigImpl)ThreadLocalPageContext.getConfig())); // TODO make this global
 	    documentBuilderFactory = DocumentBuilderFactory.newInstance();
 	    // documentBuilderFactory=new DocumentBuilderFactoryImpl();
+	    documentBuilderFactory.setNamespaceAware(true);
+	    // print.e("isNamespaceAware?" + documentBuilderFactory.isNamespaceAware());
+
 	}
 	return documentBuilderFactory;
     }

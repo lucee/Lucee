@@ -20,8 +20,11 @@
 package lucee.runtime.functions.xml;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
+import javax.xml.XMLConstants;
+import javax.xml.namespace.NamespaceContext;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
@@ -29,6 +32,7 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import org.w3c.dom.Document;
 //import org.apache.xpath.XPathAPI;
 //import org.apache.xpath.objects.XObject;
 import org.w3c.dom.Node;
@@ -40,6 +44,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
 import lucee.runtime.text.xml.XMLCaster;
+import lucee.runtime.text.xml.XMLUtil;
 import lucee.runtime.text.xml.struct.XMLObject;
 import lucee.runtime.text.xml.struct.XMLStruct;
 import lucee.runtime.type.Array;
@@ -76,6 +81,7 @@ public final class XmlSearch implements Function {
 	try {
 	    XPathFactory factory = XPathFactory.newInstance();
 	    XPath path = factory.newXPath();
+	    path.setNamespaceContext(new UniversalNamespaceResolver(XMLUtil.getDocument(node)));
 	    expr = path.compile(strExpr);
 	}
 	catch (Exception e) {
@@ -104,6 +110,51 @@ public final class XmlSearch implements Function {
 	catch (TransformerException e) {
 	    throw Caster.toPageException(e);
 	}
+    }
+
+    private static class UniversalNamespaceResolver implements NamespaceContext {
+	// the delegate
+	private Document sourceDocument;
+
+	/**
+	 * This constructor stores the source document to search the namespaces in it.
+	 * 
+	 * @param document source document
+	 */
+	public UniversalNamespaceResolver(Document document) {
+	    sourceDocument = document;
+	}
+
+	/**
+	 * The lookup for the namespace uris is delegated to the stored document.
+	 * 
+	 * @param prefix to search for
+	 * @return uri
+	 */
+	@Override
+	public String getNamespaceURI(String prefix) {
+	    if (prefix.equals(XMLConstants.DEFAULT_NS_PREFIX)) {
+		return sourceDocument.lookupNamespaceURI(null);
+	    }
+	    else {
+		return sourceDocument.lookupNamespaceURI(prefix);
+	    }
+	}
+
+	/**
+	 * This method is not needed in this context, but can be implemented in a similar way.
+	 */
+	@Override
+	public String getPrefix(String namespaceURI) {
+	    return sourceDocument.lookupPrefix(namespaceURI);
+	}
+
+	@Override
+	public Iterator getPrefixes(String namespaceURI) {
+	    // not implemented yet
+	    return null;
+	}
+
     }
 
     private static Array nodelist(NodeList list, boolean caseSensitive) throws TransformerException, PageException {
