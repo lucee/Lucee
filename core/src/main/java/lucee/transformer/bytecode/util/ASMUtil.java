@@ -24,6 +24,16 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.GeneratorAdapter;
+import org.objectweb.asm.commons.Method;
+
 import lucee.aprint;
 import lucee.commons.digest.MD5;
 import lucee.commons.io.IOUtil;
@@ -36,7 +46,6 @@ import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
-import lucee.runtime.net.rpc.WSHandler;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.type.dt.TimeSpanImpl;
@@ -81,16 +90,6 @@ import lucee.transformer.expression.var.DataMember;
 import lucee.transformer.expression.var.Member;
 import lucee.transformer.expression.var.Variable;
 import lucee.transformer.library.function.FunctionLibFunction;
-
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.FieldVisitor;
-import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
-import org.objectweb.asm.commons.GeneratorAdapter;
-import org.objectweb.asm.commons.Method;
 
 public final class ASMUtil {
 
@@ -583,7 +582,7 @@ public final class ASMUtil {
 
 	// get<PropertyName>():<type>
 	Type[] types = new Type[0];
-	Method method = new Method((clazz == boolean.class ? "get" : "get") + (name), type, types);
+	Method method = new Method((clazz == boolean.class ? "get" : "get") + StringUtil.ucFirst(name), type, types);
 	GeneratorAdapter adapter = new GeneratorAdapter(Opcodes.ACC_PUBLIC, method, null, null, cw);
 
 	Label start = new Label();
@@ -602,7 +601,7 @@ public final class ASMUtil {
 
 	// set<PropertyName>(object):void
 	types = new Type[] { type };
-	method = new Method("set" + (name), Types.VOID, types);
+	method = new Method("set" + StringUtil.ucFirst(name), Types.VOID, types);
 	adapter = new GeneratorAdapter(Opcodes.ACC_PUBLIC, method, null, null, cw);
 
 	start = new Label();
