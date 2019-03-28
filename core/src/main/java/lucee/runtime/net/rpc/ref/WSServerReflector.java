@@ -64,11 +64,11 @@ public class WSServerReflector implements WSServer {
     @Override
     public void registerTypeMapping(Class clazz) {
 	try {
-	    if (registerTypeMapping == null) registerTypeMapping = clazz.getMethod("registerTypeMapping", new Class[] { Class.class });
+	    if (registerTypeMapping == null) registerTypeMapping = this.clazz.getMethod("registerTypeMapping", new Class[] { Class.class });
 	    registerTypeMapping.invoke(obj, new Object[] { clazz });
 	}
 	catch (Exception e) {
-	    throw new PageRuntimeException(e);
+	    throw new PageRuntimeException(Caster.toPageException(e));
 	}
     }
 

@@ -455,7 +455,7 @@ public class DumpUtil {
 		    if (Object.class == method.getDeclaringClass()) continue;
 		    propName = method.getName();
 		    if (propName.startsWith("get") && method.getParameterTypes().length == 0) {
-			propName = propName.substring(3);
+			propName = StringUtil.lcFirst(propName.substring(3));
 			value = null;
 			try {
 			    value = method.invoke(o, new Object[0]);

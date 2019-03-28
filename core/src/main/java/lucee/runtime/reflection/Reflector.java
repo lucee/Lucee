@@ -781,10 +781,10 @@ public final class Reflector {
 	    if (Modifier.isPublic(method.getModifiers())) {
 		if (isGetter(method)) {
 		    name = method.getName();
-		    if (name.startsWith("get")) keys.add(method.getName().substring(3));
-		    else keys.add(method.getName().substring(2));
+		    if (name.startsWith("get")) keys.add(StringUtil.lcFirst(method.getName().substring(3)));
+		    else keys.add(StringUtil.lcFirst(method.getName().substring(2)));
 		}
-		else if (isSetter(method)) keys.add(method.getName().substring(3));
+		else if (isSetter(method)) keys.add(StringUtil.lcFirst(method.getName().substring(3)));
 	    }
 	}
 
@@ -803,8 +803,8 @@ public final class Reflector {
 		n = null;
 		if (isGetter(method)) {
 		    n = method.getName();
-		    if (n.startsWith("get")) n = method.getName().substring(3);
-		    else n = method.getName().substring(2);
+		    if (n.startsWith("get")) n = StringUtil.lcFirst(method.getName().substring(3));
+		    else n = StringUtil.lcFirst(method.getName().substring(2));
 		}
 		else if (isSetter(method)) n = method.getName().substring(3);
 		if (n != null && n.equalsIgnoreCase(name)) return true;
