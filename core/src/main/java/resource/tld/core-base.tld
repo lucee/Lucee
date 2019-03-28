@@ -7107,6 +7107,13 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<rtexprvalue>true</rtexprvalue>
 			<description>if set to true, the scheduled task get deleted when there is no possible future execution.</description>
 		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>unique</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>if set to true, the scheduled task is only executed once at time.if a task is still running from previous round no new task is started.</description>
+		</attribute>
 	</tag>
 
 	<!-- Search -->

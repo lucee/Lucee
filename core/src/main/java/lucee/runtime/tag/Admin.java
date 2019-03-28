@@ -400,6 +400,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	    schedule.setResolveurl(getBoolV("resolveURL", false));
 	    schedule.setPort(new Double(getDouble("port", -1)));
 	    schedule.setProxyport(new Double(getDouble("proxyPort", 80)));
+	    schedule.setUnique(getBoolV("unique", false));
 
 	    String rtn = getString("returnvariable", null);
 	    if (StringUtil.isEmpty(rtn)) rtn = getString("result", "cfschedule");

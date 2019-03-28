@@ -67,6 +67,7 @@ public final class ScheduleTaskImpl implements ScheduleTask {
     private String md5;
     private ScheduledTaskThread thread;
     private Scheduler scheduler;
+    private boolean unique;
 
     /**
      * constructor of the class
@@ -91,12 +92,12 @@ public final class ScheduleTaskImpl implements ScheduleTask {
      * @throws ScheduleException
      */
     public ScheduleTaskImpl(Scheduler scheduler, String task, Resource file, Date startDate, Time startTime, Date endDate, Time endTime, String url, int port, String interval,
-	    long timeout, Credentials credentials, ProxyData proxy, boolean resolveURL, boolean publish, boolean hidden, boolean readonly, boolean paused, boolean autoDelete)
-	    throws IOException, ScheduleException {
+	    long timeout, Credentials credentials, ProxyData proxy, boolean resolveURL, boolean publish, boolean hidden, boolean readonly, boolean paused, boolean autoDelete,
+	    boolean unique) throws IOException, ScheduleException {
 
 	this.scheduler = scheduler;
 	String md5 = task.toLowerCase() + file + startDate + startTime + endDate + endTime + url + port + interval + timeout + credentials + proxy + resolveURL + publish + hidden
-		+ readonly + paused;
+		+ readonly + paused + unique;
 	md5 = Md5.getDigestAsString(md5);
 	this.md5 = md5;
 
@@ -130,6 +131,7 @@ public final class ScheduleTaskImpl implements ScheduleTask {
 	this.readonly = readonly;
 	this.paused = paused;
 	this.autoDelete = autoDelete;
+	this.unique = unique;
     }
 
     /**
@@ -325,6 +327,10 @@ public final class ScheduleTaskImpl implements ScheduleTask {
 	this.autoDelete = autoDelete;
     }
 
+    public void setUnique(boolean unique) {
+	this.unique = unique;
+    }
+
     public String md5() {
 	return md5;
     }
@@ -353,5 +359,9 @@ public final class ScheduleTaskImpl implements ScheduleTask {
 	thread.interrupt();
 	SystemUtil.sleep(1);
 	SystemUtil.stop(thread);
+    }
+
+    public boolean unique() {
+	return unique;
     }
 }

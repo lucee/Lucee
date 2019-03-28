@@ -51,6 +51,8 @@ public class ScheduledTaskThread extends Thread {
     private final CFMLEngineImpl engine;
     private TimeZone timeZone;
     private SchedulerImpl scheduler;
+    private ExecutionThread exeThread;
+    private final boolean unique;
 
     public ScheduledTaskThread(CFMLEngineImpl engine, Scheduler scheduler, ScheduleTask task) {
 	util = DateTimeUtil.getInstance();
@@ -62,7 +64,7 @@ public class ScheduledTaskThread extends Thread {
 	this.startTime = util.getMilliSecondsInDay(timeZone, task.getStartTime().getTime());
 	this.endDate = task.getEndDate() == null ? Long.MAX_VALUE : util.getMilliSecondsAdMidnight(timeZone, task.getEndDate().getTime());
 	this.endTime = task.getEndTime() == null ? DAY : util.getMilliSecondsInDay(timeZone, task.getEndTime().getTime());
-
+	this.unique = ((ScheduleTaskImpl) task).unique();
 	this.intervall = task.getInterval();
 	if (intervall >= 10) {
 	    amount = intervall;
@@ -183,7 +185,14 @@ public class ScheduledTaskThread extends Thread {
     }
 
     private void execute() {
-	if (scheduler.getConfig() != null) new ExecutionThread(scheduler.getConfig(), task, scheduler.getCharset()).start();
+	if (scheduler.getConfig() != null) {
+	    if (unique && exeThread != null && exeThread.isAlive()) {
+		return;
+	    }
+	    exeThread = new ExecutionThread(scheduler.getConfig(), task, scheduler.getCharset());
+	    exeThread.start();
+
+	}
     }
 
     private long calculateNextExecution(long now, boolean notNow) {

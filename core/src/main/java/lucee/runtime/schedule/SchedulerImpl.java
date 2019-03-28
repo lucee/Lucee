@@ -198,7 +198,7 @@ public final class SchedulerImpl implements Scheduler {
 		    su.toString(el, "interval"), timeout, su.toCredentials(el, "username", "password"),
 		    ProxyDataImpl.getInstance(su.toString(el, "proxyHost"), su.toInt(el, "proxyPort", 80), su.toString(el, "proxyUser"), su.toString(el, "proxyPassword")),
 		    su.toBoolean(el, "resolveUrl"), su.toBoolean(el, "publish"), su.toBoolean(el, "hidden", false), su.toBoolean(el, "readonly", false),
-		    su.toBoolean(el, "paused", false), su.toBoolean(el, "autoDelete", false));
+		    su.toBoolean(el, "paused", false), su.toBoolean(el, "autoDelete", false), su.toBoolean(el, "unique", false));
 	    return st;
 	}
 	catch (Exception e) {
@@ -263,6 +263,7 @@ public final class SchedulerImpl implements Scheduler {
 	su.setBoolean(el, "hidden", ((ScheduleTaskImpl) task).isHidden());
 	su.setBoolean(el, "readonly", ((ScheduleTaskImpl) task).isReadonly());
 	su.setBoolean(el, "autoDelete", ((ScheduleTaskImpl) task).isAutoDelete());
+	su.setBoolean(el, "unique", ((ScheduleTaskImpl) task).unique());
     }
 
     /**
