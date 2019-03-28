@@ -345,7 +345,7 @@
 						<div class="comment">#stText.Settings.dbConnTimeoutDesc#</div>
 					</td>
 				</tr>
-				<!--- Connection Timeout --->
+				<!--- Request Exclusive --->
 				<tr>
 					<th scope="row">#stText.Settings.requestExclusive#</th>
 					<td>
