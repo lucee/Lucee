@@ -1385,7 +1385,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 						<tr>
 						<cfset renderSectionHeadTR( sectionId, "debugging", "Application")>
 						<td  id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
-							<cfdump var="#arguments.debugging.scope.application#" />
+							<cfdump var="#arguments.debugging.scope.application#"  keys="500"//>
 						<td>
 						</tr>
 					</table>
@@ -1399,7 +1399,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 						<tr>
 						<cfset renderSectionHeadTR( sectionId, "debugging", "session")>
 						<td  id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
-							<cfdump var="#arguments.debugging.scope.session#" />
+							<cfdump var="#arguments.debugging.scope.session#" keys="500"/ />
 						<td>
 						</tr>
 					</table>
@@ -1413,7 +1413,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 						<tr>
 						<cfset renderSectionHeadTR( sectionId, "debugging", "client")>
 						<td  id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
-							<cfdump var="#arguments.debugging.scope.client#" />
+							<cfdump var="#arguments.debugging.scope.client#" keys="500"/ />
 						<td>
 						</tr>
 					</table>
@@ -1428,7 +1428,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 						<tr>
 						<cfset renderSectionHeadTR( sectionId, "debugging", "Form")>
 						<td  id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
-							<cfdump var="#arguments.debugging.scope.form#" />
+							<cfdump var="#arguments.debugging.scope.form#"  keys="500"//>
 						<td>
 						</tr>
 					</table>
@@ -1442,7 +1442,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 						<tr>
 						<cfset renderSectionHeadTR( sectionId, "debugging", "URL")>
 						<td  id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
-							<cfdump var="#arguments.debugging.scope.URL#" />
+							<cfdump var="#arguments.debugging.scope.URL#"  keys="500"//>
 						<td>
 						</tr>
 					</table>
@@ -1456,7 +1456,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 						<tr>
 						<cfset renderSectionHeadTR( sectionId, "debugging", "cgi")>
 						<td  id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
-							<cfdump var="#arguments.debugging.scope.cgi#" />
+							<cfdump var="#arguments.debugging.scope.cgi#"  keys="500"//>
 						<td>
 						</tr>
 					</table>
@@ -1470,7 +1470,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 						<tr>
 						<cfset renderSectionHeadTR( sectionId, "debugging", "Request")>
 						<td  id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
-							<cfdump var="#arguments.debugging.scope.Request#" />
+							<cfdump var="#arguments.debugging.scope.Request#"  keys="500"//>
 						<td>
 						</tr>
 					</table>
@@ -1484,7 +1484,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 						<tr>
 						<cfset renderSectionHeadTR( sectionId, "debugging", "Cookie")>
 						<td  id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
-							<cfdump var="#arguments.debugging.scope.Cookie#" />
+							<cfdump var="#arguments.debugging.scope.Cookie#" keys="500"//>
 						<td>
 						</tr>
 					</table>
@@ -1493,7 +1493,6 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 
 			<!--- Implicit variable Access --->
 			<cfif implicitAccess.recordcount>
-
 				<cfset sectionId = "ImpAccess">
 				<cfset isOpen = this.isSectionOpen( sectionId, "debugging" )>
 
