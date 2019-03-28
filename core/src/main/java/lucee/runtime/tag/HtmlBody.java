@@ -32,6 +32,11 @@ public final class HtmlBody extends HtmlHeadBodyBase {
     }
 
     @Override
+    public boolean getDefaultForce() {
+	return false;
+    }
+
+    @Override
     public void actionAppend() throws IOException, ApplicationException {
 
 	((PageContextImpl) pageContext).getRootOut().appendHTMLBody(text);
