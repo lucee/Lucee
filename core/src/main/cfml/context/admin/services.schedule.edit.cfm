@@ -1,5 +1,5 @@
 <cfscript>
-stText.Schedule.unique="Run Once";
+stText.Schedule.unique="Run Exclusive";
 stText.Schedule.uniqueDescription="If set run the task only once at time. Every time a task is started, it will check if still a task from previous round is running, if so no new test is started.";
 
 
