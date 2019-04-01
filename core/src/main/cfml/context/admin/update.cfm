@@ -58,19 +58,10 @@
 				<cfset get_stable = "">
 				<cfloop index="stableList" array="#updateInfo.otherVersions#">
 					<cfif ( !listContainsNoCase(stableList,"-SNAPSHOT") EQ 1 ) AND ( !listContainsNoCase(stableList,"-BETA") EQ 1 AND (!listContainsNoCase(stableList,"-RC") EQ 1) )>
-							<cfset get_stable = listAppend(get_stable,stableList)>
+						<cfset get_stable = listAppend(get_stable,stableList)>
 					</cfif>
 				</cfloop>
 				<cfset available = listlast(get_stable)>
-				<cfset hasUpdate = curr LT available>
-			<cfelseif server.lucee.state EQ "BETA">
-				<cfset get_Beta = "">
-				<cfloop index="betaList" array="#updateInfo.otherVersions#">
-					<cfif listContainsNoCase(betaList,"-BETA") EQ 1>
-						<cfset get_Beta = listAppend(get_Beta,betaList)>
-					</cfif>
-				</cfloop>
-				<cfset available = listlast(get_Beta)>
 				<cfset hasUpdate = curr LT available>
 			<cfelse>	
 				<cfset hasUpdate=structKeyExists(updateInfo,"available") && curr LT updateInfo.available>
@@ -159,7 +150,7 @@
 				<cfif adminType == "server" and hasUpdate>
 					<div class="error">
 						<a href="server.cfm?action=services.update" style="color:red;text-decoration:none;">
-							<cfif server.lucee.state eq "SNAPSHOT">
+							<cfif server.lucee.state eq "SNAPSHOT" OR server.lucee.state eq "BETA">
 								#replace( stText.services.update.update, { '{available}': updateinfo.available, '{current}': curr } )#
 							<cfelse>	
 								#replace( stText.services.update.update, { '{available}': available, '{current}': curr } )#
