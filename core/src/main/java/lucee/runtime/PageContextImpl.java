@@ -2898,21 +2898,25 @@ public final class PageContextImpl extends PageContext {
     @Override
     public PageException setCatch(Throwable t) {
 	PageException pe = t == null ? null : Caster.toPageException(t);
-	_setCatch(pe, false, true, false);
+	_setCatch(pe, null, false, true, false);
 	return pe;
     }
 
     @Override
     public void setCatch(PageException pe) {
-	_setCatch(pe, false, true, false);
+	_setCatch(pe, null, false, true, false);
     }
 
     @Override
     public void setCatch(PageException pe, boolean caught, boolean store) {
-	_setCatch(pe, caught, store, true);
+	_setCatch(pe, null, caught, store, true);
     }
 
-    public void _setCatch(PageException pe, boolean caught, boolean store, boolean signal) {
+    public void setCatch(PageException pe, String name, boolean caught, boolean store) {
+	_setCatch(pe, name, caught, store, true);
+    }
+
+    public void _setCatch(PageException pe, String name, boolean caught, boolean store, boolean signal) {
 	if (signal && fdEnabled) {
 	    FDSignal.signal(pe, caught);
 	}
@@ -2921,9 +2925,11 @@ public final class PageContextImpl extends PageContext {
 	    Undefined u = undefinedScope();
 	    if (pe == null) {
 		(u.getCheckArguments() ? u.localScope() : u).removeEL(KeyConstants._cfcatch);
+		if (name != null && !StringUtil.isEmpty(name, true)) (u.getCheckArguments() ? u.localScope() : u).removeEL(KeyImpl.getInstance(name.trim()));
 	    }
 	    else {
 		(u.getCheckArguments() ? u.localScope() : u).setEL(KeyConstants._cfcatch, pe.getCatchBlock(config));
+		if (name != null && !StringUtil.isEmpty(name, true)) (u.getCheckArguments() ? u.localScope() : u).setEL(KeyImpl.getInstance(name.trim()), pe.getCatchBlock(config));
 		if (!gatewayContext && config.debug() && config.hasDebugOptions(ConfigImpl.DEBUG_EXCEPTION)) debugger.addException(config, exception);
 	    }
 	}
