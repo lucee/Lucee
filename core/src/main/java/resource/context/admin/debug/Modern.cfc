@@ -1069,7 +1069,8 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 									<cfset page.stckTrace = []>
 									<cfset arrayAppend(page.stckTrace, listLast(pages.src))>
 									<cfquery dbtype="query" name="resultQry">
-										select * from pages where src='#pages.src#' AND id != '#pages.id#'
+										select * from pages where src = <cfqueryparam value="#pages.src#" cfsqltype="cf_sql_varchar">
+										 AND id != <cfqueryparam value="#pages.id#" cfsqltype="cf_sql_varchar">
 									</cfquery>
 									<cfloop query="resultQry">
 										<cfset pages.total += resultQry.total>
@@ -2184,7 +2185,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			// pages
 			query dbtype="query" name="arguments.stDebugging.pages" {
 				echo("
-					SELECT * from arguments.stDebugging.pages where id in (#lstIDs#)
+					SELECT * from arguments.stDebugging.pages where id in (<cfqueryparam value='#lstIDs#' cfsqltype='cf_sql_varchar'>)
 					");
 			}
 			loop from="#arguments.stDebugging.queries.recordCount#" to="1" step="-1" index="local.iRec" {

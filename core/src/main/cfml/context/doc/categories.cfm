@@ -128,7 +128,7 @@
 		<div class="tile-wrap tile-wrap-animation">
 			<cfloop index="i"  list="#myList#">
 				<cfquery name="queryList" dbtype="query">
-					SELECT category FROM qryAllItems  WHERE category LIKE '#i#%';
+					SELECT category FROM qryAllItems  WHERE category LIKE <cfqueryparam value="#i#%" cfsqltype="cf_sql_varchar">
 				</cfquery>
 				<div class="tile tile-collapse tile-collapse-full">
 					<div class="tile-toggle" data-target="##category-#lCase(i)#" data-toggle="tile">

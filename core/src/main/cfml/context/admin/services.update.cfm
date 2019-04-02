@@ -138,7 +138,7 @@
 		//dump(var:updateData,expand:false);
 	printError(error);
 </cfscript>
-<cfoutput>
+<cfoutput> 
 
 <style>
 	.btn {

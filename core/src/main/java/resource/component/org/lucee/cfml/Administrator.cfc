@@ -508,11 +508,11 @@ component {
 		var mailServers = getMailservers();
 		if( structKeyExists(arguments, 'username') && arguments.username == ''  ){
 			query name="existing" dbtype="query"{
-				echo("SELECT * FROM mailservers WHERE hostName = '#arguments.host#' and port = '#arguments.port#' ")
+				echo("SELECT * FROM mailservers WHERE hostName = <cfqueryparam value='#arguments.host#' cfsqltype='cf_sql_varchar'> and port = <cfqueryparam value='#arguments.port#' cfsqltype='cf_sql_integer'>")
 			}
 		} else{
 			query name="existing" dbtype="query"{
-				echo("SELECT * FROM mailservers WHERE hostName = '#arguments.host#' and port = '#arguments.port#' and username = '#arguments.username#' ")
+				echo("SELECT * FROM mailservers WHERE hostName = <cfqueryparam value='#arguments.host#' cfsqltype='cf_sql_varchar'> and port = <cfqueryparam value='#arguments.port#' cfsqltype='cf_sql_integer'> and username = <cfqueryparam value='#arguments.username#' cfsqltype='cf_sql_varchar'>")
 			}
 		}
 
@@ -1168,7 +1168,7 @@ component {
 	){
 		var connections =  getCacheConnections()
 		query name="existing" dbtype="query"{
-			echo("SELECT * FROM connections WHERE class = '#arguments.class#' and name = '#arguments.name#' ")
+			echo("SELECT * FROM connections WHERE class = <cfqueryparam value='#arguments.class#' cfsqltype='cf_sql_varchar'> and name = <cfqueryparam value='#arguments.name#' cfsqltype='cf_sql_varchar'> ")
 		}
 
 		admin
@@ -1359,7 +1359,7 @@ component {
 	public void function updateGatewayEntry( required string id, required string startupMode, string class, string cfcPath, string listenerCfcPath,  struct custom ){
 		var getGatewayEntries = getGatewayEntries();
 		query name="existing" dbtype="query"{
-			echo("SELECT * FROM getGatewayEntries WHERE id = '#arguments.id#' and startupMode = '#arguments.startupMode#' ")
+			echo("SELECT * FROM getGatewayEntries WHERE id = <cfqueryparam value='#arguments.id#' cfsqltype='cf_sql_varchar' and startupMode = <cfqueryparam value='#arguments.startupMode#' cfsqltype='cf_sql_varchar'> ")
 		}
 		admin
 			action="updateGatewayEntry"
@@ -1481,7 +1481,7 @@ component {
 		var meta=getMetaData(driver);
 		var debugEntry = getDebugEntry();
 		query name="existing" dbtype="query"{
-			echo("SELECT * FROM debugEntry WHERE label = '#arguments.label#' ");
+			echo("SELECT * FROM debugEntry WHERE label = <cfqueryparam value='#arguments.label#' cfsqltype='cf_sql_varchar'> ");
 		}
 		admin
 			action="updateDebugEntry"
@@ -1949,7 +1949,7 @@ component {
 	){
 		var LogSettings = getLogSettings();
 		query name="existing" dbtype="query"{
-			echo("SELECT * FROM LogSettings WHERE name = '#arguments.name#' ");
+			echo("SELECT * FROM LogSettings WHERE name = <cfqueryparam value='#arguments.name#' cfsqltype='cf_sql_varchar'> ");
 		}
 
 		admin
