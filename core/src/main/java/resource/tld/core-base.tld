@@ -4731,6 +4731,14 @@ Permits searching collections by title or displaying a separate title from the k
 			<rtexprvalue>true</rtexprvalue>
 			<description>statuscode used for the redirect (301 or 302)</description>
 		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>encode</name>
+			<required>false</required>
+			<defalut>true</default>
+			<rtexprvalue>false</rtexprvalue>
+			<description>If true its encode the URL otherwise not</description>
+		</attribute>
 	</tag>
 
 	<!-- Lock -->
