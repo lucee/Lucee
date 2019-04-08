@@ -24,23 +24,18 @@ import lucee.transformer.cfml.evaluator.EvaluatorException;
 import lucee.transformer.cfml.evaluator.EvaluatorSupport;
 import lucee.transformer.library.tag.TagLibTag;
 
-
-
 /**
- * TODO remove
- * Prueft den Kontext des Tag queryparam.
- * Das Tag <code>queryParam</code> darf nur innerhalb des Tag <code>loop, while, foreach</code> liegen.
+ * TODO remove Prueft den Kontext des Tag queryparam. Das Tag <code>queryParam</code> darf nur
+ * innerhalb des Tag <code>loop, while, foreach</code> liegen.
  */
 public final class QueryParam extends EvaluatorSupport {
 
+    @Override
+    public void evaluate(Tag tag, TagLibTag libTag) throws EvaluatorException {
+	String ns = libTag.getTagLib().getNameSpaceAndSeparator();
+	String queryName = ns + "query";
 
-	@Override
-	public void evaluate(Tag tag,TagLibTag libTag) throws EvaluatorException { 
-		String ns=libTag.getTagLib().getNameSpaceAndSeparator();
-		String queryName=ns+"query";
-		
-		if(!ASMUtil.hasAncestorTag(tag,queryName))
-			throw new EvaluatorException("Wrong Context, tag "+libTag.getFullName()+" must be inside a "+queryName+" tag");
-	}
+	if (!ASMUtil.hasAncestorTag(tag, queryName)) throw new EvaluatorException("Wrong Context, tag " + libTag.getFullName() + " must be inside a " + queryName + " tag");
+    }
 
 }

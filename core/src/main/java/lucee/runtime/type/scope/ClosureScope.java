@@ -39,228 +39,224 @@ import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
 
 public class ClosureScope extends ScopeSupport implements Variables, Externalizable {
-	
-	private static final Object NULL = new Object();
-	
-	private Argument arg;
-	private Local local;
-	private Variables var;
-	private boolean debug;
-	private boolean localAlways;
-	
-	public ClosureScope(PageContext pc,Argument arg, Local local,Variables var ){
-		super("variables",SCOPE_VARIABLES,StructImpl.TYPE_UNDEFINED);
-		arg.setBind(true);
-		local.setBind(true);
-		var.setBind(true);
-		this.localAlways = pc.undefinedScope().getLocalAlways();
-		this.arg=arg;
-		this.local=local;
-		this.var=var;
-		this.debug=pc.getConfig().debug();
-	}
 
-	/*
-	 * ONLY USED BY SERIALISATION
-	 */
-	public ClosureScope() {
-		super("variables",SCOPE_VARIABLES,StructImpl.TYPE_UNDEFINED);
-	}
-	
-	@Override
-	public void writeExternal(ObjectOutput out) throws IOException {
-		out.writeObject(arg);
-		out.writeObject(local);
-		out.writeObject(prepare(var));
-		out.writeBoolean(debug);
-		out.writeBoolean(localAlways);
-	}
+    private static final Object NULL = new Object();
 
-	@Override
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-		arg=(Argument) in.readObject();
-		local=(Local) in.readObject();
-		var=(Variables) in.readObject();
-		debug=in.readBoolean();
-		localAlways=in.readBoolean();
-	}
+    private Argument arg;
+    private Local local;
+    private Variables var;
+    private boolean debug;
+    private boolean localAlways;
 
-	public static Variables prepare(Variables var) {
-		
-		if(!(var instanceof ComponentScope)) return var;
-		
-		VariablesImpl rtn = new VariablesImpl();
-		Iterator<Entry<Key, Object>> it = var.entryIterator();
-		Entry<Key, Object> e;
-		while(it.hasNext()) {
-			e = it.next();
-			if(KeyConstants._this.equals(e.getKey()) && e.getValue() instanceof Component) break;
-			rtn.setEL(e.getKey(), e.getValue());
-		}
-		
-		rtn.initialize(null);
-		return rtn;
-	}
-	
-	public Argument getArgument() {
-		return arg;
-	}
-
-	public Variables getVariables() {
-		return var;
-	}
-
-	@Override
-	public boolean isInitalized() {
-		return true;
-	}
-
-	@Override
-	public void initialize(PageContext pc) {	
-	}
-
-	@Override
-	public void release(PageContext pc) {
-	}
-
-	@Override
-	public int getType() {
-		return SCOPE_VARIABLES;
-	}
-
-	@Override
-	public String getTypeAsString() {
-		return "variables";
-	}
-
-	@Override
-	public int size() {
-		return var.size();
-	}
-
-	@Override
-	public Key[] keys() {
-		return var.keys();
-	}
-
-	@Override
-	public Object remove(Key key) throws PageException {
-		if(local.containsKey(key))
-			return local.remove(key);
-		return var.remove(key);
-	}
-
-	@Override
-	public Object removeEL(Key key) {
-		if(local.containsKey(key))
-			return local.removeEL(key);
-		return var.removeEL(key);
-	}
-
-	@Override
-	public void clear() {
-		var.clear();
-	}
-
-	@Override
-	public Object get(Key key) throws PageException {
-		Object value = local.get(key,NullSupportHelper.NULL());
-		if(value!=NullSupportHelper.NULL()) return value;
-		value=arg.get(key,NullSupportHelper.NULL());
-		if(value!=NullSupportHelper.NULL()) {
-			if(debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(),arg.getTypeAsString(), key);
-			return value;
-		}
-		
-		value= var.get(key);
-		if(debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(),var.getTypeAsString(), key);
-		return value;
-	}
-
-	@Override
-	public Object get(Key key, Object defaultValue) {
-		Object value = local.get(key,NullSupportHelper.NULL());
-		if(value!=NullSupportHelper.NULL()) return value;
-		value=arg.get(key,NullSupportHelper.NULL());
-		if(value!=NullSupportHelper.NULL()) {
-			if(debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(),arg.getTypeAsString(), key);
-			return value;
-		}
-		value= var.get(key,NullSupportHelper.NULL());
-		if(value!=NullSupportHelper.NULL()){
-			if(debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(),var.getTypeAsString(), key);
-			return value;
-		}
-		return defaultValue;
-	}
-
-	@Override
-	public Object set(Key key, Object value) throws PageException {
-		if(localAlways || local.containsKey(key))     return local.set(key,value);
-	    if(arg.containsKey(key))  {
-	    	if(debug)UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(),arg.getTypeAsString(), key);
-	    	return arg.set(key,value);
-	    }
-	    if(debug)UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(),var.getTypeAsString(), key);
-		return var.set(key, value);
-	}
-
-	@Override
-	public Object setEL(Key key, Object value) {
-	    if(localAlways || local.containsKey(key))     return local.setEL(key,value);
-        if(arg.containsKey(key))  {
-        	if(debug)UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(),arg.getTypeAsString(), key);
-        	return arg.setEL(key,value);
-        }
-	    	
-		if(debug)UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(),var.getTypeAsString(), key);
-		return var.setEL(key,value);
-	}
-
-	@Override
-	public Collection duplicate(boolean deepCopy) {
-		return new ClosureScope(ThreadLocalPageContext.get(),(Argument)Duplicator.duplicate(arg,deepCopy), (Local)Duplicator.duplicate(local,deepCopy), (Variables)Duplicator.duplicate(var,deepCopy));
-	}
-
-	@Override
-	public boolean containsKey(Key key) {
-		return get(key,NULL)!=NULL;
-	}
-
-	@Override
-	public Iterator<Collection.Key> keyIterator() {
-		return var.keyIterator();
-	}
-    
-    @Override
-	public Iterator<String> keysAsStringIterator() {
-    	return var.keysAsStringIterator();
+    public ClosureScope(PageContext pc, Argument arg, Local local, Variables var) {
+	super("variables", SCOPE_VARIABLES, StructImpl.TYPE_UNDEFINED);
+	arg.setBind(true);
+	local.setBind(true);
+	var.setBind(true);
+	this.localAlways = pc.undefinedScope().getLocalAlways();
+	this.arg = arg;
+	this.local = local;
+	this.var = var;
+	this.debug = pc.getConfig().debug();
     }
-	
-	@Override
-	public Iterator<Entry<Key, Object>> entryIterator() {
-		return var.entryIterator();
-	}
-	
-	@Override
-	public Iterator<Object> valueIterator() {
-		return var.valueIterator();
-	}
-	
-	@Override
-	public void setBind(boolean bind) {}
 
-	@Override
-	public boolean isBind() {
-		return true;
+    /*
+     * ONLY USED BY SERIALISATION
+     */
+    public ClosureScope() {
+	super("variables", SCOPE_VARIABLES, StructImpl.TYPE_UNDEFINED);
+    }
+
+    @Override
+    public void writeExternal(ObjectOutput out) throws IOException {
+	out.writeObject(arg);
+	out.writeObject(local);
+	out.writeObject(prepare(var));
+	out.writeBoolean(debug);
+	out.writeBoolean(localAlways);
+    }
+
+    @Override
+    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+	arg = (Argument) in.readObject();
+	local = (Local) in.readObject();
+	var = (Variables) in.readObject();
+	debug = in.readBoolean();
+	localAlways = in.readBoolean();
+    }
+
+    public static Variables prepare(Variables var) {
+
+	if (!(var instanceof ComponentScope)) return var;
+
+	VariablesImpl rtn = new VariablesImpl();
+	Iterator<Entry<Key, Object>> it = var.entryIterator();
+	Entry<Key, Object> e;
+	while (it.hasNext()) {
+	    e = it.next();
+	    if (KeyConstants._this.equals(e.getKey()) && e.getValue() instanceof Component) break;
+	    rtn.setEL(e.getKey(), e.getValue());
 	}
-	
-	@Override
-	public DumpData toDumpData(PageContext pageContext, int maxlevel,
-			DumpProperties properties) {
-		
-		DumpTable dt= (DumpTable) super.toDumpData(pageContext, maxlevel, properties);
-		dt.setTitle("Closure Variable Scope");
-		return dt;
+
+	rtn.initialize(null);
+	return rtn;
+    }
+
+    public Argument getArgument() {
+	return arg;
+    }
+
+    public Variables getVariables() {
+	return var;
+    }
+
+    @Override
+    public boolean isInitalized() {
+	return true;
+    }
+
+    @Override
+    public void initialize(PageContext pc) {}
+
+    @Override
+    public void release(PageContext pc) {}
+
+    @Override
+    public int getType() {
+	return SCOPE_VARIABLES;
+    }
+
+    @Override
+    public String getTypeAsString() {
+	return "variables";
+    }
+
+    @Override
+    public int size() {
+	return var.size();
+    }
+
+    @Override
+    public Key[] keys() {
+	return var.keys();
+    }
+
+    @Override
+    public Object remove(Key key) throws PageException {
+	if (local.containsKey(key)) return local.remove(key);
+	return var.remove(key);
+    }
+
+    @Override
+    public Object removeEL(Key key) {
+	if (local.containsKey(key)) return local.removeEL(key);
+	return var.removeEL(key);
+    }
+
+    @Override
+    public void clear() {
+	var.clear();
+    }
+
+    @Override
+    public Object get(Key key) throws PageException {
+	Object value = local.get(key, NullSupportHelper.NULL());
+	if (value != NullSupportHelper.NULL()) return value;
+	value = arg.get(key, NullSupportHelper.NULL());
+	if (value != NullSupportHelper.NULL()) {
+	    if (debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(), arg.getTypeAsString(), key);
+	    return value;
 	}
+
+	value = var.get(key);
+	if (debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(), var.getTypeAsString(), key);
+	return value;
+    }
+
+    @Override
+    public Object get(Key key, Object defaultValue) {
+	Object value = local.get(key, NullSupportHelper.NULL());
+	if (value != NullSupportHelper.NULL()) return value;
+	value = arg.get(key, NullSupportHelper.NULL());
+	if (value != NullSupportHelper.NULL()) {
+	    if (debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(), arg.getTypeAsString(), key);
+	    return value;
+	}
+	value = var.get(key, NullSupportHelper.NULL());
+	if (value != NullSupportHelper.NULL()) {
+	    if (debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(), var.getTypeAsString(), key);
+	    return value;
+	}
+	return defaultValue;
+    }
+
+    @Override
+    public Object set(Key key, Object value) throws PageException {
+	if (localAlways || local.containsKey(key)) return local.set(key, value);
+	if (arg.containsKey(key)) {
+	    if (debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(), arg.getTypeAsString(), key);
+	    return arg.set(key, value);
+	}
+	if (debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(), var.getTypeAsString(), key);
+	return var.set(key, value);
+    }
+
+    @Override
+    public Object setEL(Key key, Object value) {
+	if (localAlways || local.containsKey(key)) return local.setEL(key, value);
+	if (arg.containsKey(key)) {
+	    if (debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(), arg.getTypeAsString(), key);
+	    return arg.setEL(key, value);
+	}
+
+	if (debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(), var.getTypeAsString(), key);
+	return var.setEL(key, value);
+    }
+
+    @Override
+    public Collection duplicate(boolean deepCopy) {
+	return new ClosureScope(ThreadLocalPageContext.get(), (Argument) Duplicator.duplicate(arg, deepCopy), (Local) Duplicator.duplicate(local, deepCopy),
+		(Variables) Duplicator.duplicate(var, deepCopy));
+    }
+
+    @Override
+    public boolean containsKey(Key key) {
+	return get(key, NULL) != NULL;
+    }
+
+    @Override
+    public Iterator<Collection.Key> keyIterator() {
+	return var.keyIterator();
+    }
+
+    @Override
+    public Iterator<String> keysAsStringIterator() {
+	return var.keysAsStringIterator();
+    }
+
+    @Override
+    public Iterator<Entry<Key, Object>> entryIterator() {
+	return var.entryIterator();
+    }
+
+    @Override
+    public Iterator<Object> valueIterator() {
+	return var.valueIterator();
+    }
+
+    @Override
+    public void setBind(boolean bind) {}
+
+    @Override
+    public boolean isBind() {
+	return true;
+    }
+
+    @Override
+    public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties properties) {
+
+	DumpTable dt = (DumpTable) super.toDumpData(pageContext, maxlevel, properties);
+	dt.setTitle("Closure Variable Scope");
+	return dt;
+    }
 }

@@ -19,8 +19,8 @@
 package lucee.commons.net.http;
 
 public interface Entity {
-	
-	public long contentLength();
 
-	public String contentType();
+    public long contentLength();
+
+    public String contentType();
 }

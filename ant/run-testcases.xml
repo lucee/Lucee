@@ -80,6 +80,19 @@ function mem(type) {
 
 	systemOutput("set password #dateTimeFormat(now())#", true);
 
+	// output deploy log
+	pc=getPageContext();
+	config=pc.getConfig();
+	configDir=config.getConfigServerDir();
+	logsDir=configDir&server.separator.file&"logs";
+	deployLog=logsDir&server.separator.file&"deploy.log";
+	dump(deployLog);
+	content=fileRead(deployLog);
+	systemOutput("-------------- Deploy Log ------------",true);
+	systemOutput(content,true);
+	systemOutput("--------------------------------------",true);
+
+
 	// create "/test" mapping
 	admin
 		action="updateMapping"
@@ -154,8 +167,8 @@ function mem(type) {
 			//SystemOut.setErr(err);
 
 			systemOutput(" (#bundle.totalPass# tests passed in #LSNumberFormat(bundle.totalDuration, ',')# ms)",true);
-			mem("non_heap");
-			mem("heap");
+			//mem("non_heap");
+			//mem("heap");
 
 		// we have an error
 		if ((bundle.totalFail + bundle.totalError) > 0) {
@@ -282,6 +295,8 @@ Begin Stack Trace
 
 	echo("=============================================================" & NL);
 	echo("TestBox Version: #tb.getVersion()#" & NL);
+	echo("Lucee Version: #server.lucee.version#" & NL);
+	echo("Java Version: #server.java.version#" & NL);
 	echo("Global Stats (#result.getTotalDuration()# ms)" & NL);
 	echo("=============================================================" & NL);
 	echo("->[Bundles/Suites/Specs: #result.getTotalBundles()#/#result.getTotalSuites()#/#result.getTotalSpecs()#]" & NL);
@@ -308,7 +323,7 @@ Begin Stack Trace
 		}
 
  		if ((result.getTotalFail() + result.getTotalError()) > 0) {
- 			throw "TestBox could not sucessfully execute all testcases: #result.getTotalFail()# tests failed; #result.getTotalError()# tests errored.";
+ 			throw "TestBox could not successfully execute all testcases: #result.getTotalFail()# tests failed; #result.getTotalError()# tests errored.";
  		}
 	}
 	catch(e){

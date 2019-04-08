@@ -59,7 +59,7 @@
 		<!--- Desc --->
 		<div class="text">
 			<cfif !data.keyExists( "description" ) || !len( data.description )>
-				<em>No decription found</em>
+				<em>No description found</em>
 			<cfelse>
 				#data.description#
 			</cfif>

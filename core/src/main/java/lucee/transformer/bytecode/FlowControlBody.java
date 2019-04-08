@@ -25,33 +25,33 @@ import lucee.transformer.bytecode.statement.FlowControlContinue;
 
 import org.objectweb.asm.Label;
 
-public abstract class FlowControlBody extends BodyBase implements FlowControlBreak,FlowControlContinue {
-	
-	public FlowControlBody(Factory f) {
-		super(f);
-	}
+public abstract class FlowControlBody extends BodyBase implements FlowControlBreak, FlowControlContinue {
 
-	private Label end = new Label();
-	
-	@Override
-	public void _writeOut(BytecodeContext bc) throws TransformerException {
-		
-		super._writeOut(bc);
-		bc.getAdapter().visitLabel(end);
-	}
+    public FlowControlBody(Factory f) {
+	super(f);
+    }
 
-	@Override
-	public Label getBreakLabel() {
-		return end;
-	}
+    private Label end = new Label();
 
-	@Override
-	public Label getContinueLabel() {
-		return end;
-	}
+    @Override
+    public void _writeOut(BytecodeContext bc) throws TransformerException {
 
-	@Override
-	public String getLabel() {
-		return null;
-	}
+	super._writeOut(bc);
+	bc.getAdapter().visitLabel(end);
+    }
+
+    @Override
+    public Label getBreakLabel() {
+	return end;
+    }
+
+    @Override
+    public Label getContinueLabel() {
+	return end;
+    }
+
+    @Override
+    public String getLabel() {
+	return null;
+    }
 }

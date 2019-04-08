@@ -25,55 +25,54 @@ import lucee.runtime.gateway.Gateway;
 import lucee.runtime.gateway.GatewayEngine;
 
 public class GatewayProxy implements Gateway {
-	
-	private final Gateway gateway;
 
-	public GatewayProxy(Gateway gateway){
-		this.gateway=gateway;
-	}
-	
-	@Override
-	public void init(GatewayEngine engine, String id, String cfcPath, Map config) throws IOException {
-		gateway.init(engine, id, cfcPath, config);
-	}
+    private final Gateway gateway;
 
+    public GatewayProxy(Gateway gateway) {
+	this.gateway = gateway;
+    }
 
-	@Override
-	public String getId() {
-		return gateway.getId();
-	}
+    @Override
+    public void init(GatewayEngine engine, String id, String cfcPath, Map config) throws IOException {
+	gateway.init(engine, id, cfcPath, config);
+    }
 
-	@Override
-	public String sendMessage(Map data) throws IOException {
-		return gateway.sendMessage(data);
-	}
+    @Override
+    public String getId() {
+	return gateway.getId();
+    }
 
-	@Override
-	public Object getHelper() {
-		return gateway.getHelper();
-	}
+    @Override
+    public String sendMessage(Map data) throws IOException {
+	return gateway.sendMessage(data);
+    }
 
-	@Override
-	public void doStart() throws IOException {
-		gateway.doStart();
-	}
+    @Override
+    public Object getHelper() {
+	return gateway.getHelper();
+    }
 
-	@Override
-	public void doStop() throws IOException {
-		gateway.doStop();
-	}
+    @Override
+    public void doStart() throws IOException {
+	gateway.doStart();
+    }
 
-	@Override
-	public void doRestart() throws IOException {
-		gateway.doRestart();
-	}
+    @Override
+    public void doStop() throws IOException {
+	gateway.doStop();
+    }
 
-	@Override
-	public int getState() {
-		return gateway.getState();
-	}
+    @Override
+    public void doRestart() throws IOException {
+	gateway.doRestart();
+    }
 
-	public Gateway getGateway() {
-		return gateway;
-	}
+    @Override
+    public int getState() {
+	return gateway.getState();
+    }
+
+    public Gateway getGateway() {
+	return gateway;
+    }
 }

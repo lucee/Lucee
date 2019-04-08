@@ -35,57 +35,57 @@ public final class XMLAttrStruct extends XMLNodeStruct implements Attr {
 
     /**
      * constructor of the class
+     * 
      * @param section
      * @param caseSensitive
      */
     public XMLAttrStruct(Attr attr, boolean caseSensitive) {
-        super(attr,caseSensitive);
-        this.attr=attr;
+	super(attr, caseSensitive);
+	this.attr = attr;
     }
 
-	@Override
-	public String getName() {
-		return attr.getName();
-	}
+    @Override
+    public String getName() {
+	return attr.getName();
+    }
 
-	@Override
-	public Element getOwnerElement() {
-		return new XMLElementStruct(attr.getOwnerElement(),caseSensitive);
-	}
+    @Override
+    public Element getOwnerElement() {
+	return new XMLElementStruct(attr.getOwnerElement(), caseSensitive);
+    }
 
-	@Override
-	public boolean getSpecified() {
-		return attr.getSpecified();
-	}
+    @Override
+    public boolean getSpecified() {
+	return attr.getSpecified();
+    }
 
-	@Override
-	public String getValue() {
-		return attr.getValue();
-	}
+    @Override
+    public String getValue() {
+	return attr.getValue();
+    }
 
-	@Override
-	public void setValue(String arg0) throws DOMException {
-		attr.setValue(arg0);
-	}
+    @Override
+    public void setValue(String arg0) throws DOMException {
+	attr.setValue(arg0);
+    }
 
-	// used only with java 7, do not set @Override
-	public TypeInfo getSchemaTypeInfo() {
-		return null;
-	}
+    // used only with java 7, do not set @Override
+    public TypeInfo getSchemaTypeInfo() {
+	return null;
+    }
 
-	// used only with java 7, do not set @Override
-	public boolean isId() {
-		return false;
-	}
+    // used only with java 7, do not set @Override
+    public boolean isId() {
+	return false;
+    }
 
-	@Override
-	public Collection duplicate(boolean deepCopy) {
-		return new XMLAttrStruct((Attr)attr.cloneNode(deepCopy),caseSensitive);
-	}
-	
+    @Override
+    public Collection duplicate(boolean deepCopy) {
+	return new XMLAttrStruct((Attr) attr.cloneNode(deepCopy), caseSensitive);
+    }
 
-	@Override
-	public Node cloneNode(boolean deep) {
-		return new XMLAttrStruct((Attr)attr.cloneNode(deep),caseSensitive);
-	}
+    @Override
+    public Node cloneNode(boolean deep) {
+	return new XMLAttrStruct((Attr) attr.cloneNode(deep), caseSensitive);
+    }
 }

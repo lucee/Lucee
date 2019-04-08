@@ -17,9 +17,6 @@
  */
 package lucee.transformer.expression;
 
+public interface ExprString extends Expression {
 
-
-
-public interface ExprString extends Expression { 
-    
 }

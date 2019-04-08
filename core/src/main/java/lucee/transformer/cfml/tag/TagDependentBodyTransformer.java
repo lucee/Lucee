@@ -19,39 +19,27 @@
 package lucee.transformer.cfml.tag;
 
 import lucee.runtime.exp.TemplateException;
-import lucee.transformer.Factory;
 import lucee.transformer.bytecode.Body;
-import lucee.transformer.bytecode.Root;
 import lucee.transformer.cfml.Data;
-import lucee.transformer.cfml.TransfomerSettings;
-import lucee.transformer.cfml.evaluator.EvaluatorPool;
-import lucee.transformer.library.function.FunctionLib;
-import lucee.transformer.library.tag.TagLib;
-import lucee.transformer.library.tag.TagLibTag;
-import lucee.transformer.util.SourceCode;
 
 /**
  * Interface zum implementieren von individullen Parsersn fuer einezelne Tags (cfscript)
  */
 public interface TagDependentBodyTransformer {
-	
-	/**
-	 * @param parent
-	 * @param flibs
-	 * @param cfxdTag
-	 * @param tagLibTag
-	 * @param cfml
-	 * @throws TemplateException
-	 */
-	//public Body transform(Factory factory,Root root,EvaluatorPool ep,TagLib[][] tlibs, FunctionLib[] flibs, String surroundingTagName, 
-	// TagLibTag[] scriptTags, SourceCode cfml,TransfomerSettings setting)
-	//		throws TemplateException;
-	
-	
-	public Body transform(Data data,String surroundingTagName) throws TemplateException;
-		
-	
-	
 
+    /**
+     * @param parent
+     * @param flibs
+     * @param cfxdTag
+     * @param tagLibTag
+     * @param cfml
+     * @throws TemplateException
+     */
+    // public Body transform(Factory factory,Root root,EvaluatorPool ep,TagLib[][] tlibs, FunctionLib[]
+    // flibs, String surroundingTagName,
+    // TagLibTag[] scriptTags, SourceCode cfml,TransfomerSettings setting)
+    // throws TemplateException;
+
+    public Body transform(Data data, String surroundingTagName) throws TemplateException;
 
 }

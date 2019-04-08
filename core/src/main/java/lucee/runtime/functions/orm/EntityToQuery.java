@@ -25,14 +25,14 @@ import lucee.runtime.orm.ORMUtil;
 import lucee.runtime.type.Query;
 
 public class EntityToQuery {
-	
-	public static Query call(PageContext pc, Object obj) throws PageException {
-		return call(pc, obj,null);
-	}
-	
-	public static Query call(PageContext pc, Object obj, String name) throws PageException {
-		ORMSession session=ORMUtil.getSession(pc);
-		return session.toQuery(pc,obj,name);
-		
-	}
+
+    public static Query call(PageContext pc, Object obj) throws PageException {
+	return call(pc, obj, null);
+    }
+
+    public static Query call(PageContext pc, Object obj, String name) throws PageException {
+	ORMSession session = ORMUtil.getSession(pc);
+	return session.toQuery(pc, obj, name);
+
+    }
 }

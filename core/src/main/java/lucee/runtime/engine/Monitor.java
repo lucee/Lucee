@@ -23,59 +23,58 @@ import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.ConfigServerImpl;
 
 /**
- * own thread how check the main thread and his data 
+ * own thread how check the main thread and his data
  */
 public final class Monitor extends Thread {
 
-	
-	private static final long INTERVALL = 5000;
-	private final ConfigServerImpl configServer;
-	private final ControllerState state;
-	
-	/**
-	 * @param contextes
-	 * @param interval
-	 * @param run 
-	 */
-	public Monitor(ConfigServer configServer,ControllerState state) {
-        
-        this.state=state;
-        this.configServer=(ConfigServerImpl) configServer;
-        
+    private static final long INTERVALL = 5000;
+    private final ConfigServerImpl configServer;
+    private final ControllerState state;
+
+    /**
+     * @param contextes
+     * @param interval
+     * @param run
+     */
+    public Monitor(ConfigServer configServer, ControllerState state) {
+
+	this.state = state;
+	this.configServer = (ConfigServerImpl) configServer;
+
+    }
+
+    @Override
+    public void run() {
+	short tries = 0;
+	while (state.active()) {
+	    try {
+		sleep(INTERVALL);
+	    }
+	    catch (InterruptedException e) {
+		SystemOut.printDate(e);
+	    }
+
+	    if (!configServer.isMonitoringEnabled()) return;
+	    lucee.runtime.monitor.IntervallMonitor[] monitors = configServer.getIntervallMonitors();
+
+	    int logCount = 0;
+	    if (monitors != null) for (int i = 0; i < monitors.length; i++) {
+		if (monitors[i].isLogEnabled()) {
+		    logCount++;
+		    try {
+			monitors[i].log();
+		    }
+		    catch (Exception e) {
+			SystemOut.printDate(e);
+		    }
+		}
+	    }
+
+	    if (logCount == 0) {
+		tries++;
+		if (tries >= 10) return;
+	    }
 	}
-	
-	@Override
-	public void run() {
-		short tries=0;
-		while(state.active()) {
-            try {
-				sleep(INTERVALL);
-			} 
-            catch (InterruptedException e) {
-				SystemOut.printDate(e);
-			}
-            
-            if(!configServer.isMonitoringEnabled()) return;
-            lucee.runtime.monitor.IntervallMonitor[] monitors = configServer.getIntervallMonitors();
-            
-            int logCount=0;
-            if(monitors!=null)for(int i=0;i<monitors.length;i++){
-            	if(monitors[i].isLogEnabled()) {
-	            	logCount++;
-            		try {
-	            		monitors[i].log();
-	        		} 
-	        		catch (Exception e) {
-	    				SystemOut.printDate(e);
-	        		}
-            	}
-            }
-            
-            if(logCount==0) {
-            	tries++;
-            	if(tries>=10)return;
-            }
-	    }    
-	}
+    }
 
 }

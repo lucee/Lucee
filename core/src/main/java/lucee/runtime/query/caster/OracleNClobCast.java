@@ -17,5 +17,5 @@
 package lucee.runtime.query.caster;
 
 public class OracleNClobCast extends OracleClobCast {
-	
+
 }

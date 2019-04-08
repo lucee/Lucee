@@ -23,12 +23,12 @@ import lucee.transformer.bytecode.BytecodeContext;
 import org.objectweb.asm.Label;
 
 public interface LoopVisitor {
-	
-	public void visitContinue(BytecodeContext bc);
-		
-	public void visitBreak(BytecodeContext bc);
 
-	public Label getContinueLabel();
+    public void visitContinue(BytecodeContext bc);
 
-	public Label getBreakLabel();
+    public void visitBreak(BytecodeContext bc);
+
+    public Label getContinueLabel();
+
+    public Label getBreakLabel();
 }

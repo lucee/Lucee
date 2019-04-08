@@ -27,15 +27,15 @@ import java.util.TimeZone;
 import lucee.commons.date.JREDateTimeUtil;
 import lucee.runtime.type.dt.DateTimeImpl;
 
-public class TimeCast implements Cast{
+public class TimeCast implements Cast {
 
-	@Override
-	public Object toCFType(TimeZone tz, ResultSet rst, int columnIndex) throws SQLException, IOException {
-		Time t = rst.getTime(columnIndex,JREDateTimeUtil.getThreadCalendar(tz));
-		if(t==null) return null;
-		
-		return new DateTimeImpl(t.getTime(),false);
-		
-	}
+    @Override
+    public Object toCFType(TimeZone tz, ResultSet rst, int columnIndex) throws SQLException, IOException {
+	Time t = rst.getTime(columnIndex, JREDateTimeUtil.getThreadCalendar(tz));
+	if (t == null) return null;
+
+	return new DateTimeImpl(t.getTime(), false);
+
+    }
 
 }

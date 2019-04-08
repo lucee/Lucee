@@ -7,7 +7,7 @@
 		,field("Interval (ms)","interval","60000",true,"The interval between checks, in miliseconds","text")
 		,field("File filter","extensions","*",true,"The comma separated list of file filters to match (* = all files). Examples: *user*,*.gif,2010*,myfilename.txt","text")
 
-		,group("CFC Listener Function Defintion","Definition for the CFC Listener Functions, when empty no listener is called",3)
+		,group("CFC Listener Function Definition","Definition for the CFC Listener Functions, when empty no listener is called",3)
 
 		,field("Change","changeFunction","onChange",true,"called when a file change","text")
 		,field("Add","addFunction","onAdd",true,"called when a file is added","text")

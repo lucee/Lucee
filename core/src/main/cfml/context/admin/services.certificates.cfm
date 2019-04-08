@@ -55,17 +55,16 @@ Redirtect to entry --->
 <!--- 
 Error Output --->
 <cfset printError(error)>
-
 <cfoutput>
 	<cfif not hasAccess><cfset noAccess(stText.setting.noAccess)></cfif>
 	<div class="pageintro">#stText.services.certificate.desc#</div>
-	<cfformClassic action="#request.self#?action=#url.action#" method="post">
+	<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 		<table class="maintbl">
 			<tbody>
 				<tr>
 					<th scope="row">#stText.services.certificate.host#</th>
 					<td>
-						<cfinputClassic type="text" name="host" value="#_host#" class="large" required="yes">
+						<cfinputClassic type="text" name="host" value="#_host#" class="large" required="yes" message="#stText.services.certificate.hostValidation#">
 						<div class="comment">#stText.services.certificate.hostDesc#</div>
 					</td>
 				</tr>

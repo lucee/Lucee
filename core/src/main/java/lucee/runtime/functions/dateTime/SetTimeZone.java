@@ -23,11 +23,11 @@ import java.util.TimeZone;
 import lucee.runtime.PageContext;
 import lucee.runtime.ext.function.Function;
 
-public class SetTimeZone implements Function{
-	public static TimeZone call(PageContext pc,TimeZone tz) {
-		TimeZone old = pc.getTimeZone();
-		pc.setTimeZone(tz);
-		return old;
-	}
-		
+public class SetTimeZone implements Function {
+    public static TimeZone call(PageContext pc, TimeZone tz) {
+	TimeZone old = pc.getTimeZone();
+	pc.setTimeZone(tz);
+	return old;
+    }
+
 }

@@ -18,5 +18,5 @@
 package lucee.transformer.library;
 
 public interface Lib {
-	
+
 }

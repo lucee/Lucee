@@ -23,5 +23,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		assertEquals(3.5,ListAvg("1,2,3,4,5,6"));
 		assertEquals(3.5,ListAvg("1,2,3,4,5,6",',;.'));
 		assertEquals(3.5,ListAvg("1,2,3,4,5,6",',;.'));
+		assertEquals(3.5,ListAvg("1,;2,;3,;4,;5,;6",',;',true));
 	}
 }

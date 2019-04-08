@@ -52,6 +52,36 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				var result = testConnection();
 				assertEquals(true, isQuery(result));
 			});
+
+			it( title='test with version 8.0.11',skip=isNotSupported(), body=function( currentSpec ) {
+				defineDatasource('com.mysql.cj.jdbc.Driver',  'com.mysql.cj', '8.0.11');
+				var result = testConnection();
+				assertEquals(true, isQuery(result));
+			});
+
+			it( title='test with version 8.0.12',skip=isNotSupported(), body=function( currentSpec ) {
+				defineDatasource('com.mysql.cj.jdbc.Driver',  'com.mysql.cj', '8.0.12');
+				var result = testConnection();
+				assertEquals(true, isQuery(result));
+			});
+
+			it( title='test with version 8.0.13',skip=isNotSupported(), body=function( currentSpec ) {
+				defineDatasource('com.mysql.cj.jdbc.Driver',  'com.mysql.cj', '8.0.13');
+				var result = testConnection();
+				assertEquals(true, isQuery(result));
+			});
+
+			it( title='test with version 8.0.14',skip=isNotSupported(), body=function( currentSpec ) {
+				defineDatasource('com.mysql.cj.jdbc.Driver',  'com.mysql.cj', '8.0.13');
+				var result = testConnection();
+				assertEquals(true, isQuery(result));
+			});
+
+			it( title='test with version 8.0.15',skip=isNotSupported(), body=function( currentSpec ) {
+				defineDatasource('com.mysql.cj.jdbc.Driver',  'com.mysql.cj', '8.0.13');
+				var result = testConnection();
+				assertEquals(true, isQuery(result));
+			});
 		});
 
 		describe( "Checking MYSQL JDBC drivers with PDT timeZone", function() {

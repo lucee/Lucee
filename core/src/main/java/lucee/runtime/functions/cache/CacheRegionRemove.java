@@ -28,39 +28,37 @@ import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
 
 /**
- * implements BIF CacheRegionRemove.  This function only exists for compatibility with other CFML Engines and should be avoided where possible.
- * The preferred method to manipulate Cache connections is via the Administrator interface or in Application.
+ * implements BIF CacheRegionRemove. This function only exists for compatibility with other CFML
+ * Engines and should be avoided where possible. The preferred method to manipulate Cache
+ * connections is via the Administrator interface or in Application.
  */
 public class CacheRegionRemove extends BIF {
 
-
-    public static String call( PageContext pc, String cacheName, String webAdminPassword ) throws PageException {
-        return _call( pc, cacheName, webAdminPassword );
+    public static String call(PageContext pc, String cacheName, String webAdminPassword) throws PageException {
+	return _call(pc, cacheName, webAdminPassword);
     }
 
-
-    public static String call( PageContext pc, String cacheName ) throws PageException {
-        return _call( pc, cacheName, null );
+    public static String call(PageContext pc, String cacheName) throws PageException {
+	return _call(pc, cacheName, null);
     }
 
-
-    static String _call( PageContext pc, String cacheName, String strWebAdminPassword ) throws PageException {
-        Password webAdminPassword = CacheUtil.getPassword( pc, strWebAdminPassword, false);
-        try {
-            XMLConfigAdmin adminConfig = XMLConfigAdmin.newInstance( (ConfigWebImpl)pc.getConfig(), webAdminPassword );
-            adminConfig.removeCacheConnection( cacheName );
-            adminConfig.storeAndReload();
-        }
-        catch ( Exception e ) {
-            throw Caster.toPageException( e );
-        }
-        return null;
-    }
-
-	@Override
-	public Object invoke(PageContext pc, Object[] args) throws PageException {
-		if(args.length==1)return call(pc, Caster.toString(args[0]));
-		if(args.length==2)return call(pc, Caster.toString(args[0]),Caster.toString(args[1]));
-		throw new FunctionException(pc, "CacheRegionRemove", 1, 2, args.length);
+    static String _call(PageContext pc, String cacheName, String strWebAdminPassword) throws PageException {
+	Password webAdminPassword = CacheUtil.getPassword(pc, strWebAdminPassword, false);
+	try {
+	    XMLConfigAdmin adminConfig = XMLConfigAdmin.newInstance((ConfigWebImpl) pc.getConfig(), webAdminPassword);
+	    adminConfig.removeCacheConnection(cacheName);
+	    adminConfig.storeAndReload();
 	}
+	catch (Exception e) {
+	    throw Caster.toPageException(e);
+	}
+	return null;
+    }
+
+    @Override
+    public Object invoke(PageContext pc, Object[] args) throws PageException {
+	if (args.length == 1) return call(pc, Caster.toString(args[0]));
+	if (args.length == 2) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]));
+	throw new FunctionException(pc, "CacheRegionRemove", 1, 2, args.length);
+    }
 }

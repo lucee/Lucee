@@ -96,7 +96,7 @@
 		}
 	</cfscript>
 
-	<!-- Private Funtions --->
+	<!-- Private Functions --->
 	<cffunction name="defaultDocumentSection" access="private" output="false">
 		<cfdocumentsection>
 			Lucee test document

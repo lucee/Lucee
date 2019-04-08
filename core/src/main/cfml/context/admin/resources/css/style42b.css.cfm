@@ -900,6 +900,40 @@ div.tooltip {
 	padding: 5px 3px;
 }
 
+.fLeft{
+	position: relative;
+	float: left;
+	width:33%;
+}
+.smBtn {
+    background: #333 none repeat scroll 0 0;
+    border-radius: 5px;
+    border-width: 0;
+    color: #efede5;
+    display: inline-block;
+    font-size: 11px;
+    font-weight: bold;
+    outline: medium none;
+    overflow: visible;
+    padding: 3px 5px;
+    text-align: center;
+    text-decoration: none;
+    width: auto;
+}
+.pdTop{
+    padding-top: 3%;
+}
+.fs {
+    font-size: 13px !important;
+}
+.alertMsg{
+	color: red;
+    font-size: 11px;
+    font-weight: bold;
+    margin: 5px 0 ;
+    padding: 5px;
+}
+
 /* css for tag, object, and function documentation */
 .syntaxTag, .syntaxFunc{color:#993300;}
 .syntaxText {color:#CC0000;}
@@ -988,3 +1022,6 @@ div.tooltip {
     							no-repeat left center; padding: 4px 0 4px 16px; }
 
     		/** base64 icons end */
+
+
+

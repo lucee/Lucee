@@ -82,9 +82,22 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		}
 		assertEquals('{"1":"a","2":1,"3":"a,c","4":","}{"1":"c","2":2,"3":"a,c","4":","}',c);
 
+		var list2 = "I@love@lucee@";
+		var result = listSome(list2,function(item){
+			return item=="lucee";
+		},'@');
+		assertEquals(true, result);
+
+
 		// member function
 		res=list.some(function(value ){return value =='b';},',',false,true,parallel);
 		assertEquals(true,res);
+
+		var list3 = "I,love,lucee,";
+		var result2 = list3.some(function(item){
+			return item=="testcase";
+		});
+		assertEquals(false, result2);
 	}
 
 
@@ -158,9 +171,25 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		}
 		assertEquals('{"1":{"b":"b1","a":"a1"},"2":1,"3":query("a":["a1","a2"],"b":["b1","b2"])}{"1":{"b":"b2","a":"a2"},"2":2,"3":query("a":["a1","a2"],"b":["b1","b2"])}',c);
 
+		var people = QueryNew( "name,dob,age", "varchar,date,int", [
+			[ "Susi", CreateDate( 1970, 1, 1 ), 0 ],
+			[ "Urs" , CreateDate( 1995, 1, 1 ), 0 ],
+			[ "Fred", CreateDate( 1960, 1, 1 ), 0 ],
+			[ "Jim" , CreateDate( 1988, 1, 1 ), 0 ]
+		]);
+		var result = querySome(people,function(row, rowNumber, qryData){
+		    return ((DateDiff('yyyy', row.dob, Now()) > 0) && (DateDiff('yyyy', row.dob, Now()) <= 100))
+		});
+		assertEquals(result, true);
+
 		// member function
 		res=qry.some(function(row,rowNumber){return rowNumber == 1;},parallel);
 		assertEquals(true,res);
+
+		var result2 = people.Some(function(row, rowNumber, qryData){
+		    return ((DateDiff('yyyy', row.dob, Now()) > 0) && (DateDiff('yyyy', row.dob, Now()) <= 50))
+		});
+		assertEquals(true, result2);
 		
 	}
 

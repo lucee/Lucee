@@ -25,34 +25,32 @@ import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.ContentType;
 
 public class ByteArrayHttpEntity extends ByteArrayEntity implements Entity4 {
- 
-	
-	private ContentType ct;
-	private int contentLength;
 
-	public ByteArrayHttpEntity(byte[] barr, ContentType contentType) {
-		super(barr);
-		contentLength=barr==null?0:barr.length;
-		
-		if(ct==null) {
-			Header h = getContentType();
-			if(h!=null) {
-				lucee.commons.lang.mimetype.ContentType tmp = HTTPUtil.toContentType(h.getValue(), null);
-				if(tmp!=null)
-					ct=ContentType.create(tmp.getMimeType(),tmp.getCharset());
-			}
-		}
-		else this.ct=contentType;
-	}
+    private ContentType ct;
+    private int contentLength;
 
-	@Override
-	public long contentLength() {
-		return contentLength;
-	}
+    public ByteArrayHttpEntity(byte[] barr, ContentType contentType) {
+	super(barr);
+	contentLength = barr == null ? 0 : barr.length;
 
-	@Override
-	public String contentType() {
-		return ct!=null?ct.toString():null;
+	if (ct == null) {
+	    Header h = getContentType();
+	    if (h != null) {
+		lucee.commons.lang.mimetype.ContentType tmp = HTTPUtil.toContentType(h.getValue(), null);
+		if (tmp != null) ct = ContentType.create(tmp.getMimeType(), tmp.getCharset());
+	    }
 	}
+	else this.ct = contentType;
+    }
+
+    @Override
+    public long contentLength() {
+	return contentLength;
+    }
+
+    @Override
+    public String contentType() {
+	return ct != null ? ct.toString() : null;
+    }
 
 }

@@ -29,6 +29,7 @@ public interface Literal extends Ref {
 
     /**
      * cast literal to a string
+     * 
      * @return casted string
      * @throws PageException
      */

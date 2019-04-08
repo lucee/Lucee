@@ -28,21 +28,21 @@ import lucee.runtime.type.Collection.Key;
  */
 public interface Iteratorable {
 
-	/**
-	 * @return return a Iterator for Keys as Collection.Keys
-	 */
-	public Iterator<Collection.Key> keyIterator();
+    /**
+     * @return return a Iterator for Keys as Collection.Keys
+     */
+    public Iterator<Collection.Key> keyIterator();
 
-	/**
-	 * @return return a Iterator for Keys as String
-	 */
-	public Iterator<String> keysAsStringIterator();
+    /**
+     * @return return a Iterator for Keys as String
+     */
+    public Iterator<String> keysAsStringIterator();
 
-	/**
-	 * 
-	 * @return return a Iterator for Values
-	 */
-	public Iterator<Object> valueIterator();
+    /**
+     * 
+     * @return return a Iterator for Values
+     */
+    public Iterator<Object> valueIterator();
 
-	public Iterator<Entry<Key, Object>> entryIterator();
+    public Iterator<Entry<Key, Object>> entryIterator();
 }

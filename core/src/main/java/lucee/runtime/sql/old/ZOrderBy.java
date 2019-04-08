@@ -24,35 +24,28 @@ import java.io.Serializable;
 // Referenced classes of package Zql:
 //            ZExp
 
-public final class ZOrderBy
-    implements Serializable
-{
+public final class ZOrderBy implements Serializable {
 
-    public ZOrderBy(ZExp zexp)
-    {
-        asc_ = true;
-        exp_ = zexp;
+    public ZOrderBy(ZExp zexp) {
+	asc_ = true;
+	exp_ = zexp;
     }
 
-    public void setAscOrder(boolean flag)
-    {
-        asc_ = flag;
+    public void setAscOrder(boolean flag) {
+	asc_ = flag;
     }
 
-    public boolean getAscOrder()
-    {
-        return asc_;
+    public boolean getAscOrder() {
+	return asc_;
     }
 
-    public ZExp getExpression()
-    {
-        return exp_;
+    public ZExp getExpression() {
+	return exp_;
     }
 
     @Override
-	public String toString()
-    {
-        return exp_.toString() + " " + (asc_ ? "ASC" : "DESC");
+    public String toString() {
+	return exp_.toString() + " " + (asc_ ? "ASC" : "DESC");
     }
 
     ZExp exp_;

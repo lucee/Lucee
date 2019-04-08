@@ -493,7 +493,7 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 		<body-content>must</body-content>
 		<allow-removing-literal>yes</allow-removing-literal>
 		<body-rtexprvalue>false</body-rtexprvalue>
-		<description>Handle one case of a cfswicth</description>
+		<description>Handle one case of a cfswitch</description>
 		<attribute-type>fixed</attribute-type>
 		<attribute>
 			<type>string</type>
@@ -932,7 +932,7 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<name>preservecase</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>if set to true Lucee keep the original case for the name, otherise the name is converted to a upper case string</description>
+			<description>if set to true Lucee keep the original case for the name, otherwise the name is converted to a upper case string</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -956,7 +956,7 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 		<description>Lets you retrieve information about a data source, including details about the database, tables, queries, procedures, foreign keys, indexes, and version information about the database, driver, and JDBC. This tag supports only JDBC drivers, and does not support ODBC-based drivers, including the Microsoft Access driver.</description>
 		<attribute-type>fixed</attribute-type>
 		<attribute>
-			<type>string</type>
+			<type>object</type>
 			<name>datasource</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
@@ -3256,8 +3256,17 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<name>text</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>The text to add to the 'head' area of an HTML page. Everything inside the quotation marks is
+			<description>The text to add to the 'body' area of an HTML page. Everything inside the quotation marks is
 		placed in the 'head' section</description>
+		</attribute>
+		
+		<attribute>
+			<type>boolean</type>
+			<name>force</name>
+			<required>false</required>
+			<default>false</default>
+			<rtexprvalue>true</rtexprvalue>
+			<description>if set to true, it works even within a silent block</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -3310,6 +3319,15 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<rtexprvalue>true</rtexprvalue>
 			<description>The text to add to the 'head' area of an HTML page. Everything inside the quotation marks is
 		placed in the 'head' section</description>
+		</attribute>
+		
+		<attribute>
+			<type>boolean</type>
+			<name>force</name>
+			<required>false</required>
+			<default>true</default>
+			<rtexprvalue>true</rtexprvalue>
+			<description>if set to true, it works even within a silent block</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -3372,7 +3390,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>
-			if set to true (default value) URL encodes the value of the attribute "URL" if necessary (no double encoding is happeing).
+			if set to true (default value) URL encodes the value of the attribute "URL" if necessary (no double encoding is happening).
 			This setting has no influence on the values from httpparam type="url", for this use the attribute "encoded" from httpparam</description>
 		</attribute>
 		<attribute>
@@ -3752,192 +3770,6 @@ To use cached data, the tag must be called with the exact same arguments.</descr
 			<description>condition o the expression</description>
 		</attribute>
 	</tag>
-	<!-- Image -->
-	<tag>
-		<name>Image</name>
-		<tag-class>lucee.runtime.tag.Image</tag-class>
-		<body-content>empty</body-content>
-		<body-rtexprvalue>false</body-rtexprvalue>
-		<script>
-			<type>multiple</type>
-			<rtexprvalue>true</rtexprvalue>
-		</script>
-		<description>Lets you resize and add labels to GIF and JPEG format images.</description>
-		<attribute-type>fixed</attribute-type>
-
-		<attribute>
-			<type>string</type>
-			<name>action</name>
-			<values>border,captcha,convert,writetobrowser,write,rotate,resize,read,info</values>
-			<default-value>read</default-value>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Action to execute.</description>
-		</attribute>
-		<attribute>
-			<type>number</type>
-			<name>angle</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Angle in degrees to rotate the image.</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>passthrough</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>
-			HTML attributes that are not explicitly supported by cfimage.
-				If you specify an attribute and value,
-				they are passed to the tag "img".
-			</description>
-		</attribute>
-
-
-
-		<attribute>
-			<type>string</type>
-			<name>color</name>
-			<alias>Colour</alias>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Border color. Hexadecimal value or supported named color. For a hexadecimal value, use the form "#xxxxxx" or "xxxxxx", where x = 0-9 or A-F; use two number signs or none.</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>destination</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Absolute or relative pathname where the image output is written.
-				The image format is determined by the file extension.
-				The convert and write actions require a destination attribute.
-				The border, captcha, resize, and rotate actions require a name attribute or a destination attribute.
-				You can specify both.
-				If you do not enter a destination,
-				the CAPTCHA image is placed inline in the HTML output and displayed in the web browser.</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>difficulty</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Level of complexity of the CAPTCHA text.
-			Specify one of the following levels of text distortion:
-			low, medium, high
-			</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>fonts</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>One or more valid fonts to use for the CAPTCHA text. Separate multiple fonts with commas.
-			Lucee supports only the system fonts that the JDK can recognize. For example, TTF fonts in the Windows directory are supported on Windows.</description>
-		</attribute>
-		<attribute>
-			<type>number</type>
-			<name>fontSize</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>font size of the text in the CAPTCHA image.</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>format</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Format of the image displayed in the browser.
-			If you do not specify a format, the image is displayed in PNG format.</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>height</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Height in pixels of the image.
-			For the resize attribute, you also can specify the height as a percentage.
-			When you resize an image, if you specify a value for the width.</description>
-		</attribute>
-		<attribute>
-			<type>boolean</type>
-			<name>isBase64</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Specifies whether the source is a Base64 string</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>name</name>
-			<alias>variable</alias>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Name of the image variable to create.
-			The read action requires a name attribute.
-			The border, resize, and rotate actions require a name attribute or a destination attribute.
-			You can specify both.</description>
-		</attribute>
-		<attribute>
-			<type>boolean</type>
-			<name>overwrite</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>If the destination file already exists, Lucee generates an error if the overwrite action is not set to yes.</description>
-		</attribute>
-		<attribute>
-			<type>number</type>
-			<name>quality</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Quality of the JPEG destination file. Applies only to files with an extension of JPG or JPEG. Valid values are fractions that range from 0 through 1 (the lower the number, the lower the quality).</description>
-		</attribute>
-		<attribute>
-			<type>any</type>
-			<name>source</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>source file</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>structName</name>
-			<alias>result</alias>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Name of the structure to be created.</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>text</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Text string displayed in the CAPTCHA image. Use capital letters for better readability. Do not include spaces because users cannot detect them in the resulting CAPTCHA image.</description>
-		</attribute>
-		<attribute>
-			<type>number</type>
-			<name>thickness</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Border thickness in pixels. The border is added to the outside edge of the source image, increasing the image area accordingly.</description>
-		</attribute>
-		<attribute>
-			<type>string</type>
-			<name>width</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>Width in pixels of the image.</description>
-		</attribute>
-		<attribute>
-			<type>boolean</type>
-			<name>base64</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description>should action "writetobrowser" embed the source of the image as base64 encoded string, default is false.</description>
-		</attribute>
-
-	</tag>
-
-
-
 
 	<!-- Imap -->
 	<tag>
@@ -4068,7 +3900,7 @@ To use cached data, the tag must be called with the exact same arguments.</descr
 			<status>deprecated</status>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>this attribute is deprecated and ignored, log control happens via the logging framwork directly.</description>
+			<description>this attribute is deprecated and ignored, log control happens via the logging framework directly.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -4462,7 +4294,7 @@ Permits searching collections by title or displaying a separate title from the k
 		<description>Inserts records in data sources.</description>
 		<attribute-type>fixed</attribute-type>
 		<attribute>
-			<type>string</type>
+			<type>object</type>
 			<name>dataSource</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
@@ -4934,7 +4766,7 @@ Permits searching collections by title or displaying a separate title from the k
 			<rtexprvalue>true</rtexprvalue>
 			<description>Specifies the maximum amount of time, in seconds, to wait to obtain a lock. If a lock can be
 		obtained within the specified period, execution continues inside the body of the tag. Otherwise, the
-		behavior depends on the value of the throwOnTimeout attribute. If not set, the remaing request timeout is used instead.</description>
+		behavior depends on the value of the throwOnTimeout attribute. If not set, the remaining request timeout is used instead.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -5982,7 +5814,7 @@ Lucee uses the number of characters in the file.</description>
 			<status>deprecated</status>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>this attribute is deprecated and ignored, log control happens via the logging framwork directly.</description>
+			<description>this attribute is deprecated and ignored, log control happens via the logging framework directly.</description>
 		</attribute>
 		<attribute>
 			<type>number</type>
@@ -6434,16 +6266,14 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 		</attribute>
  -->
 
-
-
-
 	</tag>
+
 	<!-- Query -->
 	<tag>
 		<name>Query</name>
 		<tag-class>lucee.runtime.tag.Query</tag-class>
 		<tte-class>lucee.transformer.cfml.evaluator.impl.Query</tte-class>
-		<body-content>must</body-content>
+		<body-content>free</body-content>
 		<body-rtexprvalue>true</body-rtexprvalue>
 		<handle-exception>true</handle-exception>
 		<script>
@@ -6472,8 +6302,6 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 			<rtexprvalue>true</rtexprvalue>
 			<description>When return type is set to "struct", the value of this column is used as key in the struct for every record.</description>
 		</attribute>
-		
-		
 		<attribute>
 			<type>string</type>
 			<name>result</name>
@@ -6575,7 +6403,6 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 			<description>The maximum number of seconds for the query to execute before returning an error
 		indicating that the query has timed-out. Value can be a number (seconds) or a Timespan Object. The minimum and maximum allowable values
 		vary, depending on the driver.</description>
-
 		</attribute>
 		<attribute>
 			<type>datetime</type>
@@ -6589,13 +6416,13 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 			<name>cachedWithin</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		<description>
+			<description>
 possible values are:
 String "request": If original query was created within the current request, cached query data isused.
 a timespan (created with function CreateTimeSpan): If original query date falls within the time span, cached query data isused.
 
 To use cached data, the current query must use the same SQL statement, data source, query name, user name, and password.</description>
-    </attribute>
+    	</attribute>
 		<attribute>
 			<type>string</type>
 			<name>provider</name>
@@ -6685,7 +6512,6 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<rtexprvalue>true</rtexprvalue>
 			<description></description>
 		</attribute>
-
 		<attribute>
 			<type>numeric</type>
 			<name>nestingLevel</name>
@@ -6695,9 +6521,29 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<rtexprvalue>true</rtexprvalue>
 			<description>the level for the current pagesource</description>
 		</attribute>
-
-
+		<attribute>
+			<name>sql</name>
+			<type>string</type>
+			<required>false</required>
+			<description>the SQL query to execute.</description>
+		</attribute>
+		<attribute>
+			<name>listener</name>
+			<type>any</type>
+			<status>hidden</status>
+			<required>false</required>
+			<description></description>
+		</attribute>
+		<attribute>
+			<name>async</name>
+			<type>boolean</type>
+			<default>false</default>
+			<status>hidden</status>
+			<required>false</required>
+			<description></description>
+		</attribute>
 	</tag>
+
 	<!-- QueryParam -->
 	<tag>
 		<name>queryparam</name>
@@ -7603,7 +7449,7 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<description>timeout for the stored procedure.</description>
 		</attribute>
 		<attribute>
-			<type>string</type>
+			<type>object</type>
 			<name>dataSource</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
@@ -7743,12 +7589,12 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		<attribute>
 			<type>string</type>
 			<name>type</name>
-			<values>deamon,task</values>
-			<default-value>deamon</default-value>
+			<values>daemon,task</values>
+			<default-value>daemon</default-value>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>type of the thread:
-			- deamon (default): executes as deamon of the current thread
+			- daemon (default): executes as daemon of the current thread
 			- task: executed by the task manager</description>
 		</attribute>
 		<attribute>
@@ -8081,7 +7927,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		<description>Updates existing records in data sources.</description>
 		<attribute-type>fixed</attribute-type>
 		<attribute>
-			<type>string</type>
+			<type>object</type>
 			<name>dataSource</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>

@@ -24,12 +24,12 @@ import lucee.runtime.ext.function.Function;
 import lucee.runtime.type.Struct;
 
 public class _GetStaticScope implements Function {
-	
-	private static final long serialVersionUID = -2676531632543576056L;
 
-	public static Struct call(PageContext pc , String componentPath) throws PageException {
-		
-		return ComponentLoader.searchComponent(pc,null,componentPath,null,null,false,false).staticScope();
-	}
+    private static final long serialVersionUID = -2676531632543576056L;
+
+    public static Struct call(PageContext pc, String componentPath) throws PageException {
+
+	return ComponentLoader.searchComponent(pc, null, componentPath, null, null, false, false).staticScope();
+    }
 
 }

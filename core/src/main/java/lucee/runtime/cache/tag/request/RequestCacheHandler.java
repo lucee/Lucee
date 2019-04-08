@@ -11,32 +11,32 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 
 public class RequestCacheHandler extends MapCacheHandler implements CacheHandlerPro {
-	
-	private static ThreadLocal<Map<String,CacheItem>> data=new ThreadLocal<Map<String,CacheItem>>() {
-		@Override 
-		protected Map<String,CacheItem> initialValue() {
-			return new HashMap<String, CacheItem>();
-		}
-	};
-	
-	@Override
-	protected Map<String, CacheItem> map() {
-		return data.get();
-	}
 
+    private static ThreadLocal<Map<String, CacheItem>> data = new ThreadLocal<Map<String, CacheItem>>() {
 	@Override
-	public boolean acceptCachedWithin(Object cachedWithin) {
-		return Caster.toString(cachedWithin,"").equalsIgnoreCase("request");
+	protected Map<String, CacheItem> initialValue() {
+	    return new HashMap<String, CacheItem>();
 	}
+    };
 
-	@Override
-	public String pattern() {
-		return "request";
-	}
+    @Override
+    protected Map<String, CacheItem> map() {
+	return data.get();
+    }
 
-	@Override
-	public CacheItem get(PageContext pc, String cacheId, Object cachePolicy) throws PageException {
-		return get(pc, cacheId);
-	}
+    @Override
+    public boolean acceptCachedWithin(Object cachedWithin) {
+	return Caster.toString(cachedWithin, "").equalsIgnoreCase("request");
+    }
+
+    @Override
+    public String pattern() {
+	return "request";
+    }
+
+    @Override
+    public CacheItem get(PageContext pc, String cacheId, Object cachePolicy) throws PageException {
+	return get(pc, cacheId);
+    }
 
 }

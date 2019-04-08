@@ -36,7 +36,7 @@ before_script:
 
 script:
 # maven deploy process (builds lucee and deploys to sonatype)
-- echo "${TRAVIS_PULL_REQUEST} $TRAVIS_BRANCH"
+- echo "${TRAVIS_PULL_REQUEST} $TRAVIS_BRANCH $TRAVIS_BUILD_NUMBER $TRAVIS_BUILD_ID "
 
 #- if [ "${TRAVIS_PULL_REQUEST}" == "false" && ${TRAVIS_BRANCH} == "5.2" ]; then  always false even both seperatly are true
 #- if [ "${TRAVIS_PULL_REQUEST}" == "false" ]; then
@@ -44,6 +44,19 @@ script:
 - export DO_DEPLOY="false"
 - if [ "${TRAVIS_PULL_REQUEST}" == "false" ]; then
     if [ "${TRAVIS_BRANCH}" == "5.2" ]; then
+      export DO_DEPLOY="true";
+    fi
+  fi
+
+
+- if [ "${TRAVIS_PULL_REQUEST}" == "false" ]; then
+    if [ "${TRAVIS_BRANCH}" == "5.3" ]; then
+      export DO_DEPLOY="true";
+    fi
+  fi
+
+- if [ "${TRAVIS_PULL_REQUEST}" == "false" ]; then
+    if [ "${TRAVIS_BRANCH}" == "5.3.1" ]; then
       export DO_DEPLOY="true";
     fi
   fi

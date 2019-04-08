@@ -24,7 +24,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				echo("<p>This is where mickey mouse lives</p>");
 			}
 			var info=fileInfo("test759.pdf");
-			assertTrue(info.size>1000);
+			assertTrue(info.size>900);
 		}
 		finally {
 			if(fileExists("test759.pdf"))fileDelete("test759.pdf");

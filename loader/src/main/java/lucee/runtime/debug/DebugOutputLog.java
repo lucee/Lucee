@@ -18,7 +18,6 @@
  **/
 package lucee.runtime.debug;
 
-
 public interface DebugOutputLog {
-	public DebugTextFragment[] getFragments();
+    public DebugTextFragment[] getFragments();
 }

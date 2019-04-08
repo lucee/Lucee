@@ -1,9 +1,9 @@
 <!---
 Defaults --->
+
 <cfset error.message="">
 <cfset error.detail="">
 <cfparam name="form.mainAction" default="none">
-
 <!--- load asynchron all extension providers  --->
 <cfparam name="application[request.admintype].preloadedExtensionProviders" default="false" type="boolean">
 <cfif !application[request.admintype].preloadedExtensionProviders>
@@ -46,6 +46,11 @@ Defaults --->
 		<cfset error.cfcatch=cfcatch>
 	</cfcatch>
 </cftry>
+<cfadmin 
+	action="surveillance" 
+	type="#request.adminType#" 
+	password="#session["password"&request.adminType]#" 
+	returnVariable="surveillance">
 
 <!---
 Redirtect to entry --->
@@ -57,13 +62,11 @@ Redirtect to entry --->
 Error Output --->
 <cfset printError(error)>
 
-
-
 <cfset pool['HEAP']="Heap">
 <cfset pool['NON_HEAP']="Non-Heap">
 
-<cfset pool['HEAP_desc']="The JVM (Java Virtual Machine) has a heap that is the runtime data area from which memory for all objects are allocated.">
-<cfset pool['NON_HEAP_desc']="Also, the JVM has memory other than the heap, referred to as non-heap memory. It stores all cfc/cfm templates, java classes, interned Strings and meta-data.">
+<cfset pool['HEAP_desc']="Memory used for all objects that are allocated.">
+<cfset pool['NON_HEAP_desc']="Memory used to store all cfc/cfm templates, java classes, interned Strings and meta-data.">
 
 <cfset pool["Par Eden Space"]="The pool from which memory is initially allocated for most objects.">
 <cfset pool["Par Survivor Space"]="The pool containing objects that have survived the garbage collection of the Eden space.">
@@ -83,43 +86,155 @@ Error Output --->
 <cfset pool["Tenured Gen"]=pool["CMS Old Gen"]>
 <cfset pool["PS Old Gen"]=pool["CMS Old Gen"]>
 
+<cfhtmlbody>
+    <script src="../res/js/echarts-all.js.cfm" type="text/javascript"></script>
+    <script type="text/javascript">
+    	labels={'heap':"Heap",'nonheap':"Non-Heap",'cpuSystem':"Whole System",'cpuProcess':"Lucee Process"};
+		function requestData(){
+			jQuery.ajax({
+				type: "POST",
+				<cfoutput>url: "./#request.self#?action=chartAjax",</cfoutput>
+				success: function(result){
+					var arr =["heap","nonheap"];
+					$.each(arr,function(index,chrt){
+						window["series_"+chrt] = window[chrt+"Chart"].series[0].data; //*charts*.series[0].data
+						window["series_"+chrt].push(result[chrt]); // push the value into series[0].data
+						window[chrt+"Chart"].series[0].data = window["series_"+chrt];
+						if(window[chrt+"Chart"].series[0].data.length > 60){
+						window[chrt+"Chart"].series[0].data.shift(); //shift the array
+						}
+						window[chrt+"Chart"].xAxis[0].data.push(new Date().toLocaleTimeString()); // current time
+						if(window[chrt+"Chart"].xAxis[0].data.length > 60){
+						window[chrt+"Chart"].xAxis[0].data.shift(); //shift the Time value
+						}
+						window[chrt].setOption(window[chrt+"Chart"]); // passed the data into the chats
+					});
+					var arr2 =["cpuSystem"];
+					$.each(arr2,function(index,chrt){
+						cpuSystemSeries1 = cpuSystemChartOption.series[0].data; //*charts*.series[0].data
+						cpuSystemSeries1.push(result["cpuSystem"]); // push the value into series[0].data
+						cpuSystemSeries2 = cpuSystemChartOption.series[1].data; //*charts*.series[0].data
+						cpuSystemSeries2.push(result["cpuProcess"]); // push the value into series[0].data
+						cpuSystemChartOption.series[0].data = cpuSystemSeries1;
+						cpuSystemChartOption.series[1].data = cpuSystemSeries2;
+						if(cpuSystemChartOption.series[0].data.length > 60){
+							cpuSystemChartOption.series[0].data.shift(); //shift the array
+						}
+						if(cpuSystemChartOption.series[1].data.length > 60){
+							cpuSystemChartOption.series[1].data.shift(); //shift the array
+						}
+						cpuSystemChartOption.xAxis[0].data.push(new Date().toLocaleTimeString()); // current time
+						if(cpuSystemChartOption.xAxis[0].data.length > 60){
+						cpuSystemChartOption.xAxis[0].data.shift(); //shift the Time value
+						}
+						window[chrt].setOption(cpuSystemChartOption); // passed the data into the chats
+					});
+					setTimeout(requestData, 1000);
+				}
+			})
+		}
+		var dDate=[new Date().toLocaleTimeString()]; // current time
 
-<cffunction name="printMemory" returntype="string">
-	<cfargument name="usage" type="query" required="yes">
-    <cfset var height=12>
-    <cfset var width=100>
-    	<cfset var used=evaluate(ValueList(arguments.usage.used,'+'))>
-    	<cfset var max=evaluate(ValueList(arguments.usage.max,'+'))>
-    	<cfset var init=evaluate(ValueList(arguments.usage.init,'+'))>
 
-		<cfset var qry=QueryNew(arguments.usage.columnlist)>
-		<cfset QueryAddRow(qry)>
-        <cfset QuerySetCell(qry,"type",arguments.usage.type)>
-        <cfset QuerySetCell(qry,"name",variables.pool[arguments.usage.type])>
-        <cfset QuerySetCell(qry,"init",init,qry.recordcount)>
-        <cfset QuerySetCell(qry,"max",max,qry.recordcount)>
-        <cfset QuerySetCell(qry,"used",used,qry.recordcount)>
+		// intialize charts
+		$.each(["heap","nonheap"], function(i, data){
+			window[data] = echarts.init(document.getElementById(data),'macarons'); // intialize echarts
+			window[data+"Chart"] = {
+				backgroundColor: ["#EFEDE5"],
+				tooltip : {'trigger':'axis',
+					formatter : function (params) {
+						return 'Series' + "<br>" + params[0][0] + ": " + params[0][2] + "%" + '<br>' +params[0][1] ;
+					}
+				},
 
-        <cfset arguments.usage=qry>
-		<cfset var ret = "" />
-		<cfsavecontent variable="ret"><cfoutput>
-   			<b>#pool[usage.type]#</b>
-			<cfloop query="usage">
-       			<cfset local._used=int(width/arguments.usage.max*arguments.usage.used)>
-        		<cfset local._free=width-_used>
-				<cfset local.pused=int(100/arguments.usage.max*arguments.usage.used)>
-				<cfset local.pused =(local.pused GT 100)?100:(local.pused LT 0)?0:local.pused  >
-       			<cfset local.pfree=100-pused>
-        		<div class="percentagebar tooltipMe" title="#pfree#% available (#round((usage.max-usage.used)/1024/1024)#mb), #pused#% in use (#round(usage.used/1024/1024)#mb)"><!---
-					---><div style="width:#pused#%"><span>#pused#%</span></div><!---
-				---></div>
-    		</cfloop>
-        	<cfif StructKeyExists(pool,usage.type& "_desc")>
-				<div class="comment">#pool[usage.type& "_desc"]#</div>
-			</cfif>
-		</cfoutput></cfsavecontent>
-		<cfreturn ret />
-	</cffunction>
+				color: ["<cfoutput>#request.adminType EQ "server" ? '##3399CC': '##BF4F36'#</cfoutput>"],
+				grid : {
+					width: '82%',
+					height: '65%',
+					x:'30px',
+					y:'25px'
+				},
+				xAxis : [{
+					'type':'category',
+					'boundaryGap' : false,
+					'data':[0]
+				}],
+				yAxis : [{
+					'type':'value',
+					'min':'0',
+					'max':'100',
+					'splitNumber': 2
+				}],
+				series : [
+					{
+					'name': labels[data] +' Memory',
+					'type':'line',
+					smooth:true,
+					itemStyle: {normal: {areaStyle: {type: 'default'}}},
+					'data': [0]
+					}
+				]
+			}; // data
+			window[data].setOption(window[data+"Chart"]); // passed the data into the chats
+		});
+
+		var cpuSystem = echarts.init(document.getElementById('cpuSystem'),'macarons'); // intialize echarts
+		var cpuSystemChartOption = {
+			backgroundColor: ["#EFEDE5"],
+			tooltip : {'trigger':'axis',
+				formatter : function (params) {
+					var series2 = "";
+					if(params.length == 2) {
+						series2 =  params[1][0] + ": "+ params[1][2] + "%" + '<br>' +params[0][1];
+					}
+					return 'Series' + "<br>" + params[0][0] + ": " + params[0][2] + "%" + '<br>'  + series2;
+				}
+			},
+			legend: {
+				data:['System CPU', 'Lucee CPU']
+			},
+
+			color: ["<cfoutput>#request.adminType EQ "server" ? '##3399CC': '##BF4F36'#</cfoutput>", "<cfoutput>#request.adminType EQ "server" ? '##BF4F36': '##3399CC'#</cfoutput>"],
+			grid : {
+				width: '82%',
+				height: '65%',
+				x:'30px',
+				y:'25px'
+			},
+			xAxis : [{
+				'type':'category',
+				'boundaryGap' : false,
+				'data':[0]
+			}],
+			yAxis : [{
+				'type':'value',
+				'min':'0',
+				'max':'100',
+				'splitNumber': 2
+			}],
+			series : [
+				{
+				'name': 'System CPU',
+				'type':'line',
+				smooth:true,
+				itemStyle: {normal: {areaStyle: {type: 'default'}}},
+				'data': [0]
+				},
+				{
+				'name': 'Lucee CPU',
+				'type':'line',
+				smooth:true,
+				itemStyle: {normal: {areaStyle: {type: 'default'}}},
+				'data': [0]
+				}
+
+			]
+		}; // data
+		// console.log(cpuSystemChartOption);
+		cpuSystem.setOption(cpuSystemChartOption); // passed the data into the chats
+        requestData();
+    </script>
+</cfhtmlbody>
 
 <cfset total=query(
 	name:["Total"],
@@ -172,308 +287,426 @@ Error Output --->
 
 	<cfif request.adminType EQ "server">
 		<cfset names=StructKeyArray(info.servlets)>
-		<cfif !ArrayContainsNoCase(names,"Rest")>
+		<cfif !ArrayContainsNoCase(names,"Rest",true)>
 			<div class="warning nofocus">
-				The REST Servlet is not configured in your enviroment!
+				#stText.Overview.warning.warningMsg# 
 			</div>
 		</cfif>
 		<cfif getJavaVersion() LT 8>
 			<div class="warning nofocus">
-				You are running Lucee with Java #server.java.version# Lucee does not formally support this version of Java. Consider updating to the latest Java version for security and performance reasons.
+				#stText.Overview.warning.JavaVersion# #server.java.version# #stText.Overview.warning.JavaVersionNotSupport#
 				<cfif getJavaVersion() EQ 7>
-					Java 7 has been End-of-Life'd since April 2015.
+					#stText.Overview.warning.Java7NotSupport# 
 				</cfif>
 			</div>
 		</cfif>
 	</cfif>
+	<cfset systemInfo=GetSystemMetrics()>
+
+
+	<!--- installed libs --->
+	<cfif request.adminType EQ "web">	
+		<cfadmin
+			action="getTLDs"
+			type="#request.adminType#"
+			password="#session["password"&request.adminType]#"
+			returnVariable="tlds">
+		<cfadmin
+			action="getFLDs"
+			type="#request.adminType#"
+			password="#session["password"&request.adminType]#"
+			returnVariable="flds">
+
+		<cfif isQuery(tlds)>
+			<cfset tlds=listToArray(valueList(tlds.displayname))>
+		</cfif>
+		<cfif isQuery(flds)>
+			<cfset flds=listToArray(valueList(flds.displayname))>
+		</cfif>
+	</cfif>
+
 
 
 	<table>
 		<tr>
-			<td valign="top" width="65%">
+			<div id="updateInfoDesc"><div style="text-align: center;"><img src="../res/img/spinner16.gif.cfm"></div></div>
+			<cfhtmlbody>
+				<script type="text/javascript">
+					$( function() {
 
-				<h2>#stText.overview.langPerf#</h2>
+						$('##updateInfoDesc').load('update.cfm?#session.urltoken#&adminType=#request.admintype#');
+					} );
+				</script>
+			</cfhtmlbody>
+		</tr>
+
+		<tr>
+			<td valign="top" colspan="3">
+				<h2>#stText.setting.info#</h2>
+			<table width="100%"><tr><td>
+				<!--- Memory --->
+				<table class="maintbl">
+					<tbody>
+						<tr>
+							<th colspan="2" scope="row">
+								#stText.setting.memory#<br>
+								<span class="comment">#stText.setting.memoryDesc#</span>
+							</th>
+						</tr>
+						<tr>
+							<td width="50%"><b>#pool['heap']#</b>
+								<div id="heap" style="min-width: 100px; height: 150px; margin: 0 auto;"></div>
+							</td>
+							<td width="50%"><b>#pool['non_heap']#</b><br>
+								<div id="nonheap" style="min-width: 100px; height: 150px; margin: 0 auto;"></div>
+							</td>
+						</tr>
+
+					</tbody>
+				</table>
+				
+				<!--- CPU --->
 				<table class="maintbl">
 					<tbody>
 							<tr>
-								<th scope="row">#stText.setting.inspectTemplate#</th>
-								<td <cfif performance.inspectTemplate EQ "always">style="color:##cc0000"</cfif>>
-									<cfif performance.inspectTemplate EQ "never">
-										#stText.setting.inspectTemplateNever#
-									<cfelseif performance.inspectTemplate EQ "once">
-										#stText.setting.inspectTemplateOnce#
-									<cfelseif performance.inspectTemplate EQ "always">
-										#stText.setting.inspectTemplateAlways#
-									</cfif>
-								</td>
+								<th colspan="2" scope="row">
+									#stText.setting.cpu#<br>
+									<span class="comment">#stText.setting.cpuDesc#</span>
+								</th>
 							</tr>
 							<tr>
-								<th scope="row">#stText.compiler.nullSupport#</th>
-								<td <cfif !compiler.nullSupport>style="color:##cc0000"</cfif>>
-									<cfif compiler.nullSupport>
-										#stText.compiler.nullSupportFull#
-									<cfelse>
-										#stText.compiler.nullSupportPartial#
-									</cfif>
-							</td>
-							</tr>
-							<tr>
-								<th scope="row">#stText.setting.dotNotation#</th>
-								<td <cfif compiler.DotNotationUpperCase>style="color:##cc0000"</cfif>>
-									<cfif compiler.DotNotationUpperCase>#stText.setting.dotNotationUpperCase#<cfelse>#stText.setting.dotNotationOriginalCase#</cfif>
+								<td width="50%"><b>#stText.setting.cpuSystem#</b>
+									<div id="cpuSystem" style="min-width: 100px; height: 150px; margin: 0 auto;"></div>
 								</td>
 							</tr>
-							<!---<tr>
-								<th scope="row">#stText.setting.suppressWSBeforeArg#</th>
-								<td <cfif !compiler.suppressWSBeforeArg>style="color:##cc0000"</cfif>>#yesNoFormat(compiler.suppressWSBeforeArg)#</td>
-							</tr> --->
 
+					</tbody>
+				</table>
+				<br>
+				<!--- Scopes --->
+				<table class="maintbl">
+					<tbody>
+						<tr>
+							<th rowspan="3" scope="row" style="width:50%">
+								#stText.setting.scopes#<br>
+								<span class="comment">#stText.setting.scopesDesc#</span>
+							</th>
+							<td style="width:35%"><b>#stText.setting.scopeApplication#</b></td>
+							<td align="right" style="width:15%">#systemInfo.applicationContextCount#</td>
+						</tr>
+						<tr>
+							<td><b>#stText.setting.scopeSession#</b></td>
+							<td align="right">#systemInfo.sessionCount#</td>
+						</tr>
+						<tr>
+							<td><b>#stText.setting.scopeClient#</b></td>
+							<td align="right">#systemInfo.clientCount#</td>
+						</tr>
+
+					</tbody>
+				</table>
+				<!--- Requests/Threads ---->
+				<table class="maintbl">
+					<tbody>
+
+						<tr>
+							<th rowspan="3" scope="row" style="width:50%">
+								#stText.setting.request#<br>
+								<span class="comment">#stText.setting.requestDesc#</span>
+							</th>
+							<td style="width:35%"><b>#stText.setting.req#</b></td>
+							<cfset nbr=systemInfo.activeRequests>
+							<td align="right" <cfif nbr GTE 50> style="color:##cc0000"</cfif>>#nbr#</td>
+						</tr>
+						<tr>
+							<td><b>#stText.setting.queued#</b></td>
+							<cfset nbr=systemInfo.activeThreads>
+							<td align="right" <cfif nbr GTE 20> style="color:##cc0000"</cfif>>#nbr#</td>
+						</tr>
+						<tr>
+							<td><b>#stText.setting.thread#</b></td>
+							<cfset nbr=systemInfo.queueRequests>
+							<td align="right" <cfif nbr GTE 50> style="color:##cc0000"</cfif>>#nbr#</td>
+						</tr>
+
+					</tbody>
+				</table>
+				<!--- Datasource ---->
+				<table class="maintbl">
+					<tbody>
+
+						<tr>
+							<th scope="row" style="width:50%">
+								#stText.setting.datasource#<br>
+								<span class="comment">#stText.setting.datasourceDesc#</span>
+							</th>
+							<cfset nbr=systemInfo.activeDatasourceConnections>
+							<td style="width:35%">&nbsp;</td>
+							<td align="right" <cfif nbr GTE 50> style="color:##cc0000"</cfif>>#nbr#</td>
+						</tr>
+
+					</tbody>
+				</table>
+				<!--- Tasks ---->
+				<table class="maintbl">
+					<tbody>
+
+						<tr>
+							<th rowspan="2" scope="row" style="width:50%">
+								#stText.setting.task#<br>
+								<span class="comment">#stText.setting.taskDesc#</span>
+							</th>
+							<td style="width:35%"><b>#stText.setting.taskOpen#</b></td>
+							<cfset nbr=systemInfo.tasksOpen>
+							<td align="right" <cfif nbr GTE 50> style="color:##cc0000"</cfif>>#nbr#</td>
+						</tr>
+						<tr>
+							<td><b>#stText.setting.taskClose#</b></td>
+							<cfset nbr=systemInfo.tasksClosed>
+							<td align="right" <cfif nbr GTE 20> style="color:##cc0000"</cfif>>#nbr#</td>
+						</tr>
+
+					</tbody>
+				</table>
+				</td></tr></table>
+			</td>
+		</tr>
+
+
+
+		<tr>
+			<td valign="top" colspan="3">
+				<br>
+				<!--- Info --->
+				<h2>#stText.Overview.Info#</h2>
+				<table width="100%">
+				<tr>
+					<td width="50%">
+						<table class="maintbl">
+							<tbody>
+
+								<tr>
+									<th scope="row">#stText.Overview.Version#</th>
+									<td>Lucee #server.lucee.version#</td>
+								</tr>
+								<tr>
+									<th scope="row">#stText.Overview.VersionName#</th>
+									<td><a href="#server.lucee.versionNameExplanation#" target="_blank">#server.lucee.versionName#</a></td>
+								</tr>
+								<tr>
+									<th nowrap="nowrap" scope="row">#stText.Overview.ReleaseDate#</th>
+									<td>#lsDateFormat(server.lucee['release-date'])#</td>
+								</tr>
+								<cfif request.adminType EQ "web">
+								<tr>
+									<th nowrap="nowrap" scope="row">#stText.Overview.label#</th>
+									<td>#info.label#</td>
+								</tr>
+								</cfif>
+
+								<cfif request.adminType EQ "web">
+								<tr>
+									<th nowrap="nowrap" scope="row">#stText.Overview.InstalledTLs#</th>
+									<td>
+										<cfloop index="idx" from="1" to="#arrayLen(tlds)#">
+											- #tlds[idx]# <!--- ( #iif(tlds[idx].type EQ "cfml",de('lucee'),de('jsp'))# ) ---><br>
+										</cfloop>
+									</td>
+								</tr>
+								</cfif>
+								<cfif request.adminType EQ "web">
+								<tr>
+									<th nowrap="nowrap" scope="row">#stText.Overview.InstalledFLs#</th>
+									<td>
+										<cfloop index="idx" from="1" to="#arrayLen(flds)#">
+											- #flds[idx]#<br>
+										</cfloop>
+									</td>
+								</tr>
+								</cfif>
+
+							</tbody>
+						</table>
+					</td>
+					<td width="50%">
+						<table class="maintbl">
+							<tbody>
+								<tr>
+									<th scope="row">#stText.Overview.remote_addr#</th>
+									<td>#cgi.remote_addr#</td>
+								</tr>
+								<tr>
+									<th scope="row">#stText.overview.servletContainer#</th>
+									<td>#server.servlet.name#</td>
+								</tr>
+								<tr>
+									<th scope="row">Java</th>
+									<td>
+										<!--- <cfset serverNow=createObject('java','java.util.Date')> --->
+										#server.java.version# (#server.java.vendor#)<cfif structKeyExists(server.java,"archModel")> #server.java.archModel#bit</cfif>
+									</td>
+								</tr>
+								<tr>
+									<th scope="row">#stText.Overview.server_name#</th>
+									<td>#cgi.server_name#</td>
+								</tr>
+								<tr>
+									<th scope="row">#stText.Overview.OS#</th>
+									<td>#server.OS.Name# (#server.OS.Version#)<cfif structKeyExists(server.os,"archModel")> #server.os.archModel#bit</cfif></td>
+								</tr>
+								<tr>
+									<th scope="row">Architecture</th>
+									<td>
+									<cfif StructKeyExists(server.os,"archModel") and StructKeyExists(server.java,"archModel")>
+									<cfif server.os.archModel NEQ server.os.archModel>OS #server.os.archModel#bit/JRE #server.java.archModel#bit<cfelse>#server.os.archModel#bit</cfif>
+									</cfif>
+									</td>
+								</tr>
+								<cfif request.adminType EQ "web">
+									<tr>
+										<th scope="row">#stText.Overview.hash#</th>
+										<td>#info.hash#</td>
+									</tr>
+								</cfif>
+
+							</tbody>
+						</table>
+					</td>
+				</tr>
+				<tr>
+					<td width="50%">
+						<table class="maintbl">
+							<tbody>
+								<tr>
+									<th scope="row">#stText.setting.inspectTemplate#</th>
+									<td <cfif performance.inspectTemplate EQ "always">style="color:##cc0000"</cfif>>
+										<cfif performance.inspectTemplate EQ "never">
+											#stText.setting.inspectTemplateNever#
+										<cfelseif performance.inspectTemplate EQ "once">
+											#stText.setting.inspectTemplateOnce#
+										<cfelseif performance.inspectTemplate EQ "always">
+											#stText.setting.inspectTemplateAlways#
+										</cfif>
+									</td>
+								</tr>
+								<tr>
+									<th scope="row">#stText.setting.dotNotation#</th>
+									<td <cfif compiler.DotNotationUpperCase>style="color:##cc0000"</cfif>>
+										<cfif compiler.DotNotationUpperCase>#stText.setting.dotNotationUpperCase#<cfelse>#stText.setting.dotNotationOriginalCase#</cfif>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</td>
+					<td width="50%">
+						<table class="maintbl">
+							<tbody>
+								<tr>
+									<th scope="row">#stText.compiler.nullSupport#</th>
+									<td <cfif !compiler.nullSupport>style="color:##cc0000"</cfif>>
+										<cfif compiler.nullSupport>
+											#stText.compiler.nullSupportFull#
+										<cfelse>
+											#stText.compiler.nullSupportPartial#
+										</cfif>
+								</td>
+								</tr>
 							<tr>
 								<th scope="row">#stText.Scopes.LocalMode#</th>
 								<td <cfif scope.localMode EQ "classic">style="color:##cc0000"</cfif>>
 									<cfif scope.localMode EQ "modern">#stText.Scopes.LocalModeModern#<cfelse>#stText.Scopes.LocalModeClassic#</cfif>
 								</td>
 							</tr>
+							</tbody>
+						</table>
+					</td>
+				</tr>
 
-					</tbody>
-				</table>
-				<cfset stText.io.title="Lucee IO">
-				<cfset stText.io.desc="Lucee.io is your one stop shop to all that is Lucee. From managing your Extension Store licenses, to monitoring your servers and keeping all your settings in sync and everything in between.">
-				<cfset stText.io.id="Lucee.ID">
-				<cfset stText.io.idDesc="To interact with LuceeIO, you need a Lucee.ID, you can get this ID from <a target=""top"" href=""http://beta.lucee.io/index.cfm/account"">here</a>">
-				<!---<h2>#stText.io.title#</h2>
-				#stText.io.desc#
-
-				<table class="maintbl">
-					<tbody>
-						<!--- has api key --->
-						<cfif !isNull(apiKey) && len(apiKey)>
-							<tr>
-								<cfformClassic onerror="customError" action="#request.self#" method="post">
-								<th scope="row">#stText.io.id#</th>
-								<td><input type="text" style="width:250px" name="apiKey" value="#apiKey#"/><input class="button submit" type="submit" name="mainAction" value="#stText.Buttons.ok#"><br>
-								<span class="comment">#stText.io.idDesc#</span></td>
-								</cfformClassic>
-							</tr>
-						</cfif>
-
-					</tbody>
-				</table>--->
-
-				<h2>#stText.Overview.Info#</h2>
-				<table class="maintbl">
-					<tbody>
-						<cfif request.adminType EQ "web">
-							<tr>
-								<th scope="row">#stText.Overview.label#</th>
-								<td>#info.label#</td>
-							</tr>
-							<tr>
-								<th scope="row">#stText.Overview.hash#</th>
-								<td>#info.hash#</td>
-							</tr>
-						</cfif>
-						<tr>
-							<th scope="row">#stText.Overview.Version#</th>
-							<td>Lucee #server.lucee.version#</td>
-						</tr>
-						<cfif StructKeyExists(server.lucee,'versionName')>
-							<tr>
-								<th scope="row">#stText.Overview.VersionName#</th>
-								<td><a href="#server.lucee.versionNameExplanation#" target="_blank">#server.lucee.versionName#</a></td>
-							</tr>
-						</cfif>
-						<tr>
-							<th scope="row">#stText.Overview.ReleaseDate#</th>
-							<td>#lsDateFormat(server.lucee['release-date'])#</td>
-						</tr>
-						<tr>
-							<th scope="row">#stText.Overview.CFCompatibility#</th>
-							<td>#replace(server.ColdFusion.ProductVersion,',','.','all')#</td>
-						</tr>
-					</tbody>
-				</table>
-				<br />
-				<table class="maintbl">
-					<tbody>
-						<tr>
-							<th scope="row">#stText.Overview.config#</th>
-							<td>#info.config#</td>
-						</tr>
-						<cfif request.adminType EQ "web">
-							<tr>
-								<th scope="row">#stText.Overview.webroot#</th>
-								<td>#info.root#</td>
-							</tr>
-
-							<cfadmin
-								action="getTLDs"
-								type="#request.adminType#"
-								password="#session["password"&request.adminType]#"
-								returnVariable="tlds">
-							<cfadmin
-								action="getFLDs"
-								type="#request.adminType#"
-								password="#session["password"&request.adminType]#"
-								returnVariable="flds">
-
-							<cfif isQuery(tlds)>
-								<cfset tlds=listToArray(valueList(tlds.displayname))>
-							</cfif>
-							<cfif isQuery(flds)>
-								<cfset flds=listToArray(valueList(flds.displayname))>
-							</cfif>
-						</cfif>
-
-						<tr>
-							<th scope="row">#stText.Overview.OS#</th>
-							<td>#server.OS.Name# (#server.OS.Version#)<cfif structKeyExists(server.os,"archModel")> #server.os.archModel#bit</cfif></td>
-						</tr>
-						<tr>
-							<th scope="row">#stText.Overview.remote_addr#</th>
-							<td>#cgi.remote_addr#</td>
-						</tr>
-						<tr>
-							<th scope="row">#stText.Overview.server_name#</th>
-							<td>#cgi.server_name#</td>
-						</tr>
-						<tr>
-							<th scope="row">#stText.overview.servletContainer#</th>
-							<td>#server.servlet.name#</td>
-						</tr>
-						<!---<tr>
-							<th scope="row">#stText.overview.luceeID#</th>
-							<td>#getLuceeId().server.id#</td>
-						</tr>
-
-						<tr>
-							<th scope="row">#stText.overview.luceeID#</th>
-							<td>#getLuceeId().server.ioid#</td>
-						</tr>
-						--->
-						<cfif request.adminType EQ "web">
-							<tr>
-								<th scope="row">#stText.Overview.InstalledTLs#</th>
-								<td>
-									<cfloop index="idx" from="1" to="#arrayLen(tlds)#">
-										- #tlds[idx]# <!--- ( #iif(tlds[idx].type EQ "cfml",de('lucee'),de('jsp'))# ) ---><br>
-									</cfloop>
-								</td>
-							</tr>
-							<tr>
-								<th scope="row">#stText.Overview.InstalledFLs#</th>
-								<td>
-									<cfloop index="idx" from="1" to="#arrayLen(flds)#">
-										- #flds[idx]#<br>
-									</cfloop>
-								</td>
-							</tr>
-
-							<tr>
-								<th scope="row">#stText.Overview.DateTime#</th>
-								<td>
-									#lsdateFormat(now())#
-									#lstimeFormat(now())#
-								</td>
-							</tr>
-							<tr>
-								<th scope="row">#stText.Overview.ServerTime#</th>
-								<td>
-
-									#lsdateFormat(date:now(),timezone:"jvm")#
-									#lstimeFormat(time:now(),timezone:"jvm")#
-								</td>
-							</tr>
-						</cfif>
-						<tr>
-							<th scope="row">Java</th>
-							<td>
-								<!--- <cfset serverNow=createObject('java','java.util.Date')> --->
-								#server.java.version# (#server.java.vendor#)<cfif structKeyExists(server.java,"archModel")> #server.java.archModel#bit</cfif>
-							</td>
-						</tr>
-						<cfif StructKeyExists(server.os,"archModel") and StructKeyExists(server.java,"archModel")>
-							<tr>
-								<th scope="row">Architecture</th>
-								<td>
-									<cfif server.os.archModel NEQ server.os.archModel>OS #server.os.archModel#bit/JRE #server.java.archModel#bit<cfelse>#server.os.archModel#bit</cfif>
-								</td>
-							</tr>
-						</cfif>
-					</tbody>
+				<tr>
+					<td colspan="2">
+						<table class="maintbl">
+							<tbody>
+								<tr>
+								</tr>
+								<tr>
+									<th scope="row">#stText.Overview.config#</th>
+									<td>#info.config#</td>
+								</tr>
+								<cfif !isNull(info.root)>
+								<tr>
+									<th scope="row">#stText.Overview.webroot#</th>
+									<td>#info.root?:''#</td>
+								</tr>
+								</cfif>
+							</tbody>
+						</table>
+					</td>
+				</tr>
 				</table>
 			</td>
-			<td width="2%"></td>
-			<td valign="top" width="33%">
-				<br><br>
-				<div id="updateInfoDesc"><div style="text-align: center;"><img src="../res/img/spinner16.gif.cfm"></div></div>
-
-				<cfhtmlbody>
-					<script type="text/javascript">
-
-						$( function() {
-
-							$('##updateInfoDesc').load('update.cfm?#session.urltoken#&adminType=#request.admintype#');
-						} );
-					</script>
-				</cfhtmlbody>
-
-					<!--- Memory Usage --->
-					<cftry>
-						<cfsavecontent variable="memoryInfo">
-							<h3>Memory Usage</h3>
-							#printMemory(getmemoryUsage("heap"))#
-							#printMemory(getmemoryUsage("non_heap"))#
-						</cfsavecontent>
-						#memoryInfo#
-						<cfcatch></cfcatch>
-					</cftry>
-
-					<!--- Professional --->
-					<h3>
-						<a href="http://lucee.org/support.html" target="_blank">#stText.Overview.Professional#</a>
-					</h3>
-					<div class="comment">#stText.Overview.ProfessionalDesc#</div>
-
-					<!--- Docs --->
-					<h3>
-						#stText.Overview.Docs#
-					</h3>
-					<div class="comment">
-						#stText.Overview.DocsDesc#
-						<div style="margin-left:10px;">
-							<p><a href="http://docs.lucee.org" target="_blank">#stText.Overview.onlineDocsLink#</a></p>
-							<p><a href="../doc/index.cfm" target="_blank">#stText.Overview.localRefLink#</a></p>
-						</div>
-					</div>
-
-					<!--- Mailing list --->
-					<h3>
-						<a href="https://dev.lucee.org" target="_blank">#stText.Overview.Mailinglist#</a>
-					</h3>
-					<div class="comment">#stText.Overview.MailinglistDesc#</div>
-
-
-					<!--- Jira --->
-					<h3>
-						<a href="http://issues.lucee.org/" target="_blank">#stText.Overview.issueTracker#</a>
-					</h3>
-					<div class="comment">#stText.Overview.issueTrackerDesc#</div>
-
-					<!--- Blog --->
-					<h3>
-						<a href="http://blog.lucee.org/" target="_blank">#stText.Overview.blog#</a>
-					</h3>
-					<div class="comment">#stText.Overview.blogDesc#</div>
+		</tr>
 
 
 
-					<!--- Twitter --->
-					<h3>
-						<a href="https://twitter.com/##!/lucee_server" target="_blank">#stText.Overview.twitter#</a>
-					</h3>
-					<div class="comment">#stText.Overview.twitterDesc#</div>
 
+		<tr>
+			<td colspan="3">
+				<br>
+				<!--- Resources 
+				<h2>#stText.Overview.resources#</h2>--->
+				<table class="maintbl">
+					<tbody>
+						<!--- Prof Support --->
+						<tr>
+							<td>
+								<a href="http://lucee.org/support.html" target="_blank">#stText.Overview.Professional#</a>
+								<div class="comment">#stText.Overview.ProfessionalDesc#</div>
+							</td>
+						</tr>
+						<!--- Doc --->
+						<tr>
+							<td>
+								<a href="http://docs.lucee.org" target="_blank">#stText.Overview.onlineDocsLink#</a>
+								<div class="comment">#stText.Overview.onlineDocsDesc#</div>
+							</td>
+						</tr>
+						<!--- Reference --->
+						<tr>
+							<td>
+								<a href="../doc/index.cfm" target="_blank">#stText.Overview.localRefLink#</a>
+								<div class="comment">#stText.Overview.localRefDesc#</div>
+							</td>
+						</tr>
+						<!--- Mailing List --->
+						<tr>
+							<td>
+								<a href="http://groups.google.com/group/lucee" target="_blank">#stText.Overview.Mailinglist#</a>
+								<div class="comment">#stText.Overview.MailinglistDesc#</div>
+							</td>
+						</tr>
+						<!--- Jira --->
+						<tr>
+							<td>
+								<a href="http://issues.lucee.org/" target="_blank">#stText.Overview.issueTracker#</a>
+								<div class="comment">#stText.Overview.issueTrackerDesc#</div>
+							</td>
+						</tr>
+						<!--- Blog --->
+						<tr>
+							<td>
+								<a href="http://blog.lucee.org/" target="_blank">#stText.Overview.blog#</a>
+								<div class="comment">#stText.Overview.blogDesc#</div>
+							</td>
+						</tr>
+						<!--- Twitter --->
+						<tr>
+							<td>
+								<a href="https://twitter.com/##!/lucee_server" target="_blank">#stText.Overview.twitter#</a>
+								<div class="comment">#stText.Overview.twitterDesc#</div>
+							</td>
+						</tr>
+					</tbody>
+				</table>
 			</td>
 		</tr>
 	</table>
@@ -482,7 +715,7 @@ Error Output --->
 
 		<h2>#stText.Overview.contexts.title#</h2>
 		<div class="itemintro">
-			You can label your web contexts here, so they are more clearly distinguishable for use with extensions etc.
+			#stText.Overview.contexts.desc# 
 		</div>
 		<cfformClassic onerror="customError" action="#request.self#" method="post">
 			<table class="maintbl">

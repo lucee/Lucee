@@ -20,23 +20,22 @@ package lucee.runtime.type.scope;
 
 import lucee.runtime.type.Struct;
 
+public final class LocalImpl extends ScopeSupport implements Scope, Local {
 
-public final class LocalImpl extends ScopeSupport implements Scope,Local {
+    private boolean bind;
 
-	private boolean bind;
-	
-	public LocalImpl() {
-		super( "local", Scope.SCOPE_LOCAL, Struct.TYPE_SYNC);
-	}
+    public LocalImpl() {
+	super("local", Scope.SCOPE_LOCAL, Struct.TYPE_SYNC);
+    }
 
-	@Override
-	public boolean isBind() {
-		return bind;
-	}
+    @Override
+    public boolean isBind() {
+	return bind;
+    }
 
-	@Override
-	public void setBind(boolean bind) {
-		this.bind=bind;
-	}
+    @Override
+    public void setBind(boolean bind) {
+	this.bind = bind;
+    }
 
 }

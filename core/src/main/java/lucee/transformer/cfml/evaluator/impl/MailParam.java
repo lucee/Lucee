@@ -23,20 +23,18 @@ import lucee.transformer.cfml.evaluator.ChildEvaluator;
 import lucee.transformer.cfml.evaluator.EvaluatorException;
 import lucee.transformer.library.tag.TagLibTag;
 
-
-
 /**
- * Prueft den Kontext des Tag mailparam.
- * Das Tag <code>mailParam</code> darf nur innerhalb des Tag <code>mail</code> liegen.
+ * Prueft den Kontext des Tag mailparam. Das Tag <code>mailParam</code> darf nur innerhalb des Tag
+ * <code>mail</code> liegen.
  */
 public final class MailParam extends ChildEvaluator {
 
-	public MailParam(){
-		super("mail");
-	}
-	
-	@Override
-	public void evaluate(Tag tag,TagLibTag libTag) throws EvaluatorException { 
-	
-	}
+    public MailParam() {
+	super("mail");
+    }
+
+    @Override
+    public void evaluate(Tag tag, TagLibTag libTag) throws EvaluatorException {
+
+    }
 }

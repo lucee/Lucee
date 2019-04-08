@@ -20,8 +20,6 @@ package lucee.transformer.cfml.evaluator.impl;
 
 import lucee.transformer.cfml.evaluator.EvaluatorSupport;
 
-
-
 public final class Script extends EvaluatorSupport {
-	
+
 }

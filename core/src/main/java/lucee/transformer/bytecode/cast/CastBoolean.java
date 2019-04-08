@@ -24,6 +24,7 @@ import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.expression.ExpressionBase;
 import lucee.transformer.bytecode.util.Methods;
 import lucee.transformer.bytecode.util.Types;
+import lucee.transformer.cast.Cast;
 import lucee.transformer.expression.ExprBoolean;
 import lucee.transformer.expression.ExprDouble;
 import lucee.transformer.expression.ExprString;
@@ -37,88 +38,91 @@ import org.objectweb.asm.commons.Method;
 /**
  * Cast to a Boolean
  */
-public final class CastBoolean extends ExpressionBase implements ExprBoolean,Cast {
-    
-    /**
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		return "(boolean)"+expr;
-	}
+public final class CastBoolean extends ExpressionBase implements ExprBoolean, Cast {
 
-	private Expression expr;
+    /**
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+	return "(boolean)" + expr;
+    }
+
+    private Expression expr;
 
     /**
      * constructor of the class
+     * 
      * @param expr
      */
     private CastBoolean(Expression expr) {
-        super(expr.getFactory(),expr.getStart(),expr.getEnd());
-        this.expr=expr;
+	super(expr.getFactory(), expr.getStart(), expr.getEnd());
+	this.expr = expr;
     }
-    
+
     /**
      * Create a String expression from a Expression
+     * 
      * @param expr
      * @return String expression
-     * @throws TemplateException 
+     * @throws TemplateException
      */
-    public static ExprBoolean toExprBoolean(Expression expr)  {
-        if(expr instanceof ExprBoolean) return (ExprBoolean) expr;
-        if(expr instanceof Literal) {
-            Boolean bool = ((Literal)expr).getBoolean(null);
-            if(bool!=null) return expr.getFactory().createLitBoolean(bool.booleanValue(),expr.getStart(),expr.getEnd());
-            // TODO throw new TemplateException("can't cast value to a boolean value");
-        }
-        return new CastBoolean(expr);
+    public static ExprBoolean toExprBoolean(Expression expr) {
+	if (expr instanceof ExprBoolean) return (ExprBoolean) expr;
+	if (expr instanceof Literal) {
+	    Boolean bool = ((Literal) expr).getBoolean(null);
+	    if (bool != null) return expr.getFactory().createLitBoolean(bool.booleanValue(), expr.getStart(), expr.getEnd());
+	    // TODO throw new TemplateException("can't cast value to a boolean value");
+	}
+	return new CastBoolean(expr);
     }
 
     /**
-     * @see lucee.transformer.expression.Expression#writeOut(org.objectweb.asm.commons.GeneratorAdapter, int)
+     * @see lucee.transformer.expression.Expression#writeOut(org.objectweb.asm.commons.GeneratorAdapter,
+     *      int)
      */
     @Override
-	public Type _writeOut(BytecodeContext bc, int mode) throws TransformerException {
-    	GeneratorAdapter adapter = bc.getAdapter();
-        if(expr instanceof ExprDouble) {
-            expr.writeOut(bc,MODE_VALUE);
-            if(mode==MODE_VALUE)adapter.invokeStatic(Types.CASTER,Methods.METHOD_TO_BOOLEAN_VALUE_FROM_DOUBLE);
-            else adapter.invokeStatic(Types.CASTER,Methods.METHOD_TO_BOOLEAN_FROM_DOUBLE);
-        }
-        else if(expr instanceof ExprString) {
-            expr.writeOut(bc,MODE_REF);
-            if(mode==MODE_VALUE)adapter.invokeStatic(Types.CASTER,Methods.METHOD_TO_BOOLEAN_VALUE_FROM_STRING);
-            else adapter.invokeStatic(Types.CASTER,Methods.METHOD_TO_BOOLEAN_FROM_STRING);
-        }
-        else {
-        	Type rtn = expr.writeOut(bc,mode);
-        	
-        	if(mode==MODE_VALUE) {
-        		if(!Types.isPrimitiveType(rtn))	{
-        			adapter.invokeStatic(Types.CASTER,Methods.METHOD_TO_BOOLEAN_VALUE);
-        		}
-        		else if(Types.BOOLEAN_VALUE.equals(rtn))	{}
-        		else if(Types.DOUBLE_VALUE.equals(rtn))	{
-        			adapter.invokeStatic(Types.CASTER,Methods.METHOD_TO_BOOLEAN_VALUE_FROM_DOUBLE);
-        		}
-        		else {
-        			adapter.invokeStatic(Types.CASTER,new Method("toRef",Types.toRefType(rtn),new Type[]{rtn}));
-        			adapter.invokeStatic(Types.CASTER,Methods.METHOD_TO_BOOLEAN_VALUE);
-        		}
-        		//return Types.BOOLEAN_VALUE;
-        	}
-        	else {
-        		if(Types.BOOLEAN.equals(rtn))	{}
-        		else adapter.invokeStatic(Types.CASTER,Methods.METHOD_TO_BOOLEAN);
-        	}
-        }
+    public Type _writeOut(BytecodeContext bc, int mode) throws TransformerException {
+	GeneratorAdapter adapter = bc.getAdapter();
+	if (expr instanceof ExprDouble) {
+	    expr.writeOut(bc, MODE_VALUE);
+	    if (mode == MODE_VALUE) adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_BOOLEAN_VALUE_FROM_DOUBLE);
+	    else adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_BOOLEAN_FROM_DOUBLE);
+	}
+	else if (expr instanceof ExprString) {
+	    expr.writeOut(bc, MODE_REF);
+	    if (mode == MODE_VALUE) adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_BOOLEAN_VALUE_FROM_STRING);
+	    else adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_BOOLEAN_FROM_STRING);
+	}
+	else {
+	    Type rtn = ((ExpressionBase) expr).writeOutAsType(bc, mode);
 
-        if(mode==MODE_VALUE)return Types.BOOLEAN_VALUE;
-        return Types.BOOLEAN;
+	    if (mode == MODE_VALUE) {
+		if (!Types.isPrimitiveType(rtn)) {
+		    adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_BOOLEAN_VALUE);
+		}
+		else if (Types.BOOLEAN_VALUE.equals(rtn)) {}
+		else if (Types.DOUBLE_VALUE.equals(rtn)) {
+		    adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_BOOLEAN_VALUE_FROM_DOUBLE);
+		}
+		else {
+		    adapter.invokeStatic(Types.CASTER, new Method("toRef", Types.toRefType(rtn), new Type[] { rtn }));
+		    adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_BOOLEAN_VALUE);
+		}
+		// return Types.BOOLEAN_VALUE;
+	    }
+	    else {
+		if (Types.BOOLEAN.equals(rtn)) {}
+		else adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_BOOLEAN);
+	    }
+	}
+
+	if (mode == MODE_VALUE) return Types.BOOLEAN_VALUE;
+	return Types.BOOLEAN;
     }
 
-	@Override
-	public Expression getExpr() {
-		return expr;
-	}
+    @Override
+    public Expression getExpr() {
+	return expr;
+    }
 }

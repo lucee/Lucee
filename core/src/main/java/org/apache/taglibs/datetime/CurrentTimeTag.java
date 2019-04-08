@@ -25,18 +25,17 @@ import javax.servlet.jsp.tagext.TagSupport;
 
 public final class CurrentTimeTag extends TagSupport {
 
-	public CurrentTimeTag() {
-	}
+    public CurrentTimeTag() {}
 
-	@Override
-	public final int doEndTag() throws JspException {
-		Date date = new Date();
-		try {
-			super.pageContext.getOut().write("" + date.getTime());
-		}
-		catch(Exception e) {
-			throw new JspException("IO Error: " + e.getMessage());
-		}
-		return 6;
+    @Override
+    public final int doEndTag() throws JspException {
+	Date date = new Date();
+	try {
+	    super.pageContext.getOut().write("" + date.getTime());
 	}
+	catch (Exception e) {
+	    throw new JspException("IO Error: " + e.getMessage());
+	}
+	return 6;
+    }
 }

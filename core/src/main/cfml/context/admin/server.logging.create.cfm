@@ -46,8 +46,12 @@
 				name="#trim(form._name)#"
 				level="#form.level#"
 				appenderClass="#trim(form.appenderClass)#"
+				appenderBundleName="#trim(form.appenderBundleName?:'')#"
+				appenderBundleVersion="#trim(form.appenderBundleVersion?:'')#"
 				appenderArgs="#appenderArgs#"
 				layoutClass="#layoutClass#"
+				layoutBundleName="#trim(form.layoutBundleName?:'')#"
+				layoutBundleVersion="#trim(form.layoutBundleVersion?:'')#"
 				layoutArgs="#(layoutArgs)#"
 
 				remoteClients="#request.getRemoteClients()#">
@@ -218,6 +222,11 @@ function showLayout() {
 
 		<div id="div_#id#">
 		<input type="hidden" name="#_name#Class" value="#driver.getClass()#">
+		<input type="hidden" name="#_name#BundleName" 
+			value="#structKeyExists(driver,'getBundleName')?driver.getBundleName():''#">
+		<input type="hidden" name="#_name#BundleVersion" 
+			value="#structKeyExists(driver,'getBundleVersion')?driver.getBundleVersion():''#">
+
 		<cfif _name=="appender">
 			<input type="hidden" name="appenderLayoutClass" value="#isNull(driver.getLayout)?'':driver.getLayout()#">
 		</cfif>

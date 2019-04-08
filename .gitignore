@@ -22,7 +22,6 @@ WEB-INF
 
 
 .classpath
-**/.settings/**
 *.eml
 *.iml
 *.ipr

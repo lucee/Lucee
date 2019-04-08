@@ -40,26 +40,27 @@ public final class COMKeyWrapperIterator implements Iterator<Collection.Key> {
      * @param wrapper
      */
     public COMKeyWrapperIterator(COMObject wrapper) {
-        this.enumVariant=new EnumVariant(wrapper.getDispatch());
-        this.wrapper=wrapper;
+	this.enumVariant = new EnumVariant(wrapper.getDispatch());
+	this.wrapper = wrapper;
     }
 
     @Override
     public void remove() {
-        enumVariant.safeRelease();
+	enumVariant.safeRelease();
     }
 
     @Override
     public boolean hasNext() {
-        return enumVariant.hasMoreElements();
+	return enumVariant.hasMoreElements();
     }
 
     @Override
     public Collection.Key next() {
-        try {
-			return Caster.toKey(COMUtil.toObject(wrapper,enumVariant.Next(),"",null));
-		} catch (CasterException e) {
-			throw new PageRuntimeException(e);
-		}
+	try {
+	    return Caster.toKey(COMUtil.toObject(wrapper, enumVariant.Next(), "", null));
+	}
+	catch (CasterException e) {
+	    throw new PageRuntimeException(e);
+	}
     }
 }

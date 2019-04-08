@@ -18,10 +18,11 @@
  **/
 package lucee.runtime.debug;
 
-
 public interface DebugTextFragment {
-	
-	public String getText();
-	public String getTemplate();
-	public int getLine();
+
+    public String getText();
+
+    public String getTemplate();
+
+    public int getLine();
 }

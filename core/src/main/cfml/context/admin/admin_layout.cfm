@@ -22,9 +22,9 @@
 <cfoutput>
 <html>
 <head>
-	<title>Lucee #ucFirst(request.adminType)# Administrator</title>
+	<title>#attributes.title# - Lucee #ucFirst(request.adminType)# Administrator</title>
 	<link rel="stylesheet" href="../res/css/admin-#resNameAppendix#.css.cfm" type="text/css">
-
+	<meta name="robots" content="noindex,nofollow">
 	<cfhtmlhead action="flush">
 </head>
 
@@ -55,8 +55,8 @@
 
 								<form method="get" action="#cgi.SCRIPT_NAME#">
 									<input type="hidden" name="action" value="admin.search" />
-									<input type="text" name="q" size="15" class="navSearch"  id="lucee-admin-search-input" placeholder="#stText.buttons.search.ucase()#" />
-									<button type="submit" class="sprite  btn-search" ><!--- <span>#stText.buttons.search# ---></span></button>
+									<input type="text" name="q" size="15"  class="navSearch" id="lucee-admin-search-input" placeholder="#stText.buttons.search.ucase()#" />
+									<button type="submit" class="sprite  btn-search"><!--- <span>#stText.buttons.search# ---></span></button>
 									<!--- btn-mini title="#stText.buttons.search#" --->
 								</form>
 
@@ -115,12 +115,12 @@
 		</table>
 	</div>
 
-	<cfinclude template="navigation.cfm">
-	
-	<script src="../res/js/jquery-1.12.4.min.js.cfm" type="text/javascript"></script>
+	<script src="../res/js/base.min.js.cfm" type="text/javascript"></script>
+	<script src="../res/js/jquery.modal.min.js.cfm" type="text/javascript"></script>
 	<script src="../res/js/jquery.blockUI-#resNameAppendix#.js.cfm" type="text/javascript"></script>
 	<script src="../res/js/admin-#resNameAppendix#.js.cfm" type="text/javascript"></script>
 	<script src="../res/js/util-#resNameAppendix#.min.js.cfm"></script>
+	<cfinclude template="navigation.cfm">
 	<script>
 		$(function(){
 

@@ -35,29 +35,28 @@ import lucee.runtime.type.Query;
 
 public final class StructKeyExists extends BIF {
 
-	private static final long serialVersionUID = 7659087310641834209L;
+    private static final long serialVersionUID = 7659087310641834209L;
 
-	public static boolean call(PageContext pc , lucee.runtime.type.Struct struct, String key) {
-		return call(pc, struct, KeyImpl.init(key));
-	}
-	
-	public static boolean call(PageContext pc , lucee.runtime.type.Struct struct, Collection.Key key) {
-		if(struct instanceof CollectionStruct) {
-			Collection c=((CollectionStruct) struct).getCollection();
-			if(c instanceof Query) {
-				return QueryColumnExists.call(pc, (Query)c, key);
-			}
-		}
-		if(NullSupportHelper.full()) return struct.containsKey(key);
-		
-		return struct.containsKey(key) && struct.get(key,null)!=null;// do not change, this has do be this way
-	}
+    public static boolean call(PageContext pc, lucee.runtime.type.Struct struct, String key) {
+	return call(pc, struct, KeyImpl.init(key));
+    }
 
-	@Override
-	public Object invoke(PageContext pc, Object[] args) throws PageException {
-		if(args.length==2)
-			return call(pc,Caster.toStruct(args[0]),Caster.toKey(args[1]));
-		    	
-		throw new FunctionException(pc, "StructKeyExists", 2, 2, args.length);
+    public static boolean call(PageContext pc, lucee.runtime.type.Struct struct, Collection.Key key) {
+	if (struct instanceof CollectionStruct) {
+	    Collection c = ((CollectionStruct) struct).getCollection();
+	    if (c instanceof Query) {
+		return QueryColumnExists.call(pc, (Query) c, key);
+	    }
 	}
+	if (NullSupportHelper.full(pc)) return struct.containsKey(key);
+
+	return struct.containsKey(key) && struct.get(key, null) != null;// do not change, this has do be this way
+    }
+
+    @Override
+    public Object invoke(PageContext pc, Object[] args) throws PageException {
+	if (args.length == 2) return call(pc, Caster.toStruct(args[0]), Caster.toKey(args[1]));
+
+	throw new FunctionException(pc, "StructKeyExists", 2, 2, args.length);
+    }
 }

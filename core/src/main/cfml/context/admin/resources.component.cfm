@@ -1,12 +1,3 @@
-<cfset stText.Components.name="Name">
-<cfset stText.Components.nameMissing="Missing the name for the new Mapping, this name is used when you deploy a Lucee Archive (.lar) based on this Mapping.">
-<cfset stText.Components.nameDesc="The name is used as identifier when you automaticly import a Lucee Archive build based on this Mapping.">
-<cfset stText.Components.PhysicalDesc="Directory path where the components are located, this path should not include the package.">
-<cfset stText.Components.archiveDesc="File path to a components Lucee Archive (.lar).">
-<cfset stText.Components.PrimaryDesc="Defines where Lucee does looks first for a requested component">
-<cfset stText.Components.trustedDesc="When does Lucee checks for changes in the source file for a already loaded component">
-
-
 
 <cfset error.message="">
 <cfset error.detail="">

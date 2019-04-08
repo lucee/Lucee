@@ -23,94 +23,95 @@ import java.util.Map;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.PageException;
 import lucee.runtime.functions.system.GetApplicationSettings;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 
-
-
 /**
  * Session Scope
  */
-public final class ApplicationImpl extends ScopeSupport implements Application,SharedScope {
+public final class ApplicationImpl extends ScopeSupport implements Application, SharedScope {
 
-	private static final long serialVersionUID = 700830188207594563L;
-	
-	private static final Collection.Key APPLICATION_NAME = KeyImpl.intern("applicationname");
-	private long lastAccess;
-	private long timeSpan;
-	private long created;
+    private static final long serialVersionUID = 700830188207594563L;
 
-	private Component component;
-	
-	/**
-	 * default constructor of the session scope
-	 */
-	public ApplicationImpl() {
-		super("application",SCOPE_APPLICATION, Struct.TYPE_LINKED);
-		created = System.currentTimeMillis();
-	}
+    private static final Collection.Key APPLICATION_NAME = KeyImpl.intern("applicationname");
+    private long lastAccess;
+    private long timeSpan;
+    private long created;
 
-	@Override
-	public long getLastAccess() { 
-		return lastAccess;
-	}
+    private Component component;
 
-	@Override
-	public long getTimeSpan() { 
-	    return timeSpan;
-	}
+    /**
+     * default constructor of the session scope
+     */
+    public ApplicationImpl() {
+	super("application", SCOPE_APPLICATION, Struct.TYPE_LINKED);
+	created = System.currentTimeMillis();
+    }
 
-	@Override
-	public void touchBeforeRequest(PageContext pc){
-	    ApplicationContext appContext = pc.getApplicationContext();
-	    setEL(APPLICATION_NAME,appContext.getName());
-	    timeSpan=appContext.getApplicationTimeout().getMillis();
-		lastAccess=System.currentTimeMillis();
-	}
+    @Override
+    public long getLastAccess() {
+	return lastAccess;
+    }
 
-	@Override
-	public void touchAfterRequest(PageContext pc) {
-		// do nothing
-	}
+    @Override
+    public long getTimeSpan() {
+	return timeSpan;
+    }
+
+    @Override
+    public void touchBeforeRequest(PageContext pc) {
+	ApplicationContext appContext = pc.getApplicationContext();
+	setEL(APPLICATION_NAME, appContext.getName());
+	timeSpan = appContext.getApplicationTimeout().getMillis();
+	lastAccess = System.currentTimeMillis();
+    }
+
+    @Override
+    public void touchAfterRequest(PageContext pc) {
+	// do nothing
+    }
 
     @Override
     public boolean isExpired() {
-        return (lastAccess+timeSpan)<System.currentTimeMillis();
+	return (lastAccess + timeSpan) < System.currentTimeMillis();
     }
 
-	/**
-	 * @param lastAccess the lastAccess to set
-	 */
-	public void setLastAccess(long lastAccess) {
-		this.lastAccess = lastAccess;
-	}
+    /**
+     * @param lastAccess the lastAccess to set
+     */
+    public void setLastAccess(long lastAccess) {
+	this.lastAccess = lastAccess;
+    }
 
-	@Override
-	public void touch() {
-		lastAccess=System.currentTimeMillis();
-	}
-	
-	/**
-	 * undocumented Feature in ACF
-	 * @return
-	 */
-	public Map getApplicationSettings(){
-		return GetApplicationSettings.call(ThreadLocalPageContext.get());
-	}
+    @Override
+    public void touch() {
+	lastAccess = System.currentTimeMillis();
+    }
 
-	@Override
-	public long getCreated() {
-		return created;
-	}
+    /**
+     * undocumented Feature in ACF
+     * 
+     * @return
+     * @throws PageException
+     */
+    public Map getApplicationSettings() throws PageException {
+	return GetApplicationSettings.call(ThreadLocalPageContext.get());
+    }
 
-	public void setComponent(Component component) {
-		this.component=component;
-	}
+    @Override
+    public long getCreated() {
+	return created;
+    }
 
-	public Component getComponent() {
-		return component;
-	}
+    public void setComponent(Component component) {
+	this.component = component;
+    }
+
+    public Component getComponent() {
+	return component;
+    }
 }

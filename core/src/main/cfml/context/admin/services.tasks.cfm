@@ -1,7 +1,3 @@
-<cfset stText.remote.settings.title="Task Settings">
-<cfset stText.remote.title="Tasks">
-<cfset stText.remote.settings.maxThreads="Maximum concurrent threads">
-<cfset stText.remote.settings.maxThreadsDesc="Maximum number of parallel threads used to execute tasks at the same time, fewer threads will take longer to execute all open threads, more threads will add more load to the system.">
 <cfset hasAccess=true>
 <cfif not isDefined('session.filter')>
 	<cfset session.filter.type="">
@@ -477,7 +473,7 @@
 								<td class="tblContent#css#"><input type="hidden" name="id_#tasks.currentrow#" value="#tasks.id#">
 									#tasks.type#
 								</td>
-								<td class="tblContent#css#">#tasks.name#</td>
+								<td class="tblContent#css#">#wrap(tasks.name,80)#</td>
 								<!---
 								<td class="tblContent#css#">
 									<cfif isDate(tasks.lastExecution) and year(tasks.lastExecution) NEQ 1970>

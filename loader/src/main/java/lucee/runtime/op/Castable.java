@@ -28,79 +28,77 @@ import lucee.runtime.type.dt.DateTime;
  */
 public interface Castable extends Serializable {
 
-	/**
-	 * cast the castable value to a string, other than the Method toString, this
-	 * Method can throw a Exception
-	 * 
-	 * @return String representation of the Object
-	 * @throws PageException thrown when fail to convert to a string
-	 */
-	public String castToString() throws PageException;
+    /**
+     * cast the castable value to a string, other than the Method toString, this Method can throw a
+     * Exception
+     * 
+     * @return String representation of the Object
+     * @throws PageException thrown when fail to convert to a string
+     */
+    public String castToString() throws PageException;
 
-	/**
-	 * cast the castable value to a string, return the default value, when the
-	 * method is not castable
-	 * 
-	 * @param defaultValue default value returned in case not able to convert to a string
-	 * @return String representation of the Object
-	 */
-	public String castToString(String defaultValue);
+    /**
+     * cast the castable value to a string, return the default value, when the method is not castable
+     * 
+     * @param defaultValue default value returned in case not able to convert to a string
+     * @return String representation of the Object
+     */
+    public String castToString(String defaultValue);
 
-	/**
-	 * cast the castable value to a boolean value
-	 * 
-	 * @return boolean Value representation of the Object
-	 * @throws PageException thrown when fail to convert to a boolean
-	 */
-	public boolean castToBooleanValue() throws PageException;
+    /**
+     * cast the castable value to a boolean value
+     * 
+     * @return boolean Value representation of the Object
+     * @throws PageException thrown when fail to convert to a boolean
+     */
+    public boolean castToBooleanValue() throws PageException;
 
-	/**
-	 * cast the castable value to a boolean value
-	 * 
-	 * @param defaultValue default value returned in case not able to convert to a boolean
-	 * @return boolean Value representation of the Object
-	 */
-	public Boolean castToBoolean(Boolean defaultValue);
+    /**
+     * cast the castable value to a boolean value
+     * 
+     * @param defaultValue default value returned in case not able to convert to a boolean
+     * @return boolean Value representation of the Object
+     */
+    public Boolean castToBoolean(Boolean defaultValue);
 
-	/**
-	 * cast the castable value to a double value
-	 * 
-	 * @return double Value representation of the Object
-	 * @throws PageException thrown when fail to convert to a double value
-	 */
-	public double castToDoubleValue() throws PageException;
+    /**
+     * cast the castable value to a double value
+     * 
+     * @return double Value representation of the Object
+     * @throws PageException thrown when fail to convert to a double value
+     */
+    public double castToDoubleValue() throws PageException;
 
-	/**
-	 * cast the castable value to a double value
-	 * 
-	 * @param defaultValue default value returned in case not able to convert to a date object
-	 * @return double Value representation of the Object
-	 */
-	public double castToDoubleValue(double defaultValue);
+    /**
+     * cast the castable value to a double value
+     * 
+     * @param defaultValue default value returned in case not able to convert to a date object
+     * @return double Value representation of the Object
+     */
+    public double castToDoubleValue(double defaultValue);
 
-	/**
-	 * cast the castable value to a date time object
-	 * 
-	 * @return date time representation of the Object
-	 * @throws PageException thrown when fails to convert to a date object
-	 */
-	public DateTime castToDateTime() throws PageException;
+    /**
+     * cast the castable value to a date time object
+     * 
+     * @return date time representation of the Object
+     * @throws PageException thrown when fails to convert to a date object
+     */
+    public DateTime castToDateTime() throws PageException;
 
-	/**
-	 * cast the castable value to a date time object
-	 * 
-	 * @param defaultValue returned when it is not possible to cast to a
-	 *            dateTime object
-	 * @return date time representation of the Object
-	 */
-	public DateTime castToDateTime(DateTime defaultValue);
+    /**
+     * cast the castable value to a date time object
+     * 
+     * @param defaultValue returned when it is not possible to cast to a dateTime object
+     * @return date time representation of the Object
+     */
+    public DateTime castToDateTime(DateTime defaultValue);
 
-	public int compareTo(String str) throws PageException;
+    public int compareTo(String str) throws PageException;
 
-	public int compareTo(boolean b) throws PageException;
+    public int compareTo(boolean b) throws PageException;
 
-	public int compareTo(double d) throws PageException;
+    public int compareTo(double d) throws PageException;
 
-	public int compareTo(DateTime dt) throws PageException;
+    public int compareTo(DateTime dt) throws PageException;
 
 }

@@ -26,96 +26,93 @@ import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageRuntimeException;
+import lucee.runtime.tag.listener.TagListener;
 import lucee.runtime.type.Struct;
 
 public class ApplicationDataSource extends DataSourceSupport {
 
-	private String connStr;
-	
+    private String connStr;
 
-	private ApplicationDataSource(Config config, String name, ClassDefinition cd, String connStr, String username, String password,
-			boolean blob, boolean clob, int connectionLimit, int connectionTimeout, long metaCacheTimeout, TimeZone timezone, int allow, boolean storage, boolean readOnly,Log log) {
-		super(config,name, cd,username,ConfigWebUtil.decrypt(password),
-				blob,clob,connectionLimit, connectionTimeout, metaCacheTimeout, timezone, allow<0?ALLOW_ALL:allow, storage, readOnly,log);
-		
-		this.connStr = connStr;
+    private ApplicationDataSource(Config config, String name, ClassDefinition cd, String connStr, String username, String password, TagListener listener, boolean blob,
+	    boolean clob, int connectionLimit, int connectionTimeout, long metaCacheTimeout, TimeZone timezone, int allow, boolean storage, boolean readOnly, boolean validate,
+	    Log log) {
+	super(config, name, cd, username, ConfigWebUtil.decrypt(password), listener, blob, clob, connectionLimit, connectionTimeout, metaCacheTimeout, timezone,
+		allow < 0 ? ALLOW_ALL : allow, storage, readOnly, validate, log);
+
+	this.connStr = connStr;
+    }
+
+    public static DataSource getInstance(Config config, String name, ClassDefinition cd, String connStr, String username, String password, TagListener listener, boolean blob,
+	    boolean clob, int connectionLimit, int connectionTimeout, long metaCacheTimeout, TimeZone timezone, int allow, boolean storage, boolean readOnly, boolean validate,
+	    Log log) {
+
+	return new ApplicationDataSource(config, name, cd, connStr, username, password, listener, blob, clob, connectionLimit, connectionTimeout, metaCacheTimeout, timezone, allow,
+		storage, readOnly, validate, log);
+    }
+
+    @Override
+    public String getDsnOriginal() {
+	throw exp();
+    }
+
+    @Override
+    public String getConnectionString() {
+	throw exp();
+    }
+
+    @Override
+    public String getDsnTranslated() {
+	return getConnectionStringTranslated();
+    }
+
+    @Override
+    public String getConnectionStringTranslated() {
+	return connStr;
+    }
+
+    @Override
+    public String getDatabase() {
+	throw new PageRuntimeException(new ApplicationException("Datasource defined in the application event handler has no name."));
+    }
+
+    @Override
+    public int getPort() {
+	throw exp();
+    }
+
+    @Override
+    public String getHost() {
+	throw exp();
+    }
+
+    @Override
+    public DataSource cloneReadOnly() {
+	try {
+	    return new ApplicationDataSource(ThreadLocalPageContext.getConfig(), getName(), getClassDefinition(), connStr, getUsername(), getPassword(), getListener(), isBlob(),
+		    isClob(), getConnectionLimit(), getConnectionTimeout(), getMetaCacheTimeout(), getTimeZone(), allow, isStorage(), isReadOnly(), validate(), getLog());
 	}
-	
-
-	public static DataSource getInstance(Config config, String name, ClassDefinition cd, String connStr, String username, String password,
-			boolean blob, boolean clob, int connectionLimit, int connectionTimeout, long metaCacheTimeout, TimeZone timezone, int allow, boolean storage, boolean readOnly,Log log) {
-		
-		return new ApplicationDataSource(config,name, cd, connStr, username, password, blob, clob, connectionLimit, connectionTimeout, metaCacheTimeout, timezone, allow, storage, readOnly,log);
+	catch (Exception e) {
+	    throw new RuntimeException(e);// this should never happens, because the class was already loaded in this object
 	}
+    }
 
-	@Override
-	public String getDsnOriginal() {
-		throw exp();
-	}
+    @Override
+    public String getCustomValue(String key) {
+	throw exp();
+    }
 
-	@Override
-	public String getConnectionString() {
-		throw exp();
-	}
+    @Override
+    public String[] getCustomNames() {
+	throw exp();
+    }
 
-	@Override
-	public String getDsnTranslated() {
-		return getConnectionStringTranslated();
-	}
+    @Override
+    public Struct getCustoms() {
+	throw exp();
+    }
 
-	@Override
-	public String getConnectionStringTranslated() {
-		return connStr;
-	}
-
-	@Override
-	public String getDatabase() {
-		throw new PageRuntimeException(new ApplicationException("Datasource defined in the application event handler has no name."));
-	}
-
-	@Override
-	public int getPort() {
-		throw exp();
-	}
-
-	@Override
-	public String getHost() {
-		throw exp();
-	}
-
-	@Override
-	public DataSource cloneReadOnly() {
-		try {
-			return new ApplicationDataSource(ThreadLocalPageContext.getConfig(),getName(), getClassDefinition(), connStr, getUsername(), getPassword(),
-					isBlob(), isClob(), getConnectionLimit(), getConnectionTimeout(), getMetaCacheTimeout(), getTimeZone(), allow, isStorage(), isReadOnly(),getLog());
-		} catch (Exception e) {
-			throw new RuntimeException(e);// this should never happens, because the class was already loaded in this object
-		}
-	}
-
-	@Override
-	public String getCustomValue(String key) {
-		throw exp();
-	}
-
-	@Override
-	public String[] getCustomNames() {
-		throw exp();
-	}
-
-	@Override
-	public Struct getCustoms() {
-		throw exp();
-	}
-
-	@Override
-	public boolean validate() {
-		throw exp();
-	}
-
-
-	private PageRuntimeException exp() {
-		//return new MethodNotSupportedException();
-		throw new PageRuntimeException(new ApplicationException("method not supported"));
-	}
+    private PageRuntimeException exp() {
+	// return new MethodNotSupportedException();
+	throw new PageRuntimeException(new ApplicationException("method not supported"));
+    }
 }

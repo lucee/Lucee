@@ -22,18 +22,18 @@ import lucee.aprint;
 import lucee.commons.io.res.Resource;
 
 public class LogResourceFilter implements ResourceFilter {
-	
-	private ResourceFilter filter;
 
-	public LogResourceFilter(ResourceFilter filter){
-		this.filter=filter;
-	}
+    private ResourceFilter filter;
 
-	@Override
-	public boolean accept(Resource res) {
-		boolean rtn = filter.accept(res);
-		aprint.o("accept:"+res+"->"+rtn);
-		return rtn;
-	}
+    public LogResourceFilter(ResourceFilter filter) {
+	this.filter = filter;
+    }
+
+    @Override
+    public boolean accept(Resource res) {
+	boolean rtn = filter.accept(res);
+	aprint.o("accept:" + res + "->" + rtn);
+	return rtn;
+    }
 
 }

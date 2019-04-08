@@ -25,20 +25,19 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.tag.Directory;
 import lucee.runtime.tag.util.FileUtil;
 
-
 public class DirectoryCreate {
 
-	public static String call(PageContext pc, String path) throws PageException {
-		return call(pc, path, true);
-	}
+    public static String call(PageContext pc, String path) throws PageException {
+	return call(pc, path, true);
+    }
 
-	public static String call(PageContext pc , String path, boolean createPath) throws PageException {
-		return call(pc, path, createPath, false);
-	}
+    public static String call(PageContext pc, String path, boolean createPath) throws PageException {
+	return call(pc, path, createPath, false);
+    }
 
-	public static String call(PageContext pc , String path, boolean createPath, boolean ignoreExists) throws PageException {
-		Resource dir=ResourceUtil.toResourceNotExisting(pc, path);
-		Directory.actionCreate( pc, dir, null, createPath, -1, null, null, ignoreExists ? FileUtil.NAMECONFLICT_SKIP : FileUtil.NAMECONFLICT_ERROR );
-		return null;
-	}
+    public static String call(PageContext pc, String path, boolean createPath, boolean ignoreExists) throws PageException {
+	Resource dir = ResourceUtil.toResourceNotExisting(pc, path);
+	Directory.actionCreate(pc, dir, null, createPath, -1, null, null, ignoreExists ? FileUtil.NAMECONFLICT_SKIP : FileUtil.NAMECONFLICT_ERROR);
+	return null;
+    }
 }

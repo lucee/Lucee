@@ -17,6 +17,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				expect(result.filecontent.trim()).toBe('true');
 
 			});
+
+			it(title="checking GetSystemMetrics() CPU", body = function( currentSpec ) {
+				var system=GetSystemMetrics();
+				expect(system.cpuProcess>=0).toBeTrue();
+				expect(system.cpuSystem>=0).toBeTrue();
+
+			});
 		});
 	}
 	// private Function//

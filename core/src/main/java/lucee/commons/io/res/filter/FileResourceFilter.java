@@ -27,9 +27,9 @@ public final class FileResourceFilter implements ResourceFilter {
 
     public static final FileResourceFilter FILTER = new FileResourceFilter();
 
-	@Override
+    @Override
     public boolean accept(Resource pathname) {
-        return pathname.isFile();
+	return pathname.isFile();
     }
 
 }

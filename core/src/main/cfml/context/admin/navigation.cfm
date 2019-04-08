@@ -27,18 +27,19 @@
 
 
 	<cfhtmlbody>
-	 	<script src="../res/js/typeahead.min.js.cfm" type="text/javascript"></script>
-	 	<script src="../res/js/base.min.js.cfm" type="text/javascript"></script>
 		<script type="text/javascript">
 			var allArr = #serializeJson(arr)#;
 			var adminKeys = #serializeJson(adminKey)#;
 			var substringMatcher = function(strs) {
 				return function findMatches(q, cb) {
 					var matches, substringRegex;
+
 					// an array that will be populated with substring matches
 					matches = [];
+
 					// regex used to determine if a string contains the substring `q`
 					substrRegex = new RegExp(q, 'i');
+
 					// iterate through the pool of strings and for any string that
 					// contains the substring `q`, add it to the `matches` array
 					$.each(strs, function(i, str) {
@@ -46,10 +47,13 @@
 						matches.push(str);
 						}
 					});
+
 					cb(matches);
 				};
 			};
+
 			$( function() {
+
 				$( '##lucee-admin-search-input' ).typeahead(
 					{
 						hint: true,
@@ -82,7 +86,7 @@
 		</script>
 		<style type="text/css">
 			.twitter-typeahead{
-				width: 80% !important;
+				width: 94% !important;
 			}
 			.tt-suggestion.tt-selectable p{
 				margin: 0px !important;
@@ -94,7 +98,7 @@
 			.tt-menu.tt-open{
 				background-color: white !important;
 				width: 110% !important;
-				font-size:13px !important; 
+				font-size:14px !important; 
 				padding:2% 1% 2% 2% !important;
 			}
 			.tt-suggestion.tt-selectable:hover{

@@ -25,65 +25,64 @@ import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.statement.FlowControlFinal;
 
-
-
 /**
  * A single Statement
  */
 public interface Statement {
-	
+
     /**
      * sets parent statement to statement
+     * 
      * @param parent
      */
     public void setParent(Statement parent);
 
     public boolean hasFlowController();
+
     public void setHasFlowController(boolean has);
-    
-    
-    
-    
+
     /**
      * @return returns the parent statement
      */
     public Statement getParent();
-    
+
     /**
-     * write out the stament to adapter
+     * write out the statement to adapter
+     * 
      * @param c
      * @throws TemplateException
      */
-    public void writeOut(Context c) throws TransformerException;    
+    public void writeOut(Context c) throws TransformerException;
 
-    
     /**
      * sets the line value.
+     * 
      * @param line The line to set.
      */
     public void setStart(Position startLine);
 
     /**
      * sets the line value.
+     * 
      * @param line The line to set.
      */
     public void setEnd(Position endLine);
-    
+
     /**
-	 * @return the startLine
-	 */
-	public Position getStart();
-	
-	/**
-	 * @return the endLine
-	 */
-	public Position getEnd();
-	
+     * @return the startLine
+     */
+    public Position getStart();
 
-	/**
-	 * @return return the label where the finally block of this tags starts, IF there is a finally block, otherwise return null; 
-	 */
-	public FlowControlFinal getFlowControlFinal();
+    /**
+     * @return the endLine
+     */
+    public Position getEnd();
 
-	public Factory getFactory();
+    /**
+     * @return return the label where the finally block of this tags starts, IF there is a finally
+     *         block, otherwise return null;
+     */
+    public FlowControlFinal getFlowControlFinal();
+
+    public Factory getFactory();
 }

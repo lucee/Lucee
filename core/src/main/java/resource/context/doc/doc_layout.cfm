@@ -11,8 +11,8 @@
 
 <cfset luceeVersion = listFirst( server.lucee.version, '.' ) & '.' & listGetAt( server.lucee.version, 2, '.' )>
 
-<cfparam name="Attributes.title" default="Lucee Doc Refernce #luceeVersion#">
-<cfparam name="Attributes.description" default="Lucee Tag, Function, and Member Methods Refernce for Lucee #luceeVersion#">
+<cfparam name="Attributes.title" default="Lucee Doc Reference #luceeVersion#">
+<cfparam name="Attributes.description" default="Lucee Tag, Function, and Member Methods Reference for Lucee #luceeVersion#">
 
 
 <!DOCTYPE HTML>

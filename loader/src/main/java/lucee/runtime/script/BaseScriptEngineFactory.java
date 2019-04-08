@@ -33,108 +33,103 @@ import lucee.loader.engine.CFMLEngineFactory;
 
 public abstract class BaseScriptEngineFactory implements ScriptEngineFactory {
 
-	private final ScriptEngineFactory factory;
+    private final ScriptEngineFactory factory;
 
-	public BaseScriptEngineFactory(final boolean tag, final int dialect) throws ServletException {
-		try {
-			
-		System.setProperty("lucee.cli.call", "true");
+    public BaseScriptEngineFactory(final boolean tag, final int dialect) throws ServletException {
+	try {
 
-		// returns null when not used within Lucee
-		CFMLEngine engine = null;
-		try {
-			engine = CFMLEngineFactory.getInstance();
-		} catch (final RuntimeException re) {
-		}
-		
-		// create Engine
-		if (engine == null) {
-			final String servletName = "";
-			final Map<String, Object> attributes = new HashMap<String, Object>();
-			final Map<String, String> initParams = new HashMap<String, String>();
-			final File root = new File("."); // working directory that the java command was called from
+	    System.setProperty("lucee.cli.call", "true");
 
-			final ServletContextImpl servletContext = new ServletContextImpl(
-					root, attributes, initParams, 1, 0);
-			final ServletConfigImpl servletConfig = new ServletConfigImpl(
-					servletContext, servletName);
-			engine = CFMLEngineFactory.getInstance(servletConfig);
-			servletContext.setLogger(engine.getCFMLEngineFactory().getLogger());
-		}
+	    // returns null when not used within Lucee
+	    CFMLEngine engine = null;
+	    try {
+		engine = CFMLEngineFactory.getInstance();
+	    }
+	    catch (final RuntimeException re) {}
 
-		factory = tag ? CFMLEngineFactory.getInstance().getTagEngineFactory(
-				dialect) : CFMLEngineFactory.getInstance()
-				.getScriptEngineFactory(dialect);
+	    // create Engine
+	    if (engine == null) {
+		final String servletName = "";
+		final Map<String, Object> attributes = new HashMap<String, Object>();
+		final Map<String, String> initParams = new HashMap<String, String>();
+		final File root = new File("."); // working directory that the java command was called from
 
-		}
-		catch(ServletException se) {
-			se.printStackTrace();
-			throw se;
-		}
-		catch(RuntimeException re) {
-			re.printStackTrace();
-			throw re;
-		}
+		final ServletContextImpl servletContext = new ServletContextImpl(root, attributes, initParams, 1, 0);
+		final ServletConfigImpl servletConfig = new ServletConfigImpl(servletContext, servletName);
+		engine = CFMLEngineFactory.getInstance(servletConfig);
+		servletContext.setLogger(engine.getCFMLEngineFactory().getLogger());
+	    }
+
+	    factory = tag ? CFMLEngineFactory.getInstance().getTagEngineFactory(dialect) : CFMLEngineFactory.getInstance().getScriptEngineFactory(dialect);
+
 	}
-
-	@Override
-	public String getEngineName() {
-		return factory.getEngineName();
+	catch (ServletException se) {
+	    se.printStackTrace();
+	    throw se;
 	}
-
-	@Override
-	public String getEngineVersion() {
-		return factory.getEngineVersion();
+	catch (RuntimeException re) {
+	    re.printStackTrace();
+	    throw re;
 	}
+    }
 
-	@Override
-	public List<String> getExtensions() {
-		return factory.getExtensions();
-	}
+    @Override
+    public String getEngineName() {
+	return factory.getEngineName();
+    }
 
-	@Override
-	public List<String> getMimeTypes() {
-		return factory.getMimeTypes();
-	}
+    @Override
+    public String getEngineVersion() {
+	return factory.getEngineVersion();
+    }
 
-	@Override
-	public List<String> getNames() {
-		return factory.getNames();
-	}
+    @Override
+    public List<String> getExtensions() {
+	return factory.getExtensions();
+    }
 
-	@Override
-	public String getLanguageName() {
-		return factory.getLanguageName();
-	}
+    @Override
+    public List<String> getMimeTypes() {
+	return factory.getMimeTypes();
+    }
 
-	@Override
-	public String getLanguageVersion() {
-		return factory.getLanguageVersion();
-	}
+    @Override
+    public List<String> getNames() {
+	return factory.getNames();
+    }
 
-	@Override
-	public Object getParameter(final String key) {
-		return factory.getParameter(key);
-	}
+    @Override
+    public String getLanguageName() {
+	return factory.getLanguageName();
+    }
 
-	@Override
-	public String getMethodCallSyntax(final String obj, final String m,
-			final String... args) {
-		return factory.getMethodCallSyntax(obj, m, args);
-	}
+    @Override
+    public String getLanguageVersion() {
+	return factory.getLanguageVersion();
+    }
 
-	@Override
-	public String getOutputStatement(final String toDisplay) {
-		return factory.getOutputStatement(toDisplay);
-	}
+    @Override
+    public Object getParameter(final String key) {
+	return factory.getParameter(key);
+    }
 
-	@Override
-	public String getProgram(final String... statements) {
-		return factory.getProgram(statements);
-	}
+    @Override
+    public String getMethodCallSyntax(final String obj, final String m, final String... args) {
+	return factory.getMethodCallSyntax(obj, m, args);
+    }
 
-	@Override
-	public ScriptEngine getScriptEngine() {
-		return factory.getScriptEngine();
-	}
+    @Override
+    public String getOutputStatement(final String toDisplay) {
+	return factory.getOutputStatement(toDisplay);
+    }
+
+    @Override
+    public String getProgram(final String... statements) {
+	return factory.getProgram(statements);
+    }
+
+    @Override
+    public ScriptEngine getScriptEngine() {
+	return factory.getScriptEngine();
+    }
 }
