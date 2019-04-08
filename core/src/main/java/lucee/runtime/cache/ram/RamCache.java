@@ -34,7 +34,7 @@ import lucee.commons.io.SystemUtil;
 import lucee.commons.io.cache.CacheEntry;
 import lucee.commons.io.cache.CachePro;
 import lucee.commons.io.cache.exp.CacheException;
-import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.io.log.LogUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.cache.CacheSupport;
 import lucee.runtime.config.Config;
@@ -226,12 +226,11 @@ public class RamCache extends CacheSupport {
 	public void run() {
 	    while (engine.isRunning()) {
 		try {
-		    _run();
 		    SystemUtil.sleep(ramCache.controlInterval);
-
+		    _run();
 		}
-		catch (Throwable t) {
-		    ExceptionUtil.rethrowIfNecessary(t);
+		catch (Exception e) {
+		    LogUtil.log(null, "application", e);
 		}
 	    }
 	}

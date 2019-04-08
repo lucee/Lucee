@@ -144,7 +144,7 @@ public final class Application extends TagImpl {
     private boolean cgiReadOnly = true;
     private SessionCookieData sessionCookie;
     private AuthCookieData authCookie;
-    private String functionpaths;
+    private Object functionpaths;
     private Struct proxy;
 
     @Override
@@ -558,6 +558,10 @@ public final class Application extends TagImpl {
 	this.componentMappings = AppListenerUtil.toComponentMappings(pageContext.getConfig(), mappings, getSource());
     }
 
+    public void setFunctionpaths(Object functionpaths) {
+	this.functionpaths = functionpaths;
+    }
+
     public void setSecurejsonprefix(String secureJsonPrefix) {
 	this.secureJsonPrefix = secureJsonPrefix;
 	// getAppContext().setSecureJsonPrefix(secureJsonPrefix);
@@ -589,10 +593,6 @@ public final class Application extends TagImpl {
      */
     public void setScriptprotect(String strScriptrotect) {
 	this.scriptrotect = strScriptrotect;
-    }
-
-    public void setFunctionpaths(String strFunctionpaths) {
-	this.functionpaths = strFunctionpaths;
     }
 
     public void setProxy(Struct proxy) {
