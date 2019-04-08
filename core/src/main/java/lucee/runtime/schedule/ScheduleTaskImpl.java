@@ -360,7 +360,6 @@ public final class ScheduleTaskImpl implements ScheduleTask {
 	    log.info("scheduler", "task [" + getTask() + "] was not running");
 	    return;
 	}
-	thread.setStop(true);
 	thread.stopIt();
     }
 
