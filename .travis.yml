@@ -93,6 +93,6 @@ after_success:
 - curl "http://stable.lucee.org/rest/update/provider/buildLatest"
 - curl "https://download.lucee.org/?type=snapshots&reset=force"
 
-
+- chmod +x travis-docker-build.sh && ./travis-docker-build.sh
 
 #- git commit -a -m "Committed by Travis-CI build number: $TRAVIS_JOB_ID "
