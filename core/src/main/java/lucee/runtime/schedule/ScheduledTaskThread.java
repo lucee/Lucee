@@ -86,7 +86,8 @@ public class ScheduledTaskThread extends Thread {
 	Log log = scheduler.getConfig().getLog("scheduler");
 	log.info("scheduler", "stopping task thread [" + task.getTask() + "]");
 	SystemUtil.patienceStop(exeThread, 5);
-	if (exeThread.isAlive()) log.warn("scheduler", "task thread [" + task.getTask() + "] could not be stopped:" + ExceptionUtil.toString(exeThread.getStackTrace()));
+	if (exeThread != null && exeThread.isAlive())
+	    log.warn("scheduler", "task thread [" + task.getTask() + "] could not be stopped:" + ExceptionUtil.toString(exeThread.getStackTrace()));
 	else log.info("scheduler", "task thread [" + task.getTask() + "] stopped");
 
 	// stop this thread itself

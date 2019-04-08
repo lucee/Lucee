@@ -49,6 +49,7 @@ import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
+import lucee.runtime.type.util.ListUtil;
 
 public final class FeedHandler extends DefaultHandler {
 
@@ -136,6 +137,7 @@ public final class FeedHandler extends DefaultHandler {
     @Override
     public void startElement(String uri, String name, String qName, Attributes atts) {
 	deep++;
+	name = name(name, qName);
 
 	if ("entry".equals(name)) inEntry = true;
 	else if ("author".equals(name)) inAuthor = true;
@@ -213,8 +215,15 @@ public final class FeedHandler extends DefaultHandler {
 	// type="audio/mpeg"/>
     }
 
+    private String name(String name, String qName) {
+	if (!StringUtil.isEmpty(name, true)) return name;
+	return ListUtil.last(qName, ':');
+    }
+
     @Override
     public void endElement(String uri, String name, String qName) {
+	name = name(name, qName);
+
 	if ("entry".equals(name)) inEntry = false;
 	else if ("author".equals(name)) inAuthor = false;
 	deep--;
