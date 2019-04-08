@@ -226,9 +226,8 @@ public class RamCache extends CacheSupport {
 	public void run() {
 	    while (engine.isRunning()) {
 		try {
-		    _run();
 		    SystemUtil.sleep(ramCache.controlInterval);
-
+		    _run();
 		}
 		catch (Throwable t) {
 		    ExceptionUtil.rethrowIfNecessary(t);
