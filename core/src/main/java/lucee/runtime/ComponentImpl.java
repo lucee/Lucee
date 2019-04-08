@@ -1623,7 +1623,6 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 
     public void setInitalized(boolean isInit) {
 	this.isInit = isInit;
-	;
     }
 
     /**

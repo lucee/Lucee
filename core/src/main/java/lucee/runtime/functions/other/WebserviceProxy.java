@@ -38,7 +38,7 @@ import lucee.runtime.type.Struct;
 public final class WebserviceProxy implements Function {
 
     private static final long serialVersionUID = -5702516737227809987L;
-    private static final Data EMPTY = new Data(null, null, null);;
+    private static final Data EMPTY = new Data(null, null, null);
 
     public static Object call(PageContext pc, String wsdlUrl) throws PageException {
 	return call(pc, wsdlUrl, null);

@@ -228,7 +228,7 @@ public class ScheduledTaskThread extends Thread {
 	    time = getMilliSecondsInDay(calendar);
 	    if (now <= calendar.getTimeInMillis() && time >= startTime) {
 		// this is used because when cames back sometme to early
-		if (notNow && (calendar.getTimeInMillis() - now) < 1000) ;
+		if (notNow && (calendar.getTimeInMillis() - now) < 1000) {}
 		else if (intervall == ScheduleTaskImpl.INTERVAL_EVEREY && time > endTime) now = nowDate + DAY;
 		else break;
 	    }

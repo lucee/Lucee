@@ -260,7 +260,7 @@ public final class Log extends TagImpl {
 	if (charset == null) charset = CharsetUtil.toCharSet(((PageContextImpl) pc).getResourceCharset());
 
 	try {
-	    log = ((ConfigImpl) config).getLogEngine().getResourceLog(res, CharsetUtil.toCharset(charset), "cflog." + FileLogPool.toKey(file, CharsetUtil.toCharset(charset)),
+	    log = config.getLogEngine().getResourceLog(res, CharsetUtil.toCharset(charset), "cflog." + FileLogPool.toKey(file, CharsetUtil.toCharset(charset)),
 		    lucee.commons.io.log.Log.LEVEL_TRACE, 5, new Listener(FileLogPool.instance, res, charset), async);
 	    FileLogPool.instance.put(res, CharsetUtil.toCharset(charset), log);
 	}
@@ -298,8 +298,7 @@ public final class Log extends TagImpl {
 	}
 
 	public static String toKey(String file, Charset charset) {
-	    if (charset == null) ;
-	    charset = CharsetUtil.UTF8;
+	    if (charset == null) charset = CharsetUtil.UTF8;
 	    return StringUtil.toVariableName(file) + "." + StringUtil.toVariableName(charset.name());
 	}
     }

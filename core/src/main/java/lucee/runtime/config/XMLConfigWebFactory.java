@@ -639,7 +639,6 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		// we make sure we have the default on server level
 		if (!hasCS && !config.hasResourceProvider("s3")) {
 		    ClassDefinition s3Class = new ClassDefinitionImpl(DummyS3ResourceProvider.class);
-		    ;
 		    config.addResourceProvider("s3", s3Class, toArguments("lock-timeout:10000;", false));
 		}
 	    }
@@ -1705,7 +1704,6 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		    engine.init((ConfigWeb) config, configServer.getAMFEngineArgs());
 		    ((ConfigWebImpl) config).setAMFEngine(engine);
 		}
-		;
 	    }
 	}
 	catch (Exception e) {

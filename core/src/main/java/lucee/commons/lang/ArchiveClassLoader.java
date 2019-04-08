@@ -125,13 +125,12 @@ public final class ArchiveClassLoader extends ClassLoader implements Closeable {
 
     private Class findClassEL(String name) {
 	byte[] barr = getBytes(name.replace('.', '/').concat(".class"));
-	if (barr != null) return null;
+	if (barr == null) return null;
 	try {
 	    int start = ClassUtil.hasCF33Prefix(barr) ? 10 : 0;
 	    return defineClass(name, barr, start, barr.length - start);
 	}
-	catch (Throwable t) {
-	    ExceptionUtil.rethrowIfNecessary(t);
+	catch (Exception e) {
 	    return null;
 	}
     }

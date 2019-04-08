@@ -141,12 +141,10 @@ public class BundleBuilderFactory {
 
     public void setName(String name) {
 	this.name = name;
-	;
     }
 
     public void setIgnoreExistingManifest(boolean ignoreExistingManifest) {
 	this.ignoreExistingManifest = ignoreExistingManifest;
-	;
     }
 
     public Version getVersion() {

@@ -405,7 +405,6 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 
     protected void setRequestMonitors(RequestMonitor[] monitors) {
 	this.requestMonitors = monitors;
-	;
     }
 
     @Override
@@ -423,7 +422,6 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 
     protected void setIntervallMonitors(IntervallMonitor[] monitors) {
 	this.intervallMonitors = monitors;
-	;
     }
 
     public void setActionMonitorCollector(ActionMonitorCollector actionMonitorCollector) {
@@ -446,7 +444,6 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 
     protected void setMonitoringEnabled(boolean monitoringEnabled) {
 	this.monitoringEnabled = monitoringEnabled;
-	;
     }
 
     protected void setLoginDelay(int delay) {

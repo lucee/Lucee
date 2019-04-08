@@ -108,7 +108,6 @@ public final class TagTry2 extends TagBase implements FlowControlRetry {
 		}
 		tryBody.addStatement(stat);
 	    }
-	    ;
 	}
 	final Tag _finally = tmpFinal;
 

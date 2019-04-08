@@ -694,8 +694,6 @@ public final class TagLibTag {
      */
     public void setAttributeEvaluatorClassDefinition(String className, Identification id, Attributes attr) {
 	cdAttributeEvaluator = ClassDefinitionImpl.toClassDefinition(className, id, attr);
-	;
-
     }
 
     /**

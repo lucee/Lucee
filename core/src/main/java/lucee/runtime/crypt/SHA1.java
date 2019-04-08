@@ -52,7 +52,7 @@ public final class SHA1 {
 
 	reset();
 
-    };
+    }
 
     /**
      * 
@@ -80,7 +80,7 @@ public final class SHA1 {
 
 	m_nBlockIndex = 0;
 
-    };
+    }
 
     // some helper methods...
 
@@ -90,7 +90,7 @@ public final class SHA1 {
 
 	return ((nValue << nBits) | (nValue >>> (32 - nBits)));
 
-    };
+    }
 
     final int blk0(int nI) {
 
@@ -98,7 +98,7 @@ public final class SHA1 {
 
 		(rol(m_block[nI], 8) & 0x00ff00ff));
 
-    };
+    }
 
     final int blk(int nI) {
 
@@ -106,7 +106,7 @@ public final class SHA1 {
 
 		m_block[(nI + 2) & 15] ^ m_block[nI & 15], 1));
 
-    };
+    }
 
     final void r0(int data[],
 
@@ -132,7 +132,7 @@ public final class SHA1 {
 
 	data[nW] = rol(data[nW], 30);
 
-    };
+    }
 
     final void r1(int data[],
 
@@ -158,7 +158,7 @@ public final class SHA1 {
 
 	data[nW] = rol(data[nW], 30);
 
-    };
+    }
 
     final void r2(int data[],
 
@@ -184,7 +184,7 @@ public final class SHA1 {
 
 	data[nW] = rol(data[nW], 30);
 
-    };
+    }
 
     final void r3(int data[],
 
@@ -210,7 +210,7 @@ public final class SHA1 {
 
 	data[nW] = rol(data[nW], 30);
 
-    };
+    }
 
     final void r4(int data[],
 
@@ -236,7 +236,7 @@ public final class SHA1 {
 
 	data[nW] = rol(data[nW], 30);
 
-    };
+    }
 
     void transform() {
 
@@ -408,7 +408,7 @@ public final class SHA1 {
 
 	m_nBlockIndex = 0;
 
-    };
+    }
 
     /**
      * 
@@ -435,9 +435,7 @@ public final class SHA1 {
 	    m_nBlockIndex = 0;
 
 	}
-	;
-
-    };
+    }
 
     /**
      * 
@@ -451,7 +449,7 @@ public final class SHA1 {
 
 	    update(data[nI]);
 
-    };
+    }
 
     /**
      * 
@@ -465,7 +463,7 @@ public final class SHA1 {
 
 	    update((byte) (sData.charAt(nI) & 0x0ff));
 
-    };
+    }
 
     /**
      * 
@@ -485,7 +483,6 @@ public final class SHA1 {
 	    bits[nI] = (byte) ((m_lCount >>> (((7 - nI) << 3))) & 0xff);
 
 	}
-	;
 
 	update((byte) 128);
 
@@ -502,9 +499,8 @@ public final class SHA1 {
 	    m_digestBits[nI] = (byte) ((m_state[nI >> 2] >> ((3 - (nI & 3)) << 3)) & 0xff);
 
 	}
-	;
 
-    };
+    }
 
     /**
      * 
@@ -524,7 +520,7 @@ public final class SHA1 {
 
 	return result;
 
-    };
+    }
 
     // we need this table for the following method
 
@@ -550,11 +546,10 @@ public final class SHA1 {
 	    buf.append(HEXTAB.charAt(m_digestBits[nI] & 0x0f));
 
 	}
-	;
 
 	return buf.toString();
 
-    };
+    }
 
     // references for the selftest
 
@@ -604,6 +599,6 @@ public final class SHA1 {
 
 	return true;
 
-    };
+    }
 
-};
+}
