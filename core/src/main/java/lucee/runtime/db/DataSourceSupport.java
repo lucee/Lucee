@@ -31,6 +31,7 @@ import org.osgi.framework.BundleException;
 
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.ClassException;
+import lucee.commons.sql.SQLUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.tag.listener.TagListener;
@@ -88,7 +89,7 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 	try {
 	    if (user == null) user = username;
 	    if (pass == null) pass = password;
-	    return _getConnection(config, initialize(config), getConnectionStringTranslated(), user, pass);
+	    return _getConnection(config, initialize(config), SQLUtil.connectionStringTranslatedPatch(config, getConnectionStringTranslated()), user, pass);
 
 	}
 	catch (InstantiationException e) {
