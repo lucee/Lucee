@@ -15,7 +15,9 @@
  *
  --->
 
-
+<cfparam name="url.action2" default="none">
+<cfset error.message="">
+<cfset error.detail="">
  <cftry>
 <cfswitch expression="#url.action2#">
 	<cfcase value="settings">
