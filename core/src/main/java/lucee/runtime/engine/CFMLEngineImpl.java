@@ -66,7 +66,6 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
 
 import lucee.Info;
-import lucee.aprint;
 import lucee.cli.servlet.HTTPServletImpl;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.io.CharsetUtil;
@@ -83,7 +82,6 @@ import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.io.res.util.ResourceUtilImpl;
 import lucee.commons.io.retirement.RetireOutputStreamFactory;
-import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Md5;
 import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
@@ -124,7 +122,6 @@ import lucee.runtime.engine.listener.CFMLServletContextListener;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.NativeException;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.exp.PageServletException;
 import lucee.runtime.exp.RequestTimeoutException;
 import lucee.runtime.extension.ExtensionDefintion;
@@ -245,10 +242,8 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		bundleCollection = new BundleCollection(felix, felix, null);
 		// bundleContext=bundleCollection.getBundleContext();
 	    }
-	    catch (Throwable t) {
-		ExceptionUtil.rethrowIfNecessary(t);
-		if (t instanceof Error) throw (Error) t;
-		throw new RuntimeException(t);
+	    catch (Exception e) {
+		throw Caster.toPageRuntimeException(e);
 	    }
 	}
 
@@ -262,7 +257,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	    updateInfo = XMLConfigFactory.doNew(this, configDir, true);
 	}
 	catch (IOException e) {
-	    throw new PageRuntimeException(e);
+	    throw Caster.toPageRuntimeException(e);
 	}
 	CFMLEngineFactory.registerInstance((this));// patch, not really good but it works
 	ConfigServerImpl cs = getConfigServerImpl();
@@ -323,8 +318,8 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			extensions.add(ed);
 		    }
 		}
-		catch (Throwable t) {
-		    ExceptionUtil.rethrowIfNecessary(t); // fails we update
+		catch (Exception e) {
+		    LogUtil.log(cs, "controller", e);
 		    extensions.add(ed);
 		}
 	    }
@@ -506,9 +501,8 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		}
 	    }
 	}
-	catch (Throwable t) {
-	    ExceptionUtil.rethrowIfNecessary(t);
-	    log.error("extract-extension", t);
+	catch (Exception e) {
+	    log.error("extract-extension", e);
 	}
 	return;
     }
@@ -567,8 +561,8 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		zis.closeEntry();
 	    }
 	}
-	catch (Throwable t) {
-	    ExceptionUtil.rethrowIfNecessary(t);// TODO log this
+	catch (Exception e) {
+	    LogUtil.log(cs, "deploy-bundle-extension", e);
 	}
 	finally {
 	    Util.closeEL(zis);
@@ -687,7 +681,9 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		    scl = tmp;
 		    return;
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		    LogUtil.log(configServer, "add-event-listener", e);
+		}
 
 	    }
 	}
@@ -699,7 +695,9 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	    scl = tmp;
 	    return;
 	}
-	catch (Exception e) {}
+	catch (Exception e) {
+	    LogUtil.log(configServer, "add-event-listener", e);
+	}
 
 	LogUtil.log(configServer, Log.LEVEL_INFO, "startup", "Lucee was not able to register an event listener with " + (sc == null ? "null" : sc.getClass().getName()));
     }
@@ -710,14 +708,18 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	try {
 	    f = clazz.getDeclaredField("context");
 	}
-	catch (Exception e) {}
+	catch (Exception e) {
+	    LogUtil.log(configServer, "extract-servlet-context", e);
+	}
 	if (f != null) {
 	    f.setAccessible(true);
 	    Object obj = null;
 	    try {
 		obj = f.get(sc);
 	    }
-	    catch (Exception e) {}
+	    catch (Exception e) {
+		LogUtil.log(configServer, "extract-servlet-context", e);
+	    }
 	    return obj;
 	}
 	return null;
@@ -845,7 +847,9 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		    try {
 			configDir.createDirectory(true);
 		    }
-		    catch (IOException ioe) {}
+		    catch (IOException ioe) {
+			LogUtil.log(configServer, "config-directory", ioe);
+		    }
 		    return configDir;
 		}
 		// zip the railo-server di and delete it (optional)
@@ -854,15 +858,17 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		    CompressUtil.compress(CompressUtil.FORMAT_ZIP, railoRoot, p.getRealResource("railo-web-context-old.zip"), false, -1);
 		    ResourceUtil.removeEL(railoRoot, true);
 		}
-		catch (Throwable t) {
-		    ExceptionUtil.rethrowIfNecessary(t);
+		catch (Exception e) {
+		    LogUtil.log(configServer, "controller", e);
 		}
 	    }
 	    else {
 		try {
 		    configDir.createDirectory(true);
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		    LogUtil.log(configServer, "controller", e);
+		}
 	    }
 	}
 	return configDir;
@@ -1045,7 +1051,9 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		catch (ThreadDeath td) {
 		    throw td;
 		}
-		catch (Throwable t) {}
+		catch (Throwable t) {
+		    if (t instanceof Exception) LogUtil.log(configServer, "controller", (Exception) t);
+		}
 	    }
 	}
 	finally {
@@ -1165,16 +1173,16 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		    try {
 			cfmlFactory.getScopeContext().clear();
 		    }
-		    catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
+		    catch (Exception ee) {
+			LogUtil.log(configServer, "controller", ee);
 		    }
 
 		    // PageContext
 		    try {
 			cfmlFactory.resetPageContext();
 		    }
-		    catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
+		    catch (Exception ee) {
+			LogUtil.log(configServer, "controller", ee);
 		    }
 
 		    // Query Cache
@@ -1187,16 +1195,16 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			}
 			// cfmlFactory.getDefaultQueryCache().clear(null);
 		    }
-		    catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
+		    catch (Exception ee) {
+			LogUtil.log(configServer, "controller", ee);
 		    }
 
 		    // Gateway
 		    try {
 			cfmlFactory.getConfigWebImpl().getGatewayEngine().reset();
 		    }
-		    catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
+		    catch (Exception ee) {
+			LogUtil.log(configServer, "controller", ee);
 		    }
 
 		    // Cache
@@ -1204,7 +1212,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 		}
 		catch (Exception ex) {
-		    aprint.e(ex);
+		    LogUtil.log(configServer, "controller", ex);
 		}
 	    }
 
@@ -1235,7 +1243,9 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	}
 	// FUTURE do not use reflection
 	// this will for sure fail if CFMLEngineFactory does not have this method
-	catch (Exception e) {}
+	catch (Exception e) {
+	    LogUtil.log(configServer, "controller", e);
+	}
     }
 
     public static void releaseCache(Config config) {
@@ -1353,8 +1363,8 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		return false;
 	    }
 	}
-	catch (Throwable t) {
-	    ExceptionUtil.rethrowIfNecessary(t);
+	catch (Exception e) {
+	    LogUtil.log(configServer, "controller", e);
 	}
 	return controlerState.active();
     }
@@ -1630,10 +1640,9 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		if (dialect == CFMLEngine.DIALECT_LUCEE) pc.execute(requestURI, true, false);
 		else pc.executeCFML(requestURI, true, false);
 	    }
-	    catch (Throwable t) {
+	    catch (Exception e) {
 		// we simply ignore exceptions, if the template itself throws an error it will be handled by the
 		// error listener
-		ExceptionUtil.rethrowIfNecessary(t);
 	    }
 	    finally {
 		CFMLFactory f = pc.getConfig().getFactory();

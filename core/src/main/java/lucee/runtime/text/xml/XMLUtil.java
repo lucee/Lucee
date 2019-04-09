@@ -63,6 +63,7 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 
+import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
@@ -1239,10 +1240,30 @@ public final class XMLUtil {
 	else parent.appendChild(node);
     }
 
-    public static Document createDocument(Resource res, boolean isHTML) throws SAXException, IOException {
+    public static Document createDocument(Resource res, boolean isHTML) throws IOException, XMLException {
 	InputStream is = null;
 	try {
 	    return parse(toInputSource(res, null), null, isHTML);
+	}
+	catch (SAXException saxe) {
+	    final String msg = saxe.getMessage();
+	    if (msg != null || StringUtil.indexOfIgnoreCase(msg, "Premature end of file.") != -1) {
+
+		String content = IOUtil.toString(res, CharsetUtil.UTF8);
+		String str;
+		if (content.isEmpty()) str = "XML File [" + res.getAbsolutePath() + "] is empty;" + saxe.getMessage();
+		else if (content.length() > content.trim().length())
+		    str = "XML File [" + res.getAbsolutePath() + "] is invalid, it has whitespaces at start or end;" + saxe.getMessage();
+		else str = "XML File [" + res.getAbsolutePath() + "] is invalid;" + saxe.getMessage();
+
+		XMLException se = new XMLException(str);
+		se.setAdditional(KeyImpl.init("path"), res.getAbsolutePath());
+		se.setAdditional(KeyImpl.init("content"), content);
+		se.setStackTrace(saxe.getStackTrace());
+
+		throw se;
+	    }
+	    throw new XMLException(saxe);
 	}
 	finally {
 	    IOUtil.closeEL(is);
