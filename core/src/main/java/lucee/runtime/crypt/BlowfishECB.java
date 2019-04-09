@@ -54,7 +54,7 @@ public class BlowfishECB {
 	    m_sbox3[nI] = sbox_init_3[nI];
 	    m_sbox4[nI] = sbox_init_4[nI];
 	}
-	;
+
 	// xor the key over the p-boxes
 	int nLen = bfkey.length;
 	if (nLen == 0) return; // such a setup is also valid (zero key "encryption" is possible)
@@ -66,10 +66,10 @@ public class BlowfishECB {
 		nBuild = (nBuild << 8) | ((bfkey[nKeyPos]) & 0x0ff);
 		if (++nKeyPos == nLen) nKeyPos = 0;
 	    }
-	    ;
+
 	    m_pbox[nI] ^= nBuild;
 	}
-	;
+
 	// encrypt all boxes with the all zero string
 	long lZero = 0;
 	// (same as above)
@@ -78,32 +78,32 @@ public class BlowfishECB {
 	    m_pbox[nI] = (int) (lZero >>> 32);
 	    m_pbox[nI + 1] = (int) (lZero & 0x0ffffffffL);
 	}
-	;
+
 	for (nI = 0; nI < SBOX_ENTRIES; nI += 2) {
 	    lZero = encryptBlock(lZero);
 	    m_sbox1[nI] = (int) (lZero >>> 32);
 	    m_sbox1[nI + 1] = (int) (lZero & 0x0ffffffffL);
 	}
-	;
+
 	for (nI = 0; nI < SBOX_ENTRIES; nI += 2) {
 	    lZero = encryptBlock(lZero);
 	    m_sbox2[nI] = (int) (lZero >>> 32);
 	    m_sbox2[nI + 1] = (int) (lZero & 0x0ffffffffL);
 	}
-	;
+
 	for (nI = 0; nI < SBOX_ENTRIES; nI += 2) {
 	    lZero = encryptBlock(lZero);
 	    m_sbox3[nI] = (int) (lZero >>> 32);
 	    m_sbox3[nI + 1] = (int) (lZero & 0x0ffffffffL);
 	}
-	;
+
 	for (nI = 0; nI < SBOX_ENTRIES; nI += 2) {
 	    lZero = encryptBlock(lZero);
 	    m_sbox4[nI] = (int) (lZero >>> 32);
 	    m_sbox4[nI + 1] = (int) (lZero & 0x0ffffffffL);
 	}
-	;
-    };
+
+    }
 
     /**
      * to clear data in the boxes before an instance is freed
@@ -114,7 +114,7 @@ public class BlowfishECB {
 	    m_pbox[nI] = 0;
 	for (nI = 0; nI < SBOX_ENTRIES; nI++)
 	    m_sbox1[nI] = m_sbox2[nI] = m_sbox3[nI] = m_sbox4[nI] = 0;
-    };
+    }
 
     /**
      * selftest routine, to check e.g. for a valid class file transmission
@@ -180,7 +180,7 @@ public class BlowfishECB {
 
 	return true;
 
-    };
+    }
 
     // internal routine to encrypt a 64bit block
 
@@ -465,9 +465,8 @@ public class BlowfishECB {
 	    BinConverter.longToByteArray(lTemp, outbuffer, nI);
 
 	}
-	;
 
-    };
+    }
 
     /**
      * 
@@ -494,9 +493,8 @@ public class BlowfishECB {
 	    BinConverter.longToByteArray(lTemp, buffer, nI);
 
 	}
-	;
 
-    };
+    }
 
     /**
      * 
@@ -531,9 +529,8 @@ public class BlowfishECB {
 	    BinConverter.longToIntArray(lTemp, outbuffer, nI);
 
 	}
-	;
 
-    };
+    }
 
     /**
      * 
@@ -562,9 +559,8 @@ public class BlowfishECB {
 	    BinConverter.longToIntArray(lTemp, buffer, nI);
 
 	}
-	;
 
-    };
+    }
 
     /**
      * 
@@ -586,7 +582,7 @@ public class BlowfishECB {
 
 	    outbuffer[nI] = encryptBlock(inbuffer[nI]);
 
-    };
+    }
 
     /**
      * 
@@ -605,9 +601,8 @@ public class BlowfishECB {
 	    buffer[nI] = encryptBlock(buffer[nI]);
 
 	}
-	;
 
-    };
+    }
 
     /**
      * 
@@ -640,9 +635,8 @@ public class BlowfishECB {
 	    BinConverter.longToByteArray(lTemp, outbuffer, nI);
 
 	}
-	;
 
-    };
+    }
 
     /**
      * 
@@ -669,9 +663,8 @@ public class BlowfishECB {
 	    BinConverter.longToByteArray(lTemp, buffer, nI);
 
 	}
-	;
 
-    };
+    }
 
     /**
      * 
@@ -704,9 +697,8 @@ public class BlowfishECB {
 	    BinConverter.longToIntArray(lTemp, outbuffer, nI);
 
 	}
-	;
 
-    };
+    }
 
     /**
      * 
@@ -735,9 +727,8 @@ public class BlowfishECB {
 	    BinConverter.longToIntArray(lTemp, buffer, nI);
 
 	}
-	;
 
-    };
+    }
 
     /**
      * 
@@ -759,7 +750,7 @@ public class BlowfishECB {
 
 	    outbuffer[nI] = decryptBlock(inbuffer[nI]);
 
-    };
+    }
 
     /**
      * 
@@ -777,7 +768,7 @@ public class BlowfishECB {
 
 	    buffer[nI] = decryptBlock(buffer[nI]);
 
-    };
+    }
 
     // the boxes init. data,
 
@@ -1149,4 +1140,4 @@ public class BlowfishECB {
 
 	    0xb74e6132, 0xce77e25b, 0x578fdfe3, 0x3ac372e6 };
 
-};
+}

@@ -777,8 +777,7 @@ public class HashMapPro<K, V> extends AbstractMapPro<K, V> implements Map<K, V>,
 	    expectedModCount = modCount;
 	    if (size > 0) { // advance to first entry
 		Entry[] t = table;
-		while (index < t.length && (next = t[index++]) == null)
-		    ;
+		while (index < t.length && (next = t[index++]) == null) {}
 	    }
 	}
 
@@ -794,8 +793,7 @@ public class HashMapPro<K, V> extends AbstractMapPro<K, V> implements Map<K, V>,
 
 	    if ((next = e.next) == null) {
 		Entry[] t = table;
-		while (index < t.length && (next = t[index++]) == null)
-		    ;
+		while (index < t.length && (next = t[index++]) == null) {}
 	    }
 	    current = e;
 	    return e;

@@ -382,7 +382,6 @@ public final class CFMLFactoryImpl extends CFMLFactory {
     @Override
     public HttpServlet getServlet() {
 	if (_servlet == null) _servlet = new HTTPServletImpl(servletConfig, servletConfig.getServletContext(), servletConfig.getServletName());
-	;
 	return _servlet;
     }
 

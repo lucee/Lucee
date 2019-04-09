@@ -56,7 +56,7 @@ public final class BlowfishEasy {
 
 	m_rndGen = new Random();
 
-    };
+    }
 
     /**
      * 
@@ -82,7 +82,7 @@ public final class BlowfishEasy {
 
 	hasher.clear();
 
-    };
+    }
 
     /**
      * 
@@ -112,7 +112,7 @@ public final class BlowfishEasy {
 
 	return encStr(sPlainText, lCBCIV);
 
-    };
+    }
 
     /**
      * 
@@ -138,7 +138,7 @@ public final class BlowfishEasy {
 
 	return encStr(sPlainText, lCBCIV);
 
-    };
+    }
 
     // internal routine for string encryption
 
@@ -167,7 +167,6 @@ public final class BlowfishEasy {
 	    buf[nPos++] = (byte) (cActChar & 0x0ff);
 
 	}
-	;
 
 	// pad the rest with the PKCS5 scheme
 
@@ -207,7 +206,7 @@ public final class BlowfishEasy {
 
 			buf.length);
 
-    };
+    }
 
     /**
      * 
@@ -309,7 +308,7 @@ public final class BlowfishEasy {
 
 	return BinConverter.byteArrayToUNCString(buf, 0, nNumOfBytes);
 
-    };
+    }
 
     /**
      * 
@@ -323,6 +322,6 @@ public final class BlowfishEasy {
 
 	m_bfish.cleanUp();
 
-    };
+    }
 
-};
+}

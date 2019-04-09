@@ -133,7 +133,6 @@ public final class SecurityManagerImpl implements Cloneable, SecurityManager {
 
     public void setAccess(int access, short value) {
 	accesses[access] = value;
-	;
     }
 
     @Override

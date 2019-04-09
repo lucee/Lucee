@@ -2772,7 +2772,6 @@ public final class Caster {
      * @return to Base64 String
      */
     public static String toBase64(Object o, String charset, String defaultValue) {
-	;
 	if (o instanceof byte[]) return toB64((byte[]) o, defaultValue);
 	else if (o instanceof String) return toB64((String) o, charset, defaultValue);
 	else if (o instanceof Number) return toB64(toString(((Number) o)), charset, defaultValue);

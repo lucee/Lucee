@@ -42,6 +42,14 @@ import lucee.runtime.type.util.ListUtil;
 
 public final class ExceptionUtil {
 
+    public static String toString(StackTraceElement[] trace) {
+	StringBuilder sb = new StringBuilder();
+	// Print our stack trace
+	for (StackTraceElement ste: trace)
+	    sb.append("\tat ").append(ste).append('\n');
+	return sb.toString();
+    }
+
     public static String getStacktrace(Throwable t, boolean addMessage) {
 	StringWriter sw = new StringWriter();
 	PrintWriter pw = new PrintWriter(sw);

@@ -546,7 +546,7 @@ public final class Mail extends BodyTagImpl {
     @Override
     public int doStartTag() throws ApplicationException {
 	if (isEmpty(smtp.getTos()) && isEmpty(smtp.getCcs()) && isEmpty(smtp.getBccs()))
-	    throw new ApplicationException("One of the following attribtues must be defined [to, cc, bcc]");
+	    throw new ApplicationException("One of the following attributes must be defined [to, cc, bcc]");
 
 	return EVAL_BODY_BUFFERED;
     }

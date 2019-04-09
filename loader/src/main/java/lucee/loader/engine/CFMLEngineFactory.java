@@ -529,7 +529,6 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
     private CFMLEngine _getCore(File rc) throws IOException, BundleException, ClassNotFoundException, SecurityException, NoSuchMethodException, IllegalArgumentException,
 	    IllegalAccessException, InvocationTargetException {
-
 	bundleCollection = BundleLoader.loadBundles(this, getFelixCacheDirectory(), getBundleDirectory(), rc, bundleCollection);
 	return getEngine(bundleCollection);
 

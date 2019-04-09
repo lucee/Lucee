@@ -23,8 +23,10 @@ import java.util.TimeZone;
 
 import lucee.commons.date.DateTimeUtil;
 import lucee.commons.date.JREDateTimeUtil;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.engine.CFMLEngineImpl;
@@ -77,6 +79,21 @@ public class ScheduledTaskThread extends Thread {
 
     public void setStop(boolean stop) {
 	this.stop = stop;
+    }
+
+    public void stopIt() {
+	setStop(true);
+	Log log = scheduler.getConfig().getLog("scheduler");
+	log.info("scheduler", "stopping task thread [" + task.getTask() + "]");
+	SystemUtil.patienceStop(exeThread, 5);
+	if (exeThread != null && exeThread.isAlive())
+	    log.warn("scheduler", "task thread [" + task.getTask() + "] could not be stopped:" + ExceptionUtil.toString(exeThread.getStackTrace()));
+	else log.info("scheduler", "task thread [" + task.getTask() + "] stopped");
+
+	// stop this thread itself
+	SystemUtil.patienceStop(this, 5);
+	if (this.isAlive()) log.warn("scheduler", "task [" + task.getTask() + "] could not be stopped:" + ExceptionUtil.toString(this.getStackTrace()));
+	else log.info("scheduler", "task [" + task.getTask() + "] stopped");
     }
 
     @Override
@@ -211,7 +228,7 @@ public class ScheduledTaskThread extends Thread {
 	    time = getMilliSecondsInDay(calendar);
 	    if (now <= calendar.getTimeInMillis() && time >= startTime) {
 		// this is used because when cames back sometme to early
-		if (notNow && (calendar.getTimeInMillis() - now) < 1000) ;
+		if (notNow && (calendar.getTimeInMillis() - now) < 1000) {}
 		else if (intervall == ScheduleTaskImpl.INTERVAL_EVEREY && time > endTime) now = nowDate + DAY;
 		else break;
 	    }

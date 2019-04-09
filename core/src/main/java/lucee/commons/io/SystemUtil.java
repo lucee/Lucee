@@ -1224,8 +1224,11 @@ public final class SystemUtil {
     }
 
     public static void patienceStop(Thread thread, int max) {
+	if (thread == null || !thread.isAlive()) return;
+
 	StackTraceElement[] stes;
 	StackTraceElement ste;
+	thread.interrupt();
 	for (int y = 0; y < max; y++) {
 	    sleep(1);
 	    for (int i = 0; i < 10; i++) {

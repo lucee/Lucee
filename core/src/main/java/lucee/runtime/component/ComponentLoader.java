@@ -421,7 +421,6 @@ public class ComponentLoader {
 	CIPage[] subs = page.getSubPages();
 	for (int i = 0; i < subs.length; i++) {
 	    if (subs[i].getClass().getName().equals(subClassName)) return subs[i];
-	    ;
 	}
 	throw new ApplicationException("There is no Sub component [" + sub + "] in [" + page.getPageSource().getDisplayPath() + "]");
 

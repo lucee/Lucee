@@ -121,7 +121,7 @@ public class SQLPrettyfier {
 	    sb.append(ps.getCurrent());
 	    ps.next();
 	}
-	;
+
 	if (!ps.isLast(';')) sb.append(';');
 
 	// print.err(sb.toString());
