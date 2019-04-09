@@ -106,10 +106,9 @@ public final class Location extends TagImpl {
 	    throw Caster.toPageException(e);
 	}
 	HttpServletResponse rsp = pageContext.getHttpServletResponse();
-	if(encode){
+	if(encode == true){
 	    url = HTTPUtil.encode(url);
-	}else{url=url;}
-
+	}
 	// add token
 	if (addtoken && needId()) {
 	    String[] arr = url.split("\\?");
