@@ -50,6 +50,7 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.it.ForEachQueryIterator;
+import lucee.runtime.type.scope.Argument;
 import lucee.runtime.type.scope.ArgumentIntKey;
 import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.type.util.StringListData;
@@ -95,7 +96,7 @@ public class Map extends BIF implements ClosureFunc {
 	    coll = invoke(pc, (Struct) obj, udf, execute, futures);
 	}
 	// Array
-	else if (obj instanceof Array) {
+	else if (obj instanceof Array && !(obj instanceof Argument)) {
 	    coll = invoke(pc, (Array) obj, udf, execute, futures);
 	}
 	// Query
