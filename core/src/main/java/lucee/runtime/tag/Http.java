@@ -1191,7 +1191,22 @@ public final class Http extends BodyTagImpl {
 	    if (setCookie.size() > 0) responseHeader.set(SET_COOKIE, setCookie);
 
 	    // is text
-	    boolean isText = mimetype == null || mimetype == NO_MIMETYPE || HTTPUtil.isTextMimeType(mimetype);
+	    if (mimetype == null || mimetype == NO_MIMETYPE) {
+
+	    }
+	    boolean isText = mimetype != null && mimetype != NO_MIMETYPE && HTTPUtil.isTextMimeType(mimetype);
+
+	    // we still don't know the mime type
+	    byte[] barr = null;
+	    if (!isText) {
+		barr = contentAsBinary(rsp, contentEncoding);
+		String mt = IOUtil.getMimeType(barr, null);
+		if (mt != null) {
+		    isText = HTTPUtil.isTextMimeType(mt);
+		    mimetype = mt;
+		}
+
+	    }
 
 	    // is multipart
 	    boolean isMultipart = MultiPartResponseUtils.isMultipart(mimetype);
@@ -1232,51 +1247,25 @@ public final class Http extends BodyTagImpl {
 	    if (file != null) pageContext.getConfig().getSecurityManager().checkFileLocation(file);
 
 	    // filecontent
-	    InputStream is = null;
+
 	    if (isText && getAsBinary != GET_AS_BINARY_YES) {
 		String str;
-		try {
+		if (barr == null) str = contentAsString(rsp, responseCharset, contentEncoding, e);
+		else str = IOUtil.toString(barr, responseCharset);
 
-		    // read content
-		    if (method != METHOD_HEAD) {
-			is = rsp.getContentAsStream();
-			if (is != null && isGzipEncoded(contentEncoding)) is = rsp.getStatusCode() != 200 ? new CachingGZIPInputStream(is) : new GZIPInputStream(is);
-		    }
-		    try {
-			try {
-			    str = is == null ? "" : IOUtil.toString(is, responseCharset, checkRemainingTimeout().getMillis());
-			}
-			catch (EOFException eof) {
-			    if (is instanceof CachingGZIPInputStream) {
-				str = IOUtil.toString(is = ((CachingGZIPInputStream) is).getRawData(), responseCharset, checkRemainingTimeout().getMillis());
-			    }
-			    else throw eof;
-			}
-		    }
-		    catch (UnsupportedEncodingException uee) {
-			str = IOUtil.toString(is, (Charset) null, checkRemainingTimeout().getMillis());
-		    }
-		}
-		catch (IOException ioe) {
-		    throw Caster.toPageException(ioe);
-		}
-		finally {
-		    IOUtil.closeEL(is);
-		}
-
-		if (str == null) str = "";
-		if (resolveurl) {
-		    // if(e.redirectURL!=null)url=e.redirectURL.toExternalForm();
-		    str = new URLResolver().transform(str, e.response.getTargetURL(), false);
-		}
 		cfhttp.set(KeyConstants._filecontent, str);
-		try {
-		    if (file != null) {
-			IOUtil.write(file, str, ((PageContextImpl) pageContext).getWebCharset(), false);
-		    }
-		}
-		catch (IOException e1) {}
 
+		// store to file
+		if (file != null) {
+		    try {
+
+			IOUtil.write(file, str, ((PageContextImpl) pageContext).getWebCharset(), false);
+
+		    }
+		    catch (IOException e1) {}
+		}
+
+		// store to variable
 		if (name != null) {
 		    Query qry = CSVParser.toQuery(str, delimiter, textqualifier, columns, firstrowasheaders);
 		    pageContext.setVariable(name, qry);
@@ -1284,38 +1273,8 @@ public final class Http extends BodyTagImpl {
 	    }
 	    // Binary
 	    else {
-		byte[] barr = null;
-		if (isGzipEncoded(contentEncoding)) {
-		    if (method != METHOD_HEAD) {
-			is = rsp.getContentAsStream();
-			is = rsp.getStatusCode() != 200 ? new CachingGZIPInputStream(is) : new GZIPInputStream(is);
-		    }
+		if (barr == null) barr = contentAsBinary(rsp, contentEncoding);
 
-		    try {
-			try {
-			    barr = is == null ? new byte[0] : IOUtil.toBytes(is);
-			}
-			catch (EOFException eof) {
-			    if (is instanceof CachingGZIPInputStream) barr = IOUtil.toBytes(((CachingGZIPInputStream) is).getRawData());
-			    else throw eof;
-			}
-		    }
-		    catch (IOException t) {
-			throw Caster.toPageException(t);
-		    }
-		    finally {
-			IOUtil.closeEL(is);
-		    }
-		}
-		else {
-		    try {
-			if (method != METHOD_HEAD) barr = rsp.getContentAsByteArray();
-			else barr = new byte[0];
-		    }
-		    catch (IOException t) {
-			throw Caster.toPageException(t);
-		    }
-		}
 		// IF Multipart response get file content and parse parts
 		if (barr != null) {
 		    if (isMultipart) {
@@ -1327,6 +1286,7 @@ public final class Http extends BodyTagImpl {
 		}
 		else cfhttp.set(KeyConstants._filecontent, "");
 
+		// store to file
 		if (file != null) {
 		    try {
 			if (barr != null) IOUtil.copy(new ByteArrayInputStream(barr), file, true);
@@ -1356,6 +1316,83 @@ public final class Http extends BodyTagImpl {
 	finally {
 	    if (client != null) client.close();
 	}
+    }
+
+    private byte[] contentAsBinary(HTTPResponse4Impl rsp, String contentEncoding) throws PageException, IOException {
+	byte[] barr = null;
+	InputStream is = null;
+	if (isGzipEncoded(contentEncoding)) {
+	    if (method != METHOD_HEAD) {
+		is = rsp.getContentAsStream();
+		is = rsp.getStatusCode() != 200 ? new CachingGZIPInputStream(is) : new GZIPInputStream(is);
+	    }
+
+	    try {
+		try {
+		    barr = is == null ? new byte[0] : IOUtil.toBytes(is);
+		}
+		catch (EOFException eof) {
+		    if (is instanceof CachingGZIPInputStream) barr = IOUtil.toBytes(((CachingGZIPInputStream) is).getRawData());
+		    else throw eof;
+		}
+	    }
+	    catch (IOException t) {
+		throw Caster.toPageException(t);
+	    }
+	    finally {
+		IOUtil.closeEL(is);
+	    }
+	}
+	else {
+	    try {
+		if (method != METHOD_HEAD) barr = rsp.getContentAsByteArray();
+		else barr = new byte[0];
+	    }
+	    catch (IOException t) {
+		throw Caster.toPageException(t);
+	    }
+	}
+	return barr;
+    }
+
+    private String contentAsString(HTTPResponse4Impl rsp, Charset responseCharset, String contentEncoding, Executor4 e) throws PageException {
+	String str;
+	InputStream is = null;
+	try {
+
+	    // read content
+	    if (method != METHOD_HEAD) {
+		is = rsp.getContentAsStream();
+		if (is != null && isGzipEncoded(contentEncoding)) is = rsp.getStatusCode() != 200 ? new CachingGZIPInputStream(is) : new GZIPInputStream(is);
+	    }
+	    try {
+		try {
+		    str = is == null ? "" : IOUtil.toString(is, responseCharset, checkRemainingTimeout().getMillis());
+		}
+		catch (EOFException eof) {
+		    if (is instanceof CachingGZIPInputStream) {
+			str = IOUtil.toString(is = ((CachingGZIPInputStream) is).getRawData(), responseCharset, checkRemainingTimeout().getMillis());
+		    }
+		    else throw eof;
+		}
+	    }
+	    catch (UnsupportedEncodingException uee) {
+		str = IOUtil.toString(is, (Charset) null, checkRemainingTimeout().getMillis());
+	    }
+	}
+	catch (IOException ioe) {
+	    throw Caster.toPageException(ioe);
+	}
+	finally {
+	    IOUtil.closeEL(is);
+	}
+
+	if (str == null) str = "";
+	if (resolveurl) {
+	    // if(e.redirectURL!=null)url=e.redirectURL.toExternalForm();
+	    str = new URLResolver().transform(str, e.response.getTargetURL(), false);
+	}
+	return str;
     }
 
     private void ssl(HttpClientBuilder builder) throws PageException {
