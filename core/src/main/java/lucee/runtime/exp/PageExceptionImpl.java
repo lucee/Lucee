@@ -552,25 +552,27 @@ public abstract class PageExceptionImpl extends PageException {
 	if (trace.getFileName() == null || trace.getFileName().endsWith(".java")) return trace.toString();
 	Config config = ThreadLocalPageContext.getConfig(pc);
 	if (config != null) {
-	    Resource res = pc.getConfig().getResource(trace.getFileName());
-	    if (res.exists()) path = trace.getFileName();
-
-	    // get path from source
-	    if (path == null) {
-		SourceInfo si = MappingUtil.getMatch(pc, trace);
-		if (si != null) {
-		    if (si.absolutePath(pc) != null) {
-			res = pc.getConfig().getResource(si.absolutePath(pc));
-			if (res.exists()) path = si.absolutePath(pc);
-		    }
-		    if (path == null && si.relativePath != null) path = si.relativePath;
-		}
-		if (path == null) path = trace.getFileName();
-	    }
+            path = abs((PageContextImpl)pc, trace.getFileName());
 	}
 	return trace.getClassName() + "." + trace.getMethodName() + (trace.isNativeMethod() ? "(Native Method)"
 		: (path != null && trace.getLineNumber() >= 0 ? "(" + path + ":" + trace.getLineNumber() + ")" : (path != null ? "(" + path + ")" : "(Unknown Source)")));
 
+    }
+
+    private static String abs(PageContextImpl pc, String template) {
+        ConfigWeb config = pc.getConfig();
+
+        Resource res = config.getResource(template);
+        if(res.exists()) return template;
+
+        PageSource ps = pc==null?null:pc.getPageSource(template);
+        res = ps==null?null:ps.getPhyscalFile();
+        if(res==null || !res.exists()) {
+            res=config.getResource(ps.getDisplayPath());
+            if(res!=null && res.exists()) return res.getAbsolutePath();
+        }
+        else return res.getAbsolutePath();
+        return template;
     }
 
     private static StackTraceElement[] getStackTraceElements(Throwable t) {
