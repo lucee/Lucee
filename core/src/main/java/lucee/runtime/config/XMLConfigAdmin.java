@@ -99,6 +99,7 @@ import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.HTTPException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.SecurityException;
+import lucee.runtime.exp.XMLException;
 import lucee.runtime.extension.Extension;
 import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.RHExtension;
@@ -171,7 +172,7 @@ public final class XMLConfigAdmin {
      * @throws SAXException
      * @throws IOException
      */
-    public static XMLConfigAdmin newInstance(ConfigImpl config, Password password) throws SAXException, IOException {
+    public static XMLConfigAdmin newInstance(ConfigImpl config, Password password) throws XMLException, IOException {
 	return new XMLConfigAdmin(config, password);
     }
 
@@ -235,7 +236,7 @@ public final class XMLConfigAdmin {
 	}
     }
 
-    private XMLConfigAdmin(ConfigImpl config, Password password) throws SAXException, IOException {
+    private XMLConfigAdmin(ConfigImpl config, Password password) throws IOException, XMLException {
 	this.config = config;
 	this.password = password;
 	doc = XMLUtil.createDocument(config.getConfigFile(), false);

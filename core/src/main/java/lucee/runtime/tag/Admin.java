@@ -49,6 +49,7 @@ import org.osgi.framework.Version;
 
 import lucee.VersionInfo;
 import lucee.commons.collection.MapFactory;
+import lucee.commons.digest.Base64Encoder;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
@@ -4234,8 +4235,17 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	    return;
 	}
 
-	// this can be a binary that represent the extension or a string that is a path to the extension
+	// this can be a binary that represent the extension, a string that is a path to the extension or a
+	// base64 base encoded string
 	Object obj = getObject("admin", "UpdateRHExtensions", "source");
+
+	if (obj instanceof String) {
+	    String str = (String) obj;
+	    // we assume that when the string is more than 5000 it is a base64 encoded binary
+	    if (str.length() > 5000) {
+		obj = Base64Encoder.decode(str);
+	    }
+	}
 
 	// path
 	if (obj instanceof String) {

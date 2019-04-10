@@ -44,6 +44,7 @@ import lucee.runtime.type.Query;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.it.ForEachQueryIterator;
+import lucee.runtime.type.scope.Argument;
 import lucee.runtime.type.scope.ArgumentIntKey;
 import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.type.util.StringListData;
@@ -90,7 +91,7 @@ public class Every extends BIF implements ClosureFunc {
 	}
 
 	// Array
-	else if (obj instanceof Array) {
+	else if (obj instanceof Array && !(obj instanceof Argument)) {
 	    res = invoke(pc, (Array) obj, udf, execute, futures);
 	}
 

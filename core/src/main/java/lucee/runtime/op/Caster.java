@@ -91,6 +91,7 @@ import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.NativeException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageExceptionBox;
+import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.functions.file.FileStreamWrapper;
 import lucee.runtime.i18n.LocaleFactory;
@@ -3227,6 +3228,11 @@ public final class Caster {
      */
     public static PageException toPageException(Throwable t) {
 	return toPageException(t, true);
+    }
+
+    public static PageRuntimeException toPageRuntimeException(Throwable t) {
+	if (t instanceof PageRuntimeException) return (PageRuntimeException) t;
+	return new PageRuntimeException(toPageException(t, true));
     }
 
     public static PageException toPageException(Throwable t, boolean rethrowIfNecessary) {

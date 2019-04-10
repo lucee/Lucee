@@ -26,11 +26,14 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.regex.Pattern;
 
+import lucee.commons.date.TimeZoneUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.ParserString;
 import lucee.commons.lang.StringUtil;
+import lucee.runtime.config.Config;
 import lucee.runtime.db.driver.ConnectionProxy;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.sql.BlobImpl;
@@ -201,5 +204,14 @@ public class SQLUtil {
 	    }
 	    catch (SQLException e) {}
 	}
+    }
+
+    public static String connectionStringTranslatedPatch(Config config, String connStr) {
+	if (connStr == null || !StringUtil.startsWithIgnoreCase(connStr, "jdbc:mysql://")) return connStr;
+
+	// MySQL
+	if (StringUtil.indexOfIgnoreCase(connStr, "serverTimezone=") != -1) return connStr;
+	return connStr + "&serverTimezone=" + TimeZoneUtil.toString(ThreadLocalPageContext.getTimeZone(config));
+
     }
 }
