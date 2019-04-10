@@ -22,10 +22,12 @@
 package lucee.runtime.functions.decision;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.debug.DebuggerImpl;
 import lucee.runtime.ext.function.Function;
 
 public final class IsDebugMode implements Function {
-	public static boolean call(PageContext pc ) {
-		return pc.getConfig().debug();
-	}
+
+    public static boolean call(PageContext pc) {
+	return pc.getConfig().debug() && (DebuggerImpl.getDebugEntry(pc) != null);
+    }
 }

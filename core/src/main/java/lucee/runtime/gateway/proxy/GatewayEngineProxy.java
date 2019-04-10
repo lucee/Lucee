@@ -25,25 +25,25 @@ import lucee.runtime.gateway.GatewayEngine;
 import lucee.runtime.gateway.GatewayEngineImpl;
 
 public class GatewayEngineProxy implements GatewayEngine {
-	
-	private GatewayEngineImpl engine;
 
-	public GatewayEngineProxy(GatewayEngineImpl engine){
-		this.engine=engine;
-	}
+    private GatewayEngineImpl engine;
 
-	@Override
-	public boolean invokeListener(Gateway gateway, String method, Map data) {
-		return engine.invokeListener(gateway.getId(), method, data);
-	}
+    public GatewayEngineProxy(GatewayEngineImpl engine) {
+	this.engine = engine;
+    }
 
-	@Override
-	public void log(Gateway gateway, int level, String message) {
-		engine.log(gateway.getId(), level, message);
-	}
+    @Override
+    public boolean invokeListener(Gateway gateway, String method, Map data) {
+	return engine.invokeListener(gateway.getId(), method, data);
+    }
 
-	public GatewayEngineImpl getEngine() {
-		return engine;
-	}
+    @Override
+    public void log(Gateway gateway, int level, String message) {
+	engine.log(gateway.getId(), level, message);
+    }
+
+    public GatewayEngineImpl getEngine() {
+	return engine;
+    }
 
 }

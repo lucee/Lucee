@@ -19,12 +19,11 @@
 package lucee.runtime.type;
 
 /**
- * in that case the object itself decides the resulting iterator type (key,value
- * or ....)
+ * in that case the object itself decides the resulting iterator type (key,value or ....)
  * 
  * @author mic
  * 
  */
 public interface ForEachIteratorable {
-	public java.util.Iterator<?> getIterator();
+    public java.util.Iterator<?> getIterator();
 }

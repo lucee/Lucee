@@ -18,209 +18,191 @@
  **/
 package lucee.runtime.net.ipsettings;
 
-
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-
 public class IPRangeCollection {
 
+    private List<IPRangeNode> list = Collections.EMPTY_LIST;
 
-	private List<IPRangeNode> list = Collections.EMPTY_LIST;
+    void add(IPRangeNode child, boolean doCheck) {
 
+	if (list == Collections.EMPTY_LIST) list = new ArrayList();
+	else if (doCheck) {
 
-	void add( IPRangeNode child, boolean doCheck ) {
+	    // scan for previous children in parent that should be moved under the newly added child after this
+	    // addition
 
-		if ( list == Collections.EMPTY_LIST )
-			list = new ArrayList();
-		else if ( doCheck ) {
+	    int listSize = list.size();
+	    for (int i = 0; i < listSize; i++) {
 
-			// scan for previous children in parent that should be moved under the newly added child after this addition
+		IPRangeNode sibling = list.get(i);
 
-			int listSize = list.size();
-			for ( int i=0; i < listSize; i++ ) {
+		if (child.containsRange(sibling)) { // move sibling under new child
 
-				IPRangeNode sibling = list.get(i);
+		    list.remove(i--); // adjust i and numChildren due to removal
+		    listSize--;
 
-				if ( child.containsRange( sibling ) ) {                         // move sibling under new child
-
-					list.remove(i--);                                // adjust i and numChildren due to removal
-					listSize--;
-
-					child.addChild( sibling );
-				}
-			}
+		    child.addChild(sibling);
 		}
-
-		list.add( child );
+	    }
 	}
 
+	list.add(child);
+    }
 
-	public void add( IPRangeNode child ) {
+    public void add(IPRangeNode child) {
 
-		this.add( child, true );
+	this.add(child, true);
+    }
+
+    public IPRangeNode findFast(InetAddress iaddr, List<IPRangeNode> parents) {
+
+	IPRangeNode needle, parent;
+
+	needle = new IPRangeNode(iaddr, iaddr);
+
+	int pos = Collections.binarySearch(list, needle, IPRangeNode.comparerRange);
+
+	if (pos > -1) {
+
+	    parent = list.get(pos);
+	    return parent.findFast(iaddr, parents);
 	}
 
+	int tests = 2;
+	pos = Math.abs(pos);
 
+	pos = Math.max(0, pos - tests);
+	int max = Math.min(pos + tests, list.size());
 
+	for (; pos < max; pos++) {
 
-	public IPRangeNode findFast( InetAddress iaddr, List<IPRangeNode> parents ) {
+	    if (list.get(pos).isInRange(iaddr)) {
 
-		IPRangeNode needle, parent;
-
-		needle = new IPRangeNode( iaddr, iaddr );
-
-		int pos = Collections.binarySearch( list, needle, IPRangeNode.comparerRange );
-
-		if ( pos > -1 ) {
-
-			parent = list.get(pos);
-			return parent.findFast(iaddr, parents);
-		}
-
-		int tests = 2;
-		pos = Math.abs(pos);
-
-		pos = Math.max(0, pos - tests);
-		int max = Math.min( pos + tests, list.size() );
-
-		for (; pos < max; pos++ ) {
-
-			if ( list.get( pos ).isInRange( iaddr ) ) {
-
-				parent = list.get( pos );
-				return parent.findFast(iaddr, parents);
-			}
-		}
-
-		return null;
+		parent = list.get(pos);
+		return parent.findFast(iaddr, parents);
+	    }
 	}
 
+	return null;
+    }
 
+    /**
+     * performs a binary search over a sorted list
+     *
+     * @param iaddr
+     * @return
+     */
+    public IPRangeNode findFast(InetAddress iaddr) {
 
-	/**
-	 * performs a binary search over a sorted list
-	 *
-	 * @param iaddr
-	 * @return
-	 */
-	public IPRangeNode findFast( InetAddress iaddr ) {
+	IPRangeNode needle, parent;
 
-		IPRangeNode needle, parent;
+	needle = new IPRangeNode(iaddr, iaddr);
 
-		needle = new IPRangeNode( iaddr, iaddr );
+	int pos = Collections.binarySearch(list, needle, IPRangeNode.comparerRange);
 
-		int pos = Collections.binarySearch( list, needle, IPRangeNode.comparerRange );
+	if (pos > -1) {
 
-		if ( pos > -1 ) {
-
-			parent = list.get(pos);
-			return parent.findFast(iaddr);
-		}
-
-		int tests = 2;
-		pos = Math.abs(pos);
-
-		pos = Math.max(0, pos - tests);
-		int max = Math.min( pos + tests, list.size() );
-
-		for (; pos < max; pos++ ) {
-
-			if ( list.get( pos ).isInRange( iaddr ) ) {
-
-				parent = list.get( pos );
-				return parent.findFast(iaddr);
-			}
-		}
-
-		return null;
+	    parent = list.get(pos);
+	    return parent.findFast(iaddr);
 	}
 
+	int tests = 2;
+	pos = Math.abs(pos);
 
-	/**
-	 * performs a binary search over sorted list
-	 *
-	 * @param addr
-	 * @return
-	 */
-	public IPRangeNode findFast( String addr ) {
+	pos = Math.max(0, pos - tests);
+	int max = Math.min(pos + tests, list.size());
 
-		InetAddress iaddr;
+	for (; pos < max; pos++) {
 
-		try {
+	    if (list.get(pos).isInRange(iaddr)) {
 
-			iaddr = InetAddress.getByName(addr);
-		}
-		catch (UnknownHostException ex) {
-
-			return null;
-		}
-
-		return findFast( iaddr );
+		parent = list.get(pos);
+		return parent.findFast(iaddr);
+	    }
 	}
 
+	return null;
+    }
 
-	/**
-	 * performs a linear scan for unsorted lists
-	 *
-	 * @param addr
-	 * @return
-	 */
-	public IPRangeNode findAddr( InetAddress addr ) {
+    /**
+     * performs a binary search over sorted list
+     *
+     * @param addr
+     * @return
+     */
+    public IPRangeNode findFast(String addr) {
 
-		for ( IPRangeNode c : this.list ) {
+	InetAddress iaddr;
 
-			IPRangeNode result = c.findAddr( addr );
+	try {
 
-			if ( result != null )
-				return result;
-		}
+	    iaddr = InetAddress.getByName(addr);
+	}
+	catch (UnknownHostException ex) {
 
-		return null;
+	    return null;
 	}
 
+	return findFast(iaddr);
+    }
 
-	/**
-	 * performs a linear scan for unsorted lists
-	 *
-	 * @param child
-	 * @return
-	 */
-	public IPRangeNode findRange( IPRangeNode child ) {
+    /**
+     * performs a linear scan for unsorted lists
+     *
+     * @param addr
+     * @return
+     */
+    public IPRangeNode findAddr(InetAddress addr) {
 
-		for ( IPRangeNode c : this.list ) {
+	for (IPRangeNode c: this.list) {
 
-			IPRangeNode result = c.findRange( child );
+	    IPRangeNode result = c.findAddr(addr);
 
-			if ( result != null )
-				return result;
-		}
-
-		return null;
+	    if (result != null) return result;
 	}
 
+	return null;
+    }
 
-	public int size() {
+    /**
+     * performs a linear scan for unsorted lists
+     *
+     * @param child
+     * @return
+     */
+    public IPRangeNode findRange(IPRangeNode child) {
 
-		return list.size();
+	for (IPRangeNode c: this.list) {
+
+	    IPRangeNode result = c.findRange(child);
+
+	    if (result != null) return result;
 	}
 
+	return null;
+    }
 
-	private void sort() {
+    public int size() {
 
-		Collections.sort( this.list );
+	return list.size();
+    }
+
+    private void sort() {
+
+	Collections.sort(this.list);
+    }
+
+    public void sortChildren() {
+
+	for (IPRangeNode node: this.list) {
+
+	    node.getChildren().sort();
 	}
-
-
-	public void sortChildren() {
-
-		for ( IPRangeNode node : this.list ) {
-
-			node.getChildren().sort();
-		}
-	}
+    }
 
 }

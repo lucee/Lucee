@@ -4,7 +4,7 @@ import lucee.runtime.type.dt.TimeSpan;
 
 public interface CookieData {
 
-	public abstract TimeSpan getTimeout();
+    public abstract TimeSpan getTimeout();
 
-	public abstract boolean isDisableUpdate();
+    public abstract boolean isDisableUpdate();
 }

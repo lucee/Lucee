@@ -23,84 +23,81 @@ import lucee.transformer.Factory;
 import lucee.transformer.cfml.TransfomerSettings;
 import lucee.transformer.library.function.FunctionLibFunction;
 
-
-
 public final class BIF extends FunctionMember {
-	
-		private static String ANY="any";
-	
-		//private ExprString nameq;
-		private int argType;
-		private ClassDefinition cd;
-		private String returnType=ANY;
-		private FunctionLibFunction flf;
 
-		private final Factory factory;
+    private static String ANY = "any";
 
-		public final TransfomerSettings ts;
+    // private ExprString nameq;
+    private int argType;
+    private ClassDefinition cd;
+    private String returnType = ANY;
+    private FunctionLibFunction flf;
 
-		public BIF(Factory factory,TransfomerSettings ts, FunctionLibFunction flf) {
-			this.ts=ts;
-			//this.name=name;
-			this.flf=flf;
-			this.factory=factory;//name.getFactory();
-		}
+    private final Factory factory;
 
-		public Factory getFactory() {
-			return factory;
-		}
-		
-		public void setArgType(int argType) {
-			this.argType=argType;
-		}
+    public final TransfomerSettings ts;
 
-		public void setClassDefinition(ClassDefinition cd) {
-			this.cd=cd;
-		}
+    public BIF(Factory factory, TransfomerSettings ts, FunctionLibFunction flf) {
+	this.ts = ts;
+	// this.name=name;
+	this.flf = flf;
+	this.factory = factory;// name.getFactory();
+    }
 
-		public void setReturnType(String returnType) {
-			this.returnType=returnType;
-		}
+    public Factory getFactory() {
+	return factory;
+    }
 
-		/**
-		 * @return the argType
-		 */
-		public int getArgType() {
-			return argType;
-		}
+    public void setArgType(int argType) {
+	this.argType = argType;
+    }
 
-		/**
-		 * @return the class
-		 */
-		public ClassDefinition getClassDefinition() {
-			return cd;
-		}
+    public void setClassDefinition(ClassDefinition cd) {
+	this.cd = cd;
+    }
 
-		/**
-		 * @return the name
-		
-		public ExprString getNameX() {
-			return name;
-		} */
+    public void setReturnType(String returnType) {
+	this.returnType = returnType;
+    }
 
-		/**
-		 * @return the returnType
-		 */
-		public String getReturnType() {
-			return returnType;
-		}
+    /**
+     * @return the argType
+     */
+    public int getArgType() {
+	return argType;
+    }
 
-		/**
-		 * @return the flf
-		 */
-		public FunctionLibFunction getFlf() {
-			return flf;
-		}
+    /**
+     * @return the class
+     */
+    public ClassDefinition getClassDefinition() {
+	return cd;
+    }
 
-		/**
-		 * @param flf the flf to set
-		 */
-		public void setFlf(FunctionLibFunction flf) {
-			this.flf = flf;
-		}
-	}
+    /**
+     * @return the name
+     * 
+     *         public ExprString getNameX() { return name; }
+     */
+
+    /**
+     * @return the returnType
+     */
+    public String getReturnType() {
+	return returnType;
+    }
+
+    /**
+     * @return the flf
+     */
+    public FunctionLibFunction getFlf() {
+	return flf;
+    }
+
+    /**
+     * @param flf the flf to set
+     */
+    public void setFlf(FunctionLibFunction flf) {
+	this.flf = flf;
+    }
+}

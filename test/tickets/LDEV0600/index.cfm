@@ -1,4 +1,4 @@
-<cfscript>
+<cfsetting showdebugoutput="false"><cfscript>
 	param name="FORM.Scene" default="1";
 	try {
 		if( FORM.Scene == 1 ){
@@ -9,9 +9,9 @@
 			c2 = new comp2();
 		}
 		c1.foo();
-		silent {dump(c1);}
+		silent {serialize(c1);}
 		c2.foo();
-		silent {dump(c2);}
+		silent {serialize(c2);}
 	}
 	catch(any e) {
 		if( e.Message != -1 )

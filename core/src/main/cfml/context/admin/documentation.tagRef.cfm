@@ -5,9 +5,6 @@
 	NL="
 ";
 
-stText.doc.attr.values="the following values are supported:
-<values>";
-stText.doc.attr.default="Default Value";
 
 	function formatDesc(required attr ){
 		var arr=listToArray(trim(attr.description),NL);
@@ -23,7 +20,7 @@ stText.doc.attr.default="Default Value";
 		}
 		if(in)desc&="</ul>";
 		
-		// has value defintion
+		// has value definition
 		var doit=false;
 		if(!isNull(attr.values)) {
 			// only add this, if this is not already in the desc
@@ -104,7 +101,7 @@ stText.doc.attr.default="Default Value";
 		<!--- Desc --->
 		<div class="text">
 			<cfif not StructKeyExists(data, "description") or data.description eq "">
-				<em>No decription found</em>
+				<em>No description found</em>
 			<cfelse>
 				#data.description#
 			</cfif>

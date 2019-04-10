@@ -1,56 +1,38 @@
-<cfcomponent extends="org.lucee.cfml.test.LuceeTestCase">
-	<!---
-	<cffunction name="beforeTests"></cffunction>
-	<cffunction name="afterTests"></cffunction>
-	<cffunction name="setUp"></cffunction>
-	--->
-	<cffunction name="testLSEuroCurrencyFormat" localMode="modern">
 
-<!--- begin old test code --->
-<cfset orgLocale=getLocale()>
-<cfset setLocale("German (Swiss)")>
-<cfset dt=CreateDateTime(2004,1,2,4,5,6)>
-<cfset euro=chr(8364)>
+component extends="org.lucee.cfml.test.LuceeTestCase"{
+	function run( testResults , testBox ) {
+		describe( title="Test suite for LSEuroCurrencyFormat()", body=function() {
+			it(title="checking LSEuroCurrencyFormat() function", body = function( currentSpec ) {
+				<!--- begin old test code --->
+				orgLocale=getLocale();
+				setLocale("German (Swiss)");
+				dt=CreateDateTime(2004,1,2,4,5,6);
+				euro=chr(8364);
 
 
+				assertEquals("SFr. 1.00", "#LSEuroCurrencyFormat(1)#");
+				assertEquals("SFr. 1.20", "#LSEuroCurrencyFormat(1.2)#");
+
+				assertEquals("SFr. 1.20", "#LSEuroCurrencyFormat(1.2,"local")#");
+				assertEquals("CHF1.20", "#replace(LSEuroCurrencyFormat(1.2,"international","German (Swiss)")," ","")#");
+				assertEquals("1.20", "#LSEuroCurrencyFormat(1.2,"none")#");
 
 
+				try{
+					assertEquals("x", "#LSEuroCurrencyFormat(1.2,"susi")#");
+					fail("must throw:Parameter 2 of function LSCurrencyFormat has an invalid value of ""susi"". "".""."".""."".");
+				} catch ( any e ){}
 
 
-<cfset valueEquals(left="#LSEuroCurrencyFormat(1)#", right="SFr. 1.00")>
-<cfset valueEquals(left="#LSEuroCurrencyFormat(1.2)#", right="SFr. 1.20")>
+				setLocale("German (Standard)");
+				assertEquals("1,00 #euro#", "#LSEuroCurrencyFormat(1)#");
+				assertEquals("1,20 #euro#", "#LSEuroCurrencyFormat(1.2)#");
 
-<cfset valueEquals(left="#LSEuroCurrencyFormat(1.2,"local")#", right="SFr. 1.20")>
-<cfset valueEquals(left="#replace(LSEuroCurrencyFormat(1.2,"international","German (Swiss)")," ","")#", right="CHF1.20")>
-<cfset valueEquals(left="#LSEuroCurrencyFormat(1.2,"none")#", right="1.20")>
-
-
-
-<cftry>
-	<cfset valueEquals(left="#LSEuroCurrencyFormat(1.2,"susi")#", right="x")>
-	<cfset fail("must throw:Parameter 2 of function LSCurrencyFormat has an invalid value of ""susi"". "".""."".""."".")>
-	<cfcatch></cfcatch>
-</cftry>
- 
-
-<cfset setLocale("German (Standard)")>
-<cfset valueEquals(left="#LSEuroCurrencyFormat(1)#", right="1,00 #euro#")>
-<cfset valueEquals(left="#LSEuroCurrencyFormat(1.2)#", right="1,20 #euro#")>
-
-<cfset valueEquals(left="#LSEuroCurrencyFormat(1.2,"local")#", right="1,20 #euro#")>
-<cfset valueEquals(left="#replace(LSEuroCurrencyFormat(1.2,"international")," ","")#", right="EUR1,20")>
-<cfset valueEquals(left="#LSEuroCurrencyFormat(1.2,"none")#", right="1,20")>
-<cfset setLocale(orgLocale)>
-
-<!--- end old test code --->
-	
-		
-		<!--- <cfset assertEquals("","")> --->
-	</cffunction>
-	
-	<cffunction access="private" name="valueEquals">
-		<cfargument name="left">
-		<cfargument name="right">
-		<cfset assertEquals(arguments.right,arguments.left)>
-	</cffunction>
-</cfcomponent>
+				assertEquals("1,20 #euro#", "#LSEuroCurrencyFormat(1.2,"local")#");
+				assertEquals("EUR1,20", "#replace(LSEuroCurrencyFormat(1.2,"international")," ","")#");
+				assertEquals("1,20", "#LSEuroCurrencyFormat(1.2,"none")#");
+				setLocale(orgLocale);
+			});
+		});
+	}
+}

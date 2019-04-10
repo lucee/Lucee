@@ -38,61 +38,56 @@ import lucee.runtime.type.util.ListUtil;
 
 public class CacheSetProperties extends BIF {
 
-	private static final long serialVersionUID = -5700264673510261084L;
-	private static final Key OBJECT_TYPE = KeyImpl.intern("objecttype");
+    private static final long serialVersionUID = -5700264673510261084L;
+    private static final Key OBJECT_TYPE = KeyImpl.intern("objecttype");
 
-	public static Object call(PageContext pc,Struct properties) throws PageException {
-		try {
-			Object obj=properties.removeEL(OBJECT_TYPE); 
-			String objectType=Caster.toString(obj);
-			
-			CacheConnection[] conns=getCaches(pc,objectType);
-			for(int i=0;i<conns.length;i++){
-				setProperties(conns[i],properties);
-			}
-		} catch (CacheException e) {
-			throw Caster.toPageException(e);
-		}
-		return call(pc, null);
+    public static Object call(PageContext pc, Struct properties) throws PageException {
+	try {
+	    Object obj = properties.removeEL(OBJECT_TYPE);
+	    String objectType = Caster.toString(obj);
+
+	    CacheConnection[] conns = getCaches(pc, objectType);
+	    for (int i = 0; i < conns.length; i++) {
+		setProperties(conns[i], properties);
+	    }
+	}
+	catch (CacheException e) {
+	    throw Caster.toPageException(e);
+	}
+	return call(pc, null);
+    }
+
+    @Override
+    public Object invoke(PageContext pc, Object[] args) throws PageException {
+	if (args.length == 1) return call(pc, Caster.toStruct(args[0]));
+	throw new FunctionException(pc, "CacheSetProperties", 1, 1, args.length);
+    }
+
+    private static void setProperties(CacheConnection cc, Struct properties) throws SecurityException {
+	throw new SecurityException("it is not allowed to change cache connection setting this way, please use the tag cfadmin or the Lucee administrator frontend instead ");
+    }
+
+    private static CacheConnection[] getCaches(PageContext pc, String cacheName) throws CacheException {
+	ConfigImpl config = (ConfigImpl) pc.getConfig();
+	if (StringUtil.isEmpty(cacheName)) {
+
+	    return new CacheConnection[] { config.getCacheDefaultConnection(Config.CACHE_TYPE_OBJECT), config.getCacheDefaultConnection(Config.CACHE_TYPE_TEMPLATE) };
+	    // MUST which one is first
 	}
 
-	@Override
-	public Object invoke(PageContext pc, Object[] args) throws PageException {
-		if(args.length==1)return call(pc, Caster.toStruct(args[0]));
-		throw new FunctionException(pc, "CacheSetProperties", 1, 1, args.length);
+	ArrayList<CacheConnection> list = new ArrayList<CacheConnection>();
+	String name;
+	String[] names = ListUtil.listToStringArray(cacheName, ',');
+	for (int i = 0; i < names.length; i++) {
+	    name = names[i].trim().toLowerCase();
+	    if (name.equalsIgnoreCase("template")) list.add(config.getCacheDefaultConnection(Config.CACHE_TYPE_TEMPLATE));
+	    else if (name.equalsIgnoreCase("object")) list.add(config.getCacheDefaultConnection(Config.CACHE_TYPE_OBJECT));
+	    else {
+		CacheConnection cc = config.getCacheConnections().get(name);
+		if (cc == null) throw new CacheException("there is no cache defined with name [" + name + "]");
+		list.add(cc);
+	    }
 	}
-
-	private static void setProperties(CacheConnection cc, Struct properties) throws SecurityException {
-		throw new SecurityException("it is not allowed to change cache connection setting this way, please use the tag cfadmin or the Lucee administrator frontend instead ");
-	}
-
-	private static CacheConnection[] getCaches(PageContext pc,String cacheName) throws CacheException {
-		ConfigImpl config=(ConfigImpl) pc.getConfig();
-		if(StringUtil.isEmpty(cacheName)){
-			
-			return new CacheConnection[]{
-					config.getCacheDefaultConnection(Config.CACHE_TYPE_OBJECT),
-					config.getCacheDefaultConnection(Config.CACHE_TYPE_TEMPLATE)
-			}
-			;
-			// MUST which one is first
-		}
-		
-		ArrayList<CacheConnection> list=new ArrayList<CacheConnection>();
-		String name;
-		String[] names=ListUtil.listToStringArray(cacheName, ',');
-		for(int i=0;i<names.length;i++){
-			name=names[i].trim().toLowerCase();
-			if(name.equalsIgnoreCase("template"))
-				list.add(config.getCacheDefaultConnection(Config.CACHE_TYPE_TEMPLATE));
-			else if(name.equalsIgnoreCase("object"))
-				list.add(config.getCacheDefaultConnection(Config.CACHE_TYPE_OBJECT));
-			else{
-				CacheConnection cc= config.getCacheConnections().get(name);
-				if(cc==null) throw new CacheException("there is no cache defined with name ["+name+"]");
-				list.add(cc);
-			}
-		}
-		return list.toArray(new CacheConnection[list.size()]);
-	}
+	return list.toArray(new CacheConnection[list.size()]);
+    }
 }

@@ -22,8 +22,8 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <maven.compiler.source>1.7</maven.compiler.source>
-    <maven.compiler.target>1.7</maven.compiler.target>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
   </properties>
 
   <licenses>
@@ -76,7 +76,7 @@
     <dependency>
       <groupId>org.apache.felix</groupId>
       <artifactId>org.apache.felix.framework</artifactId>
-      <version>5.6.10</version><!-- 4.6.1 -->
+      <version>6.0.1</version><!-- 4.6.1 -->
       <scope>compile</scope>
     </dependency>
     <dependency>
@@ -109,7 +109,7 @@
     <dependency>
       <groupId>org.apache.tika</groupId>
       <artifactId>tika-core</artifactId>
-      <version>1.10</version>
+      <version>1.20</version>
       <scope>provided</scope>
     </dependency>
     
@@ -125,14 +125,6 @@
   		<version>0.1.53</version>
     	<scope>provided</scope>
   	</dependency>
-	
-    <dependency>
-         <groupId>org.apache.commons</groupId>
-         <artifactId>image</artifactId>
-         <type>jar</type>
-         <version>1.0.0.R1534292</version>
-         <scope>provided</scope>
-      </dependency>
     <dependency>
       <groupId>commons-codec</groupId>
       <artifactId>commons-codec</artifactId>
@@ -151,12 +143,14 @@
   	  <version>1.9.0</version>
       <scope>provided</scope>
     </dependency>
-	  <dependency>
+	  <!--Axis?
+    <dependency>
 		  <groupId>commons-discovery</groupId>
 		  <artifactId>commons-discovery</artifactId>
 		  <version>0.5</version>
       <scope>provided</scope>
 	  </dependency>
+    -->
     <dependency>
       <groupId>org.lucee</groupId>
       <artifactId>commons-email</artifactId>
@@ -169,12 +163,14 @@
     	<version>1.3.2.L0001</version>
       <scope>provided</scope>
     </dependency>
+    <!--Axis?
   	<dependency>
   		<groupId>org.lucee</groupId>
   		<artifactId>commons-httpclient</artifactId>
   		<version>3.1.0</version>
       <scope>provided</scope>
   	</dependency>
+  -->
   	<dependency>
   		<groupId>org.lucee</groupId>
   		<artifactId>commons-io</artifactId>
@@ -231,20 +227,7 @@
   		<version>2.7</version>
       <scope>provided</scope>
   	</dependency> -->
-  	
-    <dependency>
-    	<groupId>org.lucee</groupId>
-    	<artifactId>axis-ant</artifactId>
-    	<version>1.4.0.L0001</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-    	<groupId>org.lucee</groupId>
-    	<artifactId>axis</artifactId>
-    	<version>1.4.0.L0001</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
+    <!-- <dependency>
     	<groupId>org.lucee</groupId>
     	<artifactId>xalan</artifactId>
     	<version>2.7.2</version>
@@ -255,19 +238,21 @@
     	<artifactId>xalan-serializer</artifactId>
     	<version>2.7.2</version>
       <scope>provided</scope>
-    </dependency>
+    </dependency>-->
     <dependency>
     	<groupId>org.lucee</groupId>
     	<artifactId>portlet</artifactId>
     	<version>1.0.0</version>
       <scope>provided</scope>
     </dependency>
+    <!--
     <dependency>
     	<groupId>org.lucee</groupId>
     	<artifactId>xml-xerces</artifactId>
     	<version>2.11.0</version>
       <scope>provided</scope>
     </dependency>
+    -->
     <dependency>
     	<groupId>org.lucee</groupId>
     	<artifactId>xml-apis</artifactId>
@@ -292,18 +277,7 @@
     	<version>1.1.0</version>
       <scope>provided</scope>
     </dependency>
-    <dependency>
-    	<groupId>org.lucee</groupId>
-    	<artifactId>esapi</artifactId>
-    	<version>2.1.0.1</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-  	  <groupId>xom</groupId>
-  	  <artifactId>xom</artifactId>
-  	  <version>1.2.5</version>
-      <scope>provided</scope>
-    </dependency>
+
     <dependency>
       <groupId>fusiondebug.api</groupId>
       <artifactId>server</artifactId>
@@ -313,19 +287,19 @@
     <dependency>
     	<groupId>org.lucee</groupId>
     	<artifactId>httpcomponents-httpclient</artifactId>
-    	<version>4.5.2</version>
+    	<version>4.5.6</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
     	<groupId>org.lucee</groupId>
     	<artifactId>httpcomponents-httpcore</artifactId>
-    	<version>4.4.4</version>
+    	<version>4.4.10</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
     	<groupId>org.lucee</groupId>
     	<artifactId>httpcomponents-httpmime</artifactId>
-    	<version>4.5.2</version>
+    	<version>4.5.6</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -365,12 +339,6 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>metadata</groupId>
-      <artifactId>extractor</artifactId>
-      <version>2.8.1.0002L</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
 	    <groupId>org.ow2.asm</groupId>
 	    <artifactId>asm-all</artifactId>
 	    <version>4.2</version>
@@ -404,18 +372,6 @@
       <groupId>stax</groupId>
       <artifactId>api</artifactId>
       <version>1.0.1.0002L</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>sun.jai</groupId>
-      <artifactId>codec</artifactId>
-      <version>1.1.2.0003L</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>sun.jai</groupId>
-      <artifactId>core</artifactId>
-      <version>1.2.1.0003L</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -455,24 +411,6 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-    	<groupId>org.lucee</groupId>
-    	<artifactId>jaxrpc</artifactId>
-    	<version>1.4.0</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-    	<groupId>org.lucee</groupId>
-    	<artifactId>wsdl4j</artifactId>
-    	<version>1.5.1</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-    	<groupId>org.lucee</groupId>
-    	<artifactId>saaj</artifactId>
-    	<version>1.4.0</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
       <groupId>tagsoup</groupId>
       <artifactId>tagsoup</artifactId>
       <version>1.2.1.0002L</version>
@@ -484,18 +422,19 @@
       <version>1.1.0</version>
       <scope>provided</scope>
     </dependency>
-    <dependency>
+    <!-- <dependency>
       <groupId>xdb</groupId>
       <artifactId>xdb</artifactId>
       <version>1.0.0</version>
       <scope>provided</scope>
     </dependency>
+    
     <dependency>
       <groupId>xmlparserv2</groupId>
       <artifactId>xmlparserv2</artifactId>
       <version>1.2.2</version>
       <scope>provided</scope>
-    </dependency>
+    </dependency> -->
     <dependency>
       <groupId>xmpcore</groupId>
       <artifactId>xmpcore</artifactId>

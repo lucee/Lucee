@@ -28,6 +28,7 @@ import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.db.ClassDefinition;
+import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.Collection.Key;
@@ -36,95 +37,89 @@ import lucee.runtime.type.StructImpl;
 
 import org.osgi.framework.BundleException;
 
+public class CacheConnectionImpl implements CacheConnectionPlus {
 
-public class CacheConnectionImpl implements CacheConnectionPlus  {
+    private String name;
+    private ClassDefinition<Cache> classDefinition;
+    private Struct custom;
+    private Cache cache;
+    private boolean readOnly;
+    private boolean storage;
+    // private Class<Cache> clazz;
 
+    public CacheConnectionImpl(Config config, String name, ClassDefinition<Cache> cd, Struct custom, boolean readOnly, boolean storage) {
+	this.name = name;
+	this.classDefinition = cd;
+	this.custom = custom == null ? new StructImpl() : custom;
+	this.readOnly = readOnly;
+	this.storage = storage;
+    }
 
+    @Override
+    public Cache getInstance(Config config) throws IOException {
+	if (cache == null) {
+	    try {
+		Class<Cache> clazz = classDefinition.getClazz();
+		if (!Reflector.isInstaneOf(clazz, Cache.class))
+		    throw new CacheException("class [" + clazz.getName() + "] does not implement interface [" + Cache.class.getName() + "]");
+		cache = (Cache) ClassUtil.loadInstance(clazz);
+		cache.init(config, getName(), getCustom());
 
-		private String name;
-		private ClassDefinition<Cache> classDefinition;
-		private Struct custom;
-		private Cache cache;
-		private boolean readOnly;
-		private boolean storage;
-		private Class<Cache> clazz;
-
-		public CacheConnectionImpl(Config config,String name, ClassDefinition<Cache> cd, Struct custom, boolean readOnly, boolean storage) throws CacheException, ClassException, BundleException {
-			this(config, name, cd, cd.getClazz(), custom, readOnly, storage);
-		}
-		
-		private CacheConnectionImpl(Config config,String name, ClassDefinition<Cache> cd, Class<Cache> clazz, Struct custom, boolean readOnly, boolean storage) throws CacheException {
-			this.name=name;
-			this.classDefinition=cd;
-			this.clazz=clazz;
-			if(!Reflector.isInstaneOf(clazz, Cache.class))
-				throw new CacheException("class ["+clazz.getName()+"] does not implement interface ["+Cache.class.getName()+"]");
-			this.custom=custom==null?new StructImpl():custom;
-			this.readOnly=readOnly;
-			this.storage=storage;
-		}
-
-		@Override
-		public Cache getInstance(Config config) throws IOException  {
-			if(cache==null){
-				cache=(Cache) ClassUtil.loadInstance(clazz);
-				cache.init(config,getName(), getCustom());
-			}
-			return cache;
-		}
-		
-		public Cache getLoadedInstance() {
-			return cache;
-		}
-
-
-		@Override
-		public String getName() {
-			return name;
-		}
-
-		@Override
-		public ClassDefinition<Cache> getClassDefinition() {
-			return classDefinition;
-		}
-
-		@Override
-		public Struct getCustom() {
-			return custom;
-		}
-
-		
-		@Override
-		public String toString(){
-			return "name:"+this.name+";"+getClassDefinition()+";custom:"+custom+";";
-		}
-
-		public String id() {
-			StringBuilder sb=new StringBuilder()
-			.append(name.toLowerCase()).append(';')
-			.append(getClassDefinition()).append(';');
-			Struct _custom = getCustom();
-			Key[] keys = _custom.keys();
-			Arrays.sort(keys);
-			for(Key k:keys) {
-				sb.append(k).append(':').append(_custom.get(k,null)).append(';');
-			}
-			return Caster.toString(HashUtil.create64BitHash(sb.toString()));
-		}
-
-
-		@Override
-		public CacheConnection duplicate(Config config) throws IOException {
-			return new CacheConnectionImpl(config,name,classDefinition,clazz,custom,readOnly,storage);
-		}
-
-
-			@Override
-			public boolean isReadOnly() {
-				return readOnly;
-			}
-			@Override
-			public boolean isStorage() {
-				return storage;
-			}
+	    }
+	    catch (BundleException be) {
+		throw new PageRuntimeException(be);
+	    }
 	}
+	return cache;
+    }
+
+    public Cache getLoadedInstance() {
+	return cache;
+    }
+
+    @Override
+    public String getName() {
+	return name;
+    }
+
+    @Override
+    public ClassDefinition<Cache> getClassDefinition() {
+	return classDefinition;
+    }
+
+    @Override
+    public Struct getCustom() {
+	return custom;
+    }
+
+    @Override
+    public String toString() {
+	return "name:" + this.name + ";" + getClassDefinition() + ";custom:" + custom + ";";
+    }
+
+    public String id() {
+	StringBuilder sb = new StringBuilder().append(name.toLowerCase()).append(';').append(getClassDefinition()).append(';');
+	Struct _custom = getCustom();
+	Key[] keys = _custom.keys();
+	Arrays.sort(keys);
+	for (Key k: keys) {
+	    sb.append(k).append(':').append(_custom.get(k, null)).append(';');
+	}
+	return Caster.toString(HashUtil.create64BitHash(sb.toString()));
+    }
+
+    @Override
+    public CacheConnection duplicate(Config config) throws IOException {
+	return new CacheConnectionImpl(config, name, classDefinition, custom, readOnly, storage);
+    }
+
+    @Override
+    public boolean isReadOnly() {
+	return readOnly;
+    }
+
+    @Override
+    public boolean isStorage() {
+	return storage;
+    }
+}

@@ -26,20 +26,19 @@ import lucee.runtime.interpreter.ref.util.RefUtil;
  * Support class to implement the refs
  */
 public abstract class RefSupport implements Ref {
-	
-	@Override
+
+    @Override
     public Object getCollection(PageContext pc) throws PageException {
-        return getValue(pc);
+	return getValue(pc);
     }
 
-	@Override
+    @Override
     public Object touchValue(PageContext pc) throws PageException {
-        return getValue(pc);
+	return getValue(pc);
     }
 
-
-	@Override
-	public boolean eeq(PageContext pc, Ref other) throws PageException {
-		return RefUtil.eeq(pc,this,other);
-	}
+    @Override
+    public boolean eeq(PageContext pc, Ref other) throws PageException {
+	return RefUtil.eeq(pc, this, other);
+    }
 }

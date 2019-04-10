@@ -27,38 +27,35 @@ import lucee.runtime.type.UDF;
 import com.intergral.fusiondebug.server.IFDStackFrame;
 
 public abstract class FDNodeValueSupport extends FDValueSupport {
-	
-	private IFDStackFrame frame;
 
-	public FDNodeValueSupport(IFDStackFrame frame){
-		this.frame=frame;
-	}
-	
-	@Override
-	public List getChildren() {
-		return getChildren(frame,getName(),getRawValue());
-	}
-	
+    private IFDStackFrame frame;
 
-	/*public IFDValue getValue() {
-		Object value = getRawValue();
-		if(isSimpleValue(value))
-			return getFDNodeVariableSupport();
-		return FDCaster.toFDVariable(getName(), value).getValue();
-	}*/
+    public FDNodeValueSupport(IFDStackFrame frame) {
+	this.frame = frame;
+    }
 
-	@Override
-	public String toString() {
-		Object raw = getRawValue();
-		if(raw instanceof UDF)return FDUDF.toString((UDF)raw);
-		return FDCaster.serialize(raw);
-	}
-	
-	@Override
-	public boolean hasChildren() {
-		return hasChildren(getRawValue());
-	}
+    @Override
+    public List getChildren() {
+	return getChildren(frame, getName(), getRawValue());
+    }
 
-	protected abstract Object getRawValue();
-	//protected abstract FDNodeValueSupport getFDNodeVariableSupport();
+    /*
+     * public IFDValue getValue() { Object value = getRawValue(); if(isSimpleValue(value)) return
+     * getFDNodeVariableSupport(); return FDCaster.toFDVariable(getName(), value).getValue(); }
+     */
+
+    @Override
+    public String toString() {
+	Object raw = getRawValue();
+	if (raw instanceof UDF) return FDUDF.toString((UDF) raw);
+	return FDCaster.serialize(raw);
+    }
+
+    @Override
+    public boolean hasChildren() {
+	return hasChildren(getRawValue());
+    }
+
+    protected abstract Object getRawValue();
+    // protected abstract FDNodeValueSupport getFDNodeVariableSupport();
 }

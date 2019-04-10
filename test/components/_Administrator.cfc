@@ -473,12 +473,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					assertEquals(listSort(structKeyList(extensionsInfo),'textnocase'),'directory,enabled');
 				});
 
-				it(title="checking updateExtensionInfo()", body=function( currentSpec ) {
+				/*it(title="checking updateExtensionInfo()", body=function( currentSpec ) {
 					adminWeb.updateExtensionInfo(enabled=true);
 					var extensionsInfo = adminWeb.getExtensionInfo();
 					assertEquals(isStruct(extensionsInfo) ,true);
 					assertEquals(extensionsInfo.enabled EQ true ,true);
-				});
+				});*/
 
 				it(title="checking updateExtension()", body=function( currentSpec ) {
 					var tmpStrt = {};

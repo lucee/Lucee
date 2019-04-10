@@ -81,6 +81,18 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		// member function
 		res=list.listReduce(function( result,value,index){return result&";"&index&":"&value;},"merge:");
 		assertEquals("merge:;1:a;2:b;3:c",res);
+
+		var result = listReduce("I,Love,Lucee",function(previousValue,element){
+			return element;
+		});
+		assertEquals(listLast("I,Love,Lucee"), result);
+
+		var list="1,2,3,4";
+		var result2 = listReduce(list,function(previousValue,element){
+			return previousValue+element;
+		},0);
+
+		assertEquals(10, result2);
 	}
 
 	public void function testStructReduce() localMode="true" {

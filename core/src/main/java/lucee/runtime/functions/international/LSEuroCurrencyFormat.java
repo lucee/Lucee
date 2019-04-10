@@ -27,16 +27,19 @@ import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 
-public final class LSEuroCurrencyFormat implements Function { 
+public final class LSEuroCurrencyFormat implements Function {
 
-	private static final long serialVersionUID = -9214893090412056842L;
-	public static String call(PageContext pc , Object number) throws PageException {
-		return LSCurrencyFormat.call(pc,number);
-	}
-	public static String call(PageContext pc , Object number, String type) throws PageException {
-		return LSCurrencyFormat.call(pc,number,type);
-	}
-	public static String call(PageContext pc , Object number, String type,Locale locale) throws PageException {
-		return LSCurrencyFormat.call(pc,number,type,locale);
-	}
+    private static final long serialVersionUID = -9214893090412056842L;
+
+    public static String call(PageContext pc, Object number) throws PageException {
+	return LSCurrencyFormat.call(pc, number);
+    }
+
+    public static String call(PageContext pc, Object number, String type) throws PageException {
+	return LSCurrencyFormat.call(pc, number, type);
+    }
+
+    public static String call(PageContext pc, Object number, String type, Locale locale) throws PageException {
+	return LSCurrencyFormat.call(pc, number, type, locale);
+    }
 }

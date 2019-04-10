@@ -20,27 +20,26 @@ package lucee.runtime.sql.exp.value;
 
 import lucee.runtime.sql.exp.Literal;
 
-
 public class ValueBoolean extends ValueSupport implements Literal {
 
-	public static final ValueBoolean TRUE = new ValueBoolean(true);
-	public static final ValueBoolean FALSE = new ValueBoolean(false);
-	
-	private boolean value;
+    public static final ValueBoolean TRUE = new ValueBoolean(true);
+    public static final ValueBoolean FALSE = new ValueBoolean(false);
 
-	private ValueBoolean(boolean value) {
-		super(value?"TRUE":"FALSE");
-		this.value=value;
-	}
+    private boolean value;
 
-	@Override
-	public String toString(boolean noAlias) {
-		if(noAlias || getIndex()==0)return getString();
-		return getString()+" as "+getAlias();
-	}
+    private ValueBoolean(boolean value) {
+	super(value ? "TRUE" : "FALSE");
+	this.value = value;
+    }
 
-	@Override
-	public Object getValue() {
-		return value?Boolean.TRUE:Boolean.FALSE;
-	}
+    @Override
+    public String toString(boolean noAlias) {
+	if (noAlias || getIndex() == 0) return getString();
+	return getString() + " as " + getAlias();
+    }
+
+    @Override
+    public Object getValue() {
+	return value ? Boolean.TRUE : Boolean.FALSE;
+    }
 }

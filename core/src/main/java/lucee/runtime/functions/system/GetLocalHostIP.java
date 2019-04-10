@@ -31,32 +31,28 @@ import lucee.runtime.ext.function.Function;
 
 public final class GetLocalHostIP implements Function {
 
-	public static Object call(PageContext pc)  {
-		return callLegacy();
-	}
-
+    public static Object call(PageContext pc) {
+	return callLegacy();
+    }
 
     public static Object call(PageContext pc, boolean all, boolean refresh) {
 
-        if ( all )
-            return IPUtil.getLocalIPs( refresh );
+	if (all) return IPUtil.getLocalIPs(refresh);
 
-        return callLegacy();
+	return callLegacy();
     }
-
 
     public static Object call(PageContext pc, boolean all) {
 
-        return call( pc, all, false );
+	return call(pc, all, false);
     }
-
 
     static String callLegacy() {
 
-        try {
-            if(InetAddress.getLocalHost() instanceof Inet6Address) return "::1";
-        }
-        catch(UnknownHostException e) {}
-        return "127.0.0.1";
+	try {
+	    if (InetAddress.getLocalHost() instanceof Inet6Address) return "::1";
+	}
+	catch (UnknownHostException e) {}
+	return "127.0.0.1";
     }
 }

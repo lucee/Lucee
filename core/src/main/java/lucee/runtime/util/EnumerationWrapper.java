@@ -27,53 +27,53 @@ import java.util.Set;
  * class to make a enumaration from a ser, map or iterator
  */
 public final class EnumerationWrapper<E> implements Enumeration<E> {
-		
-		private Iterator<E> it;
 
-		/**
-		 * @param map Constructor with a Map
-		 */
-		public EnumerationWrapper(Map<E,?> map) {
-			this(map.keySet().iterator());
-		}
-		
-		/**
-		 * @param set Constructor with a Set
-		 */
-		public EnumerationWrapper(Set<E> set) {
-			this(set.iterator());
-		}
+    private Iterator<E> it;
 
-		/**
-		 * Constructor of the class
-		 * @param objs
-		 */
-		public EnumerationWrapper(E[] objs) {
-			this(new ArrayIterator(objs));
-		}
-		
-		/**
-		 * @param it Constructor with a iterator
-		 */
-		public EnumerationWrapper(Iterator<E> it) {
-			this.it=it;
-		}
-		
+    /**
+     * @param map Constructor with a Map
+     */
+    public EnumerationWrapper(Map<E, ?> map) {
+	this(map.keySet().iterator());
+    }
 
-		/**
-		 * @see java.util.Enumeration#hasMoreElements()
-		 */
-		@Override
-		public boolean hasMoreElements() {
-			return it.hasNext();
-		}
+    /**
+     * @param set Constructor with a Set
+     */
+    public EnumerationWrapper(Set<E> set) {
+	this(set.iterator());
+    }
 
-		/**
-		 * @see java.util.Enumeration#nextElement()
-		 */
-		@Override
-		public E nextElement() {
-			return it.next();
-		}
-		
-	}
+    /**
+     * Constructor of the class
+     * 
+     * @param objs
+     */
+    public EnumerationWrapper(E[] objs) {
+	this(new ArrayIterator(objs));
+    }
+
+    /**
+     * @param it Constructor with a iterator
+     */
+    public EnumerationWrapper(Iterator<E> it) {
+	this.it = it;
+    }
+
+    /**
+     * @see java.util.Enumeration#hasMoreElements()
+     */
+    @Override
+    public boolean hasMoreElements() {
+	return it.hasNext();
+    }
+
+    /**
+     * @see java.util.Enumeration#nextElement()
+     */
+    @Override
+    public E nextElement() {
+	return it.next();
+    }
+
+}

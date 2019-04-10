@@ -30,25 +30,21 @@ import org.objectweb.asm.commons.Method;
 
 public final class Abort extends StatementBaseNoFinal {
 
-	private static final Type ABORT = Type.getType(lucee.runtime.exp.Abort.class);
-	
-	// ExpressionException newInstance(int)
-	private static final Method NEW_INSTANCE =  new Method(
-			"newInstance",
-			ABORT,
-			new Type[]{Types.INT_VALUE});
+    private static final Type ABORT = Type.getType(lucee.runtime.exp.Abort.class);
 
-	
-	public Abort(Factory f, Position start, Position end) {
-		super(f,start,end);
-	}
+    // ExpressionException newInstance(int)
+    private static final Method NEW_INSTANCE = new Method("newInstance", ABORT, new Type[] { Types.INT_VALUE });
 
-	@Override
-	public void _writeOut(BytecodeContext bc) throws TransformerException {
-		GeneratorAdapter adapter = bc.getAdapter();
-		adapter.push(lucee.runtime.exp.Abort.SCOPE_PAGE);
-		adapter.invokeStatic(ABORT, NEW_INSTANCE);
-		adapter.throwException();
-		
-	}
+    public Abort(Factory f, Position start, Position end) {
+	super(f, start, end);
+    }
+
+    @Override
+    public void _writeOut(BytecodeContext bc) throws TransformerException {
+	GeneratorAdapter adapter = bc.getAdapter();
+	adapter.push(lucee.runtime.exp.Abort.SCOPE_PAGE);
+	adapter.invokeStatic(ABORT, NEW_INSTANCE);
+	adapter.throwException();
+
+    }
 }

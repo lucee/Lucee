@@ -20,15 +20,13 @@ package lucee.transformer.cfml.evaluator.impl;
 
 import lucee.transformer.cfml.evaluator.ChildEvaluator;
 
-
-
 /**
- * Prueft den Kontext des Tag case.
- * Das Tag <code>case</code> darf nur direkt innerhalb des Tag <code>switch</code> liegen.
+ * Prueft den Kontext des Tag case. Das Tag <code>case</code> darf nur direkt innerhalb des Tag
+ * <code>switch</code> liegen.
  */
 public final class Case extends ChildEvaluator {
 
-	public Case(){
-		super("switch");
-	}
+    public Case() {
+	super("switch");
+    }
 }

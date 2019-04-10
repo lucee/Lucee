@@ -173,7 +173,7 @@ function createTooltip(element, text, x, y, mouseAction )
 		// if you remove() an element it is deleted from the DOM, but the element.tooltip var stays where it is.
 		// When an tooltip has been shown before, just re-add the tooltip DOM element.
 		// If the tooltip is never created before, create it and add it to the DOM
-		if (typeof element.tooltip == 'undefined') {
+		if (typeof element.tooltip.data == 'undefined') {
 			element.tooltip = $('<div class="tooltip tooltip_'+mouseAction+'">'+ text +'<div class="sprite arrow"></div></div>').data('parent', element);
 			$('body').append( element.tooltip );
 		} else if (typeof element.tooltip == 'object') {

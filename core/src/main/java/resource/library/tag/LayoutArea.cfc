@@ -64,8 +64,8 @@
     </cffunction>
 	
 	<!---   attributes   --->
-	<cffunction name="getAtttributes" access="public" output="false" returntype="struct">
-		<cfreturn variables.atttributes/>
+	<cffunction name="getAttributes" access="public" output="false" returntype="struct">
+		<cfreturn variables.attributes/>
 	</cffunction>
 
     <cffunction name="getAttribute" output="false" access="public" returntype="any">

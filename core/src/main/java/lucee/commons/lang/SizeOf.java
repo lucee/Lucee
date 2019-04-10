@@ -22,16 +22,14 @@ import lucee.commons.management.MemoryInfo;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.instrumentation.InstrumentationFactory;
 
-
 /**
  * Calculation of object size.
  */
 public class SizeOf {
-	
 
-	public static long size(Object object) {
-		if (object==null)return 0;
-		return MemoryInfo.deepMemoryUsageOf(InstrumentationFactory.getInstrumentation(ThreadLocalPageContext.getConfig()),object);
-	}
+    public static long size(Object object) {
+	if (object == null) return 0;
+	return MemoryInfo.deepMemoryUsageOf(InstrumentationFactory.getInstrumentation(ThreadLocalPageContext.getConfig()), object);
+    }
 
 }

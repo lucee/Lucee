@@ -31,28 +31,29 @@ public final class NEEQ extends RefSupport implements Ref {
 
     private Ref right;
     private Ref left;
-	private boolean limited;
+    private boolean limited;
 
     /**
      * constructor of the class
+     * 
      * @param left
      * @param right
      */
     public NEEQ(Ref left, Ref right, boolean limited) {
-        this.left=left;
-        this.right=right;
-		this.limited=limited;
+	this.left = left;
+	this.right = right;
+	this.limited = limited;
     }
 
     @Override
-	public Object getValue(PageContext pc) throws PageException {
-    	if(limited) throw new InterpreterException("invalid syntax, boolean operations are not supported in a json string.");
-        return left.eeq(pc,right)?Boolean.FALSE:Boolean.TRUE;
-        //return (left.getValue()!=right.getValue())?Boolean.TRUE:Boolean.FALSE;
+    public Object getValue(PageContext pc) throws PageException {
+	if (limited) throw new InterpreterException("invalid syntax, boolean operations are not supported in a json string.");
+	return left.eeq(pc, right) ? Boolean.FALSE : Boolean.TRUE;
+	// return (left.getValue()!=right.getValue())?Boolean.TRUE:Boolean.FALSE;
     }
 
     @Override
     public String getTypeName() {
-        return "operation";
+	return "operation";
     }
 }

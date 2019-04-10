@@ -24,8 +24,10 @@ component output="false" extends="Base" accessors="true"{
 		if(!structIsempty(arguments)){
 			structappend(variables.attributes,arguments,"yes");
 	}
+
 		if(structKeyExists(arguments,"sql") && len(arguments.sql)){
 			 this.setSql(arguments.sql);
+			 trace type="warning" var="arguments.sql";
 		}
 
 		//parse the sql into an array and save it
@@ -195,4 +197,44 @@ component output="false" extends="Base" accessors="true"{
 		return queryNew(columnNames,columnTypes?:nullvalue(),data?:nullvalue());
 	}
 
+
+	/**
+		this function overrides Base.invokeTag()
+	*/
+	private function invokeTag() {
+		var tagname = getTagName();
+		var tagAttributes = getAttributes();
+		var tagParams = getParams();
+		var resultVar = "";
+		var result = new Result();
+
+		structDelete(tagAttributes,"sql",false);
+
+		// Makes the attributes available in local scope. Es : query of queries
+		structAppend(local, tagAttributes, true);
+
+		// get the query parts array
+		var qArray = getQArray();
+
+		query name="local.___q" attributeCollection=tagAttributes result="local.tagResult" {
+
+			loop array=local.qArray index="Local.item" {
+				if (!isNull(item.type) && item.type == "string"){
+					echo(preserveSingleQuotes(item.value));
+				}
+				else {
+					queryparam attributecollection=item;
+				}
+			}
+		}
+
+		if (!isNull(local.___q))
+			result.setResult(local.___q);
+
+		if (!isNull(local.tagResult))
+			result.setPrefix(local.tagResult);
+
+		return result;
+	}
+	//*/
 }

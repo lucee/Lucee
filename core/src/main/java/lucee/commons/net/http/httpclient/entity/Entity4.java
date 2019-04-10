@@ -22,6 +22,6 @@ import lucee.commons.net.http.Entity;
 
 import org.apache.http.HttpEntity;
 
-public interface Entity4 extends Entity,HttpEntity {
+public interface Entity4 extends Entity, HttpEntity {
 
 }

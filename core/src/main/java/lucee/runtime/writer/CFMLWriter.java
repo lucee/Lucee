@@ -26,54 +26,52 @@ import javax.servlet.jsp.JspWriter;
 import lucee.runtime.cache.legacy.CacheItem;
 
 public abstract class CFMLWriter extends JspWriter {
-	
-	protected CFMLWriter(int bufferSize, boolean autoFlush) {
-		super(bufferSize, autoFlush);
-	}
 
-	public abstract OutputStream getResponseStream() throws IOException;
-	
-	public abstract void setClosed(boolean closed) ; // do not change used in p d f extension
+    protected CFMLWriter(int bufferSize, boolean autoFlush) {
+	super(bufferSize, autoFlush);
+    }
 
-	public abstract void setBufferConfig(int interval, boolean b) throws IOException ;
+    public abstract OutputStream getResponseStream() throws IOException;
 
+    public abstract void setClosed(boolean closed); // do not change used in p d f extension
 
-	public abstract void appendHTMLBody(String text) throws IOException;
-	
-	public abstract void writeHTMLBody(String text) throws IOException;
+    public abstract void setBufferConfig(int interval, boolean b) throws IOException;
 
-	public abstract void flushHTMLBody() throws IOException;
+    public abstract void appendHTMLBody(String text) throws IOException;
 
-	public abstract String getHTMLBody() throws IOException;
-	
-	public abstract void resetHTMLBody() throws IOException;
+    public abstract void writeHTMLBody(String text) throws IOException;
 
-	public abstract void appendHTMLHead(String text) throws IOException;
+    public abstract void flushHTMLBody() throws IOException;
 
-	public abstract void writeHTMLHead(String text) throws IOException;
+    public abstract String getHTMLBody() throws IOException;
 
-	public abstract void flushHTMLHead() throws IOException;
+    public abstract void resetHTMLBody() throws IOException;
 
-	public abstract String getHTMLHead() throws IOException;
+    public abstract void appendHTMLHead(String text) throws IOException;
 
-	public abstract void resetHTMLHead() throws IOException;
+    public abstract void writeHTMLHead(String text) throws IOException;
 
+    public abstract void flushHTMLHead() throws IOException;
 
-	/**
-	 * write the given string without removing whitespace.
-	 * @param str
-	 * @throws IOException 
-	 */
-	public abstract void writeRaw(String str) throws IOException;
+    public abstract String getHTMLHead() throws IOException;
 
-	public abstract void setAllowCompression(boolean allowCompression);
-	
+    public abstract void resetHTMLHead() throws IOException;
 
-	public abstract void doCache(lucee.runtime.cache.legacy.CacheItem ci);
+    /**
+     * write the given string without removing whitespace.
+     * 
+     * @param str
+     * @throws IOException
+     */
+    public abstract void writeRaw(String str) throws IOException;
 
-	/**
-	 * @return the cacheResource
-	 */
-	public abstract CacheItem getCacheItem();
+    public abstract void setAllowCompression(boolean allowCompression);
+
+    public abstract void doCache(lucee.runtime.cache.legacy.CacheItem ci);
+
+    /**
+     * @return the cacheResource
+     */
+    public abstract CacheItem getCacheItem();
 
 }

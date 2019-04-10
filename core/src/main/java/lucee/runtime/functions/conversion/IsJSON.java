@@ -25,15 +25,16 @@ import lucee.runtime.interpreter.JSONExpressionInterpreter;
 import lucee.runtime.op.Caster;
 
 public class IsJSON {
-	public static boolean call(PageContext pc, Object obj) {
-		String str=Caster.toString(obj,null);
-		if(StringUtil.isEmpty(str,true)) return false;
-		try {
-			new JSONExpressionInterpreter().interpret(pc, str);
-			return true;
-		} catch (PageException e) {
-			return false;
-		}
+    public static boolean call(PageContext pc, Object obj) {
+	String str = Caster.toString(obj, null);
+	if (StringUtil.isEmpty(str, true)) return false;
+	try {
+	    new JSONExpressionInterpreter().interpret(pc, str);
+	    return true;
 	}
-	
+	catch (PageException e) {
+	    return false;
+	}
+    }
+
 }

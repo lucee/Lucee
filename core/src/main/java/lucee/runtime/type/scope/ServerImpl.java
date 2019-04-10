@@ -42,31 +42,30 @@ import lucee.runtime.type.util.KeyConstants;
 
 import org.osgi.framework.Version;
 
-
 /**
  * Server Scope
  */
-public final class ServerImpl extends ScopeSupport implements Server,SharedScope {
+public final class ServerImpl extends ScopeSupport implements Server, SharedScope {
 
-	private static final DateTimeImpl expired=new DateTimeImpl(2145913200000L,false);
+    private static final DateTimeImpl expired = new DateTimeImpl(2145913200000L, false);
 
-	private static final Key PRODUCT_NAME = KeyImpl.intern("productname");
-	private static final Key PRODUCT_LEVEL = KeyImpl.intern("productlevel");
+    private static final Key PRODUCT_NAME = KeyImpl.intern("productname");
+    private static final Key PRODUCT_LEVEL = KeyImpl.intern("productlevel");
     private static final Key PRODUCT_VERSION = KeyImpl.intern("productversion");
     private static final Key SERIAL_NUMBER = KeyImpl.intern("serialnumber");
     private static final Key EXPIRATION = KeyImpl.intern("expiration");
     private static final Key INSTALL_KIT = KeyImpl.intern("installkit");
     private static final Key ROOT_DIR = KeyImpl.intern("rootdir");
     private static final Key SUPPORTED_LOCALES = KeyImpl.intern("supportedlocales");
-    private static final Key  ARCH= KeyImpl.intern("arch");
-    private static final Key  MAC_ADDRESS= KeyImpl.intern("macAddress");
-    private static final Key  ARCH_MODEL= KeyImpl.intern("archModel");
-//  private static final Key  JAVA_AGENT_PATH = KeyImpl.intern("javaAgentPath");
-    private static final Key  JAVA_EXECUTION_PATH = KeyImpl.intern("executionPath");
-    private static final Key  JAVA_AGENT_SUPPORTED = KeyImpl.intern("javaAgentSupported");
-    private static final Key  LOADER_VERSION= KeyImpl.intern("loaderVersion");
-    private static final Key  LOADER_PATH = KeyImpl.intern("loaderPath");
-    private static final Key  ADDITIONAL_INFORMATION= KeyImpl.intern("additionalinformation");
+    private static final Key ARCH = KeyImpl.intern("arch");
+    private static final Key MAC_ADDRESS = KeyImpl.intern("macAddress");
+    private static final Key ARCH_MODEL = KeyImpl.intern("archModel");
+    // private static final Key JAVA_AGENT_PATH = KeyImpl.intern("javaAgentPath");
+    private static final Key JAVA_EXECUTION_PATH = KeyImpl.intern("executionPath");
+    private static final Key JAVA_AGENT_SUPPORTED = KeyImpl.intern("javaAgentSupported");
+    private static final Key LOADER_VERSION = KeyImpl.intern("loaderVersion");
+    private static final Key LOADER_PATH = KeyImpl.intern("loaderPath");
+    private static final Key ADDITIONAL_INFORMATION = KeyImpl.intern("additionalinformation");
     private static final Key BUILD_NUMBER = KeyImpl.intern("buildnumber");
     private static final Key RELEASE_DATE = KeyImpl.intern("release-date");
     private static final Key VENDOR = KeyImpl.intern("vendor");
@@ -74,221 +73,206 @@ public final class ServerImpl extends ScopeSupport implements Server,SharedScope
     private static final Key MAX_MEMORY = KeyImpl.intern("maxMemory");
     private static final Key TOTAL_MEMORY = KeyImpl.intern("totalMemory");
     private static final Key VERSION_NAME = KeyImpl.intern("versionName");
-	private static final Key VERSION_NAME_EXPLANATION = KeyImpl.intern("versionNameExplanation");
-	private static final Key HOST_NAME = KeyImpl.intern("hostname");
-	private static final Key ENVIRONMENT = KeyConstants._environment;
-	
+    private static final Key VERSION_NAME_EXPLANATION = KeyImpl.intern("versionNameExplanation");
+    private static final Key HOST_NAME = KeyImpl.intern("hostname");
+    private static final Key ENVIRONMENT = KeyConstants._environment;
 
+    private static String jep;
 
-	private static String jep;
+    /*
+     * Supported CFML Application
+     * 
+     * Blog - http://www.blogcfm.org
+     * 
+     * 
+     * 
+     */
+    /**
+     * constructor of the server scope
+     * 
+     * @param pc
+     */
+    public ServerImpl(PageContext pc, boolean jsr223) {
+	super("server", SCOPE_SERVER, Struct.TYPE_LINKED);
+	reload(pc, jsr223);
 
-	/*
-    Supported CFML Application
-    
-    Blog
-    - http://www.blogcfm.org
-    
-    
-    
-    */
-	/**
-	 * constructor of the server scope
-	 * @param pc
-	 */
-	public ServerImpl(PageContext pc, boolean jsr223) {
-		super("server",SCOPE_SERVER, Struct.TYPE_LINKED);
-		reload(pc,jsr223);
+    }
 
+    @Override
+    public void reload() {
+	reload(ThreadLocalPageContext.get());
+    }
+
+    public void reload(PageContext pc) {
+
+    }
+
+    public void reload(PageContext pc, Boolean jsr223) {
+	Info info = pc.getConfig().getFactory().getEngine().getInfo();
+	ReadOnlyStruct coldfusion = new ReadOnlyStruct();
+	coldfusion.setEL(PRODUCT_LEVEL, info.getLevel());
+	// coldfusion.setEL(PRODUCT_VERSION,"11,0,07,296330");
+	coldfusion.setEL(PRODUCT_VERSION, "2016,0,03,300357");
+	coldfusion.setEL(SERIAL_NUMBER, "0");
+	coldfusion.setEL(PRODUCT_NAME, "Lucee");
+
+	// TODO scope server missing values
+	coldfusion.setEL(KeyConstants._appserver, "");// Jrun
+	coldfusion.setEL(EXPIRATION, expired);//
+	coldfusion.setEL(INSTALL_KIT, "");//
+
+	String rootdir = "";
+	try {
+	    rootdir = ThreadLocalPageContext.getConfig(pc).getRootDirectory().getAbsolutePath();
 	}
-	
-	@Override
-	public void reload() {	
-		reload(ThreadLocalPageContext.get());
+	catch (Throwable t) {
+	    ExceptionUtil.rethrowIfNecessary(t);
 	}
+	coldfusion.setEL(ROOT_DIR, rootdir);//
 
-	public void reload(PageContext pc) {
-		
+	coldfusion.setEL(SUPPORTED_LOCALES, LocaleFactory.getLocaleList());//
+
+	coldfusion.setReadOnly(true);
+	super.setEL(KeyConstants._coldfusion, coldfusion);
+
+	ReadOnlyStruct os = new ReadOnlyStruct();
+	os.setEL(KeyConstants._name, System.getProperty("os.name"));
+	os.setEL(ARCH, System.getProperty("os.arch"));
+	os.setEL(MAC_ADDRESS, SystemUtil.getMacAddressAsWrap());
+	int arch = SystemUtil.getOSArch();
+	if (arch != SystemUtil.ARCH_UNKNOW) os.setEL(ARCH_MODEL, new Double(arch));
+	os.setEL(KeyConstants._version, System.getProperty("os.version"));
+	os.setEL(ADDITIONAL_INFORMATION, "");
+	os.setEL(BUILD_NUMBER, "");
+	os.setEL(HOST_NAME, SystemUtil.getLocalHostName());
+
+	os.setReadOnly(true);
+	super.setEL(KeyConstants._os, os);
+
+	ReadOnlyStruct lucee = new ReadOnlyStruct();
+	lucee.setEL(KeyConstants._version, info.getVersion().toString());
+	lucee.setEL(VERSION_NAME, info.getVersionName());
+	lucee.setEL(VERSION_NAME_EXPLANATION, info.getVersionNameExplanation());
+	lucee.setEL(KeyConstants._state, getStateAsString(info.getVersion()));
+	lucee.setEL(RELEASE_DATE, new DateTimeImpl(info.getRealeaseTime(), false));
+	lucee.setEL(LOADER_VERSION, Caster.toDouble(SystemUtil.getLoaderVersion()));
+	lucee.setEL(LOADER_PATH, ClassUtil.getSourcePathForClass("lucee.loader.servlet.CFMLServlet", ""));
+	lucee.setEL(ENVIRONMENT, jsr223 != null && jsr223.booleanValue() ? "jsr223" : "servlet");
+
+	lucee.setReadOnly(true);
+	super.setEL(KeyConstants._lucee, lucee);
+
+	ReadOnlyStruct separator = new ReadOnlyStruct();
+	separator.setEL(KeyConstants._path, System.getProperty("path.separator"));
+	separator.setEL(KeyConstants._file, System.getProperty("file.separator"));
+	separator.setEL(KeyConstants._line, System.getProperty("line.separator"));
+	separator.setReadOnly(true);
+	super.setEL(KeyConstants._separator, separator);
+
+	ReadOnlyStruct java = new ReadOnlyStruct();
+	java.setEL(KeyConstants._version, System.getProperty("java.version"));
+	java.setEL(VENDOR, System.getProperty("java.vendor"));
+	arch = SystemUtil.getJREArch();
+	if (arch != SystemUtil.ARCH_UNKNOW) java.setEL(ARCH_MODEL, new Double(arch));
+	Runtime rt = Runtime.getRuntime();
+	java.setEL(FREE_MEMORY, new Double(rt.freeMemory()));
+	java.setEL(TOTAL_MEMORY, new Double(rt.totalMemory()));
+	java.setEL(MAX_MEMORY, new Double(rt.maxMemory()));
+	java.setEL(JAVA_AGENT_SUPPORTED, Boolean.TRUE);
+
+	if (jep == null) {
+	    String temp = System.getProperty("user.dir", "");
+	    if (!StringUtil.isEmpty(temp) && !temp.endsWith(File.separator)) temp = temp + File.separator;
+	    jep = temp;
 	}
-	public void reload(PageContext pc, Boolean jsr223) {		
-	    Info info=pc.getConfig().getFactory().getEngine().getInfo();
-	    ReadOnlyStruct coldfusion=new ReadOnlyStruct();
-			coldfusion.setEL(PRODUCT_LEVEL,info.getLevel());
-			//coldfusion.setEL(PRODUCT_VERSION,"11,0,07,296330");
-			coldfusion.setEL(PRODUCT_VERSION,"2016,0,03,300357");
-			coldfusion.setEL(SERIAL_NUMBER,"0");
-			coldfusion.setEL(PRODUCT_NAME,"Lucee");
-			
-			// TODO scope server missing values
-			coldfusion.setEL(KeyConstants._appserver,"");// Jrun
-			coldfusion.setEL(EXPIRATION,expired);// 
-			coldfusion.setEL(INSTALL_KIT,"");// 
-			
-			String rootdir="";
-			try{
-				rootdir=ThreadLocalPageContext.getConfig(pc).getRootDirectory().getAbsolutePath();
-			}
-			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
-			coldfusion.setEL(ROOT_DIR,rootdir);// 
+	java.setEL(JAVA_EXECUTION_PATH, jep);
 
-			
-			coldfusion.setEL(SUPPORTED_LOCALES,LocaleFactory.getLocaleList());// 
-			
-			
-			coldfusion.setReadOnly(true);
-		super.setEL (KeyConstants._coldfusion,coldfusion);
-		
-		ReadOnlyStruct os=new ReadOnlyStruct();
-			os.setEL(KeyConstants._name,System.getProperty("os.name") );
-			os.setEL(ARCH,System.getProperty("os.arch") );
-			os.setEL(MAC_ADDRESS,SystemUtil.getMacAddressAsWrap());
-			int arch=SystemUtil.getOSArch();
-			if(arch!=SystemUtil.ARCH_UNKNOW)os.setEL(ARCH_MODEL,new Double(arch) );
-			os.setEL(KeyConstants._version,System.getProperty("os.version") );
-			os.setEL(ADDITIONAL_INFORMATION,"");
-			os.setEL(BUILD_NUMBER,"");
-			os.setEL(HOST_NAME, SystemUtil.getLocalHostName());
-			
-			os.setReadOnly(true);
-		super.setEL (KeyConstants._os,os);
-		
-		ReadOnlyStruct lucee=new ReadOnlyStruct();
-			lucee.setEL(KeyConstants._version,info.getVersion().toString());
-			lucee.setEL(VERSION_NAME,info.getVersionName());
-			lucee.setEL(VERSION_NAME_EXPLANATION,info.getVersionNameExplanation());
-			lucee.setEL(KeyConstants._state,getStateAsString(info.getVersion()));
-			lucee.setEL(RELEASE_DATE,new DateTimeImpl(info.getRealeaseTime(),false));
-			lucee.setEL(LOADER_VERSION,Caster.toDouble(SystemUtil.getLoaderVersion()));
-			lucee.setEL(LOADER_PATH, ClassUtil.getSourcePathForClass("lucee.loader.servlet.CFMLServlet", ""));
-			lucee.setEL(ENVIRONMENT, jsr223!=null && jsr223.booleanValue()?"jsr223":"servlet");
+	java.setReadOnly(true);
+	super.setEL(KeyConstants._java, java);
 
-			lucee.setReadOnly(true);
-		super.setEL (KeyConstants._lucee,lucee);
-
-		ReadOnlyStruct separator=new ReadOnlyStruct();
-			separator.setEL(KeyConstants._path,System.getProperty("path.separator"));
-			separator.setEL(KeyConstants._file,System.getProperty("file.separator"));
-			separator.setEL(KeyConstants._line,System.getProperty("line.separator"));
-			separator.setReadOnly(true);
-		super.setEL (KeyConstants._separator,separator);
-			
-		ReadOnlyStruct java=new ReadOnlyStruct();
-			java.setEL(KeyConstants._version,System.getProperty("java.version"));
-			java.setEL(VENDOR,System.getProperty("java.vendor"));
-			arch=SystemUtil.getJREArch();
-			if(arch!=SystemUtil.ARCH_UNKNOW)java.setEL(ARCH_MODEL,new Double(arch) );
-			Runtime rt = Runtime.getRuntime();
-			java.setEL(FREE_MEMORY,new Double(rt.freeMemory()));
-			java.setEL(TOTAL_MEMORY,new Double(rt.totalMemory()));
-			java.setEL(MAX_MEMORY,new Double(rt.maxMemory()));
-			java.setEL(JAVA_AGENT_SUPPORTED,Boolean.TRUE);
-			
-			
-			if(jep==null) {
-				String temp = System.getProperty( "user.dir", "" );
-				if ( !StringUtil.isEmpty(temp) && !temp.endsWith( File.separator ) )
-					temp = temp + File.separator;
-				jep=temp;
-			}
-			java.setEL( JAVA_EXECUTION_PATH, jep );
-
-			java.setReadOnly(true);
-			super.setEL (KeyConstants._java,java);
-		
-
-			ReadOnlyStruct servlet=new ReadOnlyStruct();
-			String name="";
-			try{
-				name=pc.getServletContext().getServerInfo();
-			}
-			catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
-			servlet.setEL(KeyConstants._name,name);
-			servlet.setReadOnly(true);
-			
-			
-			super.setEL (KeyConstants._servlet,servlet);
-			
-			
-			ReadOnlyStruct system=new ReadOnlyStruct();
-			system.setEL(KeyConstants._properties,SystemPropStruct.getInstance());
-			system.setEL(KeyConstants._environment,EnvStruct.getInstance());
-			system.setReadOnly(true);
-			super.setEL (KeyConstants._system,system);
-	    
+	ReadOnlyStruct servlet = new ReadOnlyStruct();
+	String name = "";
+	try {
+	    name = pc.getServletContext().getServerInfo();
 	}
+	catch (Throwable t) {
+	    ExceptionUtil.rethrowIfNecessary(t);
+	}
+	servlet.setEL(KeyConstants._name, name);
+	servlet.setReadOnly(true);
 
-	private static String getStateAsString(Version version) {
-		String q = version.getQualifier();
-		int index=q.indexOf('-');
-		if(index==-1) return "stable";
-		return q.substring(index+1);
-	}
-	
-	
-	@Override
-	public Object set(Collection.Key key, Object value) throws PageException {
-		if(isReadOnlyKey(key))
-			throw new ExpressionException("Key ["+key+"] in Server scope is read-only and can not be modified");
-		return super.set (key, value);
-	}
+	super.setEL(KeyConstants._servlet, servlet);
 
+	ReadOnlyStruct system = new ReadOnlyStruct();
+	system.setEL(KeyConstants._properties, SystemPropStruct.getInstance());
+	system.setEL(KeyConstants._environment, EnvStruct.getInstance());
+	system.setReadOnly(true);
+	super.setEL(KeyConstants._system, system);
 
-	@Override
-	public Object setEL(Collection.Key key, Object value) {
-		if(!isReadOnlyKey(key))return super.setEL (key, value);
-		return value;
-	}
-	
+    }
 
-	
-	@Override
-	public Object get(Key key, Object defaultValue) {
-		if(key.equalsIgnoreCase(KeyConstants._railo))
-			return super.get(KeyConstants._lucee, defaultValue);
-		return super.get(key, defaultValue);
-	}
+    private static String getStateAsString(Version version) {
+	String q = version.getQualifier();
+	int index = q.indexOf('-');
+	if (index == -1) return "stable";
+	return q.substring(index + 1);
+    }
 
-	@Override
-	public Object g(Key key, Object defaultValue) {
-		if(key.equalsIgnoreCase(KeyConstants._railo))
-			return super.g(KeyConstants._lucee, defaultValue);
-		return super.g(key, defaultValue);
-	}
+    @Override
+    public Object set(Collection.Key key, Object value) throws PageException {
+	if (isReadOnlyKey(key)) throw new ExpressionException("Key [" + key + "] in Server scope is read-only and can not be modified");
+	return super.set(key, value);
+    }
 
-	@Override
-	public Object g(Key key) throws PageException {
-		if(key.equalsIgnoreCase(KeyConstants._railo))
-			return super.g(KeyConstants._lucee);
-		return super.g(key);
-	}
+    @Override
+    public Object setEL(Collection.Key key, Object value) {
+	if (!isReadOnlyKey(key)) return super.setEL(key, value);
+	return value;
+    }
 
-	@Override
-	public Object get(Key key) throws PageException {
-		if(key.equalsIgnoreCase(KeyConstants._railo))
-			return super.get(KeyConstants._lucee);
-		return super.get(key);
-	}
-	
-	/**
-	 * returns if the key is a readonly key
-	 * @param key key to check
-	 * @return is readonly 
-	 */
-	private boolean isReadOnlyKey(Collection.Key key) {
-		
-		return (key.equals(KeyConstants._java) || 
-				key.equals(KeyConstants._separator) || 
-				key.equals(KeyConstants._os) || 
-				key.equals(KeyConstants._coldfusion) || 
-				key.equals(KeyConstants._lucee));
-	}
+    @Override
+    public Object get(Key key, Object defaultValue) {
+	if (key.equalsIgnoreCase(KeyConstants._railo)) return super.get(KeyConstants._lucee, defaultValue);
+	return super.get(key, defaultValue);
+    }
 
-	@Override
-	public void touchBeforeRequest(PageContext pc) {
-		// do nothing
-	}
+    @Override
+    public Object g(Key key, Object defaultValue) {
+	if (key.equalsIgnoreCase(KeyConstants._railo)) return super.g(KeyConstants._lucee, defaultValue);
+	return super.g(key, defaultValue);
+    }
 
-	@Override
-	public void touchAfterRequest(PageContext pc) {
-		// do nothing
-	}
+    @Override
+    public Object g(Key key) throws PageException {
+	if (key.equalsIgnoreCase(KeyConstants._railo)) return super.g(KeyConstants._lucee);
+	return super.g(key);
+    }
+
+    @Override
+    public Object get(Key key) throws PageException {
+	if (key.equalsIgnoreCase(KeyConstants._railo)) return super.get(KeyConstants._lucee);
+	return super.get(key);
+    }
+
+    /**
+     * returns if the key is a readonly key
+     * 
+     * @param key key to check
+     * @return is readonly
+     */
+    private boolean isReadOnlyKey(Collection.Key key) {
+
+	return (key.equals(KeyConstants._java) || key.equals(KeyConstants._separator) || key.equals(KeyConstants._os) || key.equals(KeyConstants._coldfusion)
+		|| key.equals(KeyConstants._lucee));
+    }
+
+    @Override
+    public void touchBeforeRequest(PageContext pc) {
+	// do nothing
+    }
+
+    @Override
+    public void touchAfterRequest(PageContext pc) {
+	// do nothing
+    }
 }

@@ -42,85 +42,77 @@ import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
 
 public abstract class SpoolerTaskHTTPCall extends SpoolerTaskSupport {
-	
-	private static final long serialVersionUID = -1994776413696459993L;
-	
-	private RemoteClient client;
-    
-    
-	public SpoolerTaskHTTPCall(ExecutionPlan[] plans,RemoteClient client) {
-		super(plans);
-		this.client=client;
+
+    private static final long serialVersionUID = -1994776413696459993L;
+
+    private RemoteClient client;
+
+    public SpoolerTaskHTTPCall(ExecutionPlan[] plans, RemoteClient client) {
+	super(plans);
+	this.client = client;
+    }
+
+    /**
+     * @return
+     * @see lucee.runtime.spooler.SpoolerTask#execute()
+     */
+    @Override
+    public final Object execute(Config config) throws PageException {
+	return execute(client, config, getMethodName(), getArguments());
+    }
+
+    public static final Object execute(RemoteClient client, Config config, String methodName, Struct args) throws PageException {
+	// return rpc.callWithNamedValues(config, getMethodName(), getArguments());
+	PageContext pc = ThreadLocalPageContext.get();
+
+	// remove wsdl if necessary
+	String url = client.getUrl();
+	if (StringUtil.endsWithIgnoreCase(url, "?wsdl")) url = url.substring(0, url.length() - 5);
+
+	// Params
+	Map<String, String> params = new HashMap<String, String>();
+	params.put("method", methodName);
+	params.put("returnFormat", "json");
+	try {
+	    Charset cs = pc.getWebCharset();
+	    params.put("argumentCollection", new JSONConverter(true, cs).serialize(pc, args, false));
+
+	    HTTPResponse res = HTTPEngine4Impl.post(HTTPUtil.toURL(url, true), client.getServerUsername(), client.getServerPassword(), -1L, true, pc.getWebCharset().name(),
+		    Constants.NAME + " Remote Invocation", client.getProxyData(), null, params);
+
+	    return new JSONExpressionInterpreter().interpret(pc, res.getContentAsString());
+
+	}
+	catch (IOException ioe) {
+	    throw Caster.toPageException(ioe);
+	}
+	catch (ConverterException ce) {
+	    throw Caster.toPageException(ce);
 	}
 
-	/**
-	 * @return 
-	 * @see lucee.runtime.spooler.SpoolerTask#execute()
-	 */
-	@Override
-	public final Object execute(Config config) throws PageException {
-		return execute(client, config, getMethodName(), getArguments());
-	}
-	
-	public static final Object execute(RemoteClient client, Config config, String methodName, Struct args) throws PageException {
-		//return rpc.callWithNamedValues(config, getMethodName(), getArguments());
-		PageContext pc = ThreadLocalPageContext.get();
-		
-		
-		// remove wsdl if necessary
-		String url=client.getUrl();
-		if(StringUtil.endsWithIgnoreCase(url,"?wsdl"))
-			url=url.substring(0,url.length()-5);
-		
-		// Params
-		Map<String, String> params=new HashMap<String, String>();
-		params.put("method",methodName);
-		params.put("returnFormat","json");
-		try {
-			Charset cs = pc.getWebCharset();
-			params.put("argumentCollection",new JSONConverter(true,cs).serialize(pc, args, false));
-		
-		
-			HTTPResponse res = HTTPEngine4Impl.post(
-				HTTPUtil.toURL(url,true), 
-				client.getServerUsername(), 
-				client.getServerPassword(), -1L, true, pc.getWebCharset().name(), Constants.NAME+" Remote Invocation", client.getProxyData(), null,params);
-		
-			return new JSONExpressionInterpreter().interpret(pc, res.getContentAsString());
-			
-		}
-		catch (IOException ioe) {
-			throw Caster.toPageException(ioe); 
-		}
-		catch (ConverterException ce) {
-			throw Caster.toPageException(ce); 
-		}
-		
-	}
-	
-	
-	/**
-	 * @see lucee.runtime.spooler.SpoolerTask#subject()
-	 */
-	@Override
-	public String subject() {
-		return client.getLabel();
-	}
+    }
 
-	/**
-	 * @see lucee.runtime.spooler.SpoolerTask#detail()
-	 */
-	@Override
-	public Struct detail() {
-		Struct sct=new StructImpl();
-		sct.setEL(KeyConstants._label, client.getLabel());
-		sct.setEL(KeyConstants._url, client.getUrl());
-		
-		return sct;
-	}
-	
+    /**
+     * @see lucee.runtime.spooler.SpoolerTask#subject()
+     */
+    @Override
+    public String subject() {
+	return client.getLabel();
+    }
 
+    /**
+     * @see lucee.runtime.spooler.SpoolerTask#detail()
+     */
+    @Override
+    public Struct detail() {
+	Struct sct = new StructImpl();
+	sct.setEL(KeyConstants._label, client.getLabel());
+	sct.setEL(KeyConstants._url, client.getUrl());
 
-	protected abstract String getMethodName();
-	protected abstract Struct getArguments();
+	return sct;
+    }
+
+    protected abstract String getMethodName();
+
+    protected abstract Struct getArguments();
 }

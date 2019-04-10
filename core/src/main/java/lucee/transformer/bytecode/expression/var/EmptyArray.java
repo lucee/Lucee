@@ -28,13 +28,13 @@ import org.objectweb.asm.Type;
 
 public class EmptyArray extends ExpressionBase {
 
-	public EmptyArray(Factory factory) {
-		super(factory,null,null);
-	}
+    public EmptyArray(Factory factory) {
+	super(factory, null, null);
+    }
 
-	public Type _writeOut(BytecodeContext bc, int mode) {
-		ASMUtil.createEmptyArray(bc.getAdapter());
-		return Types.ARRAY;
-	}
+    public Type _writeOut(BytecodeContext bc, int mode) {
+	ASMUtil.createEmptyArray(bc.getAdapter());
+	return Types.ARRAY;
+    }
 
 }

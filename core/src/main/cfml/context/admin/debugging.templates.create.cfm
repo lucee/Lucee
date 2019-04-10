@@ -27,6 +27,7 @@
 	<cfswitch expression="#form.mainAction#">
 	<!--- UPDATE --->
 		<cfcase value="#stText.Buttons.submit#">
+			
 
 			<cfset custom=struct()>
 		
@@ -42,23 +43,24 @@
 					<cfset custom[mid(key,8,10000)]=form[key]>
 				</cfif>
 			</cfloop>
-
+			<cfset error.message = "">
 			<cfset driver.onBeforeUpdate(custom)>
 			<cfset meta=getMetaData(driver)>
-			<cfadmin 
-				action="updateDebugEntry"
-				type="#request.adminType#"
-				password="#session["password"&request.adminType]#"
-				 
-				label="#form.label#" 
-				debugtype="#form.type#" 
-				iprange="#form.iprange#"
-				fullname="#meta.fullname#"
-				path="#contractPath(meta.path)#"
-				custom="#custom#"
-				
-				remoteClients="#request.getRemoteClients()#">
-					
+			<cfif error.message EQ "">
+				<cfadmin
+					action="updateDebugEntry"
+					type="#request.adminType#"
+					password="#session["password"&request.adminType]#"
+					label="#form.label#" 
+					debugtype="#form.type#" 
+					iprange="#form.iprange#"
+					fullname="#meta.fullname#"
+					path="#contractPath(meta.path)#"
+					custom="#custom#"
+
+					remoteClients="#request.getRemoteClients()#">
+			</cfif>
+
 		</cfcase>
 	</cfswitch>
 	<cfcatch>

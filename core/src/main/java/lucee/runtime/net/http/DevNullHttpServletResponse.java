@@ -35,51 +35,45 @@ public final class DevNullHttpServletResponse extends HttpServletResponseWrapper
 
     /**
      * constructor of the class
+     * 
      * @param httpServletResponse
      */
     public DevNullHttpServletResponse(HttpServletResponse httpServletResponse) {
-        super(httpServletResponse);
-        this.httpServletResponse=httpServletResponse;
+	super(httpServletResponse);
+	this.httpServletResponse = httpServletResponse;
     }
 
     @Override
-    public void flushBuffer() {
-    }
+    public void flushBuffer() {}
 
     @Override
     public ServletResponse getResponse() {
-        return httpServletResponse;
+	return httpServletResponse;
     }
 
     @Override
     public PrintWriter getWriter() throws IOException {
-        return new PrintWriter(DevNullOutputStream.DEV_NULL_OUTPUT_STREAM);
+	return new PrintWriter(DevNullOutputStream.DEV_NULL_OUTPUT_STREAM);
     }
 
     @Override
-    public void reset() {
-    }
+    public void reset() {}
 
     @Override
-    public void resetBuffer() {
-    }
+    public void resetBuffer() {}
 
     @Override
-    public void setBufferSize(int size) {
-    }
+    public void setBufferSize(int size) {}
 
     @Override
-    public void setContentLength(int size) {
-    }
+    public void setContentLength(int size) {}
 
     @Override
-    public void setContentType(String type) {
-    }
+    public void setContentType(String type) {}
 
     @Override
     public ServletOutputStream getOutputStream() throws IOException {
-        return new DevNullServletOutputStream();
+	return new DevNullServletOutputStream();
     }
-
 
 }

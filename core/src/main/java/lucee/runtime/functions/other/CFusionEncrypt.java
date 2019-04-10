@@ -26,9 +26,9 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 
 public final class CFusionEncrypt implements Function {
-    
-    public static String call(PageContext pc , String string, String key) throws PageException {
-		return Encrypt.call(pc,string,key,"cfmx_compat","hex");
-	}
-    
+
+    public static String call(PageContext pc, String string, String key) throws PageException {
+	return Encrypt.call(pc, string, key, "cfmx_compat", "hex");
+    }
+
 }

@@ -41,6 +41,7 @@ Path placeholders:
 	<data-sources
 		preserve-single-quote="yes">
 	</data-sources>
+	<mode develop="false"></mode>
 
 	<!--
 		deploy-directory - directory where java classes will be deployed
@@ -49,11 +50,11 @@ Path placeholders:
 		temp-directory - directory for temporary files (upload aso.)
 	 -->
 	<file-system  
-		fld-directory="{lucee-config}/library/fld/" 
 		temp-directory="{lucee-config}/temp/" 
-		tld-directory="{lucee-config}/library/tld/"
-		function-directory="{lucee-config}/library/function/"
-		tag-directory="{lucee-config}/library/tag/">
+		fld-default-directory="{lucee-config}/library/fld/" 
+		tld-default-directory="{lucee-config}/library/tld/"
+		function-default-directory="{lucee-config}/library/function/"
+		tag-default-directory="{lucee-config}/library/tag/">
 	</file-system>
 	
 	
@@ -362,7 +363,7 @@ Path placeholders:
 		listener-mode="curr2root"/>
 	
 	<update 
-		location="http://release.lucee.org" 
+		location="http://update.lucee.org" 
 		type="manual"/>
 		
 <!--

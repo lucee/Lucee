@@ -21,12 +21,13 @@
  */
 package lucee.runtime.functions.other;
 
+import java.lang.reflect.Method;
+
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
-import lucee.runtime.img.Image;
 import lucee.runtime.java.JavaObject;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.KeyImpl;
@@ -38,59 +39,63 @@ import lucee.runtime.type.UDF;
 
 public final class GetMetaData implements Function {
 
-	private static final long serialVersionUID = -3787469574373656167L;
+    private static final long serialVersionUID = -3787469574373656167L;
 
-	// TODO support enties more deeply
-	public static Object call(PageContext pc ) throws PageException {
-        Component ac = pc.getActiveComponent();
-        if(ac!=null) {
-	        return call(pc , ac);
+    // TODO support enties more deeply
+    public static Object call(PageContext pc) throws PageException {
+	Component ac = pc.getActiveComponent();
+	if (ac != null) {
+	    return call(pc, ac);
+	}
+
+	return new StructImpl();
+    }
+
+    public static Object call(PageContext pc, Object object) throws PageException {
+	return call(pc, object, false);
+    }
+
+    public static Object call(PageContext pc, Object object, boolean source) throws PageException {
+	if (object instanceof JavaObject) {
+	    return call(pc, ((JavaObject) object).getClazz(), source);
+	}
+	else if (object instanceof ObjectWrap) {
+	    return call(pc, ((ObjectWrap) object).getEmbededObject(), source);
+	}
+
+	if (!source) {
+	    // Component
+	    if (object instanceof Component) {
+		return getMetaData((Component) object, pc);
+		// return ((Component)object).getMetaData(pc);
 	    }
-	    
-		return new StructImpl();
-	}
-	
-	public static Object call(PageContext pc , Object object) throws PageException {
-		return call(pc, object, false);
-	}
-	
-	public static Object call(PageContext pc , Object object,boolean source) throws PageException {
-		if(object instanceof JavaObject){
-			return call(pc,((JavaObject)object).getClazz(),source);
-		}
-		else if(object instanceof ObjectWrap){
-			return call(pc,((ObjectWrap)object).getEmbededObject(),source);
-		}
-		
-		if(!source){
-			// Component
-			if(object instanceof Component) {
-				return getMetaData((Component)object,pc);
-				//return ((Component)object).getMetaData(pc);
-			}
-			// UDF
-			if(object instanceof UDF) {
-				return ((UDF)object).getMetaData(pc);
-			}
-			// Query
-	        else if(object instanceof Query) {
-	            return ((Query)object).getMetaDataSimple();
-	        }
-			// Image
-	        else if(object instanceof Image) {
-	            return ((Image)object).info();
-	        }
-			if(object==null) throw new FunctionException(pc,"GetMetaData",1,"object","value is null");
-			return object.getClass();
-		}
-		
-		String str = Caster.toString(object,null);
-		if(str==null)throw new FunctionException(pc,"GetMetaData",1,"object","must be a string when second argument is true");
-        return pc.undefinedScope().getScope(KeyImpl.init(str));
-		
+	    // UDF
+	    if (object instanceof UDF) {
+		return ((UDF) object).getMetaData(pc);
+	    }
+	    // Query
+	    else if (object instanceof Query) {
+		return ((Query) object).getMetaDataSimple();
+	    }
+
+	    // FUTURE add interface with getMetaData
+	    try {
+		Method m = object.getClass().getMethod("info", new Class[] {});
+		return (Struct) m.invoke(object, new Object[] {});
+	    }
+	    catch (Exception e) {}
+
+	    if (object == null) throw new FunctionException(pc, "GetMetaData", 1, "object", "value is null");
+	    return object.getClass();
 	}
 
-	public static Struct getMetaData(Component cfc, PageContext pc) throws PageException {
-		return cfc.getMetaData(pc);
-	}
+	String str = Caster.toString(object, null);
+	if (str == null) throw new FunctionException(pc, "GetMetaData", 1, "object", "must be a string when second argument is true");
+	return pc.undefinedScope().getScope(KeyImpl.init(str));
+
+    }
+
+    public static Struct getMetaData(Component cfc, PageContext pc) throws PageException {
+	return cfc.getMetaData(pc);
+    }
 }

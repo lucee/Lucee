@@ -23,28 +23,28 @@ import java.util.List;
 import lucee.intergral.fusiondebug.server.type.FDValueNotMutability;
 
 public class FDSimpleValue extends FDValueNotMutability {
-	
-	private String str;
-	private List children;
 
-	public FDSimpleValue(List children,String str){
-		this.children=children;
-		this.str=str;
-		
-	}
-	
-	@Override
-	public String toString() {
-		return str;
-	}
+    private String str;
+    private List children;
 
-	@Override
-	public List getChildren() {
-		return children;
-	}
+    public FDSimpleValue(List children, String str) {
+	this.children = children;
+	this.str = str;
 
-	@Override
-	public boolean hasChildren() {
-		return children!=null;
-	}
+    }
+
+    @Override
+    public String toString() {
+	return str;
+    }
+
+    @Override
+    public List getChildren() {
+	return children;
+    }
+
+    @Override
+    public boolean hasChildren() {
+	return children != null;
+    }
 }

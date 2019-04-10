@@ -84,7 +84,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		if (!isempty(variables.mongoDB.user) && !isEmpty(variables.mongoDB.pass))
 			uri = "mongodb://#variables.mongoDB.user#:#variables.mongoDB.pass#@#variables.mongoDB.server#:#variables.mongoDB.port#";
 
-		systemOutput("MongoDB URI: " & uri, true, true);
+		//systemOutput("MongoDB URI: " & uri, true, true);
 
 		// test host/port via http, should return: "It looks like you are trying to access MongoDB over HTTP on the native driver port."
 		/*
@@ -354,7 +354,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 
 
-	public void function testCacheAsScope() skip="isNotSupported" {
+	private void function testCacheAsScope() skip="isNotSupported" {
 		local.id=createUniqueId();
 		local.uri=createURI("mongodb/index.cfm");
 

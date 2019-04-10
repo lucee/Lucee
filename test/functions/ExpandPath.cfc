@@ -18,15 +18,15 @@
  ---><cfscript>
 
 component extends="org.lucee.cfml.test.LuceeTestCase"   {
-    try{
+    /*try{
         dir=getDirectoryFromPath(GetBaseTemplatePath());
         dir=mid(dir,1,len(dir)-1);
     }
     // inside jsr223 getBaseTemplatePath is not supported
     catch(e){
-        dir=server.coldfusion.rootdir;
-    }
-    
+        
+    }*/
+    dir=server.coldfusion.rootdir;
 
     parent=getDirectoryFromPath(dir);
     parent=mid(parent,1,len(parent)-1);

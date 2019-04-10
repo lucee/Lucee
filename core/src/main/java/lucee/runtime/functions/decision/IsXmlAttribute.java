@@ -31,11 +31,11 @@ import org.w3c.dom.NodeList;
  */
 public final class IsXmlAttribute implements Function {
 
-	public static boolean call(PageContext pc, Object value) {
-	    
-	    if(value instanceof Attr)return true;
-	    else if(value instanceof NodeList) return ((NodeList)value).item(0).getNodeType()==Node.ATTRIBUTE_NODE;
-	    else if(value instanceof XMLStruct) return ((XMLStruct)value).getNodeType()==Node.ATTRIBUTE_NODE;
-	    return false;
-	}
+    public static boolean call(PageContext pc, Object value) {
+
+	if (value instanceof Attr) return true;
+	else if (value instanceof NodeList) return ((NodeList) value).item(0).getNodeType() == Node.ATTRIBUTE_NODE;
+	else if (value instanceof XMLStruct) return ((XMLStruct) value).getNodeType() == Node.ATTRIBUTE_NODE;
+	return false;
+    }
 }

@@ -7,7 +7,11 @@
 
 <cfset arrNamespaces = Application.objects.utils.getTagNamespaces()>
 <cfset arrAllItems   = Application.objects.utils.getAllTags()>
-
+<cfset stText.doc.attr.type = {}>
+<cfset stText.doc.attr.type.dynamic =  "There is no restriction for attributes for this tag.">
+<cfset stText.doc.attr.type.fixed =  "The attributes for this tag are fixed. Except for the following attributes no other attributes are allowed.">
+<cfset stText.doc.attr.type.mixed =  "This tag has a fixed definition of attributes (see below). In addition it allowes to use any additional attribute">
+<cfset stText.doc.attr.type.noname =  "This tag only allows one attribute value (no name).">
 <cfif len( url.item )>
 	<cfset itemPos = arrAllItems.findNoCase( url.item )>
 	<cfif !itemPos>
@@ -107,15 +111,19 @@
 		<cfparam name="data.attributes" default="#{}#">
 		<cfparam name="data.attributetype" default="fixed">
 
-		<div class="tile-wrap">
-			<div class="tile">
-				<ul class="breadcrumb margin-no-top margin-right margin-no-bottom margin-left">
-					<li><a href="index.cfm">Home</a></li>
-					<li><a href="tags.cfm">Lucee tags</a></li>
-					<li class="active">&lt;#lCase( tagName )#&gt;</li>
-				</ul>
+		<cfif !structKeyExists(url, "isAjaxRequest")>
+			<div class="tile-wrap">
+				<div class="tile">
+					<ul class="margin-no-top margin-right margin-no-bottom margin-left">
+						<li><a href="index.cfm">Home</a></li>
+						<li><a href="tags.cfm">Lucee tags</a></li>
+						<li class="active">&lt;#lCase( tagName )#&gt;</li>
+					</ul>
+				</div>
 			</div>
-		</div>
+		<cfelse>
+			<h2 style="text-align: center;">Lucee Tags</h2>
+		</cfif>
 		<h2>Tag <em>&lt;#uCase( tagName )#&gt;</em></h2>
 
 		<cfif data.status == "deprecated">
@@ -125,7 +133,7 @@
 		<!--- Desc --->
 		<div class="text">
 			<cfif !data.keyExists( "description" ) || !len( data.description )>
-				<em>No decription found</em>
+				<em>No description found</em>
 			<cfelse>
 				#data.description#
 			</cfif>
@@ -256,7 +264,7 @@
 		</cfif>
 		<cfset isdefault = Findnocase('defaultValue', serializeJSON(data))>
 		<cfif ( data.attributeType == "fixed" || data.attributeType == "mixed" ) && arrayLen( arrAttrNames )>
-			<table class="maintbl">
+			<table class="table maintbl">
 				<thead>
 					<tr>
 						<th width="21%">#stText.doc.attr.name#</th>

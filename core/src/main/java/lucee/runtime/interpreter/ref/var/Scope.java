@@ -30,58 +30,59 @@ import lucee.runtime.interpreter.ref.literal.LString;
  * 
  */
 public final class Scope extends RefSupport implements Set {
-	
-	private int scope;
 
-	/**
+    private int scope;
+
+    /**
      * contructor of the class
-	 * @param pc
-	 * @param scope
-	 */
-	public Scope(int scope) {
-		this.scope=scope;
-	}
-	
-	@Override
-	public Object getValue(PageContext pc) throws PageException {
-		return VariableInterpreter.scope(pc, scope, false);
-	}
-
-	@Override
-    public String getTypeName() {
-		return "scope";
-	}
-
-	@Override
-	public Object touchValue(PageContext pc) throws PageException {
-    	return VariableInterpreter.scope(pc, scope, true);
+     * 
+     * @param pc
+     * @param scope
+     */
+    public Scope(int scope) {
+	this.scope = scope;
     }
 
     @Override
-    public Object setValue(PageContext pc,Object obj) throws PageException {
-        return pc.undefinedScope().set(getKeyAsString(pc),obj);
+    public Object getValue(PageContext pc) throws PageException {
+	return VariableInterpreter.scope(pc, scope, false);
+    }
+
+    @Override
+    public String getTypeName() {
+	return "scope";
+    }
+
+    @Override
+    public Object touchValue(PageContext pc) throws PageException {
+	return VariableInterpreter.scope(pc, scope, true);
+    }
+
+    @Override
+    public Object setValue(PageContext pc, Object obj) throws PageException {
+	return pc.undefinedScope().set(getKeyAsString(pc), obj);
     }
 
     /**
      * @return scope
      */
     public int getScope() {
-        return scope;
+	return scope;
     }
 
     @Override
     public Ref getParent(PageContext pc) throws PageException {
-        return null;
+	return null;
     }
-    
+
     @Override
     public Ref getKey(PageContext pc) throws PageException {
-        return new LString(getKeyAsString(pc));
+	return new LString(getKeyAsString(pc));
     }
 
     @Override
     public String getKeyAsString(PageContext pc) throws PageException {
-        //return ScopeFactory.toStringScope(scope,null);
-        return VariableInterpreter.scopeInt2String(scope);
+	// return ScopeFactory.toStringScope(scope,null);
+	return VariableInterpreter.scopeInt2String(scope);
     }
 }

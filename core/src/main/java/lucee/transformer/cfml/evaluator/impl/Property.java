@@ -28,35 +28,32 @@ import lucee.transformer.cfml.evaluator.EvaluatorException;
 import lucee.transformer.cfml.evaluator.EvaluatorSupport;
 import lucee.transformer.library.tag.TagLibTag;
 
-
-
 /**
- * Prueft den Kontext des Tag mailparam.
- * Das Tag <code>mailParam</code> darf nur innerhalb des Tag <code>mail</code> liegen.
+ * Prueft den Kontext des Tag mailparam. Das Tag <code>mailParam</code> darf nur innerhalb des Tag
+ * <code>mail</code> liegen.
  */
 public final class Property extends EvaluatorSupport {
 
-	@Override
-	public void evaluate(Tag tag,TagLibTag libTag) throws EvaluatorException { 
-		// get component name
-		String compName=getComponentName(tag);
-		
-		if(!ASMUtil.isParentTag(tag,compName))
-			throw new EvaluatorException("Wrong Context, tag "+libTag.getFullName()+" must be inside "+compName+" tag");
+    @Override
+    public void evaluate(Tag tag, TagLibTag libTag) throws EvaluatorException {
+	// get component name
+	String compName = getComponentName(tag);
+
+	if (!ASMUtil.isParentTag(tag, compName)) throw new EvaluatorException("Wrong Context, tag " + libTag.getFullName() + " must be inside " + compName + " tag");
+    }
+
+    public static String getComponentName(Tag tag) throws EvaluatorException {
+	Page page;
+	try {
+	    page = ASMUtil.getAncestorPage(tag);
+	}
+	catch (TransformerException e) {
+	    throw new EvaluatorException(e.getMessage());
 	}
 
-	public static String getComponentName(Tag tag) throws EvaluatorException {
-		Page page;
-		try {
-			page = ASMUtil.getAncestorPage(tag);
-		} catch (TransformerException e) {
-			throw new EvaluatorException(e.getMessage());
-		}
-		
-		String ns=tag.getTagLibTag().getTagLib().getNameSpaceAndSeparator();
-		String compName=ns+(page.getSourceCode().getDialect()==CFMLEngine.DIALECT_CFML?
-				Constants.CFML_COMPONENT_TAG_NAME:Constants.LUCEE_COMPONENT_TAG_NAME);
-		
-		return compName;
-	}
+	String ns = tag.getTagLibTag().getTagLib().getNameSpaceAndSeparator();
+	String compName = ns + (page.getSourceCode().getDialect() == CFMLEngine.DIALECT_CFML ? Constants.CFML_COMPONENT_TAG_NAME : Constants.LUCEE_COMPONENT_TAG_NAME);
+
+	return compName;
+    }
 }

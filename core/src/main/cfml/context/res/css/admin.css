@@ -13,14 +13,14 @@ html, body {
 body {
 	min-width:600px;
 	background-color:#3399cc;
-	background-image: url('../img/bg_web.gif.cfm');
+	background-image: url('../img/bg_web-{appendix}.gif.cfm');
 	background-repeat: no-repeat;
 	margin:0;
 	padding:0;
 }
 body.server {
 	background-color:#bf4f36;
-	background-image: url('../img/bg_server.gif.cfm');
+	background-image: url('../img/bg_server-{appendix}.gif.cfm');
 }
 body, td, th {
 	font-family:Arial, Helvetica, sans-serif;
@@ -57,6 +57,9 @@ a {
 	text-decoration:underline
 }
 
+tr > th > a {
+    color: #ffffff !important;
+}
 
 .admin-server a {
 	color:#bf4f36;
@@ -215,6 +218,11 @@ td#logintd {
 #copyright a {
 	color:#efede5;
 }
+.linkContext a {
+	color:#efede5;
+	text-decoration:none;
+
+}
 #copyrighttd {
 
 }
@@ -304,7 +312,7 @@ td#logintd {
 	content: " ";
 	left:5px;
 	top:8px;
-	background-image: url('../img/admin_sprite.png.cfm');
+	background-image: url('../img/admin_sprite-{appendix}.png.cfm');
 	background-repeat: no-repeat;
 	background-position: -105px -20px;
 }
@@ -344,8 +352,7 @@ div.pageintro {
 	margin: 0 0 20px 0;
 }
 /* intro text for a section (i.e. under an h2; above a table) */
-.itemintro {
-	font-style:italic;
+.itemintro {	
 	margin: -3px 0 10px 0;
 }
 
@@ -413,11 +420,9 @@ td.fieldPadded {
 
 /* display boxes etc. */
 .commentError{font-size : 10px;color:#bf4f36;text-decoration:none;}
-.comment{
-	font-size:11px;
-	color:#999;
-	text-decoration:none;
-	font-style: italic;
+.comment{	
+	font-size:11px;color:#999;font-style: italic;
+	text-decoration:none;	
 	padding: 1px 0px;
 	/* PK: when using mouseover helptexts, this padding might be better:
 	 * padding:2px 0 5px 0;
@@ -658,24 +663,24 @@ a.edit {
 
 
 .btn-search {
-
 	height:19px;
 	width:19px;
 	display: inline-block;
 	outline: none;
 	text-decoration: none;
-	padding:5px;
+	padding-bottom: 5px !important;
 	margin-left:0;
 	background-color:#333;
 	border-width:0;
 }
 
+.admin-web .btn-search  		{ background-position: -125px -80px; margin-left: -8% !important;}
+.admin-server .btn-search  		{ background-position: -125px -100px; margin-left: -8% !important;}
 
-.admin-web .btn-search  		{ background-position: -125px -80px; }
-.admin-server .btn-search  		{ background-position: -125px -100px; }
-
-
-
+.tt-hint{ width: 88% ;}
+.tt-input {
+   width: 89%;
+}
 .btn-mini span {
 	display:none;
 }
@@ -1059,7 +1064,39 @@ tbody#extproviderlist td {
 	background-color:#bf4f36;
 }
 
-
+.fLeft{
+	position: relative;
+	float: left;
+	width:33%;
+}
+.smBtn {
+    background: #333 none repeat scroll 0 0;
+    border-radius: 5px;
+    border-width: 0;
+    color: #efede5;
+    display: inline-block;
+    font-size: 11px;
+    font-weight: bold;
+    outline: medium none;
+    overflow: visible;
+    padding: 3px 5px;
+    text-align: center;
+    text-decoration: none;
+    width: auto;
+}
+.pdTop{
+  	padding-top: 3%;
+}
+.fs {
+    font-size: 13px !important;
+}
+.alertMsg{
+	color: black;
+    font-size: 11px;
+    font-weight: bold;
+    margin: 5px 0 ;
+    padding: 5px;
+}
 
 
 /* install extension*/
@@ -1158,6 +1195,26 @@ div.tooltip {
 	padding: 5px 3px;
 }
 
+	div.whitePanel {
+		padding : 2%;
+	    border: 1px solid #fff;
+	    margin-left: 3% ;
+	}
+	.maintbl.alignLeft{ 
+	    margin-left: 3% ;
+	}
+	.bl.alignLeft {
+	    margin-left: 3% ;
+	}
+	.leftSpace{
+		padding-left: 3%;
+	}
+	.topBottomSpace{
+		padding-bottom: 3%;
+	   	padding-top: 2%;
+	}
+
+
 /* css for tag, object, and function documentation */
 .syntaxTag, .syntaxFunc{color:#993300;}
 .syntaxText {color:#bf4f36;}
@@ -1207,8 +1264,17 @@ body.full #logo { display: block; position: absolute; top: 0px; left: 0; width: 
 
 #admin-tabs	a 	{ display: block; width: 60px; height: 33px; float: left; }
 
-.sprite,#sprite			{ background-image: url( '../img/admin_sprite.png.cfm' ); background-repeat: no-repeat; }
+.mail-icon,#mail-icon  {
+	background-image: url( '../img/mail-icon.jpg.cfm' );
+	background-repeat: no-repeat;
+	width : 16px;
+	height: 16px;
+	vertical-align: middle;
+	display: inline-block;
+	border-radius: 3px;
+}
 
+.sprite,#sprite			{ background-image: url( '../img/admin_sprite-{appendix}.png.cfm' ); background-repeat: no-repeat; }
 
 #resizewin 		{ display:block; width:19px; height:19px; text-indent: -9999px; }
 
@@ -1234,7 +1300,10 @@ body.full #logo { display: block; position: absolute; top: 0px; left: 0; width: 
 .admin-server #resizewin  		{ background-position: -85px -20px; }
 
 
-.icon		{ background-image: url( '../img/admin-sprite.png.cfm' ); margin: 3px; width: 9px; height: 9px; cursor: pointer; }
+.icon		{ background-image: url( '../img/admin-sprite-{appendix}.png.cfm' ); margin: 3px; width: 9px; height: 9px; cursor: pointer; }
+/* edit */
+.admin-web .edit  		{ background-position: -145px 0px; }
+.admin-server .edit  		{ background-position: -145px -16px; }
 
 .plus		{ background-position: -144px -43px; }
 .minus		{ background-position: -144px -33px; }

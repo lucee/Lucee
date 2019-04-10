@@ -34,6 +34,28 @@ function printError(error,boolean longversion=false) {
 	if(StructKeyExists(arguments.error,'message') and arguments.error.message NEQ "") {
 		writeOutput('<div class="error">');
 		writeOutput(br(arguments.error.message));
+
+		if (!isNull(arguments.error.exception.StackTrace) && !isEmpty(arguments.error.exception.StackTrace)) {
+
+			echo('<p>
+			<button id="error-details">Show Details</button>
+			<div id="stack-trace" style="display: none;">#arguments.error.exception.StackTrace#</div>');
+
+			htmlbody {
+				echo(
+				'<script>
+					$("##error-details").click(function(){
+						if($(this).text() == "Show Details"){
+							$(this).text("Hide Details");
+						} else{
+							$(this).text("Show Details");
+						}
+						$("##stack-trace").toggle();
+					});
+				</script>'
+				);
+			}
+		}
 		writeOutput('<br>');
 		writeOutput(br(arguments.error.detail));
 
@@ -322,4 +344,10 @@ function _byteFormatShort(numeric left,numeric right,string suffix){
 	<cfargument name="href"   default="">
 
 	<a class="btn-mini sprite edit" title="Edit" href="#arguments.href#"><span>Edit</span></a>
+</cffunction>
+
+<cffunction name="renderMailButton" output="true">
+	<cfargument name="href"   default="">
+
+	<a class="mail-icon" href="#arguments.href#" title="Send a test mail" width="25"></a>
 </cffunction>

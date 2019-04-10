@@ -24,22 +24,19 @@ import lucee.transformer.cfml.evaluator.EvaluatorException;
 import lucee.transformer.cfml.evaluator.EvaluatorSupport;
 import lucee.transformer.library.tag.TagLibTag;
 
-
-
 /**
- * Prueft den Kontext des Tag mailpart.
- * Das Tag <code>mailPart</code> darf nur innerhalb des Tag <code>mail</code> liegen.
+ * Prueft den Kontext des Tag mailpart. Das Tag <code>mailPart</code> darf nur innerhalb des Tag
+ * <code>mail</code> liegen.
  */
 public final class MailPart extends EvaluatorSupport {
 
-	@Override
-	public void evaluate(Tag tag,TagLibTag libTag) throws EvaluatorException { 
-	
+    @Override
+    public void evaluate(Tag tag, TagLibTag libTag) throws EvaluatorException {
+
 	// check parent
-		String ns=libTag.getTagLib().getNameSpaceAndSeparator();
-		String mailName=ns+"mail";
-		
-		if(!ASMUtil.hasAncestorTag(tag,mailName))
-			throw new EvaluatorException("Wrong Context, tag "+libTag.getFullName()+" must be inside a "+mailName+" tag");
-	}
+	String ns = libTag.getTagLib().getNameSpaceAndSeparator();
+	String mailName = ns + "mail";
+
+	if (!ASMUtil.hasAncestorTag(tag, mailName)) throw new EvaluatorException("Wrong Context, tag " + libTag.getFullName() + " must be inside a " + mailName + " tag");
+    }
 }

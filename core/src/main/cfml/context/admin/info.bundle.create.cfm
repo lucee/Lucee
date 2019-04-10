@@ -19,8 +19,20 @@
 					<td>#bundle.version#</td>
 				</tr>
 				<tr>
+					<th scope="row">#stText.info.bundles.created#</th>
+					<td><cfset d=toDateFromBundleHeader(bundle.headers)>
+						#isDate(d)?lsDateFormat(d):''#</td>
+				</tr>
+				<tr>
 					<th scope="row">#stText.info.bundles.path#</th>
 					<td><cfif !isNull(bundle.path)>#bundle.path#</cfif></td>
+				</tr>
+				<tr>
+					<th scope="row">#stText.info.bundles.size?:"Size"#</th>
+					<td>
+						<cfset p=bundle.path&"">
+						<cfif fileExists(p)>#byteFormat(fileInfo(p).size)#</cfif>
+					</td>
 				</tr>
 				<tr>
 					<th scope="row">#stText.info.bundles.vendor#</th>
@@ -47,7 +59,7 @@
 							<cfloop struct="#bundle.headers#" index="k" item="v">
 							<tr>
 								<th scope="row">#k#</th>
-								<td>#v#</td>
+								<td>#replace(replace(v,';','; ','all'),',',', ','all')#</td>
 							</tr>
 						</cfloop>
 						</tbody>

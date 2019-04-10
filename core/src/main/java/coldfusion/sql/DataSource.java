@@ -23,31 +23,31 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 public interface DataSource extends javax.sql.DataSource {
-	
-	public void remove() throws SQLException;
-	
-	@Override
-	public Connection getConnection() throws SQLException;
 
-	@Override
-	public Connection getConnection(String user,String pass) throws SQLException;
+    public void remove() throws SQLException;
 
-	public void setDataSourceDef(DataSourceDef dsDef);
+    @Override
+    public Connection getConnection() throws SQLException;
 
-	public DataSourceDef getDataSourceDef();
+    @Override
+    public Connection getConnection(String user, String pass) throws SQLException;
 
-	@Override
-	public PrintWriter getLogWriter() throws SQLException;
+    public void setDataSourceDef(DataSourceDef dsDef);
 
-	@Override
-	public int getLoginTimeout() throws SQLException;
+    public DataSourceDef getDataSourceDef();
 
-	@Override
-	public void setLogWriter(PrintWriter pw) throws SQLException;
+    @Override
+    public PrintWriter getLogWriter() throws SQLException;
 
-	@Override
-	public void setLoginTimeout(int timeout) throws SQLException;
+    @Override
+    public int getLoginTimeout() throws SQLException;
 
-	public boolean isDisabled();
+    @Override
+    public void setLogWriter(PrintWriter pw) throws SQLException;
+
+    @Override
+    public void setLoginTimeout(int timeout) throws SQLException;
+
+    public boolean isDisabled();
 
 }

@@ -21,19 +21,31 @@
  */
 package lucee.runtime.functions.system;
 
-import lucee.commons.io.res.util.ResourceUtil;
 import lucee.runtime.PageContext;
+import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.exp.ApplicationException;
+import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.ext.function.Function;
+import lucee.runtime.ext.function.BIF;
 
-public final class GetBaseTemplatePath implements Function {
-	public static String call(PageContext pc ) throws PageException {
-		
-		PageSource base = pc.getBasePageSource();
-		if(base==null) throw new ApplicationException("current context does not have a template it is based on");
-		//if(ps==null) return ResourceUtil.getCanonicalResourceEL(ResourceUtil.toResourceExisting(pc.getConfig(), ReqRspUtil.getRootPath(pc.getServletContext()))).getAbsolutePath();
-        return ResourceUtil.getResource(pc,base).getAbsolutePath();
+public final class GetBaseTemplatePath extends BIF {
+	
+	private static final long serialVersionUID = -6810643607690049685L;
+
+	public static String call(PageContext pc) throws PageException {
+		//pc.getTemplatePath();
+		PageSource ps = pc.getBasePageSource();
+		if(ps==null) {
+			ps=((PageContextImpl)pc).getPageSource(1);
+			if(ps==null) throw new ApplicationException("current context does not have a template it is based on");
+		}
+		return ps.getResourceTranslated(pc).getAbsolutePath();
+	}
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if(args.length==0)return call(pc);
+		throw new FunctionException(pc, "GetBaseTemplatePath", 0, 0, args.length);
 	}
 }

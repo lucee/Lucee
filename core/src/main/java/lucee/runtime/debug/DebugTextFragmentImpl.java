@@ -21,34 +21,34 @@ package lucee.runtime.debug;
 import lucee.commons.io.SystemUtil.TemplateLine;
 
 public class DebugTextFragmentImpl implements DebugTextFragment {
-	private final String text;
-	private final String template;
-	private final int line;
-	
-	public DebugTextFragmentImpl(String text, String template, int line){
-		this.text=text;
-		this.template=template;
-		this.line=line;
-	}
+    private final String text;
+    private final String template;
+    private final int line;
 
-	public DebugTextFragmentImpl(String text, TemplateLine tl) {
-		this.text=text;
-		this.template=tl.template;
-		this.line=tl.line;
-	}
+    public DebugTextFragmentImpl(String text, String template, int line) {
+	this.text = text;
+	this.template = template;
+	this.line = line;
+    }
 
-	@Override
-	public String getText() {
-		return text;
-	}
+    public DebugTextFragmentImpl(String text, TemplateLine tl) {
+	this.text = text;
+	this.template = tl.template;
+	this.line = tl.line;
+    }
 
-	@Override
-	public String getTemplate() {
-		return template;
-	}
+    @Override
+    public String getText() {
+	return text;
+    }
 
-	@Override
-	public int getLine() {
-		return line;
-	}
+    @Override
+    public String getTemplate() {
+	return template;
+    }
+
+    @Override
+    public int getLine() {
+	return line;
+    }
 }

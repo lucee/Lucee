@@ -166,7 +166,6 @@
 		<cfargument name="src" required="yes" type="string">
 		<cfargument name="width" required="yes" type="number" default="80">
 		<cfargument name="height" required="yes" type="number" default="40">
-
 		<cfset local.id=hash(src&":"&width&"x"&height)>
 		<cfset mimetypes={png:'png',gif:'gif',jpg:'jpeg'}>
 
@@ -179,47 +178,95 @@
 			</cfif>
 		</cfif>
 
-
+	<cfset cache=true>
 
 	<!--- copy and shrink to local dir --->
 	<cfset tmpfile=expandPath("{temp-directory}/admin-ext-thumbnails/__"&id&"."&ext)>
-	<cfif fileExists(tmpfile)>
-
+	
+	<cfset fileName = id&"."&ext>
+	<cfif cache && fileExists(tmpfile)>
+		<cfset request.refresh = false>
 		<cffile action="read" file="#tmpfile#" variable="b64">
 	<cfelseif len(src) ==0>
 		<cfset local.b64=("R0lGODlhMQApAIAAAGZmZgAAACH5BAEAAAAALAAAAAAxACkAAAIshI+py+0Po5y02ouz3rz7D4biSJbmiabqyrbuC8fyTNf2jef6zvf+DwwKeQUAOw==")>
 
 	<cfelse>
+
 		<cfif fileExists(src)>
 			<cffile action="readbinary" file="#src#" variable="data">
 		<!--- base64 encoded binary --->
 		<cfelse>
 			<cfset data=toBinary(src)>
-		</cfif>
-		<cfimage action="read" source="#data#" name="img">
 
-		<!--- shrink images if needed --->
-		<cfif img.height GT arguments.height or img.width GT arguments.width>
-			<cftry>
-				<cfif img.height GT arguments.height >
-					<cfimage action="resize" source="#img#" height="#arguments.height#" name="img">
-				</cfif>
-				<cfif img.width GT arguments.width>
-					<cfimage action="resize" source="#img#" width="#arguments.width#" name="img">
-				</cfif>
-				<cfset data=toBinary(img)>
-				<cfcatch></cfcatch>
-			</cftry>
 		</cfif>
+		<cfif isValid("URL", src)>
+			<cffile action="readbinary" file="#src#" variable="data">
+			<cfset src=toBase64(data)>
+		</cfif>
+		<cffile action="write" file="#tmpfile#" output="#src#" createPath="true">
+		<cfif extensionExists("B737ABC4-D43F-4D91-8E8E973E37C40D1B")> <!--- image extension --->
+			<cfset img=imageRead(data)>
 
-		<cftry>
-			<cfset local.b64=toBase64(data)>
-			<cffile action="write" file="#tmpfile#" output="#b64#" createPath="true">
-			<cfcatch><cfrethrow></cfcatch><!--- if it fails because there is no permission --->
-		</cftry>
+			<!--- shrink images if needed --->
+			<cfif img.height GT arguments.height or img.width GT arguments.width>
+				<cftry>
+					<cfif img.height GT arguments.height >
+						<cfset imageResize(img,"",arguments.height)>
+					</cfif>
+					<cfif img.width GT arguments.width>
+						<cfset imageResize(img,arguments.width,"")>
+					</cfif>
+					<cfset data=toBinary(img)>
+					<cfcatch><cfrethrow></cfcatch>
+				</cftry>
+				<cftry>
+					<cfset local.b64=toBase64(data)>
+					<cffile action="write" file="#tmpfile#" output="#local.b64#" createPath="true">
+					<cfcatch><cfrethrow></cfcatch><!--- if it fails because there is no permission --->
+				</cftry>
+			</cfif>
+		<cfelse>
+			<cfoutput>
+				<cfset request.refresh = true>
+				<cfset imgSrc = "data:image/png;base64,#src#" >
+				<img src="#imgSrc#" id="img_#id#" style="display:none" />
+				<canvas id="myCanvas_#id#"  style="display:none" ></canvas>
+				<script>
+					var img = document.getElementById("img_#id#");
+					var canvas = document.getElementById("myCanvas_#id#");
+					var ctx = canvas.getContext("2d");
+	
+					canvas.height =  img.height > 50 ? 50 :  img.height ;
+					ctx.drawImage(img, 0, 0, 0, canvas.height);
+					canvas.width = img.width > 90 ? 90 :  img.width ;
+					ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+					ImageURL = canvas.toDataURL();
+
+					var block = ImageURL.split(";");
+					// Get the content type of the image
+					var contentType = block[0].split(":")[1];// In this case "image/gif"
+					// get the real base64 content of the file
+					var realData = block[1].split(",")[1];
+					var oAjax = new XMLHttpRequest();
+					oAjax.onreadystatechange = function() {
+						if(this.readyState == 4 && this.status == 200) {
+						}
+					};
+
+					var data = "imgSrc="+encodeURIComponent(realData);
+					var ajaxURL = "/lucee/admin/ImgProcess.cfm?file=#fileName#";
+					oAjax.open("POST", ajaxURL, true);
+					oAjax.send(data);
+
+				</script>
+			</cfoutput>
+		</cfif>	
+	</cfif>
+	<cfif fileExists(tmpfile)>
+		<cffile action="read" file="#tmpfile#" variable="b64">
 	</cfif>
 	<cfreturn "data:image/png;base64,#b64#">
-
 
 	</cffunction>
 
@@ -242,10 +289,12 @@
 	*/
 	function getExternalData(required string[] providers, boolean forceReload=false, numeric timeSpan=60, boolean useLocalProvider=true) {
 		var datas={};
+
 		providers.each(parallel:true,closure:function(value){
 				var data=getProviderInfo(arguments.value,forceReload,timespan);
 				datas[arguments.value]=data;
 			});
+
 		var qry=queryNew("id,name,provider,lastModified");
 
 		if(useLocalProvider) {
@@ -253,8 +302,7 @@
 			    action="getLocalExtensions"
 			    type="#request.adminType#"
 			    password="#session["password"&request.adminType]#"
-			    returnVariable="local.locals";
-
+			    returnVariable="local.locals" ;
 			// add column if necessary
 			loop list="#locals.columnlist()#" item="local.k" {
                 if(!qry.columnExists(k)) qry.addColumn(k,[]);
@@ -455,8 +503,6 @@
 			
 			// get info from remote
 			var uri=provider&"/rest/extension/provider/info";
-			//dump("get:"&uri);
-			//SystemOutput(uri&"<print-stack-trace>",true,true);
 
 			admin
 				action="getAPIKey"
@@ -467,7 +513,7 @@
 			var start=getTickCount();
 
 			try{
-				http url="#uri#?coreVersion=#server.lucee.version#" result="local.http" timeout=arguments.timeout {
+				http url="#uri#?type=all&coreVersion=#server.lucee.version#" cachedWithin=createTimespan(0,0,5,0) result="local.http" timeout=arguments.timeout {
 					httpparam type="header" name="accept" value="application/json";
 					if(!isNull(apikey))httpparam type="url" name="ioid" value="#apikey#";
 				}
@@ -530,7 +576,6 @@
 
 	function _download(String type,required string provider,required string id, string version=""){
 
-
 		var start=getTickCount();
 
 		// get info from remote
@@ -553,11 +598,12 @@
 			return local.ext;
 		}
 		else {
-			http url="#uri#?coreVersion=#server.lucee.version##len(arguments.version)?'&version='&arguments.version:''#" result="local.http" {
+			http url="#uri#?type=all&coreVersion=#server.lucee.version##len(arguments.version)?'&version='&arguments.version:''#" result="local.http"  cachedWithin=createTimespan(0,0,5,0) {
 				httpparam type="header" name="accept" value="application/cfml";
 				if(!isNull(apiKey))httpparam type="url" name="ioid" value="#apikey#";
 
 			}
+			
 			if(!isNull(http.status_code) && http.status_code==200) {
 				return http.fileContent;
 			}
@@ -604,6 +650,12 @@
 			sct.qualifier_appendix=qArr[2];
 			if(sct.qualifier_appendix=="SNAPSHOT")sct.qualifier_appendix_nbr=0;
 			else if(sct.qualifier_appendix=="BETA")sct.qualifier_appendix_nbr=50;
+			else sct.qualifier_appendix_nbr=75; // every other appendix is better than SNAPSHOT
+		}else if(qArr.len()==3 && isNumeric(qArr[1])) {
+			sct.qualifier=qArr[1]+0;
+			sct.qualifier_appendix1=qArr[2];
+			sct.qualifier_appendix2=qArr[3];
+			if(sct.qualifier_appendix1 =="ALPHA" || sct.qualifier_appendix2 == 'SNAPSHOT' )sct.qualifier_appendix_nbr=25;
 			else sct.qualifier_appendix_nbr=75; // every other appendix is better than SNAPSHOT
 		}
 		else throw "version number ["&arguments.version&"] is invalid";

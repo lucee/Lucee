@@ -18,27 +18,20 @@
  **/
 package lucee.runtime.sql.old;
 
+public final class Token {
 
-public final class Token
-{
-
-    public Token()
-    {
-    }
+    public Token() {}
 
     @Override
-	public final String toString()
-    {
-        return image;
+    public final String toString() {
+	return image;
     }
 
-    public static final Token newToken(int i)
-    {
-        switch(i)
-        {
-        default:
-            return new Token();
-        }
+    public static final Token newToken(int i) {
+	switch (i) {
+	default:
+	    return new Token();
+	}
     }
 
     public int kind;

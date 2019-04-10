@@ -8,14 +8,6 @@
         returnVariable="logs"
         remoteClients="#request.getRemoteClients()#">
 
-<cfset stText.log.title="Log">
-<cfset stText.log.desc="This page allows to set the logelevl and location of every single log.">
-<cfset stText.log.level="Level">
-<cfset stText.log.source="Source">
-<cfset stText.log.name="Name">
-<cfset stText.log.maxFile="Max Files">
-<cfset stText.log.maxFileSize="Max File Size in KB">
-
 <cfoutput>
 #stText.log.desc#
 

@@ -25,21 +25,21 @@ import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.visitor.IfVisitor;
 
 public final class TagJavaScript extends TagBaseNoFinal {
-	
-	public TagJavaScript(Factory f, Position start,Position end) {
-		super(f,start,end);
-	}
 
-	/**
-	 * @see lucee.transformer.bytecode.statement.StatementBase#_writeOut(org.objectweb.asm.commons.GeneratorAdapter)
-	 */
-	@Override
-	public void _writeOut(BytecodeContext bc) throws TransformerException {
-		IfVisitor ifv=new IfVisitor();
-		ifv.visitBeforeExpression();
-			bc.getAdapter().push(true);
-		ifv.visitAfterExpressionBeforeBody(bc);
-			getBody().writeOut(bc);
-		ifv.visitAfterBody(bc);
-	}
+    public TagJavaScript(Factory f, Position start, Position end) {
+	super(f, start, end);
+    }
+
+    /**
+     * @see lucee.transformer.bytecode.statement.StatementBase#_writeOut(org.objectweb.asm.commons.GeneratorAdapter)
+     */
+    @Override
+    public void _writeOut(BytecodeContext bc) throws TransformerException {
+	IfVisitor ifv = new IfVisitor();
+	ifv.visitBeforeExpression();
+	bc.getAdapter().push(true);
+	ifv.visitAfterExpressionBeforeBody(bc);
+	getBody().writeOut(bc);
+	ifv.visitAfterBody(bc);
+    }
 }

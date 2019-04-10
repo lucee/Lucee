@@ -1,6 +1,6 @@
 ![Lucee](https://bitbucket.org/repo/rX87Rq/images/3392835614-logo-1-color-black-small.png)
 
-[![Build Status](https://travis-ci.org/lucee/Lucee.svg?branch=master)](https://travis-ci.org/lucee/Lucee)
+[![Build Status](https://travis-ci.org/lucee/Lucee.svg?branch=5.3)](https://travis-ci.org/lucee/Lucee)
 
 ## Lucee Server
 
@@ -33,7 +33,7 @@ If you are [looking for commercial support](http://lucee.org/members.html), you 
 
 Lucee is a JVM language running as a servlet on just about any servlet container; including [Apache Tomcat](http://tomcat.apache.org/), [Eclipse Jetty](http://eclipse.org/jetty/), [JBoss AS](http://jbossas.jboss.org/), and [GlassFish](https://glassfish.java.net/).
 
-_We stadardise on Apache Tomcat for installers and Docker containers as there is only so much time in the day._
+_We standardise on Apache Tomcat for installers and Docker containers as there is only so much time in the day._
 
 ## Philosophy
 
@@ -48,7 +48,7 @@ The Lucee team is always open to feedback and active at CFML community events, a
 ## Copyright / License
 
 Copyright 2006-2014 Various contributing authors
-Copyright 2015-2016 Lucee Association Switzerland
+Copyright 2015-2019 Lucee Association Switzerland
 
 The Lucee code base was forked from the [Railo Server Project](https://en.wikipedia.org/wiki/Railo) (Version 4.2) in January 2015. The Lucee Association Switzerland  (LAS) is the legal custodian of the code base, and contributors are required accept the [LAS Contributor License Agreement (CLA)](http://lang.lucee.org/t/las-contributor-license-agreement-cla/181).
 
@@ -58,5 +58,3 @@ Lucee Server is licensed under the Lesser GNU General Public License Version 2.1
 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 
 Lucee logo and related marks belong to [Lucee Association Switzerland](http://lucee.org/).
-
-

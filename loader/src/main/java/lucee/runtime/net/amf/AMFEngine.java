@@ -26,25 +26,23 @@ import javax.servlet.http.HttpServletResponse;
 
 import lucee.runtime.config.ConfigWeb;
 
-
 /**
  * AMF Engine
  */
 public interface AMFEngine {
-    
-	/**
-	 * method to initialize the engine
-	 * 
-	 */
-	public void init(ConfigWeb config, Map<String, String> arguments) throws IOException;
 
-	
+    /**
+     * method to initialize the engine
+     * 
+     */
+    public void init(ConfigWeb config, Map<String, String> arguments) throws IOException;
 
     /**
      * Main entry point for the AMF (Flex) Engine
-     * @param servlet 
-     * @param req 
-     * @param rsp 
+     * 
+     * @param servlet
+     * @param req
+     * @param rsp
      *
      * @throws IOException
      */

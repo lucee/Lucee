@@ -4,12 +4,6 @@
 <cfparam name="form.mainAction" default="none">
 <cfparam name="form.subAction" default="none">
 
-<cfset stText.debug.settings.desc="Enable certain logging options for Lucee">
-
-
-
-
-
 <cfadmin
 	action="getDebugEntry"
 	type="#request.adminType#"

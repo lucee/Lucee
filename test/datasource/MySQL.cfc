@@ -210,24 +210,34 @@ END
 			procparam  type="inout" variable="local.res" cfsqltype="cf_sql_varchar" value="10";
 		}
 		assertEquals(20,res);
+
+
+		storedproc procedure="proc_INOUT" datasource=getDatasource() {
+			procparam  type="inout" variable="local.res" cfsqltype="cf_sql_varchar" value="10";
+		}
 		
 	}
 
 
 	private string function defineDatasource(){
-		var mySQL=getCredencials();
-		if(mySQL.count()==0) return false;
-		application action="update" 
-			datasource="# {
-	  class: 'org.gjt.mm.mysql.Driver'
-	, bundleName:'com.mysql.jdbc'
-	, bundleVersion:'5.1.38'
-	, connectionString: 'jdbc:mysql://'&mySQL.server&':'&mySQL.port&'/'&mySQL.database&'?useUnicode=true&characterEncoding=UTF-8&useLegacyDatetimeCode=true'
-	, username: mySQL.username
-	, password: mySQL.password
-}#";
-	
-	return true;
+		var sct=getDatasource();
+		if(sct.count()==0) return false;
+		application action="update" datasource=sct;
+		return true;
+	}
+
+	private struct function getDatasource(){
+			var mySQL=getCredencials();
+			if(mySQL.count()==0) return {};
+			
+			return {
+			  class: 'org.gjt.mm.mysql.Driver'
+			, bundleName:'com.mysql.jdbc'
+			, bundleVersion:'5.1.38'
+			, connectionString: 'jdbc:mysql://'&mySQL.server&':'&mySQL.port&'/'&mySQL.database&'?useUnicode=true&characterEncoding=UTF-8&useLegacyDatetimeCode=true'
+			, username: mySQL.username
+			, password: mySQL.password
+			};
 	}
 
 	private struct function getCredencials() {
@@ -258,6 +268,7 @@ END
 			mySQL.port=server.system.properties.MYSQL_PORT;
 			mySQL.database=server.system.properties.MYSQL_DATABASE;
 		}
+
 		return mysql;
 	}
 

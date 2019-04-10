@@ -117,7 +117,8 @@ Redirtect to entry --->
 					</thead>
 					<tbody>
 						<cfloop query="qry">
-							<cfif IsSimpleValue(qry.driver)>
+							<cfset drv=qry.driver>
+							<cfif isNull(drv) or IsSimpleValue(drv)>
 								<cfcontinue>
 							</cfif>
 							<tr>
@@ -132,6 +133,7 @@ Redirtect to entry --->
 									#qry.label#
 								</td>
 								<td>#replace(qry.ipRange,",","<br />","all")#</td>
+								
 								<td>#qry.driver.getLabel()#</td>
 								<cfif isWeb>
 									<td>

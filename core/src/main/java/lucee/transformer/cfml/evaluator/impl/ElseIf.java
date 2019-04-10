@@ -25,20 +25,18 @@ import lucee.transformer.cfml.evaluator.EvaluatorException;
 import lucee.transformer.cfml.evaluator.EvaluatorSupport;
 import lucee.transformer.library.tag.TagLibTag;
 
-
 /**
- * Prueft den Kontext des Tag elseif.
- * Das Tag <code>elseif</code> darf nur direkt innerhalb des Tag <code>if</code> liegen.  
+ * Prueft den Kontext des Tag elseif. Das Tag <code>elseif</code> darf nur direkt innerhalb des Tag
+ * <code>if</code> liegen.
  */
 public final class ElseIf extends EvaluatorSupport {
 
-	@Override
-	public void evaluate(Tag tag, TagLibTag libTag) throws EvaluatorException {
-		String ns=libTag.getTagLib().getNameSpaceAndSeparator();
-			String ifName=ns+"if";
-		
-		// check if tag is direct inside if
-		if(!ASMUtil.isParentTag(tag, TagIf.class))
-			throw new EvaluatorException("Wrong Context, tag "+libTag.getFullName()+" must be direct inside a "+ifName+" tag");		
-	}
+    @Override
+    public void evaluate(Tag tag, TagLibTag libTag) throws EvaluatorException {
+	String ns = libTag.getTagLib().getNameSpaceAndSeparator();
+	String ifName = ns + "if";
+
+	// check if tag is direct inside if
+	if (!ASMUtil.isParentTag(tag, TagIf.class)) throw new EvaluatorException("Wrong Context, tag " + libTag.getFullName() + " must be direct inside a " + ifName + " tag");
+    }
 }

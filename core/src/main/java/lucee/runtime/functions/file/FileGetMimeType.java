@@ -26,17 +26,16 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 
 public class FileGetMimeType {
-	public static String call(PageContext pc, Object oSrc) throws PageException {
-		return call(pc, oSrc, true);
-	}
-	
-	
-	public static String call(PageContext pc, Object oSrc, boolean checkHeader) throws PageException {
-		Resource src = Caster.toResource(pc,oSrc,false);
-		pc.getConfig().getSecurityManager().checkFileLocation(src);
-		
-        String mimeType = ResourceUtil.getMimeType(src, null);
-        if(StringUtil.isEmpty(mimeType,true)) return "application/octet-stream";
-        return mimeType;
-	}
+    public static String call(PageContext pc, Object oSrc) throws PageException {
+	return call(pc, oSrc, true);
+    }
+
+    public static String call(PageContext pc, Object oSrc, boolean checkHeader) throws PageException {
+	Resource src = Caster.toResource(pc, oSrc, false);
+	pc.getConfig().getSecurityManager().checkFileLocation(src);
+
+	String mimeType = ResourceUtil.getMimeType(src, null);
+	if (StringUtil.isEmpty(mimeType, true)) return "application/octet-stream";
+	return mimeType;
+    }
 }

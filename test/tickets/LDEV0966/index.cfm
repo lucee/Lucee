@@ -5,13 +5,13 @@ query datasource="test" name="qry1" {
 }
 
 transaction {
-	systemOutput("before new",true,true);
+	//systemOutput("before new",true,true);
 	variables.item	= entityNew('tblitem', { type: 1 });
-	systemOutput("before save",true,true);
+	//systemOutput("before save",true,true);
 	entitySave(variables.item);
-	systemOutput("before rollback",true,true);
+	//systemOutput("before rollback",true,true);
 	transactionRollback();
-	systemOutput("after rollback",true,true);
+	//systemOutput("after rollback",true,true);
 }
 
 /**/
@@ -26,13 +26,13 @@ echo(':');
 
 
 transaction {
-	systemOutput("before new",true,true);
+	//systemOutput("before new",true,true);
 	variables.item	= entityNew('tblitem', { type: 1 });
-	systemOutput("before save",true,true);
+	//systemOutput("before save",true,true);
 	entitySave(variables.item);
-	systemOutput("before rollback",true,true);
+	//systemOutput("before rollback",true,true);
 	transactionCommit();
-	systemOutput("after rollback",true,true);
+	//systemOutput("after rollback",true,true);
 }
 
 /**/

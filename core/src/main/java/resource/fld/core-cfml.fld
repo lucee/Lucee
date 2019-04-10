@@ -13,7 +13,7 @@
 	<function>
 		<name>AjaxLink</name>
 		<class>lucee.runtime.functions.displayFormatting.AjaxLink</class>
-		<status>unimplemeted</status>
+		<status>unimplemented</status>
 		<keywords>ajax</keywords>
 		<description>Causes an HTML href attribute to display link results in the current Ajax container.</description>
 		<argument>
@@ -32,7 +32,7 @@
 		<name>AjaxOnLoad</name>
 		<class>lucee.runtime.functions.displayFormatting.AjaxOnLoad</class>
 		<keywords>ajax</keywords>
-		<status>unimplemeted</status>
+		<status>unimplemented</status>
 		<description>Causes the specified JavaScript function to run when the page loads.</description>
 		<argument>
 			<name>functionName</name>
@@ -95,12 +95,18 @@
 			<description>Number of dimensions in new array: 1, 2, or 3</description>
     	</argument>
     	<argument>
+			<name>type</name>
+			<type>string</type>
+			<required>no</required>
+			<default></default>
+			<description>type of the array created, if set the array does not have any specific type.</description>
+    	</argument>
+    	<argument>
 			<name>synchronized</name>
-			<alias>isSynchronized</alias>
 			<type>boolean</type>
 			<required>no</required>
-			<default>true</default>
-			<description>Number of dimensions in new array: 1, 2, or 3</description>
+			<default>false</default>
+			<description>is the array synchronized or not</description>
     	</argument>
 		<return>
 			<type>array</type>
@@ -112,7 +118,7 @@
 		<name>beat</name>
 		<class>lucee.runtime.functions.dateTime.Beat</class>
 		<description>
-		Outputs the actuell swatch time.
+		Outputs the current swatch time.
 		It is a new system of time developed by Swatch, the Swiss watch maker.  
 		It involves setting the current day into 1000 "beats" instead of 24 hours.  
 		Internet Time eliminates the need for geographical time zones, perfect for the internet.
@@ -200,6 +206,7 @@ you can use tag cfadmin instead. we will add support for this function in a futu
         CreateObject('webservice', urltowsdl, [, portname])</description>
 		<argument>
 			<name>type</name>
+			<alias>componentType</alias>
 			<type>string</type>
 			<required>Yes</required>
 		<description>one of the following:
@@ -223,7 +230,7 @@ the usage of this argument depend on type defined with argument "type":
     </argument>
 		<argument>
 			<name>context</name>
-			<alias>bundleName,name,webservice</alias>
+			<alias>bundleName,name,webservice,Assembly,WSPortName,thirdarg</alias>
 			<type>object</type>
 			<required>No</required>
 		<description>
@@ -263,6 +270,12 @@ the usage of this argument depend on type defined with argument "type":
 			<type>datetime</type>
 			<required>Yes</required>
 			<description>date object</description>
+    	</argument>
+		<argument>
+			<name>timezone</name>
+			<type>timezone</type>
+			<required>no</required>
+			<description>timezone to use</description>
     	</argument>
 		<return>
 			<type>datetime</type>
@@ -371,7 +384,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>dateTimeFormat</name>
 		<class>lucee.runtime.functions.displayFormatting.DateTimeFormat</class>
-		<member-name>dateTimeFormat</member-name>
+		<member-name>dateTimeFormat, format</member-name>
 		<member-type>date</member-type>
 		<keywords>date,string,formatting</keywords>
 		<description>Formats a date/time string to a given output</description>
@@ -428,7 +441,7 @@ the following characters are pattern letters (case sensitive) representing the c
 - WW: Week in month, leading zero for single-digit hours (Example:02)
 - y,yy,yyy: Year as last two digits, leading zero for single-digit (Example:09)
 - yyyy: Year represented by four digits (Example:2009)
-- z,zz,zzz: General time zone as a 3 to 4 lettesr abbreviation (Example:PST)
+- z,zz,zzz: General time zone as a 3 to 4 letter abbreviation (Example:PST)
 - zzzz: General time zone as its full name (Example:Pacific Standard Time)
 - Z,..,ZZZZ: RFC 822 time zone (Example:-0800)
   
@@ -650,6 +663,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<!-- decrementValue -->
 	<function>
 		<name>decrementValue</name>
+		<member-name>decrementValue</member-name>
 		<class>lucee.runtime.functions.math.DecrementValue</class>
 		<status>deprecated</status>
 		<description>this function is deprecated, use instead the -- operator;Decrements the current number by one</description>
@@ -790,7 +804,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>hash40</name>
 		<class>lucee.runtime.functions.string.Hash40</class>
-		<description>This function only exists for backward compstibility to Lucee 4.0 or older version that has produced a incorrect result for non us-ascii caharacters,
+		<description>This function only exists for backward compatibility to Lucee 4.0 or older version that has produced a incorrect result for non us-ascii characters,
 		Only use this function for backward compatibility.
 		
 		Converts a variable-length string to a 32-byte, hexadecimal
@@ -848,12 +862,14 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     </argument>
 		<argument>
 			<name>string_expression1</name>
+			<alias>expression1</alias>
 			<type>string</type>
 			<required>Yes</required>
 		<description>Expression to evaluate and return if condition is true.</description>
     </argument>
 		<argument>
 			<name>string_expression2</name>
+			<alias>expression2</alias>
 			<type>string</type>
 			<required>Yes</required>
 		<description>Expression to evaluate and return if condition is false.</description>
@@ -884,7 +900,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	    </argument>
 		<argument>
 			<name>arguments</name>
-			<alias>args,argumentcollection</alias>
+			<alias>params,args,argumentcollection</alias>
 			<type>any</type>
 			<required>no</required>
 			<description>arguments to pass to the function/operation</description>
@@ -905,7 +921,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<description>Evaluates a string value to determine whether the variable
         named in it exists.</description>
 		<argument>
-			<name>variable</name>
+			<name>value</name>
+			<alias>variable</alias>
 			<type>string</type>
 			<required>Yes</required>
 		<description>String, enclosed in quotation marks. Name of variable to test for.</description>
@@ -919,6 +936,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<!-- incrementValue -->
 	<function>
 		<name>incrementValue</name>
+		<member-name>incrementValue</member-name>
 		<class>lucee.runtime.functions.math.IncrementValue</class>
 		<status>deprecated</status>
 		<description>this function is deprecated, use instead the ++ operator;Increments the current number by one</description>
@@ -941,7 +959,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<description>Determines whether a string or Java object can be converted
         to a date/time value.</description>
 		<argument>
-			<name>string</name>
+			<name>value</name>
+			<alias>string</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>A string or a variable that contains one. </description>
@@ -1010,6 +1029,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<description>Determines if the object represents a numeric</description>
 		<argument>
 			<name>string</name>
+			<alias>value</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>A string or a variable that contains one. </description>
@@ -1028,6 +1048,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
         date (date/time object).</description>
 		<argument>
 			<name>number</name>
+			<alias>value</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>A real number</description>
@@ -1046,7 +1067,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
         specified Role.</description>
 		<argument>
 			<name>role_name</name>
-			<alias>rolename,role,name</alias>
+			<alias>rolename,role,name,value</alias>
 			<type>any</type>
 			<required>Yes</required>
 			<description>Name of a security role</description>
@@ -1168,7 +1189,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<class>lucee.runtime.functions.international.LSEuroCurrencyFormat</class>
 		<status>deprecated</status>
 		<keywords>currency,string,formatting</keywords>
-		<description>this funciton is just a alias for lsCurrencyFormat</description>
+		<description>this function is just a alias for lsCurrencyFormat</description>
 		<argument>
 			<name>number</name>
 			<alias>currency_number</alias>
@@ -1207,7 +1228,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
         currency amount in the current locale.</description>
 		<argument>
 			<name>number</name>
-			<alias>string,currency_number</alias>
+			<alias>string,currency_number,currency</alias>
 			<type>string</type>
 			<required>Yes</required>
 		<description>A currency string</description>
@@ -1396,7 +1417,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<description>use function lsParseCurrency instead</description>
 		<argument>
 			<name>number</name>
-			<alias>string,currency_number</alias>
+			<alias>string,currency_number,currency</alias>
 			<type>string</type>
 			<required>Yes</required>
 		<description>Locale-specific string</description>
@@ -1510,6 +1531,13 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>newLine</name>
 		<class>lucee.runtime.functions.string.NewLine</class>
 		<description>returns a new line</description>
+		<argument>
+			<name>includeCROnWindows</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>true</default>
+			<description>On windows computer include Carriage Return.</description>
+	    </argument>
 		<return>
 			<type>string</type>
 		</return>
@@ -1520,7 +1548,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>nowServer</name>
 		<class>lucee.runtime.functions.dateTime.NowServer</class>
 		<status>deprecated</status>
-		<description>this function is deprecated, returns the current time on the server independend on lucee timezone definition</description>
+		<description>this function is deprecated, returns the current time on the server independent on lucee timezone definition</description>
 		<return>
 			<type>datetime</type>
 		</return>
@@ -1533,7 +1561,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<keywords>number,string,formatting</keywords>
 		<description>Creates a custom-formatted number value. For international
         number formatting use LSNumberFormat.
-        [mask - quicky]
+        [mask - quickly]
         _,9 Digit placeholder; . decimal point; 0 Pads with zeros;
         ( ) less than zero, puts parentheses around the mask
         + plus sign before positive number minus before negative
@@ -1596,6 +1624,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<description>Determines if the parameter exists</description>
 		<argument>
 			<name>parameter</name>
+			<alias>param</alias>
 			<type>variablestring</type>
 			<required>Yes</required>
 		<description></description>
@@ -1743,7 +1772,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>sizeOf</name>
 		<class>lucee.runtime.functions.system.SizeOf</class>
-		<description>this function is experimentell, to not use in productive enviroment. this function returns the size in bytes of a given object.</description>
+		<description>this function is experimental, do not use in a production environment. this function returns the size in bytes of a given object.</description>
 		<argument>
 			<name>obj</name>
 			<type>object</type>
@@ -1985,6 +2014,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		this function is deprecated, use instead the function queryColumnData</description>
 		<argument>
 			<name>query_column</name>
+			<alias>queryColumn</alias>
 			<type>queryColumn</type>
 			<required>Yes</required>
 		<description>Name of an executed query and column. Separate query name and column name with a period.</description>
@@ -2085,7 +2115,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>lsweek</name>
 		<class>lucee.runtime.functions.international.LSWeek</class>
-		<description>Returns the week number in the year of the date referenced, based on the loal influence. not everywhere the wekk begins on Monday by defintion.</description>
+		<description>Returns the week number in the year of the date referenced, based on the local influence. not everywhere the week begins on Monday by definition.</description>
 		<argument>
 			<name>date</name>
 			<type>datetime</type>
@@ -2214,7 +2244,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>unserializeJava</name>
 		<class>lucee.runtime.functions.dynamicEvaluation.UnserializeJava</class>
 		<status>deprecated</status>
-		<description>literal defintion of a serialized Java Object by function serialize</description>
+		<description>literal definition of a serialized Java Object by function serialize</description>
 		<argument>
 			<name>string</name>
 			<type>string</type>
@@ -2235,6 +2265,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		this function is deprecated, use instead the function queryColumnData</description>
 		<argument>
 			<name>query_column</name>
+			<alias>queryColumn</alias>
 			<type>queryColumn</type>
 			<required>Yes</required>
 		<description>Name of an executed query and column. Separate query name and column name with a period.</description>
@@ -2269,6 +2300,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     	    </argument>
     		<argument>
     			<name>rowNumber</name>
+    			<alias>rowNum</alias>
     			<type>number</type>
     			<required>Yes</required>
     			<description>position of the row to be returned</description>
@@ -2304,42 +2336,6 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</return>
 	</function>
 	
-	<!-- ImageDrawImage -->
-	<function>
-		<name>ImageDrawImage</name>
-		<class>lucee.runtime.functions.image.ImageDrawImage</class>
-		<status>deprecated</status>
-		<keywords>image</keywords>
-		<description>this function is deprecated, use ImagePaste instead. Draws a image on a image with the baseline of the first character positioned at (x,y) in the image.</description>
-		<argument>
-			<name>name</name>
-			<type>any</type>
-			<required>Yes</required>
-		<description>the image to draw on it</description>
-    </argument>
-		<argument>
-			<name>image</name>
-			<type>any</type>
-			<required>Yes</required>
-		<description>the image to draw</description>
-    </argument>
-		<argument>
-			<name>x</name>
-			<type>number</type>
-			<required>Yes</required>
-		<description>The x coordinate of the of the top left corner of the image to draw.</description>
-    </argument>
-		<argument>
-			<name>y</name>
-			<type>number</type>
-			<required>Yes</required>
-		<description>The y coordinate of the of the top left corner of the image to draw.</description>
-    </argument>
-		<return>
-			<type>void</type>
-		</return>
-	</function>
-	
 	<!-- getMetricData -->
 	<function>
 		<name>getMetricData</name>
@@ -2362,7 +2358,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>Empty</name>
 		<class>lucee.runtime.functions.system.Empty</class>
 		<status>deprecated</status>
-		<description>this function is deprcated, use instead "IsEmpty".
+		<description>this function is deprecated, use instead "IsEmpty".
 		this function returns true if a value exists and is not "empty". 
 The following things are considered to be empty:
 - string:"" (an empty string)

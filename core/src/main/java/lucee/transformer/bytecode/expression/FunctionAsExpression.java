@@ -26,24 +26,23 @@ import org.objectweb.asm.Type;
 
 public class FunctionAsExpression extends ExpressionBase {
 
-	private Function function;
+    private Function function;
 
+    public FunctionAsExpression(Function function) {
+	super(function.getFactory(), function.getStart(), function.getEnd());
+	this.function = function;
+    }
 
-	public FunctionAsExpression(Function function) {
-		super(function.getFactory(),function.getStart(),function.getEnd());
-		this.function=function;
-	}
-	
-	@Override
-	public Type _writeOut(BytecodeContext bc, int mode) throws TransformerException {
-		function._writeOut(bc);
-		return Types.UDF_IMPL;
-	}
+    @Override
+    public Type _writeOut(BytecodeContext bc, int mode) throws TransformerException {
+	function._writeOut(bc);
+	return Types.UDF_IMPL;
+    }
 
-	/**
-	 * @return the closure
-	 */
-	public Function getFunction() {
-		return function;
-	}
+    /**
+     * @return the closure
+     */
+    public Function getFunction() {
+	return function;
+    }
 }
