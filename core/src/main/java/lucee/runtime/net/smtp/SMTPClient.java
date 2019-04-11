@@ -447,7 +447,7 @@ public final class SMTPClient implements Serializable {
 
 	// Contacts
 	SMTPMessage msg = new SMTPMessage(sat.session);
-	if (from == null) throw new MessagingException("you have do define the from for the mail");
+	if (from == null) throw new MessagingException("A from email address is required to send an email");
 	// if(tos==null)throw new MessagingException("you have do define the to for the mail");
 
 	checkAddress(from, charset);
