@@ -1,12 +1,7 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"{
-	function beforeAll(){
-		variables.origSerSettings =  getApplicationSettings().serialization;
-	}
+	function beforeAll(){}
 
-	function afterAll(){
-		application action="update"
-			SerializationSettings = variables.origSerSettings;
-	}
+	function afterAll(){}
 
 	function run( testResults , testBox ) {
 		describe( "Syntax check", function() {
@@ -48,11 +43,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					virtual="/tmpAllSrc"
 					stoponerror="false";
 
-				
-				//expect(data.bundle2.version).toBe("1.0.0.0");
 			});
-
-
 		});
 	}
 }
