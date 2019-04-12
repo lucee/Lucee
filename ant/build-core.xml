@@ -572,6 +572,7 @@
     <property name="trgLoader" location="${rootDir}/loader/target"/>
     <property name="trgCore" location="${rootDir}/core/target"/>
     <property name="srcCFML" location="${rootDir}/core/src/main/cfml"/>
+    <property name="srcAll" location="${rootDir}/core/src/main"/>
     <property name="srcInst" location="${rootDir}/instrumentation/src/main/java"/> 
     <property name="ant" location="${rootDir}/ant"/>
     <property name="test" location="${rootDir}/test"/>
@@ -1053,6 +1054,8 @@
 
       <jvmarg value="-Dtest=${test}"/>
       <jvmarg value="-Dtemp=${temp}"/>
+      <jvmarg value="-Dbasedir=${baseDir}"/>
+      <jvmarg value="-Dsrcall=${srcAll}"/>
       <!-- <jvmarg value="-Djdk.attach.allowAttachSelf=true"/> -->
       <jvmarg value="-DtestboxArchive=${temp}/archive/testbox.lar"/>
       <jvmarg value="-Dexecute=${testcases}"/>
