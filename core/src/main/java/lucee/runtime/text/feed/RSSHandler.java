@@ -173,10 +173,7 @@ public final class RSSHandler extends DefaultHandler {
 		sct.setEL(atts.getQName(i), atts.getValue(i));
 	    }
 	    properties.setEL(inside, sct);
-	}
-
-	// <enclosure url="http://www.scripting.com/mp3s/weatherReportDicksPicsVol7.mp3" length="6182912"
-	// type="audio/mpeg"/>
+	}	
     }
 
     @Override
