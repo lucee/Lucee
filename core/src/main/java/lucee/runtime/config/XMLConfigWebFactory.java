@@ -260,7 +260,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	Resource path = ResourcesImpl.getFileResourceProvider().getResource(strPath);
 
 	// get config file
-	if (!configFile.exists()) {
+	if (!configFile.exists() || configFile.length() == 0) {
 	    createConfigFile("web", configFile);
 	}
 	Document doc = null;
