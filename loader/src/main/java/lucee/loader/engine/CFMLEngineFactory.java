@@ -429,6 +429,13 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	}
 	config.put("felix.log.level", "" + logLevel);
 
+	if (logger != null) {
+	    if (logLevel == 2) logger.setLogLevel(Logger.LOG_WARNING);
+	    else if (logLevel == 3) logger.setLogLevel(Logger.LOG_INFO);
+	    else if (logLevel == 4) logger.setLogLevel(Logger.LOG_DEBUG);
+	    else logger.setLogLevel(Logger.LOG_ERROR);
+	}
+
 	// Allow felix.cache.locking to be overridden by env var (true/false)
 	// Enables or disables bundle cache locking, which is used to prevent concurrent access to the
 	// bundle cache.
