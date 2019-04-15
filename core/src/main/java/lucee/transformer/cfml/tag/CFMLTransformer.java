@@ -997,7 +997,7 @@ public final class CFMLTransformer {
 			TagLibTagAttr att = it.next();
 			if (att.isRequired() && !contains(args, att) && att.getDefaultValue() == null) {
 			    if (!hasAttributeCollection)
-				throw createTemplateException(data.srcCode, "attribute " + att.getName() + " is required for tag " + tag.getFullName(), tag);
+				throw createTemplateException(data.srcCode, "attribute '" + att.getName() + "' is required for tag " + tag.getFullName(), tag);
 			    parent.addMissingAttribute(att);
 			}
 		    }
