@@ -981,11 +981,11 @@ public final class CFMLTransformer {
 
 		// to less attributes
 		if (!hasAttributeCollection && min > count)
-		    throw createTemplateException(data.srcCode, "the tag " + tag.getFullName() + " must have at least " + min + " attributes", tag);
+		    throw createTemplateException(data.srcCode, "the tag [" + tag.getFullName() + "] must have at least [" + min + "] attributes", tag);
 
 		// too much attributes
 		if (!hasAttributeCollection && max > 0 && max < count)
-		    throw createTemplateException(data.srcCode, "the tag " + tag.getFullName() + " can have a maximum of " + max + " attributes", tag);
+		    throw createTemplateException(data.srcCode, "the tag [" + tag.getFullName() + "] can have a maximum of [" + max + "] attributes", tag);
 
 		// not defined attributes
 		if (type == TagLibTag.ATTRIBUTE_TYPE_FIXED || type == TagLibTag.ATTRIBUTE_TYPE_MIXED) {
@@ -1152,7 +1152,7 @@ public final class CFMLTransformer {
 	    if (attr == null) {
 		if (typeDef == TagLibTag.ATTRIBUTE_TYPE_FIXED) {
 		    String names = tag.getAttributeNames();
-		    if (StringUtil.isEmpty(names)) throw createTemplateException(cfml, "Attribute " + id + " is not allowed for tag " + tag.getFullName(), tag);
+		    if (StringUtil.isEmpty(names)) throw createTemplateException(cfml, "Attribute [" + id + "] is not allowed for tag " + tag.getFullName(), tag);
 
 		    try {
 			names = ListUtil.sort(names, "textnocase", null, null);
@@ -1160,7 +1160,7 @@ public final class CFMLTransformer {
 		    catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
 		    }
-		    throw createTemplateException(cfml, "Attribute " + id + " is not allowed for tag " + tag.getFullName(), "valid attribute names are [" + names + "]", tag);
+		    throw createTemplateException(cfml, "Attribute [" + id + "] is not allowed for tag " + tag.getFullName(), "valid attribute names are [" + names + "]", tag);
 		}
 		dynamic.setValue(true);
 	    }
