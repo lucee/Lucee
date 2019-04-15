@@ -39,7 +39,6 @@ public final class Location extends TagImpl {
      * you specify in the url.
      */
     private boolean addtoken = true;
-    private boolean encode = true;
 
     /** The URL of the HTML file or CFML page to open. */
     private String url = "";
@@ -52,7 +51,6 @@ public final class Location extends TagImpl {
 	addtoken = true;
 	url = "";
 	statuscode = 302;
-	encode = true;
     }
 
     /**
@@ -77,13 +75,7 @@ public final class Location extends TagImpl {
 	this.addtoken = addtoken;
     }
 
-    /**
-     * 
-     * @param encode for url
-     **/
-    public void setEncode(boolean encode) {
-	this.encode = encode;
-    }
+    
 
     /**
      * set the value url The URL of the HTML file or CFML page to open.
@@ -106,9 +98,7 @@ public final class Location extends TagImpl {
 	    throw Caster.toPageException(e);
 	}
 	HttpServletResponse rsp = pageContext.getHttpServletResponse();
-	if(encode == true){
-	    url = HTTPUtil.encode(url);
-	}
+	url = HTTPUtil.encode(url);
 	// add token
 	if (addtoken && needId()) {
 	    String[] arr = url.split("\\?");
