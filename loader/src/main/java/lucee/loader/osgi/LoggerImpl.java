@@ -37,7 +37,7 @@ public class LoggerImpl extends Logger {
 
     public LoggerImpl(final File logFile) {
 	this.logFile = logFile;
-	setLogLevel(LOG_DEBUG);
+	setLogLevel(LOG_ERROR);
 	if (!logFile.exists()) try {
 	    logFile.createNewFile();
 	}

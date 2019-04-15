@@ -186,7 +186,6 @@ public abstract class XMLConfigFactory {
      * @throws IOException
      */
     static void createConfigFile(String xmlName, Resource configFile) throws IOException {
-	configFile.createFile(true);
 	createFileFromResource("/resource/config/" + xmlName + ".xml", configFile.getAbsoluteResource());
     }
 
@@ -272,7 +271,7 @@ public abstract class XMLConfigFactory {
      */
     static void createFileFromResource(String resource, Resource file, String password) throws IOException {
 	LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, XMLConfigFactory.class.getName(), "write file:" + file);
-	file.delete();
+	if (file.exists()) file.delete();
 
 	InputStream is = InfoImpl.class.getResourceAsStream(resource);
 	if (is == null) throw new IOException("file [" + resource + "] does not exist.");
