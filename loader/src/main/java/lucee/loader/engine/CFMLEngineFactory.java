@@ -428,7 +428,6 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	    else if ("info".equalsIgnoreCase(strLogLevel) || "information".equalsIgnoreCase(strLogLevel) || "3".equalsIgnoreCase(strLogLevel)) logLevel = 3;
 	    else if ("debug".equalsIgnoreCase(strLogLevel) || "4".equalsIgnoreCase(strLogLevel)) logLevel = 4;
 	}
-	System.out.println("felix.log.level:" + logLevel);
 	config.put("felix.log.level", "" + logLevel);
 	if (logger != null) {
 	    if (logLevel == 2) logger.setLogLevel(Logger.LOG_WARNING);
