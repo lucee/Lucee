@@ -432,6 +432,9 @@ public final class StringUtil {
 	    else if (str.equals("int")) return "_" + str;
 	    else if (str.equals("interface")) return "_" + str;
 	    break;
+	case 'j':
+	    if (str.equals("java")) return "_" + str;
+	    break;
 	case 'n':
 	    if (str.equals("native")) return "_" + str;
 	    else if (str.equals("new")) return "_" + str;
