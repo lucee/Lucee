@@ -22,7 +22,6 @@
 	</cfif>
 </cffunction>
 
-
 <cffunction name="doFilterMin" returntype="string" output="false">
 	<cfargument name="filter" required="yes" type="string">
 	<cfargument name="value" required="yes" type="string">
