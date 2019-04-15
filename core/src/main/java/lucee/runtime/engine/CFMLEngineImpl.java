@@ -748,6 +748,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		configServer = XMLConfigServerFactory.newInstance(this, initContextes, contextes, context);
 	    }
 	    catch (Exception e) {
+		e.printStackTrace();
 		LogUtil.log(configServer, "startup", e);
 	    }
 	}

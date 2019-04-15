@@ -370,7 +370,8 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	    log(Logger.LOG_DEBUG, "Loaded Lucee Version " + singelton.getInfo().getVersion());
 	}
 	catch (final InvocationTargetException e) {
-	    e.getTargetException().printStackTrace();
+	    log(e.getTargetException());
+	    // e.getTargetException().printStackTrace();
 	    throw new ServletException(e.getTargetException());
 	}
 	catch (final Exception e) {
