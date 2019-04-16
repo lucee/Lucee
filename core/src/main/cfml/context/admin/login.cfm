@@ -8,12 +8,10 @@
 		return str;
 	}
 </cfscript>
-
 <cfadmin 
 	action="getLoginSettings"
 	type="#request.adminType#"
 	returnVariable="loginSettings">
-
 
 <cfparam name="form.rememberMe" default="s" />
 <cfparam name="cookie.lucee_admin_lang" default="en">
@@ -24,7 +22,6 @@
 	<cfset self=request.self>
 </cfif>
 <cfparam name="languages" default="#{en:'English',de:'Deutsch'}#">
-
 <cfoutput>
 	<script type="text/javascript">
 		function doFocus() {
