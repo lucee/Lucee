@@ -243,7 +243,7 @@ public final class CFMLTransformer {
 	}
 
 	if (isCFMLCompExt && !p.isComponent() && !p.isInterface()) {
-	    String msg = "template [" + ps.getDisplayPath() + "] must contain a component or an interface.";
+	    String msg = "template ['" + ps.getDisplayPath() + "'] must contain a component or an interface.";
 	    if (sc != null) throw new TemplateException(sc, msg);
 	    throw new TemplateException(msg);
 	}
@@ -329,7 +329,7 @@ public final class CFMLTransformer {
 				parent.addPrintOut(data.factory, "</", null, null);
 			    }
 			}
-			else throw new TemplateException(data.srcCode, "no matching start tag for end tag [" + tagLib.getNameSpaceAndSeparator() + name + "]");
+			else throw new TemplateException(data.srcCode, "no matching start tag for end tag ['" + tagLib.getNameSpaceAndSeparator() + name + "']");
 
 		    }
 		}
@@ -631,7 +631,7 @@ public final class CFMLTransformer {
 			data.srcCode.setPos(start);
 			return false;
 		    }
-		    throw new TemplateException(data.srcCode, "undefined tag [" + tagLib.getNameSpaceAndSeparator() + strName + "]");
+		    throw new TemplateException(data.srcCode, "undefined tag ['" + tagLib.getNameSpaceAndSeparator() + strName + "']");
 		}
 		appendix = StringUtil.removeStartingIgnoreCase(strNameNormal, tagLibTag.getName());
 	    }
@@ -689,7 +689,7 @@ public final class CFMLTransformer {
 		if (tagLibTag.getHasBody()) tag.setBody(new BodyBase(data.factory));
 	    }
 	    else {
-		throw createTemplateException(data.srcCode, "tag [" + tagLibTag.getFullName() + "] is not closed", tagLibTag);
+		throw createTemplateException(data.srcCode, "tag ['" + tagLibTag.getFullName() + "'] is not closed", tagLibTag);
 	    }
 
 	    // Body
@@ -705,7 +705,7 @@ public final class CFMLTransformer {
 		    catch (TagLibException e) {
 			throw new TemplateException(data.srcCode, e);
 		    }
-		    if (tdbt == null) throw createTemplateException(data.srcCode, "Tag dependent body Transformer is invalid for Tag [" + tagLibTag.getFullName() + "]", tagLibTag);
+		    if (tdbt == null) throw createTemplateException(data.srcCode, "Tag dependent body Transformer is invalid for Tag ['" + tagLibTag.getFullName() + "']", tagLibTag);
 
 		    // tag.setBody(tdbt.transform(data.factory,data.root,data.ep,data.tlibs,data.flibs,
 		    // tagLibTag.getFullName(),data.scriptTags,data.srcCode,data.settings));
@@ -732,12 +732,12 @@ public final class CFMLTransformer {
 		    // not the same name Tag
 		    if (!strName.equals(strNameEnd)) {
 			data.srcCode.setPos(start);
-			throw new TemplateException(data.srcCode, "Start and End Tag has not the same Name [" + tagLib.getNameSpaceAndSeparator() + strName + "-"
-				+ tagLibEnd.getNameSpaceAndSeparator() + strNameEnd + "]");
+			throw new TemplateException(data.srcCode, "Start and End Tag has not the same Name ['" + tagLib.getNameSpaceAndSeparator() + strName + "-"
+				+ tagLibEnd.getNameSpaceAndSeparator() + strNameEnd + "']");
 		    }
 		    data.srcCode.removeSpace();
 		    if (!data.srcCode.forwardIfCurrent('>'))
-			throw new TemplateException(data.srcCode, "End Tag [" + tagLibEnd.getNameSpaceAndSeparator() + strNameEnd + "] not closed");
+			throw new TemplateException(data.srcCode, "End Tag ['" + tagLibEnd.getNameSpaceAndSeparator() + strNameEnd + "'] not closed");
 		}
 		else {
 		    // get body of Tag
@@ -769,7 +769,7 @@ public final class CFMLTransformer {
 
 			    if (tagLibTag.isBodyReq()) {
 				data.srcCode.setPos(start);
-				throw createTemplateException(data.srcCode, "No matching end tag found for tag [" + tagLibTag.getFullName() + "]", tagLibTag);
+				throw createTemplateException(data.srcCode, "No matching end tag found for tag ['" + tagLibTag.getFullName() + "']", tagLibTag);
 			    }
 			    body.moveStatmentsTo(parent);
 			    return executeEvaluator(data, tagLibTag, tag);
@@ -778,7 +778,7 @@ public final class CFMLTransformer {
 			// Invalid Construct
 			int posBeforeEndTag = data.srcCode.getPos();
 			if (!data.srcCode.forwardIfCurrent('<', '/'))
-			    throw createTemplateException(data.srcCode, "Missing end tag for [" + tagLibTag.getFullName() + "]", tagLibTag);
+			    throw createTemplateException(data.srcCode, "Missing end tag for ['" + tagLibTag.getFullName() + "']", tagLibTag);
 
 			// get TagLib of end Tag
 			int _start = data.srcCode.getPos();
@@ -799,7 +799,7 @@ public final class CFMLTransformer {
 				data.srcCode.removeSpace();
 				if (strName.equals(strNameEnd)) {
 				    if (!data.srcCode.forwardIfCurrent('>'))
-					throw new TemplateException(data.srcCode, "End Tag [" + tagLibEnd.getNameSpaceAndSeparator() + strNameEnd + "] not closed");
+					throw new TemplateException(data.srcCode, "End Tag ['" + tagLibEnd.getNameSpaceAndSeparator() + strNameEnd + "'] not closed");
 				    break;
 				}
 
@@ -808,13 +808,13 @@ public final class CFMLTransformer {
 			    if (tagLibTag.isBodyReq()) {
 				TagLibTag endTag = tagLibEnd.getTag(strNameEnd);
 				if (endTag != null && !endTag.getHasBody()) throw new TemplateException(data.srcCode,
-					"End Tag [" + tagLibEnd.getNameSpaceAndSeparator() + strNameEnd + "] is not allowed, for this tag only a Start Tag is allowed");
+					"End Tag ['" + tagLibEnd.getNameSpaceAndSeparator() + strNameEnd + "'] is not allowed, for this tag only a Start Tag is allowed");
 				data.srcCode.setPos(start);
 				if (tagLibEnd.getIgnoreUnknowTags() && (tagLibEnd.getTag(strNameEnd)) == null) {
 				    data.srcCode.setPos(_start);
 				}
-				else throw new TemplateException(data.srcCode, "Start and End Tag has not the same Name [" + tagLib.getNameSpaceAndSeparator() + strName + "-"
-					+ tagLibEnd.getNameSpaceAndSeparator() + strNameEnd + "]");
+				else throw new TemplateException(data.srcCode, "Start and End Tag has not the same Name ['" + tagLib.getNameSpaceAndSeparator() + strName + "-"
+					+ tagLibEnd.getNameSpaceAndSeparator() + strNameEnd + "']");
 			    }
 			    else {
 				body.moveStatmentsTo(parent);
@@ -981,11 +981,11 @@ public final class CFMLTransformer {
 
 		// to less attributes
 		if (!hasAttributeCollection && min > count)
-		    throw createTemplateException(data.srcCode, "the tag " + tag.getFullName() + " must have at least " + min + " attributes", tag);
+		    throw createTemplateException(data.srcCode, "the tag ['" + tag.getFullName() + "'] must have at least ['" + min + "'] attributes", tag);
 
 		// too much attributes
 		if (!hasAttributeCollection && max > 0 && max < count)
-		    throw createTemplateException(data.srcCode, "the tag " + tag.getFullName() + " can have a maximum of " + max + " attributes", tag);
+		    throw createTemplateException(data.srcCode, "the tag ['" + tag.getFullName() + "'] can have a maximum of ['" + max + "'] attributes", tag);
 
 		// not defined attributes
 		if (type == TagLibTag.ATTRIBUTE_TYPE_FIXED || type == TagLibTag.ATTRIBUTE_TYPE_MIXED) {
@@ -997,7 +997,7 @@ public final class CFMLTransformer {
 			TagLibTagAttr att = it.next();
 			if (att.isRequired() && !contains(args, att) && att.getDefaultValue() == null) {
 			    if (!hasAttributeCollection)
-				throw createTemplateException(data.srcCode, "attribute " + att.getName() + " is required for tag " + tag.getFullName(), tag);
+				throw createTemplateException(data.srcCode, "attribute ['" + att.getName() + "'] is required for tag " + tag.getFullName(), tag);
 			    parent.addMissingAttribute(att);
 			}
 		    }
@@ -1138,7 +1138,7 @@ public final class CFMLTransformer {
 
 	int typeDef = tag.getAttributeType();
 	String id = StringUtil.toLowerCase(_id);
-	if (args.contains(id)) throw createTemplateException(cfml, "you can't use the same tag attribute [" + id + "] twice", tag);
+	if (args.contains(id)) throw createTemplateException(cfml, "you can't use the same tag attribute ['" + id + "'] twice", tag);
 	args.add(id);
 
 	if ("attributecollection".equals(id)) {
@@ -1152,7 +1152,7 @@ public final class CFMLTransformer {
 	    if (attr == null) {
 		if (typeDef == TagLibTag.ATTRIBUTE_TYPE_FIXED) {
 		    String names = tag.getAttributeNames();
-		    if (StringUtil.isEmpty(names)) throw createTemplateException(cfml, "Attribute " + id + " is not allowed for tag " + tag.getFullName(), tag);
+		    if (StringUtil.isEmpty(names)) throw createTemplateException(cfml, "Attribute ['" + id + "'] is not allowed for tag " + tag.getFullName(), tag);
 
 		    try {
 			names = ListUtil.sort(names, "textnocase", null, null);
@@ -1160,7 +1160,7 @@ public final class CFMLTransformer {
 		    catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
 		    }
-		    throw createTemplateException(cfml, "Attribute " + id + " is not allowed for tag " + tag.getFullName(), "valid attribute names are [" + names + "]", tag);
+		    throw createTemplateException(cfml, "Attribute ['" + id + "'] is not allowed for tag " + tag.getFullName(), "valid attribute names are ['" + names + "']", tag);
 		}
 		dynamic.setValue(true);
 	    }
@@ -1250,7 +1250,7 @@ public final class CFMLTransformer {
 	int start = cfml.getPos();
 
 	if (!cfml.isCurrentBetween('a', 'z') && !cfml.isCurrent('_')) {
-	    if (throwError) throw new TemplateException(cfml, "Invalid Identifier, the following character cannot be part of a identifier [" + cfml.getCurrent() + "]");
+	    if (throwError) throw new TemplateException(cfml, "Invalid Identifier, the following character cannot be part of a identifier ['" + cfml.getCurrent() + "']");
 	    return null;
 	}
 	do {
