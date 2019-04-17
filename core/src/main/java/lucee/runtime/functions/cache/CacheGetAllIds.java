@@ -48,7 +48,7 @@ public final class CacheGetAllIds extends BIF {
 	return call(pc, filter, null);
     }
 
-    public static Array call(PageContext pc, String filter, String cacheName) throws PageException {
+    public static Array call(PageContext pc, String cacheName, String filter) throws PageException {
 	try {
 	    Cache cache = CacheUtil.getCache(pc, cacheName, Config.CACHE_TYPE_OBJECT);
 
