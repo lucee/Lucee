@@ -61,6 +61,8 @@ public final class Controler extends Thread {
 
     private static final long TIMEOUT = 50 * 1000;
 
+    private static final ControllerState INACTIVE = new ControllerStateImpl(false);
+
     private int interval;
     private long lastMinuteInterval = System.currentTimeMillis() - (1000 * 59); // first after a second
     private long last10SecondsInterval = System.currentTimeMillis() - (1000 * 9); // first after a second
@@ -129,8 +131,11 @@ public final class Controler extends Thread {
 	List<ControlerThread> threads = new ArrayList<ControlerThread>();
 	CFMLFactoryImpl factories[] = null;
 	while (state.active()) {
+
 	    // sleep
-	    SystemUtil.sleep(interval);
+	    SystemUtil.wait(this, interval);
+	    if (!state.active()) break;
+
 	    factories = toFactories(factories, contextes);
 	    // start the thread that calls control
 	    ControlerThread ct = new ControlerThread(this, factories, firstRun, configServer.getLog("application"));
@@ -572,8 +577,8 @@ public final class Controler extends Thread {
     }
 
     public void close() {
-	// boolean res=Runtime.getRuntime().removeShutdownHook(shutdownHook);
-	// shutdownHook.run();
+	state = INACTIVE;
+	SystemUtil.notify(this);
     }
 
     /*

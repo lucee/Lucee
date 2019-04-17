@@ -40,7 +40,7 @@ public class LogST extends Thread {
 	    ps = new PrintStream(createFile());
 	    while (true) {
 		printStackTrace(ps, thread.getStackTrace());
-		SystemUtil.sleep(timeRange);
+		SystemUtil.wait(this, timeRange);
 		if (size > max) {
 		    IOUtil.closeEL(ps);
 		    ps = new PrintStream(createFile());

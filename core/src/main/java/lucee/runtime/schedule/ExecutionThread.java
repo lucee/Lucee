@@ -25,6 +25,7 @@ import java.nio.charset.Charset;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.ContentType;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
@@ -59,6 +60,8 @@ class ExecutionThread extends Thread {
     }
 
     public static void execute(Config config, ScheduleTask task, String charset) {
+	Scheduler scheduler = ((ScheduleTaskImpl) task).getScheduler();
+	if (scheduler instanceof SchedulerImpl && !((SchedulerImpl) scheduler).active()) return;
 	Log log = getLog(config);
 	boolean hasError = false;
 	String logName = "schedule task:" + task.getTask();
@@ -110,8 +113,13 @@ class ExecutionThread extends Thread {
 
 	}
 	catch (Exception e) {
-
-	    log.log(Log.LEVEL_ERROR, logName, e);
+	    try {
+		log.log(Log.LEVEL_ERROR, logName, e);
+	    }
+	    catch (Exception ee) {
+		LogUtil.logGlobal(config, "scheduler", e);
+		LogUtil.logGlobal(config, "scheduler", ee);
+	    }
 	    hasError = true;
 	}
 
