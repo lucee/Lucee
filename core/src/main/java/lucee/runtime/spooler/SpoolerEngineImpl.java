@@ -545,7 +545,7 @@ public class SpoolerEngineImpl implements SpoolerEngine {
     public void removeAll() {
 	ResourceUtil.removeChildrenEL(openDirectory);
 	ResourceUtil.removeChildrenEL(closedDirectory);
-	SystemUtil.sleep(100);
+	SystemUtil.wait(this, 100);
 	ResourceUtil.removeChildrenEL(openDirectory);
 	ResourceUtil.removeChildrenEL(closedDirectory);
     }

@@ -18,14 +18,16 @@
  **/
 package lucee.runtime.schedule;
 
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Iterator;
+import java.util.List;
 import java.util.TimeZone;
 
 import lucee.commons.date.DateTimeUtil;
 import lucee.commons.date.JREDateTimeUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
-import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
@@ -53,6 +55,7 @@ public class ScheduledTaskThread extends Thread {
     private final CFMLEngineImpl engine;
     private TimeZone timeZone;
     private SchedulerImpl scheduler;
+    private List<ExecutionThread> exeThreads = new ArrayList<ExecutionThread>();
     private ExecutionThread exeThread;
     private final boolean unique;
 
@@ -85,15 +88,29 @@ public class ScheduledTaskThread extends Thread {
 	setStop(true);
 	Log log = scheduler.getConfig().getLog("scheduler");
 	log.info("scheduler", "stopping task thread [" + task.getTask() + "]");
-	SystemUtil.patienceStop(exeThread, 5);
-	if (exeThread != null && exeThread.isAlive())
-	    log.warn("scheduler", "task thread [" + task.getTask() + "] could not be stopped:" + ExceptionUtil.toString(exeThread.getStackTrace()));
-	else log.info("scheduler", "task thread [" + task.getTask() + "] stopped");
+
+	if (unique) {
+	    stop(log, exeThread);
+	}
+	else {
+	    Iterator<ExecutionThread> it = exeThreads.iterator();
+	    while (it.hasNext()) {
+		stop(log, it.next());
+	    }
+	    cleanThreads();
+	}
 
 	// stop this thread itself
+	SystemUtil.notify(this);
 	SystemUtil.patienceStop(this, 5);
 	if (this.isAlive()) log.warn("scheduler", "task [" + task.getTask() + "] could not be stopped:" + ExceptionUtil.toString(this.getStackTrace()));
 	else log.info("scheduler", "task [" + task.getTask() + "] stopped");
+    }
+
+    private void stop(Log log, ExecutionThread et) {
+	SystemUtil.patienceStop(exeThread, 5);
+	if (et != null && et.isAlive()) log.warn("scheduler", "task thread [" + task.getTask() + "] could not be stopped:" + ExceptionUtil.toString(et.getStackTrace()));
+	else log.info("scheduler", "task thread [" + task.getTask() + "] stopped");
     }
 
     @Override
@@ -141,7 +158,6 @@ public class ScheduledTaskThread extends Thread {
 	log(Log.LEVEL_INFO, "First execution");
 
 	while (true) {
-
 	    sleepEL(execution, today);
 	    if (stop) break;
 	    if (!engine.isRunning()) {
@@ -189,27 +205,46 @@ public class ScheduledTaskThread extends Thread {
 
 	try {
 	    while (true) {
-		sleep(millis);
+		SystemUtil.wait(this, millis);
 		millis = when - System.currentTimeMillis();
 		if (millis <= 0) break;
 		millis = 10;
 	    }
 	}
-	catch (InterruptedException e) {
-	    LogUtil.log(ThreadLocalPageContext.getConfig(), ScheduledTaskThread.class.getName(), e);
+	catch (Exception e) {
+	    log(Log.LEVEL_ERROR, e);
 	}
 
     }
 
     private void execute() {
 	if (scheduler.getConfig() != null) {
+	    // unique
 	    if (unique && exeThread != null && exeThread.isAlive()) {
 		return;
 	    }
-	    exeThread = new ExecutionThread(scheduler.getConfig(), task, scheduler.getCharset());
-	    exeThread.start();
 
+	    ExecutionThread et = new ExecutionThread(scheduler.getConfig(), task, scheduler.getCharset());
+	    et.start();
+	    if (unique) {
+		exeThread = et;
+	    }
+	    else {
+		cleanThreads();
+		exeThreads.add(et);
+	    }
 	}
+    }
+
+    private void cleanThreads() {
+	List<ExecutionThread> list = new ArrayList<ExecutionThread>();
+	Iterator<ExecutionThread> it = exeThreads.iterator();
+	ExecutionThread et;
+	while (it.hasNext()) {
+	    et = it.next();
+	    if (et.isAlive()) list.add(et);
+	}
+	exeThreads = list;
     }
 
     private long calculateNextExecution(long now, boolean notNow) {

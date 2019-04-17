@@ -396,7 +396,7 @@ public final class SchedulerImpl implements Scheduler {
 	synchronized (sync) {
 	    ScheduleTask task = getScheduleTask(name);
 	    if (task != null) {
-		execute(task);
+		if (active()) execute(task);
 	    }
 	    else if (throwWhenNotExist) throw new ScheduleException("can't run schedule task [" + name + "], task doesn't exist");
 	    su.store(doc, schedulerFile);
@@ -413,5 +413,9 @@ public final class SchedulerImpl implements Scheduler {
 
     public String getCharset() {
 	return charset;
+    }
+
+    public boolean active() {
+	return engine == null || engine.active();
     }
 }

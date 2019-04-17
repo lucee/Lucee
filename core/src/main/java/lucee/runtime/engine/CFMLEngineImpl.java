@@ -1135,18 +1135,22 @@ public final class CFMLEngineImpl implements CFMLEngine {
     @Override
     public void reset(String configId) {
 	if (!controlerState.active()) return;
-	LogUtil.log(configServer, Log.LEVEL_INFO, "startup", "reset CFML Engine");
-	getControler().close();
-	RetireOutputStreamFactory.close();
 
-	// release HTTP Pool
-	HTTPEngine4Impl.releaseConnectionManager();
-
-	releaseCache(getConfigServerImpl());
-
-	CFMLFactoryImpl cfmlFactory;
-	// ScopeContext scopeContext;
 	try {
+	    LogUtil.log(configServer, Log.LEVEL_INFO, "startup", "reset CFML Engine");
+
+	    RetireOutputStreamFactory.close();
+
+	    getControler().close();
+
+	    // release HTTP Pool
+	    HTTPEngine4Impl.releaseConnectionManager();
+
+	    releaseCache(getConfigServerImpl());
+
+	    CFMLFactoryImpl cfmlFactory;
+	    // ScopeContext scopeContext;
+
 	    Iterator<Entry<String, CFMLFactory>> it = initContextes.entrySet().iterator();
 	    Entry<String, CFMLFactory> e;
 	    ConfigWebImpl config;
@@ -1211,6 +1215,9 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	    // release felix itself
 	    shutdownFelix();
 
+	}
+	catch (Exception ee) {
+	    LogUtil.logGlobal(configServer, "reset-engine", ee);
 	}
 	finally {
 	    // Controller

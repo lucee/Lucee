@@ -366,4 +366,8 @@ public final class ScheduleTaskImpl implements ScheduleTask {
     public boolean unique() {
 	return unique;
     }
+
+    public Scheduler getScheduler() {
+	return scheduler;
+    }
 }

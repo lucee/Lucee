@@ -683,6 +683,15 @@ public final class SystemUtil {
 	catch (InterruptedException e) {}
     }
 
+    public static void wait(Object lock, int timeout) {
+	try {
+	    synchronized (lock) {
+		lock.wait(timeout);
+	    }
+	}
+	catch (InterruptedException e) {}
+    }
+
     /**
      * locks the object (synchronized) before calling wait (no timeout)
      * 

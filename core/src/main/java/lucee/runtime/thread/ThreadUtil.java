@@ -19,14 +19,18 @@
 package lucee.runtime.thread;
 
 import java.io.OutputStream;
+import java.util.Iterator;
+import java.util.Map.Entry;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import lucee.aprint;
 import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.io.res.Resource;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Pair;
 import lucee.runtime.CFMLFactory;
 import lucee.runtime.CFMLFactoryImpl;
@@ -157,5 +161,15 @@ public class ThreadUtil {
 	if ("normal".equals(strPriority)) return Thread.NORM_PRIORITY;
 	if ("norm".equals(strPriority)) return Thread.NORM_PRIORITY;
 	return -1;
+    }
+
+    public static void printThreads() {
+	Iterator<Entry<Thread, StackTraceElement[]>> it = Thread.getAllStackTraces().entrySet().iterator();
+	Entry<Thread, StackTraceElement[]> e;
+	while (it.hasNext()) {
+	    e = it.next();
+	    aprint.e(e.getKey().getName());
+	    aprint.e(ExceptionUtil.toString(e.getValue()));
+	}
     }
 }
