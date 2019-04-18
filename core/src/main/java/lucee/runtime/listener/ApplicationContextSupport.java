@@ -459,4 +459,5 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 
     public abstract void setProxyData(ProxyData data);
 
+	public abstract String getBlockedExtForFileUpload();
 }

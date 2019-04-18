@@ -153,6 +153,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
     private static final Key VARIABLE_USAGE = KeyImpl.intern("variableusage");
 
     private static final Key CACHED_AFTER = KeyImpl.intern("cachedAfter");
+    private static final Collection.Key BLOCKED_EXT_FOR_FILE_UPLOAD = KeyImpl.intern("blockedExtForFileUpload");
 
     private static Map<String, CacheConnection> initCacheConnections = new ConcurrentHashMap<String, CacheConnection>();
 
@@ -208,6 +209,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
     private TimeSpan queryCachedAfter;
     private int queryVarUsage;
     private ProxyData proxyData;
+    private String blockedExtForFileUpload;
 
     private Mapping[] mappings;
     private boolean initMappings;
@@ -272,6 +274,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
     private boolean initQueryCacheAfter;
     private boolean initQueryVarUsage;
     private boolean initProxyData;
+    private boolean initBlockedExtForFileUpload;
 
     private Resource antiSamyPolicyResource;
 
@@ -1729,6 +1732,14 @@ public class ModernApplicationContext extends ApplicationContextSupport {
     public void setCGIScopeReadonly(boolean cgiScopeReadonly) {
 	initCGIScopeReadonly = true;
 	this.cgiScopeReadonly = cgiScopeReadonly;
+    }
+
+    public String getBlockedExtForFileUpload() {
+        if(!initBlockedExtForFileUpload) {
+            Object o = get(component, BLOCKED_EXT_FOR_FILE_UPLOAD, null);
+            blockedExtForFileUpload = Caster.toString(o, null);
+        }
+        return blockedExtForFileUpload;
     }
 
     @Override

@@ -145,6 +145,7 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
     private ProxyData proxyData;
 
     private TimeSpan queryCachedAfter;
+    private String blockedExtForFileUpload;
 
     /**
      * constructor of the class
@@ -1049,4 +1050,12 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	this.proxyData = data;
     }
 
+    public void setBlockedextforfileupload(String blockedExtForFileUpload) {
+        this.blockedExtForFileUpload = blockedExtForFileUpload;
+    }
+
+    @Override
+    public String getBlockedExtForFileUpload() {
+        return blockedExtForFileUpload;
+    }
 }

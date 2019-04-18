@@ -83,6 +83,7 @@ public class GetApplicationSettings extends BIF {
 
 	Struct sct = new StructImpl(Struct.TYPE_LINKED);
 	sct.setEL("applicationTimeout", ac.getApplicationTimeout());
+	sct.setEL("blockedExtForFileUpload", acs.getBlockedExtForFileUpload());
 	sct.setEL("clientManagement", Caster.toBoolean(ac.isSetClientManagement()));
 	sct.setEL("clientStorage", ac.getClientstorage());
 	sct.setEL("sessionStorage", ac.getSessionstorage());
