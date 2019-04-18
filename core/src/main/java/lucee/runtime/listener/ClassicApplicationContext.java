@@ -92,7 +92,6 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	private ORMConfiguration ormConfig;
 	private Properties s3;
 	private FTPConnectionData ftp;
-	
 
 	private int localMode;
 	private Locale locale; 
@@ -131,7 +130,7 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	private Object mailListener;
 
 	private boolean wsMaintainSession;
-
+	private String blockedExtForFileUpload;
     
     /**
      * constructor of the class
@@ -239,8 +238,7 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 		dbl.cachedWithinQuery=Duplicator.duplicate(cachedWithinQuery,false);
 		dbl.cachedWithinResource=Duplicator.duplicate(cachedWithinResource,false);
 		dbl.cachedWithinWS=Duplicator.duplicate(cachedWithinWS,false);
-		
-		
+
 		dbl.sameFieldAsArrays=Duplicator.duplicateMap(sameFieldAsArrays, new ConcurrentHashMap<Integer, Boolean>(),false );
 		
 		dbl.ormEnabled=ormEnabled;
@@ -939,6 +937,15 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	@Override
 	public void setWSMaintainSession(boolean wsMaintainSession) {
 		this.wsMaintainSession=wsMaintainSession;
+	}
+
+	public void setBlockedextforfileupload(String blockedExtForFileUpload) {
+		this.blockedExtForFileUpload = blockedExtForFileUpload;
+	}
+
+	@Override
+	public String getBlockedExtForFileUpload() {
+		return blockedExtForFileUpload;
 	}
 
 }

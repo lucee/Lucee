@@ -18,19 +18,6 @@
  */
 package lucee.runtime.tag;
 
-import static lucee.runtime.tag.util.FileUtil.NAMECONFLICT_ERROR;
-import static lucee.runtime.tag.util.FileUtil.NAMECONFLICT_MAKEUNIQUE;
-import static lucee.runtime.tag.util.FileUtil.NAMECONFLICT_OVERWRITE;
-import static lucee.runtime.tag.util.FileUtil.NAMECONFLICT_SKIP;
-import static lucee.runtime.tag.util.FileUtil.NAMECONFLICT_UNDEFINED;
-
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-
 import lucee.commons.digest.Hash;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
@@ -58,6 +45,8 @@ import lucee.runtime.ext.tag.BodyTagImpl;
 import lucee.runtime.functions.list.ListFirst;
 import lucee.runtime.functions.list.ListLast;
 import lucee.runtime.img.ImageUtil;
+import lucee.runtime.listener.ApplicationContext;
+import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.security.SecurityManager;
@@ -73,6 +62,19 @@ import lucee.runtime.type.scope.FormItem;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
+
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+
+import static lucee.runtime.tag.util.FileUtil.NAMECONFLICT_ERROR;
+import static lucee.runtime.tag.util.FileUtil.NAMECONFLICT_MAKEUNIQUE;
+import static lucee.runtime.tag.util.FileUtil.NAMECONFLICT_OVERWRITE;
+import static lucee.runtime.tag.util.FileUtil.NAMECONFLICT_SKIP;
+import static lucee.runtime.tag.util.FileUtil.NAMECONFLICT_UNDEFINED;
 
 /**
 * Handles all interactions with files. The attributes you use with cffile depend on the value of the action attribute. 
@@ -889,7 +891,7 @@ public final class FileTag extends BodyTagImpl {
 		cffile.set("contentsubtype",ListLast.call(pageContext,contentType,"/"));
 		
 		// check file type
-		checkContentType(contentType, accept, getFileExtension(clientFile), strict);
+		checkContentType(contentType, accept, getFileExtension(clientFile), strict, pageContext.getApplicationContext());
 	
 		cffile.set("clientdirectory",getParent(clientFile));
 		cffile.set("clientfile",clientFile.getName());
@@ -1006,16 +1008,18 @@ public final class FileTag extends BodyTagImpl {
 	 * @param contentType 
 	 * @throws PageException
 	 */
-	private static void checkContentType(String contentType, String accept, String ext, boolean strict) throws PageException {
+	private static void checkContentType(String contentType, String accept, String ext, boolean strict, ApplicationContext appContext) throws PageException {
 
 		if(!StringUtil.isEmpty(ext,true)){
 			ext=ext.trim().toLowerCase();
 			if(ext.startsWith("*."))ext=ext.substring(2);
 			if(ext.startsWith("."))ext=ext.substring(1);
 
-			String blacklistedTypes = SystemUtil.getSystemPropOrEnvVar(
-					SystemUtil.SETTING_UPLOAD_EXT_BLACKLIST, SystemUtil.DEFAULT_UPLOAD_EXT_BLACKLIST
-			).toLowerCase();
+			String blacklistedTypes = ((ApplicationContextSupport)appContext).getBlockedExtForFileUpload();
+			if(blacklistedTypes == null) {
+				blacklistedTypes = SystemUtil.getSystemPropOrEnvVar(SystemUtil.SETTING_UPLOAD_EXT_BLACKLIST, SystemUtil.DEFAULT_UPLOAD_EXT_BLACKLIST);
+			}
+			blacklistedTypes = blacklistedTypes.replace('.', ' ').toLowerCase();
 			Array blacklist = ListUtil.listToArrayRemoveEmpty(blacklistedTypes, ',');
 
 			for (int i=blacklist.size(); i > 0; i--){

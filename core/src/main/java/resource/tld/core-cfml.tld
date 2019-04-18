@@ -719,7 +719,14 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<rtexprvalue>true</rtexprvalue>
 			<description>session cookie behaviour</description>
 		</attribute>
+		<attribute>
+			<name>blockedExtForFileUpload</name>
+			<type>string</type>
+			<required>false</required>
+			<description>A comma separated list of file extensions that will be blocked for File Upload operation</description>
+		</attribute>
 	</tag>
+
 	<!-- Argument -->
 	<tag>
 		<name>argument</name>

@@ -81,6 +81,7 @@ public class GetApplicationSettings extends BIF {
 
 		Struct sct = new StructImpl(Struct.TYPE_LINKED);
 		sct.setEL("applicationTimeout", appContext.getApplicationTimeout());
+		sct.setEL("blockedExtForFileUpload", ((ApplicationContextSupport)appContext).getBlockedExtForFileUpload());
 		sct.setEL("clientManagement", Caster.toBoolean(appContext.isSetClientManagement()));
 		sct.setEL("clientStorage", appContext.getClientstorage());
 		sct.setEL("sessionStorage", appContext.getSessionstorage());
@@ -348,6 +349,7 @@ public class GetApplicationSettings extends BIF {
 				SystemOut.printDate(e);
 			}
 		}
+
 		return sct;
 	}
 

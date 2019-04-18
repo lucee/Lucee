@@ -133,6 +133,8 @@ public final class Application extends TagImpl {
 	private boolean cgiReadOnly = true;
 	private SessionCookieData sessionCookie;
 	private AuthCookieData authCookie;
+	private String blockedExtForFileUpload;
+
 
 	@Override
 	public void release() {
@@ -201,6 +203,7 @@ public final class Application extends TagImpl {
 		scopeCascading = -1;
 		authCookie = null;
 		sessionCookie = null;
+		blockedExtForFileUpload = null;
 	}
 
 	/**
@@ -596,6 +599,10 @@ public final class Application extends TagImpl {
 		this.cgiReadOnly = cgiReadOnly;
 	}
 
+	public void setBlockedextforfileupload(String blockedExt) {
+		this.blockedExtForFileUpload = blockedExt;
+	}
+
 	@Override
 	public int doStartTag() throws PageException {
 
@@ -816,6 +823,13 @@ public final class Application extends TagImpl {
 		// Scope cascading
 		if(scopeCascading != -1)
 			ac.setScopeCascading(scopeCascading);
+
+		if(blockedExtForFileUpload != null) {
+			if (ac instanceof ClassicApplicationContext) {
+				((ClassicApplicationContext)ac).setBlockedextforfileupload(blockedExtForFileUpload);
+			}
+		}
+
 
 		// ORM
 		boolean initORM = false;

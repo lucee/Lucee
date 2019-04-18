@@ -141,6 +141,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 
 	private static final Collection.Key SESSION_COOKIE = KeyImpl.intern("sessioncookie");
 	private static final Collection.Key AUTH_COOKIE = KeyImpl.intern("authcookie");
+	private static final Collection.Key BLOCKED_EXT_FOR_FILE_UPLOAD = KeyImpl.intern("blockedExtForFileUpload");
 
 	private static Map<String, CacheConnection> initCacheConnections = new ConcurrentHashMap<String, CacheConnection>();
 
@@ -189,6 +190,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private SessionCookieData sessionCookie;
 	private AuthCookieData authCookie;
 	private Object mailListener;
+	private String blockedExtForFileUpload;
 
 	private Mapping[] mappings;
 	private boolean initMappings;
@@ -246,6 +248,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean initCGIScopeReadonly;
 	private boolean initSessionCookie;
 	private boolean initAuthCookie;
+	private boolean initBlockedExtForFileUpload;
 
 	private Resource antiSamyPolicyResource;
 
@@ -1752,6 +1755,14 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	public void setCGIScopeReadonly(boolean cgiScopeReadonly) {
 		initCGIScopeReadonly = true;
 		this.cgiScopeReadonly = cgiScopeReadonly;
+	}
+
+	public String getBlockedExtForFileUpload() {
+		if(!initBlockedExtForFileUpload) {
+			Object o = get(component, BLOCKED_EXT_FOR_FILE_UPLOAD, null);
+			blockedExtForFileUpload = Caster.toString(o, null);
+		}
+		return blockedExtForFileUpload;
 	}
 
 	@Override
