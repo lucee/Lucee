@@ -23,11 +23,11 @@ import java.io.IOException;
 
 import lucee.commons.io.cache.Cache;
 import lucee.commons.io.log.Log;
-import lucee.commons.io.log.LogUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
@@ -152,7 +152,9 @@ public abstract class StorageScopeCache extends StorageScopeImpl {
 	    }
 	}
 	catch (Exception pe) {
-	    LogUtil.log(ThreadLocalPageContext.getConfig(pc), StorageScopeCache.class.getName(), pe);
+	    Log log = ((ConfigImpl) ThreadLocalPageContext.getConfig(pc)).getLog("scope");
+	    ScopeContext.error(log, pe);
+	    // LogUtil.log(ThreadLocalPageContext.getConfig(pc), StorageScopeCache.class.getName(), pe);
 	}
     }
 
@@ -164,9 +166,12 @@ public abstract class StorageScopeCache extends StorageScopeImpl {
 	    synchronized (cache) {
 		cache.remove(key);
 	    }
-
 	}
-	catch (Exception pe) {}
+	catch (Exception pe) {
+	    Log log = ((ConfigImpl) ThreadLocalPageContext.getConfig(pc)).getLog("scope");
+	    ScopeContext.error(log, pe);
+	    // LogUtil.log(ThreadLocalPageContext.getConfig(pc), StorageScopeCache.class.getName(), pe);
+	}
     }
 
     private static Cache getCache(PageContext pc, String cacheName) throws PageException {

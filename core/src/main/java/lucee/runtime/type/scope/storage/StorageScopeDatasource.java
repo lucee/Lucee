@@ -21,7 +21,6 @@ package lucee.runtime.type.scope.storage;
 import java.sql.SQLException;
 
 import lucee.commons.io.log.Log;
-import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.ConfigImpl;
@@ -159,9 +158,8 @@ public abstract class StorageScopeDatasource extends StorageScopeImpl {
 	    SQLExecutor executor = SQLExecutionFactory.getInstance(dc);
 	    executor.update(ci, cfid, appName, dc, getType(), sct, getTimeSpan(), log);
 	}
-	catch (Throwable t) {
-	    ExceptionUtil.rethrowIfNecessary(t);
-	    ScopeContext.error(log, t);
+	catch (Exception e) {
+	    ScopeContext.error(log, e);
 	}
 	finally {
 	    if (dc != null) pool.releaseDatasourceConnection(dc);
@@ -184,9 +182,8 @@ public abstract class StorageScopeDatasource extends StorageScopeImpl {
 	    SQLExecutor executor = SQLExecutionFactory.getInstance(dc);
 	    executor.delete(ci, cfid, appName, dc, getType(), log);
 	}
-	catch (Throwable t) {
-	    ExceptionUtil.rethrowIfNecessary(t);
-	    ScopeContext.error(log, t);
+	catch (Exception e) {
+	    ScopeContext.error(log, e);
 	}
 	finally {
 	    if (dc != null) pool.releaseDatasourceConnection(dc);
