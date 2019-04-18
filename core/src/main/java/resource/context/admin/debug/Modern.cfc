@@ -1149,6 +1149,9 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 											<font color="#sStyle#">#listFirst(pages.src, "$")#</font>
 										</td>
 										<td align="left" class="tblContent" style="#sStyle#">
+											<cfset listStack= arrayToList(#page.stckTrace#) >
+											<cfset getStack = listRemoveDuplicates(listStack,",",true) >
+											<cfset page.stckTrace = listToArray(getStack)>
 											<table>
 												<cfloop array="#page.stckTrace#" index="i">
 													<tr>
