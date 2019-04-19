@@ -27,6 +27,8 @@ import lucee.runtime.PageContext;
 import lucee.runtime.converter.ScriptConverter;
 import lucee.runtime.interpreter.CFMLExpressionInterpreter;
 import lucee.runtime.listener.ApplicationContext;
+import lucee.runtime.listener.ApplicationContextSupport;
+import lucee.runtime.listener.SessionCookieData;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
@@ -104,21 +106,28 @@ public abstract class StorageScopeCookie extends StorageScopeImpl {
 		ApplicationContext ac=pc.getApplicationContext();
 		TimeSpan timespan=(getType()==SCOPE_CLIENT)?ac.getClientTimeout():ac.getSessionTimeout();
 		Cookie cookie = pc.cookieScope();
-		
+
+		boolean isHttpOnly = true, isSecure = false;
+		String domain = null;
+		if (ac instanceof ApplicationContextSupport) {
+			SessionCookieData settings = ((ApplicationContextSupport)ac).getSessionCookie();
+			isHttpOnly = settings.isHttpOnly();
+			isSecure = settings.isSecure();
+			domain = settings.getDomain();
+		}
 		
 		Date exp = new DateTimeImpl(pc,System.currentTimeMillis()+timespan.getMillis(),true);
 		try {
 			String ser=serializer.serializeStruct(sct, ignoreSet);
 			if(hasChanges()){
-				cookie.setCookie(KeyImpl.init(cookieName), ser,exp, false, "/", null);
+				cookie.setCookie(KeyImpl.init(cookieName), ser, exp, isSecure, "/", domain, isHttpOnly, false, true);
 			}
-			cookie.setCookie(KeyImpl.init(cookieName+"_LV"), Caster.toString(_lastvisit.getTime()), exp, false, "/", null);
+			cookie.setCookie(KeyImpl.init(cookieName+"_LV"), Caster.toString(_lastvisit.getTime()), exp, isSecure, "/", domain, isHttpOnly, false, true);
 			
 			if(getType()==SCOPE_CLIENT){
-				cookie.setCookie(KeyImpl.init(cookieName+"_TC"), Caster.toString(timecreated.getTime()),exp, false, "/", null);
-				cookie.setCookie(KeyImpl.init(cookieName+"_HC"), Caster.toString(sct.get(HITCOUNT,"")), exp, false, "/", null);
+				cookie.setCookie(KeyImpl.init(cookieName+"_TC"), Caster.toString(timecreated.getTime()),exp, isSecure, "/", domain, isHttpOnly, false, true);
+				cookie.setCookie(KeyImpl.init(cookieName+"_HC"), Caster.toString(sct.get(HITCOUNT,"")), exp, isSecure, "/", domain, isHttpOnly, false, true);
 			}
-			
 		} 
 		catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t);}
 	}
