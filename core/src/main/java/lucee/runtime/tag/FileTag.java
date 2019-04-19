@@ -56,6 +56,8 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.BodyTagImpl;
 import lucee.runtime.functions.list.ListFirst;
 import lucee.runtime.functions.list.ListLast;
+import lucee.runtime.listener.ApplicationContext;
+import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.security.SecurityManager;
@@ -896,7 +898,7 @@ public final class FileTag extends BodyTagImpl {
 	cffile.set("contentsubtype", ListLast.call(pageContext, contentType, "/", false, 1));
 
 	// check file type
-	checkContentType(contentType, accept, getFileExtension(clientFile), strict);
+	checkContentType(contentType, accept, getFileExtension(clientFile), strict, pageContext.getApplicationContext());
 
 	cffile.set("clientdirectory", getParent(clientFile));
 	cffile.set("clientfile", clientFile.getName());
@@ -1004,16 +1006,18 @@ public final class FileTag extends BodyTagImpl {
      * @param contentType
      * @throws PageException
      */
-    private static void checkContentType(String contentType, String accept, String ext, boolean strict) throws PageException {
+    private static void checkContentType(String contentType, String accept, String ext, boolean strict, ApplicationContext appContext) throws PageException {
 
 	if (!StringUtil.isEmpty(ext, true)) {
 	    ext = ext.trim().toLowerCase();
 	    if (ext.startsWith("*.")) ext = ext.substring(2);
 	    if (ext.startsWith(".")) ext = ext.substring(1);
 
-		String blacklistedTypes = SystemUtil.getSystemPropOrEnvVar(
-				SystemUtil.SETTING_UPLOAD_EXT_BLACKLIST, SystemUtil.DEFAULT_UPLOAD_EXT_BLACKLIST
-		).toLowerCase();
+		String blacklistedTypes = ((ApplicationContextSupport)appContext).getBlockedExtForFileUpload();
+		if(blacklistedTypes == null) {
+			blacklistedTypes = SystemUtil.getSystemPropOrEnvVar(SystemUtil.SETTING_UPLOAD_EXT_BLACKLIST, SystemUtil.DEFAULT_UPLOAD_EXT_BLACKLIST);
+		}
+		blacklistedTypes = blacklistedTypes.replace('.', ' ').toLowerCase();
 		Array blacklist = ListUtil.listToArrayRemoveEmpty(blacklistedTypes, ',');
 
 		for (int i=blacklist.size(); i > 0; i--) {

@@ -146,6 +146,7 @@ public final class Application extends TagImpl {
     private AuthCookieData authCookie;
     private Object functionpaths;
     private Struct proxy;
+    private String blockedExtForFileUpload;
 
     @Override
     public void release() {
@@ -222,6 +223,7 @@ public final class Application extends TagImpl {
 	scopeCascading = -1;
 	authCookie = null;
 	sessionCookie = null;
+        blockedExtForFileUpload = null;
     }
 
     /**
@@ -265,6 +267,10 @@ public final class Application extends TagImpl {
 
     public void setAuthcookie(Struct data) {
 	this.authCookie = AppListenerUtil.toAuthCookie(pageContext.getConfig(), data);
+    }
+
+    public void setBlockedextforfileupload(String blockedExt) {
+        this.blockedExtForFileUpload = blockedExt;
     }
 
     /**
@@ -792,6 +798,12 @@ public final class Application extends TagImpl {
 
 	// Scope cascading
 	if (scopeCascading != -1) ac.setScopeCascading(scopeCascading);
+
+        if(blockedExtForFileUpload != null) {
+            if (ac instanceof ClassicApplicationContext) {
+                ((ClassicApplicationContext)ac).setBlockedextforfileupload(blockedExtForFileUpload);
+            }
+        }
 
 	// ORM
 	boolean initORM = false;
