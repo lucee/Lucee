@@ -1879,17 +1879,17 @@ sort direction:
 		<class>lucee.runtime.functions.cache.CacheGetAllIds</class>
 		<description>this function return a array containing all keys inside the cache.</description>
 		<argument>
-			<name>filter</name>
-			<type>string</type>
-			<required>No</required>
-			<description>key filter for the elements, the filter follow the same rules as for cfdirectory-filter.</description>
-		</argument>
-		<argument>
 			<name>cacheName</name>
 			<alias>cache,region</alias>
 			<type>string</type>
 			<required>No</required>
 			<description>definition of the cache used by name, when not set the "default Object Cache" defined in Lucee Administrator is used instead.</description>
+		</argument>
+		<argument>
+			<name>filter</name>
+			<type>string</type>
+			<required>No</required>
+			<description>key filter for the elements, the filter follow the same rules as for cfdirectory-filter.</description>
 		</argument>
 		<return>
 			<type>array</type>
