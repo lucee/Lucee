@@ -54,6 +54,7 @@ import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.StructSupport;
 import lucee.runtime.type.util.StructUtil;
+import lucee.runtime.type.wrap.MapAsStruct;
 
 public abstract class IKStorageScopeSupport extends StructSupport implements StorageScope {
 
@@ -129,7 +130,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		
 		if(pc.getApplicationContext().getSessionCluster() && isSessionStorageDatasource(pc)) {
 			IKStorageScopeItem csrfTokens = this.data.g(CSRF_TOKEN, null);
-			if(csrfTokens != null) {
+			if(csrfTokens instanceof Map) {
 				this.tokens = (Map<String, String>) csrfTokens.getValue();
 			}
 		}
@@ -251,7 +252,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		}
 		
 		if(pc.getApplicationContext().getSessionCluster() && isSessionStorageDatasource(pc)) {
-			data.put(KeyConstants._csrf_token, new IKStorageScopeItem(tokens));
+			data.put(KeyConstants._csrf_token, new IKStorageScopeItem(MapAsStruct.toStruct(tokens, false)));
 		}
 		
 		data.put(TIMECREATED, new IKStorageScopeItem(timecreated));
