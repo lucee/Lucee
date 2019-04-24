@@ -1626,6 +1626,9 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		new OnStart(config, dialect, context, reload).start();
 	}
 
+	/**
+	 * process Startup Listeners, i.e. Server.cfc and Web.cfc
+	 */
 	private class OnStart extends Thread {
 
 		private ConfigImpl config;
@@ -1687,6 +1690,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			}
 			catch (Throwable t) {
 				// we simply ignore exceptions, if the template itself throws an error it will be handled by the error listener
+				t.printStackTrace();
 				ExceptionUtil.rethrowIfNecessary(t);
 			} finally {
 				CFMLFactory f = pc.getConfig().getFactory();
