@@ -38,6 +38,7 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.Vector;
 
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
@@ -45,6 +46,8 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefInteger;
 import lucee.commons.lang.types.RefIntegerImpl;
 import lucee.runtime.Component;
+import lucee.runtime.PageContextImpl;
+import lucee.runtime.PageSource;
 import lucee.runtime.config.Constants;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
@@ -882,11 +885,30 @@ public final class Reflector {
     }
 
     private static void checkAccessibility(Object objMaybeNull, Class clazz, Key methodName) {
-	// do not allow java.lang.System.exit()
-	if (methodName.equals(EXIT) && (clazz == System.class || clazz == Runtime.class)) { // TODO better implementation
-	    throw new PageRuntimeException(new SecurityException("Calling the exit method is not allowed"));
-	}
-	// change the accessibility of Lucee methods is not allowed
+		// System.exit() is only allowed from Server.cfc@onServerStart() with the System property lucee.enable.warmup=true
+		boolean isWarmup = false;
+		PageContextImpl pc = (PageContextImpl)ThreadLocalPageContext.get();
+		if(pc != null) {
+			PageSource ps = pc.getCurrentPageSource();
+			if (ps != null && ps.getComponentName().equalsIgnoreCase("lucee-server.Server")
+					&& ps.getMapping().getStrPhysical().equalsIgnoreCase("{lucee-server}/context/")) {
+				if(SystemUtil.getSystemPropOrEnvVar("lucee.enable.warmup", "").equalsIgnoreCase("true")) {
+					isWarmup = true;
+					System.out.println("Server warm-up completed");
+				}
+				else {
+					System.out.println("Server warm-up is disabled. You can enable it by setting the System property lucee.enable.warmup or the environment variable LUCEE_ENABLE_WARMUP to true.");
+				}
+			}
+		}
+
+		if(!isWarmup) {
+			throw new PageRuntimeException(
+					new SecurityException("Calling the exit method is not allowed")
+			);
+		}
+
+		// change the accessibility of Lucee methods is not allowed
 	else if (methodName.equals(SET_ACCESSIBLE)) {
 	    if (objMaybeNull instanceof JavaObject) objMaybeNull = ((JavaObject) objMaybeNull).getEmbededObject(null);
 	    if (objMaybeNull instanceof Member) {
