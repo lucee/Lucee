@@ -131,7 +131,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		if(pc.getApplicationContext().getSessionCluster() && isSessionStorageDatasource(pc)) {
 			IKStorageScopeItem csrfTokens = this.data.g(CSRF_TOKEN, null);
 			if(csrfTokens instanceof Map) {
-				this.tokens = MapAsStruct.toStruct((Map<String, String>) csrfTokens.getValue(), false);
+				this.tokens = (Map<String, String>) csrfTokens.getValue();
 			}
 		}
 			
@@ -252,7 +252,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		}
 		
 		if(pc.getApplicationContext().getSessionCluster() && isSessionStorageDatasource(pc)) {
-			data.put(KeyConstants._csrf_token, new IKStorageScopeItem(tokens));
+			data.put(KeyConstants._csrf_token, new IKStorageScopeItem(MapAsStruct.toStruct(tokens, false)));
 		}
 		
 		data.put(TIMECREATED, new IKStorageScopeItem(timecreated));
