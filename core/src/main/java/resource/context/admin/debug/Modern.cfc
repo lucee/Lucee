@@ -2142,8 +2142,9 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 					if (structKeyExists(stTemplates, qPages.src)) {
 						stDebugTemplates[qPages.src].id = qPages.id;
 					}
-				} else {
-					stDebugTemplates[qPages.src] = {id:qPages.id, template:qPages.src, recurse:false};
+				 	else {
+						stDebugTemplates[qPages.src] = {id:qPages.id, template:qPages.src, recurse:false};
+					}
 				}
 			}
 
