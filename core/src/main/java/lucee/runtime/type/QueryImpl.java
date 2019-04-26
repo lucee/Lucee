@@ -463,15 +463,17 @@ public class QueryImpl implements Query, Objects, QueryResult {
 				QueryArray qa = qr instanceof QueryArray ? (QueryArray) qr : null;
 				QueryStruct qs = qa == null ? (QueryStruct) qr : null;
 				Object k;
+				boolean full = NullSupportHelper.full();
 				while (result.next()) {
 					if (maxrow > -1 && recordcount >= maxrow) {
 						break;
 					}
 					sct = new StructImpl();
 					Object val;
+
 					for (int i = 0; i < usedColumns.length; i++) {
 						val = casts[i].toCFType(tz, result, usedColumns[i] + 1);
-						if (val == null && !NullSupportHelper.full()) val = "";
+						if (val == null && !full) val = "";
 						sct.set(columnNames[i], val);
 					}
 					if (qa != null) qa.appendEL(sct);
