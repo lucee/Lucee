@@ -106,9 +106,11 @@ public abstract class StorageScopeCookie extends StorageScopeImpl {
 		String domain = null;
 		if (ac instanceof ApplicationContextSupport) {
 			SessionCookieData settings = ((ApplicationContextSupport)ac).getSessionCookie();
-			isHttpOnly = settings.isHttpOnly();
-			isSecure = settings.isSecure();
-			domain = settings.getDomain();
+			if (settings != null) {
+				isHttpOnly = settings.isHttpOnly();
+				isSecure = settings.isSecure();
+				domain = settings.getDomain();
+			}
 		}
 
 	Date exp = new DateTimeImpl(pc, System.currentTimeMillis() + timespan.getMillis(), true);
