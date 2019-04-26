@@ -24,6 +24,7 @@ import lucee.commons.digest.Hash;
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Component;
+import lucee.runtime.ComponentScope;
 import lucee.runtime.Page;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
@@ -31,6 +32,7 @@ import lucee.runtime.PageSource;
 import lucee.runtime.component.MemberSupport;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.DeprecatedException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
@@ -40,262 +42,299 @@ import lucee.runtime.functions.decision.IsValid;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.type.Collection.Key;
+import lucee.runtime.type.scope.Variables;
 import lucee.runtime.type.util.ComponentUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.UDFUtil;
 
 public abstract class UDFGSProperty extends MemberSupport implements UDFPlus {
 
-	private static final long serialVersionUID = 285652503901488683L;
+    private static final long serialVersionUID = 285652503901488683L;
 
-	private static final Collection.Key MIN_LENGTH = KeyImpl.intern("minLength");
-	private static final Collection.Key MAX_LENGTH = KeyImpl.intern("maxLength");
-	
-	protected final FunctionArgument[] arguments;
-	protected final String name;
-	protected Component component;
-	private UDFPropertiesBase properties;
-	private String id;
+    private static final Collection.Key MIN_LENGTH = KeyImpl.intern("minLength");
+    private static final Collection.Key MAX_LENGTH = KeyImpl.intern("maxLength");
 
-	public UDFGSProperty(Component component,String name,FunctionArgument[] arguments,short rtnType) {
-		super(Component.ACCESS_PUBLIC);
-		properties=UDFProperties(null,
-				component.getPageSource(),
-				arguments,
-				name,
-				rtnType
-		);
-		
-		this.name=name;
-		this.arguments=arguments;
-		this.component=component;
-	}
-	
-	private static UDFPropertiesBase UDFProperties(
-			Page page,
-			PageSource pageSource,
-	        FunctionArgument[] arguments,
-			String functionName, 
-	        short returnType) {
-			return new UDFPropertiesLight(page, 
-					pageSource,
-			        arguments,
-					 functionName, 
-			         returnType);
-	}
+    protected final FunctionArgument[] arguments;
+    protected final String name;
+    protected Component srcComponent;
+    private UDFPropertiesBase properties;
+    private String id;
 
-	@Override
-	public FunctionArgument[] getFunctionArguments() {
-		return arguments;
-	}
-
-	@Override
-	public String getFunctionName() {
-		return name;
-	}
-
-	/*@Override
-	public PageSource getPageSource() {
-		return component.getPageSource();
-	}*/
-
-	@Override
-	public boolean equals(Object other) {
-		if(!(other instanceof UDF)) return false;
-		return UDFImpl.equals(this, (UDF) other);
-    }
-	
-	@Override
-	public String getSource() {
-		PageSource ps = component.getPageSource();
-		if(ps!=null) return ps.getDisplayPath();
-		return "";
-	}
-	
-
-	@Override
-	public String id() {
-		if(id==null) {
-			try {
-				id=Hash.md5(component.id()+":"+getFunctionName());
-			}
-			catch (NoSuchAlgorithmException e) {
-				id=component.id()+":"+getFunctionName();
-			}
-		}
-		return id;
-	}
-
-	@Override
-	public int getIndex() {
-		return -1;
-	}
-
-	@Override
-	public Component getOwnerComponent() {
-		return component;
-	}
-
-	@Override
-	public void setOwnerComponent(Component component) {
-		this.component = component;
-	}
-	
-	public Page getPage() {
-		throw new PageRuntimeException(new DeprecatedException("method getPage():Page is no longer suppoted, use instead getPageSource():PageSource"));
+    public UDFGSProperty(Component component, String name, FunctionArgument[] arguments, short rtnType) {
+	super(Component.ACCESS_PUBLIC);
+	properties = UDFProperties(null, component.getPageSource(), arguments, name, rtnType);
+	this.name = name;
+	this.arguments = arguments;
+	this.srcComponent = component;
     }
 
-	@Override
-	public boolean getOutput() {
-		return false;
-	}
- 
-	@Override
-	public UDF duplicate(boolean deep) {
-		return duplicate(); // deep has no influence here, because a UDF is not a collection
-	}
+    private static UDFPropertiesBase UDFProperties(Page page, PageSource pageSource, FunctionArgument[] arguments, String functionName, short returnType) {
+	return new UDFPropertiesLight(page, pageSource, arguments, functionName, returnType);
+    }
 
-	@Override
-	public String getDisplayName() {
-		return "";
-	}
+    @Override
+    public FunctionArgument[] getFunctionArguments() {
+	return arguments;
+    }
 
-	@Override
-	public String getDescription() {
-		return "";
-	}
+    @Override
+    public String getFunctionName() {
+	return name;
+    }
 
-	@Override
-	public String getHint() {
-		return "";
-	}
+    /*
+     * @Override public PageSource getPageSource() { return component.getPageSource(); }
+     */
 
-	@Override
-	public int getReturnFormat() {
-		return UDF.RETURN_FORMAT_WDDX;
-	}
+    @Override
+    public boolean equals(Object other) {
+	if (!(other instanceof UDF)) return false;
+	return UDFImpl.equals(this, (UDF) other);
+    }
 
-	@Override
-	public int getReturnFormat(int defaultValue) {
-		return defaultValue;
-	}
+    @Override
+    public String getSource() {
+	PageSource ps = srcComponent.getPageSource();
+	if (ps != null) return ps.getDisplayPath();
+	return "";
+    }
 
-	@Override
-	public int getReturnType() {
-		return CFTypes.toShortStrict(getReturnTypeAsString(),CFTypes.TYPE_UNKNOW);
+    @Override
+    public String id() {
+	if (id == null) {
+	    try {
+		id = Hash.md5(srcComponent.id() + ":" + getFunctionName());
+	    }
+	    catch (NoSuchAlgorithmException e) {
+		id = srcComponent.id() + ":" + getFunctionName();
+	    }
 	}
+	return id;
+    }
 
-	@Override
-	public Object getValue() {
-		return this;
+    @Override
+    public int getIndex() {
+	return -1;
+    }
+
+    @Override
+    public Component getOwnerComponent() {
+
+	return getOwnerComponent(null);
+    }
+
+    public Component getOwnerComponent(PageContext pc) {
+	return srcComponent;
+    }
+
+    @Override
+    public void setOwnerComponent(Component component) {
+	this.srcComponent = component;
+    }
+
+    public Page getPage() {
+	throw new PageRuntimeException(new DeprecatedException("method getPage():Page is no longer suppoted, use instead getPageSource():PageSource"));
+    }
+
+    @Override
+    public boolean getOutput() {
+	return false;
+    }
+
+    @Override
+    public final UDF duplicate(boolean deep) {
+	UDF udf = duplicate(); // deep has no influence here, because a UDF is not a collection
+	if (udf instanceof UDFPlus) {
+	    UDFPlus udfp = (UDFPlus) udf;
+	    udfp.setOwnerComponent(srcComponent);
+	    udfp.setAccess(getAccess());
 	}
-	
-	@Override
-	public Boolean getSecureJson() {
-		return null;
+	return udf;
+    }
+
+    @Override
+    public String getDisplayName() {
+	return "";
+    }
+
+    @Override
+    public String getDescription() {
+	return "";
+    }
+
+    @Override
+    public String getHint() {
+	return "";
+    }
+
+    @Override
+    public int getReturnFormat() {
+	return UDF.RETURN_FORMAT_WDDX;
+    }
+
+    @Override
+    public int getReturnFormat(int defaultValue) {
+	return defaultValue;
+    }
+
+    @Override
+    public int getReturnType() {
+	return CFTypes.toShortStrict(getReturnTypeAsString(), CFTypes.TYPE_UNKNOW);
+    }
+
+    @Override
+    public Object getValue() {
+	return this;
+    }
+
+    @Override
+    public Boolean getSecureJson() {
+	return null;
+    }
+
+    @Override
+    public Boolean getVerifyClient() {
+	return null;
+    }
+
+    @Override
+    public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties properties) {
+	return UDFUtil.toDumpData(pageContext, maxlevel, properties, this, UDFUtil.TYPE_UDF);
+    }
+
+    @Override
+    public Struct getMetaData(PageContext pc) throws PageException {
+	return ComponentUtil.getMetaData(pc, properties);
+    }
+
+    final Object cast(PageContext pc, FunctionArgument arg, Object value, int index) throws PageException {
+	if (value == null || Decision.isCastableTo(pc, arg.getType(), arg.getTypeAsString(), value)) return value;
+	throw new UDFCasterException(this, arg, value, index);
+    }
+
+    final static void validate(String validate, Struct validateParams, Object obj) throws PageException {
+	if (StringUtil.isEmpty(validate, true)) return;
+	validate = validate.trim().toLowerCase();
+
+	if (!validate.equals("regex") && !Decision.isValid(validate, obj)) throw new ExpressionException(createMessage(validate, obj));
+
+	// range
+	if (validateParams == null) return;
+
+	if (validate.equals("integer") || validate.equals("numeric") || validate.equals("number")) {
+	    double min = Caster.toDoubleValue(validateParams.get(KeyConstants._min, null), false, Double.NaN);
+	    double max = Caster.toDoubleValue(validateParams.get(KeyConstants._max, null), false, Double.NaN);
+	    double d = Caster.toDoubleValue(obj);
+	    if (!Double.isNaN(min) && d < min)
+		throw new ExpressionException(validate + " [" + Caster.toString(d) + "] is out of range, value must be more than or equal to [" + min + "]");
+	    if (!Double.isNaN(max) && d > max)
+		throw new ExpressionException(validate + " [" + Caster.toString(d) + "] is out of range, value must be less than or equal to [" + max + "]");
 	}
-
-	@Override
-	public Boolean getVerifyClient() {
-		return null;
+	else if (validate.equals("string")) {
+	    double min = Caster.toDoubleValue(validateParams.get(MIN_LENGTH, null), false, Double.NaN);
+	    double max = Caster.toDoubleValue(validateParams.get(MAX_LENGTH, null), false, Double.NaN);
+	    String str = Caster.toString(obj);
+	    int l = str.length();
+	    if (!Double.isNaN(min) && l < ((int) min))
+		throw new ExpressionException("string [" + str + "] is to short [" + l + "], the string must be at least [" + min + "] characters");
+	    if (!Double.isNaN(max) && l > ((int) max))
+		throw new ExpressionException("string [" + str + "] is to long [" + l + "], the string can have a maximum length of [" + max + "] characters");
 	}
-
-	@Override
-	public DumpData toDumpData(PageContext pageContext, int maxlevel,DumpProperties properties) {
-		return UDFUtil.toDumpData(pageContext, maxlevel, properties, this,UDFUtil.TYPE_UDF);
+	else if (validate.equals("regex")) {
+	    String pattern = Caster.toString(validateParams.get(KeyConstants._pattern, null), null);
+	    String value = Caster.toString(obj);
+	    if (!StringUtil.isEmpty(pattern, true) && !IsValid.regex(value, pattern))
+		throw new ExpressionException("the string [" + value + "] does not match the regular expression pattern [" + pattern + "]");
 	}
-	
-	@Override
-	public Struct getMetaData(PageContext pc) throws PageException {
-		return ComponentUtil.getMetaData(pc, properties);
+    }
+
+    @Override
+    public Object callWithNamedValues(PageContext pc, Key calledName, Struct values, boolean doIncludePath) throws PageException {
+	PageContextImpl pci = ((PageContextImpl) pc);
+	UDF parent = pc.getActiveUDF();
+	Key parentName = pci.getActiveUDFCalledName();
+	pci.setActiveUDF(this);
+	pci.setActiveUDFCalledName(calledName);
+	try {
+	    return callWithNamedValues(pci, values, doIncludePath);
 	}
-	
-	
-
-	final Object cast(PageContext pc,FunctionArgument arg,Object value, int index) throws PageException {
-		if(value==null || Decision.isCastableTo(pc,arg.getType(),arg.getTypeAsString(),value)) 
-			return value;
-		throw new UDFCasterException(this,arg,value,index);
+	finally {
+	    pci.setActiveUDF(parent);
+	    pci.setActiveUDFCalledName(parentName);
 	}
+    }
 
-	final static void validate(String validate, Struct validateParams, Object obj) throws PageException {
-		if(StringUtil.isEmpty(validate,true)) return;
-		validate=validate.trim().toLowerCase();
-		
-		if(!validate.equals("regex") && !Decision.isValid(validate, obj))
-			throw new ExpressionException(createMessage(validate, obj));
-		
-		
-		// range
-		if(validateParams==null) return;
-
-		if(validate.equals("integer") || validate.equals("numeric") || validate.equals("number")){
-			double min=Caster.toDoubleValue(validateParams.get(KeyConstants._min,null),false,Double.NaN);
-			double max=Caster.toDoubleValue(validateParams.get(KeyConstants._max,null),false,Double.NaN);
-			double d=Caster.toDoubleValue(obj);
-			if(!Double.isNaN(min) && d<min)
-				throw new ExpressionException(validate+" ["+Caster.toString(d)+"] is out of range, value must be more than or equal to ["+min+"]");
-			if(!Double.isNaN(max) && d>max)
-				throw new ExpressionException(validate+" ["+Caster.toString(d)+"] is out of range, value must be less than or equal to ["+max+"]");
-		}
-		else if(validate.equals("string")){
-			double min=Caster.toDoubleValue(validateParams.get(MIN_LENGTH,null),false,Double.NaN);
-			double max=Caster.toDoubleValue(validateParams.get(MAX_LENGTH,null),false,Double.NaN);
-			String str=Caster.toString(obj);
-			int l=str.length();
-			if(!Double.isNaN(min) && l<((int)min))
-				throw new ExpressionException("string ["+str+"] is to short ["+l+"], the string must be at least ["+min+"] characters");
-			if(!Double.isNaN(max) && l>((int)max))
-				throw new ExpressionException("string ["+str+"] is to long ["+l+"], the string can have a maximum length of ["+max+"] characters");
-		}
-		else if(validate.equals("regex")){
-			String pattern=Caster.toString(validateParams.get(KeyConstants._pattern,null),null);
-			String value=Caster.toString(obj);
-			if(!StringUtil.isEmpty(pattern,true) && !IsValid.regex(value, pattern))
-				throw new ExpressionException("the string ["+value+"] does not match the regular expression pattern ["+pattern+"]");
-		}
+    @Override
+    public Object call(PageContext pc, Key calledName, Object[] args, boolean doIncludePath) throws PageException {
+	PageContextImpl pci = ((PageContextImpl) pc);
+	UDF parent = pc.getActiveUDF();
+	Key parentName = pci.getActiveUDFCalledName();
+	pci.setActiveUDFCalledName(calledName);
+	pci.setActiveUDF(this);
+	try {
+	    return call(pci, args, doIncludePath);
 	}
-
-	
-	@Override
-	public Object callWithNamedValues(PageContext pc, Key calledName, Struct values, boolean doIncludePath) throws PageException {
-		PageContextImpl pci = ((PageContextImpl)pc);
-		Key old =pci.getActiveUDFCalledName();
-		pci.setActiveUDFCalledName(calledName);
-		try{
-			return callWithNamedValues(pci, values, doIncludePath);
-		}
-		finally{
-			pci.setActiveUDFCalledName(old);
-		}
+	finally {
+	    pci.setActiveUDF(parent);
+	    pci.setActiveUDFCalledName(parentName);
 	}
+    }
 
-	@Override
-	public Object call(PageContext pc, Key calledName, Object[] args, boolean doIncludePath) throws PageException {
-		PageContextImpl pci = ((PageContextImpl)pc);
-		Key old =pci.getActiveUDFCalledName();
-		pci.setActiveUDFCalledName(calledName);
-		try{
-			return call(pci, args, doIncludePath);
-		}
-		finally{
-			pci.setActiveUDFCalledName(old);
-		}
+    @Override
+    public final Object call(PageContext pageContext, Object[] args, boolean doIncludePath) throws PageException {
+	PageContextImpl pci = (PageContextImpl) pageContext;
+	UDF parent = pci.getActiveUDF();
+	pci.setActiveUDF(this);
+	try {
+	    return _call(pageContext, args, doIncludePath);
 	}
-
-	private static String createMessage(String format, Object value) {
-    	if(Decision.isSimpleValue(value)) return "the value ["+Caster.toString(value,null)+"] is not in  ["+format+"] format";
-    	return "cannot convert object from type ["+Caster.toTypeName(value)+"] to a ["+format+"] format";
-    }   
-
-
-	@Override
-	public PageSource getPageSource() {
-		return this.properties.getPageSource();
+	finally {
+	    pci.setActiveUDF(parent);
 	}
+    }
 
-	@Override
-	public boolean getBufferOutput(PageContext pc) {
-		return pc.getApplicationContext().getBufferOutput();
+    public abstract Object _call(PageContext pageContext, Object[] args, boolean doIncludePath) throws PageException;
+
+    @Override
+    public final Object callWithNamedValues(PageContext pageContext, Struct values, boolean doIncludePath) throws PageException {
+	PageContextImpl pci = (PageContextImpl) pageContext;
+	UDF parent = pci.getActiveUDF();
+	pci.setActiveUDF(this);
+	try {
+	    return _callWithNamedValues(pageContext, values, doIncludePath);
 	}
+	finally {
+	    pci.setActiveUDF(parent);
+	}
+    }
+
+    public abstract Object _callWithNamedValues(PageContext pageContext, Struct values, boolean doIncludePath) throws PageException;
+
+    private static String createMessage(String format, Object value) {
+	if (Decision.isSimpleValue(value)) return "the value [" + Caster.toString(value, null) + "] is not in  [" + format + "] format";
+	return "cannot convert object from type [" + Caster.toTypeName(value) + "] to a [" + format + "] format";
+    }
+
+    @Override
+    public PageSource getPageSource() {
+	return srcComponent.getPageSource();
+	// return this.properties.getPageSource();
+    }
+
+    @Override
+    public boolean getBufferOutput(PageContext pc) {
+	return pc.getApplicationContext().getBufferOutput();
+    }
+
+    public Component getComponent(PageContext pc) {
+	if (pc == null) pc = ThreadLocalPageContext.get();
+	if (pc != null) {
+	    Variables var = pc.variablesScope();
+	    if (var instanceof ComponentScope) {
+		Component comp = ((ComponentScope) var).getComponent();
+		if (comp != null) return comp;
+	    }
+	}
+	return srcComponent;
+    }
 }

@@ -25,80 +25,81 @@ import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.JSONConverter;
+import lucee.runtime.converter.JSONDateFormat;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.listener.ApplicationContextSupport;
+import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
-import lucee.runtime.type.Array;
-import lucee.runtime.type.ArrayImpl;
-import lucee.runtime.type.Query;
-import lucee.runtime.type.it.ForEachQueryIterator;
 
 /**
  * Decodes Binary Data that are encoded as String
  */
 public final class SerializeJSON implements Function {
 
-	private static final long serialVersionUID = -4632952919389635891L;
+    private static final long serialVersionUID = -4632952919389635891L;
 
-	public static String call(PageContext pc, Object var) throws PageException {
-		return _call(pc, var, false, pc.getWebCharset());
+    public static String call(PageContext pc, Object var) throws PageException {
+	return _call(pc, var, "", pc.getWebCharset(), false);
+    }
+
+    // FUTURE remove, this methods are only used by compiled code in archives older than 5.2.3
+    public static String call(PageContext pc, Object var, boolean serializeQueryByColumns) throws PageException {
+	return _call(pc, var, serializeQueryByColumns, pc.getWebCharset(), false);
+    }
+
+    // FUTURE remove, this methods are only used by compiled code in archives older than 5.2.3
+    public static String call(PageContext pc, Object var, boolean serializeQueryByColumns, String strCharset) throws PageException {
+	Charset cs = StringUtil.isEmpty(strCharset) ? pc.getWebCharset() : CharsetUtil.toCharset(strCharset);
+	return _call(pc, var, serializeQueryByColumns, cs, false);
+    }
+
+    // FUTURE remove, this methods are only used by compiled code in archives older than 5.2.3
+    public static String call(PageContext pc, Object var, Object options, String strCharset) throws PageException {
+	Charset cs = StringUtil.isEmpty(strCharset) ? pc.getWebCharset() : CharsetUtil.toCharset(strCharset);
+	return _call(pc, var, options, cs, false);
+    }
+
+    public static String call(PageContext pc, Object var, Object options) throws PageException {
+	return _call(pc, var, options, pc.getWebCharset(), false);
+    }
+
+    public static String call(PageContext pc, Object var, Object options, Object useSecureJSONPrefixOrCharset) throws PageException {
+	// TODO all options to be a struct
+
+	// useSecureJSONPrefix
+	Charset cs = pc.getWebCharset();
+	boolean useSecureJSONPrefix = false;
+	if (Decision.isBoolean(useSecureJSONPrefixOrCharset)) {
+	    useSecureJSONPrefix = Caster.toBooleanValue(useSecureJSONPrefixOrCharset);
 	}
-
-	// FUTURE remove, this methods are only used by compiled code in archives older than 5.2.3
-	public static String call(PageContext pc, Object var, boolean serializeQueryByColumns) throws PageException {
-		return _call(pc, var, serializeQueryByColumns, pc.getWebCharset());
+	// charset
+	else if (!StringUtil.isEmpty(useSecureJSONPrefixOrCharset)) {
+	    cs = CharsetUtil.toCharset(Caster.toString(useSecureJSONPrefixOrCharset));
 	}
+	return _call(pc, var, options, cs, useSecureJSONPrefix);
+    }
 
-	// FUTURE remove, this methods are only used by compiled code in archives older than 5.2.3
-	public static String call(PageContext pc, Object var, boolean serializeQueryByColumns, String strCharset) throws PageException {
-		Charset cs=StringUtil.isEmpty(strCharset)?pc.getWebCharset():CharsetUtil.toCharset(strCharset);
-		return _call(pc, var, serializeQueryByColumns, cs);
+    private static String _call(PageContext pc, Object var, Object queryFormat, Charset charset, boolean useSecureJSONPrefix) throws PageException {
+	try {
+	    JSONConverter json = new JSONConverter(true, charset, JSONDateFormat.PATTERN_CF);
+
+	    int qf = JSONConverter.toQueryFormat(queryFormat, SerializationSettings.SERIALIZE_AS_UNDEFINED);
+	    if (qf == SerializationSettings.SERIALIZE_AS_UNDEFINED) {
+		if (!StringUtil.isEmpty(queryFormat)) throw new FunctionException(pc, SerializeJSON.class.getSimpleName(), 2, "options",
+			"When var is a Query, argument [options] must be either a boolean value or a string with the value of [struct], [row], or [column]");
+		ApplicationContextSupport acs = (ApplicationContextSupport) pc.getApplicationContext();
+		SerializationSettings settings = acs.getSerializationSettings();
+		qf = settings.getSerializeQueryAs();
+	    }
+
+	    // TODO get secure prefix from application.cfc
+	    return useSecureJSONPrefix ? "// " + json.serialize(pc, var, qf) : json.serialize(pc, var, qf);
 	}
-
-	public static String call(PageContext pc, Object var, Object options) throws PageException {
-		return _call(pc, var, options, pc.getWebCharset());
+	catch (ConverterException e) {
+	    throw Caster.toPageException(e);
 	}
-
-	public static String call(PageContext pc, Object var, Object options, String strCharset) throws PageException {
-		Charset cs=StringUtil.isEmpty(strCharset)?pc.getWebCharset():CharsetUtil.toCharset(strCharset);
-		return _call(pc, var, options, cs);
-	}
-
-	private static String _call(PageContext pc, Object var, Object options, Charset charset) throws PageException {
-		try {
-			JSONConverter json = new JSONConverter(true, charset);
-			if(Decision.isBoolean(options))
-				return json.serialize(pc, var, Caster.toBoolean(options));
-
-			if(Decision.isQuery(var)){
-				if (Decision.isSimpleValue(options)) {
-					String opt = Caster.toString(options);
-					if ("struct".equalsIgnoreCase(opt)) {
-						Array arr = new ArrayImpl();
-						ForEachQueryIterator it = new ForEachQueryIterator((Query) var, pc.getId());
-						try {
-							while (it.hasNext()) {
-								arr.append(it.next());    // append each record from the query as a struct
-							}
-						} finally {
-							it.reset();
-						}
-						return json.serialize(pc, arr, false);
-					}
-				}
-				else if (Decision.isBoolean(options)) {
-					return json.serialize(pc, var, Caster.toBoolean(options));
-				}
-				else throw new FunctionException(pc, SerializeJSON.class.getSimpleName(), 2, "options", "When var is a Query, argument [options] must be either a boolean value or a string with the value of [struct]");
-			}
-
-			// var is not a query so options doesn't make a difference here
-			return json.serialize(pc, var, false);
-        }
-		catch (ConverterException e) {
-            throw Caster.toPageException(e);
-        }
-	}
+    }
 }

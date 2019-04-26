@@ -234,13 +234,13 @@ list all mappings and display necessary edit fields --->
 			<input type="hidden" name="row_1" value="1">
 			<table class="maintbl" style="width:75%">
 				<tbody>
-					<tr>
+					<tr> 
 						<th scope="row">
 							#stText.ext.prov.host#
 						</th>
 						<td>
 							<cfinputClassic onKeyDown="checkTheBox(this)" type="text" 
-							name="url_1" value="" required="no" class="xlarge">
+							name="url" value="" required="yes" class="xlarge">
 							<div class="comment">#stText.ext.prov.hostDesc#</div>
 						</td>
 					</tr>

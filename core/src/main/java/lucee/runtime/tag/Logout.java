@@ -29,7 +29,7 @@ public final class Logout extends TagImpl {
 
     @Override
     public int doStartTag() throws JspException {
-        pageContext.clearRemoteUser();
-        return SKIP_BODY;
+	pageContext.clearRemoteUser();
+	return SKIP_BODY;
     }
 }

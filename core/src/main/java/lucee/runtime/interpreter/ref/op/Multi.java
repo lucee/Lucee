@@ -32,28 +32,29 @@ public final class Multi extends RefSupport implements Ref {
 
     private Ref right;
     private Ref left;
-	private boolean limited;
+    private boolean limited;
 
     /**
      * constructor of the class
+     * 
      * @param left
      * @param right
      */
     public Multi(Ref left, Ref right, boolean limited) {
-        this.left=left;
-        this.right=right;
-		this.limited=limited;
+	this.left = left;
+	this.right = right;
+	this.limited = limited;
     }
 
     @Override
-	public Object getValue(PageContext pc) throws PageException {
-    	if(limited) throw new InterpreterException("invalid syntax, math operations are not supported in a json string.");
-        return new Double(Caster.toDoubleValue(left.getValue(pc))*Caster.toDoubleValue(right.getValue(pc)));
+    public Object getValue(PageContext pc) throws PageException {
+	if (limited) throw new InterpreterException("invalid syntax, math operations are not supported in a json string.");
+	return new Double(Caster.toDoubleValue(left.getValue(pc)) * Caster.toDoubleValue(right.getValue(pc)));
     }
 
     @Override
     public String getTypeName() {
-        return "operation";
+	return "operation";
     }
 
 }

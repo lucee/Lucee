@@ -29,7 +29,7 @@
 	min-height: 450px;
 	height: 100%;
 }
-body {
+body.web, body.server {
 	min-width:600px;
 	background:#f7f7f7 url(../img/web-back.png.cfm) repeat-x top;
 	margin:0;
@@ -708,6 +708,7 @@ div.percentagebar div {
 	background-color:#eee2d4;
 	border-right:1px solid #999;
 	padding-left:2px;
+	display: flex;
 }
 div.percentagebar span {
 	position: absolute;

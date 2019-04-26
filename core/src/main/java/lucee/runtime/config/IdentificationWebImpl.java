@@ -17,33 +17,36 @@
  */
 package lucee.runtime.config;
 
+import java.io.Serializable;
 
-public class IdentificationWebImpl extends IdentificationImpl implements IdentificationWeb {
+import lucee.runtime.engine.ThreadLocalPageContext;
 
-	private ConfigWebImpl cw;
+public class IdentificationWebImpl extends IdentificationImpl implements IdentificationWeb, Serializable {
 
-	public IdentificationWebImpl(ConfigWebImpl cw, String securityKey, String apiKey) {
-		super(cw, securityKey, apiKey);
-		this.cw=cw;
-	}
+    private transient ConfigWebImpl cw;
 
-	@Override
-	public IdentificationServer getServerIdentification() {
-		return cw.getConfigServerImpl().getIdentification();
-	}
-	
-	@Override
-	public String toQueryString() {
-		StringBuilder qs=new StringBuilder();
-		append(qs,"webApiKey",getApiKey());
-		append(qs,"webId",getId());
-		append(qs,"webSecurityKey",getSecurityKey());
-		
-		IdentificationServer sid = getServerIdentification();
-		append(qs,"serverApiKey",sid.getApiKey());
-		append(qs,"serverId",sid.getId());
-		append(qs,"serverSecurityKey",sid.getSecurityKey());
-		
-		return qs.toString();
-	}
+    public IdentificationWebImpl(ConfigWebImpl cw, String securityKey, String apiKey) {
+	super(cw, securityKey, apiKey);
+	this.cw = cw;
+    }
+
+    @Override
+    public IdentificationServer getServerIdentification() {
+	return ((ConfigWebImpl) ThreadLocalPageContext.getConfig(cw)).getConfigServerImpl().getIdentification();
+    }
+
+    @Override
+    public String toQueryString() {
+	StringBuilder qs = new StringBuilder();
+	append(qs, "webApiKey", getApiKey());
+	append(qs, "webId", getId());
+	append(qs, "webSecurityKey", getSecurityKey());
+
+	IdentificationServer sid = getServerIdentification();
+	append(qs, "serverApiKey", sid.getApiKey());
+	append(qs, "serverId", sid.getId());
+	append(qs, "serverSecurityKey", sid.getSecurityKey());
+
+	return qs.toString();
+    }
 }

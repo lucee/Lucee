@@ -24,7 +24,7 @@ import java.nio.charset.Charset;
 import java.util.concurrent.Callable;
 
 import lucee.commons.io.IOUtil;
-import lucee.commons.lang.SystemOut;
+import lucee.commons.io.log.LogUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -33,45 +33,45 @@ import lucee.runtime.net.http.HttpServletResponseDummy;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.thread.ThreadUtil;
 
-public abstract class CallerResponseStreamResult implements Callable<String> { 
+public abstract class CallerResponseStreamResult implements Callable<String> {
 
-	private PageContext parent;
-	private PageContextImpl pc;
-	private ByteArrayOutputStream baos;
+    private PageContext parent;
+    private PageContextImpl pc;
+    private ByteArrayOutputStream baos;
 
-	public CallerResponseStreamResult(PageContext parent) {
-		this.parent = parent;
-		this.baos = new ByteArrayOutputStream();
-		this.pc=ThreadUtil.clonePageContext(parent, baos, false, false, false);
+    public CallerResponseStreamResult(PageContext parent) {
+	this.parent = parent;
+	this.baos = new ByteArrayOutputStream();
+	this.pc = ThreadUtil.clonePageContext(parent, baos, false, false, false);
+    }
+
+    @Override
+    public final String call() throws PageException {
+	ThreadLocalPageContext.register(pc);
+	pc.getRootOut().setAllowCompression(false); // make sure content is not compressed
+	String str = null;
+	try {
+	    _call(parent, pc);
 	}
-	
-	@Override
-	public final String call() throws PageException {
-		ThreadLocalPageContext.register(pc);
-		pc.getRootOut().setAllowCompression(false); // make sure content is not compressed
-		String str=null;
-		try{
-			_call(parent,pc);
-		} 
-		finally{
-			try {
-			HttpServletResponseDummy rsp=(HttpServletResponseDummy) pc.getHttpServletResponse();
-			
-			Charset cs = ReqRspUtil.getCharacterEncoding(pc,rsp);
-			//if(enc==null) enc="ISO-8859-1";
-			
-			pc.getOut().flush(); //make sure content is flushed
-			
-			pc.getConfig().getFactory().releasePageContext(pc);
-				str=IOUtil.toString((new ByteArrayInputStream(baos.toByteArray())), cs); // TODO add support for none string content
-			} 
-			catch (Exception e) {
-				SystemOut.printDate(e);
-			}
-		}
-		return str;
-	}
+	finally {
+	    try {
+		HttpServletResponseDummy rsp = (HttpServletResponseDummy) pc.getHttpServletResponse();
 
-	public abstract void _call(PageContext parent, PageContext pc) throws PageException;
-	//public abstract void afterCleanup(PageContext parent, ByteArrayOutputStream baos);
+		Charset cs = ReqRspUtil.getCharacterEncoding(pc, rsp);
+		// if(enc==null) enc="ISO-8859-1";
+
+		pc.getOut().flush(); // make sure content is flushed
+
+		pc.getConfig().getFactory().releasePageContext(pc);
+		str = IOUtil.toString((new ByteArrayInputStream(baos.toByteArray())), cs); // TODO add support for none string content
+	    }
+	    catch (Exception e) {
+		LogUtil.log(ThreadLocalPageContext.getConfig(pc), "concurrency", e);
+	    }
+	}
+	return str;
+    }
+
+    public abstract void _call(PageContext parent, PageContext pc) throws PageException;
+    // public abstract void afterCleanup(PageContext parent, ByteArrayOutputStream baos);
 }

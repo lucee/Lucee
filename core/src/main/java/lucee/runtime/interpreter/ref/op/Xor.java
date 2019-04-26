@@ -32,27 +32,28 @@ public final class Xor extends RefSupport implements Ref {
 
     private Ref right;
     private Ref left;
-	private boolean limited;
+    private boolean limited;
 
     /**
      * constructor of the class
+     * 
      * @param left
      * @param right
      */
     public Xor(Ref left, Ref right, boolean limited) {
-        this.left=left;
-        this.right=right;
-		this.limited=limited;
+	this.left = left;
+	this.right = right;
+	this.limited = limited;
     }
 
     @Override
-	public Object getValue(PageContext pc) throws PageException {
-    	if(limited) throw new InterpreterException("invalid syntax, boolean operations are not supported in a json string.");
-        return Caster.toBooleanValue(left.getValue(pc)) ^ Caster.toBooleanValue(right.getValue(pc))?Boolean.TRUE:Boolean.FALSE;
+    public Object getValue(PageContext pc) throws PageException {
+	if (limited) throw new InterpreterException("invalid syntax, boolean operations are not supported in a json string.");
+	return Caster.toBooleanValue(left.getValue(pc)) ^ Caster.toBooleanValue(right.getValue(pc)) ? Boolean.TRUE : Boolean.FALSE;
     }
 
     @Override
     public String getTypeName() {
-        return "operation";
+	return "operation";
     }
 }

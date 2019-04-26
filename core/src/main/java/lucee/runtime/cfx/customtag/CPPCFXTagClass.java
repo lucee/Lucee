@@ -24,20 +24,20 @@
  */
 package lucee.runtime.cfx.customtag;
 
-import lucee.runtime.cfx.CFXTagException;
-
 import com.allaire.cfx.CustomTag;
+
+import lucee.runtime.cfx.CFXTagException;
 
 /**
  *
  *
- * To change the template for this generated type comment go to
- * Window>Preferences>Java>Code Generation>Code and Comments
+ * To change the template for this generated type comment go to Window>Preferences>Java>Code
+ * Generation>Code and Comments
  */
 public final class CPPCFXTagClass implements CFXTagClass {
-	
-	private String name;
-	private boolean readonly=false;
+
+    private String name;
+    private boolean readonly = false;
     private String serverLibrary;
     private String procedure;
     private boolean keepAlive;
@@ -49,81 +49,80 @@ public final class CPPCFXTagClass implements CFXTagClass {
      * @param procedure
      * @param keepAlive
      */
-    private CPPCFXTagClass(String name, boolean readonly, String serverLibrary,
-            String procedure, boolean keepAlive) {
-        super();
-        this.name = name;
-        this.readonly = readonly;
-        this.serverLibrary = serverLibrary;
-        this.procedure = procedure;
-        this.keepAlive = keepAlive;
+    private CPPCFXTagClass(String name, boolean readonly, String serverLibrary, String procedure, boolean keepAlive) {
+	super();
+	this.name = name;
+	this.readonly = readonly;
+	this.serverLibrary = serverLibrary;
+	this.procedure = procedure;
+	this.keepAlive = keepAlive;
     }
 
-	public CPPCFXTagClass(String name, String serverLibrary, String procedure, boolean keepAlive) {
-		if(name.startsWith("cfx_"))name=name.substring(4);
-		this.name=name;
-		this.serverLibrary=serverLibrary;
-		this.procedure=procedure;
-		this.keepAlive=keepAlive;
-	}
-	
-	/**
-	 * @return the serverLibrary
-	 */
-	public String getServerLibrary() {
-		return serverLibrary;
-	}
+    public CPPCFXTagClass(String name, String serverLibrary, String procedure, boolean keepAlive) {
+	if (name.startsWith("cfx_")) name = name.substring(4);
+	this.name = name;
+	this.serverLibrary = serverLibrary;
+	this.procedure = procedure;
+	this.keepAlive = keepAlive;
+    }
 
-	/**
-	 * @return the procedure
-	 */
-	public String getProcedure() {
-		return procedure;
-	}
+    /**
+     * @return the serverLibrary
+     */
+    public String getServerLibrary() {
+	return serverLibrary;
+    }
 
-	@Override
-	public CustomTag newInstance() throws CFXTagException {
-		return new CPPCustomTag(serverLibrary,procedure,keepAlive);
-		
-	}
+    /**
+     * @return the procedure
+     */
+    public String getProcedure() {
+	return procedure;
+    }
+
+    @Override
+    public CustomTag newInstance() throws CFXTagException {
+	return new CPPCustomTag(serverLibrary, procedure, keepAlive);
+
+    }
 
     @Override
     public boolean isReadOnly() {
-        return readonly;
+	return readonly;
     }
 
     @Override
     public CFXTagClass cloneReadOnly() {
-        return new CPPCFXTagClass(name,true,serverLibrary,procedure,keepAlive);
+	return new CPPCFXTagClass(name, true, serverLibrary, procedure, keepAlive);
     }
 
     @Override
     public String getDisplayType() {
-        return "cpp";
+	return "cpp";
     }
 
     @Override
     public String getSourceName() {
-        return serverLibrary;
+	return serverLibrary;
     }
 
     @Override
     public boolean isValid() {
-        return false;
+	return false;
     }
-    
-	/**
-	 * @return the name
-	 */
-	public String getName() {
-		return name;
-	}
 
-	/**
-	 * @return the keepAlive
-	 */
-	public boolean getKeepAlive() {
-		return keepAlive;
-	}
-	
+    /**
+     * @return the name
+     */
+    public String getName() {
+	return name;
+    }
+
+    /**
+     * @return the keepAlive
+     */
+    public boolean getKeepAlive() {
+	return keepAlive;
+    }
+
 }

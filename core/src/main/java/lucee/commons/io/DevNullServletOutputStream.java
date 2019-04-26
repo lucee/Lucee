@@ -25,7 +25,7 @@ import javax.servlet.WriteListener;
  * ServletOutputStream impl.
  */
 public final class DevNullServletOutputStream extends ServletOutputStream {
-    
+
     @Override
     public void close() {}
 
@@ -86,13 +86,12 @@ public final class DevNullServletOutputStream extends ServletOutputStream {
     @Override
     public void println(String str) {}
 
-	@Override
-	public boolean isReady() {
-		return true;
-	}
+    @Override
+    public boolean isReady() {
+	return true;
+    }
 
-	@Override
-	public void setWriteListener(WriteListener arg0) {
-	}
+    @Override
+    public void setWriteListener(WriteListener arg0) {}
 
 }

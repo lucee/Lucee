@@ -25,16 +25,16 @@ import java.io.Serializable;
  * dev null output stream, write data to nirvana
  */
 public final class DevNullOutputStream extends OutputStream implements Serializable {
-	
-	public static final DevNullOutputStream DEV_NULL_OUTPUT_STREAM=new DevNullOutputStream();
-	
-	/**
-	 * Constructor of the class
-	 */
-	private DevNullOutputStream() {}
-	
+
+    public static final DevNullOutputStream DEV_NULL_OUTPUT_STREAM = new DevNullOutputStream();
+
+    /**
+     * Constructor of the class
+     */
+    private DevNullOutputStream() {}
+
     @Override
-    public void close(){}
+    public void close() {}
 
     @Override
     public void flush() {}

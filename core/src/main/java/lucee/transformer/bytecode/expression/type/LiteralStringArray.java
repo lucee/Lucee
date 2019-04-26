@@ -18,6 +18,9 @@
  **/
 package lucee.transformer.bytecode.expression.type;
 
+import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.GeneratorAdapter;
+
 import lucee.transformer.Factory;
 import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
@@ -26,33 +29,31 @@ import lucee.transformer.bytecode.expression.ExpressionBase;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.bytecode.visitor.ArrayVisitor;
 
-import org.objectweb.asm.Type;
-import org.objectweb.asm.commons.GeneratorAdapter;
-
 public class LiteralStringArray extends ExpressionBase {
 
-	private String[] arr;
+    private String[] arr;
 
-	public LiteralStringArray(Factory f,String[] arr){
-		super(f,null,null);
-		this.arr=arr;
+    public LiteralStringArray(Factory f, String[] arr) {
+	super(f, null, null);
+	this.arr = arr;
+    }
+
+    public LiteralStringArray(Factory f, String[] arr, Position start, Position end) {
+	super(f, start, end);
+	this.arr = arr;
+    }
+
+    @Override
+    public Type _writeOut(BytecodeContext bc, int mode) throws TransformerException {
+	GeneratorAdapter adapter = bc.getAdapter();
+	ArrayVisitor av = new ArrayVisitor();
+	av.visitBegin(adapter, Types.STRING, arr.length);
+	for (int y = 0; y < arr.length; y++) {
+	    av.visitBeginItem(adapter, y);
+	    adapter.push(arr[y]);
+	    av.visitEndItem(bc.getAdapter());
 	}
-	public LiteralStringArray(Factory f,String[] arr, Position start,Position end){
-		super(f,start,end);
-		this.arr=arr;
-	}
-	
-	@Override
-	public Type _writeOut(BytecodeContext bc, int mode) throws TransformerException {
-		GeneratorAdapter adapter = bc.getAdapter();
-		ArrayVisitor av=new ArrayVisitor();
-        av.visitBegin(adapter,Types.STRING,arr.length);
-        for(int y=0;y<arr.length;y++){
-			av.visitBeginItem(adapter, y);
-				adapter.push(arr[y]);
-			av.visitEndItem(bc.getAdapter());
-        }
-        av.visitEnd();
-        return Types.STRING_ARRAY;
-	}
+	av.visitEnd();
+	return Types.STRING_ARRAY;
+    }
 }

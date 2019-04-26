@@ -34,22 +34,22 @@ public final class COMValueWrapperIterator implements Iterator {
      * @param wrapper
      */
     public COMValueWrapperIterator(COMObject wrapper) {
-        this.enumVariant=new EnumVariant(wrapper.getDispatch());
-        this.wrapper=wrapper;
+	this.enumVariant = new EnumVariant(wrapper.getDispatch());
+	this.wrapper = wrapper;
     }
 
     @Override
     public void remove() {
-        enumVariant.safeRelease();
+	enumVariant.safeRelease();
     }
 
     @Override
     public boolean hasNext() {
-        return enumVariant.hasMoreElements();
+	return enumVariant.hasMoreElements();
     }
 
     @Override
     public Object next() {
-        return COMUtil.toObject(wrapper,enumVariant.Next(),"",null);
+	return COMUtil.toObject(wrapper, enumVariant.Next(), "", null);
     }
 }

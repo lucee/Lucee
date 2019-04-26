@@ -30,102 +30,101 @@ import lucee.transformer.expression.literal.Literal;
 
 public final class Argument {
 
-	private ExprString name;
-	private ExprString type;
-	private ExprBoolean required;
-	private Expression defaultValue;
-	private ExprString displayName;
-	private ExprString hint;
-	private Map meta;
-	private ExprBoolean passByReference;
+    private ExprString name;
+    private ExprString type;
+    private ExprBoolean required;
+    private Expression defaultValue;
+    private ExprString displayName;
+    private ExprString hint;
+    private Map meta;
+    private ExprBoolean passByReference;
 
+    /**
+     * Constructor of the class
+     * 
+     * @param name
+     * @param type
+     * @param required
+     * @param defaultValue
+     * @param displayName
+     * @param hint
+     * @param hint2
+     * @param meta
+     */
+    public Argument(Expression name, Expression type, Expression required, Expression defaultValue, ExprBoolean passByReference, Expression displayName, Expression hint,
+	    Map meta) {
+	LitString re = name.getFactory().createLitString("[runtime expression]");
 
-	/**
-	 * Constructor of the class
-	 * @param name
-	 * @param type
-	 * @param required
-	 * @param defaultValue
-	 * @param displayName
-	 * @param hint
-	 * @param hint2 
-	 * @param meta 
-	 */
-	public Argument(Expression name, Expression type, Expression required, Expression defaultValue, ExprBoolean passByReference,Expression displayName, Expression hint, Map meta) {
-		LitString re = name.getFactory().createLitString("[runtime expression]");
-		
-		this.name=name.getFactory().toExprString(name);
-		this.type=name.getFactory().toExprString(type);
-		this.required=name.getFactory().toExprBoolean(required);
-		this.defaultValue=defaultValue;
-		this.displayName=litString(name.getFactory().toExprString(displayName),re);
-		this.hint=litString(hint, re);
-		this.passByReference=passByReference;
-		this.meta=meta;
-	}
+	this.name = name.getFactory().toExprString(name);
+	this.type = name.getFactory().toExprString(type);
+	this.required = name.getFactory().toExprBoolean(required);
+	this.defaultValue = defaultValue;
+	this.displayName = litString(name.getFactory().toExprString(displayName), re);
+	this.hint = litString(hint, re);
+	this.passByReference = passByReference;
+	this.meta = meta;
+    }
 
-	private LitString litString(Expression expr, LitString defaultValue) {
-		ExprString str = expr.getFactory().toExprString(expr);
-		if(str instanceof LitString) return (LitString) str;
-		return defaultValue;
-	}
+    private LitString litString(Expression expr, LitString defaultValue) {
+	ExprString str = expr.getFactory().toExprString(expr);
+	if (str instanceof LitString) return (LitString) str;
+	return defaultValue;
+    }
 
-	/**
-	 * @return the defaultValue
-	 */
-	public Expression getDefaultValue() {
-		return defaultValue;
-	}
-	
-	public Expression getDefaultValueType(Factory f){
-		if(defaultValue==null) return f.createLitInteger(FunctionArgument.DEFAULT_TYPE_NULL);
-		if(defaultValue instanceof Literal) return f.createLitInteger(FunctionArgument.DEFAULT_TYPE_LITERAL);
-		return f.createLitInteger(FunctionArgument.DEFAULT_TYPE_RUNTIME_EXPRESSION);
-	}
+    /**
+     * @return the defaultValue
+     */
+    public Expression getDefaultValue() {
+	return defaultValue;
+    }
 
-	/**
-	 * @return the displayName
-	 */
-	public ExprString getDisplayName() {
-		return displayName;
-	}
+    public Expression getDefaultValueType(Factory f) {
+	if (defaultValue == null) return f.createLitInteger(FunctionArgument.DEFAULT_TYPE_NULL);
+	if (defaultValue instanceof Literal) return f.createLitInteger(FunctionArgument.DEFAULT_TYPE_LITERAL);
+	return f.createLitInteger(FunctionArgument.DEFAULT_TYPE_RUNTIME_EXPRESSION);
+    }
 
-	/**
-	 * @return the hint
-	 */
-	public ExprString getHint() {
-		return hint;
-	}
+    /**
+     * @return the displayName
+     */
+    public ExprString getDisplayName() {
+	return displayName;
+    }
 
-	/**
-	 * @return the name
-	 */
-	public ExprString getName() {
-		return name;
-	}
+    /**
+     * @return the hint
+     */
+    public ExprString getHint() {
+	return hint;
+    }
 
-	/**
-	 * @return the passBy
-	 */
-	public ExprBoolean isPassByReference() {
-		return passByReference;
-	}
+    /**
+     * @return the name
+     */
+    public ExprString getName() {
+	return name;
+    }
 
-	/**
-	 * @return the required
-	 */
-	public ExprBoolean getRequired() {
-		return required;
-	}
+    /**
+     * @return the passBy
+     */
+    public ExprBoolean isPassByReference() {
+	return passByReference;
+    }
 
-	/**
-	 * @return the type
-	 */
-	public ExprString getType() {
-		return type;
-	}
-	public Map getMetaData() {
-		return meta;
-	}
+    /**
+     * @return the required
+     */
+    public ExprBoolean getRequired() {
+	return required;
+    }
+
+    public ExprString getType() {
+	return type;
+    }
+
+    public Map getMetaData() {
+	return meta;
+    }
 
 }

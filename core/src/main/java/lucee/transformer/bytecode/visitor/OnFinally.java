@@ -23,14 +23,15 @@ import lucee.transformer.bytecode.BytecodeContext;
 
 public abstract class OnFinally {
 
-	public final void writeOut(BytecodeContext bc) throws TransformerException {
-		try{
-			bc.finallyPush(this);
-			_writeOut(bc);
-		}
-		finally {
-			bc.finallyPop();
-		}
+    public final void writeOut(BytecodeContext bc) throws TransformerException {
+	try {
+	    bc.finallyPush(this);
+	    _writeOut(bc);
 	}
-	public abstract void _writeOut(BytecodeContext bc) throws TransformerException;
+	finally {
+	    bc.finallyPop();
+	}
+    }
+
+    public abstract void _writeOut(BytecodeContext bc) throws TransformerException;
 }

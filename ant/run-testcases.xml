@@ -29,11 +29,12 @@
 <![CDATA[
 if (execute) {
 
+request.basedir = basedir;
+request.srcall = srcall;
 request.WEBADMINPASSWORD = "webweb";
 request.SERVERADMINPASSWORD = "webweb";
 server.WEBADMINPASSWORD = request.WEBADMINPASSWORD;
 server.SERVERADMINPASSWORD = request.SERVERADMINPASSWORD;
-
 
 NL = "
 ";
@@ -167,8 +168,8 @@ function mem(type) {
 			//SystemOut.setErr(err);
 
 			systemOutput(" (#bundle.totalPass# tests passed in #LSNumberFormat(bundle.totalDuration, ',')# ms)",true);
-			mem("non_heap");
-			mem("heap");
+			//mem("non_heap");
+			//mem("heap");
 
 		// we have an error
 		if ((bundle.totalFail + bundle.totalError) > 0) {
@@ -295,6 +296,8 @@ Begin Stack Trace
 
 	echo("=============================================================" & NL);
 	echo("TestBox Version: #tb.getVersion()#" & NL);
+	echo("Lucee Version: #server.lucee.version#" & NL);
+	echo("Java Version: #server.java.version#" & NL);
 	echo("Global Stats (#result.getTotalDuration()# ms)" & NL);
 	echo("=============================================================" & NL);
 	echo("->[Bundles/Suites/Specs: #result.getTotalBundles()#/#result.getTotalSuites()#/#result.getTotalSpecs()#]" & NL);
@@ -321,7 +324,7 @@ Begin Stack Trace
 		}
 
  		if ((result.getTotalFail() + result.getTotalError()) > 0) {
- 			throw "TestBox could not sucessfully execute all testcases: #result.getTotalFail()# tests failed; #result.getTotalError()# tests errored.";
+ 			throw "TestBox could not successfully execute all testcases: #result.getTotalFail()# tests failed; #result.getTotalError()# tests errored.";
  		}
 	}
 	catch(e){

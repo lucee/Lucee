@@ -26,72 +26,72 @@ import lucee.commons.io.res.ResourceProvider;
 import lucee.commons.io.res.ResourceProviderPro;
 import lucee.commons.io.res.Resources;
 
-public class ResourceProviderWrapper  implements ResourceProviderPro {
+public class ResourceProviderWrapper implements ResourceProviderPro {
 
-	private ResourceProvider provider;
+    private ResourceProvider provider;
 
-	public ResourceProviderWrapper(ResourceProvider provider){
-		this.provider=provider;
-	}
-	
-	@Override
-	public Map getArguments() {
-		return provider.getArguments();
-	}
+    public ResourceProviderWrapper(ResourceProvider provider) {
+	this.provider = provider;
+    }
 
-	@Override
-	public Resource getResource(String path) {
-		return provider.getResource(path);
-	}
+    @Override
+    public Map getArguments() {
+	return provider.getArguments();
+    }
 
-	@Override
-	public String getScheme() {
-		return provider.getScheme();
-	}
+    @Override
+    public Resource getResource(String path) {
+	return provider.getResource(path);
+    }
 
-	@Override
-	public ResourceProvider init(String scheme, Map arguments) {
-		return provider.init(scheme, arguments);
-	}
+    @Override
+    public String getScheme() {
+	return provider.getScheme();
+    }
 
-	@Override
-	public boolean isAttributesSupported() {
-		return provider.isAttributesSupported();
-	}
+    @Override
+    public ResourceProvider init(String scheme, Map arguments) {
+	return provider.init(scheme, arguments);
+    }
 
-	@Override
-	public boolean isCaseSensitive() {
-		return provider.isCaseSensitive();
-	}
+    @Override
+    public boolean isAttributesSupported() {
+	return provider.isAttributesSupported();
+    }
 
-	@Override
-	public boolean isModeSupported() {
-		return provider.isModeSupported();
-	}
+    @Override
+    public boolean isCaseSensitive() {
+	return provider.isCaseSensitive();
+    }
 
-	@Override
-	public void lock(Resource res) throws IOException {
-		provider.lock(res);
-	}
+    @Override
+    public boolean isModeSupported() {
+	return provider.isModeSupported();
+    }
 
-	@Override
-	public void read(Resource res) throws IOException {
-		provider.read(res);
-	}
+    @Override
+    public void lock(Resource res) throws IOException {
+	provider.lock(res);
+    }
 
-	@Override
-	public void setResources(Resources resources) {
-		provider.setResources(resources);
-	}
+    @Override
+    public void read(Resource res) throws IOException {
+	provider.read(res);
+    }
 
-	@Override
-	public void unlock(Resource res) {
-		provider.unlock(res);
-	}
-	
-	@Override
-	public char getSeparator() {
-		return ResourceUtil.getSeparator(provider);
-	}
+    @Override
+    public void setResources(Resources resources) {
+	provider.setResources(resources);
+    }
+
+    @Override
+    public void unlock(Resource res) {
+	provider.unlock(res);
+    }
+
+    @Override
+    public char getSeparator() {
+	return ResourceUtil.getSeparator(provider);
+    }
 
 }

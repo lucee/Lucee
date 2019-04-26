@@ -36,16 +36,15 @@
 			</cfformClassic>
 		</div>
 		</cfif>
-
-		<cfloop list="#request.adminType=="web"?"server,web":"web"#" item="type">
-			<cfset _extensions=type=="web"?extensions:serverExtensions>
-		<cfif type=="server">
+		<cfloop list="#request.adminType=="web"?"server,web":"web"#" item="_type">
+			<cfset _extensions=_type=="web"?extensions:serverExtensions>
+		<cfif _type=="server">
 		<div style="text-align:center;background: ##fff;margin:10px 0px 0px 0px;border-radius: 10px;border:1px solid ##bf4f36;">
 				<h3 style="color:##bf4f36;margin-top:5px">#stText.ext.installedInServer#</h3>
 		</cfif>
-		<div<cfif type=="web"> style="margin-top:10px"<cfelse>  style="margin:0px 0px 4px 0px"</cfif> class="extensionlist">
+		<div<cfif _type=="web"> style="margin-top:10px"<cfelse>  style="margin:0px 0px 4px 0px"</cfif> class="extensionlist">
 			<cfloop query=_extensions>
-				<cfif type=="web"><cfset existing[_extensions.id]=true></cfif>
+				<cfif _type=="web"><cfset existing[_extensions.id]=true></cfif>
 				<cfif session.extFilter.filter neq "">
 					<cftry>
 						<cfset prov=getProviderData(_extensions.provider)>
@@ -75,33 +74,35 @@
 						}
 					}
 					dn=getDumpNail(img,130,50);
+					
 					hasUpdate=updateAvailable(queryRowData(_extensions,_extensions.currentrow),external);
 					</cfscript><div class="extensionthumb">
 
 					
 
-						<a <cfif type=="web">href="#link#"<cfelse>style="border-color: ##E0E0E0;"</cfif> title="#_extensions.name#
+						<a <cfif _type=="web">href="#link#"<cfelse>style="border-color: ##E0E0E0;"</cfif> title="#_extensions.name#
 Categories: #arrayToList(cat)#"><cfif hasUpdate>
-       <div class="ribbon-wrapper" <cfif type=="server">style="border-color:##bf4f36"</cfif>><div class="ribbon" <cfif type=="server">style="background-color:##bf4f36"</cfif>>UPDATE ME!</div></div>
+       <div class="ribbon-wrapper" <cfif _type=="server">style="border-color:##bf4f36"</cfif>><div class="ribbon" <cfif _type=="server">style="background-color:##bf4f36"</cfif>>UPDATE ME!</div></div>
 </cfif>
 <cfif _extensions.trial>
-       <div class="ribbon-left-wrapper"><div class="ribbon-left" <cfif type=="server">style="background-color:##bf4f36"</cfif>>TRIAL</div></div>
-</cfif>
-							<div class="extimg">
+       <div class="ribbon-left-wrapper"><div class="ribbon-left" <cfif _type=="server">style="background-color:##bf4f36"</cfif>>TRIAL</div></div>
+</cfif>	
+							<div class="extimg" id="extimg_#_extensions.id#">
 								<cfif len(dn)>
+
 									<img src="#dn#" alt="#stText.ext.extThumbnail#" />
 								</cfif>
 							</div>
-							<span <cfif type=="server">style="color:##bf4f36"</cfif>>#cut(_extensions.name,40)#<br /></span>
-							<span class="comment" <cfif type=="server">style="color:##bf4f36"</cfif>>#cut(arrayToList(cat),30)#</span>
-							
+							<span <cfif _type=="server">style="color:##bf4f36"</cfif>>#cut(_extensions.name,40)#<br /></span>
+							<span class="comment" <cfif _type=="server">style="color:##bf4f36"</cfif>>#cut(arrayToList(cat),30)#</span>
+
 						</a>
 					</div>
 				</cfif>
 			</cfloop>
 			<div class="clear"></div>
 		</div>
-	<cfif type=="server"></div></cfif>
+	<cfif _type=="server"></div></cfif>
 </cfloop>
 	</cfoutput>
 </cfif>
@@ -197,37 +198,31 @@ Categories: #arrayToList(cat)#"><cfif hasUpdate>
 			type="button"></span>
 		<cfsavecontent variable="tmpContent">
 			<div id="div_#UcFirst(Lcase(key))#" >
-				<cfif versionStr[key].RecordCount>
-					<cfloop query="#versionStr[key]#" group="id">
-						<cfif  (
-							session.extFilter.filter2 eq ""
-							or doFilter(session.extFilter.filter2,versionStr[key].name,false)
-							or doFilter(session.extFilter.filter2,versionStr[key].category,false)
-							or doFilter(session.extFilter.filter2,info.title?:'',false)
-						)
-						>
-								<cfset link="#request.self#?action=#url.action#&action2=detail&id=#versionStr[key].id#">
-								<cfset dn=getDumpNail(versionStr[key].image,130,50)>
-								<div class="extensionthumb">
-									<a href="#link#" title="#stText.ext.viewdetails#">
-										<div class="extimg">
-											<cfif len(dn)>
+				<cfloop query="#versionStr[key]#" group="id">
+					<cfif  (
+						session.extFilter.filter2 eq ""
+						or doFilter(session.extFilter.filter2,versionStr[key].name,false)
+						or doFilter(session.extFilter.filter2,versionStr[key].category,false)
+						or doFilter(session.extFilter.filter2,info.title?:'',false)
+					)
+					>
+							<cfset link="#request.self#?action=#url.action#&action2=detail&id=#versionStr[key].id#">
+							<cfset dn=getDumpNail(versionStr[key].image,130,50)>
+							<div class="extensionthumb">
+								<a href="#link#" title="#stText.ext.viewdetails#">
+									<div class="extimg">
+										<cfif len(dn)>
 
-												<img src="#dn#" alt="#stText.ext.extThumbnail#" />
-											</cfif>
-										</div>
-										<b title="#versionStr[key].name#">#cut(versionStr[key].name,30)#</b><br />
-										<!------>
-										<cfif structKeyExists(versionStr[key],"price") and versionStr[key].price GT 0>#versionStr[key].price# <cfif structKeyExists(versionStr[key],"currency")>#versionStr[key].currency#<cfelse>USD</cfif><cfelse>#stText.ext.free#</cfif>
-									</a>
-								</div>
-							</cfif>
-					</cfloop>
-				<cfelse>
-					<div>
-						#replace(stText.ext.noUpdateDesc,"{type}","<b>#stText.services.update.short[key]#</b>")#
-					</div>
-				</cfif>
+											 <img src="#dn#"  alt="#stText.ext.extThumbnail#" />
+										</cfif>
+									</div>
+									<b title="#versionStr[key].name#">#cut(versionStr[key].name,30)#</b><br />
+									<!------>
+									<cfif structKeyExists(versionStr[key],"price") and versionStr[key].price GT 0>#versionStr[key].price# <cfif structKeyExists(versionStr[key],"currency")>#versionStr[key].currency#<cfelse>USD</cfif><cfelse>#stText.ext.free#</cfif>
+								</a>
+							</div>
+						</cfif>
+				</cfloop>
 			</div>
 			</cfsavecontent>
 			<cfset hiddenFormContents &= tmpContent>
@@ -277,6 +272,8 @@ Categories: #arrayToList(cat)#"><cfif hasUpdate>
 		</table>
 	</cfformClassic>
 
+	
+
 <cfhtmlbody>
 <script type="text/javascript">
 	$(document).ready(function(){
@@ -304,6 +301,10 @@ Categories: #arrayToList(cat)#"><cfif hasUpdate>
 						$('##'+xx).show();
 						$("##btn_"+v).addClass("btn");
 					}
+					if(!$('##div_Release').is(':visible') && !$('##div_Pre_release').is(':visible') && !$('##div_Snapshot').is(':visible')){
+						$('##'+xx).show();
+						$("##btn_"+v).addClass("btn")
+					}
 				}
 			}
 		});
@@ -317,3 +318,8 @@ Categories: #arrayToList(cat)#"><cfif hasUpdate>
 	</style>
 	</cfhtmlbody>
 </cfoutput>
+<cfif structKeyExists(request, "refresh") && request.refresh EQ true>
+	<script type="text/javascript">
+		location.reload(); 
+	</script>
+</cfif>

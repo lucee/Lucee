@@ -26,203 +26,165 @@ import lucee.runtime.crypt.BlowfishECB;
 import lucee.runtime.crypt.SHA1;
 
 /**
-  * support class for easy string encryption with the Blowfish algorithm,
-  * now in CBC mode with a SHA-1 key setup and correct padding
-  */
+ * support class for easy string encryption with the Blowfish algorithm, now in CBC mode with a
+ * SHA-1 key setup and correct padding
+ */
 public final class SerialDecoder {
 
-  BlowfishCBC m_bfish;
+    BlowfishCBC m_bfish;
 
+    // one random generator for all simple callers...
 
+    static Random m_rndGen;
 
-  // one random generator for all simple callers...
+    // ...and created early
 
-  static Random m_rndGen;
+    static {
 
+	m_rndGen = new Random();
 
+    }
 
-  // ...and created early
+    /**
+     * 
+     * constructor to set up a string as the key (oversized password will be cut)
+     * 
+     * @param sPassword the password (treated as a real unicode array)
+     * 
+     */
 
-  static {
+    public SerialDecoder(String sPassword) {
 
-    m_rndGen = new Random();
+	// hash down the password to a 160bit key
 
-  };
+	SHA1 hasher = new SHA1();
 
+	hasher.update(sPassword);
 
+	hasher.finalize();
 
+	// setup the encryptor (use a dummy IV)
 
+	m_bfish = new BlowfishCBC(hasher.getDigest(), 0);
 
+	hasher.clear();
 
+    }
 
-  /**
+    /**
+     * 
+     * decrypts a hexbin string (handling is case sensitive)
+     * 
+     * @param sCipherText hexbin string to decrypt
+     * 
+     * @return decrypted string (null equals an error)
+     * 
+     */
 
-    * constructor to set up a string as the key (oversized password will be cut)
+    public String decrypt(String sCipherText) {
 
-    * @param sPassword the password (treated as a real unicode array)
+	// get the number of estimated bytes in the string (cut off broken blocks)
 
-    */
+	int nLen = (sCipherText.length() >> 1) & ~7;
 
-  public SerialDecoder(String sPassword) {
+	// does the given stuff make sense (at least the CBC IV)?
 
+	if (nLen < BlowfishECB.BLOCKSIZE)
 
+	    return null;
 
-    // hash down the password to a 160bit key
+	// get the CBC IV
 
-    SHA1 hasher = new SHA1();
+	byte[] cbciv = new byte[BlowfishECB.BLOCKSIZE];
 
-    hasher.update(sPassword);
+	int nNumOfBytes = BinConverter.binHexToBytes(sCipherText,
 
-    hasher.finalize();
+		cbciv,
 
+		0,
 
+		0,
 
-    // setup the encryptor (use a dummy IV)
+		BlowfishECB.BLOCKSIZE);
 
-    m_bfish = new BlowfishCBC(hasher.getDigest(), 0);
+	if (nNumOfBytes < BlowfishECB.BLOCKSIZE)
 
-    hasher.clear();
+	    return null;
 
-  };
+	// (got it)
 
-  /**
+	m_bfish.setCBCIV(cbciv);
 
-    * decrypts a hexbin string (handling is case sensitive)
+	// something left to decrypt?
 
-    * @param sCipherText hexbin string to decrypt
+	nLen -= BlowfishECB.BLOCKSIZE;
 
-    * @return decrypted string (null equals an error)
+	if (nLen == 0)
 
-    */
+	    return "";
 
-  public String decrypt(String sCipherText) {
+	// get all data bytes now
 
+	byte[] buf = new byte[nLen];
 
+	nNumOfBytes = BinConverter.binHexToBytes(sCipherText,
 
-    // get the number of estimated bytes in the string (cut off broken blocks)
+		buf,
 
-    int nLen = (sCipherText.length() >> 1) & ~7;
+		BlowfishECB.BLOCKSIZE * 2,
 
+		0,
 
+		nLen);
 
-    // does the given stuff make sense (at least the CBC IV)?
+	// we cannot accept broken binhex sequences due to padding
 
-    if (nLen < BlowfishECB.BLOCKSIZE)
+	// and decryption
 
-      return null;
+	if (nNumOfBytes < nLen)
 
+	    return null;
 
+	// decrypt the buffer
 
-    // get the CBC IV
+	m_bfish.decrypt(buf);
 
-    byte[] cbciv = new byte[BlowfishECB.BLOCKSIZE];
+	// get the last padding byte
 
-    int nNumOfBytes = BinConverter.binHexToBytes(sCipherText,
+	int nPadByte = buf[buf.length - 1] & 0x0ff;
 
-                                                 cbciv,
+	// ( try to get all information if the padding doesn't seem to be correct)
 
-                                                 0,
+	if ((nPadByte > 8) || (nPadByte < 0))
 
-                                                 0,
+	    nPadByte = 0;
 
-                                                 BlowfishECB.BLOCKSIZE);
+	// calculate the real size of this message
 
-    if (nNumOfBytes < BlowfishECB.BLOCKSIZE)
+	nNumOfBytes -= nPadByte;
 
-      return null;
+	if (nNumOfBytes < 0)
 
-    // (got it)
+	    return "";
 
-    m_bfish.setCBCIV(cbciv);
+	// success
 
+	return BinConverter.byteArrayToUNCString(buf, 0, nNumOfBytes);
 
+    }
 
-    // something left to decrypt?
+    /**
+     * 
+     * destroys (clears) the encryption engine,
+     * 
+     * after that the instance is not valid anymore
+     * 
+     */
 
-    nLen -= BlowfishECB.BLOCKSIZE;
+    public void destroy() {
 
-    if (nLen == 0)
+	m_bfish.cleanUp();
 
-      return "";
+    }
 
-
-
-    // get all data bytes now
-
-    byte[] buf = new byte[nLen];
-
-    nNumOfBytes = BinConverter.binHexToBytes(sCipherText,
-
-                                             buf,
-
-                                             BlowfishECB.BLOCKSIZE * 2,
-
-                                             0,
-
-                                             nLen);
-
-
-
-    // we cannot accept broken binhex sequences due to padding
-
-    // and decryption
-
-    if (nNumOfBytes < nLen)
-
-      return null;
-
-
-
-    // decrypt the buffer
-
-    m_bfish.decrypt(buf);
-
-
-
-    // get the last padding byte
-
-    int nPadByte = buf[buf.length - 1] & 0x0ff;
-
-    // ( try to get all information if the padding doesn't seem to be correct)
-
-    if ((nPadByte > 8) || (nPadByte < 0))
-
-      nPadByte = 0;
-
-
-
-    // calculate the real size of this message
-
-    nNumOfBytes -= nPadByte;
-
-    if (nNumOfBytes < 0)
-
-      return "";
-
-
-
-    // success
-
-    return BinConverter.byteArrayToUNCString(buf, 0, nNumOfBytes);
-
-  };
-
-
-
-
-
-  /**
-
-    * destroys (clears) the encryption engine,
-
-    * after that the instance is not valid anymore
-
-    */
-
-  public void destroy() {
-
-    m_bfish.cleanUp();
-
-  };
-
-};
+}

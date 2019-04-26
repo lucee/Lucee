@@ -190,9 +190,25 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		}
 		assertEquals('{"1":{"b":"b1","a":"a1"},"2":1,"3":query("a":["a1","a2"],"b":["b1","b2"])}{"1":{"b":"b2","a":"a2"},"2":2,"3":query("a":["a1","a2"],"b":["b1","b2"])}',c);
 
+		var people = QueryNew( "name,dob,age", "varchar,date,int", [
+			[ "Susi", CreateDate( 1970, 1, 1 ), 0 ],
+			[ "Urs" , CreateDate( 1995, 1, 1 ), 0 ],
+			[ "Fred", CreateDate( 1960, 1, 1 ), 0 ],
+			[ "Jim" , CreateDate( 1988, 1, 1 ), 0 ]
+		]);
+		var result = queryEvery(people,function(row, rowNumber, qryData){
+		    return ((DateDiff('yyyy', row.dob, Now()) > 0) && (DateDiff('yyyy', row.dob, Now()) <= 100))
+		});
+		assertEquals(true, result);
+
 		// member function
 		res=qry.every(function(key,value ){return true;},parallel);
 		assertEquals(true,res);
+
+		var result2 = people.every(function(row, rowNumber, qryData){
+		    return ((DateDiff('yyyy', row.dob, Now()) > 0) && (DateDiff('yyyy', row.dob, Now()) <= 50))
+		});
+		assertEquals(false, result2);
 		
 	}
 

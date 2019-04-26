@@ -18,6 +18,10 @@
  **/
 package lucee.transformer.bytecode.expression.var;
 
+import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.GeneratorAdapter;
+import org.objectweb.asm.commons.Method;
+
 import lucee.transformer.Factory;
 import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
@@ -27,65 +31,59 @@ import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.expression.ExprString;
 import lucee.transformer.expression.Expression;
 
-import org.objectweb.asm.Type;
-import org.objectweb.asm.commons.GeneratorAdapter;
-import org.objectweb.asm.commons.Method;
-
 public final class DynAssign extends ExpressionBase {
 
-	private ExprString name;
-	private Expression value;
-	
-	// Object setVariable(String, Object)
-    private final static Method METHOD_SET_VARIABLE = new Method("setVariable",
-			Types.OBJECT,
-			new Type[]{Types.STRING,Types.OBJECT}); 
+    private ExprString name;
+    private Expression value;
 
-	public DynAssign(Factory f,Position start,Position end) {
-		super(f,start,end);
-	}
+    // Object setVariable(String, Object)
+    private final static Method METHOD_SET_VARIABLE = new Method("setVariable", Types.OBJECT, new Type[] { Types.STRING, Types.OBJECT });
 
-	/**
-	 * Constructor of the class
-	 * @param name
-	 * @param value
-	 */
-	public DynAssign(Expression name, Expression value) {
-		super(name.getFactory(),name.getStart(),name.getEnd());
-		this.name=name.getFactory().toExprString(name);
-		this.value=value;
-	}
-	
-	@Override
-	public Type _writeOut(BytecodeContext bc, int mode) throws TransformerException {
-		GeneratorAdapter adapter = bc.getAdapter();
-		adapter.loadArg(0);
-		name.writeOut(bc, Expression.MODE_REF);
-		value.writeOut(bc, Expression.MODE_REF);
-		adapter.invokeVirtual(Types.PAGE_CONTEXT,METHOD_SET_VARIABLE);
-		return Types.OBJECT;
-	}
+    public DynAssign(Factory f, Position start, Position end) {
+	super(f, start, end);
+    }
 
-	/* *
-	 *
-	 * @see lucee.transformer.bytecode.expression.Expression#getType()
-	 * /
-	public int getType() {
-		return Types._OBJECT;
-	}*/
+    /**
+     * Constructor of the class
+     * 
+     * @param name
+     * @param value
+     */
+    public DynAssign(Expression name, Expression value) {
+	super(name.getFactory(), name.getStart(), name.getEnd());
+	this.name = name.getFactory().toExprString(name);
+	this.value = value;
+    }
 
-	/**
-	 * @return the name
-	 */
-	public ExprString getName() {
-		return name;
-	}
+    @Override
+    public Type _writeOut(BytecodeContext bc, int mode) throws TransformerException {
+	GeneratorAdapter adapter = bc.getAdapter();
+	adapter.loadArg(0);
+	name.writeOut(bc, Expression.MODE_REF);
+	value.writeOut(bc, Expression.MODE_REF);
+	adapter.invokeVirtual(Types.PAGE_CONTEXT, METHOD_SET_VARIABLE);
+	return Types.OBJECT;
+    }
 
-	/**
-	 * @return the value
-	 */
-	public Expression getValue() {
-		return value;
-	}
+    /*
+     * *
+     *
+     * @see lucee.transformer.bytecode.expression.Expression#getType() / public int getType() { return
+     * Types._OBJECT; }
+     */
+
+    /**
+     * @return the name
+     */
+    public ExprString getName() {
+	return name;
+    }
+
+    /**
+     * @return the value
+     */
+    public Expression getValue() {
+	return value;
+    }
 
 }

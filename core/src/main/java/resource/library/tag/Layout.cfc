@@ -100,8 +100,8 @@
 	</cffunction>
 
 	<!---   attributes   --->
-	<cffunction name="getAtttributes" access="public" output="false" returntype="struct">
-		<cfreturn variables.Atttributes/>
+	<cffunction name="getAttributes" access="public" output="false" returntype="struct">
+		<cfreturn variables.Attributes/>
 	</cffunction>
 
     <cffunction name="getAttribute" output="false" access="public" returntype="any">

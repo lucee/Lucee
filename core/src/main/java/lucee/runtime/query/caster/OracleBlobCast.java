@@ -27,20 +27,20 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.reflection.Reflector;
 
 public class OracleBlobCast implements Cast {
-	
-	private static final Object[] ZERO_ARGS = new Object[0];
-	
-	@Override
-	public Object toCFType(TimeZone tz, ResultSet rst, int columnIndex) throws SQLException, IOException {
-		Object o = rst.getObject(columnIndex);
-		if(o==null) return null;
-		
-		// we do not have oracle.sql.CLOB in the core, so we need reflection for this
-		try{
-			return Caster.toBytes(Reflector.callMethod(o, "binaryStreamValue", ZERO_ARGS),null);
-		}
-		catch(PageException pe){
-			throw ExceptionUtil.toIOException(pe);
-		}
+
+    private static final Object[] ZERO_ARGS = new Object[0];
+
+    @Override
+    public Object toCFType(TimeZone tz, ResultSet rst, int columnIndex) throws SQLException, IOException {
+	Object o = rst.getObject(columnIndex);
+	if (o == null) return null;
+
+	// we do not have oracle.sql.CLOB in the core, so we need reflection for this
+	try {
+	    return Caster.toBytes(Reflector.callMethod(o, "binaryStreamValue", ZERO_ARGS), null);
 	}
+	catch (PageException pe) {
+	    throw ExceptionUtil.toIOException(pe);
+	}
+    }
 }

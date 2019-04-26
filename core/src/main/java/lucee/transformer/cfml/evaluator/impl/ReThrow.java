@@ -24,27 +24,23 @@ import lucee.transformer.cfml.evaluator.EvaluatorException;
 import lucee.transformer.cfml.evaluator.EvaluatorSupport;
 import lucee.transformer.library.tag.TagLibTag;
 
-
-
 /**
- * Prueft den Kontext des Tag rethrow.
- * Das Tag <code>rethrow</code> darf nur innerhalb des Tag <code>throw</code> liegen.
+ * Prueft den Kontext des Tag rethrow. Das Tag <code>rethrow</code> darf nur innerhalb des Tag
+ * <code>throw</code> liegen.
  */
 public final class ReThrow extends EvaluatorSupport {
 
-	@Override
-	public void evaluate(Tag tag,TagLibTag libTag) throws EvaluatorException { 
-		String ns=libTag.getTagLib().getNameSpaceAndSeparator();
-		String queryName=ns+"catch";
-		
-		
-		if(!ASMUtil.hasAncestorTryStatement(tag)){
-			if(tag.isScriptBase())
-				throw new EvaluatorException("Wrong Context, statement "+libTag.getName()+" must be inside a "+queryName+" tag or catch statement");
-			throw new EvaluatorException("Wrong Context, tag "+libTag.getFullName()+" must be inside a "+queryName+" tag");
-			
-		}
-		//ASMUtil.replace(tag,new TagReThrow(tag));
+    @Override
+    public void evaluate(Tag tag, TagLibTag libTag) throws EvaluatorException {
+	String ns = libTag.getTagLib().getNameSpaceAndSeparator();
+	String queryName = ns + "catch";
+
+	if (!ASMUtil.hasAncestorTryStatement(tag)) {
+	    if (tag.isScriptBase()) throw new EvaluatorException("Wrong Context, statement " + libTag.getName() + " must be inside a " + queryName + " tag or catch statement");
+	    throw new EvaluatorException("Wrong Context, tag " + libTag.getFullName() + " must be inside a " + queryName + " tag");
+
 	}
+	// ASMUtil.replace(tag,new TagReThrow(tag));
+    }
 
 }

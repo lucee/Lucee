@@ -24,40 +24,32 @@ import java.util.Vector;
 // Referenced classes of package Zql:
 //            ZStatement
 
-public final class ZLockTable
-    implements ZStatement
-{
+public final class ZLockTable implements ZStatement {
 
-    public ZLockTable()
-    {
-        nowait_ = false;
-        lockMode_ = null;
-        tables_ = null;
+    public ZLockTable() {
+	nowait_ = false;
+	lockMode_ = null;
+	tables_ = null;
     }
 
-    public void addTables(Vector vector)
-    {
-        tables_ = vector;
+    public void addTables(Vector vector) {
+	tables_ = vector;
     }
 
-    public Vector getTables()
-    {
-        return tables_;
+    public Vector getTables() {
+	return tables_;
     }
 
-    public void setLockMode(String s)
-    {
-        lockMode_ = new String(s);
+    public void setLockMode(String s) {
+	lockMode_ = new String(s);
     }
 
-    public String getLockMode()
-    {
-        return lockMode_;
+    public String getLockMode() {
+	return lockMode_;
     }
 
-    public boolean isNowait()
-    {
-        return nowait_;
+    public boolean isNowait() {
+	return nowait_;
     }
 
     boolean nowait_;

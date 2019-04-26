@@ -22,11 +22,21 @@
 package lucee.runtime.functions.other;
 
 import lucee.runtime.PageContext;
-import lucee.runtime.ext.function.Function;
+import lucee.runtime.exp.FunctionException;
+import lucee.runtime.exp.PageException;
+import lucee.runtime.ext.function.BIF;
 
-public final class NullValue implements Function {
-    
+public final class NullValue extends BIF {
+
+    private static final long serialVersionUID = -13058412177176705L;
+
     public static Object call(PageContext pc) {
-        return null;
+	return null;
+    }
+
+    @Override
+    public Object invoke(PageContext pc, Object[] args) throws PageException {
+	if (args.length == 0) return call(pc);
+	else throw new FunctionException(pc, "NullValue", 0, 0, args.length);
     }
 }

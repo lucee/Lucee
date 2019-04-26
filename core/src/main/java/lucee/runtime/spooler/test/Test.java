@@ -18,11 +18,6 @@
  **/
 package lucee.runtime.spooler.test;
 
-
-
 public class Test {
-	
-	
-	
-	
+
 }

@@ -40,56 +40,54 @@ import lucee.transformer.library.tag.TagLibTag;
 
 public final class GetBaseTagList implements Function {
     public static String call(PageContext pc) {
-        return call(pc,",");
+	return call(pc, ",");
     }
+
     public static String call(PageContext pc, String delimiter) {
-        Tag tag=pc.getCurrentTag();
-        StringBuilder sb=new StringBuilder();
-        while(tag!=null) {
-        	if(sb.length()>0)sb.append(delimiter);
-            sb.append(getName(pc,tag));
-            tag=tag.getParent();
-        }
-        return sb.toString();
+	Tag tag = pc.getCurrentTag();
+	StringBuilder sb = new StringBuilder();
+	while (tag != null) {
+	    if (sb.length() > 0) sb.append(delimiter);
+	    sb.append(getName(pc, tag));
+	    tag = tag.getParent();
+	}
+	return sb.toString();
     }
+
     private static String getName(PageContext pc, Tag tag) {
-    	Class clazz = tag.getClass();
-        if(clazz==CFImportTag.class)clazz=CFTag.class;
-        String className=clazz.getName();
-        TagLib[] tlds = ((ConfigImpl)pc.getConfig()).getTLDs(pc.getCurrentTemplateDialect());
-        TagLibTag tlt;
-        
-        
-        
-        for(int i=0;i<tlds.length;i++) {
-            //String ns = tlds[i].getNameSpaceAndSeparator();
-            
-            
-            Map tags = tlds[i].getTags();
-            Iterator it = tags.keySet().iterator();
-            
-            while(it.hasNext()){
-                tlt=(TagLibTag) tags.get(it.next());
-                if(tlt.getTagClassDefinition().isClassNameEqualTo(className)) {
-                    // custm tag
-                	if(tag instanceof AppendixTag) {
-                        AppendixTag atag=(AppendixTag)tag;
-                        if(atag.getAppendix()!=null && !(tag instanceof Module)) {
-                            return tlt.getFullName().toUpperCase()+atag.getAppendix().toUpperCase();
-                        }
-                    }
-                	// built in cfc based custom tag
-                	if(tag instanceof CFTagCore) {
-                		if(((CFTagCore)tag).getName().equals(tlt.getAttribute("__name").getDefaultValue()))
-                			return tlt.getFullName().toUpperCase();
-                		continue;
-                	}
-                	
-                	return tlt.getFullName().toUpperCase();
-                }
-            }
-        }
-        return ListUtil.last(className,".",true).toUpperCase();
-        
+	Class clazz = tag.getClass();
+	if (clazz == CFImportTag.class) clazz = CFTag.class;
+	String className = clazz.getName();
+	TagLib[] tlds = ((ConfigImpl) pc.getConfig()).getTLDs(pc.getCurrentTemplateDialect());
+	TagLibTag tlt;
+
+	for (int i = 0; i < tlds.length; i++) {
+	    // String ns = tlds[i].getNameSpaceAndSeparator();
+
+	    Map tags = tlds[i].getTags();
+	    Iterator it = tags.keySet().iterator();
+
+	    while (it.hasNext()) {
+		tlt = (TagLibTag) tags.get(it.next());
+		if (tlt.getTagClassDefinition().isClassNameEqualTo(className)) {
+		    // custm tag
+		    if (tag instanceof AppendixTag) {
+			AppendixTag atag = (AppendixTag) tag;
+			if (atag.getAppendix() != null && !(tag instanceof Module)) {
+			    return tlt.getFullName().toUpperCase() + atag.getAppendix().toUpperCase();
+			}
+		    }
+		    // built in cfc based custom tag
+		    if (tag instanceof CFTagCore) {
+			if (((CFTagCore) tag).getName().equals(tlt.getAttribute("__name").getDefaultValue())) return tlt.getFullName().toUpperCase();
+			continue;
+		    }
+
+		    return tlt.getFullName().toUpperCase();
+		}
+	    }
+	}
+	return ListUtil.last(className, ".", true).toUpperCase();
+
     }
 }

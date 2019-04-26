@@ -493,7 +493,7 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 		<body-content>must</body-content>
 		<allow-removing-literal>yes</allow-removing-literal>
 		<body-rtexprvalue>false</body-rtexprvalue>
-		<description>Handle one case of a cfswicth</description>
+		<description>Handle one case of a cfswitch</description>
 		<attribute-type>fixed</attribute-type>
 		<attribute>
 			<type>string</type>
@@ -932,7 +932,7 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<name>preservecase</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>if set to true Lucee keep the original case for the name, otherise the name is converted to a upper case string</description>
+			<description>if set to true Lucee keep the original case for the name, otherwise the name is converted to a upper case string</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -956,7 +956,7 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 		<description>Lets you retrieve information about a data source, including details about the database, tables, queries, procedures, foreign keys, indexes, and version information about the database, driver, and JDBC. This tag supports only JDBC drivers, and does not support ODBC-based drivers, including the Microsoft Access driver.</description>
 		<attribute-type>fixed</attribute-type>
 		<attribute>
-			<type>string</type>
+			<type>object</type>
 			<name>datasource</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
@@ -3274,6 +3274,14 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<description>ID of the snippet that is added, used to ensure that the same snippet will not be added more than once.</description>
 		</attribute>
 		<attribute>
+			<type>boolean</type>
+			<name>force</name>
+			<required>false</required>
+			<default>false</default>
+			<rtexprvalue>true</rtexprvalue>
+			<description>if set to true, it works even within a silent block</description>
+		</attribute>
+		<attribute>
 			<type>string</type>
 			<name>action</name>
 			<values>append,read,reset,write</values>
@@ -3310,6 +3318,14 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<rtexprvalue>true</rtexprvalue>
 			<description>The text to add to the 'head' area of an HTML page. Everything inside the quotation marks is
 		placed in the 'head' section</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>force</name>
+			<required>false</required>
+			<default>true</default>
+			<rtexprvalue>true</rtexprvalue>
+			<description>if set to true, it works even within a silent block</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -3372,7 +3388,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>
-			if set to true (default value) URL encodes the value of the attribute "URL" if necessary (no double encoding is happeing).
+			if set to true (default value) URL encodes the value of the attribute "URL" if necessary (no double encoding is happening).
 			This setting has no influence on the values from httpparam type="url", for this use the attribute "encoded" from httpparam</description>
 		</attribute>
 		<attribute>
@@ -3882,7 +3898,7 @@ To use cached data, the tag must be called with the exact same arguments.</descr
 			<status>deprecated</status>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>this attribute is deprecated and ignored, log control happens via the logging framwork directly.</description>
+			<description>this attribute is deprecated and ignored, log control happens via the logging framework directly.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -4276,7 +4292,7 @@ Permits searching collections by title or displaying a separate title from the k
 		<description>Inserts records in data sources.</description>
 		<attribute-type>fixed</attribute-type>
 		<attribute>
-			<type>string</type>
+			<type>object</type>
 			<name>dataSource</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
@@ -4748,7 +4764,7 @@ Permits searching collections by title or displaying a separate title from the k
 			<rtexprvalue>true</rtexprvalue>
 			<description>Specifies the maximum amount of time, in seconds, to wait to obtain a lock. If a lock can be
 		obtained within the specified period, execution continues inside the body of the tag. Otherwise, the
-		behavior depends on the value of the throwOnTimeout attribute. If not set, the remaing request timeout is used instead.</description>
+		behavior depends on the value of the throwOnTimeout attribute. If not set, the remaining request timeout is used instead.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -5796,7 +5812,7 @@ Lucee uses the number of characters in the file.</description>
 			<status>deprecated</status>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>this attribute is deprecated and ignored, log control happens via the logging framwork directly.</description>
+			<description>this attribute is deprecated and ignored, log control happens via the logging framework directly.</description>
 		</attribute>
 		<attribute>
 			<type>number</type>
@@ -6248,16 +6264,14 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 		</attribute>
  -->
 
-
-
-
 	</tag>
+
 	<!-- Query -->
 	<tag>
 		<name>Query</name>
 		<tag-class>lucee.runtime.tag.Query</tag-class>
 		<tte-class>lucee.transformer.cfml.evaluator.impl.Query</tte-class>
-		<body-content>must</body-content>
+		<body-content>free</body-content>
 		<body-rtexprvalue>true</body-rtexprvalue>
 		<handle-exception>true</handle-exception>
 		<script>
@@ -6286,8 +6300,6 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 			<rtexprvalue>true</rtexprvalue>
 			<description>When return type is set to "struct", the value of this column is used as key in the struct for every record.</description>
 		</attribute>
-		
-		
 		<attribute>
 			<type>string</type>
 			<name>result</name>
@@ -6389,27 +6401,26 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 			<description>The maximum number of seconds for the query to execute before returning an error
 		indicating that the query has timed-out. Value can be a number (seconds) or a Timespan Object. The minimum and maximum allowable values
 		vary, depending on the driver.</description>
-
 		</attribute>
 		<attribute>
 			<type>datetime</type>
 			<name>cachedAfter</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>This is the age of which the query data can be</description>
+			<description>Sets a date/time from when the tag will start to cache the query. In difference to other CFML Engines this attribute only works in combination with the tag "cachedWithin", so you still have to set with "cachedWithin" how long the query remains in the cache. To match other CFML engines simply set "cachedWithin" to "36500", that will hold it in cache for 100 years!</description>
 		</attribute>
 		<attribute>
 			<type>object</type>
 			<name>cachedWithin</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		<description>
+			<description>
 possible values are:
 String "request": If original query was created within the current request, cached query data isused.
 a timespan (created with function CreateTimeSpan): If original query date falls within the time span, cached query data isused.
 
 To use cached data, the current query must use the same SQL statement, data source, query name, user name, and password.</description>
-    </attribute>
+    	</attribute>
 		<attribute>
 			<type>string</type>
 			<name>provider</name>
@@ -6499,7 +6510,6 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<rtexprvalue>true</rtexprvalue>
 			<description></description>
 		</attribute>
-
 		<attribute>
 			<type>numeric</type>
 			<name>nestingLevel</name>
@@ -6509,9 +6519,29 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<rtexprvalue>true</rtexprvalue>
 			<description>the level for the current pagesource</description>
 		</attribute>
-
-
+		<attribute>
+			<name>sql</name>
+			<type>string</type>
+			<required>false</required>
+			<description>the SQL query to execute.</description>
+		</attribute>
+		<attribute>
+			<name>listener</name>
+			<type>any</type>
+			<status>hidden</status>
+			<required>false</required>
+			<description></description>
+		</attribute>
+		<attribute>
+			<name>async</name>
+			<type>boolean</type>
+			<default>false</default>
+			<status>hidden</status>
+			<required>false</required>
+			<description></description>
+		</attribute>
 	</tag>
+
 	<!-- QueryParam -->
 	<tag>
 		<name>queryparam</name>
@@ -6854,24 +6884,6 @@ To use cached data, the current query must use the same SQL statement, data sour
 		</attribute>
 	</tag>
 	
-	<!-- Script2
-	<tag>
-		<name>Script2</name>
-		<tag-class>lucee.runtime.tag.Script2</tag-class>
-		<body-content>must</body-content>
-		<body-rtexprvalue>false</body-rtexprvalue>
-		<handle-exception>true</handle-exception>
-		<description></description>
-		<attribute-type>fixed</attribute-type>
-		<attribute>
-			<type>string</type>
-			<name>language</name>
-			<required>true</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description></description>
-		</attribute>
-	</tag> -->
-	
 	<!-- Schedule -->
 	<tag>
 		<name>Schedule</name>
@@ -7094,6 +7106,13 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<status>hidden</status>
 			<rtexprvalue>true</rtexprvalue>
 			<description>if set to true, the scheduled task get deleted when there is no possible future execution.</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>unique</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>if set to true, the scheduled task is only executed once at time.if a task is still running from previous round no new task is started.</description>
 		</attribute>
 	</tag>
 
@@ -7417,7 +7436,7 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<description>timeout for the stored procedure.</description>
 		</attribute>
 		<attribute>
-			<type>string</type>
+			<type>object</type>
 			<name>dataSource</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
@@ -7557,12 +7576,12 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		<attribute>
 			<type>string</type>
 			<name>type</name>
-			<values>deamon,task</values>
-			<default-value>deamon</default-value>
+			<values>daemon,task</values>
+			<default-value>daemon</default-value>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>type of the thread:
-			- deamon (default): executes as deamon of the current thread
+			- daemon (default): executes as daemon of the current thread
 			- task: executed by the task manager</description>
 		</attribute>
 		<attribute>
@@ -7895,7 +7914,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		<description>Updates existing records in data sources.</description>
 		<attribute-type>fixed</attribute-type>
 		<attribute>
-			<type>string</type>
+			<type>object</type>
 			<name>dataSource</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
@@ -8753,7 +8772,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<description>used to a address this loop from a "break" or "continue" statement (instead of the nearest one).</description>
 		</attribute>
 	</tag>
-	<!-- Zip -->
+	<!-- Zip
 	<tag>
 		<name>Zip</name>
 		<tag-class>lucee.runtime.tag.Zip</tag-class>
@@ -8920,8 +8939,8 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<rtexprvalue>true</rtexprvalue>
 		<description>Variable in which the read content is stored. </description>
     </attribute>
-	</tag>
-	<!-- ZipParam -->
+	</tag> -->
+	<!-- ZipParam
 	<tag>
 		<name>ZipParam</name>
 		<tag-class>lucee.runtime.tag.ZipParam</tag-class>
@@ -9013,7 +9032,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		<description>Recurse the directory to be zipped, unzipped, or deleted,
             as specified by the cfzip parent tag. (optional, default=yes)</description>
     </attribute>
-	</tag>
+	</tag> -->
 
 	<!-- Form -->
 	<tag>
@@ -10102,10 +10121,10 @@ Valid only for cfinput type="text".</description>
 		</attribute>
 	</tag>
 
-	<!-- Selectclassic -->
+	<!-- Select -->
 	<tag>
-		<name>Select</name>
-		<tag-class  >lucee.runtime.tag.Select</tag-class>
+		<name>Selectclassic</name>
+		<tag-class>lucee.runtime.tag.Select</tag-class>
 		<body-content>must</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
 		<status>hidden</status>

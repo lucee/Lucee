@@ -18,14 +18,12 @@
  **/
 package lucee.commons.io.res.type.ftp;
 
-
 import java.io.IOException;
 
 public final class FTPException extends IOException {
 
-	public FTPException(int replyCode) {
-		super("server throwed the following code "+replyCode);
-	}
-
+    public FTPException(int replyCode) {
+	super("server threw the following code " + replyCode);
+    }
 
 }

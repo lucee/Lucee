@@ -31,43 +31,47 @@ public final class Base64Coder {
 
     /**
      * decodes a Base64 String to a Plain String
+     * 
      * @param encoded
      * @return
      * @throws ExpressionException
      */
-    public static String decodeToString(String encoded,String charset) throws CoderException, UnsupportedEncodingException {
-    	byte[] dec = decode(Caster.toString(encoded,null));
-    	return new String(dec,charset);
+    public static String decodeToString(String encoded, String charset) throws CoderException, UnsupportedEncodingException {
+	byte[] dec = decode(Caster.toString(encoded, null));
+	return new String(dec, charset);
     }
 
     /**
      * encodes a String to Base64 String
+     * 
      * @param plain String to encode
      * @return encoded String
-     * @throws CoderException 
-     * @throws UnsupportedEncodingException 
+     * @throws CoderException
+     * @throws UnsupportedEncodingException
      */
-    public static String encodeFromString(String plain,String charset) throws CoderException, UnsupportedEncodingException {
-    	return encode(plain.getBytes(charset));
+    public static String encodeFromString(String plain, String charset) throws CoderException, UnsupportedEncodingException {
+	return encode(plain.getBytes(charset));
     }
-    
+
     /**
      * encodes a byte array to Base64 String
+     * 
      * @param barr byte array to encode
      * @return encoded String
-     * @throws CoderException 
+     * @throws CoderException
      */
     public static String encode(byte[] barr) {
-    	return Base64Encoder.encode(barr);
-    } 
-    
+	return Base64Encoder.encode(barr);
+    }
+
     /**
      * decodes a Base64 String to a Plain String
+     * 
      * @param encoded
-     * @return decoded binary data 
-     * @throws CoderException 
+     * @return decoded binary data
+     * @throws CoderException
      */
     public static byte[] decode(String encoded) throws CoderException {
-        return Base64Encoder.decode(encoded);
+	return Base64Encoder.decode(encoded);
     }
 }

@@ -30,7 +30,7 @@ import javax.servlet.jsp.PageContext;
 import javax.servlet.jsp.tagext.BodyContent;
 import javax.servlet.jsp.tagext.BodyTagSupport;
 
-public final class FormatTag extends BodyTagSupport	{
+public final class FormatTag extends BodyTagSupport {
 
     // format tag attributes
 
@@ -64,10 +64,9 @@ public final class FormatTag extends BodyTagSupport	{
      * @return EVAL_BODY_TAG
      */
     @Override
-	public final int doStartTag() throws JspException
-    {
-        output_date = date;
-        return EVAL_BODY_TAG;
+    public final int doStartTag() throws JspException {
+	output_date = date;
+	return EVAL_BODY_TAG;
     }
 
     /**
@@ -76,23 +75,22 @@ public final class FormatTag extends BodyTagSupport	{
      * @return SKIP_BODY
      */
     @Override
-	public final int doAfterBody() throws JspException
-    {
-        // Use the body of the tag as input for the date
-        BodyContent body = getBodyContent();
-        String s = body.getString().trim();  
-        // Clear the body since we will output only the formatted date
-        body.clearBody();
-        if( output_date == null ) {
-            long time;
-            try {
-                time = Long.valueOf(s).longValue();
-                output_date = new Date(time);
-            } catch(NumberFormatException nfe) {
-            }
-        }
+    public final int doAfterBody() throws JspException {
+	// Use the body of the tag as input for the date
+	BodyContent body = getBodyContent();
+	String s = body.getString().trim();
+	// Clear the body since we will output only the formatted date
+	body.clearBody();
+	if (output_date == null) {
+	    long time;
+	    try {
+		time = Long.valueOf(s).longValue();
+		output_date = new Date(time);
+	    }
+	    catch (NumberFormatException nfe) {}
+	}
 
-        return SKIP_BODY;
+	return SKIP_BODY;
     }
 
     /**
@@ -101,118 +99,105 @@ public final class FormatTag extends BodyTagSupport	{
      * @return EVAL_PAGE
      */
     @Override
-	public final int doEndTag() throws JspException
-    {
-        String date_formatted = default_text;
+    public final int doEndTag() throws JspException {
+	String date_formatted = default_text;
 
-        if (output_date != null) {
-            // Get the pattern to use
-            SimpleDateFormat sdf;
-            String pat = pattern;
+	if (output_date != null) {
+	    // Get the pattern to use
+	    SimpleDateFormat sdf;
+	    String pat = pattern;
 
-            if (pat == null && patternid != null) {
-                Object attr = pageContext.findAttribute(patternid);
-                if (attr != null)
-                    pat = attr.toString();
-            }
+	    if (pat == null && patternid != null) {
+		Object attr = pageContext.findAttribute(patternid);
+		if (attr != null) pat = attr.toString();
+	    }
 
-            if (pat == null) {
-                sdf = new SimpleDateFormat();
-                pat = sdf.toPattern();
-            }
+	    if (pat == null) {
+		sdf = new SimpleDateFormat();
+		pat = sdf.toPattern();
+	    }
 
-            // Get a DateFormatSymbols
-            if (symbolsRef != null) {
-                symbols = (DateFormatSymbols) pageContext.findAttribute(symbolsRef);
-                if (symbols == null) {
-                    throw new JspException(
-                            "datetime format tag could not find dateFormatSymbols for symbolsRef \"" +
-                            symbolsRef + "\".");
-                }
-            }
+	    // Get a DateFormatSymbols
+	    if (symbolsRef != null) {
+		symbols = (DateFormatSymbols) pageContext.findAttribute(symbolsRef);
+		if (symbols == null) {
+		    throw new JspException("datetime format tag could not find dateFormatSymbols for symbolsRef \"" + symbolsRef + "\".");
+		}
+	    }
 
-            // Get a SimpleDateFormat using locale if necessary
-            if (localeRef != null) {
-                Locale locale = (Locale) pageContext.findAttribute(localeRef);
-                if (locale == null) {
-                    throw new JspException(
-                            "datetime format tag could not find locale for localeRef \"" +
-                            localeRef + "\".");
-                }
+	    // Get a SimpleDateFormat using locale if necessary
+	    if (localeRef != null) {
+		Locale locale = (Locale) pageContext.findAttribute(localeRef);
+		if (locale == null) {
+		    throw new JspException("datetime format tag could not find locale for localeRef \"" + localeRef + "\".");
+		}
 
-                sdf = new SimpleDateFormat(pat, locale);
-            } else if (locale_flag) {
-                sdf = new SimpleDateFormat(pat,
-                         pageContext.getRequest().getLocale());
-            } else if (symbols != null) {
-                sdf = new SimpleDateFormat(pat,
-                        symbols);
-            } else {
-                sdf = new SimpleDateFormat(pat);
-            }
+		sdf = new SimpleDateFormat(pat, locale);
+	    }
+	    else if (locale_flag) {
+		sdf = new SimpleDateFormat(pat, pageContext.getRequest().getLocale());
+	    }
+	    else if (symbols != null) {
+		sdf = new SimpleDateFormat(pat, symbols);
+	    }
+	    else {
+		sdf = new SimpleDateFormat(pat);
+	    }
 
-            // See if there is a timeZone
-            if (timeZone_string != null) {
-                TimeZone timeZone =
-                        (TimeZone) pageContext.getAttribute(timeZone_string,
-                                PageContext.SESSION_SCOPE);
-                if (timeZone == null) {
-                    throw new JspTagException("Datetime format tag timeZone " +
-                            "script variable \"" + timeZone_string +
-                            " \" does not exist");
-                }
-                sdf.setTimeZone(timeZone);
-            }
+	    // See if there is a timeZone
+	    if (timeZone_string != null) {
+		TimeZone timeZone = (TimeZone) pageContext.getAttribute(timeZone_string, PageContext.SESSION_SCOPE);
+		if (timeZone == null) {
+		    throw new JspTagException("Datetime format tag timeZone " + "script variable \"" + timeZone_string + " \" does not exist");
+		}
+		sdf.setTimeZone(timeZone);
+	    }
 
-            // Format the date for display
-            date_formatted = sdf.format(output_date);
-        }
+	    // Format the date for display
+	    date_formatted = sdf.format(output_date);
+	}
 
-        try {
-            pageContext.getOut().write(date_formatted);
-        } catch (Exception e) {
-            throw new JspException("IO Error: " + e.getMessage());
-        }
+	try {
+	    pageContext.getOut().write(date_formatted);
+	}
+	catch (Exception e) {
+	    throw new JspException("IO Error: " + e.getMessage());
+	}
 
-        return EVAL_PAGE;
+	return EVAL_PAGE;
     }
 
     @Override
-	public void release()
-    {
-        //lucee.print.ln("release FormatTag");
-        super.release();
-        locale_flag = false;
-        pattern = null;
-        patternid = null;
-        date = null;
-        localeRef = null;
-        symbolsRef = null;
-        symbols = null;
+    public void release() {
+	// lucee.print.ln("release FormatTag");
+	super.release();
+	locale_flag = false;
+	pattern = null;
+	patternid = null;
+	date = null;
+	localeRef = null;
+	symbolsRef = null;
+	symbols = null;
     }
 
     /**
-     * Locale flag, if set to true, format date
-     * for client's preferred locale if known.
+     * Locale flag, if set to true, format date for client's preferred locale if known.
      *
      * @param boolean use users locale, true or false
      */
-    public final void setLocale(short flag)
-    { 
-        //locale_flag = flag; 
+    public final void setLocale(short flag) {
+	// locale_flag = flag;
     }
 
     /**
      * Set the time zone to use when formatting date.
      *
-     * Value must be the name of a <b>timeZone</b> tag script
-     * variable ID.
+     * Value must be the name of a <b>timeZone</b> tag script variable ID.
      *
      * @param String name of timeZone to use
      */
-    public final void setTimeZone(String tz)
-    {
-        timeZone_string = tz;
+    public final void setTimeZone(String tz) {
+	timeZone_string = tz;
     }
 
     /**
@@ -220,20 +205,17 @@ public final class FormatTag extends BodyTagSupport	{
      *
      * @param String SimpleDateFormat style time pattern format string
      */
-    public final void setPattern(String str)
-    {
-        pattern = str;
+    public final void setPattern(String str) {
+	pattern = str;
     }
 
     /**
-     * Set the pattern to use when parsing Date using a script variable
-     * attribute.
+     * Set the pattern to use when parsing Date using a script variable attribute.
      * 
      * @param String name of script variable attribute id
      */
-    public final void setPatternId(String str)
-    {   
-        patternid = str;
+    public final void setPatternId(String str) {
+	patternid = str;
     }
 
     /**
@@ -241,9 +223,8 @@ public final class FormatTag extends BodyTagSupport	{
      *
      * @param Date to use for formatting (could be null)
      */
-    public final void setDate(Date date)
-    {
-        this.date = date;
+    public final void setDate(Date date) {
+	this.date = date;
     }
 
     /**
@@ -251,30 +232,27 @@ public final class FormatTag extends BodyTagSupport	{
      *
      * @param String to use as default text
      */
-    public final void setDefault(String default_text)
-    {
-        this.default_text = default_text;
+    public final void setDefault(String default_text) {
+	this.default_text = default_text;
     }
 
     /**
-     * Provides a key to search the page context for in order to get the
-     * java.util.Locale to use.
+     * Provides a key to search the page context for in order to get the java.util.Locale to use.
      *
      * @param String name of locale attribute to use
      */
-    public void setLocaleRef(String value)
-    {
-        localeRef = value;
+    public void setLocaleRef(String value) {
+	localeRef = value;
     }
 
     /**
-     * Provides a key to search the page context for in order to get the
-     * java.text.DateFormatSymbols to use
+     * Provides a key to search the page context for in order to get the java.text.DateFormatSymbols to
+     * use
      *
      * @param symbolsRef
      */
     public void setSymbolsRef(String symbolsRef) {
-        this.symbolsRef = symbolsRef;
+	this.symbolsRef = symbolsRef;
     }
-    
+
 }

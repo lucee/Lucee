@@ -49,7 +49,7 @@
 	</cffunction>
 	
 	<!---   attributes   --->
-	<cffunction name="getAtttributes" access="public" output="false" returntype="struct">
+	<cffunction name="getAttributes" access="public" output="false" returntype="struct">
 		<cfreturn variables.attributes/>
 	</cffunction>
 

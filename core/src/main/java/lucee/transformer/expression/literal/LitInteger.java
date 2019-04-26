@@ -22,9 +22,9 @@ import lucee.transformer.expression.ExprInt;
 /**
  * Literal Double Value
  */
-public interface LitInteger extends Literal,ExprInt {
-	
-	public int geIntValue();
-	
-	public Integer getInteger();
+public interface LitInteger extends Literal, ExprInt {
+
+    public int geIntValue();
+
+    public Integer getInteger();
 }

@@ -37,209 +37,179 @@ import lucee.runtime.type.util.ListUtil;
 
 public final class MailUtil {
 
-	public static String encode(String text, String encoding)
-			throws UnsupportedEncodingException {
-		// print.ln(StringUtil.changeCharset(text,encoding));
-		return MimeUtility.encodeText(text, encoding, "Q");
+    public static String encode(String text, String encoding) throws UnsupportedEncodingException {
+	// print.ln(StringUtil.changeCharset(text,encoding));
+	return MimeUtility.encodeText(text, encoding, "Q");
+    }
+
+    public static String decode(String text) throws UnsupportedEncodingException {
+	return MimeUtility.decodeText(text);
+    }
+
+    public static InternetAddress toInternetAddress(Object emails) throws MailException, UnsupportedEncodingException, PageException {
+
+	if (emails instanceof String) return parseEmail(emails, null);
+
+	InternetAddress[] addresses = toInternetAddresses(emails);
+	if (addresses != null && addresses.length > 0) return addresses[0];
+
+	return null;
+    }
+
+    public static InternetAddress[] toInternetAddresses(Object emails) throws MailException, UnsupportedEncodingException, PageException {
+
+	if (emails instanceof InternetAddress[]) return (InternetAddress[]) emails;
+
+	else if (emails instanceof String) return fromList((String) emails);
+
+	else if (Decision.isArray(emails)) return fromArray(Caster.toArray(emails));
+
+	else if (Decision.isStruct(emails)) return new InternetAddress[] { fromStruct(Caster.toStruct(emails)) };
+
+	else throw new MailException("e-mail definitions must be one of the following types [string,array,struct], not [" + emails.getClass().getName() + "]");
+    }
+
+    private static InternetAddress[] fromArray(Array array) throws MailException, PageException, UnsupportedEncodingException {
+
+	Iterator it = array.valueIterator();
+	Object el;
+	ArrayList<InternetAddress> pairs = new ArrayList();
+
+	while (it.hasNext()) {
+	    el = it.next();
+	    if (Decision.isStruct(el)) {
+
+		pairs.add(fromStruct(Caster.toStruct(el)));
+	    }
+	    else {
+
+		InternetAddress addr = parseEmail(Caster.toString(el), null);
+		if (addr != null) pairs.add(addr);
+	    }
 	}
 
-	public static String decode(String text)
-			throws UnsupportedEncodingException {
-		return MimeUtility.decodeText(text);
+	return pairs.toArray(new InternetAddress[pairs.size()]);
+    }
+
+    private static InternetAddress fromStruct(Struct sct) throws MailException, UnsupportedEncodingException {
+
+	String name = Caster.toString(sct.get("label", null), null);
+	if (name == null) name = Caster.toString(sct.get("name", null), null);
+
+	String email = Caster.toString(sct.get("email", null), null);
+	if (email == null) email = Caster.toString(sct.get("e-mail", null), null);
+	if (email == null) email = Caster.toString(sct.get("mail", null), null);
+
+	if (StringUtil.isEmpty(email)) throw new MailException("missing e-mail definition in struct");
+
+	if (name == null) name = "";
+
+	return new InternetAddress(email, name);
+    }
+
+    private static InternetAddress[] fromList(String strEmails) throws MailException {
+
+	if (StringUtil.isEmpty(strEmails, true)) return new InternetAddress[0];
+
+	Array raw = ListUtil.listWithQuotesToArray(strEmails, ",;", "\"");
+
+	Iterator<Object> it = raw.valueIterator();
+	ArrayList<InternetAddress> al = new ArrayList();
+
+	while (it.hasNext()) {
+
+	    InternetAddress addr = parseEmail(it.next(), null);
+
+	    if (addr != null) al.add(addr);
 	}
 
-	public static InternetAddress toInternetAddress(Object emails)
-			throws MailException, UnsupportedEncodingException, PageException {
+	return al.toArray(new InternetAddress[al.size()]);
+    }
 
-		if (emails instanceof String)
-			return parseEmail(emails,null);
+    /**
+     * returns true if the passed value is a in valid email address format
+     * 
+     * @param value
+     * @return
+     */
+    public static boolean isValidEmail(Object value) {
 
-		InternetAddress[] addresses = toInternetAddresses(emails);
-		if (addresses != null && addresses.length > 0)
-			return addresses[0];
+	InternetAddress addr = parseEmail(value, null);
 
-		return null;
-	}
+	if (addr != null) {
 
-	public static InternetAddress[] toInternetAddresses(Object emails)
-			throws MailException, UnsupportedEncodingException, PageException {
+	    String address = addr.getAddress();
 
-		if (emails instanceof String)
-			return fromList((String) emails);
+	    if (address.contains("..")) return false;
 
-		else if (Decision.isArray(emails))
-			return fromArray(Caster.toArray(emails));
+	    int pos = address.indexOf('@');
 
-		else if (Decision.isStruct(emails))
-			return new InternetAddress[] { fromStruct(Caster.toStruct(emails)) };
+	    if (pos < 1 || pos == address.length() - 1) return false;
 
-		else
-			throw new MailException(
-					"e-mail defintions must be one of the following types [string,array,struct], not ["
-							+ emails.getClass().getName() + "]");
-	}
+	    String local = address.substring(0, pos);
+	    String domain = address.substring(pos + 1);
 
-	private static InternetAddress[] fromArray(Array array)
-			throws MailException, PageException, UnsupportedEncodingException {
+	    if (domain.charAt(0) == '.' || local.charAt(0) == '.' || local.charAt(local.length() - 1) == '.') return false;
 
-		Iterator it = array.valueIterator();
-		Object el;
-		ArrayList<InternetAddress> pairs = new ArrayList();
+	    pos = domain.lastIndexOf('.');
 
-		while (it.hasNext()) {
-			el = it.next();
-			if (Decision.isStruct(el)) {
-
-				pairs.add(fromStruct(Caster.toStruct(el)));
-			} else {
-
-				InternetAddress addr = parseEmail(Caster.toString(el),null);
-				if (addr != null)
-					pairs.add(addr);
-			}
+	    if (pos > 0 && pos < domain.length() - 2) { // test TLD to be at
+							// least 2 chars all
+							// alpha characters
+		if (StringUtil.isAllAlpha(domain.substring(pos + 1))) return true;
+		try {
+		    addr.validate();
+		    return true;
 		}
-
-		return pairs.toArray(new InternetAddress[pairs.size()]);
+		catch (AddressException e) {}
+	    }
 	}
 
-	private static InternetAddress fromStruct(Struct sct) throws MailException,
-			UnsupportedEncodingException {
+	return false;
+    }
 
-		String name = Caster.toString(sct.get("label", null), null);
-		if (name == null)
-			name = Caster.toString(sct.get("name", null), null);
+    public static InternetAddress parseEmail(Object value) throws MailException {
+	InternetAddress ia = parseEmail(value, null);
+	if (ia != null) return ia;
+	if (value instanceof CharSequence) throw new MailException("[" + value + "] cannot be converted to an email address");
+	throw new MailException("input cannot be converted to an email address");
+    }
 
-		String email = Caster.toString(sct.get("email", null), null);
-		if (email == null)
-			email = Caster.toString(sct.get("e-mail", null), null);
-		if (email == null)
-			email = Caster.toString(sct.get("mail", null), null);
-
-		if (StringUtil.isEmpty(email))
-			throw new MailException("missing e-mail definition in struct");
-
-		if (name == null)
-			name = "";
-
-		return new InternetAddress(email, name);
-	}
-
-	private static InternetAddress[] fromList(String strEmails)
-			throws MailException {
-
-		if (StringUtil.isEmpty(strEmails, true))
-			return new InternetAddress[0];
-
-		Array raw = ListUtil.listWithQuotesToArray(strEmails, ",;", "\"");
-
-		Iterator<Object> it = raw.valueIterator();
-		ArrayList<InternetAddress> al = new ArrayList();
-
-		while (it.hasNext()) {
-
-			InternetAddress addr = parseEmail(it.next(),null);
-
-			if (addr != null)
-				al.add(addr);
-		}
-
-		return al.toArray(new InternetAddress[al.size()]);
-	}
-
-	/**
-	 * returns true if the passed value is a in valid email address format
-	 * 
-	 * @param value
-	 * @return
-	 */
-	public static boolean isValidEmail(Object value) {
-
-		InternetAddress addr = parseEmail(value, null);
-
-		if (addr != null) {
-
-			String address = addr.getAddress();
-
-			if (address.contains(".."))
-				return false;
-
-			int pos = address.indexOf('@');
-
-			if (pos < 1 || pos == address.length() - 1)
-				return false;
-
-			String local = address.substring(0, pos);
-			String domain = address.substring(pos + 1);
-
-			if (domain.charAt(0) == '.' || local.charAt(0) == '.'
-					|| local.charAt(local.length() - 1) == '.')
-				return false;
-
-			pos = domain.lastIndexOf('.');
-
-			if (pos > 0 && pos < domain.length() - 2) { // test TLD to be at
-														// least 2 chars all
-														// alpha characters
-				if (StringUtil.isAllAlpha(domain.substring(pos + 1)))
-					return true;
-				try {
-					addr.validate();
-					return true;
-				} catch (AddressException e) {
-				}
-			}
-		}
-
-		return false;
-	}
-
-	public static InternetAddress parseEmail(Object value) throws MailException {
-		InternetAddress ia = parseEmail(value, null);
-		if (ia != null)
-			return ia;
-		if (value instanceof CharSequence)
-			throw new MailException("[" + value
-					+ "] cannot be converted to an email address");
-		throw new MailException("input cannot be converted to an email address");
-	}
-
-	/**
-	 * returns an InternetAddress object or null if the parsing fails. to be be
-	 * used in multiple places.
-	 * 
-	 * @param value
-	 * @return
-	 */
-	public static InternetAddress parseEmail(Object value,
-			InternetAddress defaultValue) {
-		String str = Caster.toString(value, "");
-		if (str.indexOf('@') > -1) {
-			try {
-				str = fixIDN(str);
-				InternetAddress addr = new InternetAddress(str);
-				// fixIDN( addr );
-				return addr;
-			} catch (AddressException ex) {
-			}
-		}
-		return defaultValue;
-	}
-
-	/**
-	 * converts IDN to ASCII if needed
-	 * 
-	 * @param addr
-	 * @return 
-	 */
-	public static String fixIDN(String addr) {
-		int pos = addr.indexOf('@');
-		if (pos > 0 && pos < addr.length() - 1) {
-			String domain = addr.substring(pos + 1);
-			if (!StringUtil.isAscii(domain)) {
-				domain = IDN.toASCII(domain);
-				return addr.substring(0, pos) + "@" + domain;
-			}
-		}
+    /**
+     * returns an InternetAddress object or null if the parsing fails. to be be used in multiple places.
+     * 
+     * @param value
+     * @return
+     */
+    public static InternetAddress parseEmail(Object value, InternetAddress defaultValue) {
+	String str = Caster.toString(value, "");
+	if (str.indexOf('@') > -1) {
+	    try {
+		str = fixIDN(str);
+		InternetAddress addr = new InternetAddress(str);
+		// fixIDN( addr );
 		return addr;
+	    }
+	    catch (AddressException ex) {}
 	}
+	return defaultValue;
+    }
+
+    /**
+     * converts IDN to ASCII if needed
+     * 
+     * @param addr
+     * @return
+     */
+    public static String fixIDN(String addr) {
+	int pos = addr.indexOf('@');
+	if (pos > 0 && pos < addr.length() - 1) {
+	    String domain = addr.substring(pos + 1);
+	    if (!StringUtil.isAscii(domain)) {
+		domain = IDN.toASCII(domain);
+		return addr.substring(0, pos) + "@" + domain;
+	    }
+	}
+	return addr;
+    }
 }

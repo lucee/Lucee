@@ -24,31 +24,28 @@ import lucee.runtime.PageContext;
 import lucee.runtime.debug.DebugEntry;
 
 public class DebugExecutionLog extends ExecutionLogSupport {
-	
-	private PageContext pc;
 
+    private PageContext pc;
 
-	@Override
-	protected void _init(PageContext pc, Map<String, String> arguments) {
-		this.pc=pc;
-	}
-	
-	@Override
-	protected void _log(int startPos, int endPos, long startTime, long endTime) {
+    @Override
+    protected void _init(PageContext pc, Map<String, String> arguments) {
+	this.pc = pc;
+    }
 
-		if(!pc.getConfig().debug()) return;
+    @Override
+    protected void _log(int startPos, int endPos, long startTime, long endTime) {
 
-		long diff=endTime-startTime;
-		if(unit==UNIT_MICRO)diff/=1000;
-		else if(unit==UNIT_MILLI)diff/=1000000;
+	if (!pc.getConfig().debug()) return;
 
-		DebugEntry de = pc.getDebugger().getEntry(pc, pc.getCurrentPageSource(), startPos, endPos);
-		de.updateExeTime((int) diff);
-	}
+	long diff = endTime - startTime;
+	if (unit == UNIT_MICRO) diff /= 1000;
+	else if (unit == UNIT_MILLI) diff /= 1000000;
 
+	DebugEntry de = pc.getDebugger().getEntry(pc, pc.getCurrentPageSource(), startPos, endPos);
+	de.updateExeTime((int) diff);
+    }
 
-	@Override
-	protected void _release() {
-	}
+    @Override
+    protected void _release() {}
 
 }

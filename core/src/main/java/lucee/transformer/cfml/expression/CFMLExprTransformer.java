@@ -19,45 +19,37 @@
 package lucee.transformer.cfml.expression;
 
 import lucee.runtime.exp.TemplateException;
-import lucee.transformer.Factory;
-import lucee.transformer.bytecode.Root;
 import lucee.transformer.cfml.Data;
 import lucee.transformer.cfml.ExprTransformer;
-import lucee.transformer.cfml.TransfomerSettings;
-import lucee.transformer.cfml.evaluator.EvaluatorPool;
 import lucee.transformer.cfml.script.AbstrCFMLScriptTransformer;
 import lucee.transformer.expression.Expression;
-import lucee.transformer.library.function.FunctionLib;
-import lucee.transformer.library.tag.TagLib;
-import lucee.transformer.library.tag.TagLibTag;
-import lucee.transformer.util.SourceCode;
 
 public class CFMLExprTransformer extends AbstrCFMLScriptTransformer implements ExprTransformer {
 
-	@Override
-	public Expression transformAsString(Data data) throws TemplateException {
-		boolean alt=data.allowLowerThan;
-		data.allowLowerThan=false;
-		Data ed = init(data);
-		try {
-			return transformAsString(ed,new String[]{" ", ">", "/>"});
-		}
-		finally {
-			data.allowLowerThan=alt;
-		}
+    @Override
+    public Expression transformAsString(Data data) throws TemplateException {
+	boolean alt = data.allowLowerThan;
+	data.allowLowerThan = false;
+	Data ed = init(data);
+	try {
+	    return transformAsString(ed, new String[] { " ", ">", "/>" });
 	}
-	
-	@Override
-	public Expression transform(Data data) throws TemplateException {
-		boolean alt=data.allowLowerThan;
-		data.allowLowerThan=false;
-		Data ed = init(data);
-		try {
-			comments(ed);
-			return assignOp(ed);
-		}
-		finally {
-			data.allowLowerThan=alt;
-		}
+	finally {
+	    data.allowLowerThan = alt;
 	}
+    }
+
+    @Override
+    public Expression transform(Data data) throws TemplateException {
+	boolean alt = data.allowLowerThan;
+	data.allowLowerThan = false;
+	Data ed = init(data);
+	try {
+	    comments(ed);
+	    return assignOp(ed);
+	}
+	finally {
+	    data.allowLowerThan = alt;
+	}
+    }
 }

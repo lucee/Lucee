@@ -31,7 +31,11 @@ loop query="ms" {
 	<cfif stVeritfyMessages[hostname].contextType==contextType>
 		<cfif stVeritfyMessages[hostname].label eq "OK">
 			<div class="message">
-				Verification of mail server [#hostname#] was successful.
+				<cfif structKeyExists(stVeritfyMessages[hostName], "message")>
+					#stVeritfyMessages[hostName].message#
+				<cfelse>
+					Verification of mail server [#hostname#] was successful.
+				</cfif>
 			</div>
 		<cfelse>
 			<div class="error">
@@ -114,6 +118,7 @@ loop query="ms" {
 					<!--- edit --->
 					<cfif contextType=="local" or request.adminType=='server'><td>
 						#renderEditButton("#request.self#?action=#url.action#&action2=edit&row=#ms.currentrow#")#
+						#renderMailButton("#request.self#?action=services.mail&action2=sendTestmail&row=#ms.currentrow#")#
 					</td></cfif>
 				</tr>
 			</cfloop>

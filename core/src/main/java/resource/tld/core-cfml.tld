@@ -206,7 +206,7 @@
 			<name>datasources</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>A structure that contains datasources defintions.</description>
+			<description>A structure that contains datasources definitions.</description>
 		</attribute>
 		<attribute>
 			<type>struct</type>
@@ -214,7 +214,7 @@
 			<alias>log</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>A structure that contains log defintions.</description>
+			<description>A structure that contains log definitions.</description>
 		</attribute>
 		<attribute>
 			<type>array</type>
@@ -230,7 +230,7 @@
 			<alias>cache</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>A structure that contains cache defintions.</description>
+			<description>A structure that contains cache definitions.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -400,6 +400,21 @@ Specifies how Lucee stores session variables:
 			<description>Specifies whether to protect variables from cross-site scripting attacks</description>
 		</attribute>
 		<attribute>
+			<type>any</type>
+			<name>functionpaths</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Array or String list of paths where you have your functions.</description>
+		</attribute>
+		<attribute>
+			<type>struct</type>
+			<name>proxy</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>general proxy that should be used for all connections with the following format:
+			{server:"localhost", port:12345, username:"susi", password: "sorglos"}</description>
+		</attribute>
+		<attribute>
 			<type>struct</type>
 			<name>mappings</name>
 			<required>false</required>
@@ -444,7 +459,7 @@ Specifies how Lucee stores session variables:
 			<required>false</required>
 			<default-value>true</default-value>
 			<rtexprvalue>true</rtexprvalue>
-			<description>If disabled, Lucee ignores type defintions with function arguments and return values</description>
+			<description>If disabled, Lucee ignores type definitions with function arguments and return values</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -483,7 +498,22 @@ Specifies how Lucee stores session variables:
 			<name>mailListener</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
+			<description></description>
+		</attribute>
+		<attribute>
+			<type>any</type>
+			<name>queryListener</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
 			<status>hidden</status>
+			<description></description>
+		</attribute>
+		<attribute>
+			<type>struct</type>
+			<name>SerializationSettings</name>
+			<alias>SerializationSetting</alias>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
 			<description></description>
 		</attribute>
 		<attribute>
@@ -568,7 +598,7 @@ A struct that defines default ftp settings, this settings can be overwritten as 
 			<description>If there is no accessible data member (property, element of the this scope) inside a component, 
 			Lucee searches for available matching &amp;quot;getters&amp;quot; or &amp;quot;setters&amp;quot; for the requested property. 
 			The following example should clarify this behaviour. 
-			&amp;quot;somevar = myComponent.properyName&amp;quot;. 
+			&amp;quot;somevar = myComponent.propertyName&amp;quot;. 
 			If &amp;quot;myComponent&amp;quot; has no accessible data member named &amp;quot;propertyName&amp;quot;, 
 			Lucee searches for a function member (method) named &amp;quot;getPropertyName&amp;quot;.</description>
 		</attribute>
@@ -669,7 +699,7 @@ A struct that defines default ftp settings, this settings can be overwritten as 
 			<name>timeZone</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>change the timezone defintion for the current application context.</description>
+			<description>change the timezone definition for the current application context.</description>
 		</attribute>
 		<attribute>
 			<type>String</type>
@@ -719,7 +749,50 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<rtexprvalue>true</rtexprvalue>
 			<description>session cookie behaviour</description>
 		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>enableNULLSupport</name>
+			<status>hidden</status>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description></description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>nullSupport</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>enable or disable full null support</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>psq</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>preserve single quote in injected variables into cfquery.</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>variableUsage</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>how to handle variable usage within cfquery, possible values are ignore,warn,error</description>
+		</attribute>
+		<attribute>
+			<type>timespan</type>
+			<name>cachedAfter</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>set the timespan for the attribute "cachedAfter" from tag "query".</description>
+		</attribute>
+		<attribute>
+			<name>blockedExtForFileUpload</name>
+			<type>string</type>
+			<required>false</required>
+			<description>A comma separated list of file extensions that will be blocked for File Upload operation</description>
+		</attribute>
 	</tag>
+
 	<!-- Argument -->
 	<tag>
 		<name>argument</name>

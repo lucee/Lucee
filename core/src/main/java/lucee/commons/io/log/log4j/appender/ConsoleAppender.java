@@ -21,46 +21,44 @@ package lucee.commons.io.log.log4j.appender;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 
-import lucee.commons.lang.SerializableObject;
-
+import org.apache.log4j.Appender;
 import org.apache.log4j.Layout;
 import org.apache.log4j.WriterAppender;
 
-public class ConsoleAppender extends WriterAppender implements AppenderState {
-	
-	private Object sync=new SerializableObject();
+import lucee.commons.lang.SerializableObject;
 
-	public ConsoleAppender() {
-	}
+public class ConsoleAppender extends WriterAppender implements AppenderState, Appender {
 
-	public ConsoleAppender(Layout layout) {
-		setLayout(layout);
-	}
-	
-	public ConsoleAppender(PrintWriter pw,Layout layout) {
-		setWriter(pw);
-		setLayout(layout);
-	}
+    private Object sync = new SerializableObject();
 
-	public ConsoleAppender(PrintStream ps,Layout layout) {
-		setWriter(new PrintWriter(ps));
-		setLayout(layout);
-	}
+    public ConsoleAppender() {}
 
+    public ConsoleAppender(Layout layout) {
+	setLayout(layout);
+    }
 
+    public ConsoleAppender(PrintWriter pw, Layout layout) {
+	setWriter(pw);
+	setLayout(layout);
+    }
 
-	@Override
-	public boolean isClosed() {
-		return closed;
+    public ConsoleAppender(PrintStream ps, Layout layout) {
+	setWriter(new PrintWriter(ps));
+	setLayout(layout);
+    }
+
+    @Override
+    public boolean isClosed() {
+	return closed;
+    }
+
+    @Override
+    public void close() {
+	synchronized (sync) {
+	    if (isClosed()) return;
+	    this.closed = true;
+	    writeFooter();
 	}
-	
-	@Override
-	public void close() {
-		synchronized (sync) {
-			if(isClosed()) return;
-			this.closed = true;
-			writeFooter();	
-		}
-		// reset();
-	}
+	// reset();
+    }
 }

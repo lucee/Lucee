@@ -123,7 +123,7 @@ component extends="Debug" {
 	 	
 	// DATABASE
 		if(debugging.queries.recordcount)
-			print("Queries",array('src','datasource','name','sql','time','count'),debugging.queries);
+			print("Queries",array('src','line','datasource','name','sql','time','count'),debugging.queries);
 			
 	// TIMER
 	 	if(debugging.timers.recordcount)

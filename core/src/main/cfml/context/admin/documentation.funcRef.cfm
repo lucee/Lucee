@@ -88,7 +88,7 @@
 		<!--- Desc --->
 		<div class="text">
 			<cfif not StructKeyExists(data, "description")>
-				<em>No decription found</em>
+				<em>No description found</em>
 			<cfelse>
 				#replace(replace(data.description,'	','&nbsp;&nbsp;&nbsp;','all'),'
 ','<br />','all')#
@@ -100,7 +100,7 @@
 		<h2>#stText.doc.example#</h2>
 		<pre><span class="syntaxFunc">#data.name#(</span><cfloop array="#data.arguments#" index="item"><cfif item.status EQ "hidden"><cfcontinue></cfif><cfif not first><span class="syntaxFunc">,</span></cfif><cfif not item.required><cfset optCount=optCount+1><span class="syntaxFunc">[</span></cfif><span class="syntaxType">#item.type#</span> <span class="syntaxText">#item.name#</span><cfset first=false></cfloop><span class="syntaxFunc">#RepeatString(']',optCount)#):</span><span class="syntaxType">#data.returntype#</span></pre>
 
-		<!--- Argumente --->
+		<!--- Arguments --->
 		<h2>#stText.doc.argTitle#</h2>
 		<cfif data.argumentType EQ "fixed" and not arraylen(data.arguments)>
 			<div class="text">#stText.doc.arg.zero#</div>

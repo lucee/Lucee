@@ -30,46 +30,46 @@ import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Pojo;
 
-public class PojoIterator implements Iterator<Pair<Collection.Key,Object>> {
-	
-	private static final Object[] EMPTY_ARG = new Object[]{}; 
-	
-	private Pojo pojo;
-	private Method[] getters;
-	private Class<? extends Pojo> clazz;
-	private int index=-1;
+public class PojoIterator implements Iterator<Pair<Collection.Key, Object>> {
 
-	public PojoIterator(Pojo pojo) {
-		this.pojo=pojo;
-		this.clazz=pojo.getClass();
-		getters = Reflector.getGetters(pojo.getClass());
-	}
-	
-	public int size() {
-		return getters.length;
-	}
+    private static final Object[] EMPTY_ARG = new Object[] {};
 
-	@Override
-	public boolean hasNext() {
-		return (index+1)<getters.length;
-	}
+    private Pojo pojo;
+    private Method[] getters;
+    private Class<? extends Pojo> clazz;
+    private int index = -1;
 
-	@Override
-	public Pair<Collection.Key, Object> next() {
-		Method g = getters[++index];
-		try {
-			
-			return new Pair<Collection.Key, Object>(KeyImpl.init(g.getName().substring(3)), g.invoke(pojo, EMPTY_ARG));
-		}
-		catch(Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
-			throw new PageRuntimeException(Caster.toPageException(t));
-		}
-	}
+    public PojoIterator(Pojo pojo) {
+	this.pojo = pojo;
+	this.clazz = pojo.getClass();
+	getters = Reflector.getGetters(pojo.getClass());
+    }
 
-	@Override
-	public void remove() {
-		throw new RuntimeException("method remove is not supported!");
+    public int size() {
+	return getters.length;
+    }
+
+    @Override
+    public boolean hasNext() {
+	return (index + 1) < getters.length;
+    }
+
+    @Override
+    public Pair<Collection.Key, Object> next() {
+	Method g = getters[++index];
+	try {
+
+	    return new Pair<Collection.Key, Object>(KeyImpl.init(g.getName().substring(3)), g.invoke(pojo, EMPTY_ARG));
 	}
+	catch (Throwable t) {
+	    ExceptionUtil.rethrowIfNecessary(t);
+	    throw new PageRuntimeException(Caster.toPageException(t));
+	}
+    }
+
+    @Override
+    public void remove() {
+	throw new RuntimeException("method remove is not supported!");
+    }
 
 }

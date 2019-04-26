@@ -31,56 +31,52 @@ import lucee.runtime.type.UDF;
 
 public class UDFFilter extends UDFFilterSupport implements ResourceAndResourceNameFilter {
 
-	public UDFFilter(UDF udf) throws ExpressionException{
-		super(udf);
-	}
-	
+    public UDFFilter(UDF udf) throws ExpressionException {
+	super(udf);
+    }
+
     public boolean accept(String path) {
-    	args[0]=path;
-    	try {
-			return Caster.toBooleanValue(udf.call(ThreadLocalPageContext.get(), args, true));
-			
-		} 
-    	catch (PageException e) {
-			throw new PageRuntimeException(e);
-		}
-    }
-    
-    
-    @Override
-	public boolean accept(Resource file) {
-    	return accept(file.getAbsolutePath());
+	args[0] = path;
+	try {
+	    return Caster.toBooleanValue(udf.call(ThreadLocalPageContext.get(), args, true));
+
+	}
+	catch (PageException e) {
+	    throw new PageRuntimeException(e);
+	}
     }
 
-	@Override
-	public boolean accept(Resource parent, String name) {
-		String path=parent.getAbsolutePath();
-		if(path.endsWith(File.separator)) path+=name;
-		else path+=File.separator+name;
-		return accept(path);
-	}
-	
     @Override
-	public String toString() {
-		return "UDFFilter:"+udf;
-	}
-	
-	public static ResourceAndResourceNameFilter createResourceAndResourceNameFilter(Object filter) throws PageException	{
-	   if(filter instanceof UDF)
-		   return createResourceAndResourceNameFilter((UDF)filter);
-	   return createResourceAndResourceNameFilter(Caster.toString(filter));
-	}
+    public boolean accept(Resource file) {
+	return accept(file.getAbsolutePath());
+    }
 
-	
-	public static ResourceAndResourceNameFilter createResourceAndResourceNameFilter(UDF filter) throws PageException	{
-		return new UDFFilter(filter);
-	}
+    @Override
+    public boolean accept(Resource parent, String name) {
+	String path = parent.getAbsolutePath();
+	if (path.endsWith(File.separator)) path += name;
+	else path += File.separator + name;
+	return accept(path);
+    }
 
-	public static ResourceAndResourceNameFilter createResourceAndResourceNameFilter(String pattern) {
+    @Override
+    public String toString() {
+	return "UDFFilter:" + udf;
+    }
 
-		if( !StringUtil.isEmpty(pattern, true) )
-	    	return new WildcardPatternFilter( pattern, "|" );
+    public static ResourceAndResourceNameFilter createResourceAndResourceNameFilter(Object filter) throws PageException {
+	if (filter instanceof UDF) return createResourceAndResourceNameFilter((UDF) filter);
+	return createResourceAndResourceNameFilter(Caster.toString(filter));
+    }
 
-	    return null;
-	}
+    public static ResourceAndResourceNameFilter createResourceAndResourceNameFilter(UDF filter) throws PageException {
+	return new UDFFilter(filter);
+    }
+
+    public static ResourceAndResourceNameFilter createResourceAndResourceNameFilter(String pattern) {
+
+	if (!StringUtil.isEmpty(pattern, true)) return new WildcardPatternFilter(pattern, "|");
+
+	return null;
+    }
 }

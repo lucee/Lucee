@@ -28,7 +28,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 	private void function defineDatasource(id, boolean asMongo=false){
 		var credentials=getMongoDBCredentials();
 		if(asMongo && structCount(credentials)) {
-			systemOutput("testing as mongo",1,1);
+			//systemOutput("testing as mongo",1,1);
 			
 			admin 
 				action="updateCacheConnection"

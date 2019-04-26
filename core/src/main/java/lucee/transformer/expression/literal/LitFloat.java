@@ -16,18 +16,18 @@
  * 
  */
 package lucee.transformer.expression.literal;
+
 import lucee.transformer.expression.ExprFloat;
 
 /**
  * Literal Double Value
  */
-public interface LitFloat extends Literal,ExprFloat {
+public interface LitFloat extends Literal, ExprFloat {
 
-
-	/**
+    /**
      * @return return value as double value
-     */ 
+     */
     public float getFloatValue();
-    
+
     public Float getFloat();
 }

@@ -22,30 +22,30 @@ import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 
+import com.sun.mail.imap.IMAPFolder;
+
 import lucee.runtime.net.mail.MailClient;
 import lucee.runtime.op.Caster;
 
-import com.sun.mail.imap.IMAPFolder;
-
 public final class ImapClient extends MailClient {
 
-	public ImapClient(String server, int port, String username, String password, boolean secure) {
-		super(server, port, username, password,secure);
-	}
+    public ImapClient(String server, int port, String username, String password, boolean secure) {
+	super(server, port, username, password, secure);
+    }
 
-	@Override
-	protected String _getId(Folder folder,Message message) throws MessagingException {
-		return Caster.toString(((IMAPFolder)folder).getUID(message));
-	}
+    @Override
+    protected String _getId(Folder folder, Message message) throws MessagingException {
+	return Caster.toString(((IMAPFolder) folder).getUID(message));
+    }
 
-	@Override
-	protected String getTypeAsString() {
-		return "imap";
-	}
+    @Override
+    protected String getTypeAsString() {
+	return "imap";
+    }
 
-	@Override
-	protected int getType() {
-		return TYPE_IMAP;
-	}
-	
+    @Override
+    protected int getType() {
+	return TYPE_IMAP;
+    }
+
 }

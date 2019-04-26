@@ -6,4 +6,8 @@ component persistent="true" {
 		     fkcolumn="codeID"
 		     cfc="Code";
 
+	public function init() {
+		
+	}
+
 }

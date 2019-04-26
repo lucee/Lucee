@@ -18,6 +18,8 @@
  */
 package lucee.runtime.cache.ram;
 
+import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.SOFT;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -26,11 +28,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.commons.collections4.map.ReferenceMap;
+
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.cache.CacheEntry;
 import lucee.commons.io.cache.CachePro;
 import lucee.commons.io.cache.exp.CacheException;
-import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.io.log.LogUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.cache.CacheSupport;
 import lucee.runtime.config.Config;
@@ -44,222 +48,224 @@ import lucee.runtime.type.Struct;
 
 public class RamCache extends CacheSupport {
 
-	public static final int DEFAULT_CONTROL_INTERVAL = 60;
-	private Map<String, RamCacheEntry> entries= new ConcurrentHashMap<String, RamCacheEntry>();
-	private long missCount;
-	private int hitCount;
-	
-	private long idleTime;
-	private long until;
-	private int controlInterval=DEFAULT_CONTROL_INTERVAL*1000;
-	private boolean decouple;
-	private Thread controller;
-	
-	
-	// this is used by the config by reflection
-	public RamCache(){
-		Config config = ThreadLocalPageContext.getConfig();
-		if(config!=null) {
-			CFMLEngine engine=ConfigWebUtil.getEngine(config);
-			if(engine instanceof CFMLEngineImpl) {
-				controller=new Controler((CFMLEngineImpl)engine,this);
-				controller.start();
-			}
-		}
-	}
-	
+    public static final int DEFAULT_CONTROL_INTERVAL = 60;
+    private Map<String, RamCacheEntry> entries = new ReferenceMap<String, RamCacheEntry>(SOFT, SOFT);
+    private long missCount;
+    private int hitCount;
 
-	public static void init(Config config,String[] cacheNames,Struct[] arguments)  {//print.ds();
-	}
-	
-	@Override
-	public void init(Config config,String cacheName, Struct arguments) throws IOException {
-		// RamCache is also used without calling init, because of that we have this test in constructor and here
-		if(controller==null) {
-			CFMLEngine engine=ConfigWebUtil.getEngine(config);
-			if(engine instanceof CFMLEngineImpl) {
-				controller=new Controler((CFMLEngineImpl)engine,this);
-				controller.start();
-			}
-		}
-		if(controller==null) throw new IOException("was not able to start controller");
-		
-		
-		// until
-		long until=Caster.toLongValue(arguments.get("timeToLiveSeconds",Constants.LONG_ZERO),Constants.LONG_ZERO)*1000;
-		long idleTime=Caster.toLongValue(arguments.get("timeToIdleSeconds",Constants.LONG_ZERO),Constants.LONG_ZERO)*1000;
-		Object ci = arguments.get("controlIntervall",null);
-		if(ci==null)ci = arguments.get("controlInterval",null);
-		int intervalInSeconds=Caster.toIntValue(ci,DEFAULT_CONTROL_INTERVAL);
-		init(until,idleTime,intervalInSeconds);
-	}
+    private long idleTime;
+    private long until;
+    private int controlInterval = DEFAULT_CONTROL_INTERVAL * 1000;
+    private boolean decouple;
+    private Thread controller;
 
-	public RamCache init(long until, long idleTime, int intervalInSeconds) {
-		this.until=until;
-		this.idleTime=idleTime;
-		this.controlInterval=intervalInSeconds*1000;
-		return this;
+    // this is used by the config by reflection
+    public RamCache() {
+	Config config = ThreadLocalPageContext.getConfig();
+	if (config != null) {
+	    CFMLEngine engine = ConfigWebUtil.getEngine(config);
+	    if (engine instanceof CFMLEngineImpl) {
+		controller = new Controler((CFMLEngineImpl) engine, this);
+		controller.start();
+	    }
 	}
-	
-	public void release() {
-		entries.clear();
-		missCount=0;
-		hitCount=0;
-		idleTime=0;
-		until=0;
-		controlInterval=DEFAULT_CONTROL_INTERVAL*1000;
-		decouple=false;
-		if(controller!=null && controller.isAlive())controller.interrupt();
-	} 
-	
-	@Override
-	public boolean contains(String key) {
-		return _getQuiet(key,null)!=null;
-	}
+    }
 
-	@Override
-	public CacheEntry getQuiet(String key, CacheEntry defaultValue) {
-		RamCacheEntry entry = entries.get(key);
-		if(entry==null) {
-			return defaultValue;
-		}
-		if(!valid(entry)) {
-			entries.remove(key);
-			return defaultValue;
-		}
-		if(decouple)entry=new RamCacheEntry(entry.getKey(), decouple(entry.getValue()), entry.idleTimeSpan(), entry.liveTimeSpan());
-		return entry;
-	}
-	
-	
-	private CacheEntry _getQuiet(String key, CacheEntry defaultValue) {
-		RamCacheEntry entry = entries.get(key);
-		if(entry==null) {
-			return defaultValue;
-		}
-		if(!valid(entry)) {
-			entries.remove(key);
-			return defaultValue;
-		}
-		return entry;
-	}
+    public static void init(Config config, String[] cacheNames, Struct[] arguments) {// print.ds();
+    }
 
-	@Override
-	public CacheEntry getCacheEntry(String key, CacheEntry defaultValue) {
-		RamCacheEntry ce = (RamCacheEntry) _getQuiet(key, null);
-		if(ce!=null) {
-			if(decouple)ce=new RamCacheEntry(ce.getKey(), decouple(ce.getValue()), ce.idleTimeSpan(), ce.liveTimeSpan());
-			hitCount++;
-			return ce.read();
-		}
-		missCount++;
-		return defaultValue;
+    @Override
+    public void init(Config config, String cacheName, Struct arguments) throws IOException {
+	// RamCache is also used without calling init, because of that we have this test in constructor and
+	// here
+	if (controller == null) {
+	    CFMLEngine engine = ConfigWebUtil.getEngine(config);
+	    if (engine instanceof CFMLEngineImpl) {
+		controller = new Controler((CFMLEngineImpl) engine, this);
+		controller.start();
+	    }
 	}
+	if (controller == null) throw new IOException("was not able to start controller");
 
-	@Override
-	public long hitCount() {
-		return hitCount;
+	// out of memory
+	boolean outOfMemory = Caster.toBooleanValue(arguments.get("outOfMemory", false), false);
+	if (outOfMemory) entries = new ConcurrentHashMap<String, RamCacheEntry>();
+
+	// until
+	long until = Caster.toLongValue(arguments.get("timeToLiveSeconds", Constants.LONG_ZERO), Constants.LONG_ZERO) * 1000;
+	long idleTime = Caster.toLongValue(arguments.get("timeToIdleSeconds", Constants.LONG_ZERO), Constants.LONG_ZERO) * 1000;
+
+	Object ci = arguments.get("controlIntervall", null);
+	if (ci == null) ci = arguments.get("controlInterval", null);
+	int intervalInSeconds = Caster.toIntValue(ci, DEFAULT_CONTROL_INTERVAL);
+	init(until, idleTime, intervalInSeconds);
+    }
+
+    public RamCache init(long until, long idleTime, int intervalInSeconds) {
+	this.until = until;
+	this.idleTime = idleTime;
+	this.controlInterval = intervalInSeconds * 1000;
+	return this;
+    }
+
+    public void release() {
+	entries.clear();
+	missCount = 0;
+	hitCount = 0;
+	idleTime = 0;
+	until = 0;
+	controlInterval = DEFAULT_CONTROL_INTERVAL * 1000;
+	decouple = false;
+	if (controller != null && controller.isAlive()) controller.interrupt();
+    }
+
+    @Override
+    public boolean contains(String key) {
+	return _getQuiet(key, null) != null;
+    }
+
+    @Override
+    public CacheEntry getQuiet(String key, CacheEntry defaultValue) {
+	RamCacheEntry entry = entries.get(key);
+	if (entry == null) {
+	    return defaultValue;
 	}
-
-	@Override
-	public long missCount() {
-		return missCount;
+	if (!valid(entry)) {
+	    entries.remove(key);
+	    return defaultValue;
 	}
+	if (decouple) entry = new RamCacheEntry(entry.getKey(), decouple(entry.getValue()), entry.idleTimeSpan(), entry.liveTimeSpan());
+	return entry;
+    }
 
-	@Override
-	public List<String> keys() {
-		List<String> list=new ArrayList<String>();
-		
-		Iterator<Entry<String, RamCacheEntry>> it = entries.entrySet().iterator();
-		RamCacheEntry entry;
-		while(it.hasNext()){
-			entry=it.next().getValue();
-			if(valid(entry))list.add(entry.getKey());
-		}
-		return list;
+    private CacheEntry _getQuiet(String key, CacheEntry defaultValue) {
+	RamCacheEntry entry = entries.get(key);
+	if (entry == null) {
+	    return defaultValue;
 	}
-
-	@Override
-	public void put(String key, Object value, Long idleTime, Long until) {
-		
-		RamCacheEntry entry= entries.get(key);
-		if(entry==null){
-			entries.put(key, new RamCacheEntry(key,decouple(value),
-					idleTime==null?this.idleTime:idleTime.longValue(),
-					until==null?this.until:until.longValue()));
-		}
-		else
-			entry.update(value);
+	if (!valid(entry)) {
+	    entries.remove(key);
+	    return defaultValue;
 	}
+	return entry;
+    }
 
-	@Override
-	public boolean remove(String key) {
-		RamCacheEntry entry = entries.remove(key);
-		if(entry==null) {
-			return false;
-		}
-		return valid(entry);
-		
+    @Override
+    public CacheEntry getCacheEntry(String key, CacheEntry defaultValue) {
+	RamCacheEntry ce = (RamCacheEntry) _getQuiet(key, null);
+	if (ce != null) {
+	    if (decouple) ce = new RamCacheEntry(ce.getKey(), decouple(ce.getValue()), ce.idleTimeSpan(), ce.liveTimeSpan());
+	    hitCount++;
+	    return ce.read();
 	}
-	
-	@Override
-	public int clear() throws IOException {
-		int size=entries.size();
-		entries.clear();
-		return size;
+	missCount++;
+	return defaultValue;
+    }
+
+    @Override
+    public long hitCount() {
+	return hitCount;
+    }
+
+    @Override
+    public long missCount() {
+	return missCount;
+    }
+
+    @Override
+    public List<String> keys() {
+	List<String> list = new ArrayList<String>();
+
+	Iterator<Entry<String, RamCacheEntry>> it = entries.entrySet().iterator();
+	RamCacheEntry entry;
+	while (it.hasNext()) {
+	    entry = it.next().getValue();
+	    if (valid(entry)) list.add(entry.getKey());
 	}
-	
-	public static  class Controler extends Thread {
+	return list;
+    }
 
-		private RamCache ramCache;
-		private CFMLEngineImpl engine;
+    @Override
+    public void put(String key, Object value, Long idleTime, Long until) {
 
-		public Controler(CFMLEngineImpl engine, RamCache ramCache) {
-			this.engine=engine;
-			this.ramCache=ramCache;
-		}
-		
-		@Override
-		public void run(){
-			while(engine.isRunning()){
-				try{
-					_run();
-					SystemUtil.sleep(ramCache.controlInterval);
-					
-				}
-				catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
-			}
-		}
+	RamCacheEntry entry = entries.get(key);
+	if (entry == null) {
+	    entries.put(key, new RamCacheEntry(key, decouple(value), idleTime == null ? this.idleTime : idleTime.longValue(), until == null ? this.until : until.longValue()));
+	}
+	else entry.update(value);
+    }
 
-		private void _run() {
-			RamCacheEntry[] values = ramCache.entries.values().toArray(new RamCacheEntry[ramCache.entries.size()]);
-			for(int i=0;i<values.length;i++){
-				if(!CacheSupport.valid(values[i])){
-					ramCache
-						.entries
-						.remove(
-								values[i].getKey()
-								);
-				}
-			}
-		}
+    @Override
+    public boolean remove(String key) {
+	RamCacheEntry entry = entries.remove(key);
+	if (entry == null) {
+	    return false;
+	}
+	return valid(entry);
+
+    }
+
+    @Override
+    public int clear() throws IOException {
+	int size = entries.size();
+	entries.clear();
+	return size;
+    }
+
+    public static class Controler extends Thread {
+
+	private RamCache ramCache;
+	private CFMLEngineImpl engine;
+
+	public Controler(CFMLEngineImpl engine, RamCache ramCache) {
+	    this.engine = engine;
+	    this.ramCache = ramCache;
 	}
 
 	@Override
-	public void verify() throws CacheException {
-		// this cache is in memory and always ok
+	public void run() {
+	    while (engine.isRunning()) {
+		try {
+		    SystemUtil.sleep(ramCache.controlInterval);
+		    _run();
+		}
+		catch (Exception e) {
+		    LogUtil.log(null, "application", e);
+		}
+	    }
 	}
 
-	@Override
-	public CachePro decouple() {
-		decouple = true;
-		return this;
+	private void _run() {
+	    RamCacheEntry[] values = ramCache.entries.values().toArray(new RamCacheEntry[ramCache.entries.size()]);
+	    for (int i = 0; i < values.length; i++) {
+		if (!CacheSupport.valid(values[i])) {
+		    ramCache.entries.remove(values[i].getKey());
+		}
+	    }
 	}
-	
+    }
 
-	private Object decouple(Object value) {
-		if(!decouple) return value;
-		return Duplicator.duplicate(value, true);
-	}
+    @Override
+    public void verify() throws CacheException {
+	// this cache is in memory and always ok
+    }
+
+    @Override
+    public CachePro decouple() {
+	decouple = true;
+	return this;
+    }
+
+    private Object decouple(Object value) {
+	if (!decouple) return value;
+	return Duplicator.duplicate(value, true);
+    }
+
+    @Override
+    public Struct getCustomInfo() {
+	Struct info = super.getCustomInfo();
+	info.setEL("outOfMemoryHandling", entries instanceof ReferenceMap);
+	return info;
+    }
 
 }

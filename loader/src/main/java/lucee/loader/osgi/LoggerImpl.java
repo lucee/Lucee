@@ -33,81 +33,87 @@ import org.osgi.framework.ServiceReference;
 
 public class LoggerImpl extends Logger {
 
-	private final File logFile;
+    private final File logFile;
 
-	public LoggerImpl(final File logFile) {
-		this.logFile = logFile;
-		if (!logFile.exists())
-			try {
-				logFile.createNewFile();
-			} catch (final IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+    public LoggerImpl(final File logFile) {
+	this.logFile = logFile;
+	setLogLevel(LOG_ERROR);
+	if (!logFile.exists()) try {
+	    logFile.createNewFile();
+	}
+	catch (final IOException e) {
+	    // TODO Auto-generated catch block
+	    e.printStackTrace();
+	}
+    }
+
+    @SuppressWarnings("rawtypes")
+    @Override
+    protected void doLog(final Bundle bundle, final ServiceReference sr, final int level, final String msg, Throwable throwable) {
+	String s = "";
+	if (sr != null) s = s + "SvcRef " + sr + " ";
+	else if (bundle != null) s = s + "Bundle " + bundle.toString() + " ";
+	s = s + msg;
+
+	// throwable
+	if (throwable != null) {
+	    if ((throwable instanceof BundleException) && (((BundleException) throwable).getNestedException() != null))
+		throwable = ((BundleException) throwable).getNestedException();
+	    final StringWriter sw = new StringWriter();
+	    final PrintWriter pw = new PrintWriter(sw);
+
+	    throwable.printStackTrace(pw);
+	    s += "\n" + sw.getBuffer();
 	}
 
-	@SuppressWarnings("rawtypes")
-	@Override
-	protected void doLog(final Bundle bundle, final ServiceReference sr,
-			final int level, final String msg, Throwable throwable) {
-		String s = "";
-		if (sr != null)
-			s = s + "SvcRef " + sr + " ";
-		else if (bundle != null)
-			s = s + "Bundle " + bundle.toString() + " ";
-		s = s + msg;
+	_log(level, s);
+    }
 
-		// level
-		String strLevel;
-		switch (level) {
-		case LOG_DEBUG:
-			strLevel = "DEBUG";
-			break;
-		case LOG_ERROR:
-			strLevel = "ERROR";
-			break;
-		case LOG_INFO:
-			strLevel = "INFO";
-			break;
-		case LOG_WARNING:
-			strLevel = "WARNING";
-			break;
-		default:
-			strLevel = "UNKNOWNN[" + level + "]";
-		}
+    @Override
+    protected void _log(Bundle bundle, ServiceReference sr, int level, String msg, Throwable throwable) {
+	_log(level, msg);
+    }
 
-		// throwable
-		if (throwable != null) {
-			if ((throwable instanceof BundleException)
-					&& (((BundleException) throwable).getNestedException() != null))
-				throwable = ((BundleException) throwable).getNestedException();
-			final StringWriter sw = new StringWriter();
-			final PrintWriter pw = new PrintWriter(sw);
-
-			throwable.printStackTrace(pw);
-			s += "\n" + sw.getBuffer();
-		}
-
-		_log(strLevel, s);
+    private void _log(final int level, final String msg) {
+	// TODO better impl
+	BufferedWriter bw = null;
+	try {
+	    bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(logFile, true)));
+	    bw.write(toLevel(level) + " [" + new Date() + "]:\n" + msg + "\n");
+	    bw.flush();
 	}
-
-	private void _log(final String level, final String msg) {
-		// TODO better impl 
-		BufferedWriter bw = null;
-		try {
-			bw = new BufferedWriter(new OutputStreamWriter(
-					new FileOutputStream(logFile, true)));
-			bw.write(level + " [" + new Date() + "]:\n" + msg + "\n");
-		} catch (final IOException ioe) {
-			System.out.println(level + " [" + new Date() + "]:\n" + msg + "\n");
-		} finally {
-			if (bw != null)
-				try {
-					bw.close();
-				} catch (final IOException e) {
-				}
-		}
-
+	catch (final IOException ioe) {}
+	finally {
+	    if (bw != null) try {
+		bw.close();
+	    }
+	    catch (final IOException e) {}
 	}
+    }
+
+    private String toLevel(int level) {
+	switch (level) {
+	case LOG_DEBUG:
+	    return "DEBUG";
+	case LOG_ERROR:
+	    return "ERROR";
+	case LOG_INFO:
+	    return "INFO";
+	case LOG_WARNING:
+	    return "WARNING";
+	default:
+	    return "UNKNOWNN[" + level + "]";
+	}
+    }
+
+    private int toLevel(String level) {
+	if (level != null) {
+	    if ("DEBUG".equalsIgnoreCase(level)) return LOG_DEBUG;
+	    if ("ERROR".equalsIgnoreCase(level)) return LOG_ERROR;
+	    if ("INFO".equalsIgnoreCase(level)) return LOG_INFO;
+	    if ("WARNING".equalsIgnoreCase(level)) return LOG_WARNING;
+	}
+	return LOG_ERROR;
+    }
 
 }

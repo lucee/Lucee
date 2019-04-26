@@ -180,12 +180,12 @@ Defaults --->
 <!--- 
 Redirtect to entry --->
 <cfif cgi.request_method EQ "POST" and error.message EQ "">
-	<cfif isDefined("url.action2")>
+	<!--- <cfif isDefined("url.action2")>
 		<cfif isDefined("url.virtual")>
 			<cflocation url="#request.self#?action=#url.action#&action2=#url.action2#&virtual=#url.virtual#" addtoken="no">
 		</cfif>
 		<cflocation url="#request.self#?action=#url.action#&action2=#url.action2#" addtoken="no">
-	</cfif>
+	</cfif> --->
 	<cflocation url="#request.self#?action=#url.action#" addtoken="no">
 </cfif>
 

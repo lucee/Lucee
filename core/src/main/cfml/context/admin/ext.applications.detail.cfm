@@ -214,10 +214,12 @@ if(isInstalled) installedVersion=toVersionSortable(installed.version);
 
 
 </cfscript>
+	<div class="msg"></div>
 	<h2>#isInstalled?stText.ext.upDown:stText.ext.install#</h2>
 	#isInstalled?stText.ext.upDownDesc:stText.ext.installDesc#
-		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
+		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" id="versionForm" method="post">
 			<input type="hidden" name="id" value="#url.id#">
+			<input type="hidden" name="mainAction_" value="#isInstalled?stText.Buttons.upDown:stText.Buttons.install#">
 			<input type="hidden" name="provider" value="#isNull(available.provider)?"":available.provider#">
 			
 		<table class="maintbl autowidth">
@@ -241,31 +243,30 @@ if(isInstalled) installedVersion=toVersionSortable(installed.version);
 			<tr id="grpConnection">
 				<td>
 					<select name="version" id="versions" class="large" style="margin:8px;width:372px">
+						<option value="">-- select the version --</option>
 						<cfloop list="#types#" index="key">
-							<!--- <cfif arrayLen(versionStr[key])> --->
-								<cfset options="">
-									<cfscript>
-									loop array=versionStr[key] item="v"{
-										vs=toVersionSortable(v);
-										btn="";
-										if(isInstalled) {
-											comp=compare(installedVersion,vs);
-											if(comp GT 0) btn=stText.ext.downgradeTo;
-											else if(comp LT 0) btn=stText.ext.updateTo;
+							<cfif arrayLen(versionStr[key])>
+								<optgroup class="td_#UcFirst(Lcase(key))#" label="#stText.services.update.short[key]#">
+									<cfset options="">
+										<cfscript>
+										loop array=versionStr[key] item="v"{
+											vs=toVersionSortable(v);
+											btn="";
+											if(isInstalled) {
+												comp=compare(installedVersion,vs);
+												if(comp GT 0) btn=stText.ext.downgradeTo;
+												else if(comp LT 0) btn=stText.ext.updateTo;
+											}
+											options='<option value="#v#" class="td_#UcFirst(Lcase(key))#" >#btn# #v#</option>'&options;
 										}
-										options='<option value="#v#" class="td_#UcFirst(Lcase(key))#" >#btn# #v#</option>'&options;
-									}
-									</cfscript>
-									#options#
+										</cfscript>
+										#options#
+								</optgroup>
+							</cfif>
 						</cfloop>
 					</select>
-					<input type="submit" class="button submit" name="mainAction_#key#" value="#isInstalled?stText.Buttons.upDown:stText.Buttons.install#">
+					<input type="button" class="button submit" onclick="versionSelected(this, version)"  value="#isInstalled?stText.Buttons.upDown:stText.Buttons.install#">
 				</td>
-					<!--- <cfelse>
-						<td class="td_#UcFirst(Lcase(key))#" style="padding:13px;" align="center">
-							<div>#replace(stText.ext.detail.noUpdateDesc,"{type}","<b>#stText.services.update.short[key]#</b>")#</div>
-						</td>
-					</cfif> --->
 			</tr>
 		</cfif>
 		<cfif isInstalled>
@@ -293,34 +294,36 @@ if(isInstalled) installedVersion=toVersionSortable(installed.version);
 	});
 
 	function enableVersion(v, i){
-		$("##grpConnection").find('option').each(function(index) {
-			var xx = $(this).attr('class');
-			if(i== 'intial'){
-				$('.'+xx).show();
-				if("td_"+v != xx){
-					$('.'+xx).hide();
+		if(i== 'intial'){
+			$("##grpConnection").find('optgroup' ).each(function(index) {
+				var xx = $(this).attr('class');
+				window[xx] = $("."+xx).detach();
+				if("td_"+v == xx){
+					$("##versions").append(window[xx]);
 				}
 		  		$(".btn").removeClass('btn');
 		  		$("##btn_"+v).addClass("btn");
+			});
+		} else {
+			if($( "##btn_"+v).hasClass( "btn" )){
+				window[v] = $(".td_"+v).detach();
+				$("##btn_"+v).removeClass('btn');
 			} else {
-				if("td_"+v == xx){
-					if($('.'+xx).is(':visible')){
-						$('.'+xx).hide();
-						$("##btn_"+v).removeClass('btn');
-					} else {
-						$('.'+xx).show();
-						$("##btn_"+v).addClass("btn");
-					}
-					return false;
-				} else {
-					if($( "##btn_"+v).hasClass( "btn" )){
-						$("##btn_"+v).removeClass('btn');
-					} else {
-						$("##btn_"+v).addClass('btn');
-					}
-				}
+				$("##versions").append(window["td_"+v]);
+				$("##btn_"+v).addClass('btn');
 			}
-		});
+			if(!$('##btn_Release').hasClass( "btn" ) && !$('##btn_Pre_release').hasClass( "btn" ) && !$('##btn_Snapshot').hasClass( "btn" )){
+				$("##versions").append(window["td_"+v]);
+				$("##btn_"+v).addClass('btn');
+			}
+		}
+	}
+	function versionSelected(v, i){
+		var version = $("##versions").val();
+		if(version == "")
+			$( ".msg" ).append( "<div class='error'>Please Choose any version</div>" );
+		else
+			$( "##versionForm" ).submit();
 	}
 	</script>
 	<style>

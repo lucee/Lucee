@@ -21,8 +21,8 @@ package lucee.transformer.cfml.evaluator.impl;
 import lucee.transformer.cfml.evaluator.ChildEvaluator;
 
 public final class Chartdata extends ChildEvaluator {
-	
-	public Chartdata(){
-		super("chartseries");
-	}
+
+    public Chartdata() {
+	super("chartseries");
+    }
 }

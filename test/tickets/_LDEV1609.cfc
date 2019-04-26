@@ -18,9 +18,20 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			});
 
 			it( title='Checking cffile action ="write" with attribute nameConflict="error" ',body=function( currentSpec ) {
-				cffile( action="write", file="#variables.Dir#/test.txt", output="testName2", charset="utf-8", nameconflict="error" ){
+				var hasError = false;
+				try {
+					cffile( action="write", file="#variables.Dir#/test.txt", output="testName2", charset="utf-8", nameconflict="error" ){
+					}
+				} catch ( any e ){
+					hasError = true
 				}
-				expect(trim(fileRead("#variables.Dir#/test.txt"))).toBe('testName');
+				expect(hasError).toBeTrue();
+			});
+
+			it( title='Checking cffile action ="write" with attribute nameConflict="overwrite" ',body=function( currentSpec ) {
+				cffile( action="write", file="#variables.Dir#/test.txt", output="testName2", charset="utf-8", nameconflict="overwrite" ){
+				}
+				expect(trim(fileRead("#variables.Dir#/test.txt"))).toBe('testName2');
 			});
 		});
 	}

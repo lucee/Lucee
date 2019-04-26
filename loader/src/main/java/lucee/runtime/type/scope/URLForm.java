@@ -19,17 +19,19 @@
 package lucee.runtime.type.scope;
 
 /**
- * scuope that mix url and forn together
+ * scope that mix url and form together
  */
 public interface URLForm extends URL, Form {
 
-	/* *
-	 * @return the form
-	 * /
-	public Form getForm();*/
+    /*
+     * *
+     * 
+     * @return the form / public Form getForm();
+     */
 
-	/* *
-	 * @return the url
-	 * /
-	public URL getURL();*/
+    /*
+     * *
+     * 
+     * @return the url / public URL getURL();
+     */
 }

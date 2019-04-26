@@ -27,19 +27,19 @@ import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.ext.function.Function;
 
 public final class Randomize implements Function {
-	
-	public static double call(PageContext pc, double number) throws ExpressionException {
 
-        Rand.getRandom( CFMXCompat.ALGORITHM_NAME, number );
+    public static double call(PageContext pc, double number) throws ExpressionException {
 
-        return Rand.call( pc, CFMXCompat.ALGORITHM_NAME );
-	}
+	Rand.getRandom(CFMXCompat.ALGORITHM_NAME, number);
 
-	public static double call(PageContext pc, double number, String algorithm) throws ExpressionException {
+	return Rand.call(pc, CFMXCompat.ALGORITHM_NAME);
+    }
 
-        Rand.getRandom( algorithm, number );
+    public static double call(PageContext pc, double number, String algorithm) throws ExpressionException {
 
-        return Rand.call( pc, algorithm );
-	}
-	
+	Rand.getRandom(algorithm, number);
+
+	return Rand.call(pc, algorithm);
+    }
+
 }

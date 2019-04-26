@@ -23,20 +23,18 @@ import lucee.transformer.bytecode.BytecodeContext;
 
 public interface IFunction {
 
-	public static final int PAGE_TYPE_REGULAR=0;
-	public static final int PAGE_TYPE_COMPONENT=1;
-	public static final int PAGE_TYPE_INTERFACE=2;
-	
-	public static final int TYPE_CLOSURE=1;
-	public static final int TYPE_LAMBDA=2;
-	public static final int TYPE_UDF=3;
-	
+    public static final int PAGE_TYPE_REGULAR = 0;
+    public static final int PAGE_TYPE_COMPONENT = 1;
+    public static final int PAGE_TYPE_INTERFACE = 2;
 
-	public static final int ARRAY_INDEX=0;
-	public static final int VALUE_INDEX=1;
-	
-	public void writeOut(BytecodeContext bc, int type)
-			throws TransformerException;
+    public static final int TYPE_CLOSURE = 1;
+    public static final int TYPE_LAMBDA = 2;
+    public static final int TYPE_UDF = 3;
 
-	public abstract int getType();
+    public static final int ARRAY_INDEX = 0;
+    public static final int VALUE_INDEX = 1;
+
+    public void writeOut(BytecodeContext bc, int type) throws TransformerException;
+
+    public abstract int getType();
 }

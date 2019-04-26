@@ -21,34 +21,36 @@ package lucee.commons.lang.mimetype;
 import lucee.commons.lang.StringUtil;
 
 public class ContentType {
-	private String mimeType;
-	private String charset;
+    private String mimeType;
+    private String charset;
 
-	public ContentType(String mimeType){
-		this.mimeType=mimeType;
-	}
-	public ContentType(String mimeType, String charset){
-		this.mimeType=mimeType;
-		setCharset(charset);
-	}
+    public ContentType(String mimeType) {
+	this.mimeType = mimeType;
+    }
 
-	public String getMimeType() {
-		return mimeType;
-	}
+    public ContentType(String mimeType, String charset) {
+	this.mimeType = mimeType;
+	setCharset(charset);
+    }
 
-	public String getCharset() {
-		return charset;
+    public String getMimeType() {
+	return mimeType;
+    }
+
+    public String getCharset() {
+	return charset;
+    }
+
+    public void setCharset(String charset) {
+	if (!StringUtil.isEmpty(charset, true)) {
+	    this.charset = charset.trim();
 	}
-	public void setCharset(String charset) {
-		if(!StringUtil.isEmpty(charset,true)){
-			this.charset=charset.trim();
-		}
-		else this.charset=null;
-	}
-	
-	@Override
-	public String toString(){
-		if(charset==null) return mimeType.toString();
-		return mimeType+"; charset="+charset;
-	}
+	else this.charset = null;
+    }
+
+    @Override
+    public String toString() {
+	if (charset == null) return mimeType.toString();
+	return mimeType + "; charset=" + charset;
+    }
 }

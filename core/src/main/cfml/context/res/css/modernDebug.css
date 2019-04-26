@@ -31,10 +31,10 @@ table.details td, table.details th { padding: 2px 4px;  border: 1px solid #ddd; 
 #-lucee-debug tr.red td, #-lucee-debug .red 	{ background-color: #FDD; }
 #-lucee-debug td.sorted { background-color: #FFE; }
 
-#-lucee-debug .sortby.selected, #-lucee-debug .sortby:hover { background-color: #25A; color: #FFF; }
+#-lucee-debug .sortby.selected, #-lucee-debug .sortby:hover { background-color: #25A; color: #FFF !important; }
 #-lucee-debug .pad 	{ padding-left: 16px; }
 #-lucee-debug a 	{ cursor: pointer; }
-#-lucee-debug td a 	{ color: #25A; }
+#-lucee-debug td a 	{ color: #25A !important; }
 #-lucee-debug td a:hover	{ color: #58C; text-decoration: underline; }
 #-lucee-debug .__sql	{ background-color: #EEE; max-width: 800px; overflow: scroll; padding: 0.2em; border: solid 1px #666; border-radius: 1em; white-space: pre-wrap; word-break: break-all; word-wrap: break-word; tab-size: 2; }
 
@@ -50,7 +50,6 @@ div#-lucee-docs-ALL > span.twitter-typeahead > .tt-menu.tt-open.moreResults{ fon
 #-lucee-docs-ALL > .twitter-typeahead > .tt-menu > .tt-dataset > .tt-suggestion.tt-selectable {cursor: pointer;}
 #-lucee-docs-ALL > .twitter-typeahead > .tt-menu > .tt-dataset > .tt-suggestion.tt-selectable p{margin: 0px !important;}
 div#-lucee-docs-ALL > span.twitter-typeahead > .tt-menu.tt-open > .tt-dataset > .tt-suggestion.tt-selectable:hover{background-color: #0000FF; color: #FFFFFF}
-#lucee-admin-search-input.tt-input {background-color:white !important;}
 
 .container>.access-hide{ font-size:14px ; font-weight: bold;}
 td a.search_input { padding-left: 3px; font-size: 13px;}
@@ -59,8 +58,8 @@ td a.search_input { padding-left: 3px; font-size: 13px;}
 .paddingLeft{ padding-left: 60px;}
 .Desc{padding-left: 3%;}
 .dashColor {color: #B3B3B3; font-weight: 800 !important;}
-button.buttonStyle{ background-color: #B3B3B3 !important; color: white !important; border-radius: 6px 6px 1px 1px !important; padding : 5px 16px 5px 16px !important; border-bottom-width: 0px !important; border-right-width: 0px !important; font-size: 15px !important; font-weight: 500 !important;}
-button.btnActive{background-color: blue !important;  color: white !important; border-radius: 6px 6px 1px 1px !important; padding : 5px 16px 5px 16px !important; border-bottom-width: 0px !important; border-right-width: 0px !important; font-size: 15px !important; font-weight: 500 !important;}
+button.buttonStyle{ background-color: #B3B3B3 !important; color: white !important; border-radius: 6px 6px 6px 6px !important; padding : 5px 16px 5px 16px !important; border-bottom-width: 0px !important; border-right-width: 0px !important; font-size: 15px !important; font-weight: 500 !important;}
+button.btnActive{background-color: blue !important;  color: white !important; border-radius: 6px 6px 6px 6px !important; padding : 5px 16px 5px 16px !important; border-bottom-width: 0px !important; border-right-width: 0px !important; font-size: 15px !important; font-weight: 500 !important;}
 .leftPadding {padding-left: 32px;}
 .metricsCharts {padding-left: 32px; padding-bottom: 20px;}
 .titleStyle{color: #2255aa; font-size: 13px; font-family: arial; font-weight: bold;}

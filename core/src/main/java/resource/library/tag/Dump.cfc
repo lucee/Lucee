@@ -149,9 +149,9 @@ component {
 		} 
 		else {
 			if(arguments.attrib.format == 'text')
-				file action="write" addnewline="yes" file="#arguments.attrib.output#" output="#result#";
+				file action="append" addnewline="yes" file="#arguments.attrib.output#" output="#result#";
 			else
-				file action="write" addnewline="yes" file="#arguments.attrib.output#" output="<div id=""#dumpID#"" class=""-lucee-dump"">#result#</div>";
+				file action="append" addnewline="yes" file="#arguments.attrib.output#" output="<div id=""#dumpID#"" class=""-lucee-dump"">#result#</div>";
 		}
 	}
 
@@ -425,53 +425,48 @@ component {
 
 			var colors = arguments.meta.colors[arguments.meta.colorId];
 
-htmlbody id="__Lucee_dump" {
-	echo('
-<style>
-	.-lucee-dump .disp-none { display: none; }
-</style>
-<script>
-window.__Lucee = {
-	 initialized	   : false
-	,addEventListeners : function(selector, event, handler, useCapture){
-		useCapture = useCapture || false;
-		Array.prototype.forEach.call(
-			 document.querySelectorAll(selector)
-			,function(el, ix) {
-			  el.addEventListener(event, handler, useCapture);
+			head&=('<style>' & variables.NEWLINE);
+			head&=('.-lucee-dump .disp-none { display: none; }' & variables.NEWLINE);
+			head&=('</style>' & variables.NEWLINE);
+			head&=('<script>' & variables.NEWLINE);
+			head&=('window.__Lucee = { initialized : false,
+				addEventListeners : function(selector, event, handler, useCapture){
+					useCapture = useCapture || false;
+					Array.prototype.forEach.call(
+						 document.querySelectorAll(selector)
+						,function(el, ix) {
+						  el.addEventListener(event, handler, useCapture);
+						}
+					);
+				}
+				,getNextSiblings   : function(el){
+					var  orig = el
+						,result = [];
+					while (el && el.nodeType === Node.ELEMENT_NODE) {
+						if (el !== orig)
+							result.push(el);
+						el = el.nextElementSibling || el.nextSibling;
+					}
+					return result;
+				}
+				,onDocumentReady		   : function(){
+					var L = window.__Lucee;
+					if (L.initialized)
+						return;
+					L.addEventListeners(".collapse-trigger", "click", function(evt){
+						var tr = evt.target.closest("tr");
+						var siblings = L.getNextSiblings(tr);
+						siblings.forEach(function(el, ix){
+							el.classList.toggle("disp-none");
+						});
+					});
+					L.initialized = true;
+				}
 			}
-		);
-	}
-	,getNextSiblings   : function(el){
-		var  orig = el
-			,result = [];
-		while (el && el.nodeType === Node.ELEMENT_NODE) {
-			if (el !== orig)
-				result.push(el);
-			el = el.nextElementSibling || el.nextSibling;
-		}
-		return result;
-	}
-	,onDocumentReady		   : function(){
-		var L = window.__Lucee;
-		if (L.initialized)
-			return;
-		L.addEventListeners(".collapse-trigger", "click", function(evt){
-			var tr = evt.target.closest("tr");
-			var siblings = L.getNextSiblings(tr);
-			siblings.forEach(function(el, ix){
-				el.classList.toggle("disp-none");
-			});
-			console.log(tr, siblings);
-		});
-		L.initialized = true;
-	}
-}
+			' & variables.NEWLINE);
 
-document.addEventListener("DOMContentLoaded", __Lucee.onDocumentReady);
-</script>
-');
-}
+			head&=('document.addEventListener("DOMContentLoaded", __Lucee.onDocumentReady);' & variables.NEWLINE);
+			head&=('</script>' & variables.NEWLINE);
 
 			// styles
 			var prefix="div###arguments.dumpID#";
@@ -524,7 +519,7 @@ document.addEventListener("DOMContentLoaded", __Lucee.onDocumentReady);
 			loop query=arguments.meta.data {
 				var c = 1;
 				// var nodeID = len(id) ? ' name="#id#"' : '';
-				var hidden = !arguments.expand && len(id) ? ' style="display:none"' : '';
+				var hidden = !arguments.expand && len(id) ? ' class="disp-none" ' : '';
 
 				// arrayAppend(rows, '<tr#nodeID##hidden#>');
 				arrayAppend(rows, '<tr#hidden#>');
@@ -819,7 +814,7 @@ document.addEventListener("DOMContentLoaded", __Lucee.onDocumentReady);
 		// none highlight
 		else if(arguments.meta.data.highlight == 0) return false;
 
-		return bitand(arguments.meta.data.highlight, arguments.c)==true;
+		return bitand(arguments.meta.data.highlight, arguments.c)>0;
 	}
 
 

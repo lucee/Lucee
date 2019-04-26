@@ -18,9 +18,11 @@
  **/
 package lucee.runtime.type;
 
-public interface QueryColumnPro extends QueryColumn,Array {
-	public QueryColumnPro cloneColumn(boolean deepCopy);
-	public void setKey(Collection.Key key);
-	public QueryColumnPro toDebugColumn();
+public interface QueryColumnPro extends QueryColumn, Array {
+    public QueryColumnPro cloneColumn(boolean deepCopy);
+
+    public void setKey(Collection.Key key);
+
+    public QueryColumnPro toDebugColumn();
 
 }

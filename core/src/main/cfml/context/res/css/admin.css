@@ -57,6 +57,9 @@ a {
 	text-decoration:underline
 }
 
+tr > th > a {
+    color: #ffffff !important;
+}
 
 .admin-server a {
 	color:#bf4f36;
@@ -349,8 +352,7 @@ div.pageintro {
 	margin: 0 0 20px 0;
 }
 /* intro text for a section (i.e. under an h2; above a table) */
-.itemintro {
-	font-style:italic;
+.itemintro {	
 	margin: -3px 0 10px 0;
 }
 
@@ -418,11 +420,9 @@ td.fieldPadded {
 
 /* display boxes etc. */
 .commentError{font-size : 10px;color:#bf4f36;text-decoration:none;}
-.comment{
-	font-size:11px;
-	color:#999;
-	text-decoration:none;
-	font-style: italic;
+.comment{	
+	font-size:11px;color:#999;font-style: italic;
+	text-decoration:none;	
 	padding: 1px 0px;
 	/* PK: when using mouseover helptexts, this padding might be better:
 	 * padding:2px 0 5px 0;
@@ -663,25 +663,24 @@ a.edit {
 
 
 .btn-search {
-
 	height:19px;
 	width:19px;
 	display: inline-block;
 	outline: none;
 	text-decoration: none;
-	padding:5px;
+	padding-bottom: 5px !important;
 	margin-left:0;
 	background-color:#333;
 	border-width:0;
 }
 
-
-.admin-web .btn-search  		{ background-position: -125px -80px; margin-left: -6%; padding-bottom: 9%;}
-.admin-server .btn-search  		{ background-position: -125px -100px; margin-left: -6%; padding-bottom: 9%;}
+.admin-web .btn-search  		{ background-position: -125px -80px; margin-left: -8% !important;}
+.admin-server .btn-search  		{ background-position: -125px -100px; margin-left: -8% !important;}
 
 .tt-hint{ width: 88% ;}
-.tt-input{ width: 88% ;}
-
+.tt-input {
+   width: 89%;
+}
 .btn-mini span {
 	display:none;
 }
@@ -1265,8 +1264,17 @@ body.full #logo { display: block; position: absolute; top: 0px; left: 0; width: 
 
 #admin-tabs	a 	{ display: block; width: 60px; height: 33px; float: left; }
 
-.sprite,#sprite			{ background-image: url( '../img/admin_sprite-{appendix}.png.cfm' ); background-repeat: no-repeat; }
+.mail-icon,#mail-icon  {
+	background-image: url( '../img/mail-icon.jpg.cfm' );
+	background-repeat: no-repeat;
+	width : 16px;
+	height: 16px;
+	vertical-align: middle;
+	display: inline-block;
+	border-radius: 3px;
+}
 
+.sprite,#sprite			{ background-image: url( '../img/admin_sprite-{appendix}.png.cfm' ); background-repeat: no-repeat; }
 
 #resizewin 		{ display:block; width:19px; height:19px; text-indent: -9999px; }
 
@@ -1293,6 +1301,9 @@ body.full #logo { display: block; position: absolute; top: 0px; left: 0; width: 
 
 
 .icon		{ background-image: url( '../img/admin-sprite-{appendix}.png.cfm' ); margin: 3px; width: 9px; height: 9px; cursor: pointer; }
+/* edit */
+.admin-web .edit  		{ background-position: -145px 0px; }
+.admin-server .edit  		{ background-position: -145px -16px; }
 
 .plus		{ background-position: -144px -43px; }
 .minus		{ background-position: -144px -33px; }

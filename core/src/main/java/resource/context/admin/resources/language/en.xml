@@ -80,6 +80,8 @@
 	<data key="services.certificate.subject">Subject</data>
 	<data key="services.certificate.issuer">Issuer</data>
 	<data key="services.certificate.noCert">There is no Certificate available from this host.</data>
+	<data key="services.certificate.hostValidation">Missing value for text input field "host"</data>
+
 
 	<data key="mappings.addNonCFMLFiles">Add Non CFML Templates</data>
 	<data key="mappings.addNonCFMLFilesDesc">Add all Non CFML Source Templates as well (.js,.css,.gif,.png ...).</data>
@@ -138,7 +140,7 @@
 	<!-- resources.customtags.old.cfm -->
 	<data key="CustomTags.name">Name</data>
 	<data key="CustomTags.nameMissing">Missing the name for the new Mapping, this name is used when you deploy a Lucee Archive (.ra,.ras) based on this Mapping.</data>
-	<data key="CustomTags.nameDesc">The name is used as identifier when you automaticly import a Lucee Archive build based on this Mapping.</data>
+	<data key="CustomTags.nameDesc">The name is used as identifier when you automatically import a Lucee Archive build based on this Mapping.</data>
 	<data key="CustomTags.PhysicalDesc">Directory path where the custom tags are located.</data>
 	<data key="CustomTags.archiveDesc">File path to a custom tag Lucee Archive (.ra or .ras).</data>
 	<data key="CustomTags.PrimaryDesc">Defines where Lucee does looks first for a requested custom tags</data>
@@ -224,6 +226,7 @@
 	<data key="menu.server.regional">Regional</data>
 	<data key="overview.langPerf">Performance/Language</data>
 	<data key="menu.server.compiler">Language/Compiler</data>
+	<data key="menu.server.security">Security</data>
 	<data key="menu.server.charset">Charset</data>
 	<data key="menu.server.scope">Scope</data>
 	<data key="menu.server.request">Request</data>
@@ -317,7 +320,7 @@
 	<data key="ext.uninstallmethodexception">Can&apos;t uninstall. The uninstall method throws the following exception [{message}]. Please uninstall the application manually.</data>
 	<data key="ext.category">Category</data>
 	<data key="ext.availableversion">Available version</data>
-	<data key="ext.uninstalldone">uninstallation completed</data>
+	<data key="ext.uninstalldone">uninstall completed</data>
 	<data key="ext.provider">Provider</data>
 	<data key="ext.documentation">Documentation</data>
 	<data key="ext.installeddesc">These applications are already installed on the system.</data>
@@ -628,7 +631,7 @@
 	<!-- resources.component.cfm -->
 	<data key="Components.name">Name</data>
 	<data key="Components.nameMissing">Missing the name for the new Mapping, this name is used when you deploy a Lucee Archive (.lar) based on this Mapping.</data>
-	<data key="Components.nameDesc">The name is used as identifier when you automaticly import a Lucee Archive build based on this Mapping.</data>
+	<data key="Components.nameDesc">The name is used as identifier when you automatically import a Lucee Archive build based on this Mapping.</data>
 	<data key="Components.PhysicalDesc">Directory path where the components are located, this path should not include the package.</data>
 	<data key="Components.archiveDesc">File path to a components Lucee Archive (.lar).</data>
 	<data key="Components.PrimaryDesc">Defines where Lucee does looks first for a requested component</data>
@@ -737,7 +740,7 @@ you can see the log result at the end of every request, if a debug template is d
 	<data key="debug.minExeTime">Minimal Execution Time (ms)</data>
 	<data key="debug.minExeTimeDesc">Minimal Execution Time that Lucee outputs the debugger information of a request.</data>
 	<data key="debug.pathRestriction">Path Restriction</data>
-	<data key="debug.pathRestrictionDesc">Path that should not be outputted, sperated path by line break.</data>
+	<data key="debug.pathRestrictionDesc">Path that should not be outputted, seperated path by line break.</data>
 	<data key="debug.settingTitle">Settings</data>
 	<data key="debug.settingDesc">Define how Lucee Log the debugging information.</data>
 	<data key="debug.outputTitle">Output</data>
@@ -758,13 +761,13 @@ you can see the log result at the end of every request, if a debug template is d
 	<data key="debug.noDriver">there is no debug template defined</data>
 	<data key="debug.noAccess">you have no access to manipulate the debug settings</data>
 	<data key="debug.ipRange">IP Range</data>
-	<data key="debug.ipRangeDesc">A comma separeted list of strings of ip defintions. The following patterns are allowed:
+	<data key="debug.ipRangeDesc">A comma separated list of strings of ip definitions. The following patterns are allowed:
 	- * including all ips
 	- a single ip, like ""127.0.0.1"" or ""0:0:0:0:0:0:0:1%0""
 	- an ip with wildcards like ""127.0.0.*"", in this case all ips between ""127.0.0.0"" and ""127.0.0.255"" are valid
 	- an ip range like ""127.0.0.1-127.0.0.10"", in this case all ips between ""127.0.0.1"" and ""127.0.0.10"" are valid
 	You can define IPv4 or IPv6 IPs, a IPv4 can not be converted to a IPv6 and visa versa.</data>
-	<data key="debug.ipRangeMIssing">Missing IP Range defintion</data>
+	<data key="debug.ipRangeMIssing">Missing IP Range definition</data>
 	<data key="debug.addMyIp">Add my IP</data>
 	<data key="debug.list.serverTitle">Readonly Debug Templates</data>
 	<data key="debug.list.webTitle">Debug Templates</data>
@@ -1024,7 +1027,7 @@ sct[""bracketNotation""] --> keyname: "bracketNotation"</data>
 	<data key="video.server.installednotdesc">For the tag cfvideo/cfvideoplayer OS specific video components are required. They are not bundled with Lucee because the size of the software would increase a lot and because some codecs may not be redistributed, although their use is not prohibited. Therefore you can download these components directly from a provider and upload them with the form below.</data>
 	<data key="video.server.installednotuploaddesc">The video components (ffmpeg.zip) are uploaded directly over the form and copied into Lucee (no installation). As a source you can use e.g. {provider}</data>
 	<data key="video.server.mandesc">A manual installation can be made like follows: Open the url {provider} and download the corresponding file ffmpeg.zip for your operating system ({OS-Name}). Then copy this file (do not unzip it) into the directory {directory}. If you can not find a file for your operating system, just contact us.</data>
-	<data key="video.server.installednoturldesc">The video componenten are downloaded automatically from the remote server and copied into Lucee (no installation).</data>
+	<data key="video.server.installednoturldesc">The video components are downloaded automatically from the remote server and copied into Lucee (no installation).</data>
 	<data key="video.server.installednotuploadtitle">Video components by upload</data>
 	<data key="video.provider">Provider</data>
 	<data key="video.providermissing">Missing provider definition</data>
@@ -1125,7 +1128,7 @@ sct[""bracketNotation""] --> keyname: "bracketNotation"</data>
 	<data key="settings.gateway.nodefault">no default cache</data>
 	<data key="settings.gateway.id">ID</data>
 	<data key="settings.gateway.nodriver">There is no Gateway Type Available</data>
-	<data key="settings.gateway.description">Verwalten der Gateways</data>
+	<data key="settings.gateway.description">Administer the Gateways</data>
 	<data key="settings.gateway.defaulttitle">Default cache connection</data>
 	<data key="settings.gateway.defaultdesc2">Define if this connection will be the default cache connection, the default cache connection is used when no cache name is explicit defined</data>
 	<data key="settings.gateway.buttons.default">set as default</data>
@@ -1228,16 +1231,16 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="setting.info">System Metrics</data>
 	<data key="setting.memory">Memory</data>
 	<data key="setting.memoryDesc">Memory used by the JVM, heap and non heap.</data>
-	<data key="setting.request">Request/Threads</data>
-	<data key="setting.requestDesc">Request and threads (started by &lt;cfthread>) currently running on the system.</data>
+	<data key="setting.request">Requests/CF Threads</data>
+	<data key="setting.requestDesc">Requests and CF Threads (started by a request) currently running on the system.</data>
 	<data key="setting.req">Requests</data>
 	<data key="setting.reqDesc">Web requests running at the moment.</data>
 	<data key="setting.queued">Queued Requests</data>
 	<data key="setting.queuedDesc">Request in queued waiting to execute.</data>
 	<data key="setting.thread">Threads</data>
-	<data key="setting.threadDesc">Threads (started by &lt;cfthread>) currently running.</data>
+	<data key="setting.threadDesc">Threads (started by &lt;cfthread>) current running.</data>
 	<data key="setting.scopes">Scopes in Memory</data>
-	<data key="setting.scopesDesc">Scopes actually hold in Memory (a Scope not necessary is kept in Memory for it's hole life time).</data>
+	<data key="setting.scopesDesc">Scopes held in memory. (Session/client scopes stored in external cache or datasource leave memory after 60 seconds of inactivity)</data>
 	<data key="setting.scopeSession">Session</data>
 	<data key="setting.scopeApplication">Application</data>
 	<data key="setting.scopeClient">Client</data>
@@ -1246,11 +1249,11 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="setting.cpuProcess">Lucee Process</data>
 	<data key="setting.cpuSystem">Whole System</data>
 	<data key="setting.datasource">Datasource Connections</data>
-	<data key="setting.datasourceDesc">Datasource Connection open at the Moment.</data>
+	<data key="setting.datasourceDesc">Open datasource connections.</data>
 	<data key="setting.task">Task Spooler</data>
-	<data key="setting.taskDesc">Active and closed tasks in Task Spooler. This includes for exampe tasks to send mails.</data>
-	<data key="setting.taskOpen">Open</data>
-	<data key="setting.taskClose">Close</data>
+	<data key="setting.taskDesc">Active and failed tasks in the Task Spooler. This includes tasks to send E-mail messages.</data>
+	<data key="setting.taskOpen">Active</data>
+	<data key="setting.taskClose">Failed</data>
 	<data key="Overview.resources">External Resources</data>
 	<data key="Overview.onlineDocsDesc">Lucee online documentation.</data>
 	<data key="Overview.localRefDesc">Local reference for tags, functions and components.</data>
@@ -1284,13 +1287,14 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="overview.mailinglist">Mailing list</data>
 	<data key="overview.mailinglistDesc">The mailing list is the focus of our community support program - help for users by users. </data>
 
-
+	<data key="overview.warning.warningMsg">The REST Servlet is not configured in your enviroment!</data>	
+	<data key="overview.warning.JavaVersion">You are running Lucee with Java</data>	
+	<data key="overview.warning.JavaVersionNotSupport"> Lucee does not formally support this version of Java. Consider updating to the latest Java version for security and performance reasons.</data>
+	<data key="overview.warning.Java7NotSupport">Java 7 has been End-of-Life'd since April 2015.</data>
+	<data key="overview.contexts.desc">You can label your web contexts here, so they are more clear distinguishable for use with extensions etc. </data>
 
 	<data key="overview.professional">Professional Support</data>
 	<data key="overview.professionalDesc">For many organizations and individuals, the security of a formal paid support contract is a necessity and we're pleased to offer four standard packages as well as the flexibility to create a custom package should your needs go beyond our standard offerings.</data>
-
-
-
 
 	<data key="overview.licencedevelopdesc">The Develop Version is a version, addressing those users who are most likely to apply it in order for assembling CFML application . The version though is prohibited to be used commercially.</data>
 	<data key="overview.releasedate">Release date</data>
@@ -1318,7 +1322,7 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="overview.versionname">Version Name</data>
 	<data key="overview.mailinglist_de">Mailinglist (german)</data>
 	<data key="overview.introdesc.web">Lucee, the CFML engine - free, open source and easy to use. This Web Administrator is provided in order to customize your web context.</data>
-	<data key="overview.introdesc.server">The Server Administrator allows you to install updates and patches for your Lucee installation and to restart the engine with a mouse click. You can configure new web contexts and define restrictions and configurations per web context individually.</data>
+	<data key="overview.introdesc.server">The Server Administrator allows you to install updates and patches for your Lucee installation and to restart the engine with a mouse click. You can configure new web contexts and define restrictions and configurations per web context individual.</data>
 	<data key="overview.infomail">info@lucee.ch</data>
 	<data key="overview.servertime">Server date/time: </data>
 	<data key="overview.version">Version</data>
@@ -1404,7 +1408,7 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="debug.DebugOptions">Debugging options</data>
 	<data key="settings.gateway.noDriver">There is no Gateway Type Available</data>
 	<data key="settings.gateway.title">Gateway</data>
-	<data key="settings.gateway.description">Verwalten der Gateways</data>
+	<data key="settings.gateway.description">Administer the Gateways</data>
 	<data key="settings.gateway.id">ID</data>
 	<data key="settings.gateway.class">Class</data>
 	<data key="settings.gateway.titleCreate">Create a new Gateway instance</data>
@@ -1431,7 +1435,7 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="settings.cache.titleCreate">Create a new cache connection</data>
 	<data key="settings.cache.titleExisting">List of existing cache connections</data>
 	<data key="settings.cache.descExisting">List of all existing connection for this environment</data>
-	<data key="settings.cache.nameMissing">Cancel</data>
+	<data key="settings.cache.nameMissing">Please enter a name for the cache</data>
 	<data key="settings.cache.type">Type</data>
 	<data key="settings.cache.defaulttypeObject">Object</data>
 	<data key="settings.cache.defaulttypeObjectDesc">This cache connection is used for all object cache operations (cacheGet,cachePut, cfcache action="get|put" ...)</data>

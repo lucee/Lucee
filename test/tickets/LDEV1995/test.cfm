@@ -1,0 +1,1 @@
+<cfoutput>#myFunc()#||#isstruct(myFunc2())#</cfoutput>

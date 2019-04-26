@@ -22,38 +22,38 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 
+import org.osgi.framework.Bundle;
+
 import lucee.commons.io.IOUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.type.util.ListUtil;
 
-import org.osgi.framework.Bundle;
-
 public class JDBCDriver {
 
-	public final String label;
-	public final String id;
-	public final ClassDefinition cd;
+    public final String label;
+    public final String id;
+    public final ClassDefinition cd;
 
-	public JDBCDriver(String label, String id,ClassDefinition cd) {
-		this.label=label;
-		this.id=StringUtil.isEmpty(id)?null:id.trim();
-		this.cd=cd;
-	}
+    public JDBCDriver(String label, String id, ClassDefinition cd) {
+	this.label = label;
+	this.id = StringUtil.isEmpty(id) ? null : id.trim();
+	this.cd = cd;
+    }
 
-	public static String extractClassName(Bundle bundle) throws IOException {
-		URL url = bundle.getResource("/META-INF/services/java.sql.Driver");
-		
-		BufferedReader br =new BufferedReader(new InputStreamReader(url.openConnection().getInputStream()));
-		String content = IOUtil.toString(br);
-		return ListUtil.first(content, " \n\t");
+    public static String extractClassName(Bundle bundle) throws IOException {
+	URL url = bundle.getResource("/META-INF/services/java.sql.Driver");
+
+	BufferedReader br = new BufferedReader(new InputStreamReader(url.openConnection().getInputStream()));
+	String content = IOUtil.toString(br);
+	return ListUtil.first(content, " \n\t");
+    }
+
+    public static String extractClassName(Bundle bundle, String defaultValue) {
+	try {
+	    return extractClassName(bundle);
 	}
-	
-	public static String extractClassName(Bundle bundle, String defaultValue) {
-		try {
-			return extractClassName(bundle);
-		}
-		catch (Exception e) {
-			return defaultValue;
-		}
+	catch (Exception e) {
+	    return defaultValue;
 	}
+    }
 }

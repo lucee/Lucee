@@ -148,12 +148,12 @@ Redirtect to entry --->
 				<tr>
 					<th scope="row">#stText.settings.externalizeStringGTE#</th>
 					<td>
-						<div class="warning nofocus">
+						<!---<div class="warning nofocus">
 					This feature is experimental.
 					If you have any problems while using this functionality,
 					please post the bugs and errors in our
 					<a href="http://issues.lucee.org" target="_blank">bugtracking system</a>. 
-				</div>
+				</div>--->
 
 						<cfif hasAccess>
 
@@ -181,7 +181,7 @@ Redirtect to entry --->
 					</td>
 				</tr>
 
-
+<!---
 			</tbody>
 		</table>
 
@@ -190,12 +190,12 @@ Redirtect to entry --->
 		
 		<table class="maintbl">
 			<tbody>
-
+--->
 				<!--- Null Support --->
 				<tr>
 					<th scope="row">#stText.compiler.nullSupport#</th>
 					<td>
-						<cfif hasAccess && request.admintype EQ "server">
+						<cfif hasAccess >
 							<ul class="radiolist">
 								<li>
 									<!--- full --->
@@ -219,7 +219,6 @@ Redirtect to entry --->
 							<input type="hidden" name="nullSupport" value="#setting.nullSupport#">
 							<b>#stText.compiler["nullSupport"& strNullSupport]#</b><br />
 							<div class="comment">#stText.compiler["nullSupport"& strNullSupport&"Desc"]#</div>
-							<cfif request.admintype EQ "web"><div class="warning nofocus">#stText.compiler.nullSupportOnlyServer#</div></cfif>
 						</cfif>
 					</td>
 				</tr>

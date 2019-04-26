@@ -1,40 +1,19 @@
-<cfcomponent extends="org.lucee.cfml.test.LuceeTestCase">
-	<!---
-	<cffunction name="beforeTests"></cffunction>
-	<cffunction name="afterTests"></cffunction>
-	<cffunction name="setUp"></cffunction>
-	--->
+component extends="org.lucee.cfml.test.LuceeTestCase"{
+	function run( testResults , testBox ) {
+		describe( title="Test suite for URLDecode()", body=function() {
+			it(title="checking URLDecode() function", body = function( currentSpec ) {
+				assertEquals("123", "#URLDecode("123")#");
+				assertEquals(" ", "#URLDecode("+")#");
+				assertEquals(" ", "#URLDecode("%20")#");
 
-	<cffunction name="testURLDecodeMember" localMode="modern">
-		<cfset valueEquals(left="#"+".URLDecode()#", right=" ")>
-	
-	</cffunction>
+				assertEquals("%25", "#URLEncodedFormat('%')#");
+				assertEquals("%", "#URLDecode(URLEncodedFormat('%'))#");
 
-	<cffunction name="testURLDecode" localMode="modern">
-
-<!--- begin old test code --->
-<cfset valueEquals(left="#URLDecode("123")#", right="123")>
-<cfset valueEquals(left="#URLDecode("+")#", right=" ")>
-<cfset valueEquals(left="#URLDecode("%20")#", right=" ")>
-
-
-<cfset valueEquals(left="#URLEncodedFormat('%')#", right="%25")>
-<cfset valueEquals(left="#URLDecode(URLEncodedFormat('%'))#", right="%")>
-
-
-<cfset valueEquals(left="#URLEncodedFormat('%&/')#", right="%25%26%2F")>
-<cfset valueEquals(left="#URLDecode('%&/')#", right="%&/")>
-<cfset valueEquals(left="#URLDecode('%')#", right="%")>
-
-<!--- end old test code --->
-	
-		
-		<!--- <cfset assertEquals("","")> --->
-	</cffunction>
-	
-	<cffunction access="private" name="valueEquals">
-		<cfargument name="left">
-		<cfargument name="right">
-		<cfset assertEquals(arguments.right,arguments.left)>
-	</cffunction>
-</cfcomponent>
+				assertEquals("%25%26%2F", "#URLEncodedFormat('%&/')#");
+				assertEquals("%&/", "#URLDecode('%&/')#");
+				assertEquals("%", "#URLDecode('%')#");
+				assertEquals(" ", "#"+".URLDecode()#");
+			});
+		});
+	}
+}
