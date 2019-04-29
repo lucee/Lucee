@@ -1714,11 +1714,6 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		return _data.remove(key);
 	}
 
-	/*
-	 * public Object set(PageContext pc, String name, Object value) throws PageException { return
-	 * set(pc, KeyImpl.init(name), value); }
-	 */
-
 	@Override
 	public Object set(PageContext pc, Collection.Key key, Object value) throws PageException {
 		if (pc == null) pc = ThreadLocalPageContext.get();
@@ -1734,11 +1729,6 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	public Object set(Collection.Key key, Object value) throws PageException {
 		return set(null, key, value);
 	}
-
-	/*
-	 * public Object setEL(PageContext pc, String name, Object value) { try {return set(pc, name,
-	 * value);} catch (PageException e) {return null;} }
-	 */
 
 	@Override
 	public Object setEL(PageContext pc, Collection.Key name, Object value) {
@@ -1764,11 +1754,6 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		}
 		return super.put(key, value);
 	}
-
-	/*
-	 * public Object get(PageContext pc, String name) throws PageException { return get(pc,
-	 * KeyImpl.init(name)); }
-	 */
 
 	@Override
 	public Object get(PageContext pc, Collection.Key key) throws PageException {
@@ -1850,11 +1835,6 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		}
 		throw new ExpressionException("Component [" + getCallName() + "] has no accessible Member with name [" + key + "]");
 	}
-
-	/*
-	 * public Object get(PageContext pc, String name, Object defaultValue) { return get(pc,
-	 * KeyImpl.init(name), defaultValue); }
-	 */
 
 	@Override
 	public Object get(PageContext pc, Collection.Key key, Object defaultValue) {
