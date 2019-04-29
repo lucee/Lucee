@@ -204,7 +204,7 @@ public final class ResourceUtil {
 	Resource res = pc.getConfig().getResource(path);
 
 	if (res.exists()) return res;
-	else if (!allowRealpath) throw new ExpressionException("file or directory " + path + " not exist");
+	else if (!allowRealpath) throw new ExpressionException("file or directory " + path + " does not exist");
 
 	if (res.isAbsolute() && res.exists()) {
 	    return res;
@@ -222,7 +222,7 @@ public final class ResourceUtil {
 	}
 	res = getRealResource(pc, path, res);
 	if (res.exists()) return res;
-	throw new ExpressionException("file or directory " + path + " not exist");
+	throw new ExpressionException("file or directory " + path + " does not exist");
     }
 
     public static Resource toResourceExisting(Config config, String path) throws ExpressionException {
@@ -230,7 +230,7 @@ public final class ResourceUtil {
 	Resource res = config.getResource(path);
 
 	if (res.exists()) return res;
-	throw new ExpressionException("file or directory " + path + " not exist");
+	throw new ExpressionException("file or directory " + path + " does not exist");
     }
 
     public static Resource toResourceExisting(Config config, String path, Resource defaultValue) {
