@@ -1286,7 +1286,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 											<td class="txt-r">#unitFormat(arguments.custom.unit, queries.time,prettify)#</td>
 											<td class="txt-r">
 											<cfif total neq 0>
-												#unitFormat(arguments.custom.unit, queries.time / total * 100,prettify)#
+												#customNumberFormat( (queries.time / total) * 100, "99.9")# %
 											<cfelse>
 												#unitFormat(arguments.custom.unit, 0,prettify)#
 											</cfif>
