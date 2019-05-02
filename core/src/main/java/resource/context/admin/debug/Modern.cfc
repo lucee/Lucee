@@ -1110,15 +1110,19 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 										</td>
 										<cfif arguments.custom.displayPercentages>
 											<td align="right" class="tblContent" style="#sStyle#">
+												<cfif numberFormat(iPctTotal*100, '999.9') gt 0>
 												<font color="#sStyle#">#numberFormat(iPctTotal*100, '999.9')#</font>
+											</cfif>
 											</td>
 										</cfif>
 										<td align="right" class="tblContent #sCookieSort eq 'query' ? 'sorted' : ''#" style="#sStyle#">
-											<font color="#sStyle#">#unitFormat(arguments.custom.unit, pages.query)#</font>
+											<cfif pages.query gt 0>
+												#unitFormat(arguments.custom.unit, pages.query)#
+											</cfif>
 										</td>
 										<cfif arguments.custom.displayPercentages>
 											<td align="right" class="tblContent" style="#sStyle#">
-												<font color="#sStyle#">#numberFormat(iPctQuery*100, '999.9')#</font>
+												#customNumberFormat(iPctQuery*100, '999.9')#
 											</td>
 										</cfif>
 										<td align="right" class="tblContent #sCookieSort eq 'app' ? 'sorted' : ''#" style="#sStyle#">
@@ -1126,7 +1130,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 										</td>
 										<cfif arguments.custom.displayPercentages>
 											<td align="right" class="tblContent" style="#sStyle#">
-												<font color="#sStyle#">#numberFormat(iPctLucee*100, '999.9')#</font>
+												#customNumberFormat(iPctLucee*100, '999.9')#
 											</td>
 										</cfif>
 										<td align="center" class="tblContent #sCookieSort eq 'count' ? 'sorted' : ''#" style="#sStyle#">
@@ -1134,7 +1138,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 										</td>
 										<cfif arguments.custom.displayPercentages>
 											<td align="right" class="tblContent" style="#sStyle#">
-												<font color="#sStyle#">#numberFormat(iPctCount*100, '999.9')#</font>
+												#customNumberFormat(iPctCount*100, '999.9')#
 											</td>
 										</cfif>
 										<td align="right" class="tblContent #sCookieSort eq 'avg' ? 'sorted' : ''#" style="#sStyle#">
@@ -1142,7 +1146,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 										</td>
 										<cfif arguments.custom.displayPercentages>
 											<td align="right" class="tblContent" style="#sStyle#">
-												<font color="#sStyle#">#numberFormat(iPctAvg*100, '999.9')#</font>
+												#customNumberFormat(iPctAvg*100, '999.9')#
 											</td>
 										</cfif>
 										<td align="left" class="tblContent #sCookieSort eq 'src' ? 'sorted' : ''#" style="#sStyle#" title="#pages.path#">
@@ -1158,7 +1162,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 														<td>
 														<font color="#sStyle#">
 															<cfif arguments.custom.callStack>
-																<div style="width:80px;float:left"><b>Stacktrace:</b></div>
+																<!---<div style="width:80px;float:left"><b>Stacktrace:</b></div>--->
 																<div style="float:left">#dspCallStackTrace(pages.id, stPages, arguments.debugging.history)#</div>
 															</cfif>
 
@@ -1173,7 +1177,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 											</table>
 										</td>
 										<cfset local.sPage = replace(listFirst(pages.path, '$'), '\', '/', 'ALL')>
-										<td>
+										<td style="white-space:nowrap;">
 											<a onClick="__LUCEE.debug.setTemplateFilter('#sPage#', 0)" title="Debug this file only.">
 												<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB98KEwgeMjUl220AAAEISURBVDjLxZM9SgNxEMV/M/nASEDFLJJOPIO92wmWsbdZNugRRLCwySXcxtia1jIL6g08RbLgVlFh9z8Wi8JKSGATyGuHefPemxnYBHauXji4fAOgXoWgkWXkTgDQVdUsJfCCGC+Ie5UJUEB58sLxNZj8LwtAJ4gBzqxmE3W2r0JqQptcugCmMgQw7GF367OffrW+cUIS+UWIUui4k5xXp3qM2btDDlU5LU+Ti4/Z9lHDaS9TN60WolKyUQcwB8Ct1Zioc88qpCLWJpfHkgVjuNeahb8W/jJYuIUwLnqNm+T+ZABinXBMKYOFKNSdJ5E/mldeSjCNfIBR9TtY9RLnodnMQGU9n/kD+19X1oivU2EAAAAASUVORK5CYII="/>
 											</a>
@@ -1999,6 +2003,13 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			return ( int( arguments.time / 1000 ) / 1000 ) & arguments.unit;
 		}
 
+		function customNumberFormat(numeric num, string format default="999.9"){
+			var str = numberFormat(arguments.num, format);
+			if (str eq "0.0")
+				return "";
+			else
+				return str;
+		}
 
 		function byteFormat( numeric size ) {
 
