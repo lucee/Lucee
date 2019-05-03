@@ -1478,7 +1478,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			return page.metaData.get();
 		}
 		long creationTime = System.currentTimeMillis();
-		StructImpl sct = new StructImpl();
+		final StructImpl sct = new StructImpl();
 
 		// fill udfs
 		metaUDFs(pc, comp, sct, access);
@@ -1612,7 +1612,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			udf = it.next();
 			if (udf instanceof UDFGSProperty) continue;
 			if (udf.getAccess() > access) continue;
-			if (!udf.getPageSource().equals(comp._getPageSource())) continue;
+			if (udf.getPageSource() != null && !udf.getPageSource().equals(comp._getPageSource())) continue;
 			if (udf instanceof UDFImpl) arr.append(ComponentUtil.getMetaData(pc, ((UDFImpl) udf).properties));
 		}
 	}
@@ -1667,7 +1667,9 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	}
 
 	public void regJavaFunction(Collection.Key key, String className) throws ClassException, ClassNotFoundException, IOException, ApplicationException {
-		registerUDF(key, (UDF) ClassUtil.loadInstance(getPageSource().getMapping().getPhysicalClass(className)));
+		JF jf = (JF) ClassUtil.loadInstance(getPageSource().getMapping().getPhysicalClass(className));
+		jf.setPageSource(getPageSource());
+		registerUDF(key, jf);
 	}
 
 	/*
