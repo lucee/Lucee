@@ -26,13 +26,13 @@ import lucee.transformer.library.tag.TagLibTag;
 
 public final class Throw extends EvaluatorSupport {
 
-    @Override
-    public void evaluate(Tag tag, TagLibTag tagLibTag, FunctionLib[] flibs) throws EvaluatorException {
+	@Override
+	public void evaluate(Tag tag, TagLibTag tagLibTag, FunctionLib[] flibs) throws EvaluatorException {
 
-	// file loop
-	if (tag.containsAttribute("message") && tag.containsAttribute("object")) {
-	    throw new EvaluatorException("Wrong Context, when you use attribute message, attribute object is not allowed");
+		// file loop
+		if (tag.containsAttribute("message") && tag.containsAttribute("object")) {
+			throw new EvaluatorException("Wrong Context, when you use attribute message, attribute object is not allowed");
+		}
+
 	}
-
-    }
 }

@@ -29,15 +29,15 @@ import lucee.runtime.net.rpc.client.WSClient;
  */
 public final class GetSOAPResponseHeader implements Function {
 
-    private static final long serialVersionUID = 4667361359302875802L;
+	private static final long serialVersionUID = 4667361359302875802L;
 
-    public static Object call(PageContext pc, Object webservice, String namespace, String name) throws PageException {
-	return call(pc, webservice, namespace, name, false);
-    }
+	public static Object call(PageContext pc, Object webservice, String namespace, String name) throws PageException {
+		return call(pc, webservice, namespace, name, false);
+	}
 
-    public static Object call(PageContext pc, Object webservice, String namespace, String name, boolean asXML) throws PageException {
-	if (!(webservice instanceof WSClient))
-	    throw new FunctionException(pc, "getSOAPResponse", 1, "webservice", "value must be a webservice Object generated with createObject/<cfobject>");
-	return ((WSClient) webservice).getSOAPResponseHeader(pc, namespace, name, asXML);
-    }
+	public static Object call(PageContext pc, Object webservice, String namespace, String name, boolean asXML) throws PageException {
+		if (!(webservice instanceof WSClient))
+			throw new FunctionException(pc, "getSOAPResponse", 1, "webservice", "value must be a webservice Object generated with createObject/<cfobject>");
+		return ((WSClient) webservice).getSOAPResponseHeader(pc, namespace, name, asXML);
+	}
 }

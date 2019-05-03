@@ -26,64 +26,64 @@ import lucee.runtime.type.Array;
 
 public class EntryArrayIterator implements Iterator<Entry<Integer, Object>>, Enumeration<Entry<Integer, Object>> {
 
-    private Array coll;
-    protected int[] keys;
-    protected int pos;
+	private Array coll;
+	protected int[] keys;
+	protected int pos;
 
-    public EntryArrayIterator(Array coll, int[] keys) {
-	this.coll = coll;
-	this.keys = keys;
-    }
-
-    @Override
-    public boolean hasNext() {
-	return (keys.length) > pos;
-    }
-
-    @Override
-    public Entry<Integer, Object> next() {
-	int key = keys[pos++];
-	return new EntryImpl(coll, key);
-    }
-
-    @Override
-    public boolean hasMoreElements() {
-	return hasNext();
-    }
-
-    @Override
-    public Entry<Integer, Object> nextElement() {
-	return next();
-    }
-
-    @Override
-    public void remove() {
-	throw new UnsupportedOperationException("this operation is not suppored");
-    }
-
-    public class EntryImpl implements Entry<Integer, Object> {
-
-	private Array arr;
-	private Integer index;
-
-	public EntryImpl(Array coll, Integer index) {
-	    this.arr = coll;
-	    this.index = index;
+	public EntryArrayIterator(Array coll, int[] keys) {
+		this.coll = coll;
+		this.keys = keys;
 	}
 
 	@Override
-	public Integer getKey() {
-	    return index;
+	public boolean hasNext() {
+		return (keys.length) > pos;
 	}
 
 	@Override
-	public Object getValue() {
-	    return arr.get(index.intValue(), null);
+	public Entry<Integer, Object> next() {
+		int key = keys[pos++];
+		return new EntryImpl(coll, key);
 	}
 
 	@Override
-	public Object setValue(Object value) {
-	    return arr.setEL(index.intValue(), value);
+	public boolean hasMoreElements() {
+		return hasNext();
 	}
-    }
+
+	@Override
+	public Entry<Integer, Object> nextElement() {
+		return next();
+	}
+
+	@Override
+	public void remove() {
+		throw new UnsupportedOperationException("this operation is not suppored");
+	}
+
+	public class EntryImpl implements Entry<Integer, Object> {
+
+		private Array arr;
+		private Integer index;
+
+		public EntryImpl(Array coll, Integer index) {
+			this.arr = coll;
+			this.index = index;
+		}
+
+		@Override
+		public Integer getKey() {
+			return index;
+		}
+
+		@Override
+		public Object getValue() {
+			return arr.get(index.intValue(), null);
+		}
+
+		@Override
+		public Object setValue(Object value) {
+			return arr.setEL(index.intValue(), value);
+		}
+	}
 }

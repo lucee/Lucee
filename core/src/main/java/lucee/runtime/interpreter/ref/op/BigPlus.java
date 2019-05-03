@@ -28,20 +28,20 @@ import lucee.runtime.interpreter.ref.Ref;
  */
 public final class BigPlus extends Big {
 
-    /**
-     * constructor of the class
-     * 
-     * @param left
-     * @param right
-     */
-    public BigPlus(Ref left, Ref right, boolean limited) {
-	super(left, right, limited);
-    }
+	/**
+	 * constructor of the class
+	 * 
+	 * @param left
+	 * @param right
+	 */
+	public BigPlus(Ref left, Ref right, boolean limited) {
+		super(left, right, limited);
+	}
 
-    @Override
-    public Object getValue(PageContext pc) throws PageException {
-	if (limited) throw new InterpreterException("invalid syntax, math operations are not supported in a json string.");
-	return getLeft(pc).add(getRight(pc)).toString();
-    }
+	@Override
+	public Object getValue(PageContext pc) throws PageException {
+		if (limited) throw new InterpreterException("invalid syntax, math operations are not supported in a json string.");
+		return getLeft(pc).add(getRight(pc)).toString();
+	}
 
 }

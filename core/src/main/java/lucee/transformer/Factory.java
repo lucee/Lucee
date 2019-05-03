@@ -36,150 +36,150 @@ import lucee.transformer.expression.var.Variable;
 
 public abstract class Factory {
 
-    public static final int OP_BOOL_AND = 0;
-    public static final int OP_BOOL_OR = 1;
-    public static final int OP_BOOL_XOR = 2;
-    public static final int OP_BOOL_EQV = 3;
-    public static final int OP_BOOL_IMP = 4;
+	public static final int OP_BOOL_AND = 0;
+	public static final int OP_BOOL_OR = 1;
+	public static final int OP_BOOL_XOR = 2;
+	public static final int OP_BOOL_EQV = 3;
+	public static final int OP_BOOL_IMP = 4;
 
-    public static final int OP_DBL_PLUS = 0;
-    public static final int OP_DBL_MINUS = 1;
-    public static final int OP_DBL_MODULUS = 2;
-    public static final int OP_DBL_DIVIDE = 3;
-    public static final int OP_DBL_MULTIPLY = 4;
-    public static final int OP_DBL_EXP = 5;
-    public static final int OP_DBL_INTDIV = 6;
+	public static final int OP_DBL_PLUS = 0;
+	public static final int OP_DBL_MINUS = 1;
+	public static final int OP_DBL_MODULUS = 2;
+	public static final int OP_DBL_DIVIDE = 3;
+	public static final int OP_DBL_MULTIPLY = 4;
+	public static final int OP_DBL_EXP = 5;
+	public static final int OP_DBL_INTDIV = 6;
 
-    public static final short OP_UNARY_POST = 1;
-    public static final short OP_UNARY_PRE = 2;
+	public static final short OP_UNARY_POST = 1;
+	public static final short OP_UNARY_PRE = 2;
 
-    // must always be alias to OP only
-    public static final int OP_UNARY_PLUS = OP_DBL_PLUS;
-    public static final int OP_UNARY_MINUS = OP_DBL_MINUS;
-    public static final int OP_UNARY_DIVIDE = OP_DBL_DIVIDE;
-    public static final int OP_UNARY_MULTIPLY = OP_DBL_MULTIPLY;
-    public static final int OP_UNARY_CONCAT = 1001314342;
+	// must always be alias to OP only
+	public static final int OP_UNARY_PLUS = OP_DBL_PLUS;
+	public static final int OP_UNARY_MINUS = OP_DBL_MINUS;
+	public static final int OP_UNARY_DIVIDE = OP_DBL_DIVIDE;
+	public static final int OP_UNARY_MULTIPLY = OP_DBL_MULTIPLY;
+	public static final int OP_UNARY_CONCAT = 1001314342;
 
-    public static final int OP_DEC_LT = 1;
-    public static final int OP_DEC_LTE = 2;
-    public static final int OP_DEC_GTE = 3;
-    public static final int OP_DEC_GT = 4;
-    public static final int OP_DEC_EQ = 5;
-    public static final int OP_DEC_NEQ = 6;
-    public static final int OP_DEC_CT = 1000;
-    public static final int OP_DEC_NCT = 1001;
-    public static final int OP_DEC_EEQ = 1002;
-    public static final int OP_DEC_NEEQ = 1003;
+	public static final int OP_DEC_LT = 1;
+	public static final int OP_DEC_LTE = 2;
+	public static final int OP_DEC_GTE = 3;
+	public static final int OP_DEC_GT = 4;
+	public static final int OP_DEC_EQ = 5;
+	public static final int OP_DEC_NEQ = 6;
+	public static final int OP_DEC_CT = 1000;
+	public static final int OP_DEC_NCT = 1001;
+	public static final int OP_DEC_EEQ = 1002;
+	public static final int OP_DEC_NEEQ = 1003;
 
-    public static final int OP_NEG_NBR_PLUS = 0;
-    public static final int OP_NEG_NBR_MINUS = 1;
+	public static final int OP_NEG_NBR_PLUS = 0;
+	public static final int OP_NEG_NBR_MINUS = 1;
 
-    public abstract LitBoolean TRUE();
+	public abstract LitBoolean TRUE();
 
-    public abstract LitBoolean FALSE();
+	public abstract LitBoolean FALSE();
 
-    public abstract LitString EMPTY();
+	public abstract LitString EMPTY();
 
-    public abstract LitDouble DOUBLE_ZERO();
+	public abstract LitDouble DOUBLE_ZERO();
 
-    public abstract LitDouble DOUBLE_ONE();
+	public abstract LitDouble DOUBLE_ONE();
 
-    public abstract LitString NULL();
+	public abstract LitString NULL();
 
-    // CREATION
-    public abstract LitString createLitString(String str);
+	// CREATION
+	public abstract LitString createLitString(String str);
 
-    public abstract LitString createLitString(String str, Position start, Position end);
+	public abstract LitString createLitString(String str, Position start, Position end);
 
-    public abstract LitBoolean createLitBoolean(boolean b);
+	public abstract LitBoolean createLitBoolean(boolean b);
 
-    public abstract LitBoolean createLitBoolean(boolean b, Position start, Position end);
+	public abstract LitBoolean createLitBoolean(boolean b, Position start, Position end);
 
-    public abstract LitDouble createLitDouble(double d);
+	public abstract LitDouble createLitDouble(double d);
 
-    public abstract LitDouble createLitDouble(double d, Position start, Position end);
+	public abstract LitDouble createLitDouble(double d, Position start, Position end);
 
-    public abstract LitFloat createLitFloat(float f);
+	public abstract LitFloat createLitFloat(float f);
 
-    public abstract LitFloat createLitFloat(float f, Position start, Position end);
+	public abstract LitFloat createLitFloat(float f, Position start, Position end);
 
-    public abstract LitLong createLitLong(long l);
+	public abstract LitLong createLitLong(long l);
 
-    public abstract LitLong createLitLong(long l, Position start, Position end);
+	public abstract LitLong createLitLong(long l, Position start, Position end);
 
-    public abstract LitInteger createLitInteger(int i);
+	public abstract LitInteger createLitInteger(int i);
 
-    public abstract LitInteger createLitInteger(int i, Position start, Position end);
+	public abstract LitInteger createLitInteger(int i, Position start, Position end);
 
-    public abstract Expression createNull();
+	public abstract Expression createNull();
 
-    public abstract Expression createNull(Position start, Position end);
+	public abstract Expression createNull(Position start, Position end);
 
-    public abstract Expression createNullConstant(Position start, Position end);
+	public abstract Expression createNullConstant(Position start, Position end);
 
-    public abstract boolean isNull(Expression expr);
+	public abstract boolean isNull(Expression expr);
 
-    /**
-     * return null if full null support is enabled, otherwise an empty string
-     * 
-     * @return
-     */
-    public abstract Expression createEmpty();
+	/**
+	 * return null if full null support is enabled, otherwise an empty string
+	 * 
+	 * @return
+	 */
+	public abstract Expression createEmpty();
 
-    public abstract Literal createLiteral(Object obj, Literal defaultValue);
+	public abstract Literal createLiteral(Object obj, Literal defaultValue);
 
-    public abstract DataMember createDataMember(ExprString name);
+	public abstract DataMember createDataMember(ExprString name);
 
-    public abstract Variable createVariable(Position start, Position end);
+	public abstract Variable createVariable(Position start, Position end);
 
-    public abstract Variable createVariable(int scope, Position start, Position end);
+	public abstract Variable createVariable(int scope, Position start, Position end);
 
-    public abstract Expression createStruct();
+	public abstract Expression createStruct();
 
-    public abstract Expression createArray();
+	public abstract Expression createArray();
 
-    // CASTING
-    public abstract ExprDouble toExprDouble(Expression expr);
+	// CASTING
+	public abstract ExprDouble toExprDouble(Expression expr);
 
-    public abstract ExprString toExprString(Expression expr);
+	public abstract ExprString toExprString(Expression expr);
 
-    public abstract ExprBoolean toExprBoolean(Expression expr);
+	public abstract ExprBoolean toExprBoolean(Expression expr);
 
-    public abstract ExprInt toExprInt(Expression expr);
+	public abstract ExprInt toExprInt(Expression expr);
 
-    public abstract ExprFloat toExprFloat(Expression expr);
+	public abstract ExprFloat toExprFloat(Expression expr);
 
-    public abstract Expression toExpression(Expression expr, String type);
+	public abstract Expression toExpression(Expression expr, String type);
 
-    // OPERATIONS
-    public abstract ExprString opString(Expression left, Expression right);
+	// OPERATIONS
+	public abstract ExprString opString(Expression left, Expression right);
 
-    public abstract ExprString opString(Expression left, Expression right, boolean concatStatic);
+	public abstract ExprString opString(Expression left, Expression right, boolean concatStatic);
 
-    public abstract ExprBoolean opBool(Expression left, Expression right, int operation);
+	public abstract ExprBoolean opBool(Expression left, Expression right, int operation);
 
-    public abstract ExprDouble opDouble(Expression left, Expression right, int operation);
+	public abstract ExprDouble opDouble(Expression left, Expression right, int operation);
 
-    public abstract ExprDouble opUnary(Variable var, Expression value, short type, int operation, Position start, Position end);
+	public abstract ExprDouble opUnary(Variable var, Expression value, short type, int operation, Position start, Position end);
 
-    public abstract Expression opNegate(Expression expr, Position start, Position end);
+	public abstract Expression opNegate(Expression expr, Position start, Position end);
 
-    public abstract ExprDouble opNegateNumber(Expression expr, int operation, Position start, Position end);
+	public abstract ExprDouble opNegateNumber(Expression expr, int operation, Position start, Position end);
 
-    public abstract Expression opContional(Expression cont, Expression left, Expression right);
+	public abstract Expression opContional(Expression cont, Expression left, Expression right);
 
-    public abstract ExprBoolean opDecision(Expression left, Expression concatOp, int operation);
+	public abstract ExprBoolean opDecision(Expression left, Expression concatOp, int operation);
 
-    public abstract Expression opElvis(Variable left, Expression right);
+	public abstract Expression opElvis(Variable left, Expression right);
 
-    public abstract Expression removeCastString(Expression expr);
-    // TODO more removes?
+	public abstract Expression removeCastString(Expression expr);
+	// TODO more removes?
 
-    public abstract void registerKey(Context bc, Expression name, boolean doUpperCase) throws TransformerException;
+	public abstract void registerKey(Context bc, Expression name, boolean doUpperCase) throws TransformerException;
 
-    public abstract Config getConfig();
+	public abstract Config getConfig();
 
-    public static boolean canRegisterKey(Expression name) {
-	return name instanceof LitString;
-    }
+	public static boolean canRegisterKey(Expression name) {
+		return name instanceof LitString;
+	}
 }

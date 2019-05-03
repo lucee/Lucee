@@ -36,82 +36,82 @@ import lucee.runtime.op.Decision;
 
 public final class JavaCast implements Function {
 
-    private static final long serialVersionUID = -5053403312467568511L;
+	private static final long serialVersionUID = -5053403312467568511L;
 
-    public static Object calls(PageContext pc, String string, Object object) throws PageException {
-	throw new ExpressionException("method javacast not implemented yet"); // MUST ????
-    }
-
-    public static Object call(PageContext pc, String type, Object obj) throws PageException {
-	type = type.trim();
-	String lcType = StringUtil.toLowerCase(type);
-
-	if (type.endsWith("[]")) {
-
-	    return toArray(pc, type, lcType, obj);
-	}
-	Class<?> clazz = toClass(pc, lcType, type);
-	return to(pc, obj, clazz);
-
-    }
-
-    public static Object toArray(PageContext pc, String type, String lcType, Object obj) throws PageException {
-	// byte
-	if ("byte[]".equals(lcType)) {
-	    if (obj instanceof byte[]) return (byte[]) obj;
-	    if (Decision.isBinary(obj)) return Caster.toBinary(obj);
+	public static Object calls(PageContext pc, String string, Object object) throws PageException {
+		throw new ExpressionException("method javacast not implemented yet"); // MUST ????
 	}
 
-	// char
-	else if ("char[]".equals(lcType)) {
-	    if (obj instanceof char[]) return (char[]) obj;
-	    if (obj instanceof CharSequence) return obj.toString().toCharArray();
+	public static Object call(PageContext pc, String type, Object obj) throws PageException {
+		type = type.trim();
+		String lcType = StringUtil.toLowerCase(type);
+
+		if (type.endsWith("[]")) {
+
+			return toArray(pc, type, lcType, obj);
+		}
+		Class<?> clazz = toClass(pc, lcType, type);
+		return to(pc, obj, clazz);
+
 	}
 
-	return _toArray(pc, type, lcType, obj);
-    }
+	public static Object toArray(PageContext pc, String type, String lcType, Object obj) throws PageException {
+		// byte
+		if ("byte[]".equals(lcType)) {
+			if (obj instanceof byte[]) return (byte[]) obj;
+			if (Decision.isBinary(obj)) return Caster.toBinary(obj);
+		}
 
-    public static Object _toArray(PageContext pc, String type, String lcType, Object obj) throws PageException {
-	lcType = lcType.substring(0, lcType.length() - 2);
-	type = type.substring(0, type.length() - 2);
+		// char
+		else if ("char[]".equals(lcType)) {
+			if (obj instanceof char[]) return (char[]) obj;
+			if (obj instanceof CharSequence) return obj.toString().toCharArray();
+		}
 
-	// other
-	Object[] arr = Caster.toList(obj).toArray();
-	Class<?> clazz = toClass(pc, lcType, type);
-	Object trg = java.lang.reflect.Array.newInstance(clazz, arr.length);
+		return _toArray(pc, type, lcType, obj);
+	}
 
-	for (int i = arr.length - 1; i >= 0; i--) {
-	    java.lang.reflect.Array.set(trg, i, type.endsWith("[]") ? _toArray(pc, type, lcType, arr[i]) : to(pc, arr[i], clazz));
-	}
-	return trg;
-    }
+	public static Object _toArray(PageContext pc, String type, String lcType, Object obj) throws PageException {
+		lcType = lcType.substring(0, lcType.length() - 2);
+		type = type.substring(0, type.length() - 2);
 
-    private static Object to(PageContext pc, Object obj, Class<?> trgClass) throws PageException {
-	if (trgClass == null) return Caster.toNull(obj);
-	else if (trgClass == BigDecimal.class) return Caster.toBigDecimal(obj);
-	else if (trgClass == BigInteger.class) return Caster.toBigInteger(obj);
-	return Caster.castTo(pc, trgClass, obj);
-	// throw new ExpressionException("can't cast only to the following data types (bigdecimal,int, long,
-	// float ,double ,boolean ,string,null ), "+lcType+" is invalid");
-    }
+		// other
+		Object[] arr = Caster.toList(obj).toArray();
+		Class<?> clazz = toClass(pc, lcType, type);
+		Object trg = java.lang.reflect.Array.newInstance(clazz, arr.length);
 
-    private static Class<?> toClass(PageContext pc, String lcType, String type) throws PageException {
+		for (int i = arr.length - 1; i >= 0; i--) {
+			java.lang.reflect.Array.set(trg, i, type.endsWith("[]") ? _toArray(pc, type, lcType, arr[i]) : to(pc, arr[i], clazz));
+		}
+		return trg;
+	}
 
-	if (lcType.equals("null")) {
-	    return null;
+	private static Object to(PageContext pc, Object obj, Class<?> trgClass) throws PageException {
+		if (trgClass == null) return Caster.toNull(obj);
+		else if (trgClass == BigDecimal.class) return Caster.toBigDecimal(obj);
+		else if (trgClass == BigInteger.class) return Caster.toBigInteger(obj);
+		return Caster.castTo(pc, trgClass, obj);
+		// throw new ExpressionException("can't cast only to the following data types (bigdecimal,int, long,
+		// float ,double ,boolean ,string,null ), "+lcType+" is invalid");
 	}
-	if (lcType.equals("biginteger")) {
-	    return BigInteger.class;
+
+	private static Class<?> toClass(PageContext pc, String lcType, String type) throws PageException {
+
+		if (lcType.equals("null")) {
+			return null;
+		}
+		if (lcType.equals("biginteger")) {
+			return BigInteger.class;
+		}
+		if (lcType.equals("bigdecimal")) {
+			return BigDecimal.class;
+		}
+		try {
+			return ClassUtil.toClass(type);
+		}
+		catch (ClassException e) {
+			throw Caster.toPageException(e);
+		}
 	}
-	if (lcType.equals("bigdecimal")) {
-	    return BigDecimal.class;
-	}
-	try {
-	    return ClassUtil.toClass(type);
-	}
-	catch (ClassException e) {
-	    throw Caster.toPageException(e);
-	}
-    }
 
 }

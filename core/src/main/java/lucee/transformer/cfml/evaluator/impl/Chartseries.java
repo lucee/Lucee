@@ -22,7 +22,7 @@ import lucee.transformer.cfml.evaluator.ChildEvaluator;
 
 public final class Chartseries extends ChildEvaluator {
 
-    public Chartseries() {
-	super("chart");
-    }
+	public Chartseries() {
+		super("chart");
+	}
 }

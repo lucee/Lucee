@@ -24,29 +24,29 @@ import lucee.commons.lang.StringUtil;
 
 public class UCKeyIterator implements Iterator {
 
-    private Iterator it;
+	private Iterator it;
 
-    public UCKeyIterator(Iterator it) {
-	this.it = it;
-    }
+	public UCKeyIterator(Iterator it) {
+		this.it = it;
+	}
 
-    @Override
-    public boolean hasNext() {
-	return it.hasNext();
-    }
+	@Override
+	public boolean hasNext() {
+		return it.hasNext();
+	}
 
-    @Override
-    public Object next() {
-	return nextString();
-    }
+	@Override
+	public Object next() {
+		return nextString();
+	}
 
-    public String nextString() {
-	return StringUtil.toStringNative(it.next(), "").toUpperCase();
-    }
+	public String nextString() {
+		return StringUtil.toStringNative(it.next(), "").toUpperCase();
+	}
 
-    @Override
-    public void remove() {
-	it.remove();
-    }
+	@Override
+	public void remove() {
+		it.remove();
+	}
 
 }

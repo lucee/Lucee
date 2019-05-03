@@ -36,68 +36,68 @@ import lucee.transformer.library.tag.TagLibTag;
 
 public final class QueryExecute extends BIF {
 
-    private static final long serialVersionUID = -4714201927377662500L;
+	private static final long serialVersionUID = -4714201927377662500L;
 
-    public static Object call(PageContext pc, String sql) throws PageException {
-	return call(pc, sql, null, null, null);
-    }
+	public static Object call(PageContext pc, String sql) throws PageException {
+		return call(pc, sql, null, null, null);
+	}
 
-    public static Object call(PageContext pc, String sql, Object params) throws PageException {
-	return call(pc, sql, params, null, null);
-    }
+	public static Object call(PageContext pc, String sql, Object params) throws PageException {
+		return call(pc, sql, params, null, null);
+	}
 
-    public static Object call(PageContext pc, String sql, Object params, Struct options) throws PageException {
-	return call(pc, sql, params, options, null);
-    }
+	public static Object call(PageContext pc, String sql, Object params, Struct options) throws PageException {
+		return call(pc, sql, params, options, null);
+	}
 
-    // name is set by evaluator
-    public static Object call(PageContext pc, String sql, Object params, Struct options, String name) throws PageException {
-	PageContextImpl pci = (PageContextImpl) pc;
-	lucee.runtime.tag.Query qry = (lucee.runtime.tag.Query) pci.use(lucee.runtime.tag.Query.class.getName(), "cfquery", TagLibTag.ATTRIBUTE_TYPE_FIXED);
+	// name is set by evaluator
+	public static Object call(PageContext pc, String sql, Object params, Struct options, String name) throws PageException {
+		PageContextImpl pci = (PageContextImpl) pc;
+		lucee.runtime.tag.Query qry = (lucee.runtime.tag.Query) pci.use(lucee.runtime.tag.Query.class.getName(), "cfquery", TagLibTag.ATTRIBUTE_TYPE_FIXED);
 
-	try {
-	    try {
-		qry.hasBody(true);
-		// set attributes
-		qry.setReturnVariable(true);
-		qry.setName(StringUtil.isEmpty(name) ? "QueryExecute" : name);
-		if (options != null) TagUtil.setAttributeCollection(pc, qry, null, options, TagLibTag.ATTRIBUTE_TYPE_FIXED);
-		qry.setParams(params);
-
-		int res = qry.doStartTag();
-		pc.initBody(qry, res);
-		pc.forceWrite(sql);
-		qry.doAfterBody();
-	    }
-	    catch (Throwable t) {
-		ExceptionUtil.rethrowIfNecessary(t);
 		try {
-		    qry.doCatch(t);
+			try {
+				qry.hasBody(true);
+				// set attributes
+				qry.setReturnVariable(true);
+				qry.setName(StringUtil.isEmpty(name) ? "QueryExecute" : name);
+				if (options != null) TagUtil.setAttributeCollection(pc, qry, null, options, TagLibTag.ATTRIBUTE_TYPE_FIXED);
+				qry.setParams(params);
+
+				int res = qry.doStartTag();
+				pc.initBody(qry, res);
+				pc.forceWrite(sql);
+				qry.doAfterBody();
+			}
+			catch (Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
+				try {
+					qry.doCatch(t);
+				}
+				catch (Throwable t2) {
+					ExceptionUtil.rethrowIfNecessary(t);
+					throw Caster.toPageException(t2);
+				}
+			}
+			finally {
+				pc.popBody();
+				qry.doFinally();
+			}
+			qry.doEndTag();
+			return qry.getReturnVariable();
 		}
-		catch (Throwable t2) {
-		    ExceptionUtil.rethrowIfNecessary(t);
-		    throw Caster.toPageException(t2);
+		finally {
+			pci.reuse(qry);
 		}
-	    }
-	    finally {
-		pc.popBody();
-		qry.doFinally();
-	    }
-	    qry.doEndTag();
-	    return qry.getReturnVariable();
-	}
-	finally {
-	    pci.reuse(qry);
+
 	}
 
-    }
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length < 1 || args.length > 3) throw new FunctionException(pc, "QueryExecute", 1, 3, args.length);
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length < 1 || args.length > 3) throw new FunctionException(pc, "QueryExecute", 1, 3, args.length);
-
-	if (args.length == 3) return call(pc, Caster.toString(args[0]), args[1], Caster.toStruct(args[2]));
-	if (args.length == 2) return call(pc, Caster.toString(args[0]), args[1]);
-	return call(pc, Caster.toString(args[0]));
-    }
+		if (args.length == 3) return call(pc, Caster.toString(args[0]), args[1], Caster.toStruct(args[2]));
+		if (args.length == 2) return call(pc, Caster.toString(args[0]), args[1]);
+		return call(pc, Caster.toString(args[0]));
+	}
 }

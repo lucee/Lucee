@@ -19,5 +19,5 @@
 package lucee.runtime.type.trace;
 
 public interface TraceObject {
-    // public Query getDebugData();
+	// public Query getDebugData();
 }

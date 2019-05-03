@@ -28,20 +28,20 @@ import lucee.commons.digest.Hash;
  */
 public final class Md5 {
 
-    /**
-     * @deprecated use instead <code>Hash.md5(String)</code> return md5 from string as string
-     * @param str plain string to get md5 from
-     * @return md5 from string
-     * @throws IOException
-     */
-    @Deprecated
-    public static String getDigestAsString(String str) throws IOException {
-	try {
-	    return Hash.md5(str);
+	/**
+	 * @deprecated use instead <code>Hash.md5(String)</code> return md5 from string as string
+	 * @param str plain string to get md5 from
+	 * @return md5 from string
+	 * @throws IOException
+	 */
+	@Deprecated
+	public static String getDigestAsString(String str) throws IOException {
+		try {
+			return Hash.md5(str);
+		}
+		catch (NoSuchAlgorithmException e) {
+			throw ExceptionUtil.toIOException(e);
+		}
+		// return new Md5 (str,"UTF-8").getDigest();
 	}
-	catch (NoSuchAlgorithmException e) {
-	    throw ExceptionUtil.toIOException(e);
-	}
-	// return new Md5 (str,"UTF-8").getDigest();
-    }
 }

@@ -24,5 +24,5 @@ import java.io.Writer;
 import lucee.runtime.PageContext;
 
 public interface StringConverter {
-    public void writeOut(PageContext pc, Object source, Writer writer) throws ConverterException, IOException;
+	public void writeOut(PageContext pc, Object source, Writer writer) throws ConverterException, IOException;
 }

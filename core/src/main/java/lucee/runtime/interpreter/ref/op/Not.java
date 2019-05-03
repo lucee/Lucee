@@ -30,28 +30,28 @@ import lucee.runtime.op.Caster;
  */
 public final class Not extends RefSupport implements Ref {
 
-    private Ref ref;
-    private boolean limited;
+	private Ref ref;
+	private boolean limited;
 
-    /**
-     * constructor of the class
-     * 
-     * @param ref
-     */
-    public Not(Ref ref, boolean limited) {
-	this.ref = ref;
-	this.limited = limited;
-    }
+	/**
+	 * constructor of the class
+	 * 
+	 * @param ref
+	 */
+	public Not(Ref ref, boolean limited) {
+		this.ref = ref;
+		this.limited = limited;
+	}
 
-    @Override
-    public Object getValue(PageContext pc) throws PageException {
-	if (limited) throw new InterpreterException("invalid syntax, boolean operations are not supported in a json string.");
-	return (Caster.toBooleanValue(ref.getValue(pc))) ? Boolean.FALSE : Boolean.TRUE;
-    }
+	@Override
+	public Object getValue(PageContext pc) throws PageException {
+		if (limited) throw new InterpreterException("invalid syntax, boolean operations are not supported in a json string.");
+		return (Caster.toBooleanValue(ref.getValue(pc))) ? Boolean.FALSE : Boolean.TRUE;
+	}
 
-    @Override
-    public String getTypeName() {
-	return "operation";
-    }
+	@Override
+	public String getTypeName() {
+		return "operation";
+	}
 
 }

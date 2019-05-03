@@ -26,8 +26,8 @@ import lucee.runtime.ext.function.Function;
 import lucee.runtime.tag.util.DeprecatedUtil;
 
 public final class GetK2ServerDocCountLimit implements Function {
-    public static double call(PageContext pc) {
-	DeprecatedUtil.function(pc, "GetK2ServerDocCountLimit");
-	return 0;
-    }
+	public static double call(PageContext pc) {
+		DeprecatedUtil.function(pc, "GetK2ServerDocCountLimit");
+		return 0;
+	}
 }

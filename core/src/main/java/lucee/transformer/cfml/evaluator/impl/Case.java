@@ -26,7 +26,7 @@ import lucee.transformer.cfml.evaluator.ChildEvaluator;
  */
 public final class Case extends ChildEvaluator {
 
-    public Case() {
-	super("switch");
-    }
+	public Case() {
+		super("switch");
+	}
 }

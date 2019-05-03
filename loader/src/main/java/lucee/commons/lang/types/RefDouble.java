@@ -23,32 +23,32 @@ package lucee.commons.lang.types;
  */
 public interface RefDouble {
 
-    /**
-     * @param value
-     */
-    public void setValue(double value);
+	/**
+	 * @param value
+	 */
+	public void setValue(double value);
 
-    /**
-     * operation plus
-     * 
-     * @param value
-     */
-    public void plus(double value);
+	/**
+	 * operation plus
+	 * 
+	 * @param value
+	 */
+	public void plus(double value);
 
-    /**
-     * operation minus
-     * 
-     * @param value
-     */
-    public void minus(double value);
+	/**
+	 * operation minus
+	 * 
+	 * @param value
+	 */
+	public void minus(double value);
 
-    /**
-     * @return returns value as Double Object
-     */
-    public Double toDouble();
+	/**
+	 * @return returns value as Double Object
+	 */
+	public Double toDouble();
 
-    /**
-     * @return returns value as double
-     */
-    public double toDoubleValue();
+	/**
+	 * @return returns value as double
+	 */
+	public double toDoubleValue();
 }

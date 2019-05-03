@@ -27,14 +27,14 @@ import lucee.runtime.op.Caster;
 
 public class IsEmpty implements Function {
 
-    private static final long serialVersionUID = -2839407878650099024L;
+	private static final long serialVersionUID = -2839407878650099024L;
 
-    public static boolean call(PageContext pc, Object value) throws PageException {
-	if (value == null) return true;
-	if (value instanceof Boolean || value instanceof Number) return false;
+	public static boolean call(PageContext pc, Object value) throws PageException {
+		if (value == null) return true;
+		if (value instanceof Boolean || value instanceof Number) return false;
 
-	double len = Len.invoke(value, -1);
-	if (len == -1) throw new FunctionException(pc, "isEmpty", 1, "variable", "this type  [" + Caster.toTypeName(value) + "] is not supported");
-	return len == 0;
-    }
+		double len = Len.invoke(value, -1);
+		if (len == -1) throw new FunctionException(pc, "isEmpty", 1, "variable", "this type  [" + Caster.toTypeName(value) + "] is not supported");
+		return len == 0;
+	}
 }

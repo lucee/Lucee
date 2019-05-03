@@ -25,19 +25,19 @@ import lucee.runtime.net.mail.MailClient;
  */
 public final class Pop extends _Mail {
 
-    @Override
-    protected int getDefaultPort() {
-	if (isSecure()) return 995;
-	return 110;
-    }
+	@Override
+	protected int getDefaultPort() {
+		if (isSecure()) return 995;
+		return 110;
+	}
 
-    @Override
-    protected String getTagName() {
-	return "Pop";
-    }
+	@Override
+	protected String getTagName() {
+		return "Pop";
+	}
 
-    @Override
-    protected int getType() {
-	return MailClient.TYPE_POP3;
-    }
+	@Override
+	protected int getType() {
+		return MailClient.TYPE_POP3;
+	}
 }

@@ -33,51 +33,51 @@ import lucee.runtime.ext.tag.TagImpl;
  **/
 public final class Abort extends TagImpl {
 
-    /**
-     * The error to display when cfabort executes. The error message displays in the standard CFML error
-     * page.
-     */
-    private String showerror;
-    private int type = lucee.runtime.exp.Abort.SCOPE_REQUEST;
+	/**
+	 * The error to display when cfabort executes. The error message displays in the standard CFML error
+	 * page.
+	 */
+	private String showerror;
+	private int type = lucee.runtime.exp.Abort.SCOPE_REQUEST;
 
-    /**
-     * set the value showerror The error to display when cfabort executes. The error message displays in
-     * the standard CFML error page.
-     * 
-     * @param showerror value to set
-     **/
-    public void setShowerror(String showerror) {
-	this.showerror = showerror;
-    }
+	/**
+	 * set the value showerror The error to display when cfabort executes. The error message displays in
+	 * the standard CFML error page.
+	 * 
+	 * @param showerror value to set
+	 **/
+	public void setShowerror(String showerror) {
+		this.showerror = showerror;
+	}
 
-    /**
-     * sets the type of the abort (page,request)
-     * 
-     * @param type
-     * @throws ApplicationException
-     */
-    public void setType(String type) throws ApplicationException {
-	type = type.toLowerCase().trim();
-	if (type.equals("page")) this.type = lucee.runtime.exp.Abort.SCOPE_PAGE;
-	else if (type.equals("request")) this.type = lucee.runtime.exp.Abort.SCOPE_REQUEST;
-	else throw new ApplicationException("attribute type has an invalid value [" + type + "], valid values are [page,request]");
-    }
+	/**
+	 * sets the type of the abort (page,request)
+	 * 
+	 * @param type
+	 * @throws ApplicationException
+	 */
+	public void setType(String type) throws ApplicationException {
+		type = type.toLowerCase().trim();
+		if (type.equals("page")) this.type = lucee.runtime.exp.Abort.SCOPE_PAGE;
+		else if (type.equals("request")) this.type = lucee.runtime.exp.Abort.SCOPE_REQUEST;
+		else throw new ApplicationException("attribute type has an invalid value [" + type + "], valid values are [page,request]");
+	}
 
-    @Override
-    public int doStartTag() throws PageException {
-	if (showerror != null) throw new AbortException(showerror);
-	throw new lucee.runtime.exp.Abort(type);
-    }
+	@Override
+	public int doStartTag() throws PageException {
+		if (showerror != null) throw new AbortException(showerror);
+		throw new lucee.runtime.exp.Abort(type);
+	}
 
-    @Override
-    public int doEndTag() {
-	return EVAL_PAGE;
-    }
+	@Override
+	public int doEndTag() {
+		return EVAL_PAGE;
+	}
 
-    @Override
-    public void release() {
-	super.release();
-	showerror = null;
-	this.type = lucee.runtime.exp.Abort.SCOPE_REQUEST;
-    }
+	@Override
+	public void release() {
+		super.release();
+		showerror = null;
+		this.type = lucee.runtime.exp.Abort.SCOPE_REQUEST;
+	}
 }

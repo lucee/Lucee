@@ -36,65 +36,65 @@ import lucee.runtime.op.Caster;
 
 public final class LSParseCurrency implements Function {
 
-    private static final long serialVersionUID = -7023441119083818436L;
-    private static WeakHashMap currFormatter = new WeakHashMap();
-    private static WeakHashMap numbFormatter = new WeakHashMap();
+	private static final long serialVersionUID = -7023441119083818436L;
+	private static WeakHashMap currFormatter = new WeakHashMap();
+	private static WeakHashMap numbFormatter = new WeakHashMap();
 
-    public static String call(PageContext pc, String string) throws PageException {
-	return Caster.toString(toDoubleValue(pc.getLocale(), string, false));
-    }
-
-    public static String call(PageContext pc, String string, Locale locale) throws PageException {
-	return Caster.toString(toDoubleValue(locale == null ? pc.getLocale() : locale, string, false));
-    }
-
-    public static double toDoubleValue(Locale locale, String str) throws PageException {
-	return toDoubleValue(locale, str, false);
-    }
-
-    public static double toDoubleValue(Locale locale, String str, boolean strict) throws PageException {
-
-	str = str.trim();
-
-	NumberFormat cnf = getCurrencyInstance(locale);
-	Currency currency = cnf.getCurrency();
-
-	if (currency.getCurrencyCode().equals("XXX")) throw new ExpressionException("Unknown currency [" + locale.toString() + "]");
-
-	cnf.setParseIntegerOnly(false);
-	try {
-	    return cnf.parse(str).doubleValue();
+	public static String call(PageContext pc, String string) throws PageException {
+		return Caster.toString(toDoubleValue(pc.getLocale(), string, false));
 	}
-	catch (ParseException e) {
 
-	    String stripped = str.replace(currency.getSymbol(locale), "").replace(currency.getCurrencyCode(), "");
-
-	    NumberFormat nf = getInstance(locale);
-	    ParsePosition pp = new ParsePosition(0);
-	    Number n = nf.parse(stripped, pp);
-
-	    if (n == null || pp.getIndex() == 0 || (strict && stripped.length() != pp.getIndex()))
-		throw new ExpressionException(String.format("Unparseable value [%s] for currency %s", str, locale.toString()));
-
-	    return n.doubleValue();
+	public static String call(PageContext pc, String string, Locale locale) throws PageException {
+		return Caster.toString(toDoubleValue(locale == null ? pc.getLocale() : locale, string, false));
 	}
-    }
 
-    private static NumberFormat getInstance(Locale locale) {
-	Object o = numbFormatter.get(locale);
-	if (o != null) return (NumberFormat) o;
+	public static double toDoubleValue(Locale locale, String str) throws PageException {
+		return toDoubleValue(locale, str, false);
+	}
 
-	NumberFormat nf = NumberFormat.getInstance(locale);
-	numbFormatter.put(locale, nf);
-	return nf;
-    }
+	public static double toDoubleValue(Locale locale, String str, boolean strict) throws PageException {
 
-    private static NumberFormat getCurrencyInstance(Locale locale) {
-	Object o = currFormatter.get(locale);
-	if (o != null) return (NumberFormat) o;
+		str = str.trim();
 
-	NumberFormat nf = NumberFormat.getCurrencyInstance(locale);
-	currFormatter.put(locale, nf);
-	return nf;
-    }
+		NumberFormat cnf = getCurrencyInstance(locale);
+		Currency currency = cnf.getCurrency();
+
+		if (currency.getCurrencyCode().equals("XXX")) throw new ExpressionException("Unknown currency [" + locale.toString() + "]");
+
+		cnf.setParseIntegerOnly(false);
+		try {
+			return cnf.parse(str).doubleValue();
+		}
+		catch (ParseException e) {
+
+			String stripped = str.replace(currency.getSymbol(locale), "").replace(currency.getCurrencyCode(), "");
+
+			NumberFormat nf = getInstance(locale);
+			ParsePosition pp = new ParsePosition(0);
+			Number n = nf.parse(stripped, pp);
+
+			if (n == null || pp.getIndex() == 0 || (strict && stripped.length() != pp.getIndex()))
+				throw new ExpressionException(String.format("Unparseable value [%s] for currency %s", str, locale.toString()));
+
+			return n.doubleValue();
+		}
+	}
+
+	private static NumberFormat getInstance(Locale locale) {
+		Object o = numbFormatter.get(locale);
+		if (o != null) return (NumberFormat) o;
+
+		NumberFormat nf = NumberFormat.getInstance(locale);
+		numbFormatter.put(locale, nf);
+		return nf;
+	}
+
+	private static NumberFormat getCurrencyInstance(Locale locale) {
+		Object o = currFormatter.get(locale);
+		if (o != null) return (NumberFormat) o;
+
+		NumberFormat nf = NumberFormat.getCurrencyInstance(locale);
+		currFormatter.put(locale, nf);
+		return nf;
+	}
 }

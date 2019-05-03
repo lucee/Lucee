@@ -6,8 +6,8 @@ import java.sql.SQLException;
 
 public interface DatasourceConnectionPro extends DatasourceConnection {
 
-    public boolean isAutoCommit() throws SQLException;
+	public boolean isAutoCommit() throws SQLException;
 
-    public void setAutoCommit(boolean setting) throws SQLException;
+	public void setAutoCommit(boolean setting) throws SQLException;
 
 }

@@ -30,29 +30,29 @@ import lucee.runtime.type.ObjectWrap;
 
 public final class IsCustomFunction implements Function {
 
-    private static final long serialVersionUID = 1578909692090122692L;
+	private static final long serialVersionUID = 1578909692090122692L;
 
-    public static boolean call(PageContext pc, Object object) throws FunctionException {
-	return call(pc, object, null);
-    }
-
-    public static boolean call(PageContext pc, Object object, String type) throws FunctionException {
-	if (object instanceof ObjectWrap) {
-	    return call(pc, ((ObjectWrap) object).getEmbededObject(null), type);
+	public static boolean call(PageContext pc, Object object) throws FunctionException {
+		return call(pc, object, null);
 	}
-	// no function at all
-	if (!Decision.isUserDefinedFunction(object)) return false;
 
-	// no type we are good
-	if (StringUtil.isEmpty(type, true)) return true;
+	public static boolean call(PageContext pc, Object object, String type) throws FunctionException {
+		if (object instanceof ObjectWrap) {
+			return call(pc, ((ObjectWrap) object).getEmbededObject(null), type);
+		}
+		// no function at all
+		if (!Decision.isUserDefinedFunction(object)) return false;
 
-	// check type
-	type = type.trim();
-	if ("closure".equalsIgnoreCase(type)) return Decision.isClosure(object);
-	if ("lambda".equalsIgnoreCase(type)) return Decision.isLambda(object);
-	if ("udf".equalsIgnoreCase(type)) return !Decision.isLambda(object) && !Decision.isClosure(object);
+		// no type we are good
+		if (StringUtil.isEmpty(type, true)) return true;
 
-	throw new FunctionException(pc, "IsCustomFunction", 2, "type", "function type [" + type + "] is invalid, only the following values are valid [closure,lambda,udf]");
+		// check type
+		type = type.trim();
+		if ("closure".equalsIgnoreCase(type)) return Decision.isClosure(object);
+		if ("lambda".equalsIgnoreCase(type)) return Decision.isLambda(object);
+		if ("udf".equalsIgnoreCase(type)) return !Decision.isLambda(object) && !Decision.isClosure(object);
 
-    }
+		throw new FunctionException(pc, "IsCustomFunction", 2, "type", "function type [" + type + "] is invalid, only the following values are valid [closure,lambda,udf]");
+
+	}
 }

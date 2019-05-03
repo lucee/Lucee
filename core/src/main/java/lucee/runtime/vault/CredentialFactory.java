@@ -16,32 +16,32 @@ import lucee.runtime.coder.CoderException;
 
 public class CredentialFactory {
 
-    private static KeyPair kp;
+	private static KeyPair kp;
 
-    static {
-	try {
-	    kp = RSA.createKeyPair();
+	static {
+		try {
+			kp = RSA.createKeyPair();
+		}
+		catch (NoSuchAlgorithmException e) {
+			e.printStackTrace();
+		}
+
 	}
-	catch (NoSuchAlgorithmException e) {
-	    e.printStackTrace();
+
+	public static Credential getCredential(String key, String username, String password)
+			throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeySpecException, IOException {
+		byte[] usr = RSA.encrypt(username, kp.getPrivate());
+		byte[] pw = RSA.encrypt(password, kp.getPrivate());
+		return new Credential(key, usr, pw);
 	}
 
-    }
+	public static String getUsername(Credential c) throws InvalidKeyException, UnsupportedEncodingException, NoSuchAlgorithmException, NoSuchPaddingException,
+			IllegalBlockSizeException, BadPaddingException, CoderException {
+		return c.getUsername(kp.getPublic());
+	}
 
-    public static Credential getCredential(String key, String username, String password)
-	    throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidKeySpecException, IOException {
-	byte[] usr = RSA.encrypt(username, kp.getPrivate());
-	byte[] pw = RSA.encrypt(password, kp.getPrivate());
-	return new Credential(key, usr, pw);
-    }
-
-    public static String getUsername(Credential c) throws InvalidKeyException, UnsupportedEncodingException, NoSuchAlgorithmException, NoSuchPaddingException,
-	    IllegalBlockSizeException, BadPaddingException, CoderException {
-	return c.getUsername(kp.getPublic());
-    }
-
-    public static String getPassword(Credential c) throws InvalidKeyException, UnsupportedEncodingException, NoSuchAlgorithmException, NoSuchPaddingException,
-	    IllegalBlockSizeException, BadPaddingException, CoderException {
-	return c.getPassword(kp.getPublic());
-    }
+	public static String getPassword(Credential c) throws InvalidKeyException, UnsupportedEncodingException, NoSuchAlgorithmException, NoSuchPaddingException,
+			IllegalBlockSizeException, BadPaddingException, CoderException {
+		return c.getPassword(kp.getPublic());
+	}
 }

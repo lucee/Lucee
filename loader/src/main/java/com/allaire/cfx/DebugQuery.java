@@ -26,45 +26,45 @@ import lucee.runtime.cfx.QueryWrap;
  */
 public final class DebugQuery extends QueryWrap {
 
-    /**
-     * Constructor of the DebugQuery
-     * 
-     * @param name query name
-     * @param columns column names
-     * @param data query data
-     * @throws IllegalArgumentException thrown when arguments are invalid
-     */
-    public DebugQuery(final String name, final String[] columns, final String[][] data) throws IllegalArgumentException {
-	super(toQuery(name, columns, data), name);
-    }
-
-    /**
-     * Constructor of the DebugQuery
-     * 
-     * @param name query name
-     * @param columns column names
-     * @throws IllegalArgumentException thrown when arguments are invalid
-     */
-    public DebugQuery(final String name, final String[] columns) throws IllegalArgumentException {
-	super(toQuery(name, columns, 0), name);
-    }
-
-    private static lucee.runtime.type.Query toQuery(final String name, final String[] columns, final String[][] data) {
-
-	final lucee.runtime.type.Query query = toQuery(name, columns, data.length);
-
-	for (int row = 0; row < data.length; row++) {
-	    final int len = data[row].length > columns.length ? columns.length : data[row].length;
-	    for (int col = 0; col < len; col++)
-		try {
-		    query.setAt(columns[col], row + 1, data[row][col]);
-		}
-		catch (final Exception e) {}
+	/**
+	 * Constructor of the DebugQuery
+	 * 
+	 * @param name query name
+	 * @param columns column names
+	 * @param data query data
+	 * @throws IllegalArgumentException thrown when arguments are invalid
+	 */
+	public DebugQuery(final String name, final String[] columns, final String[][] data) throws IllegalArgumentException {
+		super(toQuery(name, columns, data), name);
 	}
-	return query;
-    }
 
-    private static lucee.runtime.type.Query toQuery(final String name, final String[] columns, final int rows) {
-	return CFMLEngineFactory.getInstance().getCreationUtil().createQuery(columns, rows, name);
-    }
+	/**
+	 * Constructor of the DebugQuery
+	 * 
+	 * @param name query name
+	 * @param columns column names
+	 * @throws IllegalArgumentException thrown when arguments are invalid
+	 */
+	public DebugQuery(final String name, final String[] columns) throws IllegalArgumentException {
+		super(toQuery(name, columns, 0), name);
+	}
+
+	private static lucee.runtime.type.Query toQuery(final String name, final String[] columns, final String[][] data) {
+
+		final lucee.runtime.type.Query query = toQuery(name, columns, data.length);
+
+		for (int row = 0; row < data.length; row++) {
+			final int len = data[row].length > columns.length ? columns.length : data[row].length;
+			for (int col = 0; col < len; col++)
+				try {
+					query.setAt(columns[col], row + 1, data[row][col]);
+				}
+				catch (final Exception e) {}
+		}
+		return query;
+	}
+
+	private static lucee.runtime.type.Query toQuery(final String name, final String[] columns, final int rows) {
+		return CFMLEngineFactory.getInstance().getCreationUtil().createQuery(columns, rows, name);
+	}
 }

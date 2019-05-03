@@ -31,25 +31,25 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 
 public class JSONDateFormat {
 
-    public static final String PATTERN_CF = "MMMM, dd yyyy HH:mm:ss Z";
-    public static final String PATTERN_ISO8601 = "yyyy-MM-dd'T'HH:mm:ssZ"; // preferred pattern for json
+	public static final String PATTERN_CF = "MMMM, dd yyyy HH:mm:ss Z";
+	public static final String PATTERN_ISO8601 = "yyyy-MM-dd'T'HH:mm:ssZ"; // preferred pattern for json
 
-    private static ReferenceMap<String, DateFormat> map = new ReferenceMap<String, DateFormat>();
-    // private static DateFormat format=null;
-    private static Locale locale = Locale.ENGLISH;
-    private final static Object sync = new SerializableObject();
+	private static ReferenceMap<String, DateFormat> map = new ReferenceMap<String, DateFormat>();
+	// private static DateFormat format=null;
+	private static Locale locale = Locale.ENGLISH;
+	private final static Object sync = new SerializableObject();
 
-    public static String format(Date date, TimeZone tz, String pattern) {
-	tz = ThreadLocalPageContext.getTimeZone(tz);
-	String id = locale.hashCode() + "-" + tz.getID();
-	synchronized (sync) {
-	    DateFormat format = map.get(id);
-	    if (format == null) {
-		format = new SimpleDateFormat(pattern, locale);
-		format.setTimeZone(tz);
-		map.put(id, format);
-	    }
-	    return format.format(date);
+	public static String format(Date date, TimeZone tz, String pattern) {
+		tz = ThreadLocalPageContext.getTimeZone(tz);
+		String id = locale.hashCode() + "-" + tz.getID();
+		synchronized (sync) {
+			DateFormat format = map.get(id);
+			if (format == null) {
+				format = new SimpleDateFormat(pattern, locale);
+				format.setTimeZone(tz);
+				map.put(id, format);
+			}
+			return format.format(date);
+		}
 	}
-    }
 }

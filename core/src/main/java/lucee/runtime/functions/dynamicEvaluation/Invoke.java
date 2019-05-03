@@ -29,35 +29,35 @@ import lucee.runtime.type.StructImpl;
 
 public class Invoke implements Function {
 
-    private static final long serialVersionUID = 3451409617437302246L;
-    private static final Struct EMPTY = new StructImpl();
+	private static final long serialVersionUID = 3451409617437302246L;
+	private static final Struct EMPTY = new StructImpl();
 
-    public static Object call(PageContext pc, Object obj, String name) throws PageException {
-	return call(pc, obj, name, null);
-    }
-
-    public static Object call(PageContext pc, Object obj, String name, Object arguments) throws PageException {
-	if (arguments == null) arguments = EMPTY;
-
-	if (obj instanceof String) {
-	    obj = pc.loadComponent(Caster.toString(obj));
+	public static Object call(PageContext pc, Object obj, String name) throws PageException {
+		return call(pc, obj, name, null);
 	}
 
-	if (Decision.isStruct(arguments)) {
-	    Struct args = Caster.toStruct(arguments);
-	    if (args == arguments && args != null) args = (Struct) args.duplicate(false);
-	    return pc.getVariableUtil().callFunctionWithNamedValues(pc, obj, KeyImpl.init(name), args);
-	}
-	Object[] args = Caster.toNativeArray(arguments);
-	if (args == arguments && args != null) {
-	    Object[] tmp = new Object[args.length];
-	    for (int i = 0; i < args.length; i++) {
-		tmp[i] = args[i];
-	    }
-	    args = tmp;
-	}
-	return pc.getVariableUtil().callFunctionWithoutNamedValues(pc, obj, KeyImpl.init(name), args);
+	public static Object call(PageContext pc, Object obj, String name, Object arguments) throws PageException {
+		if (arguments == null) arguments = EMPTY;
 
-    }
+		if (obj instanceof String) {
+			obj = pc.loadComponent(Caster.toString(obj));
+		}
+
+		if (Decision.isStruct(arguments)) {
+			Struct args = Caster.toStruct(arguments);
+			if (args == arguments && args != null) args = (Struct) args.duplicate(false);
+			return pc.getVariableUtil().callFunctionWithNamedValues(pc, obj, KeyImpl.init(name), args);
+		}
+		Object[] args = Caster.toNativeArray(arguments);
+		if (args == arguments && args != null) {
+			Object[] tmp = new Object[args.length];
+			for (int i = 0; i < args.length; i++) {
+				tmp[i] = args[i];
+			}
+			args = tmp;
+		}
+		return pc.getVariableUtil().callFunctionWithoutNamedValues(pc, obj, KeyImpl.init(name), args);
+
+	}
 
 }

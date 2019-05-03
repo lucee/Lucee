@@ -33,34 +33,34 @@ import lucee.runtime.type.ArrayImpl;
  */
 public class Array_ extends BIF {
 
-    private static final long serialVersionUID = 4974431571073577001L;
+	private static final long serialVersionUID = 4974431571073577001L;
 
-    /**
-     * @param pc
-     * @param objArr
-     * @return
-     * @throws ExpressionException
-     */
-    public static Array call(PageContext pc, Object[] objArr) {
-	/*
-	 * if(objArr.length==0) return new ArrayImpl(objArr);
-	 * 
-	 * 
-	 * // ordered struct if(allowStruct && objArr[0] instanceof FunctionValue) { return
-	 * Struct_._call(objArr,
-	 * "invalid argument for literal ordered struct, only named arguments are allowed like {name:\"value\",name2:\"value2\"}"
-	 * ,Struct.TYPE_LINKED); }
-	 * 
-	 * // for(int i=0;i<objArr.length;i++) { if(objArr[i] instanceof FunctionValue) throw new
-	 * ExpressionException("invalid argument for literal array, named arguments are not allowed");
-	 * //objArr[i]=((FunctionValue)objArr[i]).getValue(); }
+	/**
+	 * @param pc
+	 * @param objArr
+	 * @return
+	 * @throws ExpressionException
 	 */
+	public static Array call(PageContext pc, Object[] objArr) {
+		/*
+		 * if(objArr.length==0) return new ArrayImpl(objArr);
+		 * 
+		 * 
+		 * // ordered struct if(allowStruct && objArr[0] instanceof FunctionValue) { return
+		 * Struct_._call(objArr,
+		 * "invalid argument for literal ordered struct, only named arguments are allowed like {name:\"value\",name2:\"value2\"}"
+		 * ,Struct.TYPE_LINKED); }
+		 * 
+		 * // for(int i=0;i<objArr.length;i++) { if(objArr[i] instanceof FunctionValue) throw new
+		 * ExpressionException("invalid argument for literal array, named arguments are not allowed");
+		 * //objArr[i]=((FunctionValue)objArr[i]).getValue(); }
+		 */
 
-	return new ArrayImpl(objArr);
-    }
+		return new ArrayImpl(objArr);
+	}
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	return call(pc, (Object[]) args[0]);
-    }
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		return call(pc, (Object[]) args[0]);
+	}
 }

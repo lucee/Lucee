@@ -24,15 +24,15 @@ import lucee.loader.engine.CFMLEngine;
 
 public class CFMLEngineActivator {
 
-    private ServiceRegistration<?> registration;
+	private ServiceRegistration<?> registration;
 
-    // @Override
-    public void start(BundleContext bundleContext) throws Exception {
-	registration = bundleContext.registerService(CFMLEngine.class.getName(), CFMLEngineImpl.getInstance(), null);
-    }
+	// @Override
+	public void start(BundleContext bundleContext) throws Exception {
+		registration = bundleContext.registerService(CFMLEngine.class.getName(), CFMLEngineImpl.getInstance(), null);
+	}
 
-    // @Override
-    public void stop(BundleContext bundleContext) throws Exception {
-	registration.unregister();
-    }
+	// @Override
+	public void stop(BundleContext bundleContext) throws Exception {
+		registration.unregister();
+	}
 }

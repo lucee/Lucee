@@ -25,8 +25,8 @@ import lucee.runtime.orm.ORMUtil;
 
 public class EntityMerge {
 
-    public static Object call(PageContext pc, Object obj) throws PageException {
-	ORMSession session = ORMUtil.getSession(pc);
-	return session.merge(pc, obj);
-    }
+	public static Object call(PageContext pc, Object obj) throws PageException {
+		ORMSession session = ORMUtil.getSession(pc);
+		return session.merge(pc, obj);
+	}
 }

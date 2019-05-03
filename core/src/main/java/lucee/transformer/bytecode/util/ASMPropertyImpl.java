@@ -24,56 +24,56 @@ import lucee.runtime.exp.PageException;
 
 public final class ASMPropertyImpl implements ASMProperty {
 
-    private Type type;
-    private String name;
-    private Class clazz;
+	private Type type;
+	private String name;
+	private Class clazz;
 
-    public ASMPropertyImpl(Class type, String name) throws PageException {
-	this.type = ASMUtil.toType(type, true);
-	this.name = name;
-	this.clazz = type;
-    }
+	public ASMPropertyImpl(Class type, String name) throws PageException {
+		this.type = ASMUtil.toType(type, true);
+		this.name = name;
+		this.clazz = type;
+	}
 
-    public ASMPropertyImpl(String type, String name) throws PageException {
-	this.type = ASMUtil.toType(type, true);
-	this.name = name;
-    }
+	public ASMPropertyImpl(String type, String name) throws PageException {
+		this.type = ASMUtil.toType(type, true);
+		this.name = name;
+	}
 
-    public ASMPropertyImpl(Type type, String name) {
-	this.type = type;
-	this.name = name;
-    }
+	public ASMPropertyImpl(Type type, String name) {
+		this.type = type;
+		this.name = name;
+	}
 
-    /**
-     * @return the name
-     */
-    @Override
-    public String getName() {
-	return name;
-    }
+	/**
+	 * @return the name
+	 */
+	@Override
+	public String getName() {
+		return name;
+	}
 
-    /**
-     * @return the type
-     */
-    @Override
-    public Type getASMType() {
-	return type;
-    }
+	/**
+	 * @return the type
+	 */
+	@Override
+	public Type getASMType() {
+		return type;
+	}
 
-    /**
-     *
-     * @see java.lang.Object#toString()
-     */
-    @Override
-    public String toString() {
-	return "class:" + (clazz == null ? null : clazz.getName()) + ";name:" + name + ";type:" + type.getClassName();
-    }
+	/**
+	 *
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "class:" + (clazz == null ? null : clazz.getName()) + ";name:" + name + ";type:" + type.getClassName();
+	}
 
-    /**
-     * @return the clazz
-     */
-    @Override
-    public Class getClazz() {
-	return clazz;
-    }
+	/**
+	 * @return the clazz
+	 */
+	@Override
+	public Class getClazz() {
+		return clazz;
+	}
 }

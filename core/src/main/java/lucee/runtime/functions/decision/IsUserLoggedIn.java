@@ -27,8 +27,8 @@ import lucee.runtime.ext.function.Function;
 import lucee.runtime.security.Credential;
 
 public final class IsUserLoggedIn implements Function {
-    public static boolean call(PageContext pc) throws PageException {
-	Credential ru = pc.getRemoteUser();
-	return ru != null;
-    }
+	public static boolean call(PageContext pc) throws PageException {
+		Credential ru = pc.getRemoteUser();
+		return ru != null;
+	}
 }

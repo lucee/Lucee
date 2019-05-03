@@ -41,62 +41,62 @@ import lucee.transformer.util.SourceCode;
 
 public final class Sprite extends EvaluatorSupport {
 
-    // private static final Expression DELIMITER = LitString.toExprString(",");
-    private static Map<String, Previous> sprites = new HashMap<String, Previous>();
+	// private static final Expression DELIMITER = LitString.toExprString(",");
+	private static Map<String, Previous> sprites = new HashMap<String, Previous>();
 
-    @Override
-    public void evaluate(Tag tag, TagLibTag tagLibTag, FunctionLib[] flibs) throws EvaluatorException {
-	String id = "sprite_" + IDGenerator.intId();
-	try {
-	    Page page = ASMUtil.getAncestorPage(tag);
+	@Override
+	public void evaluate(Tag tag, TagLibTag tagLibTag, FunctionLib[] flibs) throws EvaluatorException {
+		String id = "sprite_" + IDGenerator.intId();
+		try {
+			Page page = ASMUtil.getAncestorPage(tag);
 
-	    SourceCode sc = page.getSourceCode();
+			SourceCode sc = page.getSourceCode();
 
-	    String key = sc.id();
-	    key = HashUtil.create64BitHashAsString(Thread.currentThread().getId() + ":" + key);
+			String key = sc.id();
+			key = HashUtil.create64BitHashAsString(Thread.currentThread().getId() + ":" + key);
 
-	    Expression src = tag.getAttribute("src").getValue();
+			Expression src = tag.getAttribute("src").getValue();
 
-	    // get data from previous sprites
-	    Previous previous = sprites.get(key);
-	    if (previous != null) {
-		previous.tag.removeAttribute("_ids");
-		previous.tag.removeAttribute("_srcs");
-		previous.tag = tag;
-	    }
-	    else {
-		sprites.put(key, previous = new Previous(tag));
-	    }
+			// get data from previous sprites
+			Previous previous = sprites.get(key);
+			if (previous != null) {
+				previous.tag.removeAttribute("_ids");
+				previous.tag.removeAttribute("_srcs");
+				previous.tag = tag;
+			}
+			else {
+				sprites.put(key, previous = new Previous(tag));
+			}
 
-	    previous.ids.add(id);
-	    if (previous.src == null) previous.src = src;
-	    else {
-		previous.src = tag.getFactory().opString(previous.src, tag.getFactory().createLitString(","));
-		previous.src = tag.getFactory().opString(previous.src, src);
-	    }
+			previous.ids.add(id);
+			if (previous.src == null) previous.src = src;
+			else {
+				previous.src = tag.getFactory().opString(previous.src, tag.getFactory().createLitString(","));
+				previous.src = tag.getFactory().opString(previous.src, src);
+			}
 
-	    tag.addAttribute(new Attribute(false, "_id", tag.getFactory().createLitString(id), "string"));
-	    tag.addAttribute(new Attribute(false, "_ids", tag.getFactory().createLitString(lucee.runtime.type.util.ListUtil.listToList(previous.ids, ",")), "string"));
+			tag.addAttribute(new Attribute(false, "_id", tag.getFactory().createLitString(id), "string"));
+			tag.addAttribute(new Attribute(false, "_ids", tag.getFactory().createLitString(lucee.runtime.type.util.ListUtil.listToList(previous.ids, ",")), "string"));
 
-	    tag.addAttribute(new Attribute(false, "_srcs", previous.src, "string"));
+			tag.addAttribute(new Attribute(false, "_srcs", previous.src, "string"));
+
+		}
+		catch (Throwable e) {// TODO handle Excpetion much more precise
+			ExceptionUtil.rethrowIfNecessary(e);
+			throw new PageRuntimeException(Caster.toPageException(e));
+		}
 
 	}
-	catch (Throwable e) {// TODO handle Excpetion much more precise
-	    ExceptionUtil.rethrowIfNecessary(e);
-	    throw new PageRuntimeException(Caster.toPageException(e));
+
+	private static class Previous {
+		public Previous(Tag tag) {
+			this.tag = tag;
+		}
+
+		private List<String> ids = new ArrayList<String>();
+		private Expression src = null;
+		private Tag tag;
+
 	}
-
-    }
-
-    private static class Previous {
-	public Previous(Tag tag) {
-	    this.tag = tag;
-	}
-
-	private List<String> ids = new ArrayList<String>();
-	private Expression src = null;
-	private Tag tag;
-
-    }
 
 }

@@ -10,26 +10,26 @@ import lucee.runtime.engine.ThreadLocalPageContext;
  */
 public abstract class PageContextThread extends Thread {
 
-    private PageContext pageContext;
+	private PageContext pageContext;
 
-    public PageContextThread(PageContext pc) {
-	this.pageContext = pc;
-	setDaemon(true);
-    }
-
-    @Override
-    public final void run() {
-	Thread t = pageContext.getThread();
-	ThreadLocalPageContext.register(pageContext);// register the PageContext to this thread
-	try {
-	    run(pageContext);
-	}
-	finally {
-	    ThreadLocalPageContext.release();
-	    if (t != null) ((PageContextImpl) pageContext).setThread(t);
+	public PageContextThread(PageContext pc) {
+		this.pageContext = pc;
+		setDaemon(true);
 	}
 
-    }
+	@Override
+	public final void run() {
+		Thread t = pageContext.getThread();
+		ThreadLocalPageContext.register(pageContext);// register the PageContext to this thread
+		try {
+			run(pageContext);
+		}
+		finally {
+			ThreadLocalPageContext.release();
+			if (t != null) ((PageContextImpl) pageContext).setThread(t);
+		}
 
-    public abstract void run(PageContext pageContext);
+	}
+
+	public abstract void run(PageContext pageContext);
 }

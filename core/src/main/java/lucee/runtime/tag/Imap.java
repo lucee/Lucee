@@ -22,19 +22,19 @@ import lucee.runtime.net.mail.MailClient;
 
 public class Imap extends _Mail {
 
-    @Override
-    protected int getDefaultPort() {
-	if (isSecure()) return 993;
-	return 143;
-    }
+	@Override
+	protected int getDefaultPort() {
+		if (isSecure()) return 993;
+		return 143;
+	}
 
-    @Override
-    protected String getTagName() {
-	return "Imap";
-    }
+	@Override
+	protected String getTagName() {
+		return "Imap";
+	}
 
-    @Override
-    protected int getType() {
-	return MailClient.TYPE_IMAP;
-    }
+	@Override
+	protected int getType() {
+		return MailClient.TYPE_IMAP;
+	}
 }

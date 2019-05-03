@@ -24,11 +24,11 @@ import lucee.transformer.bytecode.BytecodeContext;
 
 public interface LoopVisitor {
 
-    public void visitContinue(BytecodeContext bc);
+	public void visitContinue(BytecodeContext bc);
 
-    public void visitBreak(BytecodeContext bc);
+	public void visitBreak(BytecodeContext bc);
 
-    public Label getContinueLabel();
+	public Label getContinueLabel();
 
-    public Label getBreakLabel();
+	public Label getBreakLabel();
 }

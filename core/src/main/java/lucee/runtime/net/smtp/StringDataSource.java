@@ -34,56 +34,56 @@ import lucee.commons.lang.StringUtil;
 
 public final class StringDataSource implements DataSource {
 
-    private final String text;
-    private final String ct;
-    private final CharSet charset;
+	private final String text;
+	private final String ct;
+	private final CharSet charset;
 
-    public final static char CR = (char) 13;
-    public final static char LF = (char) 10;
+	public final static char CR = (char) 13;
+	public final static char LF = (char) 10;
 
-    public StringDataSource(String text, String ct, CharSet charset, int maxLineLength) {
+	public StringDataSource(String text, String ct, CharSet charset, int maxLineLength) {
 
-	this.text = wrapText(text, maxLineLength);
-	this.ct = ct;
-	this.charset = charset;
-    }
-
-    @Override
-    public String getContentType() {
-	return ct;
-    }
-
-    @Override
-    public InputStream getInputStream() throws IOException {
-	return new ByteArrayInputStream(charset == null ? text.getBytes() : text.getBytes(CharsetUtil.toCharset(charset)));
-    }
-
-    @Override
-    public String getName() {
-	return "StringDataSource";
-    }
-
-    @Override
-    public OutputStream getOutputStream() throws IOException {
-	throw new IOException("no access to write");
-    }
-
-    public static String wrapText(String text, int maxLineLength) {
-
-	if (StringUtil.isEmpty(text)) return "";
-
-	StringBuilder sb = new StringBuilder(text.length());
-	Scanner scanner = new Scanner(text);
-	String line;
-
-	while (scanner.hasNextLine()) {
-
-	    line = scanner.nextLine();
-	    if (line.length() > maxLineLength) line = WordUtils.wrap(line, maxLineLength);
-	    sb.append(line).append(CR).append(LF);
+		this.text = wrapText(text, maxLineLength);
+		this.ct = ct;
+		this.charset = charset;
 	}
 
-	return sb.toString();
-    }
+	@Override
+	public String getContentType() {
+		return ct;
+	}
+
+	@Override
+	public InputStream getInputStream() throws IOException {
+		return new ByteArrayInputStream(charset == null ? text.getBytes() : text.getBytes(CharsetUtil.toCharset(charset)));
+	}
+
+	@Override
+	public String getName() {
+		return "StringDataSource";
+	}
+
+	@Override
+	public OutputStream getOutputStream() throws IOException {
+		throw new IOException("no access to write");
+	}
+
+	public static String wrapText(String text, int maxLineLength) {
+
+		if (StringUtil.isEmpty(text)) return "";
+
+		StringBuilder sb = new StringBuilder(text.length());
+		Scanner scanner = new Scanner(text);
+		String line;
+
+		while (scanner.hasNextLine()) {
+
+			line = scanner.nextLine();
+			if (line.length() > maxLineLength) line = WordUtils.wrap(line, maxLineLength);
+			sb.append(line).append(CR).append(LF);
+		}
+
+		return sb.toString();
+	}
 
 }

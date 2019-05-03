@@ -37,65 +37,65 @@ import lucee.transformer.bytecode.visitor.TryFinallyVisitor;
 
 public final class TagSilent extends TagBase {
 
-    // boolean setSilent()
-    private static final Method SET_SILENT = new Method("setSilent", Types.BOOLEAN_VALUE, new Type[] {});
+	// boolean setSilent()
+	private static final Method SET_SILENT = new Method("setSilent", Types.BOOLEAN_VALUE, new Type[] {});
 
-    // boolean unsetSilent();
-    private static final Method UNSET_SILENT = new Method("unsetSilent", Types.BOOLEAN_VALUE, new Type[] {});
+	// boolean unsetSilent();
+	private static final Method UNSET_SILENT = new Method("unsetSilent", Types.BOOLEAN_VALUE, new Type[] {});
 
-    private FlowControlFinalImpl fcf;
+	private FlowControlFinalImpl fcf;
 
-    public TagSilent(Factory f, Position start, Position end) {
-	super(f, start, end);
-    }
+	public TagSilent(Factory f, Position start, Position end) {
+		super(f, start, end);
+	}
 
-    /**
-     *
-     * @see lucee.transformer.bytecode.statement.tag.TagBase#_writeOut(org.objectweb.asm.commons.GeneratorAdapter)
-     */
-    @Override
-    public void _writeOut(BytecodeContext bc) throws TransformerException {
-	final GeneratorAdapter adapter = bc.getAdapter();
+	/**
+	 *
+	 * @see lucee.transformer.bytecode.statement.tag.TagBase#_writeOut(org.objectweb.asm.commons.GeneratorAdapter)
+	 */
+	@Override
+	public void _writeOut(BytecodeContext bc) throws TransformerException {
+		final GeneratorAdapter adapter = bc.getAdapter();
 
-	final int silentMode = adapter.newLocal(Types.BOOLEAN_VALUE);
+		final int silentMode = adapter.newLocal(Types.BOOLEAN_VALUE);
 
-	// boolean silentMode= pc.setSilent();
-	adapter.loadArg(0);
-	adapter.invokeVirtual(Types.PAGE_CONTEXT, SET_SILENT);
-	adapter.storeLocal(silentMode);
-
-	// call must be
-	TryFinallyVisitor tfv = new TryFinallyVisitor(new OnFinally() {
-	    @Override
-	    public void _writeOut(BytecodeContext bc) {
-		// if(fcf!=null &&
-		// fcf.getAfterFinalGOTOLabel()!=null)ASMUtil.visitLabel(adapter,fcf.getFinalEntryLabel());
-		// if(!silentMode)pc.unsetSilent();
-		Label _if = new Label();
-		adapter.loadLocal(silentMode);
-		NotVisitor.visitNot(bc);
-		adapter.ifZCmp(Opcodes.IFEQ, _if);
+		// boolean silentMode= pc.setSilent();
 		adapter.loadArg(0);
-		adapter.invokeVirtual(Types.PAGE_CONTEXT, UNSET_SILENT);
-		adapter.pop();
+		adapter.invokeVirtual(Types.PAGE_CONTEXT, SET_SILENT);
+		adapter.storeLocal(silentMode);
 
-		adapter.visitLabel(_if);
-		/*
-		 * if(fcf!=null) { Label l = fcf.getAfterFinalGOTOLabel();
-		 * if(l!=null)adapter.visitJumpInsn(Opcodes.GOTO, l); }
-		 */
-	    }
-	}, getFlowControlFinal());
-	tfv.visitTryBegin(bc);
-	getBody().writeOut(bc);
-	tfv.visitTryEnd(bc);
+		// call must be
+		TryFinallyVisitor tfv = new TryFinallyVisitor(new OnFinally() {
+			@Override
+			public void _writeOut(BytecodeContext bc) {
+				// if(fcf!=null &&
+				// fcf.getAfterFinalGOTOLabel()!=null)ASMUtil.visitLabel(adapter,fcf.getFinalEntryLabel());
+				// if(!silentMode)pc.unsetSilent();
+				Label _if = new Label();
+				adapter.loadLocal(silentMode);
+				NotVisitor.visitNot(bc);
+				adapter.ifZCmp(Opcodes.IFEQ, _if);
+				adapter.loadArg(0);
+				adapter.invokeVirtual(Types.PAGE_CONTEXT, UNSET_SILENT);
+				adapter.pop();
 
-    }
+				adapter.visitLabel(_if);
+				/*
+				 * if(fcf!=null) { Label l = fcf.getAfterFinalGOTOLabel();
+				 * if(l!=null)adapter.visitJumpInsn(Opcodes.GOTO, l); }
+				 */
+			}
+		}, getFlowControlFinal());
+		tfv.visitTryBegin(bc);
+		getBody().writeOut(bc);
+		tfv.visitTryEnd(bc);
 
-    @Override
-    public FlowControlFinal getFlowControlFinal() {
-	if (fcf == null) fcf = new FlowControlFinalImpl();
-	return fcf;
-    }
+	}
+
+	@Override
+	public FlowControlFinal getFlowControlFinal() {
+		if (fcf == null) fcf = new FlowControlFinalImpl();
+		return fcf;
+	}
 
 }

@@ -28,8 +28,8 @@ import lucee.runtime.ext.function.Function;
  */
 public final class GetGatewayHelper implements Function {
 
-    // TODO impl. Function GetGatewayHelper
-    public static Object call(PageContext pc, String gatewayID) throws ExpressionException {
-	throw new FunctionNotSupported("GetGatewayHelper");
-    }
+	// TODO impl. Function GetGatewayHelper
+	public static Object call(PageContext pc, String gatewayID) throws ExpressionException {
+		throw new FunctionNotSupported("GetGatewayHelper");
+	}
 }

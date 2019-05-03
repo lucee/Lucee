@@ -27,38 +27,38 @@ import lucee.runtime.type.UDF;
 import lucee.runtime.type.util.KeyConstants;
 
 public class CreateComponent {
-    private static final Object[] EMPTY = new Object[0];
+	private static final Object[] EMPTY = new Object[0];
 
-    public static Component call(PageContext pc, String path) throws PageException {
-	return call(pc, path, null);
-    }
-
-    public static Component call(PageContext pc, String path, Object args) throws PageException {
-
-	// first argument is the component itself
-	Component c = CreateObject.doComponent(pc, path);
-
-	if (c.get(KeyConstants._init, null) instanceof UDF) {
-	    // no arguments
-	    if (args == null) {
-		c.call(pc, KeyConstants._init, EMPTY);
-	    }
-	    // named arguments
-	    else if (Decision.isStruct(args)) {
-		Struct sct = Caster.toStruct(args);
-		c.callWithNamedValues(pc, KeyConstants._init, sct);
-	    }
-	    // not named arguments
-	    else if (Decision.isArray(args)) {
-		Object[] arr = Caster.toNativeArray(args);
-		c.call(pc, KeyConstants._init, arr);
-	    }
-	    else {
-		c.call(pc, KeyConstants._init, new Object[] { args });
-	    }
+	public static Component call(PageContext pc, String path) throws PageException {
+		return call(pc, path, null);
 	}
 
-	return c;
-    }
+	public static Component call(PageContext pc, String path, Object args) throws PageException {
+
+		// first argument is the component itself
+		Component c = CreateObject.doComponent(pc, path);
+
+		if (c.get(KeyConstants._init, null) instanceof UDF) {
+			// no arguments
+			if (args == null) {
+				c.call(pc, KeyConstants._init, EMPTY);
+			}
+			// named arguments
+			else if (Decision.isStruct(args)) {
+				Struct sct = Caster.toStruct(args);
+				c.callWithNamedValues(pc, KeyConstants._init, sct);
+			}
+			// not named arguments
+			else if (Decision.isArray(args)) {
+				Object[] arr = Caster.toNativeArray(args);
+				c.call(pc, KeyConstants._init, arr);
+			}
+			else {
+				c.call(pc, KeyConstants._init, new Object[] { args });
+			}
+		}
+
+		return c;
+	}
 
 }

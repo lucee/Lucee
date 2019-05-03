@@ -25,7 +25,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.ext.function.Function;
 
 public final class Ceiling implements Function {
-    public static double call(PageContext pc, double number) {
-	return StrictMath.ceil(number);
-    }
+	public static double call(PageContext pc, double number) {
+		return StrictMath.ceil(number);
+	}
 }
