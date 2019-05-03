@@ -23,7 +23,6 @@ import java.sql.SQLException;
 
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
-import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.types.RefInteger;
 import lucee.commons.lang.types.RefIntegerImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -105,7 +104,7 @@ class DCStack {
 			try {
 				if (!i.dc.getConnection().isClosed()) count++;
 			}
-			catch (SQLException e) {}
+			catch (Exception e) {}
 			i = i.prev;
 		}
 		return count;
@@ -159,7 +158,7 @@ class DCStack {
 				try {
 					current.dc.close();
 				}
-				catch (SQLException e) {}
+				catch (Exception e) {}
 			}
 
 			// remove this connection from chain
@@ -179,7 +178,7 @@ class DCStack {
 		try {
 			return conn.isClosed();
 		}
-		catch (SQLException se) {
+		catch (Exception se) {
 			datasource.getLog().error("Connection  Pool", se);
 			// in case of a exception we see this conn as useless and close the connection
 			try {
@@ -197,8 +196,7 @@ class DCStack {
 		try {
 			return conn.isValid(datasource.getNetworkTimeout()) ? Boolean.TRUE : Boolean.FALSE;
 		}
-		catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
+		catch (Exception e) {
 			return null;
 		}
 	}
