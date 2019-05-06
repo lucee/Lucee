@@ -379,8 +379,14 @@ public final class DebuggerImpl implements Debugger {
 				qryQueries.setAt(KeyConstants._name, row, qe.getName() == null ? "" : qe.getName());
 				qryQueries.setAt(KeyConstants._time, row, Long.valueOf(qe.getExecutionTime()));
 				qryQueries.setAt(KeyConstants._sql, row, qe.getSQL().toString());
-				qryQueries.setAt(KeyConstants._src, row, qe.getSrc());
-				if (qe instanceof QueryResultEntryImpl) qryQueries.setAt(KeyConstants._line, row, ((QueryResultEntryImpl) qe).getTemplateLine().line);
+				if (qe instanceof QueryResultEntryImpl) {
+					TemplateLine tl = ((QueryResultEntryImpl) qe).getTemplateLine();
+					if (tl != null) {
+						qryQueries.setAt(KeyConstants._src, row, tl.template);
+						qryQueries.setAt(KeyConstants._line, row, tl.line);
+					}
+				}
+				else qryQueries.setAt(KeyConstants._src, row, qe.getSrc());
 				qryQueries.setAt(KeyConstants._count, row, Integer.valueOf(qe.getRecordcount()));
 				qryQueries.setAt(KeyConstants._datasource, row, qe.getDatasource());
 				qryQueries.setAt(CACHE_TYPE, row, qe.getCacheType());
