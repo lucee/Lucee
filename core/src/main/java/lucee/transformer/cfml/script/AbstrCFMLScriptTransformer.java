@@ -1948,9 +1948,9 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 	private TemplateException attrNotSupported(SourceCode cfml, TagLibTag tag, String id) {
 		String names = tag.getAttributeNames();
-		if (StringUtil.isEmpty(names)) return new TemplateException(cfml, "Attribute " + id + " is not allowed for tag " + tag.getFullName());
+		if (StringUtil.isEmpty(names)) return new TemplateException(cfml, "Attribute [" + id + "] is not allowed for tag [" + tag.getFullName() + "]");
 
-		return new TemplateException(cfml, "Attribute " + id + " is not allowed for statement " + tag.getName(), "valid attribute names are [" + names + "]");
+		return new TemplateException(cfml, "Attribute [" + id + "] is not allowed for statement [" + tag.getName() + "]", "valid attribute names are [" + names + "]");
 	}
 
 	private final String variableDec(Data data, boolean firstCanBeNumber) {
@@ -2464,7 +2464,8 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 					e = it.next();
 					TagLibTagAttr att = e.getValue();
 					if (att.isRequired() && !contains(attrs, att) && att.getDefaultValue() == null && !att.getName().equals(ignoreAttrReqFor)) {
-						if (!hasAttributeCollection) throw new TemplateException(data.srcCode, "attribute " + att.getName() + " is required for statement " + tlt.getName());
+						if (!hasAttributeCollection)
+							throw new TemplateException(data.srcCode, "attribute [" + att.getName() + "] is required for statement [" + tlt.getName() + "]");
 						if (tag != null) tag.addMissingAttribute(att);
 					}
 				}
@@ -2555,9 +2556,9 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			if (attr == null) {
 				if (typeDef == TagLibTag.ATTRIBUTE_TYPE_FIXED) {
 					String names = tag.getAttributeNames();
-					if (StringUtil.isEmpty(names)) throw new TemplateException(cfml, "Attribute " + idOC + " is not allowed for tag " + tag.getFullName());
+					if (StringUtil.isEmpty(names)) throw new TemplateException(cfml, "Attribute [" + idOC + "] is not allowed for tag [" + tag.getFullName() + "]");
 
-					throw new TemplateException(cfml, "Attribute " + idOC + " is not allowed for statement " + tag.getName(), "valid attribute names are [" + names + "]");
+					throw new TemplateException(cfml, "Attribute [" + idOC + "] is not allowed for statement [" + tag.getName() + "]", "valid attribute names are [" + names + "]");
 				}
 				dynamic.setValue(true);
 

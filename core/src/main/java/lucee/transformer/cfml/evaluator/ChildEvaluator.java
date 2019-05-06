@@ -40,7 +40,7 @@ public class ChildEvaluator extends EvaluatorSupport {
 		String ns = libTag.getTagLib().getNameSpaceAndSeparator();
 		String name = ns + parentName;
 
-		if (!ASMUtil.hasAncestorTag(tag, name)) throw new EvaluatorException("Wrong Context, tag " + libTag.getFullName() + " must be inside a " + name + " tag");
+		if (!ASMUtil.hasAncestorTag(tag, name)) throw new EvaluatorException("Wrong Context, tag [" + libTag.getFullName() + "] must be inside a [" + name + "] tag");
 
 	}
 

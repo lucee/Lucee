@@ -515,14 +515,14 @@ public class Video extends TagSupport {
 
 	private void checkFile(VideoInput vi, String label, boolean exist, boolean canRead, boolean canWrite) throws PageException {
 		if (vi == null) {
-			throw doThrow("attribute " + label + " is required for tag video action " + strAction);
+			throw doThrow("attribute [" + label + "] is required for tag video action [" + strAction + "]");
 		}
 		checkFile(vi.getResource(), label, exist, canRead, canWrite);
 	}
 
 	private void checkFile(VideoOutput vo, String label, boolean exist, boolean canRead, boolean canWrite) throws PageException {
 		if (vo == null) {
-			throw doThrow("attribute " + label + " is required for tag video action " + strAction);
+			throw doThrow("attribute [" + label + "] is required for tag video action [" + strAction + "]");
 		}
 		checkFile(vo.getResource(), label, exist, canRead, canWrite);
 	}
@@ -530,11 +530,11 @@ public class Video extends TagSupport {
 	private void checkFile(Resource res, String label, boolean exist, boolean canRead, boolean canWrite) throws PageException {
 
 		if (res == null) {
-			throw doThrow("attribute " + label + " is required for tag video action " + strAction);
+			throw doThrow("attribute [" + label + "] is required for tag video action [" + strAction + "]");
 		}
 
 		if (!res.exists()) {
-			if (exist) throw doThrow("" + label + " file does not exist");
+			if (exist) throw doThrow("[" + label + "] file does not exist");
 		}
 		else {
 			if (!res.isFile()) throw doThrow(label + " [" + res.toString() + "] is not a file");

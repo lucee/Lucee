@@ -217,7 +217,7 @@ public final class Registry extends TagImpl {
 	 * 
 	 */
 	private void doSet() throws PageException {
-		if (entry == null) throw new ApplicationException("attribute entry is required for tag registry, when action is [set]");
+		if (entry == null) throw new ApplicationException("attribute [entry] is required for tag [registry], when action is [set]");
 		if (type == RegistryEntry.TYPE_ANY) type = RegistryEntry.TYPE_STRING;
 		if (value == null) {
 			if (type == RegistryEntry.TYPE_DWORD) value = "0";
@@ -238,7 +238,7 @@ public final class Registry extends TagImpl {
 	 * 
 	 */
 	private void doGetAll() throws PageException {
-		if (name == null) throw new ApplicationException("attribute name is required for tag registry, when action is [getAll]");
+		if (name == null) throw new ApplicationException("attribute [name] is required for tag [registry], when action is [getAll]");
 
 		try {
 			RegistryEntry[] entries = RegistryQuery.getValues(branch, type);
@@ -281,11 +281,8 @@ public final class Registry extends TagImpl {
 	 * 
 	 */
 	private void doGet() throws PageException {
-		// "HKEY_LOCAL_MACHINE\\SOFTWARE\\Google\\NavClient","installtime"
-		if (entry == null) throw new ApplicationException("attribute entry is required for tag registry, when action is [get]");
-		if (variable == null) throw new ApplicationException("attribute variable is required for tag registry, when action is [get]");
-		// if(type==-1)throw new ApplicationException("attribute type is required for tag registry, when
-		// action is [get]");
+		if (entry == null) throw new ApplicationException("attribute [entry] is required for tag [registry], when action is [get]");
+		if (variable == null) throw new ApplicationException("attribute [variable] is required for tag [registry], when action is [get]");
 
 		try {
 			RegistryEntry re = RegistryQuery.getValue(branch, entry, type);

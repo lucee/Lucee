@@ -36,7 +36,7 @@ public final class HttpParam extends EvaluatorSupport {
 		String httpName = ns + "http";
 
 		// check if tag is direct inside if
-		if (!ASMUtil.hasAncestorTag(tag, httpName)) throw new EvaluatorException("Wrong Context, tag " + libTag.getFullName() + " must be inside a " + httpName + " tag");
+		if (!ASMUtil.hasAncestorTag(tag, httpName)) throw new EvaluatorException("Wrong Context, tag [" + libTag.getFullName() + "] must be inside a [" + httpName + "] tag");
 	}
 
 }

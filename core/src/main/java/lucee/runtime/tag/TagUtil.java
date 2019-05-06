@@ -196,25 +196,6 @@ public class TagUtil {
 		}
 	}
 
-	/*
-	 * private static MethodInstance getSetter(PageContext pc,TagLibTag tlt, Tag tag, String name,
-	 * Object value) throws PageException { MethodInstance setter = Reflector.getSetter(tag,
-	 * name,value,null); if(setter==null && tlt!=null) { TagLibTagAttr attr = tlt.getAttribute(name);
-	 * if(attr==null) throw new TemplateException(
-	 * "Attribute "+name+" is not allowed for tag "+tlt.getFullName(),
-	 * "valid attribute names are ["+tlt.getAttributeNames()+"]"); value=Caster.castTo(pc,
-	 * attr.getType(), value, false); setter = Reflector.getSetter(tag, name,value,null); } return
-	 * setter; }
-	 */
-
-	/*
-	 * private static TagLibTag getTLT(ConfigWeb config, Tag tag) { TagLib[] tlds =
-	 * ((ConfigWebImpl)config).getTLDs();
-	 * 
-	 * TagLibTag tlt; for(int i=0;i<tlds.length;i++){ tlt = tlds[i].getTag(tag.getClass());
-	 * if(tlt!=null) return tlt; } return null; }
-	 */
-
 	public static void setDynamicAttribute(StructImpl attributes, Collection.Key name, Object value, short caseType) {
 		if (name.equalsIgnoreCase(KeyConstants._attributecollection)) {
 			if (value instanceof lucee.runtime.type.Collection) {

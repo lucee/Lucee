@@ -36,7 +36,7 @@ public final class ProcParam extends EvaluatorSupport {
 		String name = ns + "storedproc";
 
 		// check if tag is direct inside if
-		if (!ASMUtil.hasAncestorTag(tag, name)) throw new EvaluatorException("Wrong Context, tag " + libTag.getFullName() + " must be inside a " + name + " tag");
+		if (!ASMUtil.hasAncestorTag(tag, name)) throw new EvaluatorException("Wrong Context, tag [" + libTag.getFullName() + "] must be inside a [" + name + "] tag");
 	}
 
 }

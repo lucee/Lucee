@@ -37,6 +37,6 @@ public final class ElseIf extends EvaluatorSupport {
 		String ifName = ns + "if";
 
 		// check if tag is direct inside if
-		if (!ASMUtil.isParentTag(tag, TagIf.class)) throw new EvaluatorException("Wrong Context, tag " + libTag.getFullName() + " must be direct inside a " + ifName + " tag");
+		if (!ASMUtil.isParentTag(tag, TagIf.class)) throw new EvaluatorException("Wrong Context, tag [" + libTag.getFullName() + "] must be direct inside a [" + ifName + "] tag");
 	}
 }

@@ -37,6 +37,6 @@ public final class MailPart extends EvaluatorSupport {
 		String ns = libTag.getTagLib().getNameSpaceAndSeparator();
 		String mailName = ns + "mail";
 
-		if (!ASMUtil.hasAncestorTag(tag, mailName)) throw new EvaluatorException("Wrong Context, tag " + libTag.getFullName() + " must be inside a " + mailName + " tag");
+		if (!ASMUtil.hasAncestorTag(tag, mailName)) throw new EvaluatorException("Wrong Context, tag [" + libTag.getFullName() + "] must be inside a [" + mailName + "] tag");
 	}
 }

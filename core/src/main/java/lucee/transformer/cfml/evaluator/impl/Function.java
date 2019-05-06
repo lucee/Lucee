@@ -187,7 +187,7 @@ public final class Function extends EvaluatorSupport {
 			if (stat instanceof Tag) {
 				tlt = ((Tag) stat).getTagLibTag();
 				if (!tlt.getTagClassDefinition().isClassNameEqualTo("lucee.runtime.tag.Argument"))
-					throw new EvaluatorException("tag " + tlt.getFullName() + " is not allowed inside a function declaration");
+					throw new EvaluatorException("tag [" + tlt.getFullName() + "] is not allowed inside a function declaration");
 			}
 			/*
 			 * else if(stat instanceof PrintOut) { //body.remove(stat); }

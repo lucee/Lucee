@@ -65,10 +65,10 @@ public final class Argument extends EvaluatorSupport {
 		if (!ASMUtil.isParentTag(tag, functionName)) {
 			Tag parent = ASMUtil.getParentTag(tag);
 
-			String addText = (parent != null) ? "but tag " + libTag.getFullName() + " is inside tag " + parent.getFullname() + ""
-					: "but tag " + libTag.getFullName() + " has no parent";
+			String addText = (parent != null) ? "but tag [" + libTag.getFullName() + "] is inside tag [" + parent.getFullname() + "]"
+					: "but tag [" + libTag.getFullName() + "] has no parent";
 
-			throw new EvaluatorException("Wrong Context, tag " + libTag.getFullName() + " must be direct inside a " + functionName + " tag, " + addText);
+			throw new EvaluatorException("Wrong Context, tag [" + libTag.getFullName() + "] must be direct inside a [" + functionName + "] tag, " + addText);
 		}
 		// TODO check if there is a tag other than argument and text before
 

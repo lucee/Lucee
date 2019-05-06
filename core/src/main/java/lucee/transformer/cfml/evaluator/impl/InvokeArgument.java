@@ -36,7 +36,7 @@ public final class InvokeArgument extends EvaluatorSupport {
 		String invokeName = ns + "invoke";
 
 		// check if tag is direct inside if
-		if (!ASMUtil.hasAncestorTag(tag, invokeName)) throw new EvaluatorException("Wrong Context, tag " + libTag.getFullName() + " must be inside a " + invokeName + " tag");
+		if (!ASMUtil.hasAncestorTag(tag, invokeName)) throw new EvaluatorException("Wrong Context, tag [" + libTag.getFullName() + "] must be inside a [" + invokeName + "] tag");
 	}
 
 }

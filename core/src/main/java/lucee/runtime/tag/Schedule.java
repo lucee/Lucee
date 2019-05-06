@@ -413,7 +413,7 @@ public final class Schedule extends TagImpl {
 		scheduler = pageContext.getConfig().getScheduler();
 
 		if (action != ACTION_LIST && task == null) {
-			throw new ApplicationException("attribute task is required for tag schedule when action is not list");
+			throw new ApplicationException("attribute [task] is required for tag [schedule] when action is not list");
 		}
 
 		switch (action) {

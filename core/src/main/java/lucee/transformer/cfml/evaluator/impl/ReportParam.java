@@ -36,7 +36,7 @@ public final class ReportParam extends EvaluatorSupport {
 		String name = ns + "report";
 
 		// check if tag is direct inside if
-		if (!ASMUtil.hasAncestorTag(tag, name)) throw new EvaluatorException("Wrong Context, tag " + libTag.getFullName() + " must be inside a " + name + " tag");
+		if (!ASMUtil.hasAncestorTag(tag, name)) throw new EvaluatorException("Wrong Context, tag [" + libTag.getFullName() + "] must be inside a [" + name + "] tag");
 	}
 
 }

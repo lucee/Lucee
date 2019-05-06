@@ -35,7 +35,7 @@ public final class QueryParam extends EvaluatorSupport {
 		String ns = libTag.getTagLib().getNameSpaceAndSeparator();
 		String queryName = ns + "query";
 
-		if (!ASMUtil.hasAncestorTag(tag, queryName)) throw new EvaluatorException("Wrong Context, tag " + libTag.getFullName() + " must be inside a " + queryName + " tag");
+		if (!ASMUtil.hasAncestorTag(tag, queryName)) throw new EvaluatorException("Wrong Context, tag [" + libTag.getFullName() + "] must be inside a [" + queryName + "] tag");
 	}
 
 }

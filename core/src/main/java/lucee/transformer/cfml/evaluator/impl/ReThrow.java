@@ -36,8 +36,8 @@ public final class ReThrow extends EvaluatorSupport {
 		String queryName = ns + "catch";
 
 		if (!ASMUtil.hasAncestorTryStatement(tag)) {
-			if (tag.isScriptBase()) throw new EvaluatorException("Wrong Context, statement " + libTag.getName() + " must be inside a " + queryName + " tag or catch statement");
-			throw new EvaluatorException("Wrong Context, tag " + libTag.getFullName() + " must be inside a " + queryName + " tag");
+			if (tag.isScriptBase()) throw new EvaluatorException("Wrong Context, statement [" + libTag.getName() + "] must be inside a [" + queryName + "] tag or catch statement");
+			throw new EvaluatorException("Wrong Context, tag [" + libTag.getFullName() + "] must be inside a [" + queryName + "] tag");
 
 		}
 		// ASMUtil.replace(tag,new TagReThrow(tag));

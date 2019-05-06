@@ -39,7 +39,7 @@ public final class Property extends EvaluatorSupport {
 		// get component name
 		String compName = getComponentName(tag);
 
-		if (!ASMUtil.isParentTag(tag, compName)) throw new EvaluatorException("Wrong Context, tag " + libTag.getFullName() + " must be inside " + compName + " tag");
+		if (!ASMUtil.isParentTag(tag, compName)) throw new EvaluatorException("Wrong Context, tag [" + libTag.getFullName() + "] must be inside [" + compName + "] tag");
 	}
 
 	public static String getComponentName(Tag tag) throws EvaluatorException {

@@ -37,7 +37,8 @@ public final class Retry extends EvaluatorSupport {
 		String ns = libTag.getTagLib().getNameSpaceAndSeparator();
 		String name = ns + "catch";
 
-		if (getAncestorCatch(libTag.getTagLib(), tag) == null) throw new EvaluatorException("Wrong Context, tag " + libTag.getFullName() + " must be inside a " + name + " tag");
+		if (getAncestorCatch(libTag.getTagLib(), tag) == null)
+			throw new EvaluatorException("Wrong Context, tag [" + libTag.getFullName() + "] must be inside a [" + name + "] tag");
 	}
 
 	public static Statement getAncestorCatch(TagLib tagLib, Statement stat) {

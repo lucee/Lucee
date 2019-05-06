@@ -74,14 +74,14 @@ public final class Continue extends EvaluatorSupport {
 
 		if (!ASMUtil.hasAncestorContinueFCStatement(tag, label)) {
 			if (tag.isScriptBase()) {
-				if (StringUtil.isEmpty(label)) throw new EvaluatorException("Wrong Context, " + libTag.getName() + " must be inside a loop (for,while,loop ...)");
-				throw new EvaluatorException("Wrong Context, " + libTag.getName() + " must be inside a loop (for,while,loop ...) with the label [" + label + "]");
+				if (StringUtil.isEmpty(label)) throw new EvaluatorException("Wrong Context, [" + libTag.getName() + "] must be inside a loop (for,while,loop ...)");
+				throw new EvaluatorException("Wrong Context, [" + libTag.getName() + "] must be inside a loop (for,while,loop ...) with the label [" + label + "]");
 
 			}
 			if (StringUtil.isEmpty(label))
-				throw new EvaluatorException("Wrong Context, tag " + libTag.getFullName() + " must be inside a " + loopName + " or " + whileName + " tag");
+				throw new EvaluatorException("Wrong Context, tag [" + libTag.getFullName() + "] must be inside a [" + loopName + "] or [" + whileName + "] tag");
 			throw new EvaluatorException(
-					"Wrong Context, tag " + libTag.getFullName() + " must be inside a " + loopName + " or " + whileName + " tag with the label [" + label + "]");
+					"Wrong Context, tag [" + libTag.getFullName() + "] must be inside a [" + loopName + "] or [" + whileName + "] tag with the label [" + label + "]");
 
 		}
 	}
