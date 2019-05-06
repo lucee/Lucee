@@ -204,14 +204,14 @@ public final class QueryParam extends TagImpl {
 				int len = arr.size();
 				StringBuffer sb = new StringBuffer();
 				for (int i = 1; i <= len; i++) {
-					query.setParam(item.clone(check(arr.getE(i))));
+					query.setParam(item.clone(check(arr.getE(i), item.getType())));
 					if (i > 1) sb.append(',');
 					sb.append('?');
 				}
 				write(sb.toString());
 			}
 			else {
-				check(item.getValue());
+				check(item.getValue(), item.getType());
 				query.setParam(item);
 				write("?");
 			}
@@ -222,9 +222,21 @@ public final class QueryParam extends TagImpl {
 		return SKIP_BODY;
 	}
 
-	private Object check(Object value) throws PageException {
+	private Object check(Object value, int type) throws PageException {
 		if (maxlength != -1) {
-			String str = Caster.toString(value);
+
+			String str;
+			if (BIGINT == type || INTEGER == type || SMALLINT == type || TINYINT == type) {
+				str = Caster.toString(Caster.toIntValue(value));
+			}
+			else if (BOOLEAN == type) {
+				str = Caster.toString(Caster.toBooleanValue(value));
+			}
+			else if (DECIMAL == type) {
+				str = Caster.toDecimal(value);
+			}
+			else str = Caster.toString(value);
+
 			if (str.length() > maxlength) throw new DatabaseException(
 					"value [" + value + "] is to large, defined maxlength is [" + Caster.toString(maxlength) + "] but length of value is [" + str.length() + "]", null, null, null);
 		}
