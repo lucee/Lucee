@@ -1299,7 +1299,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 												</td>
 											</cfif>
 											<td>#queries.datasource#</td>
-											<td title="#queries.src#:#queries.line#">#contractPath(queries.src)#:#queries.line#</td>
+											<td title="#queries.src#:#queries.line#"><cfif len(queries.src)>#contractPath(queries.src)#:#queries.line#</cfif></td>
 											<cfif hasCachetype><td>#isEmpty(queries.cacheType)?"none":queries.cacheType#</td></cfif>
 										</tr>
 										<tr id="-lucee-debug-qry-#queries.currentRow#" class="#isOpen ? '' : 'collapsed'#">
