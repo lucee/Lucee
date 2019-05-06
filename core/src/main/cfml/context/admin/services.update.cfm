@@ -269,8 +269,12 @@
 					$( '##customtextinput' ).attr( 'disabled', false);
 					$('##customURL').attr( 'disabled', false);
 				}
-				var version = 'Release';
-
+				if('#server.lucee.state#' == 'SNAPSHOT')
+					var version = 'Snapshot';
+				else if('#server.lucee.state#' == 'RC')
+					var version = 'Pre_release';
+				else
+					var version = 'Release';
 				enableVersion(version, "intial");
 				$("##btn_"+version).addClass("btn");
 			});
@@ -291,8 +295,20 @@
 						window[v] = $(".td_"+v).detach();
 						$("##btn_"+v).removeClass('btn');
 					} else {
-						;
+						if(v == "Snapshot"){
+							$(".td_Pre_release").remove();
+							$(".td_Release").remove();
+						}
+						if(v == "Pre_release"){
+							$(".td_Snapshot").remove();
+							$(".td_Release").remove();
+						}
+						if(v == "Release"){
+							$(".td_Snapshot").remove();
+							$(".td_Pre_release").remove();
+						}
 						$("##upt_version").append(window["td_"+v]);
+						$(".btn").removeClass('btn');
 						$("##btn_"+v).addClass('btn');
 					}
 				}
