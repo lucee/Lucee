@@ -241,6 +241,7 @@ public abstract class MailClient implements PoolItem {
 	 * 
 	 * @throws MessagingException
 	 */
+	@Override
 	public void start() throws MessagingException {
 		Properties properties = new Properties();
 		String type = getTypeAsString();
@@ -677,6 +678,7 @@ public abstract class MailClient implements PoolItem {
 	/**
 	 * disconnect without a exception
 	 */
+	@Override
 	public void end() {
 		try {
 			if (_store != null) _store.close();
@@ -761,11 +763,11 @@ public abstract class MailClient implements PoolItem {
 				amessage[i++] = map.get(iterator.next());
 			}
 			srcFolder.copyMessages(amessage, trgFolder);
-			srcFolder.setFlags(amessage, new Flags(Flags.Flag.DELETED), true);
+			srcFolder.setFlags(amessage, new Flags(javax.mail.Flags.Flag.DELETED), true);
 		}
 		finally {
-			IOUtil.closeEL(srcFolder);
-			IOUtil.closeEL(trgFolder);
+			srcFolder.close(true);
+			trgFolder.close(true);
 		}
 	}
 
