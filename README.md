@@ -6,7 +6,7 @@
 
 Lucee Server (or simply Lucee) is a dynamic, Java based, tag and scripting language used for rapid web application development.   
 
-Lucee simplifies technologies like webservices (REST, SOAP, HTTP), ORM (Hibernate), searching (Lucene), datasources (MSSQl, Oracle, MySQL and others), caching (infinispan, ehcache, and memcached) and many more. 
+Lucee simplifies technologies like webservices (REST, SOAP, HTTP), ORM (Hibernate), searching (Lucene), datasources (MSSQL, Oracle, MySQL and others), caching (infinispan, ehcache, and memcached) and many more. 
 
 Lucee provides a compatibility layer for Adobe ColdFusion &copy;  CFML using less resources and delivering better performance. 
 
