@@ -610,7 +610,7 @@ public final class FileTag extends BodyTagImpl {
      */
     private void actionRead(boolean isBinary) throws PageException {
 
-	if (variable == null) throw new ApplicationException("attribute variable is not defined for tag file");
+	if (variable == null) throw new ApplicationException("attribute [variable] is not defined for tag [file]");
 
 	// check if we can use cache
 	if (StringUtil.isEmpty(cachedWithin)) {
@@ -671,15 +671,16 @@ public final class FileTag extends BodyTagImpl {
      * @throws PageException
      */
     private void actionWrite() throws PageException {
-	if (output == null) throw new ApplicationException("attribute output is not defined for tag file");
-	checkFile(pageContext, securityManager, file, serverPassword, createPath, true, false, true);
-	if (file.exists()) {
-	    // Error
-	    if (nameconflict == NAMECONFLICT_ERROR) throw new ApplicationException("destination file [" + file + "] already exist");
-	    // SKIP
-	    else if (nameconflict == NAMECONFLICT_SKIP) return;
-	    // OVERWRITE
-	    else if (nameconflict == NAMECONFLICT_OVERWRITE) file.delete();
+	if (output == null) throw new ApplicationException("attribute [output] is not defined for tag [file]");
+    if (file == null) throw new ApplicationException("attribute [file] is not defined for tag [file]");
+    // Error
+    if (nameconflict == NAMECONFLICT_ERROR && file.exists()) throw new ApplicationException("destination file [" + file + "] already exist");
+    // SKIP
+    else if (nameconflict == NAMECONFLICT_SKIP && file.exists()) return;
+    // OVERWRITE
+    else if (nameconflict == NAMECONFLICT_OVERWRITE && file.exists()) file.delete();
+    if(!file.exists()){
+		checkFile(pageContext, securityManager, file, serverPassword, createPath, true, false, true);
 	}
 
 	setACL(pageContext, file, acl);
