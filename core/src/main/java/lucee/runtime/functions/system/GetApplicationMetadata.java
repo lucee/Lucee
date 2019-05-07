@@ -23,7 +23,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Struct;
 
 public class GetApplicationMetadata {
-    public static Struct call(PageContext pc) throws PageException {
-	return GetApplicationSettings.call(pc, true);
-    }
+	public static Struct call(PageContext pc) throws PageException {
+		return GetApplicationSettings.call(pc, true);
+	}
 }

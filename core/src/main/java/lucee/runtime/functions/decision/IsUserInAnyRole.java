@@ -29,21 +29,21 @@ import lucee.runtime.security.Credential;
 import lucee.runtime.type.util.ListUtil;
 
 public final class IsUserInAnyRole implements Function {
-    public static boolean call(PageContext pc) throws PageException {
-	return call(pc, null);
-    }
-
-    public static boolean call(PageContext pc, String strRoles) throws PageException {
-	if (StringUtil.isEmpty(strRoles)) {
-	    Credential ru = pc.getRemoteUser();
-	    if (ru == null) return false;
-	    return ru.getRoles().length > 0;
+	public static boolean call(PageContext pc) throws PageException {
+		return call(pc, null);
 	}
 
-	String[] roles = ListUtil.trimItems(ListUtil.listToStringArray(strRoles, ','));
-	for (int i = 0; i < roles.length; i++) {
-	    if (IsUserInRole.call(pc, roles[i])) return true;
+	public static boolean call(PageContext pc, String strRoles) throws PageException {
+		if (StringUtil.isEmpty(strRoles)) {
+			Credential ru = pc.getRemoteUser();
+			if (ru == null) return false;
+			return ru.getRoles().length > 0;
+		}
+
+		String[] roles = ListUtil.trimItems(ListUtil.listToStringArray(strRoles, ','));
+		for (int i = 0; i < roles.length; i++) {
+			if (IsUserInRole.call(pc, roles[i])) return true;
+		}
+		return false;
 	}
-	return false;
-    }
 }

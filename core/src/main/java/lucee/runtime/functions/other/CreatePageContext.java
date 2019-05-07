@@ -44,68 +44,68 @@ import lucee.runtime.type.util.CollectionUtil;
 
 public final class CreatePageContext implements Function {
 
-    public static Object call(PageContext pc, String serverName, String scriptName) throws PageException {
-	return call(pc, serverName, scriptName, "", new StructImpl(), new StructImpl(), new StructImpl(), new StructImpl());
-    }
-
-    public static Object call(PageContext pc, String serverName, String scriptName, String queryString) throws PageException {
-	return call(pc, serverName, scriptName, queryString, new StructImpl(), new StructImpl(), new StructImpl(), new StructImpl());
-    }
-
-    public static Object call(PageContext pc, String serverName, String scriptName, String queryString, Struct cookies) throws PageException {
-	return call(pc, serverName, scriptName, queryString, cookies, new StructImpl(), new StructImpl(), new StructImpl());
-    }
-
-    public static Object call(PageContext pc, String serverName, String scriptName, String queryString, Struct cookies, Struct headers) throws PageException {
-	return call(pc, serverName, scriptName, queryString, cookies, headers, new StructImpl(), new StructImpl());
-    }
-
-    public static Object call(PageContext pc, String serverName, String scriptName, String queryString, Struct cookies, Struct headers, Struct parameters) throws PageException {
-	return call(pc, serverName, scriptName, queryString, cookies, headers, parameters, new StructImpl());
-    }
-
-    public static Object call(PageContext pc, String serverName, String scriptName, String queryString, Struct cookies, Struct headers, Struct parameters, Struct attributes)
-	    throws PageException {
-	return ThreadUtil.createPageContext(pc.getConfig(), DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, serverName, scriptName, queryString, toCookies(cookies),
-		toPair(headers, true), null, toPair(parameters, true), castValuesToString(attributes), true, -1);
-    }
-
-    public static Struct castValuesToString(Struct sct) throws PageException {
-	Key[] keys = CollectionUtil.keys(sct);
-	for (int i = 0; i < keys.length; i++) {
-	    sct.set(keys[i], Caster.toString(sct.get(keys[i])));
+	public static Object call(PageContext pc, String serverName, String scriptName) throws PageException {
+		return call(pc, serverName, scriptName, "", new StructImpl(), new StructImpl(), new StructImpl(), new StructImpl());
 	}
-	return sct;
-    }
 
-    public static Pair<String, Object>[] toPair(Struct sct, boolean doStringCast) throws PageException {
-	if (sct == null) return new Pair[0];
-	Iterator<Entry<Key, Object>> it = sct.entryIterator();
-	Entry<Key, Object> e;
-	Object value;
-	List<Pair<String, Object>> pairs = new ArrayList<Pair<String, Object>>();
-	while (it.hasNext()) {
-	    e = it.next();
-	    value = e.getValue();
-	    if (doStringCast) value = Caster.toString(value);
-	    pairs.add(new Pair<String, Object>(e.getKey().getString(), value));
+	public static Object call(PageContext pc, String serverName, String scriptName, String queryString) throws PageException {
+		return call(pc, serverName, scriptName, queryString, new StructImpl(), new StructImpl(), new StructImpl(), new StructImpl());
 	}
-	return pairs.toArray(new Pair[pairs.size()]);
-    }
 
-    public static Cookie[] toCookies(Struct sct) throws PageException {
-	if (sct == null) return new Cookie[0];
-	Iterator<Entry<Key, Object>> it = sct.entryIterator();
-	Entry<Key, Object> e;
-	List<Cookie> cookies = new ArrayList<Cookie>();
-	Cookie c;
-	while (it.hasNext()) {
-	    e = it.next();
-	    c = ReqRspUtil.toCookie(e.getKey().getString(), Caster.toString(e.getValue()), null);
-	    if (c != null) cookies.add(c);
-	    else throw new ApplicationException("Cookie name [" + e.getKey().getString() + "] is invalid");
-
+	public static Object call(PageContext pc, String serverName, String scriptName, String queryString, Struct cookies) throws PageException {
+		return call(pc, serverName, scriptName, queryString, cookies, new StructImpl(), new StructImpl(), new StructImpl());
 	}
-	return cookies.toArray(new Cookie[cookies.size()]);
-    }
+
+	public static Object call(PageContext pc, String serverName, String scriptName, String queryString, Struct cookies, Struct headers) throws PageException {
+		return call(pc, serverName, scriptName, queryString, cookies, headers, new StructImpl(), new StructImpl());
+	}
+
+	public static Object call(PageContext pc, String serverName, String scriptName, String queryString, Struct cookies, Struct headers, Struct parameters) throws PageException {
+		return call(pc, serverName, scriptName, queryString, cookies, headers, parameters, new StructImpl());
+	}
+
+	public static Object call(PageContext pc, String serverName, String scriptName, String queryString, Struct cookies, Struct headers, Struct parameters, Struct attributes)
+			throws PageException {
+		return ThreadUtil.createPageContext(pc.getConfig(), DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, serverName, scriptName, queryString, toCookies(cookies),
+				toPair(headers, true), null, toPair(parameters, true), castValuesToString(attributes), true, -1);
+	}
+
+	public static Struct castValuesToString(Struct sct) throws PageException {
+		Key[] keys = CollectionUtil.keys(sct);
+		for (int i = 0; i < keys.length; i++) {
+			sct.set(keys[i], Caster.toString(sct.get(keys[i])));
+		}
+		return sct;
+	}
+
+	public static Pair<String, Object>[] toPair(Struct sct, boolean doStringCast) throws PageException {
+		if (sct == null) return new Pair[0];
+		Iterator<Entry<Key, Object>> it = sct.entryIterator();
+		Entry<Key, Object> e;
+		Object value;
+		List<Pair<String, Object>> pairs = new ArrayList<Pair<String, Object>>();
+		while (it.hasNext()) {
+			e = it.next();
+			value = e.getValue();
+			if (doStringCast) value = Caster.toString(value);
+			pairs.add(new Pair<String, Object>(e.getKey().getString(), value));
+		}
+		return pairs.toArray(new Pair[pairs.size()]);
+	}
+
+	public static Cookie[] toCookies(Struct sct) throws PageException {
+		if (sct == null) return new Cookie[0];
+		Iterator<Entry<Key, Object>> it = sct.entryIterator();
+		Entry<Key, Object> e;
+		List<Cookie> cookies = new ArrayList<Cookie>();
+		Cookie c;
+		while (it.hasNext()) {
+			e = it.next();
+			c = ReqRspUtil.toCookie(e.getKey().getString(), Caster.toString(e.getValue()), null);
+			if (c != null) cookies.add(c);
+			else throw new ApplicationException("Cookie name [" + e.getKey().getString() + "] is invalid");
+
+		}
+		return cookies.toArray(new Cookie[cookies.size()]);
+	}
 }

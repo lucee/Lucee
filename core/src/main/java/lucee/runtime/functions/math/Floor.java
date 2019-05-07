@@ -26,15 +26,15 @@ import lucee.runtime.op.Caster;
 
 public class Floor extends BIF {
 
-    private static final long serialVersionUID = 8816436870378089996L;
+	private static final long serialVersionUID = 8816436870378089996L;
 
-    public static double call(PageContext pc, double number) {
-	return Math.floor(number);
-    }
+	public static double call(PageContext pc, double number) {
+		return Math.floor(number);
+	}
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 1) return call(pc, Caster.toDoubleValue(args[0]));
-	throw new FunctionException(pc, "Floor", 1, 1, args.length);
-    }
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 1) return call(pc, Caster.toDoubleValue(args[0]));
+		throw new FunctionException(pc, "Floor", 1, 1, args.length);
+	}
 }

@@ -76,8 +76,7 @@ public final class XmlSearch implements Function {
 	}
 
 	public static Object _call(Node node, String strExpr, boolean caseSensitive) throws PageException {
-		if (StringUtil.endsWith(strExpr, '/'))
-			strExpr = strExpr.substring(0, strExpr.length() - 1);
+		if (StringUtil.endsWith(strExpr, '/')) strExpr = strExpr.substring(0, strExpr.length() - 1);
 		// compile
 		XPathExpression expr;
 		try {
@@ -85,7 +84,8 @@ public final class XmlSearch implements Function {
 			XPath path = factory.newXPath();
 			path.setNamespaceContext(new UniversalNamespaceResolver(XMLUtil.getDocument(node)));
 			expr = path.compile(strExpr);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
 
@@ -93,23 +93,22 @@ public final class XmlSearch implements Function {
 		try {
 			Object obj = expr.evaluate(node, XPathConstants.NODESET);
 			return nodelist((NodeList) obj, caseSensitive);
-		} catch (XPathExpressionException e) {
+		}
+		catch (XPathExpressionException e) {
 			String msg = e.getMessage();
-			if (msg == null)
-				msg = "";
+			if (msg == null) msg = "";
 			try {
-				if (msg.indexOf("#BOOLEAN") != -1)
-					return Caster.toBoolean(expr.evaluate(node, XPathConstants.BOOLEAN));
-				else if (msg.indexOf("#NUMBER") != -1)
-					return Caster.toDouble(expr.evaluate(node, XPathConstants.NUMBER));
-				else if (msg.indexOf("#STRING") != -1)
-					return Caster.toString(expr.evaluate(node, XPathConstants.STRING));
+				if (msg.indexOf("#BOOLEAN") != -1) return Caster.toBoolean(expr.evaluate(node, XPathConstants.BOOLEAN));
+				else if (msg.indexOf("#NUMBER") != -1) return Caster.toDouble(expr.evaluate(node, XPathConstants.NUMBER));
+				else if (msg.indexOf("#STRING") != -1) return Caster.toString(expr.evaluate(node, XPathConstants.STRING));
 				// TODO XObject.CLASS_NULL ???
-			} catch (XPathExpressionException ee) {
+			}
+			catch (XPathExpressionException ee) {
 				throw Caster.toPageException(ee);
 			}
 			throw Caster.toPageException(e);
-		} catch (TransformerException e) {
+		}
+		catch (TransformerException e) {
 			throw Caster.toPageException(e);
 		}
 	}
@@ -120,8 +119,7 @@ public final class XmlSearch implements Function {
 		Array rtn = new ArrayImpl();
 		for (int i = 0; i < len; i++) {
 			Node n = list.item(i);
-			if (n != null)
-				rtn.append(XMLCaster.toXMLStruct(n, caseSensitive));
+			if (n != null) rtn.append(XMLCaster.toXMLStruct(n, caseSensitive));
 		}
 		return rtn;
 	}
@@ -133,8 +131,7 @@ public final class XmlSearch implements Function {
 		/**
 		 * This constructor stores the source document to search the namespaces in it.
 		 * 
-		 * @param document
-		 *            source document
+		 * @param document source document
 		 */
 		public UniversalNamespaceResolver(Document document) {
 			sourceDocument = document;
@@ -144,22 +141,21 @@ public final class XmlSearch implements Function {
 		/**
 		 * The lookup for the namespace uris is delegated to the stored document.
 		 * 
-		 * @param prefix
-		 *            to search for
+		 * @param prefix to search for
 		 * @return uri
 		 */
 		@Override
 		public String getNamespaceURI(String prefix) {
 			if (prefix.equals(XMLConstants.DEFAULT_NS_PREFIX)) {
 				return sourceDocument.lookupNamespaceURI(null);
-			} else {
+			}
+			else {
 				return sourceDocument.lookupNamespaceURI(prefix);
 			}
 		}
 
 		/**
-		 * This method is not needed in this context, but can be implemented in a
-		 * similar way.
+		 * This method is not needed in this context, but can be implemented in a similar way.
 		 */
 		@Override
 		public String getPrefix(String namespaceURI) {

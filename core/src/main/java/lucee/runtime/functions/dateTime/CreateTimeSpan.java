@@ -27,11 +27,11 @@ import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.dt.TimeSpanImpl;
 
 public final class CreateTimeSpan implements Function {
-    public static TimeSpan call(PageContext pc, double day, double hour, double minute, double second) {
-	return new TimeSpanImpl((int) day, (int) hour, (int) minute, (int) second);
-    }
+	public static TimeSpan call(PageContext pc, double day, double hour, double minute, double second) {
+		return new TimeSpanImpl((int) day, (int) hour, (int) minute, (int) second);
+	}
 
-    public static TimeSpan call(PageContext pc, double day, double hour, double minute, double second, double millisecond) {
-	return new TimeSpanImpl((int) day, (int) hour, (int) minute, (int) second, (int) millisecond);
-    }
+	public static TimeSpan call(PageContext pc, double day, double hour, double minute, double second, double millisecond) {
+		return new TimeSpanImpl((int) day, (int) hour, (int) minute, (int) second, (int) millisecond);
+	}
 }

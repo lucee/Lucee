@@ -22,16 +22,16 @@ import lucee.runtime.type.Collection.Key;
 
 public class StaticStruct extends ConcurrentHashMapPro<Key, Member> {
 
-    private boolean init;
+	private boolean init;
 
-    public StaticStruct() {}
+	public StaticStruct() {}
 
-    public boolean isInit() {
-	return init;
-    }
+	public boolean isInit() {
+		return init;
+	}
 
-    public void setInit(boolean init) {
-	this.init = init;
-    }
+	public void setInit(boolean init) {
+		this.init = init;
+	}
 
 }

@@ -33,22 +33,22 @@ import lucee.runtime.type.StructImpl;
 
 public final class ArrayToStruct extends BIF {
 
-    private static final long serialVersionUID = 2050803318757965798L;
+	private static final long serialVersionUID = 2050803318757965798L;
 
-    public static Struct call(PageContext pc, Array arr) throws PageException {
-	Struct sct = new StructImpl();
-	int[] keys = arr.intKeys();
-	for (int i = 0; i < keys.length; i++) {
-	    int key = keys[i];
-	    sct.set(KeyImpl.toKey(key + ""), arr.getE(key));
+	public static Struct call(PageContext pc, Array arr) throws PageException {
+		Struct sct = new StructImpl();
+		int[] keys = arr.intKeys();
+		for (int i = 0; i < keys.length; i++) {
+			int key = keys[i];
+			sct.set(KeyImpl.toKey(key + ""), arr.getE(key));
+		}
+
+		return sct;
 	}
 
-	return sct;
-    }
-
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 1) return call(pc, Caster.toArray(args[0]));
-	else throw new FunctionException(pc, "ArrayToStruct", 1, 1, args.length);
-    }
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 1) return call(pc, Caster.toArray(args[0]));
+		else throw new FunctionException(pc, "ArrayToStruct", 1, 1, args.length);
+	}
 }

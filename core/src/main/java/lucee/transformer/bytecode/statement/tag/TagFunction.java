@@ -48,251 +48,249 @@ import lucee.transformer.expression.literal.Literal;
 
 public final class TagFunction extends TagBase implements IFunction {
 
-    @Override
-    public int getType() {
-	return TYPE_UDF;
-    }
+	@Override
+	public int getType() {
+		return TYPE_UDF;
+	}
 
-    public TagFunction(Factory f, Position start, Position end) {
-	super(f, start, end);
+	public TagFunction(Factory f, Position start, Position end) {
+		super(f, start, end);
 
-    }
+	}
 
-    @Override
-    public void writeOut(BytecodeContext bc, int type) throws TransformerException {
-	// ExpressionUtil.visitLine(bc, getStartLine());
-	_writeOut(bc, type);
-	// ExpressionUtil.visitLine(bc, getEndLine());
-    }
+	@Override
+	public void writeOut(BytecodeContext bc, int type) throws TransformerException {
+		// ExpressionUtil.visitLine(bc, getStartLine());
+		_writeOut(bc, type);
+		// ExpressionUtil.visitLine(bc, getEndLine());
+	}
 
-    @Override
-    public void _writeOut(BytecodeContext bc) throws TransformerException {
-	_writeOut(bc, IFunction.PAGE_TYPE_REGULAR);
-    }
+	@Override
+	public void _writeOut(BytecodeContext bc) throws TransformerException {
+		_writeOut(bc, IFunction.PAGE_TYPE_REGULAR);
+	}
 
-    public void _writeOut(BytecodeContext bc, int type) throws TransformerException {
+	public void _writeOut(BytecodeContext bc, int type) throws TransformerException {
 
-	// private static final Expression EMPTY = LitString.toExprString("");
+		// private static final Expression EMPTY = LitString.toExprString("");
 
-	Body functionBody = new BodyBase(bc.getFactory());
-	RefBoolean isStatic = new RefBooleanImpl();
-	Function func = createFunction(bc.getPage(), functionBody, isStatic, bc.getOutput());
+		Body functionBody = new BodyBase(bc.getFactory());
+		RefBoolean isStatic = new RefBooleanImpl();
+		Function func = createFunction(bc.getPage(), functionBody, isStatic, bc.getOutput());
 
-	// ScriptBody sb=new ScriptBody(bc.getFactory());
+		// ScriptBody sb=new ScriptBody(bc.getFactory());
 
-	func.setParent(getParent());
+		func.setParent(getParent());
 
-	List<Statement> statements = getBody().getStatements();
-	Statement stat;
-	Tag tag;
+		List<Statement> statements = getBody().getStatements();
+		Statement stat;
+		Tag tag;
 
-	// suppress WS between cffunction and the last cfargument
-	Tag last = null;
-	if (bc.getSupressWSbeforeArg()) {
-	    // check if there is a cfargument at all
-	    Iterator<Statement> it = statements.iterator();
-	    while (it.hasNext()) {
-		stat = it.next();
-		if (stat instanceof Tag) {
-		    tag = (Tag) stat;
-		    if (tag.getTagLibTag().getTagClassDefinition().isClassNameEqualTo("lucee.runtime.tag.Argument")) {
-			last = tag;
-		    }
-		}
-	    }
-
-	    // check if there are only literal WS printouts
-	    if (last != null) {
-		it = statements.iterator();
-		while (it.hasNext()) {
-		    stat = it.next();
-		    if (stat == last) break;
-
-		    if (stat instanceof PrintOut) {
-			PrintOut po = (PrintOut) stat;
-			Expression expr = po.getExpr();
-			if (!(expr instanceof LitString) || !StringUtil.isWhiteSpace(((LitString) expr).getString())) {
-			    last = null;
-			    break;
+		// suppress WS between cffunction and the last cfargument
+		Tag last = null;
+		if (bc.getSupressWSbeforeArg()) {
+			// check if there is a cfargument at all
+			Iterator<Statement> it = statements.iterator();
+			while (it.hasNext()) {
+				stat = it.next();
+				if (stat instanceof Tag) {
+					tag = (Tag) stat;
+					if (tag.getTagLibTag().getTagClassDefinition().isClassNameEqualTo("lucee.runtime.tag.Argument")) {
+						last = tag;
+					}
+				}
 			}
-		    }
-		}
-	    }
-	}
 
-	Iterator<Statement> it = statements.iterator();
-	boolean beforeLastArgument = last != null;
-	while (it.hasNext()) {
-	    stat = it.next();
-	    if (beforeLastArgument) {
-		if (stat == last) {
-		    beforeLastArgument = false;
-		}
-		else if (stat instanceof PrintOut) {
-		    PrintOut po = (PrintOut) stat;
-		    Expression expr = po.getExpr();
-		    if (expr instanceof LitString) {
-			LitString ls = (LitString) expr;
-			if (StringUtil.isWhiteSpace(ls.getString())) continue;
-		    }
+			// check if there are only literal WS printouts
+			if (last != null) {
+				it = statements.iterator();
+				while (it.hasNext()) {
+					stat = it.next();
+					if (stat == last) break;
+
+					if (stat instanceof PrintOut) {
+						PrintOut po = (PrintOut) stat;
+						Expression expr = po.getExpr();
+						if (!(expr instanceof LitString) || !StringUtil.isWhiteSpace(((LitString) expr).getString())) {
+							last = null;
+							break;
+						}
+					}
+				}
+			}
 		}
 
-	    }
-	    if (stat instanceof Tag) {
-		tag = (Tag) stat;
-		if (tag.getTagLibTag().getTagClassDefinition().isClassNameEqualTo("lucee.runtime.tag.Argument")) {
-		    addArgument(func, tag);
-		    continue;
+		Iterator<Statement> it = statements.iterator();
+		boolean beforeLastArgument = last != null;
+		while (it.hasNext()) {
+			stat = it.next();
+			if (beforeLastArgument) {
+				if (stat == last) {
+					beforeLastArgument = false;
+				}
+				else if (stat instanceof PrintOut) {
+					PrintOut po = (PrintOut) stat;
+					Expression expr = po.getExpr();
+					if (expr instanceof LitString) {
+						LitString ls = (LitString) expr;
+						if (StringUtil.isWhiteSpace(ls.getString())) continue;
+					}
+				}
+
+			}
+			if (stat instanceof Tag) {
+				tag = (Tag) stat;
+				if (tag.getTagLibTag().getTagClassDefinition().isClassNameEqualTo("lucee.runtime.tag.Argument")) {
+					addArgument(func, tag);
+					continue;
+				}
+			}
+			functionBody.addStatement(stat);
 		}
-	    }
-	    functionBody.addStatement(stat);
-	}
-	func._writeOut(bc, type);
+		func._writeOut(bc, type);
 
-    }
-
-    private void addArgument(Function func, Tag tag) {
-	Attribute attr;
-	// name
-	Expression name = tag.removeAttribute("name").getValue();
-
-	// type
-	attr = tag.removeAttribute("type");
-	Expression type = (attr == null) ? tag.getFactory().createLitString("any") : attr.getValue();
-
-	// required
-	attr = tag.removeAttribute("required");
-	Expression required = (attr == null) ? tag.getFactory().FALSE() : attr.getValue();
-
-	// default
-	attr = tag.removeAttribute("default");
-	Expression defaultValue = (attr == null) ? null : attr.getValue();
-
-	// passby
-	attr = tag.removeAttribute("passby");
-	LitBoolean passByReference = tag.getFactory().TRUE();
-	if (attr != null) {
-	    // i can cast irt to LitString because he evulator check this before
-	    String str = ((LitString) attr.getValue()).getString();
-	    if (str.trim().equalsIgnoreCase("value")) passByReference = tag.getFactory().FALSE();
 	}
 
-	// displayname
-	attr = tag.removeAttribute("displayname");
-	Expression displayName = (attr == null) ? tag.getFactory().EMPTY() : attr.getValue();
+	private void addArgument(Function func, Tag tag) {
+		Attribute attr;
+		// name
+		Expression name = tag.removeAttribute("name").getValue();
 
-	// hint
-	attr = tag.removeAttribute("hint");
-	if (attr == null) attr = tag.removeAttribute("description");
+		// type
+		attr = tag.removeAttribute("type");
+		Expression type = (attr == null) ? tag.getFactory().createLitString("any") : attr.getValue();
 
-	Expression hint;
-	if (attr == null) hint = tag.getFactory().EMPTY();
-	else hint = attr.getValue();
+		// required
+		attr = tag.removeAttribute("required");
+		Expression required = (attr == null) ? tag.getFactory().FALSE() : attr.getValue();
 
-	func.addArgument(name, type, required, defaultValue, passByReference, displayName, hint, tag.getAttributes());
+		// default
+		attr = tag.removeAttribute("default");
+		Expression defaultValue = (attr == null) ? null : attr.getValue();
 
-    }
+		// passby
+		attr = tag.removeAttribute("passby");
+		LitBoolean passByReference = tag.getFactory().TRUE();
+		if (attr != null) {
+			// i can cast irt to LitString because he evulator check this before
+			String str = ((LitString) attr.getValue()).getString();
+			if (str.trim().equalsIgnoreCase("value")) passByReference = tag.getFactory().FALSE();
+		}
 
-    private Function createFunction(Page page, Body body, RefBoolean isStatic, boolean defaultOutput) throws TransformerException {
-	Attribute attr;
-	LitString ANY = page.getFactory().createLitString("any");
-	LitString PUBLIC = page.getFactory().createLitString("public");
+		// displayname
+		attr = tag.removeAttribute("displayname");
+		Expression displayName = (attr == null) ? tag.getFactory().EMPTY() : attr.getValue();
 
-	// name
-	Expression name = removeAttribute("name").getValue();
-	/*
-	 * if(name instanceof LitString) { ((LitString)name).upperCase(); }
-	 */
-	// return
-	attr = removeAttribute("returntype");
-	// if(attr==null) attr = getAttribute("return");
-	// if(attr==null) attr = getAttribute("type");
-	Expression returnType = (attr == null) ? ANY : attr.getValue();
+		// hint
+		attr = tag.removeAttribute("hint");
+		if (attr == null) attr = tag.removeAttribute("description");
 
-	// output
-	attr = removeAttribute("output");
-	Expression output = (attr == null) ? (defaultOutput ? page.getFactory().TRUE() : page.getFactory().TRUE()) : attr.getValue();
+		Expression hint;
+		if (attr == null) hint = tag.getFactory().EMPTY();
+		else hint = attr.getValue();
 
-	// bufferOutput
-	attr = removeAttribute("bufferoutput");
-	Expression bufferOutput = (attr == null) ? null : attr.getValue();
+		func.addArgument(name, type, required, defaultValue, passByReference, displayName, hint, tag.getAttributes());
 
-	// modifier
-	isStatic.setValue(false);
-	int modifier = Component.MODIFIER_NONE;
-	attr = removeAttribute("modifier");
-	if (attr != null) {
-	    Expression val = attr.getValue();
-	    if (val instanceof Literal) {
-		Literal l = (Literal) val;
-		String str = StringUtil.emptyIfNull(l.getString()).trim();
-		if ("abstract".equalsIgnoreCase(str)) modifier = Component.MODIFIER_ABSTRACT;
-		else if ("final".equalsIgnoreCase(str)) modifier = Component.MODIFIER_FINAL;
-		else if ("static".equalsIgnoreCase(str)) isStatic.setValue(true);
-	    }
 	}
 
-	// access
-	attr = removeAttribute("access");
-	Expression access = (attr == null) ? PUBLIC : attr.getValue();
+	private Function createFunction(Page page, Body body, RefBoolean isStatic, boolean defaultOutput) throws TransformerException {
+		Attribute attr;
+		LitString ANY = page.getFactory().createLitString("any");
+		LitString PUBLIC = page.getFactory().createLitString("public");
 
-	// dspLabel
-	attr = removeAttribute("displayname");
-	Expression displayname = (attr == null) ? page.getFactory().EMPTY() : attr.getValue();
+		// name
+		Expression name = removeAttribute("name").getValue();
+		/*
+		 * if(name instanceof LitString) { ((LitString)name).upperCase(); }
+		 */
+		// return
+		attr = removeAttribute("returntype");
+		Expression returnType = (attr == null) ? ANY : attr.getValue();
 
-	// hint
-	attr = removeAttribute("hint");
-	Expression hint = (attr == null) ? page.getFactory().EMPTY() : attr.getValue();
+		// output
+		attr = removeAttribute("output");
+		Expression output = (attr == null) ? (defaultOutput ? page.getFactory().TRUE() : page.getFactory().TRUE()) : attr.getValue();
 
-	// description
-	attr = removeAttribute("description");
-	Expression description = (attr == null) ? page.getFactory().EMPTY() : attr.getValue();
+		// bufferOutput
+		attr = removeAttribute("bufferoutput");
+		Expression bufferOutput = (attr == null) ? null : attr.getValue();
 
-	// returnformat
-	attr = removeAttribute("returnformat");
-	Expression returnFormat = (attr == null) ? null : attr.getValue();
+		// modifier
+		isStatic.setValue(false);
+		int modifier = Component.MODIFIER_NONE;
+		attr = removeAttribute("modifier");
+		if (attr != null) {
+			Expression val = attr.getValue();
+			if (val instanceof Literal) {
+				Literal l = (Literal) val;
+				String str = StringUtil.emptyIfNull(l.getString()).trim();
+				if ("abstract".equalsIgnoreCase(str)) modifier = Component.MODIFIER_ABSTRACT;
+				else if ("final".equalsIgnoreCase(str)) modifier = Component.MODIFIER_FINAL;
+				else if ("static".equalsIgnoreCase(str)) isStatic.setValue(true);
+			}
+		}
 
-	// secureJson
-	attr = removeAttribute("securejson");
-	Expression secureJson = (attr == null) ? null : attr.getValue();
+		// access
+		attr = removeAttribute("access");
+		Expression access = (attr == null) ? PUBLIC : attr.getValue();
 
-	// verifyClient
-	attr = removeAttribute("verifyclient");
-	Expression verifyClient = (attr == null) ? null : attr.getValue();
+		// dspLabel
+		attr = removeAttribute("displayname");
+		Expression displayname = (attr == null) ? page.getFactory().EMPTY() : attr.getValue();
 
-	// localMode
-	attr = removeAttribute("localmode");
-	Expression localMode = (attr == null) ? null : attr.getValue();
+		// hint
+		attr = removeAttribute("hint");
+		Expression hint = (attr == null) ? page.getFactory().EMPTY() : attr.getValue();
 
-	// cachedWithin
-	Literal cachedWithin = null;
-	attr = removeAttribute("cachedwithin");
-	if (attr != null) {
-	    Expression val = attr.getValue();
-	    if (val instanceof Literal) cachedWithin = ((Literal) val);
+		// description
+		attr = removeAttribute("description");
+		Expression description = (attr == null) ? page.getFactory().EMPTY() : attr.getValue();
+
+		// returnformat
+		attr = removeAttribute("returnformat");
+		Expression returnFormat = (attr == null) ? null : attr.getValue();
+
+		// secureJson
+		attr = removeAttribute("securejson");
+		Expression secureJson = (attr == null) ? null : attr.getValue();
+
+		// verifyClient
+		attr = removeAttribute("verifyclient");
+		Expression verifyClient = (attr == null) ? null : attr.getValue();
+
+		// localMode
+		attr = removeAttribute("localmode");
+		Expression localMode = (attr == null) ? null : attr.getValue();
+
+		// cachedWithin
+		Literal cachedWithin = null;
+		attr = removeAttribute("cachedwithin");
+		if (attr != null) {
+			Expression val = attr.getValue();
+			if (val instanceof Literal) cachedWithin = ((Literal) val);
+		}
+		String strAccess = ((LitString) access).getString();
+		int acc = ComponentUtil.toIntAccess(strAccess, -1);
+		if (acc == -1) throw new TransformerException("invalid access type [" + strAccess + "], access types are remote, public, package, private", getStart());
+
+		Function func = new FunctionImpl(page, name, returnType, returnFormat, output, bufferOutput, acc, displayname, description, hint, secureJson, verifyClient, localMode,
+				cachedWithin, modifier, body, getStart(), getEnd());
+		func.register();
+		// %**%
+		Map attrs = getAttributes();
+		Iterator it = attrs.entrySet().iterator();
+		HashMap<String, Attribute> metadatas = new HashMap<String, Attribute>();
+		while (it.hasNext()) {
+			attr = (Attribute) ((Map.Entry) it.next()).getValue();
+			metadatas.put(attr.getName(), attr);
+		}
+		func.setMetaData(metadatas);
+		return func;
 	}
-	String strAccess = ((LitString) access).getString();
-	int acc = ComponentUtil.toIntAccess(strAccess, -1);
-	if (acc == -1) throw new TransformerException("invalid access type [" + strAccess + "], access types are remote, public, package, private", getStart());
 
-	Function func = new FunctionImpl(page, name, returnType, returnFormat, output, bufferOutput, acc, displayname, description, hint, secureJson, verifyClient, localMode,
-		cachedWithin, modifier, body, getStart(), getEnd());
-	func.register();
-	// %**%
-	Map attrs = getAttributes();
-	Iterator it = attrs.entrySet().iterator();
-	HashMap<String, Attribute> metadatas = new HashMap<String, Attribute>();
-	while (it.hasNext()) {
-	    attr = (Attribute) ((Map.Entry) it.next()).getValue();
-	    metadatas.put(attr.getName(), attr);
+	@Override
+	public FlowControlFinal getFlowControlFinal() {
+		return null;
 	}
-	func.setMetaData(metadatas);
-	return func;
-    }
-
-    @Override
-    public FlowControlFinal getFlowControlFinal() {
-	return null;
-    }
 
 }

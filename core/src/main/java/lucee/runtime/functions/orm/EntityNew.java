@@ -35,39 +35,39 @@ import lucee.runtime.type.util.KeyConstants;
 
 public class EntityNew {
 
-    public static Object call(PageContext pc, String name) throws PageException {
-	return call(pc, name, null);
-    }
-
-    public static Object call(PageContext pc, String name, Struct properties) throws PageException {
-	ORMSession session = ORMUtil.getSession(pc);
-	if (properties == null) return session.create(pc, name);
-
-	Component entity = session.create(pc, name);
-	setPropeties(pc, entity, properties, false);
-	return entity;
-
-    }
-
-    public static void setPropeties(PageContext pc, Component c, Struct properties, boolean ignoreNotExisting) throws PageException {
-	if (properties == null) return;
-
-	// argumentCollection
-	if (properties.size() == 1 && properties.containsKey(KeyConstants._argumentCollection) && !c.containsKey(KeyConstants._setArgumentCollection)) {
-	    properties = Caster.toStruct(properties.get(KeyConstants._argumentCollection));
+	public static Object call(PageContext pc, String name) throws PageException {
+		return call(pc, name, null);
 	}
 
-	Iterator<Entry<Key, Object>> it = properties.entryIterator();
-	Entry<Key, Object> e;
-	while (it.hasNext()) {
-	    e = it.next();
-	    Key funcName = KeyImpl.init("set" + e.getKey().getString());
-	    if (ignoreNotExisting) {
-		if (c.get(funcName, null) instanceof UDF) c.call(pc, funcName, new Object[] { e.getValue() });
-	    }
-	    else {
-		c.call(pc, funcName, new Object[] { e.getValue() });
-	    }
+	public static Object call(PageContext pc, String name, Struct properties) throws PageException {
+		ORMSession session = ORMUtil.getSession(pc);
+		if (properties == null) return session.create(pc, name);
+
+		Component entity = session.create(pc, name);
+		setPropeties(pc, entity, properties, false);
+		return entity;
+
 	}
-    }
+
+	public static void setPropeties(PageContext pc, Component c, Struct properties, boolean ignoreNotExisting) throws PageException {
+		if (properties == null) return;
+
+		// argumentCollection
+		if (properties.size() == 1 && properties.containsKey(KeyConstants._argumentCollection) && !c.containsKey(KeyConstants._setArgumentCollection)) {
+			properties = Caster.toStruct(properties.get(KeyConstants._argumentCollection));
+		}
+
+		Iterator<Entry<Key, Object>> it = properties.entryIterator();
+		Entry<Key, Object> e;
+		while (it.hasNext()) {
+			e = it.next();
+			Key funcName = KeyImpl.init("set" + e.getKey().getString());
+			if (ignoreNotExisting) {
+				if (c.get(funcName, null) instanceof UDF) c.call(pc, funcName, new Object[] { e.getValue() });
+			}
+			else {
+				c.call(pc, funcName, new Object[] { e.getValue() });
+			}
+		}
+	}
 }

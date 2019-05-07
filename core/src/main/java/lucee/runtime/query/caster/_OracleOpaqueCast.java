@@ -26,33 +26,33 @@ import lucee.commons.lang.ClassUtil;
 
 public class _OracleOpaqueCast {
 
-    private static final Object[] ZERO_ARGS = new Object[0];
+	private static final Object[] ZERO_ARGS = new Object[0];
 
-    public static Object toCFType(ResultSet rst, int columnIndex) throws SQLException, IOException {
-	validateClasses();
+	public static Object toCFType(ResultSet rst, int columnIndex) throws SQLException, IOException {
+		validateClasses();
 
-	Object o = rst.getObject(columnIndex);
-	if (o == null) return null;
+		Object o = rst.getObject(columnIndex);
+		if (o == null) return null;
 
-	// we do not have oracle.sql.OPAQUE in the core, so we need reflection for this
-	/*
-	 * try{ String typeName=Caster.toString(Reflector.callMethod(o, "getSQLTypeName", ZERO_ARGS),null);
-	 * 
-	 * //OPAQUE opaque = ((oracle.sql.OPAQUE)o); if("SYS.XMLTYPE".equals(typeName)) {
-	 * 
-	 * // first we need to load the class in question Class
-	 * clazz=ClassUtil.loadClass(o.getClass().getClassLoader(),"oracle.xdb.XMLType"); return
-	 * Reflector.callStaticMethod(clazz, "createXML", new Object[]{o}); } } catch(PageException pe){
-	 * throw ExceptionUtil.toIOException(pe); }
-	 */
-	return o;
-    }
+		// we do not have oracle.sql.OPAQUE in the core, so we need reflection for this
+		/*
+		 * try{ String typeName=Caster.toString(Reflector.callMethod(o, "getSQLTypeName", ZERO_ARGS),null);
+		 * 
+		 * //OPAQUE opaque = ((oracle.sql.OPAQUE)o); if("SYS.XMLTYPE".equals(typeName)) {
+		 * 
+		 * // first we need to load the class in question Class
+		 * clazz=ClassUtil.loadClass(o.getClass().getClassLoader(),"oracle.xdb.XMLType"); return
+		 * Reflector.callStaticMethod(clazz, "createXML", new Object[]{o}); } } catch(PageException pe){
+		 * throw ExceptionUtil.toIOException(pe); }
+		 */
+		return o;
+	}
 
-    private static void validateClasses() throws IOException {
-	Class<?> clazz1 = ClassUtil.loadClass("oracle.xdb.XMLType", null);
-	Class<?> clazz2 = ClassUtil.loadClass("oracle.xml.parser.v2.XMLParseException", null);
-	if (clazz1 == null || clazz2 == null) throw new IOException("the xdb.jar/xmlparserv2.jar is missing, please download at "
-		+ "http://www.oracle.com/technology/tech/xml/xdk/xdk_java.html and copy it into the Lucee lib directory");
+	private static void validateClasses() throws IOException {
+		Class<?> clazz1 = ClassUtil.loadClass("oracle.xdb.XMLType", null);
+		Class<?> clazz2 = ClassUtil.loadClass("oracle.xml.parser.v2.XMLParseException", null);
+		if (clazz1 == null || clazz2 == null) throw new IOException("the xdb.jar/xmlparserv2.jar is missing, please download at "
+				+ "http://www.oracle.com/technology/tech/xml/xdk/xdk_java.html and copy it into the Lucee lib directory");
 
-    }
+	}
 }

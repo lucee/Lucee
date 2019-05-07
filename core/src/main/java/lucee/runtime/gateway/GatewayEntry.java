@@ -28,49 +28,49 @@ import lucee.runtime.type.Struct;
 
 public interface GatewayEntry {
 
-    public static int STARTUP_MODE_AUTOMATIC = 1;
-    public static int STARTUP_MODE_MANUAL = 2;
-    public static int STARTUP_MODE_DISABLED = 4;
+	public static int STARTUP_MODE_AUTOMATIC = 1;
+	public static int STARTUP_MODE_MANUAL = 2;
+	public static int STARTUP_MODE_DISABLED = 4;
 
-    /**
-     * @return the gateway
-     * @throws ClassException
-     * @throws PageException
-     * @throws BundleException
-     */
-    public void createGateway(Config config) throws ClassException, PageException, BundleException;
+	/**
+	 * @return the gateway
+	 * @throws ClassException
+	 * @throws PageException
+	 * @throws BundleException
+	 */
+	public void createGateway(Config config) throws ClassException, PageException, BundleException;
 
-    public Gateway getGateway();
+	public Gateway getGateway();
 
-    /**
-     * @return the id
-     */
-    public abstract String getId();
+	/**
+	 * @return the id
+	 */
+	public abstract String getId();
 
-    // public abstract Class getClazz();
+	// public abstract Class getClazz();
 
-    /**
-     * @return the custom
-     */
-    public abstract Struct getCustom();
+	/**
+	 * @return the custom
+	 */
+	public abstract Struct getCustom();
 
-    /**
-     * @return the readOnly
-     */
-    public abstract boolean isReadOnly();
+	/**
+	 * @return the readOnly
+	 */
+	public abstract boolean isReadOnly();
 
-    /**
-     * @return the cfcPath
-     */
-    public String getListenerCfcPath();
+	/**
+	 * @return the cfcPath
+	 */
+	public String getListenerCfcPath();
 
-    public String getCfcPath();
+	public String getCfcPath();
 
-    /**
-     * @return the startupMode
-     */
-    public int getStartupMode();
+	/**
+	 * @return the startupMode
+	 */
+	public int getStartupMode();
 
-    public ClassDefinition getClassDefinition();
+	public ClassDefinition getClassDefinition();
 
 }

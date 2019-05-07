@@ -15,22 +15,22 @@ import lucee.runtime.op.Caster;
 
 public class SoftReferenceCacheHandler extends MapCacheHandler {
 
-    private static Map<String, CacheItem> map = Collections.synchronizedMap(new ReferenceMap<String, CacheItem>(HARD, SOFT, HashMapPro.DEFAULT_INITIAL_CAPACITY, 0.75f));
+	private static Map<String, CacheItem> map = Collections.synchronizedMap(new ReferenceMap<String, CacheItem>(HARD, SOFT, HashMapPro.DEFAULT_INITIAL_CAPACITY, 0.75f));
 
-    @Override
-    protected Map<String, CacheItem> map() {
-	return map;
-    }
+	@Override
+	protected Map<String, CacheItem> map() {
+		return map;
+	}
 
-    @Override
-    public boolean acceptCachedWithin(Object cachedWithin) {
-	String str = Caster.toString(cachedWithin, "").trim();
-	return str.equalsIgnoreCase("soft");
-    }
+	@Override
+	public boolean acceptCachedWithin(Object cachedWithin) {
+		String str = Caster.toString(cachedWithin, "").trim();
+		return str.equalsIgnoreCase("soft");
+	}
 
-    @Override
-    public String pattern() {
-	return "soft";
-    }
+	@Override
+	public String pattern() {
+		return "soft";
+	}
 
 }

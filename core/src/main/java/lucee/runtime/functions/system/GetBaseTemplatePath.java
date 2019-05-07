@@ -31,21 +31,21 @@ import lucee.runtime.ext.function.BIF;
 
 public final class GetBaseTemplatePath extends BIF {
 
-    private static final long serialVersionUID = -6810643607690049685L;
+	private static final long serialVersionUID = -6810643607690049685L;
 
-    public static String call(PageContext pc) throws PageException {
-	// pc.getTemplatePath();
-	PageSource ps = pc.getBasePageSource();
-	if (ps == null) {
-	    ps = ((PageContextImpl) pc).getPageSource(1);
-	    if (ps == null) throw new ApplicationException("current context does not have a template it is based on");
+	public static String call(PageContext pc) throws PageException {
+		// pc.getTemplatePath();
+		PageSource ps = pc.getBasePageSource();
+		if (ps == null) {
+			ps = ((PageContextImpl) pc).getPageSource(1);
+			if (ps == null) throw new ApplicationException("current context does not have a template it is based on");
+		}
+		return ps.getResourceTranslated(pc).getAbsolutePath();
 	}
-	return ps.getResourceTranslated(pc).getAbsolutePath();
-    }
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 0) return call(pc);
-	throw new FunctionException(pc, "GetBaseTemplatePath", 0, 0, args.length);
-    }
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 0) return call(pc);
+		throw new FunctionException(pc, "GetBaseTemplatePath", 0, 0, args.length);
+	}
 }

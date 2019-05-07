@@ -20,30 +20,30 @@ package lucee.runtime.debug;
 
 public interface ImplicitAccess {
 
-    public void inc();
+	public void inc();
 
-    /**
-     * @return the count
-     */
-    public int getCount();
+	/**
+	 * @return the count
+	 */
+	public int getCount();
 
-    /**
-     * @return the scope
-     */
-    public String getScope();
+	/**
+	 * @return the scope
+	 */
+	public String getScope();
 
-    /**
-     * @return the template
-     */
-    public String getTemplate();
+	/**
+	 * @return the template
+	 */
+	public String getTemplate();
 
-    /**
-     * @return the line
-     */
-    public int getLine();
+	/**
+	 * @return the line
+	 */
+	public int getLine();
 
-    /**
-     * @return the name
-     */
-    public String getName();
+	/**
+	 * @return the name
+	 */
+	public String getName();
 }

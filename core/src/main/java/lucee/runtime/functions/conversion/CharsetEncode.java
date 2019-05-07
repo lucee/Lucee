@@ -30,12 +30,12 @@ import lucee.runtime.op.Caster;
  */
 public final class CharsetEncode implements Function {
 
-    public static String call(PageContext pc, byte[] binary, String encoding) throws PageException {
-	try {
-	    return new String(binary, encoding);
+	public static String call(PageContext pc, byte[] binary, String encoding) throws PageException {
+		try {
+			return new String(binary, encoding);
+		}
+		catch (UnsupportedEncodingException e) {
+			throw Caster.toPageException(e);
+		}
 	}
-	catch (UnsupportedEncodingException e) {
-	    throw Caster.toPageException(e);
-	}
-    }
 }

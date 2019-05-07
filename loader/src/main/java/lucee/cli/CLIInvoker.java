@@ -24,6 +24,6 @@ import java.util.Map;
 
 public interface CLIInvoker extends Remote {
 
-    void invoke(Map<String, String> config) throws RemoteException;
+	void invoke(Map<String, String> config) throws RemoteException;
 
 }

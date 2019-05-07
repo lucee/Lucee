@@ -24,25 +24,25 @@ import lucee.commons.lang.HTMLEntities;
 
 public class HTMLUtilImpl implements HTMLUtil {
 
-    @Override
-    public String escapeHTML(String str) {
-	return HTMLEntities.escapeHTML(str);
-    }
+	@Override
+	public String escapeHTML(String str) {
+		return HTMLEntities.escapeHTML(str);
+	}
 
-    @Override
-    public String escapeHTML(String str, short version) {
-	return HTMLEntities.escapeHTML(str, version);
-    }
+	@Override
+	public String escapeHTML(String str, short version) {
+		return HTMLEntities.escapeHTML(str, version);
+	}
 
-    @Override
-    public String unescapeHTML(String str) {
-	return HTMLEntities.unescapeHTML(str);
-    }
+	@Override
+	public String unescapeHTML(String str) {
+		return HTMLEntities.unescapeHTML(str);
+	}
 
-    @Override
-    public List<URL> getURLS(String html, URL url) {
-	lucee.commons.lang.HTMLUtil hu = new lucee.commons.lang.HTMLUtil();
-	return hu.getURLS(html, url);
-    }
+	@Override
+	public List<URL> getURLS(String html, URL url) {
+		lucee.commons.lang.HTMLUtil hu = new lucee.commons.lang.HTMLUtil();
+		return hu.getURLS(html, url);
+	}
 
 }

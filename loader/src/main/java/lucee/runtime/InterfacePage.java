@@ -19,6 +19,6 @@ package lucee.runtime;
 
 public abstract class InterfacePage extends CIPage {
 
-    private static final long serialVersionUID = 1763941936261264012L;
+	private static final long serialVersionUID = 1763941936261264012L;
 
 }

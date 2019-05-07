@@ -30,12 +30,12 @@ import lucee.runtime.ext.tag.TagImpl;
  **/
 public final class Authenticate extends TagImpl {
 
-    /**
-     * constructor for the tag class
-     * 
-     * @throws ExpressionException
-     **/
-    public Authenticate() throws ExpressionException {
-	throw new ExpressionException("tag cfauthenticate is deprecated");
-    }
+	/**
+	 * constructor for the tag class
+	 * 
+	 * @throws ExpressionException
+	 **/
+	public Authenticate() throws ExpressionException {
+		throw new ExpressionException("tag cfauthenticate is deprecated");
+	}
 }

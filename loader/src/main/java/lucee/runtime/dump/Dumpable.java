@@ -27,13 +27,13 @@ import lucee.runtime.PageContext;
  */
 public interface Dumpable extends Serializable {
 
-    /**
-     * method to print out information to a object as HTML
-     * 
-     * @param pageContext page context object
-     * @param maxlevel max level to display
-     * @param properties properties data
-     * @return dump object to display
-     */
-    public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties properties);
+	/**
+	 * method to print out information to a object as HTML
+	 * 
+	 * @param pageContext page context object
+	 * @param maxlevel max level to display
+	 * @param properties properties data
+	 * @return dump object to display
+	 */
+	public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties properties);
 }

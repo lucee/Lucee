@@ -22,14 +22,14 @@ package lucee.commons.lang.types;
  */
 public interface RefString {
 
-    /**
-     * @param value
-     */
-    public void setValue(String value);
+	/**
+	 * @param value
+	 */
+	public void setValue(String value);
 
-    /**
-     * @return returns value as Double Object
-     */
-    public String getValue();
+	/**
+	 * @return returns value as Double Object
+	 */
+	public String getValue();
 
 }

@@ -24,10 +24,10 @@ package lucee.commons.io;
  */
 public final class InvalidSerialException extends Exception {
 
-    /**
-     * Default Constructor
-     */
-    public InvalidSerialException() {
-	super("serial number is invalid");
-    }
+	/**
+	 * Default Constructor
+	 */
+	public InvalidSerialException() {
+		super("serial number is invalid");
+	}
 }
