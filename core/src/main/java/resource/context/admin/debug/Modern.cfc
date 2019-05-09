@@ -231,7 +231,6 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 				</div>
 			</cfif>
 			
-			<script src="/lucee/res/js/echarts-all.js.cfm" type="text/javascript"></script>
 			<script src="/lucee/res/js/base.min.js.cfm" type="text/javascript"></script>
 			<cfif !structKeyExists(url, "isAjaxRequest")>
 				<script src="/lucee/res/js/jquery.modal.min.js.cfm" type="text/javascript"></script>
@@ -403,6 +402,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 								if(section == 'metrics'){
 									$("##-lucee-"+section+"-data").removeClass('collapsed');
 									$("##-lucee-"+section+"-data").html(this.responseText);
+									chartCall();
 								} else{
 									$("##-lucee-"+section+"-ALL").html(this.responseText);
 									if(section == 'docs'){
@@ -421,183 +421,193 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 				}
 			</script>
 
-			<cfif enableTab("metrics") && structCount(variables.chartStr) NEQ 0>
+			<!--- <cfif enableTab("metrics") && structCount(variables.chartStr) NEQ 0> --->
 				<script>
-					__LUCEE.debugCharts = {};
-					__LUCEE.debugCharts.charts = {};
-					__LUCEE.debugCharts.chartsOption = {};
-
-					labels={'heap':"Heap",'nonheap':"Non-Heap",'cpuSystem':"Whole System"};
-					stAjaxTime = new Date();
-					function requestData(){
-						if($( "##-lucee-metrics-btn-ALL").hasClass( "btnActive" )){
+					function chartCall(){
+						if($('##-lucee-metrics-btn-ALL').hasClass('btnActive')){
 							jQuery.ajax({
-								type: "POST",
-								url: "/lucee/admin/chartAjax.cfm",
+								type: "get",
+								url: "/lucee/res/js/echarts-all.js.cfm",
 								success: function(result){
-									$.each(#serializeJSON( variables.chartStr )#,function(index,chrt){
-										if(index == "WholeSystem") {
-											cpuSystemSeries1 = __LUCEE.debugCharts.chartsOption.cpuSystemChartOption.series[0].data; //*charts*.series[0].data
-											cpuSystemSeries1.push(result["cpuSystem"]); // push the value into series[0].data
-											cpuSystemSeries2 = __LUCEE.debugCharts.chartsOption.cpuSystemChartOption.series[1].data; //*charts*.series[0].data
-											cpuSystemSeries2.push(result["cpuProcess"]); // push the value into series[0].data
-											__LUCEE.debugCharts.chartsOption.cpuSystemChartOption.series[0].data = cpuSystemSeries1;
-											__LUCEE.debugCharts.chartsOption.cpuSystemChartOption.series[1].data = cpuSystemSeries2;
-											if(__LUCEE.debugCharts.chartsOption.cpuSystemChartOption.series[0].data.length > 60){
-												__LUCEE.debugCharts.chartsOption.cpuSystemChartOption.series[0].data.shift(); //shift the array
-											}
-											if(__LUCEE.debugCharts.chartsOption.cpuSystemChartOption.series[1].data.length > 60){
-												__LUCEE.debugCharts.chartsOption.cpuSystemChartOption.series[1].data.shift(); //shift the array
-											}
-											__LUCEE.debugCharts.chartsOption.cpuSystemChartOption.xAxis[0].data.push(new Date().toLocaleTimeString()); // current time
-											if(__LUCEE.debugCharts.chartsOption.cpuSystemChartOption.xAxis[0].data.length > 60){
-											__LUCEE.debugCharts.chartsOption.cpuSystemChartOption.xAxis[0].data.shift(); //shift the Time value
-											}
-											__LUCEE.debugCharts.charts.cpuSystem.setOption(__LUCEE.debugCharts.chartsOption.cpuSystemChartOption); // passed the data into the chats
-				 							return true;
-										}
-										window["series_"+chrt] = window["__LUCEE.debugCharts.chartsOption."+chrt].series[0].data; //*charts*.series[0].data
-										window["series_"+chrt].push(result[chrt]); // push the value into series[0].data
-										window["__LUCEE.debugCharts.chartsOption."+chrt].series[0].data = window["series_"+chrt];
-										if(window["__LUCEE.debugCharts.chartsOption."+chrt].series[0].data.length > 60){
-										window["__LUCEE.debugCharts.chartsOption."+chrt].series[0].data.shift(); //shift the array
-										}
-										window["__LUCEE.debugCharts.chartsOption."+chrt].xAxis[0].data.push(new Date().toLocaleTimeString()); // current time
-										if(window["__LUCEE.debugCharts.chartsOption."+chrt].xAxis[0].data.length > 60){
-										window["__LUCEE.debugCharts.chartsOption."+chrt].xAxis[0].data.shift(); //shift the Time value
-										}
-										window["__LUCEE.debugCharts.charts."+chrt].setOption(window["__LUCEE.debugCharts.chartsOption."+chrt]); // passed the data into the chats
-									});
+									__LUCEE.debugCharts = {};
+									__LUCEE.debugCharts.charts = {};
+									__LUCEE.debugCharts.chartsOption = {};
 
-								}
+									labels={'heap':"Heap",'nonheap':"Non-Heap",'cpuSystem':"Whole System"};
+									stAjaxTime = new Date();
+									function requestData(){
+										if($( "##-lucee-metrics-btn-ALL").hasClass( "btnActive" )){
+											jQuery.ajax({
+												type: "POST",
+												url: "/lucee/admin/chartAjax.cfm",
+												success: function(result){
+													$.each(#serializeJSON( variables.chartStr )#,function(index,chrt){
+														if(index == "WholeSystem") {
+															cpuSystemSeries1 = __LUCEE.debugCharts.chartsOption.cpuSystemChartOption.series[0].data; //*charts*.series[0].data
+															cpuSystemSeries1.push(result["cpuSystem"]); // push the value into series[0].data
+															cpuSystemSeries2 = __LUCEE.debugCharts.chartsOption.cpuSystemChartOption.series[1].data; //*charts*.series[0].data
+															cpuSystemSeries2.push(result["cpuProcess"]); // push the value into series[0].data
+															__LUCEE.debugCharts.chartsOption.cpuSystemChartOption.series[0].data = cpuSystemSeries1;
+															__LUCEE.debugCharts.chartsOption.cpuSystemChartOption.series[1].data = cpuSystemSeries2;
+															if(__LUCEE.debugCharts.chartsOption.cpuSystemChartOption.series[0].data.length > 60){
+																__LUCEE.debugCharts.chartsOption.cpuSystemChartOption.series[0].data.shift(); //shift the array
+															}
+															if(__LUCEE.debugCharts.chartsOption.cpuSystemChartOption.series[1].data.length > 60){
+																__LUCEE.debugCharts.chartsOption.cpuSystemChartOption.series[1].data.shift(); //shift the array
+															}
+															__LUCEE.debugCharts.chartsOption.cpuSystemChartOption.xAxis[0].data.push(new Date().toLocaleTimeString()); // current time
+															if(__LUCEE.debugCharts.chartsOption.cpuSystemChartOption.xAxis[0].data.length > 60){
+															__LUCEE.debugCharts.chartsOption.cpuSystemChartOption.xAxis[0].data.shift(); //shift the Time value
+															}
+															__LUCEE.debugCharts.charts.cpuSystem.setOption(__LUCEE.debugCharts.chartsOption.cpuSystemChartOption); // passed the data into the chats
+								 							return true;
+														}
+														window["series_"+chrt] = window["__LUCEE.debugCharts.chartsOption."+chrt].series[0].data; //*charts*.series[0].data
+														window["series_"+chrt].push(result[chrt]); // push the value into series[0].data
+														window["__LUCEE.debugCharts.chartsOption."+chrt].series[0].data = window["series_"+chrt];
+														if(window["__LUCEE.debugCharts.chartsOption."+chrt].series[0].data.length > 60){
+														window["__LUCEE.debugCharts.chartsOption."+chrt].series[0].data.shift(); //shift the array
+														}
+														window["__LUCEE.debugCharts.chartsOption."+chrt].xAxis[0].data.push(new Date().toLocaleTimeString()); // current time
+														if(window["__LUCEE.debugCharts.chartsOption."+chrt].xAxis[0].data.length > 60){
+														window["__LUCEE.debugCharts.chartsOption."+chrt].xAxis[0].data.shift(); //shift the Time value
+														}
+														window["__LUCEE.debugCharts.charts."+chrt].setOption(window["__LUCEE.debugCharts.chartsOption."+chrt]); // passed the data into the chats
+													});
+
+												}
+											});
+											var endAjaxTime = new Date();
+										} else {
+											stAjaxTime = new Date();
+											var endAjaxTime = new Date();
+										}
+										var seconds = Math.floor((endAjaxTime-stAjaxTime) / (1000));
+										if(seconds <= 20 ){
+											setTimeout(requestData, 1000);
+										} else if ( seconds <= 40 ) {
+											setTimeout(requestData, 2000);
+										} else if ( seconds <=  80 ) {
+											setTimeout(requestData, 5000);
+										} else if ( seconds <= 120 ){
+											setTimeout(requestData, 10000);
+										}
+									}
+									var dDate=[new Date().toLocaleTimeString()]; // current time
+
+									// intialize charts
+
+									$.each(#serializeJSON( variables.chartStr )#, function(i, data){
+										if(i == "WholeSystem") {
+											__LUCEE.debugCharts.charts.cpuSystem = {};
+											__LUCEE.debugCharts.chartsOption.cpuSystemChartOption = {};
+											__LUCEE.debugCharts.charts.cpuSystem = echarts.init(document.getElementById('cpuSystem'),'macarons'); // intialize echarts
+											__LUCEE.debugCharts.chartsOption.cpuSystemChartOption = {
+												backgroundColor: ["##EFEDE5"],
+												tooltip : {'trigger':'axis',
+													formatter : function (params) {
+														var series2 = "";
+														if(params.length == 2) {
+															series2 =  params[1][0] + ": "+ params[1][2] + "%" + '<br>' +params[0][1];
+														}
+														return 'Series' + "<br>" + params[0][0] + ": " + params[0][2] + "%" + '<br>'  + series2;
+													}
+												},
+												legend: {
+													data:['System CPU', 'Lucee CPU']
+												},
+
+												color: ["##3399CC", "##BF4F36"],
+												grid : {
+													width: '82%',
+													height: '65%',
+													x:'30px',
+													y:'25px'
+												},
+												xAxis : [{
+													'type':'category',
+													'boundaryGap' : false,
+													'data':[0]
+												}],
+												yAxis : [{
+													'type':'value',
+													'min':'0',
+													'max':'100',
+													'splitNumber': 2
+												}],
+												series : [
+													{
+													'name': 'System CPU',
+													'type':'line',
+													smooth:true,
+													itemStyle: {normal: {areaStyle: {type: 'default'}}},
+													'data': [0]
+													},
+													{
+													'name': 'Lucee CPU',
+													'type':'line',
+													smooth:true,
+													itemStyle: {normal: {areaStyle: {type: 'default'}}},
+													'data': [0]
+													}
+
+												]
+											};
+											__LUCEE.debugCharts.charts.cpuSystem.setOption(__LUCEE.debugCharts.chartsOption.cpuSystemChartOption); // passed the data into the chats
+								 			return true;
+										}
+										// console.log(i);
+										__LUCEE.debugCharts.charts[data]={};
+										__LUCEE.debugCharts.chartsOption[data] = {};
+
+										window["__LUCEE.debugCharts.charts."+data] = echarts.init(document.getElementById(data),'macarons'); // intialize echarts
+										window["__LUCEE.debugCharts.chartsOption."+data] = {
+											backgroundColor: ["##EFEDE5"],
+											tooltip : {'trigger':'axis',
+												formatter : function (params) {
+													return 'Series' + "<br>" + params[0][0] + ": " + params[0][2] + "%" + '<br>' +params[0][1] ;
+												}
+											},
+
+											color: ["##3399CC", "##BF4F36"],
+											grid : {
+												width: '82%',
+												height: '65%',
+												x:'30px',
+												y:'25px'
+											},
+											xAxis : [{
+												'type':'category',
+												'boundaryGap' : false,
+												'data':[0]
+											}],
+											yAxis : [{
+												'type':'value',
+												'min':'0',
+												'max':'100',
+												'splitNumber': 2
+											}],
+											series : [
+												{
+												'name': labels[data] +' Memory',
+												'type':'line',
+												smooth:true,
+												itemStyle: {normal: {areaStyle: {type: 'default'}}},
+												'data': [0]
+												}
+											]
+										}; // data
+										window["__LUCEE.debugCharts.charts."+data].setOption(window["__LUCEE.debugCharts.chartsOption."+data]); // passed the data into the chats
+									});
+									 // data
+									// console.log(cpuSystemChartOption);
+							        requestData();
+							    }
 							});
-							var endAjaxTime = new Date();
-						} else {
-							stAjaxTime = new Date();
-							var endAjaxTime = new Date();
-						}
-						var seconds = Math.floor((endAjaxTime-stAjaxTime) / (1000));
-						if(seconds <= 20 ){
-							setTimeout(requestData, 1000);
-						} else if ( seconds <= 40 ) {
-							setTimeout(requestData, 2000);
-						} else if ( seconds <=  80 ) {
-							setTimeout(requestData, 5000);
-						} else if ( seconds <= 120 ){
-							setTimeout(requestData, 10000);
 						}
 					}
-					var dDate=[new Date().toLocaleTimeString()]; // current time
-
-					// intialize charts
-
-					$.each(#serializeJSON( variables.chartStr )#, function(i, data){
-						if(i == "WholeSystem") {
-							__LUCEE.debugCharts.charts.cpuSystem = {};
-							__LUCEE.debugCharts.chartsOption.cpuSystemChartOption = {};
-							__LUCEE.debugCharts.charts.cpuSystem = echarts.init(document.getElementById('cpuSystem'),'macarons'); // intialize echarts
-							__LUCEE.debugCharts.chartsOption.cpuSystemChartOption = {
-								backgroundColor: ["##EFEDE5"],
-								tooltip : {'trigger':'axis',
-									formatter : function (params) {
-										var series2 = "";
-										if(params.length == 2) {
-											series2 =  params[1][0] + ": "+ params[1][2] + "%" + '<br>' +params[0][1];
-										}
-										return 'Series' + "<br>" + params[0][0] + ": " + params[0][2] + "%" + '<br>'  + series2;
-									}
-								},
-								legend: {
-									data:['System CPU', 'Lucee CPU']
-								},
-
-								color: ["##3399CC", "##BF4F36"],
-								grid : {
-									width: '82%',
-									height: '65%',
-									x:'30px',
-									y:'25px'
-								},
-								xAxis : [{
-									'type':'category',
-									'boundaryGap' : false,
-									'data':[0]
-								}],
-								yAxis : [{
-									'type':'value',
-									'min':'0',
-									'max':'100',
-									'splitNumber': 2
-								}],
-								series : [
-									{
-									'name': 'System CPU',
-									'type':'line',
-									smooth:true,
-									itemStyle: {normal: {areaStyle: {type: 'default'}}},
-									'data': [0]
-									},
-									{
-									'name': 'Lucee CPU',
-									'type':'line',
-									smooth:true,
-									itemStyle: {normal: {areaStyle: {type: 'default'}}},
-									'data': [0]
-									}
-
-								]
-							};
-							__LUCEE.debugCharts.charts.cpuSystem.setOption(__LUCEE.debugCharts.chartsOption.cpuSystemChartOption); // passed the data into the chats
-				 			return true;
-						}
-						// console.log(i);
-						__LUCEE.debugCharts.charts[data]={};
-						__LUCEE.debugCharts.chartsOption[data] = {};
-
-						window["__LUCEE.debugCharts.charts."+data] = echarts.init(document.getElementById(data),'macarons'); // intialize echarts
-						window["__LUCEE.debugCharts.chartsOption."+data] = {
-							backgroundColor: ["##EFEDE5"],
-							tooltip : {'trigger':'axis',
-								formatter : function (params) {
-									return 'Series' + "<br>" + params[0][0] + ": " + params[0][2] + "%" + '<br>' +params[0][1] ;
-								}
-							},
-
-							color: ["##3399CC", "##BF4F36"],
-							grid : {
-								width: '82%',
-								height: '65%',
-								x:'30px',
-								y:'25px'
-							},
-							xAxis : [{
-								'type':'category',
-								'boundaryGap' : false,
-								'data':[0]
-							}],
-							yAxis : [{
-								'type':'value',
-								'min':'0',
-								'max':'100',
-								'splitNumber': 2
-							}],
-							series : [
-								{
-								'name': labels[data] +' Memory',
-								'type':'line',
-								smooth:true,
-								itemStyle: {normal: {areaStyle: {type: 'default'}}},
-								'data': [0]
-								}
-							]
-						}; // data
-						window["__LUCEE.debugCharts.charts."+data].setOption(window["__LUCEE.debugCharts.chartsOption."+data]); // passed the data into the chats
-					});
-					 // data
-					// console.log(cpuSystemChartOption);
-			        requestData();
 				</script>
-			</cfif>
+			<!--- </cfif> --->
 			<cfif enableTab("Reference")>
 				<script>
 
