@@ -261,13 +261,17 @@ END
 			if(mySQL.count()==0) return {};
 			
 			return {
-			  type: 'mysql'
+			  type= 'mysql'
 			, host=mySQL.server
 			, port=mySQL.port
 			, database=mySQL.database
-			, username: mySQL.username
-			, password: mySQL.password
+			, username= mySQL.username
+			, password= mySQL.password
+		 	, custom= { useUnicode:true }
 			};
+
+
+
 	}
 
 	private struct function getCredencials() {
