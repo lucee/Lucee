@@ -211,7 +211,9 @@ public class SQLUtil {
 
 		// MySQL
 		if (StringUtil.indexOfIgnoreCase(connStr, "serverTimezone=") != -1) return connStr;
-		return connStr + "&serverTimezone=" + TimeZoneUtil.toString(ThreadLocalPageContext.getTimeZone(config));
+		char del = connStr.indexOf('?') != -1 ? '&' : '?';
+
+		return connStr + del + "serverTimezone=" + TimeZoneUtil.toString(ThreadLocalPageContext.getTimeZone(config));
 
 	}
 }
