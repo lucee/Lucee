@@ -220,7 +220,7 @@ public final class AppListenerUtil {
 		}
 		// then for {type:... , host:... , ...}
 		String type = Caster.toString(data.get(KeyConstants._type));
-		DataSourceDefintion dbt = DBUtil.getDataSourceDefintionForType(type, null);
+		DataSourceDefintion dbt = DBUtil.getDataSourceDefintionForType(config, type, null);
 		if (dbt == null) throw new ApplicationException("no datasource type [" + type + "] found");
 		try {
 			return new DataSourceImpl(config, name, dbt.classDefinition, Caster.toString(data.get(KeyConstants._host)), dbt.connectionString,
