@@ -54,16 +54,16 @@
 		type="#request.adminType#"
 		returnVariable="loginSettings">
 
-	<cfset loginPause=loginSettings.delay>
+	<cfset loginPause = loginSettings.delay>
 
-	<cfif loginPause and structKeyExists(application,'lastTryToLogin') and IsDate(application.lastTryToLogin) and DateDiff("s",application.lastTryToLogin,now()) LT loginPause>
-		<cfset login_error="Login disabled until #lsDateFormat(DateAdd("s",loginPause,application.lastTryToLogin))# #lsTimeFormat(DateAdd("s",loginPause,application.lastTryToLogin),'hh:mm:ss')#">
+	<cfif loginPause && structKeyExists(application, "lastTryToLogin") && isDate(application.lastTryToLogin) && DateDiff("s", application.lastTryToLogin, now()) LT loginPause>
+		<cfset login_error = "Login disabled until #lsDateFormat(dateAdd("s", loginPause, application.lastTryToLogin))# #lsTimeFormat(dateAdd("s", loginPause, application.lastTryToLogin),'hh:mm:ss')#">
 	<cfelse>
-		<cfset application.lastTryToLogin=now()>
+		<cfset application.lastTryToLogin = now()>
 		<cfparam name="form.captcha" default="">
 
-		<cfif loginSettings.captcha and structKeyExists(session, "cap") and compare(form.captcha,session.cap) NEQ 0>
-			<cfset login_error="Invalid security code (captcha) definition">
+		<cfif loginSettings.captcha && structKeyExists(session, "cap") && compare(form.captcha,session.cap) NEQ 0>
+			<cfset login_error = "Invalid security code (captcha) definition">
 		<cfelse>
 			<cfadmin
 				action="hashPassword"
@@ -76,13 +76,13 @@
 			<cfcookie expires="NEVER" name="lucee_admin_lang" value="#session.lucee_admin_lang#">
 			<cfif form.rememberMe NEQ "s">
 				<cfcookie
-					expires="#DateAdd(form.rememberMe,1,now())#"
+					expires="#dateAdd(form.rememberMe,1,now())#"
 					name="lucee_admin_pw_#server.lucee.version#_#ad#"
 					value="#hashedPassword#">
 			<cfelse>
 				<cfcookie expires="Now" name="lucee_admin_pw_#server.lucee.version#_#ad#" value="">
 			</cfif>
-			<cfif isDefined("cookie.lucee_admin_lastpage") and cookie.lucee_admin_lastpage neq "logout">
+			<cfif isDefined("cookie.lucee_admin_lastpage") && cookie.lucee_admin_lastpage neq "logout">
 				<cfset url.action = cookie.lucee_admin_lastpage>
 			</cfif>
 		</cfif>
@@ -90,11 +90,11 @@
 </cfif>
 
 <!--- Process New Password !--->
-<cfif structKeyExists(form, "new_password") and structKeyExists(form, "new_password_re")>
+<cfif structKeyExists(form, "new_password") && structKeyExists(form, "new_password_re")>
 	<cfif len(form.new_password) LT 6>
-		<cfset login_error="password is too short, it must have at least 6 chars">
+		<cfset login_error = "password is too short, it must have at least 6 chars">
 	<cfelseif form.new_password NEQ form.new_password_re>
-		<cfset login_error="password and password retype are not equal">
+		<cfset login_error = "password and password retype are not equal">
 	<cfelse>
 		<cfadmin
 			action="updatePassword"
@@ -108,7 +108,7 @@
 		<cfset session["password" & request.adminType]=hashedPassword>
 		 <cfif form.rememberMe NEQ "s">
 			<cfcookie
-				expires="#DateAdd(form.rememberMe,1,now())#"
+				expires="#dateAdd(form.rememberMe,1,now())#"
 				name="lucee_admin_pw_#server.lucee.version#_#ad#"
 				value="#hashedPassword#">
 		<cfelse>
@@ -119,7 +119,7 @@
 
 <!--- cookie ---->
 <cfset fromCookie=false>
-<cfif not structKeyExists(session, "password" & request.adminType) and structKeyExists(cookie,'lucee_admin_pw_#server.lucee.version#_#ad#')>
+<cfif not structKeyExists(session, "password" & request.adminType) && structKeyExists(cookie,'lucee_admin_pw_#server.lucee.version#_#ad#')>
 	<cfset fromCookie=true>
 	<cftry>
 		<cfset session["password"&ad]=cookie['lucee_admin_pw_#server.lucee.version#_#ad#']>
@@ -162,7 +162,7 @@
 <cfset request.self = request.adminType & ".cfm">
 <!--- includes several functions --->
 <cfinclude template="web_functions.cfm">
-<cfif not structKeyExists(application, "adminfunctions") or (structKeyExists(session, "alwaysNew") and session.alwaysNew)>
+<cfif not structKeyExists(application, "adminfunctions") or (structKeyExists(session, "alwaysNew") && session.alwaysNew)>
 	<cfset application.adminfunctions = new adminfunctions() />
 </cfif>
 
@@ -230,7 +230,7 @@
 		<cfif el.action == "plugin"><cfset hasPlugin=true></cfif>
 	</cfloop>
 
-	<cfif not hasPlugin or (structKeyExists(session, "alwaysNew") and session.alwaysNew)>
+	<cfif not hasPlugin or (structKeyExists(session, "alwaysNew") && session.alwaysNew)>
 		<cfif not hasPlugin>
 		<cfset plugin=struct(
 			label:"Plugins",
@@ -271,7 +271,7 @@
 						children:[],
 						action:_act
 					)>
-					<cfif _pos GT 0 and _pos LTE arrayLen(navigation)>
+					<cfif _pos GT 0 && _pos LTE arrayLen(navigation)>
 						<cfscript>
 						for(i=arrayLen(navigation)+1;i>_pos;i--){
 							navigation[i]=navigation[i-1];
@@ -304,7 +304,7 @@
 
 </cfif>
 <cfsavecontent variable="arrow"><img src="resources/img/arrow.gif.cfm" width="4" height="7" /></cfsavecontent>
-<cfif structKeyExists(url, "action") and url.action == "plugin" && not structKeyExists(url, "plugin")>
+<cfif structKeyExists(url, "action") && url.action == "plugin" && not structKeyExists(url, "plugin")>
 	<cflocation url="#request.self#" addtoken="no">
 </cfif>
 <cfif request.adminType == "web">
@@ -313,9 +313,9 @@
 
 <cfscript>
 	function isLuceneInstalled() {
-		//if(!isNull(session._isLuceneInstalled)) return session._isLuceneInstalled;
+		//if (!isNull(session._isLuceneInstalled)) return session._isLuceneInstalled;
 
-		try{
+		try {
 			admin
 				action="getRHServerExtensions"
 				type="#request.adminType#"
@@ -334,9 +334,8 @@
 		}
 	}
 
-
-	isRestrictedLevel=server.ColdFusion.ProductLevel == "community" or server.ColdFusion.ProductLevel == "professional";
-	isRestricted=isRestrictedLevel and request.adminType == "server";
+	isRestrictedLevel = server.ColdFusion.ProductLevel == "community" or server.ColdFusion.ProductLevel == "professional";
+	isRestricted = isRestrictedLevel && request.adminType == "server";
 
 	// Navigation
 	// As a Set of Array and Structures, so that it is sorted
@@ -346,7 +345,7 @@
 	context='';
 	// write Naviagtion
 	current.label="Overview";
-	if(isDefined("url.action"))current.action=url.action;
+	if (isDefined("url.action"))current.action=url.action;
 	else current.action="overview";
 
 	strNav ="";
@@ -357,26 +356,26 @@
 
 		subNav="";
 		hasActiveItem = false;
-		if(hasChildren) {
+		if (hasChildren) {
 			for(iCld=1; iCld lte ArrayLen(stNavi.children); iCld=iCld+1) {
 				stCld = stNavi.children[iCld];
-				isActive=current.action == stNavi.action & '.' & stCld.action or (current.action == 'plugin' and stCld.action == url.plugin);
-				if(request.adminType == "web" && stCld.action == "search"){
+				isActive=current.action == stNavi.action & '.' & stCld.action or (current.action == 'plugin' && stCld.action == url.plugin);
+				if (request.adminType == "web" && stCld.action == "search"){
 					stCld.hidden=!isLuceneInstalled();
 				}
-				if(isActive) {
+				if (isActive) {
 					hasActiveItem = true;
 					current.label = stNavi.label & ' - ' & stCld.label;
 				}
 
-				if(not toBool(stCld,"hidden") and (not isRestricted or toBool(stCld,"display"))) {
+				if (not toBool(stCld,"hidden") && (not isRestricted or toBool(stCld,"display"))) {
 					/*if (isActive) {
 						sClass = "navsub_active";
 					}
 					else {
 						sClass = "navsub";
 					}*/
-					if(structKeyExists(stCld,'_action'))_action=stCld._action;
+					if (structKeyExists(stCld,'_action'))_action=stCld._action;
 					else _action=stNavi.action & '.' & stCld.action;
 
 					isfavorite = application.adminfunctions.isfavorite(_action);
@@ -392,9 +391,9 @@
 		}
 		strNav = strNav &'';
 		hasChildren=hasChildren and len(subNav) GT 0;
-		if(not hasChildren) {
-			if(toBool(stNavi,"display"))strNav = strNav & '<li><a href="' & request.self & '?action=' & stNavi.action & '">' & stNavi.label & '</a></li>';
-			//if(toBool(stNavi,"display"))strNav = strNav & '<div class="navtop"><a class="navtop" href="' & request.self & '?action=' & stNavi.action & '">' & stNavi.label & '</a></div>';
+		if (not hasChildren) {
+			if (toBool(stNavi,"display"))strNav = strNav & '<li><a href="' & request.self & '?action=' & stNavi.action & '">' & stNavi.label & '</a></li>';
+			//if (toBool(stNavi,"display"))strNav = strNav & '<div class="navtop"><a class="navtop" href="' & request.self & '?action=' & stNavi.action & '">' & stNavi.label & '</a></div>';
 		}
 		else {
 			idName = toIDField(stNavi.label);
@@ -414,11 +413,11 @@
 	*/
 
 	function toBool(sct,key) {
-		if(not structKeyExists(arguments.sct,arguments.key)) return false;
+		if (not structKeyExists(arguments.sct,arguments.key)) return false;
 		return arguments.sct[arguments.key];
 	}
 	function getRemoteClients() {
-		if(not isDefined("form._securtyKeys")) return array();
+		if (not isDefined("form._securtyKeys")) return array();
 		return form._securtyKeys;
 	}
 	function toIDField(value)
@@ -467,7 +466,7 @@
 					$('.submit,.menu_inactive,.menu_active').click(__blockUI);
 				});
 				$("input[type='submit']").on("click", function(){
-					if($('span').hasClass( "commentError" )){
+					if ($('span').hasClass( "commentError" )){
 						$("span.commentError").each(function () {
 							$(this).remove();
 						});
@@ -490,10 +489,10 @@
 
 <!--- <cftry>
 <cfscript>
-if(request.adminType == 'server'){
+if (request.adminType == 'server'){
 	include "services.update.functions.cfm";
 	ud=getUpdateData();
-	if(isNull(application.UpdateProvider[ud.location])) {
+	if (isNull(application.UpdateProvider[ud.location])) {
 		thread name="providers" action="run" location=ud.location {
 			application.UpdateProvider[ud.location]=getAvailableVersion();
 			systemOutput("done!",1,1);
