@@ -62,7 +62,7 @@
 		<cfset application.lastTryToLogin = now()>
 		<cfparam name="form.captcha" default="">
 
-		<cfif loginSettings.captcha && structKeyExists(session, "cap") && compare(form.captcha,session.cap) NEQ 0>
+		<cfif loginSettings.captcha && structKeyExists(session, "cap") && compare(form.captcha,session.cap) != 0>
 			<cfset login_error = "Invalid security code (captcha) definition">
 		<cfelse>
 			<cfadmin
@@ -74,15 +74,15 @@
 			<cfset session.lucee_admin_lang=form.lang>
 			<!--- Thread operation for update provider --->
 			<cfcookie expires="NEVER" name="lucee_admin_lang" value="#session.lucee_admin_lang#">
-			<cfif form.rememberMe NEQ "s">
+			<cfif form.rememberMe != "s">
 				<cfcookie
-					expires="#dateAdd(form.rememberMe,1,now())#"
+					expires="#dateAdd(form.rememberMe, 1, now())#"
 					name="lucee_admin_pw_#server.lucee.version#_#ad#"
 					value="#hashedPassword#">
 			<cfelse>
 				<cfcookie expires="Now" name="lucee_admin_pw_#server.lucee.version#_#ad#" value="">
 			</cfif>
-			<cfif isDefined("cookie.lucee_admin_lastpage") && cookie.lucee_admin_lastpage neq "logout">
+			<cfif isDefined("cookie.lucee_admin_lastpage") && cookie.lucee_admin_lastpage != "logout">
 				<cfset url.action = cookie.lucee_admin_lastpage>
 			</cfif>
 		</cfif>
@@ -93,7 +93,7 @@
 <cfif structKeyExists(form, "new_password") && structKeyExists(form, "new_password_re")>
 	<cfif len(form.new_password) LT 6>
 		<cfset login_error = "password is too short, it must have at least 6 chars">
-	<cfelseif form.new_password NEQ form.new_password_re>
+	<cfelseif form.new_password != form.new_password_re>
 		<cfset login_error = "password and password retype are not equal">
 	<cfelse>
 		<cfadmin
@@ -106,7 +106,7 @@
 				pw="#form.new_password#"
 				returnVariable="hashedPassword">
 		<cfset session["password" & request.adminType]=hashedPassword>
-		 <cfif form.rememberMe NEQ "s">
+		 <cfif form.rememberMe != "s">
 			<cfcookie
 				expires="#dateAdd(form.rememberMe,1,now())#"
 				name="lucee_admin_pw_#server.lucee.version#_#ad#"
@@ -119,10 +119,10 @@
 
 <!--- cookie ---->
 <cfset fromCookie=false>
-<cfif not structKeyExists(session, "password" & request.adminType) && structKeyExists(cookie,'lucee_admin_pw_#server.lucee.version#_#ad#')>
+<cfif !structKeyExists(session, "password" & request.adminType) && structKeyExists(cookie,'lucee_admin_pw_#server.lucee.version#_#ad#')>
 	<cfset fromCookie=true>
 	<cftry>
-		<cfset session["password"&ad]=cookie['lucee_admin_pw_#server.lucee.version#_#ad#']>
+		<cfset session["password" & ad]=cookie['lucee_admin_pw_#server.lucee.version#_#ad#']>
 		<cfcatch></cfcatch>
 	</cftry>
 </cfif>
@@ -152,7 +152,7 @@
 	</cftry>
 </cfif>
 
-<cfif not structKeyExists(session,'lucee_admin_lang')>
+<cfif !structKeyExists(session,'lucee_admin_lang')>
 	<cfset session.lucee_admin_lang ='en'>
 </cfif>
 </cfsilent>
@@ -162,7 +162,7 @@
 <cfset request.self = request.adminType & ".cfm">
 <!--- includes several functions --->
 <cfinclude template="web_functions.cfm">
-<cfif not structKeyExists(application, "adminfunctions") or (structKeyExists(session, "alwaysNew") && session.alwaysNew)>
+<cfif !structKeyExists(application, "adminfunctions") or (structKeyExists(session, "alwaysNew") && session.alwaysNew)>
 	<cfset application.adminfunctions = new adminfunctions() />
 </cfif>
 
@@ -210,11 +210,9 @@
 	<cfreturn language>
 </cffunction>
 
-
 <cfset navigation = stText.MenuStruct[request.adminType]>
 
-
-<cfset plugins=array()>
+<cfset plugins = []>
 <cfif structKeyExists(session, "password" & request.adminType)>
 	<cftry>
 	<cfadmin
@@ -230,8 +228,8 @@
 		<cfif el.action == "plugin"><cfset hasPlugin=true></cfif>
 	</cfloop>
 
-	<cfif not hasPlugin or (structKeyExists(session, "alwaysNew") && session.alwaysNew)>
-		<cfif not hasPlugin>
+	<cfif !hasPlugin || (structKeyExists(session, "alwaysNew") && session.alwaysNew)>
+		<cfif !hasPlugin>
 		<cfset plugin=struct(
 			label:"Plugins",
 			children:plugins,
@@ -265,7 +263,7 @@
 					_action:'plugin&plugin='&plugindirs.name
 				)>
 
-				<cfif not structKeyExists(sctNav,_act)>
+				<cfif !structKeyExists(sctNav,_act)>
 					<cfset sctNav[_act]=struct(
 						label:_group,
 						children:[],
@@ -292,8 +290,8 @@
 						<cfset isUpdate=true>
 			</cfif>
 		</cfloop>
-				<cfif not isUpdate>
-					<cfset children[arrayLen(children)+1]=item>
+				<cfif !isUpdate>
+					<cfset children[arrayLen(children) + 1] = item>
 	</cfif>
 
 </cfif>
@@ -304,7 +302,7 @@
 
 </cfif>
 <cfsavecontent variable="arrow"><img src="resources/img/arrow.gif.cfm" width="4" height="7" /></cfsavecontent>
-<cfif structKeyExists(url, "action") && url.action == "plugin" && not structKeyExists(url, "plugin")>
+<cfif structKeyExists(url, "action") && url.action == "plugin" && !structKeyExists(url, "plugin")>
 	<cflocation url="#request.self#" addtoken="no">
 </cfif>
 <cfif request.adminType == "web">
@@ -359,7 +357,7 @@
 		if (hasChildren) {
 			for(iCld=1; iCld lte ArrayLen(stNavi.children); iCld=iCld+1) {
 				stCld = stNavi.children[iCld];
-				isActive=current.action == stNavi.action & '.' & stCld.action or (current.action == 'plugin' && stCld.action == url.plugin);
+				isActive=current.action == stNavi.action & '.' & stCld.action || (current.action == 'plugin' && stCld.action == url.plugin);
 				if (request.adminType == "web" && stCld.action == "search"){
 					stCld.hidden=!isLuceneInstalled();
 				}
@@ -368,7 +366,7 @@
 					current.label = stNavi.label & ' - ' & stCld.label;
 				}
 
-				if (not toBool(stCld,"hidden") && (not isRestricted or toBool(stCld,"display"))) {
+				if (!toBool(stCld,"hidden") && (!isRestricted || toBool(stCld,"display"))) {
 					/*if (isActive) {
 						sClass = "navsub_active";
 					}
@@ -391,13 +389,13 @@
 		}
 		strNav = strNav &'';
 		hasChildren=hasChildren and len(subNav) GT 0;
-		if (not hasChildren) {
+		if (!hasChildren) {
 			if (toBool(stNavi,"display"))strNav = strNav & '<li><a href="' & request.self & '?action=' & stNavi.action & '">' & stNavi.label & '</a></li>';
 			//if (toBool(stNavi,"display"))strNav = strNav & '<div class="navtop"><a class="navtop" href="' & request.self & '?action=' & stNavi.action & '">' & stNavi.label & '</a></div>';
 		}
 		else {
 			idName = toIDField(stNavi.label);
-			isCollapsed = not hasActiveItem and application.adminfunctions.getdata('collapsed_' & idName) == 1;
+			isCollapsed = !hasActiveItem && application.adminfunctions.getdata('collapsed_' & idName) == 1;
 			strNav = strNav & '<li id="#idName#"#isCollapsed ? ' class="collapsed"':''#><a href="##">' & stNavi.label & '</a><ul#isCollapsed ? ' style="display:none"':''#>'&subNav& "</ul></li>";
 			//strNav = strNav & '<div class="navtop">' & stNavi.label & '</div>'&subNav& "";
 		}
@@ -406,18 +404,18 @@
 	strNav ='<ul id="menu">'& strNav&'</ul>' ;
 
 /* moved to title in content area
-	if (favoriteLis neq "")
+	if (favoriteLis != "")
 	{
 		strNav = '<li id="favorites"><a href="##">Favorites</a><ul>' & favoriteLis & "</ul></li>" & strNav;
 	}
 	*/
 
 	function toBool(sct,key) {
-		if (not structKeyExists(arguments.sct,arguments.key)) return false;
+		if (!structKeyExists(arguments.sct,arguments.key)) return false;
 		return arguments.sct[arguments.key];
 	}
 	function getRemoteClients() {
-		if (not isDefined("form._securtyKeys")) return array();
+		if (!isDefined("form._securtyKeys")) return array();
 		return form._securtyKeys;
 	}
 	function toIDField(value)
@@ -427,25 +425,25 @@
 	request.getRemoteClients=getRemoteClients;
 </cfscript>
 
-<cfif not structKeyExists(session, "password" & request.adminType)>
+<cfif !structKeyExists(session, "password" & request.adminType)>
 		<cfadmin
 			action="hasPassword"
 			type="#request.adminType#"
 			returnVariable="hasPassword">
 	<cfif hasPassword>
 		<cfmodule template="admin_layout.cfm" width="480" title="Login" onload="doFocus()">
-			<cfif login_error NEQ ""><span class="CheckError"><cfoutput>#login_error#</cfoutput></span><br></cfif>
+			<cfif login_error != ""><span class="CheckError"><cfoutput>#login_error#</cfoutput></span><br></cfif>
 			<cfinclude template="login.cfm">
 		</cfmodule>
 	<cfelse>
 		<cfmodule template="admin_layout.cfm" width="480" title="New Password">
-			<cfif login_error NEQ ""><span class="CheckError"><cfoutput>#login_error#</cfoutput></span><br></cfif>
+			<cfif login_error != ""><span class="CheckError"><cfoutput>#login_error#</cfoutput></span><br></cfif>
 			<cfinclude template="login.new.cfm">
 		</cfmodule>
 	</cfif>
 <cfelse>
 	<cfsavecontent variable="content">
-		<cfif not FindOneOf("\/",current.action)>
+		<cfif !findOneOf("\/",current.action)>
 			<cfinclude template="#current.action#.cfm">
 		<cfelse>
 			<cfset current.label="Error">
@@ -482,7 +480,7 @@
 		</cfmodule>
 	</cfif>
 </cfif>
-<cfif current.action neq "overview">
+<cfif current.action != "overview">
 	<cfcookie name="lucee_admin_lastpage" value="#current.action#" expires="NEVER">
 </cfif>
 
