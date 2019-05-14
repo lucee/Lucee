@@ -425,19 +425,28 @@
 	request.getRemoteClients=getRemoteClients;
 </cfscript>
 
-<cfif !structKeyExists(session, "password" & request.adminType)>
+<cfif (!structKeyExists(session, "password" & request.adminType))>
 		<cfadmin
 			action="hasPassword"
 			type="#request.adminType#"
 			returnVariable="hasPassword">
-	<cfif hasPassword>
+
+	<cfif (hasPassword)>
 		<cfmodule template="admin_layout.cfm" width="480" title="Login" onload="doFocus()">
-			<cfif login_error != ""><span class="CheckError"><cfoutput>#login_error#</cfoutput></span><br></cfif>
+			<cfif !isEmpty(login_error)>
+				<span class="CheckError"><cfoutput>#login_error#</cfoutput></span>
+				<br>
+			</cfif>
 			<cfinclude template="login.cfm">
 		</cfmodule>
 	<cfelse>
+		<!--- Admin Password is not Set !--->
 		<cfmodule template="admin_layout.cfm" width="480" title="New Password">
-			<cfif login_error != ""><span class="CheckError"><cfoutput>#login_error#</cfoutput></span><br></cfif>
+			<cfif !isEmpty(login_error)>
+				<span class="CheckError"><cfoutput>#login_error#</cfoutput></span>
+				<br>
+			</cfif>
+			<!--- Show the New Password Form --->
 			<cfinclude template="login.new.cfm">
 		</cfmodule>
 	</cfif>
@@ -446,7 +455,7 @@
 		<cfif !findOneOf("\/",current.action)>
 			<cfinclude template="#current.action#.cfm">
 		<cfelse>
-			<cfset current.label="Error">
+			<cfset current.label = "Error">
 			invalid action definition
 		</cfif>
 	</cfsavecontent>
