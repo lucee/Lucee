@@ -725,7 +725,7 @@ public final class StringUtil {
 
 		while (pos != -1) {
 
-			sb.append(input.substring(start, pos));
+			if(input != repl) sb.append(input.substring(start, pos));
 			sb.append(repl);
 
 			start = pos + findLen;
@@ -735,7 +735,7 @@ public final class StringUtil {
 			pos = ignoreCase ? indexOfIgnoreCase(input, find, start) : input.indexOf(find, start);
 		}
 
-		if (input.length() > start) sb.append(input.substring(start));
+		if (input.length() > start && input != repl) sb.append(input.substring(start));
 
 		return sb.toString();
 	}
