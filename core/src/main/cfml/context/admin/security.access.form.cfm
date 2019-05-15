@@ -130,13 +130,13 @@
 				</tr>
 				
 				<!--- CFX Setting --->
-				<tr>
+				<!--- <tr>
 					<th scope="row">#stText.Security.CFX#</th>
 					<td class="tblContent#def('cfx_setting')#">
 						<input type="checkbox" class="checkbox" name="#prefix#CFXSetting" value="yes" <cfif access.cfx_setting>checked</cfif>>
 						<div class="comment">#stText.Security.CFXDescription#</div>
 					</td>
-				</tr>
+				</tr> --->
 				
 				<!--- Cache --->
 				<tr>
@@ -315,13 +315,13 @@
 					</td>
 				</tr>
 						<!--- CFX --->
-				<tr>
+				<!--- <tr>
 					<th scope="row">#stText.Security.CFXTags#</th>
 					<td class="tblContent#def('cfx_usage')#">
 						<input type="checkbox" class="checkbox" name="#prefix#CFXUsage" value="yes" <cfif access.cfx_usage>checked</cfif>>
 						<div class="comment">#stText.Security.CFXTagsDescription#</div>
 					</td>
-				</tr>
+				</tr> --->
 				<cfif type NEQ "special">
 					<cfmodule template="remoteclients.cfm" colspan="2">
 				</cfif>
