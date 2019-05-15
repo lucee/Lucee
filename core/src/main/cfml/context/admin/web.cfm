@@ -49,8 +49,7 @@
 
 <!--- Form --->
 <cfif structKeyExists(form, "login_password" & request.adminType)>
-	<cfadmin
-		action="getLoginSettings"
+	<cfadmin action="getLoginSettings"
 		type="#request.adminType#"
 		returnVariable="loginSettings">
 
@@ -65,8 +64,7 @@
 		<cfif loginSettings.captcha && structKeyExists(session, "cap") && compare(form.captcha,session.cap) != 0>
 			<cfset login_error = "Invalid security code (captcha) definition">
 		<cfelse>
-			<cfadmin
-				action="hashPassword"
+			<cfadmin action="hashPassword"
 				type="#request.adminType#"
 				pw="#form["login_password"&ad]#"
 				returnVariable="hashedPassword">
@@ -96,17 +94,15 @@
 	<cfelseif form.new_password != form.new_password_re>
 		<cfset login_error = "password and password retype are not equal">
 	<cfelse>
-		<cfadmin
-			action="updatePassword"
+		<cfadmin action="updatePassword"
 			type="#request.adminType#"
 			newPassword="#form.new_password#">
-		<cfadmin
-				action="hashPassword"
+		<cfadmin action="hashPassword"
 				type="#request.adminType#"
 				pw="#form.new_password#"
 				returnVariable="hashedPassword">
 		<cfset session["password" & request.adminType]=hashedPassword>
-		 <cfif form.rememberMe != "s">
+		<cfif form.rememberMe != "s">
 			<cfcookie
 				expires="#dateAdd(form.rememberMe,1,now())#"
 				name="lucee_admin_pw_#server.lucee.version#_#ad#"
@@ -130,38 +126,36 @@
 <!--- Session --->
 <cfif structKeyExists(session, "password" & request.adminType)>
 	<cftry>
-		<cfadmin
-			action="connect"
+		<cfadmin action="connect"
 			type="#request.adminType#"
 			password="#session["password" & request.adminType]#">
+
 		<cfif request.adminType == "server">
-			<cfadmin
-			action="getDevelopMode"
-			type="#request.adminType#"
-			password="#session["password" & request.adminType]#"
-			returnVariable="mode">
+			<cfadmin action="getDevelopMode"
+				type="#request.adminType#"
+				password="#session["password" & request.adminType]#"
+				returnVariable="mode">
+
 			<cfif mode.developMode>
 				<cfset session.alwaysNew = true>
 			</cfif>
 		</cfif>
 
-		 <cfcatch>
-		 	<cfset login_error=cfcatch.message>
+		<cfcatch>
+			<cfset login_error=cfcatch.message>
 			<cfset structDelete(session, "password" & request.adminType)>
 		</cfcatch>
 	</cftry>
 </cfif>
-
-<cfif !structKeyExists(session,'lucee_admin_lang')>
-	<cfset session.lucee_admin_lang ='en'>
-</cfif>
 </cfsilent>
 
+<cfparam name="session.lucee_admin_lang" default="en">
+
 <cfinclude template="resources/text.cfm">
+<cfinclude template="web_functions.cfm">
 
 <cfset request.self = request.adminType & ".cfm">
-<!--- includes several functions --->
-<cfinclude template="web_functions.cfm">
+
 <cfif !structKeyExists(application, "adminfunctions") or (structKeyExists(session, "alwaysNew") && session.alwaysNew)>
 	<cfset application.adminfunctions = new adminfunctions() />
 </cfif>
@@ -215,8 +209,7 @@
 <cfset plugins = []>
 <cfif structKeyExists(session, "password" & request.adminType)>
 	<cftry>
-	<cfadmin
-		action="getPluginDirectory"
+	<cfadmin action="getPluginDirectory"
 		type="#request.adminType#"
 		password="#session["password" & request.adminType]#"
 		returnVariable="pluginDir">
@@ -426,10 +419,9 @@
 </cfscript>
 
 <cfif (!structKeyExists(session, "password" & request.adminType))>
-		<cfadmin
-			action="hasPassword"
-			type="#request.adminType#"
-			returnVariable="hasPassword">
+	<cfadmin action="hasPassword"
+		type="#request.adminType#"
+		returnVariable="hasPassword">
 
 	<cfif (hasPassword)>
 		<cfmodule template="admin_layout.cfm" width="480" title="Login" onload="doFocus()">

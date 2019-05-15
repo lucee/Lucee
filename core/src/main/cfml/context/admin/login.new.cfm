@@ -18,7 +18,7 @@
 						class="xlarge" required="yes" message="#stText.login.RetypePasswordMissing#" />
 					</td>
 				</tr>
-				<cfset f="">
+				<cfset f = "">
 				<cfloop collection="#languages#" item="key">
 					<cfif f == "" || (key == session.lucee_admin_lang)>
 						<cfset f = key>
@@ -29,7 +29,7 @@
 					<td>
 						<select name="lang" class="xlarge">
 							<cfloop collection="#languages#" item="key">
-								<option value="#key#" <cfif key == session.lucee_admin_lang>selected</cfif>>#languages[key]#</option>
+								<option value="#key#" <cfif (key == session.lucee_admin_lang)>selected</cfif>>#languages[key]#</option>
 							</cfloop>
 						</select>
 					</td>
