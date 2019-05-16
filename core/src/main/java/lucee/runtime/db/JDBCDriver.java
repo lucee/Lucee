@@ -32,7 +32,7 @@ public class JDBCDriver {
 
 	public final String label;
 	public final String id;
-	public final String connStr;
+	public String connStr;
 	public final ClassDefinition cd;
 
 	public JDBCDriver(String label, String id, String connStr, ClassDefinition cd) {

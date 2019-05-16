@@ -103,15 +103,20 @@ public class DBUtil {
 		// FUTURE remove the hardcoded fallback
 		ConfigImpl ci = (ConfigImpl) config;
 		JDBCDriver jdbc = ci.getJDBCDriverById(id, null);
-		if (jdbc != null) return jdbc;
+		if (jdbc != null) return improve(jdbc, connStr);
 
 		jdbc = ci.getJDBCDriverByClassName(className, null);
-		if (jdbc != null) return jdbc;
+		if (jdbc != null) return improve(jdbc, connStr);
 
 		jdbc = ci.getJDBCDriverByBundle(bundleName, OSGiUtil.toVersion(bundleVersion, null), null);
-		if (jdbc != null) return jdbc;
+		if (jdbc != null) return improve(jdbc, connStr);
 
 		return new JDBCDriver(id, id, connStr, new ClassDefinitionImpl(className, bundleName, bundleVersion, config.getIdentification()));
+	}
+
+	private static JDBCDriver improve(JDBCDriver jdbc, String connStr) {
+		if (StringUtil.isEmpty(jdbc.connStr)) jdbc.connStr = connStr;
+		return jdbc;
 	}
 
 	public static class DataSourceDefintion {
