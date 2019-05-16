@@ -1919,6 +1919,9 @@ public final class Caster {
 				IOUtil.closeEL(r);
 			}
 		}
+		else if (o instanceof Throwable) {
+			return toString((Throwable) o, true);
+		}
 		else if (o instanceof InputStream) {
 			PageContextImpl pc = (PageContextImpl) ThreadLocalPageContext.get();
 			InputStream r = null;
@@ -2060,6 +2063,10 @@ public final class Caster {
 
 	public static String toString(TimeZone tz) {
 		return TimeZoneUtil.toString(tz);
+	}
+
+	public static String toString(Throwable t, boolean addMessage) {
+		return ExceptionUtil.getStacktrace(t, addMessage);
 	}
 
 	public static TimeZone toTimeZone(Object obj) throws PageException {
