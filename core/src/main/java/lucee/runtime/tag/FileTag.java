@@ -493,7 +493,7 @@ public final class FileTag extends BodyTagImpl {
 			// MAKEUNIQUE
 			else if (nameconflict == NAMECONFLICT_MAKEUNIQUE) destination = makeUnique(destination);
 			// ERROR
-			else throw new ApplicationException("destiniation file [" + destination.toString() + "] already exist");
+			else throw new ApplicationException("destination file [" + destination.toString() + "] already exists");
 		}
 
 		setACL(pageContext, destination, acl);
@@ -677,7 +677,7 @@ public final class FileTag extends BodyTagImpl {
 		boolean created = checkFile(pageContext, securityManager, file, serverPassword, createPath, true, false, true);
 		if (file.exists() && !created) {
 			// Error
-			if (nameconflict == NAMECONFLICT_ERROR) throw new ApplicationException("destination file [" + file + "] already exist");
+			if (nameconflict == NAMECONFLICT_ERROR) throw new ApplicationException("destination file [" + file + "] already exists");
 			// SKIP
 			else if (nameconflict == NAMECONFLICT_SKIP) return;
 			// OVERWRITE
@@ -945,7 +945,7 @@ public final class FileTag extends BodyTagImpl {
 		if (destination.exists()) {
 			fileExisted = true;
 			if (nameconflict == NAMECONFLICT_ERROR) {
-				throw new ApplicationException("destination file [" + destination + "] already exist");
+				throw new ApplicationException("destination file [" + destination + "] already exists");
 			}
 			else if (nameconflict == NAMECONFLICT_SKIP) {
 				cffile.set("fileexisted", Caster.toBoolean(fileExisted));
