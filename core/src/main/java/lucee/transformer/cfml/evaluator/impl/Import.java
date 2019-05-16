@@ -70,12 +70,12 @@ public final class Import extends EvaluatorSupport {
 			if (p == null) throw new TemplateException(data.srcCode, "Wrong Context, missing attribute [prefix] for tag [" + tag.getFullname() + "]");
 			if (t == null) throw new TemplateException(data.srcCode, "Wrong Context, missing attribute [taglib] for tag [" + tag.getFullname() + "]");
 
-			if (path != null) throw new TemplateException(data.srcCode, "Wrong context, you have an invalid attributes constellation for the tag [" + tag.getFullname() + "], "
+			if (path != null) throw new TemplateException(data.srcCode, "Wrong context, invalid attribute combination for the tag [" + tag.getFullname() + "], "
 					+ "you cannot mix attribute [path] with attributes [taglib] and [prefix]");
 
 			return executePT(config, tag, libTag, flibs, data.srcCode);
 		}
-		if (path == null) throw new TemplateException(data.srcCode, "Wrong context, you have an invalid attributes constellation for the tag [" + tag.getFullname() + "], "
+		if (path == null) throw new TemplateException(data.srcCode, "Wrong context, invalid attribute combination for the tag [" + tag.getFullname() + "], "
 				+ "you need to define the attributes [prefix] and [taglib], the attribute [path] or simply define a attribute value");
 
 		String strPath = ASMUtil.getAttributeString(tag, "path", null);
@@ -137,7 +137,7 @@ public final class Import extends EvaluatorSupport {
 				if (!hasTldExtension) return _executeCTD(textTagLib, nameSpace, nameSpaceSeparator);
 			}
 		}
-		throw new TemplateException(sc, "invalid definition of the attribute taglib [" + textTagLib + "]");
+		throw new TemplateException(sc, "attribute [taglib] isn't valid [" + textTagLib + "]");
 	}
 
 	/**
