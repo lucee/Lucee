@@ -21,7 +21,6 @@ package lucee.runtime.listener;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -92,7 +91,6 @@ import lucee.runtime.type.UDFCustomType;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.util.KeyConstants;
-import lucee.runtime.type.util.ListUtil;
 import lucee.transformer.library.ClassDefinitionImpl;
 
 public class ModernApplicationContext extends ApplicationContextSupport {
@@ -1526,6 +1524,12 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	}
 
 	@Override
+	public void setJavaSettings(JavaSettings javaSettings) {
+		initJavaSettings = true;
+		this.javaSettings = javaSettings;
+	}
+
+	@Override
 	public JavaSettings getJavaSettings() {
 		initJava();
 		return javaSettings;
@@ -1535,98 +1539,11 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		if (!initJavaSettings) {
 			Object o = get(component, JAVA_SETTING, null);
 			if (o != null && Decision.isStruct(o)) {
-				Struct sct = Caster.toStruct(o, null);
-
-				// loadPaths
-				Object obj = sct.get(KeyImpl.init("loadPaths"), null);
-				List<Resource> paths;
-				if (obj != null) {
-					paths = loadPaths(ThreadLocalPageContext.get(), obj);
-				}
-				else paths = new ArrayList<Resource>();
-
-				// loadCFMLClassPath
-				Boolean loadCFMLClassPath = Caster.toBoolean(sct.get(KeyImpl.init("loadCFMLClassPath"), null), null);
-				if (loadCFMLClassPath == null) loadCFMLClassPath = Caster.toBoolean(sct.get(KeyImpl.init("loadColdFusionClassPath"), null), null);
-				if (loadCFMLClassPath == null) loadCFMLClassPath = javaSettings.loadCFMLClassPath();
-
-				// reloadOnChange
-				boolean reloadOnChange = Caster.toBooleanValue(sct.get(KeyImpl.init("reloadOnChange"), null), javaSettings.reloadOnChange());
-
-				// watchInterval
-				int watchInterval = Caster.toIntValue(sct.get(KeyImpl.init("watchInterval"), null), javaSettings.watchInterval());
-
-				// watchExtensions
-				obj = sct.get(KeyImpl.init("watchExtensions"), null);
-				List<String> extensions = new ArrayList<String>();
-				if (obj != null) {
-					Array arr;
-					if (Decision.isArray(obj)) {
-						try {
-							arr = Caster.toArray(obj);
-						}
-						catch (PageException e) {
-							arr = new ArrayImpl();
-						}
-					}
-					else {
-						arr = lucee.runtime.type.util.ListUtil.listToArrayRemoveEmpty(Caster.toString(obj, ""), ',');
-					}
-					Iterator<Object> it = arr.valueIterator();
-					String ext;
-					while (it.hasNext()) {
-						ext = Caster.toString(it.next(), null);
-						if (StringUtil.isEmpty(ext)) continue;
-						ext = ext.trim();
-						if (ext.startsWith(".")) ext = ext.substring(1);
-						if (ext.startsWith("*.")) ext = ext.substring(2);
-						extensions.add(ext);
-					}
-
-				}
-				javaSettings = new JavaSettingsImpl(paths.toArray(new Resource[paths.size()]), loadCFMLClassPath, reloadOnChange, watchInterval,
-						extensions.toArray(new String[extensions.size()]));
+				javaSettings = JavaSettingsImpl.newInstance(javaSettings, Caster.toStruct(o, null));
 
 			}
 			initJavaSettings = true;
 		}
-	}
-
-	public static java.util.List<Resource> loadPaths(PageContext pc, Object obj) {
-
-		Resource res;
-		if (!Decision.isArray(obj)) {
-			String list = Caster.toString(obj, null);
-			if (!StringUtil.isEmpty(list)) {
-				obj = ListUtil.listToArray(list, ',');
-			}
-		}
-
-		if (Decision.isArray(obj)) {
-			Array arr = Caster.toArray(obj, null);
-			java.util.List<Resource> list = new ArrayList<Resource>();
-			Iterator<Object> it = arr.valueIterator();
-			while (it.hasNext()) {
-				try {
-					String path = Caster.toString(it.next(), null);
-					if (path == null) continue;
-					// print.e("--------------------------------------------------");
-					// print.e(path);
-					res = AppListenerUtil.toResourceExisting(pc.getConfig(), pc.getApplicationContext(), path, false);
-
-					// print.e(res+"->"+(res!=null && res.exists()));
-					if (res == null || !res.exists()) res = ResourceUtil.toResourceExisting(pc, path, true, null);
-
-					// print.e(res+"->"+(res!=null && res.exists()));
-					if (res != null) list.add(res);
-				}
-				catch (Exception e) {
-					LogUtil.log(ThreadLocalPageContext.getConfig(), ModernApplicationContext.class.getName(), e);
-				}
-			}
-			return list;
-		}
-		return null;
 	}
 
 	@Override
@@ -1734,6 +1651,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		this.cgiScopeReadonly = cgiScopeReadonly;
 	}
 
+	@Override
 	public String getBlockedExtForFileUpload() {
 		if (!initBlockedExtForFileUpload) {
 			Object o = get(component, BLOCKED_EXT_FOR_FILE_UPLOAD, null);

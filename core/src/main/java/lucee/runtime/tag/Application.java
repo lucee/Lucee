@@ -42,6 +42,7 @@ import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.listener.AuthCookieData;
 import lucee.runtime.listener.ClassicApplicationContext;
+import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.listener.ModernApplicationContext;
 import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.listener.SessionCookieData;
@@ -147,6 +148,7 @@ public final class Application extends TagImpl {
 	private Object functionpaths;
 	private Struct proxy;
 	private String blockedExtForFileUpload;
+	private Struct javaSettings;
 
 	@Override
 	public void release() {
@@ -224,6 +226,7 @@ public final class Application extends TagImpl {
 		authCookie = null;
 		sessionCookie = null;
 		blockedExtForFileUpload = null;
+		javaSettings = null;
 	}
 
 	/**
@@ -568,6 +571,10 @@ public final class Application extends TagImpl {
 		this.functionpaths = functionpaths;
 	}
 
+	public void setJavasettings(Struct javaSettings) {
+		this.javaSettings = javaSettings;
+	}
+
 	public void setSecurejsonprefix(String secureJsonPrefix) {
 		this.secureJsonPrefix = secureJsonPrefix;
 		// getAppContext().setSecureJsonPrefix(secureJsonPrefix);
@@ -802,6 +809,11 @@ public final class Application extends TagImpl {
 		if (blockedExtForFileUpload != null) {
 			if (ac instanceof ClassicApplicationContext) {
 				((ClassicApplicationContext) ac).setBlockedextforfileupload(blockedExtForFileUpload);
+			}
+		}
+		if (javaSettings != null) {
+			if (ac instanceof ApplicationContextSupport) {
+				((ApplicationContextSupport) ac).setJavaSettings(JavaSettingsImpl.newInstance(new JavaSettingsImpl(), javaSettings));
 			}
 		}
 

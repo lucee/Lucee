@@ -19,11 +19,24 @@
 package lucee.runtime.listener;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.StringUtil;
+import lucee.runtime.PageContext;
+import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.PageException;
+import lucee.runtime.op.Caster;
+import lucee.runtime.op.Decision;
+import lucee.runtime.type.Array;
+import lucee.runtime.type.ArrayImpl;
+import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.ArrayUtil;
+import lucee.runtime.type.util.ListUtil;
 
 public class JavaSettingsImpl implements JavaSettings {
 
@@ -98,6 +111,93 @@ public class JavaSettingsImpl implements JavaSettings {
 	@Override
 	public String[] watchedExtensions() {
 		return watchedExtensions;
+	}
+
+	public static JavaSettingsImpl newInstance(JavaSettings base, Struct sct) {
+		// loadPaths
+		Object obj = sct.get(KeyImpl.init("loadPaths"), null);
+		List<Resource> paths;
+		if (obj != null) {
+			paths = loadPaths(ThreadLocalPageContext.get(), obj);
+		}
+		else paths = new ArrayList<Resource>();
+
+		// loadCFMLClassPath
+		Boolean loadCFMLClassPath = Caster.toBoolean(sct.get(KeyImpl.init("loadCFMLClassPath"), null), null);
+		if (loadCFMLClassPath == null) loadCFMLClassPath = Caster.toBoolean(sct.get(KeyImpl.init("loadColdFusionClassPath"), null), null);
+		if (loadCFMLClassPath == null) loadCFMLClassPath = base.loadCFMLClassPath();
+
+		// reloadOnChange
+		boolean reloadOnChange = Caster.toBooleanValue(sct.get(KeyImpl.init("reloadOnChange"), null), base.reloadOnChange());
+
+		// watchInterval
+		int watchInterval = Caster.toIntValue(sct.get(KeyImpl.init("watchInterval"), null), base.watchInterval());
+
+		// watchExtensions
+		obj = sct.get(KeyImpl.init("watchExtensions"), null);
+		List<String> extensions = new ArrayList<String>();
+		if (obj != null) {
+			Array arr;
+			if (Decision.isArray(obj)) {
+				try {
+					arr = Caster.toArray(obj);
+				}
+				catch (PageException e) {
+					arr = new ArrayImpl();
+				}
+			}
+			else {
+				arr = lucee.runtime.type.util.ListUtil.listToArrayRemoveEmpty(Caster.toString(obj, ""), ',');
+			}
+			Iterator<Object> it = arr.valueIterator();
+			String ext;
+			while (it.hasNext()) {
+				ext = Caster.toString(it.next(), null);
+				if (StringUtil.isEmpty(ext)) continue;
+				ext = ext.trim();
+				if (ext.startsWith(".")) ext = ext.substring(1);
+				if (ext.startsWith("*.")) ext = ext.substring(2);
+				extensions.add(ext);
+			}
+		}
+		return new JavaSettingsImpl(paths.toArray(new Resource[paths.size()]), loadCFMLClassPath, reloadOnChange, watchInterval, extensions.toArray(new String[extensions.size()]));
+	}
+
+	private static java.util.List<Resource> loadPaths(PageContext pc, Object obj) {
+
+		Resource res;
+		if (!Decision.isArray(obj)) {
+			String list = Caster.toString(obj, null);
+			if (!StringUtil.isEmpty(list)) {
+				obj = ListUtil.listToArray(list, ',');
+			}
+		}
+
+		if (Decision.isArray(obj)) {
+			Array arr = Caster.toArray(obj, null);
+			java.util.List<Resource> list = new ArrayList<Resource>();
+			Iterator<Object> it = arr.valueIterator();
+			while (it.hasNext()) {
+				try {
+					String path = Caster.toString(it.next(), null);
+					if (path == null) continue;
+					// print.e("--------------------------------------------------");
+					// print.e(path);
+					res = AppListenerUtil.toResourceExisting(pc.getConfig(), pc.getApplicationContext(), path, false);
+
+					// print.e(res+"->"+(res!=null && res.exists()));
+					if (res == null || !res.exists()) res = ResourceUtil.toResourceExisting(pc, path, true, null);
+
+					// print.e(res+"->"+(res!=null && res.exists()));
+					if (res != null) list.add(res);
+				}
+				catch (Exception e) {
+					LogUtil.log(ThreadLocalPageContext.getConfig(), ModernApplicationContext.class.getName(), e);
+				}
+			}
+			return list;
+		}
+		return null;
 	}
 
 }

@@ -114,7 +114,7 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	private RestSettings restSettings;
 	private Resource[] restCFCLocations;
 	private Resource antiSamyPolicy;
-	private JavaSettingsImpl javaSettings;
+	private JavaSettings javaSettings;
 	private DataSource[] dataSources;
 	private UDF onMissingTemplate;
 
@@ -817,6 +817,11 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	@Override
 	public JavaSettings getJavaSettings() {
 		return javaSettings;
+	}
+
+	@Override
+	public void setJavaSettings(JavaSettings javaSettings) {
+		this.javaSettings = javaSettings;
 	}
 
 	@Override
