@@ -33,6 +33,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.security.CodeSource;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -110,6 +111,7 @@ import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.ConfigServerImpl;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.config.DeployHandler;
 import lucee.runtime.config.Identification;
 import lucee.runtime.config.Password;
@@ -285,6 +287,8 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 		// if we have a "fresh" install
 		Set<ExtensionDefintion> extensions;
+		Set<String> extensionsToRemove = null;
+
 		if (installExtensions && (updateInfo.updateType == XMLConfigFactory.NEW_FRESH || updateInfo.updateType == XMLConfigFactory.NEW_FROM4)) {
 			List<ExtensionDefintion> ext = info.getRequiredExtension();
 			extensions = toSet(null, ext);
@@ -294,6 +298,10 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		// defined in the manifest
 		else if (installExtensions && (updateInfo.updateType == XMLConfigFactory.NEW_MINOR || !isRe)) {
 			extensions = new HashSet<ExtensionDefintion>();
+			extensionsToRemove = new HashSet<String>();
+
+			checkInvalidExtensions(cs, extensions, extensionsToRemove);
+
 			Iterator<ExtensionDefintion> it = info.getRequiredExtension().iterator();
 			ExtensionDefintion ed;
 			RHExtension rhe;
@@ -349,10 +357,62 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		}
 		else if (configDir != null) XMLConfigFactory.updateRequiredExtension(this, configDir);
 
+		// extension to remove (we only have to remove in case we did not install an other version)
+
+		if (extensionsToRemove != null) {
+			for (ExtensionDefintion ed: extensions) {
+				extensionsToRemove.remove(ed.getId());
+			}
+			if (!extensionsToRemove.isEmpty()) {
+				// remove extension that are not valid (to new for current version)
+				LogUtil.log(cs, Log.LEVEL_ERROR, "deploy", XMLConfigWebFactory.class.getName(), "uninstall extensions ["
+						+ lucee.runtime.type.util.ListUtil.toList(extensionsToRemove, ", ") + "] because it is not supported for the current Lucee version.");
+				try {
+					XMLConfigAdmin.removeRHExtensions(cs, lucee.runtime.type.util.ListUtil.toStringArray(extensionsToRemove), false);
+				}
+				catch (Exception e) {
+					LogUtil.log(cs, "debug", XMLConfigWebFactory.class.getName(), e);
+				}
+			}
+		}
+
 		touchMonitor(cs);
 		LogUtil.log(cs, Log.LEVEL_INFO, "startup", "touched monitors");
 		this.uptime = System.currentTimeMillis();
 		// this.config=config;
+	}
+
+	private static void checkInvalidExtensions(ConfigImpl config, Set<ExtensionDefintion> extensionsToInstall, Set<String> extensionsToRemove) {
+		RHExtension[] extensions = config.getRHExtensions();
+		if (extensions != null) {
+			InfoImpl info = (InfoImpl) ConfigWebUtil.getEngine(config).getInfo();
+			for (RHExtension ext: extensions) {
+				if (!ext.isValidFor(info)) {
+					try {
+						ExtensionDefintion ed = getRequiredExtension(info, ext.getId());
+						if (ed != null) {
+							extensionsToInstall.add(ed);
+						}
+						else {
+							extensionsToRemove.add(ext.toExtensionDefinition().getId());
+						}
+					}
+					catch (Exception e) {
+						LogUtil.log(config, "debug", XMLConfigWebFactory.class.getName(), e);
+					}
+				}
+			}
+		}
+	}
+
+	private static ExtensionDefintion getRequiredExtension(InfoImpl info, String id) {
+		List<ExtensionDefintion> reqExt = info.getRequiredExtension();
+		if (reqExt != null) {
+			for (ExtensionDefintion ed: reqExt) {
+				if (ed.getId().equals(id)) return ed;
+			}
+		}
+		return null;
 	}
 
 	public static Set<ExtensionDefintion> toSet(Set<ExtensionDefintion> set, List<ExtensionDefintion> list) {
@@ -387,9 +447,9 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		return rtn;
 	}
 
-	public static String toList(Set<ExtensionDefintion> set) {
+	public static String toList(Collection<ExtensionDefintion> coll) {
 		StringBuilder sb = new StringBuilder();
-		Iterator<ExtensionDefintion> it = set.iterator();
+		Iterator<ExtensionDefintion> it = coll.iterator();
 		ExtensionDefintion ed;
 		while (it.hasNext()) {
 			ed = it.next();
@@ -464,6 +524,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 					ResourceUtil.touch(temp);
 					Util.copy(is, temp.getOutputStream(), false, true);
 					rhe = new RHExtension(cs, temp, false);
+					rhe.validate();
 					ExtensionDefintion alreadyExists = null;
 					it = existing.iterator();
 					while (it.hasNext()) {
@@ -538,6 +599,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 							ResourceUtil.touch(temp);
 							Util.copy(zis, temp.getOutputStream(), false, true);
 							rhe = new RHExtension(cs, temp, false);
+							rhe.validate();
 							boolean alreadyExists = false;
 							it = existing.iterator();
 							while (it.hasNext()) {

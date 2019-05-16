@@ -86,6 +86,7 @@ public class ExtensionDefintion {
 		return OSGiUtil.toVersion(since, null);
 	}
 
+	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(getId());
@@ -98,6 +99,7 @@ public class ExtensionDefintion {
 		return sb.toString();
 	}
 
+	@Override
 	public boolean equals(Object other) {
 		if (other instanceof ExtensionDefintion) {
 			ExtensionDefintion ed = (ExtensionDefintion) other;

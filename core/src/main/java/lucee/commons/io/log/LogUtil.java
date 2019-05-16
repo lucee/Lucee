@@ -67,16 +67,18 @@ public final class LogUtil {
 	}
 
 	public static void log(Config config, String type, Exception e) {
+		log(config, "application", type, e);
+	}
+
+	public static void log(Config config, String logName, String type, Exception e) {
 		config = ThreadLocalPageContext.getConfig(config);
 		Log log = null;
 		if (config != null) {
-			log = config.getLog("application");
+			log = config.getLog(logName);
 		}
 
 		if (log != null) log.error(type, e);
 		else logGlobal(config, Log.LEVEL_ERROR, type, ExceptionUtil.getStacktrace(e, true));
-		// else if (config == null) SystemOut.printDate(e);
-		// else SystemOut.printDate(config.getErrWriter(), e);
 	}
 
 	public static void log(Config config, int level, String logName, String type, String msg) {

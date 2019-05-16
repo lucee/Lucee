@@ -412,15 +412,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			// Log.LEVEL_INFO,
 			// XMLConfigWebFactory.class.getName(), "fixed to big felix.log");
 
-			if (reload) {
-				XMLCaster.writeTo(doc, config.getConfigFile());
-				try {
-					doc = XMLConfigWebFactory.loadDocument(config.getConfigFile());
-				}
-				catch (SAXException e) {}
-				if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "reload xml");
-
-			}
+			if (reload) doc = reload(doc, config, cs);
 
 		}
 		catch (Exception e) {
@@ -548,6 +540,16 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			TagUtil.addTagMetaData((ConfigWebImpl) config, log);
 			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "added tag meta data");
 		}
+	}
+
+	private static Document reload(Document doc, ConfigImpl config, ConfigServerImpl cs) throws PageException, IOException {
+		XMLCaster.writeTo(doc, config.getConfigFile());
+		try {
+			doc = XMLConfigWebFactory.loadDocument(config.getConfigFile());
+		}
+		catch (SAXException e) {}
+		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "reload xml");
+		return doc;
 	}
 
 	private static void loadResourceProvider(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
@@ -4252,7 +4254,6 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				BundleInfo[] bfsq;
 				try {
 					rhe = new RHExtension(config, child);
-
 					if (rhe.getStartBundles()) rhe.deployBundles(config);
 					extensions.add(rhe);
 				}

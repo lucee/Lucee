@@ -4555,6 +4555,7 @@ public final class XMLConfigAdmin {
 		RHExtension rhext;
 		try {
 			rhext = new RHExtension(config, ext, true);
+			rhext.validate();
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
@@ -4950,7 +4951,7 @@ public final class XMLConfigAdmin {
 			ExceptionUtil.rethrowIfNecessary(t);
 			DeployHandler.moveToFailedFolder(rhext.getExtensionFile().getParentResource(), rhext.getExtensionFile());
 			try {
-				XMLConfigAdmin.removeRHExtension((ConfigImpl) config, rhext.getId(), false);
+				XMLConfigAdmin.removeRHExtensions((ConfigImpl) config, new String[] { rhext.getId() }, false);
 			}
 			catch (Throwable t2) {
 				ExceptionUtil.rethrowIfNecessary(t2);
@@ -6077,19 +6078,38 @@ public final class XMLConfigAdmin {
 		if (trg.exists()) trg.remove(true);
 	}
 
-	public static void removeRHExtension(ConfigImpl config, String extensionID, boolean removePhysical) throws SAXException, IOException, PageException, BundleException {
+	public static void removeRHExtensions(ConfigImpl config, String[] extensionIDs, boolean removePhysical) throws IOException, PageException, SAXException, BundleException {
 		XMLConfigAdmin admin = new XMLConfigAdmin(config, null);
-		BundleDefinition[] old = admin._removeExtension(config, extensionID, removePhysical);
+
+		Map<String, BundleDefinition> oldMap = new HashMap<>();
+		BundleDefinition[] bds;
+		for (String extensionID: extensionIDs) {
+			try {
+				bds = admin._removeExtension(config, extensionID, removePhysical);
+				for (BundleDefinition bd: bds) {
+					oldMap.put(bd.toString(), bd);
+				}
+			}
+			catch (Exception e) {
+				LogUtil.log(config, "deploy", XMLConfigAdmin.class.getName(), e);
+			}
+		}
+
 		admin._storeAndReload();
 
-		if (old != null && config instanceof ConfigServer) {
+		if (!oldMap.isEmpty() && config instanceof ConfigServer) {
 			ConfigServer cs = (ConfigServer) config;
 			ConfigWeb[] webs = cs.getConfigWebs();
 			for (int i = 0; i < webs.length; i++) {
-				admin._storeAndReload((ConfigImpl) webs[i]);
+				try {
+					admin._storeAndReload((ConfigImpl) webs[i]);
+				}
+				catch (Exception e) {
+					LogUtil.log(config, "deploy", XMLConfigAdmin.class.getName(), e);
+				}
 			}
 		}
-		cleanBundles(null, config, old);// clean after populating the new ones
+		cleanBundles(null, config, oldMap.values().toArray(new BundleDefinition[oldMap.size()])); // clean after populating the new ones
 
 	}
 

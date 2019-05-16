@@ -565,18 +565,44 @@ public class RHExtension implements Serializable {
 
 	private void readLoaderVersion(String label, String str) throws ApplicationException {
 		minLoaderVersion = Caster.toDoubleValue(str, 0);
-		if (minLoaderVersion > SystemUtil.getLoaderVersion()) {
-			throw new InvalidVersion(
-					"The Extension [" + label + "] cannot be loaded, " + Constants.NAME + " Loader Version must be at least [" + str + "], update the Lucee.jar first.");
-		}
+		/*
+		 * if (minLoaderVersion > SystemUtil.getLoaderVersion()) { throw new InvalidVersion(
+		 * "The Extension [" + label + "] cannot be loaded, " + Constants.NAME +
+		 * " Loader Version must be at least [" + str + "], update the Lucee.jar first."); }
+		 */
 	}
 
 	private void readCoreVersion(String label, String str, Info info) throws ApplicationException {
 		minCoreVersion = OSGiUtil.toVersion(str, null);
+		/*
+		 * if (minCoreVersion != null && Util.isNewerThan(minCoreVersion, info.getVersion())) { throw new
+		 * InvalidVersion("The Extension [" + label + "] cannot be loaded, " + Constants.NAME +
+		 * " Version must be at least [" + minCoreVersion.toString() + "], version is [" +
+		 * info.getVersion().toString() + "]."); }
+		 */
+	}
+
+	public void validate() throws ApplicationException {
+		Info info = ConfigWebUtil.getEngine(config).getInfo();
+
 		if (minCoreVersion != null && Util.isNewerThan(minCoreVersion, info.getVersion())) {
-			throw new InvalidVersion("The Extension [" + label + "] cannot be loaded, " + Constants.NAME + " Version must be at least [" + minCoreVersion.toString()
+			throw new InvalidVersion("The Extension [" + getName() + "] cannot be loaded, " + Constants.NAME + " Version must be at least [" + minCoreVersion.toString()
 					+ "], version is [" + info.getVersion().toString() + "].");
 		}
+		if (minLoaderVersion > SystemUtil.getLoaderVersion()) {
+			throw new InvalidVersion("The Extension [" + getName() + "] cannot be loaded, " + Constants.NAME + " Loader Version must be at least [" + minLoaderVersion
+					+ "], update the Lucee.jar first.");
+		}
+	}
+
+	public boolean isValidFor(Info info) {
+		if (minCoreVersion != null && Util.isNewerThan(minCoreVersion, info.getVersion())) {
+			return false;
+		}
+		if (minLoaderVersion > SystemUtil.getLoaderVersion()) {
+			return false;
+		}
+		return true;
 	}
 
 	private void readCategories(String label, String cat) {
@@ -1391,5 +1417,12 @@ public class RHExtension implements Serializable {
 			super(message);
 		}
 
+	}
+
+	public ExtensionDefintion toExtensionDefinition() {
+		ExtensionDefintion ed = new ExtensionDefintion(getId(), getVersion());
+		ed.setParam("symbolic-name", getSymbolicName());
+		ed.setParam("description", getDescription());
+		return ed;
 	}
 }
