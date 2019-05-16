@@ -55,58 +55,63 @@ public class DBUtil {
 		}
 		if ("h2".equals(type)) {
 			if (H2 == null) {
-				H2 = new DataSourceDefintion(getCD(config, "h2", "org.h2.Driver", "org.h2", "1.3.172"), "jdbc:h2:{path}{database};MODE={mode}", -1);
+				JDBCDriver jdbc = getJDBCDriver(config, "h2", "org.h2.Driver", "org.h2", "1.3.172", "jdbc:h2:{path}{database};MODE={mode}");
+				H2 = new DataSourceDefintion(jdbc.cd, jdbc.connStr, -1);
 			}
 			return H2;
 		}
 		if ("mssql".equals(type)) {
 			if (MSSQL == null) {
-				MSSQL = new DataSourceDefintion(getCD(config, "mssql", "net.sourceforge.jtds.jdbc.Driver", "jtds", "1.3.1"), "jdbc:jtds:sqlserver://{host}:{port}/{database}",
-						1433);
+				JDBCDriver jdbc = getJDBCDriver(config, "mssql", "net.sourceforge.jtds.jdbc.Driver", "jtds", "1.3.1", "jdbc:jtds:sqlserver://{host}:{port}/{database}");
+				MSSQL = new DataSourceDefintion(jdbc.cd, jdbc.connStr, 1433);
 			}
 			return MSSQL;
 		}
 		if ("mysql".equals(type)) {
 			if (MYSQL == null) {
-				MYSQL = new DataSourceDefintion(getCD(config, "mysql", "com.mysql.cj.jdbc.Driver", "com.mysql.cj", "8.0.15"), "jdbc:mysql://{host}:{port}/{database}", 3306);
+				JDBCDriver jdbc = getJDBCDriver(config, "mysql", "com.mysql.cj.jdbc.Driver", "com.mysql.cj", "8.0.15", "jdbc:mysql://{host}:{port}/{database}");
+				MYSQL = new DataSourceDefintion(jdbc.cd, jdbc.connStr, 3306);
 			}
 			return MYSQL;
 		}
 		if ("oracle".equals(type)) {
 			if (ORACLE == null) {
-				ORACLE = new DataSourceDefintion(getCD(config, "oracle", "oracle.jdbc.driver.OracleDriver", "ojdbc7", "12.1.0.2L0001"),
-						"jdbc:oracle:{drivertype}:@{host}:{port}:{database}", 1521);
+				JDBCDriver jdbc = getJDBCDriver(config, "oracle", "oracle.jdbc.driver.OracleDriver", "ojdbc7", "12.1.0.2L0001",
+						"jdbc:oracle:{drivertype}:@{host}:{port}:{database}");
+				ORACLE = new DataSourceDefintion(jdbc.cd, jdbc.connStr, 1521);
 			}
 			return ORACLE;
 		}
 		if ("postgresql".equals(type) || "postgre".equals(type)) {
 			if (POSTGRESQL == null) {
-				POSTGRESQL = new DataSourceDefintion(getCD(config, "postgresql", "org.postgresql.Driver", "org.postgresql.jdbc42", "9.4.1212"),
-						"jdbc:postgresql://{host}:{port}/{database}", 5432);
+				JDBCDriver jdbc = getJDBCDriver(config, "postgresql", "org.postgresql.Driver", "org.postgresql.jdbc42", "9.4.1212", "jdbc:postgresql://{host}:{port}/{database}");
+				POSTGRESQL = new DataSourceDefintion(jdbc.cd, jdbc.connStr, 5432);
 			}
 			return POSTGRESQL;
 		}
 		if ("sybase".equals(type)) {
 			if (SYBASE == null) {
-				SYBASE = new DataSourceDefintion(getCD(config, "sybase", "net.sourceforge.jtds.jdbc.Driver", "jtds", "1.3.1"), "jdbc:jtds:sybase://{host}:{port}/{database}", 7100);
+				JDBCDriver jdbc = getJDBCDriver(config, "sybase", "net.sourceforge.jtds.jdbc.Driver", "jtds", "1.3.1", "jdbc:jtds:sybase://{host}:{port}/{database}");
+				SYBASE = new DataSourceDefintion(jdbc.cd, jdbc.connStr, 7100);
 			}
 			return SYBASE;
 		}
 		return defaultValue;
 	}
 
-	private static ClassDefinition getCD(Config config, String id, String className, String bundleName, String bundleVersion) {
+	private static JDBCDriver getJDBCDriver(Config config, String id, String className, String bundleName, String bundleVersion, String connStr) {
+		// FUTURE remove the hardcoded fallback
 		ConfigImpl ci = (ConfigImpl) config;
 		JDBCDriver jdbc = ci.getJDBCDriverById(id, null);
-		if (jdbc != null) return jdbc.cd;
+		if (jdbc != null) return jdbc;
 
 		jdbc = ci.getJDBCDriverByClassName(className, null);
-		if (jdbc != null) return jdbc.cd;
+		if (jdbc != null) return jdbc;
 
 		jdbc = ci.getJDBCDriverByBundle(bundleName, OSGiUtil.toVersion(bundleVersion, null), null);
-		if (jdbc != null) return jdbc.cd;
+		if (jdbc != null) return jdbc;
 
-		return new ClassDefinitionImpl(className, bundleName, bundleVersion, config.getIdentification());
+		return new JDBCDriver(id, id, connStr, new ClassDefinitionImpl(className, bundleName, bundleVersion, config.getIdentification()));
 	}
 
 	public static class DataSourceDefintion {

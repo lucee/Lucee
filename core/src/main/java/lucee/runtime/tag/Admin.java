@@ -4002,7 +4002,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 		JDBCDriver[] drivers = config.getJDBCDrivers();
 		lucee.runtime.type.Query qry = new QueryImpl(
-				new Key[] { KeyConstants._id, KeyConstants._label, KeyConstants._class, KeyConstants._bundleName, KeyConstants._bundleVersion }, drivers.length, "jdbc");
+				new Key[] { KeyConstants._id, KeyConstants._label, KeyConstants._class, KeyConstants._bundleName, KeyConstants._bundleVersion, KeyConstants._connectionString },
+				drivers.length, "jdbc");
 
 		JDBCDriver driver;
 		int row;
@@ -4010,6 +4011,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			row = i + 1;
 			driver = drivers[i];
 			if (!StringUtil.isEmpty(driver.id)) qry.setAt(KeyConstants._id, row, driver.id);
+			if (!StringUtil.isEmpty(driver.connStr)) qry.setAt(KeyConstants._connectionString, row, driver.connStr);
 			qry.setAt(KeyConstants._label, row, driver.label);
 			qry.setAt(KeyConstants._class, row, driver.cd.getClassName());
 			qry.setAt(KeyConstants._bundleName, row, driver.cd.getName());

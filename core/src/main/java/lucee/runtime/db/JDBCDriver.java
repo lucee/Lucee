@@ -32,11 +32,13 @@ public class JDBCDriver {
 
 	public final String label;
 	public final String id;
+	public final String connStr;
 	public final ClassDefinition cd;
 
-	public JDBCDriver(String label, String id, ClassDefinition cd) {
+	public JDBCDriver(String label, String id, String connStr, ClassDefinition cd) {
 		this.label = label;
 		this.id = StringUtil.isEmpty(id) ? null : id.trim();
+		this.connStr = StringUtil.isEmpty(connStr) ? null : connStr.trim();
 		this.cd = cd;
 	}
 

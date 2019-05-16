@@ -952,6 +952,7 @@ public class KeyConstants {
 	public static final Key _proxy = KeyImpl._const("proxy");
 	public static final Key _offset = KeyImpl._const("offset");
 	public static final Key _shortName = KeyImpl._const("shortName");
+	public static final Key _connectionString = KeyImpl._const("connectionString");
 
 	private static MapPro<String, Key> _____keys;
 

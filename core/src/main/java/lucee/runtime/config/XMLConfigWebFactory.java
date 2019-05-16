@@ -2075,7 +2075,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		Element[] drivers = getChildren(jdbc, "driver");
 
 		ClassDefinition cd;
-		String label, id;
+		String label, id, connStr;
 		for (Element driver: drivers) {
 			cd = getClassDefinition(driver, "", config.getIdentification());
 			if (StringUtil.isEmpty(cd.getClassName()) && !StringUtil.isEmpty(cd.getName())) {
@@ -2089,17 +2089,19 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 			label = getAttr(driver, "label");
 			id = getAttr(driver, "id");
+			connStr = getAttr(driver, "connectionString");
 			// check if label exists
 			if (StringUtil.isEmpty(label)) {
 				if (log != null) log.error("Datasource", "missing label for jdbc driver [" + cd.getClassName() + "]");
 				continue;
 			}
+
 			// check if it is a bundle
 			if (!cd.isBundle()) {
 				if (log != null) log.error("Datasource", "jdbc driver [" + label + "] does not describe a bundle");
 				continue;
 			}
-			map.put(cd.toString(), new JDBCDriver(label, id, cd));
+			map.put(cd.toString(), new JDBCDriver(label, id, connStr, cd));
 		}
 		return map.values().toArray(new JDBCDriver[map.size()]);
 	}
