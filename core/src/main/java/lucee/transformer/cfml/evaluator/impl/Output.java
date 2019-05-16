@@ -93,7 +93,7 @@ public final class Output extends EvaluatorSupport {
 
 		// attribute maxrows and endrow not allowd at the same time
 		if (tag.containsAttribute("maxrows") && tag.containsAttribute("endrow"))
-			throw new EvaluatorException("Wrong Context, you cannot use attribute maxrows and endrow at the same time.");
+			throw new EvaluatorException("Wrong Context, you cannot use attribute [maxrows] and [endrow] at the same time.");
 
 	}
 

@@ -71,17 +71,17 @@ public final class Loop extends EvaluatorSupport {
 
 		// attribute maxrows and endrow not allowd at the same time
 		if (tag.containsAttribute("maxrows") && tag.containsAttribute("endrow"))
-			throw new EvaluatorException("Wrong Context, you cannot use attribute maxrows and endrow at the same time.");
+			throw new EvaluatorException("Wrong Context, you cannot use attribute [maxrows] and [endrow] at the same time.");
 
 		// file loop
 		if (tag.containsAttribute("file")) {
 			if (!tag.containsAttribute("index") && !tag.containsAttribute("item"))
-				throw new EvaluatorException("Wrong Context, when you use attribute file you must also use attribute index and/or item");
+				throw new EvaluatorException("Wrong Context, when you use attribute [file ], either attribute [index] and/or [item] are required");
 			if (tag.containsAttribute("query") || tag.containsAttribute("struct") || tag.containsAttribute("collection") || tag.containsAttribute("group")
 					|| tag.containsAttribute("key") || tag.containsAttribute("value") || tag.containsAttribute("maxrows") || tag.containsAttribute("endrow")
 					|| tag.containsAttribute("condition") || tag.containsAttribute("times") || tag.containsAttribute("startrow") || tag.containsAttribute("groupcasesensitive")
 					|| tag.containsAttribute("delimiters")) {
-				throw new EvaluatorException("Wrong Context, Invalid combination of Attributes");
+				throw new EvaluatorException("Wrong Context, Invalid combination of attributes");
 			}
 			loop.setType(TagLoop.TYPE_FILE);
 			return;
@@ -89,13 +89,13 @@ public final class Loop extends EvaluatorSupport {
 		// list loop
 		if (tag.containsAttribute("list")) {
 			if (!tag.containsAttribute("index") && !tag.containsAttribute("item"))
-				throw new EvaluatorException("Wrong Context, when you use attribute list,you must define attribute index and/or item");
+				throw new EvaluatorException("Wrong Context, when you use attribute [list], either attribute [index] and/or [item] are required");
 			if (tag.containsAttribute("to") || tag.containsAttribute("from") || tag.containsAttribute("query") || tag.containsAttribute("struct")
 					|| tag.containsAttribute("collection") || tag.containsAttribute("group") || tag.containsAttribute("charset") || tag.containsAttribute("step")
 					|| tag.containsAttribute("key") || tag.containsAttribute("value") || tag.containsAttribute("file") || tag.containsAttribute("maxrows")
 					|| tag.containsAttribute("endrow") || tag.containsAttribute("characters") || tag.containsAttribute("condition") || tag.containsAttribute("times")
 					|| tag.containsAttribute("startrow") || tag.containsAttribute("startline") || tag.containsAttribute("groupcasesensitive") || tag.containsAttribute("endline")) {
-				throw new EvaluatorException("Wrong Context, Invalid combination of Attributes");
+				throw new EvaluatorException("Wrong Context, Invalid combination of attributes");
 			}
 			loop.setType(TagLoop.TYPE_LIST);
 			return;
@@ -103,14 +103,14 @@ public final class Loop extends EvaluatorSupport {
 		// array loop
 		if (tag.containsAttribute("array")) {
 			if (!tag.containsAttribute("index") && !tag.containsAttribute("item"))
-				throw new EvaluatorException("Wrong Context, when you use attribute array, you must define attribute index and/or item");
+				throw new EvaluatorException("Wrong Context, when you use attribute [array], either attribute [index] and/or [item] are required");
 			if (tag.containsAttribute("to") || tag.containsAttribute("from") || tag.containsAttribute("query") || tag.containsAttribute("struct")
 					|| tag.containsAttribute("collection") || tag.containsAttribute("group") || tag.containsAttribute("charset") || tag.containsAttribute("step")
 					|| tag.containsAttribute("key") || tag.containsAttribute("value") || tag.containsAttribute("file") || tag.containsAttribute("maxrows")
 					|| tag.containsAttribute("endrow") || tag.containsAttribute("characters") || tag.containsAttribute("condition") || tag.containsAttribute("times")
 					|| tag.containsAttribute("startrow") || tag.containsAttribute("startline") || tag.containsAttribute("groupcasesensitive") || tag.containsAttribute("endline")
 					|| tag.containsAttribute("delimiters")) {
-				throw new EvaluatorException("Wrong Context, Invalid combination of Attributes");
+				throw new EvaluatorException("Wrong Context, Invalid combination of attributes");
 			}
 			loop.setType(TagLoop.TYPE_ARRAY);
 			return;
@@ -119,7 +119,7 @@ public final class Loop extends EvaluatorSupport {
 		// array loop
 		if (tag.containsAttribute("times")) {
 
-			if (tag.getAttributes().size() > 1) throw new EvaluatorException("Wrong Context, when you use attribute times, no other attributes are allowed");
+			if (tag.getAttributes().size() > 1) throw new EvaluatorException("Wrong Context, when you use attribute [times], no other attributes are allowed");
 			loop.setType(TagLoop.TYPE_TIMES);
 			return;
 		}
@@ -127,13 +127,13 @@ public final class Loop extends EvaluatorSupport {
 		// struct loop
 		if (tag.containsAttribute("struct")) {
 			if (!tag.containsAttribute("index") && !tag.containsAttribute("item") && !tag.containsAttribute("key") && !tag.containsAttribute("value"))
-				throw new EvaluatorException("Wrong Context, when you use attribute struct, you must define attribute index (alias key) and/or item (alias value)");
+				throw new EvaluatorException("Wrong Context, when you use attribute [struct], either attribute [index] (alias key) and/or [item] (alias value) are required");
 			if (tag.containsAttribute("to") || tag.containsAttribute("from") || tag.containsAttribute("query") || tag.containsAttribute("group") || tag.containsAttribute("charset")
 					|| tag.containsAttribute("step") || tag.containsAttribute("file") || tag.containsAttribute("maxrows") || tag.containsAttribute("endrow")
 					|| tag.containsAttribute("characters") || tag.containsAttribute("condition") || tag.containsAttribute("times") || tag.containsAttribute("startrow")
 					|| tag.containsAttribute("startline") || tag.containsAttribute("groupcasesensitive") || tag.containsAttribute("endline")
 					|| tag.containsAttribute("delimiters")) {
-				throw new EvaluatorException("Wrong Context, Invalid combination of Attributes");
+				throw new EvaluatorException("Wrong Context, Invalid combination of attributes");
 			}
 			loop.setType(TagLoop.TYPE_STRUCT);
 			return;
@@ -148,26 +148,26 @@ public final class Loop extends EvaluatorSupport {
 					|| tag.containsAttribute("characters") || tag.containsAttribute("condition") || tag.containsAttribute("times") || tag.containsAttribute("startrow")
 					|| tag.containsAttribute("startline") || tag.containsAttribute("groupcasesensitive") || tag.containsAttribute("endline")
 					|| tag.containsAttribute("delimiters")) {
-				throw new EvaluatorException("Wrong Context, Invalid combination of Attributes");
+				throw new EvaluatorException("Wrong Context, Invalid combination of attributes");
 			}
 			loop.setType(TagLoop.TYPE_COLLECTION);
 			return;
 		}
 		// from/to loop
 		if (tag.containsAttribute("from") || tag.containsAttribute("to")) {
-			if (!tag.containsAttribute("from")) throw new EvaluatorException("Wrong Context, when you use attribute to, you must also use attribute from.");
-			if (!tag.containsAttribute("to")) throw new EvaluatorException("Wrong Context, when you use attribute from, you must also use attribute to.");
+			if (!tag.containsAttribute("from")) throw new EvaluatorException("Wrong Context, when you use attribute [to], attribute [from] is also required.");
+			if (!tag.containsAttribute("to")) throw new EvaluatorException("Wrong Context, when you use attribute [from], attribute [to] is also required.");
 			if (!tag.containsAttribute("index") && !tag.containsAttribute("item"))
-				throw new EvaluatorException("Wrong Context, when you use attribute from and to, you must define attribute index or item.");
+				throw new EvaluatorException("Wrong Context, when you use attribute [from] and [to], attributes [index] or [item] are required.");
 
 			if (tag.containsAttribute("index") && tag.containsAttribute("item"))
-				throw new EvaluatorException("For this type of loop, you cannot use attribute index and item at the same time.");
+				throw new EvaluatorException("For this type of loop, you cannot use attribute [index] and [item] at the same time.");
 			if (tag.containsAttribute("query") || tag.containsAttribute("struct") || tag.containsAttribute("collection") || tag.containsAttribute("group")
 					|| tag.containsAttribute("key") || tag.containsAttribute("value") || tag.containsAttribute("file") || tag.containsAttribute("maxrows")
 					|| tag.containsAttribute("endrow") || tag.containsAttribute("characters") || tag.containsAttribute("condition") || tag.containsAttribute("times")
 					|| tag.containsAttribute("startrow") || tag.containsAttribute("startline") || tag.containsAttribute("groupcasesensitive") || tag.containsAttribute("endline")
 					|| tag.containsAttribute("delimiters")) {
-				throw new EvaluatorException("Wrong Context, Invalid combination of Attributes");
+				throw new EvaluatorException("Wrong Context, Invalid combination of attributes");
 			}
 
 			loop.setType(TagLoop.TYPE_FROM_TO);
@@ -180,7 +180,7 @@ public final class Loop extends EvaluatorSupport {
 			if (tag.isScriptBase()) throw new EvaluatorException("tag loop-condition is not supported within cfscript, use instead a while statement.");
 
 			if (tag.getAttributes().size() > 1) {
-				throw new EvaluatorException("Wrong Context, Invalid combination of Attributes");
+				throw new EvaluatorException("Wrong Context, Invalid combination of attributes");
 			}
 
 			TagLib tagLib = tagLibTag.getTagLib();

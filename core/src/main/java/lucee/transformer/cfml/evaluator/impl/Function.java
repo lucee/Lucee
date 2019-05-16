@@ -89,10 +89,10 @@ public final class Function extends EvaluatorSupport {
 			if (attrModifier != null) {
 				ExprString expr = tag.getFactory().toExprString(attrModifier.getValue());
 				if (!(expr instanceof Literal))
-					throw new EvaluatorException("Attribute modifier of the Tag Function, must be one of the following literal string values: [abstract,final,static]");
+					throw new EvaluatorException("Attribute [modifier] of the Tag Function, must be one of the following literal string values: [abstract,final,static]");
 				String modifier = StringUtil.emptyIfNull(((Literal) expr).getString()).trim();
 				if (!StringUtil.isEmpty(modifier) && !"abstract".equalsIgnoreCase(modifier) && !"final".equalsIgnoreCase(modifier) && !"static".equalsIgnoreCase(modifier))
-					throw new EvaluatorException("Attribute modifier of the Tag Function, must be one of the following literal string values: [abstract,final,static]");
+					throw new EvaluatorException("Attribute [modifier] of the Tag Function, must be one of the following literal string values: [abstract,final,static]");
 
 				isStatic = "static".equalsIgnoreCase(modifier);
 				boolean abstr = "abstract".equalsIgnoreCase(modifier);
@@ -116,7 +116,7 @@ public final class Function extends EvaluatorSupport {
 				Expression expr = attrLocalMode.getValue();
 				String str = ASMUtil.toString(expr, null);
 				if (!StringUtil.isEmpty(str) && AppListenerUtil.toLocalMode(str, -1) == -1)
-					throw new EvaluatorException("Attribute localMode of the Tag Function, must be a literal value (modern, classic, true or false)");
+					throw new EvaluatorException("Attribute [localMode] of the Tag Function, must be a literal value (modern, classic, true or false)");
 				// boolean output = ((LitBoolean)expr).getBooleanValue();
 				// if(!output) ASMUtil.removeLiterlChildren(tag, true);
 			}
@@ -127,7 +127,7 @@ public final class Function extends EvaluatorSupport {
 			Attribute attrOutput = tag.getAttribute("output");
 			if (attrOutput != null) {
 				Expression expr = tag.getFactory().toExprBoolean(attrOutput.getValue());
-				if (!(expr instanceof LitBoolean)) throw new EvaluatorException("Attribute output of the Tag Function, must be a literal boolean value (true or false, yes or no)");
+				if (!(expr instanceof LitBoolean)) throw new EvaluatorException("Attribute [output] of the Tag Function, must be a literal boolean value (true or false, yes or no)");
 			}
 		}
 
@@ -137,7 +137,7 @@ public final class Function extends EvaluatorSupport {
 			if (attrBufferOutput != null) {
 				Expression expr = tag.getFactory().toExprBoolean(attrBufferOutput.getValue());
 				if (!(expr instanceof LitBoolean))
-					throw new EvaluatorException("Attribute bufferOutput of the Tag Function, must be a literal boolean value (true or false, yes or no)");
+					throw new EvaluatorException("Attribute [bufferOutput] of the Tag Function, must be a literal boolean value (true or false, yes or no)");
 			}
 		}
 

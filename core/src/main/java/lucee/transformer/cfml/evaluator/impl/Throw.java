@@ -31,7 +31,7 @@ public final class Throw extends EvaluatorSupport {
 
 		// file loop
 		if (tag.containsAttribute("message") && tag.containsAttribute("object")) {
-			throw new EvaluatorException("Wrong Context, when you use attribute message, attribute object is not allowed");
+			throw new EvaluatorException("Wrong Context, when you use attribute [message], attribute [object] is not allowed");
 		}
 
 	}
