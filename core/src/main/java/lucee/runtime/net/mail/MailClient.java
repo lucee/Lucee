@@ -307,9 +307,12 @@ public abstract class MailClient implements PoolItem {
 	 * @throws MessagingException
 	 * @throws IOException
 	 */
-	public Query getMails(String[] messageNumbers, String[] uids, boolean all) throws MessagingException, IOException {
+	public Query getMails(String[] messageNumbers, String[] uids, boolean all, String folderName) throws MessagingException, IOException {
 		Query qry = new QueryImpl(all ? _fldnew : _flddo, 0, "query");
-		Folder folder = _store.getFolder("INBOX");
+		if (StringUtil.isEmpty(folderName, true)) folderName = "INBOX";
+		else folderName = folderName.trim();
+
+		Folder folder = _store.getFolder(folderName);
 		folder.open(Folder.READ_ONLY);
 		try {
 			getMessages(qry, folder, uids, messageNumbers, startrow, maxrows, all);
