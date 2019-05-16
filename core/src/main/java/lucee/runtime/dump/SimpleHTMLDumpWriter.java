@@ -53,7 +53,7 @@ public class SimpleHTMLDumpWriter implements DumpWriter {
 			if (rows[i].getItems().length > cols) cols = rows[i].getItems().length;
 
 		TemplateLine tl = null;
-		if (!inside) tl = SystemUtil.getCurrentContext();
+		if (!inside) tl = SystemUtil.getCurrentContext(null);
 		String context = tl == null ? "" : tl.toString();
 
 		if (rows.length == 1 && rows[0].getItems().length == 2) {

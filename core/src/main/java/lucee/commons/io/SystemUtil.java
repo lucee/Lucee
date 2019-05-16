@@ -83,11 +83,13 @@ import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.InfoImpl;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.functions.other.CreateUniqueId;
+import lucee.runtime.functions.system.ExpandPath;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Castable;
 import lucee.runtime.op.Caster;
@@ -951,7 +953,7 @@ public final class SystemUtil {
 		return System.nanoTime() / 1000L;
 	}
 
-	public static TemplateLine getCurrentContext() {
+	public static TemplateLine getCurrentContext(PageContext pc) {
 		StackTraceElement[] traces = new Exception().getStackTrace();
 
 		int line = 0;
@@ -963,6 +965,12 @@ public final class SystemUtil {
 			template = trace.getFileName();
 			if (trace.getLineNumber() <= 0 || template == null || ResourceUtil.getExtension(template, "").equals("java")) continue;
 			line = trace.getLineNumber();
+			try {
+				pc = ThreadLocalPageContext.get(pc);
+				if (pc != null) template = ExpandPath.call(pc, template);
+			}
+			catch (PageException e) {} // optional step, so in case it fails we are still fine
+
 			return new TemplateLine(template, line);
 		}
 		return null;

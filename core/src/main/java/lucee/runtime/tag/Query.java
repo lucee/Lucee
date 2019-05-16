@@ -1106,7 +1106,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 			return new TemplateLine(sourceTemplate);
 		}
 
-		if (config.debug()) return SystemUtil.getCurrentContext();
+		if (config.debug()) return SystemUtil.getCurrentContext(null);
 		return new TemplateLine(ps.getDisplayPath());
 	}
 

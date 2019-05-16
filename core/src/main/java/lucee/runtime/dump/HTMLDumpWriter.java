@@ -75,7 +75,7 @@ public class HTMLDumpWriter implements DumpWriter {
 		}
 
 		TemplateLine tl = null;
-		if (!inside) tl = SystemUtil.getCurrentContext();
+		if (!inside) tl = SystemUtil.getCurrentContext(pc);
 		String context = tl == null ? "" : tl.toString();
 
 		writer.write(

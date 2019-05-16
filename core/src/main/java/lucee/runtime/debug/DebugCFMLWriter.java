@@ -310,7 +310,7 @@ public class DebugCFMLWriter extends CFMLWriter implements DebugOutputLog {
 	}
 
 	private void log(String str) {
-		TemplateLine tl = SystemUtil.getCurrentContext();
+		TemplateLine tl = SystemUtil.getCurrentContext(null);
 		if (tl != null) {
 			fragments.add(new DebugTextFragmentImpl(str, tl));
 		}

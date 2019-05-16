@@ -719,7 +719,7 @@ public final class DebuggerImpl implements Debugger {
 		long _lastTrace = (traces.isEmpty()) ? lastEntry : lastTrace;
 		lastTrace = System.currentTimeMillis();
 
-		DebugTraceImpl t = new DebugTraceImpl(type, category, text, ps == null ? "unknown template" : ps.getDisplayPath(), SystemUtil.getCurrentContext().line, "", varName,
+		DebugTraceImpl t = new DebugTraceImpl(type, category, text, ps == null ? "unknown template" : ps.getDisplayPath(), SystemUtil.getCurrentContext(null).line, "", varName,
 				varValue, lastTrace - _lastTrace);
 		traces.add(t);
 		return t;
@@ -727,7 +727,7 @@ public final class DebuggerImpl implements Debugger {
 
 	@Override
 	public DebugDump addDump(PageSource ps, String dump) {
-		DebugDump dt = new DebugDumpImpl(ps.getDisplayPath(), SystemUtil.getCurrentContext().line, dump);
+		DebugDump dt = new DebugDumpImpl(ps.getDisplayPath(), SystemUtil.getCurrentContext(null).line, dump);
 		dumps.add(dt);
 		return dt;
 	}
@@ -779,7 +779,7 @@ public final class DebuggerImpl implements Debugger {
 	public void addImplicitAccess(String scope, String name) {
 		if (implicitAccesses.size() > 1000) return;
 		try {
-			SystemUtil.TemplateLine tl = SystemUtil.getCurrentContext();
+			SystemUtil.TemplateLine tl = SystemUtil.getCurrentContext(null);
 			String key = tl + ":" + scope + ":" + name;
 			ImplicitAccessImpl dsc = implicitAccesses.get(key);
 			if (dsc != null) dsc.inc();

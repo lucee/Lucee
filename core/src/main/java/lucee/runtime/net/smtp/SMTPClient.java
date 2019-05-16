@@ -733,14 +733,14 @@ public final class SMTPClient implements Serializable {
 	}
 
 	public static SpoolerTaskListener toListener(SpoolerTask st, Object listener) throws ApplicationException {
-		if (listener instanceof Component) return new ComponentSpoolerTaskListener(SystemUtil.getCurrentContext(), st, (Component) listener);
+		if (listener instanceof Component) return new ComponentSpoolerTaskListener(SystemUtil.getCurrentContext(null), st, (Component) listener);
 
-		if (listener instanceof UDF) return new UDFSpoolerTaskListener(SystemUtil.getCurrentContext(), st, null, (UDF) listener);
+		if (listener instanceof UDF) return new UDFSpoolerTaskListener(SystemUtil.getCurrentContext(null), st, null, (UDF) listener);
 
 		if (listener instanceof Struct) {
 			UDF before = Caster.toFunction(((Struct) listener).get("before", null), null);
 			UDF after = Caster.toFunction(((Struct) listener).get("after", null), null);
-			return new UDFSpoolerTaskListener(SystemUtil.getCurrentContext(), st, before, after);
+			return new UDFSpoolerTaskListener(SystemUtil.getCurrentContext(null), st, before, after);
 		}
 		throw new ApplicationException("cannot convert [" + Caster.toTypeName(listener) + "] to a listener");
 	}
