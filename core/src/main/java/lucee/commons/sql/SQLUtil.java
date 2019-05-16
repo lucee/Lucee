@@ -209,6 +209,7 @@ public class SQLUtil {
 
 	public static String connectionStringTranslatedPatch(Config config, String connStr) {
 		print.e("1 ->" + connStr);
+		if (connStr.equalsIgnoreCase("null?USEUNICODE=true")) print.ds();
 		if (connStr == null || !StringUtil.startsWithIgnoreCase(connStr, "jdbc:mysql://")) return connStr;
 
 		// MySQL
