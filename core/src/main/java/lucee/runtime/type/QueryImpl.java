@@ -1182,7 +1182,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		// TODO Meta type
 		content = (Array) Duplicator.duplicate(content, false);
 
-		if (getIndexFromKey(columnName) != -1) throw new DatabaseException("column name [" + columnName.getString() + "] already exist", null, sql, null);
+		if (getIndexFromKey(columnName) != -1) throw new DatabaseException("column name [" + columnName.getString() + "] already exists", null, sql, null);
 		if (content.size() != getRecordcount()) {
 			// throw new DatabaseException("array for the new column has not the same size like the query
 			// (arrayLen!=query.recordcount)");

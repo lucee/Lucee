@@ -564,7 +564,7 @@ public class Video extends TagSupport {
 			// MAKEUNIQUE
 			else if (nameconflict == NAMECONFLICT_MAKEUNIQUE) destination.setResource(makeUnique(destination.getResource()));
 			// ERROR
-			else doThrow("destination file [" + destination.toString() + "] already exist");
+			else doThrow("destination file [" + destination.toString() + "] already exists");
 		}
 		return true;
 	}

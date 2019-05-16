@@ -696,7 +696,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			Body prior = data.setParent(body);
 			statement(data, body, CTX_FOR);
 
-			// performance improvment in special constellation
+			// performance improvment in special combination
 			// TagLoop loop = asLoop(data.factory,left,cont,update,body,line,data.srcCode.getPosition(),id);
 			// if(loop!=null) return loop;
 

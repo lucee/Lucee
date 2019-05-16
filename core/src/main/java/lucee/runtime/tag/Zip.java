@@ -677,12 +677,12 @@ public final class Zip extends BodyTagImpl {
 	 */
 	private void required(String attributeName, String attributValue) throws ApplicationException {
 		if (StringUtil.isEmpty(attributValue))
-			throw new ApplicationException("invalid attribute constellation for the tag zip", "attribute [" + attributeName + "] is required, if action is [" + action + "]");
+			throw new ApplicationException("invalid attribute combination for the tag zip", "attribute [" + attributeName + "] is required, if action is [" + action + "]");
 	}
 
 	private void required(String attributeName, String[] attributValue) throws ApplicationException {
 		if (attributValue == null || attributValue.length == 0)
-			throw new ApplicationException("invalid attribute constellation for the tag zip", "attribute [" + attributeName + "] is required, if action is [" + action + "]");
+			throw new ApplicationException("invalid attribute combination for the tag zip", "attribute [" + attributeName + "] is required, if action is [" + action + "]");
 	}
 
 	/**
@@ -694,7 +694,7 @@ public final class Zip extends BodyTagImpl {
 	 */
 	private void required(String attributeName, Resource attributValue, boolean exists) throws ApplicationException {
 		if (attributValue == null)
-			throw new ApplicationException("invalid attribute constellation for the tag zip", "attribute [" + attributeName + "] is required, if action is [" + action + "]");
+			throw new ApplicationException("invalid attribute combination for the tag zip", "attribute [" + attributeName + "] is required, if action is [" + action + "]");
 
 		if (exists && !attributValue.exists()) throw new ApplicationException(attributeName + " resource [" + attributValue + "] doesn't exist");
 		else if (exists && !attributValue.canRead()) throw new ApplicationException("no access to " + attributeName + " resource [" + attributValue + "]");
