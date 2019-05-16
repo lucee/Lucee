@@ -29,6 +29,7 @@ import java.util.TimeZone;
 import org.apache.commons.collections4.map.ReferenceMap;
 import org.osgi.framework.BundleException;
 
+import lucee.print;
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.ClassException;
 import lucee.commons.sql.SQLUtil;
@@ -107,6 +108,7 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 		java.util.Properties props = new java.util.Properties();
 		if (user != null) props.put("user", user);
 		if (pass != null) props.put("password", pass);
+		print.e("connStrTrans:" + connStrTrans);
 		return driver.connect(connStrTrans, props);
 	}
 
