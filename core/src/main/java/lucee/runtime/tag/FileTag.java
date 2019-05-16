@@ -469,8 +469,8 @@ public final class FileTag extends BodyTagImpl {
 	    String serverPassword, Object acl, int mode, String attributes) throws PageException {
 	if (nameconflict == NAMECONFLICT_UNDEFINED) nameconflict = NAMECONFLICT_OVERWRITE;
 
-	if (source == null) throw new ApplicationException("attribute source is not defined for tag file");
-	if (StringUtil.isEmpty(strDestination)) throw new ApplicationException("attribute destination is not defined for tag file");
+	if (source == null) throw new ApplicationException("attribute [source] is not defined for tag file");
+	if (StringUtil.isEmpty(strDestination)) throw new ApplicationException("attribute [destination] is not defined for tag file");
 
 	Resource destination = toDestination(pageContext, strDestination, source);
 
@@ -493,7 +493,7 @@ public final class FileTag extends BodyTagImpl {
 	    // MAKEUNIQUE
 	    else if (nameconflict == NAMECONFLICT_MAKEUNIQUE) destination = makeUnique(destination);
 	    // ERROR
-	    else throw new ApplicationException("destiniation file [" + destination.toString() + "] already exist");
+	    else throw new ApplicationException("destination file [" + destination.toString() + "] already exists");
 	}
 
 	setACL(pageContext, destination, acl);
@@ -527,8 +527,8 @@ public final class FileTag extends BodyTagImpl {
 	    String serverPassword, Object acl, int mode, String attributes) throws PageException {
 	if (nameconflict == NAMECONFLICT_UNDEFINED) nameconflict = NAMECONFLICT_OVERWRITE;
 
-	if (source == null) throw new ApplicationException("attribute source is not defined for tag file");
-	if (StringUtil.isEmpty(strDestination)) throw new ApplicationException("attribute destination is not defined for tag file");
+	if (source == null) throw new ApplicationException("attribute [source] is not defined for tag file");
+	if (StringUtil.isEmpty(strDestination)) throw new ApplicationException("attribute [destination] is not defined for tag file");
 
 	Resource destination = toDestination(pageContext, strDestination, source);
 
@@ -550,7 +550,7 @@ public final class FileTag extends BodyTagImpl {
 	    // MAKEUNIQUE
 	    else if (nameconflict == NAMECONFLICT_MAKEUNIQUE) destination = makeUnique(destination);
 	    // ERROR
-	    else throw new ApplicationException("destiniation file [" + destination.toString() + "] already exist");
+	    else throw new ApplicationException("destination file [" + destination.toString() + "] already exists");
 	}
 
 	setACL(pageContext, destination, acl);
@@ -612,7 +612,7 @@ public final class FileTag extends BodyTagImpl {
      */
     private void actionRead(boolean isBinary) throws PageException {
 
-	if (variable == null) throw new ApplicationException("attribute variable is not defined for tag file");
+	if (variable == null) throw new ApplicationException("attribute [variable] is not defined for tag file");
 
 	// check if we can use cache
 	if (StringUtil.isEmpty(cachedWithin)) {
@@ -673,11 +673,11 @@ public final class FileTag extends BodyTagImpl {
      * @throws PageException
      */
     private void actionWrite() throws PageException {
-	if (output == null) throw new ApplicationException("attribute output is not defined for tag file");
+	if (output == null) throw new ApplicationException("attribute [output] is not defined for tag file");
 	checkFile(pageContext, securityManager, file, serverPassword, createPath, true, false, true);
 	if (file.exists()) {
 	    // Error
-	    if (nameconflict == NAMECONFLICT_ERROR) throw new ApplicationException("destination file [" + file + "] already exist");
+	    if (nameconflict == NAMECONFLICT_ERROR) throw new ApplicationException("destination file [" + file + "] already exists");
 	    // SKIP
 	    else if (nameconflict == NAMECONFLICT_SKIP) return;
 	    // OVERWRITE
@@ -743,7 +743,7 @@ public final class FileTag extends BodyTagImpl {
      * @throws PageException
      */
     private void actionAppend() throws PageException {
-	if (output == null) throw new ApplicationException("attribute output is not defined for tag file");
+	if (output == null) throw new ApplicationException("attribute [output] is not defined for tag file");
 	checkFile(pageContext, securityManager, file, serverPassword, createPath, true, false, true);
 
 	setACL(pageContext, file, acl);
@@ -776,7 +776,7 @@ public final class FileTag extends BodyTagImpl {
      * @throws PageException
      */
     private void actionInfo() throws PageException {
-	if (variable == null) throw new ApplicationException("attribute variable is not defined for tag file");
+	if (variable == null) throw new ApplicationException("attribute [variable] is not defined for tag file");
 	pageContext.setVariable(variable, getInfo(pageContext, file, serverPassword));
 
     }
@@ -906,7 +906,7 @@ public final class FileTag extends BodyTagImpl {
 	cffile.set("clientfilename", getFileName(clientFile));
 
 	// check destination
-	if (StringUtil.isEmpty(strDestination)) throw new ApplicationException("attribute destination is not defined in tag file");
+	if (StringUtil.isEmpty(strDestination)) throw new ApplicationException("attribute [destination] is not defined in tag file");
 
 	Resource destination = toDestination(pageContext, strDestination, null);
 	securityManager.checkFileLocation(pageContext.getConfig(), destination, serverPassword);
@@ -924,7 +924,7 @@ public final class FileTag extends BodyTagImpl {
 	if (!parentDestination.exists()) {
 	    Resource pp = parentDestination.getParentResource();
 	    if (pp == null || !pp.exists())
-		throw new ApplicationException("attribute destination has an invalid value [" + destination + "], directory [" + parentDestination + "] doesn't exist");
+		throw new ApplicationException("attribute [destination] has an invalid value [" + destination + "], directory [" + parentDestination + "] doesn't exist");
 	    try {
 		parentDestination.createDirectory(true);
 	    }
@@ -945,7 +945,7 @@ public final class FileTag extends BodyTagImpl {
 	if (destination.exists()) {
 	    fileExisted = true;
 	    if (nameconflict == NAMECONFLICT_ERROR) {
-		throw new ApplicationException("destination file [" + destination + "] already exist");
+		throw new ApplicationException("destination file [" + destination + "] already exists");
 	    }
 	    else if (nameconflict == NAMECONFLICT_SKIP) {
 		cffile.set("fileexisted", Caster.toBoolean(fileExisted));
@@ -1154,7 +1154,7 @@ public final class FileTag extends BodyTagImpl {
 
     private static void checkFile(PageContext pc, SecurityManager sm, Resource file, String serverPassword, boolean createParent, boolean create, boolean canRead, boolean canWrite)
 	    throws PageException {
-	if (file == null) throw new ApplicationException("attribute file is not defined for tag file");
+	if (file == null) throw new ApplicationException("attribute [file] is not defined for tag file");
 
 	sm.checkFileLocation(pc.getConfig(), file, serverPassword);
 	if (!file.exists()) {
