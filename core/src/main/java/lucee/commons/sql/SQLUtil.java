@@ -26,6 +26,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.regex.Pattern;
 
+import lucee.print;
 import lucee.commons.date.TimeZoneUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.ExceptionUtil;
@@ -207,12 +208,16 @@ public class SQLUtil {
 	}
 
 	public static String connectionStringTranslatedPatch(Config config, String connStr) {
+		print.e("1 ->" + connStr);
 		if (connStr == null || !StringUtil.startsWithIgnoreCase(connStr, "jdbc:mysql://")) return connStr;
 
 		// MySQL
-		if (StringUtil.indexOfIgnoreCase(connStr, "serverTimezone=") != -1) return connStr;
+		if (StringUtil.indexOfIgnoreCase(connStr, "serverTimezone=") != -1) {
+			print.e("1.1 ->" + connStr);
+			return connStr;
+		}
 		char del = connStr.indexOf('?') != -1 ? '&' : '?';
-
+		print.e("2 ->" + (connStr + del + "serverTimezone=" + TimeZoneUtil.toString(ThreadLocalPageContext.getTimeZone(config))));
 		return connStr + del + "serverTimezone=" + TimeZoneUtil.toString(ThreadLocalPageContext.getTimeZone(config));
 
 	}
