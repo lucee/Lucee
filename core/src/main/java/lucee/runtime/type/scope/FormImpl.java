@@ -185,18 +185,26 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 				FileItemStream item = iter.next();
 
 				is = IOUtil.toBufferedInputStream(item.openStream());
-				if (item.getContentType() == null || StringUtil.isEmpty(item.getName())) {
-					list.add(new URLItem(item.getFieldName(), new String(IOUtil.toBytes(is), encoding), false));
+				fileName = getFileName();
+				tempFile = tempDir.getRealResource(fileName);
+				String value = tempFile.toString();
+				IOUtil.copy(is, tempFile, true);
+
+				String ct = item.getContentType();
+				if (StringUtil.isEmpty(ct)) {
+					ct = IOUtil.getMimeType(tempFile, null);
+				}
+
+				if (StringUtil.isEmpty(ct)) {
+					list.add(new URLItem(item.getFieldName(), new String(IOUtil.toBytes(tempFile.getInputStream(), true), encoding), false));
+					tempFile.delete();
 				}
 				else {
-					fileName = getFileName();
-					tempFile = tempDir.getRealResource(fileName);
-					_fileItems.put(fileName, new Item(tempFile, item.getContentType(), item.getName(), item.getFieldName()));
-					String value = tempFile.toString();
-					IOUtil.copy(is, tempFile, true);
-
+					_fileItems.put(fileName, new Item(tempFile, ct, item.getName(), item.getFieldName()));
 					list.add(new URLItem(item.getFieldName(), value, false));
 				}
+
+				// }
 			}
 
 			raw = list.toArray(new URLItem[list.size()]);
