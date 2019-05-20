@@ -32,9 +32,15 @@ import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.FunctionException;
+import lucee.runtime.exp.PageException;
+import lucee.runtime.ext.function.BIF;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.listener.ApplicationContext;
 
-public final class PagePoolClear implements Function {
+public final class PagePoolClear extends BIF implements Function {
+
+	private static final long serialVersionUID = -2777306151061026079L;
 
 	public static boolean call(PageContext pc) {
 		clear(pc, null, false);
@@ -43,12 +49,23 @@ public final class PagePoolClear implements Function {
 
 	public static void clear(PageContext pc, Config c, boolean unused) {
 		ConfigWebImpl config;
+		pc = ThreadLocalPageContext.get(pc);
 		if (c == null) config = (ConfigWebImpl) ThreadLocalPageContext.getConfig(pc);
 		else config = (ConfigWebImpl) c;
 
+		// application context
+		if (pc != null) {
+			ApplicationContext ac = pc.getApplicationContext();
+			if (ac != null) {
+				clear(config, ac.getMappings(), unused);
+				clear(config, ac.getComponentMappings(), unused);
+				clear(config, ac.getCustomTagMappings(), unused);
+			}
+		}
+
+		// config
 		clear(config, config.getMappings(), unused);
 		clear(config, config.getCustomTagMappings(), unused);
-		if (pc != null) clear(config, pc.getApplicationContext().getMappings(), unused);
 		clear(config, config.getComponentMappings(), unused);
 		clear(config, config.getFunctionMappings(), unused);
 		clear(config, config.getServerFunctionMappings(), unused);
@@ -77,5 +94,11 @@ public final class PagePoolClear implements Function {
 		if (unused) pool.clearUnused((ConfigImpl) config);
 		else pool.clearPages(null);
 
+	}
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 0) return call(pc);
+		else throw new FunctionException(pc, "PagePoolClear", 0, 0, args.length);
 	}
 }
