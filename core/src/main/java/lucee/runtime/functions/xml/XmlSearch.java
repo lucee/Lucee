@@ -55,10 +55,20 @@ import lucee.runtime.type.ArrayImpl;
  * Implements the CFML Function xmlsearch
  */
 public final class XmlSearch implements Function {
-
+	/*
+	 * static { System.setProperty("-Dorg.apache.xml.dtm.DTMManager",
+	 * "org.apache.xml.dtm.ref.DTMManagerDefault"); System.setProperty("org.apache.xml.dtm.DTMManager",
+	 * "org.apache.xml.dtm.ref.DTMManagerDefault");
+	 * System.setProperty("-Dcom.sun.org.apache.xml.internal.dtm.DTMManager",
+	 * "com.sun.org.apache.xml.internal.dtm.ref.DTMManagerDefault");
+	 * System.setProperty("com.sun.org.apache.xml.internal.dtm.DTMManager",
+	 * "com.sun.org.apache.xml.internal.dtm.ref.DTMManagerDefault"); }
+	 */
 	private static final long serialVersionUID = 5770611088309897382L;
 
 	private static List<String> operators = new ArrayList<String>();
+
+	private static XPathFactory factory;
 	static {
 		operators.add("=");
 		operators.add("<>");
@@ -77,16 +87,19 @@ public final class XmlSearch implements Function {
 
 	public static Object _call(Node node, String strExpr, boolean caseSensitive) throws PageException {
 		if (StringUtil.endsWith(strExpr, '/')) strExpr = strExpr.substring(0, strExpr.length() - 1);
+
 		// compile
 		XPathExpression expr;
-		try {
-			XPathFactory factory = XPathFactory.newInstance();
-			XPath path = factory.newXPath();
-			path.setNamespaceContext(new UniversalNamespaceResolver(XMLUtil.getDocument(node)));
-			expr = path.compile(strExpr);
-		}
-		catch (Exception e) {
-			throw Caster.toPageException(e);
+		{
+			try {
+				if (factory == null) factory = XPathFactory.newInstance();
+				XPath path = factory.newXPath();
+				path.setNamespaceContext(new UniversalNamespaceResolver(XMLUtil.getDocument(node)));
+				expr = path.compile(strExpr);
+			}
+			catch (Exception e) {
+				throw Caster.toPageException(e);
+			}
 		}
 
 		// evaluate
