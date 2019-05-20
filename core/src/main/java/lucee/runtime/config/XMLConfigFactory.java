@@ -163,8 +163,9 @@ public abstract class XMLConfigFactory {
 		catch (Exception e) {
 			// rename buggy config files
 			if (configFile.exists()) {
-				LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, XMLConfigFactory.class.getName(),
+				LogUtil.log(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, XMLConfigFactory.class.getName(),
 						"config file " + configFile + " was not valid and has been replaced");
+				LogUtil.log(ThreadLocalPageContext.getConfig(), XMLConfigFactory.class.getName(), e);
 				int count = 1;
 				Resource bugFile;
 				Resource configDir = configFile.getParentResource();
