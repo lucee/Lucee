@@ -100,7 +100,12 @@ public final class ObjectStruct extends StructSupport implements Struct, Objects
 	}
 
 	@Override
-	public boolean containsKey(Key key) {
+	public final boolean containsKey(Key key) {
+		return Reflector.hasPropertyIgnoreCase(jo.getClazz(), key.getString());
+	}
+
+	@Override
+	public final boolean containsKey(PageContext pc, Key key) {
 		return Reflector.hasPropertyIgnoreCase(jo.getClazz(), key.getString());
 	}
 

@@ -113,6 +113,14 @@ public class StructImpl extends StructSupport {
 		return val;
 	}
 
+	@Override
+	public Object get(PageContext pc, Collection.Key key, Object defaultValue) {
+		Object val = map.g(key, CollectionUtil.NULL);
+		if (val == CollectionUtil.NULL) return defaultValue;
+		if (val == null && !NullSupportHelper.full(pc)) return defaultValue;
+		return val;
+	}
+
 	public Object g(Collection.Key key, Object defaultValue) {
 		return map.g(key, defaultValue);
 	}
@@ -121,10 +129,16 @@ public class StructImpl extends StructSupport {
 		return map.g(key);
 	}
 
-	private static int count2 = 0;
-
 	@Override
 	public Object get(Collection.Key key) throws PageException {
+		Object val = map.g(key);
+		if (val != null) return val;
+		if (NullSupportHelper.full()) return val;
+		throw StructSupport.invalidKey(null, this, key, null);
+	}
+
+	@Override
+	public Object get(PageContext pc, Key key) throws PageException {
 		Object val = map.g(key);
 		if (val != null) return val;
 		if (NullSupportHelper.full()) return val;
@@ -245,6 +259,11 @@ public class StructImpl extends StructSupport {
 
 	@Override
 	public boolean containsKey(Collection.Key key) {
+		return map.containsKey(key);
+	}
+
+	@Override
+	public boolean containsKey(PageContext pc, Collection.Key key) {
 		return map.containsKey(key);
 	}
 

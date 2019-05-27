@@ -356,7 +356,7 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
 			}
 			else throw e;
 		}
-		validateAttributes(cfc, attributesScope, StringUtil.ucFirst(ListUtil.last(source.getPageSource().getComponentName(), '.')));
+		validateAttributes(pageContext, cfc, attributesScope, StringUtil.ucFirst(ListUtil.last(source.getPageSource().getComponentName(), '.')));
 
 		boolean exeBody = false;
 		try {
@@ -401,7 +401,7 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
 		// args.set(KeyConstants._CALLER, Duplicator.duplicate(pageContext.undefinedScope(),false));
 	}
 
-	private static void validateAttributes(Component cfc, StructImpl attributesScope, String tagName) throws ApplicationException, ExpressionException {
+	private static void validateAttributes(PageContext pc, Component cfc, StructImpl attributesScope, String tagName) throws ApplicationException, ExpressionException {
 		TagLibTag tag = getAttributeRequirments(cfc, false);
 		if (tag == null) return;
 
@@ -418,13 +418,13 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
 				count++;
 				key = KeyImpl.toKey(entry.getKey(), null);
 				attr = entry.getValue();
-				value = attributesScope.get(key, null);
+				value = attributesScope.get(pc, key, null);
 
 				// check alias
 				if (value == null) {
 					String[] alias = attr.getAlias();
 					if (!ArrayUtil.isEmpty(alias)) for (int i = 0; i < alias.length; i++) {
-						value = attributesScope.get(KeyImpl.toKey(alias[i], null), null);
+						value = attributesScope.get(pc, KeyImpl.toKey(alias[i], null), null);
 						if (value != null) break;
 					}
 				}

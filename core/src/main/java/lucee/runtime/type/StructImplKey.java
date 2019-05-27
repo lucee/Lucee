@@ -75,22 +75,29 @@ public final class StructImplKey extends StructSupport implements Struct {
 		else _map = new HashMap<Collection.Key, Object>();
 	}
 
-	/**
-	 * @see lucee.runtime.type.Collection#get(lucee.runtime.type.Collection.Key, java.lang.Object)
-	 */
 	@Override
-	public Object get(Collection.Key key, Object defaultValue) {
+	public final Object get(Collection.Key key, Object defaultValue) {
 		Object rtn = _map.get(key);
 		if (rtn != null) return rtn;
 		return defaultValue;
 	}
 
-	/**
-	 *
-	 * @see lucee.runtime.type.Collection#get(lucee.runtime.type.Collection.Key)
-	 */
 	@Override
-	public Object get(Collection.Key key) throws PageException {// print.out("k:"+(kcount++));
+	public final Object get(PageContext pc, Collection.Key key, Object defaultValue) {
+		Object rtn = _map.get(key);
+		if (rtn != null) return rtn;
+		return defaultValue;
+	}
+
+	@Override
+	public final Object get(Collection.Key key) throws PageException {// print.out("k:"+(kcount++));
+		Object rtn = _map.get(key);
+		if (rtn != null) return rtn;
+		throw invalidKey(key.getString());
+	}
+
+	@Override
+	public final Object get(PageContext pc, Collection.Key key) throws PageException {// print.out("k:"+(kcount++));
 		Object rtn = _map.get(key);
 		if (rtn != null) return rtn;
 		throw invalidKey(key.getString());
@@ -238,11 +245,13 @@ public final class StructImplKey extends StructSupport implements Struct {
 		return _map.values().iterator();
 	}
 
-	/**
-	 * @see lucee.runtime.type.Collection#_contains(java.lang.String)
-	 */
 	@Override
-	public boolean containsKey(Collection.Key key) {
+	public final boolean containsKey(Collection.Key key) {
+		return _map.containsKey(key);
+	}
+
+	@Override
+	public final boolean containsKey(PageContext pc, Collection.Key key) {
 		return _map.containsKey(key);
 	}
 

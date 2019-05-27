@@ -173,7 +173,7 @@ public final class Each extends BIF implements ClosureFunc {
 
 	public static void invoke(PageContext pc, Query qry, UDF udf, ExecutorService execute, List<Future<Data<Object>>> futures) throws PageException {
 		final int pid = pc.getId();
-		ForEachQueryIterator it = new ForEachQueryIterator(qry, pid);
+		ForEachQueryIterator it = new ForEachQueryIterator(pc, qry, pid);
 		try {
 			Object row;
 			while (it.hasNext()) {

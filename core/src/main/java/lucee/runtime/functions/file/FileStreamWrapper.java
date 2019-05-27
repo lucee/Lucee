@@ -141,7 +141,12 @@ public abstract class FileStreamWrapper extends StructSupport implements Struct 
 	}
 
 	@Override
-	public boolean containsKey(Key key) {
+	public final boolean containsKey(Key key) {
+		return info().containsKey(key);
+	}
+
+	@Override
+	public final boolean containsKey(PageContext pc, Key key) {
 		return info().containsKey(key);
 	}
 
@@ -151,13 +156,23 @@ public abstract class FileStreamWrapper extends StructSupport implements Struct 
 	}
 
 	@Override
-	public Object get(Key key) throws PageException {
+	public final Object get(Key key) throws PageException {
 		return info().get(key);
 	}
 
 	@Override
-	public Object get(Key key, Object defaultValue) {
+	public final Object get(PageContext pc, Key key) throws PageException {
+		return info().get(pc, key);
+	}
+
+	@Override
+	public final Object get(Key key, Object defaultValue) {
 		return info().get(key, defaultValue);
+	}
+
+	@Override
+	public final Object get(PageContext pc, Key key, Object defaultValue) {
+		return info().get(pc, key, defaultValue);
 	}
 
 	@Override

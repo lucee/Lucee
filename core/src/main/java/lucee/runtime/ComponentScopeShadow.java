@@ -112,8 +112,13 @@ public class ComponentScopeShadow extends StructSupport implements ComponentScop
 	}
 
 	@Override
-	public boolean containsKey(Collection.Key key) {
+	public final boolean containsKey(Collection.Key key) {
 		return get(key, null) != null;
+	}
+
+	@Override
+	public final boolean containsKey(PageContext pc, Collection.Key key) {
+		return get(pc, key, null) != null;
 	}
 
 	@Override
@@ -125,8 +130,13 @@ public class ComponentScopeShadow extends StructSupport implements ComponentScop
 
 	@Override
 	public Object get(Key key, Object defaultValue) {
+		return get(null, key, defaultValue);
+	}
+
+	@Override
+	public Object get(PageContext pc, Key key, Object defaultValue) {
 		if (key.equalsIgnoreCase(KeyConstants._SUPER)) {
-			Component ac = ComponentUtil.getActiveComponent(ThreadLocalPageContext.get(), component);
+			Component ac = ComponentUtil.getActiveComponent(ThreadLocalPageContext.get(pc), component);
 			return SuperComponent.superInstance((ComponentImpl) ac.getBaseComponent());
 		}
 		if (key.equalsIgnoreCase(KeyConstants._THIS)) return component.top;
@@ -134,7 +144,7 @@ public class ComponentScopeShadow extends StructSupport implements ComponentScop
 
 		Object val = shadow.g(key, CollectionUtil.NULL);
 		if (val == CollectionUtil.NULL) return defaultValue;
-		if (val == null && !NullSupportHelper.full()) return defaultValue;
+		if (val == null && !NullSupportHelper.full(pc)) return defaultValue;
 		return val;
 	}
 
@@ -342,11 +352,6 @@ public class ComponentScopeShadow extends StructSupport implements ComponentScop
 	 * public Object get(PageContext pc, String key, Object defaultValue) { return get(key,
 	 * defaultValue); }
 	 */
-
-	@Override
-	public Object get(PageContext pc, Key key, Object defaultValue) {
-		return get(key, defaultValue);
-	}
 
 	@Override
 	public Object set(PageContext pc, Collection.Key propertyName, Object value) throws PageException {

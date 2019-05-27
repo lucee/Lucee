@@ -301,13 +301,24 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	}
 
 	@Override
-	public boolean containsKey(Key key) {
+	public final boolean containsKey(Key key) {
 		IKStorageScopeItem v = data0.g(key, NULL);
 		return v != NULL && !v.removed();
 	}
 
 	@Override
-	public Object get(Key key) throws PageException {
+	public final boolean containsKey(PageContext pc, Key key) {
+		IKStorageScopeItem v = data0.g(key, NULL);
+		return v != NULL && !v.removed();
+	}
+
+	@Override
+	public final Object get(Key key) throws PageException {
+		return get((PageContext) null, key);
+	}
+
+	@Override
+	public final Object get(PageContext pc, Key key) throws PageException {
 		IKStorageScopeItem v = data0.g(key);
 		if (v.removed()) {
 			StringBuilder sb = new StringBuilder();
@@ -324,7 +335,12 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	}
 
 	@Override
-	public Object get(Key key, Object defaultValue) {
+	public final Object get(Key key, Object defaultValue) {
+		return get((PageContext) null, key, defaultValue);
+	}
+
+	@Override
+	public final Object get(PageContext pc, Key key, Object defaultValue) {
 		IKStorageScopeItem v = data0.g(key, NULL);
 		if (v == NULL || v.removed()) return defaultValue;
 		return v.getValue();
@@ -434,10 +450,12 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		handler.unstore(this, pc, appName, name, cfid, ThreadLocalPageContext.getConfig(pc).getLog("scope"));
 	}
 
+	@Override
 	public void store(Config config) {
 		store(ThreadLocalPageContext.get());
 	}
 
+	@Override
 	public void unstore(Config config) {
 		unstore(ThreadLocalPageContext.get());
 	}

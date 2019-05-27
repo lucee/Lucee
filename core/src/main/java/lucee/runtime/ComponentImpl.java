@@ -1945,8 +1945,13 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	}
 
 	@Override
-	public boolean containsKey(Key key) {
+	public final boolean containsKey(Key key) {
 		return contains(ThreadLocalPageContext.get(), key);
+	}
+
+	@Override
+	public final boolean containsKey(PageContext pc, Key key) {
+		return contains(ThreadLocalPageContext.get(pc), key);
 	}
 
 	public boolean contains(int access, String name) {

@@ -128,7 +128,12 @@ public class MapAsStruct extends StructSupport implements Struct {
 	}
 
 	@Override
-	public Object get(Collection.Key key) throws ExpressionException {
+	public final Object get(Collection.Key key) throws ExpressionException {
+		return get((PageContext) null, key);
+	}
+
+	@Override
+	public final Object get(PageContext pc, Collection.Key key) throws ExpressionException {
 		Object o = map.get(key.getString());
 		if (o == null) {
 			if (map.containsKey(key.getString())) return null;
@@ -143,7 +148,12 @@ public class MapAsStruct extends StructSupport implements Struct {
 	}
 
 	@Override
-	public Object get(Collection.Key key, Object defaultValue) {
+	public final Object get(Collection.Key key, Object defaultValue) {
+		return get((PageContext) null, key, defaultValue);
+	}
+
+	@Override
+	public final Object get(PageContext pc, Collection.Key key, Object defaultValue) {
 		Object obj = map.get(key.getString());
 		if (obj == null) {
 			if (map.containsKey(key.getString())) return null;
@@ -198,10 +208,12 @@ public class MapAsStruct extends StructSupport implements Struct {
 	}
 
 	@Override
-	public boolean containsKey(Collection.Key key) {
+	public final boolean containsKey(Collection.Key key) {
+		return containsKey(null, key);
+	}
 
-		// return map.containsKey(key.getString());
-
+	@Override
+	public final boolean containsKey(PageContext pc, Collection.Key key) {
 		boolean contains = map.containsKey(key.getString());
 		if (contains) return true;
 		if (!caseSensitive) return map.containsKey(getCaseSensitiveKey(map, key.getString()));

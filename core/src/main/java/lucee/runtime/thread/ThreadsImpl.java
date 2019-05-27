@@ -75,7 +75,12 @@ public class ThreadsImpl extends StructSupport implements lucee.runtime.type.sco
 	}
 
 	@Override
-	public boolean containsKey(Key key) {
+	public final boolean containsKey(Key key) {
+		return get(key, null) != null;
+	}
+
+	@Override
+	public final boolean containsKey(PageContext pc, Key key) {
 		return get(key, null) != null;
 	}
 
@@ -198,19 +203,29 @@ public class ThreadsImpl extends StructSupport implements lucee.runtime.type.sco
 	}
 
 	@Override
-	public Object get(Key key, Object defaultValue) {
-		Object _null = NullSupportHelper.NULL();
-		Object meta = getMeta(key, _null);
-		if (meta != _null) return meta;
-		return ct.content.get(key, defaultValue);
+	public final Object get(Key key, Object defaultValue) {
+		return get((PageContext) null, key, defaultValue);
 	}
 
 	@Override
-	public Object get(Key key) throws PageException {
-		Object _null = NullSupportHelper.NULL();
+	public final Object get(PageContext pc, Key key, Object defaultValue) {
+		Object _null = NullSupportHelper.NULL(pc);
 		Object meta = getMeta(key, _null);
 		if (meta != _null) return meta;
-		return ct.content.get(key);
+		return ct.content.get(pc, key, defaultValue);
+	}
+
+	@Override
+	public final Object get(Key key) throws PageException {
+		return get((PageContext) null, key);
+	}
+
+	@Override
+	public final Object get(PageContext pc, Key key) throws PageException {
+		Object _null = NullSupportHelper.NULL(pc);
+		Object meta = getMeta(key, _null);
+		if (meta != _null) return meta;
+		return ct.content.get(pc, key);
 	}
 
 	@Override

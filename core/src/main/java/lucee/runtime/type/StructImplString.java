@@ -79,12 +79,15 @@ public final class StructImplString extends StructImpl implements Struct {
 		return defaultValue;
 	}
 
-	/**
-	 *
-	 * @see lucee.runtime.type.Collection#get(lucee.runtime.type.Collection.Key)
-	 */
 	@Override
 	public Object get(Collection.Key key) throws PageException {
+		Object rtn = map.get(key.getLowerString());
+		if (rtn != null) return rtn;
+		throw invalidKey(key.getString());
+	}
+
+	@Override
+	public Object get(PageContext pc, Collection.Key key) throws PageException {
 		Object rtn = map.get(key.getLowerString());
 		if (rtn != null) return rtn;
 		throw invalidKey(key.getString());
@@ -224,11 +227,13 @@ public final class StructImplString extends StructImpl implements Struct {
 		return map.values().iterator();
 	}
 
-	/**
-	 * @see lucee.runtime.type.Collection#_contains(java.lang.String)
-	 */
 	@Override
-	public boolean containsKey(Collection.Key key) {
+	public final boolean containsKey(Collection.Key key) {
+		return map.containsKey(key.getLowerString());
+	}
+
+	@Override
+	public final boolean containsKey(PageContext pc, Collection.Key key) {
 		return map.containsKey(key.getLowerString());
 	}
 

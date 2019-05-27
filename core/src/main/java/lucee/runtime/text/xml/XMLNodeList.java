@@ -158,12 +158,21 @@ public final class XMLNodeList extends ArraySupport implements NodeList, XMLObje
 	}
 
 	@Override
-	public Object get(Collection.Key key) throws ExpressionException {
+	public final Object get(Collection.Key key) throws ExpressionException {
+		return get(key.getString());
+	}
+
+	@Override
+	public final Object get(PageContext pc, Collection.Key key) throws ExpressionException {
 		return get(key.getString());
 	}
 
 	@Override
 	public Object getE(int key) throws ExpressionException {
+		return getE(null, key);
+	}
+
+	public Object getE(PageContext pc, int key) throws ExpressionException {
 		Object rtn = item(key - 1);
 		if (rtn == null) throw new ExpressionException("invalid index [" + key + "] for XML Node List , indexes goes from [0-" + size() + "]");
 		return rtn;
@@ -177,7 +186,12 @@ public final class XMLNodeList extends ArraySupport implements NodeList, XMLObje
 	}
 
 	@Override
-	public Object get(Collection.Key key, Object defaultValue) {
+	public final Object get(Collection.Key key, Object defaultValue) {
+		return get(key.getString(), defaultValue);
+	}
+
+	@Override
+	public final Object get(PageContext pc, Collection.Key key, Object defaultValue) {
 		return get(key.getString(), defaultValue);
 	}
 

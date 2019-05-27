@@ -234,18 +234,33 @@ public abstract class StorageScopeImpl extends StructSupport implements StorageS
 	}
 
 	@Override
-	public boolean containsKey(Key key) {
+	public final boolean containsKey(Key key) {
 		return sct.containsKey(key);
 	}
 
 	@Override
-	public Object get(Key key) throws PageException {
+	public final boolean containsKey(PageContext pc, Key key) {
+		return sct instanceof StructSupport ? ((StructSupport) sct).containsKey(pc, key) : sct.containsKey(key);
+	}
+
+	@Override
+	public final Object get(Key key) throws PageException {
 		return sct.get(key);
 	}
 
 	@Override
-	public Object get(Key key, Object defaultValue) {
+	public final Object get(PageContext pc, Key key) throws PageException {
+		return sct.get(key);
+	}
+
+	@Override
+	public final Object get(Key key, Object defaultValue) {
 		return sct.get(key, defaultValue);
+	}
+
+	@Override
+	public final Object get(PageContext pc, Key key, Object defaultValue) {
+		return sct.get(pc, key, defaultValue);
 	}
 
 	@Override

@@ -61,8 +61,20 @@ public final class ClusterWrap extends ScopeSupport implements Cluster {
 	}
 
 	@Override
+	public Object get(PageContext pc, Key key) throws PageException {
+		return ((ClusterEntry) super.get(pc, key)).getValue();
+	}
+
+	@Override
 	public Object get(Key key, Object defaultValue) {
 		Object res = super.get(key, defaultValue);
+		if (res instanceof ClusterEntry) return ((ClusterEntry) res).getValue();
+		return res;
+	}
+
+	@Override
+	public Object get(PageContext pc, Key key, Object defaultValue) {
+		Object res = super.get(pc, key, defaultValue);
 		if (res instanceof ClusterEntry) return ((ClusterEntry) res).getValue();
 		return res;
 	}

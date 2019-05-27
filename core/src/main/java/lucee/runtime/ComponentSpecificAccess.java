@@ -222,7 +222,12 @@ public final class ComponentSpecificAccess extends StructSupport implements Comp
 	}
 
 	@Override
-	public boolean containsKey(Collection.Key key) {
+	public final boolean containsKey(Collection.Key key) {
+		return component.get(access, key, null) != null;
+	}
+
+	@Override
+	public final boolean containsKey(PageContext pc, Collection.Key key) {
 		return component.get(access, key, null) != null;
 	}
 

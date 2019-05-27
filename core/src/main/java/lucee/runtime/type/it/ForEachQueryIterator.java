@@ -20,6 +20,7 @@ package lucee.runtime.type.it;
 
 import java.util.Iterator;
 
+import lucee.runtime.PageContext;
 import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
@@ -35,8 +36,10 @@ public class ForEachQueryIterator implements Iterator, Resetable {
 	private int pid;
 	private int start, current = 0;
 	private Key[] names;
+	private PageContext pcMayNull;
 
-	public ForEachQueryIterator(Query qry, int pid) {
+	public ForEachQueryIterator(PageContext pc, Query qry, int pid) {
+		this.pcMayNull = pc;
 		this.qry = qry;
 		this.pid = pid;
 		this.start = qry.getCurrentrow(pid);
@@ -53,7 +56,7 @@ public class ForEachQueryIterator implements Iterator, Resetable {
 		try {
 			if (qry.go(++current, pid)) {
 				Struct sct = new StructImpl();
-				Object empty = NullSupportHelper.full() ? null : "";
+				Object empty = NullSupportHelper.full(pcMayNull) ? null : "";
 				for (int i = 0; i < names.length; i++) {
 					sct.setEL(names[i], qry.get(names[i], empty));
 				}

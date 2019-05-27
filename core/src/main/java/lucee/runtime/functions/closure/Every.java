@@ -155,7 +155,7 @@ public class Every extends BIF implements ClosureFunc {
 
 	private static boolean invoke(PageContext pc, Query qry, UDF udf, ExecutorService es, List<Future<Data<Object>>> futures) throws CasterException, PageException {
 		final int pid = pc.getId();
-		ForEachQueryIterator it = new ForEachQueryIterator(qry, pid);
+		ForEachQueryIterator it = new ForEachQueryIterator(pc, qry, pid);
 		boolean async = es != null;
 		double r;
 		Object res, row;

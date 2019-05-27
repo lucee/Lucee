@@ -83,14 +83,18 @@ public class ListAsArray extends ArraySupport implements Array, List {
 	}*/
 
 	@Override
-	public Object get(int key, Object defaultValue) {
+	public final Object get(int key, Object defaultValue) {
+		return get(null, key, defaultValue);
+	}
+
+	public final Object get(PageContext pc, int key, Object defaultValue) {
 		if (key <= 0) return defaultValue;
 		if (key > list.size()) return defaultValue;
 
 		try {
 			Object rtn = list.get(key - 1);
 			if (rtn == null) {
-				if (NullSupportHelper.full()) {
+				if (NullSupportHelper.full(pc)) {
 					return null;
 				}
 				return defaultValue;
@@ -103,7 +107,11 @@ public class ListAsArray extends ArraySupport implements Array, List {
 	}
 
 	@Override
-	public Object getE(int key) throws PageException {
+	public final Object getE(int key) throws PageException {
+		return getE(null, key);
+	}
+
+	public final Object getE(PageContext pc, int key) throws PageException {
 		if (key <= 0) {
 			Integer idx = list.size() + key <= 0 ? 0 : list.size() + key;
 			if (idx == 0 || key == 0) {
@@ -115,7 +123,7 @@ public class ListAsArray extends ArraySupport implements Array, List {
 		if (key > list.size()) throw new ExpressionException("Array index [" + key + "] out of range, array size is [" + list.size() + "]");
 		Object rtn = list.get(key - 1);
 		if (rtn == null) {
-			if (NullSupportHelper.full()) {
+			if (NullSupportHelper.full(pc)) {
 				return null;
 			}
 			throw new ExpressionException("Element at position [" + key + "] does not exist in list");
@@ -286,25 +294,43 @@ public class ListAsArray extends ArraySupport implements Array, List {
 	}
 
 	@Override
-	public Object get(String key) throws PageException {
+	public final Object get(String key) throws PageException {
 		return getE(Caster.toIntValue(key));
 	}
 
+	public final Object get(PageContext pc, String key) throws PageException {
+		return getE(pc, Caster.toIntValue(key));
+	}
+
 	@Override
-	public Object get(Key key) throws PageException {
+	public final Object get(Key key) throws PageException {
 		return get(key.getString());
 	}
 
 	@Override
-	public Object get(String key, Object defaultValue) {
+	public final Object get(PageContext pc, Key key) throws PageException {
+		return get(pc, key.getString());
+	}
+
+	@Override
+	public final Object get(String key, Object defaultValue) {
+		return get(null, key, defaultValue);
+	}
+
+	public final Object get(PageContext pc, String key, Object defaultValue) {
 		double index = Caster.toIntValue(key, Integer.MIN_VALUE);
 		if (index == Integer.MIN_VALUE) return defaultValue;
 		return get((int) index, defaultValue);
 	}
 
 	@Override
-	public Object get(Key key, Object defaultValue) {
+	public final Object get(Key key, Object defaultValue) {
 		return get(key.getString(), defaultValue);
+	}
+
+	@Override
+	public final Object get(PageContext pc, Key key, Object defaultValue) {
+		return get(pc, key.getString(), defaultValue);
 	}
 
 	@Override

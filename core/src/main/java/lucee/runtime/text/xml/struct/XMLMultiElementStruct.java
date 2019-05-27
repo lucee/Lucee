@@ -21,6 +21,7 @@ package lucee.runtime.text.xml.struct;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import lucee.runtime.PageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
@@ -103,9 +104,16 @@ public final class XMLMultiElementStruct extends XMLElementStruct {
 	}
 
 	@Override
-	public Object get(Collection.Key key) throws PageException {
+	public final Object get(Collection.Key key) throws PageException {
 		int index = Caster.toIntValue(key.getString(), Integer.MIN_VALUE);
 		if (index == Integer.MIN_VALUE) return super.get(key);
+		return get(index);
+	}
+
+	@Override
+	public final Object get(PageContext pc, Collection.Key key) throws PageException {
+		int index = Caster.toIntValue(key.getString(), Integer.MIN_VALUE);
+		if (index == Integer.MIN_VALUE) return super.get(pc, key);
 		return get(index);
 	}
 
@@ -114,7 +122,12 @@ public final class XMLMultiElementStruct extends XMLElementStruct {
 	}
 
 	@Override
-	public Object get(Collection.Key key, Object defaultValue) {
+	public final Object get(Collection.Key key, Object defaultValue) {
+		return get((PageContext) null, key, defaultValue);
+	}
+
+	@Override
+	public final Object get(PageContext pc, Collection.Key key, Object defaultValue) {
 		int index = Caster.toIntValue(key.getString(), Integer.MIN_VALUE);
 		if (index == Integer.MIN_VALUE) return super.get(key, defaultValue);
 		return get(index, defaultValue);
@@ -175,8 +188,13 @@ public final class XMLMultiElementStruct extends XMLElementStruct {
 	}
 
 	@Override
-	public boolean containsKey(Collection.Key key) {
+	public final boolean containsKey(Collection.Key key) {
 		return get(key, null) != null;
+	}
+
+	@Override
+	public final boolean containsKey(PageContext pc, Collection.Key key) {
+		return get(pc, key, null) != null;
 	}
 
 	Array getInnerArray() {

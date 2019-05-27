@@ -76,7 +76,17 @@ public final class LocalNotSupportedScope extends StructSupport implements Scope
 	}
 
 	@Override
+	public Object get(PageContext pc, Collection.Key key) throws ExpressionException {
+		throw new ExpressionException("Unsupported Context for Local Scope", "Can't invoke key " + key.getString() + ", Local Scope can only be invoked inside a Function");
+	}
+
+	@Override
 	public Object get(Collection.Key key, Object defaultValue) {
+		return defaultValue;
+	}
+
+	@Override
+	public Object get(PageContext pc, Collection.Key key, Object defaultValue) {
 		return defaultValue;
 	}
 
@@ -127,7 +137,12 @@ public final class LocalNotSupportedScope extends StructSupport implements Scope
 	}
 
 	@Override
-	public boolean containsKey(Collection.Key key) {
+	public final boolean containsKey(Collection.Key key) {
+		return false;
+	}
+
+	@Override
+	public final boolean containsKey(PageContext pc, Collection.Key key) {
 		return false;
 	}
 

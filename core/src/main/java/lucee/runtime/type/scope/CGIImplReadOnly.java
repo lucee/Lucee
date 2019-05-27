@@ -121,7 +121,12 @@ public final class CGIImplReadOnly extends ReadOnlyStruct implements CGI, Script
 	}
 
 	@Override
-	public boolean containsKey(Key key) {
+	public final boolean containsKey(Key key) {
+		return staticKeys.containsKey(key);
+	}
+
+	@Override
+	public final boolean containsKey(PageContext pc, Key key) {
 		return staticKeys.containsKey(key);
 	}
 
@@ -150,6 +155,11 @@ public final class CGIImplReadOnly extends ReadOnlyStruct implements CGI, Script
 
 	@Override
 	public Object get(Collection.Key key, Object defaultValue) {
+		return get(null, key, defaultValue);
+	}
+
+	@Override
+	public Object get(PageContext pc, Collection.Key key, Object defaultValue) {
 
 		if (disconnected) {
 			return disconnectedData.g(key, defaultValue);
@@ -296,6 +306,13 @@ public final class CGIImplReadOnly extends ReadOnlyStruct implements CGI, Script
 	@Override
 	public Object get(Collection.Key key) {
 		Object value = get(key, "");
+		if (value == null) value = "";
+		return value;
+	}
+
+	@Override
+	public Object get(PageContext pc, Collection.Key key) {
+		Object value = get(pc, key, "");
 		if (value == null) value = "";
 		return value;
 	}

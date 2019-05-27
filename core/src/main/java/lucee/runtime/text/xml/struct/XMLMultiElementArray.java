@@ -207,7 +207,12 @@ public class XMLMultiElementArray extends ArraySupport {
 	}
 
 	@Override
-	public Object get(Key key) throws PageException {
+	public final Object get(Key key) throws PageException {
+		return struct.get(key);
+	}
+
+	@Override
+	public final Object get(PageContext pc, Key key) throws PageException {
 		return struct.get(key);
 	}
 
@@ -217,8 +222,13 @@ public class XMLMultiElementArray extends ArraySupport {
 	}
 
 	@Override
-	public Object get(Key key, Object defaultValue) {
+	public final Object get(Key key, Object defaultValue) {
 		return struct.get(key, defaultValue);
+	}
+
+	@Override
+	public final Object get(PageContext pc, Key key, Object defaultValue) {
+		return struct.get(pc, key, defaultValue);
 	}
 
 	@Override

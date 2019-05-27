@@ -136,7 +136,7 @@ public class Reduce extends BIF implements ClosureFunc {
 
 	private static Object invoke(PageContext pc, Query qry, UDF udf, Object initalValue) throws CasterException, PageException {
 		final int pid = pc.getId();
-		ForEachQueryIterator it = new ForEachQueryIterator(qry, pid);
+		ForEachQueryIterator it = new ForEachQueryIterator(pc, qry, pid);
 		int rowNbr;
 
 		Object row;

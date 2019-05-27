@@ -152,7 +152,12 @@ public final class XMLAttributes extends StructSupport implements Struct, NamedN
 	}
 
 	@Override
-	public Object get(Collection.Key key) throws ExpressionException {
+	public final Object get(Collection.Key key) throws ExpressionException {
+		return get((PageContext) null, key);
+	}
+
+	@Override
+	public final Object get(PageContext pc, Collection.Key key) throws ExpressionException {
 		Node rtn = nodeMap.getNamedItem(key.getString());
 		if (rtn != null) return rtn.getNodeValue();
 
@@ -164,7 +169,12 @@ public final class XMLAttributes extends StructSupport implements Struct, NamedN
 	}
 
 	@Override
-	public Object get(Collection.Key key, Object defaultValue) {
+	public final Object get(Collection.Key key, Object defaultValue) {
+		return get((PageContext) null, key, defaultValue);
+	}
+
+	@Override
+	public final Object get(PageContext pc, Collection.Key key, Object defaultValue) {
 		Node rtn = nodeMap.getNamedItem(key.getString());
 		if (rtn != null) return rtn.getNodeValue();
 
@@ -298,8 +308,13 @@ public final class XMLAttributes extends StructSupport implements Struct, NamedN
 	}
 
 	@Override
-	public boolean containsKey(Collection.Key key) {
+	public final boolean containsKey(Collection.Key key) {
 		return get(key, null) != null;
+	}
+
+	@Override
+	public final boolean containsKey(PageContext pc, Collection.Key key) {
+		return get(pc, key, null) != null;
 	}
 
 	@Override

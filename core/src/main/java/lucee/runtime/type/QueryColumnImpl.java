@@ -209,7 +209,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 			if (child != _null) return child;
 			throw new DatabaseException("key [" + key + "] not found", null, null, null);
 		}
-		return QueryUtil.getValue(this, row);
+		return QueryUtil.getValue(pc, this, row);
 	}
 
 	private Object getChildElement(PageContext pc, Key key, Object defaultValue) {// pc maybe null

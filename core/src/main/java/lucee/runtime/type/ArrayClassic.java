@@ -109,8 +109,13 @@ public class ArrayClassic extends ArraySupport {
 	}
 
 	@Override
-	public Object get(Collection.Key key) throws ExpressionException {
+	public final Object get(Collection.Key key) throws ExpressionException {
 		return getE(Caster.toIntValue(key.getString()));
+	}
+
+	@Override
+	public final Object get(PageContext pc, Collection.Key key) throws ExpressionException {
+		return getE(pc, Caster.toIntValue(key.getString()));
 	}
 
 	@Override
@@ -121,14 +126,25 @@ public class ArrayClassic extends ArraySupport {
 	}
 
 	@Override
-	public Object get(Collection.Key key, Object defaultValue) {
+	public final Object get(Collection.Key key, Object defaultValue) {
 		double index = Caster.toIntValue(key.getString(), Integer.MIN_VALUE);
 		if (index == Integer.MIN_VALUE) return defaultValue;
 		return get((int) index, defaultValue);
 	}
 
 	@Override
-	public synchronized Object get(int key, Object defaultValue) {
+	public final Object get(PageContext pc, Collection.Key key, Object defaultValue) {
+		double index = Caster.toIntValue(key.getString(), Integer.MIN_VALUE);
+		if (index == Integer.MIN_VALUE) return defaultValue;
+		return get(pc, (int) index, defaultValue);
+	}
+
+	@Override
+	public final synchronized Object get(int key, Object defaultValue) {
+		return get(null, key, defaultValue);
+	}
+
+	public final synchronized Object get(PageContext pc, int key, Object defaultValue) {
 		if (key > size || key < 1) {
 			if (dimension > 1) {
 				ArrayClassic ai = new ArrayClassic();
@@ -145,13 +161,17 @@ public class ArrayClassic extends ArraySupport {
 				ai.dimension = dimension - 1;
 				return setEL(key, ai);
 			}
-			if (!NullSupportHelper.full()) return defaultValue;
+			if (!NullSupportHelper.full(pc)) return defaultValue;
 		}
 		return o;
 	}
 
 	@Override
 	public synchronized Object getE(int key) throws ExpressionException {
+		return getE(null, key);
+	}
+
+	public synchronized Object getE(PageContext pc, int key) throws ExpressionException {
 		if (key < 1) {
 			throw invalidPosition(key);
 		}
@@ -162,7 +182,7 @@ public class ArrayClassic extends ArraySupport {
 
 		Object o = arr[(offset + key) - 1];
 
-		if (NullSupportHelper.full()) {
+		if (NullSupportHelper.full(pc)) {
 			if (o == null && dimension > 1) return setE(key, new ArrayClassic(dimension - 1));
 			return o;
 		}

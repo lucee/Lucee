@@ -158,39 +158,49 @@ public class ClosureScope extends ScopeSupport implements Variables, Externaliza
 
 	@Override
 	public Object get(Key key) throws PageException {
+		return get((PageContext) null, key);
+	}
+
+	@Override
+	public Object get(PageContext pc, Key key) throws PageException {
 		Object _null = CollectionUtil.NULL;
-		Object value = local.get(key, _null);
+		Object value = local.get(pc, key, _null);
 		if (value != _null) return value;
-		value = arg.get(key, _null);
+		value = arg.get(pc, key, _null);
 		if (value != _null) {
-			if (debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(), arg.getTypeAsString(), key);
+			if (debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(pc), arg.getTypeAsString(), key);
 			return value;
 		}
 
-		value = var.get(key);
-		if (debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(), var.getTypeAsString(), key);
+		value = var.get(pc, key);
+		if (debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(pc), var.getTypeAsString(), key);
 		return value;
 	}
 
 	@Override
 	public Object get(Key key, Object defaultValue) {
+		return get(null, key, defaultValue);
+	}
+
+	@Override
+	public Object get(PageContext pc, Key key, Object defaultValue) {
 		Object _null = CollectionUtil.NULL;
 
 		// local
-		Object value = local.get(key, _null);
+		Object value = local.get(pc, key, _null);
 		if (value != _null) return value;
 
 		// arg
-		value = arg.get(key, _null);
+		value = arg.get(pc, key, _null);
 		if (value != _null) {
-			if (debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(), arg.getTypeAsString(), key);
+			if (debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(pc), arg.getTypeAsString(), key);
 			return value;
 		}
 
 		// var
-		value = var.get(key, _null);
+		value = var.get(pc, key, _null);
 		if (value != _null) {
-			if (debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(), var.getTypeAsString(), key);
+			if (debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(pc), var.getTypeAsString(), key);
 			return value;
 		}
 		return defaultValue;
@@ -226,8 +236,13 @@ public class ClosureScope extends ScopeSupport implements Variables, Externaliza
 	}
 
 	@Override
-	public boolean containsKey(Key key) {
+	public final boolean containsKey(Key key) {
 		return get(key, CollectionUtil.NULL) != CollectionUtil.NULL;
+	}
+
+	@Override
+	public final boolean containsKey(PageContext pc, Key key) {
+		return get(pc, key, CollectionUtil.NULL) != CollectionUtil.NULL;
 	}
 
 	@Override

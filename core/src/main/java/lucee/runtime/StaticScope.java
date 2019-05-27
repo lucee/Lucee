@@ -217,8 +217,14 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 	}
 
 	@Override
-	public boolean containsKey(Key key) {
+	public final boolean containsKey(Key key) {
 		if (base != null && base.containsKey(key)) return true;
+		return cp._static.containsKey(key);
+	}
+
+	@Override
+	public final boolean containsKey(PageContext pc, Key key) {
+		if (base != null && base.containsKey(pc, key)) return true;
 		return cp._static.containsKey(key);
 	}
 

@@ -48,6 +48,11 @@ public final class CallerImpl extends StructSupport implements Caller {
 
 	@Override
 	public Object get(Collection.Key key) throws PageException {
+		return get(pc, key);
+	}
+
+	@Override
+	public Object get(PageContext pc, Collection.Key key) throws PageException {
 
 		char c = key.lowerCharAt(0);
 		if ('a' == c) {
@@ -109,6 +114,11 @@ public final class CallerImpl extends StructSupport implements Caller {
 
 	@Override
 	public Object get(Collection.Key key, Object defaultValue) {
+		return get(pc, key, defaultValue);
+	}
+
+	@Override
+	public Object get(PageContext pc, Collection.Key key, Object defaultValue) {
 
 		char c = key.lowerCharAt(0);
 		if ('a' == c) {
@@ -278,7 +288,12 @@ public final class CallerImpl extends StructSupport implements Caller {
 	}
 
 	@Override
-	public boolean containsKey(Collection.Key key) {
+	public final boolean containsKey(Collection.Key key) {
+		return get(key, null) != null;
+	}
+
+	@Override
+	public final boolean containsKey(PageContext pc, Collection.Key key) {
 		return get(key, null) != null;
 	}
 

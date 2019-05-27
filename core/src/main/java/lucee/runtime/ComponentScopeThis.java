@@ -169,8 +169,13 @@ public final class ComponentScopeThis extends StructSupport implements Component
 	}
 
 	@Override
-	public boolean containsKey(Key key) {
+	public final boolean containsKey(Key key) {
 		return get(key, null) != null;
+	}
+
+	@Override
+	public final boolean containsKey(PageContext pc, Key key) {
+		return get(pc, key, null) != null;
 	}
 
 	@Override

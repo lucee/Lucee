@@ -234,6 +234,7 @@ public class SimpleQuery implements Query, ResultSet, Objects, QueryResult {
 		return updateCount;
 	}
 
+	@Override
 	public void setUpdateCount(int updateCount) {
 		this.updateCount = updateCount;
 	}
@@ -724,6 +725,7 @@ public class SimpleQuery implements Query, ResultSet, Objects, QueryResult {
 		return _columns;
 	}
 
+	@Override
 	public void setColumnNames(Key[] trg) {
 		throw notSupported();
 	}
@@ -1246,11 +1248,13 @@ public class SimpleQuery implements Query, ResultSet, Objects, QueryResult {
 	}
 
 	// used only with java 7, do not set @Override
+	@Override
 	public <T> T getObject(int columnIndex, Class<T> type) throws SQLException {
 		return (T) QueryUtil.getObject(this, columnIndex, type);
 	}
 
 	// used only with java 7, do not set @Override
+	@Override
 	public <T> T getObject(String columnLabel, Class<T> type) throws SQLException {
 		return (T) QueryUtil.getObject(this, columnLabel, type);
 	}
@@ -2090,6 +2094,7 @@ public class SimpleQuery implements Query, ResultSet, Objects, QueryResult {
 		res.updateRowId(toIndex(columnLabel), x);
 	}
 
+	@Override
 	public synchronized void enableShowQueryUsage() {
 		throw notSupported();
 	}
@@ -2148,7 +2153,7 @@ public class SimpleQuery implements Query, ResultSet, Objects, QueryResult {
 
 	@Override
 	public java.util.Iterator getIterator() {
-		return new ForEachQueryIterator(this, ThreadLocalPageContext.get().getId());
+		return new ForEachQueryIterator(null, this, ThreadLocalPageContext.get().getId());
 	}
 
 	@Override

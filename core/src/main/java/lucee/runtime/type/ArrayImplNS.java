@@ -101,7 +101,12 @@ public final class ArrayImplNS extends ArraySupport implements Array {
 	}
 
 	@Override
-	public Object get(Collection.Key key) throws ExpressionException {
+	public final Object get(Collection.Key key) throws ExpressionException {
+		return getE(Caster.toIntValue(key.getString()));
+	}
+
+	@Override
+	public final Object get(PageContext pc, Collection.Key key) throws ExpressionException {
 		return getE(Caster.toIntValue(key.getString()));
 	}
 
@@ -113,14 +118,25 @@ public final class ArrayImplNS extends ArraySupport implements Array {
 	}
 
 	@Override
-	public Object get(Collection.Key key, Object defaultValue) {
+	public final Object get(Collection.Key key, Object defaultValue) {
 		double index = Caster.toIntValue(key.getString(), Integer.MIN_VALUE);
 		if (index == Integer.MIN_VALUE) return defaultValue;
 		return get((int) index, defaultValue);
 	}
 
 	@Override
+	public final Object get(PageContext pc, Collection.Key key, Object defaultValue) {
+		double index = Caster.toIntValue(key.getString(), Integer.MIN_VALUE);
+		if (index == Integer.MIN_VALUE) return defaultValue;
+		return get(pc, (int) index, defaultValue);
+	}
+
+	@Override
 	public Object get(int key, Object defaultValue) {
+		return get(null, key, defaultValue);
+	}
+
+	public Object get(PageContext pc, int key, Object defaultValue) {
 		if (key > size || key < 1) {
 			if (dimension > 1) {
 				ArrayImplNS ai = new ArrayImplNS();
@@ -144,6 +160,10 @@ public final class ArrayImplNS extends ArraySupport implements Array {
 
 	@Override
 	public Object getE(int key) throws ExpressionException {
+		return getE(null, key);
+	}
+
+	public Object getE(PageContext pc, int key) throws ExpressionException {
 		if (key < 1) {
 			throw invalidPosition(key);
 		}

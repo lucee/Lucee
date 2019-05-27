@@ -64,8 +64,13 @@ public class StructAsArray extends ArraySupport implements Array, List {
 	}
 
 	@Override
-	public Object get(Key k) throws PageException {
+	public final Object get(Key k) throws PageException {
 		return sct.get(k);
+	}
+
+	@Override
+	public final Object get(PageContext pc, Key k) throws PageException {
+		return sct.get(pc, k);
 	}
 
 	@Override
@@ -74,8 +79,13 @@ public class StructAsArray extends ArraySupport implements Array, List {
 	}
 
 	@Override
-	public Object get(Key k, Object defaultValue) {
+	public final Object get(Key k, Object defaultValue) {
 		return sct.get(k, defaultValue);
+	}
+
+	@Override
+	public final Object get(PageContext pc, Key k, Object defaultValue) {
+		return sct.get(pc, k, defaultValue);
 	}
 
 	@Override

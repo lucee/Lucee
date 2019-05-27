@@ -102,18 +102,33 @@ public final class UrlFormImpl extends StructSupport implements URLForm {
 	}
 
 	@Override
-	public boolean containsKey(Collection.Key key) {
+	public final boolean containsKey(Collection.Key key) {
 		return form.containsKey(key);
 	}
 
 	@Override
-	public Object get(Collection.Key key) throws PageException {
+	public final boolean containsKey(PageContext pc, Collection.Key key) {
+		return form.containsKey(pc, key);
+	}
+
+	@Override
+	public final Object get(Collection.Key key) throws PageException {
 		return form.get(key);
 	}
 
 	@Override
-	public Object get(Collection.Key key, Object defaultValue) {
+	public final Object get(PageContext pc, Collection.Key key) throws PageException {
+		return form.get(pc, key);
+	}
+
+	@Override
+	public final Object get(Collection.Key key, Object defaultValue) {
 		return form.get(key, defaultValue);
+	}
+
+	@Override
+	public final Object get(PageContext pc, Collection.Key key, Object defaultValue) {
+		return form.get(pc, key, defaultValue);
 	}
 
 	@Override

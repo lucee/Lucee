@@ -26,13 +26,22 @@ import lucee.runtime.type.Null;
 public class NullSupportHelper {
 
 	public static boolean full(PageContext pc) {
-		return ((PageContextImpl) pc).getFullNullSupport();
+
+		return ((PageContextImpl) ThreadLocalPageContext.get(pc)).getFullNullSupport();
 	}
 
 	public static boolean full() {
-		PageContext pc = ThreadLocalPageContext.get();
-		if (pc == null) return false;
-		return ((PageContextImpl) pc).getFullNullSupport();
+		/*
+		 * String str = ExceptionUtil.getStacktrace(new Throwable(), false); if
+		 * (str.indexOf("lucee.runtime.reflection.storage.SoftMethodStorage.storeArgs") == -1 &&
+		 * str.indexOf("lucee.runtime.type.scope.CGIImplReadOnly.get") == -1 &&
+		 * str.indexOf("lucee.runtime.type.scope.RequestImpl.get") == -1 &&
+		 * str.indexOf("lucee.runtime.type.QueryImpl.getAt") == -1
+		 * 
+		 * ) print.e(str);
+		 */
+
+		return full(ThreadLocalPageContext.get());
 	}
 
 	public static Object NULL(boolean fns) {

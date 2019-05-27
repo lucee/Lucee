@@ -235,18 +235,33 @@ public final class SVStruct extends StructSupport implements Reference, Struct {
 	}
 
 	@Override
-	public boolean containsKey(Collection.Key key) {
+	public final boolean containsKey(Collection.Key key) {
 		return parent.containsKey(key);
 	}
 
 	@Override
-	public Object get(Collection.Key key) throws PageException {
+	public final boolean containsKey(PageContext pc, Collection.Key key) {
+		return parent.containsKey(pc, key);
+	}
+
+	@Override
+	public final Object get(Collection.Key key) throws PageException {
 		return parent.get(key);
 	}
 
 	@Override
-	public Object get(Collection.Key key, Object defaultValue) {
+	public final Object get(PageContext pc, Collection.Key key) throws PageException {
+		return parent.get(pc, key);
+	}
+
+	@Override
+	public final Object get(Collection.Key key, Object defaultValue) {
 		return parent.get(key, defaultValue);
+	}
+
+	@Override
+	public final Object get(PageContext pc, Collection.Key key, Object defaultValue) {
+		return parent.get(pc, key, defaultValue);
 	}
 
 	@Override

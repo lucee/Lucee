@@ -164,6 +164,11 @@ public final class CGIImpl extends StructSupport implements CGI, ScriptProtected
 	}
 
 	@Override
+	public boolean containsKey(PageContext pc, Key key) {
+		return internal.containsKey(key) || staticKeys.containsKey(key) || aliases.containsKey(key);
+	}
+
+	@Override
 	public boolean containsValue(Object value) {
 		Iterator<Object> it = internal.valueIterator();
 		while (it.hasNext()) {
@@ -198,18 +203,23 @@ public final class CGIImpl extends StructSupport implements CGI, ScriptProtected
 
 	@Override
 	public Object get(Collection.Key key, Object defaultValue) {
+		return get(null, key, defaultValue);
+	}
+
+	@Override
+	public Object get(PageContext pc, Collection.Key key, Object defaultValue) {
 
 		// do we have internal?
 
-		Object _null = NullSupportHelper.NULL();
-		Object res = internal.get(key, _null);
+		Object _null = NullSupportHelper.NULL(pc);
+		Object res = internal.get(pc, key, _null);
 		if (res != _null) return res;
 
 		// do we have an alias
 		{
 			Key k = aliases.get(key);
 			if (k != null) {
-				res = internal.get(k, _null);
+				res = internal.get(pc, k, _null);
 				if (res != _null) return res;
 			}
 		}
@@ -334,6 +344,13 @@ public final class CGIImpl extends StructSupport implements CGI, ScriptProtected
 	@Override
 	public Object get(Collection.Key key) {
 		Object value = get(key, "");
+		if (value == null) value = "";
+		return value;
+	}
+
+	@Override
+	public Object get(PageContext pc, Collection.Key key) {
+		Object value = get(pc, key, "");
 		if (value == null) value = "";
 		return value;
 	}

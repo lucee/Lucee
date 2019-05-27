@@ -42,7 +42,12 @@ public final class CollectionStruct extends StructSupport implements ObjectWrap,
 	}
 
 	@Override
-	public boolean containsKey(Key key) {
+	public final boolean containsKey(Key key) {
+		return coll.containsKey(key);
+	}
+
+	@Override
+	public final boolean containsKey(PageContext pc, Key key) {
 		return coll.containsKey(key);
 	}
 
@@ -52,12 +57,22 @@ public final class CollectionStruct extends StructSupport implements ObjectWrap,
 	}
 
 	@Override
-	public Object get(Key key) throws PageException {
+	public final Object get(Key key) throws PageException {
 		return coll.get(key);
 	}
 
 	@Override
-	public Object get(Key key, Object defaultValue) {
+	public final Object get(PageContext pc, Key key) throws PageException {
+		return coll.get(key);
+	}
+
+	@Override
+	public final Object get(Key key, Object defaultValue) {
+		return coll.get(key, defaultValue);
+	}
+
+	@Override
+	public final Object get(PageContext pc, Key key, Object defaultValue) {
 		return coll.get(key, defaultValue);
 	}
 

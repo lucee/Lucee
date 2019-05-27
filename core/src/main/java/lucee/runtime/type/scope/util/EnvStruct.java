@@ -3,6 +3,7 @@ package lucee.runtime.type.scope.util;
 import java.util.Iterator;
 import java.util.Set;
 
+import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.KeyImpl;
@@ -31,7 +32,12 @@ public class EnvStruct extends AbsSystemStruct {
 	}
 
 	@Override
-	public Object get(Key key) throws PageException {
+	public final Object get(Key key) throws PageException {
+		return get((PageContext) null, key);
+	}
+
+	@Override
+	public final Object get(PageContext pc, Key key) throws PageException {
 		Iterator<Entry<String, String>> it = System.getenv().entrySet().iterator();
 		Entry<String, String> e;
 		if (key == null) throw StructSupport.invalidKey(null, this, key, null);
@@ -43,7 +49,12 @@ public class EnvStruct extends AbsSystemStruct {
 	}
 
 	@Override
-	public Object get(Key key, Object defaultValue) {
+	public final Object get(Key key, Object defaultValue) {
+		return get((PageContext) null, key, defaultValue);
+	}
+
+	@Override
+	public Object get(PageContext pc, Key key, Object defaultValue) {
 		Iterator<Entry<String, String>> it = System.getenv().entrySet().iterator();
 		Entry<String, String> e;
 		if (key == null) return defaultValue;
@@ -69,7 +80,12 @@ public class EnvStruct extends AbsSystemStruct {
 	}
 
 	@Override
-	public boolean containsKey(Key key) {
+	public final boolean containsKey(Key key) {
+		return getKey(key) != null;
+	}
+
+	@Override
+	public final boolean containsKey(PageContext pc, Key key) {
 		return getKey(key) != null;
 	}
 

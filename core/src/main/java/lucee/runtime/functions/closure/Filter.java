@@ -183,7 +183,7 @@ public class Filter extends BIF implements ClosureFunc {
 		Key[] colNames = qry.getColumnNames();
 		Query rtn = new QueryImpl(colNames, 0, qry.getName());
 		final int pid = pc.getId();
-		ForEachQueryIterator it = new ForEachQueryIterator(qry, pid);
+		ForEachQueryIterator it = new ForEachQueryIterator(pc, qry, pid);
 		int rowNbr;
 		Object row;
 		boolean async = es != null;

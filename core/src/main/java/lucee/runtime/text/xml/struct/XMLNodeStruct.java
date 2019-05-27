@@ -92,6 +92,11 @@ public class XMLNodeStruct extends StructSupport implements XMLStruct {
 
 	@Override
 	public Object get(Collection.Key key) throws PageException {
+		return get((PageContext) null, key);
+	}
+
+	@Override
+	public Object get(PageContext pc, Collection.Key key) throws PageException {
 		try {
 			return XMLUtil.getProperty(node, key, caseSensitive);
 		}
@@ -286,6 +291,11 @@ public class XMLNodeStruct extends StructSupport implements XMLStruct {
 	}
 
 	@Override
+	public Object get(PageContext pc, Collection.Key key, Object defaultValue) {
+		return XMLUtil.getProperty(node, key, caseSensitive, defaultValue);
+	}
+
+	@Override
 	public Object setEL(Key key, Object value) {
 		return XMLUtil.setProperty(node, key, value, caseSensitive, null);
 	}
@@ -330,6 +340,11 @@ public class XMLNodeStruct extends StructSupport implements XMLStruct {
 
 	@Override
 	public boolean containsKey(Collection.Key key) {
+		return get(key, null) != null;
+	}
+
+	@Override
+	public boolean containsKey(PageContext pc, Collection.Key key) {
 		return get(key, null) != null;
 	}
 
@@ -399,59 +414,69 @@ public class XMLNodeStruct extends StructSupport implements XMLStruct {
 	}
 
 	// used only with java 7, do not set @Override
+	@Override
 	public String getBaseURI() {
 		// not supported
 		return null;
 	}
 
 	// used only with java 7, do not set @Override
+	@Override
 	public short compareDocumentPosition(Node other) throws DOMException {
 		// not supported
 		return -1;
 	}
 
 	// used only with java 7, do not set @Override
+	@Override
 	public void setTextContent(String textContent) throws DOMException {
 		// TODO not supported
 		throw new DOMException(DOMException.NO_MODIFICATION_ALLOWED_ERR, "this method is not supported");
 	}
 
 	// used only with java 7, do not set @Override
+	@Override
 	public boolean isSameNode(Node other) {
 		return this == other;
 	}
 
 	// used only with java 7, do not set @Override
+	@Override
 	public String lookupPrefix(String namespaceURI) {
 		// TODO not supported
 		return null;
 	}
 
 	// used only with java 7, do not set @Override
+	@Override
 	public boolean isDefaultNamespace(String namespaceURI) {
 		// TODO not supported
 		return false;
 	}
 
 	// used only with java 7, do not set @Override
+	@Override
 	public String lookupNamespaceURI(String prefix) {
 		// TODO not supported
 		return null;
 	}
 
 	// used only with java 7, do not set @Override
+	@Override
 	public boolean isEqualNode(Node node) {
 		// TODO not supported
 		return this == node;
 	}
 
 	// used only with java 7, do not set @Override
+	@Override
 	public Object getFeature(String feature, String version) {
 		// TODO not supported
 		return null;
 	}
 
 	// used only with java 7, do not set @Override
+	@Override
 	public Object getUserData(String key) {
 		// dynamic load to support jre 1.4 and 1.5
 		try {
@@ -464,6 +489,7 @@ public class XMLNodeStruct extends StructSupport implements XMLStruct {
 	}
 
 	// used only with java 7, do not set @Override
+	@Override
 	public String getTextContent() throws DOMException {
 		// dynamic load to support jre 1.4 and 1.5
 		try {
@@ -476,6 +502,7 @@ public class XMLNodeStruct extends StructSupport implements XMLStruct {
 	}
 
 	// used only with java 7, do not set @Override
+	@Override
 	public Object setUserData(String key, Object data, UserDataHandler handler) {
 		// dynamic load to support jre 1.4 and 1.5
 		try {

@@ -63,12 +63,22 @@ public final class ClusterNotSupported extends StructSupport implements Cluster 
 	public void clear() {}
 
 	@Override
-	public Object get(Collection.Key key) throws ExpressionException {
+	public final Object get(Collection.Key key) throws ExpressionException {
 		throw new ExpressionException(NOT_SUPPORTED);
 	}
 
 	@Override
-	public Object get(Collection.Key key, Object defaultValue) {
+	public final Object get(PageContext pc, Collection.Key key) throws ExpressionException {
+		throw new ExpressionException(NOT_SUPPORTED);
+	}
+
+	@Override
+	public final Object get(Collection.Key key, Object defaultValue) {
+		return defaultValue;
+	}
+
+	@Override
+	public final Object get(PageContext pc, Collection.Key key, Object defaultValue) {
 		return defaultValue;
 	}
 
@@ -128,7 +138,12 @@ public final class ClusterNotSupported extends StructSupport implements Cluster 
 	}
 
 	@Override
-	public boolean containsKey(Collection.Key key) {
+	public final boolean containsKey(Collection.Key key) {
+		return false;
+	}
+
+	@Override
+	public final boolean containsKey(PageContext pc, Collection.Key key) {
 		return false;
 	}
 

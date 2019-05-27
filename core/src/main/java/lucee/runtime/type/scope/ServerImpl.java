@@ -254,6 +254,12 @@ public final class ServerImpl extends ScopeSupport implements Server, SharedScop
 		return super.get(key);
 	}
 
+	@Override
+	public Object get(PageContext pc, Key key) throws PageException {
+		if (key.equalsIgnoreCase(KeyConstants._railo)) return super.get(pc, KeyConstants._lucee);
+		return super.get(pc, key);
+	}
+
 	/**
 	 * returns if the key is a readonly key
 	 * 

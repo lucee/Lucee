@@ -300,15 +300,12 @@ public abstract class ArraySupport extends AbstractList implements ArrayPro, Lis
 		return iterator();
 	}
 
-	@Override
-	public Object get(PageContext pc, Key key, Object defaultValue) {
-		return get(key, defaultValue);
-	}
-
-	@Override
-	public Object get(PageContext pc, Key key) throws PageException {
-		return get(key);
-	}
+	/*
+	 * @Override public Object get(PageContext pc, Key key, Object defaultValue) { return get(key,
+	 * defaultValue); }
+	 * 
+	 * @Override public Object get(PageContext pc, Key key) throws PageException { return get(key); }
+	 */
 
 	@Override
 	public Object set(PageContext pc, Key propertyName, Object value) throws PageException {

@@ -358,6 +358,13 @@ public class QueryUtil {
 		return v == null ? "" : v;
 	}
 
+	@Deprecated
+	public static Object getValue(PageContext pc, QueryColumn column, int row) {// print.ds();
+		if (NullSupportHelper.full(pc)) return column.get(row, null);
+		Object v = column.get(row, "");
+		return v == null ? "" : v;
+	}
+
 	public static QueryColumnImpl duplicate2QueryColumnImpl(QueryImpl targetQuery, QueryColumn col, boolean deepCopy) {
 		if (col instanceof QueryColumnImpl) return ((QueryColumnImpl) col).cloneColumnImpl(deepCopy);
 

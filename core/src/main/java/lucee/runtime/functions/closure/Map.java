@@ -215,7 +215,7 @@ public class Map extends BIF implements ClosureFunc {
 			 */
 		}
 		final int pid = pc.getId();
-		ForEachQueryIterator it = new ForEachQueryIterator(qry, pid);
+		ForEachQueryIterator it = new ForEachQueryIterator(pc, qry, pid);
 		int rowNbr;
 		Object row, res;
 

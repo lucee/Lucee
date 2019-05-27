@@ -840,7 +840,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	}
 
 	@Override
-	public Object getAt(Collection.Key key, int row, Object defaultValue) {
+	public final Object getAt(Collection.Key key, int row, Object defaultValue) {
 		int index = getIndexFromKey(key);
 		if (index != -1) {
 			// we only return default value if row exists
@@ -3120,7 +3120,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	@Override
 	public java.util.Iterator getIterator() {
-		return new ForEachQueryIterator(this, ThreadLocalPageContext.get().getId());
+		return new ForEachQueryIterator(null, this, ThreadLocalPageContext.get().getId());
 	}
 
 	@Override

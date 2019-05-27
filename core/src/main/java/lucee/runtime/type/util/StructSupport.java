@@ -127,6 +127,8 @@ public abstract class StructSupport implements Map, Struct {
 		return containsKey(KeyImpl.init(key));
 	}
 
+	public abstract boolean containsKey(PageContext pc, Key key); // FUTURE add to Struct
+
 	@Override
 	public final Object get(String key, Object defaultValue) {
 		return get(KeyImpl.init(key), defaultValue);
@@ -232,10 +234,10 @@ public abstract class StructSupport implements Map, Struct {
 		return new KeyAsStringIterator(keyIterator());
 	}
 
-	@Override
-	public Object get(PageContext pc, Key key, Object defaultValue) {
-		return get(key, defaultValue);
-	}
+	/*
+	 * @Override public Object get(PageContext pc, Key key, Object defaultValue) { return get(key,
+	 * defaultValue); }
+	 */
 
 	@Override
 	public Object get(PageContext pc, Key key) throws PageException {

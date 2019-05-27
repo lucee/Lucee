@@ -156,9 +156,17 @@ public final class RequestImpl extends StructSupport implements Request {
 	}
 
 	@Override
-	public Object get(Key key) throws PageException {
+	public final Object get(Key key) throws PageException {
 		Object _null = NullSupportHelper.NULL();
 		Object value = get(key, _null);
+		if (value == _null) throw invalidKey(null, this, key, "request scope");
+		return value;
+	}
+
+	@Override
+	public final Object get(PageContext pc, Key key) throws PageException {
+		Object _null = NullSupportHelper.NULL(pc);
+		Object value = get(pc, key, _null);
 		if (value == _null) throw invalidKey(null, this, key, "request scope");
 		return value;
 	}
@@ -193,7 +201,12 @@ public final class RequestImpl extends StructSupport implements Request {
 	}
 
 	@Override
-	public Object get(Key key, Object defaultValue) {
+	public final Object get(Key key, Object defaultValue) {
+		return get((PageContext) null, key, defaultValue);
+	}
+
+	@Override
+	public final Object get(PageContext pc, Key key, Object defaultValue) {
 		synchronized (_req) {
 			Object value = _req.getAttribute(key.getLowerString());
 			if (value != null) return value;
@@ -229,9 +242,15 @@ public final class RequestImpl extends StructSupport implements Request {
 	}
 
 	@Override
-	public boolean containsKey(Key key) {
+	public final boolean containsKey(Key key) {
 		Object _null = NullSupportHelper.NULL();
 		return get(key, _null) != _null;
+	}
+
+	@Override
+	public final boolean containsKey(PageContext pc, Key key) {
+		Object _null = NullSupportHelper.NULL(pc);
+		return get(pc, key, _null) != _null;
 	}
 
 	@Override
