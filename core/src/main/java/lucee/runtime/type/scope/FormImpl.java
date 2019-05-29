@@ -191,7 +191,8 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 				IOUtil.copy(is, tempFile, true);
 
 				String ct = item.getContentType();
-				if (StringUtil.isEmpty(ct)) {
+
+				if (StringUtil.isEmpty(ct) && !StringUtil.isEmpty(item.getName())) {
 					ct = IOUtil.getMimeType(tempFile, null);
 				}
 
