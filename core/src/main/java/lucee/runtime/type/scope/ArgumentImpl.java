@@ -59,6 +59,8 @@ import lucee.runtime.type.wrap.ArrayAsList;
  */
 public final class ArgumentImpl extends ScopeSupport implements Argument, ArrayPro {
 
+	private static final long serialVersionUID = 4346997451403177136L;
+
 	private boolean bind;
 	private Set functionArgumentNames;
 	// private boolean supportFunctionArguments;
