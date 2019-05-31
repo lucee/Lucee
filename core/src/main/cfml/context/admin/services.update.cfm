@@ -105,33 +105,33 @@
 			password="#session["password"&request.adminType]#"
 			returnvariable="minVersion";
 		minVs = toVersionSortable(minVersion);
-
-		if(len(updateData.otherVersions)){
-
-			for(versions in updateData.otherVersions ){
-				if(versions EQ server.lucee.version) cfcontinue;
-				vs=toVersionSortable(versions);
-				if(vs LTE minVS) cfcontinue;
-				;
-				if(FindNoCase("SNAPSHOT", versions)){
-					if(vs LTE toVersionSortable(server.lucee.version)){
-						arrayPrepend(versionsStr.SNAPSHOT.downgrade, versions);
-					} else{
-						arrayPrepend(versionsStr.SNAPSHOT.upgrade, versions);
+		if(structKeyExists(updateData, "otherVersions")){
+			if(len(updateData.otherVersions)){
+				for(versions in updateData.otherVersions ){
+					if(versions EQ server.lucee.version) cfcontinue;
+					vs=toVersionSortable(versions);
+					if(vs LTE minVS) cfcontinue;
+					;
+					if(FindNoCase("SNAPSHOT", versions)){
+						if(vs LTE toVersionSortable(server.lucee.version)){
+							arrayPrepend(versionsStr.SNAPSHOT.downgrade, versions);
+						} else{
+							arrayPrepend(versionsStr.SNAPSHOT.upgrade, versions);
+						}
+					} 
+					else if(FindNoCase("ALPHA", versions) || FindNoCase("BETA", versions) || FindNoCase("RC", versions)){
+						if(vs LTE toVersionSortable(server.lucee.version)){
+							arrayPrepend(versionsStr.pre_Release.downgrade, versions);
+						} else{
+							arrayPrepend(versionsStr.pre_Release.upgrade, versions);
+						}
 					}
-				} 
-				else if(FindNoCase("ALPHA", versions) || FindNoCase("BETA", versions) || FindNoCase("RC", versions)){
-					if(vs LTE toVersionSortable(server.lucee.version)){
-						arrayPrepend(versionsStr.pre_Release.downgrade, versions);
-					} else{
-						arrayPrepend(versionsStr.pre_Release.upgrade, versions);
-					}
-				}
-				else{
-					if(vs LTE toVersionSortable(server.lucee.version)){
-						arrayPrepend(versionsStr.release.downgrade, versions);
-					} else{
-						arrayPrepend(versionsStr.release.upgrade, versions);
+					else{
+						if(vs LTE toVersionSortable(server.lucee.version)){
+							arrayPrepend(versionsStr.release.downgrade, versions);
+						} else{
+							arrayPrepend(versionsStr.release.upgrade, versions);
+						}
 					}
 				}
 			}
