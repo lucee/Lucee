@@ -106,7 +106,7 @@
 			returnvariable="minVersion";
 		minVs = toVersionSortable(minVersion);
 
-		if(len(updateData.otherVersions)){
+		if(structKeyExists(updateData, "otherVersions") && len(updateData.otherVersions)){
 
 			for(versions in updateData.otherVersions ){
 				if(versions EQ server.lucee.version) cfcontinue;
