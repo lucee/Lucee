@@ -496,7 +496,7 @@
      ]]>
   </scriptdef>
   
-  <scriptdef name="currentTime" language="javascript">
+  <scriptdef name="currentTime" language="javascript" classpathref="maven.plugin.classpath">
      <attribute name="property" />
      <![CDATA[
       project.setProperty(attributes.get("property"), new Date().getTime());
