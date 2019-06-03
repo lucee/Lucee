@@ -20,7 +20,7 @@
   <property name="extH2"          value="465E1E35-2425-4F4E-8B3FAB638BD7280A"/>
   <property name="extOracle"          value="D4EDFDBD-A9A3-E9AF-597322D767E0C949"/>
   <property name="pack200"          value="false"/>
-
+  
 
 <!-- TODO get the version number from manifest.mf -->
   
@@ -137,7 +137,7 @@
         //
     ]]>
   </scriptdef>
-  <scriptdef name="splitIdVersion" language="javascript">
+  <scriptdef name="splitIdVersion" language="javascript" loaderRef="sharedbuild-loaderRef">
      <attribute name="prefix" />
      <attribute name="value" />
      <![CDATA[
@@ -160,7 +160,7 @@
      ]]>
   </scriptdef>
 
-  <scriptdef name="addBundles" language="javascript">
+  <scriptdef name="addBundles" language="javascript" loaderRef="sharedbuild-loaderRef">
      <attribute name="bundles" />
      <attribute name="target" />
      <attribute name="coremanifest" />
@@ -262,7 +262,7 @@
      ]]>
   </scriptdef>
 
-  <scriptdef name="pack200File" language="javascript">
+  <scriptdef name="pack200File" language="javascript" loaderRef="sharedbuild-loaderRef">
      <attribute name="file" />
      <attribute name="doit" />
      <![CDATA[
@@ -314,7 +314,7 @@
     ]]>
   </scriptdef>
 
-  <scriptdef name="pack200Ext" language="javascript">
+  <scriptdef name="pack200Ext" language="javascript" loaderRef="sharedbuild-loaderRef">
      <attribute name="file" />
      <attribute name="tmpdir" />
      <attribute name="doit" />
@@ -440,7 +440,7 @@
     </sequential>
   </macrodef>
 
-  <scriptdef name="unwrap" language="javascript">
+  <scriptdef name="unwrap" language="javascript" loaderRef="sharedbuild-loaderRef">
      <attribute name="text" />
      <attribute name="property" />
      <![CDATA[
@@ -453,7 +453,7 @@
      ]]>
   </scriptdef>
 
-  <scriptdef name="updatedate" language="javascript">
+  <scriptdef name="updatedate" language="javascript" loaderRef="sharedbuild-loaderRef">
      <attribute name="text" />
      <attribute name="date" />
      <attribute name="property" />
@@ -474,7 +474,7 @@
      ]]>
   </scriptdef>
 
-  <scriptdef name="felix" language="javascript">
+  <scriptdef name="felix" language="javascript" loaderRef="sharedbuild-loaderRef">
      <attribute name="property" />
      <attribute name="dependencies" />
      <attribute name="separator" />
@@ -496,14 +496,14 @@
      ]]>
   </scriptdef>
   
-  <scriptdef name="currentTime" language="javascript" classpathref="maven.plugin.classpath">
+  <scriptdef name="currentTime" language="javascript" loaderRef="sharedbuild-loaderRef">
      <attribute name="property" />
      <![CDATA[
       project.setProperty(attributes.get("property"), new Date().getTime());
      ]]>
   </scriptdef>
 
-  <scriptdef name="toFileName" language="javascript">
+  <scriptdef name="toFileName" language="javascript" loaderRef="sharedbuild-loaderRef">
      <attribute name="id" />
      <attribute name="name" />
      <attribute name="version" />
