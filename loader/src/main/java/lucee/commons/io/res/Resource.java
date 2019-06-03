@@ -143,8 +143,7 @@ public interface Resource extends Serializable {
 	 * A canonical pathname is both absolute and unique. The precise definition of canonical form is
 	 * system-dependent. This method first converts this pathname to absolute form if necessary, as if
 	 * by invoking the {@link #getAbsolutePath} method, and then maps it to its unique form in a
-	 * system-dependent way. This typically involves removing redundant names such as <tt>"."</tt> and
-	 * <tt>".."</tt> from the pathname.
+	 * system-dependent way.
 	 * 
 	 * <p>
 	 * Every pathname that denotes an existing file or directory has a unique canonical form. Every
@@ -205,7 +204,7 @@ public interface Resource extends Serializable {
 	/**
 	 * returns a resource path that is relative to the current resource
 	 * 
-	 * @param realpath
+	 * @param realpath relative path to get resource from
 	 * @return relative resource path to the current
 	 */
 	public String getReal(String realpath);
@@ -213,7 +212,7 @@ public interface Resource extends Serializable {
 	/**
 	 * returns a resource that is relative to the current resource
 	 * 
-	 * @param relpath
+	 * @param relpath relative path to get resource from
 	 * @return relative resource to the current
 	 */
 	public Resource getRealResource(String relpath);
@@ -494,7 +493,7 @@ public interface Resource extends Serializable {
 	 * does not exist are a single operation that is atomic with respect to all other filesystem
 	 * activities that might affect the file.
 	 * 
-	 * @param createParentWhenNotExists
+	 * @param createParentWhenNotExists create parent when not exist
 	 * 
 	 * 
 	 * @throws IOException If an I/O error occurred
@@ -528,8 +527,6 @@ public interface Resource extends Serializable {
 	 * operation fails it may have succeeded in creating some of the necessary parent directories.
 	 * 
 	 * @param createParentWhenNotExists throws Exception when can't create directory
-	 * @throws IOException
-	 * 
 	 */
 	public void createDirectory(boolean createParentWhenNotExists) throws IOException;
 
@@ -540,16 +537,16 @@ public interface Resource extends Serializable {
 	/**
 	 * copy current resource data to given resource
 	 * 
-	 * @param res
-	 * @throws IOException
+	 * @param res resource to copy to
+	 * @param append do append value to existing data or overwrite
 	 */
 	public void copyTo(Resource res, boolean append) throws IOException;
 
 	/**
 	 * copy data of given resource to current
 	 * 
-	 * @param res
-	 * @throws IOException
+	 * @param res resource to copy from
+	 * @param append do append value to existing data or overwrite
 	 */
 	public void copyFrom(Resource res, boolean append) throws IOException;
 
@@ -564,7 +561,7 @@ public interface Resource extends Serializable {
 	/**
 	 * sets hidden attribute of the resource
 	 * 
-	 * @param value
+	 * @param value value to set
 	 * @throws IOException throwed when no access to change the value or the resource doesn't exists
 	 * @deprecated use instead <code>{@link #setAttribute(short, boolean)}</code>
 	 */
@@ -574,7 +571,7 @@ public interface Resource extends Serializable {
 	/**
 	 * sets system attribute of the resource
 	 * 
-	 * @param value
+	 * @param value value to set
 	 * @throws IOException throwed when no access to change the value or the resource doesn't exists
 	 * @deprecated use instead <code>{@link #setAttribute(short, boolean)}</code>
 	 */
@@ -584,7 +581,7 @@ public interface Resource extends Serializable {
 	/**
 	 * sets archive attribute of the resource
 	 * 
-	 * @param value
+	 * @param value value to set
 	 * @throws IOException throwed when no access to change the value or the resource doesn't exists
 	 * @deprecated use instead <code>{@link #setAttribute(short, boolean)}</code>
 	 */
@@ -595,7 +592,7 @@ public interface Resource extends Serializable {
 	 * sets a attribute on the resource if supported otherwise it will ign
 	 * 
 	 * @param attribute wich attrbute (Resource.ATTRIBUTE_*)
-	 * @param value
+	 * @param value value to set
 	 * @throws IOException throwed when no access to change the value, when attributes are not supported
 	 *             or the resource doesn't exists
 	 */
@@ -604,7 +601,7 @@ public interface Resource extends Serializable {
 	/**
 	 * return value of a specific attribute
 	 * 
-	 * @param attribute
+	 * @param attribute attribute to get the value for
 	 * @return value of the attribute
 	 */
 	public boolean getAttribute(short attribute);

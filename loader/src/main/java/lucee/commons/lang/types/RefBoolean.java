@@ -23,9 +23,6 @@ package lucee.commons.lang.types;
  */
 public interface RefBoolean {
 
-	/**
-	 * @param value
-	 */
 	public void setValue(boolean value);
 
 	/**

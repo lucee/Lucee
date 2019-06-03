@@ -91,55 +91,26 @@ public interface CFMLEngine {
 
 	/**
 	 * adds a servlet config
-	 * 
-	 * @param config
-	 * @throws ServletException
 	 */
 	public abstract void addServletConfig(ServletConfig config) throws ServletException;
 
 	/**
 	 * method to invoke the engine for a regular Lucee call
-	 * 
-	 * @param servlet
-	 * @param req
-	 * @param rsp
-	 * @throws ServletException
-	 * @throws IOException
-	 * @throws ServletException
 	 */
 	public void service(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws IOException, ServletException;
 
 	/**
 	 * method to invoke the engine for CFML
-	 * 
-	 * @param servlet
-	 * @param req
-	 * @param rsp
-	 * @throws ServletException
-	 * @throws IOException
-	 * @throws ServletException
 	 */
 	public void serviceCFML(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws IOException, ServletException;
 
 	/**
 	 * method to invoke the engine for AMF
-	 * 
-	 * @param servlet
-	 * @param req
-	 * @param rsp
-	 * @throws ServletException
-	 * @throws IOException
 	 */
 	public void serviceAMF(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws ServletException, IOException;
 
 	/**
 	 * method to invoke the engine for a simple file
-	 * 
-	 * @param servlet
-	 * @param req
-	 * @param rsp
-	 * @throws ServletException
-	 * @throws IOException
 	 */
 	public void serviceFile(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws ServletException, IOException;
 

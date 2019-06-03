@@ -46,23 +46,10 @@ public class DebugRequest implements Request {
 		this(attributes, null, null);
 	}
 
-	/**
-	 * constructor of the class
-	 * 
-	 * @param attributes
-	 * @param query
-	 */
 	public DebugRequest(final Hashtable attributes, final Query query) {
 		this(attributes, query, null);
 	}
 
-	/**
-	 * constructor of the class
-	 * 
-	 * @param attributes
-	 * @param query
-	 * @param settings
-	 */
 	public DebugRequest(final Hashtable attributes, final Query query, final Hashtable settings) {
 		this.attributes = toStruct(attributes);
 		this.query = query;

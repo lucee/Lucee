@@ -75,8 +75,6 @@ public interface Cache {
 	/**
 	 * puts a cache entry to the cache, overwrite existing entries that already exists inside the cache
 	 * with the same key
-	 * 
-	 * @param value
 	 */
 	public void put(String key, Object value, Long idleTime, Long until) throws IOException;
 

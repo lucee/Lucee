@@ -23,22 +23,15 @@ package lucee.commons.lang.types;
  */
 public interface RefInteger {
 
-	/**
-	 * @param value
-	 */
 	public void setValue(int value);
 
 	/**
 	 * operation plus
-	 * 
-	 * @param value
 	 */
 	public void plus(int value);
 
 	/**
 	 * operation minus
-	 * 
-	 * @param value
 	 */
 	public void minus(int value);
 

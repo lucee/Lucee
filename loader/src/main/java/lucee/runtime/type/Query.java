@@ -71,6 +71,7 @@ public interface Query extends Collection, Iterator, com.allaire.cfx.Query {
 	 * 
 	 * @param key column to get
 	 * @param row row to get from (1-recordcount)
+	 * @param defaultValue default value returned in case there is no value
 	 * @return value at the called position
 	 * @deprecated use instead
 	 *             <code>{@link #getAt(lucee.runtime.type.Collection.Key, int, Object)}</code>
@@ -99,6 +100,7 @@ public interface Query extends Collection, Iterator, com.allaire.cfx.Query {
 	 * @deprecated use instead
 	 *             <code>{@link #setAtEL(lucee.runtime.type.Collection.Key, int, Object)}</code>
 	 */
+	@Deprecated
 	public Object setAt(String key, int row, Object value) throws PageException;
 
 	/**
@@ -214,6 +216,7 @@ public interface Query extends Collection, Iterator, com.allaire.cfx.Query {
 	/**
 	 * @return Coloned Object
 	 */
+	@Override
 	public Object clone();
 
 	/**
@@ -255,6 +258,7 @@ public interface Query extends Collection, Iterator, com.allaire.cfx.Query {
 	 * @deprecated use instead
 	 *             <code>{@link #getColumn(lucee.runtime.type.Collection.Key, QueryColumn)}</code>
 	 */
+	@Deprecated
 	public QueryColumn getColumn(String key, QueryColumn column);
 
 	/**

@@ -22,9 +22,6 @@ package lucee.commons.lang.types;
  */
 public interface RefString {
 
-	/**
-	 * @param value
-	 */
 	public void setValue(String value);
 
 	/**
