@@ -27,7 +27,11 @@ public class NullSupportHelper {
 
 	public static boolean full(PageContext pc) {
 
-		return ((PageContextImpl) ThreadLocalPageContext.get(pc)).getFullNullSupport();
+		if (pc == null) {
+			pc = ThreadLocalPageContext.get();
+			if (pc == null) return false;
+		}
+		return ((PageContextImpl) pc).getFullNullSupport();
 	}
 
 	public static boolean full() {
