@@ -240,7 +240,6 @@ public final class XMLConfigAdmin {
 		this.config = config;
 		this.password = password;
 		doc = XMLUtil.createDocument(config.getConfigFile(), false);
-		// setId(config.getId());
 	}
 
 	public static void checkForChangesInConfigFile(Config config) {
@@ -6086,8 +6085,11 @@ public final class XMLConfigAdmin {
 		for (String extensionID: extensionIDs) {
 			try {
 				bds = admin._removeExtension(config, extensionID, removePhysical);
-				for (BundleDefinition bd: bds) {
-					oldMap.put(bd.toString(), bd);
+				if (bds != null) {
+					for (BundleDefinition bd: bds) {
+						if (bd == null) continue;// TODO why are they Null?
+						oldMap.put(bd.toString(), bd);
+					}
 				}
 			}
 			catch (Exception e) {

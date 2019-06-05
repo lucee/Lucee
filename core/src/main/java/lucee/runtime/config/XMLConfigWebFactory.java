@@ -351,7 +351,6 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * @throws BundleException
 	 */
 	synchronized static void load(ConfigServerImpl cs, ConfigImpl config, Document doc, boolean isReload, boolean doNew) throws IOException {
-		double start = System.currentTimeMillis();
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "start reading config");
 
 		ThreadLocalConfig.register(config);

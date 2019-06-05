@@ -519,6 +519,7 @@ public final class XMLCaster {
 		try {
 			os = IOUtil.toBufferedOutputStream(file.getOutputStream());
 			writeTo(node, new StreamResult(os), false, false, null, null, null);
+			os.flush();
 		}
 		catch (IOException ioe) {
 			throw Caster.toPageException(ioe);
@@ -595,7 +596,6 @@ public final class XMLCaster {
 			Transformer t = XMLUtil.getTransformerFactory().newTransformer();
 			t.setOutputProperty(OutputKeys.INDENT, indent ? "yes" : "no");
 			t.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, omitXMLDecl ? "yes" : "no");
-			// t.setOutputProperty("{http://xml.apache.org/xalan}indent-amount", "2");
 
 			// optional properties
 			if (!StringUtil.isEmpty(publicId, true)) t.setOutputProperty(OutputKeys.DOCTYPE_PUBLIC, publicId);

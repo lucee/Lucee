@@ -375,7 +375,6 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			throw new ServletException(e.getTargetException());
 		}
 		catch (final Exception e) {
-			e.printStackTrace();
 			throw new ServletException(e);
 		}
 

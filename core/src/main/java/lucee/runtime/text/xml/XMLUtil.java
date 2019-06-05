@@ -67,6 +67,7 @@ import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
@@ -208,7 +209,26 @@ public final class XMLUtil {
 
 		if (transformerFactory == null) {
 			Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl) ThreadLocalPageContext.getConfig())); // TODO make this global
-			transformerFactory = TransformerFactory.newInstance();
+
+			Class clazz = null;
+			try {
+				clazz = ClassUtil.loadClass("com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl");
+			}
+			catch (Exception e) {
+				try {
+					clazz = ClassUtil.loadClass("org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl");
+				}
+				catch (Exception ee) {}
+			}
+			if (clazz != null) {
+				try {
+					transformerFactory = (TransformerFactory) ClassUtil.loadInstance(clazz);
+				}
+				catch (Exception e) {}
+			}
+
+			if (transformerFactory == null) transformerFactory = TransformerFactory.newInstance();
+
 		}
 		// if(transformerFactory==null)transformerFactory=new TransformerFactoryImpl();
 		return transformerFactory;
@@ -279,6 +299,7 @@ public final class XMLUtil {
 			// documentBuilderFactory=new DocumentBuilderFactoryImpl();
 			documentBuilderFactory.setNamespaceAware(true);
 			// print.e("isNamespaceAware?" + documentBuilderFactory.isNamespaceAware());
+			// print.e("document-builder-factory:" + documentBuilderFactory.getClass().getName());
 
 		}
 		return documentBuilderFactory;

@@ -68,6 +68,7 @@ import org.osgi.framework.Version;
 
 import lucee.Info;
 import lucee.cli.servlet.HTTPServletImpl;
+import lucee.cli.servlet.ServletContextImpl;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.DevNullOutputStream;
@@ -751,14 +752,16 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		}
 
 		// GENERAL try add Event method directly (does not work with tomcat)
-		try {
-			CFMLServletContextListener tmp = new CFMLServletContextListener(this);
-			sc.addListener(tmp);
-			scl = tmp;
-			return;
-		}
-		catch (Exception e) {
-			LogUtil.log(configServer, "add-event-listener", e);
+		if (!ServletContextImpl.class.getName().equals(sc.getClass().getName())) { // ServletContextImpl does not support addListener
+			try {
+				CFMLServletContextListener tmp = new CFMLServletContextListener(this);
+				sc.addListener(tmp);
+				scl = tmp;
+				return;
+			}
+			catch (Exception e) {
+				LogUtil.log(configServer, "add-event-listener", e);
+			}
 		}
 
 		LogUtil.log(configServer, Log.LEVEL_INFO, "startup", "Lucee was not able to register an event listener with " + (sc == null ? "null" : sc.getClass().getName()));
