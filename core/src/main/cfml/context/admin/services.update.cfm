@@ -111,7 +111,7 @@
 			for(versions in updateData.otherVersions ){
 				if(versions EQ server.lucee.version) cfcontinue;
 				vs=toVersionSortable(versions);
-				if(vs LTE minVS) cfcontinue;
+				if(vs LT minVS) cfcontinue;
 				;
 				if(FindNoCase("SNAPSHOT", versions)){
 					if(vs LTE toVersionSortable(server.lucee.version)){
