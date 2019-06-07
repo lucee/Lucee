@@ -35,7 +35,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import org.osgi.framework.BundleException;
-import org.osgi.framework.Version;
 import org.w3c.dom.Element;
 
 import lucee.Info;
@@ -67,8 +66,8 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.osgi.BundleFile;
 import lucee.runtime.osgi.BundleInfo;
-import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
+import lucee.runtime.osgi.VersionRange;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Query;
@@ -155,7 +154,7 @@ public class RHExtension implements Serializable {
 
 	private String type;
 
-	private Version minCoreVersion;
+	private VersionRange minCoreVersion;
 
 	private double minLoaderVersion;
 
@@ -573,7 +572,8 @@ public class RHExtension implements Serializable {
 	}
 
 	private void readCoreVersion(String label, String str, Info info) throws ApplicationException {
-		minCoreVersion = OSGiUtil.toVersion(str, null);
+
+		minCoreVersion = StringUtil.isEmpty(str, true) ? null : new VersionRange(str);
 		/*
 		 * if (minCoreVersion != null && Util.isNewerThan(minCoreVersion, info.getVersion())) { throw new
 		 * InvalidVersion("The Extension [" + label + "] cannot be loaded, " + Constants.NAME +
@@ -585,7 +585,7 @@ public class RHExtension implements Serializable {
 	public void validate() throws ApplicationException {
 		Info info = ConfigWebUtil.getEngine(config).getInfo();
 
-		if (minCoreVersion != null && Util.isNewerThan(minCoreVersion, info.getVersion())) {
+		if (minCoreVersion != null && !minCoreVersion.isWithin(info.getVersion())) {
 			throw new InvalidVersion("The Extension [" + getName() + "] cannot be loaded, " + Constants.NAME + " Version must be at least [" + minCoreVersion.toString()
 					+ "], version is [" + info.getVersion().toString() + "].");
 		}
@@ -596,7 +596,7 @@ public class RHExtension implements Serializable {
 	}
 
 	public boolean isValidFor(Info info) {
-		if (minCoreVersion != null && Util.isNewerThan(minCoreVersion, info.getVersion())) {
+		if (minCoreVersion != null && !minCoreVersion.isWithin(info.getVersion())) {
 			return false;
 		}
 		if (minLoaderVersion > SystemUtil.getLoaderVersion()) {
