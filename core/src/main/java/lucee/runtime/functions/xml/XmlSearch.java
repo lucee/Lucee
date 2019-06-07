@@ -19,9 +19,13 @@
 
 package lucee.runtime.functions.xml;
 
+import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.HARD;
+import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.SOFT;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
@@ -33,6 +37,7 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import org.apache.commons.collections4.map.ReferenceMap;
 import org.w3c.dom.Document;
 //import org.apache.xpath.XPathAPI;
 //import org.apache.xpath.objects.XObject;
@@ -68,6 +73,13 @@ public final class XmlSearch implements Function {
 
 	private static List<String> operators = new ArrayList<String>();
 
+	private static Map<String, Tmp> exprs = new ReferenceMap<String, Tmp>(HARD, SOFT, 10, 0.75f);
+
+	private static class Tmp {
+		private XPathExpression expr;
+		private UniversalNamespaceResolver unr;
+	}
+
 	private static XPathFactory factory;
 	static {
 		operators.add("=");
@@ -89,13 +101,23 @@ public final class XmlSearch implements Function {
 		if (StringUtil.endsWith(strExpr, '/')) strExpr = strExpr.substring(0, strExpr.length() - 1);
 
 		// compile
-		XPathExpression expr;
+		Tmp tmp = null;
 		{
 			try {
 				if (factory == null) factory = XPathFactory.newInstance();
-				XPath path = factory.newXPath();
-				path.setNamespaceContext(new UniversalNamespaceResolver(XMLUtil.getDocument(node)));
-				expr = path.compile(strExpr);
+				Document doc = XMLUtil.getDocument(node);
+				tmp = exprs.get(strExpr);
+				if (tmp == null) {
+					tmp = new Tmp();
+					XPath path = factory.newXPath();
+					path.setNamespaceContext(tmp.unr = new UniversalNamespaceResolver(doc));
+					tmp.expr = path.compile(strExpr);
+					if (exprs.size() > 100) exprs.clear();
+					exprs.put(strExpr, tmp);
+				}
+				else {
+					tmp.unr.setDocument(doc);
+				}
 			}
 			catch (Exception e) {
 				throw Caster.toPageException(e);
@@ -104,16 +126,16 @@ public final class XmlSearch implements Function {
 
 		// evaluate
 		try {
-			Object obj = expr.evaluate(node, XPathConstants.NODESET);
+			Object obj = tmp.expr.evaluate(node, XPathConstants.NODESET);
 			return nodelist((NodeList) obj, caseSensitive);
 		}
 		catch (XPathExpressionException e) {
 			String msg = e.getMessage();
 			if (msg == null) msg = "";
 			try {
-				if (msg.indexOf("#BOOLEAN") != -1) return Caster.toBoolean(expr.evaluate(node, XPathConstants.BOOLEAN));
-				else if (msg.indexOf("#NUMBER") != -1) return Caster.toDouble(expr.evaluate(node, XPathConstants.NUMBER));
-				else if (msg.indexOf("#STRING") != -1) return Caster.toString(expr.evaluate(node, XPathConstants.STRING));
+				if (msg.indexOf("#BOOLEAN") != -1) return Caster.toBoolean(tmp.expr.evaluate(node, XPathConstants.BOOLEAN));
+				else if (msg.indexOf("#NUMBER") != -1) return Caster.toDouble(tmp.expr.evaluate(node, XPathConstants.NUMBER));
+				else if (msg.indexOf("#STRING") != -1) return Caster.toString(tmp.expr.evaluate(node, XPathConstants.STRING));
 				// TODO XObject.CLASS_NULL ???
 			}
 			catch (XPathExpressionException ee) {
@@ -123,6 +145,9 @@ public final class XmlSearch implements Function {
 		}
 		catch (TransformerException e) {
 			throw Caster.toPageException(e);
+		}
+		finally {
+			tmp.unr.setDocument(null); // we remove the doc to keep the cache size small
 		}
 	}
 
@@ -149,6 +174,10 @@ public final class XmlSearch implements Function {
 		public UniversalNamespaceResolver(Document document) {
 			sourceDocument = document;
 			DocumentBuilderFactory.newInstance();
+		}
+
+		public void setDocument(Document document) {
+			sourceDocument = document;
 		}
 
 		/**
