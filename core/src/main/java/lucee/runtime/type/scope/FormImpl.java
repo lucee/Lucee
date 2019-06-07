@@ -185,27 +185,36 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 				FileItemStream item = iter.next();
 
 				is = IOUtil.toBufferedInputStream(item.openStream());
-				fileName = getFileName();
-				tempFile = tempDir.getRealResource(fileName);
-				String value = tempFile.toString();
-				IOUtil.copy(is, tempFile, true);
-
-				String ct = item.getContentType();
-
-				if (StringUtil.isEmpty(ct) && !StringUtil.isEmpty(item.getName())) {
-					ct = IOUtil.getMimeType(tempFile, null);
-				}
-
-				if (StringUtil.isEmpty(ct)) {
-					list.add(new URLItem(item.getFieldName(), new String(IOUtil.toBytes(tempFile.getInputStream(), true), encoding), false));
-					tempFile.delete();
+				if (item.isFormField() || StringUtil.isEmpty(item.getName())) {
+					list.add(new URLItem(item.getFieldName(), new String(IOUtil.toBytes(is), encoding), false));
 				}
 				else {
-					_fileItems.put(fileName, new Item(tempFile, ct, item.getName(), item.getFieldName()));
-					list.add(new URLItem(item.getFieldName(), value, false));
+					fileName = getFileName();
+					tempFile = tempDir.getRealResource(fileName);
+					IOUtil.copy(is, tempFile, true);
+					String ct = item.getContentType();
+					if (StringUtil.isEmpty(ct) && tempFile.length() > 0) {
+						ct = IOUtil.getMimeType(tempFile, null);
+					}
+					else if ("application/octet-stream".equalsIgnoreCase(ct)) {
+						ct = IOUtil.getMimeType(tempFile, ct);
+					}
+					if (StringUtil.isEmpty(ct)) {
+						is = tempFile.getInputStream();
+						try {
+							list.add(new URLItem(item.getFieldName(), new String(IOUtil.toBytes(is), encoding), false));
+						}
+						finally {
+							IOUtil.closeEL(is);
+							tempFile.delete();
+						}
+					}
+					else {
+						String value = tempFile.toString();
+						_fileItems.put(fileName, new Item(tempFile, ct, item.getName(), item.getFieldName()));
+						list.add(new URLItem(item.getFieldName(), value, false));
+					}
 				}
-
-				// }
 			}
 
 			raw = list.toArray(new URLItem[list.size()]);
