@@ -579,7 +579,7 @@ public final class Schedule extends TagImpl {
 		if (qs == null) qs = "";
 		else if (qs.length() > 0) qs = "?" + qs;
 
-		String str = url.getProtocol() + "://" + url.getHost() + url.getPath() + qs;
+		String str = url.getProtocol() + "://" + url.getHost() + ":" + url.getPort() + url.getPath() + qs;
 		return str;
 	}
 
