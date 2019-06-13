@@ -2,7 +2,7 @@ component {
 
 	mySQL=getCredencials();
 	
-	this.name = createuuid();
+	this.name = "LDEV2311App";
 	this.datasources["LDEV2311"] = {
 	 	  class: 'com.mysql.cj.jdbc.Driver'
 		, bundleName: 'com.mysql.cj'
