@@ -65,6 +65,8 @@ import org.xml.sax.XMLReader;
 
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ClassUtil;
@@ -123,7 +125,9 @@ public final class XMLUtil {
 	private static DocumentBuilder docBuilder;
 	// private static DocumentBuilderFactory factory;
 	private static TransformerFactory transformerFactory;
-	private static DocumentBuilderFactory documentBuilderFactory;
+	// private static DocumentBuilderFactory documentBuilderFactory;
+	private static DocumentBuilderFactory documentBuilderFactoryNoneVal;
+	private static DocumentBuilderFactory documentBuilderFactoryWithVal;
 
 	private static SAXParserFactory saxParserFactory;
 
@@ -208,30 +212,37 @@ public final class XMLUtil {
 	public static TransformerFactory getTransformerFactory() {
 
 		if (transformerFactory == null) {
-			Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl) ThreadLocalPageContext.getConfig())); // TODO make this global
-
-			Class clazz = null;
-			try {
-				clazz = ClassUtil.loadClass("com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl");
-			}
-			catch (Exception e) {
-				try {
-					clazz = ClassUtil.loadClass("org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl");
-				}
-				catch (Exception ee) {}
-			}
-			if (clazz != null) {
-				try {
-					transformerFactory = (TransformerFactory) ClassUtil.loadInstance(clazz);
-				}
-				catch (Exception e) {}
-			}
-
-			if (transformerFactory == null) transformerFactory = TransformerFactory.newInstance();
+			transformerFactory = _newTransformerFactory();
 
 		}
 		// if(transformerFactory==null)transformerFactory=new TransformerFactoryImpl();
 		return transformerFactory;
+	}
+
+	private static TransformerFactory _newTransformerFactory() {
+
+		Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl) ThreadLocalPageContext.getConfig())); // TODO make this global
+		TransformerFactory factory = null;
+		Class clazz = null;
+		try {
+			clazz = ClassUtil.loadClass("com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl");
+		}
+		catch (Exception e) {
+			try {
+				clazz = ClassUtil.loadClass("org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl");
+			}
+			catch (Exception ee) {}
+		}
+		if (clazz != null) {
+			try {
+				factory = (TransformerFactory) ClassUtil.loadInstance(clazz);
+			}
+			catch (Exception e) {}
+		}
+		if (factory == null) return factory = TransformerFactory.newInstance();
+		LogUtil.log(null, Log.LEVEL_INFO, "application", "xml", factory.getClass().getName() + " is used as TransformerFactory");
+
+		return factory;
 	}
 
 	public static final Document parse(InputSource xml, InputSource validator, boolean isHtml) throws SAXException, IOException {
@@ -251,18 +262,7 @@ public final class XMLUtil {
 	public static final Document parse(InputSource xml, InputSource validator, EntityResolver entRes, boolean isHtml) throws SAXException, IOException {
 
 		if (!isHtml) {
-			DocumentBuilderFactory factory = newDocumentBuilderFactory();
-			if (validator == null) {
-				XMLUtil.setAttributeEL(factory, XMLConstants.NON_VALIDATING_DTD_EXTERNAL, Boolean.FALSE);
-				XMLUtil.setAttributeEL(factory, XMLConstants.NON_VALIDATING_DTD_GRAMMAR, Boolean.FALSE);
-			}
-			else {
-				XMLUtil.setAttributeEL(factory, XMLConstants.VALIDATION_SCHEMA, Boolean.TRUE);
-				XMLUtil.setAttributeEL(factory, XMLConstants.VALIDATION_SCHEMA_FULL_CHECKING, Boolean.TRUE);
-			}
-
-			factory.setNamespaceAware(true);
-			factory.setValidating(validator != null);
+			DocumentBuilderFactory factory = newDocumentBuilderFactory(validator);
 
 			try {
 				DocumentBuilder builder = factory.newDocumentBuilder();
@@ -291,19 +291,62 @@ public final class XMLUtil {
 		}
 	}
 
-	private static DocumentBuilderFactory newDocumentBuilderFactory() {
-		if (documentBuilderFactory == null) {
-			// MUSTTTT Thread.currentThread().setContextClassLoader(new
-			// EnvClassLoader((ConfigImpl)ThreadLocalPageContext.getConfig())); // TODO make this global
-			documentBuilderFactory = DocumentBuilderFactory.newInstance();
-			// documentBuilderFactory=new DocumentBuilderFactoryImpl();
-			documentBuilderFactory.setNamespaceAware(true);
-			// print.e("isNamespaceAware?" + documentBuilderFactory.isNamespaceAware());
-			// print.e("document-builder-factory:" + documentBuilderFactory.getClass().getName());
-
+	private static DocumentBuilderFactory newDocumentBuilderFactory(InputSource validator) {
+		DocumentBuilderFactory factory;
+		if (validator != null) {
+			if (documentBuilderFactoryWithVal == null) {
+				documentBuilderFactoryWithVal = _newDocumentBuilderFactory();// DocumentBuilderFactory.newInstance();
+				XMLUtil.setAttributeEL(documentBuilderFactoryWithVal, XMLConstants.VALIDATION_SCHEMA, Boolean.TRUE);
+				XMLUtil.setAttributeEL(documentBuilderFactoryWithVal, XMLConstants.VALIDATION_SCHEMA_FULL_CHECKING, Boolean.TRUE);
+				documentBuilderFactoryWithVal.setNamespaceAware(true);
+				documentBuilderFactoryWithVal.setValidating(true);
+			}
+			factory = documentBuilderFactoryWithVal;
 		}
-		return documentBuilderFactory;
+		else {
+			if (documentBuilderFactoryNoneVal == null) {
+				documentBuilderFactoryNoneVal = _newDocumentBuilderFactory();// DocumentBuilderFactory.newInstance();
+				XMLUtil.setAttributeEL(documentBuilderFactoryNoneVal, XMLConstants.NON_VALIDATING_DTD_EXTERNAL, Boolean.FALSE);
+				XMLUtil.setAttributeEL(documentBuilderFactoryNoneVal, XMLConstants.NON_VALIDATING_DTD_GRAMMAR, Boolean.FALSE);
+				documentBuilderFactoryNoneVal.setNamespaceAware(true);
+				documentBuilderFactoryNoneVal.setValidating(false);
+			}
+			factory = documentBuilderFactoryNoneVal;
+		}
+		return factory;
 	}
+
+	private static DocumentBuilderFactory _newDocumentBuilderFactory() {
+
+		Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl) ThreadLocalPageContext.getConfig())); // TODO make this global
+		DocumentBuilderFactory factory = null;
+		Class clazz = null;
+		try {
+			clazz = ClassUtil.loadClass("com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl");
+		}
+		catch (Exception e) {
+			try {
+				clazz = ClassUtil.loadClass("org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl");
+			}
+			catch (Exception ee) {}
+		}
+		if (clazz != null) {
+			try {
+				factory = (DocumentBuilderFactory) ClassUtil.loadInstance(clazz);
+			}
+			catch (Exception e) {}
+		}
+		if (factory == null) factory = DocumentBuilderFactory.newInstance();
+
+		LogUtil.log(null, Log.LEVEL_INFO, "application", "xml", factory.getClass().getName() + " is used as DocumentBuilderFactory");
+		return factory;
+	}
+
+	/*
+	 * private static DocumentBuilderFactory newDocumentBuilderFactory() { if (documentBuilderFactory ==
+	 * null) { documentBuilderFactory = DocumentBuilderFactory.newInstance();
+	 * documentBuilderFactory.setNamespaceAware(true); } return documentBuilderFactory; }
+	 */
 
 	private static SAXParserFactory newSAXParserFactory() {
 		if (saxParserFactory == null) {
@@ -844,7 +887,7 @@ public final class XMLUtil {
 	 */
 	public static Document newDocument() throws ParserConfigurationException, FactoryConfigurationError {
 		if (docBuilder == null) {
-			docBuilder = newDocumentBuilderFactory().newDocumentBuilder();
+			docBuilder = newDocumentBuilderFactory(null).newDocumentBuilder();
 		}
 		return docBuilder.newDocument();
 	}
@@ -1110,7 +1153,7 @@ public final class XMLUtil {
 	 */
 	public static String transform(Document doc, InputSource xsl, Map<String, Object> parameters) throws TransformerException {
 		StringWriter sw = new StringWriter();
-		TransformerFactory factory = XMLUtil.getTransformerFactory();
+		TransformerFactory factory = getTransformerFactory();
 		factory.setErrorListener(SimpleErrorListener.THROW_FATAL);
 		Transformer transformer = factory.newTransformer(new StreamSource(xsl.getCharacterStream()));
 		if (parameters != null) {
