@@ -20,7 +20,7 @@ before_install:
 ### for more see https://docs.travis-ci.com/user/database-setup
 services:
   - mysql # server:"127.0.0.1"; user:"root"; password:""
-  - postgresql "10.0" # server:"127.0.0.1"; user:"postgres"; password:""
+  - postgresql # server:"127.0.0.1"; user:"postgres"; password:""
   - mongodb #  server:"127.0.0.1" user/pass see below
   - memcached # Memcached uses the default configuration and binds to localhost.
 
