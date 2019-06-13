@@ -121,7 +121,8 @@ public final class XMLUtil {
     private static DocumentBuilder docBuilder;
     // private static DocumentBuilderFactory factory;
     private static TransformerFactory transformerFactory;
-    private static DocumentBuilderFactory documentBuilderFactory;
+    private static DocumentBuilderFactory documentBuilderFactoryWithVal;
+    private static DocumentBuilderFactory documentBuilderFactoryNoVal;
 
     private static SAXParserFactory saxParserFactory;
 
@@ -230,18 +231,7 @@ public final class XMLUtil {
     public static final Document parse(InputSource xml, InputSource validator, EntityResolver entRes, boolean isHtml) throws SAXException, IOException {
 
 	if (!isHtml) {
-	    DocumentBuilderFactory factory = newDocumentBuilderFactory();
-	    if (validator == null) {
-		XMLUtil.setAttributeEL(factory, XMLConstants.NON_VALIDATING_DTD_EXTERNAL, Boolean.FALSE);
-		XMLUtil.setAttributeEL(factory, XMLConstants.NON_VALIDATING_DTD_GRAMMAR, Boolean.FALSE);
-	    }
-	    else {
-		XMLUtil.setAttributeEL(factory, XMLConstants.VALIDATION_SCHEMA, Boolean.TRUE);
-		XMLUtil.setAttributeEL(factory, XMLConstants.VALIDATION_SCHEMA_FULL_CHECKING, Boolean.TRUE);
-	    }
-
-	    factory.setNamespaceAware(true);
-	    factory.setValidating(validator != null);
+	    DocumentBuilderFactory factory = newDocumentBuilderFactory(validator != null);
 
 	    try {
 		DocumentBuilder builder = factory.newDocumentBuilder();
@@ -270,17 +260,27 @@ public final class XMLUtil {
 	}
     }
 
-    private static DocumentBuilderFactory newDocumentBuilderFactory() {
-	if (documentBuilderFactory == null) {
-	    // MUSTTTT Thread.currentThread().setContextClassLoader(new
-	    // EnvClassLoader((ConfigImpl)ThreadLocalPageContext.getConfig())); // TODO make this global
-	    documentBuilderFactory = DocumentBuilderFactory.newInstance();
-	    // documentBuilderFactory=new DocumentBuilderFactoryImpl();
-	    documentBuilderFactory.setNamespaceAware(true);
-	    // print.e("isNamespaceAware?" + documentBuilderFactory.isNamespaceAware());
-
+    private static DocumentBuilderFactory newDocumentBuilderFactory(boolean validator) {
+	if (validator) {
+	    if (documentBuilderFactoryWithVal == null) {
+		documentBuilderFactoryWithVal = DocumentBuilderFactory.newInstance();
+		XMLUtil.setAttributeEL(documentBuilderFactoryWithVal, XMLConstants.VALIDATION_SCHEMA, Boolean.TRUE);
+		XMLUtil.setAttributeEL(documentBuilderFactoryWithVal, XMLConstants.VALIDATION_SCHEMA_FULL_CHECKING, Boolean.TRUE);
+		documentBuilderFactoryWithVal.setNamespaceAware(true);
+		documentBuilderFactoryWithVal.setValidating(validator);
+	    }
+	    return documentBuilderFactoryWithVal;
 	}
-	return documentBuilderFactory;
+	else {
+	    if (documentBuilderFactoryNoVal == null) {
+		documentBuilderFactoryNoVal = DocumentBuilderFactory.newInstance();
+		XMLUtil.setAttributeEL(documentBuilderFactoryNoVal, XMLConstants.NON_VALIDATING_DTD_EXTERNAL, Boolean.FALSE);
+		XMLUtil.setAttributeEL(documentBuilderFactoryNoVal, XMLConstants.NON_VALIDATING_DTD_GRAMMAR, Boolean.FALSE);
+		documentBuilderFactoryNoVal.setNamespaceAware(true);
+		documentBuilderFactoryNoVal.setValidating(validator);
+	    }
+	    return documentBuilderFactoryNoVal;
+	}
     }
 
     private static SAXParserFactory newSAXParserFactory() {
@@ -822,7 +822,7 @@ public final class XMLUtil {
      */
     public static Document newDocument() throws ParserConfigurationException, FactoryConfigurationError {
 	if (docBuilder == null) {
-	    docBuilder = newDocumentBuilderFactory().newDocumentBuilder();
+	    docBuilder = newDocumentBuilderFactory(false).newDocumentBuilder();
 	}
 	return docBuilder.newDocument();
     }
