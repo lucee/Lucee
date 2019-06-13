@@ -8,6 +8,14 @@ component {
 		 browser : "html"
 		,console : "text"
 	};
+	variables.dumpFormat = '';
+	if(structKeyExists(GetApplicationSettings(),"tag")){
+		if(structKeyExists(GetApplicationSettings().tag,"cfdump")){
+			if(structKeyExists(GetApplicationSettings().tag.cfdump,"format")){
+				variables.dumpFormat = GetApplicationSettings().tag.cfdump.format;
+			}
+		}
+	}
 	variables.supportedFormats=["simple", "text", "html", "classic", "javascript", "js"];
 
 	// Meta data
@@ -28,7 +36,7 @@ component {
 		metainfo:{required:false,type:"boolean",default:true,hint="Includes information about the query in the cfdump results."},
 		keys:{required:false,type:"number",default:9999,hint="For a structure, number of keys to display."},
 		hide:{required:false,type:"string",default:"all",hint="hide column or keys."},
-		format:{required:false,type:"string",default:"",hint="specify the output format of the dump, the following formats are supported:
+		format:{required:false,type:"string",default:"#dumpFormat#",hint="specify the output format of the dump, the following formats are supported:
 - simple: - a simple html output (no javascript or css)
 - text (default when output equal console): plain text output (no html)
 - html (default when output  equal ""browser""): regular output with html/css/javascript
