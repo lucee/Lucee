@@ -1568,10 +1568,10 @@ public final class PageContextImpl extends PageContext {
 				if (!hasMin && !hasMax) throw new ExpressionException("you need to define one of the following attributes [min,max], when type is set to [range]");
 
 				if (hasMin && number < min)
-					throw new ExpressionException("The number [" + Caster.toString(number) + "] is to small, the number must be at least [" + Caster.toString(min) + "]");
+					throw new ExpressionException("The number [" + Caster.toString(number) + "] is too small, the number must be at least [" + Caster.toString(min) + "]");
 
 				if (hasMax && number > max)
-					throw new ExpressionException("The number [" + Caster.toString(number) + "] is to big, the number cannot be bigger than [" + Caster.toString(max) + "]");
+					throw new ExpressionException("The number [" + Caster.toString(number) + "] is too big, the number cannot be bigger than [" + Caster.toString(max) + "]");
 
 				setVariable(name, Caster.toDouble(number));
 			}
@@ -1610,7 +1610,7 @@ public final class PageContextImpl extends PageContext {
 	private void _param(String type, String name, Object defaultValue, double min, double max, String strPattern, int maxLength) throws PageException {
 
 		// check attributes name
-		if (StringUtil.isEmpty(name)) throw new ExpressionException("The attribute name is required");
+		if (StringUtil.isEmpty(name)) throw new ExpressionException("The attribute [name] is required");
 
 		Object value = null;
 		boolean isNew = false;
@@ -3692,7 +3692,7 @@ public final class PageContextImpl extends PageContext {
 			ProxyData pd = applicationContext.getProxyData();
 			if (pd != null) return pd;
 		}
-		// TODO check applcation context
+		// TODO check application context
 		return config.getProxyData();
 	}
 }
