@@ -696,6 +696,7 @@ public interface Config {
 	 * @deprecated use instead
 	 * @see #getPageSources(PageContext, Mapping[],String, boolean, boolean,boolean, boolean)
 	 */
+	@Deprecated
 	public PageSource[] getPageSources(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping);
 
 	/**

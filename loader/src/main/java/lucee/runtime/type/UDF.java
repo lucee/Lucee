@@ -89,8 +89,8 @@ public interface UDF extends Function, Dumpable, Member, Cloneable {
 	/**
 	 * 
 	 * @deprecated use instead
-	 * @see #getReturnFormat(int)
 	 */
+	@Deprecated
 	public int getReturnFormat();
 
 	public int getReturnFormat(int defaultFormat);

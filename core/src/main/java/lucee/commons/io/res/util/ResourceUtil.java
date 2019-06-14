@@ -1407,6 +1407,7 @@ public final class ResourceUtil {
 	 * @param pc the Page Context Object
 	 * @deprecated use instead <code>PageSource.getResourceTranslated(PageContext)</code>
 	 */
+	@Deprecated
 	public static Resource getResource(PageContext pc, PageSource ps) throws PageException {
 		return ps.getResourceTranslated(pc);
 	}
