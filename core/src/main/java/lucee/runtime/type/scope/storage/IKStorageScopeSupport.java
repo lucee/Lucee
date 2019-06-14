@@ -23,10 +23,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
-import lucee.commons.collection.MapPro;
-import lucee.commons.collection.concurrent.ConcurrentHashMapPro;
+import lucee.commons.collection.MapFactory;
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.RandomUtil;
 import lucee.commons.lang.StringUtil;
@@ -81,7 +79,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	}
 
 	protected boolean isinit = true;
-	protected MapPro<Collection.Key, IKStorageScopeItem> data0;
+	protected Map<Collection.Key, IKStorageScopeItem> data0;
 	protected long lastvisit;
 	protected DateTime _lastvisit;
 	protected int hitcount = 0;
@@ -91,7 +89,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	protected int type;
 	private long timeSpan = -1;
 	private String storage;
-	private final Map<String, String> tokens = new ConcurrentHashMap<String, String>();
+	private final Map<String, String> tokens = MapFactory.getConcurrentMap();
 	private long lastModified;
 
 	private IKHandler handler;
@@ -99,19 +97,19 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	private String name;
 	private String cfid;
 
-	public IKStorageScopeSupport(PageContext pc, IKHandler handler, String appName, String name, String strType, int type, MapPro<Collection.Key, IKStorageScopeItem> data,
+	public IKStorageScopeSupport(PageContext pc, IKHandler handler, String appName, String name, String strType, int type, Map<Collection.Key, IKStorageScopeItem> data,
 			long lastModified) {
 		// !!! do not store the pagecontext or config object, this object is Serializable !!!
 		Config config = ThreadLocalPageContext.getConfig(pc);
 		this.data0 = data;
 
-		timecreated = doNowIfNull(config, Caster.toDate(data.g(KeyConstants._timecreated, null), false, pc.getTimeZone(), null));
-		_lastvisit = doNowIfNull(config, Caster.toDate(data.g(KeyConstants._lastvisit, null), false, pc.getTimeZone(), null));
+		timecreated = doNowIfNull(config, Caster.toDate(data.getOrDefault(KeyConstants._timecreated, null), false, pc.getTimeZone(), null));
+		_lastvisit = doNowIfNull(config, Caster.toDate(data.getOrDefault(KeyConstants._lastvisit, null), false, pc.getTimeZone(), null));
 
 		if (_lastvisit == null) _lastvisit = timecreated;
 		lastvisit = _lastvisit == null ? 0 : _lastvisit.getTime();
 
-		this.hitcount = (type == SCOPE_CLIENT) ? Caster.toIntValue(data.g(KeyConstants._hitcount, ONE), 1) : 1;
+		this.hitcount = (type == SCOPE_CLIENT) ? Caster.toIntValue(data.getOrDefault(KeyConstants._hitcount, ONE), 1) : 1;
 		this.strType = strType;
 		this.type = type;
 		this.lastModified = lastModified;
@@ -129,7 +127,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	 * @param deepCopy
 	 */
 	protected IKStorageScopeSupport(IKStorageScopeSupport other, boolean deepCopy) {
-		this.data0 = (MapPro<Collection.Key, IKStorageScopeItem>) Duplicator.duplicateMap(other.data0, new ConcurrentHashMapPro<Collection.Key, IKStorageScopeItem>(), deepCopy);
+		this.data0 = Duplicator.duplicateMap(other.data0, MapFactory.getConcurrentMap(), deepCopy);
 		this.timecreated = other.timecreated;
 		this._lastvisit = other._lastvisit;
 		this.hitcount = other.hitcount;
@@ -173,7 +171,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		}
 
 		IKStorageScopeSupport rtn = null;
-		ConcurrentHashMapPro<Key, IKStorageScopeItem> map = new ConcurrentHashMapPro<Collection.Key, IKStorageScopeItem>();
+		Map<Key, IKStorageScopeItem> map = MapFactory.getConcurrentMap();
 		if (Scope.SCOPE_SESSION == scope) rtn = new IKStorageScopeSession(pc, handler, appName, name, map, 0);
 		else if (Scope.SCOPE_CLIENT == scope) rtn = new IKStorageScopeClient(pc, handler, appName, name, map, 0);
 
@@ -207,7 +205,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		setTimeSpan(pc);
 
 		// lastvisit=System.currentTimeMillis();
-		if (data0 == null) data0 = new ConcurrentHashMapPro<Collection.Key, IKStorageScopeItem>();
+		if (data0 == null) data0 = MapFactory.getConcurrentMap();
 		data0.put(KeyConstants._cfid, new IKStorageScopeItem(pc.getCFID()));
 		data0.put(KeyConstants._cftoken, new IKStorageScopeItem(pc.getCFToken()));
 		data0.put(KeyConstants._urltoken, new IKStorageScopeItem(pc.getURLToken()));
@@ -302,13 +300,13 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 
 	@Override
 	public final boolean containsKey(Key key) {
-		IKStorageScopeItem v = data0.g(key, NULL);
+		IKStorageScopeItem v = data0.getOrDefault(key, NULL);
 		return v != NULL && !v.removed();
 	}
 
 	@Override
 	public final boolean containsKey(PageContext pc, Key key) {
-		IKStorageScopeItem v = data0.g(key, NULL);
+		IKStorageScopeItem v = data0.getOrDefault(key, NULL);
 		return v != NULL && !v.removed();
 	}
 
@@ -319,7 +317,9 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 
 	@Override
 	public final Object get(PageContext pc, Key key) throws PageException {
-		IKStorageScopeItem v = data0.g(key);
+		IKStorageScopeItem v = data0.getOrDefault(key, null);
+		if (v == null) throw StructSupport.invalidKey(data0, key, false);
+
 		if (v.removed()) {
 			StringBuilder sb = new StringBuilder();
 			Iterator<?> it = keySet().iterator();
@@ -341,7 +341,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 
 	@Override
 	public final Object get(PageContext pc, Key key, Object defaultValue) {
-		IKStorageScopeItem v = data0.g(key, NULL);
+		IKStorageScopeItem v = data0.getOrDefault(key, NULL);
 		if (v == NULL || v.removed()) return defaultValue;
 		return v.getValue();
 	}
@@ -602,7 +602,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		return _token != null && _token.equalsIgnoreCase(token);
 	}
 
-	public static void merge(MapPro<Key, IKStorageScopeItem> local, MapPro<Key, IKStorageScopeItem> storage) {
+	public static void merge(Map<Key, IKStorageScopeItem> local, Map<Key, IKStorageScopeItem> storage) {
 		Iterator<Entry<Key, IKStorageScopeItem>> it = local.entrySet().iterator();
 		Entry<Key, IKStorageScopeItem> e;
 		IKStorageScopeItem storageItem;
@@ -627,7 +627,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 
 	}
 
-	public static MapPro<Key, IKStorageScopeItem> cleanRemoved(MapPro<Key, IKStorageScopeItem> local) {
+	public static Map<Key, IKStorageScopeItem> cleanRemoved(Map<Key, IKStorageScopeItem> local) {
 		Iterator<Entry<Key, IKStorageScopeItem>> it = local.entrySet().iterator();
 		Entry<Key, IKStorageScopeItem> e;
 		while (it.hasNext()) {
@@ -637,12 +637,12 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		return local;
 	}
 
-	public static MapPro<Key, IKStorageScopeItem> prepareToStore(MapPro<Key, IKStorageScopeItem> local, Object oStorage, long lastModified) throws PageException {
+	public static Map<Key, IKStorageScopeItem> prepareToStore(Map<Key, IKStorageScopeItem> local, Object oStorage, long lastModified) throws PageException {
 		// cached data changed in meantime
 		if (oStorage instanceof IKStorageValue) {
 			IKStorageValue storage = (IKStorageValue) oStorage;
 			if (storage.lastModified() > lastModified) {
-				MapPro<Key, IKStorageScopeItem> trg = storage.getValue();
+				Map<Key, IKStorageScopeItem> trg = storage.getValue();
 				IKStorageScopeSupport.merge(local, trg);
 				return trg;
 			}
@@ -655,7 +655,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 			byte[][] barrr = (byte[][]) oStorage;
 			if (IKStorageValue.toLong(barrr[1]) > lastModified) {
 				if (barrr[0] == null || barrr[0].length == 0) return local;
-				MapPro<Key, IKStorageScopeItem> trg = IKStorageValue.deserialize(barrr[0]);
+				Map<Key, IKStorageScopeItem> trg = IKStorageValue.deserialize(barrr[0]);
 				IKStorageScopeSupport.merge(local, trg);
 				return trg;
 			}

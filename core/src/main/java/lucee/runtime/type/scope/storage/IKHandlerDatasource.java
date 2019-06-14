@@ -2,11 +2,11 @@ package lucee.runtime.type.scope.storage;
 
 import java.sql.SQLException;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Map.Entry;
 
-import lucee.commons.collection.HashMapPro;
-import lucee.commons.collection.MapPro;
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
@@ -101,7 +101,7 @@ public class IKHandlerDatasource implements IKHandler {
 		}
 		if (lastModified == 0) lastModified = System.currentTimeMillis();
 
-		MapPro<Collection.Key, IKStorageScopeItem> map = new HashMapPro<Collection.Key, IKStorageScopeItem>();
+		Map<Collection.Key, IKStorageScopeItem> map = new HashMap<Collection.Key, IKStorageScopeItem>();
 		Iterator<Entry<Key, Object>> it = sct.entryIterator();
 		Entry<Key, Object> e;
 		while (it.hasNext()) {
@@ -112,7 +112,7 @@ public class IKHandlerDatasource implements IKHandler {
 	}
 
 	@Override
-	public void store(IKStorageScopeSupport storageScope, PageContext pc, String appName, final String name, String cfid, MapPro<Key, IKStorageScopeItem> data, Log log) {
+	public void store(IKStorageScopeSupport storageScope, PageContext pc, String appName, final String name, String cfid, Map<Key, IKStorageScopeItem> data, Log log) {
 		DatasourceConnection dc = null;
 		ConfigImpl ci = (ConfigImpl) ThreadLocalPageContext.getConfig(pc);
 		DatasourceConnectionPool pool = ci.getDatasourceConnectionPool();

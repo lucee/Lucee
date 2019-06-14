@@ -25,12 +25,12 @@ import java.io.ObjectOutput;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
-import lucee.commons.collection.HashMapPro;
-import lucee.commons.collection.MapPro;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
@@ -99,7 +99,7 @@ public final class CGIImplReadOnly extends ReadOnlyStruct implements CGI, Script
 	private int scriptProtected;
 
 	private boolean disconnected;
-	private MapPro<Key, Object> disconnectedData;
+	private Map<Key, Object> disconnectedData;
 
 	public CGIImplReadOnly() {
 		this.setReadOnly(true);
@@ -114,7 +114,7 @@ public final class CGIImplReadOnly extends ReadOnlyStruct implements CGI, Script
 	}
 
 	private void _disconnect() {
-		disconnectedData = new HashMapPro<Key, Object>();
+		disconnectedData = new HashMap<Key, Object>();
 		for (int i = 0; i < keys.length; i++) {
 			disconnectedData.put(keys[i], get(keys[i], ""));
 		}
@@ -162,7 +162,7 @@ public final class CGIImplReadOnly extends ReadOnlyStruct implements CGI, Script
 	public Object get(PageContext pc, Collection.Key key, Object defaultValue) {
 
 		if (disconnected) {
-			return disconnectedData.g(key, defaultValue);
+			return disconnectedData.getOrDefault(key, defaultValue);
 		}
 
 		if (https == null) {
@@ -403,7 +403,7 @@ public final class CGIImplReadOnly extends ReadOnlyStruct implements CGI, Script
 	@Override
 	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
 		isInit = in.readBoolean();
-		disconnectedData = (MapPro<Key, Object>) in.readObject();
+		disconnectedData = (Map<Key, Object>) in.readObject();
 		scriptProtected = in.readInt();
 		disconnected = true;
 	}

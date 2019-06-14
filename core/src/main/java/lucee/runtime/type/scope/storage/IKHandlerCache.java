@@ -1,8 +1,8 @@
 package lucee.runtime.type.scope.storage;
 
 import java.io.IOException;
+import java.util.Map;
 
-import lucee.commons.collection.MapPro;
 import lucee.commons.io.cache.Cache;
 import lucee.commons.io.log.Log;
 import lucee.runtime.PageContext;
@@ -42,7 +42,7 @@ public class IKHandlerCache implements IKHandler {
 	}
 
 	@Override
-	public void store(IKStorageScopeSupport storageScope, PageContext pc, String appName, String name, String cfid, MapPro<Collection.Key, IKStorageScopeItem> data, Log log) {
+	public void store(IKStorageScopeSupport storageScope, PageContext pc, String appName, String name, String cfid, Map<Collection.Key, IKStorageScopeItem> data, Log log) {
 		try {
 			Cache cache = getCache(ThreadLocalPageContext.get(pc), name);
 			String key = getKey(cfid, appName, storageScope.getTypeAsString());

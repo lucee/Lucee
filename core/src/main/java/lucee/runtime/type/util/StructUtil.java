@@ -30,11 +30,8 @@ import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
-import lucee.commons.collection.LinkedHashMapPro;
-import lucee.commons.collection.MapPro;
-import lucee.commons.collection.MapProWrapper;
-import lucee.commons.collection.SyncMap;
-import lucee.commons.collection.WeakHashMapPro;
+import org.apache.commons.collections4.map.ReferenceMap;
+
 import lucee.commons.digest.HashUtil;
 import lucee.commons.lang.SizeOf;
 import lucee.commons.lang.StringUtil;
@@ -266,22 +263,11 @@ public final class StructUtil {
 		return sct;
 	}
 
-	public static int getType(MapPro m) {
-		if (m instanceof SyncMap) return ((SyncMap) m).getType();
-
-		if (m instanceof LinkedHashMapPro) return Struct.TYPE_LINKED;
-		if (m instanceof WeakHashMapPro) return Struct.TYPE_WEAKED;
-		// if(map instanceof SyncMap) return TYPE_SYNC;
-		if (m instanceof MapProWrapper) return Struct.TYPE_SOFT;
-		return Struct.TYPE_REGULAR;
-	}
-
 	public static int getType(Map m) {
-		if (m instanceof MapPro) return getType(m);
-
 		if (m instanceof LinkedHashMap) return Struct.TYPE_LINKED;
 		if (m instanceof WeakHashMap) return Struct.TYPE_WEAKED;
 		if (m instanceof ConcurrentHashMap) return Struct.TYPE_SYNC;
+		if (m instanceof ReferenceMap) return Struct.TYPE_SOFT;
 
 		return Struct.TYPE_REGULAR;
 	}

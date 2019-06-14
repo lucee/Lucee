@@ -39,9 +39,7 @@ import java.util.Set;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 
-import lucee.commons.collection.HashMapPro;
 import lucee.commons.collection.MapFactory;
-import lucee.commons.collection.MapPro;
 import lucee.commons.digest.Hash;
 import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.io.res.Resource;
@@ -136,8 +134,8 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	 * !!!!!!!!!!!
 	 */
 	ComponentProperties properties;
-	private MapPro<Key, Member> _data;
-	private MapPro<Key, UDF> _udfs;
+	private Map<Key, Member> _data;
+	private Map<Key, UDF> _udfs;
 
 	ComponentImpl top = this;
 	ComponentImpl base;
@@ -240,14 +238,14 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 				trg.base = base._duplicate(deepCopy, false);
 
 				trg._data = trg.base._data;
-				trg._udfs = duplicateUTFMap(this, trg, _udfs, new HashMapPro<Key, UDF>(trg.base._udfs));
+				trg._udfs = duplicateUTFMap(this, trg, _udfs, new HashMap<Key, UDF>(trg.base._udfs));
 
 				if (useShadow) trg.scope = new ComponentScopeShadow(trg, (ComponentScopeShadow) trg.base.scope, false);
 			}
 			else {
 				// clone data member, ignore udfs for the moment
-				trg._data = duplicateDataMember(trg, _data, new HashMapPro(), deepCopy);
-				trg._udfs = duplicateUTFMap(this, trg, _udfs, new HashMapPro<Key, UDF>());
+				trg._data = duplicateDataMember(trg, _data, new HashMap<Key, Member>(), deepCopy);
+				trg._udfs = duplicateUTFMap(this, trg, _udfs, new HashMap<Key, UDF>());
 
 				if (useShadow) {
 					ComponentScopeShadow css = (ComponentScopeShadow) scope;
@@ -324,7 +322,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	 * @param deepCopy
 	 * @return
 	 */
-	public static MapPro duplicateDataMember(ComponentImpl c, MapPro map, MapPro newMap, boolean deepCopy) {
+	public static Map duplicateDataMember(ComponentImpl c, Map map, Map newMap, boolean deepCopy) {
 		Iterator it = map.entrySet().iterator();
 		Map.Entry entry;
 		Object value;
@@ -340,7 +338,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		return newMap;
 	}
 
-	public static MapPro<Key, UDF> duplicateUTFMap(ComponentImpl src, ComponentImpl trg, MapPro<Key, UDF> srcMap, MapPro<Key, UDF> trgMap) {
+	public static Map<Key, UDF> duplicateUTFMap(ComponentImpl src, ComponentImpl trg, Map<Key, UDF> srcMap, Map<Key, UDF> trgMap) {
 		Iterator<Entry<Key, UDF>> it = srcMap.entrySet().iterator();
 		Entry<Key, UDF> entry;
 		UDF udf;
@@ -389,7 +387,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			// this._triggerDataMember=base._triggerDataMember;
 			this.absFin = base.absFin;
 			_data = base._data;
-			_udfs = new HashMapPro<Key, UDF>(base._udfs);
+			_udfs = new HashMap<Key, UDF>(base._udfs);
 			setTop(this, base);
 		}
 		else {
@@ -398,7 +396,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			this._static = new StaticScope(null, this, componentPage, dataMemberDefaultAccess);
 			// TODO get per CFC setting
 			// this._triggerDataMember=pageContext.getConfig().getTriggerComponentDataMember();
-			_udfs = new HashMapPro<Key, UDF>();
+			_udfs = new HashMap<Key, UDF>();
 			_data = MapFactory.getConcurrentMap();
 		}
 		// implements

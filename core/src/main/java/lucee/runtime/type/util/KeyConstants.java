@@ -19,9 +19,9 @@
 package lucee.runtime.type.util;
 
 import java.lang.reflect.Field;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-import lucee.commons.collection.MapPro;
-import lucee.commons.collection.concurrent.ConcurrentHashMapPro;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
@@ -954,7 +954,7 @@ public class KeyConstants {
 	public static final Key _shortName = KeyImpl._const("shortName");
 	public static final Key _connectionString = KeyImpl._const("connectionString");
 
-	private static MapPro<String, Key> _____keys;
+	private static Map<String, Key> _____keys;
 
 	public static String getFieldName(String key) {
 		init();
@@ -971,7 +971,7 @@ public class KeyConstants {
 	public static void init() {
 		if (_____keys == null) {
 			Field[] fields = KeyConstants.class.getFields();
-			_____keys = new ConcurrentHashMapPro<String, Key>();
+			_____keys = new ConcurrentHashMap<String, Key>();
 			for (int i = 0; i < fields.length; i++) {
 				if (fields[i].getType() != Key.class || !fields[i].getName().startsWith("_")) continue;
 				try {

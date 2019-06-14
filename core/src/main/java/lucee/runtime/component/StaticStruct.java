@@ -17,11 +17,12 @@
  */
 package lucee.runtime.component;
 
-import lucee.commons.collection.concurrent.ConcurrentHashMapPro;
+import lucee.commons.collection.concurrent.ConcurrentHashMapNullSupport;
 import lucee.runtime.type.Collection.Key;
 
-public class StaticStruct extends ConcurrentHashMapPro<Key, Member> {
+public class StaticStruct extends ConcurrentHashMapNullSupport<Key, Member> {
 
+	private static final long serialVersionUID = 4964717564860928637L;
 	private boolean init;
 
 	public StaticStruct() {}

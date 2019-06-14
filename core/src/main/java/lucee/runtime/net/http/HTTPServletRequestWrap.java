@@ -47,7 +47,7 @@ import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpUpgradeHandler;
 import javax.servlet.http.Part;
 
-import lucee.commons.collection.concurrent.ConcurrentHashMapPro;
+import lucee.commons.collection.MapFactory;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.lang.ExceptionUtil;
@@ -361,7 +361,7 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 		// attributes
 		{
 			Enumeration<String> attrNames = req.getAttributeNames();
-			disconnectData.attributes = new ConcurrentHashMapPro<String, Object>();
+			disconnectData.attributes = MapFactory.getConcurrentMap();
 			String k;
 			while (attrNames.hasMoreElements()) {
 				k = attrNames.nextElement();
@@ -372,7 +372,7 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 		// headers
 		{
 			Enumeration headerNames = req.getHeaderNames();
-			disconnectData.headers = new ConcurrentHashMapPro<Collection.Key, LinkedList<String>>();
+			disconnectData.headers = MapFactory.getConcurrentMap();// new ConcurrentHashMap<Collection.Key, LinkedList<String>>();
 
 			String k;
 			Enumeration e;
