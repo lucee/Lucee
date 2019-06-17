@@ -68,15 +68,17 @@ public final class GetLocaleInfo implements Function {
 		iso.setEL(KeyConstants._country, locale.getISO3Country());
 		iso.setEL(KeyConstants._language, locale.getISO3Language());
 
-		Currency currency = Currency.getInstance(locale);
-		sct.setEL("currency_code", currency.getCurrencyCode());
-		sct.setEL("currency_symbol", currency.getSymbol(locale));
-
+		Struct currency_group = new StructImpl();
+		sct.setEL(KeyConstants._currency, currency_group);
+		Currency currency_data = Currency.getInstance(locale);
+		currency_group.setEL(KeyConstants._currency_code,currency_data.getCurrencyCode());
+		currency_group.setEL(KeyConstants._currency_symbol,currency_data.getSymbol(locale));
+ 
 		DateFormat dateFormat = DateFormat.getDateInstance(DateFormat.FULL,locale);
-		sct.setEL("date", dateFormat.format(new Date()));
+		sct.setEL(KeyConstants._date,dateFormat.format(new Date()));
 
 		DateFormat timeFormat = DateFormat.getTimeInstance(DateFormat.DEFAULT,locale);
-		sct.setEL("time", timeFormat.format(new Date()));
+		sct.setEL(KeyConstants._time,timeFormat.format(new Date()));
 
 		return sct;
 	}

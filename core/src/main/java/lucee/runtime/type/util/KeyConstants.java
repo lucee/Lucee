@@ -911,6 +911,9 @@ public class KeyConstants {
 	public static final Key _STATIC = KeyImpl._const("STATIC");
 	public static final Key _country = KeyImpl._const("country");
 	public static final Key _display = KeyImpl._const("display");
+	public static final Key _currency = KeyImpl._const("currency");
+	public static final Key _currency_code = KeyImpl._const("code");
+	public static final Key _currency_symbol = KeyImpl._const("symbol");
 	public static final Key _generator = KeyImpl._const("generator");
 	public static final Key _http = KeyImpl._const("http");
 	public static final Key _webservice = KeyImpl._const("webservice");
