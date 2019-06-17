@@ -54,6 +54,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.db.DBUtil;
 import lucee.commons.io.IOUtil;
@@ -125,7 +126,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	private QueryColumnImpl[] columns;
 	private Collection.Key[] columnNames;
 	private SQL sql;
-	private HashMap<Integer, Integer> currRow = new HashMap<Integer, Integer>();
+	private Map<Integer, Integer> currRow = new ConcurrentHashMap<Integer, Integer>();
 	private int recordcount = 0;
 	private int columncount;
 	private long exeTime = 0;
@@ -1239,7 +1240,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 					newResult.columns[i] = columns[i].cloneColumnImpl(deepCopy);
 				}
 			}
-			newResult.currRow = new HashMap<Integer, Integer>();
+			newResult.currRow = new ConcurrentHashMap<Integer, Integer>();
 			newResult.sql = sql;
 			newResult.template = template;
 			newResult.recordcount = recordcount;
@@ -3100,7 +3101,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 				col = qry.getColumn(newResult.columnNames[i], null);
 				newResult.columns[i] = QueryUtil.duplicate2QueryColumnImpl(newResult, col, deepCopy);
 			}
-			newResult.currRow = new HashMap<Integer, Integer>();
+			newResult.currRow = new ConcurrentHashMap<Integer, Integer>();
 			newResult.sql = qry.getSql();
 			newResult.template = qry.getTemplate();
 			newResult.recordcount = qry.getRecordcount();
