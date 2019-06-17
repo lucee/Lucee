@@ -72,8 +72,11 @@ public final class GetLocaleInfo implements Function {
 		sct.setEL("currency_code", currency.getCurrencyCode());
 		sct.setEL("currency_symbol", currency.getSymbol(locale));
 
-		DateFormat dateFormat = DateFormat.getDateTimeInstance(DateFormat.FULL,DateFormat.SHORT,locale);
-		sct.setEL("Date & Time", dateFormat.format(new Date()));
+		DateFormat dateFormat = DateFormat.getDateInstance(DateFormat.FULL,locale);
+		sct.setEL("date", dateFormat.format(new Date()));
+
+		DateFormat timeFormat = DateFormat.getTimeInstance(DateFormat.DEFAULT,locale);
+		sct.setEL("time", timeFormat.format(new Date()));
 
 		return sct;
 	}
