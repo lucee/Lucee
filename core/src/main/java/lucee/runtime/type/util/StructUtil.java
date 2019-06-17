@@ -33,7 +33,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.collections4.map.ReferenceMap;
 
 import lucee.commons.digest.HashUtil;
-import lucee.commons.lang.SizeOf;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.dump.DumpProperties;
@@ -206,24 +205,6 @@ public final class StructUtil {
 			sct.setEL(Caster.toString(entry.getKey()), entry.getValue());
 		}
 		return sct;
-	}
-
-	/**
-	 * return the size of given struct, size of values + keys
-	 * 
-	 * @param sct
-	 * @return
-	 */
-	public static long sizeOf(Struct sct) {
-		Iterator<Entry<Key, Object>> it = sct.entryIterator();
-		Entry<Key, Object> e;
-		long size = 0;
-		while (it.hasNext()) {
-			e = it.next();
-			size += SizeOf.size(e.getKey());
-			size += SizeOf.size(e.getValue());
-		}
-		return size;
 	}
 
 	public static void setELIgnoreWhenNull(Struct sct, String key, Object value) {
