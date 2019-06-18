@@ -408,157 +408,111 @@ component {
 	   html																							 =
 	================================================================================================== */
 	string function html(required struct meta,
-						  required string context,
-						  required string expand,
-						  required string output,
-						  required string hasReference ,
-						  required string level ,
-						  required string dumpID,
-						  struct cssColors={}) {
+						required string context,
+						required string expand,
+						required string output,
+						required string hasReference,
+						required string level,
+						required string dumpID,
+						required struct cssColors={}) {
 
-		var NL = variables.NEWLINE;
-		var id = createId();
-		var rtn = "";
+		var id =  createId();
+		var head = "";
 		var columnCount = structKeyExists(arguments.meta,'data') ? listLen(arguments.meta.data.columnlist) : 0;
 		var title = !arguments.level ? ' title="#arguments.context#"' : '';
 		var width = structKeyExists(arguments.meta,'width') ? ' width="' & arguments.meta.width & '"' : '';
 		var height = structKeyExists(arguments.meta,'height') ? ' height="' & arguments.meta.height & '"' : '';
 		var indent = repeatString(variables.TAB, arguments.level);
 
-		// Header
-		var variables.colorKeys={};
-		var head="";
-
-		if (arguments.level == 0){
-
-			var colors = arguments.meta.colors[arguments.meta.colorId];
-
-			head&=('<style>' & variables.NEWLINE);
-			head&=('.-lucee-dump .disp-none { display: none; }' & variables.NEWLINE);
-			head&=('</style>' & variables.NEWLINE);
-			head&=('<script>' & variables.NEWLINE);
-			head&=('window.__Lucee = { initialized : false,
-				addEventListeners : function(selector, event, handler, useCapture){
-					useCapture = useCapture || false;
-					Array.prototype.forEach.call(
-						 document.querySelectorAll(selector)
-						,function(el, ix) {
-						  el.addEventListener(event, handler, useCapture);
-						}
-					);
-				}
-				,getNextSiblings   : function(el){
-					var  orig = el
-						,result = [];
-					while (el && el.nodeType === Node.ELEMENT_NODE) {
-						if (el !== orig)
-							result.push(el);
-						el = el.nextElementSibling || el.nextSibling;
-					}
-					return result;
-				}
-				,onDocumentReady		   : function(){
-					var L = window.__Lucee;
-					if (L.initialized)
-						return;
-					L.addEventListeners(".collapse-trigger", "click", function(evt){
-						var tr = evt.target.closest("tr");
-						var siblings = L.getNextSiblings(tr);
-						siblings.forEach(function(el, ix){
-							el.classList.toggle("disp-none");
-						});
-					});
-					L.initialized = true;
-				}
-			}
-			' & variables.NEWLINE);
-
-			head&=('document.addEventListener("DOMContentLoaded", __Lucee.onDocumentReady);' & variables.NEWLINE);
-			head&=('</script>' & variables.NEWLINE);
+		// define colors
+		if(arguments.level == 0){
+				variables.colors=arguments.meta.colors[arguments.meta.colorId];
+		}
+		if(arguments.level == 0){
+			// javascript
+			head&=('<script language="JavaScript" type="text/javascript">' & variables.NEWLINE);
+			head&=("function dumpOC(name){");
+			head&=("var tds=document.all?document.getElementsByTagName('tr'):document.getElementsByName(name);");
+			head&=("var s=null;");
+			head&=("name=name;");
+			head&=("for(var i=0;i<tds.length;i++) {");
+			head&=("if(document.all && tds[i].name!=name)continue;");
+			head&=("s=tds[i].style;" & variables.NEWLINE);
+			head&=("if(s.display=='none') s.display='';");
+			head&=("else s.display='none';");
+			head&=("}");
+			head&=("}" & variables.NEWLINE);
+			head&=("</script>" & variables.NEWLINE);
 
 			// styles
 			var prefix="div###arguments.dumpID#";
-			head&=('<style type="text/css">' & NL);
-			head&=('#prefix# table {font-family:Verdana, Geneva, Arial, Helvetica, sans-serif; font-size:11px; empty-cells:show; color:#colors.fontColor#; border-collapse:collapse;}' & NL);
-			head&=('#prefix# td {border:1px solid #colors.borderColor#; vertical-align:top; padding:2px; empty-cells:show;}' & NL);
-			head&=('#prefix# td span {font-weight:bold;}' & NL);
+			head&=('<style type="text/css">' & variables.NEWLINE);
+			head&=('#prefix# table {font-family:Verdana, Geneva, Arial, Helvetica, sans-serif; font-size:11px; empty-cells:show; color:#colors.fontColor#; border-collapse:collapse;}' & variables.NEWLINE);
+			head&=('#prefix# td {border:1px solid #colors.borderColor#; vertical-align:top; padding:2px; empty-cells:show;}' & variables.NEWLINE);
+			head&=('#prefix# td span {font-weight:bold;}' & variables.NEWLINE);
+
 			var count=0;
-			loop struct="#arguments.meta.colors#" index="local.k" item="local.v" {
-				variables.colorKeys[k]=count++;
+			loop struct=arguments.meta.colors index="local.k" item="local.v" {
 				var bc=darkenColor(darkenColor(v.highLightColor));
 				var fc=(bc);
-				head&="#prefix# td.luceeN#variables.colorKeys[k]# {color:#fc#;border-color:#bc#;background-color:#v.normalColor#;}"& NL;
-				head&="#prefix# td.luceeH#variables.colorKeys[k]# {color:#fc#;border-color:#bc#;background-color:#v.highLightColor#;}"& NL;
+				variables.colorKeys[k]=count++;
+				head&="#prefix# td.luceeN#variables.colorKeys[k]# {color:#fc#;border-color:#bc#;background-color:#v.normalColor#;}"& variables.NEWLINE;
+			head&="#prefix# td.luceeH#variables.colorKeys[k]# {color:#fc#;border-color:#bc#;background-color:#v.highLightColor#;}"& variables.NEWLINE;
 			}
 
 
-			/*loop collection="#arguments.cssColors#" item="local.key" {
-				head&="td.#key# {background-color:#arguments.cssColors[key]#;}"& NL;
-			}*/
-			head&=('</style>' & NL);
-
+			head&=('</style>' & variables.NEWLINE);
 		}
 
-		var rows = [];
-		arrayAppend(rows, '<table#width##height##title#>');
+		head&=('<table cellspacing="0"#width##height##title#>');
 
-		if (structKeyExists(arguments.meta, 'title')){
+		// title
+		if(structKeyExists(arguments.meta, 'title')){
+			var metaID = arguments.hasReference && structKeyExists(arguments.meta,'id') ? ' [#arguments.meta.id#]' : '';
+			var comment = structKeyExists(arguments.meta,'comment') ? "<br />" & replace(HTMLEditFormat(arguments.meta.comment),chr(10),' <br>','all') : '';
 
-			var metaID = arguments.hasReference && structKeyExists(arguments.meta, "id") ? " [#arguments.meta.id#]" : "";
-			var comment = structKeyExists(arguments.meta, "comment") ?
-				"<br>" & (left(arguments.meta.comment, 4) == "<img" ?
-					arguments.meta.comment : replace(HTMLEditFormat(arguments.meta.comment), chr(10), " <br>", "all"))
-				: '';
-
-			arrayAppend(rows, '<tr>');
-			arrayAppend(rows, '<td class="collapse-trigger luceeH#variables.colorKeys[arguments.meta.colorId]#" colspan="#columnCount#" style="cursor:pointer;">');
-
-			arrayAppend(rows, '<span>#arguments.meta.title##metaID#</span>');
-			arrayAppend(rows, comment & '</td>');
-			arrayAppend(rows, '</tr>');
+			head&=('<tr>');
+			head&=('<td onclick="dumpOC(''#id#'');" colspan="#columnCount#" class="luceeH#variables.colorKeys[arguments.meta.colorId]#" style="cursor:pointer;">');
+			head&=('<span>#arguments.meta.title##metaID#</span>');
+			head&=(comment & '</td>');
+			head&=('</tr>');
 		}
 		else {
 			id = "";
 		}
 
 		// data
-		if (columnCount) {
-
+		if(columnCount) {
 			loop query=arguments.meta.data {
 				var c = 1;
-				// var nodeID = len(id) ? ' name="#id#"' : '';
-				var hidden = !arguments.expand && len(id) ? ' class="disp-none" ' : '';
+				var nodeID = len(id) ? ' name="#id#"' : '';
+				var hidden = !arguments.expand && len(id) ? ' style="display:none"' : '';
 
-				// arrayAppend(rows, '<tr#nodeID##hidden#>');
-				arrayAppend(rows, '<tr#hidden#>');
+				head&=('<tr#nodeID##hidden#>');
 
-				for (var col=1; col <= columnCount-1; col++) {
+				for(var col=1; col <= columnCount-1; col++) {
 					var node = arguments.meta.data["data" & col];
 
-					if (isStruct(node)) {
-
+					if(isStruct(node)) {
 						var value = this.html(node, "", arguments.expand, arguments.output, arguments.hasReference, arguments.level + 1,arguments.dumpID, arguments.cssColors);
 
-						arrayAppend(rows, '<td class="#doHighlight(arguments.meta, c) ? 'luceeH' : 'luceeN'##variables.colorKeys[arguments.meta.colorId]#">');
-						arrayAppend(rows, value);
-						arrayAppend(rows, '</td>');
+						head&=('<td class="#doHighlight(arguments.meta,c)?'luceeH':'luceeN'##variables.colorKeys[arguments.meta.colorId]#">');
+						head&=(value);
+						head&=('</td>');
 					}
 					else {
-
-						arrayAppend(rows, '<td class="#doHighlight(arguments.meta,c)?'luceeH':'luceeN'##variables.colorKeys[arguments.meta.colorId]#">' & HTMLEditFormat(node) & '</td>');
+						head&=('<td class="#doHighlight(arguments.meta,c)?'luceeH':'luceeN'##variables.colorKeys[arguments.meta.colorId]#">' & HTMLEditFormat(node) & '</td>');
 					}
-
 					c *= 2;
 				}
-
-				arrayAppend(rows, '</tr>');
+				head&=('</tr>');
 			}
 		}
+		head&=('</table>');
 
-		arrayAppend(rows, '</table>');
-
-		return head & arrayToList(rows, "");
+		return head;
 	}
+	
 
 
 	/* ==================================================================================================
