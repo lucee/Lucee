@@ -18,12 +18,11 @@
 package lucee.commons.lang;
 
 import java.io.IOException;
-import java.lang.instrument.ClassDefinition;
 import java.lang.instrument.UnmodifiableClassException;
 
 import lucee.commons.io.SystemUtil;
 import lucee.runtime.config.Config;
-import lucee.runtime.instrumentation.InstrumentationFactory;
+import lucee.transformer.bytecode.util.ClassRenamer;
 
 /**
  * ClassLoader that loads classes in memory that are not stored somewhere physically
@@ -86,17 +85,35 @@ public final class MemoryClassLoader extends ExtendableClassLoader {
 
 		// if class already exists
 		if (clazz != null) {
-			try {
-				InstrumentationFactory.getInstrumentation(config).redefineClasses(new ClassDefinition(clazz, barr));
-			}
-			catch (ClassNotFoundException e) {
-				// the documentation clearly sais that this exception only exists for backward compatibility and
-				// never happen
-			}
-			return clazz;
+			return rename(clazz, barr);
+
+			/*
+			 * try { InstrumentationFactory.getInstrumentation(config).redefineClasses(new
+			 * ClassDefinition(clazz, barr)); } catch (ClassNotFoundException e) { // the documentation clearly
+			 * sais that this exception only exists for backward compatibility and // never happen } return
+			 * clazz;
+			 */
 		}
 		// class not exists yet
 		return _loadClass(name, barr);
+	}
+
+	private Class<?> rename(Class<?> clazz, byte[] barr) {
+		String prefix = clazz.getName();
+		Class<?> clazz2 = null;
+		String newName;
+		int index = 0;
+		do {
+			clazz2 = null;
+			newName = prefix + "$" + (++index);
+			try {
+				clazz2 = loadClass(newName); // we do not load existing class from disk
+			}
+			catch (ClassNotFoundException cnf) {}
+		}
+		while (clazz2 != null);
+		return _loadClass(newName, ClassRenamer.rename(barr, newName));
+
 	}
 
 	private synchronized Class<?> _loadClass(String name, byte[] barr) {

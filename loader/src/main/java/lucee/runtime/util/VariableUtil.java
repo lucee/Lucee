@@ -36,8 +36,8 @@ public interface VariableUtil {
 	 * @param key to get from Collection
 	 * @return value or null
 	 * @deprecated use instead
-	 * @see #getCollection(PageContext, Object, lucee.runtime.type.Collection.Key, Object)
 	 */
+	@Deprecated
 	public abstract Object getCollection(PageContext pc, Object coll, String key, Object defaultValue);
 
 	/**

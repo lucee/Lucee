@@ -101,6 +101,7 @@ public interface Collection extends Dumpable, Iteratorable, Cloneable, Serializa
 	 * @return value on key position or null
 	 * @deprecated use instead <code>{@link #get(lucee.runtime.type.Collection.Key, Object)}</code>
 	 */
+	@Deprecated
 	public Object get(String key, Object defaultValue);
 
 	/**

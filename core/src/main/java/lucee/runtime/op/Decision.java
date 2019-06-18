@@ -243,17 +243,6 @@ public final class Decision {
 	 * 
 	 * @param obj value to test
 	 * @return is value numeric
-	 * @deprecated use instead <code>isUUId(Object obj)</code>
-	 */
-	public static boolean isUUID(Object obj) {
-		return isUUId(obj);
-	}
-
-	/**
-	 * tests if String value is UUID Value
-	 * 
-	 * @param obj value to test
-	 * @return is value numeric
 	 */
 	public static boolean isUUId(Object obj) {
 		String str = Caster.toString(obj, null);
@@ -265,15 +254,6 @@ public final class Decision {
 		}
 		else if (str.length() == 32) return Decision.isHex(str);
 		return false;
-	}
-
-	/**
-	 * @param obj
-	 * @return
-	 * @deprecated use instead <code>isGUId(Object)</code>
-	 */
-	public static boolean isGUID(Object obj) {
-		return isGUId(obj);
 	}
 
 	public static boolean isGUId(Object obj) {
@@ -831,6 +811,7 @@ public final class Decision {
 	 * @return return if a String is "Empty", that means NULL or String with length 0 (whitespaces will
 	 *         not counted)
 	 */
+	@Deprecated
 	public static boolean isEmpty(String str) {
 		return StringUtil.isEmpty(str);
 	}
@@ -842,6 +823,7 @@ public final class Decision {
 	 * @return return if a String is "Empty", that means NULL or String with length 0 (whitespaces will
 	 *         not counted)
 	 */
+	@Deprecated
 	public static boolean isEmpty(String str, boolean trim) {
 		return StringUtil.isEmpty(str, trim);
 	}

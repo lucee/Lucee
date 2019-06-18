@@ -24,13 +24,11 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 
 import lucee.commons.lang.ArrayUtilException;
 import lucee.commons.lang.ComparatorUtil;
-import lucee.commons.lang.SizeOf;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.math.MathUtil;
 import lucee.runtime.PageContext;
@@ -839,24 +837,6 @@ public final class ArrayUtil {
 	public static Object[] values(Map map) {
 		if (map == null) return new Object[0];
 		return map.values().toArray();
-	}
-
-	public static long sizeOf(List list) {
-		ListIterator it = list.listIterator();
-		long size = 0;
-		while (it.hasNext()) {
-			size += SizeOf.size(it.next());
-		}
-		return size;
-	}
-
-	public static long sizeOf(Array array) {
-		Iterator it = array.valueIterator();
-		long size = 0;
-		while (it.hasNext()) {
-			size += SizeOf.size(it.next());
-		}
-		return size;
 	}
 
 	/**

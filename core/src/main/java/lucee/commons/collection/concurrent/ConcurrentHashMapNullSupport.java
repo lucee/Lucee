@@ -20,84 +20,79 @@ package lucee.commons.collection.concurrent;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.AbstractCollection;
 import java.util.AbstractMap;
-import java.util.AbstractSet;
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
-import java.util.TreeMap;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
-import lucee.commons.collection.AbstractMapPro;
+import lucee.commons.collection.AbstractCollection;
+import lucee.commons.collection.AbstractSet;
+import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.types.RefBoolean;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.Null;
+import lucee.runtime.type.util.StructSupport;
 
 /**
- * <p>
- * Concurrent hash map and linked list implementation of the <tt>ConcurrentMap</tt> interface, with
- * predictable iteration order. This implementation differs from <tt>ConcurrentHashMap</tt> in that
- * it maintains a doubly-linked list running through all of its entries. This linked list defines
- * the iteration ordering, which is normally the order in which keys were inserted into the map
- * (<i>insertion-order</i>). Note that insertion order is not affected if a key is
- * <i>re-inserted</i> into the map. (A key <tt>k</tt> is reinserted into a map <tt>m</tt> if
- * <tt>m.put(k, v)</tt> is invoked when <tt>m.containsKey(k)</tt> would return <tt>true</tt>
- * immediately prior to the invocation.)
+ * A hash table supporting full concurrency of retrievals and adjustable expected concurrency for
+ * updates. This class obeys the same functional specification as {@link java.util.Hashtable}, and
+ * includes versions of methods corresponding to each method of <tt>Hashtable</tt>. However, even
+ * though all operations are thread-safe, retrieval operations do <em>not</em> entail locking, and
+ * there is <em>not</em> any support for locking the entire table in a way that prevents all access.
+ * This class is fully interoperable with <tt>Hashtable</tt> in programs that rely on its thread
+ * safety but not on its synchronization details.
  *
  * <p>
- * This implementation spares its clients from the unspecified, generally chaotic ordering provided
- * by {@link ConcurrentHashMap} (and {@link Hashtable}), without incurring the increased cost
- * associated with {@link TreeMap}. It can be used to produce a copy of a map that has the same
- * order as the original, regardless of the original map's implementation:
- * 
- * <pre>
- *     void foo(Map m) {
- *         Map copy = new ConcurrentLinkedHashMap(m);
- *         ...
- *     }
- * </pre>
- * 
- * This technique is particularly useful if a module takes a map on input, copies it, and later
- * returns results whose order is determined by that of the copy. (Clients generally appreciate
- * having things returned in the same order they were presented.)
+ * Retrieval operations (including <tt>get</tt>) generally do not block, so may overlap with update
+ * operations (including <tt>put</tt> and <tt>remove</tt>). Retrievals reflect the results of the
+ * most recently <em>completed</em> update operations holding upon their onset. For aggregate
+ * operations such as <tt>putAll</tt> and <tt>clear</tt>, concurrent retrievals may reflect
+ * insertion or removal of only some entries. Similarly, Iterators and Enumerations return elements
+ * reflecting the state of the hash table at some point at or since the creation of the
+ * iterator/enumeration. They do <em>not</em> throw {@link ConcurrentModificationException}.
+ * However, iterators are designed to be used by only one thread at a time.
  *
  * <p>
- * A special {@link #ConcurrentLinkedHashMap(int,float,int, int,{@link EvictionPolicy}) constructor}
- * is provided to create a concurrent linked hash map whose order of iteration is the order
- * designated by the relevant eviction policy class. Invoking the <tt>put</tt> or <tt>get</tt>
- * method results in an access to the corresponding entry (assuming it exists after the invocation
- * completes). The <tt>putAll</tt> method generates one entry access for each mapping in the
- * specified map, in the order that key-value mappings are provided by the specified map's entry set
- * iterator. <i>No other methods generate entry accesses.</i> In particular, operations on
- * collection-views do <i>not</i> affect the order of iteration of the backing map.
+ * The allowed concurrency among update operations is guided by the optional
+ * <tt>concurrencyLevel</tt> constructor argument (default <tt>16</tt>), which is used as a hint for
+ * internal sizing. The table is internally partitioned to try to permit the indicated number of
+ * concurrent updates without contention. Because placement in hash tables is essentially random,
+ * the actual concurrency will vary. Ideally, you should choose a value to accommodate as many
+ * threads as will ever concurrently modify the table. Using a significantly higher value than you
+ * need can waste space and time, and a significantly lower value can lead to thread contention. But
+ * overestimates and underestimates within an order of magnitude do not usually have much noticeable
+ * impact. A value of one is appropriate when it is known that only one thread will modify and all
+ * others will only read. Also, resizing this or any other kind of hash table is a relatively slow
+ * operation, so, when possible, it is a good idea to provide estimates of expected table sizes in
+ * constructors.
  *
  * <p>
- * The {@link #removeEldestEntry(Map.Entry)} method may be overridden to impose a policy for
- * removing stale mappings automatically when new mappings are added to the map.
+ * This class and its views and iterators implement all of the <em>optional</em> methods of the
+ * {@link Map} and {@link Iterator} interfaces.
  *
- * Performance is likely to be just slightly below that of <tt>ComcurrentHashMap</tt>, due to the
- * added expense of maintaining the linked list, with one exception: Iteration over the
- * collection-views of a <tt>ConcurrentLinkedHashMap</tt> requires time proportional to the
- * <i>size</i> of the map, regardless of its capacity. Iteration over a <tt>ConcurrentHashMap</tt>
- * is likely to be more expensive, requiring time proportional to its <i>capacity</i>.
+ * <p>
+ * Like {@link Hashtable} but unlike {@link HashMap}, this class does <em>not</em> allow
+ * <tt>null</tt> to be used as a key or value.
  *
+ * <p>
+ * This class is a member of the <a href="{@docRoot}/../technotes/guides/collections/index.html">
+ * Java Collections Framework</a>.
  *
- * @author Justin Cater - Original code by Doug Lea
+ * @since 1.5
+ * @author Doug Lea
  * @param <K> the type of keys maintained by this map
  * @param <V> the type of mapped values
- *
  */
-public class ConcurrentLinkedHashMapPro<K, V> extends AbstractMapPro<K, V> implements ConcurrentMap<K, V>, Serializable {
-
-	private static final long serialVersionUID = -6894959298396386516L;
+public class ConcurrentHashMapNullSupport<K, V> extends AbstractMap<K, V> implements Serializable {
+	private static final long serialVersionUID = 7249069246763182397L;
 
 	/*
 	 * The basic strategy is to subdivide the table among Segments, each of which itself is a
@@ -109,17 +104,17 @@ public class ConcurrentLinkedHashMapPro<K, V> extends AbstractMapPro<K, V> imple
 	/**
 	 * The default initial capacity for this table, used when not otherwise specified in a constructor.
 	 */
-	static final int DEFAULT_INITIAL_CAPACITY = 16;
+	public static final int DEFAULT_INITIAL_CAPACITY = 32;
 
 	/**
 	 * The default load factor for this table, used when not otherwise specified in a constructor.
 	 */
-	static final float DEFAULT_LOAD_FACTOR = 0.75f;
+	public static final float DEFAULT_LOAD_FACTOR = 0.75f;
 
 	/**
 	 * The default concurrency level for this table, used when not otherwise specified in a constructor.
 	 */
-	static final int DEFAULT_CONCURRENCY_LEVEL = 16;
+	public static final int DEFAULT_CONCURRENCY_LEVEL = 16;
 
 	/**
 	 * The maximum capacity, used if a higher value is implicitly specified by either of the
@@ -131,7 +126,7 @@ public class ConcurrentLinkedHashMapPro<K, V> extends AbstractMapPro<K, V> imple
 	/**
 	 * The maximum number of segments to allow; used to bound constructor arguments.
 	 */
-	static final int MAX_SEGMENTS = 1 << 16; // slightly conservative
+	static final int MAX_SEGMENTS = 1 << 32; // slightly conservative
 
 	/**
 	 * Number of unsynchronized retries in size and containsValue methods before resorting to locking.
@@ -139,12 +134,6 @@ public class ConcurrentLinkedHashMapPro<K, V> extends AbstractMapPro<K, V> imple
 	 * make it impossible to obtain an accurate result.
 	 */
 	static final int RETRIES_BEFORE_LOCK = 2;
-
-	/**
-	 * The maxSize attribute defines the maximum number of name/value pairs the map will hold. The
-	 * Integer.MAX_VALUE mark disables this upper bound limit.
-	 */
-	static final int UNLIMITED_SIZE = Integer.MAX_VALUE;
 
 	/* ---------------- Fields -------------- */
 
@@ -164,44 +153,17 @@ public class ConcurrentLinkedHashMapPro<K, V> extends AbstractMapPro<K, V> imple
 	 */
 	final Segment<K, V>[] segments;
 
-	/**
-	 * The eviction policy to be used
-	 */
-	final EvictionPolicy evictionPolicy;
-
-	/**
-	 * The maxSize attribute defines the maximum number of name/value pairs the map will hold. The
-	 * UNLIMITED_SIZE mark disables this upper bound limit.
-	 */
-	final int maxSize;
-
-	/**
-	 * The head of the doubly linked list.
-	 */
-	transient HashEntry<K, V> header;
-
-	/**
-	 * The lock for atomic access to the doubly linked list.
-	 */
-	transient ReentrantLock modifyListLock;
-
 	transient Set<K> keySet;
 	transient Set<Map.Entry<K, V>> entrySet;
 	transient Collection<V> values;
 
 	/* ---------------- Small Utilities -------------- */
 
-	/**
-	 * Applies a supplemental hash function to a given hashCode, which defends against poor quality hash
-	 * functions. This is critical because ConcurrentHashMap uses power-of-two length hash tables, that
-	 * otherwise encounter collisions for hashCodes that do not differ in lower or upper bits.
-	 */
-	private static int hash(Object k) {
-		if (k instanceof KeyImpl) return ((KeyImpl) k).wangJenkinsHash();
-		// Spread bits to regularize both segment and index locations,
-		// using variant of single-word Wang/Jenkins hash.
-		int h = k.hashCode();
-
+	private static int hash(Object o) {
+		if (o instanceof KeyImpl) {
+			return ((KeyImpl) o).wangJenkinsHash();
+		}
+		int h = o.hashCode();
 		h += (h << 15) ^ 0xffffcd7d;
 		h ^= (h >>> 10);
 		h += (h << 3);
@@ -231,191 +193,23 @@ public class ConcurrentLinkedHashMapPro<K, V> extends AbstractMapPro<K, V> imple
 	 * method is used as a backup in case a null (pre-initialized) value is ever seen in an
 	 * unsynchronized access method.
 	 */
-	static final class HashEntry<K, V> implements Entry<K, V> {
+	static final class HashEntry<K, V> {
 		final K key;
 		final int hash;
 		volatile V value;
-		HashEntry<K, V> next;
-		HashEntry<K, V> after;
-		HashEntry<K, V> before;
-		long accessCount;
-		final long creationTime;
-		long lastAccessedTime;
-		ReentrantLock modifyListLock;
-		AtomicInteger cloneAllFlag;
+		final HashEntry<K, V> next;
 
-		HashEntry(K key, int hash, HashEntry<K, V> next, V value, long accessCount, long creationTime, long lastAccessedTime) {
+		HashEntry(K key, int hash, HashEntry<K, V> next, V value) {
 			this.key = key;
 			this.hash = hash;
 			this.next = next;
 			this.value = value;
-			this.accessCount = accessCount;
-			this.creationTime = creationTime;
-			this.lastAccessedTime = lastAccessedTime;
 		}
 
 		@SuppressWarnings("unchecked")
 		static final <K, V> HashEntry<K, V>[] newArray(int i) {
 			return new HashEntry[i];
 		}
-
-		/**
-		 * Removes this entry from the linked list.
-		 */
-		public void remove() {
-			before.after = after;
-			after.before = before;
-		}
-
-		/**
-		 * Inserts this entry before the specified existing entry in the list.
-		 */
-		public void addBefore(HashEntry<K, V> existingEntry) {
-			after = existingEntry;
-			before = existingEntry.before;
-			before.after = this;
-			after.before = this;
-		}
-
-		/**
-		 * This method is invoked by the superclass whenever the value of a pre-existing entry is read by
-		 * Map.get or modified by Map.set. If the enclosing Map is access-ordered, it moves the entry to the
-		 * end of the list; otherwise, it does nothing.
-		 */
-		void recordAccess(HashEntry<K, V> header, EvictionPolicy evictionPolicy) {
-			waitForModifyPermition(header);
-			remove();
-			addBefore((HashEntry<K, V>) evictionPolicy.recordAccess(header, this));
-			accessCount++;
-			lastAccessedTime = System.currentTimeMillis();
-			grandModifyAndCloneAllPermition(header);
-		}
-
-		/**
-		 * This method is invoked by the superclass whenever a new entry is inserted by Map.put
-		 */
-		void recordInsertion(HashEntry<K, V> header, EvictionPolicy evictionPolicy) {
-			waitForModifyPermition(header);
-			addBefore((HashEntry<K, V>) evictionPolicy.recordInsertion(header, this));
-			grandModifyAndCloneAllPermition(header);
-		}
-
-		void recordRemoval(HashEntry<K, V> header) {
-			waitForModifyPermition(header);
-			remove();
-			grandModifyAndCloneAllPermition(header);
-		}
-
-		public HashEntry<K, V> clone(HashEntry<K, V> next, HashEntry<K, V> header) {
-			waitForModifyPermition(header);
-			HashEntry<K, V> nextEntry = after;
-			remove();
-			HashEntry<K, V> theClone = new HashEntry<K, V>(key, hash, next, value, accessCount, creationTime, lastAccessedTime);
-			theClone.addBefore(nextEntry);
-			grandModifyAndCloneAllPermition(header);
-			return theClone;
-		}
-
-		public HashEntry<K, V> cloneAll(HashEntry<K, V> header) {
-			waitForCloneAllPermition(header);
-			HashEntry<K, V> rootClone = new HashEntry<K, V>(key, hash, next, value, accessCount, creationTime, lastAccessedTime);
-			rootClone.before = rootClone.after = rootClone;
-
-			HashEntry<K, V> pointer = after;
-			while (pointer != header) {
-				HashEntry<K, V> nextClone = new HashEntry<K, V>(pointer.key, pointer.hash, pointer.next, pointer.value, pointer.accessCount, pointer.creationTime,
-						pointer.lastAccessedTime);
-				nextClone.addBefore(rootClone);
-				pointer = pointer.after;
-			}
-			grandModifyPermition(header);
-			return rootClone;
-		}
-
-		private void waitForModifyPermition(HashEntry<K, V> header) {
-			while (!checkForModifyPermition(header)) {
-				try {
-					Thread.sleep(0, 1);
-				}
-				catch (InterruptedException e) {}
-			}
-		}
-
-		private boolean checkForModifyPermition(HashEntry<K, V> header) {
-			if (header.cloneAllFlag.getAndDecrement() <= 0) {
-				header.modifyListLock.lock();
-				return true;
-			}
-			header.cloneAllFlag.getAndIncrement();
-			return false;
-		}
-
-		private void grandModifyAndCloneAllPermition(HashEntry<K, V> header) {
-			header.modifyListLock.unlock();
-			header.cloneAllFlag.getAndIncrement();
-		}
-
-		private void waitForCloneAllPermition(HashEntry<K, V> header) {
-			while (!checkForCloneAllPermition(header)) {
-				try {
-					Thread.sleep(0, 1);
-				}
-				catch (InterruptedException e) {}
-			}
-		}
-
-		private boolean checkForCloneAllPermition(HashEntry<K, V> header) {
-			if (header.cloneAllFlag.getAndIncrement() >= 0) return true;
-			grandModifyPermition(header);
-			return false;
-		}
-
-		private void grandModifyPermition(HashEntry<K, V> header) {
-			header.cloneAllFlag.getAndDecrement();
-		}
-
-		@Override
-		public K getKey() {
-			return key;
-		}
-
-		@Override
-		public V getValue() {
-			return value;
-		}
-
-		@Override
-		public V setValue(V value) {
-			V oldValue = this.value;
-			this.value = value;
-			return oldValue;
-		}
-
-		@Override
-		public Entry<K, V> getAfter() {
-			return after;
-		}
-
-		@Override
-		public Entry<K, V> getBefore() {
-			return before;
-		}
-
-		@Override
-		public long getAccessCount() {
-			return accessCount;
-		}
-
-		@Override
-		public long getCreationTime() {
-			return creationTime;
-		}
-
-		@Override
-		public long getLastAccessTime() {
-			return lastAccessedTime;
-		}
-
 	}
 
 	/**
@@ -486,17 +280,8 @@ public class ConcurrentLinkedHashMapPro<K, V> extends AbstractMapPro<K, V> imple
 		 */
 		final float loadFactor;
 
-		/**
-		 * The eviction policy for this linked hash map. Even though this value is same for all segments, it
-		 * is replicated to avoid needing links to outer object.
-		 *
-		 * @serial
-		 */
-		final EvictionPolicy evictionPolicy;
-
-		Segment(int initialCapacity, float lf, EvictionPolicy ep) {
+		Segment(int initialCapacity, float lf) {
 			loadFactor = lf;
-			evictionPolicy = ep;
 			setTable(HashEntry.<K, V>newArray(initialCapacity));
 		}
 
@@ -528,6 +313,7 @@ public class ConcurrentLinkedHashMapPro<K, V> extends AbstractMapPro<K, V> imple
 		 */
 		V readValueUnderLock(HashEntry<K, V> e) {
 			lock();
+			// return e.value;
 			try {
 				return e.value;
 			}
@@ -538,22 +324,38 @@ public class ConcurrentLinkedHashMapPro<K, V> extends AbstractMapPro<K, V> imple
 
 		/* Specialized implementations of map methods */
 
-		V get(Object key, int hash, HashEntry<K, V> header, V defaultValue) {
+		V get(Object key, int hash) {
+			return get(key, hash, null);
+		}
+
+		V get(Object key, int hash, V defaultValue) {
 			if (count != 0) { // read-volatile
 				HashEntry<K, V> e = getFirst(hash);
 				while (e != null) {
-					if (e.hash == hash && key.equals(e.key)) {
+					if (e.hash == hash && (key == e.key || key.equals(e.key))) {
 						V v = e.value;
-						if (v != null) {
-							if (evictionPolicy.accessOrder()) e.recordAccess(header, evictionPolicy);
-							return v;
-						}
-						return readValueUnderLock(e); // recheck
+						if (v != null) return v;
+						return readValueUnderLock(e); // recheck; possible unnecessary double check then value can be null
 					}
 					e = e.next;
 				}
 			}
 			return defaultValue;
+		}
+
+		V getE(Map<K, V> map, Object key, int hash) throws PageException {
+			if (count != 0) { // read-volatile
+				HashEntry<K, V> e = getFirst(hash);
+				while (e != null) {
+					if (e.hash == hash && key.equals(e.key)) {
+						V v = e.value;
+						if (v != null) return v;
+						return readValueUnderLock(e); // recheck; possible unnecessary double check then value can be null
+					}
+					e = e.next;
+				}
+			}
+			throw StructSupport.invalidKey(map, key, false);
 		}
 
 		boolean containsKey(Object key, int hash) {
@@ -574,9 +376,12 @@ public class ConcurrentLinkedHashMapPro<K, V> extends AbstractMapPro<K, V> imple
 				for (int i = 0; i < len; i++) {
 					for (HashEntry<K, V> e = tab[i]; e != null; e = e.next) {
 						V v = e.value;
-						if (v == null) // recheck
+						if (v == null) // recheck ; possible unnecessary double check then value can be null
 							v = readValueUnderLock(e);
-						if (value.equals(v)) return true;
+						if (value == null) {
+							if (v == null) return true;
+						}
+						else if (value.equals(v)) return true;
 					}
 				}
 			}
@@ -621,13 +426,30 @@ public class ConcurrentLinkedHashMapPro<K, V> extends AbstractMapPro<K, V> imple
 			}
 		}
 
-		V put(K key, int hash, V value, boolean onlyIfAbsent, HashEntry<K, V> header) {
+		V repl(K key, int hash, V newValue, RefBoolean replaced) {
 			lock();
 			try {
+				HashEntry<K, V> e = getFirst(hash);
+				while (e != null && (e.hash != hash || !key.equals(e.key)))
+					e = e.next;
 
+				if (e == null) return null;
+				replaced.setValue(true);
+				V oldValue = e.value;
+				e.value = newValue;
+				return oldValue;
+			}
+			finally {
+				unlock();
+			}
+		}
+
+		V put(K key, int hash, V value, boolean onlyIfAbsent) {
+			lock();
+			try {
 				int c = count;
 				if (c++ > threshold) // ensure capacity
-					rehash(header);
+					rehash();
 				HashEntry<K, V>[] tab = table;
 				int index = hash & (tab.length - 1);
 				HashEntry<K, V> first = tab[index];
@@ -643,11 +465,7 @@ public class ConcurrentLinkedHashMapPro<K, V> extends AbstractMapPro<K, V> imple
 				else {
 					oldValue = null;
 					++modCount;
-					long now = System.currentTimeMillis();
-					e = new HashEntry<K, V>(key, hash, first, value, 1, now, now);
-					if (evictionPolicy.insertionOrder()) e.recordInsertion(header, evictionPolicy);
-					else e.addBefore(header);
-					tab[index] = e;
+					tab[index] = new HashEntry<K, V>(key, hash, first, value);
 					count = c; // write-volatile
 				}
 				return oldValue;
@@ -657,7 +475,7 @@ public class ConcurrentLinkedHashMapPro<K, V> extends AbstractMapPro<K, V> imple
 			}
 		}
 
-		void rehash(HashEntry<K, V> header) {
+		void rehash() {
 			HashEntry<K, V>[] oldTable = table;
 			int oldCapacity = oldTable.length;
 			if (oldCapacity >= MAXIMUM_CAPACITY) return;
@@ -704,7 +522,7 @@ public class ConcurrentLinkedHashMapPro<K, V> extends AbstractMapPro<K, V> imple
 						for (HashEntry<K, V> p = e; p != lastRun; p = p.next) {
 							int k = p.hash & sizeMask;
 							HashEntry<K, V> n = newTable[k];
-							newTable[k] = p.clone(n, header);
+							newTable[k] = new HashEntry<K, V>(p.key, p.hash, n, p.value);
 						}
 					}
 				}
@@ -715,7 +533,7 @@ public class ConcurrentLinkedHashMapPro<K, V> extends AbstractMapPro<K, V> imple
 		/**
 		 * Remove; match on key only if value null, else match both.
 		 */
-		V remove(Object key, int hash, Object value, HashEntry<K, V> header, V defaultValue) {
+		Object _remove(Object key, int hash, Object value, Object defaultValue) {
 			lock();
 			try {
 				int c = count - 1;
@@ -726,35 +544,26 @@ public class ConcurrentLinkedHashMapPro<K, V> extends AbstractMapPro<K, V> imple
 				while (e != null && (e.hash != hash || !key.equals(e.key)))
 					e = e.next;
 
-				V old = defaultValue;
-				if (e != null) {
-					if (value == null || value.equals(e.value)) {
-						old = e.value;
-						e.recordRemoval(header);
-						// All entries following removed node can stay
-						// in list, but all preceding ones need to be
-						// cloned.
-						++modCount;
-						HashEntry<K, V> newFirst = e.next;
-						for (HashEntry<K, V> p = first; p != e; p = p.next)
-							newFirst = p.clone(newFirst, header);
-						tab[index] = newFirst;
-						count = c; // write-volatile
-					}
+				if (e == null) return defaultValue;
+
+				V v = e.value;
+				if ((value == null && v == null) || value.equals(v)) {
+					++modCount;
+					HashEntry<K, V> newFirst = e.next;
+					for (HashEntry<K, V> p = first; p != e; p = p.next)
+						newFirst = new HashEntry<K, V>(p.key, p.hash, newFirst, p.value);
+					tab[index] = newFirst;
+					count = c; // write-volatile
+					return v;
 				}
-				return old;
+				return defaultValue;
 			}
 			finally {
 				unlock();
 			}
 		}
 
-		/**
-		 * Remove; match on key only if value null, else match both.
-		 * 
-		 * @throws PageException
-		 */
-		V removeE(Map<K, V> m, Object key, int hash, Object value, HashEntry<K, V> header) throws PageException {
+		V r(Object key, int hash, V defaultValue) {
 			lock();
 			try {
 				int c = count - 1;
@@ -765,39 +574,56 @@ public class ConcurrentLinkedHashMapPro<K, V> extends AbstractMapPro<K, V> imple
 				while (e != null && (e.hash != hash || !key.equals(e.key)))
 					e = e.next;
 
-				if (e != null) {
-					if (value == null || value.equals(e.value)) {
-						e.recordRemoval(header);
-						// All entries following removed node can stay
-						// in list, but all preceding ones need to be
-						// cloned.
-						++modCount;
-						HashEntry<K, V> newFirst = e.next;
-						for (HashEntry<K, V> p = first; p != e; p = p.next)
-							newFirst = p.clone(newFirst, header);
-						tab[index] = newFirst;
-						count = c; // write-volatile
-						return e.value;
-					}
-				}
-				throw AbstractMapPro.invalidKey(m, key, true);
+				if (e == null) return defaultValue;
+				V v = e.value;
+				V oldValue = v;
+				++modCount;
+				HashEntry<K, V> newFirst = e.next;
+				for (HashEntry<K, V> p = first; p != e; p = p.next)
+					newFirst = new HashEntry<K, V>(p.key, p.hash, newFirst, p.value);
+				tab[index] = newFirst;
+				count = c; // write-volatile
+				return oldValue;
 			}
 			finally {
 				unlock();
 			}
 		}
 
-		void clear(HashEntry<K, V> header) {
+		V r(Map map, Object key, int hash) throws PageException {
+			lock();
+			try {
+				int c = count - 1;
+				HashEntry<K, V>[] tab = table;
+				int index = hash & (tab.length - 1);
+				HashEntry<K, V> first = tab[index];
+				HashEntry<K, V> e = first;
+				while (e != null && (e.hash != hash || !key.equals(e.key)))
+					e = e.next;
+
+				if (e == null) throw StructSupport.invalidKey(map, key, false);
+				V v = e.value;
+				V oldValue = v;
+				++modCount;
+				HashEntry<K, V> newFirst = e.next;
+				for (HashEntry<K, V> p = first; p != e; p = p.next)
+					newFirst = new HashEntry<K, V>(p.key, p.hash, newFirst, p.value);
+				tab[index] = newFirst;
+				count = c; // write-volatile
+				return oldValue;
+			}
+			finally {
+				unlock();
+			}
+		}
+
+		void clear() {
 			if (count != 0) {
 				lock();
 				try {
 					HashEntry<K, V>[] tab = table;
-					for (int i = 0; i < tab.length; i++) {
-						if (tab[i] != null) {
-							tab[i].recordRemoval(header);
-							tab[i] = null;
-						}
-					}
+					for (int i = 0; i < tab.length; i++)
+						tab[i] = null;
 					++modCount;
 					count = 0; // write-volatile
 				}
@@ -811,8 +637,7 @@ public class ConcurrentLinkedHashMapPro<K, V> extends AbstractMapPro<K, V> imple
 	/* ---------------- Public operations -------------- */
 
 	/**
-	 * Creates a new, empty map with the specified initial capacity, load factor, concurrency level, max
-	 * size and eviction policy.
+	 * Creates a new, empty map with the specified initial capacity, load factor and concurrency level.
 	 *
 	 * @param initialCapacity the initial capacity. The implementation performs internal sizing to
 	 *            accommodate this many elements.
@@ -820,16 +645,11 @@ public class ConcurrentLinkedHashMapPro<K, V> extends AbstractMapPro<K, V> imple
 	 *            when the average number of elements per bin exceeds this threshold.
 	 * @param concurrencyLevel the estimated number of concurrently updating threads. The implementation
 	 *            performs internal sizing to try to accommodate this many threads.
-	 * @param maxSize the maximum number of name/value pairs this map will hold.
-	 * @param evictionPolicy the eviction policy to be used
 	 * @throws IllegalArgumentException if the initial capacity is negative or the load factor or
 	 *             concurrencyLevel are nonpositive.
 	 */
-	public ConcurrentLinkedHashMapPro(int initialCapacity, float loadFactor, int concurrencyLevel, int maxSize, EvictionPolicy evictionPolicy) {
+	public ConcurrentHashMapNullSupport(int initialCapacity, float loadFactor, int concurrencyLevel) {
 		if (!(loadFactor > 0) || initialCapacity < 0 || concurrencyLevel <= 0) throw new IllegalArgumentException();
-
-		this.maxSize = maxSize;
-		this.evictionPolicy = evictionPolicy;
 
 		if (concurrencyLevel > MAX_SEGMENTS) concurrencyLevel = MAX_SEGMENTS;
 
@@ -852,12 +672,7 @@ public class ConcurrentLinkedHashMapPro<K, V> extends AbstractMapPro<K, V> imple
 			cap <<= 1;
 
 		for (int i = 0; i < this.segments.length; ++i)
-			this.segments[i] = new Segment<K, V>(cap, loadFactor, evictionPolicy);
-
-		header = new HashEntry<K, V>(null, -1, null, null, -1, -1, -1);
-		header.before = header.after = header;
-		header.modifyListLock = new ReentrantLock();
-		header.cloneAllFlag = new AtomicInteger();
+			this.segments[i] = new Segment<K, V>(cap, loadFactor);
 	}
 
 	/**
@@ -873,8 +688,8 @@ public class ConcurrentLinkedHashMapPro<K, V> extends AbstractMapPro<K, V> imple
 	 *
 	 * @since 1.6
 	 */
-	public ConcurrentLinkedHashMapPro(int initialCapacity, float loadFactor) {
-		this(initialCapacity, loadFactor, DEFAULT_CONCURRENCY_LEVEL, UNLIMITED_SIZE, new FIFOPolicy());
+	public ConcurrentHashMapNullSupport(int initialCapacity, float loadFactor) {
+		this(initialCapacity, loadFactor, DEFAULT_CONCURRENCY_LEVEL);
 	}
 
 	/**
@@ -885,16 +700,16 @@ public class ConcurrentLinkedHashMapPro<K, V> extends AbstractMapPro<K, V> imple
 	 *            accommodate this many elements.
 	 * @throws IllegalArgumentException if the initial capacity of elements is negative.
 	 */
-	public ConcurrentLinkedHashMapPro(int initialCapacity) {
-		this(initialCapacity, DEFAULT_LOAD_FACTOR, DEFAULT_CONCURRENCY_LEVEL, UNLIMITED_SIZE, new FIFOPolicy());
+	public ConcurrentHashMapNullSupport(int initialCapacity) {
+		this(initialCapacity, DEFAULT_LOAD_FACTOR, DEFAULT_CONCURRENCY_LEVEL);
 	}
 
 	/**
 	 * Creates a new, empty map with a default initial capacity (16), load factor (0.75) and
 	 * concurrencyLevel (16).
 	 */
-	public ConcurrentLinkedHashMapPro() {
-		this(DEFAULT_INITIAL_CAPACITY, DEFAULT_LOAD_FACTOR, DEFAULT_CONCURRENCY_LEVEL, UNLIMITED_SIZE, new FIFOPolicy());
+	public ConcurrentHashMapNullSupport() {
+		this(DEFAULT_INITIAL_CAPACITY, DEFAULT_LOAD_FACTOR, DEFAULT_CONCURRENCY_LEVEL);
 	}
 
 	/**
@@ -904,8 +719,8 @@ public class ConcurrentLinkedHashMapPro<K, V> extends AbstractMapPro<K, V> imple
 	 *
 	 * @param m the map
 	 */
-	public ConcurrentLinkedHashMapPro(Map<? extends K, ? extends V> m) {
-		this(Math.max((int) (m.size() / DEFAULT_LOAD_FACTOR) + 1, DEFAULT_INITIAL_CAPACITY), DEFAULT_LOAD_FACTOR, DEFAULT_CONCURRENCY_LEVEL, UNLIMITED_SIZE, new FIFOPolicy());
+	public ConcurrentHashMapNullSupport(Map<? extends K, ? extends V> m) {
+		this(Math.max((int) (m.size() / DEFAULT_LOAD_FACTOR) + 1, DEFAULT_INITIAL_CAPACITY), DEFAULT_LOAD_FACTOR, DEFAULT_CONCURRENCY_LEVEL);
 		putAll(m);
 	}
 
@@ -1000,35 +815,19 @@ public class ConcurrentLinkedHashMapPro<K, V> extends AbstractMapPro<K, V> imple
 	@Override
 	public V get(Object key) {
 		int hash = hash(key);
-		return segmentFor(hash).get(key, hash, header, null);
+		return segmentFor(hash).get(key, hash);
+	}
+
+	private V ge(Object key) throws PageException {
+		int hash = hash(key);
+		return segmentFor(hash).getE(this, key, hash);
 	}
 
 	@Override
-	public V g(K key) throws PageException {
+	public V getOrDefault(Object key, V defaultValue) {
 		int hash = hash(key);
-		Segment<K, V> seg = segmentFor(hash);
-
-		if (seg.count != 0) { // read-volatile
-			HashEntry<K, V> e = seg.getFirst(hash);
-			while (e != null) {
-				if (e.hash == hash && key.equals(e.key)) {
-					V v = e.value;
-					if (v != null) {
-						if (evictionPolicy.accessOrder()) e.recordAccess(header, evictionPolicy);
-						return v;
-					}
-					return seg.readValueUnderLock(e); // recheck
-				}
-				e = e.next;
-			}
-		}
-		throw AbstractMapPro.invalidKey(this, key, false);
-	}
-
-	@Override
-	public V g(K key, V defaultValue) {
-		int hash = hash(key);
-		return segmentFor(hash).get(key, hash, header, defaultValue);
+		// int hash = hash(key.hashCode());
+		return segmentFor(hash).get(key, hash, defaultValue);
 	}
 
 	/**
@@ -1056,23 +855,23 @@ public class ConcurrentLinkedHashMapPro<K, V> extends AbstractMapPro<K, V> imple
 	 */
 	@Override
 	public boolean containsValue(Object value) {
-		if (value == null) throw new NullPointerException();
-
-		// See explanation of modCount use above
 
 		final Segment<K, V>[] segments = this.segments;
 		int[] mc = new int[segments.length];
 
 		// Try a few times without locking
 		for (int k = 0; k < RETRIES_BEFORE_LOCK; ++k) {
+			int sum = 0;
 			int mcsum = 0;
 			for (int i = 0; i < segments.length; ++i) {
+				int c = segments[i].count;
 				mcsum += mc[i] = segments[i].modCount;
 				if (segments[i].containsValue(value)) return true;
 			}
 			boolean cleanSweep = true;
 			if (mcsum != 0) {
 				for (int i = 0; i < segments.length; ++i) {
+					int c = segments[i].count;
 					if (mc[i] != segments[i].modCount) {
 						cleanSweep = false;
 						break;
@@ -1131,30 +930,8 @@ public class ConcurrentLinkedHashMapPro<K, V> extends AbstractMapPro<K, V> imple
 	 */
 	@Override
 	public V put(K key, V value) {
-
-		HashEntry<K, V> evictEntry = (HashEntry<K, V>) evictionPolicy.evictElement(header);
-		if (evictEntry != null && size() >= maxSize) segmentFor(evictEntry.hash).remove(evictEntry.key, evictEntry.hash, evictEntry.value, header, null);
-
 		int hash = hash(key);
-		return segmentFor(hash).put(key, hash, value, false, header);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @return the previous value associated with the specified key, or <tt>null</tt> if there was no
-	 *         mapping for the key
-	 * @throws NullPointerException if the specified key or value is null
-	 */
-	@Override
-	public V putIfAbsent(K key, V value) {
-		if (value == null) throw new NullPointerException();
-
-		HashEntry<K, V> evictEntry = (HashEntry<K, V>) evictionPolicy.evictElement(header);
-		if (evictEntry != null && size() >= maxSize) segmentFor(evictEntry.hash).remove(evictEntry.key, evictEntry.hash, evictEntry.value, header, null);
-
-		int hash = hash(key);
-		return segmentFor(hash).put(key, hash, value, true, header);
+		return segmentFor(hash).put(key, hash, value, false);
 	}
 
 	/**
@@ -1181,57 +958,19 @@ public class ConcurrentLinkedHashMapPro<K, V> extends AbstractMapPro<K, V> imple
 	@Override
 	public V remove(Object key) {
 		int hash = hash(key);
-		return segmentFor(hash).remove(key, hash, null, header, null);
+		return segmentFor(hash).r(key, hash, null);
 	}
 
-	@Override
-	public V r(K key) throws PageException {
+	public V rem(Object key) throws PageException {
 		int hash = hash(key);
-		return segmentFor(hash).removeE(this, key, hash, null, header);
+		return segmentFor(hash).r(this, key, hash);
 	}
 
-	@Override
-	public V r(K key, V defaultValue) {
-		int hash = hash(key);
-		return segmentFor(hash).remove(key, hash, null, header, defaultValue);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @throws NullPointerException if the specified key is null
-	 */
-	@Override
-	public boolean remove(Object key, Object value) {
-		int hash = hash(key);
-		if (value == null) return false;
-		return segmentFor(hash).remove(key, hash, value, header, null) != null;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @throws NullPointerException if any of the arguments are null
-	 */
-	@Override
-	public boolean replace(K key, V oldValue, V newValue) {
-		if (oldValue == null || newValue == null) throw new NullPointerException();
-		int hash = hash(key);
-		return segmentFor(hash).replace(key, hash, oldValue, newValue);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @return the previous value associated with the specified key, or <tt>null</tt> if there was no
-	 *         mapping for the key
-	 * @throws NullPointerException if the specified key or value is null
-	 */
-	@Override
-	public V replace(K key, V value) {
-		if (value == null) throw new NullPointerException();
-		int hash = hash(key);
-		return segmentFor(hash).replace(key, hash, value);
+	private boolean remove(Map.Entry e) {
+		Object k = e.getKey();
+		Object v = e.getValue();
+		int hash = hash(k);
+		return segmentFor(hash)._remove(k, hash, v, Null.NULL) != Null.NULL;
 	}
 
 	/**
@@ -1240,51 +979,7 @@ public class ConcurrentLinkedHashMapPro<K, V> extends AbstractMapPro<K, V> imple
 	@Override
 	public void clear() {
 		for (int i = 0; i < segments.length; ++i)
-			segments[i].clear(header);
-		header.before = header.after = header;
-	}
-
-	/**
-	 * Returns <tt>true</tt> if this map should remove its eldest entry. This method is invoked by
-	 * <tt>put</tt> and <tt>putAll</tt> after inserting a new entry into the map. It provides the
-	 * implementor with the opportunity to remove the eldest entry each time a new one is added. This is
-	 * useful if the map represents a cache: it allows the map to reduce memory consumption by deleting
-	 * stale entries.
-	 *
-	 * <p>
-	 * Sample use: this override will allow the map to grow up to 100 entries and then delete the eldest
-	 * entry each time a new entry is added, maintaining a steady state of 100 entries.
-	 * 
-	 * <pre>
-	 * private static final int MAX_ENTRIES = 100;
-	 *
-	 * protected boolean removeEldestEntry(Map.Entry eldest) {
-	 * 	return size() > MAX_ENTRIES;
-	 * }
-	 * </pre>
-	 *
-	 * <p>
-	 * This method typically does not modify the map in any way, instead allowing the map to modify
-	 * itself as directed by its return value. It <i>is</i> permitted for this method to modify the map
-	 * directly, but if it does so, it <i>must</i> return <tt>false</tt> (indicating that the map should
-	 * not attempt any further modification). The effects of returning <tt>true</tt> after modifying the
-	 * map from within this method are unspecified.
-	 *
-	 * <p>
-	 * This implementation merely returns <tt>false</tt> (so that this map acts like a normal map - the
-	 * eldest element is never removed).
-	 *
-	 * @param eldest The least recently inserted entry in the map, or if this is an access-ordered map,
-	 *            the least recently accessed entry. This is the entry that will be removed it this
-	 *            method returns <tt>true</tt>. If the map was empty prior to the <tt>put</tt> or
-	 *            <tt>putAll</tt> invocation resulting in this invocation, this will be the entry that
-	 *            was just inserted; in other words, if the map contains a single entry, the eldest
-	 *            entry is also the newest.
-	 * @return <tt>true</tt> if the eldest entry should be removed from the map; <tt>false</tt> if it
-	 *         should be retained.
-	 */
-	protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
-		return false;
+			segments[i].clear();
 	}
 
 	/**
@@ -1367,40 +1062,59 @@ public class ConcurrentLinkedHashMapPro<K, V> extends AbstractMapPro<K, V> imple
 	/* ---------------- Iterator Support -------------- */
 
 	abstract class HashIterator {
-		HashEntry<K, V> nextEntry = null;
-		HashEntry<K, V> lastReturned = null;
-
-		HashEntry<K, V> snapshotHeader = null;
+		int nextSegmentIndex;
+		int nextTableIndex;
+		HashEntry<K, V>[] currentTable;
+		HashEntry<K, V> nextEntry;
+		HashEntry<K, V> lastReturned;
 
 		HashIterator() {
-			if (evictionPolicy.recordAccess(header, header) != null) snapshotHeader = header.cloneAll(header);
-			else snapshotHeader = header;
-
-			nextEntry = snapshotHeader.after;
+			nextSegmentIndex = segments.length - 1;
+			nextTableIndex = -1;
+			advance();
 		}
 
 		public boolean hasMoreElements() {
 			return hasNext();
 		}
 
+		final void advance() {
+			if (nextEntry != null && (nextEntry = nextEntry.next) != null) return;
+
+			while (nextTableIndex >= 0) {
+				if ((nextEntry = currentTable[nextTableIndex--]) != null) return;
+			}
+
+			while (nextSegmentIndex >= 0) {
+				Segment<K, V> seg = segments[nextSegmentIndex--];
+				if (seg.count != 0) {
+					currentTable = seg.table;
+					for (int j = currentTable.length - 1; j >= 0; --j) {
+						if ((nextEntry = currentTable[j]) != null) {
+							nextTableIndex = j - 1;
+							return;
+						}
+					}
+				}
+			}
+		}
+
 		public boolean hasNext() {
-			return nextEntry != snapshotHeader;
+			return nextEntry != null;
 		}
 
 		HashEntry<K, V> nextEntry() {
-			if (nextEntry == snapshotHeader) throw new NoSuchElementException();
-			HashEntry<K, V> e = lastReturned = nextEntry;
-			nextEntry = e.after;
-
-			return e;
+			if (nextEntry == null) throw new NoSuchElementException();
+			lastReturned = nextEntry;
+			advance();
+			return lastReturned;
 		}
 
 		public void remove() {
 			if (lastReturned == null) throw new IllegalStateException();
-			ConcurrentLinkedHashMapPro.this.remove(lastReturned.key);
+			ConcurrentHashMapNullSupport.this.remove(lastReturned.key);
 			lastReturned = null;
 		}
-
 	}
 
 	final class KeyIterator extends HashIterator implements Iterator<K>, Enumeration<K> {
@@ -1431,10 +1145,7 @@ public class ConcurrentLinkedHashMapPro<K, V> extends AbstractMapPro<K, V> imple
 	 * Custom Entry class used by EntryIterator.next(), that relays setValue changes to the underlying
 	 * map.
 	 */
-	final class WriteThroughEntry extends AbstractMap.SimpleEntry<K, V> implements Map.Entry<K, V> {
-
-		private static final long serialVersionUID = 1573332674915851631L;
-
+	final class WriteThroughEntry extends AbstractMap.SimpleEntry<K, V> {
 		WriteThroughEntry(K k, V v) {
 			super(k, v);
 		}
@@ -1447,14 +1158,13 @@ public class ConcurrentLinkedHashMapPro<K, V> extends AbstractMapPro<K, V> imple
 		 */
 		@Override
 		public V setValue(V value) {
-			if (value == null) throw new NullPointerException();
 			V v = super.setValue(value);
-			ConcurrentLinkedHashMapPro.this.put(getKey(), value);
+			ConcurrentHashMapNullSupport.this.put(getKey(), value);
 			return v;
 		}
 	}
 
-	final class EntryIterator extends HashIterator implements Iterator<Map.Entry<K, V>> {
+	final class EntryIterator extends HashIterator implements Iterator<Entry<K, V>> {
 		@Override
 		public Map.Entry<K, V> next() {
 			HashEntry<K, V> e = super.nextEntry();
@@ -1470,27 +1180,34 @@ public class ConcurrentLinkedHashMapPro<K, V> extends AbstractMapPro<K, V> imple
 
 		@Override
 		public int size() {
-			return ConcurrentLinkedHashMapPro.this.size();
+			return ConcurrentHashMapNullSupport.this.size();
 		}
 
 		@Override
 		public boolean isEmpty() {
-			return ConcurrentLinkedHashMapPro.this.isEmpty();
+			return ConcurrentHashMapNullSupport.this.isEmpty();
 		}
 
 		@Override
 		public boolean contains(Object o) {
-			return ConcurrentLinkedHashMapPro.this.containsKey(o);
+			return ConcurrentHashMapNullSupport.this.containsKey(o);
 		}
 
 		@Override
 		public boolean remove(Object o) {
-			return ConcurrentLinkedHashMapPro.this.remove(o) != null;
+			try {
+				ConcurrentHashMapNullSupport.this.rem(o);
+				return true;
+			}
+			catch (Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
+				return false;
+			}
 		}
 
 		@Override
 		public void clear() {
-			ConcurrentLinkedHashMapPro.this.clear();
+			ConcurrentHashMapNullSupport.this.clear();
 		}
 	}
 
@@ -1502,22 +1219,22 @@ public class ConcurrentLinkedHashMapPro<K, V> extends AbstractMapPro<K, V> imple
 
 		@Override
 		public int size() {
-			return ConcurrentLinkedHashMapPro.this.size();
+			return ConcurrentHashMapNullSupport.this.size();
 		}
 
 		@Override
 		public boolean isEmpty() {
-			return ConcurrentLinkedHashMapPro.this.isEmpty();
+			return ConcurrentHashMapNullSupport.this.isEmpty();
 		}
 
 		@Override
 		public boolean contains(Object o) {
-			return ConcurrentLinkedHashMapPro.this.containsValue(o);
+			return ConcurrentHashMapNullSupport.this.containsValue(o);
 		}
 
 		@Override
 		public void clear() {
-			ConcurrentLinkedHashMapPro.this.clear();
+			ConcurrentHashMapNullSupport.this.clear();
 		}
 	}
 
@@ -1529,32 +1246,41 @@ public class ConcurrentLinkedHashMapPro<K, V> extends AbstractMapPro<K, V> imple
 
 		@Override
 		public boolean contains(Object o) {
-			if (!(o instanceof Map.Entry<?, ?>)) return false;
+			if (!(o instanceof Map.Entry)) return false;
 			Map.Entry<?, ?> e = (Map.Entry<?, ?>) o;
-			V v = ConcurrentLinkedHashMapPro.this.get(e.getKey());
-			return v != null && v.equals(e.getValue());
+			try {
+				V v = ge(e.getKey());
+				if (v == null) {
+					return e.getValue() == null;
+				}
+				return v.equals(e.getValue());
+			}
+			catch (Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
+				return false;
+			}
 		}
 
 		@Override
 		public boolean remove(Object o) {
-			if (!(o instanceof Map.Entry<?, ?>)) return false;
+			if (!(o instanceof Map.Entry)) return false;
 			Map.Entry<?, ?> e = (Map.Entry<?, ?>) o;
-			return ConcurrentLinkedHashMapPro.this.remove(e.getKey(), e.getValue());
+			return ConcurrentHashMapNullSupport.this.remove(e);
 		}
 
 		@Override
 		public int size() {
-			return ConcurrentLinkedHashMapPro.this.size();
+			return ConcurrentHashMapNullSupport.this.size();
 		}
 
 		@Override
 		public boolean isEmpty() {
-			return ConcurrentLinkedHashMapPro.this.isEmpty();
+			return ConcurrentHashMapNullSupport.this.isEmpty();
 		}
 
 		@Override
 		public void clear() {
-			ConcurrentLinkedHashMapPro.this.clear();
+			ConcurrentHashMapNullSupport.this.clear();
 		}
 	}
 
@@ -1591,7 +1317,7 @@ public class ConcurrentLinkedHashMapPro<K, V> extends AbstractMapPro<K, V> imple
 	}
 
 	/**
-	 * Reconstitute the <tt>ConcurrentLinkedHashMap</tt> instance from a stream (i.e., deserialize it).
+	 * Reconstitute the <tt>ConcurrentHashMap</tt> instance from a stream (i.e., deserialize it).
 	 * 
 	 * @param s the stream
 	 */
@@ -1610,34 +1336,5 @@ public class ConcurrentLinkedHashMapPro<K, V> extends AbstractMapPro<K, V> imple
 			if (key == null) break;
 			put(key, value);
 		}
-	}
-
-	public interface Entry<K, V> extends Map.Entry<K, V> {
-
-		/**
-		 * Returns the entry before this entry in the entry list.
-		 */
-		Entry<K, V> getBefore();
-
-		/**
-		 * Returns the entry after this entry in the entry list.
-		 */
-		Entry<K, V> getAfter();
-
-		/**
-		 * Returns the entry's access count.
-		 */
-		long getAccessCount();
-
-		/**
-		 * Returns the entry's creation time in milliseconds.
-		 */
-		long getCreationTime();
-
-		/**
-		 * Returns the entry's last access time in milliseconds.
-		 */
-		long getLastAccessTime();
-
 	}
 }

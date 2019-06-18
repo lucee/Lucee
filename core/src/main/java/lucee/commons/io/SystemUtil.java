@@ -21,6 +21,7 @@ package lucee.commons.io;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectInputStream;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.lang.management.ManagementFactory;
@@ -1518,6 +1519,34 @@ public final class SystemUtil {
 			catch (Exception e) {}
 		}
 		return true;
+	}
+
+	public static boolean getJavaObjectInputStreamAccessCheckArray(ObjectInputStream s, Class<Entry[]> class1, int cap) {
+		// jdk.internal.misc.SharedSecrets.getJavaObjectInputStreamAccess().checkArray(s, Map.Entry[].class,
+		// cap);
+		Class clazz = ClassUtil.loadClass("jdk.internal.misc.SharedSecrets", null); // Java == 9
+		if (clazz == null) clazz = ClassUtil.loadClass("sun.misc.SharedSecrets", null); // Java < 9
+
+		// get object
+		Object joisa = null;
+		if (clazz != null) {
+			try {
+				Method m = clazz.getMethod("getJavaObjectInputStreamAccess", EMPTY_CLASS);
+				joisa = m.invoke(null, EMPTY_OBJ);
+			}
+			catch (Exception e) {}
+		}
+
+		if (joisa != null) {
+			clazz = joisa.getClass();
+			try {
+				Method m = clazz.getMethod("checkArray", new Class[] { ObjectInputStream.class, Class.class, int.class });
+				m.invoke(joisa, new Object[] { s, class1, cap });
+				return true;
+			}
+			catch (Exception e) {}
+		}
+		return false;
 	}
 
 }

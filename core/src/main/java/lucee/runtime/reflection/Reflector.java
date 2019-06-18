@@ -918,7 +918,7 @@ public final class Reflector {
 				if (cls != null) {
 					String name = cls.getName();
 					if (name != null && name.startsWith("lucee.")) {
-						throw new PageRuntimeException(new SecurityException("Changing the accessibility of an object's members in the Lucee.* package is not allowed"));
+						throw new PageRuntimeException(new SecurityException("Changing the accessibility of an object's members in the lucee.* package is not allowed"));
 					}
 				}
 

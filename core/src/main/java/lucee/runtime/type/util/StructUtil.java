@@ -30,13 +30,9 @@ import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
-import lucee.commons.collection.LinkedHashMapPro;
-import lucee.commons.collection.MapPro;
-import lucee.commons.collection.MapProWrapper;
-import lucee.commons.collection.SyncMap;
-import lucee.commons.collection.WeakHashMapPro;
+import org.apache.commons.collections4.map.ReferenceMap;
+
 import lucee.commons.digest.HashUtil;
-import lucee.commons.lang.SizeOf;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.dump.DumpProperties;
@@ -211,24 +207,6 @@ public final class StructUtil {
 		return sct;
 	}
 
-	/**
-	 * return the size of given struct, size of values + keys
-	 * 
-	 * @param sct
-	 * @return
-	 */
-	public static long sizeOf(Struct sct) {
-		Iterator<Entry<Key, Object>> it = sct.entryIterator();
-		Entry<Key, Object> e;
-		long size = 0;
-		while (it.hasNext()) {
-			e = it.next();
-			size += SizeOf.size(e.getKey());
-			size += SizeOf.size(e.getValue());
-		}
-		return size;
-	}
-
 	public static void setELIgnoreWhenNull(Struct sct, String key, Object value) {
 		setELIgnoreWhenNull(sct, KeyImpl.init(key), value);
 	}
@@ -266,22 +244,11 @@ public final class StructUtil {
 		return sct;
 	}
 
-	public static int getType(MapPro m) {
-		if (m instanceof SyncMap) return ((SyncMap) m).getType();
-
-		if (m instanceof LinkedHashMapPro) return Struct.TYPE_LINKED;
-		if (m instanceof WeakHashMapPro) return Struct.TYPE_WEAKED;
-		// if(map instanceof SyncMap) return TYPE_SYNC;
-		if (m instanceof MapProWrapper) return Struct.TYPE_SOFT;
-		return Struct.TYPE_REGULAR;
-	}
-
 	public static int getType(Map m) {
-		if (m instanceof MapPro) return getType(m);
-
 		if (m instanceof LinkedHashMap) return Struct.TYPE_LINKED;
 		if (m instanceof WeakHashMap) return Struct.TYPE_WEAKED;
 		if (m instanceof ConcurrentHashMap) return Struct.TYPE_SYNC;
+		if (m instanceof ReferenceMap) return Struct.TYPE_SOFT;
 
 		return Struct.TYPE_REGULAR;
 	}

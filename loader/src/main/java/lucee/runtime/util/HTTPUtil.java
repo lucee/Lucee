@@ -72,6 +72,7 @@ public interface HTTPUtil {
 	 * @see #put(URL, String, String, int, String, String, String, String, int, String, String,
 	 *      Header[], Object)
 	 */
+	@Deprecated
 	public HTTPResponse put(URL url, String username, String password, int timeout, String charset, String useragent, String proxyserver, int proxyport, String proxyuser,
 			String proxypassword, Header[] headers, Object body) throws IOException;
 
@@ -95,6 +96,7 @@ public interface HTTPUtil {
 	 * @see #toURL(String, int, boolean)
 	 * 
 	 */
+	@Deprecated
 	public URL toURL(String strUrl, int port) throws MalformedURLException;
 
 	/**

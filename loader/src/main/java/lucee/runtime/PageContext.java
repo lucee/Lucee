@@ -665,6 +665,7 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	 * @return the current template PageSource
 	 * @deprecated use instead {@link #getCurrentPageSource(PageSource)}
 	 */
+	@Deprecated
 	public abstract PageSource getCurrentPageSource();
 
 	/**

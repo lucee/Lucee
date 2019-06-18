@@ -16,7 +16,8 @@
  **/
 package lucee.runtime.type.scope.session;
 
-import lucee.commons.collection.MapPro;
+import java.util.Map;
+
 import lucee.runtime.PageContext;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.scope.Session;
@@ -28,7 +29,7 @@ public final class IKStorageScopeSession extends IKStorageScopeSupport implement
 
 	private static final long serialVersionUID = -875719423763891692L;
 
-	public IKStorageScopeSession(PageContext pc, IKHandler handler, String appName, String name, MapPro<Collection.Key, IKStorageScopeItem> data, long lastModified) {
+	public IKStorageScopeSession(PageContext pc, IKHandler handler, String appName, String name, Map<Collection.Key, IKStorageScopeItem> data, long lastModified) {
 		super(pc, handler, appName, name, "session", SCOPE_SESSION, data, lastModified);
 	}
 

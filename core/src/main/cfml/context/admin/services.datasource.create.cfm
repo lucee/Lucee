@@ -545,7 +545,7 @@ optional=[];
 if(datasource.blob) optional.append('blob:#datasource.blob# // default: false');
 if(datasource.clob) optional.append('clob:#datasource.clob# // default: false');
 if(isNumeric(datasource.connectionLimit))optional.append('connectionLimit:#datasource.connectionLimit# // default:-1');
-if(datasource.connectionTimeout NEQ 1)optional.append('connectionTimeout:#datasource.connectionTimeout# // default: 1; unit: seconds');
+if(datasource.connectionTimeout NEQ 1)optional.append('connectionTimeout:#datasource.connectionTimeout# // default: 1; unit: minutes');
 if(datasource.metaCacheTimeout NEQ 60000)optional.append(',metaCacheTimeout:#datasource.metaCacheTimeout# // default: 60000; unit: milliseconds');
 if(len(datasource.timezone))optional.append("timezone:'#replace(datasource.timezone,"'","''","all")#'");
 if(datasource.storage) optional.append('storage:#datasource.storage# // default: false');
@@ -557,7 +557,7 @@ if(!isNull(driver.alwaysSetTimeout) && driver.alwaysSetTimeout())
 if(datasource.requestExclusive) 
 	optional.append('requestExclusive:true // default: false');
 
-optional.append('validate:#datasource.validate?:false# // default: false');
+optional.append('validate:#truefalseformat(datasource.validate?:false)# // default: false');
 </cfscript>
 <cfsavecontent variable="codeSample">
 	this.datasources["#datasource.name#"] = {

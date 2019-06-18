@@ -88,6 +88,7 @@ public final class PageSourceImpl implements PageSource {
 	private long lastAccess;
 	private RefIntegerSync accessCount = new RefIntegerSync();
 	private boolean flush = false;
+	private String actualClassName;
 
 	private PageSourceImpl() {
 		mapping = null;
@@ -297,7 +298,6 @@ public final class PageSourceImpl implements PageSource {
 		if (page != null) {
 			// if(page!=null && !recompileAlways) {
 			if (srcLastModified != page.getSourceLastModified()) {
-
 				// same size, maybe the content has not changed?
 				boolean same = false;
 				if (page instanceof PagePro && ((PagePro) page).getSourceLength() == srcFile.length()) {
@@ -333,7 +333,7 @@ public final class PageSourceImpl implements PageSource {
 			// load page
 			else {
 				try {
-					this.page = page = newInstance(mapping.getPhysicalClass(this.getClassName()));
+					this.page = page = newInstance(mapping.getPhysicalClass(this.getActualClassName()));
 				}
 				catch (Throwable t) {
 					ExceptionUtil.rethrowIfNecessary(t);
@@ -409,6 +409,10 @@ public final class PageSourceImpl implements PageSource {
 					mapping.getPhysicalClass(jf.getClassName(), jf.byteCode);
 				}
 			}
+			if (!clazz.getName().equals(getClassName())) {
+				setActualClassName(clazz.getName());
+			}
+
 			return newInstance(clazz);
 		}
 		catch (Throwable t) {
@@ -638,6 +642,16 @@ public final class PageSourceImpl implements PageSource {
 		if (className == null) createClassAndPackage();
 		if (packageName.length() == 0) return className;
 		return packageName.concat(".").concat(className);
+	}
+
+	public void setActualClassName(String actualClassName) {
+		this.actualClassName = actualClassName;
+		;
+	}
+
+	public String getActualClassName() {
+		if (actualClassName == null) return className;
+		return actualClassName;
 	}
 
 	@Override
