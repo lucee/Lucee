@@ -26,6 +26,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.collections4.map.ReferenceMap;
 
@@ -88,7 +89,7 @@ public class RamCache extends CacheSupport {
 
 		// out of memory
 		boolean outOfMemory = Caster.toBooleanValue(arguments.get("outOfMemory", false), false);
-		if (outOfMemory) entries = new ReferenceMap<String, RamCacheEntry>(SOFT, SOFT);
+		if (outOfMemory) entries = new ConcurrentHashMap<String, RamCacheEntry>();
 
 		// until
 		long until = Caster.toLongValue(arguments.get("timeToLiveSeconds", Constants.LONG_ZERO), Constants.LONG_ZERO) * 1000;
