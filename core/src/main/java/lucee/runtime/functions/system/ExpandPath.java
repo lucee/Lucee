@@ -28,6 +28,7 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl.ResourceProviderFactory;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.runtime.Mapping;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
@@ -61,7 +62,8 @@ public final class ExpandPath implements Function {
 
 			PageContextImpl pci = (PageContextImpl) pc;
 			ConfigWebImpl cwi = (ConfigWebImpl) config;
-			PageSource[] sources = cwi.getPageSources(pci, pc.getApplicationContext().getMappings(), relPath, false, pci.useSpecialMappings(), true);
+			PageSource[] sources = cwi.getPageSources(pci, mergeMappings(pc.getApplicationContext().getMappings(), pc.getApplicationContext().getComponentMappings()), relPath,
+					false, pci.useSpecialMappings(), true);
 
 			if (!ArrayUtil.isEmpty(sources)) {
 				// first check for existing
@@ -110,6 +112,22 @@ public final class ExpandPath implements Function {
 		res = res.getRealResource(relPath);
 		return toReturnValue(relPath, res);
 
+	}
+
+	public static Mapping[] mergeMappings(Mapping[] l, Mapping[] r) {
+		Mapping[] arr = new Mapping[(l == null ? 0 : l.length) + (r == null ? 0 : r.length)];
+		int index = 0;
+		if (l != null) {
+			for (Mapping m: l) {
+				arr[index++] = m;
+			}
+		}
+		if (r != null) {
+			for (Mapping m: r) {
+				arr[index++] = m;
+			}
+		}
+		return arr;
 	}
 
 	private static String toReturnValue(String realPath, Resource res) {
