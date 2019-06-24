@@ -32,6 +32,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
@@ -734,6 +736,47 @@ public final class ClassUtil {
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
+		}
+
+		return defaultValue;
+	}
+
+	public static byte[] getBytesForClass(Class clazz, byte[] defaultValue) {
+		InputStream is = null;
+		try {
+			ClassLoader cl = clazz.getClassLoader();
+			if (cl == null) cl = ClassLoader.getSystemClassLoader();
+			is = cl.getResourceAsStream(clazz.getName().replace('.', '/') + ".class");
+			return IOUtil.toBytes(is);
+		}
+		catch (Exception e) {}
+
+		is = null;
+		ZipFile zf = null;
+		try {
+			String path = getSourcePathForClass(clazz, null);
+			if (path == null) return defaultValue;
+
+			File file = new File(path);
+			// zip
+			if (file.isFile()) {
+				zf = new ZipFile(file);
+				ZipEntry ze = zf.getEntry(clazz.getName().replace('.', '/') + ".class");
+				if (ze == null) ze = zf.getEntry(clazz.getName().replace('.', '\\') + ".class");
+				is = zf.getInputStream(ze);
+				return IOUtil.toBytes(is);
+			}
+			// directory
+			else if (file.isDirectory()) {
+				File f = new File(file, clazz.getName().replace('.', '/') + ".class");
+				if (!f.isFile()) f = new File(file, clazz.getName().replace('.', '\\') + ".class");
+				if (f.isFile()) return IOUtil.toBytes(f);
+			}
+		}
+		catch (Exception e) {}
+		finally {
+			IOUtil.closeEL(is);
+			IOUtil.closeEL(zf);
 		}
 
 		return defaultValue;
