@@ -32,13 +32,22 @@ import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
 
 public final class GetTempFile implements Function {
-	public static String call(PageContext pc, String strDir, String prefix) throws PageException {
+	public static String call(PageContext pc, String strDir, String prefix, String extension) throws PageException {
 		Resource dir = ResourceUtil.toResourceExisting(pc, strDir);
 		pc.getConfig().getSecurityManager().checkFileLocation(dir);
 		if (!dir.isDirectory()) throw new ExpressionException(strDir + " is not a directory");
 		int count = 1;
 		Resource file;
-		while ((file = dir.getRealResource(prefix + pc.getId() + count + ".tmp")).exists()) {
+		String getExtens;
+		if(extension == null || extension == ""){ extension = ".tmp"; }
+		getExtens = extension.toLowerCase();
+		extension = extension.toLowerCase();
+		if(extension.charAt(0) != '.'){ extension = "." + extension; }
+		if( ((!".tmp".equals(extension)) && (!".doc".equals(extension))  && (!".pdf".equals(extension)) && (!".docx".equals(extension)) &&
+			(!".zip".equals(extension)) && (!".img".equals(extension)) && (!".jpeg".equals(extension))  && (!".jpg".equals(extension)) && 
+			(!".png".equals(extension)) && (!".txt".equals(extension)) )) throw new ExpressionException("Type '" + getExtens + "' is not allowed. Valid types are [ txt,doc,docx,pdf,zip,img,png,tmp,jpeg,jpg ]");
+
+		while ((file = dir.getRealResource(prefix + pc.getId() + count + extension )).exists()) {
 			count++;
 		}
 		try {

@@ -6234,6 +6234,13 @@ if this attribute is not provided all types are returned.</description>
 			<required>Yes</required>
 		<description>Prefix of a temporary file to create in the dir directory</description>
     </argument>
+    	<argument>
+    		<name>extension</name>
+    		<type>string</type>
+			<required>No</required>
+			<Default>tmp</Default>
+		<description>Create temporary files with the following extensions: txt,doc,docx,pdf,zip,tmp,img,png,jpeg,jpg.</description>
+	</argument>
 		<return>
 			<type>string</type>
 		</return>
