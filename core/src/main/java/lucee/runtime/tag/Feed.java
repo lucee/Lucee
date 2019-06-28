@@ -328,7 +328,7 @@ public final class Feed extends TagImpl {
 		}
 		// file
 		if (outputFile != null) {
-			if (outputFile.exists() && !overwrite) throw new ApplicationException("destiniation file [" + outputFile + "] already exist");
+			if (outputFile.exists() && !overwrite) throw new ApplicationException("destination file [" + outputFile + "] already exists");
 
 			if (StringUtil.isEmpty(charset)) charset = ((PageContextImpl) pageContext).getResourceCharset().name();
 
