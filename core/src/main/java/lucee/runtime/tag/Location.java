@@ -42,6 +42,7 @@ public final class Location extends TagImpl {
 
 	/** The URL of the HTML file or CFML page to open. */
 	private String url = "";
+	private boolean encode = true;
 
 	private int statuscode = 302;
 
@@ -51,6 +52,7 @@ public final class Location extends TagImpl {
 		addtoken = true;
 		url = "";
 		statuscode = 302;
+		encode=true;
 	}
 
 	/**
@@ -76,6 +78,16 @@ public final class Location extends TagImpl {
 	}
 
 	/**
+	* set the value Encode true or false.
+	* 
+	* @param encode value to set
+	**/
+
+	public void setEncode(boolean encode) {
+		this.encode = encode;
+	}
+
+	/**
 	 * set the value url The URL of the HTML file or CFML page to open.
 	 * 
 	 * @param url value to set
@@ -97,7 +109,12 @@ public final class Location extends TagImpl {
 		}
 		HttpServletResponse rsp = pageContext.getHttpServletResponse();
 
-		url = HTTPUtil.encode(url);
+		if (this.encode == true){ 
+			url = HTTPUtil.encode(url); 
+		}
+		else {
+			url = url;
+		}
 
 		// add token
 		if (addtoken && needId()) {

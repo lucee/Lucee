@@ -314,6 +314,7 @@ public final class Http extends BodyTagImpl {
 	private String result = "cfhttp";
 
 	private boolean addtoken = false;
+	private boolean encode = true;
 
 	private short authType = AUTH_TYPE_BASIC;
 	private String workStation = null;
@@ -363,6 +364,7 @@ public final class Http extends BodyTagImpl {
 		multiPartType = MULTIPART_FORM_DATA;
 		result = "cfhttp";
 		addtoken = false;
+		encode=true;
 
 		authType = AUTH_TYPE_BASIC;
 		workStation = null;
@@ -1648,6 +1650,13 @@ public final class Http extends BodyTagImpl {
 	 */
 	public void setAddtoken(boolean addtoken) {
 		this.addtoken = addtoken;
+	}
+
+	/**
+	 * @param encode encode the URL
+	 */
+	public void setEncode(boolean encode) {
+		this.encode = encode;
 	}
 
 	/**
