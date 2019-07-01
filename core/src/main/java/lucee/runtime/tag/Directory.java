@@ -638,7 +638,7 @@ public final class Directory extends TagImpl {
 
 				throw new ApplicationException("directory [" + directory.toString() + "] already exists");
 			}
-			else if (directory.isFile()) throw new ApplicationException("can't create directory [" + directory.toString() + "], it conflicts with a file with same name");
+			else if (directory.isFile()) throw new ApplicationException("can't create directory [" + directory.toString() + "], a file exists with the same name");
 		}
 		// if(!directory.mkdirs()) throw new ApplicationException("can't create directory
 		// ["+directory.toString()+"]");
