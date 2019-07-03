@@ -85,6 +85,7 @@ public final class Operator {
 		else if (left instanceof Character) return compare(((Character) left).toString(), right);
 		else if (left instanceof Calendar) return compare(((Calendar) left).getTime(), right);
 		else if (left instanceof TimeZone) return compare(((TimeZone) left), right);
+		else if (left instanceof Object && right instanceof Object) return objectCompare((Object)left, (Object)right);
 		else {
 			return error(false, true);
 		}
@@ -865,6 +866,18 @@ public final class Operator {
 	 */
 	public static boolean eeq(Object left, Object right) throws PageException {
 		return left == right;
+	}
+	/**
+	 * comparsion between two object whether it is equal or not
+	 * 
+	 * @param left
+	 * @param right
+	 * @return
+	 * @throws PageException
+	 */
+	public static int objectCompare(Object left, Object right) throws PageException {
+		if ((left) == (right)) return 0;
+		else return 1;
 	}
 
 	/**
