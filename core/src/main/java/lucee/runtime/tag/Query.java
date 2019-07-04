@@ -478,7 +478,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		}
 
 		// literal timestamp with TSOffset
-		if (data.datasource instanceof DataSourceImpl) data.literalTimestampWithTSOffset = ((DataSourceImpl) data.datasource).getLiteralTimestampWithTSOffset();
+		if (data.datasource instanceof DataSourceSupport) data.literalTimestampWithTSOffset = ((DataSourceSupport) data.datasource).getLiteralTimestampWithTSOffset();
 		else data.literalTimestampWithTSOffset = false;
 
 		data.previousLiteralTimestampWithTSOffset = pci.getTimestampWithTSOffset();
