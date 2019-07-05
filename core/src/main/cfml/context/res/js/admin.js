@@ -155,8 +155,13 @@ function checkTheBox(field) {
 function enableBtnsWhenChecked(btns, checkboxes)
 {
 	checkboxes.change(function(){
-		var chkd = checkboxes.filter(':checked').length > 0;
-		btns.prop('disabled', chkd ? '':'disabled').css('opacity', (chkd ? 1:.5));
+		var chkd = checkboxes.filter(':checked').not('input[type="checkbox"][data-defaulturl="true"]').length > 0;
+			if($('input[type="checkbox"][data-defaulturl="true"]').filter(':checked').length > 0){
+				$('.reset,.verify').removeAttr('disabled').css('opacity',1);
+				$('.deleteBtn').attr('disabled','disabled').css('opacity',0.5);
+			}else{
+				btns.prop('disabled', chkd ? '':'disabled').css('opacity', (chkd ? 1:.5));
+			}
 	})
 		.filter(':first').triggerHandler('change');
 }

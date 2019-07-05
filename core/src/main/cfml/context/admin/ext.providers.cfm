@@ -4,6 +4,7 @@
 <cfset stVeritfyMessages=struct()>
 <cfparam name="error" default="#struct(message:"",detail:"")#">
 <cfparam name="form.mainAction" default="none">
+<cfparam name="saveUrl" default="1">
 <cfset error.message="">
 
 
@@ -55,6 +56,8 @@
 						url="#trim(data.urls[idx])#">
 				</cfif>
 			</cfloop>
+			<cfset saveUrl =saveUrl+1 >
+
 		</cfcase>
 		<cfcase value="#stText.Buttons.delete#">
 			<cfset data.urls=toArrayFromForm("url")>
@@ -155,9 +158,10 @@ list all mappings and display necessary edit fields --->
 					<tr>
 						<!--- checkbox ---->
 						<td>
-							<cfif not providers.readOnly>
-								<input type="checkbox" class="checkbox" name="row_#providers.currentrow#" value="#providers.currentrow#">
-							</cfif>
+							<!--- <cfif not providers.readOnly> --->
+								<input type="checkbox" class="checkbox" name="row_#providers.currentrow#" value="#providers.currentrow#"
+								<cfif providers.readOnly>data-defaulturl="true"</cfif>>
+							<!--- </cfif> --->
 						</td>
 						<!--- url --->
 						<td>
@@ -218,9 +222,10 @@ list all mappings and display necessary edit fields --->
 				<tfoot>
 					 <tr>
 						<td colspan="#columns#">
-							<input type="submit" class="button submit" name="mainAction" value="#stText.Buttons.verify#">
-							<input type="submit" class="button submit" name="mainAction" value="#stText.Buttons.Delete#">
-							<input type="reset" class="reset" name="cancel" value="#stText.Buttons.Cancel#">
+							<input type="submit" class="button submit verify" name="mainAction" value="#stText.Buttons.verify#" 
+							disabled="disabled">
+							<input type="reset" class="reset" name="cancel" value="#stText.Buttons.Cancel#" disabled="disabled">
+							<input type="submit" class="button submit deleteBtn" name="mainAction" value="#stText.Buttons.Delete#" disabled="disabled">
 						</td>	
 					</tr>
 				</tfoot>
@@ -240,7 +245,7 @@ list all mappings and display necessary edit fields --->
 						</th>
 						<td>
 							<cfinputClassic onKeyDown="checkTheBox(this)" type="text" 
-							name="url" value="" required="yes" class="xlarge">
+							name="url_#saveUrl#" value="" required="yes" class="xlarge">
 							<div class="comment">#stText.ext.prov.hostDesc#</div>
 						</td>
 					</tr>
