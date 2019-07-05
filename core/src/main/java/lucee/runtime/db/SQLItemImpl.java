@@ -121,7 +121,7 @@ public class SQLItemImpl implements SQLItem, Serializable {
 		SQLItemImpl item = new SQLItemImpl();
 		item.nulls = nulls;
 		item.scale = scale;
-		item.type = type;
+		// item.type = type;
 		item.value = object;
 		return item;
 	}
