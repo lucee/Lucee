@@ -11,25 +11,13 @@
 		// TODO check for lucee admin login
 		return false;
 	}
-	
-	try {
-		admin
-			action="getLoggedDebugData"
-			type="web"
-			id=url.id
-			returnVariable="log";
-	} catch(e){
-		//if (not isLoggedInAdmin())
-			rethrow(e);
-		/*
-		// TODO possible fall back for debugging debugging, show last log
-		admin
-			action="getLoggedDebugData"
-			type="web"
-			returnVariable="all";
-		log = all[all.len()];
-		*/
-	}
+		
+	admin
+		action="getLoggedDebugData"
+		type="web"
+		id=url.id
+		returnVariable="log";
+			
 	if (not isLoggedInAdmin()){
 		// access control, should the user be able to see this debug entry?	
 		logCookies = {};
@@ -54,7 +42,7 @@
 			echo("Debugging Log Access Denied");
 			cflog(text="Debugging Log Access Denied - id: #htmleditFormat(url.id)#", type="warning");
 			abort;
-		}	
+		}			
 	}
 
 	admin
