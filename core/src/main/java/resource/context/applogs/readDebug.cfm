@@ -1,6 +1,7 @@
 <cfscript>	
 	setting showdebugoutput=true;
 	param name="url.id" default="";
+	param name="url.tab" default="debug";
 	if (url.id eq ""){
 		header statustext="Debugging log id is required" statusCode="404";
 		echo("Debugging log id is required");		
@@ -9,15 +10,30 @@
 
 	function isLoggedInAdmin(){
 		// TODO check for lucee admin login
+		/*
+		this doesn't work coz of the session scope for admin being different
+
+		if (structKeyExists(session, "passwordweb")){
+			admin action="connect"
+				type="web"
+				password="#session.passwordweb#";
+		} else if (structKeyExists(session, "passwordserver")){
+			admin action="connect"
+				type="web"
+				password="#session.passwordserver#";
+		} else {
+			return false;
+		}
+		*/
 		return false;
 	}
-		
+	
 	admin
 		action="getLoggedDebugData"
 		type="web"
 		id=url.id
 		returnVariable="log";
-			
+
 	if (not isLoggedInAdmin()){
 		// access control, should the user be able to see this debug entry?	
 		logCookies = {};
@@ -42,7 +58,7 @@
 			echo("Debugging Log Access Denied");
 			cflog(text="Debugging Log Access Denied - id: #htmleditFormat(url.id)#", type="warning");
 			abort;
-		}			
+		}	
 	}
 
 	admin
