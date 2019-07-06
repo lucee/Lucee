@@ -783,10 +783,10 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			<cfloop query="pages">
 				<cfset querySetCell(pages, "total", pages.app + pages.load + pages.query, pages.currentRow)>
 				<cfset querySetCell(pages, "avg", (pages.app + pages.load + pages.query) / pages.count, pages.currentRow)>
-				<cfset aPage = listToArray(pages.src, '$')>
+				<cfset local.aPage = listToArray(pages.src, '$')>
 				<cfset querySetCell(pages, "path", pages.src, pages.currentRow)>
-				<cfset querySetCell(pages, "src", contractPath(aPage[1]), pages.currentRow)>
-				<cfset querySetCell(pages, "method", !isEmpty(aPage[2] ?: '') ? aPage[2] : '', pages.currentRow)>
+				<cfset querySetCell(pages, "src", contractPath(local.aPage[1]), pages.currentRow)>
+				<cfset querySetCell(pages, "method", !isEmpty(local.aPage[2] ?: '') ? local.aPage[2] : '', pages.currentRow)>
 				<cfset tot      += pages.total />
 				<cfset totCnt   += pages.count />
 				<cfset totLucee += pages.app>
@@ -1073,19 +1073,19 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 							<cfset tot=0 />
 							<cfset q=0 />
 							<cfloop query="pages" group="src">
-									<cfset page.stckTrace = []>
+									<cfset local.page.stckTrace = []>
 									<cfset arrayAppend(page.stckTrace, listLast(pages.src))>
-									<cfquery dbtype="query" name="resultQry">
+									<cfquery dbtype="query" name="local.resultQry">
 										select * from pages where src='#pages.src#' AND id != '#pages.id#'
 									</cfquery>
-									<cfloop query="resultQry">
-										<cfset pages.total += resultQry.total>
-										<cfset pages.count += resultQry.count>
-										<cfset pages.avg += resultQry.avg>
-										<cfset pages.query += resultQry.query>
-										<cfset pages.total += resultQry.total>
-										<cfset pages.app += resultQry.app>
-										<cfset arrayAppend(page.stckTrace, listLast(resultQry.src, "$"))>
+									<cfloop query="local.resultQry">
+										<cfset pages.total += local.resultQry.total>
+										<cfset pages.count += local.resultQry.count>
+										<cfset pages.avg += local.resultQry.avg>
+										<cfset pages.query += local.resultQry.query>
+										<cfset pages.total += local.resultQry.total>
+										<cfset pages.app += local.resultQry.app>
+										<cfset arrayAppend(local.page.stckTrace, listLast(local.resultQry.src, "$"))>
 									</cfloop>
 									<cfset tot += pages.total - (pages.count * pages.avg) />
 									<cfset q += pages.query />
@@ -1102,7 +1102,9 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 									<cfset local.sColor    = RGBtoHex(255 * iPctTotal, 160 * (1 - iPctTotal), 0)>
 
 
-									<cfset sStyle = ''>
+									<cfset var sStyle = ''>
+									<cfset var per = ''>
+									<Cfset var i = 0>
 									<cfif arguments.custom.colorHighlight>
 										<cfset sStyle = sColor>
 									</cfif>
@@ -1161,11 +1163,11 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 											<font color="#sStyle#">#listFirst(pages.src, "$")#</font>
 										</td>
 										<td align="left" class="tblContent" style="#sStyle#">
-											<cfset listStack= arrayToList(#page.stckTrace#) >
-											<cfset getStack = listRemoveDuplicates(listStack,",",true) >
-											<cfset page.stckTrace = listToArray(getStack)>
+											<cfset var listStack= arrayToList(local.page.stckTrace) >
+											<cfset var getStack = listRemoveDuplicates(listStack,",",true) >
+											<cfset local.page.stckTrace = listToArray(getStack)>
 											<table>
-												<cfloop array="#page.stckTrace#" index="i">
+												<cfloop array="#local.page.stckTrace#" index="i">
 													<tr>
 														<td>
 														<font color="#sStyle#">

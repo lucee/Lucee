@@ -2,16 +2,21 @@
 	setting showdebugoutput=true;
 	param name="url.id" default="";
 	param name="url.tab" default="debug";
+	
+
 	if (url.id eq ""){
 		header statustext="Debugging log id is required" statusCode="404";
 		echo("Debugging log id is required");		
 		abort;
-	}
+	} 
 
 	function isLoggedInAdmin(){
 		// TODO check for lucee admin login
 		/*
 		this doesn't work coz of the session scope for admin being different
+
+		best workaround would be include this file from a file under admin to catch the admin cookies,
+		i.e. /lucee/admin/debugging.view.cfm 
 
 		if (structKeyExists(session, "passwordweb")){
 			admin action="connect"
@@ -26,8 +31,7 @@
 		}
 		*/
 		return false;
-	}
-	
+	}	
 	admin
 		action="getLoggedDebugData"
 		type="web"
@@ -43,7 +47,7 @@
 
 		cookiesMatch={};
 		// TODO auth needs to respect JSESSIONID vs CF sessions
-		loop list="JSESSIONID,CFID,cftoken" item="c" delimiters=","{
+		loop list="JSESSIONID,cftoken" item="c" delimiters=","{
 			if (structKeyExists(logCookies, c) 
 					and structKeyExists(cookie, c) 
 					and len(trim(cookie[c])) gt 0
@@ -52,7 +56,7 @@
 			}
 		}
 
-		if (not cookiesMatch.len() eq 3){
+		if (cookiesMatch.len() eq 0){
 			// TODO check for lucee admin login
 			header statustext="Access Denied" statusCode="403";
 			echo("Debugging Log Access Denied");
@@ -121,8 +125,8 @@
 	function ComponentListPackageAsStruct(string package, cfcNames=structnew("linked")){
 		try{
 			local._cfcNames=ComponentListPackage(package);
-			loop array=_cfcNames index="i" item="el" {
-				cfcNames[el]=package&"."&el;
+			loop array=_cfcNames index="local.i" item="local.el" {
+				cfcNames[local.el]=package&"."&local.el;
 			}
 		}
 		catch(e){}
