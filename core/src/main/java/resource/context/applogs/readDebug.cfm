@@ -1,55 +1,104 @@
-<cfscript>
+<cfscript>	
+	setting showdebugoutput=true;
+	param name="url.id" default="";
+	if (url.id eq ""){
+		header statustext="Debugging log id is required" statusCode="404";
+		echo("Debugging log id is required");		
+		abort;
+	}
+
+	function isLoggedInAdmin(){
+		// TODO check for lucee admin login
+		return false;
+	}
 	
-	setting showdebugoutput=false;
-	admin
-		action="getLoggedDebugData"
-		type="web"
-		returnVariable="all";
+	try {
+		admin
+			action="getLoggedDebugData"
+			type="web"
+			id=url.id
+			returnVariable="log";
+	} catch(e){
+		//if (not isLoggedInAdmin())
+			rethrow(e);
+		/*
+		// TODO possible fall back for debugging debugging, show last log
+		admin
+			action="getLoggedDebugData"
+			type="web"
+			returnVariable="all";
+		log = all[all.len()];
+		*/
+	}
+	if (not isLoggedInAdmin()){
+		// access control, should the user be able to see this debug entry?	
+		logCookies = {};
+		loop list="#log.scope.cgi.http_cookie#" item="c" delimiters=";"{		
+			logCookies[trim(listFirst(c,"="))]=trim(listLast(c,"="));
+		}
 
-	listIds = "";
-	loop array="#all#" index="i" {
-		listIds = listAppend(listIds, i.id);
-	}
-	if(isNull(url.id)) {
-		url.id=all[arrayLen(all)].id;
-	}
-	else if(listFind(listIds, url.id) == 0) {
-		url.id=all[arrayLen(all)].id;
-	}
+		cookiesMatch={};
+		// TODO auth needs to respect JSESSIONID vs CF sessions
+		loop list="JSESSIONID,CFID,cftoken" item="c" delimiters=","{
+			if (structKeyExists(logCookies, c) 
+					and structKeyExists(cookie, c) 
+					and len(trim(cookie[c])) gt 0
+					and logCookies[c] eq cookie[c]){
+				cookiesMatch[c] = true;
+			}
+		}
 
-	admin
-		action="getLoggedDebugData"
-		type="web"
-		id=url.id
-		returnVariable="log";
+		if (not cookiesMatch.len() eq 3){
+			// TODO check for lucee admin login
+			header statustext="Access Denied" statusCode="403";
+			echo("Debugging Log Access Denied");
+			cflog(text="Debugging Log Access Denied - id: #htmleditFormat(url.id)#", type="warning");
+			abort;
+		}	
+	}
 
 	admin
 		action="getDebugEntry"
 		type="web"
 		returnVariable="entries";
 
+	selectedDebugTemplates=structNew("linked");
+	if (entries.recordcount){
+		configuredTemplates=entries.columnData("type");
+		configuredTemplates.each(function(key){
+			selectedDebugTemplates[key]=true;
+		});
+	} else {
+		selectedDebugTemplates["lucee-modern"]=true; // default
+	}
+
 	driverNames=structnew("linked");
 	driverNames=ComponentListPackageAsStruct("lucee-server.admin.debug",driverNames);
 	driverNames=ComponentListPackageAsStruct("lucee.admin.debug",driverNames);
 	driverNames=ComponentListPackageAsStruct("debug",driverNames);
 	
-	drivers={}
+	drivers={};
+	driver="";
 	loop collection=driverNames index="n" item="fn" {
 		if(n == "Debug" || n == "Field" || n == "Group") {
 			continue;
 		}
 		tmp=createObject('component',fn);
-	    drivers[trim(tmp.getId())]=tmp;
+		templateId = trim(tmp.getId());
+		drivers[templateId]=tmp;		
+		if (selectedDebugTemplates.keyExists(templateId)){
+			driver=drivers[templateId];
+			break;
+		}
 	}
-	
-
-	driver=drivers["lucee-modern"];
-
+	if (not IsObject(driver)){
+		throw message="Configured debug template(s): #selectedDebugTemplates.keyList()# not found";
+	}
 
 	entry={};
 
 	loop query="entries" {
-		if(entries.type == "lucee-modern") {
+		if(entries.type == templateId) {
 			entry=querySlice(entries, entries.currentrow ,1);
 		}
 	}
@@ -58,7 +107,11 @@
 		c=structKeyExists(entry,'custom')?entry.custom:{};
 		c.scopes=false;
 		fun = "read#URL.tab#";
-		driver[fun](c,log,"admin");
+		try {
+			driver[fun](c,log,"admin"); 
+		} catch(e){
+			dump(e.message);
+		}
 	}
 
 	function ComponentListPackageAsStruct(string package, cfcNames=structnew("linked")){

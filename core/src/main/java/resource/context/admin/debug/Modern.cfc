@@ -727,6 +727,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 		<cfargument name="debugging" required="true" type="struct" />
 		<cfargument name="context" type="string" default="web" />
 		<cfsilent>
+			<cfset local.debuggingRenderingTime=getTickCount()>
 			<cfset local.stStats = filterByTemplates(arguments.debugging)>
 			<cfset arguments.debugging.minimal          = arguments.custom.minimal ?: 0>
 			<cfset arguments.debugging.highlight        = arguments.custom.highlight ?: 250000>
@@ -744,13 +745,9 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			<!--- <cfset arguments.custom.sort_charts 		= (arguments.custom.sort_charts ?: '1,2,3,4')> --->
 			<cfif isNull(arguments.custom.scopesList)><cfset arguments.custom.scopesList=""></cfif>
 
-
-			
-
-
 			<cfset var _cgi=isNull(arguments.debugging.scope.cgi)?cgi:arguments.debugging.scope.cgi />
-			<cfset var pages=arguments.debugging.pages />
-			<cfset var queries=arguments.debugging.queries />
+			<cfset var pages=duplicate(arguments.debugging.pages) />
+			<cfset var queries=arguments.debugging.queries/>
 			<cfif not isDefined('arguments.debugging.timers')>
 				<cfset arguments.debugging.timers=queryNew('label,time,template') />
 			</cfif>
@@ -1722,6 +1719,8 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 					</tr>
 				</table>
 			</cfif>
+			<br />
+			<p class="cfdebug">Debug Rendering Time: #LsNumberFormat(getTickCount()-local.debuggingRenderingTime)#ms</p>
 			</cfoutput>
 		</div>
 	</cffunction>

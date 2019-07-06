@@ -25,7 +25,6 @@
 		<cfreturn createObject("component","Group").init(arguments.displayName,arguments.description,arguments.level)>
 	</cffunction>
 
-
 	<cffunction name="getCustomFields" returntype="array">
     	<cfreturn fields>
     </cffunction>
@@ -38,20 +37,28 @@
 	
 	<cffunction name="onBeforeError" returntype="void" output="no">
 		<cfargument name="cfcatch" required="true" type="struct">
-	</cffunction>
-	
-    
+	</cffunction>    
     
 	<cffunction name="getId" returntype="string">
-    	<cfthrow message="implement function getID():string">
-    </cffunction>
-    
+		<cfthrow message="debug templates must implement function getID():string"
+		detail="#getCurrentTemplatePath()#">
+	</cffunction>
+	
+	<cffunction name="getDescription" returntype="string">
+		<cfthrow message="debug templates must implement function getDescription():string"
+			detail="#getCurrentTemplatePath()#">
+	</cffunction>
+
+	<cffunction name="getLabel" returntype="string">
+		<cfthrow message="debug templates must implement function getLabel():string"
+			detail="#getCurrentTemplatePath()#">
+	</cffunction>	
+	
 	<cffunction name="output" returntype="string">
 		<cfargument name="custom" required="true" type="struct">
 		<cfargument name="debugging" required="true" type="struct">
-    	<cfthrow message="implement function output():string">
+		<cfthrow message="debug templates must implement function output():string"
+			detail="#getCurrentTemplatePath()#">
     </cffunction>
-    
-    
     
 </cfcomponent>
