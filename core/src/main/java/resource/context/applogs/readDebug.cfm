@@ -9,61 +9,12 @@
 		echo("Debugging log id is required");		
 		abort;
 	} 
-
-	function isLoggedInAdmin(){
-		// TODO check for lucee admin login
-		/*
-		this doesn't work coz of the session scope for admin being different
-
-		best workaround would be include this file from a file under admin to catch the admin cookies,
-		i.e. /lucee/admin/debugging.view.cfm 
-
-		if (structKeyExists(session, "passwordweb")){
-			admin action="connect"
-				type="web"
-				password="#session.passwordweb#";
-		} else if (structKeyExists(session, "passwordserver")){
-			admin action="connect"
-				type="web"
-				password="#session.passwordserver#";
-		} else {
-			return false;
-		}
-		*/
-		return false;
-	}	
+	
 	admin
 		action="getLoggedDebugData"
 		type="web"
 		id=url.id
 		returnVariable="log";
-
-	if (not isLoggedInAdmin()){
-		// access control, should the user be able to see this debug entry?	
-		logCookies = {};
-		loop list="#log.scope.cgi.http_cookie#" item="c" delimiters=";"{		
-			logCookies[trim(listFirst(c,"="))]=trim(listLast(c,"="));
-		}
-
-		cookiesMatch={};
-		// TODO auth needs to respect JSESSIONID vs CF sessions
-		loop list="JSESSIONID,cftoken" item="c" delimiters=","{
-			if (structKeyExists(logCookies, c) 
-					and structKeyExists(cookie, c) 
-					and len(trim(cookie[c])) gt 0
-					and logCookies[c] eq cookie[c]){
-				cookiesMatch[c] = true;
-			}
-		}
-
-		if (cookiesMatch.len() eq 0){
-			// TODO check for lucee admin login
-			header statustext="Access Denied" statusCode="403";
-			echo("Debugging Log Access Denied");
-			cflog(text="Debugging Log Access Denied - id: #htmleditFormat(url.id)#", type="warning");
-			abort;
-		}	
-	}
 
 	admin
 		action="getDebugEntry"
