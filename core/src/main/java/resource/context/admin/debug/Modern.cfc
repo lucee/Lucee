@@ -411,7 +411,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 								}
 							}
 						};
-						var ajaxURL = "/lucee/appLogs/readDebug.cfm?id=#debugging.id#&TAB="+section;
+						var ajaxURL = "/lucee/appLogs/readDebug.cfm?id=#arguments.debugging.id#&TAB="+section;
 						<cfif structKeyExists(request, "fromAdmin") AND request.fromAdmin EQ true>
 							ajaxURL += "&fromAdmin=true";
 						</cfif>
@@ -1957,17 +1957,18 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 	</cffunction>
 
 	<cffunction name="loadCharts" output="true">
-
 		<cfargument name="chartStruct">
-		<cfset chartsLabel = structNew("linked")>
+		<cfset var i = 0>
+		<cfset var chartsLabel = structNew("linked")>
+		
 		<cfset chartsLabel.HeapChart = "Heap Memory">
 		<cfset chartsLabel.NonHeapChart = "Non Heap Memory">
 		<cfset chartsLabel.WholeSystem = "System CPU VS Lucee CPU">
 
 		<cfif structKeyExists(request, "fromAdmin") AND request.fromAdmin EQ true>
-			<cfset chartClass = "twoCharts">
+			<cfset var chartClass = "twoCharts">
 		<cfelse>
-			<cfset chartClass = "fourCharts">
+			<cfset var chartClass = "fourCharts">
 		</cfif>
 
 		<cfloop item="i" collection="#chartsLabel#">
