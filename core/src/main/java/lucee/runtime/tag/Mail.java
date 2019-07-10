@@ -21,6 +21,7 @@ package lucee.runtime.tag;
 import java.nio.charset.Charset;
 
 import javax.mail.internet.InternetAddress;
+import java.util.regex.*;
 
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.res.Resource;
@@ -183,7 +184,12 @@ public final class Mail extends BodyTagImpl {
 	 * @throws PageException
 	 **/
 	public void setFrom(Object from) throws PageException {
+		String regex = "^[\\w-_\\.+]*[\\w-_\\.]\\@([\\w]+\\.)+[\\w]+[\\w]$";
+		String fromValid = from.toString();
 		if (StringUtil.isEmpty(from, true)) throw new ApplicationException("attribute [from] cannot be empty");
+		if (!fromValid.matches(regex)) throw new ApplicationException("attribute [from] should be valid");
+
+
 		try {
 			smtp.setFrom(from);
 		}
