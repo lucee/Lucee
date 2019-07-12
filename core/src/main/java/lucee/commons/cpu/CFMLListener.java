@@ -68,7 +68,7 @@ public abstract class CFMLListener implements Listener {
 			qry.setAt(PERCENTAGE, row, sd.getPercentage());
 			qry.setAt(KeyConstants._stacktrace, row, sd.getStacktrace());
 			qry.setAt(KeyConstants._time, row, sd.getTime());
-			qry.setAt(KeyConstants._total, row, sd.getPercentage());
+			qry.setAt(KeyConstants._total, row, sd.getTotal());
 		}
 		return qry;
 	}

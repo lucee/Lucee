@@ -39,17 +39,15 @@ public final class ArrayNew extends BIF {
 
 	public static Array call(PageContext pc, double dimension, String type, boolean _synchronized) throws PageException {
 		Array a;
-		if (StringUtil.isEmpty(type, true) || Decision.isBoolean(type)) a = ArrayUtil.getInstance((int) dimension);
+		if (StringUtil.isEmpty(type, true) || Decision.isBoolean(type)) {
+			a = ArrayUtil.getInstance((int) dimension, _synchronized);
+		}
 		else {
 			if (dimension > 1) {
 				throw new ApplicationException("multi dimensional arrays are not supported with typed arrays");
 			}
 			a = new ArrayTyped(type.trim());
 		}
-		/*
-		 * if (value != null) { Iterator<Entry<Key, Object>> it = value.entryIterator(); Entry<Key, Object>
-		 * e; while (it.hasNext()) { e = it.next(); a.set(e.getKey(), e.getValue()); } }
-		 */
 		return a;
 	}
 

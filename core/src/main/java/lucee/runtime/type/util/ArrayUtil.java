@@ -53,8 +53,12 @@ public final class ArrayUtil {
 	public static final Object[] OBJECT_EMPTY = new Object[] {};
 
 	public static Array getInstance(int dimension) throws ExpressionException {
+		return getInstance(dimension, false);
+	}
+
+	public static Array getInstance(int dimension, boolean _synchronized) throws ExpressionException {
 		if (dimension > 1) return new ArrayClassic(dimension);
-		return new ArrayImpl();
+		return new ArrayImpl(ArrayImpl.DEFAULT_CAP, _synchronized);
 	}
 
 	/**
