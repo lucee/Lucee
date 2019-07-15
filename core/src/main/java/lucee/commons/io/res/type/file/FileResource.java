@@ -26,6 +26,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.CopyOption;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,6 +49,9 @@ import lucee.commons.lang.ExceptionUtil;
  * Implementation og Resource for the local filesystem (java.io.File)
  */
 public final class FileResource extends File implements Resource {
+
+	private static final long serialVersionUID = -6856656594615376447L;
+	private static final CopyOption[] COPY_OPTIONS = new CopyOption[] { StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.COPY_ATTRIBUTES };
 
 	private final FileResourceProvider provider;
 
@@ -72,12 +78,39 @@ public final class FileResource extends File implements Resource {
 
 	@Override
 	public void copyFrom(Resource res, boolean append) throws IOException {
+		if (res instanceof File && (!append || !this.isFile())) {
+			Files.copy(((File) res).toPath(), this.toPath(), COPY_OPTIONS);
+			return;
+		}
+
 		IOUtil.copy(res, this.getOutputStream(append), true);
+
+		// executable?
+		boolean e = res instanceof File && ((File) res).canExecute();
+		boolean w = res.canWrite();
+		boolean r = res.canRead();
+
+		if (e) this.setExecutable(true);
+		if (w != this.canWrite()) this.setWritable(w);
+		if (r != this.canRead()) this.setReadable(r);
 	}
 
 	@Override
 	public void copyTo(Resource res, boolean append) throws IOException {
+		if (res instanceof File && (!append || !res.isFile())) {
+			Files.copy(this.toPath(), ((File) res).toPath(), COPY_OPTIONS);
+			return;
+		}
+
 		IOUtil.copy(this, res.getOutputStream(append), true);
+
+		boolean e = canExecute();
+		boolean w = canWrite();
+		boolean r = canRead();
+
+		if (e && res instanceof File) ((File) res).setExecutable(true);
+		if (w != res.canWrite()) res.setWritable(w);
+		if (r != res.canRead()) res.setReadable(r);
 	}
 
 	@Override
