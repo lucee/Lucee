@@ -29,6 +29,7 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.UUID;
 
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.SystemUtil.TemplateLine;
@@ -655,8 +656,8 @@ public final class DebuggerImpl implements Debugger {
 		 * scopes.setEL("url", pc.urlScope());
 		 */
 		debugging.setEL(KeyImpl.init("starttime"), new DateTimeImpl(starttime, false));
-		PageContextImpl pci = (PageContextImpl) pc;
-		debugging.setEL(KeyConstants._id, pci.getRequestId() + "-" + pci.getId());
+		// PageContextImpl pci = (PageContextImpl) pc;
+		debugging.setEL(KeyConstants._id, UUID.randomUUID().toString().toUpperCase());
 
 		debugging.setEL(KeyConstants._pages, qryPage);
 		debugging.setEL(PAGE_PARTS, qryPart);
