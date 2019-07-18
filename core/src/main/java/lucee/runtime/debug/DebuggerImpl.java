@@ -656,7 +656,8 @@ public final class DebuggerImpl implements Debugger {
 		 * scopes.setEL("url", pc.urlScope());
 		 */
 		debugging.setEL(KeyImpl.init("starttime"), new DateTimeImpl(starttime, false));
-		// PageContextImpl pci = (PageContextImpl) pc;
+		PageContextImpl pci = (PageContextImpl) pc;
+		debugging.setEL(KeyConstants._default_id, pci.getRequestId() + "-" + pci.getId());
 		debugging.setEL(KeyConstants._id, UUID.randomUUID().toString().toUpperCase());
 
 		debugging.setEL(KeyConstants._pages, qryPage);

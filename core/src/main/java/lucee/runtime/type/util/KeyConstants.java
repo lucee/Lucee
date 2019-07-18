@@ -429,6 +429,7 @@ public class KeyConstants {
 	public static final Key _https = KeyImpl._const("https");
 	public static final Key _i = KeyImpl._const("i");
 	public static final Key _id = KeyImpl._const("id");
+	public static final Key _default_id = KeyImpl._const("default_id");
 	public static final Key _idx = KeyImpl._const("idx");
 	public static final Key _indexOf = KeyImpl._const("indexOf");
 	public static final Key _init = KeyImpl._const("init");
