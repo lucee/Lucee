@@ -1045,7 +1045,7 @@ public final class XMLConfigAdmin {
 	private static BundleFile installBundle(Config config, BundleFile bf) throws IOException, BundleException {
 
 		// does this bundle already exists
-		BundleFile _bf = OSGiUtil.getBundleFile(bf.getSymbolicName(), bf.getVersion(), null, false, null);
+		BundleFile _bf = OSGiUtil.getBundleFile(bf.getSymbolicName(), bf.getVersion(), null, null, false, null);
 		if (_bf != null) return _bf;
 
 		CFMLEngine engine = CFMLEngineFactory.getInstance();
@@ -4722,7 +4722,7 @@ public final class XMLConfigAdmin {
 				rhext.deployBundles(ci);
 				BundleInfo[] bfs = rhext.getBundles();
 				for (BundleInfo bf: bfs) {
-					OSGiUtil.loadBundleFromLocal(bf.getSymbolicName(), bf.getVersion(), false, null);
+					OSGiUtil.loadBundleFromLocal(bf.getSymbolicName(), bf.getVersion(), null, false, null);
 				}
 			}
 
@@ -6206,7 +6206,7 @@ public final class XMLConfigAdmin {
 
 		// now we only have BundlesDefs in the array no longer used
 		for (BundleDefinition ctr: candiatesToRemove) {
-			if (ctr != null) OSGiUtil.removeLocalBundleSilently(ctr.getName(), ctr.getVersion(), true);
+			if (ctr != null) OSGiUtil.removeLocalBundleSilently(ctr.getName(), ctr.getVersion(), null, true);
 		}
 	}
 

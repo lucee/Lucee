@@ -129,6 +129,7 @@ import lucee.runtime.gateway.GatewayUtil;
 import lucee.runtime.i18n.LocaleFactory;
 import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.listener.ApplicationListener;
+import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.monitor.IntervallMonitor;
 import lucee.runtime.monitor.Monitor;
 import lucee.runtime.monitor.RequestMonitor;
@@ -3258,7 +3259,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		}
 		else {
 			try {
-				bf = OSGiUtil.getBundleFile(symbolicName, version, null, false);
+				bf = OSGiUtil.getBundleFile(symbolicName, version, null, null, false);
 				bd = bf.toBundleDefinition();
 				b = bd.getLoadedBundle();
 
@@ -3284,7 +3285,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 				sct.set(PATH, b.getLocation());
 			}
 			else {
-				if (bf == null) bf = bd.getBundleFile(false);
+				if (bf == null) bf = bd.getBundleFile(false, JavaSettingsImpl.getBundleDirectories(pageContext));
 				sct.set(PATH, bf.getFile());
 			}
 
@@ -3306,7 +3307,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			sct.set(KeyConstants._state, "notinstalled");
 			try {
 
-				if (bf == null) bf = bd.getBundleFile(false);
+				if (bf == null) bf = bd.getBundleFile(false, null);
 				sct.set(KeyConstants._version, bf.getVersionAsString());
 				sct.set(FRAGMENT, OSGiUtil.isFragment(bf));
 				headers = bf.getHeaders();
@@ -3370,7 +3371,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 					qry.setAt(PATH, row, b.getLocation());
 				}
 				else {
-					bf = bd.getBundleFile(false);
+					bf = bd.getBundleFile(false, null);
 					qry.setAt(PATH, row, bf.getFile());
 				}
 			}
@@ -3404,7 +3405,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 						}
 					}
 					else {
-						if (bf != null) bf = bd.getBundleFile(false);
+						if (bf != null) bf = bd.getBundleFile(false, null);
 						qry.setAt(KeyConstants._version, row, bf.getVersionAsString());
 						// qry.setAt(KeyConstants._id, row, bf.getBundleId());
 						qry.setAt(FRAGMENT, row, OSGiUtil.isFragment(bf));
@@ -4661,7 +4662,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			String version = getString("admin", action, "version");
 			boolean removePhysical = getBoolV("removePhysical", true);
 
-			OSGiUtil.removeLocalBundle(name.trim(), OSGiUtil.toVersion(version.trim()), removePhysical, false);
+			OSGiUtil.removeLocalBundle(name.trim(), OSGiUtil.toVersion(version.trim()), null, removePhysical, false);
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);

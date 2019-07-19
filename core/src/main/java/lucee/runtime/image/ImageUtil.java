@@ -22,7 +22,7 @@ public class ImageUtil {
 		try {
 			Config config = ThreadLocalPageContext.getConfig();
 			Identification id = config == null ? null : config.getIdentification();
-			return ClassUtil.loadClassByBundle("org.lucee.extension.image.Image", "image.extension", (Version) null, id);
+			return ClassUtil.loadClassByBundle("org.lucee.extension.image.Image", "image.extension", (Version) null, id, null);
 		}
 		catch (Exception e) {
 			return null;
@@ -33,7 +33,7 @@ public class ImageUtil {
 		try {
 			Config config = ThreadLocalPageContext.getConfig();
 			Identification id = config == null ? null : config.getIdentification();
-			return ClassUtil.loadClassByBundle("org.lucee.extension.image.ImageUtil", "image.extension", (Version) null, id);
+			return ClassUtil.loadClassByBundle("org.lucee.extension.image.ImageUtil", "image.extension", (Version) null, id, null);
 		}
 		catch (Exception e) {
 			return null;
