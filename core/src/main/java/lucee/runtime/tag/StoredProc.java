@@ -18,21 +18,6 @@
  */
 package lucee.runtime.tag;
 
-import java.sql.CallableStatement;
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Types;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import javax.servlet.jsp.JspException;
-
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.ExceptionUtil;
@@ -75,6 +60,20 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.util.KeyConstants;
+
+import javax.servlet.jsp.JspException;
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 public class StoredProc extends BodyTagTryCatchFinallySupport {
 	// private static final int PROCEDURE_CAT=1;
@@ -280,31 +279,13 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 		Connection conn = dc.getConnection();
 
 		if (SQLUtil.isOracle(conn)) {
-			String name = this.procedure.toUpperCase().trim();
 
-			// split procedure definition
-			String catalog = null, schema = null;
-			{
-				int index = name.lastIndexOf('.');
-				if (index != -1) {
-					catalog = name.substring(0, index).trim();
-					name = name.substring(index + 1).trim();
-
-					index = catalog.lastIndexOf('.');
-					if (index != -1) {
-						schema = catalog.substring(0, index).trim();
-						catalog = catalog.substring(index + 1).trim();
-						// schema=catalog.substring(index+1);
-						// catalog=catalog.substring(0,index);
-					}
-				}
-				if (StringUtil.isEmpty(schema)) schema = null;
-				if (StringUtil.isEmpty(catalog)) catalog = null;
-			}
+			// split procedure definition in case we have OWNER.PROC_NAME
+			String[] parts = this.procedure.trim().toUpperCase().split("\\.");
+			String name  = parts[parts.length - 1];
+			String owner = (parts.length > 1) ? parts[parts.length - 2] : null;
 
 			try {
-				// if(procParamsCache==null)procParamsCache=new ReferenceMap();
-				// ProcMetaCollection procParams=procParamsCache.get(procedure);
 				DataSourceSupport ds = ((DataSourceSupport) dc.getDatasource());
 				long cacheTimeout = ds.getMetaCacheTimeout();
 				Map<String, ProcMetaCollection> procParamsCache = ds.getProcedureColumnCache();
@@ -314,20 +295,21 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 				if (procParams == null || (cacheTimeout >= 0 && (procParams.created + cacheTimeout) < System.currentTimeMillis())) {
 
 					// get PROC information and resolve synonym if needed per LDEV-1147
-					String sql = "SELECT  PROC.OWNER, PROC.OBJECT_NAME, PROC.PROCEDURE_NAME, PROC.OBJECT_TYPE \n" + "FROM    ALL_PROCEDURES PROC \n"
-							+ "    LEFT JOIN ALL_SYNONYMS SYNO \n" + "       ON PROC.OBJECT_NAME = SYNO.TABLE_NAME AND PROC.OWNER = SYNO.TABLE_OWNER \n"
-							+ "WHERE   (PROC.PROCEDURE_NAME = ? OR (PROC.OBJECT_NAME = ? AND PROC.OBJECT_TYPE = 'PROCEDURE')) \n";
+					String sql = "SELECT  PROC.OWNER, PROC.OBJECT_NAME, PROC.PROCEDURE_NAME, PROC.OBJECT_TYPE \n"
+							+ "FROM    ALL_PROCEDURES PROC \n"
+							+ "    LEFT JOIN ALL_SYNONYMS SYNO \n"
+							+ "       ON PROC.OBJECT_NAME = SYNO.TABLE_NAME AND PROC.OWNER = SYNO.TABLE_OWNER AND PROC.OBJECT_TYPE = 'PROCEDURE'\n"
+							+ "WHERE   (PROC.OBJECT_NAME = ? OR SYNO.SYNONYM_NAME = ?) \n";
 
-					if (catalog != null) sql += "    AND (PROC.OBJECT_NAME = ? OR SYNO.SYNONYM_NAME = ?)";
+					if (owner != null)
+						sql += "    AND (PROC.OWNER = ?)";
 
 					PreparedStatement preparedStatement = conn.prepareStatement(sql);
 					preparedStatement.setString(1, name);
 					preparedStatement.setString(2, name);
 
-					if (catalog != null) {
-						preparedStatement.setString(3, catalog);
-						preparedStatement.setString(4, catalog);
-					}
+					if (owner != null)
+						preparedStatement.setString(3, owner);
 
 					ResultSet resultSet = preparedStatement.executeQuery();
 
@@ -352,17 +334,17 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 					}
 				}
 
-				int ct, index = -1;
+				int colType, index = -1;
 				if (procParams != null) {
 					Iterator<ProcMeta> it = procParams.metas.iterator();
 					ProcMeta pm;
 					while (it.hasNext()) {
 						index++;
 						pm = it.next();
-						ct = pm.columnType;
+						colType = pm.columnType;
 
 						// Return
-						if (ct == DatabaseMetaData.procedureColumnReturn) {
+						if (colType == DatabaseMetaData.procedureColumnReturn) {
 							index--;
 							ProcResultBean result = getFirstResult();
 							ProcParamBean param = new ProcParamBean();
@@ -372,7 +354,7 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 							if (result != null) param.setVariable(result.getName());
 							returnValue = param;
 						}
-						else if (ct == DatabaseMetaData.procedureColumnOut || ct == DatabaseMetaData.procedureColumnInOut) {
+						else if (colType == DatabaseMetaData.procedureColumnOut || colType == DatabaseMetaData.procedureColumnInOut) {
 							// review of the code: seems to add an additional column in this case
 							if (pm.dataType == CFTypes.CURSOR) {
 								ProcResultBean result = getFirstResult();
@@ -397,7 +379,7 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 								}
 							}
 						}
-						else if (ct == DatabaseMetaData.procedureColumnIn) {
+						else if (colType == DatabaseMetaData.procedureColumnIn) {
 							ProcParamBean param = get(params, index);
 							if (param != null && pm.dataType != Types.OTHER && pm.dataType != param.getType()) {
 								param.setType(pm.dataType);
