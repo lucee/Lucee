@@ -20,6 +20,7 @@ package lucee.runtime.video;
 
 import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.SOFT;
 
+import java.util.Collections;
 import java.util.Map;
 
 import org.apache.commons.collections4.map.ReferenceMap;
@@ -40,7 +41,7 @@ import lucee.runtime.op.Caster;
 
 public class VideoUtilImpl implements VideoUtil {
 
-	private static Map<String, int[]> sizes = new ReferenceMap<String, int[]>(SOFT, SOFT);
+	private static Map<String, int[]> sizes = Collections.synchronizedMap(new ReferenceMap<String, int[]>(SOFT, SOFT));
 	private static VideoUtilImpl instance = new VideoUtilImpl();
 
 	private VideoUtilImpl() {}
@@ -189,7 +190,7 @@ public class VideoUtilImpl implements VideoUtil {
 		// get from casche
 		String key = Hash.call(pc, sb.toString());
 
-		int[] ci = (int[]) sizes.get(key);
+		int[] ci = sizes.get(key);
 		if (ci != null) {
 			return ci;
 		}

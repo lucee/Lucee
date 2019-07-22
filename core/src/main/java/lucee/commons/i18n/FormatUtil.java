@@ -24,6 +24,7 @@ import java.nio.charset.Charset;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -47,7 +48,7 @@ public class FormatUtil {
 	public static final short FORMAT_TYPE_DATE_TIME = 3;
 	public static final short FORMAT_TYPE_DATE_ALL = 4;
 
-	private final static Map<String, DateFormat[]> formats = new ReferenceMap<String, DateFormat[]>(SOFT, SOFT);
+	private final static Map<String, DateFormat[]> formats = Collections.synchronizedMap(new ReferenceMap<String, DateFormat[]>(SOFT, SOFT));
 
 	public static DateFormat[] getDateTimeFormats(Locale locale, TimeZone tz, boolean lenient) {
 

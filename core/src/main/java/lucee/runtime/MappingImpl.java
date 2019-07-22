@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.lang.instrument.UnmodifiableClassException;
+import java.util.Collections;
 import java.util.Map;
 
 import javax.servlet.ServletContext;
@@ -81,7 +82,7 @@ public final class MappingImpl implements Mapping {
 	private Resource physical;
 
 	private String lcVirtualWithSlash;
-	private Map<String, Object> customTagPath = new ReferenceMap<String, Object>(SOFT, SOFT);
+	private Map<String, Object> customTagPath = Collections.synchronizedMap(new ReferenceMap<String, Object>(SOFT, SOFT));
 
 	private boolean appMapping;
 	private boolean ignoreVirtual;

@@ -23,6 +23,7 @@ import static org.apache.commons.collections4.map.AbstractReferenceMap.Reference
 import java.io.IOException;
 import java.net.URL;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
@@ -321,7 +322,7 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 		return getConfigServerImpl().defaultFunctionMapping;
 	}
 
-	private Map<String, Mapping> applicationMappings = new ReferenceMap<String, Mapping>(SOFT, SOFT);
+	private Map<String, Mapping> applicationMappings = Collections.synchronizedMap(new ReferenceMap<String, Mapping>(SOFT, SOFT));
 
 	private TagHandlerPool tagHandlerPool = new TagHandlerPool(this);
 	private SearchEngine searchEngine;

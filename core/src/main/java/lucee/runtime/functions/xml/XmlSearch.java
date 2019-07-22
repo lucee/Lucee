@@ -23,6 +23,7 @@ import static org.apache.commons.collections4.map.AbstractReferenceMap.Reference
 import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.SOFT;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -73,7 +74,7 @@ public final class XmlSearch implements Function {
 
 	private static List<String> operators = new ArrayList<String>();
 
-	private static Map<String, Tmp> exprs = new ReferenceMap<String, Tmp>(HARD, SOFT, 10, 0.75f);
+	private static Map<String, Tmp> exprs = Collections.synchronizedMap(new ReferenceMap<String, Tmp>(HARD, SOFT, 10, 0.75f));
 
 	private static class Tmp {
 		private XPathExpression expr;

@@ -119,7 +119,7 @@ public final class SMTPClient implements Serializable {
 	private static final String TEXT_PLAIN = "text/plain";
 	// private static final SerializableObject LOCK = new SerializableObject();
 
-	private static Map<TimeZone, SimpleDateFormat> formatters = new ReferenceMap<TimeZone, SimpleDateFormat>(SOFT, SOFT);
+	private static Map<TimeZone, SimpleDateFormat> formatters = Collections.synchronizedMap(new ReferenceMap<TimeZone, SimpleDateFormat>(SOFT, SOFT));
 	// private static final int PORT = 25;
 
 	private int spool = SPOOL_UNDEFINED;
