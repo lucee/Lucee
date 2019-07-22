@@ -25,6 +25,7 @@ import java.lang.instrument.UnmodifiableClassException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -279,7 +280,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 		PhysicalClassLoader pcl = customCLs == null ? null : customCLs.get(key);
 		if (pcl != null) return pcl;
 		pcl = new PhysicalClassLoader(config, getDirectory(), new ClassLoader[] { new ResourceClassLoader(resources, getParent()) }, true);
-		if (customCLs == null) customCLs = new ReferenceMap<String, PhysicalClassLoader>();
+		if (customCLs == null) customCLs = Collections.synchronizedMap(new ReferenceMap<String, PhysicalClassLoader>());
 		customCLs.put(key, pcl);
 		return pcl;
 	}

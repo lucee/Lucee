@@ -25,6 +25,7 @@ import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -78,8 +79,8 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 	// private DataSourceManager manager;
 	// private Core core;
 	private Map cores = new WeakHashMap();
-	private Map<String, Attr> attrCache = new ReferenceMap<String, Attr>();
-	private Map<String, Attr> attrsCache = new ReferenceMap<String, Attr>();
+	private Map<String, Attr> attrCache = Collections.synchronizedMap(new ReferenceMap<String, Attr>());
+	private Map<String, Attr> attrsCache = Collections.synchronizedMap(new ReferenceMap<String, Attr>());
 	private Map arguments;
 
 	/**
@@ -474,12 +475,12 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 
 	private Attr removeFromCache(ConnectionData data, String path, String name) {
 		attrsCache.remove(data.key() + path);
-		return (Attr) attrCache.remove(data.key() + path + name);
+		return attrCache.remove(data.key() + path + name);
 	}
 
 	private Attr getFromCache(ConnectionData data, String path, String name) {
 		String key = data.key() + path + name;
-		Attr attr = (Attr) attrCache.get(key);
+		Attr attr = attrCache.get(key);
 
 		if (attr != null && attr.timestamp() + MAXAGE < System.currentTimeMillis()) {
 			attrCache.remove(key);

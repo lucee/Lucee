@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.Map;
 import java.util.jar.JarFile;
 
@@ -36,8 +37,8 @@ public class BundleFile extends BundleInfo {
 
 	private static final long serialVersionUID = -7094382262249367193L;
 	private File file;
-	private static Map<String, BundleFile> files = new ReferenceMap<String, BundleFile>(SOFT, SOFT);
-	private Map<String, Boolean> classes = new ReferenceMap<String, Boolean>(SOFT, SOFT);
+	private static Map<String, BundleFile> files = Collections.synchronizedMap(new ReferenceMap<String, BundleFile>(SOFT, SOFT));
+	private Map<String, Boolean> classes = Collections.synchronizedMap(new ReferenceMap<String, Boolean>(SOFT, SOFT));
 
 	public static BundleFile getInstance(Resource file, boolean onlyValidBundles) throws IOException, BundleException {
 		BundleFile bi = getInstance(toFileResource(file));

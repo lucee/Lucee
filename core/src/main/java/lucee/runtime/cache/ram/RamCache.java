@@ -22,6 +22,7 @@ import static org.apache.commons.collections4.map.AbstractReferenceMap.Reference
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -49,7 +50,7 @@ import lucee.runtime.type.Struct;
 public class RamCache extends CacheSupport {
 
 	public static final int DEFAULT_CONTROL_INTERVAL = 60;
-	private Map<String, RamCacheEntry> entries = new ReferenceMap<String, RamCacheEntry>(SOFT, SOFT);
+	private Map<String, RamCacheEntry> entries = Collections.synchronizedMap(new ReferenceMap<String, RamCacheEntry>(SOFT, SOFT));
 	private long missCount;
 	private int hitCount;
 

@@ -23,6 +23,7 @@ import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.Map;
 import java.util.TimeZone;
 
@@ -145,7 +146,7 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 	}
 
 	public Map<String, ProcMetaCollection> getProcedureColumnCache() {
-		if (procedureColumnCache == null) procedureColumnCache = new ReferenceMap<String, ProcMetaCollection>();
+		if (procedureColumnCache == null) procedureColumnCache = Collections.synchronizedMap(new ReferenceMap<String, ProcMetaCollection>());
 		return procedureColumnCache;
 	}
 

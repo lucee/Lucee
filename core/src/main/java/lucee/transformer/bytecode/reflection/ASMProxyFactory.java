@@ -27,6 +27,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -97,7 +98,7 @@ public class ASMProxyFactory {
 	private static final org.objectweb.asm.commons.Method ASM_METHOD_CONSTRUCTOR = new org.objectweb.asm.commons.Method("<init>", Types.VOID,
 			new Type[] { Types.CLASS, Types.CLASS_ARRAY });
 
-	private static final Map<String, ASMMethod> methods = new ReferenceMap<String, ASMMethod>();
+	private static final Map<String, ASMMethod> methods = Collections.synchronizedMap(new ReferenceMap<String, ASMMethod>());
 
 	public static ASMClass getClass(ExtendableClassLoader pcl, Resource classRoot, Class clazz) throws IOException, InstantiationException, IllegalAccessException,
 			IllegalArgumentException, SecurityException, InvocationTargetException, NoSuchMethodException, UnmodifiableClassException {

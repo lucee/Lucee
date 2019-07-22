@@ -24,6 +24,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -114,7 +115,7 @@ public final class ResourceClassLoader extends URLClassLoader implements Closeab
 		resources = ResourceUtil.merge(this.getResources(), resources);
 		rcl = new ResourceClassLoader(resources, getParent());
 
-		if (customCLs == null) customCLs = new ReferenceMap<String, ResourceClassLoader>();
+		if (customCLs == null) customCLs = Collections.synchronizedMap(new ReferenceMap<String, ResourceClassLoader>());
 
 		customCLs.put(key, rcl);
 		return rcl;
@@ -127,7 +128,7 @@ public final class ResourceClassLoader extends URLClassLoader implements Closeab
 		if (rcl != null) return rcl;
 
 		rcl = new ResourceClassLoader(resources, this);
-		if (customCLs == null) customCLs = new ReferenceMap<String, ResourceClassLoader>();
+		if (customCLs == null) customCLs = Collections.synchronizedMap(new ReferenceMap<String, ResourceClassLoader>());
 		customCLs.put(key, rcl);
 		return rcl;
 	}

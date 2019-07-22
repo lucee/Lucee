@@ -21,6 +21,7 @@ package lucee.runtime.reflection.storage;
 import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.SOFT;
 
 import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -36,7 +37,7 @@ import lucee.runtime.type.KeyImpl;
  * Method Storage Class
  */
 public final class SoftMethodStorage {
-	private Map<Class, Map<Key, Array>> map = new ReferenceMap<Class, Map<Key, Array>>(SOFT, SOFT);
+	private Map<Class, Map<Key, Array>> map = Collections.synchronizedMap(new ReferenceMap<Class, Map<Key, Array>>(SOFT, SOFT));
 
 	/**
 	 * returns a methods matching given criteria or null if method doesn't exist

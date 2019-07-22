@@ -3190,7 +3190,7 @@ public abstract class ConfigImpl implements Config {
 
 	private Map<String, PageSource> componentPathCache = null;// new ArrayList<Page>();
 	private Map<String, InitFile> ctPatchCache = null;// new ArrayList<Page>();
-	private Map<String, UDF> udfCache = new ReferenceMap<String, UDF>();
+	private Map<String, UDF> udfCache = Collections.synchronizedMap(new ReferenceMap<String, UDF>());
 
 	public CIPage getCachedPage(PageContext pc, String pathWithCFC) throws TemplateException {
 		if (componentPathCache == null) return null;
@@ -3316,7 +3316,7 @@ public abstract class ConfigImpl implements Config {
 		this.componentRootSearch = componentRootSearch;
 	}
 
-	private final Map<String, Compress> compressResources = new ReferenceMap<String, Compress>(SOFT, SOFT);
+	private final Map<String, Compress> compressResources = Collections.synchronizedMap(new ReferenceMap<String, Compress>(SOFT, SOFT));
 
 	public Compress getCompressInstance(Resource zipFile, int format, boolean caseSensitive) throws IOException {
 		Compress compress = compressResources.get(zipFile.getPath());
