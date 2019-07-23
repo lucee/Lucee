@@ -125,7 +125,7 @@ public final class DateDiff extends BIF {
 			return getWorkingDaysDiff(pc, cLeft, cRight, msLeft, msRight);
 		}
 
-		if (DATEPART_D == datepart || DATEPART_WW == datepart) {
+		if (DATEPART_WW == datepart) {
 			int tmp = 0;
 			if (hDiff < 0) tmp = -1;
 			else if (hDiff > 0) {}
@@ -170,7 +170,10 @@ public final class DateDiff extends BIF {
 			return rst;
 		}
 		if (DATEPART_D == datepart) {
-			return dDiff;
+			int tmp = 0;
+			if (dDiff < 0) tmp = -0;
+			long rst = tmp + dayDiff(cLeft, cRight);
+			return rst;
 		}
 		throw new FunctionException(pc, "dateDiff", 3, "datePart", "invalid value, valid values has to be [q,s,n,h,d,m,y,yyyy,wd,ww]");
 
