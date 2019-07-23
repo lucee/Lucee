@@ -27,6 +27,8 @@ import java.util.TimeZone;
 
 import org.w3c.dom.Node;
 
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
@@ -61,6 +63,8 @@ import lucee.runtime.type.wrap.MapAsStruct;
  * Class to handle CF Variables (set,get,call)
  */
 public final class VariableUtilImpl implements VariableUtil {
+
+	private static Boolean _logReflectionCalls;
 
 	@Override
 	public Object getCollection(PageContext pc, Object coll, String key, Object defaultValue) {
@@ -119,10 +123,16 @@ public final class VariableUtilImpl implements VariableUtil {
 		}
 		// Direct Object Access
 		if (pc.getConfig().getSecurityManager().getAccess(SecurityManager.TYPE_DIRECT_JAVA_ACCESS) == SecurityManager.VALUE_YES) {
+			if (doLogReflectionCalls()) LogUtil.log(pc.getConfig(), Log.LEVEL_INFO, "reflection", "get-property:" + key + " from class " + Caster.toTypeName(coll));
 			return Reflector.getProperty(coll, key, defaultValue);
 		}
 		return null;
 
+	}
+
+	public static boolean doLogReflectionCalls() {
+		if (_logReflectionCalls == null) _logReflectionCalls = Caster.toBoolean(lucee.commons.io.SystemUtil.getSystemPropOrEnvVar("lucee.log.reflection", null), Boolean.FALSE);
+		return _logReflectionCalls.booleanValue();
 	}
 
 	@Override
@@ -167,6 +177,7 @@ public final class VariableUtilImpl implements VariableUtil {
 
 		// Direct Object Access
 		if (pc.getConfig().getSecurityManager().getAccess(SecurityManager.TYPE_DIRECT_JAVA_ACCESS) == SecurityManager.VALUE_YES) {
+			if (doLogReflectionCalls()) LogUtil.log(pc.getConfig(), Log.LEVEL_INFO, "reflection", "get-property:" + key + " from class " + Caster.toTypeName(coll));
 			return Reflector.getProperty(coll, key.getString(), defaultValue);
 		}
 		return defaultValue;
@@ -332,6 +343,7 @@ public final class VariableUtilImpl implements VariableUtil {
 
 		// Direct Object Access
 		if (coll != null && pc.getConfig().getSecurityManager().getAccess(SecurityManager.TYPE_DIRECT_JAVA_ACCESS) == SecurityManager.VALUE_YES) {
+			if (doLogReflectionCalls()) LogUtil.log(pc.getConfig(), Log.LEVEL_INFO, "reflection", "get-property:" + key + " from class " + Caster.toTypeName(coll));
 			return Reflector.getProperty(coll, key.getString());
 		}
 		throw new ExpressionException("No matching property [" + key.getString() + "] found");
@@ -388,6 +400,7 @@ public final class VariableUtilImpl implements VariableUtil {
 		}
 		// Direct Object Access
 		if (pc.getConfig().getSecurityManager().getAccess(SecurityManager.TYPE_DIRECT_JAVA_ACCESS) == SecurityManager.VALUE_YES) {
+			if (doLogReflectionCalls()) LogUtil.log(pc.getConfig(), Log.LEVEL_INFO, "reflection", "get-property:" + key + " from class " + Caster.toTypeName(coll));
 			return Reflector.getProperty(coll, key);
 		}
 		throw new ExpressionException("No matching property [" + key + "] found");
@@ -453,6 +466,7 @@ public final class VariableUtilImpl implements VariableUtil {
 		// Direct Object Access
 		if (pc.getConfig().getSecurityManager().getAccess(SecurityManager.TYPE_DIRECT_JAVA_ACCESS) == SecurityManager.VALUE_YES) {
 			try {
+				if (doLogReflectionCalls()) LogUtil.log(pc.getConfig(), Log.LEVEL_INFO, "reflection", "set-property:" + key + " in class " + Caster.toTypeName(coll));
 				Reflector.setProperty(coll, key.getString(), value);
 				return value;
 			}
@@ -514,6 +528,7 @@ public final class VariableUtilImpl implements VariableUtil {
 		// Direct Object Access
 		if (pc.getConfig().getSecurityManager().getAccess(SecurityManager.TYPE_DIRECT_JAVA_ACCESS) == SecurityManager.VALUE_YES) {
 			try {
+				if (doLogReflectionCalls()) LogUtil.log(pc.getConfig(), Log.LEVEL_INFO, "reflection", "set-property:" + key + " in class " + Caster.toTypeName(coll));
 				Reflector.setProperty(coll, key, value);
 				return value;
 			}
@@ -574,6 +589,7 @@ public final class VariableUtilImpl implements VariableUtil {
 		}
 		// Direct Object Access
 		if (pc.getConfig().getSecurityManager().getAccess(SecurityManager.TYPE_DIRECT_JAVA_ACCESS) == SecurityManager.VALUE_YES) {
+			if (doLogReflectionCalls()) LogUtil.log(pc.getConfig(), Log.LEVEL_INFO, "reflection", "set-property:" + key + " in class " + Caster.toTypeName(coll));
 			Reflector.setPropertyEL(coll, key, value);
 			return value;
 		}
@@ -631,6 +647,7 @@ public final class VariableUtilImpl implements VariableUtil {
 		}
 		// Direct Object Access
 		if (pc.getConfig().getSecurityManager().getAccess(SecurityManager.TYPE_DIRECT_JAVA_ACCESS) == SecurityManager.VALUE_YES) {
+			if (doLogReflectionCalls()) LogUtil.log(pc.getConfig(), Log.LEVEL_INFO, "reflection", "set-property:" + key + " in class " + Caster.toTypeName(coll));
 			Reflector.setPropertyEL(coll, key.getString(), value);
 			return value;
 		}
@@ -808,6 +825,7 @@ public final class VariableUtilImpl implements VariableUtil {
 
 		// call Object Wrapper
 		if (pc.getConfig().getSecurityManager().getAccess(SecurityManager.TYPE_DIRECT_JAVA_ACCESS) == SecurityManager.VALUE_YES) {
+			if (doLogReflectionCalls()) LogUtil.log(pc.getConfig(), Log.LEVEL_INFO, "reflection", "call-method:" + key + " from class " + Caster.toTypeName(coll));
 			if (!(coll instanceof Undefined)) return Reflector.callMethod(coll, key, args);
 		}
 		throw new ExpressionException("No matching Method/Function for " + key + "(" + Reflector.getDspMethods(Reflector.getClasses(args)) + ")");
