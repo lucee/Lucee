@@ -280,10 +280,20 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 
 		if (SQLUtil.isOracle(conn)) {
 
-			// split procedure definition in case we have OWNER.PROC_NAME
-			String[] parts = this.procedure.trim().toUpperCase().split("\\.");
-			String name  = parts[parts.length - 1];
-			String owner = (parts.length > 1) ? parts[parts.length - 2] : null;
+			String proc = this.procedure.trim().toUpperCase();
+
+			/**
+			 * The procedure name can have 1, 2, or 3 dot delimited parts
+			 * 1 part might be:
+			 * 		PROC.OBJECT_NAME
+			 * 		SYNO.SYNONYM_NAME
+			 * 2 parts might be:
+			 * 		PROC.OWNER, PROC.OBJECT_NAME
+			 * 		PROC.OBJECT_NAME, PROC.PROCEDURE_NAME
+			 * 		SYNO.SYNONYM_NAME, PROC.PROCEDURE_NAME
+			 * 3 parts is:
+			 * 		PROC.OWNER, PROC.OBJECT_NAME, PROC.PROCEDURE_NAME
+			 */
 
 			try {
 				DataSourceSupport ds = ((DataSourceSupport) dc.getDatasource());
@@ -294,37 +304,68 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 
 				if (procParams == null || (cacheTimeout >= 0 && (procParams.created + cacheTimeout) < System.currentTimeMillis())) {
 
-					// get PROC information and resolve synonym if needed per LDEV-1147
-					String sql = "SELECT  PROC.OWNER, PROC.OBJECT_NAME, PROC.PROCEDURE_NAME, PROC.OBJECT_TYPE \n"
-							+ "FROM    ALL_PROCEDURES PROC \n"
-							+ "    LEFT JOIN ALL_SYNONYMS SYNO \n"
-							+ "       ON PROC.OBJECT_NAME = SYNO.TABLE_NAME AND PROC.OWNER = SYNO.TABLE_OWNER AND PROC.OBJECT_TYPE = 'PROCEDURE'\n"
-							+ "WHERE   (PROC.OBJECT_NAME = ? OR SYNO.SYNONYM_NAME = ?) \n";
+					String owner = null, procName = null, name = null, sql = null;
+					String[] parts = proc.split("\\.");
+					List<String> params = new ArrayList<>(4);
 
-					if (owner != null)
-						sql += "    AND (PROC.OWNER = ?)";
+					if (parts.length == 1) {
+
+						sql = "SELECT DISTINCT PROC.OWNER, PROC.OBJECT_NAME, PROC.PROCEDURE_NAME, PROC.OBJECT_TYPE \n" +
+								"FROM ALL_PROCEDURES PROC \n" +
+								"\tJOIN ALL_SYNONYMS SYN ON PROC.OBJECT_NAME = SYN.TABLE_NAME \n" +
+								"WHERE ((PROC.OBJECT_NAME = ? OR SYN.SYNONYM_NAME = ?) AND PROC.OBJECT_TYPE='PROCEDURE')";
+
+						params.add(parts[0]);
+						params.add(parts[0]);
+					}
+					else if (parts.length == 2) {
+
+						sql = "SELECT DISTINCT\tPROC.OWNER, PROC.OBJECT_NAME, PROC.PROCEDURE_NAME, PROC.OBJECT_TYPE \n" +
+								"FROM ALL_PROCEDURES PROC \n" +
+								"\tJOIN ALL_SYNONYMS SYN ON PROC.OBJECT_NAME = SYN.TABLE_NAME \n" +
+								"WHERE (PROC.OWNER = ? AND PROC.OBJECT_NAME= ? AND PROC.OBJECT_TYPE='PROCEDURE') \n" +
+								"\tOR (PROC.OBJECT_NAME = ? AND PROC.PROCEDURE_NAME = ? AND PROC.OBJECT_TYPE='PACKAGE') \n" +
+								"\tOR (SYN.SYNONYM_NAME = ? AND PROC.PROCEDURE_NAME = ? AND PROC.OBJECT_TYPE='PACKAGE')";
+
+						params.add(parts[0]);
+						params.add(parts[1]);
+						params.add(parts[0]);
+						params.add(parts[1]);
+						params.add(parts[0]);
+						params.add(parts[1]);
+					}
+					else if (parts.length == 3) {
+						sql = "SELECT PROC.OWNER, PROC.OBJECT_NAME, PROC.PROCEDURE_NAME, PROC.OBJECT_TYPE \n" +
+								"FROM ALL_PROCEDURES PROC \n" +
+								"WHERE PROC.OWNER = ?\n" +
+								"\tAND PROC.OBJECT_NAME = ?\n" +
+								"\tAND PROC.PROCEDURE_NAME = ?" +
+								"\tAND PROC.OBJECT_TYPE = 'PACKAGE'";
+
+						params.add(parts[0]);
+						params.add(parts[1]);
+						params.add(parts[2]);
+					}
 
 					PreparedStatement preparedStatement = conn.prepareStatement(sql);
-					preparedStatement.setString(1, name);
-					preparedStatement.setString(2, name);
-
-					if (owner != null)
-						preparedStatement.setString(3, owner);
+					int ix = 1;
+					for (String p : params)
+						preparedStatement.setString(ix++, p);
 
 					ResultSet resultSet = preparedStatement.executeQuery();
 
 					if (resultSet.next()) {
-						String _schema = resultSet.getString(1); // OWNER
-						String _catalog = resultSet.getString(2); // OBJECT_NAME
-						String _name = resultSet.getString(3); // PROCEDURE_NAME
+						String _owner = resultSet.getString(1); // OWNER
+						String _objName = resultSet.getString(2); // OBJECT_NAME
+						String _procName = resultSet.getString(3); // PROCEDURE_NAME
 
-						if (_name == null && _catalog != null) {
+						if (_procName == null && _objName != null) {
 							// when the PROC is not scoped the PROCEDURE_NAME is actually the OBJECT_NAME, see LDEV-1833
-							_name = _catalog;
-							_catalog = null;
+							_procName = _objName;
+							_objName = null;
 						}
 
-						ResultSet procColumns = conn.getMetaData().getProcedureColumns(_catalog, _schema, _name, "%");
+						ResultSet procColumns = conn.getMetaData().getProcedureColumns(_objName, _owner, _procName, "%");
 						procParams = createProcMetaCollection(procColumns);
 						procParamsCache.put(cacheId, procParams);
 					}
@@ -396,7 +437,6 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 			}
 		}
 
-		// return code
 		if (returncode) {
 			returnValue = STATUS_CODE;
 		}
