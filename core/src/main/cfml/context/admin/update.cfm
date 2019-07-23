@@ -194,8 +194,8 @@
 	<cfcatch>
 		<cfoutput>
 			<div class="error">
-				Failed to retrieve update information:
-				#cfcatch.message# #cfcatch.detail#
+				Failed to retrieve update information<br>
+				<span class="comment">#cfcatch.message# #cfcatch.detail#</span>
 			</div>
 		</cfoutput>
 	</cfcatch>
