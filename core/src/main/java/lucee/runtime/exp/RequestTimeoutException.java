@@ -40,7 +40,8 @@ public class RequestTimeoutException extends Abort implements Stop {
 	}
 
 	public RequestTimeoutException(PageContext pc, StackTraceElement[] stacktrace) {
-		super(SCOPE_REQUEST, "request " + getPath(pc) + " has run into a timeout (" + (pc.getRequestTimeout() / 1000) + " seconds) and has been stopped." + locks(pc));
+		super(SCOPE_REQUEST, "request " + getPath(pc) + " has run into a timeout (timeout: " + (pc.getRequestTimeout() / 1000)
+				+ " seconds) and has been stopped. The thread did start " + (System.currentTimeMillis() - pc.getStartTime()) + "ms ago." + locks(pc));
 		this.stacktrace = stacktrace;
 		setStackTrace(stacktrace);
 		// TODO Auto-generated constructor stub
