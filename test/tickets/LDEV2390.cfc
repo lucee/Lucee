@@ -43,7 +43,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	}
 
 	private struct function getDatasource(){
-		var mySQL=getCredencials();
+		var mySQL=getCredentials();
 		if(mySQL.count()==0) return {};
 		
 		return {
