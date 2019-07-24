@@ -118,14 +118,15 @@ this.mappings=["#mappings.virtual#"]={<cfif len(mappings.strPhysical)>
 	
 	<cfif hasAccess>
 		<h2>Create new mapping</h2>
-		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
+		<cfformClassic onerror="customError" onsubmit="return inputMapping()" action="#request.self#?action=#url.action#" method="post">
 			<input type="hidden" name="row_1" value="1">
 			<table class="maintbl">
 				<tbody>
 					<tr>
 						<th scope="row">#stText.Mappings.VirtualHead#</th>
 						<td><cfinputClassic onKeyDown="checkTheBox(this)" type="text" 
-							name="virtual_1" value="" required="no" class="medium">
+							name="virtual_1" value="" required="yes" class="medium" id="ioMapping" message="#stText.debug.labelempty#">
+							<label id="ioMapOut" class="commentError"></label>
 						</td>
 					</tr>
 					<tr>

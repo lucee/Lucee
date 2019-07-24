@@ -754,6 +754,9 @@ you can see the log result at the end of every request, if a debug template is d
 	<!-- debugging.settings.cfm -->
 	<data key="debug.settings.desc">Enable certain logging options for Lucee</data>
 
+	<!-- resources.mappings.list -->
+	<data key="debug.labelempty">The field not to be empty</data>
+
 	<!-- debugging.templates.cfm -->
 	<data key="debug.label">Label</data>
 	<data key="debug.type">Type</data>

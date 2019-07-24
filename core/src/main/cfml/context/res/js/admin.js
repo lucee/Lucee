@@ -100,6 +100,7 @@ function customError(errors){
 	}
 
 	// create new error
+	document.getElementById("ioMapOut").innerHTML ='';
 	for(var i=0;i<errors.length;i++){
 		err=errors[i];
 		var input=form[err.name];
@@ -109,6 +110,18 @@ function customError(errors){
 		_input.after('<span id="msg_'+err.name+'" class="commentError"><br/>'+err.error+'</span>');
 	}
 	disableBlockUI=true;
+}
+
+function inputMapping() {
+	var input = document.getElementById("ioMapping").value;
+	if(input.length == 1 || input=='/') {
+		document.getElementById("ioMapping").focus();
+		document.getElementById("ioMapping").style.backgroundColor = "#ffeeee";
+		document.getElementById("ioMapOut").innerHTML =' <br>'+"Virtual value not valid";
+		disableBlockUI=true;
+		return false;
+	}
+
 }
 
 function createWaitBlockUI(msg)
