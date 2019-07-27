@@ -1333,8 +1333,11 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 		StringBuffer sb = new StringBuffer();
 
-		sb.append("Query\n");
-		sb.append("---------------------------------------------------\n");
+		sb.append("| Query: ")
+				.append(this.name)
+				.append("\tRecordCount: ")
+				.append(getRecordcount())
+				.append('\n');
 
 		if (sql != null) {
 			sb.append(sql + "\n");
@@ -1346,8 +1349,6 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			sb.append("---------------------------------------------------\n");
 		}
 
-		sb.append("Recordcount: " + getRecordcount() + "\n");
-		sb.append("---------------------------------------------------\n");
 		String trenner = "";
 		for (int i = 0; i < keys.length; i++) {
 			trenner += "+---------------------";
@@ -1360,8 +1361,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			sb.append(getToStringField(keys[i].getString()));
 		}
 		sb.append("|\n");
-		sb.append(trenner);
-		sb.append(trenner);
+		sb.append(trenner.replace('-', '='));
 
 		// body
 		for (int i = 0; i < recordcount; i++) {
