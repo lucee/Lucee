@@ -383,7 +383,7 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 							_objName = null;
 						}
 
-						ResultSet procColumns = conn.getMetaData().getProcedureColumns(_objName, _owner, _procName, "%");
+						ResultSet procColumns = conn.getMetaData().getProcedureColumns(_objName, _owner, _procName, null);
 						procParams = getProcMetaCollection(procColumns);
 						procParamsCache.put(cacheId, procParams);
 
