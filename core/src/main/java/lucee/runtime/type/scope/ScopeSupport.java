@@ -199,7 +199,7 @@ public abstract class ScopeSupport extends StructImpl implements Scope {
 
 	private Struct _fill(final Struct parent, String name, Object value, boolean isLast, boolean scriptProteced, boolean sameAsArray) {
 		Object curr;
-		boolean isArrayDef = sameAsArray;
+		boolean isArrayDef = false;
 		Collection.Key key = KeyImpl.init(name);
 
 		// script protect
@@ -251,7 +251,15 @@ public abstract class ScopeSupport extends StructImpl implements Scope {
 				if (!StringUtil.isEmpty(value)) {
 					String existing = Caster.toString(curr, "");
 					if (StringUtil.isEmpty(existing)) parent.setEL(key, value);
-					else parent.setEL(key, Caster.toString(curr, "") + ',' + value);
+					else {
+						if (sameAsArray) {
+							Array arr = new ArrayImpl();
+							arr.appendEL(curr);
+							arr.appendEL(value);
+							parent.setEL(key, arr);
+						}
+						else parent.setEL(key, Caster.toString(curr, "") + ',' + value);
+					}
 				}
 			}
 		}
