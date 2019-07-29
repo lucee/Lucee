@@ -2922,6 +2922,7 @@ public final class PageContextImpl extends PageContext {
 		if (signal && fdEnabled) {
 			FDSignal.signal(pe, caught);
 		}
+		// boolean outer = exception != null && exception == pe;
 		exception = pe;
 		if (store) {
 			Undefined u = undefinedScope();
@@ -2932,7 +2933,13 @@ public final class PageContextImpl extends PageContext {
 			else {
 				(u.getCheckArguments() ? u.localScope() : u).setEL(KeyConstants._cfcatch, pe.getCatchBlock(config));
 				if (name != null && !StringUtil.isEmpty(name, true)) (u.getCheckArguments() ? u.localScope() : u).setEL(KeyImpl.getInstance(name.trim()), pe.getCatchBlock(config));
-				if (!gatewayContext && config.debug() && config.hasDebugOptions(ConfigImpl.DEBUG_EXCEPTION)) debugger.addException(config, exception);
+				if (!gatewayContext && config.debug() && config.hasDebugOptions(ConfigImpl.DEBUG_EXCEPTION) && caught) {
+					/*
+					 * print.e("-----------------------"); print.e("msg:" + pe.getMessage()); print.e("caught:" +
+					 * caught); print.e("store:" + store); print.e("signal:" + signal); print.e("outer:" + outer);
+					 */
+					debugger.addException(config, exception);
+				}
 			}
 		}
 	}
