@@ -420,6 +420,7 @@ td.fieldPadded {
 
 /* display boxes etc. */
 .commentError{font-size : 10px;color:#bf4f36;text-decoration:none;}
+.alertprovider{font-size : 10px;color:#bf4f36;text-decoration:none;margin-left: 20px !important;}
 .comment{	
 	font-size:11px;color:#999;font-style: italic;
 	text-decoration:none;	

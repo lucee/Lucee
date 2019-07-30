@@ -213,7 +213,9 @@
 					<input type="button" class="button submit"
 						onclick="changeVersion(this, UPDATE)" 
 						name="mainAction" 
+						id="disableButton"
 						value="#stText.services.update.downUpBtn#">
+						<span class="msg"></span>
 					<div class="comment">
 						<cfloop list="#listVrs#" index="key">
 							<div class="itemintro"><b>#stText.services.update.short[key]# :</b> #stText.services.update[key&"Desc"]#</div>
@@ -272,7 +274,7 @@
 			<tfoot>
 				<tr>
 					<td colspan="2">
-						<input type="submit" class="bl button submit" name="mainAction" value="#stText.Buttons.Update#">
+						<input type="submit" class="bl button submit" id="updateProvider" name="mainAction" value="#stText.Buttons.Update#">
 						<input type="reset" class="br button reset" name="cancel" value="#stText.Buttons.Cancel#">
 					</td>
 				</tr>
@@ -298,6 +300,16 @@
 			});
 
 			function enableVersion(v, i){
+				$(".msg").text("");
+				$("input[type='button'][name='changeConnection']").click(function(){
+				    var a_myname = $("##btn_"+v).attr("class");
+	 				if(a_myname.includes("btn") == false) {
+						$('##disableButton').attr('disabled','disabled').css('opacity',0.5);
+	 				}
+					else if(a_myname.includes("btn") == true){
+						$('##disableButton').attr("disabled", false).css('opacity',1);	
+					}
+				});
 				if(i== 'intial'){
 					$("##group_Connection").find('optgroup' ).each(function(index) {
 						var xx = $(this).attr('class');
@@ -333,7 +345,13 @@
 			}
 
 			function changeVersion(field, frm) {
-				if( frm.value != ""){
+				if(frm.value == "") {
+					$(".msg").text("");
+					$( ".msg" ).append( "<div class='error'>Please Choose any version</p>" );
+					disableBlockUI=true;
+					return false;
+				}
+				else{
 					submitted = true;
 					$('##group_Connection').hide();
 					url='changeto.cfm?#session.urltoken#&adminType=#request.admintype#&version='+frm.value;
@@ -351,8 +369,6 @@
 								//window.location=('#request.self#?action=#url.action#'); //$('##updateInfoDesc').html(response);
 				 		});
 					});
-				} else {
-					$( ".msg" ).append( "<div class='error'>Please Choose any version</p>" );
 				}
 			}
 
@@ -362,6 +378,18 @@
 					$( '##customtextinput' ).attr( 'disabled', false);
 				} else{
 					$( '##customtextinput' ).attr( 'disabled', true);
+				}
+			});
+			$('##updateProvider').click(function(){
+				$(".alertprovider").text("");
+				var re = /(http(s)?:\\)?([\w-]+\.)+[\w-]+[.com|.in|.org]+(\[\?%&=]*)?/;
+				var checkbox = document.getElementById("sp_radio_custom").checked;
+				var text = $('##customtextinput').val();
+				if(checkbox == true && (text.length == 0 || !re.test(text))) {
+					$('##customtextinput').addClass("InputError");
+					$( '##customtextinput' ).after( '</br><span class="alertprovider">Please provide the valid url</span>' );
+					disableBlockUI=true;
+					return false
 				}
 			});
 		</script>
