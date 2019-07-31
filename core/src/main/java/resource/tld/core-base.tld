@@ -7323,6 +7323,22 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<description>Yes or No. When set to Yes, cfsetting blocks output of HTML that resides outside cfoutput tags.</description>
 		</attribute>
 		<attribute>
+			<type>string</type>
+			<name>info</name>
+			<required>false</required>
+			<status>hidden</status>
+			<rtexprvalue>true</rtexprvalue>
+			<description>name of variable created for all information for this tag.</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>listen</name>
+			<required>false</required>
+			<status>hidden</status>
+			<rtexprvalue>true</rtexprvalue>
+			<description>do log all action, so it can report more detail with info.</description>
+		</attribute>
+		<attribute>
 			<type>boolean</type>
 			<name>showDebugOutput</name>
 			<required>false</required>

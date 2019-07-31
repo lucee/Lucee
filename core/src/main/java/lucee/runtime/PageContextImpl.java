@@ -646,6 +646,7 @@ public final class PageContextImpl extends PageContext {
 		tagName = null;
 		parentTags = null;
 		_psq = null;
+		listenSettings = false;
 	}
 
 	private void releaseORM() throws PageException {
@@ -2138,6 +2139,10 @@ public final class PageContextImpl extends PageContext {
 		}
 	}
 
+	public short getCFOutputOnly() {
+		return enablecfoutputonly;
+	}
+
 	/**
 	 * FUTURE - add to interface
 	 *
@@ -3329,6 +3334,8 @@ public final class PageContextImpl extends PageContext {
 
 	private String tagName;
 
+	private boolean listenSettings;
+
 	public boolean isTrusted(Page page) {
 		if (page == null) return false;
 
@@ -3701,5 +3708,13 @@ public final class PageContextImpl extends PageContext {
 		}
 		// TODO check application context
 		return config.getProxyData();
+	}
+
+	public void setListenSettings(boolean listenSettings) {
+		this.listenSettings = listenSettings;
+	}
+
+	public boolean getListenSettings() {
+		return listenSettings;
 	}
 }
