@@ -28,6 +28,7 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.lang.Md5;
 import lucee.commons.net.HTTPUtil;
 import lucee.commons.security.Credentials;
+import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.op.Caster;
@@ -278,6 +279,7 @@ public final class ScheduleTaskImpl implements ScheduleTask {
 	@Override
 	public void setValid(boolean valid) {
 		this.valid = valid;
+		log(Log.LEVEL_INFO, "setValid==false", new Throwable());
 	}
 
 	/**
@@ -369,5 +371,15 @@ public final class ScheduleTaskImpl implements ScheduleTask {
 
 	public Scheduler getScheduler() {
 		return scheduler;
+	}
+
+	private void log(int level, String msg) {
+		String logName = "schedule task:" + task;
+		((ConfigImpl) ((SchedulerImpl) scheduler).getConfig()).getLog("scheduler").log(level, logName, msg);
+	}
+
+	private void log(int level, String msg, Throwable t) {
+		String logName = "schedule task:" + task;
+		((ConfigImpl) ((SchedulerImpl) scheduler).getConfig()).getLog("scheduler").log(level, logName, msg, t);
 	}
 }
