@@ -19,9 +19,10 @@
 package lucee.runtime.text.xml;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.io.Writer;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -45,6 +46,7 @@ import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 import org.xml.sax.InputSource;
 
+import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ExceptionUtil;
@@ -515,17 +517,23 @@ public final class XMLCaster {
 	 * @throws PageException
 	 */
 	public static void writeTo(Node node, Resource file) throws PageException {
-		OutputStream os = null;
+		writeTo(node, file, null);
+	}
+
+	public static void writeTo(Node node, Resource file, Charset charset) throws PageException {
+		if (charset == null) charset = CharsetUtil.UTF8;
+		Writer w = null;
 		try {
-			os = IOUtil.toBufferedOutputStream(file.getOutputStream());
-			writeTo(node, new StreamResult(os), false, false, null, null, null);
-			os.flush();
+			// os = IOUtil.toBufferedOutputStream(file.getOutputStream());
+			w = IOUtil.getWriter(file, charset);
+			writeTo(node, new StreamResult(w), false, false, null, null, null);
+			w.flush();
 		}
 		catch (IOException ioe) {
 			throw Caster.toPageException(ioe);
 		}
 		finally {
-			IOUtil.closeEL(os);
+			IOUtil.closeEL(w);
 		}
 	}
 
