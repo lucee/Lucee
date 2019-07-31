@@ -35,8 +35,8 @@ public class FileGetMimeType {
 	public static String call(PageContext pc, Object oSrc, boolean checkHeader) throws PageException {
 		Resource src = Caster.toResource(pc, oSrc, false);
 		if (!src.exists()) {
-			String mimeType = IOUtil.getMimeType(src.getName(), null);
-			if (!StringUtil.isEmpty(mimeType)) return mimeType;
+			// String mimeType = IOUtil.getMimeType(src.getName(), null);
+			// if (!StringUtil.isEmpty(mimeType)) return mimeType;
 			throw new FunctionException(pc, "FileGetMimeType", 1, "file", "file [" + src + "] does not exist and was not able to detect mimetype from file name extension.");
 		}
 		pc.getConfig().getSecurityManager().checkFileLocation(src);
