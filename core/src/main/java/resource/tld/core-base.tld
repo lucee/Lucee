@@ -6476,6 +6476,13 @@ To use cached data, the current query must use the same SQL statement, data sour
 		</attribute>
 		<attribute>
 			<type>string</type>
+			<name>indexName</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description></description>
+		</attribute>
+		<attribute>
+			<type>string</type>
 			<name>returntype</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>

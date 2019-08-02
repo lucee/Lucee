@@ -57,6 +57,7 @@ import lucee.runtime.db.SQLImpl;
 import lucee.runtime.db.SQLItem;
 import lucee.runtime.debug.DebuggerImpl;
 import lucee.runtime.exp.ApplicationException;
+import lucee.runtime.exp.CasterException;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.BodyTagTryCatchFinallyImpl;
@@ -151,6 +152,10 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 
 	public void setOrmoptions(Struct ormoptions) {
 		data.ormoptions = ormoptions;
+	}
+
+	public void setIndexname(String indexName) throws CasterException {
+		data.indexName = KeyImpl.toKey(indexName);
 	}
 
 	public void setReturntype(String strReturntype) throws ApplicationException {
@@ -1052,7 +1057,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 
 				return QueryImpl.toStruct(pageContext, dc, sql, data.columnName, data.maxrows, data.blockfactor, data.timeout, getName(data), tl.template, createUpdateData, true);
 			}
-			return new QueryImpl(pageContext, dc, sql, data.maxrows, data.blockfactor, data.timeout, getName(data), tl.template, createUpdateData, true);
+			return new QueryImpl(pageContext, dc, sql, data.maxrows, data.blockfactor, data.timeout, getName(data), tl.template, createUpdateData, true, data.indexName);
 		}
 		finally {
 			manager.releaseConnection(pageContext, dc);
