@@ -29,9 +29,15 @@ import lucee.runtime.type.dt.DateTimeImpl;
 
 public class TimeCast implements Cast {
 
+	private final boolean useTimeZone;
+
+	public TimeCast(boolean useTimeZone) {
+		this.useTimeZone = useTimeZone;
+	}
+
 	@Override
 	public Object toCFType(TimeZone tz, ResultSet rst, int columnIndex) throws SQLException, IOException {
-		Time t = rst.getTime(columnIndex, JREDateTimeUtil.getThreadCalendar(tz));
+		Time t = useTimeZone ? rst.getTime(columnIndex, JREDateTimeUtil.getThreadCalendar(tz)) : rst.getTime(columnIndex);
 		if (t == null) return null;
 
 		return new DateTimeImpl(t.getTime(), false);

@@ -33,7 +33,6 @@ import java.sql.Time;
 import java.sql.Types;
 import java.util.Date;
 
-import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.FormatUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.sql.SQLUtil;
@@ -72,9 +71,18 @@ import lucee.runtime.type.query.SimpleQuery;
 public class QueryUtil {
 
 	public static Cast toCast(ResultSet result, int type) throws SQLException {
-		if (type == Types.TIMESTAMP) return Cast.TIMESTAMP;
-		else if (type == Types.TIME) return Cast.TIME;
-		else if (type == Types.DATE) return Cast.DATE;
+		if (type == Types.TIMESTAMP) {
+			if (isTeradata(result)) return Cast.TIMESTAMP_NOTZ;
+			return Cast.TIMESTAMP;
+		}
+		else if (type == Types.TIME) {
+			if (isTeradata(result)) return Cast.TIME_NOTZ;
+			return Cast.TIME;
+		}
+		else if (type == Types.DATE) {
+			if (isTeradata(result)) return Cast.DATE_NOTZ;
+			return Cast.DATE;
+		}
 		else if (type == Types.CLOB) return Cast.CLOB;
 		else if (type == Types.BLOB) return Cast.BLOB;
 		else if (type == Types.BIT) return Cast.BIT;
@@ -130,8 +138,24 @@ public class QueryUtil {
 
 			return SQLUtil.isOracle(conn);
 		}
-		catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
+		catch (Exception e) {
+			return false;
+		}
+	}
+
+	private static boolean isTeradata(ResultSet result) {
+		try {
+			if (result == null) return false;
+
+			Statement stat = result.getStatement();
+			if (stat == null) return false;
+
+			Connection conn = stat.getConnection();
+			if (conn == null) return false;
+
+			return SQLUtil.isTeradata(conn);
+		}
+		catch (Exception e) {
 			return false;
 		}
 	}

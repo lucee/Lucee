@@ -3143,4 +3143,9 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		if (!(obj instanceof Collection)) return false;
 		return CollectionUtil.equals(this, (Collection) obj);
 	}
+
+	public void disableIndex() {
+		this.indexes = null;
+		this.indexName = null;
+	}
 }
