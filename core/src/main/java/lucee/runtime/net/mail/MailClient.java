@@ -514,7 +514,7 @@ public abstract class MailClient implements PoolItem {
 					cids.setEL(KeyImpl.init(filename), cid);
 				}
 
-				if (filename != null && ArrayUtil.find(attachments, filename) == 0) {
+				if (filename != null && ArrayUtil.find(attachments, filename) >= 0) {
 
 					attachments.appendEL(filename);
 					if (attachmentDirectory != null) {
