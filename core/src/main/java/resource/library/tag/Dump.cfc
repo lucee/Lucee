@@ -506,7 +506,8 @@ component {
 			arrayAppend(rows, '<td class="collapse-trigger luceeH#variables.colorKeys[arguments.meta.colorId]#" colspan="#columnCount#" style="cursor:pointer;">');
 
 			arrayAppend(rows, '<span>#arguments.meta.title##metaID#</span>');
-			arrayAppend(rows, comment & '</td>');
+			arrayAppend(rows, comment);
+			arrayAppend(rows, 'Source File: #arguments.context#' & '</td>');
 			arrayAppend(rows, '</tr>');
 		}
 		else {
