@@ -3264,6 +3264,10 @@ public final class PageContextImpl extends PageContext {
 		return threads.get(name, defaultValue);
 	}
 
+	public boolean isThreads(Object obj) {
+		return threads == obj;
+	}
+
 	public void setCurrentThreadScope(ThreadsImpl thread) {
 		currentThread = thread;
 	}
