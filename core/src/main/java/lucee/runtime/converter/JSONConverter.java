@@ -745,8 +745,8 @@ public final class JSONConverter extends ConverterSupport {
 
 	public static int toQueryFormat(Object options, int defaultValue) {
 		Boolean b = Caster.toBoolean(options, null);
-		if (b == Boolean.TRUE) return SerializationSettings.SERIALIZE_AS_COLUMN;
-		if (b == Boolean.FALSE) return SerializationSettings.SERIALIZE_AS_ROW;
+		if (Boolean.TRUE.equals(b)) return SerializationSettings.SERIALIZE_AS_COLUMN;
+		if (Boolean.FALSE.equals(b)) return SerializationSettings.SERIALIZE_AS_ROW;
 
 		String str = Caster.toString(options, null);
 		if ("row".equalsIgnoreCase(str)) return SerializationSettings.SERIALIZE_AS_ROW;
