@@ -35,6 +35,8 @@ import lucee.commons.net.http.Header;
 import lucee.commons.security.Credentials;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.engine.ThreadLocalConfig;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.functions.other.CreateUUID;
 import lucee.runtime.net.proxy.ProxyData;
@@ -56,6 +58,7 @@ class ExecutionThread extends Thread {
 
 	@Override
 	public void run() {
+		if (ThreadLocalPageContext.getConfig() == null && config != null) ThreadLocalConfig.register(config);
 		execute(config, task, charset);
 	}
 

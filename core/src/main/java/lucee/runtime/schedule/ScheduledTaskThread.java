@@ -32,6 +32,7 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.engine.CFMLEngineImpl;
+import lucee.runtime.engine.ThreadLocalConfig;
 import lucee.runtime.engine.ThreadLocalPageContext;
 
 public class ScheduledTaskThread extends Thread {
@@ -58,6 +59,7 @@ public class ScheduledTaskThread extends Thread {
 	private List<ExecutionThread> exeThreads = new ArrayList<ExecutionThread>();
 	private ExecutionThread exeThread;
 	private final boolean unique;
+	private Config config;
 
 	public ScheduledTaskThread(CFMLEngineImpl engine, Scheduler scheduler, ScheduleTask task) {
 		util = DateTimeUtil.getInstance();
@@ -78,6 +80,7 @@ public class ScheduledTaskThread extends Thread {
 		else amount = 1;
 
 		cIntervall = toCalndarIntervall(intervall);
+		this.config = ThreadLocalPageContext.getConfig(this.scheduler.getConfig());
 	}
 
 	public void setStop(boolean stop) {
@@ -115,6 +118,8 @@ public class ScheduledTaskThread extends Thread {
 
 	@Override
 	public void run() {
+		if (ThreadLocalPageContext.getConfig() == null && config != null) ThreadLocalConfig.register(config);
+
 		try {
 			_run();
 		}
@@ -191,13 +196,27 @@ public class ScheduledTaskThread extends Thread {
 	}
 
 	private void log(int level, String msg) {
-		String logName = "schedule task:" + task.getTask();
-		((ConfigImpl) scheduler.getConfig()).getLog("scheduler").log(level, logName, msg);
+		try {
+			String logName = "schedule task:" + task.getTask();
+			((ConfigImpl) scheduler.getConfig()).getLog("scheduler").log(level, logName, msg);
+
+		}
+		catch (Exception e) {
+			System.err.println(msg);
+			System.err.println(e);
+		}
 	}
 
 	private void log(int level, Exception e) {
-		String logName = "schedule task:" + task.getTask();
-		((ConfigImpl) scheduler.getConfig()).getLog("scheduler").log(level, logName, e);
+		try {
+			String logName = "schedule task:" + task.getTask();
+			((ConfigImpl) scheduler.getConfig()).getLog("scheduler").log(level, logName, e);
+
+		}
+		catch (Exception ee) {
+			System.err.println(e);
+			System.err.println(ee);
+		}
 	}
 
 	private void sleepEL(long when, long now) {
