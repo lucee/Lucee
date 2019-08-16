@@ -166,6 +166,18 @@ function enableBtnsWhenChecked(btns, checkboxes)
 		.filter(':first').triggerHandler('change');
 }
 
+function validateUrl() {
+	$(".alertprovider").text("");
+	var url = document.getElementById("urlValue").value;
+	var re = /(http(s)?:\\)?([\w-]+\.)+[\w-]+[.com|.in|.org]+(\[\?%&=]*)?/;
+	// var text = $('##urlValue').val();
+	if(!re.test(url)) {
+		$('#urlValue').addClass("InputError");
+		$( '#urlValue' ).after( '</br><span class="alertprovider commentError">Please provide the valid url</span>' );
+		disableBlockUI=true;
+		return false
+	}
+}
 
 /* tooltips */
 function createTooltip(element, text, x, y, mouseAction )

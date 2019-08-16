@@ -235,7 +235,7 @@ list all mappings and display necessary edit fields --->
 	
 	<cfif hasAccess>
 		<h2>#stText.ext.prov.new#</h2>
-		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
+		<cfformClassic onerror="customError" onsubmit="return validateUrl()" action="#request.self#?action=#url.action#" method="post">
 			<input type="hidden" name="row_1" value="1">
 			<table class="maintbl" style="width:75%">
 				<tbody>
@@ -244,7 +244,7 @@ list all mappings and display necessary edit fields --->
 							#stText.ext.prov.host#
 						</th>
 						<td>
-							<cfinputClassic onKeyDown="checkTheBox(this)" type="text" 
+							<cfinputClassic onKeyDown="checkTheBox(this)" type="text" id="urlValue"
 							name="url_#saveUrl#" value="" required="yes" class="xlarge">
 							<div class="comment">#stText.ext.prov.hostDesc#</div>
 						</td>
