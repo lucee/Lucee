@@ -9386,6 +9386,12 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     			<required>Yes</required>
     			<description></description>
     	    </argument>
+			<argument>
+				<name>defaultValue</name>
+				<type>numeric</type>
+				<required>no</required>
+				<description>In case no matching index was found, this value is returned by the function, in case it is not set, the function will throw an exception.</description>
+			</argument>
     		<return>
     			<type>numeric</type>
     		</return>
@@ -9410,6 +9416,12 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     			<required>Yes</required>
     			<description></description>
     	    </argument>
+			<argument>
+				<name>defaultValue</name>
+				<type>struct</type>
+				<required>no</required>
+				<description>In case no matching index was found, this value is returned by the function, in case it is not set, the function will throw an exception.</description>
+			</argument>
     		<return>
     			<type>struct</type>
     		</return>
@@ -9560,6 +9572,12 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>string</type>
 			<required>yes</required>
 			<description></description>
+		</argument>
+		<argument>
+			<name>defaultValue</name>
+			<type>any</type>
+			<required>no</required>
+			<description>In case no matching index was found, this value is returned by the function, in case it is not set, the function will throw an exception.</description>
 		</argument>
 		<return>
 			<type>any</type>

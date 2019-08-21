@@ -278,9 +278,7 @@ public final class ScheduleTaskImpl implements ScheduleTask {
 
 	@Override
 	public void setValid(boolean valid) {
-		if (this.valid && !valid) log(Log.LEVEL_INFO, "setValid==false", new Throwable());
 		this.valid = valid;
-
 	}
 
 	/**
