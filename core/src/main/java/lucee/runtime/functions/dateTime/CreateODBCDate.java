@@ -47,6 +47,7 @@ public final class CreateODBCDate implements Function {
 		c.set(Calendar.MINUTE, 0);
 		c.set(Calendar.SECOND, 0);
 		c.set(Calendar.MILLISECOND, 0);
+		c.set(Calendar.AM_PM, 0);
 		return new DateImpl(c.getTime());
 	}
 }
