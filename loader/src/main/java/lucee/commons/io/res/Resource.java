@@ -430,7 +430,7 @@ public interface Resource extends Serializable {
 	 * atomic, and it might not succeed if a file with the destination abstract pathname already exists.
 	 * 
 	 * @param dest The new abstract pathname for the named file
-	 * @throws IOException throwed when operation not done sucessfull
+	 * @throws IOException throwed when operation not done successfully
 	 * 
 	 * 
 	 */
