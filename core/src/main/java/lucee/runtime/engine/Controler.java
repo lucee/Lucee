@@ -154,7 +154,7 @@ public final class Controler extends Thread {
 				time = System.currentTimeMillis() - ct.start;
 				// done
 				if (ct.done >= 0) {
-					if (time > 10000) configServer.getLog("application").info("controller", "controler took " + ct.done + "ms to execute sucessfully.");
+					if (time > 10000) configServer.getLog("application").info("controller", "controller took " + ct.done + "ms to execute successfully.");
 					it.remove();
 				}
 				// failed
@@ -167,7 +167,7 @@ public final class Controler extends Thread {
 					SystemUtil.stop(ct);
 					// print.e(ct.getStackTrace());
 					if (!ct.isAlive()) {
-						configServer.getLog("application").error("controller", "controler thread [" + ct.hashCode() + "] forced to stop after " + time + "ms");
+						configServer.getLog("application").error("controller", "controller thread [" + ct.hashCode() + "] forced to stop after " + time + "ms");
 						it.remove();
 					}
 					else {
