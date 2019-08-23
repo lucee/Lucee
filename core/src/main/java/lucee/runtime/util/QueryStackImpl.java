@@ -29,93 +29,93 @@ import lucee.runtime.type.QueryColumn;
  * Stack for Query Objects
  */
 public final class QueryStackImpl implements QueryStack {
-    Query[] queries = new Query[20];
-    int start = queries.length;
+	Query[] queries = new Query[20];
+	int start = queries.length;
 
-    @Override
-    public QueryStack duplicate(boolean deepCopy) {
-	QueryStackImpl qs = new QueryStackImpl();
-	if (deepCopy) {
-	    qs.queries = new Query[queries.length];
-	    for (int i = 0; i < queries.length; i++) {
-		qs.queries[i] = (Query) Duplicator.duplicate(queries[i], deepCopy);
-	    }
+	@Override
+	public QueryStack duplicate(boolean deepCopy) {
+		QueryStackImpl qs = new QueryStackImpl();
+		if (deepCopy) {
+			qs.queries = new Query[queries.length];
+			for (int i = 0; i < queries.length; i++) {
+				qs.queries[i] = (Query) Duplicator.duplicate(queries[i], deepCopy);
+			}
+		}
+		else qs.queries = queries;
+
+		qs.start = start;
+		return qs;
 	}
-	else qs.queries = queries;
 
-	qs.start = start;
-	return qs;
-    }
-
-    @Override
-    public void addQuery(Query query) {
-	if (start < 1) grow();
-	queries[--start] = query;
-    }
-
-    @Override
-    public void removeQuery() {
-	// print.ln("queries["+start+"]=null;");
-	queries[start++] = null;
-    }
-
-    @Override
-    public boolean isEmpty() {
-	return start == queries.length;
-    }
-
-    @Override
-    public Object getDataFromACollection(PageContext pc, Key key, Object defaultValue) {
-	// Object rtn;
-	QueryColumn col;
-	// get data from queries
-	for (int i = start; i < queries.length; i++) {
-	    col = queries[i].getColumn(key, null);
-	    if (col != null) return col.get(queries[i].getCurrentrow(pc.getId()), NullSupportHelper.empty(pc));
-	    // rtn=((Objects)queries[i]).get(pc,key,Null.NULL);
-	    // if(rtn!=Null.NULL) return rtn;
+	@Override
+	public void addQuery(Query query) {
+		if (start < 1) grow();
+		queries[--start] = query;
 	}
-	return defaultValue;
-    }
 
-    @Override
-    public QueryColumn getColumnFromACollection(Key key) {
-	QueryColumn rtn = null;
-
-	// get data from queries
-	for (int i = start; i < queries.length; i++) {
-	    rtn = queries[i].getColumn(key, null);
-	    if (rtn != null) {
-		return rtn;
-	    }
+	@Override
+	public void removeQuery() {
+		// print.ln("queries["+start+"]=null;");
+		queries[start++] = null;
 	}
-	return null;
-    }
 
-    @Override
-    public void clear() {
-	for (int i = start; i < queries.length; i++) {
-	    queries[i] = null;
+	@Override
+	public boolean isEmpty() {
+		return start == queries.length;
 	}
-	start = queries.length;
-    }
 
-    private void grow() {
-	Query[] tmp = new Query[queries.length + 20];
-	for (int i = 0; i < queries.length; i++) {
-	    tmp[i + 20] = queries[i];
+	@Override
+	public Object getDataFromACollection(PageContext pc, Key key, Object defaultValue) {
+		// Object rtn;
+		QueryColumn col;
+		// get data from queries
+		for (int i = start; i < queries.length; i++) {
+			col = queries[i].getColumn(key, null);
+			if (col != null) return col.get(queries[i].getCurrentrow(pc.getId()), NullSupportHelper.empty(pc));
+			// rtn=((Objects)queries[i]).get(pc,key,Null.NULL);
+			// if(rtn!=Null.NULL) return rtn;
+		}
+		return defaultValue;
 	}
-	queries = tmp;
-	start += 20;
-    }
 
-    @Override
-    public Query[] getQueries() {
-	Query[] tmp = new Query[queries.length - start];
-	int count = 0;
-	for (int i = start; i < queries.length; i++) {
-	    tmp[count++] = queries[i];
+	@Override
+	public QueryColumn getColumnFromACollection(Key key) {
+		QueryColumn rtn = null;
+
+		// get data from queries
+		for (int i = start; i < queries.length; i++) {
+			rtn = queries[i].getColumn(key, null);
+			if (rtn != null) {
+				return rtn;
+			}
+		}
+		return null;
 	}
-	return tmp;
-    }
+
+	@Override
+	public void clear() {
+		for (int i = start; i < queries.length; i++) {
+			queries[i] = null;
+		}
+		start = queries.length;
+	}
+
+	private void grow() {
+		Query[] tmp = new Query[queries.length + 20];
+		for (int i = 0; i < queries.length; i++) {
+			tmp[i + 20] = queries[i];
+		}
+		queries = tmp;
+		start += 20;
+	}
+
+	@Override
+	public Query[] getQueries() {
+		Query[] tmp = new Query[queries.length - start];
+		int count = 0;
+		for (int i = start; i < queries.length; i++) {
+			tmp[count++] = queries[i];
+		}
+		return tmp;
+	}
 }

@@ -28,11 +28,11 @@ import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
 
 public final class TrueFalseFormat implements Function {
-    public static String call(PageContext pc, Object object) throws PageException {
-	if (object instanceof String) {
-	    Object str = object;
-	    if (StringUtil.isEmpty(str)) return "false";
+	public static String call(PageContext pc, Object object) throws PageException {
+		if (object instanceof String) {
+			Object str = object;
+			if (StringUtil.isEmpty(str)) return "false";
+		}
+		return Caster.toBooleanValue(object) ? "true" : "false";
 	}
-	return Caster.toBooleanValue(object) ? "true" : "false";
-    }
 }

@@ -29,46 +29,46 @@ import lucee.commons.io.cache.CacheKeyFilter;
  */
 public class WildCardFilter implements CacheKeyFilter {
 
-    private static final String specials = "{}[]().+\\^$";
+	private static final String specials = "{}[]().+\\^$";
 
-    private final Pattern pattern;
-    private final String wildcard;
+	private final Pattern pattern;
+	private final String wildcard;
 
-    private boolean ignoreCase;
+	private boolean ignoreCase;
 
-    /**
-     * @param wildcard
-     * @throws MalformedPatternException
-     */
-    public WildCardFilter(String wildcard, boolean ignoreCase) {
-	this.wildcard = wildcard;
-	this.ignoreCase = ignoreCase;
-	StringBuilder sb = new StringBuilder(wildcard.length());
-	int len = wildcard.length();
+	/**
+	 * @param wildcard
+	 * @throws MalformedPatternException
+	 */
+	public WildCardFilter(String wildcard, boolean ignoreCase) {
+		this.wildcard = wildcard;
+		this.ignoreCase = ignoreCase;
+		StringBuilder sb = new StringBuilder(wildcard.length());
+		int len = wildcard.length();
 
-	for (int i = 0; i < len; i++) {
-	    char c = wildcard.charAt(i);
-	    if (c == '*') sb.append(".*");
-	    else if (c == '?') sb.append('.');
-	    else if (specials.indexOf(c) != -1) sb.append('\\').append(c);
-	    else sb.append(c);
+		for (int i = 0; i < len; i++) {
+			char c = wildcard.charAt(i);
+			if (c == '*') sb.append(".*");
+			else if (c == '?') sb.append('.');
+			else if (specials.indexOf(c) != -1) sb.append('\\').append(c);
+			else sb.append(c);
+		}
+		pattern = Pattern.compile(ignoreCase ? sb.toString().toLowerCase() : sb.toString());
+		// pattern=new Perl5Compiler().compile(ignoreCase?sb.toString().toLowerCase():sb.toString());
 	}
-	pattern = Pattern.compile(ignoreCase ? sb.toString().toLowerCase() : sb.toString());
-	// pattern=new Perl5Compiler().compile(ignoreCase?sb.toString().toLowerCase():sb.toString());
-    }
 
-    @Override
-    public boolean accept(String key) {
-	return pattern.matcher(ignoreCase ? key.toLowerCase() : key).matches();
-    }
+	@Override
+	public boolean accept(String key) {
+		return pattern.matcher(ignoreCase ? key.toLowerCase() : key).matches();
+	}
 
-    @Override
-    public String toString() {
-	return "Wildcardfilter:" + wildcard;
-    }
+	@Override
+	public String toString() {
+		return "Wildcardfilter:" + wildcard;
+	}
 
-    @Override
-    public String toPattern() {
-	return wildcard;
-    }
+	@Override
+	public String toPattern() {
+		return wildcard;
+	}
 }

@@ -457,9 +457,9 @@
     	return qry;
 	}
 
-	function getProvidersInfo(required string[] providers, boolean forceReload=false, numeric timeSpan=60){
+	function getProvidersInfo(required string[] providers, boolean forceReload=false, numeric timeSpan=60,parallel=false){
 		var datas={};
-		providers.each(parallel:false,closure:function(value){
+		providers.each(parallel:arguments.parallel,closure:function(value){
 				var data=getProviderInfo(arguments.value,forceReload,timespan);
 				datas[arguments.value]=data;
 			});

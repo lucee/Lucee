@@ -30,90 +30,90 @@ import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalPageContext;
 
 public class CharsetUtil {
-    public static final Charset UTF8;
-    public static final Charset ISO88591;
-    public static final Charset UTF16BE;
-    public static final Charset UTF16LE;
-    public static final Charset UTF32BE;
-    public static final Charset UTF32LE;
+	public static final Charset UTF8;
+	public static final Charset ISO88591;
+	public static final Charset UTF16BE;
+	public static final Charset UTF16LE;
+	public static final Charset UTF32BE;
+	public static final Charset UTF32LE;
 
-    static {
-	UTF8 = toCharset("utf-8", null);
-	ISO88591 = toCharset("iso-8859-1", null);
+	static {
+		UTF8 = toCharset("utf-8", null);
+		ISO88591 = toCharset("iso-8859-1", null);
 
-	UTF16BE = toCharset("utf-16BE", null);
-	UTF16LE = toCharset("utf-16LE", null);
+		UTF16BE = toCharset("utf-16BE", null);
+		UTF16LE = toCharset("utf-16LE", null);
 
-	UTF32BE = toCharset("utf-32BE", null);
-	UTF32LE = toCharset("utf-32LE", null);
-    }
-
-    public static Charset toCharset(String charset) {
-	if (StringUtil.isEmpty(charset, true)) return null;
-	return Charset.forName(charset.trim());
-    }
-
-    public static Charset toCharset(String charset, Charset defaultValue) {
-	if (StringUtil.isEmpty(charset)) return defaultValue;
-	try {
-	    return Charset.forName(charset);
+		UTF32BE = toCharset("utf-32BE", null);
+		UTF32LE = toCharset("utf-32LE", null);
 	}
-	catch (Throwable t) {
-	    ExceptionUtil.rethrowIfNecessary(t);
-	    return defaultValue;
+
+	public static Charset toCharset(String charset) {
+		if (StringUtil.isEmpty(charset, true)) return null;
+		return Charset.forName(charset.trim());
 	}
-    }
 
-    public static CharSet toCharSet(String charset) {
-	if (StringUtil.isEmpty(charset, true)) return null;
-	return new CharSet(Charset.forName(charset.trim()));
-    }
-
-    public static CharSet toCharSet(String charset, CharSet defaultValue) {
-	if (StringUtil.isEmpty(charset)) return defaultValue;
-	try {
-	    return new CharSet(Charset.forName(charset));
+	public static Charset toCharset(String charset, Charset defaultValue) {
+		if (StringUtil.isEmpty(charset)) return defaultValue;
+		try {
+			return Charset.forName(charset);
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			return defaultValue;
+		}
 	}
-	catch (Throwable t) {
-	    ExceptionUtil.rethrowIfNecessary(t);
-	    return defaultValue;
+
+	public static CharSet toCharSet(String charset) {
+		if (StringUtil.isEmpty(charset, true)) return null;
+		return new CharSet(Charset.forName(charset.trim()));
 	}
-    }
 
-    public static CharSet toCharSet(Charset charset) {
-	if (charset == null) return null;
-	return new CharSet(charset);
-    }
+	public static CharSet toCharSet(String charset, CharSet defaultValue) {
+		if (StringUtil.isEmpty(charset)) return defaultValue;
+		try {
+			return new CharSet(Charset.forName(charset));
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			return defaultValue;
+		}
+	}
 
-    public static Charset toCharset(CharSet charset) {
-	if (charset == null) return null;
-	return charset.toCharset();
-    }
+	public static CharSet toCharSet(Charset charset) {
+		if (charset == null) return null;
+		return new CharSet(charset);
+	}
 
-    public static Charset getWebCharset() {
-	PageContext pc = ThreadLocalPageContext.get();
-	if (pc != null) return pc.getWebCharset();
-	Config config = ThreadLocalPageContext.getConfig();
-	if (config != null) return config.getWebCharset();
+	public static Charset toCharset(CharSet charset) {
+		if (charset == null) return null;
+		return charset.toCharset();
+	}
 
-	return CharsetUtil.ISO88591;
-    }
+	public static Charset getWebCharset() {
+		PageContext pc = ThreadLocalPageContext.get();
+		if (pc != null) return pc.getWebCharset();
+		Config config = ThreadLocalPageContext.getConfig();
+		if (config != null) return config.getWebCharset();
 
-    public static String[] getAvailableCharsets() {
-	SortedMap<String, Charset> map = java.nio.charset.Charset.availableCharsets();
-	String[] keys = map.keySet().toArray(new String[map.size()]);
-	Arrays.sort(keys);
-	return keys;
-    }
+		return CharsetUtil.ISO88591;
+	}
 
-    /**
-     * is given charset supported or not
-     * 
-     * @param charset
-     * @return
-     */
-    public static boolean isSupported(String charset) {
-	return java.nio.charset.Charset.isSupported(charset);
-    }
+	public static String[] getAvailableCharsets() {
+		SortedMap<String, Charset> map = java.nio.charset.Charset.availableCharsets();
+		String[] keys = map.keySet().toArray(new String[map.size()]);
+		Arrays.sort(keys);
+		return keys;
+	}
+
+	/**
+	 * is given charset supported or not
+	 * 
+	 * @param charset
+	 * @return
+	 */
+	public static boolean isSupported(String charset) {
+		return java.nio.charset.Charset.isSupported(charset);
+	}
 
 }

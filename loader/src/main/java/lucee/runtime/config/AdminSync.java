@@ -21,5 +21,5 @@ package lucee.runtime.config;
 import lucee.runtime.type.Struct;
 
 public interface AdminSync {
-    public void broadcast(Struct attributes, Config config);
+	public void broadcast(Struct attributes, Config config);
 }

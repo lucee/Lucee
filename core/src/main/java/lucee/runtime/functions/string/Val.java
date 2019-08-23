@@ -28,58 +28,58 @@ import lucee.runtime.op.Caster;
 
 public final class Val implements Function {
 
-    private static final long serialVersionUID = -4333040593277864043L;
+	private static final long serialVersionUID = -4333040593277864043L;
 
-    public static double call(PageContext pc, String value) throws PageException {
-	if (value == null) return 0;
-	value = value.trim();
-	int pos = getPos(value);
-	if (pos <= 0) return 0;
-	return Caster.toDoubleValue(value.substring(0, pos));
-    }
-
-    private static int getPos(String str) {
-	if (str == null) return 0;
-
-	int pos = 0;
-	int len = str.length();
-	if (len == 0) return 0;
-	char curr = str.charAt(pos);
-
-	if (curr == '+' || curr == '-') {
-	    if (len == ++pos) return 0;
-	    curr = str.charAt(pos);
+	public static double call(PageContext pc, String value) throws PageException {
+		if (value == null) return 0;
+		value = value.trim();
+		int pos = getPos(value);
+		if (pos <= 0) return 0;
+		return Caster.toDoubleValue(value.substring(0, pos));
 	}
 
-	// at least one digit
-	if (curr >= '0' && curr <= '9') {
-	    curr = str.charAt(pos);
-	}
-	else if (curr == '.') {
-	    curr = '.';
-	}
-	else return 0;
+	private static int getPos(String str) {
+		if (str == null) return 0;
 
-	boolean hasDot = false;
-	// boolean hasExp=false;
-	for (; pos < len; pos++) {
-	    curr = str.charAt(pos);
-	    if (curr < '0') {
-		if (curr == '.') {
-		    if (pos + 1 >= len || hasDot) return pos;
-		    hasDot = true;
+		int pos = 0;
+		int len = str.length();
+		if (len == 0) return 0;
+		char curr = str.charAt(pos);
+
+		if (curr == '+' || curr == '-') {
+			if (len == ++pos) return 0;
+			curr = str.charAt(pos);
 		}
-		else return pos;
-	    }
-	    else if (curr > '9') {
-		/*
-		 * if(curr=='e' || curr=='E') { if(pos+1>=len || hasExp) return pos; hasExp=true; hasDot=true; }
-		 * else
-		 */
-		return pos;
-	    }
-	}
 
-	return pos;
-    }
+		// at least one digit
+		if (curr >= '0' && curr <= '9') {
+			curr = str.charAt(pos);
+		}
+		else if (curr == '.') {
+			curr = '.';
+		}
+		else return 0;
+
+		boolean hasDot = false;
+		// boolean hasExp=false;
+		for (; pos < len; pos++) {
+			curr = str.charAt(pos);
+			if (curr < '0') {
+				if (curr == '.') {
+					if (pos + 1 >= len || hasDot) return pos;
+					hasDot = true;
+				}
+				else return pos;
+			}
+			else if (curr > '9') {
+				/*
+				 * if(curr=='e' || curr=='E') { if(pos+1>=len || hasExp) return pos; hasExp=true; hasDot=true; }
+				 * else
+				 */
+				return pos;
+			}
+		}
+
+		return pos;
+	}
 }

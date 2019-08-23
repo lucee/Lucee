@@ -29,15 +29,15 @@ import lucee.runtime.op.Decision;
 
 public final class IsStruct extends BIF {
 
-    private static final long serialVersionUID = 4269284162523082182L;
+	private static final long serialVersionUID = 4269284162523082182L;
 
-    public static boolean call(PageContext pc, Object object) {
-	return Decision.isStruct(object);
-    }
+	public static boolean call(PageContext pc, Object object) {
+		return Decision.isStruct(object);
+	}
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 1) return call(pc, args[0]);
-	throw new FunctionException(pc, "IsStruct", 1, 1, args.length);
-    }
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 1) return call(pc, args[0]);
+		throw new FunctionException(pc, "IsStruct", 1, 1, args.length);
+	}
 }

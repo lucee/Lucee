@@ -14,32 +14,32 @@ import lucee.runtime.exp.PageRuntimeException;
 
 public class AMFEngineDummy implements AMFEngine {
 
-    private static AMFEngine instance;
+	private static AMFEngine instance;
 
-    private AMFEngineDummy() {
+	private AMFEngineDummy() {
 
-    }
+	}
 
-    public static AMFEngine getInstance() {
-	if (instance == null) instance = new AMFEngineDummy();
-	return instance;
-    }
+	public static AMFEngine getInstance() {
+		if (instance == null) instance = new AMFEngineDummy();
+		return instance;
+	}
 
-    @Override
-    public void init(ConfigWeb config, Map<String, String> arguments) throws IOException {
-	// do nothing
-    }
+	@Override
+	public void init(ConfigWeb config, Map<String, String> arguments) throws IOException {
+		// do nothing
+	}
 
-    @Override
-    public void service(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws IOException {
-	throw notInstalledEL();
-    }
+	@Override
+	public void service(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws IOException {
+		throw notInstalledEL();
+	}
 
-    public static PageException notInstalled() {
-	return new ApplicationException("No AMF Engine (Flex) installed!", "Check out the Extension Store in the Lucee Administrator for \"Flex\".");
-    }
+	public static PageException notInstalled() {
+		return new ApplicationException("No AMF Engine (Flex) installed!", "Check out the Extension Store in the Lucee Administrator for \"Flex\".");
+	}
 
-    public static PageRuntimeException notInstalledEL() {
-	return new PageRuntimeException(notInstalled());
-    }
+	public static PageRuntimeException notInstalledEL() {
+		return new PageRuntimeException(notInstalled());
+	}
 }

@@ -25,21 +25,21 @@ import javax.servlet.jsp.JspEngineInfo;
  */
 public final class JspEngineInfoImpl extends JspEngineInfo {
 
-    private String version;
+	private String version;
 
-    /**
-     * constructor of the JSPEngineInfo
-     * 
-     * @param version lucee version Information
-     */
-    public JspEngineInfoImpl(String version) {
-	this.version = version;
-    }
+	/**
+	 * constructor of the JSPEngineInfo
+	 * 
+	 * @param version lucee version Information
+	 */
+	public JspEngineInfoImpl(String version) {
+		this.version = version;
+	}
 
-    @Override
-    public String getSpecificationVersion() {
-	// Lucee Version
-	return version;
-    }
+	@Override
+	public String getSpecificationVersion() {
+		// Lucee Version
+		return version;
+	}
 
 }

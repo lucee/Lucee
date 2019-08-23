@@ -20,6 +20,6 @@ package lucee.transformer;
 
 public interface Context {
 
-    public Factory getFactory();
+	public Factory getFactory();
 
 }

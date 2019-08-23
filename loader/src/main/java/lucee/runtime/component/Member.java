@@ -22,29 +22,29 @@ import java.io.Serializable;
 
 public interface Member extends Serializable {
 
-    public static final int MODIFIER_NONE = 0;
-    public static final int MODIFIER_FINAL = 1;
-    public static final int MODIFIER_ABSTRACT = 2;
+	public static final int MODIFIER_NONE = 0;
+	public static final int MODIFIER_FINAL = 1;
+	public static final int MODIFIER_ABSTRACT = 2;
 
-    /**
-     * return the access modifier of this member
-     * 
-     * @return the access
-     */
-    public int getAccess();
+	/**
+	 * return the access modifier of this member
+	 * 
+	 * @return the access
+	 */
+	public int getAccess();
 
-    /**
-     * return the value itself
-     * 
-     * @return value
-     */
-    public Object getValue();
+	/**
+	 * return the value itself
+	 * 
+	 * @return value
+	 */
+	public Object getValue();
 
-    /**
-     * return Member.MODIFIER_FINAL, Member.MODIFIER_ABSTRACT or Member.MODIFIER_NONE
-     * 
-     * @return
-     */
-    public int getModifier();
+	/**
+	 * return Member.MODIFIER_FINAL, Member.MODIFIER_ABSTRACT or Member.MODIFIER_NONE
+	 * 
+	 * @return
+	 */
+	public int getModifier();
 
 }

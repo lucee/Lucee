@@ -29,15 +29,15 @@ import lucee.runtime.type.Query;
  */
 public final class QueryColumnCount extends BIF {
 
-    private static final long serialVersionUID = 7637016307562378310L;
+	private static final long serialVersionUID = 7637016307562378310L;
 
-    public static double call(PageContext pc, Query qry) {
-	if (qry instanceof Query) return qry.getColumnCount();
-	return qry.getColumnNames().length;
-    }
+	public static double call(PageContext pc, Query qry) {
+		if (qry instanceof Query) return qry.getColumnCount();
+		return qry.getColumnNames().length;
+	}
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	return call(pc, Caster.toQuery(args[0]));
-    }
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		return call(pc, Caster.toQuery(args[0]));
+	}
 }

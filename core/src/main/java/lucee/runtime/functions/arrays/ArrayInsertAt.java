@@ -30,15 +30,15 @@ import lucee.runtime.type.Array;
 
 public final class ArrayInsertAt extends BIF {
 
-    private static final long serialVersionUID = -418752384898360791L;
+	private static final long serialVersionUID = -418752384898360791L;
 
-    public static boolean call(PageContext pc, Array array, double number, Object object) throws PageException {
-	return array.insert((int) number, object);
-    }
+	public static boolean call(PageContext pc, Array array, double number, Object object) throws PageException {
+		return array.insert((int) number, object);
+	}
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 3) return call(pc, Caster.toArray(args[0]), Caster.toDoubleValue(args[1]), args[2]);
-	else throw new FunctionException(pc, "ArrayInsertAt", 3, 3, args.length);
-    }
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 3) return call(pc, Caster.toArray(args[0]), Caster.toDoubleValue(args[1]), args[2]);
+		else throw new FunctionException(pc, "ArrayInsertAt", 3, 3, args.length);
+	}
 }

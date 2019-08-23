@@ -23,42 +23,42 @@ import java.rmi.server.UnicastRemoteObject;
 
 public class Closer extends Thread {
 
-    private final String name;
-    private final Registry reg;
-    private final long idleTime;
-    private final CLIInvokerImpl invoker;
+	private final String name;
+	private final Registry reg;
+	private final long idleTime;
+	private final CLIInvokerImpl invoker;
 
-    public Closer(final Registry reg, final CLIInvokerImpl invoker, final String name, final long idleTime) {
-	this.reg = reg;
-	this.name = name;
-	this.idleTime = idleTime;
-	this.invoker = invoker;
-    }
-
-    @Override
-    public void run() {
-	// idle
-	do
-	    sleepEL(idleTime);
-	while (invoker.lastAccess() + idleTime > System.currentTimeMillis());
-
-	try {
-	    reg.unbind(name);
-	    UnicastRemoteObject.unexportObject(invoker, true);
-	}
-	catch (final Throwable t) {
-	    t.printStackTrace();
+	public Closer(final Registry reg, final CLIInvokerImpl invoker, final String name, final long idleTime) {
+		this.reg = reg;
+		this.name = name;
+		this.idleTime = idleTime;
+		this.invoker = invoker;
 	}
 
-    }
+	@Override
+	public void run() {
+		// idle
+		do
+			sleepEL(idleTime);
+		while (invoker.lastAccess() + idleTime > System.currentTimeMillis());
 
-    private void sleepEL(final long millis) {
-	try {
-	    sleep(millis);
+		try {
+			reg.unbind(name);
+			UnicastRemoteObject.unexportObject(invoker, true);
+		}
+		catch (final Throwable t) {
+			t.printStackTrace();
+		}
+
 	}
-	catch (final Throwable t) {
-	    t.printStackTrace();
+
+	private void sleepEL(final long millis) {
+		try {
+			sleep(millis);
+		}
+		catch (final Throwable t) {
+			t.printStackTrace();
+		}
 	}
-    }
 
 }

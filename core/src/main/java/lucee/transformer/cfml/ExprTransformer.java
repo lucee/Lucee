@@ -31,36 +31,36 @@ import lucee.transformer.expression.Expression;
  */
 public interface ExprTransformer {
 
-    /**
-     * Wird aufgerufen um aus dem uebergebenen CFMLString einen Ausdruck auszulesen und diesen in ein
-     * CFXD Element zu uebersetzten. <br>
-     * Beispiel eines uebergebenen String:<br>
-     * "session.firstName" oder "trim(left('test'&var1,3))"
-     * 
-     * @param fld Array von Function Libraries, Mithilfe dieser Function Libraries kann der Transfomer
-     *            buil-in Funktionen innerhalb des CFML Codes erkennen und validieren.
-     * @param doc XML Document des aktuellen zu erstellenden CFXD
-     * @param cfml Text der transfomiert werden soll.
-     * @return Element CFXD Element
-     * @throws lucee.runtime.exp.TemplateException
-     * @throws TemplateException
-     */
-    public Expression transform(Data data) throws TemplateException;
+	/**
+	 * Wird aufgerufen um aus dem uebergebenen CFMLString einen Ausdruck auszulesen und diesen in ein
+	 * CFXD Element zu uebersetzten. <br>
+	 * Beispiel eines uebergebenen String:<br>
+	 * "session.firstName" oder "trim(left('test'&var1,3))"
+	 * 
+	 * @param fld Array von Function Libraries, Mithilfe dieser Function Libraries kann der Transfomer
+	 *            buil-in Funktionen innerhalb des CFML Codes erkennen und validieren.
+	 * @param doc XML Document des aktuellen zu erstellenden CFXD
+	 * @param cfml Text der transfomiert werden soll.
+	 * @return Element CFXD Element
+	 * @throws lucee.runtime.exp.TemplateException
+	 * @throws TemplateException
+	 */
+	public Expression transform(Data data) throws TemplateException;
 
-    /**
-     * Wird aufgerufen um aus dem uebergebenen CFMLString einen Ausdruck auszulesen und diesen in ein
-     * CFXD Element zu uebersetzten. Es wird aber davon ausgegangen das es sich um einen String handelt.
-     * <br>
-     * Beispiel eines uebergebenen String:<br>
-     * "session.firstName" oder "trim(left('test'&var1,3))"
-     * 
-     * @param fld Array von Function Libraries, Mithilfe dieser Function Libraries kann der Transfomer
-     *            buil-in Funktionen innerhalb des CFML Codes erkennen und validieren.
-     * @param doc XML Document des aktuellen zu erstellenden CFXD
-     * @param cfml Text der transfomiert werden soll.
-     * @return Element CFXD Element
-     * @throws TemplateException
-     */
-    public Expression transformAsString(Data data) throws TemplateException;
+	/**
+	 * Wird aufgerufen um aus dem uebergebenen CFMLString einen Ausdruck auszulesen und diesen in ein
+	 * CFXD Element zu uebersetzten. Es wird aber davon ausgegangen das es sich um einen String handelt.
+	 * <br>
+	 * Beispiel eines uebergebenen String:<br>
+	 * "session.firstName" oder "trim(left('test'&var1,3))"
+	 * 
+	 * @param fld Array von Function Libraries, Mithilfe dieser Function Libraries kann der Transfomer
+	 *            buil-in Funktionen innerhalb des CFML Codes erkennen und validieren.
+	 * @param doc XML Document des aktuellen zu erstellenden CFXD
+	 * @param cfml Text der transfomiert werden soll.
+	 * @return Element CFXD Element
+	 * @throws TemplateException
+	 */
+	public Expression transformAsString(Data data) throws TemplateException;
 
 }

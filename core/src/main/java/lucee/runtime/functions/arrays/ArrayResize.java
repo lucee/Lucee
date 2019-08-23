@@ -30,22 +30,22 @@ import lucee.runtime.type.Array;
 
 public final class ArrayResize extends BIF {
 
-    private static final long serialVersionUID = -3107784929660340665L;
+	private static final long serialVersionUID = -3107784929660340665L;
 
-    public static boolean call(PageContext pc, Array array, double number) {
-	try {
-	    array.resize((int) number);
-	    return true;
+	public static boolean call(PageContext pc, Array array, double number) {
+		try {
+			array.resize((int) number);
+			return true;
+		}
+		catch (PageException e) {
+			return false;
+		}
+
 	}
-	catch (PageException e) {
-	    return false;
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 2) return call(pc, Caster.toArray(args[0]), Caster.toDoubleValue(args[1]));
+		else throw new FunctionException(pc, "ArrayResize", 2, 2, args.length);
 	}
-
-    }
-
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 2) return call(pc, Caster.toArray(args[0]), Caster.toDoubleValue(args[1]));
-	else throw new FunctionException(pc, "ArrayResize", 2, 2, args.length);
-    }
 }

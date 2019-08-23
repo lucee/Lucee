@@ -19,5 +19,5 @@
 package lucee.transformer.bytecode.statement;
 
 public interface HasBody {
-    public lucee.transformer.bytecode.Body getBody();
+	public lucee.transformer.bytecode.Body getBody();
 }

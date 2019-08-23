@@ -30,13 +30,13 @@ import lucee.transformer.library.tag.TagLibTag;
  */
 public final class HttpParam extends EvaluatorSupport {
 
-    @Override
-    public void evaluate(Tag tag, TagLibTag libTag) throws EvaluatorException {
-	String ns = libTag.getTagLib().getNameSpaceAndSeparator();
-	String httpName = ns + "http";
+	@Override
+	public void evaluate(Tag tag, TagLibTag libTag) throws EvaluatorException {
+		String ns = libTag.getTagLib().getNameSpaceAndSeparator();
+		String httpName = ns + "http";
 
-	// check if tag is direct inside if
-	if (!ASMUtil.hasAncestorTag(tag, httpName)) throw new EvaluatorException("Wrong Context, tag " + libTag.getFullName() + " must be inside a " + httpName + " tag");
-    }
+		// check if tag is direct inside if
+		if (!ASMUtil.hasAncestorTag(tag, httpName)) throw new EvaluatorException("Wrong Context, tag [" + libTag.getFullName() + "] must be inside a [" + httpName + "] tag");
+	}
 
 }

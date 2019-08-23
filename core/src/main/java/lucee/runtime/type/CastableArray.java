@@ -33,115 +33,115 @@ import lucee.runtime.type.util.ListUtil;
 
 public final class CastableArray extends ArrayImpl {
 
-    private final Object value;
+	private final Object value;
 
-    /**
-     * Constructor of the class generates as string list of the array
-     */
-    public CastableArray() {
-	value = null;
-    }
-
-    public CastableArray(Object value) {
-	this.value = value;
-    }
-
-    @Override
-    public Collection duplicate(boolean deepCopy) {
-	return duplicate(new CastableArray(value), deepCopy);
-    }
-
-    @Override
-    public boolean castToBooleanValue() throws PageException {
-	return Caster.toBooleanValue(getValue());
-
-    }
-
-    @Override
-    public Boolean castToBoolean(Boolean defaultValue) {
-	try {
-	    return Caster.toBoolean(getValue(), defaultValue);
+	/**
+	 * Constructor of the class generates as string list of the array
+	 */
+	public CastableArray() {
+		value = null;
 	}
-	catch (PageException e) {
-	    return defaultValue;
+
+	public CastableArray(Object value) {
+		this.value = value;
 	}
-    }
 
-    @Override
-    public DateTime castToDateTime() throws PageException {
-	return Caster.toDate(getValue(), null);
-    }
-
-    @Override
-    public DateTime castToDateTime(DateTime defaultValue) {
-	try {
-	    return DateCaster.toDateAdvanced(getValue(), DateCaster.CONVERTING_TYPE_OFFSET, null, defaultValue);
+	@Override
+	public Collection duplicate(boolean deepCopy) {
+		return duplicate(new CastableArray(value), deepCopy);
 	}
-	catch (PageException e) {
-	    return defaultValue;
+
+	@Override
+	public boolean castToBooleanValue() throws PageException {
+		return Caster.toBooleanValue(getValue());
+
 	}
-    }
 
-    @Override
-    public double castToDoubleValue() throws PageException {
-	return Caster.toDoubleValue(getValue());
-    }
-
-    @Override
-    public double castToDoubleValue(double defaultValue) {
-	try {
-	    return Caster.toDoubleValue(getValue(), true, defaultValue);
+	@Override
+	public Boolean castToBoolean(Boolean defaultValue) {
+		try {
+			return Caster.toBoolean(getValue(), defaultValue);
+		}
+		catch (PageException e) {
+			return defaultValue;
+		}
 	}
-	catch (PageException e) {
-	    return defaultValue;
+
+	@Override
+	public DateTime castToDateTime() throws PageException {
+		return Caster.toDate(getValue(), null);
 	}
-    }
 
-    @Override
-    public String castToString() throws PageException {
-	return Caster.toString(getValue());
-    }
-
-    @Override
-    public String castToString(String defaultValue) {
-	try {
-	    return Caster.toString(getValue(), defaultValue);
+	@Override
+	public DateTime castToDateTime(DateTime defaultValue) {
+		try {
+			return DateCaster.toDateAdvanced(getValue(), DateCaster.CONVERTING_TYPE_OFFSET, null, defaultValue);
+		}
+		catch (PageException e) {
+			return defaultValue;
+		}
 	}
-	catch (PageException e) {
-	    return defaultValue;
+
+	@Override
+	public double castToDoubleValue() throws PageException {
+		return Caster.toDoubleValue(getValue());
 	}
-    }
 
-    @Override
-    public int compareTo(boolean b) throws PageException {
-	return Operator.compare(getValue(), b);
-    }
+	@Override
+	public double castToDoubleValue(double defaultValue) {
+		try {
+			return Caster.toDoubleValue(getValue(), true, defaultValue);
+		}
+		catch (PageException e) {
+			return defaultValue;
+		}
+	}
 
-    @Override
-    public int compareTo(DateTime dt) throws PageException {
-	return Operator.compare(getValue(), (Date) dt);
-    }
+	@Override
+	public String castToString() throws PageException {
+		return Caster.toString(getValue());
+	}
 
-    @Override
-    public int compareTo(double d) throws PageException {
-	return Operator.compare(getValue(), d);
-    }
+	@Override
+	public String castToString(String defaultValue) {
+		try {
+			return Caster.toString(getValue(), defaultValue);
+		}
+		catch (PageException e) {
+			return defaultValue;
+		}
+	}
 
-    @Override
-    public int compareTo(String str) throws PageException {
-	return Operator.compare(getValue(), str);
-    }
+	@Override
+	public int compareTo(boolean b) throws PageException {
+		return Operator.compare(getValue(), b);
+	}
 
-    private Object getValue() throws PageException {
-	if (value != null) return value;
-	return ListUtil.arrayToList(this, ",");
-    }
+	@Override
+	public int compareTo(DateTime dt) throws PageException {
+		return Operator.compare(getValue(), (Date) dt);
+	}
 
-    @Override
-    public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp) {
-	DumpTable dt = (DumpTable) super.toDumpData(pageContext, maxlevel, dp);
-	dt.setTitle("Castable Array");
-	return dt;
-    }
+	@Override
+	public int compareTo(double d) throws PageException {
+		return Operator.compare(getValue(), d);
+	}
+
+	@Override
+	public int compareTo(String str) throws PageException {
+		return Operator.compare(getValue(), str);
+	}
+
+	private Object getValue() throws PageException {
+		if (value != null) return value;
+		return ListUtil.arrayToList(this, ",");
+	}
+
+	@Override
+	public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp) {
+		DumpTable dt = (DumpTable) super.toDumpData(pageContext, maxlevel, dp);
+		dt.setTitle("Castable Array");
+		return dt;
+	}
 
 }

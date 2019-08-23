@@ -8,13 +8,13 @@ import lucee.transformer.interpreter.expression.ExpressionBase;
 
 public class EmptyArray extends ExpressionBase {
 
-    public EmptyArray(Factory factory) {
-	super(factory, null, null);
-    }
+	public EmptyArray(Factory factory) {
+		super(factory, null, null);
+	}
 
-    public Class<?> _writeOut(InterpreterContext ic, int mode) {
-	ic.stack(new ArrayImpl());
-	return Array.class;
-    }
+	public Class<?> _writeOut(InterpreterContext ic, int mode) {
+		ic.stack(new ArrayImpl());
+		return Array.class;
+	}
 
 }

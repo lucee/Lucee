@@ -25,14 +25,14 @@ import lucee.commons.io.res.Resource;
 // TODO doc
 public interface VideoInput {
 
-    /**
-     * @return the res
-     */
-    public Resource getResource();
+	/**
+	 * @return the res
+	 */
+	public Resource getResource();
 
-    public void setCommand(String path, List<String> args);
+	public void setCommand(String path, List<String> args);
 
-    public void setCommand(String path, String[] args);
+	public void setCommand(String path, String[] args);
 
-    public String getCommandAsString();
+	public String getCommandAsString();
 }

@@ -231,7 +231,6 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 				</div>
 			</cfif>
 			
-			<script src="/lucee/res/js/echarts-all.js.cfm" type="text/javascript"></script>
 			<script src="/lucee/res/js/base.min.js.cfm" type="text/javascript"></script>
 			<cfif !structKeyExists(url, "isAjaxRequest")>
 				<script src="/lucee/res/js/jquery.modal.min.js.cfm" type="text/javascript"></script>
@@ -403,6 +402,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 								if(section == 'metrics'){
 									$("##-lucee-"+section+"-data").removeClass('collapsed');
 									$("##-lucee-"+section+"-data").html(this.responseText);
+									chartCall();
 								} else{
 									$("##-lucee-"+section+"-ALL").html(this.responseText);
 									if(section == 'docs'){
@@ -421,183 +421,193 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 				}
 			</script>
 
-			<cfif enableTab("metrics") && structCount(variables.chartStr) NEQ 0>
+			<!--- <cfif enableTab("metrics") && structCount(variables.chartStr) NEQ 0> --->
 				<script>
-					__LUCEE.debugCharts = {};
-					__LUCEE.debugCharts.charts = {};
-					__LUCEE.debugCharts.chartsOption = {};
-
-					labels={'heap':"Heap",'nonheap':"Non-Heap",'cpuSystem':"Whole System"};
-					stAjaxTime = new Date();
-					function requestData(){
-						if($( "##-lucee-metrics-btn-ALL").hasClass( "btnActive" )){
+					function chartCall(){
+						if($('##-lucee-metrics-btn-ALL').hasClass('btnActive')){
 							jQuery.ajax({
-								type: "POST",
-								url: "/lucee/admin/chartAjax.cfm",
+								type: "get",
+								url: "/lucee/res/js/echarts-all.js.cfm",
 								success: function(result){
-									$.each(#serializeJSON( variables.chartStr )#,function(index,chrt){
-										if(index == "WholeSystem") {
-											cpuSystemSeries1 = __LUCEE.debugCharts.chartsOption.cpuSystemChartOption.series[0].data; //*charts*.series[0].data
-											cpuSystemSeries1.push(result["cpuSystem"]); // push the value into series[0].data
-											cpuSystemSeries2 = __LUCEE.debugCharts.chartsOption.cpuSystemChartOption.series[1].data; //*charts*.series[0].data
-											cpuSystemSeries2.push(result["cpuProcess"]); // push the value into series[0].data
-											__LUCEE.debugCharts.chartsOption.cpuSystemChartOption.series[0].data = cpuSystemSeries1;
-											__LUCEE.debugCharts.chartsOption.cpuSystemChartOption.series[1].data = cpuSystemSeries2;
-											if(__LUCEE.debugCharts.chartsOption.cpuSystemChartOption.series[0].data.length > 60){
-												__LUCEE.debugCharts.chartsOption.cpuSystemChartOption.series[0].data.shift(); //shift the array
-											}
-											if(__LUCEE.debugCharts.chartsOption.cpuSystemChartOption.series[1].data.length > 60){
-												__LUCEE.debugCharts.chartsOption.cpuSystemChartOption.series[1].data.shift(); //shift the array
-											}
-											__LUCEE.debugCharts.chartsOption.cpuSystemChartOption.xAxis[0].data.push(new Date().toLocaleTimeString()); // current time
-											if(__LUCEE.debugCharts.chartsOption.cpuSystemChartOption.xAxis[0].data.length > 60){
-											__LUCEE.debugCharts.chartsOption.cpuSystemChartOption.xAxis[0].data.shift(); //shift the Time value
-											}
-											__LUCEE.debugCharts.charts.cpuSystem.setOption(__LUCEE.debugCharts.chartsOption.cpuSystemChartOption); // passed the data into the chats
-				 							return true;
-										}
-										window["series_"+chrt] = window["__LUCEE.debugCharts.chartsOption."+chrt].series[0].data; //*charts*.series[0].data
-										window["series_"+chrt].push(result[chrt]); // push the value into series[0].data
-										window["__LUCEE.debugCharts.chartsOption."+chrt].series[0].data = window["series_"+chrt];
-										if(window["__LUCEE.debugCharts.chartsOption."+chrt].series[0].data.length > 60){
-										window["__LUCEE.debugCharts.chartsOption."+chrt].series[0].data.shift(); //shift the array
-										}
-										window["__LUCEE.debugCharts.chartsOption."+chrt].xAxis[0].data.push(new Date().toLocaleTimeString()); // current time
-										if(window["__LUCEE.debugCharts.chartsOption."+chrt].xAxis[0].data.length > 60){
-										window["__LUCEE.debugCharts.chartsOption."+chrt].xAxis[0].data.shift(); //shift the Time value
-										}
-										window["__LUCEE.debugCharts.charts."+chrt].setOption(window["__LUCEE.debugCharts.chartsOption."+chrt]); // passed the data into the chats
-									});
+									__LUCEE.debugCharts = {};
+									__LUCEE.debugCharts.charts = {};
+									__LUCEE.debugCharts.chartsOption = {};
 
-								}
+									labels={'heap':"Heap",'nonheap':"Non-Heap",'cpuSystem':"Whole System"};
+									stAjaxTime = new Date();
+									function requestData(){
+										if($( "##-lucee-metrics-btn-ALL").hasClass( "btnActive" )){
+											jQuery.ajax({
+												type: "POST",
+												url: "/lucee/admin/chartAjax.cfm",
+												success: function(result){
+													$.each(#serializeJSON( variables.chartStr )#,function(index,chrt){
+														if(index == "WholeSystem") {
+															cpuSystemSeries1 = __LUCEE.debugCharts.chartsOption.cpuSystemChartOption.series[0].data; //*charts*.series[0].data
+															cpuSystemSeries1.push(result["cpuSystem"]); // push the value into series[0].data
+															cpuSystemSeries2 = __LUCEE.debugCharts.chartsOption.cpuSystemChartOption.series[1].data; //*charts*.series[0].data
+															cpuSystemSeries2.push(result["cpuProcess"]); // push the value into series[0].data
+															__LUCEE.debugCharts.chartsOption.cpuSystemChartOption.series[0].data = cpuSystemSeries1;
+															__LUCEE.debugCharts.chartsOption.cpuSystemChartOption.series[1].data = cpuSystemSeries2;
+															if(__LUCEE.debugCharts.chartsOption.cpuSystemChartOption.series[0].data.length > 60){
+																__LUCEE.debugCharts.chartsOption.cpuSystemChartOption.series[0].data.shift(); //shift the array
+															}
+															if(__LUCEE.debugCharts.chartsOption.cpuSystemChartOption.series[1].data.length > 60){
+																__LUCEE.debugCharts.chartsOption.cpuSystemChartOption.series[1].data.shift(); //shift the array
+															}
+															__LUCEE.debugCharts.chartsOption.cpuSystemChartOption.xAxis[0].data.push(new Date().toLocaleTimeString()); // current time
+															if(__LUCEE.debugCharts.chartsOption.cpuSystemChartOption.xAxis[0].data.length > 60){
+															__LUCEE.debugCharts.chartsOption.cpuSystemChartOption.xAxis[0].data.shift(); //shift the Time value
+															}
+															__LUCEE.debugCharts.charts.cpuSystem.setOption(__LUCEE.debugCharts.chartsOption.cpuSystemChartOption); // passed the data into the chats
+								 							return true;
+														}
+														window["series_"+chrt] = window["__LUCEE.debugCharts.chartsOption."+chrt].series[0].data; //*charts*.series[0].data
+														window["series_"+chrt].push(result[chrt]); // push the value into series[0].data
+														window["__LUCEE.debugCharts.chartsOption."+chrt].series[0].data = window["series_"+chrt];
+														if(window["__LUCEE.debugCharts.chartsOption."+chrt].series[0].data.length > 60){
+														window["__LUCEE.debugCharts.chartsOption."+chrt].series[0].data.shift(); //shift the array
+														}
+														window["__LUCEE.debugCharts.chartsOption."+chrt].xAxis[0].data.push(new Date().toLocaleTimeString()); // current time
+														if(window["__LUCEE.debugCharts.chartsOption."+chrt].xAxis[0].data.length > 60){
+														window["__LUCEE.debugCharts.chartsOption."+chrt].xAxis[0].data.shift(); //shift the Time value
+														}
+														window["__LUCEE.debugCharts.charts."+chrt].setOption(window["__LUCEE.debugCharts.chartsOption."+chrt]); // passed the data into the chats
+													});
+
+												}
+											});
+											var endAjaxTime = new Date();
+										} else {
+											stAjaxTime = new Date();
+											var endAjaxTime = new Date();
+										}
+										var seconds = Math.floor((endAjaxTime-stAjaxTime) / (1000));
+										if(seconds <= 20 ){
+											setTimeout(requestData, 1000);
+										} else if ( seconds <= 40 ) {
+											setTimeout(requestData, 2000);
+										} else if ( seconds <=  80 ) {
+											setTimeout(requestData, 5000);
+										} else if ( seconds <= 120 ){
+											setTimeout(requestData, 10000);
+										}
+									}
+									var dDate=[new Date().toLocaleTimeString()]; // current time
+
+									// intialize charts
+
+									$.each(#serializeJSON( variables.chartStr )#, function(i, data){
+										if(i == "WholeSystem") {
+											__LUCEE.debugCharts.charts.cpuSystem = {};
+											__LUCEE.debugCharts.chartsOption.cpuSystemChartOption = {};
+											__LUCEE.debugCharts.charts.cpuSystem = echarts.init(document.getElementById('cpuSystem'),'macarons'); // intialize echarts
+											__LUCEE.debugCharts.chartsOption.cpuSystemChartOption = {
+												backgroundColor: ["##EFEDE5"],
+												tooltip : {'trigger':'axis',
+													formatter : function (params) {
+														var series2 = "";
+														if(params.length == 2) {
+															series2 =  params[1][0] + ": "+ params[1][2] + "%" + '<br>' +params[0][1];
+														}
+														return 'Series' + "<br>" + params[0][0] + ": " + params[0][2] + "%" + '<br>'  + series2;
+													}
+												},
+												legend: {
+													data:['System CPU', 'Lucee CPU']
+												},
+
+												color: ["##3399CC", "##BF4F36"],
+												grid : {
+													width: '82%',
+													height: '65%',
+													x:'30px',
+													y:'25px'
+												},
+												xAxis : [{
+													'type':'category',
+													'boundaryGap' : false,
+													'data':[0]
+												}],
+												yAxis : [{
+													'type':'value',
+													'min':'0',
+													'max':'100',
+													'splitNumber': 2
+												}],
+												series : [
+													{
+													'name': 'System CPU',
+													'type':'line',
+													smooth:true,
+													itemStyle: {normal: {areaStyle: {type: 'default'}}},
+													'data': [0]
+													},
+													{
+													'name': 'Lucee CPU',
+													'type':'line',
+													smooth:true,
+													itemStyle: {normal: {areaStyle: {type: 'default'}}},
+													'data': [0]
+													}
+
+												]
+											};
+											__LUCEE.debugCharts.charts.cpuSystem.setOption(__LUCEE.debugCharts.chartsOption.cpuSystemChartOption); // passed the data into the chats
+								 			return true;
+										}
+										// console.log(i);
+										__LUCEE.debugCharts.charts[data]={};
+										__LUCEE.debugCharts.chartsOption[data] = {};
+
+										window["__LUCEE.debugCharts.charts."+data] = echarts.init(document.getElementById(data),'macarons'); // intialize echarts
+										window["__LUCEE.debugCharts.chartsOption."+data] = {
+											backgroundColor: ["##EFEDE5"],
+											tooltip : {'trigger':'axis',
+												formatter : function (params) {
+													return 'Series' + "<br>" + params[0][0] + ": " + params[0][2] + "%" + '<br>' +params[0][1] ;
+												}
+											},
+
+											color: ["##3399CC", "##BF4F36"],
+											grid : {
+												width: '82%',
+												height: '65%',
+												x:'30px',
+												y:'25px'
+											},
+											xAxis : [{
+												'type':'category',
+												'boundaryGap' : false,
+												'data':[0]
+											}],
+											yAxis : [{
+												'type':'value',
+												'min':'0',
+												'max':'100',
+												'splitNumber': 2
+											}],
+											series : [
+												{
+												'name': labels[data] +' Memory',
+												'type':'line',
+												smooth:true,
+												itemStyle: {normal: {areaStyle: {type: 'default'}}},
+												'data': [0]
+												}
+											]
+										}; // data
+										window["__LUCEE.debugCharts.charts."+data].setOption(window["__LUCEE.debugCharts.chartsOption."+data]); // passed the data into the chats
+									});
+									 // data
+									// console.log(cpuSystemChartOption);
+							        requestData();
+							    }
 							});
-							var endAjaxTime = new Date();
-						} else {
-							stAjaxTime = new Date();
-							var endAjaxTime = new Date();
-						}
-						var seconds = Math.floor((endAjaxTime-stAjaxTime) / (1000));
-						if(seconds <= 20 ){
-							setTimeout(requestData, 1000);
-						} else if ( seconds <= 40 ) {
-							setTimeout(requestData, 2000);
-						} else if ( seconds <=  80 ) {
-							setTimeout(requestData, 5000);
-						} else if ( seconds <= 120 ){
-							setTimeout(requestData, 10000);
 						}
 					}
-					var dDate=[new Date().toLocaleTimeString()]; // current time
-
-					// intialize charts
-
-					$.each(#serializeJSON( variables.chartStr )#, function(i, data){
-						if(i == "WholeSystem") {
-							__LUCEE.debugCharts.charts.cpuSystem = {};
-							__LUCEE.debugCharts.chartsOption.cpuSystemChartOption = {};
-							__LUCEE.debugCharts.charts.cpuSystem = echarts.init(document.getElementById('cpuSystem'),'macarons'); // intialize echarts
-							__LUCEE.debugCharts.chartsOption.cpuSystemChartOption = {
-								backgroundColor: ["##EFEDE5"],
-								tooltip : {'trigger':'axis',
-									formatter : function (params) {
-										var series2 = "";
-										if(params.length == 2) {
-											series2 =  params[1][0] + ": "+ params[1][2] + "%" + '<br>' +params[0][1];
-										}
-										return 'Series' + "<br>" + params[0][0] + ": " + params[0][2] + "%" + '<br>'  + series2;
-									}
-								},
-								legend: {
-									data:['System CPU', 'Lucee CPU']
-								},
-
-								color: ["##3399CC", "##BF4F36"],
-								grid : {
-									width: '82%',
-									height: '65%',
-									x:'30px',
-									y:'25px'
-								},
-								xAxis : [{
-									'type':'category',
-									'boundaryGap' : false,
-									'data':[0]
-								}],
-								yAxis : [{
-									'type':'value',
-									'min':'0',
-									'max':'100',
-									'splitNumber': 2
-								}],
-								series : [
-									{
-									'name': 'System CPU',
-									'type':'line',
-									smooth:true,
-									itemStyle: {normal: {areaStyle: {type: 'default'}}},
-									'data': [0]
-									},
-									{
-									'name': 'Lucee CPU',
-									'type':'line',
-									smooth:true,
-									itemStyle: {normal: {areaStyle: {type: 'default'}}},
-									'data': [0]
-									}
-
-								]
-							};
-							__LUCEE.debugCharts.charts.cpuSystem.setOption(__LUCEE.debugCharts.chartsOption.cpuSystemChartOption); // passed the data into the chats
-				 			return true;
-						}
-						// console.log(i);
-						__LUCEE.debugCharts.charts[data]={};
-						__LUCEE.debugCharts.chartsOption[data] = {};
-
-						window["__LUCEE.debugCharts.charts."+data] = echarts.init(document.getElementById(data),'macarons'); // intialize echarts
-						window["__LUCEE.debugCharts.chartsOption."+data] = {
-							backgroundColor: ["##EFEDE5"],
-							tooltip : {'trigger':'axis',
-								formatter : function (params) {
-									return 'Series' + "<br>" + params[0][0] + ": " + params[0][2] + "%" + '<br>' +params[0][1] ;
-								}
-							},
-
-							color: ["##3399CC", "##BF4F36"],
-							grid : {
-								width: '82%',
-								height: '65%',
-								x:'30px',
-								y:'25px'
-							},
-							xAxis : [{
-								'type':'category',
-								'boundaryGap' : false,
-								'data':[0]
-							}],
-							yAxis : [{
-								'type':'value',
-								'min':'0',
-								'max':'100',
-								'splitNumber': 2
-							}],
-							series : [
-								{
-								'name': labels[data] +' Memory',
-								'type':'line',
-								smooth:true,
-								itemStyle: {normal: {areaStyle: {type: 'default'}}},
-								'data': [0]
-								}
-							]
-						}; // data
-						window["__LUCEE.debugCharts.charts."+data].setOption(window["__LUCEE.debugCharts.chartsOption."+data]); // passed the data into the chats
-					});
-					 // data
-					// console.log(cpuSystemChartOption);
-			        requestData();
 				</script>
-			</cfif>
+			<!--- </cfif> --->
 			<cfif enableTab("Reference")>
 				<script>
 
@@ -697,10 +707,10 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 					}
 					clickAjax(section);
 				</script>
-			<cfelseif REQUEST.admin=true>
-				<cfscript>
+			<cfelseif !isNull(REQUEST.admin) and REQUEST.admin EQ true>
+				<script>
 					clickAjax("debug");
-				</cfscript>
+				</script>
 			</cfif>
 		</cfoutput>
 	</cffunction><!--- output() !--->
@@ -1110,15 +1120,17 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 										</td>
 										<cfif arguments.custom.displayPercentages>
 											<td align="right" class="tblContent" style="#sStyle#">
-												<font color="#sStyle#">#numberFormat(iPctTotal*100, '999.9')#</font>
+												<cfset per = numberFormat(iPctTotal*100, '999.9')>
+												<font color="#sStyle#">#(per GT 0)?per:''#</font>
 											</td>
 										</cfif>
 										<td align="right" class="tblContent #sCookieSort eq 'query' ? 'sorted' : ''#" style="#sStyle#">
-											<font color="#sStyle#">#unitFormat(arguments.custom.unit, pages.query)#</font>
+											<font color="#sStyle#">#(pages.query GT 0)?unitFormat(arguments.custom.unit, pages.query):''#</font>
 										</td>
 										<cfif arguments.custom.displayPercentages>
 											<td align="right" class="tblContent" style="#sStyle#">
-												<font color="#sStyle#">#numberFormat(iPctQuery*100, '999.9')#</font>
+												<cfset  per= numberFormat(iPctQuery*100, '999.9')>
+												<font color="#sStyle#">#(per GT 0)?per:''#</font>
 											</td>
 										</cfif>
 										<td align="right" class="tblContent #sCookieSort eq 'app' ? 'sorted' : ''#" style="#sStyle#">
@@ -1126,7 +1138,8 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 										</td>
 										<cfif arguments.custom.displayPercentages>
 											<td align="right" class="tblContent" style="#sStyle#">
-												<font color="#sStyle#">#numberFormat(iPctLucee*100, '999.9')#</font>
+												<cfset per = numberFormat(iPctLucee*100, '999.9')>
+												<font color="#sStyle#">#(per GT 0)?per:''#</font>
 											</td>
 										</cfif>
 										<td align="center" class="tblContent #sCookieSort eq 'count' ? 'sorted' : ''#" style="#sStyle#">
@@ -1134,7 +1147,8 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 										</td>
 										<cfif arguments.custom.displayPercentages>
 											<td align="right" class="tblContent" style="#sStyle#">
-												<font color="#sStyle#">#numberFormat(iPctCount*100, '999.9')#</font>
+												<cfset per = numberFormat(iPctCount*100, '999.9')>
+												<font color="#sStyle#">#(per GT 0)?per:''#</font>
 											</td>
 										</cfif>
 										<td align="right" class="tblContent #sCookieSort eq 'avg' ? 'sorted' : ''#" style="#sStyle#">
@@ -1142,20 +1156,24 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 										</td>
 										<cfif arguments.custom.displayPercentages>
 											<td align="right" class="tblContent" style="#sStyle#">
-												<font color="#sStyle#">#numberFormat(iPctAvg*100, '999.9')#</font>
+												<cfset per = numberFormat(iPctAvg*100, '999.9')>
+												<font color="#sStyle#">#(per GT 0)?per:''#</font>
 											</td>
 										</cfif>
 										<td align="left" class="tblContent #sCookieSort eq 'src' ? 'sorted' : ''#" style="#sStyle#" title="#pages.path#">
 											<font color="#sStyle#">#listFirst(pages.src, "$")#</font>
 										</td>
 										<td align="left" class="tblContent" style="#sStyle#">
+											<cfset listStack= arrayToList(#page.stckTrace#) >
+											<cfset getStack = listRemoveDuplicates(listStack,",",true) >
+											<cfset page.stckTrace = listToArray(getStack)>
 											<table>
 												<cfloop array="#page.stckTrace#" index="i">
 													<tr>
 														<td>
 														<font color="#sStyle#">
 															<cfif arguments.custom.callStack>
-																<div style="width:80px;float:left"><b>Stacktrace:</b></div>
+																<!--- <div style="width:80px;float:left"><b>Stacktrace:</b></div> --->
 																<div style="float:left">#dspCallStackTrace(pages.id, stPages, arguments.debugging.history)#</div>
 															</cfif>
 
@@ -1170,7 +1188,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 											</table>
 										</td>
 										<cfset local.sPage = replace(listFirst(pages.path, '$'), '\', '/', 'ALL')>
-										<td>
+										<td style="white-space:nowrap;">
 											<a onClick="__LUCEE.debug.setTemplateFilter('#sPage#', 0)" title="Debug this file only.">
 												<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB98KEwgeMjUl220AAAEISURBVDjLxZM9SgNxEMV/M/nASEDFLJJOPIO92wmWsbdZNugRRLCwySXcxtia1jIL6g08RbLgVlFh9z8Wi8JKSGATyGuHefPemxnYBHauXji4fAOgXoWgkWXkTgDQVdUsJfCCGC+Ie5UJUEB58sLxNZj8LwtAJ4gBzqxmE3W2r0JqQptcugCmMgQw7GF367OffrW+cUIS+UWIUui4k5xXp3qM2btDDlU5LU+Ti4/Z9lHDaS9TN60WolKyUQcwB8Ct1Zioc88qpCLWJpfHkgVjuNeahb8W/jJYuIUwLnqNm+T+ZABinXBMKYOFKNSdJ5E/mldeSjCNfIBR9TtY9RLnodnMQGU9n/kD+19X1oivU2EAAAAASUVORK5CYII="/>
 											</a>
@@ -1278,11 +1296,8 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 											<td class="txt-r">#queries.count#</td>
 											<td class="txt-r">#unitFormat(arguments.custom.unit, queries.time,prettify)#</td>
 											<td class="txt-r">
-											<cfif total neq 0>
-												#unitFormat(arguments.custom.unit, queries.time / total * 100,prettify)#
-											<cfelse>
-												#unitFormat(arguments.custom.unit, 0,prettify)#
-											</cfif>
+											<cfset per = unitFormat(arguments.custom.unit, queries.time / total * 100,prettify)>
+												#(per GT 0)?per:''#
 											</td>
 											<cfif bUsage>
 												<td class="txt-r" style="color:#getPctColor(iPct)#">
@@ -1296,7 +1311,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 												</td>
 											</cfif>
 											<td>#queries.datasource#</td>
-											<td title="#queries.src#:#queries.line#">#contractPath(queries.src)#:#queries.line#</td>
+											<td title="#queries.src#:#queries.line#"><cfif len(queries.src)>#contractPath(queries.src)#:#queries.line#</cfif></td>
 											<cfif hasCachetype><td>#isEmpty(queries.cacheType)?"none":queries.cacheType#</td></cfif>
 										</tr>
 										<tr id="-lucee-debug-qry-#queries.currentRow#" class="#isOpen ? '' : 'collapsed'#">
@@ -1360,8 +1375,8 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 										<td>#exp.type#</td>
 										<td>#exp.message#</td>
 										<td>#exp.detail#</td>
-										<td>#exp.TagContext[1].template#</td>
-										<td class="txt-r">#exp.TagContext[1].line#</td>
+										<td>#exp.TagContext[1].template?:''#</td>
+										<td class="txt-r">#exp.TagContext[1].line?:''#</td>
 									</tr>
 								</cfloop>
 
@@ -2142,8 +2157,9 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 					if (structKeyExists(stTemplates, qPages.src)) {
 						stDebugTemplates[qPages.src].id = qPages.id;
 					}
-				} else {
-					stDebugTemplates[qPages.src] = {id:qPages.id, template:qPages.src, recurse:false};
+				 	else {
+						stDebugTemplates[qPages.src] = {id:qPages.id, template:qPages.src, recurse:false};
+					}
 				}
 			}
 

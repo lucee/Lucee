@@ -22,8 +22,8 @@ import lucee.transformer.Position;
 
 public class TagInterface extends TagCIObject {
 
-    public TagInterface(Factory f, Position start, Position end) {
-	super(f, start, end);
-    }
+	public TagInterface(Factory f, Position start, Position end) {
+		super(f, start, end);
+	}
 
 }

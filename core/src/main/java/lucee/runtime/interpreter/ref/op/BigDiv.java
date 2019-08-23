@@ -29,19 +29,19 @@ import lucee.runtime.interpreter.ref.Ref;
  */
 public final class BigDiv extends Big {
 
-    /**
-     * constructor of the class
-     * 
-     * @param left
-     * @param right
-     */
-    public BigDiv(Ref left, Ref right, boolean limited) {
-	super(left, right, limited);
-    }
+	/**
+	 * constructor of the class
+	 * 
+	 * @param left
+	 * @param right
+	 */
+	public BigDiv(Ref left, Ref right, boolean limited) {
+		super(left, right, limited);
+	}
 
-    @Override
-    public Object getValue(PageContext pc) throws PageException {
-	if (limited) throw new InterpreterException("invalid syntax, math operations are not supported in a json string.");
-	return MathUtil.divide(getLeft(pc), getRight(pc)).toString();
-    }
+	@Override
+	public Object getValue(PageContext pc) throws PageException {
+		if (limited) throw new InterpreterException("invalid syntax, math operations are not supported in a json string.");
+		return MathUtil.divide(getLeft(pc), getRight(pc)).toString();
+	}
 }

@@ -26,8 +26,8 @@ import lucee.runtime.ext.function.Function;
 import lucee.runtime.tag.util.DeprecatedUtil;
 
 public final class IsK2ServerABroker implements Function {
-    public static boolean call(PageContext pc) {
-	DeprecatedUtil.function(pc, "IsK2ServerABroker");
-	return false;
-    }
+	public static boolean call(PageContext pc) {
+		DeprecatedUtil.function(pc, "IsK2ServerABroker");
+		return false;
+	}
 }

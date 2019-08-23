@@ -20,8 +20,8 @@ package lucee.runtime.sql;
 
 public class SQLParserException extends Exception {
 
-    public SQLParserException(String message) {
-	super(message);
-    }
+	public SQLParserException(String message) {
+		super(message);
+	}
 
 }

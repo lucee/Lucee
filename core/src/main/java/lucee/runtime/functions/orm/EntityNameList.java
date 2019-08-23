@@ -26,12 +26,12 @@ import lucee.runtime.type.util.ListUtil;
 
 public class EntityNameList {
 
-    public static String call(PageContext pc) throws PageException {
-	return call(pc, ",");
-    }
+	public static String call(PageContext pc) throws PageException {
+		return call(pc, ",");
+	}
 
-    public static String call(PageContext pc, String delimiter) throws PageException {
-	ORMSession sess = ORMUtil.getSession(pc);
-	return ListUtil.arrayToList(sess.getEntityNames(), delimiter);
-    }
+	public static String call(PageContext pc, String delimiter) throws PageException {
+		ORMSession sess = ORMUtil.getSession(pc);
+		return ListUtil.arrayToList(sess.getEntityNames(), delimiter);
+	}
 }

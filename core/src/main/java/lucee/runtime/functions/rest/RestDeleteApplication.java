@@ -32,40 +32,40 @@ import lucee.runtime.rest.Mapping;
 import lucee.runtime.rest.RestUtil;
 
 public class RestDeleteApplication {
-    public static String call(PageContext pc, String dirPath) throws PageException {
-	return call(pc, dirPath, null);
-    }
+	public static String call(PageContext pc, String dirPath) throws PageException {
+		return call(pc, dirPath, null);
+	}
 
-    public static String call(PageContext pc, String dirPath, String strWebAdminPassword) throws PageException {
-	Password webAdminPassword = CacheUtil.getPassword(pc, strWebAdminPassword, false);
+	public static String call(PageContext pc, String dirPath, String strWebAdminPassword) throws PageException {
+		Password webAdminPassword = CacheUtil.getPassword(pc, strWebAdminPassword, false);
 
-	Resource dir = RestDeleteApplication.toResource(pc, dirPath);
-	ConfigWebImpl config = (ConfigWebImpl) pc.getConfig();
+		Resource dir = RestDeleteApplication.toResource(pc, dirPath);
+		ConfigWebImpl config = (ConfigWebImpl) pc.getConfig();
 
-	try {
-	    XMLConfigAdmin admin = XMLConfigAdmin.newInstance((ConfigWebImpl) pc.getConfig(), webAdminPassword);
-	    Mapping[] mappings = config.getRestMappings();
-	    Mapping mapping;
-	    for (int i = 0; i < mappings.length; i++) {
-		mapping = mappings[i];
-		if (RestUtil.isMatch(pc, mapping, dir)) {
-		    admin.removeRestMapping(mapping.getVirtual());
-		    admin.storeAndReload();
+		try {
+			XMLConfigAdmin admin = XMLConfigAdmin.newInstance((ConfigWebImpl) pc.getConfig(), webAdminPassword);
+			Mapping[] mappings = config.getRestMappings();
+			Mapping mapping;
+			for (int i = 0; i < mappings.length; i++) {
+				mapping = mappings[i];
+				if (RestUtil.isMatch(pc, mapping, dir)) {
+					admin.removeRestMapping(mapping.getVirtual());
+					admin.storeAndReload();
+				}
+			}
 		}
-	    }
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+
+		return null;
 	}
-	catch (Exception e) {
-	    throw Caster.toPageException(e);
+
+	static Resource toResource(PageContext pc, String dirPath) throws PageException {
+		Resource dir = ResourceUtil.toResourceNotExisting(pc.getConfig(), dirPath);
+		pc.getConfig().getSecurityManager().checkFileLocation(dir);
+		if (!dir.isDirectory()) throw new FunctionException(pc, "RestInitApplication", 1, "dirPath", "argument value [" + dirPath + "] must contain a existing directory");
+
+		return dir;
 	}
-
-	return null;
-    }
-
-    static Resource toResource(PageContext pc, String dirPath) throws PageException {
-	Resource dir = ResourceUtil.toResourceNotExisting(pc.getConfig(), dirPath);
-	pc.getConfig().getSecurityManager().checkFileLocation(dir);
-	if (!dir.isDirectory()) throw new FunctionException(pc, "RestInitApplication", 1, "dirPath", "argument value [" + dirPath + "] must contain a existing directory");
-
-	return dir;
-    }
 }

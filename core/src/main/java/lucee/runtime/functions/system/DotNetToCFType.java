@@ -27,7 +27,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 
 public final class DotNetToCFType implements Function {
-    public static Object call(PageContext pc, Object input) throws PageException {
-	throw new FunctionNotSupported("DotNetToCFType");
-    }
+	public static Object call(PageContext pc, Object input) throws PageException {
+		throw new FunctionNotSupported("DotNetToCFType");
+	}
 }

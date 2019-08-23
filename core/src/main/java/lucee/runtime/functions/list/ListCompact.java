@@ -30,18 +30,26 @@ import lucee.runtime.type.util.ListUtil;
 
 public final class ListCompact extends BIF {
 
-    private static final long serialVersionUID = 533751863889168299L;
+	private static final long serialVersionUID = 533751863889168299L;
 
-    public static String call(PageContext pc, String list, String delimiter, boolean multiCharacterDelimiter) {
-	return ListUtil.trim(list, delimiter, multiCharacterDelimiter);
-    }
+	public static String call(PageContext pc, String list) {
+		return call(pc, list, ",", false);
+	}
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 1) return call(pc, Caster.toString(args[0]), ",", false);
-	if (args.length == 2) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), false);
-	if (args.length == 3) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toBooleanValue(args[2]));
+	public static String call(PageContext pc, String list, String delimiter) {
+		return call(pc, list, delimiter, false);
+	}
 
-	throw new FunctionException(pc, "ListCompact", 1, 3, args.length);
-    }
+	public static String call(PageContext pc, String list, String delimiter, boolean multiCharacterDelimiter) {
+		return ListUtil.trim(list, delimiter, multiCharacterDelimiter);
+	}
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 1) return call(pc, Caster.toString(args[0]), ",", false);
+		if (args.length == 2) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), false);
+		if (args.length == 3) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toBooleanValue(args[2]));
+
+		throw new FunctionException(pc, "ListCompact", 1, 3, args.length);
+	}
 }

@@ -14,9 +14,14 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  *
  --->
+<cfscript>
+	CACHE_IN_SECONDS=60;
 
-
- <cftry>
+	if(isNull(url.action2))url.action2="none";
+	error.message="";
+	error.detail="";
+</cfscript>
+<cftry>
 <cfswitch expression="#url.action2#">
 	<cfcase value="settings">
 		<cfif !structKeyExists(form, "location") OR !structKeyExists(form, "locationCustom")>
@@ -45,13 +50,20 @@
  <cfscript>
 	include template="ext.functions.cfm";
 	include template="services.update.functions.cfm";
-
 	ud=getUpdateData();
-	if(isNull(application.UpdateProvider[ud.location]))  {
+
+	//dump((application.UpdateProvider[ud.location].time?:0)<now());
+	if(
+		isNull(application.UpdateProvider[ud.location]) || 
+		(application.UpdateProvider[ud.location].code?:0)!=200 ||
+		(application.UpdateProvider[ud.location].time?:0)<now())  {
+		//dump("update");
 		application.UpdateProvider[ud.location]=getAvailableVersion();
+		application.UpdateProvider[ud.location].time=dateAdd('s',CACHE_IN_SECONDS,now());
 	}
 	updateData = application.UpdateProvider[ud.location];
 	
+	hasOptions=false;
 
 	admin
 			action="getUpdate"
@@ -68,7 +80,6 @@
 			result = providerData;
 		}
 		updateData=getAvailableVersion();*/
-
 
 		if(updateData.provider.location EQ "http://update.lucee.org"){
 			version = "lucee";
@@ -90,10 +101,12 @@
 		if(version eq 'custom' && structKeyExists(updateData, "otherVersions") && Len(updateData.otherVersions)){
 			for(versions in updateData.otherVersions){
 				if(toVersionSortable(versions) LTE toVersionSortable(server.lucee.version)){
-						arrayPrepend(versionsStr.custom.downgrade, versions);
-				}else{
+					arrayPrepend(versionsStr.custom.downgrade, versions);
+				}
+				else{
 					arrayPrepend(versionsStr.custom.upgrade, versions);
 				}
+				hasOptions=true;
 			}
 		}
 		
@@ -104,19 +117,21 @@
 			returnvariable="minVersion";
 		minVs = toVersionSortable(minVersion);
 
-		if(len(updateData.otherVersions)){
+		if(!isNull(updateData.otherVersions) && len(updateData.otherVersions)){
 
 			for(versions in updateData.otherVersions ){
 				if(versions EQ server.lucee.version) cfcontinue;
 				vs=toVersionSortable(versions);
-				if(vs LTE minVS) cfcontinue;
+				if(vs LT minVS) cfcontinue;
 				;
 				if(FindNoCase("SNAPSHOT", versions)){
 					if(vs LTE toVersionSortable(server.lucee.version)){
 						arrayPrepend(versionsStr.SNAPSHOT.downgrade, versions);
-					} else{
+					} 
+					else{
 						arrayPrepend(versionsStr.SNAPSHOT.upgrade, versions);
 					}
+					hasOptions=true;
 				} 
 				else if(FindNoCase("ALPHA", versions) || FindNoCase("BETA", versions) || FindNoCase("RC", versions)){
 					if(vs LTE toVersionSortable(server.lucee.version)){
@@ -124,6 +139,7 @@
 					} else{
 						arrayPrepend(versionsStr.pre_Release.upgrade, versions);
 					}
+					hasOptions=true;
 				}
 				else{
 					if(vs LTE toVersionSortable(server.lucee.version)){
@@ -131,6 +147,7 @@
 					} else{
 						arrayPrepend(versionsStr.release.upgrade, versions);
 					}
+					hasOptions=true;
 				}
 			}
 		}
@@ -147,11 +164,14 @@
 	}
 </style>
 
-
+<cfif !hasOptions>
+	<p><b>No upgrades or downgrades available!</b></p>
+<cfelse>
 	<!--- <h1>#stText.services.update.luceeProvider#</h1>--->
 	<p>
 		#replace(stText.services.update.titleDesc,'{version}',"<b>"&server.lucee.version&"</b>") #
 	</p>
+
 	<cfset hiddenFormContents = "" >
 	<cfset count = 1>
 	<cfset listVrs = "Release,Pre_Release,SnapShot">
@@ -169,7 +189,7 @@
 				type="button"></span>
 		<cfset count++>
 	</cfloop>
-	<div class="msg"></div>
+
 	<cfsavecontent variable="tmpContent">
 		<div  class="topBottomSpace">
 			<div class="whitePanel">
@@ -208,7 +228,7 @@
 	<div id="group_Connection">
 		#tmpContent#
 	</div>
-
+</cfif>
 	<!--- for custom --->
 	<cfformClassic onerror="customError" action="#go(url.action,"settings")#" method="post">
 		<h1>#stText.services.update.customProvider#</h1>
@@ -267,8 +287,12 @@
 					$( '##customtextinput' ).attr( 'disabled', false);
 					$('##customURL').attr( 'disabled', false);
 				}
-				var version = 'Release';
-
+				if('#server.lucee.state#' == 'SNAPSHOT')
+					var version = 'Snapshot';
+				else if('#server.lucee.state#' == 'RC')
+					var version = 'Pre_release';
+				else
+					var version = 'Release';
 				enableVersion(version, "intial");
 				$("##btn_"+version).addClass("btn");
 			});
@@ -289,8 +313,20 @@
 						window[v] = $(".td_"+v).detach();
 						$("##btn_"+v).removeClass('btn');
 					} else {
-						;
+						if(v == "Snapshot"){
+							$(".td_Pre_release").remove();
+							$(".td_Release").remove();
+						}
+						if(v == "Pre_release"){
+							$(".td_Snapshot").remove();
+							$(".td_Release").remove();
+						}
+						if(v == "Release"){
+							$(".td_Snapshot").remove();
+							$(".td_Pre_release").remove();
+						}
 						$("##upt_version").append(window["td_"+v]);
+						$(".btn").removeClass('btn');
 						$("##btn_"+v).addClass('btn');
 					}
 				}

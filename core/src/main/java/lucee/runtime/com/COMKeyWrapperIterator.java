@@ -33,34 +33,34 @@ import lucee.runtime.type.Collection;
  */
 public final class COMKeyWrapperIterator implements Iterator<Collection.Key> {
 
-    private EnumVariant enumVariant;
-    private COMObject wrapper;
+	private EnumVariant enumVariant;
+	private COMObject wrapper;
 
-    /**
-     * @param wrapper
-     */
-    public COMKeyWrapperIterator(COMObject wrapper) {
-	this.enumVariant = new EnumVariant(wrapper.getDispatch());
-	this.wrapper = wrapper;
-    }
-
-    @Override
-    public void remove() {
-	enumVariant.safeRelease();
-    }
-
-    @Override
-    public boolean hasNext() {
-	return enumVariant.hasMoreElements();
-    }
-
-    @Override
-    public Collection.Key next() {
-	try {
-	    return Caster.toKey(COMUtil.toObject(wrapper, enumVariant.Next(), "", null));
+	/**
+	 * @param wrapper
+	 */
+	public COMKeyWrapperIterator(COMObject wrapper) {
+		this.enumVariant = new EnumVariant(wrapper.getDispatch());
+		this.wrapper = wrapper;
 	}
-	catch (CasterException e) {
-	    throw new PageRuntimeException(e);
+
+	@Override
+	public void remove() {
+		enumVariant.safeRelease();
 	}
-    }
+
+	@Override
+	public boolean hasNext() {
+		return enumVariant.hasMoreElements();
+	}
+
+	@Override
+	public Collection.Key next() {
+		try {
+			return Caster.toKey(COMUtil.toObject(wrapper, enumVariant.Next(), "", null));
+		}
+		catch (CasterException e) {
+			throw new PageRuntimeException(e);
+		}
+	}
 }
