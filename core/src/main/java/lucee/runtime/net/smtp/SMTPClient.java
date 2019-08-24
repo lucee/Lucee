@@ -799,6 +799,10 @@ public final class SMTPClient implements Serializable {
 				if (tls != TLS_NONE) _tls = tls == TLS_YES;
 				else _tls = ((ServerImpl) server).isTLS();
 
+				if (_tls) {
+					MailUtil.setSystemPropMailSslProtocols();
+				}
+
 				// ssl
 				if (ssl != SSL_NONE) _ssl = ssl == SSL_YES;
 				else _ssl = ((ServerImpl) server).isSSL();

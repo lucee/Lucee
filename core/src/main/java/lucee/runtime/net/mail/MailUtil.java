@@ -27,8 +27,10 @@ import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeUtility;
 
+import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.net.http.sni.SSLConnectionSocketFactoryImpl;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.type.Array;
@@ -36,6 +38,8 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.ListUtil;
 
 public final class MailUtil {
+
+	public static final String SYSTEM_PROP_MAIL_SSL_PROTOCOLS = "mail.smtp.ssl.protocols";
 
 	public static String encode(String text, String encoding) throws UnsupportedEncodingException {
 		// print.ln(StringUtil.changeCharset(text,encoding));
@@ -212,4 +216,20 @@ public final class MailUtil {
 		}
 		return addr;
 	}
+
+	/**
+	 * This method should be called when TLS is used to ensure that the supported protocols are set
+	 */
+	public static void setSystemPropMailSslProtocols() {
+
+		String protocols = SystemUtil.getSystemPropOrEnvVar(SYSTEM_PROP_MAIL_SSL_PROTOCOLS, "");
+		if (protocols.isEmpty()) {
+			protocols = SSLConnectionSocketFactoryImpl.getSupportedSslProtocols();
+			if (!protocols.isEmpty()) {
+				System.setProperty(SYSTEM_PROP_MAIL_SSL_PROTOCOLS, protocols);
+				System.err.println("Lucee system property " + SYSTEM_PROP_MAIL_SSL_PROTOCOLS + " set to [" + protocols + "]");
+			}
+		}
+	}
+
 }
