@@ -74,7 +74,10 @@ public final class InfoImpl implements Info {
 	public InfoImpl(Bundle bundle) {
 
 		try {
-			Attributes mf = getManifest(bundle).getMainAttributes();
+			Manifest manifest = getManifest(bundle);
+			if (manifest == null)
+				throw new IllegalArgumentException("Failed to get manifest from bundle");
+			Attributes mf = manifest.getMainAttributes();
 
 			versionName = mf.getValue("Minor-Name");
 			if (versionName == null) throw new RuntimeException("missing Minor-Name");
