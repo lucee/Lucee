@@ -149,6 +149,7 @@ public final class Application extends TagImpl {
 	private Struct proxy;
 	private String blockedExtForFileUpload;
 	private Struct javaSettings;
+	private Struct xmlFeatures;
 
 	@Override
 	public void release() {
@@ -227,6 +228,7 @@ public final class Application extends TagImpl {
 		sessionCookie = null;
 		blockedExtForFileUpload = null;
 		javaSettings = null;
+		xmlFeatures = null;
 	}
 
 	/**
@@ -575,6 +577,10 @@ public final class Application extends TagImpl {
 		this.javaSettings = javaSettings;
 	}
 
+	public void setXmlFeatures(Struct xmlFeatures) {
+		this.xmlFeatures = xmlFeatures;
+	}
+
 	public void setSecurejsonprefix(String secureJsonPrefix) {
 		this.secureJsonPrefix = secureJsonPrefix;
 		// getAppContext().setSecureJsonPrefix(secureJsonPrefix);
@@ -806,11 +812,16 @@ public final class Application extends TagImpl {
 		// Scope cascading
 		if (scopeCascading != -1) ac.setScopeCascading(scopeCascading);
 
-		if (blockedExtForFileUpload != null) {
-			if (ac instanceof ClassicApplicationContext) {
-				((ClassicApplicationContext) ac).setBlockedextforfileupload(blockedExtForFileUpload);
-			}
+		if (ac instanceof ClassicApplicationContext) {
+			ClassicApplicationContext cAppContext = (ClassicApplicationContext)ac;
+
+			if (blockedExtForFileUpload != null)
+				cAppContext.setBlockedextforfileupload(blockedExtForFileUpload);
+
+			if (xmlFeatures != null)
+				cAppContext.setXmlFeatures(xmlFeatures);
 		}
+
 		if (javaSettings != null) {
 			if (ac instanceof ApplicationContextSupport) {
 				((ApplicationContextSupport) ac).setJavaSettings(JavaSettingsImpl.newInstance(new JavaSettingsImpl(), javaSettings));
