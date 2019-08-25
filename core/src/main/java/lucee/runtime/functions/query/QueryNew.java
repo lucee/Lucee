@@ -178,7 +178,7 @@ public final class QueryNew extends BIF {
 	private static Array toArray(PageContext pc, Object columnNames, int index) throws PageException {
 		if (Decision.isArray(columnNames)) return Caster.toArray(columnNames);
 		String str = Caster.toString(columnNames, null);
-		if (str == null) throw new FunctionException(pc, "QueryNew", index, index == 1 ? "columnNames" : "columnTypes", "cannot cast to a array or a string list");
+		if (str == null) throw new FunctionException(pc, "QueryNew", index, index == 1 ? "columnNames" : "columnTypes", "cannot cast to an array or a string list");
 		return ListUtil.listToArrayTrim(str, ",");
 	}
 }

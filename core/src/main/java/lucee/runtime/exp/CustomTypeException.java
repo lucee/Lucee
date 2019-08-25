@@ -29,7 +29,7 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.KeyConstants;
 
 /**
- * Exception throwed by CFML Code
+ * Exception thrown by CFML Code
  */
 public final class CustomTypeException extends PageExceptionImpl {
 

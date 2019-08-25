@@ -533,7 +533,7 @@ public final class QoQ {
 	 * 
 	 * /**
 	 * 
-	 * execute a and operation
+	 * execute an and operation
 	 * 
 	 * @param qr QueryResult to execute on it
 	 * 
@@ -559,7 +559,7 @@ public final class QoQ {
 
 	/**
 	 * 
-	 * execute a and operation
+	 * execute an and operation
 	 * 
 	 * @param sql
 	 * @param qr QueryResult to execute on it
@@ -588,7 +588,7 @@ public final class QoQ {
 
 	/**
 	 * 
-	 * execute a equal operation
+	 * execute an equal operation
 	 * 
 	 * @param sql
 	 * @param qr QueryResult to execute on it
@@ -678,7 +678,7 @@ public final class QoQ {
 
 	/**
 	 * 
-	 * execute a equal operation
+	 * execute an equal operation
 	 * 
 	 * @param sql
 	 * @param qr QueryResult to execute on it

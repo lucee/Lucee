@@ -107,7 +107,7 @@
 
 <!--- everything seems to be okay, so add it --->
 
-<!--- create a UID which is used while installing --->
+<!--- create an UID which is used while installing --->
 
 <!--- create an array which contains all the extension details --->
 <!--- [query] is a query with one row, containing all extension info --->

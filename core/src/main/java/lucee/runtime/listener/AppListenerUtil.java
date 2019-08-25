@@ -299,7 +299,7 @@ public final class AppListenerUtil {
 				String primary = Caster.toString(map.get("primary", null), null);
 				if (primary != null && primary.trim().equalsIgnoreCase("archive")) md.physicalFirst = false;
 			}
-			// only a archive
+			// only an archive
 			else if (archive != null) md.physicalFirst = false;
 		}
 		// simple value == only a physical path

@@ -23,7 +23,7 @@ public final class OpDecision extends ExpressionBase implements ExprBoolean {
 	}
 
 	/**
-	 * Create a String expression from a operation
+	 * Create a String expression from an operation
 	 * 
 	 * @param left
 	 * @param right

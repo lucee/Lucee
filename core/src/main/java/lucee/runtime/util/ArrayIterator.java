@@ -21,7 +21,7 @@ package lucee.runtime.util;
 import java.util.Iterator;
 
 /**
- * Iterator Implementation for a Object Array
+ * Iterator Implementation for an Object Array
  */
 public final class ArrayIterator implements Iterator {
 

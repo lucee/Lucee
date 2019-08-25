@@ -24,23 +24,23 @@ import java.util.Map.Entry;
 import lucee.runtime.type.Collection.Key;
 
 /**
- * interface that define that in a class a iterator is available
+ * interface that define that in a class an iterator is available
  */
 public interface Iteratorable {
 
 	/**
-	 * @return return a Iterator for Keys as Collection.Keys
+	 * @return return an Iterator for Keys as Collection.Keys
 	 */
 	public Iterator<Collection.Key> keyIterator();
 
 	/**
-	 * @return return a Iterator for Keys as String
+	 * @return return an Iterator for Keys as String
 	 */
 	public Iterator<String> keysAsStringIterator();
 
 	/**
 	 * 
-	 * @return return a Iterator for Values
+	 * @return return an Iterator for Values
 	 */
 	public Iterator<Object> valueIterator();
 

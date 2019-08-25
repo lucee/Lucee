@@ -418,7 +418,7 @@ public class Log4jEngine extends LogEngine {
 
 	private Appender toAppender(Object l) {
 		if (l instanceof Appender) return (Appender) l;
-		throw new RuntimeException("cannot convert [" + l + "] to a Appender");
+		throw new RuntimeException("cannot convert [" + l + "] to an Appender");
 	}
 
 	private Layout toLayout(Object l) {

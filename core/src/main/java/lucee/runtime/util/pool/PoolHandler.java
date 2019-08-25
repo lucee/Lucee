@@ -19,7 +19,7 @@
 package lucee.runtime.util.pool;
 
 /**
- * Box for a Object for the Pool
+ * Box for an Object for the Pool
  */
 public abstract class PoolHandler {
 

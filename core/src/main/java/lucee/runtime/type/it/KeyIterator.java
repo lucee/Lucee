@@ -25,7 +25,7 @@ import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 
 /**
- * Iterator Implementation for a Object Array
+ * Iterator Implementation for an Object Array
  */
 public final class KeyIterator implements Iterator<Collection.Key>, Enumeration<Collection.Key> {
 

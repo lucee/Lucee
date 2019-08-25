@@ -696,7 +696,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			Body prior = data.setParent(body);
 			statement(data, body, CTX_FOR);
 
-			// performance improvment in special constellation
+			// performance improvement in special combination
 			// TagLoop loop = asLoop(data.factory,left,cont,update,body,line,data.srcCode.getPosition(),id);
 			// if(loop!=null) return loop;
 
@@ -1544,7 +1544,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			// print.e("appendix:"+tlt);
 
 			if (tlt == null) {
-				// if(tagLib.getIgnoreUnknowTags()){ if we do this a expression like the following no longer work
+				// if(tagLib.getIgnoreUnknowTags()){ if we do this an expression like the following no longer work
 				// cfwhatever=1;
 				data.srcCode.setPos(start);
 				return null;
@@ -2192,7 +2192,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 	 */
 	private Statement expressionStatement(Data data, Body parent) throws TemplateException {
 
-		// first we check if we have a access modifier
+		// first we check if we have an access modifier
 		int pos = data.srcCode.getPos();
 		int access = -1;
 		boolean _final = false;

@@ -285,7 +285,7 @@
 	}
 
 	/**
-	* get information from specific ExtensionProvider, if a extension is provided by multiple providers only the for the newest (version) is returned
+	* get information from specific ExtensionProvider, if an extension is provided by multiple providers only the for the newest (version) is returned
 	*/
 	function getExternalData(required string[] providers, boolean forceReload=false, numeric timeSpan=60, boolean useLocalProvider=true) {
 		var datas={};

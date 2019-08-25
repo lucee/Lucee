@@ -96,7 +96,7 @@ public final class SchedulerImpl implements Scheduler {
 	}
 
 	/**
-	 * creates a empty Scheduler, used for event gateway context
+	 * creates an empty Scheduler, used for event gateway context
 	 * 
 	 * @param engine
 	 * @param config

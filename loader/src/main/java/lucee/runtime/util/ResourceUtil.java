@@ -67,7 +67,7 @@ public interface ResourceUtil {
 	public final short LEVEL_GRAND_PARENT_FILE = 2;
 
 	/**
-	 * cast a String (argument destination) to a File Object, if destination is not a absolute, file
+	 * cast a String (argument destination) to a File Object, if destination is not an absolute, file
 	 * object will be relative to current position (get from PageContext) file must exist otherwise
 	 * throw exception
 	 * 
@@ -79,7 +79,7 @@ public interface ResourceUtil {
 	public Resource toResourceExisting(PageContext pc, String path) throws PageException;
 
 	/**
-	 * cast a String (argument destination) to a File Object, if destination is not a absolute, file
+	 * cast a String (argument destination) to a File Object, if destination is not an absolute, file
 	 * object will be relative to current position (get from PageContext) at least parent must exist
 	 * 
 	 * @param pc Page Context to the current position in filesystem
@@ -90,7 +90,7 @@ public interface ResourceUtil {
 	public Resource toResourceExistingParent(PageContext pc, String destination) throws PageException;
 
 	/**
-	 * cast a String (argument destination) to a File Object, if destination is not a absolute, file
+	 * cast a String (argument destination) to a File Object, if destination is not an absolute, file
 	 * object will be relative to current position (get from PageContext) existing file is preferred but
 	 * dont must exist
 	 * 
@@ -111,7 +111,7 @@ public interface ResourceUtil {
 	public Resource createResource(Resource res, short level, short type);
 
 	/**
-	 * sets a attribute to the resource
+	 * sets an attribute to the resource
 	 * 
 	 * @param res
 	 * @param attributes
@@ -151,7 +151,7 @@ public interface ResourceUtil {
 	public boolean isChildOf(Resource file, Resource dir);
 
 	/**
-	 * return diffrents of one file to a other if first is child of second otherwise return null
+	 * return diffrents of one file to another if first is child of second otherwise return null
 	 * 
 	 * @param file file to search
 	 * @param dir directory to search
@@ -219,7 +219,7 @@ public interface ResourceUtil {
 	public void moveTo(Resource src, Resource dest) throws IOException;
 
 	/**
-	 * return if Resource is empty, means is directory and has no children or a empty file, if not exist
+	 * return if Resource is empty, means is directory and has no children or an empty file, if not exist
 	 * return false.
 	 * 
 	 * @param res
@@ -278,7 +278,7 @@ public interface ResourceUtil {
 	public void checkMoveToOK(Resource source, Resource target) throws IOException;
 
 	/**
-	 * check if getting a inputstream of the file is ok with the rules for the Resource interface, to
+	 * check if getting an inputstream of the file is ok with the rules for the Resource interface, to
 	 * not change this rules.
 	 * 
 	 * @param resource
@@ -287,7 +287,7 @@ public interface ResourceUtil {
 	public void checkGetInputStreamOK(Resource resource) throws IOException;
 
 	/**
-	 * check if getting a outputstream of the file is ok with the rules for the Resource interface, to
+	 * check if getting an outputstream of the file is ok with the rules for the Resource interface, to
 	 * not change this rules.
 	 * 
 	 * @param resource
@@ -326,7 +326,7 @@ public interface ResourceUtil {
 	public ContentType getContentType(Resource file);
 
 	/**
-	 * cast a String (argument destination) to a File Object, if destination is not a absolute, file
+	 * cast a String (argument destination) to a File Object, if destination is not an absolute, file
 	 * object will be relative to current position (get from PageContext) at least parent must exist
 	 * 
 	 * @param pc Page Context to the current position in filesystem
@@ -341,10 +341,10 @@ public interface ResourceUtil {
 	public boolean isUNCPath(String path);
 
 	/**
-	 * translate the path of the file to a existing file path by changing case of letters Works only on
+	 * translate the path of the file to an existing file path by changing case of letters Works only on
 	 * Linux, because
 	 * 
-	 * Example Unix: we have a existing file with path "/usr/virtual/myFile.txt" now you call this
+	 * Example Unix: we have an existing file with path "/usr/virtual/myFile.txt" now you call this
 	 * method with path "/Usr/Virtual/myfile.txt" the result of the method will be
 	 * "/usr/virtual/myFile.txt"
 	 * 

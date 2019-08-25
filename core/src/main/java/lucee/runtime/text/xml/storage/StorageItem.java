@@ -23,7 +23,7 @@ import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.Time;
 
 /**
- * A Object to store to XML File
+ * An Object to store to XML File
  */
 public abstract class StorageItem {
 

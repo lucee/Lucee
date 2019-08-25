@@ -294,7 +294,7 @@ public class JREDateTimeUtil extends DateTimeUtil {
 	}
 
 	/*
-	 * internally we use a other instance to avoid conflicts
+	 * internally we use another instance to avoid conflicts
 	 */
 	private static Calendar _getThreadCalendar(PageContext pc, TimeZone tz) {
 		Calendar c = _calendar.get();
@@ -305,7 +305,7 @@ public class JREDateTimeUtil extends DateTimeUtil {
 	}
 
 	/*
-	 * internally we use a other instance to avoid conflicts
+	 * internally we use another instance to avoid conflicts
 	 */
 	private static Calendar _getThreadCalendar(Locale l, TimeZone tz) {
 		Calendar c = _localeCalendar.get(tz, l);

@@ -1255,7 +1255,7 @@ public final class CFMLTransformer {
 		int start = cfml.getPos();
 
 		if (!cfml.isCurrentBetween('a', 'z') && !cfml.isCurrent('_')) {
-			if (throwError) throw new TemplateException(cfml, "Invalid Identifier, the following character cannot be part of a identifier [" + cfml.getCurrent() + "]");
+			if (throwError) throw new TemplateException(cfml, "Invalid Identifier, the following character cannot be part of an identifier [" + cfml.getCurrent() + "]");
 			return null;
 		}
 		do {

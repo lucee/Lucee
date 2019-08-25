@@ -68,7 +68,7 @@ public class VideoOutputImpl implements VideoOutput {
 	}
 
 	/**
-	 * sets a author to the output video
+	 * sets an author to the output video
 	 * 
 	 * @param author
 	 */

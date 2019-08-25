@@ -105,9 +105,9 @@ public interface ApplicationListener {
 	public void onServerEnd() throws PageException;
 
 	/**
-	 * this method will be called if server has na error (exception) not thrown by a try-catch block
+	 * this method will be called if server has an error (exception) not thrown by a try-catch block
 	 * 
-	 * @param pe PageExcpetion Exception that has been throwed
+	 * @param pe PageException Exception that has been thrown
 	 */
 	public void onError(PageContext pc, PageException pe);
 

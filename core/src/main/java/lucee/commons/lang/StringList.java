@@ -109,7 +109,7 @@ public final class StringList {
 	}
 
 	/**
-	 * adds a element to the list
+	 * adds an element to the list
 	 * 
 	 * @param str String Element to add
 	 */

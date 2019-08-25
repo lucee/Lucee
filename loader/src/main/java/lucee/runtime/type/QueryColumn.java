@@ -54,7 +54,7 @@ public interface QueryColumn extends Collection, Reference, Castable {
 	public Object removeEL(int row);
 
 	/**
-	 * get method with a int as key, return empty default value for invalid row
+	 * get method with an int as key, return empty default value for invalid row
 	 * 
 	 * @param row row to get value
 	 * @return row value
@@ -75,7 +75,7 @@ public interface QueryColumn extends Collection, Reference, Castable {
 	public Object get(int row, Object emptyValue);
 
 	/**
-	 * set method with a int as key
+	 * set method with an int as key
 	 * 
 	 * @param row row to set
 	 * @param value value to set
@@ -92,7 +92,7 @@ public interface QueryColumn extends Collection, Reference, Castable {
 	public void add(Object value);
 
 	/**
-	 * setExpressionLess method with a int as key
+	 * setExpressionLess method with an int as key
 	 * 
 	 * @param row row to set
 	 * @param value value to set

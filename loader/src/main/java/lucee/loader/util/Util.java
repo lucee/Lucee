@@ -63,8 +63,8 @@ public class Util {
 	}
 
 	/**
-	 * @deprecated use instead CFMLEngineFactory.getInstance.getIOUtil().copy(...) copy a inputstream to
-	 *             a outputstream
+	 * @deprecated use instead CFMLEngineFactory.getInstance.getIOUtil().copy(...) copy an inputstream to
+	 *             an outputstream
 	 * @param in
 	 * @param out
 	 * @throws IOException
@@ -92,7 +92,7 @@ public class Util {
 
 	/**
 	 * @deprecated use instead CFMLEngineFactory.getInstance.getIOUtil().toString (InputStream is,
-	 *             Charset cs) read String data from a InputStream and returns it as String Object
+	 *             Charset cs) read String data from an InputStream and returns it as String Object
 	 * @param is InputStream to read data from.
 	 * @return readed data from InputStream
 	 * @throws IOException
@@ -130,7 +130,7 @@ public class Util {
 
 	/**
 	 * @deprecated use instead CFMLEngineFactory.getInstance.getIOUtil().closeSilent (InputStream
-	 *             is,OutputStream os) close inputstream without a Exception
+	 *             is,OutputStream os) close inputstream without an Exception
 	 * @param is
 	 * @param os
 	 */
@@ -154,7 +154,7 @@ public class Util {
 
 	/**
 	 * @deprecated use instead CFMLEngineFactory.getInstance.getIOUtil().closeSilent (InputStream is)
-	 *             close inputstream without a Exception
+	 *             close inputstream without an Exception
 	 * @param is
 	 */
 	@Deprecated
@@ -167,7 +167,7 @@ public class Util {
 
 	/**
 	 * @deprecated use instead CFMLEngineFactory.getInstance.getIOUtil().closeSilent(Reader r) close
-	 *             reader without a Exception
+	 *             reader without an Exception
 	 * @param r
 	 */
 	@Deprecated
@@ -180,7 +180,7 @@ public class Util {
 
 	/**
 	 * @deprecated use instead CFMLEngineFactory.getInstance.getIOUtil().closeSilent(Writer w) close
-	 *             reader without a Exception
+	 *             reader without an Exception
 	 * @param w
 	 */
 	@Deprecated
@@ -193,7 +193,7 @@ public class Util {
 
 	/**
 	 * @deprecated use instead CFMLEngineFactory.getInstance.getIOUtil().closeSilent (InputStream
-	 *             is,OutputStream os) close outputstream without a Exception
+	 *             is,OutputStream os) close outputstream without an Exception
 	 * @param os
 	 */
 	@Deprecated

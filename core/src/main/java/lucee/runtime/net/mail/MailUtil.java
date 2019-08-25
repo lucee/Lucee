@@ -131,7 +131,7 @@ public final class MailUtil {
 	}
 
 	/**
-	 * returns true if the passed value is a in valid email address format
+	 * returns true if the passed value is a valid email address format
 	 * 
 	 * @param value
 	 * @return

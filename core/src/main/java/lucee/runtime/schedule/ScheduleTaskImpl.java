@@ -136,7 +136,7 @@ public final class ScheduleTaskImpl implements ScheduleTask {
 	}
 
 	/**
-	 * translate a String interval definition to a int definition
+	 * translate a String interval definition to an int definition
 	 * 
 	 * @param interval
 	 * @return interval

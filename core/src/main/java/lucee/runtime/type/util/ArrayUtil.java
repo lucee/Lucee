@@ -153,7 +153,7 @@ public final class ArrayUtil {
 	}
 
 	/**
-	 * find a object in array
+	 * find an object in array
 	 * 
 	 * @param array
 	 * @param object object to find
@@ -184,7 +184,7 @@ public final class ArrayUtil {
 	}
 
 	/**
-	 * sum of all values of a array, only work when all values are numeric
+	 * sum of all values of an array, only work when all values are numeric
 	 * 
 	 * @param array Array
 	 * @return sum of all values
@@ -431,7 +431,7 @@ public final class ArrayUtil {
 	}
 
 	/**
-	 * gets a value of a array at defined index
+	 * gets a value of an array at defined index
 	 * 
 	 * @param o
 	 * @param index
@@ -441,11 +441,11 @@ public final class ArrayUtil {
 	public static Object get(Object o, int index) throws ArrayUtilException {
 		o = get(o, index, null);
 		if (o != null) return o;
-		throw new ArrayUtilException("Object is not a array, or index is invalid");
+		throw new ArrayUtilException("Object is not an array, or index is invalid");
 	}
 
 	/**
-	 * gets a value of a array at defined index
+	 * gets a value of an array at defined index
 	 * 
 	 * @param o
 	 * @param index
@@ -493,7 +493,7 @@ public final class ArrayUtil {
 	}
 
 	/**
-	 * sets a value to a array at defined index
+	 * sets a value to an array at defined index
 	 * 
 	 * @param o
 	 * @param index
@@ -588,7 +588,7 @@ public final class ArrayUtil {
 			}
 			throw invalidIndex(index, arr.length);
 		}
-		throw new ArrayUtilException("Object [" + Caster.toClassName(o) + "] is not a Array");
+		throw new ArrayUtilException("Object [" + Caster.toClassName(o) + "] is not an Array");
 	}
 
 	private static ArrayUtilException invalidIndex(int index, int length) {
@@ -596,7 +596,7 @@ public final class ArrayUtil {
 	}
 
 	/**
-	 * sets a value to a array at defined index
+	 * sets a value to an array at defined index
 	 * 
 	 * @param o
 	 * @param index

@@ -75,7 +75,7 @@ public interface SearchCollection extends Serializable {
 	public abstract void repair() throws SearchException;
 
 	/**
-	 * updates a index of a collection
+	 * updates an index of a collection
 	 * 
 	 * @param pc
 	 * @param key
@@ -126,7 +126,7 @@ public interface SearchCollection extends Serializable {
 	public abstract IndexResult indexPath(String id, String title, Resource dir, String[] extensions, boolean recurse, String language) throws SearchException;
 
 	/**
-	 * updates a collection with a url
+	 * updates a collection with an url
 	 * 
 	 * @param id
 	 * @param title
@@ -194,7 +194,7 @@ public interface SearchCollection extends Serializable {
 	public abstract IndexResult delete() throws SearchException;
 
 	/**
-	 * delete a Index from collection
+	 * delete an Index from collection
 	 * 
 	 * @param pc
 	 * @param key

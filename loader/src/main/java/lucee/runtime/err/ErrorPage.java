@@ -21,7 +21,7 @@ package lucee.runtime.err;
 import lucee.runtime.PageSource;
 
 /**
- * represent a Error Page
+ * represent an Error Page
  */
 public interface ErrorPage {
 

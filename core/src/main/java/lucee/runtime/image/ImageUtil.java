@@ -60,7 +60,7 @@ public class ImageUtil {
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
-		throw new ApplicationException("cannot convert Object to a Image, you need to install the Image Extension to do so.");
+		throw new ApplicationException("cannot convert Object to an Image, you need to install the Image Extension to do so.");
 	}
 
 	public static byte[] getImageBytes(Object o, String format) throws PageException {

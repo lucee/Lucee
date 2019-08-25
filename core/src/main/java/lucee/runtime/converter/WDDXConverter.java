@@ -167,7 +167,7 @@ public final class WDDXConverter extends ConverterSupport {
 	}
 
 	/**
-	 * serialize a Array
+	 * serialize an Array
 	 * 
 	 * @param array Array to serialize
 	 * @param done
@@ -359,7 +359,7 @@ public final class WDDXConverter extends ConverterSupport {
 	}
 
 	/**
-	 * serialize a Object to his xml Format represenation
+	 * serialize an Object to his xml Format represenation
 	 * 
 	 * @param object Object to serialize
 	 * @param done
@@ -474,7 +474,7 @@ public final class WDDXConverter extends ConverterSupport {
 	}
 
 	/**
-	 * serialize a Object to his xml Format represenation and create a valid wddx representation
+	 * serialize an Object to his xml Format represenation and create a valid wddx representation
 	 * 
 	 * @param object Object to serialize
 	 * @return serialized wddx package
@@ -621,7 +621,7 @@ public final class WDDXConverter extends ConverterSupport {
 		else if (nodeName.equals("binary")) {
 			return _deserializeBinary(element);
 		}
-		else throw new ConverterException("can't deserialize Element of type [" + nodeName + "] to a Object representation");
+		else throw new ConverterException("can't deserialize Element of type [" + nodeName + "] to an Object representation");
 
 	}
 
@@ -829,7 +829,7 @@ public final class WDDXConverter extends ConverterSupport {
 	}
 
 	/**
-	 * return fitst child Element of a Element, if there are no child Elements return null
+	 * return fitst child Element of an Element, if there are no child Elements return null
 	 * 
 	 * @param parent parent node
 	 * @return child Element

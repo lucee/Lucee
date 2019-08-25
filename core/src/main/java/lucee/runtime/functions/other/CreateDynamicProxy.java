@@ -96,7 +96,7 @@ public class CreateDynamicProxy implements Function {
 		// check if all classes are interfaces
 		for (int i = 0; i < interfaces.length; i++) {
 			if (!interfaces[i].isInterface())
-				throw new FunctionException(pc, "CreateDynamicProxy", 2, "interfaces", "definition [" + interfaces[i].getClass() + "] is a class and not a interface");
+				throw new FunctionException(pc, "CreateDynamicProxy", 2, "interfaces", "definition [" + interfaces[i].getClass() + "] is a class and not an interface");
 		}
 
 		return JavaProxyFactory.createProxy(pc, cfc, null, interfaces);

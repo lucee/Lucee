@@ -554,7 +554,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	}
 
 	/**
-	 * constructor of the class, to generate a empty resultset (no database execution)
+	 * constructor of the class, to generate an empty resultset (no database execution)
 	 * 
 	 * @param strColumns columns for the resultset
 	 * @param rowNumber count of rows to generate (empty fields)
@@ -576,7 +576,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	}
 
 	/**
-	 * constructor of the class, to generate a empty resultset (no database execution)
+	 * constructor of the class, to generate an empty resultset (no database execution)
 	 * 
 	 * @param strColumns columns for the resultset
 	 * @param rowNumber count of rows to generate (empty fields)
@@ -601,7 +601,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	}
 
 	/**
-	 * constructor of the class, to generate a empty resultset (no database execution)
+	 * constructor of the class, to generate an empty resultset (no database execution)
 	 * 
 	 * @param strColumns columns for the resultset
 	 * @param strTypes array of the types
@@ -623,7 +623,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	}
 
 	/**
-	 * constructor of the class, to generate a empty resultset (no database execution)
+	 * constructor of the class, to generate an empty resultset (no database execution)
 	 * 
 	 * @param strColumns columns for the resultset
 	 * @param strTypes array of the types
@@ -645,7 +645,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	}
 
 	/**
-	 * constructor of the class, to generate a empty resultset (no database execution)
+	 * constructor of the class, to generate an empty resultset (no database execution)
 	 * 
 	 * @param arrColumns columns for the resultset
 	 * @param rowNumber count of rows to generate (empty fields)
@@ -666,7 +666,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	}
 
 	/**
-	 * constructor of the class, to generate a empty resultset (no database execution)
+	 * constructor of the class, to generate an empty resultset (no database execution)
 	 * 
 	 * @param arrColumns columns for the resultset
 	 * @param arrTypes type of the columns

@@ -124,7 +124,7 @@ public class JavaProxyFactory {
 		if (interfaces == null) interfaces = new Class[0];
 		else {
 			for (int i = 0; i < interfaces.length; i++) {
-				if (!interfaces[i].isInterface()) throw new IOException("definition [" + interfaces[i].getName() + "] is a class and not a interface");
+				if (!interfaces[i].isInterface()) throw new IOException("definition [" + interfaces[i].getName() + "] is a class and not an interface");
 			}
 		}
 

@@ -64,7 +64,7 @@ public class RestDeleteApplication {
 	static Resource toResource(PageContext pc, String dirPath) throws PageException {
 		Resource dir = ResourceUtil.toResourceNotExisting(pc.getConfig(), dirPath);
 		pc.getConfig().getSecurityManager().checkFileLocation(dir);
-		if (!dir.isDirectory()) throw new FunctionException(pc, "RestInitApplication", 1, "dirPath", "argument value [" + dirPath + "] must contain a existing directory");
+		if (!dir.isDirectory()) throw new FunctionException(pc, "RestInitApplication", 1, "dirPath", "argument value [" + dirPath + "] must contain an existing directory");
 
 		return dir;
 	}

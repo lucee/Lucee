@@ -548,7 +548,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	}
 
 	/**
-	 * method to initialize a update of the CFML Engine. checks if there is a new Version and update it
+	 * method to initialize an update of the CFML Engine. checks if there is a new Version and update it
 	 * when a new version is available
 	 * 
 	 * @param password
@@ -614,7 +614,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	}
 
 	/**
-	 * updates the engine when a update is available
+	 * updates the engine when an update is available
 	 * 
 	 * @return has updated
 	 * @throws IOException
@@ -764,7 +764,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		String pack20Ext = ".jar.pack.gz";
 		boolean isPack200 = false;
 
-		// first we look for a exact match
+		// first we look for an exact match
 		InputStream is = getClass().getResourceAsStream("bundles/" + osgiFileName);
 		if (is == null) is = getClass().getResourceAsStream("/bundles/" + osgiFileName);
 
@@ -809,7 +809,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			}
 		}
 
-		// now we search the current jar as a external zip what is slow (we do not support pack200 in this
+		// now we search the current jar as an external zip what is slow (we do not support pack200 in this
 		// case)
 		// this also not works with windows
 		if (isWindows()) return null;
@@ -1061,7 +1061,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	}
 
 	/**
-	 * method to initialize a update of the CFML Engine. checks if there is a new Version and update it
+	 * method to initialize an update of the CFML Engine. checks if there is a new Version and update it
 	 * when a new version is available
 	 * 
 	 * @param password
@@ -1075,7 +1075,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	}
 
 	/**
-	 * method to initialize a update of the CFML Engine. checks if there is a new Version and update it
+	 * method to initialize an update of the CFML Engine. checks if there is a new Version and update it
 	 * when a new version is available
 	 * 
 	 * @param password
@@ -1089,7 +1089,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	}
 
 	/**
-	 * updates the engine when a update is available
+	 * updates the engine when an update is available
 	 * 
 	 * @return has updated
 	 * @throws IOException
