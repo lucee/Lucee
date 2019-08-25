@@ -62,7 +62,8 @@ import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.util.ArrayUtil;
 
 /**
- * 
+ * This class resolves the Application settings that are defined in cfapplication tag attributes,
+ * e.g. sessionManagement, localMode, etc.
  */
 public class ClassicApplicationContext extends ApplicationContextSupport {
 

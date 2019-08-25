@@ -93,6 +93,10 @@ import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.transformer.library.ClassDefinitionImpl;
 
+/**
+ * This class resolves the Application settings that are defined in Application.cfc via the this reference,
+ * e.g. this.sessionManagement, this.localMode, etc.
+ */
 public class ModernApplicationContext extends ApplicationContextSupport {
 
 	private static final long serialVersionUID = -8230105685329758613L;
