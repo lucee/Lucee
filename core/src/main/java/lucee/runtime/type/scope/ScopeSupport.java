@@ -18,8 +18,6 @@
  */
 package lucee.runtime.type.scope;
 
-import java.io.UnsupportedEncodingException;
-
 import lucee.commons.lang.StringList;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.URLDecoder;
@@ -40,8 +38,10 @@ import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.type.util.StructUtil;
 
+import java.io.UnsupportedEncodingException;
+
 /**
- * Simple standart implementation of a Scope, for standart use.
+ * Simple implementation of a Scope, for general use.
  */
 public abstract class ScopeSupport extends StructImpl implements Scope {
 
@@ -74,7 +74,7 @@ public abstract class ScopeSupport extends StructImpl implements Scope {
 	 * 
 	 * @param name name of the scope
 	 * @param type scope type (SCOPE_APPLICATION,SCOPE_COOKIE use)
-	 * @param doubleLinked mean that the struct has predictable iteration order this make the input
+	 * @param mapType mean that the struct has predictable iteration order this make the input
 	 *            order fix
 	 */
 	public ScopeSupport(String name, int type, int mapType) {
@@ -105,7 +105,7 @@ public abstract class ScopeSupport extends StructImpl implements Scope {
 	/**
 	 * write parameter defined in a query string (name1=value1&name2=value2) to the scope
 	 * 
-	 * @param qs Query String
+	 * @param str Query String
 	 * @return parsed name value pair
 	 */
 	protected static URLItem[] setFromQueryString(String str) {
@@ -316,4 +316,5 @@ public abstract class ScopeSupport extends StructImpl implements Scope {
 	public String getTypeAsString() {
 		return name;
 	}
+
 }

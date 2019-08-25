@@ -22,6 +22,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 
+import lucee.commons.lang.RandomUtil;
 import lucee.commons.net.URLDecoder;
 import lucee.commons.net.URLItem;
 import lucee.runtime.net.http.ReqRspUtil;
@@ -97,4 +98,26 @@ public class ScopeUtil {
 		return arr;
 	}
 
+	public static String generateCsrfToken(Map<String, String> tokens, String key, boolean forceNew) {
+		if (key == null)
+			key = "";
+
+		String token;
+		if (!forceNew) {
+			token = tokens.get(key);
+			if (token != null) return token;
+		}
+
+		token = RandomUtil.createRandomStringLC(40);
+		tokens.put(key, token);
+		return token;
+	}
+
+	public static boolean verifyCsrfToken(Map<String, String> tokens, String token, String key) {
+		if (key == null)
+			key = "";
+
+		String _token = tokens.get(key);
+		return (_token != null) && _token.equalsIgnoreCase(token);
+	}
 }

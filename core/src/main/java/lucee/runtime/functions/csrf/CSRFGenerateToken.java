@@ -22,6 +22,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.type.scope.CSRFTokenSupport;
 import lucee.runtime.type.scope.Session;
 import lucee.runtime.type.scope.storage.StorageScope;
 
@@ -38,14 +39,13 @@ public class CSRFGenerateToken implements Function {
 	}
 
 	public static String call(PageContext pc, String key, boolean forceNew) throws PageException {
-		if (key == null) key = "";
-
 		return getStorageScope(pc).generateToken(key, forceNew);
 	}
 
-	public static StorageScope getStorageScope(PageContext pc) throws PageException {
+	public static CSRFTokenSupport getStorageScope(PageContext pc) throws PageException {
 		Session session = pc.sessionScope();
-		if (!(session instanceof StorageScope)) throw new ExpressionException("this function only works with CF Sessions");
-		return (StorageScope) session;
+		if (!(session instanceof CSRFTokenSupport))
+			throw new ExpressionException("Session scope does not support CSRF Tokens");
+		return (CSRFTokenSupport) session;
 	}
 }
