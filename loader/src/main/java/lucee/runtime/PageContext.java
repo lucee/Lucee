@@ -869,7 +869,7 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	public abstract void flush();
 
 	/**
-	 * call an UDF Function and return "return value" of the function
+	 * call a UDF Function and return "return value" of the function
 	 * 
 	 * @param coll Collection of the UDF Function
 	 * @param key name of the function
@@ -880,7 +880,7 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	public abstract Object getFunction(Object coll, String key, Object[] args) throws PageException;
 
 	/**
-	 * call an UDF Function and return "return value" of the function
+	 * call a UDF Function and return "return value" of the function
 	 * 
 	 * @param coll Collection of the UDF Function
 	 * @param key name of the function
@@ -891,7 +891,7 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	public abstract Object getFunction(Object coll, Collection.Key key, Object[] args) throws PageException;
 
 	/**
-	 * call an UDF Function and return "return value" of the function
+	 * call a UDF Function and return "return value" of the function
 	 * 
 	 * @param coll Collection of the UDF Function
 	 * @param key name of the function
@@ -902,7 +902,7 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	public abstract Object getFunctionWithNamedValues(Object coll, String key, Object[] args) throws PageException;
 
 	/**
-	 * call an UDF Function and return "return value" of the function
+	 * call a UDF Function and return "return value" of the function
 	 * 
 	 * @param coll Collection of the UDF Function
 	 * @param key name of the function
