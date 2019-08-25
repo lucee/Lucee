@@ -29,6 +29,8 @@ import javax.mail.internet.MimeUtility;
 
 import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.runtime.PageContext;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.net.http.sni.SSLConnectionSocketFactoryImpl;
 import lucee.runtime.op.Caster;
@@ -227,7 +229,11 @@ public final class MailUtil {
 			protocols = SSLConnectionSocketFactoryImpl.getSupportedSslProtocols();
 			if (!protocols.isEmpty()) {
 				System.setProperty(SYSTEM_PROP_MAIL_SSL_PROTOCOLS, protocols);
-				System.err.println("Lucee system property " + SYSTEM_PROP_MAIL_SSL_PROTOCOLS + " set to [" + protocols + "]");
+				PageContext pc = ThreadLocalPageContext.get();
+				if (pc != null)
+					pc.getConfig()
+							.getLog("mail")
+							.info("mail", "Lucee system property " + SYSTEM_PROP_MAIL_SSL_PROTOCOLS + " set to [" + protocols + "]");
 			}
 		}
 	}
