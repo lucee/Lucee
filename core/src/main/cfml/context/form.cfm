@@ -49,7 +49,7 @@ function LuceeForms(form,onError) {
 	prv.errors=[];
 			
 	/*
-	* adds a input definition to the for Object
+	* adds an input definition to the for Object
 	*/
 	pub.addInput=function(name,required,type,validate,pattern,message,onerror,onvalidate,rangeMin,rangeMax,maxLength,validateCFC) {
 		if((rangeMin || rangeMax) && validate!=pub.VALIDATE_FLOAT && validate!=pub.VALIDATE_INTEGER)validate=pub.VALIDATE_FLOAT;
