@@ -110,7 +110,7 @@ class ExecutionThread extends Thread {
 			rsp = HTTPEngine.get(new URL(url), user, pass, task.getTimeout(), true, charset, null, proxy, headers);
 			if (rsp != null) {
 				int sc = rsp.getStatusCode();
-				if (sc >= 200 && sc < 300) log.info(logName, "sucessfully called URL [" + url + "], response code " + sc);
+				if (sc >= 200 && sc < 300) log.info(logName, "successfully called URL [" + url + "], response code " + sc);
 				else log.warn(logName, "called URL [" + url + "] returned response code " + sc);
 			}
 
