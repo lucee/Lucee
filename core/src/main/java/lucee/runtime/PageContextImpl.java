@@ -175,6 +175,7 @@ import lucee.runtime.type.ref.VariableReference;
 import lucee.runtime.type.scope.Application;
 import lucee.runtime.type.scope.Argument;
 import lucee.runtime.type.scope.ArgumentImpl;
+import lucee.runtime.type.scope.CFThread;
 import lucee.runtime.type.scope.CGI;
 import lucee.runtime.type.scope.CGIImpl;
 import lucee.runtime.type.scope.CGIImplReadOnly;
@@ -319,7 +320,7 @@ public final class PageContextImpl extends PageContext {
 	private long startTime;
 
 	private DatasourceManagerImpl manager;
-	private Struct threads;
+	private CFThread threads;
 	private Map<Key, Threads> allThreads;
 	private boolean hasFamily = false;
 	private PageContextImpl parent = null;
@@ -3248,20 +3249,25 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public Threads getThreadScope(Collection.Key name) {// MUST who uses this? is cfthread/thread handling necessary
-		if (threads == null) threads = new StructImpl();
+		if (threads == null) threads = new CFThread();
 		Object obj = threads.get(name, null);
 		if (obj instanceof Threads) return (Threads) obj;
 		return null;
 	}
 
 	public Object getThreadScope(Collection.Key name, Object defaultValue) {
-		if (threads == null) threads = new StructImpl();
+		if (threads == null) threads = new CFThread();
 		if (name.equalsIgnoreCase(KeyConstants._cfthread)) return threads; // do not change this, this is used!
 		if (name.equalsIgnoreCase(KeyConstants._thread)) {
 			ThreadsImpl curr = getCurrentThreadScope();
 			if (curr != null) return curr;
 		}
 		return threads.get(name, defaultValue);
+	}
+
+	public Struct getCFThreadScope() {
+		if (threads == null) threads = new CFThread();
+		return threads;
 	}
 
 	public boolean isThreads(Object obj) {
@@ -3284,7 +3290,7 @@ public final class PageContextImpl extends PageContext {
 	@Override
 	public void setThreadScope(Collection.Key name, Threads ct) {
 		hasFamily = true;
-		if (threads == null) threads = new StructImpl();
+		if (threads == null) threads = new CFThread();
 		threads.setEL(name, ct);
 	}
 

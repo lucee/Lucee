@@ -12615,6 +12615,16 @@ _- asc (default): ascending (a to z) sort order
 			<type>number</type>
 		</return>
 	</function>
+	<!-- ThreadData -->
+	<function>
+		<name>ThreadData</name>
+		<class>lucee.runtime.functions.thread.ThreadData</class>
+		<keywords>threading</keywords>
+		<description>returns the root cfthread scope.</description>
+		<return>
+			<type>struct</type>
+		</return>
+	</function>
 
 	<!-- toBase64 -->
 	<function>
