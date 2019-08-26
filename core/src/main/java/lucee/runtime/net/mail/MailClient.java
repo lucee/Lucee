@@ -679,7 +679,7 @@ public abstract class MailClient implements PoolItem {
 	}
 
 	/**
-	 * disconnect without a exception
+	 * disconnect without an exception
 	 */
 	@Override
 	public void end() {

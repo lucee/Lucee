@@ -73,7 +73,7 @@ public class ManifestUtil {
 				sb = new StringBuilder();
 				printSection(sb, e.getValue(), maxLineSize, individualSectionIgnore);
 				if (sb.length() > 0) {
-					msb.append('\n'); // new section need a empty line
+					msb.append('\n'); // new section need an empty line
 					add(msb, "Name", e.getKey(), null);
 					msb.append(sb);
 				}

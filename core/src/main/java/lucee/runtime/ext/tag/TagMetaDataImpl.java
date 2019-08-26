@@ -79,7 +79,7 @@ public class TagMetaDataImpl implements TagMetaData {
 	}
 
 	/**
-	 * adds a attribute to the tag
+	 * adds an attribute to the tag
 	 * 
 	 * @param attr
 	 */

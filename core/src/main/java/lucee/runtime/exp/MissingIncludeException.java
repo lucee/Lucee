@@ -25,7 +25,7 @@ import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;
 
 /**
- * Exception throwed when missing include
+ * Exception thrown when missing include
  */
 public final class MissingIncludeException extends PageExceptionImpl {
 
