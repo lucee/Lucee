@@ -57,10 +57,6 @@ import lucee.transformer.library.tag.TagLib;
 import lucee.transformer.library.tag.TagLibTag;
 import lucee.transformer.library.tag.TagLibTagAttr;
 
-/**
- * This is a base class for ModernApplicationSupport and ClassicApplicationSupport.  It contains
- * code that is shared between the subclasses.
- */
 public abstract class ApplicationContextSupport implements ApplicationContext {
 
 	private static final long serialVersionUID = 1384678713928757744L;

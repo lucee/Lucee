@@ -137,7 +137,7 @@ public final class CallStackGet implements Function {
 			line = trace.getLineNumber();
 			item.setEL(KeyConstants._function, functionName);
 			/*
-			 * template is now a absolute path try { template=ExpandPath.call(pc, template); } catch
+			 * template is now an absolute path try { template=ExpandPath.call(pc, template); } catch
 			 * (PageException e) {}
 			 */
 			item.setEL(KeyConstants._template, abs((PageContextImpl) pc, template));

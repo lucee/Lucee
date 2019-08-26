@@ -25,7 +25,7 @@ import java.util.Map;
 import lucee.runtime.op.Constants;
 
 /**
- * helper class to convert a string to a Object
+ * helper class to convert a string to an Object
  */
 public final class DateString {
 

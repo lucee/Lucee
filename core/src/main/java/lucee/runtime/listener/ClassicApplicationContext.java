@@ -147,7 +147,6 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 
 	private TimeSpan queryCachedAfter;
 	private String blockedExtForFileUpload;
-	private Struct xmlFeatures;
 
 	/**
 	 * constructor of the class
@@ -1064,13 +1063,5 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	@Override
 	public String getBlockedExtForFileUpload() {
 		return blockedExtForFileUpload;
-	}
-
-	public void setXmlFeatures(Struct xmlFeatures) {
-		this.xmlFeatures = xmlFeatures;
-	}
-
-	public Struct getXmlFeatures() {
-		return xmlFeatures;
 	}
 }

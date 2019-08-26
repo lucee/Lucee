@@ -116,7 +116,7 @@ public final class JavaProxy implements Function {
 					resources.add(res);
 				}
 			}
-			// throw new FunctionException(pc, "JavaProxy", 2, "path", "argument path has to be a array of
+			// throw new FunctionException(pc, "JavaProxy", 2, "path", "argument path has to be an array of
 			// strings or a single string, where every string is defining a path");
 		}
 

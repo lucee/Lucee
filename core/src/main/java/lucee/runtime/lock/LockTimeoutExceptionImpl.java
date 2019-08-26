@@ -59,8 +59,8 @@ public final class LockTimeoutExceptionImpl extends Exception {
 		}
 
 		if (readLocked == Boolean.TRUE && writeLocked == Boolean.FALSE) {
-			sb.append(" on a existing read lock.");
-			if (LockManager.TYPE_EXCLUSIVE == type) sb.append(" You cannot upgrade a existing lock from \"read\" to \"exclusive\".");
+			sb.append(" on an existing read lock.");
+			if (LockManager.TYPE_EXCLUSIVE == type) sb.append(" You cannot upgrade an existing lock from \"read\" to \"exclusive\".");
 		}
 		else sb.append(".");
 

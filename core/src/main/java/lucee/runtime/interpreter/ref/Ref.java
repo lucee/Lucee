@@ -22,7 +22,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 
 /**
- * Define a Reference to a Object
+ * Define a Reference to an Object
  */
 public interface Ref {
 
