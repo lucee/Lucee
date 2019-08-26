@@ -61,7 +61,7 @@ public final class CastBoolean extends ExpressionBase implements ExprBoolean, Ca
 	}
 
 	/**
-	 * Create a String expression from a Expression
+	 * Create a String expression from an Expression
 	 * 
 	 * @param expr
 	 * @return String expression

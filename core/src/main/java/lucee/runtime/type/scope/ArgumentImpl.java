@@ -249,7 +249,7 @@ public final class ArgumentImpl extends ScopeSupport implements Argument, ArrayP
 	public boolean insert(int index, String key, Object value) throws ExpressionException {
 		int len = size();
 		if (index < 1 || index > len) throw new ExpressionException("invalid index to insert a value to argument scope",
-				len == 0 ? "can't insert in a empty argument scope" : "valid index goes from 1 to " + (len - 1));
+				len == 0 ? "can't insert in an empty argument scope" : "valid index goes from 1 to " + (len - 1));
 
 		// remove all upper
 		LinkedHashMap lhm = new LinkedHashMap();
@@ -431,7 +431,7 @@ public final class ArgumentImpl extends ScopeSupport implements Argument, ArrayP
 	 */
 
 	/**
-	 * converts a argument scope to a regular struct
+	 * converts an argument scope to a regular struct
 	 * 
 	 * @param arg argument scope to convert
 	 * @return resulting struct
@@ -443,7 +443,7 @@ public final class ArgumentImpl extends ScopeSupport implements Argument, ArrayP
 	}
 
 	/**
-	 * converts a argument scope to a regular array
+	 * converts an argument scope to a regular array
 	 * 
 	 * @param arg argument scope to convert
 	 * @return resulting array

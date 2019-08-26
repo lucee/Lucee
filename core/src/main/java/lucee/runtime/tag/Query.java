@@ -521,7 +521,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		if (data.hasBody && !StringUtil.isEmpty(strSQL = bodyContent.getString().trim(), true)) { // we have a body
 			if (!StringUtil.isEmpty(data.sql, true)) { // sql in attr and body
 				if (!strSQL.equals(data.sql.trim())) // unless they are equal
-					throw new DatabaseException("you cannot define SQL in the body and as a attribute at the same time [" + strSQL + "," + data.sql + "]", null, null, null);
+					throw new DatabaseException("you cannot define SQL in the body and as an attribute at the same time [" + strSQL + "," + data.sql + "]", null, null, null);
 			}
 		}
 		else {
@@ -566,7 +566,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 				if (data.params instanceof Argument) sqlQuery = QueryParamConverter.convert(strSQL, (Argument) data.params);
 				else if (Decision.isArray(data.params)) sqlQuery = QueryParamConverter.convert(strSQL, Caster.toArray(data.params));
 				else if (Decision.isStruct(data.params)) sqlQuery = QueryParamConverter.convert(strSQL, Caster.toStruct(data.params));
-				else throw new DatabaseException("value of the attribute [params] has to be a struct or a array", null, null, null);
+				else throw new DatabaseException("value of the attribute [params] has to be a struct or an array", null, null, null);
 			}
 			else {
 				sqlQuery = data.items.isEmpty() ? new SQLImpl(strSQL) : new SQLImpl(strSQL, data.items.toArray(new SQLItem[data.items.size()]));

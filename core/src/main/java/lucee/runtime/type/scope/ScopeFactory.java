@@ -36,7 +36,7 @@ public final class ScopeFactory {
 			new LocalImpl() };
 
 	/**
-	 * @return returns a Argument scope
+	 * @return returns an Argument scope
 	 */
 	public Argument getArgumentInstance() {
 		if (argumentCounter < arguments.length) {
@@ -56,7 +56,7 @@ public final class ScopeFactory {
 	}
 
 	/**
-	 * @param argument recycle a Argument scope for reuse
+	 * @param argument recycle an Argument scope for reuse
 	 */
 	public void recycle(PageContext pc, Argument argument) {
 		if (argumentCounter <= 0 || argument.isBind()) return;
@@ -74,7 +74,7 @@ public final class ScopeFactory {
 	}
 
 	/**
-	 * cast a int scope definition to a string definition
+	 * cast an int scope definition to a string definition
 	 * 
 	 * @param scope
 	 * @return

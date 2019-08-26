@@ -114,7 +114,7 @@ public final class CredentialImpl implements Credential {
 	}
 
 	/**
-	 * convert a Object to a String Array of Roles
+	 * convert an Object to a String Array of Roles
 	 * 
 	 * @param oRoles
 	 * @return roles

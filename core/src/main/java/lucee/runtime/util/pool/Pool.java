@@ -32,7 +32,7 @@ public interface Pool {
 	public void set(Object key, PoolHandler handler);
 
 	/**
-	 * gets a Object from the pool
+	 * gets an Object from the pool
 	 * 
 	 * @param key key for the Objects
 	 * @return
@@ -48,7 +48,7 @@ public interface Pool {
 	public boolean exists(Object key);
 
 	/**
-	 * remove a Object from the pool
+	 * remove an Object from the pool
 	 * 
 	 * @param key key for the Objects
 	 * @return

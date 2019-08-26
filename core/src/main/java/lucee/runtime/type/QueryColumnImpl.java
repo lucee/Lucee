@@ -325,7 +325,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 		// query.disconnectCache();
 		if (row < 1) throw new DatabaseException("invalid row number [" + row + "]", "valid row numbers a greater or equal to one", null, null);
 		if (row > size) {
-			if (size == 0) throw new DatabaseException("cannot set a value to a empty query, you first have to add a row", null, null, null);
+			if (size == 0) throw new DatabaseException("cannot set a value to an empty query, you first have to add a row", null, null, null);
 			throw new DatabaseException("invalid row number [" + row + "]", "valid row numbers goes from 1 to " + size, null, null);
 		}
 		synchronized (sync) {

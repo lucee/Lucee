@@ -1171,7 +1171,7 @@ public final class ListUtil {
 	}
 
 	/**
-	 * cast a Object Array to a String Array
+	 * cast an Object Array to a String Array
 	 * 
 	 * @param array
 	 * @return String Array
@@ -1186,7 +1186,7 @@ public final class ListUtil {
 	}
 
 	/**
-	 * cast a Object Array to a String Array
+	 * cast an Object Array to a String Array
 	 * 
 	 * @param array
 	 * @return String Array
@@ -1209,7 +1209,7 @@ public final class ListUtil {
 	}
 
 	/**
-	 * cast a Object Array to a String Array
+	 * cast an Object Array to a String Array
 	 * 
 	 * @param array
 	 * @param defaultValue
@@ -1225,7 +1225,7 @@ public final class ListUtil {
 	}
 
 	/**
-	 * cast a Object Array to a String Array and trim all values
+	 * cast an Object Array to a String Array and trim all values
 	 * 
 	 * @param array
 	 * @return String Array
@@ -1395,7 +1395,7 @@ public final class ListUtil {
 	}
 
 	/*
-	 * * cast a int into a char
+	 * * cast an int into a char
 	 * 
 	 * @param i int to cast
 	 * 
@@ -1446,7 +1446,7 @@ public final class ListUtil {
 	}
 
 	/**
-	 * get a elemnt at a specified position in list
+	 * get an element at a specified position in list
 	 * 
 	 * @param list list to cast
 	 * @param delimiter delimter of the list

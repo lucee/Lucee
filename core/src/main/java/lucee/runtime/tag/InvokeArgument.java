@@ -80,7 +80,7 @@ public final class InvokeArgument extends TagImpl {
 			invoke.setArgument(name, value);
 		}
 		else {
-			throw new ApplicationException("Wrong Context, tag InvokeArgument must be inside a Invoke tag");
+			throw new ApplicationException("Wrong Context, tag InvokeArgument must be inside an Invoke tag");
 		}
 		return SKIP_BODY;
 	}

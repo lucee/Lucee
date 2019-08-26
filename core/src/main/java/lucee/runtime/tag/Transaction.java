@@ -107,7 +107,7 @@ public final class Transaction extends BodyTagTryCatchFinallyImpl {
 		innerTag = true;
 		switch (action) {
 		/*
-		 * nested transaction no longer throw a exception, they are simply ignored case ACTION_NONE: throw
+		 * nested transaction no longer throw an exception, they are simply ignored case ACTION_NONE: throw
 		 * new
 		 * DatabaseException("you can't have a nested transaction with no action defined",null,null,null);
 		 * case ACTION_BEGIN: throw new

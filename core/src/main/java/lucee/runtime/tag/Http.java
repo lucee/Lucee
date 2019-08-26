@@ -133,7 +133,7 @@ import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.util.PageContextUtil;
 import lucee.runtime.util.URLResolver;
 
-// MUST change behavor of mltiple headers now is a array, it das so?
+// MUST change behavor of mltiple headers now is an array, it das so?
 
 /**
  * Lets you execute HTTP POST and GET operations on files. Using cfhttp, you can execute standard

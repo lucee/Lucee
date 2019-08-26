@@ -26,7 +26,7 @@ import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.StructImpl;
 
 /**
- * represent a reference to a Object
+ * represent a reference to an Object
  */
 public final class NativeReference implements Reference {
 

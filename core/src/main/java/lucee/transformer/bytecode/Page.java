@@ -1577,7 +1577,7 @@ public final class Page extends BodyBase implements Root {
 	}
 
 	/**
-	 * @return if it is a interface
+	 * @return if it is an interface
 	 */
 	public boolean isInterface() {
 		return isInterface(null);
@@ -1595,7 +1595,7 @@ public final class Page extends BodyBase implements Root {
 	}
 
 	/**
-	 * @return if it is a interface
+	 * @return if it is an interface
 	 */
 	public boolean isInterface(TagCIObject cio) {
 		if (cio == null) cio = getTagCFObject(null);
