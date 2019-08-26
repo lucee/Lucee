@@ -157,6 +157,8 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private static final Key CACHED_AFTER = KeyImpl.intern("cachedAfter");
 	private static final Collection.Key BLOCKED_EXT_FOR_FILE_UPLOAD = KeyImpl.intern("blockedExtForFileUpload");
 
+	private static final Collection.Key XML_FEATURES = KeyImpl.intern("xmlFeatures");
+
 	private static Map<String, CacheConnection> initCacheConnections = new ConcurrentHashMap<String, CacheConnection>();
 
 	private Component component;
@@ -277,6 +279,8 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean initQueryVarUsage;
 	private boolean initProxyData;
 	private boolean initBlockedExtForFileUpload;
+	private boolean initXmlFeatures;
+	private Struct xmlFeatures;
 
 	private Resource antiSamyPolicyResource;
 
@@ -1660,6 +1664,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		if (!initBlockedExtForFileUpload) {
 			Object o = get(component, BLOCKED_EXT_FOR_FILE_UPLOAD, null);
 			blockedExtForFileUpload = Caster.toString(o, null);
+			initBlockedExtForFileUpload = true;
 		}
 		return blockedExtForFileUpload;
 	}
@@ -1834,4 +1839,13 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		this.initProxyData = true;
 	}
 
+	public Struct getXmlFeatures() {
+		if (!initXmlFeatures) {
+			Struct sct = Caster.toStruct(get(component, XML_FEATURES, null), null);
+			if (sct != null)
+				xmlFeatures = sct;
+			initXmlFeatures = true;
+		}
+		return xmlFeatures;
+	}
 }
