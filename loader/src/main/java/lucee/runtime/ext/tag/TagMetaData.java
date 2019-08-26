@@ -114,7 +114,7 @@ public interface TagMetaData {
 	public boolean handleException();
 
 	/**
-	 * has the tag a appendix
+	 * has the tag an appendix
 	 * 
 	 * @return has appendix
 	 */

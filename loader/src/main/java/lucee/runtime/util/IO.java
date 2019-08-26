@@ -73,7 +73,7 @@ public interface IO {
 	public void closeSilent(Object o);
 
 	/**
-	 * converts a InputStream to a String
+	 * converts an InputStream to a String
 	 * 
 	 * @param is
 	 * @param charset

@@ -38,7 +38,7 @@ public interface Operation {
 	public int compare(Object left, Object right) throws PageException;
 
 	/**
-	 * compares a Object with a String
+	 * compares an Object with a String
 	 * 
 	 * @param left
 	 * @param right
@@ -48,7 +48,7 @@ public interface Operation {
 	public int compare(Object left, String right) throws PageException;
 
 	/**
-	 * compares a Object with a double
+	 * compares an Object with a double
 	 * 
 	 * @param left
 	 * @param right
@@ -58,7 +58,7 @@ public interface Operation {
 	public int compare(Object left, double right) throws PageException;
 
 	/**
-	 * compares a Object with a boolean
+	 * compares an Object with a boolean
 	 * 
 	 * @param left
 	 * @param right
@@ -68,7 +68,7 @@ public interface Operation {
 	public int compare(Object left, boolean right) throws PageException;
 
 	/**
-	 * compares a Object with a Date
+	 * compares an Object with a Date
 	 * 
 	 * @param left
 	 * @param right
@@ -78,7 +78,7 @@ public interface Operation {
 	public int compare(Object left, Date right) throws PageException;
 
 	/**
-	 * compares a String with a Object
+	 * compares a String with an Object
 	 * 
 	 * @param left
 	 * @param right
@@ -125,7 +125,7 @@ public interface Operation {
 	public int compare(String left, Date right) throws PageException;
 
 	/**
-	 * compares a double with a Object
+	 * compares a double with an Object
 	 * 
 	 * @param left
 	 * @param right
@@ -171,7 +171,7 @@ public interface Operation {
 	public int compare(double left, Date right);
 
 	/**
-	 * compares a boolean with a Object
+	 * compares a boolean with an Object
 	 * 
 	 * @param left
 	 * @param right
@@ -217,7 +217,7 @@ public interface Operation {
 	public int compare(boolean left, Date right);
 
 	/**
-	 * compares a Date with a Object
+	 * compares a Date with an Object
 	 * 
 	 * @param left
 	 * @param right

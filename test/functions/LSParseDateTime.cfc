@@ -432,7 +432,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 				try {
 					lsparseDateTime(str);
-					fail("must throw a error!")
+					fail("must throw an error!")
 				} catch ( any e){}
 
 

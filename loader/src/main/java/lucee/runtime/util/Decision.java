@@ -23,7 +23,7 @@ import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 
 /**
- * Object to test if a Object is a specific type
+ * Object to test if an Object is a specific type
  */
 public interface Decision {
 
@@ -115,7 +115,7 @@ public interface Decision {
 	public boolean isStruct(Object o);
 
 	/**
-	 * tests if object is a array
+	 * tests if object is an array
 	 * 
 	 * @param o
 	 * @return is array or not

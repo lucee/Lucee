@@ -23,7 +23,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		// create a password protected zip
 		zip action="zip" file=zipFile source=file password=password overwrite="true";
 		
-		// try to unzip with a invalid password
+		// try to unzip with an invalid password
 		var counter=0;
 		loop times=5 {
 			try {

@@ -44,7 +44,7 @@ import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.TimeSpan;
 
 /**
- * This class can cast object of one type to a other by CFML rules
+ * This class can cast object of one type to another by CFML rules
  */
 public interface Cast {
 
@@ -73,7 +73,7 @@ public interface Cast {
 	public boolean toBooleanValue(char c);
 
 	/**
-	 * cast a Object to a boolean value (primitive value type)
+	 * cast an Object to a boolean value (primitive value type)
 	 * 
 	 * @param o Object to cast
 	 * @return casted boolean value
@@ -82,7 +82,7 @@ public interface Cast {
 	public boolean toBooleanValue(Object o) throws PageException;
 
 	/**
-	 * cast a Object to a Double Object (reference Type)
+	 * cast an Object to a Double Object (reference Type)
 	 * 
 	 * @param o Object to cast
 	 * @return casted Double Object
@@ -91,7 +91,7 @@ public interface Cast {
 	public Double toDouble(Object o) throws PageException;
 
 	/**
-	 * cast a Object to a Double Object (reference Type)
+	 * cast an Object to a Double Object (reference Type)
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue
@@ -142,7 +142,7 @@ public interface Cast {
 	public Double toDouble(char c);
 
 	/**
-	 * cast a Object to a double value (primitive value Type)
+	 * cast an Object to a double value (primitive value Type)
 	 * 
 	 * @param o Object to cast
 	 * @return casted double value
@@ -151,7 +151,7 @@ public interface Cast {
 	public double toDoubleValue(Object o) throws PageException;
 
 	/**
-	 * cast a Object to a double value (primitive value Type)
+	 * cast an Object to a double value (primitive value Type)
 	 * 
 	 * @param str String to cast
 	 * @return casted double value
@@ -160,7 +160,7 @@ public interface Cast {
 	public double toDoubleValue(String str) throws PageException;
 
 	/**
-	 * cast a Object to a double value (primitive value Type)
+	 * cast an Object to a double value (primitive value Type)
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue if can't cast return this value
@@ -169,7 +169,7 @@ public interface Cast {
 	public double toDoubleValue(Object o, double defaultValue);
 
 	/**
-	 * cast a Object to a double value (primitive value Type), if can't return Double.NaN
+	 * cast an Object to a double value (primitive value Type), if can't return Double.NaN
 	 * 
 	 * @param str String to cast
 	 * @param defaultValue if can't cast return this value
@@ -202,7 +202,7 @@ public interface Cast {
 	public double toDoubleValue(char c);
 
 	/**
-	 * cast a Object to a int value (primitive value type)
+	 * cast an Object to an int value (primitive value type)
 	 * 
 	 * @param o Object to cast
 	 * @return casted int value
@@ -211,7 +211,7 @@ public interface Cast {
 	public int toIntValue(Object o) throws PageException;
 
 	/**
-	 * cast a Object to a int value (primitive value type)
+	 * cast an Object to an int value (primitive value type)
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue
@@ -220,7 +220,7 @@ public interface Cast {
 	public int toIntValue(Object o, int defaultValue);
 
 	/**
-	 * cast a String to a int value (primitive value type)
+	 * cast a String to an int value (primitive value type)
 	 * 
 	 * @param str String to cast
 	 * @return casted int value
@@ -229,7 +229,7 @@ public interface Cast {
 	public int toIntValue(String str) throws PageException;
 
 	/**
-	 * cast a Object to a double value (primitive value Type), if can't return Integer.MIN_VALUE
+	 * cast an Object to a double value (primitive value Type), if can't return Integer.MIN_VALUE
 	 * 
 	 * @param str String to cast
 	 * @param defaultValue
@@ -238,7 +238,7 @@ public interface Cast {
 	public int toIntValue(String str, int defaultValue);
 
 	/**
-	 * cast a double value to a int value (primitive value type)
+	 * cast a double value to an int value (primitive value type)
 	 * 
 	 * @param d double value to cast
 	 * @return casted int value
@@ -246,7 +246,7 @@ public interface Cast {
 	public int toIntValue(double d);
 
 	/**
-	 * cast a boolean value to a int value (primitive value type)
+	 * cast a boolean value to an int value (primitive value type)
 	 * 
 	 * @param b boolean value to cast
 	 * @return casted int value
@@ -254,7 +254,7 @@ public interface Cast {
 	public int toIntValue(boolean b);
 
 	/**
-	 * cast a char value to a int value (primitive value type)
+	 * cast a char value to an int value (primitive value type)
 	 * 
 	 * @param c char value to cast
 	 * @return casted int value
@@ -328,7 +328,7 @@ public interface Cast {
 	public Boolean toBoolean(double d);
 
 	/**
-	 * cast a Object to a Boolean Object(reference type)
+	 * cast an Object to a Boolean Object(reference type)
 	 * 
 	 * @param o Object to cast
 	 * @return casted Boolean Object
@@ -337,7 +337,7 @@ public interface Cast {
 	public Boolean toBoolean(Object o) throws PageException;
 
 	/**
-	 * cast a Object to a Boolean Object(reference type)
+	 * cast an Object to a Boolean Object(reference type)
 	 * 
 	 * @param str String to cast
 	 * @return casted Boolean Object
@@ -346,7 +346,7 @@ public interface Cast {
 	public Boolean toBoolean(String str) throws PageException;
 
 	/**
-	 * cast a Object to a boolean value (primitive value type), Exception Less
+	 * cast an Object to a boolean value (primitive value type), Exception Less
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue
@@ -355,7 +355,7 @@ public interface Cast {
 	public boolean toBooleanValue(Object o, boolean defaultValue);
 
 	/**
-	 * cast a Object to a boolean value (reference type), Exception Less
+	 * cast an Object to a boolean value (reference type), Exception Less
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue default value
@@ -364,7 +364,7 @@ public interface Cast {
 	public Boolean toBoolean(Object o, Boolean defaultValue);
 
 	/**
-	 * cast a Object to a boolean value (reference type), Exception Less
+	 * cast an Object to a boolean value (reference type), Exception Less
 	 * 
 	 * @param str String to cast
 	 * @param defaultValue default value
@@ -397,7 +397,7 @@ public interface Cast {
 	public char toCharValue(char c);
 
 	/**
-	 * cast a Object to a char value (primitive value type)
+	 * cast an Object to a char value (primitive value type)
 	 * 
 	 * @param o Object to cast
 	 * @return casted char value
@@ -406,7 +406,7 @@ public interface Cast {
 	public char toCharValue(Object o) throws PageException;
 
 	/**
-	 * cast a Object to a char value (primitive value type)
+	 * cast an Object to a char value (primitive value type)
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue
@@ -439,7 +439,7 @@ public interface Cast {
 	public Character toCharacter(double d);
 
 	/**
-	 * cast a Object to a Character Object(reference type)
+	 * cast an Object to a Character Object(reference type)
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue
@@ -448,7 +448,7 @@ public interface Cast {
 	public Character toCharacter(Object o, Character defaultValue);
 
 	/**
-	 * cast a Object to a Character Object(reference type)
+	 * cast an Object to a Character Object(reference type)
 	 * 
 	 * @param o Object to cast
 	 * @return casted Character Object
@@ -481,7 +481,7 @@ public interface Cast {
 	public byte toByteValue(char c);
 
 	/**
-	 * cast a Object to a byte value (primitive value type)
+	 * cast an Object to a byte value (primitive value type)
 	 * 
 	 * @param o Object to cast
 	 * @return casted byte value
@@ -490,7 +490,7 @@ public interface Cast {
 	public byte toByteValue(Object o) throws PageException;
 
 	/**
-	 * cast a Object to a byte value (primitive value type)
+	 * cast an Object to a byte value (primitive value type)
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue
@@ -523,7 +523,7 @@ public interface Cast {
 	public Byte toByte(double d);
 
 	/**
-	 * cast a Object to a Byte Object(reference type)
+	 * cast an Object to a Byte Object(reference type)
 	 * 
 	 * @param o Object to cast
 	 * @return casted Byte Object
@@ -532,7 +532,7 @@ public interface Cast {
 	public Byte toByte(Object o) throws PageException;
 
 	/**
-	 * cast a Object to a Byte Object(reference type)
+	 * cast an Object to a Byte Object(reference type)
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue
@@ -565,7 +565,7 @@ public interface Cast {
 	public long toLongValue(char c);
 
 	/**
-	 * cast a Object to a long value (primitive value type)
+	 * cast an Object to a long value (primitive value type)
 	 * 
 	 * @param o Object to cast
 	 * @return casted long value
@@ -574,7 +574,7 @@ public interface Cast {
 	public long toLongValue(Object o) throws PageException;
 
 	/**
-	 * cast a Object to a long value (primitive value type)
+	 * cast an Object to a long value (primitive value type)
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue
@@ -607,7 +607,7 @@ public interface Cast {
 	public Long toLong(double d);
 
 	/**
-	 * cast a Object to a Long Object(reference type)
+	 * cast an Object to a Long Object(reference type)
 	 * 
 	 * @param o Object to cast
 	 * @return casted Long Object
@@ -616,7 +616,7 @@ public interface Cast {
 	public Long toLong(Object o) throws PageException;
 
 	/**
-	 * cast a Object to a Long Object(reference type)
+	 * cast an Object to a Long Object(reference type)
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue
@@ -655,7 +655,7 @@ public interface Cast {
 	public short toShortValue(char c);
 
 	/**
-	 * cast a Object to a short value (primitive value type)
+	 * cast an Object to a short value (primitive value type)
 	 * 
 	 * @param o Object to cast
 	 * @return casted short value
@@ -664,7 +664,7 @@ public interface Cast {
 	public short toShortValue(Object o) throws PageException;
 
 	/**
-	 * cast a Object to a short value (primitive value type)
+	 * cast an Object to a short value (primitive value type)
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue
@@ -697,7 +697,7 @@ public interface Cast {
 	public Short toShort(double d);
 
 	/**
-	 * cast a Object to a Short Object(reference type)
+	 * cast an Object to a Short Object(reference type)
 	 * 
 	 * @param o Object to cast
 	 * @return casted Short Object
@@ -706,7 +706,7 @@ public interface Cast {
 	public Short toShort(Object o) throws PageException;
 
 	/**
-	 * cast a Object to a Short Object(reference type)
+	 * cast an Object to a Short Object(reference type)
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue
@@ -734,7 +734,7 @@ public interface Cast {
 	public boolean toBooleanValue(String str, boolean defaultValue);
 
 	/**
-	 * cast a Object to a String
+	 * cast an Object to a String
 	 * 
 	 * @param o Object to cast
 	 * @return casted String
@@ -743,7 +743,7 @@ public interface Cast {
 	public String toString(Object o) throws PageException;
 
 	/**
-	 * cast a Object to a String dont throw a exception, if can't cast to a string return a empty string
+	 * cast an Object to a String dont throw an exception, if can't cast to a string return an empty string
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue
@@ -768,7 +768,7 @@ public interface Cast {
 	public String toString(long l);
 
 	/**
-	 * cast a int value to a String
+	 * cast an int value to a String
 	 * 
 	 * @param i int value to cast
 	 * @return casted String
@@ -784,7 +784,7 @@ public interface Cast {
 	public String toString(boolean b);
 
 	/**
-	 * cast a Object to a Array Object
+	 * cast an Object to an Array Object
 	 * 
 	 * @param o Object to cast
 	 * @return casted Array
@@ -793,7 +793,7 @@ public interface Cast {
 	public List toList(Object o) throws PageException;
 
 	/**
-	 * cast a Object to a Array Object
+	 * cast an Object to an Array Object
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue
@@ -802,7 +802,7 @@ public interface Cast {
 	public List toList(Object o, List defaultValue);
 
 	/**
-	 * cast a Object to a Array Object
+	 * cast an Object to an Array Object
 	 * 
 	 * @param o Object to cast
 	 * @param duplicate
@@ -812,7 +812,7 @@ public interface Cast {
 	public List toList(Object o, boolean duplicate) throws PageException;
 
 	/**
-	 * cast a Object to a Array Object
+	 * cast an Object to an Array Object
 	 * 
 	 * @param o Object to cast
 	 * @param duplicate
@@ -822,7 +822,7 @@ public interface Cast {
 	public List toList(Object o, boolean duplicate, List defaultValue);
 
 	/**
-	 * cast a Object to a Array Object
+	 * cast an Object to an Array Object
 	 * 
 	 * @param obj Object to cast
 	 * @return casted Array
@@ -831,7 +831,7 @@ public interface Cast {
 	public Array toArray(Object obj) throws PageException;
 
 	/**
-	 * cast a Object to a Array Object
+	 * cast an Object to an Array Object
 	 * 
 	 * @param obj Object to cast
 	 * @param defaultValue
@@ -840,7 +840,7 @@ public interface Cast {
 	public Array toArray(Object obj, Array defaultValue);
 
 	/**
-	 * cast a Object to a "native" Java Array
+	 * cast an Object to a "native" Java Array
 	 * 
 	 * @param obj Object to cast
 	 * @return casted Array
@@ -849,7 +849,7 @@ public interface Cast {
 	public Object[] toNativeArray(Object obj) throws PageException;
 
 	/**
-	 * cast a Object to a "native" Java Array
+	 * cast an Object to a "native" Java Array
 	 * 
 	 * @param obj Object to cast
 	 * @param defaultValue
@@ -858,7 +858,7 @@ public interface Cast {
 	public Object[] toNativeArray(Object obj, Object[] defaultValue);
 
 	/**
-	 * cast a Object to a Map Object
+	 * cast an Object to a Map Object
 	 * 
 	 * @param o Object to cast
 	 * @return casted Struct
@@ -867,7 +867,7 @@ public interface Cast {
 	public Map<?, ?> toMap(Object o) throws PageException;
 
 	/**
-	 * cast a Object to a Map Object
+	 * cast an Object to a Map Object
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue
@@ -876,7 +876,7 @@ public interface Cast {
 	public Map toMap(Object o, Map defaultValue);
 
 	/**
-	 * cast a Object to a Map Object
+	 * cast an Object to a Map Object
 	 * 
 	 * @param o Object to cast
 	 * @param duplicate
@@ -886,7 +886,7 @@ public interface Cast {
 	public Map toMap(Object o, boolean duplicate) throws PageException;
 
 	/**
-	 * cast a Object to a Map Object
+	 * cast an Object to a Map Object
 	 * 
 	 * @param o Object to cast
 	 * @param duplicate
@@ -896,7 +896,7 @@ public interface Cast {
 	public Map toMap(Object o, boolean duplicate, Map defaultValue);
 
 	/**
-	 * cast a Object to a Struct Object
+	 * cast an Object to a Struct Object
 	 * 
 	 * @param o Object to cast
 	 * @return casted Struct
@@ -905,7 +905,7 @@ public interface Cast {
 	public Struct toStruct(Object o) throws PageException;
 
 	/**
-	 * cast a Object to a Struct Object
+	 * cast an Object to a Struct Object
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue
@@ -916,7 +916,7 @@ public interface Cast {
 	public Struct toStruct(Object o, Struct defaultValue, boolean caseSensitive);
 
 	/**
-	 * cast a Object to a Binary
+	 * cast an Object to a Binary
 	 * 
 	 * @param obj Object to cast
 	 * @return casted Binary
@@ -925,7 +925,7 @@ public interface Cast {
 	public byte[] toBinary(Object obj) throws PageException;
 
 	/**
-	 * cast a Object to a Binary
+	 * cast an Object to a Binary
 	 * 
 	 * @param obj Object to cast
 	 * @param defaultValue
@@ -934,7 +934,7 @@ public interface Cast {
 	public byte[] toBinary(Object obj, byte[] defaultValue);
 
 	/**
-	 * cast a Object to a Base64 value
+	 * cast an Object to a Base64 value
 	 * 
 	 * @param o Object to cast
 	 * @return to Base64 String
@@ -943,7 +943,7 @@ public interface Cast {
 	public String toBase64(Object o) throws PageException;
 
 	/**
-	 * cast a Object to a Base64 value
+	 * cast an Object to a Base64 value
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue
@@ -979,7 +979,7 @@ public interface Cast {
 	public DateTime toDate(double d, TimeZone tz);
 
 	/**
-	 * cast a Object to a DateTime Object
+	 * cast an Object to a DateTime Object
 	 * 
 	 * @param o Object to cast
 	 * @param tz
@@ -989,7 +989,7 @@ public interface Cast {
 	public DateTime toDate(Object o, TimeZone tz) throws PageException;
 
 	/**
-	 * cast a Object to a DateTime Object
+	 * cast an Object to a DateTime Object
 	 * 
 	 * @param str String to cast
 	 * @param tz
@@ -999,7 +999,7 @@ public interface Cast {
 	public DateTime toDate(String str, TimeZone tz) throws PageException;
 
 	/**
-	 * cast a Object to a DateTime Object
+	 * cast an Object to a DateTime Object
 	 * 
 	 * @param o Object to cast
 	 * @param alsoNumbers define if also numbers will casted to a datetime value
@@ -1010,7 +1010,7 @@ public interface Cast {
 	public DateTime toDate(Object o, boolean alsoNumbers, TimeZone tz, DateTime defaultValue);
 
 	/**
-	 * cast a Object to a DateTime Object
+	 * cast an Object to a DateTime Object
 	 * 
 	 * @param str String to cast
 	 * @param alsoNumbers define if also numbers will casted to a datetime value
@@ -1021,7 +1021,7 @@ public interface Cast {
 	public DateTime toDate(String str, boolean alsoNumbers, TimeZone tz, DateTime defaultValue);
 
 	/**
-	 * cast a Object to a DateTime Object
+	 * cast an Object to a DateTime Object
 	 * 
 	 * @param o Object to cast
 	 * @param tz
@@ -1031,7 +1031,7 @@ public interface Cast {
 	public DateTime toDateTime(Object o, TimeZone tz) throws PageException;
 
 	/**
-	 * cast a Object to a DateTime Object
+	 * cast an Object to a DateTime Object
 	 * 
 	 * @param o Object to cast
 	 * @param tz
@@ -1041,7 +1041,7 @@ public interface Cast {
 	public DateTime toDateTime(Object o, TimeZone tz, DateTime defaultValue);
 
 	/**
-	 * cast a Object to a DateTime Object (alias for toDateTime)
+	 * cast an Object to a DateTime Object (alias for toDateTime)
 	 * 
 	 * @param o Object to cast
 	 * @param tz
@@ -1074,7 +1074,7 @@ public interface Cast {
 	public DateTime toDate(Locale locale, String str, TimeZone tz, DateTime defaultValue);
 
 	/**
-	 * cast a Object to a Query Object
+	 * cast an Object to a Query Object
 	 * 
 	 * @param o Object to cast
 	 * @return casted Query Object
@@ -1083,7 +1083,7 @@ public interface Cast {
 	public Query toQuery(Object o) throws PageException;
 
 	/**
-	 * cast a Object to a Query Object
+	 * cast an Object to a Query Object
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue
@@ -1092,7 +1092,7 @@ public interface Cast {
 	public Query toQuery(Object o, Query defaultValue);
 
 	/**
-	 * cast a Object to a Query Object
+	 * cast an Object to a Query Object
 	 * 
 	 * @param o Object to cast
 	 * @param duplicate duplicate the object or not
@@ -1102,7 +1102,7 @@ public interface Cast {
 	public Query toQuery(Object o, boolean duplicate) throws PageException;
 
 	/**
-	 * cast a Object to a Query Object
+	 * cast an Object to a Query Object
 	 * 
 	 * @param o Object to cast
 	 * @param duplicate duplicate the object or not
@@ -1112,7 +1112,7 @@ public interface Cast {
 	public Query toQuery(Object o, boolean duplicate, Query defaultValue);
 
 	/**
-	 * cast a Object to a UUID
+	 * cast an Object to an UUID
 	 * 
 	 * @param o Object to cast
 	 * @return casted Query Object
@@ -1121,7 +1121,7 @@ public interface Cast {
 	public Object toUUId(Object o) throws PageException;
 
 	/**
-	 * cast a Object to a UUID
+	 * cast an Object to an UUID
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue
@@ -1130,7 +1130,7 @@ public interface Cast {
 	public Object toUUId(Object o, Object defaultValue);
 
 	/**
-	 * cast a Object to a Variable Name
+	 * cast an Object to a Variable Name
 	 * 
 	 * @param o Object to cast
 	 * @return casted Variable Name
@@ -1139,7 +1139,7 @@ public interface Cast {
 	public String toVariableName(Object o) throws PageException;
 
 	/**
-	 * cast a Object to a Variable Name
+	 * cast an Object to a Variable Name
 	 * 
 	 * @param obj Object to cast
 	 * @param defaultValue
@@ -1151,7 +1151,7 @@ public interface Cast {
 	public Object toVariableName(Object obj, Object defaultValue);
 
 	/**
-	 * cast a Object to a TimeSpan Object (alias for toTimeSpan)
+	 * cast an Object to a TimeSpan Object (alias for toTimeSpan)
 	 * 
 	 * @param o Object to cast
 	 * @return casted TimeSpan Object
@@ -1160,7 +1160,7 @@ public interface Cast {
 	public TimeSpan toTimespan(Object o) throws PageException;
 
 	/**
-	 * cast a Object to a TimeSpan Object (alias for toTimeSpan)
+	 * cast an Object to a TimeSpan Object (alias for toTimeSpan)
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue
@@ -1193,7 +1193,7 @@ public interface Cast {
 	public RuntimeException toPageRuntimeException(Throwable t);
 
 	/**
-	 * return the type name of a object (string, boolean, int aso.), type is not same like class name
+	 * return the type name of an object (string, boolean, int aso.), type is not same like class name
 	 * 
 	 * @param o Object to get type from
 	 * @return type of the object
@@ -1276,7 +1276,7 @@ public interface Cast {
 	public Object toVoid(Object o, Object defaultValue);
 
 	/**
-	 * cast a Object to a reference type (Object), in that case this method to nothing, because a Object
+	 * cast an Object to a reference type (Object), in that case this method to nothing, because an Object
 	 * is already a reference type
 	 * 
 	 * @param o Object to cast
@@ -1335,7 +1335,7 @@ public interface Cast {
 	public Short toRef(short s);
 
 	/**
-	 * cast a int value to his (CFML) reference type Integer
+	 * cast an int value to his (CFML) reference type Integer
 	 * 
 	 * @param i int to cast
 	 * @return casted Integer
@@ -1367,7 +1367,7 @@ public interface Cast {
 	public Double toRef(double d);
 
 	/**
-	 * cast a Object to a Iterator or get Iterator from Object
+	 * cast an Object to an Iterator or get Iterator from Object
 	 * 
 	 * @param o Object to cast
 	 * @return casted Collection
@@ -1376,7 +1376,7 @@ public interface Cast {
 	public Iterator toIterator(Object o) throws PageException;
 
 	/**
-	 * cast a Object to a Collection
+	 * cast an Object to a Collection
 	 * 
 	 * @param o Object to cast
 	 * @return casted Collection
@@ -1393,7 +1393,7 @@ public interface Cast {
 	public Color toColor(Object o) throws PageException;
 
 	/**
-	 * cast a Object to a Collection, if not returns null
+	 * cast an Object to a Collection, if not returns null
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue
@@ -1402,7 +1402,7 @@ public interface Cast {
 	public Collection toCollection(Object o, Collection defaultValue);
 
 	/**
-	 * convert a object to a Resource
+	 * convert an object to a Resource
 	 * 
 	 * @param obj
 	 * @return File
@@ -1411,7 +1411,7 @@ public interface Cast {
 	public Resource toResource(Object obj) throws PageException;
 
 	/**
-	 * convert a object to a Resource
+	 * convert an object to a Resource
 	 * 
 	 * @param obj
 	 * @param defaultValue
@@ -1420,7 +1420,7 @@ public interface Cast {
 	public Resource toResource(Object obj, Resource defaultValue);
 
 	/**
-	 * convert a object to a File
+	 * convert an object to a File
 	 * 
 	 * @param obj
 	 * @return File
@@ -1429,7 +1429,7 @@ public interface Cast {
 	public File toFile(Object obj) throws PageException;
 
 	/**
-	 * convert a object to a File
+	 * convert an object to a File
 	 * 
 	 * @param obj
 	 * @param defaultValue
@@ -1456,7 +1456,7 @@ public interface Cast {
 	public Locale toLocale(String strLocale, Locale defaultValue);
 
 	/*
-	 * * casts a Object to a Node List
+	 * * casts an Object to a Node List
 	 * 
 	 * @param o Object to Cast
 	 * 
@@ -1467,7 +1467,7 @@ public interface Cast {
 	// public NodeList toNodeList(Object o) throws PageException;
 
 	/*
-	 * * casts a Object to a Node List
+	 * * casts an Object to a Node List
 	 * 
 	 * @param o Object to Cast
 	 * 
@@ -1478,7 +1478,7 @@ public interface Cast {
 	// public NodeList toNodeList(Object o, NodeList defaultValue);
 
 	/*
-	 * * casts a Object to a XML Node
+	 * * casts an Object to a XML Node
 	 * 
 	 * @param o Object to Cast
 	 * 
@@ -1489,7 +1489,7 @@ public interface Cast {
 	// public Node toNode(Object o) throws PageException;
 
 	/*
-	 * * casts a Object to a XML Node
+	 * * casts an Object to a XML Node
 	 * 
 	 * @param o Object to Cast
 	 * 
@@ -1500,7 +1500,7 @@ public interface Cast {
 	// public Node toNode(Object o, Node defaultValue);
 
 	/**
-	 * casts a boolean to a Integer
+	 * casts a boolean to an Integer
 	 * 
 	 * @param b
 	 * @return Integer from boolean
@@ -1508,7 +1508,7 @@ public interface Cast {
 	public Integer toInteger(boolean b);
 
 	/**
-	 * casts a char to a Integer
+	 * casts a char to an Integer
 	 * 
 	 * @param c
 	 * @return Integer from char
@@ -1516,7 +1516,7 @@ public interface Cast {
 	public Integer toInteger(char c);
 
 	/**
-	 * casts a double to a Integer
+	 * casts a double to an Integer
 	 * 
 	 * @param d
 	 * @return Integer from double
@@ -1524,7 +1524,7 @@ public interface Cast {
 	public Integer toInteger(double d);
 
 	/**
-	 * casts a Object to a Integer
+	 * casts an Object to an Integer
 	 * 
 	 * @param o Object to cast to Integer
 	 * @return Integer from Object
@@ -1533,7 +1533,7 @@ public interface Cast {
 	public Integer toInteger(Object o) throws PageException;
 
 	/**
-	 * casts a Object to a Integer
+	 * casts an Object to an Integer
 	 * 
 	 * @param o Object to cast to Integer
 	 * @param defaultValue
@@ -1542,7 +1542,7 @@ public interface Cast {
 	public Integer toInteger(Object o, Integer defaultValue);
 
 	/**
-	 * casts a Object to null
+	 * casts an Object to null
 	 * 
 	 * @param value
 	 * @return to null from Object
@@ -1559,7 +1559,7 @@ public interface Cast {
 	public float toFloatValue(Object o, float defaultValue);
 
 	/**
-	 * casts a Object to null
+	 * casts an Object to null
 	 * 
 	 * @param value
 	 * @param defaultValue

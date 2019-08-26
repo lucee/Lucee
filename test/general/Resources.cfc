@@ -329,7 +329,7 @@ private function toResource(string path) localMode=true {
 
 private function testResourceIS(res) localMode=true {
     
-    // must be a existing dir
+    // must be an existing dir
     assertTrue(res.exists());
     assertTrue(res.isDirectory());
     assertFalse(res.isFile());
