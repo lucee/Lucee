@@ -23,7 +23,7 @@ import lucee.transformer.interpreter.InterpreterContext;
 import lucee.transformer.interpreter.expression.ExpressionBase;
 
 /**
- * cast a Expression to a Double
+ * cast an Expression to a Double
  */
 public final class CastOther extends ExpressionBase implements Cast {
 	// TODO support short type

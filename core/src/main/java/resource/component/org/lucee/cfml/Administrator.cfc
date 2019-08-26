@@ -1095,7 +1095,7 @@ component {
 	* @physical specifies directory path where the components are located, this path should not include the package
 	* @primary type of mapping, resource/archive
 	* @archive specifies file path to a components Lucee Archive (.lar).
-	* @inspect checks for changes in the source file for a already loaded component
+	* @inspect checks for changes in the source file for an already loaded component
 	*/
 	public void function updateComponentMapping(required string virtual, required string physical, required string archive, string inspect="never"){
 		admin
@@ -2363,7 +2363,7 @@ component {
 	* @physical Directory path where the custom tags are located.
 	* @archive File path to a custom tag Lucee Archive (.lar).
 	* @primary Defines where Lucee does looks first for a requested custom tags
-	* @inspect When does Lucee checks for changes in the source file for a already loaded custom tags.
+	* @inspect When does Lucee checks for changes in the source file for an already loaded custom tags.
 	*/
 	public void function updateCustomTag( required string virtual, required string physical, required string archive, string primary="Resource", string inspect="" ) {
 		admin
