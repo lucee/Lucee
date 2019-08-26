@@ -69,7 +69,7 @@ public interface Undefined extends Scope {
 	public abstract QueryStack getQueryStack();
 
 	/**
-	 * sets a individual query stack to the undefined scope
+	 * sets an individual query stack to the undefined scope
 	 * 
 	 * @param qryStack Query stack
 	 */

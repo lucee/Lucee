@@ -26,7 +26,7 @@ import java.io.IOException;
 public interface Scheduler {
 
 	/**
-	 * returns a schedule tasks matching given name or throws a exception
+	 * returns a schedule tasks matching given name or throws an exception
 	 * 
 	 * @param name Task name of Schedule Task to get
 	 * @return matching task
@@ -75,7 +75,7 @@ public interface Scheduler {
 	 * removes a task from scheduler
 	 * 
 	 * @param name name of the task to remove
-	 * @param throwWhenNotExist define if method throws a exception if task doesn't exist
+	 * @param throwWhenNotExist define if method throws an exception if task doesn't exist
 	 * @throws IOException
 	 * @throws ScheduleException
 	 */

@@ -84,7 +84,7 @@ public interface ApplicationListener {
 	public boolean onApplicationStart(PageContext pc) throws PageException;
 
 	/**
-	 * this method will be called when a application scope ends
+	 * this method will be called when an application scope ends
 	 * 
 	 * @throws PageException
 	 */
@@ -105,9 +105,9 @@ public interface ApplicationListener {
 	public void onServerEnd() throws PageException;
 
 	/**
-	 * this method will be called if server has a error (exception) not throwed by a try-catch block
+	 * this method will be called if server has an error (exception) not thrown by a try-catch block
 	 * 
-	 * @param pe PageExcpetion Exception that has been throwed
+	 * @param pe PageException Exception that has been thrown
 	 */
 	public void onError(PageContext pc, PageException pe);
 
@@ -120,7 +120,7 @@ public interface ApplicationListener {
 	public void onDebug(PageContext pc) throws PageException;
 
 	/**
-	 * will be called when server is run int a timeout
+	 * will be called when server is runs into a timeout
 	 */
 	public void onTimeout(PageContext pc);
 

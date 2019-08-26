@@ -111,7 +111,7 @@ public interface XMLUtil {
 	public Node getChildNode(Node node, short type, String filter, int index);
 
 	/**
-	 * transform a XML Object to a other format, with help of a XSL Stylesheet
+	 * transform a XML Object to another format, with help of a XSL Stylesheet
 	 * 
 	 * @param xml xml to convert
 	 * @param xsl xsl used to convert
@@ -124,7 +124,7 @@ public interface XMLUtil {
 	public String transform(InputSource xml, InputSource xsl, Map<String, Object> parameters) throws TransformerException, SAXException, IOException;
 
 	/**
-	 * transform a XML Document to a other format, with help of a XSL Stylesheet
+	 * transform a XML Document to another format, with help of a XSL Stylesheet
 	 * 
 	 * @param doc xml to convert
 	 * @param xsl xsl used to convert

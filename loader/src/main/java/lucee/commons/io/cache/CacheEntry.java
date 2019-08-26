@@ -23,7 +23,7 @@ import java.util.Date;
 import lucee.runtime.type.Struct;
 
 /**
- * interface for a entry inside the cache, this interface is read-only
+ * interface for an entry inside the cache, this interface is read-only
  */
 public interface CacheEntry {
 

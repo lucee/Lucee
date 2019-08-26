@@ -33,7 +33,7 @@ public abstract class CFMLEngineFactorySupport {
 	private static File homeFile;
 
 	/**
-	 * copy a inputstream to a outputstream
+	 * copy an inputstream to an outputstream
 	 * 
 	 * @param in
 	 * @param out
@@ -53,7 +53,7 @@ public abstract class CFMLEngineFactorySupport {
 	}
 
 	/**
-	 * close inputstream without a Exception
+	 * close inputstream without an Exception
 	 * 
 	 * @param is
 	 */
@@ -65,7 +65,7 @@ public abstract class CFMLEngineFactorySupport {
 	}
 
 	/**
-	 * close outputstream without a Exception
+	 * close outputstream without an Exception
 	 * 
 	 * @param os
 	 */
@@ -77,7 +77,7 @@ public abstract class CFMLEngineFactorySupport {
 	}
 
 	/**
-	 * read String data from a InputStream and returns it as String Object
+	 * read String data from an InputStream and returns it as String Object
 	 * 
 	 * @param is InputStream to read data from.
 	 * @return readed data from InputStream
@@ -98,7 +98,7 @@ public abstract class CFMLEngineFactorySupport {
 	}
 
 	/**
-	 * cast a lucee string version to a int version
+	 * cast a lucee string version to an int version
 	 * 
 	 * @param version
 	 * @return int version

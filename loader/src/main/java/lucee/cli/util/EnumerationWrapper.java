@@ -45,7 +45,7 @@ public final class EnumerationWrapper<T> implements Enumeration<T> {
 	}
 
 	/**
-	 * @param it Constructor with a iterator
+	 * @param it Constructor with an iterator
 	 */
 	public EnumerationWrapper(final Iterator<T> it) {
 		this.it = it;

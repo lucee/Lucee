@@ -42,7 +42,7 @@ public interface Cache {
 	 * return cache entry that match the key, throws a CacheException when entry does not exist or is
 	 * stale
 	 * 
-	 * @param key key name to get a entry for
+	 * @param key key name to get an entry for
 	 * @return matching cache entry
 	 * @throws IOException thrown when fail to execute
 	 */
@@ -79,7 +79,7 @@ public interface Cache {
 	public void put(String key, Object value, Long idleTime, Long until) throws IOException;
 
 	/**
-	 * check if there is a entry inside the cache that match the given key
+	 * check if there is an entry inside the cache that match the given key
 	 * 
 	 * @param key
 	 * @return contains a value that match this key

@@ -60,7 +60,7 @@ public interface ClassUtil {
 	public BIF loadBIF(PageContext pc, String name) throws InstantiationException, IllegalAccessException;
 
 	/**
-	 * check if Class is instanceof a a other Class
+	 * check if Class is instanceof another Class
 	 * 
 	 * @param srcClassName class name to check
 	 * @param trg class to check
@@ -76,7 +76,7 @@ public interface ClassUtil {
 	public boolean isInstaneOf(String srcClassName, String trgClassName);
 
 	/**
-	 * check if Class is instanceof a a other Class
+	 * check if Class is instanceof another Class
 	 * 
 	 * @param src is Class of?
 	 * @param trgClassName Class name to check
@@ -87,7 +87,7 @@ public interface ClassUtil {
 	public boolean isInstaneOfIgnoreCase(Class<?> src, String trg);
 
 	/**
-	 * check if Class is instanceof a a other Class
+	 * check if Class is instanceof another Class
 	 * 
 	 * @param src Class to check
 	 * @param trg is Class of ?
@@ -96,7 +96,7 @@ public interface ClassUtil {
 	public boolean isInstaneOf(Class<?> src, Class<?> trg);
 
 	/**
-	 * get all Classes from a Object Array
+	 * get all Classes from an Object Array
 	 * 
 	 * @param objs Objects to get
 	 * @return classes from Objects
@@ -162,7 +162,7 @@ public interface ClassUtil {
 	public Object callConstructor(Class<?> clazz, Object[] args, Object defaultValue);
 
 	/**
-	 * calls a Method of a Object
+	 * calls a Method of an Object
 	 * 
 	 * @param obj Object to call Method on it
 	 * @param methodName Name of the Method to get
@@ -186,7 +186,7 @@ public interface ClassUtil {
 	public Object callStaticMethod(Class<?> clazz, String methodName, Object[] args) throws PageException;
 
 	/**
-	 * to get a visible Field of a object
+	 * to get a visible Field of an object
 	 * 
 	 * @param obj Object to invoke
 	 * @param prop property to call
@@ -198,7 +198,7 @@ public interface ClassUtil {
 	public Object getField(Object obj, String prop, Object defaultValue);
 
 	/**
-	 * assign a value to a visible Field of a object
+	 * assign a value to a visible Field of an object
 	 * 
 	 * @param obj Object to assign value to his property
 	 * @param prop name of property
@@ -208,7 +208,7 @@ public interface ClassUtil {
 	public boolean setField(Object obj, String prop, Object value) throws PageException;
 
 	/**
-	 * to get a visible Property (Field or Getter) of a object
+	 * to get a visible Property (Field or Getter) of an object
 	 * 
 	 * @param obj Object to invoke
 	 * @param prop property to call
@@ -218,7 +218,7 @@ public interface ClassUtil {
 	public Object getProperty(Object obj, String prop) throws PageException;
 
 	/**
-	 * to get a visible Property (Field or Getter) of a object
+	 * to get a visible Property (Field or Getter) of an object
 	 * 
 	 * @param obj Object to invoke
 	 * @param prop property to call
@@ -227,7 +227,7 @@ public interface ClassUtil {
 	public Object getProperty(Object obj, String prop, Object defaultValue);
 
 	/**
-	 * assign a value to a visible Property (Field or Setter) of a object
+	 * assign a value to a visible Property (Field or Setter) of an object
 	 * 
 	 * @param obj Object to assign value to his property
 	 * @param prop name of property
@@ -237,7 +237,7 @@ public interface ClassUtil {
 	public void setProperty(Object obj, String prop, Object value) throws PageException;
 
 	/**
-	 * assign a value to a visible Property (Field or Setter) of a object
+	 * assign a value to a visible Property (Field or Setter) of an object
 	 * 
 	 * @param obj Object to assign value to his property
 	 * @param prop name of property
@@ -375,7 +375,7 @@ public interface ClassUtil {
 	public byte[] toBytes(Class<?> clazz) throws IOException;
 
 	/**
-	 * return a array Class based on the given Class (opposite from Class.getComponentType())
+	 * return an array Class based on the given Class (opposite from Class.getComponentType())
 	 * 
 	 * @param clazz
 	 * @return

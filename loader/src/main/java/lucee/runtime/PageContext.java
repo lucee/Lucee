@@ -759,14 +759,14 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	public abstract PageSource toPageSource(Resource res, PageSource defaultValue);
 
 	/**
-	 * set a other variable scope
+	 * set another variable scope
 	 * 
 	 * @param scope
 	 */
 	public abstract void setVariablesScope(Variables scope);
 
 	/**
-	 * includes a path from a absolute path
+	 * includes a path from an absolute path
 	 * 
 	 * @param source absolute path as file object
 	 * @param runOnce include only once per request
@@ -775,7 +775,7 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	public abstract void doInclude(PageSource[] source, boolean runOnce) throws PageException;
 
 	/**
-	 * includes a path from a absolute path
+	 * includes a path from an absolute path
 	 * 
 	 * @param source absolute path as file object
 	 * @throws PageException
@@ -786,7 +786,7 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	public abstract void doInclude(String source) throws PageException;
 
 	/**
-	 * includes a path from a absolute path
+	 * includes a path from an absolute path
 	 * 
 	 * @param source absolute path as file object
 	 * @param runOnce include only once per request
@@ -913,7 +913,7 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	public abstract Object getFunctionWithNamedValues(Object coll, Collection.Key key, Object[] args) throws PageException;
 
 	/**
-	 * get variable from string definition and cast it to a Iterator Object
+	 * get variable from string definition and cast it to an Iterator Object
 	 * 
 	 * @param key Variable Name to get
 	 * @return Iterator
@@ -970,7 +970,7 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	public abstract void removeLastPageSource(boolean alsoInclude);
 
 	/**
-	 * sets a exception
+	 * sets an exception
 	 * 
 	 * @param t
 	 * @return PageExcption
@@ -1009,7 +1009,7 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	public abstract void setPsq(boolean psq);
 
 	/**
-	 * return throwed exception
+	 * return thrown exception
 	 * 
 	 * @throws PageException
 	 */
@@ -1120,7 +1120,7 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	public abstract void setThreadScope(Collection.Key name, Threads t);
 
 	/**
-	 * @return return a Array with names off all threads running.
+	 * @return return an Array with names off all threads running.
 	 */
 	public abstract String[] getThreadScopeNames();
 
