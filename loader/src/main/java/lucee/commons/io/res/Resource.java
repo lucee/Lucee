@@ -591,7 +591,7 @@ public interface Resource extends Serializable {
 	/**
 	 * sets an attribute on the resource if supported otherwise it will ign
 	 * 
-	 * @param attribute wich attribute (Resource.ATTRIBUTE_*)
+	 * @param attribute which attribute (Resource.ATTRIBUTE_*)
 	 * @param value value to set
 	 * @throws IOException thrown when no access to change the value, when attributes are not supported
 	 *             or the resource doesn't exist
