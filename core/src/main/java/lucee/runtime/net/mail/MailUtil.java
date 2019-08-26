@@ -22,6 +22,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.IDN;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
@@ -220,13 +222,17 @@ public final class MailUtil {
 	}
 
 	/**
-	 * This method should be called when TLS is used to ensure that the supported protocols are set
+	 * This method should be called when TLS is used to ensure that the supported protocols are set.  Some
+	 * servers, e.g. Outlook365, reject lists with older protocols so we only pass protocols that start with
+	 * the prefix "TLS"
 	 */
 	public static void setSystemPropMailSslProtocols() {
-
 		String protocols = SystemUtil.getSystemPropOrEnvVar(SYSTEM_PROP_MAIL_SSL_PROTOCOLS, "");
 		if (protocols.isEmpty()) {
-			protocols = SSLConnectionSocketFactoryImpl.getSupportedSslProtocols();
+			List<String> supportedProtocols = SSLConnectionSocketFactoryImpl.getSupportedSslProtocols();
+			protocols = supportedProtocols.stream()
+					.filter(el -> el.startsWith("TLS"))
+					.collect(Collectors.joining(" "));
 			if (!protocols.isEmpty()) {
 				System.setProperty(SYSTEM_PROP_MAIL_SSL_PROTOCOLS, protocols);
 				PageContext pc = ThreadLocalPageContext.get();
