@@ -18,20 +18,9 @@
  **/
 package lucee.runtime.net.mail;
 
-import java.io.UnsupportedEncodingException;
-import java.net.IDN;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeUtility;
-
 import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.StringUtil;
-import lucee.runtime.PageContext;
+import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.net.http.sni.SSLConnectionSocketFactoryImpl;
@@ -40,6 +29,16 @@ import lucee.runtime.op.Decision;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.ListUtil;
+
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeUtility;
+import java.io.UnsupportedEncodingException;
+import java.net.IDN;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public final class MailUtil {
 
@@ -235,11 +234,11 @@ public final class MailUtil {
 					.collect(Collectors.joining(" "));
 			if (!protocols.isEmpty()) {
 				System.setProperty(SYSTEM_PROP_MAIL_SSL_PROTOCOLS, protocols);
-				PageContext pc = ThreadLocalPageContext.get();
-				if (pc != null)
-					pc.getConfig()
-							.getLog("mail")
-							.info("mail", "Lucee system property " + SYSTEM_PROP_MAIL_SSL_PROTOCOLS + " set to [" + protocols + "]");
+				Config config = ThreadLocalPageContext.getConfig();
+				if (config != null)
+					config
+						.getLog("mail")
+						.info("mail", "Lucee system property " + SYSTEM_PROP_MAIL_SSL_PROTOCOLS + " set to [" + protocols + "]");
 			}
 		}
 	}
