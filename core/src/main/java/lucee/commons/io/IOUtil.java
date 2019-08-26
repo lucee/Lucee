@@ -62,7 +62,7 @@ import lucee.runtime.exp.PageException;
 public final class IOUtil {
 
 	/**
-	 * copy a inputstream to a outputstream
+	 * copy an inputstream to an outputstream
 	 * 
 	 * @param in
 	 * @param out
@@ -81,7 +81,7 @@ public final class IOUtil {
 	}
 
 	/**
-	 * copy a inputstream to a outputstream
+	 * copy an inputstream to an outputstream
 	 * 
 	 * @param in
 	 * @param out
@@ -101,7 +101,7 @@ public final class IOUtil {
 	}
 
 	/**
-	 * copy a inputstream to a outputstream
+	 * copy an inputstream to an outputstream
 	 * 
 	 * @param in
 	 * @param out
@@ -114,7 +114,7 @@ public final class IOUtil {
 	}
 
 	/**
-	 * copy a input resource to a output resource
+	 * copy an input resource to an output resource
 	 * 
 	 * @param in
 	 * @param out
@@ -143,7 +143,7 @@ public final class IOUtil {
 	}
 
 	/**
-	 * copy a input resource to a output resource
+	 * copy an input resource to an output resource
 	 * 
 	 * @param in
 	 * @param out
@@ -162,7 +162,7 @@ public final class IOUtil {
 	}
 
 	/**
-	 * copy a input resource to a output resource
+	 * copy an input resource to an output resource
 	 * 
 	 * @param in
 	 * @param out
@@ -279,7 +279,7 @@ public final class IOUtil {
 	}
 
 	/**
-	 * copy a inputstream to a outputstream
+	 * copy an inputstream to an outputstream
 	 * 
 	 * @param in
 	 * @param out
@@ -385,7 +385,7 @@ public final class IOUtil {
 	}
 
 	/**
-	 * close inputstream without a Exception
+	 * close inputstream without an Exception
 	 * 
 	 * @param is
 	 * @param os
@@ -406,7 +406,7 @@ public final class IOUtil {
 	}
 
 	/**
-	 * close inputstream without a Exception
+	 * close inputstream without an Exception
 	 * 
 	 * @param is
 	 */
@@ -431,7 +431,7 @@ public final class IOUtil {
 	}
 
 	/**
-	 * close outputstream without a Exception
+	 * close outputstream without an Exception
 	 * 
 	 * @param os
 	 */
@@ -455,7 +455,7 @@ public final class IOUtil {
 	}
 
 	/**
-	 * close Reader without a Exception
+	 * close Reader without an Exception
 	 * 
 	 * @param r
 	 */
@@ -470,7 +470,7 @@ public final class IOUtil {
 	}
 
 	/**
-	 * close Closeable without a Exception
+	 * close Closeable without an Exception
 	 * 
 	 * @param r
 	 */
@@ -485,7 +485,7 @@ public final class IOUtil {
 	}
 
 	/**
-	 * close Writer without a Exception
+	 * close Writer without an Exception
 	 * 
 	 * @param w
 	 */
@@ -500,7 +500,7 @@ public final class IOUtil {
 	}
 
 	/**
-	 * close Writer without a Exception
+	 * close Writer without an Exception
 	 * 
 	 * @param w
 	 */
@@ -681,7 +681,7 @@ public final class IOUtil {
 	}
 
 	/**
-	 * reads string data from a InputStream
+	 * reads string data from an InputStream
 	 * 
 	 * @param is
 	 * @param charset
@@ -693,7 +693,7 @@ public final class IOUtil {
 	}
 
 	/**
-	 * reads string data from a InputStream
+	 * reads string data from an InputStream
 	 * 
 	 * @param is
 	 * @param charset
@@ -819,7 +819,7 @@ public final class IOUtil {
 
 	/**
 	 * @deprecated use instead <code>{@link #write(Resource, String, Charset, boolean)}</code> writes a
-	 *             String to a object
+	 *             String to an object
 	 * @param file
 	 * @param string String to write to file
 	 * @param charset
@@ -991,7 +991,7 @@ public final class IOUtil {
 	}
 
 	/**
-	 * flush OutputStream without a Exception
+	 * flush OutputStream without an Exception
 	 * 
 	 * @param os
 	 */
@@ -1003,7 +1003,7 @@ public final class IOUtil {
 	}
 
 	/**
-	 * flush OutputStream without a Exception
+	 * flush OutputStream without an Exception
 	 * 
 	 * @param os
 	 */

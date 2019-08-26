@@ -69,7 +69,7 @@ public class ComponentLoader {
 	 * @param rawPath
 	 * @param searchLocal
 	 * @param searchRoot
-	 * @param isExtendedComponent if set to true this is a base component loaded because a other
+	 * @param isExtendedComponent if set to true this is a base component loaded because another
 	 *            component has defined this component via extends
 	 * @return
 	 * @throws PageException
@@ -540,7 +540,7 @@ public class ComponentLoader {
 
 	private static ComponentImpl initComponent(PageContext pc, CIPage page, String callPath, boolean isRealPath, final boolean isExtendedComponent, boolean executeConstr)
 			throws PageException {
-		// is not a component, then it has to be a interface
+		// is not a component, then it has to be an interface
 		if (!(page instanceof ComponentPageImpl)) throw new ApplicationException("you cannot instantiate the interface [" + page.getPageSource().getDisplayPath()
 				+ "] as a component (" + page.getClass().getName() + "" + (page instanceof InterfacePageImpl) + ")");
 

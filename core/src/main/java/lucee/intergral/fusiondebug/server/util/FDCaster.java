@@ -51,7 +51,7 @@ public class FDCaster {
 	}
 
 	/**
-	 * translate a object to its string representation
+	 * translate an object to its string representation
 	 * 
 	 * @param object
 	 * @return

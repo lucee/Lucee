@@ -258,7 +258,7 @@ public final class MD5Legacy {
 
 	/**
 	 * Get the digest for our input stream. This method constructs the input stream digest, and return
-	 * it, as a a String, following the MD5 (rfc1321) algorithm,
+	 * it, as a String, following the MD5 (rfc1321) algorithm,
 	 * 
 	 * @return An instance of String, giving the message digest.
 	 * @exception IOException Thrown if the digestifier was unable to read the input stream.

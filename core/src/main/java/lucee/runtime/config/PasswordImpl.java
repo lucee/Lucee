@@ -77,7 +77,7 @@ public class PasswordImpl implements Password {
 	@Override
 	public Password isEqual(Config config, String other) {
 
-		// a already hashed password that matches
+		// an already hashed password that matches
 		if (password.equals(other)) return this;
 
 		// current password is only hashed

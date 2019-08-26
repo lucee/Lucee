@@ -349,7 +349,7 @@ public final class ConfigWebUtil {
 	}
 
 	/**
-	 * get only a existing file, dont create it
+	 * get only an existing file, dont create it
 	 * 
 	 * @param sc
 	 * @param strDir

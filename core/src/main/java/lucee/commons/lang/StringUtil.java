@@ -252,8 +252,8 @@ public final class StringUtil {
 	}
 
 	/**
-	 * translate, like method toString, a object to a string, but when value is null value will be
-	 * translated to a empty String ("").
+	 * translate, like method toString, an object to a string, but when value is null value will be
+	 * translated to an empty String ("").
 	 * 
 	 * @param o Object to convert
 	 * @return converted String
@@ -793,7 +793,7 @@ public final class StringUtil {
 	}
 
 	/**
-	 * adds zeros add the begin of a int example: addZeros(2,3) return "002"
+	 * adds zeros add the begin of an int example: addZeros(2,3) return "002"
 	 * 
 	 * @param i number to add nulls
 	 * @param size
@@ -806,7 +806,7 @@ public final class StringUtil {
 	}
 
 	/**
-	 * adds zeros add the begin of a int example: addZeros(2,3) return "002"
+	 * adds zeros add the begin of an int example: addZeros(2,3) return "002"
 	 * 
 	 * @param i number to add nulls
 	 * @param size

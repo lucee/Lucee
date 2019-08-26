@@ -34,7 +34,7 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 
 /**
- * read a ini file and allow to modifie and read the data
+ * read an ini file and allow to modifie and read the data
  */
 public final class IniFile {
 

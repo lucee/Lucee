@@ -149,7 +149,7 @@ public class DeployHandler {
 	}
 
 	/**
-	 * install a extension based on the given id and version
+	 * install an extension based on the given id and version
 	 * 
 	 * @param config
 	 * @param id the id of the extension

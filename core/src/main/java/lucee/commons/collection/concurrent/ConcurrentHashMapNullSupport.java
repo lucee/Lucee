@@ -185,7 +185,7 @@ public class ConcurrentHashMapNullSupport<K, V> extends AbstractMap<K, V> implem
 	/* ---------------- Inner Classes -------------- */
 
 	/**
-	 * ConcurrentHashMap list entry. Note that this is never exported out as a user-visible Map.Entry.
+	 * ConcurrentHashMap list entry. Note that this is never exported out as an user-visible Map.Entry.
 	 *
 	 * Because the value field is volatile, not final, it is legal wrt the Java Memory Model for an
 	 * unsynchronized reader to see null instead of initial value when read via a data race. Although a
