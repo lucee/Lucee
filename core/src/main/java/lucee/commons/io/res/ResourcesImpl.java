@@ -38,7 +38,7 @@ public final class ResourcesImpl implements Resources {
 	private ResourceProviderFactory[] resources = new ResourceProviderFactory[0];
 
 	/**
-	 * adds a default factory, this factory is used, when sheme can't be mapped to a other factory
+	 * adds a default factory, this factory is used, when sheme can't be mapped to another factory
 	 * 
 	 * @param provider
 	 */
@@ -49,7 +49,7 @@ public final class ResourcesImpl implements Resources {
 	}
 
 	/**
-	 * adds a additional resource to System
+	 * adds an additional resource to System
 	 * 
 	 * @param provider
 	 */

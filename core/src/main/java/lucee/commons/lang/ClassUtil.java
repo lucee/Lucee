@@ -447,7 +447,7 @@ public final class ClassUtil {
 
 		}
 		catch (SecurityException e) {
-			throw new ClassException("there is a security violation (throwed by security manager)");
+			throw new ClassException("there is a security violation (thrown by security manager)");
 		}
 		catch (NoSuchMethodException e) {
 
@@ -460,7 +460,7 @@ public final class ClassUtil {
 			}
 			sb.append(')');
 
-			throw new ClassException("there is no constructor with this [" + sb + "] signature for the class [" + clazz.getName() + "]");
+			throw new ClassException("there is no constructor with the [" + sb + "] signature for the class [" + clazz.getName() + "]");
 		}
 		catch (IllegalArgumentException e) {
 			throw new ClassException("has been passed an illegal or inappropriate argument");
@@ -703,7 +703,7 @@ public final class ClassUtil {
 	}
 
 	/**
-	 * return a array class based on the given class (opposite from Class.getComponentType())
+	 * return an array class based on the given class (opposite from Class.getComponentType())
 	 * 
 	 * @param clazz
 	 * @return

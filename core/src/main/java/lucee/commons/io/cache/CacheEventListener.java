@@ -39,7 +39,7 @@ public interface CacheEventListener extends Serializable {
 	public void onPut(CacheEntry entry);
 
 	/**
-	 * this method is invoked before a entry expires (lifetime and idletime)
+	 * this method is invoked before an entry expires (lifetime and idletime)
 	 */
 	public void onExpires(CacheEntry entry);
 

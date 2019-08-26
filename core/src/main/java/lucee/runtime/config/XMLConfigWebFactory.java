@@ -1686,7 +1686,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		try {
 			Element el = getChildByName(doc.getDocumentElement(), "flex");
 
-			// engine - we init a engine for every context, but only the server context defines the eggine class
+			// engine - we init an engine for every context, but only the server context defines the engine class
 			if (config instanceof ConfigServerImpl) { // only server context
 
 				// arguments

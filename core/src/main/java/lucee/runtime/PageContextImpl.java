@@ -416,7 +416,7 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	/**
-	 * initialize a existing page context
+	 * initialize an existing page context
 	 * 
 	 * @param servlet
 	 * @param req
@@ -1227,7 +1227,7 @@ public final class PageContextImpl extends PageContext {
 	public Application applicationScope() throws PageException {
 		if (application == null) {
 			if (!applicationContext.hasName())
-				throw new ExpressionException("there is no application context defined for this application", hintAplication("you can define a application context"));
+				throw new ExpressionException("there is no application context defined for this application", hintAplication("you can define an application context"));
 			application = scopeContext.getApplicationScope(this, DUMMY_BOOL);
 		}
 		return application;
@@ -1745,7 +1745,7 @@ public final class PageContextImpl extends PageContext {
 	public Iterator getIterator(String key) throws PageException {
 		Object o = VariableInterpreter.getVariable(this, key);
 		if (o instanceof Iterator) return (Iterator) o;
-		throw new ExpressionException("[" + key + "] is not a iterator object");
+		throw new ExpressionException("[" + key + "] is not an iterator object");
 	}
 
 	@Override
@@ -2605,7 +2605,7 @@ public final class PageContextImpl extends PageContext {
 				oCftoken = null;
 				Charset charset = getWebCharset();
 
-				// check if we have multiple cookies with the name "cfid" and a other one is valid
+				// check if we have multiple cookies with the name "cfid" and another one is valid
 				javax.servlet.http.Cookie[] cookies = getHttpServletRequest().getCookies();
 				String name, value;
 				if (cookies != null) {
