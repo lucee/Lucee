@@ -57,7 +57,7 @@ import lucee.runtime.type.scope.Threads;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 
-// MUST change behavior of multiple headers now is a array, it das so?
+// MUST change behavior of multiple headers now is an array, it das so?
 
 /**
  * Lets you execute HTTP POST and GET operations on files. Using cfhttp, you can execute standard

@@ -1098,7 +1098,7 @@ public final class XMLUtil {
 	}
 
 	/**
-	 * transform a XML Object to a other format, with help of a XSL Stylesheet
+	 * transform a XML Object to another format, with help of a XSL Stylesheet
 	 * 
 	 * @param xml xml to convert
 	 * @param xsl xsl used to convert
@@ -1112,7 +1112,7 @@ public final class XMLUtil {
 	}
 
 	/**
-	 * transform a XML Object to a other format, with help of a XSL Stylesheet
+	 * transform a XML Object to another format, with help of a XSL Stylesheet
 	 * 
 	 * @param xml xml to convert
 	 * @param xsl xsl used to convert
@@ -1127,7 +1127,7 @@ public final class XMLUtil {
 	}
 
 	/**
-	 * transform a XML Document to a other format, with help of a XSL Stylesheet
+	 * transform a XML Document to another format, with help of a XSL Stylesheet
 	 * 
 	 * @param xml xml to convert
 	 * @param xsl xsl used to convert
@@ -1141,7 +1141,7 @@ public final class XMLUtil {
 	}
 
 	/**
-	 * transform a XML Document to a other format, with help of a XSL Stylesheet
+	 * transform a XML Document to another format, with help of a XSL Stylesheet
 	 * 
 	 * @param xml xml to convert
 	 * @param xsl xsl used to convert
@@ -1264,7 +1264,7 @@ public final class XMLUtil {
 		if (value instanceof byte[]) {
 			return new InputSource(new ByteArrayInputStream((byte[]) value));
 		}
-		throw new ExpressionException("can't cast object of type [" + Caster.toClassName(value) + "] to a Input for xml parser");
+		throw new ExpressionException("can't cast object of type [" + Caster.toClassName(value) + "] to an Input for xml parser");
 
 	}
 
@@ -1389,7 +1389,7 @@ public final class XMLUtil {
 		if (value instanceof byte[]) {
 			return new InputSource(new ByteArrayInputStream((byte[]) value));
 		}
-		throw new IOException("can't cast object of type [" + value + "] to a Input for xml parser");
+		throw new IOException("can't cast object of type [" + value + "] to an Input for xml parser");
 	}
 
 	public static InputSource toInputSource(String xml) throws IOException {

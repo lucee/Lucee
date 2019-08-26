@@ -22,7 +22,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.TagNotSupported;
 import lucee.runtime.ext.tag.BodyTagImpl;
 
-// MUST change behavior of multiple headers now is a array, it das so?
+// MUST change behavior of multiple headers now is an array, it das so?
 
 /**
  * Lets you execute HTTP POST and GET operations on files. Using cfhttp, you can execute standard
