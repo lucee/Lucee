@@ -197,7 +197,7 @@
 			<name>throwOnError</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		<description>A Boolean value specifying whether t throw an error if the
+		<description>A Boolean value specifying whether to throw an error if the
 flush
 action encounters an error. Otherwise the action does not generate an error if it fails. If this attribute is
 true
