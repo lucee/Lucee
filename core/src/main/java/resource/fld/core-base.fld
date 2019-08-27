@@ -12614,7 +12614,8 @@ _- asc (default): ascending (a to z) sort order
 		<return>
 			<type>number</type>
 		</return>
-	</function>	
+	</function>
+
 	<!-- toBase64 -->
 	<function>
 		<name>toBase64</name>
