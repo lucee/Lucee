@@ -9246,6 +9246,23 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>number</type>
 		</return>
 	</function>
+
+	<!-- queryClose -->
+	<function>
+		<name>queryClose</name>
+		<class>lucee.runtime.functions.query.QueryClose</class>
+		<keywords>query</keywords>
+		<description>When using lazy="true", it is important to close the resultset during a request or it will continue to use heap memory.</description>
+		<argument>
+			<name>query</name>
+			<type>query</type>
+			<required>Yes</required>
+			<description></description>
+		</argument>
+		<return>
+			<type>boolean</type>
+		</return>
+	</function>
 	
 	<!-- queryColumnExists -->
 	<function>
@@ -12613,6 +12630,16 @@ _- asc (default): ascending (a to z) sort order
     </argument>
 		<return>
 			<type>number</type>
+		</return>
+	</function>
+	<!-- ThreadData -->
+	<function>
+		<name>ThreadData</name>
+		<class>lucee.runtime.functions.thread.ThreadData</class>
+		<keywords>threading</keywords>
+		<description>returns the root cfthread scope.</description>
+		<return>
+			<type>struct</type>
 		</return>
 	</function>
 
