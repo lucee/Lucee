@@ -18,35 +18,34 @@
  **/
 package lucee.runtime.text.xml;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Reader;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.FactoryConfigurationError;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParserFactory;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMResult;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.sax.SAXSource;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
-
+import lucee.commons.io.CharsetUtil;
+import lucee.commons.io.IOUtil;
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
+import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.ClassUtil;
+import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.StringUtil;
+import lucee.runtime.PageContext;
+import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.ExpressionException;
+import lucee.runtime.exp.PageException;
+import lucee.runtime.exp.XMLException;
+import lucee.runtime.listener.ApplicationContextSupport;
+import lucee.runtime.op.Caster;
+import lucee.runtime.op.Decision;
+import lucee.runtime.osgi.EnvClassLoader;
+import lucee.runtime.text.xml.struct.XMLMultiElementStruct;
+import lucee.runtime.text.xml.struct.XMLStruct;
+import lucee.runtime.text.xml.struct.XMLStructFactory;
+import lucee.runtime.type.Array;
+import lucee.runtime.type.ArrayImpl;
+import lucee.runtime.type.Collection;
+import lucee.runtime.type.Collection.Key;
+import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.Struct;
 import org.ccil.cowan.tagsoup.Parser;
 import org.w3c.dom.Attr;
 import org.w3c.dom.CDATASection;
@@ -63,33 +62,33 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 
-import lucee.commons.io.CharsetUtil;
-import lucee.commons.io.IOUtil;
-import lucee.commons.io.log.Log;
-import lucee.commons.io.log.LogUtil;
-import lucee.commons.io.res.Resource;
-import lucee.commons.io.res.util.ResourceUtil;
-import lucee.commons.lang.ClassUtil;
-import lucee.commons.lang.ExceptionUtil;
-import lucee.commons.lang.StringUtil;
-import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigImpl;
-import lucee.runtime.engine.ThreadLocalPageContext;
-import lucee.runtime.exp.ExpressionException;
-import lucee.runtime.exp.PageException;
-import lucee.runtime.exp.XMLException;
-import lucee.runtime.op.Caster;
-import lucee.runtime.op.Decision;
-import lucee.runtime.osgi.EnvClassLoader;
-import lucee.runtime.text.xml.struct.XMLMultiElementStruct;
-import lucee.runtime.text.xml.struct.XMLStruct;
-import lucee.runtime.text.xml.struct.XMLStructFactory;
-import lucee.runtime.type.Array;
-import lucee.runtime.type.ArrayImpl;
-import lucee.runtime.type.Collection;
-import lucee.runtime.type.Collection.Key;
-import lucee.runtime.type.KeyImpl;
-import lucee.runtime.type.Struct;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.FactoryConfigurationError;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParserFactory;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMResult;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.sax.SAXSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * 
@@ -126,8 +125,6 @@ public final class XMLUtil {
 	// private static DocumentBuilderFactory factory;
 	private static TransformerFactory transformerFactory;
 	// private static DocumentBuilderFactory documentBuilderFactory;
-	private static DocumentBuilderFactory documentBuilderFactoryNoneVal;
-	private static DocumentBuilderFactory documentBuilderFactoryWithVal;
 
 	private static SAXParserFactory saxParserFactory;
 
@@ -294,25 +291,34 @@ public final class XMLUtil {
 	private static DocumentBuilderFactory newDocumentBuilderFactory(InputSource validator) {
 		DocumentBuilderFactory factory;
 		if (validator != null) {
-			if (documentBuilderFactoryWithVal == null) {
-				documentBuilderFactoryWithVal = _newDocumentBuilderFactory();// DocumentBuilderFactory.newInstance();
-				XMLUtil.setAttributeEL(documentBuilderFactoryWithVal, XMLConstants.VALIDATION_SCHEMA, Boolean.TRUE);
-				XMLUtil.setAttributeEL(documentBuilderFactoryWithVal, XMLConstants.VALIDATION_SCHEMA_FULL_CHECKING, Boolean.TRUE);
-				documentBuilderFactoryWithVal.setNamespaceAware(true);
-				documentBuilderFactoryWithVal.setValidating(true);
-			}
-			factory = documentBuilderFactoryWithVal;
+			factory = _newDocumentBuilderFactory();// DocumentBuilderFactory.newInstance();
+			XMLUtil.setAttributeEL(factory, XMLConstants.VALIDATION_SCHEMA, Boolean.TRUE);
+			XMLUtil.setAttributeEL(factory, XMLConstants.VALIDATION_SCHEMA_FULL_CHECKING, Boolean.TRUE);
+			factory.setNamespaceAware(true);
+			factory.setValidating(true);
 		}
 		else {
-			if (documentBuilderFactoryNoneVal == null) {
-				documentBuilderFactoryNoneVal = _newDocumentBuilderFactory();// DocumentBuilderFactory.newInstance();
-				XMLUtil.setAttributeEL(documentBuilderFactoryNoneVal, XMLConstants.NON_VALIDATING_DTD_EXTERNAL, Boolean.FALSE);
-				XMLUtil.setAttributeEL(documentBuilderFactoryNoneVal, XMLConstants.NON_VALIDATING_DTD_GRAMMAR, Boolean.FALSE);
-				documentBuilderFactoryNoneVal.setNamespaceAware(true);
-				documentBuilderFactoryNoneVal.setValidating(false);
-			}
-			factory = documentBuilderFactoryNoneVal;
+			factory = _newDocumentBuilderFactory();// DocumentBuilderFactory.newInstance();
+			XMLUtil.setAttributeEL(factory, XMLConstants.NON_VALIDATING_DTD_EXTERNAL, Boolean.FALSE);
+			XMLUtil.setAttributeEL(factory, XMLConstants.NON_VALIDATING_DTD_GRAMMAR, Boolean.FALSE);
+			factory.setNamespaceAware(true);
+			factory.setValidating(false);
 		}
+
+		PageContext pc = ThreadLocalPageContext.get();
+		if (pc != null) {
+			Struct features = ((ApplicationContextSupport)pc.getApplicationContext()).getXmlFeatures();
+			if (features != null) {
+				features.forEach((k, v) -> {
+					try {
+						factory.setFeature(k.toString().toLowerCase(), Caster.toBoolean(v));
+					} catch (PageException | ParserConfigurationException e) {
+						throw new RuntimeException(e);
+					}
+				});
+			}
+		}
+
 		return factory;
 	}
 
@@ -405,12 +411,11 @@ public final class XMLUtil {
 	 * sets a node to a node
 	 * 
 	 * @param node
-	 * @param key
+	 * @param k
 	 * @param value
 	 * @return Object set
 	 * @throws PageException
 	 */
-
 	public static Object setProperty(Node node, Collection.Key k, Object value) throws PageException {
 		return setProperty(node, k, value, isCaseSensitve(node));
 	}
@@ -551,7 +556,7 @@ public final class XMLUtil {
 	 * returns a property from a XMl Node (Expression Less)
 	 * 
 	 * @param node
-	 * @param key
+	 * @param k
 	 * @param caseSensitive
 	 * @return Object matching key
 	 */
@@ -572,7 +577,7 @@ public final class XMLUtil {
 	 * returns a property from a XMl Node
 	 * 
 	 * @param node
-	 * @param key
+	 * @param k
 	 * @param caseSensitive
 	 * @return Object matching key
 	 * @throws SAXException
@@ -759,7 +764,7 @@ public final class XMLUtil {
 	 * check if given name is equal to name of the element (with and without namespace)
 	 * 
 	 * @param node
-	 * @param k
+	 * @param name
 	 * @param caseSensitive
 	 * @return
 	 */
@@ -780,7 +785,7 @@ public final class XMLUtil {
 	 * removes child from a node
 	 * 
 	 * @param node
-	 * @param key
+	 * @param k
 	 * @param caseSensitive
 	 * @return removed property
 	 */
@@ -946,7 +951,6 @@ public final class XMLUtil {
 	 * nodes
 	 * 
 	 * @param node
-	 * @param type
 	 * @param deep
 	 */
 	private static void removeChildCharacterData(Node node, boolean deep) {
@@ -968,8 +972,6 @@ public final class XMLUtil {
 	 * 
 	 * @param node node to get children from
 	 * @param type type of returned node
-	 * @param filter
-	 * @param caseSensitive
 	 * @return all matching child node
 	 */
 	public static ArrayNodeList getChildNodes(Node node, short type) {
@@ -1072,8 +1074,6 @@ public final class XMLUtil {
 	 * 
 	 * @param node node to get children from
 	 * @param type type of returned node
-	 * @param filter
-	 * @param caseSensitive
 	 * @return all matching child node
 	 */
 	public static Node[] getChildNodesAsArray(Node node, short type) {
@@ -1129,7 +1129,7 @@ public final class XMLUtil {
 	/**
 	 * transform a XML Document to another format, with help of a XSL Stylesheet
 	 * 
-	 * @param xml xml to convert
+	 * @param doc xml to convert
 	 * @param xsl xsl used to convert
 	 * @return resulting string
 	 * @throws TransformerException
@@ -1143,7 +1143,7 @@ public final class XMLUtil {
 	/**
 	 * transform a XML Document to another format, with help of a XSL Stylesheet
 	 * 
-	 * @param xml xml to convert
+	 * @param doc xml to convert
 	 * @param xsl xsl used to convert
 	 * @param parameters parameters used to convert
 	 * @return resulting string
