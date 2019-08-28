@@ -466,4 +466,9 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 	public abstract String getBlockedExtForFileUpload();
 
 	public abstract void setJavaSettings(JavaSettings javaSettings);
+
+	public abstract Struct getXmlFeatures();
+
+	public abstract void setXmlFeatures(Struct xmlFeatures);
+
 }

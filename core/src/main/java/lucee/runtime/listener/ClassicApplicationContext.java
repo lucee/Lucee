@@ -1066,11 +1066,13 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 		return blockedExtForFileUpload;
 	}
 
-	public void setXmlFeatures(Struct xmlFeatures) {
-		this.xmlFeatures = xmlFeatures;
-	}
-
+	@Override
 	public Struct getXmlFeatures() {
 		return xmlFeatures;
+	}
+
+	@Override
+	public void setXmlFeatures(Struct xmlFeatures) {
+		this.xmlFeatures = xmlFeatures;
 	}
 }

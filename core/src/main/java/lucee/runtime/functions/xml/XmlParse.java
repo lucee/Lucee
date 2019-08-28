@@ -39,7 +39,6 @@ public final class XmlParse implements Function {
 
 	public static Node call(PageContext pc, String string, boolean caseSensitive) throws PageException {
 		return call(pc, string, caseSensitive, null);
-
 	}
 
 	public static Node call(PageContext pc, String strXML, boolean caseSensitive, String strValidator) throws PageException {

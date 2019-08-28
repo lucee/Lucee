@@ -1839,6 +1839,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		this.initProxyData = true;
 	}
 
+	@Override
 	public Struct getXmlFeatures() {
 		if (!initXmlFeatures) {
 			Struct sct = Caster.toStruct(get(component, XML_FEATURES, null), null);
@@ -1847,5 +1848,10 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 			initXmlFeatures = true;
 		}
 		return xmlFeatures;
+	}
+
+	@Override
+	public void setXmlFeatures(Struct xmlFeatures) {
+		this.xmlFeatures = xmlFeatures;
 	}
 }

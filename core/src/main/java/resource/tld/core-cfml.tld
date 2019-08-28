@@ -804,6 +804,12 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 	- watchExtensions - extension of the files read
 			</description>
 		</attribute>
+		<attribute>
+			<name>xmlFeatures</name>
+			<type>struct</type>
+			<required>false</required>
+			<description>Allows to set XML Features to prevent XXE attacks</description>
+		</attribute>
 	</tag>
 
 	<!-- Argument -->

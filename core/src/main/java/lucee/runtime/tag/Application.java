@@ -149,6 +149,7 @@ public final class Application extends TagImpl {
 	private Struct proxy;
 	private String blockedExtForFileUpload;
 	private Struct javaSettings;
+	private Struct xmlFeatures;
 
 	@Override
 	public void release() {
@@ -227,6 +228,7 @@ public final class Application extends TagImpl {
 		sessionCookie = null;
 		blockedExtForFileUpload = null;
 		javaSettings = null;
+		xmlFeatures = null;
 	}
 
 	/**
@@ -628,6 +630,10 @@ public final class Application extends TagImpl {
 		this.cgiReadOnly = cgiReadOnly;
 	}
 
+	public void setXmlfeatures(Struct xmlFeatures) {
+		this.xmlFeatures = xmlFeatures;
+	}
+
 	@Override
 	public int doStartTag() throws PageException {
 
@@ -811,10 +817,15 @@ public final class Application extends TagImpl {
 				((ClassicApplicationContext) ac).setBlockedextforfileupload(blockedExtForFileUpload);
 			}
 		}
-		if (javaSettings != null) {
-			if (ac instanceof ApplicationContextSupport) {
-				((ApplicationContextSupport) ac).setJavaSettings(JavaSettingsImpl.newInstance(new JavaSettingsImpl(), javaSettings));
-			}
+
+		if (ac instanceof ApplicationContextSupport) {
+			ApplicationContextSupport appContextSup = ((ApplicationContextSupport) ac);
+
+			if (javaSettings != null)
+				appContextSup.setJavaSettings(JavaSettingsImpl.newInstance(new JavaSettingsImpl(), javaSettings));
+
+			if (xmlFeatures != null)
+				appContextSup.setXmlFeatures(xmlFeatures);
 		}
 
 		// ORM
