@@ -160,7 +160,11 @@ public final class QoQ {
 
 				int type = Types.OTHER;
 
-				if (expSelect instanceof ColumnExpression) type = qr.getColumn(Caster.toKey(((ColumnExpression) expSelect).getColumnName())).getType();
+				if (expSelect instanceof ColumnExpression) {
+					ColumnExpression ce = (ColumnExpression) expSelect;
+
+					if (!"?".equals(ce.getColumnName())) type = qr.getColumn(Caster.toKey(ce.getColumnName())).getType();
+				}
 
 				queryAddColumn(target, alias, type);
 			}
