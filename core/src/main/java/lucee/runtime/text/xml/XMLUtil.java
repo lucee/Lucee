@@ -62,6 +62,7 @@ import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
+import org.xml.sax.helpers.XMLReaderFactory;
 
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
@@ -112,7 +113,8 @@ public final class XMLUtil {
 	public static final Collection.Key XMLVALUE = KeyImpl.intern("xmlvalue");
 	public static final Collection.Key XMLATTRIBUTES = KeyImpl.intern("xmlattributes");
 
-	// public final static String DEFAULT_SAX_PARSER="org.apache.xerces.parsers.SAXParser";
+	// public final static String
+	// DEFAULT_SAX_PARSER="org.apache.xerces.parsers.SAXParser";
 
 	/*
 	 * private static final Collection.Key = KeyImpl.getInstance(); private static final Collection.Key
@@ -221,7 +223,7 @@ public final class XMLUtil {
 
 	private static TransformerFactory _newTransformerFactory() {
 
-		Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl) ThreadLocalPageContext.getConfig())); // TODO make this global
+		Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl) ThreadLocalPageContext.getConfig()));
 		TransformerFactory factory = null;
 		Class clazz = null;
 		try {
@@ -318,7 +320,7 @@ public final class XMLUtil {
 
 	private static DocumentBuilderFactory _newDocumentBuilderFactory() {
 
-		Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl) ThreadLocalPageContext.getConfig())); // TODO make this global
+		Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl) ThreadLocalPageContext.getConfig()));
 		DocumentBuilderFactory factory = null;
 		Class clazz = null;
 		try {
@@ -342,28 +344,38 @@ public final class XMLUtil {
 		return factory;
 	}
 
-	/*
-	 * private static DocumentBuilderFactory newDocumentBuilderFactory() { if (documentBuilderFactory ==
-	 * null) { documentBuilderFactory = DocumentBuilderFactory.newInstance();
-	 * documentBuilderFactory.setNamespaceAware(true); } return documentBuilderFactory; }
-	 */
-
 	private static SAXParserFactory newSAXParserFactory() {
 		if (saxParserFactory == null) {
-			Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl) ThreadLocalPageContext.getConfig())); // TODO make this global
+			Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl) ThreadLocalPageContext.getConfig()));
 			saxParserFactory = SAXParserFactory.newInstance();
 		}
 		return saxParserFactory;
 	}
 
 	public static XMLReader createXMLReader() throws SAXException {
+		Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl) ThreadLocalPageContext.getConfig()));
+		try {
+			return XMLReaderFactory.createXMLReader("com.sun.org.apache.xerces.internal.parsers.SAXParser");
+		}
+		catch (Exception e) {}
+
+		try {
+			return XMLReaderFactory.createXMLReader("org.apache.xerces.internal.parsers.SAXParser");
+		}
+		catch (Exception ee) {}
+
+		try {
+			return XMLReaderFactory.createXMLReader("org.apache.xerces.parsers.SAXParser");
+		}
+		catch (Exception ee) {}
+
 		try {
 			return newSAXParserFactory().newSAXParser().getXMLReader();
 		}
 		catch (ParserConfigurationException pce) {
 			throw new RuntimeException(pce);
 		}
-		// return XMLReaderFactory.createXMLReader(DEFAULT_SAX_PARSER);
+
 	}
 
 	private static void setAttributeEL(DocumentBuilderFactory factory, String name, Object value) {
@@ -684,7 +696,8 @@ public final class XMLUtil {
 			node = ((Document) node).getDocumentElement();
 			if (node == null) throw new SAXException("Attribute [" + k.getString() + "] not found in XML, XML is empty");
 
-			// if((!caseSensitive && node.getNodeName().equalsIgnoreCase(k.getString())) || (caseSensitive &&
+			// if((!caseSensitive && node.getNodeName().equalsIgnoreCase(k.getString())) ||
+			// (caseSensitive &&
 			// node.getNodeName().equals(k.getString()))) {
 			if (nameEqual(node, k.getString(), caseSensitive)) {
 				return XMLStructFactory.newInstance(node, caseSensitive);
