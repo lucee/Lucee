@@ -18,52 +18,6 @@
  **/
 package lucee.runtime.text.xml;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Reader;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.FactoryConfigurationError;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParserFactory;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMResult;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.sax.SAXSource;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
-
-import org.ccil.cowan.tagsoup.Parser;
-import org.w3c.dom.Attr;
-import org.w3c.dom.CDATASection;
-import org.w3c.dom.CharacterData;
-import org.w3c.dom.Comment;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.w3c.dom.Text;
-import org.xml.sax.EntityResolver;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.xml.sax.XMLReader;
-import org.xml.sax.helpers.XMLReaderFactory;
-
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.Log;
@@ -107,6 +61,7 @@ import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
+import org.xml.sax.helpers.XMLReaderFactory;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -156,6 +111,7 @@ public final class XMLUtil {
 	public static final Collection.Key XMLTYPE = KeyImpl.intern("xmltype");
 	public static final Collection.Key XMLVALUE = KeyImpl.intern("xmlvalue");
 	public static final Collection.Key XMLATTRIBUTES = KeyImpl.intern("xmlattributes");
+	public static final Collection.Key SECURE = KeyImpl.intern("secure");
 
 	// public final static String
 	// DEFAULT_SAX_PARSER="org.apache.xerces.parsers.SAXParser";
@@ -355,12 +311,33 @@ public final class XMLUtil {
 		PageContext pc = ThreadLocalPageContext.get();
 		if (pc != null) {
 			Struct features = ((ApplicationContextSupport)pc.getApplicationContext()).getXmlFeatures();
+
 			if (features != null) {
+				Object obj = features.get(SECURE, null);
+				if (obj != null) {
+					try {
+						boolean isSecure = Caster.toBoolean(obj);
+						if (isSecure) {
+							// set features per https://cheatsheetseries.owasp.org/cheatsheets/XML_External_Entity_Prevention_Cheat_Sheet.html
+							factory.setFeature(XMLConstants.FEATURE_EXTERNAL_GENERAL_ENTITIES, false);
+							factory.setFeature(XMLConstants.FEATURE_EXTERNAL_PARAMETER_ENTITIES, false);
+							factory.setFeature(XMLConstants.FEATURE_NONVALIDATING_LOAD_EXTERNAL_DTD, false);
+							factory.setXIncludeAware(false);
+							factory.setExpandEntityReferences(false);
+							factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+							factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+						}
+						features.remove(SECURE);
+					} catch (PageException | ParserConfigurationException ex) {
+						throw new RuntimeException(ex);
+					}
+				}
+
 				features.forEach((k, v) -> {
 					try {
 						factory.setFeature(k.toString().toLowerCase(), Caster.toBoolean(v));
-					} catch (PageException | ParserConfigurationException e) {
-						throw new RuntimeException(e);
+					} catch (PageException | ParserConfigurationException ex) {
+						throw new RuntimeException(ex);
 					}
 				});
 			}
