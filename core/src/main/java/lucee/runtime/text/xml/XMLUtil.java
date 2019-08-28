@@ -319,6 +319,7 @@ public final class XMLUtil {
 						boolean isSecure = Caster.toBoolean(obj);
 						if (isSecure) {
 							// set features per https://cheatsheetseries.owasp.org/cheatsheets/XML_External_Entity_Prevention_Cheat_Sheet.html
+							factory.setFeature(XMLConstants.FEATURE_DISALLOW_DOCTYPE_DECL, true);
 							factory.setFeature(XMLConstants.FEATURE_EXTERNAL_GENERAL_ENTITIES, false);
 							factory.setFeature(XMLConstants.FEATURE_EXTERNAL_PARAMETER_ENTITIES, false);
 							factory.setFeature(XMLConstants.FEATURE_NONVALIDATING_LOAD_EXTERNAL_DTD, false);
