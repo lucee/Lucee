@@ -371,7 +371,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			}
 			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "fixed LFI");
 
-			if (XMLConfigAdmin.fixSalt(doc)) reload = true;
+			if (XMLConfigAdmin.fixSaltAndPW(doc, ThreadLocalPageContext.getConfig(cs == null ? config : cs))) reload = true;
 			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "fixed salt");
 
 			if (XMLConfigAdmin.fixS3(doc)) reload = true;
@@ -397,8 +397,6 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					File root = _cs.getCFMLEngine().getCFMLEngineFactory().getResourceRoot();
 					File log = new File(root, "context/logs/felix.log");
 					if (log.isFile() && log.length() > GB1) {
-						// LogUtil.logFelix(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO,
-						// XMLConfigWebFactory.class.getName(), "delete felix log: " + log);
 						if (log.delete()) ResourceUtil.touch(log);
 
 					}
@@ -407,11 +405,11 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					log(config, null, e);
 				}
 			}
-			// if (LOG) LogUtil.logFelix(ThreadLocalPageContext.getConfig(cs == null ? config : cs),
-			// Log.LEVEL_INFO,
-			// XMLConfigWebFactory.class.getName(), "fixed to big felix.log");
 
-			if (reload) doc = reload(doc, config, cs);
+			if (reload) {
+				doc = reload(doc, config, cs);
+				reload = false;
+			}
 
 		}
 		catch (Exception e) {
@@ -1686,7 +1684,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		try {
 			Element el = getChildByName(doc.getDocumentElement(), "flex");
 
-			// engine - we init an engine for every context, but only the server context defines the engine class
+			// engine - we init an engine for every context, but only the server context defines the engine
+			// class
 			if (config instanceof ConfigServerImpl) { // only server context
 
 				// arguments
@@ -2604,6 +2603,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * @param configServer
 	 * @param config
 	 * @param doc
+	 * @param serverPW
 	 * @throws IOException
 	 * @throws NoSuchAlgorithmException
 	 */

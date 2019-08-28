@@ -46,7 +46,7 @@ public class PasswordImpl implements Password {
 		this.origin = origin;
 	}
 
-	private PasswordImpl(int origin, String rawPassword, String salt) {
+	PasswordImpl(int origin, String rawPassword, String salt) {
 		this.rawPassword = rawPassword;
 		this.password = hash(rawPassword, salt);
 		this.salt = salt;
@@ -156,6 +156,22 @@ public class PasswordImpl implements Password {
 			return new PasswordImpl(ORIGIN_ENCRYPTED, rawPassword, salt);
 		}
 		return null;
+	}
+
+	public static boolean hasPassword(Element el) {
+		if (el == null) return false;
+
+		// first we look for the hashed and salted password
+		if (!StringUtil.isEmpty(el.getAttribute("hspw"), true)) return el.getAttribute("salt") != null;
+
+		// fall back to password that is hashed but not salted
+		if (!StringUtil.isEmpty(el.getAttribute("pw"), true)) return true;
+
+		// fall back to encrypted password
+		String pwEnc = el.getAttribute("password");
+		if (!StringUtil.isEmpty(pwEnc, true)) return true;
+
+		return false;
 	}
 
 	public static Password writeToXML(Element el, String passwordRaw, boolean isDefault) {

@@ -433,7 +433,7 @@
 		</cfmodule>
 	<cfelse>
 		<!--- Admin Password is not Set !--->
-		<cfmodule template="admin_layout.cfm" width="480" title="New Password">
+		<cfmodule template="admin_layout.cfm" width="480" title="No Password set yet!">
 			<cfif !isEmpty(login_error)>
 				<span class="CheckError"><cfoutput>#login_error#</cfoutput></span>
 				<br>

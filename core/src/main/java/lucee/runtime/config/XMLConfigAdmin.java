@@ -30,6 +30,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -1210,15 +1211,37 @@ public final class XMLConfigAdmin {
 	/**
 	 * make sure every context has a salt
 	 */
-	public static boolean fixSalt(Document doc) {
+	public static boolean fixSaltAndPW(Document doc, Config config) {
 		Element root = doc.getDocumentElement();
+
+		// salt
 		String salt = root.getAttribute("salt");
+		boolean rtn = false;
 		if (StringUtil.isEmpty(salt, true) || !Decision.isUUId(salt)) {
 			// create salt
-			root.setAttribute("salt", CreateUUID.invoke());
-			return true;
+			root.setAttribute("salt", salt = CreateUUID.invoke());
+			rtn = true;
 		}
-		return false;
+
+		// no password yet
+		if (!root.hasAttribute("hspw") && !root.hasAttribute("pw") && !root.hasAttribute("password")) {
+			Resource pwFile = config.getConfigDir().getRealResource("password.txt");
+			if (pwFile.isFile()) {
+				try {
+					String pw = IOUtil.toString(pwFile, (Charset) null);
+					if (!StringUtil.isEmpty(pw)) {
+						String hspw = new PasswordImpl(Password.ORIGIN_UNKNOW, pw, salt).getPassword();
+						root.setAttribute("hspw", hspw);
+						pwFile.delete();
+						rtn = true;
+					}
+				}
+				catch (IOException e) {
+					LogUtil.logGlobal(config, "application", e);
+				}
+			}
+		}
+		return rtn;
 	}
 
 	// MUST remove

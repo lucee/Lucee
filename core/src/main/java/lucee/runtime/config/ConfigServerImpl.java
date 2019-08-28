@@ -299,6 +299,7 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 	 * @return Returns the defaultPassword.
 	 */
 	protected Password getDefaultPassword() {
+		if (defaultPassword == null) return password;
 		return defaultPassword;
 	}
 
