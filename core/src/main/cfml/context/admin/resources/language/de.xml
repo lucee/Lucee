@@ -850,6 +850,7 @@ When checked, any requested files will be inspected only once for potential upda
 	<data key="buttons.filter">filter</data>
 	<data key="buttons.agree">einverstanden</data>
 	<data key="buttons.submit">senden</data>
+	<data key="buttons.reload">neu laden</data>
 	<data key="buttons.stop">stop</data>
 	<data key="buttons.ok">OK</data>
 	<data key="buttons.purge">leeren</data>

@@ -371,7 +371,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			}
 			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "fixed LFI");
 
-			if (XMLConfigAdmin.fixSaltAndPW(doc, ThreadLocalPageContext.getConfig(cs == null ? config : cs))) reload = true;
+			if (XMLConfigAdmin.fixSaltAndPW(doc, config)) reload = true;
 			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "fixed salt");
 
 			if (XMLConfigAdmin.fixS3(doc)) reload = true;
@@ -2617,8 +2617,14 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 		// password
 		Password pw = PasswordImpl.readFromXML(luceeConfiguration, salt, false);
-		if (pw != null) config.setPassword(pw);
-		else if (configServer != null) config.setPassword(configServer.getDefaultPassword());
+		if (pw != null) {
+			config.setPassword(pw);
+			if (config instanceof ConfigWebImpl) ((ConfigWebImpl) config).setPasswordSource(ConfigWebImpl.PASSWORD_ORIGIN_WEB);
+		}
+		else if (configServer != null) {
+			((ConfigWebImpl) config).setPasswordSource(configServer.hasCustomDefaultPassword() ? ConfigWebImpl.PASSWORD_ORIGIN_DEFAULT : ConfigWebImpl.PASSWORD_ORIGIN_SERVER);
+			config.setPassword(configServer.getDefaultPassword());
+		}
 
 		if (config instanceof ConfigServerImpl) {
 			ConfigServerImpl csi = (ConfigServerImpl) config;

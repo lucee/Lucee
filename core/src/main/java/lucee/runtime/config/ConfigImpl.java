@@ -3897,4 +3897,8 @@ public abstract class ConfigImpl implements Config {
 		if (this.cachedAfterTimeRange != null && this.cachedAfterTimeRange.getMillis() <= 0) this.cachedAfterTimeRange = null;
 		return this.cachedAfterTimeRange;
 	}
+
+	public abstract void checkPassword() throws PageException;
+	// TODO Auto-generated m
+
 }

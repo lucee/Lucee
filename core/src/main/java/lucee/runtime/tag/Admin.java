@@ -322,6 +322,21 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			return SKIP_BODY;
 		}
 
+		// check Password
+		else if (action.equals("checkpassword")) {
+			try {
+				// ((ConfigWebImpl)config).getConfigServer(arg0)
+
+				config.checkPassword();
+
+				// XMLConfigAdmin._storeAndReload(config);
+			}
+			catch (Exception e) {
+				throw Caster.toPageException(e);
+			}
+			return SKIP_BODY;
+		}
+
 		// update Password
 		else if (action.equals("updatepassword")) {
 
@@ -5092,6 +5107,13 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		sct.set("captcha", Caster.toBoolean(c.getLoginCaptcha()));
 		sct.set("delay", Caster.toDouble(c.getLoginDelay()));
 		sct.set("rememberme", Caster.toBoolean(c.getRememberMe()));
+		if (c instanceof ConfigWebImpl) {
+			ConfigWebImpl cw = (ConfigWebImpl) c;
+			short origin = cw.getPasswordSource();
+			if (origin == ConfigWebImpl.PASSWORD_ORIGIN_DEFAULT) sct.set("origin", "default");
+			else if (origin == ConfigWebImpl.PASSWORD_ORIGIN_WEB) sct.set("origin", "web");
+			else if (origin == ConfigWebImpl.PASSWORD_ORIGIN_SERVER) sct.set("origin", "server");
+		}
 
 	}
 

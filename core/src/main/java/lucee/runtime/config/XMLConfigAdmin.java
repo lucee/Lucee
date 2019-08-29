@@ -1224,8 +1224,9 @@ public final class XMLConfigAdmin {
 		}
 
 		// no password yet
-		if (!root.hasAttribute("hspw") && !root.hasAttribute("pw") && !root.hasAttribute("password")) {
-			Resource pwFile = config.getConfigDir().getRealResource("password.txt");
+		if (config instanceof ConfigServer && !root.hasAttribute("hspw") && !root.hasAttribute("pw") && !root.hasAttribute("password")) {
+			ConfigServer cs = (ConfigServer) config;
+			Resource pwFile = cs.getConfigDir().getRealResource("password.txt");
 			if (pwFile.isFile()) {
 				try {
 					String pw = IOUtil.toString(pwFile, (Charset) null);
@@ -1237,7 +1238,7 @@ public final class XMLConfigAdmin {
 					}
 				}
 				catch (IOException e) {
-					LogUtil.logGlobal(config, "application", e);
+					LogUtil.logGlobal(cs, "application", e);
 				}
 			}
 		}

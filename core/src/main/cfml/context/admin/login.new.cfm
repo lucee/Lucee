@@ -14,19 +14,25 @@ catch(e) {
 <cfoutput><table cellpadding="0" cellspacing="0" border="0" width="500" height="120">
 		<tr>
 			<td align="left">
-				For security reasons it is no longer possible to set the inital password here.<br>
+				For security reasons it is no longer possible to set the inital password here directly.<br>
 	<cfif request.adminType == "server">
-		
-		
 		Please create a file with name <b>password.txt</b> at <b>#path#</b> containing the password you want.
-		Then restart Lucee, so Lucee will pick up that password, Lucee will delete that file after picking up the password.
+		Then click reload below, Lucee will pick up that password and delete the file afterwards.
 		
+
+
 		
 	<cfelse>
 		Please set a password for the <a href="server.cfm">Server Administrator</a> and then this password can be used to log into this Web Administrator as well. After that you can set a custom password inside Web Administrator, if you wish.
 	</cfif></td>
 		</tr>
 		</table>
+	<cfif request.adminType == "server">
+		<cfformClassic name="login" action="#request.self#" method="post">
+			<input type="hidden" name="checkPassword" value="true">
+			<input class="button submit" type="submit" name="submit" value="#stText.Buttons.Reload?:'reload'#">
+		</cfformClassic>
+	</cfif>
 </cfoutput>
 <!---
 	<cfformClassic name="login" action="#request.self#" method="post">

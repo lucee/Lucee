@@ -994,6 +994,7 @@ sct[""bracketNotation""] --> keyname: "bracketNotation"</data>
 	<data key="buttons.agree">agree</data>
 	<data key="buttons.dontagree">I do not agree</data>
 	<data key="buttons.submit">submit</data>
+	<data key="buttons.reload">reload</data>
 	<data key="buttons.stop">stop</data>
 	<data key="buttons.purge">purge</data>
 	<data key="buttons.ok">OK</data>

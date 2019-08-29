@@ -41,6 +41,7 @@
 <cfparam name="request.adminType" default="web">
 <cfparam name="form.rememberMe" default="s">
 <cfset ad = request.adminType>
+<cfset request.self = request.adminType & ".cfm">
 
 <cfparam name="cookie.lucee_admin_lang" default="en">
 <cfset session.lucee_admin_lang = cookie.lucee_admin_lang>
@@ -48,6 +49,12 @@
 <cfset login_error = "">
 
 <!--- Form --->
+<cfif structKeyExists(form, "checkPassword" )>
+	<cfadmin action="checkPassword"
+		type="#request.adminType#">
+	<cflocation url="#request.self#?action=overview" addtoken="no">
+</cfif>
+
 <cfif structKeyExists(form, "login_password" & request.adminType)>
 	<cfadmin action="getLoginSettings"
 		type="#request.adminType#"
@@ -123,7 +130,19 @@
 	</cftry>
 </cfif>
 
-<!--- Session --->
+<!--- we are logged in into the server admin, but not the web admin, may the password is the same? --->
+<cfif ((request.adminType?:"") EQ "web") && 
+	structKeyExists(session, "passwordServer") && 
+	!structKeyExists(session, "passwordWeb")>
+	<cfadmin action="getLoginSettings"
+		type="#request.adminType#"
+		returnVariable="loginSettings">
+	<!--- server password is used --->
+	<cfif (loginSettings.origin?:"")=="server">
+		<cfset session.passwordWeb=session.passwordServer>
+	</cfif>
+</cfif>
+
 <cfif structKeyExists(session, "password" & request.adminType)>
 	<cftry>
 		<cfadmin action="connect"
@@ -154,7 +173,6 @@
 <cfinclude template="resources/text.cfm">
 <cfinclude template="web_functions.cfm">
 
-<cfset request.self = request.adminType & ".cfm">
 
 <cfif !structKeyExists(application, "adminfunctions") or (structKeyExists(session, "alwaysNew") && session.alwaysNew)>
 	<cfset application.adminfunctions = new adminfunctions() />
