@@ -19,7 +19,7 @@ catch(e) {
 		You will need to configure a password before you can access the Server Administrator.
 		<ul>
 		<li>create a file with name <b>password.txt</b> containing your new password under the root Lucee server directory ( /lucee-server/context/password.txt ).</li>
-		<li>click "reload", Lucee will then read and configure your new password, afterwards Lucee will automatically delete that file</ul>
+		<li>click "import file", Lucee will then read and configure your new password, afterwards Lucee will automatically delete that file</ul>
 
 		
 	<cfelse>
@@ -30,7 +30,7 @@ catch(e) {
 	<cfif request.adminType == "server">
 		<cfformClassic name="login" action="#request.self#" method="post">
 			<input type="hidden" name="checkPassword" value="true">
-			<input class="button submit" type="submit" name="submit" value="#stText.Buttons.Reload?:'reload'#">
+			<input class="button submit" type="submit" name="submit" value="import file">
 		</cfformClassic>
 	</cfif>
 </cfoutput>
