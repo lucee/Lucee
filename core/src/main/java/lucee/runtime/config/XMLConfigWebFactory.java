@@ -1240,8 +1240,11 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		if (!componentsDir.exists()) componentsDir.mkdirs();
 
 		Resource gwDir = componentsDir.getRealResource("lucee/extension/gateway/");
-		create("/resource/context/gateway/", new String[] { "TaskGateway." + COMPONENT_EXTENSION, "DummyGateway." + COMPONENT_EXTENSION, "DirectoryWatcher." + COMPONENT_EXTENSION,
-				"DirectoryWatcherListener." + COMPONENT_EXTENSION, "MailWatcher." + COMPONENT_EXTENSION, "MailWatcherListener." + COMPONENT_EXTENSION }, gwDir, doNew);
+		create("/resource/context/gateway/",
+				new String[] { "TaskGateway." + COMPONENT_EXTENSION, "DummyGateway." + COMPONENT_EXTENSION, "DirectoryWatcher." + COMPONENT_EXTENSION,
+						"DirectoryWatcherListener." + COMPONENT_EXTENSION, "MailWatcher." + COMPONENT_EXTENSION, "MailWatcherListener." + COMPONENT_EXTENSION,
+						"AsynchronousEvents." + COMPONENT_EXTENSION, "AsynchronousEventsListener." + COMPONENT_EXTENSION },
+				gwDir, doNew);
 
 		// resources/language
 		Resource langDir = adminDir.getRealResource("resources/language");
