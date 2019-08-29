@@ -16,10 +16,10 @@ catch(e) {
 			<td align="left">
 				For security reasons it is no longer possible to set the inital password here directly.<br>
 	<cfif request.adminType == "server">
-		Please create a file with name <b>password.txt</b> at <b>#path#</b> containing the password you want.
-		Then click reload below, Lucee will pick up that password and delete the file afterwards.
-		
-
+		You will need to configure a password before you can access the Server Administrator.
+		<ul>
+		<li>create a file with name <b>password.txt</b> containing your new password under the root Lucee server directory ( /lucee-server/context/password.txt ).</li>
+		<li>click "reload", Lucee will then read and configure your new password, afterwards Lucee will automatically delete that file</ul>
 
 		
 	<cfelse>
