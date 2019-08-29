@@ -30,6 +30,10 @@ public interface XMLConstants {
 	public static final String FEATURE_EXTERNAL_PARAMETER_ENTITIES = "http://xml.org/sax/features/external-parameter-entities";
 	public static final String FEATURE_NONVALIDATING_LOAD_EXTERNAL_DTD = "http://apache.org/xml/features/nonvalidating/load-external-dtd";
 
-	public static final String ACCESS_EXTERNAL_DTD = javax.xml.XMLConstants.ACCESS_EXTERNAL_DTD;
-	public static final String ACCESS_EXTERNAL_SCHEMA = javax.xml.XMLConstants.ACCESS_EXTERNAL_SCHEMA;
+	// public static final String ACCESS_EXTERNAL_DTD = javax.xml.XMLConstants.ACCESS_EXTERNAL_DTD;
+	// public static final String ACCESS_EXTERNAL_SCHEMA =
+	// javax.xml.XMLConstants.ACCESS_EXTERNAL_SCHEMA;
+
+	public static final String ACCESS_EXTERNAL_DTD = "http://javax.xml.XMLConstants/property/accessExternalDTD";
+	public static final String ACCESS_EXTERNAL_SCHEMA = "http://javax.xml.XMLConstants/property/accessExternalSchema";
 }
