@@ -34,6 +34,7 @@ import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.java.JavaObject;
+import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.type.Struct;
@@ -118,7 +119,7 @@ public class CreateDynamicProxy implements Function {
 		if (StringUtil.isEmpty(bundleName)) {
 			return ClassUtil.loadClass(cl, className);
 		}
-		return ClassUtil.loadClass(className, bundleName, bundleVersion, pc.getConfig().getIdentification(), null);
+		return ClassUtil.loadClass(className, bundleName, bundleVersion, pc.getConfig().getIdentification(), JavaSettingsImpl.getBundleDirectories(pc));
 	}
 
 }
