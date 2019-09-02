@@ -4,7 +4,7 @@ import javax.servlet.jsp.tagext.Tag;
 
 public interface TagPro extends Tag {
 
-    public void setAppendix(String appendix);
+	public void setAppendix(String appendix);
 
-    public void setMetaData(String name, Object value);
+	public void setMetaData(String name, Object value);
 }

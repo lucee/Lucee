@@ -23,10 +23,10 @@ package lucee.runtime.net.mail;
  */
 public final class MailException extends Exception {
 
-    /**
-     * @param message Exception Message
-     */
-    public MailException(String message) {
-	super(message);
-    }
+	/**
+	 * @param message Exception Message
+	 */
+	public MailException(String message) {
+		super(message);
+	}
 }

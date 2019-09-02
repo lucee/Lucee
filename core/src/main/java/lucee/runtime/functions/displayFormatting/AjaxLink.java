@@ -28,7 +28,7 @@ import lucee.runtime.ext.function.Function;
  */
 public final class AjaxLink implements Function {
 
-    public static String call(PageContext pc, String url) throws PageException {
-	throw new FunctionNotSupported("AjaxLink");
-    }
+	public static String call(PageContext pc, String url) throws PageException {
+		throw new FunctionNotSupported("AjaxLink");
+	}
 }

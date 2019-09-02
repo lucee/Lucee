@@ -23,15 +23,15 @@ package lucee.runtime.schedule;
  */
 public final class ScheduleException extends Exception {
 
-    private static final long serialVersionUID = -5192918296899570826L;
+	private static final long serialVersionUID = -5192918296899570826L;
 
-    /**
-     * constructor of the class
-     * 
-     * @param message
-     */
-    public ScheduleException(final String message) {
-	super(message);
-    }
+	/**
+	 * constructor of the class
+	 * 
+	 * @param message
+	 */
+	public ScheduleException(final String message) {
+		super(message);
+	}
 
 }

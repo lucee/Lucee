@@ -24,10 +24,10 @@ import lucee.transformer.expression.ExprFloat;
  */
 public interface LitFloat extends Literal, ExprFloat {
 
-    /**
-     * @return return value as double value
-     */
-    public float getFloatValue();
+	/**
+	 * @return return value as double value
+	 */
+	public float getFloatValue();
 
-    public Float getFloat();
+	public Float getFloat();
 }

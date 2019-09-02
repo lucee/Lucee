@@ -26,30 +26,30 @@ import lucee.runtime.config.Config;
  */
 public final class ThreadLocalConfig {
 
-    private static ThreadLocal cThreadLocal = new ThreadLocal();
+	private static ThreadLocal cThreadLocal = new ThreadLocal();
 
-    /**
-     * register a Config for he current thread
-     * 
-     * @param config Config to register
-     */
-    public static void register(Config config) {// DO NOT CHANGE, used in Ortus extension via reflection
-	cThreadLocal.set(config);
-    }
+	/**
+	 * register a Config for he current thread
+	 * 
+	 * @param config Config to register
+	 */
+	public static void register(Config config) {// DO NOT CHANGE, used in Ortus extension via reflection
+		cThreadLocal.set(config);
+	}
 
-    /**
-     * returns Config registered for the current thread
-     * 
-     * @return Config for the current thread or null
-     */
-    static Config get() {
-	return (Config) cThreadLocal.get();
-    }
+	/**
+	 * returns Config registered for the current thread
+	 * 
+	 * @return Config for the current thread or null
+	 */
+	static Config get() {
+		return (Config) cThreadLocal.get();
+	}
 
-    /**
-     * release the pagecontext for the current thread
-     */
-    public static void release() {// DO NOT CHANGE, used in Ortus extension via reflection
-	cThreadLocal.set(null);
-    }
+	/**
+	 * release the pagecontext for the current thread
+	 */
+	public static void release() {// DO NOT CHANGE, used in Ortus extension via reflection
+		cThreadLocal.set(null);
+	}
 }

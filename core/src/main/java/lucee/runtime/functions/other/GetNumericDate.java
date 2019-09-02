@@ -28,10 +28,10 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.type.dt.DateTime;
 
 public final class GetNumericDate implements Function {
-    public static double call(PageContext pc, Object object) throws PageException {
-	DateTime date = Caster.toDate(object, true, pc.getTimeZone(), null);
-	if (date == null) date = Caster.toDate(object, pc.getTimeZone());
+	public static double call(PageContext pc, Object object) throws PageException {
+		DateTime date = Caster.toDate(object, true, pc.getTimeZone(), null);
+		if (date == null) date = Caster.toDate(object, pc.getTimeZone());
 
-	return date.toDoubleValue();
-    }
+		return date.toDoubleValue();
+	}
 }

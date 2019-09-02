@@ -63,238 +63,238 @@ import lucee.runtime.type.scope.ClusterEntry;
  */
 public interface Creation {
 
-    /**
-     * creates and returns a array instance
-     * 
-     * @return array
-     */
-    public abstract Array createArray();
+	/**
+	 * creates and returns an array instance
+	 * 
+	 * @return array
+	 */
+	public abstract Array createArray();
 
-    /**
-     * creates and returns a array based on a string list
-     * 
-     * @return array
-     */
-    public abstract Array createArray(String list, String delimiter, boolean removeEmptyItem, boolean trim);
+	/**
+	 * creates and returns an array based on a string list
+	 * 
+	 * @return array
+	 */
+	public abstract Array createArray(String list, String delimiter, boolean removeEmptyItem, boolean trim);
 
-    /**
-     * creates and returns a DateTime instance
-     * 
-     * @param time
-     * @return DateTime
-     */
-    public abstract DateTime createDateTime(long time);
+	/**
+	 * creates and returns a DateTime instance
+	 * 
+	 * @param time
+	 * @return DateTime
+	 */
+	public abstract DateTime createDateTime(long time);
 
-    /**
-     * creates and returns a DateTime instance
-     * 
-     * @param year
-     * @param month
-     * @param day
-     * @param hour
-     * @param minute
-     * @param seond
-     * @param millis
-     * @return DateTime
-     */
-    public abstract DateTime createDateTime(int year, int month, int day, int hour, int minute, int seond, int millis) throws PageException;
+	/**
+	 * creates and returns a DateTime instance
+	 * 
+	 * @param year
+	 * @param month
+	 * @param day
+	 * @param hour
+	 * @param minute
+	 * @param seond
+	 * @param millis
+	 * @return DateTime
+	 */
+	public abstract DateTime createDateTime(int year, int month, int day, int hour, int minute, int seond, int millis) throws PageException;
 
-    /**
-     * creates and returns a Date instance
-     * 
-     * @param time
-     * @return DateTime
-     */
-    public abstract Date createDate(long time);
+	/**
+	 * creates and returns a Date instance
+	 * 
+	 * @param time
+	 * @return DateTime
+	 */
+	public abstract Date createDate(long time);
 
-    /**
-     * creates and returns a Date instance
-     * 
-     * @param year
-     * @param month
-     * @param day
-     * @return DateTime
-     */
-    public abstract Date createDate(int year, int month, int day) throws PageException;
+	/**
+	 * creates and returns a Date instance
+	 * 
+	 * @param year
+	 * @param month
+	 * @param day
+	 * @return DateTime
+	 */
+	public abstract Date createDate(int year, int month, int day) throws PageException;
 
-    /**
-     * creates and returns a Time instance
-     * 
-     * @param time
-     * @return DateTime
-     */
-    public abstract Time createTime(long time);
+	/**
+	 * creates and returns a Time instance
+	 * 
+	 * @param time
+	 * @return DateTime
+	 */
+	public abstract Time createTime(long time);
 
-    /**
-     * creates and returns a Time instance
-     * 
-     * @param hour
-     * @param minute
-     * @param second
-     * @param millis
-     * @return DateTime
-     */
-    public abstract Time createTime(int hour, int minute, int second, int millis);
+	/**
+	 * creates and returns a Time instance
+	 * 
+	 * @param hour
+	 * @param minute
+	 * @param second
+	 * @param millis
+	 * @return DateTime
+	 */
+	public abstract Time createTime(int hour, int minute, int second, int millis);
 
-    /**
-     * creates and returns a TimeSpan instance
-     * 
-     * @param day
-     * @param hour
-     * @param minute
-     * @param second
-     * @return TimeSpan
-     */
-    public abstract TimeSpan createTimeSpan(int day, int hour, int minute, int second);
+	/**
+	 * creates and returns a TimeSpan instance
+	 * 
+	 * @param day
+	 * @param hour
+	 * @param minute
+	 * @param second
+	 * @return TimeSpan
+	 */
+	public abstract TimeSpan createTimeSpan(int day, int hour, int minute, int second);
 
-    /**
-     * creates and returns a array instance
-     * 
-     * @param dimension
-     * @return array
-     * @throws PageException
-     */
-    public abstract Array createArray(int dimension) throws PageException;
+	/**
+	 * creates and returns an array instance
+	 * 
+	 * @param dimension
+	 * @return array
+	 * @throws PageException
+	 */
+	public abstract Array createArray(int dimension) throws PageException;
 
-    /**
-     * creates and returns a struct instance
-     * 
-     * @return struct
-     */
-    public abstract Struct createStruct();
+	/**
+	 * creates and returns a struct instance
+	 * 
+	 * @return struct
+	 */
+	public abstract Struct createStruct();
 
-    public abstract Struct createStruct(int type);
+	public abstract Struct createStruct(int type);
 
-    @Deprecated
-    public abstract Struct createStruct(String type) throws PageException;
+	@Deprecated
+	public abstract Struct createStruct(String type) throws PageException;
 
-    public abstract Struct createCastableStruct(Object value);
+	public abstract Struct createCastableStruct(Object value);
 
-    public abstract Struct createCastableStruct(Object value, int type);
+	public abstract Struct createCastableStruct(Object value, int type);
 
-    /**
-     * creates a query object with given data
-     * 
-     * @param columns
-     * @param rows
-     * @param name
-     * @return created query Object
-     * @deprecated use instead <code>createQuery(Collection.Key[] columns, int rows, String name)</code>
-     */
-    @Deprecated
-    public abstract Query createQuery(String[] columns, int rows, String name);
+	/**
+	 * creates a query object with given data
+	 * 
+	 * @param columns
+	 * @param rows
+	 * @param name
+	 * @return created query Object
+	 * @deprecated use instead <code>createQuery(Collection.Key[] columns, int rows, String name)</code>
+	 */
+	@Deprecated
+	public abstract Query createQuery(String[] columns, int rows, String name);
 
-    /**
-     * creates a query object with given data
-     * 
-     * @param columns
-     * @param rows
-     * @param name
-     * @return created query Object
-     */
-    public abstract Query createQuery(Collection.Key[] columns, int rows, String name) throws PageException;
+	/**
+	 * creates a query object with given data
+	 * 
+	 * @param columns
+	 * @param rows
+	 * @param name
+	 * @return created query Object
+	 */
+	public abstract Query createQuery(Collection.Key[] columns, int rows, String name) throws PageException;
 
-    /**
-     * creates a query object with given data
-     * 
-     * @param columns
-     * @param rows
-     * @param name
-     * @return created query Object
-     * @deprecated use instead
-     *             <code>createQuery(Collection.Key[] columns, String[] types, int rows, String name)</code>
-     */
-    @Deprecated
-    public abstract Query createQuery(String[] columns, String[] types, int rows, String name) throws PageException;
+	/**
+	 * creates a query object with given data
+	 * 
+	 * @param columns
+	 * @param rows
+	 * @param name
+	 * @return created query Object
+	 * @deprecated use instead
+	 *             <code>createQuery(Collection.Key[] columns, String[] types, int rows, String name)</code>
+	 */
+	@Deprecated
+	public abstract Query createQuery(String[] columns, String[] types, int rows, String name) throws PageException;
 
-    /**
-     * creates a query object with given data
-     * 
-     * @param columns
-     * @param rows
-     * @param name
-     * @return created query Object
-     */
-    public abstract Query createQuery(Collection.Key[] columns, String[] types, int rows, String name) throws PageException;
+	/**
+	 * creates a query object with given data
+	 * 
+	 * @param columns
+	 * @param rows
+	 * @param name
+	 * @return created query Object
+	 */
+	public abstract Query createQuery(Collection.Key[] columns, String[] types, int rows, String name) throws PageException;
 
-    /**
-     * @param dc Connection to a database
-     * @param sql sql to execute
-     * @param maxrow maxrow for the resultset
-     * @param fetchsize
-     * @param timeout in seconds
-     * @param name
-     * @return created Query
-     * @throws PageException
-     */
-    public abstract Query createQuery(DatasourceConnection dc, SQL sql, int maxrow, int fetchsize, int timeout, String name) throws PageException;
+	/**
+	 * @param dc Connection to a database
+	 * @param sql sql to execute
+	 * @param maxrow maxrow for the resultset
+	 * @param fetchsize
+	 * @param timeout in seconds
+	 * @param name
+	 * @return created Query
+	 * @throws PageException
+	 */
+	public abstract Query createQuery(DatasourceConnection dc, SQL sql, int maxrow, int fetchsize, int timeout, String name) throws PageException;
 
-    /**
-     * creates a collection Key out of a String
-     * 
-     * @param key
-     */
-    public abstract Collection.Key createKey(String key);
+	/**
+	 * creates a collection Key out of a String
+	 * 
+	 * @param key
+	 */
+	public abstract Collection.Key createKey(String key);
 
-    public SpoolerTask createRemoteClientTask(ExecutionPlan[] plans, RemoteClient remoteClient, Struct attrColl, String callerId, String type);
+	public SpoolerTask createRemoteClientTask(ExecutionPlan[] plans, RemoteClient remoteClient, Struct attrColl, String callerId, String type);
 
-    public ClusterEntry createClusterEntry(Key key, Serializable value, int offset);
+	public ClusterEntry createClusterEntry(Key key, Serializable value, int offset);
 
-    public Resource createResource(String path, boolean existing) throws PageException;
+	public Resource createResource(String path, boolean existing) throws PageException;
 
-    public abstract HttpServletRequest createHttpServletRequest(File contextRoot, String serverName, String scriptName, String queryString, Cookie[] cookies,
-	    Map<String, Object> headers, Map<String, String> parameters, Map<String, Object> attributes, HttpSession session);
+	public abstract HttpServletRequest createHttpServletRequest(File contextRoot, String serverName, String scriptName, String queryString, Cookie[] cookies,
+			Map<String, Object> headers, Map<String, String> parameters, Map<String, Object> attributes, HttpSession session);
 
-    public abstract HttpServletResponse createHttpServletResponse(OutputStream io);
+	public abstract HttpServletResponse createHttpServletResponse(OutputStream io);
 
-    public abstract PageContext createPageContext(HttpServletRequest req, HttpServletResponse rsp, OutputStream out);
+	public abstract PageContext createPageContext(HttpServletRequest req, HttpServletResponse rsp, OutputStream out);
 
-    // FUTURE public ServletConfig createServletConfig(File root, Map<String, Object> attributes,
-    // Map<String, String> params)
+	// FUTURE public ServletConfig createServletConfig(File root, Map<String, Object> attributes,
+	// Map<String, String> params)
 
-    /**
-     * creates a component object from (Full)Name, for example lucee.extensions.net.HTTPUtil
-     * 
-     * @param pc Pagecontext for loading the CFC
-     * @param fullName full name of the cfc example:lucee.extensions.net.HTTPUtil
-     * @return loaded cfc
-     * @throws PageException
-     */
-    public abstract Component createComponentFromName(PageContext pc, String fullName) throws PageException;
+	/**
+	 * creates a component object from (Full)Name, for example lucee.extensions.net.HTTPUtil
+	 * 
+	 * @param pc Pagecontext for loading the CFC
+	 * @param fullName full name of the cfc example:lucee.extensions.net.HTTPUtil
+	 * @return loaded cfc
+	 * @throws PageException
+	 */
+	public abstract Component createComponentFromName(PageContext pc, String fullName) throws PageException;
 
-    /**
-     * creates a component object from a absolute local path, for example
-     * /Users/susi/Projects/Sorglos/wwwrooot/lucee/extensions/net/HTTPUtil.cfc
-     * 
-     * @param pc Pagecontext for loading the CFC
-     * @param path path of the cfc example:/Users/susi/Projects/Sorglos/wwwrooot/
-     *            lucee/extensions/net/HTTPUtil.cfc
-     * @return loaded cfc
-     * @throws PageException
-     */
-    public abstract Component createComponentFromPath(PageContext pc, String path) throws PageException;
+	/**
+	 * creates a component object from an absolute local path, for example
+	 * /Users/susi/Projects/Sorglos/wwwrooot/lucee/extensions/net/HTTPUtil.cfc
+	 * 
+	 * @param pc Pagecontext for loading the CFC
+	 * @param path path of the cfc example:/Users/susi/Projects/Sorglos/wwwrooot/
+	 *            lucee/extensions/net/HTTPUtil.cfc
+	 * @return loaded cfc
+	 * @throws PageException
+	 */
+	public abstract Component createComponentFromPath(PageContext pc, String path) throws PageException;
 
-    public abstract RefBoolean createRefBoolean(boolean b);
+	public abstract RefBoolean createRefBoolean(boolean b);
 
-    public abstract RefInteger createRefInteger(int i);
+	public abstract RefInteger createRefInteger(int i);
 
-    public abstract RefLong createRefLong(long l);
+	public abstract RefLong createRefLong(long l);
 
-    public abstract RefDouble createRefDouble(long d);
+	public abstract RefDouble createRefDouble(long d);
 
-    public abstract String createUUID();
+	public abstract String createUUID();
 
-    public abstract String createGUID();
+	public abstract String createGUID();
 
-    public abstract Property createProperty(String name, String type);
+	public abstract Property createProperty(String name, String type);
 
-    public abstract Mapping createMapping(Config config, String virtual, String strPhysical, String strArchive, short inspect, boolean physicalFirst, boolean hidden,
-	    boolean readonly, boolean topLevel, boolean appMapping, boolean ignoreVirtual, ApplicationListener appListener, int listenerMode, int listenerType);
+	public abstract Mapping createMapping(Config config, String virtual, String strPhysical, String strArchive, short inspect, boolean physicalFirst, boolean hidden,
+			boolean readonly, boolean topLevel, boolean appMapping, boolean ignoreVirtual, ApplicationListener appListener, int listenerMode, int listenerType);
 
-    public abstract DateTime now();
+	public abstract DateTime now();
 
-    public abstract <K> KeyLock<K> createKeyLock();
+	public abstract <K> KeyLock<K> createKeyLock();
 
-    public abstract RefString createRefString(String value);
+	public abstract RefString createRefString(String value);
 
 }

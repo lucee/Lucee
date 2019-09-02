@@ -26,27 +26,27 @@ import lucee.commons.io.res.type.compress.CompressResourceProvider;
 
 public final class ZipResourceProvider extends CompressResourceProvider {
 
-    public ZipResourceProvider() {
-	scheme = "zip";
-    }
+	public ZipResourceProvider() {
+		scheme = "zip";
+	}
 
-    @Override
-    public Compress getCompress(Resource file) throws IOException {
-	return Compress.getInstance(file, Compress.FORMAT_ZIP, caseSensitive);
-    }
+	@Override
+	public Compress getCompress(Resource file) throws IOException {
+		return Compress.getInstance(file, Compress.FORMAT_ZIP, caseSensitive);
+	}
 
-    @Override
-    public boolean isAttributesSupported() {
-	return false;
-    }
+	@Override
+	public boolean isAttributesSupported() {
+		return false;
+	}
 
-    @Override
-    public boolean isCaseSensitive() {
-	return caseSensitive;
-    }
+	@Override
+	public boolean isCaseSensitive() {
+		return caseSensitive;
+	}
 
-    @Override
-    public boolean isModeSupported() {
-	return false;
-    }
+	@Override
+	public boolean isModeSupported() {
+		return false;
+	}
 }

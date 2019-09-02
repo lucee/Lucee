@@ -621,6 +621,7 @@ When checked, any requested files will be inspected only once for potential upda
 	<data key="buttons.filter">fiutärä</data>
 	<data key="buttons.agree">iverstandä</data>
 	<data key="buttons.submit">sändä</data>
+	<data key="buttons.reload">nöi lade</data>
 	<data key="buttons.ok">OK</data>
 	<data key="buttons.purge">lärä</data>
 	<data key="buttons.install">installirä</data>

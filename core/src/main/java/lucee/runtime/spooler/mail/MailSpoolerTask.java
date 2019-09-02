@@ -39,110 +39,110 @@ import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.KeyConstants;
 
 public class MailSpoolerTask extends SpoolerTaskSupport {
-    private static final ExecutionPlan[] EXECUTION_PLANS = new ExecutionPlan[] { new ExecutionPlanImpl(1, 60), new ExecutionPlanImpl(1, 5 * 60), new ExecutionPlanImpl(1, 3600),
-	    new ExecutionPlanImpl(2, 24 * 3600), };
+	private static final ExecutionPlan[] EXECUTION_PLANS = new ExecutionPlan[] { new ExecutionPlanImpl(1, 60), new ExecutionPlanImpl(1, 5 * 60), new ExecutionPlanImpl(1, 3600),
+			new ExecutionPlanImpl(2, 24 * 3600), };
 
-    private SMTPClient client;
-    private Server[] servers;
-    private SpoolerTaskListener listener;
+	private SMTPClient client;
+	private Server[] servers;
+	private SpoolerTaskListener listener;
 
-    private MailSpoolerTask(ExecutionPlan[] plans, SMTPClient client, Server[] servers, long sendTime) {
-	super(plans, sendTime);
-	this.client = client;
-	this.servers = servers;
-    }
-
-    public MailSpoolerTask(SMTPClient client, Server[] servers, long sendTime) {
-	this(EXECUTION_PLANS, client, servers, sendTime);
-    }
-
-    @Override
-    public String getType() {
-	return "mail";
-    }
-
-    @Override
-    public String subject() {
-	return client.getSubject();
-    }
-
-    @Override
-    public Struct detail() {
-	StructImpl sct = new StructImpl();
-	sct.setEL("subject", client.getSubject());
-
-	if (client.hasHTMLText()) sct.setEL("body", StringUtil.max(client.getHTMLTextAsString(), 1024, "..."));
-	else if (client.hasPlainText()) sct.setEL("body", StringUtil.max(client.getPlainTextAsString(), 1024, "..."));
-
-	sct.setEL("from", toString(client.getFrom()));
-
-	InternetAddress[] adresses = client.getTos();
-	sct.setEL("to", toString(adresses));
-
-	adresses = client.getCcs();
-	if (!ArrayUtil.isEmpty(adresses)) sct.setEL("cc", toString(adresses));
-
-	adresses = client.getBccs();
-	if (!ArrayUtil.isEmpty(adresses)) sct.setEL("bcc", toString(adresses));
-
-	return sct;
-    }
-
-    private static String toString(InternetAddress[] adresses) {
-	if (adresses == null) return "";
-
-	StringBuffer sb = new StringBuffer();
-	for (int i = 0; i < adresses.length; i++) {
-	    if (i > 0) sb.append(", ");
-	    sb.append(toString(adresses[i]));
+	private MailSpoolerTask(ExecutionPlan[] plans, SMTPClient client, Server[] servers, long sendTime) {
+		super(plans, sendTime);
+		this.client = client;
+		this.servers = servers;
 	}
-	return sb.toString();
-    }
 
-    private static String toString(InternetAddress address) {
-	if (address == null) return "";
-	String addr = address.getAddress();
-	String per = address.getPersonal();
-	if (StringUtil.isEmpty(per)) return addr;
-	if (StringUtil.isEmpty(addr)) return per;
-
-	return per + " (" + addr + ")";
-    }
-
-    @Override
-    public Object execute(Config config) throws PageException {
-	try {
-	    client._send((ConfigWeb) config, servers);
+	public MailSpoolerTask(SMTPClient client, Server[] servers, long sendTime) {
+		this(EXECUTION_PLANS, client, servers, sendTime);
 	}
-	catch (MailException e) {
-	    throw Caster.toPageException(e);
+
+	@Override
+	public String getType() {
+		return "mail";
 	}
-	return null;
-    }
 
-    @Override
-    public SpoolerTaskListener getListener() {
-	return listener;
-    }
-
-    public void setListener(SpoolerTaskListener listener) {
-	this.listener = listener;
-    }
-
-    public void mod(Struct sct) {
-	// TODO more
-
-	// FROM
-	Object o = sct.get(KeyConstants._from, null);
-	InternetAddress from = null;
-	if (o != null) {
-	    try {
-		from = MailUtil.toInternetAddress(o);
-	    }
-	    catch (Exception e) {}
+	@Override
+	public String subject() {
+		return client.getSubject();
 	}
-	if (from != null) client.setFrom(from);
 
-    }
+	@Override
+	public Struct detail() {
+		StructImpl sct = new StructImpl();
+		sct.setEL("subject", client.getSubject());
+
+		if (client.hasHTMLText()) sct.setEL("body", StringUtil.max(client.getHTMLTextAsString(), 1024, "..."));
+		else if (client.hasPlainText()) sct.setEL("body", StringUtil.max(client.getPlainTextAsString(), 1024, "..."));
+
+		sct.setEL("from", toString(client.getFrom()));
+
+		InternetAddress[] adresses = client.getTos();
+		sct.setEL("to", toString(adresses));
+
+		adresses = client.getCcs();
+		if (!ArrayUtil.isEmpty(adresses)) sct.setEL("cc", toString(adresses));
+
+		adresses = client.getBccs();
+		if (!ArrayUtil.isEmpty(adresses)) sct.setEL("bcc", toString(adresses));
+
+		return sct;
+	}
+
+	private static String toString(InternetAddress[] adresses) {
+		if (adresses == null) return "";
+
+		StringBuffer sb = new StringBuffer();
+		for (int i = 0; i < adresses.length; i++) {
+			if (i > 0) sb.append(", ");
+			sb.append(toString(adresses[i]));
+		}
+		return sb.toString();
+	}
+
+	private static String toString(InternetAddress address) {
+		if (address == null) return "";
+		String addr = address.getAddress();
+		String per = address.getPersonal();
+		if (StringUtil.isEmpty(per)) return addr;
+		if (StringUtil.isEmpty(addr)) return per;
+
+		return per + " (" + addr + ")";
+	}
+
+	@Override
+	public Object execute(Config config) throws PageException {
+		try {
+			client._send((ConfigWeb) config, servers);
+		}
+		catch (MailException e) {
+			throw Caster.toPageException(e);
+		}
+		return null;
+	}
+
+	@Override
+	public SpoolerTaskListener getListener() {
+		return listener;
+	}
+
+	public void setListener(SpoolerTaskListener listener) {
+		this.listener = listener;
+	}
+
+	public void mod(Struct sct) {
+		// TODO more
+
+		// FROM
+		Object o = sct.get(KeyConstants._from, null);
+		InternetAddress from = null;
+		if (o != null) {
+			try {
+				from = MailUtil.toInternetAddress(o);
+			}
+			catch (Exception e) {}
+		}
+		if (from != null) client.setFrom(from);
+
+	}
 
 }

@@ -18,7 +18,6 @@
 			<cfset layoutArgs={}>
 			<cfset appenderArgs={}>
 
-
 			<!--- custom --->
 			<cfloop collection="#form#" item="key">
 				<cfif left(key,13) EQ "custompart_d_">
@@ -29,6 +28,9 @@
 			<cfloop collection="#form#" item="key">
 				<cfif left(key,7) EQ "custom_">
 					<cfset tmp=mid(key,8,10000)>
+					<cfif isNumeric(listFirst(tmp,'_'))>
+						<cfset tmp=listRest(tmp,'_')>
+					</cfif>
 					<cfif left(tmp,9) EQ "appender_">
 						<cfset appenderArgs[mid(tmp,10,10000)]=form[key]>
 					<cfelseif left(tmp,7) EQ "layout_">
@@ -37,8 +39,10 @@
 
 				</cfif>
 			</cfloop>
+
 			<cfset layoutClass=trim(form.appenderLayoutClass?:'')>
 			<cfif isEmpty(layoutClass)><cfset layoutClass=trim(form.layoutClass)></cfif>
+			
 			<cfadmin
 				action="updateLogSettings"
 				type="#request.adminType#"
@@ -46,8 +50,12 @@
 				name="#trim(form._name)#"
 				level="#form.level#"
 				appenderClass="#trim(form.appenderClass)#"
+				appenderBundleName="#trim(form.appenderBundleName?:'')#"
+				appenderBundleVersion="#trim(form.appenderBundleVersion?:'')#"
 				appenderArgs="#appenderArgs#"
 				layoutClass="#layoutClass#"
+				layoutBundleName="#trim(form.layoutBundleName?:'')#"
+				layoutBundleVersion="#trim(form.layoutBundleVersion?:'')#"
 				layoutArgs="#(layoutArgs)#"
 
 				remoteClients="#request.getRemoteClients()#">
@@ -88,8 +96,15 @@ Redirtect to entry --->
 	<cfset isNew=true>
 	<cfset log=struct()>
 	<cfset log.name=form._name>
+	
 	<cfset log.appenderClass=form.appenderClass>
+	<cfset log.appenderBundleName=form.appenderBundleName?:''>
+	<cfset log.appenderBundleVersion=form.appenderBundleVersion?:''>
+	
 	<cfset log.layoutClass=form.layoutClass>
+	<cfset log.layoutBundleName=form.layoutBundleName?:''>
+	<cfset log.layoutBundleVersion=form.layoutBundleVersion?:''>
+	
 	<cfset log.appenderArgs={}>
 	<cfset log.layoutArgs={}>
 	<cfset log.level="ERROR">
@@ -144,7 +159,7 @@ function showLayout() {
 </cfhtmlbody>
 
 
-	<h2>Log "#log.name#"</h2>
+	<h1>Log "#log.name#"</h1>
 	<div class="pageintro">#stText.Settings.logging.detailDesc#</div>
 	<cfformClassic onerror="customError" action="#request.self#?action=#url.action#&action2=create#iif(isDefined('url.name'),de('&name=##url.name##'),de(''))#" method="post">
 		<cfinputClassic type="hidden" name="_name" value="#log.name#" >
@@ -192,7 +207,7 @@ function showLayout() {
 		<!--- <cfif !arrayLen(driver.getCustomFields())><cfbreak></cfif>--->
 		<br />
 		
-		<h3>#ucFirst(_name)#</h3>
+		<h2>#ucFirst(_name)#</h2>
 		<cfset count=0>
 		<cfset len=structCount(drivers)>
 
@@ -212,12 +227,18 @@ function showLayout() {
 				value="#driver.getLabel()#">
 		</cfloop>
 		<div id="group_#_name#">
+		<cfset cnt=0>
 		<cfloop collection="#drivers#" index="driverClass" item="driver">
+			<cfset cnt++>
 			<cfset id="#_name#_#hash(driver.getClass(),'quick')#">
 			<cfset active=!isNull(_driver) && driver.getClass() EQ _driver.getClass()>
-
 		<div id="div_#id#">
+			
 		<input type="hidden" name="#_name#Class" value="#driver.getClass()#">
+		<input type="hidden" name="#_name#BundleName" 
+			value="#structKeyExists(driver,'getBundleName')?driver.getBundleName():''#">
+		<input type="hidden" name="#_name#BundleVersion" 
+			value="#structKeyExists(driver,'getBundleVersion')?driver.getBundleVersion():''#">
 		<cfif _name=="appender">
 			<input type="hidden" name="appenderLayoutClass" value="#isNull(driver.getLayout)?'':driver.getLayout()#">
 		</cfif>
@@ -253,11 +274,11 @@ function showLayout() {
 						<td>
 							<cfif type EQ "text" or type EQ "password">
 								<cfinputClassic type="#type#"
-									name="custom_#_name#_#field.getName()#"
+									name="custom_#cnt#_#_name#_#field.getName()#"
 									value="#default#" class="large" required="#field.getRequired()#"
 									message="Missing value for field #field.getDisplayName()#">
 							<cfelseif type EQ "textarea">
-								<textarea class="large" style="height:70px;" name="custom_#_name#_#field.getName()#">#default#</textarea>
+								<textarea class="large" style="height:70px;" name="custom_#cnt#_#_name#_#field.getName()#">#default#</textarea>
 							<cfelseif type EQ "time">
 								<cfsilent>
 									<cfset doBR=false>
@@ -319,7 +340,7 @@ function showLayout() {
 								<cfif default EQ field.getDefaultValue() and field.getRequired()>
 									<cfset default=listFirst(default)>
 								</cfif>
-								<select name="custom_#_name#_#field.getName()#">
+								<select name="custom_#cnt#_#_name#_#field.getName()#">
 									<cfif not field.getRequired()><option value=""> ---------- </option></cfif>
 									<cfloop index="item" list="#field.getValues()#">
 										<option <cfif item EQ default>selected="selected"</cfif> >#item#</option>
@@ -335,7 +356,7 @@ function showLayout() {
 										<cfloop index="item" list="#field.getValues()#">
 											<li>
 												<label>
-													<cfinputClassic type="#type#" class="#type#" name="custom_#_name#_#field.getName()#" value="#item#" checked="#item EQ default#">
+													<cfinputClassic type="#type#" class="#type#" name="custom_#cnt#_#_name#_#field.getName()#" value="#item#" checked="#item EQ default#">
 													<b>#item#</b>
 												</label>
 												<cfif isStruct(desc) and StructKeyExists(desc,item)>
@@ -346,7 +367,7 @@ function showLayout() {
 									</ul>
 								<cfelse>
 									<cfset item = field.getValues() />
-									<cfinputClassic type="#type#" class="#type#" name="custom_#_name#_#field.getName()#" value="#item#" checked="#item EQ default#">
+									<cfinputClassic type="#type#" class="#type#" name="custom_#cnt#_#_name#_#field.getName()#" value="#item#" checked="#item EQ default#">
 								</cfif>
 								<cfif isStruct(desc) and StructKeyExists(desc,'_bottom')>
 									<div class="comment">#desc._bottom#</div>

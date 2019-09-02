@@ -25,7 +25,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.ext.function.Function;
 
 public final class BitNot implements Function {
-    public static double call(PageContext pc, double number) {
-	return ~(int) number;
-    }
+	public static double call(PageContext pc, double number) {
+		return ~(int) number;
+	}
 }

@@ -242,7 +242,7 @@ millisecond:"ms"
 			<td class="cfdebug" nowrap>#exp.type#</td>
 			<td class="cfdebug" nowrap>#exp.message#</td>
 			<td class="cfdebug" nowrap>#exp.detail#</td>
-			<td class="cfdebug" nowrap>#exp.TagContext[1].template#:#exp.TagContext[1].line#</td>
+			<td class="cfdebug" nowrap><cftry>#exp.TagContext[1].template#:<cftry>#exp.TagContext[1].line#<cfcatch></cfcatch></cftry><cfcatch></cfcatch></cftry></td>
 		</tr>
 </cfloop>                
  </table>
@@ -333,7 +333,7 @@ millisecond:"ms"
 <cfif queries.recordcount>
 <p class="cfdebug"><hr/><b class="cfdebuglge"><a name="cfdebug_sql">SQL Queries</a></b></p>
 <cfloop query="queries">	
-<code><b>#queries.name#</b> (Datasource=#queries.datasource#, Time=#formatUnit(custom.unit, queries.time)#, Records=#queries.count#) in #queries.src#:#queries.line#</code><br />
+<code><b>#queries.name#</b> (Datasource=#queries.datasource#, Time=#formatUnit(custom.unit, queries.time)#, Records=#queries.count#) in <cfif len(queries.src)>#queries.src#:#queries.line#</cfif></code><br />
 <cfif ListFindNoCase(queries.columnlist,'usage') and IsStruct(queries.usage)><cfset usage=queries.usage><cfset lstNeverRead="">
 <cfloop collection="#usage#" index="local.item" item="local._val"><cfif not _val><cfset lstNeverRead=ListAppend(lstNeverRead,item,', ')></cfif></cfloop>
 <cfif len(lstNeverRead)><font color="red">the following colum(s) are never read within the request:#lstNeverRead#</font><br /></cfif>

@@ -26,7 +26,7 @@ import lucee.transformer.cfml.evaluator.ChildEvaluator;
  */
 public final class Catch extends ChildEvaluator {
 
-    public Catch() {
-	super("try");
-    }
+	public Catch() {
+		super("try");
+	}
 }

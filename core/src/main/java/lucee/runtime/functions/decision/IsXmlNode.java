@@ -30,10 +30,10 @@ import lucee.runtime.text.xml.struct.XMLStruct;
  */
 public final class IsXmlNode implements Function {
 
-    public static boolean call(PageContext pc, Object value) {
-	if (value instanceof Node) return true;
-	else if (value instanceof NodeList) return ((NodeList) value).getLength() > 0;
-	else if (value instanceof XMLStruct) return true;
-	return false;
-    }
+	public static boolean call(PageContext pc, Object value) {
+		if (value instanceof Node) return true;
+		else if (value instanceof NodeList) return ((NodeList) value).getLength() > 0;
+		else if (value instanceof XMLStruct) return true;
+		return false;
+	}
 }

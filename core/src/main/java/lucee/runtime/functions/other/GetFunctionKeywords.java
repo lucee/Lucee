@@ -35,39 +35,39 @@ import lucee.transformer.library.function.FunctionLibFunction;
 import lucee.transformer.library.tag.TagLib;
 
 public class GetFunctionKeywords {
-    private static Array keywords;
+	private static Array keywords;
 
-    public static Array call(PageContext pc) throws PageException {
-	synchronized (keywords) {
-	    if (keywords == null) {
-		Set<String> set = new HashSet<String>();
-		FunctionLib[] flds;
-		flds = ((ConfigImpl) pc.getConfig()).getFLDs(pc.getCurrentTemplateDialect());
-		Map<String, FunctionLibFunction> functions;
-		Iterator<FunctionLibFunction> it;
-		FunctionLibFunction flf;
-		String[] arr;
-		for (int i = 0; i < flds.length; i++) {
-		    functions = flds[i].getFunctions();
-		    it = functions.values().iterator();
+	public static Array call(PageContext pc) throws PageException {
+		synchronized (keywords) {
+			if (keywords == null) {
+				Set<String> set = new HashSet<String>();
+				FunctionLib[] flds;
+				flds = ((ConfigImpl) pc.getConfig()).getFLDs(pc.getCurrentTemplateDialect());
+				Map<String, FunctionLibFunction> functions;
+				Iterator<FunctionLibFunction> it;
+				FunctionLibFunction flf;
+				String[] arr;
+				for (int i = 0; i < flds.length; i++) {
+					functions = flds[i].getFunctions();
+					it = functions.values().iterator();
 
-		    while (it.hasNext()) {
-			flf = it.next();
-			if (flf.getStatus() != TagLib.STATUS_HIDDEN && flf.getStatus() != TagLib.STATUS_UNIMPLEMENTED && !ArrayUtil.isEmpty(flf.getKeywords())) {
-			    arr = flf.getKeywords();
-			    if (arr != null) for (int y = 0; y < arr.length; y++) {
-				set.add(arr[y].toLowerCase());
-			    }
+					while (it.hasNext()) {
+						flf = it.next();
+						if (flf.getStatus() != TagLib.STATUS_HIDDEN && flf.getStatus() != TagLib.STATUS_UNIMPLEMENTED && !ArrayUtil.isEmpty(flf.getKeywords())) {
+							arr = flf.getKeywords();
+							if (arr != null) for (int y = 0; y < arr.length; y++) {
+								set.add(arr[y].toLowerCase());
+							}
 
+						}
+					}
+				}
+				keywords = Caster.toArray(set);
+				ArraySort.call(pc, keywords, "textnocase");
+				// }
 			}
-		    }
 		}
-		keywords = Caster.toArray(set);
-		ArraySort.call(pc, keywords, "textnocase");
-		// }
-	    }
+		return keywords;
 	}
-	return keywords;
-    }
 
 }

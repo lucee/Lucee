@@ -13,30 +13,30 @@ import lucee.runtime.type.util.StructSupport;
 
 public abstract class AbsSystemStruct extends StructSupport {
 
-    @Override
-    public final Object remove(Key key) throws PageException {
-	return removeEL(key);
-    }
+	@Override
+	public final Object remove(Key key) throws PageException {
+		return removeEL(key);
+	}
 
-    @Override
-    public final Collection duplicate(boolean deepCopy) {
-	Struct sct = new StructImpl();
-	StructImpl.copy(this, sct, deepCopy);
-	return sct;
-    }
+	@Override
+	public final Collection duplicate(boolean deepCopy) {
+		Struct sct = new StructImpl();
+		StructImpl.copy(this, sct, deepCopy);
+		return sct;
+	}
 
-    @Override
-    public final Iterator<Key> keyIterator() {
-	return new KeyIterator(keys());
-    }
+	@Override
+	public final Iterator<Key> keyIterator() {
+		return new KeyIterator(keys());
+	}
 
-    @Override
-    public final Iterator<Object> valueIterator() {
-	return new ValueIterator(this, keys());
-    }
+	@Override
+	public final Iterator<Object> valueIterator() {
+		return new ValueIterator(this, keys());
+	}
 
-    @Override
-    public final Iterator<Entry<Key, Object>> entryIterator() {
-	return new EntryIterator(this, keys());
-    }
+	@Override
+	public final Iterator<Entry<Key, Object>> entryIterator() {
+		return new EntryIterator(this, keys());
+	}
 }

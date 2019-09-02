@@ -32,16 +32,16 @@ import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
 
 public final class SetProfileString implements Function {
-    public static String call(PageContext pc, String fileName, String section, String key, String value) throws PageException {
-	try {
-	    Resource res = ResourceUtil.toResourceNotExisting(pc, fileName);
-	    IniFile ini = new IniFile(res);
-	    ini.setKeyValue(section, key, value);
-	    ini.save();
+	public static String call(PageContext pc, String fileName, String section, String key, String value) throws PageException {
+		try {
+			Resource res = ResourceUtil.toResourceNotExisting(pc, fileName);
+			IniFile ini = new IniFile(res);
+			ini.setKeyValue(section, key, value);
+			ini.save();
+		}
+		catch (IOException e) {
+			throw Caster.toPageException(e);
+		}
+		return "";
 	}
-	catch (IOException e) {
-	    throw Caster.toPageException(e);
-	}
-	return "";
-    }
 }

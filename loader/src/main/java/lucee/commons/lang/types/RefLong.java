@@ -23,32 +23,25 @@ package lucee.commons.lang.types;
  */
 public interface RefLong {
 
-    /**
-     * @param value
-     */
-    public void setValue(long value);
+	public void setValue(long value);
 
-    /**
-     * operation plus
-     * 
-     * @param value
-     */
-    public void plus(long value);
+	/**
+	 * operation plus
+	 */
+	public void plus(long value);
 
-    /**
-     * operation minus
-     * 
-     * @param value
-     */
-    public void minus(long value);
+	/**
+	 * operation minus
+	 */
+	public void minus(long value);
 
-    /**
-     * @return returns value as Double Object
-     */
-    public Long toLong();
+	/**
+	 * @return returns value as Double Object
+	 */
+	public Long toLong();
 
-    /**
-     * @return returns value as double
-     */
-    public long toLongValue();
+	/**
+	 * @return returns value as double
+	 */
+	public long toLongValue();
 }

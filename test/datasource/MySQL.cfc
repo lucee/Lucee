@@ -218,13 +218,29 @@ END
 		
 	}
 
+	public void function testType(){
+		if(!defineDatasourceX()) return;
+		
+		query datasource="x" { 
+			echo("show tables");
+		}
+		
+	}
 
-	private string function defineDatasource(){
+
+	private boolean function defineDatasource(){
 		var sct=getDatasource();
 		if(sct.count()==0) return false;
 		application action="update" datasource=sct;
 		return true;
 	}
+	private boolean function defineDatasourceX(){
+		var sct=getDatasource2();
+		if(sct.count()==0) return false;
+		application action="update" datasources={'x':sct};
+		return true;
+	}
+
 
 	private struct function getDatasource(){
 			var mySQL=getCredencials();
@@ -238,6 +254,24 @@ END
 			, username: mySQL.username
 			, password: mySQL.password
 			};
+	}
+
+	private struct function getDatasource2(){
+			var mySQL=getCredencials();
+			if(mySQL.count()==0) return {};
+			
+			return {
+			  type= 'mysql'
+			, host=mySQL.server
+			, port=mySQL.port
+			, database=mySQL.database
+			, username= mySQL.username
+			, password= mySQL.password
+		 	, custom= { useUnicode:true }
+			};
+
+
+
 	}
 
 	private struct function getCredencials() {

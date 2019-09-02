@@ -30,15 +30,15 @@ import lucee.runtime.type.Array;
 
 public final class ArrayLen extends BIF {
 
-    private static final long serialVersionUID = -1530118609194349457L;
+	private static final long serialVersionUID = -1530118609194349457L;
 
-    public static double call(PageContext pc, Array array) {
-	return array.size();
-    }
+	public static double call(PageContext pc, Array array) {
+		return array.size();
+	}
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 1) return call(pc, Caster.toArray(args[0]));
-	else throw new FunctionException(pc, "ArrayLen", 1, 1, args.length);
-    }
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 1) return call(pc, Caster.toArray(args[0]));
+		else throw new FunctionException(pc, "ArrayLen", 1, 1, args.length);
+	}
 }

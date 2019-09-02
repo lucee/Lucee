@@ -35,52 +35,52 @@ import lucee.runtime.type.dt.DateTime;
 
 public final class LSDateFormat extends BIF implements Function {
 
-    private static final long serialVersionUID = 4720003854756942610L;
+	private static final long serialVersionUID = 4720003854756942610L;
 
-    public static String call(PageContext pc, Object object) throws PageException {
-	return _call(pc, object, "medium", pc.getLocale(), pc.getTimeZone());
-    }
-
-    public static String call(PageContext pc, Object object, String mask) throws PageException {
-	return _call(pc, object, mask, pc.getLocale(), pc.getTimeZone());
-    }
-
-    public static String call(PageContext pc, Object object, String mask, Locale locale) throws PageException {
-	return _call(pc, object, mask, locale, pc.getTimeZone());
-    }
-
-    public static String call(PageContext pc, Object object, String mask, Locale locale, TimeZone tz) throws PageException {
-	return _call(pc, object, mask, locale == null ? pc.getLocale() : locale, tz == null ? pc.getTimeZone() : tz);
-    }
-
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 1) {
-	    return call(pc, args[0]);
+	public static String call(PageContext pc, Object object) throws PageException {
+		return _call(pc, object, "medium", pc.getLocale(), pc.getTimeZone());
 	}
-	else if (args.length == 2) {
-	    return call(pc, args[0], Caster.toString(args[1]));
-	}
-	else if (args.length == 3) {
-	    return call(pc, args[0], Caster.toString(args[1]), args[2] == null ? null : Caster.toLocale(args[2]));
-	}
-	else {
-	    return call(pc, args[0], Caster.toString(args[1]), args[2] == null ? null : Caster.toLocale(args[2]), args[3] == null ? null : Caster.toTimeZone(args[3]));
-	}
-    }
 
-    private static String _call(PageContext pc, Object object, String mask, Locale locale, TimeZone tz) throws PageException {
-	if (StringUtil.isEmpty(object)) return "";
-
-	return new lucee.runtime.format.DateFormat(locale).format(toDateLS(pc, locale, tz, object), mask, tz);
-    }
-
-    private static DateTime toDateLS(PageContext pc, Locale locale, TimeZone timeZone, Object object) throws PageException {
-	if (object instanceof DateTime) return (DateTime) object;
-	else if (object instanceof CharSequence) {
-	    DateTime res = DateCaster.toDateTime(locale, Caster.toString(object), timeZone, null, locale.equals(Locale.US));
-	    if (res != null) return res;
+	public static String call(PageContext pc, Object object, String mask) throws PageException {
+		return _call(pc, object, mask, pc.getLocale(), pc.getTimeZone());
 	}
-	return DateCaster.toDateAdvanced(object, timeZone);
-    }
+
+	public static String call(PageContext pc, Object object, String mask, Locale locale) throws PageException {
+		return _call(pc, object, mask, locale, pc.getTimeZone());
+	}
+
+	public static String call(PageContext pc, Object object, String mask, Locale locale, TimeZone tz) throws PageException {
+		return _call(pc, object, mask, locale == null ? pc.getLocale() : locale, tz == null ? pc.getTimeZone() : tz);
+	}
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 1) {
+			return call(pc, args[0]);
+		}
+		else if (args.length == 2) {
+			return call(pc, args[0], Caster.toString(args[1]));
+		}
+		else if (args.length == 3) {
+			return call(pc, args[0], Caster.toString(args[1]), args[2] == null ? null : Caster.toLocale(args[2]));
+		}
+		else {
+			return call(pc, args[0], Caster.toString(args[1]), args[2] == null ? null : Caster.toLocale(args[2]), args[3] == null ? null : Caster.toTimeZone(args[3]));
+		}
+	}
+
+	private static String _call(PageContext pc, Object object, String mask, Locale locale, TimeZone tz) throws PageException {
+		if (StringUtil.isEmpty(object)) return "";
+
+		return new lucee.runtime.format.DateFormat(locale).format(toDateLS(pc, locale, tz, object), mask, tz);
+	}
+
+	private static DateTime toDateLS(PageContext pc, Locale locale, TimeZone timeZone, Object object) throws PageException {
+		if (object instanceof DateTime) return (DateTime) object;
+		else if (object instanceof CharSequence) {
+			DateTime res = DateCaster.toDateTime(locale, Caster.toString(object), timeZone, null, locale.equals(Locale.US));
+			if (res != null) return res;
+		}
+		return DateCaster.toDateAdvanced(object, timeZone);
+	}
 }

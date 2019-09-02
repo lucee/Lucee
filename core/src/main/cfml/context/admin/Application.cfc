@@ -29,5 +29,11 @@ this.applicationtimeout="#createTimeSpan(1,0,0,0)#";
 this.localmode="update";
 this.web.charset="utf-8";
 
+public function onApplicationStart(){
+	if(structKeyExists(server.system.environment,"LUCEE_ADMIN_ENABLED") && server.system.environment.LUCEE_ADMIN_ENABLED EQ false){
+		cfheader(statuscode="404" statustext="Invalid access");
+        abort;
+	}
+}
 
 </cfscript></cfcomponent>

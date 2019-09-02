@@ -29,20 +29,20 @@ import lucee.runtime.type.dt.DateTime;
 
 public class DatePartMember extends BIF {
 
-    private static final long serialVersionUID = 4954080153486127616L;
+	private static final long serialVersionUID = 4954080153486127616L;
 
-    public static double call(PageContext pc, DateTime date, String datepart) throws ExpressionException {
-	return DatePart.call(pc, datepart, date, null);
-    }
+	public static double call(PageContext pc, DateTime date, String datepart) throws ExpressionException {
+		return DatePart.call(pc, datepart, date, null);
+	}
 
-    public static double call(PageContext pc, DateTime date, String datepart, TimeZone tz) throws ExpressionException {
-	return DatePart.call(pc, datepart, date, tz);
-    }
+	public static double call(PageContext pc, DateTime date, String datepart, TimeZone tz) throws ExpressionException {
+		return DatePart.call(pc, datepart, date, tz);
+	}
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 2) return call(pc, Caster.toDatetime(args[0], pc.getTimeZone()), Caster.toString(args[1]));
-	return call(pc, Caster.toDatetime(args[0], pc.getTimeZone()), Caster.toString(args[1]), Caster.toTimeZone(args[2]));
-    }
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 2) return call(pc, Caster.toDatetime(args[0], pc.getTimeZone()), Caster.toString(args[1]));
+		return call(pc, Caster.toDatetime(args[0], pc.getTimeZone()), Caster.toString(args[1]), Caster.toTimeZone(args[2]));
+	}
 
 }

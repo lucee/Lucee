@@ -29,18 +29,18 @@ import lucee.runtime.type.dt.DateTimeImpl;
 
 public class OracleTimestampTZ implements Cast {
 
-    @Override
-    public Object toCFType(TimeZone tz, ResultSet rst, int columnIndex) throws SQLException, IOException {
-	Object o = rst.getObject(columnIndex);
-	if (o == null) return null;
+	@Override
+	public Object toCFType(TimeZone tz, ResultSet rst, int columnIndex) throws SQLException, IOException {
+		Object o = rst.getObject(columnIndex);
+		if (o == null) return null;
 
-	// we do not have oracle.sql.TIMESTAMPTZ in the core, so we need reflection for this
-	try {
-	    Timestamp ts = (Timestamp) Reflector.callMethod(o, "timestampValue", new Object[] { rst.getStatement().getConnection() });
-	    return new DateTimeImpl(ts.getTime(), false);
+		// we do not have oracle.sql.TIMESTAMPTZ in the core, so we need reflection for this
+		try {
+			Timestamp ts = (Timestamp) Reflector.callMethod(o, "timestampValue", new Object[] { rst.getStatement().getConnection() });
+			return new DateTimeImpl(ts.getTime(), false);
+		}
+		catch (PageException pe) {
+			throw ExceptionUtil.toIOException(pe);
+		}
 	}
-	catch (PageException pe) {
-	    throw ExceptionUtil.toIOException(pe);
-	}
-    }
 }

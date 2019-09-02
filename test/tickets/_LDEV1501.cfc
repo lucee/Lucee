@@ -4,7 +4,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			it( title='Checking Webservice call with login creditinal', body=function( currentSpec ) {
 				var wb = createObject("webservice","http://mail.welikeit.net/Services/svcDomainAdmin.asmx?wsdl");
 				var result = wb.GetDomainInfo(AuthUserName="Administrator", AuthPassword="noPassword", domainName="welikeit.net");
-				expect(result.getmessage()).toBE("Failed to log in");
+				expect(result.getmessage()).toBE("Failed to log in.");
 			});
 
 			it( title='Sending Soap Request Via HTTP', body=function( currentSpec ) {

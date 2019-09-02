@@ -28,58 +28,58 @@ import lucee.transformer.expression.Expression;
 
 public class Argument extends ExpressionBase {
 
-    private Expression raw;
-    private String type;
+	private Expression raw;
+	private String type;
 
-    public Argument(Expression value, String type) {
-	super(value.getFactory(), value.getStart(), value.getEnd());
-	this.raw = value;// Cast.toExpression(value,type);
-	this.type = type;
-    }
+	public Argument(Expression value, String type) {
+		super(value.getFactory(), value.getStart(), value.getEnd());
+		this.raw = value;// Cast.toExpression(value,type);
+		this.type = type;
+	}
 
-    /**
-     * @return the value
-     */
-    public Expression getValue() {
-	return raw.getFactory().toExpression(raw, type);
-    }
+	/**
+	 * @return the value
+	 */
+	public Expression getValue() {
+		return raw.getFactory().toExpression(raw, type);
+	}
 
-    /**
-     * return the uncasted value
-     * 
-     * @return
-     */
-    public Expression getRawValue() {
-	return raw;
-    }
+	/**
+	 * return the uncasted value
+	 * 
+	 * @return
+	 */
+	public Expression getRawValue() {
+		return raw;
+	}
 
-    public void setValue(Expression value, String type) {
-	this.raw = value;
-	this.type = type;
+	public void setValue(Expression value, String type) {
+		this.raw = value;
+		this.type = type;
 
-    }
+	}
 
-    /**
-     *
-     * @see lucee.transformer.bytecode.expression.ExpressionBase#_writeOut(org.objectweb.asm.commons.GeneratorAdapter,
-     *      int)
-     */
-    @Override
-    public Type _writeOut(BytecodeContext bc, int mode) throws TransformerException {
-	return ((ExpressionBase) getValue()).writeOutAsType(bc, mode);
-    }
+	/**
+	 *
+	 * @see lucee.transformer.bytecode.expression.ExpressionBase#_writeOut(org.objectweb.asm.commons.GeneratorAdapter,
+	 *      int)
+	 */
+	@Override
+	public Type _writeOut(BytecodeContext bc, int mode) throws TransformerException {
+		return ((ExpressionBase) getValue()).writeOutAsType(bc, mode);
+	}
 
-    public Type writeOutValue(BytecodeContext bc, int mode) throws TransformerException {
-	ExpressionUtil.visitLine(bc, getStart());
-	Type t = ((ExpressionBase) getValue()).writeOutAsType(bc, mode);
-	ExpressionUtil.visitLine(bc, getEnd());
-	return t;
-    }
+	public Type writeOutValue(BytecodeContext bc, int mode) throws TransformerException {
+		ExpressionUtil.visitLine(bc, getStart());
+		Type t = ((ExpressionBase) getValue()).writeOutAsType(bc, mode);
+		ExpressionUtil.visitLine(bc, getEnd());
+		return t;
+	}
 
-    /**
-     * @return the type
-     */
-    public String getStringType() {
-	return type;
-    }
+	/**
+	 * @return the type
+	 */
+	public String getStringType() {
+		return type;
+	}
 }

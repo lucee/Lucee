@@ -20,36 +20,36 @@ package lucee.commons.io.res;
 
 public interface Resources {
 
-    /**
-     * adds a default factory, this factory is used, when shemecan't be mapped to a other factory
-     * 
-     * @param provider
-     */
-    public void registerDefaultResourceProvider(ResourceProvider provider);
+	/**
+	 * adds a default factory, this factory is used, when shemecan't be mapped to another factory
+	 * 
+	 * @param provider resource provider to register
+	 */
+	public void registerDefaultResourceProvider(ResourceProvider provider);
 
-    /**
-     * adds a additional resource to System
-     * 
-     * @param provider
-     */
-    public void registerResourceProvider(ResourceProvider provider);
+	/**
+	 * adds an additional resource to System
+	 * 
+	 * @param provider resource provider to register
+	 */
+	public void registerResourceProvider(ResourceProvider provider);
 
-    /**
-     * returns a resource that matching the given path
-     * 
-     * @param path
-     * @return matching resource
-     */
-    public Resource getResource(String path);
+	/**
+	 * returns a resource that matching the given path
+	 * 
+	 * @param path path to resource
+	 * @return matching resource
+	 */
+	public Resource getResource(String path);
 
-    /**
-     * @return the defaultResource
-     */
-    public ResourceProvider getDefaultResourceProvider();
+	/**
+	 * @return the defaultResource
+	 */
+	public ResourceProvider getDefaultResourceProvider();
 
-    public ResourceProvider[] getResourceProviders();
+	public ResourceProvider[] getResourceProviders();
 
-    public ResourceLock createResourceLock(long timeout, boolean caseSensitive);
+	public ResourceLock createResourceLock(long timeout, boolean caseSensitive);
 
-    public void reset();
+	public void reset();
 }

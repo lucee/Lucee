@@ -23,24 +23,24 @@ package lucee.runtime.debug;
  * 
  */
 public interface DebugEntryTemplatePart extends DebugEntry {
-    /**
-     * start position (0 offset) on this Entry
-     * 
-     * @return
-     */
-    public int getStartPosition();
+	/**
+	 * start position (0 offset) on this Entry
+	 * 
+	 * @return
+	 */
+	public int getStartPosition();
 
-    /**
-     * end position (0 offset) on this Entry
-     * 
-     * @return
-     */
-    public int getEndPosition();
+	/**
+	 * end position (0 offset) on this Entry
+	 * 
+	 * @return
+	 */
+	public int getEndPosition();
 
-    public int getStartLine();
+	public int getStartLine();
 
-    public int getEndLine();
+	public int getEndLine();
 
-    public String getSnippet();
+	public String getSnippet();
 
 }

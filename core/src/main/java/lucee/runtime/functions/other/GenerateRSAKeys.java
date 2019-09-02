@@ -13,28 +13,28 @@ import lucee.runtime.type.StructImpl;
 
 public class GenerateRSAKeys extends BIF {
 
-    private static final long serialVersionUID = 8436907807706520039L;
+	private static final long serialVersionUID = 8436907807706520039L;
 
-    public static Struct call(PageContext pc) throws PageException {
-	return createKeyPair();
-    }
-
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 0) return createKeyPair();
-	else throw new FunctionException(pc, "GenerateRSAKey", 0, 0, args.length);
-    }
-
-    private static Struct createKeyPair() throws PageException {
-	try {
-	    KeyPair keyPair = RSA.createKeyPair();
-	    Struct sct = new StructImpl();
-	    sct.set("private", RSA.toString(keyPair.getPrivate()));
-	    sct.set("public", RSA.toString(keyPair.getPublic()));
-	    return sct;
+	public static Struct call(PageContext pc) throws PageException {
+		return createKeyPair();
 	}
-	catch (Exception e) {
-	    throw Caster.toPageException(e);
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 0) return createKeyPair();
+		else throw new FunctionException(pc, "GenerateRSAKey", 0, 0, args.length);
 	}
-    }
+
+	private static Struct createKeyPair() throws PageException {
+		try {
+			KeyPair keyPair = RSA.createKeyPair();
+			Struct sct = new StructImpl();
+			sct.set("private", RSA.toString(keyPair.getPrivate()));
+			sct.set("public", RSA.toString(keyPair.getPublic()));
+			return sct;
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+	}
 }

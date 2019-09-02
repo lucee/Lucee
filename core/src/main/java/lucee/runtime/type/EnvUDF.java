@@ -36,156 +36,136 @@ import lucee.runtime.type.scope.Variables;
 // implements Supplier, BooleanSupplier, DoubleSupplier, IntSupplier, LongSupplier
 public abstract class EnvUDF extends UDFImpl {
 
-    private static final long serialVersionUID = -7200106903813254844L; // do not change
+	private static final long serialVersionUID = -7200106903813254844L; // do not change
 
-    protected Variables variables;
-    protected ApplicationContext applicationContext;
+	protected Variables variables;
+	protected ApplicationContext applicationContext;
 
-    public EnvUDF() {// needed for externalize
-	super();
-    }
-
-    EnvUDF(UDFProperties properties) {
-	super(properties);
-	PageContext pc = ThreadLocalPageContext.get();
-	if (pc.undefinedScope().getCheckArguments()) {
-	    this.variables = new ClosureScope(pc, pc.argumentsScope(), pc.localScope(), pc.variablesScope());
+	public EnvUDF() {// needed for externalize
+		super();
 	}
-	else {
-	    this.variables = pc.variablesScope();
-	    variables.setBind(true);
-	}
-	this.applicationContext = pc.getApplicationContext();
-    }
 
-    EnvUDF(UDFProperties properties, Variables variables) {
-	super(properties);
-	this.variables = variables;
-    }
-
-    @Override
-    public UDF duplicate(Component c) {
-	return _duplicate(c);
-    }
-
-    public abstract UDF _duplicate(Component c);
-
-    @Override
-    public Object callWithNamedValues(PageContext pc, Collection.Key calledName, Struct values, boolean doIncludePath) throws PageException {
-	Variables parent = pc.variablesScope();
-	ApplicationContext orgAC = null;
-	if (((PageContextImpl) pc).isDummy()) {
-	    orgAC = pc.getApplicationContext();
-	    pc.setApplicationContext(applicationContext);
+	EnvUDF(UDFProperties properties) {
+		super(properties);
+		PageContext pc = ThreadLocalPageContext.get();
+		if (pc.undefinedScope().getCheckArguments()) {
+			this.variables = new ClosureScope(pc, pc.argumentsScope(), pc.localScope(), pc.variablesScope());
+		}
+		else {
+			this.variables = pc.variablesScope();
+			variables.setBind(true);
+		}
+		this.applicationContext = pc.getApplicationContext();
 	}
-	try {
-	    pc.setVariablesScope(variables);
-	    return super.callWithNamedValues(pc, calledName, values, doIncludePath);
-	}
-	finally {
-	    pc.setVariablesScope(parent);
-	    if (orgAC != null) pc.setApplicationContext(orgAC);
-	}
-    }
 
-    @Override
-    public Object callWithNamedValues(PageContext pc, Struct values, boolean doIncludePath) throws PageException {
-	Variables parent = pc.variablesScope();
-	ApplicationContext orgAC = null;
-	if (((PageContextImpl) pc).isDummy()) {
-	    orgAC = pc.getApplicationContext();
-	    pc.setApplicationContext(applicationContext);
+	EnvUDF(UDFProperties properties, Variables variables) {
+		super(properties);
+		this.variables = variables;
 	}
-	try {
-	    pc.setVariablesScope(variables);
-	    return super.callWithNamedValues(pc, values, doIncludePath);
-	}
-	finally {
-	    pc.setVariablesScope(parent);
-	    if (orgAC != null) pc.setApplicationContext(orgAC);
-	}
-    }
 
-    @Override
-    public Object call(PageContext pc, Collection.Key calledName, Object[] args, boolean doIncludePath) throws PageException {
-	Variables parent = pc.variablesScope();
-	ApplicationContext orgAC = null;
-	if (((PageContextImpl) pc).isDummy()) {
-	    orgAC = pc.getApplicationContext();
-	    pc.setApplicationContext(applicationContext);
+	@Override
+	public UDF duplicate(Component c) {
+		return _duplicate(c);
 	}
-	try {
-	    pc.setVariablesScope(variables);
-	    return super.call(pc, calledName, args, doIncludePath);
+
+	public abstract UDF _duplicate(Component c);
+
+	@Override
+	public Object callWithNamedValues(PageContext pc, Collection.Key calledName, Struct values, boolean doIncludePath) throws PageException {
+		Variables parent = pc.variablesScope();
+		ApplicationContext orgAC = null;
+		if (((PageContextImpl) pc).isDummy()) {
+			orgAC = pc.getApplicationContext();
+			pc.setApplicationContext(applicationContext);
+		}
+		try {
+			pc.setVariablesScope(variables);
+			return super.callWithNamedValues(pc, calledName, values, doIncludePath);
+		}
+		finally {
+			pc.setVariablesScope(parent);
+			if (orgAC != null) pc.setApplicationContext(orgAC);
+		}
 	}
-	finally {
-	    pc.setVariablesScope(parent);
-	    if (orgAC != null) pc.setApplicationContext(orgAC);
+
+	@Override
+	public Object callWithNamedValues(PageContext pc, Struct values, boolean doIncludePath) throws PageException {
+		Variables parent = pc.variablesScope();
+		ApplicationContext orgAC = null;
+		if (((PageContextImpl) pc).isDummy()) {
+			orgAC = pc.getApplicationContext();
+			pc.setApplicationContext(applicationContext);
+		}
+		try {
+			pc.setVariablesScope(variables);
+			return super.callWithNamedValues(pc, values, doIncludePath);
+		}
+		finally {
+			pc.setVariablesScope(parent);
+			if (orgAC != null) pc.setApplicationContext(orgAC);
+		}
 	}
-    }
 
-    @Override
-    public Object call(PageContext pc, Object[] args, boolean doIncludePath) throws PageException {
-	Variables parent = pc.variablesScope();
-	ApplicationContext orgAC = null;
-	if (((PageContextImpl) pc).isDummy()) {
-	    orgAC = pc.getApplicationContext();
-	    pc.setApplicationContext(applicationContext);
+	@Override
+	public Object call(PageContext pc, Collection.Key calledName, Object[] args, boolean doIncludePath) throws PageException {
+		Variables parent = pc.variablesScope();
+		ApplicationContext orgAC = null;
+		if (((PageContextImpl) pc).isDummy()) {
+			orgAC = pc.getApplicationContext();
+			pc.setApplicationContext(applicationContext);
+		}
+		try {
+			pc.setVariablesScope(variables);
+			return super.call(pc, calledName, args, doIncludePath);
+		}
+		finally {
+			pc.setVariablesScope(parent);
+			if (orgAC != null) pc.setApplicationContext(orgAC);
+		}
 	}
-	try {
-	    pc.setVariablesScope(variables);
-	    return super.call(pc, args, doIncludePath);
+
+	@Override
+	public Object call(PageContext pc, Object[] args, boolean doIncludePath) throws PageException {
+		Variables parent = pc.variablesScope();
+		ApplicationContext orgAC = null;
+		if (((PageContextImpl) pc).isDummy()) {
+			orgAC = pc.getApplicationContext();
+			pc.setApplicationContext(applicationContext);
+		}
+		try {
+			pc.setVariablesScope(variables);
+			return super.call(pc, args, doIncludePath);
+		}
+		finally {
+			pc.setVariablesScope(parent);
+			if (orgAC != null) pc.setApplicationContext(orgAC);
+		}
 	}
-	finally {
-	    pc.setVariablesScope(parent);
-	    if (orgAC != null) pc.setApplicationContext(orgAC);
+
+	@Override
+	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+		variables = (Variables) in.readObject();
+		super.readExternal(in);
 	}
-    }
 
-    @Override
-    public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
-	variables = (Variables) in.readObject();
-	super.readExternal(in);
-    }
+	@Override
+	public void writeExternal(ObjectOutput out) throws IOException {
+		out.writeObject(ClosureScope.prepare(variables));
+		super.writeExternal(out);
+	}
 
-    @Override
-    public void writeExternal(ObjectOutput out) throws IOException {
-	out.writeObject(ClosureScope.prepare(variables));
-	super.writeExternal(out);
-    }
+	@Override
+	public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp) {
+		return _toDumpData(pageContext, maxlevel, dp);
+	}
 
-    @Override
-    public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp) {
-	return _toDumpData(pageContext, maxlevel, dp);
-    }
+	public abstract DumpData _toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp);
 
-    public abstract DumpData _toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp);
+	@Override
+	public Struct getMetaData(PageContext pc) throws PageException {
+		return _getMetaData(pc);
+	}
 
-    @Override
-    public Struct getMetaData(PageContext pc) throws PageException {
-	return _getMetaData(pc);
-    }
-    /*
-     * @Override public Object get() { try { return call(ThreadLocalPageContext.get(), new Object[] {},
-     * true); } catch (PageException pe) { throw new PageRuntimeException(pe); } }
-     * 
-     * @Override public boolean getAsBoolean() { try { return
-     * Caster.toBooleanValue(call(ThreadLocalPageContext.get(), new Object[] {}, true)); } catch
-     * (PageException pe) { throw new PageRuntimeException(pe); } }
-     * 
-     * @Override public double getAsDouble() { try { return
-     * Caster.toDoubleValue(call(ThreadLocalPageContext.get(), new Object[] {}, true)); } catch
-     * (PageException pe) { throw new PageRuntimeException(pe); } }
-     * 
-     * @Override public int getAsInt() { try { return
-     * Caster.toIntValue(call(ThreadLocalPageContext.get(), new Object[] {}, true)); } catch
-     * (PageException pe) { throw new PageRuntimeException(pe); } }
-     * 
-     * @Override public long getAsLong() { try { return
-     * Caster.toLongValue(call(ThreadLocalPageContext.get(), new Object[] {}, true)); } catch
-     * (PageException pe) { throw new PageRuntimeException(pe); } }
-     */
-
-    public abstract Struct _getMetaData(PageContext pc) throws PageException;
+	public abstract Struct _getMetaData(PageContext pc) throws PageException;
 
 }
