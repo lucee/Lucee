@@ -111,7 +111,9 @@ public final class XMLUtil {
 	public static final Collection.Key XMLTYPE = KeyImpl.intern("xmltype");
 	public static final Collection.Key XMLVALUE = KeyImpl.intern("xmlvalue");
 	public static final Collection.Key XMLATTRIBUTES = KeyImpl.intern("xmlattributes");
-	public static final Collection.Key SECURE = KeyImpl.intern("secure");
+	public static final Collection.Key KEY_FEATURE_SECURE = KeyImpl.intern("secure");
+	public static final Collection.Key KEY_FEATURE_DISALLOW_DOCTYPE_DECL = KeyImpl.intern("disallowDoctypeDecl");
+	public static final Collection.Key KEY_FEATURE_EXTERNAL_GENERAL_ENTITIES = KeyImpl.intern("externalGeneralEntities");
 
 	// public final static String
 	// DEFAULT_SAX_PARSER="org.apache.xerces.parsers.SAXParser";
@@ -313,11 +315,13 @@ public final class XMLUtil {
 			Struct features = ((ApplicationContextSupport)pc.getApplicationContext()).getXmlFeatures();
 
 			if (features != null) {
-				Object obj = features.get(SECURE, null);
-				if (obj != null) {
-					try {
-						boolean isSecure = Caster.toBoolean(obj);
-						if (isSecure) {
+				try {	// handle feature aliases, e.g. secure
+					Object obj;
+					boolean featureValue;
+					obj = features.get(KEY_FEATURE_SECURE, null);
+					if (obj != null) {
+						featureValue = Caster.toBoolean(obj);
+						if (featureValue) {
 							// set features per https://cheatsheetseries.owasp.org/cheatsheets/XML_External_Entity_Prevention_Cheat_Sheet.html
 							factory.setFeature(XMLConstants.FEATURE_DISALLOW_DOCTYPE_DECL, true);
 							factory.setFeature(XMLConstants.FEATURE_EXTERNAL_GENERAL_ENTITIES, false);
@@ -328,10 +332,24 @@ public final class XMLUtil {
 							factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
 							factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
 						}
-						features.remove(SECURE);
-					} catch (PageException | ParserConfigurationException ex) {
-						throw new RuntimeException(ex);
+						features.remove(KEY_FEATURE_SECURE);
 					}
+
+					obj = features.get(KEY_FEATURE_DISALLOW_DOCTYPE_DECL, null);
+					if (obj != null) {
+						featureValue = Caster.toBoolean(obj);
+						factory.setFeature(XMLConstants.FEATURE_DISALLOW_DOCTYPE_DECL, featureValue);
+						features.remove(KEY_FEATURE_DISALLOW_DOCTYPE_DECL);
+					}
+
+					obj = features.get(KEY_FEATURE_EXTERNAL_GENERAL_ENTITIES, null);
+					if (obj != null) {
+						featureValue = Caster.toBoolean(obj);
+						factory.setFeature(XMLConstants.FEATURE_EXTERNAL_GENERAL_ENTITIES, featureValue);
+						features.remove(KEY_FEATURE_EXTERNAL_GENERAL_ENTITIES);
+					}
+				} catch (PageException | ParserConfigurationException ex) {
+					throw new RuntimeException(ex);
 				}
 
 				features.forEach((k, v) -> {
