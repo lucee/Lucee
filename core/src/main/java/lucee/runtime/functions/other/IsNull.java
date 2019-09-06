@@ -22,17 +22,22 @@
 package lucee.runtime.functions.other;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.type.QueryColumn;
 
 public final class IsNull implements Function {
 	public static boolean call(PageContext pc, Object object) {
-		return object == null;
+		if (object == null) return true;
+		if (object instanceof QueryColumn && NullSupportHelper.full(pc)) {
+			return ((QueryColumn) object).get(pc, null) == null;
+		}
+		return false;
 	}
 
 	// called by modifed call from translation time evaluator
 	public static boolean call(PageContext pc, String str) {
-
 		try {
 			return pc.evaluate(str) == null;
 		}
