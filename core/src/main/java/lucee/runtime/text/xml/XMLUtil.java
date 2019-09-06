@@ -18,6 +18,52 @@
  **/
 package lucee.runtime.text.xml;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.FactoryConfigurationError;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParserFactory;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMResult;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.sax.SAXSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
+
+import org.ccil.cowan.tagsoup.Parser;
+import org.w3c.dom.Attr;
+import org.w3c.dom.CDATASection;
+import org.w3c.dom.CharacterData;
+import org.w3c.dom.Comment;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.Text;
+import org.xml.sax.EntityResolver;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+import org.xml.sax.XMLReader;
+import org.xml.sax.helpers.XMLReaderFactory;
+
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.Log;
@@ -46,50 +92,6 @@ import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
-import org.ccil.cowan.tagsoup.Parser;
-import org.w3c.dom.Attr;
-import org.w3c.dom.CDATASection;
-import org.w3c.dom.CharacterData;
-import org.w3c.dom.Comment;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.w3c.dom.Text;
-import org.xml.sax.EntityResolver;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.xml.sax.XMLReader;
-import org.xml.sax.helpers.XMLReaderFactory;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.FactoryConfigurationError;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParserFactory;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMResult;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.sax.SAXSource;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Reader;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 /**
  *
@@ -312,17 +314,18 @@ public final class XMLUtil {
 
 		PageContext pc = ThreadLocalPageContext.get();
 		if (pc != null) {
-			Struct features = ((ApplicationContextSupport)pc.getApplicationContext()).getXmlFeatures();
+			Struct features = ((ApplicationContextSupport) pc.getApplicationContext()).getXmlFeatures();
 
 			if (features != null) {
-				try {	// handle feature aliases, e.g. secure
+				try { // handle feature aliases, e.g. secure
 					Object obj;
 					boolean featureValue;
 					obj = features.get(KEY_FEATURE_SECURE, null);
 					if (obj != null) {
 						featureValue = Caster.toBoolean(obj);
 						if (featureValue) {
-							// set features per https://cheatsheetseries.owasp.org/cheatsheets/XML_External_Entity_Prevention_Cheat_Sheet.html
+							// set features per
+							// https://cheatsheetseries.owasp.org/cheatsheets/XML_External_Entity_Prevention_Cheat_Sheet.html
 							factory.setFeature(XMLConstants.FEATURE_DISALLOW_DOCTYPE_DECL, true);
 							factory.setFeature(XMLConstants.FEATURE_EXTERNAL_GENERAL_ENTITIES, false);
 							factory.setFeature(XMLConstants.FEATURE_EXTERNAL_PARAMETER_ENTITIES, false);
@@ -348,14 +351,16 @@ public final class XMLUtil {
 						factory.setFeature(XMLConstants.FEATURE_EXTERNAL_GENERAL_ENTITIES, featureValue);
 						features.remove(KEY_FEATURE_EXTERNAL_GENERAL_ENTITIES);
 					}
-				} catch (PageException | ParserConfigurationException ex) {
+				}
+				catch (PageException | ParserConfigurationException ex) {
 					throw new RuntimeException(ex);
 				}
 
 				features.forEach((k, v) -> {
 					try {
 						factory.setFeature(k.toString().toLowerCase(), Caster.toBoolean(v));
-					} catch (PageException | ParserConfigurationException ex) {
+					}
+					catch (PageException | ParserConfigurationException ex) {
 						throw new RuntimeException(ex);
 					}
 				});
@@ -365,20 +370,32 @@ public final class XMLUtil {
 		return factory;
 	}
 
-	private static DocumentBuilderFactory _newDocumentBuilderFactory() {
+	private static Class<DocumentBuilderFactory> dbf;
 
-		Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl) ThreadLocalPageContext.getConfig()));
-		DocumentBuilderFactory factory = null;
-		Class clazz = null;
-		try {
-			clazz = ClassUtil.loadClass("com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl");
-		}
-		catch (Exception e) {
+	private static Class<DocumentBuilderFactory> _newDocumentBuilderFactoryClass() {
+		if (dbf == null) {
+			Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl) ThreadLocalPageContext.getConfig()));
+			Class<DocumentBuilderFactory> clazz = null;
 			try {
-				clazz = ClassUtil.loadClass("org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl");
+				clazz = ClassUtil.loadClass("com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl");
 			}
-			catch (Exception ee) {}
+			catch (Exception e) {
+				try {
+					clazz = ClassUtil.loadClass("org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl");
+				}
+				catch (Exception ee) {}
+			}
+			if (clazz != null) {
+				dbf = clazz;
+				LogUtil.log(null, Log.LEVEL_INFO, "application", "xml", clazz.getName() + " is used as DocumentBuilderFactory");
+			}
 		}
+		return dbf;
+	}
+
+	private static DocumentBuilderFactory _newDocumentBuilderFactory() {
+		Class<DocumentBuilderFactory> clazz = _newDocumentBuilderFactoryClass();
+		DocumentBuilderFactory factory = null;
 		if (clazz != null) {
 			try {
 				factory = (DocumentBuilderFactory) ClassUtil.loadInstance(clazz);
@@ -386,8 +403,6 @@ public final class XMLUtil {
 			catch (Exception e) {}
 		}
 		if (factory == null) factory = DocumentBuilderFactory.newInstance();
-
-		LogUtil.log(null, Log.LEVEL_INFO, "application", "xml", factory.getClass().getName() + " is used as DocumentBuilderFactory");
 		return factory;
 	}
 
