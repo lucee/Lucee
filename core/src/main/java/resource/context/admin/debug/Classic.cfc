@@ -48,6 +48,9 @@ string function getid(){
 	return "lucee-classic"; 
 }
 
+string function readDebug(struct custom, struct debugging, string context){
+	output(argumentcollection=arguments);
+}
 
 void function onBeforeUpdate(struct custom){
 	throwWhenEmpty(custom,"color");
