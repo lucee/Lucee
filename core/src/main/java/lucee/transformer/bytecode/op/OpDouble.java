@@ -75,7 +75,7 @@ public final class OpDouble extends ExpressionBase implements ExprDouble {
 	}
 
 	/**
-	 * Create a String expression from a Expression
+	 * Create a String expression from an Expression
 	 * 
 	 * @param left
 	 * @param right

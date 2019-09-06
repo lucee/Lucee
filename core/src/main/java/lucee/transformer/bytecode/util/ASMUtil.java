@@ -307,7 +307,7 @@ public final class ASMUtil {
 	}
 
 	/**
-	 * extract the content of a attribut
+	 * extract the content of an attribute
 	 * 
 	 * @param cfxdTag
 	 * @param attrName
@@ -321,7 +321,7 @@ public final class ASMUtil {
 	}
 
 	/**
-	 * extract the content of a attribut
+	 * extract the content of an attribute
 	 * 
 	 * @param cfxdTag
 	 * @param attrName
@@ -335,7 +335,7 @@ public final class ASMUtil {
 	}
 
 	/**
-	 * extract the content of a attribut
+	 * extract the content of an attribute
 	 * 
 	 * @param cfxdTag
 	 * @param attrName
@@ -347,7 +347,7 @@ public final class ASMUtil {
 	}
 
 	/**
-	 * extract the content of a attribut
+	 * extract the content of an attribute
 	 * 
 	 * @param cfxdTag
 	 * @param attrName
@@ -361,7 +361,7 @@ public final class ASMUtil {
 	}
 
 	/**
-	 * extract the content of a attribut
+	 * extract the content of an attribute
 	 * 
 	 * @param cfxdTag
 	 * @param attrName
@@ -375,7 +375,7 @@ public final class ASMUtil {
 	}
 
 	/**
-	 * extract the content of a attribut
+	 * extract the content of an attribute
 	 * 
 	 * @param cfxdTag
 	 * @param attrName

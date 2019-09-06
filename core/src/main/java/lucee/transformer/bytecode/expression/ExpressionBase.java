@@ -32,7 +32,7 @@ import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.expression.Expression;
 
 /**
- * A Expression (Operation, Literal aso.)
+ * An Expression (Operation, Literal aso.)
  */
 public abstract class ExpressionBase implements Expression {
 
