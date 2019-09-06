@@ -17,6 +17,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.compiler.SourceCode;
 import lucee.runtime.Component;
 import lucee.runtime.PageSource;
+import lucee.runtime.functions.other.CreateUniqueId;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection;
@@ -35,6 +36,7 @@ public class JavaFunctionDef implements FunctionDef {
 	protected Class<?>[] args;
 	protected Class<?> rtn;
 	protected boolean throwException;
+	private static long _id = 0;
 
 	public JavaFunctionDef(Class<?> javaClassName, String javaMethodName, Class<?>[] args, Class<?> rtn) {
 		this(javaClassName, javaMethodName, args, rtn, false);
@@ -91,11 +93,11 @@ public class JavaFunctionDef implements FunctionDef {
 		int index = parent.lastIndexOf('.');
 		if (index == -1) {
 			pack = "";
-			className = parent + "$" + id;
+			className = parent + "$" + id + id(); // TODO id should not be necessary, but rename the class does not work, we first have to update ASM.
 		}
 		else {
 			pack = parent.substring(0, index);
-			className = parent.substring(index + 1) + "$" + id;
+			className = parent.substring(index + 1) + "$" + id + CreateUniqueId.invoke();
 		}
 
 		StringBuilder sb = new StringBuilder();
@@ -125,7 +127,8 @@ public class JavaFunctionDef implements FunctionDef {
 		return outerShell(ps, pack, className, id, functionName, javaClass, sb.toString());
 	}
 
-	private SourceCode outerShell(PageSource ps, String pack, String className, String id, String functionName, Class<?> javaFunctionClass, String javaFunctionCode) {
+	private SourceCode outerShell(final PageSource ps, final String pack, final String className, final String id, final String functionName, Class<?> javaFunctionClass,
+			String javaFunctionCode) {
 
 		StringBuilder sb = new StringBuilder();
 		if (!pack.isEmpty()) sb.append("package " + pack + ";\n");
@@ -328,5 +331,11 @@ public class JavaFunctionDef implements FunctionDef {
 			i++;
 		}
 		return arr;
+	}
+
+	public static synchronized String id() {
+		_id++;
+		if (_id < 0) _id = 1;
+		return Long.toString(_id, Character.MAX_RADIX);
 	}
 }
