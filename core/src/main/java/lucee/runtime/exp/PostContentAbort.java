@@ -24,8 +24,8 @@ package lucee.runtime.exp;
  */
 public class PostContentAbort extends Abort {
 
-    public PostContentAbort() {
+	public PostContentAbort() {
 
-	super(SCOPE_REQUEST);
-    }
+		super(SCOPE_REQUEST);
+	}
 }

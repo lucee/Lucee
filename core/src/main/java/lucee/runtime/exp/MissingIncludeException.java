@@ -25,71 +25,71 @@ import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;
 
 /**
- * Exception throwed when missing include
+ * Exception thrown when missing include
  */
 public final class MissingIncludeException extends PageExceptionImpl {
 
-    private static final Collection.Key MISSING_FILE_NAME = KeyImpl.intern("MissingFileName");
-    private static final Collection.Key MISSING_FILE_NAME_REL = KeyImpl.intern("MissingFileName_rel");
-    private static final Collection.Key MISSING_FILE_NAME_ABS = KeyImpl.intern("MissingFileName_abs");
+	private static final Collection.Key MISSING_FILE_NAME = KeyImpl.intern("MissingFileName");
+	private static final Collection.Key MISSING_FILE_NAME_REL = KeyImpl.intern("MissingFileName_rel");
+	private static final Collection.Key MISSING_FILE_NAME_ABS = KeyImpl.intern("MissingFileName_abs");
 
-    private PageSource pageSource;
+	private PageSource pageSource;
 
-    /**
-     * constructor of the exception
-     * 
-     * @param pageSource
-     */
-    public MissingIncludeException(PageSource pageSource) {
-	super(createMessage(pageSource), "missinginclude");
-	setDetail(pageSource);
-	this.pageSource = pageSource;
+	/**
+	 * constructor of the exception
+	 * 
+	 * @param pageSource
+	 */
+	public MissingIncludeException(PageSource pageSource) {
+		super(createMessage(pageSource), "missinginclude");
+		setDetail(pageSource);
+		this.pageSource = pageSource;
 
-    }
-
-    public MissingIncludeException(PageSource pageSource, String msg) {
-	super(msg, "missinginclude");
-	setDetail(pageSource);
-	this.pageSource = pageSource;
-
-    }
-
-    private void setDetail(PageSource ps) {
-	setAdditional(KeyImpl.init("Mapping"), ps.getMapping().getVirtual());
-    }
-
-    /**
-     * @return the pageSource
-     */
-    public PageSource getPageSource() {
-	return pageSource;
-    }
-
-    private static String createMessage(PageSource pageSource) {
-	String dsp = pageSource.getDisplayPath();
-	if (dsp == null) return "Page " + pageSource.getRealpathWithVirtual() + " not found";
-	return "Page " + pageSource.getRealpathWithVirtual() + " [" + dsp + "] not found";
-    }
-
-    @Override
-    public CatchBlock getCatchBlock(Config config) {
-	CatchBlock sct = super.getCatchBlock(config);
-	String mapping = "";
-	if (StringUtil.startsWith(pageSource.getRealpath(), '/')) {
-	    mapping = pageSource.getMapping().getVirtual();
-	    if (StringUtil.endsWith(mapping, '/')) mapping = mapping.substring(0, mapping.length() - 1);
 	}
-	sct.setEL(MISSING_FILE_NAME, mapping + pageSource.getRealpath());
 
-	sct.setEL(MISSING_FILE_NAME_REL, mapping + pageSource.getRealpath());
-	sct.setEL(MISSING_FILE_NAME_ABS, pageSource.getDisplayPath());
-	return sct;
-    }
+	public MissingIncludeException(PageSource pageSource, String msg) {
+		super(msg, "missinginclude");
+		setDetail(pageSource);
+		this.pageSource = pageSource;
 
-    @Override
-    public boolean typeEqual(String type) {
-	if (super.typeEqual(type)) return true;
-	type = type.toLowerCase().trim();
-	return type.equals("template");
-    }
+	}
+
+	private void setDetail(PageSource ps) {
+		setAdditional(KeyImpl.init("Mapping"), ps.getMapping().getVirtual());
+	}
+
+	/**
+	 * @return the pageSource
+	 */
+	public PageSource getPageSource() {
+		return pageSource;
+	}
+
+	private static String createMessage(PageSource pageSource) {
+		String dsp = pageSource.getDisplayPath();
+		if (dsp == null) return "Page " + pageSource.getRealpathWithVirtual() + " not found";
+		return "Page " + pageSource.getRealpathWithVirtual() + " [" + dsp + "] not found";
+	}
+
+	@Override
+	public CatchBlock getCatchBlock(Config config) {
+		CatchBlock sct = super.getCatchBlock(config);
+		String mapping = "";
+		if (StringUtil.startsWith(pageSource.getRealpath(), '/')) {
+			mapping = pageSource.getMapping().getVirtual();
+			if (StringUtil.endsWith(mapping, '/')) mapping = mapping.substring(0, mapping.length() - 1);
+		}
+		sct.setEL(MISSING_FILE_NAME, mapping + pageSource.getRealpath());
+
+		sct.setEL(MISSING_FILE_NAME_REL, mapping + pageSource.getRealpath());
+		sct.setEL(MISSING_FILE_NAME_ABS, pageSource.getDisplayPath());
+		return sct;
+	}
+
+	@Override
+	public boolean typeEqual(String type) {
+		if (super.typeEqual(type)) return true;
+		type = type.toLowerCase().trim();
+		return type.equals("template");
+	}
 }

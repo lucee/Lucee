@@ -37,72 +37,72 @@ import lucee.runtime.type.util.KeyConstants;
 
 public class HTTPCacheItem implements CacheItem, Serializable, Dumpable, Duplicable {
 
-    private static final long serialVersionUID = -8462614105941179140L;
+	private static final long serialVersionUID = -8462614105941179140L;
 
-    private final Struct data;
-    private final String url;
-    private final long executionTimeNS;
-    private final Object filecontent;
+	private final Struct data;
+	private final String url;
+	private final long executionTimeNS;
+	private final Object filecontent;
 
-    public HTTPCacheItem(Struct data, String url, long executionTimeNS) {
-	this.data = data;
-	this.filecontent = data.get(KeyConstants._filecontent, "");
-	this.url = url;
-	this.executionTimeNS = executionTimeNS;
-    }
+	public HTTPCacheItem(Struct data, String url, long executionTimeNS) {
+		this.data = data;
+		this.filecontent = data.get(KeyConstants._filecontent, "");
+		this.url = url;
+		this.executionTimeNS = executionTimeNS;
+	}
 
-    @Override
-    public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties properties) {
-	DumpTable table = new DumpTable("#669999", "#ccffff", "#000000");
-	table.setTitle("HTTPCacheEntry");
-	table.appendRow(1, new SimpleDumpData("Output"), data.toDumpData(pageContext, maxlevel, properties));
-	if (url != null) table.appendRow(1, new SimpleDumpData("URL"), DumpUtil.toDumpData(new SimpleDumpData(url), pageContext, maxlevel, properties));
-	return table;
-    }
+	@Override
+	public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties properties) {
+		DumpTable table = new DumpTable("#669999", "#ccffff", "#000000");
+		table.setTitle("HTTPCacheEntry");
+		table.appendRow(1, new SimpleDumpData("Output"), data.toDumpData(pageContext, maxlevel, properties));
+		if (url != null) table.appendRow(1, new SimpleDumpData("URL"), DumpUtil.toDumpData(new SimpleDumpData(url), pageContext, maxlevel, properties));
+		return table;
+	}
 
-    @Override
-    public String toString() {
-	// if(filecontent instanceof CharSequence)
-	// return filecontent.toString();
-	if (filecontent instanceof byte[]) return Caster.toB64((byte[]) filecontent);
-	return filecontent.toString();
-    }
+	@Override
+	public String toString() {
+		// if(filecontent instanceof CharSequence)
+		// return filecontent.toString();
+		if (filecontent instanceof byte[]) return Caster.toB64((byte[]) filecontent);
+		return filecontent.toString();
+	}
 
-    @Override
-    public String getHashFromValue() {
-	return Long.toString(HashUtil.create64BitHash(toString()));
-    }
+	@Override
+	public String getHashFromValue() {
+		return Long.toString(HashUtil.create64BitHash(toString()));
+	}
 
-    public Struct getData() {
-	return data;
-    }
+	public Struct getData() {
+		return data;
+	}
 
-    @Override
-    public String getName() {
-	return url;
-    }
+	@Override
+	public String getName() {
+		return url;
+	}
 
-    @Override
-    public long getPayload() {
-	if (filecontent instanceof CharSequence) return ((CharSequence) filecontent).length();
-	if (filecontent instanceof byte[]) return ((byte[]) filecontent).length;
-	if (filecontent instanceof Collection) return ((Collection) filecontent).size();
-	return 0;
-    }
+	@Override
+	public long getPayload() {
+		if (filecontent instanceof CharSequence) return ((CharSequence) filecontent).length();
+		if (filecontent instanceof byte[]) return ((byte[]) filecontent).length;
+		if (filecontent instanceof Collection) return ((Collection) filecontent).size();
+		return 0;
+	}
 
-    @Override
-    public String getMeta() {
-	return url;
-    }
+	@Override
+	public String getMeta() {
+		return url;
+	}
 
-    @Override
-    public long getExecutionTime() {
-	return executionTimeNS;
-    }
+	@Override
+	public long getExecutionTime() {
+		return executionTimeNS;
+	}
 
-    @Override
-    public Object duplicate(boolean deepCopy) {
-	return new HTTPCacheItem((Struct) Duplicator.duplicate(data, deepCopy), url, executionTimeNS);
-    }
+	@Override
+	public Object duplicate(boolean deepCopy) {
+		return new HTTPCacheItem((Struct) Duplicator.duplicate(data, deepCopy), url, executionTimeNS);
+	}
 
 }

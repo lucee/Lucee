@@ -29,11 +29,11 @@ import lucee.runtime.ext.function.Function;
 
 public final class GetCurrentTemplatePath implements Function {
 
-    private static final long serialVersionUID = 1862733968548626803L;
+	private static final long serialVersionUID = 1862733968548626803L;
 
-    public static String call(PageContext pc) throws PageException {
-	PageSource curr = pc.getCurrentTemplatePageSource();
-	if (curr == null) throw new ApplicationException("current context does not have a template it is based on");
-	return curr.getResourceTranslated(pc).getAbsolutePath();
-    }
+	public static String call(PageContext pc) throws PageException {
+		PageSource curr = pc.getCurrentTemplatePageSource();
+		if (curr == null) throw new ApplicationException("current context does not have a template it is based on");
+		return curr.getResourceTranslated(pc).getAbsolutePath();
+	}
 }

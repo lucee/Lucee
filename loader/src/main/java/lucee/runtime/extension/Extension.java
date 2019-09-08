@@ -24,43 +24,43 @@ import lucee.runtime.type.dt.DateTime;
 
 public interface Extension {
 
-    public String getAuthor();
+	public String getAuthor();
 
-    public String getCodename();
+	public String getCodename();
 
-    public String getVideo();
+	public String getVideo();
 
-    public String getSupport();
+	public String getSupport();
 
-    public String getDocumentation();
+	public String getDocumentation();
 
-    public String getForum();
+	public String getForum();
 
-    public String getMailinglist();
+	public String getMailinglist();
 
-    public String getNetwork();
+	public String getNetwork();
 
-    public DateTime getCreated();
+	public DateTime getCreated();
 
-    public String getName();
+	public String getName();
 
-    public String getLabel();
+	public String getLabel();
 
-    public String getDescription();
+	public String getDescription();
 
-    public String getCategory();
+	public String getCategory();
 
-    public String getImage();
+	public String getImage();
 
-    public String getVersion();
+	public String getVersion();
 
-    public String getProvider();
+	public String getProvider();
 
-    public String getId();
+	public String getId();
 
-    public Struct getConfig(PageContext pc);
+	public Struct getConfig(PageContext pc);
 
-    public String getStrConfig();
+	public String getStrConfig();
 
-    public String getType();
+	public String getType();
 }

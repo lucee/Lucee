@@ -25,11 +25,11 @@ import lucee.commons.io.res.Resource;
  */
 public final class DirectoryResourceFilter implements ResourceFilter {
 
-    public final static DirectoryResourceFilter FILTER = new DirectoryResourceFilter();
+	public final static DirectoryResourceFilter FILTER = new DirectoryResourceFilter();
 
-    @Override
-    public boolean accept(Resource pathname) {
-	return pathname.isDirectory();
-    }
+	@Override
+	public boolean accept(Resource pathname) {
+		return pathname.isDirectory();
+	}
 
 }

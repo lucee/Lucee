@@ -36,102 +36,102 @@ import lucee.runtime.type.StructImpl;
 
 public class StructKeyTranslate extends BIF {
 
-    private static final long serialVersionUID = -7978129950865681102L;
+	private static final long serialVersionUID = -7978129950865681102L;
 
-    public static double call(PageContext pc, Struct sct) throws PageException {
-	return call(pc, sct, false, false);
-    }
-
-    public static double call(PageContext pc, Struct sct, boolean deepTranslation) throws PageException {
-	return call(pc, sct, deepTranslation, false);
-    }
-
-    public static double call(PageContext pc, Struct sct, boolean deepTranslation, boolean leaveOriginalKey) throws PageException {
-	return translate(sct, deepTranslation, leaveOriginalKey);
-    }
-
-    private static int translate(Collection coll, boolean deep, boolean leaveOrg) throws PageException {
-	Key[] keys = coll.keys(); // we do not entry to avoid ConcurrentModificationException
-
-	boolean isStruct = coll instanceof Struct;
-	String key;
-	Object value;
-	int index;
-	int count = 0;
-	for (Key k: keys) {
-	    key = k.getString();
-	    value = coll.get(k);
-	    if (deep) count += translate(value, leaveOrg);
-	    if (isStruct && (index = key.indexOf('.')) != -1) {
-		count++;
-		translate(index, k, key, coll, leaveOrg);
-	    }
+	public static double call(PageContext pc, Struct sct) throws PageException {
+		return call(pc, sct, false, false);
 	}
-	return count;
-    }
 
-    private static int translate(Object value, boolean leaveOrg) throws PageException {
-	if (value instanceof Collection) return translate((Collection) value, true, leaveOrg);
-	if (value instanceof List) return translate((List<?>) value, leaveOrg);
-	if (value instanceof Map) return translate((Map<?, ?>) value, leaveOrg);
-	if (Decision.isArray(value)) return translate(Caster.toNativeArray(value), leaveOrg);
-	return 0;
-    }
-
-    private static int translate(List<?> list, boolean leaveOrg) throws PageException {
-	Iterator<?> it = list.iterator();
-	int count = 0;
-	while (it.hasNext()) {
-	    count += translate(it.next(), leaveOrg);
+	public static double call(PageContext pc, Struct sct, boolean deepTranslation) throws PageException {
+		return call(pc, sct, deepTranslation, false);
 	}
-	return count;
-    }
 
-    private static int translate(Map<?, ?> map, boolean leaveOrg) throws PageException {
-	Iterator<?> it = map.entrySet().iterator();
-	int count = 0;
-	while (it.hasNext()) {
-	    count += translate(((Map.Entry<?, ?>) it.next()).getValue(), leaveOrg);
+	public static double call(PageContext pc, Struct sct, boolean deepTranslation, boolean leaveOriginalKey) throws PageException {
+		return translate(sct, deepTranslation, leaveOriginalKey);
 	}
-	return count;
-    }
 
-    private static int translate(Object[] arr, boolean leaveOrg) throws PageException {
-	int count = 0;
-	for (int i = 0; i < arr.length; i++) {
-	    count += translate(arr[i], leaveOrg);
+	private static int translate(Collection coll, boolean deep, boolean leaveOrg) throws PageException {
+		Key[] keys = coll.keys(); // we do not entry to avoid ConcurrentModificationException
+
+		boolean isStruct = coll instanceof Struct;
+		String key;
+		Object value;
+		int index;
+		int count = 0;
+		for (Key k: keys) {
+			key = k.getString();
+			value = coll.get(k);
+			if (deep) count += translate(value, leaveOrg);
+			if (isStruct && (index = key.indexOf('.')) != -1) {
+				count++;
+				translate(index, k, key, coll, leaveOrg);
+			}
+		}
+		return count;
 	}
-	return count;
-    }
 
-    private static void translate(int index, Key key, String strKey, Collection coll, boolean leaveOrg) throws PageException {
-	String left;
-	Object value = leaveOrg ? coll.get(key) : coll.remove(key);
-	do {
-	    left = strKey.substring(0, index);
-	    strKey = strKey.substring(index + 1);
-	    coll = touch(coll, KeyImpl.init(left));
+	private static int translate(Object value, boolean leaveOrg) throws PageException {
+		if (value instanceof Collection) return translate((Collection) value, true, leaveOrg);
+		if (value instanceof List) return translate((List<?>) value, leaveOrg);
+		if (value instanceof Map) return translate((Map<?, ?>) value, leaveOrg);
+		if (Decision.isArray(value)) return translate(Caster.toNativeArray(value), leaveOrg);
+		return 0;
+	}
+
+	private static int translate(List<?> list, boolean leaveOrg) throws PageException {
+		Iterator<?> it = list.iterator();
+		int count = 0;
+		while (it.hasNext()) {
+			count += translate(it.next(), leaveOrg);
+		}
+		return count;
+	}
+
+	private static int translate(Map<?, ?> map, boolean leaveOrg) throws PageException {
+		Iterator<?> it = map.entrySet().iterator();
+		int count = 0;
+		while (it.hasNext()) {
+			count += translate(((Map.Entry<?, ?>) it.next()).getValue(), leaveOrg);
+		}
+		return count;
+	}
+
+	private static int translate(Object[] arr, boolean leaveOrg) throws PageException {
+		int count = 0;
+		for (int i = 0; i < arr.length; i++) {
+			count += translate(arr[i], leaveOrg);
+		}
+		return count;
+	}
+
+	private static void translate(int index, Key key, String strKey, Collection coll, boolean leaveOrg) throws PageException {
+		String left;
+		Object value = leaveOrg ? coll.get(key) : coll.remove(key);
+		do {
+			left = strKey.substring(0, index);
+			strKey = strKey.substring(index + 1);
+			coll = touch(coll, KeyImpl.init(left));
+
+		}
+		while ((index = strKey.indexOf('.')) != -1);
+		coll.set(KeyImpl.init(strKey), value);
+	}
+
+	private static Collection touch(Collection coll, Key key) throws PageException {
+		Object obj = coll.get(key, null);
+		if (obj instanceof Collection) return (Collection) obj;
+		if (Decision.isCastableToStruct(obj)) return Caster.toStruct(obj);
+		coll.set(key, coll = new StructImpl());
+		return coll;
 
 	}
-	while ((index = strKey.indexOf('.')) != -1);
-	coll.set(KeyImpl.init(strKey), value);
-    }
 
-    private static Collection touch(Collection coll, Key key) throws PageException {
-	Object obj = coll.get(key, null);
-	if (obj instanceof Collection) return (Collection) obj;
-	if (Decision.isCastableToStruct(obj)) return Caster.toStruct(obj);
-	coll.set(key, coll = new StructImpl());
-	return coll;
-
-    }
-
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 3) return call(pc, Caster.toStruct(args[0]), Caster.toBooleanValue(args[1]), Caster.toBooleanValue(args[2]));
-	if (args.length == 2) return call(pc, Caster.toStruct(args[0]), Caster.toBooleanValue(args[1]));
-	if (args.length == 1) return call(pc, Caster.toStruct(args[0]));
-	throw new FunctionException(pc, "StructKeyTranslate", 1, 3, args.length);
-    }
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 3) return call(pc, Caster.toStruct(args[0]), Caster.toBooleanValue(args[1]), Caster.toBooleanValue(args[2]));
+		if (args.length == 2) return call(pc, Caster.toStruct(args[0]), Caster.toBooleanValue(args[1]));
+		if (args.length == 1) return call(pc, Caster.toStruct(args[0]));
+		throw new FunctionException(pc, "StructKeyTranslate", 1, 3, args.length);
+	}
 
 }

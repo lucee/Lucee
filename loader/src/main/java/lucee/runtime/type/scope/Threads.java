@@ -22,5 +22,5 @@ import lucee.runtime.thread.ChildThread;
 
 public interface Threads extends Scope {
 
-    public ChildThread getChildThread();
+	public ChildThread getChildThread();
 }

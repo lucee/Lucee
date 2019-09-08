@@ -29,17 +29,17 @@ import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
 
 public final class SizeOf implements Function {
-    public static Object call(PageContext pc, Object object) throws PageException {
-	return call(pc, object, false);
-    }
+	public static Object call(PageContext pc, Object object) throws PageException {
+		return call(pc, object, false);
+	}
 
-    public static Object call(PageContext pc, Object object, boolean complex) throws PageException {
-	Size size = SizeAndCount.sizeOf(object);
-	if (!complex) return Caster.toDouble(size.size);
+	public static Object call(PageContext pc, Object object, boolean complex) throws PageException {
+		Size size = SizeAndCount.sizeOf(object);
+		if (!complex) return Caster.toDouble(size.size);
 
-	Struct sct = new StructImpl();
-	sct.set(KeyConstants._size, Caster.toDouble(size.size));
-	sct.set(KeyConstants._count, Caster.toDouble(size.count));
-	return sct;
-    }
+		Struct sct = new StructImpl();
+		sct.set(KeyConstants._size, Caster.toDouble(size.size));
+		sct.set(KeyConstants._count, Caster.toDouble(size.count));
+		return sct;
+	}
 }

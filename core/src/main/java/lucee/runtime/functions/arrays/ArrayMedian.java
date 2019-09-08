@@ -29,14 +29,14 @@ import lucee.runtime.type.util.ArrayUtil;
 
 public class ArrayMedian extends BIF {
 
-    public static double call(PageContext pc, Array array) throws ExpressionException {
-	return ArrayUtil.median(array);
-    }
+	public static double call(PageContext pc, Array array) throws ExpressionException {
+		return ArrayUtil.median(array);
+	}
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 1) return call(pc, Caster.toArray(args[0]));
-	else throw new FunctionException(pc, "ArrayMedian", 1, 1, args.length);
-    }
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 1) return call(pc, Caster.toArray(args[0]));
+		else throw new FunctionException(pc, "ArrayMedian", 1, 1, args.length);
+	}
 
 }

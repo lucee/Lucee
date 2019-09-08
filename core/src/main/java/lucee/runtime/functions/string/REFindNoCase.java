@@ -34,39 +34,39 @@ import lucee.runtime.regex.Perl5Util;
  */
 public final class REFindNoCase extends BIF {
 
-    private static final long serialVersionUID = 1562665117076202965L;
+	private static final long serialVersionUID = 1562665117076202965L;
 
-    public static Object call(PageContext pc, String regExpr, String str) throws ExpressionException {
-	return call(pc, regExpr, str, 1, false);
-    }
-
-    public static Object call(PageContext pc, String regExpr, String str, double start) throws ExpressionException {
-	return call(pc, regExpr, str, start, false);
-    }
-
-    public static Object call(PageContext pc, String regExpr, String str, double start, boolean returnsubexpressions) throws ExpressionException {
-	return call(pc, regExpr, str, start, returnsubexpressions, "one");
-    }
-
-    public static Object call(PageContext pc, String regExpr, String str, double start, boolean returnsubexpressions, String scope) throws ExpressionException {
-	try {
-	    boolean isMatchAll = scope.equalsIgnoreCase("all");
-	    if (returnsubexpressions) {
-		return Perl5Util.find(regExpr, str, (int) start, false, isMatchAll);
-	    }
-	    return Perl5Util.indexOf(regExpr, str, (int) start, false, isMatchAll);
+	public static Object call(PageContext pc, String regExpr, String str) throws ExpressionException {
+		return call(pc, regExpr, str, 1, false);
 	}
-	catch (MalformedPatternException e) {
-	    throw new FunctionException(pc, "reFindNoCase", 1, "regularExpression", e.getMessage());
+
+	public static Object call(PageContext pc, String regExpr, String str, double start) throws ExpressionException {
+		return call(pc, regExpr, str, start, false);
 	}
-    }
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 2) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]));
-	if (args.length == 3) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toDoubleValue(args[2]));
-	if (args.length == 4) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toDoubleValue(args[2]), Caster.toBooleanValue(args[3]));
+	public static Object call(PageContext pc, String regExpr, String str, double start, boolean returnsubexpressions) throws ExpressionException {
+		return call(pc, regExpr, str, start, returnsubexpressions, "one");
+	}
 
-	throw new FunctionException(pc, "REFindNoCase", 2, 4, args.length);
-    }
+	public static Object call(PageContext pc, String regExpr, String str, double start, boolean returnsubexpressions, String scope) throws ExpressionException {
+		try {
+			boolean isMatchAll = scope.equalsIgnoreCase("all");
+			if (returnsubexpressions) {
+				return Perl5Util.find(regExpr, str, (int) start, false, isMatchAll);
+			}
+			return Perl5Util.indexOf(regExpr, str, (int) start, false, isMatchAll);
+		}
+		catch (MalformedPatternException e) {
+			throw new FunctionException(pc, "reFindNoCase", 1, "regularExpression", e.getMessage());
+		}
+	}
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 2) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]));
+		if (args.length == 3) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toDoubleValue(args[2]));
+		if (args.length == 4) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toDoubleValue(args[2]), Caster.toBooleanValue(args[3]));
+
+		throw new FunctionException(pc, "REFindNoCase", 2, 4, args.length);
+	}
 }

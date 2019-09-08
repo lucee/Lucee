@@ -8,13 +8,13 @@ import lucee.transformer.interpreter.expression.ExpressionBase;
 
 public class Empty extends ExpressionBase {
 
-    public Empty(Factory f, Position start, Position end) {
-	super(f, start, end);
-    }
+	public Empty(Factory f, Position start, Position end) {
+		super(f, start, end);
+	}
 
-    @Override
-    public Class<?> _writeOut(InterpreterContext ic, int mode) {
-	ic.stack(NullSupportHelper.empty(ic.getPageContext()));
-	return Object.class;
-    }
+	@Override
+	public Class<?> _writeOut(InterpreterContext ic, int mode) {
+		ic.stack(NullSupportHelper.empty(ic.getPageContext()));
+		return Object.class;
+	}
 }

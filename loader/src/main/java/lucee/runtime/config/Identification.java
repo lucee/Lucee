@@ -19,14 +19,14 @@ package lucee.runtime.config;
 
 public interface Identification {
 
-    public String getApiKey();
+	public String getApiKey();
 
-    public String getId();
+	public String getId();
 
-    public String getSecurityKey();
+	public String getSecurityKey();
 
-    public String getSecurityToken();
+	public String getSecurityToken();
 
-    public String toQueryString();
+	public String toQueryString();
 
 }

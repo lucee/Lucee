@@ -10,45 +10,45 @@ import lucee.transformer.interpreter.InterpreterContext;
 import lucee.transformer.interpreter.expression.ExpressionBase;
 
 /**
- * cast a Expression to a Double
+ * cast an Expression to a Double
  */
 public final class CastInt extends ExpressionBase implements ExprInt, Cast {
 
-    private Expression expr;
+	private Expression expr;
 
-    private CastInt(Expression expr) {
-	super(expr.getFactory(), expr.getStart(), expr.getEnd());
-	this.expr = expr;
-    }
-
-    /**
-     * Create a String expression from a Expression
-     * 
-     * @param expr
-     * @return String expression
-     * @throws TemplateException
-     */
-    public static ExprInt toExprInt(Expression expr) {
-	if (expr instanceof ExprInt) return (ExprInt) expr;
-	if (expr instanceof Literal) {
-	    Double dbl = ((Literal) expr).getDouble(null);
-	    if (dbl != null) return expr.getFactory().createLitInteger((int) dbl.doubleValue(), expr.getStart(), expr.getEnd());
+	private CastInt(Expression expr) {
+		super(expr.getFactory(), expr.getStart(), expr.getEnd());
+		this.expr = expr;
 	}
-	return new CastInt(expr);
-    }
 
-    @Override
-    public Class<?> _writeOut(InterpreterContext ic, int mode) throws PageException {
-	if (mode == MODE_VALUE) {
-	    ic.stack(ic.getValueAsIntValue(expr));
-	    return int.class;
+	/**
+	 * Create a String expression from an Expression
+	 * 
+	 * @param expr
+	 * @return String expression
+	 * @throws TemplateException
+	 */
+	public static ExprInt toExprInt(Expression expr) {
+		if (expr instanceof ExprInt) return (ExprInt) expr;
+		if (expr instanceof Literal) {
+			Double dbl = ((Literal) expr).getDouble(null);
+			if (dbl != null) return expr.getFactory().createLitInteger((int) dbl.doubleValue(), expr.getStart(), expr.getEnd());
+		}
+		return new CastInt(expr);
 	}
-	ic.stack(ic.getValueAsInteger(expr));
-	return Integer.class;
-    }
 
-    @Override
-    public Expression getExpr() {
-	return expr;
-    }
+	@Override
+	public Class<?> _writeOut(InterpreterContext ic, int mode) throws PageException {
+		if (mode == MODE_VALUE) {
+			ic.stack(ic.getValueAsIntValue(expr));
+			return int.class;
+		}
+		ic.stack(ic.getValueAsInteger(expr));
+		return Integer.class;
+	}
+
+	@Override
+	public Expression getExpr() {
+		return expr;
+	}
 }

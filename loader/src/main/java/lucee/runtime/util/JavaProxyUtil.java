@@ -9,45 +9,45 @@ import lucee.runtime.config.ConfigWeb;
  */
 public interface JavaProxyUtil {
 
-    public Object call(ConfigWeb config, Component cfc, String methodName, Object... arguments);
+	public Object call(ConfigWeb config, Component cfc, String methodName, Object... arguments);
 
-    public boolean toBoolean(Object obj);
+	public boolean toBoolean(Object obj);
 
-    public float toFloat(Object obj);
+	public float toFloat(Object obj);
 
-    public int toInt(Object obj);
+	public int toInt(Object obj);
 
-    public double toDouble(Object obj);
+	public double toDouble(Object obj);
 
-    public long toLong(Object obj);
+	public long toLong(Object obj);
 
-    public char toChar(Object obj);
+	public char toChar(Object obj);
 
-    public byte toByte(Object obj);
+	public byte toByte(Object obj);
 
-    public short toShort(Object obj);
+	public short toShort(Object obj);
 
-    public String toString(Object obj);
+	public String toString(Object obj);
 
-    public Object to(Object obj, Class<?> clazz);
+	public Object to(Object obj, Class<?> clazz);
 
-    public Object to(Object obj, String className);
+	public Object to(Object obj, String className);
 
-    public Object toCFML(boolean value);
+	public Object toCFML(boolean value);
 
-    public Object toCFML(byte value);
+	public Object toCFML(byte value);
 
-    public Object toCFML(char value);
+	public Object toCFML(char value);
 
-    public Object toCFML(double value);
+	public Object toCFML(double value);
 
-    public Object toCFML(float value);
+	public Object toCFML(float value);
 
-    public Object toCFML(int value);
+	public Object toCFML(int value);
 
-    public Object toCFML(long value);
+	public Object toCFML(long value);
 
-    public Object toCFML(short value);
+	public Object toCFML(short value);
 
-    public Object toCFML(Object value);
+	public Object toCFML(Object value);
 }

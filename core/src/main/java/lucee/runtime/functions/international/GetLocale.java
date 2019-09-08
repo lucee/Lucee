@@ -27,8 +27,8 @@ import lucee.runtime.ext.function.Function;
 import lucee.runtime.i18n.LocaleFactory;
 
 public final class GetLocale implements Function {
-    public static String call(PageContext pc) {
-	return LocaleFactory.getDisplayName(pc.getLocale());
-    }
+	public static String call(PageContext pc) {
+		return LocaleFactory.getDisplayName(pc.getLocale());
+	}
 
 }

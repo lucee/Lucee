@@ -12,24 +12,24 @@ import lucee.transformer.interpreter.expression.ExpressionBase;
 
 public class NullConstant extends ExpressionBase {
 
-    public NullConstant(Factory f, Position start, Position end) {
-	super(f, start, end);
-    }
-
-    @Override
-    public Class<?> _writeOut(InterpreterContext ic, int mode) throws PageException {
-	if (NullSupportHelper.full(ic.getPageContext())) {
-	    ic.stack((Object) null);
+	public NullConstant(Factory f, Position start, Position end) {
+		super(f, start, end);
 	}
-	else {
-	    ic.stack(ic.getPageContext().undefinedScope().get(KeyConstants._NULL));
-	}
-	return Object.class;
-    }
 
-    public Variable toVariable() {
-	Variable v = getFactory().createVariable(Scope.SCOPE_UNDEFINED, getStart(), getEnd());
-	v.addMember(getFactory().createDataMember(getFactory().createLitString("null")));
-	return v;
-    }
+	@Override
+	public Class<?> _writeOut(InterpreterContext ic, int mode) throws PageException {
+		if (NullSupportHelper.full(ic.getPageContext())) {
+			ic.stack((Object) null);
+		}
+		else {
+			ic.stack(ic.getPageContext().undefinedScope().get(KeyConstants._NULL));
+		}
+		return Object.class;
+	}
+
+	public Variable toVariable() {
+		Variable v = getFactory().createVariable(Scope.SCOPE_UNDEFINED, getStart(), getEnd());
+		v.addMember(getFactory().createDataMember(getFactory().createLitString("null")));
+		return v;
+	}
 }

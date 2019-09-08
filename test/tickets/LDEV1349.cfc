@@ -4,16 +4,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			it( title='checking path conversion', body=function( currentSpec ) {
 			 	
 				var curr=getDirectoryFromPath(getCurrentTemplatePath());
-			 	dump(curr);
-
-			 	// 
-
+			 	
 			 	local.app=getApplicationSettings();
 			 	app.mappings["/l1349"]=curr&"LDEV-1349/aaaaaaaaaaaaaaaaa/";
 			 	application action="update" mappings=app.mappings;
 
 			 	local.app=getApplicationSettings();
-			 	dump(app.mappings);
 			 	savecontent variable="local.result" {
 				 	include "/l1349/Index.cfm";
 				 	include "/l1349/../Index.cfm";

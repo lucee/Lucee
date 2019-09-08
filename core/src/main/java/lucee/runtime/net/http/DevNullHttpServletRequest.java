@@ -29,31 +29,31 @@ import javax.servlet.http.HttpServletRequestWrapper;
 
 public final class DevNullHttpServletRequest extends HttpServletRequestWrapper {
 
-    private ByteArrayInputStream barr;
+	private ByteArrayInputStream barr;
 
-    public DevNullHttpServletRequest(HttpServletRequest req) {
-	super(req);
-	barr = new ByteArrayInputStream(new byte[] {});
-    }
+	public DevNullHttpServletRequest(HttpServletRequest req) {
+		super(req);
+		barr = new ByteArrayInputStream(new byte[] {});
+	}
 
-    @Override
-    public int getContentLength() {
-	return -1;
-    }
+	@Override
+	public int getContentLength() {
+		return -1;
+	}
 
-    @Override
-    public String getContentType() {
-	return null;
-    }
+	@Override
+	public String getContentType() {
+		return null;
+	}
 
-    @Override
-    public ServletInputStream getInputStream() throws IOException {
-	return new ServletInputStreamDummy(barr);
-    }
+	@Override
+	public ServletInputStream getInputStream() throws IOException {
+		return new ServletInputStreamDummy(barr);
+	}
 
-    @Override
-    public BufferedReader getReader() throws IOException {
-	return new BufferedReader(new InputStreamReader(barr));
-    }
+	@Override
+	public BufferedReader getReader() throws IOException {
+		return new BufferedReader(new InputStreamReader(barr));
+	}
 
 }

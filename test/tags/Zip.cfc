@@ -94,7 +94,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		try{
 			// create the test zip
 			zip action="zip" file="#trg#test.zip"{
-				zipparam entrypath="../../invalidpath.txt" content="test a invalid path";
+				zipparam entrypath="../../invalidpath.txt" content="test an invalid path";
 			}
 
 			// unzip the created zip

@@ -30,17 +30,17 @@ import lucee.transformer.library.tag.TagLibTag;
  */
 public final class ReThrow extends EvaluatorSupport {
 
-    @Override
-    public void evaluate(Tag tag, TagLibTag libTag) throws EvaluatorException {
-	String ns = libTag.getTagLib().getNameSpaceAndSeparator();
-	String queryName = ns + "catch";
+	@Override
+	public void evaluate(Tag tag, TagLibTag libTag) throws EvaluatorException {
+		String ns = libTag.getTagLib().getNameSpaceAndSeparator();
+		String queryName = ns + "catch";
 
-	if (!ASMUtil.hasAncestorTryStatement(tag)) {
-	    if (tag.isScriptBase()) throw new EvaluatorException("Wrong Context, statement " + libTag.getName() + " must be inside a " + queryName + " tag or catch statement");
-	    throw new EvaluatorException("Wrong Context, tag " + libTag.getFullName() + " must be inside a " + queryName + " tag");
+		if (!ASMUtil.hasAncestorTryStatement(tag)) {
+			if (tag.isScriptBase()) throw new EvaluatorException("Wrong Context, statement [" + libTag.getName() + "] must be inside a [" + queryName + "] tag or catch statement");
+			throw new EvaluatorException("Wrong Context, tag [" + libTag.getFullName() + "] must be inside a [" + queryName + "] tag");
 
+		}
+		// ASMUtil.replace(tag,new TagReThrow(tag));
 	}
-	// ASMUtil.replace(tag,new TagReThrow(tag));
-    }
 
 }

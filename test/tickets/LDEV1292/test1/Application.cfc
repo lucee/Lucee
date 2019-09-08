@@ -5,7 +5,7 @@ component {
 		 type: "mysql"
 		 ,host: "#mySQL.server#"
 		 ,port: "#mySQL.port#"
-		 ,database: "#mySQL.database#?"
+		 ,database: "#mySQL.database#"
 		 ,username: "#mySQL.username#"
 		 ,password: "#mySQL.password#"
 		 ,custom: { useUnicode:true }

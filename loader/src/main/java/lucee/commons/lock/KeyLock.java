@@ -22,12 +22,12 @@ import java.util.List;
 import lucee.runtime.exp.PageException;
 
 public interface KeyLock<K> {
-    public Lock lock(K key, long timeout) throws PageException;
+	public Lock lock(K key, long timeout) throws PageException;
 
-    public void unlock(Lock lock);
+	public void unlock(Lock lock);
 
-    public List<K> getOpenLockNames();
+	public List<K> getOpenLockNames();
 
-    public void clean();
+	public void clean();
 
 }

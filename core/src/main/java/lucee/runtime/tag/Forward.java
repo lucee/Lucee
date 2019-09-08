@@ -30,30 +30,30 @@ import lucee.runtime.op.Caster;
  **/
 public final class Forward extends TagImpl {
 
-    private String template;
+	private String template;
 
-    /**
-     * @param template The template to set.
-     */
-    public void setTemplate(String template) {
-	this.template = template;
-    }
-
-    @Override
-    public int doStartTag() throws PageException {
-	try {
-	    pageContext.forward(template);
-	}
-	catch (Exception e) {
-	    throw Caster.toPageException(e);
-	}
-
-	/*
-	 * RequestDispatcher disp = pageContext. getHttpServletRequest().getRequestDispatcher(template); try
-	 * { disp.forward(pageContext. getHttpServletRequest(),pageContext. getHttpServletResponse()); }
-	 * catch (Exception e) { throw Caster.toPageException(e); }
+	/**
+	 * @param template The template to set.
 	 */
-	return SKIP_BODY;
-    }
+	public void setTemplate(String template) {
+		this.template = template;
+	}
+
+	@Override
+	public int doStartTag() throws PageException {
+		try {
+			pageContext.forward(template);
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+
+		/*
+		 * RequestDispatcher disp = pageContext. getHttpServletRequest().getRequestDispatcher(template); try
+		 * { disp.forward(pageContext. getHttpServletRequest(),pageContext. getHttpServletResponse()); }
+		 * catch (Exception e) { throw Caster.toPageException(e); }
+		 */
+		return SKIP_BODY;
+	}
 
 }

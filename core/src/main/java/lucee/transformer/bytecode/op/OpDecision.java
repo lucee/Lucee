@@ -35,109 +35,109 @@ import lucee.transformer.expression.ExprBoolean;
 import lucee.transformer.expression.Expression;
 
 public final class OpDecision extends ExpressionBase implements ExprBoolean {
-    /*
-     * public static final int LT=GeneratorAdapter.LT; public static final int LTE=GeneratorAdapter.LE;
-     * public static final int GTE=GeneratorAdapter.GE; public static final int GT=GeneratorAdapter.GT;
-     * public static final int EQ=GeneratorAdapter.EQ; public static final int NEQ=GeneratorAdapter.NE;
-     * public static final int CT = 1000; public static final int NCT = 1001; public static final int
-     * EEQ = 1002; public static final int NEEQ = 1003;
-     */
-    private final Expression left;
-    private final Expression right;
-    private final int op;
+	/*
+	 * public static final int LT=GeneratorAdapter.LT; public static final int LTE=GeneratorAdapter.LE;
+	 * public static final int GTE=GeneratorAdapter.GE; public static final int GT=GeneratorAdapter.GT;
+	 * public static final int EQ=GeneratorAdapter.EQ; public static final int NEQ=GeneratorAdapter.NE;
+	 * public static final int CT = 1000; public static final int NCT = 1001; public static final int
+	 * EEQ = 1002; public static final int NEEQ = 1003;
+	 */
+	private final Expression left;
+	private final Expression right;
+	private final int op;
 
-    // int compare (Object, Object)
-    final public static Method METHOD_COMPARE = new Method("compare", Types.INT_VALUE, new Type[] { Types.OBJECT, Types.OBJECT });
+	// int compare (Object, Object)
+	final public static Method METHOD_COMPARE = new Method("compare", Types.INT_VALUE, new Type[] { Types.OBJECT, Types.OBJECT });
 
-    private OpDecision(Expression left, Expression right, int operation) {
-	super(left.getFactory(), left.getStart(), right.getEnd());
-	this.left = left;
-	this.right = right;
-	this.op = operation;
-    }
-
-    /**
-     * Create a String expression from a operation
-     * 
-     * @param left
-     * @param right
-     * 
-     * @return String expression
-     */
-    public static ExprBoolean toExprBoolean(Expression left, Expression right, int operation) {
-	return new OpDecision(left, right, operation);
-    }
-
-    @Override
-    public Type _writeOut(BytecodeContext bc, int mode) throws TransformerException {
-	GeneratorAdapter adapter = bc.getAdapter();
-	if (mode == MODE_REF) {
-	    _writeOut(bc, MODE_VALUE);
-	    adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_BOOLEAN_FROM_BOOLEAN);
-	    return Types.BOOLEAN;
+	private OpDecision(Expression left, Expression right, int operation) {
+		super(left.getFactory(), left.getStart(), right.getEnd());
+		this.left = left;
+		this.right = right;
+		this.op = operation;
 	}
 
-	if (op == Factory.OP_DEC_CT) {
-	    left.writeOut(bc, MODE_REF);
-	    right.writeOut(bc, MODE_REF);
-	    adapter.invokeStatic(Types.OPERATOR, Methods_Operator.OPERATOR_CT);
+	/**
+	 * Create a String expression from an operation
+	 * 
+	 * @param left
+	 * @param right
+	 * 
+	 * @return String expression
+	 */
+	public static ExprBoolean toExprBoolean(Expression left, Expression right, int operation) {
+		return new OpDecision(left, right, operation);
 	}
-	else if (op == Factory.OP_DEC_NCT) {
-	    left.writeOut(bc, MODE_REF);
-	    right.writeOut(bc, MODE_REF);
-	    adapter.invokeStatic(Types.OPERATOR, Methods_Operator.OPERATOR_NCT);
+
+	@Override
+	public Type _writeOut(BytecodeContext bc, int mode) throws TransformerException {
+		GeneratorAdapter adapter = bc.getAdapter();
+		if (mode == MODE_REF) {
+			_writeOut(bc, MODE_VALUE);
+			adapter.invokeStatic(Types.CASTER, Methods.METHOD_TO_BOOLEAN_FROM_BOOLEAN);
+			return Types.BOOLEAN;
+		}
+
+		if (op == Factory.OP_DEC_CT) {
+			left.writeOut(bc, MODE_REF);
+			right.writeOut(bc, MODE_REF);
+			adapter.invokeStatic(Types.OPERATOR, Methods_Operator.OPERATOR_CT);
+		}
+		else if (op == Factory.OP_DEC_NCT) {
+			left.writeOut(bc, MODE_REF);
+			right.writeOut(bc, MODE_REF);
+			adapter.invokeStatic(Types.OPERATOR, Methods_Operator.OPERATOR_NCT);
+		}
+		else if (op == Factory.OP_DEC_EEQ) {
+			left.writeOut(bc, MODE_REF);
+			right.writeOut(bc, MODE_REF);
+			adapter.invokeStatic(Types.OPERATOR, Methods_Operator.OPERATOR_EEQ);
+		}
+		else if (op == Factory.OP_DEC_NEEQ) {
+			left.writeOut(bc, MODE_REF);
+			right.writeOut(bc, MODE_REF);
+			adapter.invokeStatic(Types.OPERATOR, Methods_Operator.OPERATOR_NEEQ);
+		}
+		else {
+			int iLeft = Types.getType(((ExpressionBase) left).writeOutAsType(bc, MODE_VALUE));
+			int iRight = Types.getType(((ExpressionBase) right).writeOutAsType(bc, MODE_VALUE));
+
+			adapter.invokeStatic(Types.OPERATOR, Methods_Operator.OPERATORS[iLeft][iRight]);
+
+			adapter.visitInsn(Opcodes.ICONST_0);
+
+			Label l1 = new Label();
+			Label l2 = new Label();
+			adapter.ifCmp(Type.INT_TYPE, toASMOperation(op), l1);
+			// adapter.visitJumpInsn(Opcodes.IF_ICMPEQ, l1);
+			adapter.visitInsn(Opcodes.ICONST_0);
+			adapter.visitJumpInsn(Opcodes.GOTO, l2);
+			adapter.visitLabel(l1);
+			adapter.visitInsn(Opcodes.ICONST_1);
+			adapter.visitLabel(l2);
+		}
+		return Types.BOOLEAN_VALUE;
 	}
-	else if (op == Factory.OP_DEC_EEQ) {
-	    left.writeOut(bc, MODE_REF);
-	    right.writeOut(bc, MODE_REF);
-	    adapter.invokeStatic(Types.OPERATOR, Methods_Operator.OPERATOR_EEQ);
+
+	private int toASMOperation(int op) throws TransformerException {
+		if (Factory.OP_DEC_LT == op) return GeneratorAdapter.LT;
+		if (Factory.OP_DEC_LTE == op) return GeneratorAdapter.LE;
+		if (Factory.OP_DEC_GT == op) return GeneratorAdapter.GT;
+		if (Factory.OP_DEC_GTE == op) return GeneratorAdapter.GE;
+		if (Factory.OP_DEC_EQ == op) return GeneratorAdapter.EQ;
+		if (Factory.OP_DEC_NEQ == op) return GeneratorAdapter.NE;
+
+		throw new TransformerException("cannot convert operation [" + op + "] to an ASM Operation", left.getStart());
 	}
-	else if (op == Factory.OP_DEC_NEEQ) {
-	    left.writeOut(bc, MODE_REF);
-	    right.writeOut(bc, MODE_REF);
-	    adapter.invokeStatic(Types.OPERATOR, Methods_Operator.OPERATOR_NEEQ);
+
+	public Expression getLeft() {
+		return left;
 	}
-	else {
-	    int iLeft = Types.getType(((ExpressionBase) left).writeOutAsType(bc, MODE_VALUE));
-	    int iRight = Types.getType(((ExpressionBase) right).writeOutAsType(bc, MODE_VALUE));
 
-	    adapter.invokeStatic(Types.OPERATOR, Methods_Operator.OPERATORS[iLeft][iRight]);
-
-	    adapter.visitInsn(Opcodes.ICONST_0);
-
-	    Label l1 = new Label();
-	    Label l2 = new Label();
-	    adapter.ifCmp(Type.INT_TYPE, toASMOperation(op), l1);
-	    // adapter.visitJumpInsn(Opcodes.IF_ICMPEQ, l1);
-	    adapter.visitInsn(Opcodes.ICONST_0);
-	    adapter.visitJumpInsn(Opcodes.GOTO, l2);
-	    adapter.visitLabel(l1);
-	    adapter.visitInsn(Opcodes.ICONST_1);
-	    adapter.visitLabel(l2);
+	public Expression getRight() {
+		return right;
 	}
-	return Types.BOOLEAN_VALUE;
-    }
 
-    private int toASMOperation(int op) throws TransformerException {
-	if (Factory.OP_DEC_LT == op) return GeneratorAdapter.LT;
-	if (Factory.OP_DEC_LTE == op) return GeneratorAdapter.LE;
-	if (Factory.OP_DEC_GT == op) return GeneratorAdapter.GT;
-	if (Factory.OP_DEC_GTE == op) return GeneratorAdapter.GE;
-	if (Factory.OP_DEC_EQ == op) return GeneratorAdapter.EQ;
-	if (Factory.OP_DEC_NEQ == op) return GeneratorAdapter.NE;
-
-	throw new TransformerException("cannot convert operation [" + op + "] to an ASM Operation", left.getStart());
-    }
-
-    public Expression getLeft() {
-	return left;
-    }
-
-    public Expression getRight() {
-	return right;
-    }
-
-    public int getOperation() {
-	return op;
-    }
+	public int getOperation() {
+		return op;
+	}
 }

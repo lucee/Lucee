@@ -24,5 +24,5 @@ import java.io.OutputStream;
 import lucee.runtime.PageContext;
 
 public interface BinaryConverter {
-    public void writeOut(PageContext pc, Object source, OutputStream os) throws ConverterException, IOException;
+	public void writeOut(PageContext pc, Object source, OutputStream os) throws ConverterException, IOException;
 }

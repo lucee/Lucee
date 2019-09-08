@@ -36,39 +36,39 @@ import lucee.runtime.type.UDF;
 
 public class FDCaster {
 
-    public static IFDValue toFDValue(IFDStackFrame frame, String name, Object value) {
-	if (value instanceof UDF) return new FDUDF(frame, name, (UDF) value);
-	if (value instanceof Query) return new FDQuery(frame, (Query) value);
-	// if(value instanceof Array)
-	// return new FDArray(frame,name,(Array)value);
-	if (value instanceof Collection) return new FDCollection(frame, name, (Collection) value);
-	if (Decision.isCastableToString(value)) return new FDSimpleValue(null, Caster.toString(value, null));
-	return new FDNative(frame, name, value);
-    }
-
-    public static IFDValue toFDValue(IFDStackFrame frame, Object value) {
-	return toFDValue(frame, "", value);
-    }
-
-    /**
-     * translate a object to its string representation
-     * 
-     * @param object
-     * @return
-     */
-    public static String serialize(Object object) {
-	if (object == null) return "[null]";
-	try {
-	    return new ScriptConverter().serialize(object);
+	public static IFDValue toFDValue(IFDStackFrame frame, String name, Object value) {
+		if (value instanceof UDF) return new FDUDF(frame, name, (UDF) value);
+		if (value instanceof Query) return new FDQuery(frame, (Query) value);
+		// if(value instanceof Array)
+		// return new FDArray(frame,name,(Array)value);
+		if (value instanceof Collection) return new FDCollection(frame, name, (Collection) value);
+		if (Decision.isCastableToString(value)) return new FDSimpleValue(null, Caster.toString(value, null));
+		return new FDNative(frame, name, value);
 	}
-	catch (Throwable t) {
-	    ExceptionUtil.rethrowIfNecessary(t);
-	    return object.toString();
-	}
-    }
 
-    public static Object unserialize(String value) {
-	// TODO
-	return value;
-    }
+	public static IFDValue toFDValue(IFDStackFrame frame, Object value) {
+		return toFDValue(frame, "", value);
+	}
+
+	/**
+	 * translate an object to its string representation
+	 * 
+	 * @param object
+	 * @return
+	 */
+	public static String serialize(Object object) {
+		if (object == null) return "[null]";
+		try {
+			return new ScriptConverter().serialize(object);
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			return object.toString();
+		}
+	}
+
+	public static Object unserialize(String value) {
+		// TODO
+		return value;
+	}
 }

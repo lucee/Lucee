@@ -23,12 +23,12 @@ import lucee.transformer.Position;
 
 public abstract class StatementBaseNoFinal extends StatementBase {
 
-    public StatementBaseNoFinal(Factory f, Position start, Position end) {
-	super(f, start, end);
-    }
+	public StatementBaseNoFinal(Factory f, Position start, Position end) {
+		super(f, start, end);
+	}
 
-    @Override
-    public FlowControlFinal getFlowControlFinal() {
-	return null;
-    }
+	@Override
+	public FlowControlFinal getFlowControlFinal() {
+		return null;
+	}
 }

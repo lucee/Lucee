@@ -32,95 +32,95 @@ import lucee.transformer.util.SourceCode;
  */
 public final class SimpleExprTransformer implements ExprTransformer {
 
-    private char specialChar;
+	private char specialChar;
 
-    public SimpleExprTransformer(char specialChar) {
-	this.specialChar = specialChar;
-    }
-
-    @Override
-    public Expression transformAsString(Data data) throws TemplateException {
-	return transform(data);
-    }
-
-    @Override
-    public Expression transform(Data data) throws TemplateException {
-	Expression expr = null;
-	// String
-	if ((expr = string(data.factory, data.srcCode)) != null) {
-	    return expr;
+	public SimpleExprTransformer(char specialChar) {
+		this.specialChar = specialChar;
 	}
-	// Simple
-	return simple(data.factory, data.srcCode);
-    }
 
-    /**
-     * Liest den String ein
-     * 
-     * @return Element
-     * @throws TemplateException
-     */
-    public Expression string(Factory f, SourceCode cfml) throws TemplateException {
-	cfml.removeSpace();
-	char quoter = cfml.getCurrentLower();
-	if (quoter != '"' && quoter != '\'') return null;
-	StringBuffer str = new StringBuffer();
-	boolean insideSpecial = false;
+	@Override
+	public Expression transformAsString(Data data) throws TemplateException {
+		return transform(data);
+	}
 
-	Position line = cfml.getPosition();
-	while (cfml.hasNext()) {
-	    cfml.next();
-	    // check special
-	    if (cfml.isCurrent(specialChar)) {
-		insideSpecial = !insideSpecial;
-		str.append(specialChar);
-
-	    }
-	    // check quoter
-	    else if (!insideSpecial && cfml.isCurrent(quoter)) {
-		// Ecaped sharp
-		if (cfml.isNext(quoter)) {
-		    cfml.next();
-		    str.append(quoter);
+	@Override
+	public Expression transform(Data data) throws TemplateException {
+		Expression expr = null;
+		// String
+		if ((expr = string(data.factory, data.srcCode)) != null) {
+			return expr;
 		}
-		// finsish
-		else {
-		    break;
+		// Simple
+		return simple(data.factory, data.srcCode);
+	}
+
+	/**
+	 * Liest den String ein
+	 * 
+	 * @return Element
+	 * @throws TemplateException
+	 */
+	public Expression string(Factory f, SourceCode cfml) throws TemplateException {
+		cfml.removeSpace();
+		char quoter = cfml.getCurrentLower();
+		if (quoter != '"' && quoter != '\'') return null;
+		StringBuffer str = new StringBuffer();
+		boolean insideSpecial = false;
+
+		Position line = cfml.getPosition();
+		while (cfml.hasNext()) {
+			cfml.next();
+			// check special
+			if (cfml.isCurrent(specialChar)) {
+				insideSpecial = !insideSpecial;
+				str.append(specialChar);
+
+			}
+			// check quoter
+			else if (!insideSpecial && cfml.isCurrent(quoter)) {
+				// Ecaped sharp
+				if (cfml.isNext(quoter)) {
+					cfml.next();
+					str.append(quoter);
+				}
+				// finsish
+				else {
+					break;
+				}
+			}
+			// all other character
+			else {
+				str.append(cfml.getCurrent());
+			}
 		}
-	    }
-	    // all other character
-	    else {
-		str.append(cfml.getCurrent());
-	    }
+
+		if (!cfml.forwardIfCurrent(quoter)) throw new TemplateException(cfml, "Invalid Syntax Closing [" + quoter + "] not found");
+
+		LitString rtn = f.createLitString(str.toString(), line, cfml.getPosition());
+		cfml.removeSpace();
+		return rtn;
 	}
 
-	if (!cfml.forwardIfCurrent(quoter)) throw new TemplateException(cfml, "Invalid Syntax Closing [" + quoter + "] not found");
+	/**
+	 * Liest ein
+	 * 
+	 * @return Element
+	 * @throws TemplateException
+	 */
+	public Expression simple(Factory f, SourceCode cfml) throws TemplateException {
+		StringBuffer sb = new StringBuffer();
+		Position line = cfml.getPosition();
+		while (cfml.isValidIndex()) {
+			if (cfml.isCurrent(' ') || cfml.isCurrent('>') || cfml.isCurrent("/>")) break;
+			else if (cfml.isCurrent('"') || cfml.isCurrent('#') || cfml.isCurrent('\'')) {
+				throw new TemplateException(cfml, "simple attribute value can't contain [" + cfml.getCurrent() + "]");
+			}
+			else sb.append(cfml.getCurrent());
+			cfml.next();
+		}
+		cfml.removeSpace();
 
-	LitString rtn = f.createLitString(str.toString(), line, cfml.getPosition());
-	cfml.removeSpace();
-	return rtn;
-    }
-
-    /**
-     * Liest ein
-     * 
-     * @return Element
-     * @throws TemplateException
-     */
-    public Expression simple(Factory f, SourceCode cfml) throws TemplateException {
-	StringBuffer sb = new StringBuffer();
-	Position line = cfml.getPosition();
-	while (cfml.isValidIndex()) {
-	    if (cfml.isCurrent(' ') || cfml.isCurrent('>') || cfml.isCurrent("/>")) break;
-	    else if (cfml.isCurrent('"') || cfml.isCurrent('#') || cfml.isCurrent('\'')) {
-		throw new TemplateException(cfml, "simple attribute value can't contain [" + cfml.getCurrent() + "]");
-	    }
-	    else sb.append(cfml.getCurrent());
-	    cfml.next();
+		return f.createLitString(sb.toString(), line, cfml.getPosition());
 	}
-	cfml.removeSpace();
-
-	return f.createLitString(sb.toString(), line, cfml.getPosition());
-    }
 
 }

@@ -29,83 +29,83 @@ import lucee.runtime.op.Caster;
  */
 public final class LNumber implements Literal {
 
-    public static final LNumber ZERO = new LNumber(new Double(0));
-    public static final LNumber ONE = new LNumber(new Double(1));
+	public static final LNumber ZERO = new LNumber(new Double(0));
+	public static final LNumber ONE = new LNumber(new Double(1));
 
-    private Object literal;
+	private Object literal;
 
-    /**
-     * constructor of the class
-     * 
-     * @param literal
-     */
-    public LNumber(Double literal) {
-	this.literal = literal;
-    }
-
-    /**
-     * constructor of the class
-     * 
-     * @param literal
-     * @throws PageException
-     */
-    public LNumber(String literal) throws PageException {
-	this.literal = Caster.toDouble(literal);
-	// in theory this filter (>10) makes not really sense, just better for performance!!!
-	if (literal.length() > 10) {
-	    if (!Caster.toString(this.literal).equals(literal)) this.literal = literal;
+	/**
+	 * constructor of the class
+	 * 
+	 * @param literal
+	 */
+	public LNumber(Double literal) {
+		this.literal = literal;
 	}
-    }
 
-    @Override
-    public Object getValue(PageContext pc) {
-	return literal;
-    }
-
-    @Override
-    public Object getCollection(PageContext pc) {
-	return getValue(pc);
-    }
-
-    @Override
-    public String getTypeName() {
-	return "number";
-    }
-
-    @Override
-    public Object touchValue(PageContext pc) {
-	return getValue(pc);
-    }
-
-    @Override
-    public String getString(PageContext pc) {
-	return toString();
-    }
-
-    @Override
-    public String toString() {
-	return literal instanceof String ? (String) literal : Caster.toString((Double) literal);
-    }
-
-    @Override
-    public boolean eeq(PageContext pc, Ref other) throws PageException {
-	if (other instanceof LNumber) {
-	    if (literal instanceof Double) {
-		// Double|Double
-		if (((LNumber) other).literal instanceof Double) {
-		    return ((Double) literal).doubleValue() == ((Double) ((LNumber) other).literal).doubleValue();
+	/**
+	 * constructor of the class
+	 * 
+	 * @param literal
+	 * @throws PageException
+	 */
+	public LNumber(String literal) throws PageException {
+		this.literal = Caster.toDouble(literal);
+		// in theory this filter (>10) makes not really sense, just better for performance!!!
+		if (literal.length() > 10) {
+			if (!Caster.toString(this.literal).equals(literal)) this.literal = literal;
 		}
-		// Double|String
-		return Caster.toString(((Double) literal).doubleValue()).equals(((LNumber) other).literal);
-	    }
-	    // String|Double
-	    if (((LNumber) other).literal instanceof Double) {
-		return ((String) literal).equals(Caster.toString(((Double) ((LNumber) other).literal).doubleValue()));
-	    }
-	    // String|String
-	    return ((String) literal).equals((((LNumber) other).literal));
-
 	}
-	return RefUtil.eeq(pc, this, other);
-    }
+
+	@Override
+	public Object getValue(PageContext pc) {
+		return literal;
+	}
+
+	@Override
+	public Object getCollection(PageContext pc) {
+		return getValue(pc);
+	}
+
+	@Override
+	public String getTypeName() {
+		return "number";
+	}
+
+	@Override
+	public Object touchValue(PageContext pc) {
+		return getValue(pc);
+	}
+
+	@Override
+	public String getString(PageContext pc) {
+		return toString();
+	}
+
+	@Override
+	public String toString() {
+		return literal instanceof String ? (String) literal : Caster.toString((Double) literal);
+	}
+
+	@Override
+	public boolean eeq(PageContext pc, Ref other) throws PageException {
+		if (other instanceof LNumber) {
+			if (literal instanceof Double) {
+				// Double|Double
+				if (((LNumber) other).literal instanceof Double) {
+					return ((Double) literal).doubleValue() == ((Double) ((LNumber) other).literal).doubleValue();
+				}
+				// Double|String
+				return Caster.toString(((Double) literal).doubleValue()).equals(((LNumber) other).literal);
+			}
+			// String|Double
+			if (((LNumber) other).literal instanceof Double) {
+				return ((String) literal).equals(Caster.toString(((Double) ((LNumber) other).literal).doubleValue()));
+			}
+			// String|String
+			return ((String) literal).equals((((LNumber) other).literal));
+
+		}
+		return RefUtil.eeq(pc, this, other);
+	}
 }
