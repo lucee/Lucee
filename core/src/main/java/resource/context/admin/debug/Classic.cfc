@@ -59,8 +59,6 @@ void function onBeforeUpdate(struct custom){
 	throwWhenNotNumeric(custom,"highlight");
 }
 
-
-
 private void function throwWhenEmpty(struct custom, string name){
 	if(!structKeyExists(custom,name) or len(trim(custom[name])) EQ 0)
 		throw "value for ["&name&"] is not defined";
@@ -75,7 +73,6 @@ private function isColumnEmpty(query query, string columnName){
 	if(!QueryColumnExists(query,columnName)) return true;
 	return !len(ArrayToList(QueryColumnData(query,columnName),'')); 
 }
-
 
 </cfscript>   
     
@@ -133,7 +130,7 @@ millisecond:"ms"
 <tr>
 	<td>
  <!--- General --->
-    <cfif structKeyExists(custom,"general") and custom.general>
+    <cfif isEnabled(custom,"general")>
 		<p class="cfdebug"><hr/>
 		<b class="cfdebuglge"><a name="cfdebug_top">Debugging Information</a></b>
 		<table class="cfdebug">

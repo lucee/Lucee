@@ -57,8 +57,7 @@ component extends="Debug" {
 	*/
 	function onBeforeUpdate(struct custom) {
 		
-	}
-	
+	}	
 	
 	/**
 	* output the debugging information
@@ -66,13 +65,14 @@ component extends="Debug" {
 	*/
 	function output(struct custom, struct debugging, string context="web") {
 		var NL=variables.NL;
+		if (not StructKeyExists(arguments.custom, "unit"))
+		 	arguments.custom["unit"] = "millisecond";
 		writeOutput("<!--"&NL);
  		echo("=================================================================================="&NL);
         echo("=========================== LUCEE DEBUGGING INFORMATION =========================="&NL);
- 		echo("=================================================================================="&NL&NL);
-        
+ 		echo("=================================================================================="&NL&NL);		
 	// GENERAL
- 		if(structKeyExists(custom,"general") && custom.general) {
+		if( isEnabled(custom,"general") ) {
 			echo(server.coldfusion.productname);
 			if(StructKeyExists(server.lucee,'versionName'))
 				echo('('&server.lucee.versionName&')');
