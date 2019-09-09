@@ -84,7 +84,9 @@
 					<tr>
 						<th width="50%" rowspan="2">#stText.Debug.path#</th>
 						<th width="35%" rowspan="2">#stText.Debug.reqTime#</th>
+						
 						<th width="15%" colspan="3">#stText.Debug.exeTime#</th>
+						<th width="35%" rowspan="2">#stText.Debug.scopeLoookups#</th>
 					</tr>
 					<tr>
 						<th width="5%">#stText.Debug.exeTimeQuery#</th>
@@ -98,10 +100,12 @@
 							<input type="text" name="path" class="xlarge" value="#session.debugFilter.path#" />
 							<div class="comment">#stText.Debug.filterPath#</div>
 						</td>
-					    <td nowrap><input type="text" name="starttime" class="xlarge" value="#LSDateFormat(session.debugFilter.starttime)# #LSTimeFormat(session.debugFilter.starttime)#" /></td>
+						<td nowrap><input type="text" name="starttime" class="xlarge" value="#LSDateFormat(session.debugFilter.starttime)# #LSTimeFormat(session.debugFilter.starttime)#" /></td>
+						
 					    <td nowrap><input type="text" name="query" class="number" value="#session.debugFilter.query#" /></td>
     					<td nowrap><input type="text" name="app" class="number" value="#session.debugFilter.app#" /></td>
-    					<td nowrap><input type="text" name="total" class="number" value="#session.debugFilter.total#" /></td>
+						<td nowrap><input type="text" name="total" class="number" value="#session.debugFilter.total#" /></td>
+						<td nowrap><input type="text" name="scope" class="number" value="#session.debugFilter.scope#" /></td>
 					</tr>
 				</tbody>
 				<tfoot>
@@ -116,6 +120,7 @@
 							<cfset _total=0><cfloop query="el.pages"><cfset _total+=el.pages.total></cfloop>
 							<cfset _query=0><cfloop query="el.pages"><cfset _query+=el.pages.query></cfloop>
 							<cfset _app=0><cfloop query="el.pages"><cfset _app+=el.pages.app></cfloop>	
+							<cfset _scopes=0><cfloop query="el.implicitAccess"><cfset _scopes+=el.implicitAccess.recordCount></cfloop>	
 							<cfset _path=el.scope.cgi.SCRIPT_NAME& (len(el.scope.cgi.QUERY_STRING)?"?"& el.scope.cgi.QUERY_STRING:"")>
 							<cfif 
 								doFilter(session.debugFilter.path,_path,false) and 
@@ -128,6 +133,7 @@
 									<td nowrap>#formatUnit(_query)#</td>
 									<td nowrap>#formatUnit(_app)#</td>
 									<td nowrap>#formatUnit(_total)#</td>
+									<td nowrap align="right">#lsNumberFormat(_scopes)#</td>
 								</tr>
 							</cfif>
 						</cfloop>
