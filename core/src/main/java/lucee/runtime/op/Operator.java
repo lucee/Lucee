@@ -336,6 +336,7 @@ public final class Operator {
 		}
 		else if (left instanceof Locale) return compare(((Locale) left), Caster.toString(right));
 		else if (left == null) return compare("", right);
+		else if (left instanceof Enum) return compare(((Enum) left).toString(), right);
 		else if (left instanceof Character) return compare(((Character) left).toString(), right);
 		else if (left instanceof Calendar) return compare(((Calendar) left).getTime(), right);
 		else if (left instanceof TimeZone) return compare(((TimeZone) left), Caster.toString(right));
@@ -361,6 +362,7 @@ public final class Operator {
 		}
 		else if (right instanceof Locale) return compare(Caster.toString(left), (Locale) right);
 		else if (right == null) return compare(left, "");
+		else if (right instanceof Enum) return compare(left, ((Enum) right).toString());
 		else if (right instanceof Character) return compare(left, ((Character) right).toString());
 		else if (right instanceof Calendar) return compare(left.getTime() / 1000, ((Calendar) right).getTime().getTime() / 1000);
 		else if (right instanceof TimeZone) return compare(Caster.toString(left), (TimeZone) right);
@@ -378,6 +380,7 @@ public final class Operator {
 		else if (right instanceof Castable) return compare(left.castToString(), ((Castable) right).castToString());
 		else if (right instanceof Locale) return compare(left.castToString(), (Locale) right);
 		else if (right == null) return compare(left.castToString(), "");
+		else if (right instanceof Enum) return left.compareTo(((Enum) right).toString());
 		else if (right instanceof Character) return left.compareTo(((Character) right).toString());
 		else if (right instanceof Calendar) return left.compareTo(new DateTimeImpl(((Calendar) right).getTime()));
 		else if (right instanceof TimeZone) return compare(left.castToString(), (TimeZone) right);
