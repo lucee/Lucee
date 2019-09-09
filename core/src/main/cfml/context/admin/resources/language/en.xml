@@ -742,7 +742,7 @@ you can see the log result at the end of every request, if a debug template is d
 	<data key="debug.pathRestriction">Path Restriction</data>
 	<data key="debug.pathRestrictionDesc">Path that should not be outputted, seperated path by line break.</data>
 	<data key="debug.settingTitle">Settings</data>
-	<data key="debug.settingDesc">Define how Lucee Log the debugging information.</data>
+	<data key="debug.settingDesc">Configure the size of the debug logs.</data>
 	<data key="debug.outputTitle">Output</data>
 	<data key="debug.outputDesc">Debugging information logged by Lucee.</data>
 	<data key="debug.filter">Filter</data>
@@ -750,6 +750,8 @@ you can see the log result at the end of every request, if a debug template is d
 	<data key="debug.filterPath">Only Outputs records where the path match the following pattern.</data>
 	<data key="debug.detailTitle">Detail</data>
 	<data key="debug.detailDesc">Detailed information about a single Request</data>
+	<data key="debug.switchTemplate">Switch Debug Template</data>
+	<data key="debug.selectDebugTemplate">Select Debug Template</data>
 
 	<!-- debugging.settings.cfm -->
 	<data key="debug.settings.desc">Enable certain logging options for Lucee</data>
