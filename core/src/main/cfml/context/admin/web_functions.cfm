@@ -1,13 +1,13 @@
 <cfscript>
 function ComponentListPackageAsStruct(string package, cfcNames=structnew("linked")){
 	try{
-		local._cfcNames=ComponentListPackage(package);
-		loop array="#_cfcNames#" index="i" item="el" {
-			cfcNames[el]=package&"."&el;
+		arguments._cfcNames=ComponentListPackage(arguments.package);
+		loop array="#arguments._cfcNames#" index="local.i" item="local.el" {
+			arguments.cfcNames[local.el]=arguments.package&"."& local.el;
 		}
 	}
 	catch(e){}
-	return cfcNames;
+	return arguments.cfcNames;
 
 }
 
