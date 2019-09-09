@@ -120,12 +120,13 @@
 							<cfset _total=0><cfloop query="el.pages"><cfset _total+=el.pages.total></cfloop>
 							<cfset _query=0><cfloop query="el.pages"><cfset _query+=el.pages.query></cfloop>
 							<cfset _app=0><cfloop query="el.pages"><cfset _app+=el.pages.app></cfloop>	
-							<cfset _scopes=0><cfloop query="el.implicitAccess"><cfset _scopes+=el.implicitAccess.recordCount></cfloop>	
+							<cfset _scope=el.implicitAccess.recordCount>
 							<cfset _path=el.scope.cgi.SCRIPT_NAME& (len(el.scope.cgi.QUERY_STRING)?"?"& el.scope.cgi.QUERY_STRING:"")>
 							<cfif 
 								doFilter(session.debugFilter.path,_path,false) and 
 								doFilterMin(session.debugFilter.query,_query) and 
 								doFilterMin(session.debugFilter.app,_app) and 
+								doFilterMin(session.debugFilter.scope,_scope) and 
 								doFilterMin(session.debugFilter.total,_total)> 
 								<tr>
 									<td><a href="#request.self#?action=#url.action#&action2=detail&id=#hash(el.id&":"&el.startTime)#">#_path#</a></td>
@@ -133,7 +134,7 @@
 									<td nowrap>#formatUnit(_query)#</td>
 									<td nowrap>#formatUnit(_app)#</td>
 									<td nowrap>#formatUnit(_total)#</td>
-									<td nowrap align="right">#lsNumberFormat(_scopes)#</td>
+									<td nowrap align="right">#lsNumberFormat(_scope)#</td>
 								</tr>
 							</cfif>
 						</cfloop>
