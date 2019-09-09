@@ -1,5 +1,5 @@
 <script type="text/javascript">disableBlockUI=true;</script>
-
+<cfparam name="session.debug.template" default="">
 <cfscript>
 	//  load available drivers (i.e debug templates) 
 	driverNames=structnew("linked");
@@ -21,6 +21,10 @@
 	if  (structKeyExists(url, "template") and StructKeyExists(drivers, url.template)) {
 		driver=drivers[url.template];
 		template=url.template;
+		session.debug.template = url.template;
+	} else if (len(session.debug.template)){
+		driver=drivers[session.debug.template];
+		template=session.debug.template;		
 	} else if ( IsEmpty(entries.type) || !StructKeyExists(drivers, entries.type) ) {
 		driver=drivers["lucee-modern"];
 		template= "lucee-modern";
@@ -50,13 +54,15 @@
 	}
 </cfscript>
 <cfoutput>
-	<table width="100%">
 	<cfif !isSimpleValue(log) && structCount(drivers)>
+		<cfformClassic onerror="customError" action="?" method="get" name="debug_select_template">
+		<table class="maintbl">
+			<tbody>
 		<tr>
+					<th scope="row">#stText.debug.selectDebugTemplate#</th>
 			<td>				
-				<form action="?" name="selectTemplate" method="GET">
 				<cfloop collection="#drivers#" item="fn">
-					<label>
+							<label title="#encodeForHTMLAttribute(drivers[fn].getDescription())#" style="margin-right:15px;">
 						<input name="template" type="radio" value="#drivers[fn].getId()#" class="select-template"
 							<cfif template eq drivers[fn].getId()>checked</cfif>
 						>
@@ -68,11 +74,14 @@
 						<input type="hidden" name="#u#" value="#encodeForHtml(url[u])#">
 					</cfif>
 				</cfloop>				
-				<input type="submit">
-				</form>				
+						<input type="submit" value="#stText.debug.switchTemplate#" class="bs button submit">
 			</td>
 		</tr>
+			</tbody>
+		</table>
+		</cfformClassic>
 	</cfif>
+	<table width="100%">	
 	<tr>
 		<td>
 			<!--- <cfset log = logs[1]> --->
