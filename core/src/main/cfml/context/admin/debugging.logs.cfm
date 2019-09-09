@@ -3,6 +3,7 @@
 <cfparam name="session.debugFilter.query" default="">
 <cfparam name="session.debugFilter.app" default="">
 <cfparam name="session.debugFilter.total" default="">
+<cfparam name="session.debugFilter.scope" default="">
 
 
 <cffunction name="doFilter" returntype="string" output="false">
