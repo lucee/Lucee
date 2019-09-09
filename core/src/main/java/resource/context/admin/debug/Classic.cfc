@@ -335,7 +335,7 @@ millisecond:"ms"
 <p class="cfdebug"><hr/><b class="cfdebuglge"><a name="cfdebug_sql">SQL Queries</a></b></p>
 <cfloop query="queries">	
 <code><b>#queries.name#</b> (Datasource=#queries.datasource#, Time=#formatUnit(custom.unit, queries.time)#, Records=#queries.count#) in <cfif len(queries.src)>#queries.src#:#queries.line#</cfif></code><br />
-<cfif ListFindNoCase(queries.columnlist,'usage') and IsStruct(queries.usage)><cfset usage=queries.usage><cfset lstNeverRead="">
+<cfif ListFindNoCase(queries.columnlist,'usage') and IsStruct(queries.usage)><cfset var usage=queries.usage><cfset var lstNeverRead="">
 <cfloop collection="#usage#" index="local.item" item="local._val"><cfif not _val><cfset lstNeverRead=ListAppend(lstNeverRead,item,', ')></cfif></cfloop>
 <cfif len(lstNeverRead)><font color="red">the following colum(s) are never read within the request:#lstNeverRead#</font><br /></cfif>
 </cfif>
@@ -352,7 +352,7 @@ millisecond:"ms"
 <cfloop list="#scopes#" index="name"><cfif not ListFindNoCase(arguments.custom.scopes,name)><cfcontinue></cfif>
 <cfset var doPrint=true>
 <cftry>
-	<cfset scp=evaluate(name)>
+	<cfset var scp=evaluate(name)>
     <cfcatch><cfset doPrint=false></cfcatch>
 </cftry>
 
