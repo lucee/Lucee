@@ -68,7 +68,7 @@
 
 							<!--- Created --->
 							<td nowrap="nowrap">
-								#createdAsString#
+								#bundles.createdAsString#
 							</td>
 							<!--- Size --->
 							<td nowrap="nowrap">
