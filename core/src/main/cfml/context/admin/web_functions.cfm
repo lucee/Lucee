@@ -168,7 +168,7 @@ function toStructInterval(raw) {
 
 	if(interval.second GTE 60) {
 		interval.minute=int(interval.second/60);
-		_minute=interval.minute*60;
+		var _minute=interval.minute*60;
 		interval.second=interval.second-_minute;
 	}
 	return interval;
@@ -176,7 +176,7 @@ function toStructInterval(raw) {
 
 function cut(_str,max) {
 	if(not isDefined('arguments._str') or len(arguments._str) EQ 0) return "&nbsp;";
-	if(len(arguments._str) GT arguments.max) return left(arguments._str,max)&"...";
+	if(len(arguments._str) GT arguments.max) return left(arguments._str, arguments.max)&"...";
 	return arguments._str;
 }
 

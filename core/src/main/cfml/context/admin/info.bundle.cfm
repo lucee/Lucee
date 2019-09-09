@@ -22,12 +22,10 @@
 
 
 	function toDateFromBundleHeader(headers) {
-
-		
-			if(structKeyExists(headers,"Bnd-LastModified"))
-				return dateAdd("l",headers["Bnd-LastModified"],unix0);
-			else if(structKeyExists(headers,"Built-Date"))
-				return parseDateTime(headers["Built-Date"]);
+		if(structKeyExists(arguments.headers,"Bnd-LastModified"))
+			return dateAdd("l", arguments.headers["Bnd-LastModified"], variables.unix0);
+		else if(structKeyExists(arguments.headers,"Built-Date"))
+			return parseDateTime(arguments.headers["Built-Date"]);
 		try {}
 		catch(e) {}
 		return "";
@@ -35,25 +33,25 @@
 
 	function byteFormat(numeric bytes){
 
-		kb=bytes/1024;
-		if(kb<1) return bytes&"b";
+		var kb=arguments.bytes/1024;
+		if(kb<1) return arguments.bytes&"b";
 
-		mb=kb/1024;
-		if(mb<1) return rround(kb)&"kb";
+		var mb=kb/1024;
+		if(mb<1) return variables.rround(kb)&"kb";
 
-		gb=mb/1024;
-		if(gb<1) return rround(mb)&"mb";
+		var gb=mb/1024;
+		if(gb<1) return variables.rround(mb)&"mb";
 
-		tb=gb/1024;
-		if(tb<1) return rround(gb)&"gb";
+		var tb=gb/1024;
+		if(tb<1) return variables.rround(gb)&"gb";
 
-		return rround(tb)&"tb";
+		return variables.rround(tb)&"tb";
 	}
 
 	function rround(nbr) {
-		if(nbr>99) return round(nbr);
-		if(nbr>9) return round(nbr*10)/10;
-		return round(nbr*100)/100;
+		if(arguments.nbr>99) return round(arguments.nbr);
+		if(arguments.nbr>9) return round(arguments.nbr*10)/10;
+		return round(arguments.nbr*100)/100;
 	}
 
 	csss={

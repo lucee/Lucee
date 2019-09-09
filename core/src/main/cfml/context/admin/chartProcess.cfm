@@ -16,8 +16,8 @@
     <cfset QuerySetCell(qry,"used",used,qry.recordcount)>
     <cfset arguments.usage=qry>
 		<cfif arguments.showTitle><b>#pool[usage.type]#</b></cfif>
-		<cfset str = {}>
-		<cfloop query="usage">
+		<cfset var str = {}>
+		<cfloop query="arguments.usage">
 			<cfset str.pused=int(100/arguments.usage.max*arguments.usage.used)>
 			<cfset str.pused =(str.pused GT 100)?100:(str.pused LT 0)?0:str.pused>
    			<cfset str.pfree=100-str.pused>
@@ -25,10 +25,10 @@
 		<cfreturn str>
 </cffunction>
 
-<cffunction name="sysMetric" returnType="struct" access="remote">
+<cffunction name="sysMetric" returnType="struct" access="remote" localmode="modern">
 	<cfset systemInfo=GetSystemMetrics()>
-	<cfset heap = printMemory(getmemoryUsage("heap"),false)>
-	<cfset nonHeap = printMemory(getmemoryUsage("non_heap"),false)>
+	<cfset heap = variables.printMemory(getmemoryUsage("heap"),false)>
+	<cfset nonHeap = variables.printMemory(getmemoryUsage("non_heap"),false)>
 	<cfset cpuSystemData = int((systemInfo.cpuSystem ?: 0) *100)>
 	<cfset  cpuProcessData= int((systemInfo.cpuProcess ?: 0) *100)>
 	<cfset result = {

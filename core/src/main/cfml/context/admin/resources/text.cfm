@@ -133,10 +133,10 @@ You can use this code in order to write the structs into an XML file correspondi
     </cfif>
 	
 	<cfset var el        = "">
-	<cfset var stRet = base>
+	<cfset var stRet = arguments.base>
 	<cfloop array="#arguments.stXML#" index="el">
 		<cftry>
-			<cfset setStructElement(stRet, el.XMLAttributes.key, el.XMLText)>
+			<cfset variables.setStructElement(stRet, el.XMLAttributes.key, el.XMLText)>
             <cfif doCreate>
 				<!--- <cfset application.notTranslated[el.XMLAttributes.key]=el.XMLText>--->
             <cfelse>
