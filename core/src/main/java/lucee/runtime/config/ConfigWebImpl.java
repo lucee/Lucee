@@ -663,8 +663,8 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 	}
 
 	@Override
-	public List<ExtensionDefintion> loadLocalExtensions() {
-		return configServer.loadLocalExtensions();
+	public List<ExtensionDefintion> loadLocalExtensions(boolean validate) {
+		return configServer.loadLocalExtensions(validate);
 	}
 
 	private WSHandler wsHandler;

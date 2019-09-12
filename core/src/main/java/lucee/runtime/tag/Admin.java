@@ -2475,7 +2475,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		String id = getString("admin", action, "id");
 		boolean asBinary = getBoolV("asBinary", false);
 		if (asBinary) {
-			Iterator<ExtensionDefintion> it = DeployHandler.getLocalExtensions(config).iterator();
+			Iterator<ExtensionDefintion> it = DeployHandler.getLocalExtensions(config, false).iterator();
 			ExtensionDefintion ext;
 			while (it.hasNext()) {
 				ext = it.next();
@@ -2493,7 +2493,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 		}
 		else {
-			List<RHExtension> locals = RHExtension.toRHExtensions(DeployHandler.getLocalExtensions(config));
+			List<RHExtension> locals = RHExtension.toRHExtensions(DeployHandler.getLocalExtensions(config, false));
 			Query qry = RHExtension.toQuery(config, locals, null);
 			int rows = qry.getRecordcount();
 			String _id;
@@ -2511,7 +2511,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void doGetLocalExtensions() throws PageException {
-		List<RHExtension> locals = RHExtension.toRHExtensions(DeployHandler.getLocalExtensions(config));
+		List<RHExtension> locals = RHExtension.toRHExtensions(DeployHandler.getLocalExtensions(config, false));
 		Query qry = RHExtension.toQuery(config, locals, null);
 		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
 	}
