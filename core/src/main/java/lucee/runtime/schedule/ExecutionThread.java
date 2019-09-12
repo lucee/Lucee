@@ -173,7 +173,6 @@ class ExecutionThread extends Thread {
 			}
 			HTTPEngine.closeEL(rsp);
 		}
-		if (!hasError) log.log(Log.LEVEL_INFO, logName, "executed");
 	}
 
 	private static Log getLog(Config config) {
