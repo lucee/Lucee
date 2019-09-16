@@ -4,17 +4,17 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 package lucee.commons.io;
 
@@ -110,7 +110,7 @@ import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 
 /**
- * 
+ *
  */
 public final class SystemUtil {
 
@@ -160,6 +160,7 @@ public final class SystemUtil {
 	private static final boolean isLinux;
 	private static final boolean isMacOSX;
 	private static final boolean isUnix;
+	private static final boolean allowThreadStop;
 
 	private static Resource homeFile;
 	private static Resource[] classPathes;
@@ -183,6 +184,7 @@ public final class SystemUtil {
 		isLinux = os.startsWith("linux");
 		isMacOSX = os.startsWith("mac os x");
 		isUnix = !isWindows && File.separatorChar == '/'; // deprecated
+		allowThreadStop = System.getProperty("lucee.conf.allow.thread.stop", "true") == "true";
 
 		String strCharset = System.getProperty("file.encoding");
 		if (strCharset == null || strCharset.equalsIgnoreCase("MacRoman")) strCharset = "cp1252";
@@ -272,7 +274,7 @@ public final class SystemUtil {
 
 	/**
 	 * returns if the file system case sensitive or not
-	 * 
+	 *
 	 * @return is the file system case sensitive or not
 	 */
 	public static boolean isFSCaseSensitive() {
@@ -352,7 +354,7 @@ public final class SystemUtil {
 
 	/**
 	 * returns the Temp Directory of the System
-	 * 
+	 *
 	 * @return temp directory
 	 * @throws IOException
 	 */
@@ -372,7 +374,7 @@ public final class SystemUtil {
 
 	/**
 	 * returns a unique temp file (with no auto delete)
-	 * 
+	 *
 	 * @param extension
 	 * @return temp directory
 	 * @throws IOException
@@ -401,19 +403,19 @@ public final class SystemUtil {
 		 * i=0;i<arr.length;i++) { if(arr[i].toLowerCase().indexOf("windows\\system")!=-1) { Resource file =
 		 * fr.getResource(arr[i]); if(file.exists() && file.isDirectory() && file.isWriteable()) return
 		 * ResourceUtil.getCanonicalResourceEL(file);
-		 * 
+		 *
 		 * } } for(int i=0;i<arr.length;i++) { if(arr[i].toLowerCase().indexOf("windows")!=-1) { Resource
 		 * file = fr.getResource(arr[i]); if(file.exists() && file.isDirectory() && file.isWriteable())
 		 * return ResourceUtil.getCanonicalResourceEL(file);
-		 * 
+		 *
 		 * } } for(int i=0;i<arr.length;i++) { if(arr[i].toLowerCase().indexOf("winnt")!=-1) { Resource file
 		 * = fr.getResource(arr[i]); if(file.exists() && file.isDirectory() && file.isWriteable()) return
 		 * ResourceUtil.getCanonicalResourceEL(file);
-		 * 
+		 *
 		 * } } for(int i=0;i<arr.length;i++) { if(arr[i].toLowerCase().indexOf("win")!=-1) { Resource file =
 		 * fr.getResource(arr[i]); if(file.exists() && file.isDirectory() && file.isWriteable()) return
 		 * ResourceUtil.getCanonicalResourceEL(file);
-		 * 
+		 *
 		 * } } for(int i=0;i<arr.length;i++) { Resource file = fr.getResource(arr[i]); if(file.exists() &&
 		 * file.isDirectory() && file.isWriteable()) return ResourceUtil.getCanonicalResourceEL(file); } }
 		 * return null;
@@ -441,7 +443,7 @@ public final class SystemUtil {
 
 	/**
 	 * returns the Hoome Directory of the System
-	 * 
+	 *
 	 * @return home directory
 	 */
 	public static Resource getHomeDirectory() {
@@ -463,7 +465,7 @@ public final class SystemUtil {
 
 	/**
 	 * get class pathes from all url ClassLoaders
-	 * 
+	 *
 	 * @param ucl URL Class Loader
 	 * @param pathes Hashmap with allpathes
 	 */
@@ -527,7 +529,7 @@ public final class SystemUtil {
 	/**
 	 * replace path placeholder with the real path, placeholders are
 	 * [{temp-directory},{system-directory},{home-directory}]
-	 * 
+	 *
 	 * @param path
 	 * @return updated path
 	 */
@@ -672,7 +674,7 @@ public final class SystemUtil {
 
 	/**
 	 * locks the object (synchronized) before calling wait
-	 * 
+	 *
 	 * @param lock
 	 * @param timeout
 	 * @throws InterruptedException
@@ -697,7 +699,7 @@ public final class SystemUtil {
 
 	/**
 	 * locks the object (synchronized) before calling wait (no timeout)
-	 * 
+	 *
 	 * @param lock
 	 * @throws InterruptedException
 	 */
@@ -712,7 +714,7 @@ public final class SystemUtil {
 
 	/**
 	 * locks the object (synchronized) before calling notify
-	 * 
+	 *
 	 * @param lock
 	 * @param timeout
 	 * @throws InterruptedException
@@ -725,7 +727,7 @@ public final class SystemUtil {
 
 	/**
 	 * locks the object (synchronized) before calling notifyAll
-	 * 
+	 *
 	 * @param lock
 	 * @param timeout
 	 * @throws InterruptedException
@@ -738,7 +740,7 @@ public final class SystemUtil {
 
 	/**
 	 * return the operating system architecture
-	 * 
+	 *
 	 * @return one of the following SystemUtil.ARCH_UNKNOW, SystemUtil.ARCH_32, SystemUtil.ARCH_64
 	 */
 	public static int getOSArch() {
@@ -752,7 +754,7 @@ public final class SystemUtil {
 	/**
 	 * return the JRE (Java Runtime Engine) architecture, this can be different from the operating
 	 * system architecture
-	 * 
+	 *
 	 * @return one of the following SystemUtil.ARCH_UNKNOW, SystemUtil.ARCH_32, SystemUtil.ARCH_64
 	 */
 	public static int getJREArch() {
@@ -802,7 +804,7 @@ public final class SystemUtil {
 	/*
 	 * private static MemoryUsage getPermGenSpaceSize() { MemoryUsage mu = getPermGenSpaceSize(null);
 	 * if(mu!=null) return mu;
-	 * 
+	 *
 	 * // create error message including info about available memory blocks StringBuilder sb=new
 	 * StringBuilder(); java.util.List<MemoryPoolMXBean> manager =
 	 * ManagementFactory.getMemoryPoolMXBeans(); Iterator<MemoryPoolMXBean> it = manager.iterator();
@@ -1084,7 +1086,7 @@ public final class SystemUtil {
 	/**
 	 * loading Mac address is very slow, this method loads only a wrapper that then loads the mac
 	 * address itself on demand
-	 * 
+	 *
 	 * @return
 	 */
 	public static MacAddressWrap getMacAddressAsWrap() {
@@ -1179,7 +1181,7 @@ public final class SystemUtil {
 
 	/**
 	 * returns a system setting by either a Java property name or a System environment variable
-	 * 
+	 *
 	 * @param name - either a lowercased Java property name (e.g. lucee.controller.disabled) or an
 	 *            UPPERCASED Environment variable name ((e.g. LUCEE_CONTROLLER_DISABLED))
 	 * @param defaultValue - value to return if the neither the property nor the environment setting was
@@ -1232,7 +1234,7 @@ public final class SystemUtil {
 
 	@Deprecated
 	public static void stop(Thread thread) {
-		if (thread.isAlive()) {
+		if (allowThreadStop && thread.isAlive()) {
 			thread.stop();
 			/*
 			 * try{ thread.stop(new StopException(thread)); } catch(UnsupportedOperationException uoe){// Java 8
@@ -1266,8 +1268,10 @@ public final class SystemUtil {
 	}
 
 	public static void stop(PageContext pc, boolean async) {
-		if (async) new StopThread(pc).start();
-		else new StopThread(pc).run();
+		if (allowThreadStop) {
+			if (async) new StopThread(pc).start();
+			else new StopThread(pc).run();
+		}
 	}
 
 	public static String getLocalHostName() {
@@ -1347,7 +1351,7 @@ public final class SystemUtil {
 	}
 
 	/**
-	 * 
+	 *
 	 * @return the class calling me and the first class not in bootdelegation if the the is in
 	 *         bootdelegation
 	 */
