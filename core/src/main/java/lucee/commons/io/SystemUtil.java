@@ -160,7 +160,7 @@ public final class SystemUtil {
 	private static final boolean isLinux;
 	private static final boolean isMacOSX;
 	private static final boolean isUnix;
-	private static final boolean allowThreadStop;
+	private static final boolean disableThreadStop;
 
 	private static Resource homeFile;
 	private static Resource[] classPathes;
@@ -184,7 +184,7 @@ public final class SystemUtil {
 		isLinux = os.startsWith("linux");
 		isMacOSX = os.startsWith("mac os x");
 		isUnix = !isWindows && File.separatorChar == '/'; // deprecated
-		allowThreadStop = System.getProperty("lucee.conf.allow.thread.stop", "true") == "true";
+		disableThreadStop = System.getProperty("lucee.conf.disable.thread.stop", "false") == "true";
 
 		String strCharset = System.getProperty("file.encoding");
 		if (strCharset == null || strCharset.equalsIgnoreCase("MacRoman")) strCharset = "cp1252";
@@ -1234,7 +1234,7 @@ public final class SystemUtil {
 
 	@Deprecated
 	public static void stop(Thread thread) {
-		if (allowThreadStop && thread.isAlive()) {
+		if (!disableThreadStop && thread.isAlive()) {
 			thread.stop();
 			/*
 			 * try{ thread.stop(new StopException(thread)); } catch(UnsupportedOperationException uoe){// Java 8
@@ -1268,7 +1268,7 @@ public final class SystemUtil {
 	}
 
 	public static void stop(PageContext pc, boolean async) {
-		if (allowThreadStop) {
+		if (!disableThreadStop) {
 			if (async) new StopThread(pc).start();
 			else new StopThread(pc).run();
 		}
