@@ -87,7 +87,7 @@ public class SetMaxSize<E> implements Set<E> {
 
 	@Override
 	public int hashCode() {
-		return map.hashCode();
+		return super.hashCode();
 	}
 
 	@Override
