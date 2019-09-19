@@ -3256,17 +3256,8 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<name>text</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>The text to add to the 'body' area of an HTML page. Everything inside the quotation marks is
+			<description>The text to add to the 'head' area of an HTML page. Everything inside the quotation marks is
 		placed in the 'head' section</description>
-		</attribute>
-		
-		<attribute>
-			<type>boolean</type>
-			<name>force</name>
-			<required>false</required>
-			<default>false</default>
-			<rtexprvalue>true</rtexprvalue>
-			<description>if set to true, it works even within a silent block</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -3327,15 +3318,6 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<rtexprvalue>true</rtexprvalue>
 			<description>The text to add to the 'head' area of an HTML page. Everything inside the quotation marks is
 		placed in the 'head' section</description>
-		</attribute>
-		
-		<attribute>
-			<type>boolean</type>
-			<name>force</name>
-			<required>false</required>
-			<default>true</default>
-			<rtexprvalue>true</rtexprvalue>
-			<description>if set to true, it works even within a silent block</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>

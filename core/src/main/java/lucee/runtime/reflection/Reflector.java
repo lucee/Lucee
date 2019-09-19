@@ -806,7 +806,7 @@ public final class Reflector {
 		    if (n.startsWith("get")) n = StringUtil.lcFirst(method.getName().substring(3));
 		    else n = StringUtil.lcFirst(method.getName().substring(2));
 		}
-		else if (isSetter(method)) n = StringUtil.lcFirst(method.getName().substring(3));
+		else if (isSetter(method)) n = method.getName().substring(3);
 		if (n != null && n.equalsIgnoreCase(name)) return true;
 	    }
 	}

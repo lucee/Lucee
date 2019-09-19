@@ -71,17 +71,11 @@ public abstract class HtmlHeadBodyBase extends BodyTagTryCatchFinallyImpl {
 
     public abstract void actionWrite() throws IOException, ApplicationException;
 
-    public abstract boolean getDefaultForce();
-
     /**
      * @param variable the variable to set
      */
     public void setVariable(String variable) {
 	this.variable = variable;
-    }
-
-    public void setForce(boolean force) {
-	this.force = force;
     }
 
     /**
