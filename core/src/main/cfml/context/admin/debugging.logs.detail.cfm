@@ -15,7 +15,7 @@
 		<cfset drivers[trim(tmp.getId())]=tmp>
 	</cfloop>
 	<cfset template ="" >
-	<cfif IsEmpty(entries.type)>
+	<cfif IsEmpty(entries.type) or not StructKeyExists(drivers, entries.type)>
 		<cfset driver=drivers["lucee-modern"]>
 		<cfset template= "lucee-modern">
 	<cfelse>

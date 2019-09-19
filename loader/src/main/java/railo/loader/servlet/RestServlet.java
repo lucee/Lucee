@@ -24,9 +24,9 @@ package railo.loader.servlet;
 @Deprecated
 public class RestServlet extends lucee.loader.servlet.RestServlet {
 
-    /**
-     * 
-     */
-    private static final long serialVersionUID = -5056306855781763236L;
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -5056306855781763236L;
 
 }

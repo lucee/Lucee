@@ -35,52 +35,52 @@ import lucee.runtime.type.util.ListUtil;
  */
 public final class Extract implements Function {
 
-    public static boolean call(PageContext pc, String strFormat, String strSource, String srcTarget) throws PageException {
+	public static boolean call(PageContext pc, String strFormat, String strSource, String srcTarget) throws PageException {
 
-	boolean singleFileFormat = false;
-	strFormat = strFormat.trim().toLowerCase();
-	int format = CompressUtil.FORMAT_ZIP;
-	if (strFormat.equals("bzip")) {
-	    format = CompressUtil.FORMAT_BZIP;
-	    singleFileFormat = true;
-	}
-	else if (strFormat.equals("bzip2")) {
-	    format = CompressUtil.FORMAT_BZIP2;
-	    singleFileFormat = true;
-	}
-	else if (strFormat.equals("gzip")) {
-	    format = CompressUtil.FORMAT_GZIP;
-	    singleFileFormat = true;
-	}
-	else if (strFormat.equals("tar")) format = CompressUtil.FORMAT_TAR;
-	else if (strFormat.equals("tbz")) format = CompressUtil.FORMAT_TBZ;
-	else if (strFormat.startsWith("tar.bz")) format = CompressUtil.FORMAT_TBZ;
-	else if (strFormat.equals("tbz2")) format = CompressUtil.FORMAT_TBZ2;
-	else if (strFormat.startsWith("tar.gz")) format = CompressUtil.FORMAT_TGZ;
-	else if (strFormat.equals("tgz")) format = CompressUtil.FORMAT_TGZ;
-	else if (strFormat.equals("zip")) format = CompressUtil.FORMAT_ZIP;
-	else throw new FunctionException(pc, "extract", 1, "format",
-		"invalid format definition [" + strFormat + "]," + " valid formats are [bzip,gzip,tar,tbz (tar bzip),tgz (tar gzip) and zip]");
+		boolean singleFileFormat = false;
+		strFormat = strFormat.trim().toLowerCase();
+		int format = CompressUtil.FORMAT_ZIP;
+		if (strFormat.equals("bzip")) {
+			format = CompressUtil.FORMAT_BZIP;
+			singleFileFormat = true;
+		}
+		else if (strFormat.equals("bzip2")) {
+			format = CompressUtil.FORMAT_BZIP2;
+			singleFileFormat = true;
+		}
+		else if (strFormat.equals("gzip")) {
+			format = CompressUtil.FORMAT_GZIP;
+			singleFileFormat = true;
+		}
+		else if (strFormat.equals("tar")) format = CompressUtil.FORMAT_TAR;
+		else if (strFormat.equals("tbz")) format = CompressUtil.FORMAT_TBZ;
+		else if (strFormat.startsWith("tar.bz")) format = CompressUtil.FORMAT_TBZ;
+		else if (strFormat.equals("tbz2")) format = CompressUtil.FORMAT_TBZ2;
+		else if (strFormat.startsWith("tar.gz")) format = CompressUtil.FORMAT_TGZ;
+		else if (strFormat.equals("tgz")) format = CompressUtil.FORMAT_TGZ;
+		else if (strFormat.equals("zip")) format = CompressUtil.FORMAT_ZIP;
+		else throw new FunctionException(pc, "extract", 1, "format",
+				"invalid format definition [" + strFormat + "]," + " valid formats are [bzip,gzip,tar,tbz (tar bzip),tgz (tar gzip) and zip]");
 
-	String[] arrSources = ListUtil.toStringArrayEL(ListUtil.listToArrayRemoveEmpty(strSource, ","));
+		String[] arrSources = ListUtil.toStringArrayEL(ListUtil.listToArrayRemoveEmpty(strSource, ","));
 
-	Resource[] sources = new Resource[arrSources.length];
-	for (int i = 0; i < sources.length; i++) {
-	    sources[i] = ResourceUtil.toResourceExisting(pc, arrSources[i]);
-	    // FileUtil.toFileExisting(pc,arrSources[i]);
-	    pc.getConfig().getSecurityManager().checkFileLocation(sources[i]);
-	}
+		Resource[] sources = new Resource[arrSources.length];
+		for (int i = 0; i < sources.length; i++) {
+			sources[i] = ResourceUtil.toResourceExisting(pc, arrSources[i]);
+			// FileUtil.toFileExisting(pc,arrSources[i]);
+			pc.getConfig().getSecurityManager().checkFileLocation(sources[i]);
+		}
 
-	Resource target = singleFileFormat ? ResourceUtil.toResourceNotExisting(pc, srcTarget) : ResourceUtil.toResourceExisting(pc, srcTarget);
-	pc.getConfig().getSecurityManager().checkFileLocation(target);
+		Resource target = singleFileFormat ? ResourceUtil.toResourceNotExisting(pc, srcTarget) : ResourceUtil.toResourceExisting(pc, srcTarget);
+		pc.getConfig().getSecurityManager().checkFileLocation(target);
 
-	try {
-	    CompressUtil.extract(format, sources, target);
+		try {
+			CompressUtil.extract(format, sources, target);
+		}
+		catch (IOException e) {
+			throw Caster.toPageException(e);
+		}
+		return true;
 	}
-	catch (IOException e) {
-	    throw Caster.toPageException(e);
-	}
-	return true;
-    }
 
 }

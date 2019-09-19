@@ -21,5 +21,5 @@ package lucee.commons.io.res;
 import lucee.runtime.type.Struct;
 
 public interface ResourceMetaData {
-    public Struct getMetaData();
+	public Struct getMetaData();
 }

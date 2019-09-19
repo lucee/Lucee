@@ -27,7 +27,7 @@ import lucee.runtime.ext.function.Function;
 
 public final class Abs implements Function {
 
-    public static double call(PageContext pc, double number) {
-	return MathUtil.abs(number);
-    }
+	public static double call(PageContext pc, double number) {
+		return MathUtil.abs(number);
+	}
 }

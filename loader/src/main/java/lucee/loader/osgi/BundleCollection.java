@@ -26,27 +26,27 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 
 public class BundleCollection {
-    public final Bundle core;
-    private final List<Bundle> slaves;
-    public final Felix felix;
+	public final Bundle core;
+	private final List<Bundle> slaves;
+	public final Felix felix;
 
-    public BundleCollection(final Felix felix, final Bundle master, final List<Bundle> slaves) {
-	this.felix = felix;
-	this.core = master;
-	this.slaves = new ArrayList<Bundle>();
-	if (slaves != null) for (final Bundle slave: slaves)
-	    if (!slave.equals(master)) this.slaves.add(slave);
-    }
+	public BundleCollection(final Felix felix, final Bundle master, final List<Bundle> slaves) {
+		this.felix = felix;
+		this.core = master;
+		this.slaves = new ArrayList<Bundle>();
+		if (slaves != null) for (final Bundle slave: slaves)
+			if (!slave.equals(master)) this.slaves.add(slave);
+	}
 
-    public Iterator<Bundle> getSlaves() {
-	return slaves.iterator();
-    }
+	public Iterator<Bundle> getSlaves() {
+		return slaves.iterator();
+	}
 
-    public int getSlaveCount() {
-	return slaves.size();
-    }
+	public int getSlaveCount() {
+		return slaves.size();
+	}
 
-    public BundleContext getBundleContext() {
-	return felix.getBundleContext();
-    }
+	public BundleContext getBundleContext() {
+		return felix.getBundleContext();
+	}
 }

@@ -25,79 +25,79 @@ import lucee.runtime.exp.PageException;
  */
 public interface Iterator {
 
-    /**
-     * set the intern pointer of the iterator to the next position, return true if next position exist
-     * otherwise false.
-     * 
-     * @return boolean
-     * @throws PageException thrown when fail to execute action
-     * @deprecated use instead <code>{@link #next(int)}</code>
-     */
-    @Deprecated
-    public boolean next() throws PageException;
+	/**
+	 * set the intern pointer of the iterator to the next position, return true if next position exist
+	 * otherwise false.
+	 * 
+	 * @return boolean
+	 * @throws PageException thrown when fail to execute action
+	 * @deprecated use instead <code>{@link #next(int)}</code>
+	 */
+	@Deprecated
+	public boolean next() throws PageException;
 
-    /**
-     * set the intern pointer of the iterator to the next position, return true if next position exist
-     * otherwise false.
-     * 
-     * @param pid pointer id
-     * @return boolean
-     * @throws PageException thrown when fail to execute action
-     */
-    public boolean next(int pid) throws PageException;
+	/**
+	 * set the intern pointer of the iterator to the next position, return true if next position exist
+	 * otherwise false.
+	 * 
+	 * @param pid pointer id
+	 * @return boolean
+	 * @throws PageException thrown when fail to execute action
+	 */
+	public boolean next(int pid) throws PageException;
 
-    public boolean previous(int pid);
+	public boolean previous(int pid);
 
-    /**
-     * reset the intern pointer
-     * 
-     * @throws PageException thrown when fail to reset
-     * @deprecated use instead <code>{@link #reset(int)}</code>
-     */
-    @Deprecated
-    public void reset() throws PageException;
+	/**
+	 * reset the intern pointer
+	 * 
+	 * @throws PageException thrown when fail to reset
+	 * @deprecated use instead <code>{@link #reset(int)}</code>
+	 */
+	@Deprecated
+	public void reset() throws PageException;
 
-    /**
-     * 
-     * reset the intern pointer
-     * 
-     * @param pid pointer id
-     * @throws PageException thrown when fail to reset
-     */
-    public void reset(int pid) throws PageException;
+	/**
+	 * 
+	 * reset the intern pointer
+	 * 
+	 * @param pid pointer id
+	 * @throws PageException thrown when fail to reset
+	 */
+	public void reset(int pid) throws PageException;
 
-    /**
-     * return recordcount of the iterator object
-     * 
-     * @return int
-     */
-    public int getRecordcount();
+	/**
+	 * return recordcount of the iterator object
+	 * 
+	 * @return int
+	 */
+	public int getRecordcount();
 
-    /**
-     * return the current position of the internal pointer
-     * 
-     * @param pid pointer id
-     * @return int
-     */
-    public int getCurrentrow(int pid);
+	/**
+	 * return the current position of the internal pointer
+	 * 
+	 * @param pid pointer id
+	 * @return int
+	 */
+	public int getCurrentrow(int pid);
 
-    /**
-     * 
-     * set the internal pointer to defined position
-     * 
-     * @param index index
-     * @param pid pointer id
-     * @return if it was successful or not
-     * @throws PageException thrown when fail to execute action
-     */
-    public boolean go(int index, int pid) throws PageException;
+	/**
+	 * 
+	 * set the internal pointer to defined position
+	 * 
+	 * @param index index
+	 * @param pid pointer id
+	 * @return if it was successful or not
+	 * @throws PageException thrown when fail to execute action
+	 */
+	public boolean go(int index, int pid) throws PageException;
 
-    /**
-     * @return returns if iterator is empty or not
-     */
-    public boolean isEmpty();
+	/**
+	 * @return returns if iterator is empty or not
+	 */
+	public boolean isEmpty();
 
-    // public ArrayList column(String strColumn)throws PageException;
+	// public ArrayList column(String strColumn)throws PageException;
 
-    // public String[] row(int number);
+	// public String[] row(int number);
 }

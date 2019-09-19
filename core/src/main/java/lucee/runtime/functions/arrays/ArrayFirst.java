@@ -28,17 +28,17 @@ import lucee.runtime.type.Array;
 
 public final class ArrayFirst extends BIF {
 
-    private static final long serialVersionUID = 6190330742719202792L;
+	private static final long serialVersionUID = 6190330742719202792L;
 
-    public static Object call(PageContext pc, Array array) throws PageException {
-	if (array.size() == 0) throw new ExpressionException("Cannot return first element of array; array is empty");
-	return array.getE(1);
-    }
+	public static Object call(PageContext pc, Array array) throws PageException {
+		if (array.size() == 0) throw new ExpressionException("Cannot return first element of array; array is empty");
+		return array.getE(1);
+	}
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 1) return call(pc, Caster.toArray(args[0]));
-	else throw new FunctionException(pc, "ArrayFirst", 1, 1, args.length);
-    }
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 1) return call(pc, Caster.toArray(args[0]));
+		else throw new FunctionException(pc, "ArrayFirst", 1, 1, args.length);
+	}
 
 }

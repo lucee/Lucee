@@ -25,31 +25,31 @@ import javax.servlet.ServletContext;
 
 public class ServletConfigImpl implements ServletConfig {
 
-    private final String servletName;
-    private final ServletContext context;
+	private final String servletName;
+	private final ServletContext context;
 
-    public ServletConfigImpl(final ServletContextImpl context, final String servletName) {
-	this.servletName = servletName;
-	this.context = context;
-    }
+	public ServletConfigImpl(final ServletContextImpl context, final String servletName) {
+		this.servletName = servletName;
+		this.context = context;
+	}
 
-    @Override
-    public String getInitParameter(final String key) {
-	return context.getInitParameter(key);
-    }
+	@Override
+	public String getInitParameter(final String key) {
+		return context.getInitParameter(key);
+	}
 
-    @Override
-    public Enumeration<String> getInitParameterNames() {
-	return context.getInitParameterNames();
-    }
+	@Override
+	public Enumeration<String> getInitParameterNames() {
+		return context.getInitParameterNames();
+	}
 
-    @Override
-    public String getServletName() {
-	return servletName;
-    }
+	@Override
+	public String getServletName() {
+		return servletName;
+	}
 
-    @Override
-    public ServletContext getServletContext() {
-	return context;
-    }
+	@Override
+	public ServletContext getServletContext() {
+		return context;
+	}
 }

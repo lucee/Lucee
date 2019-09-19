@@ -24,10 +24,10 @@ package lucee.commons.io.cache;
  */
 public interface CacheEvent {
 
-    /**
-     * allows to register a CacheEventListener for one or more certain events
-     * 
-     * @param event
-     */
-    public void register(CacheEventListener listener);
+	/**
+	 * allows to register a CacheEventListener for one or more certain events
+	 * 
+	 * @param event
+	 */
+	public void register(CacheEventListener listener);
 }

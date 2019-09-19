@@ -28,13 +28,13 @@ import lucee.transformer.bytecode.util.Types;
 
 public class EmptyStruct extends ExpressionBase {
 
-    public EmptyStruct(Factory factory) {
-	super(factory, null, null);
-    }
+	public EmptyStruct(Factory factory) {
+		super(factory, null, null);
+	}
 
-    public Type _writeOut(BytecodeContext bc, int mode) {
-	ASMUtil.createEmptyStruct(bc.getAdapter());
-	return Types.STRUCT;
-    }
+	public Type _writeOut(BytecodeContext bc, int mode) {
+		ASMUtil.createEmptyStruct(bc.getAdapter());
+		return Types.STRUCT;
+	}
 
 }

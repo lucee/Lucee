@@ -22,11 +22,11 @@ import java.util.List;
 
 public class ProcMetaCollection {
 
-    public final List<ProcMeta> metas;
-    public long created = System.currentTimeMillis();
+	public final List<ProcMeta> metas;
+	public long created = System.currentTimeMillis();
 
-    public ProcMetaCollection(List<ProcMeta> metas) {
-	this.metas = metas;
-    }
+	public ProcMetaCollection(List<ProcMeta> metas) {
+		this.metas = metas;
+	}
 
 }

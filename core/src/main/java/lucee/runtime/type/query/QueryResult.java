@@ -8,32 +8,32 @@ import lucee.runtime.type.Duplicable;
 
 public interface QueryResult extends Dumpable, Duplicable {
 
-    public SQL getSql();
+	public SQL getSql();
 
-    public boolean isCached();
+	public boolean isCached();
 
-    public void setCacheType(String cacheType);
+	public void setCacheType(String cacheType);
 
-    public String getCacheType();
+	public String getCacheType();
 
-    public long getExecutionTime();
+	public long getExecutionTime();
 
-    public void setExecutionTime(long time);
+	public void setExecutionTime(long time);
 
-    public String getTemplate();
+	public String getTemplate();
 
-    public String getName();
+	public String getName();
 
-    public int getColumncount();
+	public int getColumncount();
 
-    public int getRecordcount();
+	public int getRecordcount();
 
-    public int getUpdateCount();
+	public int getUpdateCount();
 
-    public void setUpdateCount(int updateCount);
+	public void setUpdateCount(int updateCount);
 
-    public Key[] getColumnNames();
+	public Key[] getColumnNames();
 
-    public void setColumnNames(Key[] columnNames) throws PageException;
+	public void setColumnNames(Key[] columnNames) throws PageException;
 
 }

@@ -26,7 +26,7 @@ import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Decision;
 
 public final class IsNumericDate implements Function {
-    public static boolean call(PageContext pc, Object object) {
-	return Decision.isDateAdvanced(object, true);
-    }
+	public static boolean call(PageContext pc, Object object) {
+		return Decision.isDateAdvanced(object, true);
+	}
 }

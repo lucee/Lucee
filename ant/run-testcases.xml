@@ -29,11 +29,12 @@
 <![CDATA[
 if (execute) {
 
+request.basedir = basedir;
+request.srcall = srcall;
 request.WEBADMINPASSWORD = "webweb";
 request.SERVERADMINPASSWORD = "webweb";
 server.WEBADMINPASSWORD = request.WEBADMINPASSWORD;
 server.SERVERADMINPASSWORD = request.SERVERADMINPASSWORD;
-
 
 NL = "
 ";

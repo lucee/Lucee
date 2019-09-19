@@ -27,49 +27,49 @@ import java.net.URLClassLoader;
 
 public class MainEntryPoint {
 
-    public static void main(final String[] args) throws Throwable {
-	File libDir = new File("./").getCanonicalFile();
-	System.out.println(libDir);
+	public static void main(final String[] args) throws Throwable {
+		File libDir = new File("./").getCanonicalFile();
+		System.out.println(libDir);
 
-	// Fix for tomcat
-	if (libDir.getName().equals(".") || libDir.getName().equals("..")) libDir = libDir.getParentFile();
+		// Fix for tomcat
+		if (libDir.getName().equals(".") || libDir.getName().equals("..")) libDir = libDir.getParentFile();
 
-	File[] children = libDir.listFiles(new ExtFilter());
-	if (children.length < 2) {
-	    libDir = new File(libDir, "lib");
-	    children = libDir.listFiles(new ExtFilter());
+		File[] children = libDir.listFiles(new ExtFilter());
+		if (children.length < 2) {
+			libDir = new File(libDir, "lib");
+			children = libDir.listFiles(new ExtFilter());
+		}
+
+		final URL[] urls = new URL[children.length];
+		System.out.println("Loading Jars");
+		for (int i = 0; i < children.length; i++) {
+			urls[i] = new URL("jar:file://" + children[i] + "!/");
+			System.out.println("- " + urls[i]);
+		}
+		System.out.println();
+		URLClassLoader cl = null;
+		try {
+			cl = new URLClassLoader(urls, ClassLoader.getSystemClassLoader());
+			final Class<?> cli = cl.loadClass("lucee.cli.CLI");
+			final Method main = cli.getMethod("main", new Class[] { String[].class });
+			main.invoke(null, new Object[] { args });
+		}
+		finally {
+			if (cl != null) try {
+				cl.close();
+			}
+			catch (final IOException ioe) {}
+		}
 	}
 
-	final URL[] urls = new URL[children.length];
-	System.out.println("Loading Jars");
-	for (int i = 0; i < children.length; i++) {
-	    urls[i] = new URL("jar:file://" + children[i] + "!/");
-	    System.out.println("- " + urls[i]);
-	}
-	System.out.println();
-	URLClassLoader cl = null;
-	try {
-	    cl = new URLClassLoader(urls, ClassLoader.getSystemClassLoader());
-	    final Class<?> cli = cl.loadClass("lucee.cli.CLI");
-	    final Method main = cli.getMethod("main", new Class[] { String[].class });
-	    main.invoke(null, new Object[] { args });
-	}
-	finally {
-	    if (cl != null) try {
-		cl.close();
-	    }
-	    catch (final IOException ioe) {}
-	}
-    }
+	public static class ExtFilter implements FilenameFilter {
 
-    public static class ExtFilter implements FilenameFilter {
+		private final String ext = ".jar";
 
-	private final String ext = ".jar";
+		@Override
+		public boolean accept(final File dir, final String name) {
+			return name.toLowerCase().endsWith(ext);
+		}
 
-	@Override
-	public boolean accept(final File dir, final String name) {
-	    return name.toLowerCase().endsWith(ext);
 	}
-
-    }
 }

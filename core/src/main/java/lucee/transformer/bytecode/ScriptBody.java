@@ -22,8 +22,8 @@ import lucee.transformer.Factory;
 
 public final class ScriptBody extends FlowControlBody {
 
-    public ScriptBody(Factory f) {
-	super(f);
-    }
+	public ScriptBody(Factory f) {
+		super(f);
+	}
 
 }

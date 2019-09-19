@@ -29,13 +29,13 @@ import lucee.runtime.type.dt.DateTimeImpl;
 
 public class DateCast implements Cast {
 
-    @Override
-    public Object toCFType(TimeZone tz, ResultSet rst, int columnIndex) throws SQLException, IOException {
-	Date d = rst.getDate(columnIndex, JREDateTimeUtil.getThreadCalendar(tz));
-	if (d == null) return null;
+	@Override
+	public Object toCFType(TimeZone tz, ResultSet rst, int columnIndex) throws SQLException, IOException {
+		Date d = rst.getDate(columnIndex, JREDateTimeUtil.getThreadCalendar(tz));
+		if (d == null) return null;
 
-	return new DateTimeImpl(d.getTime(), false);
+		return new DateTimeImpl(d.getTime(), false);
 
-    }
+	}
 
 }

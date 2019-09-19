@@ -37,111 +37,111 @@ import lucee.commons.lang.StringUtil;
 
 public class SMBResourceProvider implements ResourceProvider {
 
-    private String scheme = "smb";
-    private Map<String, String> args;
-    private final static String ENCRYPTED_PREFIX = "$smb-enc$";
-    private final static Charset UTF8 = CharsetUtil.UTF8;
-    private final ResourceLockImpl lock = new ResourceLockImpl(10000, false);
-    private final static Base32 Base32DecEnc = new Base32();
+	private String scheme = "smb";
+	private Map<String, String> args;
+	private final static String ENCRYPTED_PREFIX = "$smb-enc$";
+	private final static Charset UTF8 = CharsetUtil.UTF8;
+	private final ResourceLockImpl lock = new ResourceLockImpl(10000, false);
+	private final static Base32 Base32DecEnc = new Base32();
 
-    @Override
-    public ResourceProvider init(String scheme, Map arguments) {
-	_setProperties(arguments);
+	@Override
+	public ResourceProvider init(String scheme, Map arguments) {
+		_setProperties(arguments);
 
-	if (!StringUtil.isEmpty(scheme)) this.scheme = scheme;
-	this.args = arguments;
-	return this;
-    }
-
-    private void _setProperties(Map arguments) {
-
-	String resolveOrder = (String) arguments.get("resolveOrder");
-	if (resolveOrder == null) resolveOrder = "DNS";
-
-	String dfsDisabled = (String) arguments.get("smb.client.dfs.disabled");
-	if (dfsDisabled == null) dfsDisabled = "true";
-	System.setProperty("jcifs.resolveOrder", resolveOrder);
-	System.setProperty("jcifs.smb.client.dfs.disabled", dfsDisabled);
-
-    }
-
-    public Resource getResource(String path, NtlmPasswordAuthentication auth) {
-	return new SMBResource(this, path, auth);
-    }
-
-    @Override
-    public Resource getResource(String path) {
-	return new SMBResource(this, path);
-    }
-
-    @Override
-    public String getScheme() {
-	return scheme;
-    }
-
-    @Override
-    public Map<String, String> getArguments() {
-	return args;
-    }
-
-    @Override
-    public void setResources(Resources resources) {
-	// TODO Not sure what this does
-    }
-
-    @Override
-    public void unlock(Resource res) {
-	lock.unlock(res);
-    }
-
-    @Override
-    public void lock(Resource res) throws IOException {
-	lock.lock(res);
-    }
-
-    @Override
-    public void read(Resource res) throws IOException {
-	lock.read(res);
-    }
-
-    @Override
-    public boolean isCaseSensitive() {
-	return false;
-    }
-
-    @Override
-    public boolean isModeSupported() {
-	return false;
-    }
-
-    @Override
-    public boolean isAttributesSupported() {
-	return false;
-    }
-
-    public SmbFile getFile(String path, NtlmPasswordAuthentication auth) {
-	try {
-	    return new SmbFile(path, auth);
+		if (!StringUtil.isEmpty(scheme)) this.scheme = scheme;
+		this.args = arguments;
+		return this;
 	}
-	catch (MalformedURLException e) {
-	    return null; // null means it is a bad SMBFile
+
+	private void _setProperties(Map arguments) {
+
+		String resolveOrder = (String) arguments.get("resolveOrder");
+		if (resolveOrder == null) resolveOrder = "DNS";
+
+		String dfsDisabled = (String) arguments.get("smb.client.dfs.disabled");
+		if (dfsDisabled == null) dfsDisabled = "true";
+		System.setProperty("jcifs.resolveOrder", resolveOrder);
+		System.setProperty("jcifs.smb.client.dfs.disabled", dfsDisabled);
+
 	}
-    }
 
-    public static boolean isEncryptedUserInfo(String userInfo) {
-	return userInfo.startsWith(ENCRYPTED_PREFIX);
-    }
+	public Resource getResource(String path, NtlmPasswordAuthentication auth) {
+		return new SMBResource(this, path, auth);
+	}
 
-    public static String unencryptUserInfo(String userInfo) {
-	if (!isEncryptedUserInfo(userInfo)) return userInfo;
-	String encrypted = userInfo.replaceAll(Pattern.quote(ENCRYPTED_PREFIX), "");
-	byte[] unencryptedBytes = Base32DecEnc.decode(encrypted.toUpperCase());
-	return new String(unencryptedBytes, UTF8);
+	@Override
+	public Resource getResource(String path) {
+		return new SMBResource(this, path);
+	}
 
-    }
+	@Override
+	public String getScheme() {
+		return scheme;
+	}
 
-    public static String encryptUserInfo(String userInfo) {
-	byte[] bytes = Base32DecEnc.encode(userInfo.getBytes(UTF8));
-	return ENCRYPTED_PREFIX.concat(new String(bytes, UTF8));
-    }
+	@Override
+	public Map<String, String> getArguments() {
+		return args;
+	}
+
+	@Override
+	public void setResources(Resources resources) {
+		// TODO Not sure what this does
+	}
+
+	@Override
+	public void unlock(Resource res) {
+		lock.unlock(res);
+	}
+
+	@Override
+	public void lock(Resource res) throws IOException {
+		lock.lock(res);
+	}
+
+	@Override
+	public void read(Resource res) throws IOException {
+		lock.read(res);
+	}
+
+	@Override
+	public boolean isCaseSensitive() {
+		return false;
+	}
+
+	@Override
+	public boolean isModeSupported() {
+		return false;
+	}
+
+	@Override
+	public boolean isAttributesSupported() {
+		return false;
+	}
+
+	public SmbFile getFile(String path, NtlmPasswordAuthentication auth) {
+		try {
+			return new SmbFile(path, auth);
+		}
+		catch (MalformedURLException e) {
+			return null; // null means it is a bad SMBFile
+		}
+	}
+
+	public static boolean isEncryptedUserInfo(String userInfo) {
+		return userInfo.startsWith(ENCRYPTED_PREFIX);
+	}
+
+	public static String unencryptUserInfo(String userInfo) {
+		if (!isEncryptedUserInfo(userInfo)) return userInfo;
+		String encrypted = userInfo.replaceAll(Pattern.quote(ENCRYPTED_PREFIX), "");
+		byte[] unencryptedBytes = Base32DecEnc.decode(encrypted.toUpperCase());
+		return new String(unencryptedBytes, UTF8);
+
+	}
+
+	public static String encryptUserInfo(String userInfo) {
+		byte[] bytes = Base32DecEnc.encode(userInfo.getBytes(UTF8));
+		return ENCRYPTED_PREFIX.concat(new String(bytes, UTF8));
+	}
 }

@@ -44,118 +44,118 @@ import lucee.runtime.type.util.ListUtil;
 
 public final class QuerySort extends BIF {
 
-    private static final long serialVersionUID = -6566120440638749819L;
+	private static final long serialVersionUID = -6566120440638749819L;
 
-    public static boolean call(PageContext pc, Query query, Object columnNameOrSortFunc) throws PageException {
-	if (Decision.isSimpleValue(columnNameOrSortFunc)) return _call(pc, query, Caster.toString(columnNameOrSortFunc), null);
+	public static boolean call(PageContext pc, Query query, Object columnNameOrSortFunc) throws PageException {
+		if (Decision.isSimpleValue(columnNameOrSortFunc)) return _call(pc, query, Caster.toString(columnNameOrSortFunc), null);
 
-	return _call(pc, query, Caster.toFunction(columnNameOrSortFunc));
-    }
-
-    public static boolean call(PageContext pc, Query query, Object columnNameOrSortFunc, String directions) throws PageException {
-	if (Decision.isSimpleValue(columnNameOrSortFunc)) return _call(pc, query, Caster.toString(columnNameOrSortFunc), directions);
-	return _call(pc, query, Caster.toFunction(columnNameOrSortFunc));
-    }
-
-    public static boolean _call(PageContext pc, Query query, UDF udf) throws PageException {
-	int recordcount = query.getRecordcount();
-	Key[] columns = query.getColumnNames();
-	QueryRow[] rows = new QueryRow[recordcount];
-	Struct sct;
-	Object empty = NullSupportHelper.full(pc) ? null : "";
-	for (int row = 1; row <= recordcount; row++) {
-	    sct = new StructImpl();
-	    for (int col = 0; col < columns.length; col++) {
-		sct.setEL(columns[col], query.getAt(columns[col], row, empty));
-	    }
-	    rows[row - 1] = new QueryRow(query, row, sct);
+		return _call(pc, query, Caster.toFunction(columnNameOrSortFunc));
 	}
 
-	Arrays.sort(rows, new QueryRowComparator(pc, udf));
-	((QueryImpl) query).sort(toInt(rows));
-	return true;
-    }
-
-    private static int[] toInt(QueryRow[] rows) {
-	int[] ints = new int[rows.length];
-	for (int i = 0; i < rows.length; i++) {
-	    ints[i] = rows[i].rowNbr;
+	public static boolean call(PageContext pc, Query query, Object columnNameOrSortFunc, String directions) throws PageException {
+		if (Decision.isSimpleValue(columnNameOrSortFunc)) return _call(pc, query, Caster.toString(columnNameOrSortFunc), directions);
+		return _call(pc, query, Caster.toFunction(columnNameOrSortFunc));
 	}
-	return ints;
-    }
 
-    private static boolean _call(PageContext pc, Query query, String columnNames, String directions) throws PageException {
-	// column names
-	String[] arrColumnNames = ListUtil.trimItems(ListUtil.listToStringArray(columnNames, ','));
-	int[] dirs = new int[arrColumnNames.length];
-
-	// directions
-	if (!StringUtil.isEmpty(directions)) {
-	    String[] arrDirections = ListUtil.trimItems(ListUtil.listToStringArray(directions, ','));
-	    if (arrColumnNames.length != arrDirections.length) throw new DatabaseException("column names and directions has not the same count", null, null, null);
-
-	    String direction;
-	    for (int i = 0; i < dirs.length; i++) {
-		direction = arrDirections[i].toLowerCase();
-		dirs[i] = 0;
-		if (direction.equals("asc")) dirs[i] = Query.ORDER_ASC;
-		else if (direction.equals("desc")) dirs[i] = Query.ORDER_DESC;
-		else {
-		    throw new DatabaseException("argument direction of function querySort must be \"asc\" or \"desc\", now \"" + direction + "\"", null, null, null);
+	public static boolean _call(PageContext pc, Query query, UDF udf) throws PageException {
+		int recordcount = query.getRecordcount();
+		Key[] columns = query.getColumnNames();
+		QueryRow[] rows = new QueryRow[recordcount];
+		Struct sct;
+		Object empty = NullSupportHelper.full(pc) ? null : "";
+		for (int row = 1; row <= recordcount; row++) {
+			sct = new StructImpl();
+			for (int col = 0; col < columns.length; col++) {
+				sct.setEL(columns[col], query.getAt(columns[col], row, empty));
+			}
+			rows[row - 1] = new QueryRow(query, row, sct);
 		}
-	    }
-	}
-	else {
-	    for (int i = 0; i < dirs.length; i++) {
-		dirs[i] = Query.ORDER_ASC;
-	    }
+
+		Arrays.sort(rows, new QueryRowComparator(pc, udf));
+		((QueryImpl) query).sort(toInt(rows));
+		return true;
 	}
 
-	for (int i = arrColumnNames.length - 1; i >= 0; i--)
-	    query.sort(KeyImpl.init(arrColumnNames[i]), dirs[i]);
-
-	return true;
-    }
-
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 2) return call(pc, Caster.toQuery(args[0]), args[1]);
-	return call(pc, Caster.toQuery(args[0]), args[1], Caster.toString(args[2]));
-    }
-
-    public static class QueryRow {
-
-	public final Query query;
-	public final int rowNbr;
-	public final Struct row;
-
-	public QueryRow(Query query, int rowNbr, Struct row) {
-	    this.query = query;
-	    this.rowNbr = rowNbr;
-	    this.row = row;
+	private static int[] toInt(QueryRow[] rows) {
+		int[] ints = new int[rows.length];
+		for (int i = 0; i < rows.length; i++) {
+			ints[i] = rows[i].rowNbr;
+		}
+		return ints;
 	}
 
-    }
+	private static boolean _call(PageContext pc, Query query, String columnNames, String directions) throws PageException {
+		// column names
+		String[] arrColumnNames = ListUtil.trimItems(ListUtil.listToStringArray(columnNames, ','));
+		int[] dirs = new int[arrColumnNames.length];
 
-    public static class QueryRowComparator implements Comparator<QueryRow> {
+		// directions
+		if (!StringUtil.isEmpty(directions)) {
+			String[] arrDirections = ListUtil.trimItems(ListUtil.listToStringArray(directions, ','));
+			if (arrColumnNames.length != arrDirections.length) throw new DatabaseException("column names and directions has not the same count", null, null, null);
 
-	private PageContext pc;
-	private final UDF udf;
+			String direction;
+			for (int i = 0; i < dirs.length; i++) {
+				direction = arrDirections[i].toLowerCase();
+				dirs[i] = 0;
+				if (direction.equals("asc")) dirs[i] = Query.ORDER_ASC;
+				else if (direction.equals("desc")) dirs[i] = Query.ORDER_DESC;
+				else {
+					throw new DatabaseException("argument direction of function querySort must be \"asc\" or \"desc\", now \"" + direction + "\"", null, null, null);
+				}
+			}
+		}
+		else {
+			for (int i = 0; i < dirs.length; i++) {
+				dirs[i] = Query.ORDER_ASC;
+			}
+		}
 
-	public QueryRowComparator(PageContext pc, UDF udf) {
-	    this.pc = pc;
-	    this.udf = udf;
+		for (int i = arrColumnNames.length - 1; i >= 0; i--)
+			query.sort(KeyImpl.init(arrColumnNames[i]), dirs[i]);
+
+		return true;
 	}
 
 	@Override
-	public int compare(QueryRow left, QueryRow right) {
-	    try {
-		return Caster.toIntValue(udf.call(pc, new Object[] { left.row, right.row }, true));
-	    }
-	    catch (PageException pe) {
-		throw new PageRuntimeException(pe);
-	    }
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 2) return call(pc, Caster.toQuery(args[0]), args[1]);
+		return call(pc, Caster.toQuery(args[0]), args[1], Caster.toString(args[2]));
 	}
 
-    }
+	public static class QueryRow {
+
+		public final Query query;
+		public final int rowNbr;
+		public final Struct row;
+
+		public QueryRow(Query query, int rowNbr, Struct row) {
+			this.query = query;
+			this.rowNbr = rowNbr;
+			this.row = row;
+		}
+
+	}
+
+	public static class QueryRowComparator implements Comparator<QueryRow> {
+
+		private PageContext pc;
+		private final UDF udf;
+
+		public QueryRowComparator(PageContext pc, UDF udf) {
+			this.pc = pc;
+			this.udf = udf;
+		}
+
+		@Override
+		public int compare(QueryRow left, QueryRow right) {
+			try {
+				return Caster.toIntValue(udf.call(pc, new Object[] { left.row, right.row }, true));
+			}
+			catch (PageException pe) {
+				throw new PageRuntimeException(pe);
+			}
+		}
+
+	}
 }

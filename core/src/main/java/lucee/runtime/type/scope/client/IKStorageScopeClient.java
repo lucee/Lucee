@@ -16,7 +16,8 @@
  **/
 package lucee.runtime.type.scope.client;
 
-import lucee.commons.collection.MapPro;
+import java.util.Map;
+
 import lucee.runtime.PageContext;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.scope.Client;
@@ -26,23 +27,23 @@ import lucee.runtime.type.scope.storage.IKStorageScopeSupport;
 
 public final class IKStorageScopeClient extends IKStorageScopeSupport implements Client {
 
-    private static final long serialVersionUID = -875719423763891692L;
+	private static final long serialVersionUID = -875719423763891692L;
 
-    public IKStorageScopeClient(PageContext pc, IKHandler handler, String appName, String name, MapPro<Collection.Key, IKStorageScopeItem> data, long lastStored) {
-	super(pc, handler, appName, name, "client", SCOPE_CLIENT, data, lastStored);
-    }
+	public IKStorageScopeClient(PageContext pc, IKHandler handler, String appName, String name, Map<Collection.Key, IKStorageScopeItem> data, long lastStored) {
+		super(pc, handler, appName, name, "client", SCOPE_CLIENT, data, lastStored);
+	}
 
-    /**
-     * Constructor of the class, clone existing
-     * 
-     * @param other
-     */
-    private IKStorageScopeClient(IKStorageScopeSupport other, boolean deepCopy) {
-	super(other, deepCopy);
-    }
+	/**
+	 * Constructor of the class, clone existing
+	 * 
+	 * @param other
+	 */
+	private IKStorageScopeClient(IKStorageScopeSupport other, boolean deepCopy) {
+		super(other, deepCopy);
+	}
 
-    @Override
-    public Collection duplicate(boolean deepCopy) {
-	return new IKStorageScopeClient(this, deepCopy);
-    }
+	@Override
+	public Collection duplicate(boolean deepCopy) {
+		return new IKStorageScopeClient(this, deepCopy);
+	}
 }

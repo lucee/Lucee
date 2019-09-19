@@ -26,12 +26,12 @@ import lucee.runtime.net.rpc.client.WSClient;
 
 public final class GetSOAPResponse implements Function {
 
-    private static final long serialVersionUID = 7155984396258463949L;
+	private static final long serialVersionUID = 7155984396258463949L;
 
-    public static Object call(PageContext pc, Object webservice) throws PageException {
-	if (!(webservice instanceof WSClient))
-	    throw new FunctionException(pc, "getSOAPResponse", 1, "webservice", "value must be a webservice Object generated with createObject/<cfobject>");
+	public static Object call(PageContext pc, Object webservice) throws PageException {
+		if (!(webservice instanceof WSClient))
+			throw new FunctionException(pc, "getSOAPResponse", 1, "webservice", "value must be a webservice Object generated with createObject/<cfobject>");
 
-	return ((WSClient) webservice).getSOAPResponse();
-    }
+		return ((WSClient) webservice).getSOAPResponse();
+	}
 }

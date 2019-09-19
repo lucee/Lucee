@@ -33,28 +33,28 @@ import lucee.runtime.type.Array;
 
 public final class ArrayPrepend extends BIF {
 
-    private static final long serialVersionUID = 777525067673834084L;
+	private static final long serialVersionUID = 777525067673834084L;
 
-    public static boolean call(PageContext pc, Array array, Object object) throws PageException {
-	array.prepend(object);
-	return true;
-    }
-
-    public static boolean call(PageContext pc, Array array, Object object, boolean merge) throws PageException {
-	if (merge && Decision.isCastableToArray(object)) {
-	    Iterator<Object> it = Caster.toArray(object).valueIterator();
-	    while (it.hasNext()) {
-		array.prepend(it.next());
-	    }
+	public static boolean call(PageContext pc, Array array, Object object) throws PageException {
+		array.prepend(object);
+		return true;
 	}
-	else array.prepend(object);
-	return true;
-    }
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 2) return call(pc, Caster.toArray(args[0]), args[1]);
-	else if (args.length == 3) return call(pc, Caster.toArray(args[0]), args[1], Caster.toBooleanValue(args[2]));
-	else throw new FunctionException(pc, "ArrayPrepend", 2, 3, args.length);
-    }
+	public static boolean call(PageContext pc, Array array, Object object, boolean merge) throws PageException {
+		if (merge && Decision.isCastableToArray(object)) {
+			Iterator<Object> it = Caster.toArray(object).valueIterator();
+			while (it.hasNext()) {
+				array.prepend(it.next());
+			}
+		}
+		else array.prepend(object);
+		return true;
+	}
+
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 2) return call(pc, Caster.toArray(args[0]), args[1]);
+		else if (args.length == 3) return call(pc, Caster.toArray(args[0]), args[1], Caster.toBooleanValue(args[2]));
+		else throw new FunctionException(pc, "ArrayPrepend", 2, 3, args.length);
+	}
 }

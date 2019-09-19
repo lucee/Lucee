@@ -35,38 +35,38 @@ import lucee.runtime.type.ArrayImpl;
 
 public final class PagePoolList implements Function {
 
-    private static final long serialVersionUID = 7743072823224800862L;
+	private static final long serialVersionUID = 7743072823224800862L;
 
-    public static Array call(PageContext pc) throws PageException {
-	ArrayImpl arr = new ArrayImpl();
-	fill(arr, ConfigWebUtil.getAllMappings(pc));
-	return arr;
-    }
-
-    private static void fill(Array arr, Mapping[] mappings) throws PageException {
-	if (mappings == null) return;
-	MappingImpl mapping;
-	for (int i = 0; i < mappings.length; i++) {
-	    mapping = (MappingImpl) mappings[i];
-	    toArray(arr, mapping.getPageSourcePool());
+	public static Array call(PageContext pc) throws PageException {
+		ArrayImpl arr = new ArrayImpl();
+		fill(arr, ConfigWebUtil.getAllMappings(pc));
+		return arr;
 	}
-    }
 
-    private static Array toArray(Array arr, PageSourcePool psp) throws PageException {
-	String[] keys = psp.keys();
-
-	PageSourceImpl ps;
-	for (int y = 0; y < keys.length; y++) {
-	    ps = (PageSourceImpl) psp.getPageSource(keys[y], false);
-	    if (ps.isLoad()) arr.append(ps.getDisplayPath());
+	private static void fill(Array arr, Mapping[] mappings) throws PageException {
+		if (mappings == null) return;
+		MappingImpl mapping;
+		for (int i = 0; i < mappings.length; i++) {
+			mapping = (MappingImpl) mappings[i];
+			toArray(arr, mapping.getPageSourcePool());
+		}
 	}
-	return arr;
-    }
 
-    public static String removeStartingSlash(String virtual) {
-	virtual = virtual.trim();
-	if (StringUtil.startsWith(virtual, '/')) virtual = virtual.substring(1);
-	if (StringUtil.isEmpty(virtual)) return "root";
-	return virtual;
-    }
+	private static Array toArray(Array arr, PageSourcePool psp) throws PageException {
+		String[] keys = psp.keys();
+
+		PageSourceImpl ps;
+		for (int y = 0; y < keys.length; y++) {
+			ps = (PageSourceImpl) psp.getPageSource(keys[y], false);
+			if (ps.isLoad()) arr.append(ps.getDisplayPath());
+		}
+		return arr;
+	}
+
+	public static String removeStartingSlash(String virtual) {
+		virtual = virtual.trim();
+		if (StringUtil.startsWith(virtual, '/')) virtual = virtual.substring(1);
+		if (StringUtil.isEmpty(virtual)) return "root";
+		return virtual;
+	}
 }

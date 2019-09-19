@@ -26,9 +26,9 @@ import lucee.runtime.op.Caster;
 
 public class GetSystemTotalMemory implements Function {
 
-    private static final long serialVersionUID = 6459096452887146460L;
+	private static final long serialVersionUID = 6459096452887146460L;
 
-    public static double call(PageContext pc) throws ApplicationException {
-	return Caster.toDoubleValue(SystemUtil.getTotalBytes());
-    }
+	public static double call(PageContext pc) throws ApplicationException {
+		return Caster.toDoubleValue(SystemUtil.getTotalBytes());
+	}
 }

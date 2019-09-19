@@ -23,11 +23,11 @@ package lucee.runtime.text.xml.storage;
  */
 public final class StorageException extends Exception {
 
-    /**
-     * @param message
-     */
-    public StorageException(String message) {
-	super(message);
-    }
+	/**
+	 * @param message
+	 */
+	public StorageException(String message) {
+		super(message);
+	}
 
 }
