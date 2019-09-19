@@ -85,6 +85,13 @@ public class OSGiUtil {
 	private static final int QUALIFIER_APPENDIX_OTHER = 4;
 	private static final int QUALIFIER_APPENDIX_STABLE = 5;
 
+	private static ThreadLocal<Set<String>> bundlesThreadLocal = new ThreadLocal<Set<String>>() {
+		@Override
+		protected Set<String> initialValue() {
+			return new HashSet<String>();
+		}
+	};
+
 	private static class Filter implements FilenameFilter, ResourceNameFilter {
 
 		@Override
@@ -1112,10 +1119,21 @@ public class OSGiUtil {
 	}
 
 	public static Bundle start(Bundle bundle) throws BundleException {
-		return _start(bundle, null);
+		try {
+			return _start(bundle, null);
+		}
+		finally {
+			bundlesThreadLocal.get().clear();
+		}
 	}
 
 	public static Bundle _start(Bundle bundle, Set<String> parents) throws BundleException {
+		if (bundle == null) return bundle;
+
+		String bn = toString(bundle);
+		if (bundlesThreadLocal.get().contains(bn)) return bundle;
+		bundlesThreadLocal.get().add(bn);
+
 		String fh = bundle.getHeaders().get("Fragment-Host");
 		// Fragment cannot be started
 		if (!Util.isEmpty(fh)) {
@@ -1132,7 +1150,6 @@ public class OSGiUtil {
 			// check if required related bundles are missing and load them if necessary
 			final List<BundleDefinition> failedBD = new ArrayList<OSGiUtil.BundleDefinition>();
 			if (parents == null) parents = new HashSet<String>();
-
 			Set<Bundle> loadedBundles = loadBundles(parents, bundle, null, failedBD);
 
 			try {
