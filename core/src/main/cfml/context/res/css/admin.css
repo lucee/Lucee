@@ -421,7 +421,7 @@ td.fieldPadded {
 /* display boxes etc. */
 .commentError{font-size : 10px;color:#bf4f36;text-decoration:none;}
 .comment{	
-	font-size:11px;
+	font-size:11px;color:#999;font-style: italic;
 	text-decoration:none;	
 	padding: 1px 0px;
 	/* PK: when using mouseover helptexts, this padding might be better:
