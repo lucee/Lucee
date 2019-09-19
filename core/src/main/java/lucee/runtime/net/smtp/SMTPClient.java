@@ -51,6 +51,10 @@ import javax.mail.internet.MimeMultipart;
 import javax.mail.internet.MimePart;
 import javax.mail.internet.MimeUtility;
 
+import org.apache.commons.collections4.map.ReferenceMap;
+
+import com.sun.mail.smtp.SMTPMessage;
+
 import lucee.commons.activation.ResourceDataSource;
 import lucee.commons.digest.MD5;
 import lucee.commons.io.CharsetUtil;
@@ -63,7 +67,6 @@ import lucee.commons.lang.CharSet;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.lang.SystemOut;
 import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
@@ -95,10 +98,6 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ListUtil;
-
-import org.apache.commons.collections4.map.ReferenceMap;
-
-import com.sun.mail.smtp.SMTPMessage;
 
 public final class SMTPClient implements Serializable {
 
@@ -853,7 +852,7 @@ public final class SMTPClient implements Serializable {
 			break;
 		    }
 		    catch (Exception e) {
-			SystemOut.printDate(e);
+			LogUtil.log(ThreadLocalPageContext.getConfig(config), SMTPClient.class.getName(), e);
 			if (i + 1 == servers.length) {
 
 			    listener(config, server, log, e, System.nanoTime() - start);

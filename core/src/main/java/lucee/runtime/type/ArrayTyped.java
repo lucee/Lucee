@@ -3,7 +3,6 @@ package lucee.runtime.type;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import lucee.print;
 import lucee.commons.lang.CFTypes;
 import lucee.runtime.PageContext;
 import lucee.runtime.dump.DumpData;

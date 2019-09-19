@@ -21,13 +21,13 @@ package lucee.intergral.fusiondebug.server.type.qry;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.intergral.fusiondebug.server.IFDStackFrame;
+
 import lucee.intergral.fusiondebug.server.type.FDValueNotMutability;
 import lucee.intergral.fusiondebug.server.type.FDVariable;
 import lucee.intergral.fusiondebug.server.type.simple.FDSimpleVariable;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Query;
-
-import com.intergral.fusiondebug.server.IFDStackFrame;
 
 public class FDQuery extends FDValueNotMutability {
 

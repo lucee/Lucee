@@ -44,6 +44,16 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleException;
+import org.osgi.framework.Version;
+import org.w3c.dom.DOMException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
+
+import com.allaire.cfx.CustomTag;
+
 import lucee.commons.digest.MD5;
 import lucee.commons.io.FileUtil;
 import lucee.commons.io.IOUtil;
@@ -53,7 +63,6 @@ import lucee.commons.io.compress.Pack200Util;
 import lucee.commons.io.compress.ZipUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
-import lucee.commons.io.log.log4j.Log4jUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
 import lucee.commons.io.res.ResourcesImpl;
@@ -65,7 +74,6 @@ import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.lang.SystemOut;
 import lucee.commons.net.HTTPUtil;
 import lucee.commons.net.IPRange;
 import lucee.commons.net.URLEncoder;
@@ -144,16 +152,6 @@ import lucee.runtime.video.VideoExecuterNotSupported;
 import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.function.FunctionLibException;
 import lucee.transformer.library.tag.TagLibException;
-
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleException;
-import org.osgi.framework.Version;
-import org.w3c.dom.DOMException;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.xml.sax.SAXException;
-
-import com.allaire.cfx.CustomTag;
 
 /**
  * 
@@ -255,7 +253,7 @@ public final class XMLConfigAdmin {
 	try {
 	    XMLConfigAdmin admin = XMLConfigAdmin.newInstance(ci, null);
 	    admin._reload();
-	    SystemOut.printDate(ci.getOutWriter(), "reloaded the configuration [" + file + "] automatically");
+	    LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_INFO, XMLConfigAdmin.class.getName(), "reloaded the configuration [" + file + "] automatically");
 	}
 	catch (Throwable t) {
 	    ExceptionUtil.rethrowIfNecessary(t);
@@ -350,7 +348,8 @@ public final class XMLConfigAdmin {
      * @param level
      * @throws PageException
      */
-    public void setMailLog(String logFile, String level) throws PageException {
+    public void setMailLog(Config config, String logFile, String level) throws PageException {
+	ConfigImpl ci = (ConfigImpl) config;
 	checkWriteAccess();
 	boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_MAIL);
 
@@ -373,12 +372,12 @@ public final class XMLConfigAdmin {
 	}
 	logger.setAttribute("name", "mail");
 	if ("console".equalsIgnoreCase(logFile)) {
-	    setClass(logger, null, "appender-", Log4jUtil.appenderClassDefintion("console"));
-	    setClass(logger, null, "layout-", Log4jUtil.layoutClassDefintion("pattern"));
+	    setClass(logger, null, "appender-", ci.getLogEngine().appenderClassDefintion("console"));
+	    setClass(logger, null, "layout-", ci.getLogEngine().layoutClassDefintion("pattern"));
 	}
 	else {
-	    setClass(logger, null, "appender-", Log4jUtil.appenderClassDefintion("resource"));
-	    setClass(logger, null, "layout-", Log4jUtil.layoutClassDefintion("classic"));
+	    setClass(logger, null, "appender-", ci.getLogEngine().appenderClassDefintion("resource"));
+	    setClass(logger, null, "layout-", ci.getLogEngine().layoutClassDefintion("classic"));
 	    logger.setAttribute("appender-arguments", "path:" + logFile);
 	}
 	logger.setAttribute("log-level", level);
@@ -989,7 +988,7 @@ public final class XMLConfigAdmin {
     }
 
     public static void updateJar(Config config, Resource resJar, boolean reloadWhenClassicJar) throws IOException, BundleException {
-	BundleFile bf = new BundleFile(resJar);
+	BundleFile bf = BundleFile.getInstance(resJar);
 
 	// resJar is a bundle
 	if (bf.isBundle()) {
@@ -1015,7 +1014,7 @@ public final class XMLConfigAdmin {
      */
     static BundleFile installBundle(Config config, Resource resJar, String extVersion, boolean convert2bundle) throws IOException, BundleException {
 
-	BundleFile bf = new BundleFile(resJar);
+	BundleFile bf = BundleFile.getInstance(resJar);
 
 	// resJar is a bundle
 	if (bf.isBundle()) {
@@ -1032,14 +1031,14 @@ public final class XMLConfigAdmin {
 	Version version = bf.getVersion();
 	if (version == null) version = OSGiUtil.toVersion(extVersion);
 
-	SystemOut.printDate("failed to load [" + resJar + "] as OSGi Bundle");
+	LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_INFO, XMLConfigAdmin.class.getName(), "failed to load [" + resJar + "] as OSGi Bundle");
 	BundleBuilderFactory bbf = new BundleBuilderFactory(resJar, name);
 	bbf.setVersion(version);
 	bbf.setIgnoreExistingManifest(false);
 	bbf.build();
 
-	bf = new BundleFile(resJar);
-	SystemOut.printDate("converted  [" + resJar + "] to an OSGi Bundle");
+	bf = BundleFile.getInstance(resJar);
+	LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_INFO, XMLConfigAdmin.class.getName(), "converted  [" + resJar + "] to an OSGi Bundle");
 	return installBundle(config, bf);
     }
 
@@ -1064,7 +1063,7 @@ public final class XMLConfigAdmin {
 	    IOUtil.closeEL(is, os);
 	}
 
-	return new BundleFile(jar);
+	return BundleFile.getInstance(jar);
     }
 
     /**
@@ -1352,20 +1351,20 @@ public final class XMLConfigAdmin {
 		}
 	    }
 
-	    SystemOut.printDate("move " + name + " logging");
+	    LogUtil.log(ThreadLocalPageContext.getConfig(cs), Log.LEVEL_INFO, XMLConfigAdmin.class.getName(), "move " + name + " logging");
 	    Element logger = doc.createElement("logger");
 	    logger.setAttribute("name", name);
 	    if ("console".equalsIgnoreCase(path)) {
 		try {
-		    setClass(logger, null, "appender-", Log4jUtil.appenderClassDefintion("console"));
-		    setClass(logger, null, "layout-", Log4jUtil.layoutClassDefintion("pattern"));
+		    setClass(logger, null, "appender-", cs.getLogEngine().appenderClassDefintion("console"));
+		    setClass(logger, null, "layout-", cs.getLogEngine().layoutClassDefintion("pattern"));
 		}
 		catch (PageException e) {}
 	    }
 	    else {
 		try {
-		    setClass(logger, null, "appender-", Log4jUtil.appenderClassDefintion("resource"));
-		    setClass(logger, null, "layout-", Log4jUtil.layoutClassDefintion("classic"));
+		    setClass(logger, null, "appender-", cs.getLogEngine().appenderClassDefintion("resource"));
+		    setClass(logger, null, "layout-", cs.getLogEngine().layoutClassDefintion("classic"));
 		}
 		catch (PageException e) {}
 
@@ -1449,7 +1448,8 @@ public final class XMLConfigAdmin {
     public void verifyJavaCFX(String name, ClassDefinition cd) throws PageException {
 	try {
 	    Class clazz = cd.getClazz();
-	    if (!Reflector.isInstaneOf(clazz, CustomTag.class)) throw new ExpressionException("class [" + cd + "] must implement interface [" + CustomTag.class.getName() + "]");
+	    if (!Reflector.isInstaneOf(clazz, CustomTag.class, false))
+		throw new ExpressionException("class [" + cd + "] must implement interface [" + CustomTag.class.getName() + "]");
 	}
 	catch (ClassException e) {
 	    throw Caster.toPageException(e);
@@ -1509,7 +1509,8 @@ public final class XMLConfigAdmin {
      */
     public void updateDataSource(String id, String name, String newName, ClassDefinition cd, String dsn, String username, String password, String host, String database, int port,
 	    int connectionLimit, int connectionTimeout, long metaCacheTimeout, boolean blob, boolean clob, int allow, boolean validate, boolean storage, String timezone,
-	    Struct custom, String dbdriver, ParamSyntax paramSyntax, boolean literalTimestampWithTSOffset, boolean alwaysSetTimeout) throws PageException {
+	    Struct custom, String dbdriver, ParamSyntax paramSyntax, boolean literalTimestampWithTSOffset, boolean alwaysSetTimeout, boolean requestExclusive)
+	    throws PageException {
 
 	checkWriteAccess();
 	SecurityManager sm = config.getSecurityManager();
@@ -1585,6 +1586,9 @@ public final class XMLConfigAdmin {
 		if (alwaysSetTimeout) el.setAttribute("always-set-timeout", "true");
 		else if (el.hasAttribute("always-set-timeout")) el.removeAttribute("always-set-timeout");
 
+		if (requestExclusive) el.setAttribute("request-exclusive", "true");
+		else if (el.hasAttribute("request-exclusive")) el.removeAttribute("request-exclusive");
+
 		return;
 	    }
 	}
@@ -1629,6 +1633,8 @@ public final class XMLConfigAdmin {
 
 	if (literalTimestampWithTSOffset) el.setAttribute("literal-timestamp-with-tsoffset", "true");
 	if (alwaysSetTimeout) el.setAttribute("always-set-timeout", "true");
+	if (requestExclusive) el.setAttribute("request-exclusive", "true");
+
     }
 
     static void removeJDBCDriver(ConfigImpl config, ClassDefinition cd, boolean reload) throws IOException, SAXException, PageException, BundleException {
@@ -1891,7 +1897,7 @@ public final class XMLConfigAdmin {
 		clazz = ClassUtil.loadClass(config.getClassLoader(), "org.lucee.extension.cache.eh.EHCache");
 	    else clazz = ClassUtil.loadClass(config.getClassLoader(), cd.getClassName());
 
-	    if (!Reflector.isInstaneOf(clazz, Cache.class)) throw new ExpressionException("class [" + clazz.getName() + "] is not of type [" + Cache.class.getName() + "]");
+	    if (!Reflector.isInstaneOf(clazz, Cache.class, false)) throw new ExpressionException("class [" + clazz.getName() + "] is not of type [" + Cache.class.getName() + "]");
 	}
 	catch (ClassException e) {
 	    throw new ExpressionException(e.getMessage());
@@ -2429,6 +2435,19 @@ public final class XMLConfigAdmin {
 	if (typeChecking == null) datasources.removeAttribute("type-checking");
 	else datasources.setAttribute("type-checking", Caster.toString(typeChecking.booleanValue()));
 
+    }
+
+    public void updateCachedAfterTimeRange(TimeSpan ts) throws SecurityException, ApplicationException {
+	checkWriteAccess();
+	boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+	if (!hasAccess) throw new SecurityException("no access to update");
+
+	Element el = _getRootElement("application");
+	if (ts == null) el.removeAttribute("cached-after");
+	else {
+	    if (ts.getMillis() < 0) throw new ApplicationException("value cannot be a negative number");
+	    el.setAttribute("cached-after", ts.getDay() + "," + ts.getHour() + "," + ts.getMinute() + "," + ts.getSecond());
+	}
     }
 
     /**
@@ -3067,6 +3086,17 @@ public final class XMLConfigAdmin {
 	scope.setAttribute("use-cache-path", Caster.toString(ctPathCache, ""));
     }
 
+    public void updateSecurity(String varUsage) throws SecurityException {
+	checkWriteAccess();
+	Element el = _getRootElement("security");
+
+	if (el != null) {
+	    if (!StringUtil.isEmpty(varUsage)) el.setAttribute("variable-usage", Caster.toString(varUsage));
+	    else el.removeAttribute("variable-usage");
+	}
+
+    }
+
     /**
      * updates if debugging or not
      * 
@@ -3645,7 +3675,7 @@ public final class XMLConfigAdmin {
 	final URL updateUrl = new URL(updateProvider,
 		"/rest/update/provider/download/" + version.toString() + (id != null ? id.toQueryString() : "") + (id == null ? "?" : "&") + "allowRedirect=true");
 	// log.debug("Admin", "download "+version+" from " + updateUrl);
-	System.out.println(updateUrl);
+	// System. out.println(updateUrl);
 
 	// local resource
 	final File patchDir = factory.getPatchDirectory();
@@ -3676,7 +3706,7 @@ public final class XMLConfigAdmin {
 		if (location == null) location = conn.getHeaderField("location");
 		if (location == null) location = conn.getHeaderField("LOCATION");
 		if (location == null) break;
-		System.out.println("download redirected:" + location); // MUST remove
+		// System. out.println("download redirected:" + location); // MUST remove
 
 		conn.disconnect();
 		URL url = new URL(location);
@@ -3710,13 +3740,13 @@ public final class XMLConfigAdmin {
 	    // when it is a loader extract the core from it
 	    File tmp = CFMLEngineFactory.extractCoreIfLoader(newLucee);
 	    if (tmp != null) {
-		System.out.println("extract core from loader"); // MUST remove
+		// System .out.println("extract core from loader"); // MUST remove
 		// log.debug("Admin", "extract core from loader");
 
 		newLucee.delete();
 		tmp.renameTo(newLucee);
 		tmp.delete();
-		System.out.println("exist?" + newLucee.exists()); // MUST remove
+		// System. out.println("exist?" + newLucee.exists()); // MUST remove
 
 	    }
 	}
@@ -4410,7 +4440,7 @@ public final class XMLConfigAdmin {
 	try {
 	    // get patches directory
 	    CFMLEngine engine = ConfigWebUtil.getEngine(config);
-	    ConfigServerImpl cs = (ConfigServerImpl) config;
+	    ConfigServerImpl cs = config;
 	    Version v;
 	    v = CFMLEngineFactory.toVersion(core.getName(), null);
 	    Log logger = cs.getLog("deploy");
@@ -5367,7 +5397,7 @@ public final class XMLConfigAdmin {
     }
 
     public void removeArchive(Resource archive) throws IOException, PageException {
-	Log logger = ((ConfigImpl) config).getLog("deploy");
+	Log logger = config.getLog("deploy");
 	String virtual = null, type = null;
 	InputStream is = null;
 	ZipFile file = null;
@@ -5449,7 +5479,7 @@ public final class XMLConfigAdmin {
 	catch (Exception e) {
 	    throw Caster.toPageException(e);
 	}
-	if (!Reflector.isInstaneOf(clazz, Cluster.class) && !Reflector.isInstaneOf(clazz, ClusterRemote.class)) throw new ApplicationException(
+	if (!Reflector.isInstaneOf(clazz, Cluster.class, false) && !Reflector.isInstaneOf(clazz, ClusterRemote.class, false)) throw new ApplicationException(
 		"class [" + clazz.getName() + "] does not implement interface [" + Cluster.class.getName() + "] or [" + ClusterRemote.class.getName() + "]");
 
 	Element scope = _getRootElement("scope");
@@ -6409,7 +6439,7 @@ public final class XMLConfigAdmin {
 	try {
 	    Class clazz = cd.getClazz();
 
-	    if (instanceOfClass != null && !Reflector.isInstaneOf(clazz, instanceOfClass))
+	    if (instanceOfClass != null && !Reflector.isInstaneOf(clazz, instanceOfClass, false))
 		throw new ApplicationException("class [" + clazz.getName() + "] is not of type [" + instanceOfClass.getName() + "]");
 	}
 	catch (Exception e) {
@@ -6487,7 +6517,7 @@ public final class XMLConfigAdmin {
 		    }
 		}
 		catch (Exception e) {
-		    SystemOut.printDate(e);
+		    LogUtil.log(ThreadLocalPageContext.getConfig(config), XMLConfigAdmin.class.getName(), e);
 		}
 	    }
 	}

@@ -20,12 +20,12 @@ package lucee.runtime.com;
 
 import java.util.Iterator;
 
+import com.jacob.com.EnumVariant;
+
 import lucee.runtime.exp.CasterException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection;
-
-import com.jacob.com.EnumVariant;
 
 /**
  * MUST this is a value iterator instead of a key iterator

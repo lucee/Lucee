@@ -18,6 +18,9 @@
  **/
 package lucee.transformer.bytecode.statement;
 
+import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.GeneratorAdapter;
+
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.expression.ExpressionBase;
@@ -25,9 +28,6 @@ import lucee.transformer.bytecode.util.ASMUtil;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.Literal;
-
-import org.objectweb.asm.Type;
-import org.objectweb.asm.commons.GeneratorAdapter;
 
 public final class ExpressionAsStatement extends StatementBaseNoFinal {
 

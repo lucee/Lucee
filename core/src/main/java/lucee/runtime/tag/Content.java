@@ -23,7 +23,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.util.Enumeration;
 import java.util.zip.GZIPOutputStream;
 
@@ -31,12 +30,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.lang.SystemOut;
 import lucee.commons.net.HTTPUtil;
 import lucee.runtime.PageContextImpl;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PostContentAbort;
@@ -329,10 +330,8 @@ public final class Content extends BodyTagImpl {
 	    ranges[i] = new Range(from, to);
 
 	    if (i > 0 && ranges[i - 1].to >= from) {
-		PrintWriter err = pageContext.getConfig().getErrWriter();
-		SystemOut.printDate(err, "there is a overlapping of 2 ranges (" + ranges[i - 1] + "," + ranges[i] + ")");
-		// throw new ExpressionException("there is a overlapping of 2 ranges
-		// ("+ranges[i-1]+","+ranges[i]+")");
+		LogUtil.log(ThreadLocalPageContext.getConfig(pageContext), Log.LEVEL_ERROR, Content.class.getName(),
+			"there is a overlapping of 2 ranges (" + ranges[i - 1] + "," + ranges[i] + ")");
 		return null;
 	    }
 
@@ -341,8 +340,7 @@ public final class Content extends BodyTagImpl {
     }
 
     private void failRange(String name, String range) {
-	PrintWriter err = pageContext.getConfig().getErrWriter();
-	SystemOut.printDate(err, "failed to parse the header field [" + name + ":" + range + "]");
+	LogUtil.log(ThreadLocalPageContext.getConfig(pageContext), Log.LEVEL_INFO, Content.class.getName(), "failed to parse the header field [" + name + ":" + range + "]");
     }
 }
 

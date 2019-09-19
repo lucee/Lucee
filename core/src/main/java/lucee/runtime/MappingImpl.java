@@ -57,6 +57,8 @@ public final class MappingImpl implements Mapping {
 
     private static final long serialVersionUID = 6431380676262041196L;
 
+    private static final int MAX_SIZE = 6783;
+
     private String virtual;
     private String lcVirtual;
     private boolean topLevel;
@@ -220,7 +222,7 @@ public final class MappingImpl implements Mapping {
 	if (pcl == null) {
 	    pcl = new PhysicalClassLoader(config, getClassRootDirectory());
 	}
-	else if (pcl.getSize() > 4000) {
+	else if (pcl.getSize() > MAX_SIZE) {
 	    pageSourcePool.clearPages(pcl);
 	    pcl.clear();
 	    pcl = new PhysicalClassLoader(config, getClassRootDirectory());

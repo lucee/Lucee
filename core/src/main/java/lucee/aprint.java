@@ -25,10 +25,8 @@ import java.io.Reader;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.ResultSet;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
-import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
@@ -36,6 +34,12 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.servlet.http.Cookie;
+
+import org.w3c.dom.Attr;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.xml.sax.Attributes;
+import org.xml.sax.InputSource;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
@@ -45,12 +49,6 @@ import lucee.commons.io.res.util.ResourceUtil;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.QueryImpl;
-
-import org.w3c.dom.Attr;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.xml.sax.Attributes;
-import org.xml.sax.InputSource;
 
 /**
  *  

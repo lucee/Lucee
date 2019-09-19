@@ -20,11 +20,11 @@ package lucee.intergral.fusiondebug.server.type;
 
 import java.util.List;
 
+import com.intergral.fusiondebug.server.IFDStackFrame;
+
 import lucee.intergral.fusiondebug.server.type.coll.FDUDF;
 import lucee.intergral.fusiondebug.server.util.FDCaster;
 import lucee.runtime.type.UDF;
-
-import com.intergral.fusiondebug.server.IFDStackFrame;
 
 public abstract class FDNodeValueSupport extends FDValueSupport {
 

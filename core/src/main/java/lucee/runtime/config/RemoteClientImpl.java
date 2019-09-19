@@ -24,7 +24,6 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.functions.other.Encrypt;
 import lucee.runtime.net.proxy.ProxyData;
-import lucee.runtime.net.rpc.WSHandler;
 import lucee.runtime.net.rpc.client.WSClient;
 import lucee.runtime.op.Caster;
 import lucee.runtime.spooler.remote.RemoteClientTask;

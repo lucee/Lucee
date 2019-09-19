@@ -21,7 +21,11 @@ package lucee.runtime.schedule;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
@@ -36,17 +40,11 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.text.xml.XMLCaster;
-import lucee.runtime.text.xml.XMLUtil;
 import lucee.runtime.type.dt.Date;
 import lucee.runtime.type.dt.DateImpl;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.Time;
 import lucee.runtime.type.dt.TimeImpl;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 /**
  * 

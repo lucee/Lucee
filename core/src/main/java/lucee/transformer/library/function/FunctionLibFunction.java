@@ -22,6 +22,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import org.osgi.framework.Version;
+import org.xml.sax.Attributes;
+
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ExceptionUtil;
@@ -40,9 +43,6 @@ import lucee.runtime.type.util.ListUtil;
 import lucee.transformer.cfml.evaluator.FunctionEvaluator;
 import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.tag.TagLib;
-
-import org.osgi.framework.Version;
-import org.xml.sax.Attributes;
 
 /**
  * Eine FunctionLibFunction repraesentiert eine einzelne Funktion innerhalb einer FLD.
@@ -418,7 +418,7 @@ public final class FunctionLibFunction {
 	    throw new PageRuntimeException(Caster.toPageException(t));
 	}
 
-	if (Reflector.isInstaneOf(clazz, BIF.class)) {
+	if (Reflector.isInstaneOf(clazz, BIF.class, false)) {
 	    try {
 		bif = (BIF) clazz.newInstance();
 	    }

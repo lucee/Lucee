@@ -22,19 +22,24 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.security.PublicKey;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Stack;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import lucee.commons.digest.RSA;
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.filter.ResourceNameFilter;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.compiler.JavaFunction;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.Constants;
 import lucee.runtime.exp.TemplateException;
+import lucee.runtime.type.util.ListUtil;
 import lucee.transformer.Factory;
 import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
@@ -103,7 +108,14 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 
     private Result _compile(ConfigImpl config, PageSource ps, SourceCode sc, String className, TagLib[] tld, FunctionLib[] fld, Resource classRootDir, boolean returnValue,
 	    boolean ignoreScopes) throws TemplateException, IOException {
-	if (className == null) className = ps.getClassName();
+	String javaName;
+	if (className == null) {
+	    javaName = ListUtil.trim(ps.getJavaName(), "\\/", false);
+	    className = ps.getClassName();
+	}
+	else {
+	    javaName = className.replace('.', '/');
+	}
 
 	Result result = null;
 	// byte[] barr = null;
@@ -115,7 +127,8 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 			    sc.getDialect() == CFMLEngine.DIALECT_CFML && config.getDotNotationUpperCase(), returnValue, ignoreScopes);
 	    page.setSplitIfNecessary(false);
 	    try {
-		result = new Result(page, page.execute(className));
+		byte[] barr = page.execute(className);
+		result = new Result(page, barr, page.getJavaFunctions());
 	    }
 	    catch (RuntimeException re) {
 		String msg = StringUtil.emptyIfNull(re.getMessage());
@@ -125,7 +138,8 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 				    sc.getDialect() == CFMLEngine.DIALECT_CFML && config.getDotNotationUpperCase(), returnValue, ignoreScopes);
 
 		    page.setSplitIfNecessary(true);
-		    result = new Result(page, page.execute(className));
+		    byte[] barr = page.execute(className);
+		    result = new Result(page, barr, page.getJavaFunctions());
 		}
 		else throw re;
 	    }
@@ -137,7 +151,8 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 				    sc.getDialect() == CFMLEngine.DIALECT_CFML && config.getDotNotationUpperCase(), returnValue, ignoreScopes);
 
 		    page.setSplitIfNecessary(true);
-		    result = new Result(page, page.execute(className));
+		    byte[] barr = page.execute(className);
+		    result = new Result(page, barr, page.getJavaFunctions());
 		}
 		else throw cfe;
 	    }
@@ -147,7 +162,23 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 		Resource classFile = classRootDir.getRealResource(page.getClassName() + ".class");
 		Resource classFileDirectory = classFile.getParentResource();
 		if (!classFileDirectory.exists()) classFileDirectory.mkdirs();
+		else if (classFile.exists() && !SystemUtil.isWindows()) {
+		    final String prefix = page.getClassName() + "$";
+		    classRootDir.list(new ResourceNameFilter() {
+			@Override
+			public boolean accept(Resource parent, String name) {
+			    if (name.startsWith(prefix)) parent.getRealResource(name).delete();
+			    return false;
+			}
+		    });
+		}
 		IOUtil.copy(new ByteArrayInputStream(result.barr), classFile, true);
+		if (result.javaFunctions != null) {
+		    for (JavaFunction jf: result.javaFunctions) {
+			IOUtil.copy(new ByteArrayInputStream(jf.byteCode), classFileDirectory.getRealResource(jf.getName() + ".class"), true);
+		    }
+		}
+		/// TODO; //store java functions
 	    }
 
 	    return result;
@@ -156,7 +187,7 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 
 	    byte[] bytes = ace.getEncrypted() ? readEncrypted(ace) : readPlain(ace);
 
-	    result = new Result(null, bytes);
+	    result = new Result(null, bytes, null); // TODO handle better Java Functions
 
 	    String displayPath = ps != null ? "[" + ps.getDisplayPath() + "] " : "";
 	    String srcName = ASMUtil.getClassName(result.barr);
@@ -175,13 +206,19 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 		throw new TemplateException("source file " + displayPath + "contains a component not a regular cfm template");
 
 	    // rename class name when needed
-	    if (!srcName.equals(className)) result = new Result(result.page, ClassRenamer.rename(result.barr, className));
+	    if (!srcName.equals(javaName)) {
+		byte[] barr = ClassRenamer.rename(result.barr, javaName);
+		if (barr != null) result = new Result(result.page, barr, null); // TODO handle java functions
+	    }
 	    // store
 	    if (classRootDir != null) {
-		Resource classFile = classRootDir.getRealResource(className + ".class");
+		Resource classFile = classRootDir.getRealResource(javaName + ".class");
 		Resource classFileDirectory = classFile.getParentResource();
 		if (!classFileDirectory.exists()) classFileDirectory.mkdirs();
-		result = new Result(result.page, Page.setSourceLastModified(result.barr, ps != null ? ps.getPhyscalFile().lastModified() : System.currentTimeMillis()));
+		result = new Result(result.page, Page.setSourceLastModified(result.barr, ps != null ? ps.getPhyscalFile().lastModified() : System.currentTimeMillis()), null);// TODO
+																					      // handle
+																					      // java
+																					      // functions
 		IOUtil.copy(new ByteArrayInputStream(result.barr), classFile, true);
 	    }
 
@@ -235,12 +272,14 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 
     public class Result {
 
-	public Page page;
-	public byte[] barr;
+	public final Page page;
+	public final byte[] barr;
+	public final List<JavaFunction> javaFunctions;
 
-	public Result(Page page, byte[] barr) {
+	public Result(Page page, byte[] barr, List<JavaFunction> javaFunctions) {
 	    this.page = page;
 	    this.barr = barr;
+	    this.javaFunctions = javaFunctions;
 	}
     }
 

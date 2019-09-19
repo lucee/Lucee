@@ -47,18 +47,13 @@ import java.io.IOException;
 import java.io.InvalidObjectException;
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.ConcurrentModificationException;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
-import lucee.aprint;
-import lucee.commons.collection.concurrent.ConcurrentHashMapPro;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 
 public class HashMapPro<K, V> extends AbstractMapPro<K, V> implements Map<K, V>, MapPro<K, V>, Cloneable, Serializable {
@@ -320,85 +315,6 @@ public class HashMapPro<K, V> extends AbstractMapPro<K, V> implements Map<K, V>,
 
 	return defaultValue;
     }
-
-    /*
-     * public static void main(String[] args) {
-     * 
-     * //HashMapPro<Key, Object> map=new HashMapPro<Key, Object>(); long
-     * startx=System.currentTimeMillis(); for(int i=0;i<10000000;i++){ KeyImpl.init("K"+i); }
-     * aprint.e("init.key:"+(System.currentTimeMillis()-startx));
-     * 
-     * 
-     * 
-     * HashMapPro<Key,Object> map=new HashMapPro<Key,Object>(); Map<Key,Object> sm =
-     * Collections.synchronizedMap(map); ConcurrentHashMapPro<Key,Object> map2=new
-     * ConcurrentHashMapPro<Key,Object>(); HashMap<Key,Object> hm=new HashMap<Key,Object>();
-     * 
-     * Key[] keys=new Key[100]; for(int i=0;i<100;i++){ keys[i]=KeyImpl.init("K"+i); map.put(keys[i],
-     * ""+i); map2.put(keys[i], ""+i); hm.put(keys[i], ""+i); }
-     * 
-     * for(int i=0;i<100;i++){ keys[i]=KeyImpl.init("K"+i); }
-     * 
-     * long start=System.currentTimeMillis(); for(int i=0;i<100000000;i++){ //map.g(keys[37],null);
-     * map.get(keys[37]); //k.hashCode(); } aprint.e("HM.get:"+(System.currentTimeMillis()-start));
-     * 
-     * 
-     * start=System.currentTimeMillis(); for(int i=0;i<100000000;i++){ map.g(keys[37],null);
-     * //map.get(keys[37]); //k.hashCode(); } aprint.e("HM.g:"+(System.currentTimeMillis()-start));
-     * 
-     * 
-     * start=System.currentTimeMillis(); for(int i=0;i<100000000;i++){ //map.g(keys[37],null);
-     * map.get(keys[37]); //k.hashCode(); } aprint.e("HM.get:"+(System.currentTimeMillis()-start));
-     * 
-     * 
-     * start=System.currentTimeMillis(); for(int i=0;i<100000000;i++){ //map.g(keys[37],null);
-     * map.put(keys[37], ""); //map.get(keys[37]); //k.hashCode(); }
-     * aprint.e("HM.put:"+(System.currentTimeMillis()-start));
-     * 
-     * 
-     * /////////////////////////////////////////
-     * 
-     * 
-     * start=System.currentTimeMillis(); for(int i=0;i<100000000;i++){ //map.g(keys[37],null);
-     * map2.get(keys[37]); //k.hashCode(); } aprint.e("CHM.get:"+(System.currentTimeMillis()-start));
-     * 
-     * 
-     * start=System.currentTimeMillis(); for(int i=0;i<100000000;i++){ map2.g(keys[37],null);
-     * //map.get(keys[37]); //k.hashCode(); } aprint.e("CHM.g:"+(System.currentTimeMillis()-start));
-     * 
-     * 
-     * start=System.currentTimeMillis(); for(int i=0;i<100000000;i++){ //map.g(keys[37],null);
-     * map2.get(keys[37]); //k.hashCode(); } aprint.e("CHM.get:"+(System.currentTimeMillis()-start));
-     * 
-     * 
-     * start=System.currentTimeMillis(); for(int i=0;i<100000000;i++){ //map2.g(keys[37],null);
-     * map2.put(keys[37], ""); //map.get(keys[37]); //k.hashCode(); }
-     * aprint.e("CHM.put:"+(System.currentTimeMillis()-start));
-     * 
-     * 
-     * /////////////////////////////////////////
-     * 
-     * 
-     * start=System.currentTimeMillis(); for(int i=0;i<100000000;i++){ //map.g(keys[37],null);
-     * sm.get(keys[37]); //k.hashCode(); } aprint.e("SM.get:"+(System.currentTimeMillis()-start));
-     * 
-     * 
-     * start=System.currentTimeMillis(); for(int i=0;i<100000000;i++){ //map2.g(keys[37],null);
-     * sm.put(keys[37], ""); //map.get(keys[37]); //k.hashCode(); }
-     * aprint.e("SM.put:"+(System.currentTimeMillis()-start));
-     * 
-     * 
-     * /////////////////////////////////////////
-     * 
-     * 
-     * start=System.currentTimeMillis(); for(int i=0;i<100000000;i++){ //map.g(keys[37],null);
-     * hm.get(keys[37]); //k.hashCode(); } aprint.e("SM.get:"+(System.currentTimeMillis()-start));
-     * 
-     * 
-     * start=System.currentTimeMillis(); for(int i=0;i<100000000;i++){ //map2.g(keys[37],null);
-     * hm.put(keys[37], ""); //map.get(keys[37]); //k.hashCode(); }
-     * aprint.e("SM.put:"+(System.currentTimeMillis()-start)); }
-     */
 
     @Override
     public V g(K key) throws PageException {
@@ -861,8 +777,7 @@ public class HashMapPro<K, V> extends AbstractMapPro<K, V> implements Map<K, V>,
 	    expectedModCount = modCount;
 	    if (size > 0) { // advance to first entry
 		Entry[] t = table;
-		while (index < t.length && (next = t[index++]) == null)
-		    ;
+		while (index < t.length && (next = t[index++]) == null) {}
 	    }
 	}
 
@@ -878,8 +793,7 @@ public class HashMapPro<K, V> extends AbstractMapPro<K, V> implements Map<K, V>,
 
 	    if ((next = e.next) == null) {
 		Entry[] t = table;
-		while (index < t.length && (next = t[index++]) == null)
-		    ;
+		while (index < t.length && (next = t[index++]) == null) {}
 	    }
 	    current = e;
 	    return e;

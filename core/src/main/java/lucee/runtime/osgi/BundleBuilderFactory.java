@@ -37,18 +37,20 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
+import org.osgi.framework.BundleException;
+import org.osgi.framework.Version;
+
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.util.Util;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ListUtil;
-
-import org.osgi.framework.BundleException;
-import org.osgi.framework.Version;
 
 public class BundleBuilderFactory {
 
@@ -139,12 +141,10 @@ public class BundleBuilderFactory {
 
     public void setName(String name) {
 	this.name = name;
-	;
     }
 
     public void setIgnoreExistingManifest(boolean ignoreExistingManifest) {
 	this.ignoreExistingManifest = ignoreExistingManifest;
-	;
     }
 
     public Version getVersion() {
@@ -563,6 +563,6 @@ public class BundleBuilderFactory {
     }
 
     public void log(String str) {
-	System.out.println(str);
+	LogUtil.log(null, Log.LEVEL_INFO, BundleBuilderFactory.class.getName(), str);
     }
 }

@@ -17,6 +17,9 @@
  */
 package lucee.transformer.bytecode.literal;
 
+import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.GeneratorAdapter;
+
 import lucee.commons.color.ConstantsDouble;
 import lucee.runtime.op.Caster;
 import lucee.transformer.Factory;
@@ -27,9 +30,6 @@ import lucee.transformer.bytecode.util.Methods;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.expression.ExprDouble;
 import lucee.transformer.expression.literal.LitDouble;
-
-import org.objectweb.asm.Type;
-import org.objectweb.asm.commons.GeneratorAdapter;
 
 /**
  * Literal Double Value

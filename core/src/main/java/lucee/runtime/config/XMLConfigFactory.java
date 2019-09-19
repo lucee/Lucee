@@ -22,16 +22,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 
-import lucee.commons.io.IOUtil;
-import lucee.commons.io.SystemUtil;
-import lucee.commons.io.res.Resource;
-import lucee.commons.lang.ExceptionUtil;
-import lucee.commons.lang.SystemOut;
-import lucee.loader.engine.CFMLEngine;
-import lucee.runtime.engine.InfoImpl;
-import lucee.runtime.osgi.OSGiUtil;
-import lucee.runtime.text.xml.XMLUtil;
-
 import org.osgi.framework.Version;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -39,6 +29,18 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+
+import lucee.commons.io.IOUtil;
+import lucee.commons.io.SystemUtil;
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
+import lucee.commons.io.res.Resource;
+import lucee.commons.lang.ExceptionUtil;
+import lucee.loader.engine.CFMLEngine;
+import lucee.runtime.engine.InfoImpl;
+import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.osgi.OSGiUtil;
+import lucee.runtime.text.xml.XMLUtil;
 
 public abstract class XMLConfigFactory {
 
@@ -161,7 +163,8 @@ public abstract class XMLConfigFactory {
 	catch (Exception e) {
 	    // rename buggy config files
 	    if (configFile.exists()) {
-		SystemOut.printDate(SystemUtil.getPrintWriter(SystemUtil.OUT), "config file " + configFile + " was not valid and has been replaced");
+		LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, XMLConfigFactory.class.getName(),
+			"config file " + configFile + " was not valid and has been replaced");
 		int count = 1;
 		Resource bugFile;
 		Resource configDir = configFile.getParentResource();
@@ -268,7 +271,7 @@ public abstract class XMLConfigFactory {
      * @throws IOException
      */
     static void createFileFromResource(String resource, Resource file, String password) throws IOException {
-	SystemOut.printDate(SystemUtil.getPrintWriter(SystemUtil.OUT), "write file:" + file);
+	LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, XMLConfigFactory.class.getName(), "write file:" + file);
 	file.delete();
 
 	InputStream is = InfoImpl.class.getResourceAsStream(resource);
@@ -292,9 +295,8 @@ public abstract class XMLConfigFactory {
 	try {
 	    createFileFromResource(resource, file, null);
 	}
-	catch (Throwable e) {
-	    ExceptionUtil.rethrowIfNecessary(e);
-	    SystemOut.printDate(ExceptionUtil.getStacktrace(e, true), SystemUtil.ERR);
+	catch (Exception e) {
+	    LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), XMLConfigFactory.class.getName(), e);
 	}
     }
 
@@ -322,7 +324,7 @@ public abstract class XMLConfigFactory {
     static void delete(Resource dbDir, String name) {
 	Resource f = dbDir.getRealResource(name);
 	if (f.exists()) {
-	    SystemOut.printDate(SystemUtil.getPrintWriter(SystemUtil.OUT), "delete file:" + f);
+	    LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, XMLConfigFactory.class.getName(), "delete file:" + f);
 
 	    f.delete();
 	}

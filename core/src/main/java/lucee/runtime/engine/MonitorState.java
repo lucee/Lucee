@@ -6,7 +6,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
-import lucee.print;
 import lucee.commons.io.SystemUtil;
 import lucee.runtime.PageContextImpl;
 
@@ -124,6 +123,7 @@ public class MonitorState {
     private static class T extends Thread {
 	private static Object o = new Object();
 
+	@Override
 	public void run() {
 	    checkit();
 	}
@@ -131,7 +131,7 @@ public class MonitorState {
 	private void checkit() {
 	    synchronized (o) {
 		w();
-		SystemUtil.sleep(10);
+		SystemUtil.wait(this, 10);
 
 	    }
 	}
@@ -170,6 +170,7 @@ public class MonitorState {
 	    return sb.toString();
 	}
 
+	@Override
 	public String toString() {
 	    StringBuilder sb = new StringBuilder().append("Blocked:\n").append(MonitorState.toString(blockedST)).append("\nPossible Blockers:\n");
 

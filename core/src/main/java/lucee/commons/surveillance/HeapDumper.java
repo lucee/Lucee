@@ -23,11 +23,11 @@ import java.lang.management.ManagementFactory;
 
 import javax.management.MBeanServer;
 
+import com.sun.management.HotSpotDiagnosticMXBean;
+
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.type.file.FileResource;
-
-import com.sun.management.HotSpotDiagnosticMXBean;
 
 public class HeapDumper {
 

@@ -23,6 +23,11 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleException;
+import org.osgi.framework.Version;
+
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.types.RefInteger;
 import lucee.runtime.PageContext;
@@ -38,11 +43,6 @@ import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.Collection.Key;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.function.FunctionLibFunction;
-
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleException;
-import org.osgi.framework.Version;
 
 public class ClassUtilImpl implements ClassUtil {
 
@@ -62,7 +62,7 @@ public class ClassUtilImpl implements ClassUtil {
 	// first of all we chek if itis a class
 	Class<?> res = lucee.commons.lang.ClassUtil.loadClass(name, null);
 	if (res != null) {
-	    if (Reflector.isInstaneOf(res, BIF.class)) {
+	    if (Reflector.isInstaneOf(res, BIF.class, false)) {
 		return (BIF) res.newInstance();
 	    }
 	    return new BIFProxy(res);
@@ -83,7 +83,7 @@ public class ClassUtilImpl implements ClassUtil {
 	// first of all we chek if itis a class
 	Class<?> res = lucee.commons.lang.ClassUtil.loadClassByBundle(name, bundleName, bundleVersion, pc.getConfig().getIdentification());
 	if (res != null) {
-	    if (Reflector.isInstaneOf(res, BIF.class)) {
+	    if (Reflector.isInstaneOf(res, BIF.class, false)) {
 		return (BIF) res.newInstance();
 	    }
 	    return new BIFProxy(res);
@@ -113,7 +113,11 @@ public class ClassUtilImpl implements ClassUtil {
 
     @Override
     public boolean isInstaneOf(Class<?> src, Class<?> trg) {
-	return Reflector.isInstaneOf(src, trg);
+	return Reflector.isInstaneOf(src, trg, true);
+    }
+
+    public boolean isInstaneOf(Class<?> src, Class<?> trg, boolean exatctMatch) { // FUTURE
+	return Reflector.isInstaneOf(src, trg, exatctMatch);
     }
 
     @Override

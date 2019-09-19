@@ -35,16 +35,20 @@ import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.exp.NativeException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageExceptionImpl;
-import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection;
-import lucee.runtime.type.Struct;
-import lucee.runtime.type.StructImpl;
-import lucee.runtime.type.UDF;
 import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 
 public final class ExceptionUtil {
+
+    public static String toString(StackTraceElement[] trace) {
+	StringBuilder sb = new StringBuilder();
+	// Print our stack trace
+	for (StackTraceElement ste: trace)
+	    sb.append("\tat ").append(ste).append('\n');
+	return sb.toString();
+    }
 
     public static String getStacktrace(Throwable t, boolean addMessage) {
 	StringWriter sw = new StringWriter();

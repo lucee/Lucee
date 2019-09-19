@@ -22,6 +22,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import org.w3c.dom.Node;
+
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
@@ -36,11 +38,9 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
-import lucee.runtime.type.UDFPlus;
+import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.it.KeyAsStringIterator;
-
-import org.w3c.dom.Node;
 
 public abstract class StructSupport implements Map, Struct {
 
@@ -255,8 +255,8 @@ public abstract class StructSupport implements Map, Struct {
     @Override
     public Object call(PageContext pc, Key methodName, Object[] args) throws PageException {
 	Object obj = get(methodName, null);
-	if (obj instanceof UDFPlus) {
-	    return ((UDFPlus) obj).call(pc, methodName, args, false);
+	if (obj instanceof UDF) {
+	    return ((UDF) obj).call(pc, methodName, args, false);
 	}
 	if (this instanceof Node) return MemberUtil.call(pc, this, methodName, args, new short[] { CFTypes.TYPE_XML, CFTypes.TYPE_STRUCT }, new String[] { "xml", "struct" });
 	return MemberUtil.call(pc, this, methodName, args, new short[] { CFTypes.TYPE_STRUCT }, new String[] { "struct" });
@@ -265,8 +265,8 @@ public abstract class StructSupport implements Map, Struct {
     @Override
     public Object callWithNamedValues(PageContext pc, Key methodName, Struct args) throws PageException {
 	Object obj = get(methodName, null);
-	if (obj instanceof UDFPlus) {
-	    return ((UDFPlus) obj).callWithNamedValues(pc, methodName, args, false);
+	if (obj instanceof UDF) {
+	    return ((UDF) obj).callWithNamedValues(pc, methodName, args, false);
 	}
 	return MemberUtil.callWithNamedValues(pc, this, methodName, args, CFTypes.TYPE_STRUCT, "struct");
     }

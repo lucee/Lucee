@@ -6,7 +6,7 @@ import java.io.PrintStream;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
-import lucee.commons.lang.SystemOut;
+import lucee.commons.io.log.LogUtil;
 
 public class LogST extends Thread {
 
@@ -33,13 +33,14 @@ public class LogST extends Thread {
 	if (timeRange < 1) throw new RuntimeException("time range " + timeRange + " is invalid.");
     }
 
+    @Override
     public void run() {
 	PrintStream ps = null;
 	try {
 	    ps = new PrintStream(createFile());
 	    while (true) {
 		printStackTrace(ps, thread.getStackTrace());
-		SystemUtil.sleep(timeRange);
+		SystemUtil.wait(this, timeRange);
 		if (size > max) {
 		    IOUtil.closeEL(ps);
 		    ps = new PrintStream(createFile());
@@ -48,7 +49,7 @@ public class LogST extends Thread {
 	    }
 	}
 	catch (IOException e) {
-	    SystemOut.printDate(e);
+	    LogUtil.log(ThreadLocalPageContext.getConfig(), LogST.class.getName(), e);
 	}
 	finally {
 	    IOUtil.closeEL(ps);

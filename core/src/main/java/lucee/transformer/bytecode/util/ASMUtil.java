@@ -729,7 +729,7 @@ public final class ASMUtil {
 
     public static void pop(GeneratorAdapter adapter, Type type) {
 	if (type.equals(Types.DOUBLE_VALUE)) adapter.pop2();
-	else if (type.equals(Types.VOID)) ;
+	else if (type.equals(Types.VOID)) {}
 	else adapter.pop();
     }
 
@@ -1066,7 +1066,6 @@ public final class ASMUtil {
     public static void size(ClassWriter cw) {
 	try {
 	    MethodVisitor mw = null;
-
 	    Field[] fields = cw.getClass().getDeclaredFields();
 	    Field f;
 	    for (int i = 0; i < fields.length; i++) {

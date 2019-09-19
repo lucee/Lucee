@@ -32,11 +32,11 @@ import javax.mail.MessagingException;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMultipart;
 
-import lucee.commons.lang.StringUtil;
-
 import org.apache.commons.mail.Email;
 import org.apache.commons.mail.EmailException;
 import org.apache.commons.mail.MultiPartEmail;
+
+import lucee.commons.lang.StringUtil;
 
 /**
  * An HTML multipart email.

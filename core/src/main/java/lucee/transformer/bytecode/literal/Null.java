@@ -18,6 +18,8 @@
  */
 package lucee.transformer.bytecode.literal;
 
+import org.objectweb.asm.Type;
+
 import lucee.runtime.type.scope.Scope;
 import lucee.transformer.Factory;
 import lucee.transformer.Position;
@@ -27,8 +29,6 @@ import lucee.transformer.bytecode.expression.ExpressionBase;
 import lucee.transformer.bytecode.util.ASMConstants;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.expression.var.Variable;
-
-import org.objectweb.asm.Type;
 
 public class Null extends ExpressionBase {
 

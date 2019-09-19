@@ -28,7 +28,6 @@ import javax.servlet.http.HttpServletRequest;
 
 import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.io.log.Log;
-import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Pair;
 import lucee.runtime.Page;
@@ -123,6 +122,9 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 		catch (ConcurrentModificationException e) {// MUST search for:hhlhgiug
 		    this.pc = ThreadUtil.clonePageContext(parent, output, false, false, true);
 		}
+		// tag names
+		this.pc.setTagName(tagName);
+		this.pc.addParentTag(parent.getTagName());
 	    }
 	}
 	else {

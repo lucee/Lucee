@@ -18,6 +18,8 @@
  **/
 package lucee.transformer.bytecode.expression;
 
+import org.objectweb.asm.Type;
+
 import lucee.commons.lang.ClassException;
 import lucee.runtime.exp.TemplateException;
 import lucee.transformer.Context;
@@ -28,8 +30,6 @@ import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.util.ExpressionUtil;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.expression.Expression;
-
-import org.objectweb.asm.Type;
 
 /**
  * A Expression (Operation, Literal aso.)

@@ -21,7 +21,6 @@ package lucee.runtime.exp;
 import java.io.PrintWriter;
 
 import lucee.commons.io.log.Log;
-import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;

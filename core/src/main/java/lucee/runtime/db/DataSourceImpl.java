@@ -23,6 +23,8 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.TimeZone;
 
+import org.osgi.framework.BundleException;
+
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.StringUtil;
@@ -35,8 +37,6 @@ import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.CollectionUtil;
-
-import org.osgi.framework.BundleException;
 
 /**
  * 
@@ -82,6 +82,7 @@ public final class DataSourceImpl extends DataSourceSupport {
      * @param paramSyntax
      * @param literalTimestampWithTSOffset
      * @param alwaysSetTimeout
+     * @param requestExclusive
      * @param log
      * @throws BundleException
      * @throws ClassException
@@ -89,11 +90,11 @@ public final class DataSourceImpl extends DataSourceSupport {
      */
     public DataSourceImpl(Config config, String name, ClassDefinition cd, String host, String connStr, String database, int port, String username, String password,
 	    TagListener listener, int connectionLimit, int connectionTimeout, long metaCacheTimeout, boolean blob, boolean clob, int allow, Struct custom, boolean readOnly,
-	    boolean validate, boolean storage, TimeZone timezone, String dbdriver, ParamSyntax paramSyntax, boolean literalTimestampWithTSOffset, boolean alwaysSetTimeout, Log log)
-	    throws BundleException, ClassException, SQLException {
+	    boolean validate, boolean storage, TimeZone timezone, String dbdriver, ParamSyntax paramSyntax, boolean literalTimestampWithTSOffset, boolean alwaysSetTimeout,
+	    boolean requestExclusive, Log log) throws BundleException, ClassException, SQLException {
 
 	super(config, name, cd, username, ConfigWebUtil.decrypt(password), listener, blob, clob, connectionLimit, connectionTimeout, metaCacheTimeout, timezone,
-		allow < 0 ? ALLOW_ALL : allow, storage, readOnly, validate, log);
+		allow < 0 ? ALLOW_ALL : allow, storage, readOnly, validate, requestExclusive, log);
 
 	this.host = host;
 	this.database = database;
@@ -208,7 +209,7 @@ public final class DataSourceImpl extends DataSourceSupport {
 	try {
 	    return new DataSourceImpl(ThreadLocalPageContext.getConfig(), getName(), getClassDefinition(), host, connStr, database, port, getUsername(), getPassword(),
 		    getListener(), getConnectionLimit(), getConnectionTimeout(), getMetaCacheTimeout(), isBlob(), isClob(), allow, custom, readOnly, validate(), isStorage(),
-		    getTimeZone(), dbdriver, getParamSyntax(), literalTimestampWithTSOffset, alwaysSetTimeout, getLog());
+		    getTimeZone(), dbdriver, getParamSyntax(), literalTimestampWithTSOffset, alwaysSetTimeout, isRequestExclusive(), getLog());
 	}
 	catch (RuntimeException re) {
 	    throw re; // this should never happens, because the class was already loaded in this object

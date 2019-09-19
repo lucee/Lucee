@@ -34,6 +34,7 @@ public class GatewayThread extends Thread {
 	this.engine = engine;
 	this.gateway = gateway;
 	this.action = action;
+	if (gateway instanceof GatewaySupport) ((GatewaySupport) gateway).setThread(this);
     }
 
     @Override

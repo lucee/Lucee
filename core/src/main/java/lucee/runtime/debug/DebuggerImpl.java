@@ -636,19 +636,18 @@ public final class DebuggerImpl implements Debugger {
 	}
 
 	// sopes
-	Struct scopes = new StructImpl();
-	try {
-	    scopes.setEL("application", pc.applicationScope());
-	    scopes.setEL("session", pc.sessionScope());
-	    scopes.setEL("client", pc.clientScope());
+	if (addAddionalInfo) {
+	    Struct scopes = new StructImpl();
+	    scopes.setEL("cgi", pc.cgiScope());
+	    debugging.setEL(KeyConstants._scope, scopes);
 	}
-	catch (PageException e) {}
-	scopes.setEL("request", pc.requestScope());
-	scopes.setEL("cookie", pc.cookieScope());
-	scopes.setEL("cgi", pc.cgiScope());
-	scopes.setEL("form", pc.formScope());
-	scopes.setEL("url", pc.urlScope());
-
+	/*
+	 * Struct scopes = new StructImpl(); try { scopes.setEL("application", pc.applicationScope());
+	 * scopes.setEL("session", pc.sessionScope()); scopes.setEL("client", pc.clientScope()); } catch
+	 * (PageException e) {} scopes.setEL("request", pc.requestScope()); scopes.setEL("cookie",
+	 * pc.cookieScope()); scopes.setEL("cgi", pc.cgiScope()); scopes.setEL("form", pc.formScope());
+	 * scopes.setEL("url", pc.urlScope());
+	 */
 	debugging.setEL(KeyImpl.init("starttime"), new DateTimeImpl(starttime, false));
 	PageContextImpl pci = (PageContextImpl) pc;
 	debugging.setEL(KeyConstants._id, pci.getRequestId() + "-" + pci.getId());
@@ -658,8 +657,8 @@ public final class DebuggerImpl implements Debugger {
 	debugging.setEL(KeyConstants._queries, qryQueries);
 	debugging.setEL(KeyConstants._timers, qryTimers);
 	debugging.setEL(KeyConstants._traces, qryTraces);
-	debugging.setEL("dumps", qryDumps);
-	debugging.setEL("scope", scopes);
+	debugging.setEL(KeyConstants._dumps, qryDumps);
+	// debugging.setEL("scope", scopes);
 
 	debugging.setEL(IMPLICIT_ACCESS, qryImplicitAccesseses);
 	debugging.setEL(GENERIC_DATA, qryGenData);
@@ -720,6 +719,7 @@ public final class DebuggerImpl implements Debugger {
 	return t;
     }
 
+    @Override
     public DebugDump addDump(PageSource ps, String dump) {
 	DebugDump dt = new DebugDumpImpl(ps.getDisplayPath(), SystemUtil.getCurrentContext().line, dump);
 	dumps.add(dt);
@@ -764,6 +764,7 @@ public final class DebuggerImpl implements Debugger {
 	return exceptions.toArray(new CatchBlock[exceptions.size()]);
     }
 
+    @Override
     public void init(Config config) {
 	this.starttime = System.currentTimeMillis() + config.getTimeServerOffset();
     }
@@ -788,6 +789,7 @@ public final class DebuggerImpl implements Debugger {
 	return implicitAccesses.values().toArray(new ImplicitAccessImpl[implicitAccesses.size()]);
     }
 
+    @Override
     public void setOutputLog(DebugOutputLog outputLog) {
 	this.outputLog = outputLog;
     }
@@ -853,6 +855,26 @@ public final class DebuggerImpl implements Debugger {
     @Override
     public Map<String, Map<String, List<String>>> getGenericData() {
 	return genericData;
+    }
+
+    public static void deprecated(PageContext pc, String key, String msg) {
+	if (pc.getConfig().debug()) {
+	    // do we already have set?
+	    boolean exists = false;
+	    Map<String, Map<String, List<String>>> gd = pc.getDebugger().getGenericData();
+	    if (gd != null) {
+		Map<String, List<String>> warning = gd.get("Warning");
+		if (warning != null) {
+		    exists = warning.containsKey(key);
+		}
+	    }
+
+	    if (!exists) {
+		Map<String, String> map = new HashMap<>();
+		map.put(key, msg);
+		pc.getDebugger().addGenericData("Warning", map);
+	    }
+	}
     }
 
 }

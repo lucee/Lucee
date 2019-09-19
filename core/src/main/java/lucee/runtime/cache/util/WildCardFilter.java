@@ -20,9 +20,9 @@ package lucee.runtime.cache.util;
 
 import java.util.regex.Pattern;
 
-import lucee.commons.io.cache.CacheKeyFilter;
-
 import org.apache.oro.text.regex.MalformedPatternException;
+
+import lucee.commons.io.cache.CacheKeyFilter;
 
 /**
  * Wildcard Filter

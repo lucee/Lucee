@@ -24,14 +24,12 @@ package lucee.runtime.functions.arrays;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.ApplicationException;
-import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.type.Array;
-import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.ArrayTyped;
 import lucee.runtime.type.util.ArrayUtil;
 
@@ -40,12 +38,19 @@ public final class ArrayNew extends BIF {
     private static final long serialVersionUID = -5923269433550568279L;
 
     public static Array call(PageContext pc, double dimension, String type, boolean _synchronized) throws PageException {
-	if (StringUtil.isEmpty(type, true) || Decision.isBoolean(type)) return ArrayUtil.getInstance((int) dimension);
-
-	if (dimension > 1) {
-	    throw new ApplicationException("multi dimensional arrays are not supported with typed arrays");
+	Array a;
+	if (StringUtil.isEmpty(type, true) || Decision.isBoolean(type)) a = ArrayUtil.getInstance((int) dimension);
+	else {
+	    if (dimension > 1) {
+		throw new ApplicationException("multi dimensional arrays are not supported with typed arrays");
+	    }
+	    a = new ArrayTyped(type.trim());
 	}
-	return new ArrayTyped(type.trim());
+	/*
+	 * if (value != null) { Iterator<Entry<Key, Object>> it = value.entryIterator(); Entry<Key, Object>
+	 * e; while (it.hasNext()) { e = it.next(); a.set(e.getKey(), e.getValue()); } }
+	 */
+	return a;
     }
 
     @Override
@@ -54,6 +59,7 @@ public final class ArrayNew extends BIF {
 	if (args.length == 1) return call(pc, Caster.toDoubleValue(args[0]), null, false);
 	if (args.length == 2) return call(pc, Caster.toDoubleValue(args[0]), Caster.toString(args[1]), false);
 	if (args.length == 3) return call(pc, Caster.toDoubleValue(args[0]), Caster.toString(args[1]), Caster.toBooleanValue(args[2]));
+	if (args.length == 4) return call(pc, Caster.toDoubleValue(args[0]), Caster.toString(args[1]), Caster.toBooleanValue(args[2]));
 	else throw new FunctionException(pc, "ArrayNew", 0, 3, args.length);
     }
 

@@ -32,8 +32,10 @@ import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
+import org.osgi.framework.BundleException;
+import org.osgi.framework.Version;
+
 import lucee.commons.io.IOUtil;
-import lucee.commons.io.SystemUtil;
 import lucee.commons.io.compress.Pack200Util;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.type.file.FileResource;
@@ -44,9 +46,6 @@ import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
-
-import org.osgi.framework.BundleException;
-import org.osgi.framework.Version;
 
 public class BundleInfo implements Serializable {
 

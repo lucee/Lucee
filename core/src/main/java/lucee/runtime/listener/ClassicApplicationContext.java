@@ -44,6 +44,7 @@ import lucee.runtime.exp.DeprecatedException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.net.mail.Server;
+import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.s3.Properties;
 import lucee.runtime.net.s3.PropertiesImpl;
 import lucee.runtime.op.Duplicator;
@@ -138,6 +139,13 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
     private boolean fullNullSupport;
     private SerializationSettings serializationSettings = SerializationSettings.DEFAULT;
 
+    private boolean queryPSQ;
+    private int queryVarUsage;
+
+    private ProxyData proxyData;
+
+    private TimeSpan queryCachedAfter;
+
     /**
      * constructor of the class
      * 
@@ -161,6 +169,10 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	this.isDefault = isDefault;
 	this.defaultDataSource = config.getDefaultDataSource();
 	this.localMode = config.getLocalMode();
+	this.queryPSQ = config.getPSQL();
+	this.queryVarUsage = ((ConfigImpl) config).getQueryVarUsage();
+	this.queryCachedAfter = ((ConfigImpl) config).getCachedAfterTimeRange();
+
 	this.locale = config.getLocale();
 	this.timeZone = config.getTimeZone();
 	this.fullNullSupport = config.getFullNullSupport();
@@ -228,6 +240,9 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	dbl.cookiedomain = cookiedomain;
 	dbl.idletimeout = idletimeout;
 	dbl.localMode = localMode;
+	dbl.queryPSQ = queryPSQ;
+	dbl.queryVarUsage = queryVarUsage;
+	dbl.queryCachedAfter = queryCachedAfter;
 	dbl.locale = locale;
 	dbl.timeZone = timeZone;
 	dbl.fullNullSupport = fullNullSupport;
@@ -892,6 +907,7 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	return antiSamyPolicy;
     }
 
+    @Override
     public void setAntiSamyPolicyResource(Resource antiSamyPolicy) {
 	this.antiSamyPolicy = antiSamyPolicy;
     }
@@ -992,4 +1008,45 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
     public void setFunctionDirectories(List<Resource> resources) {
 	this.funcDirs = resources;
     }
+
+    @Override
+    public boolean getQueryPSQ() {
+	return queryPSQ;
+    }
+
+    @Override
+    public void setQueryPSQ(boolean psq) {
+	this.queryPSQ = psq;
+    }
+
+    @Override
+    public int getQueryVarUsage() {
+	return queryVarUsage;
+    }
+
+    @Override
+    public void setQueryVarUsage(int varUsage) {
+	this.queryVarUsage = varUsage;
+    }
+
+    @Override
+    public TimeSpan getQueryCachedAfter() {
+	return queryCachedAfter;
+    }
+
+    @Override
+    public void setQueryCachedAfter(TimeSpan ts) {
+	this.queryCachedAfter = ts;
+    }
+
+    @Override
+    public ProxyData getProxyData() {
+	return proxyData;
+    }
+
+    @Override
+    public void setProxyData(ProxyData data) {
+	this.proxyData = data;
+    }
+
 }

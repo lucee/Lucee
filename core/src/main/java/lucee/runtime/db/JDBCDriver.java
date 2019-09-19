@@ -22,11 +22,11 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 
+import org.osgi.framework.Bundle;
+
 import lucee.commons.io.IOUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.type.util.ListUtil;
-
-import org.osgi.framework.Bundle;
 
 public class JDBCDriver {
 

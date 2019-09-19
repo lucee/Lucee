@@ -72,9 +72,11 @@ import lucee.runtime.type.Pojo;
 import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
+import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.DateTimeImpl;
 import lucee.runtime.type.scope.CookieImpl;
 import lucee.runtime.type.util.KeyConstants;
+import lucee.runtime.type.util.UDFUtil;
 
 public class DumpUtil {
 
@@ -282,9 +284,13 @@ public class DumpUtil {
 
 	    int top = props.getMaxlevel();
 
-	    // Printable
+	    // Dumpable
 	    if (o instanceof Dumpable) {
-		return setId(id, ((Dumpable) o).toDumpData(pageContext, maxlevel, props));
+		DumpData dd = ((Dumpable) o).toDumpData(pageContext, maxlevel, props);
+		if (dd != null) return setId(id, dd);
+	    }
+	    if (o instanceof UDF) {
+		return UDFUtil.toDumpData(pageContext, maxlevel, props, (UDF) o, UDFUtil.TYPE_UDF);
 	    }
 	    // Map
 	    if (o instanceof Map) {

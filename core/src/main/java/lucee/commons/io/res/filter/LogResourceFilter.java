@@ -18,7 +18,6 @@
  **/
 package lucee.commons.io.res.filter;
 
-import lucee.aprint;
 import lucee.commons.io.res.Resource;
 
 public class LogResourceFilter implements ResourceFilter {
@@ -32,7 +31,6 @@ public class LogResourceFilter implements ResourceFilter {
     @Override
     public boolean accept(Resource res) {
 	boolean rtn = filter.accept(res);
-	aprint.o("accept:" + res + "->" + rtn);
 	return rtn;
     }
 

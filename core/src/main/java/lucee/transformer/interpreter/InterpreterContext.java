@@ -7,9 +7,6 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.transformer.Context;
 import lucee.transformer.Factory;
-import lucee.transformer.TransformerException;
-import lucee.transformer.expression.ExprBoolean;
-import lucee.transformer.expression.ExprString;
 import lucee.transformer.expression.Expression;
 
 public class InterpreterContext implements Context {

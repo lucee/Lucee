@@ -219,7 +219,6 @@ public class QueryFQ implements Query, Objects, QueryResult, Serializable {
 
     @Override
     public String toString() {
-	;
 	return qry.toString();
     }
 

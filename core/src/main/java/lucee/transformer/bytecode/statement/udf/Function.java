@@ -23,8 +23,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.GeneratorAdapter;
+import org.objectweb.asm.commons.Method;
+
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.compiler.JavaFunction;
 import lucee.runtime.Component;
 import lucee.runtime.exp.TemplateException;
 import lucee.runtime.listener.AppListenerUtil;
@@ -58,11 +64,6 @@ import lucee.transformer.expression.literal.LitBoolean;
 import lucee.transformer.expression.literal.LitInteger;
 import lucee.transformer.expression.literal.LitString;
 import lucee.transformer.expression.literal.Literal;
-
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
-import org.objectweb.asm.commons.GeneratorAdapter;
-import org.objectweb.asm.commons.Method;
 
 public abstract class Function extends StatementBaseNoFinal implements Opcodes, IFunction, HasBody {
 
@@ -121,6 +122,9 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 	    INIT_FAI_KEY9 };
     private static final Method[] INIT_FAI_KEY_LIGHT = new Method[] { INIT_FAI_KEY1, INIT_FAI_KEY3 };
 
+    protected static final Method USE_JAVA_FUNCTION = new Method("useJavaFunction", Types.OBJECT, new Type[] { Types.PAGE, Types.STRING });
+    protected static final Method REG_JAVA_FUNCTION = new Method("regJavaFunction", Types.VOID, new Type[] { Types.COLLECTION_KEY, Types.STRING });
+
     ExprString name;
     ExprString returnType;
     ExprBoolean output;
@@ -137,10 +141,12 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
     ExprBoolean secureJson;
     ExprBoolean verifyClient;
     ExprInt localMode;
-    protected int valueIndex;
-    protected int arrayIndex;
+    protected int valueIndex = -1;
+    protected int arrayIndex = -1;
     private Literal cachedWithin;
     private int modifier;
+    protected JavaFunction jf;
+    private final Root root;
 
     public Function(Root root, String name, int access, int modifier, String returnType, Body body, Position start, Position end) {
 	super(body.getFactory(), start, end);
@@ -151,12 +157,10 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 	else this.returnType = body.getFactory().createLitString("any");
 	this.body = body;
 	body.setParent(this);
-	int[] indexes = root.addFunction(this);
-	valueIndex = indexes[VALUE_INDEX];
-	arrayIndex = indexes[ARRAY_INDEX];
 	output = body.getFactory().TRUE();
 	displayName = body.getFactory().EMPTY();
 	hint = body.getFactory().EMPTY();
+	this.root = root;
     }
 
     public Function(Root root, Expression name, Expression returnType, Expression returnFormat, Expression output, Expression bufferOutput, int access, Expression displayName,
@@ -178,9 +182,15 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 	this.cachedWithin = cachedWithin;
 	this.modifier = modifier;
 	this.localMode = toLocalMode(localMode, null);
-
+	this.root = root;
 	this.body = body;
 	body.setParent(this);
+
+    }
+
+    public void register() {
+	if (valueIndex != -1) throw new RuntimeException("you can register only once!"); // just to be safe
+
 	int[] indexes = root.addFunction(this);
 	valueIndex = indexes[VALUE_INDEX];
 	arrayIndex = indexes[ARRAY_INDEX];
@@ -332,20 +342,32 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
     }
 
     public final void createFunction(BytecodeContext bc, int index, int type) throws TransformerException {
-	// new UDF(...)
-	GeneratorAdapter adapter = bc.getAdapter();
-	Type t;
-	if (TYPE_CLOSURE == type) t = Types.CLOSURE;
-	else if (TYPE_LAMBDA == type) t = Types.LAMBDA;
-	else t = Types.UDF_IMPL;
-	adapter.newInstance(t);
 
-	adapter.dup();
+	if (this.jf != null) {
+	    GeneratorAdapter adapter = bc.getAdapter();
+	    bc.registerJavaFunction(jf);
+	    adapter.loadArg(0);
+	    adapter.checkCast(Types.PAGE_CONTEXT_IMPL);
+	    adapter.visitVarInsn(ALOAD, 0);
+	    adapter.push(jf.getClassName());
+	    adapter.invokeVirtual(Types.PAGE_CONTEXT_IMPL, USE_JAVA_FUNCTION);
+	}
+	else {
+	    // new UDF(...)
+	    GeneratorAdapter adapter = bc.getAdapter();
+	    Type t;
+	    if (TYPE_CLOSURE == type) t = Types.CLOSURE;
+	    else if (TYPE_LAMBDA == type) t = Types.LAMBDA;
+	    else t = Types.UDF_IMPL;
+	    adapter.newInstance(t);
 
-	createUDFProperties(bc, index, type);
-	// loadUDFProperties(bc, index,closure);
+	    adapter.dup();
 
-	adapter.invokeConstructor(t, INIT_UDF_IMPL_PROP);
+	    createUDFProperties(bc, index, type);
+
+	    adapter.invokeConstructor(t, INIT_UDF_IMPL_PROP);
+	}
+
     }
 
     private final void createArguments(BytecodeContext bc) throws TransformerException {
@@ -598,4 +620,7 @@ public abstract class Function extends StatementBaseNoFinal implements Opcodes, 
 	return eb;
     }
 
+    public void setJavaFunction(JavaFunction jf) {
+	this.jf = jf;
+    }
 }

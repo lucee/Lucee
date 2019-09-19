@@ -25,7 +25,6 @@ import lucee.runtime.PageContext;
 import lucee.runtime.component.Property;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
@@ -48,6 +47,17 @@ public final class UDFSetterProperty extends UDFGSProperty {
     private String validate;
     private Struct validateParams;
 
+    private UDFSetterProperty(Component component, Property prop, String validate, Struct validateParams) {
+	super(component, "set" + StringUtil.ucFirst(prop.getName()),
+		new FunctionArgument[] {
+			new FunctionArgumentLight(KeyImpl.init(prop.getName()), prop.getType(), CFTypes.toShortStrict(prop.getType(), CFTypes.TYPE_UNKNOW), true) },
+		CFTypes.TYPE_ANY);
+	this.prop = prop;
+	this.propName = KeyImpl.getInstance(prop.getName());
+	this.validate = validate;
+	this.validateParams = validateParams;
+    }
+
     public UDFSetterProperty(Component component, Property prop) throws PageException {
 	super(component, "set" + StringUtil.ucFirst(prop.getName()),
 		new FunctionArgument[] {
@@ -60,14 +70,17 @@ public final class UDFSetterProperty extends UDFGSProperty {
 	this.validate = Caster.toString(prop.getDynamicAttributes().get(KeyConstants._validate, null), null);
 	if (!StringUtil.isEmpty(validate, true)) {
 	    validate = validate.trim().toLowerCase();
-	    Object o = prop.getDynamicAttributes().get(VALIDATE_PARAMS, null);
-	    if (o != null) {
-		if (Decision.isStruct(o)) validateParams = Caster.toStruct(o);
-		else {
-		    String str = Caster.toString(o);
-		    if (!StringUtil.isEmpty(str, true)) {
-			validateParams = ORMUtil.convertToSimpleMap(str);
-			if (validateParams == null) throw new ExpressionException("cannot parse string [" + str + "] as struct");
+	    Struct da = prop.getDynamicAttributes();
+	    if (da != null) {
+		Object o = da.get(VALIDATE_PARAMS, null);
+		if (o != null) {
+		    if (Decision.isStruct(o)) validateParams = Caster.toStruct(o);
+		    else {
+			String str = Caster.toString(o);
+			if (!StringUtil.isEmpty(str, true)) {
+			    validateParams = ORMUtil.convertToSimpleMap(str);
+			    if (validateParams == null) throw new ExpressionException("cannot parse string [" + str + "] as struct");
+			}
 		    }
 		}
 	    }
@@ -76,12 +89,7 @@ public final class UDFSetterProperty extends UDFGSProperty {
 
     @Override
     public UDF duplicate() {
-	try {
-	    return new UDFSetterProperty(srcComponent, prop);
-	}
-	catch (PageException pe) {
-	    throw new PageRuntimeException(pe);
-	}
+	return new UDFSetterProperty(srcComponent, prop, validate, validateParams);
     }
 
     @Override

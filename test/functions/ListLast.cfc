@@ -46,4 +46,5 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		assertEquals("bb",list2.ListLast(delimiters="||"));
 		assertEquals("",list2.ListLast(delimiters="||", includeEmptyFields=true));
 	}
+
 }

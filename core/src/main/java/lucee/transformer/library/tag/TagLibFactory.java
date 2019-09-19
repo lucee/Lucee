@@ -28,6 +28,12 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import org.xml.sax.Attributes;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+import org.xml.sax.XMLReader;
+import org.xml.sax.helpers.DefaultHandler;
+
 import lucee.commons.collection.MapFactory;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
@@ -42,12 +48,6 @@ import lucee.runtime.type.util.ListUtil;
 import lucee.transformer.cfml.evaluator.ChildEvaluator;
 import lucee.transformer.cfml.evaluator.TagEvaluator;
 import lucee.transformer.library.function.FunctionLibFactory;
-
-import org.xml.sax.Attributes;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.xml.sax.XMLReader;
-import org.xml.sax.helpers.DefaultHandler;
 
 /**
  * Die Klasse TagLibFactory liest die XML Repraesentation einer TLD ein und laedt diese in eine

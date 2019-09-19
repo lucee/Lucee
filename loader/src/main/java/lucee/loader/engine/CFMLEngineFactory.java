@@ -295,10 +295,14 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 	final File[] patches = PATCH_ENABLED ? patcheDir.listFiles(new ExtensionFilter(new String[] { ".lco" })) : null;
 	File lucee = null;
-	if (patches != null) for (final File patche: patches)
-	    if (patche.getName().startsWith("tmp.lco")) patche.delete();
-	    else if (patche.lastModified() < coreCreated) patche.delete();
-	    else if (lucee == null || Util.isNewerThan(toVersion(patche.getName(), VERSION_ZERO), toVersion(lucee.getName(), VERSION_ZERO))) lucee = patche;
+	if (patches != null) {
+	    for (final File patche: patches) {
+		if (patche.getName().startsWith("tmp.lco")) patche.delete();
+		else if (patche.lastModified() < coreCreated) patche.delete();
+		else if (patche.length() < 1000000L) patche.delete();
+		else if (lucee == null || Util.isNewerThan(toVersion(patche.getName(), VERSION_ZERO), toVersion(lucee.getName(), VERSION_ZERO))) lucee = patche;
+	    }
+	}
 	if (lucee != null && Util.isNewerThan(coreVersion, toVersion(lucee.getName(), VERSION_ZERO))) lucee = null;
 
 	// Load Lucee
@@ -425,6 +429,13 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	}
 	config.put("felix.log.level", "" + logLevel);
 
+	if (logger != null) {
+	    if (logLevel == 2) logger.setLogLevel(Logger.LOG_WARNING);
+	    else if (logLevel == 3) logger.setLogLevel(Logger.LOG_INFO);
+	    else if (logLevel == 4) logger.setLogLevel(Logger.LOG_DEBUG);
+	    else logger.setLogLevel(Logger.LOG_ERROR);
+	}
+
 	// Allow felix.cache.locking to be overridden by env var (true/false)
 	// Enables or disables bundle cache locking, which is used to prevent concurrent access to the
 	// bundle cache.
@@ -525,7 +536,6 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
     private CFMLEngine _getCore(File rc) throws IOException, BundleException, ClassNotFoundException, SecurityException, NoSuchMethodException, IllegalArgumentException,
 	    IllegalAccessException, InvocationTargetException {
-
 	bundleCollection = BundleLoader.loadBundles(this, getFelixCacheDirectory(), getBundleDirectory(), rc, bundleCollection);
 	return getEngine(bundleCollection);
 

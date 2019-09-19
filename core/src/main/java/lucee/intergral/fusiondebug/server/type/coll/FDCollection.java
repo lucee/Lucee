@@ -22,6 +22,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.intergral.fusiondebug.server.FDLanguageException;
+import com.intergral.fusiondebug.server.FDMutabilityException;
+import com.intergral.fusiondebug.server.IFDStackFrame;
+
 import lucee.intergral.fusiondebug.server.type.FDValueSupport;
 import lucee.intergral.fusiondebug.server.type.FDVariable;
 import lucee.intergral.fusiondebug.server.util.FDCaster;
@@ -32,10 +36,6 @@ import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.comparator.TextComparator;
 import lucee.runtime.type.util.CollectionUtil;
-
-import com.intergral.fusiondebug.server.FDLanguageException;
-import com.intergral.fusiondebug.server.FDMutabilityException;
-import com.intergral.fusiondebug.server.IFDStackFrame;
 
 public class FDCollection extends FDValueSupport {
 

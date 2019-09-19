@@ -20,6 +20,10 @@ package lucee.runtime.functions.system;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.felix.framework.BundleWiringImpl.BundleClassLoader;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleException;
+
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.FunctionException;
@@ -37,10 +41,6 @@ import lucee.runtime.type.ObjectWrap;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
-
-import org.apache.felix.framework.BundleWiringImpl.BundleClassLoader;
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleException;
 
 public class BundleInfo implements Function {
 
@@ -73,7 +73,7 @@ public class BundleInfo implements Function {
 	    }
 	    return sct;
 	}
-	throw new ApplicationException(obj + "given object is not from a OSGi bundle");
+	throw new ApplicationException("object [" + clazz + "] is not from a OSGi bundle");
     }
 
     private static Array toArray1(List<BundleDefinition> list) {

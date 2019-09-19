@@ -27,7 +27,6 @@ import java.util.Iterator;
 import lucee.runtime.Component;
 import lucee.runtime.ComponentScope;
 import lucee.runtime.PageContext;
-import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.dump.DumpTable;
@@ -36,11 +35,10 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.StructImpl;
+import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.KeyConstants;
 
 public class ClosureScope extends ScopeSupport implements Variables, Externalizable {
-
-    private static final Object NULL = new Object();
 
     private Argument arg;
     private Local local;
@@ -160,10 +158,11 @@ public class ClosureScope extends ScopeSupport implements Variables, Externaliza
 
     @Override
     public Object get(Key key) throws PageException {
-	Object value = local.get(key, NullSupportHelper.NULL());
-	if (value != NullSupportHelper.NULL()) return value;
-	value = arg.get(key, NullSupportHelper.NULL());
-	if (value != NullSupportHelper.NULL()) {
+	Object _null = CollectionUtil.NULL;
+	Object value = local.get(key, _null);
+	if (value != _null) return value;
+	value = arg.get(key, _null);
+	if (value != _null) {
 	    if (debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(), arg.getTypeAsString(), key);
 	    return value;
 	}
@@ -175,15 +174,22 @@ public class ClosureScope extends ScopeSupport implements Variables, Externaliza
 
     @Override
     public Object get(Key key, Object defaultValue) {
-	Object value = local.get(key, NullSupportHelper.NULL());
-	if (value != NullSupportHelper.NULL()) return value;
-	value = arg.get(key, NullSupportHelper.NULL());
-	if (value != NullSupportHelper.NULL()) {
+	Object _null = CollectionUtil.NULL;
+
+	// local
+	Object value = local.get(key, _null);
+	if (value != _null) return value;
+
+	// arg
+	value = arg.get(key, _null);
+	if (value != _null) {
 	    if (debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(), arg.getTypeAsString(), key);
 	    return value;
 	}
-	value = var.get(key, NullSupportHelper.NULL());
-	if (value != NullSupportHelper.NULL()) {
+
+	// var
+	value = var.get(key, _null);
+	if (value != _null) {
 	    if (debug) UndefinedImpl.debugCascadedAccess(ThreadLocalPageContext.get(), var.getTypeAsString(), key);
 	    return value;
 	}
@@ -221,7 +227,7 @@ public class ClosureScope extends ScopeSupport implements Variables, Externaliza
 
     @Override
     public boolean containsKey(Key key) {
-	return get(key, NULL) != NULL;
+	return get(key, CollectionUtil.NULL) != CollectionUtil.NULL;
     }
 
     @Override

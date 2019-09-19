@@ -22,7 +22,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Stack;
 
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.commons.GeneratorAdapter;
+import org.objectweb.asm.commons.Method;
+
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.compiler.JavaFunction;
 import lucee.runtime.PageSource;
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -30,10 +35,6 @@ import lucee.transformer.Context;
 import lucee.transformer.Factory;
 import lucee.transformer.bytecode.visitor.OnFinally;
 import lucee.transformer.expression.literal.LitString;
-
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.commons.GeneratorAdapter;
-import org.objectweb.asm.commons.Method;
 
 public class BytecodeContext implements Context {
 
@@ -184,6 +185,10 @@ public class BytecodeContext implements Context {
 
 	return keys.size() - 1;
 	// }
+    }
+
+    public void registerJavaFunction(JavaFunction jbc) {
+	this.page.registerJavaFunction(jbc);
     }
 
     public List<LitString> getKeys() {

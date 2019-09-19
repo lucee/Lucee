@@ -22,6 +22,12 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.objectweb.asm.Label;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.GeneratorAdapter;
+import org.objectweb.asm.commons.Method;
+
 import lucee.transformer.Factory;
 import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
@@ -29,6 +35,7 @@ import lucee.transformer.bytecode.Body;
 import lucee.transformer.bytecode.BodyBase;
 import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.Statement;
+import lucee.transformer.bytecode.cast.CastString;
 import lucee.transformer.bytecode.statement.FlowControlFinal;
 import lucee.transformer.bytecode.statement.FlowControlFinalImpl;
 import lucee.transformer.bytecode.statement.FlowControlRetry;
@@ -40,12 +47,6 @@ import lucee.transformer.bytecode.visitor.TryCatchFinallyVisitor;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.LitString;
 
-import org.objectweb.asm.Label;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
-import org.objectweb.asm.commons.GeneratorAdapter;
-import org.objectweb.asm.commons.Method;
-
 public final class TagTry extends TagBase implements FlowControlRetry {
 
     // private static final ExprString ANY=LitString.toExprString("any");
@@ -55,9 +56,10 @@ public final class TagTry extends TagBase implements FlowControlRetry {
     private static final Method TO_PAGE_EXCEPTION = new Method("toPageException", Types.PAGE_EXCEPTION, new Type[] { Types.THROWABLE });
 
     public static final Method SET_CATCH_PE = new Method("setCatch", Types.VOID, new Type[] { Types.PAGE_EXCEPTION });
-
     public static final Method SET_CATCH3 = new Method("setCatch", Types.VOID, new Type[] { Types.PAGE_EXCEPTION, Types.BOOLEAN_VALUE, Types.BOOLEAN_VALUE });
-
+    public static final Method SET_CATCH4 = new Method("setCatch", Types.VOID, new Type[] { Types.PAGE_EXCEPTION, Types.STRING, Types.BOOLEAN_VALUE, Types.BOOLEAN_VALUE });
+    // public static final Method SET_CATCH3x = new Method("setCatch", Types.VOID, new Type[] {
+    // Types.PAGE_EXCEPTION, Types.BOOLEAN_VALUE, Types.BOOLEAN_VALUE });
     public static final Method GET_CATCH = new Method("getCatch", Types.PAGE_EXCEPTION, new Type[] {});
 
     // public boolean typeEqual(String type);
@@ -102,7 +104,6 @@ public final class TagTry extends TagBase implements FlowControlRetry {
 		}
 		tryBody.addStatement(stat);
 	    }
-	    ;
 	}
 	final Tag _finally = tmpFinal;
 
@@ -201,7 +202,7 @@ public final class TagTry extends TagBase implements FlowControlRetry {
 	    catchBody(bc, adapter, tagElse, pe, true, true);
 	}
 	else {
-	    // pc.setCatch(pe,true);
+	    // pc.setCatch(pe,false,true);
 	    adapter.loadArg(0);
 	    adapter.loadLocal(pe);
 	    adapter.push(false);
@@ -220,15 +221,25 @@ public final class TagTry extends TagBase implements FlowControlRetry {
     }
 
     private static void catchBody(BytecodeContext bc, GeneratorAdapter adapter, Tag tag, int pe, boolean caugth, boolean store) throws TransformerException {
+	Expression name = getName(tag);
+
 	// pc.setCatch(pe,true);
 	adapter.loadArg(0);
+	if (name != null) adapter.checkCast(Types.PAGE_CONTEXT_IMPL);
 	adapter.loadLocal(pe);
+	if (name != null) CastString.toExprString(name).writeOut(bc, Expression.MODE_REF);
 	adapter.push(caugth);
 	adapter.push(store);
-	adapter.invokeVirtual(Types.PAGE_CONTEXT, SET_CATCH3);
+	adapter.invokeVirtual(name != null ? Types.PAGE_CONTEXT_IMPL : Types.PAGE_CONTEXT, name != null ? SET_CATCH4 : SET_CATCH3);
 	BodyBase.writeOut(bc, tag.getBody());
 	// ExpressionUtil.writeOut(tag.getBody(), bc);
 
+    }
+
+    public static Expression getName(Tag tag) {
+	Attribute attr = tag == null ? null : tag.getAttribute("name");
+	if (attr != null) return attr.getValue();
+	return null;
     }
 
     private boolean hasFinally() {

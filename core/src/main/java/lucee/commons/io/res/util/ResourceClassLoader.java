@@ -27,13 +27,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.collections4.map.ReferenceMap;
+
 import lucee.commons.digest.MD5;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.type.file.FileResource;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.type.util.ArrayUtil;
-
-import org.apache.commons.collections4.map.ReferenceMap;
 
 /**
  * Classloader that load classes from resources

@@ -25,15 +25,16 @@ import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import lucee.commons.io.IOUtil;
-import lucee.commons.io.res.Resource;
-import lucee.commons.lang.SystemOut;
-
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.commons.Remapper;
 import org.objectweb.asm.commons.RemappingClassAdapter;
+
+import lucee.commons.io.IOUtil;
+import lucee.commons.io.log.LogUtil;
+import lucee.commons.io.res.Resource;
+import lucee.runtime.engine.ThreadLocalPageContext;
 
 public class JarUtil {
 
@@ -76,7 +77,7 @@ public class JarUtil {
 	    }
 	}
 	catch (IOException ioe) {
-	    SystemOut.printDate(ioe);
+	    LogUtil.log(ThreadLocalPageContext.getConfig(), JarUtil.class.getName(), ioe);
 	}
 	finally {
 	    IOUtil.closeEL(zis);

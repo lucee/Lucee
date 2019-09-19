@@ -31,10 +31,10 @@ table.details td, table.details th { padding: 2px 4px;  border: 1px solid #ddd; 
 #-lucee-debug tr.red td, #-lucee-debug .red 	{ background-color: #FDD; }
 #-lucee-debug td.sorted { background-color: #FFE; }
 
-#-lucee-debug .sortby.selected, #-lucee-debug .sortby:hover { background-color: #25A; color: #FFF; }
+#-lucee-debug .sortby.selected, #-lucee-debug .sortby:hover { background-color: #25A; color: #FFF !important; }
 #-lucee-debug .pad 	{ padding-left: 16px; }
 #-lucee-debug a 	{ cursor: pointer; }
-#-lucee-debug td a 	{ color: #25A; }
+#-lucee-debug td a 	{ color: #25A !important; }
 #-lucee-debug td a:hover	{ color: #58C; text-decoration: underline; }
 #-lucee-debug .__sql	{ background-color: #EEE; max-width: 800px; overflow: scroll; padding: 0.2em; border: solid 1px #666; border-radius: 1em; white-space: pre-wrap; word-break: break-all; word-wrap: break-word; tab-size: 2; }
 

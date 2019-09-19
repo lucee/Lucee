@@ -8,8 +8,8 @@ import lucee.runtime.db.DataSource;
 import lucee.runtime.db.SQLItem;
 import lucee.runtime.tag.Query;
 import lucee.runtime.tag.listener.TagListener;
-import lucee.runtime.type.Struct;
 import lucee.runtime.type.Collection.Key;
+import lucee.runtime.type.Struct;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.TimeSpan;
 

@@ -31,16 +31,17 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ExceptionUtil;
-import lucee.commons.lang.SystemOut;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Struct;
 import lucee.runtime.util.Cast;
 import lucee.runtime.util.Creation;
 
-public class SocketGateway implements Gateway {
+public class SocketGateway implements GatewaySupport {
 
     private GatewayEngine engine;
     private int port;
@@ -54,6 +55,7 @@ public class SocketGateway implements Gateway {
     private ServerSocket serverSocket;
     protected int state = STOPPED;
     private String cfcPath;
+    private Thread thread;
 
     @Override
     public void init(GatewayEngine engine, String id, String cfcPath, Map config) throws GatewayException {
@@ -98,7 +100,7 @@ public class SocketGateway implements Gateway {
 	catch (Exception e) {
 	    state = FAILED;
 	    error("Error in Socet Gateway [" + id + "]: " + e.getMessage());
-	    SystemOut.printDate(e);
+	    LogUtil.log(ThreadLocalPageContext.getConfig(), SocketGateway.class.getName(), e);
 	}
     }
 
@@ -238,7 +240,7 @@ public class SocketGateway implements Gateway {
 		}
 	    }
 	    catch (Exception e) {
-		SystemOut.printDate(e);
+		LogUtil.log(ThreadLocalPageContext.getConfig(), SocketGateway.class.getName(), e);
 		error("Failed to send message with exception: " + e.toString());
 		status = "EXCEPTION";
 	    }
@@ -315,4 +317,13 @@ public class SocketGateway implements Gateway {
 	}
     }
 
+    @Override
+    public void setThread(Thread thread) {
+	this.thread = thread;
+    }
+
+    @Override
+    public Thread getThread() {
+	return thread;
+    }
 }

@@ -18,14 +18,14 @@
  **/
 package lucee.runtime.text.xml.struct;
 
-import lucee.runtime.text.xml.XMLCaster;
-import lucee.runtime.text.xml.XMLUtil;
-import lucee.runtime.type.Collection;
-
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
+
+import lucee.runtime.text.xml.XMLCaster;
+import lucee.runtime.text.xml.XMLUtil;
+import lucee.runtime.type.Collection;
 
 /**
  * 

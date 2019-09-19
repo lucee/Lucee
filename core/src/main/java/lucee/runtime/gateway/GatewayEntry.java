@@ -18,13 +18,13 @@
  **/
 package lucee.runtime.gateway;
 
+import org.osgi.framework.BundleException;
+
 import lucee.commons.lang.ClassException;
 import lucee.runtime.config.Config;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Struct;
-
-import org.osgi.framework.BundleException;
 
 public interface GatewayEntry {
 

@@ -22,10 +22,11 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceLock;
 import lucee.commons.lang.SerializableObject;
-import lucee.commons.lang.SystemOut;
 import lucee.runtime.CFMLFactory;
 import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.PageContextImpl;
@@ -87,16 +88,11 @@ public final class ResourceLockImpl implements ResourceLock {
 	Thread t;
 	do {
 	    if ((t = resources.get(path)) == null) {
-		// print.ln("read ok");
 		return;
 	    }
 	    if (t == Thread.currentThread()) {
-		// aprint.err(path);
 		Config config = ThreadLocalPageContext.getConfig();
-		if (config != null) SystemOut.printDate(config.getErrWriter(), "conflict in same thread: on " + path);
-		// SystemOut.printDate(config.getErrWriter(),"conflict in same thread: on
-		// "+path+"\nStacktrace:\n"+StringUtil.replace(ExceptionUtil.getStacktrace(new Throwable(),
-		// false),"java.lang.Throwable\n","",true));
+		LogUtil.log(config, Log.LEVEL_ERROR, "file", "conflict in same thread: on " + path);
 		return;
 	    }
 	    // bugfix when lock von totem thread, wird es ignoriert
@@ -134,10 +130,12 @@ public final class ResourceLockImpl implements ResourceLock {
 				    + (System.currentTimeMillis() - pc.getStartTime()) + "ms ago.";
 			}
 
-			SystemOut.printDate(config.getErrWriter(),
+			LogUtil.log(config, Log.LEVEL_ERROR, "file",
 				"timeout after " + (now - start) + " ms (" + (lockTimeout) + " ms) occured while accessing file [" + path + "]." + add);
+
 		    }
-		    else SystemOut.printDate("timeout (" + (lockTimeout) + " ms) occured while accessing file [" + path + "].");
+		    else LogUtil.log(config, Log.LEVEL_ERROR, "file", "timeout (" + (lockTimeout) + " ms) occured while accessing file [" + path + "].");
+
 		    return;
 		}
 	    }

@@ -41,6 +41,7 @@ import lucee.runtime.config.Constants;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
@@ -124,10 +125,25 @@ public class ComponentListPackage implements Function {
 	Mapping[] mappings = config.getComponentMappings();
 	Mapping mapping;
 	String[] list;
-	for (int i = 0; i < mappings.length; i++) {
-	    mapping = mappings[i];
-	    list = _listMapping(pc, mapping, path);
-	    if (!ArrayUtil.isEmpty(list)) rtn = add(rtn, list);
+	if (mappings != null) {
+	    for (int i = 0; i < mappings.length; i++) {
+		mapping = mappings[i];
+		list = _listMapping(pc, mapping, path);
+		if (!ArrayUtil.isEmpty(list)) rtn = add(rtn, list);
+	    }
+	}
+
+	// check application component mappings
+	ApplicationContext ac = pc.getApplicationContext();
+	if (ac != null) {
+	    mappings = ac.getComponentMappings();
+	    if (mappings != null) {
+		for (int i = 0; i < mappings.length; i++) {
+		    mapping = mappings[i];
+		    list = _listMapping(pc, mapping, path);
+		    if (!ArrayUtil.isEmpty(list)) rtn = add(rtn, list);
+		}
+	    }
 	}
 
 	if (rtn == null) throw new ApplicationException("no package with name [" + packageName + "] found");

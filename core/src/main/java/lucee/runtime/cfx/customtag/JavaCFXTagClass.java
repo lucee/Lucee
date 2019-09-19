@@ -18,15 +18,15 @@
  */
 package lucee.runtime.cfx.customtag;
 
+import org.osgi.framework.BundleException;
+
+import com.allaire.cfx.CustomTag;
+
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.cfx.CFXTagException;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.reflection.Reflector;
-
-import org.osgi.framework.BundleException;
-
-import com.allaire.cfx.CustomTag;
 
 /**
  * 
@@ -114,7 +114,7 @@ public final class JavaCFXTagClass implements CFXTagClass {
     @Override
     public boolean isValid() {
 	try {
-	    return Reflector.isInstaneOf(getClazz(), CustomTag.class);
+	    return Reflector.isInstaneOf(getClazz(), CustomTag.class, false);
 	}
 	catch (Exception e) {
 	    return false;

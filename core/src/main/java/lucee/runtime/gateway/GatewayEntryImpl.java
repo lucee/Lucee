@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
+import org.osgi.framework.BundleException;
+
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.StringUtil;
@@ -34,8 +36,6 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Struct;
-
-import org.osgi.framework.BundleException;
 
 public class GatewayEntryImpl implements GatewayEntry {
 

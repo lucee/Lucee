@@ -18,9 +18,9 @@
  **/
 package lucee.transformer.bytecode.util;
 
-import lucee.runtime.exp.PageException;
-
 import org.objectweb.asm.Type;
+
+import lucee.runtime.exp.PageException;
 
 public final class ASMPropertyImpl implements ASMProperty {
 
@@ -66,7 +66,7 @@ public final class ASMPropertyImpl implements ASMProperty {
      */
     @Override
     public String toString() {
-	return "class:" + (clazz == null ? null : clazz.getName()) + "name:" + name + ";type:" + type.getClassName();
+	return "class:" + (clazz == null ? null : clazz.getName()) + ";name:" + name + ";type:" + type.getClassName();
     }
 
     /**

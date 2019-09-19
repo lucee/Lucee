@@ -26,19 +26,20 @@ import java.sql.SQLException;
 import java.util.Map;
 import java.util.TimeZone;
 
-import lucee.commons.io.log.Log;
-import lucee.commons.lang.ClassException;
-import lucee.runtime.config.Config;
-import lucee.runtime.engine.ThreadLocalConfig;
-import lucee.runtime.engine.ThreadLocalPageContext;
-import lucee.runtime.tag.listener.TagListener;
-
 import org.apache.commons.collections4.map.ReferenceMap;
 import org.osgi.framework.BundleException;
 
-public abstract class DataSourceSupport implements DataSource, Cloneable, Serializable {
+import lucee.commons.io.log.Log;
+import lucee.commons.lang.ClassException;
+import lucee.runtime.config.Config;
+import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.tag.listener.TagListener;
 
+public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Serializable {
+
+    private static final long serialVersionUID = -9111025519905149021L;
     private static final int NETWORK_TIMEOUT_IN_SECONDS = 10;
+
     private final boolean blob;
     private final boolean clob;
     private final int connectionLimit;
@@ -58,9 +59,11 @@ public abstract class DataSourceSupport implements DataSource, Cloneable, Serial
     private transient Driver driver;
     private transient Log log;
     private final TagListener listener;
+    private final boolean requestExclusive;
 
     public DataSourceSupport(Config config, String name, ClassDefinition cd, String username, String password, TagListener listener, boolean blob, boolean clob,
-	    int connectionLimit, int connectionTimeout, long metaCacheTimeout, TimeZone timezone, int allow, boolean storage, boolean readOnly, boolean validate, Log log) {
+	    int connectionLimit, int connectionTimeout, long metaCacheTimeout, TimeZone timezone, int allow, boolean storage, boolean readOnly, boolean validate,
+	    boolean requestExclusive, Log log) {
 	this.name = name;
 	this.cd = cd;// _initializeCD(null, cd, config);
 	this.blob = blob;
@@ -76,6 +79,7 @@ public abstract class DataSourceSupport implements DataSource, Cloneable, Serial
 	this.password = password;
 	this.listener = listener;
 	this.validate = validate;
+	this.requestExclusive = requestExclusive;
 	this.log = log;
     }
 
@@ -112,20 +116,6 @@ public abstract class DataSourceSupport implements DataSource, Cloneable, Serial
 	}
 	return driver;
     }
-
-    /*
-     * private static ClassDefinition _initializeCD(JDBCDriver jdbc, ClassDefinition cd, Config config)
-     * { // try to link the class definition with a jdbc driver definition if (!cd.isBundle()) { if
-     * ("com.microsoft.jdbc.sqlserver.SQLServerDriver".equals(cd .getClassName())) { cd = new
-     * ClassDefinitionImpl( "com.microsoft.sqlserver.jdbc.SQLServerDriver", cd.getName(),
-     * cd.getVersionAsString(), null); }
-     * 
-     * ConfigImpl ci = ((ConfigImpl) ThreadLocalPageContext.getConfig(config)); JDBCDriver tmp = jdbc !=
-     * null ? ci.getJDBCDriverByCD(jdbc.cd, null) : null; if (tmp == null) tmp = ((ConfigImpl)
-     * config).getJDBCDriverByClassName(cd.getClassName(), null);
-     * 
-     * // we have a matching jdbc driver found if (tmp != null) { cd = tmp.cd; } } return cd; }
-     */
 
     private static Driver _initializeDriver(ClassDefinition cd, Config config) throws ClassException, BundleException, InstantiationException, IllegalAccessException {
 	// load the class
@@ -238,6 +228,11 @@ public abstract class DataSourceSupport implements DataSource, Cloneable, Serial
     }
 
     @Override
+    public boolean isRequestExclusive() {
+	return requestExclusive;
+    }
+
+    @Override
     public Log getLog() {
 	// can be null if deserialized
 	if (log == null) log = ThreadLocalPageContext.getConfig().getLog("application");
@@ -267,7 +262,7 @@ public abstract class DataSourceSupport implements DataSource, Cloneable, Serial
 	return new StringBuilder(getConnectionStringTranslated()).append(':').append(getConnectionLimit()).append(':').append(getConnectionTimeout()).append(':')
 		.append(getMetaCacheTimeout()).append(':').append(getName().toLowerCase()).append(':').append(getUsername()).append(':').append(getPassword()).append(':')
 		.append(validate()).append(':').append(cd.toString()).append(':').append((getTimeZone() == null ? "null" : getTimeZone().getID())).append(':').append(isBlob())
-		.append(':').append(isClob()).append(':').append(isReadOnly()).append(':').append(isStorage()).toString();
+		.append(':').append(isClob()).append(':').append(isReadOnly()).append(':').append(isStorage()).append(':').append(isRequestExclusive()).toString();
 
     }
 

@@ -50,7 +50,7 @@ public final class BlowfishCBC extends BlowfishECB {
 
     public long getCBCIV() {
 	return m_lCBCIV;
-    };
+    }
 
     /**
      * get the current CBC IV (for cipher resets)
@@ -59,7 +59,7 @@ public final class BlowfishCBC extends BlowfishECB {
      */
     public void getCBCIV(byte[] dest) {
 	BinConverter.longToByteArray(m_lCBCIV, dest, 0);
-    };
+    }
 
     /**
      * set the current CBC IV (for cipher resets)
@@ -68,7 +68,7 @@ public final class BlowfishCBC extends BlowfishECB {
      */
     public void setCBCIV(long lNewCBCIV) {
 	m_lCBCIV = lNewCBCIV;
-    };
+    }
 
     /**
      * 
@@ -82,7 +82,7 @@ public final class BlowfishCBC extends BlowfishECB {
 
 	m_lCBCIV = BinConverter.byteArrayToLong(newCBCIV, 0);
 
-    };
+    }
 
     /**
      * 
@@ -100,7 +100,7 @@ public final class BlowfishCBC extends BlowfishECB {
 
 	setCBCIV(0);
 
-    };
+    }
 
     /**
      * 
@@ -122,7 +122,7 @@ public final class BlowfishCBC extends BlowfishECB {
 
 	setCBCIV(lInitCBCIV);
 
-    };
+    }
 
     /**
      * 
@@ -144,7 +144,7 @@ public final class BlowfishCBC extends BlowfishECB {
 
 	setCBCIV(initCBCIV);
 
-    };
+    }
 
     /**
      * 
@@ -161,7 +161,7 @@ public final class BlowfishCBC extends BlowfishECB {
 
 	super.cleanUp();
 
-    };
+    }
 
     // internal routine to encrypt a block in CBC mode
 
@@ -180,7 +180,7 @@ public final class BlowfishCBC extends BlowfishECB {
 
 	return (m_lCBCIV = lPlainblock);
 
-    };
+    }
 
     // internal routine to decrypt a block in CBC mode
 
@@ -207,7 +207,7 @@ public final class BlowfishCBC extends BlowfishECB {
 
 	return lCipherblock;
 
-    };
+    }
 
     /**
      * 
@@ -241,9 +241,7 @@ public final class BlowfishCBC extends BlowfishECB {
 	    BinConverter.longToByteArray(lTemp, outbuffer, nI);
 
 	}
-	;
-
-    };
+    }
 
     /**
      * 
@@ -271,9 +269,7 @@ public final class BlowfishCBC extends BlowfishECB {
 	    BinConverter.longToByteArray(lTemp, buffer, nI);
 
 	}
-	;
-
-    };
+    }
 
     /**
      * 
@@ -309,9 +305,7 @@ public final class BlowfishCBC extends BlowfishECB {
 	    BinConverter.longToIntArray(lTemp, outbuffer, nI);
 
 	}
-	;
-
-    };
+    }
 
     /**
      * 
@@ -339,9 +333,7 @@ public final class BlowfishCBC extends BlowfishECB {
 	    BinConverter.longToIntArray(lTemp, buffer, nI);
 
 	}
-	;
-
-    };
+    }
 
     /**
      * 
@@ -364,7 +356,7 @@ public final class BlowfishCBC extends BlowfishECB {
 
 	    outbuffer[nI] = encryptBlock(inbuffer[nI]);
 
-    };
+    }
 
     /**
      * 
@@ -384,9 +376,8 @@ public final class BlowfishCBC extends BlowfishECB {
 	    buffer[nI] = encryptBlock(buffer[nI]);
 
 	}
-	;
 
-    };
+    }
 
     /**
      * 
@@ -420,9 +411,7 @@ public final class BlowfishCBC extends BlowfishECB {
 	    BinConverter.longToByteArray(lTemp, outbuffer, nI);
 
 	}
-	;
-
-    };
+    }
 
     /**
      * 
@@ -450,9 +439,7 @@ public final class BlowfishCBC extends BlowfishECB {
 	    BinConverter.longToByteArray(lTemp, buffer, nI);
 
 	}
-	;
-
-    };
+    }
 
     /**
      * 
@@ -486,9 +473,7 @@ public final class BlowfishCBC extends BlowfishECB {
 	    BinConverter.longToIntArray(lTemp, outbuffer, nI);
 
 	}
-	;
-
-    };
+    }
 
     /**
      * 
@@ -518,9 +503,7 @@ public final class BlowfishCBC extends BlowfishECB {
 	    BinConverter.longToIntArray(lTemp, buffer, nI);
 
 	}
-	;
-
-    };
+    }
 
     /**
      * 
@@ -543,7 +526,7 @@ public final class BlowfishCBC extends BlowfishECB {
 
 	    outbuffer[nI] = decryptBlock(inbuffer[nI]);
 
-    };
+    }
 
     /**
      * 
@@ -562,6 +545,6 @@ public final class BlowfishCBC extends BlowfishECB {
 
 	    buffer[nI] = decryptBlock(buffer[nI]);
 
-    };
+    }
 
-};
+}

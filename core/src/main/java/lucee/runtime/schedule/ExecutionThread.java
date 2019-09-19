@@ -60,6 +60,8 @@ class ExecutionThread extends Thread {
     }
 
     public static void execute(Config config, ScheduleTask task, String charset) {
+	Scheduler scheduler = ((ScheduleTaskImpl) task).getScheduler();
+	if (scheduler instanceof SchedulerImpl && !((SchedulerImpl) scheduler).active()) return;
 	Log log = getLog(config);
 	boolean hasError = false;
 	String logName = "schedule task:" + task.getTask();
@@ -92,9 +94,9 @@ class ExecutionThread extends Thread {
 	}
 
 	// Proxy
-	ProxyData proxy = task.getProxyData();
-	if (!ProxyDataImpl.isValid(proxy) && config.isProxyEnableFor(task.getUrl().getHost())) {
-	    proxy = config.getProxyData();
+	ProxyData proxy = ProxyDataImpl.validate(task.getProxyData(), task.getUrl().getHost());
+	if (proxy == null) {
+	    proxy = ProxyDataImpl.validate(config.getProxyData(), task.getUrl().getHost());
 	}
 
 	HTTPResponse rsp = null;
@@ -103,10 +105,21 @@ class ExecutionThread extends Thread {
 	log.info(logName, "calling URL [" + url + "]");
 	try {
 	    rsp = HTTPEngine.get(new URL(url), user, pass, task.getTimeout(), true, charset, null, proxy, headers);
+	    if (rsp != null) {
+		int sc = rsp.getStatusCode();
+		if (sc >= 200 && sc < 300) log.info(logName, "sucessfully called URL [" + url + "], response code " + sc);
+		else log.warn(logName, "called URL [" + url + "] returned response code " + sc);
+	    }
+
 	}
 	catch (Exception e) {
-
-	    log.log(Log.LEVEL_ERROR, logName, e);
+	    try {
+		log.log(Log.LEVEL_ERROR, logName, e);
+	    }
+	    catch (Exception ee) {
+		LogUtil.logGlobal(config, "scheduler", e);
+		LogUtil.logGlobal(config, "scheduler", ee);
+	    }
 	    hasError = true;
 	}
 

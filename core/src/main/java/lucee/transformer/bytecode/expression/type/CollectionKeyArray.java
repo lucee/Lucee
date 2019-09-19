@@ -18,6 +18,9 @@
  */
 package lucee.transformer.bytecode.expression.type;
 
+import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.GeneratorAdapter;
+
 import lucee.transformer.Factory;
 import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
@@ -25,9 +28,6 @@ import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.expression.ExpressionBase;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.bytecode.visitor.ArrayVisitor;
-
-import org.objectweb.asm.Type;
-import org.objectweb.asm.commons.GeneratorAdapter;
 
 public class CollectionKeyArray extends ExpressionBase {
 

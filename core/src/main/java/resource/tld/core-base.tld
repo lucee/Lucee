@@ -3283,6 +3283,14 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<description>ID of the snippet that is added, used to ensure that the same snippet will not be added more than once.</description>
 		</attribute>
 		<attribute>
+			<type>boolean</type>
+			<name>force</name>
+			<required>false</required>
+			<default>false</default>
+			<rtexprvalue>true</rtexprvalue>
+			<description>if set to true, it works even within a silent block</description>
+		</attribute>
+		<attribute>
 			<type>string</type>
 			<name>action</name>
 			<values>append,read,reset,write</values>
@@ -3321,6 +3329,14 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 		placed in the 'head' section</description>
 		</attribute>
 		
+		<attribute>
+			<type>boolean</type>
+			<name>force</name>
+			<required>false</required>
+			<default>true</default>
+			<rtexprvalue>true</rtexprvalue>
+			<description>if set to true, it works even within a silent block</description>
+		</attribute>
 		<attribute>
 			<type>boolean</type>
 			<name>force</name>
@@ -6409,7 +6425,7 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 			<name>cachedAfter</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>This is the age of which the query data can be</description>
+			<description>Sets a date/time from when the tag will start to cache the query. In difference to other CFML Engines this attribute only works in combination with the tag "cachedWithin", so you still have to set with "cachedWithin" how long the query remains in the cache. To match other CFML engines simply set "cachedWithin" to "36500", that will hold it in cache for 100 years!</description>
 		</attribute>
 		<attribute>
 			<type>object</type>
@@ -6886,24 +6902,6 @@ To use cached data, the current query must use the same SQL statement, data sour
 		</attribute>
 	</tag>
 	
-	<!-- Script2
-	<tag>
-		<name>Script2</name>
-		<tag-class>lucee.runtime.tag.Script2</tag-class>
-		<body-content>must</body-content>
-		<body-rtexprvalue>false</body-rtexprvalue>
-		<handle-exception>true</handle-exception>
-		<description></description>
-		<attribute-type>fixed</attribute-type>
-		<attribute>
-			<type>string</type>
-			<name>language</name>
-			<required>true</required>
-			<rtexprvalue>true</rtexprvalue>
-			<description></description>
-		</attribute>
-	</tag> -->
-	
 	<!-- Schedule -->
 	<tag>
 		<name>Schedule</name>
@@ -7126,6 +7124,13 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<status>hidden</status>
 			<rtexprvalue>true</rtexprvalue>
 			<description>if set to true, the scheduled task get deleted when there is no possible future execution.</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>unique</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>if set to true, the scheduled task is only executed once at time.if a task is still running from previous round no new task is started.</description>
 		</attribute>
 	</tag>
 
@@ -8785,7 +8790,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<description>used to a address this loop from a "break" or "continue" statement (instead of the nearest one).</description>
 		</attribute>
 	</tag>
-	<!-- Zip -->
+	<!-- Zip
 	<tag>
 		<name>Zip</name>
 		<tag-class>lucee.runtime.tag.Zip</tag-class>
@@ -8952,8 +8957,8 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<rtexprvalue>true</rtexprvalue>
 		<description>Variable in which the read content is stored. </description>
     </attribute>
-	</tag>
-	<!-- ZipParam -->
+	</tag> -->
+	<!-- ZipParam
 	<tag>
 		<name>ZipParam</name>
 		<tag-class>lucee.runtime.tag.ZipParam</tag-class>
@@ -9045,7 +9050,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		<description>Recurse the directory to be zipped, unzipped, or deleted,
             as specified by the cfzip parent tag. (optional, default=yes)</description>
     </attribute>
-	</tag>
+	</tag> -->
 
 	<!-- Form -->
 	<tag>

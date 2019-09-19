@@ -22,11 +22,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import lucee.commons.io.IOUtil;
-import lucee.commons.io.TemporaryStream;
-
 import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.entity.ContentType;
+
+import lucee.commons.io.IOUtil;
+import lucee.commons.io.TemporaryStream;
 
 public class TemporaryStreamHttpEntity extends AbstractHttpEntity implements Entity4 {
 

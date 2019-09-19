@@ -37,11 +37,21 @@ public final class Extract implements Function {
 
     public static boolean call(PageContext pc, String strFormat, String strSource, String srcTarget) throws PageException {
 
+	boolean singleFileFormat = false;
 	strFormat = strFormat.trim().toLowerCase();
 	int format = CompressUtil.FORMAT_ZIP;
-	if (strFormat.equals("bzip")) format = CompressUtil.FORMAT_BZIP;
-	else if (strFormat.equals("bzip2")) format = CompressUtil.FORMAT_BZIP2;
-	else if (strFormat.equals("gzip")) format = CompressUtil.FORMAT_GZIP;
+	if (strFormat.equals("bzip")) {
+	    format = CompressUtil.FORMAT_BZIP;
+	    singleFileFormat = true;
+	}
+	else if (strFormat.equals("bzip2")) {
+	    format = CompressUtil.FORMAT_BZIP2;
+	    singleFileFormat = true;
+	}
+	else if (strFormat.equals("gzip")) {
+	    format = CompressUtil.FORMAT_GZIP;
+	    singleFileFormat = true;
+	}
 	else if (strFormat.equals("tar")) format = CompressUtil.FORMAT_TAR;
 	else if (strFormat.equals("tbz")) format = CompressUtil.FORMAT_TBZ;
 	else if (strFormat.startsWith("tar.bz")) format = CompressUtil.FORMAT_TBZ;
@@ -49,7 +59,7 @@ public final class Extract implements Function {
 	else if (strFormat.startsWith("tar.gz")) format = CompressUtil.FORMAT_TGZ;
 	else if (strFormat.equals("tgz")) format = CompressUtil.FORMAT_TGZ;
 	else if (strFormat.equals("zip")) format = CompressUtil.FORMAT_ZIP;
-	else throw new FunctionException(pc, "compress", 1, "format",
+	else throw new FunctionException(pc, "extract", 1, "format",
 		"invalid format definition [" + strFormat + "]," + " valid formats are [bzip,gzip,tar,tbz (tar bzip),tgz (tar gzip) and zip]");
 
 	String[] arrSources = ListUtil.toStringArrayEL(ListUtil.listToArrayRemoveEmpty(strSource, ","));
@@ -61,7 +71,7 @@ public final class Extract implements Function {
 	    pc.getConfig().getSecurityManager().checkFileLocation(sources[i]);
 	}
 
-	Resource target = ResourceUtil.toResourceExisting(pc, srcTarget);
+	Resource target = singleFileFormat ? ResourceUtil.toResourceNotExisting(pc, srcTarget) : ResourceUtil.toResourceExisting(pc, srcTarget);
 	pc.getConfig().getSecurityManager().checkFileLocation(target);
 
 	try {

@@ -21,7 +21,6 @@
  */
 package lucee.runtime.functions.arrays;
 
-import lucee.print;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
@@ -29,7 +28,6 @@ import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.type.Array;
-import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.util.ArrayUtil;
 
 public final class ArrayContainsNoCase extends BIF {

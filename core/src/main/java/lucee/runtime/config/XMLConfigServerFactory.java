@@ -23,27 +23,29 @@ import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 
-import lucee.commons.io.IOUtil;
-import lucee.commons.io.SystemUtil;
-import lucee.commons.io.res.Resource;
-import lucee.commons.io.res.type.file.FileResource;
-import lucee.commons.io.res.util.ResourceUtil;
-import lucee.commons.lang.ClassException;
-import lucee.commons.lang.SystemOut;
-import lucee.loader.engine.CFMLEngine;
-import lucee.runtime.CFMLFactory;
-import lucee.runtime.engine.CFMLEngineImpl;
-import lucee.runtime.exp.PageException;
-import lucee.runtime.op.Caster;
-import lucee.transformer.library.function.FunctionLibException;
-import lucee.transformer.library.tag.TagLibException;
-
 import org.osgi.framework.BundleException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import com.jacob.com.LibraryLoader;
+
+import lucee.commons.io.IOUtil;
+import lucee.commons.io.SystemUtil;
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
+import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.type.file.FileResource;
+import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.ClassException;
+import lucee.loader.engine.CFMLEngine;
+import lucee.runtime.CFMLFactory;
+import lucee.runtime.engine.CFMLEngineImpl;
+import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.PageException;
+import lucee.runtime.op.Caster;
+import lucee.transformer.library.function.FunctionLibException;
+import lucee.transformer.library.tag.TagLibException;
 
 /**
  * 
@@ -86,9 +88,11 @@ public final class XMLConfigServerFactory extends XMLConfigFactory {
 		SystemUtil.setPrintWriter(SystemUtil.ERR, new PrintWriter(IOUtil.getWriter(err, "UTF-8")));
 	    }
 	}
-	SystemOut.print(SystemUtil.getPrintWriter(SystemUtil.OUT), "===================================================================\n" + "SERVER CONTEXT\n"
-		+ "-------------------------------------------------------------------\n" + "- config:" + configDir + "\n" + "- loader-version:" + SystemUtil.getLoaderVersion()
-		+ "\n" + "- core-version:" + engine.getInfo().getVersion() + "\n" + "===================================================================\n"
+	LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, XMLConfigServerFactory.class.getName(),
+		"===================================================================\n" + "SERVER CONTEXT\n"
+			+ "-------------------------------------------------------------------\n" + "- config:" + configDir + "\n" + "- loader-version:"
+			+ SystemUtil.getLoaderVersion() + "\n" + "- core-version:" + engine.getInfo().getVersion() + "\n"
+			+ "===================================================================\n"
 
 	);
 
@@ -214,7 +218,7 @@ public final class XMLConfigServerFactory extends XMLConfigFactory {
 	    ResourceUtil.deleteEmptyFolders(wcdDir);
 	}
 	catch (IOException e) {
-	    SystemOut.printDate(e);
+	    LogUtil.logGlobal(ThreadLocalPageContext.getConfig(config), XMLConfigServerFactory.class.getName(), e);
 	}
 
 	// Mail Server Drivers
@@ -257,11 +261,7 @@ public final class XMLConfigServerFactory extends XMLConfigFactory {
 		if (!jacob.exists()) {
 		    createFileFromResourceEL("/resource/bin/windows" + ((SystemUtil.getJREArch() == SystemUtil.ARCH_64) ? "64" : "32") + "/" + name, jacob);
 		}
-		// SystemOut.printDate(SystemUtil.PRINTWRITER_OUT,"set-property ->
-		// "+LibraryLoader.JACOB_DLL_PATH+":"+jacob.getAbsolutePath());
 		System.setProperty(LibraryLoader.JACOB_DLL_PATH, jacob.getAbsolutePath());
-		// SystemOut.printDate(SystemUtil.PRINTWRITER_OUT,"set-property ->
-		// "+LibraryLoader.JACOB_DLL_NAME+":"+name);
 		System.setProperty(LibraryLoader.JACOB_DLL_NAME, name);
 	    }
 	}

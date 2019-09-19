@@ -18,28 +18,24 @@
  **/
 package lucee.intergral.fusiondebug.server;
 
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import lucee.commons.io.SystemUtil;
-import lucee.commons.lang.SystemOut;
+import com.intergral.fusiondebug.server.IFDController;
+import com.intergral.fusiondebug.server.IFDThread;
+
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.runtime.CFMLFactory;
 import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.PageContextImpl;
-import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.config.Constants;
 import lucee.runtime.engine.CFMLEngineImpl;
-import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.op.Caster;
 import lucee.runtime.security.SerialNumber;
-
-import com.intergral.fusiondebug.server.IFDController;
-import com.intergral.fusiondebug.server.IFDThread;
 
 /**
  * 
@@ -93,7 +89,7 @@ public class FDControllerImpl implements IFDController {
     @Override
     public String getLicenseInformation(String key) {
 	if (!isEnterprise) {
-	    SystemOut.print(new PrintWriter(System.err),
+	    LogUtil.log(null, Log.LEVEL_ERROR, "integral",
 		    "FD Server Licensing does not work with the Open Source Version of Lucee or Enterprise Version of Lucee that is not enabled");
 	    return null;
 	}
@@ -102,9 +98,7 @@ public class FDControllerImpl implements IFDController {
 
     @Override
     public void output(String message) {
-	Config config = ThreadLocalPageContext.getConfig();
-	PrintWriter out = config == null ? SystemUtil.getPrintWriter(SystemUtil.OUT) : ((ConfigWebImpl) config).getOutWriter();
-	SystemOut.print(out, message);
+	LogUtil.log(null, Log.LEVEL_INFO, "integral", message);
     }
 
     @Override
@@ -131,7 +125,7 @@ public class FDControllerImpl implements IFDController {
 		pc.getThread().wait();
 	    }
 	    catch (InterruptedException e) {
-		SystemOut.printDate(e);
+		LogUtil.log(null, "integral", e);
 	    }
 	    threads.add(new FDThreadImpl(this, factory, name, pc));
 	}

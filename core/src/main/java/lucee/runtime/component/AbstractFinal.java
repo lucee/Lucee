@@ -27,7 +27,6 @@ import lucee.runtime.Interface;
 import lucee.runtime.InterfaceImpl;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.type.Collection;
-import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.util.ArrayUtil;

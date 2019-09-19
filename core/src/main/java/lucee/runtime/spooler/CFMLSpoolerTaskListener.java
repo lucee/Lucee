@@ -4,8 +4,8 @@ import javax.servlet.http.Cookie;
 
 import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.io.SystemUtil.TemplateLine;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.Pair;
-import lucee.commons.lang.SystemOut;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
@@ -79,7 +79,7 @@ public abstract class CFMLSpoolerTaskListener extends SpoolerTaskListener {
 
 	}
 	catch (PageException pe) {
-	    SystemOut.printDate(pe);
+	    LogUtil.log(ThreadLocalPageContext.getConfig(), CFMLSpoolerTaskListener.class.getName(), pe);
 	}
 	finally {
 	    if (pcCreated) ThreadLocalPageContext.release();

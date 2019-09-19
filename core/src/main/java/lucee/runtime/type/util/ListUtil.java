@@ -1577,6 +1577,24 @@ public final class ListUtil {
 	return set;
     }
 
+    public static List<String> listToList(String list, char delimiter, boolean trim) {
+	if (list.length() == 0) return new ArrayList<String>();
+	int len = list.length();
+	int last = 0;
+	char c;
+
+	ArrayList<String> rtn = new ArrayList<String>();
+	for (int i = 0; i < len; i++) {
+	    c = list.charAt(i);
+	    if (c == delimiter) {
+		rtn.add(trim ? list.substring(last, i).trim() : list.substring(last, i));
+		last = i + 1;
+	    }
+	}
+	if (last <= len) rtn.add(list.substring(last));
+	return rtn;
+    }
+
     public static String first(String list, String delimiters, boolean ignoreEmpty, int count) {
 	if (count < 1) return "";
 	char[] delims = StringUtil.isEmpty(delimiters) ? new char[] { ',' } : delimiters.toCharArray();

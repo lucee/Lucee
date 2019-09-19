@@ -53,14 +53,11 @@ public final class HttpSessionBindingListenerStruct extends StructImpl implement
 
     @Override
     public void valueBound(HttpSessionBindingEvent event) {
-	// SystemOut.printDate("------------------------------- bound session
-	// -------------------------------");
+
     }
 
     @Override
     public void valueUnbound(HttpSessionBindingEvent event) {
-	// SystemOut.printDate("------------------------------- unbound session
-	// -------------------------------");
 	try {
 	    url.getContent();
 	}

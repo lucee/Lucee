@@ -21,20 +21,6 @@ package lucee.runtime.schedule;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import lucee.commons.io.log.Log;
-import lucee.commons.io.res.Resource;
-import lucee.commons.lang.SerializableObject;
-import lucee.commons.lang.StringUtil;
-import lucee.commons.lang.SystemOut;
-import lucee.loader.engine.CFMLEngine;
-import lucee.runtime.config.Config;
-import lucee.runtime.engine.CFMLEngineImpl;
-import lucee.runtime.exp.PageException;
-import lucee.runtime.net.proxy.ProxyData;
-import lucee.runtime.net.proxy.ProxyDataImpl;
-import lucee.runtime.op.Caster;
-import lucee.runtime.text.xml.XMLUtil;
-
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -42,6 +28,21 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
+import lucee.commons.io.res.Resource;
+import lucee.commons.lang.SerializableObject;
+import lucee.commons.lang.StringUtil;
+import lucee.loader.engine.CFMLEngine;
+import lucee.runtime.config.Config;
+import lucee.runtime.engine.CFMLEngineImpl;
+import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.PageException;
+import lucee.runtime.net.proxy.ProxyData;
+import lucee.runtime.net.proxy.ProxyDataImpl;
+import lucee.runtime.op.Caster;
+import lucee.runtime.text.xml.XMLUtil;
 
 /**
  * scheduler class to execute the scheduled tasks
@@ -153,6 +154,12 @@ public final class SchedulerImpl implements Scheduler {
 	((ScheduleTaskImpl) task).startIfNecessary(engine);
     }
 
+    public void stop() {
+	for (int i = 0; i < tasks.length; i++) {
+	    tasks[i].stop();
+	}
+    }
+
     /**
      * read in all schedule tasks
      * 
@@ -191,11 +198,11 @@ public final class SchedulerImpl implements Scheduler {
 		    su.toString(el, "interval"), timeout, su.toCredentials(el, "username", "password"),
 		    ProxyDataImpl.getInstance(su.toString(el, "proxyHost"), su.toInt(el, "proxyPort", 80), su.toString(el, "proxyUser"), su.toString(el, "proxyPassword")),
 		    su.toBoolean(el, "resolveUrl"), su.toBoolean(el, "publish"), su.toBoolean(el, "hidden", false), su.toBoolean(el, "readonly", false),
-		    su.toBoolean(el, "paused", false), su.toBoolean(el, "autoDelete", false));
+		    su.toBoolean(el, "paused", false), su.toBoolean(el, "autoDelete", false), su.toBoolean(el, "unique", false));
 	    return st;
 	}
 	catch (Exception e) {
-	    SystemOut.printDate(e);
+	    LogUtil.log(ThreadLocalPageContext.getConfig(config), SchedulerImpl.class.getName(), e);
 	    throw Caster.toPageException(e);
 	}
     }
@@ -256,6 +263,7 @@ public final class SchedulerImpl implements Scheduler {
 	su.setBoolean(el, "hidden", ((ScheduleTaskImpl) task).isHidden());
 	su.setBoolean(el, "readonly", ((ScheduleTaskImpl) task).isReadonly());
 	su.setBoolean(el, "autoDelete", ((ScheduleTaskImpl) task).isAutoDelete());
+	su.setBoolean(el, "unique", ((ScheduleTaskImpl) task).unique());
     }
 
     /**
@@ -388,7 +396,7 @@ public final class SchedulerImpl implements Scheduler {
 	synchronized (sync) {
 	    ScheduleTask task = getScheduleTask(name);
 	    if (task != null) {
-		execute(task);
+		if (active()) execute(task);
 	    }
 	    else if (throwWhenNotExist) throw new ScheduleException("can't run schedule task [" + name + "], task doesn't exist");
 	    su.store(doc, schedulerFile);
@@ -405,5 +413,9 @@ public final class SchedulerImpl implements Scheduler {
 
     public String getCharset() {
 	return charset;
+    }
+
+    public boolean active() {
+	return engine == null || engine.active();
     }
 }

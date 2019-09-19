@@ -61,15 +61,15 @@ public final class Type {
 	if (clazz == null) return "null";
 	// String name=clazz.getName();
 	// if(Reflector.isInstaneOf(clazz,String.class)) return "String";
-	if (Reflector.isInstaneOf(clazz, UDF.class)) return "user defined function";
+	if (Reflector.isInstaneOf(clazz, UDF.class, false)) return "user defined function";
 	// else if(Reflector.isInstaneOf(clazz,Boolean.class)) return "Boolean";
 	// else if(Reflector.isInstaneOf(clazz,Number.class)) return "Number";
-	else if (Reflector.isInstaneOf(clazz, Array.class)) return "Array";
-	else if (Reflector.isInstaneOf(clazz, Struct.class)) return "Struct";
-	else if (Reflector.isInstaneOf(clazz, Query.class)) return "Query";
-	else if (Reflector.isInstaneOf(clazz, DateTime.class)) return "DateTime";
-	else if (Reflector.isInstaneOf(clazz, Component.class)) return "Component";
-	else if (Reflector.isInstaneOf(clazz, byte[].class)) return "Binary";
+	else if (Reflector.isInstaneOf(clazz, Array.class, false)) return "Array";
+	else if (Reflector.isInstaneOf(clazz, Struct.class, false)) return "Struct";
+	else if (Reflector.isInstaneOf(clazz, Query.class, false)) return "Query";
+	else if (Reflector.isInstaneOf(clazz, DateTime.class, false)) return "DateTime";
+	else if (Reflector.isInstaneOf(clazz, Component.class, false)) return "Component";
+	else if (Reflector.isInstaneOf(clazz, byte[].class, false)) return "Binary";
 	else {
 	    String className = clazz.getName();
 	    if (className.startsWith("java.lang.")) {

@@ -21,8 +21,6 @@
  */
 package lucee.runtime.functions.other;
 
-import java.security.Key;
-
 import lucee.commons.digest.RSA;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;

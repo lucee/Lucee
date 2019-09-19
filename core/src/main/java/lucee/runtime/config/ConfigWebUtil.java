@@ -31,17 +31,19 @@ import java.util.Map.Entry;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 
+import org.osgi.framework.BundleContext;
+
 import lucee.commons.digest.MD5;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.lang.SystemOut;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.Mapping;
@@ -63,8 +65,6 @@ import lucee.runtime.security.SecurityManager;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.ArrayUtil;
-
-import org.osgi.framework.BundleContext;
 
 /**
  * 
@@ -114,7 +114,7 @@ public final class ConfigWebUtil {
 	}
 	catch (IOException ioe) {
 	    if (throwError) throw ioe;
-	    SystemOut.printDate(cw.getErrWriter(), ExceptionUtil.getStacktrace(ioe, true));
+	    LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs), ConfigWebUtil.class.getName(), ioe);
 	}
     }
 
@@ -136,7 +136,7 @@ public final class ConfigWebUtil {
 	}
 	catch (IOException ioe) {
 	    if (throwError) throw ioe;
-	    SystemOut.printDate(cw.getErrWriter(), ExceptionUtil.getStacktrace(ioe, true));
+	    LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs != null ? cs : cw), XMLConfigAdmin.class.getName(), ioe);
 	}
     }
 
@@ -155,7 +155,7 @@ public final class ConfigWebUtil {
 	    if (_src.isFile()) {
 		if (_src.length() != _trg.length()) {
 		    _src.copyTo(_trg, false);
-		    SystemOut.printDate(cw.getOutWriter(), "write file:" + _trg);
+		    LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cw), Log.LEVEL_INFO, ConfigWebUtil.class.getName(), "write file:" + _trg);
 
 		}
 	    }
@@ -185,7 +185,7 @@ public final class ConfigWebUtil {
 	List<Resource> list = new ArrayList<Resource>();
 	for (int i = 0; i < libs.length; i++) {
 	    try {
-		bf = BundleFile.newInstance(libs[i]);
+		bf = BundleFile.getInstance(libs[i], true);
 		// jar is not a bundle
 		if (bf == null) {
 		    // convert to a bundle
@@ -194,7 +194,7 @@ public final class ConfigWebUtil {
 		    Resource tmp = SystemUtil.getTempFile("jar", false);
 		    factory.build(tmp);
 		    IOUtil.copy(tmp, libs[i]);
-		    bf = BundleFile.newInstance(libs[i]);
+		    bf = BundleFile.getInstance(libs[i], true);
 		}
 
 		OSGiUtil.start(OSGiUtil.installBundle(bc, libs[i], true));
@@ -265,6 +265,7 @@ public final class ConfigWebUtil {
 	return file;
     }
 
+    // do not change, used in extension
     public static String replacePlaceholder(String str, Config config) {
 	if (StringUtil.isEmpty(str)) return str;
 
@@ -673,6 +674,7 @@ public final class ConfigWebUtil {
 
     public static Mapping[] sort(Mapping[] mappings) {
 	Arrays.sort(mappings, new Comparator() {
+	    @Override
 	    public int compare(Object left, Object right) {
 		Mapping r = ((Mapping) right);
 		Mapping l = ((Mapping) left);

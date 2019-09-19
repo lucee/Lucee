@@ -123,7 +123,6 @@ public class DatasourceAppender extends JDBCAppender implements Appender {
 
     private void touchTable(DatasourceConnection dc) throws PageException {
 	PageContext optionalPC = ThreadLocalPageContext.get();
-	// SQLImpl sql = new SQLImpl("select * from " + tableName);
 	SQLImpl sql = new SQLImpl("select 1 from " + tableName + " where 1=0");
 	try {
 	    new QueryImpl(optionalPC, dc, sql, -1, -1, null, "query");

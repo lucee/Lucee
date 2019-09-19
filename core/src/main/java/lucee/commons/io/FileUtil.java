@@ -30,6 +30,9 @@ public final class FileUtil {
      * Field <code>FILE_SEPERATOR</code>
      */
     public static final char FILE_SEPERATOR = File.separatorChar;
+
+    public static final String FILE_SEPERATOR_STRING = String.valueOf(FILE_SEPERATOR);
+
     /**
      * Field <code>FILE_ANTI_SEPERATOR</code>
      */
@@ -93,7 +96,7 @@ public final class FileUtil {
     /*
      * * create a file object from a file object (parent) and realpath, in difference to the same
      * constructor of the File Object this method ignore the diffrent path seperators on the different
-     * platforms
+     * plattforms
      * 
      * @param parent
      * 

@@ -25,9 +25,9 @@ import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.Transport;
 
-import lucee.commons.lang.StringUtil;
-
 import org.apache.commons.mail.DefaultAuthenticator;
+
+import lucee.commons.lang.StringUtil;
 
 /**
  * SMTP Server verifier

@@ -23,8 +23,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
+import org.osgi.framework.Version;
+
 import lucee.commons.io.log.Log;
-import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.type.ftp.FTPConnectionData;
 import lucee.commons.io.res.util.ResourceUtil;
@@ -57,8 +58,7 @@ import lucee.runtime.net.s3.PropertiesImpl;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.orm.ORMConfigurationImpl;
-import lucee.runtime.security.Credential;
-import lucee.runtime.security.CredentialImpl;
+import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.tag.Query;
 import lucee.runtime.tag.listener.TagListener;
 import lucee.runtime.type.Array;
@@ -212,7 +212,7 @@ public final class AppListenerUtil {
 			Caster.toIntValue(data.get(CONNECTION_TIMEOUT, null), 1), Caster.toLongValue(data.get(META_CACHE_TIMEOUT, null), 60000L),
 			Caster.toTimeZone(data.get(KeyConstants._timezone, null), null), Caster.toIntValue(data.get(ALLOW, null), DataSource.ALLOW_ALL),
 			Caster.toBooleanValue(data.get(KeyConstants._storage, null), false), Caster.toBooleanValue(data.get(KeyConstants._readonly, null), false),
-			Caster.toBooleanValue(data.get(KeyConstants._validate, null), false), log);
+			Caster.toBooleanValue(data.get(KeyConstants._validate, null), false), Caster.toBooleanValue(data.get("requestExclusive", null), false), log);
 	    }
 	    catch (Exception cnfe) {
 		throw Caster.toPageException(cnfe);
@@ -230,7 +230,8 @@ public final class AppListenerUtil {
 		    Caster.toBooleanValue(data.get(CLOB, null), false), DataSource.ALLOW_ALL, Caster.toStruct(data.get(KeyConstants._custom, null), null, false),
 		    Caster.toBooleanValue(data.get(KeyConstants._readonly, null), false), true, Caster.toBooleanValue(data.get(KeyConstants._storage, null), false),
 		    Caster.toTimeZone(data.get(KeyConstants._timezone, null), null), "", ParamSyntax.toParamSyntax(data, ParamSyntax.DEFAULT),
-		    Caster.toBooleanValue(data.get("literalTimestampWithTSOffset", null), false), Caster.toBooleanValue(data.get("alwaysSetTimeout", null), false), log);
+		    Caster.toBooleanValue(data.get("literalTimestampWithTSOffset", null), false), Caster.toBooleanValue(data.get("alwaysSetTimeout", null), false),
+		    Caster.toBooleanValue(data.get("requestExclusive", null), false), log);
 	}
 	catch (Exception cnfe) {
 	    throw Caster.toPageException(cnfe);
@@ -635,6 +636,7 @@ public final class AppListenerUtil {
 	String str = "";
 	KeyImpl cs = new KeyImpl(str) {
 
+	    @Override
 	    public String getString() {
 		return null;
 	    }
@@ -831,4 +833,59 @@ public final class AppListenerUtil {
 	return null;
     }
 
+    public static int toVariableUsage(String str) throws ApplicationException {
+	int i = toVariableUsage(str, 0);
+	if (i != 0) return i;
+	throw new ApplicationException("variable usage [" + str + "] is invalid, valid values are [ignore,warn,error]");
+    }
+
+    public static int toVariableUsage(String str, int defaultValue) {
+	if (str == null) return defaultValue;
+	str = str.trim().toLowerCase();
+	if ("ignore".equals(str)) return ConfigImpl.QUERY_VAR_USAGE_IGNORE;
+	if ("warn".equals(str)) return ConfigImpl.QUERY_VAR_USAGE_WARN;
+	if ("warning".equals(str)) return ConfigImpl.QUERY_VAR_USAGE_WARN;
+	if ("error".equals(str)) return ConfigImpl.QUERY_VAR_USAGE_ERROR;
+
+	Boolean b = Caster.toBoolean(str, null);
+	if (b != null) {
+	    return b.booleanValue() ? ConfigImpl.QUERY_VAR_USAGE_ERROR : ConfigImpl.QUERY_VAR_USAGE_IGNORE;
+	}
+
+	return defaultValue;
+    }
+
+    public static String toVariableUsage(int i, String defaultValue) {
+	if (ConfigImpl.QUERY_VAR_USAGE_IGNORE == i) return "ignore";
+	if (ConfigImpl.QUERY_VAR_USAGE_WARN == i) return "warn";
+	if (ConfigImpl.QUERY_VAR_USAGE_ERROR == i) return "error";
+
+	return defaultValue;
+    }
+
+    public static String toClassName(Struct sct) {
+	if (sct == null) return null;
+	String className = Caster.toString(sct.get("class", null), null);
+	if (StringUtil.isEmpty(className)) className = Caster.toString(sct.get("classname", null), null);
+	if (StringUtil.isEmpty(className)) className = Caster.toString(sct.get("class-name", null), null);
+	if (StringUtil.isEmpty(className)) return null;
+	return className;
+    }
+
+    public static String toBundleName(Struct sct) {
+	if (sct == null) return null;
+	String name = Caster.toString(sct.get("bundlename", null), null);
+	if (StringUtil.isEmpty(name)) name = Caster.toString(sct.get("bundle-name", null), null);
+	if (StringUtil.isEmpty(name)) name = Caster.toString(sct.get("name", null), null);
+	if (StringUtil.isEmpty(name)) return null;
+	return name;
+    }
+
+    public static Version toBundleVersion(Struct sct) {
+	if (sct == null) return null;
+	Version version = OSGiUtil.toVersion(Caster.toString(sct.get("bundleversion", null), null), null);
+	if (version == null) version = OSGiUtil.toVersion(Caster.toString(sct.get("bundle-version", null), null), null);
+	if (version == null) version = OSGiUtil.toVersion(Caster.toString(sct.get("version", null), null), null);
+	return version;
+    }
 }

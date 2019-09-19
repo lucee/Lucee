@@ -256,7 +256,7 @@ public final class DBInfo extends TagImpl {
 
 	try {
 	    if (type == TYPE_TABLE_COLUMNS) typeColumns(dc.getConnection());
-	    else if (type == TYPE_DBNAMES) typeDBNames(dc.getConnection().getMetaData());
+	    else if (type == TYPE_DBNAMES) typeDBNames(dc.getConnection());
 	    else if (type == TYPE_FOREIGNKEYS) typeForeignKeys(dc.getConnection());
 	    else if (type == TYPE_INDEX) typeIndex(dc.getConnection());
 	    else if (type == TYPE_PROCEDURES) typeProcedures(dc.getConnection());
@@ -264,7 +264,7 @@ public final class DBInfo extends TagImpl {
 	    else if (type == TYPE_TERMS) typeTerms(dc.getConnection().getMetaData());
 	    else if (type == TYPE_TABLES) typeTables(dc.getConnection());
 	    else if (type == TYPE_VERSION) typeVersion(dc.getConnection().getMetaData());
-	    else if (type == TYPE_USERS) typeUsers(dc.getConnection().getMetaData());
+	    else if (type == TYPE_USERS) typeUsers(dc.getConnection());
 
 	}
 	catch (SQLException sqle) {
@@ -278,6 +278,7 @@ public final class DBInfo extends TagImpl {
     }
 
     private void typeColumns(Connection conn) throws PageException, SQLException {
+	String _dbName = dbname(conn);
 	required("table", table);
 	DatabaseMetaData metaData = conn.getMetaData();
 	Stopwatch stopwatch = new Stopwatch(Stopwatch.UNIT_NANO);
@@ -293,9 +294,9 @@ public final class DBInfo extends TagImpl {
 	    table = table.substring(index + 1);
 	}
 
-	checkTable(metaData);
+	checkTable(metaData, _dbName);
 
-	Query qry = new QueryImpl(metaData.getColumns(dbname(conn), schema, table, StringUtil.isEmpty(pattern) ? "%" : pattern), "query", pageContext.getTimeZone());
+	Query qry = new QueryImpl(metaData.getColumns(_dbName, schema, table, StringUtil.isEmpty(pattern) ? "%" : pattern), "query", pageContext.getTimeZone());
 
 	int len = qry.getRecordcount();
 
@@ -338,6 +339,7 @@ public final class DBInfo extends TagImpl {
 	    }
 	    isPrimary.append(set != null && set.contains(qry.getAt(COLUMN_NAME, i)) ? "YES" : "NO");
 	}
+
 	qry.addColumn(IS_PRIMARYKEY, isPrimary);
 
 	// add is foreignkey
@@ -371,6 +373,7 @@ public final class DBInfo extends TagImpl {
 		refPrimTbl.append("N/A");
 	    }
 	}
+
 	qry.addColumn(IS_FOREIGNKEY, isForeign);
 	qry.addColumn(REFERENCED_PRIMARYKEY, refPrim);
 	qry.addColumn(REFERENCED_PRIMARYKEY_TABLE, refPrimTbl);
@@ -430,13 +433,13 @@ public final class DBInfo extends TagImpl {
 
     }
 
-    private void typeDBNames(DatabaseMetaData metaData) throws PageException, SQLException {
+    private void typeDBNames(Connection conn) throws PageException, SQLException {
 
 	Stopwatch stopwatch = new Stopwatch(Stopwatch.UNIT_NANO);
 	stopwatch.start();
-
+	DatabaseMetaData metaData = conn.getMetaData();
 	lucee.runtime.type.Query catalogs = new QueryImpl(metaData.getCatalogs(), "query", pageContext.getTimeZone());
-	lucee.runtime.type.Query scheme = new QueryImpl(metaData.getSchemas(), "query", pageContext.getTimeZone());
+	lucee.runtime.type.Query scheme = new QueryImpl(metaData.getSchemas(dbname(conn), null), "query", pageContext.getTimeZone());
 
 	Pattern p = null;
 	if (pattern != null && !"%".equals(pattern)) p = SQLUtil.pattern(pattern, true);
@@ -474,6 +477,7 @@ public final class DBInfo extends TagImpl {
     private void typeForeignKeys(Connection conn) throws PageException, SQLException {
 	required("table", table);
 	DatabaseMetaData metaData = conn.getMetaData();
+	String _dbName = dbname(conn);
 	Stopwatch stopwatch = new Stopwatch(Stopwatch.UNIT_NANO);
 	stopwatch.start();
 	table = setCase(metaData, table);
@@ -484,22 +488,24 @@ public final class DBInfo extends TagImpl {
 	    table = table.substring(index + 1);
 	}
 
-	checkTable(metaData);
+	checkTable(metaData, _dbName);
 
-	lucee.runtime.type.Query qry = new QueryImpl(metaData.getExportedKeys(dbname(conn), schema, table), "query", pageContext.getTimeZone());
+	lucee.runtime.type.Query qry = new QueryImpl(metaData.getExportedKeys(_dbName, schema, table), "query", pageContext.getTimeZone());
 	qry.setExecutionTime(stopwatch.time());
 
 	pageContext.setVariable(name, qry);
     }
 
-    private void checkTable(DatabaseMetaData metaData) throws SQLException, ApplicationException {
+    private void checkTable(DatabaseMetaData metaData, String _dbName) throws SQLException, ApplicationException {
 	ResultSet tables = null;
+	if (StringUtil.isEmpty(table)) return;
 	try {
-	    tables = metaData.getTables(null, null, setCase(metaData, table), null);
+	    tables = metaData.getTables(_dbName, null, setCase(metaData, table), null);
 	    if (!tables.next()) throw new ApplicationException("there is no table that match the following pattern [" + table + "]");
 	}
 	finally {
 	    if (tables != null) tables.close();
+
 	}
     }
 
@@ -514,6 +520,7 @@ public final class DBInfo extends TagImpl {
     private void typeIndex(Connection conn) throws PageException, SQLException {
 	required("table", table);
 	DatabaseMetaData metaData = conn.getMetaData();
+	String _dbName = dbname(conn);
 	Stopwatch stopwatch = new Stopwatch(Stopwatch.UNIT_NANO);
 	stopwatch.start();
 
@@ -525,9 +532,9 @@ public final class DBInfo extends TagImpl {
 	    table = table.substring(index + 1);
 	}
 
-	checkTable(metaData);
+	checkTable(metaData, _dbName);
 
-	ResultSet tables = metaData.getIndexInfo(dbname(conn), schema, table, false, true);
+	ResultSet tables = metaData.getIndexInfo(_dbName, schema, table, false, true);
 	lucee.runtime.type.Query qry = new QueryImpl(tables, "query", pageContext.getTimeZone());
 
 	// type int 2 string
@@ -658,12 +665,13 @@ public final class DBInfo extends TagImpl {
 	pageContext.setVariable(name, qry);
     }
 
-    private void typeUsers(DatabaseMetaData metaData) throws PageException, SQLException {
+    private void typeUsers(Connection conn) throws PageException, SQLException {
 
 	Stopwatch stopwatch = new Stopwatch(Stopwatch.UNIT_NANO);
 	stopwatch.start();
+	DatabaseMetaData metaData = conn.getMetaData();
 
-	checkTable(metaData);
+	checkTable(metaData, dbname(conn));
 	ResultSet result = metaData.getSchemas();
 	Query qry = new QueryImpl(result, "query", pageContext.getTimeZone());
 

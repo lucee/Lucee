@@ -22,13 +22,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import lucee.commons.io.SystemUtil;
-import lucee.commons.lang.SystemOut;
+import lucee.commons.io.log.LogUtil;
 
 public class RetireOutputStreamFactory {
 
     static List<RetireOutputStream> list = new ArrayList<RetireOutputStream>();
     private static RetireThread thread;
-    private static boolean close = false;
+    private static boolean closed = false;
 
     /**
      * close existing threads and stops opening new onces
@@ -36,6 +36,9 @@ public class RetireOutputStreamFactory {
     public static void close() {
 	if (thread != null && thread.isAlive()) {
 	    thread.close = true;
+	    closed = true;
+	    SystemUtil.notify(thread);
+	    SystemUtil.patienceStop(thread, 5);
 	}
     }
 
@@ -62,27 +65,27 @@ public class RetireOutputStreamFactory {
 
 	@Override
 	public void run() {
-	    // print.e("start thread");
 	    while (true) {
-		boolean _close = close;
 		try {
 		    if (list.size() == 0) break;
 		    SystemUtil.wait(this, sleepTime);
-		    // SystemUtil.sleep(sleepTime);
 		    RetireOutputStream[] arr = list.toArray(new RetireOutputStream[list.size()]); // not using iterator to avoid ConcurrentModificationException
 		    for (int i = 0; i < arr.length; i++) {
 			if (arr[i] == null) continue;
-			if (_close) arr[i].retireNow();
+			if (close) arr[i].retireNow();
 			else arr[i].retire();
 		    }
-		    if (_close) break;
+		    if (close) break;
 		}
 		catch (Exception e) {
-		    SystemOut.printDate(e);
+		    LogUtil.log(null, "file", e);
 		}
 	    }
-	    // print.e("stop thread");
 	    thread = null;
 	}
+    }
+
+    public static boolean isClosed() {
+	return closed;
     }
 }

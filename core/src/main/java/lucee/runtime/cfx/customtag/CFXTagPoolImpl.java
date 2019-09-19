@@ -21,13 +21,13 @@ package lucee.runtime.cfx.customtag;
 import java.util.Map;
 import java.util.Set;
 
+import com.allaire.cfx.CustomTag;
+
 import lucee.commons.collection.MapFactory;
 import lucee.runtime.cfx.CFXTagException;
 import lucee.runtime.cfx.CFXTagPool;
 import lucee.runtime.config.Config;
 import lucee.runtime.type.util.ListUtil;
-
-import com.allaire.cfx.CustomTag;
 
 /**
  * 

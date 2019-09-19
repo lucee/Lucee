@@ -45,10 +45,11 @@ import lucee.runtime.interpreter.VariableInterpreter;
 import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
-import lucee.runtime.type.UDFPlus;
+import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.DateTimeImpl;
 import lucee.runtime.type.ref.VariableReference;
+import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.wrap.ListAsArray;
 import lucee.runtime.type.wrap.MapAsStruct;
@@ -59,8 +60,6 @@ import lucee.runtime.type.wrap.MapAsStruct;
  * 
  */
 public final class Operator {
-
-    private static final Object NULL = new Object();
 
     /**
      * compares two Objects
@@ -383,9 +382,9 @@ public final class Operator {
 	if (!(c instanceof Component)) return false;
 
 	Member member = ((Component) c).getMember(Component.ACCESS_PRIVATE, KeyConstants.__compare, false, false);
-	if (!(member instanceof UDFPlus)) return false;
+	if (!(member instanceof UDF)) return false;
 
-	UDFPlus udf = (UDFPlus) member;
+	UDF udf = (UDF) member;
 	if (udf.getReturnType() == CFTypes.TYPE_NUMERIC && udf.getFunctionArguments().length == 1) {
 	    return true;
 	}
@@ -684,7 +683,7 @@ public final class Operator {
 
 	if (left instanceof Component && right instanceof Component) return __equalsComplexEL(done, (Component) left, (Component) right, caseSensitive, checkOnlyPublicAppearance);
 
-	if (left instanceof UDFPlus && right instanceof UDFPlus) return __equalsComplexEL(done, (UDFPlus) left, (UDFPlus) right, caseSensitive, checkOnlyPublicAppearance);
+	if (left instanceof UDF && right instanceof UDF) return __equalsComplexEL(done, (UDF) left, (UDF) right, caseSensitive, checkOnlyPublicAppearance);
 
 	if (left instanceof Collection && right instanceof Collection)
 	    return __equalsComplexEL(done, (Collection) left, (Collection) right, caseSensitive, checkOnlyPublicAppearance);
@@ -697,7 +696,7 @@ public final class Operator {
 	return left.equals(right);
     }
 
-    private static boolean __equalsComplexEL(Set<Object> done, UDFPlus left, UDFPlus right, boolean caseSensitive, boolean checkOnlyPublicAppearance) {
+    private static boolean __equalsComplexEL(Set<Object> done, UDF left, UDF right, boolean caseSensitive, boolean checkOnlyPublicAppearance) {
 	if (left == null || right == null) {
 	    if (left == right) return true;
 	    return false;
@@ -723,9 +722,9 @@ public final class Operator {
 	Object l, r;
 	while (it.hasNext()) {
 	    k = it.next();
-	    l = left.get(k, NULL);
-	    r = right.get(k, NULL);
-	    if (l == NULL || r == NULL) {
+	    l = left.get(k, CollectionUtil.NULL);
+	    r = right.get(k, CollectionUtil.NULL);
+	    if (l == CollectionUtil.NULL || r == CollectionUtil.NULL) {
 		if (l == r) continue;
 		return false;
 	    }
@@ -774,9 +773,9 @@ public final class Operator {
 	Object l, r;
 	while (it.hasNext()) {
 	    k = it.next();
-	    r = right.get(k, NULL);
-	    if (r == NULL) return false;
-	    l = left.get(k, NULL);
+	    r = right.get(k, CollectionUtil.NULL);
+	    if (r == CollectionUtil.NULL) return false;
+	    l = left.get(k, CollectionUtil.NULL);
 	    if (!_equalsComplex(done, r, l, caseSensitive)) return false;
 	}
 	return true;

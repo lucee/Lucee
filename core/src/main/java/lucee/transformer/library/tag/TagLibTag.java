@@ -27,12 +27,17 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+//import org.objectweb.asm.Type;
+import org.osgi.framework.BundleException;
+import org.osgi.framework.Version;
+import org.xml.sax.Attributes;
+
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Md5;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.lang.SystemOut;
 import lucee.runtime.config.Identification;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.op.Caster;
@@ -51,11 +56,6 @@ import lucee.transformer.cfml.evaluator.TagEvaluator;
 import lucee.transformer.cfml.tag.TagDependentBodyTransformer;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.library.ClassDefinitionImpl;
-
-//import org.objectweb.asm.Type;
-import org.osgi.framework.BundleException;
-import org.osgi.framework.Version;
-import org.xml.sax.Attributes;
 
 /**
  * Die Klasse TagLibTag repaesentiert ein einzelne Tag Definition einer TagLib, beschreibt also alle
@@ -694,8 +694,6 @@ public final class TagLibTag {
      */
     public void setAttributeEvaluatorClassDefinition(String className, Identification id, Attributes attr) {
 	cdAttributeEvaluator = ClassDefinitionImpl.toClassDefinition(className, id, attr);
-	;
-
     }
 
     /**
@@ -789,7 +787,7 @@ public final class TagLibTag {
 	    setter = m.getName();
 	}
 	catch (Exception e) {
-	    SystemOut.printDate(e);
+	    LogUtil.log(null, TagLibTag.class.getName(), e);
 	}
 	setters.put(attr.getName(), setter);
 	return setter;

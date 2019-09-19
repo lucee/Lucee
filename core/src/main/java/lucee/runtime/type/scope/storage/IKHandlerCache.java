@@ -5,7 +5,6 @@ import java.io.IOException;
 import lucee.commons.collection.MapPro;
 import lucee.commons.io.cache.Cache;
 import lucee.commons.io.log.Log;
-import lucee.commons.lang.SystemOut;
 import lucee.runtime.PageContext;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.CacheUtil;

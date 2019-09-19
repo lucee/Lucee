@@ -25,15 +25,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.osgi.framework.Version;
+
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.log.LoggerAndSourceData;
-import lucee.commons.io.log.log4j.Log4jUtil;
-import lucee.commons.io.log.log4j.appender.ConsoleAppender;
-import lucee.commons.io.log.log4j.appender.DatasourceAppender;
-import lucee.commons.io.log.log4j.appender.RollingResourceAppender;
-import lucee.commons.io.log.log4j.layout.ClassicLayout;
-import lucee.commons.io.log.log4j.layout.DatasourceLayout;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.type.ftp.FTPConnectionData;
 import lucee.commons.lang.Pair;
@@ -46,24 +42,20 @@ import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.exp.ApplicationException;
+import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Duplicator;
-import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.tag.listener.TagListener;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.tag.TagLib;
 import lucee.transformer.library.tag.TagLibTag;
 import lucee.transformer.library.tag.TagLibTagAttr;
-
-import org.apache.log4j.HTMLLayout;
-import org.apache.log4j.PatternLayout;
-import org.apache.log4j.xml.XMLLayout;
-import org.osgi.framework.Version;
 
 public abstract class ApplicationContextSupport implements ApplicationContext {
 
@@ -303,7 +295,7 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 	return null;
     }
 
-    public static Map<Collection.Key, Pair<Log, Struct>> initLog(Struct sct) {
+    public static Map<Collection.Key, Pair<Log, Struct>> initLog(Config config, Struct sct) {
 	Map<Collection.Key, Pair<Log, Struct>> rtn = new ConcurrentHashMap<Collection.Key, Pair<Log, Struct>>();
 	if (sct == null) return rtn;
 
@@ -319,11 +311,24 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 	    v = Caster.toStruct(e.getValue(), null);
 	    if (v == null) continue;
 
-	    // raw way
+	    // appender
+	    ClassDefinition cdApp;
 	    Struct sctApp = Caster.toStruct(v.get("appender", null), null);
-	    ClassDefinition cdApp = toClassDefinition(sctApp, null, true, false);
+	    String ac = AppListenerUtil.toClassName(sctApp);
+	    String abn = AppListenerUtil.toBundleName(sctApp);
+	    Version abv = AppListenerUtil.toBundleVersion(sctApp);
+	    if (StringUtil.isEmpty(abn)) cdApp = ((ConfigImpl) config).getLogEngine().appenderClassDefintion(ac);
+	    else cdApp = new ClassDefinitionImpl<>(config.getIdentification(), ac, abn, abv);
+
+	    // layout
+	    ClassDefinition cdLay;
 	    Struct sctLay = Caster.toStruct(v.get("layout", null), null);
-	    ClassDefinition cdLay = toClassDefinition(sctLay, null, false, true);
+	    String lc = AppListenerUtil.toClassName(sctLay);
+	    String lbn = AppListenerUtil.toBundleName(sctLay);
+	    Version lbv = AppListenerUtil.toBundleVersion(sctLay);
+	    if (StringUtil.isEmpty(lbn)) cdLay = ((ConfigImpl) config).getLogEngine().layoutClassDefintion(lc);
+	    else cdLay = new ClassDefinitionImpl<>(config.getIdentification(), lc, lbn, lbv);
+
 	    if (cdApp != null && cdApp.hasClass()) {
 		// level
 
@@ -377,39 +382,6 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 	LoggerAndSourceData las = new LoggerAndSourceData(null, id, name.getLowerString(), appender, appenderArgs, layout, layoutArgs, level, readOnly, true);
 	_loggers.put(name, las);
 	return las;
-    }
-
-    public static ClassDefinition toClassDefinition(Struct sct, ClassDefinition defaultValue, boolean isAppender, boolean isLayout) {
-	if (sct == null) return defaultValue;
-
-	// class
-	String className = Caster.toString(sct.get("class", null), null);
-	if (StringUtil.isEmpty(className)) return defaultValue;
-
-	if (isAppender) {
-	    if ("console".equalsIgnoreCase(className)) return new ClassDefinitionImpl(ConsoleAppender.class);
-	    if ("resource".equalsIgnoreCase(className)) return new ClassDefinitionImpl(RollingResourceAppender.class);
-	    if ("datasource".equalsIgnoreCase(className)) return new ClassDefinitionImpl(DatasourceAppender.class);
-	}
-	else if (isLayout) {
-	    if ("classic".equalsIgnoreCase(className)) return new ClassDefinitionImpl(ClassicLayout.class);
-	    if ("datasource".equalsIgnoreCase(className)) return new ClassDefinitionImpl(DatasourceLayout.class);
-	    if ("html".equalsIgnoreCase(className)) return new ClassDefinitionImpl(HTMLLayout.class);
-	    if ("xml".equalsIgnoreCase(className)) return new ClassDefinitionImpl(XMLLayout.class);
-	    if ("pattern".equalsIgnoreCase(className)) return new ClassDefinitionImpl(PatternLayout.class);
-	}
-
-	// name
-	String name = Caster.toString(sct.get("bundlename", null), null);
-	if (StringUtil.isEmpty(name)) name = Caster.toString(sct.get("name", null), null);
-
-	// version
-	Version version = OSGiUtil.toVersion(Caster.toString(sct.get("bundleversion", null), null), null);
-	if (version == null) version = OSGiUtil.toVersion(Caster.toString(sct.get("version", null), null), null);
-
-	if (StringUtil.isEmpty(name)) return new ClassDefinitionImpl(className);
-
-	return new ClassDefinitionImpl(null, className, name, version);
     }
 
     // FUTURE add to interface
@@ -470,4 +442,21 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
     public abstract List<Resource> getFunctionDirectories();
 
     public abstract void setFunctionDirectories(List<Resource> resources);
+
+    public abstract boolean getQueryPSQ();
+
+    public abstract void setQueryPSQ(boolean psq);
+
+    public abstract int getQueryVarUsage();
+
+    public abstract void setQueryVarUsage(int varUsage);
+
+    public abstract TimeSpan getQueryCachedAfter();
+
+    public abstract void setQueryCachedAfter(TimeSpan ts);
+
+    public abstract ProxyData getProxyData();
+
+    public abstract void setProxyData(ProxyData data);
+
 }

@@ -19,7 +19,6 @@
 
 package lucee.runtime.exp;
 
-import lucee.print;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.util.Type;

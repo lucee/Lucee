@@ -18,6 +18,8 @@
  */
 package lucee.runtime.cache.ram;
 
+import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.SOFT;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -26,11 +28,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.commons.collections4.map.ReferenceMap;
+
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.cache.CacheEntry;
 import lucee.commons.io.cache.CachePro;
 import lucee.commons.io.cache.exp.CacheException;
-import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.io.log.LogUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.cache.CacheSupport;
 import lucee.runtime.config.Config;
@@ -45,7 +49,7 @@ import lucee.runtime.type.Struct;
 public class RamCache extends CacheSupport {
 
     public static final int DEFAULT_CONTROL_INTERVAL = 60;
-    private Map<String, RamCacheEntry> entries = new ConcurrentHashMap<String, RamCacheEntry>();
+    private Map<String, RamCacheEntry> entries = new ReferenceMap<String, RamCacheEntry>(SOFT, SOFT);
     private long missCount;
     private int hitCount;
 
@@ -83,9 +87,14 @@ public class RamCache extends CacheSupport {
 	}
 	if (controller == null) throw new IOException("was not able to start controller");
 
+	// out of memory
+	boolean outOfMemory = Caster.toBooleanValue(arguments.get("outOfMemory", false), false);
+	if (outOfMemory) entries = new ConcurrentHashMap<String, RamCacheEntry>();
+
 	// until
 	long until = Caster.toLongValue(arguments.get("timeToLiveSeconds", Constants.LONG_ZERO), Constants.LONG_ZERO) * 1000;
 	long idleTime = Caster.toLongValue(arguments.get("timeToIdleSeconds", Constants.LONG_ZERO), Constants.LONG_ZERO) * 1000;
+
 	Object ci = arguments.get("controlIntervall", null);
 	if (ci == null) ci = arguments.get("controlInterval", null);
 	int intervalInSeconds = Caster.toIntValue(ci, DEFAULT_CONTROL_INTERVAL);
@@ -217,12 +226,11 @@ public class RamCache extends CacheSupport {
 	public void run() {
 	    while (engine.isRunning()) {
 		try {
-		    _run();
 		    SystemUtil.sleep(ramCache.controlInterval);
-
+		    _run();
 		}
-		catch (Throwable t) {
-		    ExceptionUtil.rethrowIfNecessary(t);
+		catch (Exception e) {
+		    LogUtil.log(null, "application", e);
 		}
 	    }
 	}
@@ -251,6 +259,13 @@ public class RamCache extends CacheSupport {
     private Object decouple(Object value) {
 	if (!decouple) return value;
 	return Duplicator.duplicate(value, true);
+    }
+
+    @Override
+    public Struct getCustomInfo() {
+	Struct info = super.getCustomInfo();
+	info.setEL("outOfMemoryHandling", entries instanceof ReferenceMap);
+	return info;
     }
 
 }

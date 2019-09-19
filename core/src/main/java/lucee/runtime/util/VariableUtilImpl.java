@@ -25,6 +25,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 
+import org.w3c.dom.Node;
+
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
@@ -47,15 +49,13 @@ import lucee.runtime.type.Objects;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryColumn;
 import lucee.runtime.type.Struct;
-import lucee.runtime.type.UDFPlus;
+import lucee.runtime.type.UDF;
 import lucee.runtime.type.scope.Undefined;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.MemberUtil;
 import lucee.runtime.type.util.Type;
 import lucee.runtime.type.wrap.MapAsStruct;
-
-import org.w3c.dom.Node;
 
 /**
  * Class to handle CF Variables (set,get,call)
@@ -712,6 +712,7 @@ public final class VariableUtilImpl implements VariableUtil {
 	throw new ExpressionException("can't remove key [" + key + "] from Object of type [" + Caster.toTypeName(coll) + "]");
     }
 
+    @Override
     public Object remove(Object coll, Collection.Key key) throws PageException {
 	// Collection
 	if (coll instanceof Collection) {
@@ -768,8 +769,8 @@ public final class VariableUtilImpl implements VariableUtil {
 	}
 	// call UDF
 	Object prop = getLight(pc, coll, key, null);
-	if (prop instanceof UDFPlus) {
-	    return ((UDFPlus) prop).call(pc, key, args, false);
+	if (prop instanceof UDF) {
+	    return ((UDF) prop).call(pc, key, args, false);
 	}
 	// Strings
 	if (coll instanceof String) {
@@ -846,8 +847,8 @@ public final class VariableUtilImpl implements VariableUtil {
 	}
 	// call UDF
 	Object prop = getLight(pc, coll, key, null);
-	if (prop instanceof UDFPlus) {
-	    return ((UDFPlus) prop).callWithNamedValues(pc, key, Caster.toFunctionValues(args), false);
+	if (prop instanceof UDF) {
+	    return ((UDF) prop).callWithNamedValues(pc, key, Caster.toFunctionValues(args), false);
 	}
 
 	// Strings
@@ -880,8 +881,8 @@ public final class VariableUtilImpl implements VariableUtil {
 	}
 	// call UDF
 	Object prop = getLight(pc, coll, key, null);
-	if (prop instanceof UDFPlus) {
-	    return ((UDFPlus) prop).callWithNamedValues(pc, key, args, false);
+	if (prop instanceof UDF) {
+	    return ((UDF) prop).callWithNamedValues(pc, key, args, false);
 	}
 	throw new ExpressionException("No matching Method/Function for call with named arguments found");
     }

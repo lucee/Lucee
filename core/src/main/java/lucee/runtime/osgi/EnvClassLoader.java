@@ -10,16 +10,18 @@ import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
 
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.SystemUtil.Caller;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.PhysicalClassLoader;
+import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.engine.ThreadLocalPageContext;
-
-import org.osgi.framework.Bundle;
 
 public class EnvClassLoader extends URLClassLoader {
 
@@ -113,22 +115,28 @@ public class EnvClassLoader extends URLClassLoader {
 
 	// now we check extension bundles
 	if (caller.isEmpty() || /* PATCH LDEV-1312 */(ThreadLocalPageContext.get() == null)/* if we are in a child threads */ || caller.fromBundle != null) {
-	    Bundle[] bundles = ConfigWebUtil.getEngine(config).getBundleContext().getBundles();
-	    Bundle b = null;
-	    for (int i = 0; i < bundles.length; i++) {
-		b = bundles[i];
-		if (b != null && !OSGiUtil.isFrameworkBundle(b)) {
-		    try {
-			if (type == CLASS) obj = b.loadClass(name);
-			else if (type == URL) obj = b.getResource(name);
-			else {
-			    java.net.URL url = b.getResource(name);
-			    if (url != null) obj = url.openStream();
+	    CFMLEngine engine = ConfigWebUtil.getEngine(config);
+	    if (engine != null) {
+		BundleContext bc = engine.getBundleContext();
+		if (bc != null) {
+		    Bundle[] bundles = bc.getBundles();
+		    Bundle b = null;
+		    for (int i = 0; i < bundles.length; i++) {
+			b = bundles[i];
+			if (b != null && !OSGiUtil.isFrameworkBundle(b)) {
+			    try {
+				if (type == CLASS) obj = b.loadClass(name);
+				else if (type == URL) obj = b.getResource(name);
+				else {
+				    java.net.URL url = b.getResource(name);
+				    if (url != null) obj = url.openStream();
+				}
+				if (obj != null) break;
+			    }
+			    catch (Exception e) {
+				obj = null;
+			    }
 			}
-			if (obj != null) break;
-		    }
-		    catch (Exception e) {
-			obj = null;
 		    }
 		}
 	    }
@@ -170,27 +178,6 @@ public class EnvClassLoader extends URLClassLoader {
 	}
 	return obj;
     }
-
-    /*
-     * private void test(Bundle[] bundles, short type, String name) { Bundle b=null; List<Bundle>
-     * list=new ArrayList<Bundle>(); Object obj; for(int i=0;i<bundles.length;i++) { b=bundles[i];
-     * if(b.getSymbolicName().equalsIgnoreCase("hibernate.extension") &&
-     * "org.lucee.extension.orm.hibernate.jdbc.ConnectionProviderImpl".equals(name)) {
-     * print.e("=>"+b+":"+b.hashCode()); try { Class<?> clazz = b.loadClass(name); ClassLoader cl =
-     * clazz.getClassLoader(); print.e("-=>"+cl+":"+cl.hashCode()); } catch (ClassNotFoundException e) {
-     * SystemOut.printDate(e); } }
-     * 
-     * try { if(type==CLASS)obj = b.loadClass(name); else if(type==URL)obj = b.getResource(name); else
-     * obj = ((ClassLoader)b).getResourceAsStream(name); if(obj!=null) { list.add(b); } }
-     * catch(Throwable t) {ExceptionUtil.rethrowIfNecessary(t); b=null; }
-     * 
-     * } if(list.size()>1) { print.e("nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn");
-     * print.e("found in more than one bundle!"); Iterator<Bundle> it = list.iterator();
-     * while(it.hasNext()){ b=it.next(); print.e("- "+b); } } if(list.size()==0) {
-     * print.e("000000000000000000000000000000000000000000000000000000"); print.e("not found:"+name);
-     * 
-     * } }
-     */
 
     private String toType(short type) {
 	if (CLASS == type) return "class";

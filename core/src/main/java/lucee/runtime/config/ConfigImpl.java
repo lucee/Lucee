@@ -24,6 +24,7 @@ import static org.apache.commons.collections4.map.AbstractReferenceMap.Reference
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.InetAddress;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -38,16 +39,18 @@ import java.util.Map.Entry;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 
-import lucee.print;
+import org.apache.commons.collections4.map.ReferenceMap;
+import org.osgi.framework.BundleException;
+import org.osgi.framework.Version;
+
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.FileUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.cache.Cache;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogEngine;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.log.LoggerAndSourceData;
-import lucee.commons.io.log.log4j.Log4jEngine;
-import lucee.commons.io.log.log4j.Log4jUtil;
 import lucee.commons.io.log.log4j.layout.ClassicLayout;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
@@ -67,7 +70,6 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Md5;
 import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.lang.SystemOut;
 import lucee.commons.net.IPRange;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.CIPage;
@@ -118,6 +120,7 @@ import lucee.runtime.listener.ApplicationListener;
 import lucee.runtime.net.mail.Server;
 import lucee.runtime.net.ntp.NtpClient;
 import lucee.runtime.net.proxy.ProxyData;
+import lucee.runtime.net.proxy.ProxyDataImpl;
 import lucee.runtime.net.rpc.WSHandler;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Duplicator;
@@ -144,7 +147,6 @@ import lucee.runtime.type.scope.ClusterNotSupported;
 import lucee.runtime.type.scope.Undefined;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.video.VideoExecuterNotSupported;
-import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.function.FunctionLibException;
 import lucee.transformer.library.function.FunctionLibFactory;
@@ -155,12 +157,6 @@ import lucee.transformer.library.tag.TagLibException;
 import lucee.transformer.library.tag.TagLibFactory;
 import lucee.transformer.library.tag.TagLibTag;
 import lucee.transformer.library.tag.TagLibTagAttr;
-
-import org.apache.commons.collections4.map.ReferenceMap;
-import org.apache.log4j.Layout;
-import org.apache.log4j.PatternLayout;
-import org.osgi.framework.BundleException;
-import org.osgi.framework.Version;
 
 /**
  * Hold the definitions of the Lucee configuration.
@@ -192,6 +188,10 @@ public abstract class ConfigImpl implements Config {
 
     public static final String DEFAULT_STORAGE_SESSION = "memory";
     public static final String DEFAULT_STORAGE_CLIENT = "cookie";
+
+    public static final int QUERY_VAR_USAGE_IGNORE = 1;
+    public static final int QUERY_VAR_USAGE_WARN = 2;
+    public static final int QUERY_VAR_USAGE_ERROR = 4;
 
     private int mode = MODE_CUSTOM;
 
@@ -422,8 +422,8 @@ public abstract class ConfigImpl implements Config {
     private boolean checkForChangesInConfigFile;
     // protected String apiKey=null;
 
-    private List<Layout> consoleLayouts = new ArrayList<Layout>();
-    private List<Layout> resourceLayouts = new ArrayList<Layout>();
+    private List consoleLayouts = new ArrayList();
+    private List resourceLayouts = new ArrayList();
 
     private Map<Key, Map<Key, Object>> tagDefaultAttributeValues;
     private boolean handleUnQuotedAttrValueAsString = true;
@@ -433,8 +433,10 @@ public abstract class ConfigImpl implements Config {
     private int queueMax = 100;
     private long queueTimeout = 0;
     private boolean queueEnable = false;
+    private int varUsage;
 
     public static boolean onlyFirstMatch = false;
+    private TimeSpan cachedAfterTimeRange;
 
     /**
      * @return the allowURLRequestTimeout
@@ -657,6 +659,14 @@ public abstract class ConfigImpl implements Config {
 	return psq;
     }
 
+    protected void setQueryVarUsage(int varUsage) {
+	this.varUsage = varUsage;
+    }
+
+    public int getQueryVarUsage() {
+	return varUsage;
+    }
+
     @Override
     public ClassLoader getClassLoader() {
 	ResourceClassLoader rcl = getResourceClassLoader(null);
@@ -735,6 +745,7 @@ public abstract class ConfigImpl implements Config {
     /**
      * @return return the Scheduler
      */
+    @Override
     public Scheduler getScheduler() {
 	return scheduler;
     }
@@ -788,10 +799,12 @@ public abstract class ConfigImpl implements Config {
 	this.restMappings = restMappings;
     }
 
+    @Override
     public PageSource getPageSource(Mapping[] mappings, String realPath, boolean onlyTopLevel) {
 	throw new PageRuntimeException(new DeprecatedException("method not supported"));
     }
 
+    @Override
     public PageSource getPageSourceExisting(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping,
 	    boolean onlyPhysicalExisting) {
 	realPath = realPath.replace('\\', '/');
@@ -1001,16 +1014,19 @@ public abstract class ConfigImpl implements Config {
      * @param alsoDefaultMapping ignore default mapping (/) or not
      * @return physical path from mapping
      */
+    @Override
     public Resource getPhysical(Mapping[] mappings, String realPath, boolean alsoDefaultMapping) {
 	throw new PageRuntimeException(new DeprecatedException("method not supported"));
     }
 
+    @Override
     public Resource[] getPhysicalResources(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping) {
 	// now that archives can be used the same way as physical resources, there is no need anymore to
 	// limit to that
 	throw new PageRuntimeException(new DeprecatedException("method not supported"));
     }
 
+    @Override
     public Resource getPhysicalResourceExisting(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping) {
 	// now that archives can be used the same way as physical resources, there is no need anymore to
 	// limit to that
@@ -1183,7 +1199,7 @@ public abstract class ConfigImpl implements Config {
 		    else overwrite(map.get(key), tl);
 		}
 		catch (TagLibException tle) {
-		    SystemOut.printDate(out, "can't load tld " + files[i]);
+		    LogUtil.log(this, Log.LEVEL_ERROR, "loading", "can't load tld " + files[i]);
 		    tle.printStackTrace(getErrWriter());
 		}
 
@@ -1444,7 +1460,7 @@ public abstract class ConfigImpl implements Config {
 
 		}
 		catch (FunctionLibException fle) {
-		    SystemOut.printDate(out, "can't load fld " + files[i]);
+		    LogUtil.log(this, Log.LEVEL_ERROR, "loading", "can't load fld " + files[i]);
 		    fle.printStackTrace(getErrWriter());
 		}
 	    }
@@ -1633,11 +1649,12 @@ public abstract class ConfigImpl implements Config {
      */
     protected void setTempDirectory(Resource tempDirectory, boolean flush) throws ExpressionException {
 	if (!isDirectory(tempDirectory) || !tempDirectory.isWriteable()) {
-	    SystemOut.printDate(getErrWriter(),
+	    LogUtil.log(this, Log.LEVEL_ERROR, "loading",
 		    "temp directory [" + tempDirectory + "] is not writable or can not be created, using directory [" + SystemUtil.getTempDirectory() + "] instead");
+
 	    tempDirectory = SystemUtil.getTempDirectory();
 	    if (!tempDirectory.isWriteable()) {
-		SystemOut.printDate(getErrWriter(), "temp directory [" + tempDirectory + "] is not writable");
+		LogUtil.log(this, Log.LEVEL_ERROR, "loading", "temp directory [" + tempDirectory + "] is not writable");
 	    }
 	}
 	if (flush) ResourceUtil.removeChildrenEL(tempDirectory);// start with a empty temp directory
@@ -1815,6 +1832,7 @@ public abstract class ConfigImpl implements Config {
     /**
      * @return pagesource of the base component
      */
+    @Override
     public PageSource getBaseComponentPageSource(int dialect) {
 	return getBaseComponentPageSource(dialect, ThreadLocalPageContext.get());
     }
@@ -2043,6 +2061,7 @@ public abstract class ConfigImpl implements Config {
      * 
      * @return value suppresswhitespace
      */
+    @Override
     public boolean isSuppressWhitespace() {
 	return suppresswhitespace;
     }
@@ -2135,6 +2154,7 @@ public abstract class ConfigImpl implements Config {
 	this.webCharset = CharsetUtil.toCharSet(webCharset);
     }
 
+    @Override
     public SecurityManager getSecurityManager() {
 	return null;
     }
@@ -2162,6 +2182,7 @@ public abstract class ConfigImpl implements Config {
 	return ds;
     }
 
+    @Override
     public Map<String, DataSource> getDataSourcesAsMap() {
 	Map<String, DataSource> map = new HashMap<String, DataSource>();
 	Iterator<Entry<String, DataSource>> it = datasources.entrySet().iterator();
@@ -2176,6 +2197,7 @@ public abstract class ConfigImpl implements Config {
     /**
      * @return the mailDefaultCharset
      */
+    @Override
     public Charset getMailDefaultCharset() {
 	return mailDefaultCharset.toCharset();
     }
@@ -2215,6 +2237,7 @@ public abstract class ConfigImpl implements Config {
     /**
      * @return the defaultResourceProvider
      */
+    @Override
     public ResourceProvider getDefaultResourceProvider() {
 	return resources.getDefaultResourceProvider();
     }
@@ -2252,6 +2275,7 @@ public abstract class ConfigImpl implements Config {
     /**
      * @return return the resource providers
      */
+    @Override
     public ResourceProvider[] getResourceProviders() {
 	return resources.getResourceProviders();
     }
@@ -2297,6 +2321,7 @@ public abstract class ConfigImpl implements Config {
     /**
      * @return the scriptProtect
      */
+    @Override
     public int getScriptProtect() {
 	return scriptProtect;
     }
@@ -2311,6 +2336,7 @@ public abstract class ConfigImpl implements Config {
     /**
      * @return the proxyPassword
      */
+    @Override
     public ProxyData getProxyData() {
 	return proxy;
     }
@@ -2323,13 +2349,14 @@ public abstract class ConfigImpl implements Config {
     }
 
     @Override
-    public boolean isProxyEnableFor(String host) {
-	return false;// TODO proxyEnable;
+    public boolean isProxyEnableFor(String host) { // FUTURE remove
+	return ProxyDataImpl.isProxyEnableFor(getProxyData(), host);
     }
 
     /**
      * @return the triggerComponentDataMember
      */
+    @Override
     public boolean getTriggerComponentDataMember() {
 	return triggerComponentDataMember;
     }
@@ -2408,10 +2435,12 @@ public abstract class ConfigImpl implements Config {
 	this.cacheDir = cacheDir;
     }
 
+    @Override
     public Resource getCacheDir() {
 	return this.cacheDir;
     }
 
+    @Override
     public long getCacheDirSize() {
 	return cacheDirSize;
     }
@@ -2444,6 +2473,7 @@ public abstract class ConfigImpl implements Config {
 	throw new DeprecatedException("this method is no longer supported");
     }
 
+    @Override
     public DumpWriter getDumpWriter(String name, int defaultType) throws ExpressionException {
 	if (StringUtil.isEmpty(name)) return getDefaultDumpWriter(defaultType);
 
@@ -2546,6 +2576,7 @@ public abstract class ConfigImpl implements Config {
 	return pool;
     }
 
+    @Override
     public boolean doLocalCustomTag() {
 	return doLocalCustomTag;
     }
@@ -2590,6 +2621,7 @@ public abstract class ConfigImpl implements Config {
     /**
      * @return the version
      */
+    @Override
     public double getVersion() {
 	return version;
     }
@@ -2621,6 +2653,7 @@ public abstract class ConfigImpl implements Config {
     /**
      * @return the constants
      */
+    @Override
     public Struct getConstants() {
 	return constants;
     }
@@ -2635,6 +2668,7 @@ public abstract class ConfigImpl implements Config {
     /**
      * @return the showVersion
      */
+    @Override
     public boolean isShowVersion() {
 	return showVersion;
     }
@@ -2650,11 +2684,13 @@ public abstract class ConfigImpl implements Config {
 	this.remoteClients = remoteClients;
     }
 
+    @Override
     public RemoteClient[] getRemoteClients() {
 	if (remoteClients == null) return new RemoteClient[0];
 	return remoteClients;
     }
 
+    @Override
     public SpoolerEngine getSpoolerEngine() {
 	return remoteClientSpoolerEngine;
     }
@@ -2666,6 +2702,7 @@ public abstract class ConfigImpl implements Config {
     /**
      * @return the remoteClientDirectory
      */
+    @Override
     public Resource getRemoteClientDirectory() {
 	if (remoteClientDirectory == null) {
 	    return ConfigWebUtil.getFile(getRootDirectory(), "client-task", "client-task", getConfigDir(), FileUtil.TYPE_DIR, this);
@@ -2694,6 +2731,7 @@ public abstract class ConfigImpl implements Config {
     /**
      * @return if error status code will be returned or not
      */
+    @Override
     public boolean getErrorStatusCode() {
 	return errorStatusCode;
     }
@@ -2724,6 +2762,7 @@ public abstract class ConfigImpl implements Config {
 	this.localMode = AppListenerUtil.toLocalMode(strLocalMode, this.localMode);
     }
 
+    @Override
     public Resource getVideoDirectory() {
 	// TODO take from tag <video>
 	Resource dir = getConfigDir().getRealResource("video");
@@ -2731,6 +2770,7 @@ public abstract class ConfigImpl implements Config {
 	return dir;
     }
 
+    @Override
     public Resource getExtensionDirectory() {
 	// TODO take from tag <extensions>
 	Resource dir = getConfigDir().getRealResource("extensions/installed");
@@ -2756,6 +2796,7 @@ public abstract class ConfigImpl implements Config {
 	return rhextensionProviders;
     }
 
+    @Override
     public Extension[] getExtensions() {
 	return extensions;
     }
@@ -2778,10 +2819,12 @@ public abstract class ConfigImpl implements Config {
 	this.extensionEnabled = extensionEnabled;
     }
 
+    @Override
     public boolean isExtensionEnabled() {
 	return extensionEnabled;
     }
 
+    @Override
     public boolean allowRealPath() {
 	return allowRealPath;
     }
@@ -2793,6 +2836,7 @@ public abstract class ConfigImpl implements Config {
     /**
      * @return the classClusterScope
      */
+    @Override
     public Class getClusterClass() {
 	return clusterClass;
     }
@@ -2901,6 +2945,7 @@ public abstract class ConfigImpl implements Config {
 	return scriptMapping;
     }
 
+    @Override
     public String getDefaultDataSource() {
 	// TODO Auto-generated method stub
 	return null;
@@ -2913,6 +2958,7 @@ public abstract class ConfigImpl implements Config {
     /**
      * @return the inspectTemplate
      */
+    @Override
     public short getInspectTemplate() {
 	return inspectTemplate;
     }
@@ -3273,7 +3319,7 @@ public abstract class ConfigImpl implements Config {
     private final Map<String, Compress> compressResources = new ReferenceMap<String, Compress>(SOFT, SOFT);
 
     public Compress getCompressInstance(Resource zipFile, int format, boolean caseSensitive) throws IOException {
-	Compress compress = (Compress) compressResources.get(zipFile.getPath());
+	Compress compress = compressResources.get(zipFile.getPath());
 	if (compress == null) {
 	    compress = new Compress(zipFile, format, caseSensitive);
 	    compressResources.put(zipFile.getPath(), compress);
@@ -3281,10 +3327,12 @@ public abstract class ConfigImpl implements Config {
 	return compress;
     }
 
+    @Override
     public boolean getSessionCluster() {
 	return false;
     }
 
+    @Override
     public boolean getClientCluster() {
 	return false;
     }
@@ -3346,19 +3394,18 @@ public abstract class ConfigImpl implements Config {
 
     public DebugEntry getDebugEntry(String ip, DebugEntry defaultValue) {
 	if (debugEntries.length == 0) return defaultValue;
-	short[] sarr;
+	InetAddress ia;
 
 	try {
-	    sarr = IPRange.toShortArray(ip);
+	    ia = IPRange.toInetAddress(ip);
 	}
 	catch (IOException e) {
 	    return defaultValue;
 	}
 
 	for (int i = 0; i < debugEntries.length; i++) {
-	    if (debugEntries[i].getIpRange().inRange(sarr)) return debugEntries[i];
+	    if (debugEntries[i].getIpRange().inRange(ia)) return debugEntries[i];
 	}
-
 	return defaultValue;
     }
 
@@ -3480,24 +3527,24 @@ public abstract class ConfigImpl implements Config {
 	return externalizeStringGTE;
     }
 
-    protected void addConsoleLayout(Layout layout) {
+    protected void addConsoleLayout(Object layout) {
 	consoleLayouts.add(layout);
 
     }
 
-    protected void addResourceLayout(Layout layout) {
+    protected void addResourceLayout(Object layout) {
 	resourceLayouts.add(layout);
     }
 
-    public Layout[] getConsoleLayouts() {
-	if (consoleLayouts.isEmpty()) consoleLayouts.add(new PatternLayout("%d{dd.MM.yyyy HH:mm:ss,SSS} %-5p [%c] %m%n"));
-	return consoleLayouts.toArray(new Layout[consoleLayouts.size()]);
+    public Object[] getConsoleLayouts() {
+	if (consoleLayouts.isEmpty()) consoleLayouts.add(getLogEngine().getDefaultLayout());
+	return consoleLayouts.toArray(new Object[consoleLayouts.size()]);
 
     }
 
-    public Layout[] getResourceLayouts() {
+    public Object[] getResourceLayouts() {
 	if (resourceLayouts.isEmpty()) resourceLayouts.add(new ClassicLayout());
-	return resourceLayouts.toArray(new Layout[resourceLayouts.size()]);
+	return resourceLayouts.toArray(new Object[resourceLayouts.size()]);
     }
 
     protected void clearLoggers(Boolean dyn) {
@@ -3567,7 +3614,7 @@ public abstract class ConfigImpl implements Config {
 	LoggerAndSourceData las = loggers.get(name.toLowerCase());
 	if (las == null) {
 	    if (!createIfNecessary) return null;
-	    return addLogger(name, Log.LEVEL_ERROR, Log4jUtil.appenderClassDefintion("console"), null, Log4jUtil.layoutClassDefintion("pattern"), null, true, true);
+	    return addLogger(name, Log.LEVEL_ERROR, getLogEngine().appenderClassDefintion("console"), null, getLogEngine().layoutClassDefintion("pattern"), null, true, true);
 	}
 	return las;
     }
@@ -3745,6 +3792,7 @@ public abstract class ConfigImpl implements Config {
 
     private Resource deployDir;
 
+    @Override
     public Resource getDeployDirectory() {
 	if (deployDir == null) {
 	    // config web
@@ -3834,10 +3882,19 @@ public abstract class ConfigImpl implements Config {
 	return fullNullSupport;
     }
 
-    private Log4jEngine logEngine;
+    private LogEngine logEngine;
 
     public LogEngine getLogEngine() {
-	if (logEngine == null) logEngine = new Log4jEngine(this);
+	if (logEngine == null) logEngine = LogEngine.getInstance(this);
 	return logEngine;
+    }
+
+    protected void setCachedAfterTimeRange(TimeSpan ts) {
+	this.cachedAfterTimeRange = ts;
+    }
+
+    public TimeSpan getCachedAfterTimeRange() {
+	if (this.cachedAfterTimeRange != null && this.cachedAfterTimeRange.getMillis() <= 0) this.cachedAfterTimeRange = null;
+	return this.cachedAfterTimeRange;
     }
 }

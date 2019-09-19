@@ -120,23 +120,12 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
     private static final long serialVersionUID = 1035795427320192551L; // do not chnage
 
-    /**
-     * @return the template
-     */
-    @Override
-    public String getTemplate() {
-	return template;
-    }
-
     public static final Collection.Key GENERATED_KEYS = KeyImpl.intern("GENERATED_KEYS");
     public static final Collection.Key GENERATEDKEYS = KeyImpl.intern("GENERATEDKEYS");
-    static final Object NULL = new Object();
 
-    // private static int count=0;
     private QueryColumnImpl[] columns;
     private Collection.Key[] columnNames;
     private SQL sql;
-    // private ArrayInt arrCurrentRow = new ArrayInt();
     private HashMapPro<Integer, Integer> currRow = new HashMapPro<Integer, Integer>();
     private int recordcount = 0;
     private int columncount;
@@ -146,6 +135,11 @@ public class QueryImpl implements Query, Objects, QueryResult {
     private int updateCount;
     private QueryImpl generatedKeys;
     private String template;
+
+    @Override
+    public String getTemplate() {
+	return template;
+    }
 
     @Override
     public int executionTime() {
@@ -479,8 +473,8 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		    }
 		    if (qa != null) qa.appendEL(sct);
 		    else {
-			k = sct.get(keyName, NULL);
-			if (k == NULL) {
+			k = sct.get(keyName, CollectionUtil.NULL);
+			if (k == CollectionUtil.NULL) {
 			    Struct keys = new StructImpl();
 			    for (Collection.Key tmp: columnNames) {
 				keys.set(tmp, "");
@@ -846,7 +840,11 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	if (index != -1) {
 	    // we only return default value if row exists
 	    // LDEV-1201
-	    if (row > 0 && row <= recordcount) return columns[index].get(row, NullSupportHelper.full() ? null : "");
+	    if (row > 0 && row <= recordcount) {
+		Object val = columns[index].get(row, CollectionUtil.NULL);
+		if (val != CollectionUtil.NULL) return val;
+		return NullSupportHelper.full() ? null : "";
+	    }
 	    else return defaultValue;
 	    // */
 	    // return columns[index].get(row,defaultValue);
@@ -868,7 +866,9 @@ public class QueryImpl implements Query, Objects, QueryResult {
     public Object getAt(Collection.Key key, int row) throws PageException {
 	int index = getIndexFromKey(key);
 	if (index != -1) {
-	    return columns[index].get(row, NullSupportHelper.full() ? null : "");
+	    Object val = columns[index].get(row, CollectionUtil.NULL);
+	    if (val != CollectionUtil.NULL) return val;
+	    return NullSupportHelper.full() ? null : "";
 	}
 	if (key.length() >= 10) {
 	    if (key.equals(KeyConstants._RECORDCOUNT)) return new Double(getRecordcount());
@@ -912,8 +912,8 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	QueryColumn removed = removeColumnEL(key);
 	if (removed == null) {
 	    if (key.equals(KeyConstants._RECORDCOUNT) || key.equals(KeyConstants._CURRENTROW) || key.equals(KeyConstants._COLUMNLIST))
-		throw new DatabaseException("can't remove " + key + " this is not a column", "existing rows are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get())) + "]",
-			null, null);
+		throw new DatabaseException("can't remove " + key + " this is not a column",
+			"existing columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get())) + "]", null, null);
 	    throw new DatabaseException("can't remove column [" + key + "], this column doesn't exist",
 		    "existing columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get())) + "]", null, null);
 	}
@@ -1616,10 +1616,12 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	if (col < 1 || col > keys.length) {
 	    new IndexOutOfBoundsException("invalid column index to retrieve Data from query, valid index goes from 1 to " + keys.length);
 	}
+	boolean fns = NullSupportHelper.full();
+	Object _null = NullSupportHelper.NULL(fns);
 
-	Object o = getAt(keys[col - 1], row, NullSupportHelper.NULL());
-	if (o == NullSupportHelper.NULL()) throw new IndexOutOfBoundsException("invalid row index to retrieve Data from query, valid index goes from 1 to " + getRecordcount());
-	return Caster.toString(o, NullSupportHelper.full() ? null : "");
+	Object o = getAt(keys[col - 1], row, _null);
+	if (o == _null) throw new IndexOutOfBoundsException("invalid row index to retrieve Data from query, valid index goes from 1 to " + getRecordcount());
+	return Caster.toString(o, fns ? null : "");
     }
 
     @Override

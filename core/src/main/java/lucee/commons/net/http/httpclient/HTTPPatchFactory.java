@@ -18,13 +18,13 @@
  **/
 package lucee.commons.net.http.httpclient;
 
+import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
+
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
-
-import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 
 public class HTTPPatchFactory {
 

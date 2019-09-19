@@ -60,6 +60,7 @@ public final class PCLBlock extends ExtendableClassLoader {
      * @return the resulting <code>Class</code> object
      * @exception ClassNotFoundException if the class was not found
      */
+    @Override
     public Class<?> loadClass(String name) throws ClassNotFoundException {
 	return loadClass(name, false);
     }// 15075171
@@ -91,6 +92,7 @@ public final class PCLBlock extends ExtendableClassLoader {
      * @return the resulting <code>Class</code> object
      * @exception ClassNotFoundException if the class could not be found
      */
+    @Override
     protected synchronized Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
 	// if(!name.endsWith("$cf")) return super.loadClass(name, resolve); this break Webervices
 	// First, check if the class has already been loaded
@@ -137,6 +139,7 @@ public final class PCLBlock extends ExtendableClassLoader {
 	// return defineClass(name,barr,0,barr.length);
     }
 
+    @Override
     public Class<?> loadClass(String name, byte[] barr) {
 	int start = 0;
 	// if(ClassUtil.hasCF33Prefix(barr)) start=10;
@@ -147,13 +150,13 @@ public final class PCLBlock extends ExtendableClassLoader {
 	}
 	catch (Throwable t) {
 	    ExceptionUtil.rethrowIfNecessary(t);
-	    SystemUtil.sleep(1);
+	    SystemUtil.wait(this, 1);
 	    try {
 		return defineClass(name, barr, start, barr.length - start);
 	    }
 	    catch (Throwable t2) {
 		ExceptionUtil.rethrowIfNecessary(t2);
-		SystemUtil.sleep(1);
+		SystemUtil.wait(this, 1);
 		return defineClass(name, barr, start, barr.length - start);
 	    }
 	}

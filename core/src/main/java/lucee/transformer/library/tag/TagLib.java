@@ -28,6 +28,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.xml.sax.Attributes;
+
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.Md5;
 import lucee.commons.lang.StringUtil;
@@ -39,8 +41,6 @@ import lucee.transformer.cfml.ExprTransformer;
 import lucee.transformer.cfml.expression.CFMLExprTransformer;
 import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.Lib;
-
-import org.xml.sax.Attributes;
 
 /**
  * Die Klasse TagLib repaesentiert eine Komplette TLD, mit ihrer Hilfe kann man alle Informationen,

@@ -47,6 +47,7 @@ import lucee.runtime.debug.DebugEntryTemplate;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.writer.BodyContentUtil;
@@ -223,16 +224,19 @@ public class ComponentLoader {
 	}
 
 	// search with imports
-	Mapping[] cMappings = config.getComponentMappings();
+	ApplicationContext ac = pc.getApplicationContext();
+	// Mapping[] ccMappings = config.getComponentMappings();
+	// Mapping[] acMappings = ac != null ? ac.getComponentMappings() : null;
+	Mapping[][] compMappings = new Mapping[][] { (ac != null ? ac.getComponentMappings() : null), config.getComponentMappings() };
 
 	if (isRealPath) {
-
 	    ImportDefintion impDef = config.getComponentDefaultImport();
 	    ImportDefintion[] impDefs = importDefintions == null ? EMPTY_ID : importDefintions;
 	    PageSource[] arr;
 
 	    int i = -1;
 	    do {
+
 		if (impDef.isWildcard() || impDef.getName().equalsIgnoreCase(path)) {
 
 		    // search from local first
@@ -255,18 +259,24 @@ public class ComponentLoader {
 				: load(pc, page, trim(path.replace('/', '.')), sub, isRealPath, returnType, isExtendedComponent, executeConstr);
 		    }
 
-		    // search component mappings
-		    Mapping m;
-		    for (int y = 0; y < cMappings.length; y++) {
-			m = cMappings[y];
-			ps = m.getPageSource(impDef.getPackageAsPath() + pathWithCFC);
-			page = toCIPage(ps.loadPageThrowTemplateException(pc, false, (Page) null));
-			if (page != null) {
-			    if (doCache) config.putCachedPageSource("import:" + impDef.getPackageAsPath() + pathWithCFC, page.getPageSource());
-			    return returnType == RETURN_TYPE_PAGE ? page
-				    : load(pc, page, trim(path.replace('/', '.')), sub, isRealPath, returnType, isExtendedComponent, executeConstr);
+		    // search application component mappings
+		    for (int z = 0; z < compMappings.length; z++) {
+			Mapping[] mappings = compMappings[z];
+			if (mappings != null) {
+			    Mapping m;
+			    for (int y = 0; y < mappings.length; y++) {
+				m = mappings[y];
+				ps = m.getPageSource(impDef.getPackageAsPath() + pathWithCFC);
+				page = toCIPage(ps.loadPageThrowTemplateException(pc, false, (Page) null));
+				if (page != null) {
+				    if (doCache && z > 0) config.putCachedPageSource("import:" + impDef.getPackageAsPath() + pathWithCFC, page.getPageSource());
+				    return returnType == RETURN_TYPE_PAGE ? page
+					    : load(pc, page, trim(path.replace('/', '.')), sub, isRealPath, returnType, isExtendedComponent, executeConstr);
+				}
+			    }
 			}
 		    }
+
 		}
 		impDef = ++i < impDefs.length ? impDefs[i] : null;
 	    }
@@ -287,24 +297,30 @@ public class ComponentLoader {
 	}
 
 	// search component mappings
-	Mapping m;
-	for (int i = 0; i < cMappings.length; i++) {
-	    m = cMappings[i];
-	    ps = m.getPageSource(p);
-	    page = toCIPage(ps.loadPageThrowTemplateException(pc, false, (Page) null));
-
-	    // recursive search
-	    if (page == null && config.doComponentDeepSearch() && path.indexOf('/') == -1) {
-		ps = MappingUtil.searchMappingRecursive(m, pathWithCFC, true);
-		if (ps != null) {
+	for (int y = 0; y < compMappings.length; y++) {
+	    Mapping[] mappings = compMappings[y];
+	    if (mappings != null) {
+		Mapping m;
+		for (int i = 0; i < mappings.length; i++) {
+		    m = mappings[i];
+		    ps = m.getPageSource(p);
 		    page = toCIPage(ps.loadPageThrowTemplateException(pc, false, (Page) null));
-		    if (page != null) doCache = false;// do not cache this, it could be ambigous
-		}
-	    }
 
-	    if (page != null) {
-		if (doCache) config.putCachedPageSource(pathWithCFC, page.getPageSource());
-		return returnType == RETURN_TYPE_PAGE ? page : load(pc, page, trim(path.replace('/', '.')), sub, isRealPath, returnType, isExtendedComponent, executeConstr);
+		    // recursive search
+		    if (page == null && config.doComponentDeepSearch() && path.indexOf('/') == -1) {
+			ps = MappingUtil.searchMappingRecursive(m, pathWithCFC, true);
+			if (ps != null) {
+			    page = toCIPage(ps.loadPageThrowTemplateException(pc, false, (Page) null));
+			    if (page != null) doCache = false;// do not cache this, it could be ambigous
+			}
+		    }
+
+		    if (page != null) {
+			if (doCache && y > 0) config.putCachedPageSource(pathWithCFC, page.getPageSource());
+			return returnType == RETURN_TYPE_PAGE ? page
+				: load(pc, page, trim(path.replace('/', '.')), sub, isRealPath, returnType, isExtendedComponent, executeConstr);
+		    }
+		}
 	    }
 	}
 
@@ -405,7 +421,6 @@ public class ComponentLoader {
 	CIPage[] subs = page.getSubPages();
 	for (int i = 0; i < subs.length; i++) {
 	    if (subs[i].getClass().getName().equals(subClassName)) return subs[i];
-	    ;
 	}
 	throw new ApplicationException("There is no Sub component [" + sub + "] in [" + page.getPageSource().getDisplayPath() + "]");
 

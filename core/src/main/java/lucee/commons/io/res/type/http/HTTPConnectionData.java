@@ -23,6 +23,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.config.Constants;
 import lucee.runtime.net.proxy.ProxyData;
+import lucee.runtime.net.proxy.ProxyDataImpl;
 
 public final class HTTPConnectionData {
 
@@ -120,7 +121,7 @@ public final class HTTPConnectionData {
     }
 
     public boolean hasProxyData() {
-	return proxyData != null && proxyData.getServer() != null;
+	return ProxyDataImpl.isValid(proxyData);
     }
 
     @Override

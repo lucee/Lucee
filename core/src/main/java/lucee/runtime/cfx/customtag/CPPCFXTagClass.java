@@ -24,9 +24,9 @@
  */
 package lucee.runtime.cfx.customtag;
 
-import lucee.runtime.cfx.CFXTagException;
-
 import com.allaire.cfx.CustomTag;
+
+import lucee.runtime.cfx.CFXTagException;
 
 /**
  *

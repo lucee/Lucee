@@ -18,6 +18,10 @@
  **/
 package lucee.transformer.bytecode.util;
 
+import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.GeneratorAdapter;
+import org.objectweb.asm.commons.Method;
+
 import lucee.runtime.type.scope.Application;
 import lucee.runtime.type.scope.Argument;
 import lucee.runtime.type.scope.CGI;
@@ -33,10 +37,6 @@ import lucee.runtime.type.scope.Server;
 import lucee.runtime.type.scope.Session;
 import lucee.runtime.type.scope.URL;
 import lucee.runtime.type.scope.Undefined;
-
-import org.objectweb.asm.Type;
-import org.objectweb.asm.commons.GeneratorAdapter;
-import org.objectweb.asm.commons.Method;
 
 public final class TypeScope {
 

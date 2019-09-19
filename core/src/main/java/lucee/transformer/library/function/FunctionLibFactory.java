@@ -30,6 +30,12 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.xml.sax.Attributes;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+import org.xml.sax.XMLReader;
+import org.xml.sax.helpers.DefaultHandler;
+
 import lucee.commons.digest.Hash;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
@@ -42,12 +48,6 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.text.xml.XMLUtil;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.transformer.library.tag.TagLibFactory;
-
-import org.xml.sax.Attributes;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.xml.sax.XMLReader;
-import org.xml.sax.helpers.DefaultHandler;
 
 /**
  *

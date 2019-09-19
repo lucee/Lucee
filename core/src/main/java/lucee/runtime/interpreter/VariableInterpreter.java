@@ -36,6 +36,7 @@ import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.scope.Undefined;
 import lucee.runtime.type.scope.UndefinedImpl;
 import lucee.runtime.type.scope.Variables;
+import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 
@@ -43,8 +44,6 @@ import lucee.runtime.type.util.ListUtil;
  * Class to check and interpret Variable Strings
  */
 public final class VariableInterpreter {
-
-    private static final Object NULL = new Object();
 
     /**
      * reads a subelement from a struct
@@ -155,7 +154,7 @@ public final class VariableInterpreter {
     }
 
     public static Object getVariable(PageContext pc, String str, Scope scope) throws PageException {
-	return _variable(pc, str, NULL, scope);
+	return _variable(pc, str, CollectionUtil.NULL, scope);
     }
 
     public static Object setVariable(PageContext pc, String str, Object value, Scope scope) throws PageException {
@@ -178,7 +177,7 @@ public final class VariableInterpreter {
 		Variables current = pc.variablesScope();
 		pc.setVariablesScope(var);
 		try {
-		    if (value != NULL) return setVariable(pc, str, value);
+		    if (value != CollectionUtil.NULL) return setVariable(pc, str, value);
 		    return getVariable(pc, str);
 		}
 		finally {
@@ -199,7 +198,7 @@ public final class VariableInterpreter {
 		pci.setVariablesScope(undefined.variablesScope());
 		if (check) pci.setFunctionScopes(undefined.localScope(), undefined.argumentsScope());
 		try {
-		    if (value != NULL) return setVariable(pc, str, value);
+		    if (value != CollectionUtil.NULL) return setVariable(pc, str, value);
 		    return getVariable(pc, str);
 		}
 		finally {
@@ -208,7 +207,7 @@ public final class VariableInterpreter {
 		}
 	    }
 	}
-	if (value != NULL) return setVariable(pc, str, value);
+	if (value != CollectionUtil.NULL) return setVariable(pc, str, value);
 	return getVariable(pc, str);
     }
 
@@ -223,12 +222,13 @@ public final class VariableInterpreter {
     public static Object getVariableEL(PageContext pc, String var, Object defaultValue) {
 	StringList list = parse(pc, new ParserString(var), false);
 	if (list == null) return defaultValue;
+	Object _null = NullSupportHelper.NULL(pc);
 
 	int scope = scopeString2Int(pc.ignoreScopes(), list.next());
 	Object coll = null;
 	if (scope == Scope.SCOPE_UNDEFINED) {
-	    coll = pc.undefinedScope().get(KeyImpl.init(list.current()), NullSupportHelper.NULL());
-	    if (coll == NullSupportHelper.NULL()) return defaultValue;
+	    coll = pc.undefinedScope().get(KeyImpl.init(list.current()), _null);
+	    if (coll == _null) return defaultValue;
 	}
 	else {
 	    try {
@@ -241,8 +241,8 @@ public final class VariableInterpreter {
 	}
 
 	while (list.hasNext()) {
-	    coll = pc.getVariableUtil().get(pc, coll, KeyImpl.init(list.next()), NullSupportHelper.NULL());
-	    if (coll == NullSupportHelper.NULL()) return defaultValue;
+	    coll = pc.getVariableUtil().get(pc, coll, KeyImpl.init(list.next()), _null);
+	    if (coll == _null) return defaultValue;
 	}
 	return coll;
     }
@@ -429,7 +429,7 @@ public final class VariableInterpreter {
 	if (list == null) return false;
 	try {
 	    int scope = scopeString2Int(pc.ignoreScopes(), list.next());
-	    Object coll = NULL;
+	    Object coll = CollectionUtil.NULL;
 	    if (scope == Scope.SCOPE_UNDEFINED) {
 		coll = pc.undefinedScope().get(list.current(), null);
 		if (coll == null) return false;

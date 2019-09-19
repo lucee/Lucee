@@ -37,7 +37,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Objects;
 import lucee.runtime.type.Struct;
-import lucee.runtime.type.UDFPlus;
+import lucee.runtime.type.UDF;
 import lucee.runtime.type.scope.Variables;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.StructSupport;
@@ -274,8 +274,8 @@ public class StaticScope extends StructSupport implements Variables, Objects {
     @Override
     public Object call(PageContext pc, Key key, Object[] args) throws PageException {
 	Member m = _get(pc, key, null);
-	if (m instanceof UDFPlus) {
-	    return _call(pc, key, ((UDFPlus) m), null, args);
+	if (m instanceof UDF) {
+	    return _call(pc, key, ((UDF) m), null, args);
 	}
 
 	throw new ExpressionException("Component from type [" + cp.getComponentName() + "] has no accessible static Member with name [" + key + "]");
@@ -284,14 +284,14 @@ public class StaticScope extends StructSupport implements Variables, Objects {
     @Override
     public Object callWithNamedValues(PageContext pc, Key key, Struct args) throws PageException {
 	Member m = _get(pc, key, null);
-	if (m instanceof UDFPlus) {
-	    return _call(pc, key, ((UDFPlus) m), args, null);
+	if (m instanceof UDF) {
+	    return _call(pc, key, ((UDF) m), args, null);
 	}
 
 	throw new ExpressionException("Component from type [" + cp.getComponentName() + "] has no accessible static Member with name [" + key + "]");
     }
 
-    Object _call(PageContext pc, Collection.Key calledName, UDFPlus udf, Struct namedArgs, Object[] args) throws PageException {
+    Object _call(PageContext pc, Collection.Key calledName, UDF udf, Struct namedArgs, Object[] args) throws PageException {
 
 	Object rtn = null;
 	Variables parent = null;

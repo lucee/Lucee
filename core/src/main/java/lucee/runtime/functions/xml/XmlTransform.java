@@ -21,6 +21,9 @@
  */
 package lucee.runtime.functions.xml;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.XMLException;
@@ -28,9 +31,6 @@ import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
 import lucee.runtime.text.xml.XMLUtil;
 import lucee.runtime.type.Struct;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
 
 public final class XmlTransform implements Function {
 

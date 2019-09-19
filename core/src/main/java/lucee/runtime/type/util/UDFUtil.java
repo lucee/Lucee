@@ -22,9 +22,51 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
+import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
+import java.util.function.DoubleBinaryOperator;
+import java.util.function.DoubleConsumer;
+import java.util.function.DoubleFunction;
+import java.util.function.DoublePredicate;
+import java.util.function.DoubleSupplier;
+import java.util.function.DoubleToIntFunction;
+import java.util.function.DoubleToLongFunction;
+import java.util.function.DoubleUnaryOperator;
+import java.util.function.Function;
+import java.util.function.IntBinaryOperator;
+import java.util.function.IntConsumer;
+import java.util.function.IntFunction;
+import java.util.function.IntPredicate;
+import java.util.function.IntSupplier;
+import java.util.function.IntToDoubleFunction;
+import java.util.function.IntToLongFunction;
+import java.util.function.IntUnaryOperator;
+import java.util.function.LongBinaryOperator;
+import java.util.function.LongConsumer;
+import java.util.function.LongFunction;
+import java.util.function.LongPredicate;
+import java.util.function.LongSupplier;
+import java.util.function.LongToDoubleFunction;
+import java.util.function.LongToIntFunction;
+import java.util.function.LongUnaryOperator;
+import java.util.function.ObjDoubleConsumer;
+import java.util.function.ObjIntConsumer;
+import java.util.function.ObjLongConsumer;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.function.ToDoubleBiFunction;
+import java.util.function.ToDoubleFunction;
+import java.util.function.ToIntBiFunction;
+import java.util.function.ToIntFunction;
+import java.util.function.ToLongBiFunction;
+import java.util.function.ToLongFunction;
 
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Component;
+import lucee.runtime.JF;
 import lucee.runtime.PageContext;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
@@ -43,6 +85,7 @@ import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.UDFGSProperty;
+import lucee.runtime.type.UDFImpl;
 import lucee.runtime.type.scope.Argument;
 import lucee.runtime.type.scope.ArgumentIntKey;
 import lucee.transformer.library.function.FunctionLibFunction;
@@ -200,7 +243,7 @@ public class UDFUtil {
 	else if (UDF.RETURN_FORMAT_PLAIN == returnFormat) return "plain";
 	else if (UDF.RETURN_FORMAT_SERIALIZE == returnFormat) return "cfml";
 	else if (UDF.RETURN_FORMAT_JAVA == returnFormat) return "java";
-	// NO XML else if(UDFPlus.RETURN_FORMAT_XML==returnFormat) return "xml";
+	// NO XML else if(UDF.RETURN_FORMAT_XML==returnFormat) return "xml";
 	else return defaultValue;
     }
 
@@ -257,17 +300,26 @@ public class UDFUtil {
 	    if (TYPE_CLOSURE == type) return new SimpleDumpData("<Closure>");
 	    if (TYPE_LAMBDA == type) return new SimpleDumpData("<Lambda>");
 	}
+
+	boolean isJavaFunction = udf instanceof JF;
+	Class<?> jf = UDFUtil.getJavaFunction(udf);
+
 	// arguments
 	FunctionArgument[] args = udf.getFunctionArguments();
 
 	DumpTable atts;
-	if (TYPE_UDF == type) atts = new DumpTable("udf", "#ca5095", "#e9accc", "#000000");
+	if (isJavaFunction) atts = new DumpTable("udf", "#7aa7ce", "#e2eb8b", "#000000");
+	else if (TYPE_UDF == type) atts = new DumpTable("udf", "#ca5095", "#e9accc", "#000000");
 	else if (TYPE_CLOSURE == type) atts = new DumpTable("udf", "#9cb770", "#c7e1ba", "#000000");
 	else if (TYPE_BIF == type) atts = new DumpTable("udf", "#e1c039", "#f1e2a3", "#000000");
 	else atts = new DumpTable("udf", "#f3d5bd", "#f6e4cc", "#000000");
 
-	atts.appendRow(new DumpRow(63, new DumpData[] { new SimpleDumpData("label"), new SimpleDumpData("name"), new SimpleDumpData("required"), new SimpleDumpData("type"),
-		new SimpleDumpData("default"), new SimpleDumpData("hint") }));
+	atts.appendRow(new DumpRow(63, isJavaFunction
+		? new DumpData[] { new SimpleDumpData("label"), new SimpleDumpData("name"), new SimpleDumpData("required"), new SimpleDumpData("type"), new SimpleDumpData("hint") }
+		: new DumpData[] { new SimpleDumpData("label"), new SimpleDumpData("name"), new SimpleDumpData("required"), new SimpleDumpData("type"),
+			new SimpleDumpData("default"), new SimpleDumpData("hint") }
+
+	));
 	for (int i = 0; i < args.length; i++) {
 	    FunctionArgument arg = args[i];
 	    DumpData def;
@@ -279,7 +331,9 @@ public class UDFUtil {
 	    catch (PageException e) {
 		def = new SimpleDumpData("");
 	    }
-	    atts.appendRow(new DumpRow(0, new DumpData[] { new SimpleDumpData(arg.getDisplayName()), new SimpleDumpData(arg.getName().getString()),
+	    if (isJavaFunction) atts.appendRow(new DumpRow(0, new DumpData[] { new SimpleDumpData(arg.getDisplayName()), new SimpleDumpData(arg.getName().getString()),
+		    new SimpleDumpData(arg.isRequired()), new SimpleDumpData(arg.getTypeAsString()), new SimpleDumpData(arg.getHint()) }));
+	    else atts.appendRow(new DumpRow(0, new DumpData[] { new SimpleDumpData(arg.getDisplayName()), new SimpleDumpData(arg.getName().getString()),
 		    new SimpleDumpData(arg.isRequired()), new SimpleDumpData(arg.getTypeAsString()), def, new SimpleDumpData(arg.getHint()) }));
 	    // atts.setRow(0,arg.getHint());
 
@@ -288,11 +342,11 @@ public class UDFUtil {
 	String label = udf.getDisplayName();
 	if (TYPE_CLOSURE == type) {
 	    func = new DumpTable("#9cb770", "#c7e1ba", "#000000");
-	    func.setTitle(StringUtil.isEmpty(label) ? "Closure" : "Closure " + label);
+	    func.setTitle((isJavaFunction ? "Java " : "") + (StringUtil.isEmpty(label) ? "Closure" : "Closure " + label));
 	}
 	else if (TYPE_UDF == type) {
-	    func = new DumpTable("#ca5095", "#e9accc", "#000000");
-	    String f = "Function ";
+	    func = isJavaFunction ? new DumpTable("#7aa7ce", "#e2eb8b", "#000000") : new DumpTable("#ca5095", "#e9accc", "#000000");
+	    String f = isJavaFunction ? "Java Function " : "Function ";
 	    try {
 		f = StringUtil.ucFirst(ComponentUtil.toStringAccess(udf.getAccess()).toLowerCase()) + " " + f;
 	    }
@@ -313,7 +367,9 @@ public class UDFUtil {
 
 	// Source
 	String src = udf.getSource();
-	if (!StringUtil.isEmpty(src)) func.setComment("source:" + src);
+	if (!StringUtil.isEmpty(src)) func.setComment("source: " + src);
+
+	if (jf != null) func.setComment("implements: " + jf.getName());
 
 	String hint = udf.getHint();
 	String desc = udf.getDescription();
@@ -322,8 +378,55 @@ public class UDFUtil {
 	if (Component.MODIFIER_NONE != udf.getModifier()) func.appendRow(1, new SimpleDumpData("modifier"), new SimpleDumpData(ComponentUtil.toModifier(udf.getModifier(), "")));
 	func.appendRow(1, new SimpleDumpData("arguments"), atts);
 	func.appendRow(1, new SimpleDumpData("return type"), new SimpleDumpData(udf.getReturnTypeAsString()));
-
 	return func;
+    }
+
+    private static Class<?> getJavaFunction(UDF udf) {
+	if (udf instanceof UDFImpl) return null;
+
+	if (udf instanceof BiConsumer) return BiConsumer.class;
+	if (udf instanceof BiFunction) return BiFunction.class;
+	if (udf instanceof BiPredicate) return BiPredicate.class;
+	if (udf instanceof BooleanSupplier) return BooleanSupplier.class;
+	if (udf instanceof Consumer) return Consumer.class;
+	if (udf instanceof DoubleBinaryOperator) return DoubleBinaryOperator.class;
+	if (udf instanceof DoubleConsumer) return DoubleConsumer.class;
+	if (udf instanceof DoubleFunction) return DoubleFunction.class;
+	if (udf instanceof DoublePredicate) return DoublePredicate.class;
+	if (udf instanceof DoubleSupplier) return DoubleSupplier.class;
+	if (udf instanceof DoubleToIntFunction) return DoubleToIntFunction.class;
+	if (udf instanceof DoubleToLongFunction) return DoubleToLongFunction.class;
+	if (udf instanceof DoubleUnaryOperator) return DoubleUnaryOperator.class;
+	if (udf instanceof Function) return Function.class;
+	if (udf instanceof IntBinaryOperator) return IntBinaryOperator.class;
+	if (udf instanceof IntConsumer) return IntConsumer.class;
+	if (udf instanceof IntFunction) return IntFunction.class;
+	if (udf instanceof IntPredicate) return IntPredicate.class;
+	if (udf instanceof IntSupplier) return IntSupplier.class;
+	if (udf instanceof IntToDoubleFunction) return IntToDoubleFunction.class;
+	if (udf instanceof IntToLongFunction) return IntToLongFunction.class;
+	if (udf instanceof IntUnaryOperator) return IntUnaryOperator.class;
+	if (udf instanceof LongBinaryOperator) return LongBinaryOperator.class;
+	if (udf instanceof LongConsumer) return LongConsumer.class;
+	if (udf instanceof LongFunction) return LongFunction.class;
+	if (udf instanceof LongPredicate) return LongPredicate.class;
+	if (udf instanceof LongSupplier) return LongSupplier.class;
+	if (udf instanceof LongToDoubleFunction) return LongToDoubleFunction.class;
+	if (udf instanceof LongToIntFunction) return LongToIntFunction.class;
+	if (udf instanceof LongUnaryOperator) return LongUnaryOperator.class;
+	if (udf instanceof ObjDoubleConsumer) return ObjDoubleConsumer.class;
+	if (udf instanceof ObjIntConsumer) return ObjIntConsumer.class;
+	if (udf instanceof ObjLongConsumer) return ObjLongConsumer.class;
+	if (udf instanceof Predicate) return Predicate.class;
+	if (udf instanceof Supplier) return Supplier.class;
+	if (udf instanceof ToDoubleBiFunction) return ToDoubleBiFunction.class;
+	if (udf instanceof ToDoubleFunction) return ToDoubleFunction.class;
+	if (udf instanceof ToIntBiFunction) return ToIntBiFunction.class;
+	if (udf instanceof ToIntFunction) return ToIntFunction.class;
+	if (udf instanceof ToLongBiFunction) return ToLongBiFunction.class;
+	if (udf instanceof ToLongFunction) return ToLongFunction.class;
+
+	return null;
     }
 
     private static void addComment(DumpTable dt, String comment) {

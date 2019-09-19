@@ -24,17 +24,29 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				<!--- 
 				German (Swiss) --->
 				setLocale("German (Swiss)");
-				assertEquals("SFr. 100'000.00", "#LSCurrencyFormat(100000,"local")#");
-				assertEquals("CHF100'000.00", "#replace(LSCurrencyFormat(100000,"international"),' ','')#");
-				assertEquals("100'000.00", "#LSCurrencyFormat(100000,"none")#");
+				if(getJavaVersion()>=9) {
+					if(getJavaVersion()>=11) assertEquals("CHF 100’000.00", "#LSCurrencyFormat(100000,"local")#");
+					else assertEquals("CHF 100'000.00", "#LSCurrencyFormat(100000,"local")#");
+					assertEquals("CHF 1.00", "#LSCurrencyFormat(1)#");
+					assertEquals("CHF 1.20", "#LSCurrencyFormat(1.2)#");
+					assertEquals("CHF 1.20", "#LSCurrencyFormat(1.2,"local")#");
+				}
+				else {	
+					assertEquals("SFr. 100'000.00", "#LSCurrencyFormat(100000,"local")#");
+					assertEquals("SFr. 1.00", "#LSCurrencyFormat(1)#");
+					assertEquals("SFr. 1.20", "#LSCurrencyFormat(1.2)#");
+					assertEquals("SFr. 1.20", "#LSCurrencyFormat(1.2,"local")#");
+				}
 
-				<!--- 
-				German (Standard) --->
-				setLocale("German (Swiss)");
-				assertEquals("SFr. 1.00", "#LSCurrencyFormat(1)#");
-				assertEquals("SFr. 1.20", "#LSCurrencyFormat(1.2)#");
+				if(getJavaVersion()>=11) {
+					assertEquals("CHF100’000.00", "#replace(LSCurrencyFormat(100000,"international"),' ','')#");
+					assertEquals("100’000.00", "#LSCurrencyFormat(100000,"none")#");
+				}
+ 				else {
+					assertEquals("CHF100'000.00", "#replace(LSCurrencyFormat(100000,"international"),' ','')#");
+					assertEquals("100'000.00", "#LSCurrencyFormat(100000,"none")#");
+				}
 
-				assertEquals("SFr. 1.20", "#LSCurrencyFormat(1.2,"local")#");
 				assertEquals("CHF1.20", "#replace(LSCurrencyFormat(1.2,"international")," ","")#");
 				assertEquals("1.20", "#LSCurrencyFormat(1.2,"none")#");
 
@@ -57,44 +69,76 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 
 				setLocale("German (Swiss)");
-
-
 				value="250.000";
+				if(getJavaVersion()>=9) {
+					assertEquals("CHF 250.00", "#LSCurrencyFormat(value,"local")#");
+					assertEquals("CHF 250.00", "#LSCurrencyFormat(value)#");
+				}
+				else {	
+					assertEquals("SFR. 250.00", "#LSCurrencyFormat(value,"local")#");
+					assertEquals("SFR. 250.00", "#LSCurrencyFormat(value)#");
+				}
 				assertEquals("250", "#LSParseNumber(value)#");
-				assertEquals("SFR. 250.00", "#LSCurrencyFormat(value,"local")#");
 				assertEquals("CHF250.00", "#replace(LSCurrencyFormat(value,'international'),' ','','all')#");
 				assertEquals("250.00", "#LSCurrencyFormat(value,'none')#");
-				assertEquals("SFR. 250.00", "#LSCurrencyFormat(value)#");
 
 
 				setLocale("Portuguese (Brazilian)");
-
 				value=250000;
+				if(getJavaVersion()>=11 || getJavaVersion()<9) {
+					assertEquals("R$ 250.000,00", "#LSCurrencyFormat(value)#");
+				}
+				else {	
+					assertEquals("R$250.000,00", "#LSCurrencyFormat(value)#");
+				}
 				assertEquals("250000", "#LSParseNumber(value)#");
-				assertEquals("R$ 250.000,00", "#LSCurrencyFormat(value)#");
 
 				value=250.000;
+				if(getJavaVersion()>=11 || getJavaVersion()<9) {
+					assertEquals("R$ 250,00", "#LSCurrencyFormat(value)#");
+				}
+				else {	
+					assertEquals("R$250,00", "#LSCurrencyFormat(value)#");
+				}
 				assertEquals("250", "#LSParseNumber(value)#");
-				assertEquals("R$ 250,00", "#LSCurrencyFormat(value)#");
 
 				value="250000";
+				if(getJavaVersion()>=11 || getJavaVersion()<9) {
+					assertEquals("R$ 250.000,00", "#LSCurrencyFormat(value)#");
+				}
+				else {	
+					assertEquals("R$250.000,00", "#LSCurrencyFormat(value)#");
+				}
 				assertEquals("250000", "#LSParseNumber(value)#");
-				assertEquals("R$ 250.000,00", "#LSCurrencyFormat(value)#");
 
 				value="250,000";
 				assertEquals("250", "#LSParseNumber(value)#");
 
 
 				value="250.000";
+				if(getJavaVersion()>=11 || getJavaVersion()<9) {
+					assertEquals("R$ 250,00", "#LSCurrencyFormat(value,"local","Portuguese (Brazilian)")#");
+					assertEquals("R$ 250,00", "#LSCurrencyFormat(value)#");
+				}
+				else {	
+					assertEquals("R$250,00", "#LSCurrencyFormat(value,"local","Portuguese (Brazilian)")#");
+					assertEquals("R$250,00", "#LSCurrencyFormat(value)#");
+				}
 				assertEquals("250000", "#LSParseNumber(value)#");
-				assertEquals("R$ 250,00", "#LSCurrencyFormat(value,"local","Portuguese (Brazilian)")#");
 				assertEquals("BRL250,00", "#replace(LSCurrencyFormat(value,'international'),' ','','all')#");
 				assertEquals("250,00", "#LSCurrencyFormat(value,'none')#");
-				assertEquals("R$ 250,00", "#LSCurrencyFormat(value)#");
 
 				setLocale(orgLocale);
 			});
 		});
 	}
+
+	private function getJavaVersion() {
+        var raw=server.java.version;
+        var arr=listToArray(raw,'.');
+        if(arr[1]==1) // version 1-9
+            return arr[2];
+        return arr[1];
+    }
 }
 

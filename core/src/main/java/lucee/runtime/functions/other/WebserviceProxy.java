@@ -31,8 +31,6 @@ import lucee.runtime.ext.function.Function;
 import lucee.runtime.net.http.HTTPClient;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.proxy.ProxyDataImpl;
-import lucee.runtime.net.rpc.WSHandler;
-import lucee.runtime.net.rpc.client.WSClient;
 import lucee.runtime.op.Caster;
 import lucee.runtime.security.SecurityManager;
 import lucee.runtime.type.Struct;
@@ -40,7 +38,7 @@ import lucee.runtime.type.Struct;
 public final class WebserviceProxy implements Function {
 
     private static final long serialVersionUID = -5702516737227809987L;
-    private static final Data EMPTY = new Data(null, null, null);;
+    private static final Data EMPTY = new Data(null, null, null);
 
     public static Object call(PageContext pc, String wsdlUrl) throws PageException {
 	return call(pc, wsdlUrl, null);

@@ -22,9 +22,9 @@ import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 
-import lucee.runtime.net.mail.MailClient;
-
 import com.sun.mail.pop3.POP3Folder;
+
+import lucee.runtime.net.mail.MailClient;
 
 public final class PopClient extends MailClient {
 

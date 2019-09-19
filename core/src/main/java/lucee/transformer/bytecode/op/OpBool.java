@@ -18,6 +18,11 @@
  */
 package lucee.transformer.bytecode.op;
 
+import org.objectweb.asm.Label;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.GeneratorAdapter;
+
 import lucee.runtime.exp.TemplateException;
 import lucee.transformer.Factory;
 import lucee.transformer.TransformerException;
@@ -29,11 +34,6 @@ import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.expression.ExprBoolean;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.Literal;
-
-import org.objectweb.asm.Label;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
-import org.objectweb.asm.commons.GeneratorAdapter;
 
 public final class OpBool extends ExpressionBase implements ExprBoolean {
 

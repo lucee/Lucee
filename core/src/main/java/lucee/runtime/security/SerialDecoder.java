@@ -43,7 +43,7 @@ public final class SerialDecoder {
 
 	m_rndGen = new Random();
 
-    };
+    }
 
     /**
      * 
@@ -69,7 +69,7 @@ public final class SerialDecoder {
 
 	hasher.clear();
 
-    };
+    }
 
     /**
      * 
@@ -171,7 +171,7 @@ public final class SerialDecoder {
 
 	return BinConverter.byteArrayToUNCString(buf, 0, nNumOfBytes);
 
-    };
+    }
 
     /**
      * 
@@ -185,6 +185,6 @@ public final class SerialDecoder {
 
 	m_bfish.cleanUp();
 
-    };
+    }
 
-};
+}

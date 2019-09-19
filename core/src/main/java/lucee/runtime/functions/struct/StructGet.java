@@ -25,8 +25,8 @@ import lucee.runtime.PageContext;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
+import lucee.runtime.interpreter.VariableInterpreter;
 import lucee.runtime.op.Caster;
-import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 
 public final class StructGet extends BIF {
@@ -34,11 +34,8 @@ public final class StructGet extends BIF {
     private static final long serialVersionUID = -4661190117177511485L;
 
     public static Object call(PageContext pc, String string) throws PageException {
-	try {
-	    Object obj = pc.getVariable(string);
-	    if (obj instanceof Struct) return obj;
-	}
-	catch (PageException e) {}
+	Object obj = VariableInterpreter.getVariableEL(pc, string, null);
+	if (obj != null) return obj;
 	return pc.setVariable(string, new StructImpl());
 
     }

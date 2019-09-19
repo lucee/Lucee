@@ -75,4 +75,9 @@ public final class HtmlHead extends HtmlHeadBodyBase {
 	pci.getRootOut().resetHTMLHead();
     }
 
+    @Override
+    public boolean getDefaultForce() {
+	return true;
+    }
+
 }

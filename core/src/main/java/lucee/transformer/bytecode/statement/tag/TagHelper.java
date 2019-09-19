@@ -24,6 +24,13 @@ import java.util.Map;
 import javax.servlet.jsp.tagext.BodyTag;
 import javax.servlet.jsp.tagext.IterationTag;
 
+import org.objectweb.asm.Label;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.GeneratorAdapter;
+import org.objectweb.asm.commons.Method;
+import org.osgi.framework.BundleException;
+
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.db.ClassDefinition;
@@ -47,13 +54,6 @@ import lucee.transformer.bytecode.visitor.TryFinallyVisitor;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.library.tag.TagLibTag;
 import lucee.transformer.library.tag.TagLibTagAttr;
-
-import org.objectweb.asm.Label;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
-import org.objectweb.asm.commons.GeneratorAdapter;
-import org.objectweb.asm.commons.Method;
-import org.osgi.framework.BundleException;
 
 public final class TagHelper {
     private static final Type MISSING_ATTRIBUTE = Type.getType(MissingAttribute.class);
@@ -149,7 +149,7 @@ public final class TagHelper {
 
 	if (fromBundle) {
 	    try {
-		if (Reflector.isInstaneOf(cd.getClazz(), BodyTag.class)) currType = BODY_TAG;
+		if (Reflector.isInstaneOf(cd.getClazz(), BodyTag.class, false)) currType = BODY_TAG;
 		else currType = TAG;
 		currDoFinallyType = TRY_CATCH_FINALLY_TAG;
 	    }

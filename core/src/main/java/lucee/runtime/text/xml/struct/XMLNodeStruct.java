@@ -23,6 +23,15 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.w3c.dom.DOMException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.UserDataHandler;
+import org.xml.sax.SAXException;
+
 import lucee.commons.collection.MapFactory;
 import lucee.runtime.PageContext;
 import lucee.runtime.dump.DumpData;
@@ -48,15 +57,6 @@ import lucee.runtime.type.it.StringIterator;
 import lucee.runtime.type.it.ValueIterator;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.StructSupport;
-
-import org.w3c.dom.DOMException;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.w3c.dom.UserDataHandler;
-import org.xml.sax.SAXException;
 
 /**
  * 

@@ -32,8 +32,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TimeZone;
 
-import lucee.print;
-import lucee.commons.io.CharsetUtil;
+import org.w3c.dom.Node;
+
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Component;
 import lucee.runtime.ComponentScope;
@@ -55,15 +55,12 @@ import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.ObjectWrap;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.Struct;
-import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.DateTimeImpl;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.util.ComponentUtil;
 import lucee.runtime.type.util.KeyConstants;
-
-import org.w3c.dom.Node;
 
 /**
  * class to serialize and desirilize WDDX Packes

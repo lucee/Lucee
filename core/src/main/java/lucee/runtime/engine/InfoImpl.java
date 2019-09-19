@@ -26,8 +26,10 @@ import java.util.Properties;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
+import org.osgi.framework.Bundle;
+import org.osgi.framework.Version;
+
 import lucee.Info;
-import lucee.commons.date.TimeZoneConstants;
 import lucee.commons.io.IOUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
@@ -42,9 +44,6 @@ import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.util.ListUtil;
-
-import org.osgi.framework.Bundle;
-import org.osgi.framework.Version;
 
 /**
  * Info to this Version

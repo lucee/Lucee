@@ -25,10 +25,10 @@ import java.util.Map.Entry;
 import javax.servlet.jsp.JspWriter;
 import javax.servlet.jsp.tagext.Tag;
 
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.lang.SystemOut;
 import lucee.runtime.Component;
 import lucee.runtime.Mapping;
 import lucee.runtime.PageContext;
@@ -702,7 +702,7 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
 		source = initFile(pageContext);
 	    }
 	    catch (PageException e) {
-		SystemOut.printDate(e);
+		LogUtil.log(ThreadLocalPageContext.getConfig(pageContext), CFTag.class.getName(), e);
 	    }
 	}
 	return source;

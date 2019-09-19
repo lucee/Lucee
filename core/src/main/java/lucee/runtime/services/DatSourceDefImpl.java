@@ -20,13 +20,13 @@ package lucee.runtime.services;
 
 import java.util.Map;
 
+import coldfusion.sql.DataSourceDef;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
-import coldfusion.sql.DataSourceDef;
 
 public class DatSourceDefImpl implements DataSourceDef {
 

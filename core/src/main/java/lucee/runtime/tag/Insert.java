@@ -24,7 +24,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 
 import lucee.commons.db.DBUtil;
-import lucee.commons.io.SystemUtil.TemplateLine;
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.config.ConfigImpl;

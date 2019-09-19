@@ -68,7 +68,6 @@ import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.scope.Application;
 import lucee.runtime.type.scope.ApplicationImpl;
-import lucee.runtime.type.scope.ScopeContext;
 import lucee.runtime.type.scope.Session;
 import lucee.runtime.type.scope.UndefinedImpl;
 import lucee.runtime.type.scope.session.SessionMemory;

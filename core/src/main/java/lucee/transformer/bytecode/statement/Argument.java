@@ -119,9 +119,6 @@ public final class Argument {
 	return required;
     }
 
-    /**
-     * @return the type
-     */
     public ExprString getType() {
 	return type;
     }

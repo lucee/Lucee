@@ -439,7 +439,7 @@ public final class Zip extends BodyTagImpl {
 		    continue;
 		}
 		target = ZipUtil.toResource(destination, entry);
-
+		if(target.exists() && overwrite) target.delete();
 		// filter
 		if ((filter != null && !filter.accept(target)) || target.exists()) {
 		    zis.closeEntry();
@@ -452,6 +452,7 @@ public final class Zip extends BodyTagImpl {
 		    continue;
 		}
 		if (!storePath) target = destination.getRealResource(target.getName());
+		
 		if (entry.isDirectory()) {
 		    target.mkdirs();
 		}

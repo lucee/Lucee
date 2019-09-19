@@ -35,7 +35,6 @@ import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
-import lucee.runtime.type.UDFImpl;
 import lucee.runtime.type.scope.Variables;
 import lucee.runtime.type.scope.VariablesImpl;
 import lucee.runtime.type.util.ArrayUtil;
@@ -104,10 +103,10 @@ public class CFFunction {
 	}
 	// execute UDF
 	if (namedArguments == null) {
-	    return ((UDFImpl) udf).call(pc, name, arguments, false);
+	    return udf.call(pc, name, arguments, false);
 	}
 
-	return ((UDFImpl) udf).callWithNamedValues(pc, name, namedArguments, false);
+	return udf.callWithNamedValues(pc, name, namedArguments, false);
     }
 
     public static UDF loadUDF(PageContext pc, Resource res, Collection.Key name, boolean isweb, boolean cache) throws PageException {

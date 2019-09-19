@@ -90,6 +90,10 @@ public class TemplateException extends PageExceptionImpl {
 	this(getPageSource(sc), sc.getLine(), sc.getColumn(), message);
     }
 
+    public TemplateException(SourceCode sc, int line, int column, String message) {
+	this(getPageSource(sc), line, column, message);
+    }
+
     /**
      * Constructor of the class
      * 

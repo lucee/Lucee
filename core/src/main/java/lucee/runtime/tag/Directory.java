@@ -1,20 +1,18 @@
 /**
- *
  * Copyright (c) 2014, the Railo Company Ltd. All rights reserved.
- *
+ * <p>
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ * <p>
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ * <p>
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
  */
 package lucee.runtime.tag;
 
@@ -60,14 +58,12 @@ import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryImpl;
+import lucee.runtime.type.Struct;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.util.KeyConstants;
 
 /**
  * Handles interactions with directories.
- *
- *
- *
  **/
 public final class Directory extends TagImpl {
 
@@ -424,14 +420,20 @@ public final class Directory extends TagImpl {
 	    names = new String[] { "name", "size", "type", "dateLastModified", "attributes", "mode", "directory", "meta" };
 	    types = new String[] { "VARCHAR", "DOUBLE", "VARCHAR", "DATE", "VARCHAR", "VARCHAR", "VARCHAR", "OBJECT" };
 	}
+
+	boolean typeArray = (listInfo == LIST_INFO_ARRAY_NAME) || (listInfo == LIST_INFO_ARRAY_PATH);
+	boolean namesOnly = (listInfo == LIST_INFO_ARRAY_NAME) || (listInfo == LIST_INFO_QUERY_NAME);
 	Array array = null;
-	Query query = null;
 	Object rtn;
-	if (listInfo == LIST_INFO_QUERY_ALL || listInfo == LIST_INFO_QUERY_NAME) {
-	    boolean listOnlyNames = listInfo == LIST_INFO_QUERY_NAME;
-	    rtn = query = new QueryImpl(listOnlyNames ? new String[] { "name" } : names, listOnlyNames ? new String[] { "VARCHAR" } : types, 0, "query");
+
+	Query query = new QueryImpl(namesOnly ? new String[] { "name" } : names, namesOnly ? new String[] { "VARCHAR" } : types, 0, "query");
+
+	if (typeArray) {
+	    rtn = array = new ArrayImpl();
 	}
-	else rtn = array = new ArrayImpl();
+	else {
+	    rtn = query;
+	}
 
 	if (!directory.exists()) {
 	    if (directory instanceof FileResource) return rtn;
@@ -449,23 +451,21 @@ public final class Directory extends TagImpl {
 	long startNS = System.nanoTime();
 
 	try {
-	    // Query All
-	    if (listInfo == LIST_INFO_QUERY_ALL) _fillQueryAll(query, directory, filter, 0, hasMeta, recurse);
 
-	    // Query Name
-	    else if (listInfo == LIST_INFO_QUERY_NAME) {
+	    if (namesOnly) {
+		if (typeArray) {
+		    _fillArrayPathOrName(array, directory, filter, 0, recurse, namesOnly);
+		    return array;
+		}
+
+		// Query Name, available via the cfdirectory tag but not via directoryList()
 		if (recurse || type != TYPE_ALL) _fillQueryNamesRec("", query, directory, filter, 0, recurse);
 		else _fillQueryNames(query, directory, filter, 0);
 	    }
-
-	    // Array Name/Path
-	    else if (listInfo == LIST_INFO_ARRAY_NAME || listInfo == LIST_INFO_ARRAY_PATH) {
-		boolean onlyName = listInfo == LIST_INFO_ARRAY_NAME;
-		if (!onlyName || recurse || type != TYPE_ALL) _fillArrayPathOrName(array, directory, filter, 0, recurse, onlyName);// QueryNamesRec("",query, directory, filter,
-																   // 0,recurse);
-		else _fillArrayName(array, directory, filter, 0);
+	    else {
+		// Query All
+		_fillQueryAll(query, directory, filter, 0, hasMeta, recurse);
 	    }
-
 	}
 	catch (IOException e) {
 	    throw Caster.toPageException(e);
@@ -490,7 +490,18 @@ public final class Directory extends TagImpl {
 		}
 	    }
 	}
-	if (query != null) query.setExecutionTime(System.nanoTime() - startNS);
+
+	query.setExecutionTime(System.nanoTime() - startNS);
+
+	if (typeArray) {
+	    java.util.Iterator it = query.getIterator();
+	    while (it.hasNext()) {
+		Struct row = (Struct) it.next();
+		if (namesOnly) array.appendEL(row.get("name"));
+		else array.appendEL(row.get("directory") + lucee.commons.io.FileUtil.FILE_SEPERATOR_STRING + row.get("name"));
+	    }
+	}
+
 	return rtn;
     }
 
@@ -528,7 +539,7 @@ public final class Directory extends TagImpl {
 	return count;
     }
 
-    // this method only exists for performance reason
+    // this method only exists for performance reasion
     private static int _fillQueryNames(Query query, Resource directory, ResourceFilter filter, int count) throws PageException {
 	if (filter == null || filter instanceof ResourceNameFilter) {
 	    ResourceNameFilter rnf = filter == null ? null : (ResourceNameFilter) filter;

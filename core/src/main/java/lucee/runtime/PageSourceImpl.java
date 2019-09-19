@@ -26,12 +26,13 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.lang.SystemOut;
+import lucee.commons.lang.compiler.JavaFunction;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lang.types.RefBooleanImpl;
 import lucee.commons.lang.types.RefIntegerSync;
@@ -359,6 +360,7 @@ public final class PageSourceImpl implements PageSource {
     }
 
     private boolean isLoad(byte load) {
+	Page page = this.page;
 	return page != null && load == page.getLoadType();
     }
 
@@ -401,6 +403,12 @@ public final class PageSourceImpl implements PageSource {
 
 	try {
 	    Class<?> clazz = mapping.getPhysicalClass(getClassName(), result.barr);
+	    // make sure all children are updated
+	    if (result.javaFunctions != null && !result.javaFunctions.isEmpty()) {
+		for (JavaFunction jf: result.javaFunctions) {
+		    mapping.getPhysicalClass(jf.getClassName(), jf.byteCode);
+		}
+	    }
 	    return newInstance(clazz);
 	}
 	catch (Throwable t) {
@@ -996,7 +1004,7 @@ public final class PageSourceImpl implements PageSource {
 	    return !(ps.loadPage(pc, false) instanceof CIPage);
 	}
 	catch (PageException e) {
-	    SystemOut.printDate(e);
+	    LogUtil.log(ThreadLocalPageContext.getConfig(pc), PageSourceImpl.class.getName(), e);
 	    return defaultValue;
 	}
     }

@@ -18,7 +18,7 @@
  **/
 package lucee.runtime.engine;
 
-import lucee.commons.lang.SystemOut;
+import lucee.commons.io.log.LogUtil;
 import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.ConfigServerImpl;
 
@@ -51,7 +51,7 @@ public final class Monitor extends Thread {
 		sleep(INTERVALL);
 	    }
 	    catch (InterruptedException e) {
-		SystemOut.printDate(e);
+		LogUtil.log(ThreadLocalPageContext.getConfig(configServer), Monitor.class.getName(), e);
 	    }
 
 	    if (!configServer.isMonitoringEnabled()) return;
@@ -65,7 +65,7 @@ public final class Monitor extends Thread {
 			monitors[i].log();
 		    }
 		    catch (Exception e) {
-			SystemOut.printDate(e);
+			LogUtil.log(ThreadLocalPageContext.getConfig(configServer), Monitor.class.getName(), e);
 		    }
 		}
 	    }

@@ -18,11 +18,11 @@
  **/
 package lucee.runtime.functions.xml;
 
+import org.w3c.dom.Node;
+
 import lucee.runtime.PageContext;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.text.xml.XMLUtil;
-
-import org.w3c.dom.Node;
 
 /**
  * 

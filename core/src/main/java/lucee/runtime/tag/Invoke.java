@@ -28,7 +28,6 @@ import lucee.runtime.ext.tag.BodyTagImpl;
 import lucee.runtime.ext.tag.DynamicAttributes;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.proxy.ProxyDataImpl;
-import lucee.runtime.net.rpc.WSHandler;
 import lucee.runtime.net.rpc.client.WSClient;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.KeyImpl;

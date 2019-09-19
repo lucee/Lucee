@@ -33,10 +33,14 @@ import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
+import java.security.CodeSource;
+import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
@@ -44,8 +48,19 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipException;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
 
 import javax.servlet.ServletContext;
+
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleReference;
+
+import com.jezhumble.javasysmon.CpuTimes;
+import com.jezhumble.javasysmon.JavaSysMon;
+import com.jezhumble.javasysmon.MemoryStats;
 
 import lucee.commons.digest.MD5;
 import lucee.commons.io.log.Log;
@@ -91,13 +106,6 @@ import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleReference;
-
-import com.jezhumble.javasysmon.CpuTimes;
-import com.jezhumble.javasysmon.JavaSysMon;
-import com.jezhumble.javasysmon.MemoryStats;
-
 /**
  * 
  */
@@ -112,9 +120,9 @@ public final class SystemUtil {
     public static final int ARCH_64 = lucee.runtime.util.SystemUtil.ARCH_64;
 
     public static final String SETTING_CONTROLLER_DISABLED = "lucee.controller.disabled";
-	public static final String SETTING_UPLOAD_EXT_BLACKLIST = "lucee.upload.blacklist";
+    public static final String SETTING_UPLOAD_EXT_BLACKLIST = "lucee.upload.blacklist";
 
-	public static final String DEFAULT_UPLOAD_EXT_BLACKLIST = "asp,aspx,cfc,cfm,cfml,do,htm,html,jsp,jspx,php";
+    public static final String DEFAULT_UPLOAD_EXT_BLACKLIST = "asp,aspx,cfc,cfm,cfml,do,htm,html,jsp,jspx,php";
 
     public static final char CHAR_DOLLAR = (char) 36;
     public static final char CHAR_POUND = (char) 163;
@@ -500,7 +508,7 @@ public final class SystemUtil {
 	ClassLoader cl = InfoImpl.class.getClassLoader();
 	if (cl instanceof URLClassLoader) getClassPathesFromClassLoader((URLClassLoader) cl, pathes);
 
-	return classPathes = (Resource[]) pathes.toArray(new Resource[pathes.size()]);
+	return classPathes = pathes.toArray(new Resource[pathes.size()]);
     }
 
     public static long getUsedMemory() {
@@ -667,6 +675,15 @@ public final class SystemUtil {
      * @throws InterruptedException
      */
     public static void wait(Object lock, long timeout) {
+	try {
+	    synchronized (lock) {
+		lock.wait(timeout);
+	    }
+	}
+	catch (InterruptedException e) {}
+    }
+
+    public static void wait(Object lock, int timeout) {
 	try {
 	    synchronized (lock) {
 		lock.wait(timeout);
@@ -1140,18 +1157,16 @@ public final class SystemUtil {
 
     }
 
-
-	/**
-	 * converts a System property format to its equivalent Environment variable, e.g.
-	 * an input of "lucee.conf.name" will return "LUCEE_CONF_NAME"
-	 *
-	 * @param name the System property name
-	 * @return the equivalent Environment variable name
-	 */
-	public static String convertSystemPropToEnvVar(String name) {
-		return name.replace('.', '_').toUpperCase();
-	}
-
+    /**
+     * converts a System property format to its equivalent Environment variable, e.g. an input of
+     * "lucee.conf.name" will return "LUCEE_CONF_NAME"
+     *
+     * @param name the System property name
+     * @return the equivalent Environment variable name
+     */
+    public static String convertSystemPropToEnvVar(String name) {
+	return name.replace('.', '_').toUpperCase();
+    }
 
     /**
      * returns a system setting by either a Java property name or a System environment variable
@@ -1215,6 +1230,30 @@ public final class SystemUtil {
 	     * does not support Thread.stop(Throwable) thread.stop(); }
 	     */
 	}
+    }
+
+    public static void patienceStop(Thread thread, int max) {
+	if (thread == null || !thread.isAlive()) return;
+
+	StackTraceElement[] stes;
+	StackTraceElement ste;
+	thread.interrupt();
+	for (int y = 0; y < max; y++) {
+	    sleep(1);
+	    for (int i = 0; i < 10; i++) {
+		if (!thread.isAlive()) return;
+		stes = thread.getStackTrace();
+		if (stes != null && stes.length > 0) {
+		    ste = stes[0];
+		    if (!ste.isNativeMethod()) {
+			stop(thread);
+			sleep(1);
+			if (!thread.isAlive()) break;
+		    }
+		}
+	    }
+	}
+	stop(thread);
     }
 
     public static void stop(PageContext pc, boolean async) {
@@ -1377,6 +1416,7 @@ public final class SystemUtil {
 	public Class<?> fromSystem;
 	public Class<?> fromBundle;
 
+	@Override
 	public String toString() {
 	    return "fromBootDelegation:" + fromBootDelegation + ";fromSystem:" + fromSystem + ";fromBundle:" + fromBundle;
 	}
@@ -1488,6 +1528,7 @@ class StopThread extends Thread {
 	this.pc = pc;
     }
 
+    @Override
     public void run() {
 	PageContextImpl pci = (PageContextImpl) pc;
 	Thread thread = pc.getThread();
@@ -1594,5 +1635,75 @@ class MacAddressWrap implements ObjectWrap, Castable, Serializable {
     @Override
     public int compareTo(DateTime dt) throws PageException {
 	return Operator.compare(toString(), dt.castToString());
+    }
+
+    public static long size(Class clazz) throws URISyntaxException, ZipException, IOException {
+	ProtectionDomain pd = clazz.getProtectionDomain();
+	if (pd == null) return 0L;
+	CodeSource sc = pd.getCodeSource();
+	if (sc == null) return 0L;
+	URL url = sc.getLocation();
+	if (url == null) return 0L;
+
+	if (url.getProtocol().equalsIgnoreCase("file")) {
+	    URI uri = url.toURI();
+
+	    File file = new File(uri);
+
+	    // lose file
+	    if (file.isDirectory()) {
+		String relPath = clazz.getName().replace('.', File.separatorChar) + ".class";
+		File f = new File(file, relPath);
+		return f.length();
+	    }
+	    // zip file
+	    else if (file.isFile()) {
+		String relPath = clazz.getName().replace('.', '/') + ".class";
+
+		long size = 0;
+		ZipFile zf = null;
+		try {
+		    zf = new ZipFile(file);
+		    String name;
+		    ZipEntry entry;
+		    Enumeration<? extends ZipEntry> en = zf.entries();
+		    while (en.hasMoreElements()) {
+			entry = en.nextElement();
+			if (!entry.isDirectory()) {
+			    name = entry.getName().replace('\\', '/');
+			    if (name.startsWith("/")) name = name.substring(1); // some zip path start with "/" some not
+			    if (relPath.equals(name)) {
+				size = entry.getSize();
+				break;
+			    }
+			}
+		    }
+		}
+		finally {
+		    zf.close();
+		}
+		return size;
+	    }
+	}
+	else {
+	    long size = 0;
+	    String relPath = clazz.getName().replace('.', '/') + ".class";
+	    ZipInputStream zis = new ZipInputStream(url.openStream());
+	    String name;
+	    ZipEntry entry;
+	    while ((entry = zis.getNextEntry()) != null) {
+		if (!entry.isDirectory()) {
+		    name = entry.getName().replace('\\', '/');
+		    if (name.startsWith("/")) name = name.substring(1); // some zip path start with "/" some not
+		    if (relPath.equals(name)) {
+			size = entry.getSize();
+			break;
+		    }
+		}
+		zis.closeEntry();
+	    }
+	    return size;
+	}
+	return 0L;
     }
 }

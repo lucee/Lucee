@@ -18,8 +18,6 @@
  **/
 package lucee.runtime.spooler.mail;
 
-import java.io.UnsupportedEncodingException;
-
 import javax.mail.internet.InternetAddress;
 
 import lucee.commons.lang.StringUtil;

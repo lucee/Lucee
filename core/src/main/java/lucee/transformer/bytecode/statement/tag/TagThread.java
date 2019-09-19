@@ -18,6 +18,10 @@
  */
 package lucee.transformer.bytecode.statement.tag;
 
+import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.GeneratorAdapter;
+import org.objectweb.asm.commons.Method;
+
 import lucee.runtime.tag.ThreadTag;
 import lucee.transformer.Factory;
 import lucee.transformer.Position;
@@ -28,10 +32,6 @@ import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.Page;
 import lucee.transformer.bytecode.util.ASMUtil;
 import lucee.transformer.bytecode.util.Types;
-
-import org.objectweb.asm.Type;
-import org.objectweb.asm.commons.GeneratorAdapter;
-import org.objectweb.asm.commons.Method;
 
 public final class TagThread extends TagBaseNoFinal {
 

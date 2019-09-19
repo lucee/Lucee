@@ -4,8 +4,6 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
-import lucee.print;
-
 public class Pool {
 
     private final long maxIdle;

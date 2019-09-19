@@ -45,8 +45,9 @@ public final class IsDefined implements Function {
 	try {
 	    Object coll = VariableInterpreter.scope(pc, (int) scope, false);
 	    if (coll == null) return false;
-	    coll = ((VariableUtilImpl) pc.getVariableUtil()).get(pc, coll, key, NullSupportHelper.NULL(pc));
-	    if (coll == NullSupportHelper.NULL(pc)) return false;
+	    Object _null = NullSupportHelper.NULL(pc);
+	    coll = ((VariableUtilImpl) pc.getVariableUtil()).get(pc, coll, key, _null);
+	    if (coll == _null) return false;
 	    // return pc.scope((int)scope).get(key,null)!=null;
 	}
 	catch (Throwable t) {

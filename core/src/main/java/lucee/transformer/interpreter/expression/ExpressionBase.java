@@ -1,22 +1,13 @@
 package lucee.transformer.interpreter.expression;
 
-import lucee.commons.lang.ClassException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
-import lucee.runtime.exp.TemplateException;
-import lucee.runtime.type.Collection;
 import lucee.transformer.Context;
 import lucee.transformer.Factory;
 import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
-import lucee.transformer.bytecode.BytecodeContext;
-import lucee.transformer.bytecode.util.ExpressionUtil;
-import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.interpreter.InterpreterContext;
-import lucee.transformer.interpreter.InterpreterFactory;
-
-import org.objectweb.asm.Type;
 
 /**
  * A Expression (Operation, Literal aso.)

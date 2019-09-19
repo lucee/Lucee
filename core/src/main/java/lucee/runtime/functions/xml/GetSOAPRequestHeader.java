@@ -23,7 +23,6 @@ import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
-import lucee.runtime.net.rpc.WSHandler;
 
 /**
  * 

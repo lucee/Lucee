@@ -43,12 +43,12 @@ import org.xml.sax.SAXException;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.FileUtil;
 import lucee.commons.io.SystemUtil;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
 import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.lang.SystemOut;
 import lucee.commons.lock.KeyLock;
 import lucee.commons.lock.KeyLockImpl;
 import lucee.loader.engine.CFMLEngine;
@@ -64,6 +64,7 @@ import lucee.runtime.cfx.CFXTagPool;
 import lucee.runtime.compiler.CFMLCompilerImpl;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.debug.DebuggerPool;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.engine.ThreadQueue;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
@@ -110,8 +111,10 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
     private final CFMLCompilerImpl compiler = new CFMLCompilerImpl();
     private CIPage baseComponentPageCFML;
     private CIPage baseComponentPageLucee;
+
     private Map<String, Mapping> serverTagMappings;
     private Map<String, Mapping> serverFunctionMappings;
+
     private KeyLock<String> contextLock = new KeyLockImpl<String>();
     private GatewayEngineImpl gatewayEngine;
     private DebuggerPool debuggerPool;
@@ -292,7 +295,7 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
     }
 
     public Mapping getServerTagMapping(String mappingName) {
-	getServerTagMappings();
+	getServerTagMappings(); // necessary to make sure it exists
 	return serverTagMappings.get(mappingName);
     }
 
@@ -312,6 +315,10 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
     public Mapping getServerFunctionMapping(String mappingName) {
 	getServerFunctionMappings();// call this to make sure it exists
 	return serverFunctionMappings.get(mappingName);
+    }
+
+    public Mapping getDefaultServerFunctionMapping() {
+	return getConfigServerImpl().defaultFunctionMapping;
     }
 
     private Map<String, Mapping> applicationMappings = new ReferenceMap<String, Mapping>(SOFT, SOFT);
@@ -385,7 +392,7 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 	    getGatewayEngine().addEntries(this, gatewayEntries);
 	}
 	catch (Exception e) {
-	    SystemOut.printDate(e);
+	    LogUtil.log(ThreadLocalPageContext.getConfig(this), ConfigWebImpl.class.getName(), e);
 	}
     }
 

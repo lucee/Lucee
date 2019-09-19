@@ -59,7 +59,7 @@ public class HTTPResource extends ReadOnlyResourceSupport {
 	    // URL url = HTTPUtil.toURL("http://"+data.host+":"+data.port+"/"+data.path);
 	    URL url = new URL(provider.getProtocol(), data.host, data.port, data.path);
 	    // TODO Support for proxy
-	    ProxyData pd = data.hasProxyData() ? data.proxyData : ProxyDataImpl.NO_PROXY;
+	    ProxyData pd = ProxyDataImpl.isValid(data.proxyData, url.getHost()) ? data.proxyData : ProxyDataImpl.NO_PROXY;
 
 	    http = HTTPEngine.get(url, data.username, data.password, _getTimeout(), true, null, data.userAgent, pd, null);
 	}
@@ -69,7 +69,7 @@ public class HTTPResource extends ReadOnlyResourceSupport {
     private int getStatusCode() throws IOException {
 	if (http == null) {
 	    URL url = new URL(provider.getProtocol(), data.host, data.port, data.path);
-	    ProxyData pd = data.hasProxyData() ? data.proxyData : ProxyDataImpl.NO_PROXY;
+	    ProxyData pd = ProxyDataImpl.isValid(data.proxyData, url.getHost()) ? data.proxyData : ProxyDataImpl.NO_PROXY;
 	    return HTTPEngine.head(url, data.username, data.password, _getTimeout(), true, null, data.userAgent, pd, null).getStatusCode();
 	}
 	return http.getStatusCode();
@@ -78,7 +78,7 @@ public class HTTPResource extends ReadOnlyResourceSupport {
     public ContentType getContentType() throws IOException {
 	if (http == null) {
 	    URL url = new URL(provider.getProtocol(), data.host, data.port, data.path);
-	    ProxyData pd = data.hasProxyData() ? data.proxyData : ProxyDataImpl.NO_PROXY;
+	    ProxyData pd = ProxyDataImpl.isValid(data.proxyData, url.getHost()) ? data.proxyData : ProxyDataImpl.NO_PROXY;
 	    return HTTPEngine.head(url, data.username, data.password, _getTimeout(), true, null, data.userAgent, pd, null).getContentType();
 	}
 	return http.getContentType();

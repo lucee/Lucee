@@ -27,30 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import lucee.commons.io.IOUtil;
-import lucee.commons.io.TemporaryStream;
-import lucee.commons.io.res.Resource;
-import lucee.commons.lang.ExceptionUtil;
-import lucee.commons.lang.StringUtil;
-import lucee.commons.net.http.Entity;
-import lucee.commons.net.http.HTTPEngine;
-import lucee.commons.net.http.HTTPResponse;
-import lucee.commons.net.http.httpclient.entity.ByteArrayHttpEntity;
-import lucee.commons.net.http.httpclient.entity.EmptyHttpEntity;
-import lucee.commons.net.http.httpclient.entity.ResourceHttpEntity;
-import lucee.commons.net.http.httpclient.entity.TemporaryStreamHttpEntity;
-import lucee.runtime.PageContextImpl;
-import lucee.runtime.engine.ThreadLocalPageContext;
-import lucee.runtime.exp.PageException;
-import lucee.runtime.net.http.ReqRspUtil;
-import lucee.runtime.net.proxy.ProxyData;
-import lucee.runtime.net.proxy.ProxyDataImpl;
-import lucee.runtime.op.Caster;
-import lucee.runtime.op.Decision;
-import lucee.runtime.tag.Http;
-import lucee.runtime.type.dt.TimeSpanImpl;
-import lucee.runtime.type.util.CollectionUtil;
-
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
@@ -85,6 +61,30 @@ import org.apache.http.impl.cookie.BasicClientCookie;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
+
+import lucee.commons.io.IOUtil;
+import lucee.commons.io.TemporaryStream;
+import lucee.commons.io.res.Resource;
+import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.StringUtil;
+import lucee.commons.net.http.Entity;
+import lucee.commons.net.http.HTTPEngine;
+import lucee.commons.net.http.HTTPResponse;
+import lucee.commons.net.http.httpclient.entity.ByteArrayHttpEntity;
+import lucee.commons.net.http.httpclient.entity.EmptyHttpEntity;
+import lucee.commons.net.http.httpclient.entity.ResourceHttpEntity;
+import lucee.commons.net.http.httpclient.entity.TemporaryStreamHttpEntity;
+import lucee.runtime.PageContextImpl;
+import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.PageException;
+import lucee.runtime.net.http.ReqRspUtil;
+import lucee.runtime.net.proxy.ProxyData;
+import lucee.runtime.net.proxy.ProxyDataImpl;
+import lucee.runtime.op.Caster;
+import lucee.runtime.op.Decision;
+import lucee.runtime.tag.Http;
+import lucee.runtime.type.dt.TimeSpanImpl;
+import lucee.runtime.type.util.CollectionUtil;
 
 public class HTTPEngine4Impl {
 
@@ -247,6 +247,8 @@ public class HTTPEngine4Impl {
     private static HTTPResponse _invoke(URL url, HttpUriRequest request, String username, String password, long timeout, boolean redirect, String charset, String useragent,
 	    ProxyData proxy, lucee.commons.net.http.Header[] headers, Map<String, String> formfields) throws IOException {
 
+	proxy = ProxyDataImpl.validate(proxy, url.getHost());
+
 	HttpClientBuilder builder = getHttpClientBuilder();
 
 	// redirect
@@ -260,7 +262,7 @@ public class HTTPEngine4Impl {
 	setUserAgent(request, useragent);
 	if (timeout > 0) Http.setTimeout(builder, TimeSpanImpl.fromMillis(timeout));
 	HttpContext context = setCredentials(builder, hh, username, password, false);
-	setProxy(builder, request, proxy);
+	setProxy(url.getHost(), builder, request, proxy);
 	CloseableHttpClient client = builder.build();
 	if (context == null) context = new BasicHttpContext();
 	return new HTTPResponse4Impl(url, context, request, client.execute(request, context));
@@ -341,11 +343,11 @@ public class HTTPEngine4Impl {
 	if (body != null) req.setEntity(toHttpEntity(body, mimetype, charset));
     }
 
-    public static void setProxy(HttpClientBuilder builder, HttpUriRequest request, ProxyData proxy) {
+    public static void setProxy(String host, HttpClientBuilder builder, HttpUriRequest request, ProxyData proxy) {
 	// set Proxy
-	if (ProxyDataImpl.isValid(proxy)) {
-	    HttpHost host = new HttpHost(proxy.getServer(), proxy.getPort() == -1 ? 80 : proxy.getPort());
-	    builder.setProxy(host);
+	if (ProxyDataImpl.isValid(proxy, host)) {
+	    HttpHost hh = new HttpHost(proxy.getServer(), proxy.getPort() == -1 ? 80 : proxy.getPort());
+	    builder.setProxy(hh);
 
 	    // username/password
 	    if (!StringUtil.isEmpty(proxy.getUsername())) {

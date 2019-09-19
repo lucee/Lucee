@@ -18,12 +18,12 @@
  */
 package lucee.transformer.bytecode.visitor;
 
+import org.objectweb.asm.Label;
+import org.objectweb.asm.Opcodes;
+
 import lucee.transformer.Position;
 import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.util.ExpressionUtil;
-
-import org.objectweb.asm.Label;
-import org.objectweb.asm.Opcodes;
 
 public final class WhileVisitor implements LoopVisitor {
 

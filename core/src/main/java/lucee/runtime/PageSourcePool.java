@@ -25,8 +25,11 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.collections4.map.ReferenceMap;
+
 import lucee.commons.collection.LongKeyList;
-import lucee.commons.lang.SystemOut;
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
@@ -35,8 +38,6 @@ import lucee.runtime.dump.DumpUtil;
 import lucee.runtime.dump.Dumpable;
 import lucee.runtime.dump.SimpleDumpData;
 import lucee.runtime.type.dt.DateTimeImpl;
-
-import org.apache.commons.collections4.map.ReferenceMap;
 
 /**
  * pool to handle pages
@@ -161,9 +162,8 @@ public final class PageSourcePool implements Dumpable {
      * clear unused pages from page pool
      */
     public void clearUnused(ConfigImpl config) {
-
-	SystemOut.printDate(config.getOutWriter(), "PagePool: " + size() + ">(" + maxSize + ")");
 	if (size() > maxSize) {
+	    LogUtil.log(config, Log.LEVEL_INFO, PageSourcePool.class.getName(), "PagePool: " + size() + ">(" + maxSize + ")");
 	    String[] keys = keys();
 	    LongKeyList list = new LongKeyList();
 	    for (int i = 0; i < keys.length; i++) {

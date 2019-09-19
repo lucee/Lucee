@@ -22,6 +22,8 @@ import java.io.IOException;
 
 import javax.servlet.jsp.tagext.Tag;
 
+import org.apache.commons.mail.EmailAttachment;
+
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
@@ -34,8 +36,6 @@ import lucee.runtime.ext.tag.TagImpl;
 import lucee.runtime.functions.other.CreateUniqueId;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.util.ListUtil;
-
-import org.apache.commons.mail.EmailAttachment;
 
 /**
  * Can either attach a file or add a header to a message. It is nested within a cfmail tag. You can

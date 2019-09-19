@@ -28,6 +28,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.GeneratorAdapter;
+import org.objectweb.asm.commons.Method;
+
 import lucee.commons.digest.MD5;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
@@ -55,8 +62,6 @@ import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.listener.AppListenerUtil;
-import lucee.runtime.type.Pojo;
-import lucee.runtime.net.rpc.WSHandler;
 import lucee.runtime.net.rpc.server.WSServer;
 import lucee.runtime.net.rpc.server.WSUtil;
 import lucee.runtime.op.Caster;
@@ -66,6 +71,7 @@ import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.FunctionArgument;
 import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.Pojo;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
@@ -78,13 +84,6 @@ import lucee.transformer.bytecode.util.ASMUtil;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.bytecode.visitor.ArrayVisitor;
 import lucee.transformer.expression.literal.LitString;
-
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.Label;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
-import org.objectweb.asm.commons.GeneratorAdapter;
-import org.objectweb.asm.commons.Method;
 
 public final class ComponentUtil {
 

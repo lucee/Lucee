@@ -19,6 +19,14 @@
 package lucee.runtime.orm;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import org.w3c.dom.Attr;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
@@ -28,9 +36,11 @@ import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
+import lucee.runtime.exp.PageException;
 import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.op.Caster;
+import lucee.runtime.op.Decision;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
@@ -40,11 +50,8 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
 
-import org.w3c.dom.Attr;
-import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
-
 public class ORMConfigurationImpl implements ORMConfiguration {
+
     public static final int DBCREATE_NONE = 0;
     public static final int DBCREATE_UPDATE = 1;
     public static final int DBCREATE_DROP_CREATE = 2;
@@ -71,17 +78,12 @@ public class ORMConfigurationImpl implements ORMConfiguration {
     public static final Key CFC_LOCATION = KeyImpl.init("cfcLocation");
 
     private boolean autogenmap = true;
-    private String catalog;
     private Resource[] cfcLocations;
-    private int dbCreate = DBCREATE_NONE;
-    private String dialect;
     private Boolean eventHandling = null;
     private boolean flushAtRequestEnd = true;
     private boolean logSQL;
     private boolean saveMapping;
-    private String schema;
     private boolean secondaryCacheEnabled;
-    private Resource sqlScript;
     private boolean useDBForMapping = true;
     private Resource cacheConfig;
     private String cacheProvider;
@@ -93,9 +95,24 @@ public class ORMConfigurationImpl implements ORMConfiguration {
     private boolean autoManageSession = true;
     private ApplicationContext ac;
 
+    private Map<String, String> dbCreateMap;
+    private String dbCreateDefault = "";
+
+    private Map<String, String> dialectMap;
+    private String dialectDefault = "";
+
+    private Map<String, String> schemaMap;
+    private String schemaDefault = "";
+
+    private Map<String, String> catalogMap;
+    private String catalogDefault = "";
+
+    private Map<String, String> sqlScriptMap;
+    private String sqlScriptDefault = "";
+    private Config config;
+
     private ORMConfigurationImpl() {
 	autogenmap = true;
-	dbCreate = DBCREATE_NONE;
 	flushAtRequestEnd = true;
 	useDBForMapping = true;
     }
@@ -108,17 +125,15 @@ public class ORMConfigurationImpl implements ORMConfiguration {
 	return _load(config, ac, new _GetStruct(settings), defaultCFCLocation, defaultConfig);
     }
 
-    private static ORMConfiguration _load(Config config, ApplicationContext ac, _Get settings, Resource defaultCFCLocation, ORMConfiguration dc) {
-
+    private static ORMConfiguration _load(Config config, ApplicationContext ac, _Get settings, Resource defaultCFCLocation, ORMConfiguration _dc) {
+	ORMConfigurationImpl dc = (ORMConfigurationImpl) _dc;
 	if (dc == null) dc = new ORMConfigurationImpl();
-	ORMConfigurationImpl c = ((ORMConfigurationImpl) dc).duplicate();
+	ORMConfigurationImpl c = dc.duplicate();
+	c.config = config;
 	c.cfcLocations = defaultCFCLocation == null ? new Resource[0] : new Resource[] { defaultCFCLocation };
 
 	// autogenmap
 	c.autogenmap = Caster.toBooleanValue(settings.get(AUTO_GEN_MAP, dc.autogenmap()), dc.autogenmap());
-
-	// catalog
-	c.catalog = StringUtil.trim(Caster.toString(settings.get(CATALOG, dc.getCatalog()), dc.getCatalog()), dc.getCatalog());
 
 	// cfclocation
 	Object obj = settings.get(KeyConstants._cfcLocation, null);
@@ -133,15 +148,53 @@ public class ORMConfigurationImpl implements ORMConfiguration {
 	}
 	if (c.cfcLocations == null) c.cfcLocations = defaultCFCLocation == null ? new Resource[0] : new Resource[] { defaultCFCLocation };
 
+	// catalog
+	obj = settings.get(CATALOG, null);
+	if (!StringUtil.isEmpty(obj)) {
+	    Coll coll = _load(obj);
+	    c.catalogDefault = StringUtil.emptyIfNull(coll.def);
+	    c.catalogMap = coll.map;
+	}
+	else {
+	    c.catalogDefault = StringUtil.emptyIfNull(dc.catalogDefault);
+	    c.catalogMap = dc.catalogMap;
+	}
+
 	// dbcreate
 	obj = settings.get(DB_CREATE, null);
-	if (obj != null) {
-	    String str = Caster.toString(obj, "").trim().toLowerCase();
-	    c.dbCreate = dbCreateAsInt(str);
+	if (!StringUtil.isEmpty(obj)) {
+	    Coll coll = _load(obj);
+	    c.dbCreateDefault = StringUtil.emptyIfNull(coll.def);
+	    c.dbCreateMap = coll.map;
+	}
+	else {
+	    c.dbCreateDefault = StringUtil.emptyIfNull(dc.dbCreateDefault);
+	    c.dbCreateMap = dc.dbCreateMap;
 	}
 
 	// dialect
-	c.dialect = StringUtil.trim(Caster.toString(settings.get(DIALECT, dc.getDialect()), dc.getDialect()), dc.getDialect());
+	obj = settings.get(DIALECT, null);
+	if (!StringUtil.isEmpty(obj)) {
+	    Coll coll = _load(obj);
+	    c.dialectDefault = StringUtil.emptyIfNull(coll.def);
+	    c.dialectMap = coll.map;
+	}
+	else {
+	    c.dialectDefault = StringUtil.emptyIfNull(dc.dialectDefault);
+	    c.dialectMap = dc.dialectMap;
+	}
+
+	// sqlscript
+	obj = settings.get(SQL_SCRIPT, null);
+	if (!StringUtil.isEmpty(obj)) {
+	    Coll coll = _load(obj);
+	    c.sqlScriptDefault = StringUtil.emptyIfNull(coll.def);
+	    c.sqlScriptMap = coll.map;
+	}
+	else {
+	    c.sqlScriptDefault = StringUtil.emptyIfNull(dc.sqlScriptDefault);
+	    c.sqlScriptMap = dc.sqlScriptMap;
+	}
 
 	// namingstrategy
 	c.namingStrategy = Caster.toString(settings.get(NAMING_STRATEGY, dc.namingStrategy()), dc.namingStrategy());
@@ -173,21 +226,21 @@ public class ORMConfigurationImpl implements ORMConfiguration {
 	c.saveMapping = Caster.toBooleanValue(settings.get(SAVE_MAPPING, dc.saveMapping()), dc.saveMapping());
 
 	// schema
-	c.schema = StringUtil.trim(Caster.toString(settings.get(SCHEMA, dc.getSchema()), dc.getSchema()), dc.getSchema());
+	// c.schema = StringUtil.trim(Caster.toString(settings.get(SCHEMA, dc.getSchema()), dc.getSchema()),
+	// dc.getSchema());
+	obj = settings.get(SCHEMA, null);
+	if (obj != null) {
+	    Coll coll = _load(obj);
+	    c.schemaDefault = StringUtil.emptyIfNull(coll.def);
+	    c.schemaMap = coll.map;
+	}
+	else {
+	    c.schemaDefault = StringUtil.emptyIfNull(dc.schemaDefault);
+	    c.schemaMap = dc.schemaMap;
+	}
 
 	// secondarycacheenabled
 	c.secondaryCacheEnabled = Caster.toBooleanValue(settings.get(SECONDARY_CACHE_ENABLED, dc.secondaryCacheEnabled()), dc.secondaryCacheEnabled());
-
-	// sqlscript
-	obj = settings.get(SQL_SCRIPT, null);
-	if (!StringUtil.isEmpty(obj)) {
-	    try {
-		c.sqlScript = toRes(config, obj, true);
-	    }
-	    catch (ExpressionException e) {
-		// print.e(e);
-	    }
-	}
 
 	// useDBForMapping
 	c.useDBForMapping = Caster.toBooleanValue(settings.get(USE_DB_FOR_MAPPING, dc.useDBForMapping()), dc.useDBForMapping());
@@ -221,35 +274,83 @@ public class ORMConfigurationImpl implements ORMConfiguration {
 	return c;
     }
 
+    private static Coll _load(Object obj) {
+	final Coll coll = new Coll();
+	if (obj != null) {
+	    // multi
+	    if (Decision.isStruct(obj)) {
+		Struct sct = Caster.toStruct(obj, null);
+		if (sct != null) {
+		    Iterator<Entry<Key, Object>> it = sct.entryIterator();
+		    coll.map = new HashMap<String, String>();
+		    Entry<Key, Object> e;
+		    String k;
+		    String v;
+		    while (it.hasNext()) {
+			e = it.next();
+			k = e.getKey().getLowerString().trim();
+			v = Caster.toString(e.getValue(), "").trim();
+
+			if ("__default__".equals(k) || "".equals(k)) coll.def = v;
+			else coll.map.put(k, v);
+		    }
+		}
+	    }
+	    else {
+		coll.def = Caster.toString(obj, "").trim();
+	    }
+	}
+	return coll;
+    }
+
     private static Resource toRes(Config config, Object obj, boolean existing) throws ExpressionException {
 	PageContext pc = ThreadLocalPageContext.get();
 	if (pc != null) return Caster.toResource(pc, obj, existing);
 	return Caster.toResource(config, obj, existing);
     }
 
+    private static Resource toResEL(Config config, Object obj, boolean existing) {
+	PageContext pc = ThreadLocalPageContext.get();
+	try {
+	    if (pc != null) return Caster.toResource(pc, obj, existing);
+	    return Caster.toResource(config, obj, existing);
+	}
+	catch (PageException pe) {
+	    return null;
+	}
+    }
+
     private ORMConfigurationImpl duplicate() {
 	ORMConfigurationImpl other = new ORMConfigurationImpl();
 	other.autogenmap = autogenmap;
-	other.catalog = catalog;
 	other.cfcLocations = cfcLocations;
 	other.isDefaultCfcLocation = isDefaultCfcLocation;
-	other.dbCreate = dbCreate;
-	other.dialect = dialect;
+	other.dbCreateMap = dbCreateMap;
 	other.eventHandler = eventHandler;
 	other.namingStrategy = namingStrategy;
 	other.eventHandling = eventHandling;
 	other.flushAtRequestEnd = flushAtRequestEnd;
 	other.logSQL = logSQL;
 	other.saveMapping = saveMapping;
-	other.schema = schema;
 	other.secondaryCacheEnabled = secondaryCacheEnabled;
-	other.sqlScript = sqlScript;
 	other.useDBForMapping = useDBForMapping;
 	other.cacheConfig = cacheConfig;
 	other.cacheProvider = cacheProvider;
 	other.ormConfig = ormConfig;
 	other.autoManageSession = autoManageSession;
 	other.skipCFCWithError = skipCFCWithError;
+
+	other.dbCreateDefault = dbCreateDefault;
+	other.dbCreateMap = dbCreateMap;
+	other.dialectDefault = dialectDefault;
+	other.dialectMap = dialectMap;
+	other.schemaDefault = schemaDefault;
+	other.schemaMap = schemaMap;
+	other.catalogDefault = catalogDefault;
+	other.catalogMap = catalogMap;
+
+	other.sqlScriptDefault = sqlScriptDefault;
+	other.sqlScriptMap = sqlScriptMap;
 	return other;
     }
 
@@ -261,18 +362,36 @@ public class ORMConfigurationImpl implements ORMConfiguration {
 	ORMConfiguration ormConf = _ac.getORMConfiguration();
 
 	StringBuilder data = new StringBuilder().append(ormConf.autogenmap()).append(':').append(ormConf.getCatalog()).append(':').append(ormConf.isDefaultCfcLocation())
-		.append(':').append(ormConf.getDbCreate()).append(':').append(ormConf.getDialect()).append(':').append(ormConf.eventHandling()).append(':')
-		.append(ormConf.namingStrategy()).append(':').append(ormConf.eventHandler()).append(':').append(ormConf.flushAtRequestEnd()).append(':').append(ormConf.logSQL())
-		.append(':').append(ormConf.autoManageSession()).append(':').append(ormConf.skipCFCWithError()).append(':').append(ormConf.saveMapping()).append(':')
-		.append(ormConf.getSchema()).append(':').append(ormConf.secondaryCacheEnabled()).append(':').append(ormConf.useDBForMapping()).append(':')
-		.append(ormConf.getCacheProvider()).append(':').append(ds).append(':');
+		.append(':').append(ormConf.eventHandling()).append(':').append(ormConf.namingStrategy()).append(':').append(ormConf.eventHandler()).append(':')
+		.append(ormConf.flushAtRequestEnd()).append(':').append(ormConf.logSQL()).append(':').append(ormConf.autoManageSession()).append(':')
+		.append(ormConf.skipCFCWithError()).append(':').append(ormConf.saveMapping()).append(':').append(ormConf.getSchema()).append(':')
+		.append(ormConf.secondaryCacheEnabled()).append(':').append(ormConf.useDBForMapping()).append(':').append(ormConf.getCacheProvider()).append(':').append(ds)
+		.append(':');
 
 	append(data, ormConf.getCfcLocations());
 	append(data, ormConf.getSqlScript());
 	append(data, ormConf.getCacheConfig());
 	append(data, ormConf.getOrmConfig());
 
+	append(data, dbCreateDefault, dbCreateMap);
+	append(data, catalogDefault, catalogMap);
+	append(data, dialectDefault, dialectMap);
+	append(data, schemaDefault, schemaMap);
+	append(data, sqlScriptDefault, sqlScriptMap);
+
 	return CFMLEngineFactory.getInstance().getSystemUtil().hash64b(data.toString());
+    }
+
+    private static void append(StringBuilder data, String def, Map<String, String> map) {
+	data.append(':').append(def);
+	if (map != null) {
+	    Iterator<Entry<String, String>> it = map.entrySet().iterator();
+	    Entry<String, String> e;
+	    while (it.hasNext()) {
+		e = it.next();
+		data.append(':').append(e.getKey()).append(':').append(e.getValue());
+	    }
+	}
     }
 
     private void append(StringBuilder data, Resource[] reses) {
@@ -304,14 +423,6 @@ public class ORMConfigurationImpl implements ORMConfiguration {
     }
 
     /**
-     * @return the catalog
-     */
-    @Override
-    public String getCatalog() {
-	return catalog;
-    }
-
-    /**
      * @return the cfcLocation
      */
     @Override
@@ -324,25 +435,63 @@ public class ORMConfigurationImpl implements ORMConfiguration {
 	return isDefaultCfcLocation;
     }
 
-    /**
-     * @return the dbCreate
-     */
     @Override
     public int getDbCreate() {
-	return dbCreate;
+	return dbCreateAsInt(dbCreateDefault);
     }
 
-    /**
-     * @return the dialect
-     */
+    public int getDbCreate(String datasourceName) { // FUTURE add to interface
+	return dbCreateAsInt(_get(datasourceName, dbCreateDefault, dbCreateMap));
+    }
+
     @Override
     public String getDialect() {
-	return dialect;
+	return dialectDefault;
     }
 
-    /**
-     * @return the eventHandling
-     */
+    public String getDialect(String datasourceName) { // FUTURE add to interface
+	return _get(datasourceName, dialectDefault, dialectMap);
+    }
+
+    @Override
+    public String getSchema() {
+	return schemaDefault;
+    }
+
+    public String getSchema(String datasourceName) { // FUTURE add to interface
+	return _get(datasourceName, schemaDefault, schemaMap);
+    }
+
+    @Override
+    public String getCatalog() {
+	return catalogDefault;
+    }
+
+    public String getCatalog(String datasourceName) { // FUTURE add to interface
+	return _get(datasourceName, catalogDefault, catalogMap);
+    }
+
+    @Override
+    public Resource getSqlScript() {
+	if (StringUtil.isEmpty(sqlScriptDefault)) return null;
+	return toResEL(config, sqlScriptDefault, true);
+    }
+
+    public Resource getSqlScript(String datasourceName) { // FUTURE add to interface
+	String res = _get(datasourceName, sqlScriptDefault, sqlScriptMap);
+	if (StringUtil.isEmpty(res)) return null;
+	return toResEL(config, res, true);
+    }
+
+    private static String _get(String datasourceName, String def, Map<String, String> map) {
+	if (map != null && !StringUtil.isEmpty(datasourceName)) {
+	    datasourceName = datasourceName.toLowerCase().trim();
+	    String res = map.get(datasourceName);
+	    if (!StringUtil.isEmpty(res)) return res;
+	}
+	return def;
+    }
+
     @Override
     public boolean eventHandling() {
 	return eventHandling == null ? false : eventHandling.booleanValue();
@@ -358,81 +507,41 @@ public class ORMConfigurationImpl implements ORMConfiguration {
 	return namingStrategy;
     }
 
-    /**
-     * @return the flushAtRequestEnd
-     */
     @Override
     public boolean flushAtRequestEnd() {
 	return flushAtRequestEnd;
     }
 
-    /**
-     * @return the logSQL
-     */
     @Override
     public boolean logSQL() {
 	return logSQL;
     }
 
-    /**
-     * @return the saveMapping
-     */
     @Override
     public boolean saveMapping() {
 	return saveMapping;
     }
 
-    /**
-     * @return the schema
-     */
-    @Override
-    public String getSchema() {
-	return schema;
-    }
-
-    /**
-     * @return the secondaryCacheEnabled
-     */
     @Override
     public boolean secondaryCacheEnabled() {
 	return secondaryCacheEnabled;
     }
 
-    /**
-     * @return the sqlScript
-     */
-    @Override
-    public Resource getSqlScript() {
-	return sqlScript;
-    }
-
-    /**
-     * @return the useDBForMapping
-     */
     @Override
     public boolean useDBForMapping() {
 	return useDBForMapping;
     }
 
-    /**
-     * @return the cacheConfig
-     */
     @Override
     public Resource getCacheConfig() {
 	return cacheConfig;
     }
 
-    /**
-     * @return the cacheProvider
-     */
     @Override
     public String getCacheProvider() {
 	return cacheProvider;
     }
 
-    /**
-     * @return the ormConfig
-     */
     @Override
     public Resource getOrmConfig() {
 	return ormConfig;
@@ -458,24 +567,25 @@ public class ORMConfigurationImpl implements ORMConfiguration {
 	}
 	Struct sct = new StructImpl();
 	sct.setEL(AUTO_GEN_MAP, this.autogenmap());
-	sct.setEL(CATALOG, StringUtil.emptyIfNull(getCatalog()));
 	sct.setEL(CFC_LOCATION, arrLocs);
 	sct.setEL(IS_DEFAULT_CFC_LOCATION, isDefaultCfcLocation());
-	sct.setEL(DB_CREATE, dbCreateAsString(getDbCreate()));
-	sct.setEL(DIALECT, StringUtil.emptyIfNull(getDialect()));
 	sct.setEL(EVENT_HANDLING, eventHandling());
 	sct.setEL(EVENT_HANDLER, eventHandler());
 	sct.setEL(NAMING_STRATEGY, namingStrategy());
 	sct.setEL(FLUSH_AT_REQUEST_END, flushAtRequestEnd());
 	sct.setEL(LOG_SQL, logSQL());
 	sct.setEL(SAVE_MAPPING, saveMapping());
-	sct.setEL(SCHEMA, StringUtil.emptyIfNull(getSchema()));
 	sct.setEL(SECONDARY_CACHE_ENABLED, secondaryCacheEnabled());
-	sct.setEL(SQL_SCRIPT, StringUtil.toStringEmptyIfNull(getSqlScript()));
 	sct.setEL(USE_DB_FOR_MAPPING, useDBForMapping());
 	sct.setEL(CACHE_CONFIG, getAbsolutePath(getCacheConfig()));
 	sct.setEL(CACHE_PROVIDER, StringUtil.emptyIfNull(getCacheProvider()));
 	sct.setEL(ORM_CONFIG, getAbsolutePath(getOrmConfig()));
+
+	sct.setEL(CATALOG, externalize(catalogMap, catalogDefault));
+	sct.setEL(SCHEMA, externalize(schemaMap, schemaDefault));
+	sct.setEL(DB_CREATE, externalize(dbCreateMap, dbCreateDefault));
+	sct.setEL(DIALECT, externalize(dialectMap, dialectDefault));
+	sct.setEL(SQL_SCRIPT, externalize(sqlScriptMap, sqlScriptDefault));
 	return sct;
     }
 
@@ -504,6 +614,18 @@ public class ORMConfigurationImpl implements ORMConfiguration {
 	}
 
 	return "none";
+    }
+
+    private static Object externalize(Map<String, String> map, String def) {
+	if (map == null || map.isEmpty()) return StringUtil.emptyIfNull(def);
+	Iterator<Entry<String, String>> it = map.entrySet().iterator();
+	Entry<String, String> e;
+	Struct sct = new StructImpl();
+	while (it.hasNext()) {
+	    e = it.next();
+	    if (!StringUtil.isEmpty(e.getValue())) sct.setEL(e.getKey(), e.getValue());
+	}
+	return sct;
     }
 }
 
@@ -565,4 +687,9 @@ class _GetElement implements _Get {
 	if (el.hasAttribute(name)) return el.getAttribute(name);
 	return null;
     }
+}
+
+class Coll {
+    Map<String, String> map;
+    String def;
 }

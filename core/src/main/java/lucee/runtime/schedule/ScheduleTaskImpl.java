@@ -23,6 +23,7 @@ import java.lang.Thread.State;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.Md5;
 import lucee.commons.net.HTTPUtil;
@@ -66,6 +67,7 @@ public final class ScheduleTaskImpl implements ScheduleTask {
     private String md5;
     private ScheduledTaskThread thread;
     private Scheduler scheduler;
+    private boolean unique;
 
     /**
      * constructor of the class
@@ -90,12 +92,12 @@ public final class ScheduleTaskImpl implements ScheduleTask {
      * @throws ScheduleException
      */
     public ScheduleTaskImpl(Scheduler scheduler, String task, Resource file, Date startDate, Time startTime, Date endDate, Time endTime, String url, int port, String interval,
-	    long timeout, Credentials credentials, ProxyData proxy, boolean resolveURL, boolean publish, boolean hidden, boolean readonly, boolean paused, boolean autoDelete)
-	    throws IOException, ScheduleException {
+	    long timeout, Credentials credentials, ProxyData proxy, boolean resolveURL, boolean publish, boolean hidden, boolean readonly, boolean paused, boolean autoDelete,
+	    boolean unique) throws IOException, ScheduleException {
 
 	this.scheduler = scheduler;
 	String md5 = task.toLowerCase() + file + startDate + startTime + endDate + endTime + url + port + interval + timeout + credentials + proxy + resolveURL + publish + hidden
-		+ readonly + paused;
+		+ readonly + paused + unique;
 	md5 = Md5.getDigestAsString(md5);
 	this.md5 = md5;
 
@@ -129,6 +131,7 @@ public final class ScheduleTaskImpl implements ScheduleTask {
 	this.readonly = readonly;
 	this.paused = paused;
 	this.autoDelete = autoDelete;
+	this.unique = unique;
     }
 
     /**
@@ -324,6 +327,10 @@ public final class ScheduleTaskImpl implements ScheduleTask {
 	this.autoDelete = autoDelete;
     }
 
+    public void setUnique(boolean unique) {
+	this.unique = unique;
+    }
+
     public String md5() {
 	return md5;
     }
@@ -344,5 +351,23 @@ public final class ScheduleTaskImpl implements ScheduleTask {
 	}
 	this.thread = new ScheduledTaskThread(engine, scheduler, this);
 	thread.start();
+    }
+
+    public void stop() {
+	Log log = ((SchedulerImpl) scheduler).getConfig().getLog("scheduler");
+	log.info("scheduler", "stopping task [" + getTask() + "]");
+	if (thread == null || !thread.isAlive()) {
+	    log.info("scheduler", "task [" + getTask() + "] was not running");
+	    return;
+	}
+	thread.stopIt();
+    }
+
+    public boolean unique() {
+	return unique;
+    }
+
+    public Scheduler getScheduler() {
+	return scheduler;
     }
 }

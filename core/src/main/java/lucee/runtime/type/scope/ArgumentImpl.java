@@ -48,7 +48,7 @@ import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Null;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
-import lucee.runtime.type.UDFPlus;
+import lucee.runtime.type.UDF;
 import lucee.runtime.type.it.EntryArrayIterator;
 import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.MemberUtil;
@@ -391,10 +391,10 @@ public final class ArgumentImpl extends ScopeSupport implements Argument, ArrayP
 
     @Override
     public boolean containsKey(Collection.Key key) {
-	if (NullSupportHelper.full()) return super.containsKey(key);
-
-	return super.g(key, null) != null;
-	// return get(key,NullSupportHelper.NULL())!=NullSupportHelper.NULL() && super.containsKey(key);
+	Object val = super.g(key, CollectionUtil.NULL);
+	if (val == CollectionUtil.NULL) return false;
+	if (val == null && !NullSupportHelper.full()) return false;
+	return true;
     }
     /*
      * public boolean containsKey(Collection.Key key) { return get(key,null)!=null &&
@@ -480,8 +480,8 @@ public final class ArgumentImpl extends ScopeSupport implements Argument, ArrayP
     @Override
     public Object call(PageContext pc, Key methodName, Object[] args) throws PageException {
 	Object obj = get(methodName, null);
-	if (obj instanceof UDFPlus) {
-	    return ((UDFPlus) obj).call(pc, methodName, args, false);
+	if (obj instanceof UDF) {
+	    return ((UDF) obj).call(pc, methodName, args, false);
 	}
 	return MemberUtil.call(pc, this, methodName, args, new short[] { CFTypes.TYPE_STRUCT }, new String[] { "struct" });
 	// return MemberUtil.call(pc, this, methodName, args, CFTypes.TYPE_ARRAY, "array");
@@ -490,8 +490,8 @@ public final class ArgumentImpl extends ScopeSupport implements Argument, ArrayP
     @Override
     public Object callWithNamedValues(PageContext pc, Key methodName, Struct args) throws PageException {
 	Object obj = get(methodName, null);
-	if (obj instanceof UDFPlus) {
-	    return ((UDFPlus) obj).callWithNamedValues(pc, methodName, args, false);
+	if (obj instanceof UDF) {
+	    return ((UDF) obj).callWithNamedValues(pc, methodName, args, false);
 	}
 	return MemberUtil.callWithNamedValues(pc, this, methodName, args, CFTypes.TYPE_STRUCT, "struct");
 	// return MemberUtil.callWithNamedValues(pc,this,methodName,args, CFTypes.TYPE_ARRAY, "array");

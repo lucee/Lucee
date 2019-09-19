@@ -18,14 +18,14 @@
  */
 package lucee.transformer.bytecode.visitor;
 
+import org.objectweb.asm.Label;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.commons.GeneratorAdapter;
+
 import lucee.transformer.Position;
 import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.util.ExpressionUtil;
 import lucee.transformer.bytecode.util.Types;
-
-import org.objectweb.asm.Label;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.commons.GeneratorAdapter;
 
 public final class ForVisitor implements Opcodes, LoopVisitor {
 

@@ -83,18 +83,19 @@ public final class CallerImpl extends StructSupport implements Caller {
 	// upper variable scope
 	Object o;
 
+	Object _null = NullSupportHelper.NULL(pc);
 	if (checkArgs) {
-	    o = localScope.get(key, NullSupportHelper.NULL(pc));
-	    if (o != NullSupportHelper.NULL(pc)) return o;
-	    o = argumentsScope.get(key, NullSupportHelper.NULL(pc));
-	    if (o != NullSupportHelper.NULL(pc)) return o;
+	    o = localScope.get(key, _null);
+	    if (o != _null) return o;
+	    o = argumentsScope.get(key, _null);
+	    if (o != _null) return o;
 	}
-	o = variablesScope.get(key, NullSupportHelper.NULL(pc));
-	if (o != NullSupportHelper.NULL(pc)) return o;
+	o = variablesScope.get(key, _null);
+	if (o != _null) return o;
 
 	// get from cascaded scopes
-	o = ((UndefinedImpl) pc.undefinedScope()).getCascading(key, NullSupportHelper.NULL(pc));
-	if (o != NullSupportHelper.NULL(pc)) return o;
+	o = ((UndefinedImpl) pc.undefinedScope()).getCascading(key, _null);
+	if (o != _null) return o;
 
 	/*
 	 * // get scopes if(key.equalsIgnoreCase(VARIABLES)) { return variablesScope;//new
@@ -165,19 +166,20 @@ public final class CallerImpl extends StructSupport implements Caller {
 	    if (KeyConstants._variables.equalsIgnoreCase(key)) return variablesScope;
 	}
 
+	Object _null = NullSupportHelper.NULL(pc);
 	Object o;
 	if (checkArgs) {
-	    o = localScope.get(key, NullSupportHelper.NULL(pc));
-	    if (o != NullSupportHelper.NULL(pc)) return o;
-	    o = argumentsScope.get(key, NullSupportHelper.NULL(pc));
-	    if (o != NullSupportHelper.NULL(pc)) return o;
+	    o = localScope.get(key, _null);
+	    if (o != _null) return o;
+	    o = argumentsScope.get(key, _null);
+	    if (o != _null) return o;
 	}
-	o = variablesScope.get(key, NullSupportHelper.NULL(pc));
-	if (o != NullSupportHelper.NULL(pc)) return o;
+	o = variablesScope.get(key, _null);
+	if (o != _null) return o;
 
 	// get from cascaded scopes
-	o = ((UndefinedImpl) pc.undefinedScope()).getCascading(key, NullSupportHelper.NULL(pc));
-	if (o != NullSupportHelper.NULL(pc)) return o;
+	o = ((UndefinedImpl) pc.undefinedScope()).getCascading(key, _null);
+	if (o != _null) return o;
 
 	return defaultValue;
     }

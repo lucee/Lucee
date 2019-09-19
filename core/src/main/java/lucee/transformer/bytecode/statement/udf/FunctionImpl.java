@@ -18,6 +18,8 @@
  */
 package lucee.transformer.bytecode.statement.udf;
 
+import org.objectweb.asm.commons.GeneratorAdapter;
+
 import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.Body;
@@ -26,8 +28,6 @@ import lucee.transformer.bytecode.Root;
 import lucee.transformer.bytecode.util.Types;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.Literal;
-
-import org.objectweb.asm.commons.GeneratorAdapter;
 
 public final class FunctionImpl extends Function {
 
@@ -60,23 +60,47 @@ public final class FunctionImpl extends Function {
 
 	bc.getFactory().registerKey(bc, name, true);
 	if (pageType == PAGE_TYPE_COMPONENT) {
-	    loadUDFProperties(bc, valueIndex, arrayIndex, TYPE_UDF);
-	    adapter.invokeVirtual(Types.COMPONENT_IMPL, REG_UDF_KEY);
+	    if (this.jf != null) {
+		bc.registerJavaFunction(jf);
+		adapter.push(jf.getClassName());
+		adapter.invokeVirtual(Types.COMPONENT_IMPL, REG_JAVA_FUNCTION);
+	    }
+	    else {
+		loadUDFProperties(bc, valueIndex, arrayIndex, TYPE_UDF);
+		adapter.invokeVirtual(Types.COMPONENT_IMPL, REG_UDF_KEY);
+	    }
 	}
 	else if (pageType == PAGE_TYPE_INTERFACE) {
-	    loadUDFProperties(bc, valueIndex, arrayIndex, TYPE_UDF);
-	    adapter.invokeVirtual(Types.INTERFACE_IMPL, REG_UDF_KEY);
+	    if (this.jf != null) {
+		bc.registerJavaFunction(jf);
+		adapter.push(jf.getClassName());
+		adapter.invokeVirtual(Types.INTERFACE_IMPL, REG_JAVA_FUNCTION);
+	    }
+	    else {
+		loadUDFProperties(bc, valueIndex, arrayIndex, TYPE_UDF);
+		adapter.invokeVirtual(Types.INTERFACE_IMPL, REG_UDF_KEY);
+	    }
 	}
 	else {
-	    adapter.newInstance(Types.UDF_IMPL);
-	    adapter.dup();
-	    loadUDFProperties(bc, valueIndex, arrayIndex, TYPE_UDF);
-	    adapter.invokeConstructor(Types.UDF_IMPL, INIT_UDF_IMPL_PROP);
-
+	    if (this.jf != null) {
+		bc.registerJavaFunction(jf);
+		adapter.loadArg(0);
+		adapter.checkCast(Types.PAGE_CONTEXT_IMPL);
+		adapter.visitVarInsn(ALOAD, 0);
+		adapter.push(jf.getClassName());
+		adapter.invokeVirtual(Types.PAGE_CONTEXT_IMPL, USE_JAVA_FUNCTION);
+	    }
+	    else {
+		adapter.newInstance(Types.UDF_IMPL);
+		adapter.dup();
+		loadUDFProperties(bc, valueIndex, arrayIndex, TYPE_UDF);
+		adapter.invokeConstructor(Types.UDF_IMPL, INIT_UDF_IMPL_PROP);
+	    }
 	    // loadUDF(bc, index);
 	    adapter.invokeInterface(Types.VARIABLES, SET_KEY);
 	    adapter.pop();
 	}
+
     }
 
     @Override

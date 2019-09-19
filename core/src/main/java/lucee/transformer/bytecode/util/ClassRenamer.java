@@ -18,14 +18,14 @@
  */
 package lucee.transformer.bytecode.util;
 
-import lucee.commons.lang.StringUtil;
-import lucee.runtime.type.util.ListUtil;
-
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+
+import lucee.commons.lang.StringUtil;
+import lucee.runtime.type.util.ListUtil;
 
 public class ClassRenamer extends ClassVisitor implements Opcodes {
 
@@ -44,7 +44,7 @@ public class ClassRenamer extends ClassVisitor implements Opcodes {
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
 	oldName = name;
 	doNothing = oldName.equals(newName);
-
+	// print.e("vist:" + (oldName + ":" + newName));
 	cv.visit(version, ACC_PUBLIC, newName, signature, superName, interfaces);
     }
 
@@ -114,8 +114,8 @@ public class ClassRenamer extends ClassVisitor implements Opcodes {
     public static byte[] rename(byte[] src, String newName) {
 	ClassReader cr = new ClassReader(src);
 	ClassWriter cw = ASMUtil.getClassWriter();
-	ClassVisitor ca = new ClassRenamer(cw, newName);
+	ClassRenamer ca = new ClassRenamer(cw, newName);
 	cr.accept(ca, 0);
-	return cw.toByteArray();
+	return ca.doNothing ? null : cw.toByteArray();
     }
 }

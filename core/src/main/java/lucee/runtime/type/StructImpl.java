@@ -24,6 +24,8 @@ import static org.apache.commons.collections4.map.AbstractReferenceMap.Reference
 import java.util.Iterator;
 import java.util.Set;
 
+import org.apache.commons.collections4.map.ReferenceMap;
+
 import lucee.commons.collection.HashMapPro;
 import lucee.commons.collection.LinkedHashMapPro;
 import lucee.commons.collection.MapFactory;
@@ -42,10 +44,9 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.op.ThreadLocalDuplication;
 import lucee.runtime.type.it.StringIterator;
+import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.StructSupport;
 import lucee.runtime.type.util.StructUtil;
-
-import org.apache.commons.collections4.map.ReferenceMap;
 
 /**
  * CFML data type struct
@@ -91,6 +92,7 @@ public class StructImpl extends StructSupport {
 	else map = MapFactory.getConcurrentMap(initialCapacity);
     }
 
+    @Override
     public int getType() {
 	return StructUtil.getType(map);
     }
@@ -105,11 +107,10 @@ public class StructImpl extends StructSupport {
 
     @Override
     public Object get(Collection.Key key, Object defaultValue) {
-	if (NullSupportHelper.full()) return map.g(key, defaultValue);
-
-	Object rtn = map.get(key);
-	if (rtn != null) return rtn;
-	return defaultValue;
+	Object val = map.g(key, CollectionUtil.NULL);
+	if (val == CollectionUtil.NULL) return defaultValue;
+	if (val == null && !NullSupportHelper.full()) return defaultValue;
+	return val;
     }
 
     public Object g(Collection.Key key, Object defaultValue) {
@@ -120,12 +121,13 @@ public class StructImpl extends StructSupport {
 	return map.g(key);
     }
 
+    private static int count2 = 0;
+
     @Override
     public Object get(Collection.Key key) throws PageException {
-	if (NullSupportHelper.full()) return map.g(key);
-
-	Object rtn = map.get(key);
-	if (rtn != null) return rtn;
+	Object val = map.g(key);
+	if (val != null) return val;
+	if (NullSupportHelper.full()) return val;
 	throw StructSupport.invalidKey(null, this, key, null);
     }
 
@@ -173,10 +175,11 @@ public class StructImpl extends StructSupport {
 
     @Override
     public Object remove(Collection.Key key) throws PageException {
-	if (NullSupportHelper.full()) return map.r(key);
-	Object obj = map.remove(key);
-	if (obj == null) throw new ExpressionException("can't remove key [" + key + "] from struct, key doesn't exist");
-	return obj;
+
+	Object val = map.r(key);
+	if (val != null || NullSupportHelper.full()) return val;
+
+	throw new ExpressionException("can't remove key [" + key + "] from struct, key value is NULL what is equal do not existing in case full null support is not enabled");
     }
 
     @Override
@@ -186,10 +189,10 @@ public class StructImpl extends StructSupport {
 
     @Override
     public Object remove(Collection.Key key, Object defaultValue) {
-	if (NullSupportHelper.full()) return map.r(key, defaultValue);
-	Object obj = map.remove(key);
-	if (obj == null) return defaultValue;
-	return obj;
+	Object val = map.r(key, CollectionUtil.NULL);
+	if (val == CollectionUtil.NULL) return defaultValue;
+	if (val == null && !NullSupportHelper.full()) return defaultValue;
+	return val;
     }
 
     @Override

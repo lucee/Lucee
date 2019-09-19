@@ -23,6 +23,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
+import com.jacob.com.Dispatch;
+import com.jacob.com.Variant;
+
 import lucee.runtime.PageContext;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
@@ -39,9 +42,6 @@ import lucee.runtime.type.Struct;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.it.KeyAsStringIterator;
 import lucee.runtime.type.it.ObjectsEntryIterator;
-
-import com.jacob.com.Dispatch;
-import com.jacob.com.Variant;
 
 /**
  * 

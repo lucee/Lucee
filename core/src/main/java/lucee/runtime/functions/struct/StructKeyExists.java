@@ -48,9 +48,11 @@ public final class StructKeyExists extends BIF {
 		return QueryColumnExists.call(pc, (Query) c, key);
 	    }
 	}
-	if (NullSupportHelper.full(pc)) return struct.containsKey(key);
 
-	return struct.containsKey(key) && struct.get(key, null) != null;// do not change, this has do be this way
+	if (!struct.containsKey(key)) return false;
+
+	if (NullSupportHelper.full(pc)) return true;
+	return struct.get(key, null) != null;// do not change, this has do be this way
     }
 
     @Override

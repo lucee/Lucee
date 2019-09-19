@@ -26,11 +26,11 @@ import java.util.Scanner;
 
 import javax.activation.DataSource;
 
+import org.apache.commons.lang.WordUtils;
+
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.lang.CharSet;
 import lucee.commons.lang.StringUtil;
-
-import org.apache.commons.lang.WordUtils;
 
 public final class StringDataSource implements DataSource {
 

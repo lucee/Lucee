@@ -18,6 +18,8 @@
  **/
 package lucee.runtime.net.rpc.client;
 
+import org.w3c.dom.Node;
+
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
 import lucee.runtime.exp.PageException;
@@ -26,8 +28,6 @@ import lucee.runtime.type.Collection;
 import lucee.runtime.type.Iteratorable;
 import lucee.runtime.type.Objects;
 import lucee.runtime.type.Struct;
-
-import org.w3c.dom.Node;
 
 public interface WSClient extends Objects, Iteratorable {
 

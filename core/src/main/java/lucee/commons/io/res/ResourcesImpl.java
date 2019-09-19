@@ -20,8 +20,6 @@ package lucee.commons.io.res;
 
 import java.util.Map;
 
-import org.osgi.framework.BundleException;
-
 import lucee.commons.io.res.type.file.FileResourceProvider;
 import lucee.commons.io.res.util.ResourceLockImpl;
 import lucee.commons.lang.ClassException;

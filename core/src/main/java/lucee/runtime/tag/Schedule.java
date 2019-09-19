@@ -141,6 +141,7 @@ public final class Schedule extends TagImpl {
     private String serverPassword = null;
     private boolean paused;
     private boolean autoDelete;
+    private boolean unique;
 
     public void setAutodelete(boolean autoDelete) {
 	this.autoDelete = autoDelete;
@@ -183,6 +184,10 @@ public final class Schedule extends TagImpl {
 
     public void setPaused(boolean paused) {
 	this.paused = paused;
+    }
+
+    public void setUnique(boolean unique) {
+	this.unique = unique;
     }
 
     /**
@@ -466,9 +471,8 @@ public final class Schedule extends TagImpl {
 	if (username != null) cr = CredentialsImpl.toCredentials(username, password);
 
 	try {
-
 	    ScheduleTask st = new ScheduleTaskImpl(scheduler, task, file, startdate, starttime, enddate, endtime, url, port, interval, requesttimeout, cr,
-		    ProxyDataImpl.getInstance(proxyserver, proxyport, proxyuser, proxypassword), resolveurl, publish, hidden, readonly, paused, autoDelete);
+		    ProxyDataImpl.getInstance(proxyserver, proxyport, proxyuser, proxypassword), resolveurl, publish, hidden, readonly, paused, autoDelete, unique);
 	    scheduler.addScheduleTask(st, true);
 	}
 	catch (Exception e) {
@@ -511,8 +515,8 @@ public final class Schedule extends TagImpl {
 	ScheduleTask[] tasks = scheduler.getAllScheduleTasks();
 	final String v = "VARCHAR";
 	String[] cols = new String[] { "task", "path", "file", "startdate", "starttime", "enddate", "endtime", "url", "port", "interval", "timeout", "username", "password",
-		"proxyserver", "proxyport", "proxyuser", "proxypassword", "resolveurl", "publish", "valid", "paused", "autoDelete" };
-	String[] types = new String[] { v, v, v, "DATE", "OTHER", "DATE", "OTHER", v, v, v, v, v, v, v, v, v, v, v, "BOOLEAN", v, "BOOLEAN", "BOOLEAN" };
+		"proxyserver", "proxyport", "proxyuser", "proxypassword", "resolveurl", "publish", "valid", "paused", "autoDelete", "unique" };
+	String[] types = new String[] { v, v, v, "DATE", "OTHER", "DATE", "OTHER", v, v, v, v, v, v, v, v, v, v, v, "BOOLEAN", v, "BOOLEAN", "BOOLEAN", "BOOLEAN" };
 	lucee.runtime.type.Query query = new QueryImpl(cols, types, tasks.length, "query");
 	try {
 	    for (int i = 0; i < tasks.length; i++) {
@@ -550,6 +554,7 @@ public final class Schedule extends TagImpl {
 
 		query.setAt("paused", row, Caster.toBoolean(task.isPaused()));
 		query.setAt("autoDelete", row, Caster.toBoolean(((ScheduleTaskImpl) task).isAutoDelete()));
+		query.setAt("unique", row, Caster.toBoolean(((ScheduleTaskImpl) task).unique()));
 
 	    }
 	    pageContext.setVariable(result, query);
@@ -610,6 +615,7 @@ public final class Schedule extends TagImpl {
 	hidden = false;
 	serverPassword = null;
 	paused = false;
+	unique = false;
 	autoDelete = false;
     }
 

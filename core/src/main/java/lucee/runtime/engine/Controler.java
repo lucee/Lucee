@@ -20,7 +20,6 @@
 package lucee.runtime.engine;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -35,7 +34,6 @@ import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.io.res.filter.ResourceFilter;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
-import lucee.commons.lang.SystemOut;
 import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.Mapping;
 import lucee.runtime.MappingImpl;
@@ -47,6 +45,7 @@ import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.config.DeployHandler;
 import lucee.runtime.config.XMLConfigAdmin;
+import lucee.runtime.functions.system.PagePoolClear;
 import lucee.runtime.lock.LockManagerImpl;
 import lucee.runtime.net.smtp.SMTPConnectionPool;
 import lucee.runtime.op.Caster;
@@ -61,6 +60,8 @@ import lucee.runtime.type.util.ArrayUtil;
 public final class Controler extends Thread {
 
     private static final long TIMEOUT = 50 * 1000;
+
+    private static final ControllerState INACTIVE = new ControllerStateImpl(false);
 
     private int interval;
     private long lastMinuteInterval = System.currentTimeMillis() - (1000 * 59); // first after a second
@@ -130,8 +131,11 @@ public final class Controler extends Thread {
 	List<ControlerThread> threads = new ArrayList<ControlerThread>();
 	CFMLFactoryImpl factories[] = null;
 	while (state.active()) {
+
 	    // sleep
-	    SystemUtil.sleep(interval);
+	    SystemUtil.wait(this, interval);
+	    if (!state.active()) break;
+
 	    factories = toFactories(factories, contextes);
 	    // start the thread that calls control
 	    ControlerThread ct = new ControlerThread(this, factories, firstRun, configServer.getLog("application"));
@@ -297,7 +301,7 @@ public final class Controler extends Thread {
 		    ((SchedulerImpl) ((ConfigWebImpl) config).getScheduler()).startIfNecessary();
 		}
 		catch (Exception e) {
-		    SystemOut.printDate(e);
+		    LogUtil.log(ThreadLocalPageContext.getConfig(configServer), Controler.class.getName(), e);
 		}
 
 		// double check templates
@@ -305,7 +309,7 @@ public final class Controler extends Thread {
 		    ((ConfigWebImpl) config).getCompiler().checkWatched();
 		}
 		catch (Exception e) {
-		    SystemOut.printDate(e);
+		    LogUtil.log(ThreadLocalPageContext.getConfig(configServer), Controler.class.getName(), e);
 		}
 
 		// deploy extensions, archives ...
@@ -340,8 +344,10 @@ public final class Controler extends Thread {
 		 * t){ExceptionUtil.rethrowIfNecessary(t);}
 		 */
 		// contract Page Pool
-		// try{doClearPagePools((ConfigWebImpl) config);}catch(Throwable t)
-		// {ExceptionUtil.rethrowIfNecessary(t);}
+		try {
+		    doClearPagePools((ConfigWebImpl) config);
+		}
+		catch (Exception e) {}
 		// try{checkPermGenSpace((ConfigWebImpl) config);}catch(Throwable t)
 		// {ExceptionUtil.rethrowIfNecessary(t);}
 		try {
@@ -422,6 +428,10 @@ public final class Controler extends Thread {
 	}
     }
 
+    private void doClearPagePools(ConfigWebImpl config) {
+	PagePoolClear.clear(null, config, true);
+    }
+
     private CFMLFactoryImpl[] toFactories(CFMLFactoryImpl[] factories, Map contextes) {
 	if (factories == null || factories.length != contextes.size()) factories = (CFMLFactoryImpl[]) contextes.values().toArray(new CFMLFactoryImpl[contextes.size()]);
 
@@ -474,10 +484,9 @@ public final class Controler extends Thread {
 	Resource res = null;
 	int count = ArrayUtil.size(filter == null ? dir.list() : dir.list(filter));
 	long size = ResourceUtil.getRealSize(dir, filter);
-	PrintWriter out = config.getOutWriter();
-	SystemOut.printDate(out, "check size of directory [" + dir + "]");
-	SystemOut.printDate(out, "- current size	[" + size + "]");
-	SystemOut.printDate(out, "- max size 	[" + maxSize + "]");
+	LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_WARN, Controler.class.getName(), "check size of directory [" + dir + "]");
+	LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_WARN, Controler.class.getName(), "- current size	[" + size + "]");
+	LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_WARN, Controler.class.getName(), "- max size 	[" + maxSize + "]");
 	int len = -1;
 	while (count > 100000 || size > maxSize) {
 	    Resource[] files = filter == null ? dir.listResources() : dir.listResources(filter);
@@ -495,7 +504,7 @@ public final class Controler extends Thread {
 		    count--;
 		}
 		catch (IOException e) {
-		    SystemOut.printDate(out, "cannot remove resource " + res.getAbsolutePath());
+		    LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_WARN, Controler.class.getName(), "cannot remove resource " + res.getAbsolutePath());
 		    break;
 		}
 	    }
@@ -568,8 +577,8 @@ public final class Controler extends Thread {
     }
 
     public void close() {
-	// boolean res=Runtime.getRuntime().removeShutdownHook(shutdownHook);
-	// shutdownHook.run();
+	state = INACTIVE;
+	SystemUtil.notify(this);
     }
 
     /*
@@ -587,6 +596,7 @@ public final class Controler extends Thread {
 	    this.time = time;
 	}
 
+	@Override
 	public boolean accept(Resource res) {
 
 	    if (res.isDirectory()) return allowDir;

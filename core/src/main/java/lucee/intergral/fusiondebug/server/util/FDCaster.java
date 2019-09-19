@@ -18,6 +18,9 @@
  **/
 package lucee.intergral.fusiondebug.server.util;
 
+import com.intergral.fusiondebug.server.IFDStackFrame;
+import com.intergral.fusiondebug.server.IFDValue;
+
 import lucee.commons.lang.ExceptionUtil;
 import lucee.intergral.fusiondebug.server.type.coll.FDCollection;
 import lucee.intergral.fusiondebug.server.type.coll.FDUDF;
@@ -30,9 +33,6 @@ import lucee.runtime.op.Decision;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.UDF;
-
-import com.intergral.fusiondebug.server.IFDStackFrame;
-import com.intergral.fusiondebug.server.IFDValue;
 
 public class FDCaster {
 

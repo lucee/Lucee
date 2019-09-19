@@ -241,7 +241,7 @@ public final class ExceptonImpl implements Excepton {
 	case TYPE_XML_EXP:
 	    return t instanceof XMLException;
 	}
-	return Reflector.isInstaneOf(t.getClass(), exceptions[type]);
+	return Reflector.isInstaneOf(t.getClass(), exceptions[type], false);
     }
 
     @Override

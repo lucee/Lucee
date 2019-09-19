@@ -24,6 +24,8 @@ import java.nio.charset.Charset;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import org.apache.commons.codec.binary.Base32;
+
 import jcifs.smb.NtlmPasswordAuthentication;
 import jcifs.smb.SmbFile;
 import lucee.commons.io.CharsetUtil;
@@ -32,8 +34,6 @@ import lucee.commons.io.res.ResourceProvider;
 import lucee.commons.io.res.Resources;
 import lucee.commons.io.res.util.ResourceLockImpl;
 import lucee.commons.lang.StringUtil;
-
-import org.apache.commons.codec.binary.Base32;
 
 public class SMBResourceProvider implements ResourceProvider {
 

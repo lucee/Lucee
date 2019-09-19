@@ -37,7 +37,7 @@ public final class _Execute extends PageContextThread {
     private String variable;
     private String errorVariable;
     private boolean aborted;
-    private String command;
+    private String[] commands;
     // private static final int BLOCK_SIZE=4096;
     private Object monitor;
     private Exception exception;
@@ -54,10 +54,10 @@ public final class _Execute extends PageContextThread {
      * @param body
      * @param terminateOnTimeout
      */
-    public _Execute(PageContext pageContext, Object monitor, String command, Resource outputfile, String variable, Resource errorFile, String errorVariable) {
+    public _Execute(PageContext pageContext, Object monitor, String[] commands, Resource outputfile, String variable, Resource errorFile, String errorVariable) {
 	super(pageContext);
 	this.monitor = monitor;
-	this.command = command;
+	this.commands = commands;
 	this.outputfile = outputfile;
 	this.variable = variable;
 
@@ -71,17 +71,18 @@ public final class _Execute extends PageContextThread {
 	try {
 	    _run(pc);
 	}
-	catch (Exception e) {}
+	catch (Exception e) {
+	    e.printStackTrace();
+	}
     }
 
     void _run(PageContext pc) {
 	try {
 
-	    process = Command.createProcess(command, true);
+	    process = Command.createProcess(commands);
 
 	    CommandResult result = Command.execute(process);
 	    String rst = result.getOutput();
-
 	    finished = true;
 	    if (!aborted) {
 		if (outputfile == null && variable == null) pc.write(rst);
@@ -96,11 +97,6 @@ public final class _Execute extends PageContextThread {
 	}
 	catch (Exception ioe) {
 	    exception = ioe;
-	}
-	finally {
-	    synchronized (monitor) {
-		monitor.notify();
-	    }
 	}
 	// }
     }

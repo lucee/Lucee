@@ -21,6 +21,8 @@ package lucee.intergral.fusiondebug.server.type.coll;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.intergral.fusiondebug.server.IFDStackFrame;
+
 import lucee.commons.lang.StringUtil;
 import lucee.intergral.fusiondebug.server.type.FDValueNotMutability;
 import lucee.intergral.fusiondebug.server.type.simple.FDSimpleVariable;
@@ -28,8 +30,6 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.type.FunctionArgument;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.util.UDFUtil;
-
-import com.intergral.fusiondebug.server.IFDStackFrame;
 
 public class FDUDF extends FDValueNotMutability {
 

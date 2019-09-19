@@ -18,6 +18,9 @@
  **/
 package lucee.runtime.cfx;
 
+import com.allaire.cfx.Query;
+import com.allaire.cfx.Request;
+
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
@@ -27,9 +30,6 @@ import lucee.runtime.type.Collection;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.KeyConstants;
-
-import com.allaire.cfx.Query;
-import com.allaire.cfx.Request;
 
 /**
  * Implementation of the CFX Request Interface

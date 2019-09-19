@@ -102,7 +102,7 @@ class CacheItemFS extends CacheItem {
 	String name;
 	while (it.hasNext()) {
 	    name = it.next();
-	    if (dir.getRealResource(name).delete()) ;
+	    if (dir.getRealResource(name).delete()) {}
 
 	}
     }

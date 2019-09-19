@@ -997,8 +997,6 @@ public final class ScopeContext {
 	    Application application = applicationContexts.get(arrContexts[i]);
 
 	    if (application.getLastAccess() + application.getTimeSpan() < now) {
-		// SystemOut .printDate(jspFactory.getConfigWebImpl().getOut(),"Clear application
-		// scope:"+arrContexts[i]+"-"+this);
 		application.touch();
 		try {
 		    listener.onApplicationEnd(jspFactory, (String) arrContexts[i]);

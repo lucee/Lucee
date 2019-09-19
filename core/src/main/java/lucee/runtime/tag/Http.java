@@ -25,7 +25,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
@@ -41,6 +40,38 @@ import java.util.zip.GZIPInputStream;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
+
+import org.apache.http.HttpEntityEnclosingRequest;
+import org.apache.http.HttpHost;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
+import org.apache.http.client.methods.HttpHead;
+import org.apache.http.client.methods.HttpOptions;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.methods.HttpTrace;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.config.SocketConfig;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.entity.mime.FormBodyPart;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.entity.mime.content.ContentBody;
+import org.apache.http.entity.mime.content.StringBody;
+import org.apache.http.impl.client.BasicCookieStore;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.DefaultRedirectStrategy;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.HttpContext;
 
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
@@ -101,38 +132,6 @@ import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.util.PageContextUtil;
 import lucee.runtime.util.URLResolver;
-
-import org.apache.http.HttpEntityEnclosingRequest;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
-import org.apache.http.client.methods.HttpHead;
-import org.apache.http.client.methods.HttpOptions;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.client.methods.HttpTrace;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.config.Registry;
-import org.apache.http.config.RegistryBuilder;
-import org.apache.http.config.SocketConfig;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.socket.PlainConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.entity.mime.FormBodyPart;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.entity.mime.content.ContentBody;
-import org.apache.http.entity.mime.content.StringBody;
-import org.apache.http.impl.client.BasicCookieStore;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.DefaultRedirectStrategy;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.protocol.HttpContext;
 
 // MUST change behavor of mltiple headers now is a array, it das so?
 
@@ -680,7 +679,7 @@ public final class Http extends BodyTagImpl {
     public int doEndTag() throws PageException {
 
 	// because commons
-	PrintStream out = System.out;
+	// PrintStream out = System .out;
 	try {
 	    // System.setOut(new PrintStream(DevNullOutputStream.DEV_NULL_OUTPUT_STREAM));
 	    _doEndTag();
@@ -690,7 +689,7 @@ public final class Http extends BodyTagImpl {
 	    throw Caster.toPageException(e);
 	}
 	finally {
-	    System.setOut(out);
+	    // System.setOut(out);
 	}
 
     }
@@ -1053,12 +1052,14 @@ public final class Http extends BodyTagImpl {
 	    // set Proxy
 	    ProxyData proxy = null;
 	    if (!StringUtil.isEmpty(this.proxyserver)) {
-		proxy = ProxyDataImpl.getInstance(this.proxyserver, this.proxyport, this.proxyuser, this.proxypassword);
+		proxy = ProxyDataImpl.validate(ProxyDataImpl.getInstance(this.proxyserver, this.proxyport, this.proxyuser, this.proxypassword), host);
 	    }
-	    if (pageContext.getConfig().isProxyEnableFor(host)) {
-		proxy = pageContext.getConfig().getProxyData();
+
+	    if (proxy == null) {
+		proxy = ProxyDataImpl.validate(((PageContextImpl) pageContext).getProxyData(), host);
+
 	    }
-	    HTTPEngine4Impl.setProxy(builder, req, proxy);
+	    HTTPEngine4Impl.setProxy(host, builder, req, proxy);
 
 	}
 
@@ -1501,174 +1502,6 @@ public final class Http extends BodyTagImpl {
 	cfhttp.setEL(KeyConstants._text, Boolean.TRUE);
     }
 
-    /*
-     * private static HttpMethod execute(Http http, HttpClient client, HttpMethod httpMethod, boolean
-     * redirect) throws PageException { try { // Execute Request short count=0; URL lu;
-     * 
-     * while(isRedirect(client.executeMethod(httpMethod)) && redirect && count++ < MAX_REDIRECT) {
-     * lu=locationURL(httpMethod); httpMethod=createMethod(http,client,lu.toExternalForm(),-1); } }
-     * catch (IOException e) { PageException pe = Caster.toPageException(e); if(pe instanceof
-     * NativeException) { ((NativeException) pe).setAdditional("url", HTTPUtil.toURL(httpMethod)); }
-     * throw pe; } return httpMethod; }
-     */
-
-    /*
-     * static URL locationURL(HttpMethod method) throws MalformedURLException, ExpressionException {
-     * Header location = method.getResponseHeader("location");
-     * 
-     * if(location==null) throw new ExpressionException("missing location header definition");
-     * 
-     * 
-     * HostConfiguration config = method.getHostConfiguration(); URL url; try { url = new
-     * URL(location.getValue()); } catch (MalformedURLException e) { url=new
-     * URL(config.getProtocol().getScheme(), config.getHost(), config.getPort(),
-     * mergePath(method.getPath(),location.getValue())); }
-     * 
-     * return url; }
-     */
-
-    /*
-     * static HttpRequestBase init(Config cw,Http4 http, DefaultHttpClient client, HttpParams params,
-     * String url, int port) throws PageException, IOException { String charset=http.charset;
-     * if(StringUtil.isEmpty(charset,true)) charset=cw.getWebCharset(); else charset=charset.trim();
-     * 
-     * HttpRequestBase req;
-     * 
-     * // check if has fileUploads boolean doUploadFile=false; for(int i=0;i<http.params.size();i++) {
-     * if((http.params.get(i)).getType().equals("file")) { doUploadFile=true; break; } }
-     * 
-     * // parse url (also query string) int len=http.params.size(); StringBuilder sbQS=new
-     * StringBuilder(); for(int i=0;i<len;i++) { HttpParamBean param=http.params.get(i); String
-     * type=param.getType(); // URL if(type.equals("url")) { if(sbQS.length()>0)sbQS.append('&');
-     * sbQS.append(translateEncoding(param.getName(), charset)); sbQS.append('=');
-     * sbQS.append(translateEncoding(param.getValueAsString(), charset)); } } String host=null; HttpHost
-     * httpHost; try { URL _url = HTTPUtil.toURL(url,port); httpHost = new
-     * HttpHost(_url.getHost(),_url.getPort()); host=_url.getHost(); url=_url.toExternalForm();
-     * if(sbQS.length()>0){ // no existing QS if(StringUtil.isEmpty(_url.getQuery())) { url+="?"+sbQS; }
-     * else { url+="&"+sbQS; }
-     * 
-     * }
-     * 
-     * 
-     * } catch (MalformedURLException mue) { throw Caster.toPageException(mue); }
-     * 
-     * // select best matching method (get,post, post multpart (file))
-     * 
-     * boolean isBinary = false; boolean doMultiPart=doUploadFile || http.multiPart; HttpPost post=null;
-     * HttpEntityEnclosingRequest eem=null;
-     * 
-     * 
-     * if(http.method==METHOD_GET) { req=new HttpGet(url); } else if(http.method==METHOD_HEAD) { req=new
-     * HttpHead(url); } else if(http.method==METHOD_DELETE) { isBinary=true; req=new HttpDelete(url); }
-     * else if(http.method==METHOD_PUT) { isBinary=true; HttpPut put = new HttpPut(url); req=put;
-     * eem=put;
-     * 
-     * } else if(http.method==METHOD_TRACE) { isBinary=true; req=new HttpTrace(url); } else
-     * if(http.method==METHOD_OPTIONS) { isBinary=true; req=new HttpOptions(url); } else {
-     * isBinary=true; post=new HttpPost(url); req=post; eem=post; }
-     * 
-     * boolean hasForm=false; boolean hasBody=false; boolean hasContentType=false; // Set http params
-     * ArrayList<FormBodyPart> parts=new ArrayList<FormBodyPart>();
-     * 
-     * StringBuilder acceptEncoding=new StringBuilder(); java.util.List<NameValuePair> postParam =
-     * post!=null?new ArrayList <NameValuePair>():null;
-     * 
-     * for(int i=0;i<len;i++) { HttpParamBean param=http.params.get(i); String type=param.getType(); //
-     * URL if(type.equals("url")) { //listQS.add(new
-     * BasicNameValuePair(translateEncoding(param.getName(),
-     * http.charset),translateEncoding(param.getValueAsString(), http.charset))); } // Form else
-     * if(type.equals("formfield") || type.equals("form")) { hasForm=true; if(http.method==METHOD_GET)
-     * throw new
-     * ApplicationException("httpparam with type formfield can only be used when the method attribute of the parent http tag is set to post"
-     * ); if(post!=null){ if(doMultiPart){ parts.add( new FormBodyPart( param.getName(), new StringBody(
-     * param.getValueAsString(), CharsetUtil.toCharset(charset) ) ) ); } else { postParam.add(new
-     * BasicNameValuePair(param.getName(),param.getValueAsString())); } } //else
-     * if(multi!=null)multi.addParameter(param.getName(),param.getValueAsString()); } // CGI else
-     * if(type.equals("cgi")) { if(param.isEncoded()) req.addHeader(
-     * translateEncoding(param.getName(),charset), translateEncoding(param.getValueAsString(),charset));
-     * else req.addHeader(param.getName(),param.getValueAsString()); } // Header else
-     * if(type.startsWith("head")) { if(param.getName().equalsIgnoreCase("content-type"))
-     * hasContentType=true;
-     * 
-     * if(param.getName().equalsIgnoreCase("Accept-Encoding")) {
-     * acceptEncoding.append(headerValue(param.getValueAsString())); acceptEncoding.append(", "); } else
-     * req.addHeader(param.getName(),headerValue(param.getValueAsString())); } // Cookie else
-     * if(type.equals("cookie")) {
-     * HTTPEngine4Impl.addCookie(client,host,param.getName(),param.getValueAsString(),"/",charset); } //
-     * File else if(type.equals("file")) { hasForm=true; if(http.method==METHOD_GET) throw new
-     * ApplicationException("httpparam type file can't only be used, when method of the tag http equal post"
-     * ); if(doMultiPart) { try { Resource res = param.getFile(); parts.add(new FormBodyPart(
-     * param.getName(), new ResourceBody(res, getContentType(param), res.getName(), charset) ));
-     * //parts.add(new ResourcePart(param.getName(),new
-     * ResourcePartSource(param.getFile()),getContentType(param),_charset)); } catch
-     * (FileNotFoundException e) { throw new
-     * ApplicationException("can't upload file, path is invalid",e.getMessage()); } } } // XML else
-     * if(type.equals("xml")) { hasBody=true; hasContentType=true; req.addHeader("Content-type",
-     * "text/xml; charset="+charset); if(eem==null)throw new
-     * ApplicationException("type xml is only supported for type post and put");
-     * HTTPEngine4Impl.setBody(eem, param.getValueAsString()); } // Body else if(type.equals("body")) {
-     * hasBody=true; if(eem==null)throw new
-     * ApplicationException("type body is only supported for type post and put");
-     * HTTPEngine4Impl.setBody(eem, param.getValue());
-     * 
-     * } else { throw new ApplicationException("invalid type ["+type+"]"); }
-     * 
-     * }
-     * 
-     * // post params if(postParam!=null && postParam.size()>0) post.setEntity(new
-     * org.apache.http.client.entity.UrlEncodedFormEntity(postParam,charset));
-     * 
-     * req.setHeader("Accept-Encoding",acceptEncoding.append("gzip").toString());
-     * 
-     * // multipart if(doMultiPart && eem!=null) { hasContentType=true; boolean doIt=true;
-     * if(!http.multiPart && parts.size()==1){ ContentBody body = parts.get(0).getBody(); if(body
-     * instanceof StringBody){ StringBody sb=(StringBody)body; try { String str =
-     * IOUtil.toString(sb.getReader()); StringEntity entity = new
-     * StringEntity(str,sb.getMimeType(),sb.getCharset()); eem.setEntity(entity);
-     * 
-     * } catch (IOException e) { throw Caster.toPageException(e); } doIt=false; } } if(doIt) {
-     * MultipartEntity mpe = new
-     * MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE,null,CharsetUtil.toCharset(charset));
-     * Iterator<FormBodyPart> it = parts.iterator(); while(it.hasNext()) { mpe.addPart(it.next()); }
-     * eem.setEntity(mpe); } //eem.setRequestEntity(new MultipartRequestEntityFlex(parts.toArray(new
-     * Part[parts.size()]), eem.getParams(),http.multiPartType)); }
-     * 
-     * 
-     * 
-     * if(hasBody && hasForm) throw new
-     * ApplicationException("mixing httpparam  type file/formfield and body/XML is not allowed");
-     * 
-     * if(!hasContentType) { if(isBinary) { if(hasBody) req.addHeader("Content-type",
-     * "application/octet-stream"); else req.addHeader("Content-type",
-     * "application/x-www-form-urlencoded; charset="+charset); } else { if(hasBody)
-     * req.addHeader("Content-type", "text/html; charset="+charset ); } }
-     * 
-     * 
-     * // set User Agent if(!hasHeaderIgnoreCase(req,"User-Agent"))
-     * req.setHeader("User-Agent",http.useragent);
-     * 
-     * // set timeout if(http.timeout>0L)HTTPEngine4Impl.setTimeout(params, (int)http.timeout);
-     * 
-     * // set Username and Password BasicHttpContext httpContext=null; if(http.username!=null) {
-     * if(http.password==null)http.password=""; if(AUTH_TYPE_NTLM==http.authType) {
-     * if(StringUtil.isEmpty(http.workStation,true)) throw new
-     * ApplicationException("attribute workstation is required when authentication type is [NTLM]");
-     * if(StringUtil.isEmpty(http.domain,true)) throw new
-     * ApplicationException("attribute domain is required when authentication type is [NTLM]");
-     * 
-     * HTTPEngine4Impl.setNTCredentials(client, http.username, http.password,
-     * http.workStation,http.domain); } else httpContext=HTTPEngine4Impl.setCredentials(client,
-     * httpHost, http.username, http.password); }
-     * 
-     * // set Proxy ProxyData proxy=null; if(!StringUtil.isEmpty(http.proxyserver)) {
-     * proxy=ProxyDataImpl.getInstance(http.proxyserver, http.proxyport, http.proxyuser,
-     * http.proxypassword) ; } if(http.pageContext.getConfig().isProxyEnableFor(host)) {
-     * proxy=http.pageContext.getConfig().getProxyData(); } HTTPEngine4Impl.setProxy(client, req,
-     * proxy);
-     * 
-     * return req; }
-     */
-
     private static boolean hasHeaderIgnoreCase(HttpRequestBase req, String name) {
 	org.apache.http.Header[] headers = req.getAllHeaders();
 	if (headers == null) return false;
@@ -1982,6 +1815,7 @@ class Executor4 extends PageContextThread {
 class HttpDeleteWithBody extends HttpEntityEnclosingRequestBase {
     public static final String METHOD_NAME = "DELETE";
 
+    @Override
     public String getMethod() {
 	return METHOD_NAME;
     }
@@ -1995,6 +1829,7 @@ class HttpDeleteWithBody extends HttpEntityEnclosingRequestBase {
 class HttpGetWithBody extends HttpEntityEnclosingRequestBase {
     public static final String METHOD_NAME = "GET";
 
+    @Override
     public String getMethod() {
 	return METHOD_NAME;
     }

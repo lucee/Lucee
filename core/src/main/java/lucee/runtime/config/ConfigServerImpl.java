@@ -39,13 +39,14 @@ import lucee.commons.collection.MapFactory;
 import lucee.commons.digest.Hash;
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.SystemUtil;
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.lang.SystemOut;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.loader.util.ExtensionFilter;
@@ -55,6 +56,7 @@ import lucee.runtime.Mapping;
 import lucee.runtime.MappingImpl;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.engine.CFMLEngineImpl;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.engine.ThreadQueue;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
@@ -403,7 +405,6 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 
     protected void setRequestMonitors(RequestMonitor[] monitors) {
 	this.requestMonitors = monitors;
-	;
     }
 
     @Override
@@ -421,7 +422,6 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 
     protected void setIntervallMonitors(IntervallMonitor[] monitors) {
 	this.intervallMonitors = monitors;
-	;
     }
 
     public void setActionMonitorCollector(ActionMonitorCollector actionMonitorCollector) {
@@ -444,7 +444,6 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 
     protected void setMonitoringEnabled(boolean monitoringEnabled) {
 	this.monitoringEnabled = monitoringEnabled;
-	;
     }
 
     protected void setLoginDelay(int delay) {
@@ -516,12 +515,13 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 		setPermGenCleanUpThreshold(permGenCleanUpThreshold - 5);
 	    }
 	    else {
-		SystemOut.printDate(getErrWriter(),
+		LogUtil.log(ThreadLocalPageContext.getConfig(this), Log.LEVEL_WARN, ConfigServerImpl.class.getName(),
 			" Free Perm Gen Space is less than 5% free: shrinking all template classloaders : consider increasing allocated Perm Gen Space");
 	    }
 	}
 	else if (check && kbFreePermSpace < 2048) {
-	    SystemOut.printDate(getErrWriter(),
+	    LogUtil.log(ThreadLocalPageContext.getConfig(this), Log.LEVEL_WARN, ConfigServerImpl.class.getName(),
+
 		    " Free Perm Gen Space is less than 2Mb (free:" + ((SystemUtil.getFreePermGenSpaceSize() / 1024)) + "kb), shrinking all template classloaders");
 	    // first request a GC and then check if it helps
 	    System.gc();
@@ -625,11 +625,11 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
     public Cluster createClusterScope() throws PageException {
 	Cluster cluster = null;
 	try {
-	    if (Reflector.isInstaneOf(getClusterClass(), Cluster.class)) {
+	    if (Reflector.isInstaneOf(getClusterClass(), Cluster.class, false)) {
 		cluster = (Cluster) ClassUtil.loadInstance(getClusterClass(), ArrayUtil.OBJECT_EMPTY);
 		cluster.init(this);
 	    }
-	    else if (Reflector.isInstaneOf(getClusterClass(), ClusterRemote.class)) {
+	    else if (Reflector.isInstaneOf(getClusterClass(), ClusterRemote.class, false)) {
 		ClusterRemote cb = (ClusterRemote) ClassUtil.loadInstance(getClusterClass(), ArrayUtil.OBJECT_EMPTY);
 
 		cluster = new ClusterWrap(this, cb);
@@ -870,7 +870,7 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 
 		    }
 		    catch (Exception e) {
-			SystemOut.printDate(e);
+			LogUtil.log(ThreadLocalPageContext.getConfig(this), ConfigServerImpl.class.getName(), e);
 		    }
 		}
 
@@ -900,10 +900,12 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 	return HashUtil.create64BitHash(sb);
     }
 
+    @Override
     protected void setGatewayEntries(Map<String, GatewayEntry> gatewayEntries) {
 	this.gatewayEntries = gatewayEntries;
     }
 
+    @Override
     public Map<String, GatewayEntry> getGatewayEntries() {
 	return gatewayEntries;
     }

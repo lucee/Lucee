@@ -18,12 +18,12 @@
  **/
 package lucee.transformer.bytecode;
 
+import org.objectweb.asm.Label;
+
 import lucee.transformer.Factory;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.statement.FlowControlBreak;
 import lucee.transformer.bytecode.statement.FlowControlContinue;
-
-import org.objectweb.asm.Label;
 
 public abstract class FlowControlBody extends BodyBase implements FlowControlBreak, FlowControlContinue {
 

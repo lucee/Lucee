@@ -30,7 +30,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
-import lucee.runtime.type.UDFPlus;
+import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.MemberUtil;
@@ -118,6 +118,11 @@ public final class ComponentScopeThis extends StructSupport implements Component
     }
 
     @Override
+    public Object get(PageContext pc, Collection.Key key) throws PageException {
+	return get(key);
+    }
+
+    @Override
     public Object get(Collection.Key key, Object defaultValue) {
 	if (key.equalsIgnoreCase(KeyConstants._THIS)) {
 	    return component.top;
@@ -126,6 +131,11 @@ public final class ComponentScopeThis extends StructSupport implements Component
 	    return component.staticScope();
 	}
 	return component.get(access, key, defaultValue);
+    }
+
+    @Override
+    public Object get(PageContext pc, Collection.Key key, Object defaultValue) {
+	return get(key, defaultValue);
     }
 
     @Override
@@ -248,56 +258,21 @@ public final class ComponentScopeThis extends StructSupport implements Component
 	return component.top;
     }
 
-    /*
-     * public Object get(PageContext pc, String key, Object defaultValue) { return
-     * component.get(access,key,defaultValue); }
-     */
-
-    @Override
-    public Object get(PageContext pc, Collection.Key key, Object defaultValue) {
-	return component.get(access, key, defaultValue);
-    }
-
-    /*
-     * public Object get(PageContext pc, String key) throws PageException { return
-     * component.get(access,key); }
-     */
-
-    @Override
-    public Object get(PageContext pc, Collection.Key key) throws PageException {
-	return component.get(access, key);
-    }
-
-    /*
-     * public Object set(PageContext pc, String propertyName, Object value) throws PageException {
-     * return component.set(propertyName,value); }
-     */
-
     @Override
     public Object set(PageContext pc, Collection.Key propertyName, Object value) throws PageException {
 	return component.set(propertyName, value);
     }
-
-    /*
-     * public Object setEL(PageContext pc, String propertyName, Object value) { return
-     * component.setEL(propertyName,value); }
-     */
 
     @Override
     public Object setEL(PageContext pc, Collection.Key propertyName, Object value) {
 	return component.setEL(propertyName, value);
     }
 
-    /*
-     * public Object call(PageContext pc, String key, Object[] arguments) throws PageException { return
-     * call(pc, KeyImpl.init(key), arguments); }
-     */
-
     @Override
     public Object call(PageContext pc, Collection.Key key, Object[] arguments) throws PageException {
 	Member m = component.getMember(access, key, false, false);
 	if (m != null) {
-	    if (m instanceof UDFPlus) return ((UDFPlus) m).call(pc, key, arguments, false);
+	    if (m instanceof UDF) return ((UDF) m).call(pc, key, arguments, false);
 	    return MemberUtil.call(pc, this, key, arguments, new short[] { CFTypes.TYPE_STRUCT }, new String[] { "struct" });
 	    // throw ComponentUtil.notFunction(component, key, m.getValue(),access);
 	}
@@ -314,7 +289,7 @@ public final class ComponentScopeThis extends StructSupport implements Component
     public Object callWithNamedValues(PageContext pc, Collection.Key key, Struct args) throws PageException {
 	Member m = component.getMember(access, key, false, false);
 	if (m != null) {
-	    if (m instanceof UDFPlus) return ((UDFPlus) m).callWithNamedValues(pc, key, args, false);
+	    if (m instanceof UDF) return ((UDF) m).callWithNamedValues(pc, key, args, false);
 	    return MemberUtil.callWithNamedValues(pc, this, key, args, CFTypes.TYPE_STRUCT, "struct");
 	    // throw ComponentUtil.notFunction(component, key, m.getValue(),access);
 	}

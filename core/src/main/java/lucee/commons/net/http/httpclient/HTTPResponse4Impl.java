@@ -24,17 +24,17 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 
-import lucee.commons.io.IOUtil;
-import lucee.commons.lang.StringUtil;
-import lucee.commons.net.http.HTTPResponse;
-import lucee.commons.net.http.HTTPResponseSupport;
-import lucee.commons.net.http.Header;
-
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
+
+import lucee.commons.io.IOUtil;
+import lucee.commons.lang.StringUtil;
+import lucee.commons.net.http.HTTPResponse;
+import lucee.commons.net.http.HTTPResponseSupport;
+import lucee.commons.net.http.Header;
 
 public class HTTPResponse4Impl extends HTTPResponseSupport implements HTTPResponse {
 

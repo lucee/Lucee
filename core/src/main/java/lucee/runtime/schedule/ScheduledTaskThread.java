@@ -18,13 +18,17 @@
  **/
 package lucee.runtime.schedule;
 
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Iterator;
+import java.util.List;
 import java.util.TimeZone;
 
 import lucee.commons.date.DateTimeUtil;
 import lucee.commons.date.JREDateTimeUtil;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
-import lucee.commons.lang.SystemOut;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.engine.CFMLEngineImpl;
@@ -41,6 +45,7 @@ public class ScheduledTaskThread extends Thread {
     private long endTime;
     private int intervall;
     private int amount;
+    private boolean stop;
 
     private DateTimeUtil util;
 
@@ -50,6 +55,9 @@ public class ScheduledTaskThread extends Thread {
     private final CFMLEngineImpl engine;
     private TimeZone timeZone;
     private SchedulerImpl scheduler;
+    private List<ExecutionThread> exeThreads = new ArrayList<ExecutionThread>();
+    private ExecutionThread exeThread;
+    private final boolean unique;
 
     public ScheduledTaskThread(CFMLEngineImpl engine, Scheduler scheduler, ScheduleTask task) {
 	util = DateTimeUtil.getInstance();
@@ -61,7 +69,7 @@ public class ScheduledTaskThread extends Thread {
 	this.startTime = util.getMilliSecondsInDay(timeZone, task.getStartTime().getTime());
 	this.endDate = task.getEndDate() == null ? Long.MAX_VALUE : util.getMilliSecondsAdMidnight(timeZone, task.getEndDate().getTime());
 	this.endTime = task.getEndTime() == null ? DAY : util.getMilliSecondsInDay(timeZone, task.getEndTime().getTime());
-
+	this.unique = ((ScheduleTaskImpl) task).unique();
 	this.intervall = task.getInterval();
 	if (intervall >= 10) {
 	    amount = intervall;
@@ -70,6 +78,39 @@ public class ScheduledTaskThread extends Thread {
 	else amount = 1;
 
 	cIntervall = toCalndarIntervall(intervall);
+    }
+
+    public void setStop(boolean stop) {
+	this.stop = stop;
+    }
+
+    public void stopIt() {
+	setStop(true);
+	Log log = scheduler.getConfig().getLog("scheduler");
+	log.info("scheduler", "stopping task thread [" + task.getTask() + "]");
+
+	if (unique) {
+	    stop(log, exeThread);
+	}
+	else {
+	    Iterator<ExecutionThread> it = exeThreads.iterator();
+	    while (it.hasNext()) {
+		stop(log, it.next());
+	    }
+	    cleanThreads();
+	}
+
+	// stop this thread itself
+	SystemUtil.notify(this);
+	SystemUtil.patienceStop(this, 5);
+	if (this.isAlive()) log.warn("scheduler", "task [" + task.getTask() + "] could not be stopped:" + ExceptionUtil.toString(this.getStackTrace()));
+	else log.info("scheduler", "task [" + task.getTask() + "] stopped");
+    }
+
+    private void stop(Log log, ExecutionThread et) {
+	SystemUtil.patienceStop(exeThread, 5);
+	if (et != null && et.isAlive()) log.warn("scheduler", "task thread [" + task.getTask() + "] could not be stopped:" + ExceptionUtil.toString(et.getStackTrace()));
+	else log.info("scheduler", "task thread [" + task.getTask() + "] stopped");
     }
 
     @Override
@@ -117,9 +158,8 @@ public class ScheduledTaskThread extends Thread {
 	log(Log.LEVEL_INFO, "First execution");
 
 	while (true) {
-
 	    sleepEL(execution, today);
-
+	    if (stop) break;
 	    if (!engine.isRunning()) {
 		log(Log.LEVEL_ERROR, "Engine is not running");
 		break;
@@ -165,20 +205,46 @@ public class ScheduledTaskThread extends Thread {
 
 	try {
 	    while (true) {
-		sleep(millis);
+		SystemUtil.wait(this, millis);
 		millis = when - System.currentTimeMillis();
 		if (millis <= 0) break;
 		millis = 10;
 	    }
 	}
-	catch (InterruptedException e) {
-	    SystemOut.printDate(e);
+	catch (Exception e) {
+	    log(Log.LEVEL_ERROR, e);
 	}
 
     }
 
     private void execute() {
-	if (scheduler.getConfig() != null) new ExecutionThread(scheduler.getConfig(), task, scheduler.getCharset()).start();
+	if (scheduler.getConfig() != null) {
+	    // unique
+	    if (unique && exeThread != null && exeThread.isAlive()) {
+		return;
+	    }
+
+	    ExecutionThread et = new ExecutionThread(scheduler.getConfig(), task, scheduler.getCharset());
+	    et.start();
+	    if (unique) {
+		exeThread = et;
+	    }
+	    else {
+		cleanThreads();
+		exeThreads.add(et);
+	    }
+	}
+    }
+
+    private void cleanThreads() {
+	List<ExecutionThread> list = new ArrayList<ExecutionThread>();
+	Iterator<ExecutionThread> it = exeThreads.iterator();
+	ExecutionThread et;
+	while (it.hasNext()) {
+	    et = it.next();
+	    if (et.isAlive()) list.add(et);
+	}
+	exeThreads = list;
     }
 
     private long calculateNextExecution(long now, boolean notNow) {
@@ -197,7 +263,7 @@ public class ScheduledTaskThread extends Thread {
 	    time = getMilliSecondsInDay(calendar);
 	    if (now <= calendar.getTimeInMillis() && time >= startTime) {
 		// this is used because when cames back sometme to early
-		if (notNow && (calendar.getTimeInMillis() - now) < 1000) ;
+		if (notNow && (calendar.getTimeInMillis() - now) < 1000) {}
 		else if (intervall == ScheduleTaskImpl.INTERVAL_EVEREY && time > endTime) now = nowDate + DAY;
 		else break;
 	    }

@@ -23,9 +23,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import lucee.commons.date.TimeZoneUtil;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.lang.SystemOut;
 import lucee.runtime.Component;
 import lucee.runtime.ComponentSpecificAccess;
 import lucee.runtime.Mapping;
@@ -37,6 +37,8 @@ import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
+import lucee.runtime.db.DataSourceImpl;
+import lucee.runtime.db.DataSourcePro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
@@ -75,6 +77,7 @@ public class GetApplicationSettings extends BIF {
 
     public static Struct call(PageContext pc, boolean suppressFunctions) throws PageException {
 	ApplicationContext ac = pc.getApplicationContext();
+	ApplicationContextSupport acs = (ApplicationContextSupport) ac;
 	Component cfc = null;
 	if (ac instanceof ModernApplicationContext) cfc = ((ModernApplicationContext) ac).getComponent();
 
@@ -152,12 +155,18 @@ public class GetApplicationSettings extends BIF {
 
 	// ws settings
 	try {
-
 	    Struct wssettings = new StructImpl(Struct.TYPE_LINKED);
 	    wssettings.setEL(KeyConstants._type, AppListenerUtil.toWSType(ac.getWSType(), ((ConfigImpl) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getTypeAsString()));
 	    sct.setEL("wssettings", wssettings);
 	}
-	catch (Exception e) {} // faiks in case extension is not installed
+	catch (Exception e) {} // in case the extension is not loaded this will fail // TODO check if the extension is installed
+	// query
+	{
+	    Struct query = new StructImpl(Struct.TYPE_LINKED);
+	    query.setEL("varusage", AppListenerUtil.toVariableUsage(acs.getQueryVarUsage(), "ignore"));
+	    query.setEL("psq", acs.getQueryPSQ());
+	    sct.setEL("query", query);
+	}
 
 	// datasources
 	Struct _sources = new StructImpl(Struct.TYPE_LINKED);
@@ -174,7 +183,6 @@ public class GetApplicationSettings extends BIF {
 	Struct _logs = new StructImpl(Struct.TYPE_LINKED);
 	sct.setEL("logs", _logs);
 	if (ac instanceof ApplicationContextSupport) {
-	    ApplicationContextSupport acs = (ApplicationContextSupport) ac;
 	    Iterator<Key> it = acs.getLogNames().iterator();
 	    Key name;
 	    while (it.hasNext()) {
@@ -187,7 +195,6 @@ public class GetApplicationSettings extends BIF {
 	Array _mails = new ArrayImpl();
 	sct.setEL("mails", _mails);
 	if (ac instanceof ApplicationContextSupport) {
-	    ApplicationContextSupport acs = (ApplicationContextSupport) ac;
 	    Server[] servers = acs.getMailServers();
 	    Struct s;
 	    Server srv;
@@ -215,7 +222,6 @@ public class GetApplicationSettings extends BIF {
 
 	// serialization
 	if (ac instanceof ApplicationContextSupport) {
-	    ApplicationContextSupport acs = (ApplicationContextSupport) ac;
 	    Struct ser = new StructImpl(Struct.TYPE_LINKED);
 	    sct.setEL("serialization", acs.getSerializationSettings().toStruct());
 	}
@@ -259,7 +265,6 @@ public class GetApplicationSettings extends BIF {
 	// cache connections
 	Struct conns = new StructImpl(Struct.TYPE_LINKED);
 	if (ac instanceof ApplicationContextSupport) {
-	    ApplicationContextSupport acs = (ApplicationContextSupport) ac;
 	    Key[] names = acs.getCacheConnectionNames();
 	    for (Key name: names) {
 		CacheConnection data = acs.getCacheConnection(name.getString(), null);
@@ -325,7 +330,7 @@ public class GetApplicationSettings extends BIF {
 		}
 	    }
 	    catch (PageException e) {
-		SystemOut.printDate(e);
+		LogUtil.log(ThreadLocalPageContext.getConfig(pc), GetApplicationSettings.class.getName(), e);
 	    }
 	}
 	return sct;
@@ -348,6 +353,16 @@ public class GetApplicationSettings extends BIF {
 	if (source.isClob()) s.setEL(AppListenerUtil.CLOB, source.isClob());
 	if (source.isReadOnly()) s.setEL(KeyConstants._readonly, source.isReadOnly());
 	if (source.isStorage()) s.setEL(KeyConstants._storage, source.isStorage());
+	if (source instanceof DataSourcePro) {
+	    DataSourcePro dsp = (DataSourcePro) source;
+	    if (dsp.isRequestExclusive()) s.setEL("requestExclusive", dsp.isRequestExclusive());
+	}
+	if (source instanceof DataSourceImpl) {
+	    DataSourceImpl di = ((DataSourceImpl) source);
+	    s.setEL("literalTimestampWithTSOffset", Boolean.valueOf(di.getLiteralTimestampWithTSOffset()));
+	    s.setEL("alwaysSetTimeout", Boolean.valueOf(di.getAlwaysSetTimeout()));
+	    s.setEL("dbdriver", Caster.toString(di.getDbDriver(), ""));
+	}
 	return s;
     }
 
@@ -362,7 +377,7 @@ public class GetApplicationSettings extends BIF {
 		sct = new StructImpl();
 		// physical
 		str = m.getStrPhysical();
-		if (!StringUtil.isEmpty(str, true)) sct.setEL("primary", str.trim());
+		if (!StringUtil.isEmpty(str, true)) sct.setEL("physical", str.trim());
 		// archive
 		str = m.getStrArchive();
 		if (!StringUtil.isEmpty(str, true)) sct.setEL("archive", str.trim());

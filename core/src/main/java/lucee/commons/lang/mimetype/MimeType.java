@@ -31,7 +31,6 @@ import lucee.commons.lang.CharSet;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.UDF;
-import lucee.runtime.type.UDFPlus;
 import lucee.runtime.type.util.ListUtil;
 
 public class MimeType {
@@ -345,6 +344,7 @@ public class MimeType {
 	return getTypeNotNull().equals(other.getTypeNotNull()) && getSubtypeNotNull().equals(other.getSubtypeNotNull());
     }
 
+    @Override
     public boolean equals(Object obj) {
 	if (obj == this) return true;
 
@@ -358,6 +358,7 @@ public class MimeType {
 	return other.toString().equals(toString());
     }
 
+    @Override
     public String toString() {
 	StringBuilder sb = new StringBuilder();
 	sb.append(type == null ? "*" : type);
@@ -390,7 +391,7 @@ public class MimeType {
 	    return MimeType.APPLICATION_XML;
 	case UDF.RETURN_FORMAT_PLAIN:
 	    return MimeType.APPLICATION_PLAIN;
-	case UDFPlus.RETURN_FORMAT_JAVA:
+	case UDF.RETURN_FORMAT_JAVA:
 	    return MimeType.APPLICATION_JAVA;
 
 	}
@@ -415,7 +416,7 @@ public class MimeType {
 	if (MimeType.APPLICATION_CFML.same(mt)) return UDF.RETURN_FORMAT_SERIALIZE;
 	if (MimeType.APPLICATION_XML.same(mt)) return UDF.RETURN_FORMAT_XML;
 	if (MimeType.APPLICATION_PLAIN.same(mt)) return UDF.RETURN_FORMAT_PLAIN;
-	if (MimeType.APPLICATION_JAVA.same(mt)) return UDFPlus.RETURN_FORMAT_JAVA;
+	if (MimeType.APPLICATION_JAVA.same(mt)) return UDF.RETURN_FORMAT_JAVA;
 	return defaultValue;
     }
 

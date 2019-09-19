@@ -20,15 +20,6 @@ package lucee.runtime.regex;
 
 import java.util.Map;
 
-import lucee.commons.collection.MapFactory;
-import lucee.runtime.exp.ExpressionException;
-import lucee.runtime.exp.PageException;
-import lucee.runtime.op.Constants;
-import lucee.runtime.type.Array;
-import lucee.runtime.type.ArrayImpl;
-import lucee.runtime.type.Struct;
-import lucee.runtime.type.StructImpl;
-
 import org.apache.oro.text.regex.MalformedPatternException;
 import org.apache.oro.text.regex.MatchResult;
 import org.apache.oro.text.regex.Pattern;
@@ -37,6 +28,15 @@ import org.apache.oro.text.regex.Perl5Compiler;
 import org.apache.oro.text.regex.Perl5Matcher;
 import org.apache.oro.text.regex.Perl5Substitution;
 import org.apache.oro.text.regex.Util;
+
+import lucee.commons.collection.MapFactory;
+import lucee.runtime.exp.ExpressionException;
+import lucee.runtime.exp.PageException;
+import lucee.runtime.op.Constants;
+import lucee.runtime.type.Array;
+import lucee.runtime.type.ArrayImpl;
+import lucee.runtime.type.Struct;
+import lucee.runtime.type.StructImpl;
 
 /**
  * 

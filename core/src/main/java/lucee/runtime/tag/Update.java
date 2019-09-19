@@ -22,7 +22,6 @@ import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-import lucee.commons.io.SystemUtil.TemplateLine;
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
@@ -43,7 +42,6 @@ import lucee.runtime.functions.displayFormatting.DecimalFormat;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
-import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.scope.Form;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.CollectionUtil;

@@ -89,30 +89,4 @@ public class ThreadQueueImpl implements ThreadQueue {
 	list.clear();
 	token.notifyAll();
     }
-
-    /*
-     * public static class Test extends Thread { private ThreadQueueImpl queue; public
-     * Test(ThreadQueueImpl queue){ this.queue=queue; } public void run(){ String name =
-     * Thread.currentThread().getName(); try { queue.enter(name); queue.size(); SystemUtil.sleep(50);
-     * queue.exit(name); } catch (IOException e) { SystemOut.printDate(e); }
-     * 
-     * 
-     * } }
-     * 
-     * public static void main(String[] args) { ThreadQueueImpl queue=new ThreadQueueImpl(4,1000); new
-     * Test(queue).start(); new Test(queue).start(); new Test(queue).start(); new Test(queue).start();
-     * new Test(queue).start(); new Test(queue).start(); new Test(queue).start(); new
-     * Test(queue).start(); new Test(queue).start(); new Test(queue).start(); new Test(queue).start();
-     * new Test(queue).start(); new Test(queue).start(); new Test(queue).start(); new
-     * Test(queue).start(); new Test(queue).start(); new Test(queue).start(); new Test(queue).start();
-     * new Test(queue).start(); new Test(queue).start(); new Test(queue).start(); new
-     * Test(queue).start(); new Test(queue).start(); new Test(queue).start(); new Test(queue).start();
-     * new Test(queue).start(); new Test(queue).start(); new Test(queue).start(); new
-     * Test(queue).start(); new Test(queue).start(); new Test(queue).start(); new Test(queue).start();
-     * new Test(queue).start(); new Test(queue).start(); new Test(queue).start();
-     * 
-     * 
-     * }
-     */
-
 }

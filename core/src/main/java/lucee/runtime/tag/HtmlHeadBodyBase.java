@@ -57,6 +57,8 @@ public abstract class HtmlHeadBodyBase extends BodyTagTryCatchFinallyImpl {
 	force = getDefaultForce();
     }
 
+    public abstract boolean getDefaultForce();
+
     public abstract String getTagName();
 
     public abstract void actionAppend() throws IOException, ApplicationException;
@@ -103,6 +105,10 @@ public abstract class HtmlHeadBodyBase extends BodyTagTryCatchFinallyImpl {
 
     public void setId(String id) {
 	this.id = id;
+    }
+
+    public void setForce(boolean force) {
+	this.force = force;
     }
 
     @Override
