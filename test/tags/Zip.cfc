@@ -73,7 +73,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			zip action="delete" entrypath="/n/m/" file=target;
 			zip action="list" file=target name="local.qry";
 			assertEquals(4,qry.recordcount);
-			assertEquals('/1/2.cfm,a.txt,b.txt,b/c/a.txt',listSort(valueList(qry.name),'textnocase'));
+			assertEquals('1/2.cfm,a.txt,b.txt,b/c/a.txt',listSort(valueList(qry.name),'textnocase'));
 		
 
 		}
