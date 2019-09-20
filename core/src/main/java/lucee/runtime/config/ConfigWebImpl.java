@@ -513,6 +513,10 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 		return configServer.isFusionDebug();
 	}
 
+	public boolean allowRequestTimeout() {
+		return configServer.allowRequestTimeout();
+	}
+
 	public CFMLWriter getCFMLWriter(PageContext pc, HttpServletRequest req, HttpServletResponse rsp) {
 		if (writerType == CFML_WRITER_WS) return new CFMLWriterWS(pc, req, rsp, -1, false, closeConnection(), isShowVersion(), contentLength());
 		else if (writerType == CFML_WRITER_REFULAR) return new CFMLWriterImpl(pc, req, rsp, -1, false, closeConnection(), isShowVersion(), contentLength());

@@ -2518,6 +2518,11 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	@Override
+	public boolean allowRequestTimeout() {
+		return config.allowRequestTimeout();
+	}
+
+	@Override
 	public long getRequestTimeout() {
 		if (requestTimeout == -1) {
 			if (applicationContext != null) {

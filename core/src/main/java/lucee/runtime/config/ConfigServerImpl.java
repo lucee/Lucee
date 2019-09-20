@@ -692,6 +692,10 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 		return engine.isFusionDebug();
 	}
 
+	public boolean allowRequestTimeout() {
+		return engine.allowRequestTimeout();
+	}
+
 	private IdentificationServer id;
 
 	private String libHash;

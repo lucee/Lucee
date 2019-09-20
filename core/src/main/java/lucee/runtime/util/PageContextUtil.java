@@ -4,17 +4,17 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  **/
 package lucee.runtime.util;
 
@@ -188,19 +188,21 @@ public class PageContextUtil {
 	}
 
 	public static TimeSpan remainingTime(PageContext pc, boolean throwWhenAlreadyTimeout) throws RequestTimeoutException {
-		long ms = pc.getRequestTimeout() - (System.currentTimeMillis() - pc.getStartTime());
-		if (ms > 0) {
-			if (ms < 5) {}
-			else if (ms < 10) ms = ms - 1;
-			else if (ms < 50) ms = ms - 5;
-			else if (ms < 200) ms = ms - 10;
-			else if (ms < 1000) ms = ms - 50;
-			else ms = ms - 100;
+		if ( pc.allowRequestTimeout() ) {
+			long ms = pc.getRequestTimeout() - (System.currentTimeMillis() - pc.getStartTime());
+			if (ms > 0) {
+				if (ms < 5) {}
+				else if (ms < 10) ms = ms - 1;
+				else if (ms < 50) ms = ms - 5;
+				else if (ms < 200) ms = ms - 10;
+				else if (ms < 1000) ms = ms - 50;
+				else ms = ms - 100;
 
-			return TimeSpanImpl.fromMillis(ms);
+				return TimeSpanImpl.fromMillis(ms);
+			}
+
+			if (throwWhenAlreadyTimeout) throw CFMLFactoryImpl.createRequestTimeoutException(pc);
 		}
-
-		if (throwWhenAlreadyTimeout) throw CFMLFactoryImpl.createRequestTimeoutException(pc);
 
 		return TimeSpanImpl.fromMillis(0);
 	}

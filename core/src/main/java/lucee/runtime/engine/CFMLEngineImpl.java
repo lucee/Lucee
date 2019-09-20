@@ -188,6 +188,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	private static CFMLEngineImpl engine = null;
 	private CFMLEngineFactory factory;
 	private final ControllerStateImpl controlerState = new ControllerStateImpl(true);
+	private boolean allowRequestTimeout = true;
 	private boolean allowRequestTimeoutMonitor = true;
 	private boolean isFusionDebug = false;
 	private Monitor monitor;
@@ -211,6 +212,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		this.factory = factory;
 		this.bundleCollection = bc;
 		resetAllowRequestTimeoutMonitor();
+		resetAllowRequestTimeout();
 
 		// log the startup process
 		String logDir = SystemUtil.getSystemPropOrEnvVar("startlogdirectory", null);// "/Users/mic/Tmp/");
@@ -1370,6 +1372,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 	@Override
 	public Object getFDController() {
+		engine.allowRequestTimeout(false);
 		engine.allowRequestTimeoutMonitor(false);
 		engine.isFusionDebug(true);
 
@@ -1419,6 +1422,18 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	 * public String getState() { return info.getStateAsString(); }
 	 */
 
+	public void allowRequestTimeout(boolean allowRequestTimeout) {
+		this.allowRequestTimeout = allowRequestTimeout;
+	}
+
+	public boolean allowRequestTimeout() {
+		return allowRequestTimeout;
+	}
+
+	public void resetAllowRequestTimeout() {
+		allowRequestTimeout( Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.enable.request.timeout", null) , true) );
+	}
+
 	public void allowRequestTimeoutMonitor(boolean allowRequestTimeoutMonitor) {
 		this.allowRequestTimeoutMonitor = allowRequestTimeoutMonitor;
 	}
@@ -1427,16 +1442,16 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		return allowRequestTimeoutMonitor;
 	}
 
+	public void resetAllowRequestTimeoutMonitor() {
+		allowRequestTimeoutMonitor( Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.enable.request.timeout.monitor", null) , true) );
+	}
+
 	public void isFusionDebug(boolean isFusionDebug) {
 		this.isFusionDebug = isFusionDebug;
 	}
 
 	public boolean isFusionDebug() {
 		return isFusionDebug;
-	}
-
-	public void resetAllowRequestTimeoutMonitor() {
-		allowRequestTimeoutMonitor( Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.enable.request.timeout.monitor", null) , true) );
 	}
 
 	public boolean isRunning() {
