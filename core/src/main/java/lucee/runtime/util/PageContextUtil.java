@@ -208,9 +208,10 @@ public class PageContextUtil {
 	}
 
 	public static void checkRequestTimeout(PageContext pc) throws RequestTimeoutException {
-		if ( pc.allowRequestTimeout() ) {
+		if ( pc.allowRequestTimeout() && !pc.getRequestHasTimedOut() ) {
 			long ms = pc.getRequestTimeout() - (System.currentTimeMillis() - pc.getStartTime());
 			if (ms <= 0) {
+				pc.setRequestHasTimedOut(true);
 				throw CFMLFactoryImpl.createRequestTimeoutException(pc);
 			}
 		}

@@ -279,6 +279,7 @@ public final class PageContextImpl extends PageContext {
 
 	private DebuggerImpl debugger = new DebuggerImpl();
 	private long requestTimeout = -1;
+	private boolean requestHasTimedOut = false;
 	private short enablecfoutputonly = 0;
 	private int outputState;
 	private String cfid;
@@ -2536,6 +2537,16 @@ public final class PageContextImpl extends PageContext {
 	@Override
 	public void setRequestTimeout(long requestTimeout) {
 		this.requestTimeout = requestTimeout;
+	}
+
+	@Override
+	public boolean getRequestHasTimedOut() {
+		return requestHasTimedOut;
+	}
+
+	@Override
+	public void setRequestHasTimedOut(boolean requestHasTimedOut) {
+		this.requestHasTimedOut = requestHasTimedOut;
 	}
 
 	@Override

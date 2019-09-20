@@ -815,6 +815,17 @@ public abstract class PageContext extends javax.servlet.jsp.PageContext {
 	public abstract void setRequestTimeout(long requestTimeout);
 
 	/**
+	 * @return return whether or not request has already timed out
+	 */
+	public abstract boolean getRequestHasTimedOut();
+
+	/**
+	 * @return set whether or not request has already timed out
+	 */
+	public abstract void setRequestHasTimedOut(boolean requestHasTimedOut);
+
+
+	/**
 	 * sets state of cfoutput only
 	 *
 	 * @param boolEnablecfoutputonly
