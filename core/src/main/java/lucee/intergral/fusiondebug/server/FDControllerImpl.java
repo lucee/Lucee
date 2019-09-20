@@ -4,17 +4,17 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  **/
 package lucee.intergral.fusiondebug.server;
 
@@ -27,6 +27,7 @@ import java.util.Map.Entry;
 import com.intergral.fusiondebug.server.IFDController;
 import com.intergral.fusiondebug.server.IFDThread;
 
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.runtime.CFMLFactory;
@@ -38,7 +39,7 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.security.SerialNumber;
 
 /**
- * 
+ *
  */
 public class FDControllerImpl implements IFDController {
 
@@ -152,7 +153,7 @@ public class FDControllerImpl implements IFDController {
 
 	/**
 	 * checks a single CFMLFactory for the thread
-	 * 
+	 *
 	 * @param name
 	 * @param factory
 	 * @param id
@@ -172,7 +173,7 @@ public class FDControllerImpl implements IFDController {
 
 	/**
 	 * check if thread of PageContext match given id
-	 * 
+	 *
 	 * @param pc
 	 * @param id
 	 * @return match the id the pagecontext
@@ -197,6 +198,6 @@ public class FDControllerImpl implements IFDController {
 
 	@Override
 	public void release() {
-		this.engine.allowRequestTimeout(true);
+		this.engine.resetAllowRequestTimeout();
 	}
 }

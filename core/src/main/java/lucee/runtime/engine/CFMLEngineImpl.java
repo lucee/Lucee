@@ -4,17 +4,17 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 package lucee.runtime.engine;
 
@@ -209,6 +209,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	private CFMLEngineImpl(CFMLEngineFactory factory, BundleCollection bc) {
 		this.factory = factory;
 		this.bundleCollection = bc;
+		resetAllowRequestTimeout();
 
 		// log the startup process
 		String logDir = SystemUtil.getSystemPropOrEnvVar("startlogdirectory", null);// "/Users/mic/Tmp/");
@@ -643,7 +644,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 	/**
 	 * get singelton instance of the CFML Engine
-	 * 
+	 *
 	 * @param factory
 	 * @return CFMLEngine
 	 */
@@ -666,7 +667,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 	/**
 	 * get singelton instance of the CFML Engine, throwsexception when not already init
-	 * 
+	 *
 	 * @param factory
 	 * @return CFMLEngine
 	 */
@@ -850,7 +851,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 	/**
 	 * loads Configuration File from System, from init Parameter from web.xml
-	 * 
+	 *
 	 * @param sg
 	 * @param configServer
 	 * @param countExistingContextes
@@ -1304,7 +1305,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	 * Thread.getAllStackTraces().entrySet().iterator(); while (it.hasNext()) { Entry<Thread,
 	 * StackTraceElement[]> e = it.next(); print.e(e.getKey().getContextClassLoader());
 	 * print.e(e.getValue()); }
-	 * 
+	 *
 	 * }
 	 */
 
@@ -1422,6 +1423,10 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 	public boolean allowRequestTimeout() {
 		return allowRequestTimeout;
+	}
+
+	public void resetAllowRequestTimeout() {
+		allowRequestTimeout( Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.enable.request.timeout.monitor", null) , true) );
 	}
 
 	public boolean isRunning() {
