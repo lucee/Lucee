@@ -28,8 +28,8 @@ import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
 
 public final class Log implements Function {
-    public static double call(PageContext pc, double number) throws ExpressionException {
-	if (number <= 0.0D) throw new FunctionException(pc, "log", 1, "number", "value must be a positive number now " + Caster.toString(number) + "");
-	return StrictMath.log(number);
-    }
+	public static double call(PageContext pc, double number) throws ExpressionException {
+		if (number <= 0.0D) throw new FunctionException(pc, "log", 1, "number", "value must be a positive number now " + Caster.toString(number) + "");
+		return StrictMath.log(number);
+	}
 }

@@ -18,18 +18,18 @@
  **/
 package lucee.runtime.functions.xml;
 
+import org.w3c.dom.Node;
+
 import lucee.runtime.PageContext;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.text.xml.XMLUtil;
-
-import org.w3c.dom.Node;
 
 /**
  * 
  */
 public final class XmlGetNodeType implements Function {
 
-    public static String call(PageContext pc, Node node) {
-	return XMLUtil.getTypeAsString(node, false);
-    }
+	public static String call(PageContext pc, Node node) {
+		return XMLUtil.getTypeAsString(node, false);
+	}
 }

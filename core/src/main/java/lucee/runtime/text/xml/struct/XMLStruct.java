@@ -18,24 +18,24 @@
  **/
 package lucee.runtime.text.xml.struct;
 
+import org.w3c.dom.Node;
+
 import lucee.runtime.text.xml.XMLNodeList;
 import lucee.runtime.type.Struct;
-
-import org.w3c.dom.Node;
 
 /**
  * 
  */
 public interface XMLStruct extends Struct, Node, XMLObject {
-    /**
-     * @return casts XML Struct to a XML Node
-     */
-    public Node toNode();
+	/**
+	 * @return casts XML Struct to a XML Node
+	 */
+	public Node toNode();
 
-    /**
-     * @return returns the children of the Node
-     */
-    public XMLNodeList getXMLNodeList();
+	/**
+	 * @return returns the children of the Node
+	 */
+	public XMLNodeList getXMLNodeList();
 
-    public boolean isCaseSensitive();
+	public boolean isCaseSensitive();
 }

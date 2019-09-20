@@ -25,38 +25,38 @@ import javax.servlet.ServletContext;
 
 public class ServletConfigDummy implements ServletConfig {
 
-    private String servletName;
-    private ServletContext context;
+	private String servletName;
+	private ServletContext context;
 
-    /**
-     * Constructor of the class
-     * 
-     * @param parameters
-     * @param attrs
-     * @param servletName
-     */
-    public ServletConfigDummy(ServletContextDummy context, String servletName) {
-	this.servletName = servletName;
-	this.context = context;
-    }
+	/**
+	 * Constructor of the class
+	 * 
+	 * @param parameters
+	 * @param attrs
+	 * @param servletName
+	 */
+	public ServletConfigDummy(ServletContextDummy context, String servletName) {
+		this.servletName = servletName;
+		this.context = context;
+	}
 
-    @Override
-    public String getInitParameter(String key) {
-	return context.getInitParameter(key);
-    }
+	@Override
+	public String getInitParameter(String key) {
+		return context.getInitParameter(key);
+	}
 
-    @Override
-    public Enumeration getInitParameterNames() {
-	return context.getInitParameterNames();
-    }
+	@Override
+	public Enumeration getInitParameterNames() {
+		return context.getInitParameterNames();
+	}
 
-    @Override
-    public String getServletName() {
-	return servletName;
-    }
+	@Override
+	public String getServletName() {
+		return servletName;
+	}
 
-    @Override
-    public ServletContext getServletContext() {
-	return context;
-    }
+	@Override
+	public ServletContext getServletContext() {
+		return context;
+	}
 }

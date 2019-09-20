@@ -26,14 +26,14 @@ import lucee.runtime.op.Caster;
 
 public class GetCPUUsage implements Function {
 
-    private static final long serialVersionUID = 2264215038554428321L;
+	private static final long serialVersionUID = 2264215038554428321L;
 
-    public static double call(PageContext pc) throws ApplicationException {
-	return call(pc, 1000);
-    }
+	public static double call(PageContext pc) throws ApplicationException {
+		return call(pc, 1000);
+	}
 
-    public static double call(PageContext pc, double time) throws ApplicationException {
-	return Caster.toDoubleValue(SystemUtil.getCpuUsage((long) time));
-    }
+	public static double call(PageContext pc, double time) throws ApplicationException {
+		return Caster.toDoubleValue(SystemUtil.getCpuUsage((long) time));
+	}
 
 }

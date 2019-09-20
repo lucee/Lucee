@@ -20,33 +20,38 @@ package lucee.runtime.converter;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Map;
 import java.util.TimeZone;
+
+import org.apache.commons.collections4.map.ReferenceMap;
 
 import lucee.commons.lang.SerializableObject;
 import lucee.runtime.engine.ThreadLocalPageContext;
 
-import org.apache.commons.collections4.map.ReferenceMap;
-
 public class JSONDateFormat {
 
-    private static ReferenceMap<String, DateFormat> map = new ReferenceMap<String, DateFormat>();
-    // private static DateFormat format=null;
-    private static Locale locale = Locale.ENGLISH;
-    private final static Object sync = new SerializableObject();
+	public static final String PATTERN_CF = "MMMM, dd yyyy HH:mm:ss Z";
+	public static final String PATTERN_ISO8601 = "yyyy-MM-dd'T'HH:mm:ssZ"; // preferred pattern for json
 
-    public static String format(Date date, TimeZone tz) {
-	tz = ThreadLocalPageContext.getTimeZone(tz);
-	String id = locale.hashCode() + "-" + tz.getID();
-	synchronized (sync) {
-	    DateFormat format = (DateFormat) map.get(id);
-	    if (format == null) {
-		format = new SimpleDateFormat("MMMM, dd yyyy HH:mm:ss Z", locale);
-		format.setTimeZone(tz);
-		map.put(id, format);
-	    }
-	    return format.format(date);
+	private static Map<String, DateFormat> map = Collections.synchronizedMap(new ReferenceMap<String, DateFormat>());
+	// private static DateFormat format=null;
+	private static Locale locale = Locale.ENGLISH;
+	private final static Object sync = new SerializableObject();
+
+	public static String format(Date date, TimeZone tz, String pattern) {
+		tz = ThreadLocalPageContext.getTimeZone(tz);
+		String id = locale.hashCode() + "-" + tz.getID();
+		synchronized (sync) {
+			DateFormat format = map.get(id);
+			if (format == null) {
+				format = new SimpleDateFormat(pattern, locale);
+				format.setTimeZone(tz);
+				map.put(id, format);
+			}
+			return format.format(date);
+		}
 	}
-    }
 }

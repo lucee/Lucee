@@ -27,7 +27,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.ext.function.Function;
 
 public final class IsNotMap implements Function {
-    public static boolean call(PageContext pc, Object object) {
-	return !(object instanceof Map);
-    }
+	public static boolean call(PageContext pc, Object object) {
+		return !(object instanceof Map);
+	}
 }

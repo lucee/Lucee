@@ -26,7 +26,7 @@ import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Decision;
 
 public final class IsXmlDoc implements Function {
-    public static boolean call(PageContext pc, Object object) {
-	return Decision.isXMLDocument(object);
-    }
+	public static boolean call(PageContext pc, Object object) {
+		return Decision.isXMLDocument(object);
+	}
 }

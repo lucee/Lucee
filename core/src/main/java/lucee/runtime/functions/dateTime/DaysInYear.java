@@ -32,24 +32,24 @@ import lucee.runtime.type.dt.DateTime;
 
 public final class DaysInYear extends BIF {
 
-    private static final long serialVersionUID = -2900647153777735688L;
+	private static final long serialVersionUID = -2900647153777735688L;
 
-    public static double call(PageContext pc, DateTime date) {
-	return _call(pc, date, pc.getTimeZone());
-    }
+	public static double call(PageContext pc, DateTime date) {
+		return _call(pc, date, pc.getTimeZone());
+	}
 
-    public static double call(PageContext pc, DateTime date, TimeZone tz) {
-	return _call(pc, date, tz == null ? pc.getTimeZone() : tz);
-    }
+	public static double call(PageContext pc, DateTime date, TimeZone tz) {
+		return _call(pc, date, tz == null ? pc.getTimeZone() : tz);
+	}
 
-    private static double _call(PageContext pc, DateTime date, TimeZone tz) {
-	DateTimeUtil util = DateTimeUtil.getInstance();
-	return util.isLeapYear(util.getYear(tz, date)) ? 366 : 365;
-    }
+	private static double _call(PageContext pc, DateTime date, TimeZone tz) {
+		DateTimeUtil util = DateTimeUtil.getInstance();
+		return util.isLeapYear(util.getYear(tz, date)) ? 366 : 365;
+	}
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 1) return call(pc, Caster.toDatetime(args[0], pc.getTimeZone()));
-	return call(pc, Caster.toDatetime(args[0], pc.getTimeZone()), Caster.toTimeZone(args[1]));
-    }
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 1) return call(pc, Caster.toDatetime(args[0], pc.getTimeZone()));
+		return call(pc, Caster.toDatetime(args[0], pc.getTimeZone()), Caster.toTimeZone(args[1]));
+	}
 }

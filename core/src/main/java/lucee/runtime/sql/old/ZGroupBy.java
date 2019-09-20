@@ -27,34 +27,34 @@ import java.util.Vector;
 
 public final class ZGroupBy implements Serializable {
 
-    public ZGroupBy(Vector vector) {
-	having_ = null;
-	groupby_ = vector;
-    }
+	public ZGroupBy(Vector vector) {
+		having_ = null;
+		groupby_ = vector;
+	}
 
-    public void setHaving(ZExp zexp) {
-	having_ = zexp;
-    }
+	public void setHaving(ZExp zexp) {
+		having_ = zexp;
+	}
 
-    public Vector getGroupBy() {
-	return groupby_;
-    }
+	public Vector getGroupBy() {
+		return groupby_;
+	}
 
-    public ZExp getHaving() {
-	return having_;
-    }
+	public ZExp getHaving() {
+		return having_;
+	}
 
-    @Override
-    public String toString() {
-	StringBuffer stringbuffer = new StringBuffer("group by ");
-	stringbuffer.append(groupby_.elementAt(0).toString());
-	for (int i = 1; i < groupby_.size(); i++)
-	    stringbuffer.append(", " + groupby_.elementAt(i).toString());
+	@Override
+	public String toString() {
+		StringBuffer stringbuffer = new StringBuffer("group by ");
+		stringbuffer.append(groupby_.elementAt(0).toString());
+		for (int i = 1; i < groupby_.size(); i++)
+			stringbuffer.append(", " + groupby_.elementAt(i).toString());
 
-	if (having_ != null) stringbuffer.append(" having " + having_.toString());
-	return stringbuffer.toString();
-    }
+		if (having_ != null) stringbuffer.append(" having " + having_.toString());
+		return stringbuffer.toString();
+	}
 
-    Vector groupby_;
-    ZExp having_;
+	Vector groupby_;
+	ZExp having_;
 }

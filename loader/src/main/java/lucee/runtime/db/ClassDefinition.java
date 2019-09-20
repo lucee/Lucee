@@ -24,28 +24,28 @@ import lucee.commons.lang.ClassException;
 
 public interface ClassDefinition<T> {
 
-    public Class<T> getClazz() throws ClassException, BundleException;
+	public Class<T> getClazz() throws ClassException, BundleException;
 
-    public Class<T> getClazz(Class<T> defaultValue);
+	public Class<T> getClazz(Class<T> defaultValue);
 
-    public boolean hasClass();
+	public boolean hasClass();
 
-    public boolean isBundle();
+	public boolean isBundle();
 
-    public boolean hasVersion();
+	public boolean hasVersion();
 
-    public boolean isClassNameEqualTo(String otherClassName);
+	public boolean isClassNameEqualTo(String otherClassName);
 
-    public boolean isClassNameEqualTo(String otherClassName, boolean ignoreCase);
+	public boolean isClassNameEqualTo(String otherClassName, boolean ignoreCase);
 
-    public String getClassName();
+	public String getClassName();
 
-    public String getName();
+	public String getName();
 
-    public Version getVersion();
+	public Version getVersion();
 
-    public String getVersionAsString();
+	public String getVersionAsString();
 
-    public String getId();
+	public String getId();
 
 }

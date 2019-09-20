@@ -21,8 +21,8 @@ import lucee.transformer.Factory;
 
 public final class StaticBody extends BodyBase {
 
-    public StaticBody(Factory f) {
-	super(f);
-    }
+	public StaticBody(Factory f) {
+		super(f);
+	}
 
 }

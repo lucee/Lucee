@@ -28,21 +28,21 @@ import java.io.FileOutputStream;
  */
 public final class BufferedFileOutputStream extends BufferedOutputStream {
 
-    /**
-     * @param file
-     * @param append
-     * @throws FileNotFoundException
-     */
-    public BufferedFileOutputStream(File file, boolean append) throws FileNotFoundException {
-	super(new FileOutputStream(file, append));
-    }
+	/**
+	 * @param file
+	 * @param append
+	 * @throws FileNotFoundException
+	 */
+	public BufferedFileOutputStream(File file, boolean append) throws FileNotFoundException {
+		super(new FileOutputStream(file, append));
+	}
 
-    /**
-     * @param file
-     * @throws FileNotFoundException
-     */
-    public BufferedFileOutputStream(File file) throws FileNotFoundException {
-	super(new FileOutputStream(file));
-    }
+	/**
+	 * @param file
+	 * @throws FileNotFoundException
+	 */
+	public BufferedFileOutputStream(File file) throws FileNotFoundException {
+		super(new FileOutputStream(file));
+	}
 
 }

@@ -26,9 +26,9 @@ import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.ext.function.Function;
 
 public final class Sqr implements Function {
-    public static double call(PageContext pc, double number) throws ExpressionException {
-	if (number >= 0.0D) return StrictMath.sqrt(number);
-	throw new ExpressionException("invalid argument, function argument must be a positive number");
+	public static double call(PageContext pc, double number) throws ExpressionException {
+		if (number >= 0.0D) return StrictMath.sqrt(number);
+		throw new ExpressionException("invalid argument, function argument must be a positive number");
 
-    }
+	}
 }

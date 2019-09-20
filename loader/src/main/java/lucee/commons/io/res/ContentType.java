@@ -20,10 +20,10 @@ package lucee.commons.io.res;
 
 public interface ContentType {
 
-    public String getMimeType();
+	public String getMimeType();
 
-    /**
-     * @return the charset
-     */
-    public String getCharset();
+	/**
+	 * @return the charset
+	 */
+	public String getCharset();
 }

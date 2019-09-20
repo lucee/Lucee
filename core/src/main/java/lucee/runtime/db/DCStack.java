@@ -21,187 +21,187 @@ package lucee.runtime.db;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-import lucee.commons.lang.ExceptionUtil;
-import lucee.commons.lang.SystemOut;
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.types.RefInteger;
 import lucee.commons.lang.types.RefIntegerImpl;
+import lucee.runtime.engine.ThreadLocalPageContext;
 
 class DCStack {
 
-    private Item item;
-    private DataSource datasource;
-    private String user;
-    private String pass;
-    private final RefInteger counter;
+	private Item item;
+	private DataSource datasource;
+	private String user;
+	private String pass;
+	private final RefInteger counter;
 
-    DCStack(DataSource datasource, String user, String pass) {
-	this.datasource = datasource;
-	this.user = user;
-	this.pass = pass;
-	this.counter = new RefIntegerImpl(0);
-    }
-
-    public DataSource getDatasource() {
-	return datasource;
-    }
-
-    public String getUsername() {
-	return user;
-    }
-
-    public String getPassword() {
-	return pass;
-    }
-
-    public void add(DatasourceConnection dc) {
-	// make sure the connection is not already in stack, this can happen when the conn is released twice
-	Item test = item;
-	while (test != null) {
-	    if (test.dc == dc) {
-		SystemOut.print("a datasource connection was released twice!");
-		return;
-	    }
-	    test = test.prev;
+	DCStack(DataSource datasource, String user, String pass) {
+		this.datasource = datasource;
+		this.user = user;
+		this.pass = pass;
+		this.counter = new RefIntegerImpl(0);
 	}
 
-	item = new Item(item, dc);
-    }
-
-    public DatasourceConnection get() {
-	if (item == null) return null;
-	DatasourceConnection rtn = item.dc;
-	item = item.prev;
-	try {
-
-	    if (!rtn.getConnection().isClosed()) {
-		return rtn;
-	    }
-	    return get();
-	}
-	catch (SQLException e) {}
-	return null;
-    }
-
-    public boolean isEmpty() {
-	return item == null;
-    }
-
-    public int size() {
-	int count = 0;
-	Item i = item;
-	while (i != null) {
-	    count++;
-	    i = i.prev;
-	}
-	return count;
-    }
-
-    public int openConnectionsIn() {
-	int count = 0;
-	Item i = item;
-	while (i != null) {
-	    try {
-		if (!i.dc.getConnection().isClosed()) count++;
-	    }
-	    catch (SQLException e) {}
-	    i = i.prev;
-	}
-	return count;
-    }
-
-    public int openConnectionsOut() {
-	return counter.toInt();
-    }
-
-    public int openConnections() {
-	return openConnectionsIn() + openConnectionsOut();
-    }
-
-    class Item {
-	private DatasourceConnection dc;
-	private Item prev;
-	private int count = 1;
-
-	public Item(Item item, DatasourceConnection dc) {
-	    this.prev = item;
-	    this.dc = dc;
-	    if (prev != null) count = prev.count + 1;
+	public DataSource getDatasource() {
+		return datasource;
 	}
 
-	@Override
-	public String toString() {
-	    return "(" + prev + ")<-" + count;
+	public String getUsername() {
+		return user;
 	}
-    }
 
-    public synchronized void clear(boolean force) {
-	clear(item, null, force);
-    }
+	public String getPassword() {
+		return pass;
+	}
 
-    /**
-     * 
-     * @param current
-     * @param next
-     * @param timeout timeout in seconds used to validate existing connections
-     * @throws SQLException
-     */
-    private void clear(Item current, Item next, boolean force) {
-	if (current == null) return;
+	public void add(DatasourceConnection dc) {
+		// make sure the connection is not already in stack, this can happen when the conn is released twice
+		Item test = item;
+		while (test != null) {
+			if (test.dc == dc) {
+				LogUtil.log(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, DCStack.class.getName(), "a datasource connection was released twice!");
+				return;
+			}
+			test = test.prev;
+		}
 
-	// timeout or closed
-	if (force || current.dc.isTimeout() || current.dc.isLifecycleTimeout() || isClosedEL(current.dc.getConnection())
-		|| Boolean.FALSE.equals(isValidEL(current.dc.getConnection()))) {
+		item = new Item(item, dc);
+	}
 
-	    // when timeout was reached but it is still open, close it
-	    if (!isClosedEL(current.dc.getConnection())) {
+	public DatasourceConnection get() {
+		if (item == null) return null;
+		DatasourceConnection rtn = item.dc;
+		item = item.prev;
 		try {
-		    current.dc.close();
+
+			if (!rtn.getConnection().isClosed()) {
+				return rtn;
+			}
+			return get();
 		}
 		catch (SQLException e) {}
-	    }
-
-	    // remove this connection from chain
-	    if (next == null) item = current.prev;
-	    else {
-		next.prev = current.prev;
-	    }
-
-	    clear(current.prev, next, force);
+		return null;
 	}
-	else clear(current.prev, current, force);
 
-	counter.setValue(0);
-    }
-
-    private boolean isClosedEL(Connection conn) {
-	try {
-	    return conn.isClosed();
+	public boolean isEmpty() {
+		return item == null;
 	}
-	catch (SQLException se) {
-	    datasource.getLog().error("Connection  Pool", se);
-	    // in case of a exception we see this conn as useless and close the connection
-	    try {
-		conn.close();
-	    }
-	    catch (SQLException e) {
-		datasource.getLog().error("Connection  Pool", e);
-	    }
 
-	    return true;
+	public int size() {
+		int count = 0;
+		Item i = item;
+		while (i != null) {
+			count++;
+			i = i.prev;
+		}
+		return count;
 	}
-    }
 
-    private Boolean isValidEL(Connection conn) {
-	try {
-	    return conn.isValid(datasource.getNetworkTimeout()) ? Boolean.TRUE : Boolean.FALSE;
+	public int openConnectionsIn() {
+		int count = 0;
+		Item i = item;
+		while (i != null) {
+			try {
+				if (!i.dc.getConnection().isClosed()) count++;
+			}
+			catch (Exception e) {}
+			i = i.prev;
+		}
+		return count;
 	}
-	catch (Throwable t) {
-	    ExceptionUtil.rethrowIfNecessary(t);
-	    return null;
-	}
-    }
 
-    public RefInteger getCounter() {
-	return counter;
-    }
+	public int openConnectionsOut() {
+		return counter.toInt();
+	}
+
+	public int openConnections() {
+		return openConnectionsIn() + openConnectionsOut();
+	}
+
+	class Item {
+		private DatasourceConnection dc;
+		private Item prev;
+		private int count = 1;
+
+		public Item(Item item, DatasourceConnection dc) {
+			this.prev = item;
+			this.dc = dc;
+			if (prev != null) count = prev.count + 1;
+		}
+
+		@Override
+		public String toString() {
+			return "(" + prev + ")<-" + count;
+		}
+	}
+
+	public synchronized void clear(boolean force) {
+		clear(item, null, force);
+	}
+
+	/**
+	 * 
+	 * @param current
+	 * @param next
+	 * @param timeout timeout in seconds used to validate existing connections
+	 * @throws SQLException
+	 */
+	private void clear(Item current, Item next, boolean force) {
+		if (current == null) return;
+
+		// timeout or closed
+		if (force || current.dc.isTimeout() || current.dc.isLifecycleTimeout() || isClosedEL(current.dc.getConnection())
+				|| Boolean.FALSE.equals(isValidEL(current.dc.getConnection()))) {
+
+			// when timeout was reached but it is still open, close it
+			if (!isClosedEL(current.dc.getConnection())) {
+				try {
+					current.dc.close();
+				}
+				catch (Exception e) {}
+			}
+
+			// remove this connection from chain
+			if (next == null) item = current.prev;
+			else {
+				next.prev = current.prev;
+			}
+
+			clear(current.prev, next, force);
+		}
+		else clear(current.prev, current, force);
+
+		counter.setValue(0);
+	}
+
+	private boolean isClosedEL(Connection conn) {
+		try {
+			return conn.isClosed();
+		}
+		catch (Exception se) {
+			datasource.getLog().error("Connection  Pool", se);
+			// in case of a exception we see this conn as useless and close the connection
+			try {
+				conn.close();
+			}
+			catch (SQLException e) {
+				datasource.getLog().error("Connection  Pool", e);
+			}
+
+			return true;
+		}
+	}
+
+	private Boolean isValidEL(Connection conn) {
+		try {
+			return conn.isValid(datasource.getNetworkTimeout()) ? Boolean.TRUE : Boolean.FALSE;
+		}
+		catch (Exception e) {
+			return null;
+		}
+	}
+
+	public RefInteger getCounter() {
+		return counter;
+	}
 }

@@ -31,55 +31,55 @@ import lucee.runtime.PageContext;
 
 public class IsZipFile {
 
-    public static boolean call(PageContext pc, String path) {
-	try {
-	    return invoke(ResourceUtil.toResourceExisting(pc, path));
+	public static boolean call(PageContext pc, String path) {
+		try {
+			return invoke(ResourceUtil.toResourceExisting(pc, path));
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			return false;
+		}
 	}
-	catch (Throwable t) {
-	    ExceptionUtil.rethrowIfNecessary(t);
-	    return false;
-	}
-    }
 
-    public static boolean invoke(Resource res) {
-	InputStream is = null;
-	boolean hasEntries = false;
-	try {
-	    // ZipEntry ze;
-	    ZipInputStream zis = new ZipInputStream(is = res.getInputStream());
-	    while ((zis.getNextEntry()) != null) {
-		zis.closeEntry();
-		hasEntries = true;
-	    }
+	public static boolean invoke(Resource res) {
+		InputStream is = null;
+		boolean hasEntries = false;
+		try {
+			// ZipEntry ze;
+			ZipInputStream zis = new ZipInputStream(is = res.getInputStream());
+			while ((zis.getNextEntry()) != null) {
+				zis.closeEntry();
+				hasEntries = true;
+			}
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			return false;
+		}
+		finally {
+			IOUtil.closeEL(is);
+		}
+		return hasEntries;
 	}
-	catch (Throwable t) {
-	    ExceptionUtil.rethrowIfNecessary(t);
-	    return false;
-	}
-	finally {
-	    IOUtil.closeEL(is);
-	}
-	return hasEntries;
-    }
 
-    public static boolean invoke(File file) {
-	InputStream is = null;
-	boolean hasEntries = false;
-	try {
-	    // ZipEntry ze;
-	    ZipInputStream zis = new ZipInputStream(is = new FileInputStream(file));
-	    while ((zis.getNextEntry()) != null) {
-		zis.closeEntry();
-		hasEntries = true;
-	    }
+	public static boolean invoke(File file) {
+		InputStream is = null;
+		boolean hasEntries = false;
+		try {
+			// ZipEntry ze;
+			ZipInputStream zis = new ZipInputStream(is = new FileInputStream(file));
+			while ((zis.getNextEntry()) != null) {
+				zis.closeEntry();
+				hasEntries = true;
+			}
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			return false;
+		}
+		finally {
+			IOUtil.closeEL(is);
+		}
+		return hasEntries;
 	}
-	catch (Throwable t) {
-	    ExceptionUtil.rethrowIfNecessary(t);
-	    return false;
-	}
-	finally {
-	    IOUtil.closeEL(is);
-	}
-	return hasEntries;
-    }
 }

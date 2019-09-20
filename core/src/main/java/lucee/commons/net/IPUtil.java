@@ -32,132 +32,132 @@ import lucee.runtime.type.util.ListUtil;
 
 public class IPUtil {
 
-    private static boolean isCacheEnabled = false;
-    private static boolean isCacheValid = false;
-    private static List<String> cachedLocalIPs = null;
+	private static boolean isCacheEnabled = false;
+	private static boolean isCacheValid = false;
+	private static List<String> cachedLocalIPs = null;
 
-    static {
+	static {
 
-	long tc = System.currentTimeMillis();
+		long tc = System.currentTimeMillis();
 
-	List<String> localIPs = getLocalIPs(true);
+		List<String> localIPs = getLocalIPs(true);
 
-	isCacheEnabled = System.currentTimeMillis() > tc;
+		isCacheEnabled = System.currentTimeMillis() > tc;
 
-	if (isCacheEnabled) {
+		if (isCacheEnabled) {
 
-	    cachedLocalIPs = localIPs;
-	    isCacheValid = true;
+			cachedLocalIPs = localIPs;
+			isCacheValid = true;
+		}
 	}
-    }
 
-    public static boolean isIPv4(String ip) {
-	String[] arr = ListUtil.trimItems(ListUtil.trim(ListUtil.listToStringArray(ip, '.')));
-	if (arr.length != 4) return false;
+	public static boolean isIPv4(String ip) {
+		String[] arr = ListUtil.trimItems(ListUtil.trim(ListUtil.listToStringArray(ip, '.')));
+		if (arr.length != 4) return false;
 
-	int tmp;
-	for (int i = 0; i < arr.length; i++) {
-	    tmp = Caster.toIntValue(arr[i], -1);
-	    if (tmp < 0 || tmp > 255) return false;
+		int tmp;
+		for (int i = 0; i < arr.length; i++) {
+			tmp = Caster.toIntValue(arr[i], -1);
+			if (tmp < 0 || tmp > 255) return false;
+		}
+		return true;
 	}
-	return true;
-    }
 
-    public static boolean isIPv62(String ip) {
-	if (ip.indexOf(':') == -1) return false;
-	String[] arr = ListUtil.trimItems(ListUtil.trim(ListUtil.listToStringArray(ip, ':')));
-	if (arr.length != 8) return false;
-	String str;
-	int _int;
-	for (int i = 0; i < arr.length; i++) {
-	    str = arr[i];
-	    if (!StringUtil.isEmpty(str)) {
+	public static boolean isIPv62(String ip) {
+		if (ip.indexOf(':') == -1) return false;
+		String[] arr = ListUtil.trimItems(ListUtil.trim(ListUtil.listToStringArray(ip, ':')));
+		if (arr.length != 8) return false;
+		String str;
+		int _int;
+		for (int i = 0; i < arr.length; i++) {
+			str = arr[i];
+			if (!StringUtil.isEmpty(str)) {
+				try {
+					_int = Integer.parseInt(str, 16);
+				}
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+					_int = -1;
+				}
+				if (_int < 0 || _int > 65535) return false;
+			}
+		}
+		return true;
+	}
+
+	public static boolean isIPv4(InetAddress addr) {
+		return addr.getAddress().length == 4;
+	}
+
+	public static boolean isIPv6(InetAddress addr) {
+		return !isIPv4(addr);
+	}
+
+	public static List<String> getLocalIPs(boolean refresh) {
+
+		if (isCacheEnabled && isCacheValid && !refresh) {
+
+			return new ArrayList<String>(cachedLocalIPs);
+		}
+
+		List<String> result = new ArrayList();
+
 		try {
-		    _int = Integer.parseInt(str, 16);
+
+			Enumeration<NetworkInterface> eNics = NetworkInterface.getNetworkInterfaces();
+
+			while (eNics.hasMoreElements()) {
+
+				NetworkInterface nic = eNics.nextElement();
+
+				if (nic.isUp()) {
+
+					Enumeration<InetAddress> eAddr = nic.getInetAddresses();
+
+					while (eAddr.hasMoreElements()) {
+
+						InetAddress inaddr = eAddr.nextElement();
+
+						String addr = inaddr.toString();
+
+						if (addr.startsWith("/")) addr = addr.substring(1);
+
+						if (addr.indexOf('%') > -1) addr = addr.substring(0, addr.indexOf('%')); // internal zone in some IPv6;
+						// http://en.wikipedia.org/wiki/IPv6_Addresses#Link-local%5Faddresses%5Fand%5Fzone%5Findices
+
+						result.add(addr);
+					}
+				}
+			}
 		}
-		catch (Throwable t) {
-		    ExceptionUtil.rethrowIfNecessary(t);
-		    _int = -1;
+		catch (SocketException e) {
+
+			result.add("127.0.0.1");
+			result.add("0:0:0:0:0:0:0:1");
 		}
-		if (_int < 0 || _int > 65535) return false;
-	    }
-	}
-	return true;
-    }
 
-    public static boolean isIPv4(InetAddress addr) {
-	return addr.getAddress().length == 4;
-    }
+		if (isCacheEnabled) {
 
-    public static boolean isIPv6(InetAddress addr) {
-	return !isIPv4(addr);
-    }
-
-    public static List<String> getLocalIPs(boolean refresh) {
-
-	if (isCacheEnabled && isCacheValid && !refresh) {
-
-	    return new ArrayList<String>(cachedLocalIPs);
-	}
-
-	List<String> result = new ArrayList();
-
-	try {
-
-	    Enumeration<NetworkInterface> eNics = NetworkInterface.getNetworkInterfaces();
-
-	    while (eNics.hasMoreElements()) {
-
-		NetworkInterface nic = eNics.nextElement();
-
-		if (nic.isUp()) {
-
-		    Enumeration<InetAddress> eAddr = nic.getInetAddresses();
-
-		    while (eAddr.hasMoreElements()) {
-
-			InetAddress inaddr = eAddr.nextElement();
-
-			String addr = inaddr.toString();
-
-			if (addr.startsWith("/")) addr = addr.substring(1);
-
-			if (addr.indexOf('%') > -1) addr = addr.substring(0, addr.indexOf('%')); // internal zone in some IPv6;
-												 // http://en.wikipedia.org/wiki/IPv6_Addresses#Link-local%5Faddresses%5Fand%5Fzone%5Findices
-
-			result.add(addr);
-		    }
+			cachedLocalIPs = result;
+			isCacheValid = true;
 		}
-	    }
-	}
-	catch (SocketException e) {
 
-	    result.add("127.0.0.1");
-	    result.add("0:0:0:0:0:0:0:1");
+		return result;
 	}
 
-	if (isCacheEnabled) {
+	/**
+	 * this method can be called from Controller periodically, or from Admin if user clicks to
+	 * invalidate the cache
+	 */
+	public void invalidateCache() {
 
-	    cachedLocalIPs = result;
-	    isCacheValid = true;
+		isCacheValid = false;
 	}
 
-	return result;
-    }
+	/** returns true if cache is used */
+	public boolean isCacheEnabled() {
 
-    /**
-     * this method can be called from Controller periodically, or from Admin if user clicks to
-     * invalidate the cache
-     */
-    public void invalidateCache() {
-
-	isCacheValid = false;
-    }
-
-    /** returns true if cache is used */
-    public boolean isCacheEnabled() {
-
-	return isCacheEnabled;
-    }
+		return isCacheEnabled;
+	}
 
 }

@@ -32,18 +32,18 @@ import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
 
 public final class GetProfileString implements Function {
-    public static String call(PageContext pc, String fileName, String section, String key) throws PageException {
-	try {
-	    Resource res = ResourceUtil.toResourceNotExisting(pc, fileName);
-	    if (!res.isFile()) return "";
+	public static String call(PageContext pc, String fileName, String section, String key) throws PageException {
+		try {
+			Resource res = ResourceUtil.toResourceNotExisting(pc, fileName);
+			if (!res.isFile()) return "";
 
-	    IniFile ini = new IniFile(res);
-	    String str = ini.getKeyValueEL(section, key);
-	    if (str == null) return "";
-	    return str;
+			IniFile ini = new IniFile(res);
+			String str = ini.getKeyValueEL(section, key);
+			if (str == null) return "";
+			return str;
+		}
+		catch (IOException e) {
+			throw Caster.toPageException(e);
+		}
 	}
-	catch (IOException e) {
-	    throw Caster.toPageException(e);
-	}
-    }
 }

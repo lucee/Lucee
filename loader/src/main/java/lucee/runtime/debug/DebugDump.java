@@ -22,18 +22,18 @@ import java.io.Serializable;
 
 public interface DebugDump extends Serializable {
 
-    /**
-     * @return the line
-     */
-    public int getLine();
+	/**
+	 * @return the line
+	 */
+	public int getLine();
 
-    /**
-     * @return the template
-     */
-    public String getTemplate();
+	/**
+	 * @return the template
+	 */
+	public String getTemplate();
 
-    /**
-     * @return the text
-     */
-    public String getOutput();
+	/**
+	 * @return the text
+	 */
+	public String getOutput();
 }

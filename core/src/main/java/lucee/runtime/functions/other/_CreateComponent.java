@@ -33,56 +33,56 @@ import lucee.runtime.type.util.KeyConstants;
 
 public class _CreateComponent {
 
-    private static final Object[] EMPTY = new Object[0];
+	private static final Object[] EMPTY = new Object[0];
 
-    public static Object call(PageContext pc, Object[] objArr) throws PageException {
-	String path = Caster.toString(objArr[objArr.length - 1]);
-	// not store the index to make it faster
+	public static Object call(PageContext pc, Object[] objArr) throws PageException {
+		String path = Caster.toString(objArr[objArr.length - 1]);
+		// not store the index to make it faster
 
-	Component c = CreateObject.doComponent(pc, path);
+		Component c = CreateObject.doComponent(pc, path);
 
-	// no init method
-	if (!(c.get(KeyConstants._init, null) instanceof UDF)) {
+		// no init method
+		if (!(c.get(KeyConstants._init, null) instanceof UDF)) {
 
-	    if (objArr.length > 1) { // we have arguments passed in
-		Object arg1 = objArr[0];
-		if (arg1 instanceof FunctionValue) {
-		    Struct args = Caster.toFunctionValues(objArr, 0, objArr.length - 1);
-		    EntityNew.setPropeties(pc, c, args, true);
+			if (objArr.length > 1) { // we have arguments passed in
+				Object arg1 = objArr[0];
+				if (arg1 instanceof FunctionValue) {
+					Struct args = Caster.toFunctionValues(objArr, 0, objArr.length - 1);
+					EntityNew.setPropeties(pc, c, args, true);
+				}
+				else if (Decision.isStruct(arg1) && !Decision.isComponent(arg1) && objArr.length == 2) { // we only do this in case there is only argument set, otherwise we assume
+					// that this is simply a missuse of the new operator
+					Struct args = Caster.toStruct(arg1);
+					EntityNew.setPropeties(pc, c, args, true);
+				}
+			}
+
+			return c;
 		}
-		else if (Decision.isStruct(arg1) && !Decision.isComponent(arg1) && objArr.length == 2) { // we only do this in case there is only argument set, otherwise we assume
-													 // that this is simply a missuse of the new operator
-		    Struct args = Caster.toStruct(arg1);
-		    EntityNew.setPropeties(pc, c, args, true);
+
+		Object rtn;
+		// no arguments
+		if (objArr.length == 1) {// no args
+			rtn = c.call(pc, KeyConstants._init, EMPTY);
 		}
-	    }
+		// named arguments
+		else if (objArr[0] instanceof FunctionValue) {
+			Struct args = Caster.toFunctionValues(objArr, 0, objArr.length - 1);
+			rtn = c.callWithNamedValues(pc, KeyConstants._init, args);
+		}
+		// no name arguments
+		else {
+			Object[] args = new Object[objArr.length - 1];
+			for (int i = 0; i < objArr.length - 1; i++) {
+				args[i] = objArr[i];
+				if (args[i] instanceof FunctionValue)
+					throw new ExpressionException("invalid argument definition, when using named parameters to a function, every parameter must have a name.");
+			}
+			rtn = c.call(pc, KeyConstants._init, args);
+		}
+		if (rtn == null || (c.getPageSource() != null && c.getPageSource().getDialect() == CFMLEngine.DIALECT_LUCEE)) return c;
 
-	    return c;
+		return rtn;
 	}
-
-	Object rtn;
-	// no arguments
-	if (objArr.length == 1) {// no args
-	    rtn = c.call(pc, KeyConstants._init, EMPTY);
-	}
-	// named arguments
-	else if (objArr[0] instanceof FunctionValue) {
-	    Struct args = Caster.toFunctionValues(objArr, 0, objArr.length - 1);
-	    rtn = c.callWithNamedValues(pc, KeyConstants._init, args);
-	}
-	// no name arguments
-	else {
-	    Object[] args = new Object[objArr.length - 1];
-	    for (int i = 0; i < objArr.length - 1; i++) {
-		args[i] = objArr[i];
-		if (args[i] instanceof FunctionValue)
-		    throw new ExpressionException("invalid argument definition, when using named parameters to a function, every parameter must have a name.");
-	    }
-	    rtn = c.call(pc, KeyConstants._init, args);
-	}
-	if (rtn == null || (c.getPageSource() != null && c.getPageSource().getDialect() == CFMLEngine.DIALECT_LUCEE)) return c;
-
-	return rtn;
-    }
 
 }

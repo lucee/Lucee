@@ -18,56 +18,104 @@
  **/
 package lucee.commons.io.log;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Date;
+
+import lucee.aprint;
+import lucee.commons.io.CharsetUtil;
+import lucee.commons.io.IOUtil;
+import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.SystemOut;
+import lucee.loader.engine.CFMLEngine;
+import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigWebUtil;
+import lucee.runtime.engine.ThreadLocalPageContext;
+
 /**
  * Helper class for the logs
  */
 public final class LogUtil {
 
-    /*
-     * public static void log(Log log, int level, String logName, Throwable t) {
-     * log(log,level,logName,"",t); }
-     * 
-     * public static void log(Log log, int level, String logName,String msg, Throwable t) { if(log
-     * instanceof LogAdapter) { log.log(level, logName, msg,t); } else { String em =
-     * ExceptionUtil.getMessage(t); String est = ExceptionUtil.getStacktrace(t, false);
-     * if(msg.equals(em)) msg=em+";"+est; else msg+=";"+em+";"+est;
-     * 
-     * if(log!=null) { log.log(level, logName,msg); } else { PrintStream
-     * ps=(level>=Log.LEVEL_WARN)?System.err:System.out; ps.println(logName+";"+msg); }
-     * 
-     * } }
-     * 
-     * public static void log(Log log, int level, String logName, String msg, StackTraceElement[]
-     * stackTrace) { Throwable t = new Throwable(); t.setStackTrace(stackTrace);
-     * log(log,level,logName,msg,t); }
-     * 
-     * public static Log getLog(PageContext pc, String name) { return
-     * ((PageContextImpl)pc).getLog(name); }
-     * 
-     * public static Log getLog(PageContext pc, String name, boolean createIfNecessary) { return
-     * ((PageContextImpl)pc).getLog(name,createIfNecessary); }
-     */
+	public static int toLevel(String strLevel, int defaultValue) {
+		if (strLevel == null) return defaultValue;
+		strLevel = strLevel.toLowerCase().trim();
+		if (strLevel.startsWith("info")) return Log.LEVEL_INFO;
+		if (strLevel.startsWith("debug")) return Log.LEVEL_DEBUG;
+		if (strLevel.startsWith("warn")) return Log.LEVEL_WARN;
+		if (strLevel.startsWith("error")) return Log.LEVEL_ERROR;
+		if (strLevel.startsWith("fatal")) return Log.LEVEL_FATAL;
+		if (strLevel.startsWith("trace")) return Log.LEVEL_TRACE;
+		return defaultValue;
+	}
 
-    public static int toLevel(String strLevel, int defaultValue) {
-	if (strLevel == null) return defaultValue;
-	strLevel = strLevel.toLowerCase().trim();
-	if (strLevel.startsWith("info")) return Log.LEVEL_INFO;
-	if (strLevel.startsWith("debug")) return Log.LEVEL_DEBUG;
-	if (strLevel.startsWith("warn")) return Log.LEVEL_WARN;
-	if (strLevel.startsWith("error")) return Log.LEVEL_ERROR;
-	if (strLevel.startsWith("fatal")) return Log.LEVEL_FATAL;
-	if (strLevel.startsWith("trace")) return Log.LEVEL_TRACE;
-	return defaultValue;
-    }
+	public static String levelToString(int level, String defaultValue) {
+		if (Log.LEVEL_INFO == level) return "info";
+		if (Log.LEVEL_DEBUG == level) return "debug";
+		if (Log.LEVEL_WARN == level) return "warn";
+		if (Log.LEVEL_ERROR == level) return "error";
+		if (Log.LEVEL_FATAL == level) return "fatal";
+		if (Log.LEVEL_TRACE == level) return "trace";
 
-    public static String levelToString(int level, String defaultValue) {
-	if (Log.LEVEL_INFO == level) return "info";
-	if (Log.LEVEL_DEBUG == level) return "debug";
-	if (Log.LEVEL_WARN == level) return "warn";
-	if (Log.LEVEL_ERROR == level) return "error";
-	if (Log.LEVEL_FATAL == level) return "fatal";
-	if (Log.LEVEL_TRACE == level) return "trace";
+		return defaultValue;
+	}
 
-	return defaultValue;
-    }
+	public static void log(Config config, int level, String type, String msg) {
+		log(config, level, "application", type, msg);
+	}
+
+	public static void log(Config config, String type, Exception e) {
+		log(config, "application", type, e);
+	}
+
+	public static void log(Config config, String logName, String type, Exception e) {
+		config = ThreadLocalPageContext.getConfig(config);
+		Log log = null;
+		if (config != null) {
+			log = config.getLog(logName);
+		}
+
+		if (log != null) log.error(type, e);
+		else logGlobal(config, Log.LEVEL_ERROR, type, ExceptionUtil.getStacktrace(e, true));
+	}
+
+	public static void log(Config config, int level, String logName, String type, String msg) {
+		config = ThreadLocalPageContext.getConfig(config);
+		Log log = null;
+		if (config != null) {
+			log = config.getLog(logName);
+		}
+
+		if (log != null) log.log(level, type, msg);
+		else {
+			logGlobal(config, level, logName + ":" + type, msg);
+			// if (config == null) SystemOut.printDate(msg);
+			// else if (level == Log.LEVEL_ERROR || level == Log.LEVEL_FATAL)
+			// SystemOut.printDate(config.getErrWriter(), msg);
+			// else SystemOut.printDate(config.getOutWriter(), msg);
+		}
+	}
+
+	public static void logGlobal(Config config, int level, String type, String msg) {
+		try {
+			CFMLEngine engine = ConfigWebUtil.getEngine(config);
+			File root = engine.getCFMLEngineFactory().getResourceRoot();
+			File flog = new File(root, "context/logs/global.log");
+			Resource log = ResourceUtil.toResource(flog);
+			if (!log.isFile()) {
+				log.getParentResource().mkdirs();
+				log.createNewFile();
+			}
+			IOUtil.write(log, SystemOut.FORMAT.format(new Date(System.currentTimeMillis())) + " " + type + " " + msg + "\n", CharsetUtil.UTF8, true);
+		}
+		catch (IOException ioe) {
+			aprint.e(ioe);
+		}
+	}
+
+	public static void logGlobal(Config config, String type, Exception e) {
+		logGlobal(config, Log.LEVEL_ERROR, type, ExceptionUtil.getStacktrace(e, true));
+	}
 }

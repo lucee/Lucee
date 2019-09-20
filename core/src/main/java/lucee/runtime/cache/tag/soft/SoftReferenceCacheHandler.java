@@ -6,31 +6,30 @@ import static org.apache.commons.collections4.map.AbstractReferenceMap.Reference
 import java.util.Collections;
 import java.util.Map;
 
-import lucee.commons.collection.HashMapPro;
+import org.apache.commons.collections4.map.ReferenceMap;
+
 import lucee.runtime.cache.tag.CacheItem;
 import lucee.runtime.cache.tag.MapCacheHandler;
 import lucee.runtime.op.Caster;
 
-import org.apache.commons.collections4.map.ReferenceMap;
-
 public class SoftReferenceCacheHandler extends MapCacheHandler {
 
-    private static Map<String, CacheItem> map = Collections.synchronizedMap(new ReferenceMap<String, CacheItem>(HARD, SOFT, HashMapPro.DEFAULT_INITIAL_CAPACITY, 0.75f));
+	private static Map<String, CacheItem> map = Collections.synchronizedMap(new ReferenceMap<String, CacheItem>(HARD, SOFT, 32, 0.75f));
 
-    @Override
-    protected Map<String, CacheItem> map() {
-	return map;
-    }
+	@Override
+	protected Map<String, CacheItem> map() {
+		return map;
+	}
 
-    @Override
-    public boolean acceptCachedWithin(Object cachedWithin) {
-	String str = Caster.toString(cachedWithin, "").trim();
-	return str.equalsIgnoreCase("soft");
-    }
+	@Override
+	public boolean acceptCachedWithin(Object cachedWithin) {
+		String str = Caster.toString(cachedWithin, "").trim();
+		return str.equalsIgnoreCase("soft");
+	}
 
-    @Override
-    public String pattern() {
-	return "soft";
-    }
+	@Override
+	public String pattern() {
+		return "soft";
+	}
 
 }

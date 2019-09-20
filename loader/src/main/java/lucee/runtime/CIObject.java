@@ -20,7 +20,7 @@ package lucee.runtime;
 import lucee.runtime.type.scope.Variables;
 
 public interface CIObject {
-    public Variables beforeStaticConstructor(PageContext pc);
+	public Variables beforeStaticConstructor(PageContext pc);
 
-    public void afterStaticConstructor(PageContext pc, Variables var);
+	public void afterStaticConstructor(PageContext pc, Variables var);
 }

@@ -20,28 +20,28 @@ package lucee.runtime.functions.decision;
 
 import java.io.StringReader;
 
+import org.w3c.dom.Node;
+import org.xml.sax.InputSource;
+
 import lucee.runtime.PageContext;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
 import lucee.runtime.text.xml.XMLUtil;
-
-import org.w3c.dom.Node;
-import org.xml.sax.InputSource;
 
 /**
  * Check if a String is a well-formed XML
  */
 public final class IsXML implements Function {
 
-    public static boolean call(PageContext pc, Object xml) {
-	if (xml instanceof Node) return true;
+	public static boolean call(PageContext pc, Object xml) {
+		if (xml instanceof Node) return true;
 
-	try {
-	    XMLUtil.parse(new InputSource(new StringReader(Caster.toString(xml))), null, false);
-	    return true;
+		try {
+			XMLUtil.parse(new InputSource(new StringReader(Caster.toString(xml))), null, false);
+			return true;
+		}
+		catch (Exception e) {
+			return false;
+		}
 	}
-	catch (Exception e) {
-	    return false;
-	}
-    }
 }

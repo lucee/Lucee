@@ -24,10 +24,10 @@ import lucee.runtime.type.dt.TimeSpan;
 
 public interface CacheEntry {
 
-    public String readEntry(TimeSpan timeSpan, String defaultValue) throws IOException;
+	public String readEntry(TimeSpan timeSpan, String defaultValue) throws IOException;
 
-    public void writeEntry(String entry, boolean append) throws IOException;
+	public void writeEntry(String entry, boolean append) throws IOException;
 
-    // public String getName();
-    // public String getRaw();
+	// public String getName();
+	// public String getRaw();
 }

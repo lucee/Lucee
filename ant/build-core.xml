@@ -20,7 +20,7 @@
   <property name="extH2"          value="465E1E35-2425-4F4E-8B3FAB638BD7280A"/>
   <property name="extOracle"          value="D4EDFDBD-A9A3-E9AF-597322D767E0C949"/>
   <property name="pack200"          value="false"/>
-
+  
 
 <!-- TODO get the version number from manifest.mf -->
   
@@ -137,7 +137,7 @@
         //
     ]]>
   </scriptdef>
-  <scriptdef name="splitIdVersion" language="javascript">
+  <scriptdef name="splitIdVersion" language="javascript" loaderRef="sharedbuild-loaderRef">
      <attribute name="prefix" />
      <attribute name="value" />
      <![CDATA[
@@ -160,7 +160,7 @@
      ]]>
   </scriptdef>
 
-  <scriptdef name="addBundles" language="javascript">
+  <scriptdef name="addBundles" language="javascript" loaderRef="sharedbuild-loaderRef">
      <attribute name="bundles" />
      <attribute name="target" />
      <attribute name="coremanifest" />
@@ -262,7 +262,7 @@
      ]]>
   </scriptdef>
 
-  <scriptdef name="pack200File" language="javascript">
+  <scriptdef name="pack200File" language="javascript" loaderRef="sharedbuild-loaderRef">
      <attribute name="file" />
      <attribute name="doit" />
      <![CDATA[
@@ -314,7 +314,7 @@
     ]]>
   </scriptdef>
 
-  <scriptdef name="pack200Ext" language="javascript">
+  <scriptdef name="pack200Ext" language="javascript" loaderRef="sharedbuild-loaderRef">
      <attribute name="file" />
      <attribute name="tmpdir" />
      <attribute name="doit" />
@@ -440,7 +440,7 @@
     </sequential>
   </macrodef>
 
-  <scriptdef name="unwrap" language="javascript">
+  <scriptdef name="unwrap" language="javascript" loaderRef="sharedbuild-loaderRef">
      <attribute name="text" />
      <attribute name="property" />
      <![CDATA[
@@ -453,7 +453,7 @@
      ]]>
   </scriptdef>
 
-  <scriptdef name="updatedate" language="javascript">
+  <scriptdef name="updatedate" language="javascript" loaderRef="sharedbuild-loaderRef">
      <attribute name="text" />
      <attribute name="date" />
      <attribute name="property" />
@@ -474,7 +474,7 @@
      ]]>
   </scriptdef>
 
-  <scriptdef name="felix" language="javascript">
+  <scriptdef name="felix" language="javascript" loaderRef="sharedbuild-loaderRef">
      <attribute name="property" />
      <attribute name="dependencies" />
      <attribute name="separator" />
@@ -496,14 +496,14 @@
      ]]>
   </scriptdef>
   
-  <scriptdef name="currentTime" language="javascript">
+  <scriptdef name="currentTime" language="javascript" loaderRef="sharedbuild-loaderRef">
      <attribute name="property" />
      <![CDATA[
       project.setProperty(attributes.get("property"), new Date().getTime());
      ]]>
   </scriptdef>
 
-  <scriptdef name="toFileName" language="javascript">
+  <scriptdef name="toFileName" language="javascript" loaderRef="sharedbuild-loaderRef">
      <attribute name="id" />
      <attribute name="name" />
      <attribute name="version" />
@@ -572,6 +572,7 @@
     <property name="trgLoader" location="${rootDir}/loader/target"/>
     <property name="trgCore" location="${rootDir}/core/target"/>
     <property name="srcCFML" location="${rootDir}/core/src/main/cfml"/>
+    <property name="srcAll" location="${rootDir}/core/src/main"/>
     <property name="srcInst" location="${rootDir}/instrumentation/src/main/java"/> 
     <property name="ant" location="${rootDir}/ant"/>
     <property name="test" location="${rootDir}/test"/>
@@ -638,6 +639,9 @@
         <!-- Ajax -->
         <not><isset property="extAjax"/></not>
         <not><isset property="extAjaxVersion"/></not>
+        <!-- Compress -->
+        <not><isset property="extCompress"/></not>
+        <not><isset property="extCompressVersion"/></not>
         </or>
     </condition>
     </fail>
@@ -741,6 +745,7 @@
     <available file="${cache}/${extImage}-${extImageVersion}.lex" property="image.present"/>
     <available file="${cache}/${extEsapi}-${extEsapiVersion}.lex" property="esapi.present"/>
     <available file="${cache}/${extAjax}-${extAjaxVersion}.lex" property="ajax.present"/>
+    <available file="${cache}/${extCompress}-${extCompressVersion}.lex" property="compress.present"/>
   </target>
 
 
@@ -795,12 +800,15 @@
   <target name="check-ajax" depends="check-cache" unless="ajax.present">
       <get src="${extURL}${extAjax}?version=${extAjaxVersion}" dest="${cache}/${extAjax}-${extAjaxVersion}.lex"/>
   </target>
+  <target name="check-compress" depends="check-cache" unless="compress.present">
+      <get src="${extURL}${extCompress}?version=${extCompressVersion}" dest="${cache}/${extCompress}-${extCompressVersion}.lex"/>
+  </target>
   <target name="check-testbox" depends="check-cache" unless="testbox.present">
       <get src="${testboxURL}" dest="${cache}/testbox-${testboxVersion}.zip"/>
   </target> 
 
 
-  <target name="check" depends="check-mysql,check-mssql,check-postgre,check-jdts,check-chart,check-s3,check-ehcache,check-hibernate,check-lucene,check-pdf,check-admin,check-doc,check-form,check-axis,check-image,check-esapi,check-ajax,check-testbox">
+  <target name="check" depends="check-mysql,check-mssql,check-postgre,check-jdts,check-chart,check-s3,check-ehcache,check-hibernate,check-lucene,check-pdf,check-admin,check-doc,check-form,check-axis,check-image,check-esapi,check-ajax,check-compress,check-testbox">
     
     <mkdir dir="${temp}/loader/extensions/"/>
 
@@ -1046,6 +1054,8 @@
 
       <jvmarg value="-Dtest=${test}"/>
       <jvmarg value="-Dtemp=${temp}"/>
+      <jvmarg value="-Dbasedir=${baseDir}"/>
+      <jvmarg value="-Dsrcall=${srcAll}"/>
       <!-- <jvmarg value="-Djdk.attach.allowAttachSelf=true"/> -->
       <jvmarg value="-DtestboxArchive=${temp}/archive/testbox.lar"/>
       <jvmarg value="-Dexecute=${testcases}"/>
@@ -1056,6 +1066,11 @@
       <jvmarg value="-Dlucee.enable.dialect=true"/>
       <jvmarg value="-Dlucee.extensions.install=true"/>
       <jvmarg value="-Dlucee.full.null.support=false"/>
+      <!--
+      <jvmarg value="-Dlucee.system.out=file:.../out.txt"/>
+      <jvmarg value="-Dlucee.system.err=file:.../err.txt"/>
+      -->
+
       <!--
         felix.log.level
         lucee.controller.disabled
@@ -1390,6 +1405,19 @@
       tofile="${goal}/extensions/${ext_ajax.filename}"/>
     <echo>add:${goal}/extensions/${ext_ajax.filename}</echo>
     <echo file="${goal}/extensions/.index" append="true">${ext_ajax.filename};</echo>
+
+    <!-- add extension Compress -->
+    <loadmf jar="${cache}/${extCompress}-${extCompressVersion}.lex" prefix="ext_compress."/>
+    <toFileName id="${ext_compress.id}" name="${ext_compress.name}" version="${ext_compress.version}" property="ext_compress.filename"/>
+    <copy 
+      file="${cache}/${extCompress}-${extCompressVersion}.lex" 
+      todir="${goal}/extensions/"/>
+    <move 
+      file="${goal}/extensions/${extCompress}-${extCompressVersion}.lex" 
+      tofile="${goal}/extensions/${ext_compress.filename}"/>
+    <echo>add:${goal}/extensions/${ext_compress.filename}</echo>
+    <echo file="${goal}/extensions/.index" append="true">${ext_compress.filename};</echo>
+
   </target>
 
 

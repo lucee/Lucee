@@ -23,46 +23,46 @@ package lucee.runtime.util.pool;
  */
 public abstract class PoolHandler {
 
-    long time;
+	long time;
 
-    /**
-     * constructor of the class
-     */
-    public PoolHandler() {
-	time = System.currentTimeMillis();
-    }
+	/**
+	 * constructor of the class
+	 */
+	public PoolHandler() {
+		time = System.currentTimeMillis();
+	}
 
-    /**
-     * clear the Handler
-     */
-    public abstract void clear();
+	/**
+	 * clear the Handler
+	 */
+	public abstract void clear();
 
-    /**
-     * @return returns the Time
-     */
-    public final long getTime() {
-	return time;
-    }
+	/**
+	 * @return returns the Time
+	 */
+	public final long getTime() {
+		return time;
+	}
 
-    /**
-     * Sets the Time
-     */
-    public final void setTime() {
-	time = System.currentTimeMillis();
-    }
+	/**
+	 * Sets the Time
+	 */
+	public final void setTime() {
+		time = System.currentTimeMillis();
+	}
 
-    /**
-     * sets the value
-     * 
-     * @param o
-     */
-    public abstract void setData(Object o);
+	/**
+	 * sets the value
+	 * 
+	 * @param o
+	 */
+	public abstract void setData(Object o);
 
-    /**
-     * returns the Value
-     * 
-     * @return
-     */
-    public abstract Object getData();
+	/**
+	 * returns the Value
+	 * 
+	 * @return
+	 */
+	public abstract Object getData();
 
 }

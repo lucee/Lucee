@@ -34,50 +34,50 @@ import lucee.runtime.i18n.LocaleFactory;
  */
 public final class LSParseNumber implements Function {
 
-    private static final long serialVersionUID = 2219030609677513651L;
+	private static final long serialVersionUID = 2219030609677513651L;
 
-    private static WeakHashMap<Locale, NumberFormat> whm = new WeakHashMap<Locale, NumberFormat>();
+	private static WeakHashMap<Locale, NumberFormat> whm = new WeakHashMap<Locale, NumberFormat>();
 
-    public static double call(PageContext pc, String string) throws PageException {
-	return toDoubleValue(pc.getLocale(), string);
-    }
-
-    public static double call(PageContext pc, String string, Locale locale) throws PageException {
-	return toDoubleValue(locale == null ? pc.getLocale() : locale, string);
-    }
-
-    public static double toDoubleValue(Locale locale, String str) throws PageException {
-	Object o = whm.get(locale);
-	NumberFormat nf = null;
-	if (o == null) {
-	    nf = NumberFormat.getInstance(locale);
-	    whm.put(locale, nf);
-	}
-	else {
-	    nf = (NumberFormat) o;
-	}
-	str = optimze(str.toCharArray());
-
-	ParsePosition pp = new ParsePosition(0);
-	Number result = nf.parse(str, pp);
-
-	if (pp.getIndex() < str.length()) {
-	    throw new ExpressionException("can't parse String [" + str + "] against locale [" + LocaleFactory.getDisplayName(locale) + "] to a number");
-	}
-	if (result == null) throw new ExpressionException("can't parse String [" + str + "] against locale [" + LocaleFactory.getDisplayName(locale) + "] to a number");
-	return result.doubleValue();
-
-    }
-
-    private static String optimze(char[] carr) {
-	StringBuilder sb = new StringBuilder();
-	char c;
-	for (int i = 0; i < carr.length; i++) {
-	    c = carr[i];
-	    if (!Character.isWhitespace(c) && c != '+') sb.append(carr[i]);
+	public static double call(PageContext pc, String string) throws PageException {
+		return toDoubleValue(pc.getLocale(), string);
 	}
 
-	return sb.toString();
-    }
+	public static double call(PageContext pc, String string, Locale locale) throws PageException {
+		return toDoubleValue(locale == null ? pc.getLocale() : locale, string);
+	}
+
+	public static double toDoubleValue(Locale locale, String str) throws PageException {
+		Object o = whm.get(locale);
+		NumberFormat nf = null;
+		if (o == null) {
+			nf = NumberFormat.getInstance(locale);
+			whm.put(locale, nf);
+		}
+		else {
+			nf = (NumberFormat) o;
+		}
+		str = optimze(str.toCharArray());
+
+		ParsePosition pp = new ParsePosition(0);
+		Number result = nf.parse(str, pp);
+
+		if (pp.getIndex() < str.length()) {
+			throw new ExpressionException("can't parse String [" + str + "] against locale [" + LocaleFactory.getDisplayName(locale) + "] to a number");
+		}
+		if (result == null) throw new ExpressionException("can't parse String [" + str + "] against locale [" + LocaleFactory.getDisplayName(locale) + "] to a number");
+		return result.doubleValue();
+
+	}
+
+	private static String optimze(char[] carr) {
+		StringBuilder sb = new StringBuilder();
+		char c;
+		for (int i = 0; i < carr.length; i++) {
+			c = carr[i];
+			if (!Character.isWhitespace(c) && c != '+') sb.append(carr[i]);
+		}
+
+		return sb.toString();
+	}
 
 }

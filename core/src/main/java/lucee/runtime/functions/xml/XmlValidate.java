@@ -18,6 +18,8 @@
  **/
 package lucee.runtime.functions.xml;
 
+import org.xml.sax.InputSource;
+
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
@@ -26,27 +28,25 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.text.xml.XMLUtil;
 import lucee.runtime.type.Struct;
 
-import org.xml.sax.InputSource;
-
 /**
  * 
  */
 public final class XmlValidate implements Function {
 
-    public static Struct call(PageContext pc, String strXml) throws PageException {
-	return call(pc, strXml, null);
-    }
-
-    public static Struct call(PageContext pc, String strXml, String strValidator) throws PageException {
-	strXml = strXml.trim();
-	try {
-	    InputSource xml = XMLUtil.toInputSource(pc, strXml);
-	    InputSource validator = StringUtil.isEmpty(strValidator) ? null : XMLUtil.toInputSource(pc, strValidator);
-	    return XMLUtil.validate(xml, validator, strValidator);
-	}
-	catch (Exception e) {
-	    throw Caster.toPageException(e);
+	public static Struct call(PageContext pc, String strXml) throws PageException {
+		return call(pc, strXml, null);
 	}
 
-    }
+	public static Struct call(PageContext pc, String strXml, String strValidator) throws PageException {
+		strXml = strXml.trim();
+		try {
+			InputSource xml = XMLUtil.toInputSource(pc, strXml);
+			InputSource validator = StringUtil.isEmpty(strValidator) ? null : XMLUtil.toInputSource(pc, strValidator);
+			return XMLUtil.validate(xml, validator, strValidator);
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+
+	}
 }

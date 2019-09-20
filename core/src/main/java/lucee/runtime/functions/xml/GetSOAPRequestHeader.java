@@ -23,20 +23,19 @@ import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
-import lucee.runtime.net.rpc.WSHandler;
 
 /**
  * 
  */
 public final class GetSOAPRequestHeader implements Function {
 
-    private static final long serialVersionUID = 7870631002414028102L;
+	private static final long serialVersionUID = 7870631002414028102L;
 
-    public static Object call(PageContext pc, String namespace, String name) throws PageException {
-	return call(pc, namespace, name, false);
-    }
+	public static Object call(PageContext pc, String namespace, String name) throws PageException {
+		return call(pc, namespace, name, false);
+	}
 
-    public static Object call(PageContext pc, String namespace, String name, boolean asXML) throws PageException {
-	return ((ConfigImpl) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getSOAPRequestHeader(pc, namespace, name, asXML);
-    }
+	public static Object call(PageContext pc, String namespace, String name, boolean asXML) throws PageException {
+		return ((ConfigImpl) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getSOAPRequestHeader(pc, namespace, name, asXML);
+	}
 }

@@ -7,44 +7,44 @@ import lucee.runtime.type.scope.CookieImpl;
 
 public class SessionCookieDataImpl implements SessionCookieData {
 
-    public static final SessionCookieData DEFAULT = new SessionCookieDataImpl(true, false, TimeSpanImpl.fromMillis(CookieImpl.NEVER * 1000), null, false);
+	public static final SessionCookieData DEFAULT = new SessionCookieDataImpl(true, false, TimeSpanImpl.fromMillis(CookieImpl.NEVER * 1000), null, false);
 
-    private final boolean httpOnly;
-    private final boolean secure;
-    private final TimeSpan timeout;
-    private final String domain;
-    private final boolean disableUpdate;
+	private final boolean httpOnly;
+	private final boolean secure;
+	private final TimeSpan timeout;
+	private final String domain;
+	private final boolean disableUpdate;
 
-    public SessionCookieDataImpl(boolean httpOnly, boolean secure, TimeSpan timeout, String domain, boolean disableUpdate) {
-	this.httpOnly = httpOnly;
-	this.secure = secure;
-	this.timeout = timeout;
-	this.domain = StringUtil.isEmpty(domain, true) ? null : domain.trim();
-	this.disableUpdate = disableUpdate;
-    }
+	public SessionCookieDataImpl(boolean httpOnly, boolean secure, TimeSpan timeout, String domain, boolean disableUpdate) {
+		this.httpOnly = httpOnly;
+		this.secure = secure;
+		this.timeout = timeout;
+		this.domain = StringUtil.isEmpty(domain, true) ? null : domain.trim();
+		this.disableUpdate = disableUpdate;
+	}
 
-    @Override
-    public boolean isHttpOnly() {
-	return httpOnly;
-    }
+	@Override
+	public boolean isHttpOnly() {
+		return httpOnly;
+	}
 
-    @Override
-    public boolean isSecure() {
-	return secure;
-    }
+	@Override
+	public boolean isSecure() {
+		return secure;
+	}
 
-    @Override
-    public TimeSpan getTimeout() {
-	return timeout;
-    }
+	@Override
+	public TimeSpan getTimeout() {
+		return timeout;
+	}
 
-    @Override
-    public String getDomain() {
-	return domain;
-    }
+	@Override
+	public String getDomain() {
+		return domain;
+	}
 
-    @Override
-    public boolean isDisableUpdate() {
-	return disableUpdate;
-    }
+	@Override
+	public boolean isDisableUpdate() {
+		return disableUpdate;
+	}
 }

@@ -30,20 +30,20 @@ import lucee.runtime.op.Duplicator;
 
 public final class Duplicate extends BIF {
 
-    private static final long serialVersionUID = 74899451528656931L;
+	private static final long serialVersionUID = 74899451528656931L;
 
-    public static Object call(PageContext pc, Object object) {
-	return Duplicator.duplicate(object, true);
-    }
+	public static Object call(PageContext pc, Object object) {
+		return Duplicator.duplicate(object, true);
+	}
 
-    public static Object call(PageContext pc, Object object, boolean deepCopy) {
-	return Duplicator.duplicate(object, deepCopy);
-    }
+	public static Object call(PageContext pc, Object object, boolean deepCopy) {
+		return Duplicator.duplicate(object, deepCopy);
+	}
 
-    @Override
-    public Object invoke(PageContext pc, Object[] args) throws PageException {
-	if (args.length == 2) return call(pc, args[0], Caster.toBooleanValue(args[1]));
-	if (args.length == 1) return call(pc, args[0]);
-	throw new FunctionException(pc, "Duplicate", 1, 2, args.length);
-    }
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length == 2) return call(pc, args[0], Caster.toBooleanValue(args[1]));
+		if (args.length == 1) return call(pc, args[0]);
+		throw new FunctionException(pc, "Duplicate", 1, 2, args.length);
+	}
 }

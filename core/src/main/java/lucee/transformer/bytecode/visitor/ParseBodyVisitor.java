@@ -18,45 +18,45 @@
  **/
 package lucee.transformer.bytecode.visitor;
 
-import lucee.transformer.TransformerException;
-import lucee.transformer.bytecode.BytecodeContext;
-import lucee.transformer.bytecode.util.Types;
-
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
 
+import lucee.transformer.TransformerException;
+import lucee.transformer.bytecode.BytecodeContext;
+import lucee.transformer.bytecode.util.Types;
+
 public final class ParseBodyVisitor {
 
-    // void outputStart()
-    public final static Method OUTPUT_START = new Method("outputStart", Types.VOID, new Type[] {});
+	// void outputStart()
+	public final static Method OUTPUT_START = new Method("outputStart", Types.VOID, new Type[] {});
 
-    // void outputEnd()
-    public final static Method OUTPUT_END = new Method("outputEnd", Types.VOID, new Type[] {});
-    private TryFinallyVisitor tfv;
+	// void outputEnd()
+	public final static Method OUTPUT_END = new Method("outputEnd", Types.VOID, new Type[] {});
+	private TryFinallyVisitor tfv;
 
-    public void visitBegin(BytecodeContext bc) {
-	GeneratorAdapter adapter = bc.getAdapter();
+	public void visitBegin(BytecodeContext bc) {
+		GeneratorAdapter adapter = bc.getAdapter();
 
-	tfv = new TryFinallyVisitor(new OnFinally() {
-	    @Override
-	    public void _writeOut(BytecodeContext bc) {
+		tfv = new TryFinallyVisitor(new OnFinally() {
+			@Override
+			public void _writeOut(BytecodeContext bc) {
+				// ExpressionUtil.visitLine(bc, line);
+				bc.getAdapter().loadArg(0);
+				bc.getAdapter().invokeVirtual(Types.PAGE_CONTEXT, OUTPUT_END);
+			}
+		}, null);
+
 		// ExpressionUtil.visitLine(bc, line);
-		bc.getAdapter().loadArg(0);
-		bc.getAdapter().invokeVirtual(Types.PAGE_CONTEXT, OUTPUT_END);
-	    }
-	}, null);
+		adapter.loadArg(0);
+		adapter.invokeVirtual(Types.PAGE_CONTEXT, OUTPUT_START);
+		tfv.visitTryBegin(bc);
 
-	// ExpressionUtil.visitLine(bc, line);
-	adapter.loadArg(0);
-	adapter.invokeVirtual(Types.PAGE_CONTEXT, OUTPUT_START);
-	tfv.visitTryBegin(bc);
+	}
 
-    }
+	public void visitEnd(BytecodeContext bc) throws TransformerException {
 
-    public void visitEnd(BytecodeContext bc) throws TransformerException {
+		tfv.visitTryEnd(bc);
 
-	tfv.visitTryEnd(bc);
-
-    }
+	}
 }

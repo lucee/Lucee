@@ -21,32 +21,32 @@
  */
 package lucee.runtime.functions.string;
 
+import org.apache.oro.text.regex.MalformedPatternException;
+
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.regex.Perl5Util;
 
-import org.apache.oro.text.regex.MalformedPatternException;
-
 public final class REReplaceNoCase implements Function {
 
-    public static String call(PageContext pc, String string, String regExp, String replace) throws ExpressionException {
-	try {
-	    return Perl5Util.replace(string, regExp, replace, false, false);
+	public static String call(PageContext pc, String string, String regExp, String replace) throws ExpressionException {
+		try {
+			return Perl5Util.replace(string, regExp, replace, false, false);
+		}
+		catch (MalformedPatternException e) {
+			throw new FunctionException(pc, "reReplaceNoCase", 2, "regularExpression", e.getMessage());
+		}
 	}
-	catch (MalformedPatternException e) {
-	    throw new FunctionException(pc, "reReplaceNoCase", 2, "regularExpression", e.getMessage());
-	}
-    }
 
-    public static String call(PageContext pc, String string, String regExp, String replace, String scope) throws ExpressionException {
-	try {
-	    if (scope.equalsIgnoreCase("all")) return Perl5Util.replace(string, regExp, replace, false, true);
-	    return Perl5Util.replace(string, regExp, replace, false, false);
+	public static String call(PageContext pc, String string, String regExp, String replace, String scope) throws ExpressionException {
+		try {
+			if (scope.equalsIgnoreCase("all")) return Perl5Util.replace(string, regExp, replace, false, true);
+			return Perl5Util.replace(string, regExp, replace, false, false);
+		}
+		catch (MalformedPatternException e) {
+			throw new FunctionException(pc, "reReplaceNoCase", 2, "regularExpression", e.getMessage());
+		}
 	}
-	catch (MalformedPatternException e) {
-	    throw new FunctionException(pc, "reReplaceNoCase", 2, "regularExpression", e.getMessage());
-	}
-    }
 }

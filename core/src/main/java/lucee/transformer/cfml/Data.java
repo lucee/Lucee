@@ -33,59 +33,59 @@ import lucee.transformer.util.SourceCode;
 
 public class Data {
 
-    public final SourceCode srcCode;
-    public final TransfomerSettings settings;
-    public final TagLib[][] tlibs;
-    public final FunctionLib[] flibs;
-    public final Root root;
-    public final TagLibTag[] scriptTags;
-    public final EvaluatorPool ep;
-    public final Factory factory;
-    public final Config config;
-    public boolean allowLowerThan;
-    public boolean parseExpression;
+	public final SourceCode srcCode;
+	public final TransfomerSettings settings;
+	public final TagLib[][] tlibs;
+	public final FunctionLib[] flibs;
+	public final Root root;
+	public final TagLibTag[] scriptTags;
+	public final EvaluatorPool ep;
+	public final Factory factory;
+	public final Config config;
+	public boolean allowLowerThan;
+	public boolean parseExpression;
 
-    private SimpleExprTransformer set;
+	private SimpleExprTransformer set;
 
-    public short mode = 0;
-    public boolean insideFunction;
-    public String tagName;
-    public boolean isCFC;
-    public boolean isInterface;
-    public short context = TagLibTagScript.CTX_NONE;
-    public DocComment docComment;
-    private Body parent;
-    public ExprTransformer transformer;
+	public short mode = 0;
+	public boolean insideFunction;
+	public String tagName;
+	public boolean isCFC;
+	public boolean isInterface;
+	public short context = TagLibTagScript.CTX_NONE;
+	public DocComment docComment;
+	private Body parent;
+	public ExprTransformer transformer;
 
-    public Data(Factory factory, Root root, SourceCode srcCode, EvaluatorPool ep, TransfomerSettings settings, TagLib[][] tlibs, FunctionLib[] flibs, TagLibTag[] scriptTags,
-	    boolean allowLowerThan) {
-	this.root = root;
-	this.srcCode = srcCode;
-	this.settings = settings;
-	this.tlibs = tlibs;
-	this.flibs = flibs;
-	this.scriptTags = scriptTags;
-	this.ep = ep;
-	this.factory = factory;
-	this.config = factory.getConfig();
-	this.allowLowerThan = allowLowerThan;
-    }
+	public Data(Factory factory, Root root, SourceCode srcCode, EvaluatorPool ep, TransfomerSettings settings, TagLib[][] tlibs, FunctionLib[] flibs, TagLibTag[] scriptTags,
+			boolean allowLowerThan) {
+		this.root = root;
+		this.srcCode = srcCode;
+		this.settings = settings;
+		this.tlibs = tlibs;
+		this.flibs = flibs;
+		this.scriptTags = scriptTags;
+		this.ep = ep;
+		this.factory = factory;
+		this.config = factory.getConfig();
+		this.allowLowerThan = allowLowerThan;
+	}
 
-    public SimpleExprTransformer getSimpleExprTransformer() {
-	return set;
-    }
+	public SimpleExprTransformer getSimpleExprTransformer() {
+		return set;
+	}
 
-    public void setSimpleExprTransformer(SimpleExprTransformer set) {
-	this.set = set;
-    }
+	public void setSimpleExprTransformer(SimpleExprTransformer set) {
+		this.set = set;
+	}
 
-    public Body setParent(Body parent) {
-	Body tmp = this.parent;
-	this.parent = parent;
-	return tmp;
-    }
+	public Body setParent(Body parent) {
+		Body tmp = this.parent;
+		this.parent = parent;
+		return tmp;
+	}
 
-    public Body getParent() {
-	return parent;
-    }
+	public Body getParent() {
+		return parent;
+	}
 }

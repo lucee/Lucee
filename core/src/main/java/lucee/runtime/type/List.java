@@ -27,16 +27,16 @@ import lucee.runtime.type.util.ListUtil;
 @Deprecated
 public class List {
 
-    public static Array listToArrayRemoveEmpty(String list, String delimiter) {
-	return ListUtil.listToArrayRemoveEmpty(list, delimiter);
-    }
+	public static Array listToArrayRemoveEmpty(String list, String delimiter) {
+		return ListUtil.listToArrayRemoveEmpty(list, delimiter);
+	}
 
-    public static Array listToArrayRemoveEmpty(String list, char delimiter) {
-	return ListUtil.listToArrayRemoveEmpty(list, delimiter);
-    }
+	public static Array listToArrayRemoveEmpty(String list, char delimiter) {
+		return ListUtil.listToArrayRemoveEmpty(list, delimiter);
+	}
 
-    public static int listFindForSwitch(String list, String value, String delimiter) {
-	return ListUtil.listFindForSwitch(list, value, delimiter);
-    }
+	public static int listFindForSwitch(String list, String value, String delimiter) {
+		return ListUtil.listFindForSwitch(list, value, delimiter);
+	}
 
 }

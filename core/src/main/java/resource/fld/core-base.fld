@@ -3428,7 +3428,7 @@ type of the result returned:
 			<type>void</type>
 		</return>
 	</function>
-	
+
 	<!-- DeserializeJSON -->
 	<function>
 		<name>DeserializeJSON</name>
@@ -3438,6 +3438,7 @@ type of the result returned:
 		<description>Converts a JSON (JavaScript Object Notation) string data representation into CFML data, such as a struct or array.</description>
 		<argument>
 			<name>JSONVar</name>
+			<alias>json,data</alias>
 			<type>string</type>
 			<required>Yes</required>
 			<description>A string that contains a valid JSON construct, or variable that represents one.</description>
@@ -6270,7 +6271,7 @@ if this attribute is not provided all types are returned.</description>
 		<name>getTimeZoneInfo</name>
 		<class>lucee.runtime.functions.international.GetTimeZoneInfo</class>
 		<member-name>info</member-name>
-		<description>Returns back a structure regarding the current timezone; utctotaloffset, utchouroffset, utcminuteoffset, isdston</description>
+		<description>Returns back a structure regarding the current timezone; isDSTon, DSTOffset, id, name, shortName, nameDST, shortNameDST, utcHourOffset, offset, utcTotalOffset, utcMinuteOffset</description>
 		<argument>
 			<name>timezone</name>
 			<type>timezone</type>
@@ -10748,7 +10749,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>string</type>
 		</return>
 	</function>
-	
+
 	<!-- SerializeJSON -->
 	<function>
 		<name>SerializeJSON</name>
@@ -10757,21 +10758,23 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<description>Converts CFML data into a JSON (JavaScript Object Notation) representation of the data.</description>
 		<argument>
 			<name>var</name>
+			<alias>data</alias>
 			<type>any</type>
 			<required>Yes</required>
 			<description>A CFML data value or variable that represents one.</description>
 		</argument>
 		<argument>
-			<name>options</name>
+			<name>queryFormat</name>
+			<alias>options</alias>
 			<type>any</type>
 			<alias>serializeQueryByColumns</alias>
 			<required>No</required>
 			<description>Either a Boolean value that specifies whether to serialize CFML queries by Column, or a string with the value "struct".</description>
 		</argument>
 		<argument>
-			<name>charset</name>
-			<alias>charsetName</alias>
-			<type>string</type>
+			<name>useSecureJSONPrefixOrCharset</name>
+			<alias>charset,charsetName,useSecureJSONPrefix</alias>
+			<type>any</type>
 			<required>No</required>
 			<description>string characters that cannot be encoded by this charset get escaped, 
 			if not set the web charset is used.</description>

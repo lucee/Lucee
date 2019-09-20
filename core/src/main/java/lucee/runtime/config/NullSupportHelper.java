@@ -18,50 +18,49 @@
  **/
 package lucee.runtime.config;
 
-import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.type.Null;
 
 public class NullSupportHelper {
-    private static final Null NULL = Null.NULL;
 
-    // protected static boolean fullNullSupport=false;
-    // protected static boolean simpleMode;
+	public static boolean full(PageContext pc) {
 
-    private static boolean _full(PageContext pc) {
-	pc = ThreadLocalPageContext.get(pc);
-	if (pc == null) return false;
-	return pc.getCurrentTemplateDialect() != CFMLEngine.DIALECT_CFML || ((PageContextImpl) pc).getFullNullSupport();
-    }
+		if (pc == null) {
+			pc = ThreadLocalPageContext.get();
+			if (pc == null) return false;
+		}
+		return ((PageContextImpl) pc).getFullNullSupport();
+	}
 
-    public static Object NULL(PageContext pc) {
-	return full(pc) ? NULL : null;
-    }
+	public static boolean full() {
+		/*
+		 * String str = ExceptionUtil.getStacktrace(new Throwable(), false); if
+		 * (str.indexOf("lucee.runtime.reflection.storage.SoftMethodStorage.storeArgs") == -1 &&
+		 * str.indexOf("lucee.runtime.type.scope.CGIImplReadOnly.get") == -1 &&
+		 * str.indexOf("lucee.runtime.type.scope.RequestImpl.get") == -1 &&
+		 * str.indexOf("lucee.runtime.type.QueryImpl.getAt") == -1
+		 * 
+		 * ) print.e(str);
+		 */
 
-    public static Object empty(PageContext pc) {
-	return full(pc) ? null : "";
-    }
+		return full(ThreadLocalPageContext.get());
+	}
 
-    public static boolean full(PageContext pc) {
-	// if(simpleMode) return fullNullSupport;
-	return _full(pc);
-    }
+	public static Object NULL(boolean fns) {
+		return fns ? Null.NULL : null;
+	}
 
-    public static boolean full() {
-	// if simple mode, we have no diff between the dialects or the lucee dialect is disabled
-	// if(simpleMode) return fullNullSupport;
+	public static Object NULL(PageContext pc) {
+		return full(pc) ? Null.NULL : null;
+	}
 
-	PageContext pc = ThreadLocalPageContext.get();
-	// print.ds("has-pc:"+(ThreadLocalPageContext.get()!=null));
-	if (pc != null) return _full(pc);
-	// print.ds("has-config:"+(ThreadLocalPageContext.getConfig()!=null));
+	public static Object NULL() {
+		return full() ? Null.NULL : null;
+	}
 
-	return true;
-    }
-
-    public static Object NULL() {
-	return full() ? NULL : null;
-    }
+	public static Object empty(PageContext pc) {
+		return full(pc) ? null : "";
+	}
 }
