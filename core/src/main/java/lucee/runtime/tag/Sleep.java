@@ -4,24 +4,26 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  **/
 package lucee.runtime.tag;
 
 import lucee.commons.io.SystemUtil;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.exp.RequestTimeoutException;
 import lucee.runtime.ext.tag.TagImpl;
+import lucee.runtime.util.PageContextUtil;
 
 /**
  * Pauses the execution of the page for a given interval
@@ -42,7 +44,7 @@ public final class Sleep extends TagImpl {
 
 	/**
 	 * set the value interval Expressed in milli seconds.
-	 * 
+	 *
 	 * @param time value to set
 	 **/
 	public void setTime(double time) {
@@ -59,7 +61,8 @@ public final class Sleep extends TagImpl {
 	}
 
 	@Override
-	public int doEndTag() {
+	public int doEndTag() throws RequestTimeoutException {
+		PageContextUtil.checkRequestTimeout(pageContext);
 		return EVAL_PAGE;
 	}
 }
