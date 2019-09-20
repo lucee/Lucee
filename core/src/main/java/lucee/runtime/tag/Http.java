@@ -388,7 +388,7 @@ public final class Http extends BodyTagImpl {
 
 	/**
 	 * set the value password When required by a server, a valid password.
-	 * 
+	 *
 	 * @param password value to set
 	 **/
 	public void setPassword(String password) {
@@ -397,7 +397,7 @@ public final class Http extends BodyTagImpl {
 
 	/**
 	 * set the value password When required by a proxy server, a valid password.
-	 * 
+	 *
 	 * @param proxypassword value to set
 	 **/
 	public void setProxypassword(String proxypassword) {
@@ -407,7 +407,7 @@ public final class Http extends BodyTagImpl {
 	/**
 	 * set the value delimiter Required for creating a query. Options are a tab or comma. Default is a
 	 * comma.
-	 * 
+	 *
 	 * @param delimiter value to set
 	 **/
 	public void setDelimiter(String delimiter) {
@@ -418,7 +418,7 @@ public final class Http extends BodyTagImpl {
 	 * set the value resolveurl Yes or No. Default is No. For GET and POST operations, if Yes, page
 	 * reference returned into the fileContent internal variable has its internal URLs fully resolved,
 	 * including port number, so that links remain intact.
-	 * 
+	 *
 	 * @param resolveurl value to set
 	 **/
 	public void setResolveurl(boolean resolveurl) {
@@ -431,7 +431,7 @@ public final class Http extends BodyTagImpl {
 
 	/**
 	 * set the value timeout
-	 * 
+	 *
 	 * @param timeout value to set
 	 * @throws ExpressionException
 	 **/
@@ -448,7 +448,7 @@ public final class Http extends BodyTagImpl {
 
 	/**
 	 * set the value proxyserver Host name or IP address of a proxy server.
-	 * 
+	 *
 	 * @param proxyserver value to set
 	 **/
 	public void setProxyserver(String proxyserver) {
@@ -459,7 +459,7 @@ public final class Http extends BodyTagImpl {
 	 * set the value proxyport The port number on the proxy server from which the object is requested.
 	 * Default is 80. When used with resolveURL, the URLs of retrieved documents that specify a port
 	 * number are automatically resolved to preserve links in the retrieved document.
-	 * 
+	 *
 	 * @param proxyport value to set
 	 **/
 	public void setProxyport(double proxyport) {
@@ -469,7 +469,7 @@ public final class Http extends BodyTagImpl {
 	/**
 	 * set the value file The filename to be used for the file that is accessed. For GET operations,
 	 * defaults to the name pecified in url. Enter path information in the path attribute.
-	 * 
+	 *
 	 * @param file value to set
 	 **/
 	public void setFile(String file) {
@@ -479,7 +479,7 @@ public final class Http extends BodyTagImpl {
 	/**
 	 * set the value throwonerror Boolean indicating whether to throw an exception that can be caught by
 	 * using the cftry and cfcatch tags. The default is NO.
-	 * 
+	 *
 	 * @param throwonerror value to set
 	 **/
 	public void setThrowonerror(boolean throwonerror) {
@@ -488,7 +488,7 @@ public final class Http extends BodyTagImpl {
 
 	/**
 	 * set the value charset set the charset for the call.
-	 * 
+	 *
 	 * @param charset value to set
 	 **/
 	public void setCharset(String charset) {
@@ -497,7 +497,7 @@ public final class Http extends BodyTagImpl {
 
 	/**
 	 * set the value columns
-	 * 
+	 *
 	 * @param columns value to set
 	 * @throws PageException
 	 **/
@@ -510,7 +510,7 @@ public final class Http extends BodyTagImpl {
 	 * 80. When used with resolveURL, the URLs of retrieved documents that specify a port number are
 	 * automatically resolved to preserve links in the retrieved document. If a port number is specified
 	 * in the url attribute, the port value overrides the value of the port attribute.
-	 * 
+	 *
 	 * @param port value to set
 	 **/
 	public void setPort(double port) {
@@ -519,7 +519,7 @@ public final class Http extends BodyTagImpl {
 
 	/**
 	 * set the value useragent User agent request header.
-	 * 
+	 *
 	 * @param useragent value to set
 	 **/
 	public void setUseragent(String useragent) {
@@ -531,7 +531,7 @@ public final class Http extends BodyTagImpl {
 	 * column. Should be appropriately escaped when embedded in a column. For example, if the qualifier
 	 * is a double quotation mark, it should be escaped as """". If there is no text qualifier in the
 	 * file, specify it as " ". Default is the double quotation mark (").
-	 * 
+	 *
 	 * @param textqualifier value to set
 	 **/
 	public void setTextqualifier(String textqualifier) {
@@ -540,7 +540,7 @@ public final class Http extends BodyTagImpl {
 
 	/**
 	 * set the value username When required by a proxy server, a valid username.
-	 * 
+	 *
 	 * @param proxyuser value to set
 	 **/
 	public void setProxyuser(String proxyuser) {
@@ -549,7 +549,7 @@ public final class Http extends BodyTagImpl {
 
 	/**
 	 * set the value username When required by a server, a valid username.
-	 * 
+	 *
 	 * @param username value to set
 	 **/
 	public void setUsername(String username) {
@@ -561,7 +561,7 @@ public final class Http extends BodyTagImpl {
 	 * resides. The URL must be an absolute URL, including the protocol (http or https) and hostname. It
 	 * may optionally contain a port number. Port numbers specified in the url attribute override the
 	 * port attribute.
-	 * 
+	 *
 	 * @param url value to set
 	 **/
 	public void setUrl(String url) {
@@ -570,7 +570,7 @@ public final class Http extends BodyTagImpl {
 
 	/**
 	 * set the value redirect
-	 * 
+	 *
 	 * @param redirect value to set
 	 **/
 	public void setRedirect(boolean redirect) {
@@ -581,7 +581,7 @@ public final class Http extends BodyTagImpl {
 	 * set the value path The path to the directory in which a file is to be stored. If a path is not
 	 * specified in a POST or GET operation, a variable is created (cfhttp.fileContent) that you can use
 	 * to display the results of the POST operation in a cfoutput.
-	 * 
+	 *
 	 * @param path value to set
 	 **/
 	public void setPath(String path) {
@@ -590,7 +590,7 @@ public final class Http extends BodyTagImpl {
 
 	/**
 	 * set the value name The name to assign to a query if the a query is constructed from a file.
-	 * 
+	 *
 	 * @param name value to set
 	 **/
 	public void setName(String name) {
@@ -617,7 +617,7 @@ public final class Http extends BodyTagImpl {
 	 * set the value method GET or POST. Use GET to download a text or binary file or to create a query
 	 * from the contents of a text file. Use POST to send information to a server page or a CGI program
 	 * for processing. POST requires the use of a cfhttpparam tag.
-	 * 
+	 *
 	 * @param method value to set
 	 * @throws ApplicationException
 	 **/
@@ -676,13 +676,14 @@ public final class Http extends BodyTagImpl {
 	}
 
 	@Override
-	public int doEndTag() throws PageException {
+	public int doEndTag() throws PageException, RequestTimeoutException {
 
 		// because commons
 		// PrintStream out = System .out;
 		try {
 			// System.setOut(new PrintStream(DevNullOutputStream.DEV_NULL_OUTPUT_STREAM));
 			_doEndTag();
+			PageContextUtil.checkRequestTimeout(pageContext);
 			return EVAL_PAGE;
 		}
 		catch (IOException e) {
@@ -1590,7 +1591,7 @@ public final class Http extends BodyTagImpl {
 
 	/**
 	 * sets if has body or not
-	 * 
+	 *
 	 * @param hasBody
 	 */
 	public void hasBody(boolean hasBody) {
@@ -1666,7 +1667,7 @@ public final class Http extends BodyTagImpl {
 
 	/**
 	 * checks if status code is a redirect
-	 * 
+	 *
 	 * @param status
 	 * @return is redirect
 	 */
@@ -1679,7 +1680,7 @@ public final class Http extends BodyTagImpl {
 
 	/**
 	 * merge to pathes to one
-	 * 
+	 *
 	 * @param current
 	 * @param realPath
 	 * @return
