@@ -4,17 +4,17 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 package lucee.runtime.config;
 
@@ -190,7 +190,7 @@ import lucee.transformer.library.tag.TagLib;
 import lucee.transformer.library.tag.TagLibException;
 
 /**
- * 
+ *
  */
 public final class XMLConfigWebFactory extends XMLConfigFactory {
 
@@ -203,7 +203,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 	/**
 	 * creates a new ServletConfig Impl Object
-	 * 
+	 *
 	 * @param configServer
 	 * @param configDir
 	 * @param servletConfig
@@ -302,7 +302,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 	/**
 	 * reloads the Config Object
-	 * 
+	 *
 	 * @param cs
 	 * @param force
 	 * @throws SAXException
@@ -1058,7 +1058,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 	/**
 	 * creates a File and his content froma a resurce
-	 * 
+	 *
 	 * @param resource
 	 * @param file
 	 * @throws IOException
@@ -1084,7 +1084,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 	/**
 	 * Creates all files for Lucee Context
-	 * 
+	 *
 	 * @param configDir
 	 * @throws IOException
 	 * @throws IOException
@@ -1364,7 +1364,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		// sb.append(';');
 
 		// fusiondebug or not (FD uses full path name)
-		sb.append(config.allowRequestTimeout());
+		sb.append(!config.isFusionDebug());
 		sb.append(';');
 
 		// tld
@@ -1469,7 +1469,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 	/**
 	 * load mappings from XML Document
-	 * 
+	 *
 	 * @param configServer
 	 * @param config
 	 * @param doc
@@ -1882,7 +1882,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 	/**
 	 * loads and sets the Page Pool
-	 * 
+	 *
 	 * @param configServer
 	 * @param config
 	 * @param doc
@@ -1894,7 +1894,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 	/**
 	 * loads datasource settings from XMl DOM
-	 * 
+	 *
 	 * @param configServer
 	 * @param config
 	 * @param doc
@@ -2119,7 +2119,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * ClassDefinitionImpl<>(cd.getClassName(), "jtds", null, config.getIdentification());
 	 * if("com.microsoft.jdbc.sqlserver.SQLServerDriver".equals(cd.getClassName())) return new
 	 * ClassDefinitionImpl<>(cd.getClassName(), "microsoft.sqljdbc", null, config.getIdentification());
-	 * 
+	 *
 	 * } return cd; }
 	 */
 
@@ -2668,7 +2668,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * // do only for web config if(configServer!=null && config instanceof ConfigWebImpl) {
 	 * ConfigWebImpl cs=(ConfigWebImpl) config; String hash=SystemUtil.hash(cs.getServletContext());
 	 * config.setLabel(hash);
-	 * 
+	 *
 	 * Map<String, String> labels = configServer.getLabels(); if(labels!=null) { String label =
 	 * labels.get(hash); if(!StringUtil.isEmpty(label)) { print.o("label:"+label);
 	 * config.setLabel(label); config.getFactory().setLabel(label); } } } }
@@ -4235,7 +4235,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 	/**
 	 * loads the bundles defined in the extensions
-	 * 
+	 *
 	 * @param cs
 	 * @param config
 	 * @param doc
@@ -4920,7 +4920,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 	/**
 	 * cast a string value to a boolean
-	 * 
+	 *
 	 * @param value String value represent a booolean ("yes", "no","true" aso.)
 	 * @param defaultValue if can't cast to a boolean is value will be returned
 	 * @return boolean value
@@ -4947,7 +4947,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 	/**
 	 * reads an attribute from a xml Element and parses placeholders
-	 * 
+	 *
 	 * @param el
 	 * @param name
 	 * @return

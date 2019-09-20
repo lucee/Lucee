@@ -4,17 +4,17 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 package lucee.runtime.config;
 
@@ -152,7 +152,7 @@ public interface Config {
 
 	/**
 	 * return how lucee cascade scopes
-	 * 
+	 *
 	 * @return type of cascading
 	 */
 	public abstract short getScopeCascadingType();
@@ -169,7 +169,7 @@ public interface Config {
 
 	/**
 	 * return the mapping to custom tag directory
-	 * 
+	 *
 	 * @return custom tag directory
 	 */
 	public abstract Mapping[] getCustomTagMappings();
@@ -177,14 +177,14 @@ public interface Config {
 	/**
 	 * return if it is allowed to implizid query call, call a query member witot define name of the
 	 * query.
-	 * 
+	 *
 	 * @return is allowed
 	 */
 	public abstract boolean allowImplicidQueryCall();
 
 	/**
 	 * e merged return if url and form scope will b
-	 * 
+	 *
 	 * @return merge or not
 	 */
 	public abstract boolean mergeFormAndURL();
@@ -251,14 +251,14 @@ public interface Config {
 
 	/**
 	 * return if debug output will be generated
-	 * 
+	 *
 	 * @return debug or not
 	 */
 	public abstract boolean debug();
 
 	/**
 	 * return the temp directory
-	 * 
+	 *
 	 * @return temp directory
 	 */
 	public abstract Resource getTempDirectory();
@@ -388,7 +388,7 @@ public interface Config {
 
 	/**
 	 * return directory, where lucee deploy translated cfml classes (java and class files)
-	 * 
+	 *
 	 * @return deploy directory
 	 */
 	public abstract Resource getClassDirectory();
@@ -465,7 +465,7 @@ public interface Config {
 
 	/**
 	 * return current application listener
-	 * 
+	 *
 	 * @return application listener
 	 */
 	public ApplicationListener getApplicationListener();
@@ -477,14 +477,14 @@ public interface Config {
 
 	/**
 	 * return default proxy setting password
-	 * 
+	 *
 	 * @return the password for proxy
 	 */
 	public ProxyData getProxyData();
 
 	/**
 	 * return if proxy is enabled or not
-	 * 
+	 *
 	 * @return is proxy enabled
 	 */
 	public boolean isProxyEnableFor(String host);
@@ -510,7 +510,7 @@ public interface Config {
 
 	/**
 	 * get default cache connection for a specific type
-	 * 
+	 *
 	 * @param type default type, one of the following (CACHE_DEFAULT_NONE, CACHE_DEFAULT_OBJECT,
 	 *            CACHE_DEFAULT_TEMPLATE, CACHE_DEFAULT_QUERY, CACHE_DEFAULT_RESOURCE)
 	 * @return matching Cache Connection
@@ -519,7 +519,7 @@ public interface Config {
 
 	/**
 	 * get name of a default cache connection for a specific type
-	 * 
+	 *
 	 * @param type default type, one of the following (CACHE_DEFAULT_NONE, CACHE_DEFAULT_OBJECT,
 	 *            CACHE_DEFAULT_TEMPLATE, CACHE_DEFAULT_QUERY, CACHE_DEFAULT_RESOURCE)
 	 * @return name of matching Cache Connection
@@ -528,7 +528,7 @@ public interface Config {
 
 	/**
 	 * returns the default DumpWriter
-	 * 
+	 *
 	 * @param defaultType
 	 * @return default DumpWriter
 	 */
@@ -536,7 +536,7 @@ public interface Config {
 
 	/**
 	 * returns the DumpWriter matching key
-	 * 
+	 *
 	 * @param key key for DumpWriter
 	 * @param defaultType
 	 * @return matching DumpWriter
@@ -546,7 +546,7 @@ public interface Config {
 
 	/**
 	 * returns the DumpWriter matching key
-	 * 
+	 *
 	 * @param key key for DumpWriter
 	 * @return matching DumpWriter
 	 * @deprecated use instead <code>getDumpWriter(String key,int defaultType)</code>
@@ -557,22 +557,22 @@ public interface Config {
 
 	/**
 	 * define if components has a "shadow" in the component variables scope or not.
-	 * 
+	 *
 	 * @return
 	 */
 	public abstract boolean useComponentShadow();
 
 	/*
 	 * * return a database connection hold inside by a datasource definition
-	 * 
+	 *
 	 * @param datasource definiti0on of the datasource
-	 * 
+	 *
 	 * @param user username to connect
-	 * 
+	 *
 	 * @param pass password to connect
-	 * 
+	 *
 	 * @return datasource connnection
-	 * 
+	 *
 	 * @throws PageException
 	 */
 	// public DatasourceConnection getConnection(String datasource, String user, String pass) throws
@@ -580,7 +580,7 @@ public interface Config {
 
 	/*
 	 * *
-	 * 
+	 *
 	 * @return returns the ConnectionPool
 	 */
 
@@ -600,7 +600,7 @@ public interface Config {
 
 	/**
 	 * define if lucee search in local directory for custom tags or not
-	 * 
+	 *
 	 * @return search in local dir?
 	 */
 	public abstract boolean doLocalCustomTag();
@@ -616,7 +616,7 @@ public interface Config {
 
 	/**
 	 * @return return the class defined for the cluster scope
-	 * 
+	 *
 	 */
 	@Deprecated
 	public Class<?> getClusterClass();
@@ -661,7 +661,7 @@ public interface Config {
 
 	/**
 	 * get PageSource of the first Mapping that match the given criteria
-	 * 
+	 *
 	 * @param mappings per application mappings
 	 * @param realPath path to get PageSource for
 	 * @param onlyTopLevel checks only toplevel mappings
@@ -673,7 +673,7 @@ public interface Config {
 	/**
 	 * return existing PageSource that match the given criteria, if there is no PageSource null is
 	 * returned.
-	 * 
+	 *
 	 * @param pc current PageContext
 	 * @param mappings per application mappings
 	 * @param realPath path to get PageSource for
@@ -686,7 +686,7 @@ public interface Config {
 
 	/**
 	 * get all PageSources that match the given criteria
-	 * 
+	 *
 	 * @param pc current PageContext
 	 * @param mappings per application mappings
 	 * @param realPath path to get PageSource for
@@ -701,7 +701,7 @@ public interface Config {
 
 	/**
 	 * get all PageSources that match the given criteria
-	 * 
+	 *
 	 * @param pc current PageContext
 	 * @param mappings per application mappings
 	 * @param realPath path to get PageSource for
@@ -715,7 +715,7 @@ public interface Config {
 
 	/**
 	 * get Resource of the first Mapping that match the given criteria
-	 * 
+	 *
 	 * @param mappings per application mappings
 	 * @param relPath path to get PageSource for
 	 * @param alsoDefaultMapping
@@ -726,7 +726,7 @@ public interface Config {
 
 	/**
 	 * get all Resources that match the given criteria
-	 * 
+	 *
 	 * @param pc current PageContext
 	 * @param mappings per application mappings
 	 * @param realPath path to get PageSource for
@@ -738,7 +738,7 @@ public interface Config {
 
 	/**
 	 * return existing Resource that match the given criteria, if there is no Resource null is returned.
-	 * 
+	 *
 	 * @param pc current PageContext
 	 * @param mappings per application mappings
 	 * @param realPath path to get Resource for
@@ -796,12 +796,12 @@ public interface Config {
 
 	/**
 	 * if free permspace gen is lower than 10000000 bytes, lucee shrinks all classloaders
-	 * 
+	 *
 	 * @param check
 	 */
 	public void checkPermGenSpace(boolean check);
 
-	public boolean allowRequestTimeout();
+	public boolean isFusionDebug();
 
 	public Log getLog(String name);
 

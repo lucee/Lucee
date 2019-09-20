@@ -189,6 +189,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	private CFMLEngineFactory factory;
 	private final ControllerStateImpl controlerState = new ControllerStateImpl(true);
 	private boolean allowRequestTimeout = true;
+	private boolean isFusionDebug = false;
 	private Monitor monitor;
 	private List<ServletConfig> servletConfigs = new ArrayList<ServletConfig>();
 	private long uptime;
@@ -1370,6 +1371,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	@Override
 	public Object getFDController() {
 		engine.allowRequestTimeout(false);
+		engine.isFusionDebug(true);
 
 		return new FDControllerImpl(engine, engine.getConfigServerImpl().getSerialNumber());
 	}
@@ -1423,6 +1425,14 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 	public boolean allowRequestTimeout() {
 		return allowRequestTimeout;
+	}
+
+	public void isFusionDebug(boolean isFusionDebug) {
+		this.isFusionDebug = isFusionDebug;
+	}
+
+	public boolean isFusionDebug() {
+		return isFusionDebug;
 	}
 
 	public void resetAllowRequestTimeout() {

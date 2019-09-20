@@ -4,17 +4,17 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 package lucee.runtime;
 
@@ -354,7 +354,7 @@ public final class PageContextImpl extends PageContext {
 
 	/**
 	 * default Constructor
-	 * 
+	 *
 	 * @param scopeContext
 	 * @param config Configuration of the CFML Container
 	 * @param queryCache Query Cache Object
@@ -386,7 +386,7 @@ public final class PageContextImpl extends PageContext {
 
 	/**
 	 * return if the PageContext is from a stopped thread, if so it should no longer be used!
-	 * 
+	 *
 	 * @return
 	 */
 	@Override
@@ -398,7 +398,7 @@ public final class PageContextImpl extends PageContext {
 	/*
 	 * public void setRequestTimeoutException(Throwable requestTimeoutException) {
 	 * this.requestTimeoutException=requestTimeoutException;
-	 * 
+	 *
 	 * }
 	 */
 	public StackTraceElement[] getTimeoutStackTrace() {
@@ -417,7 +417,7 @@ public final class PageContextImpl extends PageContext {
 
 	/**
 	 * initialize a existing page context
-	 * 
+	 *
 	 * @param servlet
 	 * @param req
 	 * @param rsp
@@ -496,7 +496,7 @@ public final class PageContextImpl extends PageContext {
 
 		_psq = null;
 
-		fdEnabled = !config.allowRequestTimeout();
+		fdEnabled = config.isFusionDebug();
 
 		if (config.getExecutionLogEnabled()) this.execLog = config.getExecutionLogFactory().getInstance(this);
 		if (debugger != null) debugger.init(config);
@@ -739,7 +739,7 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param realPath
 	 * @param previous relative not to the caller, relative to the callers caller
 	 * @return
@@ -1631,52 +1631,52 @@ public final class PageContextImpl extends PageContext {
 	/*
 	 * private void paramX(String type, String name, Object defaultValue, double min,double max, String
 	 * strPattern, int maxLength) throws PageException {
-	 * 
+	 *
 	 * // check attributes type if(type==null)type="any"; else type=type.trim().toLowerCase();
-	 * 
+	 *
 	 * // check attributes name if(StringUtil.isEmpty(name)) throw new
 	 * ExpressionException("The attribute name is required");
-	 * 
+	 *
 	 * Object value=null; boolean isNew=false;
-	 * 
+	 *
 	 * // get value value=VariableInterpreter.getVariableEL(this,name,NullSupportHelper.NULL(this));
 	 * if(NullSupportHelper.NULL(this)==value) { if(defaultValue==null) throw new
 	 * ExpressionException("The required parameter ["+name+"] was not provided."); value=defaultValue;
 	 * isNew=true; }
-	 * 
+	 *
 	 * // cast and set value if(!"any".equals(type)) { // range if("range".equals(type)) { boolean
 	 * hasMin=Decision.isValid(min); boolean hasMax=Decision.isValid(max); double number =
 	 * Caster.toDoubleValue(value);
-	 * 
+	 *
 	 * if(!hasMin && !hasMax) throw new
 	 * ExpressionException("you need to define one of the following attributes [min,max], when type is set to [range]"
 	 * );
-	 * 
+	 *
 	 * if(hasMin && number<min) throw new ExpressionException("The number ["+Caster.toString(number)
 	 * +"] is to small, the number must be at least ["+Caster.toString(min)+"]");
-	 * 
+	 *
 	 * if(hasMax && number>max) throw new ExpressionException("The number ["+Caster.toString(number)
 	 * +"] is to big, the number cannot be bigger than ["+Caster.toString(max)+"]");
-	 * 
+	 *
 	 * setVariable(name,Caster.toDouble(number)); } // regex else if("regex".equals(type) ||
 	 * "regular_expression".equals(type)) { String str=Caster.toString(value);
-	 * 
+	 *
 	 * if(strPattern==null) throw new ExpressionException("Missing attribute [pattern]");
-	 * 
+	 *
 	 * if(!Perl5Util.matches(strPattern, str)) throw new
 	 * ExpressionException("The value ["+str+"] doesn't match the provided pattern ["+strPattern+"]");
 	 * setVariable(name,str); } else if ( type.equals( "int" ) || type.equals( "integer" ) ) {
-	 * 
+	 *
 	 * if ( !Decision.isInteger( value ) ) throw new ExpressionException( "The value [" + value +
 	 * "] is not a valid integer" );
-	 * 
+	 *
 	 * setVariable( name, value ); } else { if(!Decision.isCastableTo(type,value,true,true,maxLength)) {
 	 * if(maxLength>-1 && ("email".equalsIgnoreCase(type) || "url".equalsIgnoreCase(type) ||
 	 * "string".equalsIgnoreCase(type))) { StringBuilder msg=new
 	 * StringBuilder(CasterException.createMessage(value, type));
 	 * msg.append(" with a maximum length of "+maxLength+" characters"); throw new
 	 * CasterException(msg.toString()); } throw new CasterException(value,type); }
-	 * 
+	 *
 	 * setVariable(name,value); //REALCAST setVariable(name,Caster.castTo(this,type,value,true)); } }
 	 * else if(isNew) setVariable(name,value); }
 	 */
@@ -1688,7 +1688,7 @@ public final class PageContextImpl extends PageContext {
 
 	/**
 	 * a variable reference, references to variable, to modifed it, with global effect.
-	 * 
+	 *
 	 * @param var variable name to get
 	 * @return return a variable reference by string syntax ("scopename.key.key" -> "url.name")
 	 * @throws PageException
@@ -2693,7 +2693,7 @@ public final class PageContextImpl extends PageContext {
 
 	/**
 	 * @return returns the root JSP Writer
-	 * 
+	 *
 	 */
 	public CFMLWriter getRootOut() {// used in extension PDF
 		return bodyContentStack.getBase();
@@ -2818,7 +2818,7 @@ public final class PageContextImpl extends PageContext {
 
 	/*
 	 * *
-	 * 
+	 *
 	 * @return returns the cfml compiler / public CFMLCompiler getCompiler() { return compiler; }
 	 */
 
@@ -2996,7 +2996,7 @@ public final class PageContextImpl extends PageContext {
 
 	/*
 	 * *
-	 * 
+	 *
 	 * @return Returns the manager. / public DataSourceManager getManager() { return manager; }
 	 */
 
@@ -3273,7 +3273,7 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param name
 	 * @param ct
 	 */

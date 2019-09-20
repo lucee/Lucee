@@ -199,5 +199,6 @@ public class FDControllerImpl implements IFDController {
 	@Override
 	public void release() {
 		this.engine.resetAllowRequestTimeout();
+		this.engine.isFusionDebug(false);
 	}
 }
