@@ -4,17 +4,17 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 package lucee.runtime.tag;
 
@@ -59,6 +59,7 @@ import lucee.runtime.debug.DebuggerImpl;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.exp.RequestTimeoutException;
 import lucee.runtime.ext.tag.BodyTagTryCatchFinallyImpl;
 import lucee.runtime.functions.displayFormatting.DecimalFormat;
 import lucee.runtime.listener.AppListenerUtil;
@@ -193,7 +194,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	/**
 	 * set the value password If specified, password overrides the password value specified in the data
 	 * source setup.
-	 * 
+	 *
 	 * @param password value to set
 	 **/
 	public void setPassword(String password) {
@@ -202,7 +203,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 
 	/**
 	 * set the value datasource The name of the data source from which this query should retrieve data.
-	 * 
+	 *
 	 * @param datasource value to set
 	 * @throws ClassException
 	 * @throws BundleException
@@ -232,7 +233,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	 * returning an error indicating that the query has timed-out. This attribute is not supported by
 	 * most ODBC drivers. timeout is supported by the SQL Server 6.x or above driver. The minimum and
 	 * maximum allowable values vary, depending on the driver.
-	 * 
+	 *
 	 * @param timeout value to set
 	 * @throws PageException
 	 **/
@@ -249,7 +250,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 
 	/**
 	 * set the value cachedafter This is the age of which the query data can be
-	 * 
+	 *
 	 * @param cachedafter value to set
 	 **/
 	public void setCachedafter(DateTime cachedafter) {
@@ -259,7 +260,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	/**
 	 * set the value cachename This is specific to JTags, and allows you to give the cache a specific
 	 * name
-	 * 
+	 *
 	 * @param cachename value to set
 	 **/
 	public void setCachename(String cachename) {
@@ -285,7 +286,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 
 	/**
 	 * set the value providerdsn Data source name for the COM provider, OLE-DB only.
-	 * 
+	 *
 	 * @param providerdsn value to set
 	 * @throws ApplicationException
 	 **/
@@ -295,7 +296,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 
 	/**
 	 * set the value connectstring
-	 * 
+	 *
 	 * @param connectstring value to set
 	 * @throws ApplicationException
 	 **/
@@ -312,7 +313,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	 * set the value blockfactor Specifies the maximum number of rows to fetch at a time from the
 	 * server. The range is 1, default to 100. This parameter applies to ORACLE native database drivers
 	 * and to ODBC drivers. Certain ODBC drivers may dynamically reduce the block factor at runtime.
-	 * 
+	 *
 	 * @param blockfactor value to set
 	 **/
 	public void setBlockfactor(double blockfactor) {
@@ -321,7 +322,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 
 	/**
 	 * set the value dbtype The database driver type.
-	 * 
+	 *
 	 * @param dbtype value to set
 	 **/
 	public void setDbtype(String dbtype) {
@@ -332,7 +333,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	 * set the value debug Used for debugging queries. Specifying this attribute causes the SQL
 	 * statement submitted to the data source and the number of records returned from the query to be
 	 * returned.
-	 * 
+	 *
 	 * @param debug value to set
 	 **/
 	public void setDebug(boolean debug) {
@@ -342,7 +343,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	/**
 	 * set the value dbname The database name, Sybase System 11 driver and SQLOLEDB provider only. If
 	 * specified, dbName overrides the default database specified in the data source.
-	 * 
+	 *
 	 * @param dbname value to set
 	 * @throws ApplicationException
 	 **/
@@ -352,7 +353,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 
 	/**
 	 * set the value maxrows Specifies the maximum number of rows to return in the record set.
-	 * 
+	 *
 	 * @param maxrows value to set
 	 **/
 	public void setMaxrows(double maxrows) {
@@ -362,7 +363,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	/**
 	 * set the value username If specified, username overrides the username value specified in the data
 	 * source setup.
-	 * 
+	 *
 	 * @param username value to set
 	 **/
 	public void setUsername(String username) {
@@ -371,7 +372,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 
 	/**
 	 * set the value provider COM provider, OLE-DB only.
-	 * 
+	 *
 	 * @param provider value to set
 	 * @throws ApplicationException
 	 **/
@@ -383,7 +384,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	 * set the value dbserver For native database drivers and the SQLOLEDB provider, specifies the name
 	 * of the database server computer. If specified, dbServer overrides the server specified in the
 	 * data source.
-	 * 
+	 *
 	 * @param dbserver value to set
 	 * @throws ApplicationException
 	 **/
@@ -395,7 +396,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	 * set the value name The name query. Must begin with a letter and may consist of letters, numbers,
 	 * and the underscore character, spaces are not allowed. The query name is used later in the page to
 	 * reference the query's record set.
-	 * 
+	 *
 	 * @param name value to set
 	 **/
 	public void setName(String name) {
@@ -488,7 +489,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	}
 
 	@Override
-	public int doEndTag() throws PageException {
+	public int doEndTag() throws PageException, RequestTimeoutException {
 		if (hasChangedPSQ) pageContext.setPsq(orgPSQ);
 
 		// listener
@@ -541,6 +542,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 			// call was not
 			// necessary
 		}
+		PageContextUtil.checkRequestTimeout(pageContext);
 		return EVAL_PAGE;
 	}
 
@@ -1081,7 +1083,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 
 	/**
 	 * sets if tag has a body or not
-	 * 
+	 *
 	 * @param hasBody
 	 */
 	public void hasBody(boolean hasBody) {
