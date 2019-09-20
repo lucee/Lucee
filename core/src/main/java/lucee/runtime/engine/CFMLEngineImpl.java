@@ -1439,7 +1439,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	}
 
 	public boolean allowRequestTimeoutMonitor() {
-		return allowRequestTimeoutMonitor;
+		return allowRequestTimeout() && allowRequestTimeoutMonitor;
 	}
 
 	public void resetAllowRequestTimeoutMonitor() {
