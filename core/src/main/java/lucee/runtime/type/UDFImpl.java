@@ -4,17 +4,17 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 package lucee.runtime.type;
 
@@ -47,6 +47,7 @@ import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.UDFCasterException;
+import lucee.runtime.exp.RequestTimeoutException;
 import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
@@ -60,6 +61,7 @@ import lucee.runtime.type.scope.Undefined;
 import lucee.runtime.type.util.ComponentUtil;
 import lucee.runtime.type.util.UDFUtil;
 import lucee.runtime.writer.BodyContentUtil;
+import lucee.runtime.util.PageContextUtil;
 
 /**
  * defines an abstract class for a User defined Functions
@@ -196,22 +198,22 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 	}
 
 	@Override
-	public Object callWithNamedValues(PageContext pc, Struct values, boolean doIncludePath) throws PageException {
+	public Object callWithNamedValues(PageContext pc, Struct values, boolean doIncludePath) throws PageException, RequestTimeoutException {
 		return hasCachedWithin(pc) ? _callCachedWithin(pc, null, null, values, doIncludePath) : _call(pc, null, null, values, doIncludePath);
 	}
 
 	@Override
-	public Object callWithNamedValues(PageContext pc, Collection.Key calledName, Struct values, boolean doIncludePath) throws PageException {
+	public Object callWithNamedValues(PageContext pc, Collection.Key calledName, Struct values, boolean doIncludePath) throws PageException, RequestTimeoutException {
 		return hasCachedWithin(pc) ? _callCachedWithin(pc, calledName, null, values, doIncludePath) : _call(pc, calledName, null, values, doIncludePath);
 	}
 
 	@Override
-	public Object call(PageContext pc, Object[] args, boolean doIncludePath) throws PageException {
+	public Object call(PageContext pc, Object[] args, boolean doIncludePath) throws PageException, RequestTimeoutException {
 		return hasCachedWithin(pc) ? _callCachedWithin(pc, null, args, null, doIncludePath) : _call(pc, null, args, null, doIncludePath);
 	}
 
 	@Override
-	public Object call(PageContext pc, Collection.Key calledName, Object[] args, boolean doIncludePath) throws PageException {
+	public Object call(PageContext pc, Collection.Key calledName, Object[] args, boolean doIncludePath) throws PageException, RequestTimeoutException {
 		return hasCachedWithin(pc) ? _callCachedWithin(pc, calledName, args, null, doIncludePath) : _call(pc, calledName, args, null, doIncludePath);
 	}
 
@@ -284,7 +286,7 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 		}
 	}
 
-	private Object _call(PageContext pc, Collection.Key calledName, Object[] args, Struct values, boolean doIncludePath) throws PageException {
+	private Object _call(PageContext pc, Collection.Key calledName, Object[] args, Struct values, boolean doIncludePath) throws PageException, RequestTimeoutException {
 
 		// print.out(count++);
 		PageContextImpl pci = (PageContextImpl) pc;
@@ -357,6 +359,8 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 				else if (!wasSilent) pc.unsetSilent();
 			}
 			// BodyContentUtil.clearAndPop(pc,bc);
+
+			PageContextUtil.checkRequestTimeout(pc);
 
 			if (returnValue == null && ((PageContextImpl) pc).getFullNullSupport()) return returnValue;
 			if (properties.getReturnType() == CFTypes.TYPE_ANY || !((PageContextImpl) pc).getTypeChecking()) return returnValue;
