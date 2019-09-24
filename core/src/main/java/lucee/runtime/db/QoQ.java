@@ -104,18 +104,20 @@ public final class QoQ {
 			Object l, r;
 			outer: for (int row = target.getRecordcount(); row > 1; row--) {
 				for (i = 0; i < columns.length; i++) {
-					l = columns[i].get(row, null);
-					r = columns[i].get(row - 1, null);
-					if (l == null || r == null) {
-						if (l != r) continue outer;
+					l = columns[i].get(row);
+					r = columns[i].get(row - 1);
+					// if (l == null || r == null) {
+					// 	if (l != r) continue outer;
+					// }
+					// else if (!Operator.equals(l, r, true)) continue outer;
+					if(l == r)  {
+						target.removeRow(row);
+						continue outer;
 					}
-					else if (!Operator.equals(l, r, true)) continue outer;
 				}
-				target.removeRow(row);
 			}
 		}
 		order(target, orders);
-
 		return target;
 	}
 
