@@ -213,8 +213,13 @@ public final class MailUtil {
 		if (pos > 0 && pos < addr.length() - 1) {
 			String domain = addr.substring(pos + 1);
 			if (!StringUtil.isAscii(domain)) {
-				domain = IDN.toASCII(domain);
-				return addr.substring(0, pos) + "@" + domain;
+				try {
+					domain = IDN.toASCII(domain);
+					return addr.substring(0, pos) + "@" + domain;
+				}
+				catch(IllegalArgumentException e) {
+					return "false";
+				}
 			}
 		}
 		return addr;
