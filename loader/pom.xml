@@ -3,12 +3,12 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>5.3.5.14-SNAPSHOT</version>
+  <version>5.3.5.15-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
   <description>Building the Lucee Loader JAR</description>
-  <url>http://maven.lucee.org/loader/</url>
+  <url>http://maven.lucee.org/loader/</ur5>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
