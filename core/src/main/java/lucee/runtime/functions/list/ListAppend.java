@@ -47,12 +47,55 @@ public final class ListAppend extends BIF {
 		return new StringBuilder(list).append(delimiter.charAt(0)).append(value).toString();
 	}
 
+	public static String call(PageContext pc, String list, String value, String delimiter, boolean includeEmptyFields) {
+		if (list.length() == 0) return value;
+		if (delimiter.length() > 0) {
+			if(includeEmptyFields == false){
+				int delimeterlen = delimiter.length();
+				String delim = delimiter;
+				int num = value.indexOf(delimiter.charAt(0));
+				for(int j = delimeterlen-1; j >-1; j--) {
+					String delimiter1 = Character.toString(delim.charAt(j));
+					int len = value.length();
+					if(num > -1) { 
+						for(int i = 0; i < len-1; i++) {
+							String first  = Character.toString(value.charAt(i));
+							String next  = Character.toString(value.charAt(i+1));
+							for(int pos = delimeterlen-1; pos > -1; pos--) {
+								delimiter = Character.toString(delim.charAt(pos));
+								if(first.equals(delimiter1) && next.equals(delimiter)) {
+									value = new StringBuilder(value).deleteCharAt(i+1).toString();
+									len = value.length();
+									i = i-1;
+								}
+								if(Character.toString(value.charAt(value.length()-1)).equals(delimiter)){
+									value = new StringBuilder(value).deleteCharAt(value.length()-1).toString();
+								}
+								if(Character.toString(value.charAt(0)).equals(delimiter)) {
+									value = new StringBuilder(value).deleteCharAt(0).toString();
+								}
+							}
+						}
+					}
+				}
+			}
+				return new StringBuilder(list).append(delimiter.charAt(0)).append(value).toString();
+		}
+		else{
+			return new StringBuilder(list).append(delimiter.charAt(0)).append(value).toString();
+		}
+	}
+
+
+
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 		if (args.length == 2) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), ",");
 		if (args.length == 3) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]));
+		if (args.length == 4) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toString(args[2]),
+			Caster.toBooleanValue(args[3]));
 
-		throw new FunctionException(pc, "ListAppend", 2, 3, args.length);
+		throw new FunctionException(pc, "ListAppend", 2, 4, args.length);
 	}
 
 }
