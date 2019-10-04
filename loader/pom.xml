@@ -8,7 +8,7 @@
 
   <name>Lucee Loader Build</name>
   <description>Building the Lucee Loader JAR</description>
-  <url>http://maven.lucee.org/loader/</ur5>
+  <url>http://maven.lucee.org/loader/</url>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
