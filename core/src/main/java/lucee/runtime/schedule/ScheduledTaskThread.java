@@ -130,6 +130,7 @@ public class ScheduledTaskThread extends Thread {
 			throw new RuntimeException(e);
 		}
 		finally {
+			log(Log.LEVEL_INFO, "ending task");
 			task.setValid(false);
 			try {
 				scheduler.removeIfNoLonerValid(task);
@@ -155,7 +156,10 @@ public class ScheduledTaskThread extends Thread {
 		long execution;
 		boolean isOnce = intervall == ScheduleTask.INTERVAL_ONCE;
 		if (isOnce) {
-			if (startDate + startTime < today) return;
+			if (startDate + startTime < today) {
+				log(Log.LEVEL_INFO, "not executing task because single execution was in the past");
+				return;
+			}
 			execution = startDate + startTime;
 		}
 		else execution = calculateNextExecution(today, false);
@@ -187,11 +191,14 @@ public class ScheduledTaskThread extends Thread {
 				}
 				execute();
 			}
-			if (isOnce) break;
+			if (isOnce) {
+				log(Log.LEVEL_INFO, "ending task after a single execution");
+				break;
+			}
 			today = System.currentTimeMillis();
 			execution = calculateNextExecution(today, true);
 
-			if (!task.isPaused()) log(Log.LEVEL_DEBUG, "next execution runs at " + DateTimeUtil.format(execution, null, timeZone));
+			if (!task.isPaused()) log(Log.LEVEL_INFO, "next execution runs at " + DateTimeUtil.format(execution, null, timeZone));
 			// sleep=execution-today;
 		}
 	}

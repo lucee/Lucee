@@ -211,6 +211,7 @@ public final class SchedulerImpl implements Scheduler {
 		for (int i = 0; i < tasks.length; i++) {
 			if (!tasks[i].getTask().equals(task.getTask())) continue;
 			if (!tasks[i].md5().equals(task.md5())) {
+				tasks[i].log(Log.LEVEL_INFO, "invalidate task because the task is replaced with a new one");
 				tasks[i].setValid(false);
 				tasks[i] = task;
 				init(task);
@@ -353,6 +354,7 @@ public final class SchedulerImpl implements Scheduler {
 			int pos = -1;
 			for (int i = 0; i < tasks.length; i++) {
 				if (tasks[i].getTask().equalsIgnoreCase(name)) {
+					tasks[i].log(Log.LEVEL_INFO, "task gets removed");
 					tasks[i].setValid(false);
 					pos = i;
 				}
