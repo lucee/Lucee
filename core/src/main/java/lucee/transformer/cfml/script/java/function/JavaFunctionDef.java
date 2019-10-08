@@ -193,7 +193,7 @@ public class JavaFunctionDef implements FunctionDef {
 
 	private String b(Boolean b) {
 		if (b == null) return "null";
-		return b ? "Booleam.TRUE" : "Boolean.FALSE";
+		return b ? "Boolean.TRUE" : "Boolean.FALSE";
 	}
 
 	private String createCallFunction(Class<?> clazz) {
