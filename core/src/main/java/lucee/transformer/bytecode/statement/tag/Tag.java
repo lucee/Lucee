@@ -78,7 +78,7 @@ public interface Tag extends Statement, HasBody {
 	public abstract void setTagLibTag(TagLibTag tagLibTag);
 
 	/**
-	 * adds a attribute to the tag
+	 * adds an attribute to the tag
 	 * 
 	 * @param attribute
 	 */

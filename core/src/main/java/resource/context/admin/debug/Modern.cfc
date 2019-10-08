@@ -411,7 +411,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 								}
 							}
 						};
-						var ajaxURL = "/lucee/appLogs/readDebug.cfm?id=#debugging.id#&TAB="+section;
+						var ajaxURL = "/lucee/appLogs/readDebug.cfm?id=#arguments.debugging.id#&TAB="+section;
 						<cfif structKeyExists(request, "fromAdmin") AND request.fromAdmin EQ true>
 							ajaxURL += "&fromAdmin=true";
 						</cfif>
@@ -727,6 +727,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 		<cfargument name="debugging" required="true" type="struct" />
 		<cfargument name="context" type="string" default="web" />
 		<cfsilent>
+			<cfset local.debuggingRenderingTime=getTickCount()>
 			<cfset local.stStats = filterByTemplates(arguments.debugging)>
 			<cfset arguments.debugging.minimal          = arguments.custom.minimal ?: 0>
 			<cfset arguments.debugging.highlight        = arguments.custom.highlight ?: 250000>
@@ -744,13 +745,9 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			<!--- <cfset arguments.custom.sort_charts 		= (arguments.custom.sort_charts ?: '1,2,3,4')> --->
 			<cfif isNull(arguments.custom.scopesList)><cfset arguments.custom.scopesList=""></cfif>
 
-
-			
-
-
 			<cfset var _cgi=isNull(arguments.debugging.scope.cgi)?cgi:arguments.debugging.scope.cgi />
-			<cfset var pages=arguments.debugging.pages />
-			<cfset var queries=arguments.debugging.queries />
+			<cfset var pages=duplicate(arguments.debugging.pages) />
+			<cfset var queries=arguments.debugging.queries/>
 			<cfif not isDefined('arguments.debugging.timers')>
 				<cfset arguments.debugging.timers=queryNew('label,time,template') />
 			</cfif>
@@ -786,10 +783,10 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			<cfloop query="pages">
 				<cfset querySetCell(pages, "total", pages.app + pages.load + pages.query, pages.currentRow)>
 				<cfset querySetCell(pages, "avg", (pages.app + pages.load + pages.query) / pages.count, pages.currentRow)>
-				<cfset aPage = listToArray(pages.src, '$')>
+				<cfset local.aPage = listToArray(pages.src, '$')>
 				<cfset querySetCell(pages, "path", pages.src, pages.currentRow)>
-				<cfset querySetCell(pages, "src", contractPath(aPage[1]), pages.currentRow)>
-				<cfset querySetCell(pages, "method", !isEmpty(aPage[2] ?: '') ? aPage[2] : '', pages.currentRow)>
+				<cfset querySetCell(pages, "src", contractPath(local.aPage[1]), pages.currentRow)>
+				<cfset querySetCell(pages, "method", !isEmpty(local.aPage[2] ?: '') ? local.aPage[2] : '', pages.currentRow)>
 				<cfset tot      += pages.total />
 				<cfset totCnt   += pages.count />
 				<cfset totLucee += pages.app>
@@ -1076,19 +1073,19 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 							<cfset tot=0 />
 							<cfset q=0 />
 							<cfloop query="pages" group="src">
-									<cfset page.stckTrace = []>
+									<cfset local.page.stckTrace = []>
 									<cfset arrayAppend(page.stckTrace, listLast(pages.src))>
-									<cfquery dbtype="query" name="resultQry">
+									<cfquery dbtype="query" name="local.resultQry">
 										select * from pages where src='#pages.src#' AND id != '#pages.id#'
 									</cfquery>
-									<cfloop query="resultQry">
-										<cfset pages.total += resultQry.total>
-										<cfset pages.count += resultQry.count>
-										<cfset pages.avg += resultQry.avg>
-										<cfset pages.query += resultQry.query>
-										<cfset pages.total += resultQry.total>
-										<cfset pages.app += resultQry.app>
-										<cfset arrayAppend(page.stckTrace, listLast(resultQry.src, "$"))>
+									<cfloop query="local.resultQry">
+										<cfset pages.total += local.resultQry.total>
+										<cfset pages.count += local.resultQry.count>
+										<cfset pages.avg += local.resultQry.avg>
+										<cfset pages.query += local.resultQry.query>
+										<cfset pages.total += local.resultQry.total>
+										<cfset pages.app += local.resultQry.app>
+										<cfset arrayAppend(local.page.stckTrace, listLast(local.resultQry.src, "$"))>
 									</cfloop>
 									<cfset tot += pages.total - (pages.count * pages.avg) />
 									<cfset q += pages.query />
@@ -1105,7 +1102,9 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 									<cfset local.sColor    = RGBtoHex(255 * iPctTotal, 160 * (1 - iPctTotal), 0)>
 
 
-									<cfset sStyle = ''>
+									<cfset var sStyle = ''>
+									<cfset var per = ''>
+									<Cfset var i = 0>
 									<cfif arguments.custom.colorHighlight>
 										<cfset sStyle = sColor>
 									</cfif>
@@ -1164,11 +1163,11 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 											<font color="#sStyle#">#listFirst(pages.src, "$")#</font>
 										</td>
 										<td align="left" class="tblContent" style="#sStyle#">
-											<cfset listStack= arrayToList(#page.stckTrace#) >
-											<cfset getStack = listRemoveDuplicates(listStack,",",true) >
-											<cfset page.stckTrace = listToArray(getStack)>
+											<cfset var listStack= arrayToList(local.page.stckTrace) >
+											<cfset var getStack = listRemoveDuplicates(listStack,",",true) >
+											<cfset local.page.stckTrace = listToArray(getStack)>
 											<table>
-												<cfloop array="#page.stckTrace#" index="i">
+												<cfloop array="#local.page.stckTrace#" index="i">
 													<tr>
 														<td>
 														<font color="#sStyle#">
@@ -1722,6 +1721,8 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 					</tr>
 				</table>
 			</cfif>
+			<br />
+			<p class="cfdebug">Debug Rendering Time: #LsNumberFormat(getTickCount()-local.debuggingRenderingTime)#ms</p>
 			</cfoutput>
 		</div>
 	</cffunction>
@@ -1956,17 +1957,18 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 	</cffunction>
 
 	<cffunction name="loadCharts" output="true">
-
 		<cfargument name="chartStruct">
-		<cfset chartsLabel = structNew("linked")>
+		<cfset var i = 0>
+		<cfset var chartsLabel = structNew("linked")>
+		
 		<cfset chartsLabel.HeapChart = "Heap Memory">
 		<cfset chartsLabel.NonHeapChart = "Non Heap Memory">
 		<cfset chartsLabel.WholeSystem = "System CPU VS Lucee CPU">
 
 		<cfif structKeyExists(request, "fromAdmin") AND request.fromAdmin EQ true>
-			<cfset chartClass = "twoCharts">
+			<cfset var chartClass = "twoCharts">
 		<cfelse>
-			<cfset chartClass = "fourCharts">
+			<cfset var chartClass = "fourCharts">
 		</cfif>
 
 		<cfloop item="i" collection="#chartsLabel#">

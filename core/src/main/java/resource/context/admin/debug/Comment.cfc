@@ -47,6 +47,9 @@ component extends="Debug" {
 		return "lucee-comment";
 	}
 	
+	string function readDebug(struct custom, struct debugging, string context){
+		output(argumentcollection=arguments);
+	}	
 	
 	/**
 	* validates settings done by the user

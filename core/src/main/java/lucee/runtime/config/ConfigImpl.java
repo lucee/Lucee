@@ -3830,8 +3830,12 @@ public abstract class ConfigImpl implements Config {
 	 * public boolean installExtension(ExtensionDefintion ed) throws PageException { return
 	 * DeployHandler.deployExtension(this, ed, getLog("deploy"),true); }
 	 */
-
-	public abstract List<ExtensionDefintion> loadLocalExtensions();
+	/**
+	 * 
+	 * @param validate if true Lucee checks if the file is a valid zip file
+	 * @return
+	 */
+	public abstract List<ExtensionDefintion> loadLocalExtensions(boolean validate);
 
 	private Map<String, ClassDefinition> cacheDefinitions;
 

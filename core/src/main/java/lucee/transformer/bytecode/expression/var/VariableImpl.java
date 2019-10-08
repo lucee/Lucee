@@ -322,7 +322,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 	}
 
 	/**
-	 * outputs a empty Variable, only scope Example: pc.formScope();
+	 * outputs an empty Variable, only scope Example: pc.formScope();
 	 * 
 	 * @param adapter
 	 * @throws TemplateException
@@ -708,7 +708,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 	private static VT getMatchingValueAndType(Factory factory, FunctionLibFunctionArg flfa, NamedArgument[] nargs, String[] names, Position line) throws TransformerException {
 		String flfan = flfa.getName();
 
-		// first search if a argument match
+		// first search if an argument match
 		for (int i = 0; i < nargs.length; i++) {
 			if (names[i] != null && names[i].equalsIgnoreCase(flfan)) {
 				nargs[i].setValue(nargs[i].getRawValue(), flfa.getTypeAsString());
@@ -716,7 +716,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 			}
 		}
 
-		// then check if a alias match
+		// then check if an alias match
 		String alias = flfa.getAlias();
 		if (!StringUtil.isEmpty(alias)) {
 			// String[] arrAlias =
@@ -752,7 +752,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 
 	private static String getName(Expression expr) throws TransformerException {
 		String name = ASMUtil.toString(expr);
-		if (name == null) throw new TransformerException("cannot extract a string from a object of type [" + expr.getClass().getName() + "]", null);
+		if (name == null) throw new TransformerException("cannot extract a string from an object of type [" + expr.getClass().getName() + "]", null);
 		return name;
 	}
 
@@ -765,7 +765,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 	}
 
 	/**
-	 * translate a array of arguments to a araay of NamedArguments, attention no check if the elements
+	 * translate an array of arguments to an array of NamedArguments, attention no check if the elements
 	 * are really named arguments
 	 * 
 	 * @param args
@@ -781,7 +781,7 @@ public class VariableImpl extends ExpressionBase implements Variable {
 	}
 
 	/**
-	 * check if the arguments are named arguments or regular arguments, throws a exception when mixed
+	 * check if the arguments are named arguments or regular arguments, throws an exception when mixed
 	 * 
 	 * @param funcName
 	 * @param args

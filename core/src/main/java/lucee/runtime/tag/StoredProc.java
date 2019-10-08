@@ -385,7 +385,8 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 
 						ResultSet procColumns = conn.getMetaData().getProcedureColumns(_objName, _owner, _procName, null);
 						procParams = getProcMetaCollection(procColumns);
-						procParamsCache.put(cacheId, procParams);
+						if (procParams != null)
+							procParamsCache.put(cacheId, procParams);
 
 						if (getLog().getLogLevel() >= Log.LEVEL_DEBUG) { // log entry added to troubleshoot LDEV-1147
 							getLog().debug("StoredProc", "PROC OBJECT_ID: " + resultSet.getInt("OBJECT_ID"));

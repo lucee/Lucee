@@ -65,7 +65,7 @@ public abstract class TagCIObject extends TagBase {
 
 		Page page = new Page(p.getFactory(), p.getConfig(), p.getSourceCode(), this, CFMLEngineFactory.getInstance().getInfo().getFullVersionInfo(), p.getLastModifed(),
 				p.writeLog(), p.getSupressWSbeforeArg(), p.getOutput(), p.returnValue(), p.ignoreScopes);
-		// page.setIsComponent(true); // MUST can be a interface as well
+		// page.setIsComponent(true); // MUST can be an interface as well
 		page.addStatement(this);
 
 		byte[] barr = page.execute(p.getClassName());

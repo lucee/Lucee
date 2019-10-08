@@ -25,7 +25,9 @@ import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -628,16 +630,25 @@ public final class Reflector {
 	 * Class Of the Method to get @param methodName Name of the Method to get @param args Arguments of
 	 * the Method to get @return return Matching Method @throws
 	 */
-	public static MethodInstance getMethodInstanceEL(Object objMaybeNull, Class clazz, Collection.Key methodName, Object[] args) {
+	public static MethodInstance getMethodInstanceEL(Object objMaybeNull, Class clazz, final Collection.Key methodName, Object[] args) {
 		checkAccessibility(objMaybeNull, clazz, methodName);
 		args = cleanArgs(args);
-
 		Method[] methods = mStorage.getMethods(clazz, methodName, args.length);// getDeclaredMethods(clazz);
 
 		if (methods != null) {
+			if (methods.length > 1) {
+				Arrays.sort(methods, new Comparator<Method>() {
+					@Override
+					public int compare(Method l, Method r) {
+						if (methodName.getString().equals(l.getName())) return -1;
+						if (methodName.getString().equals(r.getName())) return 1;
+						return 0;
+					}
+				});
+			}
 			Class[] clazzArgs = getClasses(args);
 			// exact comparsion
-			// print.e("exact:"+methodName);
+			// print.e("exact:" + methodName);
 			outer: for (int i = 0; i < methods.length; i++) {
 				if (methods[i] != null) {
 					Class[] parameterTypes = methods[i].getParameterTypes();
@@ -649,7 +660,7 @@ public final class Reflector {
 			}
 			// like comparsion
 			// MethodInstance mi=null;
-			// print.e("like:"+methodName);
+			// print.e("like:" + methodName);
 			outer: for (int i = 0; i < methods.length; i++) {
 				if (methods[i] != null) {
 					Class[] parameterTypes = methods[i].getParameterTypes();
@@ -661,7 +672,7 @@ public final class Reflector {
 			}
 
 			// convert comparsion
-			// print.e("convert:"+methodName);
+			// print.e("convert:" + methodName);
 			MethodInstance mi = null;
 			int _rating = 0;
 			outer: for (int i = 0; i < methods.length; i++) {

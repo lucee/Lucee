@@ -63,6 +63,7 @@ import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.RHExtension;
+import lucee.runtime.functions.system.IsZipFile;
 import lucee.runtime.gateway.GatewayEntry;
 import lucee.runtime.monitor.ActionMonitor;
 import lucee.runtime.monitor.ActionMonitorCollector;
@@ -847,9 +848,9 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 	}
 
 	@Override
-	public List<ExtensionDefintion> loadLocalExtensions() {
+	public List<ExtensionDefintion> loadLocalExtensions(boolean validate) {
 		Resource[] locReses = getLocalExtensionProviderDirectory().listResources(new ExtensionResourceFilter(".lex"));
-		if (localExtensions == null || localExtSize != locReses.length || extHash(locReses) != localExtHash) {
+		if (validate || localExtensions == null || localExtSize != locReses.length || extHash(locReses) != localExtHash) {
 			localExtensions = new ArrayList<ExtensionDefintion>();
 			Map<String, String> map = new HashMap<String, String>();
 			RHExtension ext;
@@ -859,7 +860,7 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 				ed = null;
 				// we stay happy with the file name when it has the right pattern (uuid-version.lex)
 				fileName = locReses[i].getName();
-				if (fileName.length() > 39) {
+				if (!validate && fileName.length() > 39) {
 					uuid = fileName.substring(0, 35);
 					version = fileName.substring(36, fileName.length() - 4);
 					if (Decision.isUUId(uuid)) {
@@ -875,7 +876,14 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 
 					}
 					catch (Exception e) {
+						ed = null;
 						LogUtil.log(ThreadLocalPageContext.getConfig(this), ConfigServerImpl.class.getName(), e);
+						try {
+							if (!IsZipFile.invoke(locReses[i])) locReses[i].remove(true);
+						}
+						catch (Exception ee) {
+							LogUtil.log(ThreadLocalPageContext.getConfig(this), ConfigServerImpl.class.getName(), ee);
+						}
 					}
 				}
 

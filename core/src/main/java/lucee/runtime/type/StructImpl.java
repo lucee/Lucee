@@ -287,7 +287,7 @@ public class StructImpl extends StructSupport {
 
 	@Override
 	public int hashCode() {
-		return map.hashCode();
+		return super.hashCode();
 	}
 
 	@Override

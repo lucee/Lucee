@@ -28,6 +28,7 @@ import lucee.commons.date.DateTimeUtil;
 import lucee.commons.date.JREDateTimeUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
@@ -129,6 +130,7 @@ public class ScheduledTaskThread extends Thread {
 			throw new RuntimeException(e);
 		}
 		finally {
+			log(Log.LEVEL_INFO, "ending task");
 			task.setValid(false);
 			try {
 				scheduler.removeIfNoLonerValid(task);
@@ -154,7 +156,10 @@ public class ScheduledTaskThread extends Thread {
 		long execution;
 		boolean isOnce = intervall == ScheduleTask.INTERVAL_ONCE;
 		if (isOnce) {
-			if (startDate + startTime < today) return;
+			if (startDate + startTime < today) {
+				log(Log.LEVEL_INFO, "not executing task because single execution was in the past");
+				return;
+			}
 			execution = startDate + startTime;
 		}
 		else execution = calculateNextExecution(today, false);
@@ -186,7 +191,10 @@ public class ScheduledTaskThread extends Thread {
 				}
 				execute();
 			}
-			if (isOnce) break;
+			if (isOnce) {
+				log(Log.LEVEL_INFO, "ending task after a single execution");
+				break;
+			}
 			today = System.currentTimeMillis();
 			execution = calculateNextExecution(today, true);
 
@@ -214,8 +222,8 @@ public class ScheduledTaskThread extends Thread {
 
 		}
 		catch (Exception ee) {
-			System.err.println(e);
-			System.err.println(ee);
+			LogUtil.logGlobal(config, "scheduler", e);
+			LogUtil.logGlobal(config, "scheduler", ee);
 		}
 	}
 

@@ -49,7 +49,10 @@ public class LogAdapter implements Log {
 
 	@Override
 	public void log(int level, String application, Throwable t) {
-		logger.log(toLevel(level), application, toThrowable(t));
+		t = toThrowable(t);
+		String msg = t.getMessage();
+		if (StringUtil.isEmpty(msg)) msg = t.getClass().getName();
+		log(level, application, msg, t);
 	}
 
 	@Override
