@@ -28,7 +28,8 @@
 				struct(action:"output",label:stMenu.server.output),
 				struct(action:"error",label:stMenu.server.error),
 				struct(action:"logging",label:stMenu.server.logging),
-				struct(action:"export",label:stMenu.server.export)
+				struct(action:"export",label:stMenu.server.export),
+				struct(action:"proxy",label:stMenu.server.proxy)
 			)
 		),
 		struct(
