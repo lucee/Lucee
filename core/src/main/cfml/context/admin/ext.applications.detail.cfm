@@ -96,7 +96,7 @@ isInstalled=installed.count() GT 0;
 	<!--- title and description --->
 	<div class="modheader">
 		<h2>#app.name# (<cfif isInstalled>#stText.ext.installed#<cfelseif isServerInstalled>#stText.ext.installedServer#<cfelse>#stText.ext.notInstalled#</cfif>)</h2>
-		<cfif !lasProvider>
+		<cfif !lasProvider and !structkeyexists(app,"provider")>
 		<div class="warning" style="color:##C93">This extension is not provided by the Lucee Association Switzerland and does not neccessarily follow our guidelines. This extension is not reviewed by the Lucee Association Switzerland.
 		For any sugestion to improve the Extension or any issue you encounter, please contact the author of the extension directly.</div>
 		</cfif>
