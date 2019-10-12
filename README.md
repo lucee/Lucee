@@ -1,6 +1,17 @@
 ![Lucee](https://bitbucket.org/repo/rX87Rq/images/3392835614-logo-1-color-black-small.png)
 
+![GitHub](https://img.shields.io/github/license/lucee/Lucee)
 [![Build Status](https://travis-ci.org/lucee/Lucee.svg?branch=5.3)](https://travis-ci.org/lucee/Lucee)
+
+[![Maven Central](https://img.shields.io/maven-central/v/org.lucee/lucee)](https://mvnrepository.com/artifact/org.lucee/lucee)
+[![GitHub pull requests](https://img.shields.io/github/issues-pr-raw/lucee/Lucee)](https://github.com/lucee/Lucee/pulls)
+[![GitHub closed pull requests](https://img.shields.io/github/issues-pr-closed-raw/lucee/Lucee)](https://github.com/lucee/Lucee/pulls?utf8=%E2%9C%93&q=is%3Apr+is%3Aclosed)
+
+[![docker pulls](https://img.shields.io/docker/pulls/lucee/lucee.svg?label=docker+pulls)](https://hub.docker.com/r/lucee/lucee/)
+[![Open Collective backers and sponsors](https://img.shields.io/opencollective/all/lucee)](https://opencollective.com/lucee#section-contributors)
+[![GitHub contributors](https://img.shields.io/github/contributors/lucee/Lucee)](https://github.com/lucee/Lucee)
+
+[![Website](https://img.shields.io/website?url=https%3A%2F%2Fdownload.lucee.org%2F)](https://download.lucee.org/)
 
 ## Lucee Server
 
