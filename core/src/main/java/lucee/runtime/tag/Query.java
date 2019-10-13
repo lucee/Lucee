@@ -513,7 +513,6 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 						data.listener = listener;
 					}
 				}
-
 			}
 		}
 
