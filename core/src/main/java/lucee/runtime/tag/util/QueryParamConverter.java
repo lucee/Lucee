@@ -65,7 +65,8 @@ public class QueryParamConverter {
 		Entry<Key, Object> e;
 		while (it.hasNext()) {
 			e = it.next();
-			namedItems.add(toNamedSQLItem(e.getKey().getString(), e.getValue()));
+			SQLItems<NamedSQLItem> namedSqlItem = toNamedSQLItem(e.getKey().getString(), e.getValue());
+			namedItems.add(namedSqlItem);
 		}
 		return convert(sql, new ArrayList<SQLItems<SQLItem>>(), namedItems);
 	}
@@ -297,6 +298,15 @@ public class QueryParamConverter {
 				}
 
 				int len = values.size();
+				/* this block adds a fail fast with a descriptive error message for LDEV-1671
+				if (len == 0) {
+					String paramName = "";
+					if (filledItem instanceof NamedSQLItem)
+						paramName = ((NamedSQLItem)filledItem).getName();
+					if (!paramName.isEmpty())
+						paramName = "[" + paramName + "] ";
+					throw new ApplicationException("Query param " + paramName + "is marked as list but its value is empty");
+				} //*/
 				for (int i = 1; i <= len; i++) {
 					T clonedItem = (T) filledItem.clone(values.getE(i));
 					add(clonedItem);

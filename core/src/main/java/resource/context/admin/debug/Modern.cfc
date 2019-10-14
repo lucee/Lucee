@@ -69,11 +69,6 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 				return false;
 			}
 		}
-
-		function isEnabled( custom, key ) {
-			return structKeyExists( arguments.custom, arguments.key ) && ( arguments.custom[ arguments.key ] == "Enabled" || arguments.custom[ arguments.key ] == "true" );
-		}
-
 		variables.cookieName_debugging   = "lucee_debug_modern";
 		variables.cookieSortOrder       = "lucee_debug_modern_sort";
 		variables.cookieFilterTemplates = "lucee_debug_modern_filter";
