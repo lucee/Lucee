@@ -51,9 +51,7 @@ public class PageSourceCode extends SourceCode {
 			is = IOUtil.toBufferedInputStream(ps.getPhyscalFile().getInputStream());
 			if (ClassUtil.isBytecode(is)) throw new AlreadyClassException(ps.getPhyscalFile(), false);
 			if (ClassUtil.isEncryptedBytecode(is)) throw new AlreadyClassException(ps.getPhyscalFile(), true);
-
 			content = IOUtil.toString(is, charset);
-
 		}
 		finally {
 			IOUtil.closeEL(is);
@@ -61,6 +59,7 @@ public class PageSourceCode extends SourceCode {
 		return content;
 	}
 
+	@Override
 	public String id() {
 		return HashUtil.create64BitHashAsString(getPageSource().getDisplayPath());
 	}

@@ -7491,6 +7491,14 @@ The following things are considered to be empty:
 			<description>Characters that separate list elements. The default value is comma.
 			If this string contains more than one character, only the first character is used.</description>
 		</argument>
+		<argument>
+			<name>includeEmptyFields</name>
+			<status>hidden</status>
+			<type>boolean</type>
+			<required>No</required>
+			<default>true</default>
+			<description>if false it cleans up empty fields.</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
@@ -8161,6 +8169,14 @@ The following things are considered to be empty:
 			<required>No</required>
 			<default>,</default>
 			<description>Characters that separate list elements. The default value is comma.</description>
+		</argument>
+		<argument>
+			<name>includeEmptyFields</name>
+			<status>hidden</status>
+			<type>boolean</type>
+			<required>No</required>
+			<default>true</default>
+			<description>if false it cleans up empty fields.</description>
 		</argument>
 		<return>
 			<type>string</type>

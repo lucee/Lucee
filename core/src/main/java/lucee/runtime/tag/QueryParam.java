@@ -238,7 +238,7 @@ public final class QueryParam extends TagImpl {
 			else str = Caster.toString(value);
 
 			if (str.length() > maxlength) throw new DatabaseException(
-					"value [" + value + "] is to large, defined maxlength is [" + Caster.toString(maxlength) + "] but length of value is [" + str.length() + "]", null, null, null);
+					"value [" + value + "] is too large, defined maxlength is [" + Caster.toString(maxlength) + "] but length of value is [" + str.length() + "]", null, null, null);
 		}
 		return value;
 	}
