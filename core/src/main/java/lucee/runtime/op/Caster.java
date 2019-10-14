@@ -1986,7 +1986,8 @@ public final class Caster {
 	}
 
 	/**
-	 * cast an Object to a String dont throw an exception, if can't cast to a string return an empty string
+	 * cast an Object to a String dont throw an exception, if can't cast to a string return an empty
+	 * string
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue
@@ -2885,6 +2886,10 @@ public final class Caster {
 		return DateCaster.toDateAdvanced(str, tz);
 	}
 
+	public static DateTime toDate(Object o) throws PageException {
+		return DateCaster.toDateAdvanced(o, DateCaster.CONVERTING_TYPE_OFFSET, ThreadLocalPageContext.getTimeZone());
+	}
+
 	/**
 	 * cast an Object to a DateTime Object
 	 * 
@@ -3474,6 +3479,10 @@ public final class Caster {
 		}
 	}
 
+	public static Object castTo(String type, Object o) throws PageException {
+		return castTo(ThreadLocalPageContext.get(), type, o, false);
+	}
+
 	/**
 	 * cast a value to a value defined by type argument
 	 * 
@@ -3959,8 +3968,8 @@ public final class Caster {
 	}
 
 	/**
-	 * cast an Object to a reference type (Object), in that case this method to nothing, because an Object
-	 * is already a reference type
+	 * cast an Object to a reference type (Object), in that case this method to nothing, because an
+	 * Object is already a reference type
 	 * 
 	 * @param o Object to cast
 	 * @return casted Object
