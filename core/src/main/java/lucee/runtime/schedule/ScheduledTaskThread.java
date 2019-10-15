@@ -198,7 +198,7 @@ public class ScheduledTaskThread extends Thread {
 			today = System.currentTimeMillis();
 			execution = calculateNextExecution(today, true);
 
-			if (!task.isPaused()) log(Log.LEVEL_INFO, "next execution runs at " + DateTimeUtil.format(execution, null, timeZone));
+			if (!task.isPaused()) log(Log.LEVEL_DEBUG, "next execution runs at " + DateTimeUtil.format(execution, null, timeZone));
 			// sleep=execution-today;
 		}
 	}
