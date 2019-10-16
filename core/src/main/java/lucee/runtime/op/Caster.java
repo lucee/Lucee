@@ -2271,6 +2271,14 @@ public final class Caster {
 			return toList(((ObjectWrap) o).getEmbededObject());
 		}
 		else if (o instanceof Struct) {
+			if (o instanceof Component) {
+				try {
+					Object tmp = Reflector.componentToClass(ThreadLocalPageContext.get(), (Component) o, List.class);
+					if (tmp instanceof List) return (List) tmp;
+				}
+				catch (PageException e) {}
+			}
+
 			Struct sct = (Struct) o;
 			ArrayList arr = new ArrayList();
 
@@ -2583,6 +2591,13 @@ public final class Caster {
 	 */
 	public static Map toMap(Object o, boolean duplicate) throws PageException {
 		if (o instanceof Struct) {
+			if (o instanceof Component) {
+				try {
+					Object tmp = Reflector.componentToClass(ThreadLocalPageContext.get(), (Component) o, Map.class);
+					if (tmp instanceof Map) return (Map) tmp;
+				}
+				catch (PageException e) {}
+			}
 			if (duplicate) return (Map) Duplicator.duplicate(o, false);
 			return ((Struct) o);
 		}
@@ -3849,6 +3864,18 @@ public final class Caster {
 
 			throw new ExpressionException("can't cast Component of Type [" + comp.getAbsName() + "] to [" + strType + "]");
 		}
+		if (o instanceof UDF) {
+			try {
+				Class<?> trgClass = ClassUtil.loadClass(strType);
+				if (trgClass.isInterface()) {
+					return Reflector.udfToClass(pc, (UDF) o, trgClass);
+				}
+			}
+			catch (ClassException ce) {
+				throw Caster.toPageException(ce);
+			}
+		}
+
 		if (o instanceof Pojo) {
 			Component cfc = toComponent(pc, ((Pojo) o), strType, null);
 			if (cfc != null) return cfc;
@@ -4113,6 +4140,13 @@ public final class Caster {
 	public static Collection toCollection(Object o) throws PageException {
 		if (o instanceof Collection) return (Collection) o;
 		else if (o instanceof Node) return XMLCaster.toXMLStruct((Node) o, false);
+		else if (o instanceof Component) {
+			try {
+				Object tmp = Reflector.componentToClass(ThreadLocalPageContext.get(), (Component) o, Collection.class);
+				if (tmp instanceof Collection) return (Collection) tmp;
+			}
+			catch (PageException e) {}
+		}
 		else if (o instanceof Map) {
 			return MapAsStruct.toStruct((Map) o, true);// StructImpl((Map)o);
 		}
@@ -4163,6 +4197,13 @@ public final class Caster {
 	public static Collection toCollection(Object o, Collection defaultValue) {
 		if (o instanceof Collection) return (Collection) o;
 		else if (o instanceof Node) return XMLCaster.toXMLStruct((Node) o, false);
+		else if (o instanceof Component) {
+			try {
+				Object tmp = Reflector.componentToClass(ThreadLocalPageContext.get(), (Component) o, Collection.class);
+				if (tmp instanceof Collection) return (Collection) tmp;
+			}
+			catch (PageException e) {}
+		}
 		else if (o instanceof Map) {
 			return MapAsStruct.toStruct((Map) o, true);
 		}
@@ -4724,11 +4765,26 @@ public final class Caster {
 
 	public static CharSequence toCharSequence(Object obj) throws PageException {
 		if (obj instanceof CharSequence) return (CharSequence) obj;
+		if (obj instanceof Component) {
+			try {
+				Object tmp = Reflector.componentToClass(ThreadLocalPageContext.get(), (Component) obj, CharSequence.class);
+				if (tmp instanceof CharSequence) return (CharSequence) tmp;
+			}
+			catch (PageException pe) {}
+		}
 		return Caster.toString(obj);
 	}
 
 	public static CharSequence toCharSequence(Object obj, CharSequence defaultValue) {
 		if (obj instanceof CharSequence) return (CharSequence) obj;
+		if (obj instanceof Component) {
+			try {
+				Object tmp = Reflector.componentToClass(ThreadLocalPageContext.get(), (Component) obj, CharSequence.class);
+				if (tmp instanceof CharSequence) return (CharSequence) tmp;
+			}
+			catch (PageException pe) {}
+		}
+
 		String str = Caster.toString(obj, null);
 		if (str == null) return defaultValue;
 		return str;

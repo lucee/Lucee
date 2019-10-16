@@ -29,6 +29,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -48,6 +49,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefInteger;
 import lucee.commons.lang.types.RefIntegerImpl;
 import lucee.runtime.Component;
+import lucee.runtime.JF;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
@@ -384,7 +386,6 @@ public final class Reflector {
 		}
 
 		// component as class
-
 		PageContext pc;
 		if (src instanceof Component && trgClass.isInterface() && (pc = ThreadLocalPageContext.get()) != null) {
 			return componentToClass(pc, (Component) src, trgClass);
@@ -470,11 +471,72 @@ public final class Reflector {
 
 		try {
 			JavaAnnotation ja = getJavaAnnotation(pc, trgClass.getClassLoader(), src);
-			// print.e(ja);
-			// print.e(trgClass);
+			Class<?> _extends = ja != null && ja.extend != null ? ja.extend : null;
 
-			return JavaProxyFactory.createProxy(pc, src, ja != null && ja.extend != null ? ja.extend : null,
-					ja != null && ja.interfaces != null ? ja.interfaces : new Class[] { trgClass });
+			return JavaProxyFactory.createProxy(pc, src, _extends, extractImplements(pc, src, ja, trgClass));
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+	}
+
+	private static Class<?>[] extractImplements(PageContext pc, Component cfc, JavaAnnotation ja, Class<?> trgClass) throws PageException {
+		Struct md = cfc.getMetaData(pc);
+		Object implementsjavaObj = md.get(KeyConstants._implementsjava, null);
+		Class<?>[] implementsjava = null;
+		if (implementsjavaObj != null) {
+			Object[] arr = null;
+			if (Decision.isArray(implementsjavaObj)) {
+				arr = Caster.toNativeArray(implementsjavaObj);
+			}
+			else if (Decision.isCastableToString(implementsjavaObj)) {
+				arr = ListUtil.listToStringArray(Caster.toString(md.get(KeyConstants._implementsjava), null), ',');
+			}
+
+			if (arr != null) {
+				List<Class<?>> list = new ArrayList<Class<?>>();
+				Class<?> tmp;
+				for (int i = 0; i < arr.length; i++) {
+					tmp = ClassUtil.loadClass(Caster.toString(md.get(KeyConstants._implementsjava), null), null);
+					if (tmp != null) list.add(tmp);
+				}
+				implementsjava = list.toArray(new Class[list.size()]);
+			}
+		}
+
+		Class<?>[] _implements = ja != null && ja.interfaces != null ? ja.interfaces : new Class[] { trgClass };
+		if (implementsjava != null) {
+			_implements = merge(_implements, implementsjava);
+		}
+		return _implements;
+	}
+
+	private static Class<?>[] merge(Class<?>[] left, Class<?>[] right) {
+		Map<String, Class<?>> map = new HashMap<>();
+		if (left != null) {
+			for (Class tmp: left) {
+				map.put(tmp.getName(), tmp);
+			}
+		}
+		if (right != null) {
+			for (Class tmp: right) {
+				map.put(tmp.getName(), tmp);
+			}
+		}
+		return map.values().toArray(new Class<?>[map.size()]);
+	}
+
+	public static Object udfToClass(PageContext pc, UDF src, Class trgClass) throws PageException {
+		// it already is a java Function
+		if (src instanceof JF && Reflector.isInstaneOf(src.getClass(), trgClass, true)) {
+			return src;
+		}
+		try {
+
+			// JavaAnnotation ja = getJavaAnnotation(pc, trgClass.getClassLoader(), src);
+			// return JavaProxyFactory.createProxy(pc, src, ja != null && ja.extend != null ? ja.extend :
+			// null,ja != null && ja.interfaces != null ? ja.interfaces : new Class[] { trgClass });
+			return JavaProxyFactory.createProxy(pc, src, trgClass);
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);

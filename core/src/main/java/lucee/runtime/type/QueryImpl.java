@@ -467,7 +467,6 @@ public class QueryImpl implements Query, Objects, QueryResult {
 							o = casts[i].toCFType(tz, result, usedColumns[i] + 1);
 							if (index == i) {
 								qry.indexes.put(Caster.toKey(o), recordcount + 1);
-
 							}
 							columns[i].add(o);
 						}
@@ -3145,7 +3144,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	}
 
 	public void disableIndex() {
-		this.indexes = null;
-		this.indexName = null;
+		// this.indexes = null;
+		// this.indexName = null;
 	}
 }

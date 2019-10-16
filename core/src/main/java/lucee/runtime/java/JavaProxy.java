@@ -35,6 +35,7 @@ import lucee.runtime.op.Decision;
 import lucee.runtime.thread.ThreadUtil;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection;
+import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryColumn;
 import lucee.runtime.type.Struct;
@@ -69,7 +70,7 @@ public class JavaProxy {
 		}
 	}
 
-	public static Object call(ConfigWeb config, UDF udf, Object... arguments) {
+	public static Object call(ConfigWeb config, UDF udf, String methodName, Object[] arguments) {
 		boolean unregister = false;
 		PageContext pc = null;
 		try {
@@ -80,7 +81,7 @@ public class JavaProxy {
 				unregister = true;
 				// pc.addPageSource(udf.getPageSource(), true);
 			}
-			return udf.call(pc, arguments, true);
+			return udf.call(pc, KeyImpl.init(methodName), arguments, true);
 		}
 		catch (PageException pe) {
 			throw new PageRuntimeException(pe);

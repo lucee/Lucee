@@ -942,18 +942,19 @@ public class KeyConstants {
 	public static final Key _serializeQueryAs = KeyImpl._const("serializeQueryAs");
 	public static final Key _structMetaData = KeyImpl._const("structMetaData");
 	public static final Key _STACKTRACE = KeyImpl._const("STACKTRACE");
-    public static final Key _callback = KeyImpl._const("callback");
-    public static final Key _udf = KeyImpl._const("udf");
-    public static final Key _params = KeyImpl._const("params");
-    public static final Key _param = KeyImpl._const("param");
-    public static final Key _stacktrace = KeyImpl._const("stacktrace");
-    public static final Key _interface = KeyImpl._const("interface");
-    public static final Key _interfaces = KeyImpl._const("interfaces");
-    public static final Key _proxy = KeyImpl._const("proxy");
-    public static final Key _offset = KeyImpl._const("offset");
-    public static final Key _shortName = KeyImpl._const("shortName");
+	public static final Key _callback = KeyImpl._const("callback");
+	public static final Key _udf = KeyImpl._const("udf");
+	public static final Key _params = KeyImpl._const("params");
+	public static final Key _param = KeyImpl._const("param");
+	public static final Key _stacktrace = KeyImpl._const("stacktrace");
+	public static final Key _interface = KeyImpl._const("interface");
+	public static final Key _interfaces = KeyImpl._const("interfaces");
+	public static final Key _proxy = KeyImpl._const("proxy");
+	public static final Key _offset = KeyImpl._const("offset");
+	public static final Key _shortName = KeyImpl._const("shortName");
 	public static final Key _connectionString = KeyImpl._const("connectionString");
-
+	public static final Key _implementsjava = KeyImpl._const("implementsjava");
+	public static final Key _extendsjava = KeyImpl._const("extendsjava");
 
 	private static Map<String, Key> _____keys;
 

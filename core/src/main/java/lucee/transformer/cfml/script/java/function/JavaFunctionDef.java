@@ -304,7 +304,7 @@ public class JavaFunctionDef implements FunctionDef {
 		else if (java.util.Collection.class == clazz) sb.append("lucee.runtime.op.Caster.toJavaCollection(");
 		else if (List.class == clazz) sb.append("lucee.runtime.op.Caster.toList(");
 		else if (Date.class == clazz) sb.append("lucee.runtime.op.Caster.toDate(");
-		else sb.append("lucee.runtime.op.Caster.castTo(\"" + Caster.toClassName(clazz) + "\",");
+		else sb.append("(" + Caster.toClassName(clazz) + ")lucee.runtime.op.Caster.castTo(\"" + Caster.toClassName(clazz) + "\",");
 		// else sb.append("(" + Caster.toClassName(clazz) + ")(");
 
 	}
