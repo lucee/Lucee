@@ -3025,7 +3025,12 @@ public final class PageContextImpl extends PageContext {
 		session = null;
 		application = null;
 		client = null;
-		this.applicationContext = (ApplicationContextSupport) applicationContext;
+
+		if (applicationContext != null) this.applicationContext = (ApplicationContextSupport) applicationContext;
+		else applicationContext = this.applicationContext;
+
+		if (applicationContext == null) return;
+
 		setFullNullSupport();
 		int scriptProtect = applicationContext.getScriptProtect();
 
