@@ -310,7 +310,7 @@ public final class Reflector {
 	 */
 	public static Object convert(Object src, Class trgClass, RefInteger rating) throws PageException {
 		if (rating != null) {
-			Object trg = _convert(src, trgClass);
+			Object trg = _convert(src, trgClass, rating);
 			if (src == trg) {
 				rating.plus(10);
 				return trg;
@@ -369,10 +369,10 @@ public final class Reflector {
 
 			return trg;
 		}
-		return _convert(src, trgClass);
+		return _convert(src, trgClass, rating);
 	}
 
-	public static Object _convert(Object src, final Class trgClass) throws PageException {
+	public static Object _convert(Object src, final Class trgClass, RefInteger rating) throws PageException {
 		if (src == null) {
 			if (trgClass.isPrimitive()) throw new ApplicationException("can't convert [null] to [" + trgClass.getName() + "]");
 			return null;
@@ -382,13 +382,13 @@ public final class Reflector {
 
 		if (src instanceof ObjectWrap) {
 			src = ((ObjectWrap) src).getEmbededObject();
-			return _convert(src, trgClass);
+			return _convert(src, trgClass, rating);
 		}
 
 		// component as class
 		PageContext pc;
 		if (src instanceof Component && trgClass.isInterface() && (pc = ThreadLocalPageContext.get()) != null) {
-			return componentToClass(pc, (Component) src, trgClass);
+			return componentToClass(pc, (Component) src, trgClass, rating);
 		}
 
 		// UDF as @FunctionalInterface
@@ -462,25 +462,29 @@ public final class Reflector {
 		}
 		if (trgClass.isPrimitive()) {
 			// return convert(src,srcClass,toReferenceClass(trgClass));
-			return _convert(src, toReferenceClass(trgClass));
+			return _convert(src, toReferenceClass(trgClass), rating);
 		}
 		throw new ApplicationException("can't convert [" + Caster.toClassName(src) + "] to [" + Caster.toClassName(trgClass) + "]");
 	}
 
 	public static Object componentToClass(PageContext pc, Component src, Class trgClass) throws PageException {
+		return componentToClass(pc, src, trgClass, null);
+	}
+
+	private static Object componentToClass(PageContext pc, Component src, Class trgClass, RefInteger rating) throws PageException {
 
 		try {
 			JavaAnnotation ja = getJavaAnnotation(pc, trgClass.getClassLoader(), src);
 			Class<?> _extends = ja != null && ja.extend != null ? ja.extend : null;
 
-			return JavaProxyFactory.createProxy(pc, src, _extends, extractImplements(pc, src, ja, trgClass));
+			return JavaProxyFactory.createProxy(pc, src, _extends, extractImplements(pc, src, ja, trgClass, rating));
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
 	}
 
-	private static Class<?>[] extractImplements(PageContext pc, Component cfc, JavaAnnotation ja, Class<?> trgClass) throws PageException {
+	private static Class<?>[] extractImplements(PageContext pc, Component cfc, JavaAnnotation ja, Class<?> trgClass, RefInteger rating) throws PageException {
 		Struct md = cfc.getMetaData(pc);
 		Object implementsjavaObj = md.get(KeyConstants._implementsjava, null);
 		Class<?>[] implementsjava = null;
@@ -492,13 +496,17 @@ public final class Reflector {
 			else if (Decision.isCastableToString(implementsjavaObj)) {
 				arr = ListUtil.listToStringArray(Caster.toString(md.get(KeyConstants._implementsjava), null), ',');
 			}
-
+			rating.plus(0);
 			if (arr != null) {
 				List<Class<?>> list = new ArrayList<Class<?>>();
 				Class<?> tmp;
 				for (int i = 0; i < arr.length; i++) {
 					tmp = ClassUtil.loadClass(Caster.toString(md.get(KeyConstants._implementsjava), null), null);
-					if (tmp != null) list.add(tmp);
+					if (tmp != null) {
+						list.add(tmp);
+						if (isInstaneOf(tmp, trgClass, true)) rating.plus(6);
+						else if (isInstaneOf(tmp, trgClass, false)) rating.plus(5);
+					}
 				}
 				implementsjava = list.toArray(new Class[list.size()]);
 			}
