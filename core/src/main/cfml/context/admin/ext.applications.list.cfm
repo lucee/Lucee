@@ -1,19 +1,18 @@
+<cfoutput>
+	
 <cfset hasAccess=true />
 <cfset external=getExternalData(providerURLs,true)>
 <cfset existing=struct() />
 <!--- if user declined the agreement, show a msg --->
 <cfif structKeyExists(session, "extremoved")>
-	<cfoutput>
 		<div class="warning">
 			#stText.ext.msgafternotagreed#
 		</div>
-	</cfoutput>
 	<cfset structDelete(session, "extremoved", false) />
 </cfif>
 <cfset extCount=(serverExtensions.recordcount?:0)+extensions.recordcount>
 
 <cfif extensions.recordcount || (!isNull(serverExtensions) && serverExtensions.recordcount)>
-	<cfoutput>
 		<!--- Installed Applications --->
 		<h2>#stText.ext.installed#</h2>
 		<div class="itemintro">#stText.ext.installeddesc#</div>
@@ -104,7 +103,6 @@ Categories: #arrayToList(cat)#"><cfif hasUpdate>
 		</div>
 	<cfif _type=="server"></div></cfif>
 </cfloop>
-	</cfoutput>
 </cfif>
 
 
@@ -112,11 +110,17 @@ Categories: #arrayToList(cat)#"><cfif hasUpdate>
 
 
 <!---  Not Installed Applications --->
-<cfoutput>
 	<h2>#stText.ext.notInstalled#</h2>
 	<div class="itemintro">#stText.ext.notInstalleddesc#</div>
 	
 
+<cfif external.recordcount eq extensions.recordcount>
+	<cfset app_error.message = "All of the extensions are installed / Couldn't able to reach the server for list the Uninstalled Extensions. Please check your Internet Connection.">
+	<cfset printerror(app_error)>
+<cfelseif external.recordcount lt extensions.recordcount>
+	<cfset app_error.message = "Couldn't able to reach the server for list the Uninstalled Extensions. Please check your Internet Connection">
+	<cfset printerror(app_error)>
+<cfelse>
 <cfscript>
 	existingIds = structKeyArray(existing);
 	unInstalledExt=external;
@@ -156,7 +160,6 @@ Categories: #arrayToList(cat)#"><cfif hasUpdate>
 		</cfformClassic>
 	</div><br>
 </cfif>
-</cfoutput>
 
 <cfscript>
 	VersionStr = {
@@ -182,7 +185,7 @@ Categories: #arrayToList(cat)#"><cfif hasUpdate>
 	}
 </cfscript>
 
-<cfoutput>
+
 <cfset noneLasCounter=0>
  <cfif isQuery(external)>
 	<cfset hiddenFormContents = "" >
@@ -245,6 +248,8 @@ Categories: #arrayToList(cat)#"><cfif hasUpdate>
 		Extension with a yellow border are not provided by the Lucee Association Switzerland and do not neccessarily follow our guidelines. This extensions are not reviewed by the Lucee Association Switzerland.
 	</div>
 </cfif>
+</cfif>
+
 
 <!--- upload own extension --->
 
@@ -325,9 +330,10 @@ Categories: #arrayToList(cat)#"><cfif hasUpdate>
 		}
 	</style>
 	</cfhtmlbody>
-</cfoutput>
 <cfif structKeyExists(request, "refresh") && request.refresh EQ true>
 	<script type="text/javascript">
 		location.reload(); 
 	</script>
 </cfif>
+</cfoutput>
+

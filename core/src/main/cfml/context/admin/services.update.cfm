@@ -164,7 +164,10 @@
 	}
 </style>
 
-<cfif !hasOptions>
+<cfif !hasOptions && (isNull(application.UpdateProvider[ud.location]) || (application.UpdateProvider[ud.location].code?:0)!=200)>
+	<cfset error.message = "Couldn't able to reach the server. Please check your Internet Connection">
+	<cfset printError(error)>
+<cfelseif !hasOptions>
 	<p><b>No upgrades or downgrades available!</b></p>
 <cfelse>
 	<!--- <h1>#stText.services.update.luceeProvider#</h1>--->
