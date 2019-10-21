@@ -19,6 +19,7 @@
 package lucee.commons.lang;
 
 import lucee.runtime.exp.ExpressionException;
+import java.io.*;
 
 public class NumberUtil {
 	public static int hexToInt(String s, int defaultValue) {
@@ -31,6 +32,7 @@ public class NumberUtil {
 	}
 
 	public static int hexToInt(String s) throws ExpressionException {
+		s = s.toLowerCase();
 		int[] n = new int[s.length()];
 		char c;
 		int sum = 0;
