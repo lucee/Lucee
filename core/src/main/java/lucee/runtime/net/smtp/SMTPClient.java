@@ -18,11 +18,10 @@
  */
 package lucee.runtime.net.smtp;
 
-import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.SOFT;
-
 import java.io.FileNotFoundException;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
+import java.lang.ref.SoftReference;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
@@ -37,6 +36,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.TimeZone;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.activation.DataHandler;
 import javax.mail.Authenticator;
@@ -50,8 +50,6 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.internet.MimePart;
 import javax.mail.internet.MimeUtility;
-
-import org.apache.commons.collections4.map.ReferenceMap;
 
 import com.sun.mail.smtp.SMTPMessage;
 
@@ -119,7 +117,7 @@ public final class SMTPClient implements Serializable {
 	private static final String TEXT_PLAIN = "text/plain";
 	// private static final SerializableObject LOCK = new SerializableObject();
 
-	private static Map<TimeZone, SimpleDateFormat> formatters = Collections.synchronizedMap(new ReferenceMap<TimeZone, SimpleDateFormat>(SOFT, SOFT));
+	private static Map<TimeZone, SoftReference<SimpleDateFormat>> formatters = new ConcurrentHashMap<TimeZone, SoftReference<SimpleDateFormat>>();
 	// private static final int PORT = 25;
 
 	private int spool = SPOOL_UNDEFINED;
@@ -164,11 +162,12 @@ public final class SMTPClient implements Serializable {
 
 	public static String getNow(TimeZone tz) {
 		tz = ThreadLocalPageContext.getTimeZone(tz);
-		SimpleDateFormat df = formatters.get(tz);
+		SoftReference<SimpleDateFormat> tmp = formatters.get(tz);
+		SimpleDateFormat df = tmp == null ? null : tmp.get();
 		if (df == null) {
 			df = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z (z)", Locale.US);
 			df.setTimeZone(tz);
-			formatters.put(tz, df);
+			formatters.put(tz, new SoftReference<SimpleDateFormat>(df));
 		}
 		return df.format(new Date());
 	}
