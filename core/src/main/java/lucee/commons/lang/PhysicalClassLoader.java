@@ -22,16 +22,15 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.instrument.UnmodifiableClassException;
+import java.lang.ref.SoftReference;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import org.apache.commons.collections4.map.ReferenceMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
@@ -59,7 +58,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	private Set<String> loadedClasses = new HashSet<>();
 	private Set<String> unavaiClasses = new HashSet<>();
 
-	private Map<String, PhysicalClassLoader> customCLs;
+	private Map<String, SoftReference<PhysicalClassLoader>> customCLs;
 
 	/**
 	 * Constructor of the class
@@ -277,11 +276,12 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 
 		if (reload && customCLs != null) customCLs.remove(key);
 
-		PhysicalClassLoader pcl = customCLs == null ? null : customCLs.get(key);
+		SoftReference<PhysicalClassLoader> tmp = customCLs == null ? null : customCLs.get(key);
+		PhysicalClassLoader pcl = tmp == null ? null : tmp.get();
 		if (pcl != null) return pcl;
 		pcl = new PhysicalClassLoader(config, getDirectory(), new ClassLoader[] { new ResourceClassLoader(resources, getParent()) }, true);
-		if (customCLs == null) customCLs = Collections.synchronizedMap(new ReferenceMap<String, PhysicalClassLoader>());
-		customCLs.put(key, pcl);
+		if (customCLs == null) customCLs = new ConcurrentHashMap<String, SoftReference<PhysicalClassLoader>>();
+		customCLs.put(key, new SoftReference<PhysicalClassLoader>(pcl));
 		return pcl;
 	}
 

@@ -18,12 +18,10 @@
  */
 package lucee.runtime.config;
 
-import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.SOFT;
-
 import java.io.IOException;
+import java.lang.ref.SoftReference;
 import java.net.URL;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
@@ -37,7 +35,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.JspWriter;
 
-import org.apache.commons.collections4.map.ReferenceMap;
 import org.osgi.framework.BundleException;
 import org.xml.sax.SAXException;
 
@@ -325,7 +322,7 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 		return getConfigServerImpl().defaultFunctionMapping;
 	}
 
-	private Map<String, Mapping> applicationMappings = Collections.synchronizedMap(new ReferenceMap<String, Mapping>(SOFT, SOFT));
+	private Map<String, SoftReference<Mapping>> applicationMappings = new ConcurrentHashMap<String, SoftReference<Mapping>>();
 
 	private TagHandlerPool tagHandlerPool = new TagHandlerPool(this);
 	private SearchEngine searchEngine;
@@ -337,9 +334,9 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 	}
 
 	public boolean isApplicationMapping(Mapping mapping) {
-		Iterator<Mapping> it = applicationMappings.values().iterator();
+		Iterator<SoftReference<Mapping>> it = applicationMappings.values().iterator();
 		while (it.hasNext()) {
-			if (mapping.equals(it.next())) return true;
+			if (mapping.equals(it.next().get())) return true;
 		}
 		return false;
 	}
@@ -349,11 +346,12 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 				+ physicalFirst;
 		key = Long.toString(HashUtil.create64BitHash(key), Character.MAX_RADIX);
 
-		Mapping m = applicationMappings.get(key);
+		SoftReference<Mapping> t = applicationMappings.get(key);
+		Mapping m = t == null ? null : t.get();
 
 		if (m == null) {
 			m = new MappingImpl(this, virtual, physical, archive, Config.INSPECT_UNDEFINED, physicalFirst, false, false, false, true, ignoreVirtual, null, -1, -1);
-			applicationMappings.put(key, m);
+			applicationMappings.put(key, new SoftReference<Mapping>(m));
 		}
 
 		return m;

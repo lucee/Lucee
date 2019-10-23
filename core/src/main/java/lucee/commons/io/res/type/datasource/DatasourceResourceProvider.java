@@ -23,15 +23,14 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.lang.ref.SoftReference;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
-
-import org.apache.commons.collections4.map.ReferenceMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
@@ -79,8 +78,8 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 	// private DataSourceManager manager;
 	// private Core core;
 	private Map cores = new WeakHashMap();
-	private Map<String, Attr> attrCache = Collections.synchronizedMap(new ReferenceMap<String, Attr>());
-	private Map<String, Attr> attrsCache = Collections.synchronizedMap(new ReferenceMap<String, Attr>());
+	private Map<String, SoftReference<Attr>> attrCache = new ConcurrentHashMap<String, SoftReference<Attr>>();
+	private Map<String, SoftReference<Attr>> attrsCache = new ConcurrentHashMap<String, SoftReference<Attr>>();
 	private Map arguments;
 
 	/**
@@ -475,13 +474,14 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 
 	private Attr removeFromCache(ConnectionData data, String path, String name) {
 		attrsCache.remove(data.key() + path);
-		return attrCache.remove(data.key() + path + name);
+		SoftReference<Attr> rtn = attrCache.remove(data.key() + path + name);
+		return rtn == null ? null : rtn.get();
 	}
 
 	private Attr getFromCache(ConnectionData data, String path, String name) {
 		String key = data.key() + path + name;
-		Attr attr = attrCache.get(key);
-
+		SoftReference<Attr> tmp = attrCache.get(key);
+		Attr attr = tmp == null ? null : tmp.get();
 		if (attr != null && attr.timestamp() + MAXAGE < System.currentTimeMillis()) {
 			attrCache.remove(key);
 			return null;
@@ -490,7 +490,7 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 	}
 
 	private Attr putToCache(ConnectionData data, String path, String name, Attr attr) {
-		attrCache.put(data.key() + path + name, attr);
+		attrCache.put(data.key() + path + name, new SoftReference<Attr>(attr));
 		return attr;
 	}
 
