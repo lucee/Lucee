@@ -4949,7 +4949,7 @@ Set the attribute to normal to make a file not read-only and not hidden.</descri
 			<type>number</type>
 			<required>No</required>
 			<default>1</default>
-		<description>Start position of search.</description>
+		<description>Start position of search from the left.</description>
     </argument>
 		<return>
 			<type>number</type>
@@ -4982,7 +4982,7 @@ Set the attribute to normal to make a file not read-only and not hidden.</descri
 			<type>number</type>
 			<required>No</required>
 			<default>1</default>
-		<description>Start position of search.</description>
+		<description>Start position of search from the left.</description>
     </argument>
 		<return>
 			<type>number</type>
@@ -5020,6 +5020,77 @@ Set the attribute to normal to make a file not read-only and not hidden.</descri
 			<type>number</type>
 		</return>
 	</function>
+	
+	
+	<!-- findLast -->
+	<function>
+		<name>findLast</name>
+		<class>lucee.runtime.functions.string.FindLast</class>
+		<member-name>findLast</member-name>
+		<member-position>2</member-position>
+		<status>hidden</status>
+		<keywords>string,find</keywords>
+		<description>Finds the last occurrence of a substring in a string, from a
+        specified start position. The search is case-sensitive.</description>
+		<argument>
+			<name>substring</name>
+			<type>string</type>
+			<required>Yes</required>
+		<description>String for which to search.</description>
+    </argument>
+		<argument>
+			<name>string</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>String in which to search.</description>
+		</argument>
+		<argument>
+			<name>start</name>
+			<type>number</type>
+			<required>No</required>
+			<default>1</default>
+		<description>End position of search from the left.</description>
+    </argument>
+		<return>
+			<type>number</type>
+		</return>
+	</function>
+
+	<!-- findLastNoCase -->
+	<function>
+		<name>findLastNoCase</name>
+		<class>lucee.runtime.functions.string.FindLastNoCase</class>
+		<member-name>findLastNoCase</member-name>
+		<member-position>2</member-position>
+		<status>hidden</status>
+		<keywords>string,find</keywords>
+		<description>Finds the last occurrence of a substring in a string, from a
+        specified start position. If substring is not in string,
+        returns zero. The search is case-insensitive.</description>
+		<argument>
+			<name>substring</name>
+			<type>string</type>
+			<required>Yes</required>
+		<description>String for which to search.</description>
+    </argument>
+		<argument>
+			<name>string</name>
+			<type>string</type>
+			<required>Yes</required>
+		<description>String in which to search.</description>
+    </argument>
+		<argument>
+			<name>start</name>
+			<type>number</type>
+			<required>No</required>
+			<default>1</default>
+		<description>End position of search from the left.</description>
+    </argument>
+		<return>
+			<type>number</type>
+		</return>
+	</function>
+	
 	<!-- firstDayOfMonth -->
 	<function>
 		<name>firstDayOfMonth</name>
