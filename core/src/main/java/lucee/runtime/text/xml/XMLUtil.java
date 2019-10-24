@@ -137,6 +137,8 @@ public final class XMLUtil {
 
 	private static SAXParserFactory saxParserFactory;
 
+	private static URL transformerFactoryResource;
+
 	public static String unescapeXMLString(String str) {
 
 		StringBuffer rtn = new StringBuffer();
@@ -216,13 +218,22 @@ public final class XMLUtil {
 	 * @return returns a singelton TransformerFactory
 	 */
 	public static TransformerFactory getTransformerFactory() {
-
-		if (transformerFactory == null) {
-			transformerFactory = _newTransformerFactory();
-
-		}
-		// if(transformerFactory==null)transformerFactory=new TransformerFactoryImpl();
+		if (transformerFactory == null) transformerFactory = _newTransformerFactory();
 		return transformerFactory;
+	}
+
+	public static String getTransformerFactoryName() {
+		return getTransformerFactory().getClass().getName();
+	}
+
+	public static URL getTransformerFactoryResource() throws IOException {
+		if (transformerFactoryResource == null) {
+			String name = getTransformerFactoryName();
+			Resource localFile = SystemUtil.getTempDirectory().getRealResource(name.replace('\\', '_').replace('/', '_'));
+			IOUtil.write(localFile, name.getBytes());
+			transformerFactoryResource = ((File) localFile).toURI().toURL();
+		}
+		return transformerFactoryResource;
 	}
 
 	private static TransformerFactory _newTransformerFactory() {
@@ -376,6 +387,8 @@ public final class XMLUtil {
 
 	private static URL documentBuilderFactoryResource;
 
+	private static URL saxParserFactoryResource;
+
 	private static Class<DocumentBuilderFactory> _newDocumentBuilderFactoryClass() {
 		if (dbf == null) {
 			Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl) ThreadLocalPageContext.getConfig()));
@@ -438,6 +451,20 @@ public final class XMLUtil {
 			saxParserFactory = SAXParserFactory.newInstance();
 		}
 		return saxParserFactory;
+	}
+
+	public static String getSAXParserFactoryName() {
+		return newSAXParserFactory().getClass().getName();
+	}
+
+	public static URL getSAXParserFactoryResource() throws IOException {
+		if (saxParserFactoryResource == null) {
+			String name = getSAXParserFactoryName();
+			Resource localFile = SystemUtil.getTempDirectory().getRealResource(name.replace('\\', '_').replace('/', '_'));
+			IOUtil.write(localFile, name.getBytes());
+			saxParserFactoryResource = ((File) localFile).toURI().toURL();
+		}
+		return saxParserFactoryResource;
 	}
 
 	public static XMLReader createXMLReader() throws SAXException {
