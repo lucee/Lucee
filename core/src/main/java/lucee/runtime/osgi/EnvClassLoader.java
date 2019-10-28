@@ -3,18 +3,20 @@ package lucee.runtime.osgi;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.ref.SoftReference;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleReference;
 
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
-import lucee.commons.lang.ExceptionUtil;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
@@ -26,6 +28,9 @@ public class EnvClassLoader extends URLClassLoader {
 	private static float FROM_SYSTEM = 1;
 	private static float FROM_BOOTDELEGATION = 2;
 	private static float FROM_CALLER = 3;
+
+	private static SoftReference<String> EMPTY = new SoftReference<String>(null);
+	private static Map<SoftReference<String>, SoftReference<String>> notFound = new java.util.concurrent.ConcurrentHashMap<>();
 
 	private ConfigImpl config;
 	// private Map<String, SoftReference<Coll>> callerCache=new ConcurrentHashMap<String,
@@ -90,7 +95,6 @@ public class EnvClassLoader extends URLClassLoader {
 		double start = SystemUtil.millis();
 		Object obj = null;
 		// cache.get(name);
-
 		// if (name.equals("org.hibernate.hql.ast.HqlToken")) print.ds();
 
 		// PATCH XML
@@ -137,7 +141,14 @@ public class EnvClassLoader extends URLClassLoader {
 					log("found [" + name + "] in bundle [" + (((BundleReference) cl).getBundle().getSymbolicName()) + ":" + (((BundleReference) cl).getBundle().getVersion()) + "]",
 							start);
 				else log("found [" + name + "] in System ClassLoader", start);
+
 				return obj;
+			}
+			else {
+				if (cl instanceof BundleReference) log("not found [" + name + "] in bundle [" + (((BundleReference) cl).getBundle().getSymbolicName()) + ":"
+						+ (((BundleReference) cl).getBundle().getVersion()) + "]", start);
+				else log("not found [" + name + "] in System ClassLoader", start);
+
 			}
 		}
 		// print.ds("4:" + (SystemUtil.millis() - start) + ":" + name);
@@ -147,15 +158,27 @@ public class EnvClassLoader extends URLClassLoader {
 
 	private Object _load(ClassLoader cl, String name, short type) {
 		Object obj = null;
+		Bundle b = null;
 		if (cl != null) {
 			try {
-				if (type == CLASS) obj = cl.loadClass(name);
+				if (type == CLASS) {
+					if (cl instanceof BundleReference) {
+						b = ((BundleReference) cl).getBundle();
+						if (notFound.containsKey(
+								new SoftReference<String>(new StringBuilder(b.getSymbolicName()).append(':').append(b.getVersion()).append(':').append(name).toString())))
+							return null;
+						else obj = cl.loadClass(name);
+					}
+					else obj = cl.loadClass(name);
+				}
 				else if (type == URL) obj = cl.getResource(name);
 				else obj = cl.getResourceAsStream(name);
 			}
-			catch (Throwable t) {
-				ExceptionUtil.rethrowIfNecessary(t);
+			catch (ClassNotFoundException cnfe) {
+				if (b != null)
+					notFound.put(new SoftReference<String>(new StringBuilder(b.getSymbolicName()).append(':').append(b.getVersion()).append(':').append(name).toString()), EMPTY);
 			}
+			catch (Exception e) {}
 
 		}
 		return obj;
