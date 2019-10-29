@@ -45,7 +45,9 @@ import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
@@ -69,10 +71,13 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
 import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.ArchiveClassLoader;
 import lucee.commons.lang.CharSet;
 import lucee.commons.lang.ClassLoaderHelper;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.MemoryClassLoader;
+import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefInteger;
 import lucee.commons.lang.types.RefIntegerImpl;
@@ -174,6 +179,10 @@ public final class SystemUtil {
 	public static final int JAVA_VERSION;
 	private static final Class[] EMPTY_CLASS = new Class[0];
 	private static final Object[] EMPTY_OBJ = new Object[0];
+
+	private static final int TYPE_BUNDLE = 1;
+	private static final int TYPE_SYSTEM = 2;
+	private static final int TYPE_BOOT_DELEGATION = 3;
 
 	static {
 		// OS
@@ -1356,19 +1365,19 @@ public final class SystemUtil {
 		new SecurityManager() {
 			{
 				ref.context = getClassContext();
-
 			}
 		};
 
 		Caller rtn = new Caller();
 
 		// element at position 2 is the caller
-		Class<?> caller = ref.context[2];
+		final Class<?> caller = ref.context[2];
 		RefInteger index = new RefIntegerImpl(3);
 		Class<?> clazz = _getCallerClass(ref.context, caller, index, true, true);
 
 		// analyze the first result
 		if (clazz == null) return rtn;
+
 		if (isFromBundle(clazz)) {
 			rtn.fromBundle = clazz;
 			return rtn;
@@ -1397,6 +1406,64 @@ public final class SystemUtil {
 		rtn.fromBundle = clazz;
 
 		return rtn;
+	}
+
+	public static List<ClassLoader> getClassLoaderContext(boolean unique) {
+		final Ref ref = new Ref();
+		new SecurityManager() {
+			{
+				ref.context = getClassContext();
+			}
+		};
+
+		// first we get the right start point, pos 0 is here so we start with 1
+		final Class<?> directCaller = ref.context[2];
+		int start = -1;
+		for (int i = 2; i < ref.context.length; i++) {
+			if (directCaller != ref.context[i]) {
+				start = i;
+				break;
+			}
+		}
+
+		// extract all the classes
+		Class<?> last = null;
+		Class<?> clazz;
+		LinkedHashMap<Class<?>, String> map = new LinkedHashMap<>();
+		List<ClassLoader> context = new ArrayList<ClassLoader>();
+		ClassLoader cl = null;
+		for (int i = start; i < ref.context.length; i++) {
+			clazz = ref.context[i];
+
+			// check class
+			if (Class.class == clazz) continue; // the same as the last
+			if (last == clazz) continue; // the same as the last
+			if (last != null && last.getClassLoader() == clazz.getClassLoader()) continue; // same Classloader
+			cl = clazz.getClassLoader();
+
+			// check ClassLoader
+			if (cl == null) continue;
+			if (cl instanceof PhysicalClassLoader) continue;
+			if (cl instanceof ArchiveClassLoader) continue;
+			if (cl instanceof MemoryClassLoader) continue;
+
+			if (!unique || !context.contains(cl)) context.add(cl);
+			last = ref.context[i];
+		}
+		return context;
+	}
+
+	public static int getClassType(Class<?> clazz) {
+		if (isFromBundle(clazz)) return TYPE_BUNDLE;
+		if (OSGiUtil.isClassInBootelegation(clazz.getName())) return TYPE_BOOT_DELEGATION;
+		return TYPE_SYSTEM;
+	}
+
+	public static String getClassTypeAsString(Class<?> clazz) {
+		int type = getClassType(clazz);
+		if (type == TYPE_BUNDLE) return "bundle";
+		else if (type == TYPE_BOOT_DELEGATION) return "boot-delegation";
+		return "system";
 	}
 
 	private static Class<?> _getCallerClass(Class<?>[] context, Class<?> caller, RefInteger index, boolean acceptBootDelegation, boolean acceptSystem) {
@@ -1548,7 +1615,6 @@ public final class SystemUtil {
 		}
 		return false;
 	}
-
 }
 
 class Ref {
