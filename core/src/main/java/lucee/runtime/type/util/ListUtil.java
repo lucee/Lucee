@@ -20,6 +20,7 @@ package lucee.runtime.type.util;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -1708,6 +1709,14 @@ public final class ListUtil {
 			list.add(Caster.toString(it.next()));
 		}
 		return list;
+	}
+
+	public static Iterator<String> toIterator(Enumeration<String> input) {
+		List<String> output = new ArrayList<String>();
+		while (input.hasMoreElements()) {
+			output.add(input.nextElement());
+		}
+		return output.iterator();
 	}
 
 }
