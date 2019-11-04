@@ -19,7 +19,6 @@
 package lucee.runtime.type.scope;
 
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -39,6 +38,7 @@ import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.scope.storage.MemoryScope;
 import lucee.runtime.type.scope.util.ScopeUtil;
 import lucee.runtime.type.util.KeyConstants;
+import lucee.runtime.type.util.ListUtil;
 
 /**
  * 
@@ -103,10 +103,10 @@ public final class JSession extends ScopeSupport implements Session, HttpSession
 		if (httpSession != null) {
 			try {
 				Object key;
-				Enumeration e = httpSession.getAttributeNames();
-				while (e.hasMoreElements()) {
+				Iterator<String> it = ListUtil.toIterator(httpSession.getAttributeNames());
+				while (it.hasNext()) {
 					// TODO set inative time new
-					key = e.nextElement();
+					key = it.next();
 					if (key.equals(name)) httpSession.removeAttribute(name);
 				}
 				name = null;

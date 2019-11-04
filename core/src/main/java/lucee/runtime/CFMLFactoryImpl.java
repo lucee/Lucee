@@ -18,6 +18,8 @@
  */
 package lucee.runtime;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -438,10 +440,22 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 
 			// thread
 			sctThread.setEL(KeyConstants._name, thread.getName());
-			sctThread.setEL("priority", Caster.toDouble(thread.getPriority()));
-			data.setEL("TagContext", PageExceptionImpl.getTagContext(pc.getConfig(), thread.getStackTrace()));
+			sctThread.setEL(KeyConstants._priority, Caster.toDouble(thread.getPriority()));
+			sctThread.setEL(KeyConstants._state, thread.getState().name());
 
-			data.setEL("urlToken", pc.getURLToken());
+			StackTraceElement[] stes = thread.getStackTrace();
+			data.setEL("TagContext", PageExceptionImpl.getTagContext(pc.getConfig(), stes));
+
+			// Java Stacktrace
+			StringWriter sw = new StringWriter();
+			PrintWriter pw = new PrintWriter(sw);
+			Throwable t = new Throwable();
+			t.setStackTrace(stes);
+			t.printStackTrace(pw);
+			pw.close();
+			data.setEL("JavaStackTrace", sw.toString());
+
+			data.setEL(KeyConstants._urltoken, pc.getURLToken());
 			try {
 				if (pc.getConfig().debug()) data.setEL("debugger", pc.getDebugger().getDebuggingData(pc));
 			}
