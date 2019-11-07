@@ -351,6 +351,7 @@ public final class ScheduleTaskImpl implements ScheduleTask {
 
 		}
 		this.thread = new ScheduledTaskThread(engine, scheduler, this);
+		setValid(true);
 		thread.start();
 	}
 
