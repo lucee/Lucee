@@ -43,6 +43,7 @@ import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.DateTimeImpl;
 import lucee.runtime.type.it.EntryIterator;
 import lucee.runtime.type.it.ValueIterator;
+import lucee.runtime.type.scope.CSRFTokenSupport;
 import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.scope.Session;
 import lucee.runtime.type.scope.client.IKStorageScopeClient;
@@ -52,7 +53,7 @@ import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.StructSupport;
 import lucee.runtime.type.util.StructUtil;
 
-public abstract class IKStorageScopeSupport extends StructSupport implements StorageScope {
+public abstract class IKStorageScopeSupport extends StructSupport implements StorageScope, CSRFTokenSupport {
 
 	protected static final IKStorageScopeItem ONE = new IKStorageScopeItem("1");
 
