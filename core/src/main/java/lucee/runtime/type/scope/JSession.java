@@ -24,6 +24,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionBindingEvent;
@@ -34,7 +35,6 @@ import lucee.runtime.PageContext;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Struct;
-import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.scope.storage.MemoryScope;
 import lucee.runtime.type.scope.util.ScopeUtil;
 import lucee.runtime.type.util.KeyConstants;
@@ -57,7 +57,7 @@ public final class JSession extends ScopeSupport implements Session, HttpSession
 	private transient HttpSession httpSession;
 	private long lastAccess;
 	private long created;
-	private final Map<String, String> tokens = new StructImpl();
+	private final Map<Collection.Key, String> tokens = new ConcurrentHashMap<Collection.Key, String>();
 
 	/**
 	 * constructor of the class
