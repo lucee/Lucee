@@ -122,6 +122,7 @@ import lucee.runtime.config.XMLConfigFactory.UpdateInfo;
 import lucee.runtime.config.XMLConfigServerFactory;
 import lucee.runtime.config.XMLConfigWebFactory;
 import lucee.runtime.engine.listener.CFMLServletContextListener;
+import lucee.runtime.exp.Abort;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.CasterException;
 import lucee.runtime.exp.NativeException;
@@ -1126,7 +1127,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 					throw td;
 				}
 				catch (Throwable t) {
-					if (t instanceof Exception) LogUtil.log(configServer, "controller", (Exception) t);
+					if (t instanceof Exception && !Abort.isSilentAbort(t)) LogUtil.log(configServer, "controller", (Exception) t);
 				}
 			}
 		}
