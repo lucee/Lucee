@@ -91,7 +91,8 @@ public final class QoQ {
 			if (maxrows > -1) target.cutRowsTo(maxrows);
 		}
 		// Distinct
-		if (selects.isDistinct()) {
+		String str = selects.toString();
+		if (selects.isDistinct() || str.contains("distinct") == true) {
 			order(target, selects.getDistincts()); // order to filter
 			// print.e(selects.getDistincts());
 			Key[] _keys = target.getColumnNames();
