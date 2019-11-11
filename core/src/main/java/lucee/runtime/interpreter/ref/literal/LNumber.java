@@ -18,6 +18,10 @@
  **/
 package lucee.runtime.interpreter.ref.literal;
 
+import java.util.*;
+import java.lang.*;
+import java.text.DecimalFormat;
+import java.math.RoundingMode;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.interpreter.ref.Ref;
@@ -50,11 +54,21 @@ public final class LNumber implements Literal {
 	 * @throws PageException
 	 */
 	public LNumber(String literal) throws PageException {
-		this.literal = Caster.toDouble(literal);
-		// in theory this filter (>10) makes not really sense, just better for performance!!!
-		if (literal.length() > 10) {
-			if (!Caster.toString(this.literal).equals(literal)) this.literal = literal;
+		DecimalFormat df = new DecimalFormat("#.########");
+		df.setRoundingMode(RoundingMode.CEILING);
+		StringBuilder lit = new StringBuilder(literal);
+		for(int i=lit.length(); i<lit.length()-1; i--) {
+			if(i == 0) {
+				lit.deleteCharAt(i);
+			}continue;
 		}
+		Double lite = Caster.toDouble(lit);
+		this.literal = df.format(lite);
+		// this.literal = literal
+		// in theory this filter (>10) makes not really sense, just better for performance!!!
+		// if (literal.length() > 10) {
+		// if (!Caster.toString(this.literal).equals(literal)) this.literal = literal;
+		// }
 	}
 
 	@Override
