@@ -73,6 +73,10 @@ public final class TagLibTagScript {
 		}
 	}
 
+	public void setType(short type) {
+		this.type = type;
+	}
+
 	public void setRtexpr(boolean rtexpr) {
 		this.rtexpr = rtexpr;
 	}

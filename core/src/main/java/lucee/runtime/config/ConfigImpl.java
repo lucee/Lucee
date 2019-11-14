@@ -155,6 +155,7 @@ import lucee.transformer.library.tag.TagLibException;
 import lucee.transformer.library.tag.TagLibFactory;
 import lucee.transformer.library.tag.TagLibTag;
 import lucee.transformer.library.tag.TagLibTagAttr;
+import lucee.transformer.library.tag.TagLibTagScript;
 
 /**
  * Hold the definitions of the Lucee configuration.
@@ -1274,6 +1275,11 @@ public abstract class ConfigImpl implements Config {
 		tlt.setParseBody(false);
 		tlt.setDescription("");
 		tlt.setAttributeType(TagLibTag.ATTRIBUTE_TYPE_MIXED);
+
+		// read component and read setting from that component
+		TagLibTagScript tlts = new TagLibTagScript(tlt);
+		tlts.setType(TagLibTagScript.TYPE_MULTIPLE);
+		tlt.setScript(tlts);
 
 		TagLibTagAttr tlta = new TagLibTagAttr(tlt);
 		tlta.setName("__filename");
