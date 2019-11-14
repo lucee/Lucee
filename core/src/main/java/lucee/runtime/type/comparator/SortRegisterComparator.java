@@ -74,7 +74,8 @@ public final class SortRegisterComparator implements ExceptionComparator {
 	private int compareObjects(Object oLeft, Object oRight) throws PageException {
 		String strLeft = Caster.toString(((SortRegister) oLeft).getValue());
 		String strRight = Caster.toString(((SortRegister) oRight).getValue());
-		return comparator.compare(strLeft, strRight);
+		return strLeft.compareTo(strRight);
+		// return comparator.compare(strLeft, strRight);
 	}
 
 }
