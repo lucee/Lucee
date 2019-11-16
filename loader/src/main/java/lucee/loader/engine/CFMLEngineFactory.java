@@ -702,7 +702,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				+ (id == null ? "?" : "&") + "allowRedirect=true&jv=" + System.getProperty("java.version")
 
 		);
-		log(Logger.LOG_DEBUG, "download bundle [" + symbolicName + ":" + symbolicVersion + "] from " + updateUrl + " and copy to " + jar);
+		log(Logger.LOG_WARNING, "Downloading bundle [" + symbolicName + ":" + symbolicVersion + "] from " + updateUrl + " and copying to " + jar );
 
 		int code;
 		HttpURLConnection conn;

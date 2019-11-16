@@ -578,7 +578,7 @@ public class OSGiUtil {
 				+ (id == null ? "?" : "&") + "allowRedirect=true"
 
 		);
-		log(Logger.LOG_DEBUG, "download bundle [" + symbolicName + ":" + symbolicVersion + "] ");
+		log(Logger.LOG_WARNING, "Downloading bundle [" + symbolicName + ":" + symbolicVersion + "] from " + updateUrl + " and copying to " + jar );
 
 		int code;
 		HttpURLConnection conn;
