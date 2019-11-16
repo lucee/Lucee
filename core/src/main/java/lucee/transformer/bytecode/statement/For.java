@@ -20,7 +20,9 @@ package lucee.transformer.bytecode.statement;
 
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.GeneratorAdapter;
+import org.objectweb.asm.commons.Method;
 
 import lucee.transformer.Factory;
 import lucee.transformer.Position;
@@ -30,6 +32,8 @@ import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.util.ASMUtil;
 import lucee.transformer.bytecode.util.ExpressionUtil;
 import lucee.transformer.expression.Expression;
+import lucee.transformer.bytecode.util.Types;
+
 
 public final class For extends StatementBaseNoFinal implements FlowControlBreak, FlowControlContinue, HasBody {
 
@@ -67,10 +71,13 @@ public final class For extends StatementBaseNoFinal implements FlowControlBreak,
 	@Override
 	public void _writeOut(BytecodeContext bc) throws TransformerException {
 		GeneratorAdapter adapter = bc.getAdapter();
+		final int toIt = adapter.newLocal(Types.ITERATOR);
 		Label beforeInit = new Label();
 		Label afterInit = new Label();
 		Label afterUpdate = new Label();
-
+		adapter.push(0);
+		adapter.storeLocal(toIt, Type.INT_TYPE);
+		
 		ExpressionUtil.visitLine(bc, getStart());
 		adapter.visitLabel(beforeInit);
 		if (init != null) {
@@ -88,6 +95,19 @@ public final class For extends StatementBaseNoFinal implements FlowControlBreak,
 			update.writeOut(bc, Expression.MODE_VALUE);
 			ASMUtil.pop(adapter, update, Expression.MODE_VALUE);
 		}
+
+		// only test interruption once out of 1K
+		adapter.iinc(toIt, 1);
+		adapter.loadLocal(toIt);
+		adapter.push(1000);
+		adapter.ifICmp(Opcodes.IFLT, afterUpdate);
+		// Check if the thread is interrupted
+		adapter.invokeStatic(Type.getType(Thread.class), new Method("interrupted", Type.BOOLEAN_TYPE, new Type[] {}));
+		// reset counter
+		adapter.push(0);
+		adapter.storeLocal(toIt);
+		// Thread hasn't been interrupted, go to begin
+		adapter.ifZCmp(Opcodes.IFEQ, afterUpdate);
 		// ExpressionUtil.visitLine(bc, getStartLine());
 		adapter.visitLabel(afterUpdate);
 

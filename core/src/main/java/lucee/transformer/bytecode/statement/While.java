@@ -21,13 +21,18 @@ package lucee.transformer.bytecode.statement;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.commons.GeneratorAdapter;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.Method;
 
+import lucee.runtime.interpreter.ref.op.EQ;
 import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
 import lucee.transformer.bytecode.Body;
 import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.expression.ExprBoolean;
 import lucee.transformer.expression.Expression;
+import lucee.transformer.bytecode.util.Types;
+
 
 public final class While extends StatementBaseNoFinal implements FlowControlBreak, FlowControlContinue, HasBody {
 
@@ -67,13 +72,29 @@ public final class While extends StatementBaseNoFinal implements FlowControlBrea
 	@Override
 	public void _writeOut(BytecodeContext bc) throws TransformerException {
 		GeneratorAdapter adapter = bc.getAdapter();
+		final int toIt = adapter.newLocal(Types.ITERATOR);
+		adapter.push(0);
+		adapter.storeLocal(toIt, Type.INT_TYPE);
 		adapter.visitLabel(begin);
 
 		expr.writeOut(bc, Expression.MODE_VALUE);
 		adapter.ifZCmp(Opcodes.IFEQ, end);
 
 		body.writeOut(bc);
-		adapter.visitJumpInsn(Opcodes.GOTO, begin);
+
+		adapter.iinc(toIt, 1);
+		adapter.loadLocal(toIt);
+		adapter.push(1000);
+		// Check if the thread is interrupted
+		adapter.ifICmp(Opcodes.IFLT, begin);
+		adapter.invokeStatic(Type.getType(Thread.class), new Method("interrupted", Type.BOOLEAN_TYPE, new Type[] {}));
+		// reset counter
+		adapter.push(0);
+		adapter.storeLocal(toIt);
+		// Thread hasn't been interrupted, go to begin
+		adapter.ifZCmp(Opcodes.IFEQ, begin);
+		// Thread interrupted, throw Interrupted Exception
+		adapter.throwException(Type.getType(InterruptedException.class), "");
 
 		adapter.visitLabel(end);
 	}

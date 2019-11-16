@@ -36,6 +36,8 @@ import lucee.transformer.bytecode.visitor.OnFinally;
 import lucee.transformer.bytecode.visitor.TryFinallyVisitor;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.var.Variable;
+import lucee.transformer.bytecode.util.Types;
+
 
 public final class ForEach extends StatementBase implements FlowControlBreak, FlowControlContinue, HasBody {
 
@@ -80,9 +82,12 @@ public final class ForEach extends StatementBase implements FlowControlBreak, Fl
 	@Override
 	public void _writeOut(BytecodeContext bc) throws TransformerException {
 		GeneratorAdapter adapter = bc.getAdapter();
+		final int toIt = adapter.newLocal(Types.ITERATOR);
 		final int it = adapter.newLocal(Types.ITERATOR);
 		final int item = adapter.newLocal(Types.REFERENCE);
-
+		adapter.push(0);
+		adapter.storeLocal(toIt, Type.INT_TYPE);
+		
 		// Value
 		// ForEachUtil.toIterator(value)
 		value.writeOut(bc, Expression.MODE_REF);
@@ -131,7 +136,22 @@ public final class ForEach extends StatementBase implements FlowControlBreak, Fl
 
 		// Body
 		body.writeOut(bc);
-		adapter.visitJumpInsn(Opcodes.GOTO, begin);
+
+		adapter.iinc(toIt, 1);
+		adapter.loadLocal(toIt);
+		adapter.push(1000);
+		// Check if the thread is interrupted
+		adapter.ifICmp(Opcodes.IFLT, begin);
+		adapter.invokeStatic(Type.getType(Thread.class), new Method("interrupted", Type.BOOLEAN_TYPE, new Type[] {}));
+		// reset counter
+		adapter.push(0);
+		adapter.storeLocal(toIt);
+		// Thread hasn't been interrupted, go to begin
+		adapter.ifZCmp(Opcodes.IFEQ, begin);
+		// Thread interrupted, throw Interrupted Exception
+		adapter.throwException(Type.getType(InterruptedException.class), "");
+
+
 		adapter.visitLabel(end);
 		tfv.visitTryEnd(bc);
 
