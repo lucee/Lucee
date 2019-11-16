@@ -4,17 +4,17 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 package lucee.loader.engine;
 
@@ -147,7 +147,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	/**
 	 * returns instance of this factory (singelton = always the same instance) do auto update when
 	 * changes occur
-	 * 
+	 *
 	 * @param config
 	 * @return Singelton Instance of the Factory
 	 * @throws ServletException
@@ -175,7 +175,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	/**
 	 * returns instance of this factory (singelton = always the same instance) do auto update when
 	 * changes occur
-	 * 
+	 *
 	 * @return Singelton Instance of the Factory
 	 * @throws RuntimeException
 	 */
@@ -191,7 +191,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 	/**
 	 * returns instance of this factory (singelton always the same instance)
-	 * 
+	 *
 	 * @param config
 	 * @param listener
 	 * @return Singelton Instance of the Factory
@@ -247,7 +247,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 	/**
 	 * adds a listener to the factory that will be informed when a new engine will be loaded.
-	 * 
+	 *
 	 * @param listener
 	 */
 	private void addListener(final EngineChangeListener listener) {
@@ -550,7 +550,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	/**
 	 * method to initialize an update of the CFML Engine. checks if there is a new Version and update it
 	 * when a new version is available
-	 * 
+	 *
 	 * @param password
 	 * @return has updated
 	 * @throws IOException
@@ -564,7 +564,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 	/**
 	 * restart the cfml engine
-	 * 
+	 *
 	 * @param password
 	 * @return has updated
 	 * @throws IOException
@@ -578,7 +578,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 	/**
 	 * restart the cfml engine
-	 * 
+	 *
 	 * @param password
 	 * @return has updated
 	 * @throws IOException
@@ -593,7 +593,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 	/**
 	 * restart the cfml engine
-	 * 
+	 *
 	 * @param password
 	 * @return has updated
 	 * @throws IOException
@@ -615,7 +615,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 	/**
 	 * updates the engine when an update is available
-	 * 
+	 *
 	 * @return has updated
 	 * @throws IOException
 	 * @throws ServletException
@@ -797,7 +797,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 				// adding bundle
 				File trg = new File(bundleDirectory, osgiFileName);
-				temp.renameTo(trg);
+				Util.fileMove(temp, trg);
 				log(Logger.LOG_DEBUG, "adding bundle [" + symbolicName + "] in version [" + symbolicVersion + "] to [" + trg + "]");
 				return trg;
 			}
@@ -1063,7 +1063,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	/**
 	 * method to initialize an update of the CFML Engine. checks if there is a new Version and update it
 	 * when a new version is available
-	 * 
+	 *
 	 * @param password
 	 * @return has updated
 	 * @throws IOException
@@ -1077,7 +1077,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	/**
 	 * method to initialize an update of the CFML Engine. checks if there is a new Version and update it
 	 * when a new version is available
-	 * 
+	 *
 	 * @param password
 	 * @return has updated
 	 * @throws IOException
@@ -1090,7 +1090,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 	/**
 	 * updates the engine when an update is available
-	 * 
+	 *
 	 * @return has updated
 	 * @throws IOException
 	 * @throws ServletException
@@ -1136,7 +1136,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 	/**
 	 * call all registered listener for update of the engine
-	 * 
+	 *
 	 * @param engine
 	 */
 	private void callListeners(final CFMLEngine engine) {
@@ -1172,7 +1172,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 	/**
 	 * return directory to lucee resource root
-	 * 
+	 *
 	 * @return lucee root directory
 	 * @throws IOException
 	 */
@@ -1370,7 +1370,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 	/**
 	 * returns the path where the classloader is located
-	 * 
+	 *
 	 * @param cl ClassLoader
 	 * @return file of the classloader root
 	 */
@@ -1405,7 +1405,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 	/**
 	 * Load CFMl Engine Implementation (lucee.runtime.engine.CFMLEngineImpl) from a Classloader
-	 * 
+	 *
 	 * @param bundle
 	 * @return
 	 * @throws ClassNotFoundException
