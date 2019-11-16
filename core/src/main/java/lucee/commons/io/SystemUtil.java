@@ -1696,7 +1696,13 @@ class StopThread extends Thread {
 
 	@Override
 	public void run() {
-		SystemUtil.stop(pc, pc.getThread());
+		PageContextImpl pci = (PageContextImpl) pc;
+		Thread thread = pc.getThread();
+		if (thread == null) return;
+		if (thread.isAlive()) {
+			pci.setTimeoutStackTrace();
+			thread.interrupt();
+		}
 	}
 }
 
