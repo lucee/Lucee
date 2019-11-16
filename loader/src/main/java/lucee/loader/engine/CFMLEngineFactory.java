@@ -688,6 +688,11 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			log(Logger.LOG_INFO, jar + " should exist but does not (exist?" + jar.exists() + ";file?" + jar.isFile() + ";hidden?" + jar.isHidden() + ")");
 		}
 
+		String allowBundleDownload = System.getProperty( "lucee.enable.bundle.download" );
+		if ( "false".equals( allowBundleDownload ) ) {
+			throw( new RuntimeException( "Lucee is missing the Bundle jar, " + symbolicName + ":" + symbolicVersion + ", and has been prevented from downloading it. If this jar is not a core jar, it will need to be manually downloaded and placed in the {{lucee-server}}/context/bundles directory." ) );
+		}
+
 		jar = new File(jarDir, symbolicName.replace('.', '-') + "-" + symbolicVersion.replace('.', '-') + (".jar"));
 
 		final URL updateProvider = getUpdateLocation();
