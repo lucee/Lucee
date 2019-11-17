@@ -36,6 +36,8 @@ import lucee.transformer.bytecode.visitor.OnFinally;
 import lucee.transformer.bytecode.visitor.TryFinallyVisitor;
 import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.var.Variable;
+import lucee.runtime.util.PageContextUtil;
+import lucee.runtime.PageContext;
 
 public final class ForEach extends StatementBase implements FlowControlBreak, FlowControlContinue, HasBody {
 
@@ -51,6 +53,10 @@ public final class ForEach extends StatementBase implements FlowControlBreak, Fl
 
 	public static final Type FOR_EACH_UTIL = Type.getType(ForEachUtil.class);
 	public static final Method RESET = new Method("reset", Types.VOID, new Type[] { Types.ITERATOR });
+
+	private static final Type TYPE_PCU = Type.getType(PageContextUtil.class);
+	private static final Type TYPE_PC = Type.getType(PageContext.class);
+	private static final Method METHOD_CRT = new Method("checkRequestTimeout", Type.VOID_TYPE, new Type[] {TYPE_PC});
 
 	// private static final Type COLLECTION_UTIL = Type.getType(CollectionUtil.class);
 
@@ -80,8 +86,12 @@ public final class ForEach extends StatementBase implements FlowControlBreak, Fl
 	@Override
 	public void _writeOut(BytecodeContext bc) throws TransformerException {
 		GeneratorAdapter adapter = bc.getAdapter();
+		final int toIt = adapter.newLocal(Types.ITERATOR);
 		final int it = adapter.newLocal(Types.ITERATOR);
 		final int item = adapter.newLocal(Types.REFERENCE);
+
+		adapter.push(0);
+		adapter.storeLocal(toIt, Type.INT_TYPE);
 
 		// Value
 		// ForEachUtil.toIterator(value)
@@ -131,6 +141,19 @@ public final class ForEach extends StatementBase implements FlowControlBreak, Fl
 
 		// Body
 		body.writeOut(bc);
+
+		// only test timeout once out of 10K iteration (performance optimization)
+		adapter.iinc(toIt, 1);
+		adapter.loadLocal(toIt);
+		adapter.push(10000);
+		adapter.ifICmp(Opcodes.IFLT, begin);
+		// reset counter
+		adapter.push(0);
+		adapter.storeLocal(toIt);
+		// Check if the thread is timedout
+		adapter.loadArg(0);
+		adapter.invokeStatic(TYPE_PCU, METHOD_CRT);
+
 		adapter.visitJumpInsn(Opcodes.GOTO, begin);
 		adapter.visitLabel(end);
 		tfv.visitTryEnd(bc);

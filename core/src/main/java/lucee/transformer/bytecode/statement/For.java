@@ -21,6 +21,8 @@ package lucee.transformer.bytecode.statement;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.commons.GeneratorAdapter;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.Method;
 
 import lucee.transformer.Factory;
 import lucee.transformer.Position;
@@ -30,6 +32,10 @@ import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.bytecode.util.ASMUtil;
 import lucee.transformer.bytecode.util.ExpressionUtil;
 import lucee.transformer.expression.Expression;
+import lucee.runtime.util.PageContextUtil;
+import lucee.runtime.PageContext;
+import lucee.transformer.bytecode.util.Types;
+
 
 public final class For extends StatementBaseNoFinal implements FlowControlBreak, FlowControlContinue, HasBody {
 
@@ -37,6 +43,9 @@ public final class For extends StatementBaseNoFinal implements FlowControlBreak,
 	private Expression condition;
 	private Expression update;
 	private Body body;
+	private static final Type TYPE_PCU = Type.getType(PageContextUtil.class);
+	private static final Type TYPE_PC = Type.getType(PageContext.class);
+	private static final Method METHOD_CRT = new Method("checkRequestTimeout", Type.VOID_TYPE, new Type[] {TYPE_PC});
 
 	// private static final int I=1;
 
@@ -67,10 +76,13 @@ public final class For extends StatementBaseNoFinal implements FlowControlBreak,
 	@Override
 	public void _writeOut(BytecodeContext bc) throws TransformerException {
 		GeneratorAdapter adapter = bc.getAdapter();
+		final int toIt = adapter.newLocal(Types.ITERATOR);
 		Label beforeInit = new Label();
 		Label afterInit = new Label();
 		Label afterUpdate = new Label();
-
+		adapter.push(0);
+		adapter.storeLocal(toIt, Type.INT_TYPE);
+		
 		ExpressionUtil.visitLine(bc, getStart());
 		adapter.visitLabel(beforeInit);
 		if (init != null) {
@@ -88,7 +100,18 @@ public final class For extends StatementBaseNoFinal implements FlowControlBreak,
 			update.writeOut(bc, Expression.MODE_VALUE);
 			ASMUtil.pop(adapter, update, Expression.MODE_VALUE);
 		}
-		// ExpressionUtil.visitLine(bc, getStartLine());
+
+		// only test timeout once out of 10K iteration (performance optimization)
+		adapter.iinc(toIt, 1);
+		adapter.loadLocal(toIt);
+		adapter.push(10000);
+		adapter.ifICmp(Opcodes.IFLT, afterUpdate);
+		// Check if the thread is timedout
+		adapter.loadArg(0);
+		adapter.invokeStatic(TYPE_PCU, METHOD_CRT);
+		// reset counter
+		adapter.push(0);
+		adapter.storeLocal(toIt);
 		adapter.visitLabel(afterUpdate);
 
 		if (condition != null) condition.writeOut(bc, Expression.MODE_VALUE);

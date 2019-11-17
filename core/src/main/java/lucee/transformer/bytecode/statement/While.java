@@ -21,6 +21,8 @@ package lucee.transformer.bytecode.statement;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.commons.GeneratorAdapter;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.Method;
 
 import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
@@ -28,6 +30,9 @@ import lucee.transformer.bytecode.Body;
 import lucee.transformer.bytecode.BytecodeContext;
 import lucee.transformer.expression.ExprBoolean;
 import lucee.transformer.expression.Expression;
+import lucee.transformer.bytecode.util.Types;
+import lucee.runtime.util.PageContextUtil;
+import lucee.runtime.PageContext;
 
 public final class While extends StatementBaseNoFinal implements FlowControlBreak, FlowControlContinue, HasBody {
 
@@ -37,6 +42,9 @@ public final class While extends StatementBaseNoFinal implements FlowControlBrea
 	private Label begin = new Label();
 	private Label end = new Label();
 	private String label;
+	private static final Type TYPE_PCU = Type.getType(PageContextUtil.class);
+	private static final Type TYPE_PC = Type.getType(PageContext.class);
+	private static final Method METHOD_CRT = new Method("checkRequestTimeout", Type.VOID_TYPE, new Type[] {TYPE_PC});
 
 	/**
 	 * Constructor of the class
@@ -67,12 +75,27 @@ public final class While extends StatementBaseNoFinal implements FlowControlBrea
 	@Override
 	public void _writeOut(BytecodeContext bc) throws TransformerException {
 		GeneratorAdapter adapter = bc.getAdapter();
+		final int toIt = adapter.newLocal(Types.ITERATOR);
+		adapter.push(0);
+		adapter.storeLocal(toIt, Type.INT_TYPE);
 		adapter.visitLabel(begin);
 
 		expr.writeOut(bc, Expression.MODE_VALUE);
 		adapter.ifZCmp(Opcodes.IFEQ, end);
 
 		body.writeOut(bc);
+
+		// only test timeout once out of 10K iteration (performance optimization)
+		adapter.iinc(toIt, 1);
+		adapter.loadLocal(toIt);
+		adapter.push(10000);
+		// Check if the thread is interrupted
+		adapter.ifICmp(Opcodes.IFLT, begin);
+		adapter.push(0);
+		adapter.storeLocal(toIt);
+		// Check if the thread is timedout
+		adapter.loadArg(0);
+		adapter.invokeStatic(TYPE_PCU, METHOD_CRT);	
 		adapter.visitJumpInsn(Opcodes.GOTO, begin);
 
 		adapter.visitLabel(end);
