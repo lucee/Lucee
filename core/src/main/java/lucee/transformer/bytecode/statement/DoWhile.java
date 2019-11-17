@@ -43,6 +43,9 @@ public final class DoWhile extends StatementBaseNoFinal implements FlowControlBr
 	private Label end = new Label();
 	private String label;
 
+	private final static Type TYPE_THREAD = Type.getType(Thread.class);
+	private final static Type TYPE_EXCEPTION = Type.getType(InterruptedException.class);
+	private final static Method METHOD_INTERRUPTED = new Method("interrupted", Type.BOOLEAN_TYPE, new Type[] {});
 	/**
 	 * Constructor of the class
 	 * 
@@ -68,20 +71,20 @@ public final class DoWhile extends StatementBaseNoFinal implements FlowControlBr
 		adapter.visitLabel(begin);
 		body.writeOut(bc);
 
-		// only test interruption once out of 1K
+		// Check Once every 10K iteration
 		adapter.iinc(toIt, 1);
 		adapter.loadLocal(toIt);
-		adapter.push(1000);
+		adapter.push(10000);
 		adapter.ifICmp(Opcodes.IFLT, beforeEnd);
-		// Check if the thread is interrupted
-		adapter.invokeStatic(Type.getType(Thread.class), new Method("interrupted", Type.BOOLEAN_TYPE, new Type[] {}));
 		// reset counter
 		adapter.push(0);
 		adapter.storeLocal(toIt);
-		// Thread hasn't been interrupted, go to begin
+		// Check if the thread is interrupted
+		adapter.invokeStatic(TYPE_THREAD, METHOD_INTERRUPTED);
+		// Thread hasn't been interrupted, go to beforeEnd
 		adapter.ifZCmp(Opcodes.IFEQ, beforeEnd);
 		// Thread interrupted, throw Interrupted Exception
-		adapter.throwException(Type.getType(InterruptedException.class), "");
+		adapter.throwException(TYPE_EXCEPTION, "timeout in do {} while() loop");
 		adapter.visitLabel(beforeEnd);
 
 		expr.writeOut(bc, Expression.MODE_VALUE);

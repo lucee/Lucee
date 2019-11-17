@@ -41,6 +41,9 @@ public final class For extends StatementBaseNoFinal implements FlowControlBreak,
 	private Expression condition;
 	private Expression update;
 	private Body body;
+	private final static Type TYPE_THREAD = Type.getType(Thread.class);
+	private final static Type TYPE_EXCEPTION = Type.getType(InterruptedException.class);
+	private final static Method METHOD_INTERRUPTED = new Method("interrupted", Type.BOOLEAN_TYPE, new Type[] {});
 
 	// private static final int I=1;
 
@@ -96,18 +99,20 @@ public final class For extends StatementBaseNoFinal implements FlowControlBreak,
 			ASMUtil.pop(adapter, update, Expression.MODE_VALUE);
 		}
 
-		// only test interruption once out of 1K
+		// Check Once every 10K iteration
 		adapter.iinc(toIt, 1);
 		adapter.loadLocal(toIt);
-		adapter.push(1000);
+		adapter.push(10000);
 		adapter.ifICmp(Opcodes.IFLT, afterUpdate);
-		// Check if the thread is interrupted
-		adapter.invokeStatic(Type.getType(Thread.class), new Method("interrupted", Type.BOOLEAN_TYPE, new Type[] {}));
 		// reset counter
 		adapter.push(0);
 		adapter.storeLocal(toIt);
-		// Thread hasn't been interrupted, go to begin
+		// Check if the thread is interrupted
+		adapter.invokeStatic(TYPE_THREAD, METHOD_INTERRUPTED);
+		// Thread hasn't been interrupted, go to afterUpdate
 		adapter.ifZCmp(Opcodes.IFEQ, afterUpdate);
+		// Thread interrupted, throw Interrupted Exception
+		adapter.throwException(TYPE_EXCEPTION, "Timeout in For loop");
 		// ExpressionUtil.visitLine(bc, getStartLine());
 		adapter.visitLabel(afterUpdate);
 

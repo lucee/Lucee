@@ -43,6 +43,10 @@ public final class While extends StatementBaseNoFinal implements FlowControlBrea
 	private Label end = new Label();
 	private String label;
 
+	private final static Type TYPE_THREAD = Type.getType(Thread.class);
+	private final static Type TYPE_EXCEPTION = Type.getType(InterruptedException.class);
+	private final static Method METHOD_INTERRUPTED = new Method("interrupted", Type.BOOLEAN_TYPE, new Type[] {});
+
 	/**
 	 * Constructor of the class
 	 * 
@@ -82,19 +86,20 @@ public final class While extends StatementBaseNoFinal implements FlowControlBrea
 
 		body.writeOut(bc);
 
+		// Check Once every 10K iteration
 		adapter.iinc(toIt, 1);
 		adapter.loadLocal(toIt);
-		adapter.push(1000);
-		// Check if the thread is interrupted
+		adapter.push(10000);
 		adapter.ifICmp(Opcodes.IFLT, begin);
-		adapter.invokeStatic(Type.getType(Thread.class), new Method("interrupted", Type.BOOLEAN_TYPE, new Type[] {}));
 		// reset counter
 		adapter.push(0);
 		adapter.storeLocal(toIt);
+		// Check if the thread is interrupted
+		adapter.invokeStatic(TYPE_THREAD, METHOD_INTERRUPTED);
 		// Thread hasn't been interrupted, go to begin
 		adapter.ifZCmp(Opcodes.IFEQ, begin);
 		// Thread interrupted, throw Interrupted Exception
-		adapter.throwException(Type.getType(InterruptedException.class), "");
+		adapter.throwException(TYPE_EXCEPTION, "Timeout in While loop");
 
 		adapter.visitLabel(end);
 	}
