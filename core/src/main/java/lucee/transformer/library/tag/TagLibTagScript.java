@@ -65,14 +65,6 @@ public final class TagLibTagScript {
 		this.tag = tag;
 	}
 
-	public void setType(String type) {
-		if (!StringUtil.isEmpty(type, true)) {
-			type = type.trim().toLowerCase();
-			if ("single".equals(type)) this.type = TYPE_SINGLE;
-			else if ("multiple".equals(type)) this.type = TYPE_MULTIPLE;
-		}
-	}
-
 	public void setType(short type) {
 		this.type = type;
 	}
@@ -100,12 +92,6 @@ public final class TagLibTagScript {
 	 */
 	public short getType() {
 		return type;
-	}
-
-	public String getTypeAsString() {
-		if (type == TYPE_MULTIPLE) return "multiple";
-		if (type == TYPE_SINGLE) return "single";
-		return "none";
 	}
 
 	public TagLibTagAttr getSingleAttr() {
@@ -159,6 +145,23 @@ public final class TagLibTagScript {
 	 */
 	public short getContext() {
 		return context;
+	}
+
+	public static short toType(String type, short defaultValue) {
+		if (!StringUtil.isEmpty(type, true)) {
+			type = type.trim().toLowerCase();
+			if ("single".equals(type)) return TYPE_SINGLE;
+			else if ("multiple".equals(type)) return TYPE_MULTIPLE;
+			else if ("none".equals(type)) return TYPE_NONE;
+		}
+		return defaultValue;
+	}
+
+	public static String toType(short type, String defaultValue) {
+		if (type == TYPE_MULTIPLE) return "multiple";
+		if (type == TYPE_SINGLE) return "single";
+		if (type == TYPE_NONE) return "none";
+		return defaultValue;
 	}
 
 }
