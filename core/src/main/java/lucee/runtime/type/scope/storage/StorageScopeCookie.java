@@ -4,17 +4,17 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  **/
 package lucee.runtime.type.scope.storage;
 
@@ -65,7 +65,7 @@ public abstract class StorageScopeCookie extends StorageScopeImpl {
 
 	/**
 	 * Constructor of the class
-	 * 
+	 *
 	 * @param pc
 	 * @param name
 	 * @param sct
@@ -79,7 +79,7 @@ public abstract class StorageScopeCookie extends StorageScopeImpl {
 
 	/**
 	 * Constructor of the class, clone existing
-	 * 
+	 *
 	 * @param other
 	 */
 	protected StorageScopeCookie(StorageScopeCookie other, boolean deepCopy) {
@@ -165,14 +165,14 @@ public abstract class StorageScopeCookie extends StorageScopeImpl {
 					}
 				}
 
-				ScopeContext.info(log, "load data from cookie for " + strType + " scope for " + pc.getApplicationContext().getName() + "/" + pc.getCFID());
+				ScopeContext.debug(log, "load data from cookie for " + strType + " scope for " + pc.getApplicationContext().getName() + "/" + pc.getCFID());
 				return sct;
 			}
 			catch (Exception e) {
 
 			}
 		}
-		ScopeContext.info(log, "create new " + strType + " scope for " + pc.getApplicationContext().getName() + "/" + pc.getCFID());
+		ScopeContext.debug(log, "create new " + strType + " scope for " + pc.getApplicationContext().getName() + "/" + pc.getCFID());
 
 		return new StructImpl();
 	}

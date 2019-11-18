@@ -4,7 +4,7 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
  *
  * This library is distributed in the hope that it will be useful,
@@ -12,7 +12,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public 
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
@@ -121,6 +121,10 @@ public final class ScopeContext {
 		return log;
 	}
 
+	public void debug(String msg) {
+		debug(getLog(), msg);
+	}
+
 	public void info(String msg) {
 		info(getLog(), msg);
 	}
@@ -133,9 +137,14 @@ public final class ScopeContext {
 		error(getLog(), t);
 	}
 
+	public static void debug(Log log, String msg) {
+		if (log != null) log.log(Log.LEVEL_DEBUG, "scope-context", msg);
+		else LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_DEBUG, "scope", msg);
+	}
+
 	public static void info(Log log, String msg) {
 		if (log != null) log.log(Log.LEVEL_INFO, "scope-context", msg);
-		else LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_ERROR, "scope", msg);
+		else LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, "scope", msg);
 	}
 
 	public static void error(Log log, String msg) {
@@ -299,7 +308,7 @@ public final class ScopeContext {
 			client.setStorage(storage);
 			context.put(pc.getCFID(), client);
 		}
-		else getLog().log(Log.LEVEL_INFO, "scope-context", "use existing client scope for " + appContext.getName() + "/" + pc.getCFID() + " from storage " + storage);
+		else getLog().log(Log.LEVEL_DEBUG, "scope-context", "use existing client scope for " + appContext.getName() + "/" + pc.getCFID() + " from storage " + storage);
 
 		client.touchBeforeRequest(pc);
 		return client;
@@ -662,7 +671,7 @@ public final class ScopeContext {
 			isNew.setValue(true);
 		}
 		else {
-			getLog().log(Log.LEVEL_INFO, "scope-context", "use existing session scope for " + appContext.getName() + "/" + pc.getCFID() + " from storage " + storage);
+			getLog().log(Log.LEVEL_DEBUG, "scope-context", "use existing session scope for " + appContext.getName() + "/" + pc.getCFID() + " from storage " + storage);
 		}
 		session.touchBeforeRequest(pc);
 		return session;
@@ -743,7 +752,7 @@ public final class ScopeContext {
 				if (jSession.isExpired()) {
 					jSession.touch();
 				}
-				info(getLog(), "use existing JSession for " + appContext.getName() + "/" + pc.getCFID());
+				debug(getLog(), "use existing JSession for " + appContext.getName() + "/" + pc.getCFID());
 
 			}
 			catch (ClassCastException cce) {
@@ -760,7 +769,7 @@ public final class ScopeContext {
 			// if there is no HTTPSession
 			if (httpSession == null) return getCFSessionScope(pc, isNew);
 
-			info(getLog(), "create new JSession for " + appContext.getName() + "/" + pc.getCFID());
+			debug(getLog(), "create new JSession for " + appContext.getName() + "/" + pc.getCFID());
 			jSession = new JSession();
 			httpSession.setAttribute(appContext.getName(), jSession);
 			isNew.setValue(true);

@@ -25,17 +25,17 @@ public class IKHandlerCache implements IKHandler {
 		synchronized (cache) { // sync necessary?
 			Object val = cache.getValue(key, null);
 			if (val instanceof byte[][]) {
-				ScopeContext.info(log,
+				ScopeContext.debug(log,
 						"load existing data from  cache [" + name + "] to create " + strType + " scope for " + pc.getApplicationContext().getName() + "/" + pc.getCFID());
 				return new IKStorageValue((byte[][]) val);
 			}
 			else if (val instanceof IKStorageValue) {
-				ScopeContext.info(log,
+				ScopeContext.debug(log,
 						"load existing data from  cache [" + name + "] to create " + strType + " scope for " + pc.getApplicationContext().getName() + "/" + pc.getCFID());
 				return (IKStorageValue) val;
 			}
 			else {
-				ScopeContext.info(log, "create new " + strType + " scope for " + pc.getApplicationContext().getName() + "/" + pc.getCFID() + " in cache [" + name + "]");
+				ScopeContext.debug(log, "create new " + strType + " scope for " + pc.getApplicationContext().getName() + "/" + pc.getCFID() + " in cache [" + name + "]");
 			}
 			return null;
 		}

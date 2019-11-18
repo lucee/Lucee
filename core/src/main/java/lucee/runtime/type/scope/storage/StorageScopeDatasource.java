@@ -4,17 +4,17 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 package lucee.runtime.type.scope.storage;
 
@@ -58,7 +58,7 @@ public abstract class StorageScopeDatasource extends StorageScopeImpl {
 
 	/**
 	 * Constructor of the class
-	 * 
+	 *
 	 * @param pc
 	 * @param name
 	 * @param sct
@@ -76,7 +76,7 @@ public abstract class StorageScopeDatasource extends StorageScopeImpl {
 
 	/**
 	 * Constructor of the class, clone existing
-	 * 
+	 *
 	 * @param other
 	 */
 	protected StorageScopeDatasource(StorageScopeDatasource other, boolean deepCopy) {
@@ -116,7 +116,7 @@ public abstract class StorageScopeDatasource extends StorageScopeImpl {
 		boolean _isNew = query.getRecordcount() == 0;
 
 		if (_isNew) {
-			ScopeContext.info(log, "create new " + strType + " scope for " + pc.getApplicationContext().getName() + "/" + pc.getCFID() + " in datasource [" + datasourceName + "]");
+			ScopeContext.debug(log, "create new " + strType + " scope for " + pc.getApplicationContext().getName() + "/" + pc.getCFID() + " in datasource [" + datasourceName + "]");
 			return null;
 		}
 		String str = Caster.toString(query.get(KeyConstants._data));
@@ -125,7 +125,7 @@ public abstract class StorageScopeDatasource extends StorageScopeImpl {
 
 		try {
 			Struct s = (Struct) pc.evaluate(str);
-			ScopeContext.info(log, "load existing data from [" + datasourceName + "." + PREFIX + "_" + strType + "_data] to create " + strType + " scope for "
+			ScopeContext.debug(log, "load existing data from [" + datasourceName + "." + PREFIX + "_" + strType + "_data] to create " + strType + " scope for "
 					+ pc.getApplicationContext().getName() + "/" + pc.getCFID());
 			return s;
 		}
