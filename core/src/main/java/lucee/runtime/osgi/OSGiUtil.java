@@ -140,7 +140,7 @@ public class OSGiUtil {
 	 * @throws BundleException
 	 */
 	private static Bundle _loadBundle(BundleContext context, String path, InputStream is, boolean closeStream) throws BundleException {
-		log(Log.LEVEL_INFO, "add bundle:" + path);
+		log(Log.LEVEL_DEBUG, "add bundle:" + path);
 
 		try {
 			// we make this very simply so an old loader that is calling this still works
@@ -1119,11 +1119,11 @@ public class OSGiUtil {
 		String fh = bundle.getHeaders().get("Fragment-Host");
 		// Fragment cannot be started
 		if (!Util.isEmpty(fh)) {
-			log(Log.LEVEL_INFO, "do not start [" + bundle.getSymbolicName() + "], because this is a fragment bundle for [" + fh + "]");
+			log(Log.LEVEL_DEBUG, "do not start [" + bundle.getSymbolicName() + "], because this is a fragment bundle for [" + fh + "]");
 			return bundle;
 		}
 
-		log(Log.LEVEL_INFO, "start bundle:" + bundle.getSymbolicName() + ":" + bundle.getVersion().toString());
+		log(Log.LEVEL_DEBUG, "start bundle:" + bundle.getSymbolicName() + ":" + bundle.getVersion().toString());
 
 		try {
 			BundleUtil.start(bundle);
