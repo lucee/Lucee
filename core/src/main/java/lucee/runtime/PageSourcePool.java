@@ -4,17 +4,17 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 package lucee.runtime;
 
@@ -60,7 +60,7 @@ public final class PageSourcePool implements Dumpable {
 
 	/**
 	 * return pages matching to key
-	 * 
+	 *
 	 * @param key key for the page
 	 * @param updateAccesTime define if do update access time
 	 * @return page
@@ -74,7 +74,7 @@ public final class PageSourcePool implements Dumpable {
 
 	/**
 	 * sts a page object to the page pool
-	 * 
+	 *
 	 * @param key key reference to store page object
 	 * @param ps pagesource to store
 	 */
@@ -86,7 +86,7 @@ public final class PageSourcePool implements Dumpable {
 
 	/**
 	 * returns if page object exists
-	 * 
+	 *
 	 * @param key key reference to a page object
 	 * @return has page object or not
 	 */
@@ -105,7 +105,7 @@ public final class PageSourcePool implements Dumpable {
 
 	/**
 	 * removes a page from the page pool
-	 * 
+	 *
 	 * @param key key reference to page object
 	 * @return page object matching to key reference
 	 */
@@ -163,7 +163,7 @@ public final class PageSourcePool implements Dumpable {
 	 */
 	public void clearUnused(ConfigImpl config) {
 		if (size() > maxSize) {
-			LogUtil.log(config, Log.LEVEL_INFO, PageSourcePool.class.getName(), "PagePool: " + size() + ">(" + maxSize + ")");
+			LogUtil.log(config, Log.LEVEL_INFO, PageSourcePool.class.getName(), "PagePool size [" + size() + "] has exceeded max size [" + maxSize + "]. Clearing unused..." );
 			String[] keys = keys();
 			LongKeyList list = new LongKeyList();
 			for (int i = 0; i < keys.length; i++) {
@@ -180,6 +180,7 @@ public final class PageSourcePool implements Dumpable {
 				if (key == null) break;
 				remove(key.toString());
 			}
+			LogUtil.log(config, Log.LEVEL_INFO, PageSourcePool.class.getName(), "New pagePool size [" + size() + "]." );
 		}
 	}
 
@@ -205,7 +206,7 @@ public final class PageSourcePool implements Dumpable {
 
 	/**
 	 * remove all Page from Pool using this classloader
-	 * 
+	 *
 	 * @param cl
 	 */
 	public void clearPages(ClassLoader cl) {
