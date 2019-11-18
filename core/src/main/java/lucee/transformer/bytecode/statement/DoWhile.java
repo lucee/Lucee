@@ -92,6 +92,15 @@ public final class DoWhile extends StatementBaseNoFinal implements FlowControlBr
 
 		adapter.visitLabel(end);
 
+		Label endPreempt = new Label();
+		// Check if the thread is interrupted
+		adapter.invokeStatic(TYPE_THREAD, METHOD_INTERRUPTED);
+		// Thread hasn't been interrupted, go to afterUpdate
+		adapter.ifZCmp(Opcodes.IFEQ, endPreempt);
+		// Thread interrupted, throw Interrupted Exception
+		adapter.throwException(TYPE_EXCEPTION, "Timeout in For loop");
+		// ExpressionUtil.visitLine(bc, getStartLine());
+		adapter.visitLabel(endPreempt);
 	}
 
 	@Override

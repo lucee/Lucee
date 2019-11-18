@@ -78,6 +78,7 @@ public final class For extends StatementBaseNoFinal implements FlowControlBreak,
 		Label beforeInit = new Label();
 		Label afterInit = new Label();
 		Label afterUpdate = new Label();
+		Label endPreempt = new Label();
 		adapter.push(0);
 		adapter.storeLocal(toIt, Type.INT_TYPE);
 		
@@ -122,6 +123,14 @@ public final class For extends StatementBaseNoFinal implements FlowControlBreak,
 		// ExpressionUtil.visitLine(bc, getEndLine());
 		adapter.visitLabel(end);
 
+		// Check if the thread is interrupted
+		adapter.invokeStatic(TYPE_THREAD, METHOD_INTERRUPTED);
+		// Thread hasn't been interrupted, go to afterUpdate
+		adapter.ifZCmp(Opcodes.IFEQ, endPreempt);
+		// Thread interrupted, throw Interrupted Exception
+		adapter.throwException(TYPE_EXCEPTION, "Timeout in For loop");
+		// ExpressionUtil.visitLine(bc, getStartLine());
+		adapter.visitLabel(endPreempt);
 	}
 
 	@Override
