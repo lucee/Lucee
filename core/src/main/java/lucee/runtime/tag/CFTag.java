@@ -634,7 +634,7 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
 				throw new PageRuntimeException(pe);
 			}
 			finally {
-				writeEnclosingWriter();
+				// writeEnclosingWriter();
 			}
 		}
 	}
