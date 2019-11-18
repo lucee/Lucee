@@ -222,7 +222,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		if (Util.isEmpty(initParam)) initParam = config.getInitParameter("lucee-server-root");
 		if (Util.isEmpty(initParam)) initParam = config.getInitParameter("lucee-server-dir");
 		if (Util.isEmpty(initParam)) initParam = config.getInitParameter("lucee-server");
-		if (Util.isEmpty(initParam)) initParam = System.getProperty("lucee.server.dir");
+		if (Util.isEmpty(initParam)) initParam = Util._getSystemPropOrEnvVar("lucee.server.dir", null);
 
 		initParam = parsePlaceHolder(removeQuotes(initParam, true));
 		try {
@@ -688,9 +688,10 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			log(Logger.LOG_INFO, jar + " should exist but does not (exist?" + jar.exists() + ";file?" + jar.isFile() + ";hidden?" + jar.isHidden() + ")");
 		}
 
-		String allowBundleDownload = System.getProperty( "lucee.enable.bundle.download" );
-		if ( "false".equals( allowBundleDownload ) ) {
-			throw( new RuntimeException( "Lucee is missing the Bundle jar, " + symbolicName + ":" + symbolicVersion + ", and has been prevented from downloading it. If this jar is not a core jar, it will need to be manually downloaded and placed in the {{lucee-server}}/context/bundles directory." ) );
+		String str = Util._getSystemPropOrEnvVar("lucee.enable.bundle.download", null);
+		if (str != null && ("false".equalsIgnoreCase(str) || "no".equalsIgnoreCase(str))) { // we do not use CFMLEngine to cast, because the engine may not exist yet
+			throw (new RuntimeException("Lucee is missing the Bundle jar, " + symbolicName + ":" + symbolicVersion
+					+ ", and has been prevented from downloading it. If this jar is not a core jar, it will need to be manually downloaded and placed in the {{lucee-server}}/context/bundles directory."));
 		}
 
 		jar = new File(jarDir, symbolicName.replace('.', '-') + "-" + symbolicVersion.replace('.', '-') + (".jar"));
@@ -702,7 +703,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				+ (id == null ? "?" : "&") + "allowRedirect=true&jv=" + System.getProperty("java.version")
 
 		);
-		log(Logger.LOG_WARNING, "Downloading bundle [" + symbolicName + ":" + symbolicVersion + "] from " + updateUrl + " and copying to " + jar );
+		log(Logger.LOG_WARNING, "Downloading bundle [" + symbolicName + ":" + symbolicVersion + "] from " + updateUrl + " and copying to " + jar);
 
 		int code;
 		HttpURLConnection conn;
@@ -802,7 +803,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 				// adding bundle
 				File trg = new File(bundleDirectory, osgiFileName);
-				Util.fileMove(temp, trg);
+				fileMove(temp, trg);
 				log(Logger.LOG_DEBUG, "adding bundle [" + symbolicName + "] in version [" + symbolicVersion + "] to [" + trg + "]");
 				return trg;
 			}
@@ -873,6 +874,23 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			Util.closeEL(zis);
 		}
 		return null;
+	}
+
+	// FUTURE move to Util class
+	private final static void fileMove(File src, File dest) throws IOException {
+		boolean moved = src.renameTo(dest);
+		if (!moved) {
+			BufferedInputStream is = new BufferedInputStream(new FileInputStream(src));
+			BufferedOutputStream os = new BufferedOutputStream(new FileOutputStream(dest));
+			try {
+				Util.copy(is, os, false, false); // is set false here, because copy does not close in case of an exception
+			}
+			finally {
+				closeEL(is);
+				closeEL(os);
+			}
+			if (!src.delete()) src.deleteOnExit();
+		}
 	}
 
 	private boolean isWindows() {

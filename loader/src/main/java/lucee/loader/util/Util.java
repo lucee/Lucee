@@ -20,8 +20,6 @@ package lucee.loader.util;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileFilter;
@@ -65,8 +63,8 @@ public class Util {
 	}
 
 	/**
-	 * @deprecated use instead CFMLEngineFactory.getInstance.getIOUtil().copy(...) copy an inputstream to
-	 *             an outputstream
+	 * @deprecated use instead CFMLEngineFactory.getInstance.getIOUtil().copy(...) copy an inputstream
+	 *             to an outputstream
 	 * @param in
 	 * @param out
 	 * @throws IOException
@@ -90,18 +88,6 @@ public class Util {
 
 		if (closeIS) closeEL(in);
 		if (closeOS) closeEL(out);
-	}
-
-	public final static void fileMove( File src, File dest ) throws IOException {
-		Boolean moved = src.renameTo( dest );
-		if ( !moved ) {
-			BufferedInputStream  is = new BufferedInputStream( new FileInputStream( src ) );
-			BufferedOutputStream os = new BufferedOutputStream( new FileOutputStream( dest ) );
-
-			copy( is, os, true, true );
-
-			src.delete();
-		}
 	}
 
 	/**
@@ -133,7 +119,7 @@ public class Util {
 	 */
 	@Deprecated
 	public static boolean toBooleanValue(String str) throws IOException {
-		str = str.trim().toLowerCase();
+		str = str == null ? null : str.trim().toLowerCase();
 
 		if ("true".equals(str)) return true;
 		if ("false".equals(str)) return false;
@@ -594,4 +580,29 @@ public class Util {
 		}
 	}
 
+	/**
+	 * returns a system setting by either a Java property name or a System environment variable
+	 * 
+	 * @param name - either a lowercased Java property name (e.g. lucee.controller.disabled) or an
+	 *            UPPERCASED Environment variable name ((e.g. LUCEE_CONTROLLER_DISABLED))
+	 * @param defaultValue - value to return if the neither the property nor the environment setting was
+	 *            found
+	 * @return - the value of the property referenced by propOrEnv or the defaultValue if not found
+	 */
+	public static String _getSystemPropOrEnvVar(String name, String defaultValue) { // FUTURE remove _ in front of the name
+		// env
+		String value = System.getenv(name);
+		if (!Util.isEmpty(value)) return value;
+
+		// prop
+		value = System.getProperty(name);
+		if (!Util.isEmpty(value)) return value;
+
+		// env 2
+		name = name.replace('.', '_').toUpperCase();
+		value = System.getenv(name);
+		if (!Util.isEmpty(value)) return value;
+
+		return defaultValue;
+	}
 }

@@ -573,9 +573,9 @@ public class OSGiUtil {
 	}
 
 	private static Resource downloadBundle(CFMLEngineFactory factory, final String symbolicName, String symbolicVersion, Identification id) throws IOException, BundleException {
-		String allowBundleDownload = System.getProperty( "lucee.enable.bundle.download" );
-		if ( "false".equals( allowBundleDownload ) ) {
-			throw( new RuntimeException( "Lucee is missing the Bundle jar, " + symbolicName + ":" + symbolicVersion + ", and has been prevented from downloading it. If this jar is not a core jar, it will need to be manually downloaded and placed in the {{lucee-server}}/context/bundles directory." ) );
+		if (!Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.enable.bundle.download", null), true)) {
+			throw (new RuntimeException("Lucee is missing the Bundle jar, " + symbolicName + ":" + symbolicVersion
+					+ ", and has been prevented from downloading it. If this jar is not a core jar, it will need to be manually downloaded and placed in the {{lucee-server}}/context/bundles directory."));
 		}
 
 		final Resource jarDir = ResourceUtil.toResource(factory.getBundleDirectory());
@@ -585,7 +585,7 @@ public class OSGiUtil {
 				+ (id == null ? "?" : "&") + "allowRedirect=true"
 
 		);
-		log(Logger.LOG_WARNING, "Downloading bundle [" + symbolicName + ":" + symbolicVersion + "] from " + updateUrl );
+		log(Logger.LOG_WARNING, "Downloading bundle [" + symbolicName + ":" + symbolicVersion + "] from " + updateUrl);
 
 		int code;
 		HttpURLConnection conn;
