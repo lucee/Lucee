@@ -1450,6 +1450,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 	private final Tag __multiAttrStatement(Body parent, Data data, TagLibTag tlt) throws TemplateException {
 		if (data.ep == null) return null;
+		int pos = data.srcCode.getPos();
 		String type = tlt.getName();
 		String appendix = null;
 		if (data.srcCode.forwardIfCurrent(type) ||
@@ -1460,17 +1461,25 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 			if (tlt.hasAppendix()) {
 				appendix = CFMLTransformer.identifier(data.srcCode, false, true);
-				if (StringUtil.isEmpty(appendix)) return null;
+				if (StringUtil.isEmpty(appendix)) {
+					data.srcCode.setPos(pos);
+					return null;
+				}
 
 			}
 
 			boolean isValid = (data.srcCode.isCurrent(' ') || (tlt.getHasBody() && data.srcCode.isCurrent('{')));
+			if (isValid && (data.srcCode.isCurrent(" ", "=") || data.srcCode.isCurrent(" ", "("))) { // simply avoid a later exception
+				isValid = false;
+			}
 			if (!isValid) {
-				data.srcCode.setPos(data.srcCode.getPos() - type.length());
+				data.srcCode.setPos(pos);
+				// data.srcCode.setPos(data.srcCode.getPos() - type.length());
 				return null;
 			}
 		}
 		else return null;
+
 		Position line = data.srcCode.getPosition();
 
 		TagLibTagScript script = tlt.getScript();
