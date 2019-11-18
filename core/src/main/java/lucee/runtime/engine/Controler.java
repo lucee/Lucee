@@ -5,17 +5,17 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  **/
 package lucee.runtime.engine;
 
@@ -484,10 +484,13 @@ public final class Controler extends Thread {
 		Resource res = null;
 		int count = ArrayUtil.size(filter == null ? dir.list() : dir.list(filter));
 		long size = ResourceUtil.getRealSize(dir, filter);
-		LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_INFO, Controler.class.getName(),
-				"check size of directory [" + dir + "]; current size	[" + size + "];max size 	[" + maxSize + "]");
-
+		LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_DEBUG, Controler.class.getName(), "Checking size of directory [" + dir + "]. Current size [" + size + "]. Max size [" + maxSize + "]." );
 		int len = -1;
+
+		if ( count > 100000 || size > maxSize ) {
+			LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_WARN, Controler.class.getName(), "Removing files from directory [" + dir + "]. Current size [" + size + "]. Max size [" + maxSize + "]. Number of files [" + count + "]" );
+		}
+
 		while (count > 100000 || size > maxSize) {
 			Resource[] files = filter == null ? dir.listResources() : dir.listResources(filter);
 			if (len == files.length) break;// protect from inifinti loop
