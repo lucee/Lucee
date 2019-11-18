@@ -4,22 +4,24 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 package lucee.loader.util;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileFilter;
@@ -88,6 +90,18 @@ public class Util {
 
 		if (closeIS) closeEL(in);
 		if (closeOS) closeEL(out);
+	}
+
+	public final static void fileMove( File src, File dest ) throws IOException {
+		Boolean moved = src.renameTo( dest );
+		if ( !moved ) {
+			BufferedInputStream  is = new BufferedInputStream( new FileInputStream( src ) );
+			BufferedOutputStream os = new BufferedOutputStream( new FileOutputStream( dest ) );
+
+			copy( is, os, true, true );
+
+			src.delete();
+		}
 	}
 
 	/**
@@ -229,7 +243,7 @@ public class Util {
 
 	/**
 	 * check if string is empty (null or "")
-	 * 
+	 *
 	 * @param str
 	 * @return is empty or not
 	 */
@@ -239,7 +253,7 @@ public class Util {
 
 	/**
 	 * check if string is empty (null or "")
-	 * 
+	 *
 	 * @param str
 	 * @return is empty or not
 	 */
@@ -350,10 +364,10 @@ public class Util {
 	/**
 	 * @deprecated no replacement Returns the canonical form of this abstract pathname.
 	 * @param file file to get canonical form from it
-	 * 
+	 *
 	 * @return The canonical pathname string denoting the same file or directory as this abstract
 	 *         pathname
-	 * 
+	 *
 	 * @throws SecurityException If a required system property value cannot be accessed.
 	 */
 	@Deprecated
@@ -482,7 +496,7 @@ public class Util {
 
 	/**
 	 * check left value against right value
-	 * 
+	 *
 	 * @param left
 	 * @param right
 	 * @return returns if right is newer than left

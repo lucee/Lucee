@@ -3,17 +3,17 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 package lucee.runtime.osgi;
 
@@ -116,7 +116,7 @@ public class OSGiUtil {
 	/**
 	 * only installs a bundle, if the bundle does not already exist, if the bundle exists the existing
 	 * bundle is unloaded first.
-	 * 
+	 *
 	 * @param factory
 	 * @param context
 	 * @param bundle
@@ -138,7 +138,7 @@ public class OSGiUtil {
 
 	/**
 	 * does not check if the bundle already exists!
-	 * 
+	 *
 	 * @param context
 	 * @param path
 	 * @param is
@@ -169,7 +169,7 @@ public class OSGiUtil {
 	/**
 	 * only installs a bundle, if the bundle does not already exist, if the bundle exists the existing
 	 * bundle is unloaded first. the bundle is not stored physically on the system.
-	 * 
+	 *
 	 * @param factory
 	 * @param context
 	 * @param bundle
@@ -282,7 +282,7 @@ public class OSGiUtil {
 
 	/**
 	 * tries to load a class with ni bundle definition
-	 * 
+	 *
 	 * @param name
 	 * @param version
 	 * @param id
@@ -573,6 +573,10 @@ public class OSGiUtil {
 	}
 
 	private static Resource downloadBundle(CFMLEngineFactory factory, final String symbolicName, String symbolicVersion, Identification id) throws IOException, BundleException {
+		String allowBundleDownload = System.getProperty( "lucee.enable.bundle.download" );
+		if ( "false".equals( allowBundleDownload ) ) {
+			throw( new RuntimeException( "Lucee is missing the Bundle jar, " + symbolicName + ":" + symbolicVersion + ", and has been prevented from downloading it. If this jar is not a core jar, it will need to be manually downloaded and placed in the {{lucee-server}}/context/bundles directory." ) );
+		}
 
 		final Resource jarDir = ResourceUtil.toResource(factory.getBundleDirectory());
 		final URL updateProvider = factory.getUpdateLocation();
@@ -581,7 +585,7 @@ public class OSGiUtil {
 				+ (id == null ? "?" : "&") + "allowRedirect=true"
 
 		);
-		log(Logger.LOG_DEBUG, "download bundle [" + symbolicName + ":" + symbolicVersion + "] ");
+		log(Logger.LOG_WARNING, "Downloading bundle [" + symbolicName + ":" + symbolicVersion + "] from " + updateUrl );
 
 		int code;
 		HttpURLConnection conn;
@@ -708,7 +712,7 @@ public class OSGiUtil {
 
 	/**
 	 * this should be used when you not want to load a Bundle to the system
-	 * 
+	 *
 	 * @param name
 	 * @param version
 	 * @param id only necessary if downloadIfNecessary is set to true
@@ -749,7 +753,7 @@ public class OSGiUtil {
 
 	/**
 	 * check left value against right value
-	 * 
+	 *
 	 * @param left
 	 * @param right
 	 * @return returns if right is newer than left
@@ -970,7 +974,7 @@ public class OSGiUtil {
 
 	/**
 	 * get all local bundles (even bundles not loaded/installed)
-	 * 
+	 *
 	 * @param name
 	 * @param version
 	 * @return
@@ -1062,7 +1066,7 @@ public class OSGiUtil {
 
 	/**
 	 * get local bundle, but does not download from update provider!
-	 * 
+	 *
 	 * @param name
 	 * @param version
 	 * @return
@@ -1652,7 +1656,7 @@ public class OSGiUtil {
 
 		/**
 		 * only return a bundle if already loaded, does not load the bundle
-		 * 
+		 *
 		 * @return
 		 */
 		public Bundle getLoadedBundle() {
@@ -1661,7 +1665,7 @@ public class OSGiUtil {
 
 		/**
 		 * get Bundle, also load if necessary from local or remote
-		 * 
+		 *
 		 * @return
 		 * @throws BundleException
 		 * @throws StartFailedException
@@ -1771,7 +1775,7 @@ public class OSGiUtil {
 
 	/**
 	 * value can be a String (for a single entry) or a List<String> for multiple entries
-	 * 
+	 *
 	 * @param b
 	 * @return
 	 */
