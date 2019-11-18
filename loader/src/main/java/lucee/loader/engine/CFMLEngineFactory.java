@@ -723,7 +723,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 			// the update provider can also provide a different (final) location for this
 			int count = 1;
-			while ((code == 302 || code == 301) && count++ < MAX_REDIRECTS) {
+			while ((code == 302 || code == 301) && count++ <= MAX_REDIRECTS) {
 				String location = conn.getHeaderField("Location");
 				// just in case we check invalid names
 				if (location == null) location = conn.getHeaderField("location");

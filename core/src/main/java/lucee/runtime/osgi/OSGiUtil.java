@@ -604,7 +604,7 @@ public class OSGiUtil {
 		if (code != 200) {
 			int count = 1;
 			// the update provider can also provide a different (final) location for this
-			while ((code == 301 || code == 302) && count++ < MAX_REDIRECTS) {
+			while ((code == 301 || code == 302) && count++ <= MAX_REDIRECTS) {
 				String location = conn.getHeaderField("Location");
 				// just in case we check invalid names
 				if (location == null) location = conn.getHeaderField("location");
