@@ -85,6 +85,8 @@ public class OSGiUtil {
 	private static final int QUALIFIER_APPENDIX_OTHER = 4;
 	private static final int QUALIFIER_APPENDIX_STABLE = 5;
 
+	private static final int MAX_REDIRECTS = 5;
+
 	private static ThreadLocal<Set<String>> bundlesThreadLocal = new ThreadLocal<Set<String>>() {
 		@Override
 		protected Set<String> initialValue() {
@@ -600,9 +602,9 @@ public class OSGiUtil {
 		}
 		// the update provider is not providing a download for this
 		if (code != 200) {
-
+			int count = 1;
 			// the update provider can also provide a different (final) location for this
-			if (code == 302) {
+			while ((code == 301 || code == 302) && count++ < MAX_REDIRECTS) {
 				String location = conn.getHeaderField("Location");
 				// just in case we check invalid names
 				if (location == null) location = conn.getHeaderField("location");

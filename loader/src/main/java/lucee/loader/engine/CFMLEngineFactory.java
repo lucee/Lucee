@@ -93,6 +93,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	private static final String UPDATE_LOCATION = "http://release.lucee.org"; // MUST from server.xml
 	private static final long GB1 = 1024 * 1024 * 1024;
 	private static final long MB100 = 1024 * 1024 * 100;
+	private static final int MAX_REDIRECTS = 5;
 
 	private static CFMLEngineFactory factory;
 	// private static CFMLEngineWrapper engineListener;
@@ -721,12 +722,13 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		if (code != 200) {
 
 			// the update provider can also provide a different (final) location for this
-			if (code == 302) {
+			int count = 1;
+			while ((code == 302 || code == 301) && count++ < MAX_REDIRECTS) {
 				String location = conn.getHeaderField("Location");
 				// just in case we check invalid names
 				if (location == null) location = conn.getHeaderField("location");
 				if (location == null) location = conn.getHeaderField("LOCATION");
-				log(Logger.LOG_DEBUG, "download redirected:" + location); // MUST remove
+				log(Logger.LOG_INFO, "download redirected:" + location);
 
 				conn.disconnect();
 				URL url = new URL(location);
@@ -740,7 +742,6 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 					log(e);
 					throw new IOException("could not download the bundle  [" + symbolicName + ":" + symbolicVersion + "] from " + location + " and copy to " + jar, e);
 				}
-
 			}
 
 			// no download available!
