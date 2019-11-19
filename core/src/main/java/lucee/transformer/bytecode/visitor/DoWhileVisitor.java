@@ -21,8 +21,11 @@ package lucee.transformer.bytecode.visitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.commons.GeneratorAdapter;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.Method;
 
 import lucee.transformer.bytecode.BytecodeContext;
+import lucee.transformer.bytecode.util.Types;
 
 // TODO testen wurde noch nicht getestet
 
@@ -32,21 +35,54 @@ public final class DoWhileVisitor implements LoopVisitor {
 	private Label end;
 	private Label beforeEnd;
 
+	private final static Type TYPE_THREAD = Type.getType(Thread.class);
+	private final static Type TYPE_EXCEPTION = Type.getType(InterruptedException.class);
+	private final static Method METHOD_INTERRUPTED = new Method("interrupted", Type.BOOLEAN_TYPE, new Type[] {});
+	private int toIt;
+
 	public void visitBeginBody(GeneratorAdapter mv) {
 		end = new Label();
 		beforeEnd = new Label();
 
 		begin = new Label();
+		toIt = mv.newLocal(Types.ITERATOR);
+		mv.push(0);
+		mv.storeLocal(toIt, Type.INT_TYPE);
 		mv.visitLabel(begin);
 	}
 
 	public void visitEndBodyBeginExpr(GeneratorAdapter mv) {
+		// Check Once every 10K iteration
+		mv.iinc(toIt, 1);
+		mv.loadLocal(toIt);
+		mv.push(10000);
+		mv.ifICmp(Opcodes.IFLT, beforeEnd);
+		// reset counter
+		mv.push(0);
+		mv.storeLocal(toIt);
+		// Check if the thread is interrupted
+		mv.invokeStatic(TYPE_THREAD, METHOD_INTERRUPTED);
+		// Thread hasn't been interrupted, go to beforeEnd
+		mv.ifZCmp(Opcodes.IFEQ, beforeEnd);
+		// Thread interrupted, throw Interrupted Exception
+		mv.throwException(TYPE_EXCEPTION, "timeout in do {} while() loop");
+
 		mv.visitLabel(beforeEnd);
 	}
 
 	public void visitEndExpr(GeneratorAdapter mv) {
 		mv.ifZCmp(Opcodes.IFNE, begin);
 		mv.visitLabel(end);
+		// Preempt
+		Label endPreempt = new Label();
+		// Check if the thread is interrupted
+		mv.invokeStatic(TYPE_THREAD, METHOD_INTERRUPTED);
+		// Thread hasn't been interrupted, go to afterUpdate
+		mv.ifZCmp(Opcodes.IFEQ, endPreempt);
+		// Thread interrupted, throw Interrupted Exception
+		mv.throwException(TYPE_EXCEPTION, "Timeout in For loop");
+		// ExpressionUtil.visitLine(bc, getStartLine());
+		mv.visitLabel(endPreempt);
 	}
 
 	/**
