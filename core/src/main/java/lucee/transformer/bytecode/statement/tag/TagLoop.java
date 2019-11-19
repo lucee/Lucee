@@ -137,10 +137,6 @@ public final class TagLoop extends TagGroup implements FlowControlBreak, FlowCon
 	private static final Method GET_KEY = new Method("getKey", Types.OBJECT, new Type[] {});
 	private static final Method GET_VALUE = new Method("getValue", Types.OBJECT, new Type[] {});
 
-	private final static Type TYPE_THREAD = Type.getType(Thread.class);
-	private final static Type TYPE_EXCEPTION = Type.getType(InterruptedException.class);
-	private final static Method METHOD_INTERRUPTED = new Method("interrupted", Type.BOOLEAN_TYPE, new Type[] {});
-
 	private int type;
 	private LoopVisitor loopVisitor;
 	private String label;
@@ -303,9 +299,6 @@ public final class TagLoop extends TagGroup implements FlowControlBreak, FlowCon
 
 		adapter.storeLocal(it);
 
-		final int toIt = adapter.newLocal(Types.ITERATOR);
-		adapter.push(0);
-		adapter.storeLocal(toIt, Type.INT_TYPE);
 		// while(it.hasNext()) {
 		whileVisitor.visitBeforeExpression(bc);
 		adapter.loadLocal(it);
@@ -348,34 +341,11 @@ public final class TagLoop extends TagGroup implements FlowControlBreak, FlowCon
 			adapter.pop();
 		}
 		getBody().writeOut(bc);
-		// Check Once every 10K iteration
-		adapter.iinc(toIt, 1);
-		adapter.loadLocal(toIt);
-		adapter.push(10000);
-		adapter.ifICmp(Opcodes.IFLT, whileVisitor.getContinueLabel());
-		// reset counter
-		adapter.push(0);
-		adapter.storeLocal(toIt);
-		// Check if the thread is interrupted
-		adapter.invokeStatic(TYPE_THREAD, METHOD_INTERRUPTED);
-		// Thread hasn't been interrupted, go to begin
-		adapter.ifZCmp(Opcodes.IFEQ, whileVisitor.getContinueLabel());
-		// Thread interrupted, throw Interrupted Exception
-		adapter.throwException(TYPE_EXCEPTION, "Timeout in While loop");		
 		whileVisitor.visitAfterBody(bc, getEnd());
 
 		// Reset
 		adapter.loadLocal(it);
 		adapter.invokeStatic(ForEach.FOR_EACH_UTIL, ForEach.RESET);
-		Label endPreempt = new Label();
-		// Check if the thread is interrupted
-		adapter.invokeStatic(TYPE_THREAD, METHOD_INTERRUPTED);
-		// Thread hasn't been interrupted, go to endPreempt
-		adapter.ifZCmp(Opcodes.IFEQ, endPreempt);
-		// Thread interrupted, throw Interrupted Exception
-		adapter.throwException(TYPE_EXCEPTION, "Timeout in For loop");
-		// ExpressionUtil.visitLine(bc, getStartLine());
-		adapter.visitLabel(endPreempt);
 	}
 
 	/**
