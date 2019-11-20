@@ -66,7 +66,6 @@ public final class ForIntVisitor implements Opcodes, LoopVisitor {
 		bc.getAdapter().visitLabel(afterBody);
 		// adapter.visitLocalVariable("i", "I", null, beforeInit, afterBody, i);
 
-		//adapter.visitLocalVariable("i", "I", null, l1, lend, i);
 		Label endPreempt = new Label();
 		// Check if the thread is interrupted
 		bc.getAdapter().invokeStatic(TYPE_THREAD, METHOD_INTERRUPTED);
