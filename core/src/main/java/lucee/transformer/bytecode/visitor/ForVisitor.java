@@ -21,6 +21,8 @@ package lucee.transformer.bytecode.visitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.commons.GeneratorAdapter;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.Method;
 
 import lucee.transformer.Position;
 import lucee.transformer.bytecode.BytecodeContext;
@@ -36,6 +38,10 @@ public final class ForVisitor implements Opcodes, LoopVisitor {
 	private int i;
 	private Label lend = new Label();
 	private Label lbegin = new Label();
+	private final static Type TYPE_THREAD = Type.getType(Thread.class);
+	private final static Type TYPE_EXCEPTION = Type.getType(InterruptedException.class);
+	private final static Method METHOD_INTERRUPTED = new Method("interrupted", Type.BOOLEAN_TYPE, new Type[] {});
+	private int toIt;
 
 	public int visitBegin(GeneratorAdapter adapter, int start, boolean isLocal) {
 		adapter.visitLabel(l0);
@@ -66,11 +72,37 @@ public final class ForVisitor implements Opcodes, LoopVisitor {
 		adapter.visitLabel(lend);
 
 		// adapter.visitLocalVariable("i", "I", null, l1, lend, i);
+		Label endPreempt = new Label();
+		// Check if the thread is interrupted
+		adapter.invokeStatic(TYPE_THREAD, METHOD_INTERRUPTED);
+		// Thread hasn't been interrupted, go to afterUpdate
+		adapter.ifZCmp(Opcodes.IFEQ, endPreempt);
+		// Thread interrupted, throw Interrupted Exception
+		adapter.throwException(TYPE_EXCEPTION, "Timeout in For loop");
+		// ExpressionUtil.visitLine(bc, getStartLine());
+		adapter.visitLabel(endPreempt);
 
 	}
 
 	private void forUpdate(GeneratorAdapter adapter) {
+		Label loopPreemptEnd= new Label();
 		adapter.visitIincInsn(i, 1);
+		// Check Once every 10K iteration
+		adapter.iinc(toIt, 1);
+		adapter.loadLocal(toIt);
+		adapter.push(10000);
+		adapter.ifICmp(Opcodes.IFLT, loopPreemptEnd);
+		// reset counter
+		adapter.push(0);
+		adapter.storeLocal(toIt);
+		// Check if the thread is interrupted
+		adapter.invokeStatic(TYPE_THREAD, METHOD_INTERRUPTED);
+		// Thread hasn't been interrupted, go to begin
+		adapter.ifZCmp(Opcodes.IFEQ, loopPreemptEnd);
+		// Thread interrupted, throw Interrupted Exception
+		adapter.throwException(TYPE_EXCEPTION, "Timeout in While loop");
+		adapter.visitLabel(loopPreemptEnd);
+
 	}
 
 	private void forInit(GeneratorAdapter adapter, int start, boolean isLocal) {
@@ -78,6 +110,10 @@ public final class ForVisitor implements Opcodes, LoopVisitor {
 		if (isLocal) adapter.loadLocal(start);
 		else adapter.push(start);
 		adapter.visitVarInsn(ISTORE, i);
+
+		toIt = adapter.newLocal(Types.ITERATOR);
+		adapter.push(0);
+		adapter.storeLocal(toIt, Type.INT_TYPE);
 	}
 
 	/**
