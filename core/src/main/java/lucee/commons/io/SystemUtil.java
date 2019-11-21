@@ -45,7 +45,6 @@ import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -1408,7 +1407,7 @@ public final class SystemUtil {
 		return rtn;
 	}
 
-	public static List<ClassLoader> getClassLoaderContext(boolean unique) {
+	public static List<ClassLoader> getClassLoaderContext(boolean unique, StringBuilder id) {
 		final Ref ref = new Ref();
 		new SecurityManager() {
 			{
@@ -1429,8 +1428,9 @@ public final class SystemUtil {
 		// extract all the classes
 		Class<?> last = null;
 		Class<?> clazz;
-		LinkedHashMap<Class<?>, String> map = new LinkedHashMap<>();
+		// LinkedHashMap<Class<?>, String> map = new LinkedHashMap<>();
 		List<ClassLoader> context = new ArrayList<ClassLoader>();
+
 		ClassLoader cl = null;
 		for (int i = start; i < ref.context.length; i++) {
 			clazz = ref.context[i];
@@ -1447,7 +1447,18 @@ public final class SystemUtil {
 			if (cl instanceof ArchiveClassLoader) continue;
 			if (cl instanceof MemoryClassLoader) continue;
 
-			if (!unique || !context.contains(cl)) context.add(cl);
+			if (!unique || !context.contains(cl)) {
+				context.add(cl);
+				if (id != null) {
+					if (cl instanceof BundleReference) {
+						Bundle b = ((BundleReference) cl).getBundle();
+						id.append(b.getSymbolicName()).append(':').append(b.getVersion()).append(';');
+					}
+					else {
+						id.append(cl).append(';');
+					}
+				}
+			}
 			last = ref.context[i];
 		}
 		return context;
