@@ -75,6 +75,7 @@ public final class LSParseDateTime implements Function {
 		// with java based format
 		tz = ThreadLocalPageContext.getTimeZone(tz);
 		if (locale == null) locale = pc.getLocale();
+		format = format.replace("D","d");
 		SimpleDateFormat df = new SimpleDateFormat(format, locale);
 		df.setTimeZone(tz);
 		try {
