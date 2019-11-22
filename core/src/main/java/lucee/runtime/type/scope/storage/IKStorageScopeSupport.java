@@ -98,6 +98,8 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	private String name;
 	private String cfid;
 
+	private String nullToken;
+
 	public IKStorageScopeSupport(PageContext pc, IKHandler handler, String appName, String name, String strType, int type, Map<Collection.Key, IKStorageScopeItem> data,
 			long lastModified) {
 		// !!! do not store the pagecontext or config object, this object is Serializable !!!
@@ -583,6 +585,10 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 
 	@Override
 	public String generateToken(String key, boolean forceNew) {
+		if (key == null) {
+			if (nullToken == null) nullToken = RandomUtil.createRandomStringLC(40);
+			return nullToken;
+		}
 
 		// get existing
 		String token;
