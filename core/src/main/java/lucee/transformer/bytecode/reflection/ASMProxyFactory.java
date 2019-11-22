@@ -22,6 +22,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.lang.instrument.UnmodifiableClassException;
+import java.lang.ref.SoftReference;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -29,6 +30,13 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
+import org.objectweb.asm.commons.GeneratorAdapter;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
@@ -41,12 +49,6 @@ import lucee.transformer.bytecode.util.ASMConstants;
 import lucee.transformer.bytecode.util.ASMUtil;
 import lucee.transformer.bytecode.util.Types;
 
-import org.apache.commons.collections4.map.ReferenceMap;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.Label;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
-import org.objectweb.asm.commons.GeneratorAdapter;
 
 public class ASMProxyFactory {
 
@@ -127,7 +129,7 @@ public class ASMProxyFactory {
     		);
 	
 	
-	private static final Map<String,ASMMethod>methods=new ReferenceMap<String,ASMMethod>();
+	private static final Map<String, SoftReference<ASMMethod>> methods = new ConcurrentHashMap<String, SoftReference<ASMMethod>>();
 
 	
 	public static ASMClass getClass(ExtendableClassLoader pcl,Resource classRoot,Class clazz) throws IOException, InstantiationException, IllegalAccessException, IllegalArgumentException, SecurityException, InvocationTargetException, NoSuchMethodException, UnmodifiableClassException{
@@ -161,7 +163,8 @@ public class ASMProxyFactory {
 		String className = createMethodName(clazz,methodName,parameters);
 		
 		// check if already in memory cache
-		ASMMethod asmm = methods.get(className);
+		SoftReference<ASMMethod> tmp = methods.get(className);
+		ASMMethod asmm = tmp == null ? null : tmp.get();
 		if(asmm!=null){
 			//print.e("use loaded from memory");
 			return asmm;
@@ -189,7 +192,8 @@ public class ASMProxyFactory {
 		String className = createMethodName(clazz,method.getName(),method.getParameterTypes());
 		
 		// check if already in memory cache
-		ASMMethod asmm = methods.get(className);
+		SoftReference<ASMMethod> tmp = methods.get(className);
+		ASMMethod asmm = tmp == null ? null : tmp.get();
 		if(asmm!=null)return asmm;
 		
 		// try to load existing ASM Class
@@ -203,7 +207,7 @@ public class ASMProxyFactory {
 		}
 		
 		asmm = newInstance(asmClass,clazz,method.getParameterTypes());
-		methods.put(className, asmm);
+		methods.put(className, new SoftReference<ASMMethod>(asmm));
 		return asmm;
 	}
 

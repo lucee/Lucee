@@ -18,9 +18,9 @@
  */
 package lucee.runtime.video;
 
-import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.SOFT;
-
+import java.lang.ref.SoftReference;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.type.file.FileResource;
@@ -36,12 +36,9 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.functions.string.Hash;
 import lucee.runtime.op.Caster;
 
-import org.apache.commons.collections4.map.ReferenceMap;
-
 public class VideoUtilImpl implements VideoUtil {
 
-
-	private static Map<String,int[]> sizes=new ReferenceMap<String,int[]>(SOFT,SOFT);
+	private static Map<String, SoftReference<int[]>> sizes = new ConcurrentHashMap<String, SoftReference<int[]>>();
 	private static VideoUtilImpl instance=new VideoUtilImpl();
 
 	private VideoUtilImpl(){		}
@@ -192,7 +189,8 @@ public class VideoUtilImpl implements VideoUtil {
 		// get from casche
 		String key = Hash.call(pc, sb.toString());
 		
-		int[] ci=(int[]) sizes.get(key);
+		SoftReference<int[]> tmp = sizes.get(key);
+		int[] ci = tmp == null ? null : tmp.get();
 		if(ci!=null) {
 			return ci;
 		}
@@ -241,7 +239,8 @@ public class VideoUtilImpl implements VideoUtil {
 			
 			
 		}
-		sizes.put(key, rtn=new int[]{width,height});
+		rtn = new int[] { width, height };
+		sizes.put(key, new SoftReference<int[]>(rtn));
 		return rtn;
 	}
 	
