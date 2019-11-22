@@ -18,9 +18,8 @@
  */
 package lucee.runtime.config;
 
-import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.SOFT;
-
 import java.io.IOException;
+import java.lang.ref.SoftReference;
 import java.net.URL;
 import java.util.Collection;
 import java.util.Enumeration;
@@ -86,7 +85,6 @@ import lucee.runtime.writer.CFMLWriterImpl;
 import lucee.runtime.writer.CFMLWriterWS;
 import lucee.runtime.writer.CFMLWriterWSPref;
 
-import org.apache.commons.collections4.map.ReferenceMap;
 import org.osgi.framework.BundleException;
 import org.xml.sax.SAXException;
 
@@ -286,7 +284,7 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 	    	}
 			return serverFunctionMapping;
 		}
-	    private Map<String,Mapping> applicationMappings=new ReferenceMap<String,Mapping>(SOFT,SOFT);
+	    private Map<String,SoftReference<Mapping>> applicationMappings=new ConcurrentHashMap<String,SoftReference<Mapping>>();
 
 	    
 	    
@@ -307,9 +305,9 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 				+":"+(archive==null?"":archive.toLowerCase())
 				+":"+physicalFirst;
 			key=Long.toString(HashUtil.create64BitHash(key),Character.MAX_RADIX);
-			
-			
-			Mapping m=applicationMappings.get(key);
+
+            SoftReference<Mapping> t = applicationMappings.get(key);
+            Mapping m = t == null ? null : t.get();
 			
 			if(m==null){
 				m=new MappingImpl(
@@ -317,7 +315,7 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 					physical,
 					archive,Config.INSPECT_UNDEFINED,physicalFirst,false,false,false,true,ignoreVirtual,null,-1,-1
 					);
-				applicationMappings.put(key,m);
+			    applicationMappings.put(key, new SoftReference<Mapping>(m));
 			}
 			
 			return m;

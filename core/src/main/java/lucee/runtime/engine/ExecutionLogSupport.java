@@ -18,9 +18,8 @@
  */
 package lucee.runtime.engine;
 
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.StringUtil;
@@ -34,7 +33,7 @@ public abstract class ExecutionLogSupport implements ExecutionLog {
 	protected static final short UNIT_MILLI=4;
 	protected static final short UNIT_UNDEFINED=0;
 	
-	private Map<String,Pair> map=Collections.synchronizedMap(new HashMap<String,Pair>());
+	private Map<String, Pair> map = new ConcurrentHashMap<String, Pair>();
 	protected long min=Long.MIN_VALUE;
 	protected short unit=UNIT_UNDEFINED;
 	

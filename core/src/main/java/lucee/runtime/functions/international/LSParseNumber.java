@@ -18,10 +18,12 @@
  **/
 package lucee.runtime.functions.international;
 
+import java.lang.ref.SoftReference;
 import java.text.NumberFormat;
 import java.text.ParsePosition;
 import java.util.Locale;
-import java.util.WeakHashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.ExpressionException;
@@ -36,7 +38,7 @@ public final class LSParseNumber implements Function {
 	
 	private static final long serialVersionUID = 2219030609677513651L;
 	
-	private static WeakHashMap<Locale,NumberFormat> whm=new WeakHashMap<Locale,NumberFormat>();
+	private static Map<Locale, SoftReference<NumberFormat>> formatters = new ConcurrentHashMap<Locale, SoftReference<NumberFormat>>();
 
 	public static double call(PageContext pc , String string) throws PageException {
 		return toDoubleValue(pc.getLocale(),string);
@@ -48,29 +50,28 @@ public final class LSParseNumber implements Function {
 	
 	
 	public static double toDoubleValue(Locale locale,String str) throws PageException {
-		Object o=whm.get(locale);
-		NumberFormat nf=null;
-		if(o==null) {
+		SoftReference<NumberFormat> tmp = formatters.remove(locale);
+		NumberFormat nf = tmp == null ? null : tmp.get();
+		if (nf == null) {
 			nf=NumberFormat.getInstance(locale);
-			whm.put(locale,nf);
 		}
-		else {
-			nf=(NumberFormat) o;
-		}
-		str=optimze(str.toCharArray());
-		
-		ParsePosition pp = new ParsePosition(0);
-        Number result = nf.parse(str, pp);
-		
-        if (pp.getIndex() < str.length()) {
-            throw new ExpressionException("can't parse String [" + str + "] against locale ["+LocaleFactory.getDisplayName(locale)+"] to a number");
+		try {
+            str=optimze(str.toCharArray());
+
+            ParsePosition pp = new ParsePosition(0);
+            Number result = nf.parse(str, pp);
+
+            if (pp.getIndex() < str.length()) {
+                throw new ExpressionException("can't parse String [" + str + "] against locale ["+LocaleFactory.getDisplayName(locale)+"] to a number");
+            }
+            if(result==null)
+                throw new ExpressionException("can't parse String [" + str + "] against locale ["+LocaleFactory.getDisplayName(locale)+"] to a number");
+            return result.doubleValue();
         }
-        if(result==null)
-        	throw new ExpressionException("can't parse String [" + str + "] against locale ["+LocaleFactory.getDisplayName(locale)+"] to a number");
-        return result.doubleValue();
-		
+		finally {
+			formatters.put(locale, new SoftReference<NumberFormat>(nf));
+	    }
 	}
-	
 	
 	private static String optimze(char[] carr) {
 		StringBuilder sb=new StringBuilder();
