@@ -14,16 +14,20 @@
  * 
  * You should have received a copy of the GNU Lesser General Public 
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 package lucee.runtime.db;
 
 import java.io.IOException;
+import java.lang.ref.SoftReference;
 import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.SQLException;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.concurrent.ConcurrentHashMap;
+
+
 
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.ClassException;
@@ -49,7 +53,7 @@ public abstract class DataSourceSupport implements DataSource, Cloneable {
 	private final String username;
 	private final String password;
 
-	private Map<String, ProcMetaCollection> procedureColumnCache;
+	private Map<String, SoftReference<ProcMetaCollection>> procedureColumnCache;
 	private Driver driver;
 
 	private final Log log;
@@ -83,8 +87,7 @@ public abstract class DataSourceSupport implements DataSource, Cloneable {
 				user = username;
 			if (pass == null)
 				pass = password;
-			return _getConnection(config, initialize(config),
-					getConnectionStringTranslated(), user, pass);
+			return _getConnection(config, initialize(config), SQLUtil.connectionStringTranslatedPatch(config, getConnectionStringTranslated()), user, pass);
 
 		} catch (InstantiationException e) {
 			throw new RuntimeException(e);
@@ -160,9 +163,8 @@ public abstract class DataSourceSupport implements DataSource, Cloneable {
 		return cloneReadOnly();
 	}
 
-	public Map<String, ProcMetaCollection> getProcedureColumnCache() {
-		if (procedureColumnCache == null)
-			procedureColumnCache = new ReferenceMap<String, ProcMetaCollection>();
+	public Map<String, SoftReference<ProcMetaCollection>> getProcedureColumnCache() {
+		if (procedureColumnCache == null) procedureColumnCache = new ConcurrentHashMap<String, SoftReference<ProcMetaCollection>>();
 		return procedureColumnCache;
 	}
 
