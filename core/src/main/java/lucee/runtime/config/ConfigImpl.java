@@ -19,16 +19,15 @@
 package lucee.runtime.config;
 
 import static lucee.runtime.db.DatasourceManagerImpl.QOQ_DATASOURCE_NAME;
-import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.SOFT;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.lang.ref.SoftReference;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -148,7 +147,6 @@ import lucee.transformer.library.tag.TagLibFactory;
 import lucee.transformer.library.tag.TagLibTag;
 import lucee.transformer.library.tag.TagLibTagAttr;
 
-import org.apache.commons.collections4.map.ReferenceMap;
 import org.apache.log4j.Layout;
 import org.apache.log4j.Level;
 import org.apache.log4j.PatternLayout;
@@ -3242,15 +3240,16 @@ public abstract class ConfigImpl implements Config {
 		return ormConfig;
 	}
 
-	private Map<String, PageSource> componentPathCache = null;// new ArrayList<Page>();
-	private Map<String, InitFile> ctPatchCache = null;// new ArrayList<Page>();
-	private Map<String, UDF> udfCache = new ReferenceMap<String, UDF>();
+	private Map<String, SoftReference<PageSource>> componentPathCache = null;// new ArrayList<Page>();
+	private Map<String, SoftReference<InitFile>> ctPatchCache = null;// new ArrayList<Page>();
+	private Map<String, SoftReference<UDF>> udfCache = new ConcurrentHashMap<String, SoftReference<UDF>>();
 
 	public CIPage getCachedPage(PageContext pc, String pathWithCFC) throws TemplateException {
 		if(componentPathCache == null)
 			return null;
 
-		PageSource ps = componentPathCache.get(pathWithCFC.toLowerCase());
+		SoftReference<PageSource> tmp = componentPathCache.get(pathWithCFC.toLowerCase());
+		PageSource ps = tmp == null ? null : tmp.get();
 		if(ps == null)
 			return null;
 
@@ -3263,17 +3262,17 @@ public abstract class ConfigImpl implements Config {
 	}
 
 	public void putCachedPageSource(String pathWithCFC, PageSource ps) {
-		if(componentPathCache == null)
-			componentPathCache = Collections.synchronizedMap(new HashMap<String, PageSource>());// MUSTMUST new
+		if (componentPathCache == null) componentPathCache = new ConcurrentHashMap<String, SoftReference<PageSource>>();// MUSTMUST new
 																								// ReferenceMap(ReferenceMap.SOFT,ReferenceMap.SOFT);
-		componentPathCache.put(pathWithCFC.toLowerCase(), ps);
+		componentPathCache.put(pathWithCFC.toLowerCase(), new SoftReference<PageSource>(ps));
 	}
 
 	public InitFile getCTInitFile(PageContext pc, String key) {
 		if(ctPatchCache == null)
 			return null;
 
-		InitFile initFile = ctPatchCache.get(key.toLowerCase());
+		SoftReference<InitFile> tmp = ctPatchCache.get(key.toLowerCase());
+		InitFile initFile = tmp == null ? null : tmp.get();
 		if(initFile != null) {
 			if(MappingImpl.isOK(initFile.getPageSource()))
 				return initFile;
@@ -3283,21 +3282,20 @@ public abstract class ConfigImpl implements Config {
 	}
 
 	public void putCTInitFile(String key, InitFile initFile) {
-		if(ctPatchCache == null)
-			ctPatchCache = Collections.synchronizedMap(new HashMap<String, InitFile>());// MUSTMUST new ReferenceMap(ReferenceMap.SOFT,ReferenceMap.SOFT);
-		ctPatchCache.put(key.toLowerCase(), initFile);
+		if (ctPatchCache == null) ctPatchCache = new ConcurrentHashMap<String, SoftReference<InitFile>>();// MUSTMUST new ReferenceMap(ReferenceMap.SOFT,ReferenceMap.SOFT);
+		ctPatchCache.put(key.toLowerCase(), new SoftReference<InitFile>(initFile));
 	}
 
 	public Struct listCTCache() {
 		Struct sct = new StructImpl();
 		if(ctPatchCache == null)
 			return sct;
-		Iterator<Entry<String, InitFile>> it = ctPatchCache.entrySet().iterator();
+		Iterator<Entry<String, SoftReference<InitFile>>> it = ctPatchCache.entrySet().iterator();
 
-		Entry<String, InitFile> entry;
+		Entry<String, SoftReference<InitFile>> entry;
 		while(it.hasNext()) {
 			entry = it.next();
-			sct.setEL(entry.getKey(), entry.getValue().getPageSource().getDisplayPath());
+			sct.setEL(entry.getKey(), entry.getValue().get().getPageSource().getDisplayPath());
 		}
 		return sct;
 	}
@@ -3313,23 +3311,25 @@ public abstract class ConfigImpl implements Config {
 	}
 
 	public UDF getFromFunctionCache(String key) {
-		return udfCache.get(key);
+		SoftReference<UDF> tmp = udfCache.get(key);
+		if (tmp == null) return null;
+		return tmp.get();
 	}
 
 	public void putToFunctionCache(String key, UDF udf) {
-		udfCache.put(key, udf);
+		udfCache.put(key, new SoftReference<UDF>(udf));
 	}
 
 	public Struct listComponentCache() {
 		Struct sct = new StructImpl();
 		if(componentPathCache == null)
 			return sct;
-		Iterator<Entry<String, PageSource>> it = componentPathCache.entrySet().iterator();
+		Iterator<Entry<String, SoftReference<PageSource>>> it = componentPathCache.entrySet().iterator();
 
-		Entry<String, PageSource> entry;
+		Entry<String, SoftReference<PageSource>> entry;
 		while(it.hasNext()) {
 			entry = it.next();
-			sct.setEL(entry.getKey(), entry.getValue().getDisplayPath());
+			sct.setEL(entry.getKey(), entry.getValue().get().getDisplayPath());
 		}
 		return sct;
 	}
@@ -3385,13 +3385,14 @@ public abstract class ConfigImpl implements Config {
 		this.componentRootSearch = componentRootSearch;
 	}
 
-	private final Map<String, Compress> compressResources = new ReferenceMap<String, Compress>(SOFT, SOFT);
+	private final Map<String, SoftReference<Compress>> compressResources = new ConcurrentHashMap<String, SoftReference<Compress>>();
 
 	public Compress getCompressInstance(Resource zipFile, int format, boolean caseSensitive) throws IOException {
-		Compress compress = (Compress)compressResources.get(zipFile.getPath());
+		SoftReference<Compress> tmp = compressResources.get(zipFile.getPath());
+		Compress compress = tmp == null ? null : tmp.get();
 		if(compress == null) {
 			compress = new Compress(zipFile, format, caseSensitive);
-			compressResources.put(zipFile.getPath(), compress);
+			compressResources.put(zipFile.getPath(), new SoftReference<Compress>(compress));
 		}
 		return compress;
 	}

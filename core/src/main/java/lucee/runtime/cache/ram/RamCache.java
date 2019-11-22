@@ -19,12 +19,15 @@
 package lucee.runtime.cache.ram;
 
 import java.io.IOException;
+import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+
+import org.apache.commons.collections4.map.ReferenceMap;
 
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.cache.CacheEntry;
@@ -119,7 +122,8 @@ public class RamCache extends CacheSupport {
 
 	@Override
 	public CacheEntry getQuiet(String key, CacheEntry defaultValue) {
-		RamCacheEntry entry = entries.get(key);
+		SoftReference<RamCacheEntry> tmp = entries.get(key);
+		RamCacheEntry entry = tmp == null ? null : tmp.get();
 		if(entry==null) {
 			return defaultValue;
 		}
@@ -133,7 +137,8 @@ public class RamCache extends CacheSupport {
 	
 	
 	private CacheEntry _getQuiet(String key, CacheEntry defaultValue) {
-		RamCacheEntry entry = entries.get(key);
+		SoftReference<RamCacheEntry> tmp = entries.get(key);
+		RamCacheEntry entry = tmp == null ? null : tmp.get();
 		if(entry==null) {
 			return defaultValue;
 		}
@@ -170,11 +175,11 @@ public class RamCache extends CacheSupport {
 	public List<String> keys() {
 		List<String> list=new ArrayList<String>();
 		
-		Iterator<Entry<String, RamCacheEntry>> it = entries.entrySet().iterator();
-		RamCacheEntry entry;
+		Iterator<Entry<String, SoftReference<RamCacheEntry>>> it = entries.entrySet().iterator();
+		SoftReference<RamCacheEntry> entry;
 		while(it.hasNext()){
 			entry=it.next().getValue();
-			if(valid(entry))list.add(entry.getKey());
+			if (valid(entry.get())) list.add(entry.get().getKey());
 		}
 		return list;
 	}
@@ -182,11 +187,11 @@ public class RamCache extends CacheSupport {
 	@Override
 	public void put(String key, Object value, Long idleTime, Long until) {
 		
-		RamCacheEntry entry= entries.get(key);
+		SoftReference<RamCacheEntry> tmp = entries.get(key);
+		RamCacheEntry entry = tmp == null ? null : tmp.get();
 		if(entry==null){
-			entries.put(key, new RamCacheEntry(key,decouple(value),
-					idleTime==null?this.idleTime:idleTime.longValue(),
-					until==null?this.until:until.longValue()));
+			entries.put(key, new SoftReference<RamCacheEntry>(
+					new RamCacheEntry(key, decouple(value), idleTime == null ? this.idleTime : idleTime.longValue(), until == null ? this.until : until.longValue())));
 		}
 		else
 			entry.update(value);
@@ -194,7 +199,8 @@ public class RamCache extends CacheSupport {
 
 	@Override
 	public boolean remove(String key) {
-		RamCacheEntry entry = entries.remove(key);
+		SoftReference<RamCacheEntry> tmp = entries.remove(key);
+		RamCacheEntry entry = tmp == null ? null : tmp.get();
 		if(entry==null) {
 			return false;
 		}
