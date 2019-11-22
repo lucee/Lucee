@@ -12,22 +12,23 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  * 
- * You should have received a copy of the GNU Lesser General Public 
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  **/
 package lucee.commons.i18n;
 
-import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.SOFT;
-
+import java.lang.ref.SoftReference;
 import java.nio.charset.Charset;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.date.TimeZoneConstants;
 import lucee.commons.io.IOUtil;
@@ -37,8 +38,6 @@ import lucee.commons.lang.StringUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalPageContext;
 
-import org.apache.commons.collections4.map.ReferenceMap;
-
 public class FormatUtil {
 
 	public static final short FORMAT_TYPE_DATE=1;
@@ -46,12 +45,13 @@ public class FormatUtil {
 	public static final short FORMAT_TYPE_DATE_TIME=3;
 	public static final short FORMAT_TYPE_DATE_ALL=4;
  
-	private final static Map<String,DateFormat[]> formats=new ReferenceMap<String,DateFormat[]>(SOFT,SOFT);
+	private final static Map<String, SoftReference<DateFormat[]>> formats = new ConcurrentHashMap<String, SoftReference<DateFormat[]>>();
 	
 	public static DateFormat[] getDateTimeFormats(Locale locale,TimeZone tz,boolean lenient) {
 
 		String id="dt-"+locale.toString()+"-"+tz.getID()+"-"+lenient;
-		DateFormat[] df=formats.get(id);
+		SoftReference<DateFormat[]> tmp = formats.get(id);
+		DateFormat[] df = tmp == null ? null : tmp.get();
 		if(df==null) {
 			List<DateFormat> list=new ArrayList<DateFormat>();
 			list.add(DateFormat.getDateTimeInstance(DateFormat.FULL,DateFormat.FULL,locale));
@@ -82,14 +82,16 @@ public class FormatUtil {
 				df[i].setTimeZone(tz);
 			}
 			
-			formats.put(id, df);
+			formats.put(id, new SoftReference<DateFormat[]>(df));
 		}
 		return clone(df);
 	}
 
 	public static DateFormat[] getDateFormats(Locale locale,TimeZone tz,boolean lenient) {
 		String id="d-"+locale.toString()+"-"+tz.getID()+"-"+lenient;
-		DateFormat[] df= formats.get(id);
+		SoftReference<DateFormat[]> tmp = formats.get(id);
+		DateFormat[] df = tmp == null ? null : tmp.get();
+
 		if(df==null) {
 			List<DateFormat> list=new ArrayList<DateFormat>();
 			list.add(DateFormat.getDateInstance(DateFormat.FULL,locale));
@@ -103,7 +105,7 @@ public class FormatUtil {
 				df[i].setLenient(lenient);
 				df[i].setTimeZone(tz);
 			}
-			formats.put(id, df);
+			formats.put(id, new SoftReference<DateFormat[]>(df));
 		}
 		return clone(df);
 	}
@@ -118,7 +120,9 @@ public class FormatUtil {
 
 	public static DateFormat[] getTimeFormats(Locale locale,TimeZone tz,boolean lenient) {
 		String id="t-"+locale.toString()+"-"+tz.getID()+"-"+lenient;
-		DateFormat[] df= formats.get(id);
+		SoftReference<DateFormat[]> tmp = formats.get(id);
+		DateFormat[] df = tmp == null ? null : tmp.get();
+
 		if(df==null) {
 			List<DateFormat> list=new ArrayList<DateFormat>();
 			list.add(DateFormat.getTimeInstance(DateFormat.FULL,locale));
@@ -133,7 +137,7 @@ public class FormatUtil {
 				 df[i].setLenient(lenient);
 				 df[i].setTimeZone(tz);
 			}
-			formats.put(id, df);
+			formats.put(id, new SoftReference<DateFormat[]>(df));
 		}
 		return clone(df);
 	}
@@ -218,7 +222,9 @@ public class FormatUtil {
 	 */
 	public static DateFormat[] getCFMLFormats(TimeZone tz,boolean lenient) {
 		String id="cfml-"+Locale.ENGLISH.toString()+"-"+tz.getID()+"-"+lenient;
-		DateFormat[] df= formats.get(id);
+		SoftReference<DateFormat[]> tmp = formats.get(id);
+		DateFormat[] df = tmp == null ? null : tmp.get();
+
 		if(df==null) {
 			df= new SimpleDateFormat[]{
 					  new SimpleDateFormat("EEE MMM dd HH:mm:ss z yyyy",Locale.ENGLISH)
@@ -250,7 +256,7 @@ public class FormatUtil {
 				df[i].setLenient(lenient);
 				df[i].setTimeZone(tz);
 			}
-			formats.put(id, df);
+			formats.put(id, new SoftReference<DateFormat[]>(df));
 		}
 		return clone(df);
 	}

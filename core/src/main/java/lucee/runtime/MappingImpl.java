@@ -18,12 +18,12 @@
  */
 package lucee.runtime;
 
-import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.SOFT;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.instrument.UnmodifiableClassException;
+import java.lang.ref.SoftReference;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.ServletContext;
 
@@ -44,7 +44,6 @@ import lucee.runtime.listener.ApplicationListener;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.type.util.ArrayUtil;
 
-import org.apache.commons.collections4.map.ReferenceMap;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 
@@ -77,7 +76,7 @@ public final class MappingImpl implements Mapping {
 	private Resource physical;
 	
 	private String lcVirtualWithSlash;
-	private Map<String,Object> customTagPath=new ReferenceMap<String,Object>(SOFT,SOFT);
+	private Map<String, SoftReference<Object>> customTagPath = new ConcurrentHashMap<String, SoftReference<Object>>();
 	
 	private boolean appMapping;
 	private boolean ignoreVirtual;
