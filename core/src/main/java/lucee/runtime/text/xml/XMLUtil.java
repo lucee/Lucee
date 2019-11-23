@@ -26,6 +26,7 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -47,6 +48,7 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
@@ -221,6 +223,30 @@ public final class XMLUtil {
     	}*/
     	if(transformerFactory==null)transformerFactory=new TransformerFactoryImpl();
         return transformerFactory;
+    }
+
+    private static URL documentBuilderFactoryResource;
+
+    public static String getXMLParserConfigurationName() {
+        String value = "org.apache.xerces.parsers.XIncludeAwareParserConfiguration";
+        System.setProperty("org.apache.xerces.xni.parser.XMLParserConfiguration", value);
+        return value; // TODO better impl, still used?
+    }
+
+    public static String getDocumentBuilderFactoryName() {
+        Class<DocumentBuilderFactory> clazz = _newDocumentBuilderFactoryClass();
+        if (clazz != null) return clazz.getName();
+        return DocumentBuilderFactory.newInstance().getClass().getName();
+    }
+
+    public static URL getDocumentBuilderFactoryResource() throws IOException {
+        if (documentBuilderFactoryResource == null) {
+            String name = getDocumentBuilderFactoryName();
+            Resource localFile = SystemUtil.getTempDirectory().getRealResource(name.replace('\\', '_').replace('/', '_'));
+            IOUtil.write(localFile, name.getBytes());
+            documentBuilderFactoryResource = ((File) localFile).toURI().toURL();
+        }
+        return documentBuilderFactoryResource;
     }
     
 

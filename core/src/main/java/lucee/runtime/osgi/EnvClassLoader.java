@@ -10,22 +10,30 @@ import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
 
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.SystemUtil.Caller;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.PhysicalClassLoader;
+import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
+import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.engine.ThreadLocalPageContext;
-
-import org.osgi.framework.Bundle;
+import lucee.runtime.text.xml.XMLUtil;
 
 public class EnvClassLoader extends URLClassLoader {
 
+	private static float FROM_SYSTEM = 1;
+	private static float FROM_BOOTDELEGATION = 2;
+	private static float FROM_CALLER = 3;
+
 	private ConfigImpl config;
-	//private final ClassLoader[] parents;
-	//private ClassLoader loaderCL;
+	// private Map<String, SoftReference<Coll>> callerCache=new ConcurrentHashMap<String,
+	// SoftReference<Coll>>();
 
 	private static final short CLASS=1;
 	private static final short URL=2;
@@ -58,9 +66,10 @@ public class EnvClassLoader extends URLClassLoader {
 		
 		// PATCH 
 		if(name.equalsIgnoreCase("META-INF/services/org.apache.xerces.xni.parser.XMLParserConfiguration")) {
-			String value="org.apache.xerces.parsers.XIncludeAwareParserConfiguration";
-			System.setProperty("org.apache.xerces.xni.parser.XMLParserConfiguration", value);
-			return new ByteArrayInputStream(value.getBytes());
+			return new ByteArrayInputStream(XMLUtil.getXMLParserConfigurationName().getBytes());
+		}
+		else if (name.equalsIgnoreCase("META-INF/services/javax.xml.parsers.DocumentBuilderFactory")) {
+			return new ByteArrayInputStream(XMLUtil.getDocumentBuilderFactoryName().getBytes());
 		}
 		return null;
 	}
@@ -85,26 +94,56 @@ public class EnvClassLoader extends URLClassLoader {
 
 	private synchronized Object load(String name, short type, boolean doLog) {
 		Object obj=null;
-		
+		// cache.get(name);
+
+		// PATCH XML Meta data move to getResource*
+		/*
+		 * if (name.equalsIgnoreCase("META-INF/services/javax.xml.parsers.DocumentBuilderFactory")) { try {
+		 * return XMLUtil.getDocumentBuilderFactoryResource(); } catch (IOException e) {
+		 * e.printStackTrace(); } }
+		 */
+
+		// PATCH for com.sun
+		if ((name + "").startsWith("com.sun.")) {
+			// com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl
+			// com.sun.org.apache.xerces.internal.parsers.SAXParser
+			ClassLoader loader = CFMLEngineFactory.class.getClassLoader();
+			obj = _load(loader, name, type);
+			if (obj != null) {
+				return obj;
+			}
+		}
+
 		// first we check the callers classpath
 		Caller caller = SystemUtil.getCallerClass();
 		if(!caller.isEmpty()) {
-			
+			float from = 0;
 			// if the request comes from classpath  
 			Class clazz=caller.fromClasspath();
 			if(clazz!=null) {
 				if(clazz.getClassLoader()!=null) {
 					obj=_load(clazz.getClassLoader(),name,type);
+					if (obj != null) from = FROM_SYSTEM;
 					if(obj==null && clazz.getClassLoader() instanceof PhysicalClassLoader && clazz!=caller.fromBootDelegation && caller.fromBootDelegation!=null & caller.fromBootDelegation.getClassLoader()!=null) {
 						obj=_load(caller.fromBootDelegation.getClassLoader(),name,type);
+						if (obj != null) from = FROM_BOOTDELEGATION;
 					}
 				}
 			}
 			if(obj==null && caller.fromBundle!=null) {
-				if(caller.fromBundle.getClassLoader()!=null)
+				if (caller.fromBundle.getClassLoader() != null) {
 					obj=_load(caller.fromBundle.getClassLoader(),name,type);
+					if (obj != null) {
+						org.apache.felix.framework.BundleWiringImpl.BundleClassLoader bcl = null;
+						/// print.e(caller.fromBundle.getClassLoader().getClass().getName());
+						/// print.e(caller.fromBundle.getClassLoader().hashCode());
+						from = FROM_CALLER;
+					}
 			}
-			if(obj!=null) return obj;
+			}
+			if (obj != null) {
+
+				return obj;
 		}	
 
 		// now we check in the core  for the class (this includes all jars loaded by the core)
@@ -117,22 +156,29 @@ public class EnvClassLoader extends URLClassLoader {
 		
 		// now we check extension bundles
 		if(caller.isEmpty() || /*PATCH LDEV-1312*/(ThreadLocalPageContext.get()==null)/* if we are in a child threads*/ || caller.fromBundle!=null) {
-			Bundle[] bundles = ConfigWebUtil.getEngine(config).getBundleContext().getBundles();
 			Bundle b=null;
-			for(int i=0;i<bundles.length;i++) {
-				b=bundles[i];
-				if(b!=null && !OSGiUtil.isFrameworkBundle(b)) {
-					try {
-						if(type==CLASS)obj = b.loadClass(name);
-						else if(type==URL)obj = b.getResource(name);
-						else {
-							java.net.URL url = b.getResource(name);
-							if(url!=null) obj=url.openStream();
+			CFMLEngine engine = ConfigWebUtil.getEngine(config);
+			if (engine != null) {
+				BundleContext bc = engine.getBundleContext();
+				if (bc != null) {
+					Bundle[] bundles = bc.getBundles();
+                    for(int i=0;i<bundles.length;i++) {
+                        b=bundles[i];
+                        if(b!=null && !OSGiUtil.isFrameworkBundle(b)) {
+                            try {
+                                if(type==CLASS)obj = b.loadClass(name);
+                                else if(type==URL)obj = b.getResource(name);
+                                else {
+                                    java.net.URL url = b.getResource(name);
+                                    if(url!=null) obj=url.openStream();
+                                }
+                                if(obj!=null)break;
+                            }
+                            catch(Exception e) {
+                                obj=null;
+								b = null;
+							}
 						}
-						if(obj!=null)break;
-					} 
-					catch(Exception e) {
-						obj=null;
 					}
 				}
 			}
