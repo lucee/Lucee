@@ -144,8 +144,7 @@ public class EnvClassLoader extends URLClassLoader {
 				return obj;
 			}
 		}
-		return obj;
-   }
+
 		// print.ds("4:" + (SystemUtil.millis() - start) + ":" + name);
 		callerCache.put(id.toString(), new SoftReference<Object[]>(new Object[] { null }));
 		return null;
