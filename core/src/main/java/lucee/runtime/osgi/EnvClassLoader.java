@@ -11,6 +11,7 @@ import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleReference;
@@ -33,8 +34,7 @@ public class EnvClassLoader extends URLClassLoader {
 	private static Map<SoftReference<String>, SoftReference<String>> notFound = new java.util.concurrent.ConcurrentHashMap<>();
 
 	private ConfigImpl config;
-	// private Map<String, SoftReference<Coll>> callerCache=new ConcurrentHashMap<String,
-	// SoftReference<Coll>>();
+	private Map<String, SoftReference<Object[]>> callerCache = new ConcurrentHashMap<String, SoftReference<Object[]>>();
 
 	private static final short CLASS=1;
 	private static final short URL=2;
@@ -89,10 +89,6 @@ public class EnvClassLoader extends URLClassLoader {
 	}
 
 	private synchronized Object load(String name, short type, boolean doLog) {
-		Object obj=null;
-		// cache.get(name);
-
-		// if (name.equals("org.hibernate.hql.ast.HqlToken")) print.ds();
 
 		// PATCH XML
 		if ((name + "").startsWith("META-INF/services") && !inside.get()) {
@@ -122,6 +118,7 @@ public class EnvClassLoader extends URLClassLoader {
 
 		// PATCH for com.sun
 		if ((name + "").startsWith("com.sun.")) {
+			Object obj;
 			ClassLoader loader = CFMLEngineFactory.class.getClassLoader();
 			obj = _load(loader, name, type);
 			if (obj != null) {
@@ -129,16 +126,30 @@ public class EnvClassLoader extends URLClassLoader {
 			}
 		}
 		
+		StringBuilder id = new StringBuilder(name).append(';').append(type).append(';');
+		List<ClassLoader> listContext = SystemUtil.getClassLoaderContext(true, id);
+
+		SoftReference<Object[]> sr = callerCache.get(id.toString());
+		if (sr != null && sr.get() != null) {
+			// print.e(name + " - from cache " + callerCache.size());
+			return sr.get()[0];
+		}
+
 		// callers classloader context
-		for (ClassLoader cl: SystemUtil.getClassLoaderContext(true)) {
+		Object obj;
+		for (ClassLoader cl: listContext) {
 			obj = _load(cl, name, type);
 			if(obj!=null) {
+				callerCache.put(id.toString(), new SoftReference<Object[]>(new Object[] { obj }));
 				return obj;
 			}
 		}
 		return obj;
    }
-
+		// print.ds("4:" + (SystemUtil.millis() - start) + ":" + name);
+		callerCache.put(id.toString(), new SoftReference<Object[]>(new Object[] { null }));
+		return null;
+	}
 
 	private Object _load(ClassLoader cl, String name, short type) {
 		Object obj=null;
