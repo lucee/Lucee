@@ -131,6 +131,8 @@ public final class XMLUtil {
 	//private static DocumentBuilderFactory factory;
     private static TransformerFactory transformerFactory;
 	private static DocumentBuilderFactory documentBuilderFactory;
+
+    private static URL transformerFactoryResource;
 	
 
     public static String unescapeXMLString(String str) {
@@ -216,16 +218,35 @@ public final class XMLUtil {
      * @return returns a singelton TransformerFactory
      */
     public static TransformerFactory getTransformerFactory() {
-    	
+
     	/*if(transformerFactory==null){
-    		Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl)ThreadLocalPageContext.getConfig())); // TODO make this global 
+    		Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl)ThreadLocalPageContext.getConfig())); // TODO make this global
     		transformerFactory=TransformerFactory.newInstance();
     	}*/
     	if(transformerFactory==null)transformerFactory=new TransformerFactoryImpl();
         return transformerFactory;
     }
 
+    public static String getTransformerFactoryName() {
+        return getTransformerFactory().getClass().getName();
+    }
+
+    public static URL getTransformerFactoryResource() throws IOException {
+        if (transformerFactoryResource == null) {
+            String name = getTransformerFactoryName();
+            Resource localFile = SystemUtil.getTempDirectory().getRealResource(name.replace('\\', '_').replace('/', '_'));
+            IOUtil.write(localFile, name.getBytes());
+            transformerFactoryResource = ((File) localFile).toURI().toURL();
+        }
+        // if(transformerFactory==null)transformerFactory=new TransformerFactoryImpl();
+        return transformerFactory;
+        return transformerFactoryResource;
+    }
+
+
     private static URL documentBuilderFactoryResource;
+
+    private static URL saxParserFactoryResource;
 
     public static String getXMLParserConfigurationName() {
         String value = "org.apache.xerces.parsers.XIncludeAwareParserConfiguration";
@@ -1229,6 +1250,20 @@ public final class XMLUtil {
 		if(first!=null) parent.insertBefore(node, first);
 		else parent.appendChild(node);
 	}
+
+    public static String getSAXParserFactoryName() {
+        return newSAXParserFactory().getClass().getName();
+    }
+
+    public static URL getSAXParserFactoryResource() throws IOException {
+        if (saxParserFactoryResource == null) {
+            String name = getSAXParserFactoryName();
+            Resource localFile = SystemUtil.getTempDirectory().getRealResource(name.replace('\\', '_').replace('/', '_'));
+            IOUtil.write(localFile, name.getBytes());
+            saxParserFactoryResource = ((File) localFile).toURI().toURL();
+        }
+        return saxParserFactoryResource;
+    }
 
 	public static XMLReader createXMLReader() throws SAXException {
 		/*if(optionalDefaultSaxParser==null)
