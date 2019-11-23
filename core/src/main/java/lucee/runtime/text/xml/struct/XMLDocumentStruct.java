@@ -20,11 +20,6 @@ package lucee.runtime.text.xml.struct;
 
 import java.lang.reflect.Method;
 
-import lucee.runtime.exp.PageRuntimeException;
-import lucee.runtime.op.Caster;
-import lucee.runtime.type.Collection;
-import lucee.runtime.type.util.ArrayUtil;
-
 import org.w3c.dom.Attr;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Comment;
@@ -41,6 +36,11 @@ import org.w3c.dom.NodeList;
 import org.w3c.dom.ProcessingInstruction;
 import org.w3c.dom.Text;
 
+import lucee.commons.lang.StringUtil;
+import lucee.runtime.exp.PageRuntimeException;
+import lucee.runtime.op.Caster;
+import lucee.runtime.type.Collection;
+import lucee.runtime.type.util.ArrayUtil;
 
 /**
  * 
@@ -141,10 +141,13 @@ public final class XMLDocumentStruct extends XMLNodeStruct implements Document {
 
 	@Override
 	public ProcessingInstruction createProcessingInstruction(String target, String data) throws DOMException {
+		if (StringUtil.isEmpty(target)) throw new RuntimeException("target is empty/null");
+		if (StringUtil.isEmpty(target)) throw new RuntimeException("data is empty/null");
 		return doc.createProcessingInstruction(target,data);
 	}
 
 	// used only with java 7, do not set @Override
+	@Override
 	public Node adoptNode(Node arg0) throws DOMException {
     	// dynamic load to support jre 1.4 and 1.5
 		try {
@@ -157,6 +160,7 @@ public final class XMLDocumentStruct extends XMLNodeStruct implements Document {
 	}
 
 	// used only with java 7, do not set @Override
+	@Override
 	public String getDocumentURI() {
     	// dynamic load to support jre 1.4 and 1.5
 		try {
@@ -169,6 +173,7 @@ public final class XMLDocumentStruct extends XMLNodeStruct implements Document {
 	}
 
 	// used only with java 7, do not set @Override
+	@Override
 	public DOMConfiguration getDomConfig() {
     	// dynamic load to support jre 1.4 and 1.5
 		try {
@@ -181,6 +186,7 @@ public final class XMLDocumentStruct extends XMLNodeStruct implements Document {
 	}
 
 	// used only with java 7, do not set @Override
+	@Override
 	public String getInputEncoding() {
     	// dynamic load to support jre 1.4 and 1.5
 		try {
@@ -193,6 +199,7 @@ public final class XMLDocumentStruct extends XMLNodeStruct implements Document {
 	}
 
 	// used only with java 7, do not set @Override
+	@Override
 	public boolean getStrictErrorChecking() {
     	// dynamic load to support jre 1.4 and 1.5
 		try {
@@ -205,6 +212,7 @@ public final class XMLDocumentStruct extends XMLNodeStruct implements Document {
 	}
 
 	// used only with java 7, do not set @Override
+	@Override
 	public String getXmlEncoding() {
     	// dynamic load to support jre 1.4 and 1.5
 		try {
@@ -217,6 +225,7 @@ public final class XMLDocumentStruct extends XMLNodeStruct implements Document {
 	}
 
 	// used only with java 7, do not set @Override
+	@Override
 	public boolean getXmlStandalone() {
     	// dynamic load to support jre 1.4 and 1.5
 		try {
@@ -229,6 +238,7 @@ public final class XMLDocumentStruct extends XMLNodeStruct implements Document {
 	}
 
 	// used only with java 7, do not set @Override
+	@Override
 	public String getXmlVersion() {
     	// dynamic load to support jre 1.4 and 1.5
 		try {
@@ -241,6 +251,7 @@ public final class XMLDocumentStruct extends XMLNodeStruct implements Document {
 	}
 
 	// used only with java 7, do not set @Override
+	@Override
 	public void normalizeDocument() {
     	// dynamic load to support jre 1.4 and 1.5
 		try {
@@ -253,6 +264,7 @@ public final class XMLDocumentStruct extends XMLNodeStruct implements Document {
 	}
 
 	// used only with java 7, do not set @Override
+	@Override
 	public Node renameNode(Node arg0, String arg1, String arg2) throws DOMException {
     	// dynamic load to support jre 1.4 and 1.5
 		try {
@@ -265,6 +277,7 @@ public final class XMLDocumentStruct extends XMLNodeStruct implements Document {
 	}
 
 	// used only with java 7, do not set @Override
+	@Override
 	public void setDocumentURI(String arg0) {
     	// dynamic load to support jre 1.4 and 1.5
 		try {
@@ -278,6 +291,7 @@ public final class XMLDocumentStruct extends XMLNodeStruct implements Document {
 	}
 
 	// used only with java 7, do not set @Override
+	@Override
 	public void setStrictErrorChecking(boolean arg0) {
     	// dynamic load to support jre 1.4 and 1.5
 		try {
@@ -291,6 +305,7 @@ public final class XMLDocumentStruct extends XMLNodeStruct implements Document {
 	}
 
 	// used only with java 7, do not set @Override
+	@Override
 	public void setXmlStandalone(boolean arg0) throws DOMException {
     	// dynamic load to support jre 1.4 and 1.5
 		try {
@@ -304,6 +319,7 @@ public final class XMLDocumentStruct extends XMLNodeStruct implements Document {
 	}
 
 	// used only with java 7, do not set @Override
+	@Override
 	public void setXmlVersion(String arg0) throws DOMException {
     	// dynamic load to support jre 1.4 and 1.5
 		try {
