@@ -18,8 +18,10 @@
  */
 package lucee.runtime.tag;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TimeZone;
 
@@ -36,6 +38,7 @@ import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.ext.tag.DynamicAttributes;
 import lucee.runtime.ext.tag.TagImpl;
 import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.listener.ApplicationContext;
@@ -52,6 +55,7 @@ import lucee.runtime.orm.ORMUtil;
 import lucee.runtime.tag.listener.TagListener;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection.Key;
+import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
@@ -69,7 +73,7 @@ import lucee.runtime.type.util.KeyConstants;
  *
  *
  **/
-public final class Application extends TagImpl {
+public final class Application extends TagImpl implements DynamicAttributes {
 
 	private static final int ACTION_CREATE = 0;
 	private static final int ACTION_UPDATE = 1;
@@ -150,6 +154,7 @@ public final class Application extends TagImpl {
 	private String blockedExtForFileUpload;
 	private Struct javaSettings;
 	private Struct xmlFeatures;
+	private Map<Key, Object> dynAttrs;
 
 	@Override
 	public void release() {
@@ -229,6 +234,18 @@ public final class Application extends TagImpl {
 		blockedExtForFileUpload = null;
 		javaSettings = null;
 		xmlFeatures = null;
+		dynAttrs = null;
+	}
+
+	@Override
+	public void setDynamicAttribute(String uri, String localName, Object value) {
+		setDynamicAttribute(uri, KeyImpl.init(localName), value);
+	}
+
+	@Override
+	public void setDynamicAttribute(String uri, Key localName, Object value) {
+		if (dynAttrs == null) dynAttrs = new HashMap<Key, Object>();
+		dynAttrs.put(localName, value);
 	}
 
 	/**
@@ -675,6 +692,12 @@ public final class Application extends TagImpl {
 	}
 
 	private boolean set(ApplicationContext ac, boolean update) throws PageException {
+		if (dynAttrs != null && ac instanceof ClassicApplicationContext) {
+			ClassicApplicationContext cac = (ClassicApplicationContext) ac;
+			cac.setCustomAttributes(dynAttrs);
+			dynAttrs = null;
+		}
+
 		if (applicationTimeout != null) ac.setApplicationTimeout(applicationTimeout);
 		if (sessionTimeout != null) ac.setSessionTimeout(sessionTimeout);
 		if (clientTimeout != null) ac.setClientTimeout(clientTimeout);
@@ -821,11 +844,9 @@ public final class Application extends TagImpl {
 		if (ac instanceof ApplicationContextSupport) {
 			ApplicationContextSupport appContextSup = ((ApplicationContextSupport) ac);
 
-			if (javaSettings != null)
-				appContextSup.setJavaSettings(JavaSettingsImpl.newInstance(new JavaSettingsImpl(), javaSettings));
+			if (javaSettings != null) appContextSup.setJavaSettings(JavaSettingsImpl.newInstance(new JavaSettingsImpl(), javaSettings));
 
-			if (xmlFeatures != null)
-				appContextSup.setXmlFeatures(xmlFeatures);
+			if (xmlFeatures != null) appContextSup.setXmlFeatures(xmlFeatures);
 		}
 
 		// ORM

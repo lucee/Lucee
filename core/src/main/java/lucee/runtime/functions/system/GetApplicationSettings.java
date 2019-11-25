@@ -47,6 +47,7 @@ import lucee.runtime.i18n.LocaleFactory;
 import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.listener.ApplicationContextSupport;
+import lucee.runtime.listener.ClassicApplicationContext;
 import lucee.runtime.listener.JavaSettings;
 import lucee.runtime.listener.ModernApplicationContext;
 import lucee.runtime.net.mail.Server;
@@ -332,6 +333,20 @@ public class GetApplicationSettings extends BIF {
 			}
 			catch (PageException e) {
 				LogUtil.log(ThreadLocalPageContext.getConfig(pc), GetApplicationSettings.class.getName(), e);
+			}
+		}
+
+		// application tag custom attributes
+		if (ac instanceof ClassicApplicationContext) {
+			Map<Key, Object> attrs = ((ClassicApplicationContext) ac).getCustomAttributes();
+			if (attrs != null) {
+				Iterator<Entry<Key, Object>> it = attrs.entrySet().iterator();
+				Entry<Key, Object> e;
+				while (it.hasNext()) {
+					e = it.next();
+					if (suppressFunctions && e.getValue() instanceof UDF) continue;
+					if (!sct.containsKey(e.getKey())) sct.setEL(e.getKey(), e.getValue());
+				}
 			}
 		}
 		return sct;
