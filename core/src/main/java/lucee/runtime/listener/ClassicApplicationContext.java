@@ -149,6 +149,8 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	private String blockedExtForFileUpload;
 	private Struct xmlFeatures;
 
+	private Map<Key, Object> customAttrs;
+
 	/**
 	 * constructor of the class
 	 * 
@@ -1074,5 +1076,13 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	@Override
 	public void setXmlFeatures(Struct xmlFeatures) {
 		this.xmlFeatures = xmlFeatures;
+	}
+
+	public void setCustomAttributes(Map<Key, Object> customAttrs) {
+		this.customAttrs = customAttrs;
+	}
+
+	public Map<Key, Object> getCustomAttributes() {
+		return customAttrs;
 	}
 }
