@@ -484,4 +484,7 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 
 	public abstract void setFTP(FTPConnectionData ftp);
 
+    public abstract Struct getXmlFeatures();
+
+    public abstract void setXmlFeatures(Struct xmlFeatures);
 }

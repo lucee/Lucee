@@ -132,6 +132,8 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 
 	private boolean wsMaintainSession;
 
+    private Struct xmlFeatures;
+
     
     /**
      * constructor of the class
@@ -941,4 +943,13 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 		this.wsMaintainSession=wsMaintainSession;
 	}
 
+    @Override
+    public Struct getXmlFeatures() {
+        return xmlFeatures;
+    }
+
+    @Override
+    public void setXmlFeatures(Struct xmlFeatures) {
+        this.xmlFeatures = xmlFeatures;
+    }
 }

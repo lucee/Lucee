@@ -35,6 +35,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TimeZone;
+import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.SystemUtil;

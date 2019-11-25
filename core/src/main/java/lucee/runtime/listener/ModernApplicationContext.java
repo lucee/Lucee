@@ -141,8 +141,10 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 
 	private static final Collection.Key SESSION_COOKIE = KeyImpl.intern("sessioncookie");
 	private static final Collection.Key AUTH_COOKIE = KeyImpl.intern("authcookie");
+    private static final Collection.Key XML_FEATURES = KeyImpl.intern("xmlFeatures");
 
-	private static Map<String, CacheConnection> initCacheConnections = new ConcurrentHashMap<String, CacheConnection>();
+
+    private static Map<String, CacheConnection> initCacheConnections = new ConcurrentHashMap<String, CacheConnection>();
 
 	private Component component;
 
@@ -246,6 +248,8 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean initCGIScopeReadonly;
 	private boolean initSessionCookie;
 	private boolean initAuthCookie;
+    private boolean initXmlFeatures;
+    private Struct xmlFeatures;
 
 	private Resource antiSamyPolicyResource;
 
@@ -1838,5 +1842,21 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 			}
 		}
 	}
+
+    @Override
+    public Struct getXmlFeatures() {
+        if (!initXmlFeatures) {
+            Struct sct = Caster.toStruct(get(component, XML_FEATURES, null), null);
+            if (sct != null)
+                xmlFeatures = sct;
+            initXmlFeatures = true;
+        }
+        return xmlFeatures;
+    }
+
+    @Override
+    public void setXmlFeatures(Struct xmlFeatures) {
+        this.xmlFeatures = xmlFeatures;
+    }
 
 }

@@ -48,7 +48,7 @@ import lucee.runtime.type.Struct;
 public class RamCache extends CacheSupport {
 
 	public static final int DEFAULT_CONTROL_INTERVAL = 60;
-	private Map<String, RamCacheEntry> entries= new ConcurrentHashMap<String, RamCacheEntry>();
+	private Map<String, SoftReference<RamCacheEntry>> entries = new ConcurrentHashMap<String, SoftReference<RamCacheEntry>>();
 	private long missCount;
 	private int hitCount;
 	
@@ -87,7 +87,10 @@ public class RamCache extends CacheSupport {
 		}
 		if(controller==null) throw new IOException("was not able to start controller");
 		
-		
+		// out of memory
+		boolean outOfMemory = Caster.toBooleanValue(arguments.get("outOfMemory", false), false);
+		if (outOfMemory) entries = new ConcurrentHashMap<String, SoftReference<RamCacheEntry>>();
+
 		// until
 		long until=Caster.toLongValue(arguments.get("timeToLiveSeconds",Constants.LONG_ZERO),Constants.LONG_ZERO)*1000;
 		long idleTime=Caster.toLongValue(arguments.get("timeToIdleSeconds",Constants.LONG_ZERO),Constants.LONG_ZERO)*1000;
@@ -229,9 +232,8 @@ public class RamCache extends CacheSupport {
 		public void run(){
 			while(engine.isRunning()){
 				try{
-					_run();
 					SystemUtil.sleep(ramCache.controlInterval);
-					
+					_run();
 				}
 				catch(Throwable t){ExceptionUtil.rethrowIfNecessary(t);}
 			}
@@ -266,6 +268,13 @@ public class RamCache extends CacheSupport {
 	private Object decouple(Object value) {
 		if(!decouple) return value;
 		return Duplicator.duplicate(value, true);
+	}
+
+	@Override
+	public Struct getCustomInfo() {
+		Struct info = super.getCustomInfo();
+		info.setEL("outOfMemoryHandling", entries instanceof ReferenceMap);
+		return info;
 	}
 
 }

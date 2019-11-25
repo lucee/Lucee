@@ -321,11 +321,13 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 				// ProcMetaCollection procParams=procParamsCache.get(procedure);
 				DataSourceSupport ds = ((DataSourceSupport)dc.getDatasource());
 				long cacheTimeout = ds.getMetaCacheTimeout();
-				Map<String, ProcMetaCollection> procParamsCache = ds.getProcedureColumnCache();
-				String cacheId = procedure.toLowerCase();
-				ProcMetaCollection procParams = procParamsCache.get(cacheId);
+                Map<String, SoftReference<ProcMetaCollection>> procParamsCache = ds.getProcedureColumnCache();
+				int numCfProcParams = this.params.size();
+				String cacheId = procedure.toLowerCase() + "-" + numCfProcParams + "-" + ds.getUsername(); // each user might see different procs
+                SoftReference<ProcMetaCollection> tmp = procParamsCache.get(cacheId);
+                ProcMetaCollection procParams = tmp == null ? null : tmp.get();
 
-				if(procParams == null || (cacheTimeout >= 0 && (procParams.created + cacheTimeout) < System.currentTimeMillis())) {
+                if(procParams == null || (cacheTimeout >= 0 && (procParams.created + cacheTimeout) < System.currentTimeMillis())) {
 
 					// get PROC information and resolve synonym if needed per LDEV-1147
 					String sql =
@@ -362,7 +364,7 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 
 						ResultSet procColumns = conn.getMetaData().getProcedureColumns(_catalog, _schema, _name, "%");
 						procParams = createProcMetaCollection(procColumns);
-						procParamsCache.put(cacheId, procParams);
+						procParamsCache.put(cacheId, new SoftReference<ProcMetaCollection>(procParams));
 					}
 					else {
 						Log log = pageContext.getConfig().getLog("datasource");

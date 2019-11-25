@@ -87,7 +87,8 @@ public abstract class DataSourceSupport implements DataSource, Cloneable {
 				user = username;
 			if (pass == null)
 				pass = password;
-			return _getConnection(config, initialize(config), SQLUtil.connectionStringTranslatedPatch(config, getConnectionStringTranslated()), user, pass);
+			return _getConnection(config, initialize(config),
+					getConnectionStringTranslated(), user, pass);
 
 		} catch (InstantiationException e) {
 			throw new RuntimeException(e);
