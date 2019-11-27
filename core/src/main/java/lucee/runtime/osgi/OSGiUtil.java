@@ -1880,7 +1880,7 @@ public class OSGiUtil {
 		BundleFile bf;
 		List<Resource> classic = new ArrayList<Resource>();
 		for (int i = 0; i < jars.length; i++) {
-			// jar=jars[i];
+			classic.add(jars[i]);
 			try {
 				bf = jars[i].isFile() ? BundleFile.getInstance(jars[i], true) : null;
 			}
@@ -1895,13 +1895,8 @@ public class OSGiUtil {
 					try {
 						BundleUtil.addBundle(engine.getCFMLEngineFactory(), engine.getBundleContext(), jars[i], ((PageContextImpl) pc).getLog("application")).start();
 					}
-					catch (BundleException e) {
-						classic.add(jars[i]);
-					}
+					catch (BundleException e) {}
 				}
-			}
-			else {
-				classic.add(jars[i]);
 			}
 		}
 		return classic.toArray(new Resource[classic.size()]);
