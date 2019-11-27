@@ -1,7 +1,7 @@
 <cfscript>
 	test1=createObject(type:'java',class:'org.lucee.mockup.osgi.Test');
 	meta1=getMetaData(test1);
-	bi1=bundleInfo(test1);
+	// bi1=bundleInfo(test1); only loaded as an OSGi bundle when using bundle info
 	
 	test2=createObject(type:'java',class:'org.lucee.mockup.osgi.Test'
 		,bundlename:"lucee.mockup",bundleversion:"1.0.0.0");
