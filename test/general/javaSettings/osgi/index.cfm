@@ -12,8 +12,8 @@
 	
 
 	sct={
-		"bundle1":{"name":bi1.name,"version":bi1.version},
-		"bundle2":{"name":bi1.name,"version":bi1.version}
+		"bundle1":{"name":bi2.name,"version":bi2.version},
+		"bundle2":{"name":bi2.name,"version":bi2.version}
 	};
 
 	echo(serializeJson(sct));
