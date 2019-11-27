@@ -1899,11 +1899,12 @@ public class OSGiUtil {
 	}
 
 	public static Resource[] extractAndLoadBundles(PageContext pc, Resource[] jars) throws IOException {
-
 		BundleFile bf;
 		List<Resource> classic = new ArrayList<Resource>();
 		for (int i = 0; i < jars.length; i++) {
-			// jar=jars[i];
+			classic.add(jars[i]); // any jar is provided the classic way
+
+			// optionally make the jar available as a bundle
 			try {
 				bf = jars[i].isFile() ? BundleFile.getInstance(jars[i], true) : null;
 			}
@@ -1918,17 +1919,11 @@ public class OSGiUtil {
 					try {
 						BundleUtil.addBundle(engine.getCFMLEngineFactory(), engine.getBundleContext(), jars[i], ((PageContextImpl) pc).getLog("application")).start();
 					}
-					catch (BundleException e) {
-						classic.add(jars[i]); // fallback to classic jar
-					}
+					catch (BundleException e) {}
 				}
-			}
-			else {
-				classic.add(jars[i]);
 			}
 		}
 		return classic.toArray(new Resource[classic.size()]);
-
 	}
 
 	public static String getClassPath() {
