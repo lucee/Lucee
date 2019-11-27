@@ -1916,10 +1916,10 @@ public class OSGiUtil {
 					pc.getConfig().getFactory();
 					CFMLEngine engine = CFMLEngineFactory.getInstance();
 					try {
-						BundleUtil.addBundle(engine.getCFMLEngineFactory(), engine.getBundleContext(), jars[i], ((PageContextImpl) pc).getLog("application"));
+						BundleUtil.addBundle(engine.getCFMLEngineFactory(), engine.getBundleContext(), jars[i], ((PageContextImpl) pc).getLog("application")).start();
 					}
 					catch (BundleException e) {
-						throw engine.getExceptionUtil().toIOException(e);
+						classic.add(jars[i]); // fallback to classic jar
 					}
 				}
 			}
