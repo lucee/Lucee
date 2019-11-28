@@ -275,6 +275,7 @@ public final class Caster {
 	 * @throws PageException
 	 */
 	public static boolean toBooleanValue(String str) throws PageException {
+		if(str.equalsIgnoreCase("on")) str = "true";
 		Boolean b = toBoolean(str, null);
 		if (b != null) return b.booleanValue();
 		throw new CasterException("Can't cast String [" + CasterException.crop(str) + "] to a boolean");
