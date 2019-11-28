@@ -233,7 +233,7 @@ public final class QueryParam extends TagImpl {
 				str = Caster.toString(Caster.toBooleanValue(value));
 			}
 			else if (DECIMAL == type) {
-				str = Caster.toDecimal(value);
+				str = Caster.toDecimal(value).replaceAll(",","");
 			}
 			else str = Caster.toString(value);
 
