@@ -50,7 +50,7 @@ component {
 			!isNull(server.system.properties.MSSQL_DATABASE)) {
 			msSQL.server=server.system.properties.MSSQL_SERVER;
 			msSQL.username=server.system.properties.MSSQL_USERNAME;
-			msSQL.password=server.system.properties.MSSQL_UPASSWORD;
+			msSQL.password=server.system.properties.MSSQL_PASSWORD;
 			msSQL.port=server.system.properties.MSSQL_PORT;
 			msSQL.database=server.system.properties.MSSQL_DATABASE;
 		}
