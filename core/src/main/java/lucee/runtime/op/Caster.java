@@ -821,6 +821,10 @@ public final class Caster {
 		return toDecimal(Caster.toDoubleValue(value));
 	}
 
+	public static String toDecimal(Object value, boolean separator) throws PageException {
+		return toDecimal(Caster.toDoubleValue(value), separator);
+	}
+
 	/**
 	 * cast a double to a decimal value (String:xx.xx)
 	 * 
@@ -830,6 +834,10 @@ public final class Caster {
 	 */
 	public static String toDecimal(String value) throws PageException {
 		return toDecimal(Caster.toDoubleValue(value));
+	}
+
+	public static String toDecimal(String value, boolean separator) throws PageException {
+		return toDecimal(Caster.toDoubleValue(value), separator);
 	}
 
 	/**
@@ -845,6 +853,12 @@ public final class Caster {
 		return toDecimal(res);
 	}
 
+	public static String toDecimal(Object value, boolean separator, String defaultValue) {
+		double res = toDoubleValue(value, true, Double.NaN);
+		if (Double.isNaN(res)) return defaultValue;
+		return toDecimal(res, separator);
+	}
+
 	/**
 	 * cast an Object to a decimal value (String:xx.xx)
 	 * 
@@ -853,6 +867,10 @@ public final class Caster {
 	 */
 	public static String toDecimal(double value) {
 		return toDecimal(value, '.', ',');
+	}
+
+	public static String toDecimal(double value, boolean separator) {
+		return toDecimal(value, '.', separator ? ',' : ((char) 0));
 	}
 
 	private static String toDecimal(double value, char decDel, char thsDel) {
@@ -881,13 +899,12 @@ public final class Caster {
 			int i;
 			for (i = leftValueLen - 3; i > 0; i -= 3) {
 				tmp.insert(0, leftValue.substring(i, i + 3));
-				if (i != ends) tmp.insert(0, thsDel);
+				if (i != ends && thsDel > ((char) 0)) tmp.insert(0, thsDel);
 			}
 			tmp.insert(0, leftValue.substring(0, i + 3));
 			leftValue = tmp.toString();
 
 		}
-
 		return leftValue + decDel + rightValue;
 	}
 

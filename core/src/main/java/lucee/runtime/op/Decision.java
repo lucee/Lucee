@@ -1112,7 +1112,7 @@ public final class Decision {
 					return isCastableToNumeric(o);
 				}
 				else if (alsoAlias && type.equals("decimal")) {
-					return Caster.toDecimal(o, null) != null;
+					return Caster.toDecimal(o, true, null) != null;
 				}
 				break;
 			case 'e':

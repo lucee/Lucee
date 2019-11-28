@@ -43,6 +43,6 @@ public final class DecimalFormat implements Function {
 	 */
 	public static String call(PageContext pc, Object object) throws PageException {
 		if (StringUtil.isEmpty(object)) object = Constants.DOUBLE_ZERO;
-		return Caster.toDecimal(object);
+		return Caster.toDecimal(object, true);
 	}
 }

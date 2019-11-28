@@ -233,12 +233,13 @@ public final class QueryParam extends TagImpl {
 				str = Caster.toString(Caster.toBooleanValue(value));
 			}
 			else if (DECIMAL == type) {
-				str = Caster.toDecimal(value).replaceAll(",","");
+				str = Caster.toDecimal(value, false);
 			}
 			else str = Caster.toString(value);
 
 			if (str.length() > maxlength) throw new DatabaseException(
-					"value [" + value + "] is too large, defined maxlength is [" + Caster.toString(maxlength) + "] but length of value is [" + str.length() + "]", null, null, null);
+					"value [" + value + "] is too large, defined maxlength is [" + Caster.toString(maxlength) + "] but length of value is [" + str.length() + "]", null, null,
+					null);
 		}
 		return value;
 	}
