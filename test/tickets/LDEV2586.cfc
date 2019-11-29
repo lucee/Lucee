@@ -4,8 +4,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase"{
 		variables.uri = createURI("LDEV2586");
 
 		variables.credencials=getCredencials();
-		variables.hasCredencials=structCount(variables.credencials);
-		if(variables.hasCredencials) {
+		if(structCount(variables.credencials)) {
 			// define datasource
 			application action="update" 
 				datasource={
@@ -33,8 +32,10 @@ component extends = "org.lucee.cfml.test.LuceeTestCase"{
 	}
 
 	public function afterAll(){
-		query datasource="LDEV2586"{
-			echo("DROP TABLE IF EXISTS LDEV2586");
+		if(hasCredencials()) {
+			query datasource="LDEV2586"{
+				echo("DROP TABLE IF EXISTS LDEV2586");
+			}
 		}
 	}
 
@@ -43,7 +44,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase"{
 
 
 
-			it(title = " cfqueryparam does handle decimal value = 1000 with maxLength = 8 ",skip=!variables.hasCredencials, body = function( currentSpec ) {
+			it(title = " cfqueryparam does handle decimal value = 1000 with maxLength = 8 ",skip=!hasCredencials(), body = function( currentSpec ) {
 				query name="local.test" datasource="LDEV2586" {
 					echo("SELECT * FROM LDEV2586");
 				}
@@ -54,7 +55,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase"{
 				expect(subUsers.value).toBe('1000');
 			});
 
-			it(title = " cfqueryparam doesn't handle deciaml value = 1000 with maxLength = 7",skip=!variables.hasCredencials, body = function( currentSpec ) {
+			it(title = " cfqueryparam doesn't handle deciaml value = 1000 with maxLength = 7",skip=!hasCredencials(), body = function( currentSpec ) {
 				query name="local.test" datasource="LDEV2586" {
 					echo("SELECT * FROM LDEV2586");
 				}
@@ -65,7 +66,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase"{
 				expect(subUsers.value).toBe('1000');
 			});
 
-			it(title = " cfqueryparam does handle decimal value = 23.45 with maxLength = 5",skip=!variables.hasCredencials, body = function( currentSpec ) {
+			it(title = " cfqueryparam does handle decimal value = 23.45 with maxLength = 5",skip=!hasCredencials(), body = function( currentSpec ) {
 				query name="local.test" datasource="LDEV2586" {
 					echo("SELECT * FROM LDEV2586");
 				}
@@ -83,6 +84,10 @@ component extends = "org.lucee.cfml.test.LuceeTestCase"{
 		return baseURI&""&calledName;
 	}
 
+
+	private boolean function hasCredencials() {
+		return structCount(getCredencials());
+	}
 
 	private struct function getCredencials() {
 		// getting the credetials from the enviroment variables
