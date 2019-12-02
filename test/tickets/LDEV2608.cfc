@@ -18,6 +18,17 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 				expect(struct1.equals(struct2)).toBe('NO');
 			});
+
+			it(title = "Regression in struct implementation causing stack overflow", body = function( currentSpec ) {
+				
+			
+				var struct1 = {children: [{}]}
+				var struct2 = { parent: struct1 };
+				struct1.children.append(struct2);
+				var childIndex = struct2.parent.children.find(struct2);
+			});
+
+
 		});
 	}
 }
