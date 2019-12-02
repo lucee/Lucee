@@ -292,6 +292,7 @@ public class StructImpl extends StructSupport {
 
 	@Override
 	public boolean equals(Object obj) {
-		return map.equals(obj);
+		if (obj == this) return true;
+		return false;
 	}
 }
