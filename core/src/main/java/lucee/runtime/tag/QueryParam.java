@@ -223,7 +223,7 @@ public final class QueryParam extends TagImpl {
 	}
 
 	private Object check(Object value, int type) throws PageException {
-		if (maxlength != -1) {
+		if (maxlength != -1 && item.isNulls() != true) {
 
 			String str;
 			if (BIGINT == type || INTEGER == type || SMALLINT == type || TINYINT == type) {
