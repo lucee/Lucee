@@ -43,7 +43,6 @@
 					cffile (action="write", file=baseWithBucketName & "/teskt.txt", output="Sample s3 text", storeAcl="private");
 					var acl = StoreGetACL( baseWithBucketName & "/teskt.txt" );
 					removeFullControl(acl);
-					if(arrayisEmpty(acl)) throw "acl:"&arrayToList(acl);
 					expect(arrayisEmpty(acl)).toBe(true);
 				});
 
