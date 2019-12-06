@@ -60,7 +60,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		}
 	}
 
-	/*public function testStoreSetACLBucket() localMode=true {
+	public function testStoreSetACLBucket() localMode=true {
 		if(variables.s3Supported) {
 			try{
 				testStoreACL("s3://lucee-testsuite-setaclbucket2",true,false);
@@ -69,7 +69,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	    		directoryDelete("s3://lucee-testsuite-setaclbucket2",true);
 	    	}
 		}
-	}*/
+	}
 
 	public function testStoreAddACLObject() localMode=true {
 		if(variables.s3Supported) {
