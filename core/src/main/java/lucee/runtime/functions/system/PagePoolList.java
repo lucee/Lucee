@@ -58,7 +58,7 @@ public final class PagePoolList implements Function {
 		PageSourceImpl ps;
 		for (int y = 0; y < keys.length; y++) {
 			ps = (PageSourceImpl) psp.getPageSource(keys[y], false);
-			if (ps.isLoad()) arr.append(ps.getDisplayPath());
+			if (ps != null && ps.isLoad()) arr.append(ps.getDisplayPath());
 		}
 		return arr;
 	}
