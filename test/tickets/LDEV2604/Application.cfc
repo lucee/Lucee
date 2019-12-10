@@ -1,7 +1,24 @@
 component {
+    this.datasources['LDEV2604_MSSQL']={
+        class: 'com.microsoft.sqlserver.jdbc.SQLServerDriver'
+        , bundleName: 'com.microsoft.sqlserver.mssql-jdbc'
+        , bundleVersion: '7.0.0'
+        , connectionString: 'jdbc:sqlserver://'&#msSQL.server#&':'&#msSQL.port#&';DATABASENAME='&#msSQL.database#&';sendStringParametersAsUnicode=true;SelectMethod=direct'
+        , username: #msSQL.username#
+        , password: #msSQL.password#
+    };
 
-	defineDatasources();
-	
+// MySQL
+    var mySQL=getCredencialsMySql();
+    this.datasources['LDEV2604_MYSQL']={
+        class: 'org.gjt.mm.mysql.Driver'
+        , bundleName:'com.mysql.jdbc'
+        , bundleVersion:'5.1.38'
+        , connectionString: 'jdbc:mysql://'&#mySQL.server#&':'&#mySQL.port#&'/'&#mySQL.database#&'?useUnicode=true&characterEncoding=UTF-8&useLegacyDatetimeCode=true'
+        , username: #mySQL.username#
+        , password: #mySQL.password#
+    };
+
 	private struct function getCredencials() {
 		// getting the credetials from the enviroment variables
 		var msSQL={};
@@ -63,34 +80,5 @@ component {
 		}
 
 		return mysql;
-	}
-
-	private function defineDatasources() {
-		var ds={};
-
-		// msSQL
-		var msSQL=getCredencials();
-		var ds['LDEV2604_MSSQL']={
-		 	class: 'com.microsoft.sqlserver.jdbc.SQLServerDriver'
-			, bundleName: 'com.microsoft.sqlserver.mssql-jdbc'
-			, bundleVersion: '7.0.0'
-			, connectionString: 'jdbc:sqlserver://'&msSQL.server&':'&msSQL.port&';DATABASENAME='&msSQL.database&';sendStringParametersAsUnicode=true;SelectMethod=direct'
-			, username: msSQL.username
-			, password: msSQL.password
-		};
-		
-		// MySQL
-		var mySQL=getCredencialsMySql();
-		var ds['LDEV2604_MYSQL']={
-			  class: 'org.gjt.mm.mysql.Driver'
-			, bundleName:'com.mysql.jdbc'
-			, bundleVersion:'5.1.38'
-			, connectionString: 'jdbc:mysql://'&mySQL.server&':'&mySQL.port&'/'&mySQL.database&'?useUnicode=true&characterEncoding=UTF-8&useLegacyDatetimeCode=true'
-			, username: mySQL.username
-			, password: mySQL.password
-		};
-
-		this.datasources = ds;
-		application action="update" datasources=ds;
 	}
 }
