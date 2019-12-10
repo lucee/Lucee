@@ -11,7 +11,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 					template : "#uri#/LDEV2604.cfm",
 					forms:	{scene=1}
 				);
-				expect(result.filecontent).toBe("READ COMMITED");
+				expect(result.filecontent.trim()).toBe("ReadCommitted");
 			});
 
 			it(title = "MSSQL Check reverting TRANSACTION ISOLATION LEVEL back in to READ COMMITED after changing it in transaction", body = function( currentSpec ) {
@@ -19,7 +19,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 					template : "#uri#/LDEV2604.cfm",
 					forms:	{scene=2}
 				);
-				expect(result.filecontent).toBe("READ COMMITED");
+				expect(result.filecontent.trim()).toBe("ReadCommitted");
 			});
 
 			it(title = "MySQL Check TRANSACTION ISOLATION LEVEL after changing it for QUERY", body = function( currentSpec ) {
@@ -27,7 +27,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 					template : "#uri#/LDEV2604.cfm",
 					forms:	{scene=3}
 				);
-				expect(result.filecontent).toBe("YES");
+				expect(result.filecontent.trim()).toBe(true);
 			});
 
 			it(title = "MySQL Check TRANSACTION ISOLATION LEVEL after changing it for SESSION", body = function( currentSpec ) {
@@ -35,7 +35,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 					template : "#uri#/LDEV2604.cfm",
 					forms:	{scene=4}
 				);
-				expect(result.filecontent).toBe("YES");
+				expect(result.filecontent.trim()).toBe(true);
 			});
 
 			it(title = "MySQL Check TRANSACTION ISOLATION LEVEL after changing it for GLOBAL", body = function( currentSpec ) {
@@ -43,7 +43,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 					template : "#uri#/LDEV2604.cfm",
 					forms:	{scene=5}
 				);
-				expect(result.filecontent).toBe("YES");
+				expect(result.filecontent.trim()).toBe(true);
 			});
 		});
 	}

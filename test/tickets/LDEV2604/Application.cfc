@@ -74,9 +74,9 @@ component {
 		 	class: 'com.microsoft.sqlserver.jdbc.SQLServerDriver'
 			, bundleName: 'com.microsoft.sqlserver.mssql-jdbc'
 			, bundleVersion: '7.0.0'
-			, connectionString: 'jdbc:sqlserver://'&#msSQL.server#&':'&#msSQL.port#&';DATABASENAME='&#msSQL.database#&';sendStringParametersAsUnicode=true;SelectMethod=direct'
-			, username: #msSQL.username#
-			, password: #msSQL.password#
+			, connectionString: 'jdbc:sqlserver://'&msSQL.server&':'&msSQL.port&';DATABASENAME='&msSQL.database&';sendStringParametersAsUnicode=true;SelectMethod=direct'
+			, username: msSQL.username
+			, password: msSQL.password
 		};
 		
 		// MySQL
@@ -90,6 +90,7 @@ component {
 			, password: mySQL.password
 		};
 
+		this.datasources = ds;
 		application action="update" datasources=ds;
 	}
 }
