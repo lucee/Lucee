@@ -1,4 +1,5 @@
 component {
+    var msSQL=getCredencials();
     this.datasources['LDEV2604_MSSQL']={
         class: 'com.microsoft.sqlserver.jdbc.SQLServerDriver'
         , bundleName: 'com.microsoft.sqlserver.mssql-jdbc'
