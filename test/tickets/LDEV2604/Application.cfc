@@ -1,5 +1,5 @@
 component {
-    var msSQL=getCredencials();
+    msSQL=getCredencials();
     this.datasources['LDEV2604_MSSQL']={
         class: 'com.microsoft.sqlserver.jdbc.SQLServerDriver'
         , bundleName: 'com.microsoft.sqlserver.mssql-jdbc'
@@ -10,7 +10,7 @@ component {
     };
 
 // MySQL
-    var mySQL=getCredencialsMySql();
+    mySQL=getCredencialsMySql();
     this.datasources['LDEV2604_MYSQL']={
         class: 'org.gjt.mm.mysql.Driver'
         , bundleName:'com.mysql.jdbc'
