@@ -28,6 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefInteger;
@@ -86,7 +87,7 @@ public class DatasourceConnectionPool {
 
 				// get an existing connection
 				while (!stack.isEmpty()) {
-					DatasourceConnection dc = (DatasourceConnection) stack.get();
+					DatasourceConnection dc = stack.get();
 					if (dc != null) {
 						rtn = dc;
 						break;
@@ -232,8 +233,10 @@ public class DatasourceConnectionPool {
 		try {
 			if (dc.getDatasource().validate() && !DataSourceUtil.isValid(dc, 1000)) return false;
 		}
-		catch (Exception e) {} // not all driver support this, because of that we ignore an error
-		// here, also protect from java 5
+		catch (Exception e) {
+			LogUtil.log(null, "datasource", "connection", e);
+		} // not all driver support this, because of that we ignore an error
+			// here, also protect from java 5
 
 		try {
 			if (autoCommit != null) dc.getConnection().setAutoCommit(autoCommit.booleanValue());
