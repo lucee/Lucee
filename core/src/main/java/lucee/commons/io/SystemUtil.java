@@ -1649,7 +1649,7 @@ class StopThread extends Thread {
 		if (thread == null) return;
 		if (thread.isAlive()) {
 			pci.setTimeoutStackTrace();
-			thread.stop();
+            throw new RuntimeException("Stop Thread");
 		}
 	}
 }
