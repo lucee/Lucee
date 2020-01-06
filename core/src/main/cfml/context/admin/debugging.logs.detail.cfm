@@ -111,7 +111,7 @@
 	<cfif template EQ "lucee-modern">
 		<div id="blockerContainer" class="jquery-modal current">
 			<div id="mdlWnd" class="modal" >
-				<a href="##close-modal" rel="modal:close" class="close-modal ">Close</a>
+				<a href="#request.self#?action=#url.action#" rel="modal:close" class="close-modal ">Close</a>
 				<div class="modal-body"></div>
 			</div>
 		</div>	

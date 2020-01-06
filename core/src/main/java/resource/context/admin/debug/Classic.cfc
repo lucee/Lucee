@@ -177,7 +177,6 @@ millisecond:"ms"
 		</tr></cfif>
 		</table>
 		</p>
-	</cfif>
 <!--- Execution Time --->
 	<p class="cfdebug"><hr/><b class="cfdebuglge"><a name="cfdebug_execution">Execution Time</a></b></p>
 	<a name="cfdebug_templates">
@@ -191,6 +190,8 @@ millisecond:"ms"
 <cfset loa=0>
 <cfset tot=0>
 <cfset q=0>
+<cfparam name="custom.minimal" default="0">
+<cfparam name="custom.highlight" default="250000">
 <cfloop query="pages">
 		<cfset tot=tot+pages.total><cfset q=q+pages.query>
 		<cfif pages.avg LT custom.minimal*1000><cfcontinue></cfif>
@@ -367,6 +368,7 @@ millisecond:"ms"
 </cfloop>
 </cfif>
 <font size="-1" class="cfdebug"><i>Debug Rendering Time: #formatUnit(custom.unit, getTickCount()-time)#</i></font><br />
+</cfif>
 	</td>
 </tr>
 </table>
