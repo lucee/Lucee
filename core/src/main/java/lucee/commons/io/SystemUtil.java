@@ -1270,39 +1270,28 @@ public final class SystemUtil {
 	}
 
 	private static boolean _stop(Thread thread, boolean force) {
-		for (int i = 0; i < 100; i++) {
-			if (i > 0) sleep(10);
-			suspendEL(thread);
-			try {
-				if (force && isInNativeCode(thread)) { // stop cannot stop native code, only interupt can
-					continue;
-				}
-
-				if (isInLucee(thread)) {
-					if (!force) thread.interrupt();
-					else thread.stop();
-				}
-				else return true;
+		// we try to interupt/stop the suspended thrad
+		suspendEL(thread);
+		try {
+			if (isInLucee(thread)) {
+				if (!force) thread.interrupt();
+				else thread.stop();
 			}
-			finally {
-				resumeEL(thread);
-			}
-			break;
+			else return true;
 		}
-
-		if (force && isInNativeCode(thread)) {// stop cannot stop native code, only interupt can
-			return false;
+		finally {
+			resumeEL(thread);
 		}
 
 		// a request still will create the error template output, so it can take some time to finish
 		for (int i = 0; i < 100; i++) {
-			SystemUtil.sleep(10);
-			// print.e("+++++" + System.currentTimeMillis() + "++++");
-			// print.e("alive?" + thread.isAlive());
-			// print.e("interupted?" + thread.isInterrupted());
-			// print.e("inLucee?" + isInLucee(thread));
-			// print.e(ExceptionUtil.toString(thread.getStackTrace()));
+			// SystemOut.printDate("STOP A THREAD");
+			// SystemOut.printDate("- alive?" + thread.isAlive());
+			// SystemOut.printDate("- interupted?" + thread.isInterrupted());
+			// SystemOut.printDate("- inLucee?" + isInLucee(thread));
+			// SystemOut.printDate(ExceptionUtil.toString(thread.getStackTrace()));
 			if (!isInLucee(thread)) return true;
+			SystemUtil.sleep(10);
 		}
 		return false;
 	}
