@@ -23,6 +23,7 @@ import java.lang.Thread.State;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.Md5;
@@ -341,7 +342,7 @@ public final class ScheduleTaskImpl implements ScheduleTask {
 			if (thread.isAlive()) {
 				if (thread.getState() == State.BLOCKED) {
 					((SchedulerImpl) scheduler).getConfig().getLog("scheduler").info("scheduler", "thread is blocked");
-					thread.stop();
+					SystemUtil.stop(thread);
 				}
 				else if (thread.getState() != State.TERMINATED) {
 					return; // existing is still fine, so nothing to start
