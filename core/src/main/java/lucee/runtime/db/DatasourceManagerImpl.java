@@ -49,6 +49,7 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 
 	boolean autoCommit = true;
 	private int isolation = Connection.TRANSACTION_NONE;
+	private int def_isolation = 0;
 	private Map<DataSource, DatasourceConnection> transConns = new HashMap<DataSource, DatasourceConnection>();
 
 	private boolean inside;
@@ -70,7 +71,20 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 	@Override
 	public DatasourceConnection getConnection(PageContext pc, DataSource ds, String user, String pass) throws PageException {
 		if (autoCommit && !((DataSourcePro) ds).isRequestExclusive()) {
-			return config.getDatasourceConnectionPool().getDatasourceConnection(ThreadLocalPageContext.getConfig(pc), ds, user, pass);
+			DatasourceConnection newDC = config.getDatasourceConnectionPool().getDatasourceConnection(ThreadLocalPageContext.getConfig(pc), ds, user, pass);
+			try {
+				if (def_isolation == 0) {
+					def_isolation = newDC.getTransactionIsolation();
+				}
+				else {
+					newDC.setTransactionIsolation(def_isolation);
+				}
+			}
+			catch (SQLException e) {
+				throw new DatabaseException(e, null, newDC);
+				// ExceptionHandler.printStackTrace(e);
+			}
+			return newDC;
 		}
 
 		pc = ThreadLocalPageContext.get(pc);
@@ -82,12 +96,18 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 			// first time that datasource is used within this transaction
 			if (existingDC == null) {
 				DatasourceConnection newDC = config.getDatasourceConnectionPool().getDatasourceConnection(config, ds, user, pass);
+				if (def_isolation == 0) {
+					def_isolation = newDC.getTransactionIsolation();
+				}
 				if (!autoCommit) {
 					newDC.setAutoCommit(false);
 					if (isolation != Connection.TRANSACTION_NONE) newDC.setTransactionIsolation(isolation);
 				}
 				transConns.put(ds, newDC);
 				return newDC;
+			}
+			else {
+				existingDC.setTransactionIsolation(def_isolation);
 			}
 
 			// we have already the same datasource but with different credentials
