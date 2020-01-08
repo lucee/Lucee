@@ -123,10 +123,11 @@ public class ListAsArray extends ArraySupport implements Array, List {
 		if (key > list.size()) throw new ExpressionException("Array index [" + key + "] out of range, array size is [" + list.size() + "]");
 		Object rtn = list.get(key - 1);
 		if (rtn == null) {
-			if (NullSupportHelper.full(pc)) {
-				return null;
-			}
-			throw new ExpressionException("Element at position [" + key + "] does not exist in list");
+			// if (NullSupportHelper.full(pc)) {
+			// 	return null;
+			// }
+			// throw new ExpressionException("Element at position [" + key + "] does not exist in list");
+			return null;
 		}
 		return rtn;
 	}
