@@ -84,12 +84,12 @@
 							#listLast(bundles.path,"\/")#
 							</td> --->
 							<!--- vendor --->
-							<td >
+							<td>
 							#bundles.vendor#
 							</td>
 
 							<!--- usedBy --->
-							<td nowrap="nowrap">
+							<td>
 								#replace(bundles.usedBy,',','<br>','all')#
 							</td>
 

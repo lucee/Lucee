@@ -54,6 +54,19 @@ function initMenu() {
 	);
 }
 
+$("#clickCheckbox").change(function() {
+	set = $("#clickCheckbox")[0].checked;
+	if(set == true) {
+		$(".enablebutton").attr({disabled:false,style:"opacity:1"});
+	}
+	else if(set == false) {
+		$(".enablebutton").attr({disabled:true,style:"opacity:0.5"});
+	}
+});
+$("#clickCancel").click(function() {
+	$(".enablebutton").attr({disabled:true,style:"opacity:0.5"});
+});
+
 function initMenu2() {
 	$('#menu ul').hide();
 	$('#menu ul:first').show();

@@ -106,9 +106,9 @@ this.mappings=["#mappings.virtual#"]={<cfif len(mappings.strPhysical)>
 							<input type="hidden" name="mainAction" value="#stText.Buttons.save#">
 							<!---<input type="submit" class="button submit" name="subAction" value="#stText.Buttons.save#">
 							--->
-							<input type="reset" class="bl button reset" name="cancel" value="#stText.Buttons.Cancel#">
-							<input type="submit" class="bm button submit" name="subAction" value="#stText.Buttons.Delete#">
-							<input type="submit" class="br button submit" name="subAction" value="#stText.Buttons.compileAll#">
+							<input type="reset" class="bl button reset enablebutton" id="clickCancel" name="cancel" value="#stText.Buttons.Cancel#">
+							<input type="submit" class="bm button submit enablebutton" name="subAction" value="#stText.Buttons.Delete#">
+							<input type="submit" class="br button submit enablebutton" name="subAction" value="#stText.Buttons.compileAll#">
 						</td>
 					</tr>
 				</tfoot>
