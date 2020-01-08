@@ -6,7 +6,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 	function run( testResults , testBox ) {
 		describe( "test suite for LDEV2629", function() {
-			it(title = "cfchart using tag works fine", body = function( currentSpec ) {
+			it(title = "Test with cfchart using cfscript", body = function( currentSpec ) {
 				local.result = _InternalRequest(
 					template : "#uri#/LDEV2629.cfm",
 					forms : {scene=1}
