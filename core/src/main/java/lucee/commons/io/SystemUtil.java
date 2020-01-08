@@ -1263,21 +1263,30 @@ public final class SystemUtil {
 
 	public static void stop(PageContext pc, Thread thread) {
 		if (thread == null || !thread.isAlive()) return;
-		if (pc instanceof PageContextImpl) ((PageContextImpl) pc).setTimeoutStackTrace();
+		Log log = null;
+		// in case it is the request thread
+		if (pc instanceof PageContextImpl && thread == pc.getThread()) {
+			((PageContextImpl) pc).setTimeoutStackTrace();
+			log = ((PageContextImpl) pc).getLog("requesttimeout");
+		}
 
 		// first we try to interupt, the we force a stop
-		if (!_stop(thread, false)) _stop(thread, true);
+		if (!_stop(thread, log, false)) _stop(thread, log, true);
 	}
 
-	private static boolean _stop(Thread thread, boolean force) {
-		// we try to interupt/stop the suspended thrad
+	private static boolean _stop(Thread thread, Log log, boolean force) {
+		// we try to interrupt/stop the suspended thrad
 		suspendEL(thread);
 		try {
 			if (isInLucee(thread)) {
 				if (!force) thread.interrupt();
 				else thread.stop();
 			}
-			else return true;
+			else {
+				if (log != null) log.error("thread",
+						"do not " + (force ? "stop" : "interrupt") + " thread because thread is not within Lucee code" + "\n" + ExceptionUtil.toString(thread.getStackTrace()));
+				return true;
+			}
 		}
 		finally {
 			resumeEL(thread);
@@ -1290,9 +1299,13 @@ public final class SystemUtil {
 			// SystemOut.printDate("- interupted?" + thread.isInterrupted());
 			// SystemOut.printDate("- inLucee?" + isInLucee(thread));
 			// SystemOut.printDate(ExceptionUtil.toString(thread.getStackTrace()));
-			if (!isInLucee(thread)) return true;
+			if (!isInLucee(thread)) {
+				if (log != null) log.info("thread", "sucessfully " + (force ? "stop" : "interrupt") + " thread.");
+				return true;
+			}
 			SystemUtil.sleep(10);
 		}
+		if (log != null) log.error("thread", "failed to " + (force ? "stop" : "interrupt") + " thread." + "\n" + ExceptionUtil.toString(thread.getStackTrace()));
 		return false;
 	}
 
