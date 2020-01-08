@@ -172,7 +172,7 @@ public final class CastOther extends ExpressionBase implements Cast {
 				return DateTime.class;
 			}
 			if ("decimal".equals(lcType)) {
-				ic.stack(Caster.toDecimal(ic.getValue(expr)));
+				ic.stack(Caster.toDecimal(ic.getValue(expr), true));
 				return String.class;
 			}
 			break;

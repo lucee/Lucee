@@ -26,10 +26,8 @@ import java.lang.ref.SoftReference;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.digest.HashUtil;
@@ -55,8 +53,8 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	private ConfigImpl config;
 	private final ClassLoader[] parents;
 
-	private Set<String> loadedClasses = new HashSet<>();
-	private Set<String> unavaiClasses = new HashSet<>();
+	private Map<String, String> loadedClasses = new ConcurrentHashMap<String, String>();
+	private Map<String, String> unavaiClasses = new ConcurrentHashMap<String, String>();
 
 	private Map<String, SoftReference<PhysicalClassLoader>> customCLs;
 
@@ -113,7 +111,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	}
 
 	private Class<?> loadClass(String name, boolean resolve, boolean loadFromFS) throws ClassNotFoundException {
-		if (loadedClasses.contains(name) || unavaiClasses.contains(name)) {
+		if (loadedClasses.containsKey(name) || unavaiClasses.containsKey(name)) {
 			return super.loadClass(name, false); // Use default CL cache
 		}
 
@@ -146,7 +144,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 				IOUtil.copy(res, baos, false);
 			}
 			catch (IOException e) {
-				this.unavaiClasses.add(name);
+				this.unavaiClasses.put(name, "");
 				throw new ClassNotFoundException("class " + name + " is invalid or doesn't exist");
 			}
 
@@ -195,21 +193,12 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 		}
 		while (clazz2 != null);
 		return _loadClass(newName, ClassRenamer.rename(barr, newName));
-
 	}
-
-	/*
-	 * private static String namePrefix(String className) { String prefix = className; int index =
-	 * prefix.lastIndexOf('$'); if (index == -1 || !Decision.isInteger(prefix.substring(index + 1)))
-	 * return prefix;
-	 * 
-	 * return prefix.substring(0, index); }
-	 */
 
 	private Class<?> _loadClass(String name, byte[] barr) {
 		Class<?> clazz = defineClass(name, barr, 0, barr.length);
 		if (clazz != null) {
-			loadedClasses.add(name);
+			loadedClasses.put(name, "");
 			resolveClass(clazz);
 		}
 		return clazz;

@@ -107,6 +107,8 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 	}
 
 	private final Object castToAndClone(PageContext pc, FunctionArgument arg, Object value, int index) throws PageException {
+		if (value == null && ((PageContextImpl) pc).getFullNullSupport()) return value;
+
 		if (!((PageContextImpl) pc).getTypeChecking() || Decision.isCastableTo(pc, arg.getType(), arg.getTypeAsString(), value))
 			return arg.isPassByReference() ? value : Duplicator.duplicate(value, false);
 		throw new UDFCasterException(this, arg, value, index);

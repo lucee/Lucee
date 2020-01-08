@@ -678,6 +678,20 @@ public final class SystemUtil {
 		catch (InterruptedException e) {}
 	}
 
+	public static void resumeEL(Thread t) {
+		try {
+			t.resume();
+		}
+		catch (Exception e) {}
+	}
+
+	public static void suspendEL(Thread t) {
+		try {
+			t.suspend();
+		}
+		catch (Exception e) {}
+	}
+
 	/**
 	 * locks the object (synchronized) before calling wait
 	 * 
@@ -1238,44 +1252,48 @@ public final class SystemUtil {
 
 	}
 
-	@Deprecated
-	public static void stop(Thread thread) {
-		if (thread.isAlive()) {
-			thread.stop();
-			/*
-			 * try{ thread.stop(new StopException(thread)); } catch(UnsupportedOperationException uoe){// Java 8
-			 * does not support Thread.stop(Throwable) thread.stop(); }
-			 */
-		}
-	}
-
-	public static void patienceStop(Thread thread, int max) {
-		if (thread == null || !thread.isAlive()) return;
-
-		StackTraceElement[] stes;
-		StackTraceElement ste;
-		thread.interrupt();
-		for (int y = 0; y < max; y++) {
-			sleep(1);
-			for (int i = 0; i < 10; i++) {
-				if (!thread.isAlive()) return;
-				stes = thread.getStackTrace();
-				if (stes != null && stes.length > 0) {
-					ste = stes[0];
-					if (!ste.isNativeMethod()) {
-						stop(thread);
-						sleep(1);
-						if (!thread.isAlive()) break;
-					}
-				}
-			}
-		}
-		stop(thread);
-	}
-
 	public static void stop(PageContext pc, boolean async) {
 		if (async) new StopThread(pc).start();
-		else new StopThread(pc).run();
+		else stop(pc, pc.getThread());
+	}
+
+	public static void stop(Thread thread) {
+		stop((PageContext) null, thread);
+	}
+
+	public static void stop(PageContext pc, Thread thread) {
+		if (thread == null || !thread.isAlive()) return;
+		if (pc instanceof PageContextImpl) ((PageContextImpl) pc).setTimeoutStackTrace();
+
+		// first we try to interupt, the we force a stop
+		if (!_stop(thread, false)) _stop(thread, true);
+	}
+
+	private static boolean _stop(Thread thread, boolean force) {
+		// we try to interupt/stop the suspended thrad
+		suspendEL(thread);
+		try {
+			if (isInLucee(thread)) {
+				if (!force) thread.interrupt();
+				else thread.stop();
+			}
+			else return true;
+		}
+		finally {
+			resumeEL(thread);
+		}
+
+		// a request still will create the error template output, so it can take some time to finish
+		for (int i = 0; i < 100; i++) {
+			// SystemOut.printDate("STOP A THREAD");
+			// SystemOut.printDate("- alive?" + thread.isAlive());
+			// SystemOut.printDate("- interupted?" + thread.isInterrupted());
+			// SystemOut.printDate("- inLucee?" + isInLucee(thread));
+			// SystemOut.printDate(ExceptionUtil.toString(thread.getStackTrace()));
+			if (!isInLucee(thread)) return true;
+			SystemUtil.sleep(10);
+		}
+		return false;
 	}
 
 	public static String getLocalHostName() {
@@ -1599,6 +1617,20 @@ public final class SystemUtil {
 		return true;
 	}
 
+	public static boolean isInLucee(Thread thread) {
+		StackTraceElement[] stes = thread.getStackTrace();
+		for (StackTraceElement ste: stes) {
+			if (ste.getClassName().indexOf("lucee.") == 0) return true;
+		}
+		return false;
+	}
+
+	public static boolean isInNativeCode(Thread thread) {
+		StackTraceElement[] stes = thread.getStackTrace();
+		if (stes != null && stes.length > 0) return stes[0].isNativeMethod();
+		return false;
+	}
+
 	public static boolean getJavaObjectInputStreamAccessCheckArray(ObjectInputStream s, Class<Entry[]> class1, int cap) {
 		// jdk.internal.misc.SharedSecrets.getJavaObjectInputStreamAccess().checkArray(s, Map.Entry[].class,
 		// cap);
@@ -1644,13 +1676,7 @@ class StopThread extends Thread {
 
 	@Override
 	public void run() {
-		PageContextImpl pci = (PageContextImpl) pc;
-		Thread thread = pc.getThread();
-		if (thread == null) return;
-		if (thread.isAlive()) {
-			pci.setTimeoutStackTrace();
-			thread.stop();
-		}
+		SystemUtil.stop(pc, pc.getThread());
 	}
 }
 
