@@ -368,6 +368,7 @@ public class GetApplicationSettings extends BIF {
 		if (source.isClob()) s.setEL(AppListenerUtil.CLOB, source.isClob());
 		if (source.isReadOnly()) s.setEL(KeyConstants._readonly, source.isReadOnly());
 		if (source.isStorage()) s.setEL(KeyConstants._storage, source.isStorage());
+		s.setEL(KeyConstants._validate, source.validate());
 		if (source instanceof DataSourcePro) {
 			DataSourcePro dsp = (DataSourcePro) source;
 			if (dsp.isRequestExclusive()) s.setEL("requestExclusive", dsp.isRequestExclusive());
