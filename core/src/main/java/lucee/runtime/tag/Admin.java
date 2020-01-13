@@ -4246,7 +4246,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		if (!StringUtil.isEmpty(id)) {
 			ExtensionDefintion ed;
 			String version = getString("version", null);
-			if (!StringUtil.isEmpty(version, true)) ed = new ExtensionDefintion(id, version);
+			if (!StringUtil.isEmpty(version, true) && !"latest".equalsIgnoreCase(version)) ed = new ExtensionDefintion(id, version);
 			else ed = RHExtension.toExtensionDefinition(id);
 			DeployHandler.deployExtension(config, ed, config == null ? null : config.getLog("application"), true);
 			return;
