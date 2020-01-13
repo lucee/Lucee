@@ -92,6 +92,7 @@ import lucee.runtime.exp.NativeException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageExceptionBox;
 import lucee.runtime.exp.PageRuntimeException;
+import lucee.runtime.exp.RequestTimeoutException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.functions.file.FileStreamWrapper;
 import lucee.runtime.i18n.LocaleFactory;
@@ -1986,7 +1987,8 @@ public final class Caster {
 	}
 
 	/**
-	 * cast an Object to a String dont throw an exception, if can't cast to a string return an empty string
+	 * cast an Object to a String dont throw an exception, if can't cast to a string return an empty
+	 * string
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue
@@ -3243,25 +3245,38 @@ public final class Caster {
 	}
 
 	public static PageException toPageException(Throwable t, boolean rethrowIfNecessary) {
-		if (t instanceof PageException) return (PageException) t;
-		else if (t instanceof PageExceptionBox) return ((PageExceptionBox) t).getPageException();
-		else if (t instanceof InvocationTargetException) {
+		if (t instanceof PageException) {
+			return (PageException) t;
+		}
+		if (t instanceof PageExceptionBox) {
+			return ((PageExceptionBox) t).getPageException();
+		}
+		if (t instanceof InvocationTargetException) {
 			return toPageException(((InvocationTargetException) t).getTargetException());
 		}
-		else if (t instanceof ExceptionInInitializerError) {
+		if (t instanceof ExceptionInInitializerError) {
 			return toPageException(((ExceptionInInitializerError) t).getCause());
 		}
-		else if (t instanceof ExecutionException) {
+		if (t instanceof ExecutionException) {
 			return toPageException(((ExecutionException) t).getCause());
 		}
-		else {
-			if (t instanceof OutOfMemoryError) {
-				ThreadLocalPageContext.getConfig().checkPermGenSpace(true);
+		if (t instanceof InterruptedException) {
+			PageContext pc = ThreadLocalPageContext.get();
+			if (pc instanceof PageContextImpl) {
+				PageContextImpl pci = (PageContextImpl) pc;
+				StackTraceElement[] tst = pci.getTimeoutStackTrace();
+				if (tst != null) {
+					return new RequestTimeoutException(pc, tst);
+				}
 			}
-			// Throwable cause = t.getCause();
-			// if(cause!=null && cause!=t) return toPageException(cause);
-			return NativeException.newInstance(t, rethrowIfNecessary);
+
 		}
+		if (t instanceof OutOfMemoryError) {
+			ThreadLocalPageContext.getConfig().checkPermGenSpace(true);
+		}
+		// Throwable cause = t.getCause();
+		// if(cause!=null && cause!=t) return toPageException(cause);
+		return NativeException.newInstance(t, rethrowIfNecessary);
 	}
 
 	/**
@@ -3959,8 +3974,8 @@ public final class Caster {
 	}
 
 	/**
-	 * cast an Object to a reference type (Object), in that case this method to nothing, because an Object
-	 * is already a reference type
+	 * cast an Object to a reference type (Object), in that case this method to nothing, because an
+	 * Object is already a reference type
 	 * 
 	 * @param o Object to cast
 	 * @return casted Object
