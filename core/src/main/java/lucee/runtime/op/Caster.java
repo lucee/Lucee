@@ -2334,7 +2334,6 @@ public final class Caster {
 			return ListAsArray.toArray((List) o);// new ArrayImpl(((List) o).toArray());
 		}
 		else if (o instanceof Set) {
-
 			return toArray(((Set) o).toArray());// new ArrayImpl(((List) o).toArray());
 		}
 		else if (o instanceof XMLStruct) {
@@ -4138,7 +4137,7 @@ public final class Caster {
 		else if (o instanceof ObjectWrap) {
 			return toCollection(((ObjectWrap) o).getEmbededObject());
 		}
-		else if (Decision.isArray(o)) {
+		else if (Decision.isCastableToArray(o)) {
 			return toArray(o);
 		}
 		throw new CasterException(o, "collection");
