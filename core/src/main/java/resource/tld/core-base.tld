@@ -3951,7 +3951,7 @@ To use cached data, the tag must be called with the exact same arguments.</descr
 			<name>taglib</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Path to a custom tag libraray or a jsp tld</description>
+			<description>Path to a custom tag library or a jsp tld</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
