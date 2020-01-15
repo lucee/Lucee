@@ -3951,7 +3951,10 @@ To use cached data, the tag must be called with the exact same arguments.</descr
 			<name>taglib</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Path to a custom tag library or a jsp tld</description>
+			<description>Path to a custom tag library or a jsp tld
+				
+As cfimport is a compiler directive, Application.cfc mappings won't work, but mappings configured via the web admin will.
+</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
