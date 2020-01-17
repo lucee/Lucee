@@ -415,7 +415,7 @@
 				<thead>
 					<tr>
 						<th width="3%">
-							<input type="checkbox" class="checkbox" name="row" onclick="selectAll(this)">
+							<input type="checkbox" class="checkbox" name="row" id="selectAll" onclick="selectAll(this)">
 						</th>
 						<th width="20%">#stText.remote.ot.type#</th>
 						<th width="39%">#stText.remote.ot.name#</th>
@@ -468,7 +468,7 @@
 							<!--- and now display --->
 							<tr>
 								<td>
-									<input type="checkbox" class="checkbox" name="row_#tasks.currentrow#" value="#tasks.currentrow#">
+									<input type="checkbox" class="checkbox checkAll" id="checkAll" name="row_#tasks.currentrow#" value="#tasks.currentrow#">
 								</td>
 								<td class="tblContent#css#"><input type="hidden" name="id_#tasks.currentrow#" value="#tasks.id#">
 									#tasks.type#
@@ -506,10 +506,10 @@
 					<tfoot>
 						 <tr>
 							<td colspan="6">
-								<input type="reset" class="bl button reset" name="cancel" value="#stText.Buttons.Cancel#">
-								<input type="submit" class="bm button submit" name="mainAction" value="#stText.Buttons.Execute#">
-								<input type="submit" class="bm button submit" name="mainAction" value="#stText.Buttons.Delete#">
-								<input type="submit" class="br button" name="mainAction" value="#stText.Buttons.DeleteAll#">
+								<input type="reset" class="bl button reset enablebutton" id="clickCancel" name="cancel" value="#stText.Buttons.Cancel#">
+								<input type="submit" class="bm button submit enablebutton" name="mainAction" value="#stText.Buttons.Execute#">
+								<input type="submit" class="bm button submit enablebutton" name="mainAction" value="#stText.Buttons.Delete#">
+								<input type="submit" class="br button enablebutton" name="mainAction" disabled style="opacity:0.5" value="#stText.Buttons.DeleteAll#">
 							</td>	
 						</tr>
 					</tfoot>
