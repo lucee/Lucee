@@ -244,19 +244,29 @@ component extends="Debug" {
 function formatUnits(query data,array columns, string unit){
 	loop query="data" {
     	loop array="#columns#" index="local.col" {
-        	data[col]=formatUnit(unit,data[col]);
+        	if(listfirst(formatUnit(unit,data[col])," ") gt 0)data[col]=formatUnit(unit,data[col]);
+    		else data[col]='-';
         }
     }
 }
 	
 
 function formatUnit(string unit, numeric time ){
-	if(unit EQ "millisecond")
+	if (time GTE 100000000)
     	return int(time/1000000)&" ms";
-    elseif(unit EQ "microsecond")
-    	return int(time/1000)&" #chr(181)#s";
-    else
-    	return int(time)&" ns";
+    else if (time GTE 10000000)
+    	return (int(time/100000)/10)&" ms";
+    else if (time GTE 1000000)
+    	return (int(time/10000)/100)&" ms";
+    else 
+    	return (int(time/1000)/1000)&" ms";
 }
-}  
+}
 </cfscript>
+
+// if(unit EQ "millisecond")
+//    return int(time/1000000)&" ms";
+//  else if(unit EQ "microsecond")
+//    return int(time/1000)&" #chr(181)#s";
+//  else
+//    return int(time)&" ns";

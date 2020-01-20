@@ -1006,10 +1006,12 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 						<td class="pad txt-r">#unitFormat( arguments.custom.unit, loa,prettify )#</td>
 						<td class="pad">Startup/Compilation</td>
 					</tr>
-					<tr>
-						<td class="pad txt-r">#unitFormat( arguments.custom.unit, q,prettify )#</td>
-						<td class="pad">Query</td>
-					</tr>
+					<cfif listfirst(unitFormat( arguments.custom.unit, q,prettify )," ") gt 0>
+						<tr>
+							<td class="pad txt-r">#unitFormat( arguments.custom.unit, q,prettify )#</td>
+							<td class="pad">Query</td>
+						</tr>
+					</cfif>
 					<tr>
 						<td class="pad txt-r bold">#unitFormat( arguments.custom.unit, tot, prettify )#</td>
 						<td class="pad bold">Total</td>
