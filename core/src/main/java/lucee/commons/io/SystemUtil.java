@@ -94,6 +94,7 @@ import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.functions.other.CreateUniqueId;
+import lucee.runtime.functions.system.ContractPath;
 import lucee.runtime.functions.system.ExpandPath;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Castable;
@@ -1019,7 +1020,13 @@ public final class SystemUtil {
 
 		@Override
 		public String toString() {
+			if (line < 1) return template;
 			return template + ":" + line;
+		}
+
+		public String toString(PageContext pc, boolean contract) {
+			if (line < 1) return contract ? ContractPath.call(pc, template) : template;
+			return (contract ? ContractPath.call(pc, template) : template) + ":" + line;
 		}
 
 		public Object toStruct() {
