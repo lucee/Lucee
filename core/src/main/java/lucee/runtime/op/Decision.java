@@ -1002,7 +1002,14 @@ public final class Decision {
 			if ("guid".equals(type)) return isGUId(value);
 			break;
 		case 'i':
-			if ("integer".equals(type)) return isInteger(value, false);
+			if ("integer".equals(type)) 
+				try{
+					Integer.parseInt(Caster.toString(value));
+					return true;
+				}
+				catch(Exception e){
+					return false;
+				}
 			if ("image".equals(type)) return ImageUtil.isImage(value);
 			break;
 		case 'l':
