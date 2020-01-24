@@ -1765,7 +1765,9 @@ class MacAddressWrap implements ObjectWrap, Castable, Serializable {
 	@Override
 	public String toString() {
 		try {
-			return getEmbededObject().toString();
+			Object eo = getEmbededObject();
+			if (eo == null) return "";
+			return eo.toString();
 		}
 		catch (PageException pe) {
 			throw new PageRuntimeException(pe);
