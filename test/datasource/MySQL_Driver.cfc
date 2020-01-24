@@ -121,7 +121,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 			});
 			/* TODO:
 			Errored: test with version 8.0.11 --> Cannot open file:/home/travis/build/lucee/Lucee/temp/archive/base/lucee-server/context/security/cacerts [Keystore was tampered with, or password was incorrect]
-
 			it( title='test with version 8.0.11',skip=isNotSupported(), body=function( currentSpec ) {
 				defineDatasource('com.mysql.cj.jdbc.Driver',  'com.mysql.cj', '8.0.11');
 				var result = testConnection(); // TODO
