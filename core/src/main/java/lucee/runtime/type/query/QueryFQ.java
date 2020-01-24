@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import lucee.commons.io.SystemUtil.TemplateLine;
 import lucee.runtime.PageContext;
 import lucee.runtime.db.SQL;
 import lucee.runtime.dump.DumpData;
@@ -33,6 +34,7 @@ import lucee.runtime.type.Collection;
 import lucee.runtime.type.Objects;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryColumn;
+import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.dt.DateTime;
 
@@ -53,6 +55,12 @@ public class QueryFQ implements Query, Objects, QueryResult, Serializable {
 	@Override
 	public String getTemplate() {
 		return qry.getTemplate();
+	}
+
+	@Override
+	public TemplateLine getTemplateLine() {
+		if (qry instanceof QueryImpl) return ((QueryImpl) qry).getTemplateLine();
+		return new TemplateLine(qry.getTemplate(), 0);
 	}
 
 	@Override

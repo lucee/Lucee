@@ -4,17 +4,17 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 package lucee.loader.engine;
 
@@ -93,6 +93,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	private static final String UPDATE_LOCATION = "http://release.lucee.org"; // MUST from server.xml
 	private static final long GB1 = 1024 * 1024 * 1024;
 	private static final long MB100 = 1024 * 1024 * 100;
+	private static final int MAX_REDIRECTS = 5;
 
 	private static CFMLEngineFactory factory;
 	// private static CFMLEngineWrapper engineListener;
@@ -147,7 +148,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	/**
 	 * returns instance of this factory (singelton = always the same instance) do auto update when
 	 * changes occur
-	 * 
+	 *
 	 * @param config
 	 * @return Singelton Instance of the Factory
 	 * @throws ServletException
@@ -175,7 +176,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	/**
 	 * returns instance of this factory (singelton = always the same instance) do auto update when
 	 * changes occur
-	 * 
+	 *
 	 * @return Singelton Instance of the Factory
 	 * @throws RuntimeException
 	 */
@@ -191,7 +192,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 	/**
 	 * returns instance of this factory (singelton always the same instance)
-	 * 
+	 *
 	 * @param config
 	 * @param listener
 	 * @return Singelton Instance of the Factory
@@ -222,7 +223,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		if (Util.isEmpty(initParam)) initParam = config.getInitParameter("lucee-server-root");
 		if (Util.isEmpty(initParam)) initParam = config.getInitParameter("lucee-server-dir");
 		if (Util.isEmpty(initParam)) initParam = config.getInitParameter("lucee-server");
-		if (Util.isEmpty(initParam)) initParam = System.getProperty("lucee.server.dir");
+		if (Util.isEmpty(initParam)) initParam = Util._getSystemPropOrEnvVar("lucee.server.dir", null);
 
 		initParam = parsePlaceHolder(removeQuotes(initParam, true));
 		try {
@@ -247,7 +248,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 	/**
 	 * adds a listener to the factory that will be informed when a new engine will be loaded.
-	 * 
+	 *
 	 * @param listener
 	 */
 	private void addListener(final EngineChangeListener listener) {
@@ -550,7 +551,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	/**
 	 * method to initialize an update of the CFML Engine. checks if there is a new Version and update it
 	 * when a new version is available
-	 * 
+	 *
 	 * @param password
 	 * @return has updated
 	 * @throws IOException
@@ -564,7 +565,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 	/**
 	 * restart the cfml engine
-	 * 
+	 *
 	 * @param password
 	 * @return has updated
 	 * @throws IOException
@@ -578,7 +579,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 	/**
 	 * restart the cfml engine
-	 * 
+	 *
 	 * @param password
 	 * @return has updated
 	 * @throws IOException
@@ -593,7 +594,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 	/**
 	 * restart the cfml engine
-	 * 
+	 *
 	 * @param password
 	 * @return has updated
 	 * @throws IOException
@@ -615,7 +616,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 	/**
 	 * updates the engine when an update is available
-	 * 
+	 *
 	 * @return has updated
 	 * @throws IOException
 	 * @throws ServletException
@@ -688,6 +689,12 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			log(Logger.LOG_INFO, jar + " should exist but does not (exist?" + jar.exists() + ";file?" + jar.isFile() + ";hidden?" + jar.isHidden() + ")");
 		}
 
+		String str = Util._getSystemPropOrEnvVar("lucee.enable.bundle.download", null);
+		if (str != null && ("false".equalsIgnoreCase(str) || "no".equalsIgnoreCase(str))) { // we do not use CFMLEngine to cast, because the engine may not exist yet
+			throw (new RuntimeException("Lucee is missing the Bundle jar, " + symbolicName + ":" + symbolicVersion
+					+ ", and has been prevented from downloading it. If this jar is not a core jar, it will need to be manually downloaded and placed in the {{lucee-server}}/context/bundles directory."));
+		}
+
 		jar = new File(jarDir, symbolicName.replace('.', '-') + "-" + symbolicVersion.replace('.', '-') + (".jar"));
 
 		final URL updateProvider = getUpdateLocation();
@@ -697,7 +704,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				+ (id == null ? "?" : "&") + "allowRedirect=true&jv=" + System.getProperty("java.version")
 
 		);
-		log(Logger.LOG_DEBUG, "download bundle [" + symbolicName + ":" + symbolicVersion + "] from " + updateUrl + " and copy to " + jar);
+		log(Logger.LOG_WARNING, "Downloading bundle [" + symbolicName + ":" + symbolicVersion + "] from " + updateUrl + " and copying to " + jar);
 
 		int code;
 		HttpURLConnection conn;
@@ -715,12 +722,13 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		if (code != 200) {
 
 			// the update provider can also provide a different (final) location for this
-			if (code == 302) {
+			int count = 1;
+			while ((code == 302 || code == 301) && count++ <= MAX_REDIRECTS) {
 				String location = conn.getHeaderField("Location");
 				// just in case we check invalid names
 				if (location == null) location = conn.getHeaderField("location");
 				if (location == null) location = conn.getHeaderField("LOCATION");
-				log(Logger.LOG_DEBUG, "download redirected:" + location); // MUST remove
+				log(Logger.LOG_INFO, "download redirected:" + location);
 
 				conn.disconnect();
 				URL url = new URL(location);
@@ -734,7 +742,6 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 					log(e);
 					throw new IOException("could not download the bundle  [" + symbolicName + ":" + symbolicVersion + "] from " + location + " and copy to " + jar, e);
 				}
-
 			}
 
 			// no download available!
@@ -797,7 +804,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 				// adding bundle
 				File trg = new File(bundleDirectory, osgiFileName);
-				temp.renameTo(trg);
+				fileMove(temp, trg);
 				log(Logger.LOG_DEBUG, "adding bundle [" + symbolicName + "] in version [" + symbolicVersion + "] to [" + trg + "]");
 				return trg;
 			}
@@ -868,6 +875,23 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			Util.closeEL(zis);
 		}
 		return null;
+	}
+
+	// FUTURE move to Util class
+	private final static void fileMove(File src, File dest) throws IOException {
+		boolean moved = src.renameTo(dest);
+		if (!moved) {
+			BufferedInputStream is = new BufferedInputStream(new FileInputStream(src));
+			BufferedOutputStream os = new BufferedOutputStream(new FileOutputStream(dest));
+			try {
+				Util.copy(is, os, false, false); // is set false here, because copy does not close in case of an exception
+			}
+			finally {
+				closeEL(is);
+				closeEL(os);
+			}
+			if (!src.delete()) src.deleteOnExit();
+		}
 	}
 
 	private boolean isWindows() {
@@ -1063,7 +1087,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	/**
 	 * method to initialize an update of the CFML Engine. checks if there is a new Version and update it
 	 * when a new version is available
-	 * 
+	 *
 	 * @param password
 	 * @return has updated
 	 * @throws IOException
@@ -1077,7 +1101,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	/**
 	 * method to initialize an update of the CFML Engine. checks if there is a new Version and update it
 	 * when a new version is available
-	 * 
+	 *
 	 * @param password
 	 * @return has updated
 	 * @throws IOException
@@ -1090,7 +1114,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 	/**
 	 * updates the engine when an update is available
-	 * 
+	 *
 	 * @return has updated
 	 * @throws IOException
 	 * @throws ServletException
@@ -1136,7 +1160,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 	/**
 	 * call all registered listener for update of the engine
-	 * 
+	 *
 	 * @param engine
 	 */
 	private void callListeners(final CFMLEngine engine) {
@@ -1172,7 +1196,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 	/**
 	 * return directory to lucee resource root
-	 * 
+	 *
 	 * @return lucee root directory
 	 * @throws IOException
 	 */
@@ -1370,7 +1394,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 	/**
 	 * returns the path where the classloader is located
-	 * 
+	 *
 	 * @param cl ClassLoader
 	 * @return file of the classloader root
 	 */
@@ -1405,7 +1429,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 	/**
 	 * Load CFMl Engine Implementation (lucee.runtime.engine.CFMLEngineImpl) from a Classloader
-	 * 
+	 *
 	 * @param bundle
 	 * @return
 	 * @throws ClassNotFoundException

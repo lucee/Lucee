@@ -32,7 +32,7 @@
 			By default, client variables are disabled. Also, enables session variables and sets timeouts
 			for session and application variables. Session and application variables are stored in memory.
 		</description>
-		<attribute-type>fixed</attribute-type>
+		<attribute-type>mixed</attribute-type>
 		<attribute>
 			<type>string</type>
 			<name>name</name>

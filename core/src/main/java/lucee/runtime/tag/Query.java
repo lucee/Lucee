@@ -58,6 +58,7 @@ import lucee.runtime.db.SQLItem;
 import lucee.runtime.debug.DebuggerImpl;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.CasterException;
+import lucee.runtime.exp.CatchBlockImpl;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.BodyTagTryCatchFinallyImpl;
@@ -513,7 +514,6 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 						data.listener = listener;
 					}
 				}
-
 			}
 		}
 
@@ -640,8 +640,10 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 			if (queryResult == null) {
 				// QoQ
 				if ("query".equals(data.dbtype)) {
-					lucee.runtime.type.Query q = executeQoQ(pageContext, data, sqlQuery);
-					if (data.returntype == RETURN_TYPE_ARRAY) queryResult = QueryArray.toQueryArray(q); // TODO this should be done in queryExecute itself so
+					QueryImpl q = executeQoQ(pageContext, data, sqlQuery, tl);
+					q.setTemplateLine(tl);
+					if (data.returntype == RETURN_TYPE_ARRAY) queryResult = QueryArray.toQueryArray(q); // TODO this should be done in queryExecute
+																										// itself so
 					// we not have to convert afterwards
 					else if (data.returntype == RETURN_TYPE_STRUCT) {
 						if (data.columnName == null) throw new ApplicationException("attribute columnKey is required when return type is set to struct");
@@ -649,7 +651,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 						// queryExecute itself so we not
 						// have to convert // afterwards
 					}
-					else queryResult = (QueryResult) q;
+					else queryResult = q;
 				}
 				// ORM and Datasource
 				else {
@@ -782,8 +784,8 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 			((ConfigWebImpl) pageContext.getConfig()).getActionMonitorCollector().log(pageContext, "query", "Query", exe, queryResult);
 			if (data.listener != null) {
 				Struct args = createArgStruct(data, strSQL, tl);
-				if (setResult) args.set("result", queryResult);
-				if (meta != null) args.set("meta", meta);
+				if (setResult) args.set(KeyConstants._result, queryResult);
+				if (meta != null) args.set(KeyConstants._meta, meta);
 				writeBackResult(pageContext, data, data.listener.after(pageContext, args), setVars);
 
 			}
@@ -795,9 +797,17 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 			}
 		}
 		catch (PageException pe) {
+			boolean rethrow = true;
+			if (data.listener != null) {
+				Struct args = createArgStruct(data, strSQL, tl);
+				args.set(KeyConstants._exception, new CatchBlockImpl(pe));
+				if (writeBackResult(pageContext, data, data.listener.fail(pageContext, args), setVars)) rethrow = false;
+			}
 			// log
-			pageContext.getConfig().getLog("datasource").error("query tag", pe);
-			throw pe;
+			if (rethrow) {
+				pageContext.getConfig().getLog("datasource").error("query tag", pe);
+				throw pe;
+			}
 		}
 		finally {
 			((PageContextImpl) pageContext).setTimestampWithTSOffset(data.previousLiteralTimestampWithTSOffset);
@@ -948,12 +958,14 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		return sql;
 	}
 
-	private static void writeBackResult(PageContext pageContext, QueryBean data, Struct args, boolean setVars) throws PageException {
-		if (args == null) return;
+	private static boolean writeBackResult(PageContext pageContext, QueryBean data, Struct args, boolean setVars) throws PageException {
+		if (args == null) return false;
 
 		// result
+		boolean hasResult = false;
 		Object res = args.get(KeyConstants._result, null);
 		if (res != null) {
+			hasResult = true;
 			if (!StringUtil.isEmpty(data.name) && setVars) pageContext.setVariable(data.name, res);
 		}
 		// meta
@@ -964,6 +976,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 				if (setVars) pageContext.setVariable(data.result, meta);
 			}
 		}
+		return hasResult;
 	}
 
 	private static void set(Struct args, String name, Object value) throws PageException {
@@ -1029,7 +1042,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		else return session.executeQuery(pc, dsn, hql, (Array) params, unique, queryOptions);
 	}
 
-	private static lucee.runtime.type.Query executeQoQ(PageContext pc, QueryBean data, SQL sql) throws PageException {
+	private static lucee.runtime.type.QueryImpl executeQoQ(PageContext pc, QueryBean data, SQL sql, TemplateLine tl) throws PageException {
 		try {
 			return new HSQLDBHandler().execute(pc, sql, data.maxrows, data.blockfactor, data.timeout);
 		}
@@ -1051,13 +1064,13 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 				return new SimpleQuery(pageContext, dc, sql, data.maxrows, data.blockfactor, data.timeout, getName(data), tl, tz);
 			}
 			if (data.returntype == RETURN_TYPE_ARRAY)
-				return QueryImpl.toArray(pageContext, dc, sql, data.maxrows, data.blockfactor, data.timeout, getName(data), tl.template, createUpdateData, true);
+				return QueryImpl.toArray(pageContext, dc, sql, data.maxrows, data.blockfactor, data.timeout, getName(data), tl, createUpdateData, true);
 			if (data.returntype == RETURN_TYPE_STRUCT) {
 				if (data.columnName == null) throw new ApplicationException("attribute columnKey is required when return type is set to struct");
 
-				return QueryImpl.toStruct(pageContext, dc, sql, data.columnName, data.maxrows, data.blockfactor, data.timeout, getName(data), tl.template, createUpdateData, true);
+				return QueryImpl.toStruct(pageContext, dc, sql, data.columnName, data.maxrows, data.blockfactor, data.timeout, getName(data), tl, createUpdateData, true);
 			}
-			return new QueryImpl(pageContext, dc, sql, data.maxrows, data.blockfactor, data.timeout, getName(data), tl.template, createUpdateData, true, data.indexName);
+			return new QueryImpl(pageContext, dc, sql, data.maxrows, data.blockfactor, data.timeout, getName(data), tl, createUpdateData, true, data.indexName);
 		}
 		finally {
 			manager.releaseConnection(pageContext, dc);
@@ -1096,12 +1109,13 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	public static TagListener toTagListener(Object listener, TagListener defaultValue) {
 		if (listener instanceof Component) return new ComponentTagListener((Component) listener);
 
-		if (listener instanceof UDF) return new UDFTagListener(null, (UDF) listener);
+		if (listener instanceof UDF) return new UDFTagListener(null, (UDF) listener, null);
 
 		if (listener instanceof Struct) {
 			UDF before = Caster.toFunction(((Struct) listener).get("before", null), null);
 			UDF after = Caster.toFunction(((Struct) listener).get("after", null), null);
-			return new UDFTagListener(before, after);
+			UDF fail = Caster.toFunction(((Struct) listener).get("fail", null), null);
+			return new UDFTagListener(before, after, fail);
 		}
 		return defaultValue;
 	}

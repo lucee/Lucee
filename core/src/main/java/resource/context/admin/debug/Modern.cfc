@@ -69,11 +69,6 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 				return false;
 			}
 		}
-
-		function isEnabled( custom, key ) {
-			return structKeyExists( arguments.custom, arguments.key ) && ( arguments.custom[ arguments.key ] == "Enabled" || arguments.custom[ arguments.key ] == "true" );
-		}
-
 		variables.cookieName_debugging   = "lucee_debug_modern";
 		variables.cookieSortOrder       = "lucee_debug_modern_sort";
 		variables.cookieFilterTemplates = "lucee_debug_modern_filter";
@@ -225,18 +220,18 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			</fieldset><!--- #-lucee-debug !--->
 
 			<cfif enableTab("Reference") AND ( !structKeyExists(request, "fromAdmin") )>
-				<div id="mdlWnd" class="modal" style="overflow:auto;">
+				<div id="mdlWnd" class="modal" style="overflow-y:auto;">
+					<button class="closeButtonTop btn" style="float:right;">X</button>
 					<div class="modal-body">
 					</div>
+					<button class="closeButton btn" style="align:right!important;float:right;">Close</button>
 				</div>
 			</cfif>
 			
 			<script src="/lucee/res/js/base.min.js.cfm" type="text/javascript"></script>
-			<cfif !structKeyExists(url, "isAjaxRequest")>
-				<script src="/lucee/res/js/jquery.modal.min.js.cfm" type="text/javascript"></script>
-			</cfif>
+			<!---  --->
 			<script>
-
+				$.noConflict();
 				var __LUCEE = __LUCEE || {};
 				var oLastObj = false;
 				__LUCEE.sectionArray = [];
@@ -405,9 +400,6 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 									chartCall();
 								} else{
 									$("##-lucee-"+section+"-ALL").html(this.responseText);
-									if(section == 'docs'){
-										bindTypeaheadJS();
-									}
 								}
 							}
 						};
@@ -608,66 +600,47 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 					}
 				</script>
 			<!--- </cfif> --->
-			<cfif enableTab("Reference")>
+			<!--- <cfif enableTab("Reference")> --->
 				<script>
+					$(document).ready(function(){
+						//to hide div element that was showed with respect to user input
+						$(document).mouseup(function(e){
+							var container = $("##outerLayer");
+								container.hide();
+						});
+						// to show the modal window while clcik on particular function/tags/components suggested on div element
+						$(document).on('click', '.getMatch', function(){
+							callDesc($(this).data('type').toLowerCase()	, $(this).data('value'));
+						});
 
-					function bindTypeaheadJS(){
-						var allArr = #serializeJson(allArryItem)#;
-						var types = #serializeJson(str)#;
+						$(document).on('keyup',".ttt",function(e){
+							$("##outerLayer").html("");
+							var types = #serializeJson(str)#;
 
-						var substringMatcher = function(strs) {
-							return function findMatches(q, cb) {
-								var matches, substringRegex;
-								// an array that will be populated with substring matches
-								matches = [];
-								// regex used to determine if a string contains the substring `q`
-								substrRegex = new RegExp(q, 'i');
-								// iterate through the pool of strings and for any string that
-								// contains the substring `q`, add it to the `matches` array
-								$.each(strs, function(i, str) {
-									if (substrRegex.test(str)) {
-									matches.push(str);
+							var search = $("##lucee-docs-search-input").val().trim();
+							var modelcontent = "";
+							if(search == ''){
+								$("##outerLayer").hide().html("");
+								return false;
+							}
+							$.each(types, function( array ) {
+								$.grep(types[array], function( value ) {
+									if(value.includes(search)){
+										modelcontent += '<span class="getMatch" data-type='+array+' data-value='+value+'>'+value+'</span><br>';
 									}
 								});
-
-								cb(matches);
-							};
-						};
-
-						$( function() {
-							$( '##lucee-docs-search-input' ).typeahead(
-								{
-									hint: true,
-									highlight: true,
-									minLength: 1
-								},
-								{
-								  name: 'keyWords',
-								  source: substringMatcher(allArr),
-								  limit: 25,
-								   templates: {
-									    empty:  '<div class="moreResults"><span onclick="moreInfo()">No Results Found</span></div>'
-							  	}
+							});
+							if(modelcontent.length != 0){
+								$('##outerLayer').append(modelcontent);
+							}else{
+								$('##outerLayer').append('<span>No Results Found</span><br>');
 							}
-						).on('typeahead:selected', typeaheadSelected);
-							function typeaheadSelected($e, datum){
-								$.each(types, function(i, data) {
-									$.each(data, function(x, y){
-										if(datum.toString() == y){
-											callDesc(i, datum.toString());
-										}
-									});
-								});
-							}
+							$("##outerLayer").show();
+							// if (e.keyCode == 13) {
+							// 	callDesc("functions", search.toString());
+							// }
 						});
-						$( function() {
-						 	$('##lucee-docs-search-input').focus();
-						});
-						$('##-lucee-docs-btn-ALL').on('click', function() {
-							$('##lucee-docs-search-input').focus();
-							$('.tt-menu').hide();
-					    });
-					}
+					});
 
 					function callDesc(type, item){
 						var docURL = "/lucee/doc/" + type + ".cfm?isAjaxRequest=true&fromAdmin=#structKeyExists(request, 'fromAdmin')#&item=" + item;
@@ -678,8 +651,8 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 								$( ".modal-body" ).html("" + data.toString() + "");
 								$('<div class="blocker"></div>').appendTo(document.body);
 								$("##mdlWnd").show();
-								$("##mdlWnd").modal('show');
-								$('.close-modal, .blocker').on('click', function() {
+								$(".closeButtonTop").focus();
+								$('.closeButtonTop,.closeButton, .blocker').on('click', function() {
 									$('##lucee-docs-search-input').val('');
 									$("div.blocker").remove();
 									$(".modal-body").html("");
@@ -691,7 +664,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 						});
 					}
 				</script>
-			</cfif>
+			<!--- </cfif> --->
 			<cfif isdebugOpen && enableTab("debug") || ismetricsOpen && enableTab("metrics")  ||  isdocsOpen && enableTab("Reference")>
 				<script>
 					var isdebugOpen = #isdebugOpen# && #enableTab("debug")#;
@@ -1011,10 +984,12 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 						<td class="pad txt-r">#unitFormat( arguments.custom.unit, loa,prettify )#</td>
 						<td class="pad">Startup/Compilation</td>
 					</tr>
-					<tr>
-						<td class="pad txt-r">#unitFormat( arguments.custom.unit, q,prettify )#</td>
-						<td class="pad">Query</td>
-					</tr>
+					<cfif listfirst(unitFormat( arguments.custom.unit, q,prettify )," ") gt 0>
+						<tr>
+							<td class="pad txt-r">#unitFormat( arguments.custom.unit, q,prettify )#</td>
+							<td class="pad">Query</td>
+						</tr>
+					</cfif>
 					<tr>
 						<td class="pad txt-r bold">#unitFormat( arguments.custom.unit, tot, prettify )#</td>
 						<td class="pad bold">Total</td>
@@ -1874,8 +1849,12 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 		<cfoutput>
 			<cfset sectionId = "docs_Info">
 			<cfset isOpen = this.isSectionOpen( sectionId, "docs" )>
-			<input class="InputSearch #searchClass# menu-search-focus" id="lucee-docs-search-input" placeholder="Search" type="search">
-			<div class="section-title" style="padding-bottom:4px;">Reference</div>
+			<div id="groupOuterText">
+				<input class="InputSearch #searchClass# menu-search-focus ttt" id="lucee-docs-search-input" placeholder="Search" type="text">
+				<div id="outerLayer" style="display:none;" class="form-group">
+				</div>
+			</div>
+			<div class="section-title">Reference</div>
 			<table>
 				<tr>
 				<td>

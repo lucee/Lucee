@@ -3,17 +3,17 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 package lucee.runtime.osgi;
 
@@ -85,6 +85,15 @@ public class OSGiUtil {
 	private static final int QUALIFIER_APPENDIX_OTHER = 4;
 	private static final int QUALIFIER_APPENDIX_STABLE = 5;
 
+	private static final int MAX_REDIRECTS = 5;
+
+	private static ThreadLocal<Set<String>> bundlesThreadLocal = new ThreadLocal<Set<String>>() {
+		@Override
+		protected Set<String> initialValue() {
+			return new HashSet<String>();
+		}
+	};
+
 	private static class Filter implements FilenameFilter, ResourceNameFilter {
 
 		@Override
@@ -109,7 +118,7 @@ public class OSGiUtil {
 	/**
 	 * only installs a bundle, if the bundle does not already exist, if the bundle exists the existing
 	 * bundle is unloaded first.
-	 * 
+	 *
 	 * @param factory
 	 * @param context
 	 * @param bundle
@@ -131,7 +140,7 @@ public class OSGiUtil {
 
 	/**
 	 * does not check if the bundle already exists!
-	 * 
+	 *
 	 * @param context
 	 * @param path
 	 * @param is
@@ -162,7 +171,7 @@ public class OSGiUtil {
 	/**
 	 * only installs a bundle, if the bundle does not already exist, if the bundle exists the existing
 	 * bundle is unloaded first. the bundle is not stored physically on the system.
-	 * 
+	 *
 	 * @param factory
 	 * @param context
 	 * @param bundle
@@ -275,7 +284,7 @@ public class OSGiUtil {
 
 	/**
 	 * tries to load a class with ni bundle definition
-	 * 
+	 *
 	 * @param name
 	 * @param version
 	 * @param id
@@ -566,6 +575,10 @@ public class OSGiUtil {
 	}
 
 	private static Resource downloadBundle(CFMLEngineFactory factory, final String symbolicName, String symbolicVersion, Identification id) throws IOException, BundleException {
+		if (!Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.enable.bundle.download", null), true)) {
+			throw (new RuntimeException("Lucee is missing the Bundle jar, " + symbolicName + ":" + symbolicVersion
+					+ ", and has been prevented from downloading it. If this jar is not a core jar, it will need to be manually downloaded and placed in the {{lucee-server}}/context/bundles directory."));
+		}
 
 		final Resource jarDir = ResourceUtil.toResource(factory.getBundleDirectory());
 		final URL updateProvider = factory.getUpdateLocation();
@@ -574,7 +587,7 @@ public class OSGiUtil {
 				+ (id == null ? "?" : "&") + "allowRedirect=true"
 
 		);
-		log(Logger.LOG_DEBUG, "download bundle [" + symbolicName + ":" + symbolicVersion + "] ");
+		log(Logger.LOG_WARNING, "Downloading bundle [" + symbolicName + ":" + symbolicVersion + "] from " + updateUrl);
 
 		int code;
 		HttpURLConnection conn;
@@ -589,9 +602,9 @@ public class OSGiUtil {
 		}
 		// the update provider is not providing a download for this
 		if (code != 200) {
-
+			int count = 1;
 			// the update provider can also provide a different (final) location for this
-			if (code == 302) {
+			while ((code == 301 || code == 302) && count++ <= MAX_REDIRECTS) {
 				String location = conn.getHeaderField("Location");
 				// just in case we check invalid names
 				if (location == null) location = conn.getHeaderField("location");
@@ -701,7 +714,7 @@ public class OSGiUtil {
 
 	/**
 	 * this should be used when you not want to load a Bundle to the system
-	 * 
+	 *
 	 * @param name
 	 * @param version
 	 * @param id only necessary if downloadIfNecessary is set to true
@@ -742,7 +755,7 @@ public class OSGiUtil {
 
 	/**
 	 * check left value against right value
-	 * 
+	 *
 	 * @param left
 	 * @param right
 	 * @return returns if right is newer than left
@@ -963,7 +976,7 @@ public class OSGiUtil {
 
 	/**
 	 * get all local bundles (even bundles not loaded/installed)
-	 * 
+	 *
 	 * @param name
 	 * @param version
 	 * @return
@@ -1055,7 +1068,7 @@ public class OSGiUtil {
 
 	/**
 	 * get local bundle, but does not download from update provider!
-	 * 
+	 *
 	 * @param name
 	 * @param version
 	 * @return
@@ -1112,10 +1125,21 @@ public class OSGiUtil {
 	}
 
 	public static Bundle start(Bundle bundle) throws BundleException {
-		return _start(bundle, null);
+		try {
+			return _start(bundle, null);
+		}
+		finally {
+			bundlesThreadLocal.get().clear();
+		}
 	}
 
 	public static Bundle _start(Bundle bundle, Set<String> parents) throws BundleException {
+		if (bundle == null) return bundle;
+
+		String bn = toString(bundle);
+		if (bundlesThreadLocal.get().contains(bn)) return bundle;
+		bundlesThreadLocal.get().add(bn);
+
 		String fh = bundle.getHeaders().get("Fragment-Host");
 		// Fragment cannot be started
 		if (!Util.isEmpty(fh)) {
@@ -1132,7 +1156,6 @@ public class OSGiUtil {
 			// check if required related bundles are missing and load them if necessary
 			final List<BundleDefinition> failedBD = new ArrayList<OSGiUtil.BundleDefinition>();
 			if (parents == null) parents = new HashSet<String>();
-
 			Set<Bundle> loadedBundles = loadBundles(parents, bundle, null, failedBD);
 
 			try {
@@ -1635,7 +1658,7 @@ public class OSGiUtil {
 
 		/**
 		 * only return a bundle if already loaded, does not load the bundle
-		 * 
+		 *
 		 * @return
 		 */
 		public Bundle getLoadedBundle() {
@@ -1644,7 +1667,7 @@ public class OSGiUtil {
 
 		/**
 		 * get Bundle, also load if necessary from local or remote
-		 * 
+		 *
 		 * @return
 		 * @throws BundleException
 		 * @throws StartFailedException
@@ -1754,7 +1777,7 @@ public class OSGiUtil {
 
 	/**
 	 * value can be a String (for a single entry) or a List<String> for multiple entries
-	 * 
+	 *
 	 * @param b
 	 * @return
 	 */
@@ -1876,11 +1899,12 @@ public class OSGiUtil {
 	}
 
 	public static Resource[] extractAndLoadBundles(PageContext pc, Resource[] jars) throws IOException {
-
 		BundleFile bf;
 		List<Resource> classic = new ArrayList<Resource>();
 		for (int i = 0; i < jars.length; i++) {
-			// jar=jars[i];
+			classic.add(jars[i]); // any jar is provided the classic way
+
+			// optionally make the jar available as a bundle
 			try {
 				bf = jars[i].isFile() ? BundleFile.getInstance(jars[i], true) : null;
 			}
@@ -1893,19 +1917,13 @@ public class OSGiUtil {
 					pc.getConfig().getFactory();
 					CFMLEngine engine = CFMLEngineFactory.getInstance();
 					try {
-						BundleUtil.addBundle(engine.getCFMLEngineFactory(), engine.getBundleContext(), jars[i], ((PageContextImpl) pc).getLog("application"));
+						BundleUtil.addBundle(engine.getCFMLEngineFactory(), engine.getBundleContext(), jars[i], ((PageContextImpl) pc).getLog("application")).start();
 					}
-					catch (BundleException e) {
-						throw engine.getExceptionUtil().toIOException(e);
-					}
+					catch (BundleException e) {}
 				}
-			}
-			else {
-				classic.add(jars[i]);
 			}
 		}
 		return classic.toArray(new Resource[classic.size()]);
-
 	}
 
 	public static String getClassPath() {

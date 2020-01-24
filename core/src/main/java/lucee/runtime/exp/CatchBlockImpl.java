@@ -97,7 +97,11 @@ public class CatchBlockImpl extends StructImpl implements CatchBlock, Castable, 
 						continue;
 					}
 					key = KeyImpl.init(Reflector.removeGetterPrefix(getter.getName()));
-					if (STACK_TRACE.equalsIgnoreCase(key)) continue;
+
+					if (KeyConstants._Message.equalsIgnoreCase(key) || KeyConstants._Detail.equalsIgnoreCase(key)) {
+						if (getter.getReturnType() != String.class) continue;
+					}
+					else if (STACK_TRACE.equalsIgnoreCase(key) || KeyConstants._type.equalsIgnoreCase(key) || CAUSE.equalsIgnoreCase(key)) continue;
 					setEL(key, new Pair(throwable, key, getter, false));
 				}
 			}

@@ -18,6 +18,14 @@
  */
 package lucee.runtime.type.scope.storage;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
@@ -38,13 +46,6 @@ import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.StructSupport;
 import lucee.runtime.type.util.StructUtil;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 public abstract class StorageScopeImpl extends StructSupport implements StorageScope, CSRFTokenSupport {
 
@@ -99,7 +100,8 @@ public abstract class StorageScopeImpl extends StructSupport implements StorageS
 	private int type;
 	private long timeSpan = -1;
 	private String storage;
-	private final Map<String, String> tokens = new StructImpl();
+
+	private final Map<Collection.Key, String> tokens = new ConcurrentHashMap<Collection.Key, String>();
 
 	/**
 	 * Constructor of the class

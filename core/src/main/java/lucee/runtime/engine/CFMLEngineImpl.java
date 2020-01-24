@@ -122,7 +122,9 @@ import lucee.runtime.config.XMLConfigFactory.UpdateInfo;
 import lucee.runtime.config.XMLConfigServerFactory;
 import lucee.runtime.config.XMLConfigWebFactory;
 import lucee.runtime.engine.listener.CFMLServletContextListener;
+import lucee.runtime.exp.Abort;
 import lucee.runtime.exp.ApplicationException;
+import lucee.runtime.exp.CasterException;
 import lucee.runtime.exp.NativeException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageServletException;
@@ -281,7 +283,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 		// copy bundled extension to local extension directory (if never done before)
 		if (installExtensions && updateInfo.updateType != XMLConfigFactory.NEW_NONE) {
-			deployBundledExtension(cs);
+			deployBundledExtension(cs, false);
 			LogUtil.log(cs, Log.LEVEL_INFO, "deploy", "controller", "copy bundled extension to local extension directory (if never done before)");
 		}
 		// required extensions
@@ -460,9 +462,14 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		return sb.toString();
 	}
 
-	private void deployBundledExtension(ConfigServerImpl cs) {
+	public int deployBundledExtension(boolean validate) {
+		return deployBundledExtension(getConfigServerImpl(), validate);
+	}
+
+	private int deployBundledExtension(ConfigServerImpl cs, boolean validate) {
+		int count = 0;
 		Resource dir = cs.getLocalExtensionProviderDirectory();
-		List<ExtensionDefintion> existing = DeployHandler.getLocalExtensions(cs);
+		List<ExtensionDefintion> existing = DeployHandler.getLocalExtensions(cs, validate);
 		Map<String, ExtensionDefintion> existingMap = new HashMap<String, ExtensionDefintion>();
 
 		{
@@ -487,7 +494,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 		if (is == null) {
 			log.error("extract-extension", "could not found [/extensions/.index] defined in the index in the lucee.jar");
-			return;
+			return count;
 		}
 
 		try {
@@ -535,9 +542,11 @@ public final class CFMLEngineImpl implements CFMLEngine {
 							break;
 						}
 					}
+
 					String trgName = rhe.getId() + "-" + rhe.getVersion() + ".lex";
 					if (alreadyExists == null) {
 						temp.moveTo(dir.getRealResource(trgName));
+						count++;
 						log.info("extract-extension", "added [" + name + "] to [" + dir + "]");
 
 					}
@@ -566,12 +575,12 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		catch (Exception e) {
 			log.error("extract-extension", e);
 		}
-		return;
+		return count;
 	}
 
 	private void deployBundledExtensionZip(ConfigServerImpl cs) {
 		Resource dir = cs.getLocalExtensionProviderDirectory();
-		List<ExtensionDefintion> existing = DeployHandler.getLocalExtensions(cs);
+		List<ExtensionDefintion> existing = DeployHandler.getLocalExtensions(cs, false);
 		String sub = "extensions/";
 		// MUST this does not work on windows! we need to add an index
 		ZipEntry entry;
@@ -1118,7 +1127,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 					throw td;
 				}
 				catch (Throwable t) {
-					if (t instanceof Exception) LogUtil.log(configServer, "controller", (Exception) t);
+					if (t instanceof Exception && !Abort.isSilentAbort(t)) LogUtil.log(configServer, "controller", (Exception) t);
 				}
 			}
 		}
@@ -1735,6 +1744,18 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	public boolean exeRequestAsync() {
 		if (asyncReqHandle == null) asyncReqHandle = Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.async.request.handle", null), Boolean.FALSE);
 		return asyncReqHandle;
+	}
+
+	public static CFMLEngineImpl toCFMLEngineImpl(CFMLEngine e) throws CasterException {
+		if (e instanceof CFMLEngineImpl) return (CFMLEngineImpl) e;
+		if (e instanceof CFMLEngineWrapper) return toCFMLEngineImpl(((CFMLEngineWrapper) e).getEngine());
+		throw new CasterException(e, CFMLEngineImpl.class);
+	}
+
+	public static CFMLEngineImpl toCFMLEngineImpl(CFMLEngine e, CFMLEngineImpl defaultValue) {
+		if (e instanceof CFMLEngineImpl) return (CFMLEngineImpl) e;
+		if (e instanceof CFMLEngineWrapper) return toCFMLEngineImpl(((CFMLEngineWrapper) e).getEngine(), defaultValue);
+		return defaultValue;
 	}
 
 }

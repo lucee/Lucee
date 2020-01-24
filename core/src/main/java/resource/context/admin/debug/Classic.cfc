@@ -211,10 +211,12 @@ millisecond:"ms"
 	<td align="right" class="cfdebug" nowrap><i>#formatUnit(arguments.custom.unit, tot-q-loa)#</i></td><td colspan=2>&nbsp;</td>
 	<td align="left" class="cfdebug"><i>APPLICATION EXECUTION TIME</i></td>
 </tr>
-<tr>
-	<td align="right" class="cfdebug" nowrap><i>#formatUnit(arguments.custom.unit, q)#</i></td><td colspan=2>&nbsp;</td>
-	<td align="left" class="cfdebug"><i>QUERY EXECUTION TIME</i></td>
-</tr>
+<cfif listfirst(formatUnit(custom.unit, q)," ") gt 0>
+	<tr>
+		<td align="right" class="cfdebug" nowrap><i>#formatUnit(arguments.custom.unit, q)#</i></td><td colspan=2>&nbsp;</td>
+		<td align="left" class="cfdebug"><i>QUERY EXECUTION TIME</i></td>
+	</tr>
+</cfif>	
 <tr>
 	<td align="right" class="cfdebug" nowrap><i><b>#formatUnit(arguments.custom.unit, tot)#</i></b></td><td colspan=2>&nbsp;</td>
 	<td align="left" class="cfdebug"><i><b>TOTAL EXECUTION TIME</b></i></td>

@@ -20,14 +20,14 @@ package lucee.runtime.db;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.lang.ref.SoftReference;
 import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.SQLException;
-import java.util.Collections;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.commons.collections4.map.ReferenceMap;
 import org.osgi.framework.BundleException;
 
 import lucee.commons.io.log.Log;
@@ -57,7 +57,7 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 	private final String password;
 	private final ClassDefinition cd;
 
-	private transient Map<String, ProcMetaCollection> procedureColumnCache;
+	private transient Map<String, SoftReference<ProcMetaCollection>> procedureColumnCache;
 	private transient Driver driver;
 	private transient Log log;
 	private final TagListener listener;
@@ -145,8 +145,8 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 		return cloneReadOnly();
 	}
 
-	public Map<String, ProcMetaCollection> getProcedureColumnCache() {
-		if (procedureColumnCache == null) procedureColumnCache = Collections.synchronizedMap(new ReferenceMap<String, ProcMetaCollection>());
+	public Map<String, SoftReference<ProcMetaCollection>> getProcedureColumnCache() {
+		if (procedureColumnCache == null) procedureColumnCache = new ConcurrentHashMap<String, SoftReference<ProcMetaCollection>>();
 		return procedureColumnCache;
 	}
 

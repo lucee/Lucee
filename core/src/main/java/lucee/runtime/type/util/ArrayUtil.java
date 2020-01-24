@@ -949,6 +949,20 @@ public final class ArrayUtil {
 		return ret;
 	}
 
+	public static String[] toArray(String[] arr1, String[] arr2, String[] arr3) {
+		String[] ret = new String[arr1.length + arr2.length + arr3.length];
+		for (int i = 0; i < arr1.length; i++) {
+			ret[i] = arr1[i];
+		}
+		for (int i = 0; i < arr2.length; i++) {
+			ret[arr1.length + i] = arr2[i];
+		}
+		for (int i = 0; i < arr3.length; i++) {
+			ret[arr1.length + arr2.length + i] = arr3[i];
+		}
+		return ret;
+	}
+
 	public static String[] toArray(String[] arr, String str) {
 		String[] ret = new String[arr.length + 1];
 		for (int i = 0; i < arr.length; i++) {

@@ -92,6 +92,7 @@ import lucee.runtime.exp.NativeException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageExceptionBox;
 import lucee.runtime.exp.PageRuntimeException;
+import lucee.runtime.exp.RequestTimeoutException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.functions.file.FileStreamWrapper;
 import lucee.runtime.i18n.LocaleFactory;
@@ -821,6 +822,10 @@ public final class Caster {
 		return toDecimal(Caster.toDoubleValue(value));
 	}
 
+	public static String toDecimal(Object value, boolean separator) throws PageException {
+		return toDecimal(Caster.toDoubleValue(value), separator);
+	}
+
 	/**
 	 * cast a double to a decimal value (String:xx.xx)
 	 * 
@@ -830,6 +835,10 @@ public final class Caster {
 	 */
 	public static String toDecimal(String value) throws PageException {
 		return toDecimal(Caster.toDoubleValue(value));
+	}
+
+	public static String toDecimal(String value, boolean separator) throws PageException {
+		return toDecimal(Caster.toDoubleValue(value), separator);
 	}
 
 	/**
@@ -845,6 +854,12 @@ public final class Caster {
 		return toDecimal(res);
 	}
 
+	public static String toDecimal(Object value, boolean separator, String defaultValue) {
+		double res = toDoubleValue(value, true, Double.NaN);
+		if (Double.isNaN(res)) return defaultValue;
+		return toDecimal(res, separator);
+	}
+
 	/**
 	 * cast an Object to a decimal value (String:xx.xx)
 	 * 
@@ -853,6 +868,10 @@ public final class Caster {
 	 */
 	public static String toDecimal(double value) {
 		return toDecimal(value, '.', ',');
+	}
+
+	public static String toDecimal(double value, boolean separator) {
+		return toDecimal(value, '.', separator ? ',' : ((char) 0));
 	}
 
 	private static String toDecimal(double value, char decDel, char thsDel) {
@@ -881,13 +900,12 @@ public final class Caster {
 			int i;
 			for (i = leftValueLen - 3; i > 0; i -= 3) {
 				tmp.insert(0, leftValue.substring(i, i + 3));
-				if (i != ends) tmp.insert(0, thsDel);
+				if (i != ends && thsDel > ((char) 0)) tmp.insert(0, thsDel);
 			}
 			tmp.insert(0, leftValue.substring(0, i + 3));
 			leftValue = tmp.toString();
 
 		}
-
 		return leftValue + decDel + rightValue;
 	}
 
@@ -1986,7 +2004,8 @@ public final class Caster {
 	}
 
 	/**
-	 * cast an Object to a String dont throw an exception, if can't cast to a string return an empty string
+	 * cast an Object to a String dont throw an exception, if can't cast to a string return an empty
+	 * string
 	 * 
 	 * @param o Object to cast
 	 * @param defaultValue
@@ -2315,7 +2334,6 @@ public final class Caster {
 			return ListAsArray.toArray((List) o);// new ArrayImpl(((List) o).toArray());
 		}
 		else if (o instanceof Set) {
-
 			return toArray(((Set) o).toArray());// new ArrayImpl(((List) o).toArray());
 		}
 		else if (o instanceof XMLStruct) {
@@ -2885,6 +2903,10 @@ public final class Caster {
 		return DateCaster.toDateAdvanced(str, tz);
 	}
 
+	public static DateTime toDate(Object o) throws PageException {
+		return DateCaster.toDateAdvanced(o, DateCaster.CONVERTING_TYPE_OFFSET, ThreadLocalPageContext.getTimeZone());
+	}
+
 	/**
 	 * cast an Object to a DateTime Object
 	 * 
@@ -3243,25 +3265,38 @@ public final class Caster {
 	}
 
 	public static PageException toPageException(Throwable t, boolean rethrowIfNecessary) {
-		if (t instanceof PageException) return (PageException) t;
-		else if (t instanceof PageExceptionBox) return ((PageExceptionBox) t).getPageException();
-		else if (t instanceof InvocationTargetException) {
+		if (t instanceof PageException) {
+			return (PageException) t;
+		}
+		if (t instanceof PageExceptionBox) {
+			return ((PageExceptionBox) t).getPageException();
+		}
+		if (t instanceof InvocationTargetException) {
 			return toPageException(((InvocationTargetException) t).getTargetException());
 		}
-		else if (t instanceof ExceptionInInitializerError) {
+		if (t instanceof ExceptionInInitializerError) {
 			return toPageException(((ExceptionInInitializerError) t).getCause());
 		}
-		else if (t instanceof ExecutionException) {
+		if (t instanceof ExecutionException) {
 			return toPageException(((ExecutionException) t).getCause());
 		}
-		else {
-			if (t instanceof OutOfMemoryError) {
-				ThreadLocalPageContext.getConfig().checkPermGenSpace(true);
+		if (t instanceof InterruptedException) {
+			PageContext pc = ThreadLocalPageContext.get();
+			if (pc instanceof PageContextImpl) {
+				PageContextImpl pci = (PageContextImpl) pc;
+				StackTraceElement[] tst = pci.getTimeoutStackTrace();
+				if (tst != null) {
+					return new RequestTimeoutException(pc, tst);
+				}
 			}
-			// Throwable cause = t.getCause();
-			// if(cause!=null && cause!=t) return toPageException(cause);
-			return NativeException.newInstance(t, rethrowIfNecessary);
+
 		}
+		if (t instanceof OutOfMemoryError) {
+			ThreadLocalPageContext.getConfig().checkPermGenSpace(true);
+		}
+		// Throwable cause = t.getCause();
+		// if(cause!=null && cause!=t) return toPageException(cause);
+		return NativeException.newInstance(t, rethrowIfNecessary);
 	}
 
 	/**
@@ -3472,6 +3507,10 @@ public final class Caster {
 			if (pe != null) throw pe;
 			throw ce;
 		}
+	}
+
+	public static Object castTo(String type, Object o) throws PageException {
+		return castTo(ThreadLocalPageContext.get(), type, o, false);
 	}
 
 	/**
@@ -3959,8 +3998,8 @@ public final class Caster {
 	}
 
 	/**
-	 * cast an Object to a reference type (Object), in that case this method to nothing, because an Object
-	 * is already a reference type
+	 * cast an Object to a reference type (Object), in that case this method to nothing, because an
+	 * Object is already a reference type
 	 * 
 	 * @param o Object to cast
 	 * @return casted Object
@@ -4098,7 +4137,7 @@ public final class Caster {
 		else if (o instanceof ObjectWrap) {
 			return toCollection(((ObjectWrap) o).getEmbededObject());
 		}
-		else if (Decision.isArray(o)) {
+		else if (Decision.isCastableToArray(o)) {
 			return toArray(o);
 		}
 		throw new CasterException(o, "collection");

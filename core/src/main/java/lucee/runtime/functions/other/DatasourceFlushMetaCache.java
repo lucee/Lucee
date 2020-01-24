@@ -18,12 +18,14 @@
  **/
 package lucee.runtime.functions.other;
 
+import java.lang.ref.SoftReference;
 import java.util.Map;
 
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DataSourceSupport;
+import lucee.runtime.db.ProcMetaCollection;
 
 public class DatasourceFlushMetaCache {
 
@@ -39,7 +41,7 @@ public class DatasourceFlushMetaCache {
 		for (int i = 0; i < sources.length; i++) {
 			ds = (DataSourceSupport) sources[i];
 			if (StringUtil.isEmpty(datasource) || ds.getName().equalsIgnoreCase(datasource.trim())) {
-				Map cache = ds.getProcedureColumnCache();
+				Map<String, SoftReference<ProcMetaCollection>> cache = ds.getProcedureColumnCache();
 				if (cache != null) cache.clear();
 				if (!StringUtil.isEmpty(datasource)) return true;
 				has = true;

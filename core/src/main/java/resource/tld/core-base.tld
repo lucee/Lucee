@@ -3993,6 +3993,7 @@ If you import a CFML custom tag directory and specify an empty value, "", for th
 		<attribute>
 			<type>string</type>
 			<name>displayName</name>
+			<alias>name</alias>
 			<required>no</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>A value to be displayed when using introspection to show a descriptive name for the interface.</description>
@@ -8757,6 +8758,10 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		<handle-exception>true</handle-exception>
 		<body-content>free</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
+		<script>
+			<type>multiple</type>
+			<rtexprvalue>true</rtexprvalue>
+		</script>
 		<description>Creates a Custom Tag</description>
 		<attribute-type>dynamic</attribute-type>
 	</tag>

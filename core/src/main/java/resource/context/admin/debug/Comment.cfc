@@ -7,12 +7,42 @@
 			
 			
 			group("Custom Debugging Output","Define what is outputted",3)
-	
-			
-	
+
 	
 			,field("General Debug Information ","general",true,false,
 					"Select this option to show general information about this request.","checkbox")
+
+	/**
+	* validates settings done by the user
+	* @param custom settings done by the user to validate
+	*/
+	function onBeforeUpdate(struct custom) {
+		
+	}	
+	
+	/**
+	* output the debugging information
+	* @param custom settings done by the user
+	*/
+	function output(struct custom, struct debugging, string context="web") {
+		var NL=variables.NL;
+		if (not StructKeyExists(arguments.custom, "unit"))
+		 	arguments.custom["unit"] = "millisecond";
+		writeOutput("<!--"&NL);
+ 		echo("=================================================================================="&NL);
+        echo("=========================== LUCEE DEBUGGING INFORMATION =========================="&NL);
+ 		echo("=================================================================================="&NL&NL);		
+	// GENERAL
+		if( isEnabled(custom,"general") ) {
+			echo(server.coldfusion.productname);
+			if(StructKeyExists(server.lucee,'versionName'))
+				echo('('&server.lucee.versionName&')');
+			
+			echo(" "&ucFirst(server.coldfusion.productlevel));
+			echo(" "&server.lucee.version);
+			echo(' (CFML Version '&server.ColdFusion.ProductVersion&')');
+			echo(NL);
+
 			
 			,field("Unit","unit","millisecond",true,"the unit used to display the execution time.","select","millisecond,microsecond,nanosecond")
 			
@@ -247,16 +277,28 @@
 				arguments.data[col]=formatUnit(arguments.unit,arguments.data[col]);
 			}
 		}
-	}
-		
+		writeOutput(RepeatString("=",total)&NL&NL);
+ 	}   
+    
+function formatUnits(query data,array columns, string unit){
+	loop query="data" {
+    	loop array="#columns#" index="local.col" {
+        	if(listfirst(formatUnit(unit,data[col])," ") gt 0)data[col]=formatUnit(unit,data[col]);
+    		else data[col]='-';
+        }
+    }
+}
 	
-	function formatUnit(string unit, numeric time ){
-		if(arguments.unit EQ "millisecond")
-			return int(arguments.time/1000000)&" ms";
-		else if(arguments.unit EQ "microsecond")
-			return int(arguments.time/1000)&" #chr(181)#s";
-		else
-			return int(arguments.time)&" ns";
-		}
-	}  
-	</cfscript>
+
+function formatUnit(string unit, numeric time ){
+	if (arguments.time GTE 100000000)
+    	return int(arguments.time/1000000)&" ms";
+    else if (arguments.time GTE 10000000)
+    	return (int(arguments.time/100000)/10)&" ms";
+    else if (arguments.time GTE 1000000)
+    	return (int(arguments.time/10000)/100)&" ms";
+    else 
+    	return (int(arguments.time/1000)/1000)&" ms";
+}
+}
+</cfscript>

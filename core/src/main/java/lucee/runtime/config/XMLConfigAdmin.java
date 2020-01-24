@@ -1230,7 +1230,8 @@ public final class XMLConfigAdmin {
 			if (pwFile.isFile()) {
 				try {
 					String pw = IOUtil.toString(pwFile, (Charset) null);
-					if (!StringUtil.isEmpty(pw)) {
+					if (!StringUtil.isEmpty(pw, true)) {
+						pw = pw.trim();
 						String hspw = new PasswordImpl(Password.ORIGIN_UNKNOW, pw, salt).getPassword();
 						root.setAttribute("hspw", hspw);
 						pwFile.delete();
@@ -1240,6 +1241,9 @@ public final class XMLConfigAdmin {
 				catch (IOException e) {
 					LogUtil.logGlobal(cs, "application", e);
 				}
+			}
+			else {
+				LogUtil.log(config, Log.LEVEL_ERROR, "application", "no password set and no password file found at [" + pwFile + "]");
 			}
 		}
 		return rtn;

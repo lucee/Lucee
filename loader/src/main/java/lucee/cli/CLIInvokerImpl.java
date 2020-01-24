@@ -29,6 +29,7 @@ import lucee.cli.servlet.ServletConfigImpl;
 import lucee.cli.servlet.ServletContextImpl;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
+import lucee.loader.util.Util;
 
 public class CLIInvokerImpl implements CLIInvoker {
 
@@ -41,7 +42,7 @@ public class CLIInvokerImpl implements CLIInvoker {
 		final Map<String, Object> attributes = new HashMap<String, Object>();
 		final Map<String, String> initParams = new HashMap<String, String>();
 
-		final String param = System.getProperty("lucee.cli.config");
+		final String param = Util._getSystemPropOrEnvVar("lucee.cli.config", null);
 
 		if (param != null && !param.isEmpty()) {
 

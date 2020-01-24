@@ -3587,7 +3587,7 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	private void setFullNullSupport() {
-		fullNullSupport = currentTemplateDialect != CFMLEngine.DIALECT_CFML || applicationContext.getFullNullSupport();
+		fullNullSupport = currentTemplateDialect != CFMLEngine.DIALECT_CFML || (applicationContext != null && applicationContext.getFullNullSupport());
 	}
 
 	public void registerLazyStatement(Statement s) {
