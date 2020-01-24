@@ -175,9 +175,9 @@ Categories: #arrayToList(cat)#"><cfif hasUpdate>
 	}
 
 	function addRow(src,trg,srcRow) {
-		var trgRow=queryAddRow(trg);
-		loop array=queryColumnArray(src) item="local.col" {
-			querySetCell(trg,col,queryGetCell(src,col,srcRow),trgRow);
+		var trgRow=queryAddRow(arguments.trg);
+		loop array=queryColumnArray(arguments.src) item="local.col" {
+			querySetCell(arguments.trg,col,queryGetCell(arguments.src,col,arguments.srcRow),trgRow);
 		}
 	}
 </cfscript>
