@@ -221,10 +221,10 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 
 			<cfif enableTab("Reference") AND ( !structKeyExists(request, "fromAdmin") )>
 				<div id="mdlWnd" class="modal" style="overflow-y:auto;">
-					<button class="closeButtonTop btn" style="float:right;">X</button>
+					<button class="closeButtonTop btn" style="float:right;margin-left: 56%;color: ##fff;position: fixed;background-color: ##01798a;">X</button>
 					<div class="modal-body">
 					</div>
-					<button class="closeButton btn" style="align:right!important;float:right;">Close</button>
+					<!--- <button class="closeButton btn" style="align:right!important;float:right;">Close</button> --->
 				</div>
 			</cfif>
 			

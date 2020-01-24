@@ -1,4 +1,4 @@
-#-lucee-debug { width: auto !important;  margin: 2.5em 1em 0 1em !important; padding: 1em; background-color: #FFF; color: #222; border: 1px solid #CCC; border-radius: 5px; text-shadow: none; }
+#-lucee-debug { width: auto !important;  margin: 2.5em 1em 0 1em !important; padding: 1em; background-color: #FFF; color: #fff; border: 1px solid #CCC; border-radius: 5px; text-shadow: none; }
 
 #-lucee-debug td		{ background-color: white; }
 #-lucee-debug.collapsed	{ padding: 0; border-width: 0; }
@@ -112,18 +112,17 @@ input[type="search"]::-webkit-search-results-decoration { display: none; }
 	margin:15px auto !important;
 }
 #outerLayer {
-	margin-top: -4% !important;
 	position: absolute !important;
 	border: 1px solid #707070;
 	box-shadow: 6px 6px 6px #636e72;
-	background-color: #c8d6e5;
+	background-color: #5f5f5f;
 	z-index: 1050;
 	padding: 20px;
 	overflow: auto;
 	max-height: 210% !important;
 	width: 25% !important;
 }
-.getMatch:hover{cursor: pointer;background-color: #ecf0f1;}
+.getMatch:hover{cursor: pointer;background-color: #000;}
 #groupOuterText{
 	position: relative !important;
 	margin-left: 506px !important ;
