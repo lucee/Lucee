@@ -19,6 +19,7 @@
 package lucee.transformer.cfml.script;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -696,7 +697,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			Body prior = data.setParent(body);
 			statement(data, body, CTX_FOR);
 
-			// performance improvment in special constellation
+			// performance improvement in special combination
 			// TagLoop loop = asLoop(data.factory,left,cont,update,body,line,data.srcCode.getPosition(),id);
 			// if(loop!=null) return loop;
 
@@ -1414,7 +1415,6 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 	private Statement tagStatement(Data data, Body parent) throws TemplateException {
 		Statement child;
-
 		for (int i = 0; i < data.scriptTags.length; i++) {
 			// single
 			if (data.scriptTags[i].getScript().getType() == TagLibTagScript.TYPE_SINGLE) {
@@ -1450,19 +1450,36 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 	private final Tag __multiAttrStatement(Body parent, Data data, TagLibTag tlt) throws TemplateException {
 		if (data.ep == null) return null;
+		int pos = data.srcCode.getPos();
 		String type = tlt.getName();
+		String appendix = null;
 		if (data.srcCode.forwardIfCurrent(type) ||
+
 		// lucee dialect support component as alias for class
 				(data.srcCode.getDialect() == CFMLEngine.DIALECT_LUCEE && type.equalsIgnoreCase(Constants.LUCEE_COMPONENT_TAG_NAME)
 						&& data.srcCode.forwardIfCurrent(Constants.CFML_COMPONENT_TAG_NAME))) {
 
+			if (tlt.hasAppendix()) {
+				appendix = CFMLTransformer.identifier(data.srcCode, false, true);
+				if (StringUtil.isEmpty(appendix)) {
+					data.srcCode.setPos(pos);
+					return null;
+				}
+
+			}
+
 			boolean isValid = (data.srcCode.isCurrent(' ') || (tlt.getHasBody() && data.srcCode.isCurrent('{')));
+			if (isValid && (data.srcCode.isCurrent(" ", "=") || data.srcCode.isCurrent(" ", "("))) { // simply avoid a later exception
+				isValid = false;
+			}
 			if (!isValid) {
-				data.srcCode.setPos(data.srcCode.getPos() - type.length());
+				data.srcCode.setPos(pos);
+				// data.srcCode.setPos(data.srcCode.getPos() - type.length());
 				return null;
 			}
 		}
 		else return null;
+
 		Position line = data.srcCode.getPosition();
 
 		TagLibTagScript script = tlt.getScript();
@@ -1473,6 +1490,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		Tag tag = getTag(data, parent, tlt, line, null);
 		tag.setTagLibTag(tlt);
 		tag.setScriptBase(true);
+		if (!StringUtil.isEmpty(appendix)) tag.setAppendix(appendix);
 
 		// add component meta data
 		if (data.isCFC) {
@@ -1544,7 +1562,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 			// print.e("appendix:"+tlt);
 
 			if (tlt == null) {
-				// if(tagLib.getIgnoreUnknowTags()){ if we do this a expression like the following no longer work
+				// if(tagLib.getIgnoreUnknowTags()){ if we do this an expression like the following no longer work
 				// cfwhatever=1;
 				data.srcCode.setPos(start);
 				return null;
@@ -2192,7 +2210,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 	 */
 	private Statement expressionStatement(Data data, Body parent) throws TemplateException {
 
-		// first we check if we have a access modifier
+		// first we check if we have an access modifier
 		int pos = data.srcCode.getPos();
 		int access = -1;
 		boolean _final = false;
@@ -2427,14 +2445,14 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 	private final Attribute[] attributes(Tag tag, TagLibTag tlt, Data data, EndCondition endCond, Expression defaultValue, Object oAllowExpression, String ignoreAttrReqFor,
 			boolean allowTwiceAttr, char attributeSeparator, boolean allowColonAsNameValueSeparator) throws TemplateException {
-		ArrayList<Attribute> attrs = new ArrayList<Attribute>();
+		Map<String, Attribute> attrs = new HashMap<String, Attribute>();
 		ArrayList<String> ids = new ArrayList<String>();
 		while (data.srcCode.isValidIndex()) {
 			data.srcCode.removeSpace();
 			// if no more attributes break
 			if (endCond.isEnd(data)) break;
 			Attribute attr = attribute(tlt, data, ids, defaultValue, oAllowExpression, allowTwiceAttr, allowColonAsNameValueSeparator);
-			attrs.add(attr);
+			attrs.put(attr.getName().toLowerCase(), attr);
 
 			// seperator
 			if (attributeSeparator > 0) {
@@ -2447,7 +2465,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 		// not defined attributes
 		if (tlt != null) {
 			boolean hasAttributeCollection = false;
-			Iterator<Attribute> iii = attrs.iterator();
+			Iterator<Attribute> iii = attrs.values().iterator();
 			while (iii.hasNext()) {
 				if ("attributecollection".equalsIgnoreCase(iii.next().getName())) {
 					hasAttributeCollection = true;
@@ -2463,7 +2481,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 				while (it.hasNext()) {
 					e = it.next();
 					TagLibTagAttr att = e.getValue();
-					if (att.isRequired() && !contains(attrs, att) && att.getDefaultValue() == null && !att.getName().equals(ignoreAttrReqFor)) {
+					if (att.isRequired() && !contains(attrs.values(), att) && att.getDefaultValue() == null && !att.getName().equals(ignoreAttrReqFor)) {
 						if (!hasAttributeCollection)
 							throw new TemplateException(data.srcCode, "attribute [" + att.getName() + "] is required for statement [" + tlt.getName() + "]");
 						if (tag != null) tag.addMissingAttribute(att);
@@ -2471,10 +2489,28 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 				}
 			}
 		}
-		return attrs.toArray(new Attribute[attrs.size()]);
+
+		// set default values
+		if (tlt != null && tlt.hasDefaultValue()) {
+			Map<String, TagLibTagAttr> hash = tlt.getAttributes();
+			Iterator<TagLibTagAttr> it = hash.values().iterator();
+			TagLibTagAttr att;
+			while (it.hasNext()) {
+				att = it.next();
+				if (!attrs.containsKey(att.getName().toLowerCase()) && att.hasDefaultValue()) {
+
+					Attribute attr = new Attribute(tlt.getAttributeType() == TagLibTag.ATTRIBUTE_TYPE_DYNAMIC, att.getName(),
+							data.factory.toExpression(data.factory.createLitString(Caster.toString(att.getDefaultValue(), null)), att.getType()), att.getType());
+					attr.setDefaultAttribute(true);
+					attrs.put(att.getName().toLowerCase(), attr);
+				}
+			}
+		}
+
+		return attrs.values().toArray(new Attribute[attrs.size()]);
 	}
 
-	private final boolean contains(ArrayList<Attribute> attrs, TagLibTagAttr attr) {
+	private final boolean contains(Collection<Attribute> attrs, TagLibTagAttr attr) {
 
 		Iterator<Attribute> it = attrs.iterator();
 		String name;

@@ -38,6 +38,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.SecurityException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.java.JavaObject;
+import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.op.Caster;
 import lucee.runtime.security.SecurityManager;
 import lucee.runtime.type.util.ListUtil;
@@ -71,7 +72,7 @@ public final class JavaProxy implements Function {
 			// Bundle Name?
 			if (!str.contains("/") && !str.contains("\\") && !str.endsWith(".jar")) {
 				try {
-					return ClassUtil.loadClassByBundle(className, str, delimiterOrVersion, pc.getConfig().getIdentification());
+					return ClassUtil.loadClassByBundle(className, str, delimiterOrVersion, pc.getConfig().getIdentification(), JavaSettingsImpl.getBundleDirectories(pc));
 				}
 				catch (Throwable t) {
 					ExceptionUtil.rethrowIfNecessary(t);
@@ -115,7 +116,7 @@ public final class JavaProxy implements Function {
 					resources.add(res);
 				}
 			}
-			// throw new FunctionException(pc, "JavaProxy", 2, "path", "argument path has to be a array of
+			// throw new FunctionException(pc, "JavaProxy", 2, "path", "argument path has to be an array of
 			// strings or a single string, where every string is defining a path");
 		}
 

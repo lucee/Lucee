@@ -143,7 +143,7 @@ Error Output --->
 				backgroundColor: ["#EFEDE5"],
 				tooltip : {'trigger':'axis',
 					formatter : function (params) {
-						return 'Series' + "<br>" + params[0][0] + ": " + params[0][2] + "%" + '<br>' +params[0][1] ;
+						return 'Series' + "<br>" + params[0].seriesName + ": " + params[0].value + "%" + '<br>' +params[0].name ;
 					}
 				},
 
@@ -185,9 +185,9 @@ Error Output --->
 				formatter : function (params) {
 					var series2 = "";
 					if(params.length == 2) {
-						series2 =  params[1][0] + ": "+ params[1][2] + "%" + '<br>' +params[0][1];
+						series2 =  params[1].seriesName + ": "+ params[1].value + "%" + '<br>' +params[0].name;
 					}
-					return 'Series' + "<br>" + params[0][0] + ": " + params[0][2] + "%" + '<br>'  + series2;
+					return 'Series' + "<br>" + params[0].seriesName + ": " + params[0].value + "%" + '<br>'  + series2;
 				}
 			},
 			legend: {

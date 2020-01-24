@@ -19,7 +19,7 @@
 package lucee.runtime.converter;
 
 /**
- * Exception throwed by a Converter
+ * Exception thrown by a Converter
  */
 public final class ConverterException extends Exception {
 

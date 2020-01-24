@@ -331,7 +331,7 @@ public final class Content extends BodyTagImpl {
 
 			if (i > 0 && ranges[i - 1].to >= from) {
 				LogUtil.log(ThreadLocalPageContext.getConfig(pageContext), Log.LEVEL_ERROR, Content.class.getName(),
-						"there is a overlapping of 2 ranges (" + ranges[i - 1] + "," + ranges[i] + ")");
+						"there is an overlapping of 2 ranges (" + ranges[i - 1] + "," + ranges[i] + ")");
 				return null;
 			}
 

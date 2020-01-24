@@ -34,6 +34,7 @@ import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.java.JavaObject;
+import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.type.Struct;
@@ -95,7 +96,7 @@ public class CreateDynamicProxy implements Function {
 		// check if all classes are interfaces
 		for (int i = 0; i < interfaces.length; i++) {
 			if (!interfaces[i].isInterface())
-				throw new FunctionException(pc, "CreateDynamicProxy", 2, "interfaces", "definition [" + interfaces[i].getClass() + "] is a class and not a interface");
+				throw new FunctionException(pc, "CreateDynamicProxy", 2, "interfaces", "definition [" + interfaces[i].getClass() + "] is a class and not an interface");
 		}
 
 		return JavaProxyFactory.createProxy(pc, cfc, null, interfaces);
@@ -113,7 +114,7 @@ public class CreateDynamicProxy implements Function {
 		if (StringUtil.isEmpty(bundleName)) {
 			return ClassUtil.loadClass(cl, className);
 		}
-		return ClassUtil.loadClass(className, bundleName, bundleVersion, pc.getConfig().getIdentification());
+		return ClassUtil.loadClass(className, bundleName, bundleVersion, pc.getConfig().getIdentification(), JavaSettingsImpl.getBundleDirectories(pc));
 	}
 
 }

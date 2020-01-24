@@ -36,7 +36,7 @@ public interface Array extends Collection, Cloneable, Objects {
 	public int getDimension();
 
 	/**
-	 * return object a given position, key can only be a integer from 1 to array len
+	 * return object a given position, key can only be an integer from 1 to array len
 	 * 
 	 * @param key key as integer
 	 * @return value at key position
@@ -44,7 +44,7 @@ public interface Array extends Collection, Cloneable, Objects {
 	public Object get(int key, Object defaultValue);
 
 	/**
-	 * return object a given position, key can only be a integer from 1 to array len
+	 * return object a given position, key can only be an integer from 1 to array len
 	 * 
 	 * @param key key as integer
 	 * @return value at key position
@@ -115,7 +115,7 @@ public interface Array extends Collection, Cloneable, Objects {
 	public void resize(int to) throws PageException;
 
 	/**
-	 * sort values of a array
+	 * sort values of an array
 	 * 
 	 * @param sortType search type (text,textnocase,numeric)
 	 * @param sortOrder (asc,desc)

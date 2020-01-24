@@ -129,6 +129,7 @@ import lucee.runtime.gateway.GatewayUtil;
 import lucee.runtime.i18n.LocaleFactory;
 import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.listener.ApplicationListener;
+import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.monitor.IntervallMonitor;
 import lucee.runtime.monitor.Monitor;
 import lucee.runtime.monitor.RequestMonitor;
@@ -318,6 +319,21 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			boolean hasPassword = type == TYPE_WEB ? pageContext.getConfig().hasPassword() : pageContext.getConfig().hasServerPassword();
 
 			pageContext.setVariable(getString("admin", action, "returnVariable", true), Caster.toBoolean(hasPassword));
+			return SKIP_BODY;
+		}
+
+		// check Password
+		else if (action.equals("checkpassword")) {
+			try {
+				// ((ConfigWebImpl)config).getConfigServer(arg0)
+
+				config.checkPassword();
+
+				// XMLConfigAdmin._storeAndReload(config);
+			}
+			catch (Exception e) {
+				throw Caster.toPageException(e);
+			}
 			return SKIP_BODY;
 		}
 
@@ -2459,7 +2475,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		String id = getString("admin", action, "id");
 		boolean asBinary = getBoolV("asBinary", false);
 		if (asBinary) {
-			Iterator<ExtensionDefintion> it = DeployHandler.getLocalExtensions(config).iterator();
+			Iterator<ExtensionDefintion> it = DeployHandler.getLocalExtensions(config, false).iterator();
 			ExtensionDefintion ext;
 			while (it.hasNext()) {
 				ext = it.next();
@@ -2477,7 +2493,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 		}
 		else {
-			List<RHExtension> locals = RHExtension.toRHExtensions(DeployHandler.getLocalExtensions(config));
+			List<RHExtension> locals = RHExtension.toRHExtensions(DeployHandler.getLocalExtensions(config, false));
 			Query qry = RHExtension.toQuery(config, locals, null);
 			int rows = qry.getRecordcount();
 			String _id;
@@ -2495,7 +2511,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void doGetLocalExtensions() throws PageException {
-		List<RHExtension> locals = RHExtension.toRHExtensions(DeployHandler.getLocalExtensions(config));
+		List<RHExtension> locals = RHExtension.toRHExtensions(DeployHandler.getLocalExtensions(config, false));
 		Query qry = RHExtension.toQuery(config, locals, null);
 		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
 	}
@@ -3258,7 +3274,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		}
 		else {
 			try {
-				bf = OSGiUtil.getBundleFile(symbolicName, version, null, false);
+				bf = OSGiUtil.getBundleFile(symbolicName, version, null, null, false);
 				bd = bf.toBundleDefinition();
 				b = bd.getLoadedBundle();
 
@@ -3284,7 +3300,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 				sct.set(PATH, b.getLocation());
 			}
 			else {
-				if (bf == null) bf = bd.getBundleFile(false);
+				if (bf == null) bf = bd.getBundleFile(false, JavaSettingsImpl.getBundleDirectories(pageContext));
 				sct.set(PATH, bf.getFile());
 			}
 
@@ -3306,7 +3322,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			sct.set(KeyConstants._state, "notinstalled");
 			try {
 
-				if (bf == null) bf = bd.getBundleFile(false);
+				if (bf == null) bf = bd.getBundleFile(false, null);
 				sct.set(KeyConstants._version, bf.getVersionAsString());
 				sct.set(FRAGMENT, OSGiUtil.isFragment(bf));
 				headers = bf.getHeaders();
@@ -3370,7 +3386,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 					qry.setAt(PATH, row, b.getLocation());
 				}
 				else {
-					bf = bd.getBundleFile(false);
+					bf = bd.getBundleFile(false, null);
 					qry.setAt(PATH, row, bf.getFile());
 				}
 			}
@@ -3404,7 +3420,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 						}
 					}
 					else {
-						if (bf != null) bf = bd.getBundleFile(false);
+						if (bf != null) bf = bd.getBundleFile(false, null);
 						qry.setAt(KeyConstants._version, row, bf.getVersionAsString());
 						// qry.setAt(KeyConstants._id, row, bf.getBundleId());
 						qry.setAt(FRAGMENT, row, OSGiUtil.isFragment(bf));
@@ -4230,10 +4246,9 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		if (!StringUtil.isEmpty(id)) {
 			ExtensionDefintion ed;
 			String version = getString("version", null);
-			if (!StringUtil.isEmpty(version, true)) ed = new ExtensionDefintion(id, version);
+			if (!StringUtil.isEmpty(version, true) && !"latest".equalsIgnoreCase(version)) ed = new ExtensionDefintion(id, version);
 			else ed = RHExtension.toExtensionDefinition(id);
-
-			DeployHandler.deployExtension(config, ed, null, true);
+			DeployHandler.deployExtension(config, ed, config == null ? null : config.getLog("application"), true);
 			return;
 		}
 
@@ -4661,7 +4676,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			String version = getString("admin", action, "version");
 			boolean removePhysical = getBoolV("removePhysical", true);
 
-			OSGiUtil.removeLocalBundle(name.trim(), OSGiUtil.toVersion(version.trim()), removePhysical, false);
+			OSGiUtil.removeLocalBundle(name.trim(), OSGiUtil.toVersion(version.trim()), null, removePhysical, false);
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
@@ -5092,6 +5107,13 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		sct.set("captcha", Caster.toBoolean(c.getLoginCaptcha()));
 		sct.set("delay", Caster.toDouble(c.getLoginDelay()));
 		sct.set("rememberme", Caster.toBoolean(c.getRememberMe()));
+		if (c instanceof ConfigWebImpl) {
+			ConfigWebImpl cw = (ConfigWebImpl) c;
+			short origin = cw.getPasswordSource();
+			if (origin == ConfigWebImpl.PASSWORD_ORIGIN_DEFAULT) sct.set("origin", "default");
+			else if (origin == ConfigWebImpl.PASSWORD_ORIGIN_WEB) sct.set("origin", "web");
+			else if (origin == ConfigWebImpl.PASSWORD_ORIGIN_SERVER) sct.set("origin", "server");
+		}
 
 	}
 

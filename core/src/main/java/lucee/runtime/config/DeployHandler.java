@@ -18,6 +18,7 @@
  */
 package lucee.runtime.config;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Iterator;
@@ -37,12 +38,14 @@ import lucee.commons.net.http.HTTPEngine;
 import lucee.commons.net.http.HTTPResponse;
 import lucee.commons.net.http.Header;
 import lucee.commons.net.http.httpclient.HeaderImpl;
+import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.RHExtensionProvider;
 import lucee.runtime.functions.conversion.DeserializeJSON;
+import lucee.runtime.functions.system.IsZipFile;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Struct;
@@ -149,7 +152,7 @@ public class DeployHandler {
 	}
 
 	/**
-	 * install a extension based on the given id and version
+	 * install an extension based on the given id and version
 	 * 
 	 * @param config
 	 * @param id the id of the extension
@@ -171,7 +174,7 @@ public class DeployHandler {
 		}
 
 		// check if a local extension is matching our id
-		Iterator<ExtensionDefintion> it = getLocalExtensions(config).iterator();
+		Iterator<ExtensionDefintion> it = getLocalExtensions(config, false).iterator();
 		ExtensionDefintion ext = null, tmp;
 
 		if (log != null) log.info("extension", "installing the extension " + ed);
@@ -184,20 +187,36 @@ public class DeployHandler {
 		}
 
 		// if we have one and also the defined version matches, there is no need to check online
-		if (ext != null && ed.getVersion() != null) {
-			try {
-				if (log != null) log.info("extension", "installing the extension " + ed + " from local provider");
-				Resource res = SystemUtil.getTempDirectory().getRealResource(ed.getId() + "-" + ed.getVersion() + ".lex");
-				ResourceUtil.touch(res);
-				IOUtil.copy(ext.getSource(), res);
-				XMLConfigAdmin._updateRHExtension((ConfigImpl) config, res, reload);
-				return true;
+		do {
+			if (ext != null && ed.getVersion() != null) {
+				Resource res = null;
+				try {
+					if (log != null) log.info("extension", "installing the extension " + ed + " from local provider");
+					res = SystemUtil.getTempDirectory().getRealResource(ed.getId() + "-" + ed.getVersion() + ".lex");
+					ResourceUtil.touch(res);
+					IOUtil.copy(ext.getSource(), res);
+					XMLConfigAdmin._updateRHExtension((ConfigImpl) config, res, reload);
+					return true;
+				}
+				catch (Exception e) {
+					// check if the zip is valid
+					if (res instanceof File) {
+						if (!IsZipFile.invoke((File) res)) {
+							CFMLEngineImpl engine = CFMLEngineImpl.toCFMLEngineImpl(ConfigWebUtil.getEngine(config));
+							engine.deployBundledExtension(true);
+							if (IsZipFile.invoke((File) res)) {
+								continue; // we start over that part
+							}
+						}
+					}
+
+					ext = null;
+					LogUtil.log(ThreadLocalPageContext.getConfig(config), DeployHandler.class.getName(), e);
+				}
 			}
-			catch (Exception e) {
-				ext = null;
-				LogUtil.log(ThreadLocalPageContext.getConfig(config), DeployHandler.class.getName(), e);
-			}
+			break;
 		}
+		while (true);
 
 		String apiKey = config.getIdentification().getApiKey();
 		RHExtensionProvider[] providers = ci.getRHExtensionProviders();
@@ -349,7 +368,7 @@ public class DeployHandler {
 	}
 
 	public static ExtensionDefintion getLocalExtension(Config config, ExtensionDefintion ed, ExtensionDefintion defaultValue) {
-		Iterator<ExtensionDefintion> it = getLocalExtensions(config).iterator();
+		Iterator<ExtensionDefintion> it = getLocalExtensions(config, false).iterator();
 		ExtensionDefintion ext;
 		while (it.hasNext()) {
 			ext = it.next();
@@ -360,7 +379,7 @@ public class DeployHandler {
 		return defaultValue;
 	}
 
-	public static List<ExtensionDefintion> getLocalExtensions(Config config) {
-		return ((ConfigImpl) config).loadLocalExtensions();
+	public static List<ExtensionDefintion> getLocalExtensions(Config config, boolean validate) {
+		return ((ConfigImpl) config).loadLocalExtensions(validate);
 	}
 }

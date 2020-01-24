@@ -455,7 +455,7 @@ public final class FunctionLibFactory extends DefaultHandler {
 	}
 
 	/**
-	 * copy function from one FunctionLib to a other
+	 * copy function from one FunctionLib to another
 	 * 
 	 * @param extFL
 	 * @param newFL

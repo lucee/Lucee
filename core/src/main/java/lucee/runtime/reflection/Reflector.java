@@ -25,7 +25,9 @@ import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -90,7 +92,7 @@ public final class Reflector {
 	private static SoftMethodStorage mStorage = new SoftMethodStorage();
 
 	/**
-	 * check if Class is instanceof a a other Class
+	 * check if Class is instanceof another Class
 	 * 
 	 * @param srcClassName Class name to check
 	 * @param trg is Class of?
@@ -103,7 +105,7 @@ public final class Reflector {
 	}
 
 	/**
-	 * check if Class is instanceof a a other Class
+	 * check if Class is instanceof another Class
 	 * 
 	 * @param srcClassName Class name to check
 	 * @param trgClassName is Class of?
@@ -116,7 +118,7 @@ public final class Reflector {
 	}
 
 	/**
-	 * check if Class is instanceof a a other Class
+	 * check if Class is instanceof another Class
 	 * 
 	 * @param src is Class of?
 	 * @param trgClassName Class name to check
@@ -170,7 +172,7 @@ public final class Reflector {
 	}
 
 	/**
-	 * check if Class is instanceof a a other Class
+	 * check if Class is instanceof another Class
 	 * 
 	 * @param src Class to check
 	 * @param trg is Class of?
@@ -228,7 +230,7 @@ public final class Reflector {
 	}
 
 	/**
-	 * get all Classes from a Object Array
+	 * get all Classes from an Object Array
 	 * 
 	 * @param objs Objects to get
 	 * @return classes from Objects
@@ -513,16 +515,25 @@ public final class Reflector {
 	 * Class Of the Method to get @param methodName Name of the Method to get @param args Arguments of
 	 * the Method to get @return return Matching Method @throws
 	 */
-	public static MethodInstance getMethodInstanceEL(Object objMaybeNull, Class clazz, Collection.Key methodName, Object[] args) {
+	public static MethodInstance getMethodInstanceEL(Object objMaybeNull, Class clazz, final Collection.Key methodName, Object[] args) {
 		checkAccessibility(objMaybeNull, clazz, methodName);
 		args = cleanArgs(args);
-
 		Method[] methods = mStorage.getMethods(clazz, methodName, args.length);// getDeclaredMethods(clazz);
 
 		if (methods != null) {
+			if (methods.length > 1) {
+				Arrays.sort(methods, new Comparator<Method>() {
+					@Override
+					public int compare(Method l, Method r) {
+						if (methodName.getString().equals(l.getName())) return -1;
+						if (methodName.getString().equals(r.getName())) return 1;
+						return 0;
+					}
+				});
+			}
 			Class[] clazzArgs = getClasses(args);
 			// exact comparsion
-			// print.e("exact:"+methodName);
+			// print.e("exact:" + methodName);
 			outer: for (int i = 0; i < methods.length; i++) {
 				if (methods[i] != null) {
 					Class[] parameterTypes = methods[i].getParameterTypes();
@@ -534,7 +545,7 @@ public final class Reflector {
 			}
 			// like comparsion
 			// MethodInstance mi=null;
-			// print.e("like:"+methodName);
+			// print.e("like:" + methodName);
 			outer: for (int i = 0; i < methods.length; i++) {
 				if (methods[i] != null) {
 					Class[] parameterTypes = methods[i].getParameterTypes();
@@ -546,7 +557,7 @@ public final class Reflector {
 			}
 
 			// convert comparsion
-			// print.e("convert:"+methodName);
+			// print.e("convert:" + methodName);
 			MethodInstance mi = null;
 			int _rating = 0;
 			outer: for (int i = 0; i < methods.length; i++) {
@@ -720,7 +731,7 @@ public final class Reflector {
 				ci = Reflector.getConstructorInstance(c, new Object[0], null);
 				if (ci == null) {
 
-					throw new NoSuchMethodException("The " + pos(i + 1) + " parameter of " + methodName + "(" + getDspMethods(classes) + ") ia a object created "
+					throw new NoSuchMethodException("The " + pos(i + 1) + " parameter of " + methodName + "(" + getDspMethods(classes) + ") ia an object created "
 							+ "by the createObject function (JavaObject/JavaProxy). This object has not been instantiated because it does not have a constructor "
 							+ "that takes zero arguments. " + Constants.NAME
 							+ " cannot instantiate it for you, please use the .init(...) method to instantiate it with the correct parameters first");
@@ -858,7 +869,7 @@ public final class Reflector {
 	}
 
 	/**
-	 * calls a Method of a Objct
+	 * calls a Method of an Object
 	 * 
 	 * @param obj Object to call Method on it
 	 * @param methodName Name of the Method to get
@@ -984,7 +995,7 @@ public final class Reflector {
 	}
 
 	/**
-	 * to get a Getter Method of a Object
+	 * to get a Getter Method of an Object
 	 * 
 	 * @param clazz Class to invoke method from
 	 * @param prop Name of the Method without get
@@ -1016,7 +1027,7 @@ public final class Reflector {
 	}
 
 	/**
-	 * to get a Getter Method of a Object
+	 * to get a Getter Method of an Object
 	 * 
 	 * @param clazz Class to invoke method from
 	 * @param prop Name of the Method without get
@@ -1031,7 +1042,7 @@ public final class Reflector {
 	}
 
 	/**
-	 * to invoke a getter Method of a Object
+	 * to invoke a getter Method of an Object
 	 * 
 	 * @param obj Object to invoke method from
 	 * @param prop Name of the Method without get
@@ -1053,7 +1064,7 @@ public final class Reflector {
 	}
 
 	/**
-	 * to invoke a setter Method of a Object
+	 * to invoke a setter Method of an Object
 	 * 
 	 * @param obj Object to invoke method from
 	 * @param prop Name of the Method without get
@@ -1073,7 +1084,7 @@ public final class Reflector {
 	}
 
 	/*
-	 * to invoke a setter Method of a Object
+	 * to invoke a setter Method of an Object
 	 * 
 	 * @param obj Object to invoke method from
 	 * 
@@ -1095,7 +1106,7 @@ public final class Reflector {
 	 */
 
 	/**
-	 * to invoke a setter Method of a Object
+	 * to invoke a setter Method of an Object
 	 * 
 	 * @param obj Object to invoke method from
 	 * @param prop Name of the Method without get
@@ -1113,7 +1124,7 @@ public final class Reflector {
 	}
 
 	/**
-	 * to invoke a setter Method of a Object
+	 * to invoke a setter Method of an Object
 	 * 
 	 * @param obj Object to invoke method from
 	 * @param prop Name of the Method without get
@@ -1158,7 +1169,7 @@ public final class Reflector {
 	}
 
 	/**
-	 * to get a visible Field of a object
+	 * to get a visible Field of an object
 	 * 
 	 * @param obj Object to invoke
 	 * @param prop property to call
@@ -1195,7 +1206,7 @@ public final class Reflector {
 	}
 
 	/**
-	 * assign a value to a visible Field of a object
+	 * assign a value to a visible Field of an object
 	 * 
 	 * @param obj Object to assign value to his property
 	 * @param prop name of property
@@ -1236,7 +1247,7 @@ public final class Reflector {
 	}
 
 	/**
-	 * to get a visible Propety (Field or Getter) of a object
+	 * to get a visible Propety (Field or Getter) of an object
 	 * 
 	 * @param obj Object to invoke
 	 * @param prop property to call
@@ -1254,7 +1265,7 @@ public final class Reflector {
 	}
 
 	/**
-	 * to get a visible Propety (Field or Getter) of a object
+	 * to get a visible Propety (Field or Getter) of an object
 	 * 
 	 * @param obj Object to invoke
 	 * @param prop property to call
@@ -1286,7 +1297,7 @@ public final class Reflector {
 	}
 
 	/**
-	 * assign a value to a visible Property (Field or Setter) of a object
+	 * assign a value to a visible Property (Field or Setter) of an object
 	 * 
 	 * @param obj Object to assign value to his property
 	 * @param prop name of property
@@ -1305,7 +1316,7 @@ public final class Reflector {
 	}
 
 	/**
-	 * assign a value to a visible Property (Field or Setter) of a object
+	 * assign a value to a visible Property (Field or Setter) of an object
 	 * 
 	 * @param obj Object to assign value to his property
 	 * @param prop name of property

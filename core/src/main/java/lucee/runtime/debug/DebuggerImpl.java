@@ -47,6 +47,7 @@ import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.db.SQL;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.CatchBlock;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
@@ -106,6 +107,8 @@ public final class DebuggerImpl implements Debugger {
 
 	private TemplateLine abort;
 
+	private ApplicationException outputContext;
+
 	final static Comparator DEBUG_ENTRY_TEMPLATE_COMPARATOR = new DebugEntryTemplateComparator();
 	final static Comparator DEBUG_ENTRY_TEMPLATE_PART_COMPARATOR = new DebugEntryTemplatePartComparator();
 
@@ -127,6 +130,7 @@ public final class DebuggerImpl implements Debugger {
 		output = true;
 		outputLog = null;
 		abort = null;
+		outputContext = null;
 	}
 
 	public DebuggerImpl() {}
@@ -253,7 +257,23 @@ public final class DebuggerImpl implements Debugger {
 
 	@Override
 	public void setOutput(boolean output) {
+		setOutput(output, false);
+	}
+
+	public void setOutput(boolean output, boolean listen) {
 		this.output = output;
+		if (listen) {
+			this.outputContext = new ApplicationException("");
+		}
+	}
+
+	// FUTURE add to inzerface
+	public boolean getOutput() {
+		return output;
+	}
+
+	public PageException getOutputContext() {
+		return outputContext;
 	}
 
 	@Override

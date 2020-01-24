@@ -44,7 +44,7 @@ public final class OpNegate extends ExpressionBase implements ExprBoolean {
 	}
 
 	/**
-	 * Create a String expression from a Expression
+	 * Create a String expression from an Expression
 	 * 
 	 * @param left
 	 * @param right

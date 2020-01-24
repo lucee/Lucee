@@ -34,7 +34,7 @@ public interface LockManager {
 	public static final int TYPE_EXCLUSIVE = 1;
 
 	/**
-	 * locks a thread if already a other thread is come until other thread notify him by unlock method
+	 * locks a thread if already another thread is come until other thread notify him by unlock method
 	 * 
 	 * @param type
 	 * @param name Lock Name (not case sensitive)

@@ -64,14 +64,14 @@ import lucee.runtime.type.scope.ClusterEntry;
 public interface Creation {
 
 	/**
-	 * creates and returns a array instance
+	 * creates and returns an array instance
 	 * 
 	 * @return array
 	 */
 	public abstract Array createArray();
 
 	/**
-	 * creates and returns a array based on a string list
+	 * creates and returns an array based on a string list
 	 * 
 	 * @return array
 	 */
@@ -148,7 +148,7 @@ public interface Creation {
 	public abstract TimeSpan createTimeSpan(int day, int hour, int minute, int second);
 
 	/**
-	 * creates and returns a array instance
+	 * creates and returns an array instance
 	 * 
 	 * @param dimension
 	 * @return array
@@ -263,7 +263,7 @@ public interface Creation {
 	public abstract Component createComponentFromName(PageContext pc, String fullName) throws PageException;
 
 	/**
-	 * creates a component object from a absolute local path, for example
+	 * creates a component object from an absolute local path, for example
 	 * /Users/susi/Projects/Sorglos/wwwrooot/lucee/extensions/net/HTTPUtil.cfc
 	 * 
 	 * @param pc Pagecontext for loading the CFC

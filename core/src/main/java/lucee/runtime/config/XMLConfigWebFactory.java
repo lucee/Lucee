@@ -371,7 +371,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			}
 			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "fixed LFI");
 
-			if (XMLConfigAdmin.fixSalt(doc)) reload = true;
+			if (XMLConfigAdmin.fixSaltAndPW(doc, config)) reload = true;
 			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "fixed salt");
 
 			if (XMLConfigAdmin.fixS3(doc)) reload = true;
@@ -397,8 +397,6 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					File root = _cs.getCFMLEngine().getCFMLEngineFactory().getResourceRoot();
 					File log = new File(root, "context/logs/felix.log");
 					if (log.isFile() && log.length() > GB1) {
-						// LogUtil.logFelix(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO,
-						// XMLConfigWebFactory.class.getName(), "delete felix log: " + log);
 						if (log.delete()) ResourceUtil.touch(log);
 
 					}
@@ -407,11 +405,11 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					log(config, null, e);
 				}
 			}
-			// if (LOG) LogUtil.logFelix(ThreadLocalPageContext.getConfig(cs == null ? config : cs),
-			// Log.LEVEL_INFO,
-			// XMLConfigWebFactory.class.getName(), "fixed to big felix.log");
 
-			if (reload) doc = reload(doc, config, cs);
+			if (reload) {
+				doc = reload(doc, config, cs);
+				reload = false;
+			}
 
 		}
 		catch (Exception e) {
@@ -1242,8 +1240,11 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		if (!componentsDir.exists()) componentsDir.mkdirs();
 
 		Resource gwDir = componentsDir.getRealResource("lucee/extension/gateway/");
-		create("/resource/context/gateway/", new String[] { "TaskGateway." + COMPONENT_EXTENSION, "DummyGateway." + COMPONENT_EXTENSION, "DirectoryWatcher." + COMPONENT_EXTENSION,
-				"DirectoryWatcherListener." + COMPONENT_EXTENSION, "MailWatcher." + COMPONENT_EXTENSION, "MailWatcherListener." + COMPONENT_EXTENSION }, gwDir, doNew);
+		create("/resource/context/gateway/",
+				new String[] { "TaskGateway." + COMPONENT_EXTENSION, "DummyGateway." + COMPONENT_EXTENSION, "DirectoryWatcher." + COMPONENT_EXTENSION,
+						"DirectoryWatcherListener." + COMPONENT_EXTENSION, "MailWatcher." + COMPONENT_EXTENSION, "MailWatcherListener." + COMPONENT_EXTENSION,
+						"AsynchronousEvents." + COMPONENT_EXTENSION, "AsynchronousEventsListener." + COMPONENT_EXTENSION },
+				gwDir, doNew);
 
 		// resources/language
 		Resource langDir = adminDir.getRealResource("resources/language");
@@ -1686,7 +1687,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		try {
 			Element el = getChildByName(doc.getDocumentElement(), "flex");
 
-			// engine - we init a engine for every context, but only the server context defines the eggine class
+			// engine - we init an engine for every context, but only the server context defines the engine
+			// class
 			if (config instanceof ConfigServerImpl) { // only server context
 
 				// arguments
@@ -2081,7 +2083,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			cd = getClassDefinition(driver, "", config.getIdentification());
 			if (StringUtil.isEmpty(cd.getClassName()) && !StringUtil.isEmpty(cd.getName())) {
 				try {
-					Bundle bundle = OSGiUtil.loadBundle(cd.getName(), cd.getVersion(), config.getIdentification(), false);
+					Bundle bundle = OSGiUtil.loadBundle(cd.getName(), cd.getVersion(), config.getIdentification(), null, false);
 					String cn = JDBCDriver.extractClassName(bundle);
 					cd = new ClassDefinitionImpl(config.getIdentification(), cn, cd.getName(), cd.getVersion());
 				}
@@ -2604,6 +2606,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * @param configServer
 	 * @param config
 	 * @param doc
+	 * @param serverPW
 	 * @throws IOException
 	 * @throws NoSuchAlgorithmException
 	 */
@@ -2617,8 +2620,14 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 		// password
 		Password pw = PasswordImpl.readFromXML(luceeConfiguration, salt, false);
-		if (pw != null) config.setPassword(pw);
-		else if (configServer != null) config.setPassword(configServer.getDefaultPassword());
+		if (pw != null) {
+			config.setPassword(pw);
+			if (config instanceof ConfigWebImpl) ((ConfigWebImpl) config).setPasswordSource(ConfigWebImpl.PASSWORD_ORIGIN_WEB);
+		}
+		else if (configServer != null) {
+			((ConfigWebImpl) config).setPasswordSource(configServer.hasCustomDefaultPassword() ? ConfigWebImpl.PASSWORD_ORIGIN_DEFAULT : ConfigWebImpl.PASSWORD_ORIGIN_SERVER);
+			config.setPassword(configServer.getDefaultPassword());
+		}
 
 		if (config instanceof ConfigServerImpl) {
 			ConfigServerImpl csi = (ConfigServerImpl) config;

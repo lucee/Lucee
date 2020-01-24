@@ -152,6 +152,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 
 	@Override
 	public Object remove(int row) throws DatabaseException {
+		query.disableIndex();
 		// query.disconnectCache();
 		resetTypeSync();
 		return set(row, "");
@@ -159,6 +160,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 
 	@Override
 	public Object removeEL(Collection.Key key) {
+		query.disableIndex();
 		// query.disconnectCache();
 		resetTypeSync();
 		return setEL(Caster.toIntValue(key.getString(), -1), "");
@@ -166,6 +168,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 
 	@Override
 	public Object removeEL(int row) {
+		query.disableIndex();
 		// query.disconnectCache();
 		resetTypeSync();
 		return setEL(row, "");
@@ -173,6 +176,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 
 	@Override
 	public void clear() {
+		query.disableIndex();
 		synchronized (sync) {
 			resetType();
 			data = new Object[CAPACITY];
@@ -317,10 +321,11 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 
 	@Override
 	public Object set(int row, Object value) throws DatabaseException {
+		query.disableIndex();
 		// query.disconnectCache();
 		if (row < 1) throw new DatabaseException("invalid row number [" + row + "]", "valid row numbers a greater or equal to one", null, null);
 		if (row > size) {
-			if (size == 0) throw new DatabaseException("cannot set a value to a empty query, you first have to add a row", null, null, null);
+			if (size == 0) throw new DatabaseException("cannot set a value to an empty query, you first have to add a row", null, null, null);
 			throw new DatabaseException("invalid row number [" + row + "]", "valid row numbers goes from 1 to " + size, null, null);
 		}
 		synchronized (sync) {
@@ -347,6 +352,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 
 	@Override
 	public Object setEL(int row, Object value) {
+		query.disableIndex();
 		// query.disconnectCache();
 		if (row < 1 || row > size) return value;
 		synchronized (sync) {
@@ -358,6 +364,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 
 	@Override
 	public void add(Object value) {
+		query.disableIndex();
 		synchronized (sync) {
 			// query.disconnectCache();
 			if (data.length <= size) growTo(size);
@@ -374,6 +381,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 
 	@Override
 	public void addRow(int count) {
+		query.disableIndex();
 		synchronized (sync) {
 			if (data.length < (size + count)) growTo(size + count);
 			for (int i = 0; i < count; i++)
@@ -383,6 +391,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 
 	@Override
 	public Object removeRow(int row) throws DatabaseException {
+		query.disableIndex();
 		// query.disconnectCache();
 		if (row < 1 || row > size) throw new DatabaseException("invalid row number [" + row + "]", "valid rows goes from 1 to " + size, null, null);
 		synchronized (sync) {
@@ -454,6 +463,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 
 	@Override
 	public void setKey(Collection.Key key) {
+		query.disableIndex();
 		this.key = key;
 	}
 
@@ -599,6 +609,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 			trg.size = this.size;
 			trg.type = this.type;
 			trg.key = this.key;
+			if (trg.query != null) trg.query.disableIndex();
 
 			// we first get data local, because length of the object cannot be changed, the safes us from
 			// modifications from outside
@@ -876,6 +887,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 	}
 
 	protected void sort(int[] rows) throws PageException {
+		query.disableIndex();
 		Object[] tmp = new Object[data.length];
 		for (int i = 0; i < size; i++) {
 			tmp[i] = data[rows[i] - 1];

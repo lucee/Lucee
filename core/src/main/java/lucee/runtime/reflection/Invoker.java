@@ -31,7 +31,7 @@ import lucee.runtime.reflection.pairs.MethodParameterPair;
 import lucee.runtime.type.ObjectWrap;
 
 /**
- * To invoke a Object on different ways
+ * To invoke an Object in different ways
  */
 public final class Invoker {
 
@@ -301,7 +301,7 @@ public final class Invoker {
 	}
 
 	/**
-	 * to invoke a getter Method of a Object
+	 * to invoke a getter Method of an Object
 	 * 
 	 * @param o Object to invoke method from
 	 * @param prop Name of the Method without get
@@ -324,7 +324,7 @@ public final class Invoker {
 	}
 
 	/**
-	 * to invoke a setter Method of a Object
+	 * to invoke a setter Method of an Object
 	 * 
 	 * @param o Object to invoke method from
 	 * @param prop Name of the Method without get
@@ -349,7 +349,7 @@ public final class Invoker {
 	}
 
 	/**
-	 * to get a visible Property of a object
+	 * to get a visible Property of an object
 	 * 
 	 * @param o Object to invoke
 	 * @param prop property to call
@@ -364,7 +364,7 @@ public final class Invoker {
 	}
 
 	/**
-	 * assign a value to a visible property of a object
+	 * assign a value to a visible property of an object
 	 * 
 	 * @param o Object to assign value to his property
 	 * @param prop name of property

@@ -18,9 +18,8 @@
  */
 package lucee.runtime.config;
 
-import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.SOFT;
-
 import java.io.IOException;
+import java.lang.ref.SoftReference;
 import java.net.URL;
 import java.util.Collection;
 import java.util.Enumeration;
@@ -36,7 +35,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.JspWriter;
 
-import org.apache.commons.collections4.map.ReferenceMap;
 import org.osgi.framework.BundleException;
 import org.xml.sax.SAXException;
 
@@ -107,6 +105,9 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 	private final ConfigServerImpl configServer;
 	private SecurityManager securityManager;
 	private static final LockManager lockManager = LockManagerImpl.getInstance(false);
+	public static final short PASSWORD_ORIGIN_DEFAULT = 1;
+	public static final short PASSWORD_ORIGIN_SERVER = 2;
+	public static final short PASSWORD_ORIGIN_WEB = 3;
 	private Resource rootDir;
 	private final CFMLCompilerImpl compiler = new CFMLCompilerImpl();
 	private CIPage baseComponentPageCFML;
@@ -321,7 +322,7 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 		return getConfigServerImpl().defaultFunctionMapping;
 	}
 
-	private Map<String, Mapping> applicationMappings = new ReferenceMap<String, Mapping>(SOFT, SOFT);
+	private Map<String, SoftReference<Mapping>> applicationMappings = new ConcurrentHashMap<String, SoftReference<Mapping>>();
 
 	private TagHandlerPool tagHandlerPool = new TagHandlerPool(this);
 	private SearchEngine searchEngine;
@@ -333,9 +334,9 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 	}
 
 	public boolean isApplicationMapping(Mapping mapping) {
-		Iterator<Mapping> it = applicationMappings.values().iterator();
+		Iterator<SoftReference<Mapping>> it = applicationMappings.values().iterator();
 		while (it.hasNext()) {
-			if (mapping.equals(it.next())) return true;
+			if (mapping.equals(it.next().get())) return true;
 		}
 		return false;
 	}
@@ -345,11 +346,12 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 				+ physicalFirst;
 		key = Long.toString(HashUtil.create64BitHash(key), Character.MAX_RADIX);
 
-		Mapping m = applicationMappings.get(key);
+		SoftReference<Mapping> t = applicationMappings.get(key);
+		Mapping m = t == null ? null : t.get();
 
 		if (m == null) {
 			m = new MappingImpl(this, virtual, physical, archive, Config.INSPECT_UNDEFINED, physicalFirst, false, false, false, true, ignoreVirtual, null, -1, -1);
-			applicationMappings.put(key, m);
+			applicationMappings.put(key, new SoftReference<Mapping>(m));
 		}
 
 		return m;
@@ -659,11 +661,12 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 	}
 
 	@Override
-	public List<ExtensionDefintion> loadLocalExtensions() {
-		return configServer.loadLocalExtensions();
+	public List<ExtensionDefintion> loadLocalExtensions(boolean validate) {
+		return configServer.loadLocalExtensions(validate);
 	}
 
 	private WSHandler wsHandler;
+	private short passwordSource;
 
 	@Override
 	public WSHandler getWSHandler() throws PageException {
@@ -681,5 +684,18 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 			}
 		}
 		return wsHandler;
+	}
+
+	protected void setPasswordSource(short passwordSource) {
+		this.passwordSource = passwordSource;
+	}
+
+	public short getPasswordSource() {
+		return passwordSource;
+	}
+
+	@Override
+	public void checkPassword() throws PageException {
+		configServer.checkPassword();
 	}
 }

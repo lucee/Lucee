@@ -66,7 +66,7 @@ public final class Log extends TagImpl {
 	private String file;
 	private Throwable exception;
 
-	/** Specifies whether to log the application name if one has been specified in a application tag. */
+	/** Specifies whether to log the application name if one has been specified in an application tag. */
 	private boolean application;
 	private CharSet charset = null;
 
@@ -190,7 +190,7 @@ public final class Log extends TagImpl {
 
 	/**
 	 * set the value application Specifies whether to log the application name if one has been specified
-	 * in a application tag.
+	 * in an application tag.
 	 * 
 	 * @param application value to set
 	 **/

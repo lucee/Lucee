@@ -180,7 +180,7 @@ class DCStack {
 		}
 		catch (Exception se) {
 			datasource.getLog().error("Connection  Pool", se);
-			// in case of a exception we see this conn as useless and close the connection
+			// in case of an exception we see this conn as useless and close the connection
 			try {
 				conn.close();
 			}

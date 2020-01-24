@@ -1,5 +1,6 @@
 package lucee.runtime.type.query;
 
+import lucee.commons.io.SystemUtil.TemplateLine;
 import lucee.runtime.db.SQL;
 import lucee.runtime.dump.Dumpable;
 import lucee.runtime.exp.PageException;
@@ -36,4 +37,5 @@ public interface QueryResult extends Dumpable, Duplicable {
 
 	public void setColumnNames(Key[] columnNames) throws PageException;
 
+	public TemplateLine getTemplateLine();
 }

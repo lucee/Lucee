@@ -41,6 +41,7 @@
 <cfparam name="request.adminType" default="web">
 <cfparam name="form.rememberMe" default="s">
 <cfset ad = request.adminType>
+<cfset request.self = request.adminType & ".cfm">
 
 <cfparam name="cookie.lucee_admin_lang" default="en">
 <cfset session.lucee_admin_lang = cookie.lucee_admin_lang>
@@ -48,6 +49,12 @@
 <cfset login_error = "">
 
 <!--- Form --->
+<cfif structKeyExists(form, "checkPassword" )>
+	<cfadmin action="checkPassword"
+		type="#request.adminType#">
+	<cflocation url="#request.self#?action=overview" addtoken="no">
+</cfif>
+
 <cfif structKeyExists(form, "login_password" & request.adminType)>
 	<cfadmin action="getLoginSettings"
 		type="#request.adminType#"
@@ -123,7 +130,19 @@
 	</cftry>
 </cfif>
 
-<!--- Session --->
+<!--- we are logged in into the server admin, but not the web admin, may the password is the same? --->
+<cfif ((request.adminType?:"") EQ "web") && 
+	structKeyExists(session, "passwordServer") && 
+	!structKeyExists(session, "passwordWeb")>
+	<cfadmin action="getLoginSettings"
+		type="#request.adminType#"
+		returnVariable="loginSettings">
+	<!--- server password is used --->
+	<cfif (loginSettings.origin?:"")=="server">
+		<cfset session.passwordWeb=session.passwordServer>
+	</cfif>
+</cfif>
+
 <cfif structKeyExists(session, "password" & request.adminType)>
 	<cftry>
 		<cfadmin action="connect"
@@ -154,7 +173,6 @@
 <cfinclude template="resources/text.cfm">
 <cfinclude template="web_functions.cfm">
 
-<cfset request.self = request.adminType & ".cfm">
 
 <cfif !structKeyExists(application, "adminfunctions") or (structKeyExists(session, "alwaysNew") && session.alwaysNew)>
 	<cfset application.adminfunctions = new adminfunctions() />
@@ -166,14 +184,15 @@
 	<cfargument name="pluginName">
 	<cfargument name="lang" type="string" default="#session.lucee_admin_lang#">
 
-	<cfset var fileLanguage="#pluginDir#/#pluginName#/language.xml">
+	<cfset var fileLanguage="#arguments.pluginDir#/#arguments.pluginName#/language.xml">
 	<cfif arguments.lang == "en">
-		<cfset var language=struct(__action:'plugin',title:ucFirst(pluginName),text:'')>
+		<cfset var language=struct(__action:'plugin',title:ucFirst(arguments.pluginName),text:'')>
 	<cfelse>
 		<cfset var language=loadPluginLanguage(arguments.pluginDir,arguments.pluginName,'en')>
 	</cfif>
 	<cfset var txtLanguage="">
 	<cfset var xml="">
+	<cfset var idx="">
 
 	<cfif fileExists(fileLanguage)>
 		<cffile action="read" file="#fileLanguage#" variable="txtLanguage" charset="utf-8">
@@ -314,7 +333,7 @@
 				returnVariable="local.qry";
 
 			var qry = qry.filter(function(row, rowNumber, qryData){
-				return row.id=='EFDEB172-F52E-4D84-9CD1A1F561B3DFC8';
+				return arguments.row.id=='EFDEB172-F52E-4D84-9CD1A1F561B3DFC8';
 			});
 			session._isLuceneInstalled=qry.recordCount>0;
 			return qry.recordCount>0;
@@ -433,7 +452,7 @@
 		</cfmodule>
 	<cfelse>
 		<!--- Admin Password is not Set !--->
-		<cfmodule template="admin_layout.cfm" width="480" title="New Password">
+		<cfmodule template="admin_layout.cfm" width="480" title="No Password set yet!">
 			<cfif !isEmpty(login_error)>
 				<span class="CheckError"><cfoutput>#login_error#</cfoutput></span>
 				<br>
@@ -481,8 +500,10 @@
 		</cfmodule>
 	</cfif>
 </cfif>
-<cfif current.action != "overview">
-	<cfcookie name="lucee_admin_lastpage" value="#current.action#" expires="NEVER">
+<cfif (current.action != "overview" || current.action != "chartAjax") && current.action != "services.restart">
+	<cfcookie name="lucee_admin_lastpage" value="overview" expires="NEVER">
+<cfelseif current.action == "services.restart">
+	<cfcookie name="lucee_admin_lastpage" value="services.restart" expires="NEVER">
 </cfif>
 
 

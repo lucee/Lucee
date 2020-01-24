@@ -51,7 +51,7 @@ public interface VideoOutput {
 	public void setTitle(String title);
 
 	/**
-	 * sets a author to the output video
+	 * sets an author to the output video
 	 * 
 	 * @param author
 	 */

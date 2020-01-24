@@ -130,7 +130,7 @@ public class VideoPlayerParamBean {
 	 * @param index the index to set
 	 */
 	public void setIndex(int index) throws PageException {
-		if (index < 0) throw new ApplicationException("index have to be a a none negative integer");
+		if (index < 0) throw new ApplicationException("index have to be a non-negative integer");
 		this.index = index;
 	}
 

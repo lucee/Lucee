@@ -19,11 +19,12 @@
 package lucee.runtime.type.scope;
 
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionBindingEvent;
@@ -35,12 +36,14 @@ import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.scope.storage.MemoryScope;
+import lucee.runtime.type.scope.util.ScopeUtil;
 import lucee.runtime.type.util.KeyConstants;
+import lucee.runtime.type.util.ListUtil;
 
 /**
  * 
  */
-public final class JSession extends ScopeSupport implements Session, HttpSessionBindingListener, MemoryScope {
+public final class JSession extends ScopeSupport implements Session, HttpSessionBindingListener, MemoryScope, CSRFTokenSupport {
 
 	public static final Collection.Key SESSION_ID = KeyConstants._sessionid;
 	private static Set<Collection.Key> FIX_KEYS = new HashSet<Collection.Key>();
@@ -54,6 +57,7 @@ public final class JSession extends ScopeSupport implements Session, HttpSession
 	private transient HttpSession httpSession;
 	private long lastAccess;
 	private long created;
+	private final Map<Collection.Key, String> tokens = new ConcurrentHashMap<Collection.Key, String>();
 
 	/**
 	 * constructor of the class
@@ -79,7 +83,6 @@ public final class JSession extends ScopeSupport implements Session, HttpSession
 				int timeoutInSeconds = ((int) (timespan / 1000)) + 60;
 				if (httpSession.getMaxInactiveInterval() < timeoutInSeconds) httpSession.setMaxInactiveInterval(timeoutInSeconds);
 			}
-
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
@@ -100,10 +103,10 @@ public final class JSession extends ScopeSupport implements Session, HttpSession
 		if (httpSession != null) {
 			try {
 				Object key;
-				Enumeration e = httpSession.getAttributeNames();
-				while (e.hasMoreElements()) {
+				Iterator<String> it = ListUtil.toIterator(httpSession.getAttributeNames());
+				while (it.hasNext()) {
 					// TODO set inative time new
-					key = e.nextElement();
+					key = it.next();
 					if (key.equals(name)) httpSession.removeAttribute(name);
 				}
 				name = null;
@@ -170,5 +173,15 @@ public final class JSession extends ScopeSupport implements Session, HttpSession
 		created = System.currentTimeMillis();
 		lastAccess = System.currentTimeMillis();
 		touchBeforeRequest(pc);
+	}
+
+	@Override
+	public String generateToken(String key, boolean forceNew) {
+		return ScopeUtil.generateCsrfToken(tokens, key, forceNew);
+	}
+
+	@Override
+	public boolean verifyToken(String token, String key) {
+		return ScopeUtil.verifyCsrfToken(tokens, token, key);
 	}
 }

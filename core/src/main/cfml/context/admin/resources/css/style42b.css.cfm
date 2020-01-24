@@ -393,7 +393,7 @@ div.error, div.warning, div.message {
 }
 div.warning {
 	border-color: #FC6;
-	color:#000;
+	color:#C93;
 }
 div.message {
 	border-color: #0C0;

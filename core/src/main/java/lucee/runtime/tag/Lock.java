@@ -195,7 +195,7 @@ public final class Lock extends BodyTagTryCatchFinallyImpl {
 	public void setName(String name) throws ApplicationException {
 		if (name == null) return;
 		this.name = name.trim();
-		if (name.length() == 0) throw new ApplicationException("invalid attribute definition", "attribute [name] can't be a empty string");
+		if (name.length() == 0) throw new ApplicationException("invalid attribute definition", "attribute [name] can't be an empty string");
 	}
 
 	public void setResult(String result) throws ApplicationException {

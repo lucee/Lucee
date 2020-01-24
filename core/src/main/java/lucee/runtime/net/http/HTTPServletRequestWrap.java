@@ -71,10 +71,11 @@ import lucee.runtime.type.scope.URLImpl;
 import lucee.runtime.type.scope.UrlFormImpl;
 import lucee.runtime.type.scope.util.ScopeUtil;
 import lucee.runtime.type.util.ArrayUtil;
+import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.util.EnumerationWrapper;
 
 /**
- * extends a existing {@link HttpServletRequest} with the possibility to reread the input as many
+ * extends an existing {@link HttpServletRequest} with the possibility to reread the input as many
  * you want.
  */
 public final class HTTPServletRequestWrap implements HttpServletRequest, Serializable {
@@ -360,11 +361,11 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 
 		// attributes
 		{
-			Enumeration<String> attrNames = req.getAttributeNames();
+			Iterator<String> it = ListUtil.toIterator(req.getAttributeNames());
 			disconnectData.attributes = MapFactory.getConcurrentMap();
 			String k;
-			while (attrNames.hasMoreElements()) {
-				k = attrNames.nextElement();
+			while (it.hasNext()) {
+				k = it.next();
 				if (!StringUtil.isEmpty(k)) disconnectData.attributes.put(k, req.getAttribute(k));
 			}
 		}

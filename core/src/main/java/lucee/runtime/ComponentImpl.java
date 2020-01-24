@@ -157,7 +157,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	// private Map<Key,UDF> constructorUDFs;
 	private boolean loaded;
 	private boolean hasInjectedFunctions;
-	private boolean isExtended; // is this component extended by a other component?
+	private boolean isExtended; // is this component extended by another component?
 
 	StaticScope _static;
 
@@ -1748,7 +1748,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	@Override
 	public final Object put(Object key, Object value) {
 		// TODO find a better solution
-		// when a orm entity the data given by put or also written to the variables scope
+		// when an orm entity the data given by put or also written to the variables scope
 		if (entity) {
 			getComponentScope().put(key, value);
 		}

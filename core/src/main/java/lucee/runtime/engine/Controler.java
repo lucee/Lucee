@@ -154,7 +154,7 @@ public final class Controler extends Thread {
 				time = System.currentTimeMillis() - ct.start;
 				// done
 				if (ct.done >= 0) {
-					if (time > 10000) configServer.getLog("application").info("controller", "controler took " + ct.done + "ms to execute sucessfully.");
+					if (time > 10000) configServer.getLog("application").info("controller", "controller took " + ct.done + "ms to execute successfully.");
 					it.remove();
 				}
 				// failed
@@ -167,7 +167,7 @@ public final class Controler extends Thread {
 					SystemUtil.stop(ct);
 					// print.e(ct.getStackTrace());
 					if (!ct.isAlive()) {
-						configServer.getLog("application").error("controller", "controler thread [" + ct.hashCode() + "] forced to stop after " + time + "ms");
+						configServer.getLog("application").error("controller", "controller thread [" + ct.hashCode() + "] forced to stop after " + time + "ms");
 						it.remove();
 					}
 					else {
@@ -484,9 +484,9 @@ public final class Controler extends Thread {
 		Resource res = null;
 		int count = ArrayUtil.size(filter == null ? dir.list() : dir.list(filter));
 		long size = ResourceUtil.getRealSize(dir, filter);
-		LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_WARN, Controler.class.getName(), "check size of directory [" + dir + "]");
-		LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_WARN, Controler.class.getName(), "- current size	[" + size + "]");
-		LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_WARN, Controler.class.getName(), "- max size 	[" + maxSize + "]");
+		LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_INFO, Controler.class.getName(),
+				"check size of directory [" + dir + "]; current size	[" + size + "];max size 	[" + maxSize + "]");
+
 		int len = -1;
 		while (count > 100000 || size > maxSize) {
 			Resource[] files = filter == null ? dir.listResources() : dir.listResources(filter);
@@ -504,7 +504,7 @@ public final class Controler extends Thread {
 					count--;
 				}
 				catch (IOException e) {
-					LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_WARN, Controler.class.getName(), "cannot remove resource " + res.getAbsolutePath());
+					LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_ERROR, Controler.class.getName(), "cannot remove resource " + res.getAbsolutePath());
 					break;
 				}
 			}

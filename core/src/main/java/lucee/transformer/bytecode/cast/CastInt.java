@@ -35,7 +35,7 @@ import lucee.transformer.expression.Expression;
 import lucee.transformer.expression.literal.Literal;
 
 /**
- * cast a Expression to a Double
+ * cast an Expression to a Double
  */
 public final class CastInt extends ExpressionBase implements ExprInt, Cast {
 
@@ -47,7 +47,7 @@ public final class CastInt extends ExpressionBase implements ExprInt, Cast {
 	}
 
 	/**
-	 * Create a String expression from a Expression
+	 * Create a String expression from an Expression
 	 * 
 	 * @param expr
 	 * @return String expression

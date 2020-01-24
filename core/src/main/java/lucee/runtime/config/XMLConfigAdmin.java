@@ -30,6 +30,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -472,7 +473,7 @@ public final class XMLConfigAdmin {
 		Element mail = _getRootElement("mail");
 		if (port < 1) port = 21;
 
-		if (hostName == null || hostName.trim().length() == 0) throw new ExpressionException("Host (SMTP) can be a empty value");
+		if (hostName == null || hostName.trim().length() == 0) throw new ExpressionException("Host (SMTP) cannot be an empty value");
 		hostName = hostName.trim();
 
 		Element[] children = XMLConfigWebFactory.getChildren(mail, "server");
@@ -614,7 +615,7 @@ public final class XMLConfigAdmin {
 		if (!hasAccess) throw new SecurityException("no access to update mappings");
 
 		// check virtual
-		if (virtual == null || virtual.length() == 0) throw new ExpressionException("virtual path cannot be a empty value");
+		if (virtual == null || virtual.length() == 0) throw new ExpressionException("virtual path cannot be an empty value");
 		virtual = virtual.replace('\\', '/');
 
 		if (!virtual.equals("/") && virtual.endsWith("/")) virtual = virtual.substring(0, virtual.length() - 1);
@@ -722,7 +723,7 @@ public final class XMLConfigAdmin {
 		if (!hasAccess) throw new SecurityException("no access to update REST mapping");
 
 		// check virtual
-		if (virtual == null || virtual.length() == 0) throw new ExpressionException("virtual path cannot be a empty value");
+		if (virtual == null || virtual.length() == 0) throw new ExpressionException("virtual path cannot be an empty value");
 		virtual = virtual.replace('\\', '/');
 		if (virtual.equals("/")) throw new ExpressionException("virtual path cannot be /");
 
@@ -730,7 +731,7 @@ public final class XMLConfigAdmin {
 
 		if (virtual.charAt(0) != '/') virtual = "/" + virtual;
 
-		if ((physical.length()) == 0) throw new ExpressionException("physical path cannot be a empty value");
+		if ((physical.length()) == 0) throw new ExpressionException("physical path cannot be an empty value");
 
 		Element rest = _getRootElement("rest");
 		Element[] children = XMLConfigWebFactory.getChildren(rest, "mapping");
@@ -778,7 +779,7 @@ public final class XMLConfigAdmin {
 
 	public void _removeMapping(String virtual) throws ExpressionException {
 		// check parameters
-		if (virtual == null || virtual.length() == 0) throw new ExpressionException("virtual path cannot be a empty value");
+		if (virtual == null || virtual.length() == 0) throw new ExpressionException("virtual path cannot be an empty value");
 		virtual = virtual.replace('\\', '/');
 
 		if (!virtual.equals("/") && virtual.endsWith("/")) virtual = virtual.substring(0, virtual.length() - 1);
@@ -802,7 +803,7 @@ public final class XMLConfigAdmin {
 	public void removeRestMapping(String virtual) throws ExpressionException, SecurityException {
 		checkWriteAccess();
 		// check parameters
-		if (virtual == null || virtual.length() == 0) throw new ExpressionException("virtual path cannot be a empty value");
+		if (virtual == null || virtual.length() == 0) throw new ExpressionException("virtual path cannot be an empty value");
 		virtual = virtual.replace('\\', '/');
 		if (virtual.equals("/")) throw new ExpressionException("virtual path cannot be /");
 
@@ -1001,7 +1002,7 @@ public final class XMLConfigAdmin {
 		if (!lib.exists()) lib.mkdir();
 		Resource fileLib = lib.getRealResource(resJar.getName());
 
-		// if there is a existing, has the file changed?
+		// if there is an existing, has the file changed?
 		if (fileLib.length() != resJar.length()) {
 			IOUtil.closeEL(config.getClassLoader());
 			ResourceUtil.copy(resJar, fileLib);
@@ -1045,7 +1046,7 @@ public final class XMLConfigAdmin {
 	private static BundleFile installBundle(Config config, BundleFile bf) throws IOException, BundleException {
 
 		// does this bundle already exists
-		BundleFile _bf = OSGiUtil.getBundleFile(bf.getSymbolicName(), bf.getVersion(), null, false, null);
+		BundleFile _bf = OSGiUtil.getBundleFile(bf.getSymbolicName(), bf.getVersion(), null, null, false, null);
 		if (_bf != null) return _bf;
 
 		CFMLEngine engine = CFMLEngineFactory.getInstance();
@@ -1136,7 +1137,7 @@ public final class XMLConfigAdmin {
 
 		if (!hasAccess) throw new SecurityException("no access to change cfx settings");
 
-		if (name == null || name.length() == 0) throw new ExpressionException("class name can't be a empty value");
+		if (name == null || name.length() == 0) throw new ExpressionException("class name can't be an empty value");
 
 		renameOldstyleCFX();
 
@@ -1210,15 +1211,42 @@ public final class XMLConfigAdmin {
 	/**
 	 * make sure every context has a salt
 	 */
-	public static boolean fixSalt(Document doc) {
+	public static boolean fixSaltAndPW(Document doc, Config config) {
 		Element root = doc.getDocumentElement();
+
+		// salt
 		String salt = root.getAttribute("salt");
+		boolean rtn = false;
 		if (StringUtil.isEmpty(salt, true) || !Decision.isUUId(salt)) {
 			// create salt
-			root.setAttribute("salt", CreateUUID.invoke());
-			return true;
+			root.setAttribute("salt", salt = CreateUUID.invoke());
+			rtn = true;
 		}
-		return false;
+
+		// no password yet
+		if (config instanceof ConfigServer && !root.hasAttribute("hspw") && !root.hasAttribute("pw") && !root.hasAttribute("password")) {
+			ConfigServer cs = (ConfigServer) config;
+			Resource pwFile = cs.getConfigDir().getRealResource("password.txt");
+			if (pwFile.isFile()) {
+				try {
+					String pw = IOUtil.toString(pwFile, (Charset) null);
+					if (!StringUtil.isEmpty(pw, true)) {
+						pw = pw.trim();
+						String hspw = new PasswordImpl(Password.ORIGIN_UNKNOW, pw, salt).getPassword();
+						root.setAttribute("hspw", hspw);
+						pwFile.delete();
+						rtn = true;
+					}
+				}
+				catch (IOException e) {
+					LogUtil.logGlobal(cs, "application", e);
+				}
+			}
+			else {
+				LogUtil.log(config, Log.LEVEL_ERROR, "application", "no password set and no password file found at [" + pwFile + "]");
+			}
+		}
+		return rtn;
 	}
 
 	// MUST remove
@@ -1459,7 +1487,7 @@ public final class XMLConfigAdmin {
 		}
 
 		if (StringUtil.startsWithIgnoreCase(name, "cfx_")) name = name.substring(4);
-		if (StringUtil.isEmpty(name)) throw new ExpressionException("class name can't be a empty value");
+		if (StringUtil.isEmpty(name)) throw new ExpressionException("class name can't be an empty value");
 	}
 
 	/**
@@ -1472,7 +1500,7 @@ public final class XMLConfigAdmin {
 	public void removeCFX(String name) throws ExpressionException, SecurityException {
 		checkWriteAccess();
 		// check parameters
-		if (name == null || name.length() == 0) throw new ExpressionException("name for CFX Tag can be a empty value");
+		if (name == null || name.length() == 0) throw new ExpressionException("name for CFX Tag can be an empty value");
 
 		renameOldstyleCFX();
 
@@ -1535,7 +1563,7 @@ public final class XMLConfigAdmin {
 		if (!hasAccess) throw new SecurityException("no access to update datsource connections");
 
 		// check parameters
-		if (name == null || name.length() == 0) throw new ExpressionException("name can't be a empty value");
+		if (name == null || name.length() == 0) throw new ExpressionException("name can't be an empty value");
 
 		Element datasources = _getRootElement("data-sources");
 
@@ -1742,7 +1770,7 @@ public final class XMLConfigAdmin {
 
 		// check parameters
 		id = id.trim();
-		if (StringUtil.isEmpty(id)) throw new ExpressionException("id can't be a empty value");
+		if (StringUtil.isEmpty(id)) throw new ExpressionException("id can't be an empty value");
 
 		if ((cd == null || StringUtil.isEmpty(cd.getClassName())) && StringUtil.isEmpty(componentPath)) throw new ExpressionException("you must define className or componentPath");
 
@@ -1886,7 +1914,7 @@ public final class XMLConfigAdmin {
 
 		// check parameters
 		name = name.trim();
-		if (StringUtil.isEmpty(name)) throw new ExpressionException("name can't be a empty value");
+		if (StringUtil.isEmpty(name)) throw new ExpressionException("name can't be an empty value");
 		// else if(name.equals("template") || name.equals("object"))
 		// throw new ExpressionException("name ["+name+"] is not allowed for a cache connection, the
 		// following names are reserved words [object,template]");
@@ -2086,7 +2114,7 @@ public final class XMLConfigAdmin {
 	public void _updateResourceProvider(String scheme, ClassDefinition cd, String arguments) throws PageException {
 
 		// check parameters
-		if (StringUtil.isEmpty(scheme)) throw new ExpressionException("scheme can't be a empty value");
+		if (StringUtil.isEmpty(scheme)) throw new ExpressionException("scheme can't be an empty value");
 
 		Element parent = _getRootElement("resources");
 
@@ -2261,7 +2289,7 @@ public final class XMLConfigAdmin {
 	public void removeDataSource(String name) throws ExpressionException, SecurityException {
 		checkWriteAccess();
 		// check parameters
-		if (name == null || name.length() == 0) throw new ExpressionException("name for Datasource Connection can be a empty value");
+		if (name == null || name.length() == 0) throw new ExpressionException("name for Datasource Connection can be an empty value");
 
 		Element datasources = _getRootElement("data-sources");
 
@@ -2342,7 +2370,7 @@ public final class XMLConfigAdmin {
 	}
 
 	protected void _removeGatewayEntry(String name) throws PageException {
-		if (StringUtil.isEmpty(name)) throw new ExpressionException("name for Gateway Id can be a empty value");
+		if (StringUtil.isEmpty(name)) throw new ExpressionException("name for Gateway Id can be an empty value");
 
 		Element parent = _getRootElement("gateways");
 
@@ -2384,7 +2412,7 @@ public final class XMLConfigAdmin {
 		if (!hasAccess) throw new SecurityException("no access to remove remote client settings");
 
 		// check parameters
-		if (StringUtil.isEmpty(url)) throw new ExpressionException("url for Remote Client can be a empty value");
+		if (StringUtil.isEmpty(url)) throw new ExpressionException("url for Remote Client can be an empty value");
 
 		Element clients = _getRootElement("remote-clients");
 
@@ -3487,7 +3515,7 @@ public final class XMLConfigAdmin {
 	}
 
 	/**
-	 * creates a individual security manager based on the default security manager
+	 * creates an individual security manager based on the default security manager
 	 * 
 	 * @param id
 	 * @throws DOMException
@@ -3960,9 +3988,9 @@ public final class XMLConfigAdmin {
 
 		Element clients = _getRootElement("remote-clients");
 
-		if (StringUtil.isEmpty(url)) throw new ExpressionException("url can be a empty value");
-		if (StringUtil.isEmpty(securityKey)) throw new ExpressionException("securityKey can be a empty value");
-		if (StringUtil.isEmpty(adminPassword)) throw new ExpressionException("adminPassword can be a empty value");
+		if (StringUtil.isEmpty(url)) throw new ExpressionException("url can be an empty value");
+		if (StringUtil.isEmpty(securityKey)) throw new ExpressionException("securityKey can be an empty value");
+		if (StringUtil.isEmpty(adminPassword)) throw new ExpressionException("adminPassword can be an empty value");
 		url = url.trim();
 		securityKey = securityKey.trim();
 		adminPassword = adminPassword.trim();
@@ -4722,7 +4750,7 @@ public final class XMLConfigAdmin {
 				rhext.deployBundles(ci);
 				BundleInfo[] bfs = rhext.getBundles();
 				for (BundleInfo bf: bfs) {
-					OSGiUtil.loadBundleFromLocal(bf.getSymbolicName(), bf.getVersion(), false, null);
+					OSGiUtil.loadBundleFromLocal(bf.getSymbolicName(), bf.getVersion(), null, false, null);
 				}
 			}
 
@@ -5603,7 +5631,7 @@ public final class XMLConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_DEBUGGING);
 		if (!hasAccess) throw new SecurityException("no access to change debugging settings");
 
-		// leave this, this method throws a exception when ip range is not valid
+		// leave this, this method throws an exception when ip range is not valid
 		IPRange.getInstance(iprange);
 
 		String id = MD5.getDigestAsString(label.trim().toLowerCase());
@@ -5677,7 +5705,7 @@ public final class XMLConfigAdmin {
 
 		// check parameters
 		name = name.trim();
-		if (StringUtil.isEmpty(name)) throw new ApplicationException("name can't be a empty value");
+		if (StringUtil.isEmpty(name)) throw new ApplicationException("name can't be an empty value");
 
 		if (appenderCD == null || !appenderCD.hasClass()) throw new ExpressionException("you must define appender class");
 		if (layoutCD == null || !layoutCD.hasClass()) throw new ExpressionException("you must define layout class");
@@ -6206,7 +6234,7 @@ public final class XMLConfigAdmin {
 
 		// now we only have BundlesDefs in the array no longer used
 		for (BundleDefinition ctr: candiatesToRemove) {
-			if (ctr != null) OSGiUtil.removeLocalBundleSilently(ctr.getName(), ctr.getVersion(), true);
+			if (ctr != null) OSGiUtil.removeLocalBundleSilently(ctr.getName(), ctr.getVersion(), null, true);
 		}
 	}
 
@@ -6438,7 +6466,7 @@ public final class XMLConfigAdmin {
 		// convert to a directory when it is a zip
 		if (!src.isDirectory()) {
 			if (!IsZipFile.invoke(src))
-				throw new ApplicationException("path [" + src.getAbsolutePath() + "] is invalid, it has to be a path to a existing zip file or a directory containing a plugin");
+				throw new ApplicationException("path [" + src.getAbsolutePath() + "] is invalid, it has to be a path to an existing zip file or a directory containing a plugin");
 			src = ResourceUtil.toResourceExisting(pc, "zip://" + src.getAbsolutePath());
 		}
 		String name = ResourceUtil.getName(src.getName());

@@ -94,6 +94,7 @@ import lucee.runtime.type.util.QueryUtil;
 public class SimpleQuery implements Query, ResultSet, Objects, QueryResult {
 
 	static final Object DEFAULT_VALUE = new Object();
+	private Statement stat;
 	private ResultSet res;
 	private ResultSetMetaData meta;
 	private Collection.Key[] columnNames;
@@ -108,15 +109,17 @@ public class SimpleQuery implements Query, ResultSet, Objects, QueryResult {
 	private ArrayInt arrCurrentRow = new ArrayInt();
 	private String cacheType;
 	private int updateCount;
+	private DatasourceConnection dc;
 
 	public SimpleQuery(PageContext pc, DatasourceConnection dc, SQL sql, int maxrow, int fetchsize, TimeSpan timeout, String name, TemplateLine templateLine, TimeZone tz)
 			throws PageException {
+		this.dc = dc;
 		this.name = name;
 		this.templateLine = templateLine;
 		this.sql = sql;
 
 		// ResultSet result=null;
-		Statement stat = null;
+		stat = null;
 		// check SQL Restrictions
 		if (dc.getDatasource().hasSQLRestriction()) {
 			QueryUtil.checkSQLRestriction(dc, sql);
@@ -164,6 +167,10 @@ public class SimpleQuery implements Query, ResultSet, Objects, QueryResult {
 		exeTime = System.nanoTime() - start;
 
 		((PageContextImpl) pc).registerLazyStatement(stat);
+	}
+
+	public DatasourceConnection getDc() {
+		return dc;
 	}
 
 	private void setAttributes(Statement stat, int maxrow, int fetchsize, TimeSpan timeout) throws SQLException {
@@ -430,14 +437,18 @@ public class SimpleQuery implements Query, ResultSet, Objects, QueryResult {
 	}
 
 	@Override
-
 	public synchronized boolean next() {
-		return next(getPid());
+		try {
+			return next(getPid());
+		}
+		catch (DatabaseException e) {
+			throw new PageRuntimeException(e);
+		}
 	}
 
 	@Override
-
-	public synchronized boolean next(int pid) {
+	public synchronized boolean next(int pid) throws DatabaseException {
+		throwIfClosed();
 		if (recordcount >= (arrCurrentRow.set(pid, arrCurrentRow.get(pid, 0) + 1))) {
 			return true;
 		}
@@ -446,13 +457,11 @@ public class SimpleQuery implements Query, ResultSet, Objects, QueryResult {
 	}
 
 	@Override
-
 	public synchronized void reset() {
 		reset(getPid());
 	}
 
 	@Override
-
 	public synchronized void reset(int pid) {
 		arrCurrentRow.set(pid, 0);
 	}
@@ -492,12 +501,13 @@ public class SimpleQuery implements Query, ResultSet, Objects, QueryResult {
 		return getColumnlist(true);
 	}
 
-	public boolean go(int index) {
+	public boolean go(int index) throws DatabaseException {
 		return go(index, getPid());
 	}
 
 	@Override
-	public boolean go(int index, int pid) {
+	public boolean go(int index, int pid) throws DatabaseException {
+		throwIfClosed();
 		if (index > 0 && index <= recordcount) {
 			arrCurrentRow.set(pid, index);
 			return true;
@@ -998,7 +1008,12 @@ public class SimpleQuery implements Query, ResultSet, Objects, QueryResult {
 	@Override
 
 	public synchronized void close() throws SQLException {
-		res.close();
+		if (res != null && !res.isClosed()) {
+			res.close();
+		}
+		if (stat != null && !stat.isClosed()) {
+			stat.close();
+		}
 	}
 
 	@Override
@@ -2169,6 +2184,17 @@ public class SimpleQuery implements Query, ResultSet, Objects, QueryResult {
 	@Override
 	public int getColumnCount() {
 		return columnNames.length;
+	}
+
+	public void throwIfClosed() throws DatabaseException {
+		try {
+			if (res != null && res.isClosed()) {
+				throw new RuntimeException("The query is already closed and cannot be read again.");
+			}
+		}
+		catch (SQLException e) {
+			throw new DatabaseException(e, dc);
+		}
 	}
 
 }

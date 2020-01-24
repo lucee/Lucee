@@ -663,6 +663,9 @@ Diese werden dann am Ende eines Request ausgegeben, falls sie ein Debug Template
 	<data key="debug.settings.timerDesc">Select this option to show timer event information. Timers let a developer track the execution time of the code between the start and end tags of the CFTIMER tag.</data>
 	<data key="debug.settings.implicitAccess">Implicit variable Access</data>
 	<data key="debug.settings.implicitAccessDesc">Select this option to log all accesses to scopes, queries and threads that happens implicit (cascaded).</data>
+	<data key="debug.switchTemplate">Switch Debug Template</data>
+	<data key="debug.selectDebugTemplate">Select Debug Template</data>
+
 	<data key="general.enabled">Enabled</data>
 
 	<data key="compiler.nullSupport">Null Support</data>
@@ -850,6 +853,7 @@ When checked, any requested files will be inspected only once for potential upda
 	<data key="buttons.filter">filter</data>
 	<data key="buttons.agree">einverstanden</data>
 	<data key="buttons.submit">senden</data>
+	<data key="buttons.reload">neu laden</data>
 	<data key="buttons.stop">stop</data>
 	<data key="buttons.ok">OK</data>
 	<data key="buttons.purge">leeren</data>

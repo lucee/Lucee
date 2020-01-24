@@ -31,6 +31,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.regex.Pattern;
 
@@ -74,7 +75,7 @@ import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.DateTime;
 
 /**
- * Object to test if a Object is a specific type
+ * Object to test if an Object is a specific type
  */
 public final class Decision {
 
@@ -466,7 +467,7 @@ public final class Decision {
 	}
 
 	/**
-	 * can this type be casted to a array
+	 * can this type be casted to an array
 	 * 
 	 * @param o
 	 * @return
@@ -474,7 +475,7 @@ public final class Decision {
 	 */
 	public static boolean isCastableToArray(Object o) {
 		if (isArray(o)) return true;
-		// else if(o instanceof XMLStruct) return true;
+		else if (o instanceof Set) return true;
 		else if (o instanceof Struct) {
 			Struct sct = (Struct) o;
 			Iterator<Key> it = sct.keyIterator();
@@ -488,7 +489,7 @@ public final class Decision {
 	}
 
 	/**
-	 * tests if object is a array
+	 * tests if object is an array
 	 * 
 	 * @param o
 	 * @return is array or not
@@ -839,7 +840,7 @@ public final class Decision {
 	}
 
 	/**
-	 * returns if given object is a email
+	 * returns if given object is an email
 	 * 
 	 * @param value
 	 * @return
@@ -1112,7 +1113,7 @@ public final class Decision {
 					return isCastableToNumeric(o);
 				}
 				else if (alsoAlias && type.equals("decimal")) {
-					return Caster.toDecimal(o, null) != null;
+					return Caster.toDecimal(o, true, null) != null;
 				}
 				break;
 			case 'e':

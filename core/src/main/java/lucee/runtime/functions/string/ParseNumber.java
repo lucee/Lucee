@@ -80,7 +80,7 @@ public class ParseNumber {
 
 		}
 
-		if (radix == OCT && strNumber.indexOf('9') != -1) throw new ExpressionException("digit [9] is out of range for a octal number");
+		if (radix == OCT && strNumber.indexOf('9') != -1) throw new ExpressionException("digit [9] is out of range for an octal number");
 
 		if (strNumber.indexOf('.') != -1 && radix != DEC) throw new ExpressionException("the radix con only be [dec] for floating point numbers");
 

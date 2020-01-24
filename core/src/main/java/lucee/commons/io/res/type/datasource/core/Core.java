@@ -70,7 +70,7 @@ public interface Core {
 	public abstract void create(DatasourceConnection dc, String prefix, int fullPatHash, int pathHash, String path, String name, int type) throws SQLException;
 
 	/**
-	 * deletes a entry (file or directory)
+	 * deletes an entry (file or directory)
 	 * 
 	 * @param dc
 	 * @param prefix
@@ -81,7 +81,7 @@ public interface Core {
 	public abstract boolean delete(DatasourceConnection dc, String prefix, Attr attr) throws SQLException;
 
 	/**
-	 * returns a inputStream to a entry data
+	 * returns an inputStream to an entry data
 	 * 
 	 * @param dc
 	 * @param prefix

@@ -31,7 +31,7 @@ public interface CachePro extends Cache {
 	public int clear() throws IOException;
 
 	/**
-	 * verifies the cache, throws a exception if something is wrong with the cache
+	 * verifies the cache, throws an exception if something is wrong with the cache
 	 * 
 	 * @throws CacheException
 	 */

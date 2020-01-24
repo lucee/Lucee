@@ -86,7 +86,7 @@ public final class ModernAppListenerException extends PageException {
 		CatchBlock cb = rootCause.getCatchBlock(config);
 		Collection cause = (Collection) Duplicator.duplicate(cb, false);
 		// rtn.setEL("message", getMessage());
-		if (!cb.containsKey(KeyConstants._detail)) cb.setEL(KeyConstants._detail, "Exception throwed while invoking function [" + eventName + "] in application event handler ");
+		if (!cb.containsKey(KeyConstants._detail)) cb.setEL(KeyConstants._detail, "Exception thrown while invoking function [" + eventName + "] in application event handler ");
 		cb.setEL(ROOT_CAUSE, cause);
 		cb.setEL(CAUSE, cause);
 		// cb.setEL("stacktrace", getStackTraceAsString());

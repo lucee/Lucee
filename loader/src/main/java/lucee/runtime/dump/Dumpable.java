@@ -23,12 +23,12 @@ import java.io.Serializable;
 import lucee.runtime.PageContext;
 
 /**
- * this interface make a object printable, also to a simple object
+ * this interface make an object printable, also to a simple object
  */
 public interface Dumpable extends Serializable {
 
 	/**
-	 * method to print out information to a object as HTML
+	 * method to print out information to an object as HTML
 	 * 
 	 * @param pageContext page context object
 	 * @param maxlevel max level to display

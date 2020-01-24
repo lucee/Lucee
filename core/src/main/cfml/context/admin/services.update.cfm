@@ -14,11 +14,14 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  *
  --->
+<cfscript>
+	CACHE_IN_SECONDS=60;
 
-<cfparam name="url.action2" default="none">
-<cfset error.message="">
-<cfset error.detail="">
- <cftry>
+	if(isNull(url.action2))url.action2="none";
+	error.message="";
+	error.detail="";
+</cfscript>
+<cftry>
 <cfswitch expression="#url.action2#">
 	<cfcase value="settings">
 		<cfif !structKeyExists(form, "location") OR !structKeyExists(form, "locationCustom")>
@@ -47,13 +50,20 @@
  <cfscript>
 	include template="ext.functions.cfm";
 	include template="services.update.functions.cfm";
-
 	ud=getUpdateData();
-	if(isNull(application.UpdateProvider[ud.location]))  {
+
+	//dump((application.UpdateProvider[ud.location].time?:0)<now());
+	if(
+		isNull(application.UpdateProvider[ud.location]) || 
+		(application.UpdateProvider[ud.location].code?:0)!=200 ||
+		(application.UpdateProvider[ud.location].time?:0)<now())  {
+		//dump("update");
 		application.UpdateProvider[ud.location]=getAvailableVersion();
+		application.UpdateProvider[ud.location].time=dateAdd('s',CACHE_IN_SECONDS,now());
 	}
 	updateData = application.UpdateProvider[ud.location];
 	
+	hasOptions=false;
 
 	admin
 			action="getUpdate"
@@ -70,7 +80,6 @@
 			result = providerData;
 		}
 		updateData=getAvailableVersion();*/
-
 
 		if(updateData.provider.location EQ "http://update.lucee.org"){
 			version = "lucee";
@@ -92,10 +101,12 @@
 		if(version eq 'custom' && structKeyExists(updateData, "otherVersions") && Len(updateData.otherVersions)){
 			for(versions in updateData.otherVersions){
 				if(toVersionSortable(versions) LTE toVersionSortable(server.lucee.version)){
-						arrayPrepend(versionsStr.custom.downgrade, versions);
-				}else{
+					arrayPrepend(versionsStr.custom.downgrade, versions);
+				}
+				else{
 					arrayPrepend(versionsStr.custom.upgrade, versions);
 				}
+				hasOptions=true;
 			}
 		}
 		
@@ -106,19 +117,21 @@
 			returnvariable="minVersion";
 		minVs = toVersionSortable(minVersion);
 
-		if(len(updateData.otherVersions)){
+		if(!isNull(updateData.otherVersions) && len(updateData.otherVersions)){
 
 			for(versions in updateData.otherVersions ){
 				if(versions EQ server.lucee.version) cfcontinue;
 				vs=toVersionSortable(versions);
-				if(vs LTE minVS) cfcontinue;
+				if(vs LT minVS) cfcontinue;
 				;
 				if(FindNoCase("SNAPSHOT", versions)){
 					if(vs LTE toVersionSortable(server.lucee.version)){
 						arrayPrepend(versionsStr.SNAPSHOT.downgrade, versions);
-					} else{
+					} 
+					else{
 						arrayPrepend(versionsStr.SNAPSHOT.upgrade, versions);
 					}
+					hasOptions=true;
 				} 
 				else if(FindNoCase("ALPHA", versions) || FindNoCase("BETA", versions) || FindNoCase("RC", versions)){
 					if(vs LTE toVersionSortable(server.lucee.version)){
@@ -126,6 +139,7 @@
 					} else{
 						arrayPrepend(versionsStr.pre_Release.upgrade, versions);
 					}
+					hasOptions=true;
 				}
 				else{
 					if(vs LTE toVersionSortable(server.lucee.version)){
@@ -133,6 +147,7 @@
 					} else{
 						arrayPrepend(versionsStr.release.upgrade, versions);
 					}
+					hasOptions=true;
 				}
 			}
 		}
@@ -149,11 +164,14 @@
 	}
 </style>
 
-
+<cfif !hasOptions>
+	<p><b>No upgrades or downgrades available!</b></p>
+<cfelse>
 	<!--- <h1>#stText.services.update.luceeProvider#</h1>--->
 	<p>
 		#replace(stText.services.update.titleDesc,'{version}',"<b>"&server.lucee.version&"</b>") #
 	</p>
+
 	<cfset hiddenFormContents = "" >
 	<cfset count = 1>
 	<cfset listVrs = "Release,Pre_Release,SnapShot">
@@ -171,7 +189,7 @@
 				type="button"></span>
 		<cfset count++>
 	</cfloop>
-	<div class="msg"></div>
+
 	<cfsavecontent variable="tmpContent">
 		<div  class="topBottomSpace">
 			<div class="whitePanel">
@@ -195,7 +213,9 @@
 					<input type="button" class="button submit"
 						onclick="changeVersion(this, UPDATE)" 
 						name="mainAction" 
+						id="disableButton"
 						value="#stText.services.update.downUpBtn#">
+						<span class="msg"></span>
 					<div class="comment">
 						<cfloop list="#listVrs#" index="key">
 							<div class="itemintro"><b>#stText.services.update.short[key]# :</b> #stText.services.update[key&"Desc"]#</div>
@@ -210,7 +230,7 @@
 	<div id="group_Connection">
 		#tmpContent#
 	</div>
-
+</cfif>
 	<!--- for custom --->
 	<cfformClassic onerror="customError" action="#go(url.action,"settings")#" method="post">
 		<h1>#stText.services.update.customProvider#</h1>
@@ -254,7 +274,7 @@
 			<tfoot>
 				<tr>
 					<td colspan="2">
-						<input type="submit" class="bl button submit" name="mainAction" value="#stText.Buttons.Update#">
+						<input type="submit" class="bl button submit" id="updateProvider" name="mainAction" value="#stText.Buttons.Update#">
 						<input type="reset" class="br button reset" name="cancel" value="#stText.Buttons.Cancel#">
 					</td>
 				</tr>
@@ -280,6 +300,16 @@
 			});
 
 			function enableVersion(v, i){
+				$(".msg").text("");
+				$("input[type='button'][name='changeConnection']").click(function(){
+				    var a_myname = $("##btn_"+v).attr("class");
+	 				if(a_myname.includes("btn") == false) {
+						$('##disableButton').attr('disabled','disabled').css('opacity',0.5);
+	 				}
+					else if(a_myname.includes("btn") == true){
+						$('##disableButton').attr("disabled", false).css('opacity',1);	
+					}
+				});
 				if(i== 'intial'){
 					$("##group_Connection").find('optgroup' ).each(function(index) {
 						var xx = $(this).attr('class');
@@ -315,7 +345,13 @@
 			}
 
 			function changeVersion(field, frm) {
-				if( frm.value != ""){
+				if(frm.value == "") {
+					$(".msg").text("");
+					$( ".msg" ).append( "<div class='error'>Please Choose any version</p>" );
+					disableBlockUI=true;
+					return false;
+				}
+				else{
 					submitted = true;
 					$('##group_Connection').hide();
 					url='changeto.cfm?#session.urltoken#&adminType=#request.admintype#&version='+frm.value;
@@ -333,8 +369,6 @@
 								//window.location=('#request.self#?action=#url.action#'); //$('##updateInfoDesc').html(response);
 				 		});
 					});
-				} else {
-					$( ".msg" ).append( "<div class='error'>Please Choose any version</p>" );
 				}
 			}
 
@@ -344,6 +378,18 @@
 					$( '##customtextinput' ).attr( 'disabled', false);
 				} else{
 					$( '##customtextinput' ).attr( 'disabled', true);
+				}
+			});
+			$('##updateProvider').click(function(){
+				$(".alertprovider").text("");
+				var re = /(http(s)?:\\)?([\w-]+\.)+[\w-]+[.com|.in|.org]+(\[\?%&=]*)?/;
+				var checkbox = document.getElementById("sp_radio_custom").checked;
+				var text = $('##customtextinput').val();
+				if(checkbox == true && (text.length == 0 || !re.test(text))) {
+					$('##customtextinput').addClass("InputError");
+					$( '##customtextinput' ).after( '</br><span class="alertprovider">Please provide the valid url</span>' );
+					disableBlockUI=true;
+					return false
 				}
 			});
 		</script>

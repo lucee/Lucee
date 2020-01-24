@@ -27,6 +27,7 @@ import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryImpl;
+import lucee.runtime.type.util.CollectionUtil;
 
 public class CSVParser {
 
@@ -69,7 +70,7 @@ public class CSVParser {
 				arrays[i].append(row.get(i));
 			}
 		}
-		return new QueryImpl(headers, arrays, "query");
+		return new QueryImpl(CollectionUtil.toKeys(headers, true), arrays, "query");
 	}
 
 	private static String[] makeUnique(String[] headers) {

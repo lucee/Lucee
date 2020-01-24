@@ -69,11 +69,6 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 				return false;
 			}
 		}
-
-		function isEnabled( custom, key ) {
-			return structKeyExists( arguments.custom, arguments.key ) && ( arguments.custom[ arguments.key ] == "Enabled" || arguments.custom[ arguments.key ] == "true" );
-		}
-
 		variables.cookieName_debugging   = "lucee_debug_modern";
 		variables.cookieSortOrder       = "lucee_debug_modern_sort";
 		variables.cookieFilterTemplates = "lucee_debug_modern_filter";
@@ -225,18 +220,18 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			</fieldset><!--- #-lucee-debug !--->
 
 			<cfif enableTab("Reference") AND ( !structKeyExists(request, "fromAdmin") )>
-				<div id="mdlWnd" class="modal" style="overflow:auto;">
+				<div id="mdlWnd" class="modal" style="overflow-y:auto;">
+					<button class="closeButtonTop btn" style="float:right;">X</button>
 					<div class="modal-body">
 					</div>
+					<button class="closeButton btn" style="align:right!important;float:right;">Close</button>
 				</div>
 			</cfif>
 			
 			<script src="/lucee/res/js/base.min.js.cfm" type="text/javascript"></script>
-			<cfif !structKeyExists(url, "isAjaxRequest")>
-				<script src="/lucee/res/js/jquery.modal.min.js.cfm" type="text/javascript"></script>
-			</cfif>
+			<!---  --->
 			<script>
-
+				$.noConflict();
 				var __LUCEE = __LUCEE || {};
 				var oLastObj = false;
 				__LUCEE.sectionArray = [];
@@ -405,13 +400,10 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 									chartCall();
 								} else{
 									$("##-lucee-"+section+"-ALL").html(this.responseText);
-									if(section == 'docs'){
-										bindTypeaheadJS();
-									}
 								}
 							}
 						};
-						var ajaxURL = "/lucee/appLogs/readDebug.cfm?id=#debugging.id#&TAB="+section;
+						var ajaxURL = "/lucee/appLogs/readDebug.cfm?id=#arguments.debugging.id#&TAB="+section;
 						<cfif structKeyExists(request, "fromAdmin") AND request.fromAdmin EQ true>
 							ajaxURL += "&fromAdmin=true";
 						</cfif>
@@ -508,9 +500,9 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 													formatter : function (params) {
 														var series2 = "";
 														if(params.length == 2) {
-															series2 =  params[1][0] + ": "+ params[1][2] + "%" + '<br>' +params[0][1];
+															series2 =  params[1].seriesName + ": "+ params[1].value + "%" + '<br>' +params[0].name;
 														}
-														return 'Series' + "<br>" + params[0][0] + ": " + params[0][2] + "%" + '<br>'  + series2;
+														return 'Series' + "<br>" + params[0].seriesName + ": " + params[0].value + "%" + '<br>'  + series2;
 													}
 												},
 												legend: {
@@ -565,7 +557,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 											backgroundColor: ["##EFEDE5"],
 											tooltip : {'trigger':'axis',
 												formatter : function (params) {
-													return 'Series' + "<br>" + params[0][0] + ": " + params[0][2] + "%" + '<br>' +params[0][1] ;
+													return 'Series' + "<br>" + params[0].seriesName + ": " + params[0].value + "%" + '<br>' +params[0].name ;
 												}
 											},
 
@@ -608,66 +600,47 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 					}
 				</script>
 			<!--- </cfif> --->
-			<cfif enableTab("Reference")>
+			<!--- <cfif enableTab("Reference")> --->
 				<script>
+					$(document).ready(function(){
+						//to hide div element that was showed with respect to user input
+						$(document).mouseup(function(e){
+							var container = $("##outerLayer");
+								container.hide();
+						});
+						// to show the modal window while clcik on particular function/tags/components suggested on div element
+						$(document).on('click', '.getMatch', function(){
+							callDesc($(this).data('type').toLowerCase()	, $(this).data('value'));
+						});
 
-					function bindTypeaheadJS(){
-						var allArr = #serializeJson(allArryItem)#;
-						var types = #serializeJson(str)#;
+						$(document).on('keyup',".ttt",function(e){
+							$("##outerLayer").html("");
+							var types = #serializeJson(str)#;
 
-						var substringMatcher = function(strs) {
-							return function findMatches(q, cb) {
-								var matches, substringRegex;
-								// an array that will be populated with substring matches
-								matches = [];
-								// regex used to determine if a string contains the substring `q`
-								substrRegex = new RegExp(q, 'i');
-								// iterate through the pool of strings and for any string that
-								// contains the substring `q`, add it to the `matches` array
-								$.each(strs, function(i, str) {
-									if (substrRegex.test(str)) {
-									matches.push(str);
+							var search = $("##lucee-docs-search-input").val().trim();
+							var modelcontent = "";
+							if(search == ''){
+								$("##outerLayer").hide().html("");
+								return false;
+							}
+							$.each(types, function( array ) {
+								$.grep(types[array], function( value ) {
+									if(value.includes(search)){
+										modelcontent += '<span class="getMatch" data-type='+array+' data-value='+value+'>'+value+'</span><br>';
 									}
 								});
-
-								cb(matches);
-							};
-						};
-
-						$( function() {
-							$( '##lucee-docs-search-input' ).typeahead(
-								{
-									hint: true,
-									highlight: true,
-									minLength: 1
-								},
-								{
-								  name: 'keyWords',
-								  source: substringMatcher(allArr),
-								  limit: 25,
-								   templates: {
-									    empty:  '<div class="moreResults"><span onclick="moreInfo()">No Results Found</span></div>'
-							  	}
+							});
+							if(modelcontent.length != 0){
+								$('##outerLayer').append(modelcontent);
+							}else{
+								$('##outerLayer').append('<span>No Results Found</span><br>');
 							}
-						).on('typeahead:selected', typeaheadSelected);
-							function typeaheadSelected($e, datum){
-								$.each(types, function(i, data) {
-									$.each(data, function(x, y){
-										if(datum.toString() == y){
-											callDesc(i, datum.toString());
-										}
-									});
-								});
-							}
+							$("##outerLayer").show();
+							// if (e.keyCode == 13) {
+							// 	callDesc("functions", search.toString());
+							// }
 						});
-						$( function() {
-						 	$('##lucee-docs-search-input').focus();
-						});
-						$('##-lucee-docs-btn-ALL').on('click', function() {
-							$('##lucee-docs-search-input').focus();
-							$('.tt-menu').hide();
-					    });
-					}
+					});
 
 					function callDesc(type, item){
 						var docURL = "/lucee/doc/" + type + ".cfm?isAjaxRequest=true&fromAdmin=#structKeyExists(request, 'fromAdmin')#&item=" + item;
@@ -678,8 +651,8 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 								$( ".modal-body" ).html("" + data.toString() + "");
 								$('<div class="blocker"></div>').appendTo(document.body);
 								$("##mdlWnd").show();
-								$("##mdlWnd").modal('show');
-								$('.close-modal, .blocker').on('click', function() {
+								$(".closeButtonTop").focus();
+								$('.closeButtonTop,.closeButton, .blocker').on('click', function() {
 									$('##lucee-docs-search-input').val('');
 									$("div.blocker").remove();
 									$(".modal-body").html("");
@@ -691,7 +664,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 						});
 					}
 				</script>
-			</cfif>
+			<!--- </cfif> --->
 			<cfif isdebugOpen && enableTab("debug") || ismetricsOpen && enableTab("metrics")  ||  isdocsOpen && enableTab("Reference")>
 				<script>
 					var isdebugOpen = #isdebugOpen# && #enableTab("debug")#;
@@ -727,6 +700,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 		<cfargument name="debugging" required="true" type="struct" />
 		<cfargument name="context" type="string" default="web" />
 		<cfsilent>
+			<cfset local.debuggingRenderingTime=getTickCount()>
 			<cfset local.stStats = filterByTemplates(arguments.debugging)>
 			<cfset arguments.debugging.minimal          = arguments.custom.minimal ?: 0>
 			<cfset arguments.debugging.highlight        = arguments.custom.highlight ?: 250000>
@@ -744,13 +718,9 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			<!--- <cfset arguments.custom.sort_charts 		= (arguments.custom.sort_charts ?: '1,2,3,4')> --->
 			<cfif isNull(arguments.custom.scopesList)><cfset arguments.custom.scopesList=""></cfif>
 
-
-			
-
-
 			<cfset var _cgi=isNull(arguments.debugging.scope.cgi)?cgi:arguments.debugging.scope.cgi />
-			<cfset var pages=arguments.debugging.pages />
-			<cfset var queries=arguments.debugging.queries />
+			<cfset var pages=duplicate(arguments.debugging.pages) />
+			<cfset var queries=arguments.debugging.queries/>
 			<cfif not isDefined('arguments.debugging.timers')>
 				<cfset arguments.debugging.timers=queryNew('label,time,template') />
 			</cfif>
@@ -786,10 +756,10 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			<cfloop query="pages">
 				<cfset querySetCell(pages, "total", pages.app + pages.load + pages.query, pages.currentRow)>
 				<cfset querySetCell(pages, "avg", (pages.app + pages.load + pages.query) / pages.count, pages.currentRow)>
-				<cfset aPage = listToArray(pages.src, '$')>
+				<cfset local.aPage = listToArray(pages.src, '$')>
 				<cfset querySetCell(pages, "path", pages.src, pages.currentRow)>
-				<cfset querySetCell(pages, "src", contractPath(aPage[1]), pages.currentRow)>
-				<cfset querySetCell(pages, "method", !isEmpty(aPage[2] ?: '') ? aPage[2] : '', pages.currentRow)>
+				<cfset querySetCell(pages, "src", contractPath(local.aPage[1]), pages.currentRow)>
+				<cfset querySetCell(pages, "method", !isEmpty(local.aPage[2] ?: '') ? local.aPage[2] : '', pages.currentRow)>
 				<cfset tot      += pages.total />
 				<cfset totCnt   += pages.count />
 				<cfset totLucee += pages.app>
@@ -1014,10 +984,12 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 						<td class="pad txt-r">#unitFormat( arguments.custom.unit, loa,prettify )#</td>
 						<td class="pad">Startup/Compilation</td>
 					</tr>
-					<tr>
-						<td class="pad txt-r">#unitFormat( arguments.custom.unit, q,prettify )#</td>
-						<td class="pad">Query</td>
-					</tr>
+					<cfif listfirst(unitFormat( arguments.custom.unit, q,prettify )," ") gt 0>
+						<tr>
+							<td class="pad txt-r">#unitFormat( arguments.custom.unit, q,prettify )#</td>
+							<td class="pad">Query</td>
+						</tr>
+					</cfif>
 					<tr>
 						<td class="pad txt-r bold">#unitFormat( arguments.custom.unit, tot, prettify )#</td>
 						<td class="pad bold">Total</td>
@@ -1076,19 +1048,19 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 							<cfset tot=0 />
 							<cfset q=0 />
 							<cfloop query="pages" group="src">
-									<cfset page.stckTrace = []>
+									<cfset local.page.stckTrace = []>
 									<cfset arrayAppend(page.stckTrace, listLast(pages.src))>
-									<cfquery dbtype="query" name="resultQry">
+									<cfquery dbtype="query" name="local.resultQry">
 										select * from pages where src='#pages.src#' AND id != '#pages.id#'
 									</cfquery>
-									<cfloop query="resultQry">
-										<cfset pages.total += resultQry.total>
-										<cfset pages.count += resultQry.count>
-										<cfset pages.avg += resultQry.avg>
-										<cfset pages.query += resultQry.query>
-										<cfset pages.total += resultQry.total>
-										<cfset pages.app += resultQry.app>
-										<cfset arrayAppend(page.stckTrace, listLast(resultQry.src, "$"))>
+									<cfloop query="local.resultQry">
+										<cfset pages.total += local.resultQry.total>
+										<cfset pages.count += local.resultQry.count>
+										<cfset pages.avg += local.resultQry.avg>
+										<cfset pages.query += local.resultQry.query>
+										<cfset pages.total += local.resultQry.total>
+										<cfset pages.app += local.resultQry.app>
+										<cfset arrayAppend(local.page.stckTrace, listLast(local.resultQry.src, "$"))>
 									</cfloop>
 									<cfset tot += pages.total - (pages.count * pages.avg) />
 									<cfset q += pages.query />
@@ -1105,7 +1077,9 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 									<cfset local.sColor    = RGBtoHex(255 * iPctTotal, 160 * (1 - iPctTotal), 0)>
 
 
-									<cfset sStyle = ''>
+									<cfset var sStyle = ''>
+									<cfset var per = ''>
+									<Cfset var i = 0>
 									<cfif arguments.custom.colorHighlight>
 										<cfset sStyle = sColor>
 									</cfif>
@@ -1164,11 +1138,11 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 											<font color="#sStyle#">#listFirst(pages.src, "$")#</font>
 										</td>
 										<td align="left" class="tblContent" style="#sStyle#">
-											<cfset listStack= arrayToList(#page.stckTrace#) >
-											<cfset getStack = listRemoveDuplicates(listStack,",",true) >
-											<cfset page.stckTrace = listToArray(getStack)>
+											<cfset var listStack= arrayToList(local.page.stckTrace) >
+											<cfset var getStack = listRemoveDuplicates(listStack,",",true) >
+											<cfset local.page.stckTrace = listToArray(getStack)>
 											<table>
-												<cfloop array="#page.stckTrace#" index="i">
+												<cfloop array="#local.page.stckTrace#" index="i">
 													<tr>
 														<td>
 														<font color="#sStyle#">
@@ -1722,6 +1696,8 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 					</tr>
 				</table>
 			</cfif>
+			<br />
+			<p class="cfdebug">Debug Rendering Time: #LsNumberFormat(getTickCount()-local.debuggingRenderingTime)#ms</p>
 			</cfoutput>
 		</div>
 	</cffunction>
@@ -1873,8 +1849,12 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 		<cfoutput>
 			<cfset sectionId = "docs_Info">
 			<cfset isOpen = this.isSectionOpen( sectionId, "docs" )>
-			<input class="InputSearch #searchClass# menu-search-focus" id="lucee-docs-search-input" placeholder="Search" type="search">
-			<div class="section-title" style="padding-bottom:4px;">Reference</div>
+			<div id="groupOuterText">
+				<input class="InputSearch #searchClass# menu-search-focus ttt" id="lucee-docs-search-input" placeholder="Search" type="text">
+				<div id="outerLayer" style="display:none;" class="form-group">
+				</div>
+			</div>
+			<div class="section-title">Reference</div>
 			<table>
 				<tr>
 				<td>
@@ -1956,17 +1936,18 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 	</cffunction>
 
 	<cffunction name="loadCharts" output="true">
-
 		<cfargument name="chartStruct">
-		<cfset chartsLabel = structNew("linked")>
+		<cfset var i = 0>
+		<cfset var chartsLabel = structNew("linked")>
+		
 		<cfset chartsLabel.HeapChart = "Heap Memory">
 		<cfset chartsLabel.NonHeapChart = "Non Heap Memory">
 		<cfset chartsLabel.WholeSystem = "System CPU VS Lucee CPU">
 
 		<cfif structKeyExists(request, "fromAdmin") AND request.fromAdmin EQ true>
-			<cfset chartClass = "twoCharts">
+			<cfset var chartClass = "twoCharts">
 		<cfelse>
-			<cfset chartClass = "fourCharts">
+			<cfset var chartClass = "fourCharts">
 		</cfif>
 
 		<cfloop item="i" collection="#chartsLabel#">

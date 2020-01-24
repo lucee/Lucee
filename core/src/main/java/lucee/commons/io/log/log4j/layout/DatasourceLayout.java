@@ -93,12 +93,11 @@ public class DatasourceLayout extends Layout {
 		 * tableName=((DatasourceAppender)o).getTableName(); break; } } }
 		 */
 
-		String sql = "INSERT INTO " + tableName + " VALUES(" + SQLCaster.toString(new SQLItemImpl(id, Types.VARCHAR)) + "," + sqlName + ","
-				+ SQLCaster.toString(new SQLItemImpl(event.getLevel().toString(), Types.VARCHAR)) + "," + SQLCaster.toString(new SQLItemImpl(threadId, Types.VARCHAR)) + ","
-				+ new DateTimeImpl(event.getTimeStamp(), false) + "," + SQLCaster.toString(new SQLItemImpl(application, Types.VARCHAR)) + ","
-				+ SQLCaster.toString(new SQLItemImpl(msg, Types.VARCHAR)) + "," + SQLCaster.toString(new SQLItemImpl(exception, Types.VARCHAR)) + "," + sqlCustom
-
-				+ ")";
+		String sql = "INSERT INTO " + tableName + " (id,name,severity,threadid,time,application,message,exception,custom) VALUES("
+				+ SQLCaster.toString(new SQLItemImpl(id, Types.VARCHAR)) + "," + sqlName + "," + SQLCaster.toString(new SQLItemImpl(event.getLevel().toString(), Types.VARCHAR))
+				+ "," + SQLCaster.toString(new SQLItemImpl(threadId, Types.VARCHAR)) + "," + new DateTimeImpl(event.getTimeStamp(), false) + ","
+				+ SQLCaster.toString(new SQLItemImpl(application, Types.VARCHAR)) + "," + SQLCaster.toString(new SQLItemImpl(msg, Types.VARCHAR)) + ","
+				+ SQLCaster.toString(new SQLItemImpl(exception, Types.VARCHAR)) + "," + sqlCustom + ")";
 		return sql;
 	}
 

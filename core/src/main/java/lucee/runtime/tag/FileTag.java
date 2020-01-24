@@ -481,7 +481,7 @@ public final class FileTag extends BodyTagImpl {
 		// source
 		if (!source.exists()) throw new ApplicationException("source file [" + source.toString() + "] doesn't exist");
 		else if (!source.isFile()) throw new ApplicationException("source file [" + source.toString() + "] is not a file");
-		else if (!source.isReadable() || !source.isWriteable()) throw new ApplicationException("no access to source file [" + source.toString() + "]");
+		// else if (!source.isReadable() || !source.isWriteable()) throw new ApplicationException("no access to source file [" + source.toString() + "]");
 
 		// destination
 		if (destination.isDirectory()) destination = destination.getRealResource(source.getName());
@@ -791,6 +791,10 @@ public final class FileTag extends BodyTagImpl {
 		sct.setEL(KeyConstants._name, file.getName());
 		sct.setEL(KeyConstants._size, Long.valueOf(file.length()));
 		sct.setEL(KeyConstants._type, file.isDirectory() ? "Dir" : "File");
+		if (file instanceof File) sct.setEL("execute", ((File) file).canExecute());
+		sct.setEL("read", file.canRead());
+		sct.setEL("write", file.canWrite());
+
 		sct.setEL("dateLastModified", new DateTimeImpl(pc, file.lastModified(), false));
 		sct.setEL("attributes", getFileAttribute(file));
 		if (SystemUtil.isUnix()) sct.setEL(KeyConstants._mode, new ModeObjectWrap(file));
@@ -1057,7 +1061,7 @@ public final class FileTag extends BodyTagImpl {
 	}
 
 	/**
-	 * rreturn fileItem matching to filefiled definition or throw a exception
+	 * rreturn fileItem matching to filefiled definition or throw an exception
 	 * 
 	 * @return FileItem
 	 * @throws ApplicationException

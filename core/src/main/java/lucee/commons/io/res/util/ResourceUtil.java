@@ -177,7 +177,7 @@ public final class ResourceUtil {
 	// private static Magic mimeTypeParser;
 
 	/**
-	 * cast a String (argument destination) to a File Object, if destination is not a absolute, file
+	 * cast a String (argument destination) to a File Object, if destination is not an absolute, file
 	 * object will be relative to current position (get from PageContext) file must exist otherwise
 	 * throw exception
 	 * 
@@ -214,7 +214,7 @@ public final class ResourceUtil {
 			PageContextImpl pci = (PageContextImpl) pc;
 			ConfigWebImpl cwi = (ConfigWebImpl) pc.getConfig();
 			PageSource[] sources = cwi.getPageSources(pci, ExpandPath.mergeMappings(pc.getApplicationContext().getMappings(), pc.getApplicationContext().getComponentMappings()),
-					path, false, pci.useSpecialMappings(), true);
+					path, false, pci.useSpecialMappings(), true, false);
 			if (!ArrayUtil.isEmpty(sources)) {
 
 				for (int i = 0; i < sources.length; i++) {
@@ -251,7 +251,7 @@ public final class ResourceUtil {
 	}
 
 	/**
-	 * cast a String (argument destination) to a File Object, if destination is not a absolute, file
+	 * cast a String (argument destination) to a File Object, if destination is not an absolute, file
 	 * object will be relative to current position (get from PageContext) at least parent must exist
 	 * 
 	 * @param pc Page Context to the current position in filesystem
@@ -302,7 +302,7 @@ public final class ResourceUtil {
 	}
 
 	/**
-	 * cast a String (argument destination) to a File Object, if destination is not a absolute, file
+	 * cast a String (argument destination) to a File Object, if destination is not an absolute, file
 	 * object will be relative to current position (get from PageContext) existing file is preferred but
 	 * dont must exist
 	 * 
@@ -367,10 +367,10 @@ public final class ResourceUtil {
 	}
 
 	/**
-	 * translate the path of the file to a existing file path by changing case of letters Works only on
+	 * translate the path of the file to an existing file path by changing case of letters Works only on
 	 * Linux, because
 	 * 
-	 * Example Unix: we have a existing file with path "/usr/virtual/myFile.txt" now you call this
+	 * Example Unix: we have an existing file with path "/usr/virtual/myFile.txt" now you call this
 	 * method with path "/Usr/Virtual/myfile.txt" the result of the method will be
 	 * "/usr/virtual/myFile.txt"
 	 * 
@@ -812,7 +812,7 @@ public final class ResourceUtil {
 	}
 
 	/**
-	 * return diffrents of one file to a other if first is child of second otherwise return null
+	 * return diffrents of one file to another if first is child of second otherwise return null
 	 * 
 	 * @param file file to search
 	 * @param dir directory to search
@@ -1049,7 +1049,7 @@ public final class ResourceUtil {
 	}
 
 	public static ContentType getContentType(Resource resource) {
-		// TODO make this part of a interface
+		// TODO make this part of an interface
 		if (resource instanceof HTTPResource) {
 			try {
 				return ((HTTPResource) resource).getContentType();
@@ -1171,8 +1171,8 @@ public final class ResourceUtil {
 	}
 
 	/**
-	 * return if Resource is empty, means is directory and has no children or a empty file, if not exist
-	 * return false.
+	 * return if Resource is empty, means is directory and has no children or an empty file, if not
+	 * exist return false.
 	 * 
 	 * @param res
 	 * @return
@@ -1347,7 +1347,7 @@ public final class ResourceUtil {
 	}
 
 	/**
-	 * check if getting a inputstream of the file is ok with the rules for the Resource interface, to
+	 * check if getting an inputstream of the file is ok with the rules for the Resource interface, to
 	 * not change this rules.
 	 * 
 	 * @param resource
@@ -1361,7 +1361,7 @@ public final class ResourceUtil {
 	}
 
 	/**
-	 * check if getting a outputstream of the file is ok with the rules for the Resource interface, to
+	 * check if getting an outputstream of the file is ok with the rules for the Resource interface, to
 	 * not change this rules.
 	 * 
 	 * @param resource
@@ -1402,7 +1402,7 @@ public final class ResourceUtil {
 	}
 
 	/**
-	 * if the pageSource is based on a archive, translate the source to a zip:// Resource
+	 * if the pageSource is based on an archive, translate the source to a zip:// Resource
 	 * 
 	 * @return return the Resource matching this PageSource
 	 * @param pc the Page Context Object

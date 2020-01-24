@@ -216,7 +216,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
 			rtn = // ThreadTag.getThreadScope(pc, key, ThreadTag.LEVEL_CURRENT+ThreadTag.LEVEL_KIDS);
 					((PageContextImpl) pc).getThreadScope(key, _null);
 			if (rtn != _null) {
-				if (debug) debugCascadedAccess(pc, "thread", key);
+				if (debug && !((PageContextImpl) pc).isThreads(rtn)) debugCascadedAccess(pc, "thread", key);
 				return rtn;
 			}
 		}
@@ -411,7 +411,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
 		if (pc.hasFamily()) {
 			rtn = pc.getThreadScope(key, _null);
 			if (rtn != _null) {
-				if (debug) debugCascadedAccess(pc, "thread", key);
+				if (debug && !pc.isThreads(rtn)) debugCascadedAccess(pc, "thread", key);
 				return rtn;
 			}
 		}
@@ -470,7 +470,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
 		if (pc.hasFamily()) {
 			rtn = ((PageContextImpl) pc).getThreadScope(key, _null);
 			if (rtn != _null) {
-				if (debug && checkArguments) debugCascadedAccess(pc, "thread", key);
+				if (debug && checkArguments && !((PageContextImpl) pc).isThreads(rtn)) debugCascadedAccess(pc, "thread", key);
 				return rtn;
 			}
 		}

@@ -1,12 +1,23 @@
 ![Lucee](https://bitbucket.org/repo/rX87Rq/images/3392835614-logo-1-color-black-small.png)
 
+![GitHub](https://img.shields.io/github/license/lucee/Lucee)
 [![Build Status](https://travis-ci.org/lucee/Lucee.svg?branch=5.3)](https://travis-ci.org/lucee/Lucee)
+
+[![Maven Central](https://img.shields.io/maven-central/v/org.lucee/lucee)](https://mvnrepository.com/artifact/org.lucee/lucee)
+[![GitHub pull requests](https://img.shields.io/github/issues-pr-raw/lucee/Lucee)](https://github.com/lucee/Lucee/pulls)
+[![GitHub closed pull requests](https://img.shields.io/github/issues-pr-closed-raw/lucee/Lucee)](https://github.com/lucee/Lucee/pulls?utf8=%E2%9C%93&q=is%3Apr+is%3Aclosed)
+
+[![docker pulls](https://img.shields.io/docker/pulls/lucee/lucee.svg?label=docker+pulls)](https://hub.docker.com/r/lucee/lucee/)
+[![Open Collective backers and sponsors](https://img.shields.io/opencollective/all/lucee)](https://opencollective.com/lucee#section-contributors)
+[![GitHub contributors](https://img.shields.io/github/contributors/lucee/Lucee)](https://github.com/lucee/Lucee)
+
+[![Website](https://img.shields.io/website?url=https%3A%2F%2Fdownload.lucee.org%2F)](https://download.lucee.org/)
 
 ## Lucee Server
 
 Lucee Server (or simply Lucee) is a dynamic, Java based, tag and scripting language used for rapid web application development.   
 
-Lucee simplifies technologies like webservices (REST, SOAP, HTTP), ORM (Hibernate), searching (Lucene), datasources (MSSQl, Oracle, MySQL and others), caching (infinispan, ehcache, and memcached) and many more. 
+Lucee simplifies technologies like webservices (REST, SOAP, HTTP), ORM (Hibernate), searching (Lucene), datasources (MSSQL, Oracle, MySQL and others), caching (infinispan, ehcache, and memcached) and many more. 
 
 Lucee provides a compatibility layer for Adobe ColdFusion &copy;  CFML using less resources and delivering better performance. 
 
@@ -33,7 +44,7 @@ If you are [looking for commercial support](http://lucee.org/members.html), you 
 
 Lucee is a JVM language running as a servlet on just about any servlet container; including [Apache Tomcat](http://tomcat.apache.org/), [Eclipse Jetty](http://eclipse.org/jetty/), [JBoss AS](http://jbossas.jboss.org/), and [GlassFish](https://glassfish.java.net/).
 
-_We stadardise on Apache Tomcat for installers and Docker containers as there is only so much time in the day._
+_We standardise on Apache Tomcat for installers and Docker containers as there is only so much time in the day._
 
 ## Philosophy
 
@@ -48,7 +59,7 @@ The Lucee team is always open to feedback and active at CFML community events, a
 ## Copyright / License
 
 Copyright 2006-2014 Various contributing authors
-Copyright 2015-2016 Lucee Association Switzerland
+Copyright 2015-2019 Lucee Association Switzerland
 
 The Lucee code base was forked from the [Railo Server Project](https://en.wikipedia.org/wiki/Railo) (Version 4.2) in January 2015. The Lucee Association Switzerland  (LAS) is the legal custodian of the code base, and contributors are required accept the [LAS Contributor License Agreement (CLA)](http://lang.lucee.org/t/las-contributor-license-agreement-cla/181).
 

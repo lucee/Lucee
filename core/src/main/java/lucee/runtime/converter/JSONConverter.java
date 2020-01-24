@@ -196,7 +196,7 @@ public final class JSONConverter extends ConverterSupport {
 	}
 
 	/**
-	 * serialize a Array
+	 * serialize an Array
 	 * 
 	 * @param array Array to serialize
 	 * @param sb
@@ -534,7 +534,7 @@ public final class JSONConverter extends ConverterSupport {
 	}
 
 	/**
-	 * serialize a Object to his xml Format represenation
+	 * serialize an Object to his xml Format represenation
 	 * 
 	 * @param object Object to serialize
 	 * @param sb StringBuilder to write data
@@ -712,7 +712,7 @@ public final class JSONConverter extends ConverterSupport {
 	}
 
 	/**
-	 * serialize a Object to his literal Format
+	 * serialize an Object to his literal Format
 	 * 
 	 * @param object Object to serialize
 	 * @param serializeQueryByColumns
@@ -745,8 +745,8 @@ public final class JSONConverter extends ConverterSupport {
 
 	public static int toQueryFormat(Object options, int defaultValue) {
 		Boolean b = Caster.toBoolean(options, null);
-		if (b == Boolean.TRUE) return SerializationSettings.SERIALIZE_AS_COLUMN;
-		if (b == Boolean.FALSE) return SerializationSettings.SERIALIZE_AS_ROW;
+		if (Boolean.TRUE.equals(b)) return SerializationSettings.SERIALIZE_AS_COLUMN;
+		if (Boolean.FALSE.equals(b)) return SerializationSettings.SERIALIZE_AS_ROW;
 
 		String str = Caster.toString(options, null);
 		if ("row".equalsIgnoreCase(str)) return SerializationSettings.SERIALIZE_AS_ROW;

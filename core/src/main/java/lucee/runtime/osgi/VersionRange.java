@@ -4,10 +4,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 
-import lucee.print;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.util.Util;
 import lucee.runtime.type.util.ListUtil;
@@ -58,13 +56,6 @@ public class VersionRange {
 			sb.append(vr.toString());
 		}
 		return sb.toString();
-	}
-
-	public static void main(String[] args) throws BundleException {
-		VersionRange vr = new VersionRange("2.0.0.0 - ,-,,,");
-
-		print.e(vr);
-		print.e(vr.isWithin(OSGiUtil.toVersion("2.0.0.10", null)));
 	}
 
 	private static class VR {

@@ -72,7 +72,7 @@ public final class QoQ {
 	/**
 	 * execute a SQL Statement against CFML Scopes
 	 */
-	public Query execute(PageContext pc, SQL sql, Selects selects, int maxrows) throws PageException {
+	public QueryImpl execute(PageContext pc, SQL sql, Selects selects, int maxrows) throws PageException {
 		Column[] orders = selects.getOrderbys();
 		Select[] arrSelects = selects.getSelects();
 
@@ -160,7 +160,11 @@ public final class QoQ {
 
 				int type = Types.OTHER;
 
-				if (expSelect instanceof ColumnExpression) type = qr.getColumn(Caster.toKey(((ColumnExpression) expSelect).getColumnName())).getType();
+				if (expSelect instanceof ColumnExpression) {
+					ColumnExpression ce = (ColumnExpression) expSelect;
+
+					if (!"?".equals(ce.getColumnName())) type = qr.getColumn(Caster.toKey(ce.getColumnName())).getType();
+				}
 
 				queryAddColumn(target, alias, type);
 			}
@@ -533,7 +537,7 @@ public final class QoQ {
 	 * 
 	 * /**
 	 * 
-	 * execute a and operation
+	 * execute an and operation
 	 * 
 	 * @param qr QueryResult to execute on it
 	 * 
@@ -559,7 +563,7 @@ public final class QoQ {
 
 	/**
 	 * 
-	 * execute a and operation
+	 * execute an and operation
 	 * 
 	 * @param sql
 	 * @param qr QueryResult to execute on it
@@ -588,7 +592,7 @@ public final class QoQ {
 
 	/**
 	 * 
-	 * execute a equal operation
+	 * execute an equal operation
 	 * 
 	 * @param sql
 	 * @param qr QueryResult to execute on it
@@ -678,7 +682,7 @@ public final class QoQ {
 
 	/**
 	 * 
-	 * execute a equal operation
+	 * execute an equal operation
 	 * 
 	 * @param sql
 	 * @param qr QueryResult to execute on it

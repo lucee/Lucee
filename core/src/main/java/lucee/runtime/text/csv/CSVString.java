@@ -33,7 +33,7 @@ public class CSVString {
 	private char delim;
 
 	public CSVString(String input, char delim) {
-		this.buffer = input.toCharArray();
+		this.buffer = StringUtil.trim(input, true, false, input).toCharArray();
 		this.delim = delim;
 	}
 

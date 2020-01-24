@@ -10,10 +10,12 @@ public class UDFTagListener extends TagListenerSupport {// UDF before, UDF after
 
 	private UDF before;
 	private UDF after;
+	private UDF fail;
 
-	public UDFTagListener(UDF before, UDF after) {
+	public UDFTagListener(UDF before, UDF after, UDF fail) {
 		this.before = before;
 		this.after = after;
+		this.fail = fail;
 	}
 
 	@Override
@@ -25,6 +27,12 @@ public class UDFTagListener extends TagListenerSupport {// UDF before, UDF after
 	@Override
 	public Struct after(PageContext pc, Struct args) throws PageException {
 		if (this.after != null) return Caster.toStruct(after.callWithNamedValues(pc, args, true), null);
+		return null;
+	}
+
+	@Override
+	public Struct fail(PageContext pc, Struct args) throws PageException {
+		if (this.fail != null) return Caster.toStruct(fail.callWithNamedValues(pc, args, true), null);
 		return null;
 	}
 }

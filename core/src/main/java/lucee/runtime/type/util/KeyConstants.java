@@ -953,6 +953,7 @@ public class KeyConstants {
 	public static final Key _offset = KeyImpl._const("offset");
 	public static final Key _shortName = KeyImpl._const("shortName");
 	public static final Key _connectionString = KeyImpl._const("connectionString");
+	public static final Key _priority = KeyImpl._const("priority");
 
 	private static Map<String, Key> _____keys;
 

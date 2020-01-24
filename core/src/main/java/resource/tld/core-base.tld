@@ -123,7 +123,7 @@
 			<script-support>optional</script-support>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>used to a address a specific loop instead of the nearest one.</description>
+			<description>used to an address a specific loop instead of the nearest one.</description>
 		</attribute>
 	</tag>
 
@@ -778,7 +778,7 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<script-support>optional</script-support>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>used to a address a specific loop instead of the nearest one.</description>
+			<description>used to an address a specific loop instead of the nearest one.</description>
 		</attribute>
 	</tag>
 	<!-- Content -->
@@ -1919,7 +1919,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<name>failIfExists</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>throw a error if local file already exist or overwrite it</description>
+			<description>throw an error if local file already exists or overwrite it</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -3779,7 +3779,7 @@ To use cached data, the tag must be called with the exact same arguments.</descr
 			<type>multiple</type>
 			<rtexprvalue>true</rtexprvalue>
 		</script>
-		<description>Retrieves and deletes e-mail messages from a Imap mail server.
+		<description>Retrieves and deletes e-mail messages from an Imap mail server.
 		This tag works exactly the same way as the cfmail tag. It has the same attributes.
 		The Internet Message Access Protocol or IMAP is one of two of the most prevalent Internet standard protocols for e-mail retrieval,
 		the other being POP3. Virtually all modern e-mail clients and servers support both protocols as a means of transferring e-mail messages from a server,
@@ -3993,6 +3993,7 @@ If you import a CFML custom tag directory and specify an empty value, "", for th
 		<attribute>
 			<type>string</type>
 			<name>displayName</name>
+			<alias>name</alias>
 			<required>no</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>A value to be displayed when using introspection to show a descriptive name for the interface.</description>
@@ -4836,7 +4837,7 @@ Permits searching collections by title or displaying a separate title from the k
 			<name>text</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>a exception to log.</description>
+			<description>an exception to log.</description>
 		</attribute>
 		<attribute>
 			<type>any</type>
@@ -5131,7 +5132,7 @@ Lucee uses the number of characters in the file.</description>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		    <status>implemented</status>
-			<description>used to a address this loop from a "break" or "continue" statement (instead of the nearest one).</description>
+			<description>used to an address this loop from a "break" or "continue" statement (instead of the nearest one).</description>
 		</attribute>
 
 
@@ -5569,7 +5570,7 @@ Lucee uses the number of characters in the file.</description>
 			<type>multiple</type>
 			<rtexprvalue>true</rtexprvalue>
 		</script>
-		<description>Flushes a object cache or returns the current size.</description>
+		<description>Flushes an object cache or returns the current size.</description>
 		<attribute-type>fixed</attribute-type>
 		<attribute>
 			<type>string</type>
@@ -6327,7 +6328,7 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>support the following values:
-			- query: for doing a query on a existing query object
+			- query: for doing a query on an existing query object
 			- hql: for doing a query on orm </description>
 		</attribute>
 		<attribute>
@@ -6476,6 +6477,13 @@ To use cached data, the current query must use the same SQL statement, data sour
 		</attribute>
 		<attribute>
 			<type>string</type>
+			<name>indexName</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description></description>
+		</attribute>
+		<attribute>
+			<type>string</type>
 			<name>returntype</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
@@ -6499,7 +6507,7 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<description>
 			if "lazy" is set to true (default "false") Lucee does not initially load all the data from the datasource,
 			in that case the data are only loaded when requested, so this means the data are depending on the datasource connection.
-			if the datasource connection is gone and the data are not requested yet, lucee throws a error if you try to access the data.
+			if the datasource connection is gone and the data are not requested yet, lucee throws an error if you try to access the data.
 			lazy is only working when the following attributes are not used: cachewithin,cacheafter,result
 			</description>
 		</attribute>
@@ -7323,6 +7331,22 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<description>Yes or No. When set to Yes, cfsetting blocks output of HTML that resides outside cfoutput tags.</description>
 		</attribute>
 		<attribute>
+			<type>string</type>
+			<name>info</name>
+			<required>false</required>
+			<status>hidden</status>
+			<rtexprvalue>true</rtexprvalue>
+			<description>name of variable created for all information for this tag.</description>
+		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>listen</name>
+			<required>false</required>
+			<status>hidden</status>
+			<rtexprvalue>true</rtexprvalue>
+			<description>do log all action, so it can report more detail with info.</description>
+		</attribute>
+		<attribute>
 			<type>boolean</type>
 			<name>showDebugOutput</name>
 			<required>false</required>
@@ -7590,7 +7614,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<alias>retryIntervall</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>when type task, this attribute define a execution plan for additional tries of execution.
+			<description>when type task, this attribute define an execution plan for additional tries of execution.
 			you can define a single rule or multiple rules as array
 
 			Example single rule:
@@ -8734,6 +8758,10 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		<handle-exception>true</handle-exception>
 		<body-content>free</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
+		<script>
+			<type>multiple</type>
+			<rtexprvalue>true</rtexprvalue>
+		</script>
 		<description>Creates a Custom Tag</description>
 		<attribute-type>dynamic</attribute-type>
 	</tag>
@@ -8769,7 +8797,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		<attribute>
 			<type>string</type>
 			<name>label</name>
-			<description>used to a address this loop from a "break" or "continue" statement (instead of the nearest one).</description>
+			<description>used to an address this loop from a "break" or "continue" statement (instead of the nearest one).</description>
 		</attribute>
 	</tag>
 

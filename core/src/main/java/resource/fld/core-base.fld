@@ -4949,7 +4949,7 @@ Set the attribute to normal to make a file not read-only and not hidden.</descri
 			<type>number</type>
 			<required>No</required>
 			<default>1</default>
-		<description>Start position of search.</description>
+		<description>Start position of search from the left.</description>
     </argument>
 		<return>
 			<type>number</type>
@@ -4982,7 +4982,7 @@ Set the attribute to normal to make a file not read-only and not hidden.</descri
 			<type>number</type>
 			<required>No</required>
 			<default>1</default>
-		<description>Start position of search.</description>
+		<description>Start position of search from the left.</description>
     </argument>
 		<return>
 			<type>number</type>
@@ -5020,6 +5020,77 @@ Set the attribute to normal to make a file not read-only and not hidden.</descri
 			<type>number</type>
 		</return>
 	</function>
+	
+	
+	<!-- findLast -->
+	<function>
+		<name>findLast</name>
+		<class>lucee.runtime.functions.string.FindLast</class>
+		<member-name>findLast</member-name>
+		<member-position>2</member-position>
+		<status>hidden</status>
+		<keywords>string,find</keywords>
+		<description>Finds the last occurrence of a substring in a string, from a
+        specified start position. The search is case-sensitive.</description>
+		<argument>
+			<name>substring</name>
+			<type>string</type>
+			<required>Yes</required>
+		<description>String for which to search.</description>
+    </argument>
+		<argument>
+			<name>string</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>String in which to search.</description>
+		</argument>
+		<argument>
+			<name>start</name>
+			<type>number</type>
+			<required>No</required>
+			<default>1</default>
+		<description>End position of search from the left.</description>
+    </argument>
+		<return>
+			<type>number</type>
+		</return>
+	</function>
+
+	<!-- findLastNoCase -->
+	<function>
+		<name>findLastNoCase</name>
+		<class>lucee.runtime.functions.string.FindLastNoCase</class>
+		<member-name>findLastNoCase</member-name>
+		<member-position>2</member-position>
+		<status>hidden</status>
+		<keywords>string,find</keywords>
+		<description>Finds the last occurrence of a substring in a string, from a
+        specified start position. If substring is not in string,
+        returns zero. The search is case-insensitive.</description>
+		<argument>
+			<name>substring</name>
+			<type>string</type>
+			<required>Yes</required>
+		<description>String for which to search.</description>
+    </argument>
+		<argument>
+			<name>string</name>
+			<type>string</type>
+			<required>Yes</required>
+		<description>String in which to search.</description>
+    </argument>
+		<argument>
+			<name>start</name>
+			<type>number</type>
+			<required>No</required>
+			<default>1</default>
+		<description>End position of search from the left.</description>
+    </argument>
+		<return>
+			<type>number</type>
+		</return>
+	</function>
+	
 	<!-- firstDayOfMonth -->
 	<function>
 		<name>firstDayOfMonth</name>
@@ -7491,6 +7562,14 @@ The following things are considered to be empty:
 			<description>Characters that separate list elements. The default value is comma.
 			If this string contains more than one character, only the first character is used.</description>
 		</argument>
+		<argument>
+			<name>includeEmptyFields</name>
+			<status>hidden</status>
+			<type>boolean</type>
+			<required>No</required>
+			<default>true</default>
+			<description>if false it cleans up empty fields.</description>
+		</argument>
 		<return>
 			<type>string</type>
 		</return>
@@ -8161,6 +8240,14 @@ The following things are considered to be empty:
 			<required>No</required>
 			<default>,</default>
 			<description>Characters that separate list elements. The default value is comma.</description>
+		</argument>
+		<argument>
+			<name>includeEmptyFields</name>
+			<status>hidden</status>
+			<type>boolean</type>
+			<required>No</required>
+			<default>true</default>
+			<description>if false it cleans up empty fields.</description>
 		</argument>
 		<return>
 			<type>string</type>
@@ -9247,6 +9334,23 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</return>
 	</function>
 	
+	<!-- queryClose -->
+	<function>
+		<name>queryClose</name>
+		<class>lucee.runtime.functions.query.QueryClose</class>
+		<keywords>query</keywords>
+		<description>When using lazy="true", it is importance to close the resultset during a request or it will continue to use heap memory.</description>
+		<argument>
+			<name>query</name>
+			<type>query</type>
+			<required>Yes</required>
+			<description></description>
+		</argument>
+		<return>
+			<type>boolean</type>
+		</return>
+	</function>
+	
 	<!-- queryColumnExists -->
 	<function>
 		<name>queryColumnExists</name>
@@ -9362,6 +9466,66 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     			<required>Yes</required>
     			<description>position of the row to be returned</description>
     	    </argument>
+    		<return>
+    			<type>struct</type>
+    		</return>
+    	</function>
+
+	<!-- queryRowByIndex -->
+    	<function>
+    		<name>queryRowByIndex</name>
+    		<class>lucee.runtime.functions.query.QueryRowByIndex</class>
+    		<member-name>rowByIndex</member-name>
+    		<keywords>query</keywords>
+			<description></description>
+    		<argument>
+    			<name>query</name>
+    			<type>query</type>
+    			<required>Yes</required>
+    			<description>query object do get data from</description>
+    	    </argument>
+    		<argument>
+    			<name>index</name>
+    			<type>string</type>
+    			<required>Yes</required>
+    			<description></description>
+    	    </argument>
+			<argument>
+				<name>defaultValue</name>
+				<type>numeric</type>
+				<required>no</required>
+				<description>In case no matching index was found, this value is returned by the function, in case it is not set, the function will throw an exception.</description>
+			</argument>
+    		<return>
+    			<type>numeric</type>
+    		</return>
+    	</function>
+    	
+	<!-- queryRowDataByIndex -->
+    	<function>
+    		<name>queryRowDataByIndex</name>
+    		<class>lucee.runtime.functions.query.QueryRowDataByIndex</class>
+    		<member-name>rowDataByIndex</member-name>
+    		<keywords>query</keywords>
+			<description></description>
+    		<argument>
+    			<name>query</name>
+    			<type>query</type>
+    			<required>Yes</required>
+    			<description>query object do get data from</description>
+    	    </argument>
+    		<argument>
+    			<name>index</name>
+    			<type>string</type>
+    			<required>Yes</required>
+    			<description></description>
+    	    </argument>
+			<argument>
+				<name>defaultValue</name>
+				<type>struct</type>
+				<required>no</required>
+				<description>In case no matching index was found, this value is returned by the function, in case it is not set, the function will throw an exception.</description>
+			</argument>
     		<return>
     			<type>struct</type>
     		</return>
@@ -9483,6 +9647,41 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<required>No</required>
 			<default>-9999</default>
 			<description>row number (1-n)</description>
+		</argument>
+		<return>
+			<type>any</type>
+		</return>
+	</function>
+	<!-- queryGetCellByIndex -->
+	<function>
+		<name>queryGetCellByIndex</name>
+		<class>lucee.runtime.functions.query.QueryGetCellByIndex</class>
+		<member-name>getCellByIndex</member-name>
+		<keywords>query</keywords>
+		<description>return the value of a specific query cell</description>
+		<argument>
+			<name>query</name>
+			<type>query</type>
+			<required>Yes</required>
+			<description>query to get cell value from</description>
+		</argument>
+		<argument>
+			<name>column_name</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>name of the column</description>
+		</argument>
+		<argument>
+			<name>index</name>
+			<type>string</type>
+			<required>yes</required>
+			<description></description>
+		</argument>
+		<argument>
+			<name>defaultValue</name>
+			<type>any</type>
+			<required>no</required>
+			<description>In case no matching index was found, this value is returned by the function, in case it is not set, the function will throw an exception.</description>
 		</argument>
 		<return>
 			<type>any</type>
@@ -12518,6 +12717,16 @@ _- asc (default): ascending (a to z) sort order
     </argument>
 		<return>
 			<type>number</type>
+		</return>
+	</function>
+	<!-- ThreadData -->
+	<function>
+		<name>ThreadData</name>
+		<class>lucee.runtime.functions.thread.ThreadData</class>
+		<keywords>threading</keywords>
+		<description>returns the root cfthread scope.</description>
+		<return>
+			<type>struct</type>
 		</return>
 	</function>
 

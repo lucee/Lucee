@@ -372,7 +372,7 @@ public final class PageSourceImpl implements PageSource {
 			String msg = StringUtil.emptyIfNull(re.getMessage());
 			if (StringUtil.indexOfIgnoreCase(msg, "Method code too large!") != -1) {
 				throw new TemplateException("There is too much code inside the template [" + getDisplayPath() + "], " + Constants.NAME
-						+ " was not able to break it into pieces, move parts of your code to an include or a external component/function", msg);
+						+ " was not able to break it into pieces, move parts of your code to an include or an external component/function", msg);
 			}
 			throw re;
 		}
@@ -380,7 +380,7 @@ public final class PageSourceImpl implements PageSource {
 			String msg = StringUtil.emptyIfNull(e.getMessage());
 			if (StringUtil.indexOfIgnoreCase(msg, "Invalid method Code length") != -1) {
 				throw new TemplateException("There is too much code inside the template [" + getDisplayPath() + "], " + Constants.NAME
-						+ " was not able to break it into pieces, move parts of your code to an include or a external component/function", msg);
+						+ " was not able to break it into pieces, move parts of your code to an include or an external component/function", msg);
 			}
 			throw new TemplateException("ClassFormatError:" + e.getMessage());
 		}

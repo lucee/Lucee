@@ -38,7 +38,7 @@ public class RetireOutputStreamFactory {
 			thread.close = true;
 			closed = true;
 			SystemUtil.notify(thread);
-			SystemUtil.patienceStop(thread, 5);
+			SystemUtil.stop(thread);
 		}
 	}
 

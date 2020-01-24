@@ -27,7 +27,7 @@ import lucee.commons.io.res.filter.ResourceFilter;
 import lucee.commons.io.res.filter.ResourceNameFilter;
 
 /**
- * a Resource handle connection to different resources in a abstract form
+ * a Resource handle connection to different resources in an abstract form
  */
 public interface Resource extends Serializable {
 
@@ -259,9 +259,9 @@ public interface Resource extends Serializable {
 	public abstract boolean isHidden();
 
 	/**
-	 * Tests whether the resource named by this abstract pathname is a archive resource.
+	 * Tests whether the resource named by this abstract pathname is an archive resource.
 	 * 
-	 * @return <code>true</code> if and only if the file denoted by this abstract pathname is a archive
+	 * @return <code>true</code> if and only if the file denoted by this abstract pathname is an archive
 	 * @deprecated use instead <code>{@link #getAttribute(short)}</code>
 	 */
 	@Deprecated
@@ -429,7 +429,7 @@ public interface Resource extends Serializable {
 	 * atomic, and it might not succeed if a file with the destination abstract pathname already exists.
 	 * 
 	 * @param dest The new abstract pathname for the named file
-	 * @throws IOException throwed when operation not done sucessfull
+	 * @throws IOException thrown when operation not done successfully
 	 * 
 	 * 
 	 */
@@ -562,7 +562,7 @@ public interface Resource extends Serializable {
 	 * sets hidden attribute of the resource
 	 * 
 	 * @param value value to set
-	 * @throws IOException throwed when no access to change the value or the resource doesn't exists
+	 * @throws IOException thrown when no access to change the value or the resource doesn't exist
 	 * @deprecated use instead <code>{@link #setAttribute(short, boolean)}</code>
 	 */
 	@Deprecated
@@ -572,7 +572,7 @@ public interface Resource extends Serializable {
 	 * sets system attribute of the resource
 	 * 
 	 * @param value value to set
-	 * @throws IOException throwed when no access to change the value or the resource doesn't exists
+	 * @throws IOException thrown when no access to change the value or the resource doesn't exist
 	 * @deprecated use instead <code>{@link #setAttribute(short, boolean)}</code>
 	 */
 	@Deprecated
@@ -582,19 +582,19 @@ public interface Resource extends Serializable {
 	 * sets archive attribute of the resource
 	 * 
 	 * @param value value to set
-	 * @throws IOException throwed when no access to change the value or the resource doesn't exists
+	 * @throws IOException thrown when no access to change the value or the resource doesn't exist
 	 * @deprecated use instead <code>{@link #setAttribute(short, boolean)}</code>
 	 */
 	@Deprecated
 	public void setArchive(boolean value) throws IOException;
 
 	/**
-	 * sets a attribute on the resource if supported otherwise it will ign
+	 * sets an attribute on the resource if supported otherwise it will ign
 	 * 
-	 * @param attribute wich attrbute (Resource.ATTRIBUTE_*)
+	 * @param attribute which attribute (Resource.ATTRIBUTE_*)
 	 * @param value value to set
-	 * @throws IOException throwed when no access to change the value, when attributes are not supported
-	 *             or the resource doesn't exists
+	 * @throws IOException thrown when no access to change the value, when attributes are not supported
+	 *             or the resource doesn't exist
 	 */
 	public void setAttribute(short attribute, boolean value) throws IOException;
 

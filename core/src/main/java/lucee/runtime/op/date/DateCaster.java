@@ -65,7 +65,7 @@ public final class DateCaster {
 	public static boolean classicStyle = false;
 
 	/**
-	 * converts a Object to a DateTime Object (Advanced but slower)
+	 * converts an Object to a DateTime Object (Advanced but slower)
 	 * 
 	 * @param o Object to Convert
 	 * @param timezone
@@ -93,7 +93,7 @@ public final class DateCaster {
 	}
 
 	/**
-	 * converts a Object to a DateTime Object (Advanced but slower)
+	 * converts an Object to a DateTime Object (Advanced but slower)
 	 * 
 	 * @param str String to Convert
 	 * @param timezone
@@ -107,7 +107,7 @@ public final class DateCaster {
 	}
 
 	/**
-	 * converts a Object to a DateTime Object (Advanced but slower), returns null if invalid string
+	 * converts an Object to a DateTime Object (Advanced but slower), returns null if invalid string
 	 * 
 	 * @param o Object to Convert
 	 * @param timeZone
@@ -355,7 +355,7 @@ public final class DateCaster {
 	 */
 
 	/**
-	 * converts a Object to a DateTime Object, returns null if invalid string
+	 * converts an Object to a DateTime Object, returns null if invalid string
 	 * 
 	 * @param o Object to Convert
 	 * @param convertingType one of the following values: - CONVERTING_TYPE_NONE: number are not
@@ -412,7 +412,7 @@ public final class DateCaster {
 	}
 
 	/**
-	 * converts a Object to a DateTime Object, returns null if invalid string
+	 * converts an Object to a DateTime Object, returns null if invalid string
 	 * 
 	 * @param str String to Convert
 	 * @param timeZone
@@ -426,7 +426,7 @@ public final class DateCaster {
 	}
 
 	/**
-	 * converts a Object to a Time Object, returns null if invalid string
+	 * converts an Object to a Time Object, returns null if invalid string
 	 * 
 	 * @param o Object to Convert
 	 * @return coverted Date Time Object
@@ -487,7 +487,7 @@ public final class DateCaster {
 	}
 
 	/**
-	 * converts a Object to a DateTime Object, returns null if invalid string
+	 * converts an Object to a DateTime Object, returns null if invalid string
 	 * 
 	 * @param str Stringt to Convert
 	 * @param convertingType one of the following values: - CONVERTING_TYPE_NONE: number are not
@@ -610,7 +610,7 @@ public final class DateCaster {
 	 * @param convertingType one of the following values: - CONVERTING_TYPE_NONE: number are not
 	 *            converted at all - CONVERTING_TYPE_YEAR: integers are handled as years -
 	 *            CONVERTING_TYPE_OFFSET: numbers are handled as offset from 1899-12-30 00:00:00 UTC
-	 * @param alsoMonthString allow that the month is a english name
+	 * @param alsoMonthString allow that the month is an English name
 	 * @param timeZone
 	 * @param defaultValue
 	 * @return Date Time Object
@@ -1006,7 +1006,7 @@ public final class DateCaster {
 	}
 
 	/**
-	 * reads a offset definition at the end of a date string
+	 * reads an offset definition at the end of a date string
 	 * 
 	 * @param timeZone
 	 * @param dt previous parsed date Object

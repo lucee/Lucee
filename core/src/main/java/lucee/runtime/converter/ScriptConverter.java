@@ -55,6 +55,7 @@ import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.ObjectWrap;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.DateTimeImpl;
@@ -138,7 +139,7 @@ public final class ScriptConverter extends ConverterSupport {
 	}
 
 	/**
-	 * serialize a Array
+	 * serialize an Array
 	 * 
 	 * @param array Array to serialize
 	 * @param sb
@@ -182,23 +183,29 @@ public final class ScriptConverter extends ConverterSupport {
 	 */
 	public void _serializeStruct(Struct struct, StringBuilder sb, Set<Object> done) throws ConverterException {
 		sb.append(goIn());
-		sb.append('{');
-		Iterator it = struct.keyIterator();
+		boolean ordered = struct instanceof StructImpl && ((StructImpl) struct).getType() == Struct.TYPE_LINKED;
+
+		if (ordered) sb.append('[');
+		else sb.append('{');
+		Iterator<Entry<Key, Object>> it = struct.entryIterator();
+		Entry<Key, Object> e;
 		boolean doIt = false;
 		deep++;
 		while (it.hasNext()) {
-			String key = Caster.toString(it.next(), "");
+			e = it.next();
+			String key = e.getKey().getString();
 			if (doIt) sb.append(',');
 			doIt = true;
 			sb.append(QUOTE_CHR);
 			sb.append(escape(key));
 			sb.append(QUOTE_CHR);
 			sb.append(':');
-			_serialize(struct.get(key, null), sb, done);
+			_serialize(e.getValue(), sb, done);
 		}
 		deep--;
 
-		sb.append('}');
+		if (ordered) sb.append(']');
+		else sb.append('}');
 	}
 
 	public String serializeStruct(Struct struct, Set<Collection.Key> ignoreSet) throws ConverterException {
@@ -399,7 +406,7 @@ public final class ScriptConverter extends ConverterSupport {
 	}
 
 	/**
-	 * serialize a Object to his xml Format represenation
+	 * serialize an Object to his xml Format represenation
 	 * 
 	 * @param object Object to serialize
 	 * @param sb StringBuilder to write data
@@ -591,7 +598,7 @@ public final class ScriptConverter extends ConverterSupport {
 	}
 
 	/**
-	 * serialize a Object to his literal Format
+	 * serialize an Object to his literal Format
 	 * 
 	 * @param object Object to serialize
 	 * @return serialized wddx package

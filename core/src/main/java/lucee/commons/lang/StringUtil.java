@@ -19,8 +19,12 @@
 package lucee.commons.lang;
 
 import java.nio.charset.CharsetEncoder;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import lucee.runtime.PageContext;
@@ -248,8 +252,8 @@ public final class StringUtil {
 	}
 
 	/**
-	 * translate, like method toString, a object to a string, but when value is null value will be
-	 * translated to a empty String ("").
+	 * translate, like method toString, an object to a string, but when value is null value will be
+	 * translated to an empty String ("").
 	 * 
 	 * @param o Object to convert
 	 * @return converted String
@@ -690,8 +694,12 @@ public final class StringUtil {
 	 * @param ignoreCase - if true then matches will not be case sensitive
 	 * @return
 	 */
-	public static String replace(String input, String find, String repl, boolean firstOnly, boolean ignoreCase) {
 
+	public static String replace(String input, String find, String repl, boolean firstOnly, boolean ignoreCase) {
+		return _replace(input, find, repl, firstOnly, ignoreCase, null).toString();
+	}
+
+	public static CharSequence _replace(String input, String find, String repl, boolean firstOnly, boolean ignoreCase, List<Pos> positions) {
 		int findLen = find.length();
 
 		if (findLen == 0) return input;
@@ -703,41 +711,40 @@ public final class StringUtil {
 		 */ if (!ignoreCase && findLen == repl.length()) {
 
 			if (find.equals(repl)) return input;
-			if (!firstOnly && findLen == 1) return input.replace(find.charAt(0), repl.charAt(0));
+			if (!firstOnly && findLen == 1 && positions == null) return input.replace(find.charAt(0), repl.charAt(0));
 		}
 
-		/*
-		 * print.e(input); print.e(input.length());
-		 * 
-		 * print.e(scan); print.e(scan.length());
-		 */
-
-		/*
-		 * for(int i=0;i<scan.length();i++) { print.e(scan.charAt(i)); }
-		 */
-
 		int pos = ignoreCase ? indexOfIgnoreCase(input, find) : input.indexOf(find);
-
 		if (pos == -1) return input;
 
 		int start = 0;
 		StringBuilder sb = new StringBuilder(repl.length() > find.length() ? (int) Math.ceil(input.length() * 1.2) : input.length());
 
 		while (pos != -1) {
-
+			if (positions != null) positions.add(new Pos(pos, repl.length()));
 			sb.append(input.substring(start, pos));
 			sb.append(repl);
-
 			start = pos + findLen;
-
 			if (firstOnly) break;
-
 			pos = ignoreCase ? indexOfIgnoreCase(input, find, start) : input.indexOf(find, start);
 		}
-
 		if (input.length() > start) sb.append(input.substring(start));
+		return sb;
+	}
 
-		return sb.toString();
+	private static class Pos {
+		private int position;
+		private int len;
+
+		private Pos(int position, int len) {
+			this.position = position;
+			this.len = len;
+		}
+
+		@Override
+		public String toString() {
+			return "pos:" + position + ";len:" + len;
+		}
 	}
 
 	public static String replace(PageContext pc, String input, String find, UDF udf, boolean firstOnly) throws PageException {
@@ -786,7 +793,7 @@ public final class StringUtil {
 	}
 
 	/**
-	 * adds zeros add the begin of a int example: addZeros(2,3) return "002"
+	 * adds zeros add the begin of an int example: addZeros(2,3) return "002"
 	 * 
 	 * @param i number to add nulls
 	 * @param size
@@ -799,7 +806,7 @@ public final class StringUtil {
 	}
 
 	/**
-	 * adds zeros add the begin of a int example: addZeros(2,3) return "002"
+	 * adds zeros add the begin of an int example: addZeros(2,3) return "002"
 	 * 
 	 * @param i number to add nulls
 	 * @param size
@@ -1325,75 +1332,69 @@ public final class StringUtil {
 	 * @throws PageException
 	 */
 	public static String replaceMap(String input, Map map, boolean ignoreCase) throws PageException {
+		// if (doResolveInternals) map = resolveInternals(map, ignoreCase, 0);
 
-		return replaceMap(input, map, ignoreCase, true);
-	}
-
-	/**
-	 * this is the core of the replaceMap() method.
-	 * 
-	 * it is called once from the public entry point and then internally from resolveInternals()
-	 * 
-	 * when doResolveInternals is true -- this method calls resolveInternals. therefore, calls from
-	 * resolveInternals() must pass false to that param to avoid an infinite ping-pong loop
-	 * 
-	 * @param input - the string on which the replacements should be performed.
-	 * @param map - a java.util.Map with key/value pairs where the key is the substring to find and the
-	 *            value is the substring with which to replace the matched key
-	 * @param ignoreCase - if true then matches will not be case sensitive
-	 * @param doResolveInternals - only the initial call (from the public entry point) should pass true
-	 * @return
-	 * @throws PageException
-	 */
-	private static String replaceMap(String input, Map map, boolean ignoreCase, boolean doResolveInternals) throws PageException {
-		if (doResolveInternals) map = resolveInternals(map, ignoreCase, 0);
-
-		String result = input;
+		CharSequence result = input;
 		Iterator<Map.Entry> it = map.entrySet().iterator();
 		Map.Entry e;
+		Map<Pos, String> positions = new LinkedHashMap<>();
+		String k, v;
+		List<Pos> tmp;
 		while (it.hasNext()) {
 			e = it.next();
-			result = replace(result, Caster.toString(e.getKey()), Caster.toString(e.getValue()), false, ignoreCase);
-		}
-		return result;
-	}
-
-	/**
-	 * resolves internal values within the map, so if the map has a key "{signature}" and its value is
-	 * "Team {group}" and there's a key with the value {group} whose value is "Lucee", then {signature}
-	 * will resolve to "Team Lucee".
-	 * 
-	 * {signature} = "Team {group}" {group} = "Lucee"
-	 * 
-	 * then signature will resolve to
-	 * 
-	 * {signature} = "Team Lucee"
-	 * 
-	 * @param map - key/value pairs for find key/replace with value
-	 * @param ignoreCase - if true then matches will not be case sensitive
-	 * @param count - used internally as safety valve to ensure that we don't go into infinite loop if
-	 *            two values reference each-other
-	 * @return
-	 * @throws PageException
-	 */
-	private static Map resolveInternals(Map map, boolean ignoreCase, int count) throws PageException {
-		Map result = new HashMap();
-		Iterator<Map.Entry> it = map.entrySet().iterator();
-		boolean isModified = false;
-		Map.Entry e;
-		String v, r;
-		while (it.hasNext()) {
-			e = it.next();
+			k = Caster.toString(e.getKey());
 			v = Caster.toString(e.getValue());
-			r = replaceMap(v, map, ignoreCase, false); // pass false for last arg so that replaceMap() will not call this method in an infinite loop
-			result.put(Caster.toString(e.getKey()), r);
-			if (!v.equalsIgnoreCase(r)) isModified = true;
+			tmp = new ArrayList<Pos>();
+			result = _replace(result.toString(), k, placeholder(k), false, ignoreCase, tmp);
+
+			for (Pos pos: tmp) {
+				positions.put(pos, v);
+			}
 		}
-
-		if (isModified && count++ < map.size()) result = resolveInternals(result, ignoreCase, count); // recursive call
-
-		return result;
+		if (result instanceof StringBuilder) {
+			StringBuilder sb = (StringBuilder) result;
+			List<Map.Entry<Pos, String>> list = new ArrayList<Map.Entry<Pos, String>>(positions.entrySet());
+			// <Map.Entry<Integer,String>>
+			Collections.sort(list, new Comparator<Map.Entry<Pos, String>>() {
+				@Override
+				public int compare(Map.Entry<Pos, String> a, Map.Entry<Pos, String> b) {
+					return Integer.compare(b.getKey().position, a.getKey().position);
+				}
+			});
+			for (Map.Entry<Pos, String> entry: list) {
+				sb.delete(entry.getKey().position, entry.getKey().position + entry.getKey().len);
+				sb.insert(entry.getKey().position, entry.getValue());
+			}
+			return sb.toString();
+		}
+		return result.toString();
 	}
+
+	private static String placeholder(String str) {
+		int count = str == null ? 0 : str.length();
+		if (count == 0) return "";
+
+		char r = (char) 0xFFFF;
+		// r = '_';
+		char[] carr = new char[count];
+		for (int i = 0; i < count; i++) {
+			carr[i] = r;
+		}
+		return new String(carr);
+	}
+
+	/*
+	 * public static void main(String[] args) throws PageException { Map<String, String> map = new
+	 * HashMap<>(); map.put("target", "!target!"); map.put("replace", "er"); map.put("susi", "Susanne");
+	 * print.e(
+	 * replaceMap("I want replace replace to add 1 underscore with struct-replace... 'target' replace",
+	 * map, false));
+	 * 
+	 * map = new HashMap<>(); map.put("Susi", "Sorglos"); map.put("Sorglos", "Susi");
+	 * print.e(replaceMap("Susi Sorglos foehnte ihr Haar", map, false));
+	 * 
+	 * }
+	 */
 
 	public static String unwrap(String str) {
 		if (StringUtil.isEmpty(str)) return "";

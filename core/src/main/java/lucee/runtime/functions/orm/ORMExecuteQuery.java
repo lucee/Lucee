@@ -72,7 +72,7 @@ public class ORMExecuteQuery {
 		else if (Decision.isArray(params)) return toCFML(session.executeQuery(pc, dsn, hql, Caster.toArray(params), unique, queryOptions));
 		else if (Decision.isCastableToStruct(params)) return toCFML(session.executeQuery(pc, dsn, hql, Caster.toStruct(params), unique, queryOptions));
 		else if (Decision.isCastableToArray(params)) return toCFML(session.executeQuery(pc, dsn, hql, Caster.toArray(params), unique, queryOptions));
-		else throw new FunctionException(pc, "ORMExecuteQuery", 2, "params", "cannot convert the params to a array or a struct");
+		else throw new FunctionException(pc, "ORMExecuteQuery", 2, "params", "cannot convert the params to an array or a struct");
 
 	}
 

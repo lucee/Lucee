@@ -65,7 +65,8 @@ public class QueryParamConverter {
 		Entry<Key, Object> e;
 		while (it.hasNext()) {
 			e = it.next();
-			namedItems.add(toNamedSQLItem(e.getKey().getString(), e.getValue()));
+			SQLItems<NamedSQLItem> namedSqlItem = toNamedSQLItem(e.getKey().getString(), e.getValue());
+			namedItems.add(namedSqlItem);
 		}
 		return convert(sql, new ArrayList<SQLItems<SQLItem>>(), namedItems);
 	}
@@ -248,6 +249,7 @@ public class QueryParamConverter {
 			this.name = name;
 		}
 
+		@Override
 		public String toString() {
 			return "{name:" + name + ";" + super.toString() + "}";
 		}
@@ -311,7 +313,7 @@ public class QueryParamConverter {
 			Iterator<T> it = iterator();
 			SQLItems<SQLItem> p = new SQLItems<SQLItem>();
 			while (it.hasNext()) {
-				p.add((SQLItem) it.next());
+				p.add(it.next());
 			}
 			return p;
 		}
