@@ -39,6 +39,8 @@ import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.AuthCache;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.config.CookieSpecs;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
@@ -250,6 +252,9 @@ public class HTTPEngine4Impl {
 		proxy = ProxyDataImpl.validate(proxy, url.getHost());
 
 		HttpClientBuilder builder = getHttpClientBuilder();
+
+		// LDEV-2321
+		builder.setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build());
 
 		// redirect
 		if (redirect) builder.setRedirectStrategy(new DefaultRedirectStrategy());
