@@ -1098,7 +1098,7 @@ public final class IOUtil {
 		}
 		catch (Exception e) {
 			String tmp = ResourceUtil.EXT_MT.get(ext != null ? ext : ResourceUtil.getExtension(res, "").toLowerCase());
-			if (tmp.indexOf("tika") == -1 && !StringUtil.isEmpty(tmp)) return tmp;
+			if (tmp != null && tmp.indexOf("tika") == -1 && !StringUtil.isEmpty(tmp)) return tmp;
 			return defaultValue;
 		}
 		finally {
