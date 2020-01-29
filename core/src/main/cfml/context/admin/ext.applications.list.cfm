@@ -242,7 +242,7 @@ Categories: #arrayToList(cat)#"><cfif hasUpdate>
 
 <cfif noneLasCounter>
 	<div class="message" style="border-color: ##FC6;color:##C93;">
-		Extension with a yellow border are not provided by the Lucee Association Switzerland and do not neccessarily follow our guidelines. This extensions are not reviewed by the Lucee Association Switzerland.
+		Extensions with a yellow border are not provided by the Lucee Association Switzerland and do not neccessarily follow our guidelines. These extensions are not reviewed by the Lucee Association Switzerland.
 	</div>
 </cfif>
 
