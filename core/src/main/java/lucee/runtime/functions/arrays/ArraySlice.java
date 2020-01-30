@@ -28,6 +28,7 @@ import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.util.ArrayUtil;
+import lucee.runtime.exp.ExpressionException;
 
 public final class ArraySlice extends BIF {
 
@@ -40,17 +41,20 @@ public final class ArraySlice extends BIF {
 	public static Array call(PageContext pc, Array arr, double offset, double length) throws PageException {
 
 		int len = arr.size();
+		if((int) length > len || (int) length == 0) throw new ExpressionException("Invalid count specified " + (int) length);
+		if((int) offset == 0) throw new ExpressionException("Array index [" + (int) offset + "] out of range valid indexes are [ 1 to " + (int) len + " ]");
 		if (offset > 0) {
-			if (len < offset) throw new FunctionException(pc, "arraySlice", 2, "offset", "Offset cannot be greater than size of the array");
+			if (len < offset) throw new ExpressionException("Offset cannot be greater than size of the array");
 
 			int to = 0;
 			if (length > 0) to = (int) (offset + length - 1);
-			else if (length < 0) to = (int) (len + length);
-			if (len < to) throw new FunctionException(pc, "arraySlice", 3, "length", "Offset+length cannot be greater than size of the array");
+			else if (length < 0) to = (int) (len + length+1);
+			if(offset > to) throw new ExpressionException("Offset cannot be greater than size of the length");
+			if (len < to) throw new ExpressionException("Offset+length cannot be greater than size of the array");
 
 			return get(arr, (int) offset, to);
 		}
-		return call(pc, arr, len + offset, length);
+		return call(pc, arr, len + offset+1, length);
 	}
 
 	@Override
