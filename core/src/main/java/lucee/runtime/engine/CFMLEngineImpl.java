@@ -205,6 +205,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	private Controler controler;
 	private CFMLServletContextListener scl;
 	private Boolean asyncReqHandle;
+	private String envExt;
 
 	// private static CFMLEngineImpl engine=new CFMLEngineImpl();
 
@@ -346,7 +347,9 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		String extensionIds = SystemUtil.getSystemPropOrEnvVar("lucee-extensions", null); // old no longer used
 		if (StringUtil.isEmpty(extensionIds, true)) extensionIds = SystemUtil.getSystemPropOrEnvVar("lucee.extensions", null);
 
+		this.envExt = null;
 		if (!StringUtil.isEmpty(extensionIds, true)) {
+			this.envExt = extensionIds;
 			LogUtil.log(cs, Log.LEVEL_INFO, "deploy", "controller", "extensions to install defined in env variable or system property:" + extensionIds);
 			List<ExtensionDefintion> _extensions = RHExtension.toExtensionDefinitions(extensionIds);
 			extensions = toSet(extensions, _extensions);
@@ -829,7 +832,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		return configServer;
 	}
 
-	private Resource getSeverContextConfigDirectory(CFMLEngineFactory factory) throws IOException {
+	public static Resource getSeverContextConfigDirectory(CFMLEngineFactory factory) throws IOException {
 		ResourceProvider frp = ResourcesImpl.getFileResourceProvider();
 		return frp.getResource(factory.getResourceRoot().getAbsolutePath()).getRealResource("context");
 	}
@@ -1758,4 +1761,11 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		return defaultValue;
 	}
 
+	public Object getEnvExt() {
+		return envExt;
+	}
+
+	public void setEnvExt(String envExt) {
+		this.envExt = envExt;
+	}
 }

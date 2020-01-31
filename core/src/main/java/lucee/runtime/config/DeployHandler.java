@@ -43,6 +43,7 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.extension.ExtensionDefintion;
+import lucee.runtime.extension.RHExtension;
 import lucee.runtime.extension.RHExtensionProvider;
 import lucee.runtime.functions.conversion.DeserializeJSON;
 import lucee.runtime.functions.system.IsZipFile;
@@ -51,6 +52,7 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.KeyConstants;
+import lucee.runtime.type.util.ListUtil;
 
 public class DeployHandler {
 
@@ -68,6 +70,7 @@ public class DeployHandler {
 			Resource dir = config.getDeployDirectory();
 			if (!dir.exists()) dir.mkdirs();
 
+			// check deploy directory
 			Resource[] children = dir.listResources(ALL_EXT);
 			Resource child;
 			String ext;
@@ -87,10 +90,30 @@ public class DeployHandler {
 					// Lucee core
 					else if (config instanceof ConfigServer && "lco".equalsIgnoreCase(ext)) XMLConfigAdmin.updateCore((ConfigServerImpl) config, child, true);
 				}
-				catch (Throwable t) {
-					ExceptionUtil.rethrowIfNecessary(t);
+				catch (Exception e) {
 					Log log = config.getLog("deploy");
-					log.error("Extension", t);
+					log.error("Extension", e);
+				}
+			}
+
+			// check env var for change
+			if (config instanceof ConfigServer) {
+				String extensionIds = SystemUtil.getSystemPropOrEnvVar("lucee-extensions", null); // old no longer used
+				if (StringUtil.isEmpty(extensionIds, true)) extensionIds = SystemUtil.getSystemPropOrEnvVar("lucee.extensions", null);
+				CFMLEngineImpl engine = (CFMLEngineImpl) ConfigWebUtil.getEngine(config);
+				if (engine != null && !StringUtil.isEmpty(extensionIds, true) && !extensionIds.equals(engine.getEnvExt())) {
+					try {
+						engine.setEnvExt(extensionIds);
+						List<ExtensionDefintion> extensions = RHExtension.toExtensionDefinitions(extensionIds);
+						Resource configDir = CFMLEngineImpl.getSeverContextConfigDirectory(engine.getCFMLEngineFactory());
+						boolean sucess = DeployHandler.deployExtensions(config, extensions.toArray(new ExtensionDefintion[extensions.size()]), config.getLog("deploy"));
+						if (sucess && configDir != null) XMLConfigFactory.updateRequiredExtension(engine, configDir);
+						LogUtil.log(config, Log.LEVEL_INFO, "deploy", "controller", "installed extensions:" + ListUtil.listToList(extensions, ", "));
+					}
+					catch (Exception e) {
+						Log log = config.getLog("deploy");
+						log.error("Extension", e);
+					}
 				}
 			}
 		}
@@ -146,6 +169,30 @@ public class DeployHandler {
 					sucess = false;
 				}
 				if (!sucess) allSucessfull = false;
+			}
+		}
+		return allSucessfull;
+	}
+
+	public static boolean deployExtensions(Config config, List<ExtensionDefintion> eds, Log log) {
+		boolean allSucessfull = true;
+		if (eds != null && eds.size() > 0) {
+			ExtensionDefintion ed;
+			Iterator<ExtensionDefintion> it = eds.iterator();
+			boolean sucess;
+			int count = 0;
+			while (it.hasNext()) {
+				count++;
+				ed = it.next();
+				if (StringUtil.isEmpty(ed.getId(), true)) continue;
+				try {
+					sucess = deployExtension(config, ed, log, count == eds.size());
+				}
+				catch (PageException e) {
+					sucess = false;
+				}
+				if (!sucess) allSucessfull = false;
+
 			}
 		}
 		return allSucessfull;

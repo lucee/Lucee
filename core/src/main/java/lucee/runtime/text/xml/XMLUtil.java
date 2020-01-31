@@ -327,8 +327,8 @@ public final class XMLUtil {
 
 		PageContext pc = ThreadLocalPageContext.get();
 		if (pc != null) {
-			Struct features = ((ApplicationContextSupport) pc.getApplicationContext()).getXmlFeatures();
-
+			ApplicationContextSupport ac = ((ApplicationContextSupport) pc.getApplicationContext());
+			Struct features = ac == null ? null : ac.getXmlFeatures();
 			if (features != null) {
 				try { // handle feature aliases, e.g. secure
 					Object obj;
