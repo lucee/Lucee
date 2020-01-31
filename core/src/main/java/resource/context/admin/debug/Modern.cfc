@@ -229,9 +229,10 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			</cfif>
 			
 			<script src="/lucee/res/js/base.min.js.cfm" type="text/javascript"></script>
+			<script src="/lucee/res/js/jquery-3.4.1.min.js.cfm" type="text/javascript"></script>
 			<!---  --->
 			<script>
-				$.noConflict();
+				var lucee_Core = $.noConflict();
 				var __LUCEE = __LUCEE || {};
 				var oLastObj = false;
 				__LUCEE.sectionArray = [];
@@ -304,7 +305,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 					, toggleSection2: 	function( name, section ) {
 						// All main sections
 						var otherMainSections = [];
-						$.each(#serializeJSON( variables.tbsStr )#, function(i, data) {
+						lucee_Core.each(#serializeJSON( variables.tbsStr )#, function(i, data) {
 							otherMainSections.push(data)
 						});
 						// Find and remove item from an array
@@ -393,13 +394,13 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 						var oAjax = new XMLHttpRequest();
 						oAjax.onreadystatechange = function() {
 							if(this.readyState == 4 && this.status == 200) {
-								//var result = $.parseHTML(this.responseText);
+								//var result = lucee_Core.parseHTML(this.responseText);
 								if(section == 'metrics'){
-									$("##-lucee-"+section+"-data").removeClass('collapsed');
-									$("##-lucee-"+section+"-data").html(this.responseText);
+									lucee_Core("##-lucee-"+section+"-data").removeClass('collapsed');
+									lucee_Core("##-lucee-"+section+"-data").html(this.responseText);
 									chartCall();
 								} else{
-									$("##-lucee-"+section+"-ALL").html(this.responseText);
+									lucee_Core("##-lucee-"+section+"-ALL").html(this.responseText);
 								}
 							}
 						};
@@ -416,7 +417,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			<!--- <cfif enableTab("metrics") && structCount(variables.chartStr) NEQ 0> --->
 				<script>
 					function chartCall(){
-						if($('##-lucee-metrics-btn-ALL').hasClass('btnActive')){
+						if(lucee_Core('##-lucee-metrics-btn-ALL').hasClass('btnActive')){
 							jQuery.ajax({
 								type: "get",
 								url: "/lucee/res/js/echarts-all.js.cfm",
@@ -428,12 +429,12 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 									labels={'heap':"Heap",'nonheap':"Non-Heap",'cpuSystem':"Whole System"};
 									stAjaxTime = new Date();
 									function requestData(){
-										if($( "##-lucee-metrics-btn-ALL").hasClass( "btnActive" )){
+										if(lucee_Core( "##-lucee-metrics-btn-ALL").hasClass( "btnActive" )){
 											jQuery.ajax({
 												type: "POST",
 												url: "/lucee/admin/chartAjax.cfm",
 												success: function(result){
-													$.each(#serializeJSON( variables.chartStr )#,function(index,chrt){
+													lucee_Core.each(#serializeJSON( variables.chartStr )#,function(index,chrt){
 														if(index == "WholeSystem") {
 															cpuSystemSeries1 = __LUCEE.debugCharts.chartsOption.cpuSystemChartOption.series[0].data; //*charts*.series[0].data
 															cpuSystemSeries1.push(result["cpuSystem"]); // push the value into series[0].data
@@ -489,7 +490,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 
 									// intialize charts
 
-									$.each(#serializeJSON( variables.chartStr )#, function(i, data){
+									lucee_Core.each(#serializeJSON( variables.chartStr )#, function(i, data){
 										if(i == "WholeSystem") {
 											__LUCEE.debugCharts.charts.cpuSystem = {};
 											__LUCEE.debugCharts.chartsOption.cpuSystemChartOption = {};
@@ -602,40 +603,40 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 			<!--- </cfif> --->
 			<!--- <cfif enableTab("Reference")> --->
 				<script>
-					$(document).ready(function(){
+					lucee_Core(document).ready(function(){
 						//to hide div element that was showed with respect to user input
-						$(document).mouseup(function(e){
-							var container = $("##outerLayer");
+						lucee_Core(document).mouseup(function(e){
+							var container = lucee_Core("##outerLayer");
 								container.hide();
 						});
 						// to show the modal window while clcik on particular function/tags/components suggested on div element
-						$(document).on('click', '.getMatch', function(){
-							callDesc($(this).data('type').toLowerCase()	, $(this).data('value'));
+						lucee_Core(document).on('click', '.getMatch', function(){
+							callDesc(lucee_Core(this).data('type').toLowerCase()	, lucee_Core(this).data('value'));
 						});
 
-						$(document).on('keyup',".ttt",function(e){
-							$("##outerLayer").html("");
+						lucee_Core(document).on('keyup',".ttt",function(e){
+							lucee_Core("##outerLayer").html("");
 							var types = #serializeJson(str)#;
 
-							var search = $("##lucee-docs-search-input").val().trim();
+							var search = lucee_Core("##lucee-docs-search-input").val().trim();
 							var modelcontent = "";
 							if(search == ''){
-								$("##outerLayer").hide().html("");
+								lucee_Core("##outerLayer").hide().html("");
 								return false;
 							}
-							$.each(types, function( array ) {
-								$.grep(types[array], function( value ) {
+							lucee_Core.each(types, function( array ) {
+								lucee_Core.grep(types[array], function( value ) {
 									if(value.includes(search)){
 										modelcontent += '<span class="getMatch" data-type='+array+' data-value='+value+'>'+value+'</span><br>';
 									}
 								});
 							});
 							if(modelcontent.length != 0){
-								$('##outerLayer').append(modelcontent);
+								lucee_Core('##outerLayer').append(modelcontent);
 							}else{
-								$('##outerLayer').append('<span>No Results Found</span><br>');
+								lucee_Core('##outerLayer').append('<span>No Results Found</span><br>');
 							}
-							$("##outerLayer").show();
+							lucee_Core("##outerLayer").show();
 							// if (e.keyCode == 13) {
 							// 	callDesc("functions", search.toString());
 							// }
@@ -644,21 +645,21 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 
 					function callDesc(type, item){
 						var docURL = "/lucee/doc/" + type + ".cfm?isAjaxRequest=true&fromAdmin=#structKeyExists(request, 'fromAdmin')#&item=" + item;
-						$.ajax({
+						lucee_Core.ajax({
 							type: "get",
 							url: docURL,
 							success: function(data){
-								$( ".modal-body" ).html("" + data.toString() + "");
-								$('<div class="blocker"></div>').appendTo(document.body);
-								$("##mdlWnd").show();
-								$(".closeButtonTop").focus();
-								$('.closeButtonTop,.closeButton, .blocker').on('click', function() {
-									$('##lucee-docs-search-input').val('');
-									$("div.blocker").remove();
-									$(".modal-body").html("");
-									$("##mdlWnd").hide();
-									$("btnOvr").addClass("button.buttonStyle");
-									$("btnOvr").addClass("button.btnActive");
+								lucee_Core( ".modal-body" ).html("" + data.toString() + "");
+								lucee_Core('<div class="blocker"></div>').appendTo(document.body);
+								lucee_Core("##mdlWnd").show();
+								lucee_Core(".closeButtonTop").focus();
+								lucee_Core('.closeButtonTop,.closeButton, .blocker').on('click', function() {
+									lucee_Core('##lucee-docs-search-input').val('');
+									lucee_Core("div.blocker").remove();
+									lucee_Core(".modal-body").html("");
+									lucee_Core("##mdlWnd").hide();
+									lucee_Core("btnOvr").addClass("button.buttonStyle");
+									lucee_Core("btnOvr").addClass("button.btnActive");
 								});
 							}
 						});
