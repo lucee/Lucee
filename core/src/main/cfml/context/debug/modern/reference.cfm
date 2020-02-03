@@ -334,7 +334,7 @@ else if(structKeyExists(nonPrefixTags,form.search)) {
 					<td><cfif attr.type EQ "object">any<cfelse>#attr.type#</cfif></td>
 					<td>#YesNoFormat(attr.required)#</td>
 					<cfif val(isdefault)><td><cfif structKeyExists(attr, "defaultValue")>#attr.defaultValue#</cfif></td></cfif>
-					<td><cfif attr.status EQ "deprecated"><b class="error">#stText.doc.depAttr#</b><cfelse>#attr.description#</cfif>&nbsp;</td>
+					<td><cfif attr.status EQ "deprecated"><b class="error">This Attribute is deprecated</b><cfelse>#attr.description#</cfif>&nbsp;</td>
 				</tr>
 			</cfloop>
 		</tbody>
