@@ -107,21 +107,8 @@ public final class MemoryClassLoader extends ExtendableClassLoader {
 	}
 
 	private Class<?> rename(Class<?> clazz, byte[] barr) {
-		String prefix = clazz.getName();
-		Class<?> clazz2 = null;
-		String newName;
-		int index = 0;
-		do {
-			clazz2 = null;
-			newName = prefix + "$" + (++index);
-			try {
-				clazz2 = loadClass(newName); // we do not load existing class from disk
-			}
-			catch (ClassNotFoundException cnf) {}
-		}
-		while (clazz2 != null);
+		String newName = clazz.getName() + "$" + PhysicalClassLoader.uid();
 		return _loadClass(newName, ClassRenamer.rename(barr, newName));
-
 	}
 
 	private synchronized Class<?> _loadClass(String name, byte[] barr) {
