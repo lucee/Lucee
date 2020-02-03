@@ -21,6 +21,7 @@ package lucee.commons.lang;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.instrument.ClassDefinition;
 import java.lang.instrument.UnmodifiableClassException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -35,11 +36,13 @@ import org.apache.commons.collections4.map.ReferenceMap;
 
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.instrumentation.InstrumentationFactory;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.transformer.bytecode.util.ClassRenamer;
 
@@ -170,14 +173,16 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 			catch (ClassNotFoundException cnf) {}
 			if (clazz == null) return _loadClass(name, barr);
 
+			// first we try to update the class what needs instrumentation object
+			try {
+				InstrumentationFactory.getInstrumentation(config).redefineClasses(new ClassDefinition(clazz, barr));
+				return clazz;
+			}
+			catch (Exception e) {
+				LogUtil.log(null, "compilation", e);
+			}
 			return rename(clazz, barr);
 
-			// update
-			/*
-			 * try { InstrumentationFactory.getInstrumentation(config).redefineClasses(new
-			 * ClassDefinition(clazz, barr)); } catch (ClassNotFoundException e) { throw new
-			 * RuntimeException(e); } return clazz;
-			 */
 		}
 	}
 
