@@ -114,6 +114,9 @@
 	<data key="mappings.trustedhead">Inspect</data>
 	<data key="mappings.introtext">Please note, that only pages processed by Lucee are aware of these mappings (cfm, cfml, cfc). If you want to use files not processed by Lucee for these special mapping directories, you have to add virtual mappings to these directories to your application server.</data>
 	<data key="mappings.physicalheaddescription">Path of the resource to map (absolute or relative to the webroot)</data>
+	<data key="mappings.archiveAlert">Reason for below alert: Make sure the File exists or not.</data>
+	<data key="mappings.physicalAlert">Reason for below alert: Make sure the Directory exists or not</data>
+
 	<data key="customtags.physical">Resource</data>
 	<data key="customtags.archive">Archive</data>
 	<data key="customtags.primary">Primary</data>
