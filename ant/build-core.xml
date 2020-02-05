@@ -1082,6 +1082,50 @@
 </target>
 
 
+<target name="upload_to_s3">
+
+    <!-- create the jar to test -->
+    <copy 
+        file="${trgLoader}/${version}.lco" 
+        tofile="${temp}/loader/core/core.lco"/>
+
+    <currentTime property="ct" />
+    <echo file="${temp}/loader/lucee/version" message="${version}:${ct}" encoding="UTF-8"/>
+
+    <jar 
+      basedir="${temp}/loader" 
+      jarfile="${trgLoader}/lucee-${version}.jar" 
+      manifest="${goal}/META-INF/MANIFEST.MF"/>
+
+
+    <listDirectory directory="${test}/lib" delimiter=":" returnvalue="test_jars"/>
+    <echots message="upload to S3"/>
+    <echots message="${test_jars}"/>
+    
+    <!-- Upload to S3 -->
+    <java classname="org.apache.tools.ant.launch.Launcher" dir="${ant}" fork="true" failonerror="true" errorproperty="exc3">
+      <classpath path="${java.class.path}">
+          <pathelement location="${trgLoader}/lucee-${version}.jar"/>
+          <pathelement path="${runtime_classpath}"/>
+          <pathelement path="${test_jars}"/>
+      </classpath>
+
+      <arg value="-f"/>
+      <arg value="${ant}/upload-to-s3.xml"/>
+
+      <jvmarg value="-Dbasedir=${baseDir}"/>
+      <jvmarg value="-Dlucee.base.dir=${temp}/archive/base"/>
+      <jvmarg value="-Dlucee.web.dir=${temp}/archive/webroot"/>
+      <!-- <jvmarg value="-Dlucee-extensions=${extS3}"/> -->
+      <jvmarg value="-Dlucee.extensions.install=true"/>
+      <jvmarg value="-Dlucee.full.null.support=false"/>
+      <jvmarg value="-Dluceejar=${trgLoader}/lucee-${version}.jar"/>
+    </java>
+    <echo>${exc3}</echo>
+
+</target>
+
+
   <target name="__build" depends="__build_archives,__build_testbox">
 
     <!-- now we have to build the lucee.jar again, this time with the lar files -->
@@ -1443,7 +1487,14 @@
     <property name="goal" location="${outputDir}"/>
   </target>
 
-  <target name="buildLoaderMaven" depends="__build,setMvnEnv,addExtensions,addBundles,addFelix" description="generate the loader jar" >  
+  <target 
+    name="buildLoaderMaven" 
+    depends="_buildLoaderMaven,upload_to_s3" 
+    description="generate the loader jar" >
+
+  </target>
+
+  <target name="_buildLoaderMaven" depends="__build,setMvnEnv,addExtensions,addBundles,addFelix" description="generate the loader jar" >  
     <echots message="build core"/>
     <!-- create the luce core -->
     <jar 

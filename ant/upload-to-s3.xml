@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project default="run" basedir="." name="Lucee">
+
+<macrodef name="echots">
+    <attribute name="message"/>
+    <sequential>
+      <local name="timestamp" />
+      <tstamp>
+        <format property="timestamp" pattern="yyyy-MM-dd HH:mm:ss" />
+      </tstamp>
+      <echo message="---------- ${timestamp} - @{message} ----------" />
+    </sequential>
+  </macrodef>
+
+<target name="run">
+<script language="CFML">
+<![CDATA[
+try{
+	if(!isNull(server.system.environment.S3_ACCESS_ID) && !isNull(server.system.environment.S3_SECRET_KEY)) {
+		
+		echo("upload lucee.jar to S3
+");
+		
+		src=server.system.properties.luceejar;
+		trg="s3://#server.system.environment.S3_ACCESS_ID_DOWNLOAD#:#server.system.environment.S3_SECRET_KEY_DOWNLOAD#@/lucee-downloads/test-#listLast(src,"\/")#";
+		
+		if(fileExists(trg)) fileDelete(trg);
+		fileCopy(src,trg);
+		
+
+	}
+	else {
+		echo("no S3 credentials defined to upload to S3
+");
+	}
+}
+catch(e){
+	echo(serialize(e));
+	rethrow;
+}
+]]>
+  </script>
+
+</target>
+</project>
