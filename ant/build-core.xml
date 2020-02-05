@@ -1084,16 +1084,8 @@
 
 <target name="upload_to_s3">
 
-    <!-- create the jar to test -->
-    <copy 
-        file="${trgLoader}/${version}.lco" 
-        tofile="${temp}/loader/core/core.lco"/>
-
-    <currentTime property="ct" />
-    <echo file="${temp}/loader/lucee/version" message="${version}:${ct}" encoding="UTF-8"/>
-
     <jar 
-      basedir="${temp}/loader" 
+      basedir="${outputDir}/" 
       jarfile="${trgLoader}/lucee-${version}.jar" 
       manifest="${goal}/META-INF/MANIFEST.MF"/>
 
