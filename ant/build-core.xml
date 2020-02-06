@@ -1081,14 +1081,14 @@
 
 </target>
 
-
 <target name="upload_to_s3">
 
     <jar 
       basedir="${outputDir}/" 
       jarfile="${trgLoader}/lucee-${version}.jar" 
       manifest="${goal}/META-INF/MANIFEST.MF"/>
-
+      <echots message="build-jar-man:${goal}/META-INF/MANIFEST.MF"/>
+    
 
     <listDirectory directory="${test}/lib" delimiter=":" returnvalue="test_jars"/>
     <echots message="upload to S3"/>
@@ -1112,6 +1112,9 @@
       <jvmarg value="-Dlucee.extensions.install=true"/>
       <jvmarg value="-Dlucee.full.null.support=false"/>
       <jvmarg value="-Dluceejar=${trgLoader}/lucee-${version}.jar"/>
+      <jvmarg value="-DluceeCore=${trgLoader}/${version}.lco"/>
+      <jvmarg value="-DtrgLoader=${trgLoader}"/>
+
     </java>
     <echo>${exc3}</echo>
 
@@ -1160,7 +1163,9 @@
     <loadproperties 
       srcFile="${srcLoader}/META-INF/MANIFEST.MF"
       prefix="mani.core."/>
-    <manifest file="${goal}/META-INF/MANIFEST.MF" mode="update">
+
+    <echots message="create-jar-man:${goal}/META-INF/MANIFEST.MF"/>
+    <manifest file="${goal}/META-INF/MANIFEST.MF" mode="replace">
       <attribute name="Premain-Class" value="${mani.core.Premain-Class}"/>
       <attribute name="Agent-Class" value="${mani.core.Agent-Class}"/>
       <attribute name="Can-Redefine-Classes" value="${mani.core.Can-Redefine-Classes}"/>
@@ -1549,7 +1554,8 @@
       basedir="${temp}/loader" 
       jarfile="${trgLoader}/lucee-${version}.jar" 
       manifest="${goal}/META-INF/MANIFEST.MF"/>
-
+      <echots message="buil-jar-ant:${goal}/META-INF/MANIFEST.MF"/>
+    
 
     <delete dir="${temp}"/>
     <echots message="done"/>

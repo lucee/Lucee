@@ -16,23 +16,63 @@
 <script language="CFML">
 <![CDATA[
 try{
-	if(!isNull(server.system.environment.S3_ACCESS_ID) && !isNull(server.system.environment.S3_SECRET_KEY)) {
+	NL="
+";
+	src.jar=server.system.properties.luceejar;
+	src.core=server.system.properties.luceeCore;
+	src.dir=getDirectoryFromPath(src.jar);
+	src.jarName=listLast(src.jar,"\/");
+	src.coreName=listLast(src.core,"\/");
+	src.version=mid(src.coreName,1,len(src.coreName)-4);
+	
+	// no S3 credentials?
+	if(isNull(server.system.environment.S3_ACCESS_ID) 
+		|| isNull(server.system.environment.S3_SECRET_KEY)) {
 		
-		echo("upload lucee.jar to S3
-");
-		
-		src=server.system.properties.luceejar;
-		trg="s3://#server.system.environment.S3_ACCESS_ID_DOWNLOAD#:#server.system.environment.S3_SECRET_KEY_DOWNLOAD#@/lucee-downloads/test-#listLast(src,"\/")#";
-		
-		if(fileExists(trg)) fileDelete(trg);
-		fileCopy(src,trg);
-		
-
+		echo("no S3 credentials defined to upload to S3#NL#");
+		return;
 	}
 	else {
-		echo("no S3 credentials defined to upload to S3
-");
+		echo("upload lucee.jar to S3#NL#");
+		trg.dir="s3://#server.system.environment.S3_ACCESS_ID_DOWNLOAD#:#server.system.environment.S3_SECRET_KEY_DOWNLOAD#@/lucee-downloads/";
 	}
+	trg.jar=trg.dir&src.jarName;
+	trg.core=trg.dir&src.coreName;
+
+	// copy jar
+	echo("write loader #NL#");
+	if(fileExists(trg.jar)) fileDelete(trg.jar);
+	fileCopy(src.jar,trg.jar);
+
+	// copy core
+	echo("write core #NL#");
+	if(fileExists(trg.core)) fileDelete(trg.core);
+	fileCopy(src.core,trg.core);
+
+	// create war
+	echo("write war #NL#");
+	src.war=src.dir&"lucee-"&src.version&".war";
+	trg.war=trg.dir&"lucee-"&src.version&".war";
+
+	/*zip action="zip" file=src.war overwrite=true {
+
+		// loader
+		zipparam source=src.jar entrypath="WEB-INF/lib/lucee.jar";
+       
+		// common files
+		// zipparam source=commonDir;
+					
+		// website files
+		// zipparam source=webDir;
+					
+		// war files
+		// zipparam source=warDir;
+
+	}
+	fileCopy(src.war,trg.war);*/
+
+		
+
 }
 catch(e){
 	echo(serialize(e));
