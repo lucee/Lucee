@@ -22,7 +22,7 @@
 		}
 
 		string function getDescription(){
-			return "A simple debug template that does not require JavaScript";
+			return "Simple debug template that is functional without JavaScript";
 		}
 
 		string function getid(){
@@ -46,18 +46,19 @@
 		}
 
 		private function isColumnEmpty(query qry,string columnName){
-			if(!QueryColumnExists(qry,columnName)) return true;
-			return !len(arrayToList(queryColumnData(qry,columnName),""));
+			if (!QueryColumnExists(qry,columnName))
+				return true;
+			return isEmpty(arrayToList(queryColumnData(qry,columnName), ""));
 		}
 
-		function isSectionOpen( string name ) {
+		function isSectionOpen(string name) {
 			try{
-			if ( arguments.name == "ALL" && !structKeyExists( Cookie, variables.cookieName ) )
-				return true;
+				if (arguments.name == "ALL" && !structKeyExists(Cookie, variables.cookieName))
+					return true;
 
-			var cookieValue = structKeyExists( Cookie, variables.cookieName ) ? Cookie[ variables.cookieName ] : 0;
+				var cookieValue = structKeyExists(Cookie, variables.cookieName) ? Cookie[ variables.cookieName ] : 0;
 
-			return cookieValue && ( bitAnd( cookieValue, this.allSections[ arguments.name ] ) );
+				return cookieValue && (bitAnd(cookieValue, this.allSections[ arguments.name ]));
 			}
 			catch(e){
 				return false;
@@ -69,9 +70,8 @@
 			return structKeyExists( arguments.custom, arguments.key ) && ( arguments.custom[ arguments.key ] == "Enabled" || arguments.custom[ arguments.key ] == "true" );
 		}
 
-
-		variables.cookieName = "lucee_debug_simple";
-
+		variables.cookieName = "lucee_debug_simple003";
+		variables.bitmaskAll = 2 ^ 31 - 1;
 		variables.scopeNames = [ "Application", "CGI", "Client", "Cookie", "Form", "Request", "Server", "Session", "URL" ];
 
 		function buildSectionStruct() {
@@ -169,7 +169,11 @@
 			#-lucee-debug .section-title	{ margin-top: 1.25em; font-size: 1.25em; font-weight: normal; color:#555; }
 			#-lucee-debug .section-title:first-child	{ margin-top: auto; }
 			#-lucee-debug .label		{ white-space: nowrap; vertical-align: top; text-align: right; padding-right: 1em; background-color: inherit; color: inherit; text-shadow: none; }
+
+		<cfif structKeyExists(Cookie, variables.cookieName)>
 			#-lucee-debug .collapsed	{ display: none; }
+		</cfif>
+
 			#-lucee-debug .bold 		{ font-weight: bold; }
 			#-lucee-debug .txt-c 	{ text-align: center; }
 			#-lucee-debug .txt-l 	{ text-align: left; }
@@ -796,7 +800,7 @@
 
 				<cfoutput>
 				  cookieName: 	"#variables.cookieName#"
-				, bitmaskAll: 	Math.pow( 2, 31 ) - 1
+				, bitmaskAll: 	#bitmaskAll#
 				, allSections: 	#serializeJSON( this.allSections )#
 				</cfoutput>
 
@@ -839,8 +843,15 @@
 
 				, selectText:	__LUCEE.util.selectText
 			};
-		</script>
 
+			<cfif !structKeyExists(Cookie, variables.cookieName) || (Cookie[variables.cookieName] == bitmaskAll)>
+				var luceeStyle = document.createElement("style");
+				luceeStyle.type = 'text/css';
+				luceeStyle.innerHTML = "#-lucee-debug .collapsed { display: none; }";
+				document.getElementById("-lucee-debug").prepend(luceeStyle);
+			</cfif>
+		</script>
+<cfdump var="##">
 	</cffunction><!--- output() !--->
 
 
