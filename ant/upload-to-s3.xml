@@ -33,27 +33,27 @@ try{
 		return;
 	}
 	else {
-		echo("upload lucee.jar to S3#NL#");
 		trg.dir="s3://#server.system.environment.S3_ACCESS_ID_DOWNLOAD#:#server.system.environment.S3_SECRET_KEY_DOWNLOAD#@/lucee-downloads/";
 	}
 	trg.jar=trg.dir&src.jarName;
 	trg.core=trg.dir&src.coreName;
 
 	// copy jar
-	echo("write loader #NL#");
+	echo("upload #src.jarName# to S3#NL#");
 	if(fileExists(trg.jar)) fileDelete(trg.jar);
 	fileCopy(src.jar,trg.jar);
 
 	// copy core
-	echo("write core #NL#");
+	echo("upload #src.coreName# to S3#NL#");
 	if(fileExists(trg.core)) fileDelete(trg.core);
 	fileCopy(src.core,trg.core);
 
 	// create war
-	echo("write war #NL#");
-	src.war=src.dir&"lucee-"&src.version&".war";
-	trg.war=trg.dir&"lucee-"&src.version&".war";
-
+	src.warName="lucee-"&src.version&".war";
+	src.war=src.dir&src.warName;
+	trg.war=trg.dir&src.warName;
+	echo("upload #src.warName# to S3#NL#");
+	
 	/*zip action="zip" file=src.war overwrite=true {
 
 		// loader
