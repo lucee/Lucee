@@ -70,7 +70,7 @@
 			return structKeyExists( arguments.custom, arguments.key ) && ( arguments.custom[ arguments.key ] == "Enabled" || arguments.custom[ arguments.key ] == "true" );
 		}
 
-		variables.cookieName = "lucee_debug_simple003";
+		variables.cookieName = "lucee_debug_simple";
 		variables.bitmaskAll = 2 ^ 31 - 1;
 		variables.scopeNames = [ "Application", "CGI", "Client", "Cookie", "Form", "Request", "Server", "Session", "URL" ];
 
@@ -899,7 +899,6 @@
 
 			// display 3 digits right to the point
 			return ( int( arguments.time / 1000 ) / 1000 );
-
 		}
 
 
