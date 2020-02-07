@@ -254,6 +254,9 @@ if(structKeyExists(arguments.custom, "metrics_Charts")) {
 	.ldTabContent table.details td.txt-r { padding-right: 1em; }
 	.ldTabContent .num-lsv 	{ font-weight: normal; }
 	.ldTabContent tr.nowrap td { white-space: nowrap; }
+	.sortby {text-decoration: underline; font-weight: bold;}
+	.ldTabContent .sortby.selected, #-lucee-debugging .sortby:hover { background-color: #25A; color: #FFF !important; cursor: pointer; text-decoration: none;}
+	.ldTabContent table.details tr > th > a { color: #25A !important; text-decoration: underline; }
 	.ldTabContent tr.red td, #-lucee-debugging .red 	{ background-color: #FDD; }
 
 	.ldTabContent .sortby.selected, #-lucee-debugging .sortby:hover { background-color: #25A; color: #FFF; }

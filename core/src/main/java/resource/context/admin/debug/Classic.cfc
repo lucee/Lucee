@@ -128,9 +128,9 @@ millisecond:"ms"
 
 <table class="cfdebug" bgcolor="#arguments.custom.bgcolor#" style="border-color:#arguments.custom.color#">
 <tr>
+    <cfif isEnabled(arguments.custom,"general")>
 	<td>
  <!--- General --->
-    <cfif isEnabled(arguments.custom,"general")>
 		<p class="cfdebug"><hr/>
 		<b class="cfdebuglge"><a name="cfdebug_top">Debugging Information</a></b>
 		<table class="cfdebug">
@@ -177,7 +177,6 @@ millisecond:"ms"
 		</tr></cfif>
 		</table>
 		</p>
-	</cfif>
 <!--- Execution Time --->
 	<p class="cfdebug"><hr/><b class="cfdebuglge"><a name="cfdebug_execution">Execution Time</a></b></p>
 	<a name="cfdebug_templates">
@@ -191,6 +190,8 @@ millisecond:"ms"
 <cfset var loa=0>
 <cfset var tot=0>
 <cfset var q=0>
+<cfparam name="custom.minimal" default="0">
+<cfparam name="custom.highlight" default="250000">
 <cfloop query="pages">
 		<cfset tot=tot+pages.total><cfset q=q+pages.query>
 		<cfif pages.avg LT arguments.custom.minimal*1000><cfcontinue></cfif>
@@ -372,6 +373,7 @@ millisecond:"ms"
 </cfif>
 <font size="-1" class="cfdebug"><i>Debug Rendering Time: #formatUnit(arguments.custom.unit, getTickCount()-time)#</i></font><br />
 	</td>
+	</cfif>
 </tr>
 </table>
 </cfoutput>
