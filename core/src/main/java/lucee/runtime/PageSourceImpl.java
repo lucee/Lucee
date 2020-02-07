@@ -412,6 +412,7 @@ public final class PageSourceImpl implements PageSource {
 			if (!clazz.getName().equals(getClassName())) {
 				setActualClassName(clazz.getName());
 			}
+			else setActualClassName(null);
 
 			return newInstance(clazz);
 		}
@@ -650,7 +651,7 @@ public final class PageSourceImpl implements PageSource {
 	}
 
 	public String getActualClassName() {
-		if (actualClassName == null) return className;
+		if (actualClassName == null) return getClassName();
 		return actualClassName;
 	}
 
