@@ -22,7 +22,6 @@ import java.lang.instrument.ClassDefinition;
 import java.lang.instrument.UnmodifiableClassException;
 
 import lucee.commons.io.SystemUtil;
-import lucee.commons.io.log.LogUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.instrumentation.InstrumentationFactory;
 import lucee.transformer.bytecode.util.ClassRenamer;
@@ -90,12 +89,12 @@ public final class MemoryClassLoader extends ExtendableClassLoader {
 		if (clazz != null) {
 			try {
 				InstrumentationFactory.getInstrumentation(config).redefineClasses(new ClassDefinition(clazz, barr));
-				return clazz;
 			}
-			catch (Exception e) {
-				LogUtil.log(null, "compilation", e);
+			catch (ClassNotFoundException e) {
+				// the documentation clearly sais that this exception only exists for backward compatibility and
+				// never happen
 			}
-			return rename(clazz, barr);
+			return clazz;
 		}
 		// class not exists yet
 		return _loadClass(name, barr);
