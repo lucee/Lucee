@@ -90,14 +90,14 @@ Redirtect to entry --->
 
 <cfhtmlbody>
 	<script type="text/javascript">
-		function sp_clicked()
+		function sp_clicked(event)
 		{
 			var iscustom = $('#sp_radio_debug')[0].checked;
 			var tbl = $('#debugoptionstbl').css('opacity', (iscustom ? 1:.5));
 			var inputs = $('input', tbl).prop('disabled', !iscustom);
-			if (!iscustom)
-			{
-				inputs.prop('checked', false);
+			if(event !== undefined && $(event.target).attr('id') === 'resetBtn'){
+				$('#debugoptionstbl').css('opacity',.5);
+				$('input', tbl).prop('disabled', true);
 			}
 		}
 		$(function(){
@@ -209,7 +209,7 @@ Redirtect to entry --->
 					<tr>
 						<td colspan="2">
 							<input type="submit" class="bl button submit" name="mainAction" value="#stText.Buttons.Update#">
-							<input type="reset" class="<cfif request.adminType EQ "web">bm<cfelse>br</cfif> button reset" name="cancel" value="#stText.Buttons.Cancel#">
+							<input type="reset" class="<cfif request.adminType EQ 'web'>bm<cfelse>br</cfif> button reset" name="cancel" value="#stText.Buttons.Cancel#" onclick="return sp_clicked(event)" id="resetBtn">
 							<cfif request.adminType EQ "web"><input class="br button submit" type="submit" name="mainAction" value="#stText.Buttons.resetServerAdmin#"></cfif>
 
 						</td>
