@@ -36,6 +36,7 @@ import org.apache.commons.collections4.map.ReferenceMap;
 
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.io.res.util.ResourceUtil;
@@ -172,15 +173,15 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 			catch (ClassNotFoundException cnf) {}
 			if (clazz == null) return _loadClass(name, barr);
 
+			// first we try to update the class what needs instrumentation object
 			try {
 				InstrumentationFactory.getInstrumentation(config).redefineClasses(new ClassDefinition(clazz, barr));
+				return clazz;
 			}
-			catch (ClassNotFoundException e) {
-				// the documentation clearly sais that this exception only exists for backward compatibility and
-				// never happen
-				throw new RuntimeException(e);
+			catch (Exception e) {
+				LogUtil.log(null, "compilation", e);
 			}
-			return clazz;
+			return rename(clazz, barr);
 
 		}
 	}
