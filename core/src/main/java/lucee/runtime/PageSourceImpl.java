@@ -335,8 +335,7 @@ public final class PageSourceImpl implements PageSource {
 				try {
 					this.page = page = newInstance(mapping.getPhysicalClass(this.getActualClassName()));
 				}
-				catch (Throwable t) {
-					ExceptionUtil.rethrowIfNecessary(t);
+				catch (Exception e) {
 					this.page = page = null;
 				}
 				if (page == null) this.page = page = compile(config, classRootDir, null, false, pc.ignoreScopes());
@@ -409,9 +408,11 @@ public final class PageSourceImpl implements PageSource {
 					mapping.getPhysicalClass(jf.getClassName(), jf.byteCode);
 				}
 			}
+
 			if (!clazz.getName().equals(getClassName())) {
 				setActualClassName(clazz.getName());
 			}
+			else setActualClassName(null);
 
 			return newInstance(clazz);
 		}
@@ -650,7 +651,7 @@ public final class PageSourceImpl implements PageSource {
 	}
 
 	public String getActualClassName() {
-		if (actualClassName == null) return className;
+		if (actualClassName == null) return getClassName();
 		return actualClassName;
 	}
 
