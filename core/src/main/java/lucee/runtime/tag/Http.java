@@ -25,6 +25,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
@@ -74,6 +75,7 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 
 import lucee.commons.io.CharsetUtil;
+import lucee.commons.io.DevNullOutputStream;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
@@ -679,9 +681,11 @@ public final class Http extends BodyTagImpl {
 	public int doEndTag() throws PageException {
 
 		// because commons
-		// PrintStream out = System .out;
+		PrintStream out = System.out;
+		PrintStream err = System.err;
 		try {
-			// System.setOut(new PrintStream(DevNullOutputStream.DEV_NULL_OUTPUT_STREAM));
+			System.setOut(new PrintStream(DevNullOutputStream.DEV_NULL_OUTPUT_STREAM));
+			System.setErr(new PrintStream(DevNullOutputStream.DEV_NULL_OUTPUT_STREAM));
 			_doEndTag();
 			return EVAL_PAGE;
 		}
@@ -689,7 +693,8 @@ public final class Http extends BodyTagImpl {
 			throw Caster.toPageException(e);
 		}
 		finally {
-			// System.setOut(out);
+			System.setOut(out);
+			System.setErr(err);
 		}
 
 	}

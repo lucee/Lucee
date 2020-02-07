@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintStream;
 import java.lang.instrument.Instrumentation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -183,6 +184,9 @@ import lucee.runtime.video.VideoUtilImpl;
  * The CFMl Engine
  */
 public final class CFMLEngineImpl implements CFMLEngine {
+
+	public static final PrintStream CONSOLE_ERR = System.err;
+	public static final PrintStream CONSOLE_OUT = System.out;
 
 	private static Map<String, CFMLFactory> initContextes = MapFactory.<String, CFMLFactory>getConcurrentMap();
 	private static Map<String, CFMLFactory> contextes = MapFactory.<String, CFMLFactory>getConcurrentMap();

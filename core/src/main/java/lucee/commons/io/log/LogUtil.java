@@ -109,7 +109,7 @@ public final class LogUtil {
 		try {
 			CFMLEngine engine = ConfigWebUtil.getEngine(config);
 			File root = engine.getCFMLEngineFactory().getResourceRoot();
-			File flog = new File(root, "context/logs/global.log");
+			File flog = new File(root, "context/logs/" + (level > Log.LEVEL_DEBUG ? "err" : "out") + ".log");
 			Resource log = ResourceUtil.toResource(flog);
 			if (!log.isFile()) {
 				log.getParentResource().mkdirs();

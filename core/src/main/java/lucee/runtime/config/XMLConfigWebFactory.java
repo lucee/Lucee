@@ -25,6 +25,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
@@ -75,6 +76,7 @@ import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.io.res.type.cfml.CFMLResourceProvider;
 import lucee.commons.io.res.type.s3.DummyS3ResourceProvider;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.io.retirement.RetireOutputStream;
 import lucee.commons.lang.ByteSizeParser;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
@@ -3310,66 +3312,87 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 	private static void loadSystem(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
 		try {
+
 			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 			Element sys = hasAccess ? getChildByName(doc.getDocumentElement(), "system") : null;
 
 			boolean hasCS = configServer != null;
 
-			String out = null, err = null;
+			// web context
+			if (hasCS) {
+				config.setOut(config.getOutWriter());
+				config.setErr(config.getErrWriter());
+				return;
+			}
 
+			String out = null, err = null;
 			// sys prop or env var
-			out = hasCS ? null : SystemUtil.getSystemPropOrEnvVar("lucee.system.out", null);
-			err = hasCS ? null : SystemUtil.getSystemPropOrEnvVar("lucee.system.err", null);
+			out = SystemUtil.getSystemPropOrEnvVar("lucee.system.out", null);
+			err = SystemUtil.getSystemPropOrEnvVar("lucee.system.err", null);
 
 			if (sys != null) {
 				if (StringUtil.isEmpty(out)) out = getAttr(sys, "out");
 				if (StringUtil.isEmpty(err)) err = getAttr(sys, "err");
 			}
 
-			if (!StringUtil.isEmpty(out) && hasAccess) {
-				config.setOut(toPrintwriter(config, out, false));
-			}
-			else if (hasCS) config.setOut(configServer.getOutWriter());
+			// OUT
+			PrintStream ps = toPrintStream(config, out, false);
+			config.setOut(new PrintWriter(ps));
+			System.setOut(ps);
 
-			if (!StringUtil.isEmpty(err) && hasAccess) {
-				config.setErr(toPrintwriter(config, err, true));
-			}
-			else if (hasCS) config.setErr(configServer.getErrWriter());
+			// ERR
+			ps = toPrintStream(config, err, true);
+			config.setErr(new PrintWriter(ps));
+			System.setErr(ps);
+
 		}
 		catch (Exception e) {
 			log(config, log, e);
 		}
 	}
 
-	private static PrintWriter toPrintwriter(ConfigImpl config, String streamtype, boolean iserror) {
+	private static PrintStream toPrintStream(ConfigImpl config, String streamtype, boolean iserror) {
 		if (!StringUtil.isEmpty(streamtype)) {
 			streamtype = streamtype.trim();
-
-			if (streamtype.equalsIgnoreCase("null")) return new PrintWriter(DevNullOutputStream.DEV_NULL_OUTPUT_STREAM);
+			// null
+			if (streamtype.equalsIgnoreCase("null")) {
+				return new PrintStream(DevNullOutputStream.DEV_NULL_OUTPUT_STREAM);
+			}
+			// class
 			else if (StringUtil.startsWithIgnoreCase(streamtype, "class:")) {
 				String classname = streamtype.substring(6);
 				try {
-					return (PrintWriter) ClassUtil.loadInstance(classname);
+
+					return (PrintStream) ClassUtil.loadInstance(classname);
 				}
-				catch (Throwable t) {
-					ExceptionUtil.rethrowIfNecessary(t);
-				}
+				catch (Exception e) {}
 			}
+			// file
 			else if (StringUtil.startsWithIgnoreCase(streamtype, "file:")) {
 				String strRes = streamtype.substring(5);
 				try {
 					strRes = ConfigWebUtil.translateOldPath(strRes);
 					Resource res = ConfigWebUtil.getFile(config, config.getConfigDir(), strRes, ResourceUtil.TYPE_FILE);
-					if (res != null) return new PrintWriter(res.getOutputStream(), true);
+					if (res != null) return new PrintStream(res.getOutputStream(), true);
 				}
-				catch (Throwable t) {
-					ExceptionUtil.rethrowIfNecessary(t);
-				}
+				catch (Exception e) {}
 			}
-
+			else if (StringUtil.startsWithIgnoreCase(streamtype, "log")) {
+				try {
+					CFMLEngine engine = ConfigWebUtil.getEngine(config);
+					Resource root = ResourceUtil.toResource(engine.getCFMLEngineFactory().getResourceRoot());
+					Resource log = root.getRealResource("context/logs/" + (iserror ? "err" : "out") + ".log");
+					if (!log.isFile()) {
+						log.getParentResource().mkdirs();
+						log.createNewFile();
+					}
+					return new PrintStream(new RetireOutputStream(log, true, 5, null));
+				}
+				catch (Exception e) {}
+			}
 		}
-		if (iserror) return SystemUtil.getPrintWriter(SystemUtil.ERR);
-		return SystemUtil.getPrintWriter(SystemUtil.OUT);
+		return iserror ? CFMLEngineImpl.CONSOLE_ERR : CFMLEngineImpl.CONSOLE_OUT;
+
 	}
 
 	/**
