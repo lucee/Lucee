@@ -16,7 +16,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 //,field("Scope Variables","scopesList","",true,"Enable Scope reporting","checkbox","Application,CGI,Client,Cookie,Form,Request,Server,Session,URL")
 ,group("Metrics Tab","",2)
 ,field("Metrics","tab_Metrics","Enabled",true,"Select the Metrics tab to show on debugOutput","checkbox","Enabled")
-,field("Charts","metrics_charts","HeapChart,NonHeapChart,WholeSystem",false,"Select the chart to show on metrics Tab. It will show only if the metrics tabs is enabled","checkbox","HeapChart,NonHeapChart,WholeSystem")
+//,field("Charts","metrics_charts","HeapChart,NonHeapChart,WholeSystem",false,"Select the chart to show on metrics Tab. It will show only if the metrics tabs is enabled","checkbox","HeapChart,NonHeapChart,WholeSystem")
 ,group("Reference Tab","",2)
 ,field("Reference","tab_Reference","Enabled",true,"Select the Reference tab to show on DebugOutput","checkbox","Enabled")
 );
@@ -201,6 +201,8 @@ if(structKeyExists(arguments.custom, "metrics_Charts")) {
 	border-color:white;
 	font-size: 15px !important; 
 	font-weight: 500 !important;
+  	outline: none;
+  	display: none;
 }
 .ldTab button:hover {
   background-color: #666;
@@ -275,6 +277,11 @@ if(structKeyExists(arguments.custom, "metrics_Charts")) {
 
 <script language="javascript">
 ldActiveTab='-lucee-debugging';
+
+function ldShow(id) {
+	var el=document.getElementById(id);
+	if(el!=null)el.style.display = "inline";
+}
 
 function ldSelectTab(evt, tabName) {
 	ldActiveTab=tabName;
@@ -653,11 +660,6 @@ function ldRequestData() {
 </script>
 
 
-
-
-
-
-
 <div class="ldTab">
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<!---
 
@@ -749,7 +751,7 @@ Reference Button
 ------------------------------------------
 ---><fieldset 
 				id="-lucee-debugging" 
-				class="ldTabContent">
+				class="ldTabContent" style="display: inline;">
 
 				<div id="-lucee-debugging-ALL">
 
@@ -1131,7 +1133,6 @@ Reference Button
 						</table>
 					</cfif>
 
-
 					<!--- Queries --->
 					<cfif queries.recordcount>
 
@@ -1184,6 +1185,7 @@ Reference Button
 													<th>Time (ms)</th>
 													<th>Datasource</th>
 													<th>Source</th>
+													<th>Line</th>
 													<cfif hasCachetype><th>Cache Type</th></cfif>
 
 												</tr>
@@ -1194,11 +1196,12 @@ Reference Button
 													<td class="txt-r">#unitFormat(arguments.custom.unit, queries.time,prettify)#</td>
 													<td>#queries.datasource#</td>
 													<td>#queries.src#</td>
+													<td>#queries.line#</td>
 													<cfif hasCachetype><td>#isEmpty(queries.cacheType)?"none":queries.cacheType#</td></cfif>
 												</tr>
 												<tr>
 													<th class="label">SQL:</th>
-													<td id="-lucee-debugging-query-sql-#queries.currentRow#" colspan="6" oncontextmenu="__LUCEE.debug.selectText( this.id );"><pre>#trim( queries.sql )#</pre></td>
+													<td id="-lucee-debugging-query-sql-#queries.currentRow#" colspan="7" oncontextmenu="__LUCEE.debug.selectText( this.id );"><pre>#trim( queries.sql )#</pre></td>
 												</tr>
 
 												<cfif listFindNoCase(queries.columnlist, 'usage') && isStruct(queries.usage)>
@@ -1216,14 +1219,14 @@ Reference Button
 													</cfloop>
 
 													<tr>
-														<th colspan="7"><b>Query usage within the request</b></th>
+														<th colspan="8"><b>Query usage within the request</b></th>
 													</tr>
 
 													<cfset local.arr = usageRead>
 													<cfset local.arrLenU = arrayLen( arr )>
 													<cfif arrLenU>
 														<tr>
-															<td colspan="7">
+															<td colspan="8">
 																Used:<cfloop from="1" to="#arrLenU#" index="local.ii">
 																	#arr[ ii ]# <cfif ii LT arrLenU>, </cfif>
 																</cfloop>
@@ -1234,7 +1237,7 @@ Reference Button
 													<cfset local.arrLenN = arrayLen( arr )>
 													<cfif arrLenN>
 														<tr class="red">
-															<td colspan="7">
+															<td colspan="8">
 																Unused:
 																<cfloop from="1" to="#arrLenN#" index="local.ii">
 																	#arr[ ii ]# <cfif ii LT arrLenN>, </cfif>
@@ -1242,7 +1245,7 @@ Reference Button
 															</td>
 														</tr>
 														<tr class="red">
-															<td colspan="7"><b>#arrLenU ? numberFormat( arrLenU / ( arrLenU + arrLenN ) * 100, "999.9" ) : 100# %</b></td>
+															<td colspan="8"><b>#arrLenU ? numberFormat( arrLenU / ( arrLenU + arrLenN ) * 100, "999.9" ) : 100# %</b></td>
 														</tr>
 													</cfif>
 												</cfif>
@@ -1387,13 +1390,14 @@ Reference Button
 				, selectText:	__LUCEE.util.selectText
 			};
 		</script>
-
-
-
-
+<cfif hasMetTab or hasRefTab>
 <script>
+ldShow("ldDebug");
+ldShow("ldMetrics");
+ldShow("ldRef");
 ldSelectTab(null,'-lucee-debugging');
 </script>
+</cfif>
 
 
 
