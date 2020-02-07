@@ -1,11 +1,15 @@
 <cfcomponent extends="org.lucee.cfml.test.LuceeTestCase">
 	<cfscript>
 		function beforeAll(){
+			afterAll();
+			variables.uri = createURI("LDEV1941");
+			Directorycreate(variables.uri);
+		}
+		function afterAll(){
 			variables.uri = createURI("LDEV1941");
 			if(directoryExists(variables.uri)){
 				DirectoryDelete(variables.uri, true);
 			}
-			Directorycreate(variables.uri);
 		}
 		
 		function run( testResults , testBox ) {
@@ -19,12 +23,13 @@
 					cfdocument(format="PDF" name="pdf2" filename="#variables.uri#/test2.pdf" overwrite="true"){
 						writeOutput("Lucee");
 					}
-					cfpdf ( action = "extracttext" source = "pdf2" name="read" ) {
+					cfpdf ( action = "extracttext" source = "pdf2" name="result" ) {
 					}
 					expect(isXML(result)).toBeTrue();
 				});
 			});
 		}
+
 		// private function//
 		private string function createURI(string calledName){
 			var baseURI="/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
