@@ -80,11 +80,11 @@ try{
 	fileCopy(src.war,trg.war);*/
 
 	// light
-	src.lightName="lucee-light-"&src.version&".jar";
+	/*src.lightName="lucee-light-"&src.version&".jar";
 	src.light=src.dir&src.lightName;
 	trg.light=trg.dir&src.lightName;
 	createLight(src.jar,src.light,src.version);
-	fileCopy(src.light,trg.light);
+	fileCopy(src.light,trg.light);*/
 
 	// forgebox
 	// express
