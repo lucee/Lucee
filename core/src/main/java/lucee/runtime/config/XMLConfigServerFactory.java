@@ -195,7 +195,7 @@ public final class XMLConfigServerFactory extends XMLConfigFactory {
 
 		// Debug
 		Resource debug = adminDir.getRealResource("debug");
-		create("/resource/context/admin/debug/", new String[] { "Debug.cfc", "Field.cfc", "Group.cfc", "Classic.cfc", "Modern.cfc", "Comment.cfc" }, debug, doNew);
+		create("/resource/context/admin/debug/", new String[] { "Debug.cfc", "Field.cfc", "Group.cfc", "Classic.cfc", "Simple.cfc", "Modern.cfc", "Comment.cfc" }, debug, doNew);
 
 		// DB Drivers types
 		Resource dbDir = adminDir.getRealResource("dbdriver");
