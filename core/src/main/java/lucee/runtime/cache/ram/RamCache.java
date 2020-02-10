@@ -21,6 +21,7 @@ package lucee.runtime.cache.ram;
 import java.io.IOException;
 import java.lang.ref.SoftReference;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -239,10 +240,16 @@ public class RamCache extends CacheSupport {
 		}
 
 		private void _run() {
-			RamCacheEntry[] values = ramCache.entries.values().toArray(new RamCacheEntry[ramCache.entries.size()]);
+			if (ramCache == null) return;
+			Map<String, SoftReference<RamCacheEntry>> e = ramCache.entries;
+			if (e == null) return;
+			Collection<SoftReference<RamCacheEntry>> v = e.values();
+			if (v == null) return;
+
+			RamCacheEntry[] values = v.toArray(new RamCacheEntry[e.size()]);
 			for (int i = 0; i < values.length; i++) {
 				if (!CacheSupport.valid(values[i])) {
-					ramCache.entries.remove(values[i].getKey());
+					e.remove(values[i].getKey());
 				}
 			}
 		}
