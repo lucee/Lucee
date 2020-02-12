@@ -333,13 +333,16 @@ public final class PageSourceImpl implements PageSource {
 			// load page
 			else {
 				try {
-					this.page = page = newInstance(mapping.getPhysicalClass(this.getActualClassName()));
+					this.page = page = newInstance(mapping.getPhysicalClass(this.getClassName(), IOUtil.toBytes(classFile)));
 				}
 				catch (Throwable t) {
 					ExceptionUtil.rethrowIfNecessary(t);
 					this.page = page = null;
 				}
-				if (page == null) this.page = page = compile(config, classRootDir, null, false, pc.ignoreScopes());
+				if (page == null) {
+					this.page = page = compile(config, classRootDir, null, false, pc.ignoreScopes());
+					isNew = true;
+				}
 			}
 
 			// check if version changed or lasMod
