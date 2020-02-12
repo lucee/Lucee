@@ -285,7 +285,7 @@ public final class PageSourceImpl implements PageSource {
 	 */
 	private Page loadPhysical(PageContext pc, Page page) throws TemplateException {
 		if (!mapping.hasPhysical()) return null;
-
+		// print.e("------- load(" + getClassName() + ") -------");
 		ConfigWeb config = pc.getConfig();
 		PageContextImpl pci = (PageContextImpl) pc;
 		if ((mapping.getInspectTemplate() == Config.INSPECT_NEVER || pci.isTrusted(page)) && isLoad(LOAD_PHYSICAL)) return page;
@@ -312,7 +312,9 @@ public final class PageSourceImpl implements PageSource {
 
 				}
 				if (!same) {
+					// print.e("------- compile(" + getClassName() + ") -------");
 					this.page = page = compile(config, mapping.getClassRootDirectory(), page, false, pc.ignoreScopes());
+					// print.e("- " + page.getClass().getName());
 					page.setPageSource(this);
 					page.setLoadType(LOAD_PHYSICAL);
 				}
@@ -326,20 +328,31 @@ public final class PageSourceImpl implements PageSource {
 			boolean isNew = false;
 			// new class
 			if (flush || !classFile.exists()) {
+				// print.e("------- compile2(" + getClassName() + ") -------");
 				this.page = page = compile(config, classRootDir, null, false, pc.ignoreScopes());
+				// print.e("- " + page.getClass().getName());
 				flush = false;
 				isNew = true;
 			}
 			// load page
 			else {
 				try {
-					this.page = page = newInstance(mapping.getPhysicalClass(this.getActualClassName()));
+					// reload from class file
+					// print.e("------- reload(" + getClassName() + ") -------");
+					this.page = page = newInstance(mapping.getPhysicalClass(getClassName(), IOUtil.toBytes(classFile)));
+					// print.e("- " + page.getClass().getName());
+					// this.page = page = newInstance(mapping.getPhysicalClass(this.getActualClassName()));
 				}
-				catch (Throwable t) {
-					ExceptionUtil.rethrowIfNecessary(t);
+				catch (Exception e) {
+					// print.e(e);
 					this.page = page = null;
 				}
-				if (page == null) this.page = page = compile(config, classRootDir, null, false, pc.ignoreScopes());
+				if (page == null) {
+					// print.e("------- compile3(" + getClassName() + ") -------");
+					this.page = page = compile(config, classRootDir, null, false, pc.ignoreScopes());
+					// print.e("- " + page.getClass().getName());
+					isNew = true;
+				}
 			}
 
 			// check if version changed or lasMod
@@ -409,11 +422,6 @@ public final class PageSourceImpl implements PageSource {
 					mapping.getPhysicalClass(jf.getClassName(), jf.byteCode);
 				}
 			}
-			if (!clazz.getName().equals(getClassName())) {
-				setActualClassName(clazz.getName());
-			}
-			else setActualClassName(null);
-
 			return newInstance(clazz);
 		}
 		catch (Throwable t) {
@@ -643,16 +651,6 @@ public final class PageSourceImpl implements PageSource {
 		if (className == null) createClassAndPackage();
 		if (packageName.length() == 0) return className;
 		return packageName.concat(".").concat(className);
-	}
-
-	public void setActualClassName(String actualClassName) {
-		this.actualClassName = actualClassName;
-		;
-	}
-
-	public String getActualClassName() {
-		if (actualClassName == null) return getClassName();
-		return actualClassName;
 	}
 
 	@Override
