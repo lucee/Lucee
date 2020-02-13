@@ -918,7 +918,7 @@ public final class Decision {
 					int len = path.length();
 					for (int i = 0; i < len; i++) {
 
-						if ("?<>:*|\"".indexOf(path.charAt(i)) > -1) return false;
+						if ("?<>*|\"".indexOf(path.charAt(i)) > -1) return false;
 					}
 				}
 			}
