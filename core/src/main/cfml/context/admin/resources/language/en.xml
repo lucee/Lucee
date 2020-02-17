@@ -1270,6 +1270,7 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="overview.Docs">Documentation</data>
 	<data key="overview.DocsDesc">If you have any questions about Lucee please take a look at the documentation in the first instance.</data>
 	<data key="overview.onlineDocsLink">Online Documentation</data>
+	<data key="overview.installDocsLink">Click to install - Lucee Documentation Extension</data>
 	<data key="overview.localRefLink">Local Reference</data>
 	<data key="overview.issuetracker">Issue Tracker</data>
 	<data key="overview.issuetrackerDesc">If you think you've found a bug, please take the time to report it via our bug tracking system.</data>

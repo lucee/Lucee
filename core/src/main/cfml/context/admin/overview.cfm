@@ -684,7 +684,7 @@ Error Output --->
 						<tr>
 							<td>
 								<cfif Listfind(valueList(docsServer.name),"Lucee Documentation") eq 0 && Listfind(valueList(docsWeb.name),"Lucee Documentation") eq 0>
-									<a href="#cgi.script_name#?action=ext.applications" title="Click to install - Lucee Documentation Extension">
+									<a href="#cgi.script_name#?action=ext.applications" title="#stText.overview.installDocsLink#">
 										#stText.Overview.localRefLink#</a>
 								<cfelse>
 									<a href="../doc/index.cfm" target="_blank">#stText.Overview.localRefLink#</a>
