@@ -134,7 +134,7 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 				Object d = getDefaultValue(pc, i, _null);
 				if (d == _null) {
 					if (funcArgs[i].isRequired()) {
-						throw new ExpressionException("The parameter " + funcArgs[i].getName() + " to function " + getFunctionName() + " is required but was not passed in.");
+						throw new ExpressionException("The parameter [" + funcArgs[i].getName() + "] to function [" + getFunctionName() + "] is required but was not passed in.");
 					}
 					if (!fns) newArgs.setEL(funcArgs[i].getName(), Argument.NULL);
 				}
@@ -174,7 +174,7 @@ public class UDFImpl extends MemberSupport implements UDFPlus, Externalizable {
 			Object defaultValue = getDefaultValue(pageContext, i, _null);// funcArgs[i].getDefaultValue();
 			if (defaultValue == _null) {
 				if (funcArgs[i].isRequired()) {
-					throw new ExpressionException("The parameter " + funcArgs[i].getName() + " to function " + getFunctionName() + " is required but was not passed in.");
+					throw new ExpressionException("The parameter [" + funcArgs[i].getName() + "] to function [" + getFunctionName() + "] is required but was not passed in.");
 				}
 				if (pageContext.getCurrentTemplateDialect() == CFMLEngine.DIALECT_CFML && !pageContext.getConfig().getFullNullSupport()) newArgs.set(name, Argument.NULL);
 			}
