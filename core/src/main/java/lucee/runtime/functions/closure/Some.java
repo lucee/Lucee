@@ -30,6 +30,7 @@ import java.util.concurrent.Future;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.concurrency.Data;
+import lucee.runtime.concurrency.PageContextSimpleCloner;
 import lucee.runtime.concurrency.UDFCaller2;
 import lucee.runtime.exp.CasterException;
 import lucee.runtime.exp.FunctionException;
@@ -66,63 +67,64 @@ public class Some extends BIF implements ClosureFunc {
 	}
 
 	public static boolean _call(PageContext pc, Object obj, UDF udf, boolean parallel, int maxThreads, short type) throws PageException {
-
+		PageContextSimpleCloner cloner = null;
 		ExecutorService execute = null;
 		List<Future<Data<Object>>> futures = null;
 		if (parallel) {
 			execute = Executors.newFixedThreadPool(maxThreads);
 			futures = new ArrayList<Future<Data<Object>>>();
+			cloner = new PageContextSimpleCloner(pc);
 		}
 
 		boolean res;
 
 		// Array
 		if (type == TYPE_ARRAY) {
-			res = invoke(pc, (Array) obj, udf, execute, futures);
+			res = invoke(pc, (Array) obj, udf, execute, futures, cloner);
 		}
 		// Query
 		else if (type == TYPE_QUERY) {
-			res = invoke(pc, (Query) obj, udf, execute, futures);
+			res = invoke(pc, (Query) obj, udf, execute, futures, cloner);
 		}
 		// Struct
 		else if (type == TYPE_STRUCT) {
-			res = invoke(pc, (Struct) obj, udf, execute, futures);
+			res = invoke(pc, (Struct) obj, udf, execute, futures, cloner);
 		}
 		// Array
 		else if (obj instanceof Array && !(obj instanceof Argument)) {
-			res = invoke(pc, (Array) obj, udf, execute, futures);
+			res = invoke(pc, (Array) obj, udf, execute, futures, cloner);
 		}
 		// Query
 		else if (obj instanceof Query) {
-			res = invoke(pc, (Query) obj, udf, execute, futures);
+			res = invoke(pc, (Query) obj, udf, execute, futures, cloner);
 		}
 		// Struct
 		else if (obj instanceof Struct) {
-			res = invoke(pc, (Struct) obj, udf, execute, futures);
+			res = invoke(pc, (Struct) obj, udf, execute, futures, cloner);
 		}
 		// other Iteratorable
 		else if (obj instanceof Iteratorable) {
-			res = invoke(pc, (Iteratorable) obj, udf, execute, futures);
+			res = invoke(pc, (Iteratorable) obj, udf, execute, futures, cloner);
 		}
 		// Map
 		else if (obj instanceof java.util.Map) {
-			res = invoke(pc, (java.util.Map) obj, udf, execute, futures);
+			res = invoke(pc, (java.util.Map) obj, udf, execute, futures, cloner);
 		}
 		// List
 		else if (obj instanceof List) {
-			res = invoke(pc, (List) obj, udf, execute, futures);
+			res = invoke(pc, (List) obj, udf, execute, futures, cloner);
 		}
 		// Iterator
 		else if (obj instanceof Iterator) {
-			res = invoke(pc, (Iterator) obj, udf, execute, futures);
+			res = invoke(pc, (Iterator) obj, udf, execute, futures, cloner);
 		}
 		// Enumeration
 		else if (obj instanceof Enumeration) {
-			res = invoke(pc, (Enumeration) obj, udf, execute, futures);
+			res = invoke(pc, (Enumeration) obj, udf, execute, futures, cloner);
 		}
 		// String List
 		else if (obj instanceof StringListData) {
-			res = invoke(pc, (StringListData) obj, udf, execute, futures);
+			res = invoke(pc, (StringListData) obj, udf, execute, futures, cloner);
 		}
 		else throw new FunctionException(pc, "Some", 1, "data", "cannot iterate througth this type " + Caster.toTypeName(obj.getClass()));
 
@@ -131,7 +133,8 @@ public class Some extends BIF implements ClosureFunc {
 		return res;
 	}
 
-	private static boolean invoke(PageContext pc, Query qry, UDF udf, ExecutorService es, List<Future<Data<Object>>> futures) throws CasterException, PageException {
+	private static boolean invoke(PageContext pc, Query qry, UDF udf, ExecutorService es, List<Future<Data<Object>>> futures, PageContextSimpleCloner cloner)
+			throws CasterException, PageException {
 		final int pid = pc.getId();
 		ForEachQueryIterator it = new ForEachQueryIterator(pc, qry, pid);
 		boolean async = es != null;
@@ -141,7 +144,7 @@ public class Some extends BIF implements ClosureFunc {
 			while (it.hasNext()) {
 				row = it.next();
 				r = Caster.toDoubleValue(qry.getCurrentrow(pid));
-				res = _inv(pc, udf, new Object[] { row, r, qry }, r, row, es, futures);
+				res = _inv(pc, udf, new Object[] { row, r, qry }, r, row, es, futures, cloner);
 				if (!async && Caster.toBooleanValue(res)) {
 					return true;
 				}
@@ -153,14 +156,15 @@ public class Some extends BIF implements ClosureFunc {
 		return false;
 	}
 
-	private static boolean invoke(PageContext pc, Array arr, UDF udf, ExecutorService es, List<Future<Data<Object>>> futures) throws CasterException, PageException {
+	private static boolean invoke(PageContext pc, Array arr, UDF udf, ExecutorService es, List<Future<Data<Object>>> futures, PageContextSimpleCloner cloner)
+			throws CasterException, PageException {
 		Iterator it = (arr instanceof ArrayPro ? ((ArrayPro) arr).entryArrayIterator() : arr.entryIterator());
 		Entry e;
 		boolean async = es != null;
 		Object res;
 		while (it.hasNext()) {
 			e = (Entry) it.next();
-			res = _inv(pc, udf, new Object[] { e.getValue(), Caster.toDoubleValue(e.getKey()), arr }, e.getKey(), e.getValue(), es, futures);
+			res = _inv(pc, udf, new Object[] { e.getValue(), Caster.toDoubleValue(e.getKey()), arr }, e.getKey(), e.getValue(), es, futures, cloner);
 			if (!async && Caster.toBooleanValue(res)) {
 				return true;
 			}
@@ -168,7 +172,8 @@ public class Some extends BIF implements ClosureFunc {
 		return false;
 	}
 
-	private static boolean invoke(PageContext pc, StringListData sld, UDF udf, ExecutorService es, List<Future<Data<Object>>> futures) throws CasterException, PageException {
+	private static boolean invoke(PageContext pc, StringListData sld, UDF udf, ExecutorService es, List<Future<Data<Object>>> futures, PageContextSimpleCloner cloner)
+			throws CasterException, PageException {
 		Array arr = ListUtil.listToArray(sld.list, sld.delimiter, sld.includeEmptyFieldsx, sld.multiCharacterDelimiter);
 		Iterator it = (arr instanceof ArrayPro ? ((ArrayPro) arr).entryArrayIterator() : arr.entryIterator());
 		Entry e;
@@ -176,7 +181,7 @@ public class Some extends BIF implements ClosureFunc {
 		Object res;
 		while (it.hasNext()) {
 			e = (Entry) it.next();
-			res = _inv(pc, udf, new Object[] { e.getValue(), Caster.toDoubleValue(e.getKey()), sld.list, sld.delimiter }, e.getKey(), e.getValue(), es, futures);
+			res = _inv(pc, udf, new Object[] { e.getValue(), Caster.toDoubleValue(e.getKey()), sld.list, sld.delimiter }, e.getKey(), e.getValue(), es, futures, cloner);
 			if (!async && Caster.toBooleanValue(res)) {
 				return true;
 			}
@@ -184,7 +189,8 @@ public class Some extends BIF implements ClosureFunc {
 		return false;
 	}
 
-	private static boolean invoke(PageContext pc, List list, UDF udf, ExecutorService es, List<Future<Data<Object>>> futures) throws CasterException, PageException {
+	private static boolean invoke(PageContext pc, List list, UDF udf, ExecutorService es, List<Future<Data<Object>>> futures, PageContextSimpleCloner cloner)
+			throws CasterException, PageException {
 		ListIterator it = list.listIterator();
 		boolean async = es != null;
 		Object res, v;
@@ -194,39 +200,42 @@ public class Some extends BIF implements ClosureFunc {
 			index = it.nextIndex();
 			k = ArgumentIntKey.init(index);
 			v = it.next();
-			res = _inv(pc, udf, new Object[] { v, Caster.toDoubleValue(k.getString()), list }, k, v, es, futures);
+			res = _inv(pc, udf, new Object[] { v, Caster.toDoubleValue(k.getString()), list }, k, v, es, futures, cloner);
 			if (!async && Caster.toBooleanValue(res)) return true;
 		}
 		return false;
 	}
 
-	private static boolean invoke(PageContext pc, Struct sct, UDF udf, ExecutorService es, List<Future<Data<Object>>> futures) throws PageException {
+	private static boolean invoke(PageContext pc, Struct sct, UDF udf, ExecutorService es, List<Future<Data<Object>>> futures, PageContextSimpleCloner cloner)
+			throws PageException {
 		Iterator<Entry<Key, Object>> it = sct.entryIterator();
 		Entry<Key, Object> e;
 		boolean async = es != null;
 		Object res;
 		while (it.hasNext()) {
 			e = it.next();
-			res = _inv(pc, udf, new Object[] { e.getKey().getString(), e.getValue(), sct }, e.getKey(), e.getValue(), es, futures);
+			res = _inv(pc, udf, new Object[] { e.getKey().getString(), e.getValue(), sct }, e.getKey(), e.getValue(), es, futures, cloner);
 			if (!async && Caster.toBooleanValue(res)) return true;
 		}
 		return false;
 	}
 
-	private static boolean invoke(PageContext pc, java.util.Map map, UDF udf, ExecutorService es, List<Future<Data<Object>>> futures) throws PageException {
+	private static boolean invoke(PageContext pc, java.util.Map map, UDF udf, ExecutorService es, List<Future<Data<Object>>> futures, PageContextSimpleCloner cloner)
+			throws PageException {
 		Iterator<Entry> it = map.entrySet().iterator();
 		Entry e;
 		boolean async = es != null;
 		Object res;
 		while (it.hasNext()) {
 			e = it.next();
-			res = _inv(pc, udf, new Object[] { e.getKey(), e.getValue(), map }, e.getKey(), e.getValue(), es, futures);
+			res = _inv(pc, udf, new Object[] { e.getKey(), e.getValue(), map }, e.getKey(), e.getValue(), es, futures, cloner);
 			if (!async && Caster.toBooleanValue(res)) return true;
 		}
 		return false;
 	}
 
-	private static boolean invoke(PageContext pc, Iteratorable i, UDF udf, ExecutorService es, List<Future<Data<Object>>> futures) throws PageException {
+	private static boolean invoke(PageContext pc, Iteratorable i, UDF udf, ExecutorService es, List<Future<Data<Object>>> futures, PageContextSimpleCloner cloner)
+			throws PageException {
 		Iterator<Entry<Key, Object>> it = i.entryIterator();
 
 		Entry<Key, Object> e;
@@ -234,13 +243,14 @@ public class Some extends BIF implements ClosureFunc {
 		Object res;
 		while (it.hasNext()) {
 			e = it.next();
-			res = _inv(pc, udf, new Object[] { e.getKey().getString(), e.getValue() }, e.getKey(), e.getValue(), es, futures);
+			res = _inv(pc, udf, new Object[] { e.getKey().getString(), e.getValue() }, e.getKey(), e.getValue(), es, futures, cloner);
 			if (!async && Caster.toBooleanValue(res)) return true;
 		}
 		return false;
 	}
 
-	private static boolean invoke(PageContext pc, Iterator it, UDF udf, ExecutorService es, List<Future<Data<Object>>> futures) throws PageException {
+	private static boolean invoke(PageContext pc, Iterator it, UDF udf, ExecutorService es, List<Future<Data<Object>>> futures, PageContextSimpleCloner cloner)
+			throws PageException {
 
 		Object v;
 		boolean async = es != null;
@@ -250,13 +260,14 @@ public class Some extends BIF implements ClosureFunc {
 		while (it.hasNext()) {
 			v = it.next();
 			k = ArgumentIntKey.init(++count);
-			res = _inv(pc, udf, new Object[] { v }, k, v, es, futures);
+			res = _inv(pc, udf, new Object[] { v }, k, v, es, futures, cloner);
 			if (!async && Caster.toBooleanValue(res)) return true;
 		}
 		return false;
 	}
 
-	private static boolean invoke(PageContext pc, Enumeration e, UDF udf, ExecutorService es, List<Future<Data<Object>>> futures) throws PageException {
+	private static boolean invoke(PageContext pc, Enumeration e, UDF udf, ExecutorService es, List<Future<Data<Object>>> futures, PageContextSimpleCloner cloner)
+			throws PageException {
 
 		Object v;
 		boolean async = es != null;
@@ -266,17 +277,18 @@ public class Some extends BIF implements ClosureFunc {
 		while (e.hasMoreElements()) {
 			v = e.nextElement();
 			k = ArgumentIntKey.init(++count);
-			res = _inv(pc, udf, new Object[] { v }, k, v, es, futures);
+			res = _inv(pc, udf, new Object[] { v }, k, v, es, futures, cloner);
 			if (!async && Caster.toBooleanValue(res)) return true;
 		}
 		return false;
 	}
 
-	private static Object _inv(PageContext pc, UDF udf, Object[] args, Object key, Object value, ExecutorService es, List<Future<Data<Object>>> futures) throws PageException {
+	private static Object _inv(PageContext pc, UDF udf, Object[] args, Object key, Object value, ExecutorService es, List<Future<Data<Object>>> futures,
+			PageContextSimpleCloner cloner) throws PageException {
 		if (es == null) {
 			return udf.call(pc, args, true);
 		}
-		futures.add(es.submit(new UDFCaller2<Object>(pc, udf, args, null, true)));
+		futures.add(es.submit(new UDFCaller2<Object>(cloner, udf, args, null, true)));
 		return null;
 	}
 

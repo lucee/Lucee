@@ -49,13 +49,15 @@ public class ThreadUtil {
 		// TODO stateless
 		CFMLFactoryImpl factory = (CFMLFactoryImpl) pc.getConfig().getFactory();
 		HttpServletRequest req = new HTTPServletRequestWrap(cloneHttpServletRequest(pc));
-		HttpServletResponse rsp = createHttpServletResponse(os);
 
+		HttpServletResponse rsp = createHttpServletResponse(os);
 		// copy state
 		PageContextImpl pci = (PageContextImpl) pc;
 		PageContextImpl dest = factory.getPageContextImpl(factory.getServlet(), req, rsp, null, false, -1, false, register2Thread, true, pc.getRequestTimeout(),
 				register2RunningThreads, false, false);
+
 		pci.copyStateTo(dest);
+
 		return dest;
 	}
 

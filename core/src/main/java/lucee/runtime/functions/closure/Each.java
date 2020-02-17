@@ -34,6 +34,7 @@ import java.util.concurrent.Future;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.concurrency.Data;
+import lucee.runtime.concurrency.PageContextSimpleCloner;
 import lucee.runtime.concurrency.UDFCaller2;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
@@ -69,33 +70,35 @@ public final class Each extends BIF implements ClosureFunc {
 	private static String _call(PageContext pc, Object obj, UDF udf, boolean parallel, int maxThreads, short type) throws PageException {
 		ExecutorService execute = null;
 		List<Future<Data<Object>>> futures = null;
+		PageContextSimpleCloner cloner = null;
 		if (parallel) {
 			execute = Executors.newFixedThreadPool(maxThreads);
 			futures = new ArrayList<Future<Data<Object>>>();
+			cloner = new PageContextSimpleCloner(pc);
 		}
 
 		// !!!! Don't combine the first 2 ifs with the ifs below, type overrules instanceof check
 		// Array
 		if (type == TYPE_ARRAY) {
-			invoke(pc, (Array) obj, udf, execute, futures);
+			invoke(pc, (Array) obj, udf, execute, futures, cloner);
 		}
 		// Query
 		else if (type == TYPE_QUERY) {
-			invoke(pc, (Query) obj, udf, execute, futures);
+			invoke(pc, (Query) obj, udf, execute, futures, cloner);
 		}
 
 		// Array
 		else if (obj instanceof Array && !(obj instanceof Argument)) {
-			invoke(pc, (Array) obj, udf, execute, futures);
+			invoke(pc, (Array) obj, udf, execute, futures, cloner);
 		}
 		// Query
 		else if (obj instanceof Query) {
-			invoke(pc, (Query) obj, udf, execute, futures);
+			invoke(pc, (Query) obj, udf, execute, futures, cloner);
 		}
 
 		// other Iteratorable
 		else if (obj instanceof Iteratorable) {
-			invoke(pc, (Iteratorable) obj, udf, execute, futures);
+			invoke(pc, (Iteratorable) obj, udf, execute, futures, cloner);
 		}
 		// Map
 		else if (obj instanceof Map) {
@@ -103,7 +106,7 @@ public final class Each extends BIF implements ClosureFunc {
 			Entry e;
 			while (it.hasNext()) {
 				e = (Entry) it.next();
-				_call(pc, udf, new Object[] { e.getKey(), e.getValue(), obj }, execute, futures);
+				_call(pc, udf, new Object[] { e.getKey(), e.getValue(), obj }, execute, futures, cloner);
 				// udf.call(pc, new Object[]{e.getKey(),e.getValue()}, true);
 			}
 		}
@@ -113,7 +116,7 @@ public final class Each extends BIF implements ClosureFunc {
 			int index;
 			while (it.hasNext()) {
 				index = it.nextIndex();
-				_call(pc, udf, new Object[] { it.next(), new Double(index), obj }, execute, futures);
+				_call(pc, udf, new Object[] { it.next(), new Double(index), obj }, execute, futures, cloner);
 				// udf.call(pc, new Object[]{it.next()}, true);
 			}
 		}
@@ -122,7 +125,7 @@ public final class Each extends BIF implements ClosureFunc {
 		else if (obj instanceof Iterator) {
 			Iterator it = (Iterator) obj;
 			while (it.hasNext()) {
-				_call(pc, udf, new Object[] { it.next() }, execute, futures);
+				_call(pc, udf, new Object[] { it.next() }, execute, futures, cloner);
 				// udf.call(pc, new Object[]{it.next()}, true);
 			}
 		}
@@ -130,19 +133,20 @@ public final class Each extends BIF implements ClosureFunc {
 		else if (obj instanceof Enumeration) {
 			Enumeration e = (Enumeration) obj;
 			while (e.hasMoreElements()) {
-				_call(pc, udf, new Object[] { e.nextElement() }, execute, futures);
+				_call(pc, udf, new Object[] { e.nextElement() }, execute, futures, cloner);
 				// udf.call(pc, new Object[]{e.nextElement()}, true);
 			}
 		}
 		// StringListData
 		else if (obj instanceof StringListData) {
-			invoke(pc, (StringListData) obj, udf, execute, futures);
+			invoke(pc, (StringListData) obj, udf, execute, futures, cloner);
 		}
 
 		else throw new FunctionException(pc, "Each", 1, "data", "cannot iterate througth this type " + Caster.toTypeName(obj.getClass()));
 
 		if (parallel) afterCall(pc, futures, execute);
 
+		if (cloner != null) cloner.end();
 		return null;
 	}
 
@@ -162,23 +166,26 @@ public final class Each extends BIF implements ClosureFunc {
 		}
 	}
 
-	public static void invoke(PageContext pc, Array array, UDF udf, ExecutorService execute, List<Future<Data<Object>>> futures) throws PageException {
+	public static void invoke(PageContext pc, Array array, UDF udf, ExecutorService execute, List<Future<Data<Object>>> futures, PageContextSimpleCloner cloner)
+			throws PageException {
 		Iterator it = (array instanceof ArrayPro ? ((ArrayPro) array).entryArrayIterator() : array.entryIterator());
 		Entry e;
+
 		while (it.hasNext()) {
 			e = (Entry) it.next();
-			_call(pc, udf, new Object[] { e.getValue(), Caster.toDoubleValue(e.getKey()), array }, execute, futures);
+			_call(pc, udf, new Object[] { e.getValue(), Caster.toDoubleValue(e.getKey()), array }, execute, futures, cloner);
 		}
 	}
 
-	public static void invoke(PageContext pc, Query qry, UDF udf, ExecutorService execute, List<Future<Data<Object>>> futures) throws PageException {
+	public static void invoke(PageContext pc, Query qry, UDF udf, ExecutorService execute, List<Future<Data<Object>>> futures, PageContextSimpleCloner cloner)
+			throws PageException {
 		final int pid = pc.getId();
 		ForEachQueryIterator it = new ForEachQueryIterator(pc, qry, pid);
 		try {
 			Object row;
 			while (it.hasNext()) {
 				row = it.next();
-				_call(pc, udf, new Object[] { row, Caster.toDoubleValue(qry.getCurrentrow(pid)), qry }, execute, futures);
+				_call(pc, udf, new Object[] { row, Caster.toDoubleValue(qry.getCurrentrow(pid)), qry }, execute, futures, cloner);
 			}
 		}
 		finally {
@@ -186,17 +193,19 @@ public final class Each extends BIF implements ClosureFunc {
 		}
 	}
 
-	public static void invoke(PageContext pc, Iteratorable coll, UDF udf, ExecutorService execute, List<Future<Data<Object>>> futures) throws PageException {
+	public static void invoke(PageContext pc, Iteratorable coll, UDF udf, ExecutorService execute, List<Future<Data<Object>>> futures, PageContextSimpleCloner cloner)
+			throws PageException {
 		Iterator<Entry<Key, Object>> it = coll.entryIterator();
 		Entry<Key, Object> e;
 		while (it.hasNext()) {
 			e = it.next();
-			_call(pc, udf, new Object[] { e.getKey().getString(), e.getValue(), coll }, execute, futures);
+			_call(pc, udf, new Object[] { e.getKey().getString(), e.getValue(), coll }, execute, futures, cloner);
 			// udf.call(pc, new Object[]{e.getKey().getString(),e.getValue()}, true);
 		}
 	}
 
-	private static void invoke(PageContext pc, StringListData sld, UDF udf, ExecutorService execute, List<Future<Data<Object>>> futures) throws PageException {
+	private static void invoke(PageContext pc, StringListData sld, UDF udf, ExecutorService execute, List<Future<Data<Object>>> futures, PageContextSimpleCloner cloner)
+			throws PageException {
 		Array arr = ListUtil.listToArray(sld.list, sld.delimiter, sld.includeEmptyFieldsx, sld.multiCharacterDelimiter);
 
 		Iterator it = (arr instanceof ArrayPro ? ((ArrayPro) arr).entryArrayIterator() : arr.entryIterator());
@@ -204,17 +213,17 @@ public final class Each extends BIF implements ClosureFunc {
 
 		while (it.hasNext()) {
 			e = (Entry) it.next();
-			_call(pc, udf, new Object[] { e.getValue(), Caster.toDoubleValue(e.getKey()), sld.list, sld.delimiter }, execute, futures);
+			_call(pc, udf, new Object[] { e.getValue(), Caster.toDoubleValue(e.getKey()), sld.list, sld.delimiter }, execute, futures, cloner);
 		}
 
 	}
 
-	private static void _call(PageContext pc, UDF udf, Object[] args, ExecutorService es, List<Future<Data<Object>>> futures) throws PageException {
+	private static void _call(PageContext pc, UDF udf, Object[] args, ExecutorService es, List<Future<Data<Object>>> futures, PageContextSimpleCloner cloner) throws PageException {
 		if (es == null) {
 			udf.call(pc, args, true);
 			return;
 		}
-		futures.add(es.submit(new UDFCaller2<Object>(pc, udf, args, null, true)));
+		futures.add(es.submit(new UDFCaller2<Object>(cloner, udf, args, null, true)));
 	}
 
 	@Override

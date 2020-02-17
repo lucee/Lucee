@@ -25,21 +25,19 @@ import java.util.concurrent.Callable;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.LogUtil;
-import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.net.http.HttpServletResponseDummy;
 import lucee.runtime.net.http.ReqRspUtil;
-import lucee.runtime.thread.ThreadUtil;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.UDF;
 
 public class UDFCaller2<P> implements Callable<Data<P>> {
 
-	private PageContext parent;
-	private PageContextImpl pc;
-	private ByteArrayOutputStream baos;
+	private final PageContextSimpleCloner cloner;
+	// private PageContextImpl pc;
+	// private ByteArrayOutputStream baos;
 
 	private UDF udf;
 	private boolean doIncludePath;
@@ -47,22 +45,16 @@ public class UDFCaller2<P> implements Callable<Data<P>> {
 	private Struct namedArguments;
 	private P passed;
 
-	private UDFCaller2(PageContext parent) {
-		this.parent = parent;
-		this.baos = new ByteArrayOutputStream();
-		this.pc = ThreadUtil.clonePageContext(parent, baos, false, false, false);
-	}
-
-	public UDFCaller2(PageContext parent, UDF udf, Object[] arguments, P passed, boolean doIncludePath) {
-		this(parent);
+	public UDFCaller2(PageContextSimpleCloner cloner, UDF udf, Object[] arguments, P passed, boolean doIncludePath) {
+		this.cloner = cloner;
 		this.udf = udf;
 		this.arguments = arguments;
 		this.doIncludePath = doIncludePath;
 		this.passed = passed;
 	}
 
-	public UDFCaller2(PageContext parent, UDF udf, Struct namedArguments, P passed, boolean doIncludePath) {
-		this(parent);
+	public UDFCaller2(PageContextSimpleCloner cloner, UDF udf, Struct namedArguments, P passed, boolean doIncludePath) {
+		this.cloner = cloner;
 		this.udf = udf;
 		this.namedArguments = namedArguments;
 		this.doIncludePath = doIncludePath;
@@ -71,8 +63,8 @@ public class UDFCaller2<P> implements Callable<Data<P>> {
 
 	@Override
 	public final Data<P> call() throws PageException {
-		ThreadLocalPageContext.register(pc);
-		pc.getRootOut().setAllowCompression(false); // make sure content is not compressed
+		final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		PageContextImpl pc = cloner.get(baos);
 		String str = null;
 		Object result = null;
 		try {
@@ -87,9 +79,7 @@ public class UDFCaller2<P> implements Callable<Data<P>> {
 				Charset cs = ReqRspUtil.getCharacterEncoding(pc, rsp);
 				// if(enc==null) enc="ISO-8859-1";
 
-				pc.getOut().flush(); // make sure content is flushed
-
-				pc.getConfig().getFactory().releasePageContext(pc);
+				cloner.release(pc);
 				str = IOUtil.toString((new ByteArrayInputStream(baos.toByteArray())), cs); // TODO add support for none string content
 			}
 			catch (Exception e) {
