@@ -21,6 +21,7 @@ package lucee.commons.lang;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.instrument.ClassDefinition;
 import java.lang.instrument.UnmodifiableClassException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -35,11 +36,13 @@ import org.apache.commons.collections4.map.ReferenceMap;
 
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.instrumentation.InstrumentationFactory;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.transformer.bytecode.util.ClassRenamer;
 
@@ -60,6 +63,20 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	private Set<String> unavaiClasses = new HashSet<>();
 
 	private Map<String, PhysicalClassLoader> customCLs;
+
+	private static long counter = 0L;
+	private static long _start = 0L;
+	private static String start = Long.toString(_start, Character.MAX_RADIX);
+
+	public static synchronized String uid() {
+		counter++;
+		if (counter < 0) {
+			counter = 1;
+			start = Long.toString(++_start, Character.MAX_RADIX);
+		}
+		if (_start == 0L) return Long.toString(counter, Character.MAX_RADIX);
+		return start + "_" + Long.toString(counter, Character.MAX_RADIX);
+	}
 
 	/**
 	 * Constructor of the class
@@ -153,7 +170,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 
 			byte[] barr = baos.toByteArray();
 			IOUtil.closeEL(baos);
-			return _loadClass(name, barr);
+			return _loadClass(name, barr, false);
 		}
 	}
 
@@ -168,35 +185,25 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 				clazz = loadClass(name, false, false); // we do not load existing class from disk
 			}
 			catch (ClassNotFoundException cnf) {}
-			if (clazz == null) return _loadClass(name, barr);
+			if (clazz == null) return _loadClass(name, barr, false);
 
+			// first we try to update the class what needs instrumentation object
+			try {
+				InstrumentationFactory.getInstrumentation(config).redefineClasses(new ClassDefinition(clazz, barr));
+				return clazz;
+			}
+			catch (Exception e) {
+				LogUtil.log(null, "compilation", e);
+			}
+
+			// in case instrumentation fails, we rename it
 			return rename(clazz, barr);
-
-			// update
-			/*
-			 * try { InstrumentationFactory.getInstrumentation(config).redefineClasses(new
-			 * ClassDefinition(clazz, barr)); } catch (ClassNotFoundException e) { throw new
-			 * RuntimeException(e); } return clazz;
-			 */
 		}
 	}
 
 	private Class<?> rename(Class<?> clazz, byte[] barr) {
-		String prefix = clazz.getName();
-		Class<?> clazz2 = null;
-		String newName;
-		int index = 0;
-		do {
-			clazz2 = null;
-			newName = prefix + "$" + (++index);
-			try {
-				clazz2 = loadClass(newName, false, false); // we do not load existing class from disk
-			}
-			catch (ClassNotFoundException cnf) {}
-		}
-		while (clazz2 != null);
-		return _loadClass(newName, ClassRenamer.rename(barr, newName));
-
+		String newName = clazz.getName() + "$" + uid();
+		return _loadClass(newName, ClassRenamer.rename(barr, newName), true);
 	}
 
 	/*
@@ -207,10 +214,10 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	 * return prefix.substring(0, index); }
 	 */
 
-	private Class<?> _loadClass(String name, byte[] barr) {
+	private Class<?> _loadClass(String name, byte[] barr, boolean rename) {
 		Class<?> clazz = defineClass(name, barr, 0, barr.length);
 		if (clazz != null) {
-			loadedClasses.add(name);
+			if (!rename) loadedClasses.add(name);
 			resolveClass(clazz);
 		}
 		return clazz;

@@ -177,7 +177,7 @@ public final class ResourceUtil {
 	// private static Magic mimeTypeParser;
 
 	/**
-	 * cast a String (argument destination) to a File Object, if destination is not a absolute, file
+	 * cast a String (argument destination) to a File Object, if destination is not an absolute, file
 	 * object will be relative to current position (get from PageContext) file must exist otherwise
 	 * throw exception
 	 * 
@@ -205,7 +205,7 @@ public final class ResourceUtil {
 		Resource res = pc.getConfig().getResource(path);
 
 		if (res.exists()) return res;
-		else if (!allowRealpath) throw new ExpressionException("file or directory " + path + " does not exist");
+		else if (!allowRealpath) throw new ExpressionException("file or directory [" + path + "] does not exist");
 
 		if (res.isAbsolute() && res.exists()) {
 			return res;
@@ -224,7 +224,7 @@ public final class ResourceUtil {
 		}
 		res = getRealResource(pc, path, res);
 		if (res.exists()) return res;
-		throw new ExpressionException("file or directory " + path + " does not exist");
+		throw new ExpressionException("file or directory [" + path + "] does not exist");
 	}
 
 	public static Resource toResourceExisting(Config config, String path) throws ExpressionException {
@@ -232,7 +232,7 @@ public final class ResourceUtil {
 		Resource res = config.getResource(path);
 
 		if (res.exists()) return res;
-		throw new ExpressionException("file or directory " + path + " does not exist");
+		throw new ExpressionException("file or directory [" + path + "] does not exist");
 	}
 
 	public static Resource toResourceExisting(Config config, String path, Resource defaultValue) {
@@ -251,7 +251,7 @@ public final class ResourceUtil {
 	}
 
 	/**
-	 * cast a String (argument destination) to a File Object, if destination is not a absolute, file
+	 * cast a String (argument destination) to a File Object, if destination is not an absolute, file
 	 * object will be relative to current position (get from PageContext) at least parent must exist
 	 * 
 	 * @param pc Page Context to the current position in filesystem
@@ -271,7 +271,7 @@ public final class ResourceUtil {
 		// not allow realpath
 		if (!allowRealpath) {
 			if (res.exists() || parentExists(res)) return res;
-			throw new ExpressionException("parent directory " + res.getParent() + "  for file " + destination + " doesn't exist");
+			throw new ExpressionException("parent directory [" + res.getParent() + "]  for file [" + destination + "] doesn't exist");
 
 		}
 
@@ -297,12 +297,12 @@ public final class ResourceUtil {
 		res = getRealResource(pc, destination, res);
 		if (res != null && (res.exists() || parentExists(res))) return res;
 
-		throw new ExpressionException("parent directory " + res.getParent() + "  for file " + destination + " doesn't exist");
+		throw new ExpressionException("parent directory [" + res.getParent() + "]  for file [" + destination + "] doesn't exist");
 
 	}
 
 	/**
-	 * cast a String (argument destination) to a File Object, if destination is not a absolute, file
+	 * cast a String (argument destination) to a File Object, if destination is not an absolute, file
 	 * object will be relative to current position (get from PageContext) existing file is preferred but
 	 * dont must exist
 	 * 
@@ -367,10 +367,10 @@ public final class ResourceUtil {
 	}
 
 	/**
-	 * translate the path of the file to a existing file path by changing case of letters Works only on
+	 * translate the path of the file to an existing file path by changing case of letters Works only on
 	 * Linux, because
 	 * 
-	 * Example Unix: we have a existing file with path "/usr/virtual/myFile.txt" now you call this
+	 * Example Unix: we have an existing file with path "/usr/virtual/myFile.txt" now you call this
 	 * method with path "/Usr/Virtual/myfile.txt" the result of the method will be
 	 * "/usr/virtual/myFile.txt"
 	 * 
@@ -812,7 +812,7 @@ public final class ResourceUtil {
 	}
 
 	/**
-	 * return diffrents of one file to a other if first is child of second otherwise return null
+	 * return diffrents of one file to another if first is child of second otherwise return null
 	 * 
 	 * @param file file to search
 	 * @param dir directory to search
@@ -1049,7 +1049,7 @@ public final class ResourceUtil {
 	}
 
 	public static ContentType getContentType(Resource resource) {
-		// TODO make this part of a interface
+		// TODO make this part of an interface
 		if (resource instanceof HTTPResource) {
 			try {
 				return ((HTTPResource) resource).getContentType();
@@ -1171,7 +1171,7 @@ public final class ResourceUtil {
 	}
 
 	/**
-	 * return if Resource is empty, means is directory and has no children or a empty file, if not exist
+	 * return if Resource is empty, means is directory and has no children or an empty file, if not exist
 	 * return false.
 	 * 
 	 * @param res
@@ -1269,7 +1269,7 @@ public final class ResourceUtil {
 	 */
 	public static void checkCreateDirectoryOK(Resource resource, boolean createParentWhenNotExists) throws IOException {
 		if (resource.exists()) {
-			if (resource.isFile()) throw new IOException("can't create directory [" + resource.getPath() + "], resource already exists as a file");
+			if (resource.isFile()) throw new IOException("can't create directory [" + resource.getPath() + "], it already exists as a file");
 			if (resource.isDirectory()) throw new IOException("can't create directory [" + resource.getPath() + "], directory already exists");
 		}
 
@@ -1295,7 +1295,7 @@ public final class ResourceUtil {
 	 */
 	public static void checkCreateFileOK(Resource resource, boolean createParentWhenNotExists) throws IOException {
 		if (resource.exists()) {
-			if (resource.isDirectory()) throw new IOException("can't create file [" + resource.getPath() + "], resource already exists as a directory");
+			if (resource.isDirectory()) throw new IOException("can't create file [" + resource.getPath() + "], it already exists as a directory");
 			if (resource.isFile()) throw new IOException("can't create file [" + resource.getPath() + "], file already exists");
 		}
 
@@ -1307,7 +1307,7 @@ public final class ResourceUtil {
 				else throw new IOException("can't create file [" + resource.getPath() + "], missing parent directory");
 			}
 			else if (parent.isFile()) {
-				throw new IOException("can't create file [" + resource.getPath() + "], parent is a file");
+				throw new IOException("can't create file [" + resource.getPath() + "], the specified parent directory is a file");
 			}
 		}
 	}
@@ -1323,7 +1323,7 @@ public final class ResourceUtil {
 	public static void checkCopyToOK(Resource source, Resource target) throws IOException {
 		if (!source.isFile()) {
 			if (source.isDirectory()) throw new IOException("can't copy [" + source.getPath() + "] to [" + target.getPath() + "], source is a directory");
-			throw new IOException("can't copy [" + source.getPath() + "] to [" + target.getPath() + "], source file does not exist");
+			throw new IOException("can't copy [" + source.getPath() + "] to [" + target.getPath() + "], source file doesn't exist");
 		}
 		else if (target.isDirectory()) {
 			throw new IOException("can't copy [" + source.getPath() + "] to [" + target.getPath() + "], target is a directory");
@@ -1340,14 +1340,14 @@ public final class ResourceUtil {
 	 */
 	public static void checkMoveToOK(Resource source, Resource target) throws IOException {
 		if (!source.exists()) {
-			throw new IOException("can't move [" + source.getPath() + "] to [" + target.getPath() + "], source file does not exist");
+			throw new IOException("can't move [" + source.getPath() + "] to [" + target.getPath() + "], source file doesn't exist");
 		}
 		if (source.isDirectory() && target.isFile()) throw new IOException("can't move [" + source.getPath() + "] directory to [" + target.getPath() + "], target is a file");
 		if (source.isFile() && target.isDirectory()) throw new IOException("can't move [" + source.getPath() + "] file to [" + target.getPath() + "], target is a directory");
 	}
 
 	/**
-	 * check if getting a inputstream of the file is ok with the rules for the Resource interface, to
+	 * check if getting an inputstream of the file is ok with the rules for the Resource interface, to
 	 * not change this rules.
 	 * 
 	 * @param resource
@@ -1361,7 +1361,7 @@ public final class ResourceUtil {
 	}
 
 	/**
-	 * check if getting a outputstream of the file is ok with the rules for the Resource interface, to
+	 * check if getting an outputstream of the file is ok with the rules for the Resource interface, to
 	 * not change this rules.
 	 * 
 	 * @param resource
@@ -1384,8 +1384,8 @@ public final class ResourceUtil {
 	 * @throws IOException
 	 */
 	public static void checkRemoveOK(Resource resource) throws IOException {
-		if (!resource.exists()) throw new IOException("can't delete resource " + resource + ", resource does not exist");
-		if (!resource.canWrite()) throw new IOException("can't delete resource " + resource + ", no access");
+		if (!resource.exists()) throw new IOException("can't delete resource [" + resource + "], resource does not exist");
+		if (!resource.canWrite()) throw new IOException("can't delete resource [" + resource + "], no write access");
 
 	}
 
@@ -1402,7 +1402,7 @@ public final class ResourceUtil {
 	}
 
 	/**
-	 * if the pageSource is based on a archive, translate the source to a zip:// Resource
+	 * if the pageSource is based on an archive, translate the source to a zip:// Resource
 	 * 
 	 * @return return the Resource matching this PageSource
 	 * @param pc the Page Context Object

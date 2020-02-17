@@ -24,7 +24,7 @@ import java.util.Iterator;
 import lucee.runtime.type.Collection;
 
 /**
- * Iterator Implementation for a Object Array
+ * Iterator Implementation for an Object Array
  */
 public final class StringIterator implements Iterator<String>, Enumeration<String> {
 

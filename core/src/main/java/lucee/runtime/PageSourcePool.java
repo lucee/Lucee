@@ -95,7 +95,7 @@ public final class PageSourcePool implements Dumpable {
 	}
 
 	/**
-	 * @return returns a array of all keys in the page pool
+	 * @return returns an array of all keys in the page pool
 	 */
 	public String[] keys() {
 		if (pageSources == null) return new String[0];

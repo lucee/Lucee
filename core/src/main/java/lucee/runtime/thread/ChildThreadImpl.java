@@ -57,7 +57,6 @@ import lucee.runtime.type.scope.Local;
 import lucee.runtime.type.scope.LocalImpl;
 import lucee.runtime.type.scope.Threads;
 import lucee.runtime.type.scope.Undefined;
-import lucee.runtime.type.util.KeyConstants;
 
 public class ChildThreadImpl extends ChildThread implements Serializable {
 
@@ -175,7 +174,7 @@ public class ChildThreadImpl extends ChildThread implements Serializable {
 				pc.addPageSource(p.getPageSource(), true);
 			}
 
-			threadScope = pc.getThreadScope(KeyConstants._cfthread, null);
+			threadScope = pc.getCFThreadScope();
 			pc.setCurrentThreadScope(new ThreadsImpl(this));
 			pc.setThread(Thread.currentThread());
 

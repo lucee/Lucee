@@ -636,9 +636,9 @@ public final class Directory extends TagImpl {
 			if (directory.isDirectory()) {
 				if (nameConflict == NAMECONFLICT_SKIP) return;
 
-				throw new ApplicationException("directory [" + directory.toString() + "] already exist");
+				throw new ApplicationException("directory [" + directory.toString() + "] already exists");
 			}
-			else if (directory.isFile()) throw new ApplicationException("can't create directory [" + directory.toString() + "], it exist a file with same name");
+			else if (directory.isFile()) throw new ApplicationException("can't create directory [" + directory.toString() + "], a file exists with the same name");
 		}
 		// if(!directory.mkdirs()) throw new ApplicationException("can't create directory
 		// ["+directory.toString()+"]");
@@ -729,7 +729,7 @@ public final class Directory extends TagImpl {
 		}
 
 		// check if file
-		if (dir.isFile()) throw new ApplicationException("can't delete [" + dir.toString() + "], it isn't a directory it is a file");
+		if (dir.isFile()) throw new ApplicationException("can't delete [" + dir.toString() + "], it isn't a directory, it's a file");
 
 		// delete directory
 		try {
@@ -789,12 +789,12 @@ public final class Directory extends TagImpl {
 		if (!directory.isDirectory()) throw new ApplicationException("file [" + directory.toString() + "] exists, but isn't a directory");
 		if (!directory.canRead()) throw new ApplicationException("no access to read directory [" + directory.toString() + "]");
 
-		if (StringUtil.isEmpty(strDestination)) throw new ApplicationException("attribute destination is not defined");
+		if (StringUtil.isEmpty(strDestination)) throw new ApplicationException("attribute [destination] is not defined");
 
 		// real to source
 		Resource newdirectory = toDestination(pc, strDestination, directory);
 
-		if (nameconflict == NAMECONFLICT_ERROR && newdirectory.exists()) throw new ApplicationException("new directory [" + newdirectory.toString() + "] already exist");
+		if (nameconflict == NAMECONFLICT_ERROR && newdirectory.exists()) throw new ApplicationException("new directory [" + newdirectory.toString() + "] already exists");
 
 		securityManager.checkFileLocation(pc.getConfig(), newdirectory, serverPassword);
 

@@ -622,7 +622,7 @@ public final class Ftp extends TagImpl {
 	}
 
 	/**
-	 * close a existing ftp connection
+	 * close an existing ftp connection
 	 * 
 	 * @return FTPCLient
 	 * @throws PageException
@@ -637,7 +637,7 @@ public final class Ftp extends TagImpl {
 	}
 
 	/**
-	 * throw a error if the value is empty (null)
+	 * throw an error if the value is empty (null)
 	 * 
 	 * @param attributeName
 	 * @param atttributValue
@@ -645,7 +645,7 @@ public final class Ftp extends TagImpl {
 	 */
 	private void required(String attributeName, String atttributValue) throws ApplicationException {
 		if (atttributValue == null)
-			throw new ApplicationException("invalid attribute constelation for the tag ftp", "attribute [" + attributeName + "] is required, if action is [" + action + "]");
+			throw new ApplicationException("invalid combination of attributes for the tag ftp", "attribute [" + attributeName + "] is required, if action is [" + action + "]");
 	}
 
 	/**

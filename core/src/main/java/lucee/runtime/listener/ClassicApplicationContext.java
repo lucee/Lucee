@@ -62,7 +62,8 @@ import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.util.ArrayUtil;
 
 /**
- * 
+ * This class resolves the Application settings that are defined in cfapplication tag attributes,
+ * e.g. sessionManagement, localMode, etc.
  */
 public class ClassicApplicationContext extends ApplicationContextSupport {
 
@@ -146,6 +147,9 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 
 	private TimeSpan queryCachedAfter;
 	private String blockedExtForFileUpload;
+	private Struct xmlFeatures;
+
+	private Map<Key, Object> customAttrs;
 
 	/**
 	 * constructor of the class
@@ -1062,5 +1066,23 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	@Override
 	public String getBlockedExtForFileUpload() {
 		return blockedExtForFileUpload;
+	}
+
+	@Override
+	public Struct getXmlFeatures() {
+		return xmlFeatures;
+	}
+
+	@Override
+	public void setXmlFeatures(Struct xmlFeatures) {
+		this.xmlFeatures = xmlFeatures;
+	}
+
+	public void setCustomAttributes(Map<Key, Object> customAttrs) {
+		this.customAttrs = customAttrs;
+	}
+
+	public Map<Key, Object> getCustomAttributes() {
+		return customAttrs;
 	}
 }

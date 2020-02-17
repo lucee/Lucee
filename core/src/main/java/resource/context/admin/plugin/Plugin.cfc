@@ -57,11 +57,9 @@
 	</cffunction>
 	
 	
-<cffunction name="action">
+<cffunction name="action" output="false">
 	<cfargument name="action" type="string" required="yes">
 	<cfargument name="qs" type="string" required="no" default="">
-	
-	
 	<cfreturn request.self&"?action="&url.action&"&plugin="&url.plugin&"&pluginAction="&arguments.action&"&"&arguments.qs>
 </cffunction>
 	

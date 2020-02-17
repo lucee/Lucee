@@ -30,6 +30,7 @@ import java.net.URLClassLoader;
 import java.net.URLDecoder;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.zip.ZipEntry;
@@ -43,6 +44,7 @@ import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.FileUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
+import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
@@ -136,19 +138,21 @@ public final class ClassUtil {
 		return defaultValue;
 	}
 
-	public static Class<?> loadClassByBundle(String className, String name, String strVersion, Identification id) throws ClassException, BundleException {
+	public static Class<?> loadClassByBundle(String className, String name, String strVersion, Identification id, List<Resource> addionalDirectories)
+			throws ClassException, BundleException {
 		// version
 		Version version = null;
 		if (!StringUtil.isEmpty(strVersion, true)) {
 			version = OSGiUtil.toVersion(strVersion.trim(), null);
 			if (version == null) throw new ClassException("Version definition [" + strVersion + "] is invalid.");
 		}
-		return loadClassByBundle(className, name, version, id);
+		return loadClassByBundle(className, name, version, id, addionalDirectories);
 	}
 
-	public static Class loadClassByBundle(String className, String name, Version version, Identification id) throws BundleException, ClassException {
+	public static Class loadClassByBundle(String className, String name, Version version, Identification id, List<Resource> addionalDirectories)
+			throws BundleException, ClassException {
 		try {
-			return OSGiUtil.loadBundle(name, version, id, true).loadClass(className);
+			return OSGiUtil.loadBundle(name, version, id, addionalDirectories, true).loadClass(className);
 		}
 		catch (ClassNotFoundException e) {
 			String appendix = "";
@@ -443,7 +447,7 @@ public final class ClassUtil {
 
 		}
 		catch (SecurityException e) {
-			throw new ClassException("there is a security violation (throwed by security manager)");
+			throw new ClassException("there is a security violation (thrown by security manager)");
 		}
 		catch (NoSuchMethodException e) {
 
@@ -456,7 +460,7 @@ public final class ClassUtil {
 			}
 			sb.append(')');
 
-			throw new ClassException("there is no constructor with this [" + sb + "] signature for the class [" + clazz.getName() + "]");
+			throw new ClassException("there is no constructor with the [" + sb + "] signature for the class [" + clazz.getName() + "]");
 		}
 		catch (IllegalArgumentException e) {
 			throw new ClassException("has been passed an illegal or inappropriate argument");
@@ -699,7 +703,7 @@ public final class ClassUtil {
 	}
 
 	/**
-	 * return a array class based on the given class (opposite from Class.getComponentType())
+	 * return an array class based on the given class (opposite from Class.getComponentType())
 	 * 
 	 * @param clazz
 	 * @return
@@ -839,9 +843,10 @@ public final class ClassUtil {
 	 * @throws ClassException
 	 * @throws BundleException
 	 */
-	public static Class loadClass(String className, String bundleName, String bundleVersion, Identification id) throws ClassException, BundleException {
+	public static Class loadClass(String className, String bundleName, String bundleVersion, Identification id, List<Resource> addionalDirectories)
+			throws ClassException, BundleException {
 		if (StringUtil.isEmpty(bundleName)) return loadClass(className);
-		return loadClassByBundle(className, bundleName, bundleVersion, id);
+		return loadClassByBundle(className, bundleName, bundleVersion, id, addionalDirectories);
 	}
 
 	private static interface ClassLoading {

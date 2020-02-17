@@ -235,7 +235,7 @@ public final class HSQLDBHandler {
 	 * @throws PageException
 	 * @throws PageException
 	 */
-	public Query execute(PageContext pc, SQL sql, int maxrows, int fetchsize, TimeSpan timeout) throws PageException {
+	public Query execute(PageContext pc, final SQL sql, int maxrows, int fetchsize, TimeSpan timeout) throws PageException {
 		Stopwatch stopwatch = new Stopwatch(Stopwatch.UNIT_NANO);
 		stopwatch.start();
 		String prettySQL = null;
@@ -245,44 +245,22 @@ public final class HSQLDBHandler {
 		try {
 			SelectParser parser = new SelectParser();
 			selects = parser.parse(sql.getSQLString());
-
 			Query q = qoq.execute(pc, sql, selects, maxrows);
 			q.setExecutionTime(stopwatch.time());
-
 			return q;
 		}
 		catch (SQLParserException spe) {
-			// lucee.print.printST(spe);
 			// sp
-			// lucee.print.out("sql parser crash at:");
-			// lucee.print.out("--------------------------------");
-			// lucee.print.out(sql.getSQLString().trim());
-			// lucee.print.out("--------------------------------");
-			// print.e("1:"+sql.getSQLString());
 			prettySQL = SQLPrettyfier.prettyfie(sql.getSQLString());
-			// print.e("2:"+prettySQL);
 			try {
 				Query query = executer.execute(pc, sql, prettySQL, maxrows);
 				query.setExecutionTime(stopwatch.time());
 				return query;
 			}
-			catch (PageException ex) {
-				// lucee.print.printST(ex);
-				// lucee.print.out("old executor/zql crash at:");
-				// lucee.print.out("--------------------------------");
-				// lucee.print.out(sql.getSQLString().trim());
-				// lucee.print.out("--------------------------------");
-
-			}
+			catch (PageException ex) {}
 
 		}
-		catch (PageException e) {
-			// throw e;
-			// print.out("new executor crash at:");
-			// print.out("--------------------------------");
-			// print.out(sql.getSQLString().trim());
-			// print.out("--------------------------------");
-		}
+		catch (PageException e) {}
 		// if(true) throw new RuntimeException();
 
 		// SECOND Chance with hsqldb
@@ -349,11 +327,13 @@ public final class HSQLDBHandler {
 						String modTableName = tableName.replace('.', '_');
 						String modSql = StringUtil.replace(sql.getSQLString(), tableName, modTableName, false);
 						sql.setSQLString(modSql);
+						if (sql.getItems() != null && sql.getItems().length > 0) sql = new SQLImpl(sql.toString());
+
 						addTable(conn, pc, modTableName, Caster.toQuery(pc.getVariable(tableName)), doSimpleTypes, usedTables);
 					}
 					DBUtil.setReadOnlyEL(conn, true);
 					try {
-						nqr = new QueryImpl(pc, dc, sql, maxrows, fetchsize, timeout, "query", null, false, false);
+						nqr = new QueryImpl(pc, dc, sql, maxrows, fetchsize, timeout, "query", null, false, false, null);
 					}
 					finally {
 						DBUtil.setReadOnlyEL(conn, false);

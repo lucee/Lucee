@@ -16,7 +16,7 @@ public class SerializationSettings {
 	private boolean preserveCaseForQueryColumn = false;
 	private int serializeQueryAs = SERIALIZE_AS_ROW;
 
-	public static final SerializationSettings DEFAULT = new SerializationSettings(true, false, SERIALIZE_AS_ROW);
+	public static final SerializationSettings DEFAULT = new SerializationSettings(true, true, SERIALIZE_AS_ROW);
 
 	public SerializationSettings(boolean preserveCaseForStructKey, boolean preserveCaseForQueryColumn, int serializeQueryAs) {
 		this.preserveCaseForStructKey = preserveCaseForStructKey;

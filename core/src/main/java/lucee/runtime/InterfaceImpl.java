@@ -162,7 +162,7 @@ public class InterfaceImpl implements Interface {
 	public DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp) {
 		DumpTable table = new DumpTable("interface", "#99cc99", "#ffffff", "#000000");
 		table.setTitle("Interface " + callPath + "" + (" " + StringUtil.escapeHTML(dspName)));
-		table.setComment("Interface can not directly invoked as a object");
+		table.setComment("Interface can not directly invoked as an object");
 		// if(top.properties.extend.length()>0)table.appendRow(1,new SimpleDumpData("Extends"),new
 		// SimpleDumpData(top.properties.extend));
 		// if(top.properties.hint.trim().length()>0)table.appendRow(1,new SimpleDumpData("Hint"),new

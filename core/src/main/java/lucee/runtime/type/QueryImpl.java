@@ -136,6 +136,9 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	private QueryImpl generatedKeys;
 	private String template;
 
+	private Collection.Key indexName;
+	private Map<Collection.Key, Integer> indexes;// = new ConcurrentHashMap<Collection.Key,Integer>();
+
 	@Override
 	public String getTemplate() {
 		return template;
@@ -200,17 +203,14 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	 * @throws PageException
 	 */
 	public QueryImpl(PageContext pc, DatasourceConnection dc, SQL sql, int maxrow, int fetchsize, TimeSpan timeout, String name) throws PageException {
-		this(pc, dc, sql, maxrow, fetchsize, timeout, name, null, false, true);
-	}
-
-	public QueryImpl(PageContext pc, DatasourceConnection dc, SQL sql, int maxrow, int fetchsize, TimeSpan timeout, String name, String template) throws PageException {
-		this(pc, dc, sql, maxrow, fetchsize, timeout, name, template, false, true);
+		this(pc, dc, sql, maxrow, fetchsize, timeout, name, null, false, true, null);
 	}
 
 	public QueryImpl(PageContext pc, DatasourceConnection dc, SQL sql, int maxrow, int fetchsize, TimeSpan timeout, String name, String template, boolean createUpdateData,
-			boolean allowToCachePreperadeStatement) throws PageException {
+			boolean allowToCachePreperadeStatement, Collection.Key indexName) throws PageException {
 		this.name = name;
 		this.template = template;
+		this.indexName = indexName;
 		this.sql = sql;
 		execute(pc, dc, sql, maxrow, fetchsize, timeout, createUpdateData, allowToCachePreperadeStatement, this, null, null);
 	}
@@ -447,14 +447,43 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 			// fill QUERY
 			if (qry != null) {
-				while (result.next()) {
-					if (maxrow > -1 && recordcount >= maxrow) {
-						break;
+				int index = -1;
+				if (qry.indexName != null) {
+					qry.indexes = new ConcurrentHashMap<Collection.Key, Integer>();
+					for (int i = 0; i < columnNames.length; i++) {
+						if (columnNames[i].equalsIgnoreCase(qry.indexName)) {
+							index = i;
+							break;
+						}
 					}
-					for (int i = 0; i < usedColumns.length; i++) {
-						columns[i].add(casts[i].toCFType(tz, result, usedColumns[i] + 1));
+				}
+				if (index != -1) {
+					Object o;
+					while (result.next()) {
+						if (maxrow > -1 && recordcount >= maxrow) {
+							break;
+						}
+						for (int i = 0; i < usedColumns.length; i++) {
+							o = casts[i].toCFType(tz, result, usedColumns[i] + 1);
+							if (index == i) {
+								qry.indexes.put(Caster.toKey(o), recordcount + 1);
+
+							}
+							columns[i].add(o);
+						}
+						++recordcount;
 					}
-					++recordcount;
+				}
+				else {
+					while (result.next()) {
+						if (maxrow > -1 && recordcount >= maxrow) {
+							break;
+						}
+						for (int i = 0; i < usedColumns.length; i++) {
+							columns[i].add(casts[i].toCFType(tz, result, usedColumns[i] + 1));
+						}
+						++recordcount;
+					}
 				}
 			}
 			// fill QueryResult
@@ -525,7 +554,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	}
 
 	/**
-	 * constructor of the class, to generate a empty resultset (no database execution)
+	 * constructor of the class, to generate an empty resultset (no database execution)
 	 * 
 	 * @param strColumns columns for the resultset
 	 * @param rowNumber count of rows to generate (empty fields)
@@ -547,7 +576,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	}
 
 	/**
-	 * constructor of the class, to generate a empty resultset (no database execution)
+	 * constructor of the class, to generate an empty resultset (no database execution)
 	 * 
 	 * @param strColumns columns for the resultset
 	 * @param rowNumber count of rows to generate (empty fields)
@@ -572,7 +601,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	}
 
 	/**
-	 * constructor of the class, to generate a empty resultset (no database execution)
+	 * constructor of the class, to generate an empty resultset (no database execution)
 	 * 
 	 * @param strColumns columns for the resultset
 	 * @param strTypes array of the types
@@ -594,7 +623,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	}
 
 	/**
-	 * constructor of the class, to generate a empty resultset (no database execution)
+	 * constructor of the class, to generate an empty resultset (no database execution)
 	 * 
 	 * @param strColumns columns for the resultset
 	 * @param strTypes array of the types
@@ -616,7 +645,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	}
 
 	/**
-	 * constructor of the class, to generate a empty resultset (no database execution)
+	 * constructor of the class, to generate an empty resultset (no database execution)
 	 * 
 	 * @param arrColumns columns for the resultset
 	 * @param rowNumber count of rows to generate (empty fields)
@@ -637,7 +666,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	}
 
 	/**
-	 * constructor of the class, to generate a empty resultset (no database execution)
+	 * constructor of the class, to generate an empty resultset (no database execution)
 	 * 
 	 * @param arrColumns columns for the resultset
 	 * @param arrTypes type of the columns
@@ -657,19 +686,6 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			columns[i] = new QueryColumnImpl(this, columnNames[i], SQLCaster.toSQLType(Caster.toString(arrTypes.get(i + 1, ""))), recordcount);
 		}
 		validateColumnNames(columnNames);
-	}
-
-	/**
-	 * constructor of the class
-	 * 
-	 * @param columnNames columns definition as String Array
-	 * @param arrColumns values
-	 * @param name
-	 * @throws DatabaseException
-	 */
-
-	public QueryImpl(String[] strColumnNames, Array[] arrColumns, String name) throws DatabaseException {
-		this(CollectionUtil.toKeys(strColumnNames, true), arrColumns, name);
 	}
 
 	private static void validateColumnNames(Key[] columnNames) throws DatabaseException {
@@ -1333,8 +1349,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 		StringBuffer sb = new StringBuffer();
 
-		sb.append("Query\n");
-		sb.append("---------------------------------------------------\n");
+		sb.append("| Query: ").append(this.name).append("\tRecordCount: ").append(getRecordcount()).append('\n');
 
 		if (sql != null) {
 			sb.append(sql + "\n");
@@ -1346,8 +1361,6 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			sb.append("---------------------------------------------------\n");
 		}
 
-		sb.append("Recordcount: " + getRecordcount() + "\n");
-		sb.append("---------------------------------------------------\n");
 		String trenner = "";
 		for (int i = 0; i < keys.length; i++) {
 			trenner += "+---------------------";
@@ -1360,8 +1373,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			sb.append(getToStringField(keys[i].getString()));
 		}
 		sb.append("|\n");
-		sb.append(trenner);
-		sb.append(trenner);
+		sb.append(trenner.replace('-', '='));
 
 		// body
 		for (int i = 0; i < recordcount; i++) {
@@ -1484,7 +1496,6 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	}
 
 	private int getIndexFromKey(Collection.Key key) {
-
 		for (int i = 0; i < columnNames.length; i++) {
 			if (columnNames[i].equalsIgnoreCase(key)) return i;
 		}
@@ -1613,6 +1624,10 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	@Override
 	public int getColumnCount() {
 		return columncount;
+	}
+
+	public Map<Key, Integer> getIndexes() {
+		return indexes;
 	}
 
 	@Override
@@ -3127,5 +3142,10 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	public boolean equals(Object obj) {
 		if (!(obj instanceof Collection)) return false;
 		return CollectionUtil.equals(this, (Collection) obj);
+	}
+
+	public void disableIndex() {
+		this.indexes = null;
+		this.indexName = null;
 	}
 }

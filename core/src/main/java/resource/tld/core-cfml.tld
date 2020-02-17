@@ -172,12 +172,12 @@
 			<rtexprvalue>true</rtexprvalue>
 		</script>
 		<description>
-			Defines scoping for a application, enables or disables storing client variables,
+			Defines scoping for an application, enables or disables storing client variables,
 			and specifies a client variable storage mechanism.
 			By default, client variables are disabled. Also, enables session variables and sets timeouts
 			for session and application variables. Session and application variables are stored in memory.
 		</description>
-		<attribute-type>fixed</attribute-type>
+		<attribute-type>mixed</attribute-type>
 		<attribute>
 			<type>string</type>
 			<name>name</name>
@@ -339,7 +339,7 @@ Specifies how Lucee stores session variables:
 			<name>bufferOutput</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>if set to true (default) the output written to the body of the tag is buffered and in case of a exception also outputted.
+			<description>if set to true (default) the output written to the body of the tag is buffered and in case of an exception also outputted.
 			if set to false the content to body is ignored and not disabled when a failure in the body of the tag occur.</description>
 		</attribute>
 		<attribute>
@@ -651,7 +651,7 @@ A struct that defines default ftp settings, this settings can be overwritten as 
 			<name>cacheInclude</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>name of the cache used to store data from a include</description>
+			<description>name of the cache used to store data from an include</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -803,6 +803,12 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 	- watchInterval - interval it checks for changes with the jar files
 	- watchExtensions - extension of the files read
 			</description>
+		</attribute>
+		<attribute>
+			<name>xmlFeatures</name>
+			<type>struct</type>
+			<required>false</required>
+			<description>Allows to set XML Features to prevent XXE attacks</description>
 		</attribute>
 	</tag>
 
@@ -1037,7 +1043,7 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<name>bufferoutput</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>this attribute is only used when output of the function is set to false. if this attribute is set to true (default) the output written to the body of the function is buffered and in case of a exception also outputted.
+			<description>this attribute is only used when output of the function is set to false. if this attribute is set to true (default) the output written to the body of the function is buffered and in case of an exception also outputted.
 			if set to false the content to body is ignored and not disabled when a failure in the body of the tag occur.</description>
 		</attribute>
 		<attribute>
@@ -2323,7 +2329,7 @@ dWord: creates a value of 0 (zero)</description>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<script-support>optional</script-support>
-			<description>if set to true (default) the output written to the body of the tag is buffered and in case of a exception also outputted.
+			<description>if set to true (default) the output written to the body of the tag is buffered and in case of an exception also outputted.
 			if set to false the content to body is ignored and not disabled when a failure in the body of the tag occur.</description>
 		</attribute>
 	</tag>

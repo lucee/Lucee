@@ -31,7 +31,7 @@ public final class ModeUtil {
 	public static final int ROLE_WORLD = 01;
 
 	/**
-	 * translate a string mode (777 or drwxrwxrwx to a octal value)
+	 * translate a string mode (777 or drwxrwxrwx to an octal value)
 	 * 
 	 * @param strMode
 	 * @return
@@ -67,7 +67,7 @@ public final class ModeUtil {
 	}
 
 	/**
-	 * translate a octal mode value (73) to a string representation ("111")
+	 * translate an octal mode value (73) to a string representation ("111")
 	 * 
 	 * @param strMode
 	 * @return
@@ -80,7 +80,7 @@ public final class ModeUtil {
 	}
 
 	/**
-	 * update a string mode with a other (111+222=333 or 333+111=333 or 113+202=313)
+	 * update a string mode with another (111+222=333 or 333+111=333 or 113+202=313)
 	 * 
 	 * @param existing
 	 * @param update
@@ -92,7 +92,7 @@ public final class ModeUtil {
 	}
 
 	/**
-	 * update octal mode with a other
+	 * update octal mode with another
 	 * 
 	 * @param existingOctal
 	 * @param updateOctal

@@ -110,7 +110,7 @@ public interface DBUtil {
 	public Clob toClob(Connection conn, Object value) throws PageException, SQLException;
 
 	/**
-	 * checks if this is a oracle connection
+	 * checks if this is an oracle connection
 	 * 
 	 * @param conn
 	 * @return

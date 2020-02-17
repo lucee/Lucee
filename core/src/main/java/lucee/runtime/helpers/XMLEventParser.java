@@ -163,7 +163,7 @@ public final class XMLEventParser extends DefaultHandler {
 	}
 
 	/**
-	 * call back error function if a error occour
+	 * call back error function if an error occours
 	 * 
 	 * @param pe
 	 */
@@ -177,7 +177,7 @@ public final class XMLEventParser extends DefaultHandler {
 	}
 
 	/**
-	 * cast a Attributes object to a Struct
+	 * cast an Attributes object to a Struct
 	 * 
 	 * @param att
 	 * @return Attributes as Struct

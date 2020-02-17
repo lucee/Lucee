@@ -190,9 +190,9 @@ public final class CompressUtil {
 	}
 
 	private static void extractTar(Resource tarFile, Resource targetDir) throws IOException {
-		if (!targetDir.exists() || !targetDir.isDirectory()) throw new IOException(targetDir + " is not a existing directory");
+		if (!targetDir.exists() || !targetDir.isDirectory()) throw new IOException(targetDir + " is not an existing directory");
 
-		if (!tarFile.exists()) throw new IOException(tarFile + " is not a existing file");
+		if (!tarFile.exists()) throw new IOException(tarFile + " is not an existing file");
 
 		if (tarFile.isDirectory()) {
 			Resource[] files = tarFile.listResources(new ExtensionResourceFilter("tar"));
@@ -230,9 +230,9 @@ public final class CompressUtil {
 	}
 
 	private static void extractZip(Resource zipFile, Resource targetDir) throws IOException {
-		if (!targetDir.exists() || !targetDir.isDirectory()) throw new IOException(targetDir + " is not a existing directory");
+		if (!targetDir.exists() || !targetDir.isDirectory()) throw new IOException(targetDir + " is not an existing directory");
 
-		if (!zipFile.exists()) throw new IOException(zipFile + " is not a existing file");
+		if (!zipFile.exists()) throw new IOException(zipFile + " is not an existing file");
 
 		if (zipFile.isDirectory()) {
 			Resource[] files = zipFile.listResources(new OrResourceFilter(new ResourceFilter[] { new ExtensionResourceFilter("zip"), new ExtensionResourceFilter("jar"),
@@ -286,7 +286,7 @@ public final class CompressUtil {
 
 	/*
 	 * private static void listZipp(Resource zipFile) throws IOException { if (!zipFile.exists()) throw
-	 * new IOException(zipFile + " is not a existing file");
+	 * new IOException(zipFile + " is not an existing file");
 	 * 
 	 * if (zipFile.isDirectory()) { throw new IOException(zipFile + " is a directory"); }
 	 * 

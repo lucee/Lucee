@@ -3,7 +3,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>5.3.3.62-SNAPSHOT</version>
+  <version>5.3.4.77-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -346,7 +346,7 @@
   <dependency>
     <groupId>org.apache.tika</groupId>
     <artifactId>tika-core</artifactId>
-    <version>1.20</version>
+    <version>1.22</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
@@ -461,7 +461,7 @@
   	<groupId>org.lucee</groupId>
   	<artifactId>portlet</artifactId>
   	<version>1.0.0</version>
-    <scope>provided</scope>  
+    <scope>provided</scope>
   </dependency>
   <!--
   <dependency>

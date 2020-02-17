@@ -47,8 +47,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				assertEquals(true, isQuery(result));
 			});
 
-			it( title='test with version 8.0.9',skip=isNotSupported(), body=function( currentSpec ) {
-				defineDatasource('com.mysql.cj.jdbc.Driver',  'com.mysql.cj', '8.0.9');
+			it( title='test with version 8.0.15',skip=isNotSupported(), body=function( currentSpec ) {
+				defineDatasource('com.mysql.cj.jdbc.Driver',  'com.mysql.cj', '8.0.15');
 				var result = testConnection();
 				assertEquals(true, isQuery(result));
 			});
@@ -126,8 +126,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				assertEquals(true, isQuery(result));
 			});
 
-			it( title='test with version 8.0.9',skip=isNotSupported(), body=function( currentSpec ) {
-				defineDatasource('com.mysql.cj.jdbc.Driver',  'com.mysql.cj', '8.0.9');
+			it( title='test with version 8.0.15',skip=isNotSupported(), body=function( currentSpec ) {
+				defineDatasource('com.mysql.cj.jdbc.Driver',  'com.mysql.cj', '8.0.15');
 				var result = testConnection();
 				assertEquals(true, isQuery(result));
 			});
@@ -205,8 +205,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				assertEquals(true, isQuery(result));
 			});
 
-			it( title='test with version 8.0.9',skip=isNotSupported(), body=function( currentSpec ) {
-				defineDatasource('com.mysql.cj.jdbc.Driver',  'com.mysql.cj', '8.0.9');
+			it( title='test with version 8.0.15',skip=isNotSupported(), body=function( currentSpec ) {
+				defineDatasource('com.mysql.cj.jdbc.Driver',  'com.mysql.cj', '8.0.15');
 				var result = testConnection();
 				assertEquals(true, isQuery(result));
 			});

@@ -139,14 +139,13 @@ public final class XMLConfigServerFactory extends XMLConfigFactory {
 	public static void reloadInstance(CFMLEngine engine, ConfigServerImpl configServer)
 			throws SAXException, ClassException, PageException, IOException, TagLibException, FunctionLibException, BundleException {
 		Resource configFile = configServer.getConfigFile();
-
 		if (configFile == null) return;
-		if (second(configServer.getLoadTime()) > second(configFile.lastModified())) return;
+		if (second(configServer.getLoadTime()) > second(configFile.lastModified())) {
+			if (!configServer.getConfigDir().getRealResource("password.txt").isFile()) return;
+		}
 		int iDoNew = doNew(engine, configServer.getConfigDir(), false).updateType;
 		boolean doNew = iDoNew != NEW_NONE;
-
 		load(configServer, loadDocument(configFile), true, doNew);
-
 		((CFMLEngineImpl) ConfigWebUtil.getEngine(configServer)).onStart(configServer, true);
 	}
 
@@ -228,8 +227,9 @@ public final class XMLConfigServerFactory extends XMLConfigFactory {
 
 		// Gateway Drivers
 		Resource gDir = adminDir.getRealResource("gdriver");
-		create("/resource/context/admin/gdriver/", new String[] { "TaskGatewayDriver.cfc", "DirectoryWatcher.cfc", "MailWatcher.cfc", "Gateway.cfc", "Field.cfc", "Group.cfc" },
-				gDir, doNew);
+		create("/resource/context/admin/gdriver/",
+				new String[] { "TaskGatewayDriver.cfc", "AsynchronousEvents.cfc", "DirectoryWatcher.cfc", "MailWatcher.cfc", "Gateway.cfc", "Field.cfc", "Group.cfc" }, gDir,
+				doNew);
 
 		// Logging/appender
 		Resource app = adminDir.getRealResource("logging/appender");

@@ -38,6 +38,7 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.functions.BIFProxy;
+import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.Collection.Key;
@@ -54,7 +55,7 @@ public class ClassUtilImpl implements ClassUtil {
 	@Override
 	public Class<?> loadClass(PageContext pc, String className, String bundleName, String bundleVersion) throws ClassException, BundleException {
 		Config config = ThreadLocalPageContext.getConfig(pc);
-		return lucee.commons.lang.ClassUtil.loadClassByBundle(className, bundleName, bundleVersion, config.getIdentification());
+		return lucee.commons.lang.ClassUtil.loadClassByBundle(className, bundleName, bundleVersion, config.getIdentification(), JavaSettingsImpl.getBundleDirectories(pc));
 	}
 
 	@Override
@@ -81,7 +82,8 @@ public class ClassUtilImpl implements ClassUtil {
 	public BIF loadBIF(PageContext pc, String name, String bundleName, Version bundleVersion)
 			throws InstantiationException, IllegalAccessException, ClassException, BundleException {
 		// first of all we chek if itis a class
-		Class<?> res = lucee.commons.lang.ClassUtil.loadClassByBundle(name, bundleName, bundleVersion, pc.getConfig().getIdentification());
+		Class<?> res = lucee.commons.lang.ClassUtil.loadClassByBundle(name, bundleName, bundleVersion, pc.getConfig().getIdentification(),
+				JavaSettingsImpl.getBundleDirectories(pc));
 		if (res != null) {
 			if (Reflector.isInstaneOf(res, BIF.class, false)) {
 				return (BIF) res.newInstance();
@@ -237,12 +239,12 @@ public class ClassUtilImpl implements ClassUtil {
 
 	@Override
 	public Class<?> loadClassByBundle(String className, String name, String strVersion, Identification id) throws IOException, BundleException {
-		return lucee.commons.lang.ClassUtil.loadClassByBundle(className, name, strVersion, id);
+		return lucee.commons.lang.ClassUtil.loadClassByBundle(className, name, strVersion, id, JavaSettingsImpl.getBundleDirectories(null));
 	}
 
 	@Override
 	public Class<?> loadClassByBundle(String className, String name, Version version, Identification id) throws BundleException, IOException {
-		return lucee.commons.lang.ClassUtil.loadClassByBundle(className, name, version, id);
+		return lucee.commons.lang.ClassUtil.loadClassByBundle(className, name, version, id, JavaSettingsImpl.getBundleDirectories(null));
 	}
 
 	@Override

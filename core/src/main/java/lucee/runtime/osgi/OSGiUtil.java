@@ -56,6 +56,7 @@ import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.filter.ResourceNameFilter;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
@@ -84,12 +85,25 @@ public class OSGiUtil {
 	private static final int QUALIFIER_APPENDIX_OTHER = 4;
 	private static final int QUALIFIER_APPENDIX_STABLE = 5;
 
-	private static final FilenameFilter JAR_EXT_FILTER = new FilenameFilter() {
+	private static class Filter implements FilenameFilter, ResourceNameFilter {
+
 		@Override
 		public boolean accept(File dir, String name) {
+			return accept(name);
+		}
+
+		@Override
+		public boolean accept(Resource dir, String name) {
+			return accept(name);
+		}
+
+		private boolean accept(String name) {
 			return name.endsWith(".jar");
 		}
-	};
+	}
+
+	private static final Filter JAR_EXT_FILTER = new Filter();
+
 	private static String[] bootDelegation;
 
 	/**
@@ -108,7 +122,7 @@ public class OSGiUtil {
 			BundleFile bf = BundleFile.getInstance(bundle);
 			if (!bf.isBundle()) throw new BundleException(bundle + " is not a valid bundle!");
 
-			Bundle existing = loadBundleFromLocal(context, bf.getSymbolicName(), bf.getVersion(), false, null);
+			Bundle existing = loadBundleFromLocal(context, bf.getSymbolicName(), bf.getVersion(), null, false, null);
 			if (existing != null) return existing;
 		}
 
@@ -444,16 +458,17 @@ public class OSGiUtil {
 		return null;
 	}
 
-	public static Bundle loadBundle(String name, Version version, Identification id, boolean startIfNecessary) throws BundleException {
+	public static Bundle loadBundle(String name, Version version, Identification id, List<Resource> addionalDirectories, boolean startIfNecessary) throws BundleException {
 		try {
-			return _loadBundle(name, version, id, startIfNecessary, null);
+			return _loadBundle(name, version, id, addionalDirectories, startIfNecessary, null);
 		}
 		catch (StartFailedException sfe) {
 			throw sfe.bundleException;
 		}
 	}
 
-	public static Bundle _loadBundle(String name, Version version, Identification id, boolean startIfNecessary, Set<String> parents) throws BundleException, StartFailedException {
+	public static Bundle _loadBundle(String name, Version version, Identification id, List<Resource> addionalDirectories, boolean startIfNecessary, Set<String> parents)
+			throws BundleException, StartFailedException {
 		name = name.trim();
 		CFMLEngine engine = CFMLEngineFactory.getInstance();
 		CFMLEngineFactory factory = engine.getCFMLEngineFactory();
@@ -481,7 +496,7 @@ public class OSGiUtil {
 		}
 
 		// is it in jar directory but not loaded
-		BundleFile bf = _getBundleFile(factory, name, version, versionsFound);
+		BundleFile bf = _getBundleFile(factory, name, version, addionalDirectories, versionsFound);
 		if (bf != null && bf.isBundle()) {
 			Bundle b = null;
 			try {
@@ -694,7 +709,8 @@ public class OSGiUtil {
 	 * @return
 	 * @throws BundleException
 	 */
-	public static BundleFile getBundleFile(String name, Version version, Identification id, boolean downloadIfNecessary) throws BundleException {
+	public static BundleFile getBundleFile(String name, Version version, Identification id, List<Resource> addionalDirectories, boolean downloadIfNecessary)
+			throws BundleException {
 		name = name.trim();
 
 		CFMLEngine engine = CFMLEngineFactory.getInstance();
@@ -703,7 +719,7 @@ public class OSGiUtil {
 		StringBuilder versionsFound = new StringBuilder();
 
 		// is it in jar directory but not loaded
-		BundleFile bf = _getBundleFile(factory, name, version, versionsFound);
+		BundleFile bf = _getBundleFile(factory, name, version, addionalDirectories, versionsFound);
 		if (bf != null) return bf;
 
 		// if not found try to download
@@ -782,7 +798,8 @@ public class OSGiUtil {
 		return QUALIFIER_APPENDIX_OTHER;
 	}
 
-	public static BundleFile getBundleFile(String name, Version version, Identification id, boolean downloadIfNecessary, BundleFile defaultValue) {
+	public static BundleFile getBundleFile(String name, Version version, Identification id, List<Resource> addionalDirectories, boolean downloadIfNecessary,
+			BundleFile defaultValue) {
 		name = name.trim();
 
 		CFMLEngine engine = CFMLEngineFactory.getInstance();
@@ -791,7 +808,7 @@ public class OSGiUtil {
 		StringBuilder versionsFound = new StringBuilder();
 
 		// is it in jar directory but not loaded
-		BundleFile bf = _getBundleFile(factory, name, version, versionsFound);
+		BundleFile bf = _getBundleFile(factory, name, version, addionalDirectories, versionsFound);
 		if (bf != null) return bf;
 
 		// if not found try to download
@@ -808,16 +825,14 @@ public class OSGiUtil {
 		return defaultValue;
 	}
 
-	private static BundleFile _getBundleFile(CFMLEngineFactory factory, String name, Version version, StringBuilder versionsFound) {
+	private static BundleFile _getBundleFile(CFMLEngineFactory factory, String name, Version version, List<Resource> addionalDirectories, StringBuilder versionsFound) {
 		try {
-			File dir = factory.getBundleDirectory();
+			Resource dir = ResourceUtil.toResource(factory.getBundleDirectory());
 
 			// first we check if there is a file match (fastest solution)
 			if (version != null) {
-				File[] jars = new File[] { new File(dir, name + "-" + version.toString() + (".jar")), new File(dir, name + "-" + version.toString().replace('.', '-') + (".jar")),
-						new File(dir, name.replace('.', '-') + "-" + version.toString().replace('.', '-') + (".jar")) };
-				for (int i = 0; i < jars.length; i++) {
-					File jar = jars[i];
+				List<Resource> jars = createPossibleNameMatches(dir, addionalDirectories, name, version);
+				for (Resource jar: jars) {
 					if (jar.exists()) {
 						BundleFile bf = BundleFile.getInstance(jar);
 						if (bf.isBundle() && name.equalsIgnoreCase(bf.getSymbolicName())) {
@@ -829,20 +844,20 @@ public class OSGiUtil {
 				}
 			}
 
-			File[] children = dir.listFiles(JAR_EXT_FILTER);
+			List<Resource> children = listFiles(dir, addionalDirectories, JAR_EXT_FILTER);
 			// now we make a closer filename test
 			String curr;
 			if (version != null) {
-				File match = null;
+				Resource match = null;
 				String v = version.toString();
-				for (int i = 0; i < children.length; i++) {
-					curr = children[i].getName();
+				for (Resource child: children) {
+					curr = child.getName();
 					if (curr.equalsIgnoreCase(name + "-" + v.replace('-', '.')) || curr.equalsIgnoreCase(name.replace('.', '-') + "-" + v)
 							|| curr.equalsIgnoreCase(name.replace('.', '-') + "-" + v.replace('.', '-'))
 							|| curr.equalsIgnoreCase(name.replace('.', '-') + "-" + v.replace('-', '.')) || curr.equalsIgnoreCase(name.replace('-', '.') + "-" + v)
 							|| curr.equalsIgnoreCase(name.replace('-', '.') + "-" + v.replace('.', '-'))
 							|| curr.equalsIgnoreCase(name.replace('-', '.') + "-" + v.replace('-', '.'))) {
-						match = children[i];
+						match = child;
 						break;
 					}
 				}
@@ -858,10 +873,10 @@ public class OSGiUtil {
 			else {
 				List<BundleFile> matches = new ArrayList<BundleFile>();
 				BundleFile bf;
-				for (int i = 0; i < children.length; i++) {
-					curr = children[i].getName();
+				for (Resource child: children) {
+					curr = child.getName();
 					if (curr.startsWith(name + "-") || curr.startsWith(name.replace('-', '.') + "-") || curr.startsWith(name.replace('.', '-') + "-")) {
-						bf = BundleFile.getInstance(children[i]);
+						bf = BundleFile.getInstance(child);
 						if (bf.isBundle() && name.equalsIgnoreCase(bf.getSymbolicName())) {
 							matches.add(bf);
 						}
@@ -883,8 +898,8 @@ public class OSGiUtil {
 
 			// now we check by Manifest comparsion
 			BundleFile bf;
-			for (int i = 0; i < children.length; i++) {
-				bf = BundleFile.getInstance(children[i]);
+			for (Resource child: children) {
+				bf = BundleFile.getInstance(child);
 				if (bf.isBundle() && name.equalsIgnoreCase(bf.getSymbolicName())) {
 					if (version == null || version.equals(bf.getVersion())) {
 						return bf;
@@ -899,6 +914,51 @@ public class OSGiUtil {
 		}
 		catch (Exception e) {}
 		return null;
+	}
+
+	private static List<Resource> createPossibleNameMatches(Resource dir, List<Resource> addionalDirectories, String name, Version version) {
+		String[] patterns = new String[] { name + "-" + version.toString() + (".jar"), name + "-" + version.toString().replace('.', '-') + (".jar"),
+				name.replace('.', '-') + "-" + version.toString().replace('.', '-') + (".jar") };
+
+		List<Resource> resources = new ArrayList<Resource>();
+		for (String pattern: patterns) {
+			resources.add(dir.getRealResource(pattern));
+		}
+
+		if (addionalDirectories != null && !addionalDirectories.isEmpty()) {
+			Iterator<Resource> it = addionalDirectories.iterator();
+			Resource res;
+			while (it.hasNext()) {
+				res = it.next();
+				if (!res.isDirectory()) continue;
+				for (String pattern: patterns) {
+					resources.add(res.getRealResource(pattern));
+				}
+			}
+		}
+		return resources;
+	}
+
+	private static List<Resource> listFiles(Resource dir, List<Resource> addionalDirectories, Filter filter) {
+		List<Resource> children = new ArrayList<Resource>();
+		_add(children, dir.listResources(filter));
+		if (addionalDirectories != null && !addionalDirectories.isEmpty()) {
+			Iterator<Resource> it = addionalDirectories.iterator();
+			Resource res;
+			while (it.hasNext()) {
+				res = it.next();
+				if (!res.isDirectory()) continue;
+				_add(children, res.listResources(filter));
+			}
+		}
+		return children;
+	}
+
+	private static void _add(List<Resource> children, Resource[] reses) {
+		if (reses == null || reses.length == 0) return;
+		for (Resource res: reses) {
+			children.add(res);
+		}
 	}
 
 	/**
@@ -961,12 +1021,12 @@ public class OSGiUtil {
 		return defaultValue;
 	}
 
-	public static Bundle loadBundleFromLocal(String name, Version version, boolean loadIfNecessary, Bundle defaultValue) {
+	public static Bundle loadBundleFromLocal(String name, Version version, List<Resource> addionalDirectories, boolean loadIfNecessary, Bundle defaultValue) {
 		CFMLEngine engine = ConfigWebUtil.getEngine(ThreadLocalPageContext.getConfig());
-		return loadBundleFromLocal(engine.getBundleContext(), name, version, loadIfNecessary, defaultValue);
+		return loadBundleFromLocal(engine.getBundleContext(), name, version, addionalDirectories, loadIfNecessary, defaultValue);
 	}
 
-	public static Bundle loadBundleFromLocal(BundleContext bc, String name, Version version, boolean loadIfNecessary, Bundle defaultValue) {
+	public static Bundle loadBundleFromLocal(BundleContext bc, String name, Version version, List<Resource> addionalDirectories, boolean loadIfNecessary, Bundle defaultValue) {
 		name = name.trim();
 		Bundle[] bundles = bc.getBundles();
 		for (Bundle b: bundles) {
@@ -982,7 +1042,7 @@ public class OSGiUtil {
 
 		CFMLEngine engine = ConfigWebUtil.getEngine(ThreadLocalPageContext.getConfig());
 		CFMLEngineFactory factory = engine.getCFMLEngineFactory();
-		BundleFile bf = _getBundleFile(factory, name, version, null);
+		BundleFile bf = _getBundleFile(factory, name, version, addionalDirectories, null);
 		if (bf != null) {
 			try {
 				return _loadBundle(bc, bf.getFile());
@@ -1001,16 +1061,16 @@ public class OSGiUtil {
 	 * @return
 	 * @throws BundleException
 	 */
-	public static void removeLocalBundle(String name, Version version, boolean removePhysical, boolean doubleTap) throws BundleException {
+	public static void removeLocalBundle(String name, Version version, List<Resource> addionalDirectories, boolean removePhysical, boolean doubleTap) throws BundleException {
 		name = name.trim();
 		CFMLEngine engine = CFMLEngineFactory.getInstance();
 		CFMLEngineFactory factory = engine.getCFMLEngineFactory();
 
-		BundleFile bf = _getBundleFile(factory, name, version, null);
+		BundleFile bf = _getBundleFile(factory, name, version, null, null);
 		if (bf != null) {
 			BundleDefinition bd = bf.toBundleDefinition();
 			if (bd != null) {
-				Bundle b = bd.getLocalBundle();
+				Bundle b = bd.getLocalBundle(addionalDirectories);
 				if (b != null) {
 					stopIfNecessary(b);
 					b.uninstall();
@@ -1026,9 +1086,9 @@ public class OSGiUtil {
 		}
 	}
 
-	public static void removeLocalBundleSilently(String name, Version version, boolean removePhysical) {
+	public static void removeLocalBundleSilently(String name, Version version, List<Resource> addionalDirectories, boolean removePhysical) {
 		try {
-			removeLocalBundle(name, version, removePhysical, true);
+			removeLocalBundle(name, version, addionalDirectories, removePhysical, true);
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
@@ -1073,7 +1133,7 @@ public class OSGiUtil {
 			final List<BundleDefinition> failedBD = new ArrayList<OSGiUtil.BundleDefinition>();
 			if (parents == null) parents = new HashSet<String>();
 
-			Set<Bundle> loadedBundles = loadBundles(parents, bundle, failedBD);
+			Set<Bundle> loadedBundles = loadBundles(parents, bundle, null, failedBD);
 
 			try {
 				// startIfNecessary(loadedBundles.toArray(new Bundle[loadedBundles.size()]));
@@ -1124,7 +1184,8 @@ public class OSGiUtil {
 		}
 	}
 
-	private static Set<Bundle> loadBundles(final Set<String> parents, final Bundle bundle, final List<BundleDefinition> failedBD) throws BundleException {
+	private static Set<Bundle> loadBundles(final Set<String> parents, final Bundle bundle, List<Resource> addionalDirectories, final List<BundleDefinition> failedBD)
+			throws BundleException {
 
 		Set<Bundle> loadedBundles = new HashSet<Bundle>();
 		loadedBundles.add(bundle);
@@ -1145,7 +1206,7 @@ public class OSGiUtil {
 			try {
 				// if(parents==null) parents=new HashSet<Bundle>();
 
-				b = _loadBundle(bd.name, bd.getVersion(), ThreadLocalPageContext.getConfig().getIdentification(), true, parents);
+				b = _loadBundle(bd.name, bd.getVersion(), ThreadLocalPageContext.getConfig().getIdentification(), addionalDirectories, true, parents);
 				loadedBundles.add(b);
 			}
 			catch (StartFailedException sfe) {
@@ -1588,24 +1649,24 @@ public class OSGiUtil {
 		 * @throws BundleException
 		 * @throws StartFailedException
 		 */
-		public Bundle getBundle(Config config) throws BundleException {
+		public Bundle getBundle(Config config, List<Resource> addionalDirectories) throws BundleException {
 			if (bundle == null) {
 				config = ThreadLocalPageContext.getConfig(config);
-				bundle = OSGiUtil.loadBundle(name, getVersion(), config == null ? null : config.getIdentification(), false);
+				bundle = OSGiUtil.loadBundle(name, getVersion(), config == null ? null : config.getIdentification(), addionalDirectories, false);
 			}
 			return bundle;
 		}
 
-		public Bundle getLocalBundle() {
+		public Bundle getLocalBundle(List<Resource> addionalDirectories) {
 			if (bundle == null) {
-				bundle = OSGiUtil.loadBundleFromLocal(name, getVersion(), true, null);
+				bundle = OSGiUtil.loadBundleFromLocal(name, getVersion(), addionalDirectories, true, null);
 			}
 			return bundle;
 		}
 
-		public BundleFile getBundleFile(boolean downloadIfNecessary) throws BundleException {
+		public BundleFile getBundleFile(boolean downloadIfNecessary, List<Resource> addionalDirectories) throws BundleException {
 			Config config = ThreadLocalPageContext.getConfig();
-			return OSGiUtil.getBundleFile(name, getVersion(), config == null ? null : config.getIdentification(), downloadIfNecessary);
+			return OSGiUtil.getBundleFile(name, getVersion(), config == null ? null : config.getIdentification(), addionalDirectories, downloadIfNecessary);
 
 		}
 
@@ -1819,7 +1880,7 @@ public class OSGiUtil {
 		BundleFile bf;
 		List<Resource> classic = new ArrayList<Resource>();
 		for (int i = 0; i < jars.length; i++) {
-			// jar=jars[i];
+			classic.add(jars[i]);
 			try {
 				bf = jars[i].isFile() ? BundleFile.getInstance(jars[i], true) : null;
 			}
@@ -1832,15 +1893,10 @@ public class OSGiUtil {
 					pc.getConfig().getFactory();
 					CFMLEngine engine = CFMLEngineFactory.getInstance();
 					try {
-						BundleUtil.addBundle(engine.getCFMLEngineFactory(), engine.getBundleContext(), jars[i], ((PageContextImpl) pc).getLog("application"));
+						BundleUtil.addBundle(engine.getCFMLEngineFactory(), engine.getBundleContext(), jars[i], ((PageContextImpl) pc).getLog("application")).start();
 					}
-					catch (BundleException e) {
-						throw engine.getExceptionUtil().toIOException(e);
-					}
+					catch (BundleException e) {}
 				}
-			}
-			else {
-				classic.add(jars[i]);
 			}
 		}
 		return classic.toArray(new Resource[classic.size()]);

@@ -26,6 +26,8 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
@@ -83,6 +85,8 @@ public class JavaObject implements Objects, ObjectWrap {
 			return variableUtil(pc).get(pc, object, propertyName);
 		}
 
+		if (VariableUtilImpl.doLogReflectionCalls())
+			LogUtil.log(pc.getConfig(), Log.LEVEL_INFO, "reflection", "get-property:" + propertyName + " from class " + Caster.toTypeName(clazz));
 		// Check Field
 		Field[] fields = Reflector.getFieldsIgnoreCase(clazz, propertyName, null);
 		if (!ArrayUtil.isEmpty(fields) && Modifier.isStatic(fields[0].getModifiers())) {
@@ -126,6 +130,9 @@ public class JavaObject implements Objects, ObjectWrap {
 		if (isInit) {
 			return variableUtil(pc).get(pc, object, propertyName, defaultValue);
 		}
+		if (VariableUtilImpl.doLogReflectionCalls())
+			LogUtil.log(pc.getConfig(), Log.LEVEL_INFO, "reflection", "get-property:" + propertyName + " from class " + Caster.toTypeName(clazz));
+
 		// Field
 		Field[] fields = Reflector.getFieldsIgnoreCase(clazz, propertyName, null);
 		if (!ArrayUtil.isEmpty(fields) && Modifier.isStatic(fields[0].getModifiers())) {
@@ -162,6 +169,10 @@ public class JavaObject implements Objects, ObjectWrap {
 		if (isInit) {
 			return ((VariableUtilImpl) variableUtil(pc)).set(pc, object, propertyName, value);
 		}
+
+		if (VariableUtilImpl.doLogReflectionCalls())
+			LogUtil.log(pc.getConfig(), Log.LEVEL_INFO, "reflection", "set-property:" + propertyName + " in class " + Caster.toTypeName(clazz));
+
 		// Field
 		Field[] fields = Reflector.getFieldsIgnoreCase(clazz, propertyName.getString(), null);
 		if (!ArrayUtil.isEmpty(fields) && Modifier.isStatic(fields[0].getModifiers())) {
@@ -197,6 +208,10 @@ public class JavaObject implements Objects, ObjectWrap {
 		if (isInit) {
 			return variableUtil(pc).setEL(pc, object, propertyName, value);
 		}
+
+		if (VariableUtilImpl.doLogReflectionCalls())
+			LogUtil.log(pc.getConfig(), Log.LEVEL_INFO, "reflection", "set-property:" + propertyName + " in class " + Caster.toTypeName(clazz));
+
 		// Field
 		Field[] fields = Reflector.getFieldsIgnoreCase(clazz, propertyName.getString(), null);
 		if (!ArrayUtil.isEmpty(fields) && Modifier.isStatic(fields[0].getModifiers())) {
@@ -227,6 +242,9 @@ public class JavaObject implements Objects, ObjectWrap {
 
 	public Object call(PageContext pc, String methodName, Object[] arguments) throws PageException {
 		if (arguments == null) arguments = new Object[0];
+
+		if (VariableUtilImpl.doLogReflectionCalls())
+			LogUtil.log(pc.getConfig(), Log.LEVEL_INFO, "reflection", "call-method:" + methodName + " from class " + Caster.toTypeName(clazz));
 
 		// edge cases
 		if (methodName.equalsIgnoreCase("init")) {

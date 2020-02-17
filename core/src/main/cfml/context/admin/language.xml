@@ -1262,7 +1262,7 @@
 		<custom key="scopes.standard">standard (CFML Default)</custom>
 		<custom key="scopes.strict">strict</custom>
 		<custom key="scopes.timeoutdaysvalue">Value days for </custom>
-		<custom key="scopes.timeoutendvalue">timeout must have a Integer Value</custom>
+		<custom key="scopes.timeoutendvalue">timeout must have an Integer Value</custom>
 		<custom key="scopes.timeouthoursvalue">Value hours for </custom>
 	
 		<custom key="scopes.timeoutminutesvalue">Value minutes for </custom>

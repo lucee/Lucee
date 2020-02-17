@@ -36,6 +36,7 @@ import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.it.EntryIterator;
+import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.type.util.StructSupport;
 
 public final class RequestImpl extends StructSupport implements Request {
@@ -148,9 +149,9 @@ public final class RequestImpl extends StructSupport implements Request {
 	@Override
 	public void clear() {
 		synchronized (_req) {
-			Enumeration<String> names = _req.getAttributeNames();
-			while (names.hasMoreElements()) {
-				_req.removeAttribute(names.nextElement());
+			Iterator<String> it = ListUtil.toIterator(_req.getAttributeNames());
+			while (it.hasNext()) {
+				_req.removeAttribute(it.next());
 			}
 		}
 	}
@@ -211,10 +212,10 @@ public final class RequestImpl extends StructSupport implements Request {
 			Object value = _req.getAttribute(key.getLowerString());
 			if (value != null) return value;
 
-			Enumeration<String> names = _req.getAttributeNames();
+			Iterator<String> it = ListUtil.toIterator(_req.getAttributeNames());
 			Collection.Key k;
-			while (names.hasMoreElements()) {
-				k = KeyImpl.init(names.nextElement());
+			while (it.hasNext()) {
+				k = KeyImpl.init(it.next());
 				if (key.equals(k)) return _req.getAttribute(k.getString());
 			}
 			return defaultValue;

@@ -91,11 +91,16 @@ isInstalled=installed.count() GT 0;
 <cfelse>
 	<cfset app=installed>
 </cfif>
-
+<cfset lasProvider=(app.provider?:'')=="local" || findNoCase("lucee.org",app.provider?:'') GT 0>
 <cfoutput>
 	<!--- title and description --->
 	<div class="modheader">
 		<h2>#app.name# (<cfif isInstalled>#stText.ext.installed#<cfelseif isServerInstalled>#stText.ext.installedServer#<cfelse>#stText.ext.notInstalled#</cfif>)</h2>
+		<cfif !lasProvider>
+		<div class="warning" style="color:##C93">This extension is not provided by the Lucee Association Switzerland and does not neccessarily follow our guidelines. This extension is not reviewed by the Lucee Association Switzerland.
+		For any sugestion to improve the Extension or any issue you encounter, please contact the author of the extension directly.</div>
+		</cfif>
+
 		<cfif !isInstalled && isServerInstalled><div class="error">#stText.ext.installedServerDesc#</div></cfif>
 
 		#replace(replace(trim(app.description),'<','&lt;',"all"), chr(10),"<br />","all")#

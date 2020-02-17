@@ -1657,7 +1657,7 @@ public abstract class ConfigImpl implements Config {
 				LogUtil.log(this, Log.LEVEL_ERROR, "loading", "temp directory [" + tempDirectory + "] is not writable");
 			}
 		}
-		if (flush) ResourceUtil.removeChildrenEL(tempDirectory);// start with a empty temp directory
+		if (flush) ResourceUtil.removeChildrenEL(tempDirectory);// start with an empty temp directory
 		this.tempDirectory = tempDirectory;
 	}
 
@@ -3897,4 +3897,8 @@ public abstract class ConfigImpl implements Config {
 		if (this.cachedAfterTimeRange != null && this.cachedAfterTimeRange.getMillis() <= 0) this.cachedAfterTimeRange = null;
 		return this.cachedAfterTimeRange;
 	}
+
+	public abstract void checkPassword() throws PageException;
+	// TODO Auto-generated m
+
 }

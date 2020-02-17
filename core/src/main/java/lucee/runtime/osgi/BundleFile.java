@@ -88,7 +88,7 @@ public class BundleFile extends BundleInfo {
 	}
 
 	/**
-	 * only return a instance if the Resource is a valid bundle, otherwise it returns null
+	 * only return an instance if the Resource is a valid bundle, otherwise it returns null
 	 * 
 	 * @param res
 	 * @return

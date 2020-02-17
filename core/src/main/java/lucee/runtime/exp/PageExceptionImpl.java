@@ -608,7 +608,7 @@ public abstract class PageExceptionImpl extends PageException {
 	 */
 
 	/**
-	 * set a additional key value
+	 * set an additional key value
 	 * 
 	 * @param key
 	 * @param value

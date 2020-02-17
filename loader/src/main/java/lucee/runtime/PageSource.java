@@ -34,7 +34,7 @@ public interface PageSource extends Serializable {
 	 * 
 	 * @param pc
 	 * @param forceReload
-	 * @throws PageException throws a exception when compilation fails or page does not exist
+	 * @throws PageException throws an exception when compilation fails or page does not exist
 	 */
 	public Page loadPage(PageContext pc, boolean forceReload) throws PageException;
 
@@ -44,7 +44,7 @@ public interface PageSource extends Serializable {
 	 * @param pc
 	 * @param forceReload
 	 * @param defaultValue
-	 * @throws PageException throws a exception when compilation fails
+	 * @throws PageException throws an exception when compilation fails
 	 */
 	public Page loadPageThrowTemplateException(PageContext pc, boolean forceReload, Page defaultValue) throws PageException;
 
@@ -77,7 +77,7 @@ public interface PageSource extends Serializable {
 	public abstract String getFileName();
 
 	/**
-	 * if the pageSource is based on a archive, Lucee returns the ra:// path if the mapping physical
+	 * if the pageSource is based on an archive, Lucee returns the ra:// path if the mapping physical
 	 * path and archive is invalid or not defined, it is possible this method returns null
 	 * 
 	 * @return return the Resource matching this PageSource
@@ -85,7 +85,7 @@ public interface PageSource extends Serializable {
 	public abstract Resource getResource();
 
 	/**
-	 * if the pageSource is based on a archive, translate the source to a zip:// Resource
+	 * if the pageSource is based on an archive, translate the source to a zip:// Resource
 	 * 
 	 * @return return the Resource matching this PageSource
 	 * @param pc the Page Context Object

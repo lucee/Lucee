@@ -212,7 +212,8 @@ public final class AppListenerUtil {
 						Caster.toIntValue(data.get(CONNECTION_TIMEOUT, null), 1), Caster.toLongValue(data.get(META_CACHE_TIMEOUT, null), 60000L),
 						Caster.toTimeZone(data.get(KeyConstants._timezone, null), null), Caster.toIntValue(data.get(ALLOW, null), DataSource.ALLOW_ALL),
 						Caster.toBooleanValue(data.get(KeyConstants._storage, null), false), Caster.toBooleanValue(data.get(KeyConstants._readonly, null), false),
-						Caster.toBooleanValue(data.get(KeyConstants._validate, null), false), Caster.toBooleanValue(data.get("requestExclusive", null), false), log);
+						Caster.toBooleanValue(data.get(KeyConstants._validate, null), false), Caster.toBooleanValue(data.get("requestExclusive", null), false),
+						readliteralTimestampWithTSOffset(data), log);
 			}
 			catch (Exception cnfe) {
 				throw Caster.toPageException(cnfe);
@@ -230,13 +231,20 @@ public final class AppListenerUtil {
 					Caster.toBooleanValue(data.get(CLOB, null), false), DataSource.ALLOW_ALL, Caster.toStruct(data.get(KeyConstants._custom, null), null, false),
 					Caster.toBooleanValue(data.get(KeyConstants._readonly, null), false), true, Caster.toBooleanValue(data.get(KeyConstants._storage, null), false),
 					Caster.toTimeZone(data.get(KeyConstants._timezone, null), null), "", ParamSyntax.toParamSyntax(data, ParamSyntax.DEFAULT),
-					Caster.toBooleanValue(data.get("literalTimestampWithTSOffset", null), false), Caster.toBooleanValue(data.get("alwaysSetTimeout", null), false),
+					readliteralTimestampWithTSOffset(data), Caster.toBooleanValue(data.get("alwaysSetTimeout", null), false),
 					Caster.toBooleanValue(data.get("requestExclusive", null), false), log);
 		}
 		catch (Exception cnfe) {
 			throw Caster.toPageException(cnfe);
 		}
 
+	}
+
+	private static boolean readliteralTimestampWithTSOffset(Struct data) {
+		Boolean literalTimestampWithTSOffset = Caster.toBoolean(data.get("literalTimestampWithTSOffset", null), null);
+		if (literalTimestampWithTSOffset == null) literalTimestampWithTSOffset = Caster.toBoolean(data.get("timestampWithTSOffset", null), null);
+		if (literalTimestampWithTSOffset == null) literalTimestampWithTSOffset = Caster.toBoolean(data.get("fulltimestamp", null), null);
+		return literalTimestampWithTSOffset == null ? false : literalTimestampWithTSOffset;
 	}
 
 	public static Mapping[] toMappings(ConfigWeb cw, Object o, Mapping[] defaultValue, Resource source) {
@@ -291,7 +299,7 @@ public final class AppListenerUtil {
 				String primary = Caster.toString(map.get("primary", null), null);
 				if (primary != null && primary.trim().equalsIgnoreCase("archive")) md.physicalFirst = false;
 			}
-			// only a archive
+			// only an archive
 			else if (archive != null) md.physicalFirst = false;
 		}
 		// simple value == only a physical path

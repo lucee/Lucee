@@ -144,7 +144,7 @@
 	<data key="CustomTags.PhysicalDesc">Directory path where the custom tags are located.</data>
 	<data key="CustomTags.archiveDesc">File path to a custom tag Lucee Archive (.ra or .ras).</data>
 	<data key="CustomTags.PrimaryDesc">Defines where Lucee does looks first for a requested custom tags</data>
-	<data key="CustomTags.trustedDesc">When does Lucee checks for changes in the source file for a already loaded custom tags</data>
+	<data key="CustomTags.trustedDesc">When does Lucee checks for changes in the source file for an already loaded custom tags</data>
 
 	<data key="security.customtagdescription">The custom tag settings can be changed in the &quot;web administrator&quot;</data>
 	<data key="security.tagobject">Tag CFObject / &lt;br/&gt;function CreateObject</data>
@@ -635,7 +635,7 @@
 	<data key="Components.PhysicalDesc">Directory path where the components are located, this path should not include the package.</data>
 	<data key="Components.archiveDesc">File path to a components Lucee Archive (.lar).</data>
 	<data key="Components.PrimaryDesc">Defines where Lucee does looks first for a requested component</data>
-	<data key="Components.trustedDesc">When does Lucee checks for changes in the source file for a already loaded component</data>
+	<data key="Components.trustedDesc">When does Lucee checks for changes in the source file for an already loaded component</data>
 
 
 	<data key="login.passwordmissing">Please enter a value for the field password</data>
@@ -766,7 +766,7 @@ you can see the log result at the end of every request, if a debug template is d
 	- a single ip, like ""127.0.0.1"" or ""0:0:0:0:0:0:0:1%0""
 	- an ip with wildcards like ""127.0.0.*"", in this case all ips between ""127.0.0.0"" and ""127.0.0.255"" are valid
 	- an ip range like ""127.0.0.1-127.0.0.10"", in this case all ips between ""127.0.0.1"" and ""127.0.0.10"" are valid
-	You can define IPv4 or IPv6 IPs, a IPv4 can not be converted to a IPv6 and visa versa.</data>
+	You can define IPv4 or IPv6 IPs, an IPv4 can not be converted to an IPv6 and visa versa.</data>
 	<data key="debug.ipRangeMIssing">Missing IP Range definition</data>
 	<data key="debug.addMyIp">Add my IP</data>
 	<data key="debug.list.serverTitle">Readonly Debug Templates</data>
@@ -822,7 +822,7 @@ you can see the log result at the end of every request, if a debug template is d
 	<data key="scopes.sessiontimeoutdescription">Sets the amount of time Lucee will keep the session scope alive. This behaviour can be overridden by the tag cfapplication.</data>
 	<data key="scopes.sessiontype_application">Application</data>
 	<data key="scopes.clientcookies">Client cookies</data>
-	<data key="scopes.timeoutendvalue">timeout must have a Integer Value</data>
+	<data key="scopes.timeoutendvalue">timeout must have an Integer Value</data>
 	<data key="scopes.mergeurlformdescription">This setting defines if the scopes URL and Form will be merged together (CFML Default is false). If a key already exists in Form and URL Scopes, the value from the Form Scope is used.</data>
 	<data key="scopes.timeoutminutesvalue">Value minutes for </data>
 	<data key="scopes.applicationtimeoutdescription">Sets the amount of time Lucee will keep the application scope alive. This behaviour can be overridden by the tag cfapplication.</data>
@@ -994,6 +994,7 @@ sct[""bracketNotation""] --> keyname: "bracketNotation"</data>
 	<data key="buttons.agree">agree</data>
 	<data key="buttons.dontagree">I do not agree</data>
 	<data key="buttons.submit">submit</data>
+	<data key="buttons.reload">reload</data>
 	<data key="buttons.stop">stop</data>
 	<data key="buttons.purge">purge</data>
 	<data key="buttons.ok">OK</data>

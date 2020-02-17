@@ -1,7 +1,7 @@
 <cfscript>
 	test1=createObject(type:'java',class:'org.lucee.mockup.osgi.Test');
 	meta1=getMetaData(test1);
-	bi1=bundleInfo(test1);
+	// bi1=bundleInfo(test1); only loaded as an OSGi bundle when using bundle info
 	
 	test2=createObject(type:'java',class:'org.lucee.mockup.osgi.Test'
 		,bundlename:"lucee.mockup",bundleversion:"1.0.0.0");
@@ -12,8 +12,8 @@
 	
 
 	sct={
-		"bundle1":{"name":bi1.name,"version":bi1.version},
-		"bundle2":{"name":bi1.name,"version":bi1.version}
+		"bundle1":{"name":bi2.name,"version":bi2.version},
+		"bundle2":{"name":bi2.name,"version":bi2.version}
 	};
 
 	echo(serializeJson(sct));

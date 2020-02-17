@@ -21,7 +21,7 @@ package lucee.commons.io.cache.exp;
 import java.io.IOException;
 
 /**
- * Exceptin throwed by Cache or CacheEntry
+ * Exceptin thrown by Cache or CacheEntry
  */
 public class CacheException extends IOException {
 

@@ -175,6 +175,7 @@ import lucee.runtime.type.ref.VariableReference;
 import lucee.runtime.type.scope.Application;
 import lucee.runtime.type.scope.Argument;
 import lucee.runtime.type.scope.ArgumentImpl;
+import lucee.runtime.type.scope.CFThread;
 import lucee.runtime.type.scope.CGI;
 import lucee.runtime.type.scope.CGIImpl;
 import lucee.runtime.type.scope.CGIImplReadOnly;
@@ -319,7 +320,7 @@ public final class PageContextImpl extends PageContext {
 	private long startTime;
 
 	private DatasourceManagerImpl manager;
-	private Struct threads;
+	private CFThread threads;
 	private Map<Key, Threads> allThreads;
 	private boolean hasFamily = false;
 	private PageContextImpl parent = null;
@@ -416,7 +417,7 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	/**
-	 * initialize a existing page context
+	 * initialize an existing page context
 	 * 
 	 * @param servlet
 	 * @param req
@@ -646,6 +647,7 @@ public final class PageContextImpl extends PageContext {
 		tagName = null;
 		parentTags = null;
 		_psq = null;
+		listenSettings = false;
 	}
 
 	private void releaseORM() throws PageException {
@@ -1226,7 +1228,7 @@ public final class PageContextImpl extends PageContext {
 	public Application applicationScope() throws PageException {
 		if (application == null) {
 			if (!applicationContext.hasName())
-				throw new ExpressionException("there is no application context defined for this application", hintAplication("you can define a application context"));
+				throw new ExpressionException("there is no application context defined for this application", hintAplication("you can define an application context"));
 			application = scopeContext.getApplicationScope(this, DUMMY_BOOL);
 		}
 		return application;
@@ -1568,10 +1570,10 @@ public final class PageContextImpl extends PageContext {
 				if (!hasMin && !hasMax) throw new ExpressionException("you need to define one of the following attributes [min,max], when type is set to [range]");
 
 				if (hasMin && number < min)
-					throw new ExpressionException("The number [" + Caster.toString(number) + "] is to small, the number must be at least [" + Caster.toString(min) + "]");
+					throw new ExpressionException("The number [" + Caster.toString(number) + "] is too small, the number must be at least [" + Caster.toString(min) + "]");
 
 				if (hasMax && number > max)
-					throw new ExpressionException("The number [" + Caster.toString(number) + "] is to big, the number cannot be bigger than [" + Caster.toString(max) + "]");
+					throw new ExpressionException("The number [" + Caster.toString(number) + "] is too big, the number cannot be bigger than [" + Caster.toString(max) + "]");
 
 				setVariable(name, Caster.toDouble(number));
 			}
@@ -1610,7 +1612,7 @@ public final class PageContextImpl extends PageContext {
 	private void _param(String type, String name, Object defaultValue, double min, double max, String strPattern, int maxLength) throws PageException {
 
 		// check attributes name
-		if (StringUtil.isEmpty(name)) throw new ExpressionException("The attribute name is required");
+		if (StringUtil.isEmpty(name)) throw new ExpressionException("The attribute [name] is required");
 
 		Object value = null;
 		boolean isNew = false;
@@ -1744,7 +1746,7 @@ public final class PageContextImpl extends PageContext {
 	public Iterator getIterator(String key) throws PageException {
 		Object o = VariableInterpreter.getVariable(this, key);
 		if (o instanceof Iterator) return (Iterator) o;
-		throw new ExpressionException("[" + key + "] is not a iterator object");
+		throw new ExpressionException("[" + key + "] is not an iterator object");
 	}
 
 	@Override
@@ -2136,6 +2138,10 @@ public final class PageContextImpl extends PageContext {
 		else {
 			writer = forceWriter;
 		}
+	}
+
+	public short getCFOutputOnly() {
+		return enablecfoutputonly;
 	}
 
 	/**
@@ -2600,7 +2606,7 @@ public final class PageContextImpl extends PageContext {
 				oCftoken = null;
 				Charset charset = getWebCharset();
 
-				// check if we have multiple cookies with the name "cfid" and a other one is valid
+				// check if we have multiple cookies with the name "cfid" and another one is valid
 				javax.servlet.http.Cookie[] cookies = getHttpServletRequest().getCookies();
 				String name, value;
 				if (cookies != null) {
@@ -2922,6 +2928,7 @@ public final class PageContextImpl extends PageContext {
 		if (signal && fdEnabled) {
 			FDSignal.signal(pe, caught);
 		}
+		// boolean outer = exception != null && exception == pe;
 		exception = pe;
 		if (store) {
 			Undefined u = undefinedScope();
@@ -2932,7 +2939,13 @@ public final class PageContextImpl extends PageContext {
 			else {
 				(u.getCheckArguments() ? u.localScope() : u).setEL(KeyConstants._cfcatch, pe.getCatchBlock(config));
 				if (name != null && !StringUtil.isEmpty(name, true)) (u.getCheckArguments() ? u.localScope() : u).setEL(KeyImpl.getInstance(name.trim()), pe.getCatchBlock(config));
-				if (!gatewayContext && config.debug() && config.hasDebugOptions(ConfigImpl.DEBUG_EXCEPTION)) debugger.addException(config, exception);
+				if (!gatewayContext && config.debug() && config.hasDebugOptions(ConfigImpl.DEBUG_EXCEPTION) && caught) {
+					/*
+					 * print.e("-----------------------"); print.e("msg:" + pe.getMessage()); print.e("caught:" +
+					 * caught); print.e("store:" + store); print.e("signal:" + signal); print.e("outer:" + outer);
+					 */
+					debugger.addException(config, exception);
+				}
 			}
 		}
 	}
@@ -3236,20 +3249,29 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public Threads getThreadScope(Collection.Key name) {// MUST who uses this? is cfthread/thread handling necessary
-		if (threads == null) threads = new StructImpl();
+		if (threads == null) threads = new CFThread();
 		Object obj = threads.get(name, null);
 		if (obj instanceof Threads) return (Threads) obj;
 		return null;
 	}
 
 	public Object getThreadScope(Collection.Key name, Object defaultValue) {
-		if (threads == null) threads = new StructImpl();
+		if (threads == null) threads = new CFThread();
 		if (name.equalsIgnoreCase(KeyConstants._cfthread)) return threads; // do not change this, this is used!
 		if (name.equalsIgnoreCase(KeyConstants._thread)) {
 			ThreadsImpl curr = getCurrentThreadScope();
 			if (curr != null) return curr;
 		}
 		return threads.get(name, defaultValue);
+	}
+
+	public Struct getCFThreadScope() {
+		if (threads == null) threads = new CFThread();
+		return threads;
+	}
+
+	public boolean isThreads(Object obj) {
+		return threads == obj;
 	}
 
 	public void setCurrentThreadScope(ThreadsImpl thread) {
@@ -3268,7 +3290,7 @@ public final class PageContextImpl extends PageContext {
 	@Override
 	public void setThreadScope(Collection.Key name, Threads ct) {
 		hasFamily = true;
-		if (threads == null) threads = new StructImpl();
+		if (threads == null) threads = new CFThread();
 		threads.setEL(name, ct);
 	}
 
@@ -3321,6 +3343,8 @@ public final class PageContextImpl extends PageContext {
 	private boolean literalTimestampWithTSOffset;
 
 	private String tagName;
+
+	private boolean listenSettings;
 
 	public boolean isTrusted(Page page) {
 		if (page == null) return false;
@@ -3692,7 +3716,15 @@ public final class PageContextImpl extends PageContext {
 			ProxyData pd = applicationContext.getProxyData();
 			if (pd != null) return pd;
 		}
-		// TODO check applcation context
+		// TODO check application context
 		return config.getProxyData();
+	}
+
+	public void setListenSettings(boolean listenSettings) {
+		this.listenSettings = listenSettings;
+	}
+
+	public boolean getListenSettings() {
+		return listenSettings;
 	}
 }

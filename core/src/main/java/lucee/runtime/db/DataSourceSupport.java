@@ -62,10 +62,11 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 	private transient Log log;
 	private final TagListener listener;
 	private final boolean requestExclusive;
+	private final boolean literalTimestampWithTSOffset;
 
 	public DataSourceSupport(Config config, String name, ClassDefinition cd, String username, String password, TagListener listener, boolean blob, boolean clob,
 			int connectionLimit, int connectionTimeout, long metaCacheTimeout, TimeZone timezone, int allow, boolean storage, boolean readOnly, boolean validate,
-			boolean requestExclusive, Log log) {
+			boolean requestExclusive, boolean literalTimestampWithTSOffset, Log log) {
 		this.name = name;
 		this.cd = cd;// _initializeCD(null, cd, config);
 		this.blob = blob;
@@ -83,6 +84,7 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 		this.validate = validate;
 		this.requestExclusive = requestExclusive;
 		this.log = log;
+		this.literalTimestampWithTSOffset = literalTimestampWithTSOffset;
 	}
 
 	@Override
@@ -231,6 +233,11 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 	@Override
 	public boolean isRequestExclusive() {
 		return requestExclusive;
+	}
+
+	// FUTURE add to interface
+	public final boolean getLiteralTimestampWithTSOffset() {
+		return literalTimestampWithTSOffset;
 	}
 
 	@Override

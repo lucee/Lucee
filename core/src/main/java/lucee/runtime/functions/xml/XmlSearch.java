@@ -142,6 +142,11 @@ public final class XmlSearch implements Function {
 			catch (XPathExpressionException ee) {
 				throw Caster.toPageException(ee);
 			}
+
+			if (msg.equals("java.lang.NullPointerException")) {
+				throw new RuntimeException("Failed to parse XML with XPathExpressionException which threw a "
+						+ "java.lang.NullPointerException, possibly due to security restrictions set by XMLFeatures", e);
+			}
 			throw Caster.toPageException(e);
 		}
 		catch (TransformerException e) {

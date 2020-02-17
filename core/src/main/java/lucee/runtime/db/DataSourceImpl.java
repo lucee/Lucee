@@ -51,7 +51,6 @@ public final class DataSourceImpl extends DataSourceSupport {
 	private Struct custom;
 	private String dbdriver;
 	private final ParamSyntax paramSyntax;
-	private final boolean literalTimestampWithTSOffset;
 	private final boolean alwaysSetTimeout;
 
 	/**
@@ -94,7 +93,7 @@ public final class DataSourceImpl extends DataSourceSupport {
 			boolean requestExclusive, Log log) throws BundleException, ClassException, SQLException {
 
 		super(config, name, cd, username, ConfigWebUtil.decrypt(password), listener, blob, clob, connectionLimit, connectionTimeout, metaCacheTimeout, timezone,
-				allow < 0 ? ALLOW_ALL : allow, storage, readOnly, validate, requestExclusive, log);
+				allow < 0 ? ALLOW_ALL : allow, storage, readOnly, validate, requestExclusive, literalTimestampWithTSOffset, log);
 
 		this.host = host;
 		this.database = database;
@@ -105,7 +104,6 @@ public final class DataSourceImpl extends DataSourceSupport {
 
 		this.connStrTranslated = connStr;
 		this.paramSyntax = (paramSyntax == null) ? ParamSyntax.DEFAULT : paramSyntax;
-		this.literalTimestampWithTSOffset = literalTimestampWithTSOffset;
 		this.alwaysSetTimeout = alwaysSetTimeout;
 		translateConnStr();
 
@@ -186,11 +184,6 @@ public final class DataSourceImpl extends DataSourceSupport {
 	}
 
 	// FUTURE add to interface
-	public boolean getLiteralTimestampWithTSOffset() {
-		return literalTimestampWithTSOffset;
-	}
-
-	// FUTURE add to interface
 	public boolean getAlwaysSetTimeout() {
 		return alwaysSetTimeout;
 	}
@@ -209,7 +202,7 @@ public final class DataSourceImpl extends DataSourceSupport {
 		try {
 			return new DataSourceImpl(ThreadLocalPageContext.getConfig(), getName(), getClassDefinition(), host, connStr, database, port, getUsername(), getPassword(),
 					getListener(), getConnectionLimit(), getConnectionTimeout(), getMetaCacheTimeout(), isBlob(), isClob(), allow, custom, readOnly, validate(), isStorage(),
-					getTimeZone(), dbdriver, getParamSyntax(), literalTimestampWithTSOffset, alwaysSetTimeout, isRequestExclusive(), getLog());
+					getTimeZone(), dbdriver, getParamSyntax(), getLiteralTimestampWithTSOffset(), alwaysSetTimeout, isRequestExclusive(), getLog());
 		}
 		catch (RuntimeException re) {
 			throw re; // this should never happens, because the class was already loaded in this object

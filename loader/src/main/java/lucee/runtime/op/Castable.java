@@ -24,7 +24,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.type.dt.DateTime;
 
 /**
- * Interface to define a Object as Castable, for Lucee Type Casts
+ * Interface to define an Object as Castable, for Lucee Type Casts
  */
 public interface Castable extends Serializable {
 

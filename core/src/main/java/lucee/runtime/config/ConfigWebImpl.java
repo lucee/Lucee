@@ -108,6 +108,9 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 	private final ConfigServerImpl configServer;
 	private SecurityManager securityManager;
 	private static final LockManager lockManager = LockManagerImpl.getInstance(false);
+	public static final short PASSWORD_ORIGIN_DEFAULT = 1;
+	public static final short PASSWORD_ORIGIN_SERVER = 2;
+	public static final short PASSWORD_ORIGIN_WEB = 3;
 	private Resource rootDir;
 	private final CFMLCompilerImpl compiler = new CFMLCompilerImpl();
 	private CIPage baseComponentPageCFML;
@@ -665,6 +668,7 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 	}
 
 	private WSHandler wsHandler;
+	private short passwordSource;
 
 	@Override
 	public WSHandler getWSHandler() throws PageException {
@@ -682,5 +686,18 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 			}
 		}
 		return wsHandler;
+	}
+
+	protected void setPasswordSource(short passwordSource) {
+		this.passwordSource = passwordSource;
+	}
+
+	public short getPasswordSource() {
+		return passwordSource;
+	}
+
+	@Override
+	public void checkPassword() throws PageException {
+		configServer.checkPassword();
 	}
 }

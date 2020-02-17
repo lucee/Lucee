@@ -4,17 +4,17 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  **/
 package lucee.runtime.text.xml;
 
@@ -62,6 +62,7 @@ import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
+import org.xml.sax.helpers.XMLReaderFactory;
 
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
@@ -78,6 +79,7 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.XMLException;
+import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.osgi.EnvClassLoader;
@@ -92,7 +94,7 @@ import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 
 /**
- * 
+ *
  */
 public final class XMLUtil {
 
@@ -111,8 +113,12 @@ public final class XMLUtil {
 	public static final Collection.Key XMLTYPE = KeyImpl.intern("xmltype");
 	public static final Collection.Key XMLVALUE = KeyImpl.intern("xmlvalue");
 	public static final Collection.Key XMLATTRIBUTES = KeyImpl.intern("xmlattributes");
+	public static final Collection.Key KEY_FEATURE_SECURE = KeyImpl.intern("secure");
+	public static final Collection.Key KEY_FEATURE_DISALLOW_DOCTYPE_DECL = KeyImpl.intern("disallowDoctypeDecl");
+	public static final Collection.Key KEY_FEATURE_EXTERNAL_GENERAL_ENTITIES = KeyImpl.intern("externalGeneralEntities");
 
-	// public final static String DEFAULT_SAX_PARSER="org.apache.xerces.parsers.SAXParser";
+	// public final static String
+	// DEFAULT_SAX_PARSER="org.apache.xerces.parsers.SAXParser";
 
 	/*
 	 * private static final Collection.Key = KeyImpl.getInstance(); private static final Collection.Key
@@ -126,8 +132,6 @@ public final class XMLUtil {
 	// private static DocumentBuilderFactory factory;
 	private static TransformerFactory transformerFactory;
 	// private static DocumentBuilderFactory documentBuilderFactory;
-	private static DocumentBuilderFactory documentBuilderFactoryNoneVal;
-	private static DocumentBuilderFactory documentBuilderFactoryWithVal;
 
 	private static SAXParserFactory saxParserFactory;
 
@@ -221,7 +225,7 @@ public final class XMLUtil {
 
 	private static TransformerFactory _newTransformerFactory() {
 
-		Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl) ThreadLocalPageContext.getConfig())); // TODO make this global
+		Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl) ThreadLocalPageContext.getConfig()));
 		TransformerFactory factory = null;
 		Class clazz = null;
 		try {
@@ -251,7 +255,7 @@ public final class XMLUtil {
 
 	/**
 	 * parse XML/HTML String to a XML DOM representation
-	 * 
+	 *
 	 * @param xml XML InputSource
 	 * @param isHtml is a HTML or XML Object
 	 * @return parsed Document
@@ -294,42 +298,104 @@ public final class XMLUtil {
 	private static DocumentBuilderFactory newDocumentBuilderFactory(InputSource validator) {
 		DocumentBuilderFactory factory;
 		if (validator != null) {
-			if (documentBuilderFactoryWithVal == null) {
-				documentBuilderFactoryWithVal = _newDocumentBuilderFactory();// DocumentBuilderFactory.newInstance();
-				XMLUtil.setAttributeEL(documentBuilderFactoryWithVal, XMLConstants.VALIDATION_SCHEMA, Boolean.TRUE);
-				XMLUtil.setAttributeEL(documentBuilderFactoryWithVal, XMLConstants.VALIDATION_SCHEMA_FULL_CHECKING, Boolean.TRUE);
-				documentBuilderFactoryWithVal.setNamespaceAware(true);
-				documentBuilderFactoryWithVal.setValidating(true);
-			}
-			factory = documentBuilderFactoryWithVal;
+			factory = _newDocumentBuilderFactory();// DocumentBuilderFactory.newInstance();
+			XMLUtil.setAttributeEL(factory, XMLConstants.VALIDATION_SCHEMA, Boolean.TRUE);
+			XMLUtil.setAttributeEL(factory, XMLConstants.VALIDATION_SCHEMA_FULL_CHECKING, Boolean.TRUE);
+			factory.setNamespaceAware(true);
+			factory.setValidating(true);
 		}
 		else {
-			if (documentBuilderFactoryNoneVal == null) {
-				documentBuilderFactoryNoneVal = _newDocumentBuilderFactory();// DocumentBuilderFactory.newInstance();
-				XMLUtil.setAttributeEL(documentBuilderFactoryNoneVal, XMLConstants.NON_VALIDATING_DTD_EXTERNAL, Boolean.FALSE);
-				XMLUtil.setAttributeEL(documentBuilderFactoryNoneVal, XMLConstants.NON_VALIDATING_DTD_GRAMMAR, Boolean.FALSE);
-				documentBuilderFactoryNoneVal.setNamespaceAware(true);
-				documentBuilderFactoryNoneVal.setValidating(false);
-			}
-			factory = documentBuilderFactoryNoneVal;
+			factory = _newDocumentBuilderFactory();// DocumentBuilderFactory.newInstance();
+			XMLUtil.setAttributeEL(factory, XMLConstants.NON_VALIDATING_DTD_EXTERNAL, Boolean.FALSE);
+			XMLUtil.setAttributeEL(factory, XMLConstants.NON_VALIDATING_DTD_GRAMMAR, Boolean.FALSE);
+			factory.setNamespaceAware(true);
+			factory.setValidating(false);
 		}
+
+		PageContext pc = ThreadLocalPageContext.get();
+		if (pc != null) {
+			Struct features = ((ApplicationContextSupport) pc.getApplicationContext()).getXmlFeatures();
+
+			if (features != null) {
+				try { // handle feature aliases, e.g. secure
+					Object obj;
+					boolean featureValue;
+					obj = features.get(KEY_FEATURE_SECURE, null);
+					if (obj != null) {
+						featureValue = Caster.toBoolean(obj);
+						if (featureValue) {
+							// set features per
+							// https://cheatsheetseries.owasp.org/cheatsheets/XML_External_Entity_Prevention_Cheat_Sheet.html
+							factory.setFeature(XMLConstants.FEATURE_DISALLOW_DOCTYPE_DECL, true);
+							factory.setFeature(XMLConstants.FEATURE_EXTERNAL_GENERAL_ENTITIES, false);
+							factory.setFeature(XMLConstants.FEATURE_EXTERNAL_PARAMETER_ENTITIES, false);
+							factory.setFeature(XMLConstants.FEATURE_NONVALIDATING_LOAD_EXTERNAL_DTD, false);
+							factory.setXIncludeAware(false);
+							factory.setExpandEntityReferences(false);
+							factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+							factory.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+						}
+						features.remove(KEY_FEATURE_SECURE);
+					}
+
+					obj = features.get(KEY_FEATURE_DISALLOW_DOCTYPE_DECL, null);
+					if (obj != null) {
+						featureValue = Caster.toBoolean(obj);
+						factory.setFeature(XMLConstants.FEATURE_DISALLOW_DOCTYPE_DECL, featureValue);
+						features.remove(KEY_FEATURE_DISALLOW_DOCTYPE_DECL);
+					}
+
+					obj = features.get(KEY_FEATURE_EXTERNAL_GENERAL_ENTITIES, null);
+					if (obj != null) {
+						featureValue = Caster.toBoolean(obj);
+						factory.setFeature(XMLConstants.FEATURE_EXTERNAL_GENERAL_ENTITIES, featureValue);
+						features.remove(KEY_FEATURE_EXTERNAL_GENERAL_ENTITIES);
+					}
+				}
+				catch (PageException | ParserConfigurationException ex) {
+					throw new RuntimeException(ex);
+				}
+
+				features.forEach((k, v) -> {
+					try {
+						factory.setFeature(k.toString().toLowerCase(), Caster.toBoolean(v));
+					}
+					catch (PageException | ParserConfigurationException ex) {
+						throw new RuntimeException(ex);
+					}
+				});
+			}
+		}
+
 		return factory;
 	}
 
-	private static DocumentBuilderFactory _newDocumentBuilderFactory() {
+	private static Class<DocumentBuilderFactory> dbf;
 
-		Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl) ThreadLocalPageContext.getConfig())); // TODO make this global
-		DocumentBuilderFactory factory = null;
-		Class clazz = null;
-		try {
-			clazz = ClassUtil.loadClass("com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl");
-		}
-		catch (Exception e) {
+	private static Class<DocumentBuilderFactory> _newDocumentBuilderFactoryClass() {
+		if (dbf == null) {
+			Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl) ThreadLocalPageContext.getConfig()));
+			Class<DocumentBuilderFactory> clazz = null;
 			try {
-				clazz = ClassUtil.loadClass("org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl");
+				clazz = ClassUtil.loadClass("com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl");
 			}
-			catch (Exception ee) {}
+			catch (Exception e) {
+				try {
+					clazz = ClassUtil.loadClass("org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl");
+				}
+				catch (Exception ee) {}
+			}
+			if (clazz != null) {
+				dbf = clazz;
+				LogUtil.log(null, Log.LEVEL_INFO, "application", "xml", clazz.getName() + " is used as DocumentBuilderFactory");
+			}
 		}
+		return dbf;
+	}
+
+	private static DocumentBuilderFactory _newDocumentBuilderFactory() {
+		Class<DocumentBuilderFactory> clazz = _newDocumentBuilderFactoryClass();
+		DocumentBuilderFactory factory = null;
 		if (clazz != null) {
 			try {
 				factory = (DocumentBuilderFactory) ClassUtil.loadInstance(clazz);
@@ -337,33 +403,41 @@ public final class XMLUtil {
 			catch (Exception e) {}
 		}
 		if (factory == null) factory = DocumentBuilderFactory.newInstance();
-
-		LogUtil.log(null, Log.LEVEL_INFO, "application", "xml", factory.getClass().getName() + " is used as DocumentBuilderFactory");
 		return factory;
 	}
 
-	/*
-	 * private static DocumentBuilderFactory newDocumentBuilderFactory() { if (documentBuilderFactory ==
-	 * null) { documentBuilderFactory = DocumentBuilderFactory.newInstance();
-	 * documentBuilderFactory.setNamespaceAware(true); } return documentBuilderFactory; }
-	 */
-
 	private static SAXParserFactory newSAXParserFactory() {
 		if (saxParserFactory == null) {
-			Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl) ThreadLocalPageContext.getConfig())); // TODO make this global
+			Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl) ThreadLocalPageContext.getConfig()));
 			saxParserFactory = SAXParserFactory.newInstance();
 		}
 		return saxParserFactory;
 	}
 
 	public static XMLReader createXMLReader() throws SAXException {
+		Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl) ThreadLocalPageContext.getConfig()));
+		try {
+			return XMLReaderFactory.createXMLReader("com.sun.org.apache.xerces.internal.parsers.SAXParser");
+		}
+		catch (Exception e) {}
+
+		try {
+			return XMLReaderFactory.createXMLReader("org.apache.xerces.internal.parsers.SAXParser");
+		}
+		catch (Exception ee) {}
+
+		try {
+			return XMLReaderFactory.createXMLReader("org.apache.xerces.parsers.SAXParser");
+		}
+		catch (Exception ee) {}
+
 		try {
 			return newSAXParserFactory().newSAXParser().getXMLReader();
 		}
 		catch (ParserConfigurationException pce) {
 			throw new RuntimeException(pce);
 		}
-		// return XMLReaderFactory.createXMLReader(DEFAULT_SAX_PARSER);
+
 	}
 
 	private static void setAttributeEL(DocumentBuilderFactory factory, String name, Object value) {
@@ -377,7 +451,7 @@ public final class XMLUtil {
 
 	/**
 	 * sets a node to a node (Expression Less)
-	 * 
+	 *
 	 * @param node
 	 * @param key
 	 * @param value
@@ -403,14 +477,13 @@ public final class XMLUtil {
 
 	/**
 	 * sets a node to a node
-	 * 
+	 *
 	 * @param node
-	 * @param key
+	 * @param k
 	 * @param value
 	 * @return Object set
 	 * @throws PageException
 	 */
-
 	public static Object setProperty(Node node, Collection.Key k, Object value) throws PageException {
 		return setProperty(node, k, value, isCaseSensitve(node));
 	}
@@ -549,9 +622,9 @@ public final class XMLUtil {
 
 	/**
 	 * returns a property from a XMl Node (Expression Less)
-	 * 
+	 *
 	 * @param node
-	 * @param key
+	 * @param k
 	 * @param caseSensitive
 	 * @return Object matching key
 	 */
@@ -570,9 +643,9 @@ public final class XMLUtil {
 
 	/**
 	 * returns a property from a XMl Node
-	 * 
+	 *
 	 * @param node
-	 * @param key
+	 * @param k
 	 * @param caseSensitive
 	 * @return Object matching key
 	 * @throws SAXException
@@ -684,7 +757,8 @@ public final class XMLUtil {
 			node = ((Document) node).getDocumentElement();
 			if (node == null) throw new SAXException("Attribute [" + k.getString() + "] not found in XML, XML is empty");
 
-			// if((!caseSensitive && node.getNodeName().equalsIgnoreCase(k.getString())) || (caseSensitive &&
+			// if((!caseSensitive && node.getNodeName().equalsIgnoreCase(k.getString())) ||
+			// (caseSensitive &&
 			// node.getNodeName().equals(k.getString()))) {
 			if (nameEqual(node, k.getString(), caseSensitive)) {
 				return XMLStructFactory.newInstance(node, caseSensitive);
@@ -757,9 +831,9 @@ public final class XMLUtil {
 
 	/**
 	 * check if given name is equal to name of the element (with and without namespace)
-	 * 
+	 *
 	 * @param node
-	 * @param k
+	 * @param name
 	 * @param caseSensitive
 	 * @return
 	 */
@@ -778,9 +852,9 @@ public final class XMLUtil {
 
 	/**
 	 * removes child from a node
-	 * 
+	 *
 	 * @param node
-	 * @param key
+	 * @param k
 	 * @param caseSensitive
 	 * @return removed property
 	 */
@@ -860,7 +934,7 @@ public final class XMLUtil {
 
 	/**
 	 * return the root Element from a node
-	 * 
+	 *
 	 * @param node node to get root element from
 	 * @param caseSensitive
 	 * @return Root Element
@@ -880,7 +954,7 @@ public final class XMLUtil {
 
 	/**
 	 * returns a new Empty XMl Document
-	 * 
+	 *
 	 * @return new Document
 	 * @throws ParserConfigurationException
 	 * @throws FactoryConfigurationError
@@ -894,7 +968,7 @@ public final class XMLUtil {
 
 	/**
 	 * return the Owner Document of a Node List
-	 * 
+	 *
 	 * @param nodeList
 	 * @return XML Document
 	 * @throws XMLException
@@ -911,7 +985,7 @@ public final class XMLUtil {
 
 	/**
 	 * return the Owner Document of a Node
-	 * 
+	 *
 	 * @param node
 	 * @return XML Document
 	 */
@@ -922,7 +996,7 @@ public final class XMLUtil {
 
 	/**
 	 * removes child elements from a specific type
-	 * 
+	 *
 	 * @param node node to remove elements from
 	 * @param type Type Definition to remove (Constant value from class Node)
 	 * @param deep remove also in sub nodes
@@ -944,9 +1018,8 @@ public final class XMLUtil {
 	/**
 	 * remove children from type CharacterData from a node, this includes Text,Comment and CDataSection
 	 * nodes
-	 * 
+	 *
 	 * @param node
-	 * @param type
 	 * @param deep
 	 */
 	private static void removeChildCharacterData(Node node, boolean deep) {
@@ -965,11 +1038,9 @@ public final class XMLUtil {
 
 	/**
 	 * return all Children of a node by a defined type as Node List
-	 * 
+	 *
 	 * @param node node to get children from
 	 * @param type type of returned node
-	 * @param filter
-	 * @param caseSensitive
 	 * @return all matching child node
 	 */
 	public static ArrayNodeList getChildNodes(Node node, short type) {
@@ -1069,11 +1140,9 @@ public final class XMLUtil {
 
 	/**
 	 * return all Children of a node by a defined type as Node Array
-	 * 
+	 *
 	 * @param node node to get children from
 	 * @param type type of returned node
-	 * @param filter
-	 * @param caseSensitive
 	 * @return all matching child node
 	 */
 	public static Node[] getChildNodesAsArray(Node node, short type) {
@@ -1088,7 +1157,7 @@ public final class XMLUtil {
 
 	/**
 	 * return all Element Children of a node
-	 * 
+	 *
 	 * @param node node to get children from
 	 * @return all matching child node
 	 */
@@ -1098,8 +1167,8 @@ public final class XMLUtil {
 	}
 
 	/**
-	 * transform a XML Object to a other format, with help of a XSL Stylesheet
-	 * 
+	 * transform a XML Object to another format, with help of a XSL Stylesheet
+	 *
 	 * @param xml xml to convert
 	 * @param xsl xsl used to convert
 	 * @return resulting string
@@ -1112,8 +1181,8 @@ public final class XMLUtil {
 	}
 
 	/**
-	 * transform a XML Object to a other format, with help of a XSL Stylesheet
-	 * 
+	 * transform a XML Object to another format, with help of a XSL Stylesheet
+	 *
 	 * @param xml xml to convert
 	 * @param xsl xsl used to convert
 	 * @param parameters parameters used to convert
@@ -1127,9 +1196,9 @@ public final class XMLUtil {
 	}
 
 	/**
-	 * transform a XML Document to a other format, with help of a XSL Stylesheet
-	 * 
-	 * @param xml xml to convert
+	 * transform a XML Document to another format, with help of a XSL Stylesheet
+	 *
+	 * @param doc xml to convert
 	 * @param xsl xsl used to convert
 	 * @return resulting string
 	 * @throws TransformerException
@@ -1141,9 +1210,9 @@ public final class XMLUtil {
 	}
 
 	/**
-	 * transform a XML Document to a other format, with help of a XSL Stylesheet
-	 * 
-	 * @param xml xml to convert
+	 * transform a XML Document to another format, with help of a XSL Stylesheet
+	 *
+	 * @param doc xml to convert
 	 * @param xsl xsl used to convert
 	 * @param parameters parameters used to convert
 	 * @return resulting string
@@ -1170,7 +1239,7 @@ public final class XMLUtil {
 
 	/**
 	 * returns the Node Type As String
-	 * 
+	 *
 	 * @param node
 	 * @param cftype
 	 * @return
@@ -1264,7 +1333,7 @@ public final class XMLUtil {
 		if (value instanceof byte[]) {
 			return new InputSource(new ByteArrayInputStream((byte[]) value));
 		}
-		throw new ExpressionException("can't cast object of type [" + Caster.toClassName(value) + "] to a Input for xml parser");
+		throw new ExpressionException("can't cast object of type [" + Caster.toClassName(value) + "] to an Input for xml parser");
 
 	}
 
@@ -1286,7 +1355,7 @@ public final class XMLUtil {
 
 	/**
 	 * adds a child at the first place
-	 * 
+	 *
 	 * @param parent
 	 * @param child
 	 */
@@ -1389,7 +1458,7 @@ public final class XMLUtil {
 		if (value instanceof byte[]) {
 			return new InputSource(new ByteArrayInputStream((byte[]) value));
 		}
-		throw new IOException("can't cast object of type [" + value + "] to a Input for xml parser");
+		throw new IOException("can't cast object of type [" + value + "] to an Input for xml parser");
 	}
 
 	public static InputSource toInputSource(String xml) throws IOException {

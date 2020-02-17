@@ -57,6 +57,7 @@ import lucee.runtime.db.SQLImpl;
 import lucee.runtime.db.SQLItem;
 import lucee.runtime.debug.DebuggerImpl;
 import lucee.runtime.exp.ApplicationException;
+import lucee.runtime.exp.CasterException;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.BodyTagTryCatchFinallyImpl;
@@ -151,6 +152,10 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 
 	public void setOrmoptions(Struct ormoptions) {
 		data.ormoptions = ormoptions;
+	}
+
+	public void setIndexname(String indexName) throws CasterException {
+		data.indexName = KeyImpl.toKey(indexName);
 	}
 
 	public void setReturntype(String strReturntype) throws ApplicationException {
@@ -478,7 +483,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		}
 
 		// literal timestamp with TSOffset
-		if (data.datasource instanceof DataSourceImpl) data.literalTimestampWithTSOffset = ((DataSourceImpl) data.datasource).getLiteralTimestampWithTSOffset();
+		if (data.datasource instanceof DataSourceSupport) data.literalTimestampWithTSOffset = ((DataSourceSupport) data.datasource).getLiteralTimestampWithTSOffset();
 		else data.literalTimestampWithTSOffset = false;
 
 		data.previousLiteralTimestampWithTSOffset = pci.getTimestampWithTSOffset();
@@ -516,7 +521,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		if (data.hasBody && !StringUtil.isEmpty(strSQL = bodyContent.getString().trim(), true)) { // we have a body
 			if (!StringUtil.isEmpty(data.sql, true)) { // sql in attr and body
 				if (!strSQL.equals(data.sql.trim())) // unless they are equal
-					throw new DatabaseException("you cannot define SQL in the body and as a attribute at the same time [" + strSQL + "," + data.sql + "]", null, null, null);
+					throw new DatabaseException("you cannot define SQL in the body and as an attribute at the same time [" + strSQL + "," + data.sql + "]", null, null, null);
 			}
 		}
 		else {
@@ -561,7 +566,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 				if (data.params instanceof Argument) sqlQuery = QueryParamConverter.convert(strSQL, (Argument) data.params);
 				else if (Decision.isArray(data.params)) sqlQuery = QueryParamConverter.convert(strSQL, Caster.toArray(data.params));
 				else if (Decision.isStruct(data.params)) sqlQuery = QueryParamConverter.convert(strSQL, Caster.toStruct(data.params));
-				else throw new DatabaseException("value of the attribute [params] has to be a struct or a array", null, null, null);
+				else throw new DatabaseException("value of the attribute [params] has to be a struct or an array", null, null, null);
 			}
 			else {
 				sqlQuery = data.items.isEmpty() ? new SQLImpl(strSQL) : new SQLImpl(strSQL, data.items.toArray(new SQLItem[data.items.size()]));
@@ -1052,7 +1057,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 
 				return QueryImpl.toStruct(pageContext, dc, sql, data.columnName, data.maxrows, data.blockfactor, data.timeout, getName(data), tl.template, createUpdateData, true);
 			}
-			return new QueryImpl(pageContext, dc, sql, data.maxrows, data.blockfactor, data.timeout, getName(data), tl.template, createUpdateData, true);
+			return new QueryImpl(pageContext, dc, sql, data.maxrows, data.blockfactor, data.timeout, getName(data), tl.template, createUpdateData, true, data.indexName);
 		}
 		finally {
 			manager.releaseConnection(pageContext, dc);

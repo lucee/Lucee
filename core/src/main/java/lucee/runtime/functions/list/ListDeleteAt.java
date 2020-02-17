@@ -101,7 +101,7 @@ public final class ListDeleteAt extends BIF {
 			while (sb.length() > 0 && equal(del, sb.charAt(sb.length() - 1))) {
 				sb.delete(sb.length() - 1, sb.length());
 			}
-			if (pos > index) throw new FunctionException(pc, "ListDeleteAt", 2, "index", "index must be a integer between 1 and " + index);
+			if (pos > index) throw new FunctionException(pc, "ListDeleteAt", 2, "index", "index must be an integer between 1 and " + index);
 
 			return sb.toString();
 		}

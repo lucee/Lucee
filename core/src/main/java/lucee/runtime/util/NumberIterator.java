@@ -157,7 +157,7 @@ public final class NumberIterator {
 	private static int pointer = 0;
 
 	/**
-	 * load a iterator
+	 * load an iterator
 	 * 
 	 * @param from
 	 * @param to iterate to

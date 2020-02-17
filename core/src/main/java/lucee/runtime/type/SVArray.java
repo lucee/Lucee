@@ -32,7 +32,7 @@ import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.ref.Reference;
 
 /**
- * Simple Value Array, a Array that can't cast to a Simple Value
+ * Simple Value Array, an Array that can't cast to a Simple Value
  */
 public final class SVArray extends ArrayImpl implements Reference {
 

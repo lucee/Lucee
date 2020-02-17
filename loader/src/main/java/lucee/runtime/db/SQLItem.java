@@ -21,7 +21,7 @@ package lucee.runtime.db;
 import lucee.runtime.exp.PageException;
 
 /**
- * a Item of a SQL Statement
+ * an Item of a SQL Statement
  */
 public interface SQLItem {
 

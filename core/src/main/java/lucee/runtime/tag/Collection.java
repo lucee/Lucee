@@ -103,10 +103,10 @@ public final class Collection extends TagImpl {
 			Resource parent = this.path.getParentResource();
 			if (parent != null && parent.exists()) this.path.mkdirs();
 			else {
-				throw new ApplicationException("attribute path of the tag collection must be a existing directory");
+				throw new ApplicationException("attribute path of the tag collection must be an existing directory");
 			}
 		}
-		else if (!this.path.isDirectory()) throw new ApplicationException("attribute path of the tag collection must be a existing directory");
+		else if (!this.path.isDirectory()) throw new ApplicationException("attribute path of the tag collection must be an existing directory");
 	}
 
 	/**

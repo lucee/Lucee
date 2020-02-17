@@ -299,7 +299,12 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 	 * @return Returns the defaultPassword.
 	 */
 	protected Password getDefaultPassword() {
+		if (defaultPassword == null) return password;
 		return defaultPassword;
+	}
+
+	protected boolean hasCustomDefaultPassword() {
+		return defaultPassword != null;
 	}
 
 	/**
@@ -927,5 +932,20 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 			}
 		}
 		return wsHandler;
+	}
+
+	@Override
+	public void checkPassword() throws PageException {
+		CFMLEngine engine = ConfigWebUtil.getEngine(this);
+		ConfigWeb[] webs = getConfigWebs();
+		try {
+			XMLConfigServerFactory.reloadInstance(engine, this);
+			for (int i = 0; i < webs.length; i++) {
+				XMLConfigWebFactory.reloadInstance(engine, this, (ConfigWebImpl) webs[i], true);
+			}
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
 	}
 }

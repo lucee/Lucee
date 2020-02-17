@@ -205,7 +205,7 @@ public abstract class XMLConfigFactory {
 	}
 
 	/**
-	 * return first direct child Elements of a Element with given Name
+	 * return first direct child Elements of an Element with given Name
 	 * 
 	 * @param parent
 	 * @param nodeName
@@ -241,7 +241,7 @@ public abstract class XMLConfigFactory {
 	}
 
 	/**
-	 * return all direct child Elements of a Element with given Name
+	 * return all direct child Elements of an Element with given Name
 	 * 
 	 * @param parent
 	 * @param nodeName

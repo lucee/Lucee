@@ -74,7 +74,7 @@ import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.DateTime;
 
 /**
- * Object to test if a Object is a specific type
+ * Object to test if an Object is a specific type
  */
 public final class Decision {
 
@@ -466,7 +466,7 @@ public final class Decision {
 	}
 
 	/**
-	 * can this type be casted to a array
+	 * can this type be casted to an array
 	 * 
 	 * @param o
 	 * @return
@@ -488,7 +488,7 @@ public final class Decision {
 	}
 
 	/**
-	 * tests if object is a array
+	 * tests if object is an array
 	 * 
 	 * @param o
 	 * @return is array or not
@@ -839,7 +839,7 @@ public final class Decision {
 	}
 
 	/**
-	 * returns if given object is a email
+	 * returns if given object is an email
 	 * 
 	 * @param value
 	 * @return

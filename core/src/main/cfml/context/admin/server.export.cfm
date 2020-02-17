@@ -141,7 +141,7 @@ component {
 	this.timezone = "#regional.timezone#"; 
 
 // scope handling
-	// lifespan of a untouched application scope
+	// lifespan of an untouched application scope
 	this.applicationTimeout = createTimeSpan( #scope.applicationTimeout_day#, #scope.applicationTimeout_hour#, #scope.applicationTimeout_minute#, #scope.applicationTimeout_second# ); 
 	
 	// session handling enabled or not
@@ -164,7 +164,7 @@ component {
 	// prefer the local scope at un-scoped write
 	this.localMode = "#scope.LocalMode#"; 
 	
-	// buffer the output of a tag/function body to output in case of a exception
+	// buffer the output of a tag/function body to output in case of an exception
 	this.bufferOutput = #outputSetting.bufferOutput#; 
 	this.compression = #outputSetting.AllowCompression#;
 	this.suppressRemoteComponentContent = #outputSetting.suppressContent#;

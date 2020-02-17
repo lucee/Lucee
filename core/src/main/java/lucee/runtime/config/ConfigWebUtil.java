@@ -349,7 +349,7 @@ public final class ConfigWebUtil {
 	}
 
 	/**
-	 * get only a existing file, dont create it
+	 * get only an existing file, dont create it
 	 * 
 	 * @param sc
 	 * @param strDir
@@ -463,6 +463,7 @@ public final class ConfigWebUtil {
 
 	public static void checkGeneralWriteAccess(ConfigImpl config, Password password) throws SecurityException {
 		SecurityManager sm = config.getSecurityManager();
+		if (sm == null) return;
 		short access = sm.getAccess(SecurityManager.TYPE_ACCESS_WRITE);
 
 		if (config instanceof ConfigServer) access = SecurityManager.ACCESS_PROTECTED;

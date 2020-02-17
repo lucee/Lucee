@@ -54,7 +54,7 @@ public interface ConfigServer extends Config {
 	public abstract SecurityManager getSecurityManager(String id);
 
 	/**
-	 * is there a individual security manager for given id
+	 * is there an individual security manager for given id
 	 * 
 	 * @param id for the security manager
 	 * @return returns SecurityManager matching config

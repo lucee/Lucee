@@ -245,7 +245,7 @@ public final class Executer {
 	}
 
 	/**
-	 * Executes a Expression
+	 * Executes an Expression
 	 * 
 	 * @param sql
 	 * @param qr
@@ -407,7 +407,7 @@ public final class Executer {
 	 * 
 	 * /**
 	 * 
-	 * execute a and operation
+	 * execute an and operation
 	 * 
 	 * @param qr QueryResult to execute on it
 	 * 
@@ -433,7 +433,7 @@ public final class Executer {
 
 	/**
 	 * 
-	 * execute a and operation
+	 * execute an and operation
 	 * 
 	 * @param sql
 	 * @param qr QueryResult to execute on it
@@ -456,7 +456,7 @@ public final class Executer {
 
 	/**
 	 * 
-	 * execute a equal operation
+	 * execute an equal operation
 	 * 
 	 * @param sql
 	 * @param qr QueryResult to execute on it
@@ -546,7 +546,7 @@ public final class Executer {
 
 	/**
 	 * 
-	 * execute a equal operation
+	 * execute an equal operation
 	 * 
 	 * @param sql
 	 * @param qr QueryResult to execute on it
