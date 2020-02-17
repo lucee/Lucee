@@ -6,7 +6,6 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
-import lucee.print;
 import lucee.runtime.CFMLFactory;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
@@ -36,16 +35,9 @@ public class PageContextSimpleCloner {
 			pc = ThreadUtil.clonePageContext(parent, os, false, true, false);
 		}
 		else {
-			long start = System.nanoTime();
 			pc.setHttpServletResponse(ThreadUtil.createHttpServletResponse(os));
-			print.e("1:" + (System.nanoTime() - start));
-			start = System.nanoTime();
 			parent.copyStateTo(pc);
-			print.e("2:" + (System.nanoTime() - start));
-			start = System.nanoTime();
 			ThreadLocalPageContext.register(pc);
-			print.e("3:" + (System.nanoTime() - start));
-
 		}
 		pc.getRootOut().setAllowCompression(false); // make sure content is not compressed
 		return pc;
