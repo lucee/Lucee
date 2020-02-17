@@ -173,7 +173,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		// stopwatch.start();
 		long start = System.nanoTime();
 		try {
-			fillResult(this, null, null, null, result, maxrow, false, false, tz);
+			fillResult(this, null, null, null, result, maxrow, true, false, tz);
 		}
 		catch (SQLException e) {
 			throw new DatabaseException(e, null);

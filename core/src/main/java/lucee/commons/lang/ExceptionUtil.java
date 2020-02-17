@@ -183,6 +183,7 @@ public final class ExceptionUtil {
 	}
 
 	private static Throwable unwrap(Throwable t) {
+		if (t == null) return t;
 		if (t instanceof NativeException) return unwrap(((NativeException) t).getException());
 		Throwable cause = t.getCause();
 		if (cause != null && cause != t) return unwrap(cause);
