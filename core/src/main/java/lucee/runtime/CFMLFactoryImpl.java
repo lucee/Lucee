@@ -139,6 +139,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 	public PageContextImpl getPageContextImpl(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp, String errorPageURL, boolean needsSession, int bufferSize,
 			boolean autoflush, boolean register2Thread, boolean isChild, long timeout, boolean register2RunningThreads, boolean ignoreScopes, boolean createNew) {
 		PageContextImpl pc;
+
 		if (createNew || pcs.isEmpty()) {
 			pc = null;
 		}
@@ -150,9 +151,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 				pc = null;
 			}
 		}
-		if (pc == null) {
-			pc = new PageContextImpl(scopeContext, config, idCounter++, servlet, ignoreScopes);
-		}
+		if (pc == null) pc = new PageContextImpl(scopeContext, config, idCounter++, servlet, ignoreScopes);
 
 		if (timeout > 0) pc.setRequestTimeout(timeout);
 		if (register2RunningThreads) {

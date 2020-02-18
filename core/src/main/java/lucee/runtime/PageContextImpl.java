@@ -1917,10 +1917,6 @@ public final class PageContextImpl extends PageContext {
 		return rsp;
 	}
 
-	public void setHttpServletResponse(HttpServletResponse rsp) {
-		this.rsp = rsp;
-	}
-
 	@Override
 	public OutputStream getResponseStream() throws IOException {
 		return getRootOut().getResponseStream();
