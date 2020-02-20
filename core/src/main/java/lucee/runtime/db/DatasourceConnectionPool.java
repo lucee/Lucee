@@ -134,7 +134,6 @@ public class DatasourceConnectionPool {
 		Connection conn = null;
 		try {
 			conn = ds.getConnection(config, user, pass);
-			conn.setAutoCommit(true);
 		}
 		catch (SQLException e) {
 			throw new DatabaseException(e, null);
