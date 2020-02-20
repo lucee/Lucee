@@ -344,8 +344,8 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 					if (pair == null) {
 						pair = new Pair<DatasourceConnection, Exception>(dc, e);
 					}
+					continue;
 				}
-
 				releaseConnection(null, dc, true);
 			}
 			transConns.clear();
