@@ -76,7 +76,7 @@ public final class IOUtil {
 		}
 		finally {
 			if (closeIS) closeEL(in);
-			if (closeOS) closeEL(out);
+			if (closeOS && out != null) out.close();
 		}
 	}
 
