@@ -158,7 +158,7 @@ public final class CompressUtil {
 			IOUtil.copy(is, os, false, false);
 		}
 		finally {
-			IOUtil.closeEL(is, os);
+			IOUtil.close(is, os);
 		}
 	}
 
@@ -171,7 +171,7 @@ public final class CompressUtil {
 			IOUtil.copy(is, os, false, false);
 		}
 		finally {
-			IOUtil.closeEL(is, os);
+			IOUtil.close(is, os);
 		}
 	}
 
@@ -225,7 +225,7 @@ public final class CompressUtil {
 			}
 		}
 		finally {
-			IOUtil.closeEL(tis);
+			IOUtil.close(tis);
 		}
 	}
 
@@ -280,7 +280,7 @@ public final class CompressUtil {
 			}
 		}
 		finally {
-			IOUtil.closeEL(zis);
+			IOUtil.close(zis);
 		}
 	}
 
@@ -380,7 +380,7 @@ public final class CompressUtil {
 				compressTar(sources, tmpOs, mode);
 			}
 			finally {
-				IOUtil.closeEL(tmpOs);
+				IOUtil.close(tmpOs);
 			}
 
 			// write Gzip
@@ -392,7 +392,7 @@ public final class CompressUtil {
 				compressGZip(is, os);
 			}
 			finally {
-				IOUtil.closeEL(is, os);
+				IOUtil.close(is, os);
 			}
 		}
 		finally {
@@ -435,7 +435,7 @@ public final class CompressUtil {
 			os = target.getOutputStream();
 		}
 		catch (IOException ioe) {
-			IOUtil.closeEL(is, os);
+			IOUtil.close(is, os);
 			throw ioe;
 		}
 		compressGZip(is, os);
@@ -466,7 +466,7 @@ public final class CompressUtil {
 			os = target.getOutputStream();
 		}
 		catch (IOException ioe) {
-			IOUtil.closeEL(is, os);
+			IOUtil.close(is, os);
 			throw ioe;
 		}
 
@@ -502,7 +502,7 @@ public final class CompressUtil {
 			compressZip("", sources, zos, filter);
 		}
 		finally {
-			IOUtil.closeEL(zos);
+			IOUtil.close(zos);
 		}
 	}
 
@@ -570,7 +570,7 @@ public final class CompressUtil {
 			compressTar("", sources, tos, mode);
 		}
 		finally {
-			IOUtil.closeEL(tos);
+			IOUtil.close(tos);
 		}
 	}
 

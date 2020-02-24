@@ -125,7 +125,12 @@ public class DatasourceConnectionPool {
 				// in case we are fine
 				SystemUtil.notify(waiter);
 			}
-			IOUtil.closeEL(rtn.getConnection());
+			try {
+				IOUtil.close(rtn.getConnection());
+			}
+			catch (SQLException e) {
+				throw Caster.toPageException(e);
+			}
 			rtn = null;
 		}
 	}

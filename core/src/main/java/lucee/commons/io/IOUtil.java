@@ -41,10 +41,9 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.zip.ZipFile;
-
-import javax.mail.Transport;
 
 import org.apache.tika.Tika;
 import org.apache.tika.metadata.Metadata;
@@ -75,8 +74,11 @@ public final class IOUtil {
 			copy(in, out, 0xffff);
 		}
 		finally {
-			if (closeIS) closeEL(in);
-			if (closeOS) closeEL(out);
+			if (closeIS && closeOS) close(in, out);
+			else {
+				if (closeIS) close(in);
+				if (closeOS) close(out);
+			}
 		}
 	}
 
@@ -96,7 +98,7 @@ public final class IOUtil {
 		finally {
 			if (closeIS1) closeEL(in1);
 			if (closeIS2) closeEL(in2);
-			if (closeOS) closeEL(out);
+			if (closeOS) close(out);
 		}
 	}
 
@@ -136,7 +138,7 @@ public final class IOUtil {
 		catch (IOException ioe) {
 			IOUtil.closeEL(is1);
 			IOUtil.closeEL(is2);
-			IOUtil.closeEL(os);
+			IOUtil.close(os);
 			throw ioe;
 		}
 		merge(is1, is2, os, true, true, true);
@@ -155,7 +157,7 @@ public final class IOUtil {
 			os = toBufferedOutputStream(out.getOutputStream());
 		}
 		catch (IOException ioe) {
-			IOUtil.closeEL(os);
+			IOUtil.close(os);
 			throw ioe;
 		}
 		copy(is, os, closeIS, true);
@@ -174,7 +176,7 @@ public final class IOUtil {
 			is = toBufferedInputStream(in.getInputStream());
 		}
 		catch (IOException ioe) {
-			IOUtil.closeEL(is);
+			IOUtil.close(is);
 			throw ioe;
 		}
 		copy(is, os, true, closeOS);
@@ -324,8 +326,11 @@ public final class IOUtil {
 			copy(reader, writer, 0xffff, -1);
 		}
 		finally {
-			if (closeReader) closeEL(reader);
-			if (closeWriter) closeEL(writer);
+			if (closeReader && closeWriter) close(reader, writer);
+			else {
+				if (closeReader) close(reader);
+				if (closeWriter) close(writer);
+			}
 		}
 	}
 
@@ -378,10 +383,32 @@ public final class IOUtil {
 			os = new BufferedFileOutputStream(out);
 		}
 		catch (IOException ioe) {
-			closeEL(is, os);
+			close(is, os);
 			throw ioe;
 		}
 		copy(is, os, true, true);
+	}
+
+	/**
+	 * close inputstream , ignore when one of the objects is null
+	 * 
+	 * @param is
+	 * @param os
+	 * @throws IOException
+	 */
+	public static void close(InputStream is, OutputStream os) throws IOException {
+		IOException ioe = null;
+		if (is != null) {
+			try {
+				is.close();
+			}
+			catch (IOException e) {
+				ioe = e;
+			}
+		}
+		if (os != null) os.close();
+
+		if (ioe != null) throw ioe;
 	}
 
 	/**
@@ -389,20 +416,33 @@ public final class IOUtil {
 	 * 
 	 * @param is
 	 * @param os
+	 * @throws IOException
 	 */
 	public static void closeEL(InputStream is, OutputStream os) {
 		closeEL(is);
 		closeEL(os);
 	}
 
+	public static void close(Connection conn) throws SQLException {
+		if (conn != null) conn.close();
+	}
+
 	public static void closeEL(Connection conn) {
 		try {
 			if (conn != null) conn.close();
 		}
-		// catch (AlwaysThrow at) {throw at;}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
 		}
+	}
+
+	/**
+	 * close inputstream , ignore it when object is null
+	 * 
+	 * @param is
+	 */
+	public static void close(InputStream is) throws IOException {
+		if (is != null) is.close();
 	}
 
 	/**
@@ -414,20 +454,31 @@ public final class IOUtil {
 		try {
 			if (is != null) is.close();
 		}
-		// catch (AlwaysThrow at) {throw at;}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
 		}
 	}
 
-	public static void closeEL(ZipFile zip) {
+	public static void closeEL(ZipFile zip) throws IOException {
+		if (zip != null) zip.close();
+	}
+
+	public static void closeELL(ZipFile zip) {
 		try {
 			if (zip != null) zip.close();
 		}
-		// catch (AlwaysThrow at) {throw at;}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
 		}
+	}
+
+	/**
+	 * close outputstream, ignore when the object is null
+	 * 
+	 * @param os
+	 */
+	public static void close(OutputStream os) throws IOException {
+		if (os != null) os.close();
 	}
 
 	/**
@@ -439,10 +490,13 @@ public final class IOUtil {
 		try {
 			if (os != null) os.close();
 		}
-		// catch (AlwaysThrow at) {throw at;}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
 		}
+	}
+
+	public static void close(ResultSet rs) throws SQLException {
+		if (rs != null) rs.close();
 	}
 
 	public static void closeEL(ResultSet rs) {
@@ -455,6 +509,15 @@ public final class IOUtil {
 	}
 
 	/**
+	 * close Reader if object is null it is ignored
+	 * 
+	 * @param r
+	 */
+	public static void close(Reader r) throws IOException {
+		if (r != null) r.close();
+	}
+
+	/**
 	 * close Reader without an Exception
 	 * 
 	 * @param r
@@ -463,10 +526,33 @@ public final class IOUtil {
 		try {
 			if (r != null) r.close();
 		}
-		// catch (AlwaysThrow at) {throw at;}
 		catch (Throwable e) {
 			ExceptionUtil.rethrowIfNecessary(e);
 		}
+	}
+
+	/**
+	 * close Closeable, when null ignores it
+	 * 
+	 * @param r
+	 */
+	public static void close(Closeable c) throws IOException {
+		if (c != null) c.close();
+	}
+
+	public static void close(Closeable c1, Closeable c2) throws IOException {
+		IOException ioe = null;
+		if (c1 != null) {
+			try {
+				c1.close();
+			}
+			catch (IOException e) {
+				ioe = e;
+			}
+		}
+		if (c2 != null) c2.close();
+
+		if (ioe != null) throw ioe;
 	}
 
 	/**
@@ -478,38 +564,52 @@ public final class IOUtil {
 		try {
 			if (c != null) c.close();
 		}
-		// catch (AlwaysThrow at) {throw at;}
 		catch (Throwable e) {
 			ExceptionUtil.rethrowIfNecessary(e);
 		}
 	}
 
 	/**
-	 * close Writer without an Exception
+	 * close Writer ignore the object when null
 	 * 
 	 * @param w
 	 */
+	public static void close(Writer w) throws IOException {
+		if (w != null) w.close();
+	}
+
 	public static void closeEL(Writer w) {
 		try {
 			if (w != null) w.close();
 		}
-		// catch (AlwaysThrow at) {throw at;}
 		catch (Throwable e) {
 			ExceptionUtil.rethrowIfNecessary(e);
 		}
 	}
 
 	/**
-	 * close Writer without an Exception
+	 * call close method from any Object with a close method.
 	 * 
-	 * @param w
+	 * @param obj
+	 * @throws SQLException
 	 */
-	public static void closeEL(Transport t) {
-		try {
-			if (t != null && t.isConnected()) t.close();
-		}
-		catch (Throwable e) {
-			ExceptionUtil.rethrowIfNecessary(e);
+	public static void close(Object obj) throws Exception {
+		if (obj instanceof InputStream) IOUtil.close((InputStream) obj);
+		else if (obj instanceof OutputStream) IOUtil.close((OutputStream) obj);
+		else if (obj instanceof Writer) IOUtil.close((Writer) obj);
+		else if (obj instanceof Reader) IOUtil.close((Reader) obj);
+		else if (obj instanceof Closeable) IOUtil.close((Closeable) obj);
+		else if (obj instanceof ZipFile) IOUtil.closeEL((ZipFile) obj);
+		else if (obj instanceof ResultSet) IOUtil.close((ResultSet) obj);
+		else if (obj instanceof Connection) IOUtil.close((Connection) obj);
+		else {
+			try {
+				Method method = obj.getClass().getMethod("close", new Class[0]);
+				method.invoke(obj, new Object[0]);
+			}
+			catch (Throwable e) {
+				ExceptionUtil.rethrowIfNecessary(e);
+			}
 		}
 	}
 
@@ -524,7 +624,7 @@ public final class IOUtil {
 		else if (obj instanceof Writer) IOUtil.closeEL((Writer) obj);
 		else if (obj instanceof Reader) IOUtil.closeEL((Reader) obj);
 		else if (obj instanceof Closeable) IOUtil.closeEL((Closeable) obj);
-		else if (obj instanceof ZipFile) IOUtil.closeEL((ZipFile) obj);
+		else if (obj instanceof ZipFile) IOUtil.closeELL((ZipFile) obj);
 		else if (obj instanceof ResultSet) IOUtil.closeEL((ResultSet) obj);
 		else if (obj instanceof Connection) IOUtil.closeEL((Connection) obj);
 		else {
@@ -590,18 +690,18 @@ public final class IOUtil {
 			}
 		}
 		catch (IOException ioe) {
-			IOUtil.closeEL(is);
+			IOUtil.close(is);
 			throw ioe;
 		}
 
 		// when mark not supported return new reader
-		closeEL(is);
+		close(is);
 		is = null;
 		try {
 			is = res.getInputStream();
 		}
 		catch (IOException ioe) {
-			closeEL(is);
+			close(is);
 			throw ioe;
 		}
 		return _getReader(is, charset);
@@ -790,7 +890,7 @@ public final class IOUtil {
 			return str;
 		}
 		finally {
-			closeEL(r);
+			close(r);
 		}
 	}
 
@@ -841,7 +941,7 @@ public final class IOUtil {
 
 		}
 		finally {
-			closeEL(writer);
+			close(writer);
 		}
 	}
 
@@ -869,7 +969,7 @@ public final class IOUtil {
 			writer.write(string);
 		}
 		finally {
-			closeEL(writer);
+			close(writer);
 		}
 	}
 
@@ -900,7 +1000,7 @@ public final class IOUtil {
 			return barr;
 		}
 		finally {
-			closeEL(bfis);
+			close(bfis);
 		}
 	}
 
@@ -917,7 +1017,7 @@ public final class IOUtil {
 			return barr;
 		}
 		finally {
-			closeEL(bfis);
+			close(bfis);
 		}
 	}
 
@@ -1134,7 +1234,7 @@ public final class IOUtil {
 			os = res.getOutputStream();
 		}
 		catch (IOException ioe) {
-			closeEL(os);
+			close(os);
 			throw ioe;
 		}
 		return getWriter(os, charset);
@@ -1160,7 +1260,7 @@ public final class IOUtil {
 			os = res.getOutputStream(append);
 		}
 		catch (IOException ioe) {
-			closeEL(os);
+			close(os);
 			throw ioe;
 		}
 		return getWriter(os, charset);
@@ -1181,7 +1281,7 @@ public final class IOUtil {
 			os = new FileOutputStream(file);
 		}
 		catch (IOException ioe) {
-			closeEL(os);
+			close(os);
 			throw ioe;
 		}
 		return getWriter(os, charset);
@@ -1202,7 +1302,7 @@ public final class IOUtil {
 			os = new FileOutputStream(file, append);
 		}
 		catch (IOException ioe) {
-			closeEL(os);
+			close(os);
 			throw ioe;
 		}
 		return getWriter(os, charset);

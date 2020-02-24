@@ -42,7 +42,7 @@ public class LogST extends Thread {
 				printStackTrace(ps, thread.getStackTrace());
 				SystemUtil.wait(this, timeRange);
 				if (size > max) {
-					IOUtil.closeEL(ps);
+					IOUtil.close(ps);
 					ps = new PrintStream(createFile());
 					size = 0;
 				}
@@ -52,7 +52,13 @@ public class LogST extends Thread {
 			LogUtil.log(ThreadLocalPageContext.getConfig(), LogST.class.getName(), e);
 		}
 		finally {
-			IOUtil.closeEL(ps);
+			try {
+				IOUtil.close(ps);
+			}
+			catch (IOException e) {
+				LogUtil.log(ThreadLocalPageContext.getConfig(), LogST.class.getName(), e);
+			}
+
 		}
 	}
 

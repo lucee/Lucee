@@ -242,7 +242,7 @@ public class ProfileCollection {
 			return loadDocument(is = xmlFile.getInputStream());
 		}
 		finally {
-			IOUtil.closeEL(is);
+			IOUtil.close(is);
 		}
 	}
 
@@ -252,7 +252,7 @@ public class ProfileCollection {
 			return XMLUtil.parse(source, null, false);
 		}
 		finally {
-			IOUtil.closeEL(is);
+			IOUtil.close(is);
 		}
 	}
 }

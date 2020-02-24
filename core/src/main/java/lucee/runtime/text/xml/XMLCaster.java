@@ -533,7 +533,12 @@ public final class XMLCaster {
 			throw Caster.toPageException(ioe);
 		}
 		finally {
-			IOUtil.closeEL(w);
+			try {
+				IOUtil.close(w);
+			}
+			catch (IOException ioe) {
+				throw Caster.toPageException(ioe);
+			}
 		}
 	}
 
@@ -543,7 +548,12 @@ public final class XMLCaster {
 			writeTo(node, new StreamResult(sw), false, false, null, null, null);
 		}
 		finally {
-			IOUtil.closeEL(sw);
+			try {
+				IOUtil.close(sw);
+			}
+			catch (IOException e) {
+				throw Caster.toPageException(e);
+			}
 		}
 		return sw.getBuffer().toString();
 	}
@@ -554,7 +564,12 @@ public final class XMLCaster {
 			writeTo(node, new StreamResult(sw), omitXMLDecl, indent, null, null, null);
 		}
 		finally {
-			IOUtil.closeEL(sw);
+			try {
+				IOUtil.close(sw);
+			}
+			catch (IOException ioe) {
+				throw Caster.toPageException(ioe);
+			}
 		}
 		return sw.getBuffer().toString();
 	}
@@ -565,7 +580,12 @@ public final class XMLCaster {
 			writeTo(node, new StreamResult(sw), omitXMLDecl, indent, publicId, systemId, encoding);
 		}
 		finally {
-			IOUtil.closeEL(sw);
+			try {
+				IOUtil.close(sw);
+			}
+			catch (IOException ioe) {
+				throw Caster.toPageException(ioe);
+			}
 		}
 		return sw.getBuffer().toString();
 	}
@@ -579,7 +599,12 @@ public final class XMLCaster {
 			}
 		}
 		finally {
-			IOUtil.closeEL(sw);
+			try {
+				IOUtil.close(sw);
+			}
+			catch (IOException ioe) {
+				throw Caster.toPageException(ioe);
+			}
 		}
 		return sw.getBuffer().toString();
 	}

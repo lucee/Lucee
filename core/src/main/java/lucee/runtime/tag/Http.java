@@ -1345,7 +1345,7 @@ public final class Http extends BodyTagImpl {
 				throw Caster.toPageException(t);
 			}
 			finally {
-				IOUtil.closeEL(is);
+				IOUtil.close(is);
 			}
 		}
 		else {
@@ -1389,7 +1389,13 @@ public final class Http extends BodyTagImpl {
 			throw Caster.toPageException(ioe);
 		}
 		finally {
-			IOUtil.closeEL(is);
+			try {
+				IOUtil.close(is);
+			}
+			catch (IOException ioe) {
+				throw Caster.toPageException(ioe);
+
+			}
 		}
 
 		if (str == null) str = "";

@@ -146,7 +146,7 @@ public abstract class XMLConfigFactory {
 			return _loadDocument(is = IOUtil.toBufferedInputStream(xmlFile.getInputStream()));
 		}
 		finally {
-			IOUtil.closeEL(is);
+			IOUtil.close(is);
 		}
 	}
 
@@ -157,7 +157,7 @@ public abstract class XMLConfigFactory {
 				return _loadDocument(is = IOUtil.toBufferedInputStream(configFile.getInputStream()));
 			}
 			finally {
-				IOUtil.closeEL(is);
+				IOUtil.close(is);
 			}
 		}
 		catch (Exception e) {

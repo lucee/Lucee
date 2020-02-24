@@ -113,7 +113,12 @@ public final class TagLibFactory extends DefaultHandler {
 			throw new TagLibException(e);
 		}
 		finally {
-			IOUtil.closeEL(r);
+			try {
+				IOUtil.close(r);
+			}
+			catch (IOException e) {
+				throw new TagLibException(e);
+			}
 		}
 	}
 

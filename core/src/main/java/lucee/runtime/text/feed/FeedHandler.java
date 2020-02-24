@@ -87,7 +87,7 @@ public final class FeedHandler extends DefaultHandler {
 			init(source);
 		}
 		finally {
-			IOUtil.closeEL(is);
+			IOUtil.close(is);
 		}
 	}
 

@@ -1370,7 +1370,7 @@ public final class XMLUtil {
 				return new InputSource(new StringReader(str));
 			}
 			finally {
-				IOUtil.closeEL(is);
+				IOUtil.close(is);
 			}
 		}
 		if (value instanceof Reader) {
@@ -1380,7 +1380,7 @@ public final class XMLUtil {
 				return new InputSource(new StringReader(str));
 			}
 			finally {
-				IOUtil.closeEL(reader);
+				IOUtil.close(reader);
 			}
 		}
 		if (value instanceof byte[]) {
@@ -1452,7 +1452,7 @@ public final class XMLUtil {
 			throw new XMLException(saxe);
 		}
 		finally {
-			IOUtil.closeEL(is);
+			IOUtil.close(is);
 		}
 	}
 
@@ -1485,7 +1485,7 @@ public final class XMLUtil {
 				return toInputSource(fis);
 			}
 			finally {
-				IOUtil.closeEL(fis);
+				IOUtil.close(fis);
 			}
 		}
 		if (value instanceof InputStream) {
@@ -1495,7 +1495,7 @@ public final class XMLUtil {
 				return new InputSource(new StringReader(str));
 			}
 			finally {
-				IOUtil.closeEL(is);
+				IOUtil.close(is);
 			}
 		}
 		if (value instanceof Reader) {
@@ -1505,7 +1505,7 @@ public final class XMLUtil {
 				return new InputSource(new StringReader(str));
 			}
 			finally {
-				IOUtil.closeEL(reader);
+				IOUtil.close(reader);
 			}
 		}
 		if (value instanceof byte[]) {

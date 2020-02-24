@@ -490,7 +490,7 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 			}
 		}
 		finally {
-			IOUtil.closeEL(rsProcColumns);
+			IOUtil.close(rsProcColumns);
 		}
 
 		if (getLog().getLogLevel() >= Log.LEVEL_DEBUG) {
@@ -647,7 +647,7 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 								}
 							}
 							finally {
-								IOUtil.closeEL(rs);
+								IOUtil.close(rs);
 							}
 						}
 					}

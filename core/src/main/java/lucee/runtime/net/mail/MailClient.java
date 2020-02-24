@@ -785,7 +785,7 @@ public abstract class MailClient implements PoolItem {
 			folder.setFlags(msgs, new Flags(Flags.Flag.SEEN), true);
 		}
 		finally {
-			IOUtil.closeEL(folder);
+			if (folder != null) folder.close(false);
 		}
 	}
 

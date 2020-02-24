@@ -1934,7 +1934,12 @@ public final class Caster {
 				throw Caster.toPageException(e);
 			}
 			finally {
-				IOUtil.closeEL(r);
+				try {
+					IOUtil.close(r);
+				}
+				catch (IOException e) {
+					throw Caster.toPageException(e);
+				}
 			}
 		}
 		else if (o instanceof Throwable) {
@@ -1950,7 +1955,12 @@ public final class Caster {
 				throw Caster.toPageException(e);
 			}
 			finally {
-				IOUtil.closeEL(r);
+				try {
+					IOUtil.close(r);
+				}
+				catch (IOException e) {
+					throw Caster.toPageException(e);
+				}
 			}
 		}
 		else if (o instanceof byte[]) {
@@ -2728,10 +2738,15 @@ public final class Caster {
 				return IOUtil.toBytes(is);
 			}
 			catch (Exception e) {
-				throw new ExpressionException(e.getMessage());
+				throw Caster.toPageException(e);
 			}
 			finally {
-				IOUtil.closeEL(is);
+				try {
+					IOUtil.close(is);
+				}
+				catch (IOException e) {
+					throw Caster.toPageException(e);
+				}
 			}
 		}
 		try {
@@ -4608,7 +4623,7 @@ public final class Caster {
 					return IOUtil.toBytes(is);
 				}
 				finally {
-					IOUtil.closeEL(is);
+					IOUtil.close(is);
 				}
 			}
 		}

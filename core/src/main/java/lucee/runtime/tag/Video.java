@@ -369,9 +369,9 @@ public class Video extends TagSupport {
 			os = out.getOutputStream();
 		}
 		catch (IOException ioe) {
-			IOUtil.closeEL(is1);
-			IOUtil.closeEL(is2);
-			IOUtil.closeEL(os);
+			IOUtil.close(is1);
+			IOUtil.close(is2);
+			IOUtil.close(os);
 			throw ioe;
 		}
 
@@ -380,9 +380,9 @@ public class Video extends TagSupport {
 			copy(is2, os);
 		}
 		finally {
-			IOUtil.closeEL(is1);
-			IOUtil.closeEL(is2);
-			IOUtil.closeEL(os);
+			IOUtil.close(is1);
+			IOUtil.close(is2);
+			IOUtil.close(os);
 		}
 	}
 

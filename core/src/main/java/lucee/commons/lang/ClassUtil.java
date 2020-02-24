@@ -780,7 +780,7 @@ public final class ClassUtil {
 		catch (Exception e) {}
 		finally {
 			IOUtil.closeEL(is);
-			IOUtil.closeEL(zf);
+			IOUtil.closeELL(zf);
 		}
 
 		return defaultValue;

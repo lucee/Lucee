@@ -560,7 +560,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 			converter.writeOut(pc, obj, os = pc.getResponseStream());
 		}
 		finally {
-			IOUtil.closeEL(os);
+			IOUtil.close(os);
 		}
 	}
 
@@ -942,7 +942,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 		}
 		finally {
 			IOUtil.flushEL(os);
-			IOUtil.closeEL(os);
+			IOUtil.close(os);
 			((PageContextImpl) pc).getRootOut().setClosed(true);
 		}
 	}
@@ -969,7 +969,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 			}
 			finally {
 				IOUtil.flushEL(os);
-				IOUtil.closeEL(os);
+				IOUtil.close(os);
 				((PageContextImpl) pc).getRootOut().setClosed(true);
 			}
 		}

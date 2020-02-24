@@ -19,6 +19,7 @@
 package lucee.runtime.net.http;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.net.InetAddress;
@@ -472,7 +473,12 @@ public final class ReqRspUtil {
 				return defaultValue;
 			}
 			finally {
-				IOUtil.closeEL(is);
+				try {
+					IOUtil.close(is);
+				}
+				catch (IOException e) {
+					pc.getConfig().getLog("application").error("request", e);
+				}
 			}
 		}
 

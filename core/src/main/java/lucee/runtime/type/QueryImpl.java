@@ -543,7 +543,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			else {
 				qr.setColumnNames(columnNames);
 			}
-			if (closeResult) IOUtil.closeEL(result);
+			if (closeResult) IOUtil.close(result);
 		}
 		return true;
 	}

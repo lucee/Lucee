@@ -91,7 +91,7 @@ public final class RSSHandler extends DefaultHandler {
 			init(source);
 		}
 		finally {
-			IOUtil.closeEL(is);
+			IOUtil.close(is);
 		}
 	}
 

@@ -818,7 +818,7 @@ public final class PageSourceImpl implements PageSource {
 			return IOUtil.toStringArray(IOUtil.getReader(is, getMapping().getConfig().getTemplateCharset()));
 		}
 		finally {
-			IOUtil.closeEL(is);
+			IOUtil.close(is);
 		}
 	}
 

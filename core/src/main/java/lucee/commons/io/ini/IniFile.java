@@ -60,7 +60,7 @@ public final class IniFile {
 			load(is = file.getInputStream());
 		}
 		finally {
-			IOUtil.closeEL(is);
+			IOUtil.close(is);
 		}
 	}
 

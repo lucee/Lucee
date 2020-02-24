@@ -263,7 +263,7 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 				return new ServletInputStreamDummy(new byte[] {});
 			}
 			finally {
-				IOUtil.closeEL(is);
+				IOUtil.close(is);
 			}
 		}
 		return new ServletInputStreamDummy(barr);

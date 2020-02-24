@@ -1061,7 +1061,7 @@ public final class XMLConfigAdmin {
 			IOUtil.copy(is, os, false, false);
 		}
 		finally {
-			IOUtil.closeEL(is, os);
+			IOUtil.close(is, os);
 		}
 
 		return BundleFile.getInstance(jar);
@@ -4544,7 +4544,12 @@ public final class XMLConfigAdmin {
 		}
 
 		finally {
-			IOUtil.closeEL(is);
+			try {
+				IOUtil.close(is);
+			}
+			catch (IOException e) {
+				throw Caster.toPageException(e);
+			}
 			ZipUtil.close(file);
 		}
 		try {
@@ -5253,7 +5258,7 @@ public final class XMLConfigAdmin {
 				}
 			}
 			finally {
-				IOUtil.closeEL(zis);
+				IOUtil.close(zis);
 			}
 
 			// now we can delete the extension
@@ -5454,7 +5459,7 @@ public final class XMLConfigAdmin {
 			throw Caster.toPageException(t);
 		}
 		finally {
-			IOUtil.closeEL(is);
+			IOUtil.close(is);
 			ZipUtil.close(file);
 		}
 	}
@@ -5907,7 +5912,7 @@ public final class XMLConfigAdmin {
 				}
 			}
 			finally {
-				if (closeStream) IOUtil.closeEL(is);
+				if (closeStream) IOUtil.close(is);
 			}
 			return;
 		}
@@ -6061,7 +6066,7 @@ public final class XMLConfigAdmin {
 				}
 			}
 			finally {
-				if (closeStream) IOUtil.closeEL(is);
+				if (closeStream) IOUtil.close(is);
 			}
 			return;
 		}

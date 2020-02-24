@@ -266,7 +266,7 @@ public class OSGiUtil {
 			}
 		}
 		finally {
-			IOUtil.closeEL(is);
+			IOUtil.close(is);
 		}
 		return mf;
 	}
