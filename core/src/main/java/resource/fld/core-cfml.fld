@@ -2123,6 +2123,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>VerifyClient</name>
 		<class>lucee.runtime.functions.other.VerifyClient</class>
+		<status>unimplemented</status>
 		<description>Verifies whether request is from valid client or not</description>
 		<return>
 			<type>void</type>
