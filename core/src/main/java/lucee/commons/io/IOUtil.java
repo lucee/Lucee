@@ -199,7 +199,6 @@ public final class IOUtil {
 				ExceptionUtil.rethrowIfNecessary(t);
 				// skipped will be -1, see below
 			}
-
 			if (skipped <= 0) {
 				while (true) {
 					if (block > offset) block = (int) offset;
