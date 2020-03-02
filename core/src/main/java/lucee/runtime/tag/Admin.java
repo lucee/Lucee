@@ -2624,6 +2624,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		boolean literalTimestampWithTSOffset = getBoolV("literalTimestampWithTSOffset", false);
 		boolean alwaysSetTimeout = getBoolV("alwaysSetTimeout", false);
 		boolean requestExclusive = getBoolV("requestExclusive", false);
+		boolean alwaysResetConnections = getBoolV("alwaysResetConnections", false);
 
 		String id = getString("id", null);
 		String dsn = getString("admin", action, "dsn");
@@ -2647,10 +2648,11 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		String dbdriver = getString("dbdriver", "");
 
 		// config.getDatasourceConnectionPool().remove(name);
-		DataSource ds = null;
+		DataSourcePro ds = null;
 		try {
 			ds = new DataSourceImpl(config, name, cd, host, dsn, database, port, username, password, null, connLimit, connTimeout, metaCacheTimeout, blob, clob, allow, custom,
-					false, validate, storage, null, dbdriver, ps, literalTimestampWithTSOffset, alwaysSetTimeout, requestExclusive, config.getLog("application"));
+					false, validate, storage, null, dbdriver, ps, literalTimestampWithTSOffset, alwaysSetTimeout, requestExclusive, alwaysResetConnections,
+					config.getLog("application"));
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
@@ -2659,7 +2661,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		if (verify) _doVerifyDatasource(ds, username, password);
 		// print.out("limit:"+connLimit);
 		admin.updateDataSource(id, name, newName, cd, dsn, username, password, host, database, port, connLimit, connTimeout, metaCacheTimeout, blob, clob, allow, validate, storage,
-				timezone, custom, dbdriver, ps, literalTimestampWithTSOffset, alwaysSetTimeout, requestExclusive);
+				timezone, custom, dbdriver, ps, literalTimestampWithTSOffset, alwaysSetTimeout, requestExclusive, alwaysResetConnections);
 		store();
 		adminSync.broadcast(attributes, config);
 	}
@@ -2877,7 +2879,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		}
 	}
 
-	private void _doVerifyDatasource(DataSource ds, String username, String password) throws PageException {
+	private void _doVerifyDatasource(DataSourcePro ds, String username, String password) throws PageException {
 		try {
 			DataSourceManager manager = pageContext.getDataSourceManager();
 			DatasourceConnectionImpl dc = new DatasourceConnectionImpl(ds.getConnection(config, username, password), ds, username, password);
@@ -3840,6 +3842,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 				if (d instanceof DataSourcePro) {
 					DataSourcePro dp = ((DataSourcePro) d);
 					sct.setEL("requestExclusive", Boolean.valueOf(dp.isRequestExclusive()));
+					sct.setEL("alwaysResetConnections", Boolean.valueOf(dp.isAlwaysResetConnections()));
 				}
 
 				if (d instanceof DataSourceImpl) {

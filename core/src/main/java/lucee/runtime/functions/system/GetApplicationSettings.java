@@ -372,6 +372,7 @@ public class GetApplicationSettings extends BIF {
 		if (source instanceof DataSourcePro) {
 			DataSourcePro dsp = (DataSourcePro) source;
 			if (dsp.isRequestExclusive()) s.setEL("requestExclusive", dsp.isRequestExclusive());
+			if (dsp.isRequestExclusive()) s.setEL("alwaysResetConnections", dsp.isAlwaysResetConnections());
 		}
 		if (source instanceof DataSourceImpl) {
 			DataSourceImpl di = ((DataSourceImpl) source);

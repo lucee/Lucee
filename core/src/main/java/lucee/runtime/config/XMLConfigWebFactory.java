@@ -1938,7 +1938,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			try {
 				setDatasource(config, datasources, QOQ_DATASOURCE_NAME, new ClassDefinitionImpl("org.hsqldb.jdbcDriver", "hsqldb", "1.8.0", config.getIdentification()),
 						"hypersonic-hsqldb", "", -1, "jdbc:hsqldb:.", "sa", "", null, DEFAULT_MAX_CONNECTION, -1, 60000, true, true, DataSource.ALLOW_ALL, false, false, null,
-						new StructImpl(), "", ParamSyntax.DEFAULT, false, false, false);
+						new StructImpl(), "", ParamSyntax.DEFAULT, false, false, false, false);
 			}
 			catch (Exception e) {
 				log.error("Datasource", e);
@@ -2010,7 +2010,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 								toBoolean(getAttr(dataSource, "storage"), false), getAttr(dataSource, "timezone"), toStruct(getAttr(dataSource, "custom")),
 								getAttr(dataSource, "dbdriver"), ParamSyntax.toParamSyntax(dataSource, ParamSyntax.DEFAULT),
 								toBoolean(getAttr(dataSource, "literal-timestamp-with-tsoffset"), false), toBoolean(getAttr(dataSource, "always-set-timeout"), false),
-								toBoolean(getAttr(dataSource, "request-exclusive"), false)
+								toBoolean(getAttr(dataSource, "request-exclusive"), false), toBoolean(getAttr(dataSource, "always-reset-connections"), false)
 
 						);
 					}
@@ -2432,12 +2432,12 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	private static void setDatasource(ConfigImpl config, Map<String, DataSource> datasources, String datasourceName, ClassDefinition cd, String server, String databasename,
 			int port, String dsn, String user, String pass, TagListener listener, int connectionLimit, int connectionTimeout, long metaCacheTimeout, boolean blob, boolean clob,
 			int allow, boolean validate, boolean storage, String timezone, Struct custom, String dbdriver, ParamSyntax ps, boolean literalTimestampWithTSOffset,
-			boolean alwaysSetTimeout, boolean requestExclusive) throws BundleException, ClassException, SQLException {
+			boolean alwaysSetTimeout, boolean requestExclusive, boolean alwaysResetConnections) throws BundleException, ClassException, SQLException {
 
 		datasources.put(datasourceName.toLowerCase(),
 				new DataSourceImpl(config, datasourceName, cd, server, dsn, databasename, port, user, pass, listener, connectionLimit, connectionTimeout, metaCacheTimeout, blob,
 						clob, allow, custom, false, validate, storage, StringUtil.isEmpty(timezone, true) ? null : TimeZoneUtil.toTimeZone(timezone, null), dbdriver, ps,
-						literalTimestampWithTSOffset, alwaysSetTimeout, requestExclusive, config.getLog("application")));
+						literalTimestampWithTSOffset, alwaysSetTimeout, requestExclusive, alwaysResetConnections, config.getLog("application")));
 
 	}
 

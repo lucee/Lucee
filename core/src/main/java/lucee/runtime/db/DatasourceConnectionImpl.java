@@ -52,7 +52,7 @@ public final class DatasourceConnectionImpl implements DatasourceConnectionPro, 
 
 	// private static final int MAX_PS = 100;
 	private Connection connection;
-	private DataSource datasource;
+	private DataSourcePro datasource;
 	private long time;
 	private final long start;
 	private String username;
@@ -67,7 +67,7 @@ public final class DatasourceConnectionImpl implements DatasourceConnectionPro, 
 	 * @param pass
 	 * @param user
 	 */
-	public DatasourceConnectionImpl(Connection connection, DataSource datasource, String username, String password) {
+	public DatasourceConnectionImpl(Connection connection, DataSourcePro datasource, String username, String password) {
 		this.connection = connection;
 		this.datasource = datasource;
 		this.time = this.start = System.currentTimeMillis();
@@ -107,8 +107,17 @@ public final class DatasourceConnectionImpl implements DatasourceConnectionPro, 
 		return (start + timeout) < System.currentTimeMillis();
 	}
 
-	public DatasourceConnection using() {
+	public DatasourceConnection using() throws PageException {
 		time = System.currentTimeMillis();
+		if (datasource.isAlwaysResetConnections()) {
+			try {
+				connection.setAutoCommit(true);
+				connection.setTransactionIsolation(getDefaultTransactionIsolation());
+			}
+			catch (SQLException sqle) {
+				throw Caster.toPageException(sqle);
+			}
+		}
 		return this;
 	}
 
@@ -485,6 +494,7 @@ public final class DatasourceConnectionImpl implements DatasourceConnectionPro, 
 	}
 
 	// used only with java 7, do not set @Override
+	@Override
 	public void abort(Executor executor) throws SQLException {
 		connection.abort(executor);
 	}
@@ -502,6 +512,11 @@ public final class DatasourceConnectionImpl implements DatasourceConnectionPro, 
 	@Override
 	public boolean isAutoCommit() throws SQLException {
 		return connection.getAutoCommit();
+	}
+
+	@Override
+	public int getDefaultTransactionIsolation() {
+		return datasource.getDefaultTransactionIsolation();
 	}
 
 }

@@ -46,6 +46,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.db.DatasourceConnection;
+import lucee.runtime.db.DatasourceConnectionPro;
 import lucee.runtime.db.DatasourceManagerImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
@@ -586,7 +587,7 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 			try {
 				dc.getConnection().commit();
 				dc.getConnection().setAutoCommit(true);
-				dc.getConnection().setTransactionIsolation(Connection.TRANSACTION_NONE);
+				dc.getConnection().setTransactionIsolation(((DatasourceConnectionPro) dc).getDefaultTransactionIsolation());
 			}
 			catch (SQLException e) {}
 

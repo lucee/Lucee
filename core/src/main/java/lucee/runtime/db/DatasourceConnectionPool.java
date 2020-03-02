@@ -100,13 +100,15 @@ public class DatasourceConnectionPool {
 				// create a new instance
 				if (rtn == null) {
 					try {
-						rtn = loadDatasourceConnection(config, datasource, user, pass);
+						rtn = loadDatasourceConnection(config, (DataSourcePro) datasource, user, pass);
 					}
 					catch (PageException pe) {
 						_dec(stack, datasource, user, pass);
 						throw pe;
 					}
+
 					if (rtn instanceof DatasourceConnectionImpl) ((DatasourceConnectionImpl) rtn).using();
+
 					return rtn;
 				}
 			}
@@ -135,7 +137,7 @@ public class DatasourceConnectionPool {
 		}
 	}
 
-	private DatasourceConnectionImpl loadDatasourceConnection(Config config, DataSource ds, String user, String pass) throws PageException {
+	private DatasourceConnectionImpl loadDatasourceConnection(Config config, DataSourcePro ds, String user, String pass) throws PageException {
 		Connection conn = null;
 		try {
 			conn = ds.getConnection(config, user, pass);

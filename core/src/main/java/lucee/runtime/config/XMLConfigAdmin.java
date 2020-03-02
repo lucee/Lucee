@@ -1537,8 +1537,8 @@ public final class XMLConfigAdmin {
 	 */
 	public void updateDataSource(String id, String name, String newName, ClassDefinition cd, String dsn, String username, String password, String host, String database, int port,
 			int connectionLimit, int connectionTimeout, long metaCacheTimeout, boolean blob, boolean clob, int allow, boolean validate, boolean storage, String timezone,
-			Struct custom, String dbdriver, ParamSyntax paramSyntax, boolean literalTimestampWithTSOffset, boolean alwaysSetTimeout, boolean requestExclusive)
-			throws PageException {
+			Struct custom, String dbdriver, ParamSyntax paramSyntax, boolean literalTimestampWithTSOffset, boolean alwaysSetTimeout, boolean requestExclusive,
+			boolean alwaysResetConnections) throws PageException {
 
 		checkWriteAccess();
 		SecurityManager sm = config.getSecurityManager();
@@ -1617,6 +1617,9 @@ public final class XMLConfigAdmin {
 				if (requestExclusive) el.setAttribute("request-exclusive", "true");
 				else if (el.hasAttribute("request-exclusive")) el.removeAttribute("request-exclusive");
 
+				if (alwaysResetConnections) el.setAttribute("always-reset-connections", "true");
+				else if (el.hasAttribute("always-reset-connections")) el.removeAttribute("always-reset-connections");
+
 				return;
 			}
 		}
@@ -1662,6 +1665,7 @@ public final class XMLConfigAdmin {
 		if (literalTimestampWithTSOffset) el.setAttribute("literal-timestamp-with-tsoffset", "true");
 		if (alwaysSetTimeout) el.setAttribute("always-set-timeout", "true");
 		if (requestExclusive) el.setAttribute("request-exclusive", "true");
+		if (alwaysResetConnections) el.setAttribute("always-reset-connections", "true");
 
 	}
 

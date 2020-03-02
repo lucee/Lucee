@@ -41,6 +41,7 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 
 	private static final long serialVersionUID = -9111025519905149021L;
 	private static final int NETWORK_TIMEOUT_IN_SECONDS = 10;
+	private static int defaultTransactionIsolation = -1;
 
 	private final boolean blob;
 	private final boolean clob;
@@ -63,10 +64,11 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 	private final TagListener listener;
 	private final boolean requestExclusive;
 	private final boolean literalTimestampWithTSOffset;
+	private final boolean alwaysResetConnections;
 
 	public DataSourceSupport(Config config, String name, ClassDefinition cd, String username, String password, TagListener listener, boolean blob, boolean clob,
 			int connectionLimit, int connectionTimeout, long metaCacheTimeout, TimeZone timezone, int allow, boolean storage, boolean readOnly, boolean validate,
-			boolean requestExclusive, boolean literalTimestampWithTSOffset, Log log) {
+			boolean requestExclusive, boolean alwaysResetConnections, boolean literalTimestampWithTSOffset, Log log) {
 		this.name = name;
 		this.cd = cd;// _initializeCD(null, cd, config);
 		this.blob = blob;
@@ -83,6 +85,7 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 		this.listener = listener;
 		this.validate = validate;
 		this.requestExclusive = requestExclusive;
+		this.alwaysResetConnections = alwaysResetConnections;
 		this.log = log;
 		this.literalTimestampWithTSOffset = literalTimestampWithTSOffset;
 	}
@@ -110,7 +113,18 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 		java.util.Properties props = new java.util.Properties();
 		if (user != null) props.put("user", user);
 		if (pass != null) props.put("password", pass);
+
+		if (defaultTransactionIsolation == -1) {
+			Connection c = driver.connect(connStrTrans, props);
+			defaultTransactionIsolation = c.getTransactionIsolation();
+		}
 		return driver.connect(connStrTrans, props);
+	}
+
+	@Override
+	public int getDefaultTransactionIsolation() {
+		if (defaultTransactionIsolation == -1) return Connection.TRANSACTION_READ_COMMITTED;// never happens
+		return defaultTransactionIsolation;
 	}
 
 	private Driver initialize(Config config) throws BundleException, InstantiationException, IllegalAccessException, IOException {
@@ -235,6 +249,11 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 		return requestExclusive;
 	}
 
+	@Override
+	public boolean isAlwaysResetConnections() {
+		return alwaysResetConnections;
+	}
+
 	// FUTURE add to interface
 	public final boolean getLiteralTimestampWithTSOffset() {
 		return literalTimestampWithTSOffset;
@@ -270,8 +289,8 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 		return new StringBuilder(getConnectionStringTranslated()).append(':').append(getConnectionLimit()).append(':').append(getConnectionTimeout()).append(':')
 				.append(getMetaCacheTimeout()).append(':').append(getName().toLowerCase()).append(':').append(getUsername()).append(':').append(getPassword()).append(':')
 				.append(validate()).append(':').append(cd.toString()).append(':').append((getTimeZone() == null ? "null" : getTimeZone().getID())).append(':').append(isBlob())
-				.append(':').append(isClob()).append(':').append(isReadOnly()).append(':').append(isStorage()).append(':').append(isRequestExclusive()).toString();
-
+				.append(':').append(isClob()).append(':').append(isReadOnly()).append(':').append(isStorage()).append(':').append(isRequestExclusive()).append(':')
+				.append(isAlwaysResetConnections()).toString();
 	}
 
 	@Override

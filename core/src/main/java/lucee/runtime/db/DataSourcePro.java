@@ -8,4 +8,8 @@ public interface DataSourcePro extends DataSource {
 	 * @return
 	 */
 	public boolean isRequestExclusive();
+
+	public boolean isAlwaysResetConnections();
+
+	public int getDefaultTransactionIsolation();
 }
