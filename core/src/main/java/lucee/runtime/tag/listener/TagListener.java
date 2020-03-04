@@ -9,5 +9,7 @@ public interface TagListener {
 
 	public Struct after(PageContext pc, Struct args) throws PageException;
 
-	public Struct fail(PageContext pc, Struct args) throws PageException;
+	public boolean hasError();
+
+	public Struct error(PageContext pc, Struct args) throws PageException;
 }
