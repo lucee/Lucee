@@ -55,6 +55,7 @@ import lucee.runtime.net.mail.ServerImpl;
 import lucee.runtime.net.s3.Properties;
 import lucee.runtime.op.Caster;
 import lucee.runtime.orm.ORMConfiguration;
+import lucee.runtime.tag.listener.TagListener;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
@@ -373,6 +374,8 @@ public class GetApplicationSettings extends BIF {
 			DataSourcePro dsp = (DataSourcePro) source;
 			if (dsp.isRequestExclusive()) s.setEL("requestExclusive", dsp.isRequestExclusive());
 			if (dsp.isRequestExclusive()) s.setEL("alwaysResetConnections", dsp.isAlwaysResetConnections());
+			Object res = TagListener.toCFML(dsp.getListener(), null);
+			if (res != null) s.setEL("listener", res);
 		}
 		if (source instanceof DataSourceImpl) {
 			DataSourceImpl di = ((DataSourceImpl) source);

@@ -4,6 +4,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
 
 public class UDFTagListener extends TagListenerSupport {// UDF before, UDF after
@@ -39,5 +40,13 @@ public class UDFTagListener extends TagListenerSupport {// UDF before, UDF after
 	public Struct error(PageContext pc, Struct args) throws PageException {
 		if (this.error != null) return Caster.toStruct(error.callWithNamedValues(pc, args, true), null);
 		return null;
+	}
+
+	public Object getStruct() {
+		Struct sct = new StructImpl();
+		sct.put("before", before);
+		sct.put("after", after);
+		sct.put("error", error);
+		return sct;
 	}
 }

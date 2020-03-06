@@ -1125,6 +1125,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 	}
 
 	public static TagListener toTagListener(Object listener, TagListener defaultValue) {
+		if (listener instanceof TagListener) return (TagListener) listener;
 		if (listener instanceof Component) return new ComponentTagListener((Component) listener);
 
 		if (listener instanceof UDF) return new UDFTagListener(null, (UDF) listener, null);
