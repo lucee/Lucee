@@ -205,6 +205,11 @@ public class PageContextUtil {
 		return TimeSpanImpl.fromMillis(0);
 	}
 
+	public static void checkRequestTimeout(PageContext pc) throws RequestTimeoutException {
+		if (pc.getRequestTimeout() - (System.currentTimeMillis() - pc.getStartTime()) > 0) return;
+		throw CFMLFactoryImpl.createRequestTimeoutException(pc);
+	}
+
 	public static String getHandlePageException(PageContextImpl pc, PageException pe) throws PageException {
 		BodyContent bc = null;
 		String str = null;
