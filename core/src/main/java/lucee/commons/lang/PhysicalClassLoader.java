@@ -22,6 +22,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.instrument.ClassDefinition;
+import java.lang.instrument.Instrumentation;
 import java.lang.instrument.UnmodifiableClassException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -36,7 +37,6 @@ import org.apache.commons.collections4.map.ReferenceMap;
 
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
-import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.io.res.util.ResourceUtil;
@@ -179,7 +179,6 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 		Class<?> clazz = null;
 
 		synchronized (getClassLoadingLock(name)) {
-
 			// new class , not in memory yet
 			try {
 				clazz = loadClass(name, false, false); // we do not load existing class from disk
@@ -187,17 +186,21 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 			catch (ClassNotFoundException cnf) {}
 			if (clazz == null) return _loadClass(name, barr, false);
 
-			// first we try to update the class what needs instrumentation object
-			try {
-				InstrumentationFactory.getInstrumentation(config).redefineClasses(new ClassDefinition(clazz, barr));
-				return clazz;
+			Instrumentation instr = InstrumentationFactory.getInstrumentation(config);
+			if (instr != null) {
+				try {
+					instr.redefineClasses(new ClassDefinition(clazz, barr));
+					return clazz;
+				}
+				catch (ClassNotFoundException e) {
+					// the documentation clearly sais that this exception only exists for backward compatibility and
+					// never happen
+					throw new RuntimeException(e);
+				}
 			}
-			catch (Exception e) {
-				LogUtil.log(null, "compilation", e);
+			else {
+				return rename(clazz, barr);
 			}
-
-			// in case instrumentation fails, we rename it
-			return rename(clazz, barr);
 		}
 	}
 

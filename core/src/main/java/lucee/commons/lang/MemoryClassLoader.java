@@ -19,10 +19,10 @@ package lucee.commons.lang;
 
 import java.io.IOException;
 import java.lang.instrument.ClassDefinition;
+import java.lang.instrument.Instrumentation;
 import java.lang.instrument.UnmodifiableClassException;
 
 import lucee.commons.io.SystemUtil;
-import lucee.commons.io.log.LogUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.instrumentation.InstrumentationFactory;
 import lucee.transformer.bytecode.util.ClassRenamer;
@@ -80,30 +80,33 @@ public final class MemoryClassLoader extends ExtendableClassLoader {
 
 	@Override
 	public synchronized Class<?> loadClass(String name, byte[] barr) throws UnmodifiableClassException {
+
 		Class<?> clazz = null;
-		try {
-			clazz = loadClass(name);
-		}
-		catch (ClassNotFoundException cnf) {}
 
-		// if class already exists
-		if (clazz != null) {
-
-			// first we try to update the class what needs instrumentation object
+		synchronized (getClassLoadingLock(name)) {
+			// new class , not in memory yet
 			try {
-				InstrumentationFactory.getInstrumentation(config).redefineClasses(new ClassDefinition(clazz, barr));
-				return clazz;
+				clazz = loadClass(name); // we do not load existing class from disk
 			}
-			catch (Exception e) {
-				LogUtil.log(null, "compilation", e);
-			}
-			// in case instrumentation fails, we rename it
-			return rename(clazz, barr);
-		}
-		// class not exists yet
-		return
+			catch (ClassNotFoundException cnf) {}
+			if (clazz == null) return _loadClass(name, barr);
 
-		_loadClass(name, barr);
+			Instrumentation instr = InstrumentationFactory.getInstrumentation(config);
+			if (instr != null) {
+				try {
+					instr.redefineClasses(new ClassDefinition(clazz, barr));
+					return clazz;
+				}
+				catch (ClassNotFoundException e) {
+					// the documentation clearly sais that this exception only exists for backward compatibility and
+					// never happen
+					throw new RuntimeException(e);
+				}
+			}
+			else {
+				return rename(clazz, barr);
+			}
+		}
 	}
 
 	private Class<?> rename(Class<?> clazz, byte[] barr) {

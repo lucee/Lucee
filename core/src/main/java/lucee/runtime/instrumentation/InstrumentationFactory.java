@@ -62,8 +62,17 @@ public class InstrumentationFactory {
 	private static final String AGENT_CLASS_NAME = "lucee.runtime.instrumentation.ExternalAgent";
 
 	private static Instrumentation _instr;
+	private static boolean init = false;
 
 	public static synchronized Instrumentation getInstrumentation(final Config config) {
+		if (!init) {
+			_getInstrumentation(config);
+			init = true;
+		}
+		return _instr;
+	}
+
+	private static synchronized Instrumentation _getInstrumentation(final Config config) {
 
 		final Log log = config.getLog("application");
 		// final CFMLEngine engine = ConfigWebUtil.getEngine(config);
