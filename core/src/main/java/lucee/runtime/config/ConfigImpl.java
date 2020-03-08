@@ -135,6 +135,7 @@ import lucee.runtime.search.SearchEngine;
 import lucee.runtime.security.SecurityManager;
 import lucee.runtime.spooler.SpoolerEngine;
 import lucee.runtime.type.Collection.Key;
+import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
@@ -3274,7 +3275,13 @@ public abstract class ConfigImpl implements Config {
 		Entry<String, SoftReference<PageSource>> entry;
 		while (it.hasNext()) {
 			entry = it.next();
-			sct.setEL(entry.getKey(), entry.getValue().get().getDisplayPath());
+			String k = entry.getKey();
+			if (k == null) continue;
+			SoftReference<PageSource> v = entry.getValue();
+			if (v == null) continue;
+			PageSource ps = v.get();
+			if (ps == null) continue;
+			sct.setEL(KeyImpl.init(k), ps.getDisplayPath());
 		}
 		return sct;
 	}
