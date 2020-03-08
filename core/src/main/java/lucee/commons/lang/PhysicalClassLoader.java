@@ -61,15 +61,18 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	private static long counter = 0L;
 	private static long _start = 0L;
 	private static String start = Long.toString(_start, Character.MAX_RADIX);
+	private static Object countToken = new Object();
 
-	public static synchronized String uid() {
-		counter++;
-		if (counter < 0) {
-			counter = 1;
-			start = Long.toString(++_start, Character.MAX_RADIX);
+	public static String uid() {
+		synchronized (countToken) {
+			counter++;
+			if (counter < 0) {
+				counter = 1;
+				start = Long.toString(++_start, Character.MAX_RADIX);
+			}
+			if (_start == 0L) return Long.toString(counter, Character.MAX_RADIX);
+			return start + "_" + Long.toString(counter, Character.MAX_RADIX);
 		}
-		if (_start == 0L) return Long.toString(counter, Character.MAX_RADIX);
-		return start + "_" + Long.toString(counter, Character.MAX_RADIX);
 	}
 
 	/**
@@ -112,9 +115,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 
 	@Override
 	public Class<?> loadClass(String name) throws ClassNotFoundException {
-		synchronized (getClassLoadingLock(name)) {
-			return loadClass(name, false);
-		}
+		return loadClass(name, false);
 	}
 
 	@Override
@@ -169,7 +170,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	}
 
 	@Override
-	public synchronized Class<?> loadClass(String name, byte[] barr) throws UnmodifiableClassException {
+	public Class<?> loadClass(String name, byte[] barr) throws UnmodifiableClassException {
 		Class<?> clazz = null;
 
 		synchronized (getClassLoadingLock(name)) {
