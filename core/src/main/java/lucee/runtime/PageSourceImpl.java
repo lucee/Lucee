@@ -51,6 +51,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.exp.TemplateException;
 import lucee.runtime.functions.system.GetDirectoryFromPath;
+import lucee.runtime.instrumentation.InstrumentationFactory;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.dt.DateTimeImpl;
 import lucee.runtime.type.util.ArrayUtil;
@@ -337,11 +338,12 @@ public final class PageSourceImpl implements PageSource {
 			// load page
 			else {
 				try {
-					// reload from class file
-					// print.e("------- reload(" + getClassName() + ") -------");
-					this.page = page = newInstance(mapping.getPhysicalClass(getClassName(), IOUtil.toBytes(classFile)));
-					// print.e("- " + page.getClass().getName());
-					// this.page = page = newInstance(mapping.getPhysicalClass(this.getActualClassName()));
+					if (InstrumentationFactory.getInstrumentation(config) != null) {
+						this.page = page = newInstance(mapping.getPhysicalClass(getClassName()));
+					}
+					else {
+						this.page = page = newInstance(mapping.getPhysicalClass(getClassName(), IOUtil.toBytes(classFile)));
+					}
 				}
 				catch (Exception e) {
 					// print.e(e);
