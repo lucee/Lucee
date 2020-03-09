@@ -64,7 +64,7 @@ public class InstrumentationFactory {
 	private static Instrumentation _instr;
 	private static boolean init = false;
 
-	public static synchronized Instrumentation getInstrumentation(final Config config) {
+	public static Instrumentation getInstrumentation(final Config config) {
 		if (!init) {
 			_getInstrumentation(config);
 			init = true;

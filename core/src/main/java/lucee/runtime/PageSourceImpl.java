@@ -26,6 +26,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
@@ -51,6 +52,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.exp.TemplateException;
 import lucee.runtime.functions.system.GetDirectoryFromPath;
+import lucee.runtime.instrumentation.InstrumentationFactory;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.dt.DateTimeImpl;
 import lucee.runtime.type.util.ArrayUtil;
@@ -312,6 +314,7 @@ public final class PageSourceImpl implements PageSource {
 
 				}
 				if (!same) {
+					LogUtil.log(config, Log.LEVEL_INFO, "compile", "recompile [" + getDisplayPath() + "] because loaded page has changed");
 					this.page = page = compile(config, mapping.getClassRootDirectory(), page, false, pc.ignoreScopes());
 					page.setPageSource(this);
 					page.setLoadType(LOAD_PHYSICAL);
@@ -326,6 +329,12 @@ public final class PageSourceImpl implements PageSource {
 			boolean isNew = false;
 			// new class
 			if (flush || !classFile.exists()) {
+				if (!flush || !classFile.exists()) {
+					LogUtil.log(config, Log.LEVEL_INFO, "compile", "compile [" + getDisplayPath() + "] no previous class file ");
+				}
+				else {
+					LogUtil.log(config, Log.LEVEL_INFO, "compile", "compile [" + getDisplayPath() + "] because flush");
+				}
 				this.page = page = compile(config, classRootDir, null, false, pc.ignoreScopes());
 				flush = false;
 				isNew = true;
@@ -333,13 +342,21 @@ public final class PageSourceImpl implements PageSource {
 			// load page
 			else {
 				try {
-					this.page = page = newInstance(mapping.getPhysicalClass(this.getClassName(), IOUtil.toBytes(classFile)));
-
+					if (InstrumentationFactory.getInstrumentation(config) != null) {
+						LogUtil.log(config, Log.LEVEL_INFO, "compile", "load class from classloader  [" + getDisplayPath() + "]");
+						this.page = page = newInstance(mapping.getPhysicalClass(this.getClassName()));
+					}
+					else {
+						LogUtil.log(config, Log.LEVEL_INFO, "compile", "load class from binary  [" + getDisplayPath() + "]");
+						this.page = page = newInstance(mapping.getPhysicalClass(this.getClassName(), IOUtil.toBytes(classFile)));
+					}
 				}
 				catch (Exception e) {
+					LogUtil.log(config, "compile", e);
 					this.page = page = null;
 				}
 				if (page == null) {
+					LogUtil.log(config, Log.LEVEL_INFO, "compile", "compile  [" + getDisplayPath() + "] in case loading of the class fails");
 					this.page = page = compile(config, classRootDir, null, false, pc.ignoreScopes());
 					isNew = true;
 				}
@@ -348,6 +365,7 @@ public final class PageSourceImpl implements PageSource {
 			// check if version changed or lasMod
 			if (!isNew && (srcLastModified != page.getSourceLastModified() || page.getVersion() != pc.getConfig().getFactory().getEngine().getInfo().getFullVersionInfo())) {
 				isNew = true;
+				LogUtil.log(config, Log.LEVEL_INFO, "compile", "recompile [" + getDisplayPath() + "] because unloaded page has changed");
 				this.page = page = compile(config, classRootDir, page, false, pc.ignoreScopes());
 			}
 			page.setPageSource(this);
