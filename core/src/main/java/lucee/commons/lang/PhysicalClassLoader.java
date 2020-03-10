@@ -190,7 +190,9 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 			Instrumentation instr = InstrumentationFactory.getInstrumentation(config);
 			if (instr != null) {
 				try {
-					instr.redefineClasses(new ClassDefinition(clazz, barr));
+					synchronized (InstrumentationFactory.lockToken) {
+						instr.redefineClasses(new ClassDefinition(clazz, barr));
+					}
 					return clazz;
 				}
 				catch (ClassNotFoundException e) {

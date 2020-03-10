@@ -60,6 +60,7 @@ public class InstrumentationFactory {
 	private static final String SEP = File.separator;
 	private static final String TOOLS_VERSION = "7u25";
 	private static final String AGENT_CLASS_NAME = "lucee.runtime.instrumentation.ExternalAgent";
+	public static final Object lockToken = new Object();
 
 	private static Instrumentation _instr;
 	private static boolean init = false;
