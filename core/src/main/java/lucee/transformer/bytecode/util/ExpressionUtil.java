@@ -87,7 +87,7 @@ public final class ExpressionUtil {
 		}
 	}
 
-	public static synchronized void lastLine(BytecodeContext bc) {
+	public static void lastLine(BytecodeContext bc) {
 		synchronized (last) {
 			int line = Caster.toIntValue(last.get(bc.getClassName()), -1);
 			visitLine(bc, line);

@@ -38,4 +38,8 @@ public class ComponentTagListener extends TagListenerSupport {
 		if (component.get("error", null) instanceof UDF) return Caster.toStruct(component.callWithNamedValues(pc, "error", args), null);
 		return null;
 	}
+
+	public Object getComponent() {
+		return component;
+	}
 }
