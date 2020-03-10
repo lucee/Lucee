@@ -18,13 +18,10 @@
 package lucee.commons.lang;
 
 import java.io.IOException;
-import java.lang.instrument.ClassDefinition;
-import java.lang.instrument.Instrumentation;
 import java.lang.instrument.UnmodifiableClassException;
 
 import lucee.commons.io.SystemUtil;
 import lucee.runtime.config.Config;
-import lucee.runtime.instrumentation.InstrumentationFactory;
 import lucee.transformer.bytecode.util.ClassRenamer;
 
 /**
@@ -93,23 +90,15 @@ public final class MemoryClassLoader extends ExtendableClassLoader {
 			catch (ClassNotFoundException cnf) {}
 			if (clazz == null) return _loadClass(name, barr);
 
-			Instrumentation instr = InstrumentationFactory.getInstrumentation(config);
-			if (instr != null) {
-				try {
-					synchronized (InstrumentationFactory.lockToken) {
-						instr.redefineClasses(new ClassDefinition(clazz, barr));
-					}
-					return clazz;
-				}
-				catch (ClassNotFoundException e) {
-					// the documentation clearly sais that this exception only exists for backward compatibility and
-					// never happen
-					throw new RuntimeException(e);
-				}
-			}
-			else {
-				return rename(clazz, barr);
-			}
+			/*
+			 * Instrumentation instr = InstrumentationFactory.getInstrumentation(config); if (instr != null) {
+			 * try { synchronized (InstrumentationFactory.lockToken) { instr.redefineClasses(new
+			 * ClassDefinition(clazz, barr)); } return clazz; } catch (ClassNotFoundException e) { // the
+			 * documentation clearly sais that this exception only exists for backward compatibility and //
+			 * never happen throw new RuntimeException(e); } } else {
+			 */
+			return rename(clazz, barr);
+			// }
 		}
 	}
 
