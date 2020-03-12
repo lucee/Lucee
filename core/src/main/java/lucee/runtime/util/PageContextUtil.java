@@ -200,7 +200,7 @@ public class PageContextUtil {
 			return TimeSpanImpl.fromMillis(ms);
 		}
 
-		if (throwWhenAlreadyTimeout) throw CFMLFactoryImpl.createRequestTimeoutException(pc);
+		if (throwWhenAlreadyTimeout && ((PageContextImpl) pc).getTimeoutStackTrace() == null) throw CFMLFactoryImpl.createRequestTimeoutException(pc);
 
 		return TimeSpanImpl.fromMillis(0);
 	}
