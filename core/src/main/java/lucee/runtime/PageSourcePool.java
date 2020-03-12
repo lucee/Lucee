@@ -214,6 +214,7 @@ public final class PageSourcePool implements Dumpable {
 		PageSourceImpl entry;
 		while (it.hasNext()) {
 			entry = (PageSourceImpl) it.next().get();
+			if (entry == null) continue;
 			if (cl != null) entry.clear(cl);
 			else entry.clear();
 		}
