@@ -279,6 +279,7 @@ public final class SQLCaster {
 		case Types.LONGNVARCHAR:
 		case Types.NVARCHAR:
 		case CFTypes.VARCHAR2:
+		case Types.SQLXML:
 			stat.setObject(parameterIndex, Caster.toString(value), type);
 			//// stat.setString(parameterIndex,Caster.toString(value));
 			return;
@@ -354,7 +355,8 @@ public final class SQLCaster {
 		int type = item.getType();
 
 		// string types
-		if (type == Types.VARCHAR || type == Types.LONGVARCHAR || type == Types.CHAR || type == Types.CLOB || type == Types.NVARCHAR || type == Types.NCHAR || type == Types.SQLXML || type == Types.NCLOB || type == Types.LONGNVARCHAR) {
+		if (type == Types.VARCHAR || type == Types.LONGVARCHAR || type == Types.CHAR || type == Types.CLOB || type == Types.NVARCHAR || type == Types.NCHAR || type == Types.SQLXML
+				|| type == Types.NCLOB || type == Types.LONGNVARCHAR) {
 			return (matchString(item));
 		}
 		// long types
@@ -424,7 +426,7 @@ public final class SQLCaster {
 
 		int type = item.getType();
 		// char varchar
-		if (type == Types.VARCHAR || type == Types.LONGVARCHAR || type == CFTypes.VARCHAR2 || type == Types.NVARCHAR || type == Types.LONGNVARCHAR || type == Types.SQLXML ||  type == Types.NCLOB ) {
+		if (type == Types.VARCHAR || type == Types.LONGVARCHAR || type == CFTypes.VARCHAR2 || type == Types.NVARCHAR || type == Types.LONGNVARCHAR || type == Types.SQLXML) {
 			return Caster.toString(item.getValue());
 		}
 		// char types
@@ -506,7 +508,7 @@ public final class SQLCaster {
 
 	public static Object toCFType(Object value, int type) throws PageException {
 		// char varchar
-		if (type == Types.VARCHAR || type == Types.LONGVARCHAR || type == CFTypes.VARCHAR2 || type == Types.NVARCHAR || type == Types.LONGNVARCHAR || type == Types.SQLXML || type == Types.NCLOB) {
+		if (type == Types.VARCHAR || type == Types.LONGVARCHAR || type == CFTypes.VARCHAR2 || type == Types.NVARCHAR || type == Types.LONGNVARCHAR || type == Types.SQLXML) {
 			return Caster.toString(value);
 		}
 		// char types
