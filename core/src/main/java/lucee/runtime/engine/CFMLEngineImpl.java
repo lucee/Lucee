@@ -1657,6 +1657,19 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	}
 
 	public void onStart(ConfigImpl config, boolean reload) {
+
+		if (SystemUtil.getSystemPropOrEnvVar("lucee.enable.warmup", "").equalsIgnoreCase("true")) {
+			String msg = "Lucee warmup completed. Shutting down.";
+			System.err.println(msg);
+			System.err.flush();
+			LogUtil.log(config, Log.LEVEL_ERROR, "application", msg);
+			try {
+				Thread.sleep(1000);
+			}
+			catch (InterruptedException ex) {}
+			System.exit(0);
+		}
+
 		String context = config instanceof ConfigWeb ? "Web" : "Server";
 		if (!ThreadLocalPageContext.callOnStart.get()) return;
 
