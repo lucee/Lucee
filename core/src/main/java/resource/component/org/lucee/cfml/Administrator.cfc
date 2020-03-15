@@ -2359,10 +2359,10 @@ component {
 
 	/**
 	* @hint update exiting custom tag
-	* @virtual The name is used as identifier when you automaticly import a Lucee Archive build based on this Mapping.
+	* @virtual The name is used as identifier when you automatically import a Lucee Archive build based on this Mapping.
 	* @physical Directory path where the custom tags are located.
 	* @archive File path to a custom tag Lucee Archive (.lar).
-	* @primary Defines where Lucee does looks first for a requested custom tags
+	* @primary Defines where Lucee looks first for a requested custom tags
 	* @inspect When does Lucee checks for changes in the source file for an already loaded custom tags.
 	*/
 	public void function updateCustomTag( required string virtual, required string physical, required string archive, string primary="Resource", string inspect="" ) {
@@ -2381,7 +2381,7 @@ component {
 
 	/**
 	* @hint update exiting custom tag
-	* @virtual The name is used as identifier when you automaticly import a Lucee Archive build based on this Mapping.
+	* @virtual The name is used as identifier when you automatically import a Lucee Archive build based on this Mapping.
 	*/
 	public any function removecustomtag( required string virtual ) {
 		admin
