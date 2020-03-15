@@ -85,7 +85,7 @@ public class ComponentListPackage implements Function {
 		Set<String> rtn = null;
 		// var SEP=server.separator.file;
 
-		// get enviroment configuration
+		// get environment configuration
 		boolean searchLocal = packageName.indexOf('.') == -1 ? true : config.getComponentLocalSearch();
 		boolean searchRoot = config.getComponentRootSearch();
 
