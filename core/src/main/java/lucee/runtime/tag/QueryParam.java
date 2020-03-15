@@ -182,7 +182,7 @@ public final class QueryParam extends TagImpl {
 		if (parent instanceof Query) {
 			Query query = (Query) parent;
 
-			if (!item.isNulls() && !item.isValueSet()) throw new ApplicationException("attribute value from tag queryparam is required if attribute null is false");
+			if (!item.isNulls() && !item.isValueSet()) throw new ApplicationException("Attribute [value] from tag [queryparam] is required when attribute [null] is false");
 
 			Object value = item.getValue();
 			if (list || (Decision.isArray(value) && ARRAY_TYPES.contains(item.getType()))) {
