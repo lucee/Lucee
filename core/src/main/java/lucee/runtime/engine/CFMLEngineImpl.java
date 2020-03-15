@@ -88,6 +88,7 @@ import lucee.commons.io.retirement.RetireOutputStreamFactory;
 import lucee.commons.lang.Md5;
 import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.SystemOut;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lang.types.RefBooleanImpl;
 import lucee.commons.net.HTTPUtil;
@@ -1658,19 +1659,16 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 	public void onStart(ConfigImpl config, boolean reload) {
 
-		if (SystemUtil.getSystemPropOrEnvVar("lucee.enable.warmup", "").equalsIgnoreCase("true")) {
+		String context = config instanceof ConfigWeb ? "Web" : "Server";
+		
+		if (context == "Web" && SystemUtil.getSystemPropOrEnvVar("lucee.enable.warmup", "").equalsIgnoreCase("true")) {
 			String msg = "Lucee warmup completed. Shutting down.";
-			System.err.println(msg);
-			System.err.flush();
+			CONSOLE_ERR.println(msg);
 			LogUtil.log(config, Log.LEVEL_ERROR, "application", msg);
-			try {
-				Thread.sleep(1000);
-			}
-			catch (InterruptedException ex) {}
+			shutdownFelix();
 			System.exit(0);
 		}
 
-		String context = config instanceof ConfigWeb ? "Web" : "Server";
 		if (!ThreadLocalPageContext.callOnStart.get()) return;
 
 		Resource listenerTemplateLucee = config.getConfigDir().getRealResource("context/" + context + "." + lucee.runtime.config.Constants.getLuceeComponentExtension());
