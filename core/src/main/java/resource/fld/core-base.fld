@@ -698,7 +698,7 @@ Remember CFML arrays start at 1 not 0.</description>
 		<class>lucee.runtime.functions.closure.Map</class>
 		<keywords>iterator</keywords>
 		<description>Calls the given closure with every element in the given collection.
-		the function returns a array or struct (depending on the input) that contains all values returned by the closure.</description>
+		the function returns an array or struct (depending on the input) that contains all values returned by the closure.</description>
 		<argument>
 			<name>collection</name>
 			<alias>object</alias>
@@ -738,7 +738,7 @@ Remember CFML arrays start at 1 not 0.</description>
 		<member-name>map</member-name>
 		<keywords>array,iterator</keywords>
 		<description>Calls the given closure with every element in the given array.
-		the function returns a array that contains all values returned by the closure.</description>
+		the function returns an array that contains all values returned by the closure.</description>
 		<argument>
 			<name>array</name>
 			<type>array</type>
@@ -777,7 +777,7 @@ Remember CFML arrays start at 1 not 0.</description>
 		<member-name>listMap,map</member-name>
 		<keywords>string,list,iterator</keywords>
 		<description>Calls the given closure with every element in the given array.
-		the function returns a array that contains all values returned by the closure.</description>
+		the function returns an array that contains all values returned by the closure.</description>
 		<argument>
 			<name>list</name>
 			<type>string</type>
@@ -946,7 +946,7 @@ Remember CFML arrays start at 1 not 0.</description>
 		<class>lucee.runtime.functions.arrays.ArrayMid</class>
 		<member-name>mid</member-name>
 		<keywords>array</keywords>
-		<description>Extracts a sub array from a array.</description>
+		<description>Extracts a sub array from an array.</description>
 		<argument>
 			<name>array</name>
 			<type>array</type>
@@ -1493,13 +1493,13 @@ sort direction:
 			<name>number1</name>
 			<type>number</type>
 			<required>Yes</required>
-		<description>a integer</description>
+		<description>an integer</description>
     </argument>
 		<argument>
 			<name>number2</name>
 			<type>number</type>
 			<required>Yes</required>
-		<description>a integer</description>
+		<description>an integer</description>
     </argument>
 		<return>
 			<type>number</type>
@@ -1516,7 +1516,7 @@ sort direction:
 			<name>number</name>
 			<type>number</type>
 			<required>Yes</required>
-		<description>a integer</description>
+		<description>an integer</description>
     </argument>
 		<argument>
 			<name>start</name>
@@ -1547,7 +1547,7 @@ sort direction:
 			<name>number</name>
 			<type>number</type>
 			<required>Yes</required>
-		<description>a integer to mask</description>
+		<description>an integer to mask</description>
     </argument>
 		<argument>
 			<name>start</name>
@@ -1576,7 +1576,7 @@ sort direction:
 			<name>number</name>
 			<type>number</type>
 			<required>Yes</required>
-		<description>a integer</description>
+		<description>an integer</description>
     </argument>
 		<argument>
 			<name>mask</name>
@@ -1611,7 +1611,7 @@ sort direction:
 			<name>number</name>
 			<type>number</type>
 			<required>Yes</required>
-		<description>a integer</description>
+		<description>an integer</description>
     </argument>
 		<return>
 			<type>number</type>
@@ -1628,13 +1628,13 @@ sort direction:
 			<name>number1</name>
 			<type>number</type>
 			<required>Yes</required>
-		<description>a integer</description>
+		<description>an integer</description>
     </argument>
 		<argument>
 			<name>number2</name>
 			<type>number</type>
 			<required>Yes</required>
-		<description>a integer</description>
+		<description>an integer</description>
     </argument>
 		<return>
 			<type>number</type>
@@ -1651,7 +1651,7 @@ sort direction:
 			<name>number</name>
 			<type>number</type>
 			<required>Yes</required>
-		<description>a integer</description>
+		<description>an integer</description>
     </argument>
 		<argument>
 			<name>count</name>
@@ -1674,7 +1674,7 @@ sort direction:
 			<name>number</name>
 			<type>number</type>
 			<required>Yes</required>
-		<description>a integer</description>
+		<description>an integer</description>
     </argument>
 		<argument>
 			<name>count</name>
@@ -1697,13 +1697,13 @@ sort direction:
 			<name>number1</name>
 			<type>number</type>
 			<required>Yes</required>
-		<description>a integer</description>
+		<description>an integer</description>
     </argument>
 		<argument>
 			<name>number2</name>
 			<type>number</type>
 			<required>Yes</required>
-		<description>a integer</description>
+		<description>an integer</description>
     </argument>
 		<return>
 			<type>number</type>
@@ -1715,7 +1715,7 @@ sort direction:
 		<name>BundleInfo</name>
 		<introduced>5.0.0.0</introduced>
 		<class>lucee.runtime.functions.system.BundleInfo</class>
-		<description>if the given object is loaded by a OSGi bundle, this function is returning information about that bundle</description>
+		<description>if the given object is loaded by an OSGi bundle, this function is returning information about that bundle</description>
 		<argument>
 			<name>object</name>
 			<type>any</type>
@@ -1789,7 +1789,7 @@ sort direction:
 			<name>throwOnError</name>
 			<type>boolean</type>
 			<required>No</required>
-			<description>define if the functions throws a exception when the element does not exist (default is false).</description>
+			<description>define if the functions throws an exception when the element does not exist (default is false).</description>
 		</argument>
 		<argument>
 			<name>cacheName</name>
@@ -1820,7 +1820,7 @@ sort direction:
 			<default>false</default>
 			<type>object</type>
 			<required>no</required>
-			<description>define if the functions throws a exception when the element does not exist (default is false).</description>
+			<description>define if the functions throws an exception when the element does not exist (default is false).</description>
 		</argument>
 		<argument>
 			<name>cacheName</name>
@@ -1877,7 +1877,7 @@ sort direction:
 	<function>
 		<name>CacheGetAllIds</name>
 		<class>lucee.runtime.functions.cache.CacheGetAllIds</class>
-		<description>this function return a array containing all keys inside the cache.</description>
+		<description>this function return an array containing all keys inside the cache.</description>
 		<argument>
 			<name>filter</name>
 			<type>string</type>
@@ -1970,7 +1970,7 @@ sort direction:
 	<function>
 		<name>cachePut</name>
 		<class>lucee.runtime.functions.cache.CachePut</class>
-		<description>Stores an object in the cache, with a life time and a idle time.</description>
+		<description>Stores an object in the cache, with a life time and an idle time.</description>
 		<argument>
 			<name>id</name>
 			<alias>key,name</alias>
@@ -2018,13 +2018,13 @@ sort direction:
 			<alias>names,keys</alias>
 			<type>object</type>
 			<required>Yes</required>
-			<description>This can be a string list of multiple elements or a array containing the keys</description>
+			<description>This can be a string list of multiple elements or an array containing the keys</description>
 		</argument>
 		<argument>
 			<name>throwOnError</name>
 			<type>boolean</type>
 			<required>No</required>
-			<description>define if the functions throws a exception when the element does not exist (default is false)</description>
+			<description>define if the functions throws an exception when the element does not exist (default is false)</description>
 		</argument>
 		<argument>
 			<name>cacheName</name>
@@ -2173,7 +2173,7 @@ sort direction:
 		<name>ComponentListPackage</name>
 		<class>lucee.runtime.functions.component.ComponentListPackage</class>
 		<status>hidden</status>
-		<description>this implementation is experimentell. list all components in a certain package, throws a application exception if package does not exist.</description>
+		<description>this implementation is experimentell. list all components in a certain package, throws an application exception if package does not exist.</description>
 		<argument>
 			<name>package</name>
 			<alias>packageName,name</alias>
@@ -2352,7 +2352,7 @@ sort direction:
 			<type>timezone</type>
 			<required>NO</required>
 		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
+A datetime object is independent of a specific timezone, it is only an offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
 This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
 For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
 You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
@@ -2430,7 +2430,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>timezone</type>
 			<required>NO</required>
 		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
+A datetime object is independent of a specific timezone, it is only an offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
 This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
 For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
 You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
@@ -2581,7 +2581,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>timezone</type>
 			<required>No</required>
 		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
+A datetime object is independent of a specific timezone, it is only an offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
 This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
 For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
 You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
@@ -2847,7 +2847,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>timezone</type>
 			<required>no</required>
 		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
+A datetime object is independent of a specific timezone, it is only an offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
 This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
 For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
 You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
@@ -2923,7 +2923,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>timezone</type>
 			<required>no</required>
 		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
+A datetime object is independent of a specific timezone, it is only an offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
 This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
 For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
 You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
@@ -2953,7 +2953,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>timezone</type>
 			<required>no</required>
 		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
+A datetime object is independent of a specific timezone, it is only an offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
 This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
 For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
 You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
@@ -3867,7 +3867,7 @@ EntityLoad(entityname, filtercriteria, sortorder [, options])</description>
 			<alias>unique,order</alias>
 			<type>any</type>
 			<required>no</required>
-		<description>when the second argument is a id then this argument defines the boolean "unique" otherwise it defines the order.
+		<description>when the second argument is an id then this argument defines the boolean "unique" otherwise it defines the order.
 		
 - unique:
 If unique is set to true, then the entity is returned.
@@ -5109,7 +5109,7 @@ Set the attribute to normal to make a file not read-only and not hidden.</descri
 			<type>timezone</type>
 			<required>No</required>
 		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
+A datetime object is independent of a specific timezone, it is only an offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
 This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
 For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
 You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
@@ -5276,7 +5276,7 @@ Example Values:
 	<function>
 		<name>GetApplicationSettings</name>
 		<class>lucee.runtime.functions.system.GetApplicationSettings</class>
-		<description>return all data from this scope, when using a application.cfc or all setting defined in tag cfapplication</description>
+		<description>return all data from this scope, when using an application.cfc or all setting defined in tag cfapplication</description>
 		<argument>
 			<name>suppressFunction</name>
 			<type>boolean</type>
@@ -5341,7 +5341,7 @@ Example Values:
 	<function>
 		<name>GetBuiltInFunction</name>
 		<class>lucee.runtime.functions.system.GetBuiltInFunction</class>
-		<description>return a build in function as a object, matching the given name, throws a exception when the function does not exist.</description>
+		<description>return a build in function as an object, matching the given name, throws an exception when the function does not exist.</description>
 		<argument>
 			<name>name</name>
 			<type>string</type>
@@ -5389,7 +5389,7 @@ Example Values:
 	<function>
 		<name>getClassPath</name>
 		<class>lucee.runtime.functions.system.GetClassPath</class>
-		<description>returns a array containing the Java classpath of the current environment.</description>
+		<description>returns an array containing the Java classpath of the current environment.</description>
 		<return>
 			<type>array</type>
 		</return>
@@ -5823,7 +5823,7 @@ The returned number of unallocated bytes is a hint, but not a guarantee, that it
 		<name>getGatewayHelper</name>
 		<class>lucee.runtime.functions.gateway.GetGatewayHelper</class>
 		<status>unimplemented</status>
-		<description>Gets a Java GatewayHelper object that provides methods and properties for use with a event gateways.</description>
+		<description>Gets a Java GatewayHelper object that provides methods and properties for use with event gateways.</description>
 		<argument>
 			<name>gatewayID</name>
 			<type>string</type>
@@ -6035,7 +6035,7 @@ if this attribute is not provided all types are returned.</description>
 			<name>iniFile</name>
 			<type>string</type>
 			<required>Yes</required>
-			<description>path to a ini file.</description>
+			<description>path to an ini file.</description>
 		</argument>
 		<return>
 			<type>struct</type>
@@ -6500,7 +6500,7 @@ Default list delimiter: comma character.</description>
 			<type>timezone</type>
 			<required>no</required>
 		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
+A datetime object is independent of a specific timezone, it is only an offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
 This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
 For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
 You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
@@ -8785,7 +8785,7 @@ The following things are considered to be empty:
 			<type>timezone</type>
 			<required>no</required>
 		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
+A datetime object is independent of a specific timezone, it is only an offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
 This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
 For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
 You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
@@ -8815,7 +8815,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>timezone</type>
 			<required>no</required>
 		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
+A datetime object is independent of a specific timezone, it is only an offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
 This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
 For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
 You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
@@ -8845,7 +8845,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>timezone</type>
 			<required>no</required>
 		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
+A datetime object is independent of a specific timezone, it is only an offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
 This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
 For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
 You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
@@ -8919,13 +8919,13 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>ObjectLoad</name>
 		<class>lucee.runtime.functions.other.ObjectLoad</class>
-		<description>loads a object serialized in a binary form from a file or as binary input</description>
+		<description>loads an object serialized in a binary form from a file or as binary input</description>
 		<argument>
 			<name>input</name>
 			<alias>object</alias>
 			<type>any</type>
 			<required>no</required>
-			<description>a binary representation of a object or a path to a file that contains this</description>
+			<description>a binary representation of an object or a path to a file that contains this</description>
    		</argument>
 		<return>
 			<type>any</type>
@@ -9222,7 +9222,7 @@ ormEvictQueries([cacheName])</description>
 			<type>timezone</type>
 			<required>no</required>
 		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
+A datetime object is independent of a specific timezone, it is only an offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
 This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
 For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
 You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
@@ -9333,13 +9333,13 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>number</type>
 		</return>
 	</function>
-	
+
 	<!-- queryClose -->
 	<function>
 		<name>queryClose</name>
 		<class>lucee.runtime.functions.query.QueryClose</class>
 		<keywords>query</keywords>
-		<description>When using lazy="true", it is importance to close the resultset during a request or it will continue to use heap memory.</description>
+		<description>When using lazy="true", it is important to close the resultset during a request or it will continue to use heap memory.</description>
 		<argument>
 			<name>query</name>
 			<type>query</type>
@@ -9698,20 +9698,20 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<alias>names,columns,columnlist</alias>
 			<type>object</type>
 			<required>Yes</required>
-			<description>column names for the query created, allowed are comma-delimited string lists or a array.</description>
+			<description>column names for the query created, allowed are comma-delimited string lists or an array.</description>
     	</argument>
 		<argument>
 			<name>columnTypes</name>
 			<alias>types,columntypelist</alias>
 			<type>object</type>
 			<required>No</required>
-			<description>column types for the query created, allowed are comma-delimited string lists or a array.</description>
+			<description>column types for the query created, allowed are comma-delimited string lists or an array.</description>
     	</argument>
 		<argument>
 			<name>data</name>
 			<type>any</type>
 			<required>No</required>
-			<description>data to populate the new Query, a array of arrays or a array of structs.
+			<description>data to populate the new Query, an array of arrays or an array of structs.
 			Example usage:
 			queryNew("name,age","varchar,numeric",[["Susi",20],["Urs",24]]);
 			queryNew("name,age","varchar,numeric",[[name:"Susi",age:20],[name:"Urs",age:24]]);
@@ -10397,7 +10397,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>RestDeleteApplication</name>
 		<class>lucee.runtime.functions.rest.RestDeleteApplication</class>
-		<description>Deletes a existing REST mapping.</description>
+		<description>Deletes an existing REST mapping.</description>
 		<argument>
 			<name>dirPath</name>
 			<alias>dir,directory,path</alias>
@@ -10628,7 +10628,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>timezone</type>
 			<required>no</required>
 		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
+A datetime object is independent of a specific timezone, it is only an offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
 This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
 For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
 You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
@@ -10666,7 +10666,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>timezone</type>
 			<required>no</required>
 		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
+A datetime object is independent of a specific timezone, it is only an offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
 This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
 For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
 You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
@@ -10704,7 +10704,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>timezone</type>
 			<required>no</required>
 		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
+A datetime object is independent of a specific timezone, it is only an offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
 This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
 For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
 You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
@@ -10742,7 +10742,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>timezone</type>
 			<required>no</required>
 		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
+A datetime object is independent of a specific timezone, it is only an offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
 This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
 For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
 You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
@@ -10781,7 +10781,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>timezone</type>
 			<required>no</required>
 		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
+A datetime object is independent of a specific timezone, it is only an offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
 This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
 For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
 You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
@@ -10820,7 +10820,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>timezone</type>
 			<required>no</required>
 		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
+A datetime object is independent of a specific timezone, it is only an offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
 This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
 For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
 You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
@@ -10859,7 +10859,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>timezone</type>
 			<required>no</required>
 		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
+A datetime object is independent of a specific timezone, it is only an offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
 This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
 For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
 You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
@@ -10898,7 +10898,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>timezone</type>
 			<required>no</required>
 		<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
+A datetime object is independent of a specific timezone, it is only an offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
 This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
 For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
 You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
@@ -10916,7 +10916,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>SendGatewayMessage</name>
 		<class>lucee.runtime.functions.gateway.SendGatewayMessage</class>
-		<description>Sends an outgoing message through a event gateway.</description>
+		<description>Sends an outgoing message through an event gateway.</description>
 		<argument>
 			<name>gatewayID</name>
 			<type>string</type>
@@ -13351,7 +13351,7 @@ _- asc (default): ascending (a to z) sort order
 			<type>timezone</type>
 			<required>no</required>
 			<description>
-A datetime object is independent of a specific timezone, it is only a offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
+A datetime object is independent of a specific timezone, it is only an offset in milliseconds from 1970-1-1 00.00:00 UTC (Coordinated Universal Time).
 This means that the timezone only comes into play when you need specific information like hours in a day, minutes in a hour or which day it is since those calculations depend on the timezone.
 For these calculations, a timezone must be specified in order to translate the date object to something else. If you do not provide the timezone in the function call, it will default to the timezone specified in the Lucee Administrator (Settings/Regional), or the timezone specified for the current request using the function setTimezone.
 You can find a list of all available timezones in the Lucee administrator (Settings/Regional). Some examples of valid timezones:
