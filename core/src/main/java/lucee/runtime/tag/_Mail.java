@@ -183,9 +183,9 @@ public abstract class _Mail extends TagImpl {
 		Resource attachmentDir = pageContext.getConfig().getResource(attachmentPath);
 		if (!attachmentDir.exists() && !attachmentDir.mkdir()) {
 			attachmentDir = pageContext.getConfig().getTempDirectory().getRealResource(attachmentPath);
-			if (!attachmentDir.exists() && !attachmentDir.mkdir()) throw new ApplicationException("directory [" + attachmentPath + "] doesent exist and can't created");
+			if (!attachmentDir.exists() && !attachmentDir.mkdir()) throw new ApplicationException("Directory [" + attachmentPath + "] doesn't exist and couldn't be created");
 		}
-		if (!attachmentDir.isDirectory()) throw new ApplicationException("file [" + attachmentPath + "] is not a directory");
+		if (!attachmentDir.isDirectory()) throw new ApplicationException("File [" + attachmentPath + "] is not a directory");
 		pageContext.getConfig().getSecurityManager().checkFileLocation(attachmentDir);
 		this.attachmentPath = attachmentDir;
 		/*
@@ -307,7 +307,7 @@ public abstract class _Mail extends TagImpl {
 				String actions = "getHeaderOnly,getAll,delete";
 				if (getType() == MailClient.TYPE_IMAP) actions += "open,close,markread,createfolder,deletefolder,renamefolder,listallfolders,movemail";
 
-				throw new ApplicationException("invalid value for attribute action, valid values are [" + actions + "]");
+				throw new ApplicationException("Invalid value for attribute [action], valid values are [" + actions + "]");
 			}
 		}
 		catch (Exception e) {
@@ -321,7 +321,7 @@ public abstract class _Mail extends TagImpl {
 
 	private void checkConnection() throws ApplicationException {
 		if (StringUtil.isEmpty(connection) && StringUtil.isEmpty(server)) {
-			throw new ApplicationException("you need to define the attribute [connection] or [server].");
+			throw new ApplicationException("You need to define the attribute [connection] or [server].");
 		}
 	}
 
