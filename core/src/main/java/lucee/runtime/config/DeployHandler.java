@@ -343,7 +343,7 @@ public class DeployHandler {
 				else throw Caster.toPageException(e);
 			}
 		}
-		throw new ApplicationException("was not able to install extension " + ed.getId());
+		throw new ApplicationException("Failed to install extension [" + ed.getId() + "]");
 	}
 
 	public static Resource downloadExtension(Config config, ExtensionDefintion ed, Log log) {
