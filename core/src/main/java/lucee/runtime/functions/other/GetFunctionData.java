@@ -181,8 +181,8 @@ public final class GetFunctionData implements Function {
 			_arg.set(KeyConstants._description, StringUtil.emptyIfNull(fa.getHint()));
 
 			String status;
-			if (meta == null) status = "implemeted";
-			else status = TagLibFactory.toStatus(TagLibFactory.toStatus(Caster.toString(meta.get(KeyConstants._status, "implemeted"))));
+			if (meta == null) status = "implemented";
+			else status = TagLibFactory.toStatus(TagLibFactory.toStatus(Caster.toString(meta.get(KeyConstants._status, "implemented"))));
 
 			_arg.set(KeyConstants._status, status);
 
