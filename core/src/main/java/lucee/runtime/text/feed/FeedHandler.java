@@ -209,10 +209,7 @@ public final class FeedHandler extends DefaultHandler {
 			}
 		}
 		parents.add(data);
-		data = sct;
-
-		// <enclosure url="http://www.scripting.com/mp3s/weatherReportDicksPicsVol7.mp3" length="6182912"
-		// type="audio/mpeg"/>
+		data = sct;		
 	}
 
 	private String name(String name, String qName) {

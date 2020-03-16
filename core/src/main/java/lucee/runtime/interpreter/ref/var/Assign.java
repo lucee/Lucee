@@ -33,7 +33,7 @@ public final class Assign extends RefSupport implements Ref {
 	private final boolean limited;
 
 	public Assign(Ref coll, Ref value, boolean limited) throws ExpressionException {
-		if (!(coll instanceof Set)) throw new InterpreterException("invalid assignment left-hand side (" + coll.getTypeName() + ")");
+		if (!(coll instanceof Set)) throw new InterpreterException("Invalid assignment left-hand side [" + coll.getTypeName() + "]");
 		this.coll = (Set) coll;
 		this.value = value;
 		this.limited = limited;
@@ -47,7 +47,7 @@ public final class Assign extends RefSupport implements Ref {
 
 	@Override
 	public Object getValue(PageContext pc) throws PageException {
-		if (limited) throw new InterpreterException("invalid syntax, variables are not supported in a json string.");
+		if (limited) throw new InterpreterException("Invalid syntax, variables are not supported in a JSON string.");
 		return coll.setValue(pc, value.getValue(pc));
 	}
 

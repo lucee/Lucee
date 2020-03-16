@@ -54,7 +54,7 @@ import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.util.CollectionUtil;
 
 /**
- * class to reexecute queries on the resultset object inside the cfml enviroment
+ * class to reexecute queries on the resultset object inside the cfml environment
  */
 public final class HSQLDBHandler {
 
@@ -226,7 +226,7 @@ public final class HSQLDBHandler {
 	}
 
 	/**
-	 * executes a query on the queries inside the cld fusion enviroment
+	 * executes a query on the queries inside the cfml environment
 	 * 
 	 * @param pc Page Context
 	 * @param sql

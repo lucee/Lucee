@@ -271,7 +271,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 		// Action
 		Object objAction = attributes.get(KeyConstants._action);
-		if (objAction == null) throw new ApplicationException("missing attrbute action for tag admin");
+		if (objAction == null) throw new ApplicationException("Missing attribute [action] for tag [admin]");
 		action = StringUtil.toLowerCase(Caster.toString(objAction)).trim();
 
 		// Generals
@@ -292,7 +292,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			return SKIP_BODY;
 		}
 		if (action.equals("printdebug")) {
-			throw new DeprecatedException("action [printdebug] is no longer supported, use instead [getdebugdata]");
+			throw new DeprecatedException("Action [printdebug] is no longer supported, use instead [getdebugdata]");
 		}
 		if (action.equals("getdebugdata")) {
 			doGetDebugData();
@@ -385,7 +385,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		strType = StringUtil.toLowerCase(strType).trim();
 		if ("web".equals(strType)) return TYPE_WEB;
 		else if ("server".equals(strType)) return TYPE_SERVER;
-		if (throwError) throw new ApplicationException("invalid value for attribute type [" + strType + "] of tag admin", "valid values are web, server");
+		if (throwError) throw new ApplicationException("Invalid value for attribute type [" + strType + "] of tag admin", "valid values are [web, server]");
 		return TYPE_WEB;
 	}
 
@@ -926,8 +926,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		MappingImpl mapping = (MappingImpl) doCompileMapping(mappingType, virtual, true, ignoreScopes);
 
 		// class files
-		if (mapping == null) throw new ApplicationException("there is no mapping for [" + virtual + "]");
-		if (!mapping.hasPhysical()) throw new ApplicationException("mapping [" + virtual + "] has no physical directory");
+		if (mapping == null) throw new ApplicationException("There is no mapping for [" + virtual + "]");
+		if (!mapping.hasPhysical()) throw new ApplicationException("Mapping [" + virtual + "] has no physical directory");
 
 		Resource classRoot = mapping.getClassRootDirectory();
 		Resource temp = SystemUtil.getTempDirectory().getRealResource("mani-" + IDGenerator.stringId());
@@ -1489,7 +1489,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 					return;
 				}
 			}
-			throw new ApplicationException("no debugging data with id [" + id + "] found.");
+			throw new ApplicationException("No debugging data with id [" + id + "] found.");
 		}
 	}
 
@@ -1589,8 +1589,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			if (StringUtil.isEmpty(path)) continue;
 
 			res = config.getResource(path);
-			if (!res.exists()) throw new ApplicationException("path [" + path + "] does not exist");
-			if (!res.isDirectory()) throw new ApplicationException("path [" + path + "] is not a directory");
+			if (!res.exists()) throw new ApplicationException("Path [" + path + "] does not exist");
+			if (!res.isDirectory()) throw new ApplicationException("Path [" + path + "] is not a directory");
 			rtn.add(res);
 		}
 		return (Resource[]) rtn.toArray(new Resource[rtn.size()]);
@@ -2256,7 +2256,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		Integer i = null;
 		if (!StringUtil.isEmpty(str)) {
 			i = Caster.toInteger(str);
-			if (i.intValue() < 10) throw new ApplicationException("we need at least 10 threads to run tasks properly");
+			if (i.intValue() < 10) throw new ApplicationException("We need at least 10 threads to run tasks properly");
 		}
 		admin.setTaskMaxThreads(i);
 		store();
@@ -2453,14 +2453,14 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void _doGetRHExtension(RHExtension[] extensions) throws PageException {
 		String id = getString("admin", action, "id");
-		if (StringUtil.isEmpty(id, true)) throw new ApplicationException("id cannot be empty");
+		if (StringUtil.isEmpty(id, true)) throw new ApplicationException("Extension ID cannot be empty");
 		for (RHExtension ext: extensions) {
 			if (id.equals(ext.getId()) || id.equals(ext.getSymbolicName())) {
 				pageContext.setVariable(getString("admin", action, "returnVariable"), ext.toStruct());
 				return;
 			}
 		}
-		throw new ApplicationException("there is no Extension with ID [" + id + "]");
+		throw new ApplicationException("No Extension found with ID [" + id + "]");
 	}
 
 	private void doGetRHExtensions() throws PageException {
@@ -2489,7 +2489,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 					}
 				}
 			}
-			throw new ApplicationException("there is no local extension with id " + id);
+			throw new ApplicationException("No local Extension found with with id [" + id + "]");
 
 		}
 		else {
@@ -2505,7 +2505,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 					break;
 				}
 			}
-			if (row == 0) throw new ApplicationException("there is no local extension with id " + id);
+			if (row == 0) throw new ApplicationException("No local Extension found with id [" + id + "]");
 			pageContext.setVariable(getString("admin", action, "returnVariable"), Caster.toStruct(qry, row));
 		}
 	}
@@ -2681,7 +2681,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private void doUpdateGatewayEntry() throws PageException {
 		String strStartupMode = getString("admin", action, "startupMode");
 		int startup = GatewayEntryImpl.toStartup(strStartupMode, -1);
-		if (startup == -1) throw new ApplicationException("invalid startup mode [" + strStartupMode + "], valid values are [automatic,manual,disabled]");
+		if (startup == -1) throw new ApplicationException("Invalid startup mode [" + strStartupMode + "], valid values are [automatic,manual,disabled]");
 
 		// custom validation
 		Struct custom = getStruct("admin", action, "custom");
@@ -2728,7 +2728,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		if (def.equals("file")) return ConfigImpl.CACHE_TYPE_FILE;
 		if (def.equals("webservice")) return ConfigImpl.CACHE_TYPE_WEBSERVICE;
 
-		throw new ApplicationException("invalid default type [" + def + "], valid default types are [object,template,query,resource,function]");
+		throw new ApplicationException("Invalid default type [" + def + "], valid default types are [object,template,query,resource,function]");
 	}
 
 	private void doUpdateCacheDefaultConnection() throws PageException {
@@ -3033,7 +3033,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		if ("none".equals(strDbcreate)) dbcreate = "none";
 		else if ("update".equals(strDbcreate)) dbcreate = "update";
 		else if ("dropcreate".equals(strDbcreate)) dbcreate = "dropcreate";
-		else throw new ApplicationException("invalid dbcreate definition [" + strDbcreate + "], valid dbcreate definitions are [none,update,dropcreate]");
+		else throw new ApplicationException("Invalid dbcreate definition [" + strDbcreate + "], valid dbcreate definitions are [none,update,dropcreate]");
 		settings.set(ORMConfigurationImpl.DB_CREATE, dbcreate);
 
 		// cfclocation
@@ -3616,7 +3616,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 				return;
 			}
 		}
-		throw new ApplicationException("there is no gateway entry with id [" + id + "]");
+		throw new ApplicationException("No Gateway entry found with id [" + id + "]");
 	}
 
 	private void doGateway() throws PageException {
@@ -3626,7 +3626,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		if ("restart".equals(act)) ((ConfigWebImpl) config).getGatewayEngine().restart(id);
 		else if ("start".equals(act)) ((ConfigWebImpl) config).getGatewayEngine().start(id);
 		else if ("stop".equals(act)) ((ConfigWebImpl) config).getGatewayEngine().stop(id);
-		else throw new ApplicationException("invalid gateway action [" + act + "], valid actions are [start,stop,restart]");
+		else throw new ApplicationException("Invalid gateway action [" + act + "], valid actions are [start,stop,restart]");
 	}
 
 	private void doGetCacheConnections() throws PageException {
@@ -3891,7 +3891,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 				return;
 			}
 		}
-		throw new ApplicationException("there is no remote client with url [" + url + "]");
+		throw new ApplicationException("No remote client found with url [" + url + "]");
 	}
 
 	private void doGetSpoolerTasks() throws PageException {
@@ -4287,7 +4287,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void doRemoveRHExtension() throws PageException {
 		String id = getString("admin", "removeRHExtensions", "id");
-		if (!Decision.isUUId(id)) throw new ApplicationException("invalid id [" + id + "], id must be a UUID");
+		if (!Decision.isUUId(id)) throw new ApplicationException("Invalid id [" + id + "], id must be a UUID");
 		try {
 			admin.removeRHExtension(id);
 		}
@@ -4616,7 +4616,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private void doUpdateLogSettings() throws PageException {
 		String str = getString("admin", "UpdateLogSettings", "level", true);
 		int l = LogUtil.toLevel(str, -1);
-		if (l == -1) throw new ApplicationException("invalid log level name [" + str + "], valid log level names are [INFO,DEBUG,WARN,ERROR,FATAL,TRACE]");
+		if (l == -1) throw new ApplicationException("Invalid log level name [" + str + "], valid log level names are [INFO,DEBUG,WARN,ERROR,FATAL,TRACE]");
 
 		ClassDefinition acd = new ClassDefinitionImpl(getString("admin", action, "appenderClass", true), getString("appenderBundleName", null),
 				getString("appenderBundleVersion", null), config.getIdentification());
@@ -4746,7 +4746,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		boolean ignoreExistingManifest = getBoolV("ignoreExistingManifest", false);
 		Resource dest = ResourceUtil.toResourceNotExisting(pageContext, getString("admin", action, "destination"));
 		String strJar = getString("admin", action, "jar");
-		if (StringUtil.isEmpty(strJar, true)) throw new ApplicationException("missing valid jar path");
+		if (StringUtil.isEmpty(strJar, true)) throw new ApplicationException("Missing valid jar path");
 		Resource jar = ResourceUtil.toResourceExisting(pageContext, strJar.trim());
 
 		Set<String> relatedPackages = null;
@@ -4905,7 +4905,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private void doUpdateCachedWithin() throws PageException {
 		String str = getString("admin", action, "cachedWithinType");
 		int type = AppListenerUtil.toCachedWithinType(str, -1);
-		if (type == -1) throw new ApplicationException("cached within type [" + str + "] is invalid, valid types are [function,include,query,resource]");
+		if (type == -1) throw new ApplicationException("Cached within type [" + str + "] is invalid, valid types are [function,include,query,resource]");
 		admin.updateCachedWithin(type, getString("admin", action, "cachedWithin"));
 
 		store();
@@ -5054,7 +5054,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		String threadId = getString("admin", "stopThread", "threadId");
 		String stopType = getString("stopType", "exception");
 
-		if (!(config instanceof ConfigServer)) throw new ApplicationException("invalid context for this action");
+		if (!(config instanceof ConfigServer)) throw new ApplicationException("Invalid context for this action");
 
 		ConfigServer cs = (ConfigServer) config;
 		ConfigWeb[] webs = cs.getConfigWebs();
@@ -5220,7 +5220,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		if (timeout instanceof TimeSpan) return ((TimeSpan) timeout).getMillis();
 		// seconds
 		int i = Caster.toIntValue(timeout);
-		if (i < 0) throw new ApplicationException("invalid value [" + i + "], value must be a positive integer greater or equal than 0");
+		if (i < 0) throw new ApplicationException("Invalid value [" + i + "], value must be a positive integer greater or equal than 0");
 		return i * 1000;
 	}
 
@@ -5301,12 +5301,12 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void throwNoAccessWhenWeb() throws ApplicationException {
-		if (type == TYPE_WEB) throw new ApplicationException("Action " + action + " is not available for Server Admin (Web Admin only)");
+		if (type == TYPE_WEB) throw new ApplicationException("Action [" + action + "] is not available for Server Admin (Web Admin only)");
 	}
 
 	private void throwNoAccessWhenServer() throws ApplicationException {
 		if (type == TYPE_SERVER) {
-			throw new ApplicationException("Action " + action + " is not available for Web Admin (Server Admin only)");
+			throw new ApplicationException("Action [" + action + "] is not available for Web Admin (Server Admin only)");
 		}
 	}
 }

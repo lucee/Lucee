@@ -241,7 +241,7 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 
 		String str = System.getenv("PUBLIC_KEY");
 		if (str == null) str = System.getProperty("PUBLIC_KEY");
-		if (str == null) throw new RuntimeException("to decrypt encrypted bytecode, you need to set PUBLIC_KEY as system property or or enviroment variable");
+		if (str == null) throw new RuntimeException("to decrypt encrypted bytecode, you need to set PUBLIC_KEY as system property or or environment variable");
 
 		byte[] bytes = IOUtil.toBytes(ace.getInputStream(), true);
 		try {
