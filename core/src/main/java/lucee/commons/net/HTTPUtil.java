@@ -508,7 +508,7 @@ public final class HTTPUtil {
 		// anker
 		if (anker != null) {
 			res.append('#');
-			res.append(escapeQSValue(anker));
+			res.append(anker);
 		}
 
 		return res.toString();
