@@ -897,27 +897,7 @@ public final class Reflector {
 
 	private static void checkAccessibility(Object objMaybeNull, Class clazz, Key methodName) {
 		if (methodName.equals(EXIT) && (clazz == System.class || clazz == Runtime.class)) { // TODO better implementation
-			// System.exit() is only allowed from Server.cfc@onServerStart() with the System property
-			// lucee.enable.warmup=true
-			boolean isWarmup = false;
-			PageContextImpl pc = (PageContextImpl) ThreadLocalPageContext.get();
-			if (pc != null) {
-				PageSource ps = pc.getCurrentPageSource();
-				if (ps != null && ps.getComponentName().equalsIgnoreCase("lucee-server.Server") && ps.getMapping().getStrPhysical().equalsIgnoreCase("{lucee-server}/context/")) {
-					if (SystemUtil.getSystemPropOrEnvVar("lucee.enable.warmup", "").equalsIgnoreCase("true")) {
-						isWarmup = true;
-						System.out.println("Server warm-up completed");
-					}
-					else {
-						System.out.println(
-								"Server warm-up is disabled. You can enable it by setting the System property lucee.enable.warmup or the environment variable LUCEE_ENABLE_WARMUP to true.");
-					}
-				}
-			}
-
-			if (!isWarmup) {
-				throw new PageRuntimeException(new SecurityException("Calling the exit method is not allowed"));
-			}
+			throw new PageRuntimeException(new SecurityException("Calling the exit method is not allowed"));
 		}
 
 		// change the accessibility of Lucee methods is not allowed

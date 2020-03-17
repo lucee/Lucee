@@ -71,6 +71,7 @@ import lucee.runtime.type.scope.URLImpl;
 import lucee.runtime.type.scope.UrlFormImpl;
 import lucee.runtime.type.scope.util.ScopeUtil;
 import lucee.runtime.type.util.ArrayUtil;
+import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.util.EnumerationWrapper;
 
 /**
@@ -262,7 +263,7 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 				return new ServletInputStreamDummy(new byte[] {});
 			}
 			finally {
-				IOUtil.closeEL(is);
+				IOUtil.close(is);
 			}
 		}
 		return new ServletInputStreamDummy(barr);
@@ -360,11 +361,11 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 
 		// attributes
 		{
-			Enumeration<String> attrNames = req.getAttributeNames();
+			Iterator<String> it = ListUtil.toIterator(req.getAttributeNames());
 			disconnectData.attributes = MapFactory.getConcurrentMap();
 			String k;
-			while (attrNames.hasMoreElements()) {
-				k = attrNames.nextElement();
+			while (it.hasNext()) {
+				k = it.next();
 				if (!StringUtil.isEmpty(k)) disconnectData.attributes.put(k, req.getAttribute(k));
 			}
 		}

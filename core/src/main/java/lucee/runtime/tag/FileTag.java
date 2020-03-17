@@ -481,7 +481,7 @@ public final class FileTag extends BodyTagImpl {
 		// source
 		if (!source.exists()) throw new ApplicationException("source file [" + source.toString() + "] doesn't exist");
 		else if (!source.isFile()) throw new ApplicationException("source file [" + source.toString() + "] is not a file");
-		else if (!source.isReadable() || !source.isWriteable()) throw new ApplicationException("no access to source file [" + source.toString() + "]");
+		// else if (!source.isReadable() || !source.isWriteable()) throw new ApplicationException("no access to source file [" + source.toString() + "]");
 
 		// destination
 		if (destination.isDirectory()) destination = destination.getRealResource(source.getName());

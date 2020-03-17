@@ -28,6 +28,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefInteger;
@@ -86,7 +88,7 @@ public class DatasourceConnectionPool {
 
 				// get an existing connection
 				while (!stack.isEmpty()) {
-					DatasourceConnection dc = (DatasourceConnection) stack.get();
+					DatasourceConnection dc = stack.get();
 					if (dc != null) {
 						rtn = dc;
 						break;
@@ -98,13 +100,15 @@ public class DatasourceConnectionPool {
 				// create a new instance
 				if (rtn == null) {
 					try {
-						rtn = loadDatasourceConnection(config, datasource, user, pass);
+						rtn = loadDatasourceConnection(config, (DataSourcePro) datasource, user, pass);
 					}
 					catch (PageException pe) {
 						_dec(stack, datasource, user, pass);
 						throw pe;
 					}
+
 					if (rtn instanceof DatasourceConnectionImpl) ((DatasourceConnectionImpl) rtn).using();
+
 					return rtn;
 				}
 			}
@@ -123,16 +127,20 @@ public class DatasourceConnectionPool {
 				// in case we are fine
 				SystemUtil.notify(waiter);
 			}
-			IOUtil.closeEL(rtn.getConnection());
+			try {
+				IOUtil.close(rtn.getConnection());
+			}
+			catch (SQLException e) {
+				throw Caster.toPageException(e);
+			}
 			rtn = null;
 		}
 	}
 
-	private DatasourceConnectionImpl loadDatasourceConnection(Config config, DataSource ds, String user, String pass) throws PageException {
+	private DatasourceConnectionImpl loadDatasourceConnection(Config config, DataSourcePro ds, String user, String pass) throws PageException {
 		Connection conn = null;
 		try {
 			conn = ds.getConnection(config, user, pass);
-			conn.setAutoCommit(true);
 		}
 		catch (SQLException e) {
 			throw new DatabaseException(e, null);
@@ -232,8 +240,10 @@ public class DatasourceConnectionPool {
 		try {
 			if (dc.getDatasource().validate() && !DataSourceUtil.isValid(dc, 1000)) return false;
 		}
-		catch (Exception e) {} // not all driver support this, because of that we ignore an error
-		// here, also protect from java 5
+		catch (Exception e) {
+			LogUtil.log(ThreadLocalPageContext.getConfig(), "datasource", "connection", e, Log.LEVEL_INFO);
+		} // not all driver support this, because of that we ignore an error
+			// here, also protect from java 5
 
 		try {
 			if (autoCommit != null) dc.getConnection().setAutoCommit(autoCommit.booleanValue());

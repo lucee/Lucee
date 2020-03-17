@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import lucee.commons.io.SystemUtil;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContextImpl;
 
 public class MonitorState {
@@ -112,14 +113,6 @@ public class MonitorState {
 		return -1;
 	}
 
-	public static String toString(StackTraceElement[] traces) {
-		StringBuilder sb = new StringBuilder();
-		for (StackTraceElement ste: traces) {
-			sb.append(ste.toString()).append('\n');
-		}
-		return sb.toString();
-	}
-
 	private static class T extends Thread {
 		private static Object o = new Object();
 
@@ -164,7 +157,7 @@ public class MonitorState {
 			Entry<Thread, StackTraceElement[]> e;
 			while (it.hasNext()) {
 				e = it.next();
-				sb.append(MonitorState.toString(e.getValue())).append("\n");
+				sb.append(ExceptionUtil.toString(e.getValue())).append("\n");
 
 			}
 			return sb.toString();
@@ -172,13 +165,13 @@ public class MonitorState {
 
 		@Override
 		public String toString() {
-			StringBuilder sb = new StringBuilder().append("Blocked:\n").append(MonitorState.toString(blockedST)).append("\nPossible Blockers:\n");
+			StringBuilder sb = new StringBuilder().append("Blocked:\n").append(ExceptionUtil.toString(blockedST)).append("\nPossible Blockers:\n");
 
 			Iterator<Entry<Thread, StackTraceElement[]>> it = possibleBlockers.iterator();
 			Entry<Thread, StackTraceElement[]> e;
 			while (it.hasNext()) {
 				e = it.next();
-				sb.append(MonitorState.toString(e.getValue())).append("\n");
+				sb.append(ExceptionUtil.toString(e.getValue())).append("\n");
 
 			}
 			return sb.toString();

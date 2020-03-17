@@ -134,7 +134,7 @@ public class TagUtil {
 					}
 				}
 
-				if (value == null) throw new ApplicationException("attribute " + missingAttrs[i].getName().getString() + " is required but missing");
+				if (value == null) throw new ApplicationException("Attribute [" + missingAttrs[i].getName().getString() + "] is required but missing");
 				// throw new ApplicationException("attribute "+missingAttrs[i].getName().getString()+" is required
 				// for tag "+tag.getFullName());
 				att.put(missingAttrs[i].getName(), Caster.castTo(pc, missingAttrs[i].getType(), value, false));

@@ -175,9 +175,9 @@ Categories: #arrayToList(cat)#"><cfif hasUpdate>
 	}
 
 	function addRow(src,trg,srcRow) {
-		var trgRow=queryAddRow(trg);
-		loop array=queryColumnArray(src) item="local.col" {
-			querySetCell(trg,col,queryGetCell(src,col,srcRow),trgRow);
+		var trgRow=queryAddRow(arguments.trg);
+		loop array=queryColumnArray(arguments.src) item="local.col" {
+			querySetCell(arguments.trg,col,queryGetCell(arguments.src,col,arguments.srcRow),trgRow);
 		}
 	}
 </cfscript>
@@ -211,7 +211,7 @@ Categories: #arrayToList(cat)#"><cfif hasUpdate>
 							<cfset link="#request.self#?action=#url.action#&action2=detail&id=#versionStr[key].id#">
 							<cfset dn=getDumpNail(versionStr[key].image,130,50)>
 							<div class="extensionthumb">
-								<cfset lasProvider=findNoCase("lucee.org",versionStr[key].provider) GT 0>
+								<cfset lasProvider=(versionStr[key].provider?:"")=="local" || findNoCase("lucee.org",versionStr[key].provider) GT 0>
 								<cfif not lasProvider><cfset noneLasCounter++></cfif>
 								<a <cfif not lasProvider> style="border-color: ###(lasProvider?'9C9':'FC6')#;"</cfif> href="#link#" title="#stText.ext.viewdetails#">
 									<div class="extimg">
@@ -242,7 +242,7 @@ Categories: #arrayToList(cat)#"><cfif hasUpdate>
 
 <cfif noneLasCounter>
 	<div class="message" style="border-color: ##FC6;color:##C93;">
-		Extension with a yellow border are not provided by the Lucee Association Switzerland and do not neccessarily follow our guidelines. This extensions are not reviewed by the Lucee Association Switzerland.
+		Extensions with a yellow border are not provided by the Lucee Association Switzerland and do not neccessarily follow our guidelines. These extensions are not reviewed by the Lucee Association Switzerland.
 	</div>
 </cfif>
 

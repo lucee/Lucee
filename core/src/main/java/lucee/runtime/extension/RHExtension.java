@@ -264,7 +264,7 @@ public class RHExtension implements Serializable {
 			}
 		}
 		finally {
-			IOUtil.closeEL(zis);
+			IOUtil.close(zis);
 		}
 		return null;
 
@@ -371,7 +371,7 @@ public class RHExtension implements Serializable {
 			}
 		}
 		finally {
-			IOUtil.closeEL(zis);
+			IOUtil.close(zis);
 		}
 
 		// read the manifest
@@ -687,7 +687,7 @@ public class RHExtension implements Serializable {
 			}
 		}
 		finally {
-			IOUtil.closeEL(zis);
+			IOUtil.close(zis);
 		}
 	}
 

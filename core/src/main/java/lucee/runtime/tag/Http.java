@@ -679,19 +679,13 @@ public final class Http extends BodyTagImpl {
 	public int doEndTag() throws PageException {
 
 		// because commons
-		// PrintStream out = System .out;
 		try {
-			// System.setOut(new PrintStream(DevNullOutputStream.DEV_NULL_OUTPUT_STREAM));
 			_doEndTag();
 			return EVAL_PAGE;
 		}
 		catch (IOException e) {
 			throw Caster.toPageException(e);
 		}
-		finally {
-			// System.setOut(out);
-		}
-
 	}
 
 	private void _doEndTag() throws PageException, IOException {
@@ -1340,7 +1334,7 @@ public final class Http extends BodyTagImpl {
 				throw Caster.toPageException(t);
 			}
 			finally {
-				IOUtil.closeEL(is);
+				IOUtil.close(is);
 			}
 		}
 		else {
@@ -1384,7 +1378,13 @@ public final class Http extends BodyTagImpl {
 			throw Caster.toPageException(ioe);
 		}
 		finally {
-			IOUtil.closeEL(is);
+			try {
+				IOUtil.close(is);
+			}
+			catch (IOException ioe) {
+				throw Caster.toPageException(ioe);
+
+			}
 		}
 
 		if (str == null) str = "";

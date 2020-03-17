@@ -191,11 +191,15 @@ public class HTTPClient implements Objects, Iteratorable {
 
 			}
 			catch (Throwable t) {
-				ExceptionUtil.rethrowIfNecessary(t);
 				throw new PageRuntimeException(Caster.toPageException(t));
 			}
 			finally {
-				IOUtil.closeEL(is);
+				try {
+					IOUtil.close(is);
+				}
+				catch (IOException e) {
+					throw new PageRuntimeException(Caster.toPageException(e));
+				}
 				HTTPEngine.closeEL(rsp);
 			}
 		}
@@ -324,7 +328,12 @@ public class HTTPClient implements Objects, Iteratorable {
 			throw Caster.toPageException(ioe);
 		}
 		finally {
-			IOUtil.closeEL(is);
+			try {
+				IOUtil.close(is);
+			}
+			catch (IOException e) {
+				throw Caster.toPageException(e);
+			}
 			HTTPEngine.closeEL(rsp);
 		}
 	}

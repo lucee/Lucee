@@ -40,7 +40,7 @@ public class CPULogger {
 	public void stopIt() {
 		if (logger != null && logger.isAlive()) {
 			logger.run = false;
-			SystemUtil.patienceStop(logger, 10);
+			SystemUtil.stop(logger);
 		}
 	}
 

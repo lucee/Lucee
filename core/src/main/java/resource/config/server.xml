@@ -18,18 +18,20 @@ Path placeholders:
 	system:
 	
 		out (output-stream)
-			- default (write out to default output stream)
+			- system (write out to default output stream)
+			- log (logs to out.log in lucee-server/context/logs)
 			- null (write no output)
 			- class:<class> (class that implements java.io.PrintWriter)
 			- file:<file> (file to write in)
 	
 		err (err-stream)
-			- default (write out to default output stream)
+			- system (write out to default output stream)
+			- log (logs to err.log in lucee-server/context/logs)
 			- null (write no output)
 			- class:<class> (class that implements java.io.PrintWriter)
 			- file:<file> (file to write in)
 	-->
-	<system out="null" err="default"/>
+	<system out="log" err="log"/>
 
 
 <!--	definition of all database used inside your application. 										-->

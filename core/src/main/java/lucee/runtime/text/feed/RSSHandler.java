@@ -91,7 +91,7 @@ public final class RSSHandler extends DefaultHandler {
 			init(source);
 		}
 		finally {
-			IOUtil.closeEL(is);
+			IOUtil.close(is);
 		}
 	}
 
@@ -174,9 +174,6 @@ public final class RSSHandler extends DefaultHandler {
 			}
 			properties.setEL(inside, sct);
 		}
-
-		// <enclosure url="http://www.scripting.com/mp3s/weatherReportDicksPicsVol7.mp3" length="6182912"
-		// type="audio/mpeg"/>
 	}
 
 	@Override

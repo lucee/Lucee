@@ -116,7 +116,7 @@ public class ClassicLayout extends Layout {
 			String em = ExceptionUtil.getMessage(t);
 			data.append(StringUtil.replace(em, "\"", "\"\"", false));
 			data.append(';');
-			String est = ExceptionUtil.getStacktrace(t, false);
+			String est = ExceptionUtil.getStacktrace(t, false, true);
 			data.append(StringUtil.replace(est, "\"", "\"\"", false));
 		}
 

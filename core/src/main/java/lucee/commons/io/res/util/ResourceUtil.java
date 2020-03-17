@@ -214,7 +214,7 @@ public final class ResourceUtil {
 			PageContextImpl pci = (PageContextImpl) pc;
 			ConfigWebImpl cwi = (ConfigWebImpl) pc.getConfig();
 			PageSource[] sources = cwi.getPageSources(pci, ExpandPath.mergeMappings(pc.getApplicationContext().getMappings(), pc.getApplicationContext().getComponentMappings()),
-					path, false, pci.useSpecialMappings(), true);
+					path, false, pci.useSpecialMappings(), true, false);
 			if (!ArrayUtil.isEmpty(sources)) {
 
 				for (int i = 0; i < sources.length; i++) {
@@ -1171,8 +1171,8 @@ public final class ResourceUtil {
 	}
 
 	/**
-	 * return if Resource is empty, means is directory and has no children or an empty file, if not exist
-	 * return false.
+	 * return if Resource is empty, means is directory and has no children or an empty file, if not
+	 * exist return false.
 	 * 
 	 * @param res
 	 * @return

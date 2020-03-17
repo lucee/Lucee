@@ -184,14 +184,15 @@
 	<cfargument name="pluginName">
 	<cfargument name="lang" type="string" default="#session.lucee_admin_lang#">
 
-	<cfset var fileLanguage="#pluginDir#/#pluginName#/language.xml">
+	<cfset var fileLanguage="#arguments.pluginDir#/#arguments.pluginName#/language.xml">
 	<cfif arguments.lang == "en">
-		<cfset var language=struct(__action:'plugin',title:ucFirst(pluginName),text:'')>
+		<cfset var language=struct(__action:'plugin',title:ucFirst(arguments.pluginName),text:'')>
 	<cfelse>
 		<cfset var language=loadPluginLanguage(arguments.pluginDir,arguments.pluginName,'en')>
 	</cfif>
 	<cfset var txtLanguage="">
 	<cfset var xml="">
+	<cfset var idx="">
 
 	<cfif fileExists(fileLanguage)>
 		<cffile action="read" file="#fileLanguage#" variable="txtLanguage" charset="utf-8">
@@ -332,7 +333,7 @@
 				returnVariable="local.qry";
 
 			var qry = qry.filter(function(row, rowNumber, qryData){
-				return row.id=='EFDEB172-F52E-4D84-9CD1A1F561B3DFC8';
+				return arguments.row.id=='EFDEB172-F52E-4D84-9CD1A1F561B3DFC8';
 			});
 			session._isLuceneInstalled=qry.recordCount>0;
 			return qry.recordCount>0;
@@ -499,8 +500,10 @@
 		</cfmodule>
 	</cfif>
 </cfif>
-<cfif current.action != "overview">
-	<cfcookie name="lucee_admin_lastpage" value="#current.action#" expires="NEVER">
+<cfif (current.action != "overview" || current.action != "chartAjax") && current.action != "services.restart">
+	<cfcookie name="lucee_admin_lastpage" value="overview" expires="NEVER">
+<cfelseif current.action == "services.restart">
+	<cfcookie name="lucee_admin_lastpage" value="services.restart" expires="NEVER">
 </cfif>
 
 

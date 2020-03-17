@@ -637,7 +637,7 @@ public final class ComponentUtil {
 		else if (access.equals("private")) return Component.ACCESS_PRIVATE;
 		else if (access.equals("public")) return Component.ACCESS_PUBLIC;
 		else if (access.equals("remote")) return Component.ACCESS_REMOTE;
-		throw new ApplicationException("invalid access type [" + access + "], access types are remote, public, package, private");
+		throw new ApplicationException("Invalid function access type [" + access + "], access types are [remote, public, package, private]");
 
 	}
 
@@ -661,7 +661,7 @@ public final class ComponentUtil {
 		String res = toStringAccess(access, null);
 		if (res != null) return res;
 		throw new ApplicationException(
-				"invalid access type [" + access + "], access types are Component.ACCESS_PACKAGE, Component.ACCESS_PRIVATE, Component.ACCESS_PUBLIC, Component.ACCESS_REMOTE");
+				"Invalid function access type [" + access + "], access types are [Component.ACCESS_PACKAGE, Component.ACCESS_PRIVATE, Component.ACCESS_PUBLIC, Component.ACCESS_REMOTE]");
 	}
 
 	public static String toStringAccess(int access, String defaultValue) {

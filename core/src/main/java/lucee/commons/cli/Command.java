@@ -83,8 +83,7 @@ public class Command {
 			return new CommandResult(in.getString(), err.getString());
 		}
 		finally {
-			IOUtil.closeEL(is);
-			IOUtil.closeEL(es);
+			IOUtil.close(is, es);
 		}
 	}
 

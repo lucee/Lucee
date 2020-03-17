@@ -23,10 +23,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.collection.MapFactory;
 import lucee.commons.io.log.Log;
-import lucee.commons.lang.RandomUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
@@ -43,16 +43,18 @@ import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.DateTimeImpl;
 import lucee.runtime.type.it.EntryIterator;
 import lucee.runtime.type.it.ValueIterator;
+import lucee.runtime.type.scope.CSRFTokenSupport;
 import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.scope.Session;
 import lucee.runtime.type.scope.client.IKStorageScopeClient;
 import lucee.runtime.type.scope.session.IKStorageScopeSession;
+import lucee.runtime.type.scope.util.ScopeUtil;
 import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.StructSupport;
 import lucee.runtime.type.util.StructUtil;
 
-public abstract class IKStorageScopeSupport extends StructSupport implements StorageScope {
+public abstract class IKStorageScopeSupport extends StructSupport implements StorageScope, CSRFTokenSupport {
 
 	protected static final IKStorageScopeItem ONE = new IKStorageScopeItem("1");
 
@@ -89,7 +91,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	protected int type;
 	private long timeSpan = -1;
 	private String storage;
-	private final Map<String, String> tokens = MapFactory.getConcurrentMap();
+	private final Map<Collection.Key, String> tokens = new ConcurrentHashMap<Collection.Key, String>();
 	private long lastModified;
 
 	private IKHandler handler;
@@ -582,24 +584,12 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 
 	@Override
 	public String generateToken(String key, boolean forceNew) {
-
-		// get existing
-		String token;
-		if (!forceNew) {
-			token = tokens.get(key);
-			if (token != null) return token;
-		}
-
-		// create new one
-		token = RandomUtil.createRandomStringLC(40);
-		tokens.put(key, token);
-		return token;
+		return ScopeUtil.generateCsrfToken(tokens, key, forceNew);
 	}
 
 	@Override
 	public boolean verifyToken(String token, String key) {
-		String _token = tokens.get(key);
-		return _token != null && _token.equalsIgnoreCase(token);
+		return ScopeUtil.verifyCsrfToken(tokens, token, key);
 	}
 
 	public static void merge(Map<Key, IKStorageScopeItem> local, Map<Key, IKStorageScopeItem> storage) {

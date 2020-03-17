@@ -498,7 +498,7 @@ public final class ConfigWebUtil {
 			return MD5.getDigestAsString(barr);
 		}
 		finally {
-			IOUtil.closeEL(is);
+			IOUtil.close(is);
 		}
 	}
 

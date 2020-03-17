@@ -3,6 +3,7 @@ package lucee.transformer.cfml.script.java.function;
 import java.io.File;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -193,7 +194,7 @@ public class JavaFunctionDef implements FunctionDef {
 
 	private String b(Boolean b) {
 		if (b == null) return "null";
-		return b ? "Booleam.TRUE" : "Boolean.FALSE";
+		return b ? "Boolean.TRUE" : "Boolean.FALSE";
 	}
 
 	private String createCallFunction(Class<?> clazz) {
@@ -279,16 +280,11 @@ public class JavaFunctionDef implements FunctionDef {
 
 		else if (Array.class == clazz) sb.append("engine.getCastUtil().toArray(");
 		else if (BigDecimal.class == clazz) sb.append("engine.getCastUtil().toBigDecimal(");
-		else if (BigInteger.class == clazz) sb.append("engine.getCastUtil().toBigInteger(");
 		else if (byte[].class == clazz) sb.append("engine.getCastUtil().toBinary(");
-		else if (CharSequence.class == clazz) sb.append("engine.getCastUtil().toCharSequence(");
 		else if (Collection.class == clazz) sb.append("engine.getCastUtil().toCollection(");
 		else if (Component.class == clazz) sb.append("engine.getCastUtil().toComponent(");
 		else if (File.class == clazz) sb.append("engine.getCastUtil().toFile(");
-		else if (UDF.class == clazz) sb.append("engine.getCastUtil().toFunction(");
 		else if (Iterator.class == clazz) sb.append("engine.getCastUtil().toIterator(");
-		else if (java.util.Collection.class == clazz) sb.append("engine.getCastUtil().toJavaCollection(");
-		else if (List.class == clazz) sb.append("engine.getCastUtil().toList(");
 		else if (Locale.class == clazz) sb.append("engine.getCastUtil().toLocale(");
 		else if (Map.class == clazz) sb.append("engine.getCastUtil().toMap(");
 		else if (Object[].class == clazz) sb.append("engine.getCastUtil().toNativeArray(");
@@ -300,7 +296,17 @@ public class JavaFunctionDef implements FunctionDef {
 		else if (TimeSpan.class == clazz) sb.append("engine.getCastUtil().toTimeSpan(");
 		else if (TimeZone.class == clazz) sb.append("engine.getCastUtil().toTimeZone(");
 		else if (Object.class == clazz) sb.append("(");
-		else sb.append("(" + Caster.toClassName(clazz) + ")(");
+
+		// FUTURE add this methods to cast interface
+		else if (BigInteger.class == clazz) sb.append("lucee.runtime.op.Caster.toBigInteger(");
+		else if (CharSequence.class == clazz) sb.append("lucee.runtime.op.Caster.toCharSequence(");
+		else if (UDF.class == clazz) sb.append("lucee.runtime.op.Caster.toFunction(");
+		else if (java.util.Collection.class == clazz) sb.append("lucee.runtime.op.Caster.toJavaCollection(");
+		else if (List.class == clazz) sb.append("lucee.runtime.op.Caster.toList(");
+		else if (Date.class == clazz) sb.append("lucee.runtime.op.Caster.toDate(");
+		else sb.append("lucee.runtime.op.Caster.castTo(\"" + Caster.toClassName(clazz) + "\",");
+		// else sb.append("(" + Caster.toClassName(clazz) + ")(");
+
 	}
 
 	private static String[] toArgumentNames(List<Argument> args) {

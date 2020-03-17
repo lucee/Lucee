@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintStream;
 import java.lang.instrument.Instrumentation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -87,6 +88,7 @@ import lucee.commons.io.retirement.RetireOutputStreamFactory;
 import lucee.commons.lang.Md5;
 import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.SystemOut;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lang.types.RefBooleanImpl;
 import lucee.commons.net.HTTPUtil;
@@ -122,7 +124,10 @@ import lucee.runtime.config.XMLConfigFactory.UpdateInfo;
 import lucee.runtime.config.XMLConfigServerFactory;
 import lucee.runtime.config.XMLConfigWebFactory;
 import lucee.runtime.engine.listener.CFMLServletContextListener;
+import lucee.runtime.exp.Abort;
 import lucee.runtime.exp.ApplicationException;
+import lucee.runtime.exp.CasterException;
+import lucee.runtime.exp.MissingIncludeException;
 import lucee.runtime.exp.NativeException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageServletException;
@@ -182,6 +187,9 @@ import lucee.runtime.video.VideoUtilImpl;
  */
 public final class CFMLEngineImpl implements CFMLEngine {
 
+	public static final PrintStream CONSOLE_ERR = System.err;
+	public static final PrintStream CONSOLE_OUT = System.out;
+
 	private static Map<String, CFMLFactory> initContextes = MapFactory.<String, CFMLFactory>getConcurrentMap();
 	private static Map<String, CFMLFactory> contextes = MapFactory.<String, CFMLFactory>getConcurrentMap();
 	private ConfigServerImpl configServer = null;
@@ -203,6 +211,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	private Controler controler;
 	private CFMLServletContextListener scl;
 	private Boolean asyncReqHandle;
+	private String envExt;
 
 	// private static CFMLEngineImpl engine=new CFMLEngineImpl();
 
@@ -281,7 +290,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 		// copy bundled extension to local extension directory (if never done before)
 		if (installExtensions && updateInfo.updateType != XMLConfigFactory.NEW_NONE) {
-			deployBundledExtension(cs);
+			deployBundledExtension(cs, false);
 			LogUtil.log(cs, Log.LEVEL_INFO, "deploy", "controller", "copy bundled extension to local extension directory (if never done before)");
 		}
 		// required extensions
@@ -341,10 +350,12 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		}
 
 		// install extension defined
-		String extensionIds = SystemUtil.getSystemPropOrEnvVar("lucee-extensions", null); // old no longer used
-		if (StringUtil.isEmpty(extensionIds, true)) extensionIds = SystemUtil.getSystemPropOrEnvVar("lucee.extensions", null);
+		String extensionIds = StringUtil.unwrap(SystemUtil.getSystemPropOrEnvVar("lucee-extensions", null)); // old no longer used
+		if (StringUtil.isEmpty(extensionIds, true)) extensionIds = StringUtil.unwrap(SystemUtil.getSystemPropOrEnvVar("lucee.extensions", null));
 
+		this.envExt = null;
 		if (!StringUtil.isEmpty(extensionIds, true)) {
+			this.envExt = extensionIds;
 			LogUtil.log(cs, Log.LEVEL_INFO, "deploy", "controller", "extensions to install defined in env variable or system property:" + extensionIds);
 			List<ExtensionDefintion> _extensions = RHExtension.toExtensionDefinitions(extensionIds);
 			extensions = toSet(extensions, _extensions);
@@ -460,9 +471,14 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		return sb.toString();
 	}
 
-	private void deployBundledExtension(ConfigServerImpl cs) {
+	public int deployBundledExtension(boolean validate) {
+		return deployBundledExtension(getConfigServerImpl(), validate);
+	}
+
+	private int deployBundledExtension(ConfigServerImpl cs, boolean validate) {
+		int count = 0;
 		Resource dir = cs.getLocalExtensionProviderDirectory();
-		List<ExtensionDefintion> existing = DeployHandler.getLocalExtensions(cs);
+		List<ExtensionDefintion> existing = DeployHandler.getLocalExtensions(cs, validate);
 		Map<String, ExtensionDefintion> existingMap = new HashMap<String, ExtensionDefintion>();
 
 		{
@@ -487,7 +503,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 		if (is == null) {
 			log.error("extract-extension", "could not found [/extensions/.index] defined in the index in the lucee.jar");
-			return;
+			return count;
 		}
 
 		try {
@@ -535,9 +551,11 @@ public final class CFMLEngineImpl implements CFMLEngine {
 							break;
 						}
 					}
+
 					String trgName = rhe.getId() + "-" + rhe.getVersion() + ".lex";
 					if (alreadyExists == null) {
 						temp.moveTo(dir.getRealResource(trgName));
+						count++;
 						log.info("extract-extension", "added [" + name + "] to [" + dir + "]");
 
 					}
@@ -566,12 +584,12 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		catch (Exception e) {
 			log.error("extract-extension", e);
 		}
-		return;
+		return count;
 	}
 
 	private void deployBundledExtensionZip(ConfigServerImpl cs) {
 		Resource dir = cs.getLocalExtensionProviderDirectory();
-		List<ExtensionDefintion> existing = DeployHandler.getLocalExtensions(cs);
+		List<ExtensionDefintion> existing = DeployHandler.getLocalExtensions(cs, false);
 		String sub = "extensions/";
 		// MUST this does not work on windows! we need to add an index
 		ZipEntry entry;
@@ -820,7 +838,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		return configServer;
 	}
 
-	private Resource getSeverContextConfigDirectory(CFMLEngineFactory factory) throws IOException {
+	public static Resource getSeverContextConfigDirectory(CFMLEngineFactory factory) throws IOException {
 		ResourceProvider frp = ResourcesImpl.getFileResourceProvider();
 		return frp.getResource(factory.getResourceRoot().getAbsolutePath()).getRealResource("context");
 	}
@@ -1118,7 +1136,8 @@ public final class CFMLEngineImpl implements CFMLEngine {
 					throw td;
 				}
 				catch (Throwable t) {
-					if (t instanceof Exception) LogUtil.log(configServer, "controller", (Exception) t);
+					if (t instanceof Exception && !Abort.isSilentAbort(t))
+						LogUtil.log(configServer, "application", "controller", (Exception) t, t instanceof MissingIncludeException ? Log.LEVEL_WARN : Log.LEVEL_ERROR);
 				}
 			}
 		}
@@ -1639,7 +1658,17 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	}
 
 	public void onStart(ConfigImpl config, boolean reload) {
+
 		String context = config instanceof ConfigWeb ? "Web" : "Server";
+		
+		if (context == "Web" && SystemUtil.getSystemPropOrEnvVar("lucee.enable.warmup", "").equalsIgnoreCase("true")) {
+			String msg = "Lucee warmup completed. Shutting down.";
+			CONSOLE_ERR.println(msg);
+			LogUtil.log(config, Log.LEVEL_ERROR, "application", msg);
+			shutdownFelix();
+			System.exit(0);
+		}
+
 		if (!ThreadLocalPageContext.callOnStart.get()) return;
 
 		Resource listenerTemplateLucee = config.getConfigDir().getRealResource("context/" + context + "." + lucee.runtime.config.Constants.getLuceeComponentExtension());
@@ -1737,4 +1766,23 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		return asyncReqHandle;
 	}
 
+	public static CFMLEngineImpl toCFMLEngineImpl(CFMLEngine e) throws CasterException {
+		if (e instanceof CFMLEngineImpl) return (CFMLEngineImpl) e;
+		if (e instanceof CFMLEngineWrapper) return toCFMLEngineImpl(((CFMLEngineWrapper) e).getEngine());
+		throw new CasterException(e, CFMLEngineImpl.class);
+	}
+
+	public static CFMLEngineImpl toCFMLEngineImpl(CFMLEngine e, CFMLEngineImpl defaultValue) {
+		if (e instanceof CFMLEngineImpl) return (CFMLEngineImpl) e;
+		if (e instanceof CFMLEngineWrapper) return toCFMLEngineImpl(((CFMLEngineWrapper) e).getEngine(), defaultValue);
+		return defaultValue;
+	}
+
+	public Object getEnvExt() {
+		return envExt;
+	}
+
+	public void setEnvExt(String envExt) {
+		this.envExt = envExt;
+	}
 }

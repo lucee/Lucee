@@ -40,6 +40,7 @@ import java.util.concurrent.Executor;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.db.DataSource;
+import lucee.runtime.db.DataSourcePro;
 import lucee.runtime.db.DatasourceConnection;
 import lucee.runtime.db.DatasourceConnectionImpl;
 import lucee.runtime.db.DatasourceConnectionPro;
@@ -386,6 +387,7 @@ public class ORMDatasourceConnection implements DatasourceConnectionPro {
 	}
 
 	// used only with java 7, do not set @Override
+	@Override
 	public void abort(Executor executor) throws SQLException {
 		connection.abort(executor);
 	}
@@ -403,5 +405,10 @@ public class ORMDatasourceConnection implements DatasourceConnectionPro {
 	@Override
 	public boolean isAutoCommit() throws SQLException {
 		return connection.getAutoCommit();
+	}
+
+	@Override
+	public int getDefaultTransactionIsolation() {
+		return ((DataSourcePro) datasource).getDefaultTransactionIsolation();
 	}
 }

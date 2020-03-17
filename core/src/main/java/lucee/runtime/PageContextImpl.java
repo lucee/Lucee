@@ -832,6 +832,7 @@ public final class PageContextImpl extends PageContext {
 	// IMPORTANT!!! we do not getCachedWithin in this method, because Modern|ClassicAppListener is
 	// calling this method and in this case it should not be used
 	public void _doInclude(PageSource[] sources, boolean runOnce, Object cachedWithin) throws PageException {
+		PageContextUtil.checkRequestTimeout(this);
 		if (cachedWithin == null) {
 			_doInclude(sources, runOnce);
 			return;
@@ -3587,7 +3588,7 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	private void setFullNullSupport() {
-		fullNullSupport = currentTemplateDialect != CFMLEngine.DIALECT_CFML || applicationContext.getFullNullSupport();
+		fullNullSupport = currentTemplateDialect != CFMLEngine.DIALECT_CFML || (applicationContext != null && applicationContext.getFullNullSupport());
 	}
 
 	public void registerLazyStatement(Statement s) {

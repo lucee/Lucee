@@ -711,7 +711,7 @@ public final class Feed extends TagImpl {
 
 		}
 		finally {
-			IOUtil.closeEL(r);
+			IOUtil.close(r);
 		}
 	}
 }

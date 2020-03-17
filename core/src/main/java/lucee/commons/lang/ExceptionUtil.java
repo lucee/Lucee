@@ -51,11 +51,28 @@ public final class ExceptionUtil {
 	}
 
 	public static String getStacktrace(Throwable t, boolean addMessage) {
+		return getStacktrace(t, addMessage, true);
+	}
+
+	public static String getStacktrace(Throwable t, boolean addMessage, boolean onlyLuceePart) {
 		StringWriter sw = new StringWriter();
 		PrintWriter pw = new PrintWriter(sw);
 		t.printStackTrace(pw);
 		pw.close();
 		String st = sw.toString();
+		// shrink the stacktrace
+		if (onlyLuceePart && st.indexOf("Caused by:") == -1) {
+			int index = st.indexOf("lucee.loader.servlet.CFMLServlet.service(");
+			if (index == -1) index = st.indexOf("lucee.runtime.jsr223.ScriptEngineImpl.eval(");
+
+			if (index != -1) {
+				index = st.indexOf(")", index + 1);
+				if (index != -1) {
+					st = st.substring(0, index + 1) + "\n...";
+				}
+			}
+		}
+
 		String msg = t.getMessage();
 		if (addMessage && !StringUtil.isEmpty(msg) && !st.startsWith(msg.trim())) st = msg + "\n" + st;
 		return st;
@@ -166,6 +183,7 @@ public final class ExceptionUtil {
 	}
 
 	private static Throwable unwrap(Throwable t) {
+		if (t == null) return t;
 		if (t instanceof NativeException) return unwrap(((NativeException) t).getException());
 		Throwable cause = t.getCause();
 		if (cause != null && cause != t) return unwrap(cause);

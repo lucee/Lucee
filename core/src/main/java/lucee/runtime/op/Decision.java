@@ -31,6 +31,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.regex.Pattern;
 
@@ -474,7 +475,7 @@ public final class Decision {
 	 */
 	public static boolean isCastableToArray(Object o) {
 		if (isArray(o)) return true;
-		// else if(o instanceof XMLStruct) return true;
+		else if (o instanceof Set) return true;
 		else if (o instanceof Struct) {
 			Struct sct = (Struct) o;
 			Iterator<Key> it = sct.keyIterator();
@@ -1112,7 +1113,7 @@ public final class Decision {
 					return isCastableToNumeric(o);
 				}
 				else if (alsoAlias && type.equals("decimal")) {
-					return Caster.toDecimal(o, null) != null;
+					return Caster.toDecimal(o, true, null) != null;
 				}
 				break;
 			case 'e':

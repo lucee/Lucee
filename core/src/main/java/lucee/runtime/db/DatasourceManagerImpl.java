@@ -96,6 +96,7 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 					if (autoCommit) {
 						if (!existingDC.getAutoCommit()) {
 							existingDC.setAutoCommit(true);
+							existingDC.getConnection().setTransactionIsolation(existingDC.getDefaultTransactionIsolation());
 						}
 					}
 					else {
@@ -112,6 +113,7 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 			if (autoCommit) {
 				if (!existingDC.getAutoCommit()) {
 					existingDC.setAutoCommit(true);
+					existingDC.getConnection().setTransactionIsolation(existingDC.getDefaultTransactionIsolation());
 				}
 			}
 			else {
@@ -338,14 +340,16 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 						continue;
 					}
 					dc.getConnection().setAutoCommit(true);
+					dc.getConnection().setTransactionIsolation(((DatasourceConnectionPro) dc).getDefaultTransactionIsolation());
+
 				}
 				catch (Exception e) {
 					// we only keep the first exception
 					if (pair == null) {
 						pair = new Pair<DatasourceConnection, Exception>(dc, e);
 					}
+					continue;
 				}
-
 				releaseConnection(null, dc, true);
 			}
 			transConns.clear();
