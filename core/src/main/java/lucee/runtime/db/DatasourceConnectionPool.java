@@ -150,15 +150,20 @@ public class DatasourceConnectionPool {
 
 		DCStack stack = getDCStack(dc.getDatasource(), dc.getUsername(), dc.getPassword());
 		synchronized (stack) {
-			if (closeIt) IOUtil.closeEL(dc.getConnection());
-			else stack.add(dc);
-
-			int max = dc.getDatasource().getConnectionLimit();
-			if (max != -1) {
-				_dec(stack, dc.getDatasource(), dc.getUsername(), dc.getPassword());
-				SystemUtil.notify(waiter);
+			try {
+				if (closeIt) IOUtil.closeEL(dc.getConnection());
+				else stack.add(dc);
 			}
-			else _dec(stack, dc.getDatasource(), dc.getUsername(), dc.getPassword());
+			finally {
+				int max = dc.getDatasource().getConnectionLimit();
+				if (max != -1) {
+					_dec(stack, dc.getDatasource(), dc.getUsername(), dc.getPassword());
+					SystemUtil.notify(waiter);
+				}
+				else {
+					_dec(stack, dc.getDatasource(), dc.getUsername(), dc.getPassword());
+				}
+			}
 		}
 	}
 
