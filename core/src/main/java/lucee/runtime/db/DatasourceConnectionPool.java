@@ -308,7 +308,7 @@ public class DatasourceConnectionPool {
 	}
 
 	private DCStack getDCStack(DataSource datasource, String user, String pass) {
-		String id = createId(datasource, user, pass);
+		String id = createId(datasource, user, pass).intern();
 		synchronized (id) {
 			DCStack stack = dcs.get(id);
 
