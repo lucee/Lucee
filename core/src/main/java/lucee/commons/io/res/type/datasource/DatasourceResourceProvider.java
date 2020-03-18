@@ -226,7 +226,7 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 				else if ("com.microsoft.sqlserver.jdbc.SQLServerDriver".equals(dc.getDatasource().getClassDefinition().getClassName())) core = new MSSQL(dc, data.getPrefix());
 				else if ("net.sourceforge.jtds.jdbc.Driver".equals(dc.getDatasource().getClassDefinition().getClassName())) core = new MSSQL(dc, data.getPrefix());
 				else if ("org.gjt.mm.mysql.Driver".equals(dc.getDatasource().getClassDefinition().getClassName())) core = new MySQL(dc, data.getPrefix());
-				else throw new ApplicationException("there is no DatasourceResource driver for this database [" + data.getPrefix() + "]");
+				else throw new ApplicationException("There is no DatasourceResource driver for this database [" + data.getPrefix() + "]");
 
 				cores.put(data.datasourceName, core);
 			}
@@ -323,7 +323,7 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 	}
 
 	public void create(ConnectionData data, int fullPathHash, int pathHash, String path, String name, int type) throws IOException {
-		if (StringUtil.isEmpty(data.getDatasourceName())) throw new IOException("missing datasource definition");
+		if (StringUtil.isEmpty(data.getDatasourceName())) throw new IOException("Missing datasource definition");
 
 		removeFromCache(data, path, name);
 
@@ -346,7 +346,7 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 	public void delete(ConnectionData data, int fullPathHash, String path, String name) throws IOException {
 
 		Attr attr = getAttr(data, fullPathHash, path, name);
-		if (attr == null) throw new IOException("can't delete resource " + path + name + ", resource does not exist");
+		if (attr == null) throw new IOException("Can't delete resource [" + path + name + "], resource does not exist");
 
 		DatasourceConnection dc = null;
 		try {
@@ -368,7 +368,7 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 
 	public InputStream getInputStream(ConnectionData data, int fullPathHash, String path, String name) throws IOException {
 		Attr attr = getAttr(data, fullPathHash, path, name);
-		if (attr == null) throw new IOException("file [" + path + name + "] does not exist");
+		if (attr == null) throw new IOException("File [" + path + name + "] does not exist");
 		DatasourceConnection dc = null;
 		try {
 			dc = getDatasourceConnection(data);
