@@ -192,7 +192,7 @@ public final class CompressUtil {
 	private static void extractTar(Resource tarFile, Resource targetDir) throws IOException {
 		if (!targetDir.exists() || !targetDir.isDirectory()) throw new IOException("[" + targetDir + "] is not an existing directory");
 
-		if (!tarFile.exists()) throw new IOException("[" tarFile + "] is not an existing file");
+		if (!tarFile.exists()) throw new IOException("[" + tarFile + "] is not an existing file");
 
 		if (tarFile.isDirectory()) {
 			Resource[] files = tarFile.listResources(new ExtensionResourceFilter("tar"));
@@ -237,7 +237,7 @@ public final class CompressUtil {
 		if (zipFile.isDirectory()) {
 			Resource[] files = zipFile.listResources(new OrResourceFilter(new ResourceFilter[] { new ExtensionResourceFilter("zip"), new ExtensionResourceFilter("jar"),
 					new ExtensionResourceFilter("war"), new ExtensionResourceFilter("tar"), new ExtensionResourceFilter("ear") }));
-			if (files == null) throw new IOException("directory " + zipFile + " is empty");
+			if (files == null) throw new IOException("directory [" + zipFile + "] is empty");
 			extract(FORMAT_ZIP, files, targetDir);
 			return;
 		}
