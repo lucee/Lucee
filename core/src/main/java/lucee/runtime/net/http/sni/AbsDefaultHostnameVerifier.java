@@ -33,7 +33,10 @@ public class AbsDefaultHostnameVerifier implements HostnameVerifier {
 	final static int DNS_NAME_TYPE = 2;
 	final static int IP_ADDRESS_TYPE = 7;
 
-	private final Log log = LogFactory.getLog(getClass());
+	private final static Log log;
+	static {
+		log = LogFactory.getLog("lucee.runtime.net.http.sni.AbsDefaultHostnameVerifier");
+	}
 
 	private final PublicSuffixMatcher publicSuffixMatcher;
 
