@@ -6,7 +6,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase"{
 	
 	function run( testResults , testBox ) {
 		describe( "test case for LDEV-2732", function() {
-			it( title = "cffunction with roless attribute without logging user", body = function( currentSpec ) {
+			it( title = "cffunction with roles attribute without logging user", body = function( currentSpec ) {
 				uri = createURI("LDEV2732/LDEV2732.cfm");
 				local.result = _InternalRequest(
 					template : uri,
