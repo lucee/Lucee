@@ -6309,7 +6309,7 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 		<attribute>
 			<type>string</type>
 			<name>columnkey</name>
-			<alias>columnname,column</alias>
+			<alias>columnname,column,keycolumn</alias>
 			<status>hidden</status>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
