@@ -200,6 +200,10 @@ public final class Http extends BodyTagImpl {
 	private static final short AUTH_TYPE_BASIC = 0;
 	private static final short AUTH_TYPE_NTLM = 1;
 
+	public static final short ENCODED_AUTO = HTTPUtil.ENCODED_AUTO;
+	public static final short ENCODED_YES = HTTPUtil.ENCODED_YES;
+	public static final short ENCODED_NO = HTTPUtil.ENCODED_NO;
+
 	static {
 		// Protocol myhttps = new Protocol("https", new EasySSLProtocolSocketFactory(), 443);
 		// Protocol.registerProtocol("https", new Protocol("https", new EasySSLProtocolSocketFactory(),
@@ -319,7 +323,7 @@ public final class Http extends BodyTagImpl {
 	private String workStation = null;
 	private String domain = null;
 	private boolean preauth = true;
-	private boolean encoded = true;
+	private short encoded = ENCODED_AUTO;
 
 	private boolean compression = true;
 
@@ -368,7 +372,7 @@ public final class Http extends BodyTagImpl {
 		workStation = null;
 		domain = null;
 		preauth = true;
-		encoded = true;
+		encoded = ENCODED_AUTO;
 		compression = true;
 		clientCert = null;
 		clientCertPassword = null;
@@ -383,7 +387,7 @@ public final class Http extends BodyTagImpl {
 	}
 
 	public void setEncodeurl(boolean encoded) {
-		this.encoded = encoded;
+		this.encoded = encoded ? ENCODED_YES : ENCODED_NO;
 	}
 
 	/**
@@ -731,10 +735,11 @@ public final class Http extends BodyTagImpl {
 				int type = param.getType();
 				// URL
 				if (type == HttpParamBean.TYPE_URL) {
+					short enc = param.getEncoded();
 					if (sbQS.length() > 0) sbQS.append('&');
-					sbQS.append(param.getEncoded() ? urlenc(param.getName(), charset) : param.getName());
+					sbQS.append(enc != ENCODED_NO ? urlenc(param.getName(), charset, enc == ENCODED_AUTO) : param.getName());
 					sbQS.append('=');
-					sbQS.append(param.getEncoded() ? urlenc(param.getValueAsString(), charset) : param.getValueAsString());
+					sbQS.append(param.getEncoded() != ENCODED_NO ? urlenc(param.getValueAsString(), charset, enc == ENCODED_AUTO) : param.getValueAsString());
 				}
 			}
 
@@ -872,7 +877,10 @@ public final class Http extends BodyTagImpl {
 				}
 				// CGI
 				else if (type == HttpParamBean.TYPE_CGI) {
-					if (param.getEncoded()) req.addHeader(urlenc(param.getName(), charset), urlenc(param.getValueAsString(), charset));
+					if (param.getEncoded() != ENCODED_NO) {
+						boolean isAuto = param.getEncoded() == ENCODED_AUTO;
+						req.addHeader(urlenc(param.getName(), charset, isAuto), urlenc(param.getValueAsString(), charset, isAuto));
+					}
 					else req.addHeader(param.getName(), param.getValueAsString());
 				}
 				// Header
@@ -1573,9 +1581,9 @@ public final class Http extends BodyTagImpl {
 		return sb.toString();
 	}
 
-	private static String urlenc(String str, String charset) throws UnsupportedEncodingException {
-		if (!ReqRspUtil.needEncoding(str, false)) return str;
-		return URLEncoder.encode(str, charset);
+	private static String urlenc(String str, String charset, boolean checkIfNeeded) throws UnsupportedEncodingException {
+		if (checkIfNeeded && !ReqRspUtil.needEncoding(str, false)) return str;
+		return URLEncoder.encode(str, CharsetUtil.toCharset(charset));
 	}
 
 	@Override

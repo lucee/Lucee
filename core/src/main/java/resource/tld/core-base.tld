@@ -3388,7 +3388,9 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>
-			if set to true (default value) URL encodes the value of the attribute "URL" if necessary (no double encoding is happening).
+				Specifies whether to URL encode the the URL.
+				If not set at all (auto mode), it only encodes when necessary to avoid double encoding.
+				If set to true it encodes the URL, if set to false it does not touch it.
 			This setting has no influence on the values from httpparam type="url", for this use the attribute "encoded" from httpparam</description>
 		</attribute>
 		<attribute>
@@ -3741,7 +3743,10 @@ To use cached data, the tag must be called with the exact same arguments.</descr
 			<rtexprvalue>true</rtexprvalue>
 			<description>
 				Applies to type "cgi" and "url", ignored for all other types.
-				 Specifies whether to URL encode the the values defined with the tag, but only if necessary (no double encoding).</description>
+				Specifies whether to URL encode the the values defined with the tag.
+				If not set at all (auto mode), it only encodes when necessary to avoid double encoding.
+				If set to true it encodes the value, if set to false it does not touch it.
+			</description>
 		</attribute>
 		<attribute>
 			<type>string</type>

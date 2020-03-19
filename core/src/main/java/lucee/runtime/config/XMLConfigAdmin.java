@@ -3510,7 +3510,7 @@ public final class XMLConfigAdmin {
 		Element update = _getRootElement("update");
 		update.setAttribute("type", type);
 		try {
-			location = HTTPUtil.toURL(location, true).toString();
+			location = HTTPUtil.toURL(location, HTTPUtil.ENCODED_AUTO).toString();
 		}
 		catch (Throwable e) {
 			ExceptionUtil.rethrowIfNecessary(e);
@@ -4233,7 +4233,7 @@ public final class XMLConfigAdmin {
 		Element[] children = XMLConfigWebFactory.getChildren(extensions, "rhprovider");
 		strUrl = strUrl.trim();
 
-		URL _url = HTTPUtil.toURL(strUrl, false);
+		URL _url = HTTPUtil.toURL(strUrl, HTTPUtil.ENCODED_NO);
 		strUrl = _url.toExternalForm();
 
 		// Update
@@ -5330,7 +5330,7 @@ public final class XMLConfigAdmin {
 	public void verifyExtensionProvider(String strUrl) throws PageException {
 		HTTPResponse method = null;
 		try {
-			URL url = HTTPUtil.toURL(strUrl + "?wsdl", true);
+			URL url = HTTPUtil.toURL(strUrl + "?wsdl", HTTPUtil.ENCODED_AUTO);
 			method = HTTPEngine.get(url, null, null, 2000, true, null, null, null, null);
 		}
 		catch (MalformedURLException e) {
