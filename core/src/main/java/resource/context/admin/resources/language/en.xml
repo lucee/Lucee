@@ -1545,13 +1545,15 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="settings.gateway.startupModeManual">Manual</data>
 	<data key="settings.gateway.startupModeDisabled">Disabled</data>
 
-	<data key="setting.general.web">Hier sehen Sie eine Übersicht alle Settings welche Einfluss auf das Verhalten von Lucee haben, sie können diese nach vordefinierten kriterien anpassen</data>
+	<data key="setting.general.web">Here you see an overview of all settings that have an influence on the behavior of Lucee, you can adjust them according to predefined criteria</data>
+	<data key="setting.general.server">Here you see an overview of all settings that have an influence on the behavior of Lucee, you can adjust them according to predefined criteria</data>
 	<data key="setting.general.compatibility">Compatibility</data>
-	<data key="setting.general.compatibilityDesc">Mit diesem Wert werden alle Settings so gesetzt, dass sie möglichst dem CFML2009 Standard entsprechen und mit Implementationen anderer Hersteller kombatibel sind.</data>
+	<data key="setting.general.compatibilityDesc">With this value, all settings are set so that they correspond as far as possible to the CFML2009 standard and are compatible with implementations from other manufacturers.</data>
 	<data key="setting.general.strict">Strict</data>
-	<data key="setting.general.strictDesc">Mit diesem Wert werden alle Settings so gesetzt, dass Lucee so streng wie möglich mit der Umsetzung des Code ist.</data>
+	<data key="setting.general.strictDesc">With this value, all settings are set so that Lucee is as strict as possible with the implementation of the code.</data>
 	<data key="setting.general.speed">Speed</data>
-	<data key="setting.general.speedDesc">Mit diesem Wert werden alle Settings so gesetzt, dass sie eine möglichst schnelle Ausführung des Code erlauben.</data>
+	<data key="setting.general.speedDesc">With this value, all settings are set so that they allow the code to be executed as quickly as possible.
+	</data>
 	<data key="setting.general.component">Component</data>
 	<data key="setting.general.charset">Charset</data>
 	<data key="setting.general.scope">Scope</data>
