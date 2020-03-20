@@ -28,7 +28,7 @@ public class RHExtensionProvider {
 	private final boolean readonly;
 
 	public RHExtensionProvider(String strUrl, boolean readonly) throws MalformedURLException {
-		this.url = HTTPUtil.toURL(strUrl, true);
+		this.url = HTTPUtil.toURL(strUrl, HTTPUtil.ENCODED_AUTO);
 		this.readonly = readonly;
 	}
 

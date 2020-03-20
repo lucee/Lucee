@@ -37,11 +37,10 @@ public class XMLEntityResolverDefaultHandler extends DefaultHandler {
 	@Override
 	public InputSource resolveEntity(String publicID, String systemID) throws SAXException {
 		// if(entityRes!=null)print.out("resolveEntity("+(entityRes!=null)+"):"+publicID+":"+systemID);
-
 		if (entityRes != null) return entityRes;
 		try {
 			// TODO user resources
-			return new InputSource(IOUtil.toBufferedInputStream(HTTPUtil.toURL(systemID, true).openStream()));
+			return new InputSource(IOUtil.toBufferedInputStream(HTTPUtil.toURL(systemID, HTTPUtil.ENCODED_AUTO).openStream()));
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);

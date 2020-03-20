@@ -52,12 +52,17 @@ import lucee.runtime.exp.PageServletException;
 import lucee.runtime.net.http.HTTPServletRequestWrap;
 import lucee.runtime.net.http.HttpServletResponseWrap;
 import lucee.runtime.net.http.ReqRspUtil;
+import lucee.runtime.tag.Http;
 import lucee.runtime.type.util.ListUtil;
 
 /**
  * 
  */
 public final class HTTPUtil {
+
+	public static final short ENCODED_AUTO = 1;
+	public static final short ENCODED_YES = 2;
+	public static final short ENCODED_NO = 3;
 
 	/**
 	 * Field <code>ACTION_POST</code>
@@ -84,13 +89,13 @@ public final class HTTPUtil {
 	 * @return url from string
 	 * @throws MalformedURLException
 	 */
-	public static URL toURL(String strUrl, boolean encodeIfNecessary) throws MalformedURLException {
-		return toURL(strUrl, -1, encodeIfNecessary);
+	public static URL toURL(String strUrl, short encodeOption) throws MalformedURLException {
+		return toURL(strUrl, -1, encodeOption);
 	}
 
-	public static URL toURL(String strUrl, boolean encodeIfNecessary, URL defaultValue) {
+	public static URL toURL(String strUrl, short encodeOption, URL defaultValue) {
 		try {
-			return toURL(strUrl, -1, encodeIfNecessary);
+			return toURL(strUrl, -1, encodeOption);
 		}
 		catch (MalformedURLException e) {
 			return defaultValue;
@@ -99,7 +104,7 @@ public final class HTTPUtil {
 
 	public static String validateURL(String strUrl, String defaultValue) {
 		try {
-			return toURL(strUrl, -1, true).toExternalForm();
+			return toURL(strUrl, -1, Http.ENCODED_AUTO).toExternalForm();
 		}
 		catch (MalformedURLException e) {
 			return defaultValue;
@@ -114,26 +119,24 @@ public final class HTTPUtil {
 	 * @throws MalformedURLException
 	 */
 
-	public static URL toURL(String strUrl, int port, boolean encodeIfNecessary) throws MalformedURLException {
+	public static URL toURL(String strUrl, int port, short encodeOption) throws MalformedURLException {
 		URL url;
 		try {
-			if (encodeIfNecessary) strUrl = strUrl.replace('+', ' ');
 			url = new URL(strUrl);
 		}
 		catch (MalformedURLException mue) {
 			url = new URL("http://" + strUrl);
 		}
-		if (!encodeIfNecessary) return url;
-
-		return encodeURL(url, port);
+		if (encodeOption == Http.ENCODED_NO) return url;
+		return encodeURL(url, port, encodeOption == Http.ENCODED_AUTO);
 	}
 
-	public static URL encodeURL(URL url) throws MalformedURLException {
-		return encodeURL(url, -1);
+	public static URL encodeURL(URL url, boolean encodeWhenNecessary) throws MalformedURLException {
+		return encodeURL(url, -1, encodeWhenNecessary);
 
 	}
 
-	public static URL encodeURL(URL url, int port) throws MalformedURLException {
+	public static URL encodeURL(URL url, int port, boolean encodeOnlyWhenNecessary) throws MalformedURLException {
 
 		// file
 		String path = url.getPath();
@@ -163,7 +166,7 @@ public final class HTTPUtil {
 
 				if (StringUtil.isEmpty(str)) continue;
 				res.append("/");
-				res.append(escapeQSValue(str));
+				res.append(escapeQSValue(str, encodeOnlyWhenNecessary));
 			}
 			if (StringUtil.endsWith(path, '/')) res.append('/');
 			path = res.toString();
@@ -180,16 +183,16 @@ public final class HTTPUtil {
 
 		// decode ref/anchor
 		if (ref != null) {
-			file += "#" + escapeQSValue(ref);
+			file += "#" + escapeQSValue(ref, encodeOnlyWhenNecessary);
 		}
 
 		// user/pasword
 		if (!StringUtil.isEmpty(user)) {
 			int index = user.indexOf(':');
 			if (index != -1) {
-				user = escapeQSValue(user.substring(0, index)) + ":" + escapeQSValue(user.substring(index + 1));
+				user = escapeQSValue(user.substring(0, index), encodeOnlyWhenNecessary) + ":" + escapeQSValue(user.substring(index + 1), encodeOnlyWhenNecessary);
 			}
-			else user = escapeQSValue(user);
+			else user = escapeQSValue(user, encodeOnlyWhenNecessary);
 
 			String strUrl = getProtocol(url) + "://" + user + "@" + url.getHost();
 			if (port > 0) strUrl += ":" + port;
@@ -216,11 +219,11 @@ public final class HTTPUtil {
 				del = '&';
 				str = list.next();
 				index = str.indexOf('=');
-				if (index == -1) res.append(escapeQSValue(str));
+				if (index == -1) res.append(escapeQSValue(str, true));
 				else {
-					res.append(escapeQSValue(str.substring(0, index)));
+					res.append(escapeQSValue(str.substring(0, index), true));
 					res.append('=');
-					res.append(escapeQSValue(str.substring(index + 1)));
+					res.append(escapeQSValue(str.substring(index + 1), true));
 				}
 			}
 			query = res.toString();
@@ -268,7 +271,7 @@ public final class HTTPUtil {
 
 				if (StringUtil.isEmpty(str)) continue;
 				res.append("/");
-				res.append(escapeQSValue(str));
+				res.append(escapeQSValue(str, true));
 			}
 			if (StringUtil.endsWith(path, '/')) res.append('/');
 			path = res.toString();
@@ -283,16 +286,16 @@ public final class HTTPUtil {
 
 		// decode ref/anchor
 		if (!StringUtil.isEmpty(fragment)) {
-			fragment = escapeQSValue(fragment);
+			fragment = escapeQSValue(fragment, true);
 		}
 
 		// user/pasword
 		if (!StringUtil.isEmpty(userInfo)) {
 			int index = userInfo.indexOf(':');
 			if (index != -1) {
-				userInfo = escapeQSValue(userInfo.substring(0, index)) + ":" + escapeQSValue(userInfo.substring(index + 1));
+				userInfo = escapeQSValue(userInfo.substring(0, index), true) + ":" + escapeQSValue(userInfo.substring(index + 1), true);
 			}
-			else userInfo = escapeQSValue(userInfo);
+			else userInfo = escapeQSValue(userInfo, true);
 		}
 
 		/*
@@ -347,8 +350,8 @@ public final class HTTPUtil {
 		return p;
 	}
 
-	public static String escapeQSValue(String str) {
-		if (!ReqRspUtil.needEncoding(str, false)) return str;
+	public static String escapeQSValue(String str, boolean encodeOnlyWhenNecessary) {
+		if (encodeOnlyWhenNecessary && !ReqRspUtil.needEncoding(str, false)) return str;
 		PageContextImpl pc = (PageContextImpl) ThreadLocalPageContext.get();
 		if (pc != null) {
 			try {
@@ -496,11 +499,11 @@ public final class HTTPUtil {
 				del = '&';
 				str = list.next();
 				index = str.indexOf('=');
-				if (index == -1) res.append(escapeQSValue(str));
+				if (index == -1) res.append(escapeQSValue(str, true));
 				else {
-					res.append(escapeQSValue(str.substring(0, index)));
+					res.append(escapeQSValue(str.substring(0, index), true));
 					res.append('=');
-					res.append(escapeQSValue(str.substring(index + 1)));
+					res.append(escapeQSValue(str.substring(index + 1), true));
 				}
 			}
 		}
@@ -508,7 +511,7 @@ public final class HTTPUtil {
 		// anker
 		if (anker != null) {
 			res.append('#');
-			res.append(escapeQSValue(anker));
+			res.append(escapeQSValue(anker, true));
 		}
 
 		return res.toString();

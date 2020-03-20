@@ -304,7 +304,10 @@ public final class ReqRspUtil {
 			if (c == '%') {
 				if (i + 2 >= len) return true;
 				try {
-					Integer.parseInt(str.substring(i + 1, i + 3), 16);
+					char c1 = str.charAt(i + 1);
+					char c2 = str.charAt(i + 2);
+					if (!isHex(c1) || !isHex(c2)) return true;
+					Integer.parseInt(c1 + "" + c2, 16);
 				}
 				catch (NumberFormatException nfe) {
 					return true;
@@ -358,7 +361,7 @@ public final class ReqRspUtil {
 
 	public static boolean isThis(HttpServletRequest req, String url) {
 		try {
-			return isThis(req, HTTPUtil.toURL(url, true));
+			return isThis(req, HTTPUtil.toURL(url, HTTPUtil.ENCODED_AUTO));
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);

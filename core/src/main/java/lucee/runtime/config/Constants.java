@@ -77,8 +77,8 @@ public class Constants {
 			new ExtensionProviderImpl("http://extension.lucee.org/ExtensionProvider.cfc", true) };
 
 	public static final RHExtensionProvider[] RH_EXTENSION_PROVIDERS = new RHExtensionProvider[] {
-			new RHExtensionProvider(HTTPUtil.toURL("http://extension.lucee.org", false, null), true),
-			new RHExtensionProvider(HTTPUtil.toURL("https://www.forgebox.io", false, null), true) };
+			new RHExtensionProvider(HTTPUtil.toURL("http://extension.lucee.org", HTTPUtil.ENCODED_NO, null), true),
+			new RHExtensionProvider(HTTPUtil.toURL("https://www.forgebox.io", HTTPUtil.ENCODED_NO, null), true) };
 
 	public static final String CFML_SCRIPT_TAG_NAME = "script";
 	public static final String LUCEE_SCRIPT_TAG_NAME = "script";
