@@ -101,8 +101,8 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 		<cfargument name="context" type="string" default="web" />
 		<cfsilent>
 <cfscript>
-var hasRefTab=(custom.tab_Reference?:"")=="Enabled";
-var hasMetTab=(custom.tab_Metrics?:"")=="Enabled";
+var hasRefTab=(arguments.custom.tab_Reference?:"")=="Enabled";
+var hasMetTab=(arguments.custom.tab_Metrics?:"")=="Enabled";
 
 
 variables.chartStr = {};
@@ -674,14 +674,14 @@ Debug Button
   			onclick="ldSelectTab(event, '-lucee-debugging')">Debugging</button><!---
 
 Metrics Button
-   ---><cfif (custom.tab_Metrics?:"")=="Enabled"><button 
+   ---><cfif (arguments.custom.tab_Metrics?:"")=="Enabled"><button 
    			id="ldMetrics" 
    			class="ldTabLinks" 
    			style="border-left-width: 0px;<cfif not hasRefTab>border-radius: 0px 6px 6px 0px;</cfif>"
    			onclick="ldMetrics();ldSelectTab(event, '-lucee-metrics')">Metrics</button></cfif><!---
 
 Reference Button
-    ---><cfif (custom.tab_Reference?:"")=="Enabled"><button id="ldRef" style="border-left-width: 0px;border-radius: 0px 6px 6px 0px; " class="ldTabLinks" onclick="loadRef();ldSelectTab(event, '-lucee-reference')">Reference</button></cfif>
+    ---><cfif (arguments.custom.tab_Reference?:"")=="Enabled"><button id="ldRef" style="border-left-width: 0px;border-radius: 0px 6px 6px 0px; " class="ldTabLinks" onclick="loadRef();ldSelectTab(event, '-lucee-reference')">Reference</button></cfif>
 </div>
 <!----------------------------------------
 --------------- METRICS ------------------
@@ -828,7 +828,7 @@ Reference Button
 					</cfif>
 
 					<!--- Abort --->
-					<cfif structKeyExists(debugging,"abort")>
+					<cfif structKeyExists(arguments.debugging,"abort")>
 						<div class="section-title">Abort</div>
 						<table>
 							<tr>
@@ -980,7 +980,7 @@ Reference Button
 											<th>Var</th>
 											<th>Count</th>
 										</tr>
-										<cfset total=0 />
+										<cfset variables.total=0 /><!--- not used? --->
 										<cfloop query="implicitAccess">
 											<tr>
 												<td>#implicitAccess.template#</td>
