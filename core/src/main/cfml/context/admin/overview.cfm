@@ -1,6 +1,7 @@
 <!---
 Defaults --->
 
+<cfset request.title = "Lucee " & server.lucee.version>
 <cfset error.message="">
 <cfset error.detail="">
 <cfparam name="form.mainAction" default="none">
