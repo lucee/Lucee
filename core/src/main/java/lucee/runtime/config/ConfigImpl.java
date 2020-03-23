@@ -371,10 +371,6 @@ public abstract class ConfigImpl implements Config {
 	private boolean errorStatusCode = true;
 	private int localMode = Undefined.MODE_LOCAL_OR_ARGUMENTS_ONLY_WHEN_EXISTS;
 
-	// private String securityToken;
-	// private String securityKey;
-
-	private ExtensionProvider[] extensionProviders = Constants.CLASSIC_EXTENSION_PROVIDERS;
 	private RHExtensionProvider[] rhextensionProviders = Constants.RH_EXTENSION_PROVIDERS;
 
 	private Extension[] extensions = EXTENSIONS_EMPTY;
@@ -2784,13 +2780,9 @@ public abstract class ConfigImpl implements Config {
 		return dir;
 	}
 
-	protected void setExtensionProviders(ExtensionProvider[] extensionProviders) {
-		this.extensionProviders = extensionProviders;
-	}
-
 	@Override
 	public ExtensionProvider[] getExtensionProviders() {
-		return extensionProviders;
+		throw new RuntimeException("no longer supported, use getRHExtensionProviders() instead.");
 	}
 
 	protected void setRHExtensionProviders(RHExtensionProvider[] extensionProviders) {

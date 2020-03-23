@@ -328,10 +328,9 @@ public final class PageSourceImpl implements PageSource {
 					LogUtil.log(config, Log.LEVEL_INFO, "compile", "recompile [" + getDisplayPath() + "] because loaded page has changed");
 					pcn.set(page = compile(config, mapping.getClassRootDirectory(), page, false, pc.ignoreScopes()));
 					page.setPageSource(this);
-					page.setLoadType(LOAD_PHYSICAL);
 				}
 			}
-
+			page.setLoadType(LOAD_PHYSICAL);
 		}
 		// page doesn't exist
 		else {
@@ -1050,5 +1049,10 @@ public final class PageSourceImpl implements PageSource {
 	@Override
 	public boolean executable() {
 		return (getMapping().getInspectTemplate() == Config.INSPECT_NEVER && isLoad()) || exists();
+	}
+
+	public void resetLoaded() {
+		Page p = pcn.page;
+		if (p != null) p.setLoadType((byte) 0);
 	}
 }

@@ -671,10 +671,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		else if (check("getMappings", ACCESS_FREE) && check2(ACCESS_READ)) doGetMappings();
 		else if (check("getRestMappings", ACCESS_FREE) && check2(ACCESS_READ)) doGetRestMappings();
 		else if (check("getRestSettings", ACCESS_FREE) && check2(ACCESS_READ)) doGetRestSettings();
-		// else if(check("getExtensions", ACCESS_FREE) && check2(ACCESS_READ))
-		// doGetExtensions();
-		// else if(check("getExtensionProviders", ACCESS_FREE) && check2(ACCESS_READ))
-		// doGetExtensionProviders();
 		else if ((check("getRHExtensionProviders", ACCESS_FREE) || check("getExtensionProviders", ACCESS_FREE)) && check2(ACCESS_READ)) doGetRHExtensionProviders();
 		else if (check("getExtensionInfo", ACCESS_FREE) && check2(ACCESS_READ)) doGetExtensionInfo();
 
@@ -2051,19 +2047,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		}
 		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
 	}
-
-	/*
-	 * private void doGetExtensionProviders() throws PageException { ExtensionProvider[] providers =
-	 * config.getExtensionProviders(); lucee.runtime.type.Query qry = new QueryImpl(new String[] {
-	 * "url", "isReadOnly" }, providers.length, "query");
-	 * 
-	 * ExtensionProvider provider; for (int i = 0; i < providers.length; i++) { provider = providers[i];
-	 * int row = i + 1; // qry.setAt("name",row,provider.getName()); qry.setAt(KeyConstants._url, row,
-	 * provider.getUrlAsString()); qry.setAt("isReadOnly", row,
-	 * Caster.toBoolean(provider.isReadOnly())); //
-	 * qry.setAt("cacheTimeout",row,Caster.toDouble(provider.getCacheTimeout()/1000)); }
-	 * pageContext.setVariable(getString("admin", action, "returnVariable"), qry); }
-	 */
 
 	private void doGetExtensionInfo() throws PageException {
 		Resource ed = config.getExtensionDirectory();

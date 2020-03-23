@@ -23,8 +23,6 @@ import java.net.URL;
 
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.HTTPUtil;
-import lucee.runtime.extension.ExtensionProvider;
-import lucee.runtime.extension.ExtensionProviderImpl;
 import lucee.runtime.extension.RHExtensionProvider;
 import lucee.runtime.type.util.ArrayUtil;
 
@@ -67,17 +65,13 @@ public class Constants {
 	public static URL DEFAULT_UPDATE_URL;
 	static {
 		try {
-			DEFAULT_UPDATE_URL = new URL("http://update.lucee.org");
+			DEFAULT_UPDATE_URL = new URL("https://update.lucee.org");
 		}
 		catch (MalformedURLException e) {}
 	}
 
-	// old
-	public static final ExtensionProvider[] CLASSIC_EXTENSION_PROVIDERS = new ExtensionProviderImpl[] {
-			new ExtensionProviderImpl("http://extension.lucee.org/ExtensionProvider.cfc", true) };
-
 	public static final RHExtensionProvider[] RH_EXTENSION_PROVIDERS = new RHExtensionProvider[] {
-			new RHExtensionProvider(HTTPUtil.toURL("http://extension.lucee.org", HTTPUtil.ENCODED_NO, null), true),
+			new RHExtensionProvider(HTTPUtil.toURL("https://extension.lucee.org", HTTPUtil.ENCODED_NO, null), true),
 			new RHExtensionProvider(HTTPUtil.toURL("https://www.forgebox.io", HTTPUtil.ENCODED_NO, null), true) };
 
 	public static final String CFML_SCRIPT_TAG_NAME = "script";
