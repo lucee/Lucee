@@ -921,7 +921,11 @@ Reference Button
 										</cfloop>
 									</tbody>
 									<cfif hasBad>
-										<tr class="red"><td colspan="3">red = over #unitFormat( arguments.custom.unit, arguments.custom.highlight * 1000 ,prettify)# ms average execution time</td></tr>
+										<tfoot>
+											<tr class="red">
+												<td colspan="5">red = over #unitFormat( arguments.custom.unit, arguments.custom.highlight * 1000 ,prettify)# ms average execution time</td>
+											</tr>
+										</tfoot>
 									</cfif>
 								</table>
 							</td><!--- #-lucee-debugging-#sectionId# !--->
@@ -1497,7 +1501,15 @@ Reference Button
 								}								
 								var cell = row.children[th.cellIndex];
 								var val = cell.innerText;
-								if (!localeCompare){
+								if (localeCompare){
+									// hack to handle formatted numbers with commas for thousand separtors
+									var tmpNum = val.split(",");
+									if (tmpNum.length > 1){
+										tmpNum = Number(tmpNum.join(""));
+										if (tmpNum !== NaN)
+											val = String(tmpNum);
+									}
+								} else {
 									switch (th.dataset.type){
 										case "text":
 											val = val.toLowerCase();
