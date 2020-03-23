@@ -105,7 +105,7 @@
 			<name>synchronized</name>
 			<type>boolean</type>
 			<required>no</required>
-			<default>false</default>
+			<default>true</default>
 			<description>is the array synchronized or not</description>
     	</argument>
 		<return>

@@ -21,8 +21,8 @@ package lucee.runtime.type;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map.Entry;
-import java.util.concurrent.CopyOnWriteArrayList;
 
+import edu.emory.mathcs.backport.java.util.Collections;
 import lucee.runtime.PageContext;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
@@ -44,15 +44,15 @@ public class ArrayImpl extends ListAsArray {
 	public static final int DEFAULT_CAP = 32;
 
 	public ArrayImpl() {
-		this(DEFAULT_CAP);
+		this(DEFAULT_CAP, true);
 	}
 
 	public ArrayImpl(int initalCap) {
-		this(initalCap, false);
+		this(initalCap, true);
 	}
 
 	public ArrayImpl(int initalCap, boolean sync) {
-		super(sync ? new CopyOnWriteArrayList() : new ArrayList(initalCap));
+		super(sync ? Collections.synchronizedList(new ArrayList(initalCap)) : new ArrayList(initalCap));
 	}
 
 	public ArrayImpl(Object[] objects) {
