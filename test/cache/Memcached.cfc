@@ -35,7 +35,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		cachePut(id:'abc', value:'AAA', cacheName:variables.cacheName);
 		var val=cacheget(id:'abc', cacheName:variables.cacheName);
 		assertFalse(isNull(val));
-		assertEquals("AAAX",val);
+		assertEquals("AAA",val);
 	}
 
 	public void function testComplexValueQuery() skip="isNotSupported" {
