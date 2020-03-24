@@ -243,7 +243,7 @@
 							<!--- Release --->
 							<li>
 								<label>
-									<input type="checkbox" id="sp_radio_custom" name="location" value="cutsomVersion" />
+									<input type="checkbox" id="sp_radio_custom" name="location" value="customVersion" />
 									<input type="hidden" value="#updateData.provider.location#" name="updatedInfo">
 									<b>#stText.services.update.location_custom#</b>
 								</label>
