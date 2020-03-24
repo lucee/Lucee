@@ -125,8 +125,6 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.SecurityException;
 import lucee.runtime.extension.Extension;
 import lucee.runtime.extension.ExtensionImpl;
-import lucee.runtime.extension.ExtensionProvider;
-import lucee.runtime.extension.ExtensionProviderImpl;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.extension.RHExtensionProvider;
 import lucee.runtime.gateway.GatewayEngineImpl;
@@ -4331,25 +4329,6 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					}
 				}
 				config.setRHExtensionProviders(providers.keySet().toArray(new RHExtensionProvider[providers.size()]));
-			}
-
-			// classic providers
-			{
-				Element[] xmlProviders = getChildren(xmlExtParent, "provider");
-				String provider;
-				Map list = new HashMap();
-
-				for (int i = 0; i < Constants.CLASSIC_EXTENSION_PROVIDERS.length; i++) {
-					list.put(Constants.CLASSIC_EXTENSION_PROVIDERS[i], "");
-				}
-
-				for (int i = 0; i < xmlProviders.length; i++) {
-					provider = getAttr(xmlProviders[i], "url");
-					if (!StringUtil.isEmpty(provider, true)) {
-						list.put(new ExtensionProviderImpl(provider.trim(), false), "");
-					}
-				}
-				config.setExtensionProviders((ExtensionProvider[]) list.keySet().toArray(new ExtensionProvider[list.size()]));
 			}
 
 			// extensions

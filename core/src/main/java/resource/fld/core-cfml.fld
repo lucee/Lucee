@@ -105,7 +105,7 @@
 			<name>synchronized</name>
 			<type>boolean</type>
 			<required>no</required>
-			<default>false</default>
+			<default>true</default>
 			<description>is the array synchronized or not</description>
     	</argument>
 		<return>
@@ -1594,6 +1594,16 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<description>returns null</description>
 		<return>
 			<type>any</type>
+		</return>
+	</function>
+	
+	<!-- inspectTemplates -->
+	<function>
+		<name>inspectTemplates</name>
+		<class>lucee.runtime.functions.system.InspectTemplates</class>
+		<description>reset pages in pools, so they are checked again for changes, used when inspectTemplates is set to never</description>
+		<return>
+			<type>boolean</type>
 		</return>
 	</function>
 	

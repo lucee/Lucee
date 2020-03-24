@@ -1387,9 +1387,10 @@ public class RHExtension implements Serializable {
 			if (index != -1) {
 				ed.setParam(ss.substring(0, index).trim(), ss.substring(index + 1).trim());
 			}
-			else ed.setId(ss);
+			else if (ed.getId() == null || Decision.isUUId(ed.getId())) {
+				ed.setId(ss);
+			}
 		}
-
 		return ed;
 	}
 
