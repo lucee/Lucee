@@ -35,7 +35,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		cachePut(id:'abc', value:'AAA', cacheName:variables.cacheName);
 		var val=cacheget(id:'abc', cacheName:variables.cacheName);
 		assertFalse(isNull(val));
-		assertEquals("AAA",val);
+		assertEquals("AAAX",val);
 	}
 
 	public void function testComplexValueQuery() skip="isNotSupported" {
@@ -87,7 +87,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				caches="#{memcached:{
 						  class: 'org.lucee.extension.cache.mc.MemcachedCache'
 						, bundleName: 'memcached.extension'
-						, bundleVersion: '4.0.0.0-SNAPSHOT'
+						, bundleVersion: '4.0.0.1-SNAPSHOT'
 						, storage: false
 						, custom: {
 							"socket_timeout":"30",
