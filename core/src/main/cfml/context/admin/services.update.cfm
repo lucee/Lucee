@@ -243,16 +243,16 @@
 							<!--- Release --->
 							<li>
 								<label>
-									<input type="checkbox" id="sp_radio_custom" name="location"<cfif  version EQ 'custom'> checked</cfif> value="cutsomVersion" />
+									<input type="checkbox" id="sp_radio_custom" name="location" value="cutsomVersion" />
 									<input type="hidden" value="#updateData.provider.location#" name="updatedInfo">
 									<b>#stText.services.update.location_custom#</b>
 								</label>
-								<input id="customtextinput" type="text" class="text" name="locationCustom" size="40" value="<cfif  version EQ 'custom'>#updateData.provider.location#</cfif>" disabled>
+								<input id="customtextinput" type="text" class="text" name="locationCustom" size="40" value="" disabled>
 								<div class="comment">#replace("#stText.services.update.location_customDesc#","{url}","<a href=""http://docs.lucee.org"">http://docs.lucee.org</a>")#</div>
 								<cfif version EQ 'custom'>
 									<cfhtmlbody>
 										<script type="text/javascript">
-											$( '##customtextinput' ).attr( 'disabled', false);
+											$( '##customtextinput' ).attr( 'disabled', true);
 										</script>
 									</cfhtmlbody>
 								</cfif>
