@@ -85,9 +85,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		try {
 			application action="update" 
 				caches="#{memcached:{
-						  class: 'org.lucee.extension.cache.mc.MemcachedCache'
+						  class: 'org.lucee.extension.io.cache.memcache.MemCacheRaw'
 						, bundleName: 'memcached.extension'
-						, bundleVersion: '4.0.0.1-SNAPSHOT'
+						, bundleVersion: '3.0.2.29'
 						, storage: false
 						, custom: {
 							"socket_timeout":"30",
