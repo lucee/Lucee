@@ -11,10 +11,19 @@
 	<cfset application.plugin[url.plugin].application=struct()>
 </cfif>
 <cfif not structKeyExists(application.plugin[url.plugin],'component') or session.alwaysNew>
-	<cfset application.plugin[url.plugin].component=createObject('component','lucee_plugin_directory.'&url.plugin&'.Action')>
+	<cftry>
+		<cfset application.plugin[url.plugin].component=createObject('component','lucee_plugin_directory.'&url.plugin&'.Action')>
+		<cfset application.plugin[url.plugin].mapping = "/lucee_plugin_directory">
+		<cfcatch>
+			<cfif request.adminType eq "web">
+				<cfset application.plugin[url.plugin].component=createObject('component','lucee_server_plugin_directory.'&url.plugin&'.Action')>
+				<cfset application.plugin[url.plugin].mapping = "/lucee_server_plugin_directory">
+			</cfif>
+		</cfcatch>
+	</cftry>
 	<cfset application.plugin[url.plugin].component.init(
-		application.pluginLanguage[session.lucee_admin_lang][url.plugin],
-		application.plugin[url.plugin].application)>
+			application.pluginLanguage[session.lucee_admin_lang][url.plugin],
+			application.plugin[url.plugin].application)>		
 </cfif>
 <cfset plugin=application.plugin[url.plugin]>
 
@@ -40,8 +49,7 @@
 <cfset hasAction=structKeyExists(plugin.component,url.pluginAction)>
 
 <cfif hasAction>
-	<cfset rtnAction= plugin.component._action(url.pluginAction,lang,app,req)>
-    
+	<cfset rtnAction= plugin.component._action(url.pluginAction,lang,app,req)>    
 	<!--- cfset rtnAction= plugin.component[url.pluginAction](lang,app,req)--->
 </cfif>
 <cfif not isDefined('rtnAction')>
@@ -54,9 +62,9 @@
 </cfif>
 
 <!--- then call display --->
-<cfset dspFile="/lucee_plugin_directory/#url.plugin#/#rtnAction#.cfm">
+<cfset dspFile="#plugin.mapping#/#url.plugin#/#rtnAction#.cfm">	
 
-<cfset hasDisplay=fileExists(expandPath(dspFile))>
+<cfset hasDisplay=fileExists(dspFile)>
 <cfif rtnAction NEQ "_none" and hasDisplay>
 	<cftry>
 		<cfset rtnAction= plugin.component._display(dspFile,lang,app,req)>
