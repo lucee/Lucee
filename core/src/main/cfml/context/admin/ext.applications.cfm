@@ -98,7 +98,12 @@
 			<cfset application.reloadPlugins = true>
 		</cfcase>
 	</cfswitch>
-
+	<cfscript>
+		if (structKeyExists(application, "reloadPlugins")){
+			inspectTemplates(); // flag page pool to be re-inspected for changes
+			application.plugin = {}; // clear plugin cache			
+		}	
+	</cfscript>
 
 
 

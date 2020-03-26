@@ -247,7 +247,6 @@
 	<cfscript>
 		if (structKeyExists(application, "reloadPlugins")){
 			hasPlugin = false;
-			application.plugin = {}; // clear plugin cache
 			structDelete(application, "reloadPlugins");
 		}	
 	</cfscript>
