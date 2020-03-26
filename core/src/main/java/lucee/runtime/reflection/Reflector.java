@@ -515,7 +515,7 @@ public final class Reflector {
 	 * Class Of the Method to get @param methodName Name of the Method to get @param args Arguments of
 	 * the Method to get @return return Matching Method @throws
 	 */
-	public static MethodInstance getMethodInstanceEL(Object objMaybeNull, Class clazz, final Collection.Key methodName, Object[] args) {
+	public synchronized static MethodInstance getMethodInstanceEL(Object objMaybeNull, Class clazz, final Collection.Key methodName, Object[] args) {
 		checkAccessibility(objMaybeNull, clazz, methodName);
 		args = cleanArgs(args);
 		Method[] methods = mStorage.getMethods(clazz, methodName, args.length);// getDeclaredMethods(clazz);
