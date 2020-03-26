@@ -135,7 +135,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		}
 		finally {
 			cacheClear(cacheName:"_cacheClear"&id);
-			directoryDelete(variables.datasourceFolder,true);
+			try{directoryDelete(variables.datasourceFolder,true)}catch(e){};
 		}
 	}
 
