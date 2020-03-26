@@ -179,7 +179,8 @@ public final class ExceptionUtil {
 	 * @param t the thrown Throwable
 	 */
 	public static void rethrowIfNecessary(Throwable t) {
-		if (unwrap(t) instanceof ThreadDeath) throw (ThreadDeath) t; // never catch a ThreadDeath
+		Throwable t2 = unwrap(t);
+		if (t2 instanceof ThreadDeath) throw (ThreadDeath) t2; // never catch a ThreadDeath
 	}
 
 	public static TemplateLine getThrowingPosition(PageContext pc, Throwable t) {
