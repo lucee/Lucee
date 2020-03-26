@@ -81,7 +81,8 @@
 					
 
 						<a <cfif _type=="web">href="#link#"<cfelse>style="border-color: ##E0E0E0;"</cfif> title="#_extensions.name#
-Categories: #arrayToList(cat)#"><cfif hasUpdate>
+Categories: #arrayToList(cat)# 
+Installed version:#_extensions.version#"><cfif hasUpdate>
        <div class="ribbon-wrapper" <cfif _type=="server">style="border-color:##bf4f36"</cfif>><div class="ribbon" <cfif _type=="server">style="background-color:##bf4f36"</cfif>>UPDATE ME!</div></div>
 </cfif>
 <cfif _extensions.trial>
