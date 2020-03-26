@@ -24,7 +24,7 @@ import java.sql.SQLException;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.types.RefInteger;
-import lucee.commons.lang.types.RefIntegerImpl;
+import lucee.commons.lang.types.RefIntegerSync;
 import lucee.runtime.engine.ThreadLocalPageContext;
 
 class DCStack {
@@ -39,7 +39,7 @@ class DCStack {
 		this.datasource = datasource;
 		this.user = user;
 		this.pass = pass;
-		this.counter = new RefIntegerImpl(0);
+		this.counter = new RefIntegerSync(0);
 	}
 
 	public DataSource getDatasource() {

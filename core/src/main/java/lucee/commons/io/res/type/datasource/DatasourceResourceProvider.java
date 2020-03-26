@@ -249,6 +249,7 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 			dc.getConnection().setTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED);
 		}
 		catch (SQLException e) {
+			getManager().releaseConnection(ThreadLocalPageContext.get(), dc);
 			throw new DatabaseException(e, dc);
 		}
 
@@ -589,8 +590,9 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 				dc.getConnection().setTransactionIsolation(Connection.TRANSACTION_NONE);
 			}
 			catch (SQLException e) {}
-
-			getManager().releaseConnection(ThreadLocalPageContext.get(), dc);
+			finally {
+				getManager().releaseConnection(ThreadLocalPageContext.get(), dc);
+			}
 		}
 	}
 
