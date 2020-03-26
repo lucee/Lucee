@@ -20,6 +20,8 @@ package lucee.runtime.reflection.storage;
 
 import java.lang.ref.SoftReference;
 import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -51,7 +53,38 @@ public final class SoftMethodStorage {
 		Map<Integer, Method[]> methods = methodsMap.get(methodName);
 		if (methods == null) return null;
 
-		return methods.get(count + 1);
+		Method[] arr = methods.get(count + 1);
+
+		// sort because of LDEV-2430
+		if (arr != null && arr.length > 1) {
+			// is sorting necessary?
+			String str = arr[0].getName();
+			boolean needSorting = false;
+			for (int i = 1; i < arr.length; i++) {
+				if (!str.equals(arr[i].getName())) {
+					needSorting = true;
+					break;
+				}
+			}
+			if (needSorting) {
+				Method[] arrSorted = new Method[arr.length];
+				for (int i = 0; i < arr.length; i++) {
+					arrSorted[i] = arr[i];
+				}
+
+				Arrays.sort(arrSorted, new Comparator<Method>() {
+					@Override
+					public int compare(Method l, Method r) {
+						if (methodName.getString().equals(l.getName())) return -1;
+						if (methodName.getString().equals(r.getName())) return 1;
+						return 0;
+					}
+				});
+				return arrSorted;
+
+			}
+		}
+		return arr;
 	}
 
 	/**
