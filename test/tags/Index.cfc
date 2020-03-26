@@ -76,7 +76,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		}
 		finally {
 			if(DirectoryExists(path)) {
-				directoryDelete(path,true);
+				try{directoryDelete(path,true);}catch(e){}
 			}
 		}
 
@@ -87,8 +87,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 		curr=GetDirectoryFromPath(GetCurrentTemplatePath());
 		path=curr&"_index2/";
-		pathColl=path&"collections/"
-			
+		pathColl=path&"collections/"; 	
 		try {
 
 			if(DirectoryExists(path)) {
@@ -99,9 +98,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 
 			file=path&"test.html";
+						
 			fileWrite(file,'
 				<html>
-				<body>Susi Sorglos föhnte Ihr Haar</body>
+				<body>Susi Sorglos fahnte Ihr Haar</body>
 				</html>
 
 			','UTF-8');
@@ -121,7 +121,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				extensions=".html"
 				language="English";
 			
-			search collection="fileX" criteria="föhnte" name="res";
+			search collection="fileX" criteria="fahnte" name="res";
 			assertEquals(1,res.recordcount);
 
 
@@ -130,7 +130,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		}
 		finally {
 			if(DirectoryExists(path)) {
-				directoryDelete(path,true);
+				try{directoryDelete(path,true);}catch(e){}
 			}
 		}
 
@@ -201,7 +201,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		}
 		finally {
 			if(DirectoryExists(path)) {
-				directoryDelete(path,true);
+				try{directoryDelete(path,true);}catch(e){}
 			}
 		}
 	}
@@ -230,7 +230,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 			try{collection action="delete" collection="fileX";}catch(e){}
 
-
 			collection 
 				action="create" 
 				collection="fileX" 
@@ -248,11 +247,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 			search collection="fileX" criteria="Preise" name="rst";
 			assertEquals(1,rst.recordcount);
-
 		}
 		finally {
 			if(DirectoryExists(path)) {
-				directoryDelete(path,true);
+				try{directoryDelete(path,true);}catch(e){}
 			}
 		}
 	}

@@ -62,9 +62,19 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			// unzip
 			zip action="unzip" showdirectory=true file=target destination=unzip;
 			var qry=directoryList(path:unzip,listInfo:'query',recurse:true,type:'file');
+			var system = CreateObject("java", "java.lang.System").getProperties();
+			
+			var isWinOS = FindNoCase('win',system['os.name']) > 0;
+			if(Find("/",unzip)> 0 && Find("\",unzip) && isWinOS){
+				unzip = replace(unzip, "/","\", "all");
+			}
 			queryAddColumn(qry,"relpath");
+			
 			loop query=qry {
-				qry.relpath=mid(replace(qry.directory,unzip,'')&"/"&qry.name,2);
+				qry.relpath= mid(replace(qry.directory,unzip,'')&"/"&qry.name,2);
+				if(isWinOS) {
+					qry.relpath = replace(qry.relpath, "\", "/", "all");
+				}
 			}
 			assertEquals(6,qry.recordcount);
 			assertEquals('1/2.cfm,a.txt,b.txt,b/c/a.txt,n/m/b.txt,n/m/b/c/a.txt',listSort(valueList(qry.relpath),'textnocase'));

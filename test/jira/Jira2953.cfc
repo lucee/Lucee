@@ -36,7 +36,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 
-		assertEquals("10;",ascs);
+		assertTrue(Find(ascs,'13;10;')>0);
 	}
 } 
 </cfscript>
