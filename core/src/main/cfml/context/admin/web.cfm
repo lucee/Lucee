@@ -232,12 +232,11 @@
 		password="#session["password" & request.adminType]#"
 		returnVariable="pluginDir">
 	<cfset mappings = [:]>
-	<cfset mappings['/lucee_plugin_directory/']=pluginDir>
-	
+	<cfset mappings['/lucee_plugin_directory/']=pluginDir>	
 	<cfif request.adminType eq "web">
+		<!--- web contexts inherit the server context settings and plugins --->
 		<cfset mappings['/lucee_server_plugin_directory/']=ExpandPath("{lucee-server}/context/admin/plugin")>
-	</cfif>
-	
+	</cfif>	
 	<cfapplication action="update" mappings="#mappings#">
 
 	<cfset hasPlugin=false>
@@ -245,6 +244,13 @@
 		<cfif el.action == "plugin"><cfset hasPlugin=true></cfif>
 	</cfloop>
 
+	<cfscript>
+		if (structKeyExists(application, "reloadPlugins")){
+			hasPlugin = false;
+			application.plugin = {}; // clear plugin cache
+			structDelete(application, "reloadPlugins");
+		}	
+	</cfscript>
 	<cfif !hasPlugin || (structKeyExists(session, "alwaysNew") && session.alwaysNew)>
 		<cfif !hasPlugin>
 			<cfset plugin=struct(
@@ -263,8 +269,7 @@
 			<cfdirectory directory="#_plugindir#" action="list" name="plugindirs" recurse="no">
 			<cfloop query="plugindirs">
 				<cfif plugindirs.type == "dir">
-					<cfset _lang=loadPluginLanguage(_pluginDir,plugindirs.name)>
-					
+					<cfset _lang=loadPluginLanguage(_pluginDir,plugindirs.name)>					
 					<cfif isNull(_lang.__group)>
 						<cfcontinue>
 					</cfif>

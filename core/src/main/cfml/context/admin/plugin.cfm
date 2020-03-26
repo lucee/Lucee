@@ -16,6 +16,7 @@
 		<cfset application.plugin[url.plugin].mapping = "/lucee_plugin_directory">
 		<cfcatch>
 			<cfif request.adminType eq "web">
+				<!--- web contexts inherit the server context settings and plugins --->
 				<cfset application.plugin[url.plugin].component=createObject('component','lucee_server_plugin_directory.'&url.plugin&'.Action')>
 				<cfset application.plugin[url.plugin].mapping = "/lucee_server_plugin_directory">
 			</cfif>
