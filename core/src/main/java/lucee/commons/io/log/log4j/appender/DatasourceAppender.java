@@ -109,14 +109,17 @@ public class DatasourceAppender extends JDBCAppender implements Appender {
 
 	@Override
 	protected Connection getConnection() throws SQLException {
-
+		RefBoolean first = new RefBooleanImpl(false);
+		DatasourceConnection conn = null;
 		try {
-			RefBoolean first = new RefBooleanImpl(false);
-			DatasourceConnection conn = pool(first).getDatasourceConnection(config, datasource, username, password);
+			conn = pool(first).getDatasourceConnection(config, datasource, username, password);
 			if (first.toBooleanValue()) touchTable(conn);
 			return conn;
 		}
 		catch (PageException e) {
+			if (pool != null && conn != null) {
+				pool.releaseDatasourceConnection(conn);
+			}
 			throw new SQLException(e);
 		}
 	}

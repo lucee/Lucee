@@ -350,9 +350,13 @@ public final class HSQLDBHandler {
 
 			}
 			finally {
-				removeAll(conn, usedTables);
-				DBUtil.setAutoCommitEL(conn, true);
-				pool.releaseDatasourceConnection(dc);
+				try {
+					removeAll(conn, usedTables);
+					DBUtil.setAutoCommitEL(conn, true);
+				}
+				finally {
+					pool.releaseDatasourceConnection(dc);
+				}
 
 				// manager.releaseConnection(dc);
 			}

@@ -20,6 +20,7 @@
 package lucee.commons.lang.types;
 
 import java.util.Date;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Castable;
@@ -32,23 +33,25 @@ import lucee.runtime.type.dt.DateTime;
  */
 public class RefIntegerSync implements RefInteger, Castable {
 
-	private int value;
+	private volatile AtomicInteger value;
 
 	/**
 	 * @param value
 	 */
 	public RefIntegerSync(int value) {
-		this.value = value;
+		this.value = new AtomicInteger(value);
 	}
 
-	public RefIntegerSync() {}
+	public RefIntegerSync() {
+		this.value = new AtomicInteger(0);
+	}
 
 	/**
 	 * @param value
 	 */
 	@Override
-	public synchronized void setValue(int value) {
-		this.value = value;
+	public void setValue(int value) {
+		this.value = new AtomicInteger(value);
 	}
 
 	/**
@@ -57,8 +60,8 @@ public class RefIntegerSync implements RefInteger, Castable {
 	 * @param value
 	 */
 	@Override
-	public synchronized void plus(int value) {
-		this.value += value;
+	public void plus(int value) {
+		this.value.addAndGet(value);
 	}
 
 	/**
@@ -67,49 +70,49 @@ public class RefIntegerSync implements RefInteger, Castable {
 	 * @param value
 	 */
 	@Override
-	public synchronized void minus(int value) {
-		this.value -= value;
+	public void minus(int value) {
+		this.value.getAndAdd(-value);
 	}
 
 	/**
 	 * @return returns value as integer
 	 */
 	@Override
-	public synchronized Integer toInteger() {
-		return Integer.valueOf(value);
+	public Integer toInteger() {
+		return Integer.valueOf(value.get());
 	}
 
 	/**
 	 * @return returns value as integer
 	 */
 	@Override
-	public synchronized Double toDouble() {
-		return new Double(value);
+	public Double toDouble() {
+		return new Double(value.doubleValue());
 	}
 
 	@Override
-	public synchronized double toDoubleValue() {
-		return value;
+	public double toDoubleValue() {
+		return value.doubleValue();
 	}
 
 	@Override
-	public synchronized int toInt() {
-		return value;
+	public int toInt() {
+		return value.get();
 	}
 
 	@Override
-	public synchronized String toString() {
+	public String toString() {
 		return String.valueOf(value);
 	}
 
 	@Override
 	public Boolean castToBoolean(Boolean defaultValue) {
-		return Caster.toBoolean(value);
+		return Caster.toBoolean(value.get());
 	}
 
 	@Override
 	public boolean castToBooleanValue() {
-		return Caster.toBooleanValue(value);
+		return Caster.toBooleanValue(value.get());
 	}
 
 	@Override
@@ -129,7 +132,7 @@ public class RefIntegerSync implements RefInteger, Castable {
 
 	@Override
 	public double castToDoubleValue(double defaultValue) {
-		return Caster.toDoubleValue(value);
+		return Caster.toDoubleValue(value.get());
 	}
 
 	@Override
