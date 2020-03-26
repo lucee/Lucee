@@ -246,10 +246,15 @@ public class RamCache extends CacheSupport {
 			Collection<SoftReference<RamCacheEntry>> v = e.values();
 			if (v == null) return;
 
-			RamCacheEntry[] values = v.toArray(new RamCacheEntry[e.size()]);
-			for (int i = 0; i < values.length; i++) {
-				if (!CacheSupport.valid(values[i])) {
-					e.remove(values[i].getKey());
+			Iterator<SoftReference<RamCacheEntry>> it = v.iterator();
+			SoftReference<RamCacheEntry> sr;
+			RamCacheEntry rce;
+			while (it.hasNext()) {
+				sr = it.next();
+				if (sr != null && (rce = sr.get()) != null) {
+					if (!CacheSupport.valid(rce)) {
+						e.remove(rce.getKey());
+					}
 				}
 			}
 		}
