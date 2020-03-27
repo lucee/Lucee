@@ -25,9 +25,7 @@ import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -40,7 +38,6 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.Vector;
 
-import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
@@ -48,8 +45,6 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefInteger;
 import lucee.commons.lang.types.RefIntegerImpl;
 import lucee.runtime.Component;
-import lucee.runtime.PageContextImpl;
-import lucee.runtime.PageSource;
 import lucee.runtime.config.Constants;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
@@ -521,16 +516,6 @@ public final class Reflector {
 		Method[] methods = mStorage.getMethods(clazz, methodName, args.length);// getDeclaredMethods(clazz);
 
 		if (methods != null) {
-			if (methods.length > 1) {
-				Arrays.sort(methods, new Comparator<Method>() {
-					@Override
-					public int compare(Method l, Method r) {
-						if (methodName.getString().equals(l.getName())) return -1;
-						if (methodName.getString().equals(r.getName())) return 1;
-						return 0;
-					}
-				});
-			}
 			Class[] clazzArgs = getClasses(args);
 			// exact comparsion
 			// print.e("exact:" + methodName);

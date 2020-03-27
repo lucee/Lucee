@@ -92,7 +92,7 @@ public final class ResourceLockImpl implements ResourceLock {
 			}
 			if (t == Thread.currentThread()) {
 				Config config = ThreadLocalPageContext.getConfig();
-				LogUtil.log(config, Log.LEVEL_ERROR, "file", "conflict in same thread: on " + path);
+				if (!LogUtil.isAlreadyInLog()) LogUtil.log(config, Log.LEVEL_ERROR, "file", "conflict in same thread: on " + path);
 				return;
 			}
 			// bugfix when lock von totem thread, wird es ignoriert
@@ -130,11 +130,14 @@ public final class ResourceLockImpl implements ResourceLock {
 									+ (System.currentTimeMillis() - pc.getStartTime()) + "ms ago.";
 						}
 
-						LogUtil.log(config, Log.LEVEL_ERROR, "file",
+						if (!LogUtil.isAlreadyInLog()) LogUtil.log(config, Log.LEVEL_ERROR, "file",
 								"timeout after " + (now - start) + " ms (" + (lockTimeout) + " ms) occured while accessing file [" + path + "]." + add);
 
 					}
-					else LogUtil.log(config, Log.LEVEL_ERROR, "file", "timeout (" + (lockTimeout) + " ms) occured while accessing file [" + path + "].");
+					else {
+						if (!LogUtil.isAlreadyInLog())
+							LogUtil.log(config, Log.LEVEL_ERROR, "file", "timeout (" + (lockTimeout) + " ms) occured while accessing file [" + path + "].");
+					}
 
 					return;
 				}

@@ -62,6 +62,16 @@ public final class LogUtil {
 		return defaultValue;
 	}
 
+	public static boolean isAlreadyInLog() {
+		StackTraceElement[] stes = Thread.currentThread().getStackTrace();
+		if (stes != null) {
+			for (StackTraceElement ste: stes) {
+				if (ste.getClassName().indexOf("org.apache.log4j.") == 0) return true;
+			}
+		}
+		return false;
+	}
+
 	public static void log(Config config, int level, String type, String msg) {
 		log(config, level, "application", type, msg);
 	}
