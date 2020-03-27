@@ -241,26 +241,20 @@ public abstract class ScopeSupport extends StructImpl implements Scope {
 			if (isArrayDef) {
 				Array arr = new ArrayImpl();
 				arr.appendEL(curr);
-				arr.appendEL(value);
+				arr.appendEL(value); 
 				parent.setEL(key, arr);
 			}
 			else if (value instanceof Struct) {
 				parent.setEL(key, value);
 			}
 			else {
-				if (!StringUtil.isEmpty(value)) {
-					String existing = Caster.toString(curr, "");
-					if (StringUtil.isEmpty(existing)) parent.setEL(key, value);
-					else {
-						if (sameAsArray) {
-							Array arr = new ArrayImpl();
-							arr.appendEL(curr);
-							arr.appendEL(value);
-							parent.setEL(key, arr);
-						}
-						else parent.setEL(key, Caster.toString(curr, "") + ',' + value);
-					}
+				if (sameAsArray) {
+					Array arr = new ArrayImpl();
+					arr.appendEL(curr);
+					arr.appendEL(value);
+					parent.setEL(key, arr);
 				}
+				else parent.setEL(key, Caster.toString(curr, "") + ',' + value);
 			}
 		}
 		if (!isLast) {
