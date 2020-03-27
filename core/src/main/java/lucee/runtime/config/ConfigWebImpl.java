@@ -665,10 +665,8 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 		return configServer.loadLocalExtensions(validate);
 	}
 
-	private WSHandler wsHandler;
 	private short passwordSource;
 
-	@Override
 	public WSHandler getWSHandler() throws PageException {
 		if (wsHandler == null) {
 			ClassDefinition cd = getWSHandlerClassDefinition();
