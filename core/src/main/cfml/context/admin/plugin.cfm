@@ -5,28 +5,33 @@
 <cfif not structKeyExists(url,"plugin")>
 	<cflocation url="#request.self#" addtoken="no">
 </cfif>
+<cfscript>
+	if (not StructKeyExists(application.plugin, request.adminType))
+		application.plugin[request.adminType] = {};
+</cfscript>
+
 
 <!--- load plugin --->
-<cfif not structKeyExists(application.plugin,url.plugin)>
-	<cfset application.plugin[url.plugin].application=struct()>
+<cfif not structKeyExists(application.plugin[request.adminType], url.plugin)>
+	<cfset application.plugin[request.adminType][url.plugin].application=struct()>
 </cfif>
-<cfif not structKeyExists(application.plugin[url.plugin],'component') or session.alwaysNew>
+<cfif not structKeyExists(application.plugin[request.adminType][url.plugin],'component') or session.alwaysNew>
 	<cftry>
-		<cfset application.plugin[url.plugin].component=createObject('component','lucee_plugin_directory.'&url.plugin&'.Action')>
-		<cfset application.plugin[url.plugin].mapping = "/lucee_plugin_directory">
+		<cfset application.plugin[request.adminType][url.plugin].component=createObject('component','lucee_plugin_directory.'&url.plugin&'.Action')>
+		<cfset application.plugin[request.adminType][url.plugin].mapping = "/lucee_plugin_directory">
 		<cfcatch>
 			<cfif request.adminType eq "web">
 				<!--- web contexts inherit the server context settings and plugins --->
-				<cfset application.plugin[url.plugin].component=createObject('component','lucee_server_plugin_directory.'&url.plugin&'.Action')>
-				<cfset application.plugin[url.plugin].mapping = "/lucee_server_plugin_directory">
+				<cfset application.plugin[request.adminType][url.plugin].component=createObject('component','lucee_server_plugin_directory.'&url.plugin&'.Action')>
+				<cfset application.plugin[request.adminType][url.plugin].mapping = "/lucee_server_plugin_directory">
 			</cfif>
 		</cfcatch>
 	</cftry>
-	<cfset application.plugin[url.plugin].component.init(
+	<cfset application.plugin[request.adminType][url.plugin].component.init(
 			application.pluginLanguage[session.lucee_admin_lang][url.plugin],
-			application.plugin[url.plugin].application)>		
+			application.plugin[request.adminType][url.plugin].application)>		
 </cfif>
-<cfset plugin=application.plugin[url.plugin]>
+<cfset plugin=application.plugin[request.adminType][url.plugin]>
 
 <cfset plugin.language=application.pluginLanguage[session.lucee_admin_lang][url.plugin]>
 

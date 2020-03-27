@@ -233,10 +233,10 @@
 		returnVariable="pluginDir">
 	<cfset mappings = [:]>
 	<cfset mappings['/lucee_plugin_directory/']=pluginDir>	
-	<cfif request.adminType eq "web">
-		<!--- web contexts inherit the server context settings and plugins --->
-		<cfset mappings['/lucee_server_plugin_directory/']=ExpandPath("{lucee-server}/context/admin/plugin")>
-	</cfif>	
+	
+	<!--- this is only used when request.adminType eq "web" --->
+	<cfset mappings['/lucee_server_plugin_directory/']=ExpandPath("{lucee-server}/context/admin/plugin")>
+	
 	<cfapplication action="update" mappings="#mappings#">
 
 	<cfset hasPlugin=false>
