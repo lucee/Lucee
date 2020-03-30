@@ -3245,7 +3245,7 @@ public abstract class ConfigImpl implements Config {
 		while (it.hasNext()) {
 			entry = it.next();
 			v = entry.getValue();
-			sct.setEL(entry.getKey(), v == null ? null : v.get().getPageSource().getDisplayPath());
+			if (v != null) sct.setEL(entry.getKey(), v.get().getPageSource().getDisplayPath());
 		}
 		return sct;
 	}
