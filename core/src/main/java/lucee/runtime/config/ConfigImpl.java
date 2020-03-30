@@ -3241,9 +3241,11 @@ public abstract class ConfigImpl implements Config {
 		Iterator<Entry<String, SoftReference<InitFile>>> it = ctPatchCache.entrySet().iterator();
 
 		Entry<String, SoftReference<InitFile>> entry;
+		SoftReference<InitFile> v;
 		while (it.hasNext()) {
 			entry = it.next();
-			sct.setEL(entry.getKey(), entry.getValue().get().getPageSource().getDisplayPath());
+			v = entry.getValue();
+			sct.setEL(entry.getKey(), v == null ? null : v.get().getPageSource().getDisplayPath());
 		}
 		return sct;
 	}
