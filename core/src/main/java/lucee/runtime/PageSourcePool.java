@@ -211,11 +211,14 @@ public final class PageSourcePool implements Dumpable {
 	 */
 	public void clearPages(ClassLoader cl) {
 		Iterator<SoftReference<PageSource>> it = this.pageSources.values().iterator();
-		PageSourceImpl entry;
+		PageSourceImpl psi;
+		SoftReference<PageSource> sr;
 		while (it.hasNext()) {
-			entry = (PageSourceImpl) it.next().get();
-			if (cl != null) entry.clear(cl);
-			else entry.clear();
+			sr = it.next();
+			psi = sr == null ? null : (PageSourceImpl) sr.get();
+			if (psi == null) continue;
+			if (cl != null) psi.clear(cl);
+			else psi.clear();
 		}
 	}
 
