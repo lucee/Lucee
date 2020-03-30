@@ -20,6 +20,7 @@
 package lucee.runtime.type.scope.storage;
 
 import java.io.IOException;
+import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.io.cache.Cache;
 import lucee.commons.io.log.Log;
@@ -42,7 +43,7 @@ import lucee.runtime.type.util.StructUtil;
  * client scope that store it's data in a datasource
  */
 public abstract class StorageScopeCache extends StorageScopeImpl {
-
+	private static final ConcurrentHashMap<String, Object> tokens = new ConcurrentHashMap<String, Object>();
 	private static final long serialVersionUID = 6234854552927320080L;
 
 	public static final long SAVE_EXPIRES_OFFSET = 60 * 60 * 1000;
@@ -139,7 +140,7 @@ public abstract class StorageScopeCache extends StorageScopeImpl {
 		try {
 			Cache cache = getCache(ThreadLocalPageContext.get(pc), cacheName);
 			String key = getKey(cfid, appName, getTypeAsString());
-			synchronized (cache) {
+			synchronized (getToken(key)) {
 				Object existingVal = cache.getValue(key, null);
 				// cached data changed in meantime
 
@@ -163,7 +164,7 @@ public abstract class StorageScopeCache extends StorageScopeImpl {
 		try {
 			Cache cache = getCache(ThreadLocalPageContext.get(pc), cacheName);
 			String key = getKey(cfid, appName, getTypeAsString());
-			synchronized (cache) {
+			synchronized (getToken(key)) {
 				cache.remove(key);
 			}
 		}
@@ -189,12 +190,12 @@ public abstract class StorageScopeCache extends StorageScopeImpl {
 		return new StringBuilder("lucee-storage:").append(type).append(":").append(cfid).append(":").append(appName).toString().toUpperCase();
 	}
 
-	/*
-	 * private void setTimeSpan(PageContext pc) { ApplicationContext ac=(ApplicationContext)
-	 * pc.getApplicationContext(); timespan =
-	 * (getType()==SCOPE_CLIENT?ac.getClientTimeout().getMillis():ac.getSessionTimeout().getMillis())+(
-	 * expiresControlFromOutside?SAVE_EXPIRES_OFFSET:0L);
-	 * 
-	 * }
-	 */
+	public static Object getToken(String key) {
+		Object newLock = new Object();
+		Object lock = tokens.putIfAbsent(key, newLock);
+		if (lock == null) {
+			lock = newLock;
+		}
+		return lock;
+	}
 }

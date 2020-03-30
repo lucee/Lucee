@@ -22,7 +22,7 @@ public class IKHandlerCache implements IKHandler {
 	public IKStorageValue loadData(PageContext pc, String appName, String name, String strType, int type, Log log) throws PageException {
 		Cache cache = getCache(pc, name);
 		String key = getKey(pc.getCFID(), appName, strType);
-		synchronized (cache) { // sync necessary?
+		synchronized (StorageScopeCache.getToken(key)) { // sync necessary?
 			Object val = cache.getValue(key, null);
 			if (val instanceof byte[][]) {
 				ScopeContext.info(log,
@@ -46,8 +46,7 @@ public class IKHandlerCache implements IKHandler {
 		try {
 			Cache cache = getCache(ThreadLocalPageContext.get(pc), name);
 			String key = getKey(cfid, appName, storageScope.getTypeAsString());
-
-			synchronized (cache) {
+			synchronized (StorageScopeCache.getToken(key)) {
 				Object existingVal = cache.getValue(key, null);
 
 				// FUTURE add IKStorageValue to loader and then the byte array impl is no longer needed
@@ -78,8 +77,7 @@ public class IKHandlerCache implements IKHandler {
 		try {
 			Cache cache = getCache(pc, name);
 			String key = getKey(cfid, appName, storageScope.getTypeAsString());
-
-			synchronized (cache) {
+			synchronized (StorageScopeCache.getToken(key)) {
 				cache.remove(key);
 			}
 		}
