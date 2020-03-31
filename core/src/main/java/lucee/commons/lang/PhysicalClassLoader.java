@@ -108,8 +108,8 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 
 		// check directory
 		if (!directory.exists()) directory.mkdirs();
-		if (!directory.isDirectory()) throw new IOException("resource " + directory + " is not a directory");
-		if (!directory.canRead()) throw new IOException("no access to " + directory + " directory");
+		if (!directory.isDirectory()) throw new IOException("Resource [" + directory + "] is not a directory");
+		if (!directory.canRead()) throw new IOException("Access denied to [" + directory + "] directory");
 		this.directory = directory;
 	}
 
@@ -160,7 +160,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 			}
 			catch (IOException e) {
 				this.unavaiClasses.put(name, "");
-				throw new ClassNotFoundException("class " + name + " is invalid or doesn't exist");
+				throw new ClassNotFoundException("Class [" + name + "] is invalid or doesn't exist");
 			}
 
 			byte[] barr = baos.toByteArray();
