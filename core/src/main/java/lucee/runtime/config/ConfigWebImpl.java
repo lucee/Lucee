@@ -335,8 +335,10 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 
 	public boolean isApplicationMapping(Mapping mapping) {
 		Iterator<SoftReference<Mapping>> it = applicationMappings.values().iterator();
+		SoftReference<Mapping> sr;
 		while (it.hasNext()) {
-			if (mapping.equals(it.next().get())) return true;
+			sr = it.next();
+			if (sr != null && mapping.equals(sr.get())) return true;
 		}
 		return false;
 	}
@@ -665,10 +667,8 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 		return configServer.loadLocalExtensions(validate);
 	}
 
-	private WSHandler wsHandler;
 	private short passwordSource;
 
-	@Override
 	public WSHandler getWSHandler() throws PageException {
 		if (wsHandler == null) {
 			ClassDefinition cd = getWSHandlerClassDefinition();

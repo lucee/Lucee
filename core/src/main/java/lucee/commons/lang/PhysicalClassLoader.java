@@ -160,7 +160,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 			}
 			catch (IOException e) {
 				this.unavaiClasses.put(name, "");
-				throw new ClassNotFoundException("class " + name + " is invalid or doesn't exist");
+				throw new ClassNotFoundException("class " + name + " is invalid or doesn't exist", e);
 			}
 
 			byte[] barr = baos.toByteArray();

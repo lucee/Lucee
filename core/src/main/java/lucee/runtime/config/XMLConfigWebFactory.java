@@ -3538,11 +3538,16 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	}
 
 	private static void loadWS(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+
 		try {
 			Element el = getChildByName(doc.getDocumentElement(), "webservice");
 			ClassDefinition cd = getClassDefinition(el, "", config.getIdentification());
-
-			if (cd != null && !StringUtil.isEmpty(cd.getClassName())) config.setWSHandlerClassDefinition(cd);
+			if (cd != null && !StringUtil.isEmpty(cd.getClassName())) {
+				config.setWSHandlerClassDefinition(cd);
+			}
+			else if (configServer != null) {
+				config.setWSHandlerClassDefinition(configServer.getWSHandlerClassDefinition());
+			}
 		}
 		catch (Exception e) {
 			log(config, log, e);

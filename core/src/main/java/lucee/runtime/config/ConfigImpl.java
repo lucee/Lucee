@@ -3233,9 +3233,11 @@ public abstract class ConfigImpl implements Config {
 		Iterator<Entry<String, SoftReference<InitFile>>> it = ctPatchCache.entrySet().iterator();
 
 		Entry<String, SoftReference<InitFile>> entry;
+		SoftReference<InitFile> v;
 		while (it.hasNext()) {
 			entry = it.next();
-			sct.setEL(entry.getKey(), entry.getValue().get().getPageSource().getDisplayPath());
+			v = entry.getValue();
+			if (v != null) sct.setEL(entry.getKey(), v.get().getPageSource().getDisplayPath());
 		}
 		return sct;
 	}
@@ -3868,16 +3870,18 @@ public abstract class ConfigImpl implements Config {
 	public abstract Map<String, GatewayEntry> getGatewayEntries();
 
 	private ClassDefinition wsHandlerCD;
+	protected WSHandler wsHandler = null;
 
 	protected void setWSHandlerClassDefinition(ClassDefinition cd) {
 		this.wsHandlerCD = cd;
+		wsHandler = null;
 	}
+
+	// public abstract WSHandler getWSHandler() throws PageException;
 
 	protected ClassDefinition getWSHandlerClassDefinition() {
 		return wsHandlerCD;
 	}
-
-	public abstract WSHandler getWSHandler() throws PageException;
 
 	boolean isEmpty(ClassDefinition cd) {
 		return cd == null || StringUtil.isEmpty(cd.getClassName());

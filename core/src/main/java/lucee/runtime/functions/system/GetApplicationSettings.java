@@ -33,7 +33,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
@@ -159,7 +159,7 @@ public class GetApplicationSettings extends BIF {
 		// ws settings
 		try {
 			Struct wssettings = new StructImpl(Struct.TYPE_LINKED);
-			wssettings.setEL(KeyConstants._type, AppListenerUtil.toWSType(ac.getWSType(), ((ConfigImpl) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getTypeAsString()));
+			wssettings.setEL(KeyConstants._type, AppListenerUtil.toWSType(ac.getWSType(), ((ConfigWebImpl) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getTypeAsString()));
 			sct.setEL("wssettings", wssettings);
 		}
 		catch (Exception e) {} // in case the extension is not loaded this will fail // TODO check if the extension is installed
