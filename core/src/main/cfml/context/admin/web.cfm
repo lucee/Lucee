@@ -232,7 +232,26 @@
 		type="#request.adminType#"
 		password="#session["password" & request.adminType]#"
 		returnVariable="pluginDir">
-	<cfset mappings['/lucee_plugin_directory/']=pluginDir>
+	<cfadmin
+	    action="updateMapping"
+	    type="#request.adminType#"
+	    password="#session["password" & request.adminType]#"
+	    virtual="/lucee_plugin_directory"
+	    physical="#pluginDir#"
+	    archive=""
+	    primary="resource"
+    >
+    <cfadmin
+	    action="getMappings"
+	    type="#request.adminType#"
+	    password="#session["password" & request.adminType]#"
+	    returnVariable="getMappings"
+    >
+    <cfquery name="getPlugindir" dbtype="query">
+	    SELECT strphysical FROM getMappings WHERE virtual='/lucee_plugin_directory'
+    </cfquery>
+    <cfset mappings = [:]>
+    <cfset mappings['/lucee_plugin_directory/']=getPlugindir.strphysical>
 	<cfapplication action="update" mappings="#mappings#">
 
 	<cfset hasPlugin=false>
