@@ -248,9 +248,22 @@
 		if (structKeyExists(application, "reloadPlugins")){
 			hasPlugin = false;
 			structDelete(application, "reloadPlugins");
-		}	
+		} else if (not StructKeyExists(application, "lucee_admin_plugins_last_updated")){
+			hasPlugin = false;
+		} else if ((StructKeyExists(server, "lucee_admin_plugins_last_updated")
+				and (not StructKeyExists(application, "lucee_admin_plugins_last_updated")
+					or DateCompare(server.lucee_admin_plugins_last_updated, application.lucee_admin_plugins_last_updated) neq 1) )
+				){
+			hasPlugin = false;
+		}
 	</cfscript>
 	<cfif !hasPlugin || (structKeyExists(session, "alwaysNew") && session.alwaysNew)>
+		<cfscript>
+			lock name="lucee_admin_plugins_last_updated"{ 
+				application.lucee_admin_plugins_last_updated = now(); // used to compare against server
+				application.plugin = {}; // clear plugins
+			}
+		</cfscript>		
 		<cfif !hasPlugin>
 			<cfset plugin=struct(
 				label:"Plugins",
