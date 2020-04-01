@@ -1576,7 +1576,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		Object value = attributes.get(FILE_ACCESS, null);
 		if (value == null) return null;
 		Array arr = Caster.toArray(value);
-		List rtn = new ArrayList();
+		List<Resource> rtn = new ArrayList<Resource>();
 		Iterator it = arr.valueIterator();
 		String path;
 		Resource res;
@@ -1589,7 +1589,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			if (!res.isDirectory()) throw new ApplicationException("Path [" + path + "] is not a directory");
 			rtn.add(res);
 		}
-		return (Resource[]) rtn.toArray(new Resource[rtn.size()]);
+		return rtn.toArray(new Resource[rtn.size()]);
 	}
 
 	private void doUpdateSecurityManager() throws PageException {

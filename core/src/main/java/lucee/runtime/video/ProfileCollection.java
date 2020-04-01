@@ -203,11 +203,11 @@ public class ProfileCollection {
 
 	private static String[] toArray(String str) {
 		StringTokenizer st = new StringTokenizer(str, ",");
-		ArrayList list = new ArrayList();
+		ArrayList<String> list = new ArrayList<String>();
 		while (st.hasMoreTokens()) {
 			list.add(str = st.nextToken());
 		}
-		return (String[]) list.toArray(new String[list.size()]);
+		return list.toArray(new String[list.size()]);
 	}
 
 	/**

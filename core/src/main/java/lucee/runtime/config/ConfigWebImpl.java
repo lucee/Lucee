@@ -21,6 +21,7 @@ package lucee.runtime.config;
 import java.io.IOException;
 import java.lang.ref.SoftReference;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Iterator;
@@ -360,7 +361,14 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 	}
 
 	public Mapping[] getApplicationMapping() {
-		return applicationMappings.values().toArray(new Mapping[applicationMappings.size()]);
+		List<Mapping> list = new ArrayList<>();
+		Iterator<SoftReference<Mapping>> it = applicationMappings.values().iterator();
+		SoftReference<Mapping> sr;
+		while (it.hasNext()) {
+			sr = it.next();
+			if (sr != null) list.add(sr.get());
+		}
+		return list.toArray(new Mapping[list.size()]);
 	}
 
 	@Override
