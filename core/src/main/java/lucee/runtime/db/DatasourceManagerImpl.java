@@ -339,8 +339,8 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 						tmp.put(entry.getKey(), entry.getValue());
 						continue;
 					}
-					dc.getConnection().setAutoCommit(true);
-					dc.getConnection().setTransactionIsolation(((DatasourceConnectionPro) dc).getDefaultTransactionIsolation());
+					dc.setAutoCommit(true);
+					dc.setTransactionIsolation(((DatasourceConnectionPro) dc).getDefaultTransactionIsolation());
 
 				}
 				catch (Exception e) {

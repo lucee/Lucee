@@ -107,7 +107,7 @@ public class DatasourceConnectionPool {
 						throw pe;
 					}
 
-					if (rtn instanceof DatasourceConnectionImpl) ((DatasourceConnectionImpl) rtn).using();
+					if (rtn instanceof DatasourceConnectionPro) ((DatasourceConnectionPro) rtn).using();
 
 					return rtn;
 				}
@@ -115,8 +115,8 @@ public class DatasourceConnectionPool {
 
 			// we get us a fine connection (we do validation outside the
 			// synchronized to safe shared time)
-			if (isValid(rtn, Boolean.TRUE)) {
-				if (rtn instanceof DatasourceConnectionImpl) ((DatasourceConnectionImpl) rtn).using();
+			if (isValid(rtn)) {
+				if (rtn instanceof DatasourceConnectionPro) ((DatasourceConnectionPro) rtn).using();
 				return rtn;
 			}
 
@@ -228,7 +228,7 @@ public class DatasourceConnectionPool {
 		}
 	}
 
-	public static boolean isValid(DatasourceConnection dc, Boolean autoCommit) {
+	public static boolean isValid(DatasourceConnection dc) {
 		try {
 			if (dc.getConnection().isClosed()) return false;
 		}
@@ -245,13 +245,11 @@ public class DatasourceConnectionPool {
 		} // not all driver support this, because of that we ignore an error
 			// here, also protect from java 5
 
-		try {
-			if (autoCommit != null) dc.getConnection().setAutoCommit(autoCommit.booleanValue());
-		}
-		catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
-			return false;
-		}
+		/*
+		 * try { if (autoCommit != null && autoCommit.booleanValue() != dc.getAutoCommit())
+		 * dc.setAutoCommit(autoCommit.booleanValue()); } catch (Throwable t) {
+		 * ExceptionUtil.rethrowIfNecessary(t); return false; }
+		 */
 
 		return true;
 	}

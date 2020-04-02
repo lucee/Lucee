@@ -219,8 +219,8 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 			DatasourceConnection dc = getManager().getConnection(ThreadLocalPageContext.get(), data.getDatasourceName(), data.getUsername(), data.getPassword());
 			try {
 
-				dc.getConnection().setAutoCommit(false);
-				dc.getConnection().setTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED);
+				dc.setAutoCommit(false);
+				dc.setTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED);
 
 				if ("com.microsoft.jdbc.sqlserver.SQLServerDriver".equals(dc.getDatasource().getClassDefinition().getClassName())) core = new MSSQL(dc, data.getPrefix());
 				else if ("com.microsoft.sqlserver.jdbc.SQLServerDriver".equals(dc.getDatasource().getClassDefinition().getClassName())) core = new MSSQL(dc, data.getPrefix());

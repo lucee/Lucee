@@ -51,6 +51,11 @@ import lucee.runtime.op.Caster;
 
 public class ORMDatasourceConnection implements DatasourceConnectionPro {
 
+	@Override
+	public DatasourceConnection using() throws PageException {
+		return this;
+	}
+
 	private DataSource datasource;
 	private Connection connection;
 	private Boolean supportsGetGeneratedKeys;
