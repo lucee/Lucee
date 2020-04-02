@@ -108,22 +108,21 @@ public class DatasourceConnectionPool {
 					}
 				}
 
-				_inc(stack, datasource, user, pass); // if new or fine we
-				// increase in any case
+				_inc(stack, datasource, user, pass); // if new or fine we increase in any case
 				// create a new instance
-				if (rtn == null) {
-					try {
-						rtn = loadDatasourceConnection(config, (DataSourcePro) datasource, user, pass);
-					}
-					catch (PageException pe) {
-						_dec(stack, datasource, user, pass);
-						throw pe;
-					}
-
-					if (rtn instanceof DatasourceConnectionPro) ((DatasourceConnectionPro) rtn).using();
-
-					return rtn;
+			}
+			if (rtn == null) {
+				try {
+					rtn = loadDatasourceConnection(config, (DataSourcePro) datasource, user, pass);
 				}
+				catch (PageException pe) {
+					synchronized (stack) {
+						_dec(stack, datasource, user, pass);
+					}
+					throw pe;
+				}
+				if (rtn instanceof DatasourceConnectionPro) ((DatasourceConnectionPro) rtn).using();
+				return rtn;
 			}
 
 			// we get us a fine connection (we do validation outside the
@@ -167,18 +166,12 @@ public class DatasourceConnectionPool {
 	public void releaseDatasourceConnection(DatasourceConnection dc, boolean closeIt) {
 		if (dc == null) return;
 		if (!closeIt && dc.getDatasource().getConnectionTimeout() == 0) closeIt = true; // smaller than 0 is infiniti
-
+		if (closeIt) IOUtil.closeEL(dc.getConnection());
 		DCStack stack = getDCStack(dc.getDatasource(), dc.getUsername(), dc.getPassword());
 		synchronized (stack) {
-			if (closeIt) IOUtil.closeEL(dc.getConnection());
-			else stack.add(dc);
-
-			int max = dc.getDatasource().getConnectionLimit();
-			if (max != -1) {
-				_dec(stack, dc.getDatasource(), dc.getUsername(), dc.getPassword());
-				SystemUtil.notify(waiter);
-			}
-			else _dec(stack, dc.getDatasource(), dc.getUsername(), dc.getPassword());
+			if (!closeIt) stack.add(dc);
+			_dec(stack, dc.getDatasource(), dc.getUsername(), dc.getPassword());
+			if (dc.getDatasource().getConnectionLimit() != -1) SystemUtil.notify(waiter);
 		}
 	}
 
@@ -324,7 +317,6 @@ public class DatasourceConnectionPool {
 		String id = createId(datasource, user, pass);
 		synchronized (id) {
 			DCStack stack = dcs.get(id);
-
 			if (stack == null) {
 				dcs.put(id, stack = new DCStack(datasource, user, pass));
 			}
