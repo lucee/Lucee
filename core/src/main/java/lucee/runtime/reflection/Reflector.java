@@ -763,7 +763,7 @@ public final class Reflector {
 	}
 
 	public static String[] getPropertyKeys(Class clazz) {
-		Set keys = new HashSet();
+		Set<String> keys = new HashSet<String>();
 		Field[] fields = clazz.getFields();
 		Field field;
 		Method[] methods = clazz.getMethods();
@@ -787,7 +787,7 @@ public final class Reflector {
 			}
 		}
 
-		return (String[]) keys.toArray(new String[keys.size()]);
+		return keys.toArray(new String[keys.size()]);
 	}
 
 	public static boolean hasPropertyIgnoreCase(Class clazz, String name) {
@@ -1449,22 +1449,22 @@ public final class Reflector {
 	 */
 	public static Method[] getDeclaredMethods(Class clazz) {
 		Method[] methods = clazz.getMethods();
-		ArrayList list = new ArrayList();
+		ArrayList<Method> list = new ArrayList<Method>();
 		for (int i = 0; i < methods.length; i++) {
 			if (methods[i].getDeclaringClass() == clazz) list.add(methods[i]);
 		}
 		if (list.size() == 0) return new Method[0];
-		return (Method[]) list.toArray(new Method[list.size()]);
+		return list.toArray(new Method[list.size()]);
 	}
 
 	public static Method[] getSetters(Class clazz) {
 		Method[] methods = clazz.getMethods();
-		ArrayList list = new ArrayList();
+		ArrayList<Method> list = new ArrayList<Method>();
 		for (int i = 0; i < methods.length; i++) {
 			if (isSetter(methods[i])) list.add(methods[i]);
 		}
 		if (list.size() == 0) return new Method[0];
-		return (Method[]) list.toArray(new Method[list.size()]);
+		return list.toArray(new Method[list.size()]);
 	}
 
 	public static Method[] getGetters(Class clazz) {

@@ -266,6 +266,7 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 		return log;
 	}
 
+	@Override
 	public TagListener getListener() { // FUTURE may add to interface
 		return listener;
 	}

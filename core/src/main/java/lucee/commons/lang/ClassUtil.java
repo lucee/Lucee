@@ -546,8 +546,8 @@ public final class ClassUtil {
 		getClassPathesFromLoader(new ClassUtil().getClass().getClassLoader(), pathes);
 		getClassPathesFromLoader(config.getClassLoader(), pathes);
 
-		Set set = pathes.keySet();
-		return (String[]) set.toArray(new String[set.size()]);
+		Set<String> set = pathes.keySet();
+		return set.toArray(new String[set.size()]);
 	}
 
 	/**

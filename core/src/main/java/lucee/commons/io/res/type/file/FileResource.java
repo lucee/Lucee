@@ -147,13 +147,13 @@ public final class FileResource extends File implements Resource {
 		String[] files = list();
 		if (files == null) return null;
 
-		List list = new ArrayList();
+		List<String> list = new ArrayList<String>();
 		FileResource res;
 		for (int i = 0; i < files.length; i++) {
 			res = new FileResource(provider, this, files[i]);
 			if (filter.accept(res)) list.add(files[i]);
 		}
-		return (String[]) list.toArray(new String[list.size()]);
+		return list.toArray(new String[list.size()]);
 	}
 
 	@Override
@@ -161,24 +161,24 @@ public final class FileResource extends File implements Resource {
 		String[] files = list();
 		if (files == null) return null;
 
-		List list = new ArrayList();
+		List<Resource> list = new ArrayList<Resource>();
 		Resource res;
 		for (int i = 0; i < files.length; i++) {
 			res = getRealResource(files[i]);
 			if (filter.accept(res)) list.add(res);
 		}
-		return (Resource[]) list.toArray(new FileResource[list.size()]);
+		return list.toArray(new FileResource[list.size()]);
 	}
 
 	@Override
 	public String[] list(ResourceNameFilter filter) {
 		String[] files = list();
 		if (files == null) return null;
-		List list = new ArrayList();
+		List<String> list = new ArrayList<String>();
 		for (int i = 0; i < files.length; i++) {
 			if (filter.accept(this, files[i])) list.add(files[i]);
 		}
-		return (String[]) list.toArray(new String[list.size()]);
+		return list.toArray(new String[list.size()]);
 	}
 
 	@Override
@@ -186,11 +186,11 @@ public final class FileResource extends File implements Resource {
 		String[] files = list();
 		if (files == null) return null;
 
-		List list = new ArrayList();
+		List<Resource> list = new ArrayList<Resource>();
 		for (int i = 0; i < files.length; i++) {
 			if (filter.accept(this, files[i])) list.add(getRealResource(files[i]));
 		}
-		return (Resource[]) list.toArray(new Resource[list.size()]);
+		return list.toArray(new Resource[list.size()]);
 	}
 
 	@Override

@@ -62,6 +62,14 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 		this.config = c;
 	}
 
+	public int getOpenConnections(PageContext pc, String ds, String user, String pass) throws PageException {
+		return config.getDatasourceConnectionPool().getOpenConnection(pc.getDataSource(ds), user, pass);
+	}
+
+	public int getOpenConnections(PageContext pc, DataSource ds, String user, String pass) throws PageException {
+		return config.getDatasourceConnectionPool().getOpenConnection(ds, user, pass);
+	}
+
 	@Override
 	public DatasourceConnection getConnection(PageContext pc, String _datasource, String user, String pass) throws PageException {
 		return getConnection(pc, pc.getDataSource(_datasource), user, pass);
@@ -339,8 +347,8 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 						tmp.put(entry.getKey(), entry.getValue());
 						continue;
 					}
-					dc.getConnection().setAutoCommit(true);
-					dc.getConnection().setTransactionIsolation(((DatasourceConnectionPro) dc).getDefaultTransactionIsolation());
+					dc.setAutoCommit(true);
+					dc.setTransactionIsolation(((DatasourceConnectionPro) dc).getDefaultTransactionIsolation());
 
 				}
 				catch (Exception e) {
