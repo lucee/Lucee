@@ -50,6 +50,19 @@ public class DatasourceConnectionPool {
 
 	private ConcurrentHashMap<String, DCStack> dcs = new ConcurrentHashMap<String, DCStack>();
 
+	public int getOpenConnection(DataSource datasource, String user, String pass) throws PageException {
+		if (StringUtil.isEmpty(user)) {
+			user = datasource.getUsername();
+			pass = datasource.getPassword();
+		}
+		if (pass == null) pass = "";
+
+		// get stack
+		DCStack stack = getDCStack(datasource, user, pass);
+		RefInteger cnt = stack.getCounter();
+		return cnt == null ? 0 : cnt.toInt();
+	}
+
 	// !!! do not change used in hibernate extension
 	public DatasourceConnection getDatasourceConnection(Config config, DataSource datasource, String user, String pass) throws PageException {
 		config = ThreadLocalPageContext.getConfig(config);
