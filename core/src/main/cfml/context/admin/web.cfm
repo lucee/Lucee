@@ -232,7 +232,7 @@
 		password="#session["password" & request.adminType]#"
 		returnVariable="pluginDir">
 	<cfset mappings = [:]>
-	<cfset mappings['/lucee_plugin_directory/']=pluginDir>	
+	<cfset mappings['/lucee_plugin_directory/']=pluginDir>
 	
 	<!--- this is only used when request.adminType eq "web" --->
 	<cfset mappings['/lucee_server_plugin_directory/']=ExpandPath("{lucee-server}/context/admin/plugin")>
@@ -241,29 +241,32 @@
 
 	<cfset hasPlugin=false>
 	<cfloop array="#navigation#" index="el">
-		<cfif el.action == "plugin"><cfset hasPlugin=true></cfif>
+		<cfif el.action == "plugin">
+			<cfset hasPlugin=true>
+			<cfbreak>
+		</cfif>
 	</cfloop>
-
 	<cfscript>
+		refreshPlugins = false;
 		if (structKeyExists(application, "reloadPlugins")){
-			hasPlugin = false;
-			structDelete(application, "reloadPlugins");
+			refreshPlugins = true;
+			structDelete(application, "reloadPlugins");	
 		} else if (not StructKeyExists(application, "lucee_admin_plugins_last_updated")){
-			hasPlugin = false;
+			refreshPlugins = true;
 		} else if ((StructKeyExists(server, "lucee_admin_plugins_last_updated")
 				and (not StructKeyExists(application, "lucee_admin_plugins_last_updated")
 					or DateCompare(server.lucee_admin_plugins_last_updated, application.lucee_admin_plugins_last_updated) neq 1) )
 				){
-			hasPlugin = false;
-		}
-	</cfscript>
-	<cfif !hasPlugin || (structKeyExists(session, "alwaysNew") && session.alwaysNew)>
+			refreshPlugins = true;
+		}		
+	</cfscript>	
+	<cfif refreshPlugins || !hasPlugin || (structKeyExists(session, "alwaysNew") && session.alwaysNew)>
 		<cfscript>
 			lock name="lucee_admin_plugins_last_updated"{ 
 				application.lucee_admin_plugins_last_updated = now(); // used to compare against server
 				application.plugin = {}; // clear plugins
 			}
-		</cfscript>		
+		</cfscript>
 		<cfif !hasPlugin>
 			<cfset plugin=struct(
 				label:"Plugins",
@@ -281,7 +284,7 @@
 			<cfdirectory directory="#_plugindir#" action="list" name="plugindirs" recurse="no">
 			<cfloop query="plugindirs">
 				<cfif plugindirs.type == "dir">
-					<cfset _lang=loadPluginLanguage(_pluginDir,plugindirs.name)>					
+					<cfset _lang=loadPluginLanguage(_pluginDir,plugindirs.name)>
 					<cfif isNull(_lang.__group)>
 						<cfcontinue>
 					</cfif>
