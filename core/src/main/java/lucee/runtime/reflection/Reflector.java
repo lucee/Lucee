@@ -571,9 +571,9 @@ public final class Reflector {
 	}
 
 	private static Object[] cleanArgs(Object[] args) {
-		Set<Object> done = new HashSet<Object>();
 		if (args == null) return args;
 
+		Set<Object> done = new HashSet<Object>();
 		for (int i = 0; i < args.length; i++) {
 			args[i] = _clean(done, args[i]);
 		}
