@@ -331,7 +331,7 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 
 	// FYI used by Extensions, do not remove
 	public Mapping getApplicationMapping(String virtual, String physical) {
-		return getApplicationMapping("application", virtual, physical, null, true, false, true, true);
+		return getApplicationMapping("application", virtual, physical, null, true, false);
 	}
 
 	public boolean isApplicationMapping(Mapping mapping) {
@@ -342,6 +342,10 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 			if (sr != null && mapping.equals(sr.get())) return true;
 		}
 		return false;
+	}
+
+	public Mapping getApplicationMapping(String type, String virtual, String physical, String archive, boolean physicalFirst, boolean ignoreVirtual) {
+		return getApplicationMapping(type, virtual, physical, archive, physicalFirst, ignoreVirtual, true, true);
 	}
 
 	public Mapping getApplicationMapping(String type, String virtual, String physical, String archive, boolean physicalFirst, boolean ignoreVirtual,

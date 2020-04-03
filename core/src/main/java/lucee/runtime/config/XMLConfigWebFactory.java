@@ -1578,7 +1578,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					listener.setMode(ApplicationListener.MODE_CURRENT2ROOT);
 
 					tmp = new MappingImpl(config, "/lucee-server", "{lucee-server}/context/", null, ConfigImpl.INSPECT_ONCE, true, false, true, true, false, false, listener,
-							ApplicationListener.MODE_CURRENT2ROOT, ApplicationListener.TYPE_MODERN, false, false);
+							ApplicationListener.MODE_CURRENT2ROOT, ApplicationListener.TYPE_MODERN);
 					mappings.put(tmp.getVirtualLowerCase(), tmp);
 				}
 			}
@@ -4569,7 +4569,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 			if (!hasSet) {
 				MappingImpl m = new MappingImpl(config, "/default", "{lucee-web}/components/", null, ConfigImpl.INSPECT_UNDEFINED, true, false, false, true, false, true, null, -1,
-						-1, false, false);
+						-1);
 				config.setComponentMappings(new Mapping[] { m.cloneReadOnly(config) });
 			}
 

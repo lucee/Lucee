@@ -562,7 +562,7 @@ public final class MappingImpl implements Mapping {
 
 		public Mapping toMapping() {
 			ConfigWebImpl cwi = (ConfigWebImpl) ThreadLocalPageContext.getConfig();
-			return cwi.getApplicationMapping(type, virtual, physical, archive, physicalFirst, ignoreVirtual, true, true);
+			return cwi.getApplicationMapping(type, virtual, physical, archive, physicalFirst, ignoreVirtual);
 		}
 	}
 }
