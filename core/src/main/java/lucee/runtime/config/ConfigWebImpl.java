@@ -331,7 +331,7 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 
 	// FYI used by Extensions, do not remove
 	public Mapping getApplicationMapping(String virtual, String physical) {
-		return getApplicationMapping("application", virtual, physical, null, true, false);
+		return getApplicationMapping("application", virtual, physical, null, true, false, true, true);
 	}
 
 	public boolean isApplicationMapping(Mapping mapping) {
@@ -344,7 +344,8 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 		return false;
 	}
 
-	public Mapping getApplicationMapping(String type, String virtual, String physical, String archive, boolean physicalFirst, boolean ignoreVirtual) {
+	public Mapping getApplicationMapping(String type, String virtual, String physical, String archive, boolean physicalFirst, boolean ignoreVirtual,
+			boolean checkPhysicalFromWebroot, boolean checkArchiveFromWebroot) {
 		String key = type + ":" + virtual.toLowerCase() + ":" + (physical == null ? "" : physical.toLowerCase()) + ":" + (archive == null ? "" : archive.toLowerCase()) + ":"
 				+ physicalFirst;
 		key = Long.toString(HashUtil.create64BitHash(key), Character.MAX_RADIX);
@@ -353,7 +354,8 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 		Mapping m = t == null ? null : t.get();
 
 		if (m == null) {
-			m = new MappingImpl(this, virtual, physical, archive, Config.INSPECT_UNDEFINED, physicalFirst, false, false, false, true, ignoreVirtual, null, -1, -1);
+			m = new MappingImpl(this, virtual, physical, archive, Config.INSPECT_UNDEFINED, physicalFirst, false, false, false, true, ignoreVirtual, null, -1, -1,
+					checkPhysicalFromWebroot, checkArchiveFromWebroot);
 			applicationMappings.put(key, new SoftReference<Mapping>(m));
 		}
 

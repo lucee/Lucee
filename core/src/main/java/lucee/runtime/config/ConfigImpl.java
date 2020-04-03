@@ -1098,7 +1098,7 @@ public abstract class ConfigImpl implements Config {
 		if (this instanceof ConfigWebImpl) {
 			Resource parent = res.getParentResource();
 			if (parent != null && !parent.equals(res)) {
-				Mapping m = ((ConfigWebImpl) this).getApplicationMapping("application", "/", parent.getAbsolutePath(), null, true, false);
+				Mapping m = ((ConfigWebImpl) this).getApplicationMapping("application", "/", parent.getAbsolutePath(), null, true, false, false, false);
 				return m.getPageSource(res.getName());
 			}
 		}
@@ -1242,7 +1242,7 @@ public abstract class ConfigImpl implements Config {
 			isDefault = index == 0;
 			mappingName = "/mapping-tag" + (isDefault ? "" : index) + "";
 
-			m = new MappingImpl(this, mappingName, tagDirectory.getAbsolutePath(), null, ConfigImpl.INSPECT_NEVER, true, true, true, true, false, true, null, -1, -1);
+			m = new MappingImpl(this, mappingName, tagDirectory.getAbsolutePath(), null, ConfigImpl.INSPECT_NEVER, true, true, true, true, false, true, null, -1, -1, false, false);
 			if (isDefault) defaultTagMapping = m;
 			tagMappings.put(mappingName, m);
 
@@ -1342,7 +1342,7 @@ public abstract class ConfigImpl implements Config {
 			isDefault = index == 0;
 			mappingName = "/mapping-function" + (isDefault ? "" : index) + "";
 			MappingImpl mapping = new MappingImpl(this, mappingName, functionDirectory.getAbsolutePath(), null, ConfigImpl.INSPECT_NEVER, true, true, true, true, false, true, null,
-					-1, -1);
+					-1, -1, false, false);
 			if (isDefault) defaultFunctionMapping = mapping;
 			this.functionMappings.put(mappingName, mapping);
 
