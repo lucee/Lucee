@@ -41,6 +41,7 @@ import lucee.runtime.op.Duplicator;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.DateTimeImpl;
+import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.it.EntryIterator;
 import lucee.runtime.type.it.ValueIterator;
 import lucee.runtime.type.scope.CSRFTokenSupport;
@@ -100,7 +101,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	private String cfid;
 
 	public IKStorageScopeSupport(PageContext pc, IKHandler handler, String appName, String name, String strType, int type, Map<Collection.Key, IKStorageScopeItem> data,
-			long lastModified) {
+			long lastModified, long timeSpan) {
 		// !!! do not store the pagecontext or config object, this object is Serializable !!!
 		Config config = ThreadLocalPageContext.getConfig(pc);
 		this.data0 = data;
@@ -120,6 +121,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		this.name = name;
 		this.cfid = pc.getCFID();
 		id = ++_id;
+		this.timeSpan = timeSpan;
 	}
 
 	/**
@@ -162,8 +164,8 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 				}
 			}
 
-			if (Scope.SCOPE_SESSION == scope) return new IKStorageScopeSession(pc, handler, appName, name, sv.getValue(), time);
-			else if (Scope.SCOPE_CLIENT == scope) return new IKStorageScopeClient(pc, handler, appName, name, sv.getValue(), time);
+			if (Scope.SCOPE_SESSION == scope) return new IKStorageScopeSession(pc, handler, appName, name, sv.getValue(), time, getSessionTimeout(pc));
+			else if (Scope.SCOPE_CLIENT == scope) return new IKStorageScopeClient(pc, handler, appName, name, sv.getValue(), time, getClientTimeout(pc));
 		}
 		else if (existing instanceof IKStorageScopeSupport) {
 			IKStorageScopeSupport tmp = ((IKStorageScopeSupport) existing);
@@ -174,11 +176,25 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 
 		IKStorageScopeSupport rtn = null;
 		Map<Key, IKStorageScopeItem> map = MapFactory.getConcurrentMap();
-		if (Scope.SCOPE_SESSION == scope) rtn = new IKStorageScopeSession(pc, handler, appName, name, map, 0);
-		else if (Scope.SCOPE_CLIENT == scope) rtn = new IKStorageScopeClient(pc, handler, appName, name, map, 0);
+		if (Scope.SCOPE_SESSION == scope) rtn = new IKStorageScopeSession(pc, handler, appName, name, map, 0, getSessionTimeout(pc));
+		else if (Scope.SCOPE_CLIENT == scope) rtn = new IKStorageScopeClient(pc, handler, appName, name, map, 0, getClientTimeout(pc));
 
 		rtn.store(pc);
 		return rtn;
+	}
+
+	private static long getClientTimeout(PageContext pc) {
+		pc = ThreadLocalPageContext.get(pc);
+		ApplicationContext ac = pc == null ? null : pc.getApplicationContext();
+		TimeSpan timeout = ac == null ? null : ac.getClientTimeout();
+		return timeout == null ? 0 : timeout.getMillis();
+	}
+
+	private static long getSessionTimeout(PageContext pc) {
+		pc = ThreadLocalPageContext.get(pc);
+		ApplicationContext ac = pc == null ? null : pc.getApplicationContext();
+		TimeSpan timeout = ac == null ? null : ac.getSessionTimeout();
+		return timeout == null ? 0 : timeout.getMillis();
 	}
 
 	public static Scope getInstance(int scope, IKHandler handler, String appName, String name, PageContext pc, Session existing, Log log, Session defaultValue) {
