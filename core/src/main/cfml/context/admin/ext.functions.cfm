@@ -9,9 +9,22 @@
 		<cfargument name="extensions" required="yes" type="query">
 		<cfset var result=variables.getdataByid(arguments.data.id,arguments.extensions)>
 
+		<cfset sort = []>
+		<cfloop list="#Arraytolist(result.otherVersions)#" index="i">
+			<cfif !listcontainsnocase(i,"-")>
+				<cfset sortversion = arrayappend(sort,toVersionSortable(i))>
+			</cfif>
+		</cfloop>
+		<cfif !listContainsNoCase(result.version,"-SNAPSHOT")>
+			<cfset sortversion = arrayAppend(sort,toVersionSortable(result.version))>
+		</cfif>
+		<cfset latest = arraySort(sort,"text","desc")>
+		<cfset getInstalledVersion = listfirst(trim(arguments.data.version),"-")>
 		<cfif result.count()==0><cfreturn false></cfif>
-		<cfif arguments.data.version LT result.version>
-			<cfreturn true>
+		<cfif arrayIndexExists(sort,1)>
+			<cfif sort[1] gt toVersionSortable(getInstalledVersion)>
+				<cfreturn true>
+			</cfif>
 		</cfif>
 
 		<cfreturn false>
