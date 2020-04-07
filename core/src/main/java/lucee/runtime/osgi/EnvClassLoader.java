@@ -8,9 +8,11 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.osgi.framework.Bundle;
@@ -39,6 +41,13 @@ public class EnvClassLoader extends URLClassLoader {
 	private static final short CLASS = 1;
 	private static final short URL = 2;
 	private static final short STREAM = 3;
+
+	private static ThreadLocal<Set<String>> checking = new ThreadLocal<Set<String>>() {
+		@Override
+		protected Set<String> initialValue() {
+			return new HashSet<>();
+		}
+	};
 
 	private static ThreadLocal<Boolean> inside = new ThreadLocal<Boolean>() {
 		@Override
@@ -83,7 +92,6 @@ public class EnvClassLoader extends URLClassLoader {
 	protected synchronized Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
 		// First, check if the class has already been loaded
 		// if ("RandomEntity".equals(name))
-		// print.ds("-->" + name);
 		log("check for class [" + name + "]", 0);
 
 		Class<?> c = findLoadedClass(name);
@@ -96,75 +104,86 @@ public class EnvClassLoader extends URLClassLoader {
 	private synchronized Object load(String name, short type, boolean doLog) {
 		double start = SystemUtil.millis();
 
-		// PATCH XML
-		if ((name + "").startsWith("META-INF/services") && !inside.get()) {
-			inside.set(Boolean.TRUE);
-			try {
-				if (name.equalsIgnoreCase("META-INF/services/javax.xml.parsers.DocumentBuilderFactory")) {
-					if (type == URL) return XMLUtil.getDocumentBuilderFactoryResource();
-					else if (type == STREAM) return new ByteArrayInputStream(XMLUtil.getDocumentBuilderFactoryName().getBytes());
-				}
-				else if (name.equalsIgnoreCase("META-INF/services/javax.xml.parsers.SAXParserFactory")) {
-					if (type == URL) return XMLUtil.getSAXParserFactoryResource();
-					else if (type == STREAM) return new ByteArrayInputStream(XMLUtil.getSAXParserFactoryName().getBytes());
-				}
-				else if (name.equalsIgnoreCase("META-INF/services/javax.xml.transform.TransformerFactory")) {
-					if (type == URL) return XMLUtil.getTransformerFactoryResource();
-					else if (type == STREAM) return new ByteArrayInputStream(XMLUtil.getTransformerFactoryName().getBytes());
-				}
-				else if (name.equalsIgnoreCase("META-INF/services/org.apache.xerces.xni.parser.XMLParserConfiguration")) {
-					if (type == STREAM) return new ByteArrayInputStream(XMLUtil.getXMLParserConfigurationName().getBytes());
-				}
-			}
-			catch (IOException e) {}
-			finally {
-				inside.set(Boolean.FALSE);
-			}
-		}
-
-		// PATCH for com.sun
-		if ((name + "").startsWith("com.sun.")) {
-			Object obj;
-			ClassLoader loader = CFMLEngineFactory.class.getClassLoader();
-			obj = _load(loader, name, type);
-			if (obj != null) {
-				log("found [" + name + "] in loader ClassLoader", start);
-				return obj;
-			}
-		}
-
 		StringBuilder id = new StringBuilder(name).append(';').append(type).append(';');
-		List<ClassLoader> listContext = SystemUtil.getClassLoaderContext(true, id);
-
-		SoftReference<Object[]> sr = callerCache.get(id.toString());
-		if (sr != null && sr.get() != null) {
-			// print.e(name + " - from cache " + callerCache.size());
-			return sr.get()[0];
+		String _id = id.toString();
+		Set<String> cache = checking.get();
+		if (cache.contains(_id)) {
+			callerCache.put(id.toString(), new SoftReference<Object[]>(new Object[] { null }));
+			return null;
 		}
-
-		// callers classloader context
-		Object obj;
-		for (ClassLoader cl: listContext) {
-			obj = _load(cl, name, type);
-			if (obj != null) {
-				if (cl instanceof BundleReference)
-					log("found [" + name + "] in bundle [" + (((BundleReference) cl).getBundle().getSymbolicName()) + ":" + (((BundleReference) cl).getBundle().getVersion()) + "]",
-							start);
-				else log("found [" + name + "] in System ClassLoader " + cl, start);
-				callerCache.put(id.toString(), new SoftReference<Object[]>(new Object[] { obj }));
-				return obj;
+		try {
+			cache.add(_id);
+			// PATCH XML
+			if ((name + "").startsWith("META-INF/services") && !inside.get()) {
+				inside.set(Boolean.TRUE);
+				try {
+					if (name.equalsIgnoreCase("META-INF/services/javax.xml.parsers.DocumentBuilderFactory")) {
+						if (type == URL) return XMLUtil.getDocumentBuilderFactoryResource();
+						else if (type == STREAM) return new ByteArrayInputStream(XMLUtil.getDocumentBuilderFactoryName().getBytes());
+					}
+					else if (name.equalsIgnoreCase("META-INF/services/javax.xml.parsers.SAXParserFactory")) {
+						if (type == URL) return XMLUtil.getSAXParserFactoryResource();
+						else if (type == STREAM) return new ByteArrayInputStream(XMLUtil.getSAXParserFactoryName().getBytes());
+					}
+					else if (name.equalsIgnoreCase("META-INF/services/javax.xml.transform.TransformerFactory")) {
+						if (type == URL) return XMLUtil.getTransformerFactoryResource();
+						else if (type == STREAM) return new ByteArrayInputStream(XMLUtil.getTransformerFactoryName().getBytes());
+					}
+					else if (name.equalsIgnoreCase("META-INF/services/org.apache.xerces.xni.parser.XMLParserConfiguration")) {
+						if (type == STREAM) return new ByteArrayInputStream(XMLUtil.getXMLParserConfigurationName().getBytes());
+					}
+				}
+				catch (IOException e) {}
+				finally {
+					inside.set(Boolean.FALSE);
+				}
 			}
-			else {
-				if (cl instanceof BundleReference) log("not found [" + name + "] in bundle [" + (((BundleReference) cl).getBundle().getSymbolicName()) + ":"
-						+ (((BundleReference) cl).getBundle().getVersion()) + "]", start);
-				else log("not found [" + name + "] in System ClassLoader " + cl, start);
 
+			// PATCH for com.sun
+			if ((name + "").startsWith("com.sun.")) {
+				Object obj;
+				ClassLoader loader = CFMLEngineFactory.class.getClassLoader();
+				obj = _load(loader, name, type);
+				if (obj != null) {
+					log("found [" + name + "] in loader ClassLoader", start);
+					return obj;
+				}
 			}
+
+			List<ClassLoader> listContext = SystemUtil.getClassLoaderContext(true, id);
+
+			SoftReference<Object[]> sr = callerCache.get(id.toString());
+			if (sr != null && sr.get() != null) {
+				// print.e(name + " - from cache " + callerCache.size());
+				return sr.get()[0];
+			}
+
+			// callers classloader context
+			Object obj;
+			for (ClassLoader cl: listContext) {
+				obj = _load(cl, name, type);
+				if (obj != null) {
+					if (cl instanceof BundleReference) log("found [" + name + "] in bundle [" + (((BundleReference) cl).getBundle().getSymbolicName()) + ":"
+							+ (((BundleReference) cl).getBundle().getVersion()) + "]", start);
+					else log("found [" + name + "] in System ClassLoader " + cl, start);
+					callerCache.put(id.toString(), new SoftReference<Object[]>(new Object[] { obj }));
+					return obj;
+				}
+				else {
+					if (cl instanceof BundleReference) log("not found [" + name + "] in bundle [" + (((BundleReference) cl).getBundle().getSymbolicName()) + ":"
+							+ (((BundleReference) cl).getBundle().getVersion()) + "]", start);
+					else log("not found [" + name + "] in System ClassLoader " + cl, start);
+
+				}
+			}
+			// print.ds("4:" + (SystemUtil.millis() - start) + ":" + name);
+			log("not found [" + name + "] ", start);
+			callerCache.put(id.toString(), new SoftReference<Object[]>(new Object[] { null }));
+			return null;
 		}
-		// print.ds("4:" + (SystemUtil.millis() - start) + ":" + name);
-		log("not found [" + name + "] ", start);
-		callerCache.put(id.toString(), new SoftReference<Object[]>(new Object[] { null }));
-		return null;
+		finally {
+			cache.remove(_id);
+		}
 	}
 
 	private Object _load(ClassLoader cl, String name, short type) {
