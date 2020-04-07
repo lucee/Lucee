@@ -6,7 +6,7 @@
 	<short-name>fbase</short-name>
 	<uri>http://www.lucee.org/cf-fld-3-1</uri>
 	<display-name>Lucee Core Function Library</display-name>
-	<description>All build in Functions of Lucee</description>
+	<description>All built in Functions of Lucee</description>
 	
 
 	<!-- AjaxLink -->
