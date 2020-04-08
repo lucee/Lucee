@@ -40,6 +40,7 @@ import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
@@ -52,9 +53,14 @@ import lucee.runtime.type.util.QueryUtil;
 
 public class QueryLazy extends BIF {
 
+	private static int RETURN_TYPE_QUERY = 1;
+	private static int RETURN_TYPE_ARRAY = 2;
+	private static int RETURN_TYPE_STRUCT = 3;
+
 	private static final long serialVersionUID = 2886504786460447165L;
 	private static final Key BLOCKFACTOR = KeyImpl.init("blockfactor");
 	private static final Key MAXROWS = KeyImpl.init("maxrows");
+	private static final Key COLUMNKEY = KeyImpl.init("columnkey");
 
 	public static String call(PageContext pc, String sql, UDF listener) throws PageException {
 		return call(pc, sql, listener, null, null);
@@ -79,6 +85,8 @@ public class QueryLazy extends BIF {
 		// credentials
 		String user = getString(pc, options, KeyConstants._username, null);
 		String pass = getString(pc, options, KeyConstants._password, null);
+		int returntype = getReturntype(pc, options);
+		Collection.Key columnKey = returntype == RETURN_TYPE_STRUCT ? getKey(pc, options, COLUMNKEY, null) : null;
 		int maxrows = getInt(pc, options, MAXROWS, Integer.MIN_VALUE);
 		int blockfactor = getInt(pc, options, BLOCKFACTOR, Integer.MIN_VALUE);
 
@@ -121,7 +129,7 @@ public class QueryLazy extends BIF {
 			do {
 				if (hasResult) {
 					res = stat.getResultSet();
-					exe(pc, res, tz, listener, blockfactor);
+					exe(pc, res, tz, listener, blockfactor, returntype, columnKey);
 					break;
 				}
 				throw new ApplicationException("the function QueryLazy can only be used for queries returning a resultset");
@@ -144,7 +152,8 @@ public class QueryLazy extends BIF {
 		return null;
 	}
 
-	private static void exe(PageContext pc, ResultSet res, TimeZone tz, UDF listener, int blockfactor) throws SQLException, PageException, IOException {
+	private static void exe(PageContext pc, ResultSet res, TimeZone tz, UDF listener, int blockfactor, int returntype, Collection.Key columnKey)
+			throws SQLException, PageException, IOException {
 		ResultSetMetaData meta = res.getMetaData();
 
 		// init columns
@@ -174,31 +183,85 @@ public class QueryLazy extends BIF {
 
 		// loop data
 		boolean blocks = blockfactor > 1;
-		Struct sctRow;
-		Array arrRow = blocks ? new ArrayImpl() : null;
+		boolean isQuery = false;
+		boolean isArray = false;
+		boolean isStruct = false;
+		Struct row;
+
+		Array _arrRows = null;
+		Struct sctRows = null;
+		QueryImpl qryRows = null;
+		if (blocks) {
+			if (returntype == RETURN_TYPE_ARRAY) {
+				_arrRows = new ArrayImpl();
+				isArray = true;
+			}
+			else if (returntype == RETURN_TYPE_STRUCT) {
+				sctRows = new StructImpl();
+				isStruct = true;
+			}
+			else {
+				qryRows = new QueryImpl(tmpKeys.toArray(new Collection.Key[tmpKeys.size()]), blockfactor, "queryLazy");
+				isQuery = true;
+			}
+
+		}
+		int rownbr = 0;
 		while (res.next()) {
+			rownbr++;
 			// create row
-			sctRow = new StructImpl();
+			row = new StructImpl();
 			for (Col col: columns) {
-				col.set(sctRow);
+				if (isQuery) col.set(qryRows, rownbr);
+				else col.set(row);
 			}
 			if (blocks) {
-				arrRow.appendEL(sctRow);
-				if (blockfactor == arrRow.size()) {
-					if (!Caster.toBooleanValue(listener.call(pc, new Object[] { arrRow }, true), true)) break;
-					arrRow = new ArrayImpl();
+
+				if (isArray) {
+					_arrRows.appendEL(row);
+					if (blockfactor == rownbr) {
+						if (!Caster.toBooleanValue(listener.call(pc, new Object[] { _arrRows }, true), true)) break;
+						_arrRows = new ArrayImpl();
+						rownbr = 0;
+					}
+				}
+				else if (isStruct) {
+					sctRows.set(KeyImpl.toKey(row.get(columnKey)), row);
+					if (blockfactor == rownbr) {
+						if (!Caster.toBooleanValue(listener.call(pc, new Object[] { sctRows }, true), true)) break;
+						sctRows = new StructImpl();
+						rownbr = 0;
+					}
+				}
+				else if (isQuery) {
+					if (blockfactor == rownbr) {
+						if (!Caster.toBooleanValue(listener.call(pc, new Object[] { qryRows }, true), true)) break;
+						qryRows = new QueryImpl(tmpKeys.toArray(new Collection.Key[tmpKeys.size()]), blockfactor, "queryLazy");
+						rownbr = 0;
+					}
 				}
 			}
 			else {
-				if (!Caster.toBooleanValue(listener.call(pc, new Object[] { sctRow }, true), true)) break;
+				if (!Caster.toBooleanValue(listener.call(pc, new Object[] { row }, true), true)) break;
 			}
 
 		}
 		// send the remaing to the UDF
-		if (blocks && arrRow.size() > 0) {
-			listener.call(pc, new Object[] { arrRow }, true);
+		if (blocks && rownbr > 0) {
+			if (isArray) {
+				listener.call(pc, new Object[] { _arrRows }, true);
+			}
+			else if (isStruct) {
+				listener.call(pc, new Object[] { sctRows }, true);
+			}
+			else if (isQuery) {
+				if (rownbr < blockfactor) {
+					// shrink
+					qryRows.removeRows(rownbr, (blockfactor - rownbr));
+				}
+				listener.call(pc, new Object[] { qryRows }, true);
+			}
 		}
-
 	}
 
 	private static void setAttributes(Statement stat, int maxrow, int fetchsize, TimeSpan timeout, boolean isMySQL) throws SQLException {
@@ -223,9 +286,33 @@ public class QueryLazy extends BIF {
 		return str;
 	}
 
+	private static Collection.Key getKey(PageContext pc, Struct options, Collection.Key key, Collection.Key defaultValue) throws PageException {
+		if (options == null) return defaultValue;
+		Collection.Key str = Caster.toKey(options.get(key, null), null);
+		if (StringUtil.isEmpty(str)) return defaultValue;
+		return str;
+	}
+
 	private static int getInt(PageContext pc, Struct options, Collection.Key key, int defaultValue) {
 		if (options == null) return defaultValue;
 		return Caster.toIntValue(options.get(key, null), defaultValue);
+	}
+
+	public static int getReturntype(PageContext pc, Struct options) throws PageException {
+		String strReturntype = getString(pc, options, KeyConstants._returntype, null);
+
+		if (StringUtil.isEmpty(strReturntype)) return RETURN_TYPE_QUERY;
+		strReturntype = strReturntype.toLowerCase().trim();
+
+		if (strReturntype.equals("query")) return RETURN_TYPE_QUERY;
+		else if (strReturntype.equals("struct")) return RETURN_TYPE_STRUCT;
+		else if (strReturntype.equals("array") || strReturntype.equals("array_of_struct") || strReturntype.equals("array-of-struct") || strReturntype.equals("arrayofstruct")
+				|| strReturntype.equals("array_of_entity") || strReturntype.equals("array-of-entity") || strReturntype.equals("arrayofentities")
+				|| strReturntype.equals("array_of_entities") || strReturntype.equals("array-of-entities") || strReturntype.equals("arrayofentities"))
+			return RETURN_TYPE_ARRAY;
+
+		else throw new ApplicationException("option returntype for function QueryLazy invalid value",
+				"valid values are [query,array,struct] but value is now [" + strReturntype + "]");
 	}
 
 	private static TimeZone getTimeZone(PageContext pc, Struct options, DataSource ds) throws PageException {
@@ -310,14 +397,16 @@ public class QueryLazy extends BIF {
 		}
 
 		public void set(Struct sct) throws SQLException, IOException, PageException {
-
 			sct.set(key, fullNullSupport ? cast.toCFType(tz, res, index) : emptyIfNull(cast.toCFType(tz, res, index)));
+		}
+
+		public void set(QueryImpl qry, int row) throws PageException, SQLException, IOException {
+			qry.setAt(key, row, fullNullSupport ? cast.toCFType(tz, res, index) : emptyIfNull(cast.toCFType(tz, res, index)));
 		}
 
 		public static Object emptyIfNull(Object obj) {
 			if (obj == null) return "";
 			return obj;
 		}
-
 	}
 }

@@ -305,7 +305,7 @@ public class QueryUtil {
 			throw new DatabaseException("invalid index [" + index + "], index must be between 0 and " + (query.getRecordcount() - 1), null, null, null);
 		if (index + count > query.getRecordcount())
 			throw new DatabaseException("invalid count [" + count + "], count+index [" + (count + index) + "] must less or equal to " + (query.getRecordcount()), null, null, null);
-
+		// MUST better and faster impl
 		for (int row = count; row >= 1; row--) {
 			query.removeRow(index + row);
 		}
