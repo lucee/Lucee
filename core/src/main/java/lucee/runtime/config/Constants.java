@@ -65,7 +65,7 @@ public class Constants {
 	public static URL DEFAULT_UPDATE_URL;
 	static {
 		try {
-			DEFAULT_UPDATE_URL = new URL("https://update.lucee.org");
+			DEFAULT_UPDATE_URL = new URL("http://update.lucee.org");
 		}
 		catch (MalformedURLException e) {}
 	}
