@@ -4205,6 +4205,52 @@ EntitySave(entity, [forceinsert])</description>
     			<type>any</type>
     		</return>
     	</function>
+    	
+    	
+	<!-- QueryLazy -->
+    	<function>
+    		<name>QueryLazy</name>
+    		<class>lucee.runtime.functions.query.QueryLazy</class>
+    		<status>hidden</status>
+			<keywords>query</keywords>
+			<description>Executes a SQL query without loading the data entierly to memory. Instead it calls the given Function with every single row</description>
+    		<argument>
+    			<name>sql</name>
+    			<type>string</type>
+    			<required>Yes</required>
+    			<description>SQL to execute</description>
+    	    </argument>
+    		<argument>
+    			<name>listener</name>
+    			<type>function</type>
+    			<required>Yes</required>
+    			<description>listener function that will be called with the data of every single row. if returns false, execution is stopped.</description>
+    	    </argument>
+    		<argument>
+    			<name>params</name>
+    			<alias>param</alias>
+    			<type>any</type>
+    			<required>No</required>
+    			<description>
+    			Array or Struct of parameter values. 
+    			When passing an array use ? as place holders. 
+    			When passing a struct use :keyName where keyName is the name of the key in the structure corresponding to
+    			the parameter. 
+    			The struct or array can be a struct with keys such as the following: cfsqltype, list
+    			</description>
+    	    </argument>
+    	    
+    	    <argument>
+    			<name>options</name>
+    			<alias>option,queryOptions</alias>
+    			<type>struct</type>
+    			<required>No</required>
+    			<description>Struct containing query options, all cfquery tag attributes are supported except the name attribute.</description>
+    	    </argument>
+    		<return>
+    			<type>void</type>
+    		</return>
+    	</function>
 	
 	
 	<!-- render -->
