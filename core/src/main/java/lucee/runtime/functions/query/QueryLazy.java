@@ -86,7 +86,15 @@ public class QueryLazy extends BIF {
 		String user = getString(pc, options, KeyConstants._username, null);
 		String pass = getString(pc, options, KeyConstants._password, null);
 		int returntype = getReturntype(pc, options);
-		Collection.Key columnKey = returntype == RETURN_TYPE_STRUCT ? getKey(pc, options, COLUMNKEY, null) : null;
+		Collection.Key columnKey = null;
+		if (returntype == RETURN_TYPE_STRUCT) {
+			columnKey = getKey(pc, options, COLUMNKEY, null);
+			if (StringUtil.isEmpty(columnKey)) throw new ApplicationException("attribute columnKey is required when return type is set to struct");
+		}
+		else {
+
+		}
+
 		int maxrows = getInt(pc, options, MAXROWS, Integer.MIN_VALUE);
 		int blockfactor = getInt(pc, options, BLOCKFACTOR, Integer.MIN_VALUE);
 
