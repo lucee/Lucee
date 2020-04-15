@@ -228,7 +228,10 @@ public class QueryLazy extends BIF {
 				if (isArray) {
 					_arrRows.appendEL(row);
 					if (blockfactor == rownbr) {
-						if (!Caster.toBooleanValue(listener.call(pc, new Object[] { _arrRows }, true), true)) break;
+						if (!Caster.toBooleanValue(listener.call(pc, new Object[] { _arrRows }, true), true)) {
+							rownbr = 0;
+							break;
+						}
 						_arrRows = new ArrayImpl();
 						rownbr = 0;
 					}
@@ -236,14 +239,20 @@ public class QueryLazy extends BIF {
 				else if (isStruct) {
 					sctRows.set(KeyImpl.toKey(row.get(columnKey)), row);
 					if (blockfactor == rownbr) {
-						if (!Caster.toBooleanValue(listener.call(pc, new Object[] { sctRows }, true), true)) break;
+						if (!Caster.toBooleanValue(listener.call(pc, new Object[] { sctRows }, true), true)) {
+							rownbr = 0;
+							break;
+						}
 						sctRows = new StructImpl();
 						rownbr = 0;
 					}
 				}
 				else if (isQuery) {
 					if (blockfactor == rownbr) {
-						if (!Caster.toBooleanValue(listener.call(pc, new Object[] { qryRows }, true), true)) break;
+						if (!Caster.toBooleanValue(listener.call(pc, new Object[] { qryRows }, true), true)) {
+							rownbr = 0;
+							break;
+						}
 						qryRows = new QueryImpl(tmpKeys.toArray(new Collection.Key[tmpKeys.size()]), blockfactor, "queryLazy");
 						rownbr = 0;
 					}
