@@ -25,6 +25,7 @@ import java.util.Map.Entry;
 
 import org.osgi.framework.Version;
 
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.type.ftp.FTPConnectionData;
@@ -184,8 +185,8 @@ public final class AppListenerUtil {
 			pass = null;
 		}
 		else {
-			user = user.trim();
-			pass = pass.trim();
+			user = translateValue(user);
+			pass = translateValue(pass);
 		}
 
 		// listener
@@ -238,6 +239,17 @@ public final class AppListenerUtil {
 			throw Caster.toPageException(cnfe);
 		}
 
+	}
+
+	private static String translateValue(String str) {
+		if (str == null) return null;
+
+		str = str.trim();
+		if (str.startsWith("{env:") && str.endsWith("}")) {
+			String tmp = str.substring(5, str.length() - 1);
+			return SystemUtil.getSystemPropOrEnvVar(tmp, "");
+		}
+		return str;
 	}
 
 	private static boolean readliteralTimestampWithTSOffset(Struct data) {
@@ -739,6 +751,8 @@ public final class AppListenerUtil {
 		String username = Caster.toString(data.get(KeyConstants._username, null), null);
 		if (StringUtil.isEmpty(username, true)) username = Caster.toString(data.get(KeyConstants._user, null), null);
 		String password = ConfigWebUtil.decrypt(Caster.toString(data.get(KeyConstants._password, null), null));
+		username = translateValue(username);
+		password = translateValue(password);
 
 		TimeSpan lifeTimespan = Caster.toTimespan(data.get("lifeTimespan", null), null);
 		if (lifeTimespan == null) lifeTimespan = Caster.toTimespan(data.get("life", null), FIVE_MINUTES);
