@@ -117,6 +117,7 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 		if (defaultTransactionIsolation == -1) {
 			Connection c = driver.connect(connStrTrans, props);
 			defaultTransactionIsolation = c.getTransactionIsolation();
+			return c;
 		}
 		return driver.connect(connStrTrans, props);
 	}

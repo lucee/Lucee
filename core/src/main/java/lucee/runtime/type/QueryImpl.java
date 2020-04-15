@@ -1206,7 +1206,8 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	public boolean addColumn(Collection.Key columnName, Array content, int type) throws DatabaseException {
 		// disconnectCache();
 		// TODO Meta type
-		content = (Array) Duplicator.duplicate(content, false);
+		if (content == null) content = new ArrayImpl();
+		else content = (Array) Duplicator.duplicate(content, false);
 
 		if (getIndexFromKey(columnName) != -1) throw new DatabaseException("column name [" + columnName.getString() + "] already exist", null, sql, null);
 		if (content.size() != getRecordcount()) {

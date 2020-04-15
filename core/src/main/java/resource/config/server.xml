@@ -31,7 +31,7 @@ Path placeholders:
 			- class:<class> (class that implements java.io.PrintWriter)
 			- file:<file> (file to write in)
 	-->
-	<system out="log" err="log"/>
+	<system out="system" err="system"/>
 
 
 <!--	definition of all database used inside your application. 										-->
