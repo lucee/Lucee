@@ -787,6 +787,9 @@ public final class AppListenerUtil {
 		String pass = Caster.toString(o, null);
 		if (StringUtil.isEmpty(pass)) pass = user != null ? "" : null;
 
+		user = translateValue(user);
+		pass = translateValue(pass);
+
 		// host
 		o = sct.get(KeyConstants._host, null);
 		if (o == null) o = sct.get(KeyConstants._server, null);
