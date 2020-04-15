@@ -433,6 +433,7 @@ div.ok {
 .coding-tip code {
 
 	white-space: pre-wrap;
+	word-wrap: break-word;
 	tab-size: 4;
 	margin: 0.5em;
 	padding: 0.5em;
