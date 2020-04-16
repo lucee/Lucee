@@ -5698,12 +5698,10 @@ public final class XMLConfigAdmin {
 	}
 
 	public void updateLoginSettings(boolean captcha, boolean rememberMe, int delay) {
-
 		Element login = _getRootElement("login");
 		login.setAttribute("captcha", Caster.toString(captcha));
 		login.setAttribute("rememberme", Caster.toString(rememberMe));
 		login.setAttribute("delay", Caster.toString(delay));
-
 	}
 
 	public void updateLogSettings(String name, int level, ClassDefinition appenderCD, Struct appenderArgs, ClassDefinition layoutCD, Struct layoutArgs) throws PageException {
@@ -5722,12 +5720,10 @@ public final class XMLConfigAdmin {
 		try {
 			appenderCD.getClazz();
 			layoutCD.getClazz();
-
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
-
 		Element parent = _getRootElement("logging");
 
 		// Update
@@ -5739,7 +5735,6 @@ public final class XMLConfigAdmin {
 				el = children[i];
 				break;
 			}
-
 		}
 		// Insert
 		if (el == null) {
