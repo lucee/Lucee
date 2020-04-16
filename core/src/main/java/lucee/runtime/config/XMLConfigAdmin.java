@@ -5753,6 +5753,9 @@ public final class XMLConfigAdmin {
 		el.setAttribute("appender-arguments", toStringCSSStyle(appenderArgs));
 		setClass(el, null, "layout-", layoutCD);
 		el.setAttribute("layout-arguments", toStringCSSStyle(layoutArgs));
+
+		if (el.hasAttribute("appender")) el.removeAttribute("appender");
+		if (el.hasAttribute("layout")) el.removeAttribute("layout");
 	}
 
 	public void updateCompilerSettings(Boolean dotNotationUpperCase, Boolean suppressWSBeforeArg, Boolean nullSupport, Boolean handleUnQuotedAttrValueAsString,
@@ -6509,6 +6512,10 @@ public final class XMLConfigAdmin {
 		if (cd.isBundle()) {
 			el.setAttribute(prefix + "bundle-name", cd.getName());
 			if (cd.hasVersion()) el.setAttribute(prefix + "bundle-version", cd.getVersionAsString());
+		}
+		else {
+			if (el.hasAttribute(prefix + "bundle-name")) el.removeAttribute(prefix + "bundle-name");
+			if (el.hasAttribute(prefix + "bundle-version")) el.removeAttribute(prefix + "bundle-version");
 		}
 	}
 
