@@ -25,7 +25,7 @@
 <cfswitch expression="#url.action2#">
 	<cfcase value="settings">
 		<cfif !structKeyExists(form, "location") OR !structKeyExists(form, "locationCustom")>
-			<cfset form.locationCustom = "http://release.lucee.org">
+			<cfset form.locationCustom = "https://update.lucee.org">
 		</cfif>
 		<cfadmin
 			action="UpdateUpdate"
@@ -81,7 +81,7 @@
 		}
 		updateData=getAvailableVersion();*/
 
-		if(updateData.provider.location EQ "http://update.lucee.org"){
+		if(updateData.provider.location EQ "https://update.lucee.org" || updateData.provider.location EQ "http://update.lucee.org"){
 			version = "lucee";
 		} 
 		else{
@@ -248,7 +248,7 @@
 									<b>#stText.services.update.location_custom#</b>
 								</label>
 								<input id="customtextinput" type="text" class="text" name="locationCustom" size="40" value="<cfif  version EQ 'custom'>#updateData.provider.location#</cfif>" disabled>
-								<div class="comment">#replace("#stText.services.update.location_customDesc#","{url}","<a href=""http://docs.lucee.org"">http://docs.lucee.org</a>")#</div>
+								<div class="comment">#replace("#stText.services.update.location_customDesc#","{url}","<a href=""https://docs.lucee.org"">https://docs.lucee.org</a>")#</div>
 								<cfif version EQ 'custom'>
 									<cfhtmlbody>
 										<script type="text/javascript">

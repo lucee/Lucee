@@ -360,7 +360,7 @@
 							This feature is experimental.
 							If you have any problems while using this functionality,
 							please post the bugs and errors in our
-							<a href="http://issues.lucee.org" target="_blank">bugtracking system</a>. 
+							<a href="https://issues.lucee.org" target="_blank">bugtracking system</a>. 
 						</div>
 						<cfinputClassic type="checkbox" class="checkbox" name="requestExclusive" value="yes" checked="#isDefined('datasource.requestExclusive') and datasource.requestExclusive#">
 						<div class="comment">#stText.Settings.requestExclusiveDesc#</div>
@@ -374,7 +374,7 @@
 							This feature is experimental.
 							If you have any problems while using this functionality,
 							please post the bugs and errors in our
-							<a href="http://issues.lucee.org" target="_blank">bugtracking system</a>. 
+							<a href="https://issues.lucee.org" target="_blank">bugtracking system</a>. 
 						</div>
 						<cfinputClassic type="checkbox" class="checkbox" name="alwaysResetConnections" value="yes" checked="#isDefined('datasource.alwaysResetConnections') and datasource.alwaysResetConnections#">
 						<div class="comment">#stText.Settings.alwaysResetConnectionsDesc#</div>

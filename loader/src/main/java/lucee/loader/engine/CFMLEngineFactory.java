@@ -90,7 +90,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	// set to false to disable patch loading, for example in major alpha releases
 	private static final boolean PATCH_ENABLED = true;
 	public static final Version VERSION_ZERO = new Version(0, 0, 0, "0");
-	private static final String UPDATE_LOCATION = "http://release.lucee.org"; // MUST from server.xml
+	private static final String UPDATE_LOCATION = "https://update.lucee.org"; // MUST from server.xml
 	private static final long GB1 = 1024 * 1024 * 1024;
 	private static final long MB100 = 1024 * 1024 * 100;
 	private static final int MAX_REDIRECTS = 5;
@@ -1325,8 +1325,8 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 					str = str.replace("/railo-context.ra", "/lucee-context.lar");
 					str = str.replace("/railo-context", "/lucee");
 					str = str.replace("railo-server-context", "lucee-server");
-					str = str.replace("http://www.getrailo.org", "http://release.lucee.org");
-					str = str.replace("http://www.getrailo.com", "http://release.lucee.org");
+					str = str.replace("http://www.getrailo.org", "https://release.lucee.org");
+					str = str.replace("http://www.getrailo.com", "https://release.lucee.org");
 
 					final ByteArrayInputStream bais = new ByteArrayInputStream(str.getBytes());
 

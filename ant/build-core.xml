@@ -13,8 +13,8 @@
   
   <property name="testboxVersion" value="2.2.0"/>
   <property name="testboxURL" 
-    value="http://downloads.ortussolutions.com/ortussolutions/testbox/${testboxVersion}/testbox-${testboxVersion}.zip"/>
-  <property name="extURL" value="http://extension.lucee.org/rest/extension/provider/full/"/>
+    value="https://downloads.ortussolutions.com/ortussolutions/testbox/${testboxVersion}/testbox-${testboxVersion}.zip"/>
+  <property name="extURL" value="https://extension.lucee.org/rest/extension/provider/full/"/>
   
   <property name="extMongo"       value="E6634E1A-4CC5-4839-A83C67549ECA8D5B"/>
   <property name="extH2"          value="465E1E35-2425-4F4E-8B3FAB638BD7280A"/>
@@ -24,7 +24,7 @@
 
 <!-- TODO get the version number from manifest.mf -->
   
-  <!-- http://www.coldbox.org/download/testbox -->
+  <!-- https://www.coldbox.org/download/testbox -->
   <tstamp>
       <format property="NOW" pattern="yyyy/MM/dd HH:mm:ss z" locale="en,GB"/>
   </tstamp>

@@ -659,14 +659,14 @@ Error Output --->
 						<!--- Prof Support --->
 						<tr>
 							<td>
-								<a href="http://lucee.org/support.html" target="_blank">#stText.Overview.Professional#</a>
+								<a href="https://lucee.org/support.html" target="_blank">#stText.Overview.Professional#</a>
 								<div class="comment">#stText.Overview.ProfessionalDesc#</div>
 							</td>
 						</tr>
 						<!--- Doc --->
 						<tr>
 							<td>
-								<a href="http://docs.lucee.org" target="_blank">#stText.Overview.onlineDocsLink#</a>
+								<a href="https://docs.lucee.org" target="_blank">#stText.Overview.onlineDocsLink#</a>
 								<div class="comment">#stText.Overview.onlineDocsDesc#</div>
 							</td>
 						</tr>
@@ -680,14 +680,14 @@ Error Output --->
 						<!--- Mailing List --->
 						<tr>
 							<td>
-								<a href="http://groups.google.com/group/lucee" target="_blank">#stText.Overview.Mailinglist#</a>
+								<a href="https://groups.google.com/group/lucee" target="_blank">#stText.Overview.Mailinglist#</a>
 								<div class="comment">#stText.Overview.MailinglistDesc#</div>
 							</td>
 						</tr>
 						<!--- Jira --->
 						<tr>
 							<td>
-								<a href="http://issues.lucee.org/" target="_blank">#stText.Overview.issueTracker#</a>
+								<a href="https://issues.lucee.org/" target="_blank">#stText.Overview.issueTracker#</a>
 								<div class="comment">#stText.Overview.issueTrackerDesc#</div>
 							</td>
 						</tr>

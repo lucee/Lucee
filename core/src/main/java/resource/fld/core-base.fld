@@ -4,7 +4,7 @@
 <func-lib>
 	<flib-version>1.00</flib-version>
 	<short-name>fbase</short-name>
-	<uri>http://www.lucee.org/cf-fld-3-1</uri>
+	<uri>https://www.lucee.org/cf-fld-3-1</uri>
 	<display-name>Lucee Core Function Library</display-name>
 	<description>All build in Functions of Lucee</description>
 	
@@ -6009,7 +6009,7 @@ if this attribute is not provided all types are returned.</description>
 	<function>
 		<name>createPageContext</name>
 		<class>lucee.runtime.functions.other.CreatePageContext</class>
-		<description>Creates a PageContext (http://www.lucee.org/javadoc/lucee/runtime/PageContext.html) object that provides access to page attributes and configuration, request and response objects.</description>
+		<description>Creates a PageContext (https://www.lucee.org/javadoc/lucee/runtime/PageContext.html) object that provides access to page attributes and configuration, request and response objects.</description>
 		<argument>
 			<name>serverName</name>
 			<type>string</type>
@@ -6061,7 +6061,7 @@ if this attribute is not provided all types are returned.</description>
 	<function>
 		<name>getPageContext</name>
 		<class>lucee.runtime.functions.other.GetPageContext</class>
-		<description>Gets the current PageContext (http://www.lucee.org/javadoc/lucee/runtime/PageContext.html) object that provides access to page attributes and configuration, request and response objects.</description>
+		<description>Gets the current PageContext (https://www.lucee.org/javadoc/lucee/runtime/PageContext.html) object that provides access to page attributes and configuration, request and response objects.</description>
 		<return>
 			<type>any</type>
 		</return>

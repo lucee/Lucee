@@ -365,7 +365,7 @@ Path placeholders:
 		listener-mode="curr2root"/>
 	
 	<update 
-		location="http://update.lucee.org" 
+		location="https://update.lucee.org" 
 		type="manual"/>
 		
 <!--

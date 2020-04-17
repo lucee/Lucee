@@ -23,7 +23,7 @@ Lucee provides a compatibility layer for Adobe ColdFusion &copy;  CFML using les
 
 ## Installation
 
-You can [build Lucee from source](http://docs.lucee.org/guides/working-with-source.html) or grab one of our distributions:
+You can [build Lucee from source](https://docs.lucee.org/guides/working-with-source.html) or grab one of our distributions:
 
 - [Lucee Express](http://lucee.org/downloads.html) (just unzip and run; delete to clean up)
 - [Installers for Windows, Linux and OSX](http://lucee.org/downloads.html)
@@ -33,7 +33,7 @@ Alternatively try the super-useful [CommandBox](https://www.ortussolutions.com/p
 
 ## Getting Help
 
-- [Lucee Documentation Project](http://docs.lucee.org/)
+- [Lucee Documentation Project](https://docs.lucee.org/)
 - [Lucee Google Group](https://groups.google.com/forum/#!forum/lucee); general app developer support
 - [Lucee Lang Forum](http://lang.lucee.org/); hacking on Lucee itself
 - [Lucee Bug Tracker](https://luceeserver.atlassian.net/projects/LDEV/issues)

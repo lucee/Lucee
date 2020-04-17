@@ -10,7 +10,7 @@
 	<data key="general.dialect.cfmlDesc">The following settings are specific to the CFML dialect. This settings have no influence on the Lucee dialect.</data>
 
 	<data key="services.update.type_manually">Manual</data>
-	<data key="services.update.locdesc">Define the URL where Lucee gets its updates. Typically &quot;http://www.lucee.ch&quot;</data>
+	<data key="services.update.locdesc">Define the URL where Lucee gets its updates. Typically &quot;https://www.lucee.org&quot;</data>
 	<data key="services.update.location">URL</data>
 	<data key="services.update.settitle">Properties</data>
 	<data key="services.update.type">Type</data>
@@ -394,7 +394,7 @@
 	<data key="remote.adminpassworddesc.server">Password for the access to the remote Lucee Server Administrator</data>
 	<data key="remote.urlpath">Path</data>
 	<data key="remote.urlmissing">The remote client URL is missing</data>
-	<data key="remote.urlserverdesc">Remote Client Server (e.g. http://lucee.org)</data>
+	<data key="remote.urlserverdesc">Remote Client Server (e.g. https://lucee.org)</data>
 	<data key="remote.proxyport">Port</data>
 	<data key="remote.labelmissing">The label for the remote client is missing</data>
 	<data key="remote.proxypassword">Password</data>

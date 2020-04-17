@@ -1,7 +1,7 @@
 <!--- TODO: cleanup! !--->
 <!--- language files are deployed to {lucee-web}/context/admin/resources/language by ConfigWebFactory.java and are read from there !--->
 
-<cfset sHelpURL = "http://www.lucee.org/help/stHelp.json">
+<cfset sHelpURL = "https://www.lucee.org/help/stHelp.json">
 <cfparam name="request.stLocalHelp" default="#structNew()#">
 <cfparam name="request.stWebMediaHelp" default="#structNew()#">
 <cfparam name="request.stWebHelp" default="#structNew()#">
