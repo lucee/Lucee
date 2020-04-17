@@ -363,7 +363,8 @@ public final class ConfigWebUtil {
 		// ARP
 
 		strDir = replacePlaceholder(strDir, config);
-		if (checkFromWebroot && strDir != null && strDir.trim().length() > 0) {
+		// checkFromWebroot &&
+		if (strDir != null && strDir.trim().length() > 0) {
 			Resource res = sc == null ? null : _getExistingFile(config.getResource(ResourceUtil.merge(ReqRspUtil.getRootPath(sc), strDir)), type);
 			if (res != null) return res;
 
