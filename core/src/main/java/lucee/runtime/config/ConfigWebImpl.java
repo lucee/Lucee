@@ -100,7 +100,7 @@ import lucee.runtime.writer.CFMLWriterWSPref;
 /**
  * Web Context
  */
-public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, ConfigWeb {
+public class ConfigWebImpl extends ConfigImpl implements ServletConfig, ConfigWeb {
 
 	private final ServletConfig config;
 	private final ConfigServerImpl configServer;

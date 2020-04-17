@@ -420,23 +420,23 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		if (config instanceof ConfigWeb) ConfigWebUtil.deployWebContext(cs, (ConfigWeb) config, false);
 		if (config instanceof ConfigWeb) ConfigWebUtil.deployWeb(cs, (ConfigWeb) config, false);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "deploy web context");
-		loadConfig(cs, config, doc);
+		_loadConfig(cs, config, doc);
 		int mode = config.getMode();
 		Log log = config.getLog("application");
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded config");
-		loadConstants(cs, config, doc, log);
+		_loadConstants(cs, config, doc, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded constants");
-		loadLoggers(cs, config, doc, isReload, log);
+		_loadLoggers(cs, config, doc, isReload, log);
 		log = config.getLog("application");
 		// loadServerLibDesc(cs, config, doc,log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded loggers");
-		loadTempDirectory(cs, config, doc, isReload, log);
+		_loadTempDirectory(cs, config, doc, isReload, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded temp dir");
-		loadId(cs, config, doc, log);
+		_loadId(cs, config, doc, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded id");
-		loadVersion(config, doc, log);
+		_loadVersion(config, doc, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded version");
-		loadSecurity(cs, config, doc, log);
+		_loadSecurity(cs, config, doc, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded security");
 		try {
 			ConfigWebUtil.loadLib(cs, config);
@@ -445,91 +445,91 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			log(config, log, e);
 		}
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded lib");
-		loadSystem(cs, config, doc, log);
+		_loadSystem(cs, config, doc, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded system");
-		loadResourceProvider(cs, config, doc, log);
+		_loadResourceProvider(cs, config, doc, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded resource providers");
-		loadFilesystem(cs, config, doc, doNew, log); // load this before execute any code, what for example loadxtension does (json)
+		_loadFilesystem(cs, config, doc, doNew, log); // load this before execute any code, what for example loadxtension does (json)
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded filesystem");
-		loadExtensionBundles(cs, config, doc, log);
+		_loadExtensionBundles(cs, config, doc, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded extension bundles");
-		loadWS(cs, config, doc, log);
+		_loadWS(cs, config, doc, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded webservice");
-		loadORM(cs, config, doc, log);
+		_loadORM(cs, config, doc, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded orm");
-		loadCacheHandler(cs, config, doc, log);
+		_loadCacheHandler(cs, config, doc, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded cache handlers");
-		loadCharset(cs, config, doc, log);
+		_loadCharset(cs, config, doc, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded charset");
-		loadApplication(cs, config, doc, mode, log);
+		_loadApplication(cs, config, doc, mode, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded application");
-		loadMappings(cs, config, doc, mode, log); // it is important this runs after
+		_loadMappings(cs, config, doc, mode, log); // it is important this runs after
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded mappings");
 		// loadApplication
-		loadRest(cs, config, doc, log);
+		_loadRest(cs, config, doc, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded rest");
-		loadExtensions(cs, config, doc, log);
+		_loadExtensions(cs, config, doc, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded extensions");
-		loadPagePool(cs, config, doc, log);
+		_loadPagePool(cs, config, doc, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded page pool");
-		loadDataSources(cs, config, doc, log);
+		_loadDataSources(cs, config, doc, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded datasources");
-		loadCache(cs, config, doc, log);
+		_loadCache(cs, config, doc, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded cache");
-		loadCustomTagsMappings(cs, config, doc, mode, log);
+		_loadCustomTagsMappings(cs, config, doc, mode, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded custom tag mappings");
 		// loadFilesystem(cs, config, doc, doNew); // load tlds
-		loadTag(cs, config, doc, log); // load tlds
+		_loadTag(cs, config, doc, log); // load tlds
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded tags");
-		loadRegional(cs, config, doc, log);
+		_loadRegional(cs, config, doc, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded regional");
-		loadCompiler(cs, config, doc, mode, log);
+		_loadCompiler(cs, config, doc, mode, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded compiler");
-		loadScope(cs, config, doc, mode, log);
+		_loadScope(cs, config, doc, mode, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded scope");
-		loadMail(cs, config, doc, log);
+		_loadMail(cs, config, doc, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded mail");
-		loadSearch(cs, config, doc, log);
+		_loadSearch(cs, config, doc, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded search");
-		loadScheduler(cs, config, doc, log);
+		_loadScheduler(cs, config, doc, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded scheduled tasks");
-		loadDebug(cs, config, doc, log);
+		_loadDebug(cs, config, doc, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded debug");
-		loadError(cs, config, doc, log);
+		_loadError(cs, config, doc, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded error");
-		loadCFX(cs, config, doc, log);
+		_loadCFX(cs, config, doc, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded cfx");
-		loadComponent(cs, config, doc, mode, log);
+		_loadComponent(cs, config, doc, mode, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded component");
-		loadUpdate(cs, config, doc, log);
+		_loadUpdate(cs, config, doc, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded update");
-		loadJava(cs, config, doc, log); // define compile type
+		_loadJava(cs, config, doc, log); // define compile type
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded java");
-		loadSetting(cs, config, doc, log);
+		_loadSetting(cs, config, doc, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded setting");
-		loadProxy(cs, config, doc, log);
+		_loadProxy(cs, config, doc, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded proxy");
-		loadRemoteClient(cs, config, doc, log);
+		_loadRemoteClient(cs, config, doc, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded remote clients");
-		loadVideo(cs, config, doc, log);
+		_loadVideo(cs, config, doc, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded video");
-		loadFlex(cs, config, doc, log);
+		_loadFlex(cs, config, doc, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded flex");
 		settings(config, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded settings2");
-		loadListener(cs, config, doc, log);
+		_loadListener(cs, config, doc, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded listeners");
-		loadDumpWriter(cs, config, doc, log);
+		_loadDumpWriter(cs, config, doc, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded dump writers");
-		loadGatewayEL(cs, config, doc, log);
+		_loadGatewayEL(cs, config, doc, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded gateways");
-		loadExeLog(cs, config, doc, log);
+		_loadExeLog(cs, config, doc, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded exe log");
-		loadQueue(cs, config, doc, log);
+		_loadQueue(cs, config, doc, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded queue");
-		loadMonitors(cs, config, doc, log);
+		_loadMonitors(cs, config, doc, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded monitors");
-		loadLogin(cs, config, doc, log);
+		_loadLogin(cs, config, doc, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded login");
 		config.setLoadTime(System.currentTimeMillis());
 
@@ -549,13 +549,13 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		return doc;
 	}
 
-	private static void loadResourceProvider(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+	private static void _loadResourceProvider(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
 		try {
 			boolean hasCS = configServer != null;
 			config.clearResourceProviders();
-			Element resources = getChildByName(doc.getDocumentElement(), "resources");
-			Element[] providers = getChildren(resources, "resource-provider");
-			Element[] defaultProviders = getChildren(resources, "default-resource-provider");
+			Element resources = doc != null ? getChildByName(doc.getDocumentElement(), "resources") : null;
+			Element[] providers = resources != null ? getChildren(resources, "resource-provider") : new Element[0];
+			Element[] defaultProviders = resources != null ? getChildren(resources, "default-resource-provider") : new Element[0];
 
 			// Default Resource Provider
 			if (hasCS) config.setDefaultResourceProvider(configServer.getDefaultResourceProvider());
@@ -662,7 +662,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		return cd;
 	}
 
-	private static void loadCacheHandler(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+	private static void _loadCacheHandler(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
 		try {
 			boolean hasCS = configServer != null;
 			// !!!! config.clearResourceProviders();
@@ -685,8 +685,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				}
 			}
 
-			Element root = getChildByName(doc.getDocumentElement(), "cache-handlers");
-			Element[] handlers = getChildren(root, "cache-handler");
+			Element root = doc == null ? null : getChildByName(doc.getDocumentElement(), "cache-handlers");
+			Element[] handlers = root == null ? null : getChildren(root, "cache-handler");
 			if (!ArrayUtil.isEmpty(handlers)) {
 				ClassDefinition cd;
 				String strId;
@@ -712,12 +712,12 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		}
 	}
 
-	private static void loadDumpWriter(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+	private static void _loadDumpWriter(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
 		try {
 			boolean hasCS = configServer != null;
 
-			Element coll = getChildByName(doc.getDocumentElement(), "dump-writers");
-			Element[] writers = getChildren(coll, "dump-writer");
+			Element coll = doc != null ? getChildByName(doc.getDocumentElement(), "dump-writers") : null;
+			Element[] writers = coll != null ? getChildren(coll, "dump-writer") : new Element[0];
 
 			Struct sct = new StructImpl();
 
@@ -803,16 +803,16 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		return URLDecoder.decode(str, false);
 	}
 
-	private static void loadListener(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+	private static void _loadListener(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
 		try {
 			if (config instanceof ConfigServer) {
 				ConfigServer cs = (ConfigServer) config;
-				Element listener = getChildByName(doc.getDocumentElement(), "listener");
-				ClassDefinition cd = getClassDefinition(listener, "", config.getIdentification());
+				Element listener = doc != null ? getChildByName(doc.getDocumentElement(), "listener") : null;
+				ClassDefinition cd = listener != null ? getClassDefinition(listener, "", config.getIdentification()) : null;
 				String strArguments = getAttr(listener, "arguments");
 				if (strArguments == null) strArguments = "";
 
-				if (cd.hasClass()) {
+				if (cd != null && cd.hasClass()) {
 					try {
 
 						Object obj = ClassUtil.loadInstance(cd.getClazz(), new Object[] { strArguments }, null);
@@ -848,9 +848,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		}
 	}
 
-	private static void loadVersion(ConfigImpl config, Document doc, Log log) {
+	private static void _loadVersion(ConfigImpl config, Document doc, Log log) {
 		try {
-			Element luceeConfiguration = doc.getDocumentElement();
+			Element luceeConfiguration = doc != null ? doc.getDocumentElement() : null;
 			String strVersion = getAttr(luceeConfiguration, "version");
 			config.setVersion(Caster.toDoubleValue(strVersion, 1.0d));
 		}
@@ -859,8 +859,15 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		}
 	}
 
-	private static void loadId(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+	private static void _loadId(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
 		try {
+
+			if (doc == null && configServer != null) {
+				Identification id = config.getIdentification();
+				((ConfigWebImpl) config).setIdentification(new IdentificationWebImpl((ConfigWebImpl) config, id.getSecurityKey(), id.getApiKey()));
+				return;
+			}
+
 			// Security key
 			Resource res = config.getConfigDir().getRealResource("id");
 			String securityKey = null;
@@ -876,12 +883,11 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			catch (Exception ioe) {
 				log(config, log, ioe);
 			}
-
 			if (StringUtil.isEmpty(securityKey)) securityKey = UUID.randomUUID().toString();
 
 			// API Key
 			String apiKey = null;
-			String str = getAttr(doc.getDocumentElement(), "api-key");
+			String str = doc != null ? getAttr(doc.getDocumentElement(), "api-key") : null;
 			if (!StringUtil.isEmpty(str, true)) apiKey = str.trim();
 			else if (configServer != null) apiKey = configServer.getIdentification().getApiKey(); // if there is no web api key the server api key is used
 
@@ -924,7 +930,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * @param config
 	 * @param doc
 	 */
-	private static void loadSecurity(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+	private static void _loadSecurity(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
 		try {
 			// Serial Number
 			if (config instanceof ConfigServer) {
@@ -940,19 +946,19 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			SecurityManager securityManager = null;
 			if (config instanceof ConfigServerImpl) {
 				ConfigServerImpl cs = (ConfigServerImpl) config;
-				Element security = getChildByName(doc.getDocumentElement(), "security");
+				Element security = doc != null ? getChildByName(doc.getDocumentElement(), "security") : null;
 
 				// Default SecurityManager
 				SecurityManagerImpl sm = _toSecurityManager(security);
 
 				// additional file access directories
-				Element[] elFileAccesses = getChildren(security, "file-access");
+				Element[] elFileAccesses = security != null ? getChildren(security, "file-access") : new Element[0];
 				sm.setCustomFileAccess(_loadFileAccess(config, elFileAccesses));
 
 				cs.setDefaultSecurityManager(sm);
 
 				// Web SecurityManager
-				Element[] accessors = getChildren(security, "accessor");
+				Element[] accessors = security != null ? getChildren(security, "accessor") : new Element[0];
 				for (int i = 0; i < accessors.length; i++) {
 					String id = getAttr(accessors[i], "id");
 					if (id != null) {
@@ -973,7 +979,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				((ConfigWebImpl) config).setSecurityManager(securityManager);
 			}
 
-			Element security = getChildByName(doc.getDocumentElement(), "security");
+			Element security = doc != null ? getChildByName(doc.getDocumentElement(), "security") : null;
 			if (security != null) {
 				int vu = AppListenerUtil.toVariableUsage(security.getAttribute("variable-usage"), ConfigImpl.QUERY_VAR_USAGE_IGNORE);
 				config.setQueryVarUsage(vu);
@@ -1476,11 +1482,11 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * @param doc
 	 * @throws IOException
 	 */
-	private static void loadMappings(ConfigServerImpl configServer, ConfigImpl config, Document doc, int mode, Log log) throws IOException {
+	private static void _loadMappings(ConfigServerImpl configServer, ConfigImpl config, Document doc, int mode, Log log) throws IOException {
 		try {
 			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_MAPPING);
-			Element el = getChildByName(doc.getDocumentElement(), "mappings");
-			Element[] _mappings = getChildren(el, "mapping");
+			Element el = doc != null ? getChildByName(doc.getDocumentElement(), "mappings") : null;
+			Element[] _mappings = el != null ? getChildren(el, "mapping") : null;
 
 			Map<String, Mapping> mappings = MapFactory.<String, Mapping>getConcurrentMap();
 			Mapping tmp;
@@ -1507,7 +1513,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				}
 			}
 
-			if (hasAccess) {
+			if (hasAccess && doc != null) {
 				boolean hasServerContext = false;
 				for (int i = 0; i < _mappings.length; i++) {
 					el = _mappings[i];
@@ -1626,15 +1632,15 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		return ConfigWebUtil.inspectTemplate(strInsTemp, ConfigImpl.INSPECT_UNDEFINED);
 	}
 
-	private static void loadRest(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+	private static void _loadRest(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
 		try {
 			boolean hasAccess = true;// MUST
 			// ConfigWebUtil.hasAccess(config,SecurityManager.TYPE_REST);
 			boolean hasCS = configServer != null;
-			Element el = getChildByName(doc.getDocumentElement(), "rest");
+			Element el = doc != null ? getChildByName(doc.getDocumentElement(), "rest") : null;
 
 			// list
-			Boolean list = Caster.toBoolean(getAttr(el, "list"), null);
+			Boolean list = el != null ? Caster.toBoolean(getAttr(el, "list"), null) : null;
 			if (list != null) {
 				config.setRestList(list.booleanValue());
 			}
@@ -1642,7 +1648,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				config.setRestList(configServer.getRestList());
 			}
 
-			Element[] _mappings = getChildren(el, "mapping");
+			Element[] _mappings = el != null ? getChildren(el, "mapping") : null;
 
 			// first get mapping defined in server admin (read-only)
 			Map<String, lucee.runtime.rest.Mapping> mappings = new HashMap<String, lucee.runtime.rest.Mapping>();
@@ -1661,7 +1667,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			}
 
 			// get current mappings
-			if (hasAccess) {
+			if (hasAccess && _mappings != null) {
 				for (int i = 0; i < _mappings.length; i++) {
 					el = _mappings[i];
 					String physical = el.getAttribute("physical");
@@ -1683,13 +1689,13 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		}
 	}
 
-	private static void loadFlex(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+	private static void _loadFlex(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
 		try {
-			Element el = getChildByName(doc.getDocumentElement(), "flex");
+			Element el = doc != null ? getChildByName(doc.getDocumentElement(), "flex") : null;
 
 			// engine - we init an engine for every context, but only the server context defines the engine
 			// class
-			if (config instanceof ConfigServerImpl) { // only server context
+			if (config instanceof ConfigServerImpl && doc != null) { // only server context
 
 				// arguments
 				Map<String, String> args = new HashMap<String, String>();
@@ -1730,11 +1736,11 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		return defaultValue;
 	}
 
-	private static void loadLoggers(ConfigServerImpl configServer, ConfigImpl config, Document doc, boolean isReload, Log log) {
+	private static void _loadLoggers(ConfigServerImpl configServer, ConfigImpl config, Document doc, boolean isReload, Log log) {
 		try {
 			config.clearLoggers(Boolean.FALSE);
-			Element parent = getChildByName(doc.getDocumentElement(), "logging");
-			Element[] children = getChildren(parent, "logger");
+			Element parent = doc != null ? getChildByName(doc.getDocumentElement(), "logging") : null;
+			Element[] children = parent != null ? getChildren(parent, "logger") : new Element[0];
 			Element child;
 			String name, appenderArgs, tmp, layoutArgs;
 			ClassDefinition cdAppender, cdLayout;
@@ -1796,11 +1802,11 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		}
 	}
 
-	private static void loadExeLog(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+	private static void _loadExeLog(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
 		try {
 			boolean hasServer = configServer != null;
 
-			Element el = getChildByName(doc.getDocumentElement(), "execution-log");
+			Element el = doc != null ? getChildByName(doc.getDocumentElement(), "execution-log") : null;
 
 			// enabled
 			Boolean bEnabled = Caster.toBoolean(getAttr(el, "enabled"), null);
@@ -1845,10 +1851,10 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				try {
 					if ("console".equalsIgnoreCase(strClass)) clazz = ConsoleExecutionLog.class;
 					else {
-						ClassDefinition cd = getClassDefinition(el, "", config.getIdentification());
+						ClassDefinition cd = el != null ? getClassDefinition(el, "", config.getIdentification()) : null;
 
-						Class c = cd.getClazz();
-						if ((c.newInstance() instanceof ExecutionLog)) {
+						Class c = cd != null ? cd.getClazz() : null;
+						if (c != null && (c.newInstance() instanceof ExecutionLog)) {
 							clazz = c;
 						}
 						else {
@@ -1889,7 +1895,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * @param config
 	 * @param doc
 	 */
-	private static void loadPagePool(ConfigServer configServer, Config config, Document doc, Log log) {
+	private static void _loadPagePool(ConfigServer configServer, Config config, Document doc, Log log) {
 		// TODO xml configuration fuer das erstellen
 		// config.setPagePool( new PagePool(10000,1000));
 	}
@@ -1903,10 +1909,10 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * @throws BundleException
 	 * @throws ClassNotFoundException
 	 */
-	private static void loadDataSources(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+	private static void _loadDataSources(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
 		try {
 			// load JDBC Driver definition
-			config.setJDBCDrivers(loadJDBCDrivers(configServer, config, doc, log));
+			config.setJDBCDrivers(_loadJDBCDrivers(configServer, config, doc, log));
 
 			// When set to true, makes JDBC use a representation for DATE data that
 			// is compatible with the Oracle8i database.
@@ -1952,12 +1958,12 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			}
 
 			// Databases
-			Element databases = getChildByName(doc.getDocumentElement(), "data-sources");
+			Element databases = doc != null ? getChildByName(doc.getDocumentElement(), "data-sources") : null;
 			// if(databases==null)databases=doc.createElement("data-sources");
 
 			// PSQ
-			String strPSQ = getAttr(databases, "psq");
-			if (StringUtil.isEmpty(strPSQ)) {
+			String strPSQ = databases != null ? getAttr(databases, "psq") : null;
+			if (databases != null && StringUtil.isEmpty(strPSQ)) {
 				// prior version was buggy, was the opposite
 				strPSQ = getAttr(databases, "preserve-single-quote");
 				if (!StringUtil.isEmpty(strPSQ)) {
@@ -1971,7 +1977,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			else if (hasCS) config.setPSQL(configServer.getPSQL());
 
 			// Data Sources
-			Element[] dataSources = getChildren(databases, "data-source");
+			Element[] dataSources = databases != null ? getChildren(databases, "data-source") : new Element[0];
 			if (accessCount == -1) accessCount = dataSources.length;
 			if (dataSources.length < accessCount) accessCount = dataSources.length;
 
@@ -2061,7 +2067,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		return cd;
 	}
 
-	public static JDBCDriver[] loadJDBCDrivers(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+	public static JDBCDriver[] _loadJDBCDrivers(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
 		Map<String, JDBCDriver> map = new HashMap<String, JDBCDriver>();
 
 		// first add the server drivers, so they can be overwritten
@@ -2074,8 +2080,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			}
 		}
 
-		Element jdbc = getChildByName(doc.getDocumentElement(), "jdbc");
-		Element[] drivers = getChildren(jdbc, "driver");
+		Element jdbc = doc != null ? getChildByName(doc.getDocumentElement(), "jdbc") : null;
+		Element[] drivers = jdbc != null ? getChildren(jdbc, "driver") : new Element[0];
 
 		ClassDefinition cd;
 		String label, id, connStr;
@@ -2135,14 +2141,14 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * @param config
 	 * @param doc
 	 */
-	private static void loadCache(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+	private static void _loadCache(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
 		try {
 			boolean hasCS = configServer != null;
 
 			// load Cache info
 			{
-				Element parent = getChildByName(doc.getDocumentElement(), "caches");
-				Element[] children = getChildren(parent, "cache");
+				Element parent = doc != null ? getChildByName(doc.getDocumentElement(), "caches") : null;
+				Element[] children = parent != null ? getChildren(parent, "cache") : new Element[0];
 				Map<String, ClassDefinition> map = new HashMap<String, ClassDefinition>();
 
 				// first add the server drivers, so they can be overwritten
@@ -2175,11 +2181,11 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManagerImpl.TYPE_CACHE);
 			// print.o("LOAD CACHE:"+hasAccess+":"+hasCS);
 
-			Element eCache = getChildByName(doc.getDocumentElement(), "cache");
+			Element eCache = doc != null ? getChildByName(doc.getDocumentElement(), "cache") : null;
 
 			// has changes
 
-			String md5 = getMD5(eCache, hasCS ? configServer.getCacheMD5() : "");
+			String md5 = eCache != null ? getMD5(eCache, hasCS ? configServer.getCacheMD5() : "") : "";
 			if (md5.equals(config.getCacheMD5())) return;
 			config.setCacheMD5(md5);
 
@@ -2189,19 +2195,19 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 			// default cache
 			for (int i = 0; i < types.length; i++) {
-				String def = getAttr(eCache, "default-" + typeNames[i]);
+				String def = eCache != null ? getAttr(eCache, "default-" + typeNames[i]) : null;
 				if (hasAccess && !StringUtil.isEmpty(def)) {
 					config.setCacheDefaultConnectionName(types[i], def);
 				}
 				else if (hasCS) {
-					if (eCache.hasAttribute("default-" + typeNames[i])) config.setCacheDefaultConnectionName(types[i], "");
+					if (eCache != null && eCache.hasAttribute("default-" + typeNames[i])) config.setCacheDefaultConnectionName(types[i], "");
 					else config.setCacheDefaultConnectionName(types[i], configServer.getCacheDefaultConnectionName(types[i]));
 				}
 				else config.setCacheDefaultConnectionName(+types[i], "");
 			}
 
 			// cache connections
-			Element[] eConnections = getChildren(eCache, "connection");
+			Element[] eConnections = eCache != null ? getChildren(eCache, "connection") : new Element[0];
 
 			// if(hasAccess) {
 			ClassDefinition cd;
@@ -2326,16 +2332,16 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		}
 	}
 
-	private static void loadGatewayEL(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+	private static void _loadGatewayEL(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
 		try {
-			loadGateway(configServer, config, doc);
+			_loadGateway(configServer, config, doc);
 		}
 		catch (Exception e) {
 			log(config, log, e);
 		}
 	}
 
-	private static void loadGateway(ConfigServerImpl configServer, ConfigImpl config, Document doc) {
+	private static void _loadGateway(ConfigServerImpl configServer, ConfigImpl config, Document doc) {
 		boolean hasCS = configServer != null;
 
 		// ConfigWebImpl cw = (ConfigWebImpl) config;
@@ -2356,11 +2362,11 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			}
 		}
 
-		Element eGateWay = getChildByName(doc.getDocumentElement(), "gateways");
+		Element eGateWay = doc != null ? getChildByName(doc.getDocumentElement(), "gateways") : null;
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManagerImpl.TYPE_GATEWAY);
 		GatewayEntry ge;
 		// cache connections
-		Element[] gateways = getChildren(eGateWay, "gateway");
+		Element[] gateways = eGateWay != null ? getChildren(eGateWay, "gateway") : new Element[0];
 
 		// if(hasAccess) {
 		String id;
@@ -2456,17 +2462,17 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * @param doc
 	 * @throws IOException
 	 */
-	private static void loadCustomTagsMappings(ConfigServerImpl configServer, ConfigImpl config, Document doc, int mode, Log log) {
+	private static void _loadCustomTagsMappings(ConfigServerImpl configServer, ConfigImpl config, Document doc, int mode, Log log) {
 		try {
 			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_CUSTOM_TAG);
 			boolean hasCS = configServer != null;
 
-			Element customTag = getChildByName(doc.getDocumentElement(), "custom-tag");
-			Element[] ctMappings = getChildren(customTag, "mapping");
+			Element customTag = doc != null ? getChildByName(doc.getDocumentElement(), "custom-tag") : null;
+			Element[] ctMappings = customTag != null ? getChildren(customTag, "mapping") : new Element[0];
 			// String virtualx="/custom-tag/";
 
 			// do patch cache
-			String strDoPathcache = getAttr(customTag, "use-cache-path");
+			String strDoPathcache = customTag != null ? getAttr(customTag, "use-cache-path") : null;
 			if (hasAccess && !StringUtil.isEmpty(strDoPathcache, true)) {
 				config.setUseCTPathCache(Caster.toBooleanValue(strDoPathcache.trim(), true));
 			}
@@ -2479,7 +2485,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				config.setDoLocalCustomTag(false);
 			}
 			else {
-				String strDoCTLocalSearch = getAttr(customTag, "custom-tag-local-search");
+				String strDoCTLocalSearch = customTag != null ? getAttr(customTag, "custom-tag-local-search") : null;
 				if (hasAccess && !StringUtil.isEmpty(strDoCTLocalSearch)) {
 					config.setDoLocalCustomTag(Caster.toBooleanValue(strDoCTLocalSearch.trim(), true));
 				}
@@ -2493,7 +2499,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				config.setDoCustomTagDeepSearch(false);
 			}
 			else {
-				String strDoCTDeepSearch = getAttr(customTag, "custom-tag-deep-search");
+				String strDoCTDeepSearch = customTag != null ? getAttr(customTag, "custom-tag-deep-search") : null;
 				if (hasAccess && !StringUtil.isEmpty(strDoCTDeepSearch)) {
 					config.setDoCustomTagDeepSearch(Caster.toBooleanValue(strDoCTDeepSearch.trim(), false));
 				}
@@ -2507,7 +2513,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				config.setCustomTagExtensions(Constants.getComponentExtensions());
 			}
 			else {
-				String strExtensions = getAttr(customTag, "extensions");
+				String strExtensions = customTag != null ? getAttr(customTag, "extensions") : null;
 				if (hasAccess && !StringUtil.isEmpty(strExtensions)) {
 					try {
 						String[] arr = ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(strExtensions, ","));
@@ -2610,23 +2616,30 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * @throws IOException
 	 * @throws NoSuchAlgorithmException
 	 */
-	private static void loadConfig(ConfigServerImpl configServer, ConfigImpl config, Document doc) {
-		Element luceeConfiguration = doc.getDocumentElement();
-
-		// salt (every context need to have a salt)
-		String salt = getAttr(luceeConfiguration, "salt");
-		if (StringUtil.isEmpty(salt, true)) throw new RuntimeException("context is invalid, there is no salt!");
-		config.setSalt(salt = salt.trim());
-
-		// password
-		Password pw = PasswordImpl.readFromXML(luceeConfiguration, salt, false);
-		if (pw != null) {
-			config.setPassword(pw);
-			if (config instanceof ConfigWebImpl) ((ConfigWebImpl) config).setPasswordSource(ConfigWebImpl.PASSWORD_ORIGIN_WEB);
+	private static void _loadConfig(ConfigServerImpl configServer, ConfigImpl config, Document doc) {
+		Element luceeConfiguration = doc != null ? doc.getDocumentElement() : null;
+		String salt = null;
+		Password pw = null;
+		if (doc == null && configServer != null) {
+			config.setPassword(configServer.getPassword());
+			config.setSalt(configServer.getSalt());
 		}
-		else if (configServer != null) {
-			((ConfigWebImpl) config).setPasswordSource(configServer.hasCustomDefaultPassword() ? ConfigWebImpl.PASSWORD_ORIGIN_DEFAULT : ConfigWebImpl.PASSWORD_ORIGIN_SERVER);
-			config.setPassword(configServer.getDefaultPassword());
+		else {
+			// salt (every context need to have a salt)
+			salt = getAttr(luceeConfiguration, "salt");
+			if (StringUtil.isEmpty(salt, true)) throw new RuntimeException("context is invalid, there is no salt!");
+			config.setSalt(salt = salt.trim());
+
+			// password
+			pw = PasswordImpl.readFromXML(luceeConfiguration, salt, false);
+			if (pw != null) {
+				config.setPassword(pw);
+				if (config instanceof ConfigWebImpl) ((ConfigWebImpl) config).setPasswordSource(ConfigWebImpl.PASSWORD_ORIGIN_WEB);
+			}
+			else if (configServer != null) {
+				((ConfigWebImpl) config).setPasswordSource(configServer.hasCustomDefaultPassword() ? ConfigWebImpl.PASSWORD_ORIGIN_DEFAULT : ConfigWebImpl.PASSWORD_ORIGIN_SERVER);
+				config.setPassword(configServer.getDefaultPassword());
+			}
 		}
 
 		if (config instanceof ConfigServerImpl) {
@@ -2683,11 +2696,11 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * config.setLabel(label); config.getFactory().setLabel(label); } } } }
 	 */
 
-	private static void loadTag(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+	private static void _loadTag(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
 		try {
-			Element parent = getChildByName(doc.getDocumentElement(), "tags");
+			Element parent = doc != null ? getChildByName(doc.getDocumentElement(), "tags") : null;
 			{
-				Element[] tags = getChildren(parent, "tag");
+				Element[] tags = parent != null ? getChildren(parent, "tag") : new Element[0];
 				Element tag;
 				ClassDefinition cd;
 				String nss, ns, n;
@@ -2704,7 +2717,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			}
 
 			// set tag default values
-			Element[] defaults = getChildren(parent, "default");
+			Element[] defaults = parent != null ? getChildren(parent, "default") : new Element[0];
 			if (!ArrayUtil.isEmpty(defaults)) {
 				Element def;
 				String tagName, attrName, attrValue;
@@ -2737,8 +2750,13 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		}
 	}
 
-	private static void loadTempDirectory(ConfigServerImpl configServer, ConfigImpl config, Document doc, boolean isReload, Log log) {
+	private static void _loadTempDirectory(ConfigServerImpl configServer, ConfigImpl config, Document doc, boolean isReload, Log log) {
 		try {
+			if (configServer != null && doc == null) {
+				config.setTempDirectory(configServer.getTempDirectory(), !isReload);
+				return;
+			}
+
 			Resource configDir = config.getConfigDir();
 			boolean hasCS = configServer != null;
 
@@ -2771,7 +2789,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * @throws TagLibException
 	 * @throws FunctionLibException
 	 */
-	private static void loadFilesystem(ConfigServerImpl configServer, ConfigImpl config, Document doc, boolean doNew, Log log) {
+	private static void _loadFilesystem(ConfigServerImpl configServer, ConfigImpl config, Document doc, boolean doNew, Log log) {
 		try {
 			if (configServer != null) {
 				Resource src = configServer.getConfigDir().getRealResource("distribution");
@@ -2787,24 +2805,30 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			// String strTempDirectory=null;
 
 			// system.property or env var
-			String strDefaultFLDDirectory = hasCS ? null : SystemUtil.getSystemPropOrEnvVar("lucee.library.fld", null);
-			String strDefaultTLDDirectory = hasCS ? null : SystemUtil.getSystemPropOrEnvVar("lucee.library.tld", null);
-			String strDefaultFuncDirectory = hasCS ? null : SystemUtil.getSystemPropOrEnvVar("lucee.library.function", null);
-			String strDefaultTagDirectory = hasCS ? null : SystemUtil.getSystemPropOrEnvVar("lucee.library.tag", null);
-			if (StringUtil.isEmpty(strDefaultFLDDirectory)) strDefaultFLDDirectory = hasCS ? null : SystemUtil.getSystemPropOrEnvVar("lucee.library.default.fld", null);
-			if (StringUtil.isEmpty(strDefaultTLDDirectory)) strDefaultTLDDirectory = hasCS ? null : SystemUtil.getSystemPropOrEnvVar("lucee.library.default.tld", null);
-			if (StringUtil.isEmpty(strDefaultFuncDirectory)) strDefaultFuncDirectory = hasCS ? null : SystemUtil.getSystemPropOrEnvVar("lucee.library.default.function", null);
-			if (StringUtil.isEmpty(strDefaultTagDirectory)) strDefaultTagDirectory = hasCS ? null : SystemUtil.getSystemPropOrEnvVar("lucee.library.default.tag", null);
+			String strDefaultFLDDirectory = null;
+			String strDefaultTLDDirectory = null;
+			String strDefaultFuncDirectory = null;
+			String strDefaultTagDirectory = null;
+			String strFuncDirectory = null;
+			String strTagDirectory = null;
 
-			// String strFLDDirectory =
-			// hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.addional.fld", null);
-			// String strTLDDirectory =
-			// hasCS?null:SystemUtil.getSystemPropOrEnvVar("lucee.library.addional.tld", null);
-			String strFuncDirectory = hasCS ? null : SystemUtil.getSystemPropOrEnvVar("lucee.library.addional.function", null);
-			String strTagDirectory = hasCS ? null : SystemUtil.getSystemPropOrEnvVar("lucee.library.addional.tag", null);
+			// only read in server context
+			if (!hasCS) {
+				strDefaultFLDDirectory = SystemUtil.getSystemPropOrEnvVar("lucee.library.fld", null);
+				strDefaultTLDDirectory = SystemUtil.getSystemPropOrEnvVar("lucee.library.tld", null);
+				strDefaultFuncDirectory = SystemUtil.getSystemPropOrEnvVar("lucee.library.function", null);
+				strDefaultTagDirectory = SystemUtil.getSystemPropOrEnvVar("lucee.library.tag", null);
+				if (StringUtil.isEmpty(strDefaultFLDDirectory)) strDefaultFLDDirectory = SystemUtil.getSystemPropOrEnvVar("lucee.library.default.fld", null);
+				if (StringUtil.isEmpty(strDefaultTLDDirectory)) strDefaultTLDDirectory = SystemUtil.getSystemPropOrEnvVar("lucee.library.default.tld", null);
+				if (StringUtil.isEmpty(strDefaultFuncDirectory)) strDefaultFuncDirectory = SystemUtil.getSystemPropOrEnvVar("lucee.library.default.function", null);
+				if (StringUtil.isEmpty(strDefaultTagDirectory)) strDefaultTagDirectory = SystemUtil.getSystemPropOrEnvVar("lucee.library.default.tag", null);
+				strFuncDirectory = SystemUtil.getSystemPropOrEnvVar("lucee.library.addional.function", null);
+				strTagDirectory = SystemUtil.getSystemPropOrEnvVar("lucee.library.addional.tag", null);
 
-			Element fileSystem = getChildByName(doc.getDocumentElement(), "file-system");
-			if (fileSystem == null) fileSystem = getChildByName(doc.getDocumentElement(), "filesystem");
+			}
+
+			Element fileSystem = doc != null ? getChildByName(doc.getDocumentElement(), "file-system") : null;
+			if (fileSystem == null) fileSystem = doc != null ? getChildByName(doc.getDocumentElement(), "filesystem") : null;
 
 			// get library directories
 			if (fileSystem != null) {
@@ -2818,11 +2842,6 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				if (StringUtil.isEmpty(strDefaultFLDDirectory)) strDefaultFLDDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("fld-default-directory"));
 				if (StringUtil.isEmpty(strDefaultTagDirectory)) strDefaultTagDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("tag-default-directory"));
 				if (StringUtil.isEmpty(strDefaultFuncDirectory)) strDefaultFuncDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("function-default-directory"));
-
-				// if(StringUtil.isEmpty(strTLDDirectory)) strTLDDirectory =
-				// ConfigWebUtil.translateOldPath(fileSystem.getAttribute("tld-addional-directory"));
-				// if(StringUtil.isEmpty(strFLDDirectory)) strFLDDirectory =
-				// ConfigWebUtil.translateOldPath(fileSystem.getAttribute("fld-addional-directory"));
 				if (StringUtil.isEmpty(strTagDirectory)) strTagDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("tag-addional-directory"));
 				if (StringUtil.isEmpty(strFuncDirectory)) strFuncDirectory = ConfigWebUtil.translateOldPath(fileSystem.getAttribute("function-addional-directory"));
 			}
@@ -3049,10 +3068,10 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * @param config
 	 * @param doc
 	 */
-	private static void loadUpdate(ConfigServer configServer, Config config, Document doc, Log log) {
+	private static void _loadUpdate(ConfigServer configServer, Config config, Document doc, Log log) {
 		try {
 			// Server
-			if (config instanceof ConfigServer) {
+			if (config instanceof ConfigServer && doc != null) {
 				ConfigServer cs = (ConfigServer) config;
 				Element update = getChildByName(doc.getDocumentElement(), "update");
 
@@ -3073,9 +3092,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		}
 	}
 
-	private static void loadVideo(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+	private static void _loadVideo(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
 		try {
-			Element video = config instanceof ConfigServerImpl ? getChildByName(doc.getDocumentElement(), "video") : null;
+			Element video = config instanceof ConfigServerImpl && doc != null ? getChildByName(doc.getDocumentElement(), "video") : null;
 			boolean hasCS = configServer != null;
 			ClassDefinition cd = null;
 			// video-executer
@@ -3108,11 +3127,11 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * @param config
 	 * @param doc
 	 */
-	private static void loadSetting(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+	private static void _loadSetting(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
 		try {
 			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 
-			Element setting = hasAccess ? getChildByName(doc.getDocumentElement(), "setting") : null;
+			Element setting = hasAccess && doc != null ? getChildByName(doc.getDocumentElement(), "setting") : null;
 			boolean hasCS = configServer != null;
 			String str = null;
 
@@ -3194,7 +3213,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				config.setAllowCompression(toBoolean(str, true));
 			}
 			else if (hasCS) config.setAllowCompression(configServer.allowCompression());
-			Element mode = getChildByName(doc.getDocumentElement(), "mode");
+			Element mode = doc != null ? getChildByName(doc.getDocumentElement(), "mode") : null;
 			// mode
 			String developMode = getAttr(mode, "develop");
 			if (!StringUtil.isEmpty(developMode) && hasAccess) {
@@ -3207,7 +3226,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		}
 	}
 
-	private static void loadRemoteClient(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+	private static void _loadRemoteClient(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
 		try {
 			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManagerImpl.TYPE_REMOTE);
 
@@ -3215,7 +3234,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			// RemoteClientUsage
 
 			// boolean hasCS=configServer!=null;
-			Element _clients = getChildByName(doc.getDocumentElement(), "remote-clients");
+			Element _clients = doc != null ? getChildByName(doc.getDocumentElement(), "remote-clients") : null;
 
 			// usage
 			String strUsage = getAttr(_clients, "usage");
@@ -3241,7 +3260,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 			// directory
 			String strDir = SystemUtil.getSystemPropOrEnvVar("lucee.task.directory", null);
-			if (StringUtil.isEmpty(strDir)) strDir = _clients.getAttribute("directory");
+			if (StringUtil.isEmpty(strDir)) strDir = _clients != null ? _clients.getAttribute("directory") : null;
 			Resource file = ConfigWebUtil.getFile(config.getRootDirectory(), strDir, "client-task", config.getConfigDir(), FileUtil.TYPE_DIR, config);
 			config.setRemoteClientDirectory(file);
 
@@ -3249,7 +3268,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			Element client;
 
 			if (!hasAccess) clients = new Element[0];
-			else clients = getChildren(_clients, "remote-client");
+			else clients = _clients != null ? getChildren(_clients, "remote-client") : new Element[0];
 			java.util.List<RemoteClient> list = new ArrayList<RemoteClient>();
 			for (int i = 0; i < clients.length; i++) {
 				client = clients[i];
@@ -3308,11 +3327,11 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		}
 	}
 
-	private static void loadSystem(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+	private static void _loadSystem(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
 		try {
 
 			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-			Element sys = hasAccess ? getChildByName(doc.getDocumentElement(), "system") : null;
+			Element sys = hasAccess && doc != null ? getChildByName(doc.getDocumentElement(), "system") : null;
 
 			boolean hasCS = configServer != null;
 
@@ -3398,13 +3417,13 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * @param config
 	 * @param doc
 	 */
-	private static void loadCharset(ConfigServer configServer, ConfigImpl config, Document doc, Log log) {
+	private static void _loadCharset(ConfigServer configServer, ConfigImpl config, Document doc, Log log) {
 		try {
 			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 
-			Element charset = hasAccess ? getChildByName(doc.getDocumentElement(), "charset") : null;
-			Element regional = hasAccess ? getChildByName(doc.getDocumentElement(), "regional") : null;
-			Element fileSystem = hasAccess ? getChildByName(doc.getDocumentElement(), "file-system") : null;
+			Element charset = hasAccess && doc != null ? getChildByName(doc.getDocumentElement(), "charset") : null;
+			Element regional = hasAccess && doc != null ? getChildByName(doc.getDocumentElement(), "regional") : null;
+			Element fileSystem = hasAccess && doc != null ? getChildByName(doc.getDocumentElement(), "file-system") : null;
 
 			boolean hasCS = configServer != null;
 
@@ -3442,9 +3461,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		}
 	}
 
-	private static void loadQueue(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+	private static void _loadQueue(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
 		try {
-			Element queue = getChildByName(doc.getDocumentElement(), "queue");
+			Element queue = doc != null ? getChildByName(doc.getDocumentElement(), "queue") : null;
 
 			// Server
 			if (config instanceof ConfigServerImpl) {
@@ -3484,11 +3503,11 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * @param config
 	 * @param doc
 	 */
-	private static void loadRegional(ConfigServer configServer, ConfigImpl config, Document doc, Log log) {
+	private static void _loadRegional(ConfigServer configServer, ConfigImpl config, Document doc, Log log) {
 		try {
 			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 
-			Element regional = hasAccess ? getChildByName(doc.getDocumentElement(), "regional") : null;
+			Element regional = hasAccess && doc != null ? getChildByName(doc.getDocumentElement(), "regional") : null;
 			boolean hasCS = configServer != null;
 
 			// timeZone
@@ -3537,11 +3556,10 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		}
 	}
 
-	private static void loadWS(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
-
+	private static void _loadWS(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
 		try {
-			Element el = getChildByName(doc.getDocumentElement(), "webservice");
-			ClassDefinition cd = getClassDefinition(el, "", config.getIdentification());
+			Element el = doc != null ? getChildByName(doc.getDocumentElement(), "webservice") : null;
+			ClassDefinition cd = el != null ? getClassDefinition(el, "", config.getIdentification()) : null;
 			if (cd != null && !StringUtil.isEmpty(cd.getClassName())) {
 				config.setWSHandlerClassDefinition(cd);
 			}
@@ -3554,11 +3572,11 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		}
 	}
 
-	private static void loadORM(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+	private static void _loadORM(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
 		try {
 			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManagerImpl.TYPE_ORM);
 
-			Element orm = hasAccess ? getChildByName(doc.getDocumentElement(), "orm") : null;
+			Element orm = hasAccess && doc != null ? getChildByName(doc.getDocumentElement(), "orm") : null;
 			boolean hasCS = configServer != null;
 
 			// engine
@@ -3587,9 +3605,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			config.setORMEngineClass(cd);
 
 			// config
-			if (orm == null) orm = doc.createElement("orm"); // this is just a dummy
+			if (orm == null && doc != null) orm = doc.createElement("orm"); // this is just a dummy
 			ORMConfiguration def = hasCS ? configServer.getORMConfig() : null;
-			ORMConfiguration ormConfig = ORMConfigurationImpl.load(config, null, orm, config.getRootDirectory(), def);
+			ORMConfiguration ormConfig = doc == null ? def : ORMConfigurationImpl.load(config, null, orm, config.getRootDirectory(), def);
 			config.setORMConfig(ormConfig);
 		}
 		catch (Exception e) {
@@ -3604,17 +3622,17 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * @throws PageException
 	 * @throws IOException
 	 */
-	private static void loadScope(ConfigServerImpl configServer, ConfigImpl config, Document doc, int mode, Log log) {
+	private static void _loadScope(ConfigServerImpl configServer, ConfigImpl config, Document doc, int mode, Log log) {
 		try {
 			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 
-			Element scope = getChildByName(doc.getDocumentElement(), "scope");
+			Element scope = doc != null ? getChildByName(doc.getDocumentElement(), "scope") : null;
 			boolean hasCS = configServer != null;
 
 			// Cluster Scope
 			if (!hasCS) {
-				ClassDefinition cd = getClassDefinition(scope, "cluster-", config.getIdentification());
-				if (hasAccess && cd.hasClass()) {
+				ClassDefinition cd = scope != null ? getClassDefinition(scope, "cluster-", config.getIdentification()) : null;
+				if (hasAccess && cd != null && cd.hasClass()) {
 					try {
 						Class clazz = cd.getClazz();
 						if (!Reflector.isInstaneOf(clazz, Cluster.class, false) && !Reflector.isInstaneOf(clazz, ClusterRemote.class, false)) throw new ApplicationException(
@@ -3637,7 +3655,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				config.setLocalMode(Undefined.MODE_LOCAL_OR_ARGUMENTS_ALWAYS);
 			}
 			else {
-				String strLocalMode = getAttr(scope, "local-mode");
+				String strLocalMode = scope != null ? getAttr(scope, "local-mode") : null;
 				if (hasAccess && !StringUtil.isEmpty(strLocalMode)) {
 					config.setLocalMode(strLocalMode);
 				}
@@ -3645,14 +3663,14 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			}
 
 			// CGI readonly
-			String strCGIReadonly = getAttr(scope, "cgi-readonly");
+			String strCGIReadonly = scope != null ? getAttr(scope, "cgi-readonly") : null;
 			if (hasAccess && !StringUtil.isEmpty(strCGIReadonly)) {
 				config.setCGIScopeReadonly(Caster.toBooleanValue(strCGIReadonly, true));
 			}
 			else if (hasCS) config.setCGIScopeReadonly(configServer.getCGIScopeReadonly());
 
 			// Session-Type
-			String strSessionType = getAttr(scope, "session-type");
+			String strSessionType = scope != null ? getAttr(scope, "session-type") : null;
 			if (hasAccess && !StringUtil.isEmpty(strSessionType)) {
 				config.setSessionType(AppListenerUtil.toSessionType(strSessionType, hasCS ? configServer.getSessionType() : Config.SESSION_TYPE_APPLICATION));
 			}
@@ -3663,7 +3681,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				config.setScopeCascadingType(Config.SCOPE_STRICT);
 			}
 			else {
-				String strScopeCascadingType = getAttr(scope, "cascading");
+				String strScopeCascadingType = scope != null ? getAttr(scope, "cascading") : null;
 				if (hasAccess && !StringUtil.isEmpty(strScopeCascadingType)) {
 					config.setScopeCascadingType(ConfigWebUtil.toScopeCascading(strScopeCascadingType, Config.SCOPE_STANDARD));
 				}
@@ -3684,7 +3702,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			}
 
 			// Merge url and Form
-			String strMergeFormAndURL = getAttr(scope, "merge-url-form");
+			String strMergeFormAndURL = scope != null ? getAttr(scope, "merge-url-form") : null;
 			if (hasAccess && !StringUtil.isEmpty(strMergeFormAndURL)) {
 				config.setMergeFormAndURL(toBoolean(strMergeFormAndURL, false));
 			}
@@ -3692,8 +3710,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 			// Client-Storage
 			{
-				String clientStorage = getAttr(scope, "clientstorage");
-				if (StringUtil.isEmpty(clientStorage, true)) clientStorage = getAttr(scope, "client-storage");
+				String clientStorage = scope != null ? getAttr(scope, "clientstorage") : null;
+				if (StringUtil.isEmpty(clientStorage, true)) clientStorage = scope != null ? getAttr(scope, "client-storage") : null;
 
 				if (hasAccess && !StringUtil.isEmpty(clientStorage)) {
 					config.setClientStorage(clientStorage);
@@ -3703,8 +3721,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 			// Session-Storage
 			{
-				String sessionStorage = getAttr(scope, "sessionstorage");
-				if (StringUtil.isEmpty(sessionStorage, true)) sessionStorage = getAttr(scope, "session-storage");
+				String sessionStorage = scope != null ? getAttr(scope, "sessionstorage") : null;
+				if (StringUtil.isEmpty(sessionStorage, true)) sessionStorage = scope != null ? getAttr(scope, "session-storage") : null;
 
 				if (hasAccess && !StringUtil.isEmpty(sessionStorage)) {
 					config.setSessionStorage(sessionStorage);
@@ -3713,11 +3731,11 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			}
 
 			// Client Timeout
-			String clientTimeout = getAttr(scope, "clienttimeout");
-			if (StringUtil.isEmpty(clientTimeout, true)) clientTimeout = getAttr(scope, "client-timeout");
+			String clientTimeout = scope != null ? getAttr(scope, "clienttimeout") : null;
+			if (StringUtil.isEmpty(clientTimeout, true)) clientTimeout = scope != null ? getAttr(scope, "client-timeout") : null;
 			if (StringUtil.isEmpty(clientTimeout, true)) {
 				// deprecated
-				clientTimeout = getAttr(scope, "client-max-age");
+				clientTimeout = scope != null ? getAttr(scope, "client-max-age") : null;
 				int days = Caster.toIntValue(clientTimeout, -1);
 				if (days > 0) clientTimeout = days + ",0,0,0";
 				else clientTimeout = "";
@@ -3728,7 +3746,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			else if (hasCS) config.setClientTimeout(configServer.getClientTimeout());
 
 			// Session Timeout
-			String sessionTimeout = getAttr(scope, "sessiontimeout");
+			String sessionTimeout = scope != null ? getAttr(scope, "sessiontimeout") : null;
 			if (hasAccess && !StringUtil.isEmpty(sessionTimeout)) {
 				config.setSessionTimeout(sessionTimeout);
 			}
@@ -3736,14 +3754,14 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 			// App Timeout
 
-			String appTimeout = getAttr(scope, "applicationtimeout");
+			String appTimeout = scope != null ? getAttr(scope, "applicationtimeout") : null;
 			if (hasAccess && !StringUtil.isEmpty(appTimeout)) {
 				config.setApplicationTimeout(appTimeout);
 			}
 			else if (hasCS) config.setApplicationTimeout(configServer.getApplicationTimeout());
 
 			// Client Type
-			String strClientType = getAttr(scope, "clienttype");
+			String strClientType = scope != null ? getAttr(scope, "clienttype") : null;
 			if (hasAccess && !StringUtil.isEmpty(strClientType)) {
 				config.setClientType(strClientType);
 			}
@@ -3751,7 +3769,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 			// Client
 			Resource configDir = config.getConfigDir();
-			String strClientDirectory = getAttr(scope, "client-directory");
+			String strClientDirectory = scope != null ? getAttr(scope, "client-directory") : null;
 			if (hasAccess && !StringUtil.isEmpty(strClientDirectory)) {
 				strClientDirectory = ConfigWebUtil.translateOldPath(strClientDirectory);
 				Resource res = ConfigWebUtil.getFile(configDir, strClientDirectory, "client-scope", configDir, FileUtil.TYPE_DIR, config);
@@ -3761,35 +3779,35 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				config.setClientScopeDir(configDir.getRealResource("client-scope"));
 			}
 
-			String strMax = getAttr(scope, "client-directory-max-size");
+			String strMax = scope != null ? getAttr(scope, "client-directory-max-size") : null;
 			if (hasAccess && !StringUtil.isEmpty(strMax)) {
 				config.setClientScopeDirSize(ByteSizeParser.parseByteSizeDefinition(strMax, config.getClientScopeDirSize()));
 			}
 			else if (hasCS) config.setClientScopeDirSize(configServer.getClientScopeDirSize());
 
 			// Session Management
-			String strSessionManagement = getAttr(scope, "sessionmanagement");
+			String strSessionManagement = scope != null ? getAttr(scope, "sessionmanagement") : null;
 			if (hasAccess && !StringUtil.isEmpty(strSessionManagement)) {
 				config.setSessionManagement(toBoolean(strSessionManagement, true));
 			}
 			else if (hasCS) config.setSessionManagement(configServer.isSessionManagement());
 
 			// Client Management
-			String strClientManagement = getAttr(scope, "clientmanagement");
+			String strClientManagement = scope != null ? getAttr(scope, "clientmanagement") : null;
 			if (hasAccess && !StringUtil.isEmpty(strClientManagement)) {
 				config.setClientManagement(toBoolean(strClientManagement, false));
 			}
 			else if (hasCS) config.setClientManagement(configServer.isClientManagement());
 
 			// Client Cookies
-			String strClientCookies = getAttr(scope, "setclientcookies");
+			String strClientCookies = scope != null ? getAttr(scope, "setclientcookies") : null;
 			if (hasAccess && !StringUtil.isEmpty(strClientCookies)) {
 				config.setClientCookies(toBoolean(strClientCookies, true));
 			}
 			else if (hasCS) config.setClientCookies(configServer.isClientCookies());
 
 			// Domain Cookies
-			String strDomainCookies = getAttr(scope, "setdomaincookies");
+			String strDomainCookies = scope != null ? getAttr(scope, "setdomaincookies") : null;
 			if (hasAccess && !StringUtil.isEmpty(strDomainCookies)) {
 				config.setDomainCookies(toBoolean(strDomainCookies, false));
 			}
@@ -3800,10 +3818,10 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		}
 	}
 
-	private static void loadJava(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+	private static void _loadJava(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
 		try {
 			boolean hasCS = configServer != null;
-			Element java = getChildByName(doc.getDocumentElement(), "java");
+			Element java = doc != null ? getChildByName(doc.getDocumentElement(), "java") : null;
 
 			//
 			String strInspectTemplate = getAttr(java, "inspect-template");
@@ -3834,13 +3852,13 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		}
 	}
 
-	private static void loadConstants(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+	private static void _loadConstants(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
 		try {
 			boolean hasCS = configServer != null;
-			Element constant = getChildByName(doc.getDocumentElement(), "constants");
+			Element constant = doc != null ? getChildByName(doc.getDocumentElement(), "constants") : null;
 
 			// Constants
-			Element[] elConstants = getChildren(constant, "constant");
+			Element[] elConstants = constant != null ? getChildren(constant, "constant") : new Element[0];
 			Struct sct = null;
 			if (hasCS) {
 				sct = configServer.getConstants();
@@ -3872,11 +3890,11 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		}
 	}
 
-	private static void loadLogin(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+	private static void _loadLogin(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
 		try {
 			// server context
 			if (config instanceof ConfigServer) {
-				Element login = getChildByName(doc.getDocumentElement(), "login");
+				Element login = doc != null ? getChildByName(doc.getDocumentElement(), "login") : null;
 				boolean captcha = Caster.toBooleanValue(getAttr(login, "captcha"), false);
 				boolean rememberme = Caster.toBooleanValue(getAttr(login, "rememberme"), true);
 
@@ -3898,12 +3916,12 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * @param doc
 	 * @throws IOException
 	 */
-	private static void loadMail(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) { // does no init values
+	private static void _loadMail(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) { // does no init values
 		try {
 			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_MAIL);
 
 			boolean hasCS = configServer != null;
-			Element mail = getChildByName(doc.getDocumentElement(), "mail");
+			Element mail = doc != null ? getChildByName(doc.getDocumentElement(), "mail") : null;
 
 			// Send partial
 			String strSendPartial = mail.getAttribute("send-partial");
@@ -3940,7 +3958,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			// Servers
 			int index = 0;
 			// Server[] servers = null;
-			Element[] elServers = getChildren(mail, "server");
+			Element[] elServers = mail != null ? getChildren(mail, "server") : new Element[0];
 			List<Server> servers = new ArrayList<Server>();
 			if (hasCS) {
 				Server[] readOnlyServers = configServer.getMailServers();
@@ -3968,18 +3986,18 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		}
 	}
 
-	private static void loadMonitors(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+	private static void _loadMonitors(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
 		try {
 			// only load in server context
 			if (configServer != null) return;
 
 			configServer = (ConfigServerImpl) config;
 
-			Element parent = getChildByName(doc.getDocumentElement(), "monitoring");
+			Element parent = doc != null ? getChildByName(doc.getDocumentElement(), "monitoring") : null;
 			Boolean enabled = Caster.toBoolean(getAttr(parent, "enabled"), null);
 			if (enabled != null) configServer.setMonitoringEnabled(enabled.booleanValue());
 
-			Element[] children = getChildren(parent, "monitor");
+			Element[] children = parent != null ? getChildren(parent, "monitor") : new Element[0];
 
 			java.util.List<IntervallMonitor> intervalls = new ArrayList<IntervallMonitor>();
 			java.util.List<RequestMonitor> requests = new ArrayList<RequestMonitor>();
@@ -4053,19 +4071,19 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * @param doc
 	 * @throws PageException
 	 */
-	private static void loadSearch(ConfigServer configServer, ConfigImpl config, Document doc, Log log) {
+	private static void _loadSearch(ConfigServer configServer, ConfigImpl config, Document doc, Log log) {
 		try {
-			Element search = getChildByName(doc.getDocumentElement(), "search");
+			Element search = doc != null ? getChildByName(doc.getDocumentElement(), "search") : null;
 
 			// class
-			ClassDefinition<SearchEngine> cd = getClassDefinition(search, "engine-", config.getIdentification());
-			if (!cd.hasClass() || "lucee.runtime.search.lucene.LuceneSearchEngine".equals(cd.getClassName())) {
+			ClassDefinition<SearchEngine> cd = search != null ? getClassDefinition(search, "engine-", config.getIdentification()) : null;
+			if (cd == null || !cd.hasClass() || "lucee.runtime.search.lucene.LuceneSearchEngine".equals(cd.getClassName())) {
 				if (configServer != null) cd = ((ConfigImpl) configServer).getSearchEngineClassDefinition();
 				else cd = new ClassDefinitionImpl(DummySearchEngine.class);
 			}
 
 			// directory
-			String dir = search.getAttribute("directory");
+			String dir = search != null ? search.getAttribute("directory") : null;
 			if (StringUtil.isEmpty(dir)) {
 				if (configServer != null) dir = ((ConfigImpl) configServer).getSearchEngineDirectory();
 				else dir = "{lucee-web}/search/";
@@ -4086,7 +4104,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * @throws IOException
 	 * @throws PageException
 	 */
-	private static void loadScheduler(ConfigServer configServer, ConfigImpl config, Document doc, Log log) {
+	private static void _loadScheduler(ConfigServer configServer, ConfigImpl config, Document doc, Log log) {
 		try {
 			if (config instanceof ConfigServer) return;
 
@@ -4107,14 +4125,14 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * @param config
 	 * @param doc
 	 */
-	private static void loadDebug(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+	private static void _loadDebug(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
 		try {
 			boolean hasCS = configServer != null;
-			Element debugging = getChildByName(doc.getDocumentElement(), "debugging");
+			Element debugging = doc != null ? getChildByName(doc.getDocumentElement(), "debugging") : null;
 			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_DEBUGGING);
 
 			// Entries
-			Element[] entries = getChildren(debugging, "debug-entry");
+			Element[] entries = debugging != null ? getChildren(debugging, "debug-entry") : new Element[0];
 			Map<String, DebugEntry> list = new HashMap<String, DebugEntry>();
 			if (hasCS) {
 				DebugEntry[] _entries = ((ConfigImpl) configServer).getDebugEntries();
@@ -4213,7 +4231,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * @param config
 	 * @param doc
 	 */
-	private static void loadCFX(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+	private static void _loadCFX(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
 		try {
 			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_CFX_SETTING);
 
@@ -4239,13 +4257,13 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				}
 
 				// Java CFX Tags
-				Element cfxTagsParent = getChildByName(doc.getDocumentElement(), "ext-tags", false, true);
-				if (cfxTagsParent == null) cfxTagsParent = getChildByName(doc.getDocumentElement(), "cfx-tags", false, true);
-				if (cfxTagsParent == null) cfxTagsParent = getChildByName(doc.getDocumentElement(), "ext-tags");
+				Element cfxTagsParent = doc != null ? getChildByName(doc.getDocumentElement(), "ext-tags", false, true) : null;
+				if (cfxTagsParent == null) cfxTagsParent = doc != null ? getChildByName(doc.getDocumentElement(), "cfx-tags", false, true) : null;
+				if (cfxTagsParent == null) cfxTagsParent = doc != null ? getChildByName(doc.getDocumentElement(), "ext-tags") : null;
 
-				boolean oldStyle = cfxTagsParent.getNodeName().equals("cfx-tags");
+				boolean oldStyle = cfxTagsParent != null ? cfxTagsParent.getNodeName().equals("cfx-tags") : false;
 
-				Element[] cfxTags = oldStyle ? getChildren(cfxTagsParent, "cfx-tag") : getChildren(cfxTagsParent, "ext-tag");
+				Element[] cfxTags = cfxTagsParent != null ? (oldStyle ? getChildren(cfxTagsParent, "cfx-tag") : getChildren(cfxTagsParent, "ext-tag")) : new Element[0];
 				for (int i = 0; i < cfxTags.length; i++) {
 					String type = getAttr(cfxTags[i], "type");
 					if (type != null) {
@@ -4276,10 +4294,10 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * @param doc
 	 * @param log
 	 */
-	private static void loadExtensionBundles(ConfigServerImpl cs, ConfigImpl config, Document doc, Log log) {
+	private static void _loadExtensionBundles(ConfigServerImpl cs, ConfigImpl config, Document doc, Log log) {
 		try {
-			Element parent = getChildByName(doc.getDocumentElement(), "extensions");
-			Element[] children = getChildren(parent, "rhextension");
+			Element parent = doc != null ? getChildByName(doc.getDocumentElement(), "extensions") : null;
+			Element[] children = parent != null ? getChildren(parent, "rhextension") : new Element[0];
 			String strBundles;
 			List<RHExtension> extensions = new ArrayList<RHExtension>();
 
@@ -4303,11 +4321,11 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		}
 	}
 
-	private static void loadExtensions(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+	private static void _loadExtensions(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
 		try {
-			Element xmlExtParent = getChildByName(doc.getDocumentElement(), "extensions");
+			Element xmlExtParent = doc != null ? getChildByName(doc.getDocumentElement(), "extensions") : null;
 
-			String strEnabled = getAttr(xmlExtParent, "enabled");
+			String strEnabled = xmlExtParent != null ? getAttr(xmlExtParent, "enabled") : null;
 			if (!StringUtil.isEmpty(strEnabled)) {
 				config.setExtensionEnabled(Caster.toBooleanValue(strEnabled, false));
 			}
@@ -4315,21 +4333,23 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			// RH Providers
 			{
 				// providers
-				Element[] xmlProviders = getChildren(xmlExtParent, "rhprovider");
+				Element[] xmlProviders = xmlExtParent != null ? getChildren(xmlExtParent, "rhprovider") : null;
 				String strProvider;
 				Map<RHExtensionProvider, String> providers = new LinkedHashMap<RHExtensionProvider, String>();
 
 				for (int i = 0; i < Constants.RH_EXTENSION_PROVIDERS.length; i++) {
 					providers.put(Constants.RH_EXTENSION_PROVIDERS[i], "");
 				}
-				for (int i = 0; i < xmlProviders.length; i++) {
-					strProvider = getAttr(xmlProviders[i], "url");
-					if (!StringUtil.isEmpty(strProvider, true)) {
-						try {
-							providers.put(new RHExtensionProvider(strProvider.trim(), false), "");
-						}
-						catch (MalformedURLException e) {
-							LogUtil.logGlobal(ThreadLocalPageContext.getConfig(configServer == null ? config : configServer), XMLConfigWebFactory.class.getName(), e);
+				if (xmlProviders != null) {
+					for (int i = 0; i < xmlProviders.length; i++) {
+						strProvider = getAttr(xmlProviders[i], "url");
+						if (!StringUtil.isEmpty(strProvider, true)) {
+							try {
+								providers.put(new RHExtensionProvider(strProvider.trim(), false), "");
+							}
+							catch (MalformedURLException e) {
+								LogUtil.logGlobal(ThreadLocalPageContext.getConfig(configServer == null ? config : configServer), XMLConfigWebFactory.class.getName(), e);
+							}
 						}
 					}
 				}
@@ -4337,16 +4357,19 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			}
 
 			// extensions
-			Element[] xmlExtensions = getChildren(xmlExtParent, "extension");
-			Extension[] extensions = new Extension[xmlExtensions.length];
-			Element xmlExtension;
-			for (int i = 0; i < xmlExtensions.length; i++) {
-				xmlExtension = xmlExtensions[i];
-				extensions[i] = new ExtensionImpl(getAttr(xmlExtension, "config"), getAttr(xmlExtension, "id"), getAttr(xmlExtension, "provider"), getAttr(xmlExtension, "version"),
-						getAttr(xmlExtension, "name"), getAttr(xmlExtension, "label"), getAttr(xmlExtension, "description"), getAttr(xmlExtension, "category"),
-						getAttr(xmlExtension, "image"), getAttr(xmlExtension, "author"), getAttr(xmlExtension, "codename"), getAttr(xmlExtension, "video"),
-						getAttr(xmlExtension, "support"), getAttr(xmlExtension, "documentation"), getAttr(xmlExtension, "forum"), getAttr(xmlExtension, "mailinglist"),
-						getAttr(xmlExtension, "network"), DateCaster.toDateAdvanced(getAttr(xmlExtension, "created"), null, null), getAttr(xmlExtension, "type"));
+			Element[] xmlExtensions = xmlExtParent != null ? getChildren(xmlExtParent, "extension") : null;
+			Extension[] extensions = xmlExtensions != null ? new Extension[xmlExtensions.length] : new Extension[0];
+			if (xmlExtensions != null) {
+				Element xmlExtension;
+				for (int i = 0; i < xmlExtensions.length; i++) {
+					xmlExtension = xmlExtensions[i];
+					extensions[i] = new ExtensionImpl(getAttr(xmlExtension, "config"), getAttr(xmlExtension, "id"), getAttr(xmlExtension, "provider"),
+							getAttr(xmlExtension, "version"), getAttr(xmlExtension, "name"), getAttr(xmlExtension, "label"), getAttr(xmlExtension, "description"),
+							getAttr(xmlExtension, "category"), getAttr(xmlExtension, "image"), getAttr(xmlExtension, "author"), getAttr(xmlExtension, "codename"),
+							getAttr(xmlExtension, "video"), getAttr(xmlExtension, "support"), getAttr(xmlExtension, "documentation"), getAttr(xmlExtension, "forum"),
+							getAttr(xmlExtension, "mailinglist"), getAttr(xmlExtension, "network"), DateCaster.toDateAdvanced(getAttr(xmlExtension, "created"), null, null),
+							getAttr(xmlExtension, "type"));
+				}
 			}
 			config.setExtensions(extensions);
 		}
@@ -4361,9 +4384,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * @param doc
 	 * @throws IOException
 	 */
-	private static void loadComponent(ConfigServer configServer, ConfigImpl config, Document doc, int mode, Log log) {
+	private static void _loadComponent(ConfigServer configServer, ConfigImpl config, Document doc, int mode, Log log) {
 		try {
-			Element component = getChildByName(doc.getDocumentElement(), "component");
+			Element component = doc != null ? getChildByName(doc.getDocumentElement(), "component") : null;
 			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 			boolean hasSet = false;
 			boolean hasCS = configServer != null;
@@ -4504,7 +4527,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 			// Web Mapping
 
-			Element[] cMappings = getChildren(component, "mapping");
+			Element[] cMappings = component != null ? getChildren(component, "mapping") : new Element[0];
 			hasSet = false;
 			Mapping[] mappings = null;
 			if (hasAccess && cMappings.length > 0) {
@@ -4579,11 +4602,11 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		}
 	}
 
-	private static void loadProxy(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+	private static void _loadProxy(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
 		try {
 			boolean hasCS = configServer != null;
 			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-			Element proxy = getChildByName(doc.getDocumentElement(), "proxy");
+			Element proxy = doc != null ? getChildByName(doc.getDocumentElement(), "proxy") : null;
 
 			// proxy server
 			String server = getAttr(proxy, "server");
@@ -4592,8 +4615,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			int port = Caster.toIntValue(getAttr(proxy, "port"), -1);
 
 			// includes/excludes
-			Set<String> includes = ProxyDataImpl.toStringSet(getAttr(proxy, "includes"));
-			Set<String> excludes = ProxyDataImpl.toStringSet(getAttr(proxy, "excludes"));
+			Set<String> includes = proxy != null ? ProxyDataImpl.toStringSet(getAttr(proxy, "includes")) : null;
+			Set<String> excludes = proxy != null ? ProxyDataImpl.toStringSet(getAttr(proxy, "excludes")) : null;
 
 			if (hasAccess && !StringUtil.isEmpty(server)) {
 				ProxyDataImpl pd = (ProxyDataImpl) ProxyDataImpl.getInstance(server, port, username, password);
@@ -4609,19 +4632,19 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		}
 	}
 
-	private static void loadError(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+	private static void _loadError(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
 		try {
-			Element error = getChildByName(doc.getDocumentElement(), "error");
+			Element error = doc != null ? getChildByName(doc.getDocumentElement(), "error") : null;
 			boolean hasCS = configServer != null;
 			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_DEBUGGING);
 
 			// error template
-			String template = error.getAttribute("template");
+			String template = getAttr(error, "template");
 
 			// 500
-			String template500 = error.getAttribute("template-500");
-			if (StringUtil.isEmpty(template500)) template500 = error.getAttribute("template500");
-			if (StringUtil.isEmpty(template500)) template500 = error.getAttribute("500");
+			String template500 = getAttr(error, "template-500");
+			if (StringUtil.isEmpty(template500)) template500 = getAttr(error, "template500");
+			if (StringUtil.isEmpty(template500)) template500 = getAttr(error, "500");
 			if (StringUtil.isEmpty(template500)) template500 = template;
 			if (hasAccess && !StringUtil.isEmpty(template500)) {
 				config.setErrorTemplate(500, template500);
@@ -4630,9 +4653,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			else config.setErrorTemplate(500, "/lucee/templates/error/error." + TEMPLATE_EXTENSION);
 
 			// 404
-			String template404 = error.getAttribute("template-404");
-			if (StringUtil.isEmpty(template404)) template404 = error.getAttribute("template404");
-			if (StringUtil.isEmpty(template404)) template404 = error.getAttribute("404");
+			String template404 = getAttr(error, "template-404");
+			if (StringUtil.isEmpty(template404)) template404 = getAttr(error, "template404");
+			if (StringUtil.isEmpty(template404)) template404 = getAttr(error, "404");
 			if (StringUtil.isEmpty(template404)) template404 = template;
 			if (hasAccess && !StringUtil.isEmpty(template404)) {
 				config.setErrorTemplate(404, template404);
@@ -4657,11 +4680,11 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 	}
 
-	private static void loadCompiler(ConfigServerImpl configServer, ConfigImpl config, Document doc, int mode, Log log) {
+	private static void _loadCompiler(ConfigServerImpl configServer, ConfigImpl config, Document doc, int mode, Log log) {
 		try {
 			boolean hasCS = configServer != null;
 
-			Element compiler = getChildByName(doc.getDocumentElement(), "compiler");
+			Element compiler = doc != null ? getChildByName(doc.getDocumentElement(), "compiler") : null;
 
 			// suppress WS between cffunction and cfargument
 			if (mode == ConfigImpl.MODE_STRICT) {
@@ -4669,8 +4692,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			}
 			else {
 				String suppress = SystemUtil.getSystemPropOrEnvVar("lucee.suppress.ws.before.arg", null);
-				if (StringUtil.isEmpty(suppress, true)) suppress = getAttr(compiler, "suppress-ws-before-arg");
-				if (StringUtil.isEmpty(suppress, true)) suppress = getAttr(compiler, "supress-ws-before-arg");
+				if (StringUtil.isEmpty(suppress, true)) suppress = compiler != null ? getAttr(compiler, "suppress-ws-before-arg") : null;
+				if (StringUtil.isEmpty(suppress, true)) suppress = compiler != null ? getAttr(compiler, "supress-ws-before-arg") : null;
 				if (!StringUtil.isEmpty(suppress, true)) {
 					config.setSuppressWSBeforeArg(Caster.toBooleanValue(suppress, true));
 				}
@@ -4692,7 +4715,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						config.setDotNotationUpperCase(!tmp.booleanValue());
 					}
 				}
-				String _case = getAttr(compiler, "dot-notation-upper-case");
+				String _case = compiler != null ? getAttr(compiler, "dot-notation-upper-case") : null;
 				if (!StringUtil.isEmpty(_case, true)) {
 					config.setDotNotationUpperCase(Caster.toBooleanValue(_case, true));
 				}
@@ -4708,7 +4731,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				fns = true;
 			}
 			else {
-				String str = getAttr(compiler, "full-null-support"); // TODO move to an other place, no longer a compiler setting
+				String str = compiler != null ? getAttr(compiler, "full-null-support") : null; // TODO move to an other place, no longer a compiler setting
 				if (StringUtil.isEmpty(str, true)) str = SystemUtil.getSystemPropOrEnvVar("lucee.full.null.support", null);
 
 				if (!StringUtil.isEmpty(str, true)) {
@@ -4727,7 +4750,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			// }
 
 			// default output setting
-			String output = getAttr(compiler, "default-function-output");
+			String output = compiler != null ? getAttr(compiler, "default-function-output") : null;
 			if (!StringUtil.isEmpty(output, true)) {
 				config.setDefaultFunctionOutput(Caster.toBooleanValue(output, true));
 			}
@@ -4736,7 +4759,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			}
 
 			// suppress WS between cffunction and cfargument
-			String str = getAttr(compiler, "externalize-string-gte");
+			String str = compiler != null ? getAttr(compiler, "externalize-string-gte") : null;
 			if (Decision.isNumber(str)) {
 				config.setExternalizeStringGTE(Caster.toIntValue(str, -1));
 			}
@@ -4746,7 +4769,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 			// allow-lucee-dialect
 			if (!hasCS) {
-				str = getAttr(compiler, "allow-lucee-dialect");
+				str = compiler != null ? getAttr(compiler, "allow-lucee-dialect") : null;
 				if (str == null || !Decision.isBoolean(str)) str = SystemUtil.getSystemPropOrEnvVar("lucee.enable.dialect", null);
 				if (str != null && Decision.isBoolean(str)) {
 					config.setAllowLuceeDialect(Caster.toBooleanValue(str, false));
@@ -4761,7 +4784,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				config.setHandleUnQuotedAttrValueAsString(false);
 			}
 			else {
-				str = getAttr(compiler, "handle-unquoted-attribute-value-as-string");
+				str = compiler != null ? getAttr(compiler, "handle-unquoted-attribute-value-as-string") : null;
 				if (Decision.isBoolean(str)) {
 					config.setHandleUnQuotedAttrValueAsString(Caster.toBooleanValue(str, true));
 				}
@@ -4783,13 +4806,13 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * @throws IOException
 	 * @throws PageException
 	 */
-	private static void loadApplication(ConfigServerImpl configServer, ConfigImpl config, Document doc, int mode, Log log) {
+	private static void _loadApplication(ConfigServerImpl configServer, ConfigImpl config, Document doc, int mode, Log log) {
 		try {
 			boolean hasCS = configServer != null;
 			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 
-			Element application = getChildByName(doc.getDocumentElement(), "application");
-			Element scope = getChildByName(doc.getDocumentElement(), "scope");
+			Element application = doc != null ? getChildByName(doc.getDocumentElement(), "application") : null;
+			Element scope = doc != null ? getChildByName(doc.getDocumentElement(), "scope") : null;
 
 			// Listener type
 			ApplicationListener listener;
@@ -4798,7 +4821,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			}
 			else {
 				String strLT = SystemUtil.getSystemPropOrEnvVar("lucee.listener.type", null);
-				if (StringUtil.isEmpty(strLT)) strLT = getAttr(application, "listener-type");
+				if (StringUtil.isEmpty(strLT)) strLT = application == null ? null : getAttr(application, "listener-type");
 				listener = ConfigWebUtil.loadListener(strLT, null);
 
 				if (listener == null) {
@@ -4862,7 +4885,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			ts = null;
 			if (hasAccess) {
 				String reqTimeoutApplication = getAttr(application, "requesttimeout");
-				String reqTimeoutScope = getAttr(scope, "requesttimeout"); // deprecated
+				String reqTimeoutScope = scope == null ? null : getAttr(scope, "requesttimeout"); // deprecated
 
 				if (!StringUtil.isEmpty(reqTimeoutApplication)) ts = Caster.toTimespan(reqTimeoutApplication);
 				if (ts == null && !StringUtil.isEmpty(reqTimeoutScope)) ts = Caster.toTimespan(reqTimeoutScope);
@@ -4969,6 +4992,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * @return
 	 */
 	public static String getAttr(Element el, String name) {
+		if (el == null) return null;
 		String v = el.getAttribute(name);
 		return replaceConfigPlaceHolder(v);
 	}
