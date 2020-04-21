@@ -43,9 +43,13 @@ import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.filter.ExtensionResourceFilter;
+import lucee.commons.io.res.filter.ResourceNameFilter;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.types.RefInteger;
+import lucee.commons.lang.types.RefIntegerImpl;
 import lucee.loader.util.Util;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
@@ -112,6 +116,8 @@ public class RHExtension implements Serializable {
 	public static final int RELEASE_TYPE_SERVER = 1;
 	public static final int RELEASE_TYPE_WEB = 2;
 
+	private static final ExtensionResourceFilter LEX_FILTER = new ExtensionResourceFilter("lex");
+
 	private String id;
 	private int releaseType;
 	private String version;
@@ -143,8 +149,8 @@ public class RHExtension implements Serializable {
 	private List<Map<String, String>> orms;
 	private List<Map<String, String>> webservices;
 	private List<Map<String, String>> monitors;
-	private List<Map<String, String>> searchs;
 	private List<Map<String, String>> resources;
+	private List<Map<String, String>> searchs;
 	private List<Map<String, String>> amfs;
 	private List<Map<String, String>> jdbcs;
 	private List<Map<String, String>> mappings;
@@ -722,6 +728,43 @@ public class RHExtension implements Serializable {
 
 	private static Resource getExtensionDir(Config config) {
 		return config.getConfigDir().getRealResource("extensions/installed");
+	}
+
+	private static int getPhysicalExtensionCount(Config config) {
+		final RefInteger count = new RefIntegerImpl(0);
+		getExtensionDir(config).list(new ResourceNameFilter() {
+			@Override
+			public boolean accept(Resource res, String name) {
+				if (StringUtil.endsWithIgnoreCase(name, ".lex")) count.plus(1);
+				return false;
+			}
+		});
+		return count.toInt();
+	}
+
+	public static void correctExtensions(Config config) throws PageException, IOException, BundleException {
+
+		// extension defined in xml
+		RHExtension[] xmlArrExtensions = ((ConfigImpl) config).getRHExtensions();
+		if (xmlArrExtensions.length == getPhysicalExtensionCount(config)) return; // all is OK
+		RHExtension ext;
+		Map<String, RHExtension> xmlExtensions = new HashMap<>();
+		for (int i = 0; i < xmlArrExtensions.length; i++) {
+			ext = xmlArrExtensions[i];
+			xmlExtensions.put(ext.getId(), ext);
+		}
+
+		// Extension defined in filesystem
+		Resource[] resources = getExtensionDir(config).listResources(LEX_FILTER);
+		if (resources == null || resources.length == 0) return;
+		RHExtension xmlExt;
+		for (int i = 0; i < resources.length; i++) {
+			ext = new RHExtension(config, resources[i], false);
+			xmlExt = xmlExtensions.get(ext.getId());
+			if (xmlExt != null && (xmlExt.getVersion() + "").equals(ext.getVersion() + "")) continue;
+			XMLConfigAdmin._updateRHExtension((ConfigImpl) config, resources[i], true);
+		}
+
 	}
 
 	public static BundleDefinition[] toBundleDefinitions(String strBundles) {

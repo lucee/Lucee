@@ -45,6 +45,7 @@ import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.config.DeployHandler;
 import lucee.runtime.config.XMLConfigAdmin;
+import lucee.runtime.extension.RHExtension;
 import lucee.runtime.functions.system.PagePoolClear;
 import lucee.runtime.lock.LockManagerImpl;
 import lucee.runtime.net.smtp.SMTPConnectionPool;
@@ -84,7 +85,6 @@ public final class Controler extends Thread {
 		this.interval = interval;
 		this.state = state;
 		this.configServer = configServer;
-
 		// shutdownHook=new ShutdownHook(configServer);
 		// Runtime.getRuntime().addShutdownHook(shutdownHook);
 	}
@@ -201,6 +201,13 @@ public final class Controler extends Thread {
 			ExceptionUtil.rethrowIfNecessary(t);
 		}
 
+		if (firstRun) {
+			try {
+				RHExtension.correctExtensions(configServer);
+			}
+			catch (Exception e) {}
+		}
+
 		// every 10 seconds
 		if (do10Seconds) {
 			// deploy extensions, archives ...
@@ -251,6 +258,11 @@ public final class Controler extends Thread {
 
 				config.reloadTimeServerOffset();
 				checkOldClientFile(config);
+
+				try {
+					RHExtension.correctExtensions(config);
+				}
+				catch (Exception e) {}
 
 				// try{checkStorageScopeFile(config,Session.SCOPE_CLIENT);}catch(Throwable t)
 				// {ExceptionUtil.rethrowIfNecessary(t);}

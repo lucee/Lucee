@@ -88,7 +88,6 @@ import lucee.commons.io.retirement.RetireOutputStreamFactory;
 import lucee.commons.lang.Md5;
 import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.lang.SystemOut;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lang.types.RefBooleanImpl;
 import lucee.commons.net.HTTPUtil;
@@ -274,17 +273,6 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		CFMLEngineFactory.registerInstance((this));// patch, not really good but it works
 		ConfigServerImpl cs = getConfigServerImpl();
 
-		controler = new Controler(cs, initContextes, 5 * 1000, controlerState);
-		controler.setDaemon(true);
-		controler.setPriority(Thread.MIN_PRIORITY);
-
-		boolean disabled = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar(SystemUtil.SETTING_CONTROLLER_DISABLED, null), false);
-		if (!disabled) {
-			// start the controller
-			LogUtil.log(cs, Log.LEVEL_INFO, "startup", "Start CFML Controller");
-			controler.start();
-		}
-
 		boolean isRe = configDir == null ? false : XMLConfigFactory.isRequiredExtension(this, configDir);
 		boolean installExtensions = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.extensions.install", null), true);
 
@@ -391,7 +379,17 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		touchMonitor(cs);
 		LogUtil.log(cs, Log.LEVEL_INFO, "startup", "touched monitors");
 		this.uptime = System.currentTimeMillis();
-		// this.config=config;
+
+		controler = new Controler(cs, initContextes, 5 * 1000, controlerState);
+		controler.setDaemon(true);
+		controler.setPriority(Thread.MIN_PRIORITY);
+
+		boolean disabled = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar(SystemUtil.SETTING_CONTROLLER_DISABLED, null), false);
+		if (!disabled) {
+			// start the controller
+			LogUtil.log(cs, Log.LEVEL_INFO, "startup", "Start CFML Controller");
+			controler.start();
+		}
 	}
 
 	private static void checkInvalidExtensions(ConfigImpl config, Set<ExtensionDefintion> extensionsToInstall, Set<String> extensionsToRemove) {
@@ -1660,7 +1658,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	public void onStart(ConfigImpl config, boolean reload) {
 
 		String context = config instanceof ConfigWeb ? "Web" : "Server";
-		
+
 		if (context == "Web" && SystemUtil.getSystemPropOrEnvVar("lucee.enable.warmup", "").equalsIgnoreCase("true")) {
 			String msg = "Lucee warmup completed. Shutting down.";
 			CONSOLE_ERR.println(msg);
