@@ -85,6 +85,7 @@ import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.io.res.util.ResourceUtilImpl;
 import lucee.commons.io.retirement.RetireOutputStreamFactory;
+import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Md5;
 import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
@@ -379,6 +380,14 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		touchMonitor(cs);
 		LogUtil.log(cs, Log.LEVEL_INFO, "startup", "touched monitors");
 		this.uptime = System.currentTimeMillis();
+
+		// check deploy folder
+		try {
+			DeployHandler.deploy(cs);
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+		}
 
 		controler = new Controler(cs, initContextes, 5 * 1000, controlerState);
 		controler.setDaemon(true);
