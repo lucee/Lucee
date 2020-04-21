@@ -185,7 +185,9 @@
 			#-lucee-debug tr.nowrap td { white-space: nowrap; }
 			#-lucee-debug tr.red td, #-lucee-debug .red 	{ background-color: #FDD; }
 
-			#-lucee-debug .sortby.selected, #-lucee-debug .sortby:hover { background-color: #25A; color: #FFF; }
+			#-lucee-debug .sortby.selected, #-lucee-debug .sortby:hover { background-color: #25A; color: #FFF !important; cursor: pointer; text-decoration: none;}
+			.sortby { text-decoration: underline; font-weight: bold; }
+			#-lucee-debug table.details tr > th > a { color: #25A !important; text-decoration: underline; }
 			#-lucee-debug .pad 	{ padding-left: 16px; }
 			#-lucee-debug a 	{ cursor: pointer; }
 			#-lucee-debug td a 	{ color: #25A; }
@@ -851,7 +853,6 @@
 				document.getElementById("-lucee-debug").prepend(luceeStyle);
 			</cfif>
 		</script>
-<cfdump var="##">
 	</cffunction><!--- output() !--->
 
 
