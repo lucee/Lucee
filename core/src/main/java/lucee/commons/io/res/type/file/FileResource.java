@@ -29,6 +29,7 @@ import java.io.OutputStream;
 import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.DosFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -688,37 +689,48 @@ public final class FileResource extends File implements Resource {
 	public boolean getAttribute(short attribute) {
 		if (!SystemUtil.isWindows()) return false;
 
-		String attr = null;
-		if (attribute == ATTRIBUTE_ARCHIVE) attr = "A";
-		else if (attribute == ATTRIBUTE_HIDDEN) attr = "H";
-		else if (attribute == ATTRIBUTE_SYSTEM) attr = "S";
-
 		try {
 			provider.lock(this);
-			String result = Command.execute("attrib " + getAbsolutePath(), false).getOutput();
-			String[] arr = lucee.runtime.type.util.ListUtil.listToStringArray(result, ' ');
-			for (int i = 0; i < arr.length; i++) {
-				if (attr.equals(arr[i])) return true;
+			DosFileAttributes attr = Files.readAttributes(this.toPath(), DosFileAttributes.class);
+			if (attribute == ATTRIBUTE_ARCHIVE) {
+				return attr.isArchive();
+			}
+			else if (attribute == ATTRIBUTE_HIDDEN) {
+				return attr.isHidden();
+			}
+			else if (attribute == ATTRIBUTE_SYSTEM) {
+				return attr.isSystem();
+			}
+			else {
+				return false;
 			}
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+			return false;
+		}
 		finally {
 			provider.unlock(this);
 		}
-		return false;
 	}
 
 	@Override
 	public void setAttribute(short attribute, boolean value) throws IOException {
-		String attr = null;
-		if (attribute == ATTRIBUTE_ARCHIVE) attr = "A";
-		else if (attribute == ATTRIBUTE_HIDDEN) attr = "H";
-		else if (attribute == ATTRIBUTE_SYSTEM) attr = "S";
-
 		if (!SystemUtil.isWindows()) return;
+
 		provider.lock(this);
 		try {
-			Runtime.getRuntime().exec("attrib " + (value ? "+" : "-") + attr + " " + getAbsolutePath());
+			if (attribute == ATTRIBUTE_ARCHIVE) {
+				Files.setAttribute(this.toPath(), "dos:archive", value);
+			}
+			else if (attribute == ATTRIBUTE_HIDDEN) {
+				Files.setAttribute(this.toPath(), "dos:hidden", value);
+			}
+			else if (attribute == ATTRIBUTE_SYSTEM) {
+				Files.setAttribute(this.toPath(), "dos:system", value);
+			}
+		}
+		catch (IOException e) {
+			return;
 		}
 		finally {
 			provider.unlock(this);
