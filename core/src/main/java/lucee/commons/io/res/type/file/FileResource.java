@@ -278,8 +278,10 @@ public final class FileResource extends File implements Resource {
 	public void remove(boolean alsoRemoveChildren) throws IOException {
 		if (alsoRemoveChildren && isDirectory()) {
 			Resource[] children = listResources();
-			for (int i = 0; i < children.length; i++) {
-				children[i].remove(alsoRemoveChildren);
+			if (children != null) {
+				for (int i = 0; i < children.length; i++) {
+					children[i].remove(alsoRemoveChildren);
+				}
 			}
 		}
 		provider.lock(this);
