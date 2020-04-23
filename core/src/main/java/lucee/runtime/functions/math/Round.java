@@ -37,7 +37,7 @@ public final class Round implements Function {
 	public static double call(PageContext pc, double number, double precision) {
 		if (precision <= 0) return StrictMath.round(number);
 
-		BigDecimal bd = new BigDecimal(number);
+		BigDecimal bd = new BigDecimal(number + 0.000000000001d); // adding influence if the binary representation is a little bit off
 		bd = bd.setScale((int) precision, BigDecimal.ROUND_HALF_UP);
 		return bd.doubleValue();
 	}
