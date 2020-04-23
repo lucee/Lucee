@@ -182,6 +182,7 @@ public final class FileWrapper extends File implements Resource {
 	}
 
 	private File[] toFiles(Resource[] resources) {
+		if (resources == null) return null;
 		File[] files = new File[resources.length];
 		for (int i = 0; i < resources.length; i++) {
 			files[i] = new FileWrapper(resources[i]);

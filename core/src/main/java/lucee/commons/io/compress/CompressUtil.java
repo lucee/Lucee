@@ -512,8 +512,10 @@ public final class CompressUtil {
 
 	private static void compressZip(String parent, Resource[] sources, ZipOutputStream zos, ResourceFilter filter) throws IOException {
 		if (parent.length() > 0) parent += "/";
-		for (int i = 0; i < sources.length; i++) {
-			compressZip(parent + sources[i].getName(), sources[i], zos, filter);
+		if (sources != null) {
+			for (int i = 0; i < sources.length; i++) {
+				compressZip(parent + sources[i].getName(), sources[i], zos, filter);
+			}
 		}
 	}
 
@@ -577,8 +579,10 @@ public final class CompressUtil {
 	public static void compressTar(String parent, Resource[] sources, TarArchiveOutputStream tos, int mode) throws IOException {
 
 		if (parent.length() > 0) parent += "/";
-		for (int i = 0; i < sources.length; i++) {
-			compressTar(parent + sources[i].getName(), sources[i], tos, mode);
+		if (sources != null) {
+			for (int i = 0; i < sources.length; i++) {
+				compressTar(parent + sources[i].getName(), sources[i], tos, mode);
+			}
 		}
 	}
 
