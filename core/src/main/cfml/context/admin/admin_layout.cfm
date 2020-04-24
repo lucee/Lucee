@@ -143,8 +143,8 @@
 </cfoutput>
 	<cfset thistag.generatedcontent="">
 </cfif>
-<cfparam name="session.debug" default="false">
+<cfparam name="session.debugEnabled" default="false">
 <cfif structKeyExists (url, "debug")>
-	<cfset session.debug = url.debug>
+	<cfset session.debugEnabled = url.debug>
 </cfif>
-<cfsetting showdebugoutput="#session.debug#">
+<cfsetting showdebugoutput="#session.debugEnabled#">
