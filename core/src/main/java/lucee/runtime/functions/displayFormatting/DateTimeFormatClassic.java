@@ -66,7 +66,7 @@ public final class DateTimeFormatClassic implements Function {
 		DateTime datetime = Caster.toDate(object, true, tz, null);
 		if (datetime == null) {
 			if (object.toString().trim().length() == 0) return "";
-			throw new ExpressionException("can't convert value " + object + " to a datetime value");
+			throw new ExpressionException("Can't convert value [" + object + "] to a datetime value");
 		}
 
 		return new lucee.runtime.format.DateTimeFormat(locale).format(datetime, mask, tz);
