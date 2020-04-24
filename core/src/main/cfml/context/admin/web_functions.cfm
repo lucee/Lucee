@@ -64,7 +64,7 @@ function printError(error,boolean longversion=false) {
 				loop array="#error.TagContext#" index="local.i" item="local.tc" {
 					writeOutput('<br><span class="comment">');
 
-					if(i==1) writeOutput('error occured in ');
+					if(i==1) writeOutput('error occurred in ');
 					else writeOutput('called by ');
 					writeOutput(error.TagContext[i].template&':'&error.TagContext[i].line&"</span>");
 					//writeOutput('<br>');
