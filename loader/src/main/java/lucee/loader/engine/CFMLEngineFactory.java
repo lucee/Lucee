@@ -182,11 +182,11 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	 */
 	public static CFMLEngine getInstance() throws RuntimeException {
 		if (singelton != null) return singelton;
-		throw new RuntimeException("engine is not initialized, you must first call getInstance(ServletConfig)");
+		throw new RuntimeException("Engine is not initialized, you must first call getInstance(ServletConfig)");
 	}
 
 	public static void registerInstance(final CFMLEngine engine) {
-		if (engine instanceof CFMLEngineWrapper) throw new RuntimeException("that should not happen!");
+		if (engine instanceof CFMLEngineWrapper) throw new RuntimeException("That should not happen!");
 		setEngine(engine);
 	}
 
@@ -362,13 +362,13 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 				bundleCollection = BundleLoader.loadBundles(this, getFelixCacheDirectory(), getBundleDirectory(), lucee, bundleCollection);
 				// bundle=loadBundle(lucee);
-				log(Logger.LOG_DEBUG, "loaded bundle:" + bundleCollection.core.getSymbolicName());
+				log(Logger.LOG_DEBUG, "Loaded bundle: [" + bundleCollection.core.getSymbolicName() + "]");
 				setEngine(getEngine(bundleCollection));
-				log(Logger.LOG_DEBUG, "loaded engine:" + singelton);
+				log(Logger.LOG_DEBUG, "Loaded engine: [" + singelton + "]");
 			}
 			version = singelton.getInfo().getVersion();
 
-			log(Logger.LOG_DEBUG, "Loaded Lucee Version " + singelton.getInfo().getVersion());
+			log(Logger.LOG_DEBUG, "Loaded Lucee Version [" + singelton.getInfo().getVersion() + "]");
 		}
 		catch (final InvocationTargetException e) {
 			log(e.getTargetException());
@@ -491,7 +491,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			}
 		}
 
-		final StringBuilder sb = new StringBuilder("loading felix with config:");
+		final StringBuilder sb = new StringBuilder("Loading felix with config:");
 		final Iterator<Entry<String, Object>> it = config.entrySet().iterator();
 		Entry<String, Object> e;
 		while (it.hasNext()) {
@@ -558,7 +558,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	 * @throws ServletException
 	 */
 	public boolean update(final Password password, final Identification id) throws IOException, ServletException {
-		if (!singelton.can(CFMLEngine.CAN_UPDATE, password)) throw new IOException("access denied to update CFMLEngine");
+		if (!singelton.can(CFMLEngine.CAN_UPDATE, password)) throw new IOException("Access denied to update CFMLEngine");
 		// new RunUpdate(this).start();
 		return _update(id);
 	}
@@ -572,7 +572,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	 * @throws ServletException
 	 */
 	public boolean restart(final Password password) throws IOException, ServletException {
-		if (!singelton.can(CFMLEngine.CAN_RESTART_ALL, password)) throw new IOException("access denied to restart CFMLEngine");
+		if (!singelton.can(CFMLEngine.CAN_RESTART_ALL, password)) throw new IOException("Access denied to restart CFMLEngine");
 
 		return _restart();
 	}
@@ -587,7 +587,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	 */
 	public boolean restart(final String configId, final Password password) throws IOException, ServletException {
 		if (!singelton.can(CFMLEngine.CAN_RESTART_CONTEXT, password))// TODO restart single context
-			throw new IOException("access denied to restart CFML Context (configId:" + configId + ")");
+			throw new IOException("Access denied to restart CFML Context (configId:" + configId + ")");
 
 		return _restart();
 	}
@@ -633,7 +633,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 			bundleCollection = BundleLoader.loadBundles(this, getFelixCacheDirectory(), getBundleDirectory(), newLucee, bundleCollection);
 			final CFMLEngine e = getEngine(bundleCollection);
-			if (e == null) throw new IOException("can't load engine");
+			if (e == null) throw new IOException("Failed to load engine");
 			version = e.getInfo().getVersion();
 			// engine = e;
 			setEngine(e);
@@ -715,8 +715,8 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			code = conn.getResponseCode();
 		}
 		catch (UnknownHostException e) {
-			log(Logger.LOG_ERROR, "could not download the bundle  [" + symbolicName + ":" + symbolicVersion + "] from " + updateUrl + " and copy to " + jar); // MUST remove
-			throw new IOException("could not download the bundle  [" + symbolicName + ":" + symbolicVersion + "] from " + updateUrl + " and copy to " + jar, e);
+			log(Logger.LOG_ERROR, "Failed to download the bundle  [" + symbolicName + ":" + symbolicVersion + "] from [" + updateUrl + "] and copy to [" + jar + "]"); // MUST remove
+			throw new IOException("Failed to download the bundle  [" + symbolicName + ":" + symbolicVersion + "] from [" + updateUrl + "] and copy to [" + jar + "]", e);
 		}
 		// the update provider is not providing a download for this
 		if (code != 200) {
@@ -740,14 +740,14 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				}
 				catch (final UnknownHostException e) {
 					log(e);
-					throw new IOException("could not download the bundle  [" + symbolicName + ":" + symbolicVersion + "] from " + location + " and copy to " + jar, e);
+					throw new IOException("Failed to download the bundle  [" + symbolicName + ":" + symbolicVersion + "] from [" + location + "] and copy to [" + jar + "]", e);
 				}
 			}
 
 			// no download available!
 			if (code != 200) {
-				final String msg = "Lucee is not able do download the bundle for [" + symbolicName + "] in version [" + symbolicVersion + "] from " + updateUrl
-						+ ", please download manually and copy to [" + jarDir + "]";
+				final String msg = "Failed to download the bundle for [" + symbolicName + "] in version [" + symbolicVersion + "] from [" + updateUrl
+						+ "], please download manually and copy to [" + jarDir + "]";
 				log(Logger.LOG_ERROR, msg);
 				conn.disconnect();
 				throw new IOException(msg);
@@ -775,29 +775,29 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		InputStream is = getClass().getResourceAsStream("bundles/" + osgiFileName);
 		if (is == null) is = getClass().getResourceAsStream("/bundles/" + osgiFileName);
 
-		if (is != null) log(Logger.LOG_DEBUG, "found /bundles/" + osgiFileName + " in lucee.jar");
-		else log(Logger.LOG_INFO, "could not find /bundles/" + osgiFileName + " in lucee.jar");
+		if (is != null) log(Logger.LOG_DEBUG, "Found ]/bundles/" + osgiFileName + "] in lucee.jar");
+		else log(Logger.LOG_INFO, "Could not find [/bundles/" + osgiFileName + "] in lucee.jar");
 
 		if (is == null) {
 			is = getClass().getResourceAsStream("bundles/" + osgiFileName + pack20Ext);
 			if (is == null) is = getClass().getResourceAsStream("/bundles/" + osgiFileName + pack20Ext);
 			isPack200 = true;
 
-			if (is != null) log(Logger.LOG_DEBUG, "found /bundles/" + osgiFileName + pack20Ext + " in lucee.jar");
-			else log(Logger.LOG_INFO, "could not find /bundles/" + osgiFileName + pack20Ext + " in lucee.jar");
+			if (is != null) log(Logger.LOG_DEBUG, "Found [/bundles/" + osgiFileName + pack20Ext + "] in lucee.jar");
+			else log(Logger.LOG_INFO, "Could not find [/bundles/" + osgiFileName + pack20Ext + "] in lucee.jar");
 		}
 		if (is != null) {
 			File temp = null;
 			try {
 				// copy to temp file
 				temp = File.createTempFile("bundle", ".tmp");
-				log(Logger.LOG_DEBUG, "copy lucee.jar!/bundles/" + osgiFileName + pack20Ext + " to " + temp);
+				log(Logger.LOG_DEBUG, "Copying [lucee.jar!/bundles/" + osgiFileName + pack20Ext + "] to [" + temp + "]");
 				Util.copy(new BufferedInputStream(is), new FileOutputStream(temp), true, true);
 
 				if (isPack200) {
 					File temp2 = File.createTempFile("bundle", ".tmp2");
 					Pack200Util.pack2Jar(temp, temp2);
-					log(Logger.LOG_DEBUG, "unpack " + temp + " to " + temp2);
+					log(Logger.LOG_DEBUG, "Upack [" + temp + "] to [" + temp2 + "]");
 					temp.delete();
 					temp = temp2;
 				}
@@ -805,7 +805,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 				// adding bundle
 				File trg = new File(bundleDirectory, osgiFileName);
 				fileMove(temp, trg);
-				log(Logger.LOG_DEBUG, "adding bundle [" + symbolicName + "] in version [" + symbolicVersion + "] to [" + trg + "]");
+				log(Logger.LOG_DEBUG, "Adding bundle [" + symbolicName + "] in version [" + symbolicVersion + "] to [" + trg + "]");
 				return trg;
 			}
 			catch (IOException ioe) {
@@ -854,7 +854,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 							if (bundleInfo != null && nameAndVersion.equals(bundleInfo)) {
 								File trg = new File(bundleDirectory, name);
 								temp.renameTo(trg);
-								log(Logger.LOG_DEBUG, "adding bundle [" + symbolicName + "] in version [" + symbolicVersion + "] to [" + trg + "]");
+								log(Logger.LOG_DEBUG, "Adding bundle [" + symbolicName + "] in version [" + symbolicVersion + "] to [" + trg + "]");
 
 								return trg;
 							}
@@ -912,7 +912,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		log(Logger.LOG_DEBUG, "Check for update at " + updateProvider);
 
 		String strAvailableVersion = toString((InputStream) infoUrl.getContent()).trim();
-		log(Logger.LOG_DEBUG, "receive available update version from update provider (" + strAvailableVersion + ") ");
+		log(Logger.LOG_DEBUG, "Received available update versions from update provider (" + strAvailableVersion + ") ");
 
 		strAvailableVersion = CFMLEngineFactorySupport.removeQuotes(strAvailableVersion, true);
 
@@ -921,7 +921,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			return null;
 		}
 
-		log(Logger.LOG_DEBUG, "Found a newer Version \n - current Version " + version.toString() + "\n - available Version " + strAvailableVersion);
+		log(Logger.LOG_DEBUG, "Found a newer Version \n - current Version [" + version.toString() + "]\n - available Version [" + strAvailableVersion + "]");
 
 		final URL updateUrl = new URL(updateProvider,
 				"/rest/update/provider/download/" + strAvailableVersion + (id != null ? id.toQueryString() : "") + (id == null ? "?" : "&") + "allowRedirect=true");
@@ -972,7 +972,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 			// no download available!
 			if (code != 200) {
-				final String msg = "Lucee is not able do download the core for version [" + version.toString() + "] from " + updateUrl
+				final String msg = "Lucee failed to download the core for version [" + version.toString() + "] from " + updateUrl
 						+ ", please download it manually and copy to [" + patchDir + "]";
 				log(Logger.LOG_ERROR, msg);
 				conn.disconnect();
@@ -988,7 +988,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			// when it is a loader extract the core from it
 			File tmp = extractCoreIfLoader(newLucee);
 			if (tmp != null) {
-				log(Logger.LOG_DEBUG, "extract core from loader");
+				log(Logger.LOG_DEBUG, "Extract core from loader");
 
 				newLucee.delete();
 				tmp.renameTo(newLucee);
@@ -1094,7 +1094,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	 * @throws ServletException
 	 */
 	public boolean removeUpdate(final Password password) throws IOException, ServletException {
-		if (!singelton.can(CFMLEngine.CAN_UPDATE, password)) throw new IOException("access denied to update CFMLEngine");
+		if (!singelton.can(CFMLEngine.CAN_UPDATE, password)) throw new IOException("Access denied to update CFMLEngine");
 		return removeUpdate();
 	}
 
@@ -1108,7 +1108,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	 * @throws ServletException
 	 */
 	public boolean removeLatestUpdate(final Password password) throws IOException, ServletException {
-		if (!singelton.can(CFMLEngine.CAN_UPDATE, password)) throw new IOException("access denied to update CFMLEngine");
+		if (!singelton.can(CFMLEngine.CAN_UPDATE, password)) throw new IOException("Access denied to update CFMLEngine");
 		return removeLatestUpdate();
 	}
 
@@ -1246,7 +1246,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 		log(Logger.LOG_DEBUG, "root-directory:" + root);
 
-		if (root == null) throw new IOException("can't locate the root of the servlet container, please define a location (physical path) for the server configuration"
+		if (root == null) throw new IOException("Can't locate the root of the servlet container, please define a location (physical path) for the server configuration"
 				+ " with help of the servlet init param [lucee-server-directory] in the web.xml where the Lucee Servlet is defined" + " or the system property [lucee.base.dir].");
 
 		final File modernDir = new File(root, "lucee-server");
@@ -1262,7 +1262,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			}
 			// there is a railo context
 			if (!had && classicRoot.isDirectory() && (classicDir = new File(classicRoot, "railo-server")).isDirectory()) {
-				log(Logger.LOG_DEBUG, "had railo-server classic" + classicDir);
+				log(Logger.LOG_DEBUG, "Had railo-server classic" + classicDir);
 				// check if there is a Railo context
 				copyRecursiveAndRename(classicDir, modernDir);
 				// zip the railo-server di and delete it (optional)
@@ -1442,10 +1442,10 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	private CFMLEngine getEngine(final BundleCollection bc)
 			throws ClassNotFoundException, SecurityException, NoSuchMethodException, IllegalArgumentException, IllegalAccessException, InvocationTargetException {
 
-		log(Logger.LOG_DEBUG, "state:" + BundleUtil.bundleState(bc.core.getState(), ""));
+		log(Logger.LOG_DEBUG, "state: " + BundleUtil.bundleState(bc.core.getState(), ""));
 		// bundle.getBundleContext().getServiceReference(CFMLEngine.class.getName());
 		log(Logger.LOG_DEBUG, Constants.FRAMEWORK_BOOTDELEGATION + ":" + bc.getBundleContext().getProperty(Constants.FRAMEWORK_BOOTDELEGATION));
-		log(Logger.LOG_DEBUG, "felix.cache.rootdir:" + bc.getBundleContext().getProperty("felix.cache.rootdir"));
+		log(Logger.LOG_DEBUG, "felix.cache.rootdir: " + bc.getBundleContext().getProperty("felix.cache.rootdir"));
 
 		// log(Logger.LOG_DEBUG,bc.master.loadClass(TP.class.getName()).getClassLoader().toString());
 		final Class<?> clazz = bc.core.loadClass("lucee.runtime.engine.CFMLEngineImpl");
