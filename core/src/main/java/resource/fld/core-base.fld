@@ -5039,6 +5039,7 @@ Set the attribute to normal to make a file not read-only and not hidden.</descri
 		<name>findOneOf</name>
 		<class>lucee.runtime.functions.string.FindOneOf</class>
 		<member-name>findOneOf</member-name>
+		<member-position>2</member-position>
 		<keywords>string,find</keywords>
 		<description>Finds the first occurrence of any one of a set of characters
         in a string, from a specified start position. The search is
@@ -5066,7 +5067,6 @@ Set the attribute to normal to make a file not read-only and not hidden.</descri
 			<type>number</type>
 		</return>
 	</function>
-	
 	
 	<!-- findLast -->
 	<function>
