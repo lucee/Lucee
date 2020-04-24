@@ -3752,7 +3752,7 @@ public final class XMLConfigAdmin {
 
 			// no download available!
 			if (code != 200) {
-				final String msg = "Lucee is not able do download (response status:" + code + ") the core for version [" + version.toString() + "] from " + updateUrl
+				final String msg = "Lucee is not able to download (response status:" + code + ") the core for version [" + version.toString() + "] from " + updateUrl
 						+ ", please download it manually and copy to [" + patchDir + "]";
 				// log.debug("Admin", msg);
 				conn.disconnect();
