@@ -201,7 +201,7 @@ public final class FileResource extends File implements Resource {
 		if (dest instanceof File) {
 			provider.lock(this);
 			try {
-				if (dest.exists() && !dest.delete()) throw new IOException("can't move file " + this.getAbsolutePath() + " cannot remove existing file " + dest.getAbsolutePath());
+				if (dest.exists() && !dest.delete()) throw new IOException("Can't move file [" + this.getAbsolutePath() + "] cannot remove existing file [" + dest.getAbsolutePath() + "]");
 
 				done = super.renameTo((File) dest);
 				/*
@@ -218,7 +218,7 @@ public final class FileResource extends File implements Resource {
 			ResourceUtil.checkMoveToOK(this, dest);
 			IOUtil.copy(getInputStream(), dest, true);
 			if (!this.delete()) {
-				throw new IOException("can't delete resource " + this.getAbsolutePath());
+				throw new IOException("Can't delete resource [" + this.getAbsolutePath() + "]");
 			}
 		}
 	}
@@ -247,7 +247,7 @@ public final class FileResource extends File implements Resource {
 		provider.lock(this);
 		try {
 			if (!super.exists() && !super.createNewFile()) {
-				throw new IOException("can't create file " + this);
+				throw new IOException("Can't create file [" + this + "]");
 			}
 			return new BufferedOutputStream(new ResourceOutputStream(this, new FileOutputStream(this, append)));
 		}
@@ -266,8 +266,8 @@ public final class FileResource extends File implements Resource {
 				if (!p.exists()) p.mkdirs();
 			}
 			if (!super.createNewFile()) {
-				if (super.isFile()) throw new IOException("can't create file " + this + ", file already exists");
-				throw new IOException("can't create file " + this);
+				if (super.isFile()) throw new IOException("Can't create file [" + this + "], file already exists");
+				throw new IOException("Can't create file [" + this + "]");
 			}
 		}
 		finally {
@@ -288,9 +288,9 @@ public final class FileResource extends File implements Resource {
 		provider.lock(this);
 		try {
 			if (!super.delete()) {
-				if (!super.exists()) throw new IOException("can't delete file " + this + ", file does not exist");
-				if (!super.canWrite()) throw new IOException("can't delete file " + this + ", no access");
-				throw new IOException("can't delete file " + this);
+				if (!super.exists()) throw new IOException("Can't delete file [" + this + "], file does not exist");
+				if (!super.canWrite()) throw new IOException("Can't delete file [" + this + "], no access");
+				throw new IOException("Can't delete file [" + this + "]");
 			}
 		}
 		finally {
@@ -327,8 +327,8 @@ public final class FileResource extends File implements Resource {
 		provider.lock(this);
 		try {
 			if (createParentWhenNotExists ? !_mkdirs() : !super.mkdir()) {
-				if (super.isDirectory()) throw new IOException("can't create directory " + this + ", directory already exists");
-				throw new IOException("can't create directory " + this);
+				if (super.isDirectory()) throw new IOException("Can't create directory [" + this + "], directory already exists");
+				throw new IOException("Can't create directory [" + this + "]");
 			}
 		}
 		finally {
@@ -402,10 +402,10 @@ public final class FileResource extends File implements Resource {
 		try {
 			// print.ln(ModeUtil.toStringMode(mode));
 			if (Runtime.getRuntime().exec(new String[] { "chmod", ModeUtil.toStringMode(mode), getPath() }).waitFor() != 0)
-				throw new IOException("chmod  " + ModeUtil.toStringMode(mode) + " " + toString() + " failed");
+				throw new IOException("chmod  [" + ModeUtil.toStringMode(mode) + "] [" + toString() + "] failed");
 		}
 		catch (InterruptedException e) {
-			throw new IOException("Interrupted waiting for chmod " + toString());
+			throw new IOException("Interrupted waiting for chmod [" + toString() + "]");
 		}
 		finally {
 			provider.unlock(this);
@@ -446,7 +446,7 @@ public final class FileResource extends File implements Resource {
 		if (!value) {
 			try {
 				provider.lock(this);
-				if (!super.setReadOnly()) throw new IOException("can't set resource read-only");
+				if (!super.setReadOnly()) throw new IOException("Can't set resource read-only");
 			}
 			catch (IOException ioe) {
 				return false;
