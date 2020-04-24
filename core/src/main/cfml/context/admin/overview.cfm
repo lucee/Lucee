@@ -687,14 +687,14 @@ Error Output --->
 						<!--- Jira --->
 						<tr>
 							<td>
-								<a href="https://issues.lucee.org/" target="_blank">#stText.Overview.issueTracker#</a>
+								<a href="http://issues.lucee.org/" target="_blank">#stText.Overview.issueTracker#</a>
 								<div class="comment">#stText.Overview.issueTrackerDesc#</div>
 							</td>
 						</tr>
 						<!--- Blog --->
 						<tr>
 							<td>
-								<a href="http://blog.lucee.org/" target="_blank">#stText.Overview.blog#</a>
+								<a href="http://blog.lucee.org" target="_blank">#stText.Overview.blog#</a>
 								<div class="comment">#stText.Overview.blogDesc#</div>
 							</td>
 						</tr>

@@ -262,10 +262,10 @@ if(structKeyExists(arguments.custom, "metrics_Charts")) {
 	.ldTabContent .sortby.selected, #-lucee-debugging .sortby:hover { background-color: #25A; color: #FFF; }
 	.ldTabContent .pad 	{ padding-left: 16px; }
 	.ldTabContent a 	{  color: #25A;}
-	.ldTabContent a.large 	{font-size: 12pt;}
+	.ldTabContent a.large 	{font-size: 12pt; cursor: pointer;}
 	.ldTabContent td a 	{ color: #25A; }
 	.ldTabContent .warning{ color: red; }
-	.ldTabContent td a:hover	{ color: #58C; text-decoration: underline; }
+	.ldTabContent td a:hover	{ color: #58C; text-decoration: underline; cursor: pointer;}
 	.ldTabContent pre 	{ background-color: #EEE; padding: 1em; border: solid 1px #333; border-radius: 1em; white-space: pre-wrap; word-break: break-all; word-wrap: break-word; tab-size: 2; }
 	.ldTabContent input 	{ 
 			font-size: 12pt;
