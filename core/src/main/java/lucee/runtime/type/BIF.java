@@ -70,7 +70,7 @@ public class BIF extends MemberSupport implements UDFPlus {
 		// BIF not found
 		if (flf == null) {
 			Key[] keys = CollectionUtil.toKeys(fl.getFunctions().keySet());
-			throw new ApplicationException(ExceptionUtil.similarKeyMessage(keys, name, "build in function", "build in functions", null, false));
+			throw new ApplicationException(ExceptionUtil.similarKeyMessage(keys, name, "Built in function", "Built in functions", null, false));
 		}
 		try {
 			this.id = Hash.md5(name);
@@ -137,7 +137,7 @@ public class BIF extends MemberSupport implements UDFPlus {
 				if (arg.getRequired()) {
 					String[] names = flf.getMemberNames();
 					String n = ArrayUtil.isEmpty(names) ? "" : names[0];
-					throw new ExpressionException("missing required argument [" + arg.getName() + "] for build in function call [" + n + "]");
+					throw new ExpressionException("Missing required argument [" + arg.getName() + "] for built in function call [" + n + "]");
 				}
 			}
 			else {
@@ -155,7 +155,7 @@ public class BIF extends MemberSupport implements UDFPlus {
 		FunctionLibFunctionArg flfa;
 		List<Ref> refs = new ArrayList<Ref>();
 		for (int i = 0; i < args.length; i++) {
-			if (i >= flfas.size()) throw new ApplicationException("too many Attributes in function call [" + flf.getName() + "]");
+			if (i >= flfas.size()) throw new ApplicationException("Too many Attributes in function call [" + flf.getName() + "]");
 			flfa = flfas.get(i);
 			refs.add(new Casting(flfa.getTypeAsString(), flfa.getType(), args[i]));
 		}

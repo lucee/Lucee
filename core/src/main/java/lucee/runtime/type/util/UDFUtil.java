@@ -280,7 +280,7 @@ public class UDFUtil {
 	public static int toReturnFormat(String returnFormat) throws ExpressionException {
 		int rf = toReturnFormat(returnFormat, -1);
 		if (rf != -1) return rf;
-		throw new ExpressionException("invalid returnFormat definition [" + returnFormat + "], valid values are [wddx,plain,json,cfml]");
+		throw new ExpressionException("Invalid returnFormat definition [" + returnFormat + "], valid values are [wddx,plain,json,cfml]");
 	}
 
 	public static String toReturnFormat(int returnFormat) throws ExpressionException {
@@ -289,7 +289,7 @@ public class UDFUtil {
 		else if (UDF.RETURN_FORMAT_PLAIN == returnFormat) return "plain";
 		else if (UDF.RETURN_FORMAT_SERIALIZE == returnFormat) return "cfml";
 		else if (UDF.RETURN_FORMAT_JAVA == returnFormat) return "java";
-		else throw new ExpressionException("invalid returnFormat definition, valid values are [wddx,plain,json,cfml]");
+		else throw new ExpressionException("Invalid returnFormat definition, valid values are [wddx,plain,json,cfml]");
 	}
 
 	public static DumpData toDumpData(PageContext pageContext, int maxlevel, DumpProperties dp, UDF udf, short type) {
@@ -356,7 +356,7 @@ public class UDFUtil {
 			func.setTitle(f);
 		}
 		else if (TYPE_BIF == type) {
-			String f = "Build in Function " + (!StringUtil.isEmpty(label) ? label : udf.getFunctionName());
+			String f = "Built in Function " + (!StringUtil.isEmpty(label) ? label : udf.getFunctionName());
 			func = new DumpTable("#e1c039", "#f1e2a3", "#000000");
 			func.setTitle(f);
 		}

@@ -81,7 +81,7 @@ import lucee.transformer.util.SourceCode;
  * Mithilfe der FunctionLibs, kann er Funktionsaufrufe, die Teil eines Ausdruck sein koennen,
  * erkennen und validieren. Dies geschieht innerhalb der Methode function. Falls ein
  * Funktionsaufruf, einer Funktion innerhalb einer FunctionLib entspricht, werden diese
- * gegeneinander verglichen und der Aufruf wird als Build-In-Funktion uebernommen, andernfalls wird
+ * gegeneinander verglichen und der Aufruf wird als Built-In-Funktion uebernommen, andernfalls wird
  * der Funktionsaufruf als User-Defined-Funktion interpretiert. Die Klasse Cast, Operator und
  * ElementFactory (siehe 3.2) helfen ihm beim erstellen des Ausgabedokument CFXD.
  * 
@@ -1469,7 +1469,7 @@ public abstract class AbstrCFMLExprTransformer {
 
 	private Expression staticScope(Data data, Expression expr) throws TemplateException {
 		if (data.srcCode.forwardIfCurrent("::")) {
-			if (!(expr instanceof Variable)) throw new TemplateException(data.srcCode, "invalid syntax before [::]");
+			if (!(expr instanceof Variable)) throw new TemplateException(data.srcCode, "Invalid syntax before [::]");
 
 			Variable old = (Variable) expr;
 			// set back to read again as a component path
@@ -1477,7 +1477,7 @@ public abstract class AbstrCFMLExprTransformer {
 
 			// now we read the component path
 			ExprString componentPath = readComponentPath(data);
-			if (!data.srcCode.forwardIfCurrent("::")) throw new TemplateException(data.srcCode, "invalid syntax before [::]" + data.srcCode.getCurrent());
+			if (!data.srcCode.forwardIfCurrent("::")) throw new TemplateException(data.srcCode, "Invalid syntax before [::]" + data.srcCode.getCurrent());
 
 			comments(data);
 
@@ -1721,7 +1721,7 @@ public abstract class AbstrCFMLExprTransformer {
 	/**
 	 * Liest die Argumente eines Funktonsaufruf ein und prueft ob die Funktion innerhalb der FLD
 	 * (Function Library Descriptor) definiert ist. Falls sie existiert wird die Funktion gegen diese
-	 * geprueft und ein build-in-function CFXD Element generiert, ansonsten ein normales funcion-call
+	 * geprueft und ein built-in-function CFXD Element generiert, ansonsten ein normales funcion-call
 	 * Element. <br />
 	 * EBNF:<br />
 	 * <code>[impOp{"," impOp}];</code>
@@ -1737,7 +1737,7 @@ public abstract class AbstrCFMLExprTransformer {
 		checkLibrary = checkLibrary && data.flibs != null;
 		FunctionLibFunction flf = null;
 		if (checkLibrary) {
-			if (!(name instanceof Literal)) throw new TemplateException(data.srcCode, "syntax error"); // should never happen!
+			if (!(name instanceof Literal)) throw new TemplateException(data.srcCode, "Syntax error"); // should never happen!
 
 			for (int i = 0; i < data.flibs.length; i++) {
 				flf = data.flibs[i].getFunction(((Literal) name).getString());
@@ -1802,13 +1802,13 @@ public abstract class AbstrCFMLExprTransformer {
 					// Dynamic
 					if (isDynamic) {
 						if (max != -1 && max < fm.getArguments().length) throw new TemplateException(data.srcCode,
-								"too many Attributes (" + max + ":" + fm.getArguments().length + ") in function [ " + ASMUtil.display(name) + " ]");
+								"Too many Attributes (" + max + ":" + fm.getArguments().length + ") in function [ " + ASMUtil.display(name) + " ]");
 					}
 					// Fix
 					else {
 						if (flf.getArg().size() < fm.getArguments().length) {
 							TemplateException te = new TemplateException(data.srcCode,
-									"too many Attributes (" + flf.getArg().size() + ":" + fm.getArguments().length + ") in function call [" + ASMUtil.display(name) + "]");
+									"Too many Attributes (" + flf.getArg().size() + ":" + fm.getArguments().length + ") in function call [" + ASMUtil.display(name) + "]");
 							UDFUtil.addFunctionDoc(te, flf);
 							throw te;
 						}
@@ -1818,7 +1818,7 @@ public abstract class AbstrCFMLExprTransformer {
 
 				// check min attributes
 				if (flf.getArgMin() > count) {
-					TemplateException te = new TemplateException(data.srcCode, "too few attributes in function [" + ASMUtil.display(name) + "]");
+					TemplateException te = new TemplateException(data.srcCode, "Too few attributes in function [" + ASMUtil.display(name) + "]");
 					if (flf.getArgType() == FunctionLibFunction.ARG_FIX) UDFUtil.addFunctionDoc(te, flf);
 					throw te;
 				}
@@ -1926,7 +1926,7 @@ public abstract class AbstrCFMLExprTransformer {
 			}
 
 			if (data.srcCode.isCurrent('"') || data.srcCode.isCurrent('#') || data.srcCode.isCurrent('\'')) {
-				throw new TemplateException(data.srcCode, "simple attribute value can't contain [" + data.srcCode.getCurrent() + "]");
+				throw new TemplateException(data.srcCode, "Simple attribute value can't contain [" + data.srcCode.getCurrent() + "]");
 			}
 			sb.append(data.srcCode.getCurrent());
 			data.srcCode.next();
