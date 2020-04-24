@@ -162,20 +162,20 @@
 		<cfreturn "thumbnail.cfm?img=#urlEncodedFormat(imgUrl)#&width=#width#&height=#height#">
 	</cffunction>
 
-	<cffunction name="getDumpNail">
+	<cffunction name="getDumpNail" localmode=true>
 		<cfargument name="src" required="yes" type="string">
 		<cfargument name="width" required="yes" type="number" default="80">
 		<cfargument name="height" required="yes" type="number" default="40">
 		<cfset local.empty=("R0lGODlhMQApAIAAAGZmZgAAACH5BAEAAAAALAAAAAAxACkAAAIshI+py+0Po5y02ouz3rz7D4biSJbmiabqyrbuC8fyTNf2jef6zvf+DwwKeQUAOw==")>
 		<cftry>
-			<cfset local.id=hash(src&":"&width&"-"&height)>
+			<cfset local.id=hash(arguments.src&":"&arguments.width&"-"&arguments.height)>
 			<cfset mimetypes={png:'png',gif:'gif',jpg:'jpeg'}>
 
-			<cfif len(src) ==0>
+			<cfif len(arguments.src) ==0>
 				<cfset ext="gif">
 			<cfelse>
-			    <cfset ext=listLast(src,'.')>
-			    <cfif ext==src>
+			    <cfset ext=listLast(arguments.src,'.')>
+			    <cfif ext==arguments.src>
 					<cfset ext="png"><!--- base64 encoded binary --->
 				</cfif>
 			</cfif>
@@ -186,12 +186,12 @@
 			<cfset fileName = id&"."&ext>
 			<cfif cache && fileExists(tmpfile)>
 				<cffile action="read" file="#tmpfile#" variable="b64">
-			<cfelseif len(src) EQ 0>
+			<cfelseif len(arguments.src) EQ 0>
 				<cfset local.b64=empty>
 			<cfelse>
-				<cfif len(src)<500 && (isValid("URL", src) || fileExists(src))>
-					<cffile action="readbinary" file="#src#" variable="data">
-					<cfset src=toBase64(data)>
+				<cfif len(arguments.src)<500 && (isValid("URL", arguments.src) || fileExists(arguments.src))>
+					<cffile action="readbinary" file="#arguments.src#" variable="data">
+					<cfset arguments.src=toBase64(data)>
 				<cfelse>
 					<cfset data=toBinary(src)>
 				</cfif>
