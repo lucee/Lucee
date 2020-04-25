@@ -65,6 +65,8 @@ public final class Cookie extends TagImpl {
 	private boolean preservecase;
 	private boolean encode = true;
 
+	private String samesite = null;
+
 	@Override
 	public void release() {
 		super.release();
@@ -165,6 +167,10 @@ public final class Cookie extends TagImpl {
 		this.encode = encode;
 	}
 
+	public void setSamesite(String samesite) {
+		this.samesite = samesite;
+	}
+
 	@Override
 	public int doStartTag() throws PageException {
 		Key key = KeyImpl.getInstance(name);
@@ -179,7 +185,7 @@ public final class Cookie extends TagImpl {
 
 			}
 		}
-		pageContext.cookieScope().setCookie(key, value, expires, secure, path, domain, httponly, preservecase, encode);
+		pageContext.cookieScope().setCookie(key, value, expires, secure, path, domain, httponly, preservecase, encode, samesite);
 		return SKIP_BODY;
 	}
 

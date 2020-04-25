@@ -214,6 +214,7 @@ public class KeyConstants {
 	public static final Key _Raw_Trace = KeyImpl._const("Raw_Trace");
 	public static final Key _Referer = KeyImpl._const("Referer");
 	public static final Key _Roulette = KeyImpl._const("Roulette");
+	public static final Key _samesite = KeyImpl._const("SameSite");
 	public static final Key _SCOPE = KeyImpl._const("SCOPE");
 	public static final Key _SCT = KeyImpl._const("SCT");
 	public static final Key _SELECT = KeyImpl._const("SELECT");
