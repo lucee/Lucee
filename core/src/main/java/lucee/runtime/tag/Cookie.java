@@ -79,6 +79,7 @@ public final class Cookie extends TagImpl {
 		httponly = false;
 		preservecase = false;
 		encode = true;
+		samesite = null;
 	}
 
 	/**
