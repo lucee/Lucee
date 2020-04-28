@@ -6,15 +6,15 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either 
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public 
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 package lucee.runtime.type.scope;
 
@@ -181,7 +181,6 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 	public void setCookie(Collection.Key key, Object value, Object expires, boolean secure, String path, String domain, boolean httpOnly, boolean preserveCase, boolean encode)
 			throws PageException {
 		int exp = EXPIRES_NULL;
-
 		// expires
 		if (expires == null) {
 			exp = EXPIRES_NULL;
@@ -191,6 +190,9 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 		}
 		else if (expires instanceof TimeSpan) {
 			exp = toExpires((TimeSpan) expires);
+		}
+		else if (isDouble(expires)) {
+			exp = toExpires(Double.parseDouble(expires.toString()));
 		}
 		else if (expires instanceof Number) {
 			exp = toExpires((Number) expires);
@@ -204,6 +206,19 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 		}
 
 		setCookie(key, value, exp, secure, path, domain, httpOnly, preserveCase, encode);
+	}
+
+	private boolean isDouble(Object o) {
+		if (o == null) {
+			return false;
+		}
+		try {
+			Double.parseDouble(o.toString());
+		}
+		catch (NumberFormatException e) {
+			return false;
+		}
+		return true;
 	}
 
 	@Override
@@ -242,12 +257,12 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 	 * String domain, boolean httpOnly, boolean preserveCase, boolean encode) { String
 	 * name=preserveCase?key.getString():key.getUpperString(); if(encode) { name=enc(name);
 	 * value=enc(value); }
-	 * 
+	 *
 	 * javax.servlet.http.Cookie cookie = new javax.servlet.http.Cookie(name,value);
 	 * cookie.setMaxAge(expires); cookie.setSecure(secure); cookie.setPath(path);
 	 * if(!StringUtil.isEmpty(domain,true))cookie.setDomain(domain); if(httpOnly) setHTTPOnly(cookie);
 	 * rsp.addCookie(cookie);
-	 * 
+	 *
 	 * }
 	 */
 
@@ -265,11 +280,11 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 	}
 
 	private int toExpires(Number expires) {
-		return toExpires(expires.intValue());
+		return toExpires(expires.doubleValue());
 	}
 
-	private int toExpires(int expires) {
-		return expires * 24 * 60 * 60;
+	private int toExpires(Double expires) {
+		return (int) (expires * 24 * 60 * 60);
 	}
 
 	private int toExpires(Date expires) {
@@ -338,13 +353,16 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 	}
 
 	@Override
-	public void resetEnv(PageContext pc) {}
+	public void resetEnv(PageContext pc) {
+	}
 
 	@Override
-	public void touchBeforeRequest(PageContext pc) {}
+	public void touchBeforeRequest(PageContext pc) {
+	}
 
 	@Override
-	public void touchAfterRequest(PageContext pc) {}
+	public void touchAfterRequest(PageContext pc) {
+	}
 
 	public static void setHTTPOnly(javax.servlet.http.Cookie cookie) {
 		try {
