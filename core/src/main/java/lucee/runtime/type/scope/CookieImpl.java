@@ -192,11 +192,11 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 		else if (expires instanceof TimeSpan) {
 			exp = toExpires((TimeSpan) expires);
 		}
-		else if (expires instanceof Number) {
-			exp = toExpires((Number) expires);
-		}
 		else if (expires instanceof String) {
 			exp = toExpires((String) expires);
+		}
+		else if (Decision.isNumber(expires)) {
+			exp = toExpires(Caster.toDoubleValue(expires));
 
 		}
 		else {
@@ -260,16 +260,12 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 			if (dt != null) {
 				return toExpires(dt);
 			}
-			return toExpires(Caster.toIntValue(expires));
+			return toExpires(Caster.toDoubleValue(expires));
 		}
 	}
 
-	private int toExpires(Number expires) {
-		return toExpires(expires.intValue());
-	}
-
-	private int toExpires(int expires) {
-		return expires * 24 * 60 * 60;
+	private int toExpires(double expires) {
+		return Caster.toIntValue(expires * 24 * 60 * 60);
 	}
 
 	private int toExpires(Date expires) {
