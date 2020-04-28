@@ -223,11 +223,25 @@ public class QueryUtil {
 	public static DumpData toDumpData(Query query, PageContext pageContext, int maxlevel, DumpProperties dp) {
 		maxlevel--;
 		Collection.Key[] keys = CollectionUtil.keys(query);
-		DumpData[] heads = new DumpData[keys.length + 1];
-		// int tmp=1;
+		boolean[] showColumn = new boolean[keys.length];
+		int columnCount = 0;
+		for (int i = 0; i < keys.length; i++) {
+			if (DumpUtil.keyValid(dp, maxlevel, keys[i].getString())) {
+				showColumn[i] = true;
+				columnCount++;
+			}
+			else {
+				showColumn[i] = false;
+			}
+		}
+		DumpData[] heads = new DumpData[columnCount + 1];
+		int columnInc=0;
 		heads[0] = new SimpleDumpData("");
 		for (int i = 0; i < keys.length; i++) {
-			heads[i + 1] = new SimpleDumpData(keys[i].getString());
+			if (showColumn[i]) {
+				heads[columnInc + 1] = new SimpleDumpData(keys[i].getString());
+				columnInc++;
+			}
 		}
 
 		StringBuilder comment = new StringBuilder();
@@ -255,6 +269,9 @@ public class QueryUtil {
 		}
 
 		comment.append("Lazy: ").append(query instanceof SimpleQuery ? "Yes\n" : "No\n");
+		if (keys.length > columnCount) {
+			comment.append("Filtered: ").append(columnCount).append(" of ").append(keys.length).append(" columns shown\n");
+		}
 
 		SQL sql = query.getSql();
 		if (sql != null) comment.append("SQL: ").append("\n").append(StringUtil.suppressWhiteSpace(sql.toString().trim())).append("\n");
@@ -271,22 +288,25 @@ public class QueryUtil {
 		// body
 		DumpData[] items;
 		int recordcount = query.getRecordcount();
-		int columncount = query.getColumnNames().length;
 		for (int i = 0; i < recordcount; i++) {
-			items = new DumpData[columncount + 1];
+			items = new DumpData[columnCount + 1];
 			items[0] = new SimpleDumpData(i + 1);
+			columnInc=0;
 			for (int y = 0; y < keys.length; y++) {
-				try {
-					Object o = query.getAt(keys[y], i + 1);
-					if (o instanceof String) items[y + 1] = new SimpleDumpData(o.toString());
-					else if (o instanceof Number) items[y + 1] = new SimpleDumpData(Caster.toString(((Number) o)));
-					else if (o instanceof Boolean) items[y + 1] = new SimpleDumpData(((Boolean) o).booleanValue());
-					else if (o instanceof Date) items[y + 1] = new SimpleDumpData(Caster.toString(o));
-					else if (o instanceof Clob) items[y + 1] = new SimpleDumpData(Caster.toString(o));
-					else items[y + 1] = DumpUtil.toDumpData(o, pageContext, maxlevel, dp);
-				}
-				catch (PageException e) {
-					items[y + 1] = new SimpleDumpData("[empty]");
+				if (showColumn[y]) {
+					try {
+						Object o = query.getAt(keys[y], i + 1);
+						if (o instanceof String) items[columnInc + 1] = new SimpleDumpData(o.toString());
+						else if (o instanceof Number) items[columnInc + 1] = new SimpleDumpData(Caster.toString(((Number) o)));
+						else if (o instanceof Boolean) items[columnInc + 1] = new SimpleDumpData(((Boolean) o).booleanValue());
+						else if (o instanceof Date) items[columnInc + 1] = new SimpleDumpData(Caster.toString(o));
+						else if (o instanceof Clob) items[columnInc + 1] = new SimpleDumpData(Caster.toString(o));
+						else items[columnInc + 1] = DumpUtil.toDumpData(o, pageContext, maxlevel, dp);
+					}
+					catch (PageException e) {
+						items[columnInc + 1] = new SimpleDumpData("[empty]");
+					}
+					columnInc++;
 				}
 			}
 			recs.appendRow(new DumpRow(1, items));
