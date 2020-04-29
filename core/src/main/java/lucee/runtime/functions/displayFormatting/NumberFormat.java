@@ -79,9 +79,6 @@ public final class NumberFormat implements Function {
 	public static double toNumber(PageContext pc, Object object, int digits) throws PageException {
 		double d = Caster.toDoubleValue(object, true, Double.NaN);
 		if (Decision.isValid(d)) {
-
-			if (digits < 12) d += 0.000000000001d; // adding this only influence if the binary representation is a little bit off
-			else if (digits < 15) d += 0.000000000000001d; // adding this only influence if the binary representation is a little bit off
 			return d;
 		}
 		String str = Caster.toString(object);

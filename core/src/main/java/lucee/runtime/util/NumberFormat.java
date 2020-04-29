@@ -18,6 +18,7 @@
  **/
 package lucee.runtime.util;
 
+import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.Locale;
@@ -61,13 +62,16 @@ public final class NumberFormat {
 	}
 
 	public String format(Locale locale, double number, Mask mask) throws InvalidMaskException {
+		BigDecimal bd = new BigDecimal(Double.toString(number));
+		bd = bd.setScale((int) mask.right, RoundingMode.HALF_UP);
+		number = bd.doubleValue();
 		int maskLen = mask.str.length();
 		DecimalFormat df = getDecimalFormat(locale);// (mask);
 		int gs = df.getGroupingSize();
 		df.applyPattern(mask.str);
 		df.setGroupingSize(gs);
 		df.setGroupingUsed(mask.useComma);
-		df.setRoundingMode(RoundingMode.HALF_UP);
+		df.setRoundingMode(RoundingMode.UNNECESSARY);
 		if (df.getMaximumFractionDigits() > 100) df.setMaximumFractionDigits(mask.right < 11 ? 11 : mask.right); // the if here exists because the value is acting unprecticted in
 		// some cases, so we onkly do if really necessary
 

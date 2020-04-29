@@ -31,6 +31,7 @@ import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.nio.charset.Charset;
@@ -877,8 +878,9 @@ public final class Caster {
 
 	private static String toDecimal(double value, char decDel, char thsDel) {
 		// TODO Caster toDecimal bessere impl.
-		String str = new BigDecimal((StrictMath.round(value * 100) / 100D)).toString();
-		// str=toDouble(value).toString();
+		BigDecimal bd = new BigDecimal(Double.toString(value));
+		bd = bd.setScale(2, RoundingMode.HALF_UP);
+		String str = bd.toString();
 		String[] arr = str.split("\\.");
 
 		// right value
@@ -888,7 +890,6 @@ public final class Caster {
 		}
 		else {
 			rightValue = arr[1];
-			rightValue = StrictMath.round(Caster.toDoubleValue("0." + rightValue, 0) * 100) + "";
 			if (rightValue.length() < 2) rightValue = 0 + rightValue;
 		}
 
