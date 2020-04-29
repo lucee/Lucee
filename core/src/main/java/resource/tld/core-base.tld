@@ -946,6 +946,7 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<type>string</type>
 			<name>samesite</name>
 			<values>Strict,Lax,None</values>
+			<default-value>None</default-value>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>It will help to prevent Cross-Site Request Forgeries. Enabling this attribute on the cookie will instruct the browser to afford this cookie certain protections.</description>
