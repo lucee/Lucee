@@ -19,7 +19,6 @@
 package lucee.commons.lang;
 
 import lucee.runtime.exp.ExpressionException;
-import java.io.*;
 
 public class NumberUtil {
 	public static int hexToInt(String s, int defaultValue) {
