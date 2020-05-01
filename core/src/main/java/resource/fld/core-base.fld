@@ -8347,6 +8347,66 @@ The following things are considered to be empty:
 			<type>string</type>
 		</return>
 	</function>
+	
+	<!-- ListQualifiedToArray -->
+	<function>
+		<name>ListQualifiedToArray</name>
+		<status>hidden</status>
+		<class>lucee.runtime.functions.list.ListQualifiedToArray</class>
+		<keywords>list,string,array</keywords>
+		<member-name>listQualifiedToArray</member-name>
+		<description>Copies the elements of a list to an array.</description>
+		<argument>
+			<name>list</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>a string list</description>
+		</argument>
+		<argument>
+			<name>delimiter</name>
+			<alias>delimiters</alias>
+			<type>string</type>
+			<required>No</required>
+			<default>,</default>
+			<description>a single character that separate list elements.</description>
+		</argument>
+		<argument>
+			<name>qualifier</name>
+			<alias>qualifiers</alias>
+			<type>string</type>
+			<required>No</required>
+			<default>"</default>
+			<description>a single character before and after the list elements.</description>
+		</argument>
+		<argument>
+			<name>qualifierRequired</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>if set to true, all values need to have qualifier (quotes) around them.</description>
+		</argument>
+		<argument>
+			<name>includeEmptyFields</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>if set to true, empty values are included as well</description>
+		</argument>
+		<!-- not yet supported <argument>
+			<name>multiCharacterDelimiter</name>
+			<default>false</default>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>specifying whether the delimiters parameter specifies a multi-character delimiter. The default is false. If this parameter is true, the delimiters parameter must specify a single delimiter consisting of multiple characters. This parameter enables the ListToArray function to convert a list such as the following to an array of color names: red:|orange:|yellow:|green:|blue:|indigo:|violet.</description>
+		</argument> -->
+		
+		<return>
+			<type>array</type>
+		</return>
+	</function>
+	
+	
 	<!-- listRest -->
 	<function>
 		<name>listRest</name>
