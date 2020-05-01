@@ -2,8 +2,6 @@ package lucee.runtime.type.util;
 
 import java.io.IOException;
 
-import lucee.print;
-
 public class ListParser {
 	private int pos = 0;
 	private final int len;
@@ -128,22 +126,5 @@ public class ListParser {
 			if (!Character.isWhitespace(str.charAt(pos))) break;
 			pos++;
 		}
-	}
-
-	public static void main(String[] args) throws IOException {
-		new ListParser("'a','b,c", new SimpleConsumer(), ',', '\'', false, false).parse();
-		// new ListParser(",,a , ,, b", new SimpleConsumer(), ',', '\'', false).parse();
-		// new ListParser(" 'a''b c\nd' ", new SimpleConsumer(), ',', '\'').parse();
-		// new ListParser("'a''b c\nd' , , abcd,1234, 'aaa' ,'789' ", new SimpleConsumer(), ',',
-		// '\'').parse();
-	}
-
-	public static class SimpleConsumer implements ListParserConsumer {
-
-		@Override
-		public void entry(String str) {
-			print.e("entry:" + str + ":");
-		}
-
 	}
 }
