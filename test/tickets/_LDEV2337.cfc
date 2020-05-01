@@ -1,4 +1,4 @@
-omponent extends = "org.lucee.cfml.test.LuceeTestCase" {
+﻿omponent extends = "org.lucee.cfml.test.LuceeTestCase" {
 	function run( testResults, testBox ) {
 		describe( title = "Testcase for LDEV-2337", body = function() {
 			it( title = "Lucee does not support using Unicode currency symbols in variable names", body = function( CurrentSpec ) {
