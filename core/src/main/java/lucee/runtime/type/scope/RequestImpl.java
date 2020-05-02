@@ -212,10 +212,10 @@ public final class RequestImpl extends StructSupport implements Request {
 			Object value = _req.getAttribute(key.getLowerString());
 			if (value != null) return value;
 
-			Enumeration<String> names = _req.getAttributeNames();
+			Iterator<String> it = ListUtil.toIterator(_req.getAttributeNames());
 			Collection.Key k;
-			while (names.hasMoreElements()) {
-				k = KeyImpl.init(names.nextElement());
+			while (it.hasNext()) {
+				k = KeyImpl.init(it.next());
 				if (key.equals(k)) return _req.getAttribute(k.getString());
 			}
 			return defaultValue;

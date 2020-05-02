@@ -104,7 +104,7 @@ public final class Loginuser extends TagImpl {
 				if (Integer.MAX_VALUE < tmp) expires = Integer.MAX_VALUE;
 				else expires = (int) tmp;
 
-				((CookieImpl) pageContext.cookieScope()).setCookie(KeyImpl.init(name), login.encode(), expires, false, "/", Login.getCookieDomain(appContext));
+				((CookieImpl) pageContext.cookieScope()).setCookie(KeyImpl.init(name), login.encode(), expires, false, "/", Login.getCookieDomain(appContext), null);
 			}
 		}
 

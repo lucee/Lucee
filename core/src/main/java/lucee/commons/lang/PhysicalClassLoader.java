@@ -21,6 +21,7 @@ package lucee.commons.lang;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.instrument.ClassDefinition;
 import java.lang.instrument.UnmodifiableClassException;
 import java.lang.ref.SoftReference;
 import java.net.URL;
@@ -32,11 +33,13 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.digest.HashUtil;
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.instrumentation.InstrumentationFactory;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.transformer.bytecode.util.ClassRenamer;
 
@@ -73,6 +76,20 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 			if (_start == 0L) return Long.toString(counter, Character.MAX_RADIX);
 			return start + "_" + Long.toString(counter, Character.MAX_RADIX);
 		}
+	}
+
+	private static long counter = 0L;
+	private static long _start = 0L;
+	private static String start = Long.toString(_start, Character.MAX_RADIX);
+
+	public static synchronized String uid() {
+		counter++;
+		if (counter < 0) {
+			counter = 1;
+			start = Long.toString(++_start, Character.MAX_RADIX);
+		}
+		if (_start == 0L) return Long.toString(counter, Character.MAX_RADIX);
+		return start + "_" + Long.toString(counter, Character.MAX_RADIX);
 	}
 
 	/**

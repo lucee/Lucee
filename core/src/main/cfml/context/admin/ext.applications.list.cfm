@@ -212,7 +212,9 @@ Installed version:#_extensions.version#"><cfif hasUpdate>
 							<cfset link="#request.self#?action=#url.action#&action2=detail&id=#versionStr[key].id#">
 							<cfset dn=getDumpNail(versionStr[key].image,130,50)>
 							<div class="extensionthumb">
+
 								<cfset lasProvider=(versionStr[key].provider?:"")=="local" || findNoCase("lucee.org",versionStr[key].provider) GT 0>
+
 								<cfif not lasProvider><cfset noneLasCounter++></cfif>
 								<a <cfif not lasProvider> style="border-color: ###(lasProvider?'9C9':'FC6')#;"</cfif> href="#link#" title="#stText.ext.viewdetails#">
 									<div class="extimg">

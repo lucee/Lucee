@@ -35,6 +35,7 @@ import lucee.runtime.type.KeyImpl;
 public final class SoftMethodStorage {
 
 	private final ConcurrentHashMap<String, Object> tokens = new ConcurrentHashMap<String, Object>();
+
 	private Map<Class, SoftReference<Map<Key, Map<Integer, Method[]>>>> map = new ConcurrentHashMap<Class, SoftReference<Map<Key, Map<Integer, Method[]>>>>();
 
 	/**
@@ -94,6 +95,7 @@ public final class SoftMethodStorage {
 	 * @return returns stored struct
 	 */
 	private Map<Key, Map<Integer, Method[]>> store(Class clazz) {
+
 		synchronized (getToken(clazz)) {
 			Method[] methods = clazz.getMethods();
 			Map<Key, Map<Integer, Method[]>> methodsMap = new ConcurrentHashMap<Key, Map<Integer, Method[]>>();

@@ -1294,6 +1294,7 @@ public final class SystemUtil {
 						"do not " + (force ? "stop" : "interrupt") + " thread because thread is not within Lucee code" + "\n" + ExceptionUtil.toString(thread.getStackTrace()));
 				return true;
 			}
+			else return true;
 		}
 		finally {
 			resumeEL(thread);

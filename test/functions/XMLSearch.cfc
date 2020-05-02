@@ -70,5 +70,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		var res = xmlsearch(x,"/aaa/fff/@ggg=124");
 		assertFalse(res);
 	}
+
+	public void function testNamespace(){
+		var str = "<test:Response xmlns:test='https://test.com'> <test:Success> <test:user>testUser</test:user> </test:Success> </test:Response>";
+		var xml = xmlParse(str);
+
+		var searched = xmlSearch(xml, "test:Response/test:Success/test:user");
+		var str=toString(searched[1]);
+
+		assertEquals('<?xml version="1.0" encoding="UTF-8"?><test:user xmlns:test="https://test.com">testUser</test:user>',str);		
+	}
 } 
 </cfscript>

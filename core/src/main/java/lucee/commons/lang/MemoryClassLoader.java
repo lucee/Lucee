@@ -18,10 +18,13 @@
 package lucee.commons.lang;
 
 import java.io.IOException;
+import java.lang.instrument.ClassDefinition;
 import java.lang.instrument.UnmodifiableClassException;
 
 import lucee.commons.io.SystemUtil;
+import lucee.commons.io.log.LogUtil;
 import lucee.runtime.config.Config;
+import lucee.runtime.instrumentation.InstrumentationFactory;
 import lucee.transformer.bytecode.util.ClassRenamer;
 
 /**

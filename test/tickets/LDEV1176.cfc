@@ -15,6 +15,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 		if(isNotSupported()) return;
 		s3Details = getCredentials();
 		mitrahsoftBucketName = "lucee-testsuite-ldev1176-1";
+
 		base = "s3://#s3Details.ACCESSKEYID#:#s3Details.AWSSECRETKEY#@";
 		baseWithBucketName = "s3://#s3Details.ACCESSKEYID#:#s3Details.AWSSECRETKEY#@/#mitrahsoftBucketName#";
 		// for skipping rest of the cases, if error occurred.
