@@ -40,7 +40,6 @@ import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.ext.tag.DynamicAttributes;
 import lucee.runtime.ext.tag.TagImpl;
 import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.listener.ApplicationContext;

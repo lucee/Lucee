@@ -104,7 +104,7 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 			boolean preserveCase = Caster.toBooleanValue(sct.get(KeyConstants._preservecase, null), false);
 			Boolean encode = Caster.toBoolean(sct.get(KeyConstants._encode, null), null);
 			if (encode == null) encode = Caster.toBoolean(sct.get(KeyConstants._encodevalue, Boolean.TRUE), Boolean.TRUE);
-			String samesite = Caster.toString(sct.get(KeyConstants._samesite, null), null);
+			String samesite = Caster.toString(sct.get(KeyConstants._SameSite, null), null);
 
 			setCookie(key, val, expires, secure, path, domain, httpOnly, preserveCase, encode.booleanValue(), samesite);
 		}
