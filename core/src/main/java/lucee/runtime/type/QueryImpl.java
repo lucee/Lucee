@@ -1162,7 +1162,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		Arrays.sort(arr, (type == Types.BIGINT || type == Types.BIT || type == Types.INTEGER || type == Types.SMALLINT || type == Types.TINYINT || type == Types.DECIMAL
 				|| type == Types.DOUBLE || type == Types.NUMERIC || type == Types.REAL) ?
 
-						(Comparator) new NumberSortRegisterComparator(order == ORDER_ASC) : (Comparator) new SortRegisterComparator(null, order == ORDER_ASC, true, false));
+						(Comparator) new NumberSortRegisterComparator(order == ORDER_ASC) : (Comparator) new SortRegisterComparator(null, order == ORDER_ASC, false, false));
 
 		for (int i = 0; i < columns.length; i++) {
 			column = columns[i];

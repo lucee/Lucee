@@ -8,6 +8,10 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					queryAddRow(testQuery, {getLtr: dataArr[i]});
 				var testQuery = queryExecute("SELECT * FROM testQuery ORDER BY getLtr", {}, {dbType: "query"});
 
+ //testQuery=duplicate(testQuery);
+	//querySort(testQuery, "getLtr","asc");
+	//writedump(testQuery);
+
 				expect(testQuery.getLtr[1]).tobe('*A');
 				expect(testQuery.getLtr[2]).tobe('*B');
 				expect(testQuery.getLtr[3]).tobe('*C');
