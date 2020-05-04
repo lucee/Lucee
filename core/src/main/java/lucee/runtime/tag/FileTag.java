@@ -481,7 +481,8 @@ public final class FileTag extends BodyTagImpl {
 		// source
 		if (!source.exists()) throw new ApplicationException("Source file [" + source.toString() + "] doesn't exist");
 		else if (!source.isFile()) throw new ApplicationException("Source file [" + source.toString() + "] isn't a file");
-		// else if (!source.isReadable() || !source.isWriteable()) throw new ApplicationException("no access to source file [" + source.toString() + "]");
+		// else if (!source.isReadable() || !source.isWriteable()) throw new ApplicationException("no access
+		// to source file [" + source.toString() + "]");
 
 		// destination
 		if (destination.isDirectory()) destination = destination.getRealResource(source.getName());
@@ -731,7 +732,7 @@ public final class FileTag extends BodyTagImpl {
 		}
 		catch (IOException e) {
 
-			throw new ApplicationException("Failed to touch file [" + file.getAbsolutePath() +"]", e.getMessage());
+			throw new ApplicationException("Failed to touch file [" + file.getAbsolutePath() + "]", e.getMessage());
 		}
 		setMode(file, mode);
 		setAttributes(file, attributes);
@@ -1212,7 +1213,7 @@ public final class FileTag extends BodyTagImpl {
 			// FileUtil.setMode(file,mode);
 		}
 		catch (IOException e) {
-			throw new ApplicationException("Can't change mode of file [" + file "]", e.getMessage());
+			throw new ApplicationException("Can't change mode of file [" + file + "]", e.getMessage());
 		}
 	}
 
