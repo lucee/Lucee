@@ -3,7 +3,7 @@ component {
 	this.name = "LDEV-1937";
 	mySQL = getCredentials();
 	msSql = msSqlCredentials();
-	variables.adminWeb = new org.lucee.cfml.Administrator("web", request.WebAdminPassword);
+	variables.adminWeb = new org.lucee.cfml.Administrator("web", server.WebAdminPassword);
 
     createDatasouce("testMYSQL", "mysql", mySQL);
     createDatasouce("testMSSQL", "mssql", msSql);

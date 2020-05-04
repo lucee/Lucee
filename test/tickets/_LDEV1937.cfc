@@ -16,7 +16,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	}
 
 	function afterAll(){
-		variables.adminWeb = new org.lucee.cfml.Administrator("web", request.WebAdminPassword);
+		variables.adminWeb = new org.lucee.cfml.Administrator("web", server.WebAdminPassword);
 		var datasource1 = adminWeb.getDatasource('testmysql');
 		var datasource2 = adminWeb.getDatasource('testMssql');
 		if (!StructIsEmpty(datasource1)){
