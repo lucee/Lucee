@@ -26,6 +26,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
@@ -230,7 +231,9 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 	}
 
 	private static String getFileName() {
-		return "tmp-" + (count++) + ".upload";
+		UUID uuid = UUID.randomUUID();
+		String setUUID = uuid.toString();
+		return "tmp-" + setUUID + ".upload";
 	}
 
 	/*
