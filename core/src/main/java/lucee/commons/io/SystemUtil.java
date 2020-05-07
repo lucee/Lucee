@@ -563,8 +563,7 @@ public final class SystemUtil {
 			try {
 				return StringUtil.replace(file.getCanonicalPath(), dir.getCanonicalPath(), placeholder, true);
 			}
-			catch (IOException e) {
-			}
+			catch (IOException e) {}
 		}
 		return null;
 	}
