@@ -634,8 +634,7 @@ public final class SystemUtil {
 		try {
 			id = MD5.getDigestAsString(ReqRspUtil.getRootPath(sc));
 		}
-		catch (IOException e) {
-		}
+		catch (IOException e) {}
 		return id;
 	}
 
