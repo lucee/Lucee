@@ -705,8 +705,7 @@ public final class AppListenerUtil {
 				Caster.toBooleanValue(data.get(KeyConstants._secure, null), SessionCookieDataImpl.DEFAULT.isSecure()),
 				toTimespan(data.get(KeyConstants._timeout, null), SessionCookieDataImpl.DEFAULT.getTimeout()),
 				Caster.toString(data.get(KeyConstants._domain, null), SessionCookieDataImpl.DEFAULT.getDomain()),
-				Caster.toBooleanValue(data.get(DISABLE_UPDATE, null), SessionCookieDataImpl.DEFAULT.isDisableUpdate()),
-				Caster.toString(data.get(KeyConstants._SameSite, null), SessionCookieDataImpl.DEFAULT.getSamesite()));
+				Caster.toBooleanValue(data.get(DISABLE_UPDATE, null), SessionCookieDataImpl.DEFAULT.isDisableUpdate()));
 	}
 
 	public static AuthCookieData toAuthCookie(ConfigWeb config, Struct data) {
