@@ -70,5 +70,5 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		var res = xmlsearch(x,"/aaa/fff/@ggg=124");
 		assertFalse(res);
 	}
-}
+} 
 </cfscript>
