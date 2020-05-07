@@ -138,8 +138,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 					c = p.loadClass(name);
 					break;
 				}
-				catch (Exception e) {
-				}
+				catch (Exception e) {}
 			}
 			if (c == null) {
 				if (loadFromFS) c = findClass(name);
@@ -180,8 +179,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 			try {
 				clazz = loadClass(name, false, false); // we do not load existing class from disk
 			}
-			catch (ClassNotFoundException cnf) {
-			}
+			catch (ClassNotFoundException cnf) {}
 			if (clazz == null) return _loadClass(name, barr, false);
 
 			// first we try to update the class what needs instrumentation object
@@ -228,8 +226,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 			try {
 				return IOUtil.toBufferedInputStream(f.getInputStream());
 			}
-			catch (IOException e) {
-			}
+			catch (IOException e) {}
 		}
 		return null;
 	}
