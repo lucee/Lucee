@@ -835,7 +835,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		if (configServer == null) {
 			try {
 				Resource context = getSeverContextConfigDirectory(factory);
-				configServer = XMLConfigServerFactory.newInstance(this, initContextes, contextes, context);
+				configServer = XMLConfigServerFactory.newInstance(this, getServletConfig(factory), initContextes, contextes, context);
 			}
 			catch (Exception e) {
 				e.printStackTrace();
@@ -843,6 +843,20 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			}
 		}
 		return configServer;
+	}
+
+	private static ServletConfig getServletConfig(CFMLEngineFactory factory) {
+		// FUTURE use method getServletConfig()
+		Class<? extends CFMLEngineFactory> clazz = factory.getClass();
+		try {
+			Field f = clazz.getDeclaredField("config");
+			f.setAccessible(true);
+			return (ServletConfig) f.get(factory);
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 	public static Resource getSeverContextConfigDirectory(CFMLEngineFactory factory) throws IOException {

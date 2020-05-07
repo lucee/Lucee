@@ -23,6 +23,8 @@ import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.servlet.ServletConfig;
+
 import org.osgi.framework.BundleException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -68,8 +70,8 @@ public final class XMLConfigServerFactory extends XMLConfigFactory {
 	 * @throws FunctionLibException
 	 * @throws BundleException
 	 */
-	public static ConfigServerImpl newInstance(CFMLEngineImpl engine, Map<String, CFMLFactory> initContextes, Map<String, CFMLFactory> contextes, Resource configDir)
-			throws SAXException, ClassException, PageException, IOException, TagLibException, FunctionLibException, BundleException {
+	public static ConfigServerImpl newInstance(CFMLEngineImpl engine, ServletConfig srvConfig, Map<String, CFMLFactory> initContextes, Map<String, CFMLFactory> contextes,
+			Resource configDir) throws SAXException, ClassException, PageException, IOException, TagLibException, FunctionLibException, BundleException {
 
 		boolean isCLI = SystemUtil.isCLICall();
 		if (isCLI) {
@@ -115,7 +117,7 @@ public final class XMLConfigServerFactory extends XMLConfigFactory {
 		double version = Caster.toDoubleValue(strVersion, 1.0d);
 		boolean cleanupDatasources = version < 5.0D;
 
-		ConfigServerImpl config = new ConfigServerImpl(engine, initContextes, contextes, configDir, configFile);
+		ConfigServerImpl config = new ConfigServerImpl(engine, srvConfig, initContextes, contextes, configDir, configFile);
 		load(config, doc, false, doNew);
 
 		createContextFiles(configDir, config, doNew, cleanupDatasources);

@@ -128,7 +128,7 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 	final FunctionLib cfmlCoreFLDs;
 	final FunctionLib luceeCoreFLDs;
 
-	private ServletConfig srvConfig;
+	private final ServletConfig srvConfig;
 
 	/**
 	 * @param engine
@@ -140,8 +140,8 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 	 * @throws TagLibException
 	 * @throws FunctionLibException
 	 */
-	protected ConfigServerImpl(CFMLEngineImpl engine, Map<String, CFMLFactory> initContextes, Map<String, CFMLFactory> contextes, Resource configDir, Resource configFile)
-			throws TagLibException, FunctionLibException {
+	protected ConfigServerImpl(CFMLEngineImpl engine, ServletConfig srvConfig, Map<String, CFMLFactory> initContextes, Map<String, CFMLFactory> contextes, Resource configDir,
+			Resource configFile) throws TagLibException, FunctionLibException {
 		super(configDir, configFile);
 		this.cfmlCoreTLDs = TagLibFactory.loadFromSystem(CFMLEngine.DIALECT_CFML, id);
 		this.luceeCoreTLDs = TagLibFactory.loadFromSystem(CFMLEngine.DIALECT_LUCEE, id);
@@ -154,6 +154,7 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 		// this.contextes=contextes;
 		this.rootDir = configDir;
 		// instance=this;
+		this.srvConfig = srvConfig;
 	}
 
 	/**
@@ -220,7 +221,7 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 			ConfigWebImpl cw = ((CFMLFactoryImpl) initContextes.get(it.next())).getConfigWebImpl();
 			return cw.getServletContext();
 		}
-		return null;
+		return srvConfig == null ? null : srvConfig.getServletContext();
 	}
 
 	public ConfigWebImpl getConfigWebById(String id) {

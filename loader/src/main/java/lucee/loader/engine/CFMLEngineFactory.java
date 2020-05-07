@@ -114,6 +114,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 	private final LoggerImpl logger;
 
+	// do not remove/ranme, grapped by core directly
 	protected ServletConfig config;
 
 	/**
@@ -189,6 +190,10 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		if (engine instanceof CFMLEngineWrapper) throw new RuntimeException("That should not happen!");
 		setEngine(engine);
 	}
+	// FUTURE
+	/*
+	 * public ServletConfig getServletConfig() { return config; }
+	 */
 
 	/**
 	 * returns instance of this factory (singelton always the same instance)
@@ -715,7 +720,8 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			code = conn.getResponseCode();
 		}
 		catch (UnknownHostException e) {
-			log(Logger.LOG_ERROR, "Failed to download the bundle  [" + symbolicName + ":" + symbolicVersion + "] from [" + updateUrl + "] and copy to [" + jar + "]"); // MUST remove
+			log(Logger.LOG_ERROR, "Failed to download the bundle  [" + symbolicName + ":" + symbolicVersion + "] from [" + updateUrl + "] and copy to [" + jar + "]"); // MUST
+																																										// remove
 			throw new IOException("Failed to download the bundle  [" + symbolicName + ":" + symbolicVersion + "] from [" + updateUrl + "] and copy to [" + jar + "]", e);
 		}
 		// the update provider is not providing a download for this
@@ -972,8 +978,8 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 			// no download available!
 			if (code != 200) {
-				final String msg = "Lucee failed to download the core for version [" + version.toString() + "] from " + updateUrl
-						+ ", please download it manually and copy to [" + patchDir + "]";
+				final String msg = "Lucee failed to download the core for version [" + version.toString() + "] from " + updateUrl + ", please download it manually and copy to ["
+						+ patchDir + "]";
 				log(Logger.LOG_ERROR, msg);
 				conn.disconnect();
 				throw new IOException(msg);
