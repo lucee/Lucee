@@ -100,8 +100,6 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	private String name;
 	private String cfid;
 
-	private String nullToken;
-
 	public IKStorageScopeSupport(PageContext pc, IKHandler handler, String appName, String name, String strType, int type, Map<Collection.Key, IKStorageScopeItem> data,
 			long lastModified, long timeSpan) {
 		// !!! do not store the pagecontext or config object, this object is Serializable !!!
