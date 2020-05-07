@@ -24,6 +24,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -1534,6 +1535,18 @@ public final class Reflector {
 		catch (Exception e) {
 			return defaultValue;
 		}
+	}
+
+	public static Constructor getConstructor(Class clazz, Class[] args, Constructor defaultValue) {
+		outer: for (Constructor c: clazz.getConstructors()) {
+			Parameter[] params = c.getParameters();
+			if (params.length != args.length) continue;
+			for (int i = 0; i < params.length; i++) {
+				if (!isInstaneOf(args[i], params[i].getType(), true)) continue outer;
+			}
+			return c;
+		}
+		return defaultValue;
 	}
 
 }

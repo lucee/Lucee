@@ -89,6 +89,7 @@ import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.cfx.CFXTagException;
 import lucee.runtime.cfx.CFXTagPool;
+import lucee.runtime.config.ConfigImpl.Startup;
 import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.WDDXConverter;
 import lucee.runtime.db.ClassDefinition;
@@ -1705,6 +1706,50 @@ public final class XMLConfigAdmin {
 		}
 	}
 
+	private void _removeStartupHook(ClassDefinition cd) throws PageException {
+
+		if (!cd.isBundle()) throw new ApplicationException("missing bundle name");
+
+		Element parent = _getRootElement("startup");
+
+		// Remove
+		Element[] children = XMLConfigWebFactory.getChildren(parent, "hook");
+		for (int i = 0; i < children.length; i++) {
+			String n = children[i].getAttribute("class");
+			if (n.equalsIgnoreCase(cd.getClassName())) {
+				parent.removeChild(children[i]);
+				break;
+			}
+		}
+
+		// now unload (maybe not necessary)
+		if (cd.isBundle()) {
+			unloadStartupIfNecessary(config, cd, true);
+			Bundle bl = OSGiUtil.getBundleLoaded(cd.getName(), cd.getVersion(), null);
+			if (bl != null) {
+				try {
+					OSGiUtil.uninstall(bl);
+				}
+				catch (BundleException e) {}
+			}
+		}
+	}
+
+	private void unloadStartupIfNecessary(ConfigImpl config, ClassDefinition<?> cd, boolean force) {
+		Startup startup = config.getStartups().get(cd.getClassName());
+		if (startup == null) return;
+		if (startup.cd.equals(cd) && !force) return;
+
+		try {
+			Method fin = Reflector.getMethod(startup.instance.getClass(), "finalize", new Class[0], null);
+			if (fin != null) {
+				fin.invoke(startup.instance, new Object[0]);
+			}
+			config.getStartups().remove(cd.getClassName());
+		}
+		catch (Exception e) {}
+	}
+
 	/*
 	 * public static void updateJDBCDriver(ConfigImpl config, String label, ClassDefinition cd, boolean
 	 * reload) throws IOException, SAXException, PageException, BundleException { ConfigWebAdmin admin =
@@ -1746,6 +1791,45 @@ public final class XMLConfigAdmin {
 		child.setAttribute("label", label);
 		if (!StringUtil.isEmpty(id)) child.setAttribute("id", id);
 		else child.removeAttribute("id");
+		// make sure the class exists
+		setClass(child, null, "", cd);
+
+		// now unload again, JDBC driver can be loaded when necessary
+		if (cd.isBundle()) {
+			Bundle bl = OSGiUtil.getBundleLoaded(cd.getName(), cd.getVersion(), null);
+			if (bl != null) {
+				try {
+					OSGiUtil.uninstall(bl);
+				}
+				catch (BundleException e) {}
+			}
+		}
+	}
+
+	private void _updateStartupHook(ClassDefinition cd) throws PageException {
+		unloadStartupIfNecessary(config, cd, false);
+		// check if it is a bundle
+		if (!cd.isBundle()) throw new ApplicationException("missing bundle info");
+
+		Element parent = _getRootElement("startup");
+
+		// Update
+		Element child = null;
+		Element[] children = XMLConfigWebFactory.getChildren(parent, "hook");
+		for (int i = 0; i < children.length; i++) {
+			String n = children[i].getAttribute("class");
+			if (n.equalsIgnoreCase(cd.getClassName())) {
+				child = children[i];
+				break;
+			}
+		}
+
+		// Insert
+		if (child == null) {
+			child = doc.createElement("hook");
+			parent.appendChild(child);
+		}
+
 		// make sure the class exists
 		setClass(child, null, "", cd);
 
@@ -4656,13 +4740,13 @@ public final class XMLConfigAdmin {
 
 				// flds
 				if (!entry.isDirectory() && startsWith(path, type, "flds") && (StringUtil.endsWithIgnoreCase(path, ".fld") || StringUtil.endsWithIgnoreCase(path, ".fldx"))) {
-					logger.log(Log.LEVEL_INFO, "extension", "Deploy fld [" + fileName  + "]");
+					logger.log(Log.LEVEL_INFO, "extension", "Deploy fld [" + fileName + "]");
 					updateFLD(zis, fileName, false);
 					reloadNecessary = true;
 				}
 				// tlds
 				if (!entry.isDirectory() && startsWith(path, type, "tlds") && (StringUtil.endsWithIgnoreCase(path, ".tld") || StringUtil.endsWithIgnoreCase(path, ".tldx"))) {
-					logger.log(Log.LEVEL_INFO, "extension", "Deploy tld/tldx [" + fileName  + "]");
+					logger.log(Log.LEVEL_INFO, "extension", "Deploy tld/tldx [" + fileName + "]");
 					updateTLD(zis, fileName, false);
 					reloadNecessary = true;
 				}
@@ -4679,7 +4763,7 @@ public final class XMLConfigAdmin {
 				// functions
 				if (!entry.isDirectory() && startsWith(path, type, "functions")) {
 					String sub = subFolder(entry);
-					logger.log(Log.LEVEL_INFO, "extension", "Deploy function [" + sub  + "]");
+					logger.log(Log.LEVEL_INFO, "extension", "Deploy function [" + sub + "]");
 					updateFunction(zis, sub, false);
 					// clearFunction=true;
 					reloadNecessary = true;
@@ -4699,7 +4783,7 @@ public final class XMLConfigAdmin {
 						&& (StringUtil.endsWithIgnoreCase(path, "." + Constants.getCFMLComponentExtension())
 								|| StringUtil.endsWithIgnoreCase(path, "." + Constants.getLuceeComponentExtension()))) {
 					String sub = subFolder(entry);
-					logger.log(Log.LEVEL_INFO, "extension", "Deploy event-gateway [" + sub  + "]");
+					logger.log(Log.LEVEL_INFO, "extension", "Deploy event-gateway [" + sub + "]");
 					updateEventGateway(zis, sub, false);
 				}
 
@@ -4707,7 +4791,7 @@ public final class XMLConfigAdmin {
 				String realpath;
 				if (!entry.isDirectory() && startsWith(path, type, "context") && !StringUtil.startsWith(fileName(entry), '.')) {
 					realpath = path.substring(8);
-					logger.log(Log.LEVEL_INFO, "extension", "Deploy context [" + realpath  + "]");
+					logger.log(Log.LEVEL_INFO, "extension", "Deploy context [" + realpath + "]");
 					updateContext(zis, realpath, false, false);
 				}
 				// web contextS
@@ -4715,7 +4799,7 @@ public final class XMLConfigAdmin {
 				if (!entry.isDirectory() && ((first = startsWith(path, type, "webcontexts")) || startsWith(path, type, "web.contexts"))
 						&& !StringUtil.startsWith(fileName(entry), '.')) {
 					realpath = path.substring(first ? 12 : 13);
-					logger.log(Log.LEVEL_INFO, "extension", "Deploy webcontext [" + realpath  + "]");
+					logger.log(Log.LEVEL_INFO, "extension", "Deploy webcontext [" + realpath + "]");
 					updateWebContexts(zis, realpath, false, false);
 				}
 				// applications
@@ -4727,7 +4811,7 @@ public final class XMLConfigAdmin {
 					else index = 4; // web
 
 					realpath = path.substring(index);
-					logger.log(Log.LEVEL_INFO, "extension", "Deploy application [" + realpath  + "]");
+					logger.log(Log.LEVEL_INFO, "extension", "Deploy application [" + realpath + "]");
 					updateApplication(zis, realpath, false);
 				}
 				// configs
@@ -4905,6 +4989,21 @@ public final class XMLConfigAdmin {
 						reloadNecessary = true;
 					}
 					logger.info("extension", "Update JDBC Driver [" + _label + ":" + cd + "] from extension [" + rhext.getName() + ":" + rhext.getVersion() + "]");
+				}
+			}
+
+			// update startup hook
+			if (!ArrayUtil.isEmpty(rhext.getStartupHooks())) {
+				Iterator<Map<String, String>> itl = rhext.getStartupHooks().iterator();
+				Map<String, String> map;
+				while (itl.hasNext()) {
+					map = itl.next();
+					ClassDefinition cd = RHExtension.toClassDefinition(config, map, null);
+					if (cd != null && cd.isBundle()) {
+						_updateStartupHook(cd);
+						reloadNecessary = true;
+					}
+					logger.info("extension", "Update Startup Hook [" + cd + "] from extension [" + rhext.getName() + ":" + rhext.getVersion() + "]");
 				}
 			}
 
@@ -5210,6 +5309,20 @@ public final class XMLConfigAdmin {
 				}
 			}
 
+			// remove startup hook
+			if (!ArrayUtil.isEmpty(rhe.getStartupHooks())) {
+				Iterator<Map<String, String>> itl = rhe.getStartupHooks().iterator();
+				Map<String, String> map;
+				while (itl.hasNext()) {
+					map = itl.next();
+					ClassDefinition cd = RHExtension.toClassDefinition(config, map, null);
+					if (cd != null && cd.isBundle()) {
+						_removeStartupHook(cd);
+					}
+					logger.info("extension", "Remove Startup Hook [" + cd + "] from extension [" + rhe.getName() + ":" + rhe.getVersion() + "]");
+				}
+			}
+
 			// remove mapping
 			if (!ArrayUtil.isEmpty(rhe.getMappings())) {
 				Iterator<Map<String, String>> itl = rhe.getMappings().iterator();
@@ -5472,7 +5585,7 @@ public final class XMLConfigAdmin {
 		if (ArrayUtil.isEmpty(relpath)) return;
 		Resource file = config.getDefaultTagMapping().getPhysical();
 		for (int i = 0; i < relpath.length; i++) {
-			logger.log(Log.LEVEL_INFO, "extension", "Remove Tag [" + relpath[i] +"]");
+			logger.log(Log.LEVEL_INFO, "extension", "Remove Tag [" + relpath[i] + "]");
 			removeFromDirectory(file, relpath[i]);
 		}
 	}
@@ -6005,7 +6118,7 @@ public final class XMLConfigAdmin {
 
 		boolean force = false;
 		for (int i = 0; i < realpathes.length; i++) {
-			logger.log(Log.LEVEL_INFO, "extension", "Remove Context [" + realpathes[i] +"]");
+			logger.log(Log.LEVEL_INFO, "extension", "Remove Context [" + realpathes[i] + "]");
 			if (_removeWebContexts(config, realpathes[i], store)) force = true;
 		}
 		return force;

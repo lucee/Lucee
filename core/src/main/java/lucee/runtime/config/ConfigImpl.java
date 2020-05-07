@@ -434,6 +434,8 @@ public abstract class ConfigImpl implements Config {
 	public static boolean onlyFirstMatch = false;
 	private TimeSpan cachedAfterTimeRange;
 
+	private static Map<String, Startup> startups;
+
 	/**
 	 * @return the allowURLRequestTimeout
 	 */
@@ -3917,4 +3919,18 @@ public abstract class ConfigImpl implements Config {
 	public abstract void checkPassword() throws PageException;
 	// TODO Auto-generated m
 
+	public Map<String, Startup> getStartups() {
+		if (startups == null) startups = new HashMap<>();
+		return startups;
+	}
+
+	public static class Startup {
+		public final ClassDefinition<?> cd;
+		public final Object instance;
+
+		public Startup(ClassDefinition<?> cd, Object instance) {
+			this.cd = cd;
+			this.instance = instance;
+		}
+	}
 }

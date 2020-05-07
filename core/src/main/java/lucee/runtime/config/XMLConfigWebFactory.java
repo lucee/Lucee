@@ -28,6 +28,7 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -97,6 +98,7 @@ import lucee.runtime.cache.tag.timespan.TimespanCacheHandler;
 import lucee.runtime.cfx.customtag.CFXTagClass;
 import lucee.runtime.cfx.customtag.JavaCFXTagClass;
 import lucee.runtime.component.ImportDefintion;
+import lucee.runtime.config.ConfigImpl.Startup;
 //import lucee.runtime.config.ajax.AjaxFactory;
 import lucee.runtime.config.component.ComponentFactory;
 import lucee.runtime.db.ClassDefinition;
@@ -531,6 +533,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded monitors");
 		_loadLogin(cs, config, doc, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded login");
+		_loadStartupHook(cs, config, doc, log);
+		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded startup hook");
+
 		config.setLoadTime(System.currentTimeMillis());
 
 		if (config instanceof ConfigWebImpl) {
@@ -3903,6 +3908,40 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				cs.setLoginDelay(delay);
 				cs.setLoginCaptcha(captcha);
 				cs.setRememberMe(rememberme);
+			}
+		}
+		catch (Exception e) {
+			log(config, log, e);
+		}
+	}
+
+	private static void _loadStartupHook(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+		try {
+			Element parent = doc != null ? getChildByName(doc.getDocumentElement(), "startup") : null;
+			Element[] children = parent != null ? getChildren(parent, "hook") : null;
+
+			if (children == null || children.length == 0) return;
+
+			for (Element child: children) {
+				ClassDefinition cd = getClassDefinition(child, "", config.getIdentification());
+				Startup existing = config.getStartups().get(cd.getClassName());
+
+				if (existing != null) {
+					if (existing.cd.equals(cd)) continue;
+					try {
+						Method fin = Reflector.getMethod(existing.instance.getClass(), "finalize", new Class[0], null);
+						if (fin != null) {
+							fin.invoke(existing.instance, new Object[0]);
+						}
+					}
+					catch (Exception e) {}
+				}
+				Class clazz = cd.getClazz();
+
+				Constructor constr = Reflector.getConstructor(clazz, new Class[] { Config.class }, null);
+				if (constr != null) config.getStartups().put(cd.getClassName(), new Startup(cd, constr.newInstance(new Object[] { config })));
+				else config.getStartups().put(cd.getClassName(), new Startup(cd, ClassUtil.loadInstance(clazz)));
+
 			}
 		}
 		catch (Exception e) {

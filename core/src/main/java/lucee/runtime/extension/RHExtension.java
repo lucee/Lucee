@@ -153,6 +153,7 @@ public class RHExtension implements Serializable {
 	private List<Map<String, String>> searchs;
 	private List<Map<String, String>> amfs;
 	private List<Map<String, String>> jdbcs;
+	private List<Map<String, String>> startupHooks;
 	private List<Map<String, String>> mappings;
 	private List<Map<String, Object>> eventGatewayInstances;
 
@@ -181,6 +182,8 @@ public class RHExtension implements Serializable {
 	private String cacheHandlersJson;
 
 	private String jdbcsJson;
+
+	private String startupHooksJson;
 
 	private String mappingsJson;
 
@@ -437,6 +440,7 @@ public class RHExtension implements Serializable {
 		readCache(label, StringUtil.unwrap(attr.getValue("cache")), logger);
 		readCacheHandler(label, StringUtil.unwrap(attr.getValue("cache-handler")), logger);
 		readJDBC(label, StringUtil.unwrap(attr.getValue("jdbc")), logger);
+		readStartupHook(label, StringUtil.unwrap(attr.getValue("startup-hook")), logger);
 		readMapping(label, StringUtil.unwrap(attr.getValue("mapping")), logger);
 		readEventGatewayInstances(label, StringUtil.unwrap(attr.getValue("event-gateway-instance")), logger);
 	}
@@ -501,6 +505,14 @@ public class RHExtension implements Serializable {
 			jdbcsJson = str;
 		}
 		if (jdbcs == null) jdbcs = new ArrayList<Map<String, String>>();
+	}
+
+	private void readStartupHook(String label, String str, Log logger) {
+		if (!StringUtil.isEmpty(str, true)) {
+			startupHooks = toSettings(logger, str);
+			startupHooksJson = str;
+		}
+		if (startupHooks == null) startupHooks = new ArrayList<Map<String, String>>();
 	}
 
 	private void readCacheHandler(String label, String str, Log logger) {
@@ -908,6 +920,10 @@ public class RHExtension implements Serializable {
 		// jdbc
 		if (!StringUtil.isEmpty(jdbcsJson)) el.setAttribute("jdbc", toStringForAttr(jdbcsJson));
 		else el.removeAttribute("jdbc");
+
+		// startup-hook
+		if (!StringUtil.isEmpty(startupHooksJson)) el.setAttribute("startup-hook", toStringForAttr(startupHooksJson));
+		else el.removeAttribute("startup-hook");
 
 		// mapping
 		if (!StringUtil.isEmpty(mappingsJson)) el.setAttribute("mapping", toStringForAttr(mappingsJson));
@@ -1337,6 +1353,10 @@ public class RHExtension implements Serializable {
 
 	public List<Map<String, String>> getJdbcs() {
 		return jdbcs;
+	}
+
+	public List<Map<String, String>> getStartupHooks() {
+		return startupHooks;
 	}
 
 	public List<Map<String, String>> getMappings() {
