@@ -2056,8 +2056,7 @@ public final class PageContextImpl extends PageContext {
 				if (!Abort.isSilentAbort(pe))
 					forceWrite(getConfig().getDefaultDumpWriter(DumpWriter.DEFAULT_RICH).toString(this, pe.toDumpData(this, 9999, DumpUtil.toDumpProperties()), true));
 			}
-			catch (Exception e) {
-			}
+			catch (Exception e) {}
 		}
 	}
 
@@ -2204,8 +2203,7 @@ public final class PageContextImpl extends PageContext {
 					pathInfo = path.substring(srvPath.length());
 				}
 			}
-			catch (Exception e) {
-			}
+			catch (Exception e) {}
 
 			// Service mapping
 			if (StringUtil.isEmpty(pathInfo) || pathInfo.equals("/")) {// ToDo
@@ -2892,8 +2890,7 @@ public final class PageContextImpl extends PageContext {
 		try {
 			sessionScope().removeEL(KeyImpl.init(name));
 		}
-		catch (PageException e) {
-		}
+		catch (PageException e) {}
 
 	}
 
