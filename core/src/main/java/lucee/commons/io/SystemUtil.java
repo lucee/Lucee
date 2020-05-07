@@ -438,8 +438,7 @@ public final class SystemUtil {
 		try {
 			return frp.getResource(".").getCanonicalResource();
 		}
-		catch (IOException e) {
-		}
+		catch (IOException e) {}
 		URL url = InfoImpl.class.getClassLoader().getResource(".");
 		try {
 			return frp.getResource(FileUtil.URLToFile(url).getAbsolutePath());
