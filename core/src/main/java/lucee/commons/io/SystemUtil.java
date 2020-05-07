@@ -993,8 +993,7 @@ public final class SystemUtil {
 				pc = ThreadLocalPageContext.get(pc);
 				if (pc != null) template = ExpandPath.call(pc, template);
 			}
-			catch (PageException e) {
-			} // optional step, so in case it fails we are still fine
+			catch (PageException e) {} // optional step, so in case it fails we are still fine
 
 			return new TemplateLine(template, line);
 		}
