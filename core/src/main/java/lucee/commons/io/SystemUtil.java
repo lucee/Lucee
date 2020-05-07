@@ -706,8 +706,7 @@ public final class SystemUtil {
 				lock.wait(timeout);
 			}
 		}
-		catch (InterruptedException e) {
-		}
+		catch (InterruptedException e) {}
 	}
 
 	public static void wait(Object lock, int timeout) {
@@ -716,8 +715,7 @@ public final class SystemUtil {
 				lock.wait(timeout);
 			}
 		}
-		catch (InterruptedException e) {
-		}
+		catch (InterruptedException e) {}
 	}
 
 	/**
@@ -732,8 +730,7 @@ public final class SystemUtil {
 				lock.wait();
 			}
 		}
-		catch (InterruptedException e) {
-		}
+		catch (InterruptedException e) {}
 	}
 
 	/**
