@@ -856,8 +856,7 @@ public final class PageContextImpl extends PageContext {
 				try {
 					write(((IncludeCacheItem) cacheItem).getOutput());
 					return;
-				}			
-				catch (IOException e) {
+				} catch (IOException e) {
 					throw Caster.toPageException(e);
 				}
 			}
