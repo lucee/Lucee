@@ -662,40 +662,35 @@ public final class SystemUtil {
 		try {
 			Thread.sleep(time);
 		}
-		catch (InterruptedException e) {
-		}
+		catch (InterruptedException e) {}
 	}
 
 	public static void sleep(long time) {
 		try {
 			Thread.sleep(time);
 		}
-		catch (InterruptedException e) {
-		}
+		catch (InterruptedException e) {}
 	}
 
 	public static void join(Thread t) {
 		try {
 			t.join();
 		}
-		catch (InterruptedException e) {
-		}
+		catch (InterruptedException e) {}
 	}
 
 	public static void resumeEL(Thread t) {
 		try {
 			t.resume();
 		}
-		catch (Exception e) {
-		}
+		catch (Exception e) {}
 	}
 
 	public static void suspendEL(Thread t) {
 		try {
 			t.suspend();
 		}
-		catch (Exception e) {
-		}
+		catch (Exception e) {}
 	}
 
 	/**
