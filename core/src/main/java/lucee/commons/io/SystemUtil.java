@@ -1633,8 +1633,7 @@ public final class SystemUtil {
 				booted = Caster.toBoolean(m.invoke(null, EMPTY_OBJ));
 				return booted.booleanValue();
 			}
-			catch (Exception e) {
-			}
+			catch (Exception e) {}
 		}
 		return true;
 	}
@@ -1666,8 +1665,7 @@ public final class SystemUtil {
 				Method m = clazz.getMethod("getJavaObjectInputStreamAccess", EMPTY_CLASS);
 				joisa = m.invoke(null, EMPTY_OBJ);
 			}
-			catch (Exception e) {
-			}
+			catch (Exception e) {}
 		}
 
 		if (joisa != null) {
@@ -1677,8 +1675,7 @@ public final class SystemUtil {
 				m.invoke(joisa, new Object[] { s, class1, cap });
 				return true;
 			}
-			catch (Exception e) {
-			}
+			catch (Exception e) {}
 		}
 		return false;
 	}
