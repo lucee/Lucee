@@ -223,6 +223,7 @@ public class ScheduledTaskThread extends Thread {
 		}
 		catch (Exception ee) {
 			LogUtil.logGlobal(config, "scheduler", e);
+			LogUtil.logGlobal(config, "scheduler", ee);
 		}
 	}
 
