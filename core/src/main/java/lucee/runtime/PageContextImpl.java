@@ -856,9 +856,8 @@ public final class PageContextImpl extends PageContext {
 				try {
 					write(((IncludeCacheItem) cacheItem).getOutput());
 					return;
-				}
-				
-				(IOException e) {
+				}			
+				catch (IOException e) {
 					throw Caster.toPageException(e);
 				}
 			}
@@ -1772,8 +1771,7 @@ public final class PageContextImpl extends PageContext {
 			if (value == null) removeVariable(name);
 			else setVariable(name, value);
 		}
-		catch (PageException e) {
-		}
+		catch (PageException e) {}
 	}
 
 	@Override
