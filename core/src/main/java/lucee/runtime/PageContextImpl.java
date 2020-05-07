@@ -717,8 +717,7 @@ public final class PageContextImpl extends PageContext {
 		try {
 			getOut().flush();
 		}
-		catch (IOException e) {
-		}
+		catch (IOException e) {}
 	}
 
 	@Override
@@ -858,7 +857,8 @@ public final class PageContextImpl extends PageContext {
 					write(((IncludeCacheItem) cacheItem).getOutput());
 					return;
 				}
-				catch (IOException e) {
+				
+				(IOException e) {
 					throw Caster.toPageException(e);
 				}
 			}
@@ -2523,8 +2523,7 @@ public final class PageContextImpl extends PageContext {
 			// print.o(getOut().getClass().getName());
 			getOut().clear();
 		}
-		catch (IOException e) {
-		}
+		catch (IOException e) {}
 	}
 
 	@Override
