@@ -1869,3 +1869,4 @@ class MacAddressWrap implements ObjectWrap, Castable, Serializable {
 		return 0L;
 	}
 }
+
