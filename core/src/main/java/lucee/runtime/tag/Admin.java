@@ -3494,9 +3494,11 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		for (RHExtension e: extensions) {
 			try {
 				bundles = e.getBundles();
-				for (BundleInfo b: bundles) {
-					if (_eq(bd.getName(), bd.getVersion(), b.getSymbolicName(), b.getVersion())) {
-						set.add(e.getName());
+				if (bundles != null) {
+					for (BundleInfo b: bundles) {
+						if (_eq(bd.getName(), bd.getVersion(), b.getSymbolicName(), b.getVersion())) {
+							set.add(e.getName());
+						}
 					}
 				}
 			}

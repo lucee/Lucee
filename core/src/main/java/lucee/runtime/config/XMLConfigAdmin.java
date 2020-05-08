@@ -4758,8 +4758,10 @@ public final class XMLConfigAdmin {
 			if (rhext.getStartBundles()) {
 				rhext.deployBundles(ci);
 				BundleInfo[] bfs = rhext.getBundles();
-				for (BundleInfo bf: bfs) {
-					OSGiUtil.loadBundleFromLocal(bf.getSymbolicName(), bf.getVersion(), null, false, null);
+				if (bfs != null) {
+					for (BundleInfo bf: bfs) {
+						OSGiUtil.loadBundleFromLocal(bf.getSymbolicName(), bf.getVersion(), null, false, null);
+					}
 				}
 			}
 

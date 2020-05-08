@@ -965,10 +965,12 @@ public class RHExtension implements Serializable {
 		qry.setAt(START_BUNDLES, row, Caster.toBoolean(getStartBundles()));
 
 		BundleInfo[] bfs = getBundles();
-		Query qryBundles = new QueryImpl(new Key[] { KeyConstants._name, KeyConstants._version }, bfs.length, "bundles");
-		for (int i = 0; i < bfs.length; i++) {
-			qryBundles.setAt(KeyConstants._name, i + 1, bfs[i].getSymbolicName());
-			if (bfs[i].getVersion() != null) qryBundles.setAt(KeyConstants._version, i + 1, bfs[i].getVersionAsString());
+		Query qryBundles = new QueryImpl(new Key[] { KeyConstants._name, KeyConstants._version }, bfs == null ? 0 : bfs.length, "bundles");
+		if (bfs != null) {
+			for (int i = 0; i < bfs.length; i++) {
+				qryBundles.setAt(KeyConstants._name, i + 1, bfs[i].getSymbolicName());
+				if (bfs[i].getVersion() != null) qryBundles.setAt(KeyConstants._version, i + 1, bfs[i].getVersionAsString());
+			}
 		}
 		qry.setAt(BUNDLES, row, qryBundles);
 	}
@@ -1001,10 +1003,12 @@ public class RHExtension implements Serializable {
 			sct.set(START_BUNDLES, Caster.toBoolean(getStartBundles()));
 
 			BundleInfo[] bfs = getBundles();
-			Query qryBundles = new QueryImpl(new Key[] { KeyConstants._name, KeyConstants._version }, bfs.length, "bundles");
-			for (int i = 0; i < bfs.length; i++) {
-				qryBundles.setAt(KeyConstants._name, i + 1, bfs[i].getSymbolicName());
-				if (bfs[i].getVersion() != null) qryBundles.setAt(KeyConstants._version, i + 1, bfs[i].getVersionAsString());
+			Query qryBundles = new QueryImpl(new Key[] { KeyConstants._name, KeyConstants._version }, bfs == null ? 0 : bfs.length, "bundles");
+			if (bfs != null) {
+				for (int i = 0; i < bfs.length; i++) {
+					qryBundles.setAt(KeyConstants._name, i + 1, bfs[i].getSymbolicName());
+					if (bfs[i].getVersion() != null) qryBundles.setAt(KeyConstants._version, i + 1, bfs[i].getVersionAsString());
+				}
 			}
 			sct.set(BUNDLES, qryBundles);
 		}
