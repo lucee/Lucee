@@ -179,8 +179,8 @@ component output="false" extends="HelperBase" accessors="true"{
 	 * @hint Scan the passed array looking for a "name" param match.
 	 */
 	private Struct function findNamedParam(Array params,String name){
-		for(var item in params){
-			if(structKeyExists(item,'name') && name == item.name){
+		for(var item in arguments.params){
+			if(structKeyExists(item,'name') && arguments.name == item.name){
 				return item;
 			}
 		}
@@ -193,7 +193,7 @@ component output="false" extends="HelperBase" accessors="true"{
 	 * @hint Scan the passed array looking for a "name" param match.
 	 */
 	public static query function new(required columnNames, columnTypes, data) {
-		return queryNew(columnNames,columnTypes?:nullvalue(),data?:nullvalue());
+		return queryNew(arguments.columnNames,arguments.columnTypes?:nullvalue(),arguments.data?:nullvalue());
 	}
 
 
