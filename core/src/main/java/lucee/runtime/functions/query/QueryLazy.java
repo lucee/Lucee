@@ -286,8 +286,8 @@ public class QueryLazy extends BIF {
 
 		if (isMySQL) stat.setFetchSize(Integer.MIN_VALUE); // this is necessary for mysql otherwise all data are loaded into memory
 		else if (fetchsize > 0) stat.setFetchSize(fetchsize);
-
-		if (timeout != null && ((int) timeout.getSeconds()) > 0) DataSourceUtil.setQueryTimeoutSilent(stat, (int) timeout.getSeconds());
+		int to = QueryImpl.getSeconds(timeout);
+		if (to > 0) DataSourceUtil.setQueryTimeoutSilent(stat, to);
 	}
 
 	private static void setItems(PageContext pc, TimeZone tz, PreparedStatement preStat, SQLItem[] items) throws DatabaseException, PageException, SQLException {

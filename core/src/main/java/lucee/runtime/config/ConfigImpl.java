@@ -3710,8 +3710,10 @@ public abstract class ConfigImpl implements Config {
 				catch (Exception e) {
 					continue;
 				}
-				if (bis != null) for (BundleInfo bi: bis) {
-					extensionBundles.put(bi.getSymbolicName() + "|" + bi.getVersionAsString(), bi.toBundleDefinition());
+				if (bis != null) {
+					for (BundleInfo bi: bis) {
+						extensionBundles.put(bi.getSymbolicName() + "|" + bi.getVersionAsString(), bi.toBundleDefinition());
+					}
 				}
 			}
 			this.extensionBundles = extensionBundles;

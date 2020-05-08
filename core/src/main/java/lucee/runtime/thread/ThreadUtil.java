@@ -75,6 +75,7 @@ public class ThreadUtil {
 	 *            from the context is used
 	 * @return
 	 */
+	// used in Websocket extension
 	public static PageContextImpl createPageContext(ConfigWeb config, OutputStream os, String serverName, String requestURI, String queryString, Cookie[] cookies, Pair[] headers,
 			byte[] body, Pair[] parameters, Struct attributes, boolean register, long timeout) {
 		CFMLFactory factory = config.getFactory();

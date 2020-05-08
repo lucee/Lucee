@@ -391,7 +391,15 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	private static void setAttributes(Statement stat, int maxrow, int fetchsize, TimeSpan timeout) throws SQLException {
 		if (maxrow > -1) stat.setMaxRows(maxrow);
 		if (fetchsize > 0) stat.setFetchSize(fetchsize);
-		if (timeout != null && ((int) timeout.getSeconds()) > 0) DataSourceUtil.setQueryTimeoutSilent(stat, (int) timeout.getSeconds());
+		int to = getSeconds(timeout);
+		if (to > 0) DataSourceUtil.setQueryTimeoutSilent(stat, to);
+	}
+
+	public static int getSeconds(TimeSpan timeout) {
+		if (timeout == null) return 0;
+		if (timeout.getSeconds() > 0) return Caster.toIntValue(timeout.getSeconds());
+		if (timeout.getMillis() > 0) return 1;
+		return 0;
 	}
 
 	private static boolean fillResult(QueryImpl qry, QueryResult qr, Collection.Key keyName, DatasourceConnection dc, ResultSet result, int maxrow, boolean closeResult,
