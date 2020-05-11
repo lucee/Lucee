@@ -29,9 +29,3 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		});
 	}
 }
-
-listValueCount
-Listvaluecountnocase
-listsetat
-listsort
-listValueCount

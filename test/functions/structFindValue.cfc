@@ -1,5 +1,4 @@
 component extends = "org.lucee.cfml.test.LuceeTestCase" {
-
 	function run( testResults, testBox ) {
 		describe( "Test case for structFindValue()", function() {
 			it( title = "Checking structFindValue()", body = function( currentSpec ) {

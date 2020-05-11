@@ -1,8 +1,6 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" {
-
 	function run( testResults , testBox ) {
 		describe( title = "Test case for ListInsertAt", body = function() {
-
 			it( title = 'Checking with ListInsertAt()', body = function( currentSpec ) {
 				assertEquals("susi,aaa,bbb,ccc",ListInsertAt("aaa,bbb,ccc",1,"susi"));
 				assertEquals(",,aaa,bbb,susi,ccc",ListInsertAt(',,aaa,bbb,ccc',3,'susi'));

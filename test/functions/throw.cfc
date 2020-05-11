@@ -2,18 +2,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 	function run() {
 		describe( title="Test suite for throw", body=function() {
 			it( title='Test case for throw function  ',body=function( currentSpec ) {
-
 				<!--- begin old test code --->
 				try {
 
 					throw("msg");
 				}
 				catch(any e) {
-
-		    	assertEquals("#cfcatch.message#","msg");
-		    	assertEquals("#cfcatch.detail#","");
+			    	assertEquals("#cfcatch.message#","msg");
+			    	assertEquals("#cfcatch.detail#","");
 				}
-
 
 				try {
 					throw("a","b","c","d","e");
@@ -24,7 +21,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 			    	assertEquals("#cfcatch.detail#","c");
 			    	assertEquals("#cfcatch.ErrorCode#","d");
 			    	assertEquals("#cfcatch.ExtendedInfo#","e");
-				    	
 				}
 
 				try {

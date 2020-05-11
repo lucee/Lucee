@@ -1,8 +1,6 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" {
 	function run( testResults, testBox ){
-
 		describe( title = "Test case for listItemTrim", body = function() {
-
 			it( title = "Checking with listItemTrim()", body = function( currentSpec ) {
 				assertEquals(",a,b,c,d",listItemTrim(",,,,, , a ,, b ,c,d",','));
 				assertEquals(",a,b,c,d",listItemTrim(",,,,, , a ,, b ,c,d",',',false));

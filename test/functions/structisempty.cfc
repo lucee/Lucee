@@ -18,9 +18,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 			}
 			it( title='Test case for structIsEmpty function  ',body=function( currentSpec ) {
 				assertEquals('FALSE',structIsEmpty(student));
-				structClear(student)
+				structClear(student);
 				assertEquals('TRUE',structIsEmpty(student));
-
 			});
 
 		});
@@ -42,9 +41,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 			}
 			it( title='Test case for structIsEmpty member function',body=function( currentSpec ) {
 				assertEquals('FALSE',studentnew.isEmpty());
-				structClear(studentnew)
+				structClear(studentnew);
 				assertEquals('TRUE',studentnew.isEmpty());
-
 			});
 		});
 	}

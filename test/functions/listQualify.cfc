@@ -1,6 +1,5 @@
 component extends="org.lucee.cfml.test.LuceeTestCase" {
 	function run( testResults, testBox ){
-
 		describe( title = "Test case for ListQualify()", body = function() {
 			it( title = "Checking ListQualify()", body = function( currentSpec ) {
 				assertEquals("",ListQualify('',':'));

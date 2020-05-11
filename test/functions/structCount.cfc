@@ -1,5 +1,4 @@
 component extends = "org.lucee.cfml.test.LuceeTestCase" {
-
 	function run( testResults, testBox ) {
 		describe( "Test case for structCount()", function() {
 			it( title = "Checking structCount()", body = function( currentSpec ) {
