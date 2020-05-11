@@ -1269,7 +1269,7 @@ public final class SystemUtil {
 	}
 
 	public static void stop(PageContext pc, Thread thread) {
-		if (thread == null || !thread.isAlive()) return;
+		if (thread == null || !thread.isAlive() || thread == Thread.currentThread()) return;
 		Log log = null;
 		// in case it is the request thread
 		if (pc instanceof PageContextImpl && thread == pc.getThread()) {
