@@ -404,7 +404,7 @@ public final class PageSourceImpl implements PageSource {
 
 	private Page compile(ConfigWeb config, Resource classRootDir, Page existing, boolean returnValue, boolean ignoreScopes) throws TemplateException {
 		try {
-			return _compile(config, classRootDir, existing, returnValue, ignoreScopes);
+			return _compile(config, classRootDir, existing, returnValue, ignoreScopes, false);
 		}
 		catch (RuntimeException re) {
 			String msg = StringUtil.emptyIfNull(re.getMessage());
@@ -429,7 +429,7 @@ public final class PageSourceImpl implements PageSource {
 		}
 	}
 
-	private Page _compile(ConfigWeb config, Resource classRootDir, Page existing, boolean returnValue, boolean ignoreScopes)
+	private Page _compile(ConfigWeb config, Resource classRootDir, Page existing, boolean returnValue, boolean ignoreScopes, boolean split)
 			throws IOException, SecurityException, IllegalArgumentException, PageException {
 		ConfigWebImpl cwi = (ConfigWebImpl) config;
 		int dialect = getDialect();
@@ -449,9 +449,23 @@ public final class PageSourceImpl implements PageSource {
 			}
 			return newInstance(clazz);
 		}
-		catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
-			PageException pe = Caster.toPageException(t);
+		catch (RuntimeException re) {
+			String msg = StringUtil.emptyIfNull(re.getMessage());
+			if (!split && StringUtil.indexOfIgnoreCase(msg, "Method code too large!") != -1) {
+				return _compile(config, classRootDir, existing, returnValue, ignoreScopes, true);
+			}
+			else throw re;
+		}
+		catch (ClassFormatError cfe) {
+			String msg = StringUtil.emptyIfNull(cfe.getMessage());
+			if (!split && StringUtil.indexOfIgnoreCase(msg, "Invalid method Code length") != -1) {
+				return _compile(config, classRootDir, existing, returnValue, ignoreScopes, true);
+			}
+			else throw cfe;
+		}
+
+		catch (Exception e) {
+			PageException pe = Caster.toPageException(e);
 			pe.setExtendedInfo("failed to load template " + getDisplayPath());
 			throw pe;
 		}
