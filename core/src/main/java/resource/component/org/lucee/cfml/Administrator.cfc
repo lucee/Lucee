@@ -418,20 +418,20 @@ component {
 			connectionLimit="#arguments.connectionLimit#"
 			connectionTimeout="#arguments.connectionTimeout#"
 			metaCacheTimeout="#arguments.metaCacheTimeout#"
-			blob="#getArguments('blob',false)#"
-			clob="#getArguments('clob',false)#"
-			validate="#getArguments('validate',false)#"
-			storage="#getArguments('storage',false)#"
+			blob="#getArguments(arguments, 'blob',false)#"
+			clob="#getArguments(arguments, 'clob',false)#"
+			validate="#getArguments(arguments, 'validate',false)#"
+			storage="#getArguments(arguments, 'storage',false)#"
 
-			allowed_select="#getArguments('allowedSelect',false)#"
-			allowed_insert="#getArguments('allowedInsert',false)#"
-			allowed_update="#getArguments('allowedUpdate',false)#"
-			allowed_delete="#getArguments('allowedDelete',false)#"
-			allowed_alter="#getArguments('allowedAlter',false)#"
-			allowed_drop="#getArguments('allowedDrop',false)#"
-			allowed_revoke="#getArguments('allowedRevoke',false)#"
-			allowed_create="#getArguments('allowedCreate',false)#"
-			allowed_grant="#getArguments('allowedGrant',false)#"
+			allowed_select="#getArguments(arguments, 'allowedSelect',false)#"
+			allowed_insert="#getArguments(arguments, 'allowedInsert',false)#"
+			allowed_update="#getArguments(arguments, 'allowedUpdate',false)#"
+			allowed_delete="#getArguments(arguments, 'allowedDelete',false)#"
+			allowed_alter="#getArguments(arguments, 'allowedAlter',false)#"
+			allowed_drop="#getArguments(arguments, 'allowedDrop',false)#"
+			allowed_revoke="#getArguments(arguments, 'allowedRevoke',false)#"
+			allowed_create="#getArguments(arguments, 'allowedCreate',false)#"
+			allowed_grant="#getArguments(arguments, 'allowedGrant',false)#"
 			verify="#arguments.verify#"
 			custom="#custom#"
 			dbdriver="#arguments.type#"
@@ -2899,9 +2899,9 @@ component {
 		return cfcNames;
 	}
 
-	private function getArguments(Key, default) {
-		if(not structKeyExists(arguments,Key)) return default;
-		return arguments[Key];
+	private function getArguments(args, Key, default) {
+		if(not structKeyExists(args, Key)) return default;
+		return arguments.args[Key];
 	}
 
 	private function downloadFull(required string provider,required string id , string version){
