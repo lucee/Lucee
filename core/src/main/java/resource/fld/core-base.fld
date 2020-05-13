@@ -13429,12 +13429,13 @@ _- asc (default): ascending (a to z) sort order
 		</argument>
 		<argument>
 			<name>validator</name>
-			<type>string</type>
+			<alias>validators</alias>
+			<type>any</type>
 			<required>No</required>
 			<description>Any of the following:
  - A string containing a DTD or Schema.
- - The name of a DTD or Schema file.
- - The URL of a DTD or Schema file; valid protocol identifiers include http, https, ftp, and file.</description>
+ - The name of a DTD, Schema file or an array containing multiple schema file names.
+ - The URL of a DTD or Schema file or an array containing multiple schema URLs; valid protocol identifiers include http, https, ftp, and file.</description>
 		</argument>
 		<return>
 			<type>struct</type>
