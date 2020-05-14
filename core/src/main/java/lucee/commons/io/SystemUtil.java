@@ -1290,8 +1290,8 @@ public final class SystemUtil {
 				else thread.stop();
 			}
 			else {
-				if (log != null) log.error("thread",
-						"do not " + (force ? "stop" : "interrupt") + " thread because thread is not within Lucee code" + "\n" + ExceptionUtil.toString(thread.getStackTrace()));
+				if (log != null) log.error("thread", "do not " + (force ? "stop" : "interrupt") + " thread because thread is not within Lucee code",
+						ExceptionUtil.toThrowable(thread.getStackTrace()));
 				return true;
 			}
 		}
@@ -1312,7 +1312,10 @@ public final class SystemUtil {
 			}
 			SystemUtil.sleep(10);
 		}
-		if (log != null) log.error("thread", "failed to " + (force ? "stop" : "interrupt") + " thread." + "\n" + ExceptionUtil.toString(thread.getStackTrace()));
+		if (log != null) {
+
+			log.error("thread", "failed to " + (force ? "stop" : "interrupt") + " thread." + "\n", ExceptionUtil.toThrowable(thread.getStackTrace()));
+		}
 		return false;
 	}
 

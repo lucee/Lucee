@@ -230,4 +230,10 @@ public final class ExceptionUtil {
 		return template;
 	}
 
+	public static Throwable toThrowable(StackTraceElement[] stackTrace) {
+		Throwable t = new Throwable();
+		t.setStackTrace(stackTrace);
+		return t;
+	}
+
 }
