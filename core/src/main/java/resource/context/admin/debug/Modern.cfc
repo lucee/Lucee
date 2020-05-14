@@ -142,7 +142,7 @@ if(structKeyExists(arguments.custom, "metrics_Charts")) {
 		<cfset var dumps=arguments.debugging.dumps />
 
 		<cfset this.allSections = this.buildSectionStruct()>
-		<cfset var isExecOrder  = this.isSectionOpen( "ExecOrder" )>
+		<!--- <cfset var isExecOrder  = this.isSectionOpen( "ExecOrder" )>
 
 		<cfif isExecOrder>
 
@@ -150,7 +150,7 @@ if(structKeyExists(arguments.custom, "metrics_Charts")) {
 		<cfelse>
 
 			<cfset querySort(pages,"avg","desc") />
-		</cfif>
+		</cfif> --->
 
 		<cfset var implicitAccess=arguments.debugging.implicitAccess />
 		<cfset querySort(implicitAccess,"template,line,count","asc,asc,desc") />
@@ -890,9 +890,9 @@ Reference Button
 									<tr>
 										<th>Total Time (ms)</th>
 										<th>Count</th>
-										<th><cfif isExecOrder><a onclick="__LUCEE.debug.clearFlag( 'ExecOrder' ); __LUCEE.util.addClass( this, 'selected' );" class="sortby" title="Order by Avg Time (starting with the next request)">Avg Time</a><cfelse>Avg Time</cfif> (ms)</th>
+										<th>Avg Time (ms)</th>
 										<th>Template</th>
-										<th><cfif isExecOrder>Order<cfelse><a onclick="__LUCEE.debug.setFlag( 'ExecOrder' ); __LUCEE.util.addClass( this, 'selected' );" class="sortby" title="Order by ID (starting with the next request)">Order</a></cfif></th>
+										<th>Order</th>
 									</tr>
 									</thead>
 									<cfset loa=0>
@@ -1404,42 +1404,42 @@ Reference Button
 				, allSections: 	#serializeJSON( this.allSections )#
 				</cfoutput>
 
-				, setFlag: 		function( name ) {
+				// , setFlag: 		function( name ) {
 
-					var value = __LUCEE.util.getCookie( __LUCEE.debug.cookieName, __LUCEE.debug.allSections.ALL ) | __LUCEE.debug.allSections[ name ];
-					__LUCEE.util.setCookie( __LUCEE.debug.cookieName, value );
-					return value;
-				}
+				// 	var value = __LUCEE.util.getCookie( __LUCEE.debug.cookieName, __LUCEE.debug.allSections.ALL ) | __LUCEE.debug.allSections[ name ];
+				// 	__LUCEE.util.setCookie( __LUCEE.debug.cookieName, value );
+				// 	return value;
+				// }
 
-				, clearFlag: 	function( name ) {
+				// , clearFlag: 	function( name ) {
 
-					var value = __LUCEE.util.getCookie( __LUCEE.debug.cookieName, 0 ) & ( __LUCEE.debug.bitmaskAll - __LUCEE.debug.allSections[ name ] );
-					__LUCEE.util.setCookie( __LUCEE.debug.cookieName, value );
-					return value;
-				}
+				// 	var value = __LUCEE.util.getCookie( __LUCEE.debug.cookieName, 0 ) & ( __LUCEE.debug.bitmaskAll - __LUCEE.debug.allSections[ name ] );
+				// 	__LUCEE.util.setCookie( __LUCEE.debug.cookieName, value );
+				// 	return value;
+				// }
 
-				, toggleSection: 	function( name ) {
+				// , toggleSection: 	function( name ) {
 
-					var btn = __LUCEE.util.getDomObject( "-lucee-debugging-btn-" + name );
-					var obj = __LUCEE.util.getDomObject( "-lucee-debugging-" + name );
-					var isOpen = ( __LUCEE.util.getCookie( __LUCEE.debug.cookieName, 0 ) & __LUCEE.debug.allSections[ name ] ) > 0;
+				// 	var btn = __LUCEE.util.getDomObject( "-lucee-debugging-btn-" + name );
+				// 	var obj = __LUCEE.util.getDomObject( "-lucee-debugging-" + name );
+				// 	var isOpen = ( __LUCEE.util.getCookie( __LUCEE.debug.cookieName, 0 ) & __LUCEE.debug.allSections[ name ] ) > 0;
 
-					if ( isOpen ) {
+				// 	if ( isOpen ) {
 
-						__LUCEE.util.removeClass( btn, '-lucee-icon-minus' );
-						__LUCEE.util.addClass( btn, '-lucee-icon-plus' );
-						__LUCEE.util.addClass( obj, 'collapsed' );
-						__LUCEE.debug.clearFlag( name );
-					} else {
+				// 		__LUCEE.util.removeClass( btn, '-lucee-icon-minus' );
+				// 		__LUCEE.util.addClass( btn, '-lucee-icon-plus' );
+				// 		__LUCEE.util.addClass( obj, 'collapsed' );
+				// 		__LUCEE.debug.clearFlag( name );
+				// 	} else {
 
-						__LUCEE.util.removeClass( btn, '-lucee-icon-plus' );
-						__LUCEE.util.addClass( btn, '-lucee-icon-minus' );
-						__LUCEE.util.removeClass( obj, 'collapsed' );
-						__LUCEE.debug.setFlag( name );
-					}
+				// 		__LUCEE.util.removeClass( btn, '-lucee-icon-plus' );
+				// 		__LUCEE.util.addClass( btn, '-lucee-icon-minus' );
+				// 		__LUCEE.util.removeClass( obj, 'collapsed' );
+				// 		__LUCEE.debug.setFlag( name );
+				// 	}
 
-					return !isOpen;					// returns true if section is open after the operation
-				}
+				// 	return !isOpen;					// returns true if section is open after the operation
+				// }
 
 				, selectText:	__LUCEE.util.selectText
 				, sortTable:		function (th, sortDefault){					
