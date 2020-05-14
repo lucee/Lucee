@@ -1301,11 +1301,6 @@ public final class SystemUtil {
 
 		// a request still will create the error template output, so it can take some time to finish
 		for (int i = 0; i < 100; i++) {
-			// SystemOut.printDate("STOP A THREAD");
-			// SystemOut.printDate("- alive?" + thread.isAlive());
-			// SystemOut.printDate("- interupted?" + thread.isInterrupted());
-			// SystemOut.printDate("- inLucee?" + isInLucee(thread));
-			// SystemOut.printDate(ExceptionUtil.toString(thread.getStackTrace()));
 			if (!isInLucee(thread)) {
 				if (log != null) log.info("thread", "sucessfully " + (force ? "stop" : "interrupt") + " thread.");
 				return true;

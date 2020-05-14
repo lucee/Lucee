@@ -107,13 +107,14 @@ public class ScheduledTaskThread extends Thread {
 		// stop this thread itself
 		SystemUtil.notify(this);
 		SystemUtil.stop(this);
-		if (this.isAlive()) log.warn("scheduler", "task [" + task.getTask() + "] could not be stopped:" + ExceptionUtil.toString(this.getStackTrace()));
+		if (this.isAlive()) log.log(Log.LEVEL_WARN, "scheduler", "task [" + task.getTask() + "] could not be stopped.", ExceptionUtil.toThrowable(this.getStackTrace()));
 		else log.info("scheduler", "task [" + task.getTask() + "] stopped");
 	}
 
 	private void stop(Log log, ExecutionThread et) {
 		SystemUtil.stop(exeThread);
-		if (et != null && et.isAlive()) log.warn("scheduler", "task thread [" + task.getTask() + "] could not be stopped:" + ExceptionUtil.toString(et.getStackTrace()));
+		if (et != null && et.isAlive())
+			log.log(Log.LEVEL_WARN, "scheduler", "task thread [" + task.getTask() + "] could not be stopped.", ExceptionUtil.toThrowable(et.getStackTrace()));
 		else log.info("scheduler", "task thread [" + task.getTask() + "] stopped");
 	}
 
