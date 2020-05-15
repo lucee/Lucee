@@ -106,9 +106,11 @@ public class DeployHandler {
 						engine.setEnvExt(extensionIds);
 						List<ExtensionDefintion> extensions = RHExtension.toExtensionDefinitions(extensionIds);
 						Resource configDir = CFMLEngineImpl.getSeverContextConfigDirectory(engine.getCFMLEngineFactory());
-						boolean sucess = DeployHandler.deployExtensions(config, extensions.toArray(new ExtensionDefintion[extensions.size()]), config.getLog("deploy"));
-						if (sucess && configDir != null) XMLConfigFactory.updateRequiredExtension(engine, configDir);
-						LogUtil.log(config, Log.LEVEL_INFO, "deploy", "controller", "installed extensions:" + ListUtil.listToList(extensions, ", "));
+						Log log = config != null ? config.getLog("deploy") : null;
+						boolean sucess = DeployHandler.deployExtensions(config, extensions.toArray(new ExtensionDefintion[extensions.size()]), log);
+						if (sucess && configDir != null) XMLConfigFactory.updateRequiredExtension(engine, configDir, log);
+						LogUtil.log(config, Log.LEVEL_INFO, "deploy", "controller",
+								(sucess ? "sucessfully" : "unsucessfully") + " installed extensions:" + ListUtil.listToList(extensions, ", "));
 					}
 					catch (Exception e) {
 						Log log = config.getLog("deploy");
@@ -154,7 +156,7 @@ public class DeployHandler {
 
 	}
 
-	public static boolean deployExtensions(Config config, ExtensionDefintion[] eds, Log log) {
+	public static boolean deployExtensions(Config config, ExtensionDefintion[] eds, final Log log) throws PageException {
 		boolean allSucessfull = true;
 		if (!ArrayUtil.isEmpty(eds)) {
 			ExtensionDefintion ed;
@@ -166,6 +168,8 @@ public class DeployHandler {
 					sucess = deployExtension(config, ed, log, i + 1 == eds.length);
 				}
 				catch (PageException e) {
+					if (log != null) log.error("deploy-extension", e);
+					else throw e;
 					sucess = false;
 				}
 				if (!sucess) allSucessfull = false;
@@ -174,7 +178,7 @@ public class DeployHandler {
 		return allSucessfull;
 	}
 
-	public static boolean deployExtensions(Config config, List<ExtensionDefintion> eds, Log log) {
+	public static boolean deployExtensions(Config config, List<ExtensionDefintion> eds, Log log) throws PageException {
 		boolean allSucessfull = true;
 		if (eds != null && eds.size() > 0) {
 			ExtensionDefintion ed;
@@ -189,6 +193,8 @@ public class DeployHandler {
 					sucess = deployExtension(config, ed, log, count == eds.size());
 				}
 				catch (PageException e) {
+					if (log != null) log.error("deploy-extension", e);
+					else throw e;
 					sucess = false;
 				}
 				if (!sucess) allSucessfull = false;

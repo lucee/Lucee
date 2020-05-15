@@ -61,6 +61,9 @@ public final class StringUtil {
 			, 0x3000 // ideographic space
 	};
 
+	private static char[] QUOTE_8220 = new char[] { (char) 226, (char) 8364, (char) 339 };
+	private static char[] QUOTE_8221 = new char[] { (char) 226, (char) 8364, (char) 65533 };
+
 	/**
 	 * do first Letter Upper case
 	 * 
@@ -1399,11 +1402,36 @@ public final class StringUtil {
 	public static String unwrap(String str) {
 		if (StringUtil.isEmpty(str)) return "";
 		str = str.trim();
-		if ((startsWith(str, '"') || startsWith(str, (char) 8220)) && (endsWith(str, '"') || endsWith(str, (char) 8221))) // #8220 and #8221 are left and right "double quotes"
-			str = str.substring(1, str.length() - 1);
+		boolean multiStart = false;
+		boolean multiEnd = false;
+		if ((startsWith(str, '"') || startsWith(str, (char) 8220) || (multiStart = startsWithWinRead8220(str)))
+				&& (endsWith(str, '"') || endsWith(str, (char) 8221) || (multiEnd = endsWithWinRead8221(str))))
+			str = str.substring(multiStart ? 3 : 1, str.length() - (multiEnd ? 3 : 1));
 		if (startsWith(str, '\'') && endsWith(str, '\'')) str = str.substring(1, str.length() - 1);
 		return str;
 	}
+
+	private static boolean startsWithWinRead8220(String str) {
+		return str.length() > 2 && str.charAt(0) == QUOTE_8220[0] && str.charAt(1) == QUOTE_8220[1] && str.charAt(2) == QUOTE_8220[2];
+	}
+
+	private static boolean endsWithWinRead8221(String str) {
+		int len = str.length();
+		return str.length() > 2 && str.charAt(len - 3) == QUOTE_8221[0] && str.charAt(len - 2) == QUOTE_8221[1] && str.charAt(len - 1) == QUOTE_8221[2];
+	}
+
+	/*
+	 * public static void main(String[] args) throws IOException { IOUtil.write(new
+	 * File("/Users/mic/Tmp4/test.txt"), (((char) 8220) + "abc" + ((char) 8221)), "UTF-8", false);
+	 * String str = IOUtil.toString(new FileInputStream("/Users/mic/Tmp4/test.txt"), "Windows-1252");
+	 * print.e(str); print.e(unwrap(str));
+	 * 
+	 * IOUtil.write(new File("/Users/mic/Tmp4/test.txt"), ("\"abc" + ((char) 8221)), "UTF-8", false);
+	 * str = IOUtil.toString(new FileInputStream("/Users/mic/Tmp4/test.txt"), "Windows-1252");
+	 * print.e(str); print.e(unwrap(str));
+	 * 
+	 * }
+	 */
 
 	public static String toStringNative(Object obj, String defaultValue) {
 		return obj == null ? defaultValue : obj.toString();

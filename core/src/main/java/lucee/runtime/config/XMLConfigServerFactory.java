@@ -96,7 +96,7 @@ public final class XMLConfigServerFactory extends XMLConfigFactory {
 
 		);
 
-		int iDoNew = doNew(engine, configDir, false).updateType;
+		int iDoNew = getNew(engine, configDir, false, UpdateInfo.NEW_NONE).updateType;
 		boolean doNew = iDoNew != NEW_NONE;
 
 		Resource configFile = configDir.getRealResource("lucee-server.xml");
@@ -143,7 +143,7 @@ public final class XMLConfigServerFactory extends XMLConfigFactory {
 		if (second(configServer.getLoadTime()) > second(configFile.lastModified())) {
 			if (!configServer.getConfigDir().getRealResource("password.txt").isFile()) return;
 		}
-		int iDoNew = doNew(engine, configServer.getConfigDir(), false).updateType;
+		int iDoNew = getNew(engine, configServer.getConfigDir(), false, UpdateInfo.NEW_NONE).updateType;
 		boolean doNew = iDoNew != NEW_NONE;
 		load(configServer, loadDocument(configFile), true, doNew);
 		((CFMLEngineImpl) ConfigWebUtil.getEngine(configServer)).onStart(configServer, true);

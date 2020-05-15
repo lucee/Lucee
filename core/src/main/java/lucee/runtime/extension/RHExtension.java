@@ -601,7 +601,10 @@ public class RHExtension implements Serializable {
 	}
 
 	public void validate() throws ApplicationException {
-		Info info = ConfigWebUtil.getEngine(config).getInfo();
+		validate(ConfigWebUtil.getEngine(config).getInfo());
+	}
+
+	public void validate(Info info) throws ApplicationException {
 
 		if (minCoreVersion != null && !minCoreVersion.isWithin(info.getVersion())) {
 			throw new InvalidVersion("The Extension [" + getName() + "] cannot be loaded, " + Constants.NAME + " Version must be at least [" + minCoreVersion.toString()
@@ -963,13 +966,15 @@ public class RHExtension implements Serializable {
 	public static Query toQuery(Config config, RHExtension[] children, Query qry) throws PageException {
 		Log log = config.getLog("deploy");
 		if (qry == null) qry = createQuery();
-		for (int i = 0; i < children.length; i++) {
-			try {
-				children[i].populate(qry); // ,i+1
-			}
-			catch (Throwable t) {
-				ExceptionUtil.rethrowIfNecessary(t);
-				log.error("extension", t);
+		if (children != null) {
+			for (int i = 0; i < children.length; i++) {
+				try {
+					if (children[i] != null) children[i].populate(qry); // ,i+1
+				}
+				catch (Throwable t) {
+					ExceptionUtil.rethrowIfNecessary(t);
+					log.error("extension", t);
+				}
 			}
 		}
 		return qry;
@@ -1492,5 +1497,13 @@ public class RHExtension implements Serializable {
 		ed.setParam("symbolic-name", getSymbolicName());
 		ed.setParam("description", getDescription());
 		return ed;
+	}
+
+	@Override
+	public String toString() {
+		ExtensionDefintion ed = new ExtensionDefintion(getId(), getVersion());
+		ed.setParam("symbolic-name", getSymbolicName());
+		ed.setParam("description", getDescription());
+		return ed.toString();
 	}
 }
