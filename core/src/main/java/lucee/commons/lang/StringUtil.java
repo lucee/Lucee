@@ -1345,7 +1345,7 @@ public final class StringUtil {
 			k = Caster.toString(e.getKey());
 			v = Caster.toString(e.getValue());
 			tmp = new ArrayList<Pos>();
-			result = _replace(result.toString(), k, placeholder(k), false, ignoreCase, tmp);
+			result = _replace(result.toString(), k, v, false, ignoreCase, tmp);
 
 			for (Pos pos: tmp) {
 				positions.put(pos, v);
