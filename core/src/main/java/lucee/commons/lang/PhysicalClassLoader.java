@@ -126,10 +126,6 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	}
 
 	private Class<?> loadClass(String name, boolean resolve, boolean loadFromFS) throws ClassNotFoundException {
-		if (loadedClasses.containsKey(name) || unavaiClasses.containsKey(name)) {
-			return super.loadClass(name, false); // Use default CL cache
-		}
-
 		// First, check if the class has already been loaded
 		Class<?> c = findLoadedClass(name);
 		if (c == null) {
