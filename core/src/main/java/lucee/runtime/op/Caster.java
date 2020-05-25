@@ -496,7 +496,10 @@ public final class Caster {
 			else {
 				rtn *= 10;
 				rtn += toDigit(curr);
-				if (hasDot) deep *= 10;
+				if (hasDot) {
+					deep *= 10;
+					if (deep > 1000000000000000000000D) return Double.parseDouble(str); // patch for LDEV-2654
+				}
 
 			}
 		}

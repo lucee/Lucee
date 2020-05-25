@@ -19,10 +19,10 @@
 package lucee.runtime.type;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
-import edu.emory.mathcs.backport.java.util.Collections;
 import lucee.runtime.PageContext;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
