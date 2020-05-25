@@ -30,7 +30,7 @@ this.localmode="update";
 this.web.charset="utf-8";
 this.sessionCookie.httpOnly = true; // prevent access to session cookies from javascript
 this.sessionCookie.sameSite = "strict";
-this.cookie.sameSite = "strict";
+this.tag.cookie.sameSite = "strict";
 
 public function onApplicationStart(){
 	if(structKeyExists(server.system.environment,"LUCEE_ADMIN_ENABLED") && server.system.environment.LUCEE_ADMIN_ENABLED EQ false){
