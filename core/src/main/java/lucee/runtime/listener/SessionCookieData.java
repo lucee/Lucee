@@ -9,5 +9,5 @@ public interface SessionCookieData extends CookieData {
 
 	public abstract String getDomain();
 
-	public abstract String getSamesite();
+	public abstract short getSamesite();
 }

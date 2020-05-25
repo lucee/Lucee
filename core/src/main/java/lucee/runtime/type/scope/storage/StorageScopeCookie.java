@@ -28,6 +28,7 @@ import lucee.runtime.converter.ScriptConverter;
 import lucee.runtime.interpreter.CFMLExpressionInterpreter;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.listener.ApplicationContextSupport;
+import lucee.runtime.listener.CookieData;
 import lucee.runtime.listener.SessionCookieData;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.KeyImpl;
@@ -37,6 +38,7 @@ import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.DateTimeImpl;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.scope.Cookie;
+import lucee.runtime.type.scope.CookieImpl;
 import lucee.runtime.type.scope.ScopeContext;
 import lucee.runtime.type.util.KeyConstants;
 
@@ -104,7 +106,7 @@ public abstract class StorageScopeCookie extends StorageScopeImpl {
 
 		boolean isHttpOnly = true, isSecure = false;
 		String domain = null;
-		String samesite = null;
+		short samesite = CookieData.SAMESITE_NONE;
 		if (ac instanceof ApplicationContextSupport) {
 			SessionCookieData settings = ((ApplicationContextSupport) ac).getSessionCookie();
 			if (settings != null) {
@@ -117,15 +119,16 @@ public abstract class StorageScopeCookie extends StorageScopeImpl {
 
 		Date exp = new DateTimeImpl(pc, System.currentTimeMillis() + timespan.getMillis(), true);
 		try {
+			CookieImpl ci = (CookieImpl) cookie;
 			String ser = serializer.serializeStruct(sct, ignoreSet);
 			if (hasChanges()) {
-				cookie.setCookie(KeyImpl.init(cookieName), ser, exp, isSecure, "/", domain, isHttpOnly, false, true, samesite);
+				ci.setCookie(KeyImpl.init(cookieName), ser, exp, isSecure, "/", domain, isHttpOnly, false, true, samesite);
 			}
-			cookie.setCookie(KeyImpl.init(cookieName + "_LV"), Caster.toString(_lastvisit.getTime()), exp, isSecure, "/", domain, isHttpOnly, false, true, samesite);
+			ci.setCookie(KeyImpl.init(cookieName + "_LV"), Caster.toString(_lastvisit.getTime()), exp, isSecure, "/", domain, isHttpOnly, false, true, samesite);
 
 			if (getType() == SCOPE_CLIENT) {
-				cookie.setCookie(KeyImpl.init(cookieName + "_TC"), Caster.toString(timecreated.getTime()), exp, isSecure, "/", domain, isHttpOnly, false, true, samesite);
-				cookie.setCookie(KeyImpl.init(cookieName + "_HC"), Caster.toString(sct.get(HITCOUNT, "")), exp, isSecure, "/", domain, isHttpOnly, false, true, samesite);
+				ci.setCookie(KeyImpl.init(cookieName + "_TC"), Caster.toString(timecreated.getTime()), exp, isSecure, "/", domain, isHttpOnly, false, true, samesite);
+				ci.setCookie(KeyImpl.init(cookieName + "_HC"), Caster.toString(sct.get(HITCOUNT, "")), exp, isSecure, "/", domain, isHttpOnly, false, true, samesite);
 			}
 
 		}

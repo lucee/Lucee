@@ -2664,7 +2664,7 @@ public final class PageContextImpl extends PageContext {
 		String domain = PageContextUtil.getCookieDomain(this);
 		boolean httpOnly = SessionCookieDataImpl.DEFAULT.isHttpOnly();
 		boolean secure = SessionCookieDataImpl.DEFAULT.isSecure();
-		String samesite = SessionCookieDataImpl.DEFAULT.getSamesite();
+		short samesite = SessionCookieDataImpl.DEFAULT.getSamesite();
 
 		ApplicationContext ac = getApplicationContext();
 
@@ -2691,8 +2691,8 @@ public final class PageContextImpl extends PageContext {
 		if (Integer.MAX_VALUE < tmp) expires = Integer.MAX_VALUE;
 		else expires = (int) tmp;
 
-		cookieScope().setCookieEL(KeyConstants._cfid, cfid, expires, secure, "/", domain, httpOnly, true, false, samesite);
-		cookieScope().setCookieEL(KeyConstants._cftoken, cftoken, expires, secure, "/", domain, httpOnly, true, false, samesite);
+		((CookieImpl) cookieScope()).setCookieEL(KeyConstants._cfid, cfid, expires, secure, "/", domain, httpOnly, true, false, samesite);
+		((CookieImpl) cookieScope()).setCookieEL(KeyConstants._cftoken, cftoken, expires, secure, "/", domain, httpOnly, true, false, samesite);
 
 	}
 

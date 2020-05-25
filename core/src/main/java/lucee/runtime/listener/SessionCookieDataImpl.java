@@ -1,22 +1,23 @@
 package lucee.runtime.listener;
 
 import lucee.commons.lang.StringUtil;
+import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.dt.TimeSpanImpl;
 import lucee.runtime.type.scope.CookieImpl;
 
 public class SessionCookieDataImpl implements SessionCookieData {
 
-	public static final SessionCookieData DEFAULT = new SessionCookieDataImpl(true, false, TimeSpanImpl.fromMillis(CookieImpl.NEVER * 1000), null, false, null);
+	public static final SessionCookieData DEFAULT = new SessionCookieDataImpl(true, false, TimeSpanImpl.fromMillis(CookieImpl.NEVER * 1000), null, false, CookieData.SAMESITE_NONE);
 
 	private final boolean httpOnly;
 	private final boolean secure;
 	private final TimeSpan timeout;
 	private final String domain;
 	private final boolean disableUpdate;
-	private final String samesite;
+	private final short samesite;
 
-	public SessionCookieDataImpl(boolean httpOnly, boolean secure, TimeSpan timeout, String domain, boolean disableUpdate, String samesite) {
+	public SessionCookieDataImpl(boolean httpOnly, boolean secure, TimeSpan timeout, String domain, boolean disableUpdate, short samesite) {
 		this.httpOnly = httpOnly;
 		this.secure = secure;
 		this.timeout = timeout;
@@ -51,7 +52,31 @@ public class SessionCookieDataImpl implements SessionCookieData {
 	}
 
 	@Override
-	public String getSamesite() {
+	public short getSamesite() {
 		return samesite;
+	}
+
+	public static short toSamesite(String str) throws ApplicationException {
+		if (StringUtil.isEmpty(str)) return SAMESITE_NONE;
+		str = str.trim();
+		if ("NONE".equalsIgnoreCase(str)) return SAMESITE_NONE;
+		if ("LAX".equalsIgnoreCase(str)) return SAMESITE_LAX;
+		if ("STRICT".equalsIgnoreCase(str)) return SAMESITE_STRICT;
+		throw new ApplicationException("invalid value [" + str + "] for samesite, valid values are [none,lax,strict]");
+	}
+
+	public static short toSamesite(String str, short defaultValue) {
+		if (StringUtil.isEmpty(str)) return SAMESITE_NONE;
+		str = str.trim();
+		if ("NONE".equalsIgnoreCase(str)) return SAMESITE_NONE;
+		if ("LAX".equalsIgnoreCase(str)) return SAMESITE_LAX;
+		if ("STRICT".equalsIgnoreCase(str)) return SAMESITE_STRICT;
+		return defaultValue;
+	}
+
+	public static String toSamesite(short s) {
+		if (s == SAMESITE_STRICT) return "STRICT";
+		if (s == SAMESITE_LAX) return "LAX";
+		return "NONE";
 	}
 }
