@@ -75,8 +75,8 @@ public class SessionCookieDataImpl implements SessionCookieData {
 	}
 
 	public static String toSamesite(short s) {
-		if (s == SAMESITE_STRICT) return "STRICT";
-		if (s == SAMESITE_LAX) return "LAX";
-		return "NONE";
+		if (s == SAMESITE_STRICT) return "Strict";
+		if (s == SAMESITE_LAX) return "Lax";
+		return "None";
 	}
 }
