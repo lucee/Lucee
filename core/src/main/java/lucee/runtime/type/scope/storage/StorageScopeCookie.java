@@ -104,12 +104,14 @@ public abstract class StorageScopeCookie extends StorageScopeImpl {
 
 		boolean isHttpOnly = true, isSecure = false;
 		String domain = null;
+		String samesite = null;
 		if (ac instanceof ApplicationContextSupport) {
 			SessionCookieData settings = ((ApplicationContextSupport) ac).getSessionCookie();
 			if (settings != null) {
 				isHttpOnly = settings.isHttpOnly();
 				isSecure = settings.isSecure();
 				domain = settings.getDomain();
+				samesite = settings.getSamesite();
 			}
 		}
 
@@ -117,13 +119,13 @@ public abstract class StorageScopeCookie extends StorageScopeImpl {
 		try {
 			String ser = serializer.serializeStruct(sct, ignoreSet);
 			if (hasChanges()) {
-				cookie.setCookie(KeyImpl.init(cookieName), ser, exp, isSecure, "/", domain, isHttpOnly, false, true);
+				cookie.setCookie(KeyImpl.init(cookieName), ser, exp, isSecure, "/", domain, isHttpOnly, false, true, samesite);
 			}
-			cookie.setCookie(KeyImpl.init(cookieName + "_LV"), Caster.toString(_lastvisit.getTime()), exp, isSecure, "/", domain, isHttpOnly, false, true);
+			cookie.setCookie(KeyImpl.init(cookieName + "_LV"), Caster.toString(_lastvisit.getTime()), exp, isSecure, "/", domain, isHttpOnly, false, true, samesite);
 
 			if (getType() == SCOPE_CLIENT) {
-				cookie.setCookie(KeyImpl.init(cookieName + "_TC"), Caster.toString(timecreated.getTime()), exp, isSecure, "/", domain, isHttpOnly, false, true);
-				cookie.setCookie(KeyImpl.init(cookieName + "_HC"), Caster.toString(sct.get(HITCOUNT, "")), exp, isSecure, "/", domain, isHttpOnly, false, true);
+				cookie.setCookie(KeyImpl.init(cookieName + "_TC"), Caster.toString(timecreated.getTime()), exp, isSecure, "/", domain, isHttpOnly, false, true, samesite);
+				cookie.setCookie(KeyImpl.init(cookieName + "_HC"), Caster.toString(sct.get(HITCOUNT, "")), exp, isSecure, "/", domain, isHttpOnly, false, true, samesite);
 			}
 
 		}
