@@ -1781,9 +1781,9 @@ sort direction:
 		<argument>
 			<name>id</name>
 			<alias>name,key</alias>
-			<type>string</type>
+			<type>object</type>
 			<required>Yes</required>
-			<description>the id of the element to delete, can also contain a "," (not used as separator)</description>
+			<description>the id of the element to delete, you can also pass an array of multiple ids.</description>
 		</argument>
 		<argument>
 			<name>throwOnError</name>
