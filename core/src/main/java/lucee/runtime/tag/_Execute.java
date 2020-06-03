@@ -45,6 +45,8 @@ public final class _Execute extends PageContextThread {
 	private boolean finished;
 	private Process process;
 
+	private String directory;
+
 	/**
 	 * @param pageContext
 	 * @param monitor
@@ -54,7 +56,7 @@ public final class _Execute extends PageContextThread {
 	 * @param body
 	 * @param terminateOnTimeout
 	 */
-	public _Execute(PageContext pageContext, Object monitor, String[] commands, Resource outputfile, String variable, Resource errorFile, String errorVariable) {
+	public _Execute(PageContext pageContext, Object monitor, String[] commands, Resource outputfile, String variable, Resource errorFile, String errorVariable, String directory) {
 		super(pageContext);
 		this.monitor = monitor;
 		this.commands = commands;
@@ -64,6 +66,8 @@ public final class _Execute extends PageContextThread {
 		this.errorFile = errorFile;
 		this.errorVariable = errorVariable;
 		// this.body=body;
+
+		this.directory = directory;
 	}
 
 	@Override
@@ -79,7 +83,7 @@ public final class _Execute extends PageContextThread {
 	void _run(PageContext pc) {
 		try {
 
-			process = Command.createProcess(commands);
+			process = Command.createProcess(commands, directory);
 
 			CommandResult result = Command.execute(process);
 			String rst = result.getOutput();

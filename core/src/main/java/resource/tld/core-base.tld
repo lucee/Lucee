@@ -1320,6 +1320,14 @@ Example:
 			<rtexprvalue>true</rtexprvalue>
 			<description>Variable in which to put program error stream output. If neither errorFile nor errorVariable is specified, the error stream is discarded.</description>
 		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>directory</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>The working directory in which to execute the command</description>
+			<status>hidden</status>
+		</attribute>
 	</tag>
 	<!-- Exit -->
 	<tag>

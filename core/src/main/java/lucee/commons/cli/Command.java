@@ -18,6 +18,7 @@
  **/
 package lucee.commons.cli;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -34,8 +35,20 @@ public class Command {
 		return Runtime.getRuntime().exec(toArray(cmdline));
 	}
 
+	public static Process createProcess(String[] commands, String workingDir) throws IOException {
+
+		File dir = null;
+		if (!StringUtil.isEmpty(workingDir, true)) {
+			dir = new File(workingDir);
+			if (!dir.exists() || !dir.isDirectory())
+				throw new IOException(workingDir + " is not a directory");
+		}
+
+		return Runtime.getRuntime().exec(commands, null, dir);
+	}
+
 	public static Process createProcess(String[] commands) throws IOException {
-		return Runtime.getRuntime().exec(commands);
+		return createProcess(commands, null);
 	}
 
 	/**
