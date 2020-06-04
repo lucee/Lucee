@@ -83,7 +83,7 @@ public final class _Execute extends PageContextThread {
 	void _run(PageContext pc) {
 		try {
 
-			process = Command.createProcess(commands, directory);
+			process = Command.createProcess(pc, commands, directory);
 
 			CommandResult result = Command.execute(process);
 			String rst = result.getOutput();

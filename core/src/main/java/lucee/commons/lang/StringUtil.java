@@ -1420,19 +1420,6 @@ public final class StringUtil {
 		return str.length() > 2 && str.charAt(len - 3) == QUOTE_8221[0] && str.charAt(len - 2) == QUOTE_8221[1] && str.charAt(len - 1) == QUOTE_8221[2];
 	}
 
-	/*
-	 * public static void main(String[] args) throws IOException { IOUtil.write(new
-	 * File("/Users/mic/Tmp4/test.txt"), (((char) 8220) + "abc" + ((char) 8221)), "UTF-8", false);
-	 * String str = IOUtil.toString(new FileInputStream("/Users/mic/Tmp4/test.txt"), "Windows-1252");
-	 * print.e(str); print.e(unwrap(str));
-	 * 
-	 * IOUtil.write(new File("/Users/mic/Tmp4/test.txt"), ("\"abc" + ((char) 8221)), "UTF-8", false);
-	 * str = IOUtil.toString(new FileInputStream("/Users/mic/Tmp4/test.txt"), "Windows-1252");
-	 * print.e(str); print.e(unwrap(str));
-	 * 
-	 * }
-	 */
-
 	public static String toStringNative(Object obj, String defaultValue) {
 		return obj == null ? defaultValue : obj.toString();
 	}

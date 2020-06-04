@@ -95,7 +95,6 @@ public final class Collection extends TagImpl {
 	public void setPath(String strPath) throws PageException {
 		if (strPath == null) return;
 		this.path = ResourceUtil.toResourceNotExisting(pageContext, strPath.trim());
-		// this.path=new File(path.toLowerCase().trim());
 
 		pageContext.getConfig().getSecurityManager().checkFileLocation(this.path);
 

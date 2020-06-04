@@ -66,21 +66,4 @@ public final class XmlValidate implements Function {
 		}
 
 	}
-
-	/*
-	 * public static void main(String[] args) throws IOException, XMLException { String xmlPath =
-	 * "/Users/mic/Test/test/webapps/ROOT/validate/test.xml"; FileReader xmlFR = new FileReader(new
-	 * File(xmlPath)); InputSource xmlIS = new InputSource(xmlFR);
-	 * 
-	 * String xsdPath = "/Users/mic/Test/test/webapps/ROOT/validate/test.xsd"; FileReader xsdFR = new
-	 * FileReader(new File(xsdPath)); InputSource xsdIS = new InputSource(xsdFR);
-	 * 
-	 * String xsd2Path = "/Users/mic/Test/test/webapps/ROOT/validate/avs.xsd"; FileReader xsd2FR = new
-	 * FileReader(new File(xsd2Path)); InputSource xsd2IS = new InputSource(xsd2FR); try {
-	 * print.e(XMLUtil.validate(xmlIS, new InputSource[] { xsdIS, xsd2IS }, xsdPath)); //
-	 * print.e(XMLUtil.validate(xmlIS, null, null)); } finally { IOUtil.closeEL(xmlFR);
-	 * IOUtil.closeEL(xsdFR); }
-	 * 
-	 * }
-	 */
 }

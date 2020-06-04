@@ -884,10 +884,8 @@ public final class ResourceUtil {
 	public static Resource changeExtension(Resource file, String newExtension) {
 		String ext = getExtension(file, null);
 		if (ext == null) return file.getParentResource().getRealResource(file.getName() + '.' + newExtension);
-		// new File(file.getParentFile(),file.getName()+'.'+newExtension);
 		String name = file.getName();
 		return file.getParentResource().getRealResource(name.substring(0, name.length() - ext.length()) + newExtension);
-		// new File(file.getParentFile(),name.substring(0,name.length()-ext.length())+newExtension);
 	}
 
 	/**
