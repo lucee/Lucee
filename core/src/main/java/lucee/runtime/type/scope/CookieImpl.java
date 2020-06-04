@@ -321,7 +321,9 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 		Config config = ThreadLocalPageContext.getConfig(pc);
 		charset = pc.getWebCharset().name();
 		if (scriptProtected == ScriptProtected.UNDEFINED) {
-			scriptProtected = ((pc.getApplicationContext().getScriptProtect() & ApplicationContext.SCRIPT_PROTECT_COOKIE) > 0) ? ScriptProtected.YES : ScriptProtected.NO;
+			ApplicationContext ac = pc.getApplicationContext();
+			int sp = ac != null ? ac.getScriptProtect() : config.getScriptProtect();
+			scriptProtected = ((sp & ApplicationContext.SCRIPT_PROTECT_COOKIE) > 0) ? ScriptProtected.YES : ScriptProtected.NO;
 		}
 		super.initialize(pc);
 
