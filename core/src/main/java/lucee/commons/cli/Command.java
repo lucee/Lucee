@@ -18,7 +18,6 @@
  **/
 package lucee.commons.cli;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -26,7 +25,13 @@ import java.util.List;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
+import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.type.file.FileResource;
+import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.runtime.PageContext;
+import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.ExpressionException;
 
 public class Command {
 
@@ -35,20 +40,20 @@ public class Command {
 		return Runtime.getRuntime().exec(toArray(cmdline));
 	}
 
-	public static Process createProcess(String[] commands, String workingDir) throws IOException {
-
-		File dir = null;
+	public static Process createProcess(PageContext pc, String[] commands, String workingDir) throws IOException, ExpressionException {
+		pc = ThreadLocalPageContext.get(pc);
+		FileResource dir = null;
 		if (!StringUtil.isEmpty(workingDir, true)) {
-			dir = new File(workingDir);
-			if (!dir.exists() || !dir.isDirectory())
-				throw new IOException(workingDir + " is not a directory");
+			Resource res = ResourceUtil.toResourceExisting(pc, workingDir);
+			if (!res.isDirectory()) throw new IOException(workingDir + " is not a existing directory");
+			if (dir instanceof FileResource) dir = (FileResource) res;
+			else throw new IOException(workingDir + " must be a local directory, scheme [" + res.getResourceProvider().getScheme() + "] is not supported in this context.");
 		}
-
 		return Runtime.getRuntime().exec(commands, null, dir);
 	}
 
-	public static Process createProcess(String[] commands) throws IOException {
-		return createProcess(commands, null);
+	public static Process createProcess(PageContext pc, String[] commands) throws IOException, ExpressionException {
+		return createProcess(pc, commands, null);
 	}
 
 	/**
