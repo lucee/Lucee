@@ -11514,6 +11514,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>structDelete</name>
 		<class>lucee.runtime.functions.struct.StructDelete</class>
 		<member-name>delete</member-name>
+		<member-chaining>true</member-chaining>
 		<keywords>struct</keywords>
 		<description>Removes an element from a structure.</description>
 		<argument>
