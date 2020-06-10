@@ -24,6 +24,7 @@ package lucee.runtime.functions.struct;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.exp.TemplateException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.KeyImpl;
@@ -33,11 +34,12 @@ public final class StructDelete extends BIF {
 
 	private static final long serialVersionUID = 6670961245029356618L;
 
-	public static boolean call(PageContext pc, Struct struct, String key) {
+	public static boolean call(PageContext pc, Struct struct, String key) throws TemplateException {
 		return call(pc, struct, key, false);
 	}
 
-	public static boolean call(PageContext pc, Struct struct, String key, boolean indicatenotexisting) {
+	public static boolean call(PageContext pc, Struct struct, String key, boolean indicatenotexisting) throws TemplateException {
+		if(indicatenotexisting && !struct.containsKey(key)) throw new TemplateException("Cannot delete item with key " + key, "The key doesn't exists.");
 		return struct.removeEL(KeyImpl.init(key)) != null || !indicatenotexisting;
 	}
 
