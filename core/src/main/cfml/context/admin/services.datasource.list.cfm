@@ -181,7 +181,7 @@ list all mappings and display necessary edit fields --->
 		<cfset QuerySetCell(srcGlobal,"openConnections",datasources.openConnections)>
 		<cfset QuerySetCell(srcGlobal,"readonly",datasources.readonly)>
 		<cfset QuerySetCell(srcGlobal,"storage",datasources.storage)>
-		<cfset QuerySetCell(srcGlobal,"storage",datasources.storage)>
+		<cfset QuerySetCell(srcGlobal,"host",datasources.host?:'')>
 		<cfset QuerySetCell(srcGlobal,"port",datasources.port?:'')>
 	</cfif>
 </cfloop>
@@ -218,7 +218,7 @@ list all mappings and display necessary edit fields --->
 								#srcGlobal.name#
 							</td>
 							<td>#getDbDriverTypeName(srcGlobal.ClassName,srcGlobal.dsn)#</td>
-							<td>#listCompact("#srcLocal.host?:''#:#srcLocal.port?:''#",":")#</td>							
+							<td>#listCompact("#srcGlobal.host?:''#:#srcGlobal.port?:''#",":")#</td>							
 							<td>#srcGlobal.openConnections#</td>
 							<td>#yesNoFormat(srcGlobal.storage)#</td>
 							<td>
