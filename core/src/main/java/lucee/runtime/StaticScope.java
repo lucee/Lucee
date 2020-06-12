@@ -64,25 +64,29 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 
 	@Override
 	public int size() {
-		if (base == null) return cp._static.size();
-		return base.size() + cp._static.size();
+		int s = 0;
+		synchronized (cp._static) {
+			s = cp._static.size();
+		}
+		return (base == null) ? s : base.size() + s;
 
 	}
 
 	public Member _remove(PageContext pc, Key key) throws PageException {
-		// does the current struct has this key
-		Member m = cp._static.get(key);
-		if (m != null) {
-			if (m.getModifier() == Member.MODIFIER_FINAL)
-				throw new ExpressionException("Cannot remove key [" + key + "] in static scope from component [" + cp.getComponentName() + "], that member is set to final");
+		synchronized (cp._static) {
+			// does the current struct has this key
+			Member m = cp._static.get(key);
+			if (m != null) {
+				if (m.getModifier() == Member.MODIFIER_FINAL)
+					throw new ExpressionException("Cannot remove key [" + key + "] in static scope from component [" + cp.getComponentName() + "], that member is set to final");
 
-			if (!c.isAccessible(ThreadLocalPageContext.get(pc), m.getAccess()))
-				throw new ExpressionException("Component from type [" + cp.getComponentName() + "] has no accessible static Member with name [" + key + "]");
-			return cp._static.remove(key);
+				if (!c.isAccessible(ThreadLocalPageContext.get(pc), m.getAccess()))
+					throw new ExpressionException("Component from type [" + cp.getComponentName() + "] has no accessible static Member with name [" + key + "]");
+				return cp._static.remove(key);
+			}
+			// if not the parent (inside the static constructor we do not remove keys from base static scopes)
+			if (base != null && !c.insideStaticConstr) return base._remove(pc, key);
 		}
-		// if not the parent (inside the static constructor we do not remove keys from base static scopes)
-		if (base != null && !c.insideStaticConstr) return base._remove(pc, key);
-
 		return null;
 	}
 
@@ -107,12 +111,18 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 	@Override
 	public void clear() {
 		if (base != null) base.clear();
-		cp._static.clear();
+		synchronized (cp._static) {
+			cp._static.clear();
+		}
 	}
 
 	private Member _get(PageContext pc, Key key, Member defaultValue) {
 		// does the current struct has this key
-		Member m = cp._static.get(key);
+		Member m = null;
+		synchronized (cp._static) {
+			m = cp._static.get(key);
+		}
+
 		if (m != null) {
 			if (c.isAccessible(pc, m)) return m;
 			return null;
@@ -154,30 +164,37 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 
 	private Member _setIfExists(PageContext pc, Key key, Object value) throws PageException {
 		// does the current struct has this key
-		Member m = cp._static.get(key);
-		if (m != null) {
-			if (m.getModifier() == Member.MODIFIER_FINAL)
-				throw new ExpressionException("Cannot update key [" + key + "] in static scope from component [" + cp.getComponentName() + "], that member is set to final");
+		synchronized (cp._static) {
+			Member m = cp._static.get(key);
+			if (m != null) {
+				if (m.getModifier() == Member.MODIFIER_FINAL)
+					throw new ExpressionException("Cannot update key [" + key + "] in static scope from component [" + cp.getComponentName() + "], that member is set to final");
 
-			return _set(pc, m, key, value);
+				return _set(pc, m, key, value);
+			}
+
+			// if not the parent (we only do this if we are outside the static constructor)
+			if (base != null && !c.insideStaticConstr) return base._setIfExists(pc, key, value);
 		}
-
-		// if not the parent (we only do this if we are outside the static constructor)
-		if (base != null && !c.insideStaticConstr) return base._setIfExists(pc, key, value);
-
 		return null;
 	}
 
 	private Member _set(PageContext pc, Member existing, Key key, Object value) throws ExpressionException {
-		if (value instanceof Member) return cp._static.put(key, (Member) value);
+		if (value instanceof Member) {
+			synchronized (cp._static) {
+				return cp._static.put(key, (Member) value);
+			}
+		}
 
 		// check if user has access
 		if (!c.isAccessible(pc, existing != null ? existing.getAccess() : dataMemberDefaultAccess))
 			throw new ExpressionException("Component from type [" + cp.getComponentName() + "] has no accessible static Member with name [" + key + "]");
 
 		// set
-		return cp._static.put(key,
-				new DataMember(existing != null ? existing.getAccess() : dataMemberDefaultAccess, existing != null ? existing.getModifier() : Member.MODIFIER_NONE, value));
+		synchronized (cp._static) {
+			return cp._static.put(key,
+					new DataMember(existing != null ? existing.getAccess() : dataMemberDefaultAccess, existing != null ? existing.getModifier() : Member.MODIFIER_NONE, value));
+		}
 	}
 
 	@Override
@@ -219,13 +236,17 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 	@Override
 	public final boolean containsKey(Key key) {
 		if (base != null && base.containsKey(key)) return true;
-		return cp._static.containsKey(key);
+		synchronized (cp._static) {
+			return cp._static.containsKey(key);
+		}
 	}
 
 	@Override
 	public final boolean containsKey(PageContext pc, Key key) {
 		if (base != null && base.containsKey(pc, key)) return true;
-		return cp._static.containsKey(key);
+		synchronized (cp._static) {
+			return cp._static.containsKey(key);
+		}
 	}
 
 	@Override
@@ -254,13 +275,15 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 		if (base != null) base._entries(map, access);
 
 		// fill accessable keys
-		Iterator<Entry<Key, Member>> it = cp._static.entrySet().iterator();
-		Entry<Key, Member> e;
-		while (it.hasNext()) {
-			e = it.next();
-			if (e.getValue().getAccess() <= access) map.put(e.getKey(), e.getValue().getValue());
+		synchronized (cp._static) {
+			Iterator<Entry<Key, Member>> it = cp._static.entrySet().iterator();
+			Entry<Key, Member> e;
+			while (it.hasNext()) {
+				e = it.next();
+				if (e.getValue().getAccess() <= access) map.put(e.getKey(), e.getValue().getValue());
+			}
+			return map;
 		}
-		return map;
 	}
 
 	private Map<Key, Member> all(Map<Key, Member> map) {
@@ -268,13 +291,15 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 		if (base != null) base.all(map);
 
 		// fill accessable keys
-		Iterator<Entry<Key, Member>> it = cp._static.entrySet().iterator();
-		Entry<Key, Member> e;
-		while (it.hasNext()) {
-			e = it.next();
-			map.put(e.getKey(), e.getValue());
+		synchronized (cp._static) {
+			Iterator<Entry<Key, Member>> it = cp._static.entrySet().iterator();
+			Entry<Key, Member> e;
+			while (it.hasNext()) {
+				e = it.next();
+				map.put(e.getKey(), e.getValue());
+			}
+			return map;
 		}
-		return map;
 	}
 
 	@Override
@@ -310,25 +335,7 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 			long currTime = pc.getExecutionTime();
 			long time = System.nanoTime();
 
-			// sync yes
-			if (c.top.properties._synchronized) {
-				synchronized (this) {
-					try {
-						parent = c.beforeStaticConstructor(pc);
-						if (args != null) rtn = udf.call(pc, calledName, args, true);
-						else rtn = udf.callWithNamedValues(pc, calledName, namedArgs, true);
-					}
-					finally {
-						c.afterStaticConstructor(pc, parent);
-						long diff = ((System.nanoTime() - time) - (pc.getExecutionTime() - currTime));
-						pc.setExecutionTime(pc.getExecutionTime() + diff);
-						debugEntry.updateExeTime(diff);
-					}
-				}
-			}
-
-			// sync no
-			else {
+			synchronized (this.cp._static) {
 				try {
 					parent = c.beforeStaticConstructor(pc);
 					if (args != null) rtn = udf.call(pc, calledName, args, true);
@@ -345,23 +352,8 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 		}
 
 		// debug no
-		else {
-
-			// sync yes
-			if (c.top.properties._synchronized) {
-				synchronized (this) {
-					try {
-						parent = c.beforeStaticConstructor(pc);
-						if (args != null) rtn = udf.call(pc, calledName, args, true);
-						else rtn = udf.callWithNamedValues(pc, calledName, namedArgs, true);
-					}
-					finally {
-						c.afterStaticConstructor(pc, parent);
-					}
-				}
-			}
-
-			else {
+		else { // this.cp._static
+			synchronized (this.cp._static) {
 				try {
 					parent = c.beforeStaticConstructor(pc);
 					if (args != null) rtn = udf.call(pc, calledName, args, true);

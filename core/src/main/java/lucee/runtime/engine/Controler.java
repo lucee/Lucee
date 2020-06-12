@@ -36,9 +36,6 @@ import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.Mapping;
-import lucee.runtime.MappingImpl;
-import lucee.runtime.PageSource;
-import lucee.runtime.PageSourcePool;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.ConfigWeb;
@@ -533,70 +530,10 @@ public final class Controler extends Thread {
 		}
 	}
 
-	private PageSourcePool[] getPageSourcePools(ConfigWeb config) {
-		return getPageSourcePools(config.getMappings());
-	}
-
-	private PageSourcePool[] getPageSourcePools(Mapping... mappings) {
-		PageSourcePool[] pools = new PageSourcePool[mappings.length];
-		// int size=0;
-
-		for (int i = 0; i < mappings.length; i++) {
-			pools[i] = ((MappingImpl) mappings[i]).getPageSourcePool();
-			// size+=pools[i].size();
-		}
-		return pools;
-	}
-
-	private int getPageSourcePoolSize(PageSourcePool[] pools) {
-		int size = 0;
-		for (int i = 0; i < pools.length; i++)
-			size += pools[i].size();
-		return size;
-	}
-
-	private void removeOldest(PageSourcePool[] pools) {
-		PageSourcePool pool = null;
-		String key = null;
-		PageSource ps = null;
-
-		long date = -1;
-		for (int i = 0; i < pools.length; i++) {
-			try {
-				String[] keys = pools[i].keys();
-				for (int y = 0; y < keys.length; y++) {
-					ps = pools[i].getPageSource(keys[y], false);
-					if (date == -1 || date > ps.getLastAccessTime()) {
-						pool = pools[i];
-						key = keys[y];
-						date = ps.getLastAccessTime();
-					}
-				}
-			}
-			catch (Throwable t) {
-				ExceptionUtil.rethrowIfNecessary(t);
-				pools[i].clear();
-			}
-
-		}
-		if (pool != null) pool.remove(key);
-	}
-
-	private void clear(PageSourcePool[] pools) {
-		for (int i = 0; i < pools.length; i++) {
-			pools[i].clear();
-		}
-	}
-
 	public void close() {
 		state = INACTIVE;
 		SystemUtil.notify(this);
 	}
-
-	/*
-	 * private void doLogMemoryUsage(ConfigWeb config) { if(config.logMemoryUsage()&&
-	 * config.getMemoryLogger()!=null) config.getMemoryLogger().write(); }
-	 */
 
 	static class ExpiresFilter implements ResourceFilter {
 

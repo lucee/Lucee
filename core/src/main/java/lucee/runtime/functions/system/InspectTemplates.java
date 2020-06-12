@@ -6,7 +6,6 @@ import java.util.Iterator;
 import lucee.runtime.Mapping;
 import lucee.runtime.MappingImpl;
 import lucee.runtime.PageContext;
-import lucee.runtime.PageSourcePool;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -68,9 +67,7 @@ public final class InspectTemplates extends BIF implements Function {
 
 	public static void reset(Config config, Mapping mapping) {
 		if (mapping == null) return;
-		PageSourcePool pool = ((MappingImpl) mapping).getPageSourcePool();
-		pool.resetPages(null);
-
+		(((MappingImpl) mapping)).resetPages(null);
 	}
 
 	@Override

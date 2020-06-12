@@ -23,6 +23,8 @@ import java.io.InputStream;
 import java.io.Serializable;
 import java.lang.instrument.UnmodifiableClassException;
 import java.lang.ref.SoftReference;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -45,8 +47,10 @@ import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.PageException;
 import lucee.runtime.listener.ApplicationListener;
 import lucee.runtime.osgi.OSGiUtil;
+import lucee.runtime.type.Array;
 import lucee.runtime.type.util.ArrayUtil;
 
 /**
@@ -70,7 +74,7 @@ public final class MappingImpl implements Mapping {
 	private boolean hasArchive;
 	private final Config config;
 	private Resource classRootDirectory;
-	private PageSourcePool pageSourcePool = new PageSourcePool();
+	private final PageSourcePool pageSourcePool = new PageSourcePool();
 
 	private boolean readonly = false;
 	private boolean hidden = false;
@@ -234,7 +238,10 @@ public final class MappingImpl implements Mapping {
 			pcl = new PhysicalClassLoader(config, getClassRootDirectory());
 		}
 		else if (pcl.getSize() > MAX_SIZE) {
-			pageSourcePool.clearPages(pcl);
+			synchronized (pageSourcePool) {
+				pageSourcePool.clearPages(pcl);
+			}
+
 			pcl.clear();
 			pcl = new PhysicalClassLoader(config, getClassRootDirectory());
 		}
@@ -277,7 +284,21 @@ public final class MappingImpl implements Mapping {
 	 * @param cl
 	 */
 	public void clearPages(ClassLoader cl) {
-		pageSourcePool.clearPages(cl);
+		synchronized (pageSourcePool) {
+			pageSourcePool.clearPages(cl);
+		}
+	}
+
+	public void clearUnused(ConfigImpl config) {
+		synchronized (pageSourcePool) {
+			pageSourcePool.clearUnused(config);
+		}
+	}
+
+	public void resetPages(ClassLoader cl) {
+		synchronized (pageSourcePool) {
+			pageSourcePool.resetPages(cl);
+		}
 	}
 
 	@Override
@@ -369,20 +390,49 @@ public final class MappingImpl implements Mapping {
 
 	@Override
 	public PageSource getPageSource(String path, boolean isOut) {
-		PageSource source = pageSourcePool.getPageSource(path, true);
-		if (source != null) return source;
+		synchronized (pageSourcePool) {
+			PageSource source = pageSourcePool.getPageSource(path, true);
+			if (source != null) return source;
 
-		PageSourceImpl newSource = new PageSourceImpl(this, path, isOut);
-		pageSourcePool.setPage(path, newSource);
+			PageSourceImpl newSource = new PageSourceImpl(this, path, isOut);
+			pageSourcePool.setPage(path, newSource);
 
-		return newSource;// new PageSource(this,path);
+			return newSource;// new PageSource(this,path);
+		}
 	}
 
 	/**
 	 * @return Returns the pageSourcePool.
+	 * 
+	 *         public PageSourcePool getPageSourcePoolX() { synchronized (pageSourcePoolX) { return
+	 *         pageSourcePoolX; } }
 	 */
-	public PageSourcePool getPageSourcePool() {
-		return pageSourcePool;
+
+	public Array getDisplayPathes(Array arr) throws PageException {
+		synchronized (pageSourcePool) {
+			String[] keys = pageSourcePool.keys();
+			PageSourceImpl ps;
+			for (int y = 0; y < keys.length; y++) {
+				ps = (PageSourceImpl) pageSourcePool.getPageSource(keys[y], false);
+				if (ps != null && ps.isLoad()) arr.append(ps.getDisplayPath());
+			}
+			return arr;
+		}
+	}
+
+	public List<PageSource> getPageSources(boolean loaded) {
+		List<PageSource> list = new ArrayList<>();
+		synchronized (pageSourcePool) {
+			String[] keys = pageSourcePool.keys();
+			PageSourceImpl ps;
+			for (int y = 0; y < keys.length; y++) {
+				ps = (PageSourceImpl) pageSourcePool.getPageSource(keys[y], false);
+				if (ps != null) {
+					if (!loaded || ps.isLoad()) list.add(ps);
+				}
+			}
+		}
+		return list;
 	}
 
 	@Override
@@ -535,7 +585,9 @@ public final class MappingImpl implements Mapping {
 	}
 
 	public void flush() {
-		getPageSourcePool().clear();
+		synchronized (pageSourcePool) {
+			pageSourcePool.clear();
+		}
 	}
 
 	public SerMapping toSerMapping() {

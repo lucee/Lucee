@@ -421,17 +421,17 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			scope = new ComponentScopeThis(this);
 		}
 		initProperties();
-
-		// invoke static constructor
-		if (!componentPage._static.isInit()) {
-			componentPage._static.setInit(true);// this needs to happen before the call
-			try {
-				componentPage.staticConstructor(pageContext, this);
-			}
-			catch (Throwable t) {
-				ExceptionUtil.rethrowIfNecessary(t);
-				componentPage._static.setInit(false);
-				throw Caster.toPageException(t);
+		synchronized (componentPage._static) {
+			// invoke static constructor
+			if (!componentPage._static.isInit()) {
+				componentPage._static.setInit(true);// this needs to happen before the call
+				try {
+					componentPage.staticConstructor(pageContext, this);
+				}
+				catch (Exception e) {
+					componentPage._static.setInit(false);
+					throw Caster.toPageException(e);
+				}
 			}
 		}
 	}

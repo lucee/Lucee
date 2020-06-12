@@ -40,7 +40,7 @@ import lucee.runtime.type.dt.DateTimeImpl;
  * pool to handle pages
  */
 public final class PageSourcePool implements Dumpable {
-
+	// TODO must not be thread safe, is used in sync block only
 	private Map<String, SoftReference<PageSource>> pageSources = new ConcurrentHashMap<String, SoftReference<PageSource>>();
 	// timeout timeout for files
 	private long timeout;
