@@ -94,9 +94,6 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 
 	private long lastCheck = -1;
 
-	// static scope
-	public final StaticStruct _static = new StaticStruct();
-
 	public abstract ComponentImpl newInstance(PageContext pc, String callPath, boolean isRealPath, boolean isExtendedComponent, boolean executeConstr)
 			throws lucee.runtime.exp.PageException;
 
@@ -987,6 +984,11 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 	 */
 	public void staticConstructor(PageContext pagecontext, ComponentImpl cfc) {
 		// do nothing
+	}
+
+	// this method only exist that old classes from archives still work, not perfectly, but good enough
+	public StaticStruct getStaticStruct() {
+		return new StaticStruct();
 	}
 
 	public abstract void initComponent(PageContext pc, ComponentImpl c, boolean executeDefaultConstructor) throws PageException;
