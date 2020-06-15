@@ -84,7 +84,7 @@ public final class Xml extends BodyTagImpl {
 	public int doEndTag() throws PageException {
 		try {
 			InputSource vis = StringUtil.isEmpty(validator) ? null : XMLUtil.toInputSource(pageContext, validator);
-			pageContext.setVariable(variable, XMLCaster.toXMLStruct(XMLUtil.parse(new InputSource(new StringReader(strXML)), vis, false), casesensitive));
+			pageContext.setVariable(variable, XMLCaster.toXMLStruct(XMLUtil.parse(new InputSource(new StringReader(strXML)), vis, true), casesensitive));
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
