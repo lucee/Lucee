@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -2445,7 +2446,7 @@ public abstract class AbstrCFMLScriptTransformer extends AbstrCFMLExprTransforme
 
 	private final Attribute[] attributes(Tag tag, TagLibTag tlt, Data data, EndCondition endCond, Expression defaultValue, Object oAllowExpression, String ignoreAttrReqFor,
 			boolean allowTwiceAttr, char attributeSeparator, boolean allowColonAsNameValueSeparator) throws TemplateException {
-		Map<String, Attribute> attrs = new HashMap<String, Attribute>();
+		Map<String, Attribute> attrs = new LinkedHashMap<String, Attribute>(); // need to be linked hashmap to keep the right order
 		ArrayList<String> ids = new ArrayList<String>();
 		while (data.srcCode.isValidIndex()) {
 			data.srcCode.removeSpace();
