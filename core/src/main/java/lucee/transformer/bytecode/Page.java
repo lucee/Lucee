@@ -1480,15 +1480,8 @@ public final class Page extends BodyBase implements Root {
 		extractFunctions(bc, body, funcs, pageType);
 		writeUDFProperties(bc, funcs, pageType);
 
-		writeTags(bc, extractProperties(body));
+		// writeTags(bc, extractProperties(body));
 
-		if (pageType == IFunction.PAGE_TYPE_COMPONENT) {
-			GeneratorAdapter adapter = bc.getAdapter();
-			adapter.loadArg(1);
-			adapter.loadArg(0);
-			adapter.visitVarInsn(Opcodes.ALOAD, 0);
-			adapter.invokeVirtual(Types.COMPONENT_IMPL, CHECK_INTERFACE);
-		}
 		if (pageType != IFunction.PAGE_TYPE_INTERFACE) {
 			int rtn = -1;
 			if (bc.returnValue()) {
@@ -1502,6 +1495,15 @@ public final class Page extends BodyBase implements Root {
 
 			if (rtn != -1) bc.getAdapter().loadLocal(rtn);
 			else ASMConstants.NULL(bc.getAdapter());
+		}
+
+		// checkInterface
+		if (pageType == IFunction.PAGE_TYPE_COMPONENT) {
+			GeneratorAdapter adapter = bc.getAdapter();
+			adapter.loadArg(1);
+			adapter.loadArg(0);
+			adapter.visitVarInsn(Opcodes.ALOAD, 0);
+			adapter.invokeVirtual(Types.COMPONENT_IMPL, CHECK_INTERFACE);
 		}
 	}
 
