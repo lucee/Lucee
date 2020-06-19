@@ -219,10 +219,6 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 		else req.setAttribute(name, value);
 	}
 
-	/*
-	 * public void setAttributes(Request request) { this._request=request; }
-	 */
-
 	@Override
 	public synchronized Object getAttribute(String name) {
 		if (disconnected) return disconnectData.attributes.get(name);
@@ -235,7 +231,6 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 			return new EnumerationWrapper(disconnectData.attributes.keySet().toArray());
 		}
 		return req.getAttributeNames();
-
 	}
 
 	@Override
@@ -280,7 +275,6 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 		PageContext pc = ThreadLocalPageContext.get();
 		FormImpl form = _form(pc);
 		URLImpl url = _url(pc);
-
 		return ScopeUtil.getParameterMap(new URLItem[][] { form.getRaw(), url.getRaw() }, new String[] { form.getEncoding(), url.getEncoding() });
 	}
 
@@ -325,7 +319,6 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 		pc = ThreadLocalPageContext.get(pc);
 		FormImpl form = _form(pc);
 		URLImpl url = _url(pc);
-
 		return ScopeUtil.getParameterValues(new URLItem[][] { form.getRaw(), url.getRaw() }, new String[] { form.getEncoding(), url.getEncoding() }, name);
 	}
 
