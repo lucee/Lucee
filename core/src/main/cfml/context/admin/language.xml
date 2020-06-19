@@ -1424,10 +1424,10 @@
 		<custom key="settings.dbconnlimitinf">- inf -</custom>
 		
 		<custom key="settings.dbidletimeout">Connection idle timeout (in minutes)</custom>
-		<custom key="settings.dbidletimeoutdesc">Define a time in minutes for how long a connection is kept alive when ideling before it will be closed</custom>
+		<custom key="settings.dbidletimeoutdesc">Define how long an idle connection will be kept alive, before being closed</custom>
 		
 		<custom key="settings.dblivetimeout">Connection timeout</custom>
-		<custom key="settings.dblivetimeoutdesc">Define the time for how long a connection is kept alive before it will be closed</custom>
+		<custom key="settings.dblivetimeoutdesc">Define how long a connection will be kept alive, before being closed</custom>
 
 
 		<custom key="settings.dbdatabase">Database</custom>
