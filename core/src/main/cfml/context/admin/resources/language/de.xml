@@ -1027,6 +1027,15 @@ When checked, any requested files will be inspected only once for potential upda
 	<data key="settings.dbValidate">Validate</data>
 	<data key="settings.dbValidateDesc">Validiert Verbindung bevor sie verwendet wird (funktioniert nur mit JDBC 4.0 Treibern)</data>
 	<data key="settings.dbconntimeoutdesc">Definiert wie lange eine stehende Verbindung aufrechterhalten wird, bevor Sie beendet wird.</data>
+
+
+	<data key="settings.dbidletimeout">Inaktivitäts Timeout (in Minuten)</data>
+	<data key="settings.dbidletimeoutdesc">Definiert wie lange eine stehende unverwendete Verbindung aufrechterhalten wird, bevor Sie beendet wird.</data>
+
+	<data key="settings.dblivetimeout">Verbindungs Timeout</data>
+	<data key="settings.dblivetimeoutdesc">Definiert wie lange eine stehende Verbindung aufrechterhalten wird, bevor Sie beendet wird.</data>
+
+
 	<data key="settings.dbportdesc">Der Port der Datenbank die angesprochen werden soll.</data>
 	<data key="settings.dbconnlimitdesc">Beschränkt die Anzahl Verbindungen die zur Datenbank aufgebaut werden.</data>
 	<data key="settings.listdatasourcesdescserver">Datenquellen welche hier erstellt wurden, stehen allen Webkontexten zur Verfügung, jedoch kann die Konfiguration der Datenquelle nur hier geändert werden.</data>

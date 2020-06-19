@@ -93,7 +93,7 @@ public final class DatasourceConnectionImpl implements DatasourceConnectionPro, 
 
 	@Override
 	public boolean isTimeout() {
-		int timeout = datasource.getConnectionTimeout();
+		int timeout = datasource.getIdleTimeout();
 		if (timeout <= 0) return false;
 		timeout *= 60000;
 		return (time + timeout) < System.currentTimeMillis();
@@ -101,12 +101,13 @@ public final class DatasourceConnectionImpl implements DatasourceConnectionPro, 
 
 	@Override
 	public boolean isLifecycleTimeout() {
-		int timeout = datasource.getConnectionTimeout() * 5;// fo3 the moment simply 5 times the idle timeout
+		int timeout = datasource.getLiveTimeout();
 		if (timeout <= 0) return false;
 		timeout *= 60000;
 		return (start + timeout) < System.currentTimeMillis();
 	}
 
+	@Override
 	public DatasourceConnection using() throws PageException {
 		time = System.currentTimeMillis();
 		if (datasource.isAlwaysResetConnections()) {

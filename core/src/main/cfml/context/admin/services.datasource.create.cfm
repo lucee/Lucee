@@ -65,6 +65,8 @@
 			
 			connectionLimit="#form.connectionLimit#"
 			connectionTimeout="#form.connectionTimeout#"
+			liveTimeout="#form.LiveTimeout?:''#"
+			
 			metaCacheTimeout="#form.metaCacheTimeout#"
 			blob="#getForm('blob',false)#"
 			clob="#getForm('clob',false)#"
@@ -162,6 +164,13 @@
 		<cfset datasource.password = driver.getValue('password')>
 		<cfset datasource.ConnectionLimit   = driver.getValue('ConnectionLimit')>
 		<cfset datasource.ConnectionTimeout = driver.getValue('ConnectionTimeout')>
+		<cftry>
+			<cfset lt=driver.getValue('LiveTimeout')>
+			<cfcatch>
+				<cfset lt=60>
+			</cfcatch>
+		</cftry>
+		<cfset datasource.LiveTimeout = lt>
 		<cfset datasource.blob     = driver.getValue('blob')>
 		<cfset datasource.clob     = driver.getValue('clob')>
 		
@@ -340,16 +349,39 @@
 						<div class="comment">#stText.Settings.dbConnLimitDesc#</div>
 					</td>
 				</tr>
-				<!--- Connection Timeout --->
+				<!--- Idle Timeout --->
 				<tr>
-					<th scope="row">#stText.Settings.dbConnTimeout#</th>
+					<th scope="row">#stText.Settings.dbIdleTimeout#</th>
 					<td>
 						<select name="ConnectionTimeout" class="select small">
-							<cfloop index="idx" from="0" to="20"><option  <cfif datasource.ConnectionTimeout EQ idx>selected</cfif>>#idx#</option></cfloop>
+							<cfloop index="idx" from="0" to="20"><option  <cfif datasource.ConnectionTimeout EQ idx>selected</cfif>><cfif idx==0>- inf -
+	
+<cfelse>#idx#</cfif></option></cfloop>
 						</select>
-						<!--- <cfinputClassic type="text" name="ConnectionTimeout" 
-						validate="integer" value="#datasource.ConnectionTimeout#" style="width:60px"> --->
-						<div class="comment">#stText.Settings.dbConnTimeoutDesc#</div>
+						<div class="comment">#stText.Settings.dbIdleTimeoutDesc#</div>
+					</td>
+				</tr>
+				<!--- Live Timeout --->
+				<tr>
+					<th scope="row">#stText.Settings.dbLiveTimeout#</th>
+					<td><cfset match=false>
+						<select name="LiveTimeout" class="select small">
+							
+							<option value="0" <cfif !isNumeric(datasource.LiveTimeout) or datasource.LiveTimeout LT 1><cfset match=true>selected</cfif>>- inf -</option>
+							<cfloop index="label" item="val" struct="#[
+								'1 min':1
+								,'5 min':5
+								,'15 min':15
+								,'30 min':30
+								,'1 hr':60
+								,'2 hr':120
+								,'5 hr':300
+								,'12 hr':720
+								,'1 day':1440
+							]#"><option value="#val#"  <cfif datasource.LiveTimeout EQ val><cfset match=true>selected</cfif>>#label#</option></cfloop>
+							<cfif not match><option selected>#datasource.LiveTimeout# min</option></cfif>
+						</select>
+						<div class="comment">#stText.Settings.dbLiveTimeoutDesc#</div>
 					</td>
 				</tr>
 				<!--- Request Exclusive --->
@@ -567,6 +599,7 @@ if(datasource.blob) optional.append('blob:#datasource.blob# // default: false');
 if(datasource.clob) optional.append('clob:#datasource.clob# // default: false');
 if(isNumeric(datasource.connectionLimit))optional.append('connectionLimit:#datasource.connectionLimit# // default:-1');
 if(datasource.connectionTimeout NEQ 1)optional.append('connectionTimeout:#datasource.connectionTimeout# // default: 1; unit: minutes');
+if(isNumeric(datasource.liveTimeout) && datasource.liveTimeout>0)optional.append('liveTimeout:#datasource.liveTimeout# // default: -1; unit: minutes');
 if(datasource.metaCacheTimeout NEQ 60000)optional.append(',metaCacheTimeout:#datasource.metaCacheTimeout# // default: 60000; unit: milliseconds');
 if(len(datasource.timezone))optional.append("timezone:'#replace(datasource.timezone,"'","''","all")#'");
 if(datasource.storage) optional.append('storage:#datasource.storage# // default: false');

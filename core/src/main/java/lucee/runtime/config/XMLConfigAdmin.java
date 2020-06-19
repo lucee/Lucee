@@ -1537,7 +1537,7 @@ public final class XMLConfigAdmin {
 	 * @throws PageException
 	 */
 	public void updateDataSource(String id, String name, String newName, ClassDefinition cd, String dsn, String username, String password, String host, String database, int port,
-			int connectionLimit, int connectionTimeout, long metaCacheTimeout, boolean blob, boolean clob, int allow, boolean validate, boolean storage, String timezone,
+			int connectionLimit, int idleTimeout, int liveTimeout, long metaCacheTimeout, boolean blob, boolean clob, int allow, boolean validate, boolean storage, String timezone,
 			Struct custom, String dbdriver, ParamSyntax paramSyntax, boolean literalTimestampWithTSOffset, boolean alwaysSetTimeout, boolean requestExclusive,
 			boolean alwaysResetConnections) throws PageException {
 
@@ -1593,7 +1593,8 @@ public final class XMLConfigAdmin {
 				el.setAttribute("database", database);
 				el.setAttribute("port", Caster.toString(port));
 				el.setAttribute("connectionLimit", Caster.toString(connectionLimit));
-				el.setAttribute("connectionTimeout", Caster.toString(connectionTimeout));
+				el.setAttribute("connectionTimeout", Caster.toString(idleTimeout));
+				el.setAttribute("liveTimeout", Caster.toString(liveTimeout));
 				el.setAttribute("metaCacheTimeout", Caster.toString(metaCacheTimeout));
 				el.setAttribute("blob", Caster.toString(blob));
 				el.setAttribute("clob", Caster.toString(clob));
@@ -1646,7 +1647,8 @@ public final class XMLConfigAdmin {
 		el.setAttribute("database", database);
 		if (port > -1) el.setAttribute("port", Caster.toString(port));
 		if (connectionLimit > -1) el.setAttribute("connectionLimit", Caster.toString(connectionLimit));
-		if (connectionTimeout > -1) el.setAttribute("connectionTimeout", Caster.toString(connectionTimeout));
+		if (idleTimeout > -1) el.setAttribute("connectionTimeout", Caster.toString(idleTimeout));
+		if (liveTimeout > -1) el.setAttribute("liveTimeout", Caster.toString(liveTimeout));
 		if (metaCacheTimeout > -1) el.setAttribute("metaCacheTimeout", Caster.toString(metaCacheTimeout));
 
 		el.setAttribute("blob", Caster.toString(blob));

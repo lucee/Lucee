@@ -360,6 +360,7 @@ public class GetApplicationSettings extends BIF {
 
 		if (source.getConnectionLimit() >= 0) s.setEL(AppListenerUtil.CONNECTION_LIMIT, Caster.toDouble(source.getConnectionLimit()));
 		if (source.getConnectionTimeout() != 1) s.setEL(AppListenerUtil.CONNECTION_TIMEOUT, Caster.toDouble(source.getConnectionTimeout()));
+
 		s.setEL(AppListenerUtil.CONNECTION_STRING, source.getDsnTranslated());
 		if (source.getMetaCacheTimeout() != 60000) s.setEL(AppListenerUtil.META_CACHE_TIMEOUT, Caster.toDouble(source.getMetaCacheTimeout()));
 		s.setEL(KeyConstants._username, source.getUsername());
@@ -376,6 +377,7 @@ public class GetApplicationSettings extends BIF {
 			if (dsp.isRequestExclusive()) s.setEL("alwaysResetConnections", dsp.isAlwaysResetConnections());
 			Object res = TagListener.toCFML(dsp.getListener(), null);
 			if (res != null) s.setEL("listener", res);
+			if (dsp.getLiveTimeout() != 1) s.setEL(AppListenerUtil.LIVE_TIMEOUT, Caster.toDouble(dsp.getLiveTimeout()));
 		}
 		if (source instanceof DataSourceImpl) {
 			DataSourceImpl di = ((DataSourceImpl) source);

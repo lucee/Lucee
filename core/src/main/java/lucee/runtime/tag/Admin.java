@@ -2620,7 +2620,9 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		String database = getString("database", "");
 		int port = getInt("port", -1);
 		int connLimit = getInt("connectionLimit", -1);
-		int connTimeout = getInt("connectionTimeout", -1);
+		int idleTimeout = getInt("connectionTimeout", -1);
+		if (idleTimeout == -1) idleTimeout = getInt("idleTimeout", -1);
+		int liveTimeout = getInt("liveTimeout", -1);
 		long metaCacheTimeout = getLong("metaCacheTimeout", 60000);
 		boolean blob = getBoolV("blob", false);
 		boolean clob = getBoolV("clob", false);
@@ -2633,8 +2635,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		// config.getDatasourceConnectionPool().remove(name);
 		DataSourcePro ds = null;
 		try {
-			ds = new DataSourceImpl(config, name, cd, host, dsn, database, port, username, password, null, connLimit, connTimeout, metaCacheTimeout, blob, clob, allow, custom,
-					false, validate, storage, null, dbdriver, ps, literalTimestampWithTSOffset, alwaysSetTimeout, requestExclusive, alwaysResetConnections,
+			ds = new DataSourceImpl(config, name, cd, host, dsn, database, port, username, password, null, connLimit, idleTimeout, liveTimeout, metaCacheTimeout, blob, clob, allow,
+					custom, false, validate, storage, null, dbdriver, ps, literalTimestampWithTSOffset, alwaysSetTimeout, requestExclusive, alwaysResetConnections,
 					config.getLog("application"));
 		}
 		catch (Exception e) {
@@ -2643,8 +2645,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 		if (verify) _doVerifyDatasource(ds, username, password);
 		// print.out("limit:"+connLimit);
-		admin.updateDataSource(id, name, newName, cd, dsn, username, password, host, database, port, connLimit, connTimeout, metaCacheTimeout, blob, clob, allow, validate, storage,
-				timezone, custom, dbdriver, ps, literalTimestampWithTSOffset, alwaysSetTimeout, requestExclusive, alwaysResetConnections);
+		admin.updateDataSource(id, name, newName, cd, dsn, username, password, host, database, port, connLimit, idleTimeout, liveTimeout, metaCacheTimeout, blob, clob, allow,
+				validate, storage, timezone, custom, dbdriver, ps, literalTimestampWithTSOffset, alwaysSetTimeout, requestExclusive, alwaysResetConnections);
 		store();
 		adminSync.broadcast(attributes, config);
 	}
@@ -3828,6 +3830,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 					DataSourcePro dp = ((DataSourcePro) d);
 					sct.setEL("requestExclusive", Boolean.valueOf(dp.isRequestExclusive()));
 					sct.setEL("alwaysResetConnections", Boolean.valueOf(dp.isAlwaysResetConnections()));
+					sct.setEL("liveTimeout", dp.getLiveTimeout() < 1 ? "" : Caster.toString(dp.getLiveTimeout()));
 				}
 
 				if (d instanceof DataSourceImpl) {

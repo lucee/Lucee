@@ -1152,6 +1152,15 @@ sct[""bracketNotation""] --> keyname: "bracketNotation"</data>
 	<data key="settings.dbValidateDesc">Validate the connection before use (only works with JDBC 4.0 Drivers)</data>
 	<data key="settings.dbconnlimit">Connection limit (max)</data>
 	<data key="settings.dbconntimeoutdesc">Define a time in minutes for how long a connection is kept alive before it will be closed</data>
+
+	<data key="settings.dbidletimeout">Connection idle timeout (in minutes)</data>
+		<data key="settings.dbidletimeoutdesc">Define a time in minutes for how long a connection is kept alive when ideling before it will be closed</data>
+		
+		<data key="settings.dblivetimeout">Connection timeout</data>
+		<data key="settings.dblivetimeoutdesc">Define the time for how long a connection is kept alive before it will be closed</data>
+
+
+
 	<data key="settings.dbportdesc">The port to connect the database</data>
 	<data key="settings.dbconnlimitdesc">Restricts the maximum number of simultaneous connections at one time</data>
 	<data key="settings.listdatasourcesdescserver">Datasources created here are available for ALL web contexts to use. The settings for these datasources can only be modified in this Server Administrator area.</data>

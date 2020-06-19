@@ -92,6 +92,8 @@ public final class AppListenerUtil {
 	public static final Collection.Key CLOB = KeyImpl.intern("clob");
 	public static final Collection.Key CONNECTION_LIMIT = KeyImpl.intern("connectionLimit");
 	public static final Collection.Key CONNECTION_TIMEOUT = KeyImpl.intern("connectionTimeout");
+	public static final Collection.Key IDLE_TIMEOUT = KeyImpl.intern("idleTimeout");
+	public static final Collection.Key LIVE_TIMEOUT = KeyImpl.intern("liveTimeout");
 	public static final Collection.Key META_CACHE_TIMEOUT = KeyImpl.intern("metaCacheTimeout");
 	public static final Collection.Key ALLOW = KeyImpl.intern("allow");
 	public static final Collection.Key DISABLE_UPDATE = KeyImpl.intern("disableUpdate");
@@ -208,9 +210,11 @@ public final class AppListenerUtil {
 					Caster.toString(data.get(KeyConstants._bundleVersion, null), null), ThreadLocalPageContext.getConfig().getIdentification());
 
 			try {
+				int idle = Caster.toIntValue(data.get(IDLE_TIMEOUT, null), -1);
+				if (idle == -1) idle = Caster.toIntValue(data.get(CONNECTION_TIMEOUT, null), 1);
 				return ApplicationDataSource.getInstance(config, name, cd, Caster.toString(oConnStr), user, pass, listener, Caster.toBooleanValue(data.get(BLOB, null), false),
-						Caster.toBooleanValue(data.get(CLOB, null), false), Caster.toIntValue(data.get(CONNECTION_LIMIT, null), -1),
-						Caster.toIntValue(data.get(CONNECTION_TIMEOUT, null), 1), Caster.toLongValue(data.get(META_CACHE_TIMEOUT, null), 60000L),
+						Caster.toBooleanValue(data.get(CLOB, null), false), Caster.toIntValue(data.get(CONNECTION_LIMIT, null), -1), idle,
+						Caster.toIntValue(data.get(LIVE_TIMEOUT, null), 1), Caster.toLongValue(data.get(META_CACHE_TIMEOUT, null), 60000L),
 						Caster.toTimeZone(data.get(KeyConstants._timezone, null), null), Caster.toIntValue(data.get(ALLOW, null), DataSource.ALLOW_ALL),
 						Caster.toBooleanValue(data.get(KeyConstants._storage, null), false), Caster.toBooleanValue(data.get(KeyConstants._readonly, null), false),
 						Caster.toBooleanValue(data.get(KeyConstants._validate, null), false), Caster.toBooleanValue(data.get("requestExclusive", null), false),
@@ -225,9 +229,13 @@ public final class AppListenerUtil {
 		DataSourceDefintion dbt = DBUtil.getDataSourceDefintionForType(config, type, null);
 		if (dbt == null) throw new ApplicationException("no datasource type [" + type + "] found");
 		try {
+
+			int idle = Caster.toIntValue(data.get(IDLE_TIMEOUT, null), -1);
+			if (idle == -1) idle = Caster.toIntValue(data.get(CONNECTION_TIMEOUT, null), 1);
+
 			return new DataSourceImpl(config, name, dbt.classDefinition, Caster.toString(data.get(KeyConstants._host)), dbt.connectionString,
 					Caster.toString(data.get(KeyConstants._database)), Caster.toIntValue(data.get(KeyConstants._port, null), -1), user, pass, listener,
-					Caster.toIntValue(data.get(CONNECTION_LIMIT, null), -1), Caster.toIntValue(data.get(CONNECTION_TIMEOUT, null), 1),
+					Caster.toIntValue(data.get(CONNECTION_LIMIT, null), -1), idle, Caster.toIntValue(data.get(LIVE_TIMEOUT, null), 1),
 					Caster.toLongValue(data.get(META_CACHE_TIMEOUT, null), 60000L), Caster.toBooleanValue(data.get(BLOB, null), false),
 					Caster.toBooleanValue(data.get(CLOB, null), false), DataSource.ALLOW_ALL, Caster.toStruct(data.get(KeyConstants._custom, null), null, false),
 					Caster.toBooleanValue(data.get(KeyConstants._readonly, null), false), true, Caster.toBooleanValue(data.get(KeyConstants._storage, null), false),

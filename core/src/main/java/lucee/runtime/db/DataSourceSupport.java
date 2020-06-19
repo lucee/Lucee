@@ -46,7 +46,8 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 	private final boolean blob;
 	private final boolean clob;
 	private final int connectionLimit;
-	private final int connectionTimeout;
+	private final int idleTimeout;
+	private final int liveTimeout;
 	private final long metaCacheTimeout;
 	private final TimeZone timezone;
 	private final String name;
@@ -67,14 +68,15 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 	private final boolean alwaysResetConnections;
 
 	public DataSourceSupport(Config config, String name, ClassDefinition cd, String username, String password, TagListener listener, boolean blob, boolean clob,
-			int connectionLimit, int connectionTimeout, long metaCacheTimeout, TimeZone timezone, int allow, boolean storage, boolean readOnly, boolean validate,
+			int connectionLimit, int idleTimeout, int liveTimeout, long metaCacheTimeout, TimeZone timezone, int allow, boolean storage, boolean readOnly, boolean validate,
 			boolean requestExclusive, boolean alwaysResetConnections, boolean literalTimestampWithTSOffset, Log log) {
 		this.name = name;
 		this.cd = cd;// _initializeCD(null, cd, config);
 		this.blob = blob;
 		this.clob = clob;
 		this.connectionLimit = connectionLimit;
-		this.connectionTimeout = connectionTimeout;
+		this.idleTimeout = idleTimeout;
+		this.liveTimeout = liveTimeout;
 		this.metaCacheTimeout = metaCacheTimeout;
 		this.timezone = timezone;
 		this.allow = allow;
@@ -182,7 +184,17 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 
 	@Override
 	public final int getConnectionTimeout() {
-		return connectionTimeout;
+		return idleTimeout;
+	}
+
+	@Override
+	public final int getIdleTimeout() {
+		return idleTimeout;
+	}
+
+	@Override
+	public final int getLiveTimeout() {
+		return liveTimeout;
 	}
 
 	@Override
@@ -289,10 +301,10 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 	public String id() {
 
 		return new StringBuilder(getConnectionStringTranslated()).append(':').append(getConnectionLimit()).append(':').append(getConnectionTimeout()).append(':')
-				.append(getMetaCacheTimeout()).append(':').append(getName().toLowerCase()).append(':').append(getUsername()).append(':').append(getPassword()).append(':')
-				.append(validate()).append(':').append(cd.toString()).append(':').append((getTimeZone() == null ? "null" : getTimeZone().getID())).append(':').append(isBlob())
-				.append(':').append(isClob()).append(':').append(isReadOnly()).append(':').append(isStorage()).append(':').append(isRequestExclusive()).append(':')
-				.append(isAlwaysResetConnections()).toString();
+				.append(getLiveTimeout()).append(':').append(getMetaCacheTimeout()).append(':').append(getName().toLowerCase()).append(':').append(getUsername()).append(':')
+				.append(getPassword()).append(':').append(validate()).append(':').append(cd.toString()).append(':').append((getTimeZone() == null ? "null" : getTimeZone().getID()))
+				.append(':').append(isBlob()).append(':').append(isClob()).append(':').append(isReadOnly()).append(':').append(isStorage()).append(':').append(isRequestExclusive())
+				.append(':').append(isAlwaysResetConnections()).toString();
 	}
 
 	@Override

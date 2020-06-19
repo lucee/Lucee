@@ -1946,7 +1946,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			// Default query of query DB
 			try {
 				setDatasource(config, datasources, QOQ_DATASOURCE_NAME, new ClassDefinitionImpl("org.hsqldb.jdbcDriver", "hsqldb", "1.8.0", config.getIdentification()),
-						"hypersonic-hsqldb", "", -1, "jdbc:hsqldb:.", "sa", "", null, DEFAULT_MAX_CONNECTION, -1, 60000, true, true, DataSource.ALLOW_ALL, false, false, null,
+						"hypersonic-hsqldb", "", -1, "jdbc:hsqldb:.", "sa", "", null, DEFAULT_MAX_CONNECTION, -1, -1, 60000, true, true, DataSource.ALLOW_ALL, false, false, null,
 						new StructImpl(), "", ParamSyntax.DEFAULT, false, false, false, false);
 			}
 			catch (Exception e) {
@@ -2009,11 +2009,15 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 						// still no bundle!
 						if (!cd.isBundle()) cd = patchJDBCClass(config, cd);
+						int idle = Caster.toIntValue(getAttr(dataSource, "idleTimeout"), -1);
+						if (idle == -1) idle = Caster.toIntValue(getAttr(dataSource, "connectionTimeout"), -1);
+						int defLive = 60;
+						if (idle > 0) defLive = idle * 5;// for backward compatibility
 
 						setDatasource(config, datasources, getAttr(dataSource, "name"), cd, getAttr(dataSource, "host"), getAttr(dataSource, "database"),
 								Caster.toIntValue(getAttr(dataSource, "port"), -1), getAttr(dataSource, "dsn"), getAttr(dataSource, "username"),
 								ConfigWebUtil.decrypt(getAttr(dataSource, "password")), null, Caster.toIntValue(getAttr(dataSource, "connectionLimit"), DEFAULT_MAX_CONNECTION),
-								Caster.toIntValue(getAttr(dataSource, "connectionTimeout"), -1), Caster.toLongValue(getAttr(dataSource, "metaCacheTimeout"), 60000),
+								idle, Caster.toIntValue(getAttr(dataSource, "liveTimeout"), defLive), Caster.toLongValue(getAttr(dataSource, "metaCacheTimeout"), 60000),
 								toBoolean(getAttr(dataSource, "blob"), true), toBoolean(getAttr(dataSource, "clob"), true),
 								Caster.toIntValue(getAttr(dataSource, "allow"), DataSource.ALLOW_ALL), toBoolean(getAttr(dataSource, "validate"), false),
 								toBoolean(getAttr(dataSource, "storage"), false), getAttr(dataSource, "timezone"), toStruct(getAttr(dataSource, "custom")),
@@ -2439,27 +2443,16 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	}
 
 	private static void setDatasource(ConfigImpl config, Map<String, DataSource> datasources, String datasourceName, ClassDefinition cd, String server, String databasename,
-			int port, String dsn, String user, String pass, TagListener listener, int connectionLimit, int connectionTimeout, long metaCacheTimeout, boolean blob, boolean clob,
-			int allow, boolean validate, boolean storage, String timezone, Struct custom, String dbdriver, ParamSyntax ps, boolean literalTimestampWithTSOffset,
+			int port, String dsn, String user, String pass, TagListener listener, int connectionLimit, int idleTimeout, int liveTimeout, long metaCacheTimeout, boolean blob,
+			boolean clob, int allow, boolean validate, boolean storage, String timezone, Struct custom, String dbdriver, ParamSyntax ps, boolean literalTimestampWithTSOffset,
 			boolean alwaysSetTimeout, boolean requestExclusive, boolean alwaysResetConnections) throws BundleException, ClassException, SQLException {
 
 		datasources.put(datasourceName.toLowerCase(),
-				new DataSourceImpl(config, datasourceName, cd, server, dsn, databasename, port, user, pass, listener, connectionLimit, connectionTimeout, metaCacheTimeout, blob,
-						clob, allow, custom, false, validate, storage, StringUtil.isEmpty(timezone, true) ? null : TimeZoneUtil.toTimeZone(timezone, null), dbdriver, ps,
+				new DataSourceImpl(config, datasourceName, cd, server, dsn, databasename, port, user, pass, listener, connectionLimit, idleTimeout, liveTimeout, metaCacheTimeout,
+						blob, clob, allow, custom, false, validate, storage, StringUtil.isEmpty(timezone, true) ? null : TimeZoneUtil.toTimeZone(timezone, null), dbdriver, ps,
 						literalTimestampWithTSOffset, alwaysSetTimeout, requestExclusive, alwaysResetConnections, config.getLog("application")));
 
 	}
-
-	/*
-	 * private static void setDatasourceEL(ConfigImpl config, Map<String, DataSource> datasources,
-	 * String datasourceName, ClassDefinition cd, String server, String databasename, int port, String
-	 * dsn, String user, String pass, int connectionLimit, int connectionTimeout, long metaCacheTimeout,
-	 * boolean blob, boolean clob, int allow, boolean validate, boolean storage, String timezone, Struct
-	 * custom, String dbdriver) { try { setDatasource(config, datasources, datasourceName, cd, server,
-	 * databasename, port, dsn, user, pass, connectionLimit, connectionTimeout, metaCacheTimeout, blob,
-	 * clob, allow, validate, storage, timezone, custom, dbdriver); } catch(Throwable t)
-	 * {ExceptionUtil.rethrowIfNecessary(t);} }
-	 */
 
 	/**
 	 * @param configServer
