@@ -625,6 +625,9 @@ public final class PageContextImpl extends PageContext {
 		currentTag = null;
 
 		// Req/Rsp
+		if (req instanceof HTTPServletRequestWrap) {
+			req.close();
+		}
 		req = null;
 		rsp = null;
 		servlet = null;
