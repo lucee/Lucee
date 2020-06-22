@@ -77,7 +77,7 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 	private static final URLItem[] empty = new URLItem[0];
 	// private static final ResourceFilter FILTER = new ExtensionResourceFilter(".upload",false);
 	private URLItem[] raw = empty;
-	private static int count = 1;
+	private static long count = 1;
 
 	private static final int HEADER_TYPE_UNKNOWN = -1;
 	private static final int HEADER_TEXT_PLAIN = 0;
@@ -229,8 +229,10 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 		}
 	}
 
-	private static String getFileName() {
-		return "tmp-" + (count++) + ".upload";
+	public static synchronized String getFileName() {
+		count++;
+		if (count < 0) count = 1;
+		return "tmp-" + Long.toString(count, Character.MAX_RADIX) + ".upload";
 	}
 
 	/*

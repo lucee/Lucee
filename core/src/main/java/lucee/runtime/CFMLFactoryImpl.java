@@ -118,7 +118,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 	public javax.servlet.jsp.PageContext getPageContext(Servlet servlet, ServletRequest req, ServletResponse rsp, String errorPageURL, boolean needsSession, int bufferSize,
 			boolean autoflush) {
 		return getPageContextImpl((HttpServlet) servlet, (HttpServletRequest) req, (HttpServletResponse) rsp, errorPageURL, needsSession, bufferSize, autoflush, true, false, -1,
-				true, false, false);
+				true, false, false, null);
 	}
 
 	@Override
@@ -126,18 +126,20 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 	public PageContext getLuceePageContext(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp, String errorPageURL, boolean needsSession, int bufferSize,
 			boolean autoflush) {
 		// runningCount++;
-		return getPageContextImpl(servlet, req, rsp, errorPageURL, needsSession, bufferSize, autoflush, true, false, -1, true, false, false);
+		return getPageContextImpl(servlet, req, rsp, errorPageURL, needsSession, bufferSize, autoflush, true, false, -1, true, false, false, null);
 	}
 
 	@Override
 	public PageContext getLuceePageContext(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp, String errorPageURL, boolean needsSession, int bufferSize,
 			boolean autoflush, boolean register, long timeout, boolean register2RunningThreads, boolean ignoreScopes) {
 		// runningCount++;
-		return getPageContextImpl(servlet, req, rsp, errorPageURL, needsSession, bufferSize, autoflush, register, false, timeout, register2RunningThreads, ignoreScopes, false);
+		return getPageContextImpl(servlet, req, rsp, errorPageURL, needsSession, bufferSize, autoflush, register, false, timeout, register2RunningThreads, ignoreScopes, false,
+				null);
 	}
 
 	public PageContextImpl getPageContextImpl(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp, String errorPageURL, boolean needsSession, int bufferSize,
-			boolean autoflush, boolean register2Thread, boolean isChild, long timeout, boolean register2RunningThreads, boolean ignoreScopes, boolean createNew) {
+			boolean autoflush, boolean register2Thread, boolean isChild, long timeout, boolean register2RunningThreads, boolean ignoreScopes, boolean createNew,
+			PageContextImpl tmplPC) {
 		PageContextImpl pc;
 
 		if (createNew || pcs.isEmpty()) {
@@ -162,7 +164,8 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		this._servlet = servlet;
 		if (register2Thread) ThreadLocalPageContext.register(pc);
 
-		pc.initialize(servlet, req, rsp, errorPageURL, needsSession, bufferSize, autoflush, isChild, ignoreScopes);
+		pc.initialize(servlet, req, rsp, errorPageURL, needsSession, bufferSize, autoflush, isChild, ignoreScopes, tmplPC);
+
 		return pc;
 	}
 

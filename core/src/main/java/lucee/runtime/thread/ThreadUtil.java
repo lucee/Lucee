@@ -54,8 +54,8 @@ public class ThreadUtil {
 		// copy state
 		PageContextImpl pci = (PageContextImpl) pc;
 		PageContextImpl dest = factory.getPageContextImpl(factory.getServlet(), req, rsp, null, false, -1, false, register2Thread, true, pc.getRequestTimeout(),
-				register2RunningThreads, false, false);
-		pci.copyStateTo(dest);
+				register2RunningThreads, false, false, pci);
+		// pci.copyStateTo(dest);
 		return dest;
 	}
 
