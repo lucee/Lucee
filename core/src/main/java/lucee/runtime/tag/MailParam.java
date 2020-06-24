@@ -154,7 +154,7 @@ public final class MailParam extends TagImpl {
 		disposition = disposition.trim().toLowerCase();
 		if (disposition.equals("attachment")) this.disposition = EmailAttachment.ATTACHMENT;
 		else if (disposition.equals("inline")) this.disposition = EmailAttachment.INLINE;
-		else throw new ApplicationException("disposition must have one of the following values (attachment,inline)");
+		else throw new ApplicationException("Disposition must have one of the following values (attachment,inline)");
 
 	}
 

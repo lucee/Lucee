@@ -277,6 +277,7 @@ public final class Mail extends BodyTagImpl {
 	 * @throws ApplicationException
 	 **/
 	public void setType(String type) throws ApplicationException {
+		if(type.trim().isEmpty()) type = "text/plain";
 		type = type.toLowerCase().trim();
 		if (type.equals("text/plain") || type.equals("plain") || type.equals("text")) getPart().isHTML(false);
 		// mail.setType(lucee.runtime.mail.Mail.TYPE_TEXT);
