@@ -714,6 +714,8 @@ you can see the log result at the end of every request, if a debug template is d
 	<data key="debug.memorylogger">Memory logger</data>
 	<data key="debug.settings.queryUsage">Query Usage</data>
 	<data key="debug.settings.queryUsageDesc">Select this option to log the query usage information.</data>
+	<data key="debug.settings.template">Template</data>
+	<data key="debug.settings.templateDesc">Select this option log template activity for all cfm and cfc templates.</data>
 	<data key="debug.settings.database">Database Activity</data>
 	<data key="debug.settings.databaseDesc">Select this option to log the database activity for the SQL Query events and Stored Procedure events.</data>
 	<data key="debug.settings.exception"> Exceptions </data>

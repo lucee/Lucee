@@ -3221,8 +3221,8 @@ public final class XMLConfigAdmin {
 	 * @param debug if value is null server setting is used
 	 * @throws SecurityException
 	 */
-	public void updateDebug(Boolean debug, Boolean database, Boolean exception, Boolean tracing, Boolean dump, Boolean timer, Boolean implicitAccess, Boolean queryUsage)
-			throws SecurityException {
+	public void updateDebug(Boolean debug, Boolean template, Boolean database, Boolean exception, Boolean tracing, Boolean dump, Boolean timer, Boolean implicitAccess,
+			Boolean queryUsage) throws SecurityException {
 		checkWriteAccess();
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_DEBUGGING);
 		if (!hasAccess) throw new SecurityException("no access to change debugging settings");
@@ -3233,6 +3233,9 @@ public final class XMLConfigAdmin {
 
 		if (database != null) debugging.setAttribute("database", Caster.toString(database.booleanValue()));
 		else debugging.removeAttribute("database");
+
+		if (template != null) debugging.setAttribute("templenabled", Caster.toString(template.booleanValue()));
+		else debugging.removeAttribute("templenabled");
 
 		if (exception != null) debugging.setAttribute("exception", Caster.toString(exception.booleanValue()));
 		else debugging.removeAttribute("exception");

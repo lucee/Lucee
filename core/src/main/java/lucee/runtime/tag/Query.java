@@ -711,12 +711,15 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 			}
 
 			if (pageContext.getConfig().debug() && data.debug) {
+				DebuggerImpl di = (DebuggerImpl) pageContext.getDebugger();
 				boolean logdb = ((ConfigImpl) pageContext.getConfig()).hasDebugOptions(ConfigImpl.DEBUG_DATABASE);
 				if (logdb) {
 					boolean debugUsage = DebuggerImpl.debugQueryUsage(pageContext, queryResult);
-					DebuggerImpl di = (DebuggerImpl) pageContext.getDebugger();
 					di.addQuery(debugUsage ? queryResult : null, data.datasource != null ? data.datasource.getName() : null, data.name, sqlQuery, queryResult.getRecordcount(), tl,
 							exe);
+				}
+				else {
+					di.addQuery(exe);
 				}
 			}
 			boolean setResult = false;

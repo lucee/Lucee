@@ -103,21 +103,47 @@
 
 		<cfset var time=getTickCount() />
 		<cfset var _cgi=structKeyExists(arguments.debugging,'cgi')?arguments.debugging.cgi:cgi />
-		<cfset var pages=arguments.debugging.pages />
-		<cfset var queries=arguments.debugging.queries />
-		<cfif not isDefined('arguments.debugging.timers')>
-			<cfset arguments.debugging.timers=queryNew('label,time,template') />
-		</cfif>
-		<cfif not isDefined('arguments.debugging.traces')>
-			<cfset arguments.debugging.traces=queryNew('type,category,text,template,line,var,total,trace') />
-		</cfif>
-		<cfif not isDefined('arguments.debugging.dumps')>
-			<cfset arguments.debugging.traces=queryNew('output,template,line') />
-		</cfif>
-		<cfset var timers=arguments.debugging.timers />
-		<cfset var traces=arguments.debugging.traces />
-		<cfset var dumps=arguments.debugging.dumps />
+		<cfscript>
+			if(isNull(arguments.debugging.pages)) 
+				local.pages=queryNew('id,count,min,max,avg,app,load,query,total,src');
+			else local.pages=arguments.debugging.pages;
 
+			var hasQueries=!isNull(arguments.debugging.queries);
+			if(!hasQueries) 
+				local.queries=queryNew('name,time,sql,src,line,count,datasource,usage,cacheTypes');
+			else local.queries=arguments.debugging.queries;
+
+			if(isNull(arguments.debugging.exceptions)) 
+				local.exceptions=[];
+			else local.exceptions=arguments.debugging.exceptions;
+
+			if(isNull(arguments.debugging.timers)) 
+				local.timers=queryNew('label,time,template');
+			else local.timers=arguments.debugging.timers;
+
+			if(isNull(arguments.debugging.traces)) 
+				local.traces=queryNew('type,category,text,template,line,var,total,trace');
+			else local.traces=arguments.debugging.traces;
+
+			if(isNull(arguments.debugging.dumps)) 
+				local.dumps=queryNew('output,template,line');
+			else local.dumps=arguments.debugging.dumps;
+
+			if(isNull(arguments.debugging.implicitAccess)) 
+				local.implicitAccess=queryNew('template,line,scope,count,name');
+			else local.implicitAccess=arguments.debugging.implicitAccess;
+
+			if(isNull(arguments.debugging.dumps)) 
+				local.dumps=queryNew('output,template,line');
+			else local.dumps=arguments.debugging.dumps;
+
+			local.times=arguments.debugging.times;
+		</cfscript>
+
+
+
+
+		
 		<cfset this.allSections = this.buildSectionStruct()>
 		<cfset var isExecOrder  = this.isSectionOpen( "ExecOrder" )>
 
@@ -129,7 +155,6 @@
 			<cfset querySort(pages,"avg","desc") />
 		</cfif>
 
-		<cfset var implicitAccess=arguments.debugging.implicitAccess />
 		<cfset querySort(implicitAccess,"template,line,count","asc,asc,desc") />
 		<cfparam name="arguments.custom.unit" default="millisecond">
 		<cfparam name="arguments.custom.color" default="black">
@@ -309,26 +334,35 @@
 						<cfset local.bad=pages.avg GTE arguments.custom.highlight*1000>
 						<cfset loa=loa+pages.load />
 					</cfloop>
+					<cfif !hasQueries>
+						<cfset q=arguments.debugging.times.query>
+					</cfif>
+					<cfif pages.recordcount EQ 0>
+						<cfset tot=arguments.debugging.times.total>
+						<cfset q=arguments.debugging.times.query>
+						<cfset loa=0>
+					</cfif>
 
 					<table>
 						<cfset renderSectionHeadTR( sectionId
-							, "#unitFormat( arguments.custom.unit, tot-q-loa, prettify )# ms
-								&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Application" )>
+							, "#unitFormat( arguments.custom.unit, tot, prettify )# ms
+								&nbsp;&nbsp;&nbsp; Total" )>
 
-						<tr><td><table>
+						<tr><td <cfif !pages.recordcount>  id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#"</cfif>><table>
 							<tr>
 								<td class="pad txt-r">#unitFormat( arguments.custom.unit, loa,prettify )# ms</td>
 								<td class="pad">Startup/Compilation</td>
 							</tr>
 							<tr>
+								<td class="pad txt-r bold">#unitFormat( arguments.custom.unit, tot-q-loa, prettify )# ms</td>
+								<td class="pad bold">Application</td>
+							</tr>
+							<tr>
 								<td class="pad txt-r">#unitFormat( arguments.custom.unit, q,prettify )# ms</td>
 								<td class="pad">Query</td>
 							</tr>
-							<tr>
-								<td class="pad txt-r bold">#unitFormat( arguments.custom.unit, tot, prettify )# ms</td>
-								<td class="pad bold">Total</td>
-							</tr>
 						</table></td></tr>
+						<cfif pages.recordcount>
 						<tr>
 							<td id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
 								<table class="details">
@@ -367,7 +401,7 @@
 									</cfif>
 								</table>
 							</td><!--- #-lucee-debug-#sectionId# !--->
-						</tr>
+						</tr></cfif>
 					</table>
 
 
@@ -375,7 +409,7 @@
 
 
 					<!--- Exceptions --->
-					<cfif structKeyExists( arguments.debugging, "exceptions" ) && arrayLen( arguments.debugging.exceptions )>
+					<cfif structKeyExists( arguments.debugging, "exceptions" ) && arrayLen( exceptions )>
 
 						<cfset sectionId = "Exceptions">
 						<cfset isOpen = this.isSectionOpen( sectionId )>
@@ -383,7 +417,7 @@
 						<div class="section-title">Caught Exceptions</div>
 						<table>
 
-							<cfset renderSectionHeadTR( sectionId, "#arrayLen(arguments.debugging.exceptions)# Exception#arrayLen( arguments.debugging.exceptions ) GT 1 ? 's' : ''# Caught" )>
+							<cfset renderSectionHeadTR( sectionId, "#arrayLen(exceptions)# Exception#arrayLen( exceptions ) GT 1 ? 's' : ''# Caught" )>
 
 							<tr>
 								<td id="-lucee-debug-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
@@ -396,7 +430,7 @@
 											<th>Template</th>
 											<th>Line</th>
 										</tr>
-										<cfloop array="#arguments.debugging.exceptions#" index="local.exp">
+										<cfloop array="#exceptions#" index="local.exp">
 											<tr>
 												<td>#exp.type#</td>
 												<td>#exp.message#</td>

@@ -4213,6 +4213,14 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			}
 			else if (hasCS && configServer.hasDebugOptions(ConfigImpl.DEBUG_EXCEPTION)) options += ConfigImpl.DEBUG_EXCEPTION;
 
+			str = getAttr(debugging, "templenabled");
+			if (hasAccess && !StringUtil.isEmpty(str)) {
+				if (toBoolean(str, false)) options += ConfigImpl.DEBUG_TEMPLATE;
+			}
+			else if (hasCS && configServer.hasDebugOptions(ConfigImpl.DEBUG_TEMPLATE)) options += ConfigImpl.DEBUG_TEMPLATE;
+			// default is true
+			else options += ConfigImpl.DEBUG_TEMPLATE;
+
 			str = getAttr(debugging, "dump");
 			if (hasAccess && !StringUtil.isEmpty(str)) {
 				if (toBoolean(str, false)) options += ConfigImpl.DEBUG_DUMP;

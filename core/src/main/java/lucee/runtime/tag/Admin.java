@@ -1413,6 +1413,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		sct.set(DEBUG, Caster.toBoolean(config.debug()));
 		sct.set(KeyConstants._database, Caster.toBoolean(config.hasDebugOptions(ConfigImpl.DEBUG_DATABASE)));
 		sct.set(KeyConstants._exception, Caster.toBoolean(config.hasDebugOptions(ConfigImpl.DEBUG_EXCEPTION)));
+		sct.set(KeyConstants._template, Caster.toBoolean(config.hasDebugOptions(ConfigImpl.DEBUG_TEMPLATE)));
 		sct.set("tracing", Caster.toBoolean(config.hasDebugOptions(ConfigImpl.DEBUG_TRACING)));
 		sct.set("dump", Caster.toBoolean(config.hasDebugOptions(ConfigImpl.DEBUG_DUMP)));
 		sct.set("timer", Caster.toBoolean(config.hasDebugOptions(ConfigImpl.DEBUG_TIMER)));
@@ -1701,10 +1702,9 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	 * 
 	 */
 	private void doUpdateDebug() throws PageException {
-
-		admin.updateDebug(Caster.toBoolean(getString("debug", ""), null), Caster.toBoolean(getString("database", ""), null), Caster.toBoolean(getString("exception", ""), null),
-				Caster.toBoolean(getString("tracing", ""), null), Caster.toBoolean(getString("dump", ""), null), Caster.toBoolean(getString("timer", ""), null),
-				Caster.toBoolean(getString("implicitAccess", ""), null), Caster.toBoolean(getString("queryUsage", ""), null));
+		admin.updateDebug(Caster.toBoolean(getString("debug", ""), null), Caster.toBoolean(getString("template", ""), null), Caster.toBoolean(getString("database", ""), null),
+				Caster.toBoolean(getString("exception", ""), null), Caster.toBoolean(getString("tracing", ""), null), Caster.toBoolean(getString("dump", ""), null),
+				Caster.toBoolean(getString("timer", ""), null), Caster.toBoolean(getString("implicitAccess", ""), null), Caster.toBoolean(getString("queryUsage", ""), null));
 
 		admin.updateDebugTemplate(getString("admin", action, "debugTemplate"));
 		store();

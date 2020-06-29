@@ -318,6 +318,8 @@ public final class PageContextImpl extends PageContext {
 	private Tag currentTag = null;
 	private Thread thread;
 	private long startTime;
+	private long startTimeNS;
+	private long endTimeNS;
 
 	private DatasourceManagerImpl manager;
 	private CFThread threads;
@@ -445,6 +447,8 @@ public final class PageContextImpl extends PageContext {
 		setFullNullSupport();
 
 		startTime = System.currentTimeMillis();
+		startTimeNS = System.nanoTime();
+		endTimeNS = 0;
 		thread = Thread.currentThread();
 
 		if (req instanceof HTTPServletRequestWrap) this.req = (HTTPServletRequestWrap) req;
@@ -967,7 +971,7 @@ public final class PageContextImpl extends PageContext {
 
 	private void _doInclude(PageSource[] sources, boolean runOnce) throws PageException {
 		// debug
-		if (!gatewayContext && config.debug()) {
+		if (!gatewayContext && config.debug() && config.hasDebugOptions(ConfigImpl.DEBUG_TEMPLATE)) {
 			long currTime = executionTime;
 			long exeTime = 0;
 			long time = System.nanoTime();
@@ -2442,6 +2446,7 @@ public final class PageContextImpl extends PageContext {
 			}
 		}
 		finally {
+			endTimeNS = System.nanoTime();
 			if (enablecfoutputonly > 0) {
 				setCFOutputOnly((short) 0);
 			}
@@ -3117,6 +3122,14 @@ public final class PageContextImpl extends PageContext {
 	@Override
 	public long getStartTime() {
 		return startTime;
+	}
+
+	public long getStartTimeNS() {
+		return startTimeNS;
+	}
+
+	public long getEndTimeNS() {
+		return endTimeNS;
 	}
 
 	@Override

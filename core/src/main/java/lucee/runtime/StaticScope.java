@@ -26,6 +26,7 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.component.DataMember;
 import lucee.runtime.component.Member;
 import lucee.runtime.component.StaticStruct;
+import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.debug.DebugEntryTemplate;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
@@ -342,7 +343,7 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 		// INFO duplicate code is for faster execution -> less contions
 
 		// debug yes
-		if (pc.getConfig().debug()) {
+		if (pc.getConfig().debug() && ((ConfigImpl) pc.getConfig()).hasDebugOptions(ConfigImpl.DEBUG_TEMPLATE)) {
 			DebugEntryTemplate debugEntry = pc.getDebugger().getEntry(pc, cp.getPageSource(), udf.getFunctionName());// new DebugEntry(src,udf.getFunctionName());
 			long currTime = pc.getExecutionTime();
 			long time = System.nanoTime();

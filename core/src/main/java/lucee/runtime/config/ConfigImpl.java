@@ -175,6 +175,7 @@ public abstract class ConfigImpl implements Config {
 	public static final int DEBUG_IMPLICIT_ACCESS = 16;
 	public static final int DEBUG_QUERY_USAGE = 32;
 	public static final int DEBUG_DUMP = 64;
+	public static final int DEBUG_TEMPLATE = 128;
 
 	private static final Extension[] EXTENSIONS_EMPTY = new Extension[0];
 	private static final RHExtension[] RHEXTENSIONS_EMPTY = new RHExtension[0];
