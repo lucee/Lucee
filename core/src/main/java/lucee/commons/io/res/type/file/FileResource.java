@@ -79,39 +79,45 @@ public final class FileResource extends File implements Resource {
 
 	@Override
 	public void copyFrom(Resource res, boolean append) throws IOException {
-		if (res instanceof File && (!append || !this.isFile())) {
-			Files.copy(((File) res).toPath(), this.toPath(), COPY_OPTIONS);
-			return;
+		try {
+			if (res instanceof File && (!append || !this.isFile())) {
+				Files.copy(((File) res).toPath(), this.toPath(), COPY_OPTIONS);
+				return;
+			}
 		}
+		catch (Exception exception) {
+			IOUtil.copy(res, this.getOutputStream(append), true);
 
-		IOUtil.copy(res, this.getOutputStream(append), true);
+			// executable?
+			boolean e = res instanceof File && ((File) res).canExecute();
+			boolean w = res.canWrite();
+			boolean r = res.canRead();
 
-		// executable?
-		boolean e = res instanceof File && ((File) res).canExecute();
-		boolean w = res.canWrite();
-		boolean r = res.canRead();
-
-		if (e) this.setExecutable(true);
-		if (w != this.canWrite()) this.setWritable(w);
-		if (r != this.canRead()) this.setReadable(r);
+			if (e) this.setExecutable(true);
+			if (w != this.canWrite()) this.setWritable(w);
+			if (r != this.canRead()) this.setReadable(r);
+		}
 	}
 
 	@Override
 	public void copyTo(Resource res, boolean append) throws IOException {
-		if (res instanceof File && (!append || !res.isFile())) {
-			Files.copy(this.toPath(), ((File) res).toPath(), COPY_OPTIONS);
-			return;
+		try {
+			if (res instanceof File && (!append || !res.isFile())) {
+				Files.copy(this.toPath(), ((File) res).toPath(), COPY_OPTIONS);
+				return;
+			}
 		}
+		catch (Exception exception) {
+			IOUtil.copy(this, res.getOutputStream(append), true);
 
-		IOUtil.copy(this, res.getOutputStream(append), true);
+			boolean e = canExecute();
+			boolean w = canWrite();
+			boolean r = canRead();
 
-		boolean e = canExecute();
-		boolean w = canWrite();
-		boolean r = canRead();
-
-		if (e && res instanceof File) ((File) res).setExecutable(true);
-		if (w != res.canWrite()) res.setWritable(w);
-		if (r != res.canRead()) res.setReadable(r);
+			if (e && res instanceof File) ((File) res).setExecutable(true);
+			if (w != res.canWrite()) res.setWritable(w);
+			if (r != res.canRead()) res.setReadable(r);
+		}
 	}
 
 	@Override
@@ -201,7 +207,8 @@ public final class FileResource extends File implements Resource {
 		if (dest instanceof File) {
 			provider.lock(this);
 			try {
-				if (dest.exists() && !dest.delete()) throw new IOException("Can't move file [" + this.getAbsolutePath() + "] cannot remove existing file [" + dest.getAbsolutePath() + "]");
+				if (dest.exists() && !dest.delete())
+					throw new IOException("Can't move file [" + this.getAbsolutePath() + "] cannot remove existing file [" + dest.getAbsolutePath() + "]");
 
 				done = super.renameTo((File) dest);
 				/*
@@ -357,7 +364,8 @@ public final class FileResource extends File implements Resource {
 			moveTo(dest);
 			return true;
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 		return false;
 	}
 
@@ -385,7 +393,8 @@ public final class FileResource extends File implements Resource {
 				return ModeUtil.toOctalMode(line);
 
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 
 		}
 		int mode = SystemUtil.isWindows() && exists() ? 0111 : 0;
@@ -536,7 +545,8 @@ public final class FileResource extends File implements Resource {
 		try {
 			provider.read(this);
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 
 		return super.exists();
 	}
