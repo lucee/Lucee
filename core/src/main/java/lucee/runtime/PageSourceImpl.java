@@ -339,12 +339,8 @@ public final class PageSourceImpl implements PageSource {
 			boolean isNew = false;
 			// new class
 			if (flush || !classFile.exists()) {
-				if (!flush || !classFile.exists()) {
-					LogUtil.log(config, Log.LEVEL_DEBUG, "compile", "compile [" + getDisplayPath() + "] no previous class file ");
-				}
-				else {
-					LogUtil.log(config, Log.LEVEL_DEBUG, "compile", "compile [" + getDisplayPath() + "] because flush");
-				}
+				LogUtil.log(config, Log.LEVEL_DEBUG, "compile", "compile [" + getDisplayPath() + "] no previous class file or flush");
+
 				pcn.set(page = compile(config, classRootDir, null, false, pc.ignoreScopes()));
 				flush = false;
 				isNew = true;
@@ -352,11 +348,6 @@ public final class PageSourceImpl implements PageSource {
 			// load page
 			else {
 				try {
-					/*
-					 * if (InstrumentationFactory.getInstrumentation(config) != null) { LogUtil.log(config,
-					 * Log.LEVEL_INFO, "compile", "load class from classloader  [" + getDisplayPath() + "]");
-					 * pcn.set(page = newInstance(mapping.getPhysicalClass(this.getClassName()))); } else {
-					 */
 					String cn = pcn.className;
 					if (cn != null) {
 						LogUtil.log(config, Log.LEVEL_DEBUG, "compile", "load class from ClassLoader  [" + getDisplayPath() + "]");
@@ -364,12 +355,17 @@ public final class PageSourceImpl implements PageSource {
 					}
 					else {
 						LogUtil.log(config, Log.LEVEL_DEBUG, "compile", "load class from binary  [" + getDisplayPath() + "]");
-						pcn.set(page = newInstance(mapping.getPhysicalClass(this.getClassName(), IOUtil.toBytes(classFile))));
+						byte[] bytes = IOUtil.toBytes(classFile);
+						if (bytes.length > 0) pcn.set(page = newInstance(mapping.getPhysicalClass(this.getClassName(), bytes)));
 					}
-					// }
 				}
 				catch (Exception e) {
 					LogUtil.log(config, "compile", e);
+					pcn.reset();
+				}
+				catch (ClassFormatError cfe) {
+					LogUtil.log(config, Log.LEVEL_ERROR, "compile", "size of the class file:" + classFile.length());
+					LogUtil.log(config, "compile", cfe);
 					pcn.reset();
 				}
 				if (page == null) {
