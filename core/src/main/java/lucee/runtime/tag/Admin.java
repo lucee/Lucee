@@ -845,7 +845,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		else if (check("heapDump", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doHeapDump();
 		else if (check("securitymanager", ACCESS_FREE) && check2(ACCESS_READ)) doSecurityManager();
 
-		else throw new ApplicationException("invalid action [" + action + "] for tag admin");
+		else throw new ApplicationException("Invalid action [" + action + "] for tag admin");
 
 	}
 
@@ -3692,7 +3692,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 			pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
 		}
-		else throw new ApplicationException("there is no cache default connection");
+		else throw new ApplicationException("There is no cache default connection");
 	}
 
 	private void doGetCacheConnection() throws PageException {
@@ -3742,7 +3742,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 				return;
 			}
 		}
-		throw new ApplicationException("there is no cache connection with name [" + name + "]");
+		throw new ApplicationException("There is no cache connection with name [" + name + "]");
 	}
 
 	private void doRemoveCacheConnection() throws PageException {
@@ -3843,7 +3843,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 				return;
 			}
 		}
-		throw new ApplicationException("there is no datasource with name [" + name + "]");
+		throw new ApplicationException("There is no datasource with name [" + name + "]");
 	}
 
 	private Object toStringTimeZone(TimeZone timeZone) {
@@ -5289,12 +5289,12 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void throwNoAccessWhenWeb() throws ApplicationException {
-		if (type == TYPE_WEB) throw new ApplicationException("Action [" + action + "] is not available for Server Admin (Web Admin only)");
+		if (type == TYPE_WEB) throw new ApplicationException("Action [" + action + "] is not available for Web Admin ( Server Admin only )");
 	}
 
 	private void throwNoAccessWhenServer() throws ApplicationException {
 		if (type == TYPE_SERVER) {
-			throw new ApplicationException("Action [" + action + "] is not available for Web Admin (Server Admin only)");
+			throw new ApplicationException("Action [" + action + "] is not available for Server Admin ( Web Admin only )");
 		}
 	}
 }
