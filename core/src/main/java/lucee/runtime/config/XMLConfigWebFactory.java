@@ -4200,23 +4200,29 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			else if (hasCS) config.setDebugLogOutput(configServer.debugLogOutput() ? ConfigImpl.SERVER_BOOLEAN_TRUE : ConfigImpl.SERVER_BOOLEAN_FALSE);
 
 			// debug options
+			String strDebugOption = hasCS ? null : SystemUtil.getSystemPropOrEnvVar("lucee.debugging.options", null);
+			String[] debugOptions = StringUtil.isEmpty(strDebugOption) ? null : ListUtil.listToStringArray(strDebugOption, ',');
+
 			int options = 0;
 			String str = getAttr(debugging, "database");
 			if (hasAccess && !StringUtil.isEmpty(str)) {
 				if (toBoolean(str, false)) options += ConfigImpl.DEBUG_DATABASE;
 			}
+			else if (debugOptions != null && extractDebugOption("database", debugOptions)) options += ConfigImpl.DEBUG_DATABASE;
 			else if (hasCS && configServer.hasDebugOptions(ConfigImpl.DEBUG_DATABASE)) options += ConfigImpl.DEBUG_DATABASE;
 
 			str = getAttr(debugging, "exception");
 			if (hasAccess && !StringUtil.isEmpty(str)) {
 				if (toBoolean(str, false)) options += ConfigImpl.DEBUG_EXCEPTION;
 			}
+			else if (debugOptions != null && extractDebugOption("exception", debugOptions)) options += ConfigImpl.DEBUG_EXCEPTION;
 			else if (hasCS && configServer.hasDebugOptions(ConfigImpl.DEBUG_EXCEPTION)) options += ConfigImpl.DEBUG_EXCEPTION;
 
 			str = getAttr(debugging, "templenabled");
 			if (hasAccess && !StringUtil.isEmpty(str)) {
 				if (toBoolean(str, false)) options += ConfigImpl.DEBUG_TEMPLATE;
 			}
+			else if (debugOptions != null && extractDebugOption("template", debugOptions)) options += ConfigImpl.DEBUG_TEMPLATE;
 			else if (hasCS && configServer.hasDebugOptions(ConfigImpl.DEBUG_TEMPLATE)) options += ConfigImpl.DEBUG_TEMPLATE;
 			// default is true
 			else options += ConfigImpl.DEBUG_TEMPLATE;
@@ -4225,24 +4231,28 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			if (hasAccess && !StringUtil.isEmpty(str)) {
 				if (toBoolean(str, false)) options += ConfigImpl.DEBUG_DUMP;
 			}
+			else if (debugOptions != null && extractDebugOption("dump", debugOptions)) options += ConfigImpl.DEBUG_DUMP;
 			else if (hasCS && configServer.hasDebugOptions(ConfigImpl.DEBUG_DUMP)) options += ConfigImpl.DEBUG_DUMP;
 
 			str = getAttr(debugging, "tracing");
 			if (hasAccess && !StringUtil.isEmpty(str)) {
 				if (toBoolean(str, false)) options += ConfigImpl.DEBUG_TRACING;
 			}
+			else if (debugOptions != null && extractDebugOption("tracing", debugOptions)) options += ConfigImpl.DEBUG_TRACING;
 			else if (hasCS && configServer.hasDebugOptions(ConfigImpl.DEBUG_TRACING)) options += ConfigImpl.DEBUG_TRACING;
 
 			str = getAttr(debugging, "timer");
 			if (hasAccess && !StringUtil.isEmpty(str)) {
 				if (toBoolean(str, false)) options += ConfigImpl.DEBUG_TIMER;
 			}
+			else if (debugOptions != null && extractDebugOption("timer", debugOptions)) options += ConfigImpl.DEBUG_TIMER;
 			else if (hasCS && configServer.hasDebugOptions(ConfigImpl.DEBUG_TIMER)) options += ConfigImpl.DEBUG_TIMER;
 
 			str = getAttr(debugging, "implicit-access");
 			if (hasAccess && !StringUtil.isEmpty(str)) {
 				if (toBoolean(str, false)) options += ConfigImpl.DEBUG_IMPLICIT_ACCESS;
 			}
+			else if (debugOptions != null && extractDebugOption("implicit-access", debugOptions)) options += ConfigImpl.DEBUG_IMPLICIT_ACCESS;
 			else if (hasCS && configServer.hasDebugOptions(ConfigImpl.DEBUG_IMPLICIT_ACCESS)) options += ConfigImpl.DEBUG_IMPLICIT_ACCESS;
 
 			str = getAttr(debugging, "query-usage");
@@ -4250,6 +4260,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			if (hasAccess && !StringUtil.isEmpty(str)) {
 				if (toBoolean(str, false)) options += ConfigImpl.DEBUG_QUERY_USAGE;
 			}
+			else if (debugOptions != null && extractDebugOption("query-usage", debugOptions)) options += ConfigImpl.DEBUG_QUERY_USAGE;
 			else if (hasCS && configServer.hasDebugOptions(ConfigImpl.DEBUG_QUERY_USAGE)) options += ConfigImpl.DEBUG_QUERY_USAGE;
 
 			// max records logged
@@ -4264,6 +4275,13 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		catch (Exception e) {
 			log(config, log, e);
 		}
+	}
+
+	private static boolean extractDebugOption(String name, String[] values) {
+		for (String val: values) {
+			if (val.trim().equalsIgnoreCase(name)) return true;
+		}
+		return false;
 	}
 
 	/**
