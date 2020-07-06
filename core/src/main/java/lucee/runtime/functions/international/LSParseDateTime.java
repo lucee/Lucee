@@ -70,7 +70,7 @@ public final class LSParseDateTime implements Function {
 		String strDate = Caster.toString(oDate);
 
 		// regular parse date time
-		if (StringUtil.isEmpty(format, true)) return DateCaster.toDateTime(locale, strDate, tz, locale.equals(Locale.US));
+		if (StringUtil.isEmpty(format, true)) return DateCaster.toDateTime(locale, strDate, tz, true);
 
 		// with java based format
 		tz = ThreadLocalPageContext.getTimeZone(tz);
