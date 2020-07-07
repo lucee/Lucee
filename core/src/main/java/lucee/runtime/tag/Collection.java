@@ -161,7 +161,7 @@ public final class Collection extends TagImpl {
 			else if (action.equals("map")) doMap();
 			else if (action.equals("categorylist")) doCategoryList();
 
-			else throw new ApplicationException("Invalid value [" + action + "] for attribute [action].", "allowed values are [create,repair,map,delete,optimize,list ]");
+			else throw new ApplicationException("Invalid value [" + action + "] for attribute [action].", "allowed values are [create, repair, map, delete, optimize, list]");
 		}
 		catch (SearchException e) {
 			throw Caster.toPageException(e);
