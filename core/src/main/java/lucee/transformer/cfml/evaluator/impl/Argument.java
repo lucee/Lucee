@@ -54,11 +54,11 @@ public final class Argument extends EvaluatorSupport {
 		Attribute attrPassBy = tag.getAttribute("passby");
 		if (attrPassBy != null) {
 			ExprString expr = tag.getFactory().toExprString(attrPassBy.getValue());
-			if (!(expr instanceof LitString)) throw new EvaluatorException("Attribute passby of the Tag Argument, must be a literal string");
+			if (!(expr instanceof LitString)) throw new EvaluatorException("Attribute [passby] of the tag [Argument], must be a literal string");
 			LitString lit = (LitString) expr;
 			String passBy = lit.getString().toLowerCase().trim();
 			if (!"value".equals(passBy) && !"ref".equals(passBy) && !"reference".equals(passBy))
-				throw new EvaluatorException("Attribute passby of the Tag Argument has an invalid value [" + passBy + "], valid values are [reference,value]");
+				throw new EvaluatorException("Attribute [passby] of the tag [Argument] has an invalid value [" + passBy + "], valid values are [reference,value]");
 		}
 
 		// check if tag is direct inside function
