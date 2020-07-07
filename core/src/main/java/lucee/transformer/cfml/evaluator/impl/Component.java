@@ -177,7 +177,7 @@ public class Component extends EvaluatorSupport {
 				int mod = ComponentUtil.toModifier(ls.getString(), lucee.runtime.Component.MODIFIER_NONE, -1);
 
 				if (mod == -1) throw new EvaluatorException(
-						"Value [" + ls.getString() + "] from attribute [modifier] of the tag [" + tlt.getFullName() + "] is invalid,valid values are [none, abstract, final]");
+						"Value [" + ls.getString() + "] from attribute [modifier] of the tag [" + tlt.getFullName() + "] is invalid, valid values are [none, abstract, final]");
 			}
 		}
 	}
