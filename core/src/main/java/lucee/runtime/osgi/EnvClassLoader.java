@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.lang.ref.SoftReference;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashSet;
@@ -18,8 +19,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleReference;
 
+import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
+import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
@@ -69,13 +72,13 @@ public class EnvClassLoader extends URLClassLoader {
 	@Override
 	public URL getResource(String name) {
 		log("get resource [" + name + "]", 0);
-		return (java.net.URL) load(name, URL, true);
+		return (java.net.URL) load(name, URL, true, null, true);
 	}
 
 	@Override
 	public InputStream getResourceAsStream(String name) {
 		log("get resource [" + name + "]", 0);
-		return (InputStream) load(name, STREAM, true);
+		return (InputStream) load(name, STREAM, true, null, true);
 	}
 
 	@Override
@@ -83,7 +86,7 @@ public class EnvClassLoader extends URLClassLoader {
 		log("get resource [" + name + "]", 0);
 
 		List<URL> list = new ArrayList<URL>();
-		URL url = (URL) load(name, URL, false);
+		URL url = (URL) load(name, URL, false, null, true);
 		if (url != null) list.add(url);
 		return new E<URL>(list.iterator());
 	}
@@ -95,42 +98,55 @@ public class EnvClassLoader extends URLClassLoader {
 		log("check for class [" + name + "]", 0);
 
 		Class<?> c = findLoadedClass(name);
-		if (c == null) c = (Class<?>) load(name, CLASS, true);
+		if (c == null) c = (Class<?>) load(name, CLASS, true, null, true);
 		if (c == null) c = findClass(name);
 		if (resolve) resolveClass(c);
 		return c;
 	}
 
-	private synchronized Object load(String name, short type, boolean doLog) {
+	private synchronized Object load(String name, short type, boolean doLog, List<ClassLoader> listContext, boolean useCache) {
 		double start = SystemUtil.millis();
 
 		StringBuilder id = new StringBuilder(name).append(';').append(type).append(';');
 		String _id = id.toString();
 		Set<String> cache = checking.get();
-		if (cache.contains(_id)) {
+		if (useCache && cache.contains(_id)) {
 			callerCache.put(id.toString(), new SoftReference<Object[]>(new Object[] { null }));
 			return null;
 		}
 		try {
 			cache.add(_id);
+
+			if (listContext == null) {
+				listContext = SystemUtil.getClassLoaderContext(true, id);
+			}
+
 			// PATCH XML
 			if ((name + "").startsWith("META-INF/services") && !inside.get()) {
 				inside.set(Boolean.TRUE);
 				try {
 					if (name.equalsIgnoreCase("META-INF/services/javax.xml.parsers.DocumentBuilderFactory")) {
-						if (type == URL) return XMLUtil.getDocumentBuilderFactoryResource();
-						else if (type == STREAM) return new ByteArrayInputStream(XMLUtil.getDocumentBuilderFactoryName().getBytes());
+						if (patchNeeded(name, doLog, listContext)) {
+							if (type == URL) return XMLUtil.getDocumentBuilderFactoryResource();
+							else if (type == STREAM) return new ByteArrayInputStream(XMLUtil.getDocumentBuilderFactoryName().getBytes());
+						}
 					}
 					else if (name.equalsIgnoreCase("META-INF/services/javax.xml.parsers.SAXParserFactory")) {
-						if (type == URL) return XMLUtil.getSAXParserFactoryResource();
-						else if (type == STREAM) return new ByteArrayInputStream(XMLUtil.getSAXParserFactoryName().getBytes());
+						if (patchNeeded(name, doLog, listContext)) {
+							if (type == URL) return XMLUtil.getSAXParserFactoryResource();
+							else if (type == STREAM) return new ByteArrayInputStream(XMLUtil.getSAXParserFactoryName().getBytes());
+						}
 					}
 					else if (name.equalsIgnoreCase("META-INF/services/javax.xml.transform.TransformerFactory")) {
-						if (type == URL) return XMLUtil.getTransformerFactoryResource();
-						else if (type == STREAM) return new ByteArrayInputStream(XMLUtil.getTransformerFactoryName().getBytes());
+						if (patchNeeded(name, doLog, listContext)) {
+							if (type == URL) return XMLUtil.getTransformerFactoryResource();
+							else if (type == STREAM) return new ByteArrayInputStream(XMLUtil.getTransformerFactoryName().getBytes());
+						}
 					}
 					else if (name.equalsIgnoreCase("META-INF/services/org.apache.xerces.xni.parser.XMLParserConfiguration")) {
-						if (type == STREAM) return new ByteArrayInputStream(XMLUtil.getXMLParserConfigurationName().getBytes());
+						if (patchNeeded(name, doLog, listContext)) {
+							if (type == STREAM) return new ByteArrayInputStream(XMLUtil.getXMLParserConfigurationName().getBytes());
+						}
 					}
 				}
 				catch (IOException e) {}
@@ -150,14 +166,11 @@ public class EnvClassLoader extends URLClassLoader {
 				}
 			}
 
-			List<ClassLoader> listContext = SystemUtil.getClassLoaderContext(true, id);
-
 			SoftReference<Object[]> sr = callerCache.get(id.toString());
 			if (sr != null && sr.get() != null) {
 				// print.e(name + " - from cache " + callerCache.size());
 				return sr.get()[0];
 			}
-
 			// callers classloader context
 			Object obj;
 			for (ClassLoader cl: listContext) {
@@ -166,7 +179,7 @@ public class EnvClassLoader extends URLClassLoader {
 					if (cl instanceof BundleReference) log("found [" + name + "] in bundle [" + (((BundleReference) cl).getBundle().getSymbolicName()) + ":"
 							+ (((BundleReference) cl).getBundle().getVersion()) + "]", start);
 					else log("found [" + name + "] in System ClassLoader " + cl, start);
-					callerCache.put(id.toString(), new SoftReference<Object[]>(new Object[] { obj }));
+					if (useCache) callerCache.put(id.toString(), new SoftReference<Object[]>(new Object[] { obj }));
 					return obj;
 				}
 				else {
@@ -178,12 +191,23 @@ public class EnvClassLoader extends URLClassLoader {
 			}
 			// print.ds("4:" + (SystemUtil.millis() - start) + ":" + name);
 			log("not found [" + name + "] ", start);
-			callerCache.put(id.toString(), new SoftReference<Object[]>(new Object[] { null }));
+			if (useCache) callerCache.put(id.toString(), new SoftReference<Object[]>(new Object[] { null }));
 			return null;
 		}
 		finally {
 			cache.remove(_id);
 		}
+	}
+
+	private boolean patchNeeded(String name, boolean doLog, List<ClassLoader> listContext) throws IOException {
+		Object o = load(name, STREAM, doLog, listContext, false);
+		boolean patchIt = true;
+		if (o instanceof InputStream) {
+			String className = IOUtil.toString((InputStream) o, (Charset) null);
+			o = StringUtil.isEmpty(className) ? null : load(className.trim(), CLASS, doLog, listContext, false);
+			if (o != null) patchIt = false;
+		}
+		return patchIt;
 	}
 
 	private Object _load(ClassLoader cl, String name, short type) {
