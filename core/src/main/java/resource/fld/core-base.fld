@@ -13487,25 +13487,25 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     	<argument>
 			<name>input</name>
 			<type>string</type>
-			<required>yes</required>
+			<required>Yes</required>
 			<description>Input string.</description>
     	</argument>
     	<argument>
 			<name>parallelismFactor</name>
 			<type>number</type>
-			<required>yes</required>
+			<required>Yes</required>
 			<description>Degrees of parallelism, a number between 1 and 10.</description>
     	</argument>
     	<argument>
 			<name>memoryCost</name>
 			<type>number</type>
-			<required>yes</required>
+			<required>Yes</required>
 			<description>A number between 8 and 100000.</description>
     	</argument>
     	<argument>
 			<name>iterations</name>
 			<type>number</type>
-			<required>yes</required>
+			<required>Yes</required>
 			<description>A number between 1 and 20.</description>
     	</argument>
     	<return>

@@ -59,8 +59,4 @@ public class GenerateArgon2Hash extends BIF {
 		}
 		return hash;
 	}
-
-	public static String call(PageContext pc, String variant, String input) throws PageException {
-		return call(pc, variant, input, (byte) 4, 1024, (byte) 8);
-	}
 }
