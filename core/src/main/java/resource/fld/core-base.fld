@@ -13534,4 +13534,43 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     		<type>boolean</type>
     	</return>
     </function>
+    
+    <function>
+		<name>GenerateArgon2Hash</name>
+		<class>lucee.runtime.functions.other.GenerateArgon2Hash</class>
+		<description>Returns hash of input using Argon2.</description>
+		<argument>
+			<name>variant</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>Either Argon2i, Argon2d or Argon2id</description>
+    	</argument>
+    	<argument>
+			<name>input</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>Input string.</description>
+    	</argument>
+    	<argument>
+			<name>parallelismFactor</name>
+			<type>number</type>
+			<required>Yes</required>
+			<description>Degrees of parallelism, a number between 1 and 10.</description>
+    	</argument>
+    	<argument>
+			<name>memoryCost</name>
+			<type>number</type>
+			<required>Yes</required>
+			<description>A number between 8 and 100000.</description>
+    	</argument>
+    	<argument>
+			<name>iterations</name>
+			<type>number</type>
+			<required>Yes</required>
+			<description>A number between 1 and 20.</description>
+    	</argument>
+    	<return>
+    		<type>string</type>
+    	</return>
+    </function>
 </func-lib>
