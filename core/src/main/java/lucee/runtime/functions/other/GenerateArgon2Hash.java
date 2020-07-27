@@ -21,8 +21,13 @@ public class GenerateArgon2Hash extends BIF {
 		return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toByteValue(args[2]), Caster.toIntValue(args[3]), Caster.toByteValue(args[4]));
 	}
 
-	public static String call(PageContext pc, String variant, String input, double parallelismFactor, double memoryCost, double iterations) throws PageException {
+	public static String call(PageContext pc, String input, String variant, double parallelismFactor, double memoryCost, double iterations) throws PageException {
 		Argon2Types type;
+
+		// check variant
+		if (variant == null || variant == "") {
+			throw new FunctionException(pc, "GenerateArgon2Hash", 1, "variant", "The Variant should be ARGON2i or ARGON2d or ARGON2id");
+		}
 		switch (variant.toLowerCase()) {
 		case "argon2i":
 			type = Argon2Types.ARGON2i;
@@ -34,7 +39,7 @@ public class GenerateArgon2Hash extends BIF {
 			type = Argon2Types.ARGON2id;
 			break;
 		default:
-			throw new FunctionException(pc, "GenerateArgon2Hash", 1, "variant", "The Variant should be ARGON2i or ARGON2d or ARGON2id", null);
+			throw new FunctionException(pc, "GenerateArgon2Hash", 1, "variant", "The Variant should be ARGON2i or ARGON2d or ARGON2id");
 		}
 		Argon2 argon2 = Argon2Factory.create(type);
 
@@ -51,8 +56,9 @@ public class GenerateArgon2Hash extends BIF {
 		}
 
 		int memory = Caster.toIntValue(memoryCost);
-		String hash = argon2.hash(Caster.toIntValue(iterations), memory * memory, Caster.toIntValue(parallelismFactor), input.toCharArray());
-		boolean success = argon2.verify(hash, input.toCharArray());
+		char[] carrInput = input == null ? new char[0] : input.toCharArray();
+		String hash = argon2.hash(Caster.toIntValue(iterations), memory * memory, Caster.toIntValue(parallelismFactor), carrInput);
+		boolean success = argon2.verify(hash, carrInput);
 
 		if (!success) {
 			throw new ExpressionException("Hashing failed!");
