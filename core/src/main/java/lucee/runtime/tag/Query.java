@@ -29,6 +29,7 @@ import org.osgi.framework.BundleException;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.SystemUtil.TemplateLine;
 import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
@@ -615,13 +616,26 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 					cacheHandlerId = cacheHandler.id(); // cacheHandlerId specifies to queryResult the cacheType and
 					// therefore whether the query is cached or not
 					if (cacheHandler instanceof CacheHandlerPro) {
-						CacheItem cacheItem = ((CacheHandlerPro) cacheHandler).get(pageContext, cacheId, (data.cachedWithin != null) ? data.cachedWithin : data.cachedAfter);
+						CacheItem cacheItem;
+						try {
+							cacheItem = ((CacheHandlerPro) cacheHandler).get(pageContext, cacheId, (data.cachedWithin != null) ? data.cachedWithin : data.cachedAfter);
+						}
+						catch (PageException pe) {
+							cacheItem = null;
+							LogUtil.log(pageContext.getConfig(), "query", pe);
+						}
 						if (cacheItem instanceof QueryResultCacheItem) queryResult = ((QueryResultCacheItem) cacheItem).getQueryResult();
 					}
 					else { // FUTURE this else block can be removed when all cache handlers implement
 							// CacheHandlerPro
-
-						CacheItem cacheItem = cacheHandler.get(pageContext, cacheId);
+						CacheItem cacheItem;
+						try {
+							cacheItem = cacheHandler.get(pageContext, cacheId);
+						}
+						catch (PageException pe) {
+							cacheItem = null;
+							LogUtil.log(pageContext.getConfig(), "query", pe);
+						}
 
 						if (cacheItem instanceof QueryResultCacheItem) {
 
@@ -702,7 +716,14 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 
 				if (data.cachedWithin != null && (data.cachedAfter == null || data.cachedAfter.getTime() <= now)) {
 					CacheItem cacheItem = QueryResultCacheItem.newInstance(queryResult, data.tags, data.datasource, null);
-					if (cacheItem != null) cacheHandler.set(pageContext, cacheId, data.cachedWithin, cacheItem);
+					if (cacheItem != null) {
+						try {
+							cacheHandler.set(pageContext, cacheId, data.cachedWithin, cacheItem);
+						}
+						catch (PageException pe) {
+							LogUtil.log(pageContext.getConfig(), "query", pe);
+						}
+					}
 				}
 				exe = queryResult.getExecutionTime();
 			}
