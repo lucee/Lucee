@@ -146,6 +146,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 	private Struct caches;
 	private UDF onmissingtemplate;
 	private short scopeCascading = -1;
+	private Boolean searchQueries = null;
 	private Boolean suppress;
 	private boolean cgiReadOnly = true;
 	private SessionCookieData sessionCookie;
@@ -230,6 +231,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		antiSamyPolicyResource = null;
 		onmissingtemplate = null;
 		scopeCascading = -1;
+		searchQueries = null;
 		authCookie = null;
 		sessionCookie = null;
 		blockedExtForFileUpload = null;
@@ -293,6 +295,10 @@ public final class Application extends TagImpl implements DynamicAttributes {
 
 	public void setBlockedextforfileupload(String blockedExt) {
 		this.blockedExtForFileUpload = blockedExt;
+	}
+
+	public void setSearchresults(boolean searchQueries) {
+		this.searchQueries = searchQueries;
 	}
 
 	/**
@@ -369,6 +375,10 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		short tmp = ConfigWebUtil.toScopeCascading(scopeCascading, NULL);
 		if (tmp == NULL) throw new ApplicationException("invalid value (" + scopeCascading + ") for attribute [ScopeCascading], valid values are [strict,small,standard]");
 		this.scopeCascading = tmp;
+	}
+
+	public void setSearchQueries(boolean searchQueries) throws ApplicationException {
+		this.searchQueries = searchQueries;
 	}
 
 	public void setSearchimplicitscopes(boolean searchImplicitScopes) throws ApplicationException {
@@ -847,6 +857,8 @@ public final class Application extends TagImpl implements DynamicAttributes {
 			if (javaSettings != null) appContextSup.setJavaSettings(JavaSettingsImpl.newInstance(new JavaSettingsImpl(), javaSettings));
 
 			if (xmlFeatures != null) appContextSup.setXmlFeatures(xmlFeatures);
+			if (searchQueries != null) appContextSup.setAllowImplicidQueryCall(searchQueries.booleanValue());
+
 		}
 
 		// ORM

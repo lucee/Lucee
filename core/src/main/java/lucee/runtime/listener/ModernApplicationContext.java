@@ -153,11 +153,11 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private static final Key PSQ_LONG = KeyImpl.intern("preservesinglequote");
 	private static final Key VAR_USAGE = KeyImpl.intern("varusage");
 	private static final Key VARIABLE_USAGE = KeyImpl.intern("variableusage");
-
 	private static final Key CACHED_AFTER = KeyImpl.intern("cachedAfter");
-	private static final Collection.Key BLOCKED_EXT_FOR_FILE_UPLOAD = KeyImpl.intern("blockedExtForFileUpload");
-
-	private static final Collection.Key XML_FEATURES = KeyImpl.intern("xmlFeatures");
+	private static final Key BLOCKED_EXT_FOR_FILE_UPLOAD = KeyImpl.intern("blockedExtForFileUpload");
+	private static final Key XML_FEATURES = KeyImpl.intern("xmlFeatures");
+	private static final Key SEARCH_QUERIES = KeyImpl.intern("searchQueries");
+	private static final Key SEARCH_RESULTS = KeyImpl.intern("searchResults");
 
 	private static Map<String, CacheConnection> initCacheConnections = new ConcurrentHashMap<String, CacheConnection>();
 
@@ -298,6 +298,8 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private List<Resource> funcDirs;
 	private boolean initFuncDirs = false;
 
+	private boolean allowImplicidQueryCall;
+
 	public ModernApplicationContext(PageContext pc, Component cfc, RefBoolean throwsErrorWhileInit) {
 		super(pc.getConfig());
 		ConfigImpl ci = ((ConfigImpl) config);
@@ -333,6 +335,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		this.clientCluster = config.getClientCluster();
 		this.sessionStorage = ci.getSessionStorage();
 		this.clientStorage = ci.getClientStorage();
+		this.allowImplicidQueryCall = config.allowImplicidQueryCall();
 
 		this.triggerComponentDataMember = config.getTriggerComponentDataMember();
 		this.restSetting = config.getRestSetting();
@@ -345,6 +348,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		initScopeCascading();
 		initSameFieldAsArray(pc);
 		initWebCharset(pc);
+		initAllowImplicidQueryCall();
 
 		pc.addPageSource(component.getPageSource(), true);
 		try {
@@ -371,6 +375,13 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 			if (b != null) scopeCascading = ConfigWebUtil.toScopeCascading(b);
 		}
 
+	}
+
+	private void initAllowImplicidQueryCall() {
+		Object o = get(component, SEARCH_QUERIES, null);
+		if (o == null) o = get(component, SEARCH_RESULTS, null);
+
+		if (o != null) allowImplicidQueryCall = Caster.toBooleanValue(o, allowImplicidQueryCall);
 	}
 
 	@Override
@@ -1848,5 +1859,15 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public void setXmlFeatures(Struct xmlFeatures) {
 		this.xmlFeatures = xmlFeatures;
+	}
+
+	@Override
+	public boolean getAllowImplicidQueryCall() {
+		return allowImplicidQueryCall;
+	}
+
+	@Override
+	public void setAllowImplicidQueryCall(boolean allowImplicidQueryCall) {
+		this.allowImplicidQueryCall = allowImplicidQueryCall;
 	}
 }

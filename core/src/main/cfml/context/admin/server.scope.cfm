@@ -575,6 +575,12 @@ function test() localMode="#scope.LocalMode#" {}
 							<b>#iif(scope.allowImplicidQueryCall,de('Yes'),de('No'))#</b>
 						</cfif>
 						<div class="comment">#stText.Scopes.CascadeToResultSetDescription#</div>
+
+
+						<cfsavecontent variable="codeSample">
+							this.searchResults = #trueFalseFormat(scope.allowImplicidQueryCall)#;
+						</cfsavecontent>
+						<cfset renderCodingTip( codeSample)>
 					</td>
 				</tr>
 				

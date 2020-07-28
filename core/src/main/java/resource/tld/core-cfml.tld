@@ -736,6 +736,14 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			For details see the description for the attribute "scopecascading".</description>
 		</attribute>
 		<attribute>
+			<type>boolean</type>
+			<name>searchResults</name>
+			<alias>searchQueries,,searchQuery,searchResult</alias>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>When a variable has no scope defined (Example: #myVar# instead of #variables.myVar#), Lucee will also search available resultsets if this is set to true.</description>
+		</attribute>
+		<attribute>
 			<type>struct</type>
 			<name>authcookie</name>
 			<required>false</required>

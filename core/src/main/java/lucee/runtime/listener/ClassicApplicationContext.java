@@ -151,6 +151,8 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 
 	private Map<Key, Object> customAttrs;
 
+	private boolean allowImplicidQueryCall;
+
 	/**
 	 * constructor of the class
 	 * 
@@ -182,6 +184,7 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 		this.timeZone = config.getTimeZone();
 		this.fullNullSupport = config.getFullNullSupport();
 		this.scopeCascading = config.getScopeCascadingType();
+		this.allowImplicidQueryCall = config.allowImplicidQueryCall();
 
 		this.webCharset = ((ConfigImpl) config).getWebCharSet();
 		this.resourceCharset = ((ConfigImpl) config).getResourceCharSet();
@@ -200,7 +203,6 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 		this.wstype = WS_TYPE_AXIS1;
 		cgiScopeReadonly = ((ConfigImpl) config).getCGIScopeReadonly();
 		this.antiSamyPolicy = ((ConfigImpl) config).getAntiSamyPolicy();
-
 	}
 
 	/**
@@ -252,6 +254,7 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 		dbl.timeZone = timeZone;
 		dbl.fullNullSupport = fullNullSupport;
 		dbl.scopeCascading = scopeCascading;
+		dbl.allowImplicidQueryCall = allowImplicidQueryCall;
 		dbl.webCharset = webCharset;
 		dbl.resourceCharset = resourceCharset;
 		dbl.sessionType = sessionType;
@@ -854,6 +857,16 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	@Override
 	public void setScopeCascading(short scopeCascading) {
 		this.scopeCascading = scopeCascading;
+	}
+
+	@Override
+	public boolean getAllowImplicidQueryCall() {
+		return allowImplicidQueryCall;
+	}
+
+	@Override
+	public void setAllowImplicidQueryCall(boolean allowImplicidQueryCall) {
+		this.allowImplicidQueryCall = allowImplicidQueryCall;
 	}
 
 	@Override

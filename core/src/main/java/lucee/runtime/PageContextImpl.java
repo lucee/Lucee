@@ -3743,4 +3743,9 @@ public final class PageContextImpl extends PageContext {
 	public boolean getListenSettings() {
 		return listenSettings;
 	}
+
+	public boolean allowImplicidQueryCall() {
+		if (applicationContext != null) return applicationContext.getAllowImplicidQueryCall();
+		return config.allowImplicidQueryCall();
+	}
 }

@@ -58,8 +58,8 @@ import lucee.transformer.library.tag.TagLibTag;
 import lucee.transformer.library.tag.TagLibTagAttr;
 
 /**
- * This is a base class for ModernApplicationSupport and ClassicApplicationSupport.  It contains
- * code that is shared between the subclasses.
+ * This is a base class for ModernApplicationSupport and ClassicApplicationSupport. It contains code
+ * that is shared between the subclasses.
  */
 public abstract class ApplicationContextSupport implements ApplicationContext {
 
@@ -470,5 +470,9 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 	public abstract Struct getXmlFeatures();
 
 	public abstract void setXmlFeatures(Struct xmlFeatures);
+
+	public abstract boolean getAllowImplicidQueryCall();
+
+	public abstract void setAllowImplicidQueryCall(boolean allowImplicidQueryCall);
 
 }
