@@ -36,6 +36,8 @@
 			</cfformClassic>
 		</div>
 		</cfif>
+		<cfparam name="listinstalled" default="0">
+		<cfparam name="listnotinstalled" default="0">
 		<cfloop list="#request.adminType=="web"?"server,web":"web"#" item="_type">
 			<cfset _extensions=_type=="web"?extensions:serverExtensions>
 		<cfif _type=="server">
@@ -94,6 +96,7 @@ Installed version:#_extensions.version#"><cfif hasUpdate>
 									<img src="#dn#" alt="#stText.ext.extThumbnail#" />
 								</cfif>
 							</div>
+							<cfset listinstalled = listinstalled+1>
 							<span <cfif _type=="server">style="color:##bf4f36"</cfif>>#cut(_extensions.name,40)#<br /></span>
 							<span class="comment" <cfif _type=="server">style="color:##bf4f36"</cfif>>#cut(arrayToList(cat),30)#</span>
 
@@ -107,6 +110,9 @@ Installed version:#_extensions.version#"><cfif hasUpdate>
 </cfloop>
 	</cfoutput>
 </cfif>
+	<cfif listinstalled eq 0 and extCount gt 30>
+		<cfoutput><b>There is no extension available with name [#session.extFilter.filter#]</b></cfoutput>
+	</cfif>
 
 
 
@@ -221,6 +227,7 @@ Installed version:#_extensions.version#"><cfif hasUpdate>
 											 <img src="#dn#"  alt="#stText.ext.extThumbnail#" />
 										</cfif>
 									</div>
+									<cfset listnotinstalled = listnotinstalled+1>
 									<b title="#versionStr[key].name#">#cut(versionStr[key].name,30)#</b><br />
 									<!------>
 									<cfif structKeyExists(versionStr[key],"price") and versionStr[key].price GT 0>#versionStr[key].price# <cfif structKeyExists(versionStr[key],"currency")>#versionStr[key].currency#<cfelse>USD</cfif><cfelse>#stText.ext.free#</cfif>
@@ -240,6 +247,9 @@ Installed version:#_extensions.version#"><cfif hasUpdate>
 	</div>
 	
 </cfif>
+	<cfif listnotinstalled eq 0 and unInstalledExt.recordcount gt 30>
+		<b>There is no extension available with name [#session.extFilter.filter2#]</b>
+	</cfif>
 
 <cfif noneLasCounter>
 	<div class="message" style="border-color: ##FC6;color:##C93;">
