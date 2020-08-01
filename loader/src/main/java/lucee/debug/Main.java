@@ -18,6 +18,8 @@ public class Main {
 
         String s;
 
+        System.setProperty("lucee.controller.disabled", "true");
+
         String webxml = getSystemPropOrEnvVar(ARG_WEBXML, "");
         if (webxml.isEmpty())
             webxml = Main.class.getResource("/debug/web.xml").getPath();
