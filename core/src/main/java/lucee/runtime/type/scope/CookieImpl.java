@@ -269,7 +269,7 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 		/* Domain */if (!StringUtil.isEmpty(domain)) sb.append(";Domain=").append(enc(domain));
 		/* Expires */if (expires != EXPIRES_NULL) sb.append(";Expires=").append(DateTimeUtil.toHTTPTimeString(System.currentTimeMillis() + (expires * 1000L), false));
 		/* Secure */if (secure) sb.append(";Secure");
-		/* HTTPOnly */if (httpOnly) sb.append(";HTTPOnly");
+		/* HTTPOnly */if (httpOnly) sb.append(";HttpOnly");
 		/* Samesite */if (samesite != CookieData.SAMESITE_NONE) sb.append(";SameSite").append('=').append(SessionCookieDataImpl.toSamesite(samesite));
 
 		rsp.addHeader("Set-Cookie", sb.toString());
