@@ -125,8 +125,6 @@ hasCache=hasObj || hasTem || hasQry || hasRes || hasFun || hasInc;
 	returnVariable="datasources">
 
 </cfsilent>
-
-
 <cfoutput>
 
 	<cfsavecontent variable="codeSample">
@@ -182,7 +180,7 @@ component {
 	this.charset.resource="#charset.resourceCharset#";
 	
 	this.scopeCascading = "#scope.scopeCascadingType#";
-
+	this.searchResults = #trueFalseFormat(scope.allowImplicidQueryCall)#;
 //////////////////////////////////////////////
 //               MAIL SERVERS               //
 //////////////////////////////////////////////
