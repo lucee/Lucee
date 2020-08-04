@@ -1145,7 +1145,7 @@ public final class Http extends BodyTagImpl {
 			Struct responseHeader = new StructImpl();
 			Struct cookie;
 			Array setCookie = new ArrayImpl();
-			Query cookies = new QueryImpl(new String[] { "name", "value", "path", "domain", "expires", "secure", "httpOnly" }, 0, "cookies");
+			Query cookies = new QueryImpl(new String[] { "name", "value", "path", "domain", "expires", "secure", "httpOnly", "samesite" }, 0, "cookies");
 
 			for (int i = 0; i < headers.length; i++) {
 				lucee.commons.net.http.Header header = headers[i];
