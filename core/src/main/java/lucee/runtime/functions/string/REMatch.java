@@ -38,7 +38,16 @@ public final class REMatch extends BIF {
 
 	public static Array call(PageContext pc, String regExpr, String str) throws ExpressionException {
 		try {
-			return Perl5Util.match(regExpr, str, 1, true);
+			return Perl5Util.match(regExpr, str, 1, true, false);
+		}
+		catch (MalformedPatternException e) {
+			throw new FunctionException(pc, "REMatch", 1, "regularExpression", e.getMessage());
+		}
+	}
+
+	public static Array call(PageContext pc, String regExpr, String str, boolean multiline) throws ExpressionException {
+		try {
+			return Perl5Util.match(regExpr, str, 1, true, multiline);
 		}
 		catch (MalformedPatternException e) {
 			throw new FunctionException(pc, "REMatch", 1, "regularExpression", e.getMessage());
@@ -48,7 +57,8 @@ public final class REMatch extends BIF {
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
 		if (args.length == 2) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]));
+		if (args.length == 3) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toBooleanValue(args[2]));
 
-		throw new FunctionException(pc, "REMatch", 2, 2, args.length);
+		throw new FunctionException(pc, "REMatch", 2, 3, args.length);
 	}
 }

@@ -10063,6 +10063,17 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<required>No</required>
 			<description></description>
     	</argument>
+		<argument>
+			<name>multiline</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>
+				If true indicate the regular expression should treat input as having multiple lines.
+				This option affects the interpretation of the ^ and $ metacharacters. 
+				When true the ^ metacharacter matches at the beginning of every line, and the $ metacharacter matches at the end of every line. 
+				Additionally the . metacharacter will not match newlines when true.</description>
+		</argument>
 		<return>
 			<type>any</type>
 		</return>
@@ -10119,6 +10130,17 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<required>No</required>
 			<description></description>
     	</argument>
+		<argument>
+			<name>multiline</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>
+				If true indicate the regular expression should treat input as having multiple lines.
+				This option affects the interpretation of the ^ and $ metacharacters. 
+				When true the ^ metacharacter matches at the beginning of every line, and the $ metacharacter matches at the end of every line. 
+				Additionally the . metacharacter will not match newlines when true.</description>
+		</argument>
 		<return>
 			<type>any</type>
 		</return>
@@ -10142,8 +10164,19 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>string</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description>String in which to search.</description>
-    </argument>
+			<description>String in which to search.</description>
+		</argument>
+		<argument>
+			<name>multiline</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>
+				If true indicate the regular expression should treat input as having multiple lines.
+				This option affects the interpretation of the ^ and $ metacharacters. 
+				When true the ^ metacharacter matches at the beginning of every line, and the $ metacharacter matches at the end of every line. 
+				Additionally the . metacharacter will not match newlines when true.</description>
+		</argument>
 		<return>
 			<type>array</type>
 		</return>
@@ -10167,8 +10200,19 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>string</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description>String in which to search.</description>
-    </argument>
+			<description>String in which to search.</description>
+		</argument>
+		<argument>
+			<name>multiline</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>
+				If true indicate the regular expression should treat input as having multiple lines.
+				This option affects the interpretation of the ^ and $ metacharacters. 
+				When true the ^ metacharacter matches at the beginning of every line, and the $ metacharacter matches at the end of every line. 
+				Additionally the . metacharacter will not match newlines when true.</description>
+		</argument>
 		<return>
 			<type>array</type>
 		</return>

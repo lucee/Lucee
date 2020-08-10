@@ -55,13 +55,13 @@ public final class Perl5Util {
 	 * @return position of the first occurence
 	 * @throws MalformedPatternException
 	 */
-	public static Object indexOf(String strPattern, String strInput, int offset, boolean caseSensitive, boolean matchAll) throws MalformedPatternException {
+	public static Object indexOf(String strPattern, String strInput, int offset, boolean caseSensitive, boolean matchAll, boolean multiLine) throws MalformedPatternException {
 		// Perl5Compiler compiler = new Perl5Compiler();
 		PatternMatcherInput input = new PatternMatcherInput(strInput);
 		Perl5Matcher matcher = new Perl5Matcher();
 
 		int compileOptions = caseSensitive ? 0 : Perl5Compiler.CASE_INSENSITIVE_MASK;
-		compileOptions += Perl5Compiler.SINGLELINE_MASK;
+		compileOptions += multiLine ? Perl5Compiler.MULTILINE_MASK : Perl5Compiler.SINGLELINE_MASK;
 		if (offset < 1) offset = 1;
 
 		Pattern pattern = getPattern(strPattern, compileOptions);
@@ -98,13 +98,13 @@ public final class Perl5Util {
 	 * @return
 	 * @throws MalformedPatternException
 	 */
-	public static Object find(String strPattern, String strInput, int offset, boolean caseSensitive, boolean matchAll) throws MalformedPatternException {
+	public static Object find(String strPattern, String strInput, int offset, boolean caseSensitive, boolean matchAll, boolean multiLine) throws MalformedPatternException {
 		Perl5Matcher matcher = new Perl5Matcher();
 		PatternMatcherInput input = new PatternMatcherInput(strInput);
 		Array matches = new ArrayImpl();
 
 		int compileOptions = caseSensitive ? 0 : Perl5Compiler.CASE_INSENSITIVE_MASK;
-		compileOptions += Perl5Compiler.SINGLELINE_MASK;
+		compileOptions += multiLine ? Perl5Compiler.MULTILINE_MASK : Perl5Compiler.SINGLELINE_MASK;
 		if (offset < 1) offset = 1;
 
 		Pattern pattern = getPattern(strPattern, compileOptions);
@@ -168,13 +168,13 @@ public final class Perl5Util {
 		return struct;
 	}
 
-	public static Array match(String strPattern, String strInput, int offset, boolean caseSensitive) throws MalformedPatternException {
+	public static Array match(String strPattern, String strInput, int offset, boolean caseSensitive, boolean multiLine) throws MalformedPatternException {
 
 		Perl5Matcher matcher = new Perl5Matcher();
 		PatternMatcherInput input = new PatternMatcherInput(strInput);
 
 		int compileOptions = caseSensitive ? 0 : Perl5Compiler.CASE_INSENSITIVE_MASK;
-		compileOptions += Perl5Compiler.SINGLELINE_MASK;
+		compileOptions += multiLine ? Perl5Compiler.MULTILINE_MASK : Perl5Compiler.SINGLELINE_MASK;
 		if (offset < 1) offset = 1;
 
 		Pattern pattern = getPattern(strPattern, compileOptions);

@@ -37,24 +37,28 @@ public final class REFindNoCase extends BIF {
 	private static final long serialVersionUID = 1562665117076202965L;
 
 	public static Object call(PageContext pc, String regExpr, String str) throws ExpressionException {
-		return call(pc, regExpr, str, 1, false);
+		return call(pc, regExpr, str, 1, false, null, false);
 	}
 
 	public static Object call(PageContext pc, String regExpr, String str, double start) throws ExpressionException {
-		return call(pc, regExpr, str, start, false);
+		return call(pc, regExpr, str, start, false, null, false);
 	}
 
 	public static Object call(PageContext pc, String regExpr, String str, double start, boolean returnsubexpressions) throws ExpressionException {
-		return call(pc, regExpr, str, start, returnsubexpressions, "one");
+		return call(pc, regExpr, str, start, returnsubexpressions, null, false);
 	}
 
 	public static Object call(PageContext pc, String regExpr, String str, double start, boolean returnsubexpressions, String scope) throws ExpressionException {
+		return call(pc, regExpr, str, start, returnsubexpressions, scope, false);
+	}
+
+	public static Object call(PageContext pc, String regExpr, String str, double start, boolean returnsubexpressions, String scope, boolean multiline) throws ExpressionException {
 		try {
-			boolean isMatchAll = scope.equalsIgnoreCase("all");
+			boolean isMatchAll = scope == null ? false : scope.equalsIgnoreCase("all");
 			if (returnsubexpressions) {
-				return Perl5Util.find(regExpr, str, (int) start, false, isMatchAll);
+				return Perl5Util.find(regExpr, str, (int) start, false, isMatchAll, multiline);
 			}
-			return Perl5Util.indexOf(regExpr, str, (int) start, false, isMatchAll);
+			return Perl5Util.indexOf(regExpr, str, (int) start, false, isMatchAll, multiline);
 		}
 		catch (MalformedPatternException e) {
 			throw new FunctionException(pc, "reFindNoCase", 1, "regularExpression", e.getMessage());
@@ -66,7 +70,11 @@ public final class REFindNoCase extends BIF {
 		if (args.length == 2) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]));
 		if (args.length == 3) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toDoubleValue(args[2]));
 		if (args.length == 4) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toDoubleValue(args[2]), Caster.toBooleanValue(args[3]));
+		if (args.length == 5)
+			return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toDoubleValue(args[2]), Caster.toBooleanValue(args[3]), Caster.toString(args[4]));
+		if (args.length == 6) return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toDoubleValue(args[2]), Caster.toBooleanValue(args[3]),
+				Caster.toString(args[4]), Caster.toBooleanValue(args[5]));
 
-		throw new FunctionException(pc, "REFindNoCase", 2, 4, args.length);
+		throw new FunctionException(pc, "REFindNoCase", 2, 6, args.length);
 	}
 }
