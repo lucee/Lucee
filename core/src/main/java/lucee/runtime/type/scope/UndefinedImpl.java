@@ -34,6 +34,7 @@ import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.Constants;
 import lucee.runtime.config.NullSupportHelper;
+import lucee.runtime.debug.DebuggerImpl;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.exp.ExpressionException;
@@ -251,7 +252,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
 	}
 
 	public static void debugCascadedAccess(PageContext pc, String name, Collection.Key key) {
-		if (pc != null) pc.getDebugger().addImplicitAccess(name, key.getString());
+		if (pc != null) ((DebuggerImpl) pc.getDebugger()).addImplicitAccess(pc, name, key.getString());
 	}
 
 	@Override
