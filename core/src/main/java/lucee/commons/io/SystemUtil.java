@@ -978,8 +978,8 @@ public final class SystemUtil {
 	}
 
 	public static TemplateLine getCurrentContext(PageContext pc) {
-		StackTraceElement[] traces = new Exception().getStackTrace();
-
+		// StackTraceElement[] traces = new Exception().getStackTrace();
+		StackTraceElement[] traces = Thread.currentThread().getStackTrace();
 		int line = 0;
 		String template;
 
@@ -1022,6 +1022,12 @@ public final class SystemUtil {
 		public String toString() {
 			if (line < 1) return template;
 			return template + ":" + line;
+		}
+
+		public StringBuilder toString(StringBuilder sb) {
+			if (line < 1) sb.append(template);
+			else sb.append(template).append(':').append(line);
+			return sb;
 		}
 
 		public String toString(PageContext pc, boolean contract) {

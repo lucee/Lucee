@@ -847,10 +847,15 @@ public final class DebuggerImpl implements Debugger {
 
 	@Override
 	public void addImplicitAccess(String scope, String name) {
+		addImplicitAccess(null, scope, name);
+	}
+
+	// FUTURE add to interface
+	public void addImplicitAccess(PageContext pc, String scope, String name) {
 		if (implicitAccesses.size() > 1000) return;
 		try {
-			SystemUtil.TemplateLine tl = SystemUtil.getCurrentContext(null);
-			String key = tl + ":" + scope + ":" + name;
+			SystemUtil.TemplateLine tl = SystemUtil.getCurrentContext(pc);
+			String key = tl.toString(new StringBuilder()).append(':').append(scope).append(':').append(name).toString();
 			ImplicitAccessImpl dsc = implicitAccesses.get(key);
 			if (dsc != null) dsc.inc();
 			else implicitAccesses.put(key, new ImplicitAccessImpl(scope, name, tl.template, tl.line));
