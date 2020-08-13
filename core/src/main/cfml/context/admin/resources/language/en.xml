@@ -335,7 +335,7 @@
 	<data key="ext.nofileuploaded">You have not uploaded a file!&lt;br&gt;Please first choose a file.</data>
 	<data key="ext.extThumbnail">Extension thumbnail</data>
 	<data key="ext.msgAfterNotAgreed">Because you did not agree with the license, the extension was not installed.&lt;br&gt;In case you installed the extension before, you will need to uninstall it, if you do not wish to agree with it's license anymore.</data>
-	<data key="ext.extzipfile">Extension LEX File</data>
+	<data key="ext.extzipfile">Extension LEX file</data>
 	<data key="ext.viewdetails">View details</data>
 	<data key="ext.theError">The error</data>
 	<data key="ext.errorFileUpload">The file could not be uploaded.</data>
