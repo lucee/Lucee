@@ -290,7 +290,11 @@
 	<data key="ext.extThumbnail">Extension thumbnail</data>
 	<data key="ext.msgAfterNotAgreed">Because you did not agree with the license, the extension was not installed.&lt;br&gt;In case you installed the extension before, you will need to uninstall it, if you do not wish to agree with it's license anymore.</data>
 <<<<<<< HEAD
+<<<<<<< HEAD
 	<data key="ext.extzipfile">Extension LEX file</data>
+=======
+	<data key="ext.extzipfile">Extension zip file</data>
+>>>>>>> parent of a88f87037... Update en.xml
 =======
 	<data key="ext.extzipfile">Extension zip file</data>
 >>>>>>> parent of a88f87037... Update en.xml
