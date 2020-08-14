@@ -37,11 +37,13 @@ import static java.sql.Types.TINYINT;
 import static java.sql.Types.VARCHAR;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
 
 import javax.servlet.jsp.tagext.Tag;
 
+import lucee.commons.io.CharsetUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.db.SQLCaster;
 import lucee.runtime.db.SQLItemImpl;
@@ -89,12 +91,15 @@ public final class QueryParam extends TagImpl {
 	 */
 	private double maxlength = -1;
 
+	private Charset charset;
+
 	@Override
 	public void release() {
 		separator = ",";
 		list = false;
 		maxlength = -1;
 		item = new SQLItemImpl();
+		charset = null;
 	}
 
 	/**
@@ -134,6 +139,10 @@ public final class QueryParam extends TagImpl {
 	 **/
 	public void setMaxlength(double maxlength) {
 		this.maxlength = maxlength;
+	}
+
+	public void setCharset(String charset) {
+		this.charset = CharsetUtil.toCharset(charset);
 	}
 
 	/**
@@ -223,7 +232,7 @@ public final class QueryParam extends TagImpl {
 	}
 
 	private Object check(Object value, int type) throws PageException {
-		if (maxlength != -1) {
+		if (maxlength != -1 || charset != null) {
 
 			String str;
 			if (BIGINT == type || INTEGER == type || SMALLINT == type || TINYINT == type) {
@@ -237,10 +246,19 @@ public final class QueryParam extends TagImpl {
 			}
 			else str = Caster.toString(value);
 
-			if (str.length() > maxlength) throw new DatabaseException(
-					"value [" + value + "] is too large, defined maxlength is [" + Caster.toString(maxlength) + "] but length of value is [" + str.length() + "]", null, null,
-					null);
+			if (charset != null) {
+				if (!StringUtil.isCompatibleWith(str, charset)) throw new DatabaseException(
+						"the given value [" + (str.length() > 20 ? str.substring(0, 20) + "..." : str) + "] is not compatible with the requested charset [" + charset + "] ", null,
+						null, null);
+			}
+
+			if (maxlength != -1 && str.getBytes(charset == null ? pageContext.getResourceCharset() : charset).length > maxlength) {
+				throw new DatabaseException(
+						"value [" + value + "] is too large, defined maxlength is [" + Caster.toString(maxlength) + "] but length of value is [" + str.length() + "]", null, null,
+						null);
+			}
 		}
+
 		return value;
 	}
 

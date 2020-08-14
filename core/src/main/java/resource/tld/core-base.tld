@@ -6639,7 +6639,16 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Maximum length of the parameter. The default value is the length of the string specified in
-	the value attribute.</description>
+	the value attribute. if the attribute charset is defined, this comparsion will be byte based.</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>charset</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>This attribute is used for 2 things:
+			- it checks if the given value is compatible with that charset
+			- to check the binary length of the value (see attribute maxlength).</description>
 		</attribute>
 		<attribute>
 			<type>number</type>

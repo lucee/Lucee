@@ -18,6 +18,7 @@
  **/
 package lucee.commons.lang;
 
+import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -63,6 +64,8 @@ public final class StringUtil {
 
 	private static char[] QUOTE_8220 = new char[] { (char) 226, (char) 8364, (char) 339 };
 	private static char[] QUOTE_8221 = new char[] { (char) 226, (char) 8364, (char) 65533 };
+
+	private static final char[] SURROGATE_CHARACTERS_RANGE = new char[] { (char) 55296, (char) 57343 };
 
 	/**
 	 * do first Letter Upper case
@@ -180,55 +183,55 @@ public final class StringUtil {
 
 		for (int i = 0; i < arr.length; i++) {
 			switch (arr[i]) {
-				case '\\':
-					rtn.append("\\\\");
-					break;
-				case '\n':
-					rtn.append("\\n");
-					break;
-				case '\r':
-					rtn.append("\\r");
-					break;
-				case '\f':
-					rtn.append("\\f");
-					break;
-				case '\b':
-					rtn.append("\\b");
-					break;
-				case '\t':
-					rtn.append("\\t");
-					break;
-				case '"':
-					if (quotesUsed == '"') rtn.append("\\\"");
-					else rtn.append('"');
-					break;
-				case '\'':
-					if (quotesUsed == '\'') rtn.append("\\\'");
-					else rtn.append('\'');
-					break;
-				case '/':
-					// escape </script>
-					if (i > 0 && arr[i - 1] == '<' && i + 1 < arr.length && arr[i + 1] == 's' && i + 2 < arr.length && arr[i + 2] == 'c' && i + 3 < arr.length && arr[i + 3] == 'r'
-							&& i + 4 < arr.length && arr[i + 4] == 'i' && i + 5 < arr.length && arr[i + 5] == 'p' && i + 6 < arr.length && arr[i + 6] == 't' && i + 7 < arr.length
-							&& (isWhiteSpace(arr[i + 7]) || arr[i + 7] == '>')
+			case '\\':
+				rtn.append("\\\\");
+				break;
+			case '\n':
+				rtn.append("\\n");
+				break;
+			case '\r':
+				rtn.append("\\r");
+				break;
+			case '\f':
+				rtn.append("\\f");
+				break;
+			case '\b':
+				rtn.append("\\b");
+				break;
+			case '\t':
+				rtn.append("\\t");
+				break;
+			case '"':
+				if (quotesUsed == '"') rtn.append("\\\"");
+				else rtn.append('"');
+				break;
+			case '\'':
+				if (quotesUsed == '\'') rtn.append("\\\'");
+				else rtn.append('\'');
+				break;
+			case '/':
+				// escape </script>
+				if (i > 0 && arr[i - 1] == '<' && i + 1 < arr.length && arr[i + 1] == 's' && i + 2 < arr.length && arr[i + 2] == 'c' && i + 3 < arr.length && arr[i + 3] == 'r'
+						&& i + 4 < arr.length && arr[i + 4] == 'i' && i + 5 < arr.length && arr[i + 5] == 'p' && i + 6 < arr.length && arr[i + 6] == 't' && i + 7 < arr.length
+						&& (isWhiteSpace(arr[i + 7]) || arr[i + 7] == '>')
 
-					) {
-						rtn.append("\\/");
-						break;
-					}
-
-				default:
-					if (Character.isISOControl(arr[i]) || (arr[i] >= 128 && (enc == null || !enc.canEncode(arr[i])))) {
-						if (arr[i] < 0x10) rtn.append("\\u000");
-						else if (arr[i] < 0x100) rtn.append("\\u00");
-						else if (arr[i] < 0x1000) rtn.append("\\u0");
-						else rtn.append("\\u");
-						rtn.append(Integer.toHexString(arr[i]));
-					}
-					else {
-						rtn.append(arr[i]);
-					}
+				) {
+					rtn.append("\\/");
 					break;
+				}
+
+			default:
+				if (Character.isISOControl(arr[i]) || (arr[i] >= 128 && (enc == null || !enc.canEncode(arr[i])))) {
+					if (arr[i] < 0x10) rtn.append("\\u000");
+					else if (arr[i] < 0x100) rtn.append("\\u00");
+					else if (arr[i] < 0x1000) rtn.append("\\u0");
+					else rtn.append("\\u");
+					rtn.append(Integer.toHexString(arr[i]));
+				}
+				else {
+					rtn.append(arr[i]);
+				}
+				break;
 			}
 		}
 		return rtn.append(quotesUsed).toString();
@@ -395,90 +398,90 @@ public final class StringUtil {
 		char first = str.charAt(0);
 
 		switch (first) {
-			case 'a':
-				if (str.equals("abstract")) return "_" + str;
-				break;
-			case 'b':
-				if (str.equals("boolean")) return "_" + str;
-				else if (str.equals("break")) return "_" + str;
-				else if (str.equals("byte")) return "_" + str;
-				break;
-			case 'c':
-				if (str.equals("case")) return "_" + str;
-				else if (str.equals("catch")) return "_" + str;
-				else if (str.equals("char")) return "_" + str;
-				else if (str.equals("const")) return "_" + str;
-				else if (str.equals("class")) return "_" + str;
-				else if (str.equals("continue")) return "_" + str;
-				break;
-			case 'd':
-				if (str.equals("default")) return "_" + str;
-				else if (str.equals("do")) return "_" + str;
-				else if (str.equals("double")) return "_" + str;
-				break;
-			case 'e':
-				if (str.equals("else")) return "_" + str;
-				else if (str.equals("extends")) return "_" + str;
-				else if (str.equals("enum")) return "_" + str;
-				break;
-			case 'f':
-				if (str.equals("false")) return "_" + str;
-				else if (str.equals("final")) return "_" + str;
-				else if (str.equals("finally")) return "_" + str;
-				else if (str.equals("float")) return "_" + str;
-				else if (str.equals("for")) return "_" + str;
-				break;
-			case 'g':
-				if (str.equals("goto")) return "_" + str;
-				break;
-			case 'i':
-				if (str.equals("if")) return "_" + str;
-				else if (str.equals("implements")) return "_" + str;
-				else if (str.equals("import")) return "_" + str;
-				else if (str.equals("instanceof")) return "_" + str;
-				else if (str.equals("int")) return "_" + str;
-				else if (str.equals("interface")) return "_" + str;
-				break;
-			case 'j':
-				if (str.equals("java")) return "_" + str;
-				break;
-			case 'n':
-				if (str.equals("native")) return "_" + str;
-				else if (str.equals("new")) return "_" + str;
-				else if (str.equals("null")) return "_" + str;
-				break;
-			case 'p':
-				if (str.equals("package")) return "_" + str;
-				else if (str.equals("private")) return "_" + str;
-				else if (str.equals("protected")) return "_" + str;
-				else if (str.equals("public")) return "_" + str;
-				break;
-			case 'r':
-				if (str.equals("return")) return "_" + str;
-				break;
-			case 's':
-				if (str.equals("short")) return "_" + str;
-				else if (str.equals("static")) return "_" + str;
-				else if (str.equals("strictfp")) return "_" + str;
-				else if (str.equals("super")) return "_" + str;
-				else if (str.equals("switch")) return "_" + str;
-				else if (str.equals("synchronized")) return "_" + str;
-				break;
-			case 't':
-				if (str.equals("this")) return "_" + str;
-				else if (str.equals("throw")) return "_" + str;
-				else if (str.equals("throws")) return "_" + str;
-				else if (str.equals("transient")) return "_" + str;
-				else if (str.equals("true")) return "_" + str;
-				else if (str.equals("try")) return "_" + str;
-				break;
-			case 'v':
-				if (str.equals("void")) return "_" + str;
-				else if (str.equals("volatile")) return "_" + str;
-				break;
-			case 'w':
-				if (str.equals("while")) return "_" + str;
-				break;
+		case 'a':
+			if (str.equals("abstract")) return "_" + str;
+			break;
+		case 'b':
+			if (str.equals("boolean")) return "_" + str;
+			else if (str.equals("break")) return "_" + str;
+			else if (str.equals("byte")) return "_" + str;
+			break;
+		case 'c':
+			if (str.equals("case")) return "_" + str;
+			else if (str.equals("catch")) return "_" + str;
+			else if (str.equals("char")) return "_" + str;
+			else if (str.equals("const")) return "_" + str;
+			else if (str.equals("class")) return "_" + str;
+			else if (str.equals("continue")) return "_" + str;
+			break;
+		case 'd':
+			if (str.equals("default")) return "_" + str;
+			else if (str.equals("do")) return "_" + str;
+			else if (str.equals("double")) return "_" + str;
+			break;
+		case 'e':
+			if (str.equals("else")) return "_" + str;
+			else if (str.equals("extends")) return "_" + str;
+			else if (str.equals("enum")) return "_" + str;
+			break;
+		case 'f':
+			if (str.equals("false")) return "_" + str;
+			else if (str.equals("final")) return "_" + str;
+			else if (str.equals("finally")) return "_" + str;
+			else if (str.equals("float")) return "_" + str;
+			else if (str.equals("for")) return "_" + str;
+			break;
+		case 'g':
+			if (str.equals("goto")) return "_" + str;
+			break;
+		case 'i':
+			if (str.equals("if")) return "_" + str;
+			else if (str.equals("implements")) return "_" + str;
+			else if (str.equals("import")) return "_" + str;
+			else if (str.equals("instanceof")) return "_" + str;
+			else if (str.equals("int")) return "_" + str;
+			else if (str.equals("interface")) return "_" + str;
+			break;
+		case 'j':
+			if (str.equals("java")) return "_" + str;
+			break;
+		case 'n':
+			if (str.equals("native")) return "_" + str;
+			else if (str.equals("new")) return "_" + str;
+			else if (str.equals("null")) return "_" + str;
+			break;
+		case 'p':
+			if (str.equals("package")) return "_" + str;
+			else if (str.equals("private")) return "_" + str;
+			else if (str.equals("protected")) return "_" + str;
+			else if (str.equals("public")) return "_" + str;
+			break;
+		case 'r':
+			if (str.equals("return")) return "_" + str;
+			break;
+		case 's':
+			if (str.equals("short")) return "_" + str;
+			else if (str.equals("static")) return "_" + str;
+			else if (str.equals("strictfp")) return "_" + str;
+			else if (str.equals("super")) return "_" + str;
+			else if (str.equals("switch")) return "_" + str;
+			else if (str.equals("synchronized")) return "_" + str;
+			break;
+		case 't':
+			if (str.equals("this")) return "_" + str;
+			else if (str.equals("throw")) return "_" + str;
+			else if (str.equals("throws")) return "_" + str;
+			else if (str.equals("transient")) return "_" + str;
+			else if (str.equals("true")) return "_" + str;
+			else if (str.equals("try")) return "_" + str;
+			break;
+		case 'v':
+			if (str.equals("void")) return "_" + str;
+			else if (str.equals("volatile")) return "_" + str;
+			break;
+		case 'w':
+			if (str.equals("while")) return "_" + str;
+			break;
 		}
 		return str;
 
@@ -569,10 +572,10 @@ public final class StringUtil {
 			if (str.charAt(0) == '\uFEFF') str = str.substring(1);
 			else if (str.charAt(0) == '\uFFFD') str = str.substring(1);
 
-				// UTF-16, little-endian
+			// UTF-16, little-endian
 			else if (str.charAt(0) == '\uFFFE') str = str.substring(1);
 
-				// UTF-8
+			// UTF-8
 			else if (str.length() >= 2) {
 				// TODO i get this from UTF-8 files generated by suplime text, i was expecting something else
 				if (str.charAt(0) == '\uBBEF' && str.charAt(1) == '\uFFFD') str = str.substring(2);
@@ -1430,5 +1433,71 @@ public final class StringUtil {
 	public static String emptyAsNull(String str, boolean trim) {
 		if (isEmpty(str, trim)) return null;
 		return str;
+	}
+
+	/*
+	 * public function cleanSurrogateCharacters(String str) { var SURROGATE_CHARACTERS_RANGE =
+	 * [55296,57343]; var carr = str.toCharArray(); var l=len(carr); for(var i=1;i<=l;i++) { var
+	 * c=carr[i]; var a=asc(c); // detect one if (a >= SURROGATE_CHARACTERS_RANGE[1] && a <=
+	 * SURROGATE_CHARACTERS_RANGE[2]) { if (isNull(sb)) { var
+	 * StringBuilder=createObject('java','java.lang.StringBuilder'); var sb = i == 1 ?
+	 * StringBuilder.init() : StringBuilder.init(mid(str,1,i-1)); } sb&="?"; i++; } else if
+	 * (!isNull(sb)) { sb&=c; } } return isNull(sb) ? str : sb.toString(); }
+	 */
+
+	public static String replaceSurrogateCharacters(String value, int fromIndex, String replacement) {
+		int max = value.length();
+		if (fromIndex < 0) {
+			fromIndex = 0;
+		}
+		else if (fromIndex >= max) {
+			return value;
+		}
+		StringBuilder sb = null;
+		char c;
+		int i;
+		for (i = fromIndex; i < max - 1; i++) {
+			c = value.charAt(i);
+			if (c >= SURROGATE_CHARACTERS_RANGE[0] && c <= SURROGATE_CHARACTERS_RANGE[1]) {
+				c = value.charAt(i + 1);
+				if (c >= SURROGATE_CHARACTERS_RANGE[0] && c <= SURROGATE_CHARACTERS_RANGE[1]) {
+					if (sb == null) {
+						sb = new StringBuilder();
+						if (i > 0) sb.append(value.substring(0, i));
+					}
+					i++;
+					sb.append(replacement);
+					continue;
+				}
+			}
+			if (sb != null) sb.append(c);
+		}
+		if (sb == null) return value;
+		if (i < value.length()) sb.append(value.charAt(value.length() - 1));
+		return sb.toString();
+	}
+
+	public static int indexOfSurrogateCharacters(String value, int fromIndex) {
+		int max = value.length();
+		if (fromIndex < 0) {
+			fromIndex = 0;
+		}
+		else if (fromIndex >= max) {
+			return -1;
+		}
+		char c;
+		for (int i = fromIndex; i < max - 1; i++) {
+			c = value.charAt(i);
+			if (c >= SURROGATE_CHARACTERS_RANGE[0] && c <= SURROGATE_CHARACTERS_RANGE[1]) {
+				c = value.charAt(i + 1);
+				if (c >= SURROGATE_CHARACTERS_RANGE[0] && c <= SURROGATE_CHARACTERS_RANGE[1]) return i;
+				i++;
+			}
+		}
+		return -1;
+	}
+
+	public static boolean isCompatibleWith(String value, Charset cs) {
+		return value.equals(new String(value.getBytes(cs), cs));
 	}
 }

@@ -19,12 +19,14 @@
  **/
 package lucee.runtime.tag.util;
 
+import java.nio.charset.Charset;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
+import lucee.commons.io.CharsetUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.db.SQL;
 import lucee.runtime.db.SQLCaster;
@@ -89,11 +91,13 @@ public class QueryParamConverter {
 				// value (required)
 				paramValue = sct.get(KeyConstants._value);
 
+				Charset charset = CharsetUtil.toCharset(Caster.toString(sct.get(KeyConstants._charset, null), null), null);
+
 				if (StringUtil.isEmpty(name)) {
-					items.add(new SQLItems<SQLItem>(new SQLItemImpl(paramValue, Types.VARCHAR), sct));
+					items.add(new SQLItems<SQLItem>(new SQLItemImpl(paramValue, Types.VARCHAR, charset), sct));
 				}
 				else {
-					namedItems.add(new SQLItems<NamedSQLItem>(new NamedSQLItem(name, paramValue, Types.VARCHAR), sct));
+					namedItems.add(new SQLItems<NamedSQLItem>(new NamedSQLItem(name, paramValue, Types.VARCHAR, charset), sct));
 				}
 			}
 			else {
@@ -120,9 +124,10 @@ public class QueryParamConverter {
 			Struct sct = (Struct) value;
 			// value (required if not null)
 			value = isParamNull(sct) ? "" : sct.get(KeyConstants._value);
-			return new SQLItems<NamedSQLItem>(new NamedSQLItem(name, value, Types.VARCHAR), sct); // extracting the type is not necessary, that will happen inside SQLItems
+			Charset charset = isParamNull(sct) ? null : CharsetUtil.toCharset(Caster.toString(sct.get(KeyConstants._charset, null), null), null);
+			return new SQLItems<NamedSQLItem>(new NamedSQLItem(name, value, Types.VARCHAR, charset), sct); // extracting the type is not necessary, that will happen inside SQLItems
 		}
-		return new SQLItems<NamedSQLItem>(new NamedSQLItem(name, value, Types.VARCHAR));
+		return new SQLItems<NamedSQLItem>(new NamedSQLItem(name, value, Types.VARCHAR, null));
 	}
 
 	private static SQL convert(String sql, List<SQLItems<SQLItem>> items, List<SQLItems<NamedSQLItem>> namedItems) throws ApplicationException, PageException {
@@ -244,8 +249,8 @@ public class QueryParamConverter {
 	private static class NamedSQLItem extends SQLItemImpl {
 		public final String name;
 
-		public NamedSQLItem(String name, Object value, int type) {
-			super(value, type);
+		public NamedSQLItem(String name, Object value, int type, Charset charset) {
+			super(value, type, charset);
 			this.name = name;
 		}
 
@@ -260,7 +265,7 @@ public class QueryParamConverter {
 
 		@Override
 		public NamedSQLItem clone(Object object) {
-			NamedSQLItem item = new NamedSQLItem(name, object, getType());
+			NamedSQLItem item = new NamedSQLItem(name, object, getType(), getCharset());
 			item.setNulls(isNulls());
 			item.setScale(getScale());
 			return item;
