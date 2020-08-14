@@ -28,6 +28,7 @@
 				struct(action:"output",label:arguments.stMenu.server.output),
 				struct(action:"error",label:arguments.stMenu.server.error),
 				struct(action:"logging",label:arguments.stMenu.server.logging),
+				struct(action:"regex",label:(arguments.stMenu.server.regex?:"Regex")),
 				struct(action:"export",label:arguments.stMenu.server.export)
 			)
 		),

@@ -74,6 +74,8 @@ import lucee.runtime.net.s3.Properties;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.orm.ORMConfiguration;
+import lucee.runtime.regex.Regex;
+import lucee.runtime.regex.RegexFactory;
 import lucee.runtime.rest.RestSettingImpl;
 import lucee.runtime.rest.RestSettings;
 import lucee.runtime.tag.Query;
@@ -158,6 +160,9 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private static final Key XML_FEATURES = KeyImpl.intern("xmlFeatures");
 	private static final Key SEARCH_QUERIES = KeyImpl.intern("searchQueries");
 	private static final Key SEARCH_RESULTS = KeyImpl.intern("searchResults");
+	private static final Key REGEX = KeyImpl.intern("regex");
+	private static final Key ENGINE = KeyImpl.intern("engine");
+	private static final Key DIALECT = KeyImpl.intern("dialect");
 
 	private static Map<String, CacheConnection> initCacheConnections = new ConcurrentHashMap<String, CacheConnection>();
 
@@ -280,6 +285,8 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean initProxyData;
 	private boolean initBlockedExtForFileUpload;
 	private boolean initXmlFeatures;
+	private boolean initRegex;
+
 	private Struct xmlFeatures;
 
 	private Resource antiSamyPolicyResource;
@@ -299,6 +306,8 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean initFuncDirs = false;
 
 	private boolean allowImplicidQueryCall;
+
+	private Regex regex;
 
 	public ModernApplicationContext(PageContext pc, Component cfc, RefBoolean throwsErrorWhileInit) {
 		super(pc.getConfig());
@@ -341,6 +350,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		this.restSetting = config.getRestSetting();
 		this.javaSettings = new JavaSettingsImpl();
 		this.component = cfc;
+		this.regex = ci.getRegex();
 
 		initAntiSamyPolicyResource(pc);
 		if (antiSamyPolicyResource == null) this.antiSamyPolicyResource = ((ConfigImpl) config).getAntiSamyPolicy();
@@ -1869,5 +1879,32 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public void setAllowImplicidQueryCall(boolean allowImplicidQueryCall) {
 		this.allowImplicidQueryCall = allowImplicidQueryCall;
+	}
+
+	@Override
+	public Regex getRegex() {
+		if (!initRegex) {
+
+			Struct sct = Caster.toStruct(get(component, REGEX, null), null);
+			if (sct != null) {
+				String str = Caster.toString(sct.get(ENGINE, null), null);
+				if (StringUtil.isEmpty(str, true)) str = Caster.toString(sct.get(KeyConstants._type, null), null);
+				if (StringUtil.isEmpty(str, true)) str = Caster.toString(sct.get(DIALECT, null), null);
+				if (!StringUtil.isEmpty(str, true)) {
+					int type = RegexFactory.toType(str, -1);
+					if (type != -1) {
+						Regex tmp = RegexFactory.toRegex(type, null);
+						if (tmp != null) regex = tmp;
+					}
+				}
+			}
+			initRegex = true;
+		}
+		return regex;
+	}
+
+	@Override
+	public void setRegex(Regex regex) {
+		this.regex = regex;
 	}
 }

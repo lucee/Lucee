@@ -148,7 +148,7 @@ import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.orm.ORMEngine;
 import lucee.runtime.orm.ORMSession;
 import lucee.runtime.osgi.OSGiUtil;
-import lucee.runtime.regex.Perl5Util;
+import lucee.runtime.regex.Regex;
 import lucee.runtime.rest.RestRequestListener;
 import lucee.runtime.rest.RestUtil;
 import lucee.runtime.security.Credential;
@@ -1587,7 +1587,7 @@ public final class PageContextImpl extends PageContext {
 
 				if (strPattern == null) throw new ExpressionException("Missing attribute [pattern]");
 
-				if (!Perl5Util.matches(strPattern, str)) throw new ExpressionException("The value [" + str + "] doesn't match the provided pattern [" + strPattern + "]");
+				if (!getRegex().matches(strPattern, str)) throw new ExpressionException("The value [" + str + "] doesn't match the provided pattern [" + strPattern + "]");
 				setVariable(name, str);
 			}
 			else if (type.equals("int") || type.equals("integer")) {
@@ -3747,5 +3747,10 @@ public final class PageContextImpl extends PageContext {
 	public boolean allowImplicidQueryCall() {
 		if (applicationContext != null) return applicationContext.getAllowImplicidQueryCall();
 		return config.allowImplicidQueryCall();
+	}
+
+	public Regex getRegex() {
+		if (applicationContext != null) return applicationContext.getRegex();
+		return config.getRegex();
 	}
 }

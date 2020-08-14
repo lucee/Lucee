@@ -71,6 +71,8 @@ import lucee.runtime.type.util.ArrayUtil;
  */
 public final class ConfigWebUtil {
 
+	private static String enckey;
+
 	/**
 	 * default encryption for configuration (not very secure)
 	 * 
@@ -80,7 +82,7 @@ public final class ConfigWebUtil {
 	public static String decrypt(String str) {
 		if (StringUtil.isEmpty(str) || !StringUtil.startsWithIgnoreCase(str, "encrypted:")) return str;
 		str = str.substring(10);
-		return new BlowfishEasy("sdfsdfs").decryptString(str);
+		return new BlowfishEasy(getEncKey()).decryptString(str);
 	}
 
 	/**
@@ -92,7 +94,14 @@ public final class ConfigWebUtil {
 	public static String encrypt(String str) {
 		if (StringUtil.isEmpty(str)) return "";
 		if (StringUtil.startsWithIgnoreCase(str, "encrypted:")) return str;
-		return "encrypted:" + new BlowfishEasy("sdfsdfs").encryptString(str);
+		return "encrypted:" + new BlowfishEasy(getEncKey()).encryptString(str);
+	}
+
+	private static String getEncKey() {
+		if (enckey == null) {
+			enckey = SystemUtil.getSystemPropOrEnvVar("lucee.password.enc.key", "sdfsdfs");
+		}
+		return enckey;
 	}
 
 	/**

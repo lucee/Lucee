@@ -19,15 +19,13 @@
 
 package lucee.runtime.functions.string;
 
-import org.apache.oro.text.regex.MalformedPatternException;
-
 import lucee.runtime.PageContext;
-import lucee.runtime.exp.ExpressionException;
+import lucee.runtime.PageContextImpl;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
-import lucee.runtime.regex.Perl5Util;
+import lucee.runtime.regex.Regex;
 
 /**
  * Implements the CFML Function refindnocase
@@ -36,33 +34,32 @@ public final class REFindNoCase extends BIF {
 
 	private static final long serialVersionUID = 1562665117076202965L;
 
-	public static Object call(PageContext pc, String regExpr, String str) throws ExpressionException {
+	public static Object call(PageContext pc, String regExpr, String str) throws PageException {
 		return call(pc, regExpr, str, 1, false, null, false);
 	}
 
-	public static Object call(PageContext pc, String regExpr, String str, double start) throws ExpressionException {
+	public static Object call(PageContext pc, String regExpr, String str, double start) throws PageException {
 		return call(pc, regExpr, str, start, false, null, false);
 	}
 
-	public static Object call(PageContext pc, String regExpr, String str, double start, boolean returnsubexpressions) throws ExpressionException {
+	public static Object call(PageContext pc, String regExpr, String str, double start, boolean returnsubexpressions) throws PageException {
 		return call(pc, regExpr, str, start, returnsubexpressions, null, false);
 	}
 
-	public static Object call(PageContext pc, String regExpr, String str, double start, boolean returnsubexpressions, String scope) throws ExpressionException {
+	public static Object call(PageContext pc, String regExpr, String str, double start, boolean returnsubexpressions, String scope) throws PageException {
 		return call(pc, regExpr, str, start, returnsubexpressions, scope, false);
 	}
 
-	public static Object call(PageContext pc, String regExpr, String str, double start, boolean returnsubexpressions, String scope, boolean multiline) throws ExpressionException {
-		try {
-			boolean isMatchAll = scope == null ? false : scope.equalsIgnoreCase("all");
-			if (returnsubexpressions) {
-				return Perl5Util.find(regExpr, str, (int) start, false, isMatchAll, multiline);
-			}
-			return Perl5Util.indexOf(regExpr, str, (int) start, false, isMatchAll, multiline);
+	public static Object call(PageContext pc, String regExpr, String str, double start, boolean returnsubexpressions, String scope, boolean multiline) throws PageException {
+		Regex regex = ((PageContextImpl) pc).getRegex();
+		boolean isMatchAll = scope == null ? false : scope.equalsIgnoreCase("all");
+		if (returnsubexpressions) {
+			if (isMatchAll) return regex.findAll(regExpr, str, (int) start, false, multiline);
+			return regex.find(regExpr, str, (int) start, false, multiline);
 		}
-		catch (MalformedPatternException e) {
-			throw new FunctionException(pc, "reFindNoCase", 1, "regularExpression", e.getMessage());
-		}
+		if (isMatchAll) return regex.indexOfAll(regExpr, str, (int) start, false, multiline);
+		return regex.indexOf(regExpr, str, (int) start, false, multiline);
+
 	}
 
 	@Override

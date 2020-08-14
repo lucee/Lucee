@@ -45,6 +45,7 @@ import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Duplicator;
+import lucee.runtime.regex.Regex;
 import lucee.runtime.tag.listener.TagListener;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
@@ -474,5 +475,9 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 	public abstract boolean getAllowImplicidQueryCall();
 
 	public abstract void setAllowImplicidQueryCall(boolean allowImplicidQueryCall);
+
+	public abstract Regex getRegex();
+
+	public abstract void setRegex(Regex regex);
 
 }

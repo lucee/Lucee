@@ -165,6 +165,7 @@ import lucee.runtime.osgi.BundleInfo;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.reflection.pairs.ConstructorInstance;
+import lucee.runtime.regex.RegexFactory;
 import lucee.runtime.search.DummySearchEngine;
 import lucee.runtime.search.SearchEngine;
 import lucee.runtime.security.SecurityManager;
@@ -499,6 +500,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded debug");
 		_loadError(cs, config, doc, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded error");
+		_loadRegex(cs, config, doc, log);
+		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded regex");
 		_loadCFX(cs, config, doc, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded cfx");
 		_loadComponent(cs, config, doc, mode, log);
@@ -4731,6 +4734,28 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				config.setErrorStatusCode(bStausCode.booleanValue());
 			}
 			else if (hasCS) config.setErrorStatusCode(configServer.getErrorStatusCode());
+		}
+		catch (Exception e) {
+			log(config, log, e);
+		}
+
+	}
+
+	private static void _loadRegex(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+		try {
+			Element regex = doc != null ? getChildByName(doc.getDocumentElement(), "regex") : null;
+			boolean hasCS = configServer != null;
+			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+
+			String strType = getAttr(regex, "type");
+			int type = StringUtil.isEmpty(strType) ? RegexFactory.TYPE_UNDEFINED : RegexFactory.toType(strType, RegexFactory.TYPE_UNDEFINED);
+
+			if (hasAccess && type != RegexFactory.TYPE_UNDEFINED) {
+				config.setRegex(RegexFactory.toRegex(type, null));
+			}
+			else if (hasCS) config.setRegex(configServer.getRegex());
+			else config.setRegex(RegexFactory.toRegex(RegexFactory.TYPE_PERL, null));
+
 		}
 		catch (Exception e) {
 			log(config, log, e);

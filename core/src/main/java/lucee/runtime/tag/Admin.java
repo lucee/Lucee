@@ -682,6 +682,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		else if (check("getSecurity", ACCESS_FREE) && check2(ACCESS_READ)) doGetSecurity();
 		else if (check("getDebugEntry", ACCESS_FREE)) doGetDebugEntry();
 		else if (check("getError", ACCESS_FREE) && check2(ACCESS_READ)) doGetError();
+		else if (check("getRegex", ACCESS_FREE) && check2(ACCESS_READ)) doGetRegex();
 		else if (check("verifyremoteclient", ACCESS_FREE) && check2(ACCESS_READ)) doVerifyRemoteClient();
 		else if (check("verifyDatasource", ACCESS_FREE) && check2(ACCESS_READ)) doVerifyDatasource();
 		else if (check("verifyCacheConnection", ACCESS_FREE) && check2(ACCESS_READ)) doVerifyCacheConnection();
@@ -734,6 +735,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		else if (check("updatedebugsetting", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateDebugSetting();
 
 		else if (check("updateerror", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateError();
+		else if (check("updateregex", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateRegex();
 		else if (check("updateCustomTagSetting", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateCustomTagSetting();
 		// else if(check("updateExtension", ACCESS_FREE) && check2(ACCESS_WRITE))
 		// doUpdateExtension();
@@ -1458,6 +1460,12 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	}
 
+	private void doGetRegex() throws PageException {
+		Struct sct = new StructImpl();
+		pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
+		sct.set(KeyConstants._type, config.getRegex().getTypeName());
+	}
+
 	/**
 	 * @throws PageException
 	 * 
@@ -1766,6 +1774,13 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		admin.updateErrorTemplate(500, getString("admin", action, "template500"));
 		admin.updateErrorTemplate(404, getString("admin", action, "template404"));
 		admin.updateErrorStatusCode(getBoolObject("admin", action, "statuscode"));
+		store();
+		adminSync.broadcast(attributes, config);
+	}
+
+	private void doUpdateRegex() throws PageException {
+
+		admin.updateRegexType(getString("admin", action, "regextype"));
 		store();
 		adminSync.broadcast(attributes, config);
 	}

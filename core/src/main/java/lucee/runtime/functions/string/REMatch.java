@@ -21,37 +21,28 @@
  */
 package lucee.runtime.functions.string;
 
-import org.apache.oro.text.regex.MalformedPatternException;
-
 import lucee.runtime.PageContext;
-import lucee.runtime.exp.ExpressionException;
+import lucee.runtime.PageContextImpl;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
-import lucee.runtime.regex.Perl5Util;
+import lucee.runtime.regex.Regex;
 import lucee.runtime.type.Array;
 
 public final class REMatch extends BIF {
 
 	private static final long serialVersionUID = 5332412717334906052L;
 
-	public static Array call(PageContext pc, String regExpr, String str) throws ExpressionException {
-		try {
-			return Perl5Util.match(regExpr, str, 1, true, false);
-		}
-		catch (MalformedPatternException e) {
-			throw new FunctionException(pc, "REMatch", 1, "regularExpression", e.getMessage());
-		}
+	public static Array call(PageContext pc, String regExpr, String str) throws PageException {
+		Regex regex = ((PageContextImpl) pc).getRegex();
+		return regex.matchAll(regExpr, str, 1, true, false);
+
 	}
 
-	public static Array call(PageContext pc, String regExpr, String str, boolean multiline) throws ExpressionException {
-		try {
-			return Perl5Util.match(regExpr, str, 1, true, multiline);
-		}
-		catch (MalformedPatternException e) {
-			throw new FunctionException(pc, "REMatch", 1, "regularExpression", e.getMessage());
-		}
+	public static Array call(PageContext pc, String regExpr, String str, boolean multiline) throws PageException {
+		Regex regex = ((PageContextImpl) pc).getRegex();
+		return regex.matchAll(regExpr, str, 1, true, multiline);
 	}
 
 	@Override

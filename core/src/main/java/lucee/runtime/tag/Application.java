@@ -52,7 +52,10 @@ import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.listener.SessionCookieData;
 import lucee.runtime.net.proxy.ProxyDataImpl;
 import lucee.runtime.op.Caster;
+import lucee.runtime.op.Decision;
 import lucee.runtime.orm.ORMUtil;
+import lucee.runtime.regex.Regex;
+import lucee.runtime.regex.RegexFactory;
 import lucee.runtime.tag.listener.TagListener;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection.Key;
@@ -157,6 +160,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 	private Struct javaSettings;
 	private Struct xmlFeatures;
 	private Map<Key, Object> dynAttrs;
+	private Regex regex;
 
 	@Override
 	public void release() {
@@ -238,6 +242,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		javaSettings = null;
 		xmlFeatures = null;
 		dynAttrs = null;
+		regex = null;
 	}
 
 	@Override
@@ -661,6 +666,21 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		this.xmlFeatures = xmlFeatures;
 	}
 
+	public void setRegex(Object data) throws PageException {
+		if (Decision.isSimpleValue(data)) {
+			regex = RegexFactory.toRegex(RegexFactory.toType(Caster.toString(data)), null);
+		}
+		else {
+			Struct sct = Caster.toStruct(data);
+			Object o = sct.get(KeyConstants._type, null);
+			if (o == null) o = sct.get("engine", null);
+			if (o == null) o = sct.get("dialect", null);
+			if (o != null) {
+				regex = RegexFactory.toRegex(RegexFactory.toType(Caster.toString(o)), null);
+			}
+		}
+	}
+
 	@Override
 	public int doStartTag() throws PageException {
 
@@ -858,7 +878,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 
 			if (xmlFeatures != null) appContextSup.setXmlFeatures(xmlFeatures);
 			if (searchQueries != null) appContextSup.setAllowImplicidQueryCall(searchQueries.booleanValue());
-
+			if (regex != null) appContextSup.setRegex(regex);
 		}
 
 		// ORM

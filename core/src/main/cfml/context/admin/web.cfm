@@ -221,7 +221,6 @@
 	</cfif>
 	<cfreturn language>
 </cffunction>
-
 <cfset navigation = stText.MenuStruct[request.adminType]>
 
 <cfset plugins = []>

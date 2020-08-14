@@ -818,6 +818,13 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<required>false</required>
 			<description>Allows to set XML Features to prevent XXE attacks</description>
 		</attribute>
+		<attribute>
+			<name>regex</name>
+			<type>any</type>
+			<required>false</required>
+			<description>allow to define a struct containg the configuration for regular expressions, 
+			ATM only the key "engine" is supported, with the possible values [java,perl] to choose the regex dialect.</description>
+		</attribute>
 	</tag>
 
 	<!-- Argument -->

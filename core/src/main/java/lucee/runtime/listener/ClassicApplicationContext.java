@@ -49,6 +49,7 @@ import lucee.runtime.net.s3.Properties;
 import lucee.runtime.net.s3.PropertiesImpl;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.orm.ORMConfiguration;
+import lucee.runtime.regex.Regex;
 import lucee.runtime.rest.RestSettings;
 import lucee.runtime.tag.listener.TagListener;
 import lucee.runtime.type.Collection;
@@ -153,6 +154,8 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 
 	private boolean allowImplicidQueryCall;
 
+	private Regex regex;
+
 	/**
 	 * constructor of the class
 	 * 
@@ -203,6 +206,7 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 		this.wstype = WS_TYPE_AXIS1;
 		cgiScopeReadonly = ((ConfigImpl) config).getCGIScopeReadonly();
 		this.antiSamyPolicy = ((ConfigImpl) config).getAntiSamyPolicy();
+		this.regex = ((ConfigImpl) config).getRegex();
 	}
 
 	/**
@@ -1097,5 +1101,15 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 
 	public Map<Key, Object> getCustomAttributes() {
 		return customAttrs;
+	}
+
+	@Override
+	public Regex getRegex() {
+		return regex;
+	}
+
+	@Override
+	public void setRegex(Regex regex) {
+		this.regex = regex;
 	}
 }

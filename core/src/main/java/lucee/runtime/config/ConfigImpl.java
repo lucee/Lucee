@@ -127,6 +127,8 @@ import lucee.runtime.orm.ORMEngine;
 import lucee.runtime.osgi.BundleInfo;
 import lucee.runtime.osgi.EnvClassLoader;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
+import lucee.runtime.regex.Regex;
+import lucee.runtime.regex.RegexFactory;
 import lucee.runtime.rest.RestSettingImpl;
 import lucee.runtime.rest.RestSettings;
 import lucee.runtime.schedule.Scheduler;
@@ -436,6 +438,8 @@ public abstract class ConfigImpl implements Config {
 	private TimeSpan cachedAfterTimeRange;
 
 	private static Map<String, Startup> startups;
+
+	private Regex regex; // TODO add possibility to configure
 
 	/**
 	 * @return the allowURLRequestTimeout
@@ -3935,5 +3939,14 @@ public abstract class ConfigImpl implements Config {
 			this.cd = cd;
 			this.instance = instance;
 		}
+	}
+
+	public Regex getRegex() {
+		if (regex == null) regex = RegexFactory.toRegex(RegexFactory.TYPE_PERL, null);
+		return regex;
+	}
+
+	protected void setRegex(Regex regex) {
+		this.regex = regex;
 	}
 }

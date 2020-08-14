@@ -128,6 +128,7 @@ import lucee.runtime.osgi.BundleInfo;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
 import lucee.runtime.reflection.Reflector;
+import lucee.runtime.regex.RegexFactory;
 import lucee.runtime.search.SearchEngine;
 import lucee.runtime.security.SecurityManager;
 import lucee.runtime.security.SecurityManagerImpl;
@@ -3265,7 +3266,7 @@ public final class XMLConfigAdmin {
 	 */
 	public void updateDebugTemplate(String template) throws SecurityException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_DEBUGGING);
+		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to change debugging settings");
 
 		Element debugging = _getRootElement("debugging");
@@ -3281,7 +3282,7 @@ public final class XMLConfigAdmin {
 	 */
 	public void updateErrorTemplate(int statusCode, String template) throws SecurityException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_DEBUGGING);
+		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to change error settings");
 
 		Element error = _getRootElement("error");
@@ -3291,11 +3292,21 @@ public final class XMLConfigAdmin {
 
 	public void updateErrorStatusCode(Boolean doStatusCode) throws SecurityException {
 		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_DEBUGGING);
+		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to change error settings");
 
 		Element error = _getRootElement("error");
 		error.setAttribute("status-code", Caster.toString(doStatusCode, ""));
+	}
+
+	public void updateRegexType(String type) throws PageException {
+		checkWriteAccess();
+		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+		if (!hasAccess) throw new SecurityException("no access to change regex settings");
+
+		Element regex = _getRootElement("regex");
+		if (StringUtil.isEmpty(type)) regex.removeAttribute("type");
+		else regex.setAttribute("type", RegexFactory.toType(RegexFactory.toType(type), "perl"));
 	}
 
 	/**
