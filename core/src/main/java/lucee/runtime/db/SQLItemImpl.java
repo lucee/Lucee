@@ -53,6 +53,8 @@ public class SQLItemImpl implements SQLItem, Serializable {
 
 	private Charset charset;
 
+	private int maxlength = -1;
+
 	/**
 	 * constructor of the class
 	 */
@@ -77,10 +79,11 @@ public class SQLItemImpl implements SQLItem, Serializable {
 		this.type = type;
 	}
 
-	public SQLItemImpl(Object value, int type, Charset charset) {
+	public SQLItemImpl(Object value, int type, int maxlength, Charset charset) {
 		this.value = value;
 		this.type = type;
 		this.charset = charset;
+		this.maxlength = maxlength;
 	}
 
 	@Override
@@ -152,6 +155,10 @@ public class SQLItemImpl implements SQLItem, Serializable {
 		return charset;
 	}
 
+	public int getMaxlength() {
+		return maxlength;
+	}
+
 	@Override
 	public String toString() {
 		try {
@@ -168,7 +175,7 @@ public class SQLItemImpl implements SQLItem, Serializable {
 	}
 
 	public SQLItem duplicate() {
-		SQLItemImpl rtn = new SQLItemImpl(value, type, charset);
+		SQLItemImpl rtn = new SQLItemImpl(value, type, maxlength, charset);
 		rtn.nulls = nulls;
 		rtn.cfValue = cfValue;
 		rtn.isValueSet = isValueSet;

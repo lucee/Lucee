@@ -92,12 +92,13 @@ public class QueryParamConverter {
 				paramValue = sct.get(KeyConstants._value);
 
 				Charset charset = CharsetUtil.toCharset(Caster.toString(sct.get(KeyConstants._charset, null), null), null);
+				int maxlength = Caster.toIntValue(sct.get("maxlength", null), -1);
 
 				if (StringUtil.isEmpty(name)) {
-					items.add(new SQLItems<SQLItem>(new SQLItemImpl(paramValue, Types.VARCHAR, charset), sct));
+					items.add(new SQLItems<SQLItem>(new SQLItemImpl(paramValue, Types.VARCHAR, maxlength, charset), sct));
 				}
 				else {
-					namedItems.add(new SQLItems<NamedSQLItem>(new NamedSQLItem(name, paramValue, Types.VARCHAR, charset), sct));
+					namedItems.add(new SQLItems<NamedSQLItem>(new NamedSQLItem(name, paramValue, Types.VARCHAR, maxlength, charset), sct));
 				}
 			}
 			else {
@@ -125,9 +126,11 @@ public class QueryParamConverter {
 			// value (required if not null)
 			value = isParamNull(sct) ? "" : sct.get(KeyConstants._value);
 			Charset charset = isParamNull(sct) ? null : CharsetUtil.toCharset(Caster.toString(sct.get(KeyConstants._charset, null), null), null);
-			return new SQLItems<NamedSQLItem>(new NamedSQLItem(name, value, Types.VARCHAR, charset), sct); // extracting the type is not necessary, that will happen inside SQLItems
+			int maxlength = isParamNull(sct) ? -1 : Caster.toIntValue(sct.get("maxlength", null), -1);
+			return new SQLItems<NamedSQLItem>(new NamedSQLItem(name, value, Types.VARCHAR, maxlength, charset), sct); // extracting the type is not necessary, that will happen
+																														// inside SQLItems
 		}
-		return new SQLItems<NamedSQLItem>(new NamedSQLItem(name, value, Types.VARCHAR, null));
+		return new SQLItems<NamedSQLItem>(new NamedSQLItem(name, value, Types.VARCHAR, -1, null));
 	}
 
 	private static SQL convert(String sql, List<SQLItems<SQLItem>> items, List<SQLItems<NamedSQLItem>> namedItems) throws ApplicationException, PageException {
@@ -249,8 +252,8 @@ public class QueryParamConverter {
 	private static class NamedSQLItem extends SQLItemImpl {
 		public final String name;
 
-		public NamedSQLItem(String name, Object value, int type, Charset charset) {
-			super(value, type, charset);
+		public NamedSQLItem(String name, Object value, int type, int maxlength, Charset charset) {
+			super(value, type, maxlength, charset);
 			this.name = name;
 		}
 
@@ -265,7 +268,7 @@ public class QueryParamConverter {
 
 		@Override
 		public NamedSQLItem clone(Object object) {
-			NamedSQLItem item = new NamedSQLItem(name, object, getType(), getCharset());
+			NamedSQLItem item = new NamedSQLItem(name, object, getType(), getMaxlength(), getCharset());
 			item.setNulls(isNulls());
 			item.setScale(getScale());
 			return item;

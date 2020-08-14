@@ -213,14 +213,14 @@ public final class QueryParam extends TagImpl {
 				int len = arr.size();
 				StringBuffer sb = new StringBuffer();
 				for (int i = 1; i <= len; i++) {
-					query.setParam(item.clone(check(arr.getE(i), item.getType())));
+					query.setParam(item.clone(check(arr.getE(i), item.getType(), (int) maxlength, charset)));
 					if (i > 1) sb.append(',');
 					sb.append('?');
 				}
 				write(sb.toString());
 			}
 			else {
-				check(item.getValue(), item.getType());
+				check(item.getValue(), item.getType(), (int) maxlength, charset);
 				query.setParam(item);
 				write("?");
 			}
@@ -231,7 +231,7 @@ public final class QueryParam extends TagImpl {
 		return SKIP_BODY;
 	}
 
-	private Object check(Object value, int type) throws PageException {
+	public static Object check(Object value, int type, int maxlength, Charset charset) throws PageException {
 		if (maxlength != -1 || charset != null) {
 
 			String str;
@@ -251,14 +251,15 @@ public final class QueryParam extends TagImpl {
 						"the given value [" + (str.length() > 20 ? str.substring(0, 20) + "..." : str) + "] is not compatible with the requested charset [" + charset + "] ", null,
 						null, null);
 			}
-
-			if (maxlength != -1 && str.getBytes(charset == null ? pageContext.getResourceCharset() : charset).length > maxlength) {
-				throw new DatabaseException(
-						"value [" + value + "] is too large, defined maxlength is [" + Caster.toString(maxlength) + "] but length of value is [" + str.length() + "]", null, null,
-						null);
+			if (maxlength > 0) {
+				int len = charset == null ? str.length() : str.getBytes(charset).length;
+				if (len > maxlength) {
+					throw new DatabaseException(
+							"value [" + value + "] is too large, defined maxlength is [" + Caster.toString(maxlength) + "] but binary length of value is [" + len + "]", null, null,
+							null);
+				}
 			}
 		}
-
 		return value;
 	}
 

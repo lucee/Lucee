@@ -56,6 +56,7 @@ import lucee.runtime.db.HSQLDBHandler;
 import lucee.runtime.db.SQL;
 import lucee.runtime.db.SQLImpl;
 import lucee.runtime.db.SQLItem;
+import lucee.runtime.db.SQLItemImpl;
 import lucee.runtime.debug.DebuggerImpl;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.CasterException;
@@ -583,6 +584,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 			else {
 				sqlQuery = data.items.isEmpty() ? new SQLImpl(strSQL) : new SQLImpl(strSQL, data.items.toArray(new SQLItem[data.items.size()]));
 			}
+			validate(sqlQuery);
 
 			// lucee.runtime.type.Query query=null;
 			QueryResult queryResult = null;
@@ -786,6 +788,15 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 			}
 		}
 		return EVAL_PAGE;
+	}
+
+	private static void validate(SQL sql) throws PageException {
+		SQLItem[] items = sql.getItems();
+		if (items == null) return;
+		for (SQLItem item: items) {
+			SQLItemImpl _item = (SQLItemImpl) item;
+			QueryParam.check(item.getValue(), item.getType(), _item.getMaxlength(), _item.getCharset());
+		}
 	}
 
 	private static Struct createMetaData(PageContext pageContext, QueryBean data, QueryResult queryResult, SQL sqlQuery, boolean setVars, long exe) throws PageException {
