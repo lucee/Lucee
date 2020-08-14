@@ -112,7 +112,7 @@
 	</cfif>
 	<tr>
 		<td class="label">Java Stacktrace</td>
-		<td>#replace( catch.stacktrace, chr(10), "<br><span style='margin-right: 1em;'>&nbsp;</span>", "all" )#</td>
+		<td>#replace( HTMLEditFormat(catch.stacktrace), chr(10), "<br><span style='margin-right: 1em;'>&nbsp;</span>", "all" )#</td>
 	</tr>
 	<tr>
 		<td class="label">Timestamp</td>
