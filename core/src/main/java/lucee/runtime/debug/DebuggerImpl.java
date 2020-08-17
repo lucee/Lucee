@@ -463,7 +463,6 @@ public final class DebuggerImpl implements Debugger {
 		ArrayList<DebugEntryTemplate> arrPages = null;
 		Query qryPage = null;
 		if (entries.size() > 0) {
-			print.e("querry-time1:" + queryTime);
 			int row = 0;
 			arrPages = toArray();
 			int len = arrPages.size();
