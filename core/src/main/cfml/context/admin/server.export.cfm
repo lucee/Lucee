@@ -187,7 +187,7 @@ component {
 	this.scopeCascading = "#scope.scopeCascadingType#";
 	this.searchResults = #trueFalseFormat(scope.allowImplicidQueryCall)#;
 // regex
-	this.regex.type = #regex.type#;
+	this.regex.type = "#regex.type#";
 //////////////////////////////////////////////
 //               MAIL SERVERS               //
 //////////////////////////////////////////////
