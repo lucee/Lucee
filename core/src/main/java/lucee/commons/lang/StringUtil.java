@@ -27,11 +27,14 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection;
+import lucee.runtime.type.Collection.Key;
+import lucee.runtime.type.Struct;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.util.ArrayUtil;
 
@@ -1337,25 +1340,19 @@ public final class StringUtil {
 	 * @return
 	 * @throws PageException
 	 */
-	public static String replaceMap(String input, Map map, boolean ignoreCase) throws PageException {
-		// if (doResolveInternals) map = resolveInternals(map, ignoreCase, 0);
-
+	public static String replaceStruct(String input, Struct data, boolean ignoreCase) throws PageException {
 		CharSequence result = input;
-		Iterator<Map.Entry> it = map.entrySet().iterator();
-		Map.Entry e;
+		Iterator<Entry<Key, Object>> it = data.entryIterator();
+		Map.Entry<Key, Object> e;
 		Map<Pos, String> positions = new LinkedHashMap<>();
 		String k, v;
 		List<Pos> tmp;
 		while (it.hasNext()) {
 			e = it.next();
-			k = Caster.toString(e.getKey());
+			k = e.getKey().getString();
 			v = Caster.toString(e.getValue());
 			tmp = new ArrayList<Pos>();
-			if (positions.containsValue(v)) {
-				break;
-			}
-			result = _replace(result.toString(), k, v, true, ignoreCase, tmp);
-
+			result = _replace(result.toString(), k, placeholder(k), false, ignoreCase, tmp);
 			for (Pos pos: tmp) {
 				positions.put(pos, v);
 			}
