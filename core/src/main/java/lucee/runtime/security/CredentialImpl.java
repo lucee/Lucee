@@ -22,9 +22,13 @@ import java.io.IOException;
 import java.util.Set;
 
 import lucee.commons.digest.MD5;
+import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.coder.Base64Coder;
+import lucee.runtime.crypt.Cryptor;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
@@ -39,7 +43,10 @@ public final class CredentialImpl implements Credential {
 	String password;
 	String[] roles;
 	private Resource rolesDir;
+	private static byte[] salt = "nkhuvghcgtcnkjnln".getBytes(CharsetUtil.UTF8);
+	private static String privateKey;
 	private static final char ONE = (char) 1;
+	private static final String ALGO = "BLOWFISH";
 
 	/**
 	 * credential constructor
@@ -96,6 +103,7 @@ public final class CredentialImpl implements Credential {
 		this.password = password;
 		this.roles = roles;
 		this.rolesDir = rolesDir;
+		if (privateKey == null) privateKey = SystemUtil.getSystemPropOrEnvVar("lucee.loginstorage.privatekey", "");
 	}
 
 	@Override
@@ -153,17 +161,34 @@ public final class CredentialImpl implements Credential {
 			try {
 				if (!rolesDir.exists()) rolesDir.mkdirs();
 				String md5 = MD5.getDigestAsString(raw);
-				IOUtil.write(rolesDir.getRealResource(md5), raw, "utf-8", false);
-				return Caster.toB64(username + ONE + password + ONE + "md5:" + md5, "UTF-8");
+				IOUtil.write(rolesDir.getRealResource(md5), raw, CharsetUtil.UTF8, false);
+				return encrypt(username + ONE + password + ONE + "md5:" + md5);
 			}
 			catch (IOException e) {}
 		}
 		try {
-			return Caster.toB64(username + ONE + password + ONE + raw, "UTF-8");
+			return encrypt(username + ONE + password + ONE + raw);
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
+	}
+
+	private static String encrypt(String input) throws PageException {
+		if (StringUtil.isEmpty(privateKey, true)) return Caster.toB64(input.getBytes(CharsetUtil.UTF8));
+		return Cryptor.encrypt(input, privateKey, ALGO, salt, 10, "Base64", Cryptor.DEFAULT_CHARSET);
+	}
+
+	private static String decrypt(Object input) throws PageException {
+		if (StringUtil.isEmpty(privateKey, true)) {
+			try {
+				return Base64Coder.decodeToString(Caster.toString(input), "UTF-8");
+			}
+			catch (Exception e) {
+				throw Caster.toPageException(e);
+			}
+		}
+		return Cryptor.decrypt(Caster.toString(input), privateKey, ALGO, salt, 10, "Base64", Cryptor.DEFAULT_CHARSET);
 	}
 
 	/**
@@ -174,13 +199,7 @@ public final class CredentialImpl implements Credential {
 	 * @throws PageException
 	 */
 	public static Credential decode(Object encoded, Resource rolesDir) throws PageException {
-		String dec;
-		try {
-			dec = Base64Coder.decodeToString(Caster.toString(encoded), "UTF-8");
-		}
-		catch (Exception e) {
-			throw Caster.toPageException(e);
-		}
+		String dec = decrypt(encoded);
 
 		Array arr = ListUtil.listToArray(dec, "" + ONE);
 		int len = arr.size();
@@ -191,7 +210,7 @@ public final class CredentialImpl implements Credential {
 				str = str.substring(4);
 				Resource md5 = rolesDir.getRealResource(str);
 				try {
-					str = IOUtil.toString(md5, "utf-8");
+					str = IOUtil.toString(md5, CharsetUtil.UTF8);
 				}
 				catch (IOException e) {
 					str = "";
@@ -210,5 +229,4 @@ public final class CredentialImpl implements Credential {
 	public String toString() {
 		return "username:" + username + ";password:" + password + ";roles:" + roles;
 	}
-
 }
