@@ -43,10 +43,34 @@ public final class CredentialImpl implements Credential {
 	String password;
 	String[] roles;
 	private Resource rolesDir;
-	private static byte[] salt = "nkhuvghcgtcnkjnln".getBytes(CharsetUtil.UTF8);
-	private static String privateKey;
+	private String privateKey;
+	private byte[] salt;
+	private int iter;
+	private static final byte[] staticSalt;
+	private static final int staticIter;
+	private static final String staticPrivateKey;
 	private static final char ONE = (char) 1;
-	private static final String ALGO = "BLOWFISH";
+	private static final String ALGO = "Blowfish/CBC/PKCS5Padding";
+
+	static {
+		// salt
+		String tmp = SystemUtil.getSystemPropOrEnvVar("lucee.loginstorage.salt", null);
+		if (StringUtil.isEmpty(tmp, true)) tmp = "nkhuvghc";
+		else tmp = tmp.trim();
+		staticSalt = toSalt(tmp);
+
+		// salt iteration
+		int itmp = Caster.toIntValue(SystemUtil.getSystemPropOrEnvVar("lucee.loginstorage.iterations", null), 0);
+		if (itmp < 1) itmp = 10;
+		staticIter = itmp;
+
+		// private key
+		tmp = SystemUtil.getSystemPropOrEnvVar("lucee.loginstorage.privatekey", null);
+		if (!StringUtil.isEmpty(tmp, true)) {
+			staticPrivateKey = tmp.trim();
+		}
+		else staticPrivateKey = null;
+	}
 
 	/**
 	 * credential constructor
@@ -54,7 +78,30 @@ public final class CredentialImpl implements Credential {
 	 * @param username
 	 */
 	public CredentialImpl(String username, Resource rolesDir) {
-		this(username, null, new String[0], rolesDir);
+		this(username, null, new String[0], rolesDir, null, null, 0);
+	}
+
+	private static byte[] toSalt(String salt) {
+		byte[] barr = salt.trim().getBytes(CharsetUtil.UTF8);
+		if (barr.length == 8) return barr;
+		// we only take the first 8 bytes
+		if (barr.length > 8) {
+			byte[] tmp = new byte[8];
+			for (int i = 0; i < tmp.length; i++) {
+				tmp[i] = barr[i];
+			}
+			return tmp;
+		}
+		// we repeat the bytes until we reach 8
+		byte[] tmp = new byte[8];
+		int index = 0;
+		outer: while (true) {
+			for (int i = 0; i < barr.length; i++) {
+				if (index >= 8) break outer;
+				tmp[index++] = barr[i];
+			}
+		}
+		return tmp;
 	}
 
 	/**
@@ -64,7 +111,7 @@ public final class CredentialImpl implements Credential {
 	 * @param password
 	 */
 	public CredentialImpl(String username, String password, Resource rolesDir) {
-		this(username, password, new String[0], rolesDir);
+		this(username, password, new String[0], rolesDir, null, null, 0);
 	}
 
 	/**
@@ -76,7 +123,7 @@ public final class CredentialImpl implements Credential {
 	 * @throws PageException
 	 */
 	public CredentialImpl(String username, String password, String roles, Resource rolesDir) throws PageException {
-		this(username, password, toRole(roles), rolesDir);
+		this(username, password, toRole(roles), rolesDir, null, null, 0);
 	}
 
 	/**
@@ -88,7 +135,7 @@ public final class CredentialImpl implements Credential {
 	 * @throws PageException
 	 */
 	public CredentialImpl(String username, String password, Array roles, Resource rolesDir) throws PageException {
-		this(username, password, toRole(roles), rolesDir);
+		this(username, password, toRole(roles), rolesDir, null, null, 0);
 	}
 
 	/**
@@ -98,12 +145,19 @@ public final class CredentialImpl implements Credential {
 	 * @param password
 	 * @param roles
 	 */
+
 	public CredentialImpl(String username, String password, String[] roles, Resource rolesDir) {
+		this(username, password, roles, rolesDir, null, null, 0);
+	}
+
+	public CredentialImpl(String username, String password, String[] roles, Resource rolesDir, String privateKey, String salt, int iter) {
 		this.username = username;
 		this.password = password;
 		this.roles = roles;
 		this.rolesDir = rolesDir;
-		if (privateKey == null) privateKey = SystemUtil.getSystemPropOrEnvVar("lucee.loginstorage.privatekey", "");
+		this.privateKey = StringUtil.isEmpty(privateKey, true) ? staticPrivateKey : privateKey.trim();
+		this.salt = StringUtil.isEmpty(salt, true) ? staticSalt : toSalt(salt);
+		this.iter = iter < 1 ? staticIter : iter;
 	}
 
 	@Override
@@ -162,24 +216,29 @@ public final class CredentialImpl implements Credential {
 				if (!rolesDir.exists()) rolesDir.mkdirs();
 				String md5 = MD5.getDigestAsString(raw);
 				IOUtil.write(rolesDir.getRealResource(md5), raw, CharsetUtil.UTF8, false);
-				return encrypt(username + ONE + password + ONE + "md5:" + md5);
+				return encrypt(username + ONE + password + ONE + "md5:" + md5, privateKey, salt, iter);
 			}
 			catch (IOException e) {}
 		}
 		try {
-			return encrypt(username + ONE + password + ONE + raw);
+			return encrypt(username + ONE + password + ONE + raw, privateKey, salt, iter);
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
 	}
 
-	private static String encrypt(String input) throws PageException {
+	private static String encrypt(String input, String privateKey, byte[] salt, int iter) throws PageException {
 		if (StringUtil.isEmpty(privateKey, true)) return Caster.toB64(input.getBytes(CharsetUtil.UTF8));
-		return Cryptor.encrypt(input, privateKey, ALGO, salt, 10, "Base64", Cryptor.DEFAULT_CHARSET);
+		try {
+			return Cryptor.encrypt(input, privateKey, ALGO, salt, iter, "Base64", Cryptor.DEFAULT_CHARSET);
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
 	}
 
-	private static String decrypt(Object input) throws PageException {
+	private static String decrypt(Object input, String privateKey, byte[] salt, int iter) throws PageException {
 		if (StringUtil.isEmpty(privateKey, true)) {
 			try {
 				return Base64Coder.decodeToString(Caster.toString(input), "UTF-8");
@@ -188,7 +247,21 @@ public final class CredentialImpl implements Credential {
 				throw Caster.toPageException(e);
 			}
 		}
-		return Cryptor.decrypt(Caster.toString(input), privateKey, ALGO, salt, 10, "Base64", Cryptor.DEFAULT_CHARSET);
+		try {
+			return Cryptor.decrypt(Caster.toString(input), privateKey, ALGO, salt, iter, "Base64", Cryptor.DEFAULT_CHARSET);
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+	}
+
+	public static Credential decode(Object encoded, Resource rolesDir) {
+		try {
+			return decode(encoded, rolesDir, null, null, 0);
+		}
+		catch (Exception e) {
+			return null;
+		}
 	}
 
 	/**
@@ -198,8 +271,11 @@ public final class CredentialImpl implements Credential {
 	 * @return Credential from decoded string
 	 * @throws PageException
 	 */
-	public static Credential decode(Object encoded, Resource rolesDir) throws PageException {
-		String dec = decrypt(encoded);
+	public static Credential decode(Object encoded, Resource rolesDir, String privateKey, String salt, int iter) throws PageException {
+		String _privateKey = StringUtil.isEmpty(privateKey, true) ? staticPrivateKey : privateKey.trim();
+		byte[] _salt = StringUtil.isEmpty(salt, true) ? staticSalt : toSalt(salt);
+		int _iter = iter < 1 ? staticIter : iter;
+		String dec = decrypt(encoded, _privateKey, _salt, _iter);
 
 		Array arr = ListUtil.listToArray(dec, "" + ONE);
 		int len = arr.size();
@@ -229,4 +305,14 @@ public final class CredentialImpl implements Credential {
 	public String toString() {
 		return "username:" + username + ";password:" + password + ";roles:" + roles;
 	}
+
+	/*
+	 * public static void main(String[] args) throws PageException { int i = 20; Resource rolesDir =
+	 * ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Temp/"); String key =
+	 * "vhvzglmjknkvug"; String salt = "dbjvzvhvnbubvuh"; CredentialImpl c = new CredentialImpl("susi",
+	 * "sorglos", new String[] { "qqq" }, rolesDir, key, salt, i); String enc = c.encode(); Credential
+	 * res = CredentialImpl.decode(enc, rolesDir, key, "df", i); print.e(enc); print.e(res.toString());
+	 * }
+	 */
+
 }
