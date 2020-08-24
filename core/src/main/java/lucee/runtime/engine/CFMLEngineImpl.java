@@ -88,7 +88,6 @@ import lucee.commons.io.retirement.RetireOutputStreamFactory;
 import lucee.commons.lang.Md5;
 import lucee.commons.lang.Pair;
 import lucee.commons.lang.StringUtil;
-import lucee.commons.lang.SystemOut;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lang.types.RefBooleanImpl;
 import lucee.commons.net.HTTPUtil;
@@ -219,6 +218,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		this.factory = factory;
 		this.bundleCollection = bc;
 
+		this.allowRequestTimeout = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.requesttimeout", null), true);
 		// log the startup process
 		String logDir = SystemUtil.getSystemPropOrEnvVar("startlogdirectory", null);// "/Users/mic/Tmp/");
 		if (logDir != null) {
@@ -1660,7 +1660,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	public void onStart(ConfigImpl config, boolean reload) {
 
 		String context = config instanceof ConfigWeb ? "Web" : "Server";
-		
+
 		if (context == "Web" && SystemUtil.getSystemPropOrEnvVar("lucee.enable.warmup", "").equalsIgnoreCase("true")) {
 			String msg = "Lucee warmup completed. Shutting down.";
 			CONSOLE_ERR.println(msg);
