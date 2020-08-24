@@ -1027,9 +1027,10 @@ public final class FileTag extends BodyTagImpl {
 
 			for (int i = blacklist.size(); i > 0; i--) {
 				if (ext.equals(Caster.toString(blacklist.getE(i)).trim())) {
-					throw new ApplicationException("Upload of files with extension [" + ext + "] is not permitted.  " + "You can configure the "
+					throw new ApplicationException("Upload of files with extension [" + ext + "] is not permitted.  " 
+							+ "You can configure this via the Application.cfc, this.blockedExtForFileUpload property, the "
 							+ SystemUtil.SETTING_UPLOAD_EXT_BLACKLIST + " System property or the " + SystemUtil.convertSystemPropToEnvVar(SystemUtil.SETTING_UPLOAD_EXT_BLACKLIST)
-							+ " Environment variable to allow that file type.");
+							+ " Environment variable to allow this file type to be uploaded.");
 				}
 			}
 		}
