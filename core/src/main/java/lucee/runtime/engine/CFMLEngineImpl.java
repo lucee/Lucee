@@ -219,6 +219,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		this.factory = factory;
 		this.bundleCollection = bc;
 
+		this.allowRequestTimeout = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.requesttimeout", null), true);
 		// log the startup process
 		String logDir = SystemUtil.getSystemPropOrEnvVar("startlogdirectory", null);// "/Users/mic/Tmp/");
 		if (logDir != null) {
