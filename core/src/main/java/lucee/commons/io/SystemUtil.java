@@ -534,6 +534,20 @@ public final class SystemUtil {
 	}
 
 	/**
+	 * return the memory percentage
+	 * 
+	 * @return value from 0 to 1
+	 */
+	public static float getMemoryPercentage() {
+		Runtime r = Runtime.getRuntime();
+		long max = r.maxMemory();
+		if (max == Long.MAX_VALUE || max < 0) return -1;
+
+		long used = r.totalMemory() - r.freeMemory();
+		return (1F / max * used);
+	}
+
+	/**
 	 * replace path placeholder with the real path, placeholders are
 	 * [{temp-directory},{system-directory},{home-directory}]
 	 * 
@@ -917,6 +931,7 @@ public final class SystemUtil {
 			bean = it.next();
 			usage = bean.getUsage();
 			_type = bean.getType();
+
 			if ((type == MEMORY_TYPE_HEAP && _type == MemoryType.HEAP) || (type == MEMORY_TYPE_NON_HEAP && _type == MemoryType.NON_HEAP)) {
 				used += usage.getUsed();
 				max += usage.getMax();
@@ -1060,6 +1075,22 @@ public final class SystemUtil {
 		sleep(time);
 
 		return jsm.cpuTimes().getCpuUsage(previous) * 100D;
+	}
+
+	public static float getCpuPercentage() {
+		if (jsm == null) jsm = new JavaSysMon();
+		CpuTimes cput = jsm.cpuTimes();
+		if (cput == null) return -1;
+		CpuTimes previous = new CpuTimes(cput.getUserMillis(), cput.getSystemMillis(), cput.getIdleMillis());
+		int max = 50;
+		float res = 0;
+		while (true) {
+			if (--max == 0) break;
+			sleep(100);
+			res = jsm.cpuTimes().getCpuUsage(previous);
+			if (res != 1) break;
+		}
+		return res;
 	}
 
 	private synchronized static MemoryStats physical() throws ApplicationException {

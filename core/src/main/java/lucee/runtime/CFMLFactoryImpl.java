@@ -48,6 +48,7 @@ import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SizeOf;
+import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWeb;
@@ -95,10 +96,38 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 	private ArrayList<String> cfmlExtensions;
 	private ArrayList<String> luceeExtensions;
 	private ServletConfig servletConfig;
+	private float memoryThreshold;
+	private float cpuThreshold;
+	private int concurrentUserThreshold;
 
 	public CFMLFactoryImpl(CFMLEngineImpl engine, ServletConfig sg) {
 		this.engine = engine;
 		this.servletConfig = sg;
+		memoryThreshold = getSystemPropOrEnvVarAsFloat("lucee.requesttimeout.memorythreshold");
+		cpuThreshold = getSystemPropOrEnvVarAsFloat("lucee.requesttimeout.cputhreshold");
+		concurrentUserThreshold = getSystemPropOrEnvVarAsInt("lucee.requesttimeout.concurrentuserthreshold");
+	}
+
+	private static float getSystemPropOrEnvVarAsFloat(String name) {
+		String str = SystemUtil.getSystemPropOrEnvVar(name, null);
+		if (StringUtil.isEmpty(str)) return 0F;
+		str = StringUtil.unwrap(str);
+		if (StringUtil.isEmpty(str)) return 0F;
+
+		float res = Caster.toFloatValue(str, 0F);
+		if (res < 0F) return 0F;
+		if (res > 1F) return 1F;
+		return res;
+	}
+
+	private static int getSystemPropOrEnvVarAsInt(String name) {
+		String str = SystemUtil.getSystemPropOrEnvVar(name, null);
+		if (StringUtil.isEmpty(str)) return 0;
+		str = StringUtil.unwrap(str);
+		if (StringUtil.isEmpty(str)) return 0;
+		int res = Caster.toIntValue(str, 0);
+		if (res < 0) return 0;
+		return res;
 	}
 
 	/**
@@ -260,19 +289,22 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 				pc = e.getValue();
 
 				long timeout = pc.getRequestTimeout();
+				// reached timeout
 				if (pc.getStartTime() + timeout < System.currentTimeMillis() && Long.MAX_VALUE != timeout) {
-					Log log = ((ConfigImpl) pc.getConfig()).getLog("requesttimeout");
-					if (log != null) {
-						PageContext root = pc.getRootPageContext();
-						log.log(Log.LEVEL_ERROR, "controller",
-								"stop " + (root != null && root != pc ? "thread" : "request") + " (" + pc.getId() + ") because run into a timeout. ATM we have "
-										+ getActiveRequests() + " active request(s) and " + getActiveThreads() + " active cfthreads " + getPath(pc) + "."
-										+ MonitorState.getBlockedThreads(pc) + RequestTimeoutException.locks(pc),
-								ExceptionUtil.toThrowable(pc.getThread().getStackTrace()));
+					if (reachedConcurrentUserThreshold() && reachedMemoryThreshold() && reachedCPUThreshold()) {
+						Log log = ((ConfigImpl) pc.getConfig()).getLog("requesttimeout");
+						if (log != null) {
+							PageContext root = pc.getRootPageContext();
+							log.log(Log.LEVEL_ERROR, "controller",
+									"stop " + (root != null && root != pc ? "thread" : "request") + " (" + pc.getId() + ") because run into a timeout. ATM we have "
+											+ getActiveRequests() + " active request(s) and " + getActiveThreads() + " active cfthreads " + getPath(pc) + "."
+											+ MonitorState.getBlockedThreads(pc) + RequestTimeoutException.locks(pc),
+									ExceptionUtil.toThrowable(pc.getThread().getStackTrace()));
+						}
+						terminate(pc, true);
+						runningPcs.remove(Integer.valueOf(pc.getId()));
+						it.remove();
 					}
-					terminate(pc, true);
-					runningPcs.remove(Integer.valueOf(pc.getId()));
-					it.remove();
 				}
 				// after 10 seconds downgrade priority of the thread
 				else if (pc.getStartTime() + 10000 < System.currentTimeMillis() && pc.getThread().getPriority() != Thread.MIN_PRIORITY) {
@@ -291,6 +323,21 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 				}
 			}
 		}
+	}
+
+	private boolean reachedConcurrentUserThreshold() {
+		if (concurrentUserThreshold == 0) return true;
+		return concurrentUserThreshold <= runningPcs.size();
+	}
+
+	private boolean reachedMemoryThreshold() {
+		if (memoryThreshold == 0) return true;
+		return memoryThreshold <= SystemUtil.getMemoryPercentage();
+	}
+
+	private boolean reachedCPUThreshold() {
+		if (cpuThreshold == 0) return true;
+		return cpuThreshold <= SystemUtil.getCpuPercentage();
 	}
 
 	public static void terminate(PageContextImpl pc, boolean async) {
