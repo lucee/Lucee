@@ -98,14 +98,14 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 	private ServletConfig servletConfig;
 	private float memoryThreshold;
 	private float cpuThreshold;
-	private int concurrentUserThreshold;
+	private int concurrentReqThreshold;
 
 	public CFMLFactoryImpl(CFMLEngineImpl engine, ServletConfig sg) {
 		this.engine = engine;
 		this.servletConfig = sg;
 		memoryThreshold = getSystemPropOrEnvVarAsFloat("lucee.requesttimeout.memorythreshold");
 		cpuThreshold = getSystemPropOrEnvVarAsFloat("lucee.requesttimeout.cputhreshold");
-		concurrentUserThreshold = getSystemPropOrEnvVarAsInt("lucee.requesttimeout.concurrentuserthreshold");
+		concurrentReqThreshold = getSystemPropOrEnvVarAsInt("lucee.requesttimeout.concurrentrequestthreshold");
 	}
 
 	private static float getSystemPropOrEnvVarAsFloat(String name) {
@@ -291,7 +291,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 				long timeout = pc.getRequestTimeout();
 				// reached timeout
 				if (pc.getStartTime() + timeout < System.currentTimeMillis() && Long.MAX_VALUE != timeout) {
-					if (reachedConcurrentUserThreshold() && reachedMemoryThreshold() && reachedCPUThreshold()) {
+					if (reachedConcurrentReqThreshold() && reachedMemoryThreshold() && reachedCPUThreshold()) {
 						Log log = ((ConfigImpl) pc.getConfig()).getLog("requesttimeout");
 						if (log != null) {
 							PageContext root = pc.getRootPageContext();
@@ -325,9 +325,9 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		}
 	}
 
-	private boolean reachedConcurrentUserThreshold() {
-		if (concurrentUserThreshold == 0) return true;
-		return concurrentUserThreshold <= runningPcs.size();
+	private boolean reachedConcurrentReqThreshold() {
+		if (concurrentReqThreshold == 0) return true;
+		return concurrentReqThreshold <= runningPcs.size();
 	}
 
 	private boolean reachedMemoryThreshold() {
