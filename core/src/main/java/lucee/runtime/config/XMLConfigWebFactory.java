@@ -2823,8 +2823,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				if (StringUtil.isEmpty(strDefaultTLDDirectory)) strDefaultTLDDirectory = SystemUtil.getSystemPropOrEnvVar("lucee.library.default.tld", null);
 				if (StringUtil.isEmpty(strDefaultFuncDirectory)) strDefaultFuncDirectory = SystemUtil.getSystemPropOrEnvVar("lucee.library.default.function", null);
 				if (StringUtil.isEmpty(strDefaultTagDirectory)) strDefaultTagDirectory = SystemUtil.getSystemPropOrEnvVar("lucee.library.default.tag", null);
-				strFuncDirectory = SystemUtil.getSystemPropOrEnvVar("lucee.library.addional.function", null);
-				strTagDirectory = SystemUtil.getSystemPropOrEnvVar("lucee.library.addional.tag", null);
+				strFuncDirectory = SystemUtil.getSystemPropOrEnvVar("lucee.library.additional.function", null);
+				strTagDirectory = SystemUtil.getSystemPropOrEnvVar("lucee.library.additional.tag", null);
 
 			}
 

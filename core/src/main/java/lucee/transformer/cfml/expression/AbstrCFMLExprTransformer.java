@@ -1548,7 +1548,7 @@ public abstract class AbstrCFMLExprTransformer {
 		if (name != null) {
 			StringBuilder fullName = new StringBuilder();
 			fullName.append(name);
-			// Loop over addional identifier
+			// Loop over additional identifier
 			while (data.srcCode.isValidIndex()) {
 				if (data.srcCode.forwardIfCurrent('.')) {
 					comments(data);

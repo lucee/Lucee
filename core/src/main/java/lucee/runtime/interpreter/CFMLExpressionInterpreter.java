@@ -1301,7 +1301,7 @@ public class CFMLExpressionInterpreter {
 		if (name != null) {
 			StringBuilder fullName = new StringBuilder();
 			fullName.append(name);
-			// Loop over addional identifier
+			// Loop over additional identifier
 			while (cfml.isValidIndex()) {
 				if (cfml.forwardIfCurrent('.')) {
 					cfml.removeSpace();
