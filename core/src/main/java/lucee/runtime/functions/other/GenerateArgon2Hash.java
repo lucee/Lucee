@@ -3,6 +3,7 @@ package lucee.runtime.functions.other;
 import de.mkammerer.argon2.Argon2;
 import de.mkammerer.argon2.Argon2Factory;
 import de.mkammerer.argon2.Argon2Factory.Argon2Types;
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.FunctionException;
@@ -21,11 +22,12 @@ public class GenerateArgon2Hash extends BIF {
 		return call(pc, Caster.toString(args[0]), Caster.toString(args[1]), Caster.toByteValue(args[2]), Caster.toIntValue(args[3]), Caster.toByteValue(args[4]));
 	}
 
-	public static String call(PageContext pc, String variant, String input, double parallelismFactor, double memoryCost, double iterations) throws PageException {
+	public static String call(PageContext pc, String input, String variant, double parallelismFactor, double memoryCost, double iterations) throws PageException {
 		Argon2Types type;
 
 		// check variant
-		if (variant == null) throw new FunctionException(pc, "GenerateArgon2Hash", 1, "variant", "The Variant should be ARGON2i or ARGON2d or ARGON2id");
+		if (StringUtil.isEmpty(variant, true)) throw new FunctionException(pc, "GenerateArgon2Hash", 1, "variant", "The Variant should be ARGON2i or ARGON2d or ARGON2id");
+		variant = variant.trim();
 		switch (variant.toLowerCase()) {
 		case "argon2i":
 			type = Argon2Types.ARGON2i;
