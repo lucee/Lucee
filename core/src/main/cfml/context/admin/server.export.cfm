@@ -91,7 +91,12 @@ Defaults --->
 	type="#request.adminType#"
 	password="#session["password"&request.adminType]#"
 	returnVariable="mailservers">
-	
+<!--- regex --->
+<cfadmin 
+	action="getRegex"
+	type="#request.adminType#"
+	password="#session["password"&request.adminType]#"
+	returnVariable="regex">
 
 <!--- cache --->
 <cfadmin 
@@ -181,6 +186,8 @@ component {
 	
 	this.scopeCascading = "#scope.scopeCascadingType#";
 	this.searchResults = #trueFalseFormat(scope.allowImplicidQueryCall)#;
+// regex
+	this.regex.type = "#regex.type#";
 //////////////////////////////////////////////
 //               MAIL SERVERS               //
 //////////////////////////////////////////////
