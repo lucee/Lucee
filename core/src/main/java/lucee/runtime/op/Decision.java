@@ -110,6 +110,13 @@ public final class Decision {
 	public static boolean isNumber(Object value) {
 		if (value instanceof Number) return true;
 		else if (value instanceof CharSequence || value instanceof Character) {
+			boolean numeric = true;
+	        try {
+	            Double num = Double.parseDouble(value.toString());
+	        } catch (NumberFormatException e) {
+	            numeric = false;
+	        }
+	        if(numeric) return true;
 			return isNumber(value.toString());
 		}
 
@@ -360,7 +367,6 @@ public final class Decision {
 	}
 
 	public static boolean isDateSimple(Object value, boolean alsoNumbers, boolean alsoMonthString) {
-
 		// return DateCaster.toDateEL(value)!=null;
 		if (value instanceof DateTime) return true;
 		else if (value instanceof Date) return true;
