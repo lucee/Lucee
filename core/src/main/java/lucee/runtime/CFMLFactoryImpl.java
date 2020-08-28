@@ -288,8 +288,8 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 				long timeout = pc.getRequestTimeout();
 				// reached timeout
 				if (pc.getStartTime() + timeout < System.currentTimeMillis() && Long.MAX_VALUE != timeout) {
+					Log log = ((ConfigImpl) pc.getConfig()).getLog("requesttimeout");
 					if (reachedConcurrentReqThreshold() && reachedMemoryThreshold() && reachedCPUThreshold()) {
-						Log log = ((ConfigImpl) pc.getConfig()).getLog("requesttimeout");
 						if (log != null) {
 							PageContext root = pc.getRootPageContext();
 							log.log(Log.LEVEL_ERROR, "controller",
@@ -301,6 +301,15 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 						terminate(pc, true);
 						runningPcs.remove(Integer.valueOf(pc.getId()));
 						it.remove();
+					}
+					else {
+						if (log != null) {
+							PageContext root = pc.getRootPageContext();
+							log.log(Log.LEVEL_ERROR, "controller", "reach request timeout with " + (root != null && root != pc ? "thread" : "request") + " [" + pc.getId()
+									+ "], but the request is not killed because we did not reach all thresholds set. ATM we have " + getActiveRequests() + " active request(s) and "
+									+ getActiveThreads() + " active cfthreads " + getPath(pc) + "." + MonitorState.getBlockedThreads(pc) + RequestTimeoutException.locks(pc),
+									ExceptionUtil.toThrowable(pc.getThread().getStackTrace()));
+						}
 					}
 				}
 				// after 10 seconds downgrade priority of the thread
