@@ -38,7 +38,6 @@ public class Argon2CheckHash extends BIF {
 		default:
 			throw new FunctionException(pc, "Argon2CheckHash", 1, "variant", "The Variant should be ARGON2i or ARGON2d or ARGON2id");
 		}
-
 		Argon2 argon2 = Argon2Factory.create(type);
 		char[] carrInput = input == null ? new char[0] : input.toCharArray();
 		return argon2.verify(hash, carrInput);

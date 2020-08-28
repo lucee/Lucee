@@ -46,11 +46,9 @@ public class GenerateArgon2Hash extends BIF {
 		if (parallelismFactor < 1 || parallelismFactor > 10) {
 			throw new FunctionException(pc, "GenerateArgon2Hash", 2, "parallelismFactor", "The parallelism factor value should be between 1 and 10", null);
 		}
-
 		if (memoryCost < 8 || memoryCost > 100000) {
 			throw new FunctionException(pc, "GenerateArgon2Hash", 3, "memoryCost", "The memory cost value should be between 8 and 100000", null);
 		}
-
 		if (iterations < 1 || iterations > 20) {
 			throw new FunctionException(pc, "GenerateArgon2Hash", 4, "iterations", "The iterations value should be between 1 and 20", null);
 		}
