@@ -1018,18 +1018,20 @@ public final class FileTag extends BodyTagImpl {
 			if (ext.startsWith("*.")) ext = ext.substring(2);
 			if (ext.startsWith(".")) ext = ext.substring(1);
 			if (ListUtil.listContainsNoCase(StringUtil.emptyIfNull(accept), "." + ext, ",", false, false) == -1) {
-				String blacklistedTypes = ((ApplicationContextSupport) appContext).getBlockedExtForFileUpload();
-				if (blacklistedTypes == null) {
-					blacklistedTypes = SystemUtil.getSystemPropOrEnvVar(SystemUtil.SETTING_UPLOAD_EXT_BLACKLIST, SystemUtil.DEFAULT_UPLOAD_EXT_BLACKLIST);
+				String blocklistedTypes = ((ApplicationContextSupport) appContext).getBlockedExtForFileUpload();
+				if (blocklistedTypes == null) {
+					blocklistedTypes = SystemUtil.getSystemPropOrEnvVar(SystemUtil.SETTING_UPLOAD_EXT_BLACKLIST, SystemUtil.DEFAULT_UPLOAD_EXT_BLOCKLIST);
+					if (StringUtil.isEmpty(blocklistedTypes))
+						blocklistedTypes = SystemUtil.getSystemPropOrEnvVar(SystemUtil.SETTING_UPLOAD_EXT_BLOCKLIST, SystemUtil.DEFAULT_UPLOAD_EXT_BLOCKLIST);
 				}
-				blacklistedTypes = blacklistedTypes.replace('.', ' ').toLowerCase();
-				Array blacklist = ListUtil.listToArrayRemoveEmpty(blacklistedTypes, ',');
+				blocklistedTypes = blocklistedTypes.replace('.', ' ').toLowerCase();
+				Array blocklist = ListUtil.listToArrayRemoveEmpty(blocklistedTypes, ',');
 
-				for (int i = blacklist.size(); i > 0; i--) {
-					if (ext.equals(Caster.toString(blacklist.getE(i)).trim())) {
+				for (int i = blocklist.size(); i > 0; i--) {
+					if (ext.equals(Caster.toString(blocklist.getE(i)).trim())) {
 						throw new ApplicationException("Upload of files with extension [" + ext + "] is not permitted.  "
-								+ "You can configure this via the Application.cfc, this.blockedExtForFileUpload property, the " + SystemUtil.SETTING_UPLOAD_EXT_BLACKLIST
-								+ " System property or the " + SystemUtil.convertSystemPropToEnvVar(SystemUtil.SETTING_UPLOAD_EXT_BLACKLIST)
+								+ "You can configure this via the Application.cfc, this.blockedExtForFileUpload property, the " + SystemUtil.SETTING_UPLOAD_EXT_BLOCKLIST
+								+ " System property or the " + SystemUtil.convertSystemPropToEnvVar(SystemUtil.SETTING_UPLOAD_EXT_BLOCKLIST)
 								+ " Environment variable to allow this type of file to be uploaded.");
 					}
 				}

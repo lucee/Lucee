@@ -129,8 +129,9 @@ public final class SystemUtil {
 
 	public static final String SETTING_CONTROLLER_DISABLED = "lucee.controller.disabled";
 	public static final String SETTING_UPLOAD_EXT_BLACKLIST = "lucee.upload.blacklist";
+	public static final String SETTING_UPLOAD_EXT_BLOCKLIST = "lucee.upload.blocklist";
 
-	public static final String DEFAULT_UPLOAD_EXT_BLACKLIST = "asp,aspx,cfc,cfm,cfml,do,htm,html,jsp,jspx,php";
+	public static final String DEFAULT_UPLOAD_EXT_BLOCKLIST = "asp,aspx,cfc,cfm,cfml,do,htm,html,jsp,jspx,php";
 
 	public static final char CHAR_DOLLAR = (char) 36;
 	public static final char CHAR_POUND = (char) 163;
