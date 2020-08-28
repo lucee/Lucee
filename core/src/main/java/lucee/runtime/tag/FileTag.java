@@ -1017,20 +1017,21 @@ public final class FileTag extends BodyTagImpl {
 			ext = ext.trim().toLowerCase();
 			if (ext.startsWith("*.")) ext = ext.substring(2);
 			if (ext.startsWith(".")) ext = ext.substring(1);
+			if (ListUtil.listContainsNoCase(StringUtil.emptyIfNull(accept), "." + ext, ",", false, false) == -1) {
+				String blacklistedTypes = ((ApplicationContextSupport) appContext).getBlockedExtForFileUpload();
+				if (blacklistedTypes == null) {
+					blacklistedTypes = SystemUtil.getSystemPropOrEnvVar(SystemUtil.SETTING_UPLOAD_EXT_BLACKLIST, SystemUtil.DEFAULT_UPLOAD_EXT_BLACKLIST);
+				}
+				blacklistedTypes = blacklistedTypes.replace('.', ' ').toLowerCase();
+				Array blacklist = ListUtil.listToArrayRemoveEmpty(blacklistedTypes, ',');
 
-			String blacklistedTypes = ((ApplicationContextSupport) appContext).getBlockedExtForFileUpload();
-			if (blacklistedTypes == null) {
-				blacklistedTypes = SystemUtil.getSystemPropOrEnvVar(SystemUtil.SETTING_UPLOAD_EXT_BLACKLIST, SystemUtil.DEFAULT_UPLOAD_EXT_BLACKLIST);
-			}
-			blacklistedTypes = blacklistedTypes.replace('.', ' ').toLowerCase();
-			Array blacklist = ListUtil.listToArrayRemoveEmpty(blacklistedTypes, ',');
-
-			for (int i = blacklist.size(); i > 0; i--) {
-				if (ext.equals(Caster.toString(blacklist.getE(i)).trim())) {
-					throw new ApplicationException("Upload of files with extension [" + ext + "] is not permitted.  " 
-							+ "You can configure this via the Application.cfc, this.blockedExtForFileUpload property, the "
-							+ SystemUtil.SETTING_UPLOAD_EXT_BLACKLIST + " System property or the " + SystemUtil.convertSystemPropToEnvVar(SystemUtil.SETTING_UPLOAD_EXT_BLACKLIST)
-							+ " Environment variable to allow this type of file to be uploaded.");
+				for (int i = blacklist.size(); i > 0; i--) {
+					if (ext.equals(Caster.toString(blacklist.getE(i)).trim())) {
+						throw new ApplicationException("Upload of files with extension [" + ext + "] is not permitted.  "
+								+ "You can configure this via the Application.cfc, this.blockedExtForFileUpload property, the " + SystemUtil.SETTING_UPLOAD_EXT_BLACKLIST
+								+ " System property or the " + SystemUtil.convertSystemPropToEnvVar(SystemUtil.SETTING_UPLOAD_EXT_BLACKLIST)
+								+ " Environment variable to allow this type of file to be uploaded.");
+					}
 				}
 			}
 		}
@@ -1058,8 +1059,11 @@ public final class FileTag extends BodyTagImpl {
 				if (ext.equals(whishedType)) return;
 			}
 		}
-		throw new ApplicationException("The MIME type of the uploaded file [" + contentType + "] was not accepted by the server.",
-				"only this [" + accept + "] mime type are accepted");
+		if (strict && ListUtil.listContainsNoCase(StringUtil.emptyIfNull(accept), "." + ext, ",", false, false) != -1)
+			throw new ApplicationException("When the value of the attribute STRICT is TRUE, it requires only MIME types in the attribute(s): ACCEPT.",
+					"set [" + accept + "] to MIME type.");
+		else throw new ApplicationException("The MIME type of the uploaded file [" + contentType + "] was not accepted by the server.",
+				"only this [" + StringUtil.emptyIfNull(accept) + "] type are accepted.  Verify that you are uploading a file of the appropriate type. ");
 	}
 
 	/**
