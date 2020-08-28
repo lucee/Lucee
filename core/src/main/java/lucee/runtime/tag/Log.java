@@ -238,7 +238,7 @@ public final class Log extends TagImpl {
 		}
 
 		String contextName = pageContext.getApplicationContext().getName();
-		if (contextName == null || !application) contextName = "";
+		if (contextName == null || application) contextName = "";
 		if (exception != null) {
 			if (StringUtil.isEmpty(text)) logger.log(type, contextName, exception);
 			else logger.log(type, contextName, text, exception);
