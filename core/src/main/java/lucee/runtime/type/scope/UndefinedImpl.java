@@ -291,7 +291,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
 			if (rtn != _null) sct.setEL(KeyConstants._thread, rtn);
 		}
 
-		// get a scope value (only cfml is searching addional scopes)
+		// get a scope value (only cfml is searching additional scopes)
 		if (pc.getCurrentTemplateDialect() == CFMLEngine.DIALECT_CFML) {
 			for (int i = 0; i < scopes.length; i++) {
 				rtn = scopes[i].get(key, _null);
