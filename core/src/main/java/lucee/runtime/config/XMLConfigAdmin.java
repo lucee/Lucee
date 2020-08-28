@@ -1627,7 +1627,8 @@ public final class XMLConfigAdmin {
 			}
 		}
 
-		if (!hasInsertAccess) throw new SecurityException("no access to add datasource connections, the maximum count of [" + maxLength + "] datasources is reached");
+		if (!hasInsertAccess) throw new SecurityException("Unable to add a datasource connection, the maximum count of [" + maxLength + "] datasources has been reached. " 
+			+ " This can be configured in the Server Admin, under Security, Access");
 
 		// Insert
 		Element el = doc.createElement("data-source");
