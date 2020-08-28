@@ -122,8 +122,8 @@ public final class Application extends TagImpl implements DynamicAttributes {
 	private CharSet resourceCharset;
 	private short sessionType = -1;
 	private short wsType = -1;
-	private boolean sessionCluster;
-	private boolean clientCluster;
+	private Boolean sessionCluster;
+	private Boolean clientCluster;
 	private Boolean compression;
 
 	private Boolean ormenabled;
@@ -151,7 +151,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 	private short scopeCascading = -1;
 	private Boolean searchQueries = null;
 	private Boolean suppress;
-	private boolean cgiReadOnly = true;
+	private Boolean cgiReadOnly = null;
 	private SessionCookieData sessionCookie;
 	private AuthCookieData authCookie;
 	private Object functionpaths;
@@ -209,8 +209,8 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		resourceCharset = null;
 		sessionType = -1;
 		wsType = -1;
-		sessionCluster = false;
-		clientCluster = false;
+		sessionCluster = null;
+		clientCluster = null;
 		compression = null;
 
 		ormenabled = null;
@@ -221,7 +221,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		// appContext=null;
 
 		triggerDataMember = null;
-		cgiReadOnly = true;
+		cgiReadOnly = null;
 
 		cacheFunction = null;
 		cacheQuery = null;
@@ -856,9 +856,9 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		if (sessionCookie != null) acs.setSessionCookie(sessionCookie);
 		if (authCookie != null) acs.setAuthCookie(authCookie);
 		if (tag != null) ac.setTagAttributeDefaultValues(pageContext, tag);
-		ac.setClientCluster(clientCluster);
-		ac.setSessionCluster(sessionCluster);
-		ac.setCGIScopeReadonly(cgiReadOnly);
+		if (clientCluster != null) ac.setClientCluster(clientCluster.booleanValue());
+		if (sessionCluster != null) ac.setSessionCluster(sessionCluster.booleanValue());
+		if (cgiReadOnly != null) ac.setCGIScopeReadonly(cgiReadOnly.booleanValue());
 		if (s3 != null) ac.setS3(AppListenerUtil.toS3(s3));
 		if (ftp != null) ((ApplicationContextSupport) ac).setFTP(AppListenerUtil.toFTP(ftp));
 
@@ -875,7 +875,6 @@ public final class Application extends TagImpl implements DynamicAttributes {
 			ApplicationContextSupport appContextSup = ((ApplicationContextSupport) ac);
 
 			if (javaSettings != null) appContextSup.setJavaSettings(JavaSettingsImpl.newInstance(new JavaSettingsImpl(), javaSettings));
-
 			if (xmlFeatures != null) appContextSup.setXmlFeatures(xmlFeatures);
 			if (searchQueries != null) appContextSup.setAllowImplicidQueryCall(searchQueries.booleanValue());
 			if (regex != null) appContextSup.setRegex(regex);
