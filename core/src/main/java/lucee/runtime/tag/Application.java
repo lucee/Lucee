@@ -864,7 +864,6 @@ public final class Application extends TagImpl implements DynamicAttributes {
 
 		// Scope cascading
 		if (scopeCascading != -1) ac.setScopeCascading(scopeCascading);
-
 		if (blockedExtForFileUpload != null) {
 			if (ac instanceof ClassicApplicationContext) {
 				((ClassicApplicationContext) ac).setBlockedextforfileupload(blockedExtForFileUpload);
@@ -891,7 +890,6 @@ public final class Application extends TagImpl implements DynamicAttributes {
 			initORM = true;
 			if (ormsettings != null) AppListenerUtil.setORMConfiguration(pageContext, ac, ormsettings);
 		}
-
 		return initORM;
 	}
 
@@ -911,5 +909,4 @@ public final class Application extends TagImpl implements DynamicAttributes {
 	public int doEndTag() {
 		return EVAL_PAGE;
 	}
-
 }
