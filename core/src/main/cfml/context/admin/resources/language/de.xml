@@ -167,6 +167,7 @@ und Optimierungen innerhalb ihrer Version einspielen.</data>
 	<data key="menu.server.error">Error</data>
 	<data key="menu.server.logging">Logging</data>
 	<data key="menu.server.export">Export</data>
+	<data key="menu.server.proxy">Proxy</data>
 	<data key="menu.services.label">Dienste</data>
 	<data key="menu.services.gateway">Event Gateway</data>
 	<data key="menu.services.cache">Cache</data>

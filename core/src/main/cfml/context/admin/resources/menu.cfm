@@ -18,18 +18,19 @@
 		struct(
 			action:"server",label:arguments.stMenu.server.label,
 			children:array(
-				struct(action:"cache",label:arguments.stMenu.server.cache),
-				struct(action:"compiler",label:arguments.stMenu.server.compiler),
-				struct(action:"security",label:arguments.stMenu.server.security),
-				struct(action:"regional",label:arguments.stMenu.server.regional),
-				struct(action:"charset",label:arguments.stMenu.server.charset),
-				struct(action:"scope",label:arguments.stMenu.server.scope),
-				struct(action:"request",label:arguments.stMenu.server.request),
-				struct(action:"output",label:arguments.stMenu.server.output),
-				struct(action:"error",label:arguments.stMenu.server.error),
-				struct(action:"logging",label:arguments.stMenu.server.logging),
+				struct(action:"cache",label:stMenu.server.cache),
+				struct(action:"compiler",label:stMenu.server.compiler),
+				struct(action:"security",label:stMenu.server.security),
+				struct(action:"regional",label:stMenu.server.regional),
+				struct(action:"charset",label:stMenu.server.charset),
+				struct(action:"scope",label:stMenu.server.scope),
+				struct(action:"request",label:stMenu.server.request),
+				struct(action:"output",label:stMenu.server.output),
+				struct(action:"error",label:stMenu.server.error),
+				struct(action:"logging",label:stMenu.server.logging),
 				struct(action:"regex",label:(arguments.stMenu.server.regex?:"Regex")),
-				struct(action:"export",label:arguments.stMenu.server.export)
+				struct(action:"export",label:stMenu.server.export),
+				struct(action:"proxy",label:stMenu.server.proxy)
 			)
 		),
 		struct(
