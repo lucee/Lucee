@@ -21,7 +21,6 @@ package lucee.runtime.tag;
 import java.nio.charset.Charset;
 
 import javax.mail.internet.InternetAddress;
-import java.util.regex.*;
 
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.res.Resource;
@@ -291,8 +290,9 @@ public final class Mail extends BodyTagImpl {
 	 * @throws ApplicationException
 	 **/
 	public void setType(String type) throws ApplicationException {
-		if(type.trim().isEmpty()) type = "text/plain";
-		type = type.toLowerCase().trim();
+		if (StringUtil.isEmpty(type, true)) type = "text/plain";
+		else type = type.toLowerCase().trim();
+
 		if (type.equals("text/plain") || type.equals("plain") || type.equals("text")) getPart().isHTML(false);
 		// mail.setType(lucee.runtime.mail.Mail.TYPE_TEXT);
 		else if (type.equals("text/html") || type.equals("html") || type.equals("htm")) getPart().isHTML(true);
