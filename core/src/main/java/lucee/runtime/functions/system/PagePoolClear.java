@@ -27,7 +27,6 @@ import java.util.Iterator;
 import lucee.runtime.Mapping;
 import lucee.runtime.MappingImpl;
 import lucee.runtime.PageContext;
-import lucee.runtime.PageSourcePool;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWebImpl;
@@ -90,10 +89,13 @@ public final class PagePoolClear extends BIF implements Function {
 
 	public static void clear(Config config, Mapping mapping, boolean unused) {
 		if (mapping == null) return;
-		PageSourcePool pool = ((MappingImpl) mapping).getPageSourcePool();
-		if (unused) pool.clearUnused((ConfigImpl) config);
-		else pool.clearPages(null);
-
+		MappingImpl mi = (MappingImpl) mapping;
+		if (unused) {
+			mi.clearUnused((ConfigImpl) config);
+		}
+		else {
+			mi.clearPages(null);
+		}
 	}
 
 	@Override

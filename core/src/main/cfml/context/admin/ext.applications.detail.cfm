@@ -91,7 +91,7 @@ isInstalled=installed.count() GT 0;
 <cfelse>
 	<cfset app=installed>
 </cfif>
-<cfset lasProvider=findNoCase("lucee.org",app.provider?:'') GT 0>
+<cfset lasProvider=(app.provider?:"")=="local" || findNoCase("lucee.org",app.provider?:'') GT 0>
 <cfoutput>
 	<!--- title and description --->
 	<div class="modheader">

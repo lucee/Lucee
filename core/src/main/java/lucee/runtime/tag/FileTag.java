@@ -213,8 +213,8 @@ public final class FileTag extends BodyTagImpl {
 		else if (strAction.equals("uploadall")) action = ACTION_UPLOAD_ALL;
 		else if (strAction.equals("info")) action = ACTION_INFO;
 		else if (strAction.equals("touch")) action = ACTION_TOUCH;
-		else throw new ApplicationException("invalid value [" + strAction + "] for attribute action",
-				"values for attribute action are:info,move,rename,copy,delete,read,readbinary,write,append,upload,uploadall,touch");
+		else throw new ApplicationException("Invalid value [" + strAction + "] for attribute action",
+				"supported actions are: [info,move,rename,copy,delete,read,readbinary,write,append,upload,uploadall,touch]");
 	}
 
 	/**
@@ -421,7 +421,7 @@ public final class FileTag extends BodyTagImpl {
 			actionTouch(pageContext, securityManager, file, serverPassword, createPath, acl, mode, attributes);
 			break;
 		case ACTION_UNDEFINED:
-			throw new ApplicationException("missing attribute action"); // should never happens
+			throw new ApplicationException("Missing attribute action"); // should never happens
 
 			// write and append
 		default:
@@ -435,7 +435,7 @@ public final class FileTag extends BodyTagImpl {
 		if (action == ACTION_APPEND || action == ACTION_WRITE) {
 			String body = bodyContent.getString();
 			if (!StringUtil.isEmpty(body)) {
-				if (!StringUtil.isEmpty(output)) throw new ApplicationException("if a body is defined for the tag, the attribute [output] is not allowed");
+				if (!StringUtil.isEmpty(output)) throw new ApplicationException("If a body is defined for the tag, the attribute [output] is not allowed");
 				output = body;
 			}
 		}
@@ -469,8 +469,8 @@ public final class FileTag extends BodyTagImpl {
 			String serverPassword, Object acl, int mode, String attributes) throws PageException {
 		if (nameconflict == NAMECONFLICT_UNDEFINED) nameconflict = NAMECONFLICT_OVERWRITE;
 
-		if (source == null) throw new ApplicationException("attribute [source] is not defined for tag [file]");
-		if (StringUtil.isEmpty(strDestination)) throw new ApplicationException("attribute [destination] is not defined for tag [file]");
+		if (source == null) throw new ApplicationException("Attribute [source] is not defined for tag [file]");
+		if (StringUtil.isEmpty(strDestination)) throw new ApplicationException("Attribute [destination] is not defined for tag [file]");
 
 		Resource destination = toDestination(pageContext, strDestination, source);
 
@@ -479,9 +479,10 @@ public final class FileTag extends BodyTagImpl {
 		if (source.equals(destination)) return;
 
 		// source
-		if (!source.exists()) throw new ApplicationException("source file [" + source.toString() + "] doesn't exist");
-		else if (!source.isFile()) throw new ApplicationException("source file [" + source.toString() + "] is not a file");
-		else if (!source.isReadable() || !source.isWriteable()) throw new ApplicationException("no access to source file [" + source.toString() + "]");
+		if (!source.exists()) throw new ApplicationException("Source file [" + source.toString() + "] doesn't exist");
+		else if (!source.isFile()) throw new ApplicationException("Source file [" + source.toString() + "] isn't a file");
+		// else if (!source.isReadable() || !source.isWriteable()) throw new ApplicationException("no access
+		// to source file [" + source.toString() + "]");
 
 		// destination
 		if (destination.isDirectory()) destination = destination.getRealResource(source.getName());
@@ -493,7 +494,7 @@ public final class FileTag extends BodyTagImpl {
 			// MAKEUNIQUE
 			else if (nameconflict == NAMECONFLICT_MAKEUNIQUE) destination = makeUnique(destination);
 			// ERROR
-			else throw new ApplicationException("destiniation file [" + destination.toString() + "] already exist");
+			else throw new ApplicationException("Destination file [" + destination.toString() + "] already exists");
 		}
 
 		setACL(pageContext, destination, acl);
@@ -527,8 +528,8 @@ public final class FileTag extends BodyTagImpl {
 			String serverPassword, Object acl, int mode, String attributes) throws PageException {
 		if (nameconflict == NAMECONFLICT_UNDEFINED) nameconflict = NAMECONFLICT_OVERWRITE;
 
-		if (source == null) throw new ApplicationException("attribute [source] is not defined for tag [file]");
-		if (StringUtil.isEmpty(strDestination)) throw new ApplicationException("attribute [destination] is not defined for tag [file]");
+		if (source == null) throw new ApplicationException("Attribute [source] is not defined for tag [file]");
+		if (StringUtil.isEmpty(strDestination)) throw new ApplicationException("Attribute [destination] is not defined for tag [file]");
 
 		Resource destination = toDestination(pageContext, strDestination, source);
 
@@ -536,9 +537,9 @@ public final class FileTag extends BodyTagImpl {
 		securityManager.checkFileLocation(pageContext.getConfig(), destination, serverPassword);
 
 		// source
-		if (!source.exists()) throw new ApplicationException("source file [" + source.toString() + "] doesn't exist");
-		else if (!source.isFile()) throw new ApplicationException("source file [" + source.toString() + "] is not a file");
-		else if (!source.canRead()) throw new ApplicationException("no access to source file [" + source.toString() + "]");
+		if (!source.exists()) throw new ApplicationException("Source file [" + source.toString() + "] doesn't exist");
+		else if (!source.isFile()) throw new ApplicationException("Source file [" + source.toString() + "] is not a file");
+		else if (!source.canRead()) throw new ApplicationException("Access Denied to source file [" + source.toString() + "]");
 
 		// destination
 		if (destination.isDirectory()) destination = destination.getRealResource(source.getName());
@@ -550,7 +551,7 @@ public final class FileTag extends BodyTagImpl {
 			// MAKEUNIQUE
 			else if (nameconflict == NAMECONFLICT_MAKEUNIQUE) destination = makeUnique(destination);
 			// ERROR
-			else throw new ApplicationException("destiniation file [" + destination.toString() + "] already exist");
+			else throw new ApplicationException("Destination file [" + destination.toString() + "] already exists");
 		}
 
 		setACL(pageContext, destination, acl);
@@ -559,7 +560,7 @@ public final class FileTag extends BodyTagImpl {
 		}
 		catch (IOException e) {
 
-			ApplicationException ae = new ApplicationException("can't copy file [" + source + "] to [" + destination + "]", e.getMessage());
+			ApplicationException ae = new ApplicationException("Can't copy file [" + source + "] to [" + destination + "]", e.getMessage());
 			ae.setStackTrace(e.getStackTrace());
 			throw ae;
 		}
@@ -597,7 +598,7 @@ public final class FileTag extends BodyTagImpl {
 		checkFile(pageContext, securityManager, file, serverPassword, false, false, false, false);
 		setACL(pageContext, file, acl);
 		try {
-			if (!file.delete()) throw new ApplicationException("can't delete file [" + file + "]");
+			if (!file.delete()) throw new ApplicationException("Can't delete file [" + file + "]");
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
@@ -612,7 +613,7 @@ public final class FileTag extends BodyTagImpl {
 	 */
 	private void actionRead(boolean isBinary) throws PageException {
 
-		if (variable == null) throw new ApplicationException("attribute [variable] is not defined for tag [file]");
+		if (variable == null) throw new ApplicationException("Attribute [variable] is not defined for tag [file]");
 
 		// check if we can use cache
 		if (StringUtil.isEmpty(cachedWithin)) {
@@ -659,7 +660,7 @@ public final class FileTag extends BodyTagImpl {
 
 		}
 		catch (IOException e) {
-			throw new ApplicationException("can't read file [" + file.toString() + "]", e.getMessage());
+			throw new ApplicationException("Can't read file [" + file.toString() + "]", e.getMessage());
 		}
 	}
 
@@ -677,7 +678,7 @@ public final class FileTag extends BodyTagImpl {
 		boolean created = checkFile(pageContext, securityManager, file, serverPassword, createPath, true, false, true);
 		if (file.exists() && !created) {
 			// Error
-			if (nameconflict == NAMECONFLICT_ERROR) throw new ApplicationException("destination file [" + file + "] already exist");
+			if (nameconflict == NAMECONFLICT_ERROR) throw new ApplicationException("Destination file [" + file + "] already exists");
 			// SKIP
 			else if (nameconflict == NAMECONFLICT_SKIP) return;
 			// OVERWRITE
@@ -706,7 +707,7 @@ public final class FileTag extends BodyTagImpl {
 		}
 		catch (IOException e) {
 
-			throw new ApplicationException("can't write file " + file.getAbsolutePath(), e.getMessage());
+			throw new ApplicationException("Can't write file [" + file.getAbsolutePath() + "]", e.getMessage());
 		}
 		setMode(file, mode);
 		setAttributes(file, attributes);
@@ -731,7 +732,7 @@ public final class FileTag extends BodyTagImpl {
 		}
 		catch (IOException e) {
 
-			throw new ApplicationException("can't touch file " + file.getAbsolutePath(), e.getMessage());
+			throw new ApplicationException("Failed to touch file [" + file.getAbsolutePath() + "]", e.getMessage());
 		}
 		setMode(file, mode);
 		setAttributes(file, attributes);
@@ -743,7 +744,7 @@ public final class FileTag extends BodyTagImpl {
 	 * @throws PageException
 	 */
 	private void actionAppend() throws PageException {
-		if (output == null) throw new ApplicationException("attribute [output] is not defined for tag [file]");
+		if (output == null) throw new ApplicationException("Attribute [output] is not defined for tag [file]");
 		checkFile(pageContext, securityManager, file, serverPassword, createPath, true, false, true);
 
 		setACL(pageContext, file, acl);
@@ -759,7 +760,7 @@ public final class FileTag extends BodyTagImpl {
 			throw new ApplicationException("Unsupported Charset Definition [" + charset + "]", e.getMessage());
 		}
 		catch (IOException e) {
-			throw new ApplicationException("can't write file", e.getMessage());
+			throw new ApplicationException("Can't append file", e.getMessage());
 		}
 		setMode(file, mode);
 		setAttributes(file, attributes);
@@ -776,7 +777,7 @@ public final class FileTag extends BodyTagImpl {
 	 * @throws PageException
 	 */
 	private void actionInfo() throws PageException {
-		if (variable == null) throw new ApplicationException("attribute [variable] is not defined for tag [file]");
+		if (variable == null) throw new ApplicationException("Attribute [variable] is not defined for tag [file]");
 		pageContext.setVariable(variable, getInfo(pageContext, file, serverPassword));
 
 	}
@@ -910,7 +911,7 @@ public final class FileTag extends BodyTagImpl {
 		cffile.set("clientfilename", getFileName(clientFile));
 
 		// check destination
-		if (StringUtil.isEmpty(strDestination)) throw new ApplicationException("attribute [destination] is not defined in tag [file]");
+		if (StringUtil.isEmpty(strDestination)) throw new ApplicationException("Attribute [destination] is not defined in tag [file]");
 
 		Resource destination = toDestination(pageContext, strDestination, null);
 		securityManager.checkFileLocation(pageContext.getConfig(), destination, serverPassword);
@@ -928,7 +929,7 @@ public final class FileTag extends BodyTagImpl {
 		if (!parentDestination.exists()) {
 			Resource pp = parentDestination.getParentResource();
 			if (pp == null || !pp.exists())
-				throw new ApplicationException("attribute [destination] has an invalid value [" + destination + "], directory [" + parentDestination + "] doesn't exist");
+				throw new ApplicationException("Attribute [destination] has an invalid value [" + destination + "], directory [" + parentDestination + "] doesn't exist");
 			try {
 				parentDestination.createDirectory(true);
 			}
@@ -949,7 +950,7 @@ public final class FileTag extends BodyTagImpl {
 		if (destination.exists()) {
 			fileExisted = true;
 			if (nameconflict == NAMECONFLICT_ERROR) {
-				throw new ApplicationException("destination file [" + destination + "] already exist");
+				throw new ApplicationException("Destination file [" + destination + "] already exists");
 			}
 			else if (nameconflict == NAMECONFLICT_SKIP) {
 				cffile.set("fileexisted", Caster.toBoolean(fileExisted));
@@ -975,7 +976,7 @@ public final class FileTag extends BodyTagImpl {
 				// fileWasAppended=true;
 				fileWasOverwritten = true;
 				if (!destination.delete()) if (destination.exists()) // hier hatte ich concurrent problem das damit ausgeraeumt ist
-					throw new ApplicationException("can't delete destination file [" + destination + "]");
+					throw new ApplicationException("Can't delete destination file [" + destination + "]");
 			}
 			// for "overwrite" no action is neded
 
@@ -1016,19 +1017,23 @@ public final class FileTag extends BodyTagImpl {
 			ext = ext.trim().toLowerCase();
 			if (ext.startsWith("*.")) ext = ext.substring(2);
 			if (ext.startsWith(".")) ext = ext.substring(1);
+			if (ListUtil.listContainsNoCase(StringUtil.emptyIfNull(accept), "." + ext, ",", false, false) == -1) {
+				String blocklistedTypes = ((ApplicationContextSupport) appContext).getBlockedExtForFileUpload();
+				if (blocklistedTypes == null) {
+					blocklistedTypes = SystemUtil.getSystemPropOrEnvVar(SystemUtil.SETTING_UPLOAD_EXT_BLACKLIST, SystemUtil.DEFAULT_UPLOAD_EXT_BLOCKLIST);
+					if (StringUtil.isEmpty(blocklistedTypes))
+						blocklistedTypes = SystemUtil.getSystemPropOrEnvVar(SystemUtil.SETTING_UPLOAD_EXT_BLOCKLIST, SystemUtil.DEFAULT_UPLOAD_EXT_BLOCKLIST);
+				}
+				blocklistedTypes = blocklistedTypes.replace('.', ' ').toLowerCase();
+				Array blocklist = ListUtil.listToArrayRemoveEmpty(blocklistedTypes, ',');
 
-			String blacklistedTypes = ((ApplicationContextSupport) appContext).getBlockedExtForFileUpload();
-			if (blacklistedTypes == null) {
-				blacklistedTypes = SystemUtil.getSystemPropOrEnvVar(SystemUtil.SETTING_UPLOAD_EXT_BLACKLIST, SystemUtil.DEFAULT_UPLOAD_EXT_BLACKLIST);
-			}
-			blacklistedTypes = blacklistedTypes.replace('.', ' ').toLowerCase();
-			Array blacklist = ListUtil.listToArrayRemoveEmpty(blacklistedTypes, ',');
-
-			for (int i = blacklist.size(); i > 0; i--) {
-				if (ext.equals(Caster.toString(blacklist.getE(i)).trim())) {
-					throw new ApplicationException("Upload of files with extension [" + ext + "] is not permitted.  " + "You can configure the "
-							+ SystemUtil.SETTING_UPLOAD_EXT_BLACKLIST + " System property or the " + SystemUtil.convertSystemPropToEnvVar(SystemUtil.SETTING_UPLOAD_EXT_BLACKLIST)
-							+ " Environment variable to allow that file type.");
+				for (int i = blocklist.size(); i > 0; i--) {
+					if (ext.equals(Caster.toString(blocklist.getE(i)).trim())) {
+						throw new ApplicationException("Upload of files with extension [" + ext + "] is not permitted.  "
+								+ "You can configure this via the Application.cfc, this.blockedExtForFileUpload property, the " + SystemUtil.SETTING_UPLOAD_EXT_BLOCKLIST
+								+ " System property or the " + SystemUtil.convertSystemPropToEnvVar(SystemUtil.SETTING_UPLOAD_EXT_BLOCKLIST)
+								+ " Environment variable to allow this type of file to be uploaded.");
+					}
 				}
 			}
 		}
@@ -1056,8 +1061,11 @@ public final class FileTag extends BodyTagImpl {
 				if (ext.equals(whishedType)) return;
 			}
 		}
-		throw new ApplicationException("The MIME type of the uploaded file [" + contentType + "] was not accepted by the server.",
-				"only this [" + accept + "] mime type are accepted");
+		if (strict && ListUtil.listContainsNoCase(StringUtil.emptyIfNull(accept), "." + ext, ",", false, false) != -1)
+			throw new ApplicationException("When the value of the attribute STRICT is TRUE, it requires only MIME types in the attribute(s): ACCEPT.",
+					"set [" + accept + "] to MIME type.");
+		else throw new ApplicationException("The MIME type of the uploaded file [" + contentType + "] was not accepted by the server.",
+				"only this [" + StringUtil.emptyIfNull(accept) + "] type are accepted.  Verify that you are uploading a file of the appropriate type. ");
 	}
 
 	/**
@@ -1070,7 +1078,7 @@ public final class FileTag extends BodyTagImpl {
 		// check filefield
 		if (StringUtil.isEmpty(filefield)) {
 			FormItem[] items = getFormItems(pageContext);
-			if (ArrayUtil.isEmpty(items)) throw new ApplicationException("no file send with this form");
+			if (ArrayUtil.isEmpty(items)) throw new ApplicationException("No uploaded files in found in Form");
 			return items[0];
 		}
 
@@ -1088,8 +1096,8 @@ public final class FileTag extends BodyTagImpl {
 			String add = ".";
 			if (sb.length() > 0) add = ", valid field names are [" + sb + "].";
 
-			if (pageContext.formScope().get(filefield, null) == null) throw new ApplicationException("form field [" + filefield + "] is not a file field" + add);
-			throw new ApplicationException("form field [" + filefield + "] doesn't exist or has no content" + add);
+			if (pageContext.formScope().get(filefield, null) == null) throw new ApplicationException("Form field [" + filefield + "] is not a file field" + add);
+			throw new ApplicationException("Form field [" + filefield + "] doesn't exist or has no content" + add);
 		}
 
 		return fileItem;
@@ -1155,7 +1163,7 @@ public final class FileTag extends BodyTagImpl {
 	private static boolean checkFile(PageContext pc, SecurityManager sm, Resource file, String serverPassword, boolean createParent, boolean create, boolean canRead,
 			boolean canWrite) throws PageException {
 		boolean created = false;
-		if (file == null) throw new ApplicationException("attribute [file] is not defined for tag [file]");
+		if (file == null) throw new ApplicationException("Attribute [file] is not defined for tag [file]");
 
 		sm.checkFileLocation(pc.getConfig(), file, serverPassword);
 		if (!file.exists()) {
@@ -1163,22 +1171,22 @@ public final class FileTag extends BodyTagImpl {
 				Resource parent = file.getParentResource();
 				if (parent != null && !parent.exists()) {
 					if (createParent) parent.mkdirs();
-					else throw new ApplicationException("parent directory for [" + file + "] doesn't exist");
+					else throw new ApplicationException("Parent directory for [" + file + "] doesn't exist");
 				}
 				try {
 					created = true;
 					file.createFile(false);
 				}
 				catch (IOException e) {
-					throw new ApplicationException("invalid file [" + file + "]", e.getMessage());
+					throw new ApplicationException("Invalid file [" + file + "]", e.getMessage());
 				}
 			}
-			else if (!file.isFile()) throw new ApplicationException("source file [" + file.toString() + "] is not a file");
-			else throw new ApplicationException("source file [" + file.toString() + "] doesn't exist");
+			else if (!file.isFile()) throw new ApplicationException("Source file [" + file.toString() + "] is not a file");
+			else throw new ApplicationException("Source file [" + file.toString() + "] doesn't exist");
 		}
-		else if (!file.isFile()) throw new ApplicationException("source file [" + file.toString() + "] is not a file");
-		else if (canRead && !file.canRead()) throw new ApplicationException("no read access to source file [" + file.toString() + "]");
-		else if (canWrite && !file.canWrite()) throw new ApplicationException("no write access to source file [" + file.toString() + "]");
+		else if (!file.isFile()) throw new ApplicationException("Source file [" + file.toString() + "] is not a file");
+		else if (canRead && !file.canRead()) throw new ApplicationException("Read access denied to source file [" + file.toString() + "]");
+		else if (canWrite && !file.canWrite()) throw new ApplicationException("Write access denied to source file [" + file.toString() + "]");
 
 		return created;
 	}
@@ -1195,7 +1203,7 @@ public final class FileTag extends BodyTagImpl {
 			ResourceUtil.setAttribute(file, attributes);
 		}
 		catch (IOException e) {
-			throw new ApplicationException("can't change attributes of file " + file, e.getMessage());
+			throw new ApplicationException("Can't change attributes of file [" + file + "]", e.getMessage());
 		}
 	}
 
@@ -1212,7 +1220,7 @@ public final class FileTag extends BodyTagImpl {
 			// FileUtil.setMode(file,mode);
 		}
 		catch (IOException e) {
-			throw new ApplicationException("can't change mode of file " + file, e.getMessage());
+			throw new ApplicationException("Can't change mode of file [" + file + "]", e.getMessage());
 		}
 	}
 

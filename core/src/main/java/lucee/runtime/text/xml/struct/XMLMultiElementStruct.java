@@ -55,7 +55,7 @@ public final class XMLMultiElementStruct extends XMLElementStruct {
 		for (int i = 0; i < ints.length; i++) {
 			Object o = array.get(ints[i], null);
 			if (!(o instanceof Element)) {
-				throw new ExpressionException("all Element in the Array must be of type Element");
+				throw new ExpressionException("All Elements in the Array must be of type Element");
 			}
 		}
 	}
@@ -182,7 +182,7 @@ public final class XMLMultiElementStruct extends XMLElementStruct {
 			getParentNode().appendChild(XMLCaster.toRawNode(element));
 		}
 		else {
-			throw new ExpressionException("the index for child node is out of range", "valid range is from 1 to " + (array.size() + 1));
+			throw new ExpressionException("The index for child node is out of range", "valid range is from 1 to " + (array.size() + 1));
 		}
 		return array.setE(index, element);
 	}

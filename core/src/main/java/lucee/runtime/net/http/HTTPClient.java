@@ -97,10 +97,10 @@ public class HTTPClient implements Objects, Iteratorable {
 
 	public HTTPClient(String httpUrl, String username, String password, ProxyData proxyData) throws PageException {
 		try {
-			url = HTTPUtil.toURL(httpUrl, true);
+			url = HTTPUtil.toURL(httpUrl, HTTPUtil.ENCODED_AUTO);
 
 			if (!StringUtil.isEmpty(this.url.getQuery())) throw new ApplicationException("invalid url, query string is not allowed as part of the call");
-			metaURL = HTTPUtil.toURL(url.toExternalForm() + "?cfml", true);
+			metaURL = HTTPUtil.toURL(url.toExternalForm() + "?cfml", HTTPUtil.ENCODED_AUTO);
 		}
 		catch (MalformedURLException e) {
 			throw Caster.toPageException(e);
@@ -191,11 +191,15 @@ public class HTTPClient implements Objects, Iteratorable {
 
 			}
 			catch (Throwable t) {
-				ExceptionUtil.rethrowIfNecessary(t);
 				throw new PageRuntimeException(Caster.toPageException(t));
 			}
 			finally {
-				IOUtil.closeEL(is);
+				try {
+					IOUtil.close(is);
+				}
+				catch (IOException e) {
+					throw new PageRuntimeException(Caster.toPageException(e));
+				}
 				HTTPEngine.closeEL(rsp);
 			}
 		}
@@ -324,7 +328,12 @@ public class HTTPClient implements Objects, Iteratorable {
 			throw Caster.toPageException(ioe);
 		}
 		finally {
-			IOUtil.closeEL(is);
+			try {
+				IOUtil.close(is);
+			}
+			catch (IOException e) {
+				throw Caster.toPageException(e);
+			}
 			HTTPEngine.closeEL(rsp);
 		}
 	}

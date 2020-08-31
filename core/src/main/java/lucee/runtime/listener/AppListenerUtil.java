@@ -25,6 +25,7 @@ import java.util.Map.Entry;
 
 import org.osgi.framework.Version;
 
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.type.ftp.FTPConnectionData;
@@ -91,6 +92,8 @@ public final class AppListenerUtil {
 	public static final Collection.Key CLOB = KeyImpl.intern("clob");
 	public static final Collection.Key CONNECTION_LIMIT = KeyImpl.intern("connectionLimit");
 	public static final Collection.Key CONNECTION_TIMEOUT = KeyImpl.intern("connectionTimeout");
+	public static final Collection.Key IDLE_TIMEOUT = KeyImpl.intern("idleTimeout");
+	public static final Collection.Key LIVE_TIMEOUT = KeyImpl.intern("liveTimeout");
 	public static final Collection.Key META_CACHE_TIMEOUT = KeyImpl.intern("metaCacheTimeout");
 	public static final Collection.Key ALLOW = KeyImpl.intern("allow");
 	public static final Collection.Key DISABLE_UPDATE = KeyImpl.intern("disableUpdate");
@@ -184,8 +187,8 @@ public final class AppListenerUtil {
 			pass = null;
 		}
 		else {
-			user = user.trim();
-			pass = pass.trim();
+			user = translateValue(user);
+			pass = translateValue(pass);
 		}
 
 		// listener
@@ -207,13 +210,15 @@ public final class AppListenerUtil {
 					Caster.toString(data.get(KeyConstants._bundleVersion, null), null), ThreadLocalPageContext.getConfig().getIdentification());
 
 			try {
+				int idle = Caster.toIntValue(data.get(IDLE_TIMEOUT, null), -1);
+				if (idle == -1) idle = Caster.toIntValue(data.get(CONNECTION_TIMEOUT, null), 1);
 				return ApplicationDataSource.getInstance(config, name, cd, Caster.toString(oConnStr), user, pass, listener, Caster.toBooleanValue(data.get(BLOB, null), false),
-						Caster.toBooleanValue(data.get(CLOB, null), false), Caster.toIntValue(data.get(CONNECTION_LIMIT, null), -1),
-						Caster.toIntValue(data.get(CONNECTION_TIMEOUT, null), 1), Caster.toLongValue(data.get(META_CACHE_TIMEOUT, null), 60000L),
+						Caster.toBooleanValue(data.get(CLOB, null), false), Caster.toIntValue(data.get(CONNECTION_LIMIT, null), -1), idle,
+						Caster.toIntValue(data.get(LIVE_TIMEOUT, null), 1), Caster.toLongValue(data.get(META_CACHE_TIMEOUT, null), 60000L),
 						Caster.toTimeZone(data.get(KeyConstants._timezone, null), null), Caster.toIntValue(data.get(ALLOW, null), DataSource.ALLOW_ALL),
 						Caster.toBooleanValue(data.get(KeyConstants._storage, null), false), Caster.toBooleanValue(data.get(KeyConstants._readonly, null), false),
 						Caster.toBooleanValue(data.get(KeyConstants._validate, null), false), Caster.toBooleanValue(data.get("requestExclusive", null), false),
-						readliteralTimestampWithTSOffset(data), log);
+						Caster.toBooleanValue(data.get("alwaysResetConnections", null), false), readliteralTimestampWithTSOffset(data), log);
 			}
 			catch (Exception cnfe) {
 				throw Caster.toPageException(cnfe);
@@ -224,20 +229,35 @@ public final class AppListenerUtil {
 		DataSourceDefintion dbt = DBUtil.getDataSourceDefintionForType(config, type, null);
 		if (dbt == null) throw new ApplicationException("no datasource type [" + type + "] found");
 		try {
+
+			int idle = Caster.toIntValue(data.get(IDLE_TIMEOUT, null), -1);
+			if (idle == -1) idle = Caster.toIntValue(data.get(CONNECTION_TIMEOUT, null), 1);
+
 			return new DataSourceImpl(config, name, dbt.classDefinition, Caster.toString(data.get(KeyConstants._host)), dbt.connectionString,
 					Caster.toString(data.get(KeyConstants._database)), Caster.toIntValue(data.get(KeyConstants._port, null), -1), user, pass, listener,
-					Caster.toIntValue(data.get(CONNECTION_LIMIT, null), -1), Caster.toIntValue(data.get(CONNECTION_TIMEOUT, null), 1),
+					Caster.toIntValue(data.get(CONNECTION_LIMIT, null), -1), idle, Caster.toIntValue(data.get(LIVE_TIMEOUT, null), 1),
 					Caster.toLongValue(data.get(META_CACHE_TIMEOUT, null), 60000L), Caster.toBooleanValue(data.get(BLOB, null), false),
 					Caster.toBooleanValue(data.get(CLOB, null), false), DataSource.ALLOW_ALL, Caster.toStruct(data.get(KeyConstants._custom, null), null, false),
 					Caster.toBooleanValue(data.get(KeyConstants._readonly, null), false), true, Caster.toBooleanValue(data.get(KeyConstants._storage, null), false),
 					Caster.toTimeZone(data.get(KeyConstants._timezone, null), null), "", ParamSyntax.toParamSyntax(data, ParamSyntax.DEFAULT),
 					readliteralTimestampWithTSOffset(data), Caster.toBooleanValue(data.get("alwaysSetTimeout", null), false),
-					Caster.toBooleanValue(data.get("requestExclusive", null), false), log);
+					Caster.toBooleanValue(data.get("requestExclusive", null), false), Caster.toBooleanValue(data.get("alwaysResetConnections", null), false), log);
 		}
 		catch (Exception cnfe) {
 			throw Caster.toPageException(cnfe);
 		}
 
+	}
+
+	private static String translateValue(String str) {
+		if (str == null) return null;
+
+		str = str.trim();
+		if (str.startsWith("{env:") && str.endsWith("}")) {
+			String tmp = str.substring(5, str.length() - 1);
+			return SystemUtil.getSystemPropOrEnvVar(tmp, "");
+		}
+		return str;
 	}
 
 	private static boolean readliteralTimestampWithTSOffset(Struct data) {
@@ -268,7 +288,7 @@ public final class AppListenerUtil {
 			e = it.next();
 			virtual = translateMappingVirtual(e.getKey().getString());
 			MappingData md = toMappingData(e.getValue(), source);
-			mappings.add(config.getApplicationMapping("application", virtual, md.physical, md.archive, md.physicalFirst, false));
+			mappings.add(config.getApplicationMapping("application", virtual, md.physical, md.archive, md.physicalFirst, false, !md.physicalMatch, !md.archiveMatch));
 		}
 		return ConfigWebUtil.sort(mappings.toArray(new Mapping[mappings.size()]));
 	}
@@ -284,11 +304,15 @@ public final class AppListenerUtil {
 
 			// physical
 			String physical = Caster.toString(map.get("physical", null), null);
-			if (!StringUtil.isEmpty(physical, true)) md.physical = translateMappingPhysical(physical.trim(), source, allowRelPath);
+			if (!StringUtil.isEmpty(physical, true)) {
+				translateMappingPhysical(md, physical.trim(), source, allowRelPath, false);
+			}
 
 			// archive
 			String archive = Caster.toString(map.get("archive", null), null);
-			if (!StringUtil.isEmpty(archive, true)) md.archive = translateMappingPhysical(archive.trim(), source, allowRelPath);
+			if (!StringUtil.isEmpty(archive, true)) {
+				translateMappingPhysical(md, archive.trim(), source, allowRelPath, true);
+			}
 
 			if (archive == null && physical == null) throw new ApplicationException("you must define archive or/and physical!");
 
@@ -304,18 +328,34 @@ public final class AppListenerUtil {
 		}
 		// simple value == only a physical path
 		else {
-			md.physical = translateMappingPhysical(Caster.toString(value).trim(), source, true);
 			md.physicalFirst = true;
+			translateMappingPhysical(md, Caster.toString(value).trim(), source, true, false);
 		}
 
 		return md;
 	}
 
-	private static String translateMappingPhysical(String path, Resource source, boolean allowRelPath) {
-		if (source == null || !allowRelPath) return path;
+	private static void translateMappingPhysical(MappingData md, String path, Resource source, boolean allowRelPath, boolean isArchive) {
+		if (source == null || !allowRelPath) {
+			if (isArchive) md.archive = path;
+			else md.physical = path;
+			return;
+		}
 		source = source.getParentResource().getRealResource(path);
-		if (source.exists()) return source.getAbsolutePath();
-		return path;
+		if (source.exists()) {
+			if (isArchive) {
+				md.archive = source.getAbsolutePath();
+				md.archiveMatch = true;
+			}
+			else {
+				md.physical = source.getAbsolutePath();
+				md.physicalMatch = true;
+			}
+			return;
+		}
+
+		if (isArchive) md.archive = path;
+		else md.physical = path;
 	}
 
 	private static String translateMappingVirtual(String virtual) {
@@ -373,7 +413,7 @@ public final class AppListenerUtil {
 					if (!virtual.startsWith("/")) virtual = "/" + virtual;
 					if (!virtual.equals("/") && virtual.endsWith("/")) virtual = virtual.substring(0, virtual.length() - 1);
 					MappingData md = toMappingData(e.getValue(), source);
-					list.add(config.getApplicationMapping(type, virtual, md.physical, md.archive, md.physicalFirst, true));
+					list.add(config.getApplicationMapping(type, virtual, md.physical, md.archive, md.physicalFirst, true, !md.physicalMatch, !md.archiveMatch));
 				}
 				return list.toArray(new Mapping[list.size()]);
 			}
@@ -391,7 +431,7 @@ public final class AppListenerUtil {
 		for (int i = 0; i < mappings.length; i++) {
 
 			MappingData md = toMappingData(array.getE(i + 1), source);
-			mappings[i] = (MappingImpl) config.getApplicationMapping(type, "/" + i, md.physical, md.archive, md.physicalFirst, true);
+			mappings[i] = (MappingImpl) config.getApplicationMapping(type, "/" + i, md.physical, md.archive, md.physicalFirst, true, !md.physicalMatch, !md.archiveMatch);
 		}
 		return mappings;
 	}
@@ -659,6 +699,8 @@ public final class AppListenerUtil {
 	}
 
 	static private class MappingData {
+		public boolean archiveMatch;
+		public boolean physicalMatch;
 		private String physical;
 		private String archive;
 		private boolean physicalFirst;
@@ -671,7 +713,10 @@ public final class AppListenerUtil {
 				Caster.toBooleanValue(data.get(KeyConstants._secure, null), SessionCookieDataImpl.DEFAULT.isSecure()),
 				toTimespan(data.get(KeyConstants._timeout, null), SessionCookieDataImpl.DEFAULT.getTimeout()),
 				Caster.toString(data.get(KeyConstants._domain, null), SessionCookieDataImpl.DEFAULT.getDomain()),
-				Caster.toBooleanValue(data.get(DISABLE_UPDATE, null), SessionCookieDataImpl.DEFAULT.isDisableUpdate()));
+				Caster.toBooleanValue(data.get(DISABLE_UPDATE, null), SessionCookieDataImpl.DEFAULT.isDisableUpdate()),
+				SessionCookieDataImpl.toSamesite(Caster.toString(data.get(KeyConstants._SameSite, null), null), SessionCookieDataImpl.DEFAULT.getSamesite())
+
+		);
 	}
 
 	public static AuthCookieData toAuthCookie(ConfigWeb config, Struct data) {
@@ -717,6 +762,8 @@ public final class AppListenerUtil {
 		String username = Caster.toString(data.get(KeyConstants._username, null), null);
 		if (StringUtil.isEmpty(username, true)) username = Caster.toString(data.get(KeyConstants._user, null), null);
 		String password = ConfigWebUtil.decrypt(Caster.toString(data.get(KeyConstants._password, null), null));
+		username = translateValue(username);
+		password = translateValue(password);
 
 		TimeSpan lifeTimespan = Caster.toTimespan(data.get("lifeTimespan", null), null);
 		if (lifeTimespan == null) lifeTimespan = Caster.toTimespan(data.get("life", null), FIVE_MINUTES);
@@ -750,6 +797,9 @@ public final class AppListenerUtil {
 		if (o == null) o = sct.get(KeyConstants._pass, null);
 		String pass = Caster.toString(o, null);
 		if (StringUtil.isEmpty(pass)) pass = user != null ? "" : null;
+
+		user = translateValue(user);
+		pass = translateValue(pass);
 
 		// host
 		o = sct.get(KeyConstants._host, null);

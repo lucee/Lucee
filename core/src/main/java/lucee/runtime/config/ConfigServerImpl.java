@@ -31,9 +31,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletContext;
-
 import lucee.commons.collection.LinkedHashMapMaxSize;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.digest.Hash;
@@ -71,9 +68,6 @@ import lucee.runtime.monitor.IntervallMonitor;
 import lucee.runtime.monitor.RequestMonitor;
 import lucee.runtime.net.amf.AMFEngine;
 import lucee.runtime.net.http.ReqRspUtil;
-import lucee.runtime.net.rpc.DummyWSHandler;
-import lucee.runtime.net.rpc.WSHandler;
-import lucee.runtime.net.rpc.ref.WSHandlerReflector;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
@@ -130,8 +124,6 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 	final TagLib luceeCoreTLDs;
 	final FunctionLib cfmlCoreFLDs;
 	final FunctionLib luceeCoreFLDs;
-
-	private ServletConfig srvConfig;
 
 	/**
 	 * @param engine
@@ -213,15 +205,6 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 		while (it.hasNext()) {
 			ConfigWebImpl cw = ((CFMLFactoryImpl) initContextes.get(it.next())).getConfigWebImpl();
 			if (ReqRspUtil.getRootPath(cw.getServletContext()).equals(realpath)) return cw;
-		}
-		return null;
-	}
-
-	public ServletContext getServletContext() {
-		Iterator<String> it = initContextes.keySet().iterator();
-		while (it.hasNext()) {
-			ConfigWebImpl cw = ((CFMLFactoryImpl) initContextes.get(it.next())).getConfigWebImpl();
-			return cw.getServletContext();
 		}
 		return null;
 	}
@@ -923,24 +906,16 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 		return gatewayEntries;
 	}
 
-	private WSHandler wsHandler;
-
-	@Override // that method normally should not be used, maybe in rthe future
-	public WSHandler getWSHandler() throws PageException {
-		if (wsHandler == null) {
-			ClassDefinition cd = getWSHandlerClassDefinition();
-			try {
-				if (isEmpty(cd)) return new DummyWSHandler();
-				Object obj = cd.getClazz().newInstance();
-				if (obj instanceof WSHandler) wsHandler = (WSHandler) obj;
-				else wsHandler = new WSHandlerReflector(obj);
-			}
-			catch (Exception e) {
-				throw Caster.toPageException(e);
-			}
-		}
-		return wsHandler;
-	}
+	/*
+	 * private WSHandler wsHandler;
+	 * 
+	 * @Override // that method normally should not be used, maybe in rthe future public WSHandler
+	 * getWSHandler() throws PageException { if (wsHandler == null) { ClassDefinition cd =
+	 * getWSHandlerClassDefinition(); try { if (isEmpty(cd)) return new DummyWSHandler(); Object obj =
+	 * cd.getClazz().newInstance(); if (obj instanceof WSHandler) wsHandler = (WSHandler) obj; else
+	 * wsHandler = new WSHandlerReflector(obj); } catch (Exception e) { throw Caster.toPageException(e);
+	 * } } return wsHandler; }
+	 */
 
 	@Override
 	public void checkPassword() throws PageException {

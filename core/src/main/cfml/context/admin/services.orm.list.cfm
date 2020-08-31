@@ -121,7 +121,7 @@ Redirtect to entry  --->
 								<cfloop index="item" list="none,update,dropcreate">
 									<li>
 										<label>
-											<input type="radio" class="radio" name="dbcreate" value="#item#" <cfif settings.dbcreate EQ item>checked="checked"</cfif>>
+											<input type="radio" class="radio" name="dbcreate" value="#item#" <cfif settings.dbcreate EQ item>checked="checked"<cfelseif item eq "none">checked="checked"</cfif>>
 											<b>#item#</b>
 										</label>
 										<div class="comment">#stText.Settings.orm['dbcreate'& item]#</div>

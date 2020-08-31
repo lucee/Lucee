@@ -162,12 +162,6 @@ public final class StorageUtil {
 	 * @param attributeName Name of the Attribute to read
 	 * @return Attribute Value
 	 */
-	/*
-	 * public File toFile(Element el,String attributeName) { String attributeValue =
-	 * el.getAttribute(attributeName); if(attributeValue==null || attributeValue.trim().length()==0)
-	 * return null; return new File(attributeValue); }
-	 */
-
 	public Resource toResource(Config config, Element el, String attributeName) {
 		String attributeValue = el.getAttribute(attributeName);
 		if (attributeValue == null || attributeValue.trim().length() == 0) return null;

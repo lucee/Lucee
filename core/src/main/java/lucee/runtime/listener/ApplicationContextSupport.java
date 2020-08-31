@@ -45,6 +45,7 @@ import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Duplicator;
+import lucee.runtime.regex.Regex;
 import lucee.runtime.tag.listener.TagListener;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
@@ -58,8 +59,8 @@ import lucee.transformer.library.tag.TagLibTag;
 import lucee.transformer.library.tag.TagLibTagAttr;
 
 /**
- * This is a base class for ModernApplicationSupport and ClassicApplicationSupport.  It contains
- * code that is shared between the subclasses.
+ * This is a base class for ModernApplicationSupport and ClassicApplicationSupport. It contains code
+ * that is shared between the subclasses.
  */
 public abstract class ApplicationContextSupport implements ApplicationContext {
 
@@ -470,5 +471,13 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 	public abstract Struct getXmlFeatures();
 
 	public abstract void setXmlFeatures(Struct xmlFeatures);
+
+	public abstract boolean getAllowImplicidQueryCall();
+
+	public abstract void setAllowImplicidQueryCall(boolean allowImplicidQueryCall);
+
+	public abstract Regex getRegex();
+
+	public abstract void setRegex(Regex regex);
 
 }

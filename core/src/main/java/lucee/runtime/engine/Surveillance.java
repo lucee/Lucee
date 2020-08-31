@@ -18,7 +18,6 @@
  */
 package lucee.runtime.engine;
 
-import lucee.commons.lang.SizeOf;
 import lucee.runtime.CFMLFactory;
 import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.Mapping;
@@ -126,8 +125,8 @@ class Surveillance {
 			sct.set("physicalClassLoader", Caster.toDouble(size));
 
 			// pagepool
-			size = SizeOf.size(mapping.getPageSourcePool());
-			sct.set(PAGE_POOL, Caster.toDouble(size));
+			// size = SizeOf.size(mapping.getPageSourcePool());
+			// sct.set(PAGE_POOL, Caster.toDouble(size));
 
 			map.set(!isCustomTagMapping ? mapping.getVirtual() : mapping.getStrPhysical(), sct);
 		}

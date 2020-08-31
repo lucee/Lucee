@@ -62,6 +62,14 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 		this.config = c;
 	}
 
+	public int getOpenConnections(PageContext pc, String ds, String user, String pass) throws PageException {
+		return config.getDatasourceConnectionPool().getOpenConnection(pc.getDataSource(ds), user, pass);
+	}
+
+	public int getOpenConnections(PageContext pc, DataSource ds, String user, String pass) throws PageException {
+		return config.getDatasourceConnectionPool().getOpenConnection(ds, user, pass);
+	}
+
 	@Override
 	public DatasourceConnection getConnection(PageContext pc, String _datasource, String user, String pass) throws PageException {
 		return getConnection(pc, pc.getDataSource(_datasource), user, pass);
@@ -96,6 +104,7 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 					if (autoCommit) {
 						if (!existingDC.getAutoCommit()) {
 							existingDC.setAutoCommit(true);
+							existingDC.getConnection().setTransactionIsolation(existingDC.getDefaultTransactionIsolation());
 						}
 					}
 					else {
@@ -112,6 +121,7 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 			if (autoCommit) {
 				if (!existingDC.getAutoCommit()) {
 					existingDC.setAutoCommit(true);
+					existingDC.getConnection().setTransactionIsolation(existingDC.getDefaultTransactionIsolation());
 				}
 			}
 			else {
@@ -337,15 +347,17 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 						tmp.put(entry.getKey(), entry.getValue());
 						continue;
 					}
-					dc.getConnection().setAutoCommit(true);
+					dc.setAutoCommit(true);
+					dc.setTransactionIsolation(((DatasourceConnectionPro) dc).getDefaultTransactionIsolation());
+
 				}
 				catch (Exception e) {
 					// we only keep the first exception
 					if (pair == null) {
 						pair = new Pair<DatasourceConnection, Exception>(dc, e);
 					}
+					continue;
 				}
-
 				releaseConnection(null, dc, true);
 			}
 			transConns.clear();

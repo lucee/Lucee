@@ -63,7 +63,7 @@ public final class Executer {
 	 * @return result
 	 * @throws PageException
 	 */
-	public Query execute(Vector statements, PageContext pc, SQL sql, int maxrows) throws PageException {
+	public QueryImpl execute(Vector statements, PageContext pc, SQL sql, int maxrows) throws PageException {
 		// parse sql
 		if (statements.size() != 1) throw new DatabaseException("only one SQL Statement allowed at time", null, null, null);
 		ZQuery query = (ZQuery) statements.get(0);
@@ -78,7 +78,7 @@ public final class Executer {
 
 	}
 
-	public Query execute(PageContext pc, SQL sql, String prettySQL, int maxrows) throws PageException {
+	public QueryImpl execute(PageContext pc, SQL sql, String prettySQL, int maxrows) throws PageException {
 		if (StringUtil.isEmpty(prettySQL)) prettySQL = SQLPrettyfier.prettyfie(sql.getSQLString());
 
 		ZqlParser parser = new ZqlParser(new ByteArrayInputStream(prettySQL.getBytes()));
@@ -94,7 +94,7 @@ public final class Executer {
 
 	}
 
-	private Query testExecute(PageContext pc, SQL sql, Query qr, ZQuery query, int maxrows) throws PageException {
+	private QueryImpl testExecute(PageContext pc, SQL sql, Query qr, ZQuery query, int maxrows) throws PageException {
 
 		int recCount = qr.getRecordcount();
 		Vector vSelects = query.getSelect();

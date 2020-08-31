@@ -20,6 +20,7 @@ package lucee.runtime.type.util;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -237,6 +238,40 @@ public final class ListUtil {
 		return array;
 	}
 
+	public static String listRemoveEmpty(String list, String delimiter) {
+		if (delimiter.length() == 1) return listRemoveEmpty(list, delimiter.charAt(0));
+		if (delimiter.length() == 0) return list;
+		int len = list.length();
+
+		if (len == 0) return "";
+		StringBuilder sb = new StringBuilder();
+
+		int last = 0;
+
+		char[] del = delimiter.toCharArray();
+		char c;
+		boolean first = true;
+		for (int i = 0; i < len; i++) {
+			c = list.charAt(i);
+			for (int y = 0; y < del.length; y++) {
+				if (c == del[y]) {
+					if (last < i) {
+						if (first) first = false;
+						else sb.append(delimiter);
+						sb.append(list.substring(last, i));
+					}
+					last = i + 1;
+					break;
+				}
+			}
+		}
+		if (last < len) {
+			if (!first) sb.append(delimiter);
+			sb.append(list.substring(last));
+		}
+		return sb.toString();
+	}
+
 	/**
 	 * casts a list to Array object remove Empty Elements
 	 * 
@@ -259,6 +294,30 @@ public final class ListUtil {
 		if (last < len) array.appendEL(list.substring(last));
 
 		return array;
+	}
+
+	public static String listRemoveEmpty(String list, char delimiter) {
+		int len = list.length();
+		if (len == 0) return "";
+
+		StringBuilder sb = new StringBuilder();
+		int last = 0;
+		boolean first = true;
+		for (int i = 0; i < len; i++) {
+			if (list.charAt(i) == delimiter) {
+				if (last < i) {
+					if (first) first = false;
+					else sb.append(delimiter);
+					sb.append(list.substring(last, i));
+				}
+				last = i + 1;
+			}
+		}
+		if (last < len) {
+			if (!first) sb.append(delimiter);
+			sb.append(list.substring(last));
+		}
+		return sb.toString();
 	}
 
 	public static List<String> toListRemoveEmpty(String list, char delimiter) {
@@ -1708,6 +1767,14 @@ public final class ListUtil {
 			list.add(Caster.toString(it.next()));
 		}
 		return list;
+	}
+
+	public static Iterator<String> toIterator(Enumeration<String> input) {
+		List<String> output = new ArrayList<String>();
+		while (input.hasMoreElements()) {
+			output.add(input.nextElement());
+		}
+		return output.iterator();
 	}
 
 }

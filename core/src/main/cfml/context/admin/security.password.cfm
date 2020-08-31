@@ -211,8 +211,9 @@ Error Output --->
 						<tr>
 							<th scope="row">#stText.Login.Password#</th>
 							<td>
-								<cfinputClassic type="password" name="_new_password" value="#defaultPassword#"
+								<cfinputClassic type="password" id="passEmpty" name="_new_password" value="#defaultPassword#"
 								class="medium" required="no" message="#stText.Login.NewPasswordMissing#">
+								<div id="messagePass" class="commentError"></div>
 								<div class="comment">#stText.Login.NewPasswordDescription#</div>
 							</td>
 						</tr>
@@ -220,7 +221,7 @@ Error Output --->
 					<tfoot>
 						<tr>
 							<td colspan="2">
-								<input type="submit" class="bl button submit" name="mainAction" value="#stText.Buttons.Update#">
+								<input type="submit" class="bl button submit" onclick="return validatePass()" name="mainAction" value="#stText.Buttons.Update#">
 								<input type="submit" class="bm button submit" name="mainAction" value="#stText.Buttons.delete#">
 								<input type="reset" class="br button reset" name="cancel" value="#stText.Buttons.Cancel#">
 							</td>

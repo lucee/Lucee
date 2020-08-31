@@ -23,6 +23,7 @@ import java.lang.Thread.State;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.Md5;
@@ -171,7 +172,7 @@ public final class ScheduleTaskImpl implements ScheduleTask {
 	 * @throws MalformedURLException
 	 */
 	private static URL toURL(String url, int port) throws MalformedURLException {
-		URL u = HTTPUtil.toURL(url, true);
+		URL u = HTTPUtil.toURL(url, HTTPUtil.ENCODED_AUTO);
 		if (port == -1) return u;
 		return new URL(u.getProtocol(), u.getHost(), port, u.getFile());
 	}
@@ -341,7 +342,7 @@ public final class ScheduleTaskImpl implements ScheduleTask {
 			if (thread.isAlive()) {
 				if (thread.getState() == State.BLOCKED) {
 					((SchedulerImpl) scheduler).getConfig().getLog("scheduler").info("scheduler", "thread is blocked");
-					thread.stop();
+					SystemUtil.stop(thread);
 				}
 				else if (thread.getState() != State.TERMINATED) {
 					return; // existing is still fine, so nothing to start
@@ -351,6 +352,7 @@ public final class ScheduleTaskImpl implements ScheduleTask {
 
 		}
 		this.thread = new ScheduledTaskThread(engine, scheduler, this);
+		setValid(true);
 		thread.start();
 	}
 

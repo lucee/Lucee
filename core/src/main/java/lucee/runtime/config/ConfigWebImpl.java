@@ -18,12 +18,11 @@
  */
 package lucee.runtime.config;
 
-import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.SOFT;
-
 import java.io.IOException;
+import java.lang.ref.SoftReference;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
@@ -37,7 +36,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.JspWriter;
 
-import org.apache.commons.collections4.map.ReferenceMap;
 import org.osgi.framework.BundleException;
 import org.xml.sax.SAXException;
 
@@ -102,7 +100,7 @@ import lucee.runtime.writer.CFMLWriterWSPref;
 /**
  * Web Context
  */
-public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, ConfigWeb {
+public class ConfigWebImpl extends ConfigImpl implements ServletConfig, ConfigWeb {
 
 	private final ServletConfig config;
 	private final ConfigServerImpl configServer;
@@ -325,7 +323,7 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 		return getConfigServerImpl().defaultFunctionMapping;
 	}
 
-	private Map<String, Mapping> applicationMappings = Collections.synchronizedMap(new ReferenceMap<String, Mapping>(SOFT, SOFT));
+	private Map<String, SoftReference<Mapping>> applicationMappings = new ConcurrentHashMap<String, SoftReference<Mapping>>();
 
 	private TagHandlerPool tagHandlerPool = new TagHandlerPool(this);
 	private SearchEngine searchEngine;
@@ -337,30 +335,46 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 	}
 
 	public boolean isApplicationMapping(Mapping mapping) {
-		Iterator<Mapping> it = applicationMappings.values().iterator();
+		Iterator<SoftReference<Mapping>> it = applicationMappings.values().iterator();
+		SoftReference<Mapping> sr;
 		while (it.hasNext()) {
-			if (mapping.equals(it.next())) return true;
+			sr = it.next();
+			if (sr != null && mapping.equals(sr.get())) return true;
 		}
 		return false;
 	}
 
 	public Mapping getApplicationMapping(String type, String virtual, String physical, String archive, boolean physicalFirst, boolean ignoreVirtual) {
+		return getApplicationMapping(type, virtual, physical, archive, physicalFirst, ignoreVirtual, true, true);
+	}
+
+	public Mapping getApplicationMapping(String type, String virtual, String physical, String archive, boolean physicalFirst, boolean ignoreVirtual,
+			boolean checkPhysicalFromWebroot, boolean checkArchiveFromWebroot) {
 		String key = type + ":" + virtual.toLowerCase() + ":" + (physical == null ? "" : physical.toLowerCase()) + ":" + (archive == null ? "" : archive.toLowerCase()) + ":"
 				+ physicalFirst;
 		key = Long.toString(HashUtil.create64BitHash(key), Character.MAX_RADIX);
 
-		Mapping m = applicationMappings.get(key);
+		SoftReference<Mapping> t = applicationMappings.get(key);
+		Mapping m = t == null ? null : t.get();
 
 		if (m == null) {
-			m = new MappingImpl(this, virtual, physical, archive, Config.INSPECT_UNDEFINED, physicalFirst, false, false, false, true, ignoreVirtual, null, -1, -1);
-			applicationMappings.put(key, m);
+			m = new MappingImpl(this, virtual, physical, archive, Config.INSPECT_UNDEFINED, physicalFirst, false, false, false, true, ignoreVirtual, null, -1, -1,
+					checkPhysicalFromWebroot, checkArchiveFromWebroot);
+			applicationMappings.put(key, new SoftReference<Mapping>(m));
 		}
 
 		return m;
 	}
 
 	public Mapping[] getApplicationMapping() {
-		return applicationMappings.values().toArray(new Mapping[applicationMappings.size()]);
+		List<Mapping> list = new ArrayList<>();
+		Iterator<SoftReference<Mapping>> it = applicationMappings.values().iterator();
+		SoftReference<Mapping> sr;
+		while (it.hasNext()) {
+			sr = it.next();
+			if (sr != null) list.add(sr.get());
+		}
+		return list.toArray(new Mapping[list.size()]);
 	}
 
 	@Override
@@ -667,10 +681,8 @@ public final class ConfigWebImpl extends ConfigImpl implements ServletConfig, Co
 		return configServer.loadLocalExtensions(validate);
 	}
 
-	private WSHandler wsHandler;
 	private short passwordSource;
 
-	@Override
 	public WSHandler getWSHandler() throws PageException {
 		if (wsHandler == null) {
 			ClassDefinition cd = getWSHandlerClassDefinition();

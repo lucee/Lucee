@@ -196,14 +196,14 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 			// source is cfm and target cfc
 			if (dialect == CFMLEngine.DIALECT_CFML && endsWith(srcName, Constants.getCFMLTemplateExtensions(), dialect) && className
 					.endsWith("_" + Constants.getCFMLComponentExtension() + (dialect == CFMLEngine.DIALECT_CFML ? Constants.CFML_CLASS_SUFFIX : Constants.LUCEE_CLASS_SUFFIX))) {
-				throw new TemplateException("source file " + displayPath + "contains the bytecode for a regular cfm template not for a component");
+				throw new TemplateException("Source file [" + displayPath + "] contains the bytecode for a regular cfm template not for a component");
 			}
 			// source is cfc and target cfm
 			if (dialect == CFMLEngine.DIALECT_CFML
 					&& srcName.endsWith(
 							"_" + Constants.getCFMLComponentExtension() + (dialect == CFMLEngine.DIALECT_CFML ? Constants.CFML_CLASS_SUFFIX : Constants.LUCEE_CLASS_SUFFIX))
 					&& endsWith(className, Constants.getCFMLTemplateExtensions(), dialect))
-				throw new TemplateException("source file " + displayPath + "contains a component not a regular cfm template");
+				throw new TemplateException("Source file [" + displayPath + "] contains a component not a regular cfm template");
 
 			// rename class name when needed
 			if (!srcName.equals(javaName)) {
@@ -241,7 +241,7 @@ public final class CFMLCompilerImpl implements CFMLCompiler {
 
 		String str = System.getenv("PUBLIC_KEY");
 		if (str == null) str = System.getProperty("PUBLIC_KEY");
-		if (str == null) throw new RuntimeException("to decrypt encrypted bytecode, you need to set PUBLIC_KEY as system property or or enviroment variable");
+		if (str == null) throw new RuntimeException("To decrypt encrypted bytecode, you need to set PUBLIC_KEY as system property or as an environment variable");
 
 		byte[] bytes = IOUtil.toBytes(ace.getInputStream(), true);
 		try {

@@ -271,7 +271,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 		// Action
 		Object objAction = attributes.get(KeyConstants._action);
-		if (objAction == null) throw new ApplicationException("missing attrbute action for tag admin");
+		if (objAction == null) throw new ApplicationException("Missing attribute [action] for tag [admin]");
 		action = StringUtil.toLowerCase(Caster.toString(objAction)).trim();
 
 		// Generals
@@ -292,7 +292,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			return SKIP_BODY;
 		}
 		if (action.equals("printdebug")) {
-			throw new DeprecatedException("action [printdebug] is no longer supported, use instead [getdebugdata]");
+			throw new DeprecatedException("Action [printdebug] is no longer supported, use instead [getdebugdata]");
 		}
 		if (action.equals("getdebugdata")) {
 			doGetDebugData();
@@ -385,7 +385,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		strType = StringUtil.toLowerCase(strType).trim();
 		if ("web".equals(strType)) return TYPE_WEB;
 		else if ("server".equals(strType)) return TYPE_SERVER;
-		if (throwError) throw new ApplicationException("invalid value for attribute type [" + strType + "] of tag admin", "valid values are web, server");
+		if (throwError) throw new ApplicationException("Invalid value for attribute type [" + strType + "] of tag admin", "valid values are [web, server]");
 		return TYPE_WEB;
 	}
 
@@ -671,10 +671,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		else if (check("getMappings", ACCESS_FREE) && check2(ACCESS_READ)) doGetMappings();
 		else if (check("getRestMappings", ACCESS_FREE) && check2(ACCESS_READ)) doGetRestMappings();
 		else if (check("getRestSettings", ACCESS_FREE) && check2(ACCESS_READ)) doGetRestSettings();
-		// else if(check("getExtensions", ACCESS_FREE) && check2(ACCESS_READ))
-		// doGetExtensions();
-		// else if(check("getExtensionProviders", ACCESS_FREE) && check2(ACCESS_READ))
-		// doGetExtensionProviders();
 		else if ((check("getRHExtensionProviders", ACCESS_FREE) || check("getExtensionProviders", ACCESS_FREE)) && check2(ACCESS_READ)) doGetRHExtensionProviders();
 		else if (check("getExtensionInfo", ACCESS_FREE) && check2(ACCESS_READ)) doGetExtensionInfo();
 
@@ -686,6 +682,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		else if (check("getSecurity", ACCESS_FREE) && check2(ACCESS_READ)) doGetSecurity();
 		else if (check("getDebugEntry", ACCESS_FREE)) doGetDebugEntry();
 		else if (check("getError", ACCESS_FREE) && check2(ACCESS_READ)) doGetError();
+		else if (check("getRegex", ACCESS_FREE) && check2(ACCESS_READ)) doGetRegex();
 		else if (check("verifyremoteclient", ACCESS_FREE) && check2(ACCESS_READ)) doVerifyRemoteClient();
 		else if (check("verifyDatasource", ACCESS_FREE) && check2(ACCESS_READ)) doVerifyDatasource();
 		else if (check("verifyCacheConnection", ACCESS_FREE) && check2(ACCESS_READ)) doVerifyCacheConnection();
@@ -738,6 +735,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		else if (check("updatedebugsetting", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateDebugSetting();
 
 		else if (check("updateerror", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateError();
+		else if (check("updateregex", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateRegex();
 		else if (check("updateCustomTagSetting", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateCustomTagSetting();
 		// else if(check("updateExtension", ACCESS_FREE) && check2(ACCESS_WRITE))
 		// doUpdateExtension();
@@ -849,7 +847,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		else if (check("heapDump", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doHeapDump();
 		else if (check("securitymanager", ACCESS_FREE) && check2(ACCESS_READ)) doSecurityManager();
 
-		else throw new ApplicationException("invalid action [" + action + "] for tag admin");
+		else throw new ApplicationException("Invalid action [" + action + "] for tag admin");
 
 	}
 
@@ -926,8 +924,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		MappingImpl mapping = (MappingImpl) doCompileMapping(mappingType, virtual, true, ignoreScopes);
 
 		// class files
-		if (mapping == null) throw new ApplicationException("there is no mapping for [" + virtual + "]");
-		if (!mapping.hasPhysical()) throw new ApplicationException("mapping [" + virtual + "] has no physical directory");
+		if (mapping == null) throw new ApplicationException("There is no mapping for [" + virtual + "]");
+		if (!mapping.hasPhysical()) throw new ApplicationException("Mapping [" + virtual + "] has no physical directory");
 
 		Resource classRoot = mapping.getClassRootDirectory();
 		Resource temp = SystemUtil.getTempDirectory().getRealResource("mani-" + IDGenerator.stringId());
@@ -1417,6 +1415,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		sct.set(DEBUG, Caster.toBoolean(config.debug()));
 		sct.set(KeyConstants._database, Caster.toBoolean(config.hasDebugOptions(ConfigImpl.DEBUG_DATABASE)));
 		sct.set(KeyConstants._exception, Caster.toBoolean(config.hasDebugOptions(ConfigImpl.DEBUG_EXCEPTION)));
+		sct.set(KeyConstants._template, Caster.toBoolean(config.hasDebugOptions(ConfigImpl.DEBUG_TEMPLATE)));
 		sct.set("tracing", Caster.toBoolean(config.hasDebugOptions(ConfigImpl.DEBUG_TRACING)));
 		sct.set("dump", Caster.toBoolean(config.hasDebugOptions(ConfigImpl.DEBUG_DUMP)));
 		sct.set("timer", Caster.toBoolean(config.hasDebugOptions(ConfigImpl.DEBUG_TIMER)));
@@ -1461,6 +1460,12 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	}
 
+	private void doGetRegex() throws PageException {
+		Struct sct = new StructImpl();
+		pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
+		sct.set(KeyConstants._type, config.getRegex().getTypeName());
+	}
+
 	/**
 	 * @throws PageException
 	 * 
@@ -1489,7 +1494,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 					return;
 				}
 			}
-			throw new ApplicationException("no debugging data with id [" + id + "] found.");
+			throw new ApplicationException("No debugging data with id [" + id + "] found.");
 		}
 	}
 
@@ -1580,7 +1585,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		Object value = attributes.get(FILE_ACCESS, null);
 		if (value == null) return null;
 		Array arr = Caster.toArray(value);
-		List rtn = new ArrayList();
+		List<Resource> rtn = new ArrayList<Resource>();
 		Iterator it = arr.valueIterator();
 		String path;
 		Resource res;
@@ -1589,11 +1594,11 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			if (StringUtil.isEmpty(path)) continue;
 
 			res = config.getResource(path);
-			if (!res.exists()) throw new ApplicationException("path [" + path + "] does not exist");
-			if (!res.isDirectory()) throw new ApplicationException("path [" + path + "] is not a directory");
+			if (!res.exists()) throw new ApplicationException("Path [" + path + "] does not exist");
+			if (!res.isDirectory()) throw new ApplicationException("Path [" + path + "] is not a directory");
 			rtn.add(res);
 		}
-		return (Resource[]) rtn.toArray(new Resource[rtn.size()]);
+		return rtn.toArray(new Resource[rtn.size()]);
 	}
 
 	private void doUpdateSecurityManager() throws PageException {
@@ -1705,10 +1710,9 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	 * 
 	 */
 	private void doUpdateDebug() throws PageException {
-
-		admin.updateDebug(Caster.toBoolean(getString("debug", ""), null), Caster.toBoolean(getString("database", ""), null), Caster.toBoolean(getString("exception", ""), null),
-				Caster.toBoolean(getString("tracing", ""), null), Caster.toBoolean(getString("dump", ""), null), Caster.toBoolean(getString("timer", ""), null),
-				Caster.toBoolean(getString("implicitAccess", ""), null), Caster.toBoolean(getString("queryUsage", ""), null));
+		admin.updateDebug(Caster.toBoolean(getString("debug", ""), null), Caster.toBoolean(getString("template", ""), null), Caster.toBoolean(getString("database", ""), null),
+				Caster.toBoolean(getString("exception", ""), null), Caster.toBoolean(getString("tracing", ""), null), Caster.toBoolean(getString("dump", ""), null),
+				Caster.toBoolean(getString("timer", ""), null), Caster.toBoolean(getString("implicitAccess", ""), null), Caster.toBoolean(getString("queryUsage", ""), null));
 
 		admin.updateDebugTemplate(getString("admin", action, "debugTemplate"));
 		store();
@@ -1770,6 +1774,13 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		admin.updateErrorTemplate(500, getString("admin", action, "template500"));
 		admin.updateErrorTemplate(404, getString("admin", action, "template404"));
 		admin.updateErrorStatusCode(getBoolObject("admin", action, "statuscode"));
+		store();
+		adminSync.broadcast(attributes, config);
+	}
+
+	private void doUpdateRegex() throws PageException {
+
+		admin.updateRegexType(getString("admin", action, "regextype"));
 		store();
 		adminSync.broadcast(attributes, config);
 	}
@@ -2052,19 +2063,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
 	}
 
-	/*
-	 * private void doGetExtensionProviders() throws PageException { ExtensionProvider[] providers =
-	 * config.getExtensionProviders(); lucee.runtime.type.Query qry = new QueryImpl(new String[] {
-	 * "url", "isReadOnly" }, providers.length, "query");
-	 * 
-	 * ExtensionProvider provider; for (int i = 0; i < providers.length; i++) { provider = providers[i];
-	 * int row = i + 1; // qry.setAt("name",row,provider.getName()); qry.setAt(KeyConstants._url, row,
-	 * provider.getUrlAsString()); qry.setAt("isReadOnly", row,
-	 * Caster.toBoolean(provider.isReadOnly())); //
-	 * qry.setAt("cacheTimeout",row,Caster.toDouble(provider.getCacheTimeout()/1000)); }
-	 * pageContext.setVariable(getString("admin", action, "returnVariable"), qry); }
-	 */
-
 	private void doGetExtensionInfo() throws PageException {
 		Resource ed = config.getExtensionDirectory();
 		Struct sct = new StructImpl();
@@ -2256,7 +2254,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		Integer i = null;
 		if (!StringUtil.isEmpty(str)) {
 			i = Caster.toInteger(str);
-			if (i.intValue() < 10) throw new ApplicationException("we need at least 10 threads to run tasks properly");
+			if (i.intValue() < 10) throw new ApplicationException("We need at least 10 threads to run tasks properly");
 		}
 		admin.setTaskMaxThreads(i);
 		store();
@@ -2453,14 +2451,14 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void _doGetRHExtension(RHExtension[] extensions) throws PageException {
 		String id = getString("admin", action, "id");
-		if (StringUtil.isEmpty(id, true)) throw new ApplicationException("id cannot be empty");
+		if (StringUtil.isEmpty(id, true)) throw new ApplicationException("Extension ID cannot be empty");
 		for (RHExtension ext: extensions) {
 			if (id.equals(ext.getId()) || id.equals(ext.getSymbolicName())) {
 				pageContext.setVariable(getString("admin", action, "returnVariable"), ext.toStruct());
 				return;
 			}
 		}
-		throw new ApplicationException("there is no Extension with ID [" + id + "]");
+		throw new ApplicationException("No Extension found with ID [" + id + "]");
 	}
 
 	private void doGetRHExtensions() throws PageException {
@@ -2489,7 +2487,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 					}
 				}
 			}
-			throw new ApplicationException("there is no local extension with id " + id);
+			throw new ApplicationException("No local Extension found with with id [" + id + "]");
 
 		}
 		else {
@@ -2505,7 +2503,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 					break;
 				}
 			}
-			if (row == 0) throw new ApplicationException("there is no local extension with id " + id);
+			if (row == 0) throw new ApplicationException("No local Extension found with id [" + id + "]");
 			pageContext.setVariable(getString("admin", action, "returnVariable"), Caster.toStruct(qry, row));
 		}
 	}
@@ -2624,6 +2622,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		boolean literalTimestampWithTSOffset = getBoolV("literalTimestampWithTSOffset", false);
 		boolean alwaysSetTimeout = getBoolV("alwaysSetTimeout", false);
 		boolean requestExclusive = getBoolV("requestExclusive", false);
+		boolean alwaysResetConnections = getBoolV("alwaysResetConnections", false);
 
 		String id = getString("id", null);
 		String dsn = getString("admin", action, "dsn");
@@ -2636,7 +2635,9 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		String database = getString("database", "");
 		int port = getInt("port", -1);
 		int connLimit = getInt("connectionLimit", -1);
-		int connTimeout = getInt("connectionTimeout", -1);
+		int idleTimeout = getInt("connectionTimeout", -1);
+		if (idleTimeout == -1) idleTimeout = getInt("idleTimeout", -1);
+		int liveTimeout = getInt("liveTimeout", -1);
 		long metaCacheTimeout = getLong("metaCacheTimeout", 60000);
 		boolean blob = getBoolV("blob", false);
 		boolean clob = getBoolV("clob", false);
@@ -2647,10 +2648,11 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		String dbdriver = getString("dbdriver", "");
 
 		// config.getDatasourceConnectionPool().remove(name);
-		DataSource ds = null;
+		DataSourcePro ds = null;
 		try {
-			ds = new DataSourceImpl(config, name, cd, host, dsn, database, port, username, password, null, connLimit, connTimeout, metaCacheTimeout, blob, clob, allow, custom,
-					false, validate, storage, null, dbdriver, ps, literalTimestampWithTSOffset, alwaysSetTimeout, requestExclusive, config.getLog("application"));
+			ds = new DataSourceImpl(config, name, cd, host, dsn, database, port, username, password, null, connLimit, idleTimeout, liveTimeout, metaCacheTimeout, blob, clob, allow,
+					custom, false, validate, storage, null, dbdriver, ps, literalTimestampWithTSOffset, alwaysSetTimeout, requestExclusive, alwaysResetConnections,
+					config.getLog("application"));
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
@@ -2658,8 +2660,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 		if (verify) _doVerifyDatasource(ds, username, password);
 		// print.out("limit:"+connLimit);
-		admin.updateDataSource(id, name, newName, cd, dsn, username, password, host, database, port, connLimit, connTimeout, metaCacheTimeout, blob, clob, allow, validate, storage,
-				timezone, custom, dbdriver, ps, literalTimestampWithTSOffset, alwaysSetTimeout, requestExclusive);
+		admin.updateDataSource(id, name, newName, cd, dsn, username, password, host, database, port, connLimit, idleTimeout, liveTimeout, metaCacheTimeout, blob, clob, allow,
+				validate, storage, timezone, custom, dbdriver, ps, literalTimestampWithTSOffset, alwaysSetTimeout, requestExclusive, alwaysResetConnections);
 		store();
 		adminSync.broadcast(attributes, config);
 	}
@@ -2679,7 +2681,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private void doUpdateGatewayEntry() throws PageException {
 		String strStartupMode = getString("admin", action, "startupMode");
 		int startup = GatewayEntryImpl.toStartup(strStartupMode, -1);
-		if (startup == -1) throw new ApplicationException("invalid startup mode [" + strStartupMode + "], valid values are [automatic,manual,disabled]");
+		if (startup == -1) throw new ApplicationException("Invalid startup mode [" + strStartupMode + "], valid values are [automatic,manual,disabled]");
 
 		// custom validation
 		Struct custom = getStruct("admin", action, "custom");
@@ -2726,7 +2728,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		if (def.equals("file")) return ConfigImpl.CACHE_TYPE_FILE;
 		if (def.equals("webservice")) return ConfigImpl.CACHE_TYPE_WEBSERVICE;
 
-		throw new ApplicationException("invalid default type [" + def + "], valid default types are [object,template,query,resource,function]");
+		throw new ApplicationException("Invalid default type [" + def + "], valid default types are [object,template,query,resource,function]");
 	}
 
 	private void doUpdateCacheDefaultConnection() throws PageException {
@@ -2877,7 +2879,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		}
 	}
 
-	private void _doVerifyDatasource(DataSource ds, String username, String password) throws PageException {
+	private void _doVerifyDatasource(DataSourcePro ds, String username, String password) throws PageException {
 		try {
 			DataSourceManager manager = pageContext.getDataSourceManager();
 			DatasourceConnectionImpl dc = new DatasourceConnectionImpl(ds.getConnection(config, username, password), ds, username, password);
@@ -3031,7 +3033,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		if ("none".equals(strDbcreate)) dbcreate = "none";
 		else if ("update".equals(strDbcreate)) dbcreate = "update";
 		else if ("dropcreate".equals(strDbcreate)) dbcreate = "dropcreate";
-		else throw new ApplicationException("invalid dbcreate definition [" + strDbcreate + "], valid dbcreate definitions are [none,update,dropcreate]");
+		else throw new ApplicationException("Invalid dbcreate definition [" + strDbcreate + "], valid dbcreate definitions are [none,update,dropcreate]");
 		settings.set(ORMConfigurationImpl.DB_CREATE, dbcreate);
 
 		// cfclocation
@@ -3509,9 +3511,11 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		for (RHExtension e: extensions) {
 			try {
 				bundles = e.getBundles();
-				for (BundleInfo b: bundles) {
-					if (_eq(bd.getName(), bd.getVersion(), b.getSymbolicName(), b.getVersion())) {
-						set.add(e.getName());
+				if (bundles != null) {
+					for (BundleInfo b: bundles) {
+						if (_eq(bd.getName(), bd.getVersion(), b.getSymbolicName(), b.getVersion())) {
+							set.add(e.getName());
+						}
 					}
 				}
 			}
@@ -3614,7 +3618,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 				return;
 			}
 		}
-		throw new ApplicationException("there is no gateway entry with id [" + id + "]");
+		throw new ApplicationException("No Gateway entry found with id [" + id + "]");
 	}
 
 	private void doGateway() throws PageException {
@@ -3624,7 +3628,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		if ("restart".equals(act)) ((ConfigWebImpl) config).getGatewayEngine().restart(id);
 		else if ("start".equals(act)) ((ConfigWebImpl) config).getGatewayEngine().start(id);
 		else if ("stop".equals(act)) ((ConfigWebImpl) config).getGatewayEngine().stop(id);
-		else throw new ApplicationException("invalid gateway action [" + act + "], valid actions are [start,stop,restart]");
+		else throw new ApplicationException("Invalid gateway action [" + act + "], valid actions are [start,stop,restart]");
 	}
 
 	private void doGetCacheConnections() throws PageException {
@@ -3703,7 +3707,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 			pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
 		}
-		else throw new ApplicationException("there is no cache default connection");
+		else throw new ApplicationException("There is no cache default connection");
 	}
 
 	private void doGetCacheConnection() throws PageException {
@@ -3753,7 +3757,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 				return;
 			}
 		}
-		throw new ApplicationException("there is no cache connection with name [" + name + "]");
+		throw new ApplicationException("There is no cache connection with name [" + name + "]");
 	}
 
 	private void doRemoveCacheConnection() throws PageException {
@@ -3840,6 +3844,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 				if (d instanceof DataSourcePro) {
 					DataSourcePro dp = ((DataSourcePro) d);
 					sct.setEL("requestExclusive", Boolean.valueOf(dp.isRequestExclusive()));
+					sct.setEL("alwaysResetConnections", Boolean.valueOf(dp.isAlwaysResetConnections()));
+					sct.setEL("liveTimeout", dp.getLiveTimeout() < 1 ? "" : Caster.toString(dp.getLiveTimeout()));
 				}
 
 				if (d instanceof DataSourceImpl) {
@@ -3852,7 +3858,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 				return;
 			}
 		}
-		throw new ApplicationException("there is no datasource with name [" + name + "]");
+		throw new ApplicationException("There is no datasource with name [" + name + "]");
 	}
 
 	private Object toStringTimeZone(TimeZone timeZone) {
@@ -3888,7 +3894,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 				return;
 			}
 		}
-		throw new ApplicationException("there is no remote client with url [" + url + "]");
+		throw new ApplicationException("No remote client found with url [" + url + "]");
 	}
 
 	private void doGetSpoolerTasks() throws PageException {
@@ -4246,7 +4252,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		if (!StringUtil.isEmpty(id)) {
 			ExtensionDefintion ed;
 			String version = getString("version", null);
-			if (!StringUtil.isEmpty(version, true)) ed = new ExtensionDefintion(id, version);
+			if (!StringUtil.isEmpty(version, true) && !"latest".equalsIgnoreCase(version)) ed = new ExtensionDefintion(id, version);
 			else ed = RHExtension.toExtensionDefinition(id);
 			DeployHandler.deployExtension(config, ed, config == null ? null : config.getLog("application"), true);
 			return;
@@ -4284,7 +4290,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void doRemoveRHExtension() throws PageException {
 		String id = getString("admin", "removeRHExtensions", "id");
-		if (!Decision.isUUId(id)) throw new ApplicationException("invalid id [" + id + "], id must be a UUID");
+		if (!Decision.isUUId(id)) throw new ApplicationException("Invalid id [" + id + "], id must be a UUID");
 		try {
 			admin.removeRHExtension(id);
 		}
@@ -4613,7 +4619,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private void doUpdateLogSettings() throws PageException {
 		String str = getString("admin", "UpdateLogSettings", "level", true);
 		int l = LogUtil.toLevel(str, -1);
-		if (l == -1) throw new ApplicationException("invalid log level name [" + str + "], valid log level names are [INFO,DEBUG,WARN,ERROR,FATAL,TRACE]");
+		if (l == -1) throw new ApplicationException("Invalid log level name [" + str + "], valid log level names are [INFO,DEBUG,WARN,ERROR,FATAL,TRACE]");
 
 		ClassDefinition acd = new ClassDefinitionImpl(getString("admin", action, "appenderClass", true), getString("appenderBundleName", null),
 				getString("appenderBundleVersion", null), config.getIdentification());
@@ -4743,7 +4749,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		boolean ignoreExistingManifest = getBoolV("ignoreExistingManifest", false);
 		Resource dest = ResourceUtil.toResourceNotExisting(pageContext, getString("admin", action, "destination"));
 		String strJar = getString("admin", action, "jar");
-		if (StringUtil.isEmpty(strJar, true)) throw new ApplicationException("missing valid jar path");
+		if (StringUtil.isEmpty(strJar, true)) throw new ApplicationException("Missing valid jar path");
 		Resource jar = ResourceUtil.toResourceExisting(pageContext, strJar.trim());
 
 		Set<String> relatedPackages = null;
@@ -4902,7 +4908,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private void doUpdateCachedWithin() throws PageException {
 		String str = getString("admin", action, "cachedWithinType");
 		int type = AppListenerUtil.toCachedWithinType(str, -1);
-		if (type == -1) throw new ApplicationException("cached within type [" + str + "] is invalid, valid types are [function,include,query,resource]");
+		if (type == -1) throw new ApplicationException("Cached within type [" + str + "] is invalid, valid types are [function,include,query,resource]");
 		admin.updateCachedWithin(type, getString("admin", action, "cachedWithin"));
 
 		store();
@@ -5051,7 +5057,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		String threadId = getString("admin", "stopThread", "threadId");
 		String stopType = getString("stopType", "exception");
 
-		if (!(config instanceof ConfigServer)) throw new ApplicationException("invalid context for this action");
+		if (!(config instanceof ConfigServer)) throw new ApplicationException("Invalid context for this action");
 
 		ConfigServer cs = (ConfigServer) config;
 		ConfigWeb[] webs = cs.getConfigWebs();
@@ -5217,7 +5223,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		if (timeout instanceof TimeSpan) return ((TimeSpan) timeout).getMillis();
 		// seconds
 		int i = Caster.toIntValue(timeout);
-		if (i < 0) throw new ApplicationException("invalid value [" + i + "], value must be a positive integer greater or equal than 0");
+		if (i < 0) throw new ApplicationException("Invalid value [" + i + "], value must be a positive integer greater or equal than 0");
 		return i * 1000;
 	}
 
@@ -5298,12 +5304,12 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void throwNoAccessWhenWeb() throws ApplicationException {
-		if (type == TYPE_WEB) throw new ApplicationException("Action " + action + " is not available for Server Admin (Web Admin only)");
+		if (type == TYPE_WEB) throw new ApplicationException("Action [" + action + "] is not available for Web Admin ( Server Admin only )");
 	}
 
 	private void throwNoAccessWhenServer() throws ApplicationException {
 		if (type == TYPE_SERVER) {
-			throw new ApplicationException("Action " + action + " is not available for Web Admin (Server Admin only)");
+			throw new ApplicationException("Action [" + action + "] is not available for Server Admin ( Web Admin only )");
 		}
 	}
 }

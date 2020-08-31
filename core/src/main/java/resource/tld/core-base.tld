@@ -5,7 +5,7 @@
 	<tlib-version>1.0</tlib-version>
 	<cfml-version>1.0</cfml-version>
 	<short-name>tbase</short-name>
-	<uri>http://www.lucee.org/cf-tld-3-1</uri>
+	<uri>https://www.lucee.org/cf-tld-3-1</uri>
 	<display-name>Lucee Core Tag Library</display-name>
 	<description></description>
 	<name-space>cf</name-space>
@@ -942,6 +942,15 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<rtexprvalue>true</rtexprvalue>
 			<description>if set to true, Lucee url encodes the given name and value if necessary.</description>
 		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>samesite</name>
+			<values>Strict,Lax,None</values>
+			<default-value>None</default-value>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>It will help to prevent Cross-Site Request Forgeries. Enabling this attribute on the cookie will instruct the browser to afford this cookie certain protections.</description>
+		</attribute>
 	</tag>
 	<!-- DBInfo -->
 	<tag>
@@ -1310,6 +1319,14 @@ Example:
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Variable in which to put program error stream output. If neither errorFile nor errorVariable is specified, the error stream is discarded.</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>directory</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>The working directory in which to execute the command</description>
+			<status>hidden</status>
 		</attribute>
 	</tag>
 	<!-- Exit -->
@@ -3388,7 +3405,9 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>
-			if set to true (default value) URL encodes the value of the attribute "URL" if necessary (no double encoding is happening).
+				Specifies whether to URL encode the the URL.
+				If not set at all (auto mode), it only encodes when necessary to avoid double encoding.
+				If set to true it encodes the URL, if set to false it does not touch it.
 			This setting has no influence on the values from httpparam type="url", for this use the attribute "encoded" from httpparam</description>
 		</attribute>
 		<attribute>
@@ -3741,7 +3760,10 @@ To use cached data, the tag must be called with the exact same arguments.</descr
 			<rtexprvalue>true</rtexprvalue>
 			<description>
 				Applies to type "cgi" and "url", ignored for all other types.
-				 Specifies whether to URL encode the the values defined with the tag, but only if necessary (no double encoding).</description>
+				Specifies whether to URL encode the the values defined with the tag.
+				If not set at all (auto mode), it only encodes when necessary to avoid double encoding.
+				If set to true it encodes the value, if set to false it does not touch it.
+			</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -3840,11 +3862,22 @@ To use cached data, the tag must be called with the exact same arguments.</descr
 		<attribute>
 			<type>string</type>
 			<name>action</name>
-			<values>getHeaderOnly,getAll,delete</values>
+			<values>getHeaderOnly,getAll,delete,open,close,markread,createfolder,deletefolder,renamefolder,listallfolders,movemail</values>
 			<default-value>getHeaderOnly</default-value>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Specifies the mail action.</description>
+			<description>Specifies the mail action.
+- getHeaderOnly
+- getAll
+- delete
+- open
+- close
+- markread
+- createfolder
+- deletefolder
+- renamefolder
+- listallfolders
+- movemail</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -3951,7 +3984,10 @@ To use cached data, the tag must be called with the exact same arguments.</descr
 			<name>taglib</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Path to a custom tag libraray or a jsp tld</description>
+			<description>Path to a custom tag library or a jsp tld
+				
+As cfimport is a compiler directive, Application.cfc mappings won't work, but mappings configured via the web admin will.
+</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -4700,7 +4736,7 @@ Permits searching collections by title or displaying a separate title from the k
 	<tag>
 		<name>location</name>
 		<tag-class>lucee.runtime.tag.Location</tag-class>
-		<body-content>empty</body-content>
+		<body-content>free</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
 		<script>
 			<type>multiple</type>
@@ -5215,6 +5251,7 @@ Lucee uses the number of characters in the file.</description>
 			<type>string</type>
 			<name>type</name>
 			<required>false</required>
+			<default>text/plain</default>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Specifies extended type attributes for the message.</description>
 		</attribute>
@@ -6295,7 +6332,7 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 		<attribute>
 			<type>string</type>
 			<name>columnkey</name>
-			<alias>columnname,column</alias>
+			<alias>columnname,column,keycolumn</alias>
 			<status>hidden</status>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
@@ -6548,6 +6585,13 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<required>false</required>
 			<description></description>
 		</attribute>
+		<attribute>
+			<name>cacheid</name>
+			<type>string</type>
+			<status>unimplemented</status>
+			<required>false</required>
+			<description>Attribute not supported</description>
+		</attribute>
 	</tag>
 
 	<!-- QueryParam -->
@@ -6596,7 +6640,16 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Maximum length of the parameter. The default value is the length of the string specified in
-	the value attribute.</description>
+	the value attribute. if the attribute charset is defined, this comparsion will be byte based.</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>charset</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>This attribute is used for 2 things:
+			- it checks if the given value is compatible with that charset
+			- to check the binary length of the value (see attribute maxlength).</description>
 		</attribute>
 		<attribute>
 			<type>number</type>
@@ -8758,6 +8811,10 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		<handle-exception>true</handle-exception>
 		<body-content>free</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
+		<script>
+			<type>multiple</type>
+			<rtexprvalue>true</rtexprvalue>
+		</script>
 		<description>Creates a Custom Tag</description>
 		<attribute-type>dynamic</attribute-type>
 	</tag>

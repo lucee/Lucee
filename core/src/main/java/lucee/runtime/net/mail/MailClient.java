@@ -162,8 +162,8 @@ public abstract class MailClient implements PoolItem {
 		PoolItem item = pool.get(uid);
 		if (item == null) {
 			if (StringUtil.isEmpty(server)) {
-				if (StringUtil.isEmpty(name)) throw new ApplicationException("missing server information");
-				else throw new ApplicationException("there is no connection available with name [" + name + "]");
+				if (StringUtil.isEmpty(name)) throw new ApplicationException("missing mail server information");
+				else throw new ApplicationException("There is no connection available with name [" + name + "]");
 			}
 			if (TYPE_POP3 == type) pool.put(uid, item = new PopClient(server, port, username, password, secure));
 			if (TYPE_IMAP == type) pool.put(uid, item = new ImapClient(server, port, username, password, secure));
@@ -514,7 +514,7 @@ public abstract class MailClient implements PoolItem {
 					cids.setEL(KeyImpl.init(filename), cid);
 				}
 
-				if (filename != null && ArrayUtil.find(attachments, filename) == 0) {
+				if (filename != null && ArrayUtil.find(attachments, filename) >= 0) {
 
 					attachments.appendEL(filename);
 					if (attachmentDirectory != null) {
@@ -605,7 +605,7 @@ public abstract class MailClient implements PoolItem {
 				return getContent(is = bp.getInputStream(), SystemUtil.getCharset());
 			}
 			catch (IOException e) {
-				return "Can't read body of this message:" + e.getMessage();
+				return "Cannot read body of this message: " + e.getMessage();
 			}
 		}
 		finally {
@@ -691,7 +691,7 @@ public abstract class MailClient implements PoolItem {
 
 	// IMAP only
 	public void createFolder(String folderName) throws MessagingException, ApplicationException {
-		if (folderExists(folderName)) throw new ApplicationException("cannot create folder [" + folderName + "], folder already exists.");
+		if (folderExists(folderName)) throw new ApplicationException("Cannot create imap folder [" + folderName + "], the folder already exists.");
 
 		Folder folder = getFolder(folderName, null, false, true);
 		if (!folder.exists()) folder.create(Folder.HOLDS_MESSAGES);
@@ -715,26 +715,26 @@ public abstract class MailClient implements PoolItem {
 	public void deleteFolder(String folderName) throws MessagingException, ApplicationException {
 
 		if (folderName.equalsIgnoreCase("INBOX") || folderName.equalsIgnoreCase("OUTBOX"))
-			throw new ApplicationException("cannot delete folder [" + folderName + "], this folder is protected.");
+			throw new ApplicationException("Cannot delete folder [" + folderName + "], this folder is protected.");
 
 		String[] folderNames = toFolderNames(folderName);
 		Folder folder = _store.getFolder(folderNames[0]);
 		if (!folder.exists()) {
-			throw new ApplicationException("there is no folder with name [" + folderName + "].");
+			throw new ApplicationException("There is no folder with name [" + folderName + "].");
 		}
 		folder.delete(true);
 	}
 
 	public void renameFolder(String srcFolderName, String trgFolderName) throws MessagingException, ApplicationException {
 		if (srcFolderName.equalsIgnoreCase("INBOX") || srcFolderName.equalsIgnoreCase("OUTBOX"))
-			throw new ApplicationException("cannot rename folder [" + srcFolderName + "], this folder is protected.");
+			throw new ApplicationException("Cannot rename folder [" + srcFolderName + "], this folder is protected.");
 		if (trgFolderName.equalsIgnoreCase("INBOX") || trgFolderName.equalsIgnoreCase("OUTBOX"))
-			throw new ApplicationException("cannot rename folder to [" + trgFolderName + "], this folder name is protected.");
+			throw new ApplicationException("Cannot rename folder to [" + trgFolderName + "], this folder name is protected.");
 
 		Folder src = getFolder(srcFolderName, true, true, false);
 		Folder trg = getFolder(trgFolderName, null, false, true);
 
-		if (!src.renameTo(trg)) throw new ApplicationException("cannot rename folder [" + srcFolderName + "] to [" + trgFolderName + "].");
+		if (!src.renameTo(trg)) throw new ApplicationException("Cannot rename folder [" + srcFolderName + "] to [" + trgFolderName + "].");
 	}
 
 	public Query listAllFolder(String folderName, boolean recurse, int startrow, int maxrows) throws MessagingException, PageException {
@@ -742,7 +742,7 @@ public abstract class MailClient implements PoolItem {
 		// if(StringUtil.isEmpty(folderName)) folderName="INBOX";
 		Folder folder = (StringUtil.isEmpty(folderName)) ? _store.getDefaultFolder() : _store.getFolder(folderName);
 		// Folder folder=_store.getFolder(folderName);
-		if (!folder.exists()) throw new ApplicationException("there is no folder with name [" + folderName + "].");
+		if (!folder.exists()) throw new ApplicationException("There is no folder with name [" + folderName + "].");
 
 		list(folder, qry, recurse, startrow, maxrows, 0);
 		return qry;
@@ -785,7 +785,7 @@ public abstract class MailClient implements PoolItem {
 			folder.setFlags(msgs, new Flags(Flags.Flag.SEEN), true);
 		}
 		finally {
-			IOUtil.closeEL(folder);
+			if (folder != null) folder.close(false);
 		}
 	}
 
@@ -800,16 +800,16 @@ public abstract class MailClient implements PoolItem {
 			// top
 			if (i + 1 == folderNames.length) {
 				if (existing != null) {
-					if (existing.booleanValue() && !folder.exists()) throw new ApplicationException("there is no folder with name [" + folderName + "].");
-					if (!existing.booleanValue() && folder.exists()) throw new ApplicationException("there is alredy a folder with name [" + folderName + "].");
+					if (existing.booleanValue() && !folder.exists()) throw new ApplicationException("There is no folder with name [" + folderName + "].");
+					if (!existing.booleanValue() && folder.exists()) throw new ApplicationException("There is already a folder with name [" + folderName + "].");
 				}
 			}
 			// parent
 			else {
 				if (existingParent != null) {
-					if (existingParent.booleanValue() && !folder.exists()) throw new ApplicationException("there is no parent folder for folder with name [" + folderName + "].");
+					if (existingParent.booleanValue() && !folder.exists()) throw new ApplicationException("There is no parent folder for folder with name [" + folderName + "].");
 					if (!existingParent.booleanValue() && folder.exists())
-						throw new ApplicationException("there is alredy a parent folder for folder with name [" + folderName + "].");
+						throw new ApplicationException("There is already a parent folder for folder with name [" + folderName + "].");
 				}
 				if (createParentIfNotExists && !folder.exists()) {
 					folder.create(Folder.HOLDS_MESSAGES);

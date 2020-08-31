@@ -390,8 +390,12 @@ component {
 		loop collection="#arguments#" item="key"{
 			if(findNoCase("custom",key) EQ 1){
 				l=len(key);
-				custom[mid(key,7,l-7+1)]=arguments[key];
+				custom[mid(key,8,l-8+1)]=arguments[key];
 			}
+		}
+
+		if( arguments.type == "MSSQL" ){
+			custom["databaseName"] = arguments.database;
 		}
 
 		admin
@@ -399,6 +403,7 @@ component {
 			type="#variables.type#"
 			password="#variables.password#"
 
+			id="#isNull(driver.getId)?'':driver.getId()#"
 			classname="#driver.getClass()#"
 			dsn="#driver.getDSN()#"
 			customParameterSyntax="#isNull(driver.customParameterSyntax)?nullValue():driver.customParameterSyntax()#"
@@ -418,20 +423,20 @@ component {
 			connectionLimit="#arguments.connectionLimit#"
 			connectionTimeout="#arguments.connectionTimeout#"
 			metaCacheTimeout="#arguments.metaCacheTimeout#"
-			blob="#getArguments('blob',false)#"
-			clob="#getArguments('clob',false)#"
-			validate="#getArguments('validate',false)#"
-			storage="#getArguments('storage',false)#"
+			blob="#getArguments(arguments, 'blob',false)#"
+			clob="#getArguments(arguments, 'clob',false)#"
+			validate="#getArguments(arguments, 'validate',false)#"
+			storage="#getArguments(arguments, 'storage',false)#"
 
-			allowed_select="#getArguments('allowedSelect',false)#"
-			allowed_insert="#getArguments('allowedInsert',false)#"
-			allowed_update="#getArguments('allowedUpdate',false)#"
-			allowed_delete="#getArguments('allowedDelete',false)#"
-			allowed_alter="#getArguments('allowedAlter',false)#"
-			allowed_drop="#getArguments('allowedDrop',false)#"
-			allowed_revoke="#getArguments('allowedRevoke',false)#"
-			allowed_create="#getArguments('allowedCreate',false)#"
-			allowed_grant="#getArguments('allowedGrant',false)#"
+			allowed_select="#getArguments(arguments, 'allowedSelect',false)#"
+			allowed_insert="#getArguments(arguments, 'allowedInsert',false)#"
+			allowed_update="#getArguments(arguments, 'allowedUpdate',false)#"
+			allowed_delete="#getArguments(arguments, 'allowedDelete',false)#"
+			allowed_alter="#getArguments(arguments, 'allowedAlter',false)#"
+			allowed_drop="#getArguments(arguments, 'allowedDrop',false)#"
+			allowed_revoke="#getArguments(arguments, 'allowedRevoke',false)#"
+			allowed_create="#getArguments(arguments, 'allowedCreate',false)#"
+			allowed_grant="#getArguments(arguments, 'allowedGrant',false)#"
 			verify="#arguments.verify#"
 			custom="#custom#"
 			dbdriver="#arguments.type#"
@@ -2359,10 +2364,10 @@ component {
 
 	/**
 	* @hint update exiting custom tag
-	* @virtual The name is used as identifier when you automaticly import a Lucee Archive build based on this Mapping.
+	* @virtual The name is used as identifier when you automatically import a Lucee Archive build based on this Mapping.
 	* @physical Directory path where the custom tags are located.
 	* @archive File path to a custom tag Lucee Archive (.lar).
-	* @primary Defines where Lucee does looks first for a requested custom tags
+	* @primary Defines where Lucee looks first for a requested custom tags
 	* @inspect When does Lucee checks for changes in the source file for an already loaded custom tags.
 	*/
 	public void function updateCustomTag( required string virtual, required string physical, required string archive, string primary="Resource", string inspect="" ) {
@@ -2381,7 +2386,7 @@ component {
 
 	/**
 	* @hint update exiting custom tag
-	* @virtual The name is used as identifier when you automaticly import a Lucee Archive build based on this Mapping.
+	* @virtual The name is used as identifier when you automatically import a Lucee Archive build based on this Mapping.
 	*/
 	public any function removecustomtag( required string virtual ) {
 		admin
@@ -2899,9 +2904,9 @@ component {
 		return cfcNames;
 	}
 
-	private function getArguments(Key, default) {
-		if(not structKeyExists(arguments,Key)) return default;
-		return arguments[Key];
+	private function getArguments(args, Key, default) {
+		if(not structKeyExists(args, Key)) return default;
+		return arguments.args[Key];
 	}
 
 	private function downloadFull(required string provider,required string id , string version){

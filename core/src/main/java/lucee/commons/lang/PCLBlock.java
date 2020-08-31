@@ -115,12 +115,7 @@ public final class PCLBlock extends ExtendableClassLoader {
 
 	@Override
 	protected Class<?> findClass(String name) throws ClassNotFoundException {// if(name.indexOf("sub")!=-1)print.ds(name);
-		// if(!name.endsWith("$cf")) return super.findClass(name); this break Webervices
-		// File f = getFile(name.replace('.',File.separatorChar).concat(".class"));
-		// print.e("directory:"+directory+"->"+name);
 		Resource res = directory.getRealResource(name.replace('.', '/').concat(".class"));
-		// File f = new File(directory,name.replace('.',File.separatorChar).concat(".class"));
-		// if(f==null) throw new ClassNotFoundException("class "+name+" not found");
 
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try {
@@ -133,10 +128,8 @@ public final class PCLBlock extends ExtendableClassLoader {
 		byte[] barr = baos.toByteArray();
 		size += barr.length;
 		count++;
-		// print.o(name+":"+count+" -> "+(size/1024));
 		IOUtil.closeEL(baos);
 		return loadClass(name, barr);
-		// return defineClass(name,barr,0,barr.length);
 	}
 
 	@Override

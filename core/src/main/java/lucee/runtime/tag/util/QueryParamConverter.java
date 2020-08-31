@@ -19,12 +19,14 @@
  **/
 package lucee.runtime.tag.util;
 
+import java.nio.charset.Charset;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
+import lucee.commons.io.CharsetUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.db.SQL;
 import lucee.runtime.db.SQLCaster;
@@ -65,7 +67,8 @@ public class QueryParamConverter {
 		Entry<Key, Object> e;
 		while (it.hasNext()) {
 			e = it.next();
-			namedItems.add(toNamedSQLItem(e.getKey().getString(), e.getValue()));
+			SQLItems<NamedSQLItem> namedSqlItem = toNamedSQLItem(e.getKey().getString(), e.getValue());
+			namedItems.add(namedSqlItem);
 		}
 		return convert(sql, new ArrayList<SQLItems<SQLItem>>(), namedItems);
 	}
@@ -88,11 +91,14 @@ public class QueryParamConverter {
 				// value (required)
 				paramValue = sct.get(KeyConstants._value);
 
+				Charset charset = CharsetUtil.toCharset(Caster.toString(sct.get(KeyConstants._charset, null), null), null);
+				int maxlength = Caster.toIntValue(sct.get("maxlength", null), -1);
+
 				if (StringUtil.isEmpty(name)) {
-					items.add(new SQLItems<SQLItem>(new SQLItemImpl(paramValue, Types.VARCHAR), sct));
+					items.add(new SQLItems<SQLItem>(new SQLItemImpl(paramValue, Types.VARCHAR, maxlength, charset), sct));
 				}
 				else {
-					namedItems.add(new SQLItems<NamedSQLItem>(new NamedSQLItem(name, paramValue, Types.VARCHAR), sct));
+					namedItems.add(new SQLItems<NamedSQLItem>(new NamedSQLItem(name, paramValue, Types.VARCHAR, maxlength, charset), sct));
 				}
 			}
 			else {
@@ -119,9 +125,12 @@ public class QueryParamConverter {
 			Struct sct = (Struct) value;
 			// value (required if not null)
 			value = isParamNull(sct) ? "" : sct.get(KeyConstants._value);
-			return new SQLItems<NamedSQLItem>(new NamedSQLItem(name, value, Types.VARCHAR), sct); // extracting the type is not necessary, that will happen inside SQLItems
+			Charset charset = isParamNull(sct) ? null : CharsetUtil.toCharset(Caster.toString(sct.get(KeyConstants._charset, null), null), null);
+			int maxlength = isParamNull(sct) ? -1 : Caster.toIntValue(sct.get("maxlength", null), -1);
+			return new SQLItems<NamedSQLItem>(new NamedSQLItem(name, value, Types.VARCHAR, maxlength, charset), sct); // extracting the type is not necessary, that will happen
+																														// inside SQLItems
 		}
-		return new SQLItems<NamedSQLItem>(new NamedSQLItem(name, value, Types.VARCHAR));
+		return new SQLItems<NamedSQLItem>(new NamedSQLItem(name, value, Types.VARCHAR, -1, null));
 	}
 
 	private static SQL convert(String sql, List<SQLItems<SQLItem>> items, List<SQLItems<NamedSQLItem>> namedItems) throws ApplicationException, PageException {
@@ -243,11 +252,12 @@ public class QueryParamConverter {
 	private static class NamedSQLItem extends SQLItemImpl {
 		public final String name;
 
-		public NamedSQLItem(String name, Object value, int type) {
-			super(value, type);
+		public NamedSQLItem(String name, Object value, int type, int maxlength, Charset charset) {
+			super(value, type, maxlength, charset);
 			this.name = name;
 		}
 
+		@Override
 		public String toString() {
 			return "{name:" + name + ";" + super.toString() + "}";
 		}
@@ -258,7 +268,7 @@ public class QueryParamConverter {
 
 		@Override
 		public NamedSQLItem clone(Object object) {
-			NamedSQLItem item = new NamedSQLItem(name, object, getType());
+			NamedSQLItem item = new NamedSQLItem(name, object, getType(), getMaxlength(), getCharset());
 			item.setNulls(isNulls());
 			item.setScale(getScale());
 			return item;
@@ -311,7 +321,7 @@ public class QueryParamConverter {
 			Iterator<T> it = iterator();
 			SQLItems<SQLItem> p = new SQLItems<SQLItem>();
 			while (it.hasNext()) {
-				p.add((SQLItem) it.next());
+				p.add(it.next());
 			}
 			return p;
 		}

@@ -2,6 +2,7 @@ package lucee.runtime.type.scope.storage;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
@@ -51,7 +52,12 @@ public class StorageValue implements Serializable {
 			throw Caster.toPageException(e);
 		}
 		finally {
-			IOUtil.closeEL(ois);
+			try {
+				IOUtil.close(ois);
+			}
+			catch (IOException e) {
+				throw Caster.toPageException(e);
+			}
 		}
 		return sct;
 	}
@@ -69,7 +75,12 @@ public class StorageValue implements Serializable {
 			throw Caster.toPageException(e);
 		}
 		finally {
-			IOUtil.closeEL(oos);
+			try {
+				IOUtil.close(oos);
+			}
+			catch (IOException e) {
+				throw Caster.toPageException(e);
+			}
 		}
 		return os.toByteArray();
 	}

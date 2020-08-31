@@ -62,6 +62,7 @@ import lucee.runtime.component.Member;
 import lucee.runtime.component.MetaDataSoftReference;
 import lucee.runtime.component.MetadataUtil;
 import lucee.runtime.component.Property;
+import lucee.runtime.component.StaticStruct;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWeb;
@@ -421,17 +422,18 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			scope = new ComponentScopeThis(this);
 		}
 		initProperties();
-
-		// invoke static constructor
-		if (!componentPage._static.isInit()) {
-			componentPage._static.setInit(true);// this needs to happen before the call
-			try {
-				componentPage.staticConstructor(pageContext, this);
-			}
-			catch (Throwable t) {
-				ExceptionUtil.rethrowIfNecessary(t);
-				componentPage._static.setInit(false);
-				throw Caster.toPageException(t);
+		StaticStruct ss = componentPage.getStaticStruct();
+		synchronized (ss) {
+			// invoke static constructor
+			if (!ss.isInit()) {
+				ss.setInit(true);// this needs to happen before the call
+				try {
+					componentPage.staticConstructor(pageContext, this);
+				}
+				catch (Exception e) {
+					ss.setInit(false);
+					throw Caster.toPageException(e);
+				}
 			}
 		}
 	}
@@ -617,7 +619,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		// INFO duplicate code is for faster execution -> less contions
 
 		// debug yes
-		if (pc.getConfig().debug()) {
+		if (pc.getConfig().debug() && ((ConfigImpl) pc.getConfig()).hasDebugOptions(ConfigImpl.DEBUG_TEMPLATE)) {
 			DebugEntryTemplate debugEntry = pc.getDebugger().getEntry(pc, pageSource, udf.getFunctionName());// new DebugEntry(src,udf.getFunctionName());
 			long currTime = pc.getExecutionTime();
 			long time = System.nanoTime();

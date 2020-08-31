@@ -80,7 +80,7 @@ public final class GetFunctionData implements Function {
 			function = flds[i].getFunction(strFunctionName.toLowerCase());
 			if (function != null) break;
 		}
-		if (function == null) throw new ExpressionException("function [" + strFunctionName + "] is not a built in function");
+		if (function == null) throw new ExpressionException("Function [" + strFunctionName + "] is not a built in function");
 
 		// CFML Based Function
 		Class clazz = null;
@@ -162,7 +162,7 @@ public final class GetFunctionData implements Function {
 		sct.set(RETURN_TYPE, StringUtil.emptyIfNull(udf.getReturnTypeAsString()));
 		sct.set(KeyConstants._type, "cfml");
 		sct.set(SOURCE, udf.getSource());
-		sct.set(KeyConstants._status, "implemeted");
+		sct.set(KeyConstants._status, "implemented");
 
 		FunctionArgument[] fas = udf.getFunctionArguments();
 		Array _args = new ArrayImpl();
@@ -181,8 +181,8 @@ public final class GetFunctionData implements Function {
 			_arg.set(KeyConstants._description, StringUtil.emptyIfNull(fa.getHint()));
 
 			String status;
-			if (meta == null) status = "implemeted";
-			else status = TagLibFactory.toStatus(TagLibFactory.toStatus(Caster.toString(meta.get(KeyConstants._status, "implemeted"))));
+			if (meta == null) status = "implemented";
+			else status = TagLibFactory.toStatus(TagLibFactory.toStatus(Caster.toString(meta.get(KeyConstants._status, "implemented"))));
 
 			_arg.set(KeyConstants._status, status);
 

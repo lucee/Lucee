@@ -29,8 +29,8 @@ public final class IKStorageScopeSession extends IKStorageScopeSupport implement
 
 	private static final long serialVersionUID = -875719423763891692L;
 
-	public IKStorageScopeSession(PageContext pc, IKHandler handler, String appName, String name, Map<Collection.Key, IKStorageScopeItem> data, long lastModified) {
-		super(pc, handler, appName, name, "session", SCOPE_SESSION, data, lastModified);
+	public IKStorageScopeSession(PageContext pc, IKHandler handler, String appName, String name, Map<Collection.Key, IKStorageScopeItem> data, long lastModified, long timeSpan) {
+		super(pc, handler, appName, name, "session", SCOPE_SESSION, data, lastModified, timeSpan);
 	}
 
 	/**

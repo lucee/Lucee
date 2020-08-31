@@ -90,7 +90,7 @@
 		<custom key="components.basecomponentmissing">Bitte geben Sie einen Wert für die Basis/Root Komponente ein.</custom>
 		<custom key="components.component">Komponente</custom>
 		<custom key="components.componentdumptemplate">Komponetenausgabe Template (dump)</custom>
-		<custom key="components.componentdumptemplatedescription">Wenn Sie ein Komponente direkt über den Browser aufrufen, wird dieses Template für die Darstellung verwendet. (Beispiel: http://www.lucee.org/ch/lucee/common/Example.cfc)</custom>
+		<custom key="components.componentdumptemplatedescription">Wenn Sie ein Komponente direkt über den Browser aufrufen, wird dieses Template für die Darstellung verwendet. (Beispiel: https://www.lucee.org/ch/lucee/common/Example.cfc)</custom>
 		<custom key="components.componentdumptemplatemissing">Bitte geben Sie einen Eintrag für das 'dump' Template an.</custom>
 	
 		<custom key="components.datamemberaccesstype">Zugriffsbeschränkung für Daten Mitglieder einer CFC</custom>
@@ -644,7 +644,7 @@
 		<custom key="services.update.exerun">Update ausführen</custom>
 		<custom key="services.update.infotitle">Info</custom>
 		<custom key="services.update.location">URL</custom>
-		<custom key="services.update.locdesc">Definieren Sie die URL von der ein Lucee Update bezogen werden kann, typischerweise 'http://www.lucee.ch'</custom>
+		<custom key="services.update.locdesc">Definieren Sie die URL von der ein Lucee Update bezogen werden kann, typischerweise 'https://www.lucee.org'</custom>
 		<custom key="services.update.noupdate">Für Ihre Version {current} steht kein Patch zur Verfügung</custom>
 		<custom key="services.update.remove">Updates entfernen</custom>
 	
@@ -683,8 +683,12 @@
 		<custom key="settings.dbconnlimitdesc">Beschränkt die Anzahl Verbindungen die zur Datenbank aufgebaut werden.</custom>
 		<custom key="settings.dbconnlimitinf">- inf -</custom>
 	
-		<custom key="settings.dbconntimeout">Verbindungs Timeout (in Minuten)</custom>
-		<custom key="settings.dbconntimeoutdesc">Definiert wie lange eine stehende Verbindung aufrechterhalten wird, bevor Sie beendet wird.</custom>
+		<custom key="settings.dbidletimeout">Inaktivitäts Timeout (in Minuten)</custom>
+		<custom key="settings.dbidletimeoutdesc">Definiert wie lange eine stehende unverwendete Verbindung aufrechterhalten wird, bevor Sie beendet wird.</custom>
+
+		<custom key="settings.dblivetimeout">Verbindungs Timeout</custom>
+		<custom key="settings.dblivetimeoutdesc">Definiert wie lange eine stehende Verbindung aufrechterhalten wird, bevor Sie beendet wird.</custom>
+
 		<custom key="settings.dbdatabase">Datenbank</custom>
 		<custom key="settings.dbdatabasedesc">Name der Datenbank, welche verbunden werden soll.</custom>
 		<custom key="settings.dbhost">Host/Server</custom>
@@ -828,7 +832,7 @@
 		<custom key="components.component">Component</custom>
 		<custom key="components.componentdumptemplate">Component &quot;dump&quot; template</custom>
 	
-		<custom key="components.componentdumptemplatedescription">If you call a component directly this template will be invoked to dump the component. (Example: http://www.lucee.ch/ch/lucee/common/Example.cfc)</custom>
+		<custom key="components.componentdumptemplatedescription">If you call a component directly this template will be invoked to dump the component. (Example: https://www.lucee.org/ch/lucee/common/Example.cfc)</custom>
 		<custom key="components.componentdumptemplatemissing">Please enter a value for the &quot;dump&quot; template</custom>
 		<custom key="components.datamemberaccesstype">Data member access type</custom>
 		<custom key="components.datamemberaccesstypedescription">Define the accessor for the data-members of a component. This defines how variables of the &quot;this&quot; scope of a component can be accessed from outside of the component.</custom>
@@ -1380,7 +1384,7 @@
 		<custom key="services.update.infotitle">Info</custom>
 		<custom key="services.update.location">URL</custom>
 	
-		<custom key="services.update.locdesc">Define the URL where Lucee gets its updates. Typically &quot;http://www.lucee.ch&quot;</custom>
+		<custom key="services.update.locdesc">Define the URL where Lucee gets its updates. Typically &quot;https://www.lucee.org&quot;</custom>
 		<custom key="services.update.noupdate">For your version {current} is no patch available</custom>
 		<custom key="services.update.remove">Remove updates</custom>
 		<custom key="services.update.removedesc">Remove all installed updates.</custom>
@@ -1415,12 +1419,17 @@
 		<custom key="settings.dbcheck">Check</custom>
 		<custom key="settings.dbclob">Clob</custom>
 		<custom key="settings.dbclobdesc">Enable long text retrieval (&lt;abbr title=&quot;character large object&quot;&gt;CLOB&lt;/abbr&gt;)</custom>
-		<custom key="settings.dbconnlimit">Connection limit (max)</custom>
-	
+		<custom key="settings.dbconnlimit">Connection limit (max)</custom>	
 		<custom key="settings.dbconnlimitdesc">Restricts the maximum number of connections at one time</custom>
 		<custom key="settings.dbconnlimitinf">- inf -</custom>
-		<custom key="settings.dbconntimeout">Connection timeout (in minutes)</custom>
-		<custom key="settings.dbconntimeoutdesc">Define a time in minutes for how long a connection is kept alive before it will be closed</custom>
+		
+		<custom key="settings.dbidletimeout">Connection idle timeout (in minutes)</custom>
+		<custom key="settings.dbidletimeoutdesc">Define how long an idle connection will be kept alive, before being closed</custom>
+		
+		<custom key="settings.dblivetimeout">Connection timeout</custom>
+		<custom key="settings.dblivetimeoutdesc">Define how long a connection will be kept alive, before being closed</custom>
+
+
 		<custom key="settings.dbdatabase">Database</custom>
 		<custom key="settings.dbdatabasedesc">Name of the database to connect</custom>
 	

@@ -46,6 +46,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
@@ -69,10 +70,13 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
 import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.ArchiveClassLoader;
 import lucee.commons.lang.CharSet;
 import lucee.commons.lang.ClassLoaderHelper;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.MemoryClassLoader;
+import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefInteger;
 import lucee.commons.lang.types.RefIntegerImpl;
@@ -90,6 +94,7 @@ import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.functions.other.CreateUniqueId;
+import lucee.runtime.functions.system.ContractPath;
 import lucee.runtime.functions.system.ExpandPath;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Castable;
@@ -124,8 +129,9 @@ public final class SystemUtil {
 
 	public static final String SETTING_CONTROLLER_DISABLED = "lucee.controller.disabled";
 	public static final String SETTING_UPLOAD_EXT_BLACKLIST = "lucee.upload.blacklist";
+	public static final String SETTING_UPLOAD_EXT_BLOCKLIST = "lucee.upload.blocklist";
 
-	public static final String DEFAULT_UPLOAD_EXT_BLACKLIST = "asp,aspx,cfc,cfm,cfml,do,htm,html,jsp,jspx,php";
+	public static final String DEFAULT_UPLOAD_EXT_BLOCKLIST = "asp,aspx,cfc,cfm,cfml,do,htm,html,jsp,jspx,php";
 
 	public static final char CHAR_DOLLAR = (char) 36;
 	public static final char CHAR_POUND = (char) 163;
@@ -174,6 +180,10 @@ public final class SystemUtil {
 	public static final int JAVA_VERSION;
 	private static final Class[] EMPTY_CLASS = new Class[0];
 	private static final Object[] EMPTY_OBJ = new Object[0];
+
+	private static final int TYPE_BUNDLE = 1;
+	private static final int TYPE_SYSTEM = 2;
+	private static final int TYPE_BOOT_DELEGATION = 3;
 
 	static {
 		// OS
@@ -525,6 +535,20 @@ public final class SystemUtil {
 	}
 
 	/**
+	 * return the memory percentage
+	 * 
+	 * @return value from 0 to 1
+	 */
+	public static float getMemoryPercentage() {
+		Runtime r = Runtime.getRuntime();
+		long max = r.maxMemory();
+		if (max == Long.MAX_VALUE || max < 0) return -1;
+
+		long used = r.totalMemory() - r.freeMemory();
+		return (1F / max * used);
+	}
+
+	/**
 	 * replace path placeholder with the real path, placeholders are
 	 * [{temp-directory},{system-directory},{home-directory}]
 	 * 
@@ -668,6 +692,20 @@ public final class SystemUtil {
 			t.join();
 		}
 		catch (InterruptedException e) {}
+	}
+
+	public static void resumeEL(Thread t) {
+		try {
+			t.resume();
+		}
+		catch (Exception e) {}
+	}
+
+	public static void suspendEL(Thread t) {
+		try {
+			t.suspend();
+		}
+		catch (Exception e) {}
 	}
 
 	/**
@@ -894,6 +932,7 @@ public final class SystemUtil {
 			bean = it.next();
 			usage = bean.getUsage();
 			_type = bean.getType();
+
 			if ((type == MEMORY_TYPE_HEAP && _type == MemoryType.HEAP) || (type == MEMORY_TYPE_NON_HEAP && _type == MemoryType.NON_HEAP)) {
 				used += usage.getUsed();
 				max += usage.getMax();
@@ -955,8 +994,8 @@ public final class SystemUtil {
 	}
 
 	public static TemplateLine getCurrentContext(PageContext pc) {
-		StackTraceElement[] traces = new Exception().getStackTrace();
-
+		// StackTraceElement[] traces = new Exception().getStackTrace();
+		StackTraceElement[] traces = Thread.currentThread().getStackTrace();
 		int line = 0;
 		String template;
 
@@ -997,7 +1036,19 @@ public final class SystemUtil {
 
 		@Override
 		public String toString() {
+			if (line < 1) return template;
 			return template + ":" + line;
+		}
+
+		public StringBuilder toString(StringBuilder sb) {
+			if (line < 1) sb.append(template);
+			else sb.append(template).append(':').append(line);
+			return sb;
+		}
+
+		public String toString(PageContext pc, boolean contract) {
+			if (line < 1) return contract ? ContractPath.call(pc, template) : template;
+			return (contract ? ContractPath.call(pc, template) : template) + ":" + line;
 		}
 
 		public Object toStruct() {
@@ -1025,6 +1076,22 @@ public final class SystemUtil {
 		sleep(time);
 
 		return jsm.cpuTimes().getCpuUsage(previous) * 100D;
+	}
+
+	public static float getCpuPercentage() {
+		if (jsm == null) jsm = new JavaSysMon();
+		CpuTimes cput = jsm.cpuTimes();
+		if (cput == null) return -1;
+		CpuTimes previous = new CpuTimes(cput.getUserMillis(), cput.getSystemMillis(), cput.getIdleMillis());
+		int max = 50;
+		float res = 0;
+		while (true) {
+			if (--max == 0) break;
+			sleep(100);
+			res = jsm.cpuTimes().getCpuUsage(previous);
+			if (res != 1) break;
+		}
+		return res;
 	}
 
 	private synchronized static MemoryStats physical() throws ApplicationException {
@@ -1230,44 +1297,62 @@ public final class SystemUtil {
 
 	}
 
-	@Deprecated
-	public static void stop(Thread thread) {
-		if (thread.isAlive()) {
-			thread.stop();
-			/*
-			 * try{ thread.stop(new StopException(thread)); } catch(UnsupportedOperationException uoe){// Java 8
-			 * does not support Thread.stop(Throwable) thread.stop(); }
-			 */
-		}
-	}
-
-	public static void patienceStop(Thread thread, int max) {
-		if (thread == null || !thread.isAlive()) return;
-
-		StackTraceElement[] stes;
-		StackTraceElement ste;
-		thread.interrupt();
-		for (int y = 0; y < max; y++) {
-			sleep(1);
-			for (int i = 0; i < 10; i++) {
-				if (!thread.isAlive()) return;
-				stes = thread.getStackTrace();
-				if (stes != null && stes.length > 0) {
-					ste = stes[0];
-					if (!ste.isNativeMethod()) {
-						stop(thread);
-						sleep(1);
-						if (!thread.isAlive()) break;
-					}
-				}
-			}
-		}
-		stop(thread);
-	}
-
 	public static void stop(PageContext pc, boolean async) {
 		if (async) new StopThread(pc).start();
-		else new StopThread(pc).run();
+		else stop(pc, pc.getThread());
+	}
+
+	public static void stop(Thread thread) {
+		stop((PageContext) null, thread);
+	}
+
+	public static void stop(PageContext pc, Thread thread) {
+		if (thread == null || !thread.isAlive() || thread == Thread.currentThread()) return;
+		Log log = null;
+		// in case it is the request thread
+		if (pc instanceof PageContextImpl && thread == pc.getThread()) {
+			((PageContextImpl) pc).setTimeoutStackTrace();
+			log = ((PageContextImpl) pc).getLog("requesttimeout");
+		}
+
+		// first we try to interupt, the we force a stop
+		if (!_stop(thread, log, false)) _stop(thread, log, true);
+	}
+
+	private static boolean _stop(Thread thread, Log log, boolean force) {
+		// we try to interrupt/stop the suspended thrad
+		suspendEL(thread);
+		try {
+			if (isInLucee(thread)) {
+				if (!force) thread.interrupt();
+				else thread.stop();
+			}
+			else {
+				if (log != null) {
+					log.log(Log.LEVEL_INFO, "thread", "do not " + (force ? "stop" : "interrupt") + " thread because thread is not within Lucee code",
+							ExceptionUtil.toThrowable(thread.getStackTrace()));
+				}
+				return true;
+			}
+		}
+		finally {
+			resumeEL(thread);
+		}
+
+		// a request still will create the error template output, so it can take some time to finish
+		for (int i = 0; i < 100; i++) {
+			if (!isInLucee(thread)) {
+				if (log != null) log.info("thread", "sucessfully " + (force ? "stop" : "interrupt") + " thread.");
+				return true;
+			}
+			SystemUtil.sleep(10);
+		}
+		if (log != null) {
+
+			log.log(force ? Log.LEVEL_ERROR : Log.LEVEL_WARN, "thread", "failed to " + (force ? "stop" : "interrupt") + " thread." + "\n",
+					ExceptionUtil.toThrowable(thread.getStackTrace()));
+		}
+		return false;
 	}
 
 	public static String getLocalHostName() {
@@ -1356,19 +1441,19 @@ public final class SystemUtil {
 		new SecurityManager() {
 			{
 				ref.context = getClassContext();
-
 			}
 		};
 
 		Caller rtn = new Caller();
 
 		// element at position 2 is the caller
-		Class<?> caller = ref.context[2];
+		final Class<?> caller = ref.context[2];
 		RefInteger index = new RefIntegerImpl(3);
 		Class<?> clazz = _getCallerClass(ref.context, caller, index, true, true);
 
 		// analyze the first result
 		if (clazz == null) return rtn;
+
 		if (isFromBundle(clazz)) {
 			rtn.fromBundle = clazz;
 			return rtn;
@@ -1397,6 +1482,76 @@ public final class SystemUtil {
 		rtn.fromBundle = clazz;
 
 		return rtn;
+	}
+
+	public static List<ClassLoader> getClassLoaderContext(boolean unique, StringBuilder id) {
+		final Ref ref = new Ref();
+		new SecurityManager() {
+			{
+				ref.context = getClassContext();
+			}
+		};
+
+		// first we get the right start point, pos 0 is here so we start with 1
+		final Class<?> directCaller = ref.context[2];
+		int start = -1;
+		for (int i = 2; i < ref.context.length; i++) {
+			if (directCaller != ref.context[i]) {
+				start = i;
+				break;
+			}
+		}
+
+		// extract all the classes
+		Class<?> last = null;
+		Class<?> clazz;
+		// LinkedHashMap<Class<?>, String> map = new LinkedHashMap<>();
+		List<ClassLoader> context = new ArrayList<ClassLoader>();
+
+		ClassLoader cl = null;
+		for (int i = start; i < ref.context.length; i++) {
+			clazz = ref.context[i];
+
+			// check class
+			if (Class.class == clazz) continue; // the same as the last
+			if (last == clazz) continue; // the same as the last
+			if (last != null && last.getClassLoader() == clazz.getClassLoader()) continue; // same Classloader
+			cl = clazz.getClassLoader();
+
+			// check ClassLoader
+			if (cl == null) continue;
+			if (cl instanceof PhysicalClassLoader) continue;
+			if (cl instanceof ArchiveClassLoader) continue;
+			if (cl instanceof MemoryClassLoader) continue;
+
+			if (!unique || !context.contains(cl)) {
+				context.add(cl);
+				if (id != null) {
+					if (cl instanceof BundleReference) {
+						Bundle b = ((BundleReference) cl).getBundle();
+						id.append(b.getSymbolicName()).append(':').append(b.getVersion()).append(';');
+					}
+					else {
+						id.append(cl).append(';');
+					}
+				}
+			}
+			last = ref.context[i];
+		}
+		return context;
+	}
+
+	public static int getClassType(Class<?> clazz) {
+		if (isFromBundle(clazz)) return TYPE_BUNDLE;
+		if (OSGiUtil.isClassInBootelegation(clazz.getName())) return TYPE_BOOT_DELEGATION;
+		return TYPE_SYSTEM;
+	}
+
+	public static String getClassTypeAsString(Class<?> clazz) {
+		int type = getClassType(clazz);
+		if (type == TYPE_BUNDLE) return "bundle";
+		else if (type == TYPE_BOOT_DELEGATION) return "boot-delegation";
+		return "system";
 	}
 
 	private static Class<?> _getCallerClass(Class<?>[] context, Class<?> caller, RefInteger index, boolean acceptBootDelegation, boolean acceptSystem) {
@@ -1521,6 +1676,20 @@ public final class SystemUtil {
 		return true;
 	}
 
+	public static boolean isInLucee(Thread thread) {
+		StackTraceElement[] stes = thread.getStackTrace();
+		for (StackTraceElement ste: stes) {
+			if (ste.getClassName().indexOf("lucee.") == 0) return true;
+		}
+		return false;
+	}
+
+	public static boolean isInNativeCode(Thread thread) {
+		StackTraceElement[] stes = thread.getStackTrace();
+		if (stes != null && stes.length > 0) return stes[0].isNativeMethod();
+		return false;
+	}
+
 	public static boolean getJavaObjectInputStreamAccessCheckArray(ObjectInputStream s, Class<Entry[]> class1, int cap) {
 		// jdk.internal.misc.SharedSecrets.getJavaObjectInputStreamAccess().checkArray(s, Map.Entry[].class,
 		// cap);
@@ -1548,7 +1717,6 @@ public final class SystemUtil {
 		}
 		return false;
 	}
-
 }
 
 class Ref {
@@ -1567,13 +1735,7 @@ class StopThread extends Thread {
 
 	@Override
 	public void run() {
-		PageContextImpl pci = (PageContextImpl) pc;
-		Thread thread = pc.getThread();
-		if (thread == null) return;
-		if (thread.isAlive()) {
-			pci.setTimeoutStackTrace();
-			thread.stop();
-		}
+		SystemUtil.stop(pc, pc.getThread());
 	}
 }
 
@@ -1642,7 +1804,9 @@ class MacAddressWrap implements ObjectWrap, Castable, Serializable {
 	@Override
 	public String toString() {
 		try {
-			return getEmbededObject().toString();
+			Object eo = getEmbededObject();
+			if (eo == null) return "";
+			return eo.toString();
 		}
 		catch (PageException pe) {
 			throw new PageRuntimeException(pe);

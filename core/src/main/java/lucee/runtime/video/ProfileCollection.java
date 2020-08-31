@@ -203,11 +203,11 @@ public class ProfileCollection {
 
 	private static String[] toArray(String str) {
 		StringTokenizer st = new StringTokenizer(str, ",");
-		ArrayList list = new ArrayList();
+		ArrayList<String> list = new ArrayList<String>();
 		while (st.hasMoreTokens()) {
 			list.add(str = st.nextToken());
 		}
-		return (String[]) list.toArray(new String[list.size()]);
+		return list.toArray(new String[list.size()]);
 	}
 
 	/**
@@ -242,7 +242,7 @@ public class ProfileCollection {
 			return loadDocument(is = xmlFile.getInputStream());
 		}
 		finally {
-			IOUtil.closeEL(is);
+			IOUtil.close(is);
 		}
 	}
 
@@ -252,7 +252,7 @@ public class ProfileCollection {
 			return XMLUtil.parse(source, null, false);
 		}
 		finally {
-			IOUtil.closeEL(is);
+			IOUtil.close(is);
 		}
 	}
 }

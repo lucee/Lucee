@@ -276,7 +276,7 @@ public final class Insert extends TagImpl {
 
 		StringBuffer names = new StringBuffer();
 		StringBuffer values = new StringBuffer();
-		ArrayList items = new ArrayList();
+		ArrayList<SQLItem> items = new ArrayList<SQLItem>();
 		String field;
 		for (int i = 0; i < fields.length; i++) {
 			field = StringUtil.trim(fields[i], null);
@@ -313,7 +313,7 @@ public final class Insert extends TagImpl {
 		sql.append(values);
 		sql.append(")");
 
-		return new SQLImpl(sql.toString(), (SQLItem[]) items.toArray(new SQLItem[items.size()]));
+		return new SQLImpl(sql.toString(), items.toArray(new SQLItem[items.size()]));
 	}
 
 }

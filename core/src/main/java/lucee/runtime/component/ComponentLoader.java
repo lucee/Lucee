@@ -427,7 +427,7 @@ public class ComponentLoader {
 	}
 
 	public static Page loadPage(PageContext pc, PageSource ps, boolean forceReload) throws PageException {
-		if (pc.getConfig().debug()) {
+		if (pc.getConfig().debug() && ((ConfigImpl) pc.getConfig()).hasDebugOptions(ConfigImpl.DEBUG_TEMPLATE)) {
 			DebugEntryTemplate debugEntry = pc.getDebugger().getEntry(pc, ps);
 			pc.addPageSource(ps, true);
 
@@ -459,7 +459,7 @@ public class ComponentLoader {
 	private static ComponentImpl _loadComponent(PageContext pc, CIPage page, String callPath, boolean isRealPath, final boolean isExtendedComponent, boolean executeConstr)
 			throws PageException {
 		ComponentImpl rtn = null;
-		if (pc.getConfig().debug()) {
+		if (pc.getConfig().debug() && ((ConfigImpl) pc.getConfig()).hasDebugOptions(ConfigImpl.DEBUG_TEMPLATE)) {
 			DebugEntryTemplate debugEntry = pc.getDebugger().getEntry(pc, page.getPageSource());
 			pc.addPageSource(page.getPageSource(), true);
 
@@ -497,7 +497,7 @@ public class ComponentLoader {
 
 	public static InterfaceImpl loadInterface(PageContext pc, Page page, PageSource ps, String callPath, boolean isRealPath) throws PageException {
 		InterfaceImpl rtn = null;
-		if (pc.getConfig().debug()) {
+		if (pc.getConfig().debug() && ((ConfigImpl) pc.getConfig()).hasDebugOptions(ConfigImpl.DEBUG_TEMPLATE)) {
 			DebugEntryTemplate debugEntry = pc.getDebugger().getEntry(pc, ps);
 			pc.addPageSource(ps, true);
 

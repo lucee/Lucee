@@ -69,6 +69,7 @@ import lucee.runtime.util.QueryStack;
 import lucee.runtime.util.QueryStackImpl;
 import lucee.transformer.library.tag.TagLibTag;
 import lucee.transformer.library.tag.TagLibTagAttr;
+import lucee.transformer.library.tag.TagLibTagScript;
 
 /**
  * Creates a CFML Custom Tag
@@ -88,6 +89,7 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
 	private static final Collection.Key ON_END_TAG = KeyImpl.intern("onEndTag");
 
 	private static final Collection.Key ATTRIBUTE_TYPE = KeyImpl.intern("attributetype");
+	private static final Collection.Key SCRIPT = KeyImpl.intern("script");
 	private static final Collection.Key RT_EXPR_VALUE = KeyImpl.intern("rtexprvalue");
 	private static final String MARKER = "2w12801";
 
@@ -473,6 +475,22 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
 		// type
 		String type = Caster.toString(meta.get(ATTRIBUTE_TYPE, "dynamic"), "dynamic");
 
+		// script
+		String script = Caster.toString(meta.get(SCRIPT, null), null);
+		if (!StringUtil.isEmpty(script, true)) {
+			script = script.trim();
+			TagLibTagScript tlts = new TagLibTagScript(tag);
+			if ("multiple".equalsIgnoreCase(script) || Caster.toBooleanValue(script, false)) {
+				tlts = new TagLibTagScript(tag);
+				tlts.setType(TagLibTagScript.TYPE_MULTIPLE);
+			}
+			else if ("single".equalsIgnoreCase(script)) {
+				tlts = new TagLibTagScript(tag);
+				tlts.setType(TagLibTagScript.TYPE_SINGLE);
+			}
+			if (tlts != null) tag.setScript(tlts);
+		}
+
 		if ("fixed".equalsIgnoreCase(type)) tag.setAttributeType(TagLibTag.ATTRIBUTE_TYPE_FIXED);
 		// else if("mixed".equalsIgnoreCase(type))tag.setAttributeType(TagLibTag.ATTRIBUTE_TYPE_MIXED);
 		// else if("noname".equalsIgnoreCase(type))tag.setAttributeType(TagLibTag.ATTRIBUTE_TYPE_NONAME);
@@ -616,7 +634,7 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
 				throw new PageRuntimeException(pe);
 			}
 			finally {
-				writeEnclosingWriter();
+				// writeEnclosingWriter();
 			}
 		}
 	}

@@ -64,7 +64,7 @@ public class HTTPResponse4Impl extends HTTPResponseSupport implements HTTPRespon
 			return IOUtil.toString(is = entity.getContent(), charset);
 		}
 		finally {
-			IOUtil.closeEL(is);
+			IOUtil.close(is);
 		}
 	}
 
@@ -84,7 +84,7 @@ public class HTTPResponse4Impl extends HTTPResponseSupport implements HTTPRespon
 			return IOUtil.toBytes(is = entity.getContent());
 		}
 		finally {
-			IOUtil.closeEL(is);
+			IOUtil.close(is);
 		}
 	}
 
