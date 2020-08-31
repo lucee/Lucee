@@ -390,8 +390,12 @@ component {
 		loop collection="#arguments#" item="key"{
 			if(findNoCase("custom",key) EQ 1){
 				l=len(key);
-				custom[mid(key,7,l-7+1)]=arguments[key];
+				custom[mid(key,8,l-8+1)]=arguments[key];
 			}
+		}
+
+		if( arguments.type == "MSSQL" ){
+			custom["databaseName"] = arguments.database;
 		}
 
 		admin
@@ -399,6 +403,7 @@ component {
 			type="#variables.type#"
 			password="#variables.password#"
 
+			id="#isNull(driver.getId)?'':driver.getId()#"
 			classname="#driver.getClass()#"
 			dsn="#driver.getDSN()#"
 			customParameterSyntax="#isNull(driver.customParameterSyntax)?nullValue():driver.customParameterSyntax()#"
