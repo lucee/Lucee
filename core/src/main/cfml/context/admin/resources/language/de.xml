@@ -329,6 +329,9 @@ und Optimierungen innerhalb ihrer Version einspielen.</data>
 	<data key="ext.availableversion">Verfügbare Version</data>
 	<data key="ext.provider">Provider</data>
 	<data key="ext.documentation">Dokumentation</data>
+	<data key="ext.projectUrl">Startseite</data>
+	<data key="ext.sourceUrl">Quellcode</data>
+	<data key="ext.documentationUrl">Dokumentation</data>
 	<data key="ext.installeddesc">Diese Applikation ist bereits installiert.</data>
 	<data key="ext.installedServer">Installiert im Server Administrator</data>
 	<data key="ext.installedServerDesc">
