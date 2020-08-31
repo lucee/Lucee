@@ -59,7 +59,7 @@ public class ParseNumber {
 				radix = HEX;
 				strNumber = strNumber.substring(1);
 			}
-			else if (strNumber.startsWith("0") && strNumber.length() > 1) {
+			else if (strNumber.startsWith("0") && strNumber.length() > 1 && strNumber.indexOf('.') == -1) {
 				radix = OCT;
 				strNumber = strNumber.substring(1);
 			}
@@ -76,13 +76,13 @@ public class ParseNumber {
 
 				radix = HEX;
 			}
-			else throw new ExpressionException("invalid radix definitions, valid vales are [bin,oct,dec,hex]");
+			else throw new ExpressionException("Invalid radix definitions, valid vales are [bin,oct,dec,hex]");
 
 		}
 
-		if (radix == OCT && strNumber.indexOf('9') != -1) throw new ExpressionException("digit [9] is out of range for an octal number");
+		if (radix == OCT && strNumber.indexOf('9') != -1) throw new ExpressionException("Digit [9] is out of range for an octal number");
 
-		if (strNumber.indexOf('.') != -1 && radix != DEC) throw new ExpressionException("the radix con only be [dec] for floating point numbers");
+		if (strNumber.indexOf('.') != -1 && radix != DEC) throw new ExpressionException("The radix con only be [dec] for floating point numbers");
 
 		if (radix == DEC) {
 			return Caster.toDoubleValue(strNumber);
