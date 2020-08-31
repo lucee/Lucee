@@ -184,7 +184,7 @@ public final class Mail extends BodyTagImpl {
 	 * @throws PageException
 	 **/
 	public void setFrom(Object from) throws PageException {
-		String toValid = from.toString();
+		String toValid = from == null ? "" : from.toString();
 		if (StringUtil.isEmpty(from, true)) throw new ApplicationException("Attribute [from] cannot be empty");
 		if (!toValid.matches(regex)) throw new ApplicationException("Attribute [to] of the tag [mail] wasn't a valid email address [actually bad email address]");
 		try {
@@ -202,7 +202,7 @@ public final class Mail extends BodyTagImpl {
 	 * @throws ApplicationException
 	 **/
 	public void setTo(Object to) throws ApplicationException {
-		String toValid = to.toString();
+		String toValid = to == null ? "" : to.toString();
 		if (StringUtil.isEmpty(to, true)) throw new ApplicationException("Attribute [to] cannot be empty");
 		if (!toValid.matches(regex)) throw new ApplicationException("Attribute [to] of the tag [mail] wasn't a valid email address [actually bad email address]");
 		try {
@@ -221,7 +221,7 @@ public final class Mail extends BodyTagImpl {
 	 * @throws ApplicationException
 	 **/
 	public void setCc(Object cc) throws ApplicationException {
-		String ccValid = cc.toString();
+		String ccValid = cc == null ? "" : cc.toString();
 		if (StringUtil.isEmpty(cc, true)) throw new ApplicationException("Attribute [cc] cannot be empty");
 		if (!ccValid.matches(regex)) throw new ApplicationException("Attribute [cc] of the tag [mail] wasn't a valid email address [actually bad email address]");
 		try {
@@ -240,7 +240,7 @@ public final class Mail extends BodyTagImpl {
 	 * @throws ApplicationException
 	 **/
 	public void setBcc(Object bcc) throws ApplicationException {
-		String bccValid = bcc.toString();
+		String bccValid = bcc == null ? "" : bcc.toString();
 		if (StringUtil.isEmpty(bcc, true)) throw new ApplicationException("Attribute [bcc] cannot be empty");
 		if (!bccValid.matches(regex)) throw new ApplicationException("Attribute [bcc] of the tag [mail] wasn't a valid email address [actually bad email address]");
 		try {
@@ -256,7 +256,7 @@ public final class Mail extends BodyTagImpl {
 	 * @throws ApplicationException
 	 */
 	public void setFailto(Object failto) throws ApplicationException {
-		String failtoValid = failto.toString();
+		String failtoValid = failto == null ? "" : failto.toString();
 		if (StringUtil.isEmpty(failto, true)) throw new ApplicationException("Attribute [failto] cannot be empty");
 		if (!failtoValid.matches(regex)) throw new ApplicationException("Attribute [failto] of the tag [mail] wasn't a valid email address [actually bad email address]");
 		try {
@@ -272,7 +272,7 @@ public final class Mail extends BodyTagImpl {
 	 * @throws ApplicationException
 	 */
 	public void setReplyto(Object replyto) throws ApplicationException {
-		String replytoValid = replyto.toString();
+		String replytoValid = replyto == null ? "" : replyto.toString();
 		if (StringUtil.isEmpty(replyto, true)) throw new ApplicationException("Attribute [replyto] cannot be empty");
 		if (!replytoValid.matches(regex)) throw new ApplicationException("Attribute [replyto] of the tag [mail] wasn't a valid email address [actually bad email address]");
 		try {
