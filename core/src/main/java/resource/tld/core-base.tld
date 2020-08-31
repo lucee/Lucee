@@ -4736,7 +4736,7 @@ Permits searching collections by title or displaying a separate title from the k
 	<tag>
 		<name>location</name>
 		<tag-class>lucee.runtime.tag.Location</tag-class>
-		<body-content>empty</body-content>
+		<body-content>free</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
 		<script>
 			<type>multiple</type>
