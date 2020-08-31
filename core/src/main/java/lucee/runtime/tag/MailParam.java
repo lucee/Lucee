@@ -156,7 +156,6 @@ public final class MailParam extends TagImpl {
 		else if (disposition.equals("inline")) this.disposition = EmailAttachment.INLINE;
 		else throw new ApplicationException("For the tag [MailParam], the attribute [disposition] must be one of the following values [attachment, inline]");
 
-
 	}
 
 	/**
@@ -200,11 +199,11 @@ public final class MailParam extends TagImpl {
 		boolean hasName = !StringUtil.isEmpty(name);
 		// both attributes
 		if (hasName && hasFile) {
-			throw new ApplicationException("Wrong Context for tag MailParam, you cannot use attribute file and name together");
+			throw new ApplicationException("Wrong Context for tag [MailParam], you cannot use the attributes [file] and [name] together");
 		}
 		// no attributes
 		if (!hasName && !hasFile) {
-			throw new ApplicationException("Wrong Context for tag MailParam, you must use attribute file or attribute name for this tag");
+			throw new ApplicationException("Wrong Context for tag [MailParam], one of the attributes [file] or [name] is required");
 		}
 
 		// get Mail Tag
@@ -218,7 +217,7 @@ public final class MailParam extends TagImpl {
 			mail.setParam(type, file, fileName, name, value, disposition, contentID, remove);
 		}
 		else {
-			throw new ApplicationException("Wrong Context, tag MailParam must be inside a Mail tag");
+			throw new ApplicationException("Wrong Context, tag [MailParam] must be inside a [Mail] tag");
 		}
 		return SKIP_BODY;
 	}

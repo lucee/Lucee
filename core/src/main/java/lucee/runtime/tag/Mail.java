@@ -184,7 +184,7 @@ public final class Mail extends BodyTagImpl {
 	 * @throws PageException
 	 **/
 	public void setFrom(Object from) throws PageException {
-		String toValid = to.toString();
+		String toValid = from.toString();
 		if (StringUtil.isEmpty(from, true)) throw new ApplicationException("Attribute [from] cannot be empty");
 		if (!toValid.matches(regex)) throw new ApplicationException("Attribute [to] of the tag [mail] wasn't a valid email address [actually bad email address]");
 		try {
@@ -296,7 +296,8 @@ public final class Mail extends BodyTagImpl {
 		if (type.equals("text/plain") || type.equals("plain") || type.equals("text")) getPart().isHTML(false);
 		// mail.setType(lucee.runtime.mail.Mail.TYPE_TEXT);
 		else if (type.equals("text/html") || type.equals("html") || type.equals("htm")) getPart().isHTML(true);
-		else throw new ApplicationException("Attribute type of tag mail has an invalid values", "valid values are [plain,text,html] but value is now [" + type + "]");
+		else throw new ApplicationException("Attribute [type] of tag [mail]  has an invalid value [" + type + "]",
+				"Valid values are [plain, text, html] but value is now [" + type + "]");
 		// throw new ApplicationException(("invalid type "+type);
 	}
 
@@ -337,10 +338,8 @@ public final class Mail extends BodyTagImpl {
 	public void setMimeattach(String strMimeattach, String fileName, String type, String disposition, String contentID, boolean removeAfterSend) throws PageException {
 		Resource file = ResourceUtil.toResourceNotExisting(pageContext, strMimeattach);
 		pageContext.getConfig().getSecurityManager().checkFileLocation(file);
-		if (!file.exists()) throw new ApplicationException("can't attach file " + strMimeattach + ", this file doesn't exist");
-
+		if (!file.exists()) throw new ApplicationException("Cannot attach file to mail [" + strMimeattach + "], the file doesn't exist");
 		smtp.addAttachment(file, fileName, type, disposition, contentID, removeAfterSend);
-
 	}
 
 	public void setMimeattach(String strMimeattach) throws PageException {
@@ -504,8 +503,8 @@ public final class Mail extends BodyTagImpl {
 			else valid = false;
 		}
 
-		if (!valid) throw new ExpressionException("the value of attribute priority is invalid [" + strPriority + "], " + "the value should be an integer between [1-5] or "
-				+ "one of the following [highest,urgent,high,normal,low,lowest,non-urgent]");
+		if (!valid) throw new ExpressionException("Attribute [priority] of the tag [mail] is invalid [" + strPriority + "], " + "The value should be an integer between [1-5] or "
+				+ "one of the following [highest, urgent, high, normal, low, lowest, non-urgent]");
 
 	}
 
