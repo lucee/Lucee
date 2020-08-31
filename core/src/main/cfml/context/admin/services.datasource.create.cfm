@@ -621,9 +621,9 @@ optional.append('validate:#truefalseformat(datasource.validate?:false)# // defau
 	  class: '#datasource.classname#'#isNull(datasource.bundleName)?"":"
 	, bundleName: '"&datasource.bundleName&"'"##isNull(datasource.bundleVersion)?"":"
 	, bundleVersion: '"&datasource.bundleVersion&"'"#
-	, connectionString: '#replace(datasource.dsnTranslated,"'","''","all")#'<cfif len(datasource._password)>
+	, connectionString: '#replace(datasource.dsnTranslated,"'","''","all")#'
 	, username: '#replace(datasource.username,"'","''","all")#'
-	, password: "#datasource.passwordEncrypted#"</cfif><cfif optional.len()>
+	, password: "#datasource.passwordEncrypted#"<cfif optional.len()>
 	
 	// optional settings
 	<cfloop array="#optional#" index="i" item="value">, #value#<cfif i LT optional.len()>
