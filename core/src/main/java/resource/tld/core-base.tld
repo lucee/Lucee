@@ -5251,6 +5251,7 @@ Lucee uses the number of characters in the file.</description>
 			<type>string</type>
 			<name>type</name>
 			<required>false</required>
+			<default>text/plain</default>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Specifies extended type attributes for the message.</description>
 		</attribute>
