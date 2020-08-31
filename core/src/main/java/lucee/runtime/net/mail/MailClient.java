@@ -162,8 +162,8 @@ public abstract class MailClient implements PoolItem {
 		PoolItem item = pool.get(uid);
 		if (item == null) {
 			if (StringUtil.isEmpty(server)) {
-				if (StringUtil.isEmpty(name)) throw new ApplicationException("missing server information");
-				else throw new ApplicationException("there is no connection available with name [" + name + "]");
+				if (StringUtil.isEmpty(name)) throw new ApplicationException("missing mail server information");
+				else throw new ApplicationException("There is no connection available with name [" + name + "]");
 			}
 			if (TYPE_POP3 == type) pool.put(uid, item = new PopClient(server, port, username, password, secure));
 			if (TYPE_IMAP == type) pool.put(uid, item = new ImapClient(server, port, username, password, secure));
@@ -605,7 +605,7 @@ public abstract class MailClient implements PoolItem {
 				return getContent(is = bp.getInputStream(), SystemUtil.getCharset());
 			}
 			catch (IOException e) {
-				return "Can't read body of this message:" + e.getMessage();
+				return "Cannot read body of this message: " + e.getMessage();
 			}
 		}
 		finally {
@@ -691,7 +691,7 @@ public abstract class MailClient implements PoolItem {
 
 	// IMAP only
 	public void createFolder(String folderName) throws MessagingException, ApplicationException {
-		if (folderExists(folderName)) throw new ApplicationException("Cannot create imap folder [" + folderName + "], folder already exists.");
+		if (folderExists(folderName)) throw new ApplicationException("Cannot create imap folder [" + folderName + "], the folder already exists.");
 
 		Folder folder = getFolder(folderName, null, false, true);
 		if (!folder.exists()) folder.create(Folder.HOLDS_MESSAGES);

@@ -21,7 +21,6 @@ package lucee.runtime.tag;
 import java.nio.charset.Charset;
 
 import javax.mail.internet.InternetAddress;
-import java.util.regex.*;
 
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.res.Resource;
@@ -185,7 +184,7 @@ public final class Mail extends BodyTagImpl {
 	 * @throws PageException
 	 **/
 	public void setFrom(Object from) throws PageException {
-		String toValid = to.toString();
+		String toValid = from == null ? "" : from.toString();
 		if (StringUtil.isEmpty(from, true)) throw new ApplicationException("Attribute [from] cannot be empty");
 		if (!toValid.matches(regex)) throw new ApplicationException("Attribute [to] of the tag [mail] wasn't a valid email address [" + toValid + "]");
 		try {
@@ -203,7 +202,7 @@ public final class Mail extends BodyTagImpl {
 	 * @throws ApplicationException
 	 **/
 	public void setTo(Object to) throws ApplicationException {
-		String toValid = to.toString();
+		String toValid = to == null ? "" : to.toString();
 		if (StringUtil.isEmpty(to, true)) throw new ApplicationException("Attribute [to] cannot be empty");
 		if (!toValid.matches(regex)) throw new ApplicationException("Attribute [to] of the tag [mail] wasn't a valid email address [" + toValid + "]");
 		try {
@@ -222,7 +221,7 @@ public final class Mail extends BodyTagImpl {
 	 * @throws ApplicationException
 	 **/
 	public void setCc(Object cc) throws ApplicationException {
-		String ccValid = cc.toString();
+		String ccValid = cc == null ? "" : cc.toString();
 		if (StringUtil.isEmpty(cc, true)) throw new ApplicationException("Attribute [cc] cannot be empty");
 		if (!ccValid.matches(regex)) throw new ApplicationException("Attribute [cc] of the tag [mail] wasn't a valid email address [" + ccValid + "]");
 		try {
@@ -241,7 +240,7 @@ public final class Mail extends BodyTagImpl {
 	 * @throws ApplicationException
 	 **/
 	public void setBcc(Object bcc) throws ApplicationException {
-		String bccValid = bcc.toString();
+		String bccValid = bcc == null ? "" : bcc.toString();
 		if (StringUtil.isEmpty(bcc, true)) throw new ApplicationException("Attribute [bcc] cannot be empty");
 		if (!bccValid.matches(regex)) throw new ApplicationException("Attribute [bcc] of the tag [mail] wasn't a valid email address [" + bccValid + "]");
 		try {
@@ -257,7 +256,7 @@ public final class Mail extends BodyTagImpl {
 	 * @throws ApplicationException
 	 */
 	public void setFailto(Object failto) throws ApplicationException {
-		String failtoValid = failto.toString();
+		String failtoValid = failto == null ? "" : failto.toString();
 		if (StringUtil.isEmpty(failto, true)) throw new ApplicationException("Attribute [failto] cannot be empty");
 		if (!failtoValid.matches(regex)) throw new ApplicationException("Attribute [failto] of the tag [mail] wasn't a valid email address [" + failtoValid + "]");
 		try {
@@ -273,7 +272,7 @@ public final class Mail extends BodyTagImpl {
 	 * @throws ApplicationException
 	 */
 	public void setReplyto(Object replyto) throws ApplicationException {
-		String replytoValid = replyto.toString();
+		String replytoValid = replyto == null ? "" : replyto.toString();
 		if (StringUtil.isEmpty(replyto, true)) throw new ApplicationException("Attribute [replyto] cannot be empty");
 		if (!replytoValid.matches(regex)) throw new ApplicationException("Attribute [replyto] of the tag [mail] wasn't a valid email address [" + replytoValid + "]");
 		try {
@@ -291,11 +290,14 @@ public final class Mail extends BodyTagImpl {
 	 * @throws ApplicationException
 	 **/
 	public void setType(String type) throws ApplicationException {
-		type = type.toLowerCase().trim();
+		if (StringUtil.isEmpty(type, true)) type = "text/plain";
+		else type = type.toLowerCase().trim();
+
 		if (type.equals("text/plain") || type.equals("plain") || type.equals("text")) getPart().isHTML(false);
 		// mail.setType(lucee.runtime.mail.Mail.TYPE_TEXT);
 		else if (type.equals("text/html") || type.equals("html") || type.equals("htm")) getPart().isHTML(true);
-		else throw new ApplicationException("Attribute type of tag mail has an invalid values", "valid values are [plain, text, html] but value is now [" + type + "]");
+		else throw new ApplicationException("Attribute [type] of tag [mail]  has an invalid value [" + type + "]",
+				"Valid values are [plain, text, html] but value is now [" + type + "]");
 		// throw new ApplicationException(("invalid type "+type);
 	}
 
@@ -336,10 +338,9 @@ public final class Mail extends BodyTagImpl {
 	public void setMimeattach(String strMimeattach, String fileName, String type, String disposition, String contentID, boolean removeAfterSend) throws PageException {
 		Resource file = ResourceUtil.toResourceNotExisting(pageContext, strMimeattach);
 		pageContext.getConfig().getSecurityManager().checkFileLocation(file);
-		if (!file.exists()) throw new ApplicationException("Cannot attach file [" + strMimeattach + "], this file doesn't exist");
+		if (!file.exists()) throw new ApplicationException("Cannot attach file to mail [" + strMimeattach + "], the file doesn't exist");
 
 		smtp.addAttachment(file, fileName, type, disposition, contentID, removeAfterSend);
-
 	}
 
 	public void setMimeattach(String strMimeattach) throws PageException {
@@ -503,7 +504,7 @@ public final class Mail extends BodyTagImpl {
 			else valid = false;
 		}
 
-		if (!valid) throw new ExpressionException("The value of attribute [priority] is invalid [" + strPriority + "], " + "the value should be an integer between [1-5] or "
+		if (!valid) throw new ExpressionException("Attribute [priority] of the tag [mail] is invalid [" + strPriority + "], " + "The value should be an integer between [1-5] or "
 				+ "one of the following [highest, urgent, high, normal, low, lowest, non-urgent]");
 
 	}
