@@ -78,13 +78,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			
 			// zip no compression
 			if(fileExists(targetStored)) fileDelete(targetStored);
-
 			zip action="zip" file=targetStored compressionMethod="store"{
 				zipparam entryPath = "/1/2.cfm" source =variables.file1;
 				zipparam source =variables.file1;
 				zipparam source =variables.dir1;
 				zipparam prefix="n/m" source =variables.dir1;
 			}
+			// without compression, a zip file using store should be larger than a standard zip file
 			assertTrue(getFileInfo(targetStored).size GT getFileInfo(target).size);
 		
 
