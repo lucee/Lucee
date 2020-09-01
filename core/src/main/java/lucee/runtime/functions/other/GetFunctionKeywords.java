@@ -35,10 +35,11 @@ import lucee.transformer.library.function.FunctionLibFunction;
 import lucee.transformer.library.tag.TagLib;
 
 public class GetFunctionKeywords {
-	private static Array keywords;
+	private final static Object token = new Object();
+	private static Array keywords = null;
 
 	public static Array call(PageContext pc) throws PageException {
-		synchronized (keywords) {
+		synchronized (token) {
 			if (keywords == null) {
 				Set<String> set = new HashSet<String>();
 				FunctionLib[] flds;

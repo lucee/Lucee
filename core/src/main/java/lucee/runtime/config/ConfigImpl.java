@@ -19,17 +19,16 @@
 package lucee.runtime.config;
 
 import static lucee.runtime.db.DatasourceManagerImpl.QOQ_DATASOURCE_NAME;
-import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.SOFT;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.lang.ref.SoftReference;
 import java.net.InetAddress;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -39,7 +38,6 @@ import java.util.Map.Entry;
 import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.commons.collections4.map.ReferenceMap;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 
@@ -129,6 +127,8 @@ import lucee.runtime.orm.ORMEngine;
 import lucee.runtime.osgi.BundleInfo;
 import lucee.runtime.osgi.EnvClassLoader;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
+import lucee.runtime.regex.Regex;
+import lucee.runtime.regex.RegexFactory;
 import lucee.runtime.rest.RestSettingImpl;
 import lucee.runtime.rest.RestSettings;
 import lucee.runtime.schedule.Scheduler;
@@ -137,6 +137,7 @@ import lucee.runtime.search.SearchEngine;
 import lucee.runtime.security.SecurityManager;
 import lucee.runtime.spooler.SpoolerEngine;
 import lucee.runtime.type.Collection.Key;
+import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
@@ -157,6 +158,7 @@ import lucee.transformer.library.tag.TagLibException;
 import lucee.transformer.library.tag.TagLibFactory;
 import lucee.transformer.library.tag.TagLibTag;
 import lucee.transformer.library.tag.TagLibTagAttr;
+import lucee.transformer.library.tag.TagLibTagScript;
 
 /**
  * Hold the definitions of the Lucee configuration.
@@ -175,6 +177,7 @@ public abstract class ConfigImpl implements Config {
 	public static final int DEBUG_IMPLICIT_ACCESS = 16;
 	public static final int DEBUG_QUERY_USAGE = 32;
 	public static final int DEBUG_DUMP = 64;
+	public static final int DEBUG_TEMPLATE = 128;
 
 	private static final Extension[] EXTENSIONS_EMPTY = new Extension[0];
 	private static final RHExtension[] RHEXTENSIONS_EMPTY = new RHExtension[0];
@@ -371,10 +374,6 @@ public abstract class ConfigImpl implements Config {
 	private boolean errorStatusCode = true;
 	private int localMode = Undefined.MODE_LOCAL_OR_ARGUMENTS_ONLY_WHEN_EXISTS;
 
-	// private String securityToken;
-	// private String securityKey;
-
-	private ExtensionProvider[] extensionProviders = Constants.CLASSIC_EXTENSION_PROVIDERS;
 	private RHExtensionProvider[] rhextensionProviders = Constants.RH_EXTENSION_PROVIDERS;
 
 	private Extension[] extensions = EXTENSIONS_EMPTY;
@@ -437,6 +436,10 @@ public abstract class ConfigImpl implements Config {
 
 	public static boolean onlyFirstMatch = false;
 	private TimeSpan cachedAfterTimeRange;
+
+	private static Map<String, Startup> startups;
+
+	private Regex regex; // TODO add possibility to configure
 
 	/**
 	 * @return the allowURLRequestTimeout
@@ -908,7 +911,7 @@ public abstract class ConfigImpl implements Config {
 
 	@Override
 	public PageSource[] getPageSources(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping) {
-		return getPageSources(pc, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, onlyFirstMatch);
+		return getPageSources(pc, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, false, onlyFirstMatch);
 	}
 
 	@Override
@@ -1276,6 +1279,11 @@ public abstract class ConfigImpl implements Config {
 		tlt.setParseBody(false);
 		tlt.setDescription("");
 		tlt.setAttributeType(TagLibTag.ATTRIBUTE_TYPE_MIXED);
+
+		// read component and read setting from that component
+		TagLibTagScript tlts = new TagLibTagScript(tlt);
+		tlts.setType(TagLibTagScript.TYPE_MULTIPLE);
+		tlt.setScript(tlts);
 
 		TagLibTagAttr tlta = new TagLibTagAttr(tlt);
 		tlta.setName("__filename");
@@ -2779,13 +2787,9 @@ public abstract class ConfigImpl implements Config {
 		return dir;
 	}
 
-	protected void setExtensionProviders(ExtensionProvider[] extensionProviders) {
-		this.extensionProviders = extensionProviders;
-	}
-
 	@Override
 	public ExtensionProvider[] getExtensionProviders() {
-		return extensionProviders;
+		throw new RuntimeException("no longer supported, use getRHExtensionProviders() instead.");
 	}
 
 	protected void setRHExtensionProviders(RHExtensionProvider[] extensionProviders) {
@@ -3188,14 +3192,15 @@ public abstract class ConfigImpl implements Config {
 		return ormConfig;
 	}
 
-	private Map<String, PageSource> componentPathCache = null;// new ArrayList<Page>();
-	private Map<String, InitFile> ctPatchCache = null;// new ArrayList<Page>();
-	private Map<String, UDF> udfCache = Collections.synchronizedMap(new ReferenceMap<String, UDF>());
+	private Map<String, SoftReference<PageSource>> componentPathCache = null;// new ArrayList<Page>();
+	private Map<String, SoftReference<InitFile>> ctPatchCache = null;// new ArrayList<Page>();
+	private Map<String, SoftReference<UDF>> udfCache = new ConcurrentHashMap<String, SoftReference<UDF>>();
 
 	public CIPage getCachedPage(PageContext pc, String pathWithCFC) throws TemplateException {
 		if (componentPathCache == null) return null;
 
-		PageSource ps = componentPathCache.get(pathWithCFC.toLowerCase());
+		SoftReference<PageSource> tmp = componentPathCache.get(pathWithCFC.toLowerCase());
+		PageSource ps = tmp == null ? null : tmp.get();
 		if (ps == null) return null;
 
 		try {
@@ -3207,15 +3212,16 @@ public abstract class ConfigImpl implements Config {
 	}
 
 	public void putCachedPageSource(String pathWithCFC, PageSource ps) {
-		if (componentPathCache == null) componentPathCache = Collections.synchronizedMap(new HashMap<String, PageSource>());// MUSTMUST new
+		if (componentPathCache == null) componentPathCache = new ConcurrentHashMap<String, SoftReference<PageSource>>();// MUSTMUST new
 		// ReferenceMap(ReferenceMap.SOFT,ReferenceMap.SOFT);
-		componentPathCache.put(pathWithCFC.toLowerCase(), ps);
+		componentPathCache.put(pathWithCFC.toLowerCase(), new SoftReference<PageSource>(ps));
 	}
 
 	public InitFile getCTInitFile(PageContext pc, String key) {
 		if (ctPatchCache == null) return null;
 
-		InitFile initFile = ctPatchCache.get(key.toLowerCase());
+		SoftReference<InitFile> tmp = ctPatchCache.get(key.toLowerCase());
+		InitFile initFile = tmp == null ? null : tmp.get();
 		if (initFile != null) {
 			if (MappingImpl.isOK(initFile.getPageSource())) return initFile;
 			ctPatchCache.remove(key.toLowerCase());
@@ -3224,19 +3230,21 @@ public abstract class ConfigImpl implements Config {
 	}
 
 	public void putCTInitFile(String key, InitFile initFile) {
-		if (ctPatchCache == null) ctPatchCache = Collections.synchronizedMap(new HashMap<String, InitFile>());// MUSTMUST new ReferenceMap(ReferenceMap.SOFT,ReferenceMap.SOFT);
-		ctPatchCache.put(key.toLowerCase(), initFile);
+		if (ctPatchCache == null) ctPatchCache = new ConcurrentHashMap<String, SoftReference<InitFile>>();// MUSTMUST new ReferenceMap(ReferenceMap.SOFT,ReferenceMap.SOFT);
+		ctPatchCache.put(key.toLowerCase(), new SoftReference<InitFile>(initFile));
 	}
 
 	public Struct listCTCache() {
 		Struct sct = new StructImpl();
 		if (ctPatchCache == null) return sct;
-		Iterator<Entry<String, InitFile>> it = ctPatchCache.entrySet().iterator();
+		Iterator<Entry<String, SoftReference<InitFile>>> it = ctPatchCache.entrySet().iterator();
 
-		Entry<String, InitFile> entry;
+		Entry<String, SoftReference<InitFile>> entry;
+		SoftReference<InitFile> v;
 		while (it.hasNext()) {
 			entry = it.next();
-			sct.setEL(entry.getKey(), entry.getValue().getPageSource().getDisplayPath());
+			v = entry.getValue();
+			if (v != null) sct.setEL(entry.getKey(), v.get().getPageSource().getDisplayPath());
 		}
 		return sct;
 	}
@@ -3251,22 +3259,30 @@ public abstract class ConfigImpl implements Config {
 	}
 
 	public UDF getFromFunctionCache(String key) {
-		return udfCache.get(key);
+		SoftReference<UDF> tmp = udfCache.get(key);
+		if (tmp == null) return null;
+		return tmp.get();
 	}
 
 	public void putToFunctionCache(String key, UDF udf) {
-		udfCache.put(key, udf);
+		udfCache.put(key, new SoftReference<UDF>(udf));
 	}
 
 	public Struct listComponentCache() {
 		Struct sct = new StructImpl();
 		if (componentPathCache == null) return sct;
-		Iterator<Entry<String, PageSource>> it = componentPathCache.entrySet().iterator();
+		Iterator<Entry<String, SoftReference<PageSource>>> it = componentPathCache.entrySet().iterator();
 
-		Entry<String, PageSource> entry;
+		Entry<String, SoftReference<PageSource>> entry;
 		while (it.hasNext()) {
 			entry = it.next();
-			sct.setEL(entry.getKey(), entry.getValue().getDisplayPath());
+			String k = entry.getKey();
+			if (k == null) continue;
+			SoftReference<PageSource> v = entry.getValue();
+			if (v == null) continue;
+			PageSource ps = v.get();
+			if (ps == null) continue;
+			sct.setEL(KeyImpl.init(k), ps.getDisplayPath());
 		}
 		return sct;
 	}
@@ -3316,13 +3332,14 @@ public abstract class ConfigImpl implements Config {
 		this.componentRootSearch = componentRootSearch;
 	}
 
-	private final Map<String, Compress> compressResources = Collections.synchronizedMap(new ReferenceMap<String, Compress>(SOFT, SOFT));
+	private final Map<String, SoftReference<Compress>> compressResources = new ConcurrentHashMap<String, SoftReference<Compress>>();
 
 	public Compress getCompressInstance(Resource zipFile, int format, boolean caseSensitive) throws IOException {
-		Compress compress = compressResources.get(zipFile.getPath());
+		SoftReference<Compress> tmp = compressResources.get(zipFile.getPath());
+		Compress compress = tmp == null ? null : tmp.get();
 		if (compress == null) {
 			compress = new Compress(zipFile, format, caseSensitive);
-			compressResources.put(zipFile.getPath(), compress);
+			compressResources.put(zipFile.getPath(), new SoftReference<Compress>(compress));
 		}
 		return compress;
 	}
@@ -3698,8 +3715,10 @@ public abstract class ConfigImpl implements Config {
 				catch (Exception e) {
 					continue;
 				}
-				if (bis != null) for (BundleInfo bi: bis) {
-					extensionBundles.put(bi.getSymbolicName() + "|" + bi.getVersionAsString(), bi.toBundleDefinition());
+				if (bis != null) {
+					for (BundleInfo bi: bis) {
+						extensionBundles.put(bi.getSymbolicName() + "|" + bi.getVersionAsString(), bi.toBundleDefinition());
+					}
 				}
 			}
 			this.extensionBundles = extensionBundles;
@@ -3830,8 +3849,12 @@ public abstract class ConfigImpl implements Config {
 	 * public boolean installExtension(ExtensionDefintion ed) throws PageException { return
 	 * DeployHandler.deployExtension(this, ed, getLog("deploy"),true); }
 	 */
-
-	public abstract List<ExtensionDefintion> loadLocalExtensions();
+	/**
+	 * 
+	 * @param validate if true Lucee checks if the file is a valid zip file
+	 * @return
+	 */
+	public abstract List<ExtensionDefintion> loadLocalExtensions(boolean validate);
 
 	private Map<String, ClassDefinition> cacheDefinitions;
 
@@ -3856,16 +3879,18 @@ public abstract class ConfigImpl implements Config {
 	public abstract Map<String, GatewayEntry> getGatewayEntries();
 
 	private ClassDefinition wsHandlerCD;
+	protected WSHandler wsHandler = null;
 
 	protected void setWSHandlerClassDefinition(ClassDefinition cd) {
 		this.wsHandlerCD = cd;
+		wsHandler = null;
 	}
+
+	// public abstract WSHandler getWSHandler() throws PageException;
 
 	protected ClassDefinition getWSHandlerClassDefinition() {
 		return wsHandlerCD;
 	}
-
-	public abstract WSHandler getWSHandler() throws PageException;
 
 	boolean isEmpty(ClassDefinition cd) {
 		return cd == null || StringUtil.isEmpty(cd.getClassName());
@@ -3901,4 +3926,27 @@ public abstract class ConfigImpl implements Config {
 	public abstract void checkPassword() throws PageException;
 	// TODO Auto-generated m
 
+	public Map<String, Startup> getStartups() {
+		if (startups == null) startups = new HashMap<>();
+		return startups;
+	}
+
+	public static class Startup {
+		public final ClassDefinition<?> cd;
+		public final Object instance;
+
+		public Startup(ClassDefinition<?> cd, Object instance) {
+			this.cd = cd;
+			this.instance = instance;
+		}
+	}
+
+	public Regex getRegex() {
+		if (regex == null) regex = RegexFactory.toRegex(RegexFactory.TYPE_PERL, null);
+		return regex;
+	}
+
+	protected void setRegex(Regex regex) {
+		this.regex = regex;
+	}
 }

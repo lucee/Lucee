@@ -34,8 +34,7 @@ import lucee.runtime.Mapping;
 import lucee.runtime.MappingImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
-import lucee.runtime.PageSourceImpl;
-import lucee.runtime.PageSourcePool;
+import lucee.runtime.PageSource;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.ConfigWeb;
@@ -263,23 +262,14 @@ public final class GetUsageData implements Function {
 
 	private static long[] templateCacheElements(Mapping[] mappings) {
 		long elements = 0, size = 0;
-
-		PageSourcePool psp;
-		String[] keys;
-		PageSourceImpl ps;
 		Resource res;
 		MappingImpl mapping;
 		for (int i = 0; i < mappings.length; i++) {
 			mapping = (MappingImpl) mappings[i];
-			psp = mapping.getPageSourcePool();
-			keys = psp.keys();
-			for (int y = 0; y < keys.length; y++) {
-				ps = (PageSourceImpl) psp.getPageSource(keys[y], false);
-				if (ps.isLoad()) {
-					elements++;
-					res = mapping.getClassRootDirectory().getRealResource(ps.getClassName().replace('.', '/') + ".class");
-					size += res.length();
-				}
+			for (PageSource ps: mapping.getPageSources(true)) {
+				elements++;
+				res = mapping.getClassRootDirectory().getRealResource(ps.getClassName().replace('.', '/') + ".class");
+				size += res.length();
 			}
 		}
 		return new long[] { elements, size };

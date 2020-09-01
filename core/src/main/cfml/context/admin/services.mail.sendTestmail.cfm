@@ -7,9 +7,15 @@
 	<table class="maintbl">
 		<tbody>
 			<tr>
-				<th scope="row">Email</th>
+				<th scope="row">To Email</th>
 				<td>
 					<cfinputClassic type="text" name="toMail" value="" class="medium" required="yes" message="Please enter a valid email, to where you need to send the test email.">
+				</td>
+			</tr>
+			<tr>
+				<th scope="row">From Email</th>
+				<td>
+					<cfinputClassic type="text" name="fromMail" value="" class="medium" required="yes" message="Please enter a valid email.">
 				</td>
 			</tr>
 		</tbody>

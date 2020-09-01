@@ -1301,7 +1301,7 @@ public class CFMLExpressionInterpreter {
 		if (name != null) {
 			StringBuilder fullName = new StringBuilder();
 			fullName.append(name);
-			// Loop over addional identifier
+			// Loop over additional identifier
 			while (cfml.isValidIndex()) {
 				if (cfml.forwardIfCurrent('.')) {
 					cfml.removeSpace();
@@ -1454,7 +1454,7 @@ public class CFMLExpressionInterpreter {
 
 			if (checkLibrary && !isDynamic) {
 				// current attribues from library
-				FunctionLibFunctionArg funcLibAtt = (FunctionLibFunctionArg) arrFuncLibAtt.get(count);
+				FunctionLibFunctionArg funcLibAtt = arrFuncLibAtt.get(count);
 				short type = CFTypes.toShort(funcLibAtt.getTypeAsString(), false, CFTypes.TYPE_UNKNOW);
 				if (type == CFTypes.TYPE_VARIABLE_STRING) {
 					arr.add(functionArgDeclarationVarString());
@@ -1483,7 +1483,7 @@ public class CFMLExpressionInterpreter {
 		if (checkLibrary && flf.getArgMin() > count) throw new InterpreterException("to less Attributes in function [" + name + "]");
 
 		cfml.removeSpace();
-		return (Ref[]) arr.toArray(new Ref[arr.size()]);
+		return arr.toArray(new Ref[arr.size()]);
 	}
 
 	private boolean isDynamic(FunctionLibFunction flf) {

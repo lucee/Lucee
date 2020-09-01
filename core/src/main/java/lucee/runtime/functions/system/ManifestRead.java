@@ -75,7 +75,7 @@ public class ManifestRead {
 
 					}
 					finally {
-						IOUtil.closeEL(is);
+						IOUtil.close(is);
 						IOUtil.closeEL(zip);
 					}
 				}
@@ -86,7 +86,7 @@ public class ManifestRead {
 						manifest = new Manifest(is = res.getInputStream());
 					}
 					finally {
-						IOUtil.closeEL(is);
+						IOUtil.close(is);
 					}
 				}
 

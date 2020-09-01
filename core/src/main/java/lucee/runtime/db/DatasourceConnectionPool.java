@@ -28,6 +28,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
+import lucee.commons.io.log.Log;
+import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefInteger;
@@ -47,6 +49,19 @@ public class DatasourceConnectionPool {
 	private final Object waiter = new Object();
 
 	private ConcurrentHashMap<String, DCStack> dcs = new ConcurrentHashMap<String, DCStack>();
+
+	public int getOpenConnection(DataSource datasource, String user, String pass) throws PageException {
+		if (StringUtil.isEmpty(user)) {
+			user = datasource.getUsername();
+			pass = datasource.getPassword();
+		}
+		if (pass == null) pass = "";
+
+		// get stack
+		DCStack stack = getDCStack(datasource, user, pass);
+		RefInteger cnt = stack.getCounter();
+		return cnt == null ? 0 : cnt.toInt();
+	}
 
 	// !!! do not change used in hibernate extension
 	public DatasourceConnection getDatasourceConnection(Config config, DataSource datasource, String user, String pass) throws PageException {
@@ -86,33 +101,34 @@ public class DatasourceConnectionPool {
 
 				// get an existing connection
 				while (!stack.isEmpty()) {
-					DatasourceConnection dc = (DatasourceConnection) stack.get();
+					DatasourceConnection dc = stack.get();
 					if (dc != null) {
 						rtn = dc;
 						break;
 					}
 				}
 
-				_inc(stack, datasource, user, pass); // if new or fine we
-				// increase in any case
+				_inc(stack, datasource, user, pass); // if new or fine we increase in any case
 				// create a new instance
-				if (rtn == null) {
-					try {
-						rtn = loadDatasourceConnection(config, datasource, user, pass);
-					}
-					catch (PageException pe) {
-						_dec(stack, datasource, user, pass);
-						throw pe;
-					}
-					if (rtn instanceof DatasourceConnectionImpl) ((DatasourceConnectionImpl) rtn).using();
-					return rtn;
+			}
+			if (rtn == null) {
+				try {
+					rtn = loadDatasourceConnection(config, (DataSourcePro) datasource, user, pass);
 				}
+				catch (PageException pe) {
+					synchronized (stack) {
+						_dec(stack, datasource, user, pass);
+					}
+					throw pe;
+				}
+				if (rtn instanceof DatasourceConnectionPro) ((DatasourceConnectionPro) rtn).using();
+				return rtn;
 			}
 
 			// we get us a fine connection (we do validation outside the
 			// synchronized to safe shared time)
-			if (isValid(rtn, Boolean.TRUE)) {
-				if (rtn instanceof DatasourceConnectionImpl) ((DatasourceConnectionImpl) rtn).using();
+			if (isValid(rtn)) {
+				if (rtn instanceof DatasourceConnectionPro) ((DatasourceConnectionPro) rtn).using();
 				return rtn;
 			}
 
@@ -123,16 +139,20 @@ public class DatasourceConnectionPool {
 				// in case we are fine
 				SystemUtil.notify(waiter);
 			}
-			IOUtil.closeEL(rtn.getConnection());
+			try {
+				IOUtil.close(rtn.getConnection());
+			}
+			catch (SQLException e) {
+				throw Caster.toPageException(e);
+			}
 			rtn = null;
 		}
 	}
 
-	private DatasourceConnectionImpl loadDatasourceConnection(Config config, DataSource ds, String user, String pass) throws PageException {
+	private DatasourceConnectionImpl loadDatasourceConnection(Config config, DataSourcePro ds, String user, String pass) throws PageException {
 		Connection conn = null;
 		try {
 			conn = ds.getConnection(config, user, pass);
-			conn.setAutoCommit(true);
 		}
 		catch (SQLException e) {
 			throw new DatabaseException(e, null);
@@ -146,18 +166,12 @@ public class DatasourceConnectionPool {
 	public void releaseDatasourceConnection(DatasourceConnection dc, boolean closeIt) {
 		if (dc == null) return;
 		if (!closeIt && dc.getDatasource().getConnectionTimeout() == 0) closeIt = true; // smaller than 0 is infiniti
-
+		if (closeIt) IOUtil.closeEL(dc.getConnection());
 		DCStack stack = getDCStack(dc.getDatasource(), dc.getUsername(), dc.getPassword());
 		synchronized (stack) {
-			if (closeIt) IOUtil.closeEL(dc.getConnection());
-			else stack.add(dc);
-
-			int max = dc.getDatasource().getConnectionLimit();
-			if (max != -1) {
-				_dec(stack, dc.getDatasource(), dc.getUsername(), dc.getPassword());
-				SystemUtil.notify(waiter);
-			}
-			else _dec(stack, dc.getDatasource(), dc.getUsername(), dc.getPassword());
+			if (!closeIt) stack.add(dc);
+			_dec(stack, dc.getDatasource(), dc.getUsername(), dc.getPassword());
+			if (dc.getDatasource().getConnectionLimit() != -1) SystemUtil.notify(waiter);
 		}
 	}
 
@@ -220,7 +234,7 @@ public class DatasourceConnectionPool {
 		}
 	}
 
-	public static boolean isValid(DatasourceConnection dc, Boolean autoCommit) {
+	public static boolean isValid(DatasourceConnection dc) {
 		try {
 			if (dc.getConnection().isClosed()) return false;
 		}
@@ -232,16 +246,16 @@ public class DatasourceConnectionPool {
 		try {
 			if (dc.getDatasource().validate() && !DataSourceUtil.isValid(dc, 1000)) return false;
 		}
-		catch (Exception e) {} // not all driver support this, because of that we ignore an error
-		// here, also protect from java 5
+		catch (Exception e) {
+			LogUtil.log(ThreadLocalPageContext.getConfig(), "datasource", "connection", e, Log.LEVEL_INFO);
+		} // not all driver support this, because of that we ignore an error
+			// here, also protect from java 5
 
-		try {
-			if (autoCommit != null) dc.getConnection().setAutoCommit(autoCommit.booleanValue());
-		}
-		catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
-			return false;
-		}
+		/*
+		 * try { if (autoCommit != null && autoCommit.booleanValue() != dc.getAutoCommit())
+		 * dc.setAutoCommit(autoCommit.booleanValue()); } catch (Throwable t) {
+		 * ExceptionUtil.rethrowIfNecessary(t); return false; }
+		 */
 
 		return true;
 	}
@@ -303,7 +317,6 @@ public class DatasourceConnectionPool {
 		String id = createId(datasource, user, pass);
 		synchronized (id) {
 			DCStack stack = dcs.get(id);
-
 			if (stack == null) {
 				dcs.put(id, stack = new DCStack(datasource, user, pass));
 			}

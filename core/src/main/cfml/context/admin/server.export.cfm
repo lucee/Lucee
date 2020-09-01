@@ -91,7 +91,12 @@ Defaults --->
 	type="#request.adminType#"
 	password="#session["password"&request.adminType]#"
 	returnVariable="mailservers">
-	
+<!--- regex --->
+<cfadmin 
+	action="getRegex"
+	type="#request.adminType#"
+	password="#session["password"&request.adminType]#"
+	returnVariable="regex">
 
 <!--- cache --->
 <cfadmin 
@@ -125,8 +130,6 @@ hasCache=hasObj || hasTem || hasQry || hasRes || hasFun || hasInc;
 	returnVariable="datasources">
 
 </cfsilent>
-
-
 <cfoutput>
 
 	<cfsavecontent variable="codeSample">
@@ -182,7 +185,9 @@ component {
 	this.charset.resource="#charset.resourceCharset#";
 	
 	this.scopeCascading = "#scope.scopeCascadingType#";
-
+	this.searchResults = #trueFalseFormat(scope.allowImplicidQueryCall)#;
+// regex
+	this.regex.type = "#regex.type#";
 //////////////////////////////////////////////
 //               MAIL SERVERS               //
 //////////////////////////////////////////////
@@ -278,6 +283,6 @@ this.mappings["#mappings.virtual#"]=<cfif len(mappings.strPhysical) && !len(mapp
 </cfformClassic>
 
 
-<cfset renderCodingTip( codeSample,false, false )>
+<cfset renderCodingTip( codeSample,false, true )>
 
 </cfoutput>

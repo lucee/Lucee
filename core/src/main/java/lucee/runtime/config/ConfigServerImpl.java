@@ -31,9 +31,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletContext;
-
 import lucee.commons.collection.LinkedHashMapMaxSize;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.digest.Hash;
@@ -63,6 +60,7 @@ import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.RHExtension;
+import lucee.runtime.functions.system.IsZipFile;
 import lucee.runtime.gateway.GatewayEntry;
 import lucee.runtime.monitor.ActionMonitor;
 import lucee.runtime.monitor.ActionMonitorCollector;
@@ -70,9 +68,6 @@ import lucee.runtime.monitor.IntervallMonitor;
 import lucee.runtime.monitor.RequestMonitor;
 import lucee.runtime.net.amf.AMFEngine;
 import lucee.runtime.net.http.ReqRspUtil;
-import lucee.runtime.net.rpc.DummyWSHandler;
-import lucee.runtime.net.rpc.WSHandler;
-import lucee.runtime.net.rpc.ref.WSHandlerReflector;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
@@ -129,8 +124,6 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 	final TagLib luceeCoreTLDs;
 	final FunctionLib cfmlCoreFLDs;
 	final FunctionLib luceeCoreFLDs;
-
-	private ServletConfig srvConfig;
 
 	/**
 	 * @param engine
@@ -212,15 +205,6 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 		while (it.hasNext()) {
 			ConfigWebImpl cw = ((CFMLFactoryImpl) initContextes.get(it.next())).getConfigWebImpl();
 			if (ReqRspUtil.getRootPath(cw.getServletContext()).equals(realpath)) return cw;
-		}
-		return null;
-	}
-
-	public ServletContext getServletContext() {
-		Iterator<String> it = initContextes.keySet().iterator();
-		while (it.hasNext()) {
-			ConfigWebImpl cw = ((CFMLFactoryImpl) initContextes.get(it.next())).getConfigWebImpl();
-			return cw.getServletContext();
 		}
 		return null;
 	}
@@ -847,9 +831,9 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 	}
 
 	@Override
-	public List<ExtensionDefintion> loadLocalExtensions() {
+	public List<ExtensionDefintion> loadLocalExtensions(boolean validate) {
 		Resource[] locReses = getLocalExtensionProviderDirectory().listResources(new ExtensionResourceFilter(".lex"));
-		if (localExtensions == null || localExtSize != locReses.length || extHash(locReses) != localExtHash) {
+		if (validate || localExtensions == null || localExtSize != locReses.length || extHash(locReses) != localExtHash) {
 			localExtensions = new ArrayList<ExtensionDefintion>();
 			Map<String, String> map = new HashMap<String, String>();
 			RHExtension ext;
@@ -859,7 +843,7 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 				ed = null;
 				// we stay happy with the file name when it has the right pattern (uuid-version.lex)
 				fileName = locReses[i].getName();
-				if (fileName.length() > 39) {
+				if (!validate && fileName.length() > 39) {
 					uuid = fileName.substring(0, 35);
 					version = fileName.substring(36, fileName.length() - 4);
 					if (Decision.isUUId(uuid)) {
@@ -875,7 +859,14 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 
 					}
 					catch (Exception e) {
+						ed = null;
 						LogUtil.log(ThreadLocalPageContext.getConfig(this), ConfigServerImpl.class.getName(), e);
+						try {
+							if (!IsZipFile.invoke(locReses[i])) locReses[i].remove(true);
+						}
+						catch (Exception ee) {
+							LogUtil.log(ThreadLocalPageContext.getConfig(this), ConfigServerImpl.class.getName(), ee);
+						}
 					}
 				}
 
@@ -915,24 +906,16 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 		return gatewayEntries;
 	}
 
-	private WSHandler wsHandler;
-
-	@Override // that method normally should not be used, maybe in rthe future
-	public WSHandler getWSHandler() throws PageException {
-		if (wsHandler == null) {
-			ClassDefinition cd = getWSHandlerClassDefinition();
-			try {
-				if (isEmpty(cd)) return new DummyWSHandler();
-				Object obj = cd.getClazz().newInstance();
-				if (obj instanceof WSHandler) wsHandler = (WSHandler) obj;
-				else wsHandler = new WSHandlerReflector(obj);
-			}
-			catch (Exception e) {
-				throw Caster.toPageException(e);
-			}
-		}
-		return wsHandler;
-	}
+	/*
+	 * private WSHandler wsHandler;
+	 * 
+	 * @Override // that method normally should not be used, maybe in rthe future public WSHandler
+	 * getWSHandler() throws PageException { if (wsHandler == null) { ClassDefinition cd =
+	 * getWSHandlerClassDefinition(); try { if (isEmpty(cd)) return new DummyWSHandler(); Object obj =
+	 * cd.getClazz().newInstance(); if (obj instanceof WSHandler) wsHandler = (WSHandler) obj; else
+	 * wsHandler = new WSHandlerReflector(obj); } catch (Exception e) { throw Caster.toPageException(e);
+	 * } } return wsHandler; }
+	 */
 
 	@Override
 	public void checkPassword() throws PageException {

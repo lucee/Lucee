@@ -62,7 +62,7 @@
 				<div class="x-small" style="text-align: center;">
 					Lucee Doc reference version #server.lucee.version#
 					<br>
-					&copy; #year( now() )# <a href="http://www.lucee.org/">Lucee Association Switzerland</a>. All Rights Reserved.
+					&copy; #year( now() )# <a href="https://www.lucee.org/">Lucee Association Switzerland</a>. All Rights Reserved.
 				</div>
 			</footer>
 		</div>	<!--- #wrapper !--->

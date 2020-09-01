@@ -482,7 +482,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 				it(title="checking updateExtension()", body=function( currentSpec ) {
 					var tmpStrt = {};
-					tmpStrt.provider = "http://extension.lucee.org";
+					tmpStrt.provider = "https://extension.lucee.org";
 					tmpStrt.id = '2BCD080F-4E1E-48F5-BEFE794232A21AF6';
 					tmpStrt.version = '1.3.1';
 					adminWeb.updateExtension(argumentCollection = #tmpStrt#);

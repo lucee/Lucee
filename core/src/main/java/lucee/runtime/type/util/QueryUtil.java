@@ -33,6 +33,7 @@ import java.sql.Time;
 import java.sql.Types;
 import java.util.Date;
 
+import lucee.commons.io.SystemUtil.TemplateLine;
 import lucee.commons.lang.FormatUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.sql.SQLUtil;
@@ -54,6 +55,7 @@ import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.functions.arrays.ArrayFind;
+import lucee.runtime.functions.system.ContractPath;
 import lucee.runtime.op.Caster;
 import lucee.runtime.query.caster.Cast;
 import lucee.runtime.query.caster.OtherCast;
@@ -66,6 +68,7 @@ import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryColumn;
 import lucee.runtime.type.QueryColumnImpl;
 import lucee.runtime.type.QueryImpl;
+import lucee.runtime.type.query.QueryResult;
 import lucee.runtime.type.query.SimpleQuery;
 
 public class QueryUtil {
@@ -229,10 +232,16 @@ public class QueryUtil {
 
 		StringBuilder comment = new StringBuilder();
 
-		// table.appendRow(1, new SimpleDumpData("SQL"), new SimpleDumpData(sql.toString()));
-		String template = query.getTemplate();
-		if (!StringUtil.isEmpty(template)) comment.append("Template: ").append(template).append("\n");
-		// table.appendRow(1, new SimpleDumpData("Template"), new SimpleDumpData(template));
+		// template
+		String tmpl = null;
+		if (query instanceof QueryResult) {
+			TemplateLine tl = ((QueryResult) query).getTemplateLine();
+			if (tl != null) tmpl = tl.toString(pageContext, true);
+		}
+		else {
+			tmpl = query.getTemplate();
+		}
+		if (!StringUtil.isEmpty(tmpl)) comment.append("Template: ").append(ContractPath.call(pageContext, tmpl)).append("\n");
 
 		int top = dp.getMaxlevel(); // in Query dump maxlevel is used as Top
 
@@ -296,7 +305,7 @@ public class QueryUtil {
 			throw new DatabaseException("invalid index [" + index + "], index must be between 0 and " + (query.getRecordcount() - 1), null, null, null);
 		if (index + count > query.getRecordcount())
 			throw new DatabaseException("invalid count [" + count + "], count+index [" + (count + index) + "] must less or equal to " + (query.getRecordcount()), null, null, null);
-
+		// MUST better and faster impl
 		for (int row = count; row >= 1; row--) {
 			query.removeRow(index + row);
 		}

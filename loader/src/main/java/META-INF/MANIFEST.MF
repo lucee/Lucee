@@ -5,7 +5,7 @@ Can-Redefine-Classes: true
 Can-Retransform-Classes: true
 Main-Class: lucee.runtime.script.Main
 Bundle-Description: This jar contains the Lucee loader and the apache felix code.
-Bundle-DocURL: http://docs.lucee.org
+Bundle-DocURL: https://docs.lucee.org
 Bundle-License: http://www.apache.org/licenses/LICENSE-2.0.txt,http://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html
 Bundle-Vendor: The Apache Software Foundation and Lucee Association Switzerland
 Comment: anytime you add/remove something here, update the build-core.xml

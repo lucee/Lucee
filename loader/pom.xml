@@ -3,7 +3,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>5.3.5.3-SNAPSHOT</version>
+  <version>5.3.8.58-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -504,19 +504,19 @@
   <dependency>
   	<groupId>org.lucee</groupId>
   	<artifactId>httpcomponents-httpclient</artifactId>
-  	<version>4.5.6</version>
+  	<version>4.5.10</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
   	<groupId>org.lucee</groupId>
   	<artifactId>httpcomponents-httpcore</artifactId>
-  	<version>4.4.10</version>
+  	<version>4.4.12</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
   	<groupId>org.lucee</groupId>
   	<artifactId>httpcomponents-httpmime</artifactId>
-  	<version>4.5.6</version>
+  	<version>4.5.10</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
@@ -633,6 +633,12 @@
     <version>1.1.0</version>
     <scope>provided</scope>
   </dependency>
+  <dependency>
+        <groupId>javax.websocket</groupId>
+        <artifactId>javax.websocket-api</artifactId>
+        <version>1.1</version>
+        <scope>provided</scope>
+    </dependency>
   <!-- <dependency>
     <groupId>xdb</groupId>
     <artifactId>xdb</artifactId>
@@ -651,6 +657,11 @@
     <version>5.1.2.0002L</version>
     <scope>provided</scope>
   </dependency>
+  <dependency>
+      <groupId>org.lucee</groupId>
+      <artifactId>argon2</artifactId>
+      <version>2.7.0</version>
+	</dependency>
 </dependencies>
 
 

@@ -236,7 +236,7 @@ list all mappings and display necessary edit fields --->
 						</th>
 						<td>
 							<cfinputClassic onKeyDown="checkTheBox(this)" type="text" 
-							name="url" value="" required="yes" class="xlarge">
+							name="url_1" value="" required="yes" class="xlarge">
 							<div class="comment">#stText.ext.prov.hostDesc#</div>
 						</td>
 					</tr>

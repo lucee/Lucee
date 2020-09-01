@@ -91,7 +91,7 @@ isInstalled=installed.count() GT 0;
 <cfelse>
 	<cfset app=installed>
 </cfif>
-<cfset lasProvider=findNoCase("lucee.org",app.provider?:'') GT 0>
+<cfset lasProvider=(app.provider?:"")=="local" || findNoCase("lucee.org",app.provider?:'') GT 0>
 <cfoutput>
 	<!--- title and description --->
 	<div class="modheader">
@@ -186,7 +186,7 @@ isInstalled=installed.count() GT 0;
 							<cfif !isNull(provider.title) && len(trim(provider.title))>
 								<tr>
 									<th scope="row">#stText.ext.provider#</th>
-									<td><cfif !isNull(provider.url)><a href="#provider.url#" target="_blank"></cfif>#provider.title#<cfif !isNull(provider.url)></a></cfif></td>
+									<td><cfif !isNull(provider.url)><a href="#provider.url#" target="_blank" rel="noopener"></cfif>#provider.title#<cfif !isNull(provider.url)></a></cfif></td>
 								</tr>
 							</cfif>
 							<!--- bundles --->
@@ -201,6 +201,15 @@ isInstalled=installed.count() GT 0;
 									</td>
 								</tr>
 							</cfif>
+							<!--- extension urls --->
+							<cfloop list="projectUrl,sourceUrl,documentionUrl" item="u">							
+								<cfif !isNull(app[u]) && len(trim(app[u]))>
+									<tr>
+										<th scope="row">#stText.ext[u]#</th>
+										<td><a href="#app[u]#" target="_blank" rel="noopener">#app.u#</a></td>
+									</tr>
+								</cfif>
+							</cfloop>
 							
 						</tbody>
 					</table>

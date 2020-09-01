@@ -23,15 +23,14 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.lang.ref.SoftReference;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
-
-import org.apache.commons.collections4.map.ReferenceMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
@@ -47,6 +46,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.db.DatasourceConnection;
+import lucee.runtime.db.DatasourceConnectionPro;
 import lucee.runtime.db.DatasourceManagerImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
@@ -79,8 +79,8 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 	// private DataSourceManager manager;
 	// private Core core;
 	private Map cores = new WeakHashMap();
-	private Map<String, Attr> attrCache = Collections.synchronizedMap(new ReferenceMap<String, Attr>());
-	private Map<String, Attr> attrsCache = Collections.synchronizedMap(new ReferenceMap<String, Attr>());
+	private Map<String, SoftReference<Attr>> attrCache = new ConcurrentHashMap<String, SoftReference<Attr>>();
+	private Map<String, SoftReference<Attr>> attrsCache = new ConcurrentHashMap<String, SoftReference<Attr>>();
 	private Map arguments;
 
 	/**
@@ -219,14 +219,14 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 			DatasourceConnection dc = getManager().getConnection(ThreadLocalPageContext.get(), data.getDatasourceName(), data.getUsername(), data.getPassword());
 			try {
 
-				dc.getConnection().setAutoCommit(false);
-				dc.getConnection().setTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED);
+				dc.setAutoCommit(false);
+				dc.setTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED);
 
 				if ("com.microsoft.jdbc.sqlserver.SQLServerDriver".equals(dc.getDatasource().getClassDefinition().getClassName())) core = new MSSQL(dc, data.getPrefix());
 				else if ("com.microsoft.sqlserver.jdbc.SQLServerDriver".equals(dc.getDatasource().getClassDefinition().getClassName())) core = new MSSQL(dc, data.getPrefix());
 				else if ("net.sourceforge.jtds.jdbc.Driver".equals(dc.getDatasource().getClassDefinition().getClassName())) core = new MSSQL(dc, data.getPrefix());
 				else if ("org.gjt.mm.mysql.Driver".equals(dc.getDatasource().getClassDefinition().getClassName())) core = new MySQL(dc, data.getPrefix());
-				else throw new ApplicationException("there is no DatasourceResource driver for this database [" + data.getPrefix() + "]");
+				else throw new ApplicationException("There is no DatasourceResource driver for this database [" + data.getPrefix() + "]");
 
 				cores.put(data.datasourceName, core);
 			}
@@ -323,7 +323,7 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 	}
 
 	public void create(ConnectionData data, int fullPathHash, int pathHash, String path, String name, int type) throws IOException {
-		if (StringUtil.isEmpty(data.getDatasourceName())) throw new IOException("missing datasource definition");
+		if (StringUtil.isEmpty(data.getDatasourceName())) throw new IOException("Missing datasource definition");
 
 		removeFromCache(data, path, name);
 
@@ -346,7 +346,7 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 	public void delete(ConnectionData data, int fullPathHash, String path, String name) throws IOException {
 
 		Attr attr = getAttr(data, fullPathHash, path, name);
-		if (attr == null) throw new IOException("can't delete resource " + path + name + ", resource does not exist");
+		if (attr == null) throw new IOException("Can't delete resource [" + path + name + "], resource does not exist");
 
 		DatasourceConnection dc = null;
 		try {
@@ -368,7 +368,7 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 
 	public InputStream getInputStream(ConnectionData data, int fullPathHash, String path, String name) throws IOException {
 		Attr attr = getAttr(data, fullPathHash, path, name);
-		if (attr == null) throw new IOException("file [" + path + name + "] does not exist");
+		if (attr == null) throw new IOException("File [" + path + name + "] does not exist");
 		DatasourceConnection dc = null;
 		try {
 			dc = getDatasourceConnection(data);
@@ -475,13 +475,14 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 
 	private Attr removeFromCache(ConnectionData data, String path, String name) {
 		attrsCache.remove(data.key() + path);
-		return attrCache.remove(data.key() + path + name);
+		SoftReference<Attr> rtn = attrCache.remove(data.key() + path + name);
+		return rtn == null ? null : rtn.get();
 	}
 
 	private Attr getFromCache(ConnectionData data, String path, String name) {
 		String key = data.key() + path + name;
-		Attr attr = attrCache.get(key);
-
+		SoftReference<Attr> tmp = attrCache.get(key);
+		Attr attr = tmp == null ? null : tmp.get();
 		if (attr != null && attr.timestamp() + MAXAGE < System.currentTimeMillis()) {
 			attrCache.remove(key);
 			return null;
@@ -490,7 +491,7 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 	}
 
 	private Attr putToCache(ConnectionData data, String path, String name, Attr attr) {
-		attrCache.put(data.key() + path + name, attr);
+		attrCache.put(data.key() + path + name, new SoftReference<Attr>(attr));
 		return attr;
 	}
 
@@ -586,7 +587,7 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 			try {
 				dc.getConnection().commit();
 				dc.getConnection().setAutoCommit(true);
-				dc.getConnection().setTransactionIsolation(Connection.TRANSACTION_NONE);
+				dc.getConnection().setTransactionIsolation(((DatasourceConnectionPro) dc).getDefaultTransactionIsolation());
 			}
 			catch (SQLException e) {}
 

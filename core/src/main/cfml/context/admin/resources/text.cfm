@@ -1,7 +1,7 @@
 <!--- TODO: cleanup! !--->
 <!--- language files are deployed to {lucee-web}/context/admin/resources/language by ConfigWebFactory.java and are read from there !--->
 
-<cfset sHelpURL = "http://www.lucee.org/help/stHelp.json">
+<cfset sHelpURL = "https://www.lucee.org/help/stHelp.json">
 <cfparam name="request.stLocalHelp" default="#structNew()#">
 <cfparam name="request.stWebMediaHelp" default="#structNew()#">
 <cfparam name="request.stWebHelp" default="#structNew()#">
@@ -133,10 +133,10 @@ You can use this code in order to write the structs into an XML file correspondi
     </cfif>
 	
 	<cfset var el        = "">
-	<cfset var stRet = base>
+	<cfset var stRet = arguments.base>
 	<cfloop array="#arguments.stXML#" index="el">
 		<cftry>
-			<cfset setStructElement(stRet, el.XMLAttributes.key, el.XMLText)>
+			<cfset variables.setStructElement(stRet, el.XMLAttributes.key, el.XMLText)>
             <cfif doCreate>
 				<!--- <cfset application.notTranslated[el.XMLAttributes.key]=el.XMLText>--->
             <cfelse>

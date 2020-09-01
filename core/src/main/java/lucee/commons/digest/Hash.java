@@ -55,7 +55,7 @@ public class Hash {
 			return DigestUtils.md5Hex(is);
 		}
 		finally {
-			IOUtil.closeEL(is);
+			IOUtil.close(is);
 		}
 	}
 

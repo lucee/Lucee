@@ -412,7 +412,7 @@ public final class DBInfo extends TagImpl {
 			}
 		}
 		finally {
-			if (closeResult) IOUtil.closeEL(result);
+			if (closeResult) IOUtil.close(result);
 		}
 		return map;
 	}
@@ -428,7 +428,7 @@ public final class DBInfo extends TagImpl {
 			return set;
 		}
 		finally {
-			if (closeResult) IOUtil.closeEL(result);
+			if (closeResult) IOUtil.close(result);
 		}
 
 	}

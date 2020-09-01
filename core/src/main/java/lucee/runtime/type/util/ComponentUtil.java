@@ -56,7 +56,7 @@ import lucee.runtime.component.AbstractFinal.UDFB;
 import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.component.Property;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
@@ -276,7 +276,7 @@ public final class ComponentUtil {
 	 */
 	private static Class registerTypeMapping(Class clazz) throws PageException {
 		PageContext pc = ThreadLocalPageContext.get();
-		WSServer server = ((ConfigImpl) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getWSServer(pc);
+		WSServer server = ((ConfigWebImpl) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getWSServer(pc);
 		return registerTypeMapping(server, clazz);
 	}
 
@@ -584,7 +584,7 @@ public final class ComponentUtil {
 
 	private static Type toType(String cfType, boolean axistype) throws PageException {
 		Class clazz = Caster.cfTypeToClass(cfType);
-		if (axistype) clazz = ((ConfigImpl) ThreadLocalPageContext.getConfig()).getWSHandler().toWSTypeClass(clazz);
+		if (axistype) clazz = ((ConfigWebImpl) ThreadLocalPageContext.getConfig()).getWSHandler().toWSTypeClass(clazz);
 		return Type.getType(clazz);
 
 	}
@@ -637,7 +637,7 @@ public final class ComponentUtil {
 		else if (access.equals("private")) return Component.ACCESS_PRIVATE;
 		else if (access.equals("public")) return Component.ACCESS_PUBLIC;
 		else if (access.equals("remote")) return Component.ACCESS_REMOTE;
-		throw new ApplicationException("invalid access type [" + access + "], access types are remote, public, package, private");
+		throw new ApplicationException("Invalid function access type [" + access + "], access types are [remote, public, package, private]");
 
 	}
 
@@ -660,8 +660,8 @@ public final class ComponentUtil {
 	public static String toStringAccess(int access) throws ApplicationException {
 		String res = toStringAccess(access, null);
 		if (res != null) return res;
-		throw new ApplicationException(
-				"invalid access type [" + access + "], access types are Component.ACCESS_PACKAGE, Component.ACCESS_PRIVATE, Component.ACCESS_PUBLIC, Component.ACCESS_REMOTE");
+		throw new ApplicationException("Invalid function access type [" + access
+				+ "], access types are [Component.ACCESS_PACKAGE, Component.ACCESS_PRIVATE, Component.ACCESS_PUBLIC, Component.ACCESS_REMOTE]");
 	}
 
 	public static String toStringAccess(int access, String defaultValue) {

@@ -38,6 +38,20 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			echo("dec DECIMAL");		
 			echo(") ");
 		}
+
+		try{
+			query {
+				echo("drop TABLE TX"&suffix);
+			}
+		}
+		catch(local.e){}
+		
+		
+		query  {
+			echo("CREATE TABLE TX"&suffix&" (");
+			echo("str varchar(10)");		
+			echo(") ");
+		}
 	}
 
 	private string function defineDatasource(){
@@ -63,6 +77,49 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertEquals(columnList1,columnList2);
 		queryAddColumn(qry,"susi2");
 
+	}
+
+	public void function testQueryParamCharset() {
+		// when NO charset is defined, it checks char length
+		query name="local.qry" {
+			echo("insert into TX"&suffix&" (str) values(");
+			queryparam maxlength=10 value="ĀĀĀĀĀĀĀĀĀĀ";
+			echo(")");
+		}
+
+		// when charset is defined, it checks for byte length
+		var fail=false;
+		try{
+			query name="local.qry" {
+				echo("insert into TX"&suffix&" (str) values(");
+				queryparam maxlength=10 charset="UTF-8" value="ĀĀĀĀĀĀĀĀĀĀ";
+				echo(")");
+			}
+		}
+		catch(e) {
+			fail=true;
+		}
+		if(!fail) throw "it must fail when doing byte length compare!"
+		
+	}
+
+
+	public void function testParamsCharset() {
+		// when NO charset is defined, it checks char length
+		query name="local.qry" params=[{value:"ĀĀĀĀĀĀĀĀĀĀ",maxlength:10}] {
+			echo("insert into TX"&suffix&" (str) values(?)");
+		}
+		
+		var fail=false;
+		try{
+			query name="local.qry" params=[{value:"ĀĀĀĀĀĀĀĀĀĀ",charset:"UTF-8",maxlength:10}] {
+				echo("insert into TX"&suffix&" (str) values(?)");
+			}
+		}
+		catch(e) {
+			fail=true;
+		}
+		if(!fail) throw "it must fail when doing byte length compare!"
 	}
 
 	public void function testCachedAfter() {

@@ -109,8 +109,8 @@
             </cftry>
             <cfif isNumeric(trim(form.query))><cfset session.debugFilter.query=form.query><cfelse><cfset session.debugFilter.query=""></cfif>
             <cfif isNumeric(trim(form.app))><cfset session.debugFilter.app=form.app><cfelse><cfset session.debugFilter.app=""></cfif>
-			<cfif isNumeric(trim(form.total))><cfset session.debugFilter.total=form.total><cfelse><cfset session.debugFilter.total=""></cfif>
-			<cfif isNumeric(trim(form.scope))><cfset session.debugFilter.scope=form.scope><cfelse><cfset session.debugFilter.scope=""></cfif>
+            <cfif isNumeric(trim(form.total))><cfset session.debugFilter.total=form.total><cfelse><cfset session.debugFilter.total=""></cfif>
+            <cfif isNumeric(trim(form.scope))><cfset session.debugFilter.scope=form.scope><cfelse><cfset session.debugFilter.scope=""></cfif>
 		</cfcase>
         
         #stText.Debug.filter#

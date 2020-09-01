@@ -497,14 +497,14 @@ public final class Feed extends TagImpl {
 			if (value instanceof Struct && attrNames != null) {
 				Struct sct = (Struct) value;
 				Object attrValue;
-				ArrayList al = new ArrayList();
+				ArrayList<Pair> al = new ArrayList<Pair>();
 				for (int i = 0; i < attrNames.length; i++) {
 					attrValue = sct.get(attrNames[i][0], null);
 					if (attrValue != null) {
 						al.add(new Pair<String, Object>(attrNames[i][1], attrValue));
 					}
 				}
-				attrs = (Pair[]) al.toArray(new Pair[al.size()]);
+				attrs = al.toArray(new Pair[al.size()]);
 			}
 			else attrs = null;
 			tag(xml, count, new Pair<String, Object>(trgName, FeedQuery.getValue(value)), attrs, false, false, childrenAsTag);
@@ -711,7 +711,7 @@ public final class Feed extends TagImpl {
 
 		}
 		finally {
-			IOUtil.closeEL(r);
+			IOUtil.close(r);
 		}
 	}
 }

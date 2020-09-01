@@ -90,7 +90,8 @@ notifications:
 
 after_success:
 # - version=$(mvn org.apache.maven.plugins:maven-help-plugin:2.1.1:evaluate -Dexpression=project.version | egrep -v '^\[|Downloading:' | tr -d ' \n')
-- curl "http://stable.lucee.org/rest/update/provider/buildLatest"
+- curl "https://update.lucee.org/rest/update/provider/buildLatest"
+- curl "https://extension.lucee.org/rest/extension/provider/reset"
 - curl "https://download.lucee.org/?type=snapshots&reset=force"
 
 - chmod +x travis-docker-build.sh && ./travis-docker-build.sh

@@ -74,6 +74,8 @@ import lucee.runtime.net.s3.Properties;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.orm.ORMConfiguration;
+import lucee.runtime.regex.Regex;
+import lucee.runtime.regex.RegexFactory;
 import lucee.runtime.rest.RestSettingImpl;
 import lucee.runtime.rest.RestSettings;
 import lucee.runtime.tag.Query;
@@ -94,8 +96,8 @@ import lucee.runtime.type.util.KeyConstants;
 import lucee.transformer.library.ClassDefinitionImpl;
 
 /**
- * This class resolves the Application settings that are defined in Application.cfc via the this reference,
- * e.g. this.sessionManagement, this.localMode, etc.
+ * This class resolves the Application settings that are defined in Application.cfc via the this
+ * reference, e.g. this.sessionManagement, this.localMode, etc.
  */
 public class ModernApplicationContext extends ApplicationContextSupport {
 
@@ -153,11 +155,14 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private static final Key PSQ_LONG = KeyImpl.intern("preservesinglequote");
 	private static final Key VAR_USAGE = KeyImpl.intern("varusage");
 	private static final Key VARIABLE_USAGE = KeyImpl.intern("variableusage");
-
 	private static final Key CACHED_AFTER = KeyImpl.intern("cachedAfter");
-	private static final Collection.Key BLOCKED_EXT_FOR_FILE_UPLOAD = KeyImpl.intern("blockedExtForFileUpload");
-
-	private static final Collection.Key XML_FEATURES = KeyImpl.intern("xmlFeatures");
+	private static final Key BLOCKED_EXT_FOR_FILE_UPLOAD = KeyImpl.intern("blockedExtForFileUpload");
+	private static final Key XML_FEATURES = KeyImpl.intern("xmlFeatures");
+	private static final Key SEARCH_QUERIES = KeyImpl.intern("searchQueries");
+	private static final Key SEARCH_RESULTS = KeyImpl.intern("searchResults");
+	private static final Key REGEX = KeyImpl.intern("regex");
+	private static final Key ENGINE = KeyImpl.intern("engine");
+	private static final Key DIALECT = KeyImpl.intern("dialect");
 
 	private static Map<String, CacheConnection> initCacheConnections = new ConcurrentHashMap<String, CacheConnection>();
 
@@ -280,6 +285,8 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean initProxyData;
 	private boolean initBlockedExtForFileUpload;
 	private boolean initXmlFeatures;
+	private boolean initRegex;
+
 	private Struct xmlFeatures;
 
 	private Resource antiSamyPolicyResource;
@@ -297,6 +304,10 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 
 	private List<Resource> funcDirs;
 	private boolean initFuncDirs = false;
+
+	private boolean allowImplicidQueryCall;
+
+	private Regex regex;
 
 	public ModernApplicationContext(PageContext pc, Component cfc, RefBoolean throwsErrorWhileInit) {
 		super(pc.getConfig());
@@ -333,11 +344,13 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		this.clientCluster = config.getClientCluster();
 		this.sessionStorage = ci.getSessionStorage();
 		this.clientStorage = ci.getClientStorage();
+		this.allowImplicidQueryCall = config.allowImplicidQueryCall();
 
 		this.triggerComponentDataMember = config.getTriggerComponentDataMember();
 		this.restSetting = config.getRestSetting();
 		this.javaSettings = new JavaSettingsImpl();
 		this.component = cfc;
+		this.regex = ci.getRegex();
 
 		initAntiSamyPolicyResource(pc);
 		if (antiSamyPolicyResource == null) this.antiSamyPolicyResource = ((ConfigImpl) config).getAntiSamyPolicy();
@@ -345,6 +358,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		initScopeCascading();
 		initSameFieldAsArray(pc);
 		initWebCharset(pc);
+		initAllowImplicidQueryCall();
 
 		pc.addPageSource(component.getPageSource(), true);
 		try {
@@ -371,6 +385,13 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 			if (b != null) scopeCascading = ConfigWebUtil.toScopeCascading(b);
 		}
 
+	}
+
+	private void initAllowImplicidQueryCall() {
+		Object o = get(component, SEARCH_QUERIES, null);
+		if (o == null) o = get(component, SEARCH_RESULTS, null);
+
+		if (o != null) allowImplicidQueryCall = Caster.toBooleanValue(o, allowImplicidQueryCall);
 	}
 
 	@Override
@@ -940,13 +961,9 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 			if (Modifier.isStatic(m.getModifiers())) m.invoke(null, new Object[] { config, new String[] { cc.getName() }, new Struct[] { cc.getCustom() } });
 			else LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_ERROR, ModernApplicationContext.class.getName(),
 					"method [init(Config,String[],Struct[]):void] for class [" + cd.toString() + "] is not static");
-
-			initCacheConnections.put(id, cc);
 		}
-		catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
-		}
-
+		catch (Exception e) {}
+		initCacheConnections.put(id, cc);
 		return cc;
 
 	}
@@ -1843,8 +1860,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	public Struct getXmlFeatures() {
 		if (!initXmlFeatures) {
 			Struct sct = Caster.toStruct(get(component, XML_FEATURES, null), null);
-			if (sct != null)
-				xmlFeatures = sct;
+			if (sct != null) xmlFeatures = sct;
 			initXmlFeatures = true;
 		}
 		return xmlFeatures;
@@ -1853,5 +1869,42 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	@Override
 	public void setXmlFeatures(Struct xmlFeatures) {
 		this.xmlFeatures = xmlFeatures;
+	}
+
+	@Override
+	public boolean getAllowImplicidQueryCall() {
+		return allowImplicidQueryCall;
+	}
+
+	@Override
+	public void setAllowImplicidQueryCall(boolean allowImplicidQueryCall) {
+		this.allowImplicidQueryCall = allowImplicidQueryCall;
+	}
+
+	@Override
+	public Regex getRegex() {
+		if (!initRegex) {
+
+			Struct sct = Caster.toStruct(get(component, REGEX, null), null);
+			if (sct != null) {
+				String str = Caster.toString(sct.get(ENGINE, null), null);
+				if (StringUtil.isEmpty(str, true)) str = Caster.toString(sct.get(KeyConstants._type, null), null);
+				if (StringUtil.isEmpty(str, true)) str = Caster.toString(sct.get(DIALECT, null), null);
+				if (!StringUtil.isEmpty(str, true)) {
+					int type = RegexFactory.toType(str, -1);
+					if (type != -1) {
+						Regex tmp = RegexFactory.toRegex(type, null);
+						if (tmp != null) regex = tmp;
+					}
+				}
+			}
+			initRegex = true;
+		}
+		return regex;
+	}
+
+	@Override
+	public void setRegex(Regex regex) {
+		this.regex = regex;
 	}
 }

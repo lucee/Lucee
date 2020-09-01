@@ -243,7 +243,7 @@ public abstract class UDFGSProperty extends MemberSupport implements UDFPlus {
 		else if (validate.equals("regex")) {
 			String pattern = Caster.toString(validateParams.get(KeyConstants._pattern, null), null);
 			String value = Caster.toString(obj);
-			if (!StringUtil.isEmpty(pattern, true) && !IsValid.regex(value, pattern))
+			if (!StringUtil.isEmpty(pattern, true) && !IsValid.regex(ThreadLocalPageContext.get(), value, pattern))
 				throw new ExpressionException("the string [" + value + "] does not match the regular expression pattern [" + pattern + "]");
 		}
 	}

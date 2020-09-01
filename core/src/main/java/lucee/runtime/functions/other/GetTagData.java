@@ -204,7 +204,7 @@ public final class GetTagData implements Function {
 			Struct scp = new StructImpl();
 			sct.set(KeyConstants._script, scp);
 			scp.set("rtexpr", Caster.toBoolean(script.getRtexpr()));
-			scp.set(KeyConstants._type, script.getTypeAsString());
+			scp.set(KeyConstants._type, TagLibTagScript.toType(script.getType(), "none"));
 			if (script.getType() == TagLibTagScript.TYPE_SINGLE) {
 				TagLibTagAttr attr = script.getSingleAttr();
 				if (attr != null) scp.set("singletype", attr.getScriptSupportAsString());

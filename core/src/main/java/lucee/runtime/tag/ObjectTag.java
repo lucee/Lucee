@@ -117,8 +117,8 @@ public final class ObjectTag extends TagImpl {
 			pageContext.setVariable(name, CreateObject.doWebService(pageContext, webservice, username, password, proxy));
 		}
 		else {
-			if (type == null) throw new ApplicationException("to less attributes defined for tag object");
-			throw new ApplicationException("wrong value for attribute type", "types are com,java,corba and the only supported type (at the moment) are com,component,java");
+			if (type == null) throw new ApplicationException("Too few attributes defined for tag [object]");
+			throw new ApplicationException("Wrong value for attribute [type]", "types are [com,java,webservice,corba] and the only supported type (at the moment) are [webservice,com,component,java]");
 		}
 
 		return SKIP_BODY;
@@ -126,7 +126,7 @@ public final class ObjectTag extends TagImpl {
 
 	private static void checkAccess(PageContext pc, String type) throws SecurityException {
 		if (pc.getConfig().getSecurityManager().getAccess(SecurityManager.TYPE_TAG_OBJECT) == SecurityManager.VALUE_NO)
-			throw new SecurityException("can't access tag [object] with type [" + type + "]", "access is prohibited by security manager");
+			throw new SecurityException("Cannot access tag [object] with type [" + type + "]", "access is prohibited by security manager");
 
 	}
 
@@ -136,7 +136,7 @@ public final class ObjectTag extends TagImpl {
 	 * @throws ApplicationException
 	 */
 	private void checkClass() throws ApplicationException {
-		if (clazz == null) throw new ApplicationException("attribute class must be defined");
+		if (clazz == null) throw new ApplicationException("Attribute [class] is required");
 	}
 
 	/**
@@ -145,7 +145,7 @@ public final class ObjectTag extends TagImpl {
 	 * @throws ApplicationException
 	 */
 	private void checkWebservice() throws ApplicationException {
-		if (webservice == null) throw new ApplicationException("attribute webservice must be defined");
+		if (webservice == null) throw new ApplicationException("Attribute [webservice] is required");
 	}
 
 	@Override

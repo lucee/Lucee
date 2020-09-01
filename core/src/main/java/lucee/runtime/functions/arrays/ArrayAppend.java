@@ -48,7 +48,7 @@ public final class ArrayAppend extends BIF {
 	 * @throws PageException
 	 */
 	public static boolean call(PageContext pc, Array array, Object object, boolean merge) throws PageException {
-		if (merge && Decision.isCastableToArray(object)) {
+		if (merge && Decision.isArray(object)) {
 			Object[] appends = Caster.toNativeArray(object);
 
 			for (int i = 0; i < appends.length; i++) {

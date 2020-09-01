@@ -41,7 +41,7 @@ import lucee.runtime.type.StructImpl;
 /**
  * 
  */
-public final class Perl5Util {
+final class Perl5Util {
 
 	private static Map<String, Pattern> patterns = MapFactory.<String, Pattern>getConcurrentMap();
 
@@ -55,13 +55,13 @@ public final class Perl5Util {
 	 * @return position of the first occurence
 	 * @throws MalformedPatternException
 	 */
-	public static Object indexOf(String strPattern, String strInput, int offset, boolean caseSensitive, boolean matchAll) throws MalformedPatternException {
+	public static Object indexOf(String strPattern, String strInput, int offset, boolean caseSensitive, boolean matchAll, boolean multiLine) throws MalformedPatternException {
 		// Perl5Compiler compiler = new Perl5Compiler();
 		PatternMatcherInput input = new PatternMatcherInput(strInput);
 		Perl5Matcher matcher = new Perl5Matcher();
 
 		int compileOptions = caseSensitive ? 0 : Perl5Compiler.CASE_INSENSITIVE_MASK;
-		compileOptions += Perl5Compiler.SINGLELINE_MASK;
+		compileOptions += multiLine ? Perl5Compiler.MULTILINE_MASK : Perl5Compiler.SINGLELINE_MASK;
 		if (offset < 1) offset = 1;
 
 		Pattern pattern = getPattern(strPattern, compileOptions);
@@ -87,6 +87,31 @@ public final class Perl5Util {
 		return 0;
 	}
 
+	public static Object match(String strPattern, String strInput, int offset, boolean caseSensitive, boolean matchAll, boolean multiLine) throws MalformedPatternException {
+
+		Perl5Matcher matcher = new Perl5Matcher();
+		PatternMatcherInput input = new PatternMatcherInput(strInput);
+
+		int compileOptions = caseSensitive ? 0 : Perl5Compiler.CASE_INSENSITIVE_MASK;
+		compileOptions += multiLine ? Perl5Compiler.MULTILINE_MASK : Perl5Compiler.SINGLELINE_MASK;
+		if (offset < 1) offset = 1;
+
+		Pattern pattern = getPattern(strPattern, compileOptions);
+		if (offset <= strInput.length()) input.setCurrentOffset(offset - 1);
+
+		Array rtn = new ArrayImpl();
+		if (offset <= strInput.length()) {
+			MatchResult result;
+			while (matcher.contains(input, pattern)) {
+				result = matcher.getMatch();
+				if (!matchAll) return result.toString();
+				rtn.appendEL(result.toString());
+			}
+		}
+		if (!matchAll) return "";
+		return rtn;
+	}
+
 	/**
 	 * find occurence of a pattern in a string (same like indexOf), but dont return first ocurence , it
 	 * return struct with all information
@@ -98,13 +123,13 @@ public final class Perl5Util {
 	 * @return
 	 * @throws MalformedPatternException
 	 */
-	public static Object find(String strPattern, String strInput, int offset, boolean caseSensitive, boolean matchAll) throws MalformedPatternException {
+	public static Object find(String strPattern, String strInput, int offset, boolean caseSensitive, boolean matchAll, boolean multiLine) throws MalformedPatternException {
 		Perl5Matcher matcher = new Perl5Matcher();
 		PatternMatcherInput input = new PatternMatcherInput(strInput);
 		Array matches = new ArrayImpl();
 
 		int compileOptions = caseSensitive ? 0 : Perl5Compiler.CASE_INSENSITIVE_MASK;
-		compileOptions += Perl5Compiler.SINGLELINE_MASK;
+		compileOptions += multiLine ? Perl5Compiler.MULTILINE_MASK : Perl5Compiler.SINGLELINE_MASK;
 		if (offset < 1) offset = 1;
 
 		Pattern pattern = getPattern(strPattern, compileOptions);
@@ -168,26 +193,6 @@ public final class Perl5Util {
 		return struct;
 	}
 
-	public static Array match(String strPattern, String strInput, int offset, boolean caseSensitive) throws MalformedPatternException {
-
-		Perl5Matcher matcher = new Perl5Matcher();
-		PatternMatcherInput input = new PatternMatcherInput(strInput);
-
-		int compileOptions = caseSensitive ? 0 : Perl5Compiler.CASE_INSENSITIVE_MASK;
-		compileOptions += Perl5Compiler.SINGLELINE_MASK;
-		if (offset < 1) offset = 1;
-
-		Pattern pattern = getPattern(strPattern, compileOptions);
-
-		Array rtn = new ArrayImpl();
-		MatchResult result;
-		while (matcher.contains(input, pattern)) {
-			result = matcher.getMatch();
-			rtn.appendEL(result.toString());
-		}
-		return rtn;
-	}
-
 	private static boolean _matches(String strPattern, String strInput) throws MalformedPatternException {
 		Pattern pattern = new Perl5Compiler().compile(strPattern, Perl5Compiler.DEFAULT_MASK);
 		PatternMatcherInput input = new PatternMatcherInput(strInput);
@@ -235,19 +240,23 @@ public final class Perl5Util {
 	 * @return transformed text
 	 * @throws MalformedPatternException
 	 */
-	public static String replace(String strInput, String strPattern, String replacement, boolean caseSensitive, boolean replaceAll) throws MalformedPatternException {
-		return _replace(strInput, strPattern, escape(replacement), caseSensitive, replaceAll);
+	public static String replace(String strInput, String strPattern, String replacement, boolean caseSensitive, boolean replaceAll, boolean multiLine)
+			throws MalformedPatternException {
+		return _replace(strInput, strPattern, escape(replacement), caseSensitive, replaceAll, multiLine);
 	}
 
-	private static String _replace(String strInput, String strPattern, String replacement, boolean caseSensitive, boolean replaceAll) throws MalformedPatternException {
-		Pattern pattern = getPattern(strPattern, caseSensitive ? 16 : 17);
+	private static String _replace(String strInput, String strPattern, String replacement, boolean caseSensitive, boolean replaceAll, boolean multiLine)
+			throws MalformedPatternException {
+		int flag = (caseSensitive ? 0 : Perl5Compiler.CASE_INSENSITIVE_MASK) & (multiLine ? Perl5Compiler.MULTILINE_MASK : Perl5Compiler.SINGLELINE_MASK);
+
+		Pattern pattern = getPattern(strPattern, flag);
 		return Util.substitute(new Perl5Matcher(), pattern, new Perl5Substitution(replacement), strInput, replaceAll ? -1 : 1);
 	}
 
 	private static String escape(String replacement) throws MalformedPatternException {
-		replacement = _replace(replacement, "\\\\", "\\\\\\\\", false, true);
+		replacement = _replace(replacement, "\\\\", "\\\\\\\\", false, true, false);
 		replacement = _escape(replacement);
-		replacement = _replace(replacement, "\\\\\\\\(\\d)", "\\$$1", false, true);
+		replacement = _replace(replacement, "\\\\\\\\(\\d)", "\\$$1", false, true, false);
 		return replacement;
 	}
 

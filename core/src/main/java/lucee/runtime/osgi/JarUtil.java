@@ -55,7 +55,7 @@ public class JarUtil {
 			return getExternalImports(is, ignores);
 		}
 		finally {
-			IOUtil.closeEL(is);
+			IOUtil.close(is);
 		}
 	}
 
@@ -80,7 +80,12 @@ public class JarUtil {
 			LogUtil.log(ThreadLocalPageContext.getConfig(), JarUtil.class.getName(), ioe);
 		}
 		finally {
-			IOUtil.closeEL(zis);
+			try {
+				IOUtil.close(zis);
+			}
+			catch (IOException ioe) {
+				LogUtil.log(ThreadLocalPageContext.getConfig(), JarUtil.class.getName(), ioe);
+			}
 		}
 
 		// remove all class from this jar

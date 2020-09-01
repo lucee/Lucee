@@ -48,7 +48,7 @@ public final class HttpParamBean {
 	/** A variable name for the data being passed. */
 	private String name;
 
-	private boolean encoded = true;
+	private short encoded = Http.ENCODED_AUTO;
 
 	private String mimeType = "";
 
@@ -130,7 +130,7 @@ public final class HttpParamBean {
 	 * 
 	 * @return value encoded
 	 */
-	public boolean getEncoded() {
+	public short getEncoded() {
 		return encoded;
 	}
 
@@ -139,7 +139,7 @@ public final class HttpParamBean {
 	 * 
 	 * @param encoded The encoded to set.
 	 */
-	public void setEncoded(boolean encoded) {
+	public void setEncoded(short encoded) {
 		this.encoded = encoded;
 	}
 

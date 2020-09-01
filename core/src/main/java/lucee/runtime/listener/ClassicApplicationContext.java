@@ -49,6 +49,7 @@ import lucee.runtime.net.s3.Properties;
 import lucee.runtime.net.s3.PropertiesImpl;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.orm.ORMConfiguration;
+import lucee.runtime.regex.Regex;
 import lucee.runtime.rest.RestSettings;
 import lucee.runtime.tag.listener.TagListener;
 import lucee.runtime.type.Collection;
@@ -149,6 +150,12 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	private String blockedExtForFileUpload;
 	private Struct xmlFeatures;
 
+	private Map<Key, Object> customAttrs;
+
+	private boolean allowImplicidQueryCall;
+
+	private Regex regex;
+
 	/**
 	 * constructor of the class
 	 * 
@@ -180,6 +187,7 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 		this.timeZone = config.getTimeZone();
 		this.fullNullSupport = config.getFullNullSupport();
 		this.scopeCascading = config.getScopeCascadingType();
+		this.allowImplicidQueryCall = config.allowImplicidQueryCall();
 
 		this.webCharset = ((ConfigImpl) config).getWebCharSet();
 		this.resourceCharset = ((ConfigImpl) config).getResourceCharSet();
@@ -198,7 +206,7 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 		this.wstype = WS_TYPE_AXIS1;
 		cgiScopeReadonly = ((ConfigImpl) config).getCGIScopeReadonly();
 		this.antiSamyPolicy = ((ConfigImpl) config).getAntiSamyPolicy();
-
+		this.regex = ((ConfigImpl) config).getRegex();
 	}
 
 	/**
@@ -250,6 +258,7 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 		dbl.timeZone = timeZone;
 		dbl.fullNullSupport = fullNullSupport;
 		dbl.scopeCascading = scopeCascading;
+		dbl.allowImplicidQueryCall = allowImplicidQueryCall;
 		dbl.webCharset = webCharset;
 		dbl.resourceCharset = resourceCharset;
 		dbl.sessionType = sessionType;
@@ -855,6 +864,16 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	}
 
 	@Override
+	public boolean getAllowImplicidQueryCall() {
+		return allowImplicidQueryCall;
+	}
+
+	@Override
+	public void setAllowImplicidQueryCall(boolean allowImplicidQueryCall) {
+		this.allowImplicidQueryCall = allowImplicidQueryCall;
+	}
+
+	@Override
 	public boolean getAllowCompression() {
 		return allowCompression;
 	}
@@ -1074,5 +1093,23 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	@Override
 	public void setXmlFeatures(Struct xmlFeatures) {
 		this.xmlFeatures = xmlFeatures;
+	}
+
+	public void setCustomAttributes(Map<Key, Object> customAttrs) {
+		this.customAttrs = customAttrs;
+	}
+
+	public Map<Key, Object> getCustomAttributes() {
+		return customAttrs;
+	}
+
+	@Override
+	public Regex getRegex() {
+		return regex;
+	}
+
+	@Override
+	public void setRegex(Regex regex) {
+		this.regex = regex;
 	}
 }

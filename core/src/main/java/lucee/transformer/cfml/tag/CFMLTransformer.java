@@ -159,6 +159,20 @@ public final class CFMLTransformer {
 		while (true) {
 			try {
 				sc = new PageSourceCode(ps, charset, writeLog);
+
+				// script files (cfs)
+				if (Constants.isCFMLScriptExtension(ListUtil.last(ps.getRealpath(), '.'))) {
+					boolean isCFML = ps.getDialect() == CFMLEngine.DIALECT_CFML;
+					TagLibTag scriptTag = CFMLTransformer.getTLT(sc, isCFML ? Constants.CFML_SCRIPT_TAG_NAME : Constants.LUCEE_SCRIPT_TAG_NAME, config.getIdentification());
+
+					sc.setPos(0);
+					SourceCode original = sc;
+
+					// try inside a cfscript
+					String text = "<" + scriptTag.getFullName() + ">" + original.getText() + "\n</" + scriptTag.getFullName() + ">";
+					sc = new PageSourceCode(ps, text, charset, writeLog);
+				}
+
 				p = transform(factory, config, sc, tlibs, flibs, ps.getResource().lastModified(), dotUpper, returnValue, ignoreScopes);
 				break;
 			}

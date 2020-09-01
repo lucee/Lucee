@@ -395,7 +395,7 @@ public final class Ftp extends TagImpl {
 		required("localfile", localfile);
 
 		AFTPClient client = getClient();
-		Resource local = ResourceUtil.toResourceExisting(pageContext, localfile);// new File(localfile);
+		Resource local = ResourceUtil.toResourceExisting(pageContext, localfile);
 		// if(failifexists && local.exists()) throw new ApplicationException("File ["+local+"] already
 		// exist, if you want to overwrite, set attribute
 		// failIfExists to false");
@@ -407,7 +407,7 @@ public final class Ftp extends TagImpl {
 			client.storeFile(remotefile, is);
 		}
 		finally {
-			IOUtil.closeEL(is);
+			IOUtil.close(is);
 		}
 		writeCfftp(client);
 
@@ -426,7 +426,7 @@ public final class Ftp extends TagImpl {
 		required("localfile", localfile);
 
 		AFTPClient client = getClient();
-		Resource local = ResourceUtil.toResourceExistingParent(pageContext, localfile);// new File(localfile);
+		Resource local = ResourceUtil.toResourceExistingParent(pageContext, localfile);
 		pageContext.getConfig().getSecurityManager().checkFileLocation(local);
 		if (failifexists && local.exists()) throw new ApplicationException("File [" + local + "] already exist, if you want to overwrite, set attribute failIfExists to false");
 		OutputStream fos = null;
@@ -437,7 +437,7 @@ public final class Ftp extends TagImpl {
 			success = client.retrieveFile(remotefile, fos);
 		}
 		finally {
-			IOUtil.closeEL(fos);
+			IOUtil.close(fos);
 			if (!success) local.delete();
 		}
 		writeCfftp(client);

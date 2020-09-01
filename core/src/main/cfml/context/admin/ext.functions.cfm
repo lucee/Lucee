@@ -7,10 +7,10 @@
 	<cffunction name="updateAvailable" output="no">
 		<cfargument name="data" required="yes" type="struct">
 		<cfargument name="extensions" required="yes" type="query">
-		<cfset var result=getdataByid(data.id,extensions)>
+		<cfset var result=variables.getdataByid(arguments.data.id,arguments.extensions)>
 
 		<cfif result.count()==0><cfreturn false></cfif>
-		<cfif data.version LT result.version>
+		<cfif arguments.data.version LT result.version>
 			<cfreturn true>
 		</cfif>
 
@@ -90,9 +90,9 @@
 	*/
 	struct function getDataById(required string id,required query extensions){
 		var rtn={};
-		loop query="#extensions#" {
-			if(extensions.id EQ arguments.id && (rtn.count()==0 || rtn.version LT extensions.version) ) {
-				 rtn=queryRowData(extensions,extensions.currentrow);
+		loop query="#arguments.extensions#" {
+			if(arguments.extensions.id EQ arguments.id && (rtn.count()==0 || rtn.version LT arguments.extensions.version) ) {
+				 rtn=queryRowData(arguments.extensions,arguments.extensions.currentrow);
 			}
 		}
 		return rtn;
@@ -162,21 +162,20 @@
 		<cfreturn "thumbnail.cfm?img=#urlEncodedFormat(imgUrl)#&width=#width#&height=#height#">
 	</cffunction>
 
-	<cffunction name="getDumpNail">
+	<cffunction name="getDumpNail" localmode=true>
 		<cfargument name="src" required="yes" type="string">
 		<cfargument name="width" required="yes" type="number" default="80">
 		<cfargument name="height" required="yes" type="number" default="40">
-
 		<cfset local.empty=("R0lGODlhMQApAIAAAGZmZgAAACH5BAEAAAAALAAAAAAxACkAAAIshI+py+0Po5y02ouz3rz7D4biSJbmiabqyrbuC8fyTNf2jef6zvf+DwwKeQUAOw==")>
 		<cftry>
-			<cfset local.id=hash(src&":"&width&"-"&height)>
+			<cfset local.id=hash(arguments.src&":"&arguments.width&"-"&arguments.height)>
 			<cfset mimetypes={png:'png',gif:'gif',jpg:'jpeg'}>
 
-			<cfif len(src) ==0>
+			<cfif len(arguments.src) ==0>
 				<cfset ext="gif">
 			<cfelse>
-			    <cfset ext=listLast(src,'.')>
-			    <cfif ext==src>
+			    <cfset ext=listLast(arguments.src,'.')>
+			    <cfif ext==arguments.src>
 					<cfset ext="png"><!--- base64 encoded binary --->
 				</cfif>
 			</cfif>
@@ -187,12 +186,12 @@
 			<cfset fileName = id&"."&ext>
 			<cfif cache && fileExists(tmpfile)>
 				<cffile action="read" file="#tmpfile#" variable="b64">
-			<cfelseif len(src) EQ 0>
+			<cfelseif len(arguments.src) EQ 0>
 				<cfset local.b64=empty>
 			<cfelse>
-				<cfif len(src)<500 && (isValid("URL", src) || fileExists(src))>
-					<cffile action="readbinary" file="#src#" variable="data">
-					<cfset src=toBase64(data)>
+				<cfif len(arguments.src)<500 && (isValid("URL", arguments.src) || fileExists(arguments.src))>
+					<cffile action="readbinary" file="#arguments.src#" variable="data">
+					<cfset arguments.src=toBase64(data)>
 				<cfelse>
 					<cfset data=toBinary(src)>
 				</cfif>
@@ -305,7 +304,7 @@
             qry.addColumn('otherVersions',[]);
 
 			loop query="#locals#" {
-				row=qry.addrow();
+				var row=qry.addrow();
 				qry.setCell("provider","local",row);
 				loop list="#locals.columnlist()#" item="local.k" {
             		qry.setCell(k,locals[k],row);
@@ -390,7 +389,7 @@
             	if(row>0) {
 					qry.setCell("provider",provider,row);
 					qry.setCell("lastModified",data.lastModified,row);
-					if(toVersionSortable(qry.version[row])<toVersionSortable(data.extensions.version)) {
+					if(variables.toVersionSortable(qry.version[row])<variables.toVersionSortable(data.extensions.version)) {
 						local.v=qry.version[row];
 						loop list="#data.extensions.columnlist()#" item="local.k" {
 							if(k=='otherVersions') continue;
@@ -408,10 +407,10 @@
 					local.externals=data.extensions.otherVersions;
 					if(isArray(locals) && locals.len() && isArray(externals) && externals.len()) {
 						loop array=locals item="local.lv" {
-							local.lvs=toVersionSortable(lv);
+							local.lvs=variables.toVersionSortable(lv);
 							local.exists=false;
 							for(var i=externals.len();i>=1;i--) {
-								if(toVersionSortable(externals[i])==lvs) exists=true;
+								if(variables.toVersionSortable(externals[i])==lvs) exists=true;
 							}
 
 							if(!exists) {
@@ -608,12 +607,12 @@
 
 
 	function toVersionSortable(required string version) localMode=true {
-		version=unwrap(version.trim());
+		version=variables.unwrap(arguments.version.trim());
 		arr=listToArray(arguments.version,'.');
 
 		// OSGi compatible version
 		if(arr.len()==4 && isNumeric(arr[1]) && isNumeric(arr[2]) && isNumeric(arr[3])) {
-			try{return toOSGiVersion(version).sortable}catch(local.e){};
+			try{return variables.toOSGiVersion(version).sortable}catch(local.e){};
 		}
 
 
@@ -677,7 +676,7 @@
 	}
 
 	function unwrap(String str) {
-		str = str.trim();
+		local.str = arguments.str.trim();
 		if((left(str,1)==chr(8220) || left(str,1)=='"') && (right(str,1)=='"' || right(str,1)==chr(8221)))
 			str=mid(str,2,len(str)-2);
 		else if(left(str,1)=="'" && right(str,1)=="'")

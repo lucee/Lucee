@@ -221,7 +221,7 @@ public class GatewayEngineImpl implements GatewayEngine {
 					if (g instanceof GatewaySupport) {
 						Thread t = ((GatewaySupport) g).getThread();
 						t.interrupt();
-						SystemUtil.patienceStop(t, 1000);
+						SystemUtil.stop(t);
 					}
 				}
 				catch (IOException e) {
