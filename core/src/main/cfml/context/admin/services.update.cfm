@@ -195,9 +195,9 @@
 			<div class="whitePanel">
 				<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 					<select name="UPDATE" id="upt_version"  class="large">
-						<option value="">--- select the version ---</option>
+						<!--- <option value="">--- select the version ---</option> --->
 						<cfloop list="#listVrs#" index="key">
-							<cfif len(versionsStr[key].upgrade) || len(versionsStr[key].downgrade)>
+							<cfif len(versionsStr[key].upgrade) gt 0|| len(versionsStr[key].downgrade) gt 0>
 								<optgroup class="td_#UcFirst(Lcase(key))#" label="#stText.services.update.short[key]#">
 									<cfloop array="#versionsStr[key].upgrade#" index="i">
 										<option class="td_#UcFirst(Lcase(key))#" value="#i#">#stText.services.update.upgradeTo# #i#</option>
@@ -207,8 +207,13 @@
 										<option class="td_#UcFirst(Lcase(key))#" value="#i#">#stText.services.update.downgradeTo# #i#</option>
 									</cfloop>
 								</optgroup>
+							<cfelseif len(versionsStr[key].upgrade) eq 0>
+								<cfset session.empUpgrade = true>
 							</cfif>
 						</cfloop>
+						<cfif isdefined("session.empUpgrade") && session.empUpgrade eq true>
+							<option value="">--- select the version ---</option>
+						</cfif>
 					</select>
 					<input type="button" class="button submit"
 						onclick="changeVersion(this, UPDATE)" 
