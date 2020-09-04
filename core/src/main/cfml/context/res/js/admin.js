@@ -306,3 +306,16 @@ function resizelayout(e)
 	$.get('?action=internal.savedata&action2=setdata&key=contentwidth&data='+contentwidth);
 	return false;
 };
+
+$( "form" ).submit(function( event ) {
+	var text = $("input:text");
+	var pattern = /^[A-Za-z0-9 \/!: #%(){}\\_@,.-]+$/;
+	 for (i=0;i<text.length;i++) {
+	 	if($(text[i]).attr("class")!="navSearch tt-input" && (text[i]).value !="" && !pattern.test((text[i]).value)) {
+	 		$(".message").remove();
+	 		$(text[i]).after(" <p class='CheckError message'>Not a valid format.Please check...</p>");
+	 		disableBlockUI=true;
+	 		return false;
+	 	}
+	}	
+});

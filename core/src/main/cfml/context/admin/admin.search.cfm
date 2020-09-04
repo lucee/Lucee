@@ -3,6 +3,7 @@
 	<cfargument name="data" type="any" required="yes" />
 	<cfargument name="prefix" type="string" required="no" default="" />
 	<cfargument name="ret" type="array" required="no" default="#[]#" />
+
 	<cfset var key = "" />
 	<cfloop collection="#data#" item="key">
 		<cfif not isSimpleValue(data[key])>
@@ -13,7 +14,9 @@
 	</cfloop>
 	<cfreturn ret />
 </cffunction>
-
+<cfif structKeyExists(url, 'q')>
+	<cfset url.q= replacelist(url.q,"<,>,"",","")>
+</cfif>
 <cfset luceeArchivePath = expandPath("{lucee-web}/context/lucee-admin.lar") />
 <cfset luceeArchiveZipPath = "zip://" & luceeArchivePath & "!" />
 <cfset dataDir = expandPath("{lucee-server}/searchdata") & server.separator.file />
