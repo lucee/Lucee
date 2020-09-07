@@ -654,19 +654,43 @@ component {
 	* @primary type of mapping ( physical/archive )
 	* @inspect type of inspection for the mapping(never/once/always/"").
 	*/
-	public void function updateMapping(required string virtual, string physical="", string archive="", string primary="", string inspect="") {
+	public void function updateMapping(required string virtual, string physical=nullValue(), 
+		string archive=nullValue(), string primary=nullValue(), string inspect=nullValue()) {
+		
+		// get default values
+		if(isNull(data.physical) || isNull(data.archive) || isNull(data.primary) || isNull(data.inspect)) {
+			var done=false;
+			try {
+				var mapping = getMapping(arguments.virtual);
+				if(isNull(arguments.physical))arguments.physical=mapping.physical;
+				if(isNull(arguments.archive))arguments.archive=mapping.archive;
+				if(isNull(arguments.primary))arguments.primary=mapping.primary;
+				if(isNull(arguments.inspect))arguments.inspect=mapping.inspect;
+				done=true;
+			}
+			catch(e) { // throws an exception when not exist yet
+			}
+		}
+			
+		if(!done) { // throws an exception when not exist yet
+			if(isNull(arguments.physical))arguments.physical="";
+			if(isNull(arguments.archive))arguments.archive="";
+			if(isNull(arguments.primary))arguments.physical="";
+			if(isNull(arguments.inspect))arguments.inspect="";
+		}
+		
 		admin
 			action="updateMapping"
-			type="#variables.type#"
-			password="#variables.password#"
+			type=variables.type
+			password=variables.password
 
-			virtual="#arguments.virtual#"
-			physical="#arguments.physical#"
-			archive=isNull(arguments.physical) || isEmpty(arguments.physical) ? existing.physical : arguments.physical
-			primary=isNull(arguments.primary) || isEmpty(arguments.primary) ? existing.primary : arguments.primary
-			inspect=isNull(arguments.inspect) || isEmpty(arguments.inspect) ? existing.inspect : arguments.inspect
-			toplevel="yes"
-			remoteClients="#variables.remoteClients#";
+			virtual=arguments.virtual
+			physical=arguments.physical
+			archive=arguments.archive
+			primary=arguments.primary
+			inspect=arguments.inspect
+			toplevel=true
+			remoteClients=variables.remoteClients;
 	}
 
 	/**
