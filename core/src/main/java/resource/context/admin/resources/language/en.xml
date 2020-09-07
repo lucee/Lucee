@@ -236,6 +236,7 @@
 	<data key="menu.server.error">Error</data>
 	<data key="menu.server.logging">Logging</data>
 	<data key="menu.server.export">Export</data>
+	<data key="menu.server.proxy">Proxy</data>
 	<data key="menu.services.label">Services</data>
 	<data key="menu.services.gateway">Event Gateway</data>
 	<data key="menu.services.cache">Cache</data>
@@ -325,6 +326,9 @@
 	<data key="ext.uninstalldone">uninstall completed</data>
 	<data key="ext.provider">Provider</data>
 	<data key="ext.documentation">Documentation</data>
+	<data key="ext.projectUrl">Homepage</data>
+	<data key="ext.sourceUrl">Source Code</data>
+	<data key="ext.documentationUrl">Documentation</data>	
 	<data key="ext.installeddesc">These applications are already installed on the system.</data>
 	<data key="ext.installedServer">Installed in Server Administrator</data>
 	<data key="ext.installedServerDesc">This Extension is already installed in the Server Administrator, you have 2 options, you can overwrite it for the current web context by installing it here as well or you can change it in the Server Administrator what will affect all Web Contexts.</data>
