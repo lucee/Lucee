@@ -516,7 +516,7 @@ public class ListAsArray extends ArraySupport implements Array, List {
 
 	@Override
 	public boolean containsAll(java.util.Collection c) {
-		return list.contains(c);
+		return list.containsAll(c);
 	}
 
 	/*---@Override
