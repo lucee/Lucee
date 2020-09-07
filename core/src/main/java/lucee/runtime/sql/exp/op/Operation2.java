@@ -115,4 +115,14 @@ public class Operation2 extends ExpressionSupport implements Operation {
 		return right;
 	}
 
+	@Override
+	public void reset() {
+		if (left != null) {
+			left.reset();
+		}
+		if (right != null) {
+			right.reset();
+		}
+	}
+
 }

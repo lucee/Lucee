@@ -56,4 +56,11 @@ public class Operation1 extends ExpressionSupport implements Operation {
 		return toString(true) + " as " + getAlias();
 	}
 
+	@Override
+	public void reset() {
+		if (exp != null) {
+			exp.reset();
+		}
+	}
+
 }

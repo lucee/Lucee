@@ -19,7 +19,9 @@
 package lucee.runtime.sql;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import lucee.commons.lang.ParserString;
 import lucee.commons.lang.types.RefBoolean;
@@ -33,6 +35,7 @@ import lucee.runtime.sql.exp.op.Operation;
 import lucee.runtime.sql.exp.op.Operation1;
 import lucee.runtime.sql.exp.op.Operation2;
 import lucee.runtime.sql.exp.op.Operation3;
+import lucee.runtime.sql.exp.op.OperationAggregate;
 import lucee.runtime.sql.exp.op.OperationN;
 import lucee.runtime.sql.exp.value.ValueBoolean;
 import lucee.runtime.sql.exp.value.ValueDate;
@@ -43,14 +46,15 @@ import lucee.runtime.sql.exp.value.ValueString;
 public class SelectParser {
 
 	/*
-	 * SELECT [{LIMIT <offset> <limit> | TOP <limit>}[1]][ALL | DISTINCT] { <selectExpression> | table.*
-	 * | * } [, ...] [INTO [CACHED | TEMP | TEXT][1] newTable] FROM tableList [WHERE Expression] [GROUP
-	 * BY Expression [, ...]] [HAVING Expression] [{ UNION [ALL | DISTINCT] | {MINUS [DISTINCT] | EXCEPT
-	 * [DISTINCT] } | INTERSECT [DISTINCT] } selectStatement] [ORDER BY orderExpression [, ...]] [LIMIT
-	 * <limit> [OFFSET <offset>]];
+	 * SELECT [{LIMIT <offset> <limit> | TOP <limit>}[1]][ALL | DISTINCT] { <selectExpression> |
+	 * table.* | * } [, ...] [INTO [CACHED | TEMP | TEXT][1] newTable] FROM tableList [WHERE
+	 * Expression] [GROUP BY Expression [, ...]] [HAVING Expression] [{ UNION [ALL | DISTINCT] |
+	 * {MINUS [DISTINCT] | EXCEPT [DISTINCT] } | INTERSECT [DISTINCT] } selectStatement] [ORDER BY
+	 * orderExpression [, ...]] [LIMIT <limit> [OFFSET <offset>]];
 	 */
 
 	private int columnIndex = 0;
+	private Set<String> allColumns = new HashSet<String>();
 
 	// select <select-statement> from <tables> where <where-statement>
 	public Selects parse(String sql) throws SQLParserException {
@@ -109,22 +113,23 @@ public class SelectParser {
 				if (raw.forwardIfCurrentAndNoWordNumberAfter("having")) havingExpressions(raw, select);
 				raw.removeSpace();
 			}
+			select.calcAdditionalColumns(allColumns);
+			allColumns = new HashSet<String>();
 			selects.addSelect(select);
 
 			runAgain = false;
 			// union
 			if (raw.forwardIfCurrentAndNoWordNumberAfter("union")) {
 				select = new Select();
+				select.setUnionDistinct(true);
 				raw.removeSpace();
+				// "union all" does not distinct whilst combing the selects
 				if (raw.forwardIfCurrentAndNoWordNumberAfter("all")) {
 					raw.removeSpace();
 					select.setUnionDistinct(false);
 				}
-				else if (raw.forwardIfCurrentAndNoWordNumberAfter("distinct")) {
-					raw.removeSpace();
-					select.setUnionDistinct(true);
-				}
-				else select.setDistinct(true);
+				// "union distinct" is the same as "union"
+				raw.forwardIfCurrentAndNoWordNumberAfter("distinct");
 				raw.removeSpace();
 				runAgain = true;
 			}
@@ -148,13 +153,14 @@ public class SelectParser {
 			raw.removeSpace();
 			// print.out(raw.getCurrent());
 			exp = expression(raw);
-			if (!(exp instanceof Column)) throw new SQLParserException("invalid order by part of query");
-			Column col = (Column) exp;
+			// if (!(exp instanceof Column)) throw new SQLParserException("invalid order by part of
+			// query" + exp.getClass().getName());
+			// Column col = (Column) exp;
 
 			raw.removeSpace();
-			if (raw.forwardIfCurrent("desc")) col.setDirectionBackward(true);
-			if (raw.forwardIfCurrent("asc")) col.setDirectionBackward(false);
-			selects.addOrderByExpression(col);
+			if (raw.forwardIfCurrent("desc")) exp.setDirectionBackward(true);
+			if (raw.forwardIfCurrent("asc")) exp.setDirectionBackward(false);
+			selects.addOrderByExpression(exp);
 			raw.removeSpace();
 		}
 		while (raw.forwardIfCurrent(','));
@@ -185,10 +191,11 @@ public class SelectParser {
 			raw.removeSpace();
 			// print.out(raw.getCurrent());
 			exp = expression(raw);
-			if (!(exp instanceof Column)) throw new SQLParserException("invalid group by part of query");
-			Column col = (Column) exp;
+			if (exp instanceof OperationAggregate) {
+				throw new SQLParserException("Cannot use an aggregate [" + exp.toString(true) + "] in GROUP BY clause");
+			}
 
-			select.addGroupByExpression(col);
+			select.addGroupByExpression(exp);
 			raw.removeSpace();
 		}
 		while (raw.forwardIfCurrent(','));
@@ -511,7 +518,8 @@ public class SelectParser {
 		return clip(raw);
 	}
 
-	// { Expression | COUNT(*) | {COUNT | MIN | MAX | SUM | AVG | SOME | EVERY | VAR_POP | VAR_SAMP |
+	// { Expression | COUNT(*) | {COUNT | MIN | MAX | SUM | AVG | SOME | EVERY | VAR_POP | VAR_SAMP
+	// |
 	// STDDEV_POP | STDDEV_SAMP} ([ALL | DISTINCT][1]] Expression) } [[AS] label]
 	private Expression clip(ParserString raw) throws SQLParserException {
 		Expression exp = column(raw);
@@ -544,6 +552,7 @@ public class SelectParser {
 		}
 
 		ColumnExpression column = new ColumnExpression(name, name.equals("?") ? columnIndex++ : 0);
+		allColumns.add(column.getColumnName());
 		raw.removeSpace();
 		while (raw.forwardIfCurrent(".")) {
 			raw.removeSpace();
@@ -553,7 +562,13 @@ public class SelectParser {
 		}
 		raw.removeSpace();
 		if (raw.forwardIfCurrent('(')) {
-			return new OperationN(column.getFullName(), readArguments(raw));
+			String thisName = column.getFullName().toLowerCase();
+			if (thisName.equals("avg") || thisName.equals("count") || thisName.equals("max") || thisName.equals("min") || thisName.equals("sum")) {
+				return new OperationAggregate(column.getFullName().toLowerCase(), readArguments(raw));
+			}
+			else {
+				return new OperationN(column.getFullName().toLowerCase(), readArguments(raw));
+			}
 		}
 		return column;
 	}
@@ -718,63 +733,5 @@ public class SelectParser {
 		return str;
 	}
 
-	public static void main(String[] args) {
-
-		// print.out(new SelectParser().parse("select a, b as c, d e from test limit 3").toString());
-
-		// String sql="select cast(susi as integer) as y,a=b as x from source";//WHERE (lft BETWEEN 1 AND 4
-		// AND ID = 111)
-		// print.out(new SelectParser().parse(sql).toString());
-
-		/*
-		 * print.out(new SelectParser().
-		 * parse("select (a and b) s,'abc'<b as c,'abc'+b as c,'abc'%b as c,'abc'*b as c,'susi''s lustige dings', 'sss' as a, 'xxx' b, 1.1,1.2 as c, 1.3 d, e, f as g, h i, a.b.c.d as j, 1^1 as k  "
-		 * + "from test, a as x, b y,a.b.c as y " +
-		 * " where not t=d and x>y or x=0 xor '1'>'2' ").toString());
-		 */
-		// print.out("*****************************");
-		/*
-		 * print.out(new SelectParser().parse("select a, b as c, d e from test").toString()); print.out(new
-		 * SelectParser().parse("select c is not null,c is null as x from test").toString()); print.out(new
-		 * SelectParser().parse("select c between 'a' and 1,c between 'a' and 1 as x,a from test").toString(
-		 * )); print.out(new SelectParser().parse("select c from test where a like b and c=1").toString());
-		 * print.out(new SelectParser().
-		 * parse("select true as x,b in(1,a,'x'), count(c),count(c) as x from test where s not in(1,2,3) and a like b and c=count(c)"
-		 * ).toString());
-		 */
-		// print.out(new SelectParser().parse("select c from test where x=y order by test,a.b desc , a.b.c
-		// asc ").toString());
-		// print.out(new SelectParser().parse("select *, *.lastname from test").toString());
-		// Selects select = new SelectParser().parse("SELECT * FROM qTest WHERE (ID = 7 AND data_ID = 1) OR
-		// (data_ID = 110422)");
-		// select = new SelectParser().parse("\nSELECT *\nFROM qAllTodos\nWHERE (\n (\n (\n toeditor_ID = ?
-		// OR\n workflowtaskseditor_ID = ? OR\n (editorgroup_ID IN (?) AND\n workflowmethod_ID = 1) OR\n
-		// (editorgroup_ID IN (?) AND\n workflowmethod_ID = 2 AND status <> 6) OR\n (editorgroup_ID IN (?,?)
-		// AND\n workflowmethod_ID = 3) OR\n (editorgroup_ID IN (?) AND\n workflowmethod_ID = 4) OR\n
-		// (editorgroup_ID IN (?) AND\n ? <> editor_ID AND\n workflowmethod_ID = 5) OR\n
-		// (acceptedbyeditor_ID = ?) OR\n (passedtoeditor_ID = ?)\n ) AND\n status IN (1,2,6) AND\n
-		// (acceptedbyeditor_ID = ? OR\n acceptedbyeditor_ID = 0) AND\n\n (site_ID = ? OR\n
-		// workflowprocessessite_ID = ? OR\n workflowprocessessite_ID = 0) AND\n\n startdate <= '2007-09-14
-		// 17:09:48' AND\n\n istimeouttask = 0\n )\n\n\n OR\n\n (\n\n confirm_needed <> 0 AND\n\n
-		// (confirm_editor_ID = ? OR\n\n (confirm_editorgroup_ID IN (?) AND\n confirm_method_ID = 1) OR\n\n
-		// (confirm_editorgroup_ID IN (?) AND\n confirm_method_ID = 2) OR\n\n (confirm_editorgroup_ID IN
-		// (?,?) AND\n confirm_method_ID = 3) OR\n\n (confirm_editorgroup_ID IN (?) AND\n confirm_method_ID
-		// = 4) OR\n\n (confirm_editorgroup_ID IN (?) AND\n donebyeditor_ID <> ? AND\n confirm_method_ID =
-		// 5)\n ) AND\n\n confirmedbyeditor_ID = 0 AND\n\n status = 3 AND\n\n (workflowprocessessite_ID = ?
-		// OR\n workflowprocessessite_ID = 0)\n )\n\n\n OR\n\n (\n\n istimeouttask <> 0 AND\n\n
-		// (timeout_editor_ID = ? OR\n\n (timeout_editorgroup_ID IN (?) AND\n timeout_method_ID = 1) OR\n\n
-		// (timeout_editorgroup_ID IN (?) AND\n timeout_method_ID = 2 AND\n status <> 6) OR\n\n
-		// (timeout_editorgroup_ID IN (?,?) AND\n timeout_method_ID = 3) OR\n\n (timeout_editorgroup_ID IN
-		// (?) AND\n timeout_method_ID = 4) OR\n\n (timeout_editorgroup_ID IN (?) AND\n ? <> deputyeditor_ID
-		// AND\n timeout_method_ID = 5) OR\n\n (acceptedbyeditor_ID = ?) OR\n\n (passedtoeditor_ID = ?)\n )
-		// AND\n\n status IN (1,2,6) AND\n\n (acceptedbyeditor_ID = ? OR\n acceptedbyeditor_ID = 0) AND\n\n
-		// (workflowprocessessite_ID = ? OR\n workflowprocessessite_ID = 0)\n\n )\n )\n");
-		// print.out(select.toString());
-		// print.out(select.getTables().length);
-		// lucee.print.out(new SelectParser().parse("select * from qryData where tableName like '%@_array'
-		// or x=1").toString());
-		// lucee.print.out(new SelectParser().parse("select * from qryData where tableName like '%@_array'
-		// escape '@' or x=1").toString());
-
-	}
+	public static void main(String[] args) {}
 }

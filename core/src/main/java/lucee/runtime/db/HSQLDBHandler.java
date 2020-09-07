@@ -32,6 +32,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 import lucee.commons.db.DBUtil;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.StringUtil;
@@ -241,6 +242,8 @@ public final class HSQLDBHandler {
 		String prettySQL = null;
 		Selects selects = null;
 
+		Exception qoqException = null;
+
 		// First Chance
 		try {
 			SelectParser parser = new SelectParser();
@@ -250,7 +253,7 @@ public final class HSQLDBHandler {
 			return q;
 		}
 		catch (SQLParserException spe) {
-			// sp
+			qoqException = spe;
 			prettySQL = SQLPrettyfier.prettyfie(sql.getSQLString());
 			try {
 				QueryImpl query = executer.execute(pc, sql, prettySQL, maxrows);
@@ -260,8 +263,19 @@ public final class HSQLDBHandler {
 			catch (PageException ex) {}
 
 		}
-		catch (PageException e) {}
-		// if(true) throw new RuntimeException();
+		catch (PageException e) {
+			qoqException = e;
+		}
+
+		// Debugging option to completely disable HyperSQL for testing
+		if (qoqException != null && Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.qoq.hsqldb.disable", "false"))) {
+			throw Caster.toPageException(qoqException);
+		}
+
+		// Debugging option to to log all QoQ that fall back on hsqldb in the datasource log
+		if (qoqException != null && Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.qoq.hsqldb.debug", "false"))) {
+			pc.getConfig().getLog("datasource").error("QoQ [" + sql.getSQLString() + "] errored and is falling back to HyperSQL.", qoqException);
+		}
 
 		// SECOND Chance with hsqldb
 		try {

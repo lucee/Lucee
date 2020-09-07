@@ -30,19 +30,45 @@ import lucee.runtime.sql.exp.value.ValueNumber;
 
 public class Selects {
 
-	private List<Column> orderbys = new ArrayList<Column>();
+	private List<Expression> orderbys = new ArrayList<Expression>();
 	private List<Select> selects = new ArrayList<Select>();
 
-	public void addOrderByExpression(Column exp) {
+	public void addOrderByExpression(Expression exp) {
 		this.orderbys.add(exp);
+	}
+
+	public void calcOrderByExpressions() {
+		if (getSelects().length == 1) {
+			// Check if this order by is already present in the select
+			for (Expression exp: getOrderbys()) {
+				// For each expression in the select column list
+				for (Expression col: getSelects()[0].getSelects()) {
+					// If this same expression is present, regardless of alias...
+					if (col.toString(true).equals(exp.toString(true)) || col.getAlias().equals(exp.getAlias())) {
+						// Then set our order by's index to point to the index
+						// of the column that has that data
+						exp.setIndex(col.getIndex());
+						break;
+					}
+				}
+				// Didn't find it? It means we're ordering on a column we're not selecting like
+				// SELECT col1 FROM table ORDER BY col2
+				if (exp.getIndex() == 0) {
+					// We need to add a phantom column into our result so
+					// we can track the value and order on it
+					exp.setAlias("__order_by_expression__" + getSelects()[0].getSelects().length);
+					getSelects()[0].addSelectExpression(exp);
+				}
+			}
+		}
 	}
 
 	/**
 	 * @return the orderbys
 	 */
-	public Column[] getOrderbys() {
-		if (orderbys == null) return new Column[0];
-		return orderbys.toArray(new Column[orderbys.size()]);
+	public Expression[] getOrderbys() {
+		if (orderbys == null) return new Expression[0];
+		return orderbys.toArray(new Expression[orderbys.size()]);
 	}
 
 	public void addSelect(Select select) {
@@ -108,7 +134,7 @@ public class Selects {
 			}
 
 			// group by
-			Column[] gbs = s.getGroupbys();
+			Expression[] gbs = s.getGroupbys();
 			if (gbs.length > 0) {
 				sb.append("group by\n\t");
 				first = true;
@@ -133,7 +159,7 @@ public class Selects {
 		// order by
 		if (__selects.orderbys != null && __selects.orderbys.size() > 0) {
 			sb.append("order by\n\t");
-			Iterator<Column> it = __selects.orderbys.iterator();
+			Iterator<Expression> it = __selects.orderbys.iterator();
 			Expression exp;
 			boolean first = true;
 			while (it.hasNext()) {

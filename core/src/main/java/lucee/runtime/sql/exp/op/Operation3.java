@@ -78,4 +78,17 @@ public class Operation3 extends ExpressionSupport implements Operation {
 	public Expression getRight() {
 		return right;
 	}
+
+	@Override
+	public void reset() {
+		if (left != null) {
+			left.reset();
+		}
+		if (right != null) {
+			right.reset();
+		}
+		if (exp != null) {
+			exp.reset();
+		}
+	}
 }

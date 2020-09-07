@@ -138,7 +138,8 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	private TemplateLine templateLine;
 
 	private Collection.Key indexName;
-	private Map<Collection.Key, Integer> indexes;// = new ConcurrentHashMap<Collection.Key,Integer>();
+	private Map<Collection.Key, Integer> indexes;// = new
+													// ConcurrentHashMap<Collection.Key,Integer>();
 
 	@Override
 	public String getTemplate() {
@@ -712,7 +713,8 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 			// Only allow column names that are valid variable name
 			// if(!Decision.isSimpleVariableName(columnNames[i]))
-			// throw new DatabaseException("invalid column name ["+columnNames[i]+"] for query", "column names
+			// throw new DatabaseException("invalid column name ["+columnNames[i]+"] for query",
+			// "column names
 			// must start with a letter and can be followed by
 			// letters numbers and underscores [_]. RegExp:[a-zA-Z][a-zA-Z0-9_]*",null,null,null);
 
@@ -731,8 +733,8 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	}
 
 	/*
-	 * public QueryImpl(Collection.Key[] columnNames, QueryColumn[] columns, String name,long exeTime,
-	 * boolean isCached,SQL sql) throws DatabaseException { this.columnNames=columnNames;
+	 * public QueryImpl(Collection.Key[] columnNames, QueryColumn[] columns, String name,long
+	 * exeTime, boolean isCached,SQL sql) throws DatabaseException { this.columnNames=columnNames;
 	 * this.columns=columns; this.exeTime=exeTime; this.isCached=isCached; this.name=name;
 	 * this.columncount=columnNames.length; this.recordcount=columns.length==0?0:columns[0].size();
 	 * this.sql=sql;
@@ -1018,9 +1020,16 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	@Override
 	public Object setAt(Collection.Key key, int row, Object value) throws PageException {
+		return setAt(key, row, value, false);
+	}
+
+	// Pass trustType=true to optimize operations such as QoQ where lots of values are being moved
+	// around between query objects but we know the types are already fine and don't need to
+	// redefine them every time
+	public Object setAt(Collection.Key key, int row, Object value, boolean trustType) throws PageException {
 		int index = getIndexFromKey(key);
 		if (index != -1) {
-			return columns[index].set(row, value);
+			return columns[index].set(row, value, trustType);
 		}
 		throw new DatabaseException("column [" + key + "] does not exist", "columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get())) + "]", sql, null);
 	}
@@ -1219,7 +1228,8 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 		if (getIndexFromKey(columnName) != -1) throw new DatabaseException("column name [" + columnName.getString() + "] already exist", null, sql, null);
 		if (content.size() != getRecordcount()) {
-			// throw new DatabaseException("array for the new column has not the same size like the query
+			// throw new DatabaseException("array for the new column has not the same size like the
+			// query
 			// (arrayLen!=query.recordcount)");
 			if (content.size() > getRecordcount()) addRow(content.size() - getRecordcount());
 			else content.setEL(getRecordcount(), "");
@@ -1245,8 +1255,8 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	}
 
 	/*
-	 * * if this query is still connected with cache (same query also in cache) it will disconnetd from
-	 * cache (clone object and add clone to cache)
+	 * * if this query is still connected with cache (same query also in cache) it will disconnetd
+	 * from cache (clone object and add clone to cache)
 	 */
 	// protected void disconnectCache() {}
 

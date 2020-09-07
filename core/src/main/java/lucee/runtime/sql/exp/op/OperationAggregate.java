@@ -16,26 +16,14 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
  **/
-package lucee.runtime.sql.exp;
+package lucee.runtime.sql.exp.op;
 
-public interface Expression {
-	public void setIndex(int index);
+import java.util.List;
 
-	public int getIndex();
+public class OperationAggregate extends OperationN {
 
-	public String getAlias();
+	public OperationAggregate(String operator, List operants) {
+		super(operator, operants);
+	}
 
-	public void setAlias(String alias);
-
-	public boolean hasAlias();
-
-	public boolean hasIndex();
-
-	public String toString(boolean noAlias);
-
-	public void setDirectionBackward(boolean b);
-
-	public void reset();
-
-	public boolean isDirectionBackward();
 }

@@ -68,4 +68,13 @@ public class OperationN extends ExpressionSupport implements Operation {
 	public String getOperator() {
 		return operator;
 	}
+
+	@Override
+	public void reset() {
+		Iterator it = operants.iterator();
+		while (it.hasNext()) {
+			Expression exp = (Expression) it.next();
+			exp.reset();
+		}
+	}
 }
