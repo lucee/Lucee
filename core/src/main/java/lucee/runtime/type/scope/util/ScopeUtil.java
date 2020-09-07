@@ -26,8 +26,10 @@ import lucee.commons.lang.RandomUtil;
 import lucee.commons.net.URLDecoder;
 import lucee.commons.net.URLItem;
 import lucee.runtime.net.http.ReqRspUtil;
+import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.Struct;
 
 public class ScopeUtil {
 
@@ -100,25 +102,23 @@ public class ScopeUtil {
 		return arr;
 	}
 
-	public static String generateCsrfToken(Map<Collection.Key, String> tokens, String key, boolean forceNew) {
-		if (key == null) key = "";
-		Collection.Key k = KeyImpl.init(key);
+	public static String generateCsrfToken(Struct tokens, String strKey, boolean forceNew) {
+		Collection.Key key = KeyImpl.init(strKey == null ? "" : strKey.trim());
 
 		String token;
 		if (!forceNew) {
-			token = tokens.get(k);
+			token = Caster.toString(tokens.get(key, null), null);
 			if (token != null) return token;
 		}
 
 		token = RandomUtil.createRandomStringLC(40);
-		tokens.put(k, token);
+		tokens.setEL(key, token);
 		return token;
 	}
 
-	public static boolean verifyCsrfToken(Map<Collection.Key, String> tokens, String token, String strKey) {
-		if (strKey == null) strKey = "";
-		Collection.Key key = KeyImpl.init(strKey);
-		String _token = tokens.get(key);
+	public static boolean verifyCsrfToken(Struct tokens, String token, String strKey) {
+		Collection.Key key = KeyImpl.init(strKey == null ? "" : strKey.trim());
+		String _token = Caster.toString(tokens.get(key, null), null);
 		return (_token != null) && _token.equalsIgnoreCase(token);
 	}
 }

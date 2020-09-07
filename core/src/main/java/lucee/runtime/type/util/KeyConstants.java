@@ -693,6 +693,7 @@ public class KeyConstants {
 	public static final Key _task = KeyImpl._const("task");
 	public static final Key _port = KeyImpl._const("port");
 	public static final Key _timecreated = KeyImpl._const("timecreated");
+	public static final Key _csrf_token = KeyImpl._const("csrf_token");
 	public static final Key _hash = KeyImpl._const("hash");
 	public static final Key _root = KeyImpl._const("root");
 	public static final Key _sourcename = KeyImpl._const("sourcename");
