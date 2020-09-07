@@ -192,9 +192,9 @@ public final class Ftp extends TagImpl {
 				else if (action.equals("exists")) client = actionExists();
 				// else if(action.equals("copy")) client=actionCopy();
 
-				else throw new ApplicationException("attribute action has an invalid value [" + action + "]",
-						"valid values are [open,close,listDir,createDir,removeDir,changeDir,getCurrentDir,"
-								+ "getCurrentURL,existsFile,existsDir,exists,getFile,putFile,rename,remove]");
+				else throw new ApplicationException("Attribute [action] has an invalid value [" + action + "]",
+						"valid values are [open, close, listDir, createDir, removeDir, changeDir, getCurrentDir, "
+								+ "getCurrentURL, existsFile, existsDir, exists, getFile, putFile, rename, remove]");
 
 			}
 			catch (IOException ioe) {
@@ -428,7 +428,7 @@ public final class Ftp extends TagImpl {
 		AFTPClient client = getClient();
 		Resource local = ResourceUtil.toResourceExistingParent(pageContext, localfile);
 		pageContext.getConfig().getSecurityManager().checkFileLocation(local);
-		if (failifexists && local.exists()) throw new ApplicationException("File [" + local + "] already exist, if you want to overwrite, set attribute failIfExists to false");
+		if (failifexists && local.exists()) throw new ApplicationException("FTP File [" + local + "] already exists, if you want to overwrite, set attribute [failIfExists] to false");
 		OutputStream fos = null;
 		client.setFileType(getType(local));
 		boolean success = false;
@@ -645,7 +645,7 @@ public final class Ftp extends TagImpl {
 	 */
 	private void required(String attributeName, String atttributValue) throws ApplicationException {
 		if (atttributValue == null)
-			throw new ApplicationException("invalid combination of attributes for the tag ftp", "attribute [" + attributeName + "] is required, if action is [" + action + "]");
+			throw new ApplicationException("Invalid combination of attributes for the tag [ftp]", "attribute [" + attributeName + "] is required, if action is [" + action + "]");
 	}
 
 	/**
