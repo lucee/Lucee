@@ -307,6 +307,7 @@ public class KeyConstants {
 	public static final Key _cfclient_ = KeyImpl._const("cfclient_");
 	public static final Key _cfdocument = KeyImpl._const("cfdocument");
 	public static final Key _cfglobals = KeyImpl._const("cfglobals");
+	public static final Key _csrf_token = KeyImpl._const("csrf_token");
 	public static final Key _cfhttp = KeyImpl._const("cfhttp");
 	public static final Key _cfid = KeyImpl._const("cfid");
 	public static final Key _cflock = KeyImpl._const("cflock");

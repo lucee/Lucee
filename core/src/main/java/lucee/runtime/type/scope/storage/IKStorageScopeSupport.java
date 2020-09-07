@@ -32,6 +32,7 @@ import lucee.commons.lang.RandomUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
+import lucee.runtime.db.DataSource;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -53,6 +54,7 @@ import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.StructSupport;
 import lucee.runtime.type.util.StructUtil;
+import lucee.runtime.type.wrap.MapAsStruct;
 
 public abstract class IKStorageScopeSupport extends StructSupport implements StorageScope {
 
@@ -66,6 +68,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	public static Collection.Key HITCOUNT=KeyConstants._hitcount;
 	public static Collection.Key TIMECREATED=KeyConstants._timecreated;
 	public static Collection.Key SESSION_ID=KeyConstants._sessionid;
+	public static Collection.Key CSRF_TOKEN=KeyConstants._csrf_token;
 	
 	protected static final IKStorageScopeItem ONE = new IKStorageScopeItem("1");
 
@@ -105,7 +108,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	protected int type;
 	private long timeSpan=-1;
 	private String storage;
-	private final Map<String, String> tokens=new ConcurrentHashMap<String, String>();
+	private Map<String, String> tokens=new ConcurrentHashMap<String, String>();
 	private long lastModified;
 	
 	private IKHandler handler;
@@ -125,6 +128,13 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		if(_lastvisit==null) _lastvisit=timecreated;
 		lastvisit=_lastvisit==null?0:_lastvisit.getTime();
 		
+		if(pc.getApplicationContext().getSessionCluster() && isSessionStorageDatasource(pc)) {
+			IKStorageScopeItem csrfTokens = this.data.g(CSRF_TOKEN, null);
+			if(csrfTokens instanceof Map) {
+				this.tokens = (Map<String, String>) csrfTokens.getValue();
+			}
+		}
+			
 		this.hitcount=(type==SCOPE_CLIENT)?Caster.toIntValue(data.g(HITCOUNT,ONE),1):1;
 		this.strType=strType;
 		this.type=type;
@@ -172,7 +182,6 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		
 		if(sv!=null) {
 			long time = sv.lastModified();
-			
 			if(existing instanceof IKStorageScopeSupport) {
 				IKStorageScopeSupport tmp = ((IKStorageScopeSupport)existing);
 				if(tmp.lastModified()>=time && name.equalsIgnoreCase(tmp.getStorage())) {
@@ -241,7 +250,22 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		else {
 			data.put(SESSION_ID, new IKStorageScopeItem(pc.getApplicationContext().getName()+"_"+pc.getCFID()+"_"+pc.getCFToken()));
 		}
+		
+		if(pc.getApplicationContext().getSessionCluster() && isSessionStorageDatasource(pc)) {
+			data.put(KeyConstants._csrf_token, new IKStorageScopeItem(MapAsStruct.toStruct(tokens, false)));
+		}
+		
 		data.put(TIMECREATED, new IKStorageScopeItem(timecreated));
+	}
+	
+	private Boolean isSessionStorageDatasource(PageContext pc) {
+		String storage = pc.getApplicationContext().getSessionstorage();
+		DataSource ds = pc.getDataSource(storage, null);
+		if(ds != null && ds.isStorage())
+			return true;
+		else 
+			return false;
+		
 	}
 
 	public void resetEnv(PageContext pc){
