@@ -37,6 +37,7 @@ import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.op.Caster;
+import lucee.runtime.op.Decision;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Struct;
@@ -95,7 +96,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	protected int type;
 	private long timeSpan = -1;
 	private String storage;
-	private final Struct tokens = new StructImpl();
+	private Struct tokens = new StructImpl();
 	private long lastModified;
 
 	private IKHandler handler;
@@ -118,8 +119,8 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		if (ac != null && ac.getSessionCluster() && isSessionStorageDatasource(pc)) {
 			IKStorageScopeItem csrfTokens = data.getOrDefault(KeyConstants._csrf_token, null);
 			Object val = csrfTokens == null ? null : csrfTokens.getValue();
-			if (csrfTokens instanceof Struct) {
-				this.tokens = (Struct) csrfTokens.getValue();
+			if (Decision.isStruct(val)) {
+				this.tokens = Caster.toStruct(val, null);
 			}
 		}
 

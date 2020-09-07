@@ -102,9 +102,9 @@ public class ScopeUtil {
 		return arr;
 	}
 
-	public static String generateCsrfToken(Struct tokens, String strKey, boolean forceNew) {
+	public static String generateCsrfToken(Map mapTokens, String strKey, boolean forceNew) {
+		Struct tokens = Caster.toStruct(mapTokens, null, false);
 		Collection.Key key = KeyImpl.init(strKey == null ? "" : strKey.trim());
-
 		String token;
 		if (!forceNew) {
 			token = Caster.toString(tokens.get(key, null), null);
@@ -116,7 +116,8 @@ public class ScopeUtil {
 		return token;
 	}
 
-	public static boolean verifyCsrfToken(Struct tokens, String token, String strKey) {
+	public static boolean verifyCsrfToken(Map mapTokens, String token, String strKey) {
+		Struct tokens = Caster.toStruct(mapTokens, null, false);
 		Collection.Key key = KeyImpl.init(strKey == null ? "" : strKey.trim());
 		String _token = Caster.toString(tokens.get(key, null), null);
 		return (_token != null) && _token.equalsIgnoreCase(token);
