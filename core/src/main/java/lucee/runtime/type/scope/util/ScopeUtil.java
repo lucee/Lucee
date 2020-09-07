@@ -103,23 +103,38 @@ public class ScopeUtil {
 	}
 
 	public static String generateCsrfToken(Map mapTokens, String strKey, boolean forceNew) {
-		Struct tokens = Caster.toStruct(mapTokens, null, false);
 		Collection.Key key = KeyImpl.init(strKey == null ? "" : strKey.trim());
+		if (mapTokens instanceof Struct) {
+			Struct tokens = Caster.toStruct(mapTokens, null, false);
+			String token;
+			if (!forceNew) {
+				token = Caster.toString(tokens.get(key, null), null);
+				if (token != null) return token;
+			}
+			token = RandomUtil.createRandomStringLC(40);
+			tokens.setEL(key, token);
+			return token;
+		}
 		String token;
 		if (!forceNew) {
-			token = Caster.toString(tokens.get(key, null), null);
+			token = Caster.toString(mapTokens.get(key), null);
 			if (token != null) return token;
 		}
 
 		token = RandomUtil.createRandomStringLC(40);
-		tokens.setEL(key, token);
+		mapTokens.put(key, token);
 		return token;
 	}
 
 	public static boolean verifyCsrfToken(Map mapTokens, String token, String strKey) {
-		Struct tokens = Caster.toStruct(mapTokens, null, false);
 		Collection.Key key = KeyImpl.init(strKey == null ? "" : strKey.trim());
-		String _token = Caster.toString(tokens.get(key, null), null);
+		if (mapTokens instanceof Struct) {
+			Struct tokens = (Struct) mapTokens;
+			String _token = Caster.toString(tokens.get(key, null), null);
+			return (_token != null) && _token.equalsIgnoreCase(token);
+		}
+
+		String _token = Caster.toString(mapTokens.get(key), null);
 		return (_token != null) && _token.equalsIgnoreCase(token);
 	}
 }
