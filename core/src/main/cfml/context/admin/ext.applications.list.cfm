@@ -111,7 +111,7 @@ Installed version:#_extensions.version#"><cfif hasUpdate>
 	</cfoutput>
 </cfif>
 	<cfif listinstalled eq 0 and extCount gt 30>
-		<cfoutput><b>There is no extension available with name [#session.extFilter.filter#]</b></cfoutput>
+		<cfoutput><b>#stText.ext.searchbox# [#session.extFilter.filter#]</b></cfoutput>
 	</cfif>
 
 
@@ -248,7 +248,7 @@ Installed version:#_extensions.version#"><cfif hasUpdate>
 	
 </cfif>
 	<cfif listnotinstalled eq 0 and unInstalledExt.recordcount gt 30>
-		<b>There is no extension available with name [#session.extFilter.filter2#]</b>
+		<b>#stText.ext.searchbox# [#session.extFilter.filter2#]</b>
 	</cfif>
 
 <cfif noneLasCounter>

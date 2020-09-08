@@ -367,6 +367,7 @@
 	<data key="ext.installDesc">Choose the version you would like to install.</data>
 	<data key="ext.upDownDesc">Update or downgrade your already installed version.</data>
 	<data key="ext.uninstallDesc">Uninstall this version</data>
+	<data key="ext.searchbox">There is no extension available with name</data>
 	<data key="Buttons.go">go</data>
 	<data key="Buttons.upDown">update / downgrade</data>
 
