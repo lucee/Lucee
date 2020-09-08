@@ -170,14 +170,14 @@ public abstract class StorageScopeCookie extends StorageScopeImpl {
 					}
 				}
 
-				ScopeContext.info(log, "load data from cookie for " + strType + " scope for " + pc.getApplicationContext().getName() + "/" + pc.getCFID());
+				ScopeContext.debug(log, "load data from cookie for " + strType + " scope for " + pc.getApplicationContext().getName() + "/" + pc.getCFID());
 				return sct;
 			}
 			catch (Exception e) {
 
 			}
 		}
-		ScopeContext.info(log, "create new " + strType + " scope for " + pc.getApplicationContext().getName() + "/" + pc.getCFID());
+		ScopeContext.debug(log, "create new " + strType + " scope for " + pc.getApplicationContext().getName() + "/" + pc.getCFID());
 
 		return new StructImpl();
 	}

@@ -493,10 +493,16 @@ public final class Controler extends Thread {
 		Resource res = null;
 		int count = ArrayUtil.size(filter == null ? dir.list() : dir.list(filter));
 		long size = ResourceUtil.getRealSize(dir, filter);
-		LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_INFO, Controler.class.getName(),
-				"check size of directory [" + dir + "]; current size	[" + size + "];max size 	[" + maxSize + "]");
+		LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_DEBUG, Controler.class.getName(),
+				"Checking size of directory [" + dir + "]. Current size [" + size + "]. Max size [" + maxSize + "].");
 
 		int len = -1;
+
+		if (count > 100000 || size > maxSize) {
+			LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_WARN, Controler.class.getName(),
+					"Removing files from directory [" + dir + "]. Current size [" + size + "]. Max size [" + maxSize + "]. Number of files [" + count + "]");
+		}
+
 		while (count > 100000 || size > maxSize) {
 			Resource[] files = filter == null ? dir.listResources() : dir.listResources(filter);
 			if (len == files.length) break;// protect from inifinti loop

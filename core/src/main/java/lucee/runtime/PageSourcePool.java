@@ -164,7 +164,7 @@ public final class PageSourcePool implements Dumpable {
 	 */
 	public void clearUnused(ConfigImpl config) {
 		if (size() > maxSize) {
-			LogUtil.log(config, Log.LEVEL_INFO, PageSourcePool.class.getName(), "PagePool: " + size() + ">(" + maxSize + ")");
+			LogUtil.log(config, Log.LEVEL_INFO, PageSourcePool.class.getName(), "PagePool size [" + size() + "] has exceeded max size [" + maxSize + "]. Clearing unused...");
 			String[] keys = keys();
 			LongKeyList list = new LongKeyList();
 			for (int i = 0; i < keys.length; i++) {
@@ -181,6 +181,7 @@ public final class PageSourcePool implements Dumpable {
 				if (key == null) break;
 				remove(key.toString());
 			}
+			LogUtil.log(config, Log.LEVEL_INFO, PageSourcePool.class.getName(), "New pagePool size [" + size() + "].");
 		}
 	}
 

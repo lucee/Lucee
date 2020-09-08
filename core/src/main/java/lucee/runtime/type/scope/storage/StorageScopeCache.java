@@ -127,12 +127,12 @@ public abstract class StorageScopeCache extends StorageScopeImpl {
 		Object val = cache.getValue(key, null);
 
 		if (val instanceof StorageValue) {
-			ScopeContext.info(log,
+			ScopeContext.debug(log,
 					"load existing data from  cache [" + cacheName + "] to create " + strType + " scope for " + pc.getApplicationContext().getName() + "/" + pc.getCFID());
 			return (StorageValue) val;
 		}
 		else {
-			ScopeContext.info(log, "create new " + strType + " scope for " + pc.getApplicationContext().getName() + "/" + pc.getCFID() + " in cache [" + cacheName + "]");
+			ScopeContext.debug(log, "create new " + strType + " scope for " + pc.getApplicationContext().getName() + "/" + pc.getCFID() + " in cache [" + cacheName + "]");
 		}
 		return null;
 	}
