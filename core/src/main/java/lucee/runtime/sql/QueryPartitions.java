@@ -20,6 +20,7 @@ package lucee.runtime.sql;
 
 import java.io.IOException;
 import java.sql.Types;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -34,6 +35,7 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.sql.exp.ColumnExpression;
 import lucee.runtime.sql.exp.Expression;
 import lucee.runtime.sql.exp.Literal;
+import lucee.runtime.sql.exp.op.OperationAggregate;
 import lucee.runtime.sql.exp.value.Value;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
@@ -79,7 +81,13 @@ public class QueryPartitions {
 		// This happens when using distinct with no group by
 		// Just assume we're grouping on the entire select list
 		if (this.groupbys.length == 0) {
-			this.groupbys = columns;
+			ArrayList<Expression> temp = new ArrayList<Expression>();
+			for (Expression col: columns) {
+				if (!(col instanceof OperationAggregate)) {
+					temp.add(col);
+				}
+			}
+			this.groupbys = temp.toArray(new Expression[0]);
 		}
 		this.target = target;
 
@@ -123,7 +131,7 @@ public class QueryPartitions {
 			Collection.Key[] sourceColKeys = source.getColumnNames();
 			Collection.Key[] targetColKeys = targetPartition.getColumnNames();
 			for (int col = 0; col < targetColKeys.length; col++) {
-				targetPartition.setAt(targetColKeys[col], targetPartition.getRecordcount(), source.getAt(sourceColKeys[col], row));
+				targetPartition.setAt(targetColKeys[col], targetPartition.getRecordcount(), source.getAt(sourceColKeys[col], row), true);
 			}
 
 		}
@@ -149,7 +157,7 @@ public class QueryPartitions {
 			// list above
 			for (Collection.Key col: additionalColumns) {
 				if (source.containsKey(col)) {
-					targetPartition.setAt(col, targetPartition.getRecordcount(), source.getAt(col, row, null));
+					targetPartition.setAt(col, targetPartition.getRecordcount(), source.getAt(col, row, null), true);
 				}
 			}
 		}

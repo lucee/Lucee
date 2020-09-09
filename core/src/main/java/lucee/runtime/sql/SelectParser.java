@@ -722,11 +722,18 @@ public class SelectParser {
 		else if (!(raw.isCurrentLetter() || raw.isCurrent('*') || raw.isCurrent('?') || raw.isCurrent('_'))) return null;
 
 		int start = raw.getPos();
+		boolean first = true;
 		do {
 			raw.next();
-			if (!(raw.isCurrentLetter() || raw.isCurrentBetween('0', '9') || raw.isCurrent('*') || raw.isCurrent('?') || raw.isCurrent('_'))) {
+			if (first && !(raw.isCurrentLetter() || raw.isCurrentBetween('0', '9') || raw.isCurrent('*') || raw.isCurrent('?') || raw.isCurrent('_'))) {
 				break;
 			}
+			// Don't look for stuff like * after first letter or text like col1*col2 will get read
+			// as one single column name
+			else if (!(raw.isCurrentLetter() || raw.isCurrentBetween('0', '9') || raw.isCurrent('_'))) {
+				break;
+			}
+			first = false;
 		}
 		while (raw.isValidIndex());
 		String str = raw.substring(start, raw.getPos() - start);

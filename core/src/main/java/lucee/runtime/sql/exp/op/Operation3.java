@@ -91,4 +91,27 @@ public class Operation3 extends ExpressionSupport implements Operation {
 			exp.reset();
 		}
 	}
+
+	@Override
+	public boolean hasAggregate() {
+		if (left instanceof OperationAggregate) {
+			return true;
+		}
+		if (left instanceof Operation && ((Operation) left).hasAggregate()) {
+			return true;
+		}
+		if (right instanceof OperationAggregate) {
+			return true;
+		}
+		if (right instanceof Operation && ((Operation) right).hasAggregate()) {
+			return true;
+		}
+		if (exp instanceof OperationAggregate) {
+			return true;
+		}
+		if (exp instanceof Operation && ((Operation) exp).hasAggregate()) {
+			return true;
+		}
+		return false;
+	}
 }

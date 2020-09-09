@@ -141,6 +141,9 @@ public class Select {
 			if (col instanceof OperationAggregate) {
 				return true;
 			}
+			if (col instanceof Operation && ((Operation) col).hasAggregate()) {
+				return true;
+			}
 		}
 		return false;
 

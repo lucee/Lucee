@@ -63,4 +63,15 @@ public class Operation1 extends ExpressionSupport implements Operation {
 		}
 	}
 
+	@Override
+	public boolean hasAggregate() {
+		if (exp instanceof OperationAggregate) {
+			return true;
+		}
+		if (exp instanceof Operation && ((Operation) exp).hasAggregate()) {
+			return true;
+		}
+		return false;
+	}
+
 }

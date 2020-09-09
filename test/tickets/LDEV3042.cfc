@@ -1,7 +1,7 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	function beforeAll() {
-			employees = queryNew( 'name,age,email,department,isContract,yearsEmployed,sickDaysLeft,hireDate,isActive', 'varchar,varchar,varchar,varchar,boolean,integer,integer,date,boolean', [
+			employees = queryNew( 'name,age,email,department,isContract,yearsEmployed,sickDaysLeft,hireDate,isActive', 'varchar,integer,varchar,varchar,boolean,integer,integer,date,boolean', [
 			[ 'John Doe',28,'John@company.com','Acounting',false,2,4,createDate(2010,1,21),true ],
 			[ 'Jane Doe',22,'Jane@company.com','Acounting',false,0,8,createDate(2011,2,21),true ],
 			[ 'Bane Doe',28,'Bane@company.com','Acounting',true,3,2,createDate(2012,3,21),true ],
@@ -40,6 +40,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 					options = { dbtype: 'query' }
 				);
 				expect( actual.recordcount ).toBe( employees.recordcount );
+			});
+			
+				
+			it( 'test' , function() {				
+				actual = QueryExecute(
+					sql = "SELECT yearsEmployed/sickDaysLeft as calc from employees",
+					options = { dbtype: 'query' }
+				);
+				expect( actual.recordcount ).toBe( 15 );
 			});
 
 			it( 'Can select with functions that are aliased' , function() {				
@@ -80,6 +89,23 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 					options = { dbtype: 'query' }
 				);
 				expect( actual.recordcount ).toBe( 15 );
+			});
+				
+			it( 'Can have extra whitespace in group by and order by clauses' , function() {
+				actual = QueryExecute(
+					sql = "SELECT department from employees group       by department ORDER       BY department",
+					options = { dbtype: 'query' }
+				);
+				expect( actual.recordcount ).toBe( 4 );
+			});
+				
+			it( 'Can filter on date column' , function() {
+				actual = QueryExecute(
+					sql = "SELECT * from employees where hireDate = '2019-10-21 00:00:00.000'",
+					options = { dbtype: 'query' }
+				);
+				expect( actual.recordcount ).toBe( 1 );
+				expect( actual.name).toBe( 'Luis Hake' );
 			});
 
 			describe( 'Distinct' , function(){
@@ -238,6 +264,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 					expect( actual.fewestSickDays ).toBe( 0 );
 				});
 				
+				it( 'Can use aggregates with no group by and where' , function() {				
+					actual = QueryExecute(
+						sql = "SELECT sum(age) sumAge FROM employees where department = 'IT'",
+						options = { dbtype: 'query' }
+					);
+					expect( actual.recordcount ).toBe( 1 );
+					expect( actual.sumAge ).toBe( 211 );
+				});
+				
 				it( 'Can use group by' , function() {				
 					actual = QueryExecute(
 						sql = "SELECT department as dept FROM employees GROUP BY department",
@@ -308,6 +343,42 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 						options = { dbtype: 'query' }
 					);
 					expect( actual.recordcount ).toBe( 3 );
+				});
+				
+				it( 'Can reference more than one column in aggregate function' , function() {				
+					actual = QueryExecute(
+						sql = "SELECT department, sum(yearsEmployed * sickDaysLeft) as calc from employees GROUP BY department order by department",
+						options = { dbtype: 'query' }
+					);
+					expect( actual.recordcount ).toBe( 4 );
+					expect( actual.calc[1] ).toBe( 38 );
+					expect( actual.calc[2] ).toBe( 35 );
+					expect( actual.calc[3] ).toBe( 296 );
+					expect( actual.calc[4] ).toBe( 203 );
+				});
+				
+				it( 'Can wrap aggregate function in scalar function' , function() {				
+					actual = QueryExecute(
+						sql = "SELECT floor(sum(yearsEmployed * sickDaysLeft)) as calc from employees group by department order by department",
+						options = { dbtype: 'query' }
+					);
+					expect( actual.recordcount ).toBe( 4 );
+					expect( actual.calc[1] ).toBe( 38 );
+					expect( actual.calc[2] ).toBe( 35 );
+					expect( actual.calc[3] ).toBe( 296 );
+					expect( actual.calc[4] ).toBe( 203 );
+				});
+				
+				it( 'Can nest scalar functions inside of aggregates inside of scalar functions and use more than aggregate in a single operation' , function() {				
+					actual = QueryExecute(
+						sql = "SELECT department, max( yearsEmployed ) as max, count(1) as count, ceiling( max( floor( yearsEmployed ) )+count(1) )  as calc from employees group by department order by department",
+						options = { dbtype: 'query' }
+					);
+					expect( actual.recordcount ).toBe( 4 );
+					expect( actual.calc[1] ).toBe( 10 );
+					expect( actual.calc[2] ).toBe( 14 );
+					expect( actual.calc[3] ).toBe( 19 );
+					expect( actual.calc[4] ).toBe( 25 );
 				});
 				
 			});

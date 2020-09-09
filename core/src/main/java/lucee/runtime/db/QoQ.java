@@ -31,6 +31,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
+import lucee.runtime.op.Decision;
 import lucee.runtime.op.Operator;
 import lucee.runtime.sql.QueryPartitions;
 import lucee.runtime.sql.Select;
@@ -244,8 +245,9 @@ public final class QoQ {
 			trgValues[cell] = expSelectsMap.get(headers[cell]);
 		}
 
-		// If have a group by, a distinct, or this is part of a "union" then we partition
-		if (select.getGroupbys().length > 0 || select.isDistinct()) {
+		// If have a group by, a distinct, or this is part of a "union", or has aggregates in the
+		// select list then we partition
+		if (select.getGroupbys().length > 0 || select.isDistinct() || (select.hasAggregateSelect() && select.getWhere() != null)) {
 			executeSinglePartitioned(pc, select, source, target, maxrows, sql, hasOrders, isUnion, trgColumns, trgValues, headers);
 		}
 		// This is a "normal" select with no partitioning
@@ -397,12 +399,12 @@ public final class QoQ {
 				for (int cell = 0; cell < headers.length; cell++) {
 					trgColumns[cell].set(target.getRecordcount(), getValue(pc, sql, source, row, headers[cell], trgValues[cell]));
 				}
+			}
 
-				// If this was a non-grouped select with only aggregates like select "count(1) from
-				// table" than bail after a single row
-				if (hasAggregateSelect) {
-					break;
-				}
+			// If this was a non-grouped select with only aggregates like select "count(1) from
+			// table" than bail after a single row
+			if (hasAggregateSelect) {
+				break;
 			}
 		}
 
@@ -559,6 +561,46 @@ public final class QoQ {
 		throw new DatabaseException("unsupported sql statement [" + exp + "]", null, sql, null);
 	}
 
+	/**
+	 * Accepts an expression which is the input to an aggregate operation.
+	 * 
+	 * @param pc
+	 * @param sql
+	 * @param source
+	 * @param exp
+	 * @param row
+	 * @return an array with as many items as rows in the source query containing the corresponding
+	 *         expression result for each matching row
+	 * @throws PageException
+	 */
+	private Object[] executeAggregateExp(PageContext pc, SQL sql, Query source, Expression exp) throws PageException {
+		Object[] result = new Object[source.getRecordcount()];
+
+		// For a literal value, just fill an array with that value
+		if (exp instanceof Value) {
+			Object value = ((Value) exp).getValue();
+			for (int i = 0; i < source.getRecordcount(); i++) {
+				result[i] = value;
+			}
+			return result;
+		}
+
+		// For a column, return the data in that column as an array
+		if (exp instanceof Column) {
+			return ((QueryColumnImpl) source.getColumn(((Column) exp).getColumn())).toArray();
+		}
+		// For an operation, we need to execute the operation once for each row and capture the
+		// results as our final array
+		if (exp instanceof Operation) {
+			for (int i = 0; i < source.getRecordcount(); i++) {
+				result[i] = executeOperation(pc, sql, source, (Operation) exp, i + 1);
+			}
+			return result;
+		}
+
+		throw new DatabaseException("unsupported sql statement [" + exp + "]", null, sql, null);
+	}
+
 	private Object executeOperation(PageContext pc, SQL sql, Query source, Operation operation, int row) throws PageException {
 
 		if (operation instanceof Operation2) {
@@ -644,21 +686,15 @@ public final class QoQ {
 		if (operators.length == 1) {
 
 			Object value = null;
-			Collection.Key key = null;
+			Object[] aggregateValues = null;
 
 			// Aggregate operations use the entire array of values for the column instead
 			// of a single value at a given row
 			if (operation instanceof OperationAggregate) {
-				if ((operators[0] instanceof ColumnExpression)) {
-					ColumnExpression ce = (ColumnExpression) operators[0];
-					key = ce.getColumn();
-				}
-				else if (!op.equals("count")) {
-					throw new DatabaseException("Aggregates can only reference columns.  Function [" + op + "] has [" + operators[0].getClass().getName() + "] forfirst operand.",
-							null, sql, null);
+				if (!op.equals("count")) {
+					aggregateValues = executeAggregateExp(pc, sql, source, operators[0]);
 				}
 			}
-
 			else {
 				value = executeExp(pc, sql, source, operators[0], row);
 			}
@@ -668,9 +704,10 @@ public final class QoQ {
 			case 'a':
 				if (op.equals("abs")) return new Double(MathUtil.abs(Caster.toDoubleValue(value)));
 				if (op.equals("acos")) return new Double(Math.acos(Caster.toDoubleValue(value)));
+				https: // ortussolutions.slack.com/archives/GUEEFNMDX
 				if (op.equals("asin")) return new Double(Math.asin(Caster.toDoubleValue(value)));
 				if (op.equals("atan")) return new Double(Math.atan(Caster.toDoubleValue(value)));
-				if (op.equals("avg")) return ArrayUtil.avg(Caster.toArray(((QueryColumnImpl) source.getColumn(key)).toArray()));
+				if (op.equals("avg")) return ArrayUtil.avg(Caster.toArray(aggregateValues));
 				break;
 			case 'c':
 				if (op.equals("ceiling")) return new Double(Math.ceil(Caster.toDoubleValue(value)));
@@ -696,9 +733,23 @@ public final class QoQ {
 			case 'm':
 				if (op.equals("max") || op.equals("min")) {
 					// Get column data as array
-					Array colData = Caster.toArray(((QueryColumnImpl) source.getColumn(key)).toArray());
+					Array colData = Caster.toArray(aggregateValues);
 					// Get column type
-					String colType = source.getColumn(key).getTypeAsString();
+					String colType = QueryImpl.getColumTypeName(Types.OTHER);
+
+					// If we're passing a column directly, get the type from it
+					if ((operators[0] instanceof ColumnExpression)) {
+						ColumnExpression ce = (ColumnExpression) operators[0];
+						colType = source.getColumn(ce.getColumn()).getTypeAsString();
+					}
+					// If we're wrapping another scalar function, guess the type based on the
+					// first value
+					else if (operators[0] instanceof Operation && aggregateValues.length > 0) {
+						if (Decision.isNumber(aggregateValues[0])) {
+							colType = "NUMERIC";
+						}
+					}
+
 					String sortDir = "desc";
 					String sortType = "text";
 					if (op.equals("min")) {
@@ -709,6 +760,7 @@ public final class QoQ {
 							|| colType.equals("TINYINT") || colType.equals("SMALLINT") || colType.equals("REAL")) {
 						sortType = "numeric";
 					}
+
 					// text-based sort
 					Comparator comp = ArrayUtil.toComparator(pc, sortType, sortDir, false);
 					// Sort the array with proper type and direction
@@ -725,7 +777,7 @@ public final class QoQ {
 				if (op.equals("sin")) return new Double(Math.sin(Caster.toDoubleValue(value)));
 				if (op.equals("soundex")) return StringUtil.soundex(Caster.toString(value));
 				if (op.equals("sin")) return new Double(Math.sqrt(Caster.toDoubleValue(value)));
-				if (op.equals("sum")) return ArrayUtil.sum(Caster.toArray(((QueryColumnImpl) source.getColumn(key)).toArray()));
+				if (op.equals("sum")) return ArrayUtil.sum(Caster.toArray(aggregateValues));
 				break;
 			case 't':
 				if (op.equals("tan")) return new Double(Math.tan(Caster.toDoubleValue(value)));
@@ -858,7 +910,7 @@ public final class QoQ {
 	 * @throws PageException
 	 */
 	private Object executeEQ(PageContext pc, SQL sql, Query source, Operation2 expression, int row) throws PageException {
-		return Operator.equals(executeExp(pc, sql, source, expression.getLeft(), row), executeExp(pc, sql, source, expression.getRight(), row), true);
+		return (executeCompare(pc, sql, source, expression, row) == 0) ? Boolean.TRUE : Boolean.FALSE;
 	}
 
 	/**
@@ -873,7 +925,7 @@ public final class QoQ {
 	 * @throws PageException
 	 */
 	private Object executeNEQ(PageContext pc, SQL sql, Query source, Operation2 expression, int row) throws PageException {
-		return (boolean) executeEQ(pc, sql, source, expression, row) == false;
+		return (executeCompare(pc, sql, source, expression, row) != 0) ? Boolean.TRUE : Boolean.FALSE;
 	}
 
 	/**
