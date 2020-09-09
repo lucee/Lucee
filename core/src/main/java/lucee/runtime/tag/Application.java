@@ -114,6 +114,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 	private Locale locale;
 	private TimeZone timeZone;
 	private Boolean nullSupport;
+	private Boolean enableNULLSupport;
 	private Boolean queryPSQ;
 	private int queryVarUsage;
 	private TimeSpan queryCachedAfter;
@@ -202,6 +203,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		locale = null;
 		timeZone = null;
 		nullSupport = null;
+		enableNULLSupport = null;
 		queryPSQ = null;
 		queryVarUsage = 0;
 		queryCachedAfter = null;
@@ -360,6 +362,10 @@ public final class Application extends TagImpl implements DynamicAttributes {
 
 	public void setNullsupport(boolean nullSupport) {
 		this.nullSupport = nullSupport;
+	}
+
+	public void setEnablenullsupport(boolean enableNULLSupport) {
+		this.enableNULLSupport = enableNULLSupport;
 	}
 
 	public void setVariableusage(String varUsage) throws ApplicationException {
@@ -834,6 +840,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		if (locale != null) ac.setLocale(locale);
 		if (timeZone != null) ac.setTimeZone(timeZone);
 		if (nullSupport != null) ((ApplicationContextSupport) ac).setFullNullSupport(nullSupport);
+		if (enableNULLSupport != null) ((ApplicationContextSupport) ac).setFullNullSupport(enableNULLSupport);
 		if (queryPSQ != null) ((ApplicationContextSupport) ac).setQueryPSQ(queryPSQ);
 		if (queryVarUsage != 0) ((ApplicationContextSupport) ac).setQueryVarUsage(queryVarUsage);
 		if (queryCachedAfter != null) ((ApplicationContextSupport) ac).setQueryCachedAfter(queryCachedAfter);
