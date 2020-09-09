@@ -105,13 +105,19 @@ public class SelectParser {
 			raw.removeSpace();
 
 			// group by
-			if (raw.forwardIfCurrentAndNoWordNumberAfter("group by")) {
-				groupByExpressions(raw, select);
+			if (raw.forwardIfCurrentAndNoWordNumberAfter("group")) {
 				raw.removeSpace();
+				if (raw.forwardIfCurrentAndNoWordNumberAfter("by")) {
+					groupByExpressions(raw, select);
+					raw.removeSpace();
 
-				// having
-				if (raw.forwardIfCurrentAndNoWordNumberAfter("having")) havingExpressions(raw, select);
-				raw.removeSpace();
+					// having
+					if (raw.forwardIfCurrentAndNoWordNumberAfter("having")) havingExpressions(raw, select);
+					raw.removeSpace();
+				}
+				else {
+					throw new SQLParserException("Incomplete group by clause (stop at:" + raw.getCurrent() + ")");
+				}
 			}
 			select.calcAdditionalColumns(allColumns);
 			allColumns = new HashSet<String>();
@@ -138,7 +144,15 @@ public class SelectParser {
 		while (runAgain);
 
 		// order by
-		if (raw.forwardIfCurrentAndNoWordNumberAfter("order by")) orderByExpressions(raw, selects);
+		if (raw.forwardIfCurrentAndNoWordNumberAfter("order")) {
+			raw.removeSpace();
+			if (raw.forwardIfCurrentAndNoWordNumberAfter("by")) {
+				orderByExpressions(raw, selects);
+			}
+			else {
+				throw new SQLParserException("Incomplete order by clause (stop at:" + raw.getCurrent() + ")");
+			}
+		}
 		raw.removeSpace();
 
 		if (raw.forwardIfCurrent(';')) raw.removeSpace();
