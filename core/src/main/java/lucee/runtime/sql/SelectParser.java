@@ -368,12 +368,12 @@ public class SelectParser {
 			// IS [NOT] NULL
 			else if (raw.isCurrent("is ")) {
 				int start = raw.getPos();
-				if (raw.forwardIfCurrentAndNoWordNumberAfter("is null")) {
+				if (raw.forwardIfCurrentAndNoWordNumberAfter("is", "null")) {
 					raw.removeSpace();
 					return new Operation1(expr, Operation.OPERATION1_IS_NULL);
 
 				}
-				else if (raw.forwardIfCurrentAndNoWordNumberAfter("is not null")) {
+				else if (raw.forwardIfCurrentAndNoWordNumberAfter("is", "not", "null")) {
 					raw.removeSpace();
 					return new Operation1(expr, Operation.OPERATION1_IS_NOT_NULL);
 
@@ -385,7 +385,7 @@ public class SelectParser {
 			}
 
 			// not in
-			else if (raw.forwardIfCurrent("not in", '(')) {
+			else if (raw.forwardIfCurrent("not", "in", '(')) {
 				expr = new OperationN("not_in", readArguments(raw, expr));
 				hasChanged = true;
 			}
@@ -395,7 +395,7 @@ public class SelectParser {
 				hasChanged = true;
 			}
 			// not like
-			if (raw.forwardIfCurrentAndNoWordNumberAfter("not like")) {
+			if (raw.forwardIfCurrentAndNoWordNumberAfter("not", "like")) {
 				expr = decisionOpCreate(raw, Operation.OPERATION2_NOT_LIKE, expr);
 				hasChanged = true;
 			}
@@ -577,11 +577,21 @@ public class SelectParser {
 		raw.removeSpace();
 		if (raw.forwardIfCurrent('(')) {
 			String thisName = column.getFullName().toLowerCase();
-			if (thisName.equals("avg") || thisName.equals("count") || thisName.equals("max") || thisName.equals("min") || thisName.equals("sum")) {
-				return new OperationAggregate(column.getFullName().toLowerCase(), readArguments(raw));
+			if (thisName.equals("avg") || thisName.equals("max") || thisName.equals("min") || thisName.equals("sum")) {
+				return new OperationAggregate(thisName, readArguments(raw));
+			}
+			else if (thisName.equals("count")) {
+				raw.removeSpace();
+				if (raw.forwardIfCurrent("all")) {
+					return new OperationAggregate(thisName, readArguments(raw, new ValueString("all")));
+				}
+				if (raw.forwardIfCurrent("distinct")) {
+					return new OperationAggregate(thisName, readArguments(raw, new ValueString("distinct")));
+				}
+				return new OperationAggregate(thisName, readArguments(raw));
 			}
 			else {
-				return new OperationN(column.getFullName().toLowerCase(), readArguments(raw));
+				return new OperationN(thisName, readArguments(raw));
 			}
 		}
 		return column;

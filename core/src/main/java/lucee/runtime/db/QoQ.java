@@ -19,10 +19,14 @@
 package lucee.runtime.db;
 
 import java.sql.Types;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.StringUtil;
@@ -569,11 +573,12 @@ public final class QoQ {
 	 * @param source
 	 * @param exp
 	 * @param row
+	 * @param includeNull
 	 * @return an array with as many items as rows in the source query containing the corresponding
 	 *         expression result for each matching row
 	 * @throws PageException
 	 */
-	private Object[] executeAggregateExp(PageContext pc, SQL sql, Query source, Expression exp) throws PageException {
+	private Object[] executeAggregateExp(PageContext pc, SQL sql, Query source, Expression exp, boolean includeNull, boolean returnDistinct) throws PageException {
 		Object[] result = new Object[source.getRecordcount()];
 
 		// For a literal value, just fill an array with that value
@@ -587,7 +592,18 @@ public final class QoQ {
 
 		// For a column, return the data in that column as an array
 		if (exp instanceof Column) {
-			return ((QueryColumnImpl) source.getColumn(((Column) exp).getColumn())).toArray();
+			result = ((QueryColumnImpl) source.getColumn(((Column) exp).getColumn())).toArray();
+			// Simple return if we want all values
+			if (!returnDistinct && includeNull) {
+				return result;
+			}
+			// if we want to filter nulls or distinct the array
+			else {
+				Stream<Object> resultStream = Arrays.stream(result);
+				if (!includeNull) resultStream = resultStream.filter(s -> (s != null));
+				if (returnDistinct) resultStream = resultStream.distinct();
+				return resultStream.toArray(Object[]::new);
+			}
 		}
 		// For an operation, we need to execute the operation once for each row and capture the
 		// results as our final array
@@ -595,9 +611,19 @@ public final class QoQ {
 			for (int i = 0; i < source.getRecordcount(); i++) {
 				result[i] = executeOperation(pc, sql, source, (Operation) exp, i + 1);
 			}
-			return result;
-		}
 
+			// Simple return if we want all values
+			if (!returnDistinct && includeNull) {
+				return result;
+			}
+			// if we want to filter nulls or distinct the array
+			else {
+				Stream<Object> resultStream = Arrays.stream(result);
+				if (!includeNull) resultStream = resultStream.filter(s -> (s != null));
+				if (returnDistinct) resultStream = resultStream.distinct();
+				return resultStream.toArray(Object[]::new);
+			}
+		}
 		throw new DatabaseException("unsupported sql statement [" + exp + "]", null, sql, null);
 	}
 
@@ -691,8 +717,9 @@ public final class QoQ {
 			// Aggregate operations use the entire array of values for the column instead
 			// of a single value at a given row
 			if (operation instanceof OperationAggregate) {
+				// count() has special handling below
 				if (!op.equals("count")) {
-					aggregateValues = executeAggregateExp(pc, sql, source, operators[0]);
+					aggregateValues = executeAggregateExp(pc, sql, source, operators[0], true, false);
 				}
 			}
 			else {
@@ -713,7 +740,8 @@ public final class QoQ {
 				if (op.equals("ceiling")) return new Double(Math.ceil(Caster.toDoubleValue(value)));
 				if (op.equals("cos")) return new Double(Math.cos(Caster.toDoubleValue(value)));
 				if (op.equals("cast")) return Caster.castTo(pc, CFTypes.toShort(operators[0].getAlias(), true, CFTypes.TYPE_UNKNOW), operators[0].getAlias(), value);
-				if (op.equals("count")) return Caster.toIntValue(source.getRecordcount());
+				if (op.equals("count")) return executeCount(pc, sql, source, operators);
+				if (op.equals("coalesce")) return executeCoalesce(pc, sql, source, operators, row);
 				break;
 			case 'e':
 				if (op.equals("exp")) return new Double(Math.exp(Caster.toDoubleValue(value)));
@@ -806,10 +834,16 @@ public final class QoQ {
 				break;
 			case 'c':
 				if (op.equals("concat")) return Caster.toString(left).concat(Caster.toString(right));
+				if (op.equals("count")) return executeCount(pc, sql, source, operators);
+				if (op.equals("coalesce")) return executeCoalesce(pc, sql, source, operators, row);
+				break;
+			case 'i':
+				if (op.equals("isnull")) return executeCoalesce(pc, sql, source, operators, row);
 				break;
 			case 'm':
 				if (op.equals("mod")) return new Double(Operator.modulus(Caster.toDoubleValue(left), Caster.toDoubleValue(right)));
 				break;
+
 			}
 
 		}
@@ -818,19 +852,52 @@ public final class QoQ {
 		if (op.equals("in")) return executeIn(pc, sql, source, opn, row, false);
 		if (op.equals("not_in")) return executeIn(pc, sql, source, opn, row, true);
 
-		if (op.equals("coalesce")) {
-			for (Expression thisOp: operators) {
-				// Support full null?
-				Object thisValue = executeExp(pc, sql, source, thisOp, row);
-				if (!Caster.toString(thisValue).equals("")) {
-					return thisValue;
-				}
-			}
-			return "";
-		}
+		if (op.equals("coalesce")) return executeCoalesce(pc, sql, source, operators, row);
+
+		if (op.equals("count")) return executeCount(pc, sql, source, operators);
 
 		throw new DatabaseException("unsupported sql statement (" + op + ") ", null, sql, null);
 
+	}
+
+	private Integer executeCount(PageContext pc, SQL sql, Query source, Expression[] inputs) throws PageException {
+		boolean isDistinct = false;
+		List<Expression> inputList = new ArrayList<Expression>(Arrays.asList(inputs));
+		Expression first = inputList.get(0);
+		if (inputList.size() > 1 && first instanceof Value && ((Value) first).getString().equals("all")) {
+			inputList.remove(0);
+		}
+		else if (inputList.size() > 1 && first instanceof Value && ((Value) first).getString().equals("distinct")) {
+			isDistinct = true;
+			inputList.remove(0);
+		}
+		if (inputList.size() > 1) {
+			throw new DatabaseException("count() aggregate doesn't support more than one expression at this time", null, sql, null);
+		}
+		Expression input = inputList.get(0);
+		// count(*), count(1), or count('asdf') just count the rows
+		if ((input instanceof Column && ((Column) input).getAlias().equals("*")) || input instanceof Value) {
+			return Caster.toIntValue(source.getRecordcount());
+		}
+		// count( columnName ) returns count of non-null values
+		else if (input instanceof Column || input instanceof Operation) {
+			return Caster.toIntValue(executeAggregateExp(pc, sql, source, input, false, isDistinct).length);
+		}
+		else {
+			// I'm not sure if this would ever get hit.
+			throw new DatabaseException("count() function can only accept [*], a literal value, a column name, or an expression.", null, sql, null);
+		}
+	}
+
+	private Object executeCoalesce(PageContext pc, SQL sql, Query source, Expression[] inputs, Integer row) throws PageException {
+		for (Expression thisOp: inputs) {
+			// Support full null?
+			Object thisValue = executeExp(pc, sql, source, thisOp, row);
+			if (!Caster.toString(thisValue).equals("")) {
+				return thisValue;
+			}
+		}
+		return "";
 	}
 
 	/*

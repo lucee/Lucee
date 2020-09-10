@@ -1,22 +1,22 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	function beforeAll() {
-			employees = queryNew( 'name,age,email,department,isContract,yearsEmployed,sickDaysLeft,hireDate,isActive', 'varchar,integer,varchar,varchar,boolean,integer,integer,date,boolean', [
-			[ 'John Doe',28,'John@company.com','Acounting',false,2,4,createDate(2010,1,21),true ],
-			[ 'Jane Doe',22,'Jane@company.com','Acounting',false,0,8,createDate(2011,2,21),true ],
-			[ 'Bane Doe',28,'Bane@company.com','Acounting',true,3,2,createDate(2012,3,21),true ],
-			[ 'Tom Smith',25,'Tom@company.com','Acounting',false,6,4,createDate(2013,4,21),false ],
-			[ 'Harry Johnson',38,'Harry@company.com','IT',false,8,6,createDate(2014,5,21),true ],
-			[ 'Jason Wood',37,'Jason@company.com','IT',false,19,4,createDate(2015,6,21),true ],
-			[ 'Doris Calhoun',67,'Doris@company.com','IT',true,3,6,createDate(2016,7,21),true ],
-			[ 'Mary Root',17,'Mary@company.com','IT',false,8,2,createDate(2017,8,21),true ],
-			[ 'Aurthur Duff',23,'Aurthur@company.com','IT',false,4,0,createDate(2018,9,21),true ],
-			[ 'Luis Hake',29,'Luis@company.com','IT',true,9,5,createDate(2019,10,21),true ],
-			[ 'Gavin Bezos',46,'Gavin@company.com','HR',false,2,5,createDate(2020,11,21),false ],
-			[ 'Nancy Garmon',57,'Nancy@company.com','HR',false,14,9,createDate(2005,12,21),true ],
-			[ 'Tom Zuckerburg',27,'Tom@company.com','HR',true,16,10,createDate(2006,1,21),true ],
-			[ 'Richard Gates',62,'Richard@company.com','Executive',false,11,1,createDate(2007,2,21),true ],
-			[ 'Amy Merryweather',58,'Amy@company.com','Executive',false,12,2,createDate(2008,3,21),true ]
+			employees = queryNew( 'name,age,email,department,isContract,yearsEmployed,sickDaysLeft,hireDate,isActive,empID,favoriteColor', 'varchar,integer,varchar,varchar,boolean,integer,integer,date,boolean,varchar,varchar', [
+				[ 'John Doe',28,'John@company.com','Acounting',false,2,4,createDate(2010,1,21),true,'sdf','red' ],
+				[ 'Jane Doe',22,'Jane@company.com','Acounting',false,0,8,createDate(2011,2,21),true,'hdfg','blue' ],
+				[ 'Bane Doe',28,'Bane@company.com','Acounting',true,3,2,createDate(2012,3,21),true,'sdsfsff','green' ],
+				[ 'Tom Smith',25,'Tom@company.com','Acounting',false,6,4,createDate(2013,4,21),false,'HDFG','yellow' ],
+				[ 'Harry Johnson',38,'Harry@company.com','IT',false,8,6,createDate(2014,5,21),true,'4ge','purple' ],
+				[ 'Jason Wood',37,'Jason@company.com','IT',false,19,4,createDate(2015,6,21),true,'ShrtDF','Red' ],
+				[ 'Doris Calhoun',67,'Doris@company.com','IT',true,3,6,createDate(2016,7,21),true,'sgsdg','Blue' ],
+				[ 'Mary Root',17,'Mary@company.com','IT',false,8,2,createDate(2017,8,21),true,'SDsefF','Green' ],
+				[ 'Aurthur Duff',23,'Aurthur@company.com','IT',false,4,0,createDate(2018,9,21),true,nullValue(),'Yellow' ],
+				[ 'Luis Hake',29,'Luis@company.com','IT',true,9,5,createDate(2019,10,21),true,nullValue(),'Purple' ],
+				[ 'Gavin Bezos',46,'Gavin@company.com','HR',false,2,5,createDate(2020,11,21),false,nullValue(),'RED' ],
+				[ 'Nancy Garmon',57,'Nancy@company.com','HR',false,14,9,createDate(2005,12,21),true,nullValue(),'BLUE' ],
+				[ 'Tom Zuckerburg',27,'Tom@company.com','HR',true,16,10,createDate(2006,1,21),true,nullValue(),'GREEN' ],
+				[ 'Richard Gates',62,'Richard@company.com','Executive',false,11,1,createDate(2007,2,21),true,nullValue(),'YELLOW' ],
+				[ 'Amy Merryweather',58,'Amy@company.com','Executive',false,12,2,createDate(2008,3,21),true,nullValue(),'PURPLE' ]
 			] );
 
 	}
@@ -32,6 +32,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				);
 				expect( actual ).toBeQuery();
 				expect( actual.recordcount ).toBe( employees.recordcount );
+			});
+
+			it( 'Can select with extra space in multi-word clause' , function() {				
+				actual = QueryExecute(
+					sql = "SELECT count(1) from employees where empID is  null or empID is  not  null and isActive not   like 'test' and isactive not    in ('test')",
+					options = { dbtype: 'query' }
+				);
+				expect( actual ).toBeQuery();
+				expect( actual.recordcount ).toBe( 1 );
 			});
 
 			it( 'Can select with functions' , function() {				
@@ -254,7 +263,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				
 				it( 'Can use aggregates with no group by' , function() {				
 					actual = QueryExecute(
-						sql = "SELECT avg(age) as avgAge, count(num) as totalEmps, max(hireDate) as mostRecentHire, min(sickDaysLeft) as fewestSickDays FROM employees",
+						sql = "SELECT avg(age) as avgAge, count(1) as totalEmps, max(hireDate) as mostRecentHire, min(sickDaysLeft) as fewestSickDays FROM employees",
 						options = { dbtype: 'query' }
 					);
 					expect( actual.recordcount ).toBe( 1 );
@@ -262,6 +271,32 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 					expect( actual.totalEmps ).toBe( 15 );
 					expect( actual.mostRecentHire ).toBe( "{ts '2020-11-21 00:00:00'}" );
 					expect( actual.fewestSickDays ).toBe( 0 );
+				});
+				
+				it( 'Can use count all and count distinct' , function() {				
+					actual = QueryExecute(
+						sql = "SELECT count(1) as cNum, 
+									count(*) as cStar, 
+									count('asdf') as cLiteral, 
+									count(name) as cColumn ,  
+									count( all department ) as cDeptAll,
+									count( distinct department) as cDept, 
+									count( distinct empID ) as cEmpID, 
+									count( distinct favoriteColor ) as cfavoriteColor,
+									count( distinct upper( favoriteColor ) ) as cUpperfavoriteColor 
+								from employees",
+						options = { dbtype: 'query' }
+					);
+					expect( actual.recordcount ).toBe( 1 );
+					expect( actual.cNum ).toBe( 15 );
+					expect( actual.cStar ).toBe( 15 );
+					expect( actual.cLiteral ).toBe( 15 );
+					expect( actual.cColumn ).toBe( 15 );
+					expect( actual.cDeptAll ).toBe( 15 );
+					expect( actual.cDept ).toBe( 4 );
+					expect( actual.cEmpID ).toBe( 8 );
+					expect( actual.cfavoriteColor ).toBe( 15 );
+					expect( actual.cUpperfavoriteColor ).toBe( 5 );
 				});
 				
 				it( 'Can use aggregates with no group by and where' , function() {				
@@ -380,7 +415,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 					expect( actual.calc[3] ).toBe( 19 );
 					expect( actual.calc[4] ).toBe( 25 );
 				});
-				
+								
 			});
 
 			
