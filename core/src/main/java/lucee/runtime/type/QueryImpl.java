@@ -1318,7 +1318,9 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	@Override
 	public synchronized void rename(Collection.Key columnName, Collection.Key newColumnName) throws ExpressionException {
 		int index = getIndexFromKey(columnName);
-		if (index == -1) throw new ExpressionException("invalid column name definitions");
+		if (index == -1) {
+			throw new ExpressionException("Cannot rename column [" + columnName.getString() + "] to [" + newColumnName.getString() + "], original column doesn't exist");
+		}
 		columnNames[index] = newColumnName;
 		columns[index].setKey(newColumnName);
 	}
