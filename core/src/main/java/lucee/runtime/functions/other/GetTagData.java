@@ -114,7 +114,7 @@ public final class GetTagData implements Function {
 		ComponentSpecificAccess cw = ComponentSpecificAccess.toComponentSpecificAccess(Component.ACCESS_PRIVATE, cfc);
 		Struct metadata = Caster.toStruct(cw.get("metadata", null), null, false);
 
-		Struct sct = new StructImpl();
+		Struct sct = new StructImpl(Struct.TYPE_LINKED);
 		sct.set("nameSpaceSeperator", tld.getNameSpaceSeparator());
 		sct.set("nameSpace", tld.getNameSpace());
 		sct.set(KeyConstants._name, name.substring(0, name.lastIndexOf('.')));
@@ -128,7 +128,7 @@ public final class GetTagData implements Function {
 		sct.set("attributeCollection", getSupportAttributeCollection(tag));
 
 		// TODO add support for script for cfml tags
-		Struct scp = new StructImpl();
+		Struct scp = new StructImpl(Struct.TYPE_LINKED);
 		sct.set(KeyConstants._script, scp);
 		scp.set("rtexpr", Boolean.FALSE);
 		scp.set(KeyConstants._type, "none");
@@ -138,7 +138,7 @@ public final class GetTagData implements Function {
 			sct.set("attributeType", metadata.get("attributeType", ""));
 			sct.set("parseBody", Caster.toBoolean(metadata.get("parseBody", Boolean.FALSE), Boolean.FALSE));
 
-			Struct _attrs = new StructImpl();
+			Struct _attrs = new StructImpl(Struct.TYPE_LINKED);
 			sct.set(KeyConstants._attributes, _attrs);
 
 			Struct srcAttrs = Caster.toStruct(metadata.get(KeyConstants._attributes, null), null, false);
@@ -151,7 +151,7 @@ public final class GetTagData implements Function {
 					e = it.next();
 					src = Caster.toStruct(e.getValue(), null, false);
 					if (Caster.toBooleanValue(src.get(KeyConstants._hidden, null), false)) continue;
-					Struct _attr = new StructImpl();
+					Struct _attr = new StructImpl(Struct.TYPE_LINKED);
 					_attr.set(KeyConstants._status, "implemented");
 					_attr.set(KeyConstants._description, src.get(KeyConstants._hint, ""));
 					_attr.set(KeyConstants._type, src.get(KeyConstants._type, "any"));
@@ -182,7 +182,7 @@ public final class GetTagData implements Function {
 	}
 
 	private static Struct javaBasedTag(TagLib tld, TagLibTag tag) throws PageException {
-		Struct sct = new StructImpl();
+		Struct sct = new StructImpl(Struct.TYPE_LINKED);
 		sct.set("nameSpaceSeperator", tld.getNameSpaceSeparator());
 		sct.set("nameSpace", tld.getNameSpace());
 		sct.set(KeyConstants._name, tag.getName());
@@ -201,7 +201,7 @@ public final class GetTagData implements Function {
 		// script
 		TagLibTagScript script = tag.getScript();
 		if (script != null) {
-			Struct scp = new StructImpl();
+			Struct scp = new StructImpl(Struct.TYPE_LINKED);
 			sct.set(KeyConstants._script, scp);
 			scp.set("rtexpr", Caster.toBoolean(script.getRtexpr()));
 			scp.set(KeyConstants._type, TagLibTagScript.toType(script.getType(), "none"));
@@ -214,7 +214,7 @@ public final class GetTagData implements Function {
 
 		sct.set(KeyConstants._type, "java");
 
-		Struct _args = new StructImpl();
+		Struct _args = new StructImpl(Struct.TYPE_LINKED);
 		sct.set(KeyConstants._attributes, _args);
 
 		// Map<String,TagLibTagAttr> atts = tag.getAttributes();
@@ -225,7 +225,7 @@ public final class GetTagData implements Function {
 			TagLibTagAttr attr = e.getValue();
 			if (attr.getHidden()) continue;
 			// for(int i=0;i<args.size();i++) {
-			Struct _arg = new StructImpl();
+			Struct _arg = new StructImpl(Struct.TYPE_LINKED);
 			_arg.set(KeyConstants._status, TagLibFactory.toStatus(attr.getStatus()));
 			_arg.set(KeyConstants._description, attr.getDescription());
 			_arg.set(KeyConstants._type, attr.getType());

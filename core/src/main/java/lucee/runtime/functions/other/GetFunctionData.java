@@ -98,7 +98,7 @@ public final class GetFunctionData implements Function {
 	}
 
 	private static Struct javaBasedFunction(FunctionLibFunction function) throws PageException {
-		Struct sct = new StructImpl();
+		Struct sct = new StructImpl(Struct.TYPE_LINKED);
 		sct.set(KeyConstants._name, function.getName());
 		sct.set(KeyConstants._status, TagLibFactory.toStatus(function.getStatus()));
 		if (function.getIntroduced() != null) sct.set(INTRODUCED, function.getIntroduced().toString());
@@ -114,7 +114,7 @@ public final class GetFunctionData implements Function {
 		sct.set(KeyConstants._type, "java");
 		String[] names = function.getMemberNames();
 		if (!ArrayUtil.isEmpty(names) && function.getMemberType() != CFTypes.TYPE_UNKNOW) {
-			StructImpl mem = new StructImpl();
+			StructImpl mem = new StructImpl(Struct.TYPE_LINKED);
 			sct.set(KeyConstants._member, mem);
 			mem.set(KeyConstants._name, names[0]);
 			mem.set(KeyConstants._chaining, Caster.toBoolean(function.getMemberChaining()));
@@ -129,7 +129,7 @@ public final class GetFunctionData implements Function {
 			ArrayList<FunctionLibFunctionArg> args = function.getArg();
 			for (int i = 0; i < args.size(); i++) {
 				FunctionLibFunctionArg arg = args.get(i);
-				Struct _arg = new StructImpl();
+				Struct _arg = new StructImpl(Struct.TYPE_LINKED);
 				_arg.set(KeyConstants._required, arg.getRequired() ? Boolean.TRUE : Boolean.FALSE);
 				_arg.set(KeyConstants._type, StringUtil.emptyIfNull(arg.getTypeAsString()));
 				_arg.set(KeyConstants._name, StringUtil.emptyIfNull(arg.getName()));
@@ -147,7 +147,7 @@ public final class GetFunctionData implements Function {
 	}
 
 	private static Struct cfmlBasedFunction(PageContext pc, FunctionLibFunction function) throws PageException {
-		Struct sct = new StructImpl();
+		Struct sct = new StructImpl(Struct.TYPE_LINKED);
 		ArrayList<FunctionLibFunctionArg> args = function.getArg();
 
 		String filename = Caster.toString(args.get(0).getDefaultValue());
@@ -172,7 +172,7 @@ public final class GetFunctionData implements Function {
 			FunctionArgument fa = fas[i];
 			Struct meta = fa.getMetaData();
 
-			Struct _arg = new StructImpl();
+			Struct _arg = new StructImpl(Struct.TYPE_LINKED);
 			if (fa.isRequired()) min++;
 			max++;
 			_arg.set(KeyConstants._required, fa.isRequired() ? Boolean.TRUE : Boolean.FALSE);
