@@ -425,12 +425,11 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "deploy web context");
 		_loadConfig(cs, config, doc);
 		int mode = config.getMode();
-		Log log = config.getLog("application");
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded config");
-		_loadConstants(cs, config, doc, log);
+		_loadConstants(cs, config, doc);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded constants");
-		_loadLoggers(cs, config, doc, isReload, log);
-		log = config.getLog("application");
+		_loadLoggers(cs, config, doc, isReload);
+		Log log = config.getLog("application");
 		// loadServerLibDesc(cs, config, doc,log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "loaded loggers");
 		_loadTempDirectory(cs, config, doc, isReload, log);
@@ -1744,7 +1743,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		return defaultValue;
 	}
 
-	private static void _loadLoggers(ConfigServerImpl configServer, ConfigImpl config, Document doc, boolean isReload, Log log) {
+	private static void _loadLoggers(ConfigServerImpl configServer, ConfigImpl config, Document doc, boolean isReload) {
 		try {
 			config.clearLoggers(Boolean.FALSE);
 			Element parent = doc != null ? getChildByName(doc.getDocumentElement(), "logging") : null;
@@ -1806,7 +1805,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			}
 		}
 		catch (Exception e) {
-			log(config, log, e);
+			log(config, null, e);
 		}
 	}
 
@@ -3853,7 +3852,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		}
 	}
 
-	private static void _loadConstants(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
+	private static void _loadConstants(ConfigServerImpl configServer, ConfigImpl config, Document doc) {
 		try {
 			boolean hasCS = configServer != null;
 			Element constant = doc != null ? getChildByName(doc.getDocumentElement(), "constants") : null;
@@ -3875,7 +3874,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			config.setConstants(sct);
 		}
 		catch (Exception e) {
-			log(config, log, e);
+			log(config, null, e);
 		}
 	}
 
