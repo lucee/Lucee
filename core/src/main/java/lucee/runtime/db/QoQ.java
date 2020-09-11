@@ -183,7 +183,7 @@ public final class QoQ {
 				target.sort(c.getColumn(), col.isDirectionBackward() ? Query.ORDER_DESC : Query.ORDER_ASC);
 			}
 			else {
-				throw new DatabaseException("ORDER BY items must appear in the select list if the statement contains a UNION operator", null, sql, null);
+				throw new DatabaseException("ORDER BY items must be a column name/alias from the first select list if the statement contains a UNION operator", null, sql, null);
 			}
 		}
 	}

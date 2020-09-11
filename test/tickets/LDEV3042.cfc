@@ -36,7 +36,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 			it( 'Can select with extra space in multi-word clause' , function() {				
 				actual = QueryExecute(
-					sql = "SELECT count(1) from employees where empID is  null or empID is  not  null and isActive not   like 'test' and isactive not    in ('test')",
+					sql = "SELECT count(1) from employees where empID is 	 null or empID is 	 not 	 null and isActive not  	 like 'test' and isactive not 	   in ('test')",
 					options = { dbtype: 'query' }
 				);
 				expect( actual ).toBeQuery();
@@ -52,9 +52,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			});
 			
 				
-			it( 'test' , function() {				
+			it( 'Can select with math operations' , function() {				
 				actual = QueryExecute(
-					sql = "SELECT yearsEmployed/sickDaysLeft as calc from employees",
+					sql = "SELECT yearsEmployed/sickDaysLeft as calc1,
+								yearsEmployed*sickDaysLeft as calc2,
+								yearsEmployed-sickDaysLeft as calc3,
+								yearsEmployed+sickDaysLeft as calc4
+							from employees",
 					options = { dbtype: 'query' }
 				);
 				expect( actual.recordcount ).toBe( 15 );
@@ -74,6 +78,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 					options = { dbtype: 'query' }
 				);
 				expect( actual.recordcount ).toBe( 15 );
+				expect( actual.email[1] ).toBe( 'Bane@company.com' );
+				expect( actual.email[15] ).toBe( 'Mary@company.com' );
 			});
 				
 			it( 'Can order by alias' , function() {				
@@ -82,14 +88,18 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 					options = { dbtype: 'query' }
 				);
 				expect( actual.recordcount ).toBe( 15 );
+				expect( actual.dept[1] ).toBe( 'Acounting' );
+				expect( actual.dept[15] ).toBe( 'IT' );
 			});
 				
 			it( 'Can order by literal' , function() {				
 				actual = QueryExecute(
-					sql = "SELECT department as dept from employees ORDER BY 'test', 'foo', 7, false",
+					sql = "SELECT department as dept from employees ORDER BY name,'test', 'foo', 7, false",
 					options = { dbtype: 'query' }
 				);
 				expect( actual.recordcount ).toBe( 15 );
+				expect( actual.dept[1] ).toBe( 'Acounting' );
+				expect( actual.dept[15] ).toBe( 'Executive' );
 			});
 				
 			it( 'Can order by columns not in select' , function() {				
@@ -98,6 +108,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 					options = { dbtype: 'query' }
 				);
 				expect( actual.recordcount ).toBe( 15 );
+				expect( actual.department[1] ).toBe( 'Acounting' );
+				expect( actual.department[15] ).toBe( 'IT' );
 			});
 				
 			it( 'Can have extra whitespace in group by and order by clauses' , function() {
@@ -106,6 +118,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 					options = { dbtype: 'query' }
 				);
 				expect( actual.recordcount ).toBe( 4 );
+				expect( actual.department[1] ).toBe( 'Acounting' );
+				expect( actual.department[4] ).toBe( 'IT' );
 			});
 				
 			it( 'Can filter on date column' , function() {
@@ -121,10 +135,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		
 				it( 'Can select distinct' , function() {				
 					actual = QueryExecute(
-						sql = "SELECT distinct department FROM employees",
+						sql = "SELECT distinct department FROM employees ORDER BY department",
 						options = { dbtype: 'query' }
 					);
 					expect( actual.recordcount ).toBe( 4 );
+					expect( actual.department[1] ).toBe( 'Acounting' );
+					expect( actual.department[2] ).toBe( 'Executive' );
+					expect( actual.department[3] ).toBe( 'HR' );
+					expect( actual.department[4] ).toBe( 'IT' );
 				});
 		
 				it( 'Can select distinct with order by' , function() {				
@@ -145,18 +163,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	
 				it( 'Can select distinct with maxrows' , function() {				
 					actual = QueryExecute(
-						sql = "SELECT distinct department FROM employees",
+						sql = "SELECT distinct department FROM employees order by department",
 						options = { dbtype: 'query', maxrows: 2 }
 					);
 					expect( actual.recordcount ).toBe( 2 );
-				});
-	
-				it( 'Can select distinct with maxrows' , function() {				
-					actual = QueryExecute(
-						sql = "SELECT distinct department FROM employees",
-						options = { dbtype: 'query', maxrows: 2 }
-					);
-					expect( actual.recordcount ).toBe( 2 );
+					expect( actual.department[1] ).toBe( 'Acounting' );
+					expect( actual.department[2] ).toBe( 'Executive' );
 				});
 	
 				it( 'Can select distinct with *' , function() {				
@@ -193,12 +205,18 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				
 				it( 'Can union distinct' , function() {				
 					actual = QueryExecute(
-						sql = "SELECT * FROM employees
+						sql = "SELECT upper( favoriteColor ) as favoriteColor FROM employees
 							union distinct
-							SELECT * FROM employees",
+							SELECT upper( favoriteColor ) FROM employees
+							order by favoriteColor",
 						options = { dbtype: 'query' }
 					);
-					expect( actual.recordcount ).toBe( 15 );
+					expect( actual.recordcount ).toBe( 5 );
+					expect( actual.favoriteColor[1] ).toBeWithCase( 'BLUE' );
+					expect( actual.favoriteColor[2] ).toBeWithCase( 'GREEN' );
+					expect( actual.favoriteColor[3] ).toBeWithCase( 'PURPLE' );
+					expect( actual.favoriteColor[4] ).toBeWithCase( 'RED' );
+					expect( actual.favoriteColor[5] ).toBeWithCase( 'YELLOW' );
 				});
 				
 				it( 'Can union with top' , function() {				
@@ -230,6 +248,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 						options = { dbtype: 'query'  }
 					);
 					expect( actual.recordcount ).toBe( 15 );
+					expect( actual.email[1] ).toBe( 'Tom@company.com' );
+					expect( actual.email[15] ).toBe( 'Aurthur@company.com' );
 				});
 				
 				it( 'Can union with group by' , function() {				
@@ -239,10 +259,16 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 							union all
 							SELECT age, count(*), min(sickDaysLeft) FROM employees
 							GROUP BY age
-							ORDER BY thing",
+							ORDER BY thing, age",
 						options = { dbtype: 'query'  }
 					);
 					expect( actual.recordcount ).toBe( 18 );
+					expect( actual.thing[1] ).toBe( 17 );
+					expect( actual.count[1] ).toBe( 1 );
+					expect( actual.age[1] ).toBe( 2 );
+					expect( actual.thing[18] ).toBe( 'IT' );
+					expect( actual.count[18] ).toBe( 6 );
+					expect( actual.age[18] ).toBe( 67 );
 				});
 				
 				it( 'Can union with literals' , function() {				
@@ -255,6 +281,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 						options = { dbtype: 'query'  }
 					);
 					expect( actual.recordcount ).toBe( 4 );
+					expect( actual.firstname[1] ).toBe( 'brad' );
+					expect( actual.firstname[4] ).toBe( 'Luis' );
 				});
 				
 			});
@@ -310,26 +338,38 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				
 				it( 'Can use group by' , function() {				
 					actual = QueryExecute(
-						sql = "SELECT department as dept FROM employees GROUP BY department",
+						sql = "SELECT department as dept FROM employees GROUP BY department ORDER BY department",
 						options = { dbtype: 'query' }
 					);
 					expect( actual.recordcount ).toBe( 4 );
+					expect( actual.dept[1] ).toBe( 'Acounting' );
+					expect( actual.dept[2] ).toBe( 'Executive' );
+					expect( actual.dept[3] ).toBe( 'HR' );
+					expect( actual.dept[4] ).toBe( 'IT' );
 				});
 				
 				it( 'Can use group by with distinct' , function() {				
 					actual = QueryExecute(
-						sql = "SELECT distinct department as dept FROM employees GROUP BY department",
+						sql = "SELECT distinct department as dept FROM employees GROUP BY department ORDER BY department",
 						options = { dbtype: 'query' }
 					);
 					expect( actual.recordcount ).toBe( 4 );
+					expect( actual.dept[1] ).toBe( 'Acounting' );
+					expect( actual.dept[2] ).toBe( 'Executive' );
+					expect( actual.dept[3] ).toBe( 'HR' );
+					expect( actual.dept[4] ).toBe( 'IT' );
 				});
 				
 				it( 'Can use group by with aggregates' , function() {				
 					actual = QueryExecute(
-						sql = "SELECT department as dept, max(hireDate) as mostRecentHire, min(age) as youngestAge, max( email ) FROM employees GROUP BY department",
+						sql = "SELECT department as dept, max(hireDate) as mostRecentHire, min(age) as youngestAge, max( email ) FROM employees GROUP BY department order by mostRecentHire desc",
 						options = { dbtype: 'query' }
 					);
 					expect( actual.recordcount ).toBe( 4 );
+					expect( actual.dept[1] ).toBe( 'HR' );
+					expect( actual.mostRecentHire[1] ).toBe( '2020-11-21 00:00:00' );
+					expect( actual.dept[4] ).toBe( 'Executive' );
+					expect( actual.mostRecentHire[4] ).toBe( '2008-03-21 00:00:00' );
 				});
 				
 				it( 'Can use group by with more than one group by' , function() {				
@@ -338,6 +378,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 						options = { dbtype: 'query' }
 					);
 					expect( actual.recordcount ).toBe( 9 );
+					expect( actual.department[1] ).toBe( 'Acounting' );
+					expect( actual.department[5] ).toBe( 'HR' );
+					expect( actual.department[9] ).toBe( 'IT' );
 				});
 				
 				it( 'Can use group by with having clause' , function() {				
@@ -346,22 +389,37 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 						options = { dbtype: 'query' }
 					);
 					expect( actual.recordcount ).toBe( 3 );
+					expect( actual.department[1] ).toBe( 'Executive' );
+					expect( actual.department[2] ).toBe( 'HR' );
+					expect( actual.department[3] ).toBe( 'IT' );
+					expect( actual.maxAge[1] ).toBe( 62 );
+					expect( actual.maxAge[2] ).toBe( 57 );
+					expect( actual.maxAge[3] ).toBe( 67 );
 				});
 				
 				it( 'Can use group by with having clause and distinct' , function() {				
 					actual = QueryExecute(
 						sql = "SELECT department, max(age) as maxAge from employees GROUP BY department HAVING max(age) > 30 ORDER BY department",
 						options = { dbtype: 'query' }
-					);
+					)
 					expect( actual.recordcount ).toBe( 3 );
+					expect( actual.department[1] ).toBe( 'Executive' );
+					expect( actual.department[2] ).toBe( 'HR' );
+					expect( actual.department[3] ).toBe( 'IT' );
+					expect( actual.maxAge[1] ).toBe( 62 );
+					expect( actual.maxAge[2] ).toBe( 57 );
+					expect( actual.maxAge[3] ).toBe( 67 );
 				});
 				
 				it( 'Can use group by with operations' , function() {				
 					actual = QueryExecute(
-						sql = "SELECT upper(department) as upperDept from employees GROUP BY upper(department) HAVING max(age) > 30 ORDER BY upper(department)",
+						sql = "SELECT lower(department) as lowerDept from employees GROUP BY upper(department) HAVING max(age) > 30 ORDER BY lower(department)",
 						options = { dbtype: 'query' }
 					);
 					expect( actual.recordcount ).toBe( 3 );
+					expect( actual.lowerDept[1] ).toBeWithCase( 'executive' );
+					expect( actual.lowerDept[2] ).toBeWithCase( 'hr' );
+					expect( actual.lowerDept[3] ).toBeWithCase( 'it' );
 				});
 				
 				it( 'Can use group by with columns not in select' , function() {				
@@ -370,6 +428,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 						options = { dbtype: 'query' }
 					);
 					expect( actual.recordcount ).toBe( 15 );
+					expect( actual.val[1] ).toBe( 'test' );
+					expect( actual.val[15] ).toBe( 'test' );
 				});
 				
 				it( 'Can order by aggregate columns' , function() {				
@@ -378,6 +438,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 						options = { dbtype: 'query' }
 					);
 					expect( actual.recordcount ).toBe( 3 );
+					expect( actual.department[1] ).toBe( 'HR' );
+					expect( actual.department[2] ).toBe( 'Executive' );
+					expect( actual.department[3] ).toBe( 'IT' );
+					expect( actual.maxAge[1] ).toBe( 57 );
+					expect( actual.maxAge[2] ).toBe( 62 );
+					expect( actual.maxAge[3] ).toBe( 67 );
 				});
 				
 				it( 'Can reference more than one column in aggregate function' , function() {				
