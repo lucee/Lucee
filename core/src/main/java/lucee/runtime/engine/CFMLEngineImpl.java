@@ -1085,8 +1085,6 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		String real = ReqRspUtil.getRootPath(srvContext);
 		ConfigServerImpl cs = getConfigServerImpl();
 
-		// Load JspFactory
-
 		CFMLFactory factory = contextes.get(real);
 		if (factory == null) {
 			factory = initContextes.get(real);
@@ -1197,9 +1195,6 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		CFMLFactory factory = getCFMLFactory(servlet.getServletConfig(), req);
 		ConfigWeb config = factory.getConfig();
 		PageSource ps = config.getPageSourceExisting(null, null, req.getServletPath(), false, true, true, false);
-		// Resource res = ((ConfigWebImpl)config).getPhysicalResourceExistingX(null, null,
-		// req.getServletPath(), false, true, true);
-
 		if (ps == null) {
 			rsp.sendError(404);
 		}
@@ -1216,11 +1211,6 @@ public final class CFMLEngineImpl implements CFMLEngine {
 			}
 		}
 	}
-
-	/*
-	 * private String getContextList() { return
-	 * List.arrayToList((String[])contextes.keySet().toArray(new String[contextes.size()]),", "); }
-	 */
 
 	@Override
 	public String getVersion() {
@@ -1260,9 +1250,6 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	@Override
 	public void serviceAMF(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp) throws ServletException, IOException {
 		throw new ServletException("AMFServlet is no longer supported, use BrokerServlet instead.");
-		// req=new HTTPServletRequestWrap(req);
-		// getCFMLFactory(servlet.getServletConfig(), req).getConfig().getAMFEngine().service(servlet,new
-		// HTTPServletRequestWrap(req),rsp);
 	}
 
 	@Override
@@ -1279,7 +1266,8 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 			RetireOutputStreamFactory.close();
 
-			getControler().close();
+			Controler _control = getControler();
+			if (_control != null) _control.close();
 
 			// release HTTP Pool
 			HTTPEngine4Impl.releaseConnectionManager();
