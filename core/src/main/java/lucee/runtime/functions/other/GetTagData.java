@@ -138,7 +138,7 @@ public final class GetTagData implements Function {
 			sct.set("attributeType", metadata.get("attributeType", ""));
 			sct.set("parseBody", Caster.toBoolean(metadata.get("parseBody", Boolean.FALSE), Boolean.FALSE));
 
-			Struct _attrs = new StructImpl();
+			Struct _attrs = new StructImpl(Struct.TYPE_LINKED);
 			sct.set(KeyConstants._attributes, _attrs);
 
 			Struct srcAttrs = Caster.toStruct(metadata.get(KeyConstants._attributes, null), null, false);
