@@ -1062,10 +1062,10 @@ public final class FileTag extends BodyTagImpl {
 			}
 		}
 		if (strict && ListUtil.listContainsNoCase(StringUtil.emptyIfNull(accept), "." + ext, ",", false, false) != -1)
-			throw new ApplicationException("When the value of the attribute STRICT is TRUE, it requires only MIME types in the attribute(s): ACCEPT.",
-					"set [" + accept + "] to MIME type.");
-		else throw new ApplicationException("The MIME type of the uploaded file [" + contentType + "] was not accepted by the server.",
-				"only this [" + StringUtil.emptyIfNull(accept) + "] type are accepted.  Verify that you are uploading a file of the appropriate type. ");
+			throw new ApplicationException("When the value of the attribute STRICT is TRUE, only MIME types are allowed in the attribute(s): ACCEPT.",
+					" set [" + accept + "] to MIME type.");
+		else throw new ApplicationException("The MIME type of the uploaded file [" + contentType + "] was rejected by the server.",
+				" Only the following type(s) are allowed, [" + StringUtil.emptyIfNull(accept) + "].  Verify that you are uploading a file of the appropriate type. ");
 	}
 
 	/**
