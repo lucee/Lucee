@@ -66,7 +66,9 @@ public final class Log extends TagImpl {
 	private String file;
 	private Throwable exception;
 
-	/** Specifies whether to log the application name if one has been specified in an application tag. */
+	/**
+	 * Specifies whether to log the application name if one has been specified in an application tag.
+	 */
 	private boolean application;
 	private CharSet charset = null;
 
@@ -154,8 +156,8 @@ public final class Log extends TagImpl {
 	public void setFile(String file) throws ApplicationException {
 		if (StringUtil.isEmpty(file)) return;
 
-		if (file.indexOf('/') != -1 || file.indexOf('\\') != -1)
-			throw new ApplicationException("Invalid value [" + file + "] for the attribute [file] for tag [log], it must be a valid filename, file separators like [\\/] are not allowed");
+		if (file.indexOf('/') != -1 || file.indexOf('\\') != -1) throw new ApplicationException(
+				"Invalid value [" + file + "] for the attribute [file] for tag [log], it must be a valid filename, file separators like [\\/] are not allowed");
 		if (!file.endsWith(".log")) file += ".log";
 		this.file = file;
 	}
@@ -243,31 +245,37 @@ public final class Log extends TagImpl {
 			if (StringUtil.isEmpty(text)) logger.log(type, contextName, exception);
 			else logger.log(type, contextName, text, exception);
 		}
-		else if (!StringUtil.isEmpty(text)) logger.log(type, contextName, text);
+		else if (!StringUtil.isEmpty(text)) {
+			logger.log(type, contextName, text);
+		}
 		else throw new ApplicationException("Tag [log] requires one of the following attributes [text, exception]");
 		// logger.write(toStringType(type),contextName,text);
 		return SKIP_BODY;
 	}
 
 	private static lucee.commons.io.log.Log getFileLog(PageContext pc, String file, CharSet charset, boolean async) throws PageException {
+
 		ConfigImpl config = (ConfigImpl) pc.getConfig();
 		Resource logDir = config.getLogDirectory();
 		Resource res = logDir.getRealResource(file);
-
 		lucee.commons.io.log.Log log = FileLogPool.instance.get(res, CharsetUtil.toCharset(charset));
 		if (log != null) return log;
+		synchronized (FileLogPool.instance) {
+			log = FileLogPool.instance.get(res, CharsetUtil.toCharset(charset));
+			if (log != null) return log;
 
-		if (charset == null) charset = CharsetUtil.toCharSet(((PageContextImpl) pc).getResourceCharset());
+			if (charset == null) charset = CharsetUtil.toCharSet(((PageContextImpl) pc).getResourceCharset());
 
-		try {
-			log = config.getLogEngine().getResourceLog(res, CharsetUtil.toCharset(charset), "cflog." + FileLogPool.toKey(file, CharsetUtil.toCharset(charset)),
-					lucee.commons.io.log.Log.LEVEL_TRACE, 5, new Listener(FileLogPool.instance, res, charset), async);
-			FileLogPool.instance.put(res, CharsetUtil.toCharset(charset), log);
+			try {
+				log = config.getLogEngine().getResourceLog(res, CharsetUtil.toCharset(charset), "cflog." + FileLogPool.toKey(file, CharsetUtil.toCharset(charset)),
+						lucee.commons.io.log.Log.LEVEL_TRACE, 5, new Listener(FileLogPool.instance, res, charset), async);
+				FileLogPool.instance.put(res, CharsetUtil.toCharset(charset), log);
+			}
+			catch (IOException e) {
+				throw Caster.toPageException(e);
+			}
+			return log;
 		}
-		catch (IOException e) {
-			throw Caster.toPageException(e);
-		}
-		return log;
 	}
 
 	/**
