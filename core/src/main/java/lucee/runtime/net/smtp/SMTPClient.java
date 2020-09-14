@@ -272,10 +272,11 @@ public final class SMTPClient implements Serializable {
 		this.from = from;
 	}
 
-	public void setFrom(Object from) throws UnsupportedEncodingException, MailException, PageException {
+	public boolean setFrom(Object from) throws UnsupportedEncodingException, MailException, PageException {
 		InternetAddress[] addrs = MailUtil.toInternetAddresses(from);
-		if (addrs.length == 0) return;
+		if (addrs.length == 0) return false;
 		setFrom(addrs[0]);
+		return true;
 	}
 
 	public void addBCC(InternetAddress bcc) {
