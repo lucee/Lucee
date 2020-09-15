@@ -551,7 +551,15 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<name>sessioncookie</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>session cookie behaviour</description>
+			<description>session cookie behaviour
+				
+			- secure	
+			- httpOnly
+			- samesite
+			- expires
+			- domain
+			- path
+			</description>
 		</attribute>
 		<attribute>
 			<type>timespan</type>
