@@ -800,8 +800,7 @@ public class KeyConstants {
 	public static final Key _attributeCollection = KeyImpl._const("attributeCollection");
 	public static final Key _secure = KeyImpl._const("secure");
 	public static final Key _httponly = KeyImpl._const("httponly");
-	public static final Key _domain = KeyImpl._const("domain");
-	public static final Key _path = KeyImpl._const("path");
+	public static final Key _domain = KeyImpl._const("domain");	
 	public static final Key _preservecase = KeyImpl._const("preservecase");
 	public static final Key _encode = KeyImpl._const("encode");
 	public static final Key _encodevalue = KeyImpl._const("encodevalue");
