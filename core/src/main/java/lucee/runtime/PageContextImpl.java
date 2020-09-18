@@ -2689,12 +2689,12 @@ public final class PageContextImpl extends PageContext {
 				if (!StringUtil.isEmpty(tmp, true)) domain = tmp.trim();
 				// samesite
 				samesite = data.getSamesite();
-				// domain
+				// path
 				String tmp2 = data.getPath();
-				if (!StringUtil.isEmpty(tmp2, true)) 
-					path = tmp2.trim();
-				else 
+				if (StringUtil.isEmpty(tmp2, true))
 					path = "/";
+				else 
+					path = tmp2.trim();
 			}
 		}
 		int expires;

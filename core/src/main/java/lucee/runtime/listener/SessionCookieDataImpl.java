@@ -8,7 +8,7 @@ import lucee.runtime.type.scope.CookieImpl;
 
 public class SessionCookieDataImpl implements SessionCookieData {
 
-	public static final SessionCookieData DEFAULT = new SessionCookieDataImpl(true, false, TimeSpanImpl.fromMillis(CookieImpl.NEVER * 1000), null, false, CookieData.SAMESITE_NONE, null);
+	public static final SessionCookieData DEFAULT = new SessionCookieDataImpl(true, false, TimeSpanImpl.fromMillis(CookieImpl.NEVER * 1000), null, false, CookieData.SAMESITE_NONE, "/");
 
 	private final boolean httpOnly;
 	private final boolean secure;
