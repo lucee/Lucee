@@ -200,6 +200,8 @@ public final class SecurityManagerImpl implements Cloneable, SecurityManager {
 		else if (accessValue.equals("8")) return VALUE_8;
 		else if (accessValue.equals("9")) return VALUE_9;
 		else if (accessValue.equals("10")) return VALUE_10;
+		else if (accessValue.equals("0")) return VALUE_NO;
+		else if (accessValue.equals("-1")) return VALUE_YES;
 		else throw new SecurityException("invalid access value [" + accessValue + "]", "valid access values are [all,local,no,none,yes,1,...,10]");
 
 	}
