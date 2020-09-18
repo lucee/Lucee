@@ -714,8 +714,8 @@ public final class AppListenerUtil {
 				toTimespan(data.get(KeyConstants._timeout, null), SessionCookieDataImpl.DEFAULT.getTimeout()),
 				Caster.toString(data.get(KeyConstants._domain, null), SessionCookieDataImpl.DEFAULT.getDomain()),
 				Caster.toBooleanValue(data.get(DISABLE_UPDATE, null), SessionCookieDataImpl.DEFAULT.isDisableUpdate()),
-				SessionCookieDataImpl.toSamesite(Caster.toString(data.get(KeyConstants._SameSite, null), null), SessionCookieDataImpl.DEFAULT.getSamesite(),
-				Caster.toString(data.get(KeyConstants._path, null), SessionCookieDataImpl.DEFAULT.getPath()))
+				SessionCookieDataImpl.toSamesite(Caster.toString(data.get(KeyConstants._SameSite, null), null), SessionCookieDataImpl.DEFAULT.getSamesite()),
+				Caster.toString(data.get(KeyConstants._path, null), SessionCookieDataImpl.DEFAULT.getPath())
 
 		);
 	}
