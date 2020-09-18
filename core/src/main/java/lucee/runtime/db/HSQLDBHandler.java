@@ -70,6 +70,23 @@ public final class HSQLDBHandler {
 	Executer executer = new Executer();
 	QoQ qoq = new QoQ();
 	private static Object lock = new SerializableObject();
+	private static boolean hsqldbDisable;
+	private static boolean hsqldbDebug;
+
+	static {
+		try {
+			hsqldbDisable = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.qoq.hsqldb.disable", "false"));
+		}
+		catch (PageException e) {
+			hsqldbDisable = false;
+		}
+		try {
+			hsqldbDebug = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.qoq.hsqldb.debug", "false"));
+		}
+		catch (PageException e) {
+			hsqldbDebug = false;
+		}
+	}
 
 	/**
 	 * constructor of the class
@@ -248,7 +265,7 @@ public final class HSQLDBHandler {
 		try {
 			SelectParser parser = new SelectParser();
 			selects = parser.parse(sql.getSQLString());
-			QueryImpl q = qoq.execute(pc, sql, selects, maxrows);
+			QueryImpl q = (QueryImpl) qoq.execute(pc, sql, selects, maxrows);
 			q.setExecutionTime(stopwatch.time());
 			return q;
 		}
@@ -268,12 +285,12 @@ public final class HSQLDBHandler {
 		}
 
 		// Debugging option to completely disable HyperSQL for testing
-		if (qoqException != null && Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.qoq.hsqldb.disable", "false"))) {
+		if (qoqException != null && hsqldbDisable) {
 			throw Caster.toPageException(qoqException);
 		}
 
 		// Debugging option to to log all QoQ that fall back on hsqldb in the datasource log
-		if (qoqException != null && Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.qoq.hsqldb.debug", "false"))) {
+		if (qoqException != null && hsqldbDebug) {
 			pc.getConfig().getLog("datasource").error("QoQ [" + sql.getSQLString() + "] errored and is falling back to HyperSQL.", qoqException);
 		}
 

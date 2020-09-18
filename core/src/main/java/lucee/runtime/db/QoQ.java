@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.stream.Stream;
 
 import lucee.commons.lang.CFTypes;
@@ -95,11 +96,11 @@ public final class QoQ {
 	/**
 	 * execute a SQL Statement against CFML Scopes
 	 */
-	public QueryImpl execute(PageContext pc, SQL sql, Selects selects, int maxrows) throws PageException {
+	public Query execute(PageContext pc, SQL sql, Selects selects, int maxrows) throws PageException {
 		Select[] arrSelects = selects.getSelects();
 		boolean isUnion = (arrSelects.length > 1);
 
-		QueryImpl target = new QueryImpl(new Collection.Key[0], 0, "query", sql);
+		Query target = new QueryImpl(new Collection.Key[0], 0, "query", sql);
 
 		// For each select (more than one when using union)
 		for (int i = 0; i < arrSelects.length; i++) {
@@ -146,7 +147,7 @@ public final class QoQ {
 		}
 		// Choppy chop
 		if (maxrows > -1) {
-			target.cutRowsTo(maxrows);
+			((QueryImpl) target).cutRowsTo(maxrows);
 		}
 
 		// New query is populated and ready to go!
@@ -205,11 +206,10 @@ public final class QoQ {
 	 * @return
 	 * @throws PageException
 	 */
-	private QueryImpl executeSingle(PageContext pc, Select select, Query source, QueryImpl previous, int maxrows, SQL sql, boolean hasOrders, boolean isUnion)
-			throws PageException {
+	private Query executeSingle(PageContext pc, Select select, Query source, Query previous, int maxrows, SQL sql, boolean hasOrders, boolean isUnion) throws PageException {
 
 		// Our records will be placed here to return
-		QueryImpl target = new QueryImpl(new Collection.Key[0], 0, "query", sql);
+		Query target = new QueryImpl(new Collection.Key[0], 0, "query", sql);
 
 		// Make max rows the smaller of the two
 		ValueNumber oTop = select.getTop();
@@ -263,7 +263,7 @@ public final class QoQ {
 		// individual selects of a union. You can only order the final result. So any top on an
 		// individual select is just blindly applied to whatever order the records may be in
 		if (isUnion && top > -1) {
-			target.cutRowsTo(top);
+			((QueryImpl) target).cutRowsTo(top);
 		}
 
 		// For a union all, we just slam all the rows together, keeping any duplicate record
@@ -287,7 +287,7 @@ public final class QoQ {
 	 * @return Combined Query with potential duplicate rows
 	 * @throws PageException
 	 */
-	private QueryImpl doUnionAll(QueryImpl previous, QueryImpl target) throws PageException {
+	private Query doUnionAll(Query previous, Query target) throws PageException {
 		// If this is the first select in a series of unions, just return it directly. It's column
 		// names now get set in stone as the column names the next union(s) will use!
 		if (previous.getRecordcount() == 0) {
@@ -317,7 +317,7 @@ public final class QoQ {
 	 * @return Combined Query with no duplicate rows
 	 * @throws PageException
 	 */
-	private QueryImpl doUnionDistinct(PageContext pc, QueryImpl previous, QueryImpl target, SQL sql) throws PageException {
+	private Query doUnionDistinct(PageContext pc, Query previous, Query target, SQL sql) throws PageException {
 		// If this is the first select in a series of unions, just return it directly. It's column
 		// names now get set in stone as the column names the next union(s) will use!
 		if (previous.getRecordcount() == 0) {
@@ -328,7 +328,7 @@ public final class QoQ {
 		Expression[] selectExpressions = new Expression[previousColKeys.length];
 		// We want the exact columns from the previous query, but not necessarily all the data. Make
 		// a new target and copy the columns
-		QueryImpl newTarget = new QueryImpl(new Collection.Key[0], 0, "query", sql);
+		Query newTarget = new QueryImpl(new Collection.Key[0], 0, "query", sql);
 		for (int col = 0; col < previousColKeys.length; col++) {
 			newTarget.addColumn(previousColKeys[col], new ArrayImpl(), previous.getColumn(previousColKeys[col]).getType());
 			// While we're looping, build up a handy array of expressions from the previous query.
@@ -347,11 +347,9 @@ public final class QoQ {
 			queryPartitions.addRow(pc, target, row, true);
 		}
 
-		QueryImpl sourcePartition;
 		// Loop over the partitions and take one from each and add to our new target question for a
 		// distinct result
-		for (String partionKey: queryPartitions.getPartitions().keySet().toArray(new String[queryPartitions.getPartitions().size()])) {
-			sourcePartition = queryPartitions.getPartitions().get(partionKey);
+		for (Query sourcePartition: queryPartitions.getPartitions().values()) {
 			newTarget.addRow(1);
 
 			for (int col = 0; col < targetColKeys.length; col++) {
@@ -378,7 +376,7 @@ public final class QoQ {
 	 * @param headers Select lists
 	 * @throws PageException
 	 */
-	private void executeSingleNonPartitioned(PageContext pc, Select select, Query source, QueryImpl target, int maxrows, SQL sql, boolean hasOrders, boolean isUnion,
+	private void executeSingleNonPartitioned(PageContext pc, Select select, Query source, Query target, int maxrows, SQL sql, boolean hasOrders, boolean isUnion,
 			QueryColumn[] trgColumns, Object[] trgValues, Collection.Key[] headers) throws PageException {
 		Operation where = select.getWhere();
 
@@ -430,7 +428,7 @@ public final class QoQ {
 	 * @param headers select columns
 	 * @throws PageException
 	 */
-	private void executeSinglePartitioned(PageContext pc, Select select, Query source, QueryImpl target, int maxrows, SQL sql, boolean hasOrders, boolean isUnion,
+	private void executeSinglePartitioned(PageContext pc, Select select, Query source, Query target, int maxrows, SQL sql, boolean hasOrders, boolean isUnion,
 			QueryColumn[] trgColumns, Object[] trgValues, Collection.Key[] headers) throws PageException {
 
 		Operation where = select.getWhere();
@@ -450,11 +448,11 @@ public final class QoQ {
 		// Now that all rows are partioned, eliminate partions we don't need via the having clause
 		if (select.getHaving() != null) {
 			// Loop over each partition
-			for (String partionKey: queryPartitions.getPartitions().keySet().toArray(new String[queryPartitions.getPartitions().size()])) {
+			for (Entry<String, Query> entry: queryPartitions.getPartitions().entrySet()) {
 				// Eval the having clause on it
-				if (!Caster.toBooleanValue(executeExp(pc, sql, queryPartitions.getPartitions().get(partionKey), select.getHaving(), 1))) {
+				if (!Caster.toBooleanValue(executeExp(pc, sql, entry.getValue(), select.getHaving(), 1))) {
 					// Voted off the island :/
-					queryPartitions.getPartitions().remove(partionKey);
+					queryPartitions.getPartitions().remove(entry.getKey());
 				}
 				// ColumnExpressions cache the actual query column they use internally
 				// need to reset any cache data in the having Expression
@@ -464,9 +462,7 @@ public final class QoQ {
 		}
 
 		// Add first row of each group of partitioned data into final result
-		QueryImpl sourcePartition;
-		for (String partionKey: queryPartitions.getPartitions().keySet().toArray(new String[queryPartitions.getPartitions().size()])) {
-			sourcePartition = queryPartitions.getPartitions().get(partionKey);
+		for (Query sourcePartition: queryPartitions.getPartitions().values()) {
 			target.addRow(1);
 			for (int cell = 0; cell < headers.length; cell++) {
 
@@ -507,7 +503,7 @@ public final class QoQ {
 	 * @param type
 	 * @throws PageException
 	 */
-	private void queryAddColumn(QueryImpl query, Collection.Key column, int type) throws PageException {
+	private void queryAddColumn(Query query, Collection.Key column, int type) throws PageException {
 		if (!query.containsKey(column)) {
 			query.addColumn(column, new ArrayImpl(), type);
 		}
@@ -602,7 +598,7 @@ public final class QoQ {
 				Stream<Object> resultStream = Arrays.stream(result);
 				if (!includeNull) resultStream = resultStream.filter(s -> (s != null));
 				if (returnDistinct) resultStream = resultStream.distinct();
-				return resultStream.toArray(Object[]::new);
+				return resultStream.toArray();
 			}
 		}
 		// For an operation, we need to execute the operation once for each row and capture the
@@ -621,7 +617,7 @@ public final class QoQ {
 				Stream<Object> resultStream = Arrays.stream(result);
 				if (!includeNull) resultStream = resultStream.filter(s -> (s != null));
 				if (returnDistinct) resultStream = resultStream.distinct();
-				return resultStream.toArray(Object[]::new);
+				return resultStream.toArray();
 			}
 		}
 		throw new DatabaseException("unsupported sql statement [" + exp + "]", null, sql, null);
@@ -731,7 +727,6 @@ public final class QoQ {
 			case 'a':
 				if (op.equals("abs")) return new Double(MathUtil.abs(Caster.toDoubleValue(value)));
 				if (op.equals("acos")) return new Double(Math.acos(Caster.toDoubleValue(value)));
-				https: // ortussolutions.slack.com/archives/GUEEFNMDX
 				if (op.equals("asin")) return new Double(Math.asin(Caster.toDoubleValue(value)));
 				if (op.equals("atan")) return new Double(Math.atan(Caster.toDoubleValue(value)));
 				if (op.equals("avg")) return ArrayUtil.avg(Caster.toArray(aggregateValues));
