@@ -1,5 +1,5 @@
 <cfscript>
-    adm = new Administrator('server', "password");  
+    adm = new Administrator('server', request.SERVERADMINPASSWORD?:server.SERVERADMINPASSWORD);  
     try{
         adm.updatemapping(
             virtual: '/testing',
