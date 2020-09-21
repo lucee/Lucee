@@ -3,7 +3,7 @@
     accessFileOne = expandpath('./testone/');
     accessFileTwo = expandpath('../../');
     
-    adm = new Administrator('server', "password");
+    adm = new Administrator('server', request.SERVERADMINPASSWORD?:server.SERVERADMINPASSWORD);
     try{
         adm.updatedefaultsecuritymanager(
            file: "local",
