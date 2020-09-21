@@ -106,7 +106,7 @@ public final class Loginuser extends TagImpl {
 				else expires = (int) tmp;
 
 				((CookieImpl) pageContext.cookieScope()).setCookie(KeyImpl.init(name), login.encode(), expires, false, "/", Login.getCookieDomain(appContext),
-						CookieData.SAMESITE_NONE);
+						CookieData.SAMESITE_EMPTY);
 			}
 		}
 
