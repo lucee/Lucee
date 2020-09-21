@@ -69,7 +69,7 @@ public final class Cookie extends TagImpl {
 	private boolean preservecase;
 	private boolean encode = true;
 
-	private short samesite = SessionCookieData.SAMESITE_NONE;
+	private short samesite = SessionCookieData.SAMESITE_EMPTY;
 
 	@Override
 	public void release() {
@@ -83,7 +83,7 @@ public final class Cookie extends TagImpl {
 		httponly = false;
 		preservecase = false;
 		encode = true;
-		samesite = SessionCookieData.SAMESITE_NONE;
+		samesite = SessionCookieData.SAMESITE_EMPTY;
 	}
 
 	/**
