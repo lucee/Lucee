@@ -9042,7 +9042,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>ObjectSave</name>
 		<class>lucee.runtime.functions.other.ObjectSave</class>
-		<description>serialize a (Serialiable) object to a binary representation of th object</description>
+		<description>serialize a (Serializable) object to a binary representation of the object</description>
 		<argument>
 			<name>input</name>
 			<alias>object</alias>
@@ -9411,7 +9411,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>any</type>
 			<required>No</required>
 			<default>1</default>
-		<description>Number of rows to add to the query or a struct/array containing the data tp populate the row.
+		<description>Number of rows to add to the query or a struct/array containing the data to populate the row.
 		Example:
 		queryAddRow(qry,3);
 		queryAddRow(qry,["Susi",20]);
