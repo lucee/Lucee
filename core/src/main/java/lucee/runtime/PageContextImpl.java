@@ -2691,10 +2691,7 @@ public final class PageContextImpl extends PageContext {
 				samesite = data.getSamesite();
 				// path
 				String tmp2 = data.getPath();
-				if (StringUtil.isEmpty(tmp2, true))
-					path = "/";
-				else 
-					path = tmp2.trim();
+				if (!StringUtil.isEmpty(tmp2, true)) path = tmp2.trim();
 			}
 		}
 		int expires;
