@@ -78,4 +78,40 @@ public class Operation3 extends ExpressionSupport implements Operation {
 	public Expression getRight() {
 		return right;
 	}
+
+	@Override
+	public void reset() {
+		if (left != null) {
+			left.reset();
+		}
+		if (right != null) {
+			right.reset();
+		}
+		if (exp != null) {
+			exp.reset();
+		}
+	}
+
+	@Override
+	public boolean hasAggregate() {
+		if (left instanceof OperationAggregate) {
+			return true;
+		}
+		if (left instanceof Operation && ((Operation) left).hasAggregate()) {
+			return true;
+		}
+		if (right instanceof OperationAggregate) {
+			return true;
+		}
+		if (right instanceof Operation && ((Operation) right).hasAggregate()) {
+			return true;
+		}
+		if (exp instanceof OperationAggregate) {
+			return true;
+		}
+		if (exp instanceof Operation && ((Operation) exp).hasAggregate()) {
+			return true;
+		}
+		return false;
+	}
 }

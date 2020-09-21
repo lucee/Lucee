@@ -18,6 +18,7 @@
  */
 package lucee.runtime.sql.exp;
 
+import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;
@@ -29,7 +30,10 @@ public class ColumnExpression extends ExpressionSupport implements Column {
 
 	private String table;
 	private String column;
+	private Collection.Key columnKey;
+	private Collection.Key columnAliasKey;
 	private boolean hasBracked;
+	private boolean isParam;
 	private int columnIndex;
 	private QueryColumn col;
 
@@ -42,6 +46,9 @@ public class ColumnExpression extends ExpressionSupport implements Column {
 	public ColumnExpression(String value, int columnIndex) {
 		this.column = value;
 		this.columnIndex = columnIndex;
+		if (value.equals("?")) {
+			this.isParam = true;
+		}
 	}
 
 	public void setSub(String sub) {
@@ -65,6 +72,11 @@ public class ColumnExpression extends ExpressionSupport implements Column {
 	}
 
 	@Override
+	public boolean isParam() {
+		return this.isParam;
+	}
+
+	@Override
 	public String getAlias() {
 		if (!hasAlias()) return getColumn().getString();
 		return super.getAlias();
@@ -72,7 +84,14 @@ public class ColumnExpression extends ExpressionSupport implements Column {
 
 	@Override
 	public Collection.Key getColumn() {
-		return KeyImpl.init(column);
+		if (columnKey == null) columnKey = KeyImpl.init(column);
+		return columnKey;
+	}
+
+	@Override
+	public Collection.Key getColumnAlias() {
+		if (columnAliasKey == null) columnAliasKey = KeyImpl.init(getAlias());
+		return columnAliasKey;
 	}
 
 	@Override
@@ -103,20 +122,25 @@ public class ColumnExpression extends ExpressionSupport implements Column {
 		return columnIndex;
 	}
 
-	// MUST hanle null correctly
+	// MUST handle null correctly
 	@Override
-	public Object getValue(Query qr, int row) throws PageException {
+	public Object getValue(PageContext pc, Query qr, int row) throws PageException {
 		if (col == null) col = qr.getColumn(getColumn());
-		return QueryUtil.getValue(col, row);
+		return QueryUtil.getValue(pc, col, row);
 	}
 
 	@Override
-	public Object getValue(Query qr, int row, Object defaultValue) {
+	public Object getValue(PageContext pc, Query qr, int row, Object defaultValue) {
 		if (col == null) {
 			col = qr.getColumn(getColumn(), null);
 			if (col == null) return defaultValue;
 		}
 		return col.get(row, defaultValue);
+	}
+
+	@Override
+	public void reset() {
+		col = null;
 	}
 
 }

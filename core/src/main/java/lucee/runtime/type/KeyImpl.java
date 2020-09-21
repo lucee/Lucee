@@ -192,7 +192,8 @@ public class KeyImpl implements Collection.Key, Castable, Comparable, Externaliz
 			return key.equalsIgnoreCase((String) other);
 		}
 		if (other instanceof Key) {
-			return ucKey.equalsIgnoreCase(((Key) other).getUpperString());
+			// Both strings are guaranteed to be upper case
+			return ucKey.equals(((Key) other).getUpperString());
 		}
 		return false;
 	}
