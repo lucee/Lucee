@@ -289,7 +289,6 @@ public class RHExtension implements Serializable {
 		String _img = null;
 		String path;
 		String fileName, sub;
-		boolean isPack200;
 
 		List<BundleInfo> bundles = new ArrayList<BundleInfo>();
 		List<String> jars = new ArrayList<String>();
@@ -311,7 +310,6 @@ public class RHExtension implements Serializable {
 				path = entry.getName();
 				fileName = fileName(entry);
 				sub = subFolder(entry);
-				isPack200 = false;
 
 				if (!entry.isDirectory() && path.equalsIgnoreCase("META-INF/MANIFEST.MF")) {
 					manifest = toManifest(config, zis, null);
@@ -321,13 +319,11 @@ public class RHExtension implements Serializable {
 				}
 
 				// jars
-				else if (!entry.isDirectory()
-						&& (startsWith(path, type, "jars") || startsWith(path, type, "jar") || startsWith(path, type, "bundles") || startsWith(path, type, "bundle")
-								|| startsWith(path, type, "lib") || startsWith(path, type, "libs"))
-						&& (StringUtil.endsWithIgnoreCase(path, ".jar") || (isPack200 = StringUtil.endsWithIgnoreCase(path, ".jar.pack.gz")))) {
+				else if (!entry.isDirectory() && (startsWith(path, type, "jars") || startsWith(path, type, "jar") || startsWith(path, type, "bundles")
+						|| startsWith(path, type, "bundle") || startsWith(path, type, "lib") || startsWith(path, type, "libs")) && (StringUtil.endsWithIgnoreCase(path, ".jar"))) {
 
 					jars.add(fileName);
-					BundleInfo bi = BundleInfo.getInstance(fileName, zis, false, isPack200);
+					BundleInfo bi = BundleInfo.getInstance(fileName, zis, false);
 					if (bi.isBundle()) bundles.add(bi);
 				}
 
@@ -682,19 +678,15 @@ public class RHExtension implements Serializable {
 		ZipEntry entry;
 		String path;
 		String fileName;
-		boolean isPack200;
 		try {
 			while ((entry = zis.getNextEntry()) != null) {
 				path = entry.getName();
 				fileName = fileName(entry);
-				isPack200 = false;
 				// jars
-				if (!entry.isDirectory()
-						&& (startsWith(path, type, "jars") || startsWith(path, type, "jar") || startsWith(path, type, "bundles") || startsWith(path, type, "bundle")
-								|| startsWith(path, type, "lib") || startsWith(path, type, "libs"))
-						&& (StringUtil.endsWithIgnoreCase(path, ".jar") || (isPack200 = StringUtil.endsWithIgnoreCase(path, ".jar.pack.gz")))) {
+				if (!entry.isDirectory() && (startsWith(path, type, "jars") || startsWith(path, type, "jar") || startsWith(path, type, "bundles")
+						|| startsWith(path, type, "bundle") || startsWith(path, type, "lib") || startsWith(path, type, "libs")) && (StringUtil.endsWithIgnoreCase(path, ".jar"))) {
 
-					Object obj = XMLConfigAdmin.installBundle(config, zis, fileName, version, false, false, isPack200);
+					Object obj = XMLConfigAdmin.installBundle(config, zis, fileName, version, false, false);
 					// jar is not a bundle, only a regular jar
 					if (!(obj instanceof BundleFile)) {
 						Resource tmp = (Resource) obj;
