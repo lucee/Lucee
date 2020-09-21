@@ -74,18 +74,8 @@ public final class HSQLDBHandler {
 	private static boolean hsqldbDebug;
 
 	static {
-		try {
-			hsqldbDisable = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.qoq.hsqldb.disable", "false"));
-		}
-		catch (PageException e) {
-			hsqldbDisable = false;
-		}
-		try {
-			hsqldbDebug = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.qoq.hsqldb.debug", "false"));
-		}
-		catch (PageException e) {
-			hsqldbDebug = false;
-		}
+		hsqldbDisable = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.qoq.hsqldb.disable", "false"), false);
+		hsqldbDebug = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.qoq.hsqldb.debug", "false"), false);
 	}
 
 	/**
