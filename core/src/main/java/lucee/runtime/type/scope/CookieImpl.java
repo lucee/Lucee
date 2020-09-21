@@ -106,11 +106,11 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 			boolean preserveCase = Caster.toBooleanValue(sct.get(KeyConstants._preservecase, null), false);
 			Boolean encode = Caster.toBoolean(sct.get(KeyConstants._encode, null), null);
 			if (encode == null) encode = Caster.toBoolean(sct.get(KeyConstants._encodevalue, Boolean.TRUE), Boolean.TRUE);
-			short samesite = SessionCookieDataImpl.toSamesite(Caster.toString(sct.get(KeyConstants._SameSite, null), null));
+			short samesite = SessionCookieDataImpl.toSamesite(Caster.toString(sct.get(KeyConstants._SameSite, null), ""), CookieData.SAMESITE_EMPTY);
 
 			setCookie(key, val, expires, secure, path, domain, httpOnly, preserveCase, encode.booleanValue(), samesite);
 		}
-		else setCookie(key, value, null, false, "/", null, false, false, true, CookieData.SAMESITE_NONE);
+		else setCookie(key, value, null, false, "/", null, false, false, true, CookieData.SAMESITE_EMPTY);
 		return value;
 	}
 
@@ -167,7 +167,7 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 
 	@Override
 	public void setCookie(Collection.Key key, Object value, Object expires, boolean secure, String path, String domain) throws PageException {
-		setCookie(key, value, expires, secure, path, domain, false, false, true, CookieData.SAMESITE_NONE);
+		setCookie(key, value, expires, secure, path, domain, false, false, true, CookieData.SAMESITE_EMPTY);
 	}
 
 	// FUTURE add to interface
@@ -177,7 +177,7 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 
 	@Override
 	public void setCookie(Collection.Key key, Object value, int expires, boolean secure, String path, String domain) throws PageException {
-		setCookie(key, value, expires, secure, path, domain, false, false, true, CookieData.SAMESITE_NONE);
+		setCookie(key, value, expires, secure, path, domain, false, false, true, CookieData.SAMESITE_EMPTY);
 	}
 
 	// FUTURE add to interface
@@ -187,7 +187,7 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 
 	@Override
 	public void setCookieEL(Collection.Key key, Object value, int expires, boolean secure, String path, String domain) {
-		setCookieEL(key, value, expires, secure, path, domain, false, false, true, CookieData.SAMESITE_NONE);
+		setCookieEL(key, value, expires, secure, path, domain, false, false, true, CookieData.SAMESITE_EMPTY);
 	}
 
 	// FUTURE add to interface
@@ -198,7 +198,7 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 	@Override
 	public void setCookie(Collection.Key key, Object value, Object expires, boolean secure, String path, String domain, boolean httpOnly, boolean preserveCase, boolean encode)
 			throws PageException {
-		setCookie(key, value, expires, secure, path, domain, httpOnly, preserveCase, encode, CookieData.SAMESITE_NONE);
+		setCookie(key, value, expires, secure, path, domain, httpOnly, preserveCase, encode, CookieData.SAMESITE_EMPTY);
 	}
 
 	// FUTURE add to interface
@@ -234,7 +234,7 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 	public void setCookie(Collection.Key key, Object value, int expires, boolean secure, String path, String domain, boolean httpOnly, boolean preserveCase, boolean encode)
 			throws PageException {
 
-		_addCookie(key, Caster.toString(value), expires, secure, path, domain, httpOnly, preserveCase, encode, CookieData.SAMESITE_NONE);
+		_addCookie(key, Caster.toString(value), expires, secure, path, domain, httpOnly, preserveCase, encode, CookieData.SAMESITE_EMPTY);
 		super.set(key, value);
 	}
 
@@ -247,7 +247,7 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 
 	@Override
 	public void setCookieEL(Collection.Key key, Object value, int expires, boolean secure, String path, String domain, boolean httpOnly, boolean preserveCase, boolean encode) {
-		_addCookie(key, Caster.toString(value, ""), expires, secure, path, domain, httpOnly, preserveCase, encode, CookieData.SAMESITE_NONE);
+		_addCookie(key, Caster.toString(value, ""), expires, secure, path, domain, httpOnly, preserveCase, encode, CookieData.SAMESITE_EMPTY);
 		super.setEL(key, value);
 	}
 
@@ -270,8 +270,8 @@ public final class CookieImpl extends ScopeSupport implements Cookie, ScriptProt
 		/* Expires */if (expires != EXPIRES_NULL) sb.append(";Expires=").append(DateTimeUtil.toHTTPTimeString(System.currentTimeMillis() + (expires * 1000L), false));
 		/* Secure */if (secure) sb.append(";Secure");
 		/* HTTPOnly */if (httpOnly) sb.append(";HttpOnly");
-		/* Samesite */if (samesite != CookieData.SAMESITE_NONE) sb.append(";SameSite").append('=').append(SessionCookieDataImpl.toSamesite(samesite));
-
+		String tmpSameSite = SessionCookieDataImpl.toSamesite(samesite);
+		/* Samesite */if (!StringUtil.isEmpty(tmpSameSite, true)) sb.append(";SameSite").append('=').append(tmpSameSite);
 		rsp.addHeader("Set-Cookie", sb.toString());
 
 	}

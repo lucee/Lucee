@@ -60,7 +60,6 @@ import lucee.commons.io.FileUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.cache.Cache;
-import lucee.commons.io.compress.Pack200Util;
 import lucee.commons.io.compress.ZipUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
@@ -1081,8 +1080,8 @@ public final class XMLConfigAdmin {
 	 * @throws IOException
 	 * @throws BundleException
 	 */
-	static Bundle updateBundle(Config config, InputStream is, String name, String extensionVersion, boolean closeStream, boolean isPack200) throws IOException, BundleException {
-		Object obj = installBundle(config, is, name, extensionVersion, closeStream, false, isPack200);
+	static Bundle updateBundle(Config config, InputStream is, String name, String extensionVersion, boolean closeStream) throws IOException, BundleException {
+		Object obj = installBundle(config, is, name, extensionVersion, closeStream, false);
 		if (!(obj instanceof BundleFile)) throw new BundleException("input is not an OSGi Bundle.");
 
 		BundleFile bf = (BundleFile) obj;
@@ -1100,12 +1099,11 @@ public final class XMLConfigAdmin {
 	 * @throws IOException
 	 * @throws BundleException
 	 */
-	public static Object installBundle(Config config, InputStream is, String name, String extensionVersion, boolean closeStream, boolean convert2bundle, boolean isPack200)
+	public static Object installBundle(Config config, InputStream is, String name, String extensionVersion, boolean closeStream, boolean convert2bundle)
 			throws IOException, BundleException {
-		Resource tmp = SystemUtil.getTempDirectory().getRealResource(isPack200 ? Pack200Util.removePack200Ext(name) : name);
+		Resource tmp = SystemUtil.getTempDirectory().getRealResource(name);
 		OutputStream os = tmp.getOutputStream();
-		if (isPack200) Pack200Util.pack2Jar(is, os, closeStream, true);
-		else IOUtil.copy(is, os, closeStream, true);
+		IOUtil.copy(is, os, closeStream, true);
 
 		BundleFile bf = installBundle(config, tmp, extensionVersion, convert2bundle);
 		if (bf != null) {
@@ -1627,8 +1625,8 @@ public final class XMLConfigAdmin {
 			}
 		}
 
-		if (!hasInsertAccess) throw new SecurityException("Unable to add a datasource connection, the maximum count of [" + maxLength + "] datasources has been reached. " 
-			+ " This can be configured in the Server Admin, under Security, Access");
+		if (!hasInsertAccess) throw new SecurityException("Unable to add a datasource connection, the maximum count of [" + maxLength + "] datasources has been reached. "
+				+ " This can be configured in the Server Admin, under Security, Access");
 
 		// Insert
 		Element el = doc.createElement("data-source");
@@ -4734,18 +4732,14 @@ public final class XMLConfigAdmin {
 			ZipEntry entry;
 			String path;
 			String fileName;
-			boolean isPack200;
 			while ((entry = zis.getNextEntry()) != null) {
 				path = entry.getName();
 				fileName = fileName(entry);
-				isPack200 = false;
 				// jars
-				if (!entry.isDirectory()
-						&& (startsWith(path, type, "jars") || startsWith(path, type, "jar") || startsWith(path, type, "bundles") || startsWith(path, type, "bundle")
-								|| startsWith(path, type, "lib") || startsWith(path, type, "libs"))
-						&& (StringUtil.endsWithIgnoreCase(path, ".jar") || (isPack200 = StringUtil.endsWithIgnoreCase(path, ".jar.pack.gz")))) {
+				if (!entry.isDirectory() && (startsWith(path, type, "jars") || startsWith(path, type, "jar") || startsWith(path, type, "bundles")
+						|| startsWith(path, type, "bundle") || startsWith(path, type, "lib") || startsWith(path, type, "libs")) && (StringUtil.endsWithIgnoreCase(path, ".jar"))) {
 
-					Object obj = XMLConfigAdmin.installBundle(config, zis, fileName, rhext.getVersion(), false, false, isPack200);
+					Object obj = XMLConfigAdmin.installBundle(config, zis, fileName, rhext.getVersion(), false, false);
 					// jar is not a bundle, only a regular jar
 					if (!(obj instanceof BundleFile)) {
 						Resource tmp = (Resource) obj;
