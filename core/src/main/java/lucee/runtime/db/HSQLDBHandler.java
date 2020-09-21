@@ -32,6 +32,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 import lucee.commons.db.DBUtil;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.StringUtil;
@@ -69,6 +70,23 @@ public final class HSQLDBHandler {
 	Executer executer = new Executer();
 	QoQ qoq = new QoQ();
 	private static Object lock = new SerializableObject();
+	private static boolean hsqldbDisable;
+	private static boolean hsqldbDebug;
+
+	static {
+		try {
+			hsqldbDisable = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.qoq.hsqldb.disable", "false"));
+		}
+		catch (PageException e) {
+			hsqldbDisable = false;
+		}
+		try {
+			hsqldbDebug = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.qoq.hsqldb.debug", "false"));
+		}
+		catch (PageException e) {
+			hsqldbDebug = false;
+		}
+	}
 
 	/**
 	 * constructor of the class
@@ -241,16 +259,18 @@ public final class HSQLDBHandler {
 		String prettySQL = null;
 		Selects selects = null;
 
+		Exception qoqException = null;
+
 		// First Chance
 		try {
 			SelectParser parser = new SelectParser();
 			selects = parser.parse(sql.getSQLString());
-			QueryImpl q = qoq.execute(pc, sql, selects, maxrows);
+			QueryImpl q = (QueryImpl) qoq.execute(pc, sql, selects, maxrows);
 			q.setExecutionTime(stopwatch.time());
 			return q;
 		}
 		catch (SQLParserException spe) {
-			// sp
+			qoqException = spe;
 			prettySQL = SQLPrettyfier.prettyfie(sql.getSQLString());
 			try {
 				QueryImpl query = executer.execute(pc, sql, prettySQL, maxrows);
@@ -260,8 +280,19 @@ public final class HSQLDBHandler {
 			catch (PageException ex) {}
 
 		}
-		catch (PageException e) {}
-		// if(true) throw new RuntimeException();
+		catch (PageException e) {
+			qoqException = e;
+		}
+
+		// Debugging option to completely disable HyperSQL for testing
+		if (qoqException != null && hsqldbDisable) {
+			throw Caster.toPageException(qoqException);
+		}
+
+		// Debugging option to to log all QoQ that fall back on hsqldb in the datasource log
+		if (qoqException != null && hsqldbDebug) {
+			pc.getConfig().getLog("datasource").error("QoQ [" + sql.getSQLString() + "] errored and is falling back to HyperSQL.", qoqException);
+		}
 
 		// SECOND Chance with hsqldb
 		try {
