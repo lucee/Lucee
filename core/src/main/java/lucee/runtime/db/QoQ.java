@@ -27,6 +27,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import lucee.commons.lang.CFTypes;
@@ -190,18 +191,18 @@ public final class QoQ {
 	}
 
 	/**
-	 * Process a single select statement. If this is a union, append it to the incoming "previous"
-	 * Query and return the new, combined query with all rows
+	 * Process a single select statement. If this is a union, append it to the incoming "previous" Query
+	 * and return the new, combined query with all rows
 	 * 
 	 * @param pc PageContext
 	 * @param select Select instance
 	 * @param source Source query to pull data from
-	 * @param previous Previous query in case of union. May be empty if this is the first select in
-	 *            the union
+	 * @param previous Previous query in case of union. May be empty if this is the first select in the
+	 *            union
 	 * @param maxrows max rows from cfquery tag. Not necessarily the same as TOP
 	 * @param sql SQL object
-	 * @param hasOrders Is this overall Selects instance ordered? This affects whether we can
-	 *            optimize maxrows or not
+	 * @param hasOrders Is this overall Selects instance ordered? This affects whether we can optimize
+	 *            maxrows or not
 	 * @param isUnion Is this select part of a union of several selects
 	 * @return
 	 * @throws PageException
@@ -448,7 +449,8 @@ public final class QoQ {
 		// Now that all rows are partioned, eliminate partions we don't need via the having clause
 		if (select.getHaving() != null) {
 			// Loop over each partition
-			for (Entry<String, Query> entry: queryPartitions.getPartitions().entrySet()) {
+			Set<Entry<String, Query>> set = queryPartitions.getPartitions().entrySet();
+			for (Entry<String, Query> entry: set.toArray(new Entry[set.size()])) {
 				// Eval the having clause on it
 				if (!Caster.toBooleanValue(executeExp(pc, sql, entry.getValue(), select.getHaving(), 1))) {
 					// Voted off the island :/
@@ -899,9 +901,8 @@ public final class QoQ {
 	 * *
 	 * 
 	 * @param expression / private void print(ZExpression expression) {
-	 * print.ln("Operator:"+expression.getOperator().toLowerCase()); int
-	 * len=expression.nbOperands(); for(int i=0;i<len;i++) { print.ln("	["+i+"]=	"
-	 * +expression.getOperand(i)); } }/*
+	 * print.ln("Operator:"+expression.getOperator().toLowerCase()); int len=expression.nbOperands();
+	 * for(int i=0;i<len;i++) { print.ln("	["+i+"]=	" +expression.getOperand(i)); } }/*
 	 * 
 	 * 
 	 * 
@@ -957,7 +958,8 @@ public final class QoQ {
 
 	private Object executeXor(PageContext pc, SQL sql, Query source, Operation2 expression, int row) throws PageException {
 		return Caster.toBooleanValue(executeExp(pc, sql, source, expression.getLeft(), row)) ^ Caster.toBooleanValue(executeExp(pc, sql, source, expression.getRight(), row))
-				? Boolean.TRUE : Boolean.FALSE;
+				? Boolean.TRUE
+				: Boolean.FALSE;
 	}
 
 	/**
