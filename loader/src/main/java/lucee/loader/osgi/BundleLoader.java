@@ -44,18 +44,6 @@ import lucee.loader.util.Util;
 
 public class BundleLoader {
 
-	/**
-	 * build (if necessary) a bundle and load it
-	 * 
-	 * @param engFac
-	 * @param cacheRootDir
-	 * @param jarDirectory
-	 * @param rc
-	 * @param old
-	 * @return
-	 * @throws IOException
-	 * @throws BundleException
-	 */
 	public static BundleCollection loadBundles(final CFMLEngineFactory engFac, final File cacheRootDir, final File jarDirectory, final File rc, final BundleCollection old)
 			throws IOException, BundleException {
 		// if (rc.getName().toLowerCase().toLowerCase().indexOf("ehcache") != -1)

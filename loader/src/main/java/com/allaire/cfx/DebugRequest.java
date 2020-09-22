@@ -37,11 +37,6 @@ public class DebugRequest implements Request {
 	private final Query query;
 	private final Struct settings;
 
-	/**
-	 * constructor of the class
-	 * 
-	 * @param attributes
-	 */
 	public DebugRequest(final Hashtable attributes) {
 		this(attributes, null, null);
 	}
@@ -54,7 +49,6 @@ public class DebugRequest implements Request {
 		this.attributes = toStruct(attributes);
 		this.query = query;
 		this.settings = toStruct(settings);
-
 	}
 
 	/**
@@ -65,34 +59,22 @@ public class DebugRequest implements Request {
 		return attributes.containsKey(key);
 	}
 
-	/**
-	 * @see com.allaire.cfx.Request#debug()
-	 */
 	@Override
 	public boolean debug() {
 		final Object o = attributes.get("debug", Boolean.FALSE);
 		return CFMLEngineFactory.getInstance().getCastUtil().toBooleanValue(o, false);
 	}
 
-	/**
-	 * @see com.allaire.cfx.Request#getAttribute(java.lang.String, java.lang.String)
-	 */
 	@Override
 	public String getAttribute(final String key, final String defaultValue) {
 		return CFMLEngineFactory.getInstance().getCastUtil().toString(attributes.get(key, defaultValue), defaultValue);
 	}
 
-	/**
-	 * @see com.allaire.cfx.Request#getAttribute(java.lang.String)
-	 */
 	@Override
 	public String getAttribute(final String key) {
 		return getAttribute(key, "");
 	}
 
-	/**
-	 * @see com.allaire.cfx.Request#getAttributeList()
-	 */
 	@Override
 	public String[] getAttributeList() {
 		final Iterator<Key> it = attributes.keyIterator();
@@ -102,9 +84,6 @@ public class DebugRequest implements Request {
 		return arr.toArray(new String[arr.size()]);
 	}
 
-	/**
-	 * @see com.allaire.cfx.Request#getIntAttribute(java.lang.String, int)
-	 */
 	@Override
 	public int getIntAttribute(final String key, final int defaultValue) {
 		final Object o = attributes.get(key, null);
@@ -112,25 +91,16 @@ public class DebugRequest implements Request {
 		return (int) CFMLEngineFactory.getInstance().getCastUtil().toDoubleValue(o, defaultValue);
 	}
 
-	/**
-	 * @see com.allaire.cfx.Request#getIntAttribute(java.lang.String)
-	 */
 	@Override
 	public int getIntAttribute(final String key) throws NumberFormatException {
 		return getIntAttribute(key, -1);
 	}
 
-	/**
-	 * @see com.allaire.cfx.Request#getQuery()
-	 */
 	@Override
 	public Query getQuery() {
 		return query;
 	}
 
-	/**
-	 * @see com.allaire.cfx.Request#getSetting(java.lang.String)
-	 */
 	@Override
 	public String getSetting(final String key) {
 		return settings == null ? "" : CFMLEngineFactory.getInstance().getCastUtil().toString(settings.get(key, ""), "");

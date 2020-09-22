@@ -35,9 +35,9 @@ public abstract class CFMLEngineFactorySupport {
 	/**
 	 * copy an inputstream to an outputstream
 	 * 
-	 * @param in
-	 * @param out
-	 * @throws IOException
+	 * @param in input stream
+	 * @param out output stream
+	 * @throws IOException in case the process fails
 	 */
 	public final static void copy(final InputStream in, final OutputStream out) throws IOException {
 		final byte[] buffer = new byte[0xffff];
@@ -55,7 +55,7 @@ public abstract class CFMLEngineFactorySupport {
 	/**
 	 * close inputstream without an Exception
 	 * 
-	 * @param is
+	 * @param is input stream
 	 */
 	public final static void closeEL(final InputStream is) {
 		try {
@@ -67,7 +67,7 @@ public abstract class CFMLEngineFactorySupport {
 	/**
 	 * close outputstream without an Exception
 	 * 
-	 * @param os
+	 * @param os output stream
 	 */
 	public final static void closeEL(final OutputStream os) {
 		try {
@@ -81,7 +81,7 @@ public abstract class CFMLEngineFactorySupport {
 	 * 
 	 * @param is InputStream to read data from.
 	 * @return readed data from InputStream
-	 * @throws IOException
+	 * @throws IOException io exception
 	 */
 	public static String toString(final InputStream is) throws IOException {
 		final BufferedReader br = new BufferedReader(new InputStreamReader(is));
@@ -100,7 +100,8 @@ public abstract class CFMLEngineFactorySupport {
 	/**
 	 * cast a lucee string version to an int version
 	 * 
-	 * @param version
+	 * @param version input version
+	 * @param defaultValue default value
 	 * @return int version
 	 */
 	public static Version toVersion(String version, final Version defaultValue) {

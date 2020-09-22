@@ -117,9 +117,6 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	// do not remove/ranme, grapped by core directly
 	protected ServletConfig config;
 
-	/**
-	 * Constructor of the class
-	 */
 	protected CFMLEngineFactory(final ServletConfig config) {
 		File logFile = null;
 		this.config = config;
@@ -150,9 +147,9 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	 * returns instance of this factory (singelton = always the same instance) do auto update when
 	 * changes occur
 	 *
-	 * @param config
+	 * @param config servlet config
 	 * @return Singelton Instance of the Factory
-	 * @throws ServletException
+	 * @throws ServletException servlet exception
 	 */
 	public synchronized static CFMLEngine getInstance(final ServletConfig config) throws ServletException {
 
@@ -179,7 +176,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	 * changes occur
 	 *
 	 * @return Singelton Instance of the Factory
-	 * @throws RuntimeException
+	 * @throws RuntimeException runtime exception
 	 */
 	public static CFMLEngine getInstance() throws RuntimeException {
 		if (singelton != null) return singelton;
@@ -190,18 +187,14 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		if (engine instanceof CFMLEngineWrapper) throw new RuntimeException("That should not happen!");
 		setEngine(engine);
 	}
-	// FUTURE
-	/*
-	 * public ServletConfig getServletConfig() { return config; }
-	 */
 
 	/**
 	 * returns instance of this factory (singelton always the same instance)
 	 *
-	 * @param config
-	 * @param listener
+	 * @param config servlet config
+	 * @param listener listener
 	 * @return Singelton Instance of the Factory
-	 * @throws ServletException
+	 * @throws ServletException servlet exception
 	 */
 	public static CFMLEngine getInstance(final ServletConfig config, final EngineChangeListener listener) throws ServletException {
 		getInstance(config);
@@ -553,43 +546,18 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 	}
 
-	/**
-	 * method to initialize an update of the CFML Engine. checks if there is a new Version and update it
-	 * when a new version is available
-	 *
-	 * @param password
-	 * @return has updated
-	 * @throws IOException
-	 * @throws ServletException
-	 */
 	public boolean update(final Password password, final Identification id) throws IOException, ServletException {
 		if (!singelton.can(CFMLEngine.CAN_UPDATE, password)) throw new IOException("Access denied to update CFMLEngine");
 		// new RunUpdate(this).start();
 		return _update(id);
 	}
 
-	/**
-	 * restart the cfml engine
-	 *
-	 * @param password
-	 * @return has updated
-	 * @throws IOException
-	 * @throws ServletException
-	 */
 	public boolean restart(final Password password) throws IOException, ServletException {
 		if (!singelton.can(CFMLEngine.CAN_RESTART_ALL, password)) throw new IOException("Access denied to restart CFMLEngine");
 
 		return _restart();
 	}
 
-	/**
-	 * restart the cfml engine
-	 *
-	 * @param password
-	 * @return has updated
-	 * @throws IOException
-	 * @throws ServletException
-	 */
 	public boolean restart(final String configId, final Password password) throws IOException, ServletException {
 		if (!singelton.can(CFMLEngine.CAN_RESTART_CONTEXT, password))// TODO restart single context
 			throw new IOException("Access denied to restart CFML Context (configId:" + configId + ")");
@@ -1108,10 +1076,10 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	 * method to initialize an update of the CFML Engine. checks if there is a new Version and update it
 	 * when a new version is available
 	 *
-	 * @param password
+	 * @param password password for lucee
 	 * @return has updated
-	 * @throws IOException
-	 * @throws ServletException
+	 * @throws IOException io exception
+	 * @throws ServletException servlet exception
 	 */
 	public boolean removeLatestUpdate(final Password password) throws IOException, ServletException {
 		if (!singelton.can(CFMLEngine.CAN_UPDATE, password)) throw new IOException("Access denied to update CFMLEngine");
@@ -1204,7 +1172,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	 * return directory to lucee resource root
 	 *
 	 * @return lucee root directory
-	 * @throws IOException
+	 * @throws IOException exception thrown
 	 */
 	public File getResourceRoot() throws IOException {
 		if (resourceRoot == null) {
