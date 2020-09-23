@@ -110,7 +110,7 @@ public class TagUtil {
 				k = e.getKey();
 				if (tlt != null) {
 					alias = tlt.getAttributeByAlias(k.toString());
-					if (alias != null) k = KeyImpl.getInstance(alias.getName()); // translate alias to canonical name
+					if (alias != null) k = KeyImpl.init(alias.getName()); // translate alias to canonical name
 				}
 				att.put(k, e.getValue());
 			}

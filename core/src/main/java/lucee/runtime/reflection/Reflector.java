@@ -80,8 +80,8 @@ import lucee.runtime.type.util.Type;
  */
 public final class Reflector {
 
-	private static final Collection.Key SET_ACCESSIBLE = KeyImpl.intern("setAccessible");
-	private static final Collection.Key EXIT = KeyImpl.intern("exit");
+	private static final Collection.Key SET_ACCESSIBLE = KeyImpl.getInstance("setAccessible");
+	private static final Collection.Key EXIT = KeyImpl.getInstance("exit");
 
 	private static WeakConstructorStorage cStorage = new WeakConstructorStorage();
 	private static WeakFieldStorage fStorage = new WeakFieldStorage();
@@ -701,8 +701,8 @@ public final class Reflector {
 	 * @throws NoSuchMethodException
 	 * @throws PageException
 	 */
-	public static MethodInstance getMethodInstance(Object obj, Class clazz, String methodName, Object[] args) throws NoSuchMethodException {
-		MethodInstance mi = getMethodInstanceEL(obj, clazz, KeyImpl.getInstance(methodName), args);
+	public static MethodInstance getMethodInstance(Object obj, Class clazz, Collection.Key methodName, Object[] args) throws NoSuchMethodException {
+		MethodInstance mi = getMethodInstanceEL(obj, clazz, methodName, args);
 		if (mi != null) return mi;
 
 		Class[] classes = getClasses(args);
@@ -864,7 +864,7 @@ public final class Reflector {
 	 * @throws PageException
 	 */
 	public static Object callMethod(Object obj, String methodName, Object[] args) throws PageException {
-		return callMethod(obj, KeyImpl.getInstance(methodName), args);
+		return callMethod(obj, KeyImpl.init(methodName), args);
 	}
 
 	public static Object callMethod(Object obj, Collection.Key methodName, Object[] args) throws PageException {
@@ -946,7 +946,7 @@ public final class Reflector {
 	 * @return return return value of the called Method
 	 * @throws PageException
 	 */
-	public static Object callStaticMethod(Class clazz, String methodName, Object[] args) throws PageException {
+	public static Object callStaticMethod(Class clazz, Collection.Key methodName, Object[] args) throws PageException {
 		try {
 			return getMethodInstance(null, clazz, methodName, args).invoke(null);
 		}
@@ -971,11 +971,11 @@ public final class Reflector {
 	 */
 	public static MethodInstance getGetter(Class clazz, String prop) throws PageException, NoSuchMethodException {
 		String getterName = "get" + StringUtil.ucFirst(prop);
-		MethodInstance mi = getMethodInstanceEL(null, clazz, KeyImpl.getInstance(getterName), ArrayUtil.OBJECT_EMPTY);
+		MethodInstance mi = getMethodInstanceEL(null, clazz, KeyImpl.init(getterName), ArrayUtil.OBJECT_EMPTY);
 
 		if (mi == null) {
 			String isName = "is" + StringUtil.ucFirst(prop);
-			mi = getMethodInstanceEL(null, clazz, KeyImpl.getInstance(isName), ArrayUtil.OBJECT_EMPTY);
+			mi = getMethodInstanceEL(null, clazz, KeyImpl.init(isName), ArrayUtil.OBJECT_EMPTY);
 			if (mi != null) {
 				Method m = mi.getMethod();
 				Class rtn = m.getReturnType();
@@ -1001,7 +1001,7 @@ public final class Reflector {
 	 */
 	public static MethodInstance getGetterEL(Class clazz, String prop) {
 		prop = "get" + StringUtil.ucFirst(prop);
-		MethodInstance mi = getMethodInstanceEL(null, clazz, KeyImpl.getInstance(prop), ArrayUtil.OBJECT_EMPTY);
+		MethodInstance mi = getMethodInstanceEL(null, clazz, KeyImpl.init(prop), ArrayUtil.OBJECT_EMPTY);
 		if (mi == null) return null;
 		if (mi.getMethod().getReturnType() == void.class) return null;
 		return mi;
@@ -1041,7 +1041,7 @@ public final class Reflector {
 	 */
 	public static MethodInstance getSetter(Object obj, String prop, Object value) throws NoSuchMethodException {
 		prop = "set" + StringUtil.ucFirst(prop);
-		MethodInstance mi = getMethodInstance(obj, obj.getClass(), prop, new Object[] { value });
+		MethodInstance mi = getMethodInstance(obj, obj.getClass(), KeyImpl.init(prop), new Object[] { value });
 		Method m = mi.getMethod();
 
 		if (m.getReturnType() != void.class)
@@ -1065,8 +1065,8 @@ public final class Reflector {
 	 * 
 	 * public static MethodInstance getSetterEL(Object obj, String prop,Object value) {
 	 * prop="set"+StringUtil.ucFirst(prop); MethodInstance mi =
-	 * getMethodInstanceEL(obj.getClass(),KeyImpl.getInstance(prop),new Object[]{value}); if(mi==null)
-	 * return null; Method m=mi.getMethod();
+	 * getMethodInstanceEL(obj.getClass(),KeyImpl.init(prop),new Object[]{value}); if(mi==null) return
+	 * null; Method m=mi.getMethod();
 	 * 
 	 * if(m.getReturnType()!=void.class) return null; return mi; }
 	 */
@@ -1081,7 +1081,7 @@ public final class Reflector {
 	 */
 	public static MethodInstance getSetter(Object obj, String prop, Object value, MethodInstance defaultValue) {
 		prop = "set" + StringUtil.ucFirst(prop);
-		MethodInstance mi = getMethodInstanceEL(obj, obj.getClass(), KeyImpl.getInstance(prop), new Object[] { value });
+		MethodInstance mi = getMethodInstanceEL(obj, obj.getClass(), KeyImpl.init(prop), new Object[] { value });
 		if (mi == null) return defaultValue;
 		Method m = mi.getMethod();
 

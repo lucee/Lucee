@@ -106,10 +106,10 @@ import lucee.runtime.util.PageContextUtil;
  **/
 public final class Query extends BodyTagTryCatchFinallyImpl {
 
-	private static final Collection.Key SQL_PARAMETERS = KeyImpl.intern("sqlparameters");
-	private static final Collection.Key CFQUERY = KeyImpl.intern("cfquery");
-	private static final Collection.Key GENERATEDKEY = KeyImpl.intern("generatedKey");
-	private static final Collection.Key MAX_RESULTS = KeyImpl.intern("maxResults");
+	private static final Collection.Key SQL_PARAMETERS = KeyImpl.getInstance("sqlparameters");
+	private static final Collection.Key CFQUERY = KeyImpl.getInstance("cfquery");
+	private static final Collection.Key GENERATEDKEY = KeyImpl.getInstance("generatedKey");
+	private static final Collection.Key MAX_RESULTS = KeyImpl.getInstance("maxResults");
 	private static final Collection.Key TIMEOUT = KeyConstants._timeout;
 
 	public static final int RETURN_TYPE_UNDEFINED = 0;

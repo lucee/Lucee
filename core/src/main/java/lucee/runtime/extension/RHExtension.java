@@ -89,25 +89,24 @@ public class RHExtension implements Serializable {
 
 	private static final long serialVersionUID = 2904020095330689714L;
 
-	// public static final Key JARS = KeyImpl.init("jars");
-	private static final Key BUNDLES = KeyImpl.init("bundles");
-	private static final Key TLDS = KeyImpl.init("tlds");
-	private static final Key FLDS = KeyImpl.init("flds");
-	private static final Key EVENT_GATEWAYS = KeyImpl.init("eventGateways");
-	private static final Key TAGS = KeyImpl.init("tags");
+	private static final Key BUNDLES = KeyImpl.getInstance("bundles");
+	private static final Key TLDS = KeyImpl.getInstance("tlds");
+	private static final Key FLDS = KeyImpl.getInstance("flds");
+	private static final Key EVENT_GATEWAYS = KeyImpl.getInstance("eventGateways");
+	private static final Key TAGS = KeyImpl.getInstance("tags");
 	private static final Key FUNCTIONS = KeyConstants._functions;
-	private static final Key ARCHIVES = KeyImpl.init("archives");
-	private static final Key CONTEXTS = KeyImpl.init("contexts");
-	private static final Key WEBCONTEXTS = KeyImpl.init("webcontexts");
-	private static final Key CONFIG = KeyImpl.init("config");
-	private static final Key COMPONENTS = KeyImpl.init("components");
-	private static final Key APPLICATIONS = KeyImpl.init("applications");
-	private static final Key CATEGORIES = KeyImpl.init("categories");
-	private static final Key PLUGINS = KeyImpl.init("plugins");
-	private static final Key START_BUNDLES = KeyImpl.init("startBundles");
-	private static final Key TRIAL = KeyImpl.init("trial");
-	private static final Key RELEASE_TYPE = KeyImpl.init("releaseType");
-	private static final Key SYMBOLIC_NAME = KeyImpl.init("symbolicName");
+	private static final Key ARCHIVES = KeyImpl.getInstance("archives");
+	private static final Key CONTEXTS = KeyImpl.getInstance("contexts");
+	private static final Key WEBCONTEXTS = KeyImpl.getInstance("webcontexts");
+	private static final Key CONFIG = KeyConstants._config;
+	private static final Key COMPONENTS = KeyImpl.getInstance("components");
+	private static final Key APPLICATIONS = KeyImpl.getInstance("applications");
+	private static final Key CATEGORIES = KeyImpl.getInstance("categories");
+	private static final Key PLUGINS = KeyImpl.getInstance("plugins");
+	private static final Key START_BUNDLES = KeyImpl.getInstance("startBundles");
+	private static final Key TRIAL = KeyImpl.getInstance("trial");
+	private static final Key RELEASE_TYPE = KeyImpl.getInstance("releaseType");
+	private static final Key SYMBOLIC_NAME = KeyImpl.getInstance("symbolicName");
 
 	private static final String[] EMPTY = new String[0];
 	private static final BundleDefinition[] EMPTY_BD = new BundleDefinition[0];

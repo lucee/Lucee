@@ -75,7 +75,7 @@ public class MemberUtil {
 				if (!ArrayUtil.isEmpty(names) && f.getMemberType() == type && f.getArgType() == FunctionLibFunction.ARG_FIX) {
 					for (int y = 0; y < names.length; y++)
 
-						match.put(KeyImpl.getInstance(names[y]), f);
+						match.put(KeyImpl.init(names[y]), f);
 				}
 			}
 		}

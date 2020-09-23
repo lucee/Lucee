@@ -57,13 +57,13 @@ public class CatchBlockImpl extends StructImpl implements CatchBlock, Castable, 
 
 	private static final long serialVersionUID = -3680961614605720352L;
 
-	public static final Key ERROR_CODE = KeyImpl.intern("ErrorCode");
-	public static final Key CAUSE = KeyImpl.intern("Cause");
-	public static final Key EXTENDEDINFO = KeyImpl.intern("ExtendedInfo");
-	public static final Key EXTENDED_INFO = KeyImpl.intern("Extended_Info");
-	public static final Key TAG_CONTEXT = KeyImpl.intern("TagContext");
-	public static final Key STACK_TRACE = KeyImpl.intern("StackTrace");
-	public static final Key ADDITIONAL = KeyImpl.intern("additional");
+	public static final Key ERROR_CODE = KeyImpl.getInstance("ErrorCode");
+	public static final Key CAUSE = KeyConstants._Cause;
+	public static final Key EXTENDEDINFO = KeyImpl.getInstance("ExtendedInfo");
+	public static final Key EXTENDED_INFO = KeyImpl.getInstance("Extended_Info");
+	public static final Key TAG_CONTEXT = KeyImpl.getInstance("TagContext");
+	public static final Key STACK_TRACE = KeyImpl.getInstance("StackTrace");
+	public static final Key ADDITIONAL = KeyImpl.getInstance("additional");
 
 	private PageException exception;
 

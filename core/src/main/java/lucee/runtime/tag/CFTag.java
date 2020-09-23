@@ -76,21 +76,21 @@ import lucee.transformer.library.tag.TagLibTagScript;
  **/
 public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttributes, AppendixTag {
 
-	private static Collection.Key GENERATED_CONTENT = KeyImpl.intern("GENERATEDCONTENT");
-	private static Collection.Key EXECUTION_MODE = KeyImpl.intern("EXECUTIONMODE");
-	private static Collection.Key EXECUTE_BODY = KeyImpl.intern("EXECUTEBODY");
-	private static Collection.Key PARENT = KeyImpl.intern("PARENT");
+	private static Collection.Key GENERATED_CONTENT = KeyConstants._GENERATEDCONTENT;
+	private static Collection.Key EXECUTION_MODE = KeyConstants._EXECUTIONMODE;
+	private static Collection.Key EXECUTE_BODY = KeyConstants._EXECUTEBODY;
+	private static Collection.Key PARENT = KeyConstants._PARENT;
 	private static Collection.Key CFCATCH = KeyConstants._CFCATCH;
-	private static Collection.Key SOURCE = KeyImpl.intern("SOURCE");
+	private static Collection.Key SOURCE = KeyConstants._SOURCE;
 
-	private static final Collection.Key ON_ERROR = KeyImpl.intern("onError");
-	private static final Collection.Key ON_FINALLY = KeyImpl.intern("onFinally");
-	private static final Collection.Key ON_START_TAG = KeyImpl.intern("onStartTag");
-	private static final Collection.Key ON_END_TAG = KeyImpl.intern("onEndTag");
+	private static final Collection.Key ON_ERROR = KeyConstants._onError;
+	private static final Collection.Key ON_FINALLY = KeyConstants._onFinally;
+	private static final Collection.Key ON_START_TAG = KeyConstants._onStartTag;
+	private static final Collection.Key ON_END_TAG = KeyConstants._onEndTag;
 
-	private static final Collection.Key ATTRIBUTE_TYPE = KeyImpl.intern("attributetype");
-	private static final Collection.Key SCRIPT = KeyImpl.intern("script");
-	private static final Collection.Key RT_EXPR_VALUE = KeyImpl.intern("rtexprvalue");
+	private static final Collection.Key ATTRIBUTE_TYPE = KeyImpl.getInstance("attributetype");
+	private static final Collection.Key SCRIPT = KeyConstants._script;
+	private static final Collection.Key RT_EXPR_VALUE = KeyImpl.getInstance("rtexprvalue");
 	private static final String MARKER = "2w12801";
 
 	/**

@@ -48,7 +48,7 @@ import lucee.runtime.type.util.KeyConstants;
 public final class CallStackGet implements Function {
 
 	private static final long serialVersionUID = -5853145189662102420L;
-	static final Collection.Key LINE_NUMBER = KeyImpl.init("LineNumber");
+	static final Collection.Key LINE_NUMBER = KeyImpl.getInstance("LineNumber");
 
 	public static Object call(PageContext pc) {
 		Array arr = new ArrayImpl();

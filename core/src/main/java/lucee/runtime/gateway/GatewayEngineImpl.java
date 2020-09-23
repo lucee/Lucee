@@ -63,7 +63,7 @@ public class GatewayEngineImpl implements GatewayEngine {
 
 	private static final Object OBJ = new Object();
 
-	private static final Collection.Key AMF_FORWARD = KeyImpl.init("AMF-Forward");
+	private static final Collection.Key AMF_FORWARD = KeyImpl.getInstance("AMF-Forward");
 
 	private Map<String, GatewayEntry> entries = new HashMap<String, GatewayEntry>();
 	private ConfigWeb config;

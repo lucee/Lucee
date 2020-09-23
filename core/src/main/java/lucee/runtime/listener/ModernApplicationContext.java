@@ -105,64 +105,64 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 
 	private static final Collection.Key APPLICATION_TIMEOUT = KeyConstants._applicationTimeout;
 	private static final Collection.Key CLIENT_MANAGEMENT = KeyConstants._clientManagement;
-	private static final Collection.Key CLIENT_STORAGE = KeyImpl.intern("clientStorage");
-	private static final Collection.Key SESSION_STORAGE = KeyImpl.intern("sessionStorage");
-	private static final Collection.Key LOGIN_STORAGE = KeyImpl.intern("loginStorage");
-	private static final Collection.Key SESSION_TYPE = KeyImpl.intern("sessionType");
-	private static final Collection.Key WS_SETTINGS = KeyImpl.intern("wssettings");
-	private static final Collection.Key WS_SETTING = KeyImpl.intern("wssetting");
-	private static final Collection.Key TRIGGER_DATA_MEMBER = KeyImpl.intern("triggerDataMember");
-	private static final Collection.Key INVOKE_IMPLICIT_ACCESSOR = KeyImpl.intern("InvokeImplicitAccessor");
-	private static final Collection.Key SESSION_MANAGEMENT = KeyImpl.intern("sessionManagement");
-	private static final Collection.Key SESSION_TIMEOUT = KeyImpl.intern("sessionTimeout");
-	private static final Collection.Key CLIENT_TIMEOUT = KeyImpl.intern("clientTimeout");
-	private static final Collection.Key REQUEST_TIMEOUT = KeyImpl.intern("requestTimeout");
-	private static final Collection.Key SET_CLIENT_COOKIES = KeyImpl.intern("setClientCookies");
-	private static final Collection.Key SET_DOMAIN_COOKIES = KeyImpl.intern("setDomainCookies");
-	private static final Collection.Key SCRIPT_PROTECT = KeyImpl.intern("scriptProtect");
-	private static final Collection.Key CUSTOM_TAG_PATHS = KeyImpl.intern("customtagpaths");
-	private static final Collection.Key COMPONENT_PATHS = KeyImpl.intern("componentpaths");
-	private static final Collection.Key FUNCTION_PATHS = KeyImpl.intern("functionpaths");
-	private static final Collection.Key SECURE_JSON_PREFIX = KeyImpl.intern("secureJsonPrefix");
-	private static final Collection.Key SECURE_JSON = KeyImpl.intern("secureJson");
-	private static final Collection.Key LOCAL_MODE = KeyImpl.intern("localMode");
-	private static final Collection.Key BUFFER_OUTPUT = KeyImpl.intern("bufferOutput");
-	private static final Collection.Key SESSION_CLUSTER = KeyImpl.intern("sessionCluster");
-	private static final Collection.Key CLIENT_CLUSTER = KeyImpl.intern("clientCluster");
+	private static final Collection.Key CLIENT_STORAGE = KeyImpl.getInstance("clientStorage");
+	private static final Collection.Key SESSION_STORAGE = KeyImpl.getInstance("sessionStorage");
+	private static final Collection.Key LOGIN_STORAGE = KeyImpl.getInstance("loginStorage");
+	private static final Collection.Key SESSION_TYPE = KeyImpl.getInstance("sessionType");
+	private static final Collection.Key WS_SETTINGS = KeyImpl.getInstance("wssettings");
+	private static final Collection.Key WS_SETTING = KeyImpl.getInstance("wssetting");
+	private static final Collection.Key TRIGGER_DATA_MEMBER = KeyImpl.getInstance("triggerDataMember");
+	private static final Collection.Key INVOKE_IMPLICIT_ACCESSOR = KeyImpl.getInstance("InvokeImplicitAccessor");
+	private static final Collection.Key SESSION_MANAGEMENT = KeyImpl.getInstance("sessionManagement");
+	private static final Collection.Key SESSION_TIMEOUT = KeyImpl.getInstance("sessionTimeout");
+	private static final Collection.Key CLIENT_TIMEOUT = KeyImpl.getInstance("clientTimeout");
+	private static final Collection.Key REQUEST_TIMEOUT = KeyImpl.getInstance("requestTimeout");
+	private static final Collection.Key SET_CLIENT_COOKIES = KeyImpl.getInstance("setClientCookies");
+	private static final Collection.Key SET_DOMAIN_COOKIES = KeyImpl.getInstance("setDomainCookies");
+	private static final Collection.Key SCRIPT_PROTECT = KeyImpl.getInstance("scriptProtect");
+	private static final Collection.Key CUSTOM_TAG_PATHS = KeyImpl.getInstance("customtagpaths");
+	private static final Collection.Key COMPONENT_PATHS = KeyImpl.getInstance("componentpaths");
+	private static final Collection.Key FUNCTION_PATHS = KeyImpl.getInstance("functionpaths");
+	private static final Collection.Key SECURE_JSON_PREFIX = KeyImpl.getInstance("secureJsonPrefix");
+	private static final Collection.Key SECURE_JSON = KeyImpl.getInstance("secureJson");
+	private static final Collection.Key LOCAL_MODE = KeyImpl.getInstance("localMode");
+	private static final Collection.Key BUFFER_OUTPUT = KeyImpl.getInstance("bufferOutput");
+	private static final Collection.Key SESSION_CLUSTER = KeyImpl.getInstance("sessionCluster");
+	private static final Collection.Key CLIENT_CLUSTER = KeyImpl.getInstance("clientCluster");
 
-	private static final Collection.Key DEFAULT_DATA_SOURCE = KeyImpl.intern("defaultdatasource");
-	private static final Collection.Key DEFAULT_CACHE = KeyImpl.intern("defaultcache");
+	private static final Collection.Key DEFAULT_DATA_SOURCE = KeyImpl.getInstance("defaultdatasource");
+	private static final Collection.Key DEFAULT_CACHE = KeyImpl.getInstance("defaultcache");
 
-	private static final Collection.Key ORM_ENABLED = KeyImpl.intern("ormenabled");
-	private static final Collection.Key ORM_SETTINGS = KeyImpl.intern("ormsettings");
-	private static final Collection.Key IN_MEMORY_FILESYSTEM = KeyImpl.intern("inmemoryfilesystem");
-	private static final Collection.Key REST_SETTING = KeyImpl.intern("restsettings");
-	private static final Collection.Key JAVA_SETTING = KeyImpl.intern("javasettings");
-	private static final Collection.Key SCOPE_CASCADING = KeyImpl.intern("scopeCascading");
-	private static final Collection.Key SEARCH_IMPLICIT_SCOPES = KeyImpl.intern("searchImplicitScopes");
-	private static final Collection.Key TYPE_CHECKING = KeyImpl.intern("typeChecking");
-	private static final Collection.Key CGI_READONLY = KeyImpl.intern("CGIReadOnly");
-	private static final Collection.Key SUPPRESS_CONTENT = KeyImpl.intern("suppressRemoteComponentContent");
-	private static final Collection.Key LOGS = KeyImpl.intern("logs");
-	private static final Collection.Key LOG = KeyImpl.intern("log");
+	private static final Collection.Key ORM_ENABLED = KeyImpl.getInstance("ormenabled");
+	private static final Collection.Key ORM_SETTINGS = KeyImpl.getInstance("ormsettings");
+	private static final Collection.Key IN_MEMORY_FILESYSTEM = KeyImpl.getInstance("inmemoryfilesystem");
+	private static final Collection.Key REST_SETTING = KeyImpl.getInstance("restsettings");
+	private static final Collection.Key JAVA_SETTING = KeyImpl.getInstance("javasettings");
+	private static final Collection.Key SCOPE_CASCADING = KeyImpl.getInstance("scopeCascading");
+	private static final Collection.Key SEARCH_IMPLICIT_SCOPES = KeyImpl.getInstance("searchImplicitScopes");
+	private static final Collection.Key TYPE_CHECKING = KeyImpl.getInstance("typeChecking");
+	private static final Collection.Key CGI_READONLY = KeyImpl.getInstance("CGIReadOnly");
+	private static final Collection.Key SUPPRESS_CONTENT = KeyImpl.getInstance("suppressRemoteComponentContent");
+	private static final Collection.Key LOGS = KeyImpl.getInstance("logs");
+	private static final Collection.Key LOG = KeyImpl.getInstance("log");
 
-	private static final Collection.Key SESSION_COOKIE = KeyImpl.intern("sessioncookie");
-	private static final Collection.Key AUTH_COOKIE = KeyImpl.intern("authcookie");
+	private static final Collection.Key SESSION_COOKIE = KeyImpl.getInstance("sessioncookie");
+	private static final Collection.Key AUTH_COOKIE = KeyImpl.getInstance("authcookie");
 
-	private static final Key ENABLE_NULL_SUPPORT = KeyImpl.intern("enableNULLSupport");
-	private static final Key NULL_SUPPORT = KeyImpl.intern("nullSupport");
-	private static final Key PSQ = KeyImpl.intern("psq");
-	private static final Key PSQ_LONG = KeyImpl.intern("preservesinglequote");
-	private static final Key VAR_USAGE = KeyImpl.intern("varusage");
-	private static final Key VARIABLE_USAGE = KeyImpl.intern("variableusage");
-	private static final Key CACHED_AFTER = KeyImpl.intern("cachedAfter");
-	private static final Key BLOCKED_EXT_FOR_FILE_UPLOAD = KeyImpl.intern("blockedExtForFileUpload");
-	private static final Key XML_FEATURES = KeyImpl.intern("xmlFeatures");
-	private static final Key SEARCH_QUERIES = KeyImpl.intern("searchQueries");
-	private static final Key SEARCH_RESULTS = KeyImpl.intern("searchResults");
-	private static final Key REGEX = KeyImpl.intern("regex");
-	private static final Key ENGINE = KeyImpl.intern("engine");
-	private static final Key DIALECT = KeyImpl.intern("dialect");
+	private static final Key ENABLE_NULL_SUPPORT = KeyImpl.getInstance("enableNULLSupport");
+	private static final Key NULL_SUPPORT = KeyImpl.getInstance("nullSupport");
+	private static final Key PSQ = KeyImpl.getInstance("psq");
+	private static final Key PSQ_LONG = KeyImpl.getInstance("preservesinglequote");
+	private static final Key VAR_USAGE = KeyImpl.getInstance("varusage");
+	private static final Key VARIABLE_USAGE = KeyImpl.getInstance("variableusage");
+	private static final Key CACHED_AFTER = KeyImpl.getInstance("cachedAfter");
+	private static final Key BLOCKED_EXT_FOR_FILE_UPLOAD = KeyImpl.getInstance("blockedExtForFileUpload");
+	private static final Key XML_FEATURES = KeyImpl.getInstance("xmlFeatures");
+	private static final Key SEARCH_QUERIES = KeyImpl.getInstance("searchQueries");
+	private static final Key SEARCH_RESULTS = KeyImpl.getInstance("searchResults");
+	private static final Key REGEX = KeyImpl.getInstance("regex");
+	private static final Key ENGINE = KeyImpl.getInstance("engine");
+	private static final Key DIALECT = KeyConstants._dialect;
 
 	private static Map<String, CacheConnection> initCacheConnections = new ConcurrentHashMap<String, CacheConnection>();
 
@@ -740,11 +740,11 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		boolean oldURL = pc.getApplicationContext().getSameFieldAsArray(Scope.SCOPE_URL);
 
 		// Form
-		Object o = get(component, KeyImpl.init("sameformfieldsasarray"), null);
+		Object o = get(component, KeyConstants._sameformfieldsasarray, null);
 		if (o != null && Decision.isBoolean(o)) sameFormFieldAsArray = Caster.toBooleanValue(o, false);
 
 		// URL
-		o = get(component, KeyImpl.init("sameurlfieldsasarray"), null);
+		o = get(component, KeyConstants._sameurlfieldsasarray, null);
 		if (o != null && Decision.isBoolean(o)) sameURLFieldAsArray = Caster.toBooleanValue(o, false);
 
 		if (oldForm != sameFormFieldAsArray) pc.formScope().reinitialize(this);

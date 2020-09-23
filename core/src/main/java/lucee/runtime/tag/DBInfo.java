@@ -66,30 +66,30 @@ import lucee.runtime.type.util.KeyConstants;
  **/
 public final class DBInfo extends TagImpl {
 
-	private static final Key TABLE_NAME = KeyImpl.intern("TABLE_NAME");
-	private static final Key COLUMN_NAME = KeyImpl.intern("COLUMN_NAME");
-	private static final Key IS_PRIMARYKEY = KeyImpl.intern("IS_PRIMARYKEY");
-	private static final Key IS_FOREIGNKEY = KeyImpl.intern("IS_FOREIGNKEY");
-	private static final Key COLUMN_DEF = KeyImpl.intern("COLUMN_DEF");
-	private static final Key COLUMN_DEFAULT_VALUE = KeyImpl.intern("COLUMN_DEFAULT_VALUE");
-	private static final Key COLUMN_DEFAULT = KeyImpl.intern("COLUMN_DEFAULT");
-	private static final Key REFERENCED_PRIMARYKEY = KeyImpl.intern("REFERENCED_PRIMARYKEY");
-	private static final Key REFERENCED_PRIMARYKEY_TABLE = KeyImpl.intern("REFERENCED_PRIMARYKEY_TABLE");
-	private static final Key USER = KeyImpl.intern("USER");
-	private static final Key TABLE_SCHEM = KeyImpl.intern("TABLE_SCHEM");
-	private static final Key DECIMAL_DIGITS = KeyImpl.intern("DECIMAL_DIGITS");
+	private static final Key TABLE_NAME = KeyImpl.getInstance("TABLE_NAME");
+	private static final Key COLUMN_NAME = KeyImpl.getInstance("COLUMN_NAME");
+	private static final Key IS_PRIMARYKEY = KeyImpl.getInstance("IS_PRIMARYKEY");
+	private static final Key IS_FOREIGNKEY = KeyImpl.getInstance("IS_FOREIGNKEY");
+	private static final Key COLUMN_DEF = KeyImpl.getInstance("COLUMN_DEF");
+	private static final Key COLUMN_DEFAULT_VALUE = KeyImpl.getInstance("COLUMN_DEFAULT_VALUE");
+	private static final Key COLUMN_DEFAULT = KeyImpl.getInstance("COLUMN_DEFAULT");
+	private static final Key REFERENCED_PRIMARYKEY = KeyImpl.getInstance("REFERENCED_PRIMARYKEY");
+	private static final Key REFERENCED_PRIMARYKEY_TABLE = KeyImpl.getInstance("REFERENCED_PRIMARYKEY_TABLE");
+	private static final Key USER = KeyConstants._USER;
+	private static final Key TABLE_SCHEM = KeyImpl.getInstance("TABLE_SCHEM");
+	private static final Key DECIMAL_DIGITS = KeyImpl.getInstance("DECIMAL_DIGITS");
 
-	private static final Key DATABASE_NAME = KeyImpl.intern("database_name");
-	private static final Key TABLE_CAT = KeyImpl.intern("TABLE_CAT");
-	private static final Key PROCEDURE = KeyImpl.intern("procedure");
-	private static final Key CATALOG = KeyImpl.intern("catalog");
-	private static final Key SCHEMA = KeyImpl.intern("schema");
-	private static final Key DATABASE_PRODUCTNAME = KeyImpl.intern("DATABASE_PRODUCTNAME");
-	private static final Key DATABASE_VERSION = KeyImpl.intern("DATABASE_VERSION");
-	private static final Key DRIVER_NAME = KeyImpl.intern("DRIVER_NAME");
-	private static final Key DRIVER_VERSION = KeyImpl.intern("DRIVER_VERSION");
-	private static final Key JDBC_MAJOR_VERSION = KeyImpl.intern("JDBC_MAJOR_VERSION");
-	private static final Key JDBC_MINOR_VERSION = KeyImpl.intern("JDBC_MINOR_VERSION");
+	private static final Key DATABASE_NAME = KeyImpl.getInstance("database_name");
+	private static final Key TABLE_CAT = KeyImpl.getInstance("TABLE_CAT");
+	private static final Key PROCEDURE = KeyImpl.getInstance("procedure");
+	private static final Key CATALOG = KeyConstants._catalog;
+	private static final Key SCHEMA = KeyConstants._schema;
+	private static final Key DATABASE_PRODUCTNAME = KeyImpl.getInstance("DATABASE_PRODUCTNAME");
+	private static final Key DATABASE_VERSION = KeyImpl.getInstance("DATABASE_VERSION");
+	private static final Key DRIVER_NAME = KeyImpl.getInstance("DRIVER_NAME");
+	private static final Key DRIVER_VERSION = KeyImpl.getInstance("DRIVER_VERSION");
+	private static final Key JDBC_MAJOR_VERSION = KeyImpl.getInstance("JDBC_MAJOR_VERSION");
+	private static final Key JDBC_MINOR_VERSION = KeyImpl.getInstance("JDBC_MINOR_VERSION");
 
 	private static final int TYPE_NONE = 0;
 	private static final int TYPE_DBNAMES = 1;
@@ -102,7 +102,7 @@ public final class DBInfo extends TagImpl {
 	private static final int TYPE_INDEX = 8;
 	private static final int TYPE_USERS = 9;
 	private static final int TYPE_TERMS = 10;
-	private static final Collection.Key CARDINALITY = KeyImpl.init("CARDINALITY");
+	private static final Collection.Key CARDINALITY = KeyImpl.getInstance("CARDINALITY");
 
 	private DataSource datasource;
 	private String name;

@@ -94,6 +94,7 @@ import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.util.KeyConstants;
 
 /**
  *
@@ -102,22 +103,22 @@ public final class XMLUtil {
 
 	public static final short UNDEFINED_NODE = -1;
 
-	public static final Collection.Key XMLCOMMENT = KeyImpl.intern("xmlcomment");
-	public static final Collection.Key XMLTEXT = KeyImpl.intern("xmltext");
-	public static final Collection.Key XMLCDATA = KeyImpl.intern("xmlcdata");
-	public static final Collection.Key XMLCHILDREN = KeyImpl.intern("xmlchildren");
-	public static final Collection.Key XMLNODES = KeyImpl.intern("xmlnodes");
-	public static final Collection.Key XMLNSURI = KeyImpl.intern("xmlnsuri");
-	public static final Collection.Key XMLNSPREFIX = KeyImpl.intern("xmlnsprefix");
-	public static final Collection.Key XMLROOT = KeyImpl.intern("xmlroot");
-	public static final Collection.Key XMLPARENT = KeyImpl.intern("xmlparent");
-	public static final Collection.Key XMLNAME = KeyImpl.intern("xmlname");
-	public static final Collection.Key XMLTYPE = KeyImpl.intern("xmltype");
-	public static final Collection.Key XMLVALUE = KeyImpl.intern("xmlvalue");
-	public static final Collection.Key XMLATTRIBUTES = KeyImpl.intern("xmlattributes");
-	public static final Collection.Key KEY_FEATURE_SECURE = KeyImpl.intern("secure");
-	public static final Collection.Key KEY_FEATURE_DISALLOW_DOCTYPE_DECL = KeyImpl.intern("disallowDoctypeDecl");
-	public static final Collection.Key KEY_FEATURE_EXTERNAL_GENERAL_ENTITIES = KeyImpl.intern("externalGeneralEntities");
+	public static final Collection.Key XMLCOMMENT = KeyImpl.getInstance("xmlcomment");
+	public static final Collection.Key XMLTEXT = KeyImpl.getInstance("xmltext");
+	public static final Collection.Key XMLCDATA = KeyImpl.getInstance("xmlcdata");
+	public static final Collection.Key XMLCHILDREN = KeyImpl.getInstance("xmlchildren");
+	public static final Collection.Key XMLNODES = KeyImpl.getInstance("xmlnodes");
+	public static final Collection.Key XMLNSURI = KeyImpl.getInstance("xmlnsuri");
+	public static final Collection.Key XMLNSPREFIX = KeyImpl.getInstance("xmlnsprefix");
+	public static final Collection.Key XMLROOT = KeyImpl.getInstance("xmlroot");
+	public static final Collection.Key XMLPARENT = KeyImpl.getInstance("xmlparent");
+	public static final Collection.Key XMLNAME = KeyImpl.getInstance("xmlname");
+	public static final Collection.Key XMLTYPE = KeyImpl.getInstance("xmltype");
+	public static final Collection.Key XMLVALUE = KeyImpl.getInstance("xmlvalue");
+	public static final Collection.Key XMLATTRIBUTES = KeyImpl.getInstance("xmlattributes");
+	public static final Collection.Key KEY_FEATURE_SECURE = KeyConstants._secure;
+	public static final Collection.Key KEY_FEATURE_DISALLOW_DOCTYPE_DECL = KeyImpl.getInstance("disallowDoctypeDecl");
+	public static final Collection.Key KEY_FEATURE_EXTERNAL_GENERAL_ENTITIES = KeyImpl.getInstance("externalGeneralEntities");
 
 	// public final static String
 	// DEFAULT_SAX_PARSER="org.apache.xerces.parsers.SAXParser";
@@ -1443,8 +1444,8 @@ public final class XMLUtil {
 				else str = "XML File [" + res.getAbsolutePath() + "] is invalid;" + saxe.getMessage();
 
 				XMLException se = new XMLException(str);
-				se.setAdditional(KeyImpl.init("path"), res.getAbsolutePath());
-				se.setAdditional(KeyImpl.init("content"), content);
+				se.setAdditional(KeyConstants._path, res.getAbsolutePath());
+				se.setAdditional(KeyConstants._content, content);
 				se.setStackTrace(saxe.getStackTrace());
 
 				throw se;

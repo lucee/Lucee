@@ -788,7 +788,7 @@ public final class ComponentUtil {
 		func.set(KeyConstants._name, udf.getFunctionName());
 		func.set(KeyConstants._output, Caster.toBoolean(udf.getOutput()));
 		func.set(KeyConstants._returntype, udf.getReturnTypeAsString());
-		func.set("modifier", udf.getModifier() == Component.MODIFIER_NONE ? "" : ComponentUtil.toModifier(udf.getModifier(), ""));
+		func.set(KeyConstants._modifier, udf.getModifier() == Component.MODIFIER_NONE ? "" : ComponentUtil.toModifier(udf.getModifier(), ""));
 		func.set(KeyConstants._description, udf.getDescription());
 		if (udf.getLocalMode() != null) func.set("localMode", AppListenerUtil.toLocalMode(udf.getLocalMode().intValue(), ""));
 
@@ -796,9 +796,9 @@ public final class ComponentUtil {
 
 		if (udf.getStartLine() > 0 && udf.getEndLine() > 0) {
 			Struct pos = new StructImpl();
-			pos.set("start", udf.getStartLine());
-			pos.set("end", udf.getEndLine());
-			func.setEL("position", pos);
+			pos.set(KeyConstants._start, udf.getStartLine());
+			pos.set(KeyConstants._end, udf.getEndLine());
+			func.setEL(KeyConstants._position, pos);
 		}
 
 		int format = udf.getReturnFormat();

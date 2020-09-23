@@ -155,6 +155,7 @@ import lucee.runtime.schedule.SchedulerImpl;
 import lucee.runtime.thread.ThreadUtil;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
+import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.util.Cast;
 import lucee.runtime.util.ClassUtil;
 import lucee.runtime.util.ClassUtilImpl;
@@ -1769,7 +1770,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				if (config instanceof ConfigWeb) {
 					Pair[] headers = new Pair[] { new Pair<String, Object>("AMF-Forward", "true") };
 					Struct attrs = new StructImpl();
-					attrs.setEL("client", "lucee-listener-1-0");
+					attrs.setEL(KeyConstants._client, "lucee-listener-1-0");
 
 					pc = ThreadUtil.createPageContext((ConfigWeb) config, DevNullOutputStream.DEV_NULL_OUTPUT_STREAM, "localhost", requestURI, queryString, new Cookie[0], headers,
 							null, new Pair[0], attrs, true, Long.MAX_VALUE);

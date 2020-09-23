@@ -39,10 +39,10 @@ import lucee.runtime.type.util.KeyConstants;
 
 class Surveillance {
 
-	private static final Collection.Key PAGE_POOL = KeyImpl.intern("pagePool");
-	private static final Collection.Key CLASS_LOADER = KeyImpl.intern("classLoader");
-	private static final Collection.Key QUERY_CACHE = KeyImpl.intern("queryCache");
-	private static final Collection.Key PAGE_CONTEXT_STACK = KeyImpl.intern("pageContextStack");
+	private static final Collection.Key PAGE_POOL = KeyImpl.getInstance("pagePool");
+	private static final Collection.Key CLASS_LOADER = KeyImpl.getInstance("classLoader");
+	private static final Collection.Key QUERY_CACHE = KeyImpl.getInstance("queryCache");
+	private static final Collection.Key PAGE_CONTEXT_STACK = KeyImpl.getInstance("pageContextStack");
 
 	public static Struct getInfo(ConfigImpl config) throws PageException {
 

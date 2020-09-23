@@ -44,6 +44,7 @@ import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.dt.DateTimeImpl;
+import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 
 /**
@@ -59,11 +60,11 @@ public final class Ftp extends TagImpl {
 	private static final int PORT_FTP = 21;
 	private static final int PORT_SFTP = 22;
 
-	private static final Key SUCCEEDED = KeyImpl.intern("succeeded");
-	private static final Key ERROR_CODE = KeyImpl.intern("errorCode");
-	private static final Key ERROR_TEXT = KeyImpl.intern("errorText");
-	private static final Key RETURN_VALUE = KeyImpl.intern("returnValue");
-	private static final Key CFFTP = KeyImpl.intern("cfftp");
+	private static final Key SUCCEEDED = KeyConstants._succeeded;
+	private static final Key ERROR_CODE = KeyImpl.getInstance("errorCode");
+	private static final Key ERROR_TEXT = KeyImpl.getInstance("errorText");
+	private static final Key RETURN_VALUE = KeyImpl.getInstance("returnValue");
+	private static final Key CFFTP = KeyImpl.getInstance("cfftp");
 
 	/*
 	 * private static final Key = KeyImpl.getInstance(); private static final Key =
@@ -428,7 +429,8 @@ public final class Ftp extends TagImpl {
 		AFTPClient client = getClient();
 		Resource local = ResourceUtil.toResourceExistingParent(pageContext, localfile);
 		pageContext.getConfig().getSecurityManager().checkFileLocation(local);
-		if (failifexists && local.exists()) throw new ApplicationException("FTP File [" + local + "] already exists, if you want to overwrite, set attribute [failIfExists] to false");
+		if (failifexists && local.exists())
+			throw new ApplicationException("FTP File [" + local + "] already exists, if you want to overwrite, set attribute [failIfExists] to false");
 		OutputStream fos = null;
 		client.setFileType(getType(local));
 		boolean success = false;

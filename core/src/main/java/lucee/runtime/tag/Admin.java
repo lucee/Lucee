@@ -205,28 +205,28 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private static final Collection.Key DEBUG = KeyConstants._debug;
 	// private static final Collection.Key DEBUG_TEMPLATE = KeyImpl.intern("debugTemplate");
-	private static final Collection.Key DEBUG_SHOW_QUERY_USAGE = KeyImpl.intern("debugShowQueryUsage");
+	private static final Collection.Key DEBUG_SHOW_QUERY_USAGE = KeyImpl.getInstance("debugShowQueryUsage");
 	// private static final Collection.Key STR_DEBUG_TEMPLATE = KeyImpl.intern("strdebugTemplate");
 	private static final Collection.Key TEMPLATES = KeyConstants._templates;
 	private static final Collection.Key STR = KeyConstants._str;
-	private static final Collection.Key DO_STATUS_CODE = KeyImpl.intern("doStatusCode");
+	private static final Collection.Key DO_STATUS_CODE = KeyImpl.getInstance("doStatusCode");
 	private static final Collection.Key LABEL = KeyConstants._label;
-	private static final Collection.Key FILE_ACCESS = KeyImpl.intern("file_access");
-	private static final Collection.Key IP_RANGE = KeyImpl.intern("ipRange");
+	private static final Collection.Key FILE_ACCESS = KeyImpl.getInstance("file_access");
+	private static final Collection.Key IP_RANGE = KeyImpl.getInstance("ipRange");
 	private static final Collection.Key CUSTOM = KeyConstants._custom;
-	private static final Collection.Key READONLY = KeyImpl.intern("readOnly");
-	private static final Collection.Key LOG_ENABLED = KeyImpl.intern("logEnabled");
+	private static final Collection.Key READONLY = KeyConstants._readOnly;
+	private static final Collection.Key LOG_ENABLED = KeyImpl.getInstance("logEnabled");
 	private static final Collection.Key CLASS = KeyConstants._class;
 
-	private static final Key HAS_OWN_SEC_CONTEXT = KeyImpl.intern("hasOwnSecContext");
-	private static final Key CONFIG_FILE = KeyImpl.intern("config_file");
-	private static final Key PROCEDURE = KeyImpl.intern("procedure");
-	private static final Key SERVER_LIBRARY = KeyImpl.intern("serverlibrary");
-	private static final Key KEEP_ALIVE = KeyImpl.intern("keepalive");
-	private static final Key CLIENT_SIZE = KeyImpl.intern("clientSize");
-	private static final Key SESSION_SIZE = KeyImpl.intern("sessionSize");
-	private static final Key CLIENT_ELEMENTS = KeyImpl.intern("clientElements");
-	private static final Key SESSION_ELEMENTS = KeyImpl.intern("sessionElements");
+	private static final Key HAS_OWN_SEC_CONTEXT = KeyImpl.getInstance("hasOwnSecContext");
+	private static final Key CONFIG_FILE = KeyImpl.getInstance("config_file");
+	private static final Key PROCEDURE = KeyImpl.getInstance("procedure");
+	private static final Key SERVER_LIBRARY = KeyImpl.getInstance("serverlibrary");
+	private static final Key KEEP_ALIVE = KeyImpl.getInstance("keepalive");
+	private static final Key CLIENT_SIZE = KeyImpl.getInstance("clientSize");
+	private static final Key SESSION_SIZE = KeyImpl.getInstance("sessionSize");
+	private static final Key CLIENT_ELEMENTS = KeyImpl.getInstance("clientElements");
+	private static final Key SESSION_ELEMENTS = KeyImpl.getInstance("sessionElements");
 
 	private static final short MAPPING_REGULAR = 1;
 	private static final short MAPPING_CT = 2;
@@ -241,11 +241,11 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private static final ResourceFilter FILTER_CFML_TEMPLATES = new OrResourceFilter(
 			new ResourceFilter[] { new DirectoryResourceFilter(), new ExtensionResourceFilter(Constants.getExtensions()) });
-	private static final Key FRAGMENT = KeyImpl.init("fragment");
-	private static final Key HEADERS = KeyImpl.init("headers");
-	private static final Key SYMBOLIC_NAME = KeyImpl.init("symbolicName");
-	private static final Key VENDOR = KeyImpl.init("vendor");
-	private static final Key USED_BY = KeyImpl.init("usedBy");
+	private static final Key FRAGMENT = KeyImpl.getInstance("fragment");
+	private static final Key HEADERS = KeyConstants._headers;
+	private static final Key SYMBOLIC_NAME = KeyImpl.getInstance("symbolicName");
+	private static final Key VENDOR = KeyImpl.getInstance("vendor");
+	private static final Key USED_BY = KeyImpl.getInstance("usedBy");
 	private static final Key PATH = KeyConstants._path;
 	private AdminSync adminSync;
 
@@ -1540,7 +1540,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 				}
 				srv.set(sc.getServletName(), params);
 			}
-			sct.set("servlets", srv);
+			sct.set(KeyConstants._servlets, srv);
 		}
 
 		// sct.setEL("javaAgentSupported", Caster.toBoolean(InstrumentationUtil.isSupported()));
@@ -2154,7 +2154,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private void doGetRestSettings() throws PageException {
 		Struct sct = new StructImpl();
 		sct.set(KeyConstants._list, Caster.toBoolean(config.getRestList()));
-		// sct.set(KeyImpl.init("allowChanges"), Caster.toBoolean(config.getRestAllowChanges()));
 		pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
 
 	}
@@ -2869,7 +2868,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		);
 
 		Struct attrColl = new StructImpl();
-		attrColl.setEL("action", "connect");
+		attrColl.setEL(KeyConstants._action, "connect");
 		try {
 			new RemoteClientTask(null, client, attrColl, getCallerId(), "synchronisation").execute(config);
 		}
@@ -3603,16 +3602,16 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 				ge = (GatewayEntry) entries.get(key);
 				// g=ge.getGateway();
 				sct = new StructImpl();
-				sct.setEL("id", ge.getId());
-				sct.setEL("class", ge.getClassDefinition().getClassName());
-				sct.setEL("bundleName", ge.getClassDefinition().getName());
-				sct.setEL("bundleVersion", ge.getClassDefinition().getVersionAsString());
-				sct.setEL("listenerCfcPath", ge.getListenerCfcPath());
-				sct.setEL("cfcPath", ge.getCfcPath());
-				sct.setEL("startupMode", GatewayEntryImpl.toStartup(ge.getStartupMode(), "automatic"));
-				sct.setEL("custom", ge.getCustom());
-				sct.setEL("readOnly", Caster.toBoolean(ge.isReadOnly()));
-				sct.setEL("state", GatewayEngineImpl.toStringState(GatewayUtil.getState(ge), "failed"));
+				sct.setEL(KeyConstants._id, ge.getId());
+				sct.setEL(KeyConstants._class, ge.getClassDefinition().getClassName());
+				sct.setEL(KeyConstants._bundleName, ge.getClassDefinition().getName());
+				sct.setEL(KeyConstants._bundleVersion, ge.getClassDefinition().getVersionAsString());
+				sct.setEL(KeyConstants._listenerCfcPath, ge.getListenerCfcPath());
+				sct.setEL(KeyConstants._cfcPath, ge.getCfcPath());
+				sct.setEL(KeyConstants._startupMode, GatewayEntryImpl.toStartup(ge.getStartupMode(), "automatic"));
+				sct.setEL(KeyConstants._custom, ge.getCustom());
+				sct.setEL(KeyConstants._readOnly, Caster.toBoolean(ge.isReadOnly()));
+				sct.setEL(KeyConstants._state, GatewayEngineImpl.toStringState(GatewayUtil.getState(ge), "failed"));
 
 				pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
 				return;
@@ -3750,8 +3749,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 				sct.setEL(KeyConstants._bundleVersion, cc.getClassDefinition().getVersionAsString());
 				sct.setEL(KeyConstants._custom, cc.getCustom());
 				sct.setEL(KeyConstants._default, d);
-				sct.setEL("readOnly", Caster.toBoolean(cc.isReadOnly()));
-				sct.setEL("storage", Caster.toBoolean(cc.isStorage()));
+				sct.setEL(KeyConstants._readOnly, Caster.toBoolean(cc.isReadOnly()));
+				sct.setEL(KeyConstants._storage, Caster.toBoolean(cc.isStorage()));
 
 				pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
 				return;
@@ -3809,29 +3808,29 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 				sct.setEL(KeyConstants._name, key);
 				sct.setEL(KeyConstants._host, d.getHost());
-				sct.setEL("classname", cd.getClassName());
-				sct.setEL("class", cd.getClassName());
-				sct.setEL("bundleName", cd.getName());
-				sct.setEL("bundleVersion", cd.getVersionAsString());
-				sct.setEL("dsn", d.getDsnOriginal());
-				sct.setEL("database", d.getDatabase());
-				sct.setEL("port", d.getPort() < 1 ? "" : Caster.toString(d.getPort()));
-				sct.setEL("dsnTranslated", d.getDsnTranslated());
-				sct.setEL("timezone", toStringTimeZone(d.getTimeZone()));
-				sct.setEL("password", d.getPassword());
-				sct.setEL("passwordEncrypted", ConfigWebUtil.encrypt(d.getPassword()));
-				sct.setEL("username", d.getUsername());
-				sct.setEL("readonly", Caster.toBoolean(d.isReadOnly()));
-				sct.setEL("select", Boolean.valueOf(d.hasAllow(DataSource.ALLOW_SELECT)));
-				sct.setEL("delete", Boolean.valueOf(d.hasAllow(DataSource.ALLOW_DELETE)));
-				sct.setEL("update", Boolean.valueOf(d.hasAllow(DataSource.ALLOW_UPDATE)));
-				sct.setEL("insert", Boolean.valueOf(d.hasAllow(DataSource.ALLOW_INSERT)));
-				sct.setEL("create", Boolean.valueOf(d.hasAllow(DataSource.ALLOW_CREATE)));
-				sct.setEL("insert", Boolean.valueOf(d.hasAllow(DataSource.ALLOW_INSERT)));
-				sct.setEL("drop", Boolean.valueOf(d.hasAllow(DataSource.ALLOW_DROP)));
-				sct.setEL("grant", Boolean.valueOf(d.hasAllow(DataSource.ALLOW_GRANT)));
-				sct.setEL("revoke", Boolean.valueOf(d.hasAllow(DataSource.ALLOW_REVOKE)));
-				sct.setEL("alter", Boolean.valueOf(d.hasAllow(DataSource.ALLOW_ALTER)));
+				sct.setEL(KeyConstants._classname, cd.getClassName());
+				sct.setEL(KeyConstants._class, cd.getClassName());
+				sct.setEL(KeyConstants._bundleName, cd.getName());
+				sct.setEL(KeyConstants._bundleVersion, cd.getVersionAsString());
+				sct.setEL(KeyConstants._dsn, d.getDsnOriginal());
+				sct.setEL(KeyConstants._database, d.getDatabase());
+				sct.setEL(KeyConstants._port, d.getPort() < 1 ? "" : Caster.toString(d.getPort()));
+				sct.setEL(KeyConstants._dsnTranslated, d.getDsnTranslated());
+				sct.setEL(KeyConstants._timezone, toStringTimeZone(d.getTimeZone()));
+				sct.setEL(KeyConstants._password, d.getPassword());
+				sct.setEL(KeyConstants._passwordEncrypted, ConfigWebUtil.encrypt(d.getPassword()));
+				sct.setEL(KeyConstants._username, d.getUsername());
+				sct.setEL(KeyConstants._readonly, Caster.toBoolean(d.isReadOnly()));
+				sct.setEL(KeyConstants._select, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_SELECT)));
+				sct.setEL(KeyConstants._delete, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_DELETE)));
+				sct.setEL(KeyConstants._update, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_UPDATE)));
+				sct.setEL(KeyConstants._insert, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_INSERT)));
+				sct.setEL(KeyConstants._create, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_CREATE)));
+				sct.setEL(KeyConstants._insert, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_INSERT)));
+				sct.setEL(KeyConstants._drop, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_DROP)));
+				sct.setEL(KeyConstants._grant, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_GRANT)));
+				sct.setEL(KeyConstants._revoke, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_REVOKE)));
+				sct.setEL(KeyConstants._alter, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_ALTER)));
 
 				sct.setEL("connectionLimit", d.getConnectionLimit() < 1 ? "-1" : Caster.toString(d.getConnectionLimit()));
 				sct.setEL("connectionTimeout", d.getConnectionTimeout() < 1 ? "" : Caster.toString(d.getConnectionTimeout()));

@@ -42,6 +42,7 @@ import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.type.Collection.Key;
+import lucee.runtime.type.KeyImpl;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.function.FunctionLibFunction;
 
@@ -189,7 +190,7 @@ public class ClassUtilImpl implements ClassUtil {
 
 	@Override
 	public Object callStaticMethod(Class<?> clazz, String methodName, Object[] args) throws PageException {
-		return Reflector.callStaticMethod(clazz, methodName, args);
+		return Reflector.callStaticMethod(clazz, KeyImpl.getInstance(methodName), args);
 	}
 
 	@Override

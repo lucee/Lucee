@@ -42,7 +42,6 @@ import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageExceptionImpl;
 import lucee.runtime.exp.TemplateException;
 import lucee.runtime.op.Caster;
-import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
@@ -1379,7 +1378,7 @@ public final class CFMLTransformer {
 		if (req.length() > 0) doc.append("\nRequired:\n").append(req);
 		if (opt.length() > 0) doc.append("\nOptional:\n").append(opt);
 
-		pe.setAdditional(KeyImpl.init("Documentation"), doc);
+		pe.setAdditional(KeyConstants._Documentation, doc);
 	}
 
 }

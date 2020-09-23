@@ -8,7 +8,6 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection.Key;
-import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
@@ -18,7 +17,7 @@ class JavaRegex implements Regex {
 	private static final Double ZERO = Double.valueOf(0);
 	private static final Key LEN = KeyConstants._len;
 	private static final Key POS = KeyConstants._pos;
-	private static final Key MATCH = KeyImpl.init("match");
+	private static final Key MATCH = KeyConstants._match;
 
 	@Override
 	public boolean matches(String strPattern, String strInput) throws PageException {

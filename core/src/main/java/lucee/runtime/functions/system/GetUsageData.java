@@ -60,13 +60,13 @@ import lucee.runtime.type.util.KeyConstants;
 
 public final class GetUsageData implements Function {
 
-	private static final Key START_TIME = KeyImpl.init("starttime");
-	private static final Key CACHED_QUERIES = KeyImpl.init("cachedqueries");
-	private static final Key OPEN_CONNECTIONS = KeyImpl.init("openconnections");
-	private static final Key ELEMENTS = KeyImpl.init("elements");
-	private static final Key USERS = KeyImpl.init("users");
-	private static final Key QUERIES = KeyImpl.init("queries");
-	private static final Key LOCKS = KeyImpl.init("locks");
+	private static final Key START_TIME = KeyImpl.getInstance("starttime");
+	private static final Key CACHED_QUERIES = KeyImpl.getInstance("cachedqueries");
+	private static final Key OPEN_CONNECTIONS = KeyImpl.getInstance("openconnections");
+	private static final Key ELEMENTS = KeyImpl.getInstance("elements");
+	private static final Key USERS = KeyImpl.getInstance("users");
+	private static final Key QUERIES = KeyImpl.getInstance("queries");
+	private static final Key LOCKS = KeyImpl.getInstance("locks");
 
 	public static Struct call(PageContext pc) throws PageException {
 		ConfigWeb cw = pc.getConfig();
@@ -91,7 +91,7 @@ public final class GetUsageData implements Function {
 
 		// Template Cache
 		Query tc = new QueryImpl(new Collection.Key[] { KeyConstants._web, ELEMENTS, KeyConstants._size }, 0, "templateCache");
-		sct.setEL(KeyImpl.init("templateCache"), tc);
+		sct.setEL(KeyImpl.getInstance("templateCache"), tc);
 
 		// Scopes
 		Struct scopes = new StructImpl();

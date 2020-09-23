@@ -176,13 +176,13 @@ public class CacheUtil {
 
 	public static Struct getInfo(Struct info, CacheEntry ce) {
 		if (info == null) info = new StructImpl();
-		info.setEL("key", ce.getKey());
-		info.setEL("created", ce.created());
+		info.setEL(KeyConstants._key, ce.getKey());
+		info.setEL(KeyConstants._created, ce.created());
 		info.setEL("last_hit", ce.lastHit());
 		info.setEL("last_modified", ce.lastModified());
 
 		info.setEL("hit_count", new Double(ce.hitCount()));
-		info.setEL("size", new Double(ce.size()));
+		info.setEL(KeyConstants._size, new Double(ce.size()));
 
 		info.setEL("idle_time_span", toTimespan(ce.idleTimeSpan()));
 		info.setEL("live_time_span", toTimespan(ce.liveTimeSpan()));

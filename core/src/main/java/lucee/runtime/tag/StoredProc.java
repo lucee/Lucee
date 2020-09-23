@@ -89,12 +89,12 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 	private static final int TYPE_NAME = 7;
 	// |PRECISION|LENGTH|SCALE|RADIX|NULLABLE|REMARKS|SEQUENCE|OVERLOAD|DEFAULT_VALUE
 
-	private static final lucee.runtime.type.Collection.Key KEY_SC = KeyImpl.intern("StatusCode");
+	private static final lucee.runtime.type.Collection.Key KEY_SC = KeyImpl.getInstance("StatusCode");
 
-	private static final lucee.runtime.type.Collection.Key COUNT = KeyImpl.intern("count_afsdsfgdfgdsfsdfsgsdgsgsdgsasegfwef");
+	private static final lucee.runtime.type.Collection.Key COUNT = KeyImpl.getInstance("count_afsdsfgdfgdsfsdfsgsdgsgsdgsasegfwef");
 
 	private static final ProcParamBean STATUS_CODE;
-	private static final lucee.runtime.type.Collection.Key STATUSCODE = KeyImpl.intern("StatusCode");
+	private static final lucee.runtime.type.Collection.Key STATUSCODE = KeyImpl.getInstance("StatusCode");
 
 	static {
 		STATUS_CODE = new ProcParamBean();

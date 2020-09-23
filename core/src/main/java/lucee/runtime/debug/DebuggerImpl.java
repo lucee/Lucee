@@ -75,9 +75,9 @@ import lucee.runtime.type.util.ListUtil;
 public final class DebuggerImpl implements Debugger {
 	private static final long serialVersionUID = 3957043879267494311L;
 
-	private static final Collection.Key IMPLICIT_ACCESS = KeyImpl.intern("implicitAccess");
-	private static final Collection.Key GENERIC_DATA = KeyImpl.intern("genericData");
-	private static final Collection.Key PAGE_PARTS = KeyImpl.intern("pageParts");
+	private static final Collection.Key IMPLICIT_ACCESS = KeyImpl.getInstance("implicitAccess");
+	private static final Collection.Key GENERIC_DATA = KeyImpl.getInstance("genericData");
+	private static final Collection.Key PAGE_PARTS = KeyImpl.getInstance("pageParts");
 	// private static final Collection.Key OUTPUT_LOG= KeyImpl.intern("outputLog");
 
 	private static final int MAX_PARTS = 100;
@@ -114,7 +114,7 @@ public final class DebuggerImpl implements Debugger {
 	final static Comparator DEBUG_ENTRY_TEMPLATE_COMPARATOR = new DebugEntryTemplateComparator();
 	final static Comparator DEBUG_ENTRY_TEMPLATE_PART_COMPARATOR = new DebugEntryTemplatePartComparator();
 
-	private static final Key CACHE_TYPE = KeyImpl.init("cacheType");
+	private static final Key CACHE_TYPE = KeyImpl.getInstance("cacheType");
 
 	private static final Key[] PAGE_COLUMNS = new Collection.Key[] { KeyConstants._id, KeyConstants._count, KeyConstants._min, KeyConstants._max, KeyConstants._avg,
 			KeyConstants._app, KeyConstants._load, KeyConstants._query, KeyConstants._total, KeyConstants._src };
@@ -690,8 +690,8 @@ public final class DebuggerImpl implements Debugger {
 						if (!StringUtil.isEmpty(trace.getTemplate())) qryTraces.setAt(KeyConstants._template, row, trace.getTemplate());
 						if (trace.getLine() > 0) qryTraces.setAt(KeyConstants._line, row, new Double(trace.getLine()));
 						if (!StringUtil.isEmpty(trace.getAction())) qryTraces.setAt(KeyConstants._action, row, trace.getAction());
-						if (!StringUtil.isEmpty(trace.getVarName())) qryTraces.setAt(KeyImpl.init("varname"), row, trace.getVarName());
-						if (!StringUtil.isEmpty(trace.getVarValue())) qryTraces.setAt(KeyImpl.init("varvalue"), row, trace.getVarValue());
+						if (!StringUtil.isEmpty(trace.getVarName())) qryTraces.setAt(KeyImpl.getInstance("varname"), row, trace.getVarName());
+						if (!StringUtil.isEmpty(trace.getVarValue())) qryTraces.setAt(KeyImpl.getInstance("varvalue"), row, trace.getVarValue());
 						qryTraces.setAt(KeyConstants._time, row, new Double(trace.getTime()));
 					}
 				}
@@ -741,11 +741,11 @@ public final class DebuggerImpl implements Debugger {
 		//////////////////////////////////////////
 		if (addAddionalInfo) {
 			Struct scopes = new StructImpl();
-			scopes.setEL("cgi", pc.cgiScope());
+			scopes.setEL(KeyConstants._cgi, pc.cgiScope());
 			debugging.setEL(KeyConstants._scope, scopes);
 		}
 
-		debugging.setEL(KeyImpl.init("starttime"), new DateTimeImpl(starttime, false));
+		debugging.setEL(KeyImpl.getInstance("starttime"), new DateTimeImpl(starttime, false));
 		debugging.setEL(KeyConstants._id, pci.getRequestId() + "-" + pci.getId());
 
 		return debugging;

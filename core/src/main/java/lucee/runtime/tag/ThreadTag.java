@@ -249,14 +249,14 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 	@Override
 	public void setDynamicAttribute(String uri, String name, Object value) {
 		if (attrs == null) attrs = new StructImpl();
-		Key key = KeyImpl.getInstance(StringUtil.trim(name, ""));
+		Key key = KeyImpl.init(StringUtil.trim(name, ""));
 		attrs.setEL(key, value);
 	}
 
 	@Override
 	public void setDynamicAttribute(String uri, Collection.Key name, Object value) {
 		if (attrs == null) attrs = new StructImpl();
-		Key key = KeyImpl.getInstance(StringUtil.trim(name.getString(), ""));
+		Key key = KeyImpl.init(StringUtil.trim(name.getString(), ""));
 		attrs.setEL(key, value);
 	}
 

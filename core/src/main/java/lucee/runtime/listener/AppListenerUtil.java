@@ -81,22 +81,22 @@ import lucee.transformer.library.ClassDefinitionImpl;
 
 public final class AppListenerUtil {
 
-	public static final Collection.Key ACCESS_KEY_ID = KeyImpl.intern("accessKeyId");
-	public static final Collection.Key AWS_SECRET_KEY = KeyImpl.intern("awsSecretKey");
-	public static final Collection.Key SECRET_KEY = KeyImpl.intern("secretKey");
-	public static final Collection.Key DEFAULT_LOCATION = KeyImpl.intern("defaultLocation");
-	public static final Collection.Key ACL = KeyImpl.intern("acl");
-	public static final Collection.Key CONNECTION_STRING = KeyImpl.intern("connectionString");
+	public static final Collection.Key ACCESS_KEY_ID = KeyImpl.getInstance("accessKeyId");
+	public static final Collection.Key AWS_SECRET_KEY = KeyImpl.getInstance("awsSecretKey");
+	public static final Collection.Key SECRET_KEY = KeyImpl.getInstance("secretKey");
+	public static final Collection.Key DEFAULT_LOCATION = KeyImpl.getInstance("defaultLocation");
+	public static final Collection.Key ACL = KeyConstants._acl;
+	public static final Collection.Key CONNECTION_STRING = KeyConstants._connectionString;
 
-	public static final Collection.Key BLOB = KeyImpl.intern("blob");
-	public static final Collection.Key CLOB = KeyImpl.intern("clob");
-	public static final Collection.Key CONNECTION_LIMIT = KeyImpl.intern("connectionLimit");
-	public static final Collection.Key CONNECTION_TIMEOUT = KeyImpl.intern("connectionTimeout");
-	public static final Collection.Key IDLE_TIMEOUT = KeyImpl.intern("idleTimeout");
-	public static final Collection.Key LIVE_TIMEOUT = KeyImpl.intern("liveTimeout");
-	public static final Collection.Key META_CACHE_TIMEOUT = KeyImpl.intern("metaCacheTimeout");
-	public static final Collection.Key ALLOW = KeyImpl.intern("allow");
-	public static final Collection.Key DISABLE_UPDATE = KeyImpl.intern("disableUpdate");
+	public static final Collection.Key BLOB = KeyImpl.getInstance("blob");
+	public static final Collection.Key CLOB = KeyImpl.getInstance("clob");
+	public static final Collection.Key CONNECTION_LIMIT = KeyImpl.getInstance("connectionLimit");
+	public static final Collection.Key CONNECTION_TIMEOUT = KeyImpl.getInstance("connectionTimeout");
+	public static final Collection.Key IDLE_TIMEOUT = KeyImpl.getInstance("idleTimeout");
+	public static final Collection.Key LIVE_TIMEOUT = KeyImpl.getInstance("liveTimeout");
+	public static final Collection.Key META_CACHE_TIMEOUT = KeyImpl.getInstance("metaCacheTimeout");
+	public static final Collection.Key ALLOW = KeyImpl.getInstance("allow");
+	public static final Collection.Key DISABLE_UPDATE = KeyImpl.getInstance("disableUpdate");
 
 	private static final TimeSpan FIVE_MINUTES = new TimeSpanImpl(0, 0, 5, 0);
 	private static final TimeSpan ONE_MINUTE = new TimeSpanImpl(0, 0, 1, 0);

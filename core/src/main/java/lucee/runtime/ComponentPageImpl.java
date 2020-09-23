@@ -90,7 +90,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 
 	private static final long serialVersionUID = -3483642653131058030L;
 
-	public static final lucee.runtime.type.Collection.Key REMOTE_PERSISTENT_ID = KeyImpl.intern("Id16hohohh");
+	public static final lucee.runtime.type.Collection.Key REMOTE_PERSISTENT_ID = KeyImpl.getInstance("Id16hohohh");
 
 	private long lastCheck = -1;
 

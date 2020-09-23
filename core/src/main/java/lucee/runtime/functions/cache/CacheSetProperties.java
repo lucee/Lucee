@@ -39,7 +39,7 @@ import lucee.runtime.type.util.ListUtil;
 public class CacheSetProperties extends BIF {
 
 	private static final long serialVersionUID = -5700264673510261084L;
-	private static final Key OBJECT_TYPE = KeyImpl.intern("objecttype");
+	private static final Key OBJECT_TYPE = KeyImpl.getInstance("objecttype");
 
 	public static Object call(PageContext pc, Struct properties) throws PageException {
 		try {

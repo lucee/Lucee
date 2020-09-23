@@ -72,7 +72,7 @@ public final class SystemCacheClear implements Function {
 			functionCache(pc);
 		}
 		else throw new FunctionException(pc, "cacheClear", 1, "cacheName",
-				ExceptionUtil.similarKeyMessage(new Collection.Key[] { KeyConstants._all, KeyConstants._template, KeyConstants._component, KeyImpl.init("customtag"),
+				ExceptionUtil.similarKeyMessage(new Collection.Key[] { KeyConstants._all, KeyConstants._template, KeyConstants._component, KeyImpl.getInstance("customtag"),
 						KeyConstants._query, KeyConstants._tag, KeyConstants._function }, cacheName, "cache name", "cache names", null, true));
 
 		return null;

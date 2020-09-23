@@ -84,9 +84,9 @@ import lucee.runtime.type.util.ComponentUtil;
  */
 public final class JSONConverter extends ConverterSupport {
 
-	private static final Collection.Key REMOTING_FETCH = KeyImpl.intern("remotingFetch");
+	private static final Collection.Key REMOTING_FETCH = KeyImpl.getInstance("remotingFetch");
 
-	private static final Key TO_JSON = KeyImpl.intern("_toJson");
+	private static final Key TO_JSON = KeyImpl.getInstance("_toJson");
 	private static final String NULL_STRING = "";
 
 	private boolean ignoreRemotingFetch;

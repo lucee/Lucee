@@ -53,11 +53,11 @@ import lucee.transformer.library.tag.TagLibFactory;
 
 public final class GetFunctionData implements Function {
 	private static final Collection.Key SOURCE = KeyConstants._source;
-	private static final Collection.Key RETURN_TYPE = KeyImpl.intern("returnType");
-	private static final Collection.Key ARGUMENT_TYPE = KeyImpl.intern("argumentType");
-	private static final Collection.Key ARG_MIN = KeyImpl.intern("argMin");
-	private static final Collection.Key ARG_MAX = KeyImpl.intern("argMax");
-	static final Collection.Key INTRODUCED = KeyImpl.intern("introduced");
+	private static final Collection.Key RETURN_TYPE = KeyImpl.getInstance("returnType");
+	private static final Collection.Key ARGUMENT_TYPE = KeyImpl.getInstance("argumentType");
+	private static final Collection.Key ARG_MIN = KeyImpl.getInstance("argMin");
+	private static final Collection.Key ARG_MAX = KeyImpl.getInstance("argMax");
+	static final Collection.Key INTRODUCED = KeyImpl.getInstance("introduced");
 
 	public static Struct call(PageContext pc, String strFunctionName) throws PageException {
 		return _call(pc, strFunctionName, pc.getCurrentTemplateDialect());

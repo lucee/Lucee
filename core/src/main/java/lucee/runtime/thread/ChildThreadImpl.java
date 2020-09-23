@@ -48,7 +48,6 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
-import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.scope.Argument;
@@ -57,12 +56,13 @@ import lucee.runtime.type.scope.Local;
 import lucee.runtime.type.scope.LocalImpl;
 import lucee.runtime.type.scope.Threads;
 import lucee.runtime.type.scope.Undefined;
+import lucee.runtime.type.util.KeyConstants;
 
 public class ChildThreadImpl extends ChildThread implements Serializable {
 
 	private static final long serialVersionUID = -8902836175312356628L;
 
-	private static final Collection.Key KEY_ATTRIBUTES = KeyImpl.intern("attributes");
+	private static final Collection.Key KEY_ATTRIBUTES = KeyConstants._attributes;
 
 	// private static final Set EMPTY = new HashSet();
 

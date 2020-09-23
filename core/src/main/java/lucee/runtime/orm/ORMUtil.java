@@ -212,7 +212,7 @@ public class ORMUtil {
 
 		for (int i = 0; i < props.length; i++) {
 			if (!props[i].getName().equalsIgnoreCase(name)) continue;
-			return cfc.getComponentScope().get(KeyImpl.getInstance(name), null);
+			return cfc.getComponentScope().get(KeyImpl.init(name), null);
 		}
 		return defaultValue;
 	}

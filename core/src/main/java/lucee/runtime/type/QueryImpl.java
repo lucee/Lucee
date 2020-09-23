@@ -121,8 +121,8 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	private static final long serialVersionUID = 1035795427320192551L; // do not chnage
 
-	public static final Collection.Key GENERATED_KEYS = KeyImpl.intern("GENERATED_KEYS");
-	public static final Collection.Key GENERATEDKEYS = KeyImpl.intern("GENERATEDKEYS");
+	public static final Collection.Key GENERATED_KEYS = KeyImpl.getInstance("GENERATED_KEYS");
+	public static final Collection.Key GENERATEDKEYS = KeyImpl.getInstance("GENERATEDKEYS");
 
 	private QueryColumnImpl[] columns;
 	private Collection.Key[] columnNames;
@@ -733,8 +733,8 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	}
 
 	/*
-	 * public QueryImpl(Collection.Key[] columnNames, QueryColumn[] columns, String name,long
-	 * exeTime, boolean isCached,SQL sql) throws DatabaseException { this.columnNames=columnNames;
+	 * public QueryImpl(Collection.Key[] columnNames, QueryColumn[] columns, String name,long exeTime,
+	 * boolean isCached,SQL sql) throws DatabaseException { this.columnNames=columnNames;
 	 * this.columns=columns; this.exeTime=exeTime; this.isCached=isCached; this.name=name;
 	 * this.columncount=columnNames.length; this.recordcount=columns.length==0?0:columns[0].size();
 	 * this.sql=sql;
@@ -1255,8 +1255,8 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	}
 
 	/*
-	 * * if this query is still connected with cache (same query also in cache) it will disconnetd
-	 * from cache (clone object and add clone to cache)
+	 * * if this query is still connected with cache (same query also in cache) it will disconnetd from
+	 * cache (clone object and add clone to cache)
 	 */
 	// protected void disconnectCache() {}
 

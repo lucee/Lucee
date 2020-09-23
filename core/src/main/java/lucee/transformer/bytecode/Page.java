@@ -225,7 +225,7 @@ public final class Page extends BodyBase implements Root {
 	private static final Method CONSTR_COMPONENT_IMPL15 = new Method("<init>", Types.VOID,
 			new Type[] { Types.COMPONENT_PAGE_IMPL, Types.BOOLEAN, Types.BOOLEAN_VALUE, Types.STRING, Types.STRING, Types.STRING, Types.STRING, Types.STRING, Types.BOOLEAN_VALUE,
 					Types.STRING, Types.BOOLEAN_VALUE, Types.BOOLEAN_VALUE, Types.INT_VALUE, Types.BOOLEAN_VALUE, Types.STRUCT_IMPL });
-	private static final Method SET_EL = new Method("setEL", Types.OBJECT, new Type[] { Types.STRING, Types.OBJECT });
+	private static final Method SET_EL = new Method("setEL", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.OBJECT });
 	public static final Method UNDEFINED_SCOPE = new Method("us", Types.UNDEFINED, new Type[] {});
 	private static final Method FLUSH_AND_POP = new Method("flushAndPop", Types.VOID, new Type[] { Types.PAGE_CONTEXT, Types.BODY_CONTENT });
 	private static final Method CLEAR_AND_POP = new Method("clearAndPop", Types.VOID, new Type[] { Types.PAGE_CONTEXT, Types.BODY_CONTENT });
@@ -1449,7 +1449,9 @@ public final class Page extends BodyBase implements Root {
 			entry = (Map.Entry) it.next();
 			attr = (Attribute) entry.getValue();
 			adapter.loadLocal(sct);
-			adapter.push(attr.getName());
+
+			// adapter.push(attr.getName());
+			bc.getFactory().registerKey(bc, bc.getFactory().createLitString(attr.getName()), false);
 			if (attr.getValue() instanceof Literal) ExpressionUtil.writeOutSilent(attr.getValue(), bc, Expression.MODE_REF);
 			else adapter.push("[runtime expression]");
 
