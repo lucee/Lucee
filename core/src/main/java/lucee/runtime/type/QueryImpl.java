@@ -124,6 +124,8 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	public static final Collection.Key GENERATED_KEYS = KeyImpl.getInstance("GENERATED_KEYS");
 	public static final Collection.Key GENERATEDKEYS = KeyImpl.getInstance("GENERATEDKEYS");
 
+	private static boolean populating;
+
 	private QueryColumnImpl[] columns;
 	private Collection.Key[] columnNames;
 	private SQL sql;
@@ -139,7 +141,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	private Collection.Key indexName;
 	private Map<Collection.Key, Integer> indexes;// = new
-													// ConcurrentHashMap<Collection.Key,Integer>();
+	// ConcurrentHashMap<Collection.Key,Integer>();
 
 	@Override
 	public String getTemplate() {
@@ -411,7 +413,9 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		Collection.Key[] columnNames = null;
 		QueryColumnImpl[] columns = null;
 
+		populating = true;
 		try {
+
 			ResultSetMetaData meta = result.getMetaData();
 			columncount = meta.getColumnCount();
 
@@ -486,7 +490,6 @@ public class QueryImpl implements Query, Objects, QueryResult {
 							o = casts[i].toCFType(tz, result, usedColumns[i] + 1);
 							if (index == i) {
 								qry.indexes.put(Caster.toKey(o), recordcount + 1);
-
 							}
 							columns[i].add(o);
 						}
@@ -543,6 +546,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			}
 		}
 		finally {
+			populating = false;
 			if (qry != null) {
 				qry.columncount = columncount;
 				qry.recordcount = recordcount;
@@ -3149,7 +3153,9 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	}
 
 	public void disableIndex() {
-		this.indexes = null;
-		this.indexName = null;
+		if (!populating) {
+			this.indexes = null;
+			this.indexName = null;
+		}
 	}
 }
