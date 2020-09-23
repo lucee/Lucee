@@ -140,6 +140,8 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	private Collection.Key indexName;
 	private Map<Collection.Key, Integer> indexes;// = new ConcurrentHashMap<Collection.Key,Integer>();
 
+	private boolean populating;
+
 	@Override
 	public String getTemplate() {
 		return templateLine == null ? null : templateLine.template;
@@ -465,6 +467,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 			// fill QUERY
 			if (qry != null) {
+				qry.populating = true;
 				int index = -1;
 				if (qry.indexName != null) {
 					qry.indexes = new ConcurrentHashMap<Collection.Key, Integer>();
@@ -543,6 +546,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		}
 		finally {
 			if (qry != null) {
+				qry.populating = false;
 				qry.columncount = columncount;
 				qry.recordcount = recordcount;
 				qry.columnNames = columnNames;
@@ -3137,7 +3141,9 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	}
 
 	public void disableIndex() {
-		this.indexes = null;
-		this.indexName = null;
+		if (!populating) {
+			this.indexes = null;
+			this.indexName = null;
+		}
 	}
 }
