@@ -178,8 +178,8 @@ class JavaRegex implements Regex {
 
 	private Pattern toPattern(String strPattern, boolean caseSensitive, boolean multiLine) {
 		int flags = 0;
-		if (!caseSensitive) flags &= Pattern.CASE_INSENSITIVE;
-		if (multiLine) flags &= Pattern.MULTILINE;
+		if (!caseSensitive) flags = flags | Pattern.CASE_INSENSITIVE;
+		if (multiLine) flags = flags | Pattern.MULTILINE;
 		return Pattern.compile(strPattern, flags);
 	}
 
