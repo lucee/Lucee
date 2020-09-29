@@ -1,7 +1,7 @@
 <cfcomponent extends="Cache">
 	
     <cfset fields=array(
-		field("Servers","servers","",true,"please define here a list of all Servers you wanna connect, please follow this pattern:<br> Host:Port&lt;new line><br> Host:Port&lt;new line><br>Host:Port","textarea")
+		field("Servers","servers","",true,"please define here a list of all servers you would like to connect to, please follow this pattern:<br> Host:Port&lt;new line><br> Host:Port&lt;new line><br>Host:Port","textarea")
 		
 		,field("Initial connections","initial_connections","1",false,"how many initial connetions are set (initial setting ""1"")","text")
 		,field("Minimal spare connections","min_spare_connections","1",false,"minimal amount of connections (initial setting ""1"")","text")
