@@ -627,7 +627,7 @@ public final class Feed extends TagImpl {
 	}
 
 	/**
-	 * @param columm which might be translated by columnMap
+	 * @param columm which might be translated to a different column, when a matching columnMap entry is found
 	 */
 	private String getItemColumn(Key column) {
 		if (columnMap != null){
