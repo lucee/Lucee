@@ -124,7 +124,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	public static final Collection.Key GENERATED_KEYS = KeyImpl.getInstance("GENERATED_KEYS");
 	public static final Collection.Key GENERATEDKEYS = KeyImpl.getInstance("GENERATEDKEYS");
 
-	private static boolean populating;
+	private boolean populating;
 
 	private QueryColumnImpl[] columns;
 	private Collection.Key[] columnNames;
@@ -413,9 +413,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		Collection.Key[] columnNames = null;
 		QueryColumnImpl[] columns = null;
 
-		populating = true;
 		try {
-
 			ResultSetMetaData meta = result.getMetaData();
 			columncount = meta.getColumnCount();
 
@@ -470,6 +468,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 			// fill QUERY
 			if (qry != null) {
+				qry.populating = true;
 				int index = -1;
 				if (qry.indexName != null) {
 					qry.indexes = new ConcurrentHashMap<Collection.Key, Integer>();
@@ -546,8 +545,9 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			}
 		}
 		finally {
-			populating = false;
+
 			if (qry != null) {
+				qry.populating = false;
 				qry.columncount = columncount;
 				qry.recordcount = recordcount;
 				qry.columnNames = columnNames;
