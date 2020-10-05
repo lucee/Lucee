@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<typeInfoHistroy>
+<typeInfo handle="=core/src\/main\/java=/optional=/true=/=/maven.pomderived=/true=/&lt;lucee.commons.lang{StringUtil.java[StringUtil" modifiers="17" timestamp="1601914071778"/>
+<typeInfo handle="=loader/src\/main\/java=/optional=/true=/=/maven.pomderived=/true=/&lt;lucee.runtime.type{Struct.java[Struct" modifiers="513" timestamp="1600783746981"/>
+<typeInfo handle="=core/src\/main\/java=/optional=/true=/=/maven.pomderived=/true=/&lt;lucee.commons.io.compress{CompressUtil.java[CompressUtil" modifiers="17" timestamp="1601914071778"/>
+<typeInfo handle="=core/src\/main\/java=/optional=/true=/=/maven.pomderived=/true=/&lt;lucee.runtime.functions.system{Compress.java[Compress" modifiers="17" timestamp="1601914071784"/>
+<typeInfo handle="=core/src\/main\/java=/optional=/true=/=/maven.pomderived=/true=/&lt;lucee.runtime.functions.system{Extract.java[Extract" modifiers="17" timestamp="1601914071785"/>
+<typeInfo handle="=core/src\/main\/java=/optional=/true=/=/maven.pomderived=/true=/&lt;lucee{print.java[print" modifiers="17" timestamp="1597662322489"/>
+<typeInfo handle="=Extension-Memcached/src&lt;org.lucee.extension.cache.mc{MemcachedCache.java[MemcachedCache" modifiers="1" timestamp="1600784405703"/>
+<typeInfo handle="=Extension-Memcached/libs\/lucee.jar&lt;lucee.runtime.util(Pack200Util.class[Pack200Util" modifiers="1" timestamp="1600784405682"/>
+<typeInfo handle="=core/src\/main\/java=/optional=/true=/=/maven.pomderived=/true=/&lt;lucee.runtime.tag{Transaction.java[Transaction" modifiers="17" timestamp="1597662322791"/>
+<typeInfo handle="=core/C:\/Users\/botez\/.m2\/repository\/hsqldb\/hsqldb\/1.8.0\/hsqldb-1.8.0.jar=/maven.pomderived=/true=/=/maven.pomderived=/true=/=/maven.groupId=/hsqldb=/=/maven.artifactId=/hsqldb=/=/maven.version=/1.8.0=/=/maven.scope=/provided=/&lt;org.hsqldb(Transaction.class[Transaction" modifiers="32" timestamp="1599584954920"/>
+<typeInfo handle="=core/src\/main\/java=/optional=/true=/=/maven.pomderived=/true=/&lt;lucee.runtime{PageContextImpl.java[PageContextImpl" modifiers="17" timestamp="1597662322494"/>
+<typeInfo handle="=core/src\/main\/java=/optional=/true=/=/maven.pomderived=/true=/&lt;lucee.runtime.db{DatasourceManagerImpl.java[DatasourceManagerImpl" modifiers="17" timestamp="1597662322529"/>
+<typeInfo handle="=core/src\/main\/java=/optional=/true=/=/maven.pomderived=/true=/&lt;lucee.runtime.functions.other{GenerateArgon2Hash.java[GenerateArgon2Hash" modifiers="1" timestamp="1601887779079"/>
+</typeInfoHistroy>

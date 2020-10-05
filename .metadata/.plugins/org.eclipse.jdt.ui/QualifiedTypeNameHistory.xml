@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<qualifiedTypeNameHistroy>
+<fullyQualifiedTypeName name="java.lang.Object"/>
+<fullyQualifiedTypeName name="lucee.runtime.type.wrap.MapAsStruct"/>
+<fullyQualifiedTypeName name="java.lang.String"/>
+<fullyQualifiedTypeName name="lucee.runtime.type.Struct"/>
+<fullyQualifiedTypeName name="java.sql.Array"/>
+<fullyQualifiedTypeName name="java.util.List"/>
+<fullyQualifiedTypeName name="org.apache.commons.collections4.map.HashedMap"/>
+<fullyQualifiedTypeName name="java.util.Map.Entry"/>
+<fullyQualifiedTypeName name="edu.emory.mathcs.backport.java.util.Arrays"/>
+<fullyQualifiedTypeName name="java.lang.Integer"/>
+<fullyQualifiedTypeName name="lucee.runtime.type.Iterator"/>
+<fullyQualifiedTypeName name="java.util.Iterator"/>
+<fullyQualifiedTypeName name="lucee.runtime.type.Collection.Key"/>
+<fullyQualifiedTypeName name="com.sun.xml.internal.ws.resources.XmlmessageMessages"/>
+<fullyQualifiedTypeName name="net.rubyeye.xmemcached.XMemcachedClient"/>
+<fullyQualifiedTypeName name="net.rubyeye.xmemcached.MemcachedClient"/>
+<fullyQualifiedTypeName name="java.util.ArrayList"/>
+<fullyQualifiedTypeName name="java.lang.StringBuilder"/>
+</qualifiedTypeNameHistroy>

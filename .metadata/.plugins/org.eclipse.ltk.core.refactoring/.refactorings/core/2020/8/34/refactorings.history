@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename local variable &apos;result&apos; in &apos;lucee.commons.lang.StringUtil.replaceStruct(...)&apos; to &apos;resultArr&apos;&#x0D;&#x0A;- Original project: &apos;core&apos;&#x0D;&#x0A;- Original element: &apos;lucee.commons.lang.StringUtil.replaceStruct(String, Struct).result&apos;&#x0D;&#x0A;- Renamed element: &apos;result&apos;&#x0D;&#x0A;- Update references to refactored element" description="Rename local variable &apos;result&apos;" id="org.eclipse.jdt.ui.rename.local.variable" input="/src\/main\/java=/optional=/true=/=/maven.pomderived=/true=/&lt;lucee.commons.lang{StringUtil.java[StringUtil~replaceStruct~QString;~QStruct;@result!40110!40155!40123!40128!QList\&lt;QString;&gt;;!0!false" name="resultArr" references="true" stamp="1597763099577" version="1.0"/>
+</session>
