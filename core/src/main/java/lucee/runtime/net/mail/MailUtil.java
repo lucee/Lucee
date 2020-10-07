@@ -157,6 +157,7 @@ public final class MailUtil {
 			String domain = address.substring(pos + 1);
 			
 			if (local.length() > 64) return false; // local part may only be 64 characters
+			if (domain.length() > 255) return false; // domain may only be 255 characters
 
 			if (domain.charAt(0) == '.' || local.charAt(0) == '.' || local.charAt(local.length() - 1) == '.') return false;
 
