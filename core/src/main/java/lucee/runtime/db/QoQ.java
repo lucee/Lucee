@@ -34,6 +34,7 @@ import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.math.MathUtil;
 import lucee.runtime.PageContext;
+import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
@@ -191,18 +192,18 @@ public final class QoQ {
 	}
 
 	/**
-	 * Process a single select statement. If this is a union, append it to the incoming "previous" Query
-	 * and return the new, combined query with all rows
+	 * Process a single select statement. If this is a union, append it to the incoming "previous"
+	 * Query and return the new, combined query with all rows
 	 * 
 	 * @param pc PageContext
 	 * @param select Select instance
 	 * @param source Source query to pull data from
-	 * @param previous Previous query in case of union. May be empty if this is the first select in the
-	 *            union
+	 * @param previous Previous query in case of union. May be empty if this is the first select in
+	 *            the union
 	 * @param maxrows max rows from cfquery tag. Not necessarily the same as TOP
 	 * @param sql SQL object
-	 * @param hasOrders Is this overall Selects instance ordered? This affects whether we can optimize
-	 *            maxrows or not
+	 * @param hasOrders Is this overall Selects instance ordered? This affects whether we can
+	 *            optimize maxrows or not
 	 * @param isUnion Is this select part of a union of several selects
 	 * @return
 	 * @throws PageException
@@ -387,6 +388,17 @@ public final class QoQ {
 		// Is there at least on aggregate expression in the select list
 		boolean hasAggregateSelect = select.hasAggregateSelect();
 
+		// For a non-grouping query with aggregates in the select such as
+		// SELECT count(1) FROM qry
+		// then we need to return a single row
+		if (hasAggregateSelect && source.getRecordcount() == 0) {
+			target.addRow(1);
+			for (int cell = 0; cell < headers.length; cell++) {
+				trgColumns[cell].set(1, getValue(pc, sql, source, 1, headers[cell], trgValues[cell]));
+			}
+			return;
+		}
+
 		// Loop over all rows in the source query
 		for (int row = 1; row <= source.getRecordcount(); row++) {
 			// Does this do anything??
@@ -432,8 +444,22 @@ public final class QoQ {
 	private void executeSinglePartitioned(PageContext pc, Select select, Query source, Query target, int maxrows, SQL sql, boolean hasOrders, boolean isUnion,
 			QueryColumn[] trgColumns, Object[] trgValues, Collection.Key[] headers) throws PageException {
 
+		// Is there at least on aggregate expression in the select list
+		boolean hasAggregateSelect = select.hasAggregateSelect();
+
+		// For a non-grouping query with aggregates in the select such as
+		// SELECT count(1) FROM qry WHERE col='foo'
+		// then we need to return a single row
+		if (hasAggregateSelect && select.getGroupbys().length == 0 && source.getRecordcount() == 0) {
+			target.addRow(1);
+			for (int cell = 0; cell < headers.length; cell++) {
+				trgColumns[cell].set(1, getValue(pc, sql, source, 1, headers[cell], trgValues[cell]));
+			}
+			return;
+		}
+
 		Operation where = select.getWhere();
-		// Initialize object to track our partioned data
+		// Initialize object to track our partitioned data
 		QueryPartitions queryPartitions = new QueryPartitions(sql, select.getSelects(), select.getGroupbys(), target, select.getAdditionalColumns(), this);
 
 		// For all records in the source query
@@ -446,7 +472,8 @@ public final class QoQ {
 			}
 		}
 
-		// Now that all rows are partioned, eliminate partions we don't need via the having clause
+		// Now that all rows are partitioned, eliminate partitions we don't need via the having
+		// clause
 		if (select.getHaving() != null) {
 			// Loop over each partition
 			Set<Entry<String, Query>> set = queryPartitions.getPartitions().entrySet();
@@ -717,7 +744,7 @@ public final class QoQ {
 			if (operation instanceof OperationAggregate) {
 				// count() has special handling below
 				if (!op.equals("count")) {
-					aggregateValues = executeAggregateExp(pc, sql, source, operators[0], true, false);
+					aggregateValues = executeAggregateExp(pc, sql, source, operators[0], false, false);
 				}
 			}
 			else {
@@ -731,7 +758,13 @@ public final class QoQ {
 				if (op.equals("acos")) return new Double(Math.acos(Caster.toDoubleValue(value)));
 				if (op.equals("asin")) return new Double(Math.asin(Caster.toDoubleValue(value)));
 				if (op.equals("atan")) return new Double(Math.atan(Caster.toDoubleValue(value)));
-				if (op.equals("avg")) return ArrayUtil.avg(Caster.toArray(aggregateValues));
+				if (op.equals("avg")) {
+					// If there are no non-null values, return empty
+					if (aggregateValues.length == 0) {
+						return (NullSupportHelper.full(pc) ? null : "");
+					}
+					return ArrayUtil.avg(Caster.toArray(aggregateValues));
+				}
 				break;
 			case 'c':
 				if (op.equals("ceiling")) return new Double(Math.ceil(Caster.toDoubleValue(value)));
@@ -790,6 +823,11 @@ public final class QoQ {
 					Comparator comp = ArrayUtil.toComparator(pc, sortType, sortDir, false);
 					// Sort the array with proper type and direction
 					colData.sortIt(comp);
+
+					// If there are no non-null values, return empty
+					if (colData.size() == 0) {
+						return (NullSupportHelper.full(pc) ? null : "");
+					}
 					// The first item in the array is our "max" or "min"
 					return colData.getE(1);
 				}
@@ -802,7 +840,13 @@ public final class QoQ {
 				if (op.equals("sin")) return new Double(Math.sin(Caster.toDoubleValue(value)));
 				if (op.equals("soundex")) return StringUtil.soundex(Caster.toString(value));
 				if (op.equals("sin")) return new Double(Math.sqrt(Caster.toDoubleValue(value)));
-				if (op.equals("sum")) return ArrayUtil.sum(Caster.toArray(aggregateValues));
+				if (op.equals("sum")) {
+					// If there are no non-null values, return empty
+					if (aggregateValues.length == 0) {
+						return (NullSupportHelper.full(pc) ? null : "");
+					}
+					return ArrayUtil.sum(Caster.toArray(aggregateValues));
+				}
 				break;
 			case 't':
 				if (op.equals("tan")) return new Double(Math.tan(Caster.toDoubleValue(value)));
@@ -887,22 +931,35 @@ public final class QoQ {
 	}
 
 	private Object executeCoalesce(PageContext pc, SQL sql, Query source, Expression[] inputs, Integer row) throws PageException {
+		boolean nullSupport = NullSupportHelper.full(pc);
+
 		for (Expression thisOp: inputs) {
-			// Support full null?
 			Object thisValue = executeExp(pc, sql, source, thisOp, row);
-			if (!Caster.toString(thisValue).equals("")) {
-				return thisValue;
+			// If full null support is enabled, do actual null check
+			if (nullSupport) {
+				if (thisValue != null) {
+					return thisValue;
+				}
 			}
+			// If full null support is NOT enabled, check for empty string
+			else {
+				if (!Caster.toString(thisValue).equals("")) {
+					return thisValue;
+				}
+			}
+
 		}
-		return "";
+		// Default value depends on full null support
+		return (nullSupport ? null : "");
 	}
 
 	/*
 	 * *
 	 * 
 	 * @param expression / private void print(ZExpression expression) {
-	 * print.ln("Operator:"+expression.getOperator().toLowerCase()); int len=expression.nbOperands();
-	 * for(int i=0;i<len;i++) { print.ln("	["+i+"]=	" +expression.getOperand(i)); } }/*
+	 * print.ln("Operator:"+expression.getOperator().toLowerCase()); int
+	 * len=expression.nbOperands(); for(int i=0;i<len;i++) { print.ln("	["+i+"]=	"
+	 * +expression.getOperand(i)); } }/*
 	 * 
 	 * 
 	 * 
@@ -958,8 +1015,7 @@ public final class QoQ {
 
 	private Object executeXor(PageContext pc, SQL sql, Query source, Operation2 expression, int row) throws PageException {
 		return Caster.toBooleanValue(executeExp(pc, sql, source, expression.getLeft(), row)) ^ Caster.toBooleanValue(executeExp(pc, sql, source, expression.getRight(), row))
-				? Boolean.TRUE
-				: Boolean.FALSE;
+				? Boolean.TRUE : Boolean.FALSE;
 	}
 
 	/**
