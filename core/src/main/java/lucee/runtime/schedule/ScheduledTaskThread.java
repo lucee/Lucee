@@ -41,6 +41,7 @@ public class ScheduledTaskThread extends Thread {
 	private static final long DAY = 24 * 3600000;
 	// private Calendar calendar;
 
+	private long start;
 	private long startDate;
 	private long startTime;
 	private long endDate;
@@ -51,7 +52,7 @@ public class ScheduledTaskThread extends Thread {
 
 	private DateTimeUtil util;
 
-	private int cIntervall;
+	// private int cIntervall;
 
 	private ScheduleTask task;
 	private final CFMLEngineImpl engine;
@@ -68,8 +69,9 @@ public class ScheduledTaskThread extends Thread {
 		this.scheduler = (SchedulerImpl) scheduler;
 		this.task = task;
 		timeZone = ThreadLocalPageContext.getTimeZone(this.scheduler.getConfig());
-		this.startDate = util.getMilliSecondsAdMidnight(timeZone, task.getStartDate().getTime());
-		this.startTime = util.getMilliSecondsInDay(timeZone, task.getStartTime().getTime());
+		this.start = task.getStartDate().getTime();
+		this.startDate = util.getMilliSecondsAdMidnight(timeZone, start);
+		this.startTime = util.getMilliSecondsInDay(timeZone, start);
 		this.endDate = task.getEndDate() == null ? Long.MAX_VALUE : util.getMilliSecondsAdMidnight(timeZone, task.getEndDate().getTime());
 		this.endTime = task.getEndTime() == null ? DAY : util.getMilliSecondsInDay(timeZone, task.getEndTime().getTime());
 		this.unique = ((ScheduleTaskImpl) task).unique();
@@ -80,7 +82,7 @@ public class ScheduledTaskThread extends Thread {
 		}
 		else amount = 1;
 
-		cIntervall = toCalndarIntervall(intervall);
+		// cIntervall = toCalndarIntervall(intervall);
 		this.config = ThreadLocalPageContext.getConfig(this.scheduler.getConfig());
 	}
 
@@ -275,49 +277,87 @@ public class ScheduledTaskThread extends Thread {
 		exeThreads = list;
 	}
 
+	/*
+	 * public static void main(String[] args) { test(29, 2); test(28, 3); test(29, 3); test(30, 3);
+	 * test(31, 3);
+	 * 
+	 * test(24, 10); test(25, 10); test(26, 10); }
+	 * 
+	 * public static void test(int day, int month) { int inter = ScheduleTaskImpl.INTERVAL_DAY; TimeZone
+	 * tz = TimeZone.getTimeZone("CET");
+	 * 
+	 * Calendar s = JREDateTimeUtil.getThreadCalendar(tz); s.set(Calendar.YEAR, 2020);
+	 * s.set(Calendar.MONTH, 0); s.set(Calendar.DAY_OF_MONTH, 1); s.set(Calendar.HOUR, 2);
+	 * s.set(Calendar.MINUTE, 30); s.set(Calendar.SECOND, 0); s.set(Calendar.MILLISECOND, 0); long start
+	 * = s.getTimeInMillis();
+	 * 
+	 * Calendar c = JREDateTimeUtil.getThreadCalendar(tz); c.set(Calendar.YEAR, 2020);
+	 * c.set(Calendar.MONTH, month - 1); c.set(Calendar.DAY_OF_MONTH, day); c.set(Calendar.HOUR, 2);
+	 * c.set(Calendar.MINUTE, 30); c.set(Calendar.SECOND, 0); c.set(Calendar.MILLISECOND, 0);
+	 * 
+	 * print.e("-----------------------"); // print.e("srt:" + new Date(start)); print.e("now:" +
+	 * c.getTime());
+	 * 
+	 * DateTimeUtil util = DateTimeUtil.getInstance();
+	 * 
+	 * long endTime = 23 * 60 * 60 * 100;
+	 * 
+	 * long res = calculateNextExecution(util, c.getTimeInMillis(), true, tz, start, endTime, inter,
+	 * 65);
+	 * 
+	 * print.e("res:" + new Date(res));
+	 * 
+	 * }
+	 */
+
 	private long calculateNextExecution(long now, boolean notNow) {
-		long nowTime = util.getMilliSecondsInDay(timeZone, now);
-		long nowDate = now - nowTime;
-
-		// when second or date intervall switch to current date
-		if (startDate < nowDate && (cIntervall == Calendar.SECOND || cIntervall == Calendar.DATE)) startDate = nowDate;
-
-		// init calendar
-		Calendar calendar = JREDateTimeUtil.getThreadCalendar(timeZone);
-		calendar.setTimeInMillis(startDate + startTime);
-
-		long time;
-		while (true) {
-			time = getMilliSecondsInDay(calendar);
-			if (now <= calendar.getTimeInMillis() && time >= startTime) {
-				// this is used because when cames back sometme to early
-				if (notNow && (calendar.getTimeInMillis() - now) < 1000) {}
-				else if (intervall == ScheduleTaskImpl.INTERVAL_EVEREY && time > endTime) now = nowDate + DAY;
-				else break;
-			}
-			calendar.add(cIntervall, amount);
-		}
-		return calendar.getTimeInMillis();
+		return calculateNextExecution(util, now, notNow, timeZone, start, endTime, intervall, amount);
 	}
 
-	private static int toCalndarIntervall(int intervall) {
-		switch (intervall) {
-		case ScheduleTask.INTERVAL_DAY:
-			return Calendar.DATE;
-		case ScheduleTask.INTERVAL_MONTH:
-			return Calendar.MONTH;
-		case ScheduleTask.INTERVAL_WEEK:
-			return Calendar.WEEK_OF_YEAR;
-		case ScheduleTask.INTERVAL_ONCE:
-			return -1;
+	private static long calculateNextExecution(DateTimeUtil util, long now, boolean notNow, TimeZone timeZone, long start, long endTime, int intervall, int amount) {
 
+		// set the start datetime
+		Calendar c = JREDateTimeUtil.getThreadCalendar(timeZone);
+		c.setTimeInMillis(start);
+
+		// extract the time in day info (we do not seconds in day to avoid DST issues)
+		int startHour = c.get(Calendar.HOUR_OF_DAY);
+		int startMinute = c.get(Calendar.MINUTE);
+		int startSecond = c.get(Calendar.SECOND);
+		int startMilliSecond = c.get(Calendar.MILLISECOND);
+
+		// set time in today to today
+		c.setTimeInMillis(now);
+		c.set(Calendar.HOUR_OF_DAY, startHour);
+		c.set(Calendar.MINUTE, startMinute);
+		c.set(Calendar.SECOND, startSecond);
+		c.set(Calendar.MILLISECOND, startMilliSecond);
+
+		long next = c.getTimeInMillis();
+
+		// is it already in the future or we want not now
+		if (next < now || (notNow && (next - now) < 1000)) {
+			if (intervall == ScheduleTaskImpl.INTERVAL_DAY) c.add(Calendar.DAY_OF_MONTH, 1);
+			else if (intervall == ScheduleTaskImpl.INTERVAL_WEEK) c.add(Calendar.WEEK_OF_YEAR, 1);
+			else if (intervall == ScheduleTaskImpl.INTERVAL_MONTH) c.add(Calendar.MONTH, 1);
+			else if (intervall == ScheduleTaskImpl.INTERVAL_YEAR) c.add(Calendar.YEAR, 1);
+			else if (intervall == ScheduleTaskImpl.INTERVAL_EVEREY) {
+				c.add(Calendar.SECOND, amount);
+				return c.getTimeInMillis();
+			}
+
+			c.set(Calendar.HOUR_OF_DAY, startHour);
+			c.set(Calendar.MINUTE, startMinute);
+			c.set(Calendar.SECOND, startSecond);
+			c.set(Calendar.MILLISECOND, startMilliSecond);
+
+			return c.getTimeInMillis();
 		}
-		return Calendar.SECOND;
+		return next;
 	}
 
 	public static long getMilliSecondsInDay(Calendar c) {
 		return (c.get(Calendar.HOUR_OF_DAY) * 3600000) + (c.get(Calendar.MINUTE) * 60000) + (c.get(Calendar.SECOND) * 1000) + (c.get(Calendar.MILLISECOND));
-
 	}
 
 	public Config getConfig() {
