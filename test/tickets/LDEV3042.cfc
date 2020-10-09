@@ -9,7 +9,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				[ 'Harry Johnson',38,'Harry@company.com','IT',false,8,6,createDate(2014,5,21),true,'4ge','purple' ],
 				[ 'Jason Wood',37,'Jason@company.com','IT',false,19,4,createDate(2015,6,21),true,'ShrtDF','Red' ],
 				[ 'Doris Calhoun',67,'Doris@company.com','IT',true,3,6,createDate(2016,7,21),true,'sgsdg','Blue' ],
-				[ 'Mary Root',17,'Mary@company.com','IT',false,8,2,createDate(2017,8,21),true,'SDsefF','Green' ],
+				[ 'Mary Root',17,'Mary@company.com','IT',false,8,2,createDate(2017,8,21),true,'','Green' ],
 				[ 'Aurthur Duff',23,'Aurthur@company.com','IT',false,4,0,createDate(2018,9,21),true,nullValue(),'Yellow' ],
 				[ 'Luis Hake',29,'Luis@company.com','IT',true,9,5,createDate(2019,10,21),true,nullValue(),'Purple' ],
 				[ 'Gavin Bezos',46,'Gavin@company.com','HR',false,2,5,createDate(2020,11,21),false,nullValue(),'RED' ],
@@ -129,6 +129,37 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				);
 				expect( actual.recordcount ).toBe( 1 );
 				expect( actual.name).toBe( 'Luis Hake' );
+			});
+				
+			it( 'Can handle isnull' , function() {
+				actual = QueryExecute(
+					sql = "SELECT empid, isNull( empID, 'default' ) as empIDNonNull from employees where email in ( 'Doris@company.com','Mary@company.com','Aurthur@company.com' ) order by email",
+					options = { dbtype: 'query' }
+				);
+				expect( actual.recordcount ).toBe( 3 );
+				expect( actual.empid[1] ).toBe( '' );
+				expect( actual.empidNonNull[1] ).toBe( 'default' );
+				expect( actual.empid[2] ).toBe( 'sgsdg' );
+				expect( actual.empidNonNull[2] ).toBe( 'sgsdg' );
+				expect( actual.empid[3] ).toBe( '' );
+				expect( actual.empidNonNull[3] ).toBe( 'default' );
+			});
+				
+			it( 'Can handle isnull with full null support' , function() {
+				application nullsupport=true action='update';
+				actual = QueryExecute(
+					sql = "SELECT empid, isNull( empID, 'default' ) as empIDNonNull from employees where email in ( 'Doris@company.com','Mary@company.com','Aurthur@company.com' ) order by email",
+					options = { dbtype: 'query' }
+				);
+				expect( actual.recordcount ).toBe( 3 );
+				expect( actual.empid[1] ).toBeNull();
+				expect( actual.empidNonNull[1] ).toBe( 'default' );
+				expect( actual.empid[2] ).toBe( 'sgsdg' );
+				expect( actual.empidNonNull[2] ).toBe( 'sgsdg' );
+				expect( actual.empid[3] ).toBe( '' );
+				expect( actual.empidNonNull[3] ).toBe( '' );
+				
+				application nullsupport=false action='update';
 			});
 
 			describe( 'Distinct' , function(){
@@ -480,6 +511,78 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 					expect( actual.calc[2] ).toBe( 14 );
 					expect( actual.calc[3] ).toBe( 19 );
 					expect( actual.calc[4] ).toBe( 25 );
+				});
+				
+				it( 'Aggregate select with no group by against empty query returns 1 row of empty strings' , function() {
+					var qry = queryNew( 'col', 'varchar' );				
+					actual = QueryExecute(
+						sql = "SELECT 'const' as const, count(1) as count, avg(col) as avg, min(col) as min, max(col) as max, isNull( max(col), 'test' ) as max2 from qry",
+						options = { dbtype: 'query' }
+					);
+					expect( actual.recordcount ).toBe( 1 );
+					// Count always returns a number
+					expect( actual.count[1] ).toBe( 0 );
+					// Other aggregates return empty
+					expect( actual.avg[1] ).toBe( '' );
+					expect( actual.min[1] ).toBe( '' );
+					expect( actual.max[1] ).toBe( '' );
+					// Constant value is just passed through
+					expect( actual.const[1] ).toBe( 'const' );
+					// Scalar function still processes
+					expect( actual.max2[1] ).toBe( 'test' );
+				});
+				
+				it( 'Aggregate select with no group by and a where clause against empty query returns 1 row of empty strings' , function() {
+					var qry = queryNew( 'col', 'varchar' );				
+					actual = QueryExecute(
+						sql = "SELECT 'const' as const, count(1) as count, avg(col) as avg, min(col) as min, max(col) as max, isNull( max(col), 'test' ) as max2 from qry where col = ''",
+						options = { dbtype: 'query' }
+					);
+					expect( actual.recordcount ).toBe( 1 );
+					// Count always returns a number
+					expect( actual.count[1] ).toBe( 0 );
+					// Other aggregates return empty
+					expect( actual.avg[1] ).toBe( '' );
+					expect( actual.min[1] ).toBe( '' );
+					expect( actual.max[1] ).toBe( '' );
+					// Constant value is just passed through
+					expect( actual.const[1] ).toBe( 'const' );
+					// Scalar function still processes
+					expect( actual.max2[1] ).toBe( 'test' );
+				});
+				
+				it( 'Aggregate select with group by against empty query returns 0 rows' , function() {
+					var qry = queryNew( 'col', 'varchar' );				
+					actual = QueryExecute(
+						sql = "SELECT count(1) as count from qry group by col",
+						options = { dbtype: 'query' }
+					);
+					expect( actual.recordcount ).toBe( 0 );
+				});
+				
+				it( 'Aggregates ignore null values' , function() {
+					var qry = queryNew( 'col,col2', 'integer,integer', [
+						[ 0, nullValue() ],
+						[ nullValue(), nullValue() ],
+						[ 100, nullValue() ],
+					] );				
+					actual = QueryExecute(
+						sql = "SELECT sum(col) as sum, avg(col) as avg, min(col) as min, max(col) as max, sum(col2) as sum2, avg(col2) as avg2, min(col2) as min2, max(col2) as max2 from qry",
+						options = { dbtype: 'query' }
+					);
+					expect( actual.recordcount ).toBe( 1 );
+					
+					// When some column values are null, aggregates should ignore the null values
+					expect( actual.sum[1] ).toBe( 100 );
+					expect( actual.avg[1] ).toBe( 50 );
+					expect( actual.min[1] ).toBe( 0 );
+					expect( actual.max[1] ).toBe( 100 );
+					
+					// When all column values are null, aggregates should return nothing
+					expect( actual.sum2[1] ).toBe( '' );
+					expect( actual.avg2[1] ).toBe( '' );
+					expect( actual.min2[1] ).toBe( '' );
+					expect( actual.max2[1] ).toBe( '' );
 				});
 								
 			});
