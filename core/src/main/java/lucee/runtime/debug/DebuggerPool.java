@@ -72,4 +72,10 @@ public class DebuggerPool {
 		}
 	}
 
+	public void purge() {
+		synchronized (queue) {
+			queue.clear();
+		}
+	}	
+
 }
