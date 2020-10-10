@@ -70,12 +70,6 @@ public class DebuggerPool {
 		synchronized (queue) {
 			queue.clear();
 		}
-	}
-
-	public void purge() {
-		synchronized (queue) {
-			queue.clear();
-		}
 	}	
 
 }
