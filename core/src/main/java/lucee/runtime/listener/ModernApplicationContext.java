@@ -163,6 +163,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private static final Key REGEX = KeyImpl.getInstance("regex");
 	private static final Key ENGINE = KeyImpl.getInstance("engine");
 	private static final Key DIALECT = KeyConstants._dialect;
+	private static final Key USE_JAVA_AS_REGEX_ENGINE = KeyImpl.getInstance("useJavaAsRegexEngine");
 
 	private static Map<String, CacheConnection> initCacheConnections = new ConcurrentHashMap<String, CacheConnection>();
 
@@ -1886,6 +1887,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		if (!initRegex) {
 
 			Struct sct = Caster.toStruct(get(component, REGEX, null), null);
+			boolean has = false;
 			if (sct != null) {
 				String str = Caster.toString(sct.get(ENGINE, null), null);
 				if (StringUtil.isEmpty(str, true)) str = Caster.toString(sct.get(KeyConstants._type, null), null);
@@ -1894,9 +1896,16 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 					int type = RegexFactory.toType(str, -1);
 					if (type != -1) {
 						Regex tmp = RegexFactory.toRegex(type, null);
-						if (tmp != null) regex = tmp;
+						if (tmp != null) {
+							has = true;
+							regex = tmp;
+						}
 					}
 				}
+			}
+			if (!has) {
+				Boolean res = Caster.toBoolean(get(component, USE_JAVA_AS_REGEX_ENGINE, null), null);
+				if (res != null) regex = RegexFactory.toRegex(res.booleanValue());
 			}
 			initRegex = true;
 		}
