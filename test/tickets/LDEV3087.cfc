@@ -10,6 +10,13 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 				expect(reRePlaceNocase('AND "ID" = ?', "and\s|or\s", "", "one")).toBe('"ID" = ?');
 				expect(reReplaceNoCase('ABCDE','[a-z]',"a",'all')).toBe("aaaaa");
 			});
+
+			it( title = "Checking the reRePlaceNocase function 2", body = function( currentSpec ){
+				var whereList = 'AND "ID" = ?';
+				expect(reReplaceNoCase( whereList, "and\s|or\s", "", "one" )).toBe('"ID" = ?');
+			});
 		});
 	}
 }
+
+
