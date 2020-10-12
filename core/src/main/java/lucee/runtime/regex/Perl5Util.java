@@ -138,7 +138,7 @@ final class Perl5Util {
 			input.setCurrentOffset(offset - 1);
 
 			while (matcher.contains(input, pattern)) {
-				Struct matchStruct = getMatchStruct(matcher.getMatch());
+				Struct matchStruct = getMatchStruct(matcher.getMatch(), strInput);
 				if (!matchAll) {
 					return matchStruct;
 				}
@@ -171,18 +171,20 @@ final class Perl5Util {
 		return struct;
 	}
 
-	public static Struct getMatchStruct(MatchResult result) {
+	public static Struct getMatchStruct(MatchResult result, String input) {
 		int groupCount = result.groups();
 
 		Array posArray = new ArrayImpl();
 		Array lenArray = new ArrayImpl();
 		Array matchArray = new ArrayImpl();
-
+		int beginOff;
+		int endOff;
 		for (int i = 0; i < groupCount; i++) {
-			int off = result.beginOffset(i);
-			posArray.appendEL(Integer.valueOf(off + 1));
-			lenArray.appendEL(Integer.valueOf(result.endOffset(i) - off));
-			matchArray.appendEL(result.toString());
+			beginOff = result.beginOffset(i);
+			endOff = result.endOffset(i);
+			posArray.appendEL(Integer.valueOf(beginOff + 1));
+			lenArray.appendEL(Integer.valueOf(endOff - beginOff));
+			matchArray.appendEL(input.substring(beginOff, endOff));
 		}
 
 		Struct struct = new StructImpl();
@@ -247,8 +249,8 @@ final class Perl5Util {
 
 	private static String _replace(String strInput, String strPattern, String replacement, boolean caseSensitive, boolean replaceAll, boolean multiLine)
 			throws MalformedPatternException {
-		int flag = (caseSensitive ? 0 : Perl5Compiler.CASE_INSENSITIVE_MASK) & (multiLine ? Perl5Compiler.MULTILINE_MASK : Perl5Compiler.SINGLELINE_MASK);
 
+		int flag = (caseSensitive ? 0 : Perl5Compiler.CASE_INSENSITIVE_MASK) + (multiLine ? Perl5Compiler.MULTILINE_MASK : Perl5Compiler.SINGLELINE_MASK);
 		Pattern pattern = getPattern(strPattern, flag);
 		return Util.substitute(new Perl5Matcher(), pattern, new Perl5Substitution(replacement), strInput, replaceAll ? -1 : 1);
 	}
@@ -298,9 +300,5 @@ final class Perl5Util {
 			else sb.append(c);
 		}
 		return sb.toString();
-	}
-
-	public static void main(String[] args) throws MalformedPatternException {
-
 	}
 }
