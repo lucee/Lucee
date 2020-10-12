@@ -128,6 +128,7 @@ import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.DateTimeImpl;
+import lucee.runtime.type.dt.Time;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.dt.TimeSpanImpl;
 import lucee.runtime.type.scope.ObjectStruct;
@@ -4887,5 +4888,20 @@ public final class Caster {
 				Reflector.callSetter(pojo, p.getName().toLowerCase(), v);
 			}
 		}
+	}
+
+	public static long toTime(lucee.runtime.type.dt.Date date, Time time, TimeZone tz) {
+		if (time == null) return date.getTime();
+		tz = ThreadLocalPageContext.getTimeZone(tz);
+		Calendar c = JREDateTimeUtil.getThreadCalendar(tz);
+		c.setTimeInMillis(date.getTime());
+		int y = c.get(Calendar.YEAR);
+		int m = c.get(Calendar.MONTH);
+		int d = c.get(Calendar.DAY_OF_MONTH);
+		c.setTimeInMillis(time.getTime());
+		c.set(Calendar.YEAR, y);
+		c.set(Calendar.MONTH, m);
+		c.set(Calendar.DAY_OF_MONTH, d);
+		return c.getTimeInMillis();
 	}
 }
