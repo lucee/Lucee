@@ -65,5 +65,11 @@ public class DebuggerPool {
 		}
 		return arr;
 	}
+	
+	public void purge() {
+		synchronized (queue) {
+			queue.clear();
+		}
+	}	
 
 }
