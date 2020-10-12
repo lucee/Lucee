@@ -648,6 +648,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		else if (check("getDebuggingList", ACCESS_FREE) && check2(ACCESS_READ)) doGetDebuggingList();
 		else if (check("getLoggedDebugData", ACCESS_FREE)) // no password necessary for this
 			doGetLoggedDebugData();
+		else if (check("purgedebugpool", ACCESS_FREE) && check2(ACCESS_WRITE)) doPurgeDebugPool();
 		else if (check("getDebugSetting", ACCESS_FREE) && check2(ACCESS_READ)) doGetDebugSetting();
 		else if (check("getSSLCertificate", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_READ)) doGetSSLCertificate();
 		else if (check("getPluginDirectory", ACCESS_FREE) && check2(ACCESS_READ)) doGetPluginDirectory();
@@ -1496,6 +1497,12 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			}
 			throw new ApplicationException("No debugging data with id [" + id + "] found.");
 		}
+	}
+
+	private void doPurgeDebugPool() throws PageException {
+		if (config instanceof ConfigServer) return;
+		ConfigWebImpl cw = (ConfigWebImpl) config;		
+		cw.getDebuggerPool().purge();
 	}
 
 	private void doGetInfo() throws PageException {
