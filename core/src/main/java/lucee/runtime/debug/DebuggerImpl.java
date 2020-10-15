@@ -134,6 +134,8 @@ public final class DebuggerImpl implements Debugger {
 	private static final Key[] IMPLICIT_ACCESS_COLUMNS = new Collection.Key[] { KeyConstants._template, KeyConstants._line, KeyConstants._scope, KeyConstants._count,
 			KeyConstants._name };
 
+	private static final Double ZERO = Double.valueOf(0);
+
 	@Override
 	public void reset() {
 		entries.clear();
@@ -249,14 +251,14 @@ public final class DebuggerImpl implements Debugger {
 		return false;
 	}
 
-	private String _toString(long value) {
-		if (value <= 0) return "0";
-		return String.valueOf(value);
+	private Double _toDouble(long value) {
+		if (value <= 0) return ZERO;
+		return Double.valueOf(value);
 	}
 
-	private String _toString(int value) {
-		if (value <= 0) return "0";
-		return String.valueOf(value);
+	private Double _toDouble(int value) {
+		if (value <= 0) return ZERO;
+		return Double.valueOf(value);
 	}
 
 	@Override
@@ -477,14 +479,14 @@ public final class DebuggerImpl implements Debugger {
 						// ps = de.getPageSource();
 						totalTime += de.getFileLoadTime() + de.getExeTime();
 						qryPage.setAt(KeyConstants._id, row, de.getId());
-						qryPage.setAt(KeyConstants._count, row, _toString(de.getCount()));
-						qryPage.setAt(KeyConstants._min, row, _toString(de.getMin()));
-						qryPage.setAt(KeyConstants._max, row, _toString(de.getMax()));
-						qryPage.setAt(KeyConstants._avg, row, _toString(de.getExeTime() / de.getCount()));
-						qryPage.setAt(KeyConstants._app, row, _toString(de.getExeTime() - de.getQueryTime()));
-						qryPage.setAt(KeyConstants._load, row, _toString(de.getFileLoadTime()));
-						qryPage.setAt(KeyConstants._query, row, _toString(de.getQueryTime()));
-						qryPage.setAt(KeyConstants._total, row, _toString(de.getFileLoadTime() + de.getExeTime()));
+						qryPage.setAt(KeyConstants._count, row, _toDouble(de.getCount()));
+						qryPage.setAt(KeyConstants._min, row, _toDouble(de.getMin()));
+						qryPage.setAt(KeyConstants._max, row, _toDouble(de.getMax()));
+						qryPage.setAt(KeyConstants._avg, row, _toDouble(de.getExeTime() / de.getCount()));
+						qryPage.setAt(KeyConstants._app, row, _toDouble(de.getExeTime() - de.getQueryTime()));
+						qryPage.setAt(KeyConstants._load, row, _toDouble(de.getFileLoadTime()));
+						qryPage.setAt(KeyConstants._query, row, _toDouble(de.getQueryTime()));
+						qryPage.setAt(KeyConstants._total, row, _toDouble(de.getFileLoadTime() + de.getExeTime()));
 						qryPage.setAt(KeyConstants._src, row, de.getSrc());
 					}
 				}
@@ -537,19 +539,19 @@ public final class DebuggerImpl implements Debugger {
 					de = parts[i];
 
 					qryPart.setAt(KeyConstants._id, row, de.getId());
-					qryPart.setAt(KeyConstants._count, row, _toString(de.getCount()));
-					qryPart.setAt(KeyConstants._min, row, _toString(de.getMin()));
-					qryPart.setAt(KeyConstants._max, row, _toString(de.getMax()));
-					qryPart.setAt(KeyConstants._avg, row, _toString(de.getExeTime() / de.getCount()));
-					qryPart.setAt(KeyConstants._start, row, _toString(de.getStartPosition()));
-					qryPart.setAt(KeyConstants._end, row, _toString(de.getEndPosition()));
-					qryPart.setAt(KeyConstants._total, row, _toString(de.getExeTime()));
+					qryPart.setAt(KeyConstants._count, row, _toDouble(de.getCount()));
+					qryPart.setAt(KeyConstants._min, row, _toDouble(de.getMin()));
+					qryPart.setAt(KeyConstants._max, row, _toDouble(de.getMax()));
+					qryPart.setAt(KeyConstants._avg, row, _toDouble(de.getExeTime() / de.getCount()));
+					qryPart.setAt(KeyConstants._start, row, _toDouble(de.getStartPosition()));
+					qryPart.setAt(KeyConstants._end, row, _toDouble(de.getEndPosition()));
+					qryPart.setAt(KeyConstants._total, row, _toDouble(de.getExeTime()));
 					qryPart.setAt(KeyConstants._path, row, de.getPath());
 
 					if (de instanceof DebugEntryTemplatePartImpl) {
 
-						qryPart.setAt(KeyConstants._startLine, row, _toString(((DebugEntryTemplatePartImpl) de).getStartLine()));
-						qryPart.setAt(KeyConstants._endLine, row, _toString(((DebugEntryTemplatePartImpl) de).getEndLine()));
+						qryPart.setAt(KeyConstants._startLine, row, _toDouble(((DebugEntryTemplatePartImpl) de).getStartLine()));
+						qryPart.setAt(KeyConstants._endLine, row, _toDouble(((DebugEntryTemplatePartImpl) de).getEndLine()));
 						qryPart.setAt(KeyConstants._snippet, row, ((DebugEntryTemplatePartImpl) de).getSnippet());
 					}
 				}
