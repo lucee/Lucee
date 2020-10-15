@@ -83,7 +83,7 @@
 	<!--- CLEAR DEBUG POOL OF LOGS --->
 	<cfcase value="#stText.Buttons.Purge#">
 		<cfadmin 
-			action="purgeDebugLogs"
+			action="PurgeDebugPool"
 			type="#request.adminType#"
 			password="#session["password"&request.adminType]#"
 			remoteClients="#request.getRemoteClients()#">
