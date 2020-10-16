@@ -362,7 +362,7 @@ public class ConfigWebImpl extends ConfigImpl implements ServletConfig, ConfigWe
 					checkPhysicalFromWebroot, checkArchiveFromWebroot);
 			applicationMappings.put(key, new SoftReference<Mapping>(m));
 		}
-
+		m.check();
 		return m;
 	}
 
