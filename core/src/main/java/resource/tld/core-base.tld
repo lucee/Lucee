@@ -7128,6 +7128,13 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<description>Password to provide to the proxy server.</description>
 		</attribute>
 		<attribute>
+			<type>string</type>
+			<name>userAgent</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>User agent request header.</description>
+		</attribute>
+		<attribute>
 			<type>boolean</type>
 			<name>resolveURL</name>
 			<required>false</required>

@@ -74,6 +74,9 @@ public final class Schedule extends TagImpl {
 	/** Host name or IP address of a proxy server. */
 	private String proxyserver;
 
+	/** user agent for the http request. */
+	private String userAgent;
+
 	/** The date when the scheduled task ends. */
 	private Date enddate;
 
@@ -252,6 +255,15 @@ public final class Schedule extends TagImpl {
 	 **/
 	public void setProxyserver(String proxyserver) {
 		this.proxyserver = proxyserver;
+	}
+
+	/**
+	 * set the value of the userAgent for the http request.
+	 * 
+	 * @param userAgent value to set
+	 **/
+	public void setUseragent(String userAgent) {
+		this.userAgent = userAgent;
 	}
 
 	/**
@@ -472,7 +484,7 @@ public final class Schedule extends TagImpl {
 
 		try {
 			ScheduleTask st = new ScheduleTaskImpl(scheduler, task, file, startdate, starttime, enddate, endtime, url, port, interval, requesttimeout, cr,
-					ProxyDataImpl.getInstance(proxyserver, proxyport, proxyuser, proxypassword), resolveurl, publish, hidden, readonly, paused, autoDelete, unique);
+					ProxyDataImpl.getInstance(proxyserver, proxyport, proxyuser, proxypassword), resolveurl, publish, hidden, readonly, paused, autoDelete, unique, userAgent);
 			scheduler.addScheduleTask(st, true);
 		}
 		catch (Exception e) {
@@ -515,8 +527,8 @@ public final class Schedule extends TagImpl {
 		ScheduleTask[] tasks = scheduler.getAllScheduleTasks();
 		final String v = "VARCHAR";
 		String[] cols = new String[] { "task", "path", "file", "startdate", "starttime", "enddate", "endtime", "url", "port", "interval", "timeout", "username", "password",
-				"proxyserver", "proxyport", "proxyuser", "proxypassword", "resolveurl", "publish", "valid", "paused", "autoDelete", "unique" };
-		String[] types = new String[] { v, v, v, "DATE", "OTHER", "DATE", "OTHER", v, v, v, v, v, v, v, v, v, v, v, "BOOLEAN", v, "BOOLEAN", "BOOLEAN", "BOOLEAN" };
+				"proxyserver", "proxyport", "proxyuser", "proxypassword", "resolveurl", "publish", "valid", "paused", "autoDelete", "unique", "useragent" };
+		String[] types = new String[] { v, v, v, "DATE", "OTHER", "DATE", "OTHER", v, v, v, v, v, v, v, v, v, v, v, "BOOLEAN", v, "BOOLEAN", "BOOLEAN", "BOOLEAN", v };
 		lucee.runtime.type.Query query = new QueryImpl(cols, types, tasks.length, "query");
 		try {
 			for (int i = 0; i < tasks.length; i++) {
@@ -550,6 +562,7 @@ public final class Schedule extends TagImpl {
 						query.setAt("proxypassword", row, pd.getPassword());
 					}
 				}
+				query.setAt("useragent", row, Caster.toString(task.getUserAgent()));
 				query.setAt("resolveurl", row, Caster.toString(task.isResolveURL()));
 
 				query.setAt("paused", row, Caster.toBoolean(task.isPaused()));
@@ -605,6 +618,7 @@ public final class Schedule extends TagImpl {
 		username = null;
 		password = "";
 		proxyserver = null;
+		userAgent = null;
 		proxyport = 80;
 		proxyuser = null;
 		proxypassword = "";

@@ -55,6 +55,7 @@ public final class ScheduleTaskImpl implements ScheduleTask {
 	private long timeout;
 	private Credentials credentials;
 	private ProxyData proxy;
+	private String userAgent;
 	private boolean resolveURL;
 
 	private long nextExecution;
@@ -89,6 +90,7 @@ public final class ScheduleTaskImpl implements ScheduleTask {
 	 * @param proxyHost
 	 * @param proxyPort
 	 * @param proxyCredentials proxy username and password
+	 * @param userAgent
 	 * @param resolveURL resolve links in the output page to absolute references or not
 	 * @param publish
 	 * @throws IOException
@@ -96,11 +98,11 @@ public final class ScheduleTaskImpl implements ScheduleTask {
 	 */
 	public ScheduleTaskImpl(Scheduler scheduler, String task, Resource file, Date startDate, Time startTime, Date endDate, Time endTime, String url, int port, String interval,
 			long timeout, Credentials credentials, ProxyData proxy, boolean resolveURL, boolean publish, boolean hidden, boolean readonly, boolean paused, boolean autoDelete,
-			boolean unique) throws IOException, ScheduleException {
+			boolean unique, String userAgent) throws IOException, ScheduleException {
 
 		this.scheduler = scheduler;
 		String md5 = task.toLowerCase() + file + startDate + startTime + endDate + endTime + url + port + interval + timeout + credentials + proxy + resolveURL + publish + hidden
-				+ readonly + paused + unique;
+				+ readonly + paused + unique + userAgent;
 		md5 = Md5.getDigestAsString(md5);
 		this.md5 = md5;
 
@@ -128,6 +130,7 @@ public final class ScheduleTaskImpl implements ScheduleTask {
 		this.timeout = timeout;
 		this.credentials = credentials;
 		this.proxy = proxy;
+		this.userAgent = userAgent;
 		this.resolveURL = resolveURL;
 		this.publish = publish;
 		this.hidden = hidden;
@@ -206,6 +209,11 @@ public final class ScheduleTaskImpl implements ScheduleTask {
 	@Override
 	public ProxyData getProxyData() {
 		return proxy;
+	}
+
+	@Override
+	public String getUserAgent() {
+		return userAgent;
 	}
 
 	@Override
@@ -332,6 +340,10 @@ public final class ScheduleTaskImpl implements ScheduleTask {
 
 	public void setUnique(boolean unique) {
 		this.unique = unique;
+	}
+
+	public void setUseragent(String userAgent) {
+		this.userAgent = userAgent;
 	}
 
 	public String md5() {
