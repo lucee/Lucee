@@ -128,7 +128,8 @@ function createWaitBlockUI(msg)
 					color: '#fff' ,
 					fontSize : "18pt"
 				},
-				fadeIn: 100
+				fadeIn: 0,
+				fadeOut: 0
 			});
 		}
 	}
