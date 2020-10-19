@@ -397,7 +397,7 @@
 	  <dependency>
 		  <groupId>javax.mail</groupId>
 		  <artifactId>activation</artifactId>
-		  <version>1.4.7.0002L</version>
+		  <version>1.6.2.0000L</version>
       <scope>provided</scope>
 	  </dependency>
     <dependency>
