@@ -170,7 +170,7 @@ public class BundleLoader {
 				rtn.put(loadBundleInfo(jars[i]), jars[i]);
 			}
 			catch (final IOException ioe) {
-				ioe.printStackTrace();
+				new Exception("Error loading bundle info for [" + jars[i].toString() + "]", ioe).printStackTrace();
 			}
 		}
 		return rtn;
