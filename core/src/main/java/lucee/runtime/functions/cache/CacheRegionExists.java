@@ -19,7 +19,6 @@ package lucee.runtime.functions.cache;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.cache.CacheUtil;
-import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.config.Password;
 import lucee.runtime.config.XMLConfigAdmin;
 import lucee.runtime.exp.FunctionException;
@@ -39,7 +38,7 @@ public class CacheRegionExists extends BIF {
 	public static boolean call(PageContext pc, String cacheName, String strWebAdminPassword) throws PageException {
 		Password webAdminPassword = CacheUtil.getPassword(pc, strWebAdminPassword, false);
 		try {
-			XMLConfigAdmin adminConfig = XMLConfigAdmin.newInstance((ConfigWebImpl) pc.getConfig(), webAdminPassword);
+			XMLConfigAdmin adminConfig = XMLConfigAdmin.newInstance(pc.getConfig(), webAdminPassword);
 			return adminConfig.cacheConnectionExists(cacheName);
 		}
 		catch (Exception e) {

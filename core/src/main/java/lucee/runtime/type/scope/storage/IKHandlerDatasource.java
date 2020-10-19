@@ -11,7 +11,7 @@ import lucee.commons.io.log.Log;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.converter.JavaConverter;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DatasourceConnection;
@@ -36,7 +36,7 @@ public class IKHandlerDatasource implements IKHandler {
 
 	@Override
 	public IKStorageValue loadData(PageContext pc, String appName, String name, String strType, int type, Log log) throws PageException {
-		ConfigImpl config = (ConfigImpl) ThreadLocalPageContext.getConfig(pc);
+		ConfigPro config = (ConfigPro) ThreadLocalPageContext.getConfig(pc);
 		DatasourceConnectionPool pool = config.getDatasourceConnectionPool();
 		DatasourceConnection dc = pool.getDatasourceConnection(config, pc.getDataSource(name), null, null);
 		SQLExecutor executor = SQLExecutionFactory.getInstance(dc);
@@ -114,7 +114,7 @@ public class IKHandlerDatasource implements IKHandler {
 	@Override
 	public void store(IKStorageScopeSupport storageScope, PageContext pc, String appName, final String name, String cfid, Map<Key, IKStorageScopeItem> data, Log log) {
 		DatasourceConnection dc = null;
-		ConfigImpl ci = (ConfigImpl) ThreadLocalPageContext.getConfig(pc);
+		ConfigPro ci = (ConfigPro) ThreadLocalPageContext.getConfig(pc);
 		DatasourceConnectionPool pool = ci.getDatasourceConnectionPool();
 		try {
 			pc = ThreadLocalPageContext.get(pc);
@@ -137,7 +137,7 @@ public class IKHandlerDatasource implements IKHandler {
 
 	@Override
 	public void unstore(IKStorageScopeSupport storageScope, PageContext pc, String appName, String name, String cfid, Log log) {
-		ConfigImpl ci = (ConfigImpl) ThreadLocalPageContext.getConfig(pc);
+		ConfigPro ci = (ConfigPro) ThreadLocalPageContext.getConfig(pc);
 		DatasourceConnection dc = null;
 
 		DatasourceConnectionPool pool = ci.getDatasourceConnectionPool();

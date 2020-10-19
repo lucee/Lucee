@@ -40,7 +40,7 @@ import java.util.concurrent.Executor;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.spooler.Task;
@@ -197,45 +197,14 @@ public final class DatasourceConnectionImpl implements DatasourceConnectionPro, 
 		return getConnection().prepareStatement(sql.getSQLString());
 	}
 
-	/*
-	 * public PreparedStatement getPreparedStatement(SQL sql, boolean createGeneratedKeys,boolean
-	 * allowCaching) throws SQLException { // create key String strSQL=sql.getSQLString(); String
-	 * key=strSQL.trim()+":"+createGeneratedKeys; try { key = MD5.getDigestAsString(key); } catch
-	 * (IOException e) {} PreparedStatement ps = allowCaching?preparedStatements.get(key):null;
-	 * if(ps!=null) { if(DataSourceUtil.isClosed(ps,true)) preparedStatements.remove(key); else return
-	 * ps; }
-	 * 
-	 * 
-	 * if(createGeneratedKeys) ps=
-	 * getConnection().prepareStatement(strSQL,Statement.RETURN_GENERATED_KEYS); else
-	 * ps=getConnection().prepareStatement(strSQL); if(preparedStatements.size()>MAX_PS)
-	 * closePreparedStatements((preparedStatements.size()-MAX_PS)+1);
-	 * if(allowCaching)preparedStatements.put(key,ps); return ps; }
-	 */
-
 	@Override
 	public PreparedStatement getPreparedStatement(SQL sql, int resultSetType, int resultSetConcurrency) throws SQLException {
 		return getConnection().prepareStatement(sql.getSQLString(), resultSetType, resultSetConcurrency);
 	}
 
-	/*
-	 * 
-	 * public PreparedStatement getPreparedStatement(SQL sql, int resultSetType,int
-	 * resultSetConcurrency) throws SQLException { boolean allowCaching=false; // create key String
-	 * strSQL=sql.getSQLString(); String key=strSQL.trim()+":"+resultSetType+":"+resultSetConcurrency;
-	 * try { key = MD5.getDigestAsString(key); } catch (IOException e) {} PreparedStatement ps =
-	 * allowCaching?preparedStatements.get(key):null; if(ps!=null) {
-	 * if(DataSourceUtil.isClosed(ps,true)) preparedStatements.remove(key); else return ps; }
-	 * 
-	 * ps=getConnection().prepareStatement(strSQL,resultSetType,resultSetConcurrency);
-	 * if(preparedStatements.size()>MAX_PS)
-	 * closePreparedStatements((preparedStatements.size()-MAX_PS)+1);
-	 * if(allowCaching)preparedStatements.put(key,ps); return ps; }
-	 */
-
 	@Override
 	public Object execute(Config config) throws PageException {
-		((ConfigImpl) config).getDatasourceConnectionPool().releaseDatasourceConnection(this);
+		((ConfigPro) config).getDatasourceConnectionPool().releaseDatasourceConnection(this);
 		return null;
 	}
 

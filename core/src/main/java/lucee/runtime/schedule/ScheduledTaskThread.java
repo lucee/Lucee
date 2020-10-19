@@ -31,7 +31,6 @@ import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.engine.ThreadLocalConfig;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -209,7 +208,7 @@ public class ScheduledTaskThread extends Thread {
 	private void log(int level, String msg) {
 		try {
 			String logName = "schedule task:" + task.getTask();
-			((ConfigImpl) scheduler.getConfig()).getLog("scheduler").log(level, logName, msg);
+			scheduler.getConfig().getLog("scheduler").log(level, logName, msg);
 
 		}
 		catch (Exception e) {
@@ -221,7 +220,7 @@ public class ScheduledTaskThread extends Thread {
 	private void log(int level, Exception e) {
 		try {
 			String logName = "schedule task:" + task.getTask();
-			((ConfigImpl) scheduler.getConfig()).getLog("scheduler").log(level, logName, e);
+			scheduler.getConfig().getLog("scheduler").log(level, logName, e);
 
 		}
 		catch (Exception ee) {

@@ -43,9 +43,9 @@ import lucee.runtime.cache.tag.CacheHandlerPro;
 import lucee.runtime.cache.tag.CacheItem;
 import lucee.runtime.cache.tag.query.QueryResultCacheItem;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.Constants;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DataSourceImpl;
@@ -547,7 +547,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 
 		if (data.async) {
 			PageSource ps = getPageSource();
-			((ConfigImpl) pageContext.getConfig()).getSpoolerEngine()
+			((ConfigPro) pageContext.getConfig()).getSpoolerEngine()
 					.add(new QuerySpoolerTask(pageContext, data, strSQL, toTemplateLine(pageContext.getConfig(), sourceTemplate, ps), ps));
 		}
 		else {
@@ -735,7 +735,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 
 			if (pageContext.getConfig().debug() && data.debug) {
 				DebuggerImpl di = (DebuggerImpl) pageContext.getDebugger();
-				boolean logdb = ((ConfigImpl) pageContext.getConfig()).hasDebugOptions(ConfigImpl.DEBUG_DATABASE);
+				boolean logdb = ((ConfigPro) pageContext.getConfig()).hasDebugOptions(ConfigPro.DEBUG_DATABASE);
 				if (logdb) {
 					boolean debugUsage = DebuggerImpl.debugQueryUsage(pageContext, queryResult);
 					di.addQuery(debugUsage ? queryResult : null, data.datasource != null ? data.datasource.getName() : null, data.name, sqlQuery, queryResult.getRecordcount(), tl,
@@ -758,7 +758,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 			Struct meta = createMetaData(pageContext, data, queryResult, sqlQuery, setVars, exe);
 
 			// listener
-			((ConfigWebImpl) pageContext.getConfig()).getActionMonitorCollector().log(pageContext, "query", "Query", exe, queryResult);
+			((ConfigWebPro) pageContext.getConfig()).getActionMonitorCollector().log(pageContext, "query", "Query", exe, queryResult);
 			if (data.listener != null) {
 				callAfter(pageContext, data, strSQL, tl, setResult, queryResult, meta, setVars);
 			}

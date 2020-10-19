@@ -42,7 +42,7 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.component.Property;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
@@ -656,7 +656,7 @@ public final class ASMUtil {
 	 * @throws PageException
 	 */
 	public static Type toType(Class type, boolean axistype) throws PageException {
-		if (axistype) type = ((ConfigWebImpl) ThreadLocalPageContext.getConfig()).getWSHandler().toWSTypeClass(type);
+		if (axistype) type = ((ConfigWebPro) ThreadLocalPageContext.getConfig()).getWSHandler().toWSTypeClass(type);
 		return Type.getType(type);
 	}
 

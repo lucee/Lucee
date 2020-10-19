@@ -27,7 +27,7 @@ import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.FunctionException;
@@ -73,7 +73,7 @@ public final class GetFunctionData implements Function {
 	private static Struct _call(PageContext pc, String strFunctionName, int dialect) throws PageException {
 
 		FunctionLib[] flds;
-		flds = ((ConfigImpl) pc.getConfig()).getFLDs(dialect);
+		flds = ((ConfigPro) pc.getConfig()).getFLDs(dialect);
 
 		FunctionLibFunction function = null;
 		for (int i = 0; i < flds.length; i++) {

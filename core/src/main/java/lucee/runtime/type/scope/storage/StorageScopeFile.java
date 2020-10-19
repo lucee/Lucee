@@ -25,7 +25,7 @@ import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.converter.ScriptConverter;
 import lucee.runtime.interpreter.CFMLExpressionInterpreter;
@@ -148,7 +148,7 @@ public abstract class StorageScopeFile extends StorageScopeImpl {
 	}
 
 	protected static Resource _loadResource(ConfigWeb config, int type, String name, String cfid) {
-		ConfigImpl ci = (ConfigImpl) config;
+		ConfigPro ci = (ConfigPro) config;
 		Resource dir = type == SCOPE_CLIENT ? ci.getClientScopeDir() : ci.getSessionScopeDir();
 		return dir.getRealResource(getFolderName(name, cfid, true));
 	}

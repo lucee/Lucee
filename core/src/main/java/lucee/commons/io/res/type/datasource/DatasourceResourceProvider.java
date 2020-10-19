@@ -44,7 +44,7 @@ import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.db.DatasourceConnection;
 import lucee.runtime.db.DatasourceConnectionPro;
 import lucee.runtime.db.DatasourceManagerImpl;
@@ -208,7 +208,7 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 	private DatasourceManagerImpl getManager() {
 		if (_manager == null) {
 			Config config = ThreadLocalPageContext.getConfig();
-			_manager = new DatasourceManagerImpl((ConfigImpl) config);
+			_manager = new DatasourceManagerImpl((ConfigPro) config);
 		}
 		return _manager;
 	}

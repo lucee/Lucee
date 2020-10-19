@@ -45,8 +45,8 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.component.ComponentLoader;
-import lucee.runtime.config.ConfigImpl;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.XMLConfigWebFactory;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
@@ -85,8 +85,8 @@ public class TagUtil {
 		TagLibTag tlt = null;
 		Key k;
 
-		if (pc.getConfig() instanceof ConfigWebImpl) {
-			ConfigWebImpl cw = (ConfigWebImpl) pc.getConfig();
+		if (pc.getConfig() instanceof ConfigWebPro) {
+			ConfigWebPro cw = (ConfigWebPro) pc.getConfig();
 
 			List<TagLib> allTlds = new ArrayList();
 			// allTlds.addAll(Arrays.asList(cw.getTLDs(CFMLEngine.DIALECT_CFML)));
@@ -236,8 +236,7 @@ public class TagUtil {
 	 * @param cs
 	 * @param config
 	 */
-	public static void addTagMetaData(ConfigWebImpl cw, lucee.commons.io.log.Log log) {
-		if (true) return;
+	public static void addTagMetaData(ConfigWebPro cw, lucee.commons.io.log.Log log) {
 
 		PageContextImpl pc = null;
 		try {
@@ -267,7 +266,7 @@ public class TagUtil {
 		}
 	}
 
-	private static void _addTagMetaData(PageContext pc, ConfigWebImpl cw, int dialect) {
+	private static void _addTagMetaData(PageContext pc, ConfigWebPro cw, int dialect) {
 		TagLibTagAttr attrFileName, attrMapping, attrIsWeb;
 		String filename, mappingName;
 		Boolean isWeb;
@@ -298,7 +297,7 @@ public class TagUtil {
 	private static void addTagMetaData(PageContext pc, TagLib tl, TagLibTag tlt, String filename, String mappingName, boolean isWeb) {
 		if (pc == null) return;
 		try {
-			ConfigWebImpl config = (ConfigWebImpl) pc.getConfig();
+			ConfigWebPro config = (ConfigWebPro) pc.getConfig();
 			PageSource ps = isWeb ? config.getTagMapping(mappingName).getPageSource(filename) : config.getServerTagMapping(mappingName).getPageSource(filename);
 
 			// Page p = ps.loadPage(pc);
@@ -368,7 +367,7 @@ public class TagUtil {
 
 	public static TagLibTag getTagLibTag(PageContext pc, int dialect, String nameSpace, String strTagName) throws ApplicationException {
 		TagLib[] tlds;
-		tlds = ((ConfigImpl) pc.getConfig()).getTLDs(dialect);
+		tlds = ((ConfigPro) pc.getConfig()).getTLDs(dialect);
 
 		TagLib tld = null;
 		TagLibTag tag = null;

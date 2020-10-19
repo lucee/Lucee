@@ -49,7 +49,7 @@ import lucee.runtime.cache.tag.CacheHandlerPro;
 import lucee.runtime.cache.tag.CacheItem;
 import lucee.runtime.cache.tag.query.StoredProcCacheItem;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.Constants;
 import lucee.runtime.db.CFTypes;
@@ -704,7 +704,7 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 			res.set(KeyConstants._cached, Caster.toBoolean(isFromCache));
 
 			if (pageContext.getConfig().debug() && debug) {
-				boolean logdb = ((ConfigImpl) pageContext.getConfig()).hasDebugOptions(ConfigImpl.DEBUG_DATABASE);
+				boolean logdb = ((ConfigPro) pageContext.getConfig()).hasDebugOptions(ConfigPro.DEBUG_DATABASE);
 				if (logdb) pageContext.getDebugger().addQuery(null, dsn, procedure, _sql, count, pageContext.getCurrentPageSource(), (int) exe);
 			}
 

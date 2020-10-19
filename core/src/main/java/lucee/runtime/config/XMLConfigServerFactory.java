@@ -165,7 +165,7 @@ public final class XMLConfigServerFactory extends XMLConfigFactory {
 	 */
 	static void load(ConfigServerImpl configServer, Document doc, boolean isReload, boolean doNew)
 			throws ClassException, PageException, IOException, TagLibException, FunctionLibException, BundleException {
-		ConfigImpl.onlyFirstMatch = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.mapping.first", null), false);
+		ConfigBase.onlyFirstMatch = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.mapping.first", null), false);
 		XMLConfigWebFactory.load(null, configServer, doc, isReload, doNew);
 
 		loadLabel(configServer, doc);

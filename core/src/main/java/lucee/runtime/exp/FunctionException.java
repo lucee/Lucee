@@ -21,7 +21,7 @@ package lucee.runtime.exp;
 import java.util.ArrayList;
 
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.function.FunctionLibFunction;
@@ -108,7 +108,7 @@ public final class FunctionException extends ExpressionException {
 	private static String getFunctionInfo(PageContext pc, String functionName) {
 		FunctionLib[] flds;
 		int dialect = pc.getCurrentTemplateDialect();
-		flds = ((ConfigImpl) pc.getConfig()).getFLDs(dialect);
+		flds = ((ConfigPro) pc.getConfig()).getFLDs(dialect);
 
 		FunctionLibFunction function = null;
 		for (int i = 0; i < flds.length; i++) {

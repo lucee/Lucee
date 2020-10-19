@@ -38,9 +38,9 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.db.ApplicationDataSource;
 import lucee.runtime.db.ClassDefinition;
@@ -282,7 +282,7 @@ public final class AppListenerUtil {
 		Iterator<Entry<Key, Object>> it = sct.entryIterator();
 		Entry<Key, Object> e;
 		java.util.List<Mapping> mappings = new ArrayList<Mapping>();
-		ConfigWebImpl config = (ConfigWebImpl) cw;
+		ConfigWebPro config = (ConfigWebPro) cw;
 		String virtual;
 		while (it.hasNext()) {
 			e = it.next();
@@ -394,7 +394,7 @@ public final class AppListenerUtil {
 	}
 
 	private static Mapping[] toMappings(ConfigWeb cw, String type, Object o, boolean useStructNames, Resource source) throws PageException {
-		ConfigWebImpl config = (ConfigWebImpl) cw;
+		ConfigWebPro config = (ConfigWebPro) cw;
 		Array array;
 		if (o instanceof String) {
 			array = ListUtil.listToArrayRemoveEmpty(Caster.toString(o), ',');
@@ -517,7 +517,7 @@ public final class AppListenerUtil {
 
 	public static void setORMConfiguration(PageContext pc, ApplicationContext ac, Struct sct) throws PageException {
 		if (sct == null) sct = new StructImpl();
-		ConfigImpl config = (ConfigImpl) pc.getConfig();
+		ConfigPro config = (ConfigPro) pc.getConfig();
 		PageSource curr = pc.getCurrentTemplatePageSource();
 		Resource res = curr == null ? null : curr.getResourceTranslated(pc).getParentResource();
 		ac.setORMConfiguration(ORMConfigurationImpl.load(config, ac, sct, res, config.getORMConfig()));
@@ -857,7 +857,7 @@ public final class AppListenerUtil {
 
 			// abs path
 			if (path.startsWith("/")) {
-				ConfigWebImpl cwi = (ConfigWebImpl) config;
+				ConfigWebPro cwi = (ConfigWebPro) config;
 				PageSource ps = cwi.getPageSourceExisting(pc, ac == null ? null : ac.getMappings(), path, false, false, true, false);
 				if (ps != null) {
 					res = ps.getResource();
@@ -900,23 +900,23 @@ public final class AppListenerUtil {
 	public static int toVariableUsage(String str, int defaultValue) {
 		if (str == null) return defaultValue;
 		str = str.trim().toLowerCase();
-		if ("ignore".equals(str)) return ConfigImpl.QUERY_VAR_USAGE_IGNORE;
-		if ("warn".equals(str)) return ConfigImpl.QUERY_VAR_USAGE_WARN;
-		if ("warning".equals(str)) return ConfigImpl.QUERY_VAR_USAGE_WARN;
-		if ("error".equals(str)) return ConfigImpl.QUERY_VAR_USAGE_ERROR;
+		if ("ignore".equals(str)) return ConfigPro.QUERY_VAR_USAGE_IGNORE;
+		if ("warn".equals(str)) return ConfigPro.QUERY_VAR_USAGE_WARN;
+		if ("warning".equals(str)) return ConfigPro.QUERY_VAR_USAGE_WARN;
+		if ("error".equals(str)) return ConfigPro.QUERY_VAR_USAGE_ERROR;
 
 		Boolean b = Caster.toBoolean(str, null);
 		if (b != null) {
-			return b.booleanValue() ? ConfigImpl.QUERY_VAR_USAGE_ERROR : ConfigImpl.QUERY_VAR_USAGE_IGNORE;
+			return b.booleanValue() ? ConfigPro.QUERY_VAR_USAGE_ERROR : ConfigPro.QUERY_VAR_USAGE_IGNORE;
 		}
 
 		return defaultValue;
 	}
 
 	public static String toVariableUsage(int i, String defaultValue) {
-		if (ConfigImpl.QUERY_VAR_USAGE_IGNORE == i) return "ignore";
-		if (ConfigImpl.QUERY_VAR_USAGE_WARN == i) return "warn";
-		if (ConfigImpl.QUERY_VAR_USAGE_ERROR == i) return "error";
+		if (ConfigPro.QUERY_VAR_USAGE_IGNORE == i) return "ignore";
+		if (ConfigPro.QUERY_VAR_USAGE_WARN == i) return "warn";
+		if (ConfigPro.QUERY_VAR_USAGE_ERROR == i) return "error";
 
 		return defaultValue;
 	}

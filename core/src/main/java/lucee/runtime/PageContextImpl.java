@@ -87,9 +87,9 @@ import lucee.runtime.cache.tag.CacheItem;
 import lucee.runtime.cache.tag.include.IncludeCacheItem;
 import lucee.runtime.component.ComponentLoader;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.Constants;
 import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.config.Password;
@@ -248,7 +248,7 @@ public final class PageContextImpl extends PageContext {
 	private BodyContentStack bodyContentStack;
 	private DevNullBodyContent devNull;
 
-	private ConfigWebImpl config;
+	private ConfigWebPro config;
 	// private DataSourceManager manager;
 	// private CFMLCompilerImpl compiler;
 
@@ -364,7 +364,7 @@ public final class PageContextImpl extends PageContext {
 	 * @param id identity of the pageContext
 	 * @param servlet
 	 */
-	public PageContextImpl(ScopeContext scopeContext, ConfigWebImpl config, int id, HttpServlet servlet, boolean jsr223) {
+	public PageContextImpl(ScopeContext scopeContext, ConfigWebPro config, int id, HttpServlet servlet, boolean jsr223) {
 		// must be first because is used after
 		tagHandlerPool = config.getTagHandlerPool();
 		this.servlet = servlet;
@@ -752,15 +752,15 @@ public final class PageContextImpl extends PageContext {
 	@Override
 	public void writePSQ(Object o) throws IOException, PageException {
 		// is var usage allowed?
-		if (applicationContext != null && applicationContext.getQueryVarUsage() != ConfigImpl.QUERY_VAR_USAGE_IGNORE) {
+		if (applicationContext != null && applicationContext.getQueryVarUsage() != ConfigPro.QUERY_VAR_USAGE_IGNORE) {
 			// Warning
-			if (applicationContext.getQueryVarUsage() == ConfigImpl.QUERY_VAR_USAGE_WARN) {
+			if (applicationContext.getQueryVarUsage() == ConfigPro.QUERY_VAR_USAGE_WARN) {
 				DebuggerImpl.deprecated(this, "query.variableUsage",
 						"Please do not use variables within the cfquery tag, instead use the tag \"cfqueryparam\" or the attribute \"params\"");
 
 			}
 			// Error
-			else if (applicationContext.getQueryVarUsage() == ConfigImpl.QUERY_VAR_USAGE_ERROR) {
+			else if (applicationContext.getQueryVarUsage() == ConfigPro.QUERY_VAR_USAGE_ERROR) {
 				throw new ApplicationException("Variables are not allowed within cfquery, please use the tag <cfqueryparam> or the attribute \"params\" instead.");
 			}
 		}
@@ -971,7 +971,7 @@ public final class PageContextImpl extends PageContext {
 
 	private void _doInclude(PageSource[] sources, boolean runOnce) throws PageException {
 		// debug
-		if (!gatewayContext && config.debug() && config.hasDebugOptions(ConfigImpl.DEBUG_TEMPLATE)) {
+		if (!gatewayContext && config.debug() && config.hasDebugOptions(ConfigPro.DEBUG_TEMPLATE)) {
 			long currTime = executionTime;
 			long exeTime = 0;
 			long time = System.nanoTime();
@@ -1036,7 +1036,7 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	public static void notSupported(Config config, PageSource ps) throws ApplicationException {
-		if (ps.getDialect() == CFMLEngine.DIALECT_LUCEE && config instanceof ConfigImpl && !((ConfigImpl) config).allowLuceeDialect()) notSupported();
+		if (ps.getDialect() == CFMLEngine.DIALECT_LUCEE && config instanceof ConfigPro && !((ConfigPro) config).allowLuceeDialect()) notSupported();
 	}
 
 	public static void notSupported() throws ApplicationException {
@@ -2947,7 +2947,7 @@ public final class PageContextImpl extends PageContext {
 			else {
 				(u.getCheckArguments() ? u.localScope() : u).setEL(KeyConstants._cfcatch, pe.getCatchBlock(config));
 				if (name != null && !StringUtil.isEmpty(name, true)) (u.getCheckArguments() ? u.localScope() : u).setEL(KeyImpl.getInstance(name.trim()), pe.getCatchBlock(config));
-				if (!gatewayContext && config.debug() && config.hasDebugOptions(ConfigImpl.DEBUG_EXCEPTION) && caught) {
+				if (!gatewayContext && config.debug() && config.hasDebugOptions(ConfigPro.DEBUG_EXCEPTION) && caught) {
 					/*
 					 * print.e("-----------------------"); print.e("msg:" + pe.getMessage()); print.e("caught:" +
 					 * caught); print.e("store:" + store); print.e("signal:" + signal); print.e("outer:" + outer);
@@ -3366,8 +3366,8 @@ public final class PageContextImpl extends PageContext {
 		if (page == null) return false;
 
 		short it = ((MappingImpl) page.getPageSource().getMapping()).getInspectTemplate();
-		if (it == ConfigImpl.INSPECT_NEVER) return true;
-		if (it == ConfigImpl.INSPECT_ALWAYS) return false;
+		if (it == ConfigPro.INSPECT_NEVER) return true;
+		if (it == ConfigPro.INSPECT_ALWAYS) return false;
 
 		return pagesUsed.contains("" + page.hashCode());
 	}

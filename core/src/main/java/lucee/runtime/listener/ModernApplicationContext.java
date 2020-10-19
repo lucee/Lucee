@@ -56,7 +56,7 @@ import lucee.runtime.cache.CacheConnectionImpl;
 import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.component.Member;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
@@ -312,7 +312,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 
 	public ModernApplicationContext(PageContext pc, Component cfc, RefBoolean throwsErrorWhileInit) {
 		super(pc.getConfig());
-		ConfigImpl ci = ((ConfigImpl) config);
+		ConfigPro ci = ((ConfigPro) config);
 		setClientCookies = config.isClientCookies();
 		setDomainCookies = config.isDomainCookies();
 		setSessionManagement = config.isSessionManagement();
@@ -354,7 +354,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		this.regex = ci.getRegex();
 
 		initAntiSamyPolicyResource(pc);
-		if (antiSamyPolicyResource == null) this.antiSamyPolicyResource = ((ConfigImpl) config).getAntiSamyPolicy();
+		if (antiSamyPolicyResource == null) this.antiSamyPolicyResource = ((ConfigPro) config).getAntiSamyPolicy();
 		// read scope cascading
 		initScopeCascading();
 		initSameFieldAsArray(pc);

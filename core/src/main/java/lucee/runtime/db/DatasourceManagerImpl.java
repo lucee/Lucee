@@ -28,7 +28,7 @@ import java.util.Map.Entry;
 import lucee.commons.lang.Pair;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.DeprecatedException;
@@ -45,7 +45,7 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 
 	public static final String QOQ_DATASOURCE_NAME = "_queryofquerydb";
 
-	private ConfigImpl config;
+	private ConfigPro config;
 
 	boolean autoCommit = true;
 	private int isolation = Connection.TRANSACTION_NONE;
@@ -58,7 +58,7 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 	 * 
 	 * @param pc
 	 */
-	public DatasourceManagerImpl(ConfigImpl c) {
+	public DatasourceManagerImpl(ConfigPro c) {
 		this.config = c;
 	}
 

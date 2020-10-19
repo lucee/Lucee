@@ -69,9 +69,9 @@ import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.Constants;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
@@ -751,7 +751,7 @@ public final class SMTPClient implements Serializable {
 		try {
 
 			Proxy.start(proxyData);
-			Log log = ((ConfigImpl) config).getLog("mail");
+			Log log = config.getLog("mail");
 			// Server
 			// Server[] servers = config.getMailServers();
 			if (host != null) {
@@ -812,8 +812,7 @@ public final class SMTPClient implements Serializable {
 				{// synchronized(LOCK) {
 					try {
 						msgSess = createMimeMessage(config, server.getHostName(), server.getPort(), _username, _password, ((ServerImpl) server).getLifeTimeSpan(),
-								((ServerImpl) server).getIdleTimeSpan(), _tls, _ssl, ((ConfigImpl) config).isMailSendPartial(), !recyleConnection,
-								((ConfigImpl) config).isUserset());
+								((ServerImpl) server).getIdleTimeSpan(), _tls, _ssl, ((ConfigPro) config).isMailSendPartial(), !recyleConnection, ((ConfigPro) config).isUserset());
 					}
 					catch (MessagingException e) {
 						// listener
@@ -905,7 +904,7 @@ public final class SMTPClient implements Serializable {
 		props.put("tos", this.tos);
 		props.put("username", this.username);
 		props.put("xmailer", this.xmailer);
-		((ConfigWebImpl) config).getActionMonitorCollector().log(config, "mail", "Mail", exe, props);
+		((ConfigWebPro) config).getActionMonitorCollector().log(config, "mail", "Mail", exe, props);
 
 	}
 

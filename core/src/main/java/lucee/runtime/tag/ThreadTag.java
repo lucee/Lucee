@@ -32,7 +32,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.runtime.Page;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
@@ -311,7 +311,7 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 			else {
 				ChildThreadImpl ct = new ChildThreadImpl((PageContextImpl) pc, currentPage, name.getString(), threadIndex, attrs, true);
 				ct.setPriority(priority);
-				((ConfigImpl) pc.getConfig()).getSpoolerEngine().add(new ChildSpoolerTask(ct, plans));
+				((ConfigPro) pc.getConfig()).getSpoolerEngine().add(new ChildSpoolerTask(ct, plans));
 			}
 
 		}

@@ -50,7 +50,7 @@ import lucee.runtime.ComponentSpecificAccess;
 import lucee.runtime.PageContext;
 import lucee.runtime.coder.Base64Coder;
 import lucee.runtime.component.Property;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.engine.Controler;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
@@ -480,7 +480,7 @@ public final class JSONConverter extends ConverterSupport {
 			int len = query.getRecordcount();
 			pc = ThreadLocalPageContext.get(pc);
 			boolean upperCase = false;
-			if (pc != null) upperCase = pc.getCurrentTemplateDialect() == CFMLEngine.DIALECT_CFML && ((ConfigWebImpl) pc.getConfig()).getDotNotationUpperCase();
+			if (pc != null) upperCase = pc.getCurrentTemplateDialect() == CFMLEngine.DIALECT_CFML && ((ConfigWebPro) pc.getConfig()).getDotNotationUpperCase();
 
 			for (int i = 0; i < _keys.length; i++) {
 				if (oDoIt) sb.append(',');

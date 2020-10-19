@@ -88,7 +88,6 @@ import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.cfx.CFXTagException;
 import lucee.runtime.cfx.CFXTagPool;
-import lucee.runtime.config.ConfigImpl.Startup;
 import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.WDDXConverter;
 import lucee.runtime.db.ClassDefinition;
@@ -162,7 +161,7 @@ import lucee.transformer.library.tag.TagLibException;
 public final class XMLConfigAdmin {
 
 	private static final BundleInfo[] EMPTY = new BundleInfo[0];
-	private ConfigImpl config;
+	private ConfigPro config;
 	private Document doc;
 	private Password password;
 
@@ -174,8 +173,8 @@ public final class XMLConfigAdmin {
 	 * @throws SAXException
 	 * @throws IOException
 	 */
-	public static XMLConfigAdmin newInstance(ConfigImpl config, Password password) throws XMLException, IOException {
-		return new XMLConfigAdmin(config, password);
+	public static XMLConfigAdmin newInstance(Config config, Password password) throws XMLException, IOException {
+		return new XMLConfigAdmin((ConfigPro) config, password);
 	}
 
 	private void checkWriteAccess() throws SecurityException {
@@ -233,19 +232,19 @@ public final class XMLConfigAdmin {
 		}
 		else {
 			ConfigServerImpl cs = (ConfigServerImpl) config;
-			ConfigWebImpl cw = cs.getConfigWebImpl(contextPath);
+			ConfigWebImpl cw = (ConfigWebImpl) cs.getConfigWeb(contextPath);
 			if (cw != null) cw.updatePassword(false, cw.getPassword(), null);
 		}
 	}
 
-	private XMLConfigAdmin(ConfigImpl config, Password password) throws IOException, XMLException {
+	private XMLConfigAdmin(ConfigPro config, Password password) throws IOException, XMLException {
 		this.config = config;
 		this.password = password;
 		doc = XMLUtil.createDocument(config.getConfigFile(), false);
 	}
 
 	public static void checkForChangesInConfigFile(Config config) {
-		ConfigImpl ci = (ConfigImpl) config;
+		ConfigPro ci = (ConfigPro) config;
 		if (!ci.checkForChangesInConfigFile()) return;
 
 		Resource file = config.getConfigFile();
@@ -288,7 +287,7 @@ public final class XMLConfigAdmin {
 		el.setAttribute("arguments", arguments);
 	}
 
-	public static synchronized void _storeAndReload(ConfigImpl config)
+	public static synchronized void _storeAndReload(ConfigPro config)
 			throws PageException, SAXException, ClassException, IOException, TagLibException, FunctionLibException, BundleException {
 		XMLConfigAdmin admin = new XMLConfigAdmin(config, null);
 		admin._store();
@@ -351,7 +350,7 @@ public final class XMLConfigAdmin {
 	 * @throws PageException
 	 */
 	public void setMailLog(Config config, String logFile, String level) throws PageException {
-		ConfigImpl ci = (ConfigImpl) config;
+		ConfigPro ci = (ConfigPro) config;
 		checkWriteAccess();
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_MAIL);
 
@@ -561,7 +560,7 @@ public final class XMLConfigAdmin {
 		}
 	}
 
-	static void updateMapping(ConfigImpl config, String virtual, String physical, String archive, String primary, short inspect, boolean toplevel, int listenerMode,
+	static void updateMapping(ConfigPro config, String virtual, String physical, String archive, String primary, short inspect, boolean toplevel, int listenerMode,
 			int listenerType, boolean readonly, boolean reload) throws SAXException, IOException, PageException, BundleException {
 		XMLConfigAdmin admin = new XMLConfigAdmin(config, null);
 		admin._updateMapping(virtual, physical, archive, primary, inspect, toplevel, listenerMode, listenerType, readonly);
@@ -569,7 +568,7 @@ public final class XMLConfigAdmin {
 		if (reload) admin._reload();
 	}
 
-	static void updateComponentMapping(ConfigImpl config, String virtual, String physical, String archive, String primary, short inspect, boolean reload)
+	static void updateComponentMapping(ConfigPro config, String virtual, String physical, String archive, String primary, short inspect, boolean reload)
 			throws SAXException, IOException, PageException, BundleException {
 		XMLConfigAdmin admin = new XMLConfigAdmin(config, null);
 		admin._updateComponentMapping(virtual, physical, archive, primary, inspect);
@@ -577,7 +576,7 @@ public final class XMLConfigAdmin {
 		if (reload) admin._reload();
 	}
 
-	static void updateCustomTagMapping(ConfigImpl config, String virtual, String physical, String archive, String primary, short inspect, boolean reload)
+	static void updateCustomTagMapping(ConfigPro config, String virtual, String physical, String archive, String primary, short inspect, boolean reload)
 			throws SAXException, IOException, PageException, BundleException {
 		XMLConfigAdmin admin = new XMLConfigAdmin(config, null);
 		admin._updateCustomTag(virtual, physical, archive, primary, inspect);
@@ -999,7 +998,7 @@ public final class XMLConfigAdmin {
 			return;
 		}
 
-		Resource lib = ((ConfigImpl) config).getLibraryDirectory();
+		Resource lib = ((ConfigPro) config).getLibraryDirectory();
 		if (!lib.exists()) lib.mkdir();
 		Resource fileLib = lib.getRealResource(resJar.getName());
 
@@ -1212,6 +1211,7 @@ public final class XMLConfigAdmin {
 	 * make sure every context has a salt
 	 */
 	public static boolean fixSaltAndPW(Document doc, Config config) {
+		if (doc == null) return false;
 		Element root = doc.getDocumentElement();
 
 		// salt
@@ -1251,6 +1251,7 @@ public final class XMLConfigAdmin {
 
 	// MUST remove
 	public static boolean fixPSQ(Document doc) {
+		if (doc == null) return false;
 
 		Element datasources = XMLConfigWebFactory.getChildByName(doc.getDocumentElement(), "data-sources", false, true);
 		if (datasources != null && datasources.hasAttribute("preserve-single-quote")) {
@@ -1269,13 +1270,14 @@ public final class XMLConfigAdmin {
 	 * @param doc
 	 * @return
 	 */
-	public static boolean fixLogging(ConfigServerImpl cs, ConfigImpl config, Document doc) {
+	public static boolean fixLogging(ConfigServerImpl cs, ConfigPro config, Document doc) {
+		if (doc == null) return false;
 
 		// if version is bigger than 4.2 there is nothing to do
 		Element luceeConfiguration = doc.getDocumentElement();
 		String strVersion = luceeConfiguration.getAttribute("version");
 		double version = Caster.toDoubleValue(strVersion, 1.0d);
-		config.setVersion(version);
+		((ConfigImpl) config).setVersion(version);
 
 		if (version >= 4.3D) return false;
 
@@ -1409,6 +1411,7 @@ public final class XMLConfigAdmin {
 	}
 
 	public static boolean fixS3(Document doc) {
+		if (doc == null) return false;
 		Element resources = XMLConfigWebFactory.getChildByName(doc.getDocumentElement(), "resources", false, true);
 
 		Element[] providers = XMLConfigWebFactory.getChildren(resources, "resource-provider");
@@ -1429,7 +1432,8 @@ public final class XMLConfigAdmin {
 		return fixed;
 	}
 
-	public static boolean fixComponentMappings(ConfigImpl config, Document doc) {
+	public static boolean fixComponentMappings(ConfigPro config, Document doc) {
+		if (doc == null) return false;
 		if (!(config instanceof ConfigServer)) return false;
 
 		Element parent = XMLConfigWebFactory.getChildByName(doc.getDocumentElement(), "component", false, true);
@@ -1672,7 +1676,7 @@ public final class XMLConfigAdmin {
 
 	}
 
-	static void removeJDBCDriver(ConfigImpl config, ClassDefinition cd, boolean reload) throws IOException, SAXException, PageException, BundleException {
+	static void removeJDBCDriver(ConfigPro config, ClassDefinition cd, boolean reload) throws IOException, SAXException, PageException, BundleException {
 		XMLConfigAdmin admin = new XMLConfigAdmin(config, null);
 		admin._removeJDBCDriver(cd);
 		admin._store(); // store is necessary, otherwise it get lost
@@ -1737,8 +1741,8 @@ public final class XMLConfigAdmin {
 		}
 	}
 
-	private void unloadStartupIfNecessary(ConfigImpl config, ClassDefinition<?> cd, boolean force) {
-		Startup startup = config.getStartups().get(cd.getClassName());
+	private void unloadStartupIfNecessary(ConfigPro config, ClassDefinition<?> cd, boolean force) {
+		ConfigBase.Startup startup = config.getStartups().get(cd.getClassName());
 		if (startup == null) return;
 		if (startup.cd.equals(cd) && !force) return;
 
@@ -1751,13 +1755,6 @@ public final class XMLConfigAdmin {
 		}
 		catch (Exception e) {}
 	}
-
-	/*
-	 * public static void updateJDBCDriver(ConfigImpl config, String label, ClassDefinition cd, boolean
-	 * reload) throws IOException, SAXException, PageException, BundleException { ConfigWebAdmin admin =
-	 * new ConfigWebAdmin(config, null); admin._updateJDBCDriver(label,cd); admin._store(); // store is
-	 * necessary, otherwise it get lost if(reload)admin._reload(); }
-	 */
 
 	public void updateJDBCDriver(String label, String id, ClassDefinition cd) throws PageException {
 		checkWriteAccess();
@@ -1895,7 +1892,7 @@ public final class XMLConfigAdmin {
 
 	}
 
-	static void removeSearchEngine(ConfigImpl config, boolean reload) throws IOException, SAXException, PageException, BundleException {
+	static void removeSearchEngine(ConfigPro config, boolean reload) throws IOException, SAXException, PageException, BundleException {
 		XMLConfigAdmin admin = new XMLConfigAdmin(config, null);
 		admin._removeSearchEngine();
 		admin._store();
@@ -1918,13 +1915,6 @@ public final class XMLConfigAdmin {
 		flex.removeAttribute("caster-class");
 		flex.removeAttribute("caster-class-arguments");
 	}
-
-	/*
-	 * public static void updateSearchEngine(ConfigImpl config, ClassDefinition cd, boolean reload)
-	 * throws IOException, SAXException, PageException, BundleException { ConfigWebAdmin admin = new
-	 * ConfigWebAdmin(config, null); admin._updateSearchEngine(cd); admin._store();
-	 * if(reload)admin._reload(); }
-	 */
 
 	public void updateSearchEngine(ClassDefinition cd) throws PageException {
 		checkWriteAccess();
@@ -1956,7 +1946,7 @@ public final class XMLConfigAdmin {
 
 	}
 
-	static void removeORMEngine(ConfigImpl config, boolean reload) throws IOException, SAXException, PageException, BundleException {
+	static void removeORMEngine(ConfigPro config, boolean reload) throws IOException, SAXException, PageException, BundleException {
 		XMLConfigAdmin admin = new XMLConfigAdmin(config, null);
 		admin._removeORMEngine();
 		admin._store();
@@ -2030,31 +2020,31 @@ public final class XMLConfigAdmin {
 		if (name.equalsIgnoreCase(parent.getAttribute("default-function"))) parent.removeAttribute("default-function");
 		if (name.equalsIgnoreCase(parent.getAttribute("default-include"))) parent.removeAttribute("default-include");
 
-		if (_default == ConfigImpl.CACHE_TYPE_OBJECT) {
+		if (_default == ConfigPro.CACHE_TYPE_OBJECT) {
 			parent.setAttribute("default-object", name);
 		}
-		else if (_default == ConfigImpl.CACHE_TYPE_TEMPLATE) {
+		else if (_default == ConfigPro.CACHE_TYPE_TEMPLATE) {
 			parent.setAttribute("default-template", name);
 		}
-		else if (_default == ConfigImpl.CACHE_TYPE_QUERY) {
+		else if (_default == ConfigPro.CACHE_TYPE_QUERY) {
 			parent.setAttribute("default-query", name);
 		}
-		else if (_default == ConfigImpl.CACHE_TYPE_RESOURCE) {
+		else if (_default == ConfigPro.CACHE_TYPE_RESOURCE) {
 			parent.setAttribute("default-resource", name);
 		}
-		else if (_default == ConfigImpl.CACHE_TYPE_FUNCTION) {
+		else if (_default == ConfigPro.CACHE_TYPE_FUNCTION) {
 			parent.setAttribute("default-function", name);
 		}
-		else if (_default == ConfigImpl.CACHE_TYPE_INCLUDE) {
+		else if (_default == ConfigPro.CACHE_TYPE_INCLUDE) {
 			parent.setAttribute("default-include", name);
 		}
-		else if (_default == ConfigImpl.CACHE_TYPE_HTTP) {
+		else if (_default == ConfigPro.CACHE_TYPE_HTTP) {
 			parent.setAttribute("default-http", name);
 		}
-		else if (_default == ConfigImpl.CACHE_TYPE_FILE) {
+		else if (_default == ConfigPro.CACHE_TYPE_FILE) {
 			parent.setAttribute("default-file", name);
 		}
-		else if (_default == ConfigImpl.CACHE_TYPE_WEBSERVICE) {
+		else if (_default == ConfigPro.CACHE_TYPE_WEBSERVICE) {
 			parent.setAttribute("default-webservice", name);
 		}
 
@@ -2092,31 +2082,31 @@ public final class XMLConfigAdmin {
 		if (!hasAccess) throw new SecurityException("no access to update cache connections");
 
 		Element parent = _getRootElement("cache");
-		if (type == ConfigImpl.CACHE_TYPE_OBJECT) {
+		if (type == ConfigPro.CACHE_TYPE_OBJECT) {
 			parent.removeAttribute("default-object");
 		}
-		else if (type == ConfigImpl.CACHE_TYPE_TEMPLATE) {
+		else if (type == ConfigPro.CACHE_TYPE_TEMPLATE) {
 			parent.removeAttribute("default-template");
 		}
-		else if (type == ConfigImpl.CACHE_TYPE_QUERY) {
+		else if (type == ConfigPro.CACHE_TYPE_QUERY) {
 			parent.removeAttribute("default-query");
 		}
-		else if (type == ConfigImpl.CACHE_TYPE_RESOURCE) {
+		else if (type == ConfigPro.CACHE_TYPE_RESOURCE) {
 			parent.removeAttribute("default-resource");
 		}
-		else if (type == ConfigImpl.CACHE_TYPE_FUNCTION) {
+		else if (type == ConfigPro.CACHE_TYPE_FUNCTION) {
 			parent.removeAttribute("default-function");
 		}
-		else if (type == ConfigImpl.CACHE_TYPE_INCLUDE) {
+		else if (type == ConfigPro.CACHE_TYPE_INCLUDE) {
 			parent.removeAttribute("default-include");
 		}
-		else if (type == ConfigImpl.CACHE_TYPE_HTTP) {
+		else if (type == ConfigPro.CACHE_TYPE_HTTP) {
 			parent.removeAttribute("default-http");
 		}
-		else if (type == ConfigImpl.CACHE_TYPE_FILE) {
+		else if (type == ConfigPro.CACHE_TYPE_FILE) {
 			parent.removeAttribute("default-file");
 		}
-		else if (type == ConfigImpl.CACHE_TYPE_WEBSERVICE) {
+		else if (type == ConfigPro.CACHE_TYPE_WEBSERVICE) {
 			parent.removeAttribute("default-webservice");
 		}
 	}
@@ -2128,31 +2118,31 @@ public final class XMLConfigAdmin {
 		if (!hasAccess) throw new SecurityException("no access to update cache default connections");
 
 		Element parent = _getRootElement("cache");
-		if (type == ConfigImpl.CACHE_TYPE_OBJECT) {
+		if (type == ConfigPro.CACHE_TYPE_OBJECT) {
 			parent.setAttribute("default-object", name);
 		}
-		else if (type == ConfigImpl.CACHE_TYPE_TEMPLATE) {
+		else if (type == ConfigPro.CACHE_TYPE_TEMPLATE) {
 			parent.setAttribute("default-template", name);
 		}
-		else if (type == ConfigImpl.CACHE_TYPE_QUERY) {
+		else if (type == ConfigPro.CACHE_TYPE_QUERY) {
 			parent.setAttribute("default-query", name);
 		}
-		else if (type == ConfigImpl.CACHE_TYPE_RESOURCE) {
+		else if (type == ConfigPro.CACHE_TYPE_RESOURCE) {
 			parent.setAttribute("default-resource", name);
 		}
-		else if (type == ConfigImpl.CACHE_TYPE_FUNCTION) {
+		else if (type == ConfigPro.CACHE_TYPE_FUNCTION) {
 			parent.setAttribute("default-function", name);
 		}
-		else if (type == ConfigImpl.CACHE_TYPE_INCLUDE) {
+		else if (type == ConfigPro.CACHE_TYPE_INCLUDE) {
 			parent.setAttribute("default-include", name);
 		}
-		else if (type == ConfigImpl.CACHE_TYPE_HTTP) {
+		else if (type == ConfigPro.CACHE_TYPE_HTTP) {
 			parent.setAttribute("default-http", name);
 		}
-		else if (type == ConfigImpl.CACHE_TYPE_FILE) {
+		else if (type == ConfigPro.CACHE_TYPE_FILE) {
 			parent.setAttribute("default-file", name);
 		}
-		else if (type == ConfigImpl.CACHE_TYPE_WEBSERVICE) {
+		else if (type == ConfigPro.CACHE_TYPE_WEBSERVICE) {
 			parent.setAttribute("default-webservice", name);
 		}
 	}
@@ -2255,7 +2245,7 @@ public final class XMLConfigAdmin {
 		setClass(el, null, "", cd);
 	}
 
-	private int getDatasourceLength(ConfigImpl config) {
+	private int getDatasourceLength(ConfigPro config) {
 		Map ds = config.getDataSourcesAsMap();
 		Iterator it = ds.keySet().iterator();
 		int len = 0;
@@ -2471,12 +2461,12 @@ public final class XMLConfigAdmin {
 			if (n != null && n.equalsIgnoreCase(name)) {
 
 				if (config instanceof ConfigWeb) {
-					_removeGatewayEntry((ConfigWebImpl) config, n);
+					_removeGatewayEntry((ConfigWebPro) config, n);
 				}
 				else {
 					ConfigWeb[] cws = ((ConfigServerImpl) config).getConfigWebs();
 					for (ConfigWeb cw: cws) {
-						_removeGatewayEntry((ConfigWebImpl) cw, name);
+						_removeGatewayEntry((ConfigWebPro) cw, name);
 					}
 				}
 				parent.removeChild(children[i]);
@@ -2484,8 +2474,8 @@ public final class XMLConfigAdmin {
 		}
 	}
 
-	private void _removeGatewayEntry(ConfigWebImpl cw, String name) {
-		GatewayEngineImpl engine = cw.getGatewayEngine();
+	private void _removeGatewayEntry(ConfigWebPro cw, String name) {
+		GatewayEngineImpl engine = (GatewayEngineImpl) cw.getGatewayEngine();
 		Map<String, GatewayEntry> conns = engine.getEntries();
 		GatewayEntry ge = conns.get(name);
 		if (ge != null) {
@@ -2571,7 +2561,7 @@ public final class XMLConfigAdmin {
 	/**
 	 * sets the scope cascading type
 	 * 
-	 * @param type (ServletConfigImpl.SCOPE_XYZ)
+	 * @param type (SCOPE_XYZ)
 	 * @throws SecurityException
 	 */
 	public void updateScopeCascadingType(String type) throws SecurityException {
@@ -2591,7 +2581,7 @@ public final class XMLConfigAdmin {
 	/**
 	 * sets the scope cascading type
 	 * 
-	 * @param type (ServletConfigImpl.SCOPE_XYZ)
+	 * @param type (SCOPE_XYZ)
 	 * @throws SecurityException
 	 */
 	public void updateScopeCascadingType(short type) throws SecurityException {
@@ -3626,7 +3616,7 @@ public final class XMLConfigAdmin {
 	 */
 	public void createSecurityManager(Password password, String id) throws DOMException, PageException {
 		checkWriteAccess();
-		ConfigServerImpl cs = (ConfigServerImpl) ConfigImpl.getConfigServer(config, password);
+		ConfigServerImpl cs = (ConfigServerImpl) ConfigWebUtil.getConfigServer(config, password);
 		SecurityManagerImpl dsm = (SecurityManagerImpl) cs.getDefaultSecurityManager().cloneSecurityManager();
 		cs.setSecurityManager(id, dsm);
 
@@ -3676,7 +3666,7 @@ public final class XMLConfigAdmin {
 	 */
 	public void removeSecurityManager(Password password, String id) throws PageException {
 		checkWriteAccess();
-		((ConfigServerImpl) ConfigImpl.getConfigServer(config, password)).removeSecurityManager(id);
+		((ConfigServerImpl) ConfigWebUtil.getConfigServer(config, password)).removeSecurityManager(id);
 
 		Element security = _getRootElement("security");
 
@@ -3695,7 +3685,7 @@ public final class XMLConfigAdmin {
 	 */
 	public void runUpdate(Password password) throws PageException {
 		checkWriteAccess();
-		ConfigServerImpl cs = (ConfigServerImpl) ConfigImpl.getConfigServer(config, password);
+		ConfigServerImpl cs = (ConfigServerImpl) ConfigWebUtil.getConfigServer(config, password);
 		CFMLEngineFactory factory = cs.getCFMLEngine().getCFMLEngineFactory();
 
 		synchronized (factory) {
@@ -3726,7 +3716,7 @@ public final class XMLConfigAdmin {
 	private void _removeUpdate(Password password, boolean onlyLatest) throws PageException {
 		checkWriteAccess();
 
-		ConfigServerImpl cs = (ConfigServerImpl) ConfigImpl.getConfigServer(config, password);
+		ConfigServerImpl cs = (ConfigServerImpl) ConfigWebUtil.getConfigServer(config, password);
 
 		try {
 			CFMLEngineFactory factory = cs.getCFMLEngine().getCFMLEngineFactory();
@@ -3744,7 +3734,7 @@ public final class XMLConfigAdmin {
 
 	public void changeVersionTo(Version version, Password password, IdentificationWeb id) throws PageException {
 		checkWriteAccess();
-		ConfigServerImpl cs = (ConfigServerImpl) ConfigImpl.getConfigServer(config, password);
+		ConfigServerImpl cs = (ConfigServerImpl) ConfigWebUtil.getConfigServer(config, password);
 
 		Log logger = cs.getLog("deploy");
 
@@ -3912,7 +3902,7 @@ public final class XMLConfigAdmin {
 	 */
 	public void restart(Password password) throws PageException {
 		checkWriteAccess();
-		ConfigServerImpl cs = (ConfigServerImpl) ConfigImpl.getConfigServer(config, password);
+		ConfigServerImpl cs = (ConfigServerImpl) ConfigWebUtil.getConfigServer(config, password);
 		CFMLEngineFactory factory = cs.getCFMLEngine().getCFMLEngineFactory();
 
 		synchronized (factory) {
@@ -4184,7 +4174,7 @@ public final class XMLConfigAdmin {
 		IOUtil.closeEL(monitor);
 	}
 
-	static void removeCacheHandler(ConfigImpl config, String id, boolean reload) throws IOException, SAXException, PageException, BundleException {
+	static void removeCacheHandler(ConfigPro config, String id, boolean reload) throws IOException, SAXException, PageException, BundleException {
 		XMLConfigAdmin admin = new XMLConfigAdmin(config, null);
 		admin._removeCacheHandler(id);
 		admin._store();
@@ -4216,13 +4206,6 @@ public final class XMLConfigAdmin {
 			}
 		}
 	}
-
-	/*
-	 * public static void updateCacheHandler(ConfigImpl config, String id, ClassDefinition cd, boolean
-	 * reload) throws IOException, SAXException, PageException, BundleException { ConfigWebAdmin admin =
-	 * new ConfigWebAdmin(config, null); admin._updateCacheHandler(id, cd); admin._store();
-	 * if(reload)admin._reload(); }
-	 */
 
 	public void updateCacheHandler(String id, ClassDefinition cd) throws PageException {
 		checkWriteAccess();
@@ -4554,7 +4537,7 @@ public final class XMLConfigAdmin {
 		}
 	}
 
-	public static void updateArchive(ConfigImpl config, Resource arc, boolean reload) throws PageException {
+	public static void updateArchive(ConfigPro config, Resource arc, boolean reload) throws PageException {
 		try {
 			XMLConfigAdmin admin = new XMLConfigAdmin(config, null);
 			admin.updateArchive(config, arc);
@@ -4597,7 +4580,7 @@ public final class XMLConfigAdmin {
 	}
 
 	public void updateArchive(Config config, Resource archive) throws PageException {
-		Log logger = ((ConfigImpl) config).getLog("deploy");
+		Log logger = config.getLog("deploy");
 		String type = null, virtual = null, name = null;
 		boolean readOnly, topLevel, hidden, physicalFirst;
 		short inspect;
@@ -4676,7 +4659,7 @@ public final class XMLConfigAdmin {
 		}
 	}
 
-	public static void _updateRHExtension(ConfigImpl config, Resource ext, boolean reload) throws PageException {
+	public static void _updateRHExtension(ConfigPro config, Resource ext, boolean reload) throws PageException {
 		try {
 			XMLConfigAdmin admin = new XMLConfigAdmin(config, null);
 			admin.updateRHExtension(config, ext, reload);
@@ -4701,7 +4684,7 @@ public final class XMLConfigAdmin {
 	}
 
 	public void updateRHExtension(Config config, RHExtension rhext, boolean reload) throws PageException {
-		ConfigImpl ci = (ConfigImpl) config;
+		ConfigPro ci = (ConfigPro) config;
 		Log logger = ci.getLog("deploy");
 		String type = ci instanceof ConfigWeb ? "web" : "server";
 		// load already installed previous version and uninstall the parts no longer needed
@@ -5099,7 +5082,7 @@ public final class XMLConfigAdmin {
 			ExceptionUtil.rethrowIfNecessary(t);
 			DeployHandler.moveToFailedFolder(rhext.getExtensionFile().getParentResource(), rhext.getExtensionFile());
 			try {
-				XMLConfigAdmin.removeRHExtensions((ConfigImpl) config, new String[] { rhext.getId() }, false);
+				XMLConfigAdmin.removeRHExtensions((ConfigPro) config, new String[] { rhext.getId() }, false);
 			}
 			catch (Throwable t2) {
 				ExceptionUtil.rethrowIfNecessary(t2);
@@ -5132,7 +5115,7 @@ public final class XMLConfigAdmin {
 	 * @throws PageException
 	 */
 	private void removeRHExtension(Config config, RHExtension rhe, RHExtension replacementRH, boolean deleteExtension) throws PageException {
-		ConfigImpl ci = ((ConfigImpl) config);
+		ConfigPro ci = ((ConfigPro) config);
 		Log logger = ci.getLog("deploy");
 
 		// MUST check replacementRH everywhere
@@ -5951,16 +5934,8 @@ public final class XMLConfigAdmin {
 		if (!p.isDirectory()) p.createDirectory(true);
 		IOUtil.copy(is, trg.getOutputStream(false), closeStream, true);
 		filesDeployed.add(trg);
-		if (store) _storeAndReload((ConfigImpl) config);
+		if (store) _storeAndReload((ConfigPro) config);
 	}
-
-	/*
-	 * static Resource[] updateContext(ConfigImpl config,InputStream is,String realpath, boolean
-	 * closeStream, boolean store) throws PageException, IOException, SAXException, BundleException {
-	 * List<Resource> filesDeployed=new ArrayList<Resource>(); ConfigWebAdmin._updateContext(config, is,
-	 * realpath, closeStream, filesDeployed,store); return filesDeployed.toArray(new
-	 * Resource[filesDeployed.size()]); }
-	 */
 
 	Resource[] updateConfigs(InputStream is, String realpath, boolean closeStream, boolean store) throws PageException, IOException, SAXException, BundleException {
 		List<Resource> filesDeployed = new ArrayList<Resource>();
@@ -5977,7 +5952,7 @@ public final class XMLConfigAdmin {
 		if (!p.isDirectory()) p.createDirectory(true);
 		IOUtil.copy(is, trg.getOutputStream(false), closeStream, true);
 		filesDeployed.add(trg);
-		if (store) _storeAndReload((ConfigImpl) config);
+		if (store) _storeAndReload((ConfigPro) config);
 	}
 
 	Resource[] updateComponent(InputStream is, String realpath, boolean closeStream, boolean store) throws PageException, IOException, SAXException, BundleException {
@@ -5995,7 +5970,7 @@ public final class XMLConfigAdmin {
 		if (!p.isDirectory()) p.createDirectory(true);
 		IOUtil.copy(is, trg.getOutputStream(false), closeStream, true);
 		filesDeployed.add(trg);
-		if (store) _storeAndReload((ConfigImpl) config);
+		if (store) _storeAndReload((ConfigPro) config);
 	}
 
 	Resource[] updateContext(InputStream is, String realpath, boolean closeStream, boolean store) throws PageException, IOException, SAXException, BundleException {
@@ -6012,11 +5987,11 @@ public final class XMLConfigAdmin {
 		if (!p.isDirectory()) p.createDirectory(true);
 		IOUtil.copy(is, trg.getOutputStream(false), closeStream, true);
 		filesDeployed.add(trg);
-		if (store) _storeAndReload((ConfigImpl) config);
+		if (store) _storeAndReload((ConfigPro) config);
 	}
 
 	@Deprecated
-	static Resource[] updateContextClassic(ConfigImpl config, InputStream is, String realpath, boolean closeStream)
+	static Resource[] updateContextClassic(ConfigPro config, InputStream is, String realpath, boolean closeStream)
 			throws PageException, IOException, SAXException, BundleException {
 		List<Resource> filesDeployed = new ArrayList<Resource>();
 		XMLConfigAdmin._updateContextClassic(config, is, realpath, closeStream, filesDeployed);
@@ -6052,7 +6027,7 @@ public final class XMLConfigAdmin {
 		if (!p.isDirectory()) p.createDirectory(true);
 		IOUtil.copy(is, trg.getOutputStream(false), closeStream, true);
 		filesDeployed.add(trg);
-		_storeAndReload((ConfigImpl) config);
+		_storeAndReload((ConfigPro) config);
 	}
 
 	public boolean removeConfigs(Config config, boolean store, String... realpathes) throws PageException, IOException, SAXException, BundleException {
@@ -6070,7 +6045,7 @@ public final class XMLConfigAdmin {
 		Resource trg = context.getRealResource(realpath);
 		if (trg.exists()) {
 			trg.remove(true);
-			if (_store) XMLConfigAdmin._storeAndReload((ConfigImpl) config);
+			if (_store) XMLConfigAdmin._storeAndReload((ConfigPro) config);
 			ResourceUtil.removeEmptyFolders(context, null);
 			return true;
 		}
@@ -6092,7 +6067,7 @@ public final class XMLConfigAdmin {
 		Resource trg = context.getRealResource(realpath);
 		if (trg.exists()) {
 			trg.remove(true);
-			if (_store) XMLConfigAdmin._storeAndReload((ConfigImpl) config);
+			if (_store) XMLConfigAdmin._storeAndReload((ConfigPro) config);
 			ResourceUtil.removeEmptyFolders(context, null);
 			return true;
 		}
@@ -6115,7 +6090,7 @@ public final class XMLConfigAdmin {
 		Resource trg = context.getRealResource(realpath);
 		if (trg.exists()) {
 			trg.remove(true);
-			if (_store) XMLConfigAdmin._storeAndReload((ConfigImpl) config);
+			if (_store) XMLConfigAdmin._storeAndReload((ConfigPro) config);
 			ResourceUtil.removeEmptyFolders(context, null);
 			return true;
 		}
@@ -6212,7 +6187,7 @@ public final class XMLConfigAdmin {
 		if (ArrayUtil.isEmpty(realpathes)) return;
 		for (int i = 0; i < realpathes.length; i++) {
 			logger.log(Log.LEVEL_INFO, "extension", "Remove plugin [" + realpathes[i] + "]");
-			removeFiles(config, ((ConfigImpl) config).getPluginDirectory(), realpathes[i]);
+			removeFiles(config, ((ConfigPro) config).getPluginDirectory(), realpathes[i]);
 		}
 	}
 
@@ -6238,7 +6213,7 @@ public final class XMLConfigAdmin {
 		if (trg.exists()) trg.remove(true);
 	}
 
-	public static void removeRHExtensions(ConfigImpl config, String[] extensionIDs, boolean removePhysical) throws IOException, PageException, SAXException, BundleException {
+	public static void removeRHExtensions(ConfigPro config, String[] extensionIDs, boolean removePhysical) throws IOException, PageException, SAXException, BundleException {
 		XMLConfigAdmin admin = new XMLConfigAdmin(config, null);
 
 		Map<String, BundleDefinition> oldMap = new HashMap<>();
@@ -6265,7 +6240,7 @@ public final class XMLConfigAdmin {
 			ConfigWeb[] webs = cs.getConfigWebs();
 			for (int i = 0; i < webs.length; i++) {
 				try {
-					admin._storeAndReload((ConfigImpl) webs[i]);
+					admin._storeAndReload((ConfigPro) webs[i]);
 				}
 				catch (Exception e) {
 					LogUtil.log(config, "deploy", XMLConfigAdmin.class.getName(), e);
@@ -6276,7 +6251,7 @@ public final class XMLConfigAdmin {
 
 	}
 
-	public BundleDefinition[] _removeExtension(ConfigImpl config, String extensionID, boolean removePhysical) throws IOException, PageException, SAXException, BundleException {
+	public BundleDefinition[] _removeExtension(ConfigPro config, String extensionID, boolean removePhysical) throws IOException, PageException, SAXException, BundleException {
 		if (!Decision.isUUId(extensionID)) throw new IOException("id [" + extensionID + "] is invalid, it has to be a UUID");
 
 		Element extensions = _getRootElement("extensions");
@@ -6335,7 +6310,7 @@ public final class XMLConfigAdmin {
 		return null;
 	}
 
-	public static void cleanBundles(RHExtension rhe, ConfigImpl config, BundleDefinition[] candiatesToRemove) throws BundleException, ApplicationException, IOException {
+	public static void cleanBundles(RHExtension rhe, ConfigPro config, BundleDefinition[] candiatesToRemove) throws BundleException, ApplicationException, IOException {
 		if (ArrayUtil.isEmpty(candiatesToRemove)) return;
 
 		BundleCollection coreBundles = ConfigWebUtil.getEngine(config).getBundleCollection();
@@ -6418,7 +6393,7 @@ public final class XMLConfigAdmin {
 	 * @throws BundleException
 	 * @throws ApplicationException
 	 */
-	public BundleDefinition[] _updateExtension(ConfigImpl config, RHExtension ext) throws IOException, BundleException, ApplicationException {
+	public BundleDefinition[] _updateExtension(ConfigPro config, RHExtension ext) throws IOException, BundleException, ApplicationException {
 		if (!Decision.isUUId(ext.getId())) throw new IOException("id [" + ext.getId() + "] is invalid, it has to be a UUID");
 		Element extensions = _getRootElement("extensions");
 		Element[] children = XMLConfigWebFactory.getChildren(extensions, "rhextension");// LuceeHandledExtensions
@@ -6462,7 +6437,7 @@ public final class XMLConfigAdmin {
 		return list.toArray(new BundleDefinition[list.size()]);
 	}
 
-	private RHExtension getRHExtension(ConfigImpl config, String id, RHExtension defaultValue) {
+	private RHExtension getRHExtension(ConfigPro config, String id, RHExtension defaultValue) {
 		Element extensions = _getRootElement("extensions");
 		Element[] children = XMLConfigWebFactory.getChildren(extensions, "rhextension");// LuceeHandledExtensions
 
@@ -6488,12 +6463,12 @@ public final class XMLConfigAdmin {
 	 * @throws IOException
 	 * @throws SAXException
 	 */
-	public static RHExtension hasRHExtensions(ConfigImpl config, ExtensionDefintion ed) throws PageException, SAXException, IOException {
+	public static RHExtension hasRHExtensions(ConfigPro config, ExtensionDefintion ed) throws PageException, SAXException, IOException {
 		XMLConfigAdmin admin = new XMLConfigAdmin(config, null);
 		return admin._hasRHExtensions(config, ed);
 	}
 
-	private RHExtension _hasRHExtensions(ConfigImpl config, ExtensionDefintion ed) throws PageException {
+	private RHExtension _hasRHExtensions(ConfigPro config, ExtensionDefintion ed) throws PageException {
 
 		Element extensions = _getRootElement("extensions");
 		Element[] children = XMLConfigWebFactory.getChildren(extensions, "rhextension");// LuceeHandledExtensions
@@ -6580,14 +6555,6 @@ public final class XMLConfigAdmin {
 		}
 		return sb.toString();
 	}
-
-	/*
-	 * static Resource[] updatePlugin(ConfigImpl config,InputStream is,String realpath, boolean
-	 * closeStream) throws PageException, IOException, SAXException { ConfigWebAdmin admin = new
-	 * ConfigWebAdmin(config, null); List<Resource> filesDeployed=new ArrayList<Resource>();
-	 * admin.deployFilesFromStream(config,config.getPluginDirectory(), is, realpath, closeStream,
-	 * filesDeployed); return filesDeployed.toArray(new Resource[filesDeployed.size()]); }
-	 */
 
 	Resource[] updatePlugin(InputStream is, String realpath, boolean closeStream) throws PageException, IOException, SAXException {
 		List<Resource> filesDeployed = new ArrayList<Resource>();
@@ -6686,6 +6653,7 @@ public final class XMLConfigAdmin {
 	}
 
 	public static boolean fixExtension(Config config, Document doc) {
+		if (doc == null) return false;
 		Element parent = XMLConfigWebFactory.getChildByName(doc.getDocumentElement(), "extensions", false, true);
 		Element[] extensions = XMLConfigWebFactory.getChildren(parent, "rhextension");
 

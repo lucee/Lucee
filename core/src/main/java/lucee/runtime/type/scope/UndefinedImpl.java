@@ -30,7 +30,7 @@ import lucee.runtime.ComponentScope;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.Constants;
 import lucee.runtime.config.NullSupportHelper;
@@ -82,7 +82,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
 	 * 
 	 * @param pageContextImpl
 	 * @param type type of the undefined scope
-	 *            (ServletConfigImpl.SCOPE_STRICT;ServletConfigImpl.SCOPE_SMALL;ServletConfigImpl.SCOPE_STANDART)
+	 *            (ServletConfig.SCOPE_STRICT;ServletConfig.SCOPE_SMALL;ServletConfig.SCOPE_STANDART)
 	 */
 	public UndefinedImpl(PageContextImpl pc, short type) {
 		this.type = type;
@@ -580,7 +580,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
 		local = pc.localScope();
 		// allowImplicidQueryCall = pc.getConfig().allowImplicidQueryCall();
 		type = ((PageContextImpl) pc).getScopeCascadingType();
-		debug = pc.getConfig().debug() && ((ConfigImpl) pc.getConfig()).hasDebugOptions(ConfigImpl.DEBUG_IMPLICIT_ACCESS);
+		debug = pc.getConfig().debug() && ((ConfigPro) pc.getConfig()).hasDebugOptions(ConfigPro.DEBUG_IMPLICIT_ACCESS);
 
 		// Strict
 		if (type == Config.SCOPE_STRICT) {

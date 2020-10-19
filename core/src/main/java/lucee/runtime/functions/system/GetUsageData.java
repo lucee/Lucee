@@ -38,7 +38,7 @@ import lucee.runtime.PageSource;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.debug.ActiveLock;
 import lucee.runtime.debug.ActiveQuery;
@@ -111,7 +111,7 @@ public final class GetUsageData implements Function {
 		sct.setEL(LOCKS, lck);
 
 		// Loop webs
-		ConfigWebImpl web;
+		ConfigWebPro web;
 		Map<Integer, PageContextImpl> pcs;
 		PageContextImpl _pc;
 		int row, openConnections = 0;
@@ -123,7 +123,7 @@ public final class GetUsageData implements Function {
 		for (int i = 0; i < webs.length; i++) {
 
 			// Loop requests
-			web = (ConfigWebImpl) webs[i];
+			web = (ConfigWebPro) webs[i];
 			factory = (CFMLFactoryImpl) web.getFactory();
 			pcs = factory.getActivePageContexts();
 			Iterator<PageContextImpl> it = pcs.values().iterator();
@@ -212,7 +212,7 @@ public final class GetUsageData implements Function {
 		return sct;
 	}
 
-	private static void getAllApplicationScopes(ConfigWebImpl web, ScopeContext sc, Query app) throws PageException {
+	private static void getAllApplicationScopes(ConfigWeb web, ScopeContext sc, Query app) throws PageException {
 		Struct all = sc.getAllApplicationScopes();
 		Iterator<Entry<Key, Object>> it = all.entryIterator();
 		Entry<Key, Object> e;
@@ -230,7 +230,7 @@ public final class GetUsageData implements Function {
 		}
 	}
 
-	private static void getAllCFSessionScopes(ConfigWebImpl web, ScopeContext sc, Query sess) throws PageException {
+	private static void getAllCFSessionScopes(ConfigWeb web, ScopeContext sc, Query sess) throws PageException {
 		Struct all = sc.getAllCFSessionScopes();
 		Iterator it = all.entryIterator(), itt;
 		Entry e, ee;
