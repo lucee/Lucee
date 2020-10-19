@@ -59,7 +59,6 @@ import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
 import lucee.Info;
-import lucee.print;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.date.TimeZoneConstants;
 import lucee.commons.date.TimeZoneUtil;
@@ -901,7 +900,6 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 			if (config instanceof ConfigWebImpl) ((ConfigWebImpl) config).setIdentification(new IdentificationWebImpl((ConfigWebImpl) config, securityKey, apiKey));
 			else((ConfigServerImpl) config).setIdentification(new IdentificationServerImpl((ConfigServerImpl) config, securityKey, apiKey));
-			print.e("id done");
 			config.getIdentification().getId();
 		}
 		catch (Exception e) {
@@ -994,10 +992,6 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				int vu = AppListenerUtil.toVariableUsage(security.getAttribute("variable-usage"), ConfigImpl.QUERY_VAR_USAGE_IGNORE);
 				config.setQueryVarUsage(vu);
 			}
-
-			print.e(config.getClass().getName());
-			print.e(config.getSecurityManager() != null);
-
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -1533,8 +1527,6 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						String virtual = getAttr(el, "virtual");
 						String listType = getAttr(el, "listener-type");
 						String listMode = getAttr(el, "listener-mode");
-
-						print.e(">>>" + virtual + ":" + physical + ":" + archive);
 
 						boolean readonly = toBoolean(getAttr(el, "readonly"), false);
 						boolean hidden = toBoolean(getAttr(el, "hidden"), false);
@@ -3872,7 +3864,6 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	}
 
 	public static void log(Config config, Log log, Exception e) {
-		print.e(e);
 		try {
 			if (log != null) log.error("configuration", e);
 			else {
