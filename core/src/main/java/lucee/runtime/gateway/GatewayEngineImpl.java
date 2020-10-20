@@ -45,7 +45,6 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.config.Constants;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
@@ -71,7 +70,7 @@ public class GatewayEngineImpl implements GatewayEngine {
 
 	public GatewayEngineImpl(ConfigWeb config) {
 		this.config = config;
-		this.log = ((ConfigWebImpl) config).getLog("gateway");
+		this.log = config.getLog("gateway");
 
 	}
 

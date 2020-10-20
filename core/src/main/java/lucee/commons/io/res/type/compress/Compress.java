@@ -36,7 +36,7 @@ import lucee.commons.io.res.ResourceProvider;
 import lucee.commons.io.res.type.ram.RamResourceProviderOld;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.op.Caster;
 
@@ -88,7 +88,7 @@ public final class Compress {
 	 * @throws IOException
 	 */
 	public static Compress getInstance(Resource zipFile, int format, boolean caseSensitive) throws IOException {
-		ConfigImpl config = (ConfigImpl) ThreadLocalPageContext.getConfig();
+		ConfigPro config = (ConfigPro) ThreadLocalPageContext.getConfig();
 		return config.getCompressInstance(zipFile, format, caseSensitive);
 	}
 

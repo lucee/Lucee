@@ -28,8 +28,8 @@ import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.MappingImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageSource;
-import lucee.runtime.config.ConfigImpl;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.TemplateException;
@@ -178,7 +178,7 @@ public class CFMLExpressionInterpreter {
 	private boolean preciseMath;
 	private final boolean isJson;
 	private final boolean limited;
-	private ConfigImpl config;
+	private ConfigPro config;
 
 	public CFMLExpressionInterpreter() {
 		this(true);
@@ -220,14 +220,14 @@ public class CFMLExpressionInterpreter {
 
 		int dialect = CFMLEngine.DIALECT_CFML;
 		if (this.pc != null) {
-			this.config = (ConfigImpl) this.pc.getConfig();
+			this.config = (ConfigPro) this.pc.getConfig();
 			dialect = this.pc.getCurrentTemplateDialect();
 		}
 		else {
-			this.config = (ConfigImpl) ThreadLocalPageContext.getConfig();
+			this.config = (ConfigPro) ThreadLocalPageContext.getConfig();
 			if (config == null) {
 				try {
-					config = (ConfigImpl) CFMLEngineFactory.getInstance().createConfig(null, "localhost", "/index.cfm");// TODO set a context root
+					config = (ConfigPro) CFMLEngineFactory.getInstance().createConfig(null, "localhost", "/index.cfm");// TODO set a context root
 				}
 				catch (Exception e) {}
 			}
@@ -1383,7 +1383,7 @@ public class CFMLExpressionInterpreter {
 		boolean doUpper;
 		PageSource ps = pc == null ? null : pc.getCurrentPageSource();
 		if (ps != null) doUpper = !isJson && ps.getDialect() == CFMLEngine.DIALECT_CFML && ((MappingImpl) ps.getMapping()).getDotNotationUpperCase();
-		else doUpper = !isJson && ((ConfigWebImpl) config).getDotNotationUpperCase(); // MUST .lucee should not be upper case
+		else doUpper = !isJson && ((ConfigWebPro) config).getDotNotationUpperCase(); // MUST .lucee should not be upper case
 
 		StringBuilder sb = new StringBuilder();
 		sb.append(doUpper ? cfml.getCurrentUpper() : cfml.getCurrent());

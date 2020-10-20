@@ -32,7 +32,7 @@ import lucee.runtime.Component;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.component.Property;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.Constants;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -59,7 +59,7 @@ public class ORMUtil {
 	}
 
 	public static ORMEngine getEngine(PageContext pc) throws PageException {
-		ConfigImpl config = (ConfigImpl) pc.getConfig();
+		ConfigPro config = (ConfigPro) pc.getConfig();
 		return config.getORMEngine(pc);
 	}
 
@@ -70,7 +70,7 @@ public class ORMUtil {
 	 * @throws PageException
 	 */
 	public static void resetEngine(PageContext pc, boolean force) throws PageException {
-		ConfigImpl config = (ConfigImpl) pc.getConfig();
+		ConfigPro config = (ConfigPro) pc.getConfig();
 		config.resetORMEngine(pc, force);
 	}
 

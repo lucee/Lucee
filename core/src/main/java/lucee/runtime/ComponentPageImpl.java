@@ -40,7 +40,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.mimetype.MimeType;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.component.StaticStruct;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.converter.BinaryConverter;
 import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.JSONConverter;
@@ -130,8 +130,8 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 			// load the cfc
 			try {
 				if (internalCall && strRemotePersisId != null) {
-					ConfigWebImpl config = (ConfigWebImpl) pc.getConfig();
-					GatewayEngineImpl engine = config.getGatewayEngine();
+					ConfigWebPro config = (ConfigWebPro) pc.getConfig();
+					GatewayEngineImpl engine = (GatewayEngineImpl) config.getGatewayEngine();
 					component = engine.getPersistentRemoteCFC(strRemotePersisId);
 
 					if (component == null) {
@@ -971,12 +971,12 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 		}
 		// create a wsdl file
 		else {
-			((ConfigWebImpl) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getWSServer(pc).doGet(pc, pc.getHttpServletRequest(), pc.getHttpServletResponse(), component);
+			((ConfigWebPro) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getWSServer(pc).doGet(pc, pc.getHttpServletRequest(), pc.getHttpServletResponse(), component);
 		}
 	}
 
 	private void callWebservice(PageContext pc, Component component) throws IOException, ServletException, PageException {
-		((ConfigWebImpl) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getWSServer(pc).doPost(pc, pc.getHttpServletRequest(), pc.getHttpServletResponse(), component);
+		((ConfigWebPro) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getWSServer(pc).doPost(pc, pc.getHttpServletRequest(), pc.getHttpServletResponse(), component);
 	}
 
 	/**

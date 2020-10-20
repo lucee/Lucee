@@ -21,7 +21,7 @@ package lucee.runtime.functions.system;
 
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.ext.function.Function;
 
 public final class DBPoolClear implements Function {
@@ -31,8 +31,8 @@ public final class DBPoolClear implements Function {
 	}
 
 	public static boolean call(PageContext pc, String dataSourceName) {
-		if (StringUtil.isEmpty(dataSourceName)) ((ConfigImpl) pc.getConfig()).getDatasourceConnectionPool().clear(true);
-		else((ConfigImpl) pc.getConfig()).getDatasourceConnectionPool().clear(dataSourceName, true);
+		if (StringUtil.isEmpty(dataSourceName)) ((ConfigPro) pc.getConfig()).getDatasourceConnectionPool().clear(true);
+		else((ConfigPro) pc.getConfig()).getDatasourceConnectionPool().clear(dataSourceName, true);
 		return true;
 	}
 }

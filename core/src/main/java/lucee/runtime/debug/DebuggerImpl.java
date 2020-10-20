@@ -43,8 +43,8 @@ import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.db.SQL;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
@@ -233,7 +233,7 @@ public final class DebuggerImpl implements Debugger {
 
 	public static boolean debugQueryUsage(PageContext pageContext, QueryResult qr) {
 		if (pageContext.getConfig().debug() && qr instanceof Query) {
-			if (((ConfigWebImpl) pageContext.getConfig()).hasDebugOptions(ConfigImpl.DEBUG_QUERY_USAGE)) {
+			if (((ConfigWebPro) pageContext.getConfig()).hasDebugOptions(ConfigPro.DEBUG_QUERY_USAGE)) {
 				((Query) qr).enableShowQueryUsage();
 				return true;
 			}
@@ -243,7 +243,7 @@ public final class DebuggerImpl implements Debugger {
 
 	public static boolean debugQueryUsage(PageContext pageContext, Query qry) {
 		if (pageContext.getConfig().debug() && qry instanceof Query) {
-			if (((ConfigWebImpl) pageContext.getConfig()).hasDebugOptions(ConfigImpl.DEBUG_QUERY_USAGE)) {
+			if (((ConfigWebPro) pageContext.getConfig()).hasDebugOptions(ConfigPro.DEBUG_QUERY_USAGE)) {
 				qry.enableShowQueryUsage();
 				return true;
 			}
@@ -318,7 +318,7 @@ public final class DebuggerImpl implements Debugger {
 	public static lucee.runtime.config.DebugEntry getDebugEntry(PageContext pc) {
 
 		String addr = pc.getHttpServletRequest().getRemoteAddr();
-		lucee.runtime.config.DebugEntry debugEntry = ((ConfigImpl) pc.getConfig()).getDebugEntry(addr, null);
+		lucee.runtime.config.DebugEntry debugEntry = ((ConfigPro) pc.getConfig()).getDebugEntry(addr, null);
 		return debugEntry;
 	}
 
@@ -401,14 +401,14 @@ public final class DebuggerImpl implements Debugger {
 		Struct debugging = new StructImpl();
 
 		// datasources
-		debugging.setEL(KeyConstants._datasources, ((ConfigImpl) pc.getConfig()).getDatasourceConnectionPool().meta());
+		debugging.setEL(KeyConstants._datasources, ((ConfigPro) pc.getConfig()).getDatasourceConnectionPool().meta());
 
-		ConfigImpl ci = (ConfigImpl) ThreadLocalPageContext.getConfig(pc);
+		ConfigPro ci = (ConfigPro) ThreadLocalPageContext.getConfig(pc);
 		//////////////////////////////////////////
 		//////// QUERIES ///////////////////////////
 		//////////////////////////////////////////
 		long queryTime = 0;
-		if (ci.hasDebugOptions(ConfigImpl.DEBUG_QUERY_USAGE)) {
+		if (ci.hasDebugOptions(ConfigPro.DEBUG_QUERY_USAGE)) {
 			List<QueryEntry> queries = getQueries();
 			Query qryQueries = null;
 			try {
@@ -463,7 +463,7 @@ public final class DebuggerImpl implements Debugger {
 		//////////////////////////////////////////
 		long totalTime = 0;
 		ArrayList<DebugEntryTemplate> arrPages = null;
-		if (ci.hasDebugOptions(ConfigImpl.DEBUG_TEMPLATE)) {
+		if (ci.hasDebugOptions(ConfigPro.DEBUG_TEMPLATE)) {
 			int row = 0;
 			arrPages = toArray();
 			int len = arrPages.size();
@@ -562,7 +562,7 @@ public final class DebuggerImpl implements Debugger {
 		//////////////////////////////////////////
 		//////// EXCEPTIONS ///////////////////////////
 		//////////////////////////////////////////
-		if (ci.hasDebugOptions(ConfigImpl.DEBUG_EXCEPTION)) {
+		if (ci.hasDebugOptions(ConfigPro.DEBUG_EXCEPTION)) {
 			int len = exceptions == null ? 0 : exceptions.size();
 			Array arrExceptions = new ArrayImpl();
 			debugging.setEL(KeyConstants._exceptions, arrExceptions);
@@ -610,7 +610,7 @@ public final class DebuggerImpl implements Debugger {
 		//////////////////////////////////////////
 		//////// TIMERS ///////////////////////////
 		//////////////////////////////////////////
-		if (ci.hasDebugOptions(ConfigImpl.DEBUG_TIMER)) {
+		if (ci.hasDebugOptions(ConfigPro.DEBUG_TIMER)) {
 			int len = timers == null ? 0 : timers.size();
 			Query qryTimers = new QueryImpl(TIMER_COLUMNS, len, "timers");
 			debugging.setEL(KeyConstants._timers, qryTimers);
@@ -646,9 +646,9 @@ public final class DebuggerImpl implements Debugger {
 		//////////////////////////////////////////
 		//////// DUMPS ///////////////////////////
 		//////////////////////////////////////////
-		if (ci.hasDebugOptions(ConfigImpl.DEBUG_DUMP)) {
+		if (ci.hasDebugOptions(ConfigPro.DEBUG_DUMP)) {
 			int len = dumps == null ? 0 : dumps.size();
-			if (!((ConfigImpl) pc.getConfig()).hasDebugOptions(ConfigImpl.DEBUG_DUMP)) len = 0;
+			if (!((ConfigPro) pc.getConfig()).hasDebugOptions(ConfigPro.DEBUG_DUMP)) len = 0;
 			Query qryDumps = null;
 			qryDumps = new QueryImpl(DUMP_COLUMNS, len, "dumps");
 			debugging.setEL(KeyConstants._dumps, qryDumps);
@@ -672,9 +672,9 @@ public final class DebuggerImpl implements Debugger {
 		//////////////////////////////////////////
 		//////// TRACES ///////////////////////////
 		//////////////////////////////////////////
-		if (ci.hasDebugOptions(ConfigImpl.DEBUG_TRACING)) {
+		if (ci.hasDebugOptions(ConfigPro.DEBUG_TRACING)) {
 			int len = traces == null ? 0 : traces.size();
-			if (!((ConfigImpl) pc.getConfig()).hasDebugOptions(ConfigImpl.DEBUG_TRACING)) len = 0;
+			if (!((ConfigPro) pc.getConfig()).hasDebugOptions(ConfigPro.DEBUG_TRACING)) len = 0;
 			Query qryTraces = null;
 			qryTraces = new QueryImpl(TRACES_COLUMNS, len, "traces");
 			debugging.setEL(KeyConstants._traces, qryTraces);
@@ -704,7 +704,7 @@ public final class DebuggerImpl implements Debugger {
 		//////////////////////////////////////////
 		//////// SCOPE ACCESS ////////////////////
 		//////////////////////////////////////////
-		if (ci.hasDebugOptions(ConfigImpl.DEBUG_IMPLICIT_ACCESS)) {
+		if (ci.hasDebugOptions(ConfigPro.DEBUG_IMPLICIT_ACCESS)) {
 			int len = implicitAccesses == null ? 0 : implicitAccesses.size();
 			Query qryImplicitAccesseses = new QueryImpl(IMPLICIT_ACCESS_COLUMNS, len, "implicitAccess");
 			debugging.setEL(IMPLICIT_ACCESS, qryImplicitAccesseses);
@@ -827,7 +827,7 @@ public final class DebuggerImpl implements Debugger {
 
 	@Override
 	public DebugTrace[] getTraces(PageContext pc) {
-		if (pc != null && ((ConfigImpl) pc.getConfig()).hasDebugOptions(ConfigImpl.DEBUG_TRACING)) return traces.toArray(new DebugTrace[traces.size()]);
+		if (pc != null && ((ConfigPro) pc.getConfig()).hasDebugOptions(ConfigPro.DEBUG_TRACING)) return traces.toArray(new DebugTrace[traces.size()]);
 		return new DebugTrace[0];
 	}
 

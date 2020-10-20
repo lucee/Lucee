@@ -25,7 +25,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.SecurityException;
@@ -68,7 +68,7 @@ public class CacheSetProperties extends BIF {
 	}
 
 	private static CacheConnection[] getCaches(PageContext pc, String cacheName) throws CacheException {
-		ConfigImpl config = (ConfigImpl) pc.getConfig();
+		ConfigPro config = (ConfigPro) pc.getConfig();
 		if (StringUtil.isEmpty(cacheName)) {
 
 			return new CacheConnection[] { config.getCacheDefaultConnection(Config.CACHE_TYPE_OBJECT), config.getCacheDefaultConnection(Config.CACHE_TYPE_TEMPLATE) };

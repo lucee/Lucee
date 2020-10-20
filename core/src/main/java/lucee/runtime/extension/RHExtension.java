@@ -52,7 +52,7 @@ import lucee.commons.lang.types.RefInteger;
 import lucee.commons.lang.types.RefIntegerImpl;
 import lucee.loader.util.Util;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.config.Constants;
@@ -403,7 +403,7 @@ public class RHExtension implements Serializable {
 	private void readManifestConfig(Manifest manifest, String label, String _img) throws ApplicationException {
 		boolean isWeb = config instanceof ConfigWeb;
 		type = isWeb ? "web" : "server";
-		Log logger = ((ConfigImpl) config).getLog("deploy");
+		Log logger = config.getLog("deploy");
 		Info info = ConfigWebUtil.getEngine(config).getInfo();
 
 		Attributes attr = manifest.getMainAttributes();
@@ -444,7 +444,7 @@ public class RHExtension implements Serializable {
 		boolean isWeb = config instanceof ConfigWeb;
 		type = isWeb ? "web" : "server";
 
-		Log logger = ((ConfigImpl) config).getLog("deploy");
+		Log logger = config.getLog("deploy");
 		Info info = ConfigWebUtil.getEngine(config).getInfo();
 
 		readSymbolicName(label, el.getAttribute("symbolic-name"));
@@ -751,7 +751,7 @@ public class RHExtension implements Serializable {
 	public static void correctExtensions(Config config) throws PageException, IOException, BundleException {
 
 		// extension defined in xml
-		RHExtension[] xmlArrExtensions = ((ConfigImpl) config).getRHExtensions();
+		RHExtension[] xmlArrExtensions = ((ConfigPro) config).getRHExtensions();
 		if (xmlArrExtensions.length == getPhysicalExtensionCount(config)) return; // all is OK
 		RHExtension ext;
 		Map<String, RHExtension> xmlExtensions = new HashMap<>();
@@ -768,7 +768,7 @@ public class RHExtension implements Serializable {
 			ext = new RHExtension(config, resources[i], false);
 			xmlExt = xmlExtensions.get(ext.getId());
 			if (xmlExt != null && (xmlExt.getVersion() + "").equals(ext.getVersion() + "")) continue;
-			XMLConfigAdmin._updateRHExtension((ConfigImpl) config, resources[i], true);
+			XMLConfigAdmin._updateRHExtension((ConfigPro) config, resources[i], true);
 		}
 
 	}

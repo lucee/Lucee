@@ -50,9 +50,8 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SizeOf;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
-import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.Constants;
 import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.engine.JspEngineInfoImpl;
@@ -83,7 +82,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 	private static final long MAX_AGE = 5 * 60000; // 5 minutes
 	private static final int MAX_SIZE = 10000;
 	private static JspEngineInfo info = new JspEngineInfoImpl("1.0");
-	private ConfigWebImpl config;
+	private ConfigWebPro config;
 	ConcurrentLinkedDeque<PageContextImpl> pcs = new ConcurrentLinkedDeque<PageContextImpl>();
 	private final Map<Integer, PageContextImpl> runningPcs = new ConcurrentHashMap<Integer, PageContextImpl>();
 	private final Map<Integer, PageContextImpl> runningChildPcs = new ConcurrentHashMap<Integer, PageContextImpl>();
@@ -291,7 +290,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 				long timeout = pc.getRequestTimeout();
 				// reached timeout
 				if (pc.getStartTime() + timeout < System.currentTimeMillis() && Long.MAX_VALUE != timeout) {
-					Log log = ((ConfigImpl) pc.getConfig()).getLog("requesttimeout");
+					Log log = pc.getConfig().getLog("requesttimeout");
 					if (reachedConcurrentReqThreshold() && reachedMemoryThreshold() && reachedCPUThreshold()) {
 						if (log != null) {
 							PageContext root = pc.getRootPageContext();
@@ -317,7 +316,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 				}
 				// after 10 seconds downgrade priority of the thread
 				else if (pc.getStartTime() + 10000 < System.currentTimeMillis() && pc.getThread().getPriority() != Thread.MIN_PRIORITY) {
-					Log log = ((ConfigImpl) pc.getConfig()).getLog("requesttimeout");
+					Log log = pc.getConfig().getLog("requesttimeout");
 					if (log != null) {
 						PageContext root = pc.getRootPageContext();
 						log.log(Log.LEVEL_WARN, "controller", "downgrade priority of the a " + (root != null && root != pc ? "thread" : "request") + " at " + getPath(pc) + ". "
@@ -403,10 +402,6 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		return config;
 	}
 
-	public ConfigWebImpl getConfigWebImpl() {
-		return config;
-	}
-
 	/**
 	 * @return Returns the scopeContext.
 	 */
@@ -419,7 +414,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 	 */
 	@Override
 	public Object getLabel() {
-		return ((ConfigWebImpl) getConfig()).getLabel();
+		return getConfig().getLabel();
 	}
 
 	/**
@@ -448,7 +443,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		return _servlet;
 	}
 
-	public void setConfig(ConfigWebImpl config) {
+	public void setConfig(ConfigWebPro config) {
 		this.config = config;
 	}
 
@@ -478,10 +473,10 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		Struct data, sctThread, scopes;
 		Thread thread;
 		Entry<Integer, PageContextImpl> e;
-		ConfigWebImpl cw;
+		ConfigWebPro cw;
 		while (it.hasNext()) {
 			pc = it.next();
-			cw = (ConfigWebImpl) pc.getConfig();
+			cw = (ConfigWebPro) pc.getConfig();
 			data = new StructImpl();
 			sctThread = new StructImpl();
 			scopes = new StructImpl();
@@ -572,7 +567,6 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		PageContext pc;
 		while (it.hasNext()) {
 			pc = it.next();
-			// Log log = ((ConfigImpl)pc.getConfig()).getLog("application");
 			try {
 				String id = Hash.call(pc, pc.getId() + ":" + pc.getStartTime());
 				if (id.equals(threadId)) {

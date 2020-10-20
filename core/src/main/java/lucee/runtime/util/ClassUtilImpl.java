@@ -32,7 +32,7 @@ import lucee.commons.lang.ClassException;
 import lucee.commons.lang.types.RefInteger;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.Identification;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
@@ -70,7 +70,7 @@ public class ClassUtilImpl implements ClassUtil {
 			return new BIFProxy(res);
 		}
 
-		FunctionLib[] flds = ((ConfigWebImpl) pc.getConfig()).getFLDs(pc.getCurrentTemplateDialect());
+		FunctionLib[] flds = ((ConfigWebPro) pc.getConfig()).getFLDs(pc.getCurrentTemplateDialect());
 		FunctionLibFunction flf;
 		for (int i = 0; i < flds.length; i++) {
 			flf = flds[i].getFunction(name);

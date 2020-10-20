@@ -56,7 +56,7 @@ import lucee.runtime.component.AbstractFinal.UDFB;
 import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.component.Property;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
@@ -276,7 +276,7 @@ public final class ComponentUtil {
 	 */
 	private static Class registerTypeMapping(Class clazz) throws PageException {
 		PageContext pc = ThreadLocalPageContext.get();
-		WSServer server = ((ConfigWebImpl) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getWSServer(pc);
+		WSServer server = ((ConfigWebPro) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getWSServer(pc);
 		return registerTypeMapping(server, clazz);
 	}
 
@@ -584,7 +584,7 @@ public final class ComponentUtil {
 
 	private static Type toType(String cfType, boolean axistype) throws PageException {
 		Class clazz = Caster.cfTypeToClass(cfType);
-		if (axistype) clazz = ((ConfigWebImpl) ThreadLocalPageContext.getConfig()).getWSHandler().toWSTypeClass(clazz);
+		if (axistype) clazz = ((ConfigWebPro) ThreadLocalPageContext.getConfig()).getWSHandler().toWSTypeClass(clazz);
 		return Type.getType(clazz);
 
 	}

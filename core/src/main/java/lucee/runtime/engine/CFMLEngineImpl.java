@@ -109,11 +109,11 @@ import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
 import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.ConfigServerImpl;
 import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.config.DeployHandler;
 import lucee.runtime.config.Identification;
@@ -135,6 +135,7 @@ import lucee.runtime.exp.RequestTimeoutException;
 import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.functions.other.CreateUniqueId;
+import lucee.runtime.gateway.GatewayEngineImpl;
 import lucee.runtime.instrumentation.InstrumentationFactory;
 import lucee.runtime.jsr223.ScriptEngineFactoryImpl;
 import lucee.runtime.net.http.HTTPServletRequestWrap;
@@ -418,7 +419,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		}
 	}
 
-	private static void checkInvalidExtensions(ConfigImpl config, Set<ExtensionDefintion> extensionsToInstall, Set<String> extensionsToRemove) {
+	private static void checkInvalidExtensions(ConfigPro config, Set<ExtensionDefintion> extensionsToInstall, Set<String> extensionsToRemove) {
 		RHExtension[] extensions = config.getRHExtensions();
 		if (extensions != null) {
 			InfoImpl info = (InfoImpl) ConfigWebUtil.getEngine(config).getInfo();
@@ -899,7 +900,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 			CFMLFactoryImpl factory = new CFMLFactoryImpl(this, sg);
 			if (XMLConfigWebFactory.LOG) LogUtil.log(configServer, Log.LEVEL_INFO, "startup", "init factory");
-			ConfigWebImpl config = XMLConfigWebFactory.newInstance(this, factory, configServer, configDir, isCustomSetting.toBooleanValue(), sg);
+			ConfigWebPro config = XMLConfigWebFactory.newInstance(this, factory, configServer, configDir, isCustomSetting.toBooleanValue(), sg);
 			if (XMLConfigWebFactory.LOG) LogUtil.log(configServer, Log.LEVEL_INFO, "startup", "loaded config");
 			factory.setConfig(config);
 			return factory;
@@ -1128,7 +1129,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		CFMLFactoryImpl factory = (CFMLFactoryImpl) getCFMLFactory(servlet.getServletConfig(), req);
 		// is Lucee dialect enabled?
 		if (type == Request.TYPE_LUCEE) {
-			if (!((ConfigImpl) factory.getConfig()).allowLuceeDialect()) {
+			if (!((ConfigPro) factory.getConfig()).allowLuceeDialect()) {
 				try {
 					PageContextImpl.notSupported();
 				}
@@ -1198,8 +1199,6 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		CFMLFactory factory = getCFMLFactory(servlet.getServletConfig(), req);
 		ConfigWeb config = factory.getConfig();
 		PageSource ps = config.getPageSourceExisting(null, null, req.getServletPath(), false, true, true, false);
-		// Resource res = ((ConfigWebImpl)config).getPhysicalResourceExistingX(null, null,
-		// req.getServletPath(), false, true, true);
 
 		if (ps == null) {
 			rsp.sendError(404);
@@ -1292,12 +1291,12 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 			Iterator<Entry<String, CFMLFactory>> it = initContextes.entrySet().iterator();
 			Entry<String, CFMLFactory> e;
-			ConfigWebImpl config;
+			ConfigWeb config;
 			while (it.hasNext()) {
 				e = it.next();
 				try {
 					cfmlFactory = (CFMLFactoryImpl) e.getValue();
-					config = cfmlFactory.getConfigWebImpl();
+					config = cfmlFactory.getConfig();
 
 					if (configId != null && !configId.equals(config.getIdentification().getId())) continue;
 
@@ -1336,14 +1335,14 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 					// Gateway
 					try {
-						cfmlFactory.getConfigWebImpl().getGatewayEngine().reset();
+						((GatewayEngineImpl) ((ConfigWebPro) cfmlFactory.getConfig()).getGatewayEngine()).reset();
 					}
 					catch (Exception ee) {
 						LogUtil.log(configServer, "controller", ee);
 					}
 
 					// Cache
-					releaseCache(cfmlFactory.getConfigWebImpl());
+					releaseCache(cfmlFactory.getConfig());
 
 				}
 				catch (Exception ex) {
@@ -1703,7 +1702,7 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		return controler;
 	}
 
-	public void onStart(ConfigImpl config, boolean reload) {
+	public void onStart(ConfigPro config, boolean reload) {
 
 		String context = config instanceof ConfigWeb ? "Web" : "Server";
 
@@ -1735,12 +1734,12 @@ public final class CFMLEngineImpl implements CFMLEngine {
 	 */
 	private class OnStart extends Thread {
 
-		private ConfigImpl config;
+		private ConfigPro config;
 		private int dialect;
 		private boolean reload;
 		private String context;
 
-		public OnStart(ConfigImpl config, int dialect, String context, boolean reload) {
+		public OnStart(ConfigPro config, int dialect, String context, boolean reload) {
 			this.config = config;
 			this.dialect = dialect;
 			this.context = context;

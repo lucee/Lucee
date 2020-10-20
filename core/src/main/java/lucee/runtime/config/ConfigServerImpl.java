@@ -191,29 +191,29 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 
 	@Override
 	public ConfigWeb getConfigWeb(String realpath) {
-		return getConfigWebImpl(realpath);
+		return getConfigWebPro(realpath);
 	}
 
 	/**
 	 * returns CongigWeb Implementtion
 	 * 
 	 * @param realpath
-	 * @return ConfigWebImpl
+	 * @return ConfigWebPro
 	 */
-	protected ConfigWebImpl getConfigWebImpl(String realpath) {
+	protected ConfigWebPro getConfigWebPro(String realpath) {
 		Iterator<String> it = initContextes.keySet().iterator();
 		while (it.hasNext()) {
-			ConfigWebImpl cw = ((CFMLFactoryImpl) initContextes.get(it.next())).getConfigWebImpl();
-			if (ReqRspUtil.getRootPath(cw.getServletContext()).equals(realpath)) return cw;
+			ConfigWeb cw = ((CFMLFactoryImpl) initContextes.get(it.next())).getConfig();
+			if (ReqRspUtil.getRootPath(cw.getServletContext()).equals(realpath)) return (ConfigWebPro) cw;
 		}
 		return null;
 	}
 
-	public ConfigWebImpl getConfigWebById(String id) {
+	public ConfigWeb getConfigWebById(String id) {
 		Iterator<String> it = initContextes.keySet().iterator();
 
 		while (it.hasNext()) {
-			ConfigWebImpl cw = ((CFMLFactoryImpl) initContextes.get(it.next())).getConfigWebImpl();
+			ConfigWeb cw = ((CFMLFactoryImpl) initContextes.get(it.next())).getConfig();
 			if (cw.getIdentification().getId().equals(id)) return cw;
 		}
 		return null;
@@ -524,16 +524,16 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 		ConfigWeb[] webs = getConfigWebs();
 		int count = 0;
 		for (int i = 0; i < webs.length; i++) {
-			count += shrink((ConfigWebImpl) webs[i], false);
+			count += shrink((ConfigWebPro) webs[i], false);
 		}
 		if (count == 0) {
 			for (int i = 0; i < webs.length; i++) {
-				shrink((ConfigWebImpl) webs[i], true);
+				shrink((ConfigWebPro) webs[i], true);
 			}
 		}
 	}
 
-	private static int shrink(ConfigWebImpl config, boolean force) {
+	private static int shrink(ConfigWebPro config, boolean force) {
 		int count = 0;
 		count += shrink(config.getMappings(), force);
 		count += shrink(config.getCustomTagMappings(), force);
@@ -584,31 +584,9 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 	}
 
 	public long countLoadedPages() {
-		/*
-		 * long count=0; ConfigWeb[] webs = getConfigWebs(); for(int i=0;i<webs.length;i++){
-		 * count+=_count((ConfigWebImpl) webs[i]); } return count;
-		 */
 		return -1;
 		// MUST implement
 	}
-	/*
-	 * private static long _countx(ConfigWebImpl config) { long count=0;
-	 * count+=_count(config.getMappings()); count+=_count(config.getCustomTagMappings());
-	 * count+=_count(config.getComponentMappings()); count+=_count(config.getFunctionMapping());
-	 * count+=_count(config.getServerFunctionMapping()); count+=_count(config.getTagMapping());
-	 * count+=_count(config.getServerTagMapping());
-	 * //count+=_count(((ConfigWebImpl)config).getServerTagMapping()); return count; }
-	 */
-
-	/*
-	 * private static long _count(Mapping[] mappings) { long count=0; for(int
-	 * i=0;i<mappings.length;i++){ count+=_count(mappings[i]); } return count; }
-	 */
-
-	/*
-	 * private static long _countx(Mapping mapping) { PCLCollection pcl =
-	 * ((MappingImpl)mapping).getPCLCollection(); return pcl==null?0:pcl.count(); }
-	 */
 
 	@Override
 	public Cluster createClusterScope() throws PageException {
@@ -765,7 +743,7 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 		// webs
 		ConfigWeb[] cws = getConfigWebs();
 		for (ConfigWeb cw: cws) {
-			itt = ((ConfigImpl) cw).getExtensionBundleDefintions().iterator();
+			itt = ((ConfigPro) cw).getExtensionBundleDefintions().iterator();
 			while (itt.hasNext()) {
 				bd = itt.next();
 				rtn.put(bd.getName() + "|" + bd.getVersionAsString(), bd);
@@ -788,7 +766,7 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 		// webs
 		ConfigWeb[] cws = getConfigWebs();
 		for (ConfigWeb cw: cws) {
-			arr = ((ConfigWebImpl) cw).getRHExtensions();
+			arr = ((ConfigWebPro) cw).getRHExtensions();
 			for (RHExtension rhe: arr) {
 				rtn.put(rhe.getId(), rhe);
 			}
@@ -905,17 +883,6 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 	public Map<String, GatewayEntry> getGatewayEntries() {
 		return gatewayEntries;
 	}
-
-	/*
-	 * private WSHandler wsHandler;
-	 * 
-	 * @Override // that method normally should not be used, maybe in rthe future public WSHandler
-	 * getWSHandler() throws PageException { if (wsHandler == null) { ClassDefinition cd =
-	 * getWSHandlerClassDefinition(); try { if (isEmpty(cd)) return new DummyWSHandler(); Object obj =
-	 * cd.getClazz().newInstance(); if (obj instanceof WSHandler) wsHandler = (WSHandler) obj; else
-	 * wsHandler = new WSHandlerReflector(obj); } catch (Exception e) { throw Caster.toPageException(e);
-	 * } } return wsHandler; }
-	 */
 
 	@Override
 	public void checkPassword() throws PageException {

@@ -34,7 +34,6 @@ import lucee.commons.net.http.HTTPResponse;
 import lucee.commons.net.http.Header;
 import lucee.commons.security.Credentials;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.Constants;
 import lucee.runtime.engine.ThreadLocalConfig;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -181,7 +180,7 @@ class ExecutionThread extends Thread {
 	}
 
 	private static Log getLog(Config config) {
-		return ((ConfigImpl) config).getLog("scheduler");
+		return config.getLog("scheduler");
 	}
 
 	private static boolean isText(HTTPResponse rsp) {

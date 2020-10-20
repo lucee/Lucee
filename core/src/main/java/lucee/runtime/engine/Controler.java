@@ -36,10 +36,10 @@ import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.Mapping;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.DeployHandler;
 import lucee.runtime.config.XMLConfigAdmin;
 import lucee.runtime.extension.RHExtension;
@@ -307,7 +307,7 @@ public final class Controler extends Thread {
 				ThreadLocalConfig.register(config);
 
 				try {
-					((SchedulerImpl) ((ConfigWebImpl) config).getScheduler()).startIfNecessary();
+					((SchedulerImpl) config.getScheduler()).startIfNecessary();
 				}
 				catch (Exception e) {
 					LogUtil.log(ThreadLocalPageContext.getConfig(configServer), Controler.class.getName(), e);
@@ -315,7 +315,7 @@ public final class Controler extends Thread {
 
 				// double check templates
 				try {
-					((ConfigWebImpl) config).getCompiler().checkWatched();
+					((ConfigWebPro) config).getCompiler().checkWatched();
 				}
 				catch (Exception e) {
 					LogUtil.log(ThreadLocalPageContext.getConfig(configServer), Controler.class.getName(), e);
@@ -331,7 +331,7 @@ public final class Controler extends Thread {
 
 				// clear unused DB Connections
 				try {
-					((ConfigImpl) config).getDatasourceConnectionPool().clear(false);
+					((ConfigPro) config).getDatasourceConnectionPool().clear(false);
 				}
 				catch (Throwable t) {
 					ExceptionUtil.rethrowIfNecessary(t);
@@ -354,10 +354,10 @@ public final class Controler extends Thread {
 				 */
 				// contract Page Pool
 				try {
-					doClearPagePools((ConfigWebImpl) config);
+					doClearPagePools(config);
 				}
 				catch (Exception e) {}
-				// try{checkPermGenSpace((ConfigWebImpl) config);}catch(Throwable t)
+				// try{checkPermGenSpace((ConfigWebPro) config);}catch(Throwable t)
 				// {ExceptionUtil.rethrowIfNecessary(t);}
 				try {
 					doCheckMappings(config);
@@ -437,7 +437,7 @@ public final class Controler extends Thread {
 		}
 	}
 
-	private void doClearPagePools(ConfigWebImpl config) {
+	private void doClearPagePools(ConfigWeb config) {
 		PagePoolClear.clear(null, config, true);
 	}
 

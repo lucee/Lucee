@@ -46,7 +46,6 @@ import lucee.commons.lang.ByteNameValuePair;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.URLItem;
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.listener.ApplicationContext;
@@ -156,7 +155,7 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 
 	private void initializeMultiPart(PageContext pc, boolean scriptProteced) {
 		// get temp directory
-		Resource tempDir = ((ConfigImpl) pc.getConfig()).getTempDirectory();
+		Resource tempDir = pc.getConfig().getTempDirectory();
 		Resource tempFile;
 
 		// Create a new file upload handler

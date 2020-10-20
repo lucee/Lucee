@@ -47,7 +47,7 @@ import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.Identification;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
@@ -917,8 +917,8 @@ public final class ClassUtil {
 		if (cl != null) return cl;
 
 		Config config = ThreadLocalPageContext.getConfig();
-		if (config instanceof ConfigImpl) {
-			return ((ConfigImpl) config).getClassLoaderCore();
+		if (config instanceof ConfigPro) {
+			return ((ConfigPro) config).getClassLoaderCore();
 		}
 		return new lucee.commons.lang.ClassLoaderHelper().getClass().getClassLoader();
 	}

@@ -34,7 +34,7 @@ import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.Constants;
 import lucee.runtime.config.Password;
@@ -71,7 +71,7 @@ public class CacheUtil {
 		}
 
 		// get default from config
-		CacheConnection cc = ((ConfigImpl) config).getCacheDefaultConnection(type);
+		CacheConnection cc = ((ConfigPro) config).getCacheDefaultConnection(type);
 		if (cc == null) return defaultValue;
 		try {
 			return cc.getInstance(config);
@@ -101,7 +101,7 @@ public class CacheUtil {
 
 		// get default from config
 		Config config = ThreadLocalPageContext.getConfig(pc);
-		CacheConnection cc = ((ConfigImpl) config).getCacheDefaultConnection(type);
+		CacheConnection cc = ((ConfigPro) config).getCacheDefaultConnection(type);
 		if (cc == null)
 			throw new CacheException("there is no default " + toStringType(type, "") + " cache defined, you need to define this default cache in the Lucee Administrator");
 		return cc.getInstance(config);
@@ -158,7 +158,7 @@ public class CacheUtil {
 
 	public static CacheException noCache(Config config, String cacheName) {
 		StringBuilder sb = new StringBuilder("there is no cache defined with name [").append(cacheName).append("], available caches are [");
-		Iterator<String> it = ((ConfigImpl) config).getCacheConnections().keySet().iterator();
+		Iterator<String> it = ((ConfigPro) config).getCacheConnections().keySet().iterator();
 		if (it.hasNext()) {
 			sb.append(it.next());
 		}

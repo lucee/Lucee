@@ -37,7 +37,7 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
@@ -331,7 +331,7 @@ public final class HSQLDBHandler {
 		synchronized (lock) {
 
 			QueryImpl nqr = null;
-			ConfigImpl config = (ConfigImpl) pc.getConfig();
+			ConfigPro config = (ConfigPro) pc.getConfig();
 			DatasourceConnectionPool pool = config.getDatasourceConnectionPool();
 			DatasourceConnection dc = pool.getDatasourceConnection(config, config.getDataSource(QOQ_DATASOURCE_NAME), "sa", "");
 			Connection conn = dc.getConnection();

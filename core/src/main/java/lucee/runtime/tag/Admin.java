@@ -85,11 +85,11 @@ import lucee.runtime.cfx.customtag.CFXTagClass;
 import lucee.runtime.cfx.customtag.JavaCFXTagClass;
 import lucee.runtime.config.AdminSync;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.ConfigServerImpl;
 import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.config.Constants;
 import lucee.runtime.config.DebugEntry;
@@ -237,7 +237,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private short type;
 	private Password password;
 	private XMLConfigAdmin admin;
-	private ConfigImpl config;
+	private ConfigPro config;
 
 	private static final ResourceFilter FILTER_CFML_TEMPLATES = new OrResourceFilter(
 			new ResourceFilter[] { new DirectoryResourceFilter(), new ExtensionResourceFilter(Constants.getExtensions()) });
@@ -267,7 +267,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	@Override
 	public int doStartTag() throws PageException {
-		config = (ConfigImpl) pageContext.getConfig();
+		config = (ConfigPro) pageContext.getConfig();
 
 		// Action
 		Object objAction = attributes.get(KeyConstants._action);
@@ -325,11 +325,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		// check Password
 		else if (action.equals("checkpassword")) {
 			try {
-				// ((ConfigWebImpl)config).getConfigServer(arg0)
-
 				config.checkPassword();
-
-				// XMLConfigAdmin._storeAndReload(config);
 			}
 			catch (Exception e) {
 				throw Caster.toPageException(e);
@@ -341,7 +337,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		else if (action.equals("updatepassword")) {
 
 			try {
-				((ConfigWebImpl) pageContext.getConfig()).updatePassword(type != TYPE_WEB, getString("oldPassword", null), getString("admin", action, "newPassword", true));
+				((ConfigWebPro) pageContext.getConfig()).updatePassword(type != TYPE_WEB, getString("oldPassword", null), getString("admin", action, "newPassword", true));
 			}
 			catch (Exception e) {
 				throw Caster.toPageException(e);
@@ -507,7 +503,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	 * 
 	 */
 	private void _doStartTag() throws PageException, IOException {
-		config = (ConfigImpl) pageContext.getConfig();
+		config = (ConfigPro) pageContext.getConfig();
 
 		// getToken
 		if (action.equals("gettoken")) {
@@ -559,7 +555,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			String raw = getString("admin", action, "pw");
 			Password pw = PasswordImpl.passwordToCompare(pageContext.getConfig(), type != TYPE_WEB, raw);
 
-			Password changed = ((ConfigWebImpl) pageContext.getConfig()).updatePasswordIfNecessary(type == TYPE_SERVER, raw);
+			Password changed = ((ConfigWebPro) pageContext.getConfig()).updatePasswordIfNecessary(type == TYPE_SERVER, raw);
 			if (changed != null) pw = changed;
 
 			pageContext.setVariable(getString("admin", action, "returnVariable"), pw.getPassword());
@@ -569,7 +565,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		try {
 			// Password
 			String strPW = getString("password", "");
-			Password tmp = type == TYPE_SERVER ? ((ConfigWebImpl) config).isServerPasswordEqual(strPW) : config.isPasswordEqual(strPW); // hash password if
+			Password tmp = type == TYPE_SERVER ? ((ConfigWebPro) config).isServerPasswordEqual(strPW) : config.isPasswordEqual(strPW); // hash password if
 			// necessary (for
 			// backward
 			// compatibility)
@@ -577,7 +573,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			else password = null;
 
 			// Config
-			if (type == TYPE_SERVER) config = (ConfigImpl) pageContext.getConfig().getConfigServer(password);
+			if (type == TYPE_SERVER) config = (ConfigPro) pageContext.getConfig().getConfigServer(password);
 
 			adminSync = config.getAdminSync();
 			admin = XMLConfigAdmin.newInstance(config, password);
@@ -1190,25 +1186,25 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			factories = cs.getJSPFactories();
 		}
 		else {
-			ConfigWebImpl cw = (ConfigWebImpl) config;
+			ConfigWebPro cw = (ConfigWebPro) config;
 			factories = new CFMLFactory[] { cw.getFactory() };
 		}
 
 		lucee.runtime.type.Query qry = new QueryImpl(new Collection.Key[] { KeyConstants._path, KeyConstants._id, KeyConstants._hash, KeyConstants._label, HAS_OWN_SEC_CONTEXT,
 				KeyConstants._url, CONFIG_FILE, CLIENT_SIZE, CLIENT_ELEMENTS, SESSION_SIZE, SESSION_ELEMENTS }, factories.length, getString("admin", action, "returnVariable"));
 		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
-		ConfigWebImpl cw;
+		ConfigWebPro cw;
 		for (int i = 0; i < factories.length; i++) {
 			int row = i + 1;
 			CFMLFactoryImpl factory = (CFMLFactoryImpl) factories[i];
-			cw = (ConfigWebImpl) factory.getConfig();
-			qry.setAtEL(KeyConstants._path, row, ReqRspUtil.getRootPath(factory.getConfigWebImpl().getServletContext()));
+			cw = (ConfigWebPro) factory.getConfig();
+			qry.setAtEL(KeyConstants._path, row, ReqRspUtil.getRootPath(factory.getConfig().getServletContext()));
 
-			qry.setAtEL(CONFIG_FILE, row, factory.getConfigWebImpl().getConfigFile().getAbsolutePath());
+			qry.setAtEL(CONFIG_FILE, row, factory.getConfig().getConfigFile().getAbsolutePath());
 			if (factory.getURL() != null) qry.setAtEL(KeyConstants._url, row, factory.getURL().toExternalForm());
 
 			qry.setAtEL(KeyConstants._id, row, factory.getConfig().getIdentification().getId());
-			qry.setAtEL(KeyConstants._hash, row, SystemUtil.hash(factory.getConfigWebImpl().getServletContext()));
+			qry.setAtEL(KeyConstants._hash, row, SystemUtil.hash(factory.getConfig().getServletContext()));
 			qry.setAtEL(KeyConstants._label, row, factory.getLabel());
 			qry.setAtEL(HAS_OWN_SEC_CONTEXT, row, Caster.toBoolean(cw.hasIndividualSecurityManager()));
 
@@ -1254,7 +1250,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private Resource getContextDirectory() throws PageException {
-		ConfigServerImpl cs = (ConfigServerImpl) ConfigImpl.getConfigServer(config, password);
+		ConfigServerImpl cs = (ConfigServerImpl) ConfigWebUtil.getConfigServer(config, password);
 		Resource dist = cs.getConfigDir().getRealResource("distribution");
 		dist.mkdirs();
 		return dist;
@@ -1285,7 +1281,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		String strRealpath = getString("admin", action, "destination");
 		Resource src = ResourceUtil.toResourceExisting(pageContext, strSrc);
 
-		ConfigServerImpl server = (ConfigServerImpl) ConfigImpl.getConfigServer(config, password);
+		ConfigServerImpl server = (ConfigServerImpl) ConfigWebUtil.getConfigServer(config, password);
 		Resource trg, p;
 		Resource deploy = server.getConfigDir().getRealResource("web-context-deployment");
 		deploy.mkdirs();
@@ -1414,14 +1410,14 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
 
 		sct.set(DEBUG, Caster.toBoolean(config.debug()));
-		sct.set(KeyConstants._database, Caster.toBoolean(config.hasDebugOptions(ConfigImpl.DEBUG_DATABASE)));
-		sct.set(KeyConstants._exception, Caster.toBoolean(config.hasDebugOptions(ConfigImpl.DEBUG_EXCEPTION)));
-		sct.set(KeyConstants._template, Caster.toBoolean(config.hasDebugOptions(ConfigImpl.DEBUG_TEMPLATE)));
-		sct.set("tracing", Caster.toBoolean(config.hasDebugOptions(ConfigImpl.DEBUG_TRACING)));
-		sct.set("dump", Caster.toBoolean(config.hasDebugOptions(ConfigImpl.DEBUG_DUMP)));
-		sct.set("timer", Caster.toBoolean(config.hasDebugOptions(ConfigImpl.DEBUG_TIMER)));
-		sct.set("implicitAccess", Caster.toBoolean(config.hasDebugOptions(ConfigImpl.DEBUG_IMPLICIT_ACCESS)));
-		sct.set("queryUsage", Caster.toBoolean(config.hasDebugOptions(ConfigImpl.DEBUG_QUERY_USAGE)));
+		sct.set(KeyConstants._database, Caster.toBoolean(config.hasDebugOptions(ConfigPro.DEBUG_DATABASE)));
+		sct.set(KeyConstants._exception, Caster.toBoolean(config.hasDebugOptions(ConfigPro.DEBUG_EXCEPTION)));
+		sct.set(KeyConstants._template, Caster.toBoolean(config.hasDebugOptions(ConfigPro.DEBUG_TEMPLATE)));
+		sct.set("tracing", Caster.toBoolean(config.hasDebugOptions(ConfigPro.DEBUG_TRACING)));
+		sct.set(KeyConstants._dump, Caster.toBoolean(config.hasDebugOptions(ConfigPro.DEBUG_DUMP)));
+		sct.set("timer", Caster.toBoolean(config.hasDebugOptions(ConfigPro.DEBUG_TIMER)));
+		sct.set("implicitAccess", Caster.toBoolean(config.hasDebugOptions(ConfigPro.DEBUG_IMPLICIT_ACCESS)));
+		sct.set("queryUsage", Caster.toBoolean(config.hasDebugOptions(ConfigPro.DEBUG_QUERY_USAGE)));
 	}
 
 	private void doGetError() throws PageException {
@@ -1478,7 +1474,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private void doGetLoggedDebugData() throws PageException {
 		if (config instanceof ConfigServer) return;
 
-		ConfigWebImpl cw = (ConfigWebImpl) config;
+		ConfigWebPro cw = (ConfigWebPro) config;
 		String id = getString("id", null);
 		Array data = cw.getDebuggerPool().getData(pageContext);
 
@@ -1501,7 +1497,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void doPurgeDebugPool() throws PageException {
 		if (config instanceof ConfigServer) return;
-		ConfigWebImpl cw = (ConfigWebImpl) config;		
+		ConfigWebPro cw = (ConfigWebPro) config;
 		cw.getDebuggerPool().purge();
 	}
 
@@ -1509,8 +1505,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		Struct sct = new StructImpl();
 		pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
 
-		if (config instanceof ConfigWebImpl) {
-			ConfigWebImpl cw = (ConfigWebImpl) config;
+		if (config instanceof ConfigWebPro) {
+			ConfigWebPro cw = (ConfigWebPro) config;
 			sct.setEL(KeyConstants._id, cw.getIdentification().getId());
 			sct.setEL(KeyConstants._label, cw.getLabel());
 			sct.setEL(KeyConstants._hash, cw.getHash());
@@ -1621,14 +1617,14 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	 * 
 	 */
 	private void doGetDefaultSecurityManager() throws PageException {
-		ConfigServer cs = ConfigImpl.getConfigServer(config, password);
+		ConfigServer cs = ConfigWebUtil.getConfigServer(config, password);
 
 		SecurityManager dsm = cs.getDefaultSecurityManager();
 		_fillSecData(dsm);
 	}
 
 	private void doGetSecurityManager() throws PageException {
-		ConfigServer cs = ConfigImpl.getConfigServer(config, password);
+		ConfigServer cs = ConfigWebUtil.getConfigServer(config, password);
 		SecurityManager sm = cs.getSecurityManager(getString("admin", action, "id"));
 		_fillSecData(sm);
 	}
@@ -1904,7 +1900,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	 */
 	private void doUpdateComponentMapping() throws PageException {
 		admin.updateComponentMapping(getString("virtual", ""), getString("physical", ""), getString("archive", ""), getString("primary", "physical"),
-				ConfigWebUtil.inspectTemplate(getString("inspect", ""), ConfigImpl.INSPECT_UNDEFINED));
+				ConfigWebUtil.inspectTemplate(getString("inspect", ""), ConfigPro.INSPECT_UNDEFINED));
 		store();
 		adminSync.broadcast(attributes, config);
 	}
@@ -1924,7 +1920,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	 */
 	private void doUpdateCustomTag() throws PageException {
 		admin.updateCustomTag(getString("admin", action, "virtual"), getString("admin", action, "physical"), getString("admin", action, "archive"),
-				getString("admin", action, "primary"), ConfigWebUtil.inspectTemplate(getString("inspect", ""), ConfigImpl.INSPECT_UNDEFINED));
+				getString("admin", action, "primary"), ConfigWebUtil.inspectTemplate(getString("inspect", ""), ConfigPro.INSPECT_UNDEFINED));
 		store();
 		adminSync.broadcast(attributes, config);
 	}
@@ -2016,7 +2012,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void doUpdateMapping() throws PageException {
 		admin.updateMapping(getString("admin", action, "virtual"), getString("admin", action, "physical"), getString("admin", action, "archive"),
-				getString("admin", action, "primary"), ConfigWebUtil.inspectTemplate(getString("inspect", ""), ConfigImpl.INSPECT_UNDEFINED),
+				getString("admin", action, "primary"), ConfigWebUtil.inspectTemplate(getString("inspect", ""), ConfigPro.INSPECT_UNDEFINED),
 				Caster.toBooleanValue(getString("toplevel", "true")), ConfigWebUtil.toListenerMode(getString("listenerMode", ""), -1),
 				ConfigWebUtil.toListenerType(getString("listenerType", ""), -1), Caster.toBooleanValue(getString("readonly", "false"))
 
@@ -2359,7 +2355,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			qry.setAt("TagContext", row, PageExceptionImpl.getTagContext(pc.getConfig(), st));
 
 			qry.setAt("label", row, factory.getLabel());
-			qry.setAt("RootPath", row, ReqRspUtil.getRootPath(((ConfigWebImpl) configWeb).getServletContext()));
+			qry.setAt("RootPath", row, ReqRspUtil.getRootPath(configWeb.getServletContext()));
 			qry.setAt("ConfigFile", row, configWeb.getConfigFile().getAbsolutePath());
 			if (factory.getURL() != null) qry.setAt("url", row, factory.getURL().toExternalForm());
 
@@ -2724,43 +2720,43 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		if (StringUtil.isEmpty(def)) return Config.CACHE_TYPE_NONE;
 		def = def.trim().toLowerCase();
 
-		if (def.equals("object")) return ConfigImpl.CACHE_TYPE_OBJECT;
-		if (def.equals("template")) return ConfigImpl.CACHE_TYPE_TEMPLATE;
-		if (def.equals("query")) return ConfigImpl.CACHE_TYPE_QUERY;
-		if (def.equals("resource")) return ConfigImpl.CACHE_TYPE_RESOURCE;
-		if (def.equals("function")) return ConfigImpl.CACHE_TYPE_FUNCTION;
-		if (def.equals("include")) return ConfigImpl.CACHE_TYPE_INCLUDE;
-		if (def.equals("http")) return ConfigImpl.CACHE_TYPE_HTTP;
-		if (def.equals("file")) return ConfigImpl.CACHE_TYPE_FILE;
-		if (def.equals("webservice")) return ConfigImpl.CACHE_TYPE_WEBSERVICE;
+		if (def.equals("object")) return ConfigPro.CACHE_TYPE_OBJECT;
+		if (def.equals("template")) return ConfigPro.CACHE_TYPE_TEMPLATE;
+		if (def.equals("query")) return ConfigPro.CACHE_TYPE_QUERY;
+		if (def.equals("resource")) return ConfigPro.CACHE_TYPE_RESOURCE;
+		if (def.equals("function")) return ConfigPro.CACHE_TYPE_FUNCTION;
+		if (def.equals("include")) return ConfigPro.CACHE_TYPE_INCLUDE;
+		if (def.equals("http")) return ConfigPro.CACHE_TYPE_HTTP;
+		if (def.equals("file")) return ConfigPro.CACHE_TYPE_FILE;
+		if (def.equals("webservice")) return ConfigPro.CACHE_TYPE_WEBSERVICE;
 
 		throw new ApplicationException("Invalid default type [" + def + "], valid default types are [object,template,query,resource,function]");
 	}
 
 	private void doUpdateCacheDefaultConnection() throws PageException {
-		admin.updateCacheDefaultConnection(ConfigImpl.CACHE_TYPE_OBJECT, getString("admin", action, "object"));
-		admin.updateCacheDefaultConnection(ConfigImpl.CACHE_TYPE_TEMPLATE, getString("admin", action, "template"));
-		admin.updateCacheDefaultConnection(ConfigImpl.CACHE_TYPE_QUERY, getString("admin", action, "query"));
-		admin.updateCacheDefaultConnection(ConfigImpl.CACHE_TYPE_RESOURCE, getString("admin", action, "resource"));
-		admin.updateCacheDefaultConnection(ConfigImpl.CACHE_TYPE_FUNCTION, getString("admin", action, "function"));
-		admin.updateCacheDefaultConnection(ConfigImpl.CACHE_TYPE_INCLUDE, getString("admin", action, "include"));
-		admin.updateCacheDefaultConnection(ConfigImpl.CACHE_TYPE_HTTP, getString("admin", action, "http"));
-		admin.updateCacheDefaultConnection(ConfigImpl.CACHE_TYPE_FILE, getString("admin", action, "file"));
-		admin.updateCacheDefaultConnection(ConfigImpl.CACHE_TYPE_WEBSERVICE, getString("admin", action, "webservice"));
+		admin.updateCacheDefaultConnection(ConfigPro.CACHE_TYPE_OBJECT, getString("admin", action, "object"));
+		admin.updateCacheDefaultConnection(ConfigPro.CACHE_TYPE_TEMPLATE, getString("admin", action, "template"));
+		admin.updateCacheDefaultConnection(ConfigPro.CACHE_TYPE_QUERY, getString("admin", action, "query"));
+		admin.updateCacheDefaultConnection(ConfigPro.CACHE_TYPE_RESOURCE, getString("admin", action, "resource"));
+		admin.updateCacheDefaultConnection(ConfigPro.CACHE_TYPE_FUNCTION, getString("admin", action, "function"));
+		admin.updateCacheDefaultConnection(ConfigPro.CACHE_TYPE_INCLUDE, getString("admin", action, "include"));
+		admin.updateCacheDefaultConnection(ConfigPro.CACHE_TYPE_HTTP, getString("admin", action, "http"));
+		admin.updateCacheDefaultConnection(ConfigPro.CACHE_TYPE_FILE, getString("admin", action, "file"));
+		admin.updateCacheDefaultConnection(ConfigPro.CACHE_TYPE_WEBSERVICE, getString("admin", action, "webservice"));
 		store();
 		adminSync.broadcast(attributes, config);
 	}
 
 	private void doRemoveCacheDefaultConnection() throws PageException {
-		admin.removeCacheDefaultConnection(ConfigImpl.CACHE_TYPE_OBJECT);
-		admin.removeCacheDefaultConnection(ConfigImpl.CACHE_TYPE_TEMPLATE);
-		admin.removeCacheDefaultConnection(ConfigImpl.CACHE_TYPE_QUERY);
-		admin.removeCacheDefaultConnection(ConfigImpl.CACHE_TYPE_RESOURCE);
-		admin.removeCacheDefaultConnection(ConfigImpl.CACHE_TYPE_FUNCTION);
-		admin.removeCacheDefaultConnection(ConfigImpl.CACHE_TYPE_INCLUDE);
-		admin.removeCacheDefaultConnection(ConfigImpl.CACHE_TYPE_HTTP);
-		admin.removeCacheDefaultConnection(ConfigImpl.CACHE_TYPE_FILE);
-		admin.removeCacheDefaultConnection(ConfigImpl.CACHE_TYPE_WEBSERVICE);
+		admin.removeCacheDefaultConnection(ConfigPro.CACHE_TYPE_OBJECT);
+		admin.removeCacheDefaultConnection(ConfigPro.CACHE_TYPE_TEMPLATE);
+		admin.removeCacheDefaultConnection(ConfigPro.CACHE_TYPE_QUERY);
+		admin.removeCacheDefaultConnection(ConfigPro.CACHE_TYPE_RESOURCE);
+		admin.removeCacheDefaultConnection(ConfigPro.CACHE_TYPE_FUNCTION);
+		admin.removeCacheDefaultConnection(ConfigPro.CACHE_TYPE_INCLUDE);
+		admin.removeCacheDefaultConnection(ConfigPro.CACHE_TYPE_HTTP);
+		admin.removeCacheDefaultConnection(ConfigPro.CACHE_TYPE_FILE);
+		admin.removeCacheDefaultConnection(ConfigPro.CACHE_TYPE_WEBSERVICE);
 		store();
 		adminSync.broadcast(attributes, config);
 	}
@@ -3183,8 +3179,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 		short it = config.getInspectTemplate();
 		String str = "once";
-		if (it == ConfigImpl.INSPECT_ALWAYS) str = "always";
-		else if (it == ConfigImpl.INSPECT_NEVER) str = "never";
+		if (it == ConfigPro.INSPECT_ALWAYS) str = "always";
+		else if (it == ConfigPro.INSPECT_NEVER) str = "never";
 		sct.set("inspectTemplate", str);
 		sct.set("typeChecking", config.getTypeChecking());
 
@@ -3241,7 +3237,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void doGetGatewayEntries() throws PageException {
-		Map entries = ((ConfigWebImpl) config).getGatewayEngine().getEntries();
+		Map entries = ((GatewayEngineImpl) ((ConfigWebPro) config).getGatewayEngine()).getEntries();
 		Iterator it = entries.entrySet().iterator();
 		lucee.runtime.type.Query qry = new QueryImpl(
 				new String[] { "class", "bundleName", "bundleVersion", "id", "custom", "cfcPath", "listenerCfcPath", "startupMode", "state", "readOnly" }, 0, "entries");
@@ -3507,7 +3503,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void findExtension(Set<String> extensions, BundleDefinition bd) {
-		ConfigImpl ci = config;
+		ConfigPro ci = config;
 		_findExtension(ci.getRHExtensions(), bd, extensions);
 		_findExtension(ci.getServerRHExtensions(), bd, extensions);
 	}
@@ -3598,7 +3594,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private void doGetGatewayEntry() throws PageException {
 
 		String id = getString("admin", action, "id");
-		Map entries = ((ConfigWebImpl) config).getGatewayEngine().getEntries();
+		Map entries = ((GatewayEngineImpl) ((ConfigWebPro) config).getGatewayEngine()).getEntries();
 		Iterator it = entries.keySet().iterator();
 		GatewayEntry ge;
 		// Gateway g;
@@ -3631,9 +3627,10 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 		String id = getString("admin", action, "id");
 		String act = getString("admin", action, "gatewayAction").trim().toLowerCase();
-		if ("restart".equals(act)) ((ConfigWebImpl) config).getGatewayEngine().restart(id);
-		else if ("start".equals(act)) ((ConfigWebImpl) config).getGatewayEngine().start(id);
-		else if ("stop".equals(act)) ((ConfigWebImpl) config).getGatewayEngine().stop(id);
+		GatewayEngineImpl eng = ((GatewayEngineImpl) ((ConfigWebPro) config).getGatewayEngine());
+		if ("restart".equals(act)) eng.restart(id);
+		else if ("start".equals(act)) eng.start(id);
+		else if ("stop".equals(act)) eng.stop(id);
 		else throw new ApplicationException("Invalid gateway action [" + act + "], valid actions are [start,stop,restart]");
 	}
 
@@ -3643,15 +3640,15 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		lucee.runtime.type.Query qry = new QueryImpl(new String[] { "class", "bundleName", "bundleVersion", "name", "custom", "default", "readOnly", "storage" }, 0, "connections");
 		Map.Entry entry;
 		CacheConnection cc;
-		CacheConnection defObj = config.getCacheDefaultConnection(ConfigImpl.CACHE_TYPE_OBJECT);
-		CacheConnection defTmp = config.getCacheDefaultConnection(ConfigImpl.CACHE_TYPE_TEMPLATE);
-		CacheConnection defQry = config.getCacheDefaultConnection(ConfigImpl.CACHE_TYPE_QUERY);
-		CacheConnection defRes = config.getCacheDefaultConnection(ConfigImpl.CACHE_TYPE_RESOURCE);
-		CacheConnection defUDF = config.getCacheDefaultConnection(ConfigImpl.CACHE_TYPE_FUNCTION);
-		CacheConnection defInc = config.getCacheDefaultConnection(ConfigImpl.CACHE_TYPE_INCLUDE);
-		CacheConnection defHTT = config.getCacheDefaultConnection(ConfigImpl.CACHE_TYPE_HTTP);
-		CacheConnection defFil = config.getCacheDefaultConnection(ConfigImpl.CACHE_TYPE_FILE);
-		CacheConnection defWSe = config.getCacheDefaultConnection(ConfigImpl.CACHE_TYPE_WEBSERVICE);
+		CacheConnection defObj = config.getCacheDefaultConnection(ConfigPro.CACHE_TYPE_OBJECT);
+		CacheConnection defTmp = config.getCacheDefaultConnection(ConfigPro.CACHE_TYPE_TEMPLATE);
+		CacheConnection defQry = config.getCacheDefaultConnection(ConfigPro.CACHE_TYPE_QUERY);
+		CacheConnection defRes = config.getCacheDefaultConnection(ConfigPro.CACHE_TYPE_RESOURCE);
+		CacheConnection defUDF = config.getCacheDefaultConnection(ConfigPro.CACHE_TYPE_FUNCTION);
+		CacheConnection defInc = config.getCacheDefaultConnection(ConfigPro.CACHE_TYPE_INCLUDE);
+		CacheConnection defHTT = config.getCacheDefaultConnection(ConfigPro.CACHE_TYPE_HTTP);
+		CacheConnection defFil = config.getCacheDefaultConnection(ConfigPro.CACHE_TYPE_FILE);
+		CacheConnection defWSe = config.getCacheDefaultConnection(ConfigPro.CACHE_TYPE_WEBSERVICE);
 
 		int row = 0;
 		String def;
@@ -3688,15 +3685,15 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		int type;
 		String strType = getString("admin", "GetCacheDefaultConnection", "cacheType");
 		strType = strType.toLowerCase().trim();
-		if (strType.equals("object")) type = ConfigImpl.CACHE_TYPE_OBJECT;
-		else if (strType.equals("template")) type = ConfigImpl.CACHE_TYPE_TEMPLATE;
-		else if (strType.equals("query")) type = ConfigImpl.CACHE_TYPE_QUERY;
-		else if (strType.equals("resource")) type = ConfigImpl.CACHE_TYPE_RESOURCE;
-		else if (strType.equals("function")) type = ConfigImpl.CACHE_TYPE_FUNCTION;
-		else if (strType.equals("include")) type = ConfigImpl.CACHE_TYPE_INCLUDE;
-		else if (strType.equals("http")) type = ConfigImpl.CACHE_TYPE_HTTP;
-		else if (strType.equals("file")) type = ConfigImpl.CACHE_TYPE_FILE;
-		else if (strType.equals("webservice")) type = ConfigImpl.CACHE_TYPE_WEBSERVICE;
+		if (strType.equals("object")) type = ConfigPro.CACHE_TYPE_OBJECT;
+		else if (strType.equals("template")) type = ConfigPro.CACHE_TYPE_TEMPLATE;
+		else if (strType.equals("query")) type = ConfigPro.CACHE_TYPE_QUERY;
+		else if (strType.equals("resource")) type = ConfigPro.CACHE_TYPE_RESOURCE;
+		else if (strType.equals("function")) type = ConfigPro.CACHE_TYPE_FUNCTION;
+		else if (strType.equals("include")) type = ConfigPro.CACHE_TYPE_INCLUDE;
+		else if (strType.equals("http")) type = ConfigPro.CACHE_TYPE_HTTP;
+		else if (strType.equals("file")) type = ConfigPro.CACHE_TYPE_FILE;
+		else if (strType.equals("webservice")) type = ConfigPro.CACHE_TYPE_WEBSERVICE;
 		else throw new ApplicationException("inv,query,resource invalid type definition, valid values are [object,template,query,resource,function,include]");
 
 		CacheConnection cc = config.getCacheDefaultConnection(type);
@@ -3722,15 +3719,15 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		Map conns = config.getCacheConnections();
 		Iterator it = conns.keySet().iterator();
 		CacheConnection cc;
-		CacheConnection dObj = config.getCacheDefaultConnection(ConfigImpl.CACHE_TYPE_OBJECT);
-		CacheConnection dTmp = config.getCacheDefaultConnection(ConfigImpl.CACHE_TYPE_TEMPLATE);
-		CacheConnection dQry = config.getCacheDefaultConnection(ConfigImpl.CACHE_TYPE_QUERY);
-		CacheConnection dRes = config.getCacheDefaultConnection(ConfigImpl.CACHE_TYPE_RESOURCE);
-		CacheConnection dUDF = config.getCacheDefaultConnection(ConfigImpl.CACHE_TYPE_FUNCTION);
-		CacheConnection dInc = config.getCacheDefaultConnection(ConfigImpl.CACHE_TYPE_INCLUDE);
-		CacheConnection dHTT = config.getCacheDefaultConnection(ConfigImpl.CACHE_TYPE_HTTP);
-		CacheConnection dFil = config.getCacheDefaultConnection(ConfigImpl.CACHE_TYPE_FILE);
-		CacheConnection dWSe = config.getCacheDefaultConnection(ConfigImpl.CACHE_TYPE_WEBSERVICE);
+		CacheConnection dObj = config.getCacheDefaultConnection(ConfigPro.CACHE_TYPE_OBJECT);
+		CacheConnection dTmp = config.getCacheDefaultConnection(ConfigPro.CACHE_TYPE_TEMPLATE);
+		CacheConnection dQry = config.getCacheDefaultConnection(ConfigPro.CACHE_TYPE_QUERY);
+		CacheConnection dRes = config.getCacheDefaultConnection(ConfigPro.CACHE_TYPE_RESOURCE);
+		CacheConnection dUDF = config.getCacheDefaultConnection(ConfigPro.CACHE_TYPE_FUNCTION);
+		CacheConnection dInc = config.getCacheDefaultConnection(ConfigPro.CACHE_TYPE_INCLUDE);
+		CacheConnection dHTT = config.getCacheDefaultConnection(ConfigPro.CACHE_TYPE_HTTP);
+		CacheConnection dFil = config.getCacheDefaultConnection(ConfigPro.CACHE_TYPE_FILE);
+		CacheConnection dWSe = config.getCacheDefaultConnection(ConfigPro.CACHE_TYPE_WEBSERVICE);
 
 		Struct sct;
 		String d;
@@ -4403,8 +4400,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		sct.set("allowCompression", Caster.toBoolean(config.allowCompression()));
 		int wt = config.getCFMLWriterType();
 		String cfmlWriter = "regular";
-		if (wt == ConfigImpl.CFML_WRITER_WS) cfmlWriter = "white-space";
-		else if (wt == ConfigImpl.CFML_WRITER_WS_PREF) cfmlWriter = "white-space-pref";
+		if (wt == ConfigPro.CFML_WRITER_WS) cfmlWriter = "white-space";
+		else if (wt == ConfigPro.CFML_WRITER_WS_PREF) cfmlWriter = "white-space-pref";
 
 		sct.set("cfmlWriter", cfmlWriter);
 		sct.set("bufferOutput", Caster.toBoolean(config.getBufferOutput()));
@@ -4894,9 +4891,9 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		if (type == TYPE_WEB) {
 			return config.getIdentification().getId();
 		}
-		if (config instanceof ConfigWebImpl) {
-			ConfigWebImpl cwi = (ConfigWebImpl) config;
-			return cwi.getIdentification().getServerIdentification().getId();
+		if (config instanceof ConfigWeb) {
+			ConfigWeb cw = (ConfigWeb) config;
+			return cw.getIdentification().getServerIdentification().getId();
 		}
 		if (config instanceof ConfigServer) {
 			return config.getIdentification().getId();
@@ -5040,7 +5037,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			ConfigWeb[] webs = cs.getConfigWebs();
 			Struct sct = new StructImpl();
 			for (int i = 0; i < webs.length; i++) {
-				ConfigWebImpl cw = (ConfigWebImpl) webs[i];
+				ConfigWeb cw = webs[i];
 				try {
 					sct.setEL(cw.getIdentification().getId(), ((CFMLFactoryImpl) cw.getFactory()).getInfo());
 				}
@@ -5069,7 +5066,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		ConfigWeb[] webs = cs.getConfigWebs();
 		boolean has = false;
 		for (int i = 0; i < webs.length; i++) {
-			ConfigWebImpl cw = (ConfigWebImpl) webs[i];
+			ConfigWeb cw = webs[i];
 			if (!cw.getIdentification().getId().equals(contextId)) continue;
 			((CFMLFactoryImpl) cw.getFactory()).stopThread(threadId, stopType);
 			has = true;
@@ -5077,7 +5074,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		}
 		if (!has) {
 			for (int i = 0; i < webs.length; i++) {
-				ConfigWebImpl cw = (ConfigWebImpl) webs[i];
+				ConfigWeb cw = webs[i];
 				if (!contextId.equals(cw.getLabel())) continue;
 				((CFMLFactoryImpl) cw.getFactory()).stopThread(threadId, stopType);
 				has = true;
@@ -5114,17 +5111,17 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void doGetLoginSettings() throws ApplicationException, PageException {
 		Struct sct = new StructImpl();
-		ConfigImpl c = (ConfigImpl) ThreadLocalPageContext.getConfig(config);
+		ConfigPro c = (ConfigPro) ThreadLocalPageContext.getConfig(config);
 		pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
 		sct.set("captcha", Caster.toBoolean(c.getLoginCaptcha()));
 		sct.set("delay", Caster.toDouble(c.getLoginDelay()));
 		sct.set("rememberme", Caster.toBoolean(c.getRememberMe()));
-		if (c instanceof ConfigWebImpl) {
-			ConfigWebImpl cw = (ConfigWebImpl) c;
+		if (c instanceof ConfigWebPro) {
+			ConfigWebPro cw = (ConfigWebPro) c;
 			short origin = cw.getPasswordSource();
-			if (origin == ConfigWebImpl.PASSWORD_ORIGIN_DEFAULT) sct.set("origin", "default");
-			else if (origin == ConfigWebImpl.PASSWORD_ORIGIN_WEB) sct.set("origin", "web");
-			else if (origin == ConfigWebImpl.PASSWORD_ORIGIN_SERVER) sct.set("origin", "server");
+			if (origin == ConfigWebPro.PASSWORD_ORIGIN_DEFAULT) sct.set("origin", "default");
+			else if (origin == ConfigWebPro.PASSWORD_ORIGIN_WEB) sct.set("origin", "web");
+			else if (origin == ConfigWebPro.PASSWORD_ORIGIN_SERVER) sct.set("origin", "server");
 		}
 
 	}

@@ -33,7 +33,7 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.CasterException;
 import lucee.runtime.exp.PageException;
@@ -214,14 +214,13 @@ public final class Log extends TagImpl {
 
 		if (text == null && exception == null) throw new ApplicationException("Tag [log] requires one of the following attributes [text, exception]");
 		PageContextImpl pci = (PageContextImpl) pageContext;
-		ConfigImpl config = (ConfigImpl) pageContext.getConfig();
 		lucee.commons.io.log.Log logger;
 		if (file == null) {
 			logger = pci.getLog(log.toLowerCase(), false);
 			if (logger == null) {
 				// for backward compatibility
 				if ("console".equalsIgnoreCase(log))
-					logger = ((ConfigImpl) pageContext.getConfig()).getLogEngine().getConsoleLog(false, "cflog", lucee.commons.io.log.Log.LEVEL_INFO);
+					logger = ((ConfigPro) pageContext.getConfig()).getLogEngine().getConsoleLog(false, "cflog", lucee.commons.io.log.Log.LEVEL_INFO);
 				else {
 					java.util.Collection<String> set = pci.getLogNames();
 					Iterator<String> it = set.iterator();
@@ -255,7 +254,7 @@ public final class Log extends TagImpl {
 
 	private static lucee.commons.io.log.Log getFileLog(PageContext pc, String file, CharSet charset, boolean async) throws PageException {
 
-		ConfigImpl config = (ConfigImpl) pc.getConfig();
+		ConfigPro config = (ConfigPro) pc.getConfig();
 		Resource logDir = config.getLogDirectory();
 		Resource res = logDir.getRealResource(file);
 		lucee.commons.io.log.Log log = FileLogPool.instance.get(res, CharsetUtil.toCharset(charset));
