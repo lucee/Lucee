@@ -115,6 +115,7 @@ public final class SMTPClient implements Serializable {
 
 	private static final String TEXT_HTML = "text/html";
 	private static final String TEXT_PLAIN = "text/plain";
+	private static final String MESSAGE_ID = "Message-ID";
 	// private static final SerializableObject LOCK = new SerializableObject();
 
 	private static Map<TimeZone, SoftReference<SimpleDateFormat>> formatters = new ConcurrentHashMap<TimeZone, SoftReference<SimpleDateFormat>>();
@@ -391,10 +392,12 @@ public final class SMTPClient implements Serializable {
 	public static class MimeMessageAndSession {
 		public final MimeMessage message;
 		public final SessionAndTransport session;
+		public final String messageId;
 
-		public MimeMessageAndSession(MimeMessage message, SessionAndTransport session) {
+		public MimeMessageAndSession(MimeMessage message, SessionAndTransport session, String messageId) {
 			this.message = message;
 			this.session = session;
+			this.messageId = messageId;
 		}
 	}
 
@@ -488,6 +491,8 @@ public final class SMTPClient implements Serializable {
 
 		msg.setHeader("Date", getNow(timeZone));
 
+		String messageId = getMessageId(headers); // Message-Id needs to be set after calling message.saveChanges();
+
 		Multipart mp = null;
 
 		// only Plain
@@ -495,7 +500,7 @@ public final class SMTPClient implements Serializable {
 			if (ArrayUtil.isEmpty(attachmentz) && ArrayUtil.isEmpty(parts)) {
 				fillPlainText(config, msg);
 				setHeaders(msg, headers);
-				return new MimeMessageAndSession(msg, sat);
+				return new MimeMessageAndSession(msg, sat, messageId);
 			}
 			mp = new MimeMultipart("mixed");
 			mp.addBodyPart(getPlainText(config));
@@ -505,7 +510,7 @@ public final class SMTPClient implements Serializable {
 			if (ArrayUtil.isEmpty(attachmentz) && ArrayUtil.isEmpty(parts)) {
 				fillHTMLText(config, msg);
 				setHeaders(msg, headers);
-				return new MimeMessageAndSession(msg, sat);
+				return new MimeMessageAndSession(msg, sat, messageId);
 			}
 			mp = new MimeMultipart("mixed");
 			mp.addBodyPart(getHTMLText(config));
@@ -546,9 +551,9 @@ public final class SMTPClient implements Serializable {
 			}
 		}
 		msg.setContent(mp);
-		setHeaders(msg, headers);
+		setHeaders(msg, headers);		
 
-		return new MimeMessageAndSession(msg, sat);
+		return new MimeMessageAndSession(msg, sat, messageId);
 	}
 
 	/*
@@ -600,9 +605,21 @@ public final class SMTPClient implements Serializable {
 		Entry<String, String> e;
 		while (it.hasNext()) {
 			e = it.next();
+			System.out.println("mailparam: " + e.getKey() + " " + e.getValue());
 			msg.setHeader(e.getKey(), e.getValue());
 		}
 	}
+
+	private static String getMessageId(Map<String, String> headers) {		
+		Iterator<Entry<String, String>> it = headers.entrySet().iterator();
+		Entry<String, String> e;
+		while (it.hasNext()) {
+			e = it.next();
+			if (e.getKey() == MESSAGE_ID)
+				return e.getValue();
+		}
+		return null;
+	} 
 
 	private void checkAddress(InternetAddress[] ias, CharSet charset) { // DIFF 23
 		for (int i = 0; i < ias.length; i++) {

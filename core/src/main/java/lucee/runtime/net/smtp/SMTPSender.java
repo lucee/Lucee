@@ -59,6 +59,8 @@ public final class SMTPSender extends Thread {
 			if (!transport.isConnected()) transport.connect(host, port, user, pass);
 
 			mmas.message.saveChanges();
+			if (mmas.messageId != null)
+				mmas.message.setHeader("Message-ID", mmas.messageId); // must be set after message.saveChanges()
 			transport.sendMessage(mmas.message, mmas.message.getAllRecipients());
 			isSent = true;
 		}
