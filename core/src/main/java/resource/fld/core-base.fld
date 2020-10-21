@@ -7705,7 +7705,7 @@ The following things are considered to be empty:
 		<class>lucee.runtime.functions.list.ListCompact</class>
 		<keywords>list,string</keywords>
 		<member-name>listCompact</member-name>
-		<description>remove empty items at the and and at the start of the list</description>
+		<description>Removes empty items at the end and at the start of the list</description>
 		<argument>
 			<name>list</name>
 			<type>string</type>
