@@ -9572,8 +9572,16 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     			<required>Yes</required>
     			<description>position of the row to be returned</description>
     	    </argument>
+			<argument>
+    			<name>format</name>
+    			<type>string</type>
+    			<required>No</required>
+    			<description>struct or array</description>
+				<default>struct</default>
+				<alias>returnFormat</alias>
+    	    </argument>
     		<return>
-    			<type>struct</type>
+    			<type>any</type>
     		</return>
     	</function>
 
