@@ -437,6 +437,11 @@ public class SimpleQuery implements Query, ResultSet, Objects, QueryResult {
 	}
 
 	@Override
+	public Object setAtIndex(int index, int row, Object value, boolean trustType) throws PageException{
+		throw notSupported();
+	}
+
+	@Override
 	public synchronized boolean next() {
 		try {
 			return next(getPid());
