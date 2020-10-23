@@ -24,6 +24,7 @@ import javax.mail.Transport;
 
 import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.net.smtp.SMTPClient.MimeMessageAndSession;
 
 public final class SMTPSender extends Thread {
@@ -59,8 +60,7 @@ public final class SMTPSender extends Thread {
 			if (!transport.isConnected()) transport.connect(host, port, user, pass);
 
 			mmas.message.saveChanges();
-			if (mmas.messageId != null)
-				mmas.message.setHeader("Message-ID", mmas.messageId); // must be set after message.saveChanges()
+			if (!StringUtil.isEmpty(mmas.messageId)) mmas.message.setHeader("Message-ID", mmas.messageId); // must be set after message.saveChanges()
 			transport.sendMessage(mmas.message, mmas.message.getAllRecipients());
 			isSent = true;
 		}

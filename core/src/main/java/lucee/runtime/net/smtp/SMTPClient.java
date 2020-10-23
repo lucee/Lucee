@@ -551,7 +551,7 @@ public final class SMTPClient implements Serializable {
 			}
 		}
 		msg.setContent(mp);
-		setHeaders(msg, headers);		
+		setHeaders(msg, headers);
 
 		return new MimeMessageAndSession(msg, sat, messageId);
 	}
@@ -605,21 +605,19 @@ public final class SMTPClient implements Serializable {
 		Entry<String, String> e;
 		while (it.hasNext()) {
 			e = it.next();
-			System.out.println("mailparam: " + e.getKey() + " " + e.getValue());
 			msg.setHeader(e.getKey(), e.getValue());
 		}
 	}
 
-	private static String getMessageId(Map<String, String> headers) {		
+	private static String getMessageId(Map<String, String> headers) {
 		Iterator<Entry<String, String>> it = headers.entrySet().iterator();
 		Entry<String, String> e;
 		while (it.hasNext()) {
 			e = it.next();
-			if (e.getKey() == MESSAGE_ID)
-				return e.getValue();
+			if (e.getKey().equals(MESSAGE_ID)) return e.getValue();
 		}
 		return null;
-	} 
+	}
 
 	private void checkAddress(InternetAddress[] ias, CharSet charset) { // DIFF 23
 		for (int i = 0; i < ias.length; i++) {
