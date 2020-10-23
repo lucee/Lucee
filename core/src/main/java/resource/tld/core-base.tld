@@ -5206,7 +5206,7 @@ Lucee uses the number of characters in the file.</description>
 		<attribute>
 			<type>object</type>
 			<name>to</name>
-			<required>false</required>
+			<required>true</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>The name of the e-mail message recipient.</description>
 		</attribute>
