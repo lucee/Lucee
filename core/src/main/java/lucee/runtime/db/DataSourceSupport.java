@@ -21,6 +21,7 @@ package lucee.runtime.db;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.ref.SoftReference;
+import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.SQLException;
@@ -32,6 +33,7 @@ import org.osgi.framework.BundleException;
 
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.ClassException;
+import lucee.commons.lang.ClassUtil;
 import lucee.commons.sql.SQLUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -109,6 +111,18 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 		catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+		catch (IllegalArgumentException e) {
+			throw new RuntimeException(e);
+		}
+		catch (InvocationTargetException e) {
+			throw new RuntimeException(e.getTargetException());
+		}
+		catch (NoSuchMethodException e) {
+			throw new RuntimeException(e);
+		}
+		catch (SecurityException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	public static Connection _getConnection(Config config, Driver driver, String connStrTrans, String user, String pass) throws SQLException {
@@ -130,17 +144,19 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 		return defaultTransactionIsolation;
 	}
 
-	private Driver initialize(Config config) throws BundleException, InstantiationException, IllegalAccessException, IOException {
+	private Driver initialize(Config config) throws BundleException, InstantiationException, IllegalAccessException, IOException, IllegalArgumentException,
+			InvocationTargetException, NoSuchMethodException, SecurityException {
 		if (driver == null) {
 			return driver = _initializeDriver(cd, config);
 		}
 		return driver;
 	}
 
-	private static Driver _initializeDriver(ClassDefinition cd, Config config) throws ClassException, BundleException, InstantiationException, IllegalAccessException {
+	private static Driver _initializeDriver(ClassDefinition cd, Config config) throws ClassException, BundleException, InstantiationException, IllegalAccessException,
+			IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		// load the class
-		Class clazz = cd.getClazz();
-		return (Driver) clazz.newInstance();
+		Driver d = (Driver) ClassUtil.newInstance(cd.getClazz());
+		return d;
 	}
 
 	public static void verify(Config config, ClassDefinition cd, String connStrTranslated, String user, String pass) throws ClassException, BundleException, SQLException {
@@ -153,6 +169,18 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 			throw new RuntimeException(e);
 		}
 		catch (IllegalAccessException e) {
+			throw new RuntimeException(e);
+		}
+		catch (IllegalArgumentException e) {
+			throw new RuntimeException(e);
+		}
+		catch (InvocationTargetException e) {
+			throw new RuntimeException(e.getTargetException());
+		}
+		catch (NoSuchMethodException e) {
+			throw new RuntimeException(e);
+		}
+		catch (SecurityException e) {
 			throw new RuntimeException(e);
 		}
 	}

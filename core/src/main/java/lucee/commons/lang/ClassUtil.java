@@ -377,13 +377,18 @@ public final class ClassUtil {
 	 */
 	public static Object loadInstance(Class clazz) throws ClassException {
 		try {
-			return clazz.newInstance();
+			return newInstance(clazz);
 		}
 		catch (InstantiationException e) {
 			throw new ClassException("the specified class object [" + clazz.getName() + "()] cannot be instantiated");
 		}
 		catch (IllegalAccessException e) {
 			throw new ClassException("can't load class because the currently executing method does not have access to the definition of the specified class");
+		}
+		catch (Exception e) {
+			ClassException ce = new ClassException(e.getMessage() == null ? e.getClass().getName() : e.getMessage());
+			ce.setStackTrace(e.getStackTrace());
+			return e;
 		}
 	}
 
@@ -403,7 +408,7 @@ public final class ClassUtil {
 	 */
 	public static Object loadInstance(Class clazz, Object defaultValue) {
 		try {
-			return clazz.newInstance();
+			return newInstance(clazz);
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
@@ -592,6 +597,8 @@ public final class ClassUtil {
 
 	private static final byte BCF = (byte) ICF;// CF
 	private static final byte B33 = (byte) I33;// 33
+	private static final Class[] EMPTY_CLASS = new Class[0];
+	private static final Object[] EMPTY_OBJ = new Object[0];
 
 	/**
 	 * check if given stream is a bytecode stream, if yes remove bytecode mark
@@ -921,5 +928,10 @@ public final class ClassUtil {
 			return ((ConfigPro) config).getClassLoaderCore();
 		}
 		return new lucee.commons.lang.ClassLoaderHelper().getClass().getClassLoader();
+	}
+
+	public static Object newInstance(Class clazz)
+			throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+		return clazz.getConstructor(EMPTY_CLASS).newInstance(EMPTY_OBJ);
 	}
 }

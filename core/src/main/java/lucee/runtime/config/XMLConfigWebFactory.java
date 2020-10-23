@@ -1730,7 +1730,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		try {
 			Class<AMFEngine> clazz = cd.getClazz(null);
 			if (clazz != null) {
-				Object obj = clazz.newInstance();
+				Object obj = ClassUtil.newInstance(clazz);
 				if ((obj instanceof AMFEngine)) return (AMFEngine) obj;
 				log.error("Flex", "object [" + Caster.toClassName(obj) + "] must implement the interface " + AMFEngine.class.getName());
 			}
@@ -1859,7 +1859,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						ClassDefinition cd = el != null ? getClassDefinition(el, "", config.getIdentification()) : null;
 
 						Class c = cd != null ? cd.getClazz() : null;
-						if (c != null && (c.newInstance() instanceof ExecutionLog)) {
+						if (c != null && (ClassUtil.newInstance(c) instanceof ExecutionLog)) {
 							clazz = c;
 						}
 						else {
@@ -4054,7 +4054,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						Object obj;
 						ConstructorInstance constr = Reflector.getConstructorInstance(clazz, new Object[] { configServer }, null);
 						if (constr != null) obj = constr.invoke();
-						else obj = clazz.newInstance();
+						else obj = ClassUtil.newInstance(clazz);
 						LogUtil.logGlobal(ThreadLocalPageContext.getConfig(configServer == null ? config : configServer), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(),
 								"loaded " + (strType) + " monitor [" + clazz.getName() + "]");
 						if (type == IntervallMonitor.TYPE_INTERVAL) {

@@ -419,7 +419,7 @@ public final class Reflector {
 		else if (Reflector.isInstaneOf(trgClass, Pojo.class, true) && src instanceof Map) {
 			Struct sct = Caster.toStruct(src);
 			try {
-				Pojo pojo = (Pojo) trgClass.newInstance();
+				Pojo pojo = (Pojo) ClassUtil.newInstance(trgClass);
 				if (sct instanceof Component) return Caster.toPojo(pojo, (Component) sct, new HashSet<Object>());
 				return Caster.toPojo(pojo, sct, new HashSet<Object>());
 			}

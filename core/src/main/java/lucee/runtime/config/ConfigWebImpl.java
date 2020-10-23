@@ -635,7 +635,7 @@ public class ConfigWebImpl extends ConfigImpl implements ServletConfig, ConfigWe
 			if (isEmpty(cd)) cd = configServer.getWSHandlerClassDefinition();
 			try {
 				if (isEmpty(cd)) return new DummyWSHandler();
-				Object obj = cd.getClazz().newInstance();
+				Object obj = ClassUtil.newInstance(cd.getClazz());
 				if (obj instanceof WSHandler) wsHandler = (WSHandler) obj;
 				else wsHandler = new WSHandlerReflector(obj);
 			}

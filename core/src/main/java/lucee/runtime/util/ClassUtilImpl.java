@@ -36,6 +36,7 @@ import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.Identification;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.functions.BIFProxy;
 import lucee.runtime.listener.JavaSettingsImpl;
@@ -65,7 +66,12 @@ public class ClassUtilImpl implements ClassUtil {
 		Class<?> res = lucee.commons.lang.ClassUtil.loadClass(name, null);
 		if (res != null) {
 			if (Reflector.isInstaneOf(res, BIF.class, false)) {
-				return (BIF) res.newInstance();
+				try {
+					return (BIF) lucee.commons.lang.ClassUtil.newInstance(res);
+				}
+				catch (Exception e) {
+					throw new PageRuntimeException(e);
+				}
 			}
 			return new BIFProxy(res);
 		}
@@ -80,14 +86,14 @@ public class ClassUtilImpl implements ClassUtil {
 	}
 
 	// FUTURE add to loader
-	public BIF loadBIF(PageContext pc, String name, String bundleName, Version bundleVersion)
-			throws InstantiationException, IllegalAccessException, ClassException, BundleException {
+	public BIF loadBIF(PageContext pc, String name, String bundleName, Version bundleVersion) throws InstantiationException, IllegalAccessException, ClassException,
+			BundleException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		// first of all we chek if itis a class
 		Class<?> res = lucee.commons.lang.ClassUtil.loadClassByBundle(name, bundleName, bundleVersion, pc.getConfig().getIdentification(),
 				JavaSettingsImpl.getBundleDirectories(pc));
 		if (res != null) {
 			if (Reflector.isInstaneOf(res, BIF.class, false)) {
-				return (BIF) res.newInstance();
+				return (BIF) lucee.commons.lang.ClassUtil.newInstance(res);
 			}
 			return new BIFProxy(res);
 		}
