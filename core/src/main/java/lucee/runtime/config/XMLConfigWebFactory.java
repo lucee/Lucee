@@ -3943,11 +3943,21 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			Element mail = doc != null ? getChildByName(doc.getDocumentElement(), "mail") : null;
 
 			// Send partial
-			String strSendPartial = getAttr(mail, "send-partial");
-			if (!StringUtil.isEmpty(strSendPartial) && hasAccess) {
-				config.setMailSendPartial(toBoolean(strSendPartial, false));
+			{
+				String strSendPartial = getAttr(mail, "send-partial");
+				if (!StringUtil.isEmpty(strSendPartial) && hasAccess) {
+					config.setMailSendPartial(toBoolean(strSendPartial, false));
+				}
+				else if (hasCS) config.setMailSendPartial(configServer.isMailSendPartial());
 			}
-			else if (hasCS) config.setMailSendPartial(configServer.isMailSendPartial());
+			// User set
+			{
+				String strUserSet = getAttr(mail, "user-set");
+				if (!StringUtil.isEmpty(strUserSet) && hasAccess) {
+					config.setUserSet(toBoolean(strUserSet, false));
+				}
+				else if (hasCS) config.setUserSet(configServer.isUserset());
+			}
 
 			// Spool Interval
 			String strSpoolInterval = getAttr(mail, "spool-interval");

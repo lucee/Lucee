@@ -237,6 +237,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	private int spoolInterval = 30;
 	private boolean spoolEnable = true;
 	private boolean sendPartial = false;
+	private boolean userSet = true;
 
 	private Server[] mailServers;
 
@@ -604,7 +605,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	// FUTURE add to interface and impl
 	@Override
 	public boolean isUserset() {
-		return true;
+		return userSet;
 	}
 
 	@Override
@@ -1567,6 +1568,10 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	protected void setMailSendPartial(boolean sendPartial) {
 		this.sendPartial = sendPartial;
+	}
+
+	protected void setUserSet(boolean userSet) {
+		this.userSet = userSet;
 	}
 
 	/**
