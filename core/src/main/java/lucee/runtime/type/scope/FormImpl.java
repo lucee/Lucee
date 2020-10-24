@@ -72,7 +72,9 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 	private Exception initException = null;
 
 	private String encoding = null;
-	private int scriptProtected = ScriptProtected.UNDEFINED;
+	private int scriptProtected = ScriptProtected.UNDEFINED;	
+	private boolean structMerge = true;
+
 	private static final URLItem[] empty = new URLItem[0];
 	// private static final ResourceFilter FILTER = new ExtensionResourceFilter(".upload",false);
 	private URLItem[] raw = empty;
@@ -103,7 +105,7 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 		if (encoding.equals(this.encoding)) return;
 		this.encoding = encoding;
 		if (!isInitalized()) return;
-		fillDecoded(raw, encoding, isScriptProtected(), ac.getSameFieldAsArray(Scope.SCOPE_FORM));
+		fillDecoded(raw, encoding, isScriptProtected(), ac.getSameFieldAsArray(Scope.SCOPE_FORM), structMerge);
 		setFieldNames();
 	}
 
@@ -113,7 +115,9 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 
 		if (scriptProtected == ScriptProtected.UNDEFINED) {
 			scriptProtected = ((pc.getApplicationContext().getScriptProtect() & ApplicationContext.SCRIPT_PROTECT_FORM) > 0) ? ScriptProtected.YES : ScriptProtected.NO;
+			structMerge = pc.getApplicationContext().getMmergeFormUrlAsStruct();
 		}
+		
 		super.initialize(pc);
 
 		String contentType = pc.getHttpServletRequest().getContentType();
@@ -141,8 +145,9 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 
 			if (scriptProtected == ScriptProtected.UNDEFINED) {
 				scriptProtected = ((ac.getScriptProtect() & ApplicationContext.SCRIPT_PROTECT_FORM) > 0) ? ScriptProtected.YES : ScriptProtected.NO;
-			}
-			fillDecodedEL(raw, encoding, isScriptProtected(), ac.getSameFieldAsArray(SCOPE_FORM));
+				structMerge = ac.getMmergeFormUrlAsStruct();
+			}			
+			fillDecodedEL(raw, encoding, isScriptProtected(), ac.getSameFieldAsArray(SCOPE_FORM), structMerge);
 			setFieldNames();
 		}
 	}
@@ -218,12 +223,12 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 			}
 
 			raw = list.toArray(new URLItem[list.size()]);
-			fillDecoded(raw, encoding, scriptProteced, pc.getApplicationContext().getSameFieldAsArray(SCOPE_FORM));
+			fillDecoded(raw, encoding, scriptProteced, pc.getApplicationContext().getSameFieldAsArray(SCOPE_FORM), structMerge);
 		}
 		catch (Exception e) {
 			Log log = ThreadLocalPageContext.getConfig(pc).getLog("application");
 			if (log != null) log.error("form.scope", e);
-			fillDecodedEL(new URLItem[0], encoding, scriptProteced, pc.getApplicationContext().getSameFieldAsArray(SCOPE_FORM));
+			fillDecodedEL(new URLItem[0], encoding, scriptProteced, pc.getApplicationContext().getSameFieldAsArray(SCOPE_FORM), structMerge);
 			initException = e;
 		}
 	}
@@ -275,12 +280,12 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 		try {
 			reader = pc.getHttpServletRequest().getReader();
 			raw = setFrom___(IOUtil.toString(reader, false), delimiter);
-			fillDecoded(raw, encoding, scriptProteced, pc.getApplicationContext().getSameFieldAsArray(SCOPE_FORM));
+			fillDecoded(raw, encoding, scriptProteced, pc.getApplicationContext().getSameFieldAsArray(SCOPE_FORM), structMerge);
 		}
 		catch (Exception e) {
 			Log log = ThreadLocalPageContext.getConfig(pc).getLog("application");
 			if (log != null) log.error("form.scope", e);
-			fillDecodedEL(new URLItem[0], encoding, scriptProteced, pc.getApplicationContext().getSameFieldAsArray(SCOPE_FORM));
+			fillDecodedEL(new URLItem[0], encoding, scriptProteced, pc.getApplicationContext().getSameFieldAsArray(SCOPE_FORM), structMerge);
 			initException = e;
 		}
 		finally {
@@ -380,7 +385,7 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 	public void setScriptProtecting(ApplicationContext ac, boolean scriptProtected) {
 		int _scriptProtected = scriptProtected ? ScriptProtected.YES : ScriptProtected.NO;
 		if (isInitalized() && _scriptProtected != this.scriptProtected) {
-			fillDecodedEL(raw, encoding, scriptProtected, ac.getSameFieldAsArray(SCOPE_FORM));
+			fillDecodedEL(raw, encoding, scriptProtected, ac.getSameFieldAsArray(SCOPE_FORM), structMerge);
 			setFieldNames();
 		}
 		this.scriptProtected = _scriptProtected;
@@ -409,7 +414,7 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 		this.raw = nr;
 
 		if (!isInitalized()) return;
-		fillDecodedEL(this.raw, encoding, isScriptProtected(), ac.getSameFieldAsArray(SCOPE_FORM));
+		fillDecodedEL(this.raw, encoding, isScriptProtected(), ac.getSameFieldAsArray(SCOPE_FORM), structMerge);
 		setFieldNames();
 	}
 

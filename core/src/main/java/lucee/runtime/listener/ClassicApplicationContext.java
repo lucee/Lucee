@@ -808,6 +808,11 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	}
 
 	@Override
+	public boolean getMmergeFormUrlAsStruct(){
+		return true;
+	}
+
+	@Override
 	public RestSettings getRestSettings() {
 		return restSettings;
 	}

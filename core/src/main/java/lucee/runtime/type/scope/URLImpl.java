@@ -35,7 +35,8 @@ import lucee.runtime.type.Struct;
 public final class URLImpl extends ScopeSupport implements URL, ScriptProtected {
 
 	private String encoding = null;
-	private int scriptProtected = ScriptProtected.UNDEFINED;
+	private int scriptProtected = ScriptProtected.UNDEFINED;	
+	private boolean structMerge = true;
 	private static final URLItem[] empty = new URLItem[0];
 	private static final Collection.Key REQUEST_TIMEOUT = KeyImpl.getInstance("RequestTimeout");
 	private URLItem[] raw = empty;
@@ -57,7 +58,8 @@ public final class URLImpl extends ScopeSupport implements URL, ScriptProtected 
 		encoding = encoding.trim().toUpperCase();
 		if (encoding.equals(this.encoding)) return;
 		this.encoding = encoding;
-		if (isInitalized()) fillDecoded(raw, encoding, isScriptProtected(), ac.getSameFieldAsArray(SCOPE_URL));
+		structMerge = ac.getMmergeFormUrlAsStruct();
+		if (isInitalized()) fillDecoded(raw, encoding, isScriptProtected(), ac.getSameFieldAsArray(SCOPE_URL), structMerge);
 	}
 
 	@Override
@@ -65,13 +67,13 @@ public final class URLImpl extends ScopeSupport implements URL, ScriptProtected 
 		if (encoding == null) encoding = pc.getWebCharset().name();
 		if (scriptProtected == ScriptProtected.UNDEFINED) {
 			scriptProtected = ((pc.getApplicationContext().getScriptProtect() & ApplicationContext.SCRIPT_PROTECT_URL) > 0) ? ScriptProtected.YES : ScriptProtected.NO;
-		}
-
+			structMerge = pc.getApplicationContext().getMmergeFormUrlAsStruct();
+		}		
 		try {
 			super.initialize(pc);
 			raw = setFromQueryString(ReqRspUtil.getQueryString(pc.getHttpServletRequest()));
 
-			fillDecoded(raw, encoding, isScriptProtected(), pc.getApplicationContext().getSameFieldAsArray(SCOPE_URL));
+			fillDecoded(raw, encoding, isScriptProtected(), pc.getApplicationContext().getSameFieldAsArray(SCOPE_URL), structMerge);
 
 			if (raw.length > 0 && pc.getConfig().isAllowURLRequestTimeout()) {
 				Object o = get(REQUEST_TIMEOUT, null);
@@ -91,8 +93,9 @@ public final class URLImpl extends ScopeSupport implements URL, ScriptProtected 
 			if (scriptProtected == ScriptProtected.UNDEFINED) {
 				scriptProtected = ((ac.getScriptProtect() & ApplicationContext.SCRIPT_PROTECT_URL) > 0) ? ScriptProtected.YES : ScriptProtected.NO;
 			}
+			structMerge = ac.getMmergeFormUrlAsStruct();
 
-			fillDecodedEL(raw, encoding, isScriptProtected(), ac.getSameFieldAsArray(SCOPE_URL));
+			fillDecodedEL(raw, encoding, isScriptProtected(), ac.getSameFieldAsArray(SCOPE_URL), structMerge);
 		}
 	}
 
@@ -110,7 +113,7 @@ public final class URLImpl extends ScopeSupport implements URL, ScriptProtected 
 		int _scriptProtected = scriptProtected ? ScriptProtected.YES : ScriptProtected.NO;
 		// print.out(isInitalized()+"x"+(_scriptProtected+"!="+this.scriptProtected));
 		if (isInitalized() && _scriptProtected != this.scriptProtected) {
-			fillDecodedEL(raw, encoding, scriptProtected, ac.getSameFieldAsArray(SCOPE_URL));
+			fillDecodedEL(raw, encoding, scriptProtected, ac.getSameFieldAsArray(SCOPE_URL), structMerge);
 		}
 		this.scriptProtected = _scriptProtected;
 	}

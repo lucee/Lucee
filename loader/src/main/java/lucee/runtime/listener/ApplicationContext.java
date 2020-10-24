@@ -235,6 +235,8 @@ public interface ApplicationContext extends Serializable {
 	 */
 	public boolean getSameFieldAsArray(int scope);
 
+	public boolean getMmergeFormUrlAsStruct();
+
 	public RestSettings getRestSettings();
 
 	public JavaSettings getJavaSettings();

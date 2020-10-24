@@ -135,6 +135,8 @@ public class GetApplicationSettings extends BIF {
 		sct.setEL("triggerDataMember", Caster.toBoolean(ac.getTriggerComponentDataMember()));
 		sct.setEL("sameformfieldsasarray", Caster.toBoolean(ac.getSameFieldAsArray(Scope.SCOPE_FORM)));
 		sct.setEL("sameurlfieldsasarray", Caster.toBoolean(ac.getSameFieldAsArray(Scope.SCOPE_URL)));
+		sct.setEL("mmergeFormUrlAsStruct", Caster.toBoolean(ac.getMmergeFormUrlAsStruct()));
+		
 
 		Object ds = ac.getDefDataSource();
 		if (ds instanceof DataSource) ds = _call((DataSource) ds);

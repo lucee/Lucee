@@ -1018,6 +1018,7 @@ public class KeyConstants {
 	public static final Key _Documentation = KeyImpl._const("Documentation");
 	public static final Key _sameformfieldsasarray = KeyImpl._const("sameformfieldsasarray");
 	public static final Key _sameurlfieldsasarray = KeyImpl._const("sameurlfieldsasarray");
+	public static final Key _mmergeFormUrlAsStruct = KeyImpl._const("mmergeFormUrlAsStruct");
 	public static final Key _DatabaseName = KeyImpl._const("DatabaseName");
 	public static final Key _DatabaseVersion = KeyImpl._const("DatabaseVersion");
 	public static final Key _DriverName = KeyImpl._const("DriverName");

@@ -150,13 +150,13 @@ public abstract class ScopeSupport extends StructImpl implements Scope {
 		}
 	}
 
-	protected void fillDecodedEL(URLItem[] raw, String encoding, boolean scriptProteced, boolean sameAsArray) {
+	protected void fillDecodedEL(URLItem[] raw, String encoding, boolean scriptProtected, boolean sameAsArray,  boolean structMerge) {
 		try {
-			fillDecoded(raw, encoding, scriptProteced, sameAsArray);
+			fillDecoded(raw, encoding, scriptProtected, sameAsArray,  structMerge);
 		}
 		catch (UnsupportedEncodingException e) {
 			try {
-				fillDecoded(raw, "iso-8859-1", scriptProteced, sameAsArray);
+				fillDecoded(raw, "iso-8859-1", scriptProtected, sameAsArray, structMerge);
 			}
 			catch (UnsupportedEncodingException e1) {}
 		}
@@ -169,7 +169,7 @@ public abstract class ScopeSupport extends StructImpl implements Scope {
 	 * @param encoding
 	 * @throws UnsupportedEncodingException
 	 */
-	protected void fillDecoded(URLItem[] raw, String encoding, boolean scriptProteced, boolean sameAsArray) throws UnsupportedEncodingException {
+	protected void fillDecoded(URLItem[] raw, String encoding, boolean scriptProtected, boolean sameAsArray, boolean structMerge) throws UnsupportedEncodingException {
 		clear();
 		String name, value;
 		// Object curr;
@@ -181,29 +181,29 @@ public abstract class ScopeSupport extends StructImpl implements Scope {
 				value = URLDecoder.decode(value, encoding, true);
 			}
 			// MUST valueStruct
-			if (name.indexOf('.') != -1) {
+			if (structMerge && name.indexOf('.') != -1) {
 
 				StringList list = ListUtil.listToStringListRemoveEmpty(name, '.');
 				if (list.size() > 0) {
 					Struct parent = this;
 					while (list.hasNextNext()) {
-						parent = _fill(parent, list.next(), new CastableStruct(Struct.TYPE_LINKED), false, scriptProteced, sameAsArray);
+						parent = _fill(parent, list.next(), new CastableStruct(Struct.TYPE_LINKED), false, scriptProtected, sameAsArray);
 					}
-					_fill(parent, list.next(), value, true, scriptProteced, sameAsArray);
+					_fill(parent, list.next(), value, true, scriptProtected, sameAsArray);
 				}
 			}
 			// else
-			_fill(this, name, value, true, scriptProteced, sameAsArray);
+			_fill(this, name, value, true, scriptProtected, sameAsArray);
 		}
 	}
 
-	private Struct _fill(final Struct parent, String name, Object value, boolean isLast, boolean scriptProteced, boolean sameAsArray) {
+	private Struct _fill(final Struct parent, String name, Object value, boolean isLast, boolean scriptProtected, boolean sameAsArray) {
 		Object curr;
 		boolean isArrayDef = false;
 		Collection.Key key = KeyImpl.init(name);
 
 		// script protect
-		if (scriptProteced && value instanceof String) {
+		if (scriptProtected && value instanceof String) {
 			value = ScriptProtect.translate((String) value);
 		}
 

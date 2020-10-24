@@ -148,7 +148,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 
 	private static final Collection.Key SESSION_COOKIE = KeyImpl.getInstance("sessioncookie");
 	private static final Collection.Key AUTH_COOKIE = KeyImpl.getInstance("authcookie");
-
+	
 	private static final Key ENABLE_NULL_SUPPORT = KeyImpl.getInstance("enableNULLSupport");
 	private static final Key NULL_SUPPORT = KeyImpl.getInstance("nullSupport");
 	private static final Key PSQ = KeyImpl.getInstance("psq");
@@ -207,6 +207,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private Map<Collection.Key, CacheConnection> cacheConnections;
 	private boolean sameFormFieldAsArray;
 	private boolean sameURLFieldAsArray;
+	private boolean mmergeFormUrlAsStruct;
 	private Map<String, CustomType> customTypes;
 	private boolean cgiScopeReadonly;
 	private SessionCookieData sessionCookie;
@@ -238,6 +239,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean initSetDomainCookies;
 	private boolean initSetSessionManagement;
 	private boolean initScriptProtect;
+	private boolean initMmergeFormUrlAsStruct;
 	private boolean initTypeChecking;
 	private boolean initAllowCompression;
 	private boolean initDefaultAttributeValues;
@@ -736,10 +738,23 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		return Scope.SCOPE_URL == scope ? sameURLFieldAsArray : sameFormFieldAsArray;
 	}
 
+	@Override
+	public boolean getMmergeFormUrlAsStruct(){
+		if (!initMmergeFormUrlAsStruct) {
+			String str = null;
+			Object o = get(component, KeyConstants._mmergeFormUrlAsStruct, null);
+			if (o != null) {
+				mmergeFormUrlAsStruct = Caster.toBoolean(o, true);
+			}
+			initMmergeFormUrlAsStruct = true;
+		}
+		return mmergeFormUrlAsStruct;
+	}
+
 	public void initSameFieldAsArray(PageContext pc) {
 		boolean oldForm = pc.getApplicationContext().getSameFieldAsArray(Scope.SCOPE_FORM);
 		boolean oldURL = pc.getApplicationContext().getSameFieldAsArray(Scope.SCOPE_URL);
-
+		boolean oldMerge = pc.getApplicationContext().getMmergeFormUrlAsStruct();
 		// Form
 		Object o = get(component, KeyConstants._sameformfieldsasarray, null);
 		if (o != null && Decision.isBoolean(o)) sameFormFieldAsArray = Caster.toBooleanValue(o, false);
@@ -748,8 +763,12 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		o = get(component, KeyConstants._sameurlfieldsasarray, null);
 		if (o != null && Decision.isBoolean(o)) sameURLFieldAsArray = Caster.toBooleanValue(o, false);
 
-		if (oldForm != sameFormFieldAsArray) pc.formScope().reinitialize(this);
-		if (oldURL != sameURLFieldAsArray) pc.urlScope().reinitialize(this);
+		// merge 
+		o = get(component, KeyConstants._mmergeFormUrlAsStruct, null);
+		if (o != null && Decision.isBoolean(o)) mmergeFormUrlAsStruct = Caster.toBooleanValue(o, true);
+
+		if (oldForm != sameFormFieldAsArray || oldMerge !=mmergeFormUrlAsStruct) pc.formScope().reinitialize(this);
+		if (oldURL != sameURLFieldAsArray || oldMerge != mmergeFormUrlAsStruct) pc.urlScope().reinitialize(this);
 	}
 
 	public void initWebCharset(PageContext pc) {
@@ -1378,6 +1397,12 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		initScriptProtect = true;
 		this.scriptProtect = scriptrotect;
 	}
+
+	@Override
+	public void setInitMmergeFormUrlAsStruct(int structMerge) {
+		initMmergeFormUrlAsStruct = true;
+		this.scriptProtect = structMerge;
+	}	
 
 	@Override
 	public void setTypeChecking(boolean typeChecking) {
