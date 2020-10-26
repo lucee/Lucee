@@ -30,6 +30,17 @@ this.localmode="update";
 this.web.charset="utf-8";
 this.sessionCookie.httpOnly = true; // prevent access to session cookies from javascript
 
+public function onRequestStart() {
+	// if not logged in, we only allow access to admin|web|server[.cfm]
+	if(!structKeyExists(session, "passwordWeb") && !structKeyExists(session, "passwordServer")){
+		var fileName=listLast(cgi.script_name,"/");
+		if(fileName!="admin.cfm" && fileName!="web.cfm" && fileName!="server.cfm") {
+			cfheader(statuscode="404" statustext="Invalid access");
+        	abort;
+		}
+	}
+}
+
 public function onApplicationStart(){
 	if(structKeyExists(server.system.environment,"LUCEE_ADMIN_ENABLED") && server.system.environment.LUCEE_ADMIN_ENABLED EQ false){
 		cfheader(statuscode="404" statustext="Invalid access");
