@@ -1311,7 +1311,7 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="overview.mailinglist">Mailing list</data>
 	<data key="overview.mailinglistDesc">The mailing list is the focus of our community support program - help for users by users. </data>
 
-	<data key="overview.warning.warningMsg">The REST Servlet is not configured in your enviroment!</data>	
+	<data key="overview.warning.warningMsg">The REST Servlet is not configured in your environment!</data>	
 	<data key="overview.warning.JavaVersion">You are running Lucee with Java</data>	
 	<data key="overview.warning.JavaVersionNotSupport"> Lucee does not formally support this version of Java. Consider updating to the latest Java version for security and performance reasons.</data>
 	<data key="overview.warning.Java7NotSupport">Java 7 has been End-of-Life'd since April 2015.</data>
