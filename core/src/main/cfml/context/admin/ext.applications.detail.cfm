@@ -116,8 +116,9 @@ isInstalled=installed.count() GT 0;
 				<td valign="top" style="width:200px;">
 					<cfif !isNull(app.image)>
 						<cfset dn=getDumpNail(app.image,400,400)>
+
 						<div style="width:100%;overflow:auto;">
-							<img src="#dn#" alt="#stText.ext.extThumbnail#" />
+							<img width="400" src="#dn#" alt="#stText.ext.extThumbnail#" />
 						</div>
 					</cfif>
 				</td>

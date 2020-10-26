@@ -1,6 +1,27 @@
-<cfset hasAccess=true />
-<cfset external=getExternalData(providerURLs,true)>
-<cfset existing=struct() />
+<cfscript>
+	hasAccess=true;
+	external=getExternalData(providerURLs,true);
+	existing={};
+
+	function getLatestVersion(id) {
+		loop query=external {
+			if(external.id==arguments.id) {
+				if(len(external.OtherVersions)) {
+					var latest={'vs':toVersionSortable(external.version),'v':external.version};
+					loop array=external.OtherVersions item="local.v" {
+						var vs=toVersionSortable(v);
+						if(isEmpty(latest.vs) || vs>latest.vs) 
+							latest={'vs':vs,'v':v};
+					}
+					return latest;
+				}
+				break; 
+			}
+		}
+		return {'vs':"",'v':""};
+	}
+
+</cfscript>
 <!--- if user declined the agreement, show a msg --->
 <cfif structKeyExists(session, "extremoved")>
 	<cfoutput>
@@ -11,7 +32,6 @@
 	<cfset structDelete(session, "extremoved", false) />
 </cfif>
 <cfset extCount=(serverExtensions.recordcount?:0)+extensions.recordcount>
-
 <cfif extensions.recordcount || (!isNull(serverExtensions) && serverExtensions.recordcount)>
 	<cfoutput>
 		<!--- Installed Applications --->
@@ -64,7 +84,8 @@
 				or doFilter(session.extFilter.filter,arrayToList(cat),false)
 				or doFilter(session.extFilter.filter,provTitle,false)
 				><cfscript>
-	
+					latest=getLatestVersion(_extensions.id);
+					hasUpdates=latest.vs GT toVersionSortable(_extensions.version);
 					link="#request.self#?action=#url.action#&action2=detail&id=#_extensions.id#";
 					img=_extensions.image;
 					if(len(img)==0) {
@@ -76,15 +97,14 @@
 						}
 					}
 					dn=getDumpNail(img,130,50);
-					
-					hasUpdate=updateAvailable(queryRowData(_extensions,_extensions.currentrow),external);
 					</cfscript><div class="extensionthumb">
 
 					
 
 						<a <cfif _type=="web">href="#link#"<cfelse>style="border-color: ##E0E0E0;"</cfif> title="#_extensions.name#
 Categories: #arrayToList(cat)# 
-Installed version:#_extensions.version#"><cfif hasUpdate>
+Installed version: #_extensions.version#<cfif hasUpdates>
+Latest version: #latest.v#</cfif>"><cfif hasUpdates>
        <div class="ribbon-wrapper" <cfif _type=="server">style="border-color:##bf4f36"</cfif>><div class="ribbon" <cfif _type=="server">style="background-color:##bf4f36"</cfif>>UPDATE ME!</div></div>
 </cfif>
 <cfif _extensions.trial>
@@ -92,13 +112,15 @@ Installed version:#_extensions.version#"><cfif hasUpdate>
 </cfif>	
 							<div class="extimg" id="extimg_#_extensions.id#">
 								<cfif len(dn)>
-
-									<img src="#dn#" alt="#stText.ext.extThumbnail#" />
+									<img src="#dn#" style="max-width:130px;max-height:50px" alt="#stText.ext.extThumbnail#" />
 								</cfif>
 							</div>
 							<cfset listinstalled = listinstalled+1>
-							<span <cfif _type=="server">style="color:##bf4f36"</cfif>>#cut(_extensions.name,40)#<br /></span>
-							<span class="comment" <cfif _type=="server">style="color:##bf4f36"</cfif>>#cut(arrayToList(cat),30)#</span>
+							<span <cfif _type=="server">style="color:##bf4f36"</cfif>>#cut(_extensions.name,40)#<br>
+							#_extensions.version#<br />
+							</span>
+							<span class="comment" <cfif _type=="server">style="color:##bf4f36"</cfif>>
+							<cfif hasUpdates>#latest.v#</cfif></span>
 
 						</a>
 					</div>
@@ -113,10 +135,6 @@ Installed version:#_extensions.version#"><cfif hasUpdate>
 	<cfif listinstalled eq 0 and extCount gt 30>
 		<cfoutput><b>#stText.ext.searchbox# [#session.extFilter.filter#]</b></cfoutput>
 	</cfif>
-
-
-
-
 
 <!---  Not Installed Applications --->
 <cfoutput>
@@ -187,6 +205,27 @@ Installed version:#_extensions.version#"><cfif hasUpdate>
 			querySetCell(arguments.trg,col,queryGetCell(arguments.src,col,arguments.srcRow),trgRow);
 		}
 	}
+
+		private function toVersionSortable(required string version) localMode=true {
+		version=unwrap(version.trim());
+		arr=listToArray(arguments.version,'.');
+		
+		// OSGi compatible version
+		if(arr.len()==4 && isNumeric(arr[1]) && isNumeric(arr[2]) && isNumeric(arr[3])) {
+			try{ return toOSGiVersion(version).sortable; }catch(local.e){};
+		}
+
+		rtn="";
+		loop array=arr index="i" item="v" {
+			if(len(v)<5)
+			 rtn&="."&repeatString("0",5-len(v))&v;
+			else
+				rtn&="."&v;
+		} 
+		return 	rtn;
+	}
+
+
 </cfscript>
 
 <cfoutput>
@@ -224,7 +263,7 @@ Installed version:#_extensions.version#"><cfif hasUpdate>
 									<div class="extimg">
 										<cfif len(dn)>
 
-											 <img src="#dn#"  alt="#stText.ext.extThumbnail#" />
+											 <img src="#dn#" style="max-width:130px;max-height:50px"  alt="#stText.ext.extThumbnail#" />
 										</cfif>
 									</div>
 									<cfset listnotinstalled = listnotinstalled+1>
@@ -234,7 +273,7 @@ Installed version:#_extensions.version#"><cfif hasUpdate>
 								</a>
 							</div>
 						</cfif>
-				</cfloop>
+				<cfbreak></cfloop>
 			</div>
 			</cfsavecontent>
 			<cfset hiddenFormContents &= tmpContent>
