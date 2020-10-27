@@ -32,6 +32,12 @@ this.sessionCookie.httpOnly = true; // prevent access to session cookies from ja
 this.sessionCookie.sameSite = "strict";
 this.tag.cookie.sameSite = "strict";
 
+this.xmlFeatures = {
+	externalGeneralEntities: false,
+    secure: true,
+    disallowDoctypeDecl: true
+};
+
 public function onRequestStart() {
 	// if not logged in, we only allow access to admin|web|server[.cfm]
 	if(!structKeyExists(session, "passwordWeb") && !structKeyExists(session, "passwordServer")){
