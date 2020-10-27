@@ -333,17 +333,17 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		}
 	}
 
-	private boolean reachedConcurrentReqThreshold() {
+	public boolean reachedConcurrentReqThreshold() {
 		if (concurrentReqThreshold == 0) return true;
 		return concurrentReqThreshold <= runningPcs.size();
 	}
 
-	private boolean reachedMemoryThreshold() {
+	public boolean reachedMemoryThreshold() {
 		if (memoryThreshold == 0) return true;
 		return memoryThreshold <= SystemUtil.getMemoryPercentage();
 	}
 
-	private boolean reachedCPUThreshold() {
+	public boolean reachedCPUThreshold() {
 		if (cpuThreshold == 0) return true;
 		return cpuThreshold <= SystemUtil.getCpuPercentage();
 	}

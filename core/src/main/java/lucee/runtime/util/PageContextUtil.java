@@ -44,6 +44,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
@@ -200,14 +201,20 @@ public class PageContextUtil {
 			return TimeSpanImpl.fromMillis(ms);
 		}
 
-		if (throwWhenAlreadyTimeout && ((PageContextImpl) pc).getTimeoutStackTrace() == null) throw CFMLFactoryImpl.createRequestTimeoutException(pc);
+		if (throwWhenAlreadyTimeout && allowRequestTimeout(pc) && ((PageContextImpl) pc).getTimeoutStackTrace() == null) throw CFMLFactoryImpl.createRequestTimeoutException(pc);
 
 		return TimeSpanImpl.fromMillis(0);
 	}
 
 	public static void checkRequestTimeout(PageContext pc) throws RequestTimeoutException {
 		if ((pc.getRequestTimeout() - (System.currentTimeMillis() - pc.getStartTime()) > 0) || ((PageContextImpl) pc).getTimeoutStackTrace() != null) return;
-		throw CFMLFactoryImpl.createRequestTimeoutException(pc);
+		if (allowRequestTimeout(pc)) throw CFMLFactoryImpl.createRequestTimeoutException(pc);
+	}
+
+	private static boolean allowRequestTimeout(PageContext pc) {
+		if (!((ConfigPro) ThreadLocalPageContext.getConfig(pc)).allowRequestTimeout()) return false;
+		CFMLFactoryImpl factory = (CFMLFactoryImpl) pc.getConfig().getFactory();
+		return factory.reachedConcurrentReqThreshold() && factory.reachedCPUThreshold() && factory.reachedMemoryThreshold();
 	}
 
 	public static String getHandlePageException(PageContextImpl pc, PageException pe) throws PageException {
