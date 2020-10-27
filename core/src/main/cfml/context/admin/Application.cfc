@@ -30,6 +30,12 @@ this.localmode="update";
 this.web.charset="utf-8";
 this.sessionCookie.httpOnly = true; // prevent access to session cookies from javascript
 
+this.xmlFeatures = {
+	externalGeneralEntities: false,
+    secure: true,
+    disallowDoctypeDecl: true
+};
+
 public function onRequestStart() {
 	// if not logged in, we only allow access to admin|web|server[.cfm]
 	if(!structKeyExists(session, "passwordWeb") && !structKeyExists(session, "passwordServer")){
