@@ -808,7 +808,7 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	}
 
 	@Override
-	public boolean getMmergeFormUrlAsStruct(){
+	public boolean getMergeFormUrlAsStruct(){
 		return true;
 	}
 
