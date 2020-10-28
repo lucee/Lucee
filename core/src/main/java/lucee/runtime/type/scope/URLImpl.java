@@ -58,7 +58,7 @@ public final class URLImpl extends ScopeSupport implements URL, ScriptProtected 
 		encoding = encoding.trim().toUpperCase();
 		if (encoding.equals(this.encoding)) return;
 		this.encoding = encoding;
-		structMerge = ac.getMmergeFormUrlAsStruct();
+		structMerge = ac.getMergeFormUrlAsStruct();
 		if (isInitalized()) fillDecoded(raw, encoding, isScriptProtected(), ac.getSameFieldAsArray(SCOPE_URL), structMerge);
 	}
 
