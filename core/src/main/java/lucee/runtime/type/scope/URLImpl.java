@@ -67,7 +67,7 @@ public final class URLImpl extends ScopeSupport implements URL, ScriptProtected 
 		if (encoding == null) encoding = pc.getWebCharset().name();
 		if (scriptProtected == ScriptProtected.UNDEFINED) {
 			scriptProtected = ((pc.getApplicationContext().getScriptProtect() & ApplicationContext.SCRIPT_PROTECT_URL) > 0) ? ScriptProtected.YES : ScriptProtected.NO;
-			structMerge = pc.getApplicationContext().getMmergeFormUrlAsStruct();
+			structMerge = pc.getApplicationContext().getMergeFormUrlAsStruct();
 		}		
 		try {
 			super.initialize(pc);
@@ -93,7 +93,7 @@ public final class URLImpl extends ScopeSupport implements URL, ScriptProtected 
 			if (scriptProtected == ScriptProtected.UNDEFINED) {
 				scriptProtected = ((ac.getScriptProtect() & ApplicationContext.SCRIPT_PROTECT_URL) > 0) ? ScriptProtected.YES : ScriptProtected.NO;
 			}
-			structMerge = ac.getMmergeFormUrlAsStruct();
+			structMerge = ac.getMergeFormUrlAsStruct();
 
 			fillDecodedEL(raw, encoding, isScriptProtected(), ac.getSameFieldAsArray(SCOPE_URL), structMerge);
 		}
