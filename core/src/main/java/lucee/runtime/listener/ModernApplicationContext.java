@@ -239,7 +239,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean initSetDomainCookies;
 	private boolean initSetSessionManagement;
 	private boolean initScriptProtect;
-	private boolean initMmergeFormUrlAsStruct;
+	private boolean initMergeFormUrlAsStruct;
 	private boolean initTypeChecking;
 	private boolean initAllowCompression;
 	private boolean initDefaultAttributeValues;
