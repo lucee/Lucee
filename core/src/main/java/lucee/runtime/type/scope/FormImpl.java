@@ -115,7 +115,7 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 
 		if (scriptProtected == ScriptProtected.UNDEFINED) {
 			scriptProtected = ((pc.getApplicationContext().getScriptProtect() & ApplicationContext.SCRIPT_PROTECT_FORM) > 0) ? ScriptProtected.YES : ScriptProtected.NO;
-			structMerge = pc.getApplicationContext().getMmergeFormUrlAsStruct();
+			structMerge = pc.getApplicationContext().getMergeFormUrlAsStruct();
 		}
 		
 		super.initialize(pc);
@@ -145,7 +145,7 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 
 			if (scriptProtected == ScriptProtected.UNDEFINED) {
 				scriptProtected = ((ac.getScriptProtect() & ApplicationContext.SCRIPT_PROTECT_FORM) > 0) ? ScriptProtected.YES : ScriptProtected.NO;
-				structMerge = ac.getMmergeFormUrlAsStruct();
+				structMerge = ac.getMergeFormUrlAsStruct();
 			}			
 			fillDecodedEL(raw, encoding, isScriptProtected(), ac.getSameFieldAsArray(SCOPE_FORM), structMerge);
 			setFieldNames();
