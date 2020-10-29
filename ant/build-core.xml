@@ -469,6 +469,8 @@
     <echo message="${name.explanation}"/> -->
     <echo message="Root: ${rootDir}"/>
     <echo message="Required-Extensions: ${reqExt.labels}"/>
+    <echo message="Java: ${java.version}" />       
+    <echo message="Java: ${java.home}" />       
                     
     
     <!-- Create the time stamp -->
