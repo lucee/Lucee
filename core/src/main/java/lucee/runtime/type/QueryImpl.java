@@ -263,6 +263,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		long start = System.nanoTime();
 		// stopwatch.start();
 		boolean hasResult = false;
+		boolean hasPossibleGeneratedKeys = false;
 		// boolean closeStatement=true;
 		try {
 			SQLItem[] items = sql.getItems();
@@ -283,18 +284,35 @@ public class QueryImpl implements Query, Objects, QueryResult {
 				hasResult = QueryUtil.execute(pc, preStat);
 			}
 			int uc;
+			int resultsetCount = 0;
 			// ResultSet res;
 			do {
+				resultsetCount++;
 				if (hasResult) {
 					// res=stat.getResultSet();
 					// if(fillResult(dc,res, maxrow, true,createGeneratedKeys,tz))break;
-					if (fillResult(qry, qr, keyName, dc, stat.getResultSet(), maxrow, true, createGeneratedKeys, tz)) break;
+					if (fillResult(qry, qr, keyName, dc, stat.getResultSet(), maxrow, true, createGeneratedKeys, tz)){
+						/*
+						 * Some SQL implementations (e.g. SQL Server) allow both a resultset *and* keys to be generated
+						 * in a single statement. For example:
+						 * 
+						 * insert into XXXX (col1, col2) OUTPUT INSERTED.* values (1, 'a'), (2, 'b'), (3, 'c')
+						 * 
+						 * In the above, the "OUTPUT INSERTED.*" will return a recordset of all the changes.
+						 */
+						if( resultsetCount == 1 && !hasPossibleGeneratedKeys ){
+							hasPossibleGeneratedKeys = true;
+						}
+						break;
+					}
 
 				}
 				else if ((uc = setUpdateCount(qry != null ? qry : qr, stat)) != -1) {
-					if (uc > 0 && createGeneratedKeys && qry != null) qry.setGeneratedKeys(dc, stat, tz);
+					if (uc > 0){
+						// since we had some updates, we need to flag that the generated keys need to be checked
+						hasPossibleGeneratedKeys = true;
+					} 
 				}
-
 				else break;
 
 				try {
@@ -316,6 +334,18 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			throw Caster.toPageException(e);
 		}
 		finally {
+			// we need to look for any possible generated keys from the query
+			if( createGeneratedKeys && hasPossibleGeneratedKeys && qry != null ){
+				/*
+				 * The MSSQL driver recommends always checking for generated keys after
+				 * all recordsets have been parsed. This will prevent the 
+				 * Statement.getGeneratedKeys() from advancing the recordset.
+				 * 
+				 * See the following link for more information:
+				 * https://social.technet.microsoft.com/Forums/ie/en-US/a91f8aa2-6ec0-447d-8b95-9e99e1da56fb/the-statement-must-be-executed-before-any-results-can-be-obtained-error-with-jdbc-20?forum=sqldataaccess
+				 */
+				qry.setGeneratedKeys(dc, stat, tz);
+			}
 			// if(closeStatement)
 			DBUtil.closeEL(stat);
 		}
