@@ -2388,6 +2388,10 @@ public final class PageContextImpl extends PageContext {
 		if ((config.getScriptProtect() & ApplicationContext.SCRIPT_PROTECT_URL) > 0) {
 			realPath = ScriptProtect.translate(realPath);
 		}
+		// we do not allow /../ within the real path
+		if (realPath.indexOf("/../") != -1) {
+			throw new ApplicationException("invalid path [" + realPath + "]");
+		}
 
 		// convert realpath to a PageSource
 		if (realPath.startsWith("/mapping-")) {
