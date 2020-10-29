@@ -50,7 +50,7 @@ script:
 
 
 - if [ "${TRAVIS_PULL_REQUEST}" == "false" ]; then
-    if [ "${TRAVIS_BRANCH}" == "5.3" ]; then
+    if [ "${TRAVIS_BRANCH}" == "5.3.7" ]; then
       export DO_DEPLOY="true";
     fi
   fi
