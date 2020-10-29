@@ -140,7 +140,7 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 
 	@Override
 	public int getDefaultTransactionIsolation() {
-		if (defaultTransactionIsolation == -1) return Connection.TRANSACTION_READ_COMMITTED;// never happens
+		if (defaultTransactionIsolation == -1 || defaultTransactionIsolation == Connection.TRANSACTION_NONE) return Connection.TRANSACTION_READ_COMMITTED;
 		return defaultTransactionIsolation;
 	}
 
