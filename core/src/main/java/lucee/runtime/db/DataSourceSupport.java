@@ -42,7 +42,6 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 	private static final long serialVersionUID = -9111025519905149021L;
 	private static final int NETWORK_TIMEOUT_IN_SECONDS = 10;
 	private static int defaultTransactionIsolation = -1;
-
 	private final boolean blob;
 	private final boolean clob;
 	private final int connectionLimit;
