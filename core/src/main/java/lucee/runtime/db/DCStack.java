@@ -21,20 +21,26 @@ package lucee.runtime.db;
 import java.sql.Connection;
 import java.sql.SQLException;
 
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.types.RefInteger;
 import lucee.commons.lang.types.RefIntegerImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.op.Caster;
 
 class DCStack {
 
-	private static final int DEFAULT_TIMEOUT = 5;
+	private static final int DEFAULT_TIMEOUT;
 	private Item item;
 	private DataSource datasource;
 	private String user;
 	private String pass;
 	private final RefInteger counter;
+
+	static {
+		DEFAULT_TIMEOUT = Caster.toIntValue(SystemUtil.getSystemPropOrEnvVar("lucee.datasource.timeout.validation", null), 5);
+	}
 
 	DCStack(DataSource datasource, String user, String pass) {
 		this.datasource = datasource;
