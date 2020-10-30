@@ -29,6 +29,7 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 
 class DCStack {
 
+	private static final int DEFAULT_TIMEOUT = 5;
 	private Item item;
 	private DataSource datasource;
 	private String user;
@@ -135,8 +136,10 @@ class DCStack {
 		}
 	}
 
-	public synchronized void clear(boolean force) {
-		clear(item, null, force);
+	public void clear(boolean force, boolean validate) {
+		synchronized (this) {
+			clear(item, null, force, validate);
+		}
 	}
 
 	/**
@@ -146,7 +149,7 @@ class DCStack {
 	 * @param timeout timeout in seconds used to validate existing connections
 	 * @throws SQLException
 	 */
-	private void clear(Item current, Item next, boolean force) {
+	private void clear(Item current, Item next, boolean force, boolean validate) {
 		if (current == null) return;
 
 		// timeout or closed
@@ -167,7 +170,7 @@ class DCStack {
 				next.prev = current.prev;
 			}
 
-			clear(current.prev, next, force);
+			clear(current.prev, next, force, validate);
 		}
 		else {
 			// make sure that auto commit is true
@@ -175,7 +178,7 @@ class DCStack {
 				if (!current.dc.getAutoCommit()) current.dc.setAutoCommit(true);
 			}
 			catch (SQLException e) {}
-			clear(current.prev, current, force);
+			clear(current.prev, current, force, validate);
 		}
 
 		counter.setValue(0);

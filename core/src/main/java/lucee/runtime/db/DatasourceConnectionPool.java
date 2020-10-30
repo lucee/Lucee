@@ -48,6 +48,8 @@ public class DatasourceConnectionPool {
 	private static final long WAIT = 1000L;
 	private final Object waiter = new Object();
 
+	private static final ConcurrentHashMap<String, String> tokens = new ConcurrentHashMap<String, String>();
+
 	private ConcurrentHashMap<String, DCStack> dcs = new ConcurrentHashMap<String, DCStack>();
 
 	public int getOpenConnection(DataSource datasource, String user, String pass) throws PageException {
@@ -179,14 +181,14 @@ public class DatasourceConnectionPool {
 		releaseDatasourceConnection(dc, false);
 	}
 
-	public void clear(boolean force) {
+	public void clear(boolean force, boolean validate) {
 		// remove all timed out conns
 		try {
 			Object[] arr = dcs.entrySet().toArray();
 			if (ArrayUtil.isEmpty(arr)) return;
 			for (int i = 0; i < arr.length; i++) {
 				DCStack conns = (DCStack) ((Map.Entry) arr[i]).getValue();
-				if (conns != null) conns.clear(force);
+				if (conns != null) conns.clear(force, validate);
 			}
 		}
 		catch (Throwable t) {
@@ -194,7 +196,13 @@ public class DatasourceConnectionPool {
 		}
 	}
 
-	public void clear(String dataSourceName, boolean force) {
+	/**
+	 * 
+	 * @param dataSourceName
+	 * @param force
+	 * @param validate only used when force is false
+	 */
+	public void clear(String dataSourceName, boolean force, boolean validate) {
 		// remove all timed out conns
 		try {
 			Object[] arr = dcs.entrySet().toArray();
@@ -208,7 +216,7 @@ public class DatasourceConnectionPool {
 				if (dc != null) {
 					String name = dc.getDatasource().getName();
 					if (dataSourceName.equalsIgnoreCase(name)) {
-						if (conns != null) conns.clear(force);
+						if (conns != null) conns.clear(force, validate);
 					}
 				}
 			}
@@ -228,7 +236,7 @@ public class DatasourceConnectionPool {
 			while (it.hasNext()) {
 				e = it.next();
 				if (datasource.equals(e.getValue().getDatasource())) {
-					e.getValue().clear(true);
+					e.getValue().clear(true, false);
 				}
 			}
 		}
@@ -358,6 +366,11 @@ public class DatasourceConnectionPool {
 	}
 
 	public static String createId(DataSource datasource, String user, String pass) {
-		return datasource.id() + "::" + user + ":" + pass;
+		String str = new StringBuilder().append(datasource.id()).append("::").append(user).append(":").append(pass).toString();
+		String lock = tokens.putIfAbsent(str, str);
+		if (lock == null) {
+			lock = str;
+		}
+		return lock;
 	}
 }
