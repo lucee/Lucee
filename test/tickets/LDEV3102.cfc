@@ -338,6 +338,61 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 
 					expect(result.generatedKey).toBeGT(0);
 				});
+	
+				it(title = "Creating a temp table and dropping it should still return select statement with name only", body = function ( currentSpec ){
+					var data = "";
+
+					query name="data" datasource=driver.datasource {
+						echo("
+							drop table if exists ##LDEV3102_TEMP_PRIMARY
+							drop table if exists ##LDEV3102_TEMP_SECONDARY
+
+							create table ##LDEV3102_TEMP_PRIMARY (id int primary key with (IGNORE_DUP_KEY=ON), unique (id))
+							create table ##LDEV3102_TEMP_SECONDARY (id int primary key with (IGNORE_DUP_KEY=ON), unique (id))
+
+							insert into ##LDEV3102_TEMP_PRIMARY (id) values (1), (2), (3), (4), (5), (6);
+
+							insert into ##LDEV3102_TEMP_SECONDARY 
+							select id from ##LDEV3102_TEMP_PRIMARY where id % 2 = 0
+
+							select id from ##LDEV3102_TEMP_SECONDARY
+
+							drop table ##LDEV3102_TEMP_PRIMARY
+							drop table ##LDEV3102_TEMP_SECONDARY
+						");
+					}
+
+					expect(data.columnData("id")).toBe([2, 4, 6]);
+				});
+	
+				it(title = "Creating a temp table and dropping it should still return select statement with name and result", body = function ( currentSpec ){
+					var data = "";
+					var result = "";
+
+					query name="data" result="result" datasource=driver.datasource {
+						echo("
+							drop table if exists ##LDEV3102_TEMP_PRIMARY
+							drop table if exists ##LDEV3102_TEMP_SECONDARY
+
+							create table ##LDEV3102_TEMP_PRIMARY (id int primary key with (IGNORE_DUP_KEY=ON), unique (id))
+							create table ##LDEV3102_TEMP_SECONDARY (id int primary key with (IGNORE_DUP_KEY=ON), unique (id))
+
+							insert into ##LDEV3102_TEMP_PRIMARY (id) values (1), (2), (3), (4), (5), (6);
+
+							insert into ##LDEV3102_TEMP_SECONDARY 
+							select id from ##LDEV3102_TEMP_PRIMARY where id % 2 = 0
+
+							select id from ##LDEV3102_TEMP_SECONDARY
+
+							drop table ##LDEV3102_TEMP_PRIMARY
+							drop table ##LDEV3102_TEMP_SECONDARY
+						");
+					}
+
+					debug(data);
+
+					expect(data.columnData("id")).toBe([2, 4, 6]);
+				});
 			});
 		}
 	}
