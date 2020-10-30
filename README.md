@@ -3,6 +3,7 @@
 ![GitHub](https://img.shields.io/github/license/lucee/Lucee)
 [![Build Status](https://travis-ci.org/lucee/Lucee.svg?branch=5.3)](https://travis-ci.org/lucee/Lucee)
 [![Backers on Open Collective](https://opencollective.com/Lucee/backers/badge.svg)](#backers)
+<<<<<<< HEAD
 [![Sponsors on Open Collective](https://opencollective.com/Lucee/sponsors/badge.svg)](#sponsors) 
 
 [![Maven Central](https://img.shields.io/maven-central/v/org.lucee/lucee)](https://mvnrepository.com/artifact/org.lucee/lucee)
@@ -14,6 +15,9 @@
 [![GitHub contributors](https://img.shields.io/github/contributors/lucee/Lucee)](https://github.com/lucee/Lucee)
 
 [![Website](https://img.shields.io/website?url=https%3A%2F%2Fdownload.lucee.org%2F)](https://download.lucee.org/)
+=======
+ [![Sponsors on Open Collective](https://opencollective.com/Lucee/sponsors/badge.svg)](#sponsors) 
+>>>>>>> upstream/master
 
 ## Lucee Server
 
@@ -35,8 +39,13 @@ Alternatively try the super-useful [CommandBox](https://www.ortussolutions.com/p
 
 ## Getting Help
 
+<<<<<<< HEAD
 - [Lucee Documentation Project](https://docs.lucee.org/)
 - [Lucee Google Group](https://groups.google.com/forum/#!forum/lucee); general app developer support
+=======
+- [Lucee Documentation Project](http://docs.lucee.org/)
+- [Lucee Mailing List](https://dev.lucee.org); general app developer support
+>>>>>>> upstream/master
 - [Lucee Lang Forum](http://lang.lucee.org/); hacking on Lucee itself
 - [Lucee Bug Tracker](https://luceeserver.atlassian.net/projects/LDEV/issues)
 
@@ -86,6 +95,11 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 <a href="https://opencollective.com/Lucee/sponsor/8/website" target="_blank"><img src="https://opencollective.com/Lucee/sponsor/8/avatar.svg"></a>
 <a href="https://opencollective.com/Lucee/sponsor/9/website" target="_blank"><img src="https://opencollective.com/Lucee/sponsor/9/avatar.svg"></a>
 
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> upstream/master
 ## Copyright / License
 
 Copyright 2006-2014 Various contributing authors

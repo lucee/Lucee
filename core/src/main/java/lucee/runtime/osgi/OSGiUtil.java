@@ -627,8 +627,13 @@ public class OSGiUtil {
 
 			// no download available!
 			if (code != 200) {
+<<<<<<< HEAD
 				final String msg = "Download bundle failed for [" + symbolicName + "] in version [" + symbolicVersion + "] from [" + updateUrl
 						+ "], please download manually and copy to [" + jarDir + "]";
+=======
+				final String msg = "Lucee is not able to download the bundle for [" + symbolicName + "] in version [" + symbolicVersion + "] from " + updateUrl
+						+ ", please download manually and copy to [" + jarDir + "]";
+>>>>>>> upstream/master
 				log(Logger.LOG_ERROR, msg);
 				conn.disconnect();
 				throw new IOException(msg);
