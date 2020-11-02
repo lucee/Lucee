@@ -1042,13 +1042,9 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 
 	private PageSource getPageSource() {
 		if (data.nestingLevel > 0) {
-
 			PageContextImpl pci = (PageContextImpl) pageContext;
-			List<PageSource> list = pci.getPageSourceList();
-			if (list.size() > 0) {
-				int index = list.size() - 1 - data.nestingLevel;
-				if (index >= 0) return list.get(index);
-			}
+			PageSource ps = pci.getPageSource(-data.nestingLevel);
+			if (ps != null) return ps;
 		}
 		return ((PageContextImpl) pageContext).getCurrentPageSource(null);
 	}
