@@ -1060,11 +1060,11 @@ public final class PageContextImpl extends PageContext {
 		return sva;
 	}
 
-	public List<PageSource> getPageSourceList() {
-		return (List<PageSource>) pathList.clone();
-	}
-
+	/**
+	 * if index is less than 1 it start from the rights
+	 */
 	public PageSource getPageSource(int index) {
+		if (index <= 0) index = includePathList.size() - index;
 		return includePathList.get(index - 1);
 	}
 
