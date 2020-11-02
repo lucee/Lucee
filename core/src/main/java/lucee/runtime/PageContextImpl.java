@@ -1075,13 +1075,21 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public PageSource getCurrentPageSource() {
-		if (pathList.isEmpty()) return null;
+		if (pathList.isEmpty()) {
+			if (parent != null && parent != this) // second comparision should not be necesary, just in case ...
+				return parent.getCurrentPageSource();
+			return null;
+		}
 		return pathList.getLast();
 	}
 
 	@Override
 	public PageSource getCurrentPageSource(PageSource defaultvalue) {
-		if (pathList.isEmpty()) return defaultvalue;
+		if (pathList.isEmpty()) {
+			if (parent != null && parent != this) // second comparision should not be necesary, just in case ...
+				return parent.getCurrentPageSource(defaultvalue);
+			return defaultvalue;
+		}
 		return pathList.getLast();
 	}
 
@@ -1090,7 +1098,11 @@ public final class PageContextImpl extends PageContext {
 	 */
 	@Override
 	public PageSource getCurrentTemplatePageSource() {
-		if (includePathList.isEmpty()) return null;
+		if (includePathList.isEmpty()) {
+			if (parent != null && parent != this) // second comparision should not be necesary, just in case ...
+				return parent.getCurrentTemplatePageSource();
+			return null;
+		}
 		return includePathList.getLast();
 	}
 

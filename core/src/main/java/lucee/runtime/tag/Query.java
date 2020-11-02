@@ -1042,17 +1042,20 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 
 	private PageSource getPageSource() {
 		if (data.nestingLevel > 0) {
+
 			PageContextImpl pci = (PageContextImpl) pageContext;
 			List<PageSource> list = pci.getPageSourceList();
-			int index = list.size() - 1 - data.nestingLevel;
-			if (index >= 0) return list.get(index);
+			if (list.size() > 0) {
+				int index = list.size() - 1 - data.nestingLevel;
+				if (index >= 0) return list.get(index);
+			}
 		}
-		return pageContext.getCurrentPageSource();
+		return ((PageContextImpl) pageContext).getCurrentPageSource(null);
 	}
 
 	private static Struct setExecutionTime(PageContext pc, long exe) {
 		Struct sct = new StructImpl();
-		sct.setEL(KeyConstants._executionTime, new Double(exe));
+		sct.setEL(KeyConstants._executionTime, Double.valueOf(exe));
 		pc.undefinedScope().setEL(CFQUERY, sct);
 		return sct;
 	}
@@ -1178,8 +1181,10 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		if (!StringUtil.isEmpty(sourceTemplate)) {
 			return new TemplateLine(sourceTemplate);
 		}
-
-		if (config.debug()) return SystemUtil.getCurrentContext(null);
+		if (config.debug() || ps == null) {
+			TemplateLine rtn = SystemUtil.getCurrentContext(null);
+			if (rtn != null) return rtn;
+		}
 		return new TemplateLine(ps.getDisplayPath());
 	}
 
