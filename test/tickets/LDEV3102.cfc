@@ -42,10 +42,10 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 			, {label="JDDS", datasource=getDatasource("jtds")}
 		];
 
-		for( var driver in drivers ){
-			describe("testcase for LDEV-3102 using #driver.label# driver", function(){
+		for( var data in drivers ){
+			describe("testcase for LDEV-3102 using #data.label# driver", function(){
 				beforeEach( function( currentSpec ){
-					query datasource=driver.datasource {
+					query datasource=data.datasource {
 						// reset the table state
 						echo("
 							delete from LDEV3102
@@ -57,88 +57,88 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 					}
 				});			
 	
-				it(title = "Select operation in cfquery with name only", body = function ( currentSpec ){
-					var data = "";
+				it(title = "Select operation in cfquery with name only", data=data, body = function ( currentSpec ){
+					var recordset = "";
 	
 					try {
-						query name="data" datasource=driver.datasource {
+						query name="recordset" datasource=arguments.data.datasource {
 							echo("select * from LDEV3102");
 						}
 	
-						expect(data.columnData("id")).toBe([1]);
+						expect(recordset.columnData("id")).toBe([1]);
 					} catch (Any e){
 						throw e.message;
 					}
 				});
 	
-				it(title = "Insert and Select operation in cfquery with name only", body = function ( currentSpec ){
-					var data = "";
+				it(title = "Insert and Select operation in cfquery with name only", data=data, body = function ( currentSpec ){
+					var recordset = "";
 	
 					try {
-						query name="data" datasource=driver.datasource {
+						query name="recordset" datasource=arguments.data.datasource {
 							echo("
 								insert into LDEV3102 values (2,'inserted')
 								select * from LDEV3102 order by id
 							");
 						}
 	
-						expect(data.columnData("id")).toBe([1, 2]);
+						expect(recordset.columnData("id")).toBe([1, 2]);
 					} catch (Any e){
 						throw e.message;
 					}
 				});
 	
-				it(title = "Select operation in cfquery with name and result attribute", body = function ( currentSpec ){
-					var data = "";
+				it(title = "Select operation in cfquery with name and result attribute", data=data, body = function ( currentSpec ){
+					var recordset = "";
 					var result = "";
 	
 					try {
-						query name="data" result="result" datasource=driver.datasource {
+						query name="recordset" result="result" datasource=arguments.data.datasource {
 							echo("select * from LDEV3102");
 						}
 	
-						expect(data.columnData("id")).toBe([1]);
+						expect(recordset.columnData("id")).toBe([1]);
 					} catch (Any e){
 						throw e.message;
 					}
 				});
 	
-				it(title = "Insert and Select operation in cfquery with name and result attribute", body = function ( currentSpec ){
-					var data = "";
+				it(title = "Insert and Select operation in cfquery with name and result attribute", data=data, body = function ( currentSpec ){
+					var recordset = "";
 					var result = "";
 	
 					try {
-						query name="data" result="result" datasource=driver.datasource {
+						query name="recordset" result="result" datasource=arguments.data.datasource {
 							echo("
 								insert into LDEV3102 values (2, 'inserted')
 								select * from LDEV3102 order by id
 							");
 						}
 	
-						expect(data.columnData("id")).toBe([1, 2]);
+						expect(recordset.columnData("id")).toBe([1, 2]);
 					} catch (Any e){
 						throw e.message;
 					}
 				});
 	
-				it(title = "Select and Insert operation in cfquery with name and result attribute", body = function ( currentSpec ){
-					var data = "";
+				it(title = "Select and Insert operation in cfquery with name and result attribute", data=data, body = function ( currentSpec ){
+					var recordset = "";
 					var result = "";
 	
-					query name="data" result="result" datasource=driver.datasource {
+					query name="recordset" result="result" datasource=arguments.data.datasource {
 						echo("
 							select * from LDEV3102
 							insert into LDEV3102 values (2, 'inserted')
 						");
 					}
 	
-					expect(data.columnData("id")).toBe([1]);
+					expect(recordset.columnData("id")).toBe([1]);
 				});
 	
-				it(title = "Table variable with insert should return values with name only", body = function ( currentSpec ){
-					var data = "";
+				it(title = "Table variable with insert should return values with name only", data=data, body = function ( currentSpec ){
+					var recordset = "";
 	
-					query name="data" datasource=driver.datasource {
+					query name="recordset" datasource=arguments.data.datasource {
 						echo("
 							declare @test table(id int primary key)
 							insert into @test (id) values (2), (3), (1)
@@ -146,14 +146,14 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 						");
 					}
 	
-					expect(data.columnData("id")).toBe([1, 2, 3]);
+					expect(recordset.columnData("id")).toBe([1, 2, 3]);
 				});
 	
-				it(title = "Table variable with insert should return values with name and result attribute", body = function ( currentSpec ){
-					var data = "";
+				it(title = "Table variable with insert should return values with name and result attribute", data=data, body = function ( currentSpec ){
+					var recordset = "";
 					var result = "";
 	
-					query name="data" result="result" datasource=driver.datasource {
+					query name="recordset" result="result" datasource=arguments.data.datasource {
 						echo("
 							declare @test table(id int primary key)
 							insert into @test (id) values (2), (3), (1)
@@ -161,14 +161,14 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 						");
 					}
 	
-					expect(data.columnData("id")).toBe([1, 2, 3]);
+					expect(recordset.columnData("id")).toBe([1, 2, 3]);
 				});
 	
-				it(title = "Table variable with insert should return values but not generatedKey", body = function ( currentSpec ){
-					var data = "";
+				it(title = "Table variable with insert should return values but not generatedKey", data=data, body = function ( currentSpec ){
+					var recordset = "";
 					var result = "";
 	
-					query name="data" result="result" datasource=driver.datasource {
+					query name="recordset" result="result" datasource=arguments.data.datasource {
 						echo("
 							declare @test table(id int primary key)
 							insert into @test (id) values (2), (3), (1)
@@ -179,10 +179,10 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 					expect(structKeyExists(result, "generatedKey")).toBeFalse();
 				});
 	
-				it(title = "Conditional insert/select should return new record as being inserted with name", body = function ( currentSpec ){
-					var data = "";
+				it(title = "Conditional insert/select should return new record as being inserted with name", data=data, body = function ( currentSpec ){
+					var recordset = "";
 	
-					query name="data" datasource=driver.datasource {
+					query name="recordset" datasource=arguments.data.datasource {
 						echo("
 							if( not exists( select 1 from LDEV3102_NOPKEY where [key] = 'ba8668b9b') ) 
 								begin 
@@ -196,14 +196,14 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 						");
 					}
 	
-					expect(data.columnData("inserted")).toBe([1]);
+					expect(recordset.columnData("inserted")).toBe([1]);
 				});
 	
-				it(title = "Conditional insert/select should return new record as being inserted name and result", body = function ( currentSpec ){
-					var data = "";
+				it(title = "Conditional insert/select should return new record as being inserted name and result", data=data, body = function ( currentSpec ){
+					var recordset = "";
 					var result = "";
 	
-					query name="data" result="result" datasource=driver.datasource {
+					query name="recordset" result="result" datasource=arguments.data.datasource {
 						echo("
 							if( not exists( select 1 from LDEV3102_NOPKEY where [key] = 'ba8668b9b') ) 
 								begin 
@@ -217,13 +217,13 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 						");
 					}
 	
-					expect(data.columnData("inserted")).toBe([1]);
+					expect(recordset.columnData("inserted")).toBe([1]);
 				});
 	
-				it(title = "Conditional insert/select should return new record as *not* being inserted when record exists with name", body = function ( currentSpec ){
-					var data = "";
+				it(title = "Conditional insert/select should return new record as *not* being inserted when record exists with name", data=data, body = function ( currentSpec ){
+					var recordset = "";
 	
-					query name="data" datasource=driver.datasource {
+					query name="recordset" datasource=arguments.data.datasource {
 						echo("
 							if( not exists( select 1 from LDEV3102_NOPKEY where [key] = 'fb1b5fc5e') ) 
 								begin 
@@ -237,14 +237,14 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 						");
 					}
 	
-					expect(data.columnData("inserted")).toBe([0]);
+					expect(recordset.columnData("inserted")).toBe([0]);
 				});
 	
-				it(title = "Conditional insert/select should return new record as *not* being inserted when record exists name and result", body = function ( currentSpec ){
-					var data = "";
+				it(title = "Conditional insert/select should return new record as *not* being inserted when record exists name and result", data=data, body = function ( currentSpec ){
+					var recordset = "";
 					var result = "";
 	
-					query name="data" result="result" datasource=driver.datasource {
+					query name="recordset" result="result" datasource=arguments.data.datasource {
 						echo("
 							if( not exists( select 1 from LDEV3102_NOPKEY where [key] = 'fb1b5fc5e') ) 
 								begin 
@@ -258,14 +258,14 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 						");
 					}
 	
-					expect(data.columnData("inserted")).toBe([0]);
+					expect(recordset.columnData("inserted")).toBe([0]);
 				});
 	
-				it(title = "Conditional insert/select should not return generateKey", body = function ( currentSpec ){
-					var data = "";
+				it(title = "Conditional insert/select should not return generateKey", data=data, body = function ( currentSpec ){
+					var recordset = "";
 					var result = "";
 	
-					query name="data" result="result" datasource=driver.datasource {
+					query name="recordset" result="result" datasource=arguments.data.datasource {
 						echo("
 							if( not exists( select 1 from LDEV3102_NOPKEY where [key] = 'ba8668b9b') ) 
 								begin 
@@ -282,40 +282,40 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 					expect(structKeyExists(result, "generatedKey")).toBeFalse();
 				});
 	
-				it(title = "Insert with OUTPUT clause should return generatedKey", body = function ( currentSpec ){
-					var data = "";
+				it(title = "Insert with OUTPUT clause should return generatedKey", data=data, body = function ( currentSpec ){
+					var recordset = "";
 					var result = "";
 
-					query name="data" result="result" datasource=driver.datasource {
+					query name="recordset" result="result" datasource=arguments.data.datasource {
 						echo("
 							insert into LDEV3102_AUTOPKEY (test) OUTPUT Inserted.id, Inserted.test values ('inserted');
 						");
 					}
 
-					expect(data.recordCount).toBe(1, "Should return a record!");
-					expect(data.id).toBeGT(0, "Unexpected `id` returned from OUTPUT clause!");
-					expect(data.test).toBe('inserted', "Unexpected `test` returned from OUTPUT clause!");
+					expect(recordset.recordCount).toBe(1, "Should return a record!");
+					expect(recordset.id).toBeGT(0, "Unexpected `id` returned from OUTPUT clause!");
+					expect(recordset.test).toBe('inserted', "Unexpected `test` returned from OUTPUT clause!");
 					expect(result.generatedKey).toBeGT(0, "Unexpected generatedKey!");
 				});
 	
-				it(title = "Multiple SELECT statements should only return first recordset", body = function ( currentSpec ){
-					var data = "";
+				it(title = "Multiple SELECT statements should only return first recordset", data=data, body = function ( currentSpec ){
+					var recordset = "";
 
-					query name="data" datasource=driver.datasource {
+					query name="recordset" datasource=arguments.data.datasource {
 						echo("
 							select 1 as inserted;
 							select 2 as updated;
 						");
 					}
 
-					expect(data.columnData("inserted")).toBe([1]);
+					expect(recordset.columnData("inserted")).toBe([1]);
 				});
 	
-				it(title = "Multiple SELECT statements should not return generatedKey", body = function ( currentSpec ){
-					var data = "";
+				it(title = "Multiple SELECT statements should not return generatedKey", data=data, body = function ( currentSpec ){
+					var recordset = "";
 					var result = "";
 
-					query name="data" result="result" datasource=driver.datasource {
+					query name="recordset" result="result" datasource=arguments.data.datasource {
 						echo("
 							select 1 as inserted;
 							select 2 as updated;
@@ -325,11 +325,11 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 					expect(structKeyExists(result, "generatedKey")).toBeFalse();
 				});
 	
-				it(title = "Multiple INSERT INTO should return first generatedKey", body = function ( currentSpec ){
-					var data = "";
+				it(title = "Multiple INSERT INTO should return first generatedKey", data=data, body = function ( currentSpec ){
+					var recordset = "";
 					var result = "";
 
-					query name="data" result="result" datasource=driver.datasource {
+					query name="recordset" result="result" datasource=arguments.data.datasource {
 						echo("
 							insert into LDEV3102_AUTOPKEY (test) values ('test 1');
 							insert into LDEV3102_AUTOPKEY (test) values ('test 2');
@@ -339,10 +339,10 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 					expect(result.generatedKey).toBeGT(0);
 				});
 	
-				it(title = "Creating a temp table and dropping it should still return select statement with name only", body = function ( currentSpec ){
-					var data = "";
+				it(title = "Creating a temp table and dropping it should still return select statement with name only", data=data, body = function ( currentSpec ){
+					var recordset = "";
 
-					query name="data" datasource=driver.datasource {
+					query name="recordset" datasource=arguments.data.datasource {
 						echo("
 							drop table if exists ##LDEV3102_TEMP_PRIMARY
 							drop table if exists ##LDEV3102_TEMP_SECONDARY
@@ -362,14 +362,14 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 						");
 					}
 
-					expect(data.columnData("id")).toBe([2, 4, 6]);
+					expect(recordset.columnData("id")).toBe([2, 4, 6]);
 				});
 	
-				it(title = "Creating a temp table and dropping it should still return select statement with name and result", body = function ( currentSpec ){
-					var data = "";
+				it(title = "Creating a temp table and dropping it should still return select statement with name and result", data=data, body = function ( currentSpec ){
+					var recordset = "";
 					var result = "";
 
-					query name="data" result="result" datasource=driver.datasource {
+					query name="recordset" result="result" datasource=arguments.data.datasource {
 						echo("
 							drop table if exists ##LDEV3102_TEMP_PRIMARY
 							drop table if exists ##LDEV3102_TEMP_SECONDARY
@@ -389,9 +389,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 						");
 					}
 
-					debug(data);
-
-					expect(data.columnData("id")).toBe([2, 4, 6]);
+					expect(recordset.columnData("id")).toBe([2, 4, 6]);
 				});
 			});
 		}
