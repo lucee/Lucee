@@ -20,6 +20,7 @@ package lucee.runtime.tag;
 
 import static lucee.runtime.tag.util.FileUtil.NAMECONFLICT_ERROR;
 import static lucee.runtime.tag.util.FileUtil.NAMECONFLICT_MAKEUNIQUE;
+import static lucee.runtime.tag.util.FileUtil.NAMECONFLICT_FORCEUNIQUE;
 import static lucee.runtime.tag.util.FileUtil.NAMECONFLICT_OVERWRITE;
 import static lucee.runtime.tag.util.FileUtil.NAMECONFLICT_SKIP;
 import static lucee.runtime.tag.util.FileUtil.NAMECONFLICT_UNDEFINED;
@@ -29,6 +30,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.UUID;
 
 import lucee.commons.digest.Hash;
 import lucee.commons.io.CharsetUtil;
@@ -493,6 +495,8 @@ public final class FileTag extends BodyTagImpl {
 			else if (nameconflict == NAMECONFLICT_OVERWRITE) destination.delete();
 			// MAKEUNIQUE
 			else if (nameconflict == NAMECONFLICT_MAKEUNIQUE) destination = makeUnique(destination);
+			// FORCEUNIQUE
+			else if (nameconflict == NAMECONFLICT_FORCEUNIQUE) destination = forceUnique(destination);
 			// ERROR
 			else throw new ApplicationException("Destination file [" + destination.toString() + "] already exists");
 		}
@@ -550,6 +554,8 @@ public final class FileTag extends BodyTagImpl {
 			else if (nameconflict == NAMECONFLICT_OVERWRITE) destination.delete();
 			// MAKEUNIQUE
 			else if (nameconflict == NAMECONFLICT_MAKEUNIQUE) destination = makeUnique(destination);
+			// FORCEUNIQUE
+			else if (nameconflict == NAMECONFLICT_FORCEUNIQUE) destination = forceUnique(destination);
 			// ERROR
 			else throw new ApplicationException("Destination file [" + destination.toString() + "] already exists");
 		}
@@ -584,6 +590,20 @@ public final class FileTag extends BodyTagImpl {
 		int count = 0;
 		while (res.exists()) {
 			res = res.getParentResource().getRealResource(name + (++count) + ext);
+		}
+
+		return res;
+	}
+
+	private static Resource forceUnique(Resource res) {
+
+		String ext = getFileExtension(res);
+		String name = getFileName(res);
+		ext = (ext == null) ? "" : "." + ext;
+		UUID uuid = UUID.randomUUID();
+		String setUUID = uuid.toString();
+		while (res.exists()) {
+			res = res.getParentResource().getRealResource(name + "_" + setUUID + ext);
 		}
 
 		return res;
@@ -971,6 +991,16 @@ public final class FileTag extends BodyTagImpl {
 				cffile.set("serverfilename", getFileName(destination));
 				cffile.set("attemptedserverfile", destination.getName());
 				// }
+			}
+			else if (nameconflict == NAMECONFLICT_FORCEUNIQUE) {
+				destination = forceUnique(destination);
+				fileWasRenamed = true;
+
+				cffile.set("serverdirectory", getParent(destination));
+				cffile.set("serverfile", destination.getName());
+				cffile.set("serverfileext", getFileExtension(destination));
+				cffile.set("serverfilename", getFileName(destination));
+				cffile.set("attemptedserverfile", destination.getName());
 			}
 			else if (nameconflict == NAMECONFLICT_OVERWRITE) {
 				// fileWasAppended=true;

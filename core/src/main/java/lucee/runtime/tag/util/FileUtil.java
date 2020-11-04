@@ -28,6 +28,7 @@ public class FileUtil {
 	public static final int NAMECONFLICT_SKIP = 4; // same as IGNORE
 	public static final int NAMECONFLICT_OVERWRITE = 8; // same as MERGE
 	public static final int NAMECONFLICT_MAKEUNIQUE = 16;
+	public static final int NAMECONFLICT_FORCEUNIQUE = 32;
 	// public static final int NAMECONFLICT_CLOSURE = 32; // FUTURE
 
 	public static int toNameConflict(String nameConflict) throws ApplicationException {
@@ -43,6 +44,8 @@ public class FileUtil {
 
 		if ("makeunique".equals(nameConflict) || "unique".equals(nameConflict)) return NAMECONFLICT_MAKEUNIQUE;
 
+		if ("forceunique".equals(nameConflict)) return NAMECONFLICT_FORCEUNIQUE;
+		
 		throw new ApplicationException("Invalid value for attribute nameConflict [" + nameConflict + "]", "valid values are [" + fromNameConflictBitMask(Integer.MAX_VALUE) + "]");
 	}
 
@@ -89,6 +92,7 @@ public class FileUtil {
 
 		if ((bitmask & NAMECONFLICT_ERROR) > 0) sb.append("error").append(',');
 		if ((bitmask & NAMECONFLICT_MAKEUNIQUE) > 0) sb.append("makeunique (unique)").append(',');
+		if ((bitmask & NAMECONFLICT_FORCEUNIQUE) > 0) sb.append("forceunique").append(',');
 		if ((bitmask & NAMECONFLICT_OVERWRITE) > 0) sb.append("overwrite (merge)").append(',');
 		if ((bitmask & NAMECONFLICT_SKIP) > 0) sb.append("skip (ignore)").append(',');
 
