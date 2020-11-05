@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 
+import lucee.commons.db.DBUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.config.Config;
@@ -113,7 +114,7 @@ public final class DatasourceConnectionImpl implements DatasourceConnectionPro, 
 		if (datasource.isAlwaysResetConnections()) {
 			try {
 				connection.setAutoCommit(true);
-				connection.setTransactionIsolation(getDefaultTransactionIsolation());
+				DBUtil.setTransactionIsolationEL(connection, getDefaultTransactionIsolation());
 			}
 			catch (SQLException sqle) {
 				throw Caster.toPageException(sqle);

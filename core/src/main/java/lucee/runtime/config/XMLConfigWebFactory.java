@@ -2177,7 +2177,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 					// check if it is a bundle
 					if (!cd.isBundle()) {
-						log.error("Datasource", "[" + cd + "] does not have bundle info");
+						log.error("Cache", "[" + cd + "] does not have bundle info");
 						continue;
 					}
 					map.put(cd.getClassName(), cd);

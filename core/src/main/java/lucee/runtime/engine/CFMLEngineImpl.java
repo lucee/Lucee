@@ -1279,7 +1279,8 @@ public final class CFMLEngineImpl implements CFMLEngine {
 
 			RetireOutputStreamFactory.close();
 
-			getControler().close();
+			Controler cntr = getControler();
+			if (cntr != null) cntr.close();
 
 			// release HTTP Pool
 			HTTPEngine4Impl.releaseConnectionManager();
