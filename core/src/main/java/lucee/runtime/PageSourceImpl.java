@@ -356,7 +356,7 @@ public final class PageSourceImpl implements PageSource {
 					else {
 						LogUtil.log(config, Log.LEVEL_DEBUG, "compile", "load class from binary  [" + getDisplayPath() + "]");
 						byte[] bytes = IOUtil.toBytes(classFile);
-						if (bytes.length > 0) pcn.set(page = newInstance(mapping.getPhysicalClass(this.getClassName(), bytes)));
+						if (ClassUtil.isBytecode(bytes)) pcn.set(page = newInstance(mapping.getPhysicalClass(this.getClassName(), bytes)));
 					}
 				}
 				catch (Exception e) {
