@@ -55,14 +55,14 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 					template :  "#uri#/test.cfm",
 					forms = {scene = 2, columnName = 'col_Num',  value = 2200000000 , type = 'SMALLINT', paramType = 'cf_sql_smallint'}
 				);
-				expect(trim(result.filecontent)).toBe("Invalid data 2200000000 for CFSQLTYPE CF_SQL_INTEGER.");
+				expect(trim(result.filecontent)).toBe("Invalid data 2200000000 for CFSQLTYPE cf_sql_SMALLINT.");
 			});
 			it(title = "Value greater than BIGINT range with cfsqltype = cf_sql_BIGINT",body = function( currentSpec ){
 				local.result = _InternalRequest(
 					template :  "#uri#/test.cfm",
 					forms = {scene = 2, columnName = 'col_Num',  value = 9300000000000000000 , type = 'BIGINT' , paramType = 'cf_sql_bigint' }
 				);
-				expect(trim(result.filecontent)).toBe("Invalid data 9300000000000000000 for CFSQLTYPE CF_SQL_INTEGER.");
+				expect(trim(result.filecontent)).toBe("Invalid data 9300000000000000000 for CFSQLTYPE cf_sql_BIGINT.");
 			});
 			it(title = "Big value with column type DECIMAL",body = function( currentSpec ){
 				local.result = _InternalRequest(
