@@ -77,7 +77,7 @@ public class ResourceAppender extends WriterAppender implements AppenderState, A
 	 * The file will be appended to.
 	 */
 	public ResourceAppender(Layout layout, Resource res, Charset charset, RetireListener listener) throws IOException {
-		this(layout, res, charset, true, true, 60/* a minute */, DEFAULT_BUFFER_SIZE, listener);
+		this(layout, res, charset, true, false, 60/* a minute */, DEFAULT_BUFFER_SIZE, listener);
 	}
 
 	/**
@@ -89,11 +89,11 @@ public class ResourceAppender extends WriterAppender implements AppenderState, A
 	 * designated by <code>filename</code> will be truncated before being opened.
 	 */
 	public ResourceAppender(Layout layout, Resource res, Charset charset, boolean append, RetireListener listener) throws IOException {
-		this(layout, res, charset, append, true, 60/* a minute */, DEFAULT_BUFFER_SIZE, listener);
+		this(layout, res, charset, append, false, 60/* a minute */, DEFAULT_BUFFER_SIZE, listener);
 	}
 
 	public ResourceAppender(Layout layout, Resource res, Charset charset, boolean append, int timeout, RetireListener listener) throws IOException {
-		this(layout, res, charset, append, true, timeout, DEFAULT_BUFFER_SIZE, listener);
+		this(layout, res, charset, append, false, timeout, DEFAULT_BUFFER_SIZE, listener);
 	}
 
 	/**
