@@ -295,11 +295,11 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		final File[] patches = PATCH_ENABLED ? patcheDir.listFiles(new ExtensionFilter(new String[] { ".lco" })) : null;
 		File lucee = null;
 		if (patches != null) {
-			for (final File patche: patches) {
-				if (patche.getName().startsWith("tmp.lco")) patche.delete();
-				else if (patche.lastModified() < coreCreated) patche.delete();
-				else if (patche.length() < 1000000L) patche.delete();
-				else if (lucee == null || Util.isNewerThan(toVersion(patche.getName(), VERSION_ZERO), toVersion(lucee.getName(), VERSION_ZERO))) lucee = patche;
+			for (final File patch : patches) {
+				if (patch.getName().startsWith("tmp.lco")) patch.delete();
+				else if (patch.lastModified() < coreCreated) patch.delete();
+				else if (patch.length() < 1000000L) patch.delete();
+				else if (lucee == null || Util.isNewerThan(toVersion(patch.getName(), VERSION_ZERO), toVersion(lucee.getName(), VERSION_ZERO))) lucee = patch;
 			}
 		}
 		if (lucee != null && Util.isNewerThan(coreVersion, toVersion(lucee.getName(), VERSION_ZERO))) lucee = null;
@@ -309,8 +309,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		try {
 			// Load core version when no patch available
 			if (lucee == null) {
-				log(Logger.LOG_DEBUG, "Load Build in Core");
-				//
+				log(Logger.LOG_DEBUG, "Load built-in Core");
 
 				final String coreExt = "lco";
 				final String coreExtPack = "lco.pack.gz";
