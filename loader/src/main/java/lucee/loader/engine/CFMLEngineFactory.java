@@ -324,10 +324,18 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 					is = new TP().getClass().getResourceAsStream("/core/core." + coreExt);
 					if (is == null) {
 						is = new TP().getClass().getResourceAsStream("/core/core." + coreExtPack);
-						isPack200 = true;
+						if (is != null) {
+							isPack200 = true;
+						}
 					}
-					os = new BufferedOutputStream(new FileOutputStream(isPack200 ? rcPack200 : rc));
-					copy(is, os);
+
+					if (is != null) {
+						os = new BufferedOutputStream(new FileOutputStream(isPack200 ? rcPack200 : rc));
+						copy(is, os);
+					}
+					else {
+						System.err.println("/core/core." + coreExt + " not found");
+					}
 				}
 				finally {
 					closeEL(is);
@@ -341,19 +349,29 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 					rcPack200.delete();
 				}
 
-				lucee = new File(patcheDir, getVersion(rc) + "." + coreExt);
-				try {
-					is = new FileInputStream(rc);
-					os = new BufferedOutputStream(new FileOutputStream(lucee));
-					copy(is, os);
+				CFMLEngine engine = null;
+				if (rc.exists()) {
+					lucee = new File(patcheDir, getVersion(rc) + "." + coreExt);
+
+					try {
+						is = new FileInputStream(rc);
+						os = new BufferedOutputStream(new FileOutputStream(lucee));
+						copy(is, os);
+					}
+					finally {
+						closeEL(is);
+						closeEL(os);
+						rc.delete();
+					}
+
+					engine = _getCore(lucee);
 				}
-				finally {
-					closeEL(is);
-					closeEL(os);
-					rc.delete();
+				else {
+					// TODO: LDEV-2805 set engine's classloader to use local class files
+					// engine =
 				}
 
-				setEngine(_getCore(lucee));
+				setEngine(engine);
 			}
 			else {
 
