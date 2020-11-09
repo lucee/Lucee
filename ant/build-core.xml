@@ -1275,7 +1275,7 @@
       basedir="${temp}/loader" 
       jarfile="${trgLoader}/lucee-${version}.jar" 
       manifest="${goal}/META-INF/MANIFEST.MF"/>
-      <echots message="buil-jar-ant:${goal}/META-INF/MANIFEST.MF"/>
+      <echots message="build-jar-ant:${goal}/META-INF/MANIFEST.MF"/>
     
 
     <delete dir="${temp}"/>
