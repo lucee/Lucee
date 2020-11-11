@@ -215,8 +215,8 @@ millisecond:"ms"
 <cfset var loa=0>
 <cfset var tot=0>
 <cfset var q=0>
-<cfparam name="custom.minimal" default="0">
-<cfparam name="custom.highlight" default="250000">
+<cfparam name="arguments.custom.minimal" default="0">
+<cfparam name="arguments.custom.highlight" default="250000">
 <cfloop query="pages">
 		<cfset tot=tot+pages.total><cfset q=q+pages.query>
 		<cfif pages.avg LT arguments.custom.minimal*1000><cfcontinue></cfif>
@@ -247,7 +247,7 @@ if(!pages.recordcount || !hasQueries) {
 	<td align="right" class="cfdebug" nowrap><i>#formatUnit(arguments.custom.unit, tot-q-loa)#</i></td><cfif pages.recordcount><td colspan=2>&nbsp;</td></cfif>
 	<td align="left" class="cfdebug"><i>APPLICATION EXECUTION TIME</i></td>
 </tr>
-<cfif listfirst(formatUnit(custom.unit, q)," ") gt 0>
+<cfif listfirst(formatUnit(arguments.custom.unit, q)," ") gt 0>
 	<tr>
 		<td align="right" class="cfdebug" nowrap><i>#formatUnit(arguments.custom.unit, q)#</i></td><cfif pages.recordcount><td colspan=2>&nbsp;</td></cfif>
 		<td align="left" class="cfdebug"><i>QUERY EXECUTION TIME</i></td>
@@ -372,7 +372,7 @@ if(!pages.recordcount || !hasQueries) {
 <cfif queries.recordcount>
 <p class="cfdebug"><hr/><b class="cfdebuglge"><a name="cfdebug_sql">SQL Queries</a></b></p>
 <cfloop query="queries">	
-<code><b>#queries.name#</b> (Datasource=#queries.datasource#, Time=#formatUnit(custom.unit, queries.time)#, Records=#queries.count#) in <cfif len(queries.src)>#queries.src#:#queries.line#</cfif></code><br />
+<code><b>#queries.name#</b> (Datasource=#queries.datasource#, Time=#formatUnit(arguments.custom.unit, queries.time)#, Records=#queries.count#) in <cfif len(queries.src)>#queries.src#:#queries.line#</cfif></code><br />
 <cfif ListFindNoCase(queries.columnlist,'usage') and IsStruct(queries.usage)><cfset var usage=queries.usage><cfset var lstNeverRead="">
 <cfloop collection="#usage#" index="local.item" item="local._val"><cfif not _val><cfset lstNeverRead=ListAppend(lstNeverRead,item,', ')></cfif></cfloop>
 <cfif len(lstNeverRead)><font color="red">the following colum(s) are never read within the request:#lstNeverRead#</font><br /></cfif>
