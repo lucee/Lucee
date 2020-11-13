@@ -214,7 +214,7 @@ public final class AppListenerUtil {
 				if (idle == -1) idle = Caster.toIntValue(data.get(CONNECTION_TIMEOUT, null), 1);
 				return ApplicationDataSource.getInstance(config, name, cd, Caster.toString(oConnStr), user, pass, listener, Caster.toBooleanValue(data.get(BLOB, null), false),
 						Caster.toBooleanValue(data.get(CLOB, null), false), Caster.toIntValue(data.get(CONNECTION_LIMIT, null), -1), idle,
-						Caster.toIntValue(data.get(LIVE_TIMEOUT, null), 1), Caster.toLongValue(data.get(META_CACHE_TIMEOUT, null), 60000L),
+						Caster.toIntValue(data.get(LIVE_TIMEOUT, null), 60), Caster.toLongValue(data.get(META_CACHE_TIMEOUT, null), 60000L),
 						Caster.toTimeZone(data.get(KeyConstants._timezone, null), null), Caster.toIntValue(data.get(ALLOW, null), DataSource.ALLOW_ALL),
 						Caster.toBooleanValue(data.get(KeyConstants._storage, null), false), Caster.toBooleanValue(data.get(KeyConstants._readonly, null), false),
 						Caster.toBooleanValue(data.get(KeyConstants._validate, null), false), Caster.toBooleanValue(data.get("requestExclusive", null), false),
