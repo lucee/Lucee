@@ -1053,6 +1053,58 @@ Remember CFML arrays start at 1 not 0.</description>
 			<type>boolean</type>
 		</return>
 	</function>
+	
+	<!-- arrayPop -->
+	<function>
+		<name>arrayPop</name>
+		<class>lucee.runtime.functions.arrays.ArrayPop</class>
+		<member-name>pop</member-name>
+		<member-chaining>false</member-chaining>
+		<keywords>array</keywords>
+		<description>pops the last element from an array. In case the array is empty an exception is thrown, 
+			unless the second argument "defaultValue" is provided, in that case that value is returned.</description>
+		<argument>
+			<name>array</name>
+			<type>array</type>
+			<required>Yes</required>
+			<description>Name of an array</description>
+    	</argument>
+		<argument>
+			<name>defaultValue</name>
+			<type>any</type>
+			<required>no</required>
+			<description>this value is returned in case the array is empty</description>
+    	</argument>
+		<return>
+			<type>any</type>
+		</return>
+	</function>
+	
+	<!-- arrayPush -->
+	<function>
+		<name>arrayPush</name>
+		<class>lucee.runtime.functions.arrays.ArrayPush</class>
+		<member-name>push</member-name>
+		<member-chaining>false</member-chaining>
+		<keywords>array</keywords>
+		<description>Inserts an array element at the end of an array and return the new size of the array.</description>
+		<argument>
+			<name>array</name>
+			<type>array</type>
+			<required>Yes</required>
+			<description>Name of an array</description>
+    	</argument>
+		<argument>
+			<name>value</name>
+			<type>any</type>
+			<required>Yes</required>
+			<description>value to prepend</description>
+    	</argument>
+		<return>
+			<type>numeric</type>
+		</return>
+	</function>
+	
 	<!-- arrayResize -->
 	<function>
 		<name>arrayResize</name>
@@ -1138,6 +1190,33 @@ Remember CFML arrays start at 1 not 0.</description>
 			<type>boolean</type>
 		</return>
 	</function>
+	
+	<!-- arrayShift -->
+	<function>
+		<name>arrayShift</name>
+		<class>lucee.runtime.functions.arrays.ArrayShift</class>
+		<member-name>shift</member-name>
+		<member-chaining>false</member-chaining>
+		<keywords>array</keywords>
+		<description>pops the first element from an array and shift the rest of the values to the left. In case the array is empty an exception is thrown, 
+			unless the second argument "defaultValue" is provided, in that case that value is returned.</description>
+		<argument>
+			<name>array</name>
+			<type>array</type>
+			<required>Yes</required>
+			<description>array to shift</description>
+    	</argument>
+		<argument>
+			<name>defaultValue</name>
+			<type>any</type>
+			<required>No</required>
+			<description>this value is returned in case the array is empty</description>
+    	</argument>
+		<return>
+			<type>any</type>
+		</return>
+	</function>
+	
 	<!-- arraySlice -->
 	<function>
 		<name>arraySlice</name>
@@ -1276,6 +1355,34 @@ sort direction:
 			<type>boolean</type>
 		</return>
 	</function>
+	
+	<!-- arrayUnShift -->
+	<function>
+		<name>arrayUnShift</name>
+		<class>lucee.runtime.functions.arrays.ArrayUnShift</class>
+		<member-name>unshift</member-name>
+		<member-chaining>false</member-chaining>
+		<keywords>array</keywords>
+		<description>Adds an element at the beginning of the array and shifts the rest of the elements to the right.</description>
+		<argument>
+			<name>array</name>
+			<type>array</type>
+			<required>Yes</required>
+			<description>array to add element</description>
+    	</argument>
+		<argument>
+			<name>value</name>
+			<type>any</type>
+			<required>Yes</required>
+			<description>element to add.</description>
+    	</argument>
+		<return>
+			<type>numeric</type>
+		</return>
+	</function>
+	
+	
+	
 	<!-- arrayToList -->
 	<function>
 		<name>arrayToList</name>
