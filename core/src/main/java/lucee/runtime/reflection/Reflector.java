@@ -47,13 +47,8 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.types.RefInteger;
 import lucee.commons.lang.types.RefIntegerImpl;
 import lucee.runtime.Component;
-<<<<<<< HEAD
 import lucee.runtime.JF;
 import lucee.runtime.PageContext;
-import lucee.runtime.PageContextImpl;
-import lucee.runtime.PageSource;
-=======
->>>>>>> 5.3
 import lucee.runtime.config.Constants;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;

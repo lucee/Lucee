@@ -4965,9 +4965,6 @@ public final class Caster {
 			}
 		}
 	}
-<<<<<<< HEAD
-}
-=======
 
 	public static long toTime(lucee.runtime.type.dt.Date date, Time time, TimeZone tz) {
 		if (time == null) return date.getTime();
@@ -4984,4 +4981,3 @@ public final class Caster {
 		return c.getTimeInMillis();
 	}
 }
->>>>>>> 5.3
