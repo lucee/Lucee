@@ -18,6 +18,7 @@
  **/
 package lucee.runtime.helpers;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Stack;
 
@@ -104,7 +105,12 @@ public final class XMLEventParser extends DefaultHandler {
 			throw Caster.toPageException(e);
 		}
 		finally {
-			IOUtil.closeEL(is);
+			try {
+				IOUtil.close(is);
+			}
+			catch (IOException e) {
+				throw Caster.toPageException(e);
+			}
 		}
 
 	}

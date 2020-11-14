@@ -71,7 +71,7 @@ public class Ansi92 extends SQLExecutorSupport {
 		PageContext pc = ThreadLocalPageContext.get();
 
 		try {
-			query = new QueryImpl(pc, dc, sqlSelect, -1, -1, null, "query");
+			query = new QueryImpl(pc, dc, sqlSelect, -1, -1, null, scopeName + "_storage");
 		}
 		catch (DatabaseException de) {
 
@@ -83,28 +83,28 @@ public class Ansi92 extends SQLExecutorSupport {
 				sql = createStorageTableSql(dc, scopeName, null);
 				ScopeContext.info(log, sql.toString());
 				// execute create table
-				new QueryImpl(pc, dc, sql, -1, -1, null, "query");
+				new QueryImpl(pc, dc, sql, -1, -1, null, scopeName + "_storage");
 			}
 			catch (DatabaseException _de) {
 				// failed, try text
 				try {
 					sql = createStorageTableSql(dc, scopeName, "text");
 					ScopeContext.info(log, sql.toString());
-					new QueryImpl(pc, dc, sql, -1, -1, null, "query");
+					new QueryImpl(pc, dc, sql, -1, -1, null, scopeName + "_storage");
 				}
 				catch (DatabaseException __de) {
 					// failed, try "memo"
 					try {
 						sql = createStorageTableSql(dc, scopeName, "memo");
 						ScopeContext.info(log, sql.toString());
-						new QueryImpl(pc, dc, sql, -1, -1, null, "query");
+						new QueryImpl(pc, dc, sql, -1, -1, null, scopeName + "_storage");
 					}
 					catch (DatabaseException ___de) {
 						// failed, try clob
 						try {
 							sql = createStorageTableSql(dc, scopeName, "clob");
 							ScopeContext.info(log, sql.toString());
-							new QueryImpl(pc, dc, sql, -1, -1, null, "query");
+							new QueryImpl(pc, dc, sql, -1, -1, null, scopeName + "_storage");
 						}
 						catch (DatabaseException ____de) {
 							___de.initCause(__de);
@@ -123,13 +123,13 @@ public class Ansi92 extends SQLExecutorSupport {
 			// database table created, now create index
 			try {
 				sql = new SQLImpl("CREATE UNIQUE INDEX ix_" + tableName + " ON " + tableName + "(cfid, name, expires)");
-				new QueryImpl(pc, dc, sql, -1, -1, null, "query");
+				new QueryImpl(pc, dc, sql, -1, -1, null, scopeName + "_storage");
 			}
 			catch (DatabaseException _de) {
 				throw new DatabaseException("Failed to create unique index on " + tableName, null, sql, dc);
 			}
 
-			query = new QueryImpl(pc, dc, sqlSelect, -1, -1, null, "query");
+			query = new QueryImpl(pc, dc, sqlSelect, -1, -1, null, scopeName + "_storage");
 		}
 
 		ScopeContext.info(log, sqlSelect.toString());
@@ -194,7 +194,7 @@ public class Ansi92 extends SQLExecutorSupport {
 				new SQLItem[] { new SQLItemImpl(System.currentTimeMillis(), Types.VARCHAR) });
 		Query query;
 		try {
-			query = new QueryImpl(ThreadLocalPageContext.get(), dc, sqlSelect, -1, -1, null, "query");
+			query = new QueryImpl(ThreadLocalPageContext.get(), dc, sqlSelect, -1, -1, null, strType + "_storage");
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
@@ -215,7 +215,7 @@ public class Ansi92 extends SQLExecutorSupport {
 			engine.remove(type, name, cfid);
 			SQLImpl sql = new SQLImpl("DELETE FROM " + StorageScopeDatasource.PREFIX + "_" + strType + "_data WHERE cfid=? and name=?",
 					new SQLItem[] { new SQLItemImpl(cfid, Types.VARCHAR), new SQLItemImpl(name, Types.VARCHAR) });
-			new QueryImpl(ThreadLocalPageContext.get(), dc, sql, -1, -1, null, "query");
+			new QueryImpl(ThreadLocalPageContext.get(), dc, sql, -1, -1, null, strType + "_storage");
 
 		}
 	}

@@ -112,7 +112,7 @@ public final class FTPResource extends ResourceSupport {
 
 	@Override
 	public void remove(boolean alsoRemoveChildren) throws IOException {
-		if (isRoot()) throw new FTPResoucreException("can't delete root of ftp server");
+		if (isRoot()) throw new FTPResoucreException("Can't delete root of ftp server");
 
 		if (alsoRemoveChildren) ResourceUtil.removeChildren(this);
 		FTPResourceClient client = null;
@@ -120,7 +120,7 @@ public final class FTPResource extends ResourceSupport {
 			provider.lock(this);
 			client = provider.getClient(data);
 			boolean result = client.deleteFile(getInnerPath());
-			if (!result) throw new IOException("can't delete file [" + getPath() + "]");
+			if (!result) throw new IOException("Can't delete file [" + getPath() + "]");
 		}
 		finally {
 			provider.returnClient(client);
@@ -491,7 +491,7 @@ public final class FTPResource extends ResourceSupport {
 			client.unregisterFTPFile(this);
 			client.setFileType(FTP.BINARY_FILE_TYPE);
 			OutputStream os = append ? client.appendFileStream(getInnerPath()) : client.storeFileStream(getInnerPath());
-			if (os == null) throw new IOException("can not open stream to file [" + this + "]");
+			if (os == null) throw new IOException("Can't open stream to file [" + this + "]");
 
 			return IOUtil.toBufferedOutputStream(new FTPResourceOutputStream(client, this, os));
 		}

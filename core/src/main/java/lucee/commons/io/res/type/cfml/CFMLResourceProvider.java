@@ -264,7 +264,7 @@ public class CFMLResourceProvider implements ResourceProviderPro {
 		if (component != null) return component;
 		if (this.component != null) return this.component;
 
-		if (StringUtil.isEmpty(componentPath, true)) throw new ApplicationException("you need to define the argument [component] for the [CFMLResourceProvider]");
+		if (StringUtil.isEmpty(componentPath, true)) throw new ApplicationException("You need to define the argument [component] for the [CFMLResourceProvider]");
 		componentPath = componentPath.trim();
 		this.component = pc.loadComponent(componentPath);
 		call(pc, this.component, "init", new Object[] { scheme, Caster.toStruct(args) });

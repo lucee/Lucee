@@ -20,7 +20,7 @@ package lucee.runtime.tag;
 
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
@@ -234,8 +234,8 @@ public final class Invoke extends BodyTagImpl implements DynamicAttributes {
 			if (password == null) password = "";
 		}
 		ProxyData pd = StringUtil.isEmpty(proxy.getServer()) ? null : proxy;
-		WSClient ws = username != null ? ((ConfigImpl) ThreadLocalPageContext.getConfig()).getWSHandler().getWSClient(webservice, username, password, pd)
-				: ((ConfigImpl) ThreadLocalPageContext.getConfig()).getWSHandler().getWSClient(webservice, null, null, pd);
+		WSClient ws = username != null ? ((ConfigWebPro) ThreadLocalPageContext.getConfig()).getWSHandler().getWSClient(webservice, username, password, pd)
+				: ((ConfigWebPro) ThreadLocalPageContext.getConfig()).getWSHandler().getWSClient(webservice, null, null, pd);
 		Object rtn = ws.callWithNamedValues(pageContext, KeyImpl.init(method), data);
 
 		// return

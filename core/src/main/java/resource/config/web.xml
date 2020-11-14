@@ -13,10 +13,7 @@ Path placeholders:
 	{system-directory}: path to thesystem directory
 	{web-context-hash}: hash of the web context
 -->
-	
-	
-	
-	
+
     <!--
     arguments:
 		close-connection - 	write connection-close to response header
@@ -173,65 +170,4 @@ Path placeholders:
 	<application
 		cache-directory="{lucee-web}/cache/"
 		cache-directory-max-size="100mb"/>
-		
-		
-		
-		
-<!--
-LOGGING
-===========================
-
-Possible Layouts:
-- - - - - - - - - - - - - -
-
-Classic: 
- Same layout as with Lucee 1 - 4.1
-
-HTML: 
-a HTML table, possible arguments are 
-- locationinfo (boolean): By default, it is set to false which means there will be no location information output by this layout. If the the option is set to true, then the file name and line number of the statement at the origin of the log statement will be output.
-- title: The Title option takes a String value. This option sets the document title of the generated HTML document.
-
-XML:
-The output of the XMLLayout consists of a series of log4j:event elements as defined in the log4j.dtd. It does not output a complete well-formed XML file. The output is designed to be included as an external entity in a separate file to form a correct XML file.
-- locationinfo (boolean): By default, it is set to false which means there will be no location information output by this layout. If the the option is set to true, then the file name and line number of the statement at the origin of the log statement will be output.
-- properties: Sets whether MDC key-value pairs should be output, default false.
-
-Pattern:
-A flexible layout configurable with pattern string. 
-- pattern: This is the string which controls formatting and consists of a mix of literal content and conversion specifiers. for more details see: http://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/PatternLayout.html
-
-<layout-class>:
-A full class path to a Layout class available in the enviroment with an empty constructor.
-for every argument defined lucee tries to call a matching setter method
-
-
-Possible Appenders:
-- - - - - - - - - - - - - -
-
-Console: 
-logs events to to the error or output stream
-- streamtype: "output" or "error" 
-
-Resource:
-Logs error to a resource (locale file, ftp, zip, ...)
-- path: path to the locale file
--charset (default:resource charset): charset used to write the file
-- maxfiles (default:10): maximal files created
-- maxfilesize (default:1024*1024*10): the maxial size of a log file created
-
-<appender-class>:
-A full class path to an Appender class available in the enviroment with an empty constructor.
-for every argument defined lucee tries to call a matching setter method
-
- -->
-	<logging>
-		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/remoteclient.log" level="info" layout="classic" name="remoteclient"/>
-		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/requesttimeout.log" layout="classic" name="requesttimeout"/>
-		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/mail.log" layout="classic" name="mail"/>
-		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/scheduler.log" layout="classic" name="scheduler"/>
-		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/trace.log" layout="classic" name="trace"/>
-		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/application.log" level="info" layout="classic" name="application"/>
-		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/exception.log" level="info" layout="classic" name="exception"/>	
-	</logging>		
 </cfLuceeConfiguration>

@@ -87,9 +87,9 @@ import lucee.runtime.cache.tag.CacheItem;
 import lucee.runtime.cache.tag.include.IncludeCacheItem;
 import lucee.runtime.component.ComponentLoader;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.Constants;
 import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.config.Password;
@@ -148,7 +148,7 @@ import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.orm.ORMEngine;
 import lucee.runtime.orm.ORMSession;
 import lucee.runtime.osgi.OSGiUtil;
-import lucee.runtime.regex.Perl5Util;
+import lucee.runtime.regex.Regex;
 import lucee.runtime.rest.RestRequestListener;
 import lucee.runtime.rest.RestUtil;
 import lucee.runtime.security.Credential;
@@ -248,7 +248,7 @@ public final class PageContextImpl extends PageContext {
 	private BodyContentStack bodyContentStack;
 	private DevNullBodyContent devNull;
 
-	private ConfigWebImpl config;
+	private ConfigWebPro config;
 	// private DataSourceManager manager;
 	// private CFMLCompilerImpl compiler;
 
@@ -318,6 +318,8 @@ public final class PageContextImpl extends PageContext {
 	private Tag currentTag = null;
 	private Thread thread;
 	private long startTime;
+	private long startTimeNS;
+	private long endTimeNS;
 
 	private DatasourceManagerImpl manager;
 	private CFThread threads;
@@ -362,7 +364,7 @@ public final class PageContextImpl extends PageContext {
 	 * @param id identity of the pageContext
 	 * @param servlet
 	 */
-	public PageContextImpl(ScopeContext scopeContext, ConfigWebImpl config, int id, HttpServlet servlet, boolean jsr223) {
+	public PageContextImpl(ScopeContext scopeContext, ConfigWebPro config, int id, HttpServlet servlet, boolean jsr223) {
 		// must be first because is used after
 		tagHandlerPool = config.getTagHandlerPool();
 		this.servlet = servlet;
@@ -393,15 +395,8 @@ public final class PageContextImpl extends PageContext {
 	@Override
 	public Throwable getRequestTimeoutException() {
 		throw new RuntimeException("method no longer supported");
-		// return requestTimeoutException;
 	}
 
-	/*
-	 * public void setRequestTimeoutException(Throwable requestTimeoutException) {
-	 * this.requestTimeoutException=requestTimeoutException;
-	 * 
-	 * }
-	 */
 	public StackTraceElement[] getTimeoutStackTrace() {
 		return timeoutStacktrace;
 	}
@@ -413,7 +408,7 @@ public final class PageContextImpl extends PageContext {
 	@Override
 	public void initialize(Servlet servlet, ServletRequest req, ServletResponse rsp, String errorPageURL, boolean needsSession, int bufferSize, boolean autoFlush)
 			throws IOException, IllegalStateException, IllegalArgumentException {
-		initialize((HttpServlet) servlet, (HttpServletRequest) req, (HttpServletResponse) rsp, errorPageURL, needsSession, bufferSize, autoFlush, false, false);
+		initialize((HttpServlet) servlet, (HttpServletRequest) req, (HttpServletResponse) rsp, errorPageURL, needsSession, bufferSize, autoFlush, false, false, null);
 	}
 
 	/**
@@ -426,15 +421,24 @@ public final class PageContextImpl extends PageContext {
 	 * @param needsSession
 	 * @param bufferSize
 	 * @param autoFlush
+	 * @param tmplPC
 	 */
 	public PageContextImpl initialize(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp, String errorPageURL, boolean needsSession, int bufferSize,
-			boolean autoFlush, boolean isChild, boolean ignoreScopes) {
+			boolean autoFlush, boolean isChild, boolean ignoreScopes, PageContextImpl tmplPC) {
 		parent = null;
 		root = null;
+
+		boolean clone = tmplPC != null;
 		requestId = counter++;
 
-		appListenerType = ApplicationListener.TYPE_NONE;
-		this.ignoreScopes = ignoreScopes;
+		if (clone) {
+			appListenerType = tmplPC.appListenerType;
+			this.ignoreScopes = tmplPC.ignoreScopes;
+		}
+		else {
+			appListenerType = ApplicationListener.TYPE_NONE;
+			this.ignoreScopes = ignoreScopes;
+		}
 
 		ReqRspUtil.setContentType(rsp, "text/html; charset=" + config.getWebCharset().name());
 		this.isChild = isChild;
@@ -443,22 +447,29 @@ public final class PageContextImpl extends PageContext {
 		setFullNullSupport();
 
 		startTime = System.currentTimeMillis();
+		startTimeNS = System.nanoTime();
+		endTimeNS = 0;
 		thread = Thread.currentThread();
 
-		this.req = new HTTPServletRequestWrap(req);
+		if (req instanceof HTTPServletRequestWrap) this.req = (HTTPServletRequestWrap) req;
+		else this.req = new HTTPServletRequestWrap(req);
+
 		this.rsp = rsp;
 		this.servlet = servlet;
 
 		// Writers
-		if (config.debugLogOutput()) {
-			CFMLWriter w = config.getCFMLWriter(this, req, rsp);
-			w.setAllowCompression(false);
-			DebugCFMLWriter dcw = new DebugCFMLWriter(w);
-			bodyContentStack.init(dcw);
-			debugger.setOutputLog(dcw);
-		}
-		else {
-			bodyContentStack.init(config.getCFMLWriter(this, req, rsp));
+		{
+			PageContext tmp = clone ? tmplPC : this;
+			if (config.debugLogOutput()) {
+				CFMLWriter w = config.getCFMLWriter(tmp, req, rsp);
+				w.setAllowCompression(false);
+				DebugCFMLWriter dcw = new DebugCFMLWriter(w);
+				bodyContentStack.init(dcw);
+				debugger.setOutputLog(dcw);
+			}
+			else {
+				bodyContentStack.init(config.getCFMLWriter(tmp, req, rsp));
+			}
 		}
 
 		writer = bodyContentStack.getWriter();
@@ -466,44 +477,103 @@ public final class PageContextImpl extends PageContext {
 
 		// Scopes
 		server = ScopeContext.getServerScope(this, ignoreScopes);
-		if (hasFamily) {
-			variablesRoot = new VariablesImpl();
-			variables = variablesRoot;
-			request = new RequestImpl();
-			_url = new URLImpl();
-			_form = new FormImpl();
-			urlForm = new UrlFormImpl(_form, _url);
-			undefined = new UndefinedImpl(this, getScopeCascadingType());
-
-			hasFamily = false;
-		}
-		else if (variables == null) {
-			variablesRoot = new VariablesImpl();
-			variables = variablesRoot;
-		}
-		request.initialize(this);
-
-		if (config.mergeFormAndURL()) {
-			url = urlForm;
-			form = urlForm;
+		if (clone) {
+			this.form = tmplPC.form;
+			this.url = tmplPC.url;
+			this.urlForm = tmplPC.urlForm;
+			this._url = tmplPC._url;
+			this._form = tmplPC._form;
+			this.variables = tmplPC.variables;
+			this.undefined = new UndefinedImpl(this, (short) tmplPC.undefined.getType());
+			hasFamily = true;
 		}
 		else {
-			url = _url;
-			form = _form;
+			if (hasFamily) {
+				variablesRoot = new VariablesImpl();
+				variables = variablesRoot;
+				request = new RequestImpl();
+				_url = new URLImpl();
+				_form = new FormImpl();
+				urlForm = new UrlFormImpl(_form, _url);
+				undefined = new UndefinedImpl(this, getScopeCascadingType());
+				hasFamily = false;
+			}
+			else if (variables == null) {
+				variablesRoot = new VariablesImpl();
+				variables = variablesRoot;
+			}
 		}
-		// url.initialize(this);
-		// form.initialize(this);
-		// undefined.initialize(this);
 
-		_psq = null;
+		if (clone) {
+			this.request = tmplPC.request;
+		}
+		else {
+			request.initialize(this);
+			if (config.mergeFormAndURL()) {
+				url = urlForm;
+				form = urlForm;
+			}
+			else {
+				url = _url;
+				form = _form;
+			}
+		}
+
+		// scopes
+		if (clone) {
+			this._psq = tmplPC._psq;
+			this.gatewayContext = tmplPC.gatewayContext;
+		}
+		else {
+			_psq = null;
+		}
 
 		fdEnabled = !config.allowRequestTimeout();
 
 		if (config.getExecutionLogEnabled()) this.execLog = config.getExecutionLogFactory().getInstance(this);
 		if (debugger != null) debugger.init(config);
-
 		undefined.initialize(this);
 		timeoutStacktrace = null;
+
+		if (clone) {
+			getCFID();
+			this.cfid = tmplPC.cfid;
+			this.cftoken = tmplPC.cftoken;
+
+			this.requestTimeout = tmplPC.requestTimeout;
+			this.locale = tmplPC.locale;
+			this.timeZone = tmplPC.timeZone;
+			this.fdEnabled = tmplPC.fdEnabled;
+			this.useSpecialMappings = tmplPC.useSpecialMappings;
+			this.serverPassword = tmplPC.serverPassword;
+			this.requestDialect = tmplPC.requestDialect;
+			this.currentTemplateDialect = tmplPC.currentTemplateDialect;
+
+			tmplPC.hasFamily = true;
+
+			this.parent = tmplPC;
+			this.root = tmplPC.root == null ? tmplPC : tmplPC.root;
+			this.tagName = tmplPC.tagName;
+			this.parentTags = tmplPC.parentTags == null ? null : (List) ((ArrayList) tmplPC.parentTags).clone();
+
+			if (tmplPC.children == null) tmplPC.children = new ArrayList<PageContext>();
+			tmplPC.children.add(this);
+
+			this.applicationContext = tmplPC.applicationContext;
+			this.setFullNullSupport();
+
+			// path
+			this.base = tmplPC.base;
+			java.util.Iterator<PageSource> it = tmplPC.includePathList.iterator();
+			while (it.hasNext()) {
+				this.includePathList.add(it.next());
+			}
+			it = pathList.iterator();
+			while (it.hasNext()) {
+				this.pathList.add(it.next());
+			}
+		}
+
 		return this;
 	}
 
@@ -625,6 +695,9 @@ public final class PageContextImpl extends PageContext {
 		currentTag = null;
 
 		// Req/Rsp
+		if (req instanceof HTTPServletRequestWrap) {
+			req.close();
+		}
 		req = null;
 		rsp = null;
 		servlet = null;
@@ -680,15 +753,15 @@ public final class PageContextImpl extends PageContext {
 	@Override
 	public void writePSQ(Object o) throws IOException, PageException {
 		// is var usage allowed?
-		if (applicationContext != null && applicationContext.getQueryVarUsage() != ConfigImpl.QUERY_VAR_USAGE_IGNORE) {
+		if (applicationContext != null && applicationContext.getQueryVarUsage() != ConfigPro.QUERY_VAR_USAGE_IGNORE) {
 			// Warning
-			if (applicationContext.getQueryVarUsage() == ConfigImpl.QUERY_VAR_USAGE_WARN) {
+			if (applicationContext.getQueryVarUsage() == ConfigPro.QUERY_VAR_USAGE_WARN) {
 				DebuggerImpl.deprecated(this, "query.variableUsage",
 						"Please do not use variables within the cfquery tag, instead use the tag \"cfqueryparam\" or the attribute \"params\"");
 
 			}
 			// Error
-			else if (applicationContext.getQueryVarUsage() == ConfigImpl.QUERY_VAR_USAGE_ERROR) {
+			else if (applicationContext.getQueryVarUsage() == ConfigPro.QUERY_VAR_USAGE_ERROR) {
 				throw new ApplicationException("Variables are not allowed within cfquery, please use the tag <cfqueryparam> or the attribute \"params\" instead.");
 			}
 		}
@@ -833,6 +906,7 @@ public final class PageContextImpl extends PageContext {
 	// IMPORTANT!!! we do not getCachedWithin in this method, because Modern|ClassicAppListener is
 	// calling this method and in this case it should not be used
 	public void _doInclude(PageSource[] sources, boolean runOnce, Object cachedWithin) throws PageException {
+		PageContextUtil.checkRequestTimeout(this);
 		if (cachedWithin == null) {
 			_doInclude(sources, runOnce);
 			return;
@@ -898,7 +972,7 @@ public final class PageContextImpl extends PageContext {
 
 	private void _doInclude(PageSource[] sources, boolean runOnce) throws PageException {
 		// debug
-		if (!gatewayContext && config.debug()) {
+		if (!gatewayContext && config.debug() && config.hasDebugOptions(ConfigPro.DEBUG_TEMPLATE)) {
 			long currTime = executionTime;
 			long exeTime = 0;
 			long time = System.nanoTime();
@@ -963,7 +1037,7 @@ public final class PageContextImpl extends PageContext {
 	}
 
 	public static void notSupported(Config config, PageSource ps) throws ApplicationException {
-		if (ps.getDialect() == CFMLEngine.DIALECT_LUCEE && config instanceof ConfigImpl && !((ConfigImpl) config).allowLuceeDialect()) notSupported();
+		if (ps.getDialect() == CFMLEngine.DIALECT_LUCEE && config instanceof ConfigPro && !((ConfigPro) config).allowLuceeDialect()) notSupported();
 	}
 
 	public static void notSupported() throws ApplicationException {
@@ -987,82 +1061,12 @@ public final class PageContextImpl extends PageContext {
 		return sva;
 	}
 
-	public List<PageSource> getPageSourceList() {
-		return (List<PageSource>) pathList.clone();
-	}
-
+	/**
+	 * if index is less than 1 it start from the rights
+	 */
 	public PageSource getPageSource(int index) {
+		if (index <= 0) index = includePathList.size() - index;
 		return includePathList.get(index - 1);
-	}
-
-	public synchronized void copyStateTo(PageContextImpl other) {
-		// cfid (we do this that way, otherwise we only have the same cfid if the current pc has defined
-		// cfid in cookie or url)
-		getCFID();
-		other.cfid = cfid;
-		other.cftoken = cftoken;
-
-		// private Debugger debugger=new DebuggerImpl();
-		other.requestTimeout = requestTimeout;
-		other.locale = locale;
-		other.timeZone = timeZone;
-		other.fdEnabled = fdEnabled;
-		other.useSpecialMappings = useSpecialMappings;
-		other.serverPassword = serverPassword;
-		other.requestDialect = requestDialect;
-		other.currentTemplateDialect = currentTemplateDialect;
-
-		hasFamily = true;
-		other.hasFamily = true;
-		other.parent = this;
-		other.root = root == null ? this : root;
-		other.tagName = tagName;
-		other.parentTags = parentTags == null ? null : (List) ((ArrayList) parentTags).clone();
-		/*
-		 * if (!StringUtil.isEmpty(tagName)) { if (other.parentTags == null) other.parentTags = new
-		 * ArrayList<String>(); other.parentTags.add(tagName); }
-		 */
-		if (children == null) children = new ArrayList<PageContext>();
-		children.add(other);
-		other.applicationContext = applicationContext;
-		other.setFullNullSupport();
-		other.thread = Thread.currentThread();
-		other.startTime = System.currentTimeMillis();
-
-		// path
-		other.base = base;
-		java.util.Iterator<PageSource> it = includePathList.iterator();
-		while (it.hasNext()) {
-			other.includePathList.add(it.next());
-		}
-		it = pathList.iterator();
-		while (it.hasNext()) {
-			other.pathList.add(it.next());
-		}
-
-		// scopes
-		other.req = req;
-		other.request = request;
-		other.form = form;
-		other.url = url;
-		other.urlForm = urlForm;
-		other._url = _url;
-		other._form = _form;
-		other.variables = variables;
-		other.undefined = new UndefinedImpl(other, (short) other.undefined.getType());
-
-		// writers
-		other.bodyContentStack.init(config.getCFMLWriter(this, other.req, other.rsp));
-		// other.bodyContentStack.init(other.req,other.rsp,other.config.isSuppressWhitespace(),other.config.closeConnection(),
-		// other.config.isShowVersion(),config.contentLength(),config.allowCompression());
-		other.writer = other.bodyContentStack.getWriter();
-		other.forceWriter = other.writer;
-
-		other._psq = _psq;
-		other.gatewayContext = gatewayContext;
-
-		// initialize stuff
-		other.undefined.initialize(other);
 	}
 
 	@Override
@@ -1072,13 +1076,21 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public PageSource getCurrentPageSource() {
-		if (pathList.isEmpty()) return null;
+		if (pathList.isEmpty()) {
+			if (parent != null && parent != this) // second comparision should not be necesary, just in case ...
+				return parent.getCurrentPageSource();
+			return null;
+		}
 		return pathList.getLast();
 	}
 
 	@Override
 	public PageSource getCurrentPageSource(PageSource defaultvalue) {
-		if (pathList.isEmpty()) return defaultvalue;
+		if (pathList.isEmpty()) {
+			if (parent != null && parent != this) // second comparision should not be necesary, just in case ...
+				return parent.getCurrentPageSource(defaultvalue);
+			return defaultvalue;
+		}
 		return pathList.getLast();
 	}
 
@@ -1087,7 +1099,11 @@ public final class PageContextImpl extends PageContext {
 	 */
 	@Override
 	public PageSource getCurrentTemplatePageSource() {
-		if (includePathList.isEmpty()) return null;
+		if (includePathList.isEmpty()) {
+			if (parent != null && parent != this) // second comparision should not be necesary, just in case ...
+				return parent.getCurrentTemplatePageSource();
+			return null;
+		}
 		return includePathList.getLast();
 	}
 
@@ -1584,7 +1600,7 @@ public final class PageContextImpl extends PageContext {
 
 				if (strPattern == null) throw new ExpressionException("Missing attribute [pattern]");
 
-				if (!Perl5Util.matches(strPattern, str)) throw new ExpressionException("The value [" + str + "] doesn't match the provided pattern [" + strPattern + "]");
+				if (!getRegex().matches(strPattern, str)) throw new ExpressionException("The value [" + str + "] doesn't match the provided pattern [" + strPattern + "]");
 				setVariable(name, str);
 			}
 			else if (type.equals("int") || type.equals("integer")) {
@@ -2385,6 +2401,10 @@ public final class PageContextImpl extends PageContext {
 		if ((config.getScriptProtect() & ApplicationContext.SCRIPT_PROTECT_URL) > 0) {
 			realPath = ScriptProtect.translate(realPath);
 		}
+		// we do not allow /../ within the real path
+		if (realPath.indexOf("/../") != -1) {
+			throw new ApplicationException("invalid path [" + realPath + "]");
+		}
 
 		// convert realpath to a PageSource
 		if (realPath.startsWith("/mapping-")) {
@@ -2443,6 +2463,7 @@ public final class PageContextImpl extends PageContext {
 			}
 		}
 		finally {
+			endTimeNS = System.nanoTime();
 			if (enablecfoutputonly > 0) {
 				setCFOutputOnly((short) 0);
 			}
@@ -2664,6 +2685,7 @@ public final class PageContextImpl extends PageContext {
 		String domain = PageContextUtil.getCookieDomain(this);
 		boolean httpOnly = SessionCookieDataImpl.DEFAULT.isHttpOnly();
 		boolean secure = SessionCookieDataImpl.DEFAULT.isSecure();
+		short samesite = SessionCookieDataImpl.DEFAULT.getSamesite();
 
 		ApplicationContext ac = getApplicationContext();
 
@@ -2681,6 +2703,8 @@ public final class PageContextImpl extends PageContext {
 				// domain
 				String tmp = data.getDomain();
 				if (!StringUtil.isEmpty(tmp, true)) domain = tmp.trim();
+				// samesite
+				samesite = data.getSamesite();
 			}
 		}
 		int expires;
@@ -2688,8 +2712,8 @@ public final class PageContextImpl extends PageContext {
 		if (Integer.MAX_VALUE < tmp) expires = Integer.MAX_VALUE;
 		else expires = (int) tmp;
 
-		cookieScope().setCookieEL(KeyConstants._cfid, cfid, expires, secure, "/", domain, httpOnly, true, false);
-		cookieScope().setCookieEL(KeyConstants._cftoken, cftoken, expires, secure, "/", domain, httpOnly, true, false);
+		((CookieImpl) cookieScope()).setCookieEL(KeyConstants._cfid, cfid, expires, secure, "/", domain, httpOnly, true, false, samesite);
+		((CookieImpl) cookieScope()).setCookieEL(KeyConstants._cftoken, cftoken, expires, secure, "/", domain, httpOnly, true, false, samesite);
 
 	}
 
@@ -2940,7 +2964,7 @@ public final class PageContextImpl extends PageContext {
 			else {
 				(u.getCheckArguments() ? u.localScope() : u).setEL(KeyConstants._cfcatch, pe.getCatchBlock(config));
 				if (name != null && !StringUtil.isEmpty(name, true)) (u.getCheckArguments() ? u.localScope() : u).setEL(KeyImpl.getInstance(name.trim()), pe.getCatchBlock(config));
-				if (!gatewayContext && config.debug() && config.hasDebugOptions(ConfigImpl.DEBUG_EXCEPTION) && caught) {
+				if (!gatewayContext && config.debug() && config.hasDebugOptions(ConfigPro.DEBUG_EXCEPTION) && caught) {
 					/*
 					 * print.e("-----------------------"); print.e("msg:" + pe.getMessage()); print.e("caught:" +
 					 * caught); print.e("store:" + store); print.e("signal:" + signal); print.e("outer:" + outer);
@@ -3120,6 +3144,14 @@ public final class PageContextImpl extends PageContext {
 	@Override
 	public long getStartTime() {
 		return startTime;
+	}
+
+	public long getStartTimeNS() {
+		return startTimeNS;
+	}
+
+	public long getEndTimeNS() {
+		return endTimeNS;
 	}
 
 	@Override
@@ -3357,8 +3389,8 @@ public final class PageContextImpl extends PageContext {
 		if (page == null) return false;
 
 		short it = ((MappingImpl) page.getPageSource().getMapping()).getInspectTemplate();
-		if (it == ConfigImpl.INSPECT_NEVER) return true;
-		if (it == ConfigImpl.INSPECT_ALWAYS) return false;
+		if (it == ConfigPro.INSPECT_NEVER) return true;
+		if (it == ConfigPro.INSPECT_ALWAYS) return false;
 
 		return pagesUsed.contains("" + page.hashCode());
 	}
@@ -3742,5 +3774,15 @@ public final class PageContextImpl extends PageContext {
 
 	public boolean getListenSettings() {
 		return listenSettings;
+	}
+
+	public boolean allowImplicidQueryCall() {
+		if (applicationContext != null) return applicationContext.getAllowImplicidQueryCall();
+		return config.allowImplicidQueryCall();
+	}
+
+	public Regex getRegex() {
+		if (applicationContext != null) return applicationContext.getRegex();
+		return config.getRegex();
 	}
 }

@@ -50,7 +50,7 @@ import lucee.runtime.ComponentSpecificAccess;
 import lucee.runtime.PageContext;
 import lucee.runtime.coder.Base64Coder;
 import lucee.runtime.component.Property;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.engine.Controler;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
@@ -84,9 +84,9 @@ import lucee.runtime.type.util.ComponentUtil;
  */
 public final class JSONConverter extends ConverterSupport {
 
-	private static final Collection.Key REMOTING_FETCH = KeyImpl.intern("remotingFetch");
+	private static final Collection.Key REMOTING_FETCH = KeyImpl.getInstance("remotingFetch");
 
-	private static final Key TO_JSON = KeyImpl.intern("_toJson");
+	private static final Key TO_JSON = KeyImpl.getInstance("_toJson");
 	private static final String NULL_STRING = "";
 
 	private boolean ignoreRemotingFetch;
@@ -480,7 +480,7 @@ public final class JSONConverter extends ConverterSupport {
 			int len = query.getRecordcount();
 			pc = ThreadLocalPageContext.get(pc);
 			boolean upperCase = false;
-			if (pc != null) upperCase = pc.getCurrentTemplateDialect() == CFMLEngine.DIALECT_CFML && ((ConfigWebImpl) pc.getConfig()).getDotNotationUpperCase();
+			if (pc != null) upperCase = pc.getCurrentTemplateDialect() == CFMLEngine.DIALECT_CFML && ((ConfigWebPro) pc.getConfig()).getDotNotationUpperCase();
 
 			for (int i = 0; i < _keys.length; i++) {
 				if (oDoIt) sb.append(',');

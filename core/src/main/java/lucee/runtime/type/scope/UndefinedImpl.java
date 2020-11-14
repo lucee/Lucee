@@ -30,10 +30,11 @@ import lucee.runtime.ComponentScope;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.Constants;
 import lucee.runtime.config.NullSupportHelper;
+import lucee.runtime.debug.DebuggerImpl;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.exp.ExpressionException;
@@ -65,7 +66,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
 	private Scope[] scopes;
 	private QueryStackImpl qryStack = new QueryStackImpl();
 	private Variables variable;
-	private boolean allowImplicidQueryCall;
+	// private boolean allowImplicidQueryCall;
 	private boolean checkArguments;
 
 	private boolean localAlways;
@@ -81,7 +82,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
 	 * 
 	 * @param pageContextImpl
 	 * @param type type of the undefined scope
-	 *            (ServletConfigImpl.SCOPE_STRICT;ServletConfigImpl.SCOPE_SMALL;ServletConfigImpl.SCOPE_STANDART)
+	 *            (ServletConfig.SCOPE_STRICT;ServletConfig.SCOPE_SMALL;ServletConfig.SCOPE_STANDART)
 	 */
 	public UndefinedImpl(PageContextImpl pc, short type) {
 		this.type = type;
@@ -139,12 +140,14 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
 
 	@Override
 	public void addQuery(Query qry) {
-		if (allowImplicidQueryCall) qryStack.addQuery(qry);
+		// if (allowImplicidQueryCall)
+		qryStack.addQuery(qry);
 	}
 
 	@Override
 	public void removeQuery() {
-		if (allowImplicidQueryCall) qryStack.removeQuery();
+		// if (allowImplicidQueryCall)
+		qryStack.removeQuery();
 	}
 
 	@Override
@@ -195,7 +198,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
 		}
 
 		// get data from queries
-		if (allowImplicidQueryCall && pc.getCurrentTemplateDialect() == CFMLEngine.DIALECT_CFML && !qryStack.isEmpty()) {
+		if (this.pc.allowImplicidQueryCall() && pc.getCurrentTemplateDialect() == CFMLEngine.DIALECT_CFML && !qryStack.isEmpty()) {
 			rtn = qryStack.getDataFromACollection(pc, key, _null);
 			if (rtn != _null) {
 				if (debug) debugCascadedAccess(pc, "query", key);
@@ -249,7 +252,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
 	}
 
 	public static void debugCascadedAccess(PageContext pc, String name, Collection.Key key) {
-		if (pc != null) pc.getDebugger().addImplicitAccess(name, key.getString());
+		if (pc != null) ((DebuggerImpl) pc.getDebugger()).addImplicitAccess(pc, name, key.getString());
 	}
 
 	@Override
@@ -271,7 +274,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
 		}
 
 		// get data from queries
-		if (allowImplicidQueryCall && pc.getCurrentTemplateDialect() == CFMLEngine.DIALECT_CFML && !qryStack.isEmpty()) {
+		if (this.pc.allowImplicidQueryCall() && pc.getCurrentTemplateDialect() == CFMLEngine.DIALECT_CFML && !qryStack.isEmpty()) {
 			rtn = qryStack.getColumnFromACollection(key);
 			if (rtn != null) sct.setEL(KeyConstants._query, rtn);
 		}
@@ -288,7 +291,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
 			if (rtn != _null) sct.setEL(KeyConstants._thread, rtn);
 		}
 
-		// get a scope value (only cfml is searching addional scopes)
+		// get a scope value (only cfml is searching additional scopes)
 		if (pc.getCurrentTemplateDialect() == CFMLEngine.DIALECT_CFML) {
 			for (int i = 0; i < scopes.length; i++) {
 				rtn = scopes[i].get(key, _null);
@@ -318,7 +321,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
 		}
 
 		// get data from queries
-		if (allowImplicidQueryCall && pc.getCurrentTemplateDialect() == CFMLEngine.DIALECT_CFML && !qryStack.isEmpty()) {
+		if (this.pc.allowImplicidQueryCall() && pc.getCurrentTemplateDialect() == CFMLEngine.DIALECT_CFML && !qryStack.isEmpty()) {
 			QueryColumn qc = qryStack.getColumnFromACollection(key);
 			if (qc != null) return (Query) qc.getParent();
 		}
@@ -392,7 +395,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
 		}
 
 		// get data from queries
-		if (allowImplicidQueryCall && pc.getCurrentTemplateDialect() == CFMLEngine.DIALECT_CFML && !qryStack.isEmpty()) {
+		if (this.pc.allowImplicidQueryCall() && pc.getCurrentTemplateDialect() == CFMLEngine.DIALECT_CFML && !qryStack.isEmpty()) {
 			rtn = qryStack.getColumnFromACollection(key);
 			if (rtn != null) {
 				if (debug) debugCascadedAccess(pc, "query", key);
@@ -451,7 +454,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
 		}
 
 		// get data from queries
-		if (allowImplicidQueryCall && pc.getCurrentTemplateDialect() == CFMLEngine.DIALECT_CFML && !qryStack.isEmpty()) {
+		if (this.pc.allowImplicidQueryCall() && pc.getCurrentTemplateDialect() == CFMLEngine.DIALECT_CFML && !qryStack.isEmpty()) {
 			rtn = qryStack.getDataFromACollection(pc, key, _null);
 			if (rtn != _null) {
 				if (debug) debugCascadedAccess(pc, "query", key);
@@ -575,9 +578,9 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
 		variable = pc.variablesScope();
 		argument = pc.argumentsScope();
 		local = pc.localScope();
-		allowImplicidQueryCall = pc.getConfig().allowImplicidQueryCall();
+		// allowImplicidQueryCall = pc.getConfig().allowImplicidQueryCall();
 		type = ((PageContextImpl) pc).getScopeCascadingType();
-		debug = pc.getConfig().debug() && ((ConfigImpl) pc.getConfig()).hasDebugOptions(ConfigImpl.DEBUG_IMPLICIT_ACCESS);
+		debug = pc.getConfig().debug() && ((ConfigPro) pc.getConfig()).hasDebugOptions(ConfigPro.DEBUG_IMPLICIT_ACCESS);
 
 		// Strict
 		if (type == Config.SCOPE_STRICT) {
@@ -632,13 +635,14 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
 		scopes = null;
 		checkArguments = false;
 		localAlways = false;
-		if (allowImplicidQueryCall) qryStack.clear();
+		// if (allowImplicidQueryCall)
+		qryStack.clear();
 	}
 
 	@Override
 	public Collection duplicate(boolean deepCopy) {
 		UndefinedImpl dupl = new UndefinedImpl(pc, type);
-		dupl.allowImplicidQueryCall = allowImplicidQueryCall;
+		// dupl.allowImplicidQueryCall = allowImplicidQueryCall;
 		dupl.checkArguments = checkArguments;
 		dupl.argument = deepCopy ? (Argument) Duplicator.duplicate(argument, deepCopy) : argument;
 		dupl.isInit = isInit;
@@ -751,7 +755,7 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
 	 * @return the allowImplicidQueryCall
 	 */
 	public boolean isAllowImplicidQueryCall() {
-		return allowImplicidQueryCall;
+		return this.pc.allowImplicidQueryCall();
 	}
 
 	/**
@@ -759,8 +763,9 @@ public final class UndefinedImpl extends StructSupport implements Undefined {
 	 */
 	@Override
 	public boolean setAllowImplicidQueryCall(boolean allowImplicidQueryCall) {
-		boolean old = this.allowImplicidQueryCall;
-		this.allowImplicidQueryCall = allowImplicidQueryCall;
+		boolean old = pc.allowImplicidQueryCall();
+		((ApplicationContextSupport) pc.getApplicationContext()).setAllowImplicidQueryCall(allowImplicidQueryCall);
+		// this.allowImplicidQueryCall = allowImplicidQueryCall;
 		return old;
 	}
 

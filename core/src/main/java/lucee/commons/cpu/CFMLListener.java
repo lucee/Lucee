@@ -53,7 +53,7 @@ public abstract class CFMLListener implements Listener {
 		}
 	}
 
-	private static final Key PERCENTAGE = KeyImpl.init("percentage");
+	private static final Key PERCENTAGE = KeyImpl.getInstance("percentage");
 	private static final Key[] columns = new Key[] { KeyConstants._name, PERCENTAGE, KeyConstants._stacktrace, KeyConstants._time, KeyConstants._total };
 
 	protected Object toQuery(List<StaticData> list) throws PageException {

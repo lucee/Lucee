@@ -27,6 +27,7 @@
 
 <script language="CFML">
 <![CDATA[
+encodeForHTML("abc"); // test if ESAPI extension exist right away
 if (execute) {
 
 request.basedir = basedir;

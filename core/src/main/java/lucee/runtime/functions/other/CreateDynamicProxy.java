@@ -58,7 +58,7 @@ public class CreateDynamicProxy implements Function {
 	public static Object _call(PageContext pc, Object oCFC, Object oInterfaces) throws PageException, IOException, BundleException {
 
 		if (SystemUtil.getLoaderVersion() < 5.9D) throw new ApplicationException(
-				"You need to update your lucee.jar to execute the function [createDynamicProxy], you can download the latest jar from http://download.lucee.org.");
+				"You need to update your lucee.jar to execute the function [createDynamicProxy], you can download the latest jar from https://download.lucee.org.");
 
 		// Component
 		Component cfc;

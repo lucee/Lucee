@@ -42,13 +42,13 @@ public final class CacheGetMetadata extends BIF {
 
 	private static final long serialVersionUID = -470089623854482521L;
 
-	private static final Collection.Key CACHE_HITCOUNT = KeyImpl.intern("cache_hitcount");
-	private static final Collection.Key CACHE_MISSCOUNT = KeyImpl.intern("cache_misscount");
-	private static final Collection.Key CACHE_CUSTOM = KeyImpl.intern("cache_custom");
-	private static final Collection.Key CREATED_TIME = KeyImpl.intern("createdtime");
-	private static final Collection.Key IDLE_TIME = KeyImpl.intern("idletime");
-	private static final Collection.Key LAST_HIT = KeyImpl.intern("lasthit");
-	private static final Collection.Key LAST_UPDATED = KeyImpl.intern("lastupdated");
+	private static final Collection.Key CACHE_HITCOUNT = KeyImpl.getInstance("cache_hitcount");
+	private static final Collection.Key CACHE_MISSCOUNT = KeyImpl.getInstance("cache_misscount");
+	private static final Collection.Key CACHE_CUSTOM = KeyImpl.getInstance("cache_custom");
+	private static final Collection.Key CREATED_TIME = KeyImpl.getInstance("createdtime");
+	private static final Collection.Key IDLE_TIME = KeyImpl.getInstance("idletime");
+	private static final Collection.Key LAST_HIT = KeyImpl.getInstance("lasthit");
+	private static final Collection.Key LAST_UPDATED = KeyImpl.getInstance("lastupdated");
 
 	public static Struct call(PageContext pc, String id) throws PageException {
 		return call(pc, id, null);

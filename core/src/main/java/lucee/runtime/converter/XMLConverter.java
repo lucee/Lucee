@@ -64,7 +64,7 @@ import lucee.runtime.type.util.KeyConstants;
  * class to serialize and desirilize WDDX Packes
  */
 public final class XMLConverter extends ConverterSupport {
-	private static final Collection.Key REMOTING_FETCH = KeyImpl.intern("remotingFetch");
+	private static final Collection.Key REMOTING_FETCH = KeyImpl.getInstance("remotingFetch");
 
 	private int deep = 1;
 	private char del = '"';
@@ -635,7 +635,7 @@ public final class XMLConverter extends ConverterSupport {
 			comp = pc.loadComponent(name);
 			if (!ComponentUtil.md5(comp).equals(md5)) {
 				throw new ConverterException("component [" + name
-						+ "] in this enviroment has not the same interface as the component to load, it is possible that one off the components has Functions added dynamicly.");
+						+ "] in this environment has not the same interface as the component to load, it is possible that one off the components has Functions added dynamically.");
 			}
 		}
 		catch (ConverterException e) {

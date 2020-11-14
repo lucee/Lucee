@@ -40,8 +40,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.mimetype.MimeType;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.component.StaticStruct;
-import lucee.runtime.config.ConfigImpl;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.converter.BinaryConverter;
 import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.JSONConverter;
@@ -91,12 +90,9 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 
 	private static final long serialVersionUID = -3483642653131058030L;
 
-	public static final lucee.runtime.type.Collection.Key REMOTE_PERSISTENT_ID = KeyImpl.intern("Id16hohohh");
+	public static final lucee.runtime.type.Collection.Key REMOTE_PERSISTENT_ID = KeyImpl.getInstance("Id16hohohh");
 
 	private long lastCheck = -1;
-
-	// static scope
-	public final StaticStruct _static = new StaticStruct();
 
 	public abstract ComponentImpl newInstance(PageContext pc, String callPath, boolean isRealPath, boolean isExtendedComponent, boolean executeConstr)
 			throws lucee.runtime.exp.PageException;
@@ -134,8 +130,8 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 			// load the cfc
 			try {
 				if (internalCall && strRemotePersisId != null) {
-					ConfigWebImpl config = (ConfigWebImpl) pc.getConfig();
-					GatewayEngineImpl engine = config.getGatewayEngine();
+					ConfigWebPro config = (ConfigWebPro) pc.getConfig();
+					GatewayEngineImpl engine = (GatewayEngineImpl) config.getGatewayEngine();
 					component = engine.getPersistentRemoteCFC(strRemotePersisId);
 
 					if (component == null) {
@@ -560,7 +556,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 			converter.writeOut(pc, obj, os = pc.getResponseStream());
 		}
 		finally {
-			IOUtil.closeEL(os);
+			IOUtil.close(os);
 		}
 	}
 
@@ -942,7 +938,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 		}
 		finally {
 			IOUtil.flushEL(os);
-			IOUtil.closeEL(os);
+			IOUtil.close(os);
 			((PageContextImpl) pc).getRootOut().setClosed(true);
 		}
 	}
@@ -969,18 +965,18 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 			}
 			finally {
 				IOUtil.flushEL(os);
-				IOUtil.closeEL(os);
+				IOUtil.close(os);
 				((PageContextImpl) pc).getRootOut().setClosed(true);
 			}
 		}
 		// create a wsdl file
 		else {
-			((ConfigImpl) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getWSServer(pc).doGet(pc, pc.getHttpServletRequest(), pc.getHttpServletResponse(), component);
+			((ConfigWebPro) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getWSServer(pc).doGet(pc, pc.getHttpServletRequest(), pc.getHttpServletResponse(), component);
 		}
 	}
 
 	private void callWebservice(PageContext pc, Component component) throws IOException, ServletException, PageException {
-		((ConfigImpl) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getWSServer(pc).doPost(pc, pc.getHttpServletRequest(), pc.getHttpServletResponse(), component);
+		((ConfigWebPro) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getWSServer(pc).doPost(pc, pc.getHttpServletRequest(), pc.getHttpServletResponse(), component);
 	}
 
 	/**
@@ -988,6 +984,11 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 	 */
 	public void staticConstructor(PageContext pagecontext, ComponentImpl cfc) {
 		// do nothing
+	}
+
+	// this method only exist that old classes from archives still work, not perfectly, but good enough
+	public StaticStruct getStaticStruct() {
+		return new StaticStruct();
 	}
 
 	public abstract void initComponent(PageContext pc, ComponentImpl c, boolean executeDefaultConstructor) throws PageException;

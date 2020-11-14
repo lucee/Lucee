@@ -10,7 +10,7 @@
 	<data key="general.dialect.cfmlDesc">The following settings are specific to the CFML dialect. This settings have no influence on the Lucee dialect.</data>
 
 	<data key="services.update.type_manually">Manual</data>
-	<data key="services.update.locdesc">Define the URL where Lucee gets its updates. Typically &quot;http://www.lucee.ch&quot;</data>
+	<data key="services.update.locdesc">Define the URL where Lucee gets its updates. Typically &quot;https://www.lucee.org&quot;</data>
 	<data key="services.update.location">URL</data>
 	<data key="services.update.settitle">Properties</data>
 	<data key="services.update.type">Type</data>
@@ -226,6 +226,7 @@
 	<data key="menu.server.regional">Regional</data>
 	<data key="overview.langPerf">Performance/Language</data>
 	<data key="menu.server.compiler">Language/Compiler</data>
+	<data key="menu.server.regex">Regex</data>
 	<data key="menu.server.security">Security</data>
 	<data key="menu.server.charset">Charset</data>
 	<data key="menu.server.scope">Scope</data>
@@ -235,6 +236,7 @@
 	<data key="menu.server.error">Error</data>
 	<data key="menu.server.logging">Logging</data>
 	<data key="menu.server.export">Export</data>
+	<data key="menu.server.proxy">Proxy</data>
 	<data key="menu.services.label">Services</data>
 	<data key="menu.services.gateway">Event Gateway</data>
 	<data key="menu.services.cache">Cache</data>
@@ -263,6 +265,7 @@
 	<data key="menu.debugging.logs">Logs</data>
 	<data key="menu.debugging.templates">Templates</data>
 	<data key="menu.debugging.settings">Settings</data>
+	<data key="menu.regex.label">Regex</data>
 	<data key="menu.security.label">Security</data>
 	<data key="menu.security.access">Access</data>
 	<data key="menu.security.password">Password</data>
@@ -323,6 +326,9 @@
 	<data key="ext.uninstalldone">uninstall completed</data>
 	<data key="ext.provider">Provider</data>
 	<data key="ext.documentation">Documentation</data>
+	<data key="ext.projectUrl">Homepage</data>
+	<data key="ext.sourceUrl">Source Code</data>
+	<data key="ext.documentationUrl">Documentation</data>	
 	<data key="ext.installeddesc">These applications are already installed on the system.</data>
 	<data key="ext.installedServer">Installed in Server Administrator</data>
 	<data key="ext.installedServerDesc">This Extension is already installed in the Server Administrator, you have 2 options, you can overwrite it for the current web context by installing it here as well or you can change it in the Server Administrator what will affect all Web Contexts.</data>
@@ -367,6 +373,7 @@
 	<data key="ext.installDesc">Choose the version you would like to install.</data>
 	<data key="ext.upDownDesc">Update or downgrade your already installed version.</data>
 	<data key="ext.uninstallDesc">Uninstall this version</data>
+	<data key="ext.searchbox">There is no extension available with name</data>
 	<data key="Buttons.go">go</data>
 	<data key="Buttons.upDown">update / downgrade</data>
 
@@ -394,7 +401,7 @@
 	<data key="remote.adminpassworddesc.server">Password for the access to the remote Lucee Server Administrator</data>
 	<data key="remote.urlpath">Path</data>
 	<data key="remote.urlmissing">The remote client URL is missing</data>
-	<data key="remote.urlserverdesc">Remote Client Server (e.g. http://lucee.org)</data>
+	<data key="remote.urlserverdesc">Remote Client Server (e.g. https://lucee.org)</data>
 	<data key="remote.proxyport">Port</data>
 	<data key="remote.labelmissing">The label for the remote client is missing</data>
 	<data key="remote.proxypassword">Password</data>
@@ -714,6 +721,8 @@ you can see the log result at the end of every request, if a debug template is d
 	<data key="debug.memorylogger">Memory logger</data>
 	<data key="debug.settings.queryUsage">Query Usage</data>
 	<data key="debug.settings.queryUsageDesc">Select this option to log the query usage information.</data>
+	<data key="debug.settings.template">Template</data>
+	<data key="debug.settings.templateDesc">Select this option log template activity for all cfm and cfc templates.</data>
 	<data key="debug.settings.database">Database Activity</data>
 	<data key="debug.settings.databaseDesc">Select this option to log the database activity for the SQL Query events and Stored Procedure events.</data>
 	<data key="debug.settings.exception"> Exceptions </data>
@@ -755,6 +764,10 @@ you can see the log result at the end of every request, if a debug template is d
 
 	<!-- debugging.settings.cfm -->
 	<data key="debug.settings.desc">Enable certain logging options for Lucee</data>
+
+	<!-- resources.rest.cfm -->
+	<data key="mapping.virtual">You need to enter the virtual name</data>
+	<data key="mapping.physical">You need to enter the physical path</data>
 
 	<!-- debugging.templates.cfm -->
 	<data key="debug.label">Label</data>
@@ -890,6 +903,7 @@ you can see the log result at the end of every request, if a debug template is d
 	<data key="compiler.nullSupportPartial">Partial Support (CFML Default)</data>
 	<data key="compiler.nullSupportPartialDesc">Lucee has only a partial null support.</data>
 
+	<data key="setting.regex">Lucee regular expression (regex) settings.</data>
 	<data key="setting.compiler">Lucee compiler settings, this affects how the Lucee Compiler parses the source code. Changing this settings flushes all existing class files and triggers a recompilation.</data>
 	<data key="setting.dotNotation">Key case</data>
 	<!-- server.compiler.cfm -->
@@ -1148,6 +1162,13 @@ sct[""bracketNotation""] --> keyname: "bracketNotation"</data>
 	<data key="settings.dbValidateDesc">Validate the connection before use (only works with JDBC 4.0 Drivers)</data>
 	<data key="settings.dbconnlimit">Connection limit (max)</data>
 	<data key="settings.dbconntimeoutdesc">Define a time in minutes for how long a connection is kept alive before it will be closed</data>
+
+	<data key="settings.dbidletimeout">Connection idle timeout (in minutes)</data>
+	<data key="settings.dbidletimeoutdesc">Define how long an idle connection will be kept alive, before being closed</data>
+		
+	<data key="settings.dblivetimeout">Connection timeout</data>
+	<data key="settings.dblivetimeoutdesc">Define how long a connection will be kept alive, before being closed</data>
+
 	<data key="settings.dbportdesc">The port to connect the database</data>
 	<data key="settings.dbconnlimitdesc">Restricts the maximum number of simultaneous connections at one time</data>
 	<data key="settings.listdatasourcesdescserver">Datasources created here are available for ALL web contexts to use. The settings for these datasources can only be modified in this Server Administrator area.</data>

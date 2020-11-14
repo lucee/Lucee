@@ -35,7 +35,8 @@ public final class GetTempFile implements Function {
 	public static String call(PageContext pc, String strDir, String prefix) throws PageException {
 		Resource dir = ResourceUtil.toResourceExisting(pc, strDir);
 		pc.getConfig().getSecurityManager().checkFileLocation(dir);
-		if (!dir.isDirectory()) throw new ExpressionException(strDir + " is not a directory");
+		if (!dir.isDirectory()) 
+			throw new ExpressionException("[" + strDir + "] is not a directory");
 		int count = 1;
 		Resource file;
 		while ((file = dir.getRealResource(prefix + pc.getId() + count + ".tmp")).exists()) {

@@ -25,7 +25,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
@@ -56,7 +56,7 @@ public final class GetTagList implements Function {
 		// hasSet=true;
 		TagLib[] tlds;
 		TagLibTag tag;
-		tlds = ((ConfigImpl) pc.getConfig()).getTLDs(dialect);
+		tlds = ((ConfigPro) pc.getConfig()).getTLDs(dialect);
 
 		for (int i = 0; i < tlds.length; i++) {
 			String ns = tlds[i].getNameSpaceAndSeparator();

@@ -43,7 +43,7 @@ public class MD5Checksum {
 			return complete.digest();
 		}
 		finally {
-			IOUtil.closeEL(is);
+			IOUtil.close(is);
 		}
 
 	}

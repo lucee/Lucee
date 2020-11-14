@@ -55,8 +55,8 @@ public class ThreadUtil {
 		// copy state
 		PageContextImpl pci = (PageContextImpl) pc;
 		PageContextImpl dest = factory.getPageContextImpl(factory.getServlet(), req, rsp, null, false, -1, false, register2Thread, true, pc.getRequestTimeout(),
-				register2RunningThreads, false, false);
-		pci.copyStateTo(dest);
+				register2RunningThreads, false, false, pci);
+		// pci.copyStateTo(dest);
 		return dest;
 	}
 
@@ -76,6 +76,7 @@ public class ThreadUtil {
 	 *            from the context is used
 	 * @return
 	 */
+	// used in Websocket extension
 	public static PageContextImpl createPageContext(ConfigWeb config, OutputStream os, String serverName, String requestURI, String queryString, Cookie[] cookies, Pair[] headers,
 			byte[] body, Pair[] parameters, Struct attributes, boolean register, long timeout) {
 		CFMLFactory factory = config.getFactory();

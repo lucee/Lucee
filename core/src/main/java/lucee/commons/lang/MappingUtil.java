@@ -91,7 +91,12 @@ public class MappingUtil {
 				LogUtil.log(mapping.getConfig(), "mapping", ioe);
 			}
 			finally {
-				IOUtil.closeEL(zis);
+				try {
+					IOUtil.close(zis);
+				}
+				catch (IOException ioe) {
+					LogUtil.log(mapping.getConfig(), "mapping", ioe);
+				}
 			}
 
 		}

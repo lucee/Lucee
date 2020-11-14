@@ -47,7 +47,7 @@ public final class UDFRemoveProperty extends UDFGSProperty {
 	public UDFRemoveProperty(Component component, Property prop) {
 		super(component, "remove" + StringUtil.ucFirst(PropertyFactory.getSingularName(prop)), getFunctionArgument(prop), CFTypes.TYPE_BOOLEAN);
 		this.prop = prop;
-		this.propName = KeyImpl.getInstance(prop.getName());
+		this.propName = KeyImpl.init(prop.getName());
 	}
 
 	private static FunctionArgument[] getFunctionArgument(Property prop) {
@@ -74,7 +74,7 @@ public final class UDFRemoveProperty extends UDFGSProperty {
 	@Override
 	public Object _call(PageContext pageContext, Object[] args, boolean doIncludePath) throws PageException {
 		if (args.length < 1)
-			throw new ExpressionException("The parameter " + this.arguments[0].getName() + " to function " + getFunctionName() + " is required but was not passed in.");
+			throw new ExpressionException("The parameter [" + this.arguments[0].getName() + "] to function [" + getFunctionName() + "] is required but was not passed in.");
 
 		return remove(pageContext, args[0]);
 	}
@@ -89,7 +89,7 @@ public final class UDFRemoveProperty extends UDFGSProperty {
 			if (keys.length == 1) {
 				value = values.get(keys[0]);
 			}
-			else throw new ExpressionException("The parameter " + key + " to function " + getFunctionName() + " is required but was not passed in.");
+			else throw new ExpressionException("The parameter [" + key + "] to function [" + getFunctionName() + "] is required but was not passed in.");
 		}
 
 		return remove(pageContext, value);

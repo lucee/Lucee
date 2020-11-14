@@ -23,7 +23,7 @@ import java.sql.SQLException;
 import lucee.commons.io.log.Log;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DatasourceConnection;
 import lucee.runtime.db.DatasourceConnectionPool;
@@ -90,7 +90,7 @@ public abstract class StorageScopeDatasource extends StorageScopeImpl {
 	}
 
 	protected static Struct _loadData(PageContext pc, String datasourceName, String strType, int type, Log log, boolean mxStyle) throws PageException {
-		ConfigImpl config = (ConfigImpl) ThreadLocalPageContext.getConfig(pc);
+		ConfigPro config = (ConfigPro) ThreadLocalPageContext.getConfig(pc);
 		DatasourceConnectionPool pool = config.getDatasourceConnectionPool();
 		DatasourceConnection dc = pool.getDatasourceConnection(config, pc.getDataSource(datasourceName), null, null);
 		SQLExecutor executor = SQLExecutionFactory.getInstance(dc);
@@ -116,7 +116,8 @@ public abstract class StorageScopeDatasource extends StorageScopeImpl {
 		boolean _isNew = query.getRecordcount() == 0;
 
 		if (_isNew) {
-			ScopeContext.info(log, "create new " + strType + " scope for " + pc.getApplicationContext().getName() + "/" + pc.getCFID() + " in datasource [" + datasourceName + "]");
+			ScopeContext.debug(log,
+					"create new " + strType + " scope for " + pc.getApplicationContext().getName() + "/" + pc.getCFID() + " in datasource [" + datasourceName + "]");
 			return null;
 		}
 		String str = Caster.toString(query.get(KeyConstants._data));
@@ -125,7 +126,7 @@ public abstract class StorageScopeDatasource extends StorageScopeImpl {
 
 		try {
 			Struct s = (Struct) pc.evaluate(str);
-			ScopeContext.info(log, "load existing data from [" + datasourceName + "." + PREFIX + "_" + strType + "_data] to create " + strType + " scope for "
+			ScopeContext.debug(log, "load existing data from [" + datasourceName + "." + PREFIX + "_" + strType + "_data] to create " + strType + " scope for "
 					+ pc.getApplicationContext().getName() + "/" + pc.getCFID());
 			return s;
 		}
@@ -146,7 +147,7 @@ public abstract class StorageScopeDatasource extends StorageScopeImpl {
 	@Override
 	public void store(PageContext pc) {
 		DatasourceConnection dc = null;
-		ConfigImpl ci = (ConfigImpl) ThreadLocalPageContext.getConfig(pc);
+		ConfigPro ci = (ConfigPro) ThreadLocalPageContext.getConfig(pc);
 		DatasourceConnectionPool pool = ci.getDatasourceConnectionPool();
 		Log log = ci.getLog("scope");
 		try {
@@ -168,7 +169,7 @@ public abstract class StorageScopeDatasource extends StorageScopeImpl {
 
 	@Override
 	public void unstore(PageContext pc) {
-		ConfigImpl ci = (ConfigImpl) ThreadLocalPageContext.getConfig(pc);
+		ConfigPro ci = (ConfigPro) ThreadLocalPageContext.getConfig(pc);
 		DatasourceConnection dc = null;
 
 		DatasourceConnectionPool pool = ci.getDatasourceConnectionPool();

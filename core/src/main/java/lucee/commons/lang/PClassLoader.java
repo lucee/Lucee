@@ -31,7 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 
 /**
  * Directory ClassLoader
@@ -39,7 +39,7 @@ import lucee.runtime.config.ConfigImpl;
 public final class PClassLoader extends ClassLoader {
 
 	private Resource directory;
-	private ConfigImpl config;
+	private ConfigPro config;
 	private final ClassLoader[] parents;
 
 	// Set<String> loadedClasses = new HashSet<>();
@@ -61,7 +61,7 @@ public final class PClassLoader extends ClassLoader {
 
 	public PClassLoader(Config c, Resource directory, ClassLoader[] parentClassLoaders, boolean includeCoreCL) throws IOException {
 		parents = parentClassLoaders == null || parentClassLoaders.length == 0 ? new ClassLoader[] { c.getClassLoader() } : parentClassLoaders;
-		config = (ConfigImpl) c;
+		config = (ConfigPro) c;
 
 		// check directory
 		if (!directory.exists()) directory.mkdirs();
@@ -140,6 +140,7 @@ public final class PClassLoader extends ClassLoader {
 		}
 	}
 
+	@Override
 	public InputStream getResourceAsStream(String name) {
 		Resource f = _getResource(name);
 		if (f != null) {

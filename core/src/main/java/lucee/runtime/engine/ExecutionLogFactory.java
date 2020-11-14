@@ -22,6 +22,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import lucee.commons.lang.ClassUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
@@ -40,7 +41,7 @@ public class ExecutionLogFactory {
 	public ExecutionLog getInstance(PageContext pc) {
 		ExecutionLog el;
 		try {
-			el = (ExecutionLog) clazz.newInstance();
+			el = (ExecutionLog) ClassUtil.newInstance(clazz);
 		}
 		catch (Exception e) {
 			el = new ConsoleExecutionLog();

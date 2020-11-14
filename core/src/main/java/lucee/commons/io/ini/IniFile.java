@@ -60,7 +60,7 @@ public final class IniFile {
 			load(is = file.getInputStream());
 		}
 		finally {
-			IOUtil.closeEL(is);
+			IOUtil.close(is);
 		}
 	}
 
@@ -104,7 +104,7 @@ public final class IniFile {
 	 */
 	public Map getSection(String strSection) throws IOException {
 		Object o = sections.get(strSection.toLowerCase());
-		if (o == null) throw new IOException("section with name " + strSection + " does not exist");
+		if (o == null) throw new IOException("Section with name [" + strSection + "] does not exist");
 		return (Map) o;
 	}
 
@@ -142,7 +142,7 @@ public final class IniFile {
 	 */
 	public String getKeyValue(String strSection, String key) throws IOException {
 		Object o = getSection(strSection).get(key.toLowerCase());
-		if (o == null) throw new IOException("key " + key + " doesn't exist in section " + strSection);
+		if (o == null) throw new IOException("Key [" + key + "] doesn't exist in section [" + strSection + "]");
 		return (String) o;
 
 	}

@@ -50,6 +50,7 @@ import lucee.runtime.Mapping;
 import lucee.runtime.PageContext;
 import lucee.runtime.crypt.BlowfishEasy;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.SecurityException;
 import lucee.runtime.listener.ApplicationListener;
 import lucee.runtime.listener.ClassicAppListener;
@@ -65,11 +66,15 @@ import lucee.runtime.security.SecurityManager;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.ArrayUtil;
+import lucee.transformer.library.function.FunctionLib;
+import lucee.transformer.library.tag.TagLib;
 
 /**
  * 
  */
 public final class ConfigWebUtil {
+
+	private static String enckey;
 
 	/**
 	 * default encryption for configuration (not very secure)
@@ -80,7 +85,7 @@ public final class ConfigWebUtil {
 	public static String decrypt(String str) {
 		if (StringUtil.isEmpty(str) || !StringUtil.startsWithIgnoreCase(str, "encrypted:")) return str;
 		str = str.substring(10);
-		return new BlowfishEasy("sdfsdfs").decryptString(str);
+		return new BlowfishEasy(getEncKey()).decryptString(str);
 	}
 
 	/**
@@ -92,7 +97,14 @@ public final class ConfigWebUtil {
 	public static String encrypt(String str) {
 		if (StringUtil.isEmpty(str)) return "";
 		if (StringUtil.startsWithIgnoreCase(str, "encrypted:")) return str;
-		return "encrypted:" + new BlowfishEasy("sdfsdfs").encryptString(str);
+		return "encrypted:" + new BlowfishEasy(getEncKey()).encryptString(str);
+	}
+
+	private static String getEncKey() {
+		if (enckey == null) {
+			enckey = SystemUtil.getSystemPropOrEnvVar("lucee.password.enc.key", "sdfsdfs");
+		}
+		return enckey;
 	}
 
 	/**
@@ -163,18 +175,18 @@ public final class ConfigWebUtil {
 	}
 
 	public static void reloadLib(Config config) throws IOException {
-		if (config instanceof ConfigWeb) loadLib(((ConfigWebImpl) config).getConfigServerImpl(), (ConfigImpl) config);
-		else loadLib(null, (ConfigImpl) config);
+		if (config instanceof ConfigWeb) loadLib(((ConfigWebImpl) config).getConfigServerImpl(), (ConfigPro) config);
+		else loadLib(null, (ConfigPro) config);
 	}
 
-	static void loadLib(ConfigServerImpl configServer, ConfigImpl config) throws IOException {
+	static void loadLib(ConfigServer configServer, ConfigPro config) throws IOException {
 		// get lib and classes resources
 		Resource lib = config.getLibraryDirectory();
 		Resource[] libs = lib.listResources(ExtensionResourceFilter.EXTENSION_JAR_NO_DIR);
 
 		// get resources from server config and merge
 		if (configServer != null) {
-			ResourceClassLoader rcl = configServer.getResourceClassLoader();
+			ResourceClassLoader rcl = ((ConfigPro) configServer).getResourceClassLoader();
 			libs = ResourceUtil.merge(libs, rcl.getResources());
 		}
 
@@ -210,7 +222,7 @@ public final class ConfigWebUtil {
 		// set classloader
 
 		ClassLoader parent = SystemUtil.getCoreClassLoader();
-		config.setResourceClassLoader(new ResourceClassLoader(list.toArray(new Resource[list.size()]), parent));
+		((ConfigImpl) config).setResourceClassLoader(new ResourceClassLoader(list.toArray(new Resource[list.size()]), parent));
 	}
 
 	/**
@@ -246,7 +258,7 @@ public final class ConfigWebUtil {
 	 * @param config
 	 * @return file
 	 */
-	static Resource getFile(Resource rootDir, String strDir, String defaultDir, Resource configDir, short type, ConfigImpl config) {
+	static Resource getFile(Resource rootDir, String strDir, String defaultDir, Resource configDir, short type, ConfigPro config) {
 		strDir = replacePlaceholder(strDir, config);
 		if (!StringUtil.isEmpty(strDir, true)) {
 			Resource res;
@@ -310,8 +322,8 @@ public final class ConfigWebUtil {
 			else if (config instanceof ServletConfig) {
 				Map<String, String> labels = null;
 				// web
-				if (config instanceof ConfigWebImpl) {
-					labels = ((ConfigWebImpl) config).getAllLabels();
+				if (config instanceof ConfigWebPro) {
+					labels = ((ConfigWebPro) config).getAllLabels();
 				}
 				// server
 				else if (config instanceof ConfigServerImpl) {
@@ -322,7 +334,7 @@ public final class ConfigWebUtil {
 			else str = SystemUtil.parsePlaceHolder(str);
 
 			if (StringUtil.startsWith(str, '{')) {
-				Struct constants = ((ConfigImpl) config).getConstants();
+				Struct constants = config.getConstants();
 				Iterator<Entry<Key, Object>> it = constants.entryIterator();
 				Entry<Key, Object> e;
 				while (it.hasNext()) {
@@ -359,10 +371,11 @@ public final class ConfigWebUtil {
 	 * @param config
 	 * @return existing file
 	 */
-	public static Resource getExistingResource(ServletContext sc, String strDir, String defaultDir, Resource configDir, short type, Config config) {
+	public static Resource getExistingResource(ServletContext sc, String strDir, String defaultDir, Resource configDir, short type, Config config, boolean checkFromWebroot) {
 		// ARP
 
 		strDir = replacePlaceholder(strDir, config);
+		// checkFromWebroot &&
 		if (strDir != null && strDir.trim().length() > 0) {
 			Resource res = sc == null ? null : _getExistingFile(config.getResource(ResourceUtil.merge(ReqRspUtil.getRootPath(sc), strDir)), type);
 			if (res != null) return res;
@@ -429,7 +442,11 @@ public final class ConfigWebUtil {
 
 		boolean has = true;
 		if (config instanceof ConfigWeb) {
-			has = ((ConfigWeb) config).getSecurityManager().getAccess(type) != SecurityManager.VALUE_NO;
+			has = ((ConfigWeb) config)
+
+					.getSecurityManager()
+
+					.getAccess(type) != SecurityManager.VALUE_NO;
 		}
 		return has;
 	}
@@ -449,7 +466,7 @@ public final class ConfigWebUtil {
 		return m.toString().toLowerCase();
 	}
 
-	public static void checkGeneralReadAccess(ConfigImpl config, Password password) throws SecurityException {
+	public static void checkGeneralReadAccess(ConfigPro config, Password password) throws SecurityException {
 		SecurityManager sm = config.getSecurityManager();
 		short access = sm.getAccess(SecurityManager.TYPE_ACCESS_READ);
 		if (config instanceof ConfigServer) access = SecurityManager.ACCESS_PROTECTED;
@@ -461,7 +478,7 @@ public final class ConfigWebUtil {
 		}
 	}
 
-	public static void checkGeneralWriteAccess(ConfigImpl config, Password password) throws SecurityException {
+	public static void checkGeneralWriteAccess(ConfigPro config, Password password) throws SecurityException {
 		SecurityManager sm = config.getSecurityManager();
 		if (sm == null) return;
 		short access = sm.getAccess(SecurityManager.TYPE_ACCESS_WRITE);
@@ -475,7 +492,7 @@ public final class ConfigWebUtil {
 		}
 	}
 
-	public static void checkPassword(ConfigImpl config, String type, Password password) throws SecurityException {
+	public static void checkPassword(ConfigPro config, String type, Password password) throws SecurityException {
 		if (!config.hasPassword()) throw new SecurityException("can't access password protected information from the configuration, no password is defined for "
 				+ (config instanceof ConfigServer ? "the server context" : "this web context")); // TODO make the message more clear for someone using the admin indirectly in
 		// source code by using ACF specific interfaces
@@ -498,7 +515,7 @@ public final class ConfigWebUtil {
 			return MD5.getDigestAsString(barr);
 		}
 		finally {
-			IOUtil.closeEL(is);
+			IOUtil.close(is);
 		}
 	}
 
@@ -695,5 +712,26 @@ public final class ConfigWebUtil {
 			}
 		});
 		return mappings;
+	}
+
+	public static ConfigServer getConfigServer(Config config, Password password) throws PageException {
+		if (config instanceof ConfigServer) return (ConfigServer) config;
+		return ((ConfigWeb) config).getConfigServer(password);
+	}
+
+	protected static TagLib[] duplicate(TagLib[] tlds, boolean deepCopy) {
+		TagLib[] rst = new TagLib[tlds.length];
+		for (int i = 0; i < tlds.length; i++) {
+			rst[i] = tlds[i].duplicate(deepCopy);
+		}
+		return rst;
+	}
+
+	protected static FunctionLib[] duplicate(FunctionLib[] flds, boolean deepCopy) {
+		FunctionLib[] rst = new FunctionLib[flds.length];
+		for (int i = 0; i < flds.length; i++) {
+			rst[i] = flds[i].duplicate(deepCopy);
+		}
+		return rst;
 	}
 }

@@ -19,11 +19,9 @@
 package lucee.runtime.type.scope;
 
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import javax.servlet.http.HttpSession;
@@ -39,6 +37,7 @@ import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.scope.storage.MemoryScope;
 import lucee.runtime.type.scope.util.ScopeUtil;
 import lucee.runtime.type.util.KeyConstants;
+import lucee.runtime.type.util.ListUtil;
 
 /**
  * 
@@ -57,7 +56,7 @@ public final class JSession extends ScopeSupport implements Session, HttpSession
 	private transient HttpSession httpSession;
 	private long lastAccess;
 	private long created;
-	private final Map<String, String> tokens = new StructImpl();
+	private final Struct _tokens = new StructImpl();
 
 	/**
 	 * constructor of the class
@@ -103,10 +102,10 @@ public final class JSession extends ScopeSupport implements Session, HttpSession
 		if (httpSession != null) {
 			try {
 				Object key;
-				Enumeration e = httpSession.getAttributeNames();
-				while (e.hasMoreElements()) {
+				Iterator<String> it = ListUtil.toIterator(httpSession.getAttributeNames());
+				while (it.hasNext()) {
 					// TODO set inative time new
-					key = e.nextElement();
+					key = it.next();
 					if (key.equals(name)) httpSession.removeAttribute(name);
 				}
 				name = null;
@@ -177,11 +176,11 @@ public final class JSession extends ScopeSupport implements Session, HttpSession
 
 	@Override
 	public String generateToken(String key, boolean forceNew) {
-		return ScopeUtil.generateCsrfToken(tokens, key, forceNew);
+		return ScopeUtil.generateCsrfToken(_tokens, key, forceNew);
 	}
 
 	@Override
 	public boolean verifyToken(String token, String key) {
-		return ScopeUtil.verifyCsrfToken(tokens, token, key);
+		return ScopeUtil.verifyCsrfToken(_tokens, token, key);
 	}
 }

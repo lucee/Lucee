@@ -166,25 +166,25 @@ public class Input extends TagImpl {
 	 * @param cssclass The cssclass to set.
 	 */
 	public void setClass(String cssclass) {
-		attributes.setEL("class", cssclass);
+		attributes.setEL(KeyConstants._class, cssclass);
 	}
 
 	/**
 	 * @param cssstyle The cssstyle to set.
 	 */
 	public void setStyle(String cssstyle) {
-		attributes.setEL("style", cssstyle);
+		attributes.setEL(KeyConstants._style, cssstyle);
 	}
 
 	/**
 	 * @param id The id to set.
 	 */
 	public void setId(String id) {
-		attributes.setEL("id", id);
+		attributes.setEL(KeyConstants._id, id);
 	}
 
 	public void setAccept(String accept) {
-		attributes.setEL("accept", accept);
+		attributes.setEL(KeyConstants._accept, accept);
 	}
 
 	public void setAccesskey(String accesskey) {
@@ -192,11 +192,11 @@ public class Input extends TagImpl {
 	}
 
 	public void setAlign(String align) {
-		attributes.setEL("align", align);
+		attributes.setEL(KeyConstants._align, align);
 	}
 
 	public void setAlt(String alt) {
-		attributes.setEL("alt", alt);
+		attributes.setEL(KeyConstants._alt, alt);
 	}
 
 	public void setAutocomplete(String autocomplete) {
@@ -208,7 +208,7 @@ public class Input extends TagImpl {
 	}
 
 	public void setBorder(String border) {
-		attributes.setEL("border", border);
+		attributes.setEL(KeyConstants._border, border);
 	}
 
 	public void setDatafld(String datafld) {
@@ -220,7 +220,7 @@ public class Input extends TagImpl {
 	}
 
 	public void setForm(String form) {
-		attributes.setEL("form", form);
+		attributes.setEL(KeyConstants._form, form);
 	}
 
 	public void setFormaction(String formAction) {
@@ -244,18 +244,18 @@ public class Input extends TagImpl {
 	}
 
 	public void setLang(String lang) {
-		attributes.setEL("lang", lang);
+		attributes.setEL(KeyConstants._lang, lang);
 	}
 
 	public void setList(String list) {
-		attributes.setEL("list", list);
+		attributes.setEL(KeyConstants._list, list);
 	}
 
 	public void setDir(String dir) {
 		// dir=dir.trim();
 		// String lcDir=dir.toLowerCase();
 		// if( "ltr".equals(lcDir) || "rtl".equals(lcDir))
-		attributes.setEL("dir", dir);
+		attributes.setEL(KeyConstants._dir, dir);
 
 		// else throw new ApplicationException("attribute dir for tag input has an invalid value ["+dir+"],
 		// valid values are [ltr, rtl]");
@@ -292,7 +292,7 @@ public class Input extends TagImpl {
 	public void setReadonly(String readonly) {
 		// alles ausser false ist true
 		// if(Caster.toBooleanValue(readonly,true)) attributes.setEL("readonly","readonly");
-		attributes.setEL("readonly", readonly);
+		attributes.setEL(KeyConstants._readonly, readonly);
 	}
 
 	public void setUsemap(String usemap) {
@@ -408,21 +408,21 @@ public class Input extends TagImpl {
 	 * @param title The title to set.
 	 */
 	public void setTitle(String title) {
-		attributes.setEL("title", title);
+		attributes.setEL(KeyConstants._title, title);
 	}
 
 	/**
 	 * @param value The value to set.
 	 */
 	public void setValue(String value) {
-		attributes.setEL("value", value);
+		attributes.setEL(KeyConstants._value, value);
 	}
 
 	/**
 	 * @param size The size to set.
 	 */
 	public void setSize(String size) {
-		attributes.setEL("size", size);
+		attributes.setEL(KeyConstants._size, size);
 	}
 
 	/**
@@ -485,15 +485,15 @@ public class Input extends TagImpl {
 	}
 
 	public void setMax(String max) {
-		attributes.setEL("max", max);
+		attributes.setEL(KeyConstants._max, max);
 	}
 
 	public void setMin(String min) {
-		attributes.setEL("min", min);
+		attributes.setEL(KeyConstants._min, min);
 	}
 
 	public void setMultiple(String multiple) {
-		attributes.setEL("multiple", multiple);
+		attributes.setEL(KeyConstants._multiple, multiple);
 	}
 
 	public void setPlaceholder(String placeholder) {
@@ -535,7 +535,7 @@ public class Input extends TagImpl {
 		else throw new ApplicationException("attribute type has an invalid value [" + type + "]",
 				"valid values for attribute type are " + "[checkbox, password, text, radio, button, file, hidden, image, reset, submit, datefield]");
 
-		attributes.setEL("type", type);
+		attributes.setEL(KeyConstants._type, type);
 	}
 
 	/**
@@ -723,7 +723,7 @@ public class Input extends TagImpl {
 	 * @param height the height to set
 	 */
 	public void setHeight(String height) {
-		attributes.setEL("height", height);
+		attributes.setEL(KeyConstants._height, height);
 	}
 
 	/**
@@ -771,7 +771,7 @@ public class Input extends TagImpl {
 	 * @throws ApplicationException
 	 */
 	public void setWidth(String width) {
-		attributes.setEL("width", width);
+		attributes.setEL(KeyConstants._width, width);
 	}
 
 	private ExpressionException notSupported(String label) {
@@ -834,11 +834,11 @@ public class Input extends TagImpl {
 	}
 
 	public void setSrc(String src) {
-		attributes.setEL("src", src);
+		attributes.setEL(KeyConstants._src, src);
 	}
 
 	public void setStep(String step) {
-		attributes.setEL("step", step);
+		attributes.setEL(KeyConstants._step, step);
 	}
 
 	public void setTypeahead(boolean typeahead) throws ExpressionException {

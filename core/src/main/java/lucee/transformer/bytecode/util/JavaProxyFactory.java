@@ -23,7 +23,7 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier; 
+import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -209,7 +209,7 @@ public class JavaProxyFactory {
 		}
 	}
 
-	public static Object createProxy(PageContext pc, Component cfc, Class<?> extendz, Class<?>[] interfaces) throws PageException, IOException {
+	public static Object createProxy(PageContext pc, Component cfc, Class extendz, Class... interfaces) throws PageException, IOException {
 		PageContextImpl pci = (PageContextImpl) pc;
 		ClassLoader[] parents = extractClassLoaders(null, interfaces);
 

@@ -35,5 +35,7 @@ public interface Expression {
 
 	public void setDirectionBackward(boolean b);
 
+	public void reset();
+
 	public boolean isDirectionBackward();
 }

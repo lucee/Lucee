@@ -54,7 +54,7 @@ public class PageSourceCode extends SourceCode {
 			content = IOUtil.toString(is, charset);
 		}
 		finally {
-			IOUtil.closeEL(is);
+			IOUtil.close(is);
 		}
 		return content;
 	}

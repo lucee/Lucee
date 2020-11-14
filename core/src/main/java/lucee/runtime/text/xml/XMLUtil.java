@@ -26,6 +26,7 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -66,6 +67,7 @@ import org.xml.sax.helpers.XMLReaderFactory;
 
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
@@ -74,7 +76,7 @@ import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
@@ -92,6 +94,7 @@ import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.util.KeyConstants;
 
 /**
  *
@@ -100,22 +103,22 @@ public final class XMLUtil {
 
 	public static final short UNDEFINED_NODE = -1;
 
-	public static final Collection.Key XMLCOMMENT = KeyImpl.intern("xmlcomment");
-	public static final Collection.Key XMLTEXT = KeyImpl.intern("xmltext");
-	public static final Collection.Key XMLCDATA = KeyImpl.intern("xmlcdata");
-	public static final Collection.Key XMLCHILDREN = KeyImpl.intern("xmlchildren");
-	public static final Collection.Key XMLNODES = KeyImpl.intern("xmlnodes");
-	public static final Collection.Key XMLNSURI = KeyImpl.intern("xmlnsuri");
-	public static final Collection.Key XMLNSPREFIX = KeyImpl.intern("xmlnsprefix");
-	public static final Collection.Key XMLROOT = KeyImpl.intern("xmlroot");
-	public static final Collection.Key XMLPARENT = KeyImpl.intern("xmlparent");
-	public static final Collection.Key XMLNAME = KeyImpl.intern("xmlname");
-	public static final Collection.Key XMLTYPE = KeyImpl.intern("xmltype");
-	public static final Collection.Key XMLVALUE = KeyImpl.intern("xmlvalue");
-	public static final Collection.Key XMLATTRIBUTES = KeyImpl.intern("xmlattributes");
-	public static final Collection.Key KEY_FEATURE_SECURE = KeyImpl.intern("secure");
-	public static final Collection.Key KEY_FEATURE_DISALLOW_DOCTYPE_DECL = KeyImpl.intern("disallowDoctypeDecl");
-	public static final Collection.Key KEY_FEATURE_EXTERNAL_GENERAL_ENTITIES = KeyImpl.intern("externalGeneralEntities");
+	public static final Collection.Key XMLCOMMENT = KeyImpl.getInstance("xmlcomment");
+	public static final Collection.Key XMLTEXT = KeyImpl.getInstance("xmltext");
+	public static final Collection.Key XMLCDATA = KeyImpl.getInstance("xmlcdata");
+	public static final Collection.Key XMLCHILDREN = KeyImpl.getInstance("xmlchildren");
+	public static final Collection.Key XMLNODES = KeyImpl.getInstance("xmlnodes");
+	public static final Collection.Key XMLNSURI = KeyImpl.getInstance("xmlnsuri");
+	public static final Collection.Key XMLNSPREFIX = KeyImpl.getInstance("xmlnsprefix");
+	public static final Collection.Key XMLROOT = KeyImpl.getInstance("xmlroot");
+	public static final Collection.Key XMLPARENT = KeyImpl.getInstance("xmlparent");
+	public static final Collection.Key XMLNAME = KeyImpl.getInstance("xmlname");
+	public static final Collection.Key XMLTYPE = KeyImpl.getInstance("xmltype");
+	public static final Collection.Key XMLVALUE = KeyImpl.getInstance("xmlvalue");
+	public static final Collection.Key XMLATTRIBUTES = KeyImpl.getInstance("xmlattributes");
+	public static final Collection.Key KEY_FEATURE_SECURE = KeyConstants._secure;
+	public static final Collection.Key KEY_FEATURE_DISALLOW_DOCTYPE_DECL = KeyImpl.getInstance("disallowDoctypeDecl");
+	public static final Collection.Key KEY_FEATURE_EXTERNAL_GENERAL_ENTITIES = KeyImpl.getInstance("externalGeneralEntities");
 
 	// public final static String
 	// DEFAULT_SAX_PARSER="org.apache.xerces.parsers.SAXParser";
@@ -134,6 +137,8 @@ public final class XMLUtil {
 	// private static DocumentBuilderFactory documentBuilderFactory;
 
 	private static SAXParserFactory saxParserFactory;
+
+	private static URL transformerFactoryResource;
 
 	public static String unescapeXMLString(String str) {
 
@@ -214,18 +219,27 @@ public final class XMLUtil {
 	 * @return returns a singelton TransformerFactory
 	 */
 	public static TransformerFactory getTransformerFactory() {
-
-		if (transformerFactory == null) {
-			transformerFactory = _newTransformerFactory();
-
-		}
-		// if(transformerFactory==null)transformerFactory=new TransformerFactoryImpl();
+		if (transformerFactory == null) transformerFactory = _newTransformerFactory();
 		return transformerFactory;
+	}
+
+	public static String getTransformerFactoryName() {
+		return getTransformerFactory().getClass().getName();
+	}
+
+	public static URL getTransformerFactoryResource() throws IOException {
+		if (transformerFactoryResource == null) {
+			String name = getTransformerFactoryName();
+			Resource localFile = SystemUtil.getTempDirectory().getRealResource(name.replace('\\', '_').replace('/', '_'));
+			IOUtil.write(localFile, name.getBytes());
+			transformerFactoryResource = ((File) localFile).toURI().toURL();
+		}
+		return transformerFactoryResource;
 	}
 
 	private static TransformerFactory _newTransformerFactory() {
 
-		Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl) ThreadLocalPageContext.getConfig()));
+		Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigPro) ThreadLocalPageContext.getConfig()));
 		TransformerFactory factory = null;
 		Class clazz = null;
 		try {
@@ -314,8 +328,8 @@ public final class XMLUtil {
 
 		PageContext pc = ThreadLocalPageContext.get();
 		if (pc != null) {
-			Struct features = ((ApplicationContextSupport) pc.getApplicationContext()).getXmlFeatures();
-
+			ApplicationContextSupport ac = ((ApplicationContextSupport) pc.getApplicationContext());
+			Struct features = ac == null ? null : ac.getXmlFeatures();
 			if (features != null) {
 				try { // handle feature aliases, e.g. secure
 					Object obj;
@@ -372,9 +386,13 @@ public final class XMLUtil {
 
 	private static Class<DocumentBuilderFactory> dbf;
 
+	private static URL documentBuilderFactoryResource;
+
+	private static URL saxParserFactoryResource;
+
 	private static Class<DocumentBuilderFactory> _newDocumentBuilderFactoryClass() {
 		if (dbf == null) {
-			Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl) ThreadLocalPageContext.getConfig()));
+			Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigPro) ThreadLocalPageContext.getConfig()));
 			Class<DocumentBuilderFactory> clazz = null;
 			try {
 				clazz = ClassUtil.loadClass("com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl");
@@ -393,6 +411,28 @@ public final class XMLUtil {
 		return dbf;
 	}
 
+	public static String getXMLParserConfigurationName() {
+		String value = "org.apache.xerces.parsers.XIncludeAwareParserConfiguration";
+		System.setProperty("org.apache.xerces.xni.parser.XMLParserConfiguration", value);
+		return value; // TODO better impl, still used?
+	}
+
+	public static String getDocumentBuilderFactoryName() {
+		Class<DocumentBuilderFactory> clazz = _newDocumentBuilderFactoryClass();
+		if (clazz != null) return clazz.getName();
+		return DocumentBuilderFactory.newInstance().getClass().getName();
+	}
+
+	public static URL getDocumentBuilderFactoryResource() throws IOException {
+		if (documentBuilderFactoryResource == null) {
+			String name = getDocumentBuilderFactoryName();
+			Resource localFile = SystemUtil.getTempDirectory().getRealResource(name.replace('\\', '_').replace('/', '_'));
+			IOUtil.write(localFile, name.getBytes());
+			documentBuilderFactoryResource = ((File) localFile).toURI().toURL();
+		}
+		return documentBuilderFactoryResource;
+	}
+
 	private static DocumentBuilderFactory _newDocumentBuilderFactory() {
 		Class<DocumentBuilderFactory> clazz = _newDocumentBuilderFactoryClass();
 		DocumentBuilderFactory factory = null;
@@ -408,14 +448,28 @@ public final class XMLUtil {
 
 	private static SAXParserFactory newSAXParserFactory() {
 		if (saxParserFactory == null) {
-			Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl) ThreadLocalPageContext.getConfig()));
+			Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigPro) ThreadLocalPageContext.getConfig()));
 			saxParserFactory = SAXParserFactory.newInstance();
 		}
 		return saxParserFactory;
 	}
 
+	public static String getSAXParserFactoryName() {
+		return newSAXParserFactory().getClass().getName();
+	}
+
+	public static URL getSAXParserFactoryResource() throws IOException {
+		if (saxParserFactoryResource == null) {
+			String name = getSAXParserFactoryName();
+			Resource localFile = SystemUtil.getTempDirectory().getRealResource(name.replace('\\', '_').replace('/', '_'));
+			IOUtil.write(localFile, name.getBytes());
+			saxParserFactoryResource = ((File) localFile).toURI().toURL();
+		}
+		return saxParserFactoryResource;
+	}
+
 	public static XMLReader createXMLReader() throws SAXException {
-		Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigImpl) ThreadLocalPageContext.getConfig()));
+		Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigPro) ThreadLocalPageContext.getConfig()));
 		try {
 			return XMLReaderFactory.createXMLReader("com.sun.org.apache.xerces.internal.parsers.SAXParser");
 		}
@@ -1317,7 +1371,7 @@ public final class XMLUtil {
 				return new InputSource(new StringReader(str));
 			}
 			finally {
-				IOUtil.closeEL(is);
+				IOUtil.close(is);
 			}
 		}
 		if (value instanceof Reader) {
@@ -1327,7 +1381,7 @@ public final class XMLUtil {
 				return new InputSource(new StringReader(str));
 			}
 			finally {
-				IOUtil.closeEL(reader);
+				IOUtil.close(reader);
 			}
 		}
 		if (value instanceof byte[]) {
@@ -1390,8 +1444,8 @@ public final class XMLUtil {
 				else str = "XML File [" + res.getAbsolutePath() + "] is invalid;" + saxe.getMessage();
 
 				XMLException se = new XMLException(str);
-				se.setAdditional(KeyImpl.init("path"), res.getAbsolutePath());
-				se.setAdditional(KeyImpl.init("content"), content);
+				se.setAdditional(KeyConstants._path, res.getAbsolutePath());
+				se.setAdditional(KeyConstants._content, content);
 				se.setStackTrace(saxe.getStackTrace());
 
 				throw se;
@@ -1399,7 +1453,7 @@ public final class XMLUtil {
 			throw new XMLException(saxe);
 		}
 		finally {
-			IOUtil.closeEL(is);
+			IOUtil.close(is);
 		}
 	}
 
@@ -1432,7 +1486,7 @@ public final class XMLUtil {
 				return toInputSource(fis);
 			}
 			finally {
-				IOUtil.closeEL(fis);
+				IOUtil.close(fis);
 			}
 		}
 		if (value instanceof InputStream) {
@@ -1442,7 +1496,7 @@ public final class XMLUtil {
 				return new InputSource(new StringReader(str));
 			}
 			finally {
-				IOUtil.closeEL(is);
+				IOUtil.close(is);
 			}
 		}
 		if (value instanceof Reader) {
@@ -1452,7 +1506,7 @@ public final class XMLUtil {
 				return new InputSource(new StringReader(str));
 			}
 			finally {
-				IOUtil.closeEL(reader);
+				IOUtil.close(reader);
 			}
 		}
 		if (value instanceof byte[]) {
@@ -1465,8 +1519,8 @@ public final class XMLUtil {
 		return new InputSource(new StringReader(xml.trim()));
 	}
 
-	public static Struct validate(InputSource xml, InputSource schema, String strSchema) throws XMLException {
-		return new XMLValidator(schema, strSchema).validate(xml);
+	public static Struct validate(InputSource xml, InputSource[] schemas, String strSchema) throws XMLException {
+		return new XMLValidator(schemas, strSchema).validate(xml);
 	}
 
 }

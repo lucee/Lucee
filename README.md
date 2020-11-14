@@ -2,6 +2,8 @@
 
 ![GitHub](https://img.shields.io/github/license/lucee/Lucee)
 [![Build Status](https://travis-ci.org/lucee/Lucee.svg?branch=5.3)](https://travis-ci.org/lucee/Lucee)
+[![Backers on Open Collective](https://opencollective.com/Lucee/backers/badge.svg)](#backers)
+[![Sponsors on Open Collective](https://opencollective.com/Lucee/sponsors/badge.svg)](#sponsors) 
 
 [![Maven Central](https://img.shields.io/maven-central/v/org.lucee/lucee)](https://mvnrepository.com/artifact/org.lucee/lucee)
 [![GitHub pull requests](https://img.shields.io/github/issues-pr-raw/lucee/Lucee)](https://github.com/lucee/Lucee/pulls)
@@ -23,7 +25,7 @@ Lucee provides a compatibility layer for Adobe ColdFusion &copy;  CFML using les
 
 ## Installation
 
-You can [build Lucee from source](http://docs.lucee.org/guides/working-with-source.html) or grab one of our distributions:
+You can [build Lucee from source](https://docs.lucee.org/guides/working-with-source.html) or grab one of our distributions:
 
 - [Lucee Express](http://lucee.org/downloads.html) (just unzip and run; delete to clean up)
 - [Installers for Windows, Linux and OSX](http://lucee.org/downloads.html)
@@ -33,7 +35,7 @@ Alternatively try the super-useful [CommandBox](https://www.ortussolutions.com/p
 
 ## Getting Help
 
-- [Lucee Documentation Project](http://docs.lucee.org/)
+- [Lucee Documentation Project](https://docs.lucee.org/)
 - [Lucee Google Group](https://groups.google.com/forum/#!forum/lucee); general app developer support
 - [Lucee Lang Forum](http://lang.lucee.org/); hacking on Lucee itself
 - [Lucee Bug Tracker](https://luceeserver.atlassian.net/projects/LDEV/issues)
@@ -55,6 +57,34 @@ Lucee attempts to resolve many inconsistencies found in traditional CFML; either
 For more peruse the [Lucee Manifesto](http://lang.lucee.org/t/lucee-manifesto/183).
 
 The Lucee team is always open to feedback and active at CFML community events, and is keen to remind people that Lucee is a community project.
+
+## Contributors
+
+This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)].
+<a href="https://github.com/lucee/Lucee/graphs/contributors"><img src="https://opencollective.com/Lucee/contributors.svg?width=890&button=false" /></a>
+
+
+## Backers
+
+Thank you to all our backers! 🙏 [[Become a backer](https://opencollective.com/Lucee#backer)]
+
+<a href="https://opencollective.com/Lucee#backers" target="_blank"><img src="https://opencollective.com/Lucee/backers.svg?width=890"></a>
+
+
+## Sponsors
+
+Support this project by becoming a sponsor. Your logo will show up here with a link to your website. [[Become a sponsor](https://opencollective.com/Lucee#sponsor)]
+
+<a href="https://opencollective.com/Lucee/sponsor/0/website" target="_blank"><img src="https://opencollective.com/Lucee/sponsor/0/avatar.svg"></a>
+<a href="https://opencollective.com/Lucee/sponsor/1/website" target="_blank"><img src="https://opencollective.com/Lucee/sponsor/1/avatar.svg"></a>
+<a href="https://opencollective.com/Lucee/sponsor/2/website" target="_blank"><img src="https://opencollective.com/Lucee/sponsor/2/avatar.svg"></a>
+<a href="https://opencollective.com/Lucee/sponsor/3/website" target="_blank"><img src="https://opencollective.com/Lucee/sponsor/3/avatar.svg"></a>
+<a href="https://opencollective.com/Lucee/sponsor/4/website" target="_blank"><img src="https://opencollective.com/Lucee/sponsor/4/avatar.svg"></a>
+<a href="https://opencollective.com/Lucee/sponsor/5/website" target="_blank"><img src="https://opencollective.com/Lucee/sponsor/5/avatar.svg"></a>
+<a href="https://opencollective.com/Lucee/sponsor/6/website" target="_blank"><img src="https://opencollective.com/Lucee/sponsor/6/avatar.svg"></a>
+<a href="https://opencollective.com/Lucee/sponsor/7/website" target="_blank"><img src="https://opencollective.com/Lucee/sponsor/7/avatar.svg"></a>
+<a href="https://opencollective.com/Lucee/sponsor/8/website" target="_blank"><img src="https://opencollective.com/Lucee/sponsor/8/avatar.svg"></a>
+<a href="https://opencollective.com/Lucee/sponsor/9/website" target="_blank"><img src="https://opencollective.com/Lucee/sponsor/9/avatar.svg"></a>
 
 ## Copyright / License
 

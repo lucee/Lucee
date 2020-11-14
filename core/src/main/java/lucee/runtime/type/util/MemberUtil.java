@@ -30,7 +30,7 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.interpreter.ref.Ref;
@@ -62,7 +62,7 @@ public class MemberUtil {
 		Map<Key, FunctionLibFunction> match = matches.get(type);
 		if (match != null) return match;
 
-		FunctionLib[] flds = ((ConfigWebImpl) pc.getConfig()).getFLDs(pc.getCurrentTemplateDialect());
+		FunctionLib[] flds = ((ConfigWebPro) pc.getConfig()).getFLDs(pc.getCurrentTemplateDialect());
 		Iterator<FunctionLibFunction> it;
 		FunctionLibFunction f;
 		match = new HashMap<Collection.Key, FunctionLibFunction>();
@@ -75,7 +75,7 @@ public class MemberUtil {
 				if (!ArrayUtil.isEmpty(names) && f.getMemberType() == type && f.getArgType() == FunctionLibFunction.ARG_FIX) {
 					for (int y = 0; y < names.length; y++)
 
-						match.put(KeyImpl.getInstance(names[y]), f);
+						match.put(KeyImpl.init(names[y]), f);
 				}
 			}
 		}

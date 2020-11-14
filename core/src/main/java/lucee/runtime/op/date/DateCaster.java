@@ -148,18 +148,19 @@ public final class DateCaster {
 		DateTime dt = toDateSimple(str, convertingType, true, timeZone, defaultValue);
 		if (dt == null) {
 			final DateFormat[] formats = FormatUtil.getCFMLFormats(timeZone, true);
-			synchronized (formats) {
-				Date d;
-				ParsePosition pp = new ParsePosition(0);
-				for (int i = 0; i < formats.length; i++) {
-					// try {
-					pp.setErrorIndex(-1);
-					pp.setIndex(0);
-					d = formats[i].parse(str, pp);
-					if (pp.getIndex() == 0 || d == null || pp.getIndex() < str.length()) continue;
-					dt = new DateTimeImpl(d.getTime(), false);
-					return dt;
+			DateFormat df;
+			Date d;
+			ParsePosition pp = new ParsePosition(0);
+			for (int i = 0; i < formats.length; i++) {
+				df = formats[i];
+				pp.setErrorIndex(-1);
+				pp.setIndex(0);
+				synchronized (df) {
+					d = df.parse(str, pp);
 				}
+				if (pp.getIndex() == 0 || d == null || pp.getIndex() < str.length()) continue;
+				dt = new DateTimeImpl(d.getTime(), false);
+				return dt;
 			}
 			dt = toDateTime(Locale.US, str, timeZone, defaultValue, false);
 		}

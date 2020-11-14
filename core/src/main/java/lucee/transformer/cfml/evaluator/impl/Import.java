@@ -32,7 +32,6 @@ import lucee.commons.lang.Md5;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageSource;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.exp.TemplateException;
 import lucee.transformer.bytecode.statement.tag.Attribute;
@@ -113,7 +112,7 @@ public final class Import extends EvaluatorSupport {
 		// Second Change
 		if (textTagLib.startsWith("/")) {
 			// config.getPhysical(textTagLib);
-			PageSource ps = ((ConfigImpl) config).getPageSourceExisting(null, null, textTagLib, false, false, true, false);
+			PageSource ps = config.getPageSourceExisting(null, null, textTagLib, false, false, true, false);
 
 			// config.getConfigDir()
 			if (ps != null) {

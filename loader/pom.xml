@@ -133,9 +133,9 @@
         </plugin>
 
         <plugin>
-     		<groupId>org.apache.maven.plugins</groupId>
-     		<artifactId>maven-source-plugin</artifactId>
-     		<version>2.4</version>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <version>2.4</version>
           <executions>
             <execution>
               <id>attach-sources</id>
@@ -147,9 +147,9 @@
         </plugin>
 
         <plugin>
-     		<groupId>org.apache.maven.plugins</groupId>
-     		<artifactId>maven-javadoc-plugin</artifactId>
-         	<version>2.10.3</version>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+          <version>2.10.3</version>
 
           <executions>
             <execution>
@@ -248,46 +248,46 @@
 
       </plugins>
       <pluginManagement>
-      	<plugins>
-      		<!-- This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself. -->
-      		<plugin>
-      			<groupId>org.eclipse.m2e</groupId>
-      			<artifactId>lifecycle-mapping</artifactId>
-      			<version>1.0.0</version>
-      			<configuration>
-      				<lifecycleMappingMetadata>
-      					<pluginExecutions>
-      						<pluginExecution>
-      							<pluginExecutionFilter>
-      								<groupId>
-      									org.apache.maven.plugins
-      								</groupId>
-      								<artifactId>
-      									maven-antrun-plugin
-      								</artifactId>
-      								<versionRange>
-      									[1.8,)
-      								</versionRange>
-      								<goals>
-      									<goal>run</goal>
-      								</goals>
-      							</pluginExecutionFilter>
-      							<action>
-      								<ignore></ignore>
-      							</action>
-      						</pluginExecution>
-      					</pluginExecutions>
-      				</lifecycleMappingMetadata>
-      			</configuration>
-      		</plugin>
-      	</plugins>
+        <plugins>
+          <!-- This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself. -->
+          <plugin>
+            <groupId>org.eclipse.m2e</groupId>
+            <artifactId>lifecycle-mapping</artifactId>
+            <version>1.0.0</version>
+            <configuration>
+              <lifecycleMappingMetadata>
+                <pluginExecutions>
+                  <pluginExecution>
+                    <pluginExecutionFilter>
+                      <groupId>
+                        org.apache.maven.plugins
+                      </groupId>
+                      <artifactId>
+                        maven-antrun-plugin
+                      </artifactId>
+                      <versionRange>
+                        [1.8,)
+                      </versionRange>
+                      <goals>
+                        <goal>run</goal>
+                      </goals>
+                    </pluginExecutionFilter>
+                    <action>
+                      <ignore></ignore>
+                    </action>
+                  </pluginExecution>
+                </pluginExecutions>
+              </lifecycleMappingMetadata>
+            </configuration>
+          </plugin>
+        </plugins>
       </pluginManagement>
   </build>
 
 
 
 
-	<dependencies>
+  <dependencies>
 
   <dependency>
     <groupId>junit</groupId>
@@ -297,7 +297,7 @@
   </dependency>
 
 
-	<dependency>
+  <dependency>
     <groupId>org.apache.felix</groupId>
     <artifactId>org.apache.felix.framework</artifactId>
     <version>6.0.2</version><!-- 4.6.1 -->
@@ -331,18 +331,18 @@
 <!--
   source: mvn
 -->
-	<dependency>
-  		<groupId>org.lucee</groupId>
-  		<artifactId>jzlib</artifactId>
-  		<version>1.1.3</version>
-    	<scope>provided</scope>
-  	</dependency>
-  	<dependency>
-  		<groupId>org.lucee</groupId>
-  		<artifactId>jsch</artifactId>
-  		<version>0.1.53</version>
-    	<scope>provided</scope>
-  	</dependency>
+  <dependency>
+      <groupId>org.lucee</groupId>
+      <artifactId>jzlib</artifactId>
+      <version>1.1.3</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.lucee</groupId>
+      <artifactId>jsch</artifactId>
+      <version>0.1.53</version>
+      <scope>provided</scope>
+    </dependency>
   <dependency>
     <groupId>org.apache.tika</groupId>
     <artifactId>tika-core</artifactId>
@@ -356,22 +356,22 @@
     <scope>provided</scope>
   </dependency>
   <dependency>
-	  <groupId>org.apache.commons</groupId>
-	  <artifactId>commons-collections4</artifactId>
-	  <version>4.0</version>
+    <groupId>org.apache.commons</groupId>
+    <artifactId>commons-collections4</artifactId>
+    <version>4.0</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
-  	<groupId>org.lucee</groupId>
-  	<artifactId>commons-compress</artifactId>
-  	<version>1.9.0</version>
+    <groupId>org.lucee</groupId>
+    <artifactId>commons-compress</artifactId>
+    <version>1.9.0</version>
     <scope>provided</scope>
   </dependency>
-	<!--Axis?
+  <!--Axis?
     <dependency>
-		<groupId>commons-discovery</groupId>
-		<artifactId>commons-discovery</artifactId>
-		<version>0.5</version>
+    <groupId>commons-discovery</groupId>
+    <artifactId>commons-discovery</artifactId>
+    <version>0.5</version>
     <scope>provided</scope>
   </dependency>
   -->
@@ -382,53 +382,53 @@
     <scope>provided</scope>
   </dependency>
   <dependency>
-  	<groupId>org.lucee</groupId>
-  	<artifactId>commons-fileupload</artifactId>
-  	<version>1.3.2.L0001</version>
+    <groupId>org.lucee</groupId>
+    <artifactId>commons-fileupload</artifactId>
+    <version>1.3.2.L0001</version>
     <scope>provided</scope>
   </dependency>
-	<!--Axis?
+  <!--Axis?
   <dependency>
-		<groupId>org.lucee</groupId>
-		<artifactId>commons-httpclient</artifactId>
-		<version>3.1.0</version>
+    <groupId>org.lucee</groupId>
+    <artifactId>commons-httpclient</artifactId>
+    <version>3.1.0</version>
     <scope>provided</scope>
   </dependency>
 -->
-	<dependency>
-		<groupId>org.lucee</groupId>
-		<artifactId>commons-io</artifactId>
-		<version>2.4.0</version>
-    <scope>provided</scope>
-  </dependency>
-	<dependency>
-		<groupId>org.lucee</groupId>
-		<artifactId>commons-lang</artifactId>
-		<version>2.6.0</version>
+  <dependency>
+    <groupId>org.lucee</groupId>
+    <artifactId>commons-io</artifactId>
+    <version>2.4.0</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
-  	<groupId>org.lucee</groupId>
-  	<artifactId>commons-logging-adapters</artifactId>
-  	<version>1.1.0</version>
+    <groupId>org.lucee</groupId>
+    <artifactId>commons-lang</artifactId>
+    <version>2.6.0</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
-  	<groupId>org.lucee</groupId>
-  	<artifactId>commons-logging-api</artifactId>
-  	<version>1.1.0</version>
+    <groupId>org.lucee</groupId>
+    <artifactId>commons-logging-adapters</artifactId>
+    <version>1.1.0</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
-  	<groupId>org.lucee</groupId>
-  	<artifactId>commons-logging</artifactId>
-  	<version>1.1.1.L0001</version>
+    <groupId>org.lucee</groupId>
+    <artifactId>commons-logging-api</artifactId>
+    <version>1.1.0</version>
     <scope>provided</scope>
   </dependency>
-	<dependency>
-		<groupId>commons-net</groupId>
-		<artifactId>commons-net</artifactId>
-		<version>3.3</version>
+  <dependency>
+    <groupId>org.lucee</groupId>
+    <artifactId>commons-logging</artifactId>
+    <version>1.1.1.L0001</version>
+    <scope>provided</scope>
+  </dependency>
+  <dependency>
+    <groupId>commons-net</groupId>
+    <artifactId>commons-net</artifactId>
+    <version>3.3</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
@@ -437,44 +437,44 @@
     <version>2.0.8</version>
     <scope>provided</scope>
   </dependency>
-	<dependency>
-		<groupId>log4j</groupId>
-		<artifactId>log4j</artifactId>
-		<version>1.2.17</version>
+  <dependency>
+    <groupId>log4j</groupId>
+    <artifactId>log4j</artifactId>
+    <version>1.2.17</version>
     <scope>provided</scope>
   </dependency>
   <!--
   <dependency>
-  	<groupId>org.lucee</groupId>
-  	<artifactId>xalan</artifactId>
-  	<version>2.7.2</version>
+    <groupId>org.lucee</groupId>
+    <artifactId>xalan</artifactId>
+    <version>2.7.2</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
-  	<groupId>org.lucee</groupId>
-  	<artifactId>xalan-serializer</artifactId>
-  	<version>2.7.2</version>
+    <groupId>org.lucee</groupId>
+    <artifactId>xalan-serializer</artifactId>
+    <version>2.7.2</version>
     <scope>provided</scope>
   </dependency>
   -->
   <dependency>
-  	<groupId>org.lucee</groupId>
-  	<artifactId>portlet</artifactId>
-  	<version>1.0.0</version>
+    <groupId>org.lucee</groupId>
+    <artifactId>portlet</artifactId>
+    <version>1.0.0</version>
     <scope>provided</scope>
   </dependency>
   <!--
   <dependency>
-  	<groupId>org.lucee</groupId>
-  	<artifactId>xml-xerces</artifactId>
-  	<version>2.11.0</version>
+    <groupId>org.lucee</groupId>
+    <artifactId>xml-xerces</artifactId>
+    <version>2.11.0</version>
     <scope>provided</scope>
   </dependency>
   -->
   <dependency>
-  	<groupId>org.lucee</groupId>
-  	<artifactId>xml-apis</artifactId>
-  	<version>1.4.1</version>
+    <groupId>org.lucee</groupId>
+    <artifactId>xml-apis</artifactId>
+    <version>1.4.1</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
@@ -490,9 +490,9 @@
     <scope>provided</scope>
   </dependency>
   <dependency>
-  	<groupId>org.lucee</groupId>
-  	<artifactId>jta</artifactId>
-  	<version>1.1.0</version>
+    <groupId>org.lucee</groupId>
+    <artifactId>jta</artifactId>
+    <version>1.1.0</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
@@ -502,21 +502,21 @@
     <scope>provided</scope>
   </dependency>
   <dependency>
-  	<groupId>org.lucee</groupId>
-  	<artifactId>httpcomponents-httpclient</artifactId>
-  	<version>4.5.10</version>
+    <groupId>org.lucee</groupId>
+    <artifactId>httpcomponents-httpclient</artifactId>
+    <version>4.5.10</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
-  	<groupId>org.lucee</groupId>
-  	<artifactId>httpcomponents-httpcore</artifactId>
-  	<version>4.4.12</version>
+    <groupId>org.lucee</groupId>
+    <artifactId>httpcomponents-httpcore</artifactId>
+    <version>4.4.12</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
-  	<groupId>org.lucee</groupId>
-  	<artifactId>httpcomponents-httpmime</artifactId>
-  	<version>4.5.10</version>
+    <groupId>org.lucee</groupId>
+    <artifactId>httpcomponents-httpmime</artifactId>
+    <version>4.5.10</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
@@ -550,27 +550,27 @@
     <scope>provided</scope>
   </dependency>
   <dependency>
-  	<groupId>org.ow2.asm</groupId>
-  	<artifactId>asm-all</artifactId>
-  	<version>4.2</version>
+    <groupId>org.ow2.asm</groupId>
+    <artifactId>asm-all</artifactId>
+    <version>4.2</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
-  	<groupId>org.lucee</groupId>
-  	<artifactId>xml-resolver</artifactId>
-  	<version>1.2.0</version>
+    <groupId>org.lucee</groupId>
+    <artifactId>xml-resolver</artifactId>
+    <version>1.2.0</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
-  	<groupId>org.slf4j</groupId>
-  	<artifactId>slf4j-api</artifactId>
-  	<version>1.7.12</version>
+    <groupId>org.slf4j</groupId>
+    <artifactId>slf4j-api</artifactId>
+    <version>1.7.12</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
-	  <groupId>org.slf4j</groupId>
-	  <artifactId>slf4j-nop</artifactId>
-	  <version>1.7.12</version>
+    <groupId>org.slf4j</groupId>
+    <artifactId>slf4j-nop</artifactId>
+    <version>1.7.12</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
@@ -610,9 +610,9 @@
     <scope>provided</scope>
   </dependency>
   <dependency>
-	  <groupId>javax.mail</groupId>
-	  <artifactId>activation</artifactId>
-	  <version>1.4.7.0002L</version>
+    <groupId>javax.mail</groupId>
+    <artifactId>activation</artifactId>
+    <version>1.6.2.0000L</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
@@ -633,6 +633,12 @@
     <version>1.1.0</version>
     <scope>provided</scope>
   </dependency>
+  <dependency>
+        <groupId>javax.websocket</groupId>
+        <artifactId>javax.websocket-api</artifactId>
+        <version>1.1</version>
+        <scope>provided</scope>
+    </dependency>
   <!-- <dependency>
     <groupId>xdb</groupId>
     <artifactId>xdb</artifactId>
@@ -650,6 +656,11 @@
     <artifactId>xmpcore</artifactId>
     <version>5.1.2.0002L</version>
     <scope>provided</scope>
+  </dependency>
+  <dependency>
+      <groupId>org.lucee</groupId>
+      <artifactId>argon2</artifactId>
+      <version>2.7.0</version>
   </dependency>
 </dependencies>
 

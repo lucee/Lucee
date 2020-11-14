@@ -60,12 +60,12 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 
 	private static final TaskFileFilter FILTER = new TaskFileFilter();
 
-	private static final Collection.Key LAST_EXECUTION = KeyImpl.intern("lastExecution");
-	private static final Collection.Key NEXT_EXECUTION = KeyImpl.intern("nextExecution");
+	private static final Collection.Key LAST_EXECUTION = KeyImpl.getInstance("lastExecution");
+	private static final Collection.Key NEXT_EXECUTION = KeyImpl.getInstance("nextExecution");
 
-	private static final Collection.Key CLOSED = KeyImpl.intern("closed");
-	private static final Collection.Key TRIES = KeyImpl.intern("tries");
-	private static final Collection.Key TRIES_MAX = KeyImpl.intern("triesmax");
+	private static final Collection.Key CLOSED = KeyConstants._closed;
+	private static final Collection.Key TRIES = KeyConstants._tries;
+	private static final Collection.Key TRIES_MAX = KeyImpl.getInstance("triesmax");
 
 	private String label;
 
@@ -220,7 +220,12 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 			LogUtil.log(ThreadLocalPageContext.getConfig(), SpoolerEngineImpl.class.getName(), e);
 		}
 		finally {
-			IOUtil.closeEL(oos);
+			try {
+				IOUtil.close(oos);
+			}
+			catch (IOException e) {
+				LogUtil.log(ThreadLocalPageContext.getConfig(), SpoolerEngineImpl.class.getName(), e);
+			}
 		}
 	}
 

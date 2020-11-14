@@ -19,18 +19,15 @@
 
 package lucee.runtime.functions.xml;
 
-import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.HARD;
-import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.SOFT;
-
+import java.lang.ref.SoftReference;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
@@ -38,7 +35,6 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import org.apache.commons.collections4.map.ReferenceMap;
 import org.w3c.dom.Document;
 //import org.apache.xpath.XPathAPI;
 //import org.apache.xpath.objects.XObject;
@@ -74,7 +70,7 @@ public final class XmlSearch implements Function {
 
 	private static List<String> operators = new ArrayList<String>();
 
-	private static Map<String, Tmp> exprs = Collections.synchronizedMap(new ReferenceMap<String, Tmp>(HARD, SOFT, 10, 0.75f));
+	private static Map<String, SoftReference<Tmp>> exprs = new ConcurrentHashMap<String, SoftReference<Tmp>>(10, 0.75f);
 
 	private static class Tmp {
 		private XPathExpression expr;
@@ -107,14 +103,15 @@ public final class XmlSearch implements Function {
 			try {
 				if (factory == null) factory = XPathFactory.newInstance();
 				Document doc = XMLUtil.getDocument(node);
-				tmp = exprs.get(strExpr);
+				SoftReference<Tmp> t = exprs.get(strExpr);
+				tmp = t == null ? null : t.get();
 				if (tmp == null) {
 					tmp = new Tmp();
 					XPath path = factory.newXPath();
 					path.setNamespaceContext(tmp.unr = new UniversalNamespaceResolver(doc));
 					tmp.expr = path.compile(strExpr);
 					if (exprs.size() > 100) exprs.clear();
-					exprs.put(strExpr, tmp);
+					exprs.put(strExpr, new SoftReference<XmlSearch.Tmp>(tmp));
 				}
 				else {
 					tmp.unr.setDocument(doc);
@@ -179,7 +176,6 @@ public final class XmlSearch implements Function {
 		 */
 		public UniversalNamespaceResolver(Document document) {
 			sourceDocument = document;
-			DocumentBuilderFactory.newInstance();
 		}
 
 		public void setDocument(Document document) {

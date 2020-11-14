@@ -36,7 +36,7 @@ import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lang.types.RefBooleanImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DataSourceUtil;
 import lucee.runtime.db.DatasourceConnection;
@@ -142,17 +142,32 @@ public class DatasourceAppender extends JDBCAppender implements Appender {
 	private SQL createSQL(DatasourceConnection dc) {
 		StringBuilder sb = new StringBuilder("CREATE TABLE ");
 		if (DataSourceUtil.isMSSQL(dc)) sb.append("dbo.");
-		sb.append(tableName).append(" ( ").append("id varchar(32) NOT NULL, ").append("name varchar(128) NOT NULL, ").append("severity varchar(16) NOT NULL, ")
-				.append("threadid varchar(64) NOT NULL, ").append("time datetime NOT NULL, ").append("application varchar(64) NOT NULL, ").append("message varchar(512) NOT NULL, ")
-				.append("exception varchar(2048) NOT NULL, ").append("custom varchar(2048) NOT NULL ").append(");");
+		sb.append(tableName).append(" ( ");
+
+		if (DataSourceUtil.isMSSQL(dc)) sb.append("pid INT PRIMARY KEY IDENTITY (1, 1), ");
+		else if (DataSourceUtil.isMySQL(dc)) sb.append("pid INT AUTO_INCREMENT PRIMARY KEY, ");
+		else if (DataSourceUtil.isHSQLDB(dc)) sb.append("pid INTEGER IDENTITY PRIMARY KEY, ");
+		else if (DataSourceUtil.isPostgres(dc)) sb.append("id SERIAL PRIMARY KEY, ");
+
+		sb.append("id varchar(32) NOT NULL, ");
+		sb.append("name varchar(128) NOT NULL, ");
+		sb.append("severity varchar(16) NOT NULL, ");
+		sb.append("threadid varchar(64) NOT NULL, ");
+		sb.append("time datetime NOT NULL, ");
+		sb.append("application varchar(64) NOT NULL, ");
+		sb.append("message varchar(512) NOT NULL, ");
+		sb.append("exception varchar(2048) NOT NULL, ");
+		sb.append("custom varchar(2048) NOT NULL ");
+		sb.append(");");
 		return new SQLImpl(sb.toString());
+
 	}
 
 	private DatasourceConnectionPool pool(RefBoolean first) throws PageException {
 		if (pool == null) {
 			if (first != null) first.setValue(true);
 			if (datasource == null) datasource = config.getDataSource(datasourceName);
-			this.pool = ((ConfigImpl) config).getDatasourceConnectionPool();
+			this.pool = ((ConfigPro) config).getDatasourceConnectionPool();
 		}
 		return pool;
 	}
@@ -182,7 +197,7 @@ public class DatasourceAppender extends JDBCAppender implements Appender {
 	}
 
 	private Logger getConsoleLogger() {
-		ConfigImpl config = (ConfigImpl) ThreadLocalPageContext.getConfig();
+		ConfigPro config = (ConfigPro) ThreadLocalPageContext.getConfig();
 		if (logger == null) {
 			LogAdapter la = (LogAdapter) config.getLog("console_datasource_appender", true); // TODO use log level from this logger...
 			logger = la.getLogger();

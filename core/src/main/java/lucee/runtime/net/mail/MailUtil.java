@@ -18,6 +18,17 @@
  **/
 package lucee.runtime.net.mail;
 
+import java.io.UnsupportedEncodingException;
+import java.net.IDN;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeUtility;
+
 import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.config.Config;
@@ -29,16 +40,6 @@ import lucee.runtime.op.Decision;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.ListUtil;
-
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeUtility;
-import java.io.UnsupportedEncodingException;
-import java.net.IDN;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public final class MailUtil {
 
@@ -54,13 +55,12 @@ public final class MailUtil {
 	}
 
 	public static InternetAddress toInternetAddress(Object emails) throws MailException, UnsupportedEncodingException, PageException {
-
-		if (emails instanceof String) return parseEmail(emails, null);
-
+		if (emails instanceof String) {
+			return parseEmail(emails);
+		}
 		InternetAddress[] addresses = toInternetAddresses(emails);
 		if (addresses != null && addresses.length > 0) return addresses[0];
-
-		return null;
+		throw new MailException("invalid email address definition");// should never come to this!
 	}
 
 	public static InternetAddress[] toInternetAddresses(Object emails) throws MailException, UnsupportedEncodingException, PageException {
@@ -90,7 +90,7 @@ public final class MailUtil {
 			}
 			else {
 
-				InternetAddress addr = parseEmail(Caster.toString(el), null);
+				InternetAddress addr = parseEmail(Caster.toString(el));
 				if (addr != null) pairs.add(addr);
 			}
 		}
@@ -125,7 +125,7 @@ public final class MailUtil {
 
 		while (it.hasNext()) {
 
-			InternetAddress addr = parseEmail(it.next(), null);
+			InternetAddress addr = parseEmail(it.next());
 
 			if (addr != null) al.add(addr);
 		}
@@ -221,24 +221,19 @@ public final class MailUtil {
 	}
 
 	/**
-	 * This method should be called when TLS is used to ensure that the supported protocols are set.  Some
-	 * servers, e.g. Outlook365, reject lists with older protocols so we only pass protocols that start with
-	 * the prefix "TLS"
+	 * This method should be called when TLS is used to ensure that the supported protocols are set.
+	 * Some servers, e.g. Outlook365, reject lists with older protocols so we only pass protocols that
+	 * start with the prefix "TLS"
 	 */
 	public static void setSystemPropMailSslProtocols() {
 		String protocols = SystemUtil.getSystemPropOrEnvVar(SYSTEM_PROP_MAIL_SSL_PROTOCOLS, "");
 		if (protocols.isEmpty()) {
 			List<String> supportedProtocols = SSLConnectionSocketFactoryImpl.getSupportedSslProtocols();
-			protocols = supportedProtocols.stream()
-					.filter(el -> el.startsWith("TLS"))
-					.collect(Collectors.joining(" "));
+			protocols = supportedProtocols.stream().filter(el -> el.startsWith("TLS")).collect(Collectors.joining(" "));
 			if (!protocols.isEmpty()) {
 				System.setProperty(SYSTEM_PROP_MAIL_SSL_PROTOCOLS, protocols);
 				Config config = ThreadLocalPageContext.getConfig();
-				if (config != null)
-					config
-						.getLog("mail")
-						.info("mail", "Lucee system property " + SYSTEM_PROP_MAIL_SSL_PROTOCOLS + " set to [" + protocols + "]");
+				if (config != null) config.getLog("mail").info("mail", "Lucee system property " + SYSTEM_PROP_MAIL_SSL_PROTOCOLS + " set to [" + protocols + "]");
 			}
 		}
 	}

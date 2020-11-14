@@ -18,7 +18,7 @@
 package lucee.runtime.cache.tag;
 
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.exp.PageException;
 
@@ -33,13 +33,13 @@ public class CacheHandlerCollections {
 	public final CacheHandlerCollectionImpl webservice;
 
 	public CacheHandlerCollections(ConfigWeb cw) {
-		query = new CacheHandlerCollectionImpl(cw, ConfigImpl.CACHE_TYPE_QUERY);
-		function = new CacheHandlerCollectionImpl(cw, ConfigImpl.CACHE_TYPE_FUNCTION);
-		include = new CacheHandlerCollectionImpl(cw, ConfigImpl.CACHE_TYPE_INCLUDE);
-		resource = new CacheHandlerCollectionImpl(cw, ConfigImpl.CACHE_TYPE_RESOURCE);
-		http = new CacheHandlerCollectionImpl(cw, ConfigImpl.CACHE_TYPE_HTTP);
-		file = new CacheHandlerCollectionImpl(cw, ConfigImpl.CACHE_TYPE_FILE);
-		webservice = new CacheHandlerCollectionImpl(cw, ConfigImpl.CACHE_TYPE_WEBSERVICE);
+		query = new CacheHandlerCollectionImpl(cw, ConfigPro.CACHE_TYPE_QUERY);
+		function = new CacheHandlerCollectionImpl(cw, ConfigPro.CACHE_TYPE_FUNCTION);
+		include = new CacheHandlerCollectionImpl(cw, ConfigPro.CACHE_TYPE_INCLUDE);
+		resource = new CacheHandlerCollectionImpl(cw, ConfigPro.CACHE_TYPE_RESOURCE);
+		http = new CacheHandlerCollectionImpl(cw, ConfigPro.CACHE_TYPE_HTTP);
+		file = new CacheHandlerCollectionImpl(cw, ConfigPro.CACHE_TYPE_FILE);
+		webservice = new CacheHandlerCollectionImpl(cw, ConfigPro.CACHE_TYPE_WEBSERVICE);
 	}
 
 	public void releaseCacheHandlers(PageContext pc) {

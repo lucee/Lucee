@@ -1,5 +1,7 @@
 package lucee.runtime.db;
 
+import lucee.runtime.tag.listener.TagListener;
+
 // FUTURE move content to loader
 public interface DataSourcePro extends DataSource {
 	/**
@@ -8,4 +10,14 @@ public interface DataSourcePro extends DataSource {
 	 * @return
 	 */
 	public boolean isRequestExclusive();
+
+	public boolean isAlwaysResetConnections();
+
+	public int getDefaultTransactionIsolation();
+
+	public TagListener getListener();
+
+	public int getIdleTimeout();
+
+	public int getLiveTimeout();
 }

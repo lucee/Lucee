@@ -17,7 +17,7 @@
 
   <name>Lucee Core Build</name>
   <description>Building the Lucee Core File</description>
-  <url>http://maven.lucee.org/core/</url>
+  <url>https://maven.lucee.org/core/</url>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -40,7 +40,7 @@
       <name>Michael Offner</name>
       <email>michael@lucee.org</email>
       <organization>Lucee Association Switzerland</organization>
-      <organizationUrl>http://lucee.org</organizationUrl>
+      <organizationUrl>https://lucee.org</organizationUrl>
       <roles>
         <role>Project-Administrator</role>
         <role>Developer</role>
@@ -397,7 +397,7 @@
 	  <dependency>
 		  <groupId>javax.mail</groupId>
 		  <artifactId>activation</artifactId>
-		  <version>1.4.7.0002L</version>
+		  <version>1.6.2.0000L</version>
       <scope>provided</scope>
 	  </dependency>
     <dependency>
@@ -437,6 +437,11 @@
       <version>5.1.2.0002L</version>
       <scope>provided</scope>
     </dependency>
+    <dependency>
+      <groupId>org.lucee</groupId>
+      <artifactId>argon2</artifactId>
+      <version>2.7.0</version>
+	</dependency>
   </dependencies>
 
   <repositories>

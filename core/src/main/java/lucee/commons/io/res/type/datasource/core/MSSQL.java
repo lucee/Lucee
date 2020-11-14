@@ -231,7 +231,7 @@ public class MSSQL extends CoreSupport {
 		try {
 			rs = stat.executeQuery();
 			if (!rs.next()) {
-				throw new IOException("can't read data from " + attr.getParent() + attr.getName());
+				throw new IOException("Can't read data from [" + attr.getParent() + attr.getName() +"]");
 			}
 			return rs.getBlob(1).getBinaryStream();
 		}

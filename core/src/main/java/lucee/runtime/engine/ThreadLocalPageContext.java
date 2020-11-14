@@ -24,7 +24,7 @@ import java.util.TimeZone;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 
 /**
  * class to handle thread local PageContext, do use pagecontext in classes that have no method
@@ -46,7 +46,7 @@ public final class ThreadLocalPageContext {
 		if (pc == null) return; // TODO happens with Gateway, but should not!
 		// TODO should i set the old one by "release"?
 		Thread t = Thread.currentThread();
-		t.setContextClassLoader(((ConfigImpl) pc.getConfig()).getClassLoaderEnv());
+		t.setContextClassLoader(((ConfigPro) pc.getConfig()).getClassLoaderEnv());
 		((PageContextImpl) pc).setThread(t);
 		pcThreadLocal.set(pc);
 	}

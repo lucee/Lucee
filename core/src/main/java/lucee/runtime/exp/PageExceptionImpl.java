@@ -255,7 +255,7 @@ public abstract class PageExceptionImpl extends PageException {
 						content = new String[] {}; // empty code array to show ??
 					}
 					else content = IOUtil.toStringArray(IOUtil.getReader(res, config.getTemplateCharset()));
-					IOUtil.closeEL(is);
+					IOUtil.close(is);
 				}
 				else {
 					if (sources.size() > index) ps = sources.get(index);
@@ -326,7 +326,7 @@ public abstract class PageExceptionImpl extends PageException {
 	public Struct getErrorBlock(PageContext pc, ErrorPage ep) {
 		Struct struct = new StructImpl();
 
-		struct.setEL("browser", pc.cgiScope().get("HTTP_USER_AGENT", ""));
+		struct.setEL(KeyConstants._browser, pc.cgiScope().get("HTTP_USER_AGENT", ""));
 		struct.setEL("datetime", new DateTimeImpl(pc));
 		struct.setEL("diagnostics", getMessage() + ' ' + getDetail() + "<br>The error occurred on line " + getLine(pc.getConfig()) + " in file " + getFile(pc.getConfig()) + ".");
 		struct.setEL("GeneratedContent", getGeneratedContent(pc));

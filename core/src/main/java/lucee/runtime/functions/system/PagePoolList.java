@@ -25,8 +25,6 @@ import lucee.commons.lang.StringUtil;
 import lucee.runtime.Mapping;
 import lucee.runtime.MappingImpl;
 import lucee.runtime.PageContext;
-import lucee.runtime.PageSourceImpl;
-import lucee.runtime.PageSourcePool;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
@@ -48,19 +46,8 @@ public final class PagePoolList implements Function {
 		MappingImpl mapping;
 		for (int i = 0; i < mappings.length; i++) {
 			mapping = (MappingImpl) mappings[i];
-			toArray(arr, mapping.getPageSourcePool());
+			mapping.getDisplayPathes(arr);
 		}
-	}
-
-	private static Array toArray(Array arr, PageSourcePool psp) throws PageException {
-		String[] keys = psp.keys();
-
-		PageSourceImpl ps;
-		for (int y = 0; y < keys.length; y++) {
-			ps = (PageSourceImpl) psp.getPageSource(keys[y], false);
-			if (ps.isLoad()) arr.append(ps.getDisplayPath());
-		}
-		return arr;
 	}
 
 	public static String removeStartingSlash(String virtual) {

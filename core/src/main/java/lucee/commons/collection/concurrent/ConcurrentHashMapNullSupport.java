@@ -163,6 +163,7 @@ public class ConcurrentHashMapNullSupport<K, V> extends AbstractMap<K, V> implem
 		if (o instanceof KeyImpl) {
 			return ((KeyImpl) o).wangJenkinsHash();
 		}
+		if (o == null) return 0;
 		int h = o.hashCode();
 		h += (h << 15) ^ 0xffffcd7d;
 		h ^= (h >>> 10);

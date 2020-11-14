@@ -73,6 +73,7 @@ public final class Execute extends BodyTagImpl {
 	private String errorVariable;
 
 	private String body;
+	private String directory;
 
 	private boolean terminateOnTimeout = false;
 
@@ -88,6 +89,7 @@ public final class Execute extends BodyTagImpl {
 		errorVariable = null;
 		body = null;
 		terminateOnTimeout = false;
+		directory = null;
 	}
 
 	/**
@@ -111,8 +113,8 @@ public final class Execute extends BodyTagImpl {
 	}
 
 	public static void main(String[] args) throws Exception {
-		CommandResult cr = Command.execute("curl http://snapshot.lucee.org/rest/update/provider/echoGet", true);
-		_Execute e = new _Execute(null, null, new String[] { "curl", "http://snapshot.lucee.org/rest/update/provider/echoGet" }, null, null, null, null);
+		CommandResult cr = Command.execute("curl https://update.lucee.org/rest/update/provider/echoGet", true);
+		_Execute e = new _Execute(null, null, new String[] { "curl", "https://update.lucee.org/rest/update/provider/echoGet" }, null, null, null, null, null);
 		e._run(null);
 	}
 
@@ -207,6 +209,10 @@ public final class Execute extends BodyTagImpl {
 		}
 	}
 
+	public void setDirectory(String directory) {
+		this.directory = directory;
+	}
+
 	@Override
 	public int doStartTag() throws PageException {
 		return EVAL_BODY_BUFFERED;
@@ -229,7 +235,8 @@ public final class Execute extends BodyTagImpl {
 		else {
 			arguments.add(0, name);
 		}
-		_Execute execute = new _Execute(pageContext, monitor, arguments.toArray(new String[arguments.size()]), outputfile, variable, errorFile, errorVariable);
+
+		_Execute execute = new _Execute(pageContext, monitor, arguments.toArray(new String[arguments.size()]), outputfile, variable, errorFile, errorVariable, directory);
 
 		// if(timeout<=0)execute._run();
 		// else {

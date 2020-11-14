@@ -18,18 +18,20 @@ Path placeholders:
 	system:
 	
 		out (output-stream)
-			- default (write out to default output stream)
+			- system (write out to default output stream)
+			- log (logs to out.log in lucee-server/context/logs)
 			- null (write no output)
 			- class:<class> (class that implements java.io.PrintWriter)
 			- file:<file> (file to write in)
 	
 		err (err-stream)
-			- default (write out to default output stream)
+			- system (write out to default output stream)
+			- log (logs to err.log in lucee-server/context/logs)
 			- null (write no output)
 			- class:<class> (class that implements java.io.PrintWriter)
 			- file:<file> (file to write in)
 	-->
-	<system out="null" err="default"/>
+	<system out="system" err="system"/>
 
 
 <!--	definition of all database used inside your application. 										-->
@@ -363,7 +365,7 @@ Path placeholders:
 		listener-mode="curr2root"/>
 	
 	<update 
-		location="http://update.lucee.org" 
+		location="https://update.lucee.org" 
 		type="manual"/>
 		
 <!--
@@ -415,23 +417,23 @@ for every argument defined lucee tries to call a matching setter method
 
  -->
 	<logging>
-		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/mapping.log" layout="classic" name="mapping"/>
-		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/rest.log" layout="classic" name="rest"/>
-		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/gateway.log" layout="classic" name="gateway"/>
-		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/remoteclient.log" level="info" layout="classic" name="remoteclient"/>
-		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/orm.log" layout="classic" name="orm"/>
-		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/mail.log" layout="classic" name="mail"/>
-		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/search.log" layout="classic" name="search"/>
-		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/scheduler.log" layout="classic" name="scheduler"/>
-		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/scope.log" layout="classic" name="scope"/>
-		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/application.log" layout="classic" name="application"/>
-		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/exception.log" layout="classic" name="exception"/>
-		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/trace.log" layout="classic" name="trace"/>
-		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/thread.log" layout="classic" name="thread"/>
-		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/deploy.log" layout="classic" name="deploy" level="info"/>
-		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/requesttimeout.log" layout="classic" name="requesttimeout"/>
-		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/memory.log" layout="classic" name="memory"/>
-		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/datasource.log" layout="classic" name="datasource"/>
+		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/mapping.log" level="error" layout="classic" name="mapping"/>
+		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/rest.log" level="error" layout="classic" name="rest"/>
+		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/gateway.log" level="error" layout="classic" name="gateway"/>
+		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/remoteclient.log" level="error" layout="classic" name="remoteclient"/>
+		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/orm.log" level="error" layout="classic" name="orm"/>
+		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/mail.log" level="error" layout="classic" name="mail"/>
+		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/search.log" level="error" layout="classic" name="search"/>
+		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/scheduler.log" level="error" layout="classic" name="scheduler"/>
+		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/scope.log" level="error" layout="classic" name="scope"/>
+		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/application.log" level="error" layout="classic" name="application"/>
+		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/exception.log" level="error" layout="classic" name="exception"/>
+		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/trace.log" level="error" layout="classic" name="trace"/>
+		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/thread.log" level="error" layout="classic" name="thread"/>
+		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/deploy.log" level="error" layout="classic" name="deploy"/>
+		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/requesttimeout.log" level="error" layout="classic" name="requesttimeout"/>
+		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/memory.log" level="error" layout="classic" name="memory"/>
+		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/datasource.log" level="error" layout="classic" name="datasource"/>
 	</logging>
 	
 </cfLuceeConfiguration>

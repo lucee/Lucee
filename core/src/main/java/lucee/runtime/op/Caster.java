@@ -42,6 +42,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
@@ -92,6 +93,7 @@ import lucee.runtime.exp.NativeException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageExceptionBox;
 import lucee.runtime.exp.PageRuntimeException;
+import lucee.runtime.exp.RequestTimeoutException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.functions.file.FileStreamWrapper;
 import lucee.runtime.i18n.LocaleFactory;
@@ -126,6 +128,7 @@ import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.DateTimeImpl;
+import lucee.runtime.type.dt.Time;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.dt.TimeSpanImpl;
 import lucee.runtime.type.scope.ObjectStruct;
@@ -494,7 +497,10 @@ public final class Caster {
 			else {
 				rtn *= 10;
 				rtn += toDigit(curr);
-				if (hasDot) deep *= 10;
+				if (hasDot) {
+					deep *= 10;
+					if (deep > 1000000000000000000000D) return Double.parseDouble(str); // patch for LDEV-2654
+				}
 
 			}
 		}
@@ -821,6 +827,10 @@ public final class Caster {
 		return toDecimal(Caster.toDoubleValue(value));
 	}
 
+	public static String toDecimal(Object value, boolean separator) throws PageException {
+		return toDecimal(Caster.toDoubleValue(value), separator);
+	}
+
 	/**
 	 * cast a double to a decimal value (String:xx.xx)
 	 * 
@@ -830,6 +840,10 @@ public final class Caster {
 	 */
 	public static String toDecimal(String value) throws PageException {
 		return toDecimal(Caster.toDoubleValue(value));
+	}
+
+	public static String toDecimal(String value, boolean separator) throws PageException {
+		return toDecimal(Caster.toDoubleValue(value), separator);
 	}
 
 	/**
@@ -845,6 +859,12 @@ public final class Caster {
 		return toDecimal(res);
 	}
 
+	public static String toDecimal(Object value, boolean separator, String defaultValue) {
+		double res = toDoubleValue(value, true, Double.NaN);
+		if (Double.isNaN(res)) return defaultValue;
+		return toDecimal(res, separator);
+	}
+
 	/**
 	 * cast an Object to a decimal value (String:xx.xx)
 	 * 
@@ -853,6 +873,10 @@ public final class Caster {
 	 */
 	public static String toDecimal(double value) {
 		return toDecimal(value, '.', ',');
+	}
+
+	public static String toDecimal(double value, boolean separator) {
+		return toDecimal(value, '.', separator ? ',' : ((char) 0));
 	}
 
 	private static String toDecimal(double value, char decDel, char thsDel) {
@@ -881,13 +905,12 @@ public final class Caster {
 			int i;
 			for (i = leftValueLen - 3; i > 0; i -= 3) {
 				tmp.insert(0, leftValue.substring(i, i + 3));
-				if (i != ends) tmp.insert(0, thsDel);
+				if (i != ends && thsDel > ((char) 0)) tmp.insert(0, thsDel);
 			}
 			tmp.insert(0, leftValue.substring(0, i + 3));
 			leftValue = tmp.toString();
 
 		}
-
 		return leftValue + decDel + rightValue;
 	}
 
@@ -1916,7 +1939,12 @@ public final class Caster {
 				throw Caster.toPageException(e);
 			}
 			finally {
-				IOUtil.closeEL(r);
+				try {
+					IOUtil.close(r);
+				}
+				catch (IOException e) {
+					throw Caster.toPageException(e);
+				}
 			}
 		}
 		else if (o instanceof Throwable) {
@@ -1932,7 +1960,12 @@ public final class Caster {
 				throw Caster.toPageException(e);
 			}
 			finally {
-				IOUtil.closeEL(r);
+				try {
+					IOUtil.close(r);
+				}
+				catch (IOException e) {
+					throw Caster.toPageException(e);
+				}
 			}
 		}
 		else if (o instanceof byte[]) {
@@ -2324,7 +2357,6 @@ public final class Caster {
 			return ListAsArray.toArray((List) o);// new ArrayImpl(((List) o).toArray());
 		}
 		else if (o instanceof Set) {
-
 			return toArray(((Set) o).toArray());// new ArrayImpl(((List) o).toArray());
 		}
 		else if (o instanceof XMLStruct) {
@@ -2726,10 +2758,15 @@ public final class Caster {
 				return IOUtil.toBytes(is);
 			}
 			catch (Exception e) {
-				throw new ExpressionException(e.getMessage());
+				throw Caster.toPageException(e);
 			}
 			finally {
-				IOUtil.closeEL(is);
+				try {
+					IOUtil.close(is);
+				}
+				catch (IOException e) {
+					throw Caster.toPageException(e);
+				}
 			}
 		}
 		try {
@@ -3263,25 +3300,38 @@ public final class Caster {
 	}
 
 	public static PageException toPageException(Throwable t, boolean rethrowIfNecessary) {
-		if (t instanceof PageException) return (PageException) t;
-		else if (t instanceof PageExceptionBox) return ((PageExceptionBox) t).getPageException();
-		else if (t instanceof InvocationTargetException) {
+		if (t instanceof PageException) {
+			return (PageException) t;
+		}
+		if (t instanceof PageExceptionBox) {
+			return ((PageExceptionBox) t).getPageException();
+		}
+		if (t instanceof InvocationTargetException) {
 			return toPageException(((InvocationTargetException) t).getTargetException());
 		}
-		else if (t instanceof ExceptionInInitializerError) {
+		if (t instanceof ExceptionInInitializerError) {
 			return toPageException(((ExceptionInInitializerError) t).getCause());
 		}
-		else if (t instanceof ExecutionException) {
+		if (t instanceof ExecutionException) {
 			return toPageException(((ExecutionException) t).getCause());
 		}
-		else {
-			if (t instanceof OutOfMemoryError) {
-				ThreadLocalPageContext.getConfig().checkPermGenSpace(true);
+		if (t instanceof InterruptedException) {
+			PageContext pc = ThreadLocalPageContext.get();
+			if (pc instanceof PageContextImpl) {
+				PageContextImpl pci = (PageContextImpl) pc;
+				StackTraceElement[] tst = pci.getTimeoutStackTrace();
+				if (tst != null) {
+					return new RequestTimeoutException(pc, tst);
+				}
 			}
-			// Throwable cause = t.getCause();
-			// if(cause!=null && cause!=t) return toPageException(cause);
-			return NativeException.newInstance(t, rethrowIfNecessary);
+
 		}
+		if (t instanceof OutOfMemoryError) {
+			ThreadLocalPageContext.getConfig().checkPermGenSpace(true);
+		}
+		// Throwable cause = t.getCause();
+		// if(cause!=null && cause!=t) return toPageException(cause);
+		return NativeException.newInstance(t, rethrowIfNecessary);
 	}
 
 	/**
@@ -3718,7 +3768,7 @@ public final class Caster {
 		if (Decision.isURL(str)) return str;
 
 		try {
-			return HTTPUtil.toURL(str, true).toExternalForm();
+			return HTTPUtil.toURL(str, HTTPUtil.ENCODED_AUTO).toExternalForm();
 		}
 		catch (MalformedURLException e) {
 			throw new ExpressionException("can't cast value [" + str + "] to a URL", e.getMessage());
@@ -3730,7 +3780,7 @@ public final class Caster {
 		if (str == null) return defaultValue;
 		if (Decision.isURL(str)) return str;
 		try {
-			return HTTPUtil.toURL(str, true).toExternalForm();
+			return HTTPUtil.toURL(str, HTTPUtil.ENCODED_AUTO).toExternalForm();
 		}
 		catch (MalformedURLException e) {
 			return defaultValue;
@@ -3916,7 +3966,7 @@ public final class Caster {
 			lucee.runtime.net.rpc.PojoIterator it = new lucee.runtime.net.rpc.PojoIterator(pojo);
 			// only when the same amount of properties
 			if (props.length == it.size()) {
-				Map<Collection.Key, Property> propMap = toMap(props);
+				Map<Collection.Key, Property> propMap = propToMap(props);
 				Property p;
 				lucee.commons.lang.Pair<Collection.Key, Object> pair;
 				ComponentScope scope = cfc.getComponentScope();
@@ -3939,6 +3989,14 @@ public final class Caster {
 		}
 		catch (PageException e) {}
 		return defaultValue;
+	}
+
+	private static Map<Key, Property> propToMap(Property[] props) {
+		Map<Collection.Key, Property> map = new HashMap<>();
+		for (Property p: props) {
+			map.put(KeyImpl.init(p.getName()), p);
+		}
+		return map;
 	}
 
 	/**
@@ -4153,7 +4211,7 @@ public final class Caster {
 		else if (o instanceof ObjectWrap) {
 			return toCollection(((ObjectWrap) o).getEmbededObject());
 		}
-		else if (Decision.isArray(o)) {
+		else if (Decision.isCastableToArray(o)) {
 			return toArray(o);
 		}
 		throw new CasterException(o, "collection");
@@ -4631,7 +4689,7 @@ public final class Caster {
 					return IOUtil.toBytes(is);
 				}
 				finally {
-					IOUtil.closeEL(is);
+					IOUtil.close(is);
 				}
 			}
 		}
@@ -4907,4 +4965,23 @@ public final class Caster {
 			}
 		}
 	}
+<<<<<<< HEAD
 }
+=======
+
+	public static long toTime(lucee.runtime.type.dt.Date date, Time time, TimeZone tz) {
+		if (time == null) return date.getTime();
+		tz = ThreadLocalPageContext.getTimeZone(tz);
+		Calendar c = JREDateTimeUtil.getThreadCalendar(tz);
+		c.setTimeInMillis(date.getTime());
+		int y = c.get(Calendar.YEAR);
+		int m = c.get(Calendar.MONTH);
+		int d = c.get(Calendar.DAY_OF_MONTH);
+		c.setTimeInMillis(time.getTime());
+		c.set(Calendar.YEAR, y);
+		c.set(Calendar.MONTH, m);
+		c.set(Calendar.DAY_OF_MONTH, d);
+		return c.getTimeInMillis();
+	}
+}
+>>>>>>> 5.3

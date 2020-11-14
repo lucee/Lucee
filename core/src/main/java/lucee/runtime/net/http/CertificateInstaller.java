@@ -66,7 +66,7 @@ public class CertificateInstaller {
 			ks.load(in, passphrase);
 		}
 		finally {
-			IOUtil.closeEL(in);
+			IOUtil.close(in);
 		}
 
 		context = SSLContext.getInstance("SSL");
@@ -99,7 +99,7 @@ public class CertificateInstaller {
 			ks.store(os, passphrase);
 		}
 		finally {
-			IOUtil.closeEL(os);
+			IOUtil.close(os);
 		}
 	}
 

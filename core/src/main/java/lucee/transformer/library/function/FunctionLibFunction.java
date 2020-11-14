@@ -27,6 +27,7 @@ import org.xml.sax.Attributes;
 
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ClassException;
+import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Md5;
 import lucee.commons.lang.StringUtil;
@@ -420,7 +421,7 @@ public final class FunctionLibFunction {
 
 		if (Reflector.isInstaneOf(clazz, BIF.class, false)) {
 			try {
-				bif = (BIF) clazz.newInstance();
+				bif = (BIF) ClassUtil.newInstance(clazz);
 			}
 			catch (Throwable t) {
 				ExceptionUtil.rethrowIfNecessary(t);

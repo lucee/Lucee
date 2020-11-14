@@ -20,6 +20,7 @@ package lucee.runtime.type.scope;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -45,7 +46,6 @@ import lucee.commons.lang.ByteNameValuePair;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.URLItem;
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.listener.ApplicationContext;
@@ -76,7 +76,7 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 	private static final URLItem[] empty = new URLItem[0];
 	// private static final ResourceFilter FILTER = new ExtensionResourceFilter(".upload",false);
 	private URLItem[] raw = empty;
-	private static int count = 1;
+	private static long count = 1;
 
 	private static final int HEADER_TYPE_UNKNOWN = -1;
 	private static final int HEADER_TEXT_PLAIN = 0;
@@ -155,7 +155,7 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 
 	private void initializeMultiPart(PageContext pc, boolean scriptProteced) {
 		// get temp directory
-		Resource tempDir = ((ConfigImpl) pc.getConfig()).getTempDirectory();
+		Resource tempDir = pc.getConfig().getTempDirectory();
 		Resource tempFile;
 
 		// Create a new file upload handler
@@ -205,7 +205,7 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 							list.add(new URLItem(item.getFieldName(), new String(IOUtil.toBytes(is), encoding), false));
 						}
 						finally {
-							IOUtil.closeEL(is);
+							IOUtil.close(is);
 							tempFile.delete();
 						}
 					}
@@ -228,8 +228,10 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 		}
 	}
 
-	private static String getFileName() {
-		return "tmp-" + (count++) + ".upload";
+	public static synchronized String getFileName() {
+		count++;
+		if (count < 0) count = 1;
+		return "tmp-" + Long.toString(count, Character.MAX_RADIX) + ".upload";
 	}
 
 	/*
@@ -282,7 +284,13 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 			initException = e;
 		}
 		finally {
-			IOUtil.closeEL(reader);
+			try {
+				IOUtil.close(reader);
+			}
+			catch (IOException e) {
+				Log log = ThreadLocalPageContext.getConfig(pc).getLog("application");
+				if (log != null) log.error("form.scope", e);
+			}
 		}
 	}
 

@@ -87,6 +87,6 @@ public final class AutoCloseInputStream extends InputStream {
 	@Override
 	public void finalize() throws Throwable {
 		super.finalize();
-		IOUtil.closeEL(is);
+		IOUtil.close(is);
 	}
 }
