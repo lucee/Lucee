@@ -38,7 +38,7 @@ component {
 		abort:{required:false,type:"boolean",default:false,hint="stops further processing of request."},
 		contextlevel:{required:false,type:"number",default:2,hidden:true},
 		async:{required:false, type="boolean", default=false, hint="if true and output is not to browser, Lucee builds the output in a new thread that runs in parallel to the thread that called the dump.  please note that if the calling thread modifies the data before the dump takes place, it is possible that the dump will show the modified data."},
-		enabled: { required: false, type: "boolean", deafult: true, hint: "dumps are enabled by default, pass false to short circuit a dump execution and effectively disable it" }
+		enabled: { required: false, type: "boolean", default: true, hint: "dumps are enabled by default, pass false to short circuit a dump execution and effectively disable it" }
 	};
 
 
@@ -57,7 +57,6 @@ component {
 
 		var attrib = arguments.attributes;
 
-		param name="attrib.enabled" type="boolean" default=true;
 		if (!attrib.enabled)
 			return false;
 
