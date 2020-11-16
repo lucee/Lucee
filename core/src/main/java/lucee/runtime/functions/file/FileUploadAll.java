@@ -18,6 +18,8 @@
  **/
 package lucee.runtime.functions.file;
 
+import lucee.commons.io.res.filter.ExtensionResourceFilter;
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.security.SecurityManager;
@@ -50,8 +52,21 @@ public class FileUploadAll {
 	public static Array call(PageContext pc, String destination, String accept, String nameConflict, String mode, String attributes, Object acl) throws PageException {
 		SecurityManager securityManager = pc.getConfig().getSecurityManager();
 		int nc = FileUtil.toNameConflict(nameConflict);
-		int m = FileTag.toMode(mode);
 
-		return FileTag.actionUploadAll(pc, securityManager, destination, nc, accept, true, m, attributes, acl, null);
+		ExtensionResourceFilter allowedFilter = null;
+		// mode
+		int m = -1;
+		try {
+			m = FileTag.toMode(mode);
+		}
+		catch (Exception e) {
+			// undoc feature for compatibility to ACF FUTURE remove and add allowedExtension argument
+			// blockedExtension?
+			if (!StringUtil.isEmpty(mode) && mode.contains("*.")) {
+				allowedFilter = FileUtil.toExtensionFilter(mode);
+			}
+		}
+
+		return FileTag.actionUploadAll(pc, securityManager, destination, nc, accept, allowedFilter, null, true, m, attributes, acl, null);
 	}
 }
