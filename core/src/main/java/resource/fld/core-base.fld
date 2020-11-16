@@ -4708,6 +4708,18 @@ The browser uses file extension to determine file type. </description>
 			<description>Action to take if filename is the same as that of a file in the directory.</description>
     	</argument>
 		<argument>
+			<name>allowedExtensions</name>
+			<type>any</type>
+			<required>no</required>
+			<description>String list or string array of allowed extensions.</description>
+    	</argument>
+		<argument>
+			<name>blockedExtensions</name>
+			<type>any</type>
+			<required>no</required>
+			<description>String list or string array of not allowed extensions.</description>
+    	</argument>
+		<argument>
 			<name>mode</name>
 			<type>string</type>
 			<required>no</required>
@@ -4757,6 +4769,18 @@ The browser uses file extension to determine file type. </description>
 			<type>string</type>
 			<required>no</required>
 			<description>Action to take if filename is the same as that of a file in the directory.</description>
+    	</argument>
+		<argument>
+			<name>allowedExtensions</name>
+			<type>any</type>
+			<required>no</required>
+			<description>String list or string array of allowed extensions.</description>
+    	</argument>
+		<argument>
+			<name>blockedExtensions</name>
+			<type>any</type>
+			<required>no</required>
+			<description>String list or string array of not allowed extensions.</description>
     	</argument>
 		<argument>
 			<name>mode</name>
