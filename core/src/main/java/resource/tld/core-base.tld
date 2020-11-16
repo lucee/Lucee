@@ -1726,6 +1726,22 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<rtexprvalue>true</rtexprvalue>
 			<description>Name of the result value (default:cffile)</description>
 		</attribute>
+		<attribute>
+			<type>any</type>
+			<name>allowedExtensions</name>
+			<alias>allowExtension,allowedExtension</alias>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>String list or string array of extensions allowed, this overwrites any other setting including the attribute [blockedExtensions] and settings done for example in the Application.cfc. </description>
+		</attribute>
+		<attribute>
+			<type>any</type>
+			<name>blockedExtensions</name>
+			<alias>blockExtension,blockedExtension</alias>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>String list or string array of extensions blocked, this overwrites any setting done for example in the Application.cfc.</description>
+		</attribute>
 	</tag>
 	<!-- Flush -->
 	<tag>

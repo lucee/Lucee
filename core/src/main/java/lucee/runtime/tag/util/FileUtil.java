@@ -18,8 +18,16 @@
  **/
 package lucee.runtime.tag.util;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.exp.ApplicationException;
+import lucee.runtime.exp.PageException;
+import lucee.runtime.op.Caster;
+import lucee.runtime.op.Decision;
+import lucee.runtime.type.util.ListUtil;
 
 public class FileUtil {
 
@@ -95,6 +103,32 @@ public class FileUtil {
 		if (sb.length() > 0) sb.setLength(sb.length() - 1); // remove last ,
 
 		return sb.toString();
+	}
+
+	public static ExtensionResourceFilter toExtensionFilter(Object obj) throws PageException {
+		List<String> list = new ArrayList<>();
+		if (Decision.isArray(obj)) {
+			String str;
+			for (Object o: Caster.toNativeArray(obj)) {
+				str = toExtensions(Caster.toString(o));
+				if (!StringUtil.isEmpty(str)) list.add(str);
+			}
+		}
+		else {
+			for (String str: ListUtil.listToList(Caster.toString(obj), ',', true)) {
+				str = toExtensions(str);
+				if (!StringUtil.isEmpty(str)) list.add(str);
+			}
+		}
+		return new ExtensionResourceFilter(list.toArray(new String[list.size()]), false, true, false);
+	}
+
+	public static String toExtensions(String str) throws PageException {
+		if (StringUtil.isEmpty(str, true)) return null;
+		str = str.trim();
+		if (str.startsWith("*.")) return str.substring(2).toLowerCase();
+		if (str.startsWith(".")) return str.substring(1).toLowerCase();
+		return str.toLowerCase();
 	}
 
 }
