@@ -1050,10 +1050,6 @@ public final class FileTag extends BodyTagImpl {
 
 			// allowed
 			if (allowedExtensions != null) {
-				print.e(clientFile);
-				print.e(clientFile.getAbsolutePath());
-				print.e(((ExtensionResourceFilter) allowedExtensions).accept(clientFile.getAbsolutePath()));
-				print.e(((ExtensionResourceFilter) allowedExtensions).accept(clientFile));
 				if (!allowedExtensions.accept(clientFile)) throw new ApplicationException(
 						"Upload of files with extension [" + ext
 								+ "] is not permitted. The tag cffile/function fileUpload[All] only allows the following extensions in this context [" + allowedExtensions + "].",
