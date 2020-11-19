@@ -1396,6 +1396,12 @@ public final class PageContextImpl extends PageContext {
 		return session;
 	}
 
+	public boolean hasCFSession() throws PageException {
+		if (session != null) return true;
+		if (!applicationContext.hasName() || !applicationContext.isSetSessionManagement()) return false;
+		return scopeContext.hasExistingSessionScope(this);
+	}
+
 	public void invalidateUserScopes(boolean migrateSessionData, boolean migrateClientData) throws PageException {
 		checkSessionContext();
 		scopeContext.invalidateUserScope(this, migrateSessionData, migrateClientData);
@@ -2883,9 +2889,11 @@ public final class PageContextImpl extends PageContext {
 			Resource roles = config.getConfigDir().getRealResource("roles");
 
 			if (applicationContext.getLoginStorage() == Scope.SCOPE_SESSION) {
-				Object auth = sessionScope().get(name, null);
-				if (auth != null) {
-					remoteUser = CredentialImpl.decode(auth, roles);
+				if (hasCFSession()) {
+					Object auth = sessionScope().get(name, null);
+					if (auth != null) {
+						remoteUser = CredentialImpl.decode(auth, roles);
+					}
 				}
 			}
 			else if (applicationContext.getLoginStorage() == Scope.SCOPE_COOKIE) {
