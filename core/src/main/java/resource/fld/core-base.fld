@@ -429,6 +429,7 @@ All elements in the array must contain values that can be converted to numeric.<
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -491,6 +492,7 @@ All elements in the array must contain values that can be converted to numeric.<
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -530,6 +532,7 @@ All elements in the array must contain values that can be converted to numeric.<
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -721,6 +724,7 @@ Remember CFML arrays start at 1 not 0.</description>
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -760,6 +764,7 @@ Remember CFML arrays start at 1 not 0.</description>
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -821,6 +826,7 @@ Remember CFML arrays start at 1 not 0.</description>
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -862,6 +868,7 @@ Remember CFML arrays start at 1 not 0.</description>
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -910,6 +917,7 @@ Remember CFML arrays start at 1 not 0.</description>
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -6188,6 +6196,7 @@ if this attribute is not provided all types are returned.</description>
 		</return>
 	</function> -->
 	
+	
 	<!-- getPageContext -->
 	<function>
 		<name>getPageContext</name>
@@ -6536,6 +6545,15 @@ if this attribute is not provided all types are returned.</description>
     	</argument>
 		<return>
 			<type>struct</type>
+		</return>
+	</function>
+	<!-- clearTimeZone -->
+	<function>
+		<name>clearTimeZone</name>
+		<class>lucee.runtime.functions.dateTime.ClearTimeZone</class>
+		<description>resets the timezone for the current request to Lucee default setting.</description>
+		<return>
+			<type>void</type>
 		</return>
 	</function>
 	<!-- getTimeZone -->
@@ -8045,6 +8063,7 @@ The following things are considered to be empty:
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -11234,6 +11253,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>SerializeJSON</name>
 		<class>lucee.runtime.functions.conversion.SerializeJSON</class>
+		<member-name>toJson</member-name>
+		<member-type>any</member-type>
 		<keywords>string,formatting,json,javascript</keywords>
 		<description>Converts CFML data into a JSON (JavaScript Object Notation) representation of the data.</description>
 		<argument>
@@ -11746,6 +11767,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -11785,6 +11807,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -11823,6 +11846,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -11860,6 +11884,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -11898,6 +11923,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -12128,6 +12154,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -12167,6 +12194,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -12206,6 +12234,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -12268,6 +12297,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -12307,6 +12337,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -12346,6 +12377,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -12384,6 +12416,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -12424,6 +12457,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -12485,6 +12519,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -12524,6 +12559,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -12563,6 +12599,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>

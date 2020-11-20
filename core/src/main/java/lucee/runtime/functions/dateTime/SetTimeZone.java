@@ -21,13 +21,25 @@ package lucee.runtime.functions.dateTime;
 import java.util.TimeZone;
 
 import lucee.runtime.PageContext;
+import lucee.runtime.exp.FunctionException;
+import lucee.runtime.exp.PageException;
+import lucee.runtime.ext.function.BIF;
 import lucee.runtime.ext.function.Function;
+import lucee.runtime.op.Caster;
 
-public class SetTimeZone implements Function {
+public class SetTimeZone extends BIF implements Function {
+
+	private static final long serialVersionUID = 3280374669839401883L;
+
 	public static TimeZone call(PageContext pc, TimeZone tz) {
 		TimeZone old = pc.getTimeZone();
 		pc.setTimeZone(tz);
 		return old;
 	}
 
+	@Override
+	public Object invoke(PageContext pc, Object[] args) throws PageException {
+		if (args.length != 1) throw new FunctionException(pc, "SetTimeZone", 1, 1, args.length);
+		return call(pc, Caster.toTimeZone(args[0]));
+	}
 }

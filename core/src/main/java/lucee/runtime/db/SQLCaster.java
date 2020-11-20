@@ -701,7 +701,7 @@ public final class SQLCaster {
 	 */
 
 	/**
-	 * cast a String SQL Type to int Type
+	 * cast a String SQL Type, e.g. from cfqueryparam, to int Type
 	 * 
 	 * @param strType
 	 * @return SQL Type as int
@@ -734,6 +734,7 @@ public final class SQLCaster {
 			else if (first == 'D') {
 				if (strType.equals("DATALINK")) return Types.DATALINK;
 				else if (strType.equals("DATE")) return Types.DATE;
+				else if (strType.equals("DATETIME")) return Types.TIMESTAMP;
 				else if (strType.equals("DISTINCT")) return Types.DISTINCT;
 				else if (strType.equals("DECIMAL")) return Types.DECIMAL;
 				else if (strType.equals("DOUBLE")) return Types.DOUBLE;
@@ -781,7 +782,8 @@ public final class SQLCaster {
 				else if (strType.equals("SQLXML")) return Types.SQLXML;
 			}
 			else if (first == 'T') {
-				if (strType.equals("TIME")) return Types.TIME;
+				if (strType.equals("TEXT")) return Types.VARCHAR;
+				else if (strType.equals("TIME")) return Types.TIME;
 				else if (strType.equals("TIMESTAMP")) return Types.TIMESTAMP;
 				else if (strType.equals("TINYINT")) return Types.TINYINT;
 			}

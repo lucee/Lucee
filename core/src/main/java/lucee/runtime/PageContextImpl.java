@@ -1397,6 +1397,12 @@ public final class PageContextImpl extends PageContext {
 		return session;
 	}
 
+	public boolean hasCFSession() throws PageException {
+		if (session != null) return true;
+		if (!applicationContext.hasName() || !applicationContext.isSetSessionManagement()) return false;
+		return scopeContext.hasExistingSessionScope(this);
+	}
+
 	public void invalidateUserScopes(boolean migrateSessionData, boolean migrateClientData) throws PageException {
 		checkSessionContext();
 		scopeContext.invalidateUserScope(this, migrateSessionData, migrateClientData);
@@ -2884,9 +2890,11 @@ public final class PageContextImpl extends PageContext {
 			Resource roles = config.getConfigDir().getRealResource("roles");
 
 			if (applicationContext.getLoginStorage() == Scope.SCOPE_SESSION) {
-				Object auth = sessionScope().get(name, null);
-				if (auth != null) {
-					remoteUser = CredentialImpl.decode(auth, roles);
+				if (hasCFSession()) {
+					Object auth = sessionScope().get(name, null);
+					if (auth != null) {
+						remoteUser = CredentialImpl.decode(auth, roles);
+					}
 				}
 			}
 			else if (applicationContext.getLoginStorage() == Scope.SCOPE_COOKIE) {
@@ -3354,16 +3362,19 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public TimeZone getTimeZone() {
+		if (timeZone != null) return timeZone;
 		TimeZone tz = getApplicationContext() == null ? null : getApplicationContext().getTimeZone();
 		if (tz != null) return tz;
-		if (timeZone != null) return timeZone;
 		return config.getTimeZone();
 	}
 
 	@Override
 	public void setTimeZone(TimeZone timeZone) {
-		if (getApplicationContext() != null) getApplicationContext().setTimeZone(timeZone);
 		this.timeZone = timeZone;
+	}
+
+	public void clearTimeZone() {
+		this.timeZone = null;
 	}
 
 	/**
