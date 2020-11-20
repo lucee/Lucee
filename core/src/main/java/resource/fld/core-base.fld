@@ -6164,6 +6164,7 @@ if this attribute is not provided all types are returned.</description>
 		</return>
 	</function> -->
 	
+	
 	<!-- getPageContext -->
 	<function>
 		<name>getPageContext</name>
@@ -6512,6 +6513,15 @@ if this attribute is not provided all types are returned.</description>
     	</argument>
 		<return>
 			<type>struct</type>
+		</return>
+	</function>
+	<!-- clearTimeZone -->
+	<function>
+		<name>clearTimeZone</name>
+		<class>lucee.runtime.functions.dateTime.ClearTimeZone</class>
+		<description>resets the timezone for the current request to Lucee default setting.</description>
+		<return>
+			<type>void</type>
 		</return>
 	</function>
 	<!-- getTimeZone -->

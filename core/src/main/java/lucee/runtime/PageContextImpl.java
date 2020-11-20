@@ -3356,16 +3356,19 @@ public final class PageContextImpl extends PageContext {
 
 	@Override
 	public TimeZone getTimeZone() {
+		if (timeZone != null) return timeZone;
 		TimeZone tz = getApplicationContext() == null ? null : getApplicationContext().getTimeZone();
 		if (tz != null) return tz;
-		if (timeZone != null) return timeZone;
 		return config.getTimeZone();
 	}
 
 	@Override
 	public void setTimeZone(TimeZone timeZone) {
-		if (getApplicationContext() != null) getApplicationContext().setTimeZone(timeZone);
 		this.timeZone = timeZone;
+	}
+
+	public void clearTimeZone() {
+		this.timeZone = null;
 	}
 
 	/**
