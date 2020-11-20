@@ -273,7 +273,7 @@ Latest version: #latest.v#</cfif>"><cfif hasUpdates>
 								</a>
 							</div>
 						</cfif>
-				<cfbreak></cfloop>
+				</cfloop>
 			</div>
 			</cfsavecontent>
 			<cfset hiddenFormContents &= tmpContent>
