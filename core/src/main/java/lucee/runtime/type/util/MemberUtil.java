@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
@@ -74,7 +75,6 @@ public class MemberUtil {
 				names = f.getMemberNames();
 				if (!ArrayUtil.isEmpty(names) && f.getMemberType() == type && f.getArgType() == FunctionLibFunction.ARG_FIX) {
 					for (int y = 0; y < names.length; y++)
-
 						match.put(KeyImpl.init(names[y]), f);
 				}
 			}
@@ -90,9 +90,18 @@ public class MemberUtil {
 		short type;
 		String strType;
 		Map<Key, FunctionLibFunction> members = null;
-		for (int i = 0; i < types.length; i++) {
-			type = types[i];
-			strType = strTypes[i];
+		boolean hasAny = false;
+		for (int i = 0; i <= types.length; i++) {
+			if (i == types.length) {
+				if (hasAny) break;
+				type = CFTypes.TYPE_ANY;
+				strType = "any";
+			}
+			else {
+				type = types[i];
+				strType = strTypes[i];
+				if (type == CFTypes.TYPE_ANY) hasAny = true;
+			}
 			members = getMembers(pc, type);
 			FunctionLibFunction member = members.get(methodName);
 			if (member != null) {
@@ -116,7 +125,6 @@ public class MemberUtil {
 					}
 					return new BIFCall(coll, member, refs.toArray(new Ref[refs.size()])).getValue(pc);
 				}
-
 			}
 		}
 
