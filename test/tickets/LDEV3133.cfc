@@ -11,7 +11,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 		        animals.aardvark="Orycteropus afer";
 		        animals.Alligator="Mississippiensis";
 		        animals.albatross="Diomedeidae";
-    			expect(structKeyList(animals)).tobe("AARDVARK,AARDWOLF,ALBATROSS,ALLIGATOR");
+    			expect(structKeyList(animals)).tobewithcase("AARDVARK,AARDWOLF,ALBATROSS,ALLIGATOR");
 			});
 
 			it(title = "Create struct with StructNew(casesensitive)",body = function( currentSpec ){
@@ -20,8 +20,8 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 	            animals.aardvark="Orycteropus afer";
 	            animals.AlliGator="Mississippiensis";
 	            animals.albatross="Diomedeidae";
-    			expect(structKeyList(animals)).tobe("AlliGator,aardvark,albatross,Aardwolf");
-    			expect(structkeyarray(animals)[2]).tobe("aardvark");
+    			expect(structKeyList(animals)).tobewithcase("AlliGator,aardvark,albatross,Aardwolf");
+    			expect(structkeyarray(animals)[2]).tobewithcase("aardvark");
 			});	
 
 			it(title = "Create struct with StructNew(ordered-casesensitive)",body = function( currentSpec ){
@@ -30,8 +30,8 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 	            animals.aardvark="Orycteropus afer"
 	            animals.alligator="Mississippiensis"
 	            animals.Albatross="Diomedeidae"
-    			expect(structKeyList(animals)).tobe("Aardwolf,aardvark,alligator,Albatross");
-    			expect(structkeyarray(animals)[2]).tobe("aardvark");
+    			expect(structKeyList(animals)).tobewithcase("Aardwolf,aardvark,alligator,Albatross");
+    			expect(structkeyarray(animals)[2]).tobewithcase("aardvark");
 			});	
 		});
 
@@ -41,7 +41,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 					template :  "#uri#/test.cfm",
 					forms = {scene = 4}
 				);
-    			expect(trim(result.fileContent)).tobe("AlliGator,aardvark,albatross,Aardwolf");
+    			expect(trim(result.fileContent)).tobewithcase("AlliGator,aardvark,albatross,Aardwolf");
 			});
 		});
 	}
