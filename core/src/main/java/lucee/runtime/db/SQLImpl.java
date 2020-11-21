@@ -112,6 +112,7 @@ public final class SQLImpl implements SQL, Serializable {
 			else {
 				sb.append(strSQL.substring(last, pos));
 				if (items[i].isNulls()) sb.append("null");
+				else if (items[i] instanceof SQLItemImpl && ((SQLItemImpl)items[i]).isDefault()) sb.append("default");
 				else sb.append(SQLCaster.toString(items[i]));
 				last = pos + 1;
 			}

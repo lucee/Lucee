@@ -56,6 +56,11 @@ public class SQLItemImpl implements SQLItem, Serializable {
 	private int maxlength = -1;
 
 	/**
+	 * Indicates whether the parameter is passed as the DEFAULT keyword or not. If true then the value is ignored.
+	 */
+	private boolean defaults;
+
+	/**
 	 * constructor of the class
 	 */
 	public SQLItemImpl() {}
@@ -127,6 +132,14 @@ public class SQLItemImpl implements SQLItem, Serializable {
 		this.type = type;
 	}
 
+	public boolean isDefault() {
+		return this.defaults;
+	}
+
+	public void setDefault(boolean value) {
+		this.defaults = value;
+	}
+
 	@Override
 	public SQLItem clone(Object object) {
 
@@ -135,6 +148,7 @@ public class SQLItemImpl implements SQLItem, Serializable {
 		item.scale = scale;
 		item.type = type;
 		item.value = object;
+		item.defaults = defaults;
 		return item;
 	}
 

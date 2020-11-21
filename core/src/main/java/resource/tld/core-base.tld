@@ -6679,8 +6679,16 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<name>null</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Yes or No. Indicates whether the parameter is passed as a null. If Yes, the tag ignores the
-	value attribute. The default is No.</description>
+			<description>Indicates whether the parameter is passed as the keyword NULL. If true, the value
+			attribute is ignored. The default is false.</description>
+		</attribute>
+		<attribute>
+			<name>default</name>
+			<type>boolean</type>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Indicates whether the parameter is passed as the keyword DEFAULT or not. If true, the value
+			attribute is ignored. The default is false.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>

@@ -181,6 +181,10 @@ public final class QueryParam extends TagImpl {
 
 	}
 
+	public void setDefault(boolean defaults) {
+		item.setDefault(defaults);
+	}
+
 	@Override
 	public int doStartTag() throws PageException {
 		Tag parent = getParent();
@@ -191,7 +195,10 @@ public final class QueryParam extends TagImpl {
 		if (parent instanceof Query) {
 			Query query = (Query) parent;
 
-			if (!item.isNulls() && !item.isValueSet()) throw new ApplicationException("Attribute [value] from tag [queryparam] is required when attribute [null] is false");
+			if (!item.isValueSet()) {
+				if (!item.isNulls() && !item.isDefault())
+					throw new ApplicationException("Attribute [value] from tag [queryparam] is required when attributes [null] and [default] are false");
+			}
 
 			Object value = item.getValue();
 			if (list || (Decision.isArray(value) && ARRAY_TYPES.contains(item.getType()))) {
