@@ -36,6 +36,7 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.HTMLEntities;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.mimetype.MimeType;
 import lucee.loader.engine.CFMLEngine;
@@ -365,7 +366,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 			}
 		}
 		if (status == 404) {
-			RestUtil.setStatus(pc, 404, "no rest service for [" + path + "] found");
+			RestUtil.setStatus(pc, 404, "no rest service for [" + HTMLEntities.escapeHTML(path) + "] found");
 			pc.getConfig().getLog("rest").error("REST", "404; no rest service for [" + path + "] found");
 		}
 		else if (status == 405) {
