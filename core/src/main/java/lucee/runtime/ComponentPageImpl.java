@@ -160,18 +160,22 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 
 			// METHOD INVOCATION
 			String qs = ReqRspUtil.getQueryString(pc.getHttpServletRequest());
-			if (pc.getBasePageSource() == this.getPageSource() && pc.getConfig().debug()) pc.getDebugger().setOutput(false);
+
+			if (pc.getBasePageSource() == this.getPageSource() && pc.getConfig().debug())
+				pc.getDebugger().setOutput(false);
+
 			boolean isPost = pc.getHttpServletRequest().getMethod().equalsIgnoreCase("POST");
 
 			boolean suppressContent = pc.getRequestDialect() == CFMLEngine.DIALECT_LUCEE || ((PageContextImpl) pc).getSuppressContent();
-			if (suppressContent) pc.clear();
-			Object method;
+			if (suppressContent)
+				pc.clear();
 
 			if (fromRest) {
-
 				callRest(pc, component, Caster.toString(req.getAttribute("rest-path"), ""), (Result) req.getAttribute("rest-result"), suppressContent);
 				return null;
 			}
+
+			Object method;
 
 			// POST
 			if (isPost) {
@@ -187,7 +191,6 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 					// close(pc);
 					return null;
 				}
-
 			}
 
 			// GET
@@ -365,6 +368,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 				}
 			}
 		}
+
 		if (status == 404) {
 			RestUtil.setStatus(pc, 404, "no rest service for [" + HTMLEntities.escapeHTML(path) + "] found");
 			pc.getConfig().getLog("rest").error("REST", "404; no rest service for [" + path + "] found");
@@ -433,7 +437,8 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 		}
 		Object rtn = null;
 		try {
-			if (suppressContent) pc.setSilent();
+			if (suppressContent)
+				pc.setSilent();
 			rtn = component.callWithNamedValues(pc, methodName, args);
 		}
 		catch (PageException e) {
@@ -441,7 +446,8 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 			pc.getConfig().getLog("rest").error("REST", e);
 		}
 		finally {
-			if (suppressContent) pc.unsetSilent();
+			if (suppressContent)
+				pc.unsetSilent();
 		}
 
 		// custom response
@@ -484,6 +490,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 				}
 			}
 		}
+
 		// convert result
 		if (rtn != null && !hasContent) {
 			Props props = new Props();
