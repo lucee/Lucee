@@ -2459,7 +2459,7 @@ public final class PageContextImpl extends PageContext {
 				if (fdEnabled) {
 					FDSignal.signal(pe, false);
 				}
-				listener.onError(this, pe);
+				listener.onError(this, pe);		// call Application.onError()
 			}
 			else log(false);
 
