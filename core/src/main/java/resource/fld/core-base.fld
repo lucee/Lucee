@@ -4711,6 +4711,7 @@ The browser uses file extension to determine file type. </description>
     	</argument>
 		<argument>
 			<name>nameConflict</name>
+			<alias>onConflict</alias>
 			<type>string</type>
 			<required>no</required>
 			<description>Action to take if filename is the same as that of a file in the directory.</description>
