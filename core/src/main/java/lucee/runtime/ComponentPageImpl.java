@@ -268,7 +268,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 		return pc.urlScope().get(key, defaultValue);
 	}
 
-	private void callRest(PageContext pc, Component component, String path, Result result, boolean suppressContent) throws IOException, ConverterException {
+	private void callRest(PageContext pc, Component component, String path, Result result, boolean suppressContent) throws PageException, IOException, ConverterException {
 		String method = pc.getHttpServletRequest().getMethod();
 		String[] subPath = result.getPath();
 		Struct cMeta;
@@ -363,6 +363,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 				}
 				catch (PageException pe) {
 					pc.getConfig().getLog("rest").error("REST", pe);
+					throw pe;
 				}
 			}
 		}
@@ -441,6 +442,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 		catch (PageException e) {
 			RestUtil.setStatus(pc, 500, ExceptionUtil.getMessage(e));
 			pc.getConfig().getLog("rest").error("REST", e);
+			throw e;
 		}
 		finally {
 			if (suppressContent) pc.unsetSilent();
