@@ -161,14 +161,12 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 			// METHOD INVOCATION
 			String qs = ReqRspUtil.getQueryString(pc.getHttpServletRequest());
 
-			if (pc.getBasePageSource() == this.getPageSource() && pc.getConfig().debug())
-				pc.getDebugger().setOutput(false);
+			if (pc.getBasePageSource() == this.getPageSource() && pc.getConfig().debug()) pc.getDebugger().setOutput(false);
 
 			boolean isPost = pc.getHttpServletRequest().getMethod().equalsIgnoreCase("POST");
 
 			boolean suppressContent = pc.getRequestDialect() == CFMLEngine.DIALECT_LUCEE || ((PageContextImpl) pc).getSuppressContent();
-			if (suppressContent)
-				pc.clear();
+			if (suppressContent) pc.clear();
 
 			if (fromRest) {
 				callRest(pc, component, Caster.toString(req.getAttribute("rest-path"), ""), (Result) req.getAttribute("rest-result"), suppressContent);
@@ -437,8 +435,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 		}
 		Object rtn = null;
 		try {
-			if (suppressContent)
-				pc.setSilent();
+			if (suppressContent) pc.setSilent();
 			rtn = component.callWithNamedValues(pc, methodName, args);
 		}
 		catch (PageException e) {
@@ -446,8 +443,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 			pc.getConfig().getLog("rest").error("REST", e);
 		}
 		finally {
-			if (suppressContent)
-				pc.unsetSilent();
+			if (suppressContent) pc.unsetSilent();
 		}
 
 		// custom response

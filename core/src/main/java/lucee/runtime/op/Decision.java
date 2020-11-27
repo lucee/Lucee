@@ -111,12 +111,13 @@ public final class Decision {
 		if (value instanceof Number) return true;
 		else if (value instanceof CharSequence || value instanceof Character) {
 			boolean numeric = true;
-	        try {
-	            Double num = Double.parseDouble(value.toString());
-	        } catch (NumberFormatException e) {
-	            numeric = false;
-	        }
-	        if(numeric) return true;
+			try {
+				Double num = Double.parseDouble(value.toString());
+			}
+			catch (NumberFormatException e) {
+				numeric = false;
+			}
+			if (numeric) return true;
 			return isNumber(value.toString());
 		}
 

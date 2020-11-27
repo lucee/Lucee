@@ -36,23 +36,18 @@ public class Request extends Thread {
 	public static void exe(PageContext pc, short type, boolean throwExcpetion, boolean registerWithThread) throws IOException, PageException {
 		ThreadQueue queue = null;
 		try {
-			if (registerWithThread)
-				ThreadLocalPageContext.register(pc);
+			if (registerWithThread) ThreadLocalPageContext.register(pc);
 			ThreadQueue tmp = pc.getConfig().getThreadQueue();
 			tmp.enter(pc);
 			queue = tmp;
 
-			if (type == TYPE_CFML)
-				pc.executeCFML(pc.getHttpServletRequest().getServletPath(), throwExcpetion, true);
-			else if (type == TYPE_LUCEE)
-				pc.execute(pc.getHttpServletRequest().getServletPath(), throwExcpetion, true);
+			if (type == TYPE_CFML) pc.executeCFML(pc.getHttpServletRequest().getServletPath(), throwExcpetion, true);
+			else if (type == TYPE_LUCEE) pc.execute(pc.getHttpServletRequest().getServletPath(), throwExcpetion, true);
 			else pc.executeRest(pc.getHttpServletRequest().getServletPath(), throwExcpetion);
 		}
 		finally {
-			if (queue != null)
-				queue.exit(pc);
-			if (registerWithThread)
-				ThreadLocalPageContext.release();
+			if (queue != null) queue.exit(pc);
+			if (registerWithThread) ThreadLocalPageContext.release();
 		}
 	}
 

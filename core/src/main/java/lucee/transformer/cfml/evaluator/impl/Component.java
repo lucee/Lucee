@@ -164,7 +164,8 @@ public class Component extends EvaluatorSupport {
 			attr = tag.getAttribute("implements");
 			if (attr != null) {
 				Expression expr = tag.getFactory().toExprString(attr.getValue());
-				if (!(expr instanceof LitString)) throw new EvaluatorException("Attribute [implements] of the tag [" + tlt.getFullName() + "], must contain a literal string value");
+				if (!(expr instanceof LitString))
+					throw new EvaluatorException("Attribute [implements] of the tag [" + tlt.getFullName() + "], must contain a literal string value");
 			}
 		}
 		// modifier

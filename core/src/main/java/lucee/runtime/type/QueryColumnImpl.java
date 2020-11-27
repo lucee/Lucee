@@ -730,8 +730,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 		throwNotAllowedToAlter();
 		return false;
 		/*
-		 * Iterator<? extends Object> it = c.iterator(); while(it.hasNext()){ add(it.next()); }
-		 * return true;
+		 * Iterator<? extends Object> it = c.iterator(); while(it.hasNext()){ add(it.next()); } return true;
 		 */
 	}
 
@@ -739,8 +738,8 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 		throwNotAllowedToAlter();
 		return false;
 		/*
-		 * Iterator<? extends Object> it = c.iterator(); while(it.hasNext()){
-		 * setEL(++index,it.next()); } return true;
+		 * Iterator<? extends Object> it = c.iterator(); while(it.hasNext()){ setEL(++index,it.next()); }
+		 * return true;
 		 */
 	}
 
@@ -784,8 +783,8 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 		throwNotAllowedToAlter();
 		return false;
 		/*
-		 * boolean hasChanged=false; Iterator<? extends Object> it = c.iterator();
-		 * while(it.hasNext()){ if(remove(it.next())) { hasChanged=true; } } return hasChanged;
+		 * boolean hasChanged=false; Iterator<? extends Object> it = c.iterator(); while(it.hasNext()){
+		 * if(remove(it.next())) { hasChanged=true; } } return hasChanged;
 		 */
 	}
 
