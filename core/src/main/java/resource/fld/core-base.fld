@@ -12765,16 +12765,14 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<class>lucee.runtime.functions.struct.StructKeyArray</class>
 		<member-name>keyArray</member-name>
 		<keywords>struct</keywords>
-		<description>Finds the keys in a struct.
-        An array of keys; if structure does not exist, CFML
-        throws an exception.</description>
+		<description>Returns an Array with the keys of the Struct</description>
 		<argument>
 			<name>struct</name>
 			<alias>structure,object</alias>
 			<type>struct</type>
 			<required>Yes</required>
-		<description>Structure from which to extract a list of keys</description>
-    </argument>
+			<description>Structure from which to extract a list of keys</description>
+		</argument>
 		<return>
 			<type>array</type>
 		</return>
@@ -12860,8 +12858,6 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 				leave original key in struct
 			</description>
 		</argument>
-		
-		
 		<return>
 			<type>number</type>
 		</return>
@@ -12965,6 +12961,24 @@ _- asc (default): ascending (a to z) sort order
     </argument>
 		<return>
 			<type>boolean</type>
+		</return>
+	</function>
+	<!-- structValueArray -->
+	<function>
+		<name>structValueArray</name>
+		<class>lucee.runtime.functions.struct.StructValueArray</class>
+		<member-name>valueArray</member-name>
+		<keywords>struct</keywords>
+		<description>Returns an Array with the values of the Struct</description>
+		<argument>
+			<name>struct</name>
+			<alias>structure,object</alias>
+			<type>struct</type>
+			<required>Yes</required>
+			<description>Structure from which to extract a list of keys</description>
+		</argument>
+		<return>
+			<type>array</type>
 		</return>
 	</function>
 	
