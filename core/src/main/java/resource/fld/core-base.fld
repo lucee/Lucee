@@ -781,8 +781,8 @@ Remember CFML arrays start at 1 not 0.</description>
 		<class>lucee.runtime.functions.list.ListMap</class>
 		<member-name>listMap,map</member-name>
 		<keywords>string,list,iterator</keywords>
-		<description>Calls the given closure with every element in the given array.
-		the function returns an array that contains all values returned by the closure.</description>
+		<description>Calls the given closure with every element in the given list.
+		The function returns a list that contains all values returned by the closure.</description>
 		<argument>
 			<name>list</name>
 			<type>string</type>
@@ -12026,9 +12026,9 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>ListReduce</name>
 		<class>lucee.runtime.functions.list.ListReduce</class>
 		<member-name>listReduce</member-name>
-		<keywords>array,iterator</keywords>
-		<description>Iterates over every entry of the given array and calls the closure with every element. 
-		This function will reduce the array to a single value and will return the value.</description>
+		<keywords>list,iterator</keywords>
+		<description>Iterates over every entry of the given list and calls the closure with every element. 
+		This function will reduce the list to a single value and will return the value.</description>
 		<argument>
 			<name>list</name>
 			<alias>string</alias>
@@ -12270,7 +12270,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>ListSome</name>
 		<class>lucee.runtime.functions.list.ListSome</class>
 		<member-name>listSome,some</member-name>
-		<keywords>array,iterator</keywords>
+		<keywords>list,iterator</keywords>
 		<description>This function calls a given closure/function with every element in a given string list and returns true, if one of the closure calls returns true.</description>
 		<argument>
 			<name>list</name>
