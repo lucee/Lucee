@@ -47,14 +47,8 @@ Defaults --->
 		<cfset error.cfcatch=cfcatch>
 	</cfcatch>
 </cftry>
-<cfadmin 
-	action="surveillance" 
-	type="#request.adminType#" 
-	password="#session["password"&request.adminType]#" 
-	returnVariable="surveillance">
-
 <!---
-Redirtect to entry --->
+Redirect to entry --->
 <cfif cgi.request_method EQ "POST" and error.message EQ "" and form.mainAction NEQ "none">
 	<cflocation url="#request.self#" addtoken="no">
 </cfif>
