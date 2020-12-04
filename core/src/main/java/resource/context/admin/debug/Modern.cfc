@@ -1236,7 +1236,7 @@ Reference Button
 						<cfset local.total  =0>
 						<cfset local.records=0>
 						<cfset local.openConns=0>
-						<cfloop struct="#debugging.datasources#" index="dsn" item="item">
+						<cfloop struct="#arguments.debugging.datasources#" index="dsn" item="item">
 							<cfset local.openConns=item.openConnections>
 						</cfloop>
 
@@ -1263,7 +1263,7 @@ Reference Button
 											</tr>
 										</thead>
 										<tbody>
-											<cfloop struct="#debugging.datasources#" index="local.dsName" item="local.dsData">
+											<cfloop struct="#arguments.debugging.datasources#" index="local.dsName" item="local.dsData">
 												<tr>
 													<td class="txt-r">#dsData.name#</td>
 													<td class="txt-r">#dsData.openConnections#</td>
