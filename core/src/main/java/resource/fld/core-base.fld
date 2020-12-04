@@ -9473,7 +9473,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>query</name>
 		<class>lucee.runtime.functions.query.Query_</class>
 		<keywords>query</keywords>
-		<description>create ans populates a query object in the form query(columnName1:[1,2,3],columnName2:[4,5,6])</description>
+		<description>Create and populate a query object in the form query(columnName1:[1,2,3],columnName2:[4,5,6])</description>
 		<argument-type>dynamic</argument-type>
 		<return>
 			<type>query</type>
