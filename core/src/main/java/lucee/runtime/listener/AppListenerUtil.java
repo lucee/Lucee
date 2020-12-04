@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.TimeZone;
 
 import org.osgi.framework.Version;
 
@@ -199,6 +200,10 @@ public final class AppListenerUtil {
 
 		}
 
+		TimeZone timezone = null;
+		Object obj = data.get(KeyConstants._timezone, null);
+		if (obj != null) timezone = Caster.toTimeZone(obj, null);
+
 		// first check for {class:... , connectionString:...}
 		Object oConnStr = data.get(CONNECTION_STRING, null);
 		if (oConnStr != null) {
@@ -214,11 +219,11 @@ public final class AppListenerUtil {
 				if (idle == -1) idle = Caster.toIntValue(data.get(CONNECTION_TIMEOUT, null), 1);
 				return ApplicationDataSource.getInstance(config, name, cd, Caster.toString(oConnStr), user, pass, listener, Caster.toBooleanValue(data.get(BLOB, null), false),
 						Caster.toBooleanValue(data.get(CLOB, null), false), Caster.toIntValue(data.get(CONNECTION_LIMIT, null), -1), idle,
-						Caster.toIntValue(data.get(LIVE_TIMEOUT, null), 60), Caster.toLongValue(data.get(META_CACHE_TIMEOUT, null), 60000L),
-						Caster.toTimeZone(data.get(KeyConstants._timezone, null), null), Caster.toIntValue(data.get(ALLOW, null), DataSource.ALLOW_ALL),
-						Caster.toBooleanValue(data.get(KeyConstants._storage, null), false), Caster.toBooleanValue(data.get(KeyConstants._readonly, null), false),
-						Caster.toBooleanValue(data.get(KeyConstants._validate, null), false), Caster.toBooleanValue(data.get("requestExclusive", null), false),
-						Caster.toBooleanValue(data.get("alwaysResetConnections", null), false), readliteralTimestampWithTSOffset(data), log);
+						Caster.toIntValue(data.get(LIVE_TIMEOUT, null), 60), Caster.toLongValue(data.get(META_CACHE_TIMEOUT, null), 60000L), timezone,
+						Caster.toIntValue(data.get(ALLOW, null), DataSource.ALLOW_ALL), Caster.toBooleanValue(data.get(KeyConstants._storage, null), false),
+						Caster.toBooleanValue(data.get(KeyConstants._readonly, null), false), Caster.toBooleanValue(data.get(KeyConstants._validate, null), false),
+						Caster.toBooleanValue(data.get("requestExclusive", null), false), Caster.toBooleanValue(data.get("alwaysResetConnections", null), false),
+						readliteralTimestampWithTSOffset(data), log);
 			}
 			catch (Exception cnfe) {
 				throw Caster.toPageException(cnfe);
@@ -238,9 +243,8 @@ public final class AppListenerUtil {
 					Caster.toIntValue(data.get(CONNECTION_LIMIT, null), -1), idle, Caster.toIntValue(data.get(LIVE_TIMEOUT, null), 1),
 					Caster.toLongValue(data.get(META_CACHE_TIMEOUT, null), 60000L), Caster.toBooleanValue(data.get(BLOB, null), false),
 					Caster.toBooleanValue(data.get(CLOB, null), false), DataSource.ALLOW_ALL, Caster.toStruct(data.get(KeyConstants._custom, null), null, false),
-					Caster.toBooleanValue(data.get(KeyConstants._readonly, null), false), true, Caster.toBooleanValue(data.get(KeyConstants._storage, null), false),
-					Caster.toTimeZone(data.get(KeyConstants._timezone, null), null), "", ParamSyntax.toParamSyntax(data, ParamSyntax.DEFAULT),
-					readliteralTimestampWithTSOffset(data), Caster.toBooleanValue(data.get("alwaysSetTimeout", null), false),
+					Caster.toBooleanValue(data.get(KeyConstants._readonly, null), false), true, Caster.toBooleanValue(data.get(KeyConstants._storage, null), false), timezone, "",
+					ParamSyntax.toParamSyntax(data, ParamSyntax.DEFAULT), readliteralTimestampWithTSOffset(data), Caster.toBooleanValue(data.get("alwaysSetTimeout", null), false),
 					Caster.toBooleanValue(data.get("requestExclusive", null), false), Caster.toBooleanValue(data.get("alwaysResetConnections", null), false), log);
 		}
 		catch (Exception cnfe) {
