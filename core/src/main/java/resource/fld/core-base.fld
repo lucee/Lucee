@@ -9699,8 +9699,16 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     			<required>Yes</required>
     			<description>position of the row to be returned</description>
     	    </argument>
+			<argument>
+    			<name>format</name>
+    			<type>string</type>
+    			<required>No</required>
+    			<description>struct or array</description>
+				<default>struct</default>
+				<alias>returnFormat</alias>
+    	    </argument>
     		<return>
-    			<type>struct</type>
+    			<type>any</type>
     		</return>
     	</function>
 
@@ -10013,6 +10021,39 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>boolean</type>
 		</return>
 	</function>
+
+	<!-- querySetRow -->
+    	<function>
+    		<name>querySetRow</name>
+    		<class>lucee.runtime.functions.query.QuerySetRow</class>
+    		<member-name>setRow</member-name>
+    		<keywords>query</keywords>
+			<description>Adds a row to a query, either by struct or array</description>
+    		<argument>
+    			<name>query</name>
+    			<type>query</type>
+    			<required>Yes</required>
+    			<description>query object do get data from</description>
+    	    </argument>
+    		<argument>
+    			<name>rowNumber</name>
+    			<type>number</type>
+    			<required>No</required>
+    			<description>position of the row to updated, otherwise a new row is added</description>
+				<default>-9999</default>
+    	    </argument>
+			<argument>
+    			<name>rowData</name>
+    			<type>any</type>
+    			<required>yes</required>
+    			<description>a struct or array</description>
+				<alias>data</alias>
+    	    </argument>
+    		<return>
+    			<type>number</type>
+    		</return>
+    	</function>
+
 	<!-- querySlice -->
 	<function>
 		<name>querySlice</name>

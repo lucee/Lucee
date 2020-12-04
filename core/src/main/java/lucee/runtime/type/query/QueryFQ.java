@@ -1034,6 +1034,12 @@ public class QueryFQ implements Query, Objects, QueryResult, Serializable {
 	}
 
 	@Override
+	public Object setAtIndex(int index, int row, Object value, boolean trustType) throws PageException{
+		if (!cloned) _clone();
+		return qry.setAtIndex(index, row, value, trustType);
+	}
+
+	@Override
 	public void sort(String column) throws PageException {
 		if (!cloned) _clone();
 		qry.sort(column);
