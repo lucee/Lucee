@@ -2369,7 +2369,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     			<description>position of the row to be returned</description>
     	    </argument>
     		<return>
-    			<type>struct</type>
+    			<type>any</type>
     		</return>
     	</function>
     	
