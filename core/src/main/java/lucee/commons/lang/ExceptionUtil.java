@@ -120,7 +120,7 @@ public final class ExceptionUtil {
 		String list = null;
 		if (listAll) {
 			Arrays.sort(_keys);
-			list = ListUtil.arrayToList(_keys, ",");
+			list = ListUtil.arrayToList(_keys, ", ");
 		}
 
 		String keySearchedSoundex = StringUtil.soundex(keySearched);
