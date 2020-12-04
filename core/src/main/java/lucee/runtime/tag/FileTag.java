@@ -19,8 +19,8 @@
 package lucee.runtime.tag;
 
 import static lucee.runtime.tag.util.FileUtil.NAMECONFLICT_ERROR;
-import static lucee.runtime.tag.util.FileUtil.NAMECONFLICT_MAKEUNIQUE;
 import static lucee.runtime.tag.util.FileUtil.NAMECONFLICT_FORCEUNIQUE;
+import static lucee.runtime.tag.util.FileUtil.NAMECONFLICT_MAKEUNIQUE;
 import static lucee.runtime.tag.util.FileUtil.NAMECONFLICT_OVERWRITE;
 import static lucee.runtime.tag.util.FileUtil.NAMECONFLICT_SKIP;
 import static lucee.runtime.tag.util.FileUtil.NAMECONFLICT_UNDEFINED;
@@ -30,7 +30,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.util.UUID;
 
 import lucee.commons.digest.Hash;
 import lucee.commons.io.CharsetUtil;
@@ -61,6 +60,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.BodyTagImpl;
 import lucee.runtime.functions.list.ListFirst;
 import lucee.runtime.functions.list.ListLast;
+import lucee.runtime.functions.other.CreateUniqueId;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.op.Caster;
@@ -604,10 +604,8 @@ public final class FileTag extends BodyTagImpl {
 	}
 
 	private static Resource makeUnique(Resource res) {
-
-		String ext = getFileExtension(res);
-		String name = getFileName(res);
-		ext = (ext == null) ? "" : "." + ext;
+		String name = ResourceUtil.getName(res);
+		String ext = ResourceUtil.getExtension(res, "");
 		int count = 0;
 		while (res.exists()) {
 			res = res.getParentResource().getRealResource(name + (++count) + ext);
@@ -617,16 +615,11 @@ public final class FileTag extends BodyTagImpl {
 	}
 
 	private static Resource forceUnique(Resource res) {
-
-		String ext = getFileExtension(res);
-		String name = getFileName(res);
-		ext = (ext == null) ? "" : "." + ext;
-		UUID uuid = UUID.randomUUID();
-		String setUUID = uuid.toString();
+		String name = ResourceUtil.getName(res);
+		String ext = ResourceUtil.getExtension(res, "");
 		while (res.exists()) {
-			res = res.getParentResource().getRealResource(name + "_" + setUUID + ext);
+			res = res.getParentResource().getRealResource(name + "_" + CreateUniqueId.invoke() + ext);
 		}
-
 		return res;
 	}
 
@@ -955,8 +948,8 @@ public final class FileTag extends BodyTagImpl {
 
 		cffile.set("clientdirectory", getParent(clientFile));
 		cffile.set("clientfile", clientFile.getName());
-		cffile.set("clientfileext", getFileExtension(clientFile));
-		cffile.set("clientfilename", getFileName(clientFile));
+		cffile.set("clientfileext", ResourceUtil.getExtension(clientFile, ""));
+		cffile.set("clientfilename", ResourceUtil.getName(clientFile));
 
 		// check destination
 		if (StringUtil.isEmpty(strDestination)) throw new ApplicationException("Attribute [destination] is not defined in tag [file]");
@@ -990,8 +983,8 @@ public final class FileTag extends BodyTagImpl {
 		// set server variables
 		cffile.set("serverdirectory", getParent(destination));
 		cffile.set("serverfile", destination.getName());
-		cffile.set("serverfileext", getFileExtension(destination));
-		cffile.set("serverfilename", getFileName(destination));
+		cffile.set("serverfileext", ResourceUtil.getExtension(destination, null));
+		cffile.set("serverfilename", ResourceUtil.getName(destination));
 		cffile.set("attemptedserverfile", destination.getName());
 
 		// check nameconflict
@@ -1015,8 +1008,8 @@ public final class FileTag extends BodyTagImpl {
 				// if(fileWasRenamed) {
 				cffile.set("serverdirectory", getParent(destination));
 				cffile.set("serverfile", destination.getName());
-				cffile.set("serverfileext", getFileExtension(destination));
-				cffile.set("serverfilename", getFileName(destination));
+				cffile.set("serverfileext", ResourceUtil.getExtension(destination, ""));
+				cffile.set("serverfilename", ResourceUtil.getName(destination));
 				cffile.set("attemptedserverfile", destination.getName());
 				// }
 			}
@@ -1026,8 +1019,8 @@ public final class FileTag extends BodyTagImpl {
 
 				cffile.set("serverdirectory", getParent(destination));
 				cffile.set("serverfile", destination.getName());
-				cffile.set("serverfileext", getFileExtension(destination));
-				cffile.set("serverfilename", getFileName(destination));
+				cffile.set("serverfileext", ResourceUtil.getExtension(destination, ""));
+				cffile.set("serverfilename", ResourceUtil.getName(destination));
 				cffile.set("attemptedserverfile", destination.getName());
 			}
 			else if (nameconflict == NAMECONFLICT_OVERWRITE) {
@@ -1071,7 +1064,7 @@ public final class FileTag extends BodyTagImpl {
 	 */
 	private static void checkContentType(String contentType, String accept, ResourceFilter allowedExtensions, ResourceFilter blockedExtensions, Resource clientFile, boolean strict,
 			ApplicationContext appContext) throws PageException {
-		String ext = getFileExtension(clientFile);
+		String ext = ResourceUtil.getExtension(clientFile, "");
 
 		// check extension
 		if (!StringUtil.isEmpty(ext, true)) {
@@ -1180,47 +1173,6 @@ public final class FileTag extends BodyTagImpl {
 		Form scope = pageContext.formScope();
 		return scope.getFileItems();
 	}
-
-	/**
-	 * get file extension of a file object
-	 * 
-	 * @param file file object
-	 * @return extension
-	 */
-	private static String getFileExtension(Resource file) {
-		String name = file.getName();
-		String[] arr;
-		try {
-			arr = ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(name, '.'));
-		}
-		catch (PageException e) {
-			arr = null;
-		}
-		if (arr.length < 2) return "";
-
-		return arr[arr.length - 1];
-	}
-
-	/**
-	 * get file name of a file object without extension
-	 * 
-	 * @param file file object
-	 * @return name of the file
-	 */
-	private static String getFileName(Resource file) {
-		String name = file.getName();
-		int pos = name.lastIndexOf(".");
-
-		if (pos == -1) return name;
-		return name.substring(0, pos);
-	}
-
-	/*
-	 * private String correctDirectory(Resource resource) { if(StringUtil.isEmpty(resource,true)) return
-	 * ""; resource=resource.trim(); if((StringUtil.endsWith(resource, '/') ||
-	 * StringUtil.endsWith(resource, '\\')) && resource.length()>1) { return
-	 * resource.substring(0,resource.length()-1); } return resource; }
-	 */
 
 	private static String getParent(Resource res) {
 		Resource parent = res.getParentResource();
