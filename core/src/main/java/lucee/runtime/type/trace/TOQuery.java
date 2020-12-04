@@ -174,11 +174,6 @@ public class TOQuery extends TOCollection implements Query, com.allaire.cfx.Quer
 	}
 
 	@Override
-	public Object setAtIndex(int index, int row, Object value, boolean trustType) throws PageException{	
-		return qry.setAtIndex(index, row, value, trustType);
-	}
-
-	@Override
 
 	public boolean next() {
 		log();

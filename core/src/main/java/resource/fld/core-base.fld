@@ -10037,10 +10037,11 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     	    </argument>
     		<argument>
     			<name>rowNumber</name>
+				<alias>row</alias>
     			<type>number</type>
     			<required>No</required>
     			<description>position of the row to updated, otherwise a new row is added</description>
-				<default>-9999</default>
+				<default>0</default>
     	    </argument>
 			<argument>
     			<name>rowData</name>
@@ -10050,7 +10051,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 				<alias>data</alias>
     	    </argument>
     		<return>
-    			<type>number</type>
+    			<type>boolean</type>
     		</return>
     	</function>
 

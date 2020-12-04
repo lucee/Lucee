@@ -1053,14 +1053,6 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	}
 
 	@Override
-	public Object setAtIndex(int index, int row, Object value, boolean trustType) throws PageException{
-		if (index <= columns.length){
-			return columns[index].set(row, value, trustType);
-		}
-		throw new DatabaseException("column index [" + index + "] does not exist", "number of columns is [" + columns.length + "]", sql, null);
-	}
-
-	@Override
 	public boolean next() {
 		return next(getPid());
 	}

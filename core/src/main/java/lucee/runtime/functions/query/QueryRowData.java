@@ -18,18 +18,19 @@
  **/
 package lucee.runtime.functions.query;
 
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
+import lucee.runtime.type.Array;
+import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
-import lucee.runtime.type.Array;
-import lucee.runtime.type.ArrayImpl;
 
 /**
  * implements BIF QueryRowData
@@ -37,7 +38,7 @@ import lucee.runtime.type.ArrayImpl;
 public class QueryRowData extends BIF {
 
 	// is this needed?
-	private static final long serialVersionUID = -5234853923691806118L;	
+	private static final long serialVersionUID = -5234853923691806118L;
 
 	public static Object call(PageContext pc, Query query, double rowNumber) throws PageException {
 		return call(pc, query, rowNumber, "struct");
@@ -52,15 +53,14 @@ public class QueryRowData extends BIF {
 
 		Collection.Key[] colNames = query.getColumnNames();
 
-		if (returnFormat != null){
+		if (!StringUtil.isEmpty(returnFormat, true)) {
 			if ("array".equalsIgnoreCase(returnFormat.trim())) {
 				Array resultArray = new ArrayImpl();
-				for (int col = 0; col < colNames.length; col++){
-					resultArray.setE(col, query.getAt(colNames[col], row, NullSupportHelper.empty(pc)));
+				for (int col = 0; col < colNames.length; col++) {
+					resultArray.append(query.getAt(colNames[col], row, NullSupportHelper.empty(pc)));
 				}
 				return resultArray;
-			} 
-			// defaults back to Struct, could check and throw?
+			}
 		}
 		Struct result = new StructImpl();
 
