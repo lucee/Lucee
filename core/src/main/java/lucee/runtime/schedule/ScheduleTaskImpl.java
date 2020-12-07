@@ -341,7 +341,7 @@ public final class ScheduleTaskImpl implements ScheduleTask {
 		this.unique = unique;
 	}
 
-	public void setUseragent(String userAgent) {
+	public void setUserAgent(String userAgent) {
 		this.userAgent = userAgent;
 	}
 

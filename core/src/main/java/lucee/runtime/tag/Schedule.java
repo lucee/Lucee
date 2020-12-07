@@ -262,7 +262,7 @@ public final class Schedule extends TagImpl {
 	 * 
 	 * @param userAgent value to set
 	 **/
-	public void setUseragent(String userAgent) {
+	public void setUserAgent(String userAgent) {
 		this.userAgent = userAgent;
 	}
 
