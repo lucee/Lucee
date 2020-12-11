@@ -13864,7 +13864,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     	<argument>
 			<name>callback</name>
 			<type>any</type>
-			<required>Yes</required>
+			<required>No</required>
 			<description>The value to find or a closure/function that gets every value of the array as input and returns true if the given value is right.</description>
 		</argument>
     	<return>
