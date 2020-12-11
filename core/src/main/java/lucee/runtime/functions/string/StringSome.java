@@ -14,8 +14,8 @@ public class StringSome extends BIF {
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
-		if (args.length != 1) {
-			throw new FunctionException(pc, "StringSome", 1, 1, args.length);
+		if (args.length < 1 || args.length > 2) {
+			throw new FunctionException(pc, "StringSome", 1, 2, args.length);
 		}
 		if (args.length == 2) {
 			return call(pc, Caster.toString(args[0]), Caster.toFunction(args[1]));
