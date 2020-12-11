@@ -7707,6 +7707,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		<attribute>
 			<type>string</type>
 			<name>name</name>
+			<alias>names</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>The name of the thread to which the action applies:
