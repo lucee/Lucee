@@ -4,6 +4,6 @@
 	<cfset result = serializeJSON( data = data, queryFormat=false, useSecureJSONPrefix=true)>
 <cfelse>
 	<cfset jsonObject = serializeJSON(data)>
-	<Cfset result = deserializeJSON(json=jsonObject, strictmapping = true )>
+	<cfset result = deserializeJSON(json=jsonObject, strictmapping = true )>
 </cfif>
 <cfoutput>#result#</cfoutput>
