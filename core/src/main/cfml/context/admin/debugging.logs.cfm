@@ -151,8 +151,8 @@ Redirtect to entry --->
 	param name="url.action2" default="list";
 	param name="url.format" default="";
 
-	if (url.action2 EQ "list"){
-		if (url.format eq "json"){
+	if (url.action2 EQ "list") {
+		if (url.format eq "json") {
 			setting showdebugoutput="false";
 			content reset="yes" type="application/json";
 			echo(serializeJson(logs));

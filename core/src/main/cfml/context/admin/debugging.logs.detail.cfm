@@ -53,7 +53,7 @@
 		}
 	}
 	
-	if (url.format eq "json"){
+	if (url.format eq "json") {
 		setting showdebugoutput="false";
 		content reset="yes" type="application/json";
 		echo(serializeJson(log));
