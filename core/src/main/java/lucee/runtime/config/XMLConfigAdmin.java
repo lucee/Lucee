@@ -1650,7 +1650,7 @@ public final class XMLConfigAdmin {
 		if (!StringUtil.isEmpty(timezone)) el.setAttribute("timezone", timezone);
 		el.setAttribute("database", database);
 		if (port > -1) el.setAttribute("port", Caster.toString(port));
-		if (connectionLimit > -1) el.setAttribute("connectionLimit", Caster.toString(connectionLimit));
+		el.setAttribute("connectionLimit", Caster.toString(connectionLimit));
 		if (idleTimeout > -1) el.setAttribute("connectionTimeout", Caster.toString(idleTimeout));
 		if (liveTimeout > -1) el.setAttribute("liveTimeout", Caster.toString(liveTimeout));
 		if (metaCacheTimeout > -1) el.setAttribute("metaCacheTimeout", Caster.toString(metaCacheTimeout));
