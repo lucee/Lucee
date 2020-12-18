@@ -13850,4 +13850,26 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     		<type>boolean</type>
     	</return>
     </function>
+    
+    <function>
+		<name>StringEvery</name>
+		<member-name>every</member-name>
+		<class>lucee.runtime.functions.string.StringEvery</class>
+		<description>Determines if all elements of a string satisfy a given condition.</description>
+    	<argument>
+			<name>inputString</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>Input string.</description>
+    	</argument>
+    	<argument>
+			<name>callback</name>
+			<type>any</type>
+			<required>Yes</required>
+			<description> Closure or a function reference that will be called for each of the iteration.</description>
+		</argument>
+    	<return>
+    		<type>boolean</type>
+    	</return>
+    </function>
 </func-lib>
