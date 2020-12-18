@@ -731,6 +731,9 @@ public final class Directory extends TagImpl {
 		// check if file
 		if (dir.isFile()) throw new ApplicationException("can't delete [" + dir.toString() + "], it isn't a directory, it's a file");
 
+		// check directory is empty
+		if (dir.listResources() != null && dir.listResources().length > 0 && forceDelete == false) throw new ApplicationException("directory [" + dir.toString() + "] is not empty","Enable recurse to delete sub-directories and files too");
+		
 		// delete directory
 		try {
 			dir.remove(forceDelete);
