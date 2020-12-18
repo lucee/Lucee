@@ -39,7 +39,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 		return baseURI&""&calledName;
 	}
 
-	private struct function hasCredencials() {
+	private boolean function hasCredencials() {
 		if(
 			!isNull(server.system.environment.MSSQL_SERVER) && 
 			!isNull(server.system.environment.MSSQL_USERNAME) && 
