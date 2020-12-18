@@ -173,17 +173,27 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 
 	public void setReturntype(String strReturntype) throws ApplicationException {
 		if (StringUtil.isEmpty(strReturntype)) return;
+		data.returntype = toReturnType(strReturntype);
+	}
+
+	private static int toReturnType(String strReturntype) throws ApplicationException {
 		strReturntype = strReturntype.toLowerCase().trim();
 
-		if (strReturntype.equals("query")) data.returntype = RETURN_TYPE_QUERY;
-		// mail.setType(lucee.runtime.mail.Mail.TYPE_TEXT);
-		else if (strReturntype.equals("struct")) data.returntype = RETURN_TYPE_STRUCT;
-		else if (strReturntype.equals("array") || strReturntype.equals("array_of_struct") || strReturntype.equals("array-of-struct") || strReturntype.equals("arrayofstruct")
+		if (strReturntype.equals("query")) return RETURN_TYPE_QUERY;
+		if (strReturntype.equals("struct")) return RETURN_TYPE_STRUCT;
+		if (strReturntype.equals("array") || strReturntype.equals("array_of_struct") || strReturntype.equals("array-of-struct") || strReturntype.equals("arrayofstruct")
 				|| strReturntype.equals("array_of_entity") || strReturntype.equals("array-of-entity") || strReturntype.equals("arrayofentities")
-				|| strReturntype.equals("array_of_entities") || strReturntype.equals("array-of-entities") || strReturntype.equals("arrayofentities"))
-			data.returntype = RETURN_TYPE_ARRAY;
+				|| strReturntype.equals("array_of_entities") || strReturntype.equals("array-of-entities") || strReturntype.equals("arrayofentities")) {
+			return RETURN_TYPE_ARRAY;
+		}
+		throw new ApplicationException("Attribute [returntype] of tag [query] has an invalid value", "valid values are [query,array] but value was [" + strReturntype + "]");
+	}
 
-		else throw new ApplicationException("Attribute [returntype] of tag [query] has an invalid value", "valid values are [query,array] but value was [" + strReturntype + "]");
+	public static String toReturnType(int rt) throws ApplicationException {
+		if (RETURN_TYPE_QUERY == rt) return "query";
+		if (RETURN_TYPE_STRUCT == rt) return "struct";
+		if (RETURN_TYPE_ARRAY == rt) return "array";
+		return "undefined";
 	}
 
 	public void setUnique(boolean unique) {
@@ -533,7 +543,8 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		if (data.hasBody && !StringUtil.isEmpty(strSQL = bodyContent.getString().trim(), true)) { // we have a body
 			if (!StringUtil.isEmpty(data.sql, true)) { // sql in attr and body
 				if (!strSQL.equals(data.sql.trim())) // unless they are equal
-					throw new DatabaseException("Defining SQL in the body and as an attribute at the same time is not permitted [" + strSQL + "," + data.sql + "]", null, null, null);
+					throw new DatabaseException("Defining SQL in the body and as an attribute at the same time is not permitted [" + strSQL + "," + data.sql + "]", null, null,
+							null);
 			}
 		}
 		else {
@@ -896,7 +907,7 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		set(args, KeyConstants._username, data.username);
 		set(args, KeyConstants._password, data.password);
 		set(args, KeyConstants._result, data.result);
-		set(args, KeyConstants._returntype, data.returntype);
+		set(args, KeyConstants._returntype, toReturnType(data.returntype));
 		set(args, KeyConstants._timeout, data.timeout);
 		set(args, KeyConstants._timezone, data.timezone);
 		set(args, "unique", data.unique);
