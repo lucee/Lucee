@@ -13850,4 +13850,35 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     		<type>boolean</type>
     	</return>
     </function>
+    
+    <function>
+		<name>StringReduce</name>
+		<member-name>reduce</member-name>
+		<class>lucee.runtime.functions.string.StringReduce</class>
+		<description>Iterates over every element of the string and calls the closure to work on the elements of the string. This function will reduce the string to a single value and will return the value.</description>
+    	<argument>
+			<name>string</name>
+			<type>string</type>
+			<alias>inputString, string</alias>
+			<required>Yes</required>
+			<description>Input string.</description>
+    	</argument>
+    	<argument>
+			<name>callback</name>
+			<type>any</type>
+			<alias>callback</alias>
+			<required>Yes</required>
+			<description> Closure or a function reference that will be called for each of the iteration.</description>
+		</argument>
+		<argument>
+			<name>initialVal</name>
+			<type>any</type>
+			<alias>initialVal</alias>
+			<required>No</required>
+			<description> Initial value that will be used for the reduce operation.</description>
+		</argument>
+    	<return>
+    		<type>any</type>
+    	</return>
+    </function>
 </func-lib>
