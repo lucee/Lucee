@@ -207,7 +207,7 @@ component output="false" extends="HelperBase" accessors="true"{
 		var resultVar = "";
 		var result = new Result();
 
-		structDelete(tagAttributes,"sql",false);
+		//structDelete(tagAttributes,"sql",false);
 
 		// Makes the attributes available in local scope. Es : query of queries
 		structAppend(local, tagAttributes, true);
