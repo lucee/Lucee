@@ -28,6 +28,7 @@ import lucee.commons.collection.MapFactory;
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
+import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.dump.DumpData;
@@ -116,7 +117,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		if (_lastvisit == null) _lastvisit = timecreated;
 		lastvisit = _lastvisit == null ? 0 : _lastvisit.getTime();
 		ApplicationContext ac = pc.getApplicationContext();
-		if (ac != null && ac.getSessionCluster() && isSessionStorageDatasource(pc)) {
+		if (ac != null && ac.getSessionCluster() && isSessionStorage(pc)) {
 			IKStorageScopeItem csrfTokens = data.getOrDefault(KeyConstants._csrf_token, null);
 			Object val = csrfTokens == null ? null : csrfTokens.getValue();
 			if (Decision.isStruct(val)) {
@@ -250,7 +251,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 			data0.put(KeyConstants._sessionid, new IKStorageScopeItem(pc.getApplicationContext().getName() + "_" + pc.getCFID() + "_" + pc.getCFToken()));
 		}
 		ApplicationContext ac = pc.getApplicationContext();
-		if (ac != null && ac.getSessionCluster() && isSessionStorageDatasource(pc)) {
+		if (ac != null && ac.getSessionCluster() && isSessionStorage(pc)) {
 			data0.put(KeyConstants._csrf_token, new IKStorageScopeItem(this.tokens));
 		}
 		data0.put(KeyConstants._timecreated, new IKStorageScopeItem(timecreated));
@@ -301,6 +302,10 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 
 		if (type == SCOPE_CLIENT) {
 			data0.put(KeyConstants._hitcount, new IKStorageScopeItem(new Double(hitcount)));
+		}
+		ApplicationContext ac = pc.getApplicationContext();
+		if (ac != null && (this.tokens == null || this.tokens.isEmpty()) && ac.getSessionCluster() && isSessionStorage(pc)) {
+			data0.remove(KeyConstants._csrf_token);
 		}
 		store(pc);
 	}
@@ -700,11 +705,17 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		return dt;
 	}
 
-	private boolean isSessionStorageDatasource(PageContext pc) {
+	private boolean isSessionStorage(PageContext pc) {
 		ApplicationContext ac = pc.getApplicationContext();
 		String storage = ac == null ? null : ac.getSessionstorage();
-		DataSource ds = storage == null ? null : pc.getDataSource(storage, null);
-		return ds != null && ds.isStorage();
+		if (StringUtil.isEmpty(storage)) return false;
+
+		// datasource?
+		DataSource ds = pc.getDataSource(storage, null);
+		if (ds != null && ds.isStorage()) return true;
+
+		// cache
+		return CacheUtil.getCache(pc, storage, null) != null;
 	}
 
 	// protected abstract IKStorageValue loadData(PageContext pc, String appName, String name,String
