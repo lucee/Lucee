@@ -32,6 +32,7 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 
 import lucee.commons.digest.Hash;
+import lucee.commons.digest.HashUtil;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.ModeUtil;
@@ -60,7 +61,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.BodyTagImpl;
 import lucee.runtime.functions.list.ListFirst;
 import lucee.runtime.functions.list.ListLast;
-import lucee.runtime.functions.other.CreateUniqueId;
+import lucee.runtime.functions.other.CreateUUID;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.op.Caster;
@@ -607,9 +608,8 @@ public final class FileTag extends BodyTagImpl {
 		String name = ResourceUtil.getName(res);
 		String ext = ResourceUtil.getExtension(res, "");
 		if (!StringUtil.isEmpty(ext)) ext = "." + ext;
-		int count = 0;
 		while (res.exists()) {
-			res = res.getParentResource().getRealResource(name + (++count) + ext);
+			res = res.getParentResource().getRealResource(name + HashUtil.create64BitHashAsString(CreateUUID.invoke(), Character.MAX_RADIX) + ext);
 		}
 
 		return res;
@@ -620,7 +620,7 @@ public final class FileTag extends BodyTagImpl {
 		String ext = ResourceUtil.getExtension(res, "");
 		if (!StringUtil.isEmpty(ext)) ext = "." + ext;
 		while (res.exists()) {
-			res = res.getParentResource().getRealResource(name + "_" + CreateUniqueId.invoke() + ext);
+			res = res.getParentResource().getRealResource(name + "_" + HashUtil.create64BitHashAsString(CreateUUID.invoke(), Character.MAX_RADIX) + ext);
 		}
 		return res;
 	}
