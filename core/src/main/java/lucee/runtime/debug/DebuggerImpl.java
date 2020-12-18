@@ -408,7 +408,7 @@ public final class DebuggerImpl implements Debugger {
 		//////// QUERIES ///////////////////////////
 		//////////////////////////////////////////
 		long queryTime = 0;
-		if (ci.hasDebugOptions(ConfigPro.DEBUG_QUERY_USAGE)) {
+		if (ci.hasDebugOptions(ConfigPro.DEBUG_DATABASE)) {
 			List<QueryEntry> queries = getQueries();
 			Query qryQueries = null;
 			try {
