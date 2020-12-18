@@ -607,6 +607,7 @@ public final class ScopeContext {
 									getLog());
 						}
 						catch (PageException pe) {
+							pc.getConfig().getLog("application").error("session-storage", pe);
 							session = SessionDatasource.getInstance(storage, pc, getLog(), null);
 						}
 					}
@@ -618,6 +619,7 @@ public final class ScopeContext {
 							session = (Session) IKStorageScopeSupport.getInstance(Scope.SCOPE_SESSION, new IKHandlerCache(), appContext.getName(), storage, pc, existing, getLog());
 						}
 						catch (PageException pe) {
+							pc.getConfig().getLog("application").error("session-storage", pe);
 							session = SessionCache.getInstance(storage, appContext.getName(), pc, existing, getLog(), null);
 						}
 					}

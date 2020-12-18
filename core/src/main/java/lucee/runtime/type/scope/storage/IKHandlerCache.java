@@ -26,12 +26,12 @@ public class IKHandlerCache implements IKHandler {
 			Object val = cache.getValue(key, null);
 			if (val instanceof byte[][]) {
 				ScopeContext.debug(log,
-						"load existing data from  cache [" + name + "] to create " + strType + " scope for " + pc.getApplicationContext().getName() + "/" + pc.getCFID());
+						"load existing data from cache [" + name + "] to create " + strType + " scope for " + pc.getApplicationContext().getName() + "/" + pc.getCFID());
 				return new IKStorageValue((byte[][]) val);
 			}
 			else if (val instanceof IKStorageValue) {
 				ScopeContext.debug(log,
-						"load existing data from  cache [" + name + "] to create " + strType + " scope for " + pc.getApplicationContext().getName() + "/" + pc.getCFID());
+						"load existing data from cache [" + name + "] to create " + strType + " scope for " + pc.getApplicationContext().getName() + "/" + pc.getCFID());
 				return (IKStorageValue) val;
 			}
 			else {
