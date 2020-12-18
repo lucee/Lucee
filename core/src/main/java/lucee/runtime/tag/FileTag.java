@@ -606,6 +606,7 @@ public final class FileTag extends BodyTagImpl {
 	private static Resource makeUnique(Resource res) {
 		String name = ResourceUtil.getName(res);
 		String ext = ResourceUtil.getExtension(res, "");
+		if (!StringUtil.isEmpty(ext)) ext = "." + ext;
 		int count = 0;
 		while (res.exists()) {
 			res = res.getParentResource().getRealResource(name + (++count) + ext);
@@ -617,6 +618,7 @@ public final class FileTag extends BodyTagImpl {
 	private static Resource forceUnique(Resource res) {
 		String name = ResourceUtil.getName(res);
 		String ext = ResourceUtil.getExtension(res, "");
+		if (!StringUtil.isEmpty(ext)) ext = "." + ext;
 		while (res.exists()) {
 			res = res.getParentResource().getRealResource(name + "_" + CreateUniqueId.invoke() + ext);
 		}
