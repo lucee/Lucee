@@ -275,7 +275,7 @@ if(!pages.recordcount || !hasQueries) {
 			<td class="cfdebug"><b>Detail</b></td>
 			<td class="cfdebug"><b>Template</b></td>
 		</tr>
-<Cfset var exp="">		
+<cfset var exp="">
 <cfloop array="#exceptions#" index="exp">
 		<tr>
 			<td class="cfdebug" nowrap>#exp.type#</td>
