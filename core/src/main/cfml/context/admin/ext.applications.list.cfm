@@ -140,7 +140,13 @@ Latest version: #latest.v#</cfif>"><cfif hasUpdates>
 <cfoutput>
 	<h2>#stText.ext.notInstalled#</h2>
 	<div class="itemintro">#stText.ext.notInstalleddesc#</div>
-	
+<cfif external.recordcount eq extensions.recordcount>
+	<cfset app_error.message = #stText.services.update.installExtns#>
+	<cfset printerror(app_error)>
+<cfelseif external.recordcount lt extensions.recordcount>
+	<cfset app_error.message = #stText.services.update.chkInternet#>
+	<cfset printerror(app_error)>
+<cfelse>
 
 <cfscript>
 	existingIds = structKeyArray(existing);
@@ -181,7 +187,6 @@ Latest version: #latest.v#</cfif>"><cfif hasUpdates>
 		</cfformClassic>
 	</div><br>
 </cfif>
-</cfoutput>
 
 <cfscript>
 	VersionStr = {
@@ -228,7 +233,7 @@ Latest version: #latest.v#</cfif>"><cfif hasUpdates>
 
 </cfscript>
 
-<cfoutput>
+
 <cfset noneLasCounter=0>
  <cfif isQuery(external)>
 	<cfset hiddenFormContents = "" >
@@ -294,6 +299,7 @@ Latest version: #latest.v#</cfif>"><cfif hasUpdates>
 	<div class="message" style="border-color: ##FC6;color:##C93;">
 		Extensions with a yellow border are not provided by the Lucee Association Switzerland and do not neccessarily follow our guidelines. These extensions are not reviewed by the Lucee Association Switzerland.
 	</div>
+</cfif>
 </cfif>
 
 <!--- upload own extension --->
