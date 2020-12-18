@@ -1595,10 +1595,8 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		}
 		if (arr.size() != 0) {
 			Collections.sort(arr, new ComparatorImpl());
-			sct.set(KeyConstants._functions, arr);
-		}else{
-	    	sct.set(KeyConstants._functions, arr);
 		}
+		sct.set(KeyConstants._functions, arr);
 	}
 
 	private static class ComparatorImpl implements Comparator {
