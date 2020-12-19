@@ -1318,7 +1318,7 @@ If the timezone of your Lucee instance and your database is different, this can 
 	<data key="overview.warning.JavaVersion">You are running Lucee with Java</data>	
 	<data key="overview.warning.JavaVersionNotSupport"> Lucee does not formally support this version of Java. Consider updating to the latest Java version for security and performance reasons.</data>
 	<data key="overview.warning.Java7NotSupport">Java 7 has been End-of-Life'd since April 2015.</data>
-	<data key="overview.contexts.desc">You can label your web contexts here, so they are more clear distinguishable for use with extensions etc. </data>
+	<data key="overview.contexts.desc">You can label your web contexts here, so they are more clear distinguishable for use with extensions etc.  The default label of a web context is the MD5 hash of its webroot.</data>
 
 	<data key="overview.professional">Professional Support</data>
 	<data key="overview.professionalDesc">For many organizations and individuals, the security of a formal paid support contract is a necessity and we're pleased to offer four standard packages as well as the flexibility to create a custom package should your needs go beyond our standard offerings.</data>
