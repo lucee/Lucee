@@ -207,15 +207,15 @@ component output="false" extends="HelperBase" accessors="true"{
 		var resultVar = "";
 		var result = new Result();
 
-		//structDelete(tagAttributes,"sql",false);
-
+		
 		// Makes the attributes available in local scope. Es : query of queries
 		structAppend(local, tagAttributes, true);
 
 		// get the query parts array
 		var qArray = getQArray();
-
-		query name="local.___q" attributeCollection=tagAttributes result="local.tagResult" {
+		var attrs=duplicate(tagAttributes);
+		structDelete(attrs,"sql",false);
+		query name="local.___q" attributeCollection=attrs result="local.tagResult" {
 
 			loop array=local.qArray index="Local.item" {
 				if (!isNull(item.type) && item.type == "string"){
