@@ -104,8 +104,8 @@ public class QueryPartitions {
 	}
 
 	/**
-	 * Call this to add a single row to the proper partition finaizedColumnVals is true when all
-	 * data in the source Query is fully realized and there are no expressions left to evaluate
+	 * Call this to add a single row to the proper partition finaizedColumnVals is true when all data in
+	 * the source Query is fully realized and there are no expressions left to evaluate
 	 * 
 	 * @param pc PageContext
 	 * @param source Source query to get data from
@@ -249,8 +249,8 @@ public class QueryPartitions {
 	}
 
 	/**
-	 * Create new Query for a partition. Needs to have all ColumnExpressions in the final select as
-	 * well as any additional columns required for operation expressions
+	 * Create new Query for a partition. Needs to have all ColumnExpressions in the final select as well
+	 * as any additional columns required for operation expressions
 	 * 
 	 * @param target Query for target data (for column refernces)
 	 * @param source source query we're getting data from

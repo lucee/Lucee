@@ -148,7 +148,7 @@ public abstract class HtmlHeadBodyBase extends BodyTagTryCatchFinallyImpl {
 			}
 			else if (action.equals("read")) actionRead();
 			else if (action.equals("flush")) actionFlush();
-			else throw new ApplicationException("invalid value [" + action + "] for attribute action", "values for attribute action are:append,read,reset,write");
+			else throw new ApplicationException("invalid value [" + action + "] for attribute [action]", "supported actions are [append, read, reset, write, flush]");
 		}
 		catch (IOException e) {
 			throw Caster.toPageException(e);

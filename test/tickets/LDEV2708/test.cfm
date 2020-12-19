@@ -7,7 +7,7 @@
 			INSERT INTO LDEV2708(
 			    when_created
 			)
-			SELECT <CFQUERYPARAM value="#selectQuery.myDate#" cfsqltype="cf_sql_varchar"/> AS when_created
+			SELECT <cfqueryparam value="#selectQuery.myDate#" cfsqltype="cf_sql_varchar"/> AS when_created
 		</cfquery>
 		#result.recordcount#
 		<cfcatch type="any">

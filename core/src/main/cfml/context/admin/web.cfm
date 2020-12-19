@@ -504,6 +504,7 @@
 				$(function() {
 					initMenu();
 					__blockUI=function() {
+						chartTimer = null; // stop the overview page graphs from updating after navigation
 						setTimeout(createWaitBlockUI(<cfoutput>"#JSStringFormat(stText.general.wait)#"</cfoutput>),1000);
 					}
 					$('.submit,.menu_inactive,.menu_active').click(__blockUI);

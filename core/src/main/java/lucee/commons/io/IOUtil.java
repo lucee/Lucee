@@ -353,11 +353,8 @@ public final class IOUtil {
 		else {
 			Copy c = new Copy(r, w, blockSize, timeout);
 			c.start();
-
 			try {
-				synchronized (c.notifier) {// print.err(timeout);
-					c.notifier.wait(timeout + 1);
-				}
+				c.join(timeout + 1);
 			}
 			catch (InterruptedException ie) {
 				throw ExceptionUtil.toIOException(c.t);
@@ -1351,7 +1348,7 @@ public final class IOUtil {
 		private long timeout;
 		private boolean finished;
 		private Throwable t;
-		private Object notifier = new Object();
+		public final Object notifier = new Object();
 
 		private Copy(Reader r, Writer w, int blockSize, long timeout) {
 			this.r = r;
@@ -1365,13 +1362,11 @@ public final class IOUtil {
 			try {
 				IOUtil.copy(r, w, blockSize, -1);
 			}
-			catch (Throwable t) {
-				ExceptionUtil.rethrowIfNecessary(t);
-				this.t = t;
+			catch (Exception e) {
+				this.t = e;
 			}
 			finally {
 				finished = true;
-				SystemUtil.notify(notifier);
 			}
 		}
 	}

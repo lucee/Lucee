@@ -46,11 +46,11 @@ import lucee.runtime.sql.exp.value.ValueString;
 public class SelectParser {
 
 	/*
-	 * SELECT [{LIMIT <offset> <limit> | TOP <limit>}[1]][ALL | DISTINCT] { <selectExpression> |
-	 * table.* | * } [, ...] [INTO [CACHED | TEMP | TEXT][1] newTable] FROM tableList [WHERE
-	 * Expression] [GROUP BY Expression [, ...]] [HAVING Expression] [{ UNION [ALL | DISTINCT] |
-	 * {MINUS [DISTINCT] | EXCEPT [DISTINCT] } | INTERSECT [DISTINCT] } selectStatement] [ORDER BY
-	 * orderExpression [, ...]] [LIMIT <limit> [OFFSET <offset>]];
+	 * SELECT [{LIMIT <offset> <limit> | TOP <limit>}[1]][ALL | DISTINCT] { <selectExpression> | table.*
+	 * | * } [, ...] [INTO [CACHED | TEMP | TEXT][1] newTable] FROM tableList [WHERE Expression] [GROUP
+	 * BY Expression [, ...]] [HAVING Expression] [{ UNION [ALL | DISTINCT] | {MINUS [DISTINCT] | EXCEPT
+	 * [DISTINCT] } | INTERSECT [DISTINCT] } selectStatement] [ORDER BY orderExpression [, ...]] [LIMIT
+	 * <limit> [OFFSET <offset>]];
 	 */
 
 	private int columnIndex = 0;

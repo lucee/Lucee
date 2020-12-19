@@ -20,10 +20,10 @@ package lucee.runtime.type.util;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import lucee.commons.lang.CFTypes;
@@ -84,8 +84,7 @@ public class MemberUtil {
 	}
 
 	// used in extension Image
-	public static Object call(PageContext pc, Object coll, Collection.Key methodName, Object[] args, short[] types, String[] strTypes) throws PageException {
-
+	public static Object call(PageContext pc, Object coll, Collection.Key methodName, Object[] args, final short[] types, String[] strTypes) throws PageException {
 		// look for members
 		short type;
 		String strType;
@@ -137,29 +136,24 @@ public class MemberUtil {
 		}
 
 		// merge
-		if (types.length > 1) {
-			Map<Key, FunctionLibFunction> tmp;
-			members = null;
-			for (int i = 0; i < types.length; i++) {
-				tmp = getMembers(pc, types[i]);
-				if (members == null) members = tmp;
-				else {
-					Iterator<Entry<Key, FunctionLibFunction>> it = tmp.entrySet().iterator();
-					Entry<Key, FunctionLibFunction> e;
-					while (it.hasNext()) {
-						e = it.next();
-						members.put(e.getKey(), e.getValue());
-					}
-				}
+		Set<Key> keys = new HashSet<>();
+		hasAny = false;
+		for (int i = 0; i < types.length; i++) {
+			if (types[i] == CFTypes.TYPE_ANY) hasAny = true;
+			Iterator<Key> it = getMembers(pc, types[i]).keySet().iterator();
+			while (it.hasNext()) {
+				keys.add(it.next());
 			}
 		}
-		Set<Key> set = members.keySet();
-		String msg = ExceptionUtil.similarKeyMessage(set.toArray(new Key[set.size()]), methodName.getString(), "function", "functions", "Object", true);
+		if (!hasAny) {
+			Iterator<Key> it = getMembers(pc, CFTypes.TYPE_ANY).keySet().iterator();
+			while (it.hasNext()) {
+				keys.add(it.next());
+			}
+		}
+		String msg = ExceptionUtil.similarKeyMessage(keys.toArray(new Key[keys.size()]), methodName.getString(), "function", "functions",
+				types.length == 1 && types[0] != CFTypes.TYPE_ANY ? StringUtil.ucFirst(CFTypes.toString(types[0], "Object")) : "Object", true);
 		throw new ExpressionException(msg);
-		// throw new ExpressionException("No matching function member ["+methodName+"] found, available
-		// function members are ["+
-		// lucee.runtime.type.util.ListUtil.sort(CollectionUtil.getKeyList(members.keySet().iterator(),
-		// ","),"textnocase","asc",",")+"]");
 	}
 
 	private static Object callMethod(Object obj, Collection.Key methodName, Object[] args) throws PageException {

@@ -199,7 +199,7 @@
 			</div>
 		</div>
 
-		<p>Functions are at the core of Lucee Server's templating language. You can check out every Functions that has been created using the A-Z index below.</p>
+		<p>Functions are at the core of Lucee Server's templating language. You can check out every function available using the A-Z index below.</p>
 
 		<cfset qryAllItems = queryNew("Functions")>
 		<cfloop array="#arrAllItems#" index="ai">

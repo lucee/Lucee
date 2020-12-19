@@ -174,7 +174,7 @@ public abstract class XMLConfigFactory {
 			// rename buggy config files
 			if (configFile.exists()) {
 				LogUtil.log(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, XMLConfigFactory.class.getName(),
-						"config file " + configFile + " was not valid and has been replaced");
+						"Config file [" + configFile + "] was not valid and has been replaced");
 				LogUtil.log(ThreadLocalPageContext.getConfig(), XMLConfigFactory.class.getName(), e);
 				int count = 1;
 				Resource bugFile;
@@ -281,11 +281,11 @@ public abstract class XMLConfigFactory {
 	 * @throws IOException
 	 */
 	static void createFileFromResource(String resource, Resource file, String password) throws IOException {
-		LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, XMLConfigFactory.class.getName(), "write file:" + file);
+		LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, XMLConfigFactory.class.getName(), "Write file: [" + file +"]");
 		if (file.exists()) file.delete();
 
 		InputStream is = InfoImpl.class.getResourceAsStream(resource);
-		if (is == null) throw new IOException("file [" + resource + "] does not exist.");
+		if (is == null) throw new IOException("File [" + resource + "] does not exist.");
 		file.createNewFile();
 		IOUtil.copy(is, file, true);
 	}
@@ -334,7 +334,7 @@ public abstract class XMLConfigFactory {
 	static void delete(Resource dbDir, String name) {
 		Resource f = dbDir.getRealResource(name);
 		if (f.exists()) {
-			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, XMLConfigFactory.class.getName(), "delete file:" + f);
+			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, XMLConfigFactory.class.getName(), "Delete file: [" + f +"]");
 
 			f.delete();
 		}

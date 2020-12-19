@@ -6,7 +6,7 @@
 	<short-name>fbase</short-name>
 	<uri>https://www.lucee.org/cf-fld-3-1</uri>
 	<display-name>Lucee Core Function Library</display-name>
-	<description>All build in Functions of Lucee</description>
+	<description>All built in Functions of Lucee</description>
 	
 	<!-- abs -->
 	<function>
@@ -781,8 +781,8 @@ Remember CFML arrays start at 1 not 0.</description>
 		<class>lucee.runtime.functions.list.ListMap</class>
 		<member-name>listMap,map</member-name>
 		<keywords>string,list,iterator</keywords>
-		<description>Calls the given closure with every element in the given array.
-		the function returns an array that contains all values returned by the closure.</description>
+		<description>Calls the given closure with every element in the given list.
+		The function returns a list that contains all values returned by the closure.</description>
 		<argument>
 			<name>list</name>
 			<type>string</type>
@@ -4711,6 +4711,7 @@ The browser uses file extension to determine file type. </description>
     	</argument>
 		<argument>
 			<name>nameConflict</name>
+			<alias>onConflict</alias>
 			<type>string</type>
 			<required>no</required>
 			<description>Action to take if filename is the same as that of a file in the directory.</description>
@@ -7854,7 +7855,7 @@ The following things are considered to be empty:
 		<class>lucee.runtime.functions.list.ListCompact</class>
 		<keywords>list,string</keywords>
 		<member-name>listCompact</member-name>
-		<description>remove empty items at the and and at the start of the list</description>
+		<description>Removes any empty items from the start and end of the list</description>
 		<argument>
 			<name>list</name>
 			<type>string</type>
@@ -9496,7 +9497,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>query</name>
 		<class>lucee.runtime.functions.query.Query_</class>
 		<keywords>query</keywords>
-		<description>create ans populates a query object in the form query(columnName1:[1,2,3],columnName2:[4,5,6])</description>
+		<description>Create and populate a query object in the form query(columnName1:[1,2,3],columnName2:[4,5,6])</description>
 		<argument-type>dynamic</argument-type>
 		<return>
 			<type>query</type>
@@ -9722,8 +9723,16 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     			<required>Yes</required>
     			<description>position of the row to be returned</description>
     	    </argument>
+			<argument>
+    			<name>format</name>
+    			<type>string</type>
+    			<required>No</required>
+    			<description>struct or array</description>
+				<default>struct</default>
+				<alias>returnFormat</alias>
+    	    </argument>
     		<return>
-    			<type>struct</type>
+    			<type>any</type>
     		</return>
     	</function>
 
@@ -10036,6 +10045,40 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>boolean</type>
 		</return>
 	</function>
+
+	<!-- querySetRow -->
+    	<function>
+    		<name>querySetRow</name>
+    		<class>lucee.runtime.functions.query.QuerySetRow</class>
+    		<member-name>setRow</member-name>
+    		<keywords>query</keywords>
+			<description>Adds a row to a query, either by struct or array</description>
+    		<argument>
+    			<name>query</name>
+    			<type>query</type>
+    			<required>Yes</required>
+    			<description>query object do get data from</description>
+    	    </argument>
+    		<argument>
+    			<name>rowNumber</name>
+				<alias>row</alias>
+    			<type>number</type>
+    			<required>No</required>
+    			<description>position of the row to updated, otherwise a new row is added</description>
+				<default>0</default>
+    	    </argument>
+			<argument>
+    			<name>rowData</name>
+    			<type>any</type>
+    			<required>yes</required>
+    			<description>a struct or array</description>
+				<alias>data</alias>
+    	    </argument>
+    		<return>
+    			<type>boolean</type>
+    		</return>
+    	</function>
+
 	<!-- querySlice -->
 	<function>
 		<name>querySlice</name>
@@ -12007,9 +12050,9 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>ListReduce</name>
 		<class>lucee.runtime.functions.list.ListReduce</class>
 		<member-name>listReduce</member-name>
-		<keywords>array,iterator</keywords>
-		<description>Iterates over every entry of the given array and calls the closure with every element. 
-		This function will reduce the array to a single value and will return the value.</description>
+		<keywords>list,iterator</keywords>
+		<description>Iterates over every entry of the given list and calls the closure with every element. 
+		This function will reduce the list to a single value and will return the value.</description>
 		<argument>
 			<name>list</name>
 			<alias>string</alias>
@@ -12251,7 +12294,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>ListSome</name>
 		<class>lucee.runtime.functions.list.ListSome</class>
 		<member-name>listSome,some</member-name>
-		<keywords>array,iterator</keywords>
+		<keywords>list,iterator</keywords>
 		<description>This function calls a given closure/function with every element in a given string list and returns true, if one of the closure calls returns true.</description>
 		<argument>
 			<name>list</name>
@@ -12789,16 +12832,14 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<class>lucee.runtime.functions.struct.StructKeyArray</class>
 		<member-name>keyArray</member-name>
 		<keywords>struct</keywords>
-		<description>Finds the keys in a struct.
-        An array of keys; if structure does not exist, CFML
-        throws an exception.</description>
+		<description>Returns an Array with the keys of the Struct</description>
 		<argument>
 			<name>struct</name>
 			<alias>structure,object</alias>
 			<type>struct</type>
 			<required>Yes</required>
-		<description>Structure from which to extract a list of keys</description>
-    </argument>
+			<description>Structure from which to extract a list of keys</description>
+		</argument>
 		<return>
 			<type>array</type>
 		</return>
@@ -12884,8 +12925,6 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 				leave original key in struct
 			</description>
 		</argument>
-		
-		
 		<return>
 			<type>number</type>
 		</return>
@@ -12989,6 +13028,24 @@ _- asc (default): ascending (a to z) sort order
     </argument>
 		<return>
 			<type>boolean</type>
+		</return>
+	</function>
+	<!-- structValueArray -->
+	<function>
+		<name>structValueArray</name>
+		<class>lucee.runtime.functions.struct.StructValueArray</class>
+		<member-name>valueArray</member-name>
+		<keywords>struct</keywords>
+		<description>Returns an Array with the values of the Struct</description>
+		<argument>
+			<name>struct</name>
+			<alias>structure,object</alias>
+			<type>struct</type>
+			<required>Yes</required>
+			<description>Structure from which to extract a list of keys</description>
+		</argument>
+		<return>
+			<type>array</type>
 		</return>
 	</function>
 	

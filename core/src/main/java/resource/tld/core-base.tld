@@ -1384,8 +1384,7 @@ Example:
 			<type>struct</type>
 			<name>columnMap</name>
 			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-		    <status>unimplemented</status>
+			<rtexprvalue>true</rtexprvalue>		    
 		<description>Used only for the create action with a query attribute.
             A structure specifying a mapping between the names of the columns in the object specified by the query attribute
             and the columns of the feed format, as described in the Query attribute section.
@@ -7707,6 +7706,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		<attribute>
 			<type>string</type>
 			<name>name</name>
+			<alias>names</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>The name of the thread to which the action applies:

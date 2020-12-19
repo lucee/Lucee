@@ -68,6 +68,7 @@ import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.HTMLEntities;
 import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.mimetype.MimeType;
@@ -2353,7 +2354,7 @@ public final class PageContextImpl extends PageContext {
 			// base = PageSourceImpl.best(config.getPageSources(this,null,realPath,true,false,true));
 
 			if (mapping == null || mapping.getPhysical() == null) {
-				RestUtil.setStatus(this, 404, "no rest service for [" + pathInfo + "] found");
+				RestUtil.setStatus(this, 404, "no rest service for [" + HTMLEntities.escapeHTML(pathInfo) + "] found");
 				getConfig().getLog("rest").error("REST", "no rest service for [" + pathInfo + "] found");
 			}
 			else {
@@ -2459,7 +2460,7 @@ public final class PageContextImpl extends PageContext {
 				if (fdEnabled) {
 					FDSignal.signal(pe, false);
 				}
-				listener.onError(this, pe);
+				listener.onError(this, pe); // call Application.onError()
 			}
 			else log(false);
 
@@ -2692,6 +2693,7 @@ public final class PageContextImpl extends PageContext {
 		boolean httpOnly = SessionCookieDataImpl.DEFAULT.isHttpOnly();
 		boolean secure = SessionCookieDataImpl.DEFAULT.isSecure();
 		short samesite = SessionCookieDataImpl.DEFAULT.getSamesite();
+		String path = SessionCookieDataImpl.DEFAULT.getPath();
 
 		ApplicationContext ac = getApplicationContext();
 
@@ -2711,6 +2713,9 @@ public final class PageContextImpl extends PageContext {
 				if (!StringUtil.isEmpty(tmp, true)) domain = tmp.trim();
 				// samesite
 				samesite = data.getSamesite();
+				// path
+				String tmp2 = data.getPath();
+				if (!StringUtil.isEmpty(tmp2, true)) path = tmp2.trim();
 			}
 		}
 		int expires;
@@ -2718,8 +2723,8 @@ public final class PageContextImpl extends PageContext {
 		if (Integer.MAX_VALUE < tmp) expires = Integer.MAX_VALUE;
 		else expires = (int) tmp;
 
-		((CookieImpl) cookieScope()).setCookieEL(KeyConstants._cfid, cfid, expires, secure, "/", domain, httpOnly, true, false, samesite);
-		((CookieImpl) cookieScope()).setCookieEL(KeyConstants._cftoken, cftoken, expires, secure, "/", domain, httpOnly, true, false, samesite);
+		((CookieImpl) cookieScope()).setCookieEL(KeyConstants._cfid, cfid, expires, secure, path, domain, httpOnly, true, false, samesite);
+		((CookieImpl) cookieScope()).setCookieEL(KeyConstants._cftoken, cftoken, expires, secure, path, domain, httpOnly, true, false, samesite);
 
 	}
 

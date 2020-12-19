@@ -262,6 +262,10 @@ public final class SMTPClient implements Serializable {
 		tos = add(tos, to);
 	}
 
+	public void setTos(InternetAddress[] tos) {
+		this.tos = tos;
+	}
+
 	public void addTo(Object to) throws UnsupportedEncodingException, PageException, MailException {
 		InternetAddress[] tmp = MailUtil.toInternetAddresses(to);
 		for (int i = 0; i < tmp.length; i++) {
@@ -284,6 +288,10 @@ public final class SMTPClient implements Serializable {
 		bccs = add(bccs, bcc);
 	}
 
+	public void setBCCs(InternetAddress[] bccs) {
+		this.bccs = bccs;
+	}
+
 	public void addBCC(Object bcc) throws UnsupportedEncodingException, MailException, PageException {
 		InternetAddress[] tmp = MailUtil.toInternetAddresses(bcc);
 		for (int i = 0; i < tmp.length; i++) {
@@ -293,6 +301,10 @@ public final class SMTPClient implements Serializable {
 
 	public void addCC(InternetAddress cc) {
 		ccs = add(ccs, cc);
+	}
+
+	public void setCCs(InternetAddress[] ccs) {
+		this.ccs = ccs;
 	}
 
 	public void addCC(Object cc) throws UnsupportedEncodingException, MailException, PageException {
@@ -306,6 +318,10 @@ public final class SMTPClient implements Serializable {
 		rts = add(rts, rt);
 	}
 
+	public void setReplyTos(InternetAddress[] rts) {
+		this.rts = rts;
+	}
+
 	public void addReplyTo(Object rt) throws UnsupportedEncodingException, MailException, PageException {
 		InternetAddress[] tmp = MailUtil.toInternetAddresses(rt);
 		for (int i = 0; i < tmp.length; i++) {
@@ -315,6 +331,10 @@ public final class SMTPClient implements Serializable {
 
 	public void addFailTo(InternetAddress ft) {
 		fts = add(fts, ft);
+	}
+
+	public void setFailTos(InternetAddress[] fts) {
+		this.fts = fts;
 	}
 
 	public String getHTMLTextAsString() {

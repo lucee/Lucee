@@ -19,6 +19,7 @@
 package lucee.runtime.tag;
 
 import static lucee.runtime.tag.util.FileUtil.NAMECONFLICT_ERROR;
+import static lucee.runtime.tag.util.FileUtil.NAMECONFLICT_FORCEUNIQUE;
 import static lucee.runtime.tag.util.FileUtil.NAMECONFLICT_MAKEUNIQUE;
 import static lucee.runtime.tag.util.FileUtil.NAMECONFLICT_OVERWRITE;
 import static lucee.runtime.tag.util.FileUtil.NAMECONFLICT_SKIP;
@@ -31,6 +32,7 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 
 import lucee.commons.digest.Hash;
+import lucee.commons.digest.HashUtil;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.ModeUtil;
@@ -59,6 +61,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.BodyTagImpl;
 import lucee.runtime.functions.list.ListFirst;
 import lucee.runtime.functions.list.ListLast;
+import lucee.runtime.functions.other.CreateUUID;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.op.Caster;
@@ -514,6 +517,8 @@ public final class FileTag extends BodyTagImpl {
 			else if (nameconflict == NAMECONFLICT_OVERWRITE) destination.delete();
 			// MAKEUNIQUE
 			else if (nameconflict == NAMECONFLICT_MAKEUNIQUE) destination = makeUnique(destination);
+			// FORCEUNIQUE
+			else if (nameconflict == NAMECONFLICT_FORCEUNIQUE) destination = forceUnique(destination);
 			// ERROR
 			else throw new ApplicationException("Destination file [" + destination.toString() + "] already exists");
 		}
@@ -571,6 +576,8 @@ public final class FileTag extends BodyTagImpl {
 			else if (nameconflict == NAMECONFLICT_OVERWRITE) destination.delete();
 			// MAKEUNIQUE
 			else if (nameconflict == NAMECONFLICT_MAKEUNIQUE) destination = makeUnique(destination);
+			// FORCEUNIQUE
+			else if (nameconflict == NAMECONFLICT_FORCEUNIQUE) destination = forceUnique(destination);
 			// ERROR
 			else throw new ApplicationException("Destination file [" + destination.toString() + "] already exists");
 		}
@@ -598,15 +605,23 @@ public final class FileTag extends BodyTagImpl {
 	}
 
 	private static Resource makeUnique(Resource res) {
-
-		String ext = getFileExtension(res);
-		String name = getFileName(res);
-		ext = (ext == null) ? "" : "." + ext;
-		int count = 0;
+		String name = ResourceUtil.getName(res);
+		String ext = ResourceUtil.getExtension(res, "");
+		if (!StringUtil.isEmpty(ext)) ext = "." + ext;
 		while (res.exists()) {
-			res = res.getParentResource().getRealResource(name + (++count) + ext);
+			res = res.getParentResource().getRealResource(name + HashUtil.create64BitHashAsString(CreateUUID.invoke(), Character.MAX_RADIX) + ext);
 		}
 
+		return res;
+	}
+
+	private static Resource forceUnique(Resource res) {
+		String name = ResourceUtil.getName(res);
+		String ext = ResourceUtil.getExtension(res, "");
+		if (!StringUtil.isEmpty(ext)) ext = "." + ext;
+		while (res.exists()) {
+			res = res.getParentResource().getRealResource(name + "_" + HashUtil.create64BitHashAsString(CreateUUID.invoke(), Character.MAX_RADIX) + ext);
+		}
 		return res;
 	}
 
@@ -935,8 +950,8 @@ public final class FileTag extends BodyTagImpl {
 
 		cffile.set("clientdirectory", getParent(clientFile));
 		cffile.set("clientfile", clientFile.getName());
-		cffile.set("clientfileext", getFileExtension(clientFile));
-		cffile.set("clientfilename", getFileName(clientFile));
+		cffile.set("clientfileext", ResourceUtil.getExtension(clientFile, ""));
+		cffile.set("clientfilename", ResourceUtil.getName(clientFile));
 
 		// check destination
 		if (StringUtil.isEmpty(strDestination)) throw new ApplicationException("Attribute [destination] is not defined in tag [file]");
@@ -970,8 +985,8 @@ public final class FileTag extends BodyTagImpl {
 		// set server variables
 		cffile.set("serverdirectory", getParent(destination));
 		cffile.set("serverfile", destination.getName());
-		cffile.set("serverfileext", getFileExtension(destination));
-		cffile.set("serverfilename", getFileName(destination));
+		cffile.set("serverfileext", ResourceUtil.getExtension(destination, null));
+		cffile.set("serverfilename", ResourceUtil.getName(destination));
 		cffile.set("attemptedserverfile", destination.getName());
 
 		// check nameconflict
@@ -995,10 +1010,20 @@ public final class FileTag extends BodyTagImpl {
 				// if(fileWasRenamed) {
 				cffile.set("serverdirectory", getParent(destination));
 				cffile.set("serverfile", destination.getName());
-				cffile.set("serverfileext", getFileExtension(destination));
-				cffile.set("serverfilename", getFileName(destination));
+				cffile.set("serverfileext", ResourceUtil.getExtension(destination, ""));
+				cffile.set("serverfilename", ResourceUtil.getName(destination));
 				cffile.set("attemptedserverfile", destination.getName());
 				// }
+			}
+			else if (nameconflict == NAMECONFLICT_FORCEUNIQUE) {
+				destination = forceUnique(destination);
+				fileWasRenamed = true;
+
+				cffile.set("serverdirectory", getParent(destination));
+				cffile.set("serverfile", destination.getName());
+				cffile.set("serverfileext", ResourceUtil.getExtension(destination, ""));
+				cffile.set("serverfilename", ResourceUtil.getName(destination));
+				cffile.set("attemptedserverfile", destination.getName());
 			}
 			else if (nameconflict == NAMECONFLICT_OVERWRITE) {
 				// fileWasAppended=true;
@@ -1041,7 +1066,7 @@ public final class FileTag extends BodyTagImpl {
 	 */
 	private static void checkContentType(String contentType, String accept, ResourceFilter allowedExtensions, ResourceFilter blockedExtensions, Resource clientFile, boolean strict,
 			ApplicationContext appContext) throws PageException {
-		String ext = getFileExtension(clientFile);
+		String ext = ResourceUtil.getExtension(clientFile, "");
 
 		// check extension
 		if (!StringUtil.isEmpty(ext, true)) {
@@ -1150,47 +1175,6 @@ public final class FileTag extends BodyTagImpl {
 		Form scope = pageContext.formScope();
 		return scope.getFileItems();
 	}
-
-	/**
-	 * get file extension of a file object
-	 * 
-	 * @param file file object
-	 * @return extension
-	 */
-	private static String getFileExtension(Resource file) {
-		String name = file.getName();
-		String[] arr;
-		try {
-			arr = ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(name, '.'));
-		}
-		catch (PageException e) {
-			arr = null;
-		}
-		if (arr.length < 2) return "";
-
-		return arr[arr.length - 1];
-	}
-
-	/**
-	 * get file name of a file object without extension
-	 * 
-	 * @param file file object
-	 * @return name of the file
-	 */
-	private static String getFileName(Resource file) {
-		String name = file.getName();
-		int pos = name.lastIndexOf(".");
-
-		if (pos == -1) return name;
-		return name.substring(0, pos);
-	}
-
-	/*
-	 * private String correctDirectory(Resource resource) { if(StringUtil.isEmpty(resource,true)) return
-	 * ""; resource=resource.trim(); if((StringUtil.endsWith(resource, '/') ||
-	 * StringUtil.endsWith(resource, '\\')) && resource.length()>1) { return
-	 * resource.substring(0,resource.length()-1); } return resource; }
-	 */
 
 	private static String getParent(Resource res) {
 		Resource parent = res.getParentResource();

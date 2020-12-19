@@ -178,8 +178,14 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 
 	@Override
 	public StringBuffer getRequestURL() {
-		return new StringBuffer(isSecure() ? "https" : "http").append("://").append(getServerName()).append(':').append(getServerPort())
+		if( String.valueOf(getServerPort()).equals("80") || String.valueOf(getServerPort()).equals("443") ) {
+			return new StringBuffer(isSecure() ? "https" : "http").append("://").append(getServerName())
 				.append(request_uri.startsWith("/") ? request_uri : "/" + request_uri);
+		}
+		else{
+			return new StringBuffer(isSecure() ? "https" : "http").append("://").append(getServerName()).append(':').append(getServerPort())
+			.append(request_uri.startsWith("/") ? request_uri : "/" + request_uri);
+		}
 	}
 
 	@Override

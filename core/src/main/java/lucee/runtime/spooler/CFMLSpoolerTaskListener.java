@@ -77,8 +77,8 @@ public abstract class CFMLSpoolerTaskListener extends SpoolerTaskListener {
 			}
 
 		}
-		catch (PageException pe) {
-			LogUtil.log(ThreadLocalPageContext.getConfig(), CFMLSpoolerTaskListener.class.getName(), pe);
+		catch (Exception pe) {
+			LogUtil.log(ThreadLocalPageContext.getConfig(), CFMLSpoolerTaskListener.class.getName(), e);
 		}
 		finally {
 			if (pcCreated) ThreadLocalPageContext.release();
