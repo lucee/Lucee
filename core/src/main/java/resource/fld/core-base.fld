@@ -9684,6 +9684,25 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</return>
 	</function>
 	
+	
+	<!-- QueryReverse -->
+	<function>
+		<name>QueryReverse</name>
+		<class>lucee.runtime.functions.query.QueryReverse</class>
+		<member-name>reverse</member-name>
+		<keywords>query</keywords>
+		<description>reverse the row order of a complete query</description>
+		<argument>
+			<name>query</name>
+			<type>query</type>
+			<required>Yes</required>
+			<description>query to reverse rows.</description>
+		</argument>
+		<return>
+			<type>query</type>
+		</return>
+	</function>
+	
 	<!-- QueryClear -->
 	<function>
 		<name>QueryClear</name>
