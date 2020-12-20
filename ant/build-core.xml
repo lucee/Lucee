@@ -785,14 +785,6 @@
       </fileset>
     </copy>
 
-
-
-    <echots message="getting and unzip testbox"/>
-    <!-- now we need to get the testbox source -->
-    <unzip src="${temp}/testbox-${testboxVersion}.zip" dest="${temp}/testbox"/>
-    <delete dir="${temp}/testbox-${testboxVersion}.zip"/>
-
-
     <echots message="building different archives that get bundled (admin,doc) with help of the temporary generated lucee.jar"/>
     <!-- build the lucee-context.lar -->
     <java classname="org.apache.tools.ant.launch.Launcher" dir="${ant}" fork="true" failonerror="false" errorproperty="exc">
@@ -818,6 +810,11 @@
 </target>
 
 <target name="__build_testbox" if="testcases">
+
+    <echots message="getting and unzip testbox"/>
+    <!-- now we need to get the testbox source -->
+    <unzip src="${temp}/testbox-${testboxVersion}.zip" dest="${temp}/testbox"/>
+    <delete dir="${temp}/testbox-${testboxVersion}.zip"/>
     
     <listDirectory directory="${test}/lib" delimiter=":" returnvalue="test_jars"/>
     <echots message="execute testcases ${testcases}"/>
