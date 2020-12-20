@@ -9652,6 +9652,38 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</return>
 	</function>
 	
+	<!-- QueryRowSwap -->
+	<function>
+		<name>QueryRowSwap</name>
+		<class>lucee.runtime.functions.query.QueryRowSwap</class>
+		<member-name>rowSwap</member-name>
+		<keywords>query</keywords>
+		<description>swaps one row of a query with an other.</description>
+		<argument>
+			<name>query</name>
+			<type>query</type>
+			<required>Yes</required>
+			<description>query to swap rows.</description>
+		</argument>
+		<argument>
+			<name>source</name>
+			<alias>sourceRow,src</alias>
+			<type>numeric</type>
+			<required>Yes</required>
+			<description>The row to swap.</description>
+		</argument>
+		<argument>
+			<name>destination</name>
+			<alias>destinationRow,dest,target</alias>
+			<type>numeric</type>
+			<required>Yes</required>
+			<description>The row to be swapped with.</description>
+		</argument>
+		<return>
+			<type>query</type>
+		</return>
+	</function>
+	
 	<!-- QueryClear -->
 	<function>
 		<name>QueryClear</name>
