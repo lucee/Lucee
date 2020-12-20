@@ -19,7 +19,7 @@ public class QueryAppend extends BIF implements Function {
 		// compare column names
 		Key[] cn1 = qry1.getColumnNames();
 		Key[] cn2 = qry2.getColumnNames();
-		validate(qry1, qry2, cn1, cn2);
+		validate(qry1, cn1, cn2);
 
 		int rowCount1 = qry1.getRowCount();
 		int rowCount2 = qry2.getRowCount();
@@ -34,7 +34,7 @@ public class QueryAppend extends BIF implements Function {
 		return qry1;
 	}
 
-	static void validate(Query qry1, Query qry2, Key[] cn1, Key[] cn2) throws ApplicationException {
+	static void validate(Query qry1, Key[] cn1, Key[] cn2) throws ApplicationException {
 		boolean validColumnNames = cn1.length == cn2.length;
 		if (validColumnNames) {
 			for (Key k: cn2) {

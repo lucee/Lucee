@@ -9622,6 +9622,36 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</return>
 	</function>
 	
+	<!-- QueryInsertAt -->
+	<function>
+		<name>QueryInsertAt</name>
+		<class>lucee.runtime.functions.query.QueryInsertAt</class>
+		<member-name>insertAt</member-name>
+		<keywords>query</keywords>
+		<description>Adds data (query,struct or array) into query.</description>
+		<argument>
+			<name>query</name>
+			<type>query</type>
+			<required>Yes</required>
+			<description>query to add data.</description>
+		</argument>
+		<argument>
+			<name>value</name>
+			<type>any</type>
+			<required>Yes</required>
+			<description>data to insert, can be a query, a struct or an array.</description>
+		</argument>
+		<argument>
+			<name>index</name>
+			<type>numeric</type>
+			<required>Yes</required>
+			<description>position to insert data into, existing data get moved to the "right".</description>
+		</argument>
+		<return>
+			<type>query</type>
+		</return>
+	</function>
+	
 	<!-- QueryClear -->
 	<function>
 		<name>QueryClear</name>

@@ -17,18 +17,12 @@ public class QueryPrepend extends BIF implements Function {
 		// compare column names
 		Key[] cn1 = qry1.getColumnNames();
 		Key[] cn2 = qry2.getColumnNames();
-		QueryAppend.validate(qry1, qry2, cn1, cn2);
+		QueryAppend.validate(qry1, cn1, cn2);
 
-		int rowCount1 = qry1.getRowCount();
 		int rowCount2 = qry2.getRowCount();
 		if (rowCount2 == 0) return qry1;
 
-		qry1.addRow(rowCount2);
-		for (int row = rowCount1; row > 0; row--) {
-			for (Key k: cn2) {
-				qry1.setAt(k, rowCount2 + row, qry1.getAt(k, row));
-			}
-		}
+		makeSpace(qry1, rowCount2, 0);
 
 		for (int row = rowCount2; row > 0; row--) {
 			for (Key k: cn2) {
@@ -36,6 +30,20 @@ public class QueryPrepend extends BIF implements Function {
 			}
 		}
 		return qry1;
+	}
+
+	public static void makeSpace(Query qry, int makeSpaceFor, int offset) throws PageException {
+		Key[] columns = qry.getColumnNames();
+		int rowCount = qry.getRowCount();
+		// add rows needed
+		qry.addRow(makeSpaceFor);
+
+		// move records "down"
+		for (int row = rowCount; row > offset; row--) {
+			for (Key k: columns) {
+				qry.setAt(k, makeSpaceFor + row, qry.getAt(k, row));
+			}
+		}
 	}
 
 	@Override
