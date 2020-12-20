@@ -9573,6 +9573,72 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>number</type>
 		</return>
 	</function>
+	
+	<!-- queryAppend -->
+	<function>
+		<name>queryAppend</name>
+		<class>lucee.runtime.functions.query.QueryAppend</class>
+		<member-name>append</member-name>
+		<keywords>query</keywords>
+		<description>Adds all values of one query to the end of another query. Both queries need to have the same columns.</description>
+		<argument>
+			<name>query1</name>
+			<type>query</type>
+			<required>Yes</required>
+			<description>query to add data.</description>
+		</argument>
+		<argument>
+			<name>query2</name>
+			<type>query</type>
+			<required>Yes</required>
+			<description>query to get data from.</description>
+		</argument>
+		<return>
+			<type>query</type>
+		</return>
+	</function>
+	
+	<!-- QueryPrepend -->
+	<function>
+		<name>QueryPrepend</name>
+		<class>lucee.runtime.functions.query.QueryPrepend</class>
+		<member-name>prepend</member-name>
+		<keywords>query</keywords>
+		<description>Adds all values of one query the begin to another query. Both queries need to have the same columns.</description>
+		<argument>
+			<name>query1</name>
+			<type>query</type>
+			<required>Yes</required>
+			<description>query to add data.</description>
+		</argument>
+		<argument>
+			<name>query2</name>
+			<type>query</type>
+			<required>Yes</required>
+			<description>query to get data from.</description>
+		</argument>
+		<return>
+			<type>query</type>
+		</return>
+	</function>
+	
+	<!-- QueryClear -->
+	<function>
+		<name>QueryClear</name>
+		<class>lucee.runtime.functions.query.QueryClear</class>
+		<member-name>prepend</member-name>
+		<keywords>query</keywords>
+		<description>Clears all rows from a query</description>
+		<argument>
+			<name>query</name>
+			<type>query</type>
+			<required>Yes</required>
+			<description>query to clear all data.</description>
+		</argument>
+		<return>
+			<type>query</type>
+		</return>
+	</function>
 	<!-- queryColumnCount -->
 	<function>
 		<name>queryColumnCount</name>
