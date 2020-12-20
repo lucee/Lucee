@@ -5667,12 +5667,24 @@ Example Values:
             <default>array</default>
             <description>the type of the returned value, possible values are: [array], string, html, json</description>
         </argument>
+		<argument>
+            <name>offset</name>
+            <type>number</type>
+            <required>false</required>
+            <default>0</default>
+            <description>the number of frames to skip, default is 0</description>
+        </argument>
+		<argument>
+            <name>maxFrames</name>
+            <type>number</type>
+            <required>false</required>
+            <default>0</default>
+            <description>the maximum number of frames to return, default is 0 which means all</description>
+        </argument>
 		<return>
 			<type>any</type>
 		</return>
 	</function>
-	
-	
 	
 	<!-- GetFunctionCalledName -->
 	<function>
