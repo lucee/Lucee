@@ -1274,14 +1274,15 @@ Remember CFML arrays start at 1 not 0.</description>
 			<name>sorttype_or_closure</name>
 			<alias>sort_type,sortType,closure,function,udf,callback</alias>
 			<type>object</type>
-			<required>Yes</required>
+			<required>No</required>
+			<default>textnocase</default>
 		<description>
 value can be a string or a closure/function.
 		
 a string must be one of the following values:
 - "numeric": sorts numbers
 - "text": sorts text alphabetically, taking case into account (case sensitive)
-- "textnocase": sorts text alphabetically, without regard to case (case insensitive)
+- "textnocase" (default): sorts text alphabetically, without regard to case (case insensitive)
 
 if you define a closure/function, the closure/function must accept 2 parameters of any type and return:
 -1, if first parameter is "smaller" than second parameter
@@ -6156,6 +6157,8 @@ if this attribute is not provided all types are returned.</description>
 		<name>getMetadata</name>
 		<class>lucee.runtime.functions.other.GetMetaData</class>
 		<description>Returns back meta information depending on the object passed in</description>
+		<member-name>getMetadata</member-name>
+		<member-type>any</member-type>
 		<argument>
 			<name>object</name>
 			<alias>value</alias>
@@ -8726,13 +8729,15 @@ The following things are considered to be empty:
 		</argument>
 		<argument>
 			<name>sort_type</name>
+			<alias>sortType</alias>
 			<type>string</type>
-			<required>Yes</required>
+			<required>No</required>
+			<default>textnocase</default>
 			<description>
 			there are different sort types:
-			- numeric (sort by number)
-			- text (sorts text alphabetically and case sensitive)
-			- textnocase (sorts text alphabetically and ignore case sensitivity)
+			- numeric - sort by number
+			- text - sorts text alphabetically and case sensitive
+			- textnocase (default) - sorts text alphabetically and ignore case sensitivity
 			</description>
 		</argument>
 		<argument>

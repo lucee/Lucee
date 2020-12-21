@@ -113,4 +113,8 @@ public class ArrayImpl extends ListAsArray {
 
 		return table;
 	}
+
+	public boolean sync() {
+		return list.getClass().getName().indexOf("SynchronizedList") != -1;
+	}
 }
