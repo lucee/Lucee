@@ -1121,16 +1121,14 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		try {
 			if (data.lazy && !createUpdateData && data.cachedWithin == null && data.cachedAfter == null && data.result == null) {
 				if (data.returntype != RETURN_TYPE_QUERY && data.returntype != RETURN_TYPE_UNDEFINED)
-
 					throw new DatabaseException("Only return type [query] is allowed when [lazy] is set to true", null, sql, dc);
 
 				return new SimpleQuery(pageContext, dc, sql, data.maxrows, data.blockfactor, data.timeout, getName(data), tl, tz);
 			}
-			if (data.returntype == RETURN_TYPE_ARRAY)
+			if (data.returntype == RETURN_TYPE_ARRAY) {
 				return QueryImpl.toArray(pageContext, dc, sql, data.maxrows, data.blockfactor, data.timeout, getName(data), tl, createUpdateData, true);
+			}
 			if (data.returntype == RETURN_TYPE_STRUCT) {
-				if (data.columnName == null) throw new ApplicationException("Attribute [columnKey] is required when return type is set to Struct");
-
 				return QueryImpl.toStruct(pageContext, dc, sql, data.columnName, data.maxrows, data.blockfactor, data.timeout, getName(data), tl, createUpdateData, true);
 			}
 			return new QueryImpl(pageContext, dc, sql, data.maxrows, data.blockfactor, data.timeout, getName(data), tl, createUpdateData, true, data.indexName);
