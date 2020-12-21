@@ -230,11 +230,14 @@ public class QueryParamConverter {
 		SQLItems<NamedSQLItem> item;
 		while (it.hasNext()) {
 			item = it.next();
+			if (item.isEmpty()) {
+				throw new ApplicationException("param [" + name + "] may not be empty");
+			}
 			if (item.get(0).name.equalsIgnoreCase(name)) {
 				return item.convertToSQLItems();
 			}
 		}
-		throw new ApplicationException("no param with name [" + name + "] found");
+		throw new ApplicationException("param [" + name + "] not found");
 	}
 
 	private static boolean isParamNull(Struct param) throws PageException {
