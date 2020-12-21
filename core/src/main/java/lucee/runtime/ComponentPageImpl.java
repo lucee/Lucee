@@ -40,7 +40,6 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.mimetype.MimeType;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.component.StaticStruct;
-import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.converter.BinaryConverter;
 import lucee.runtime.converter.ConverterException;
@@ -560,7 +559,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 			converter.writeOut(pc, obj, os = pc.getResponseStream());
 		}
 		finally {
-			IOUtil.closeEL(os);
+			IOUtil.close(os);
 		}
 	}
 
@@ -942,7 +941,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 		}
 		finally {
 			IOUtil.flushEL(os);
-			IOUtil.closeEL(os);
+			IOUtil.close(os);
 			((PageContextImpl) pc).getRootOut().setClosed(true);
 		}
 	}
@@ -969,18 +968,18 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 			}
 			finally {
 				IOUtil.flushEL(os);
-				IOUtil.closeEL(os);
+				IOUtil.close(os);
 				((PageContextImpl) pc).getRootOut().setClosed(true);
 			}
 		}
 		// create a wsdl file
 		else {
-			((ConfigImpl) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getWSServer(pc).doGet(pc, pc.getHttpServletRequest(), pc.getHttpServletResponse(), component);
+			((ConfigWebImpl) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getWSServer(pc).doGet(pc, pc.getHttpServletRequest(), pc.getHttpServletResponse(), component);
 		}
 	}
 
 	private void callWebservice(PageContext pc, Component component) throws IOException, ServletException, PageException {
-		((ConfigImpl) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getWSServer(pc).doPost(pc, pc.getHttpServletRequest(), pc.getHttpServletResponse(), component);
+		((ConfigWebImpl) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getWSServer(pc).doPost(pc, pc.getHttpServletRequest(), pc.getHttpServletResponse(), component);
 	}
 
 	/**

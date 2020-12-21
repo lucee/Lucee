@@ -72,7 +72,7 @@ public final class QoQ {
 	/**
 	 * execute a SQL Statement against CFML Scopes
 	 */
-	public Query execute(PageContext pc, SQL sql, Selects selects, int maxrows) throws PageException {
+	public QueryImpl execute(PageContext pc, SQL sql, Selects selects, int maxrows) throws PageException {
 		Column[] orders = selects.getOrderbys();
 		Select[] arrSelects = selects.getSelects();
 

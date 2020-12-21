@@ -10,7 +10,7 @@ import lucee.transformer.expression.Expression;
 import lucee.transformer.interpreter.InterpreterContext;
 
 /**
- * A Expression (Operation, Literal aso.)
+ * An Expression (Operation, Literal aso.)
  */
 public abstract class ExpressionBase implements Expression {
 

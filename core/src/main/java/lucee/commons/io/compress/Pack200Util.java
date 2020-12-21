@@ -103,9 +103,11 @@ public class Pack200Util {
 			jos.finish();
 		}
 		finally {
-
-			if (closeIS) IOUtil.closeEL(is);
-			if (closeOS) IOUtil.closeEL(jos);
+			if (closeIS && closeOS) IOUtil.close(is, jos);
+			else {
+				if (closeIS) IOUtil.close(is);
+				if (closeOS) IOUtil.close(jos);
+			}
 			if (tmp != null && tmp.isFile()) tmp.delete();
 		}
 	}
@@ -143,8 +145,11 @@ public class Pack200Util {
 		}
 		finally {
 			System.setErr(err);
-			if (closeIS) IOUtil.closeEL(jis);
-			if (closeOS) IOUtil.closeEL(os);
+			if (closeIS && closeOS) IOUtil.close(jis, os);
+			else {
+				if (closeIS) IOUtil.close(jis);
+				if (closeOS) IOUtil.close(os);
+			}
 		}
 	}
 

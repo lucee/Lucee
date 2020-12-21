@@ -77,13 +77,13 @@ public abstract class ResourceSupport implements Resource {
 	public String[] list(ResourceFilter filter) {
 		String[] files = list();
 		if (files == null) return null;
-		List list = new ArrayList();
+		List<String> list = new ArrayList<String>();
 		Resource res;
 		for (int i = 0; i < files.length; i++) {
 			res = getRealResource(files[i]);
 			if (filter.accept(res)) list.add(files[i]);
 		}
-		return (String[]) list.toArray(new String[list.size()]);
+		return list.toArray(new String[list.size()]);
 	}
 
 	@Override
@@ -91,13 +91,13 @@ public abstract class ResourceSupport implements Resource {
 		String[] lst = list();
 		if (lst == null) return null;
 
-		List list = new ArrayList();
+		List<String> list = new ArrayList<String>();
 		for (int i = 0; i < lst.length; i++) {
 			if (filter.accept(getParentResource(), lst[i])) list.add(lst[i]);
 		}
 		if (list.size() == 0) return new String[0];
 		if (list.size() == lst.length) return lst;
-		return (String[]) list.toArray(new String[list.size()]);
+		return list.toArray(new String[list.size()]);
 	}
 
 	@Override
@@ -105,11 +105,11 @@ public abstract class ResourceSupport implements Resource {
 		String[] files = list();
 		if (files == null) return null;
 
-		List list = new ArrayList();
+		List<Resource> list = new ArrayList<Resource>();
 		for (int i = 0; i < files.length; i++) {
 			if (filter.accept(this, files[i])) list.add(getRealResource(files[i]));
 		}
-		return (Resource[]) list.toArray(new Resource[list.size()]);
+		return list.toArray(new Resource[list.size()]);
 	}
 
 	@Override
@@ -117,13 +117,13 @@ public abstract class ResourceSupport implements Resource {
 		String[] files = list();
 		if (files == null) return null;
 
-		List list = new ArrayList();
+		List<Resource> list = new ArrayList<Resource>();
 		Resource res;
 		for (int i = 0; i < files.length; i++) {
 			res = this.getRealResource(files[i]);
 			if (filter.accept(res)) list.add(res);
 		}
-		return (Resource[]) list.toArray(new Resource[list.size()]);
+		return list.toArray(new Resource[list.size()]);
 	}
 
 	@Override

@@ -4,17 +4,17 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 package lucee.loader.util;
 
@@ -63,8 +63,8 @@ public class Util {
 	}
 
 	/**
-	 * @deprecated use instead CFMLEngineFactory.getInstance.getIOUtil().copy(...) copy an inputstream to
-	 *             an outputstream
+	 * @deprecated use instead CFMLEngineFactory.getInstance.getIOUtil().copy(...) copy an inputstream
+	 *             to an outputstream
 	 * @param in
 	 * @param out
 	 * @throws IOException
@@ -119,7 +119,7 @@ public class Util {
 	 */
 	@Deprecated
 	public static boolean toBooleanValue(String str) throws IOException {
-		str = str.trim().toLowerCase();
+		str = str == null ? null : str.trim().toLowerCase();
 
 		if ("true".equals(str)) return true;
 		if ("false".equals(str)) return false;
@@ -229,7 +229,7 @@ public class Util {
 
 	/**
 	 * check if string is empty (null or "")
-	 * 
+	 *
 	 * @param str
 	 * @return is empty or not
 	 */
@@ -239,7 +239,7 @@ public class Util {
 
 	/**
 	 * check if string is empty (null or "")
-	 * 
+	 *
 	 * @param str
 	 * @return is empty or not
 	 */
@@ -350,10 +350,10 @@ public class Util {
 	/**
 	 * @deprecated no replacement Returns the canonical form of this abstract pathname.
 	 * @param file file to get canonical form from it
-	 * 
+	 *
 	 * @return The canonical pathname string denoting the same file or directory as this abstract
 	 *         pathname
-	 * 
+	 *
 	 * @throws SecurityException If a required system property value cannot be accessed.
 	 */
 	@Deprecated
@@ -482,7 +482,7 @@ public class Util {
 
 	/**
 	 * check left value against right value
-	 * 
+	 *
 	 * @param left
 	 * @param right
 	 * @return returns if right is newer than left
@@ -580,4 +580,29 @@ public class Util {
 		}
 	}
 
+	/**
+	 * returns a system setting by either a Java property name or a System environment variable
+	 * 
+	 * @param name - either a lowercased Java property name (e.g. lucee.controller.disabled) or an
+	 *            UPPERCASED Environment variable name ((e.g. LUCEE_CONTROLLER_DISABLED))
+	 * @param defaultValue - value to return if the neither the property nor the environment setting was
+	 *            found
+	 * @return - the value of the property referenced by propOrEnv or the defaultValue if not found
+	 */
+	public static String _getSystemPropOrEnvVar(String name, String defaultValue) { // FUTURE remove _ in front of the name
+		// env
+		String value = System.getenv(name);
+		if (!Util.isEmpty(value)) return value;
+
+		// prop
+		value = System.getProperty(name);
+		if (!Util.isEmpty(value)) return value;
+
+		// env 2
+		name = name.replace('.', '_').toUpperCase();
+		value = System.getenv(name);
+		if (!Util.isEmpty(value)) return value;
+
+		return defaultValue;
+	}
 }

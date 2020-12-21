@@ -278,6 +278,6 @@ this.mappings["#mappings.virtual#"]=<cfif len(mappings.strPhysical) && !len(mapp
 </cfformClassic>
 
 
-<cfset renderCodingTip( codeSample,false, false )>
+<cfset renderCodingTip( codeSample,false, true )>
 
 </cfoutput>

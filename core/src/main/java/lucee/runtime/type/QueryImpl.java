@@ -58,6 +58,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.db.DBUtil;
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.SystemUtil.TemplateLine;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
@@ -134,14 +135,25 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	private String name;
 	private int updateCount;
 	private QueryImpl generatedKeys;
-	private String template;
+	private TemplateLine templateLine;
 
 	private Collection.Key indexName;
 	private Map<Collection.Key, Integer> indexes;// = new ConcurrentHashMap<Collection.Key,Integer>();
 
+	private boolean populating;
+
 	@Override
 	public String getTemplate() {
-		return template;
+		return templateLine == null ? null : templateLine.template;
+	}
+
+	@Override
+	public TemplateLine getTemplateLine() { // FUTURE add to interface
+		return templateLine;
+	}
+
+	public void setTemplateLine(TemplateLine templateLine) {
+		this.templateLine = templateLine;
 	}
 
 	@Override
@@ -163,7 +175,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		// stopwatch.start();
 		long start = System.nanoTime();
 		try {
-			fillResult(this, null, null, null, result, maxrow, false, false, tz);
+			fillResult(this, null, null, null, result, maxrow, true, false, tz);
 		}
 		catch (SQLException e) {
 			throw new DatabaseException(e, null);
@@ -206,25 +218,25 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		this(pc, dc, sql, maxrow, fetchsize, timeout, name, null, false, true, null);
 	}
 
-	public QueryImpl(PageContext pc, DatasourceConnection dc, SQL sql, int maxrow, int fetchsize, TimeSpan timeout, String name, String template, boolean createUpdateData,
-			boolean allowToCachePreperadeStatement, Collection.Key indexName) throws PageException {
+	public QueryImpl(PageContext pc, DatasourceConnection dc, SQL sql, int maxrow, int fetchsize, TimeSpan timeout, String name, TemplateLine templateLine,
+			boolean createUpdateData, boolean allowToCachePreperadeStatement, Collection.Key indexName) throws PageException {
 		this.name = name;
-		this.template = template;
+		this.templateLine = templateLine;
 		this.indexName = indexName;
 		this.sql = sql;
 		execute(pc, dc, sql, maxrow, fetchsize, timeout, createUpdateData, allowToCachePreperadeStatement, this, null, null);
 	}
 
 	public static QueryStruct toStruct(PageContext pc, DatasourceConnection dc, SQL sql, Collection.Key keyName, int maxrow, int fetchsize, TimeSpan timeout, String name,
-			String template, boolean createUpdateData, boolean allowToCachePreperadeStatement) throws PageException {
-		QueryStruct sct = new QueryStruct(name, sql, template);
+			TemplateLine templateLine, boolean createUpdateData, boolean allowToCachePreperadeStatement) throws PageException {
+		QueryStruct sct = new QueryStruct(name, sql, templateLine);
 		execute(pc, dc, sql, maxrow, fetchsize, timeout, createUpdateData, allowToCachePreperadeStatement, null, sct, keyName);
 		return sct;
 	}
 
-	public static QueryArray toArray(PageContext pc, DatasourceConnection dc, SQL sql, int maxrow, int fetchsize, TimeSpan timeout, String name, String template,
+	public static QueryArray toArray(PageContext pc, DatasourceConnection dc, SQL sql, int maxrow, int fetchsize, TimeSpan timeout, String name, TemplateLine templateLine,
 			boolean createUpdateData, boolean allowToCachePreperadeStatement) throws PageException {
-		QueryArray arr = new QueryArray(name, sql, template);
+		QueryArray arr = new QueryArray(name, sql, templateLine);
 		execute(pc, dc, sql, maxrow, fetchsize, timeout, createUpdateData, allowToCachePreperadeStatement, null, arr, null);
 		return arr;
 	}
@@ -381,7 +393,15 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	private static void setAttributes(Statement stat, int maxrow, int fetchsize, TimeSpan timeout) throws SQLException {
 		if (maxrow > -1) stat.setMaxRows(maxrow);
 		if (fetchsize > 0) stat.setFetchSize(fetchsize);
-		if (timeout != null && ((int) timeout.getSeconds()) > 0) DataSourceUtil.setQueryTimeoutSilent(stat, (int) timeout.getSeconds());
+		int to = getSeconds(timeout);
+		if (to > 0) DataSourceUtil.setQueryTimeoutSilent(stat, to);
+	}
+
+	public static int getSeconds(TimeSpan timeout) {
+		if (timeout == null) return 0;
+		if (timeout.getSeconds() > 0) return Caster.toIntValue(timeout.getSeconds());
+		if (timeout.getMillis() > 0) return 1;
+		return 0;
 	}
 
 	private static boolean fillResult(QueryImpl qry, QueryResult qr, Collection.Key keyName, DatasourceConnection dc, ResultSet result, int maxrow, boolean closeResult,
@@ -447,6 +467,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 			// fill QUERY
 			if (qry != null) {
+				qry.populating = true;
 				int index = -1;
 				if (qry.indexName != null) {
 					qry.indexes = new ConcurrentHashMap<Collection.Key, Integer>();
@@ -525,6 +546,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		}
 		finally {
 			if (qry != null) {
+				qry.populating = false;
 				qry.columncount = columncount;
 				qry.recordcount = recordcount;
 				qry.columnNames = columnNames;
@@ -533,7 +555,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			else {
 				qr.setColumnNames(columnNames);
 			}
-			if (closeResult) IOUtil.closeEL(result);
+			if (closeResult) IOUtil.close(result);
 		}
 		return true;
 	}
@@ -1152,7 +1174,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		Arrays.sort(arr, (type == Types.BIGINT || type == Types.BIT || type == Types.INTEGER || type == Types.SMALLINT || type == Types.TINYINT || type == Types.DECIMAL
 				|| type == Types.DOUBLE || type == Types.NUMERIC || type == Types.REAL) ?
 
-						(Comparator) new NumberSortRegisterComparator(order == ORDER_ASC) : (Comparator) new SortRegisterComparator(null, order == ORDER_ASC, true, true));
+						(Comparator) new NumberSortRegisterComparator(order == ORDER_ASC) : (Comparator) new SortRegisterComparator(null, order == ORDER_ASC, false, false));
 
 		for (int i = 0; i < columns.length; i++) {
 			column = columns[i];
@@ -1196,7 +1218,8 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	public boolean addColumn(Collection.Key columnName, Array content, int type) throws DatabaseException {
 		// disconnectCache();
 		// TODO Meta type
-		content = (Array) Duplicator.duplicate(content, false);
+		if (content == null) content = new ArrayImpl();
+		else content = (Array) Duplicator.duplicate(content, false);
 
 		if (getIndexFromKey(columnName) != -1) throw new DatabaseException("column name [" + columnName.getString() + "] already exist", null, sql, null);
 		if (content.size() != getRecordcount()) {
@@ -1233,44 +1256,12 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	@Override
 	public Object clone() {
-		return cloneQuery(true);
+		return cloneQuery(this, true);
 	}
 
 	@Override
 	public Collection duplicate(boolean deepCopy) {
-		return cloneQuery(deepCopy);
-	}
-
-	/**
-	 * @return clones the query object
-	 */
-	public QueryImpl cloneQuery(boolean deepCopy) {
-		QueryImpl newResult = new QueryImpl();
-		boolean inside = ThreadLocalDuplication.set(this, newResult);
-		try {
-			if (columnNames != null) {
-				newResult.columnNames = new Collection.Key[columnNames.length];
-				newResult.columns = new QueryColumnImpl[columnNames.length];
-				for (int i = 0; i < columnNames.length; i++) {
-					newResult.columnNames[i] = columnNames[i];
-					newResult.columns[i] = columns[i].cloneColumnImpl(deepCopy);
-				}
-			}
-			newResult.currRow = new ConcurrentHashMap<Integer, Integer>();
-			newResult.sql = sql;
-			newResult.template = template;
-			newResult.recordcount = recordcount;
-			newResult.columncount = columncount;
-			newResult.cacheType = cacheType;
-			newResult.name = name;
-			newResult.exeTime = exeTime;
-			newResult.updateCount = updateCount;
-			if (generatedKeys != null) newResult.generatedKeys = generatedKeys.cloneQuery(false);
-			return newResult;
-		}
-		finally {
-			if (!inside) ThreadLocalDuplication.reset();
-		}
+		return cloneQuery(this, deepCopy);
 	}
 
 	@Override
@@ -3109,23 +3100,28 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		QueryImpl newResult = new QueryImpl();
 		boolean inside = ThreadLocalDuplication.set(qry, newResult);
 		try {
-			newResult.columnNames = qry.getColumnNames();
-			newResult.columns = new QueryColumnImpl[newResult.columnNames.length];
-			QueryColumn col;
-			for (int i = 0; i < newResult.columnNames.length; i++) {
-				col = qry.getColumn(newResult.columnNames[i], null);
-				newResult.columns[i] = QueryUtil.duplicate2QueryColumnImpl(newResult, col, deepCopy);
+
+			Key[] tmp = qry.getColumnNames();
+			if (tmp != null) {
+				newResult.columnNames = new Collection.Key[tmp.length];
+				newResult.columns = new QueryColumnImpl[tmp.length];
+				QueryColumn col;
+				for (int i = 0; i < tmp.length; i++) {
+					newResult.columnNames[i] = tmp[i];
+					newResult.columns[i] = QueryUtil.duplicate2QueryColumnImpl(newResult, qry.getColumn(tmp[i], null), deepCopy);
+				}
 			}
 			newResult.currRow = new ConcurrentHashMap<Integer, Integer>();
 			newResult.sql = qry.getSql();
-			newResult.template = qry.getTemplate();
+			if (qry instanceof QueryImpl) newResult.templateLine = ((QueryImpl) qry).getTemplateLine();
+			else newResult.templateLine = new TemplateLine(qry.getTemplate(), 0);
 			newResult.recordcount = qry.getRecordcount();
 			newResult.columncount = newResult.columnNames.length;
 			newResult.cacheType = qry.getCacheType();
 			newResult.name = qry.getName();
 			newResult.exeTime = qry.getExecutionTime();
 			newResult.updateCount = qry.getUpdateCount();
-			if (qry.getGeneratedKeys() != null) newResult.generatedKeys = ((QueryImpl) qry.getGeneratedKeys()).cloneQuery(false);
+			if (qry.getGeneratedKeys() != null) cloneQuery(newResult.generatedKeys = ((QueryImpl) qry.getGeneratedKeys()), false);
 			return newResult;
 		}
 		finally {
@@ -3145,7 +3141,9 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	}
 
 	public void disableIndex() {
-		this.indexes = null;
-		this.indexName = null;
+		if (!populating) {
+			this.indexes = null;
+			this.indexName = null;
+		}
 	}
 }

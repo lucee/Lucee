@@ -79,7 +79,7 @@ public final class NtpClient {
 			return (long) (localClockOffset * 1000);
 		}
 		finally {
-			IOUtil.closeEL(socket);
+			IOUtil.close(socket);
 		}
 	}
 

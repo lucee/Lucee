@@ -28,25 +28,29 @@ import lucee.commons.net.HTTPUtil;
 
 public class XMLEntityResolverDefaultHandler extends DefaultHandler {
 
-	private InputSource entityRes;
+	private InputSource[] entities;
+	int callCount = -1;
 
-	public XMLEntityResolverDefaultHandler(InputSource entityRes) {
-		this.entityRes = entityRes;
+	public XMLEntityResolverDefaultHandler(InputSource entity) {
+		this.entities = new InputSource[] { entity };
+	}
+
+	public XMLEntityResolverDefaultHandler(InputSource[] entities) {
+		this.entities = entities;
 	}
 
 	@Override
 	public InputSource resolveEntity(String publicID, String systemID) throws SAXException {
-		// if(entityRes!=null)print.out("resolveEntity("+(entityRes!=null)+"):"+publicID+":"+systemID);
-
-		if (entityRes != null) return entityRes;
+		callCount++;
+		// print.e("resolveEntity(" + callCount + "):" + publicID + ":" + systemID);
+		if (entities != null && entities.length >= callCount + 1) return entities[callCount];
 		try {
 			// TODO user resources
-			return new InputSource(IOUtil.toBufferedInputStream(HTTPUtil.toURL(systemID, true).openStream()));
+			return new InputSource(IOUtil.toBufferedInputStream(HTTPUtil.toURL(systemID, HTTPUtil.ENCODED_AUTO).openStream()));
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
 			return null;
 		}
 	}
-
 }

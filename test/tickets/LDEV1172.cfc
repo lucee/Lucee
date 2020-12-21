@@ -25,7 +25,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	public function afterTests() {}
 
 	public void function test() {
- 		http url=uri throwonerror=true;
+ 		//http url=uri throwonerror=true;
 	}
 } 
 </cfscript>

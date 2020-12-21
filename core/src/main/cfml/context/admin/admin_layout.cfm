@@ -103,7 +103,7 @@
 					<td class="lotd" id="copyrighttd" colspan="#hasNavigation?2:1#">
 						<div id="copyright" class="copy">
 							&copy; #year(Now())#
-							<a href="http://www.lucee.org" target="_blank">Lucee Association Switzerland</a>.
+							<a href="https://www.lucee.org" target="_blank">Lucee Association Switzerland</a>.
 							All Rights Reserved
 						</div>
 					</td>
@@ -143,6 +143,8 @@
 </cfoutput>
 	<cfset thistag.generatedcontent="">
 </cfif>
-
-<cfparam name="url.debug" default="no">
-<cfsetting showdebugoutput="#url.debug#">
+<cfparam name="session.debugEnabled" default="false">
+<cfif structKeyExists (url, "debug")>
+	<cfset session.debugEnabled = url.debug>
+</cfif>
+<cfsetting showdebugoutput="#session.debugEnabled#">

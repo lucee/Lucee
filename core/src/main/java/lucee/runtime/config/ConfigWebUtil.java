@@ -359,10 +359,11 @@ public final class ConfigWebUtil {
 	 * @param config
 	 * @return existing file
 	 */
-	public static Resource getExistingResource(ServletContext sc, String strDir, String defaultDir, Resource configDir, short type, Config config) {
+	public static Resource getExistingResource(ServletContext sc, String strDir, String defaultDir, Resource configDir, short type, Config config, boolean checkFromWebroot) {
 		// ARP
 
 		strDir = replacePlaceholder(strDir, config);
+		// checkFromWebroot &&
 		if (strDir != null && strDir.trim().length() > 0) {
 			Resource res = sc == null ? null : _getExistingFile(config.getResource(ResourceUtil.merge(ReqRspUtil.getRootPath(sc), strDir)), type);
 			if (res != null) return res;
@@ -498,7 +499,7 @@ public final class ConfigWebUtil {
 			return MD5.getDigestAsString(barr);
 		}
 		finally {
-			IOUtil.closeEL(is);
+			IOUtil.close(is);
 		}
 	}
 

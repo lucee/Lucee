@@ -94,8 +94,8 @@ import lucee.runtime.type.util.KeyConstants;
 import lucee.transformer.library.ClassDefinitionImpl;
 
 /**
- * This class resolves the Application settings that are defined in Application.cfc via the this reference,
- * e.g. this.sessionManagement, this.localMode, etc.
+ * This class resolves the Application settings that are defined in Application.cfc via the this
+ * reference, e.g. this.sessionManagement, this.localMode, etc.
  */
 public class ModernApplicationContext extends ApplicationContextSupport {
 
@@ -940,13 +940,9 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 			if (Modifier.isStatic(m.getModifiers())) m.invoke(null, new Object[] { config, new String[] { cc.getName() }, new Struct[] { cc.getCustom() } });
 			else LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_ERROR, ModernApplicationContext.class.getName(),
 					"method [init(Config,String[],Struct[]):void] for class [" + cd.toString() + "] is not static");
-
-			initCacheConnections.put(id, cc);
 		}
-		catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
-		}
-
+		catch (Exception e) {}
+		initCacheConnections.put(id, cc);
 		return cc;
 
 	}
@@ -1843,8 +1839,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	public Struct getXmlFeatures() {
 		if (!initXmlFeatures) {
 			Struct sct = Caster.toStruct(get(component, XML_FEATURES, null), null);
-			if (sct != null)
-				xmlFeatures = sct;
+			if (sct != null) xmlFeatures = sct;
 			initXmlFeatures = true;
 		}
 		return xmlFeatures;

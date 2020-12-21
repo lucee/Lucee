@@ -5,7 +5,7 @@
 	<tlib-version>1.0</tlib-version>
 	<cfml-version>1.0</cfml-version>
 	<short-name>tbase</short-name>
-	<uri>http://www.lucee.org/cf-tld-3-1</uri>
+	<uri>https://www.lucee.org/cf-tld-3-1</uri>
 	<display-name>Lucee Core Tag Library</display-name>
 	<description></description>
 	<name-space>cf</name-space>
@@ -941,6 +941,15 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>if set to true, Lucee url encodes the given name and value if necessary.</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>samesite</name>
+			<values>Strict,Lax,None</values>
+			<default-value></default-value>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>It will help to prevent Cross-Site Request Forgeries. Enabling this attribute on the cookie will instruct the browser to afford this cookie certain protections.</description>
 		</attribute>
 	</tag>
 	<!-- DBInfo -->
@@ -3388,7 +3397,9 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>
-			if set to true (default value) URL encodes the value of the attribute "URL" if necessary (no double encoding is happening).
+				Specifies whether to URL encode the the URL.
+				If not set at all (auto mode), it only encodes when necessary to avoid double encoding.
+				If set to true it encodes the URL, if set to false it does not touch it.
 			This setting has no influence on the values from httpparam type="url", for this use the attribute "encoded" from httpparam</description>
 		</attribute>
 		<attribute>
@@ -3741,7 +3752,10 @@ To use cached data, the tag must be called with the exact same arguments.</descr
 			<rtexprvalue>true</rtexprvalue>
 			<description>
 				Applies to type "cgi" and "url", ignored for all other types.
-				 Specifies whether to URL encode the the values defined with the tag, but only if necessary (no double encoding).</description>
+				Specifies whether to URL encode the the values defined with the tag.
+				If not set at all (auto mode), it only encodes when necessary to avoid double encoding.
+				If set to true it encodes the value, if set to false it does not touch it.
+			</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -3840,11 +3854,22 @@ To use cached data, the tag must be called with the exact same arguments.</descr
 		<attribute>
 			<type>string</type>
 			<name>action</name>
-			<values>getHeaderOnly,getAll,delete</values>
+			<values>getHeaderOnly,getAll,delete,open,close,markread,createfolder,deletefolder,renamefolder,listallfolders,movemail</values>
 			<default-value>getHeaderOnly</default-value>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Specifies the mail action.</description>
+			<description>Specifies the mail action.
+- getHeaderOnly
+- getAll
+- delete
+- open
+- close
+- markread
+- createfolder
+- deletefolder
+- renamefolder
+- listallfolders
+- movemail</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -3951,7 +3976,10 @@ To use cached data, the tag must be called with the exact same arguments.</descr
 			<name>taglib</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Path to a custom tag libraray or a jsp tld</description>
+			<description>Path to a custom tag library or a jsp tld
+				
+As cfimport is a compiler directive, Application.cfc mappings won't work, but mappings configured via the web admin will.
+</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -3993,6 +4021,7 @@ If you import a CFML custom tag directory and specify an empty value, "", for th
 		<attribute>
 			<type>string</type>
 			<name>displayName</name>
+			<alias>name</alias>
 			<required>no</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>A value to be displayed when using introspection to show a descriptive name for the interface.</description>
@@ -6294,7 +6323,7 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 		<attribute>
 			<type>string</type>
 			<name>columnkey</name>
-			<alias>columnname,column</alias>
+			<alias>columnname,column,keycolumn</alias>
 			<status>hidden</status>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
@@ -6546,6 +6575,13 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<status>hidden</status>
 			<required>false</required>
 			<description></description>
+		</attribute>
+		<attribute>
+			<name>cacheid</name>
+			<type>string</type>
+			<status>unimplemented</status>
+			<required>false</required>
+			<description>Attribute not supported</description>
 		</attribute>
 	</tag>
 
@@ -8757,6 +8793,10 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		<handle-exception>true</handle-exception>
 		<body-content>free</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
+		<script>
+			<type>multiple</type>
+			<rtexprvalue>true</rtexprvalue>
+		</script>
 		<description>Creates a Custom Tag</description>
 		<attribute-type>dynamic</attribute-type>
 	</tag>

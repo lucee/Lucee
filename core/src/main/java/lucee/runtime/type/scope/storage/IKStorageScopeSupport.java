@@ -23,10 +23,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.collection.MapFactory;
 import lucee.commons.io.log.Log;
-import lucee.commons.lang.RandomUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
@@ -41,6 +41,7 @@ import lucee.runtime.op.Duplicator;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.DateTimeImpl;
+import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.it.EntryIterator;
 import lucee.runtime.type.it.ValueIterator;
 import lucee.runtime.type.scope.CSRFTokenSupport;
@@ -48,6 +49,7 @@ import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.scope.Session;
 import lucee.runtime.type.scope.client.IKStorageScopeClient;
 import lucee.runtime.type.scope.session.IKStorageScopeSession;
+import lucee.runtime.type.scope.util.ScopeUtil;
 import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.StructSupport;
@@ -90,7 +92,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	protected int type;
 	private long timeSpan = -1;
 	private String storage;
-	private final Map<String, String> tokens = MapFactory.getConcurrentMap();
+	private final Map<Collection.Key, String> tokens = new ConcurrentHashMap<Collection.Key, String>();
 	private long lastModified;
 
 	private IKHandler handler;
@@ -98,10 +100,8 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	private String name;
 	private String cfid;
 
-	private String nullToken;
-
 	public IKStorageScopeSupport(PageContext pc, IKHandler handler, String appName, String name, String strType, int type, Map<Collection.Key, IKStorageScopeItem> data,
-			long lastModified) {
+			long lastModified, long timeSpan) {
 		// !!! do not store the pagecontext or config object, this object is Serializable !!!
 		Config config = ThreadLocalPageContext.getConfig(pc);
 		this.data0 = data;
@@ -121,6 +121,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		this.name = name;
 		this.cfid = pc.getCFID();
 		id = ++_id;
+		this.timeSpan = timeSpan;
 	}
 
 	/**
@@ -163,8 +164,8 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 				}
 			}
 
-			if (Scope.SCOPE_SESSION == scope) return new IKStorageScopeSession(pc, handler, appName, name, sv.getValue(), time);
-			else if (Scope.SCOPE_CLIENT == scope) return new IKStorageScopeClient(pc, handler, appName, name, sv.getValue(), time);
+			if (Scope.SCOPE_SESSION == scope) return new IKStorageScopeSession(pc, handler, appName, name, sv.getValue(), time, getSessionTimeout(pc));
+			else if (Scope.SCOPE_CLIENT == scope) return new IKStorageScopeClient(pc, handler, appName, name, sv.getValue(), time, getClientTimeout(pc));
 		}
 		else if (existing instanceof IKStorageScopeSupport) {
 			IKStorageScopeSupport tmp = ((IKStorageScopeSupport) existing);
@@ -175,11 +176,25 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 
 		IKStorageScopeSupport rtn = null;
 		Map<Key, IKStorageScopeItem> map = MapFactory.getConcurrentMap();
-		if (Scope.SCOPE_SESSION == scope) rtn = new IKStorageScopeSession(pc, handler, appName, name, map, 0);
-		else if (Scope.SCOPE_CLIENT == scope) rtn = new IKStorageScopeClient(pc, handler, appName, name, map, 0);
+		if (Scope.SCOPE_SESSION == scope) rtn = new IKStorageScopeSession(pc, handler, appName, name, map, 0, getSessionTimeout(pc));
+		else if (Scope.SCOPE_CLIENT == scope) rtn = new IKStorageScopeClient(pc, handler, appName, name, map, 0, getClientTimeout(pc));
 
 		rtn.store(pc);
 		return rtn;
+	}
+
+	private static long getClientTimeout(PageContext pc) {
+		pc = ThreadLocalPageContext.get(pc);
+		ApplicationContext ac = pc == null ? null : pc.getApplicationContext();
+		TimeSpan timeout = ac == null ? null : ac.getClientTimeout();
+		return timeout == null ? 0 : timeout.getMillis();
+	}
+
+	private static long getSessionTimeout(PageContext pc) {
+		pc = ThreadLocalPageContext.get(pc);
+		ApplicationContext ac = pc == null ? null : pc.getApplicationContext();
+		TimeSpan timeout = ac == null ? null : ac.getSessionTimeout();
+		return timeout == null ? 0 : timeout.getMillis();
 	}
 
 	public static Scope getInstance(int scope, IKHandler handler, String appName, String name, PageContext pc, Session existing, Log log, Session defaultValue) {
@@ -585,28 +600,12 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 
 	@Override
 	public String generateToken(String key, boolean forceNew) {
-		if (key == null) {
-			if (nullToken == null) nullToken = RandomUtil.createRandomStringLC(40);
-			return nullToken;
-		}
-
-		// get existing
-		String token;
-		if (!forceNew) {
-			token = tokens.get(key);
-			if (token != null) return token;
-		}
-
-		// create new one
-		token = RandomUtil.createRandomStringLC(40);
-		tokens.put(key, token);
-		return token;
+		return ScopeUtil.generateCsrfToken(tokens, key, forceNew);
 	}
 
 	@Override
 	public boolean verifyToken(String token, String key) {
-		String _token = tokens.get(key);
-		return _token != null && _token.equalsIgnoreCase(token);
+		return ScopeUtil.verifyCsrfToken(tokens, token, key);
 	}
 
 	public static void merge(Map<Key, IKStorageScopeItem> local, Map<Key, IKStorageScopeItem> storage) {

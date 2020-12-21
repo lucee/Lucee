@@ -62,6 +62,16 @@ public final class LogUtil {
 		return defaultValue;
 	}
 
+	public static boolean isAlreadyInLog() {
+		StackTraceElement[] stes = Thread.currentThread().getStackTrace();
+		if (stes != null) {
+			for (StackTraceElement ste: stes) {
+				if (ste.getClassName().indexOf("org.apache.log4j.") == 0) return true;
+			}
+		}
+		return false;
+	}
+
 	public static void log(Config config, int level, String type, String msg) {
 		log(config, level, "application", type, msg);
 	}
@@ -71,14 +81,21 @@ public final class LogUtil {
 	}
 
 	public static void log(Config config, String logName, String type, Exception e) {
+		log(config, logName, type, e, Log.LEVEL_ERROR);
+	}
+
+	public static void log(Config config, String logName, String type, Exception e, int logLevel) {
 		config = ThreadLocalPageContext.getConfig(config);
 		Log log = null;
 		if (config != null) {
 			log = config.getLog(logName);
 		}
 
-		if (log != null) log.error(type, e);
-		else logGlobal(config, Log.LEVEL_ERROR, type, ExceptionUtil.getStacktrace(e, true));
+		if (log != null) {
+			if (Log.LEVEL_ERROR == logLevel) log.error(type, e);
+			else log.log(logLevel, type, e);
+		}
+		else logGlobal(config, logLevel, type, ExceptionUtil.getStacktrace(e, true));
 	}
 
 	public static void log(Config config, int level, String logName, String type, String msg) {
@@ -102,7 +119,7 @@ public final class LogUtil {
 		try {
 			CFMLEngine engine = ConfigWebUtil.getEngine(config);
 			File root = engine.getCFMLEngineFactory().getResourceRoot();
-			File flog = new File(root, "context/logs/global.log");
+			File flog = new File(root, "context/logs/" + (level > Log.LEVEL_DEBUG ? "err" : "out") + ".log");
 			Resource log = ResourceUtil.toResource(flog);
 			if (!log.isFile()) {
 				log.getParentResource().mkdirs();

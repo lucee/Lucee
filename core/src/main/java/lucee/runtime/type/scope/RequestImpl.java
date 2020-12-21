@@ -149,9 +149,9 @@ public final class RequestImpl extends StructSupport implements Request {
 	@Override
 	public void clear() {
 		synchronized (_req) {
-			Iterator<String> it = ListUtil.toIterator(_req.getAttributeNames());
-			while (it.hasNext()) {
-				_req.removeAttribute(it.next());
+			Iterator<String> names = ListUtil.toIterator(_req.getAttributeNames());
+			while (names.hasNext()) {
+				_req.removeAttribute(names.next());
 			}
 		}
 	}
@@ -187,10 +187,10 @@ public final class RequestImpl extends StructSupport implements Request {
 			}
 
 			value = defaultValue;
-			Enumeration<String> names = _req.getAttributeNames();
+			Iterator<String> it = ListUtil.toIterator(_req.getAttributeNames());
 			String k;
-			while (names.hasMoreElements()) {
-				k = names.nextElement();
+			while (it.hasNext()) {
+				k = it.next();
 				if (k.equalsIgnoreCase(key.getString())) {
 					value = _req.getAttribute(k);
 					_req.removeAttribute(k);
@@ -212,10 +212,10 @@ public final class RequestImpl extends StructSupport implements Request {
 			Object value = _req.getAttribute(key.getLowerString());
 			if (value != null) return value;
 
-			Iterator<String> it = ListUtil.toIterator(_req.getAttributeNames());
+			Enumeration<String> names = _req.getAttributeNames();
 			Collection.Key k;
-			while (it.hasNext()) {
-				k = KeyImpl.init(it.next());
+			while (names.hasMoreElements()) {
+				k = KeyImpl.init(names.nextElement());
 				if (key.equals(k)) return _req.getAttribute(k.getString());
 			}
 			return defaultValue;

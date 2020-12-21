@@ -18,18 +18,16 @@
  */
 package lucee.runtime;
 
-import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.SOFT;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.lang.instrument.UnmodifiableClassException;
-import java.util.Collections;
+import java.lang.ref.SoftReference;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.ServletContext;
 
-import org.apache.commons.collections4.map.ReferenceMap;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 
@@ -82,7 +80,7 @@ public final class MappingImpl implements Mapping {
 	private Resource physical;
 
 	private String lcVirtualWithSlash;
-	private Map<String, Object> customTagPath = Collections.synchronizedMap(new ReferenceMap<String, Object>(SOFT, SOFT));
+	private Map<String, SoftReference<Object>> customTagPath = new ConcurrentHashMap<String, SoftReference<Object>>();
 
 	private boolean appMapping;
 	private boolean ignoreVirtual;
@@ -95,6 +93,15 @@ public final class MappingImpl implements Mapping {
 
 	private int listenerMode;
 	private int listenerType;
+
+	private boolean checkPhysicalFromWebroot;
+	private boolean checkArchiveFromWebroot;
+
+	public MappingImpl(Config config, String virtual, String strPhysical, String strArchive, short inspect, boolean physicalFirst, boolean hidden, boolean readonly,
+			boolean topLevel, boolean appMapping, boolean ignoreVirtual, ApplicationListener appListener, int listenerMode, int listenerType) {
+		this(config, virtual, strPhysical, strArchive, inspect, physicalFirst, hidden, readonly, topLevel, appMapping, ignoreVirtual, appListener, listenerMode, listenerType, true,
+				true);
+	}
 
 	/**
 	 * constructor of the class
@@ -113,7 +120,8 @@ public final class MappingImpl implements Mapping {
 	 * @param appListener
 	 */
 	public MappingImpl(Config config, String virtual, String strPhysical, String strArchive, short inspect, boolean physicalFirst, boolean hidden, boolean readonly,
-			boolean topLevel, boolean appMapping, boolean ignoreVirtual, ApplicationListener appListener, int listenerMode, int listenerType) {
+			boolean topLevel, boolean appMapping, boolean ignoreVirtual, ApplicationListener appListener, int listenerMode, int listenerType, boolean checkPhysicalFromWebroot,
+			boolean checkArchiveFromWebroot) {
 		this.ignoreVirtual = ignoreVirtual;
 		this.config = config;
 		this.hidden = hidden;
@@ -127,6 +135,8 @@ public final class MappingImpl implements Mapping {
 		this.appListener = appListener;
 		this.listenerMode = listenerMode;
 		this.listenerType = listenerType;
+		this.checkPhysicalFromWebroot = checkPhysicalFromWebroot;
+		this.checkArchiveFromWebroot = checkArchiveFromWebroot;
 
 		// virtual
 		if (virtual.length() == 0) virtual = "/";
@@ -138,9 +148,9 @@ public final class MappingImpl implements Mapping {
 		ServletContext cs = (config instanceof ConfigWebImpl) ? ((ConfigWebImpl) config).getServletContext() : null;
 
 		// Physical
-		physical = ConfigWebUtil.getExistingResource(cs, strPhysical, null, config.getConfigDir(), FileUtil.TYPE_DIR, config);
+		physical = ConfigWebUtil.getExistingResource(cs, strPhysical, null, config.getConfigDir(), FileUtil.TYPE_DIR, config, checkPhysicalFromWebroot);
 		// Archive
-		archive = ConfigWebUtil.getExistingResource(cs, strArchive, null, config.getConfigDir(), FileUtil.TYPE_FILE, config);
+		archive = ConfigWebUtil.getExistingResource(cs, strArchive, null, config.getConfigDir(), FileUtil.TYPE_FILE, config, checkArchiveFromWebroot);
 		loadArchive();
 
 		hasArchive = archive != null;
@@ -320,7 +330,7 @@ public final class MappingImpl implements Mapping {
 	 */
 	public MappingImpl cloneReadOnly(ConfigImpl config) {
 		return new MappingImpl(config, virtual, strPhysical, strArchive, inspect, physicalFirst, hidden, true, topLevel, appMapping, ignoreVirtual, appListener, listenerMode,
-				listenerType);
+				listenerType, checkPhysicalFromWebroot, checkArchiveFromWebroot);
 	}
 
 	@Override
@@ -383,13 +393,13 @@ public final class MappingImpl implements Mapping {
 
 		// Physical
 		if (getPhysical() == null && strPhysical != null && strPhysical.length() > 0) {
-			physical = ConfigWebUtil.getExistingResource(cs, strPhysical, null, config.getConfigDir(), FileUtil.TYPE_DIR, config);
+			physical = ConfigWebUtil.getExistingResource(cs, strPhysical, null, config.getConfigDir(), FileUtil.TYPE_DIR, config, checkPhysicalFromWebroot);
 
 		}
 		// Archive
 		if (getArchive() == null && strArchive != null && strArchive.length() > 0) {
 
-			archive = ConfigWebUtil.getExistingResource(cs, strArchive, null, config.getConfigDir(), FileUtil.TYPE_FILE, config);
+			archive = ConfigWebUtil.getExistingResource(cs, strArchive, null, config.getConfigDir(), FileUtil.TYPE_FILE, config, checkArchiveFromWebroot);
 			loadArchive();
 
 			hasArchive = archive != null;

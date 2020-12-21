@@ -75,7 +75,7 @@ public class FileRotation {
 				if (!headerOK) writeHeader = true;
 			}
 			finally {
-				IOUtil.closeEL(in);
+				IOUtil.close(in);
 			}
 		}
 

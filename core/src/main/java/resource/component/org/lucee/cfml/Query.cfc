@@ -71,8 +71,7 @@ component output="false" extends="HelperBase" accessors="true"{
 				}
 				// Include closing quote:
 				Len++ ;
-
-				result.add({type='String',value=Mid(Sql,StartPos,Len)})
+				result.append({type='String',value=Mid(Sql,StartPos,Len)})
 				Pos += Len ;
 
 			}
@@ -86,7 +85,7 @@ component output="false" extends="HelperBase" accessors="true"{
 				}
 				Len += 2 ;
 
-				result.add({type='String',value=Mid(Sql,StartPos,Len)});
+				result.append({type='String',value=Mid(Sql,StartPos,Len)});
 				Pos += Len ;
 			}
 			// If colon found outside a string, check if named param.
@@ -94,19 +93,19 @@ component output="false" extends="HelperBase" accessors="true"{
 			{
 				var Match = refind( '::' , Sql , Pos , true )
 				if (Match.Len[1] eq 2){
-					result.add({type='String',value=':'})
+					result.append({type='String',value=':'})
 						Pos += 2;
 				}
 				else{
 					var Match = refind( ':\w+' , Sql , Pos , true ) ;
 					if (ArrayLen(Match.Pos) and Match.Pos[1] EQ Pos)
 					{
-						result.add( findNamedParam(namedParams, Mid(Sql,Match.Pos[1]+1,Match.Len[1]-1) ) ) ;
+						result.append( findNamedParam(namedParams, Mid(Sql,Match.Pos[1]+1,Match.Len[1]-1) ) ) ;
 						Pos += Match.Len[1] ;
 					}
 					else
 					{
-						result.add({type='String',value=':'})
+						result.append({type='String',value=':'})
 						Pos += 1;
 					}
 				}
@@ -114,7 +113,7 @@ component output="false" extends="HelperBase" accessors="true"{
 			// If question mark found outside a string, assume unnamed param.
 			elseif (NextChar EQ '?')
 			{
-				result.add( positionalParams[positionalCursor] );
+				result.append( positionalParams[positionalCursor] );
 				positionalCursor++ ;
 				Pos++ ;
 			}
@@ -125,7 +124,7 @@ component output="false" extends="HelperBase" accessors="true"{
  				var Match = refind( '(?:[^:"''?/]+|/(?!\*))+' , Sql , Pos , true ) ;
 				if (ArrayLen(Match.Pos) AND Match.Pos[1] EQ Pos)
 				{
-					result.add({type='String',value=Mid(Sql,Match.Pos[1],Match.Len[1])})
+					result.append({type='String',value=Mid(Sql,Match.Pos[1],Match.Len[1])})
 					Pos += Match.Len[1] ;
 				}
 				else
@@ -151,7 +150,7 @@ component output="false" extends="HelperBase" accessors="true"{
 
 		for(var item in params){
 			if(structKeyExists(item,'name')){
-				result.add(item);
+				result.append(item);
 			}
 		}
 
@@ -168,7 +167,7 @@ component output="false" extends="HelperBase" accessors="true"{
 
 		for(var item in params){
 			if(not structKeyExists(item,'name')){
-				result.add(item);
+				result.append(item);
 			}
 		}
 
@@ -180,8 +179,8 @@ component output="false" extends="HelperBase" accessors="true"{
 	 * @hint Scan the passed array looking for a "name" param match.
 	 */
 	private Struct function findNamedParam(Array params,String name){
-		for(var item in params){
-			if(structKeyExists(item,'name') && name == item.name){
+		for(var item in arguments.params){
+			if(structKeyExists(item,'name') && arguments.name == item.name){
 				return item;
 			}
 		}
@@ -194,7 +193,7 @@ component output="false" extends="HelperBase" accessors="true"{
 	 * @hint Scan the passed array looking for a "name" param match.
 	 */
 	public static query function new(required columnNames, columnTypes, data) {
-		return queryNew(columnNames,columnTypes?:nullvalue(),data?:nullvalue());
+		return queryNew(arguments.columnNames,arguments.columnTypes?:nullvalue(),arguments.data?:nullvalue());
 	}
 
 

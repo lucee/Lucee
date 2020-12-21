@@ -94,6 +94,7 @@ import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.functions.other.CreateUniqueId;
+import lucee.runtime.functions.system.ContractPath;
 import lucee.runtime.functions.system.ExpandPath;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Castable;
@@ -530,6 +531,20 @@ public final class SystemUtil {
 	public static long getAvailableMemory() {
 		Runtime r = Runtime.getRuntime();
 		return r.freeMemory();
+	}
+
+	/**
+	 * return the memory percentage
+	 * 
+	 * @return value from 0 to 1
+	 */
+	public static float getMemoryPercentage() {
+		Runtime r = Runtime.getRuntime();
+		long max = r.maxMemory();
+		if (max == Long.MAX_VALUE || max < 0) return -1;
+
+		long used = r.totalMemory() - r.freeMemory();
+		return (1F / max * used);
 	}
 
 	/**
@@ -1019,7 +1034,13 @@ public final class SystemUtil {
 
 		@Override
 		public String toString() {
+			if (line < 1) return template;
 			return template + ":" + line;
+		}
+
+		public String toString(PageContext pc, boolean contract) {
+			if (line < 1) return contract ? ContractPath.call(pc, template) : template;
+			return (contract ? ContractPath.call(pc, template) : template) + ":" + line;
 		}
 
 		public Object toStruct() {
@@ -1047,6 +1068,22 @@ public final class SystemUtil {
 		sleep(time);
 
 		return jsm.cpuTimes().getCpuUsage(previous) * 100D;
+	}
+
+	public static float getCpuPercentage() {
+		if (jsm == null) jsm = new JavaSysMon();
+		CpuTimes cput = jsm.cpuTimes();
+		if (cput == null) return -1;
+		CpuTimes previous = new CpuTimes(cput.getUserMillis(), cput.getSystemMillis(), cput.getIdleMillis());
+		int max = 50;
+		float res = 0;
+		while (true) {
+			if (--max == 0) break;
+			sleep(100);
+			res = jsm.cpuTimes().getCpuUsage(previous);
+			if (res != 1) break;
+		}
+		return res;
 	}
 
 	private synchronized static MemoryStats physical() throws ApplicationException {
@@ -1262,22 +1299,33 @@ public final class SystemUtil {
 	}
 
 	public static void stop(PageContext pc, Thread thread) {
-		if (thread == null || !thread.isAlive()) return;
-		if (pc instanceof PageContextImpl) ((PageContextImpl) pc).setTimeoutStackTrace();
+		if (thread == null || !thread.isAlive() || thread == Thread.currentThread()) return;
+		Log log = null;
+		// in case it is the request thread
+		if (pc instanceof PageContextImpl && thread == pc.getThread()) {
+			((PageContextImpl) pc).setTimeoutStackTrace();
+			log = ((PageContextImpl) pc).getLog("requesttimeout");
+		}
 
 		// first we try to interupt, the we force a stop
-		if (!_stop(thread, false)) _stop(thread, true);
+		if (!_stop(thread, log, false)) _stop(thread, log, true);
 	}
 
-	private static boolean _stop(Thread thread, boolean force) {
-		// we try to interupt/stop the suspended thrad
+	private static boolean _stop(Thread thread, Log log, boolean force) {
+		// we try to interrupt/stop the suspended thrad
 		suspendEL(thread);
 		try {
 			if (isInLucee(thread)) {
 				if (!force) thread.interrupt();
 				else thread.stop();
 			}
-			else return true;
+			else {
+				if (log != null) {
+					log.log(Log.LEVEL_INFO, "thread", "do not " + (force ? "stop" : "interrupt") + " thread because thread is not within Lucee code",
+							ExceptionUtil.toThrowable(thread.getStackTrace()));
+				}
+				return true;
+			}
 		}
 		finally {
 			resumeEL(thread);
@@ -1285,8 +1333,16 @@ public final class SystemUtil {
 
 		// a request still will create the error template output, so it can take some time to finish
 		for (int i = 0; i < 100; i++) {
-			if (!isInLucee(thread)) return true;
+			if (!isInLucee(thread)) {
+				if (log != null) log.info("thread", "sucessfully " + (force ? "stop" : "interrupt") + " thread.");
+				return true;
+			}
 			SystemUtil.sleep(10);
+		}
+		if (log != null) {
+
+			log.log(force ? Log.LEVEL_ERROR : Log.LEVEL_WARN, "thread", "failed to " + (force ? "stop" : "interrupt") + " thread." + "\n",
+					ExceptionUtil.toThrowable(thread.getStackTrace()));
 		}
 		return false;
 	}
@@ -1740,7 +1796,9 @@ class MacAddressWrap implements ObjectWrap, Castable, Serializable {
 	@Override
 	public String toString() {
 		try {
-			return getEmbededObject().toString();
+			Object eo = getEmbededObject();
+			if (eo == null) return "";
+			return eo.toString();
 		}
 		catch (PageException pe) {
 			throw new PageRuntimeException(pe);

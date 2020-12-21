@@ -514,7 +514,7 @@ public abstract class MailClient implements PoolItem {
 					cids.setEL(KeyImpl.init(filename), cid);
 				}
 
-				if (filename != null && ArrayUtil.find(attachments, filename) == 0) {
+				if (filename != null && ArrayUtil.find(attachments, filename) >= 0) {
 
 					attachments.appendEL(filename);
 					if (attachmentDirectory != null) {
@@ -785,7 +785,7 @@ public abstract class MailClient implements PoolItem {
 			folder.setFlags(msgs, new Flags(Flags.Flag.SEEN), true);
 		}
 		finally {
-			IOUtil.closeEL(folder);
+			if (folder != null) folder.close(false);
 		}
 	}
 

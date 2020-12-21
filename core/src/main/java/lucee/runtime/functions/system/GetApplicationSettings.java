@@ -33,7 +33,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
@@ -55,6 +55,7 @@ import lucee.runtime.net.mail.ServerImpl;
 import lucee.runtime.net.s3.Properties;
 import lucee.runtime.op.Caster;
 import lucee.runtime.orm.ORMConfiguration;
+import lucee.runtime.tag.listener.TagListener;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
@@ -158,7 +159,7 @@ public class GetApplicationSettings extends BIF {
 		// ws settings
 		try {
 			Struct wssettings = new StructImpl(Struct.TYPE_LINKED);
-			wssettings.setEL(KeyConstants._type, AppListenerUtil.toWSType(ac.getWSType(), ((ConfigImpl) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getTypeAsString()));
+			wssettings.setEL(KeyConstants._type, AppListenerUtil.toWSType(ac.getWSType(), ((ConfigWebImpl) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getTypeAsString()));
 			sct.setEL("wssettings", wssettings);
 		}
 		catch (Exception e) {} // in case the extension is not loaded this will fail // TODO check if the extension is installed
@@ -335,7 +336,6 @@ public class GetApplicationSettings extends BIF {
 				LogUtil.log(ThreadLocalPageContext.getConfig(pc), GetApplicationSettings.class.getName(), e);
 			}
 		}
-
 		// application tag custom attributes
 		if (ac instanceof ClassicApplicationContext) {
 			Map<Key, Object> attrs = ((ClassicApplicationContext) ac).getCustomAttributes();
@@ -369,9 +369,13 @@ public class GetApplicationSettings extends BIF {
 		if (source.isClob()) s.setEL(AppListenerUtil.CLOB, source.isClob());
 		if (source.isReadOnly()) s.setEL(KeyConstants._readonly, source.isReadOnly());
 		if (source.isStorage()) s.setEL(KeyConstants._storage, source.isStorage());
+		s.setEL(KeyConstants._validate, source.validate());
 		if (source instanceof DataSourcePro) {
 			DataSourcePro dsp = (DataSourcePro) source;
 			if (dsp.isRequestExclusive()) s.setEL("requestExclusive", dsp.isRequestExclusive());
+			if (dsp.isRequestExclusive()) s.setEL("alwaysResetConnections", dsp.isAlwaysResetConnections());
+			Object res = TagListener.toCFML(dsp.getListener(), null);
+			if (res != null) s.setEL("listener", res);
 		}
 		if (source instanceof DataSourceImpl) {
 			DataSourceImpl di = ((DataSourceImpl) source);

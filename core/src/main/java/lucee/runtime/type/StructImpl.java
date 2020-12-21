@@ -21,6 +21,7 @@ package lucee.runtime.type;
 import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.HARD;
 import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.SOFT;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -42,6 +43,7 @@ import lucee.runtime.op.Duplicator;
 import lucee.runtime.op.ThreadLocalDuplication;
 import lucee.runtime.type.it.StringIterator;
 import lucee.runtime.type.util.CollectionUtil;
+import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.type.util.StructSupport;
 import lucee.runtime.type.util.StructUtil;
 
@@ -293,6 +295,19 @@ public class StructImpl extends StructSupport {
 	@Override
 	public boolean equals(Object obj) {
 		if (obj == this) return true;
-		return false;
+		if (!(obj instanceof StructImpl)) return false;
+		StructImpl other = (StructImpl) obj;
+		if (other.size() != size()) return false;
+
+		Key[] a;
+		Key[] b;
+		Arrays.sort(a = other.keys());
+		Arrays.sort(b = keys());
+		if (!ListUtil.arrayToList(a, ",").equalsIgnoreCase(ListUtil.arrayToList(b, ","))) return false;
+		for (Key k: a) {
+			if (!other.get(k, "").equals(get(k, ""))) return false;
+		}
+
+		return true;
 	}
 }

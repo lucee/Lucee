@@ -132,7 +132,7 @@ public abstract class DateTimeUtil {
 		if (second > 59) throw new DateTimeException("Second number [" + second + "] can not be greater than 59");
 
 		if (daysInMonth(year, month) < day)
-			throw new DateTimeException("Day number [" + day + "] can not be greater than [" + daysInMonth(year, month) + "] when month is [" + month + "] and year [" + year + "]");
+			throw new DateTimeException("Day number [" + day + "] can not be greater than " + daysInMonth(year, month) + " when month is " + month + " and year " + year);
 
 		return _toTime(tz, year, month, day, hour, minute, second, milliSecond);
 	}

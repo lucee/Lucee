@@ -112,7 +112,7 @@ public final class RamResourceProviderOld implements ResourceProviderPro {
 		RamResourceCore rrc = root;
 		for (int i = 0; i < names.length - 1; i++) {
 			rrc = rrc.getChild(names[i], caseSensitive);
-			if (rrc == null) throw new IOException("can't create resource " + path + ", missing parent resource");
+			if (rrc == null) throw new IOException("Can't create resource [" + path + "], missing parent resource");
 		}
 		rrc = new RamResourceCore(rrc, type, names[names.length - 1]);
 		return rrc;

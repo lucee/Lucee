@@ -154,7 +154,8 @@ public class RemoteClientImpl implements RemoteClient {
 		args.setEL(RemoteClientTask.ATTRIBUTE_COLLECTION, attrColl);
 
 		try {
-			WSClient rpc = ((ConfigImpl) ThreadLocalPageContext.getConfig(config)).getWSHandler().getWSClient(getUrl(), getServerUsername(), getServerPassword(), getProxyData());
+			WSClient rpc = ((ConfigWebImpl) ThreadLocalPageContext.getConfig(config)).getWSHandler().getWSClient(getUrl(), getServerUsername(), getServerPassword(),
+					getProxyData());
 
 			Object result = rpc.callWithNamedValues(config, KeyConstants._invoke, args);
 			return id = IdentificationImpl.createId(securityKey, Caster.toString(result, null), false, null);

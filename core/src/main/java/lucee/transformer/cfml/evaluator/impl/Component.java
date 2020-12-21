@@ -103,7 +103,7 @@ public class Component extends EvaluatorSupport {
 		Boolean insideCITemplate = isInsideCITemplate(page);
 		boolean main = isMainComponent(page, tc);
 
-		// is a full grown component or a inline component
+		// is a full grown component or an inline component
 		if (insideCITemplate == Boolean.FALSE) {
 			throw new EvaluatorException("Wrong Context, [" + tlt.getFullName() + "] tag must be inside a file with the extension [" + Constants.getCFMLComponentExtension()
 					+ "] or [" + Constants.getLuceeComponentExtension() + "]");

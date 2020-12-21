@@ -135,17 +135,17 @@ public final class ScopeContext {
 
 	public static void info(Log log, String msg) {
 		if (log != null) log.log(Log.LEVEL_INFO, "scope-context", msg);
-		else LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_ERROR, "scope", msg);
+		else LogUtil.log(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, "scope", "scope-context", msg);
 	}
 
 	public static void error(Log log, String msg) {
 		if (log != null) log.log(Log.LEVEL_ERROR, "scope-context", msg);
-		else LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_ERROR, "scope", msg);
+		else LogUtil.log(ThreadLocalPageContext.getConfig(), Log.LEVEL_ERROR, "scope", "scope-context", msg);
 	}
 
 	public static void error(Log log, Throwable t) {
 		if (log != null) log.log(Log.LEVEL_ERROR, "scope-context", ExceptionUtil.getStacktrace(t, true));
-		else LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), "scope", (Exception) t);
+		else LogUtil.log(ThreadLocalPageContext.getConfig(), "scope", "scope-context", (Exception) t);
 	}
 
 	/**

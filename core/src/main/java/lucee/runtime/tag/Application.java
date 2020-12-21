@@ -25,6 +25,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TimeZone;
 
+import javax.servlet.jsp.tagext.DynamicAttributes;
+
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
@@ -38,7 +40,6 @@ import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
-import lucee.runtime.ext.tag.DynamicAttributes;
 import lucee.runtime.ext.tag.TagImpl;
 import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.listener.ApplicationContext;
@@ -242,7 +243,6 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		setDynamicAttribute(uri, KeyImpl.init(localName), value);
 	}
 
-	@Override
 	public void setDynamicAttribute(String uri, Key localName, Object value) {
 		if (dynAttrs == null) dynAttrs = new HashMap<Key, Object>();
 		dynAttrs.put(localName, value);

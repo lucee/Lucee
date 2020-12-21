@@ -2,6 +2,12 @@
 <cfset stText.Settings.requestExclusive="Exclusive connections for request">
 <cfset stText.Settings.requestExclusiveDesc="If set to true, the connections of this datasource are exclusive to one request, guaranteeing that you always have the same connection to the datasource for the request. Keep in mind that this limits the maximum possible concurrent requests to the maximum possible datasource connections and can cause a lot more open connections. Only use the requestExclusive setting when it is absolutely necessary to always have the same connection within a request, for example when your connection has set a specific state.">
 
+<cfset stText.Settings.alwaysResetConnections="Always reset connection to default values before use">
+<cfset stText.Settings.alwaysResetConnectionsDesc="This is only necessary in case you are using ""SET TRANSACTION ISOLATION LEVEL"" or ""SET AUTOCOMMIT"" within your SQL code. Enable this feature will increase traffic for this datasource.">
+
+
+
+
 <!--- ACTIONS --->
 <cftry>
 	<cfif StructKeyExists(form,"_run") and form._run EQ stText.Settings.flushCache>
@@ -44,6 +50,7 @@
 			literalTimestampWithTSOffset="#isNull(driver.literalTimestampWithTSOffset)?false:driver.literalTimestampWithTSOffset()#"
 			alwaysSetTimeout="#isNull(driver.alwaysSetTimeout)?false:driver.alwaysSetTimeout()#"
 			requestExclusive="#getForm('requestExclusive',false)#"
+			alwaysResetConnections="#getForm('alwaysResetConnections',false)#"
 			
 			
 			name="#form.name#"
@@ -353,10 +360,24 @@
 							This feature is experimental.
 							If you have any problems while using this functionality,
 							please post the bugs and errors in our
-							<a href="http://issues.lucee.org" target="_blank">bugtracking system</a>. 
+							<a href="https://issues.lucee.org" target="_blank">bugtracking system</a>. 
 						</div>
 						<cfinputClassic type="checkbox" class="checkbox" name="requestExclusive" value="yes" checked="#isDefined('datasource.requestExclusive') and datasource.requestExclusive#">
 						<div class="comment">#stText.Settings.requestExclusiveDesc#</div>
+					</td>
+				</tr>
+				<!--- Always reset connection --->
+				<tr>
+					<th scope="row">#stText.Settings.alwaysResetConnections#</th>
+					<td>
+						<div class="warning nofocus">
+							This feature is experimental.
+							If you have any problems while using this functionality,
+							please post the bugs and errors in our
+							<a href="https://issues.lucee.org" target="_blank">bugtracking system</a>. 
+						</div>
+						<cfinputClassic type="checkbox" class="checkbox" name="alwaysResetConnections" value="yes" checked="#isDefined('datasource.alwaysResetConnections') and datasource.alwaysResetConnections#">
+						<div class="comment">#stText.Settings.alwaysResetConnectionsDesc#</div>
 					</td>
 				</tr>
 				<!--- validate --->
@@ -556,6 +577,9 @@ if(!isNull(driver.alwaysSetTimeout) && driver.alwaysSetTimeout())
 	optional.append('alwaysSetTimeout:true // default: false');
 if(datasource.requestExclusive) 
 	optional.append('requestExclusive:true // default: false');
+if(datasource.alwaysResetConnections) 
+	optional.append('alwaysResetConnections:true // default: false');
+
 
 optional.append('validate:#truefalseformat(datasource.validate?:false)# // default: false');
 </cfscript>

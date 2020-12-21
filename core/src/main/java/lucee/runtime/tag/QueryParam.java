@@ -182,7 +182,7 @@ public final class QueryParam extends TagImpl {
 		if (parent instanceof Query) {
 			Query query = (Query) parent;
 
-			if (!item.isNulls() && !item.isValueSet()) throw new ApplicationException("attribute value from tag queryparam is required if attribute null is false");
+			if (!item.isNulls() && !item.isValueSet()) throw new ApplicationException("Attribute [value] from tag [queryparam] is required when attribute [null] is false");
 
 			Object value = item.getValue();
 			if (list || (Decision.isArray(value) && ARRAY_TYPES.contains(item.getType()))) {
@@ -233,12 +233,13 @@ public final class QueryParam extends TagImpl {
 				str = Caster.toString(Caster.toBooleanValue(value));
 			}
 			else if (DECIMAL == type) {
-				str = Caster.toDecimal(value);
+				str = Caster.toDecimal(value, false);
 			}
 			else str = Caster.toString(value);
 
 			if (str.length() > maxlength) throw new DatabaseException(
-					"value [" + value + "] is to large, defined maxlength is [" + Caster.toString(maxlength) + "] but length of value is [" + str.length() + "]", null, null, null);
+					"value [" + value + "] is too large, defined maxlength is [" + Caster.toString(maxlength) + "] but length of value is [" + str.length() + "]", null, null,
+					null);
 		}
 		return value;
 	}

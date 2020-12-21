@@ -42,6 +42,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
@@ -495,7 +496,10 @@ public final class Caster {
 			else {
 				rtn *= 10;
 				rtn += toDigit(curr);
-				if (hasDot) deep *= 10;
+				if (hasDot) {
+					deep *= 10;
+					if (deep > 1000000000000000000000D) return Double.parseDouble(str); // patch for LDEV-2654
+				}
 
 			}
 		}
@@ -822,6 +826,10 @@ public final class Caster {
 		return toDecimal(Caster.toDoubleValue(value));
 	}
 
+	public static String toDecimal(Object value, boolean separator) throws PageException {
+		return toDecimal(Caster.toDoubleValue(value), separator);
+	}
+
 	/**
 	 * cast a double to a decimal value (String:xx.xx)
 	 * 
@@ -831,6 +839,10 @@ public final class Caster {
 	 */
 	public static String toDecimal(String value) throws PageException {
 		return toDecimal(Caster.toDoubleValue(value));
+	}
+
+	public static String toDecimal(String value, boolean separator) throws PageException {
+		return toDecimal(Caster.toDoubleValue(value), separator);
 	}
 
 	/**
@@ -846,6 +858,12 @@ public final class Caster {
 		return toDecimal(res);
 	}
 
+	public static String toDecimal(Object value, boolean separator, String defaultValue) {
+		double res = toDoubleValue(value, true, Double.NaN);
+		if (Double.isNaN(res)) return defaultValue;
+		return toDecimal(res, separator);
+	}
+
 	/**
 	 * cast an Object to a decimal value (String:xx.xx)
 	 * 
@@ -854,6 +872,10 @@ public final class Caster {
 	 */
 	public static String toDecimal(double value) {
 		return toDecimal(value, '.', ',');
+	}
+
+	public static String toDecimal(double value, boolean separator) {
+		return toDecimal(value, '.', separator ? ',' : ((char) 0));
 	}
 
 	private static String toDecimal(double value, char decDel, char thsDel) {
@@ -882,13 +904,12 @@ public final class Caster {
 			int i;
 			for (i = leftValueLen - 3; i > 0; i -= 3) {
 				tmp.insert(0, leftValue.substring(i, i + 3));
-				if (i != ends) tmp.insert(0, thsDel);
+				if (i != ends && thsDel > ((char) 0)) tmp.insert(0, thsDel);
 			}
 			tmp.insert(0, leftValue.substring(0, i + 3));
 			leftValue = tmp.toString();
 
 		}
-
 		return leftValue + decDel + rightValue;
 	}
 
@@ -1917,7 +1938,12 @@ public final class Caster {
 				throw Caster.toPageException(e);
 			}
 			finally {
-				IOUtil.closeEL(r);
+				try {
+					IOUtil.close(r);
+				}
+				catch (IOException e) {
+					throw Caster.toPageException(e);
+				}
 			}
 		}
 		else if (o instanceof Throwable) {
@@ -1933,7 +1959,12 @@ public final class Caster {
 				throw Caster.toPageException(e);
 			}
 			finally {
-				IOUtil.closeEL(r);
+				try {
+					IOUtil.close(r);
+				}
+				catch (IOException e) {
+					throw Caster.toPageException(e);
+				}
 			}
 		}
 		else if (o instanceof byte[]) {
@@ -2317,7 +2348,6 @@ public final class Caster {
 			return ListAsArray.toArray((List) o);// new ArrayImpl(((List) o).toArray());
 		}
 		else if (o instanceof Set) {
-
 			return toArray(((Set) o).toArray());// new ArrayImpl(((List) o).toArray());
 		}
 		else if (o instanceof XMLStruct) {
@@ -2712,10 +2742,15 @@ public final class Caster {
 				return IOUtil.toBytes(is);
 			}
 			catch (Exception e) {
-				throw new ExpressionException(e.getMessage());
+				throw Caster.toPageException(e);
 			}
 			finally {
-				IOUtil.closeEL(is);
+				try {
+					IOUtil.close(is);
+				}
+				catch (IOException e) {
+					throw Caster.toPageException(e);
+				}
 			}
 		}
 		try {
@@ -2885,6 +2920,10 @@ public final class Caster {
 	 */
 	public static DateTime toDate(String str, TimeZone tz) throws PageException {
 		return DateCaster.toDateAdvanced(str, tz);
+	}
+
+	public static DateTime toDate(Object o) throws PageException {
+		return DateCaster.toDateAdvanced(o, DateCaster.CONVERTING_TYPE_OFFSET, ThreadLocalPageContext.getTimeZone());
 	}
 
 	/**
@@ -3489,6 +3528,10 @@ public final class Caster {
 		}
 	}
 
+	public static Object castTo(String type, Object o) throws PageException {
+		return castTo(ThreadLocalPageContext.get(), type, o, false);
+	}
+
 	/**
 	 * cast a value to a value defined by type argument
 	 * 
@@ -3708,7 +3751,7 @@ public final class Caster {
 		if (Decision.isURL(str)) return str;
 
 		try {
-			return HTTPUtil.toURL(str, true).toExternalForm();
+			return HTTPUtil.toURL(str, HTTPUtil.ENCODED_AUTO).toExternalForm();
 		}
 		catch (MalformedURLException e) {
 			throw new ExpressionException("can't cast value [" + str + "] to a URL", e.getMessage());
@@ -3720,7 +3763,7 @@ public final class Caster {
 		if (str == null) return defaultValue;
 		if (Decision.isURL(str)) return str;
 		try {
-			return HTTPUtil.toURL(str, true).toExternalForm();
+			return HTTPUtil.toURL(str, HTTPUtil.ENCODED_AUTO).toExternalForm();
 		}
 		catch (MalformedURLException e) {
 			return defaultValue;
@@ -3883,7 +3926,7 @@ public final class Caster {
 			lucee.runtime.net.rpc.PojoIterator it = new lucee.runtime.net.rpc.PojoIterator(pojo);
 			// only when the same amount of properties
 			if (props.length == it.size()) {
-				Map<Collection.Key, Property> propMap = toMap(props);
+				Map<Collection.Key, Property> propMap = propToMap(props);
 				Property p;
 				lucee.commons.lang.Pair<Collection.Key, Object> pair;
 				ComponentScope scope = cfc.getComponentScope();
@@ -3906,6 +3949,14 @@ public final class Caster {
 		}
 		catch (PageException e) {}
 		return defaultValue;
+	}
+
+	private static Map<Key, Property> propToMap(Property[] props) {
+		Map<Collection.Key, Property> map = new HashMap<>();
+		for (Property p: props) {
+			map.put(KeyImpl.init(p.getName()), p);
+		}
+		return map;
 	}
 
 	/**
@@ -4113,7 +4164,7 @@ public final class Caster {
 		else if (o instanceof ObjectWrap) {
 			return toCollection(((ObjectWrap) o).getEmbededObject());
 		}
-		else if (Decision.isArray(o)) {
+		else if (Decision.isCastableToArray(o)) {
 			return toArray(o);
 		}
 		throw new CasterException(o, "collection");
@@ -4584,7 +4635,7 @@ public final class Caster {
 					return IOUtil.toBytes(is);
 				}
 				finally {
-					IOUtil.closeEL(is);
+					IOUtil.close(is);
 				}
 			}
 		}

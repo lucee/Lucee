@@ -169,7 +169,14 @@ class DCStack {
 
 			clear(current.prev, next, force);
 		}
-		else clear(current.prev, current, force);
+		else {
+			// make sure that auto commit is true
+			try {
+				if (!current.dc.getAutoCommit()) current.dc.setAutoCommit(true);
+			}
+			catch (SQLException e) {}
+			clear(current.prev, current, force);
+		}
 
 		counter.setValue(0);
 	}

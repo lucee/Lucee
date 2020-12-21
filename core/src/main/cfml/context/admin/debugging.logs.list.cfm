@@ -125,9 +125,9 @@
 								<tr>
 									<td><a href="#request.self#?action=#url.action#&action2=detail&id=#hash(el.id&":"&el.startTime)#">#_path#</a></td>
 									<td>#LSDateFormat(el.starttime)# #LSTimeFormat(el.starttime)#</td>
-									<td nowrap>#formatUnit(_query)#</td>
-									<td nowrap>#formatUnit(_app)#</td>
-									<td nowrap>#formatUnit(_total)#</td>
+									<td nowrap align="right"><cfif listFirst(formatUnit(_query)," ") gt 0>#formatUnit(_query)#<cfelse>-</cfif></td>
+									<td nowrap align="right">#formatUnit(_app)#</td>
+									<td nowrap align="right">#formatUnit(_total)#</td>
 								</tr>
 							</cfif>
 						</cfloop>

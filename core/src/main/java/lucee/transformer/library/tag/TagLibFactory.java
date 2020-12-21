@@ -113,7 +113,12 @@ public final class TagLibFactory extends DefaultHandler {
 			throw new TagLibException(e);
 		}
 		finally {
-			IOUtil.closeEL(r);
+			try {
+				IOUtil.close(r);
+			}
+			catch (IOException e) {
+				throw new TagLibException(e);
+			}
 		}
 	}
 
@@ -274,7 +279,7 @@ public final class TagLibFactory extends DefaultHandler {
 			}
 			else if (insideScript) {
 				// type
-				if (inside.equals("type")) script.setType(value);
+				if (inside.equals("type")) script.setType(TagLibTagScript.toType(value, TagLibTagScript.TYPE_NONE));
 				if (inside.equals("rtexprvalue")) script.setRtexpr(Caster.toBooleanValue(value, false));
 				if (inside.equals("context")) script.setContext(value);
 

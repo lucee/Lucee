@@ -407,7 +407,7 @@ public final class Ftp extends TagImpl {
 			client.storeFile(remotefile, is);
 		}
 		finally {
-			IOUtil.closeEL(is);
+			IOUtil.close(is);
 		}
 		writeCfftp(client);
 
@@ -437,7 +437,7 @@ public final class Ftp extends TagImpl {
 			success = client.retrieveFile(remotefile, fos);
 		}
 		finally {
-			IOUtil.closeEL(fos);
+			IOUtil.close(fos);
 			if (!success) local.delete();
 		}
 		writeCfftp(client);

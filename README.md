@@ -1,8 +1,19 @@
 ![Lucee](https://bitbucket.org/repo/rX87Rq/images/3392835614-logo-1-color-black-small.png)
 
+![GitHub](https://img.shields.io/github/license/lucee/Lucee)
 [![Build Status](https://travis-ci.org/lucee/Lucee.svg?branch=5.3)](https://travis-ci.org/lucee/Lucee)
 [![Backers on Open Collective](https://opencollective.com/Lucee/backers/badge.svg)](#backers)
- [![Sponsors on Open Collective](https://opencollective.com/Lucee/sponsors/badge.svg)](#sponsors) 
+[![Sponsors on Open Collective](https://opencollective.com/Lucee/sponsors/badge.svg)](#sponsors) 
+
+[![Maven Central](https://img.shields.io/maven-central/v/org.lucee/lucee)](https://mvnrepository.com/artifact/org.lucee/lucee)
+[![GitHub pull requests](https://img.shields.io/github/issues-pr-raw/lucee/Lucee)](https://github.com/lucee/Lucee/pulls)
+[![GitHub closed pull requests](https://img.shields.io/github/issues-pr-closed-raw/lucee/Lucee)](https://github.com/lucee/Lucee/pulls?utf8=%E2%9C%93&q=is%3Apr+is%3Aclosed)
+
+[![docker pulls](https://img.shields.io/docker/pulls/lucee/lucee.svg?label=docker+pulls)](https://hub.docker.com/r/lucee/lucee/)
+[![Open Collective backers and sponsors](https://img.shields.io/opencollective/all/lucee)](https://opencollective.com/lucee#section-contributors)
+[![GitHub contributors](https://img.shields.io/github/contributors/lucee/Lucee)](https://github.com/lucee/Lucee)
+
+[![Website](https://img.shields.io/website?url=https%3A%2F%2Fdownload.lucee.org%2F)](https://download.lucee.org/)
 
 ## Lucee Server
 
@@ -14,7 +25,7 @@ Lucee provides a compatibility layer for Adobe ColdFusion &copy;  CFML using les
 
 ## Installation
 
-You can [build Lucee from source](http://docs.lucee.org/guides/working-with-source.html) or grab one of our distributions:
+You can [build Lucee from source](https://docs.lucee.org/guides/working-with-source.html) or grab one of our distributions:
 
 - [Lucee Express](http://lucee.org/downloads.html) (just unzip and run; delete to clean up)
 - [Installers for Windows, Linux and OSX](http://lucee.org/downloads.html)
@@ -24,8 +35,8 @@ Alternatively try the super-useful [CommandBox](https://www.ortussolutions.com/p
 
 ## Getting Help
 
-- [Lucee Documentation Project](http://docs.lucee.org/)
-- [Lucee Mailing List](https://dev.lucee.org); general app developer support
+- [Lucee Documentation Project](https://docs.lucee.org/)
+- [Lucee Google Group](https://groups.google.com/forum/#!forum/lucee); general app developer support
 - [Lucee Lang Forum](http://lang.lucee.org/); hacking on Lucee itself
 - [Lucee Bug Tracker](https://luceeserver.atlassian.net/projects/LDEV/issues)
 
@@ -74,8 +85,6 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 <a href="https://opencollective.com/Lucee/sponsor/7/website" target="_blank"><img src="https://opencollective.com/Lucee/sponsor/7/avatar.svg"></a>
 <a href="https://opencollective.com/Lucee/sponsor/8/website" target="_blank"><img src="https://opencollective.com/Lucee/sponsor/8/avatar.svg"></a>
 <a href="https://opencollective.com/Lucee/sponsor/9/website" target="_blank"><img src="https://opencollective.com/Lucee/sponsor/9/avatar.svg"></a>
-
-
 
 ## Copyright / License
 
