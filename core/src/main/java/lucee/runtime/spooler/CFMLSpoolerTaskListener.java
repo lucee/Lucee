@@ -72,7 +72,7 @@ public abstract class CFMLSpoolerTaskListener extends SpoolerTaskListener {
 			adv.set("executedPlans", task.getPlans());
 
 			Object o = _listen(pc, args, before);
-			if (o instanceof Struct && task instanceof MailSpoolerTask) {
+			if (before && o instanceof Struct && task instanceof MailSpoolerTask) {
 				((MailSpoolerTask) task).mod((Struct) o);
 			}
 

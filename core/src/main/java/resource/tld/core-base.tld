@@ -1326,7 +1326,6 @@ Example:
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>The working directory in which to execute the command</description>
-			<status>hidden</status>
 		</attribute>
 	</tag>
 	<!-- Exit -->
@@ -5290,9 +5289,25 @@ Lucee uses the number of characters in the file.</description>
 			<type>any</type>
 			<name>listener</name>
 			<required>false</required>
-			<status>hidden</status>
 			<rtexprvalue>true</rtexprvalue>
-			<description></description>
+			<description>
+				listener for the mail. the listener can have 2 (optinal) functions, "before" and "after" that get triggered before and after sending the mail.
+				The functions get all data about the mail. 
+				Listener is only used when "async" (spoolenable) is set to true.
+				This attribute overwrites any mail listener defined in the application.cfc/cfapplication.
+				
+				The "before" function can also modify some data, by returning a struct containg the following keys:
+				from, to, bcc, replyto, replyto, subject
+				
+				the listener can be a component looking like this:
+				component {
+					function before(lastExecution,nextExecution,created,id,type,detail,tries,remainingtries,closed,caller,advanced){} 
+					function after(lastExecution,nextExecution,created,id,type,detail,tries,remainingtries,closed,caller,advanced,passed,exception){}}
+				
+				a struct looking like this:
+				component {before:function(...){}, after:function(...){}}
+				
+			</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -6348,7 +6363,6 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 			<type>string</type>
 			<name>columnkey</name>
 			<alias>columnname,column,keycolumn</alias>
-			<status>hidden</status>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>When return type is set to "struct", the value of this column is used as key in the struct for every record.</description>
@@ -6405,7 +6419,6 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 			<alias>tag</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<status>hidden</status>
 			<description>tags stored with the cache.</description>
 		</attribute>
 		<attribute>
@@ -6588,17 +6601,32 @@ To use cached data, the current query must use the same SQL statement, data sour
 		<attribute>
 			<name>listener</name>
 			<type>any</type>
-			<status>hidden</status>
 			<required>false</required>
-			<description></description>
+			<description>
+				listener for the query. the listener can have 3 (optinal) functions, "before" "after" and "error" that get triggered before and after executing the query and in case of an exception.
+				The functions get all data about the query. 
+				This attributes overwrites any query listener defined in the application.cfc/cfapplication.
+				All the functions can also modify all data, by returning a struct containg the keys to overwrite following the same structure as the input coming in the argument scope.
+				
+				the listener can be a component looking like this:
+				component {
+					function before(cachedAfter, cachedWithin, columnName, datasource, dbtype, debug, maxrows, name, ormoptions, username, password, result, returntype, timeout, timezone, unique, sql, args, params, caller){} 
+					function after(result,meta,cachedAfter, cachedWithin, columnName, datasource, dbtype, debug, maxrows, name, ormoptions, username, password, result, returntype, timeout, timezone, unique, sql, args, params, caller){} 
+					function error(exception,lastExecution,nextExecution,created,id,type,detail,tries,remainingtries,closed,caller,advanced,passed,exception){}}
+				
+				or a struct looking like this:
+				component {before:function(...){}, after:function(...){}, error:function(...){}}
+				
+			</description>
 		</attribute>
 		<attribute>
 			<name>async</name>
 			<type>boolean</type>
 			<default>false</default>
-			<status>hidden</status>
 			<required>false</required>
-			<description></description>
+			<description>if set to true, the query is executed asynchronously by the Lucee Task manager,
+			if set to false (default) the query is executed in the same thread that executes the request.
+			</description>
 		</attribute>
 		<attribute>
 			<name>cacheid</name>
@@ -7179,7 +7207,6 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<type>boolean</type>
 			<name>autoDelete</name>
 			<required>false</required>
-			<status>hidden</status>
 			<rtexprvalue>true</rtexprvalue>
 			<description>if set to true, the scheduled task get deleted when there is no possible future execution.</description>
 		</attribute>
@@ -7402,7 +7429,6 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<type>string</type>
 			<name>info</name>
 			<required>false</required>
-			<status>hidden</status>
 			<rtexprvalue>true</rtexprvalue>
 			<description>name of variable created for all information for this tag.</description>
 		</attribute>
@@ -7410,7 +7436,6 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<type>boolean</type>
 			<name>listen</name>
 			<required>false</required>
-			<status>hidden</status>
 			<rtexprvalue>true</rtexprvalue>
 			<description>do log all action, so it can report more detail with info.</description>
 		</attribute>

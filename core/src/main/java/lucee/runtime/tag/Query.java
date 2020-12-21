@@ -893,14 +893,12 @@ public final class Query extends BodyTagTryCatchFinallyImpl {
 		 * Iterator<Entry<String, TagLibTagAttr>> it = tlt.getAttributes().entrySet().iterator();
 		 * Entry<String, TagLibTagAttr> e; while(it.hasNext()) { e=it.next(); e.getValue().get(this); }
 		 */
-
 		set(args, "cachedAfter", data.cachedAfter);
 		set(args, "cachedWithin", data.cachedWithin);
 		if (data.columnName != null) set(args, "columnName", data.columnName.getString());
 		set(args, KeyConstants._datasource, data.rawDatasource);
 		set(args, "dbtype", data.dbtype);
 		set(args, KeyConstants._debug, data.debug);
-		set(args, "lazy", data.lazy);
 		if (data.maxrows >= 0) set(args, "maxrows", data.maxrows);
 		set(args, KeyConstants._name, data.name);
 		set(args, "ormoptions", data.ormoptions);

@@ -505,7 +505,6 @@ Specifies how Lucee stores session variables:
 			<name>queryListener</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<status>hidden</status>
 			<description></description>
 		</attribute>
 		<attribute>
@@ -760,7 +759,6 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 		<attribute>
 			<type>boolean</type>
 			<name>enableNULLSupport</name>
-			<status>hidden</status>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description></description>
