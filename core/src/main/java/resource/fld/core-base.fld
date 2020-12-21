@@ -1314,6 +1314,57 @@ sort direction:
 		</return>
 	</function>
 	
+	<!-- ArraySplice -->
+	<function>
+		<name>ArraySplice</name>
+		<class>lucee.runtime.functions.arrays.ArraySplice</class>
+		<member-name>splice</member-name>
+		<keywords>array</keywords>
+		<description>Modifies an array by removing elements and adding new elements. 
+			It starts from the index, removes as many elements as specified by elementCountForRemoval, 
+			and puts the replacements starting from index position.
+			Return the removed elements.
+		</description>
+		<argument>
+			<name>array</name>
+			<type>array</type>
+			<required>Yes</required>
+			<description>the array to modify.</description>
+		</argument>
+		<argument>
+			<name>index</name>
+			<alias>offset</alias>
+			<type>numeric</type>
+			<required>Yes</required>
+			<description>The position at which to start modifying the array. If the index is greater than the length of the array,
+				the index is set to the length of the array. 
+				If the index is less than 1, the index is set to 1.
+			</description>
+		</argument>
+		<argument>
+			<name>length</name>
+			<alias>len,elementCountForRemoval</alias>
+			<type>numeric</type>
+			<required>No</required>
+			<description>The number of elements to be removed starting with the start index.
+				If length is 0 or smaller than -1, no elements get removed.
+				if length is -1 or GTE than array length-index, all elements after index get removed.
+			</description>
+		</argument>
+		<argument>
+			<name>replacements</name>
+			<alias>replacement</alias>
+			<type>array</type>
+			<required>No</required>
+			<description>
+				Array to be added to the array starting with index.
+			</description>
+		</argument>
+		<return>
+			<type>array</type>
+		</return>
+	</function>
+	
 	<!-- arraySum -->
 	<function>
 		<name>arraySum</name>
