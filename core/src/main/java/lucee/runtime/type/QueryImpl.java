@@ -673,16 +673,16 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	 * @param arrColumns columns for the resultset
 	 * @param rowNumber count of rows to generate (empty fields)
 	 * @param name
-	 * @throws DatabaseException
+	 * @throws PageException
 	 */
-	public QueryImpl(Array arrColumns, int rowNumber, String name) throws DatabaseException {
+	public QueryImpl(Array arrColumns, int rowNumber, String name) throws PageException {
 		this.name = name;
 		columncount = arrColumns.size();
 		recordcount = rowNumber;
 		columnNames = new Collection.Key[columncount];
 		columns = new QueryColumnImpl[columncount];
 		for (int i = 0; i < columncount; i++) {
-			columnNames[i] = KeyImpl.init(arrColumns.get(i + 1, "").toString().trim());
+			columnNames[i] = KeyImpl.init(Caster.toString(arrColumns.get(i + 1, "")).trim());
 			columns[i] = new QueryColumnImpl(this, columnNames[i], Types.OTHER, recordcount);
 		}
 		validateColumnNames(columnNames);
