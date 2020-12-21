@@ -91,11 +91,16 @@ isInstalled=installed.count() GT 0;
 <cfelse>
 	<cfset app=installed>
 </cfif>
-
+<cfset lasProvider=(app.provider?:"")=="local" || findNoCase("lucee.org",app.provider?:'') GT 0>
 <cfoutput>
 	<!--- title and description --->
 	<div class="modheader">
 		<h2>#app.name# (<cfif isInstalled>#stText.ext.installed#<cfelseif isServerInstalled>#stText.ext.installedServer#<cfelse>#stText.ext.notInstalled#</cfif>)</h2>
+		<cfif !lasProvider>
+		<div class="warning" style="color:##C93">This extension is not provided by the Lucee Association Switzerland and does not neccessarily follow our guidelines. This extension is not reviewed by the Lucee Association Switzerland.
+		For any sugestion to improve the Extension or any issue you encounter, please contact the author of the extension directly.</div>
+		</cfif>
+
 		<cfif !isInstalled && isServerInstalled><div class="error">#stText.ext.installedServerDesc#</div></cfif>
 
 		#replace(replace(trim(app.description),'<','&lt;',"all"), chr(10),"<br />","all")#
@@ -111,8 +116,9 @@ isInstalled=installed.count() GT 0;
 				<td valign="top" style="width:200px;">
 					<cfif !isNull(app.image)>
 						<cfset dn=getDumpNail(app.image,400,400)>
+
 						<div style="width:100%;overflow:auto;">
-							<img src="#dn#" alt="#stText.ext.extThumbnail#" />
+							<img width="400" src="#dn#" alt="#stText.ext.extThumbnail#" />
 						</div>
 					</cfif>
 				</td>
@@ -181,7 +187,7 @@ isInstalled=installed.count() GT 0;
 							<cfif !isNull(provider.title) && len(trim(provider.title))>
 								<tr>
 									<th scope="row">#stText.ext.provider#</th>
-									<td><cfif !isNull(provider.url)><a href="#provider.url#" target="_blank"></cfif>#provider.title#<cfif !isNull(provider.url)></a></cfif></td>
+									<td><cfif !isNull(provider.url)><a href="#provider.url#" target="_blank" rel="noopener"></cfif>#provider.title#<cfif !isNull(provider.url)></a></cfif></td>
 								</tr>
 							</cfif>
 							<!--- bundles --->
@@ -196,6 +202,15 @@ isInstalled=installed.count() GT 0;
 									</td>
 								</tr>
 							</cfif>
+							<!--- extension urls --->
+							<cfloop list="projectUrl,sourceUrl,documentionUrl" item="u">							
+								<cfif !isNull(app[u]) && len(trim(app[u]))>
+									<tr>
+										<th scope="row">#stText.ext[u]#</th>
+										<td><a href="#app[u]#" target="_blank" rel="noopener">#app.u#</a></td>
+									</tr>
+								</cfif>
+							</cfloop>
 							
 						</tbody>
 					</table>

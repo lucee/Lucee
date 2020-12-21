@@ -18,6 +18,7 @@
  **/
 package lucee.runtime.sql.exp;
 
+import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Query;
@@ -27,16 +28,20 @@ public interface Column extends Expression {
 
 	public Collection.Key getColumn();
 
+	public Collection.Key getColumnAlias();
+
 	public String getTable();
 
 	public boolean hasBracked();
 
 	public void hasBracked(boolean b);
 
+	public boolean isParam();
+
 	public int getColumnIndex();
 
-	public Object getValue(Query qry, int row) throws PageException;
+	public Object getValue(PageContext pc, Query qry, int row) throws PageException;
 
-	public Object getValue(Query qry, int row, Object defaultValue);
+	public Object getValue(PageContext pc, Query qry, int row, Object defaultValue);
 
 }

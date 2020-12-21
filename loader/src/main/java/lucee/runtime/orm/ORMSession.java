@@ -79,7 +79,7 @@ public interface ORMSession {
 	public void reload(PageContext pc, Object obj) throws PageException;
 
 	/**
-	 * creates a entity matching the given name
+	 * creates an entity matching the given name
 	 * 
 	 * @param entityName
 	 * @return
@@ -116,7 +116,7 @@ public interface ORMSession {
 	public void clear(PageContext pc, String dataSource) throws PageException;
 
 	/**
-	 * load and return a Object that match given filter, if there is more than one Object matching the
+	 * load and return an Object that match given filter, if there is more than one Object matching the
 	 * filter, only the first Object is returned
 	 * 
 	 * @param name
@@ -128,7 +128,7 @@ public interface ORMSession {
 	public Query toQuery(PageContext pc, Object obj, String name) throws PageException;
 
 	/**
-	 * load and return a Object that match given id, if there is more than one Object matching the id,
+	 * load and return an Object that match given id, if there is more than one Object matching the id,
 	 * only the first Object is returned
 	 * 
 	 * @param name
@@ -139,7 +139,7 @@ public interface ORMSession {
 	// public Component load(PageContext pc, String name, Object id) throws PageException; // FUTURE ADD
 
 	/**
-	 * load and return a array of Objects matching given filter
+	 * load and return an Array of Objects matching given filter
 	 * 
 	 * @param name
 	 * @param filter
@@ -148,7 +148,7 @@ public interface ORMSession {
 	public Array loadAsArray(PageContext pc, String name, Struct filter) throws PageException;
 
 	/**
-	 * load and return a array of Objects matching given filter
+	 * load and return an Array of Objects matching given filter
 	 * 
 	 * @param name
 	 * @param filter
@@ -169,7 +169,7 @@ public interface ORMSession {
 	public Array loadAsArray(PageContext pc, String name, Struct filter, Struct options, String order) throws PageException;
 
 	/**
-	 * load and return a array of Objects matching given id
+	 * load and return an Array of Objects matching given id
 	 * 
 	 * @param name
 	 * @param id
@@ -187,7 +187,7 @@ public interface ORMSession {
 	public Array loadAsArray(PageContext pc, String name, String id, String order) throws PageException;
 
 	/**
-	 * load and return a array of Objects matching given sampleEntity
+	 * load and return an Array of Objects matching given sampleEntity
 	 * 
 	 * @param pc
 	 * @param obj
@@ -195,7 +195,7 @@ public interface ORMSession {
 	public Array loadByExampleAsArray(PageContext pc, Object obj) throws PageException;
 
 	/**
-	 * load and return a Object that match given sampleEntity, if there is more than one Object matching
+	 * load and return an Object that match given sampleEntity, if there is more than one Object matching
 	 * the id, only the first Object is returned
 	 * 
 	 * @param pc

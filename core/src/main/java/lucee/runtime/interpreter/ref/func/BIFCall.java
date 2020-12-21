@@ -145,14 +145,14 @@ public final class BIFCall extends RefSupport implements Ref {
 	private VT getMatchingValueAndType(FunctionLibFunctionArg flfa, FunctionValue[] fvalues, String[] names) throws ExpressionException {
 		String flfan = flfa.getName();
 
-		// first search if a argument match
+		// first search if an argument match
 		for (int i = 0; i < names.length; i++) {
 			if (names[i] != null && names[i].equalsIgnoreCase(flfan)) {
 				return new VT(fvalues[i].getValue(), flfa.getTypeAsString(), i);
 			}
 		}
 
-		// then check if a alias match
+		// then check if an alias match
 		String alias = flfa.getAlias();
 		if (!StringUtil.isEmpty(alias)) {
 			for (int i = 0; i < names.length; i++) {

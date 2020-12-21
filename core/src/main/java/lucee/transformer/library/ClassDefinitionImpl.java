@@ -33,6 +33,7 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.config.Identification;
 import lucee.runtime.db.ClassDefinition;
+import lucee.runtime.listener.JavaSettingsImpl;
 import lucee.runtime.osgi.OSGiUtil;
 
 public class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externalizable {
@@ -105,7 +106,7 @@ public class ClassDefinitionImpl<T> implements ClassDefinition<T>, Externalizabl
 		// regular class definition
 		if (name == null) return clazz = ClassUtil.loadClass(className);
 
-		return clazz = ClassUtil.loadClassByBundle(className, name, version, id);
+		return clazz = ClassUtil.loadClassByBundle(className, name, version, id, JavaSettingsImpl.getBundleDirectories(null));
 	}
 
 	@Override

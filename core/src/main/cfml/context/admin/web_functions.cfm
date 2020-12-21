@@ -1,13 +1,13 @@
 <cfscript>
 function ComponentListPackageAsStruct(string package, cfcNames=structnew("linked")){
 	try{
-		local._cfcNames=ComponentListPackage(package);
-		loop array="#_cfcNames#" index="i" item="el" {
-			cfcNames[el]=package&"."&el;
+		arguments._cfcNames=ComponentListPackage(arguments.package);
+		loop array="#arguments._cfcNames#" index="local.i" item="local.el" {
+			arguments.cfcNames[local.el]=arguments.package&"."& local.el;
 		}
 	}
 	catch(e){}
-	return cfcNames;
+	return arguments.cfcNames;
 
 }
 
@@ -64,7 +64,7 @@ function printError(error,boolean longversion=false) {
 				loop array="#error.TagContext#" index="local.i" item="local.tc" {
 					writeOutput('<br><span class="comment">');
 
-					if(i==1) writeOutput('error occured in ');
+					if(i==1) writeOutput('error occurred in ');
 					else writeOutput('called by ');
 					writeOutput(error.TagContext[i].template&':'&error.TagContext[i].line&"</span>");
 					//writeOutput('<br>');
@@ -168,7 +168,7 @@ function toStructInterval(raw) {
 
 	if(interval.second GTE 60) {
 		interval.minute=int(interval.second/60);
-		_minute=interval.minute*60;
+		var _minute=interval.minute*60;
 		interval.second=interval.second-_minute;
 	}
 	return interval;
@@ -176,7 +176,7 @@ function toStructInterval(raw) {
 
 function cut(_str,max) {
 	if(not isDefined('arguments._str') or len(arguments._str) EQ 0) return "&nbsp;";
-	if(len(arguments._str) GT arguments.max) return left(arguments._str,max)&"...";
+	if(len(arguments._str) GT arguments.max) return left(arguments._str, arguments.max)&"...";
 	return arguments._str;
 }
 

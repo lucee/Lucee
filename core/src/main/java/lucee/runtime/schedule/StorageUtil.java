@@ -162,12 +162,6 @@ public final class StorageUtil {
 	 * @param attributeName Name of the Attribute to read
 	 * @return Attribute Value
 	 */
-	/*
-	 * public File toFile(Element el,String attributeName) { String attributeValue =
-	 * el.getAttribute(attributeName); if(attributeValue==null || attributeValue.trim().length()==0)
-	 * return null; return new File(attributeValue); }
-	 */
-
 	public Resource toResource(Config config, Element el, String attributeName) {
 		String attributeValue = el.getAttribute(attributeName);
 		if (attributeValue == null || attributeValue.trim().length() == 0) return null;
@@ -200,7 +194,7 @@ public final class StorageUtil {
 	}
 
 	/**
-	 * reads a XML Element Attribute ans cast it to a int value
+	 * reads a XML Element Attribute ans cast it to an int value
 	 * 
 	 * @param el XML Element to read Attribute from it
 	 * @param attributeName Name of the Attribute to read
@@ -215,7 +209,7 @@ public final class StorageUtil {
 	}
 
 	/**
-	 * reads a XML Element Attribute ans cast it to a int value
+	 * reads a XML Element Attribute ans cast it to an int value
 	 * 
 	 * @param el XML Element to read Attribute from it
 	 * @param attributeName Name of the Attribute to read
@@ -390,7 +384,7 @@ public final class StorageUtil {
 	}
 
 	/**
-	 * sets a int value to a XML Element
+	 * sets an int value to a XML Element
 	 * 
 	 * @param el Element to set value on it
 	 * @param key key to set

@@ -22,7 +22,7 @@ public class ImageUtil {
 		try {
 			Config config = ThreadLocalPageContext.getConfig();
 			Identification id = config == null ? null : config.getIdentification();
-			return ClassUtil.loadClassByBundle("org.lucee.extension.image.Image", "image.extension", (Version) null, id);
+			return ClassUtil.loadClassByBundle("org.lucee.extension.image.Image", "image.extension", (Version) null, id, null);
 		}
 		catch (Exception e) {
 			return null;
@@ -33,7 +33,7 @@ public class ImageUtil {
 		try {
 			Config config = ThreadLocalPageContext.getConfig();
 			Identification id = config == null ? null : config.getIdentification();
-			return ClassUtil.loadClassByBundle("org.lucee.extension.image.ImageUtil", "image.extension", (Version) null, id);
+			return ClassUtil.loadClassByBundle("org.lucee.extension.image.ImageUtil", "image.extension", (Version) null, id, null);
 		}
 		catch (Exception e) {
 			return null;
@@ -60,7 +60,7 @@ public class ImageUtil {
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
-		throw new ApplicationException("cannot convert Object to a Image, you need to install the Image Extension to do so.");
+		throw new ApplicationException("cannot convert Object to an Image, you need to install the Image Extension to do so.");
 	}
 
 	public static byte[] getImageBytes(Object o, String format) throws PageException {

@@ -46,7 +46,7 @@ public class PasswordImpl implements Password {
 		this.origin = origin;
 	}
 
-	private PasswordImpl(int origin, String rawPassword, String salt) {
+	PasswordImpl(int origin, String rawPassword, String salt) {
 		this.rawPassword = rawPassword;
 		this.password = hash(rawPassword, salt);
 		this.salt = salt;
@@ -77,7 +77,7 @@ public class PasswordImpl implements Password {
 	@Override
 	public Password isEqual(Config config, String other) {
 
-		// a already hashed password that matches
+		// an already hashed password that matches
 		if (password.equals(other)) return this;
 
 		// current password is only hashed
@@ -158,6 +158,22 @@ public class PasswordImpl implements Password {
 		return null;
 	}
 
+	public static boolean hasPassword(Element el) {
+		if (el == null) return false;
+
+		// first we look for the hashed and salted password
+		if (!StringUtil.isEmpty(el.getAttribute("hspw"), true)) return el.getAttribute("salt") != null;
+
+		// fall back to password that is hashed but not salted
+		if (!StringUtil.isEmpty(el.getAttribute("pw"), true)) return true;
+
+		// fall back to encrypted password
+		String pwEnc = el.getAttribute("password");
+		if (!StringUtil.isEmpty(pwEnc, true)) return true;
+
+		return false;
+	}
+
 	public static Password writeToXML(Element el, String passwordRaw, boolean isDefault) {
 		// salt
 		String salt = getSalt(el);
@@ -204,12 +220,12 @@ public class PasswordImpl implements Password {
 		writeToXML(root, (Password) null, isDefault);
 	}
 
-	public static Password updatePasswordIfNecessary(ConfigImpl config, Password passwordOld, String strPasswordNew) {
+	public static Password updatePasswordIfNecessary(ConfigPro config, Password passwordOld, String strPasswordNew) {
 
 		try {
 			// is the server context default password used
 			boolean defPass = false;
-			if (config instanceof ConfigWebImpl) defPass = ((ConfigWebImpl) config).isDefaultPassword();
+			if (config instanceof ConfigWebPro) defPass = ((ConfigWebPro) config).isDefaultPassword();
 
 			int origin = config.getPasswordOrigin();
 
@@ -245,7 +261,7 @@ public class PasswordImpl implements Password {
 	 * @throws PageException
 	 * @throws BundleException
 	 */
-	public static void updatePassword(ConfigImpl config, String strPasswordOld, String strPasswordNew) throws SAXException, IOException, PageException, BundleException {
+	public static void updatePassword(ConfigPro config, String strPasswordOld, String strPasswordNew) throws SAXException, IOException, PageException, BundleException {
 
 		// old salt
 		int pwType = config.getPasswordType(); // get type from password
@@ -267,9 +283,9 @@ public class PasswordImpl implements Password {
 
 	}
 
-	public static void updatePassword(ConfigImpl config, Password passwordOld, Password passwordNew) throws SAXException, IOException, PageException, BundleException {
+	public static void updatePassword(ConfigPro config, Password passwordOld, Password passwordNew) throws SAXException, IOException, PageException, BundleException {
 		if (!config.hasPassword()) {
-			config.setPassword(passwordNew);
+			((ConfigImpl) config).setPassword(passwordNew);
 			XMLConfigAdmin admin = XMLConfigAdmin.newInstance(config, passwordNew);
 			admin.setPassword(passwordNew);
 			admin.storeAndReload();
@@ -285,7 +301,7 @@ public class PasswordImpl implements Password {
 
 	public static Password passwordToCompare(ConfigWeb cw, boolean server, String rawPassword) {
 		if (StringUtil.isEmpty(rawPassword, true)) return null;
-		ConfigWebImpl cwi = (ConfigWebImpl) cw;
+		ConfigWebPro cwi = (ConfigWebPro) cw;
 		int pwType;
 		String pwSalt;
 		if (server) {

@@ -76,7 +76,7 @@ public class CFMLEngineWrapper implements CFMLEngine {
 	/**
 	 * constructor of the class
 	 * 
-	 * @param engine
+	 * @param engine engine to wrap
 	 */
 	public CFMLEngineWrapper(final CFMLEngine engine) {
 		this.engine = engine;
@@ -252,8 +252,8 @@ public class CFMLEngineWrapper implements CFMLEngine {
 	 * this interface is new to this class and not officially part of Lucee 3.x, do not use outside the
 	 * loader
 	 * 
-	 * @param other
-	 * @param checkReferenceEqualityOnly
+	 * @param other engine to compare
+	 * @param checkReferenceEqualityOnly check reference equality only
 	 * @return is equal to given engine
 	 */
 	public boolean equalTo(CFMLEngine other, final boolean checkReferenceEqualityOnly) {

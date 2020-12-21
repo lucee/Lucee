@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 
+import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -35,7 +36,6 @@ import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
-import lucee.commons.lang.ExceptionUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.engine.InfoImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -49,31 +49,37 @@ public abstract class XMLConfigFactory {
 	public static final int NEW_FRESH = 2;
 	public static final int NEW_FROM4 = 3;
 
-	public static UpdateInfo doNew(CFMLEngine engine, Resource contextDir, boolean readOnly) {
-		lucee.Info info = engine.getInfo();
+	public static UpdateInfo getNew(CFMLEngine engine, Resource contextDir, final boolean readOnly, UpdateInfo defaultValue) {
 		try {
-			String strOldVersion;
-			final Resource resOldVersion = contextDir.getRealResource("version");
-			String strNewVersion = info.getVersion() + "-" + info.getRealeaseTime();
-
-			// fresh install
-			if (!resOldVersion.exists()) {
-				if (!readOnly) {
-					resOldVersion.createNewFile();
-					IOUtil.write(resOldVersion, strNewVersion, SystemUtil.getCharset(), false);
-				}
-				return UpdateInfo.NEW_FRESH;
-			}
-			// changed version
-			else if (!(strOldVersion = IOUtil.toString(resOldVersion, SystemUtil.getCharset())).equals(strNewVersion)) {
-				if (!readOnly) IOUtil.write(resOldVersion, strNewVersion, SystemUtil.getCharset(), false);
-				Version oldVersion = OSGiUtil.toVersion(strOldVersion);
-
-				return new UpdateInfo(oldVersion, oldVersion.getMajor() < 5 ? NEW_FROM4 : NEW_MINOR);
-			}
+			return getNew(engine, contextDir, readOnly);
 		}
-		catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
+		catch (Exception e) {
+			return defaultValue;
+		}
+	}
+
+	public static UpdateInfo getNew(CFMLEngine engine, Resource contextDir, final boolean readOnly) throws IOException, BundleException {
+		lucee.Info info = engine.getInfo();
+
+		String strOldVersion;
+		final Resource resOldVersion = contextDir.getRealResource("version");
+		String strNewVersion = info.getVersion() + "-" + info.getRealeaseTime();
+		// fresh install
+		if (!resOldVersion.exists()) {
+			if (!readOnly) {
+				resOldVersion.createNewFile();
+				IOUtil.write(resOldVersion, strNewVersion, SystemUtil.getCharset(), false);
+			}
+			return UpdateInfo.NEW_FRESH;
+		}
+		// changed version
+		else if (!(strOldVersion = IOUtil.toString(resOldVersion, SystemUtil.getCharset())).equals(strNewVersion)) {
+			if (!readOnly) {
+				IOUtil.write(resOldVersion, strNewVersion, SystemUtil.getCharset(), false);
+			}
+			Version oldVersion = OSGiUtil.toVersion(strOldVersion);
+
+			return new UpdateInfo(oldVersion, oldVersion.getMajor() < 5 ? NEW_FROM4 : NEW_MINOR);
 		}
 		return UpdateInfo.NEW_NONE;
 	}
@@ -106,7 +112,7 @@ public abstract class XMLConfigFactory {
 
 	}
 
-	public static void updateRequiredExtension(CFMLEngine engine, Resource contextDir) {
+	public static void updateRequiredExtension(CFMLEngine engine, Resource contextDir, Log log) {
 		lucee.Info info = engine.getInfo();
 		try {
 			Resource res = contextDir.getRealResource("required-extension");
@@ -115,10 +121,12 @@ public abstract class XMLConfigFactory {
 			IOUtil.write(res, str, SystemUtil.getCharset(), false);
 
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+			if (log != null) log.error("required-extension", e);
+		}
 	}
 
-	public static boolean isRequiredExtension(CFMLEngine engine, Resource contextDir) {
+	public static boolean isRequiredExtension(CFMLEngine engine, Resource contextDir, Log log) {
 		lucee.Info info = engine.getInfo();
 		try {
 			Resource res = contextDir.getRealResource("required-extension");
@@ -128,7 +136,9 @@ public abstract class XMLConfigFactory {
 			String currVersion = info.getVersion() + "-" + info.getRealeaseTime();
 			return writtenVersion.equals(currVersion);
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+			if (log != null) log.error("required-extension", e);
+		}
 		return false;
 	}
 
@@ -146,7 +156,7 @@ public abstract class XMLConfigFactory {
 			return _loadDocument(is = IOUtil.toBufferedInputStream(xmlFile.getInputStream()));
 		}
 		finally {
-			IOUtil.closeEL(is);
+			IOUtil.close(is);
 		}
 	}
 
@@ -157,14 +167,14 @@ public abstract class XMLConfigFactory {
 				return _loadDocument(is = IOUtil.toBufferedInputStream(configFile.getInputStream()));
 			}
 			finally {
-				IOUtil.closeEL(is);
+				IOUtil.close(is);
 			}
 		}
 		catch (Exception e) {
 			// rename buggy config files
 			if (configFile.exists()) {
 				LogUtil.log(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, XMLConfigFactory.class.getName(),
-						"config file " + configFile + " was not valid and has been replaced");
+						"Config file [" + configFile + "] was not valid and has been replaced");
 				LogUtil.log(ThreadLocalPageContext.getConfig(), XMLConfigFactory.class.getName(), e);
 				int count = 1;
 				Resource bugFile;
@@ -205,7 +215,7 @@ public abstract class XMLConfigFactory {
 	}
 
 	/**
-	 * return first direct child Elements of a Element with given Name
+	 * return first direct child Elements of an Element with given Name
 	 * 
 	 * @param parent
 	 * @param nodeName
@@ -241,7 +251,7 @@ public abstract class XMLConfigFactory {
 	}
 
 	/**
-	 * return all direct child Elements of a Element with given Name
+	 * return all direct child Elements of an Element with given Name
 	 * 
 	 * @param parent
 	 * @param nodeName
@@ -271,11 +281,11 @@ public abstract class XMLConfigFactory {
 	 * @throws IOException
 	 */
 	static void createFileFromResource(String resource, Resource file, String password) throws IOException {
-		LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, XMLConfigFactory.class.getName(), "write file:" + file);
+		LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, XMLConfigFactory.class.getName(), "Write file: [" + file +"]");
 		if (file.exists()) file.delete();
 
 		InputStream is = InfoImpl.class.getResourceAsStream(resource);
-		if (is == null) throw new IOException("file [" + resource + "] does not exist.");
+		if (is == null) throw new IOException("File [" + resource + "] does not exist.");
 		file.createNewFile();
 		IOUtil.copy(is, file, true);
 	}
@@ -324,10 +334,11 @@ public abstract class XMLConfigFactory {
 	static void delete(Resource dbDir, String name) {
 		Resource f = dbDir.getRealResource(name);
 		if (f.exists()) {
-			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, XMLConfigFactory.class.getName(), "delete file:" + f);
+			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, XMLConfigFactory.class.getName(), "Delete file: [" + f +"]");
 
 			f.delete();
 		}
 
 	}
+
 }

@@ -20,17 +20,20 @@ package lucee.runtime.db;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.lang.ref.SoftReference;
+import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.SQLException;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.commons.collections4.map.ReferenceMap;
 import org.osgi.framework.BundleException;
 
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.ClassException;
+import lucee.commons.lang.ClassUtil;
 import lucee.commons.sql.SQLUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -40,11 +43,13 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 
 	private static final long serialVersionUID = -9111025519905149021L;
 	private static final int NETWORK_TIMEOUT_IN_SECONDS = 10;
+	private static int defaultTransactionIsolation = -1;
 
 	private final boolean blob;
 	private final boolean clob;
 	private final int connectionLimit;
-	private final int connectionTimeout;
+	private final int idleTimeout;
+	private final int liveTimeout;
 	private final long metaCacheTimeout;
 	private final TimeZone timezone;
 	private final String name;
@@ -56,22 +61,24 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 	private final String password;
 	private final ClassDefinition cd;
 
-	private transient Map<String, ProcMetaCollection> procedureColumnCache;
+	private transient Map<String, SoftReference<ProcMetaCollection>> procedureColumnCache;
 	private transient Driver driver;
 	private transient Log log;
 	private final TagListener listener;
 	private final boolean requestExclusive;
 	private final boolean literalTimestampWithTSOffset;
+	private final boolean alwaysResetConnections;
 
 	public DataSourceSupport(Config config, String name, ClassDefinition cd, String username, String password, TagListener listener, boolean blob, boolean clob,
-			int connectionLimit, int connectionTimeout, long metaCacheTimeout, TimeZone timezone, int allow, boolean storage, boolean readOnly, boolean validate,
-			boolean requestExclusive, boolean literalTimestampWithTSOffset, Log log) {
+			int connectionLimit, int idleTimeout, int liveTimeout, long metaCacheTimeout, TimeZone timezone, int allow, boolean storage, boolean readOnly, boolean validate,
+			boolean requestExclusive, boolean alwaysResetConnections, boolean literalTimestampWithTSOffset, Log log) {
 		this.name = name;
 		this.cd = cd;// _initializeCD(null, cd, config);
 		this.blob = blob;
 		this.clob = clob;
 		this.connectionLimit = connectionLimit;
-		this.connectionTimeout = connectionTimeout;
+		this.idleTimeout = idleTimeout;
+		this.liveTimeout = liveTimeout;
 		this.metaCacheTimeout = metaCacheTimeout;
 		this.timezone = timezone;
 		this.allow = allow;
@@ -82,6 +89,7 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 		this.listener = listener;
 		this.validate = validate;
 		this.requestExclusive = requestExclusive;
+		this.alwaysResetConnections = alwaysResetConnections;
 		this.log = log;
 		this.literalTimestampWithTSOffset = literalTimestampWithTSOffset;
 	}
@@ -103,26 +111,64 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 		catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+		catch (IllegalArgumentException e) {
+			throw new RuntimeException(e);
+		}
+		catch (InvocationTargetException e) {
+			throw new RuntimeException(e.getTargetException());
+		}
+		catch (NoSuchMethodException e) {
+			throw new RuntimeException(e);
+		}
+		catch (SecurityException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	public static Connection _getConnection(Config config, Driver driver, String connStrTrans, String user, String pass) throws SQLException {
 		java.util.Properties props = new java.util.Properties();
 		if (user != null) props.put("user", user);
 		if (pass != null) props.put("password", pass);
+
+		if (defaultTransactionIsolation == -1) {
+			Connection c = driver.connect(connStrTrans, props);
+			defaultTransactionIsolation = getValidTransactionIsolation(c, Connection.TRANSACTION_READ_COMMITTED);
+			return c;
+		}
 		return driver.connect(connStrTrans, props);
 	}
 
-	private Driver initialize(Config config) throws BundleException, InstantiationException, IllegalAccessException, IOException {
+	private static int getValidTransactionIsolation(Connection conn, int defaultValue) {
+		try {
+			int transactionIsolation = conn.getTransactionIsolation();
+			if (transactionIsolation == Connection.TRANSACTION_READ_COMMITTED) return Connection.TRANSACTION_READ_COMMITTED;
+			if (transactionIsolation == Connection.TRANSACTION_SERIALIZABLE) return Connection.TRANSACTION_SERIALIZABLE;
+			if (SQLUtil.isOracle(conn)) return defaultValue;
+			if (transactionIsolation == Connection.TRANSACTION_READ_UNCOMMITTED) return Connection.TRANSACTION_READ_UNCOMMITTED;
+			if (transactionIsolation == Connection.TRANSACTION_REPEATABLE_READ) return Connection.TRANSACTION_REPEATABLE_READ;
+		}
+		catch (Exception e) {}
+		return defaultValue;
+	}
+
+	@Override
+	public int getDefaultTransactionIsolation() {
+		return defaultTransactionIsolation;
+	}
+
+	private Driver initialize(Config config) throws BundleException, InstantiationException, IllegalAccessException, IOException, IllegalArgumentException,
+			InvocationTargetException, NoSuchMethodException, SecurityException {
 		if (driver == null) {
 			return driver = _initializeDriver(cd, config);
 		}
 		return driver;
 	}
 
-	private static Driver _initializeDriver(ClassDefinition cd, Config config) throws ClassException, BundleException, InstantiationException, IllegalAccessException {
+	private static Driver _initializeDriver(ClassDefinition cd, Config config) throws ClassException, BundleException, InstantiationException, IllegalAccessException,
+			IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		// load the class
-		Class clazz = cd.getClazz();
-		return (Driver) clazz.newInstance();
+		Driver d = (Driver) ClassUtil.newInstance(cd.getClazz());
+		return d;
 	}
 
 	public static void verify(Config config, ClassDefinition cd, String connStrTranslated, String user, String pass) throws ClassException, BundleException, SQLException {
@@ -137,6 +183,18 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 		catch (IllegalAccessException e) {
 			throw new RuntimeException(e);
 		}
+		catch (IllegalArgumentException e) {
+			throw new RuntimeException(e);
+		}
+		catch (InvocationTargetException e) {
+			throw new RuntimeException(e.getTargetException());
+		}
+		catch (NoSuchMethodException e) {
+			throw new RuntimeException(e);
+		}
+		catch (SecurityException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override
@@ -144,8 +202,8 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 		return cloneReadOnly();
 	}
 
-	public Map<String, ProcMetaCollection> getProcedureColumnCache() {
-		if (procedureColumnCache == null) procedureColumnCache = new ReferenceMap<String, ProcMetaCollection>();
+	public Map<String, SoftReference<ProcMetaCollection>> getProcedureColumnCache() {
+		if (procedureColumnCache == null) procedureColumnCache = new ConcurrentHashMap<String, SoftReference<ProcMetaCollection>>();
 		return procedureColumnCache;
 	}
 
@@ -166,7 +224,17 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 
 	@Override
 	public final int getConnectionTimeout() {
-		return connectionTimeout;
+		return idleTimeout;
+	}
+
+	@Override
+	public final int getIdleTimeout() {
+		return idleTimeout;
+	}
+
+	@Override
+	public final int getLiveTimeout() {
+		return liveTimeout;
 	}
 
 	@Override
@@ -234,6 +302,11 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 		return requestExclusive;
 	}
 
+	@Override
+	public boolean isAlwaysResetConnections() {
+		return alwaysResetConnections;
+	}
+
 	// FUTURE add to interface
 	public final boolean getLiteralTimestampWithTSOffset() {
 		return literalTimestampWithTSOffset;
@@ -246,6 +319,7 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 		return log;
 	}
 
+	@Override
 	public TagListener getListener() { // FUTURE may add to interface
 		return listener;
 	}
@@ -267,10 +341,10 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 	public String id() {
 
 		return new StringBuilder(getConnectionStringTranslated()).append(':').append(getConnectionLimit()).append(':').append(getConnectionTimeout()).append(':')
-				.append(getMetaCacheTimeout()).append(':').append(getName().toLowerCase()).append(':').append(getUsername()).append(':').append(getPassword()).append(':')
-				.append(validate()).append(':').append(cd.toString()).append(':').append((getTimeZone() == null ? "null" : getTimeZone().getID())).append(':').append(isBlob())
-				.append(':').append(isClob()).append(':').append(isReadOnly()).append(':').append(isStorage()).append(':').append(isRequestExclusive()).toString();
-
+				.append(getLiveTimeout()).append(':').append(getMetaCacheTimeout()).append(':').append(getName().toLowerCase()).append(':').append(getUsername()).append(':')
+				.append(getPassword()).append(':').append(validate()).append(':').append(cd.toString()).append(':').append((getTimeZone() == null ? "null" : getTimeZone().getID()))
+				.append(':').append(isBlob()).append(':').append(isClob()).append(':').append(isReadOnly()).append(':').append(isStorage()).append(':').append(isRequestExclusive())
+				.append(':').append(isAlwaysResetConnections()).toString();
 	}
 
 	@Override

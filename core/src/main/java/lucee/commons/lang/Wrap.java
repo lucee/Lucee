@@ -19,7 +19,7 @@
 package lucee.commons.lang;
 
 /**
- * Wras a Object
+ * Wraps an Object
  */
 public final class Wrap {
 

@@ -79,7 +79,7 @@ public class MultiPartResponseUtils {
 		Struct fileStruct = new StructImpl();
 		fileStruct.set(KeyConstants._content, baos.toByteArray());
 		fileStruct.set(KeyConstants._headers, headers);
-		IOUtil.closeEL(baos);
+		IOUtil.close(baos);
 		return fileStruct;
 	}
 

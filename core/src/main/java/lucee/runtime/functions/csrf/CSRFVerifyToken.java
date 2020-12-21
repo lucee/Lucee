@@ -31,8 +31,6 @@ public class CSRFVerifyToken implements Function {
 	}
 
 	public static boolean call(PageContext pc, String token, String key) throws PageException {
-		if (key == null) key = "";
-
 		return CSRFGenerateToken.getStorageScope(pc).verifyToken(token, key);
 	}
 }

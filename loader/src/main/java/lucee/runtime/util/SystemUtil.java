@@ -122,7 +122,7 @@ public interface SystemUtil {
 	public Resource getTempDirectory() throws IOException;
 
 	/**
-	 * returns the a unique temp file (with no auto delete)
+	 * returns a unique temp file (with no auto delete)
 	 * 
 	 * @param extension
 	 * @return temp directory

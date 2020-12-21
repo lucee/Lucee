@@ -95,7 +95,7 @@ public final class HSQLUtil {
 	/**
 	 * return all invoked tables by a sql statement
 	 * 
-	 * @return invoked tables in a ArrayList
+	 * @return invoked tables in an ArrayList
 	 * @throws ParseException
 	 */
 	public Set<String> getInvokedTables() throws ParseException {

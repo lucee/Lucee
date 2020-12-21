@@ -31,6 +31,7 @@ public class NumberUtil {
 	}
 
 	public static int hexToInt(String s) throws ExpressionException {
+		s = s.toLowerCase();
 		int[] n = new int[s.length()];
 		char c;
 		int sum = 0;

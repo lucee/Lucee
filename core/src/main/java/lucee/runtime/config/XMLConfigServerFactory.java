@@ -96,7 +96,7 @@ public final class XMLConfigServerFactory extends XMLConfigFactory {
 
 		);
 
-		int iDoNew = doNew(engine, configDir, false).updateType;
+		int iDoNew = getNew(engine, configDir, false, UpdateInfo.NEW_NONE).updateType;
 		boolean doNew = iDoNew != NEW_NONE;
 
 		Resource configFile = configDir.getRealResource("lucee-server.xml");
@@ -139,14 +139,13 @@ public final class XMLConfigServerFactory extends XMLConfigFactory {
 	public static void reloadInstance(CFMLEngine engine, ConfigServerImpl configServer)
 			throws SAXException, ClassException, PageException, IOException, TagLibException, FunctionLibException, BundleException {
 		Resource configFile = configServer.getConfigFile();
-
 		if (configFile == null) return;
-		if (second(configServer.getLoadTime()) > second(configFile.lastModified())) return;
-		int iDoNew = doNew(engine, configServer.getConfigDir(), false).updateType;
+		if (second(configServer.getLoadTime()) > second(configFile.lastModified())) {
+			if (!configServer.getConfigDir().getRealResource("password.txt").isFile()) return;
+		}
+		int iDoNew = getNew(engine, configServer.getConfigDir(), false, UpdateInfo.NEW_NONE).updateType;
 		boolean doNew = iDoNew != NEW_NONE;
-
 		load(configServer, loadDocument(configFile), true, doNew);
-
 		((CFMLEngineImpl) ConfigWebUtil.getEngine(configServer)).onStart(configServer, true);
 	}
 
@@ -166,7 +165,7 @@ public final class XMLConfigServerFactory extends XMLConfigFactory {
 	 */
 	static void load(ConfigServerImpl configServer, Document doc, boolean isReload, boolean doNew)
 			throws ClassException, PageException, IOException, TagLibException, FunctionLibException, BundleException {
-		ConfigImpl.onlyFirstMatch = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.mapping.first", null), false);
+		ConfigBase.onlyFirstMatch = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.mapping.first", null), false);
 		XMLConfigWebFactory.load(null, configServer, doc, isReload, doNew);
 
 		loadLabel(configServer, doc);
@@ -196,7 +195,7 @@ public final class XMLConfigServerFactory extends XMLConfigFactory {
 
 		// Debug
 		Resource debug = adminDir.getRealResource("debug");
-		create("/resource/context/admin/debug/", new String[] { "Debug.cfc", "Field.cfc", "Group.cfc", "Classic.cfc", "Modern.cfc", "Comment.cfc" }, debug, doNew);
+		create("/resource/context/admin/debug/", new String[] { "Debug.cfc", "Field.cfc", "Group.cfc", "Classic.cfc", "Simple.cfc", "Modern.cfc", "Comment.cfc" }, debug, doNew);
 
 		// DB Drivers types
 		Resource dbDir = adminDir.getRealResource("dbdriver");
@@ -228,8 +227,9 @@ public final class XMLConfigServerFactory extends XMLConfigFactory {
 
 		// Gateway Drivers
 		Resource gDir = adminDir.getRealResource("gdriver");
-		create("/resource/context/admin/gdriver/", new String[] { "TaskGatewayDriver.cfc", "DirectoryWatcher.cfc", "MailWatcher.cfc", "Gateway.cfc", "Field.cfc", "Group.cfc" },
-				gDir, doNew);
+		create("/resource/context/admin/gdriver/",
+				new String[] { "TaskGatewayDriver.cfc", "AsynchronousEvents.cfc", "DirectoryWatcher.cfc", "MailWatcher.cfc", "Gateway.cfc", "Field.cfc", "Group.cfc" }, gDir,
+				doNew);
 
 		// Logging/appender
 		Resource app = adminDir.getRealResource("logging/appender");

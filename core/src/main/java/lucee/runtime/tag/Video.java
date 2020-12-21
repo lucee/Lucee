@@ -73,10 +73,10 @@ public class Video extends TagSupport {
 	public static final int EXECUTION_QUALITY = 0;
 	public static final int EXECUTION_PERFORMANCE = 1;
 	private static final Key SOURCE = KeyConstants._source;
-	private static final Key SOURCE1 = KeyImpl.intern("source1");
-	private static final Key SOURCE2 = KeyImpl.intern("source2");
-	private static final Key AUDIO = KeyImpl.intern("audio");
-	private static final Key VIDEO = KeyImpl.intern("video");
+	private static final Key SOURCE1 = KeyImpl.getInstance("source1");
+	private static final Key SOURCE2 = KeyImpl.getInstance("source2");
+	private static final Key AUDIO = KeyImpl.getInstance("audio");
+	private static final Key VIDEO = KeyImpl.getInstance("video");
 
 	private static VideoUtilImpl util = VideoUtilImpl.getInstance();
 
@@ -369,9 +369,9 @@ public class Video extends TagSupport {
 			os = out.getOutputStream();
 		}
 		catch (IOException ioe) {
-			IOUtil.closeEL(is1);
-			IOUtil.closeEL(is2);
-			IOUtil.closeEL(os);
+			IOUtil.close(is1);
+			IOUtil.close(is2);
+			IOUtil.close(os);
 			throw ioe;
 		}
 
@@ -380,9 +380,9 @@ public class Video extends TagSupport {
 			copy(is2, os);
 		}
 		finally {
-			IOUtil.closeEL(is1);
-			IOUtil.closeEL(is2);
-			IOUtil.closeEL(os);
+			IOUtil.close(is1);
+			IOUtil.close(is2);
+			IOUtil.close(os);
 		}
 	}
 

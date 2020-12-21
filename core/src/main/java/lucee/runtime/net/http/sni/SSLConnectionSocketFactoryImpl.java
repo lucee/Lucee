@@ -2,6 +2,10 @@ package lucee.runtime.net.http.sni;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
@@ -31,4 +35,13 @@ public class SSLConnectionSocketFactoryImpl extends SSLConnectionSocketFactory {
 		boolean enableSni = enableSniValue == null || enableSniValue;
 		return super.createLayeredSocket(socket, enableSni ? target : ENABLE_SNI, port, context);
 	}
+
+	public static List<String> getSupportedSslProtocols() {
+		try {
+			return Arrays.asList(SSLContext.getDefault().getSupportedSSLParameters().getProtocols());
+		}
+		catch (NoSuchAlgorithmException ex) {}
+		return Collections.emptyList();
+	}
+
 }

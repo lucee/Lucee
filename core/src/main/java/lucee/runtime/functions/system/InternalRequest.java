@@ -41,10 +41,10 @@ public class InternalRequest implements Function {
 
 	private static final long serialVersionUID = -8163856691035353577L;
 
-	public static final Key FILECONTENT_BYNARY = KeyImpl._const("filecontent_binary");
-	public static final Key STATUS_CODE = KeyImpl._const("status_code");
+	public static final Key FILECONTENT_BYNARY = KeyImpl.getInstance("filecontent_binary");
+	public static final Key STATUS_CODE = KeyImpl.getInstance("status_code");
 
-	private static final Key CONTENT_TYPE = KeyImpl._const("content-type");
+	private static final Key CONTENT_TYPE = KeyImpl.getInstance("content-type");
 
 	public static Struct call(final PageContext pc, String template, String method, Struct urls, Struct forms, Struct cookies, Struct headers, Object body, String strCharset,
 			boolean addToken) throws PageException {

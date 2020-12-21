@@ -37,8 +37,8 @@ import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
@@ -178,7 +178,7 @@ public final class UDFPropertiesImpl extends UDFPropertiesBase {
 			String relPathwV = ExternalizableUtil.readString(in);
 
 			PageContextImpl pc = (PageContextImpl) ThreadLocalPageContext.get();
-			ConfigWebImpl cw = (ConfigWebImpl) ThreadLocalPageContext.getConfig(pc);
+			ConfigWebPro cw = (ConfigWebPro) ThreadLocalPageContext.getConfig(pc);
 
 			ps = toPageSource(pc, cw, mapping, relPath, relPathwV);
 		}
@@ -221,8 +221,8 @@ public final class UDFPropertiesImpl extends UDFPropertiesBase {
 		Mapping m = getPageSource().getMapping();
 		Config c = m.getConfig();
 		SerMapping sm = null;
-		if (c instanceof ConfigWebImpl) {
-			ConfigWebImpl cwi = (ConfigWebImpl) c;
+		if (c instanceof ConfigWebPro) {
+			ConfigWebPro cwi = (ConfigWebPro) c;
 			if (m instanceof MappingImpl && cwi.isApplicationMapping(m)) {
 				sm = ((MappingImpl) m).toSerMapping();
 			}
@@ -344,7 +344,7 @@ public final class UDFPropertiesImpl extends UDFPropertiesBase {
 		return argumentsSet;
 	}
 
-	public static PageSource toPageSource(PageContextImpl pc, ConfigImpl config, Mapping mapping, String relPath, String relPathwV) throws PageException {
+	public static PageSource toPageSource(PageContextImpl pc, ConfigPro config, Mapping mapping, String relPath, String relPathwV) throws PageException {
 		if (mapping != null) return mapping.getPageSource(relPath);
 
 		PageSource ps = PageSourceImpl.best(config.getPageSources(pc, null, relPathwV, false, true, true));

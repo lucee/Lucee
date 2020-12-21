@@ -95,7 +95,6 @@ public final class Collection extends TagImpl {
 	public void setPath(String strPath) throws PageException {
 		if (strPath == null) return;
 		this.path = ResourceUtil.toResourceNotExisting(pageContext, strPath.trim());
-		// this.path=new File(path.toLowerCase().trim());
 
 		pageContext.getConfig().getSecurityManager().checkFileLocation(this.path);
 
@@ -103,10 +102,10 @@ public final class Collection extends TagImpl {
 			Resource parent = this.path.getParentResource();
 			if (parent != null && parent.exists()) this.path.mkdirs();
 			else {
-				throw new ApplicationException("attribute path of the tag collection must be a existing directory");
+				throw new ApplicationException("Attribute [path] of the tag [collection] must be an existing directory");
 			}
 		}
-		else if (!this.path.isDirectory()) throw new ApplicationException("attribute path of the tag collection must be a existing directory");
+		else if (!this.path.isDirectory()) throw new ApplicationException("Attribute [path] of the tag [collection] must be an existing directory");
 	}
 
 	/**
@@ -162,7 +161,7 @@ public final class Collection extends TagImpl {
 			else if (action.equals("map")) doMap();
 			else if (action.equals("categorylist")) doCategoryList();
 
-			else throw new ApplicationException("Invalid value [" + action + "] for attribute action.", "allowed values are [create,repair,map,delete,optimize,list ]");
+			else throw new ApplicationException("Invalid value [" + action + "] for attribute [action].", "allowed values are [create, repair, map, delete, optimize, list]");
 		}
 		catch (SearchException e) {
 			throw Caster.toPageException(e);

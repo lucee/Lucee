@@ -434,6 +434,24 @@ public final class ParserString {
 		return false;
 	}
 
+	public boolean forwardIfCurrentAndNoWordNumberAfter(String str, String str2) {
+		int c = pos;
+		if (forwardIfCurrent(str, str2)) {
+			if (!isCurrentLetter() && !isCurrentLetter() && !isCurrent('_')) return true;
+		}
+		pos = c;
+		return false;
+	}
+
+	public boolean forwardIfCurrentAndNoWordNumberAfter(String str, String str2, String str3) {
+		int c = pos;
+		if (forwardIfCurrent(str, str2, str3)) {
+			if (!isCurrentLetter() && !isCurrentLetter() && !isCurrent('_')) return true;
+		}
+		pos = c;
+		return false;
+	}
+
 	/**
 	 * Gibt zurueck ob first den folgenden Zeichen entspricht, gefolgt von Leerzeichen und second.
 	 * 
@@ -481,6 +499,15 @@ public final class ParserString {
 		if (!forwardIfCurrent(first)) return false;
 		removeSpace();
 		boolean rtn = forwardIfCurrent(second);
+		if (!rtn) pos = start;
+		return rtn;
+	}
+
+	public boolean forwardIfCurrent(String first, String second, char third) {
+		int start = pos;
+		if (!forwardIfCurrent(first, second)) return false;
+		removeSpace();
+		boolean rtn = forwardIfCurrent(third);
 		if (!rtn) pos = start;
 		return rtn;
 	}

@@ -42,7 +42,7 @@ public final class ListInsertAt extends BIF {
 	}
 
 	public static String call(PageContext pc, String list, double posNumber, String value, String strDelimiter, boolean includeEmptyFields) throws ExpressionException {
-		if (strDelimiter.length() == 0) throw new FunctionException(pc, "listInsertAt", 4, "delimiter", "invalid delimiter value, can't be a empty string");
+		if (strDelimiter.length() == 0) throw new FunctionException(pc, "listInsertAt", 4, "delimiter", "invalid delimiter value, can't be an empty string");
 
 		return ListUtil.listInsertAt(list, (int) posNumber, value, strDelimiter, !includeEmptyFields);
 	}

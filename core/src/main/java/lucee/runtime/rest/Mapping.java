@@ -37,7 +37,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageSource;
 import lucee.runtime.component.ComponentLoader;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.config.Constants;
 import lucee.runtime.exp.PageException;
@@ -88,10 +88,10 @@ public class Mapping {
 		this.readonly = readonly;
 		this._default = _default;
 
-		if (!(config instanceof ConfigWebImpl)) return;
-		ConfigWebImpl cw = (ConfigWebImpl) config;
+		if (!(config instanceof ConfigWeb)) return;
+		ConfigWeb cw = (ConfigWeb) config;
 
-		this.physical = ConfigWebUtil.getExistingResource(cw.getServletContext(), physical, null, cw.getConfigDir(), FileUtil.TYPE_DIR, cw);
+		this.physical = ConfigWebUtil.getExistingResource(cw.getServletContext(), physical, null, cw.getConfigDir(), FileUtil.TYPE_DIR, cw, true);
 
 	}
 

@@ -84,7 +84,7 @@ public final class ProcessingDirective extends BodyTagTryCatchFinallyImpl {
 	@Override
 	public int doStartTag() throws ApplicationException {
 		if (suppresswhitespace != null && !hasBody) {
-			throw new ApplicationException("for suppressing whitespaces you must define a end tag for tag [cfprocessingdirective]");
+			throw new ApplicationException("To suppress whitespace, an end tag [cfprocessingdirective] is also required");
 		}
 		if (suppresswhitespace != null) return EVAL_BODY_BUFFERED;
 		return EVAL_BODY_INCLUDE;

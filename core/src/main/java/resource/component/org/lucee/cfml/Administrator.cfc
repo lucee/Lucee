@@ -183,7 +183,7 @@ component {
 			cfmlWriter="#arguments.cfmlWriter#"
 			suppressContent=isNull(arguments.suppressContent) || isEmpty(arguments.suppressContent) ? existing.suppressContent : arguments.suppressContent
 			allowCompression=isNull(arguments.allowCompression) || isEmpty(arguments.allowCompression) ? existing.allowCompression : arguments.allowCompression
-			bufferOutput=isNull(arguments.bufferOutput) || isEmpty(arguments.bufferOutput) ? existing.bufferOutput : arguments.allowCompression
+			bufferOutput=isNull(arguments.bufferOutput) || isEmpty(arguments.bufferOutput) ? existing.bufferOutput : arguments.bufferOutput
 			contentLength=""
 
 			remoteClients="#variables.remoteClients#";
@@ -390,8 +390,12 @@ component {
 		loop collection="#arguments#" item="key"{
 			if(findNoCase("custom",key) EQ 1){
 				l=len(key);
-				custom[mid(key,7,l-7+1)]=arguments[key];
+				custom[mid(key,8,l-8+1)]=arguments[key];
 			}
+		}
+
+		if( arguments.type == "MSSQL" ){
+			custom["databaseName"] = arguments.database;
 		}
 
 		admin
@@ -399,6 +403,7 @@ component {
 			type="#variables.type#"
 			password="#variables.password#"
 
+			id="#isNull(driver.getId)?'':driver.getId()#"
 			classname="#driver.getClass()#"
 			dsn="#driver.getDSN()#"
 			customParameterSyntax="#isNull(driver.customParameterSyntax)?nullValue():driver.customParameterSyntax()#"
@@ -418,20 +423,20 @@ component {
 			connectionLimit="#arguments.connectionLimit#"
 			connectionTimeout="#arguments.connectionTimeout#"
 			metaCacheTimeout="#arguments.metaCacheTimeout#"
-			blob="#getArguments('blob',false)#"
-			clob="#getArguments('clob',false)#"
-			validate="#getArguments('validate',false)#"
-			storage="#getArguments('storage',false)#"
+			blob="#getArguments(arguments, 'blob',false)#"
+			clob="#getArguments(arguments, 'clob',false)#"
+			validate="#getArguments(arguments, 'validate',false)#"
+			storage="#getArguments(arguments, 'storage',false)#"
 
-			allowed_select="#getArguments('allowedSelect',false)#"
-			allowed_insert="#getArguments('allowedInsert',false)#"
-			allowed_update="#getArguments('allowedUpdate',false)#"
-			allowed_delete="#getArguments('allowedDelete',false)#"
-			allowed_alter="#getArguments('allowedAlter',false)#"
-			allowed_drop="#getArguments('allowedDrop',false)#"
-			allowed_revoke="#getArguments('allowedRevoke',false)#"
-			allowed_create="#getArguments('allowedCreate',false)#"
-			allowed_grant="#getArguments('allowedGrant',false)#"
+			allowed_select="#getArguments(arguments, 'allowedSelect',false)#"
+			allowed_insert="#getArguments(arguments, 'allowedInsert',false)#"
+			allowed_update="#getArguments(arguments, 'allowedUpdate',false)#"
+			allowed_delete="#getArguments(arguments, 'allowedDelete',false)#"
+			allowed_alter="#getArguments(arguments, 'allowedAlter',false)#"
+			allowed_drop="#getArguments(arguments, 'allowedDrop',false)#"
+			allowed_revoke="#getArguments(arguments, 'allowedRevoke',false)#"
+			allowed_create="#getArguments(arguments, 'allowedCreate',false)#"
+			allowed_grant="#getArguments(arguments, 'allowedGrant',false)#"
 			verify="#arguments.verify#"
 			custom="#custom#"
 			dbdriver="#arguments.type#"
@@ -649,19 +654,43 @@ component {
 	* @primary type of mapping ( physical/archive )
 	* @inspect type of inspection for the mapping(never/once/always/"").
 	*/
-	public void function updateMapping(required string virtual, string physical="", string archive="", string primary="", string inspect="") {
+	public void function updateMapping(required string virtual, string physical=nullValue(), 
+		string archive=nullValue(), string primary=nullValue(), string inspect=nullValue()) {
+		
+		// get default values
+		if(isNull(data.physical) || isNull(data.archive) || isNull(data.primary) || isNull(data.inspect)) {
+			var done=false;
+			try {
+				var mapping = getMapping(arguments.virtual);
+				if(isNull(arguments.physical))arguments.physical=mapping.physical;
+				if(isNull(arguments.archive))arguments.archive=mapping.archive;
+				if(isNull(arguments.primary))arguments.primary=mapping.primary;
+				if(isNull(arguments.inspect))arguments.inspect=mapping.inspect;
+				done=true;
+			}
+			catch(e) { // throws an exception when not exist yet
+			}
+		}
+			
+		if(!done) { // throws an exception when not exist yet
+			if(isNull(arguments.physical))arguments.physical="";
+			if(isNull(arguments.archive))arguments.archive="";
+			if(isNull(arguments.primary))arguments.physical="";
+			if(isNull(arguments.inspect))arguments.inspect="";
+		}
+		
 		admin
 			action="updateMapping"
-			type="#variables.type#"
-			password="#variables.password#"
+			type=variables.type
+			password=variables.password
 
-			virtual="#arguments.virtual#"
-			physical="#arguments.physical#"
-			archive=isNull(arguments.physical) || isEmpty(arguments.physical) ? existing.physical : arguments.physical
-			primary=isNull(arguments.primary) || isEmpty(arguments.primary) ? existing.primary : arguments.primary
-			inspect=isNull(arguments.inspect) || isEmpty(arguments.inspect) ? existing.inspect : arguments.inspect
-			toplevel="yes"
-			remoteClients="#variables.remoteClients#";
+			virtual=arguments.virtual
+			physical=arguments.physical
+			archive=arguments.archive
+			primary=arguments.primary
+			inspect=arguments.inspect
+			toplevel=true
+			remoteClients=variables.remoteClients;
 	}
 
 	/**
@@ -1095,7 +1124,7 @@ component {
 	* @physical specifies directory path where the components are located, this path should not include the package
 	* @primary type of mapping, resource/archive
 	* @archive specifies file path to a components Lucee Archive (.lar).
-	* @inspect checks for changes in the source file for a already loaded component
+	* @inspect checks for changes in the source file for an already loaded component
 	*/
 	public void function updateComponentMapping(required string virtual, required string physical, required string archive, string inspect="never"){
 		admin
@@ -2359,11 +2388,11 @@ component {
 
 	/**
 	* @hint update exiting custom tag
-	* @virtual The name is used as identifier when you automaticly import a Lucee Archive build based on this Mapping.
+	* @virtual The name is used as identifier when you automatically import a Lucee Archive build based on this Mapping.
 	* @physical Directory path where the custom tags are located.
 	* @archive File path to a custom tag Lucee Archive (.lar).
-	* @primary Defines where Lucee does looks first for a requested custom tags
-	* @inspect When does Lucee checks for changes in the source file for a already loaded custom tags.
+	* @primary Defines where Lucee looks first for a requested custom tags
+	* @inspect When does Lucee checks for changes in the source file for an already loaded custom tags.
 	*/
 	public void function updateCustomTag( required string virtual, required string physical, required string archive, string primary="Resource", string inspect="" ) {
 		admin
@@ -2381,7 +2410,7 @@ component {
 
 	/**
 	* @hint update exiting custom tag
-	* @virtual The name is used as identifier when you automaticly import a Lucee Archive build based on this Mapping.
+	* @virtual The name is used as identifier when you automatically import a Lucee Archive build based on this Mapping.
 	*/
 	public any function removecustomtag( required string virtual ) {
 		admin
@@ -2899,9 +2928,9 @@ component {
 		return cfcNames;
 	}
 
-	private function getArguments(Key, default) {
-		if(not structKeyExists(arguments,Key)) return default;
-		return arguments[Key];
+	private function getArguments(args, Key, default) {
+		if(not structKeyExists(args, Key)) return default;
+		return arguments.args[Key];
 	}
 
 	private function downloadFull(required string provider,required string id , string version){

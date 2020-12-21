@@ -44,7 +44,7 @@ public final class Evaluate implements Function {
 	}
 
 	public static Object call(PageContext pc, Object[] objs, boolean preciseMath) throws PageException {
-		// define a ohter enviroment for the function
+		// define another environment for the function
 		if (objs.length > 1 && objs[objs.length - 1] instanceof Scope) {
 
 			// Variables Scope

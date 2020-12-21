@@ -19,6 +19,7 @@
 package lucee.runtime.type;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
@@ -40,14 +41,18 @@ import lucee.runtime.type.wrap.ListAsArray;
 public class ArrayImpl extends ListAsArray {
 
 	private static final long serialVersionUID = -6187994169003839005L;
+	public static final int DEFAULT_CAP = 32;
 
 	public ArrayImpl() {
-		this(32);
+		this(DEFAULT_CAP, true);
 	}
 
 	public ArrayImpl(int initalCap) {
-		// super(sync?new Vector(initalCap):new ArrayList(initalCap));
-		super(new ArrayList(initalCap));
+		this(initalCap, true);
+	}
+
+	public ArrayImpl(int initalCap, boolean sync) {
+		super(sync ? Collections.synchronizedList(new ArrayList(initalCap)) : new ArrayList(initalCap));
 	}
 
 	public ArrayImpl(Object[] objects) {

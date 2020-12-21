@@ -6,27 +6,35 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either 
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  **/
 package lucee.commons.lang;
 
+import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection;
+import lucee.runtime.type.Collection.Key;
+import lucee.runtime.type.Struct;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.util.ArrayUtil;
 
@@ -57,9 +65,14 @@ public final class StringUtil {
 			, 0x3000 // ideographic space
 	};
 
+	private static char[] QUOTE_8220 = new char[] { (char) 226, (char) 8364, (char) 339 };
+	private static char[] QUOTE_8221 = new char[] { (char) 226, (char) 8364, (char) 65533 };
+
+	private static final char[] SURROGATE_CHARACTERS_RANGE = new char[] { (char) 55296, (char) 57343 };
+
 	/**
 	 * do first Letter Upper case
-	 * 
+	 *
 	 * @param str String to operate
 	 * @return uppercase string
 	 */
@@ -112,7 +125,7 @@ public final class StringUtil {
 
 	/**
 	 * do first Letter Upper case
-	 * 
+	 *
 	 * @param str String to operate
 	 * @return lower case String
 	 */
@@ -126,7 +139,7 @@ public final class StringUtil {
 
 	/**
 	 * Unescapes HTML Tags
-	 * 
+	 *
 	 * @param html html code to escape
 	 * @return escaped html code
 	 */
@@ -136,7 +149,7 @@ public final class StringUtil {
 
 	/**
 	 * Escapes XML Tags
-	 * 
+	 *
 	 * @param html html code to unescape
 	 * @return unescaped html code
 	 */
@@ -146,7 +159,7 @@ public final class StringUtil {
 
 	/**
 	 * escapes JS sensitive characters
-	 * 
+	 *
 	 * @param str String to escape
 	 * @return escapes String
 	 */
@@ -160,7 +173,7 @@ public final class StringUtil {
 
 	/**
 	 * escapes JS sensitive characters
-	 * 
+	 *
 	 * @param str String to escape
 	 * @param charset if not null, it checks if the given string is supported by the encoding, if not,
 	 *            lucee encodes the string
@@ -229,7 +242,7 @@ public final class StringUtil {
 
 	/**
 	 * reapeats a string
-	 * 
+	 *
 	 * @param str string to repeat
 	 * @param count how many time string will be repeated
 	 * @return reapted string
@@ -248,9 +261,9 @@ public final class StringUtil {
 	}
 
 	/**
-	 * translate, like method toString, a object to a string, but when value is null value will be
-	 * translated to a empty String ("").
-	 * 
+	 * translate, like method toString, an object to a string, but when value is null value will be
+	 * translated to an empty String ("").
+	 *
 	 * @param o Object to convert
 	 * @return converted String
 	 */
@@ -271,7 +284,7 @@ public final class StringUtil {
 
 	/**
 	 * escape all special characters of the regular expresson language
-	 * 
+	 *
 	 * @param str String to escape
 	 * @return escaped String
 	 */
@@ -289,7 +302,7 @@ public final class StringUtil {
 
 	/**
 	 * translate a string to a valid identity variable name
-	 * 
+	 *
 	 * @param varName variable name template to translate
 	 * @return translated variable name
 	 */
@@ -314,7 +327,7 @@ public final class StringUtil {
 
 	/**
 	 * translate a string to a valid classname string
-	 * 
+	 *
 	 * @param str string to translate
 	 * @return translated String
 	 */
@@ -342,7 +355,7 @@ public final class StringUtil {
 
 	/**
 	 * translate a string to a valid variable string
-	 * 
+	 *
 	 * @param str string to translate
 	 * @return translated String
 	 */
@@ -380,7 +393,7 @@ public final class StringUtil {
 
 	/**
 	 * if given string is a keyword it will be replaced with none keyword
-	 * 
+	 *
 	 * @param str
 	 * @return corrected word
 	 */
@@ -479,7 +492,7 @@ public final class StringUtil {
 
 	/**
 	 * This function returns a string with whitespace stripped from the beginning of str
-	 * 
+	 *
 	 * @param str String to clean
 	 * @return cleaned String
 	 */
@@ -496,7 +509,7 @@ public final class StringUtil {
 
 	/**
 	 * This function returns a string with whitespace stripped from the end of str
-	 * 
+	 *
 	 * @param str String to clean
 	 * @return cleaned String
 	 */
@@ -512,7 +525,7 @@ public final class StringUtil {
 
 	/**
 	 * trim given value, return defaultvalue when input is null
-	 * 
+	 *
 	 * @param str
 	 * @param defaultValue
 	 * @return trimmed string or defaultValue
@@ -523,7 +536,7 @@ public final class StringUtil {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param c character to check
 	 * @param checkSpecialWhiteSpace if set to true, lucee checks also uncommon white spaces.
 	 * @return
@@ -546,7 +559,7 @@ public final class StringUtil {
 	 * trim given value, return defaultvalue when input is null this function no only removes the
 	 * "classic" whitespaces, it also removes Byte order masks forgotten to remove when reading a UTF
 	 * file.
-	 * 
+	 *
 	 * @param str
 	 * @param removeBOM if set to true, Byte Order Mask that got forgotten get removed as well
 	 * @param removeSpecialWhiteSpace if set to true, lucee removes also uncommon white spaces.
@@ -591,7 +604,7 @@ public final class StringUtil {
 
 	/**
 	 * return if in a string are line feeds or not
-	 * 
+	 *
 	 * @param str string to check
 	 * @return translated string
 	 */
@@ -607,7 +620,7 @@ public final class StringUtil {
 
 	/**
 	 * remove all white spaces followed by whitespaces
-	 * 
+	 *
 	 * @param str string to translate
 	 * @return translated string
 	 */
@@ -640,7 +653,7 @@ public final class StringUtil {
 
 	/**
 	 * returns string, if given string is null or length 0 return default value
-	 * 
+	 *
 	 * @param value
 	 * @param defaultValue
 	 * @return value or default value
@@ -651,7 +664,7 @@ public final class StringUtil {
 
 	/**
 	 * returns string, if given string is null or length 0 return default value
-	 * 
+	 *
 	 * @param value
 	 * @param defaultValue
 	 * @return value or default value
@@ -663,7 +676,7 @@ public final class StringUtil {
 
 	/**
 	 * cut string to max size if the string is greater, otherwise to nothing
-	 * 
+	 *
 	 * @param content
 	 * @param max
 	 * @return cutted string
@@ -682,7 +695,7 @@ public final class StringUtil {
 
 	/**
 	 * performs a replace operation on a string
-	 * 
+	 *
 	 * @param input - the string input to work on
 	 * @param find - the substring to find
 	 * @param repl - the substring to replace the matches with
@@ -690,8 +703,12 @@ public final class StringUtil {
 	 * @param ignoreCase - if true then matches will not be case sensitive
 	 * @return
 	 */
-	public static String replace(String input, String find, String repl, boolean firstOnly, boolean ignoreCase) {
 
+	public static String replace(String input, String find, String repl, boolean firstOnly, boolean ignoreCase) {
+		return _replace(input, find, repl, firstOnly, ignoreCase, null).toString();
+	}
+
+	public static CharSequence _replace(String input, String find, String repl, boolean firstOnly, boolean ignoreCase, List<Pos> positions) {
 		int findLen = find.length();
 
 		if (findLen == 0) return input;
@@ -703,41 +720,40 @@ public final class StringUtil {
 		 */ if (!ignoreCase && findLen == repl.length()) {
 
 			if (find.equals(repl)) return input;
-			if (!firstOnly && findLen == 1) return input.replace(find.charAt(0), repl.charAt(0));
+			if (!firstOnly && findLen == 1 && positions == null) return input.replace(find.charAt(0), repl.charAt(0));
 		}
 
-		/*
-		 * print.e(input); print.e(input.length());
-		 * 
-		 * print.e(scan); print.e(scan.length());
-		 */
-
-		/*
-		 * for(int i=0;i<scan.length();i++) { print.e(scan.charAt(i)); }
-		 */
-
 		int pos = ignoreCase ? indexOfIgnoreCase(input, find) : input.indexOf(find);
-
 		if (pos == -1) return input;
 
 		int start = 0;
 		StringBuilder sb = new StringBuilder(repl.length() > find.length() ? (int) Math.ceil(input.length() * 1.2) : input.length());
 
 		while (pos != -1) {
-
+			if (positions != null) positions.add(new Pos(pos, repl.length()));
 			sb.append(input.substring(start, pos));
 			sb.append(repl);
-
 			start = pos + findLen;
-
 			if (firstOnly) break;
-
 			pos = ignoreCase ? indexOfIgnoreCase(input, find, start) : input.indexOf(find, start);
 		}
-
 		if (input.length() > start) sb.append(input.substring(start));
+		return sb;
+	}
 
-		return sb.toString();
+	private static class Pos {
+		private int position;
+		private int len;
+
+		private Pos(int position, int len) {
+			this.position = position;
+			this.len = len;
+		}
+
+		@Override
+		public String toString() {
+			return "pos:" + position + ";len:" + len;
+		}
 	}
 
 	public static String replace(PageContext pc, String input, String find, UDF udf, boolean firstOnly) throws PageException {
@@ -761,7 +777,7 @@ public final class StringUtil {
 	/**
 	 * maintains the legacy signature of this method where matches are CaSe sensitive (sets the default
 	 * of ignoreCase to false).
-	 * 
+	 *
 	 * @param input - the string input to work on
 	 * @param find - the substring to find
 	 * @param repl - the substring to replace the matches with
@@ -774,7 +790,7 @@ public final class StringUtil {
 
 	/**
 	 * performs a CaSe sensitive replace all
-	 * 
+	 *
 	 * @param input - the string input to work on
 	 * @param find - the substring to find
 	 * @param repl - the substring to replace the matches with
@@ -786,8 +802,8 @@ public final class StringUtil {
 	}
 
 	/**
-	 * adds zeros add the begin of a int example: addZeros(2,3) return "002"
-	 * 
+	 * adds zeros add the begin of an int example: addZeros(2,3) return "002"
+	 *
 	 * @param i number to add nulls
 	 * @param size
 	 * @return min len of return value;
@@ -799,8 +815,8 @@ public final class StringUtil {
 	}
 
 	/**
-	 * adds zeros add the begin of a int example: addZeros(2,3) return "002"
-	 * 
+	 * adds zeros add the begin of an int example: addZeros(2,3) return "002"
+	 *
 	 * @param i number to add nulls
 	 * @param size
 	 * @return min len of return value;
@@ -846,7 +862,7 @@ public final class StringUtil {
 
 	/**
 	 * Tests if this string starts with the specified prefix.
-	 * 
+	 *
 	 * @param str string to check first char
 	 * @param prefix the prefix.
 	 * @return is first of given type
@@ -861,7 +877,7 @@ public final class StringUtil {
 
 	/**
 	 * Tests if this string ends with the specified suffix.
-	 * 
+	 *
 	 * @param str string to check first char
 	 * @param suffix the suffix.
 	 * @return is last of given type
@@ -876,7 +892,7 @@ public final class StringUtil {
 
 	/**
 	 * Tests if this string ends with the specified suffix.
-	 * 
+	 *
 	 * @param str string to check first char
 	 * @param suffix the suffix.
 	 * @return is last of given type
@@ -913,7 +929,7 @@ public final class StringUtil {
 
 	/**
 	 * returns if byte arr is a BOM character Stream (UTF-8,UTF-16)
-	 * 
+	 *
 	 * @param barr
 	 * @return is BOM or not
 	 */
@@ -923,7 +939,7 @@ public final class StringUtil {
 
 	/**
 	 * return "" if value is null otherwise return same string
-	 * 
+	 *
 	 * @param str
 	 * @return string (not null)
 	 */
@@ -935,7 +951,7 @@ public final class StringUtil {
 	/**
 	 * cast a string a lower case String, is faster than the String.toLowerCase, if all Character are
 	 * already Low Case
-	 * 
+	 *
 	 * @param str
 	 * @return lower case value
 	 */
@@ -967,7 +983,7 @@ public final class StringUtil {
 
 	/**
 	 * soundex function
-	 * 
+	 *
 	 * @param str
 	 * @return soundex from given string
 	 */
@@ -977,7 +993,7 @@ public final class StringUtil {
 
 	/**
 	 * return the last character of a string, if string ist empty return 0;
-	 * 
+	 *
 	 * @param str string to get last character
 	 * @return last character
 	 */
@@ -987,7 +1003,7 @@ public final class StringUtil {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param str
 	 * @return return if a String is "Empty", that means NULL or String with length 0 (whitespaces will
 	 *         not counted)
@@ -997,7 +1013,7 @@ public final class StringUtil {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param str
 	 * @return return if a String is "Empty", that means NULL or String with length 0 (whitespaces will
 	 *         not counted)
@@ -1009,7 +1025,7 @@ public final class StringUtil {
 
 	/**
 	 * return the first character of a string, if string ist empty return 0;
-	 * 
+	 *
 	 * @param str string to get first character
 	 * @return first character
 	 */
@@ -1031,7 +1047,7 @@ public final class StringUtil {
 	/**
 	 * collapses multiple whitespace characters into a single space. the whitespace returned is always a
 	 * standard chr(32) .
-	 * 
+	 *
 	 * @param str
 	 * @return
 	 */
@@ -1072,7 +1088,7 @@ public final class StringUtil {
 
 	/**
 	 * removes quotes(",') that wraps the string
-	 * 
+	 *
 	 * @param string
 	 * @return
 	 */
@@ -1174,7 +1190,7 @@ public final class StringUtil {
 	/**
 	 * translate a string in camel notation to a string in hypen notation example: helloWorld ->
 	 * hello-world
-	 * 
+	 *
 	 * @param str
 	 * @return
 	 */
@@ -1200,7 +1216,7 @@ public final class StringUtil {
 	/**
 	 * translate a string in hypen notation to a string in camel notation example: hello-world ->
 	 * helloWorld
-	 * 
+	 *
 	 * @param str
 	 * @return
 	 */
@@ -1286,7 +1302,7 @@ public final class StringUtil {
 	/**
 	 * this method works different from the regular substring method, the regular substring method takes
 	 * startIndex and endIndex as second and third argument, this method takes offset and length
-	 * 
+	 *
 	 * @param str
 	 * @param off
 	 * @param len
@@ -1316,7 +1332,7 @@ public final class StringUtil {
 
 	/**
 	 * this is the public entry point for the replaceMap() method
-	 * 
+	 *
 	 * @param input - the string on which the replacements should be performed.
 	 * @param map - a java.util.Map with key/value pairs where the key is the substring to find and the
 	 *            value is the substring with which to replace the matched key
@@ -1324,84 +1340,87 @@ public final class StringUtil {
 	 * @return
 	 * @throws PageException
 	 */
-	public static String replaceMap(String input, Map map, boolean ignoreCase) throws PageException {
-
-		return replaceMap(input, map, ignoreCase, true);
-	}
-
-	/**
-	 * this is the core of the replaceMap() method.
-	 * 
-	 * it is called once from the public entry point and then internally from resolveInternals()
-	 * 
-	 * when doResolveInternals is true -- this method calls resolveInternals. therefore, calls from
-	 * resolveInternals() must pass false to that param to avoid an infinite ping-pong loop
-	 * 
-	 * @param input - the string on which the replacements should be performed.
-	 * @param map - a java.util.Map with key/value pairs where the key is the substring to find and the
-	 *            value is the substring with which to replace the matched key
-	 * @param ignoreCase - if true then matches will not be case sensitive
-	 * @param doResolveInternals - only the initial call (from the public entry point) should pass true
-	 * @return
-	 * @throws PageException
-	 */
-	private static String replaceMap(String input, Map map, boolean ignoreCase, boolean doResolveInternals) throws PageException {
-		if (doResolveInternals) map = resolveInternals(map, ignoreCase, 0);
-
-		String result = input;
-		Iterator<Map.Entry> it = map.entrySet().iterator();
-		Map.Entry e;
+	public static String replaceStruct(String input, Struct data, boolean ignoreCase) throws PageException {
+		CharSequence result = input;
+		Iterator<Entry<Key, Object>> it = data.entryIterator();
+		Map.Entry<Key, Object> e;
+		Map<Pos, String> positions = new LinkedHashMap<>();
+		String k, v;
+		List<Pos> tmp;
 		while (it.hasNext()) {
 			e = it.next();
-			result = replace(result, Caster.toString(e.getKey()), Caster.toString(e.getValue()), false, ignoreCase);
-		}
-		return result;
-	}
-
-	/**
-	 * resolves internal values within the map, so if the map has a key "{signature}" and its value is
-	 * "Team {group}" and there's a key with the value {group} whose value is "Lucee", then {signature}
-	 * will resolve to "Team Lucee".
-	 * 
-	 * {signature} = "Team {group}" {group} = "Lucee"
-	 * 
-	 * then signature will resolve to
-	 * 
-	 * {signature} = "Team Lucee"
-	 * 
-	 * @param map - key/value pairs for find key/replace with value
-	 * @param ignoreCase - if true then matches will not be case sensitive
-	 * @param count - used internally as safety valve to ensure that we don't go into infinite loop if
-	 *            two values reference each-other
-	 * @return
-	 * @throws PageException
-	 */
-	private static Map resolveInternals(Map map, boolean ignoreCase, int count) throws PageException {
-		Map result = new HashMap();
-		Iterator<Map.Entry> it = map.entrySet().iterator();
-		boolean isModified = false;
-		Map.Entry e;
-		String v, r;
-		while (it.hasNext()) {
-			e = it.next();
+			k = e.getKey().getString();
 			v = Caster.toString(e.getValue());
-			r = replaceMap(v, map, ignoreCase, false); // pass false for last arg so that replaceMap() will not call this method in an infinite loop
-			result.put(Caster.toString(e.getKey()), r);
-			if (!v.equalsIgnoreCase(r)) isModified = true;
+			tmp = new ArrayList<Pos>();
+			result = _replace(result.toString(), k, placeholder(k), false, ignoreCase, tmp);
+			for (Pos pos: tmp) {
+				positions.put(pos, v);
+			}
 		}
-
-		if (isModified && count++ < map.size()) result = resolveInternals(result, ignoreCase, count); // recursive call
-
-		return result;
+		if (result instanceof StringBuilder) {
+			StringBuilder sb = (StringBuilder) result;
+			List<Map.Entry<Pos, String>> list = new ArrayList<Map.Entry<Pos, String>>(positions.entrySet());
+			// <Map.Entry<Integer,String>>
+			Collections.sort(list, new Comparator<Map.Entry<Pos, String>>() {
+				@Override
+				public int compare(Map.Entry<Pos, String> a, Map.Entry<Pos, String> b) {
+					return Integer.compare(b.getKey().position, a.getKey().position);
+				}
+			});
+			for (Map.Entry<Pos, String> entry: list) {
+				sb.delete(entry.getKey().position, entry.getKey().position + entry.getKey().len);
+				sb.insert(entry.getKey().position, entry.getValue());
+			}
+			return sb.toString();
+		}
+		return result.toString();
 	}
+
+	private static String placeholder(String str) {
+		int count = str == null ? 0 : str.length();
+		if (count == 0) return "";
+
+		char r = (char) 0xFFFF;
+		// r = '_';
+		char[] carr = new char[count];
+		for (int i = 0; i < count; i++) {
+			carr[i] = r;
+		}
+		return new String(carr);
+	}
+
+	/*
+	 * public static void main(String[] args) throws PageException { Map<String, String> map = new
+	 * HashMap<>(); map.put("target", "!target!"); map.put("replace", "er"); map.put("susi", "Susanne");
+	 * print.e(
+	 * replaceMap("I want replace replace to add 1 underscore with struct-replace... 'target' replace",
+	 * map, false));
+	 *
+	 * map = new HashMap<>(); map.put("Susi", "Sorglos"); map.put("Sorglos", "Susi");
+	 * print.e(replaceMap("Susi Sorglos foehnte ihr Haar", map, false));
+	 *
+	 * }
+	 */
 
 	public static String unwrap(String str) {
 		if (StringUtil.isEmpty(str)) return "";
 		str = str.trim();
-		if ((startsWith(str, '"') || startsWith(str, (char) 8220)) && (endsWith(str, '"') || endsWith(str, (char) 8221))) // #8220 and #8221 are left and right "double quotes"
-			str = str.substring(1, str.length() - 1);
+		boolean multiStart = false;
+		boolean multiEnd = false;
+		if ((startsWith(str, '"') || startsWith(str, (char) 8220) || (multiStart = startsWithWinRead8220(str)))
+				&& (endsWith(str, '"') || endsWith(str, (char) 8221) || (multiEnd = endsWithWinRead8221(str))))
+			str = str.substring(multiStart ? 3 : 1, str.length() - (multiEnd ? 3 : 1));
 		if (startsWith(str, '\'') && endsWith(str, '\'')) str = str.substring(1, str.length() - 1);
 		return str;
+	}
+
+	private static boolean startsWithWinRead8220(String str) {
+		return str.length() > 2 && str.charAt(0) == QUOTE_8220[0] && str.charAt(1) == QUOTE_8220[1] && str.charAt(2) == QUOTE_8220[2];
+	}
+
+	private static boolean endsWithWinRead8221(String str) {
+		int len = str.length();
+		return str.length() > 2 && str.charAt(len - 3) == QUOTE_8221[0] && str.charAt(len - 2) == QUOTE_8221[1] && str.charAt(len - 1) == QUOTE_8221[2];
 	}
 
 	public static String toStringNative(Object obj, String defaultValue) {
@@ -1411,5 +1430,71 @@ public final class StringUtil {
 	public static String emptyAsNull(String str, boolean trim) {
 		if (isEmpty(str, trim)) return null;
 		return str;
+	}
+
+	/*
+	 * public function cleanSurrogateCharacters(String str) { var SURROGATE_CHARACTERS_RANGE =
+	 * [55296,57343]; var carr = str.toCharArray(); var l=len(carr); for(var i=1;i<=l;i++) { var
+	 * c=carr[i]; var a=asc(c); // detect one if (a >= SURROGATE_CHARACTERS_RANGE[1] && a <=
+	 * SURROGATE_CHARACTERS_RANGE[2]) { if (isNull(sb)) { var
+	 * StringBuilder=createObject('java','java.lang.StringBuilder'); var sb = i == 1 ?
+	 * StringBuilder.init() : StringBuilder.init(mid(str,1,i-1)); } sb&="?"; i++; } else if
+	 * (!isNull(sb)) { sb&=c; } } return isNull(sb) ? str : sb.toString(); }
+	 */
+
+	public static String replaceSurrogateCharacters(String value, int fromIndex, String replacement) {
+		int max = value.length();
+		if (fromIndex < 0) {
+			fromIndex = 0;
+		}
+		else if (fromIndex >= max) {
+			return value;
+		}
+		StringBuilder sb = null;
+		char c;
+		int i;
+		for (i = fromIndex; i < max - 1; i++) {
+			c = value.charAt(i);
+			if (c >= SURROGATE_CHARACTERS_RANGE[0] && c <= SURROGATE_CHARACTERS_RANGE[1]) {
+				c = value.charAt(i + 1);
+				if (c >= SURROGATE_CHARACTERS_RANGE[0] && c <= SURROGATE_CHARACTERS_RANGE[1]) {
+					if (sb == null) {
+						sb = new StringBuilder();
+						if (i > 0) sb.append(value.substring(0, i));
+					}
+					i++;
+					sb.append(replacement);
+					continue;
+				}
+			}
+			if (sb != null) sb.append(c);
+		}
+		if (sb == null) return value;
+		if (i < value.length()) sb.append(value.charAt(value.length() - 1));
+		return sb.toString();
+	}
+
+	public static int indexOfSurrogateCharacters(String value, int fromIndex) {
+		int max = value.length();
+		if (fromIndex < 0) {
+			fromIndex = 0;
+		}
+		else if (fromIndex >= max) {
+			return -1;
+		}
+		char c;
+		for (int i = fromIndex; i < max - 1; i++) {
+			c = value.charAt(i);
+			if (c >= SURROGATE_CHARACTERS_RANGE[0] && c <= SURROGATE_CHARACTERS_RANGE[1]) {
+				c = value.charAt(i + 1);
+				if (c >= SURROGATE_CHARACTERS_RANGE[0] && c <= SURROGATE_CHARACTERS_RANGE[1]) return i;
+				i++;
+			}
+		}
+		return -1;
+	}
+
+	public static boolean isCompatibleWith(String value, Charset cs) {
+		return value.equals(new String(value.getBytes(cs), cs));
 	}
 }

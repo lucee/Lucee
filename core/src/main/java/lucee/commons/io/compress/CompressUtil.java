@@ -109,7 +109,7 @@ public final class CompressUtil {
 		else if (format == FORMAT_BZIP) extractBZip(source, target);
 		else if (format == FORMAT_TGZ) extractTGZ(source, target);
 		else if (format == FORMAT_TBZ) extractTBZ(source, target);
-		else throw new IOException("can't extract in given format");
+		else throw new IOException("Can't extract in given format");
 	}
 
 	/*
@@ -158,7 +158,7 @@ public final class CompressUtil {
 			IOUtil.copy(is, os, false, false);
 		}
 		finally {
-			IOUtil.closeEL(is, os);
+			IOUtil.close(is, os);
 		}
 	}
 
@@ -171,7 +171,7 @@ public final class CompressUtil {
 			IOUtil.copy(is, os, false, false);
 		}
 		finally {
-			IOUtil.closeEL(is, os);
+			IOUtil.close(is, os);
 		}
 	}
 
@@ -190,13 +190,13 @@ public final class CompressUtil {
 	}
 
 	private static void extractTar(Resource tarFile, Resource targetDir) throws IOException {
-		if (!targetDir.exists() || !targetDir.isDirectory()) throw new IOException(targetDir + " is not a existing directory");
+		if (!targetDir.exists() || !targetDir.isDirectory()) throw new IOException("[" + targetDir + "] is not an existing directory");
 
-		if (!tarFile.exists()) throw new IOException(tarFile + " is not a existing file");
+		if (!tarFile.exists()) throw new IOException("[" + tarFile + "] is not an existing file");
 
 		if (tarFile.isDirectory()) {
 			Resource[] files = tarFile.listResources(new ExtensionResourceFilter("tar"));
-			if (files == null) throw new IOException("directory " + tarFile + " is empty");
+			if (files == null) throw new IOException("directory [" + tarFile + "] is empty");
 			extract(FORMAT_TAR, files, targetDir);
 			return;
 		}
@@ -225,19 +225,19 @@ public final class CompressUtil {
 			}
 		}
 		finally {
-			IOUtil.closeEL(tis);
+			IOUtil.close(tis);
 		}
 	}
 
 	private static void extractZip(Resource zipFile, Resource targetDir) throws IOException {
-		if (!targetDir.exists() || !targetDir.isDirectory()) throw new IOException(targetDir + " is not a existing directory");
+		if (!targetDir.exists() || !targetDir.isDirectory()) throw new IOException("[" + targetDir + "] is not an existing directory");
 
-		if (!zipFile.exists()) throw new IOException(zipFile + " is not a existing file");
+		if (!zipFile.exists()) throw new IOException("[" + zipFile + "] is not an existing file");
 
 		if (zipFile.isDirectory()) {
 			Resource[] files = zipFile.listResources(new OrResourceFilter(new ResourceFilter[] { new ExtensionResourceFilter("zip"), new ExtensionResourceFilter("jar"),
 					new ExtensionResourceFilter("war"), new ExtensionResourceFilter("tar"), new ExtensionResourceFilter("ear") }));
-			if (files == null) throw new IOException("directory " + zipFile + " is empty");
+			if (files == null) throw new IOException("directory [" + zipFile + "] is empty");
 			extract(FORMAT_ZIP, files, targetDir);
 			return;
 		}
@@ -280,13 +280,13 @@ public final class CompressUtil {
 			}
 		}
 		finally {
-			IOUtil.closeEL(zis);
+			IOUtil.close(zis);
 		}
 	}
 
 	/*
 	 * private static void listZipp(Resource zipFile) throws IOException { if (!zipFile.exists()) throw
-	 * new IOException(zipFile + " is not a existing file");
+	 * new IOException(zipFile + " is not an existing file");
 	 * 
 	 * if (zipFile.isDirectory()) { throw new IOException(zipFile + " is a directory"); }
 	 * 
@@ -360,7 +360,7 @@ public final class CompressUtil {
 		else if (format == FORMAT_TGZ) compressTGZ(sources, target, mode);
 		else if (format == FORMAT_TBZ2) compressTBZ2(sources, target, mode);
 
-		else throw new IOException("can't compress in given format");
+		else throw new IOException("Can't compress in given format");
 	}
 
 	/**
@@ -380,7 +380,7 @@ public final class CompressUtil {
 				compressTar(sources, tmpOs, mode);
 			}
 			finally {
-				IOUtil.closeEL(tmpOs);
+				IOUtil.close(tmpOs);
 			}
 
 			// write Gzip
@@ -392,7 +392,7 @@ public final class CompressUtil {
 				compressGZip(is, os);
 			}
 			finally {
-				IOUtil.closeEL(is, os);
+				IOUtil.close(is, os);
 			}
 		}
 		finally {
@@ -426,7 +426,7 @@ public final class CompressUtil {
 	 */
 	private static void compressGZip(Resource source, Resource target) throws IOException {
 		if (source.isDirectory()) {
-			throw new IOException("you can only create a GZIP File from a single source file, use TGZ (TAR-GZIP) to first TAR multiple files");
+			throw new IOException("You can only create a GZIP File from a single source file, use TGZ (TAR-GZIP) to first TAR multiple files");
 		}
 		InputStream is = null;
 		OutputStream os = null;
@@ -435,7 +435,7 @@ public final class CompressUtil {
 			os = target.getOutputStream();
 		}
 		catch (IOException ioe) {
-			IOUtil.closeEL(is, os);
+			IOUtil.close(is, os);
 			throw ioe;
 		}
 		compressGZip(is, os);
@@ -457,7 +457,7 @@ public final class CompressUtil {
 	 */
 	private static void compressBZip2(Resource source, Resource target) throws IOException {
 		if (source.isDirectory()) {
-			throw new IOException("you can only create a BZIP File from a single source file, use TBZ (TAR-BZIP2) to first TAR multiple files");
+			throw new IOException("You can only create a BZIP File from a single source file, use TBZ (TAR-BZIP2) to first TAR multiple files");
 		}
 		InputStream is = null;
 		OutputStream os = null;
@@ -466,7 +466,7 @@ public final class CompressUtil {
 			os = target.getOutputStream();
 		}
 		catch (IOException ioe) {
-			IOUtil.closeEL(is, os);
+			IOUtil.close(is, os);
 			throw ioe;
 		}
 
@@ -502,7 +502,7 @@ public final class CompressUtil {
 			compressZip("", sources, zos, filter);
 		}
 		finally {
-			IOUtil.closeEL(zos);
+			IOUtil.close(zos);
 		}
 	}
 
@@ -512,8 +512,10 @@ public final class CompressUtil {
 
 	private static void compressZip(String parent, Resource[] sources, ZipOutputStream zos, ResourceFilter filter) throws IOException {
 		if (parent.length() > 0) parent += "/";
-		for (int i = 0; i < sources.length; i++) {
-			compressZip(parent + sources[i].getName(), sources[i], zos, filter);
+		if (sources != null) {
+			for (int i = 0; i < sources.length; i++) {
+				compressZip(parent + sources[i].getName(), sources[i], zos, filter);
+			}
 		}
 	}
 
@@ -570,15 +572,17 @@ public final class CompressUtil {
 			compressTar("", sources, tos, mode);
 		}
 		finally {
-			IOUtil.closeEL(tos);
+			IOUtil.close(tos);
 		}
 	}
 
 	public static void compressTar(String parent, Resource[] sources, TarArchiveOutputStream tos, int mode) throws IOException {
 
 		if (parent.length() > 0) parent += "/";
-		for (int i = 0; i < sources.length; i++) {
-			compressTar(parent + sources[i].getName(), sources[i], tos, mode);
+		if (sources != null) {
+			for (int i = 0; i < sources.length; i++) {
+				compressTar(parent + sources[i].getName(), sources[i], tos, mode);
+			}
 		}
 	}
 

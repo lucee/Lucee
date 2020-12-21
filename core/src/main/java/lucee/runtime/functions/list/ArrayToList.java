@@ -57,7 +57,7 @@ public final class ArrayToList extends BIF {
 		if (array instanceof QueryColumn) array = unwrap(pc, (QueryColumn) array);
 		int len = array.size();
 		if (len == 0) return "";
-		if (len == 1) return Caster.toString(array.getE(1));
+		if (len == 1) return Caster.toString(array.get(1, ""));
 
 		Object o = array.get(1, null);
 		StringBuilder sb = new StringBuilder(o == null ? "" : Caster.toString(o));

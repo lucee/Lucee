@@ -21,7 +21,6 @@ import lucee.runtime.PageContext;
 import lucee.runtime.cache.CacheUtil;
 //import lucee.runtime.cache.eh.EHCache;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.config.Password;
 import lucee.runtime.config.XMLConfigAdmin;
 import lucee.runtime.exp.FunctionException;
@@ -77,7 +76,7 @@ public class CacheRegionNew extends BIF {
 	static String _call(PageContext pc, String cacheName, Struct properties, Boolean throwOnError, String strWebAdminPassword) throws PageException {
 		Password webAdminPassword = CacheUtil.getPassword(pc, strWebAdminPassword, false);
 		try {
-			XMLConfigAdmin adminConfig = XMLConfigAdmin.newInstance((ConfigWebImpl) pc.getConfig(), webAdminPassword);// TODO why we have here EHCache?
+			XMLConfigAdmin adminConfig = XMLConfigAdmin.newInstance(pc.getConfig(), webAdminPassword);// TODO why we have here EHCache?
 			adminConfig.updateCacheConnection(cacheName, new ClassDefinitionImpl("org.lucee.extension.cache.eh.EHCache", null, null, pc.getConfig().getIdentification()),
 					Config.CACHE_TYPE_NONE, properties, false, false);
 			adminConfig.storeAndReload();

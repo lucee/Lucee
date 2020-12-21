@@ -329,7 +329,7 @@ private function toResource(string path) localMode=true {
 
 private function testResourceIS(res) localMode=true {
     
-    // must be a existing dir
+    // must be an existing dir
     assertTrue(res.exists());
     assertTrue(res.isDirectory());
     assertFalse(res.isFile());
@@ -482,7 +482,7 @@ private function assertEqualPaths(string path1, string path2) {
 
 	private void function test(string label,string root){
 		var start=getTickCount();
-		var dir=arguments.root&"testresource1/";
+		var dir=arguments.root&"test-#createUniqueId()#-res/";
 		
 		// make sure there are no data from a previous run 
 		if(directoryExists(dir)) {

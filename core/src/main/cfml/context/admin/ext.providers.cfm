@@ -97,29 +97,25 @@
 <cfset printError(error)>
 
 <cfadmin 
-	action="getExtensionProviders"
-	type="#request.adminType#"
-	password="#session["password"&request.adminType]#"
-	returnVariable="classicProviders">
-	
-
-
-<cfadmin 
 	action="getRHExtensionProviders"
 	type="#request.adminType#"
 	password="#session["password"&request.adminType]#"
 	returnVariable="providers">
 
 
-
-<cfset hasAccess=true>
-
-
-
-<cfset datas=getProvidersInfo(queryColumnData(providers,'url'))>
+<cfscript>
+	hasAccess=true;
+	thread name="provider:data" {
+		thread.datas=getProvidersInfo(providers:queryColumnData(providers,'url'));
+	}
+	thread action="join" name="provider:data" timeout=100;
+	datas=isNull(cfthread["provider:data"].datas)?{}:cfthread["provider:data"].datas;
+	
+</cfscript>
 
 
 <!--- 
+
 list all mappings and display necessary edit fields --->
 
 <cfoutput>
@@ -244,8 +240,10 @@ list all mappings and display necessary edit fields --->
 							#stText.ext.prov.host#
 						</th>
 						<td>
+
 							<cfinputClassic onKeyDown="checkTheBox(this)" type="text" id="urlValue"
 							name="url_#saveUrl#" value="" required="yes" class="xlarge">
+
 							<div class="comment">#stText.ext.prov.hostDesc#</div>
 						</td>
 					</tr>

@@ -131,7 +131,7 @@ public class InstrumentationFactory {
 				Resource agentJar = createAgentJar(log, config);
 
 				throw new PageRuntimeException(new ApplicationException(
-						Constants.NAME + " was not able to load a Agent dynamically! " + "You may add this manually by adding the following to your JVM arguments [-javaagent:\""
+						Constants.NAME + " was not able to load an Agent dynamically! " + "You may add this manually by adding the following to your JVM arguments [-javaagent:\""
 								+ (agentJar) + "\"] " + (allowAttachSelf ? "." : "or supply -Djdk.attach.allowAttachSelf as system property.")));
 			}
 			catch (IOException ioe) {
@@ -170,7 +170,7 @@ public class InstrumentationFactory {
 			Method m = clazz.getMethod("getInstrumentation", new Class[0]);
 			_instr = (Instrumentation) m.invoke(null, new Object[0]);
 
-			log.info("Instrumentation", "ExternalAgent does " + (_instr != null ? "" : "not ") + "contain a Instrumentation instance");
+			log.info("Instrumentation", "ExternalAgent does " + (_instr != null ? "" : "not ") + "contain an Instrumentation instance");
 
 			return _instr;
 		}

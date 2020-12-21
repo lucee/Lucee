@@ -30,6 +30,7 @@ import java.net.URLClassLoader;
 import java.net.URLDecoder;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.zip.ZipEntry;
@@ -43,9 +44,10 @@ import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.FileUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
+import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.Identification;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
@@ -136,19 +138,21 @@ public final class ClassUtil {
 		return defaultValue;
 	}
 
-	public static Class<?> loadClassByBundle(String className, String name, String strVersion, Identification id) throws ClassException, BundleException {
+	public static Class<?> loadClassByBundle(String className, String name, String strVersion, Identification id, List<Resource> addionalDirectories)
+			throws ClassException, BundleException {
 		// version
 		Version version = null;
 		if (!StringUtil.isEmpty(strVersion, true)) {
 			version = OSGiUtil.toVersion(strVersion.trim(), null);
 			if (version == null) throw new ClassException("Version definition [" + strVersion + "] is invalid.");
 		}
-		return loadClassByBundle(className, name, version, id);
+		return loadClassByBundle(className, name, version, id, addionalDirectories);
 	}
 
-	public static Class loadClassByBundle(String className, String name, Version version, Identification id) throws BundleException, ClassException {
+	public static Class loadClassByBundle(String className, String name, Version version, Identification id, List<Resource> addionalDirectories)
+			throws BundleException, ClassException {
 		try {
-			return OSGiUtil.loadBundle(name, version, id, true).loadClass(className);
+			return OSGiUtil.loadBundle(name, version, id, addionalDirectories, true).loadClass(className);
 		}
 		catch (ClassNotFoundException e) {
 			String appendix = "";
@@ -373,13 +377,18 @@ public final class ClassUtil {
 	 */
 	public static Object loadInstance(Class clazz) throws ClassException {
 		try {
-			return clazz.newInstance();
+			return newInstance(clazz);
 		}
 		catch (InstantiationException e) {
 			throw new ClassException("the specified class object [" + clazz.getName() + "()] cannot be instantiated");
 		}
 		catch (IllegalAccessException e) {
 			throw new ClassException("can't load class because the currently executing method does not have access to the definition of the specified class");
+		}
+		catch (Exception e) {
+			ClassException ce = new ClassException(e.getMessage() == null ? e.getClass().getName() : e.getMessage());
+			ce.setStackTrace(e.getStackTrace());
+			return e;
 		}
 	}
 
@@ -399,7 +408,7 @@ public final class ClassUtil {
 	 */
 	public static Object loadInstance(Class clazz, Object defaultValue) {
 		try {
-			return clazz.newInstance();
+			return newInstance(clazz);
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
@@ -443,7 +452,7 @@ public final class ClassUtil {
 
 		}
 		catch (SecurityException e) {
-			throw new ClassException("there is a security violation (throwed by security manager)");
+			throw new ClassException("there is a security violation (thrown by security manager)");
 		}
 		catch (NoSuchMethodException e) {
 
@@ -456,7 +465,7 @@ public final class ClassUtil {
 			}
 			sb.append(')');
 
-			throw new ClassException("there is no constructor with this [" + sb + "] signature for the class [" + clazz.getName() + "]");
+			throw new ClassException("there is no constructor with the [" + sb + "] signature for the class [" + clazz.getName() + "]");
 		}
 		catch (IllegalArgumentException e) {
 			throw new ClassException("has been passed an illegal or inappropriate argument");
@@ -542,8 +551,8 @@ public final class ClassUtil {
 		getClassPathesFromLoader(new ClassUtil().getClass().getClassLoader(), pathes);
 		getClassPathesFromLoader(config.getClassLoader(), pathes);
 
-		Set set = pathes.keySet();
-		return (String[]) set.toArray(new String[set.size()]);
+		Set<String> set = pathes.keySet();
+		return set.toArray(new String[set.size()]);
 	}
 
 	/**
@@ -588,6 +597,8 @@ public final class ClassUtil {
 
 	private static final byte BCF = (byte) ICF;// CF
 	private static final byte B33 = (byte) I33;// 33
+	private static final Class[] EMPTY_CLASS = new Class[0];
+	private static final Object[] EMPTY_OBJ = new Object[0];
 
 	/**
 	 * check if given stream is a bytecode stream, if yes remove bytecode mark
@@ -699,7 +710,7 @@ public final class ClassUtil {
 	}
 
 	/**
-	 * return a array class based on the given class (opposite from Class.getComponentType())
+	 * return an array class based on the given class (opposite from Class.getComponentType())
 	 * 
 	 * @param clazz
 	 * @return
@@ -776,7 +787,7 @@ public final class ClassUtil {
 		catch (Exception e) {}
 		finally {
 			IOUtil.closeEL(is);
-			IOUtil.closeEL(zf);
+			IOUtil.closeELL(zf);
 		}
 
 		return defaultValue;
@@ -839,9 +850,10 @@ public final class ClassUtil {
 	 * @throws ClassException
 	 * @throws BundleException
 	 */
-	public static Class loadClass(String className, String bundleName, String bundleVersion, Identification id) throws ClassException, BundleException {
+	public static Class loadClass(String className, String bundleName, String bundleVersion, Identification id, List<Resource> addionalDirectories)
+			throws ClassException, BundleException {
 		if (StringUtil.isEmpty(bundleName)) return loadClass(className);
-		return loadClassByBundle(className, bundleName, bundleVersion, id);
+		return loadClassByBundle(className, bundleName, bundleVersion, id, addionalDirectories);
 	}
 
 	private static interface ClassLoading {
@@ -912,9 +924,14 @@ public final class ClassUtil {
 		if (cl != null) return cl;
 
 		Config config = ThreadLocalPageContext.getConfig();
-		if (config instanceof ConfigImpl) {
-			return ((ConfigImpl) config).getClassLoaderCore();
+		if (config instanceof ConfigPro) {
+			return ((ConfigPro) config).getClassLoaderCore();
 		}
 		return new lucee.commons.lang.ClassLoaderHelper().getClass().getClassLoader();
+	}
+
+	public static Object newInstance(Class clazz)
+			throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+		return clazz.getConstructor(EMPTY_CLASS).newInstance(EMPTY_OBJ);
 	}
 }

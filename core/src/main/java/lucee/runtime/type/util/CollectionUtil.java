@@ -103,7 +103,7 @@ public class CollectionUtil {
 
 	/*
 	 * public static int hashCode(Collection coll) { produce infiniti loop when there is a refrerence to
-	 * itself or a anchestor
+	 * itself or an anchestor
 	 * 
 	 * int hashCode = 1; Iterator<Entry<Key, Object>> it = coll.entryIterator(); Entry<Key, Object> e;
 	 * while(it.hasNext()) { e = it.next(); hashCode = 31*hashCode+

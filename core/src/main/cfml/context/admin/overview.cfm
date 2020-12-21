@@ -1,6 +1,7 @@
 <!---
 Defaults --->
 
+<cfset current.label = "Lucee " & server.lucee.version & " - " & current.label>
 <cfset error.message="">
 <cfset error.detail="">
 <cfparam name="form.mainAction" default="none">
@@ -46,14 +47,8 @@ Defaults --->
 		<cfset error.cfcatch=cfcatch>
 	</cfcatch>
 </cftry>
-<cfadmin 
-	action="surveillance" 
-	type="#request.adminType#" 
-	password="#session["password"&request.adminType]#" 
-	returnVariable="surveillance">
-
 <!---
-Redirtect to entry --->
+Redirect to entry --->
 <cfif cgi.request_method EQ "POST" and error.message EQ "" and form.mainAction NEQ "none">
 	<cflocation url="#request.self#" addtoken="no">
 </cfif>
@@ -89,6 +84,7 @@ Error Output --->
 <cfhtmlbody>
     <script src="../res/js/echarts-all.js.cfm" type="text/javascript"></script>
     <script type="text/javascript">
+    	var chartTimer;
     	labels={'heap':"Heap",'nonheap':"Non-Heap",'cpuSystem':"Whole System",'cpuProcess':"Lucee Process"};
 		function requestData(){
 			jQuery.ajax({
@@ -129,7 +125,8 @@ Error Output --->
 						}
 						window[chrt].setOption(cpuSystemChartOption); // passed the data into the chats
 					});
-					setTimeout(requestData, 1000);
+					if (chartTimer !== null)
+						chartTimer = setTimeout(requestData, 5000);
 				}
 			})
 		}
@@ -143,7 +140,7 @@ Error Output --->
 				backgroundColor: ["#EFEDE5"],
 				tooltip : {'trigger':'axis',
 					formatter : function (params) {
-						return 'Series' + "<br>" + params[0][0] + ": " + params[0][2] + "%" + '<br>' +params[0][1] ;
+						return 'Series' + "<br>" + params[0].seriesName + ": " + params[0].value + "%" + '<br>' +params[0].name ;
 					}
 				},
 
@@ -185,9 +182,9 @@ Error Output --->
 				formatter : function (params) {
 					var series2 = "";
 					if(params.length == 2) {
-						series2 =  params[1][0] + ": "+ params[1][2] + "%" + '<br>' +params[0][1];
+						series2 =  params[1].seriesName + ": "+ params[1].value + "%" + '<br>' +params[0].name;
 					}
-					return 'Series' + "<br>" + params[0][0] + ": " + params[0][2] + "%" + '<br>'  + series2;
+					return 'Series' + "<br>" + params[0].seriesName + ": " + params[0].value + "%" + '<br>'  + series2;
 				}
 			},
 			legend: {
@@ -659,14 +656,14 @@ Error Output --->
 						<!--- Prof Support --->
 						<tr>
 							<td>
-								<a href="http://lucee.org/support.html" target="_blank">#stText.Overview.Professional#</a>
+								<a href="https://lucee.org/support.html" target="_blank">#stText.Overview.Professional#</a>
 								<div class="comment">#stText.Overview.ProfessionalDesc#</div>
 							</td>
 						</tr>
 						<!--- Doc --->
 						<tr>
 							<td>
-								<a href="http://docs.lucee.org" target="_blank">#stText.Overview.onlineDocsLink#</a>
+								<a href="https://docs.lucee.org" target="_blank">#stText.Overview.onlineDocsLink#</a>
 								<div class="comment">#stText.Overview.onlineDocsDesc#</div>
 							</td>
 						</tr>
@@ -680,7 +677,7 @@ Error Output --->
 						<!--- Mailing List --->
 						<tr>
 							<td>
-								<a href="http://groups.google.com/group/lucee" target="_blank">#stText.Overview.Mailinglist#</a>
+								<a href="https://groups.google.com/group/lucee" target="_blank">#stText.Overview.Mailinglist#</a>
 								<div class="comment">#stText.Overview.MailinglistDesc#</div>
 							</td>
 						</tr>
@@ -694,7 +691,7 @@ Error Output --->
 						<!--- Blog --->
 						<tr>
 							<td>
-								<a href="http://blog.lucee.org/" target="_blank">#stText.Overview.blog#</a>
+								<a href="http://blog.lucee.org" target="_blank">#stText.Overview.blog#</a>
 								<div class="comment">#stText.Overview.blogDesc#</div>
 							</td>
 						</tr>
@@ -772,7 +769,12 @@ Error Output --->
 <cfscript>
 	function getJavaVersion() {
 		var verArr=listToArray(server.java.version,'.');
-		if(verArr[1]>2) return verArr[1];
-		return verArr[2];
+		if(verArr[1]>2) {
+			return verArr[1];
+		} else if (verArr.len() GT 1) {
+			return verArr[2];
+		} else {
+		    return val(server.java.version);
+		}
 	}
 </cfscript>

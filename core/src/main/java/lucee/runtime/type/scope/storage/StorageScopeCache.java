@@ -20,6 +20,7 @@
 package lucee.runtime.type.scope.storage;
 
 import java.io.IOException;
+import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.io.cache.Cache;
 import lucee.commons.io.log.Log;
@@ -27,7 +28,6 @@ import lucee.runtime.PageContext;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
@@ -42,6 +42,8 @@ import lucee.runtime.type.util.StructUtil;
  * client scope that store it's data in a datasource
  */
 public abstract class StorageScopeCache extends StorageScopeImpl {
+
+	private static final ConcurrentHashMap<String, Object> tokens = new ConcurrentHashMap<String, Object>();
 
 	private static final long serialVersionUID = 6234854552927320080L;
 
@@ -124,12 +126,12 @@ public abstract class StorageScopeCache extends StorageScopeImpl {
 		Object val = cache.getValue(key, null);
 
 		if (val instanceof StorageValue) {
-			ScopeContext.info(log,
+			ScopeContext.debug(log,
 					"load existing data from  cache [" + cacheName + "] to create " + strType + " scope for " + pc.getApplicationContext().getName() + "/" + pc.getCFID());
 			return (StorageValue) val;
 		}
 		else {
-			ScopeContext.info(log, "create new " + strType + " scope for " + pc.getApplicationContext().getName() + "/" + pc.getCFID() + " in cache [" + cacheName + "]");
+			ScopeContext.debug(log, "create new " + strType + " scope for " + pc.getApplicationContext().getName() + "/" + pc.getCFID() + " in cache [" + cacheName + "]");
 		}
 		return null;
 	}
@@ -139,7 +141,7 @@ public abstract class StorageScopeCache extends StorageScopeImpl {
 		try {
 			Cache cache = getCache(ThreadLocalPageContext.get(pc), cacheName);
 			String key = getKey(cfid, appName, getTypeAsString());
-			synchronized (cache) {
+			synchronized (getToken(key)) {
 				Object existingVal = cache.getValue(key, null);
 				// cached data changed in meantime
 
@@ -152,7 +154,7 @@ public abstract class StorageScopeCache extends StorageScopeImpl {
 			}
 		}
 		catch (Exception pe) {
-			Log log = ((ConfigImpl) ThreadLocalPageContext.getConfig(pc)).getLog("scope");
+			Log log = ThreadLocalPageContext.getConfig(pc).getLog("scope");
 			ScopeContext.error(log, pe);
 			// LogUtil.log(ThreadLocalPageContext.getConfig(pc), StorageScopeCache.class.getName(), pe);
 		}
@@ -163,12 +165,12 @@ public abstract class StorageScopeCache extends StorageScopeImpl {
 		try {
 			Cache cache = getCache(ThreadLocalPageContext.get(pc), cacheName);
 			String key = getKey(cfid, appName, getTypeAsString());
-			synchronized (cache) {
+			synchronized (getToken(key)) {
 				cache.remove(key);
 			}
 		}
 		catch (Exception pe) {
-			Log log = ((ConfigImpl) ThreadLocalPageContext.getConfig(pc)).getLog("scope");
+			Log log = ThreadLocalPageContext.getConfig(pc).getLog("scope");
 			ScopeContext.error(log, pe);
 			// LogUtil.log(ThreadLocalPageContext.getConfig(pc), StorageScopeCache.class.getName(), pe);
 		}
@@ -189,12 +191,12 @@ public abstract class StorageScopeCache extends StorageScopeImpl {
 		return new StringBuilder("lucee-storage:").append(type).append(":").append(cfid).append(":").append(appName).toString().toUpperCase();
 	}
 
-	/*
-	 * private void setTimeSpan(PageContext pc) { ApplicationContext ac=(ApplicationContext)
-	 * pc.getApplicationContext(); timespan =
-	 * (getType()==SCOPE_CLIENT?ac.getClientTimeout().getMillis():ac.getSessionTimeout().getMillis())+(
-	 * expiresControlFromOutside?SAVE_EXPIRES_OFFSET:0L);
-	 * 
-	 * }
-	 */
+	public static Object getToken(String key) {
+		Object newLock = new Object();
+		Object lock = tokens.putIfAbsent(key, newLock);
+		if (lock == null) {
+			lock = newLock;
+		}
+		return lock;
+	}
 }

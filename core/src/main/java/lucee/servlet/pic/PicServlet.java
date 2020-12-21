@@ -84,7 +84,7 @@ public final class PicServlet extends HttpServlet {
 		catch (FileNotFoundException e) {}
 		catch (IOException e) {}
 		finally {
-			IOUtil.closeEL(is, os);
+			IOUtil.close(is, os);
 		}
 	}
 

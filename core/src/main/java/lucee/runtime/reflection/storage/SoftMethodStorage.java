@@ -18,16 +18,13 @@
  **/
 package lucee.runtime.reflection.storage;
 
-import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.SOFT;
-
+import java.lang.ref.SoftReference;
 import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.commons.collections4.map.ReferenceMap;
-
-import lucee.runtime.type.Array;
-import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
@@ -36,7 +33,9 @@ import lucee.runtime.type.KeyImpl;
  * Method Storage Class
  */
 public final class SoftMethodStorage {
-	private Map<Class, Map<Key, Array>> map = new ReferenceMap<Class, Map<Key, Array>>(SOFT, SOFT);
+
+	private final ConcurrentHashMap<String, Object> tokens = new ConcurrentHashMap<String, Object>();
+	private Map<Class, SoftReference<Map<Key, Map<Integer, Method[]>>>> map = new ConcurrentHashMap<Class, SoftReference<Map<Key, Map<Integer, Method[]>>>>();
 
 	/**
 	 * returns a methods matching given criteria or null if method doesn't exist
@@ -47,15 +46,45 @@ public final class SoftMethodStorage {
 	 * @return matching Methods as Array
 	 */
 	public Method[] getMethods(Class clazz, Collection.Key methodName, int count) {
-		Map<Key, Array> methodsMap = map.get(clazz);
+		SoftReference<Map<Key, Map<Integer, Method[]>>> tmp = map.get(clazz);
+		Map<Key, Map<Integer, Method[]>> methodsMap = tmp == null ? null : tmp.get();
 		if (methodsMap == null) methodsMap = store(clazz);
 
-		Array methods = methodsMap.get(methodName);
+		Map<Integer, Method[]> methods = methodsMap.get(methodName);
 		if (methods == null) return null;
 
-		Object o = methods.get(count + 1, null);
-		if (o == null) return null;
-		return (Method[]) o;
+		Method[] arr = methods.get(count + 1);
+
+		// sort because of LDEV-2430
+		if (arr != null && arr.length > 1) {
+			// is sorting necessary?
+			String str = arr[0].getName();
+			boolean needSorting = false;
+			for (int i = 1; i < arr.length; i++) {
+				if (!str.equals(arr[i].getName())) {
+					needSorting = true;
+					break;
+				}
+			}
+			if (needSorting) {
+				Method[] arrSorted = new Method[arr.length];
+				for (int i = 0; i < arr.length; i++) {
+					arrSorted[i] = arr[i];
+				}
+
+				Arrays.sort(arrSorted, new Comparator<Method>() {
+					@Override
+					public int compare(Method l, Method r) {
+						if (methodName.getString().equals(l.getName())) return -1;
+						if (methodName.getString().equals(r.getName())) return 1;
+						return 0;
+					}
+				});
+				return arrSorted;
+
+			}
+		}
+		return arr;
 	}
 
 	/**
@@ -64,15 +93,25 @@ public final class SoftMethodStorage {
 	 * @param clazz
 	 * @return returns stored struct
 	 */
-	private Map<Key, Array> store(Class clazz) {
-		Method[] methods = clazz.getMethods();
-		Map<Key, Array> methodsMap = new ConcurrentHashMap<Key, Array>();
-		for (int i = 0; i < methods.length; i++) {
-			storeMethod(methods[i], methodsMap);
-
+	private Map<Key, Map<Integer, Method[]>> store(Class clazz) {
+		synchronized (getToken(clazz)) {
+			Method[] methods = clazz.getMethods();
+			Map<Key, Map<Integer, Method[]>> methodsMap = new ConcurrentHashMap<Key, Map<Integer, Method[]>>();
+			for (int i = 0; i < methods.length; i++) {
+				storeMethod(methods[i], methodsMap);
+			}
+			map.put(clazz, new SoftReference<Map<Key, Map<Integer, Method[]>>>(methodsMap));
+			return methodsMap;
 		}
-		map.put(clazz, methodsMap);
-		return methodsMap;
+	}
+
+	private Object getToken(Class clazz) {
+		Object newLock = new Object();
+		Object lock = tokens.putIfAbsent(clazz.getName(), newLock);
+		if (lock == null) {
+			lock = newLock;
+		}
+		return lock;
 	}
 
 	/**
@@ -81,20 +120,15 @@ public final class SoftMethodStorage {
 	 * @param method
 	 * @param methodsMap
 	 */
-	private void storeMethod(Method method, Map<Key, Array> methodsMap) {
+	private void storeMethod(Method method, Map<Key, Map<Integer, Method[]>> methodsMap) {
 		Key methodName = KeyImpl.init(method.getName());
 
-		Array methodArgs;
-		synchronized (methodsMap) {
-			methodArgs = methodsMap.get(methodName);
-			if (methodArgs == null) {
-				methodArgs = new ArrayImpl();
-				methodsMap.put(methodName, methodArgs);
-			}
+		Map<Integer, Method[]> methodArgs = methodsMap.get(methodName);
+		if (methodArgs == null) {
+			methodArgs = new ConcurrentHashMap<Integer, Method[]>();
+			methodsMap.put(methodName, methodArgs);
 		}
-
 		storeArgs(method, methodArgs);
-		// Modifier.isStatic(method.getModifiers());
 	}
 
 	/**
@@ -103,24 +137,21 @@ public final class SoftMethodStorage {
 	 * @param method
 	 * @param methodArgs
 	 */
-	private void storeArgs(Method method, Array methodArgs) {
+	private void storeArgs(Method method, Map<Integer, Method[]> methodArgs) {
 
 		Class[] pmt = method.getParameterTypes();
 		Method[] args;
-		synchronized (methodArgs) {
-			Object o = methodArgs.get(pmt.length + 1, null);
-			if (o == null) {
-				args = new Method[1];
-				methodArgs.setEL(pmt.length + 1, args);
+		Method[] ms = methodArgs.get(pmt.length + 1);
+		if (ms == null) {
+			args = new Method[1];
+			methodArgs.put(pmt.length + 1, args);
+		}
+		else {
+			args = new Method[ms.length + 1];
+			for (int i = 0; i < ms.length; i++) {
+				args[i] = ms[i];
 			}
-			else {
-				Method[] ms = (Method[]) o;
-				args = new Method[ms.length + 1];
-				for (int i = 0; i < ms.length; i++) {
-					args[i] = ms[i];
-				}
-				methodArgs.setEL(pmt.length + 1, args);
-			}
+			methodArgs.put(pmt.length + 1, args);
 		}
 		args[args.length - 1] = method;
 	}

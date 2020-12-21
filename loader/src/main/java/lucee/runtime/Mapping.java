@@ -61,7 +61,7 @@ public interface Mapping extends Serializable {
 	public abstract Resource getArchive();
 
 	/**
-	 * @return returns if mapping has a archive
+	 * @return returns if mapping has an archive
 	 */
 	public abstract boolean hasArchive();
 

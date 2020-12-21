@@ -23,15 +23,16 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.lang.ref.SoftReference;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.commons.collections4.map.ReferenceMap;
-
+import lucee.commons.db.DBUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
 import lucee.commons.io.res.ResourceProviderPro;
@@ -44,8 +45,9 @@ import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.db.DatasourceConnection;
+import lucee.runtime.db.DatasourceConnectionPro;
 import lucee.runtime.db.DatasourceManagerImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
@@ -62,24 +64,17 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 	public static final int DBTYPE_ANSI92 = 0;
 	public static final int DBTYPE_MSSQL = 1;
 	public static final int DBTYPE_MYSQL = 2;
-
 	private static final int MAXAGE = 5000;
 
-	// private static final int CONNECTION_ID = 0;
-
 	private String scheme = "ds";
-
 	boolean caseSensitive = true;
-	// private Resources resources;
 	private long lockTimeout = 1000;
 	private ResourceLockImpl lock = new ResourceLockImpl(lockTimeout, caseSensitive);
 	private DatasourceManagerImpl _manager;
 	private String defaultPrefix = "rdr";
-	// private DataSourceManager manager;
-	// private Core core;
 	private Map cores = new WeakHashMap();
-	private Map<String, Attr> attrCache = new ReferenceMap<String, Attr>();
-	private Map<String, Attr> attrsCache = new ReferenceMap<String, Attr>();
+	private Map<String, SoftReference<Attr>> attrCache = new ConcurrentHashMap<String, SoftReference<Attr>>();
+	private Map<String, SoftReference<Attr>> attrsCache = new ConcurrentHashMap<String, SoftReference<Attr>>();
 	private Map arguments;
 
 	/**
@@ -207,7 +202,7 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 	private DatasourceManagerImpl getManager() {
 		if (_manager == null) {
 			Config config = ThreadLocalPageContext.getConfig();
-			_manager = new DatasourceManagerImpl((ConfigImpl) config);
+			_manager = new DatasourceManagerImpl((ConfigPro) config);
 		}
 		return _manager;
 	}
@@ -218,14 +213,14 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 			DatasourceConnection dc = getManager().getConnection(ThreadLocalPageContext.get(), data.getDatasourceName(), data.getUsername(), data.getPassword());
 			try {
 
-				dc.getConnection().setAutoCommit(false);
-				dc.getConnection().setTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED);
+				dc.setAutoCommit(false);
+				dc.setTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED);
 
 				if ("com.microsoft.jdbc.sqlserver.SQLServerDriver".equals(dc.getDatasource().getClassDefinition().getClassName())) core = new MSSQL(dc, data.getPrefix());
 				else if ("com.microsoft.sqlserver.jdbc.SQLServerDriver".equals(dc.getDatasource().getClassDefinition().getClassName())) core = new MSSQL(dc, data.getPrefix());
 				else if ("net.sourceforge.jtds.jdbc.Driver".equals(dc.getDatasource().getClassDefinition().getClassName())) core = new MSSQL(dc, data.getPrefix());
 				else if ("org.gjt.mm.mysql.Driver".equals(dc.getDatasource().getClassDefinition().getClassName())) core = new MySQL(dc, data.getPrefix());
-				else throw new ApplicationException("there is no DatasourceResource driver for this database [" + data.getPrefix() + "]");
+				else throw new ApplicationException("There is no DatasourceResource driver for this database [" + data.getPrefix() + "]");
 
 				cores.put(data.datasourceName, core);
 			}
@@ -234,7 +229,6 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 			}
 			finally {
 				release(dc);
-				// manager.releaseConnection(CONNECTION_ID,dc);
 			}
 		}
 		return core;
@@ -290,9 +284,6 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 	public Attr[] getAttrs(ConnectionData data, int pathHash, String path) throws PageException {
 		if (StringUtil.isEmpty(data.getDatasourceName())) return null;
 
-		// Attr[] attrs = getFromCache(data, path);
-		// if(attrs!=null) return attrs;
-
 		DatasourceConnection dc = null;
 		try {
 			dc = getDatasourceConnection(data);
@@ -307,7 +298,6 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 					putToCache(data, rtn[index].getParent(), rtn[index].getName(), rtn[index]);
 					index++;
 				}
-				// putToCache(data, path, rtn);
 				return rtn;
 			}
 		}
@@ -316,16 +306,13 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 		}
 		finally {
 			release(dc);
-			// manager.releaseConnection(CONNECTION_ID,dc);
 		}
 		return null;
 	}
 
 	public void create(ConnectionData data, int fullPathHash, int pathHash, String path, String name, int type) throws IOException {
-		if (StringUtil.isEmpty(data.getDatasourceName())) throw new IOException("missing datasource definition");
-
+		if (StringUtil.isEmpty(data.getDatasourceName())) throw new IOException("Missing datasource definition");
 		removeFromCache(data, path, name);
-
 		DatasourceConnection dc = null;
 		try {
 			dc = getDatasourceConnection(data);
@@ -343,10 +330,8 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 	}
 
 	public void delete(ConnectionData data, int fullPathHash, String path, String name) throws IOException {
-
 		Attr attr = getAttr(data, fullPathHash, path, name);
-		if (attr == null) throw new IOException("can't delete resource " + path + name + ", resource does not exist");
-
+		if (attr == null) throw new IOException("Can't delete resource [" + path + name + "], resource does not exist");
 		DatasourceConnection dc = null;
 		try {
 			dc = getDatasourceConnection(data);
@@ -367,7 +352,7 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 
 	public InputStream getInputStream(ConnectionData data, int fullPathHash, String path, String name) throws IOException {
 		Attr attr = getAttr(data, fullPathHash, path, name);
-		if (attr == null) throw new IOException("file [" + path + name + "] does not exist");
+		if (attr == null) throw new IOException("File [" + path + name + "] does not exist");
 		DatasourceConnection dc = null;
 		try {
 			dc = getDatasourceConnection(data);
@@ -413,7 +398,6 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 		}
 		finally {
 			removeFromCache(data, path, name);
-			// manager.releaseConnection(CONNECTION_ID,dc);
 		}
 	}
 
@@ -424,13 +408,9 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 			try {
 				getCore(data).setLastModified(dc, data.getPrefix(), attr, time);
 			}
-			/*
-			 * catch (SQLException e) { return false; }
-			 */
 			finally {
 				removeFromCache(data, path, name);
 				release(dc);
-				// manager.releaseConnection(CONNECTION_ID,dc);
 			}
 		}
 		catch (Throwable t) {
@@ -474,13 +454,14 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 
 	private Attr removeFromCache(ConnectionData data, String path, String name) {
 		attrsCache.remove(data.key() + path);
-		return (Attr) attrCache.remove(data.key() + path + name);
+		SoftReference<Attr> rtn = attrCache.remove(data.key() + path + name);
+		return rtn == null ? null : rtn.get();
 	}
 
 	private Attr getFromCache(ConnectionData data, String path, String name) {
 		String key = data.key() + path + name;
-		Attr attr = (Attr) attrCache.get(key);
-
+		SoftReference<Attr> tmp = attrCache.get(key);
+		Attr attr = tmp == null ? null : tmp.get();
 		if (attr != null && attr.timestamp() + MAXAGE < System.currentTimeMillis()) {
 			attrCache.remove(key);
 			return null;
@@ -489,20 +470,9 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 	}
 
 	private Attr putToCache(ConnectionData data, String path, String name, Attr attr) {
-		attrCache.put(data.key() + path + name, attr);
+		attrCache.put(data.key() + path + name, new SoftReference<Attr>(attr));
 		return attr;
 	}
-
-	/*
-	 * private Attr[] getFromCache(ConnectionData data, String path) { String key=data.key()+path;
-	 * Attr[] attrs= (Attr[]) attrsCache.get(key);
-	 * 
-	 * / *if(attr!=null && attr.timestamp()+MAXAGE<System.currentTimeMillis()) { attrCache.remove(key);
-	 * return null; }* / return attrs; }
-	 * 
-	 * private Attr[] putToCache(ConnectionData data, String path, Attr[] attrs) {
-	 * attrsCache.put(data.key()+path, attrs); return attrs; }
-	 */
 
 	public class ConnectionData {
 		private String username;
@@ -581,14 +551,12 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 	 */
 	void release(DatasourceConnection dc) {
 		if (dc != null) {
-
 			try {
 				dc.getConnection().commit();
 				dc.getConnection().setAutoCommit(true);
-				dc.getConnection().setTransactionIsolation(Connection.TRANSACTION_NONE);
+				DBUtil.setTransactionIsolationEL(dc.getConnection(), ((DatasourceConnectionPro) dc).getDefaultTransactionIsolation());
 			}
 			catch (SQLException e) {}
-
 			getManager().releaseConnection(ThreadLocalPageContext.get(), dc);
 		}
 	}
