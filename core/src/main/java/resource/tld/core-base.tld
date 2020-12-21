@@ -6365,7 +6365,10 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 			<alias>columnname,column,keycolumn</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>When return type is set to "struct", the value of this column is used as key in the struct for every record.</description>
+			<description>When return type is set to "struct", the value of this column can be used as key in the struct for every record.
+				If not set then the query must not return more than one record, and the keys of the returned struct are the column names
+				and the values are the column values for the single record that is returned. 
+			</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -6554,7 +6557,12 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<rtexprvalue>true</rtexprvalue>
 			<description>one of the following values:
 			- query: default for all dbtype expect "hql", returns a query object
-			- array_of_entity: works only with dbtype "hql" and is also the default value for dbtype "hql"</description>
+			- array_of_entity: works only with dbtype "hql" and is also the default value for dbtype "hql"
+			- array: returns an array, where each element is a struct with a query record
+			- struct: returns either a struct of structs where the key is specified by the keyColumn attribute
+			and each value is a struct with a query record, or a single record if keyColumn is not set, where
+			each key is a column name and each value has its corresponding value.
+			</description>
 		</attribute>
 		<attribute>
 			<type>timezone</type>

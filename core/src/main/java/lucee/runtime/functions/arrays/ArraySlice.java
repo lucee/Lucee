@@ -60,7 +60,7 @@ public final class ArraySlice extends BIF {
 		else throw new FunctionException(pc, "ArraySlice", 2, 3, args.length);
 	}
 
-	private static Array get(Array arr, int from, int to) throws PageException {
+	public static Array get(Array arr, int from, int to) throws PageException {
 		Array rtn = ArrayUtil.getInstance(arr.getDimension());
 		int[] keys = arr.intKeys();
 		for (int i = 0; i < keys.length; i++) {
