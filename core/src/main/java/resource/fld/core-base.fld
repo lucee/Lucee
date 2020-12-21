@@ -2266,7 +2266,6 @@ sort direction:
 		<name>TrimWhiteSpace</name>
 		<class>lucee.runtime.functions.string.TrimWhiteSpace</class>
 		<member-name>trimWhiteSpace</member-name>
-		<status>hidden</status>
 		<keywords>string</keywords>
 		<description>clean white space of the given string</description>
 		<argument>
@@ -2338,8 +2337,7 @@ sort direction:
 	<function>
 		<name>ComponentListPackage</name>
 		<class>lucee.runtime.functions.component.ComponentListPackage</class>
-		<status>hidden</status>
-		<description>this implementation is experimentell. list all components in a certain package, throws an application exception if package does not exist.</description>
+		<description>List all components in a certain package, throws an application exception if package does not exist.</description>
 		<argument>
 			<name>package</name>
 			<alias>packageName,name</alias>
@@ -2680,7 +2678,6 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<!-- WebserviceNew -->
 	<function>
 		<name>WebserviceNew</name>
-		<status>hidden</status>
 		<class>lucee.runtime.functions.other.WebserviceProxy</class>
         <introduced>5.0.0.0</introduced>
         <description>create a Webservice Proxy object, a reference to a remote webservice</description>
@@ -4362,7 +4359,6 @@ EntitySave(entity, [forceinsert])</description>
     			<name>name</name>
     			<alias>queryName</alias>
     			<type>string</type>
-    			<status>hidden</status>
     			<required>No</required>
     			<description>name of the query produced, visible in dumps or debugging output.</description>
     	    </argument>
@@ -4377,8 +4373,7 @@ EntitySave(entity, [forceinsert])</description>
     	<function>
     		<name>QueryLazy</name>
     		<class>lucee.runtime.functions.query.QueryLazy</class>
-    		<status>hidden</status>
-			<keywords>query</keywords>
+    		<keywords>query</keywords>
 			<description>Executes a SQL query without loading the data entierly to memory. Instead it calls the given Function with every single row</description>
     		<argument>
     			<name>sql</name>
@@ -5265,7 +5260,6 @@ Set the attribute to normal to make a file not read-only and not hidden.</descri
 		<class>lucee.runtime.functions.string.FindLast</class>
 		<member-name>findLast</member-name>
 		<member-position>2</member-position>
-		<status>hidden</status>
 		<keywords>string,find</keywords>
 		<description>Finds the last occurrence of a substring in a string, from a
         specified start position. The search is case-sensitive.</description>
@@ -5299,7 +5293,6 @@ Set the attribute to normal to make a file not read-only and not hidden.</descri
 		<class>lucee.runtime.functions.string.FindLastNoCase</class>
 		<member-name>findLastNoCase</member-name>
 		<member-position>2</member-position>
-		<status>hidden</status>
 		<keywords>string,find</keywords>
 		<description>Finds the last occurrence of a substring in a string, from a
         specified start position. If substring is not in string,
@@ -7811,7 +7804,6 @@ The following things are considered to be empty:
 		</argument>
 		<argument>
 			<name>includeEmptyFields</name>
-			<status>hidden</status>
 			<type>boolean</type>
 			<required>No</required>
 			<default>true</default>
@@ -8491,7 +8483,6 @@ The following things are considered to be empty:
 		</argument>
 		<argument>
 			<name>includeEmptyFields</name>
-			<status>hidden</status>
 			<type>boolean</type>
 			<required>No</required>
 			<default>true</default>
@@ -8553,7 +8544,6 @@ The following things are considered to be empty:
 	<!-- ListQualifiedToArray -->
 	<function>
 		<name>ListQualifiedToArray</name>
-		<status>hidden</status>
 		<class>lucee.runtime.functions.list.ListQualifiedToArray</class>
 		<keywords>list,string,array</keywords>
 		<member-name>listQualifiedToArray</member-name>
