@@ -1802,13 +1802,13 @@ public abstract class AbstrCFMLExprTransformer {
 					// Dynamic
 					if (isDynamic) {
 						if (max != -1 && max < fm.getArguments().length) throw new TemplateException(data.srcCode,
-								"Too many Attributes (" + max + ":" + fm.getArguments().length + ") in function [ " + ASMUtil.display(name) + " ]");
+								"Too many arguments (" + max + ":" + fm.getArguments().length + ") in function [ " + ASMUtil.display(name) + " ]");
 					}
 					// Fix
 					else {
 						if (flf.getArg().size() < fm.getArguments().length) {
 							TemplateException te = new TemplateException(data.srcCode,
-									"Too many Attributes (" + flf.getArg().size() + ":" + fm.getArguments().length + ") in function call [" + ASMUtil.display(name) + "]");
+									"Too many arguments (" + flf.getArg().size() + ":" + fm.getArguments().length + ") in function call [" + ASMUtil.display(name) + "]");
 							UDFUtil.addFunctionDoc(te, flf);
 							throw te;
 						}
@@ -1818,7 +1818,7 @@ public abstract class AbstrCFMLExprTransformer {
 
 				// check min attributes
 				if (flf.getArgMin() > count) {
-					TemplateException te = new TemplateException(data.srcCode, "Too few attributes in function [" + ASMUtil.display(name) + "]");
+					TemplateException te = new TemplateException(data.srcCode, "Too few arguments in function [" + ASMUtil.display(name) + "]");
 					if (flf.getArgType() == FunctionLibFunction.ARG_FIX) UDFUtil.addFunctionDoc(te, flf);
 					throw te;
 				}
