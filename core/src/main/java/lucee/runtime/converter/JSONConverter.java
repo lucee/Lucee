@@ -255,8 +255,8 @@ public final class JSONConverter extends ConverterSupport {
 	 */
 	public void _serializeStruct(PageContext pc, Set test, Struct struct, StringBuilder sb, int queryFormat, boolean addUDFs, Set<Object> done) throws ConverterException {
 
-		ApplicationContextSupport acs = (ApplicationContextSupport) pc.getApplicationContext();
-		boolean preserveCase = acs.getSerializationSettings().getPreserveCaseForStructKey(); // preserve case by default for Struct
+		ApplicationContextSupport acs = pc == null ? null : (ApplicationContextSupport) pc.getApplicationContext();
+		boolean preserveCase = acs == null ? false : acs.getSerializationSettings().getPreserveCaseForStructKey(); // preserve case by default for Struct
 
 		// Component
 		if (struct instanceof Component) {
