@@ -609,7 +609,7 @@ public final class FileTag extends BodyTagImpl {
 		String ext = ResourceUtil.getExtension(res, "");
 		if (!StringUtil.isEmpty(ext)) ext = "." + ext;
 		while (res.exists()) {
-			res = res.getParentResource().getRealResource(name + HashUtil.create64BitHashAsString(CreateUUID.invoke(), Character.MAX_RADIX) + ext);
+			res = res.getParentResource().getRealResource(name + "_" + HashUtil.create64BitHashAsString(CreateUUID.invoke(), Character.MAX_RADIX) + ext);
 		}
 
 		return res;
