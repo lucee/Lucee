@@ -5068,22 +5068,31 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	public static String replaceConfigPlaceHolder(String v) {
 		if (StringUtil.isEmpty(v) || v.indexOf('{') == -1) return v;
 
-		int s = -1, e = -1;
+		int s = -1, e = -1, d = -1;
 		int prefixLen, start = -1, end;
 		String _name, _prop;
-		while ((s = v.indexOf("{system:", start)) != -1 | /* don't change */ (e = v.indexOf("{env:", start)) != -1) {
-			boolean isSystem = false;
+		while (
+				(s = v.indexOf("{system:", start)) != -1 | /* don't change */
+				(e = v.indexOf("{env:", start)) != -1 | /* don't change */
+				(d = v.indexOf("${", start)) != -1
+			) {
+			boolean isSystem = false, isDollar = false;
 			// system
-			if (s != -1 && (e == -1 || e > s)) {
+			if (s > -1 && (e == -1 || e > s)) {
 				start = s;
 				prefixLen = 8;
 				isSystem = true;
 			}
 			// env
-			else {
+			else if (e > -1) {
 				start = e;
 				prefixLen = 5;
-
+			}
+			// dollar
+			else {
+				start = d;
+				prefixLen = 2;
+				isDollar = true;
 			}
 
 			end = v.indexOf('}', start);
@@ -5093,7 +5102,14 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			if (end > prefixLen) {
 				_name = v.substring(start + prefixLen, end);
 				// print.e(_name);
-				_prop = isSystem ? System.getProperty(_name) : System.getenv(_name);
+				if (isDollar) {
+					String[] _parts = _name.split(":");
+					_prop = SystemUtil.getSystemPropOrEnvVar(_parts[0], (_parts.length > 1) ? _parts[1] : null);
+				}
+				else {
+					_prop = isSystem ? System.getProperty(_name) : System.getenv(_name);
+				}
+
 				if (_prop != null) {
 					v = new StringBuilder().append(v.substring(0, start)).append(_prop).append(v.substring(end + 1)).toString();
 					start += _prop.length();
@@ -5103,6 +5119,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			else start = end; // set start to end for the next round
 			s = -1;
 			e = -1; // reset index
+			d = -1; // I don't think we need this?
 		}
 		return v;
 	}
