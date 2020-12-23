@@ -3,31 +3,31 @@
 	,"setting":{
 		
 	}
-	,"data-sources":{
+	,"dataSources":{
 		
 	}
 	,"mode":{
 		"develop":"false"
 	}
 	,"resources":{
-		"resource-provider":{
+		"resourceProvider":{
 			"scheme":"ram"
 			,"class":"lucee.commons.io.res.type.ram.RamResourceProvider"
 			,"arguments":"case-sensitive:true;lock-timeout:1000;"
 		}
 	}
-	,"remote-clients":{
+	,"remoteClients":{
 		"directory":"{lucee-web}remote-client/"
 	}
-	,"file-system":{
-		"deploy-directory":"{lucee-web}/cfclasses/"
-		,"tld-directory":"{lucee-web}/library/tld/"
-		,"fld-directory":"{lucee-web}/library/fld/"
-		,"temp-directory":"{lucee-web}/temp/"
+	,"fileSystem":{
+		"deployDirectory":"{lucee-web}/cfclasses/"
+		,"tldDirectory":"{lucee-web}/library/tld/"
+		,"fldDirectory":"{lucee-web}/library/fld/"
+		,"tempDirectory":"{lucee-web}/temp/"
 	}
 	,"scope":{
-		"client-directory":"{lucee-web}/client-scope/"
-		,"client-directory-max-size":"100mb"
+		"clientDirectory":"{lucee-web}/client-scope/"
+		,"clientDirectoryMaxSize":"100mb"
 	}
 	,"mail":{
 		
@@ -46,14 +46,14 @@
 			,"toplevel":"yes"
 		}
 	}
-	,"custom-tag":{
+	,"customTag":{
 		"mapping":{
 			"trusted":"yes"
 			,"physical":"{lucee-web}/customtags/"
 		}
 	}
-	,"ext-tags":{
-		"ext-tag":{
+	,"extTags":{
+		"extTag":{
 			"type":"java"
 			,"name":"HelloWorld"
 			,"class":"lucee.cfx.example.HelloWorld"
@@ -61,8 +61,8 @@
 	}
 	,"component":{
 		"base":"/lucee/Component.cfc"
-		,"data-member-default-access":"public"
-		,"use-shadow":"yes"
+		,"dataMemberDefaultAccess":"public"
+		,"useShadow":"yes"
 	}
 	,"regional":{
 		
@@ -71,7 +71,7 @@
 		"template":"/lucee/templates/debugging/debugging.cfm"
 	}
 	,"application":{
-		"cache-directory":"{lucee-web}/cache/"
-		,"cache-directory-max-size":"100mb"
+		"cacheDirectory":"{lucee-web}/cache/"
+		,"cacheDirectoryMaxSize":"100mb"
 	}
 }

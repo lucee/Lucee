@@ -283,10 +283,8 @@ public final class JSONConverter extends ConverterSupport {
 	 */
 	public void _serializeStruct(PageContext pc, Set test, Struct struct, StringBuilder sb, int queryFormat, boolean addUDFs, Set<Object> done) throws ConverterException {
 
-		ApplicationContextSupport acs = pc == null ? null : (ApplicationContextSupport) pc.getApplicationContext();
-
 		// preserve case by default for Struct
-		boolean _preserveCase = getPreserveCase(acs);
+		boolean preserveCase = getPreserveCase(pc, false);
 
 		// Component
 		if (struct instanceof Component) {
@@ -321,7 +319,7 @@ public final class JSONConverter extends ConverterSupport {
 
 			e = it.next();
 			k = e.getKey().getString();
-			if (!_preserveCase) k = k.toUpperCase();
+			if (!preserveCase) k = k.toUpperCase();
 			value = e.getValue();
 
 			if (!addUDFs && (value instanceof UDF || value == null)) continue;
@@ -371,10 +369,16 @@ public final class JSONConverter extends ConverterSupport {
 		sb.append('}');
 	}
 
-	private boolean getPreserveCase(ApplicationContextSupport acs) {
-		if (_preserveCase != null) return _preserveCase.booleanValue();
-		else if (acs != null) return acs.getSerializationSettings().getPreserveCaseForStructKey();
-		return false;
+	private boolean getPreserveCase(PageContext pc, boolean forQuery) {
+		if (_preserveCase != null) {
+			return _preserveCase.booleanValue();
+		}
+
+		ApplicationContextSupport acs = pc == null ? null : (ApplicationContextSupport) pc.getApplicationContext();
+		if (acs != null) {
+			return forQuery ? acs.getSerializationSettings().getPreserveCaseForQueryColumn() : acs.getSerializationSettings().getPreserveCaseForStructKey();
+		}
+		return true;
 	}
 
 	private static String castToJson(PageContext pc, Component c, String defaultValue) throws ConverterException {
@@ -475,8 +479,7 @@ public final class JSONConverter extends ConverterSupport {
 	 */
 	private void _serializeQuery(PageContext pc, Set test, Query query, StringBuilder sb, int queryFormat, Set<Object> done) throws ConverterException {
 
-		ApplicationContextSupport acs = pc == null ? null : (ApplicationContextSupport) pc.getApplicationContext();
-		boolean preserveCase = getPreserveCase(acs); // UPPERCASE column keys by default for Query
+		boolean preserveCase = getPreserveCase(pc, true); // UPPERCASE column keys by default for Query
 
 		Collection.Key[] _keys = CollectionUtil.keys(query);
 

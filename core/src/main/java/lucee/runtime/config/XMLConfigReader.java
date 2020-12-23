@@ -15,6 +15,7 @@ import org.xml.sax.ext.LexicalHandler;
 import org.xml.sax.helpers.DefaultHandler;
 
 import lucee.print;
+import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl;
@@ -38,19 +39,6 @@ import lucee.runtime.type.StructImpl;
  * DefaultHandler.
  */
 public final class XMLConfigReader extends DefaultHandler implements LexicalHandler {
-	public static class ReadRule {
-		private Set<String> names = new HashSet<>();
-
-		public ReadRule() {
-			this.names.add("data-source");
-			this.names.add("label");
-
-		}
-
-		public boolean asArray(String name) {
-			return names.contains(name);
-		}
-	}
 
 	private XMLReader xmlReader;
 
@@ -61,13 +49,15 @@ public final class XMLConfigReader extends DefaultHandler implements LexicalHand
 	private boolean trimBody;
 
 	private ReadRule readRule;
+	private NameRule nameRule;
 
-	public XMLConfigReader(Resource file, boolean trimBody, ReadRule readRule) throws SAXException, IOException {
+	public XMLConfigReader(Resource file, boolean trimBody, ReadRule readRule, NameRule nameRule) throws SAXException, IOException {
 		super();
 		current = root;
 
 		this.trimBody = trimBody;
 		this.readRule = readRule;
+		this.nameRule = nameRule;
 		Reader r = null;
 		try {
 			init(new InputSource(r = IOUtil.getReader(file.getInputStream(), (Charset) null)));
@@ -81,13 +71,13 @@ public final class XMLConfigReader extends DefaultHandler implements LexicalHand
 		xmlReader = XMLUtil.createXMLReader();
 		xmlReader.setContentHandler(this);
 		xmlReader.setErrorHandler(this);
-		xmlReader.setProperty("http://xml.org/sax/properties/lexical-handler", this);
-		// xmlReader.setEntityResolver(new FunctionLibEntityResolver());
+		// xmlReader.setProperty("http://xml.org/sax/properties/lexical-handler", this);
 		xmlReader.parse(is);
 	}
 
 	@Override
 	public void startElement(String uri, String name, String qName, Attributes attrs) {
+		qName = nameRule.translate(qName);
 		Struct parent = current;
 		ancestor.add(parent);
 		current = new StructImpl(Struct.TYPE_LINKED);
@@ -95,7 +85,7 @@ public final class XMLConfigReader extends DefaultHandler implements LexicalHand
 		// attrs
 		int len = attrs.getLength();
 		for (int i = 0; i < len; i++) {
-			current.setEL(attrs.getQName(i), attrs.getValue(i));
+			current.setEL(nameRule.translate(attrs.getQName(i)), attrs.getValue(i));
 		}
 
 		Object existing = parent.get(qName, null);
@@ -127,6 +117,7 @@ public final class XMLConfigReader extends DefaultHandler implements LexicalHand
 
 	@Override
 	public void endElement(String uri, String name, String qName) {
+		qName = nameRule.translate(qName);
 		if (trimBody) {
 			String body = (String) current.get("_body_", null);
 			if (body != null) {
@@ -174,16 +165,15 @@ public final class XMLConfigReader extends DefaultHandler implements LexicalHand
 	public void startEntity(String arg0) throws SAXException {}
 
 	public static void main(String[] args) throws Exception {
-
 		Resource res = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Test/test/lucee-server/context/lucee-server.xml");
 		res = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Test/test/lucee-server/context/test.xml");
 		res = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Test/test/webapps/ROOT/WEB-INF/lucee/lucee-web.xml.cfm");
 		res = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Projects/Lucee/Lucee5/core/src/main/java/resource/config/web.xml");
 		Resource trg = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Projects/Lucee/Lucee5/core/src/main/java/resource/config/web.json");
 
-		XMLConfigReader reader = new XMLConfigReader(res, true, new ReadRule());
+		XMLConfigReader reader = new XMLConfigReader(res, true, new ReadRule(), new NameRule());
 		String str = ser(reader.getData().get("cfLuceeConfiguration"));
-		// IOUtil.write(trg, str, CharsetUtil.UTF8, false);
+		IOUtil.write(trg, str, CharsetUtil.UTF8, false);
 		print.e(str);
 
 		// Object result = new JSONExpressionInterpreter().interpret(null, str);
@@ -193,7 +183,7 @@ public final class XMLConfigReader extends DefaultHandler implements LexicalHand
 
 	private static String ser(Object var) throws PageException {
 		try {
-			JSONConverter json = new JSONConverter(true, Charset.forName("UTF-8"), JSONDateFormat.PATTERN_CF, true, true, "_comment_");
+			JSONConverter json = new JSONConverter(true, Charset.forName("UTF-8"), JSONDateFormat.PATTERN_CF, true, true);
 
 			// TODO get secure prefix from application.cfc
 			return json.serialize(null, var, SerializationSettings.SERIALIZE_AS_ROW);
@@ -202,4 +192,34 @@ public final class XMLConfigReader extends DefaultHandler implements LexicalHand
 			throw Caster.toPageException(e);
 		}
 	}
+
+	public static class ReadRule {
+		private Set<String> names = new HashSet<>();
+
+		public ReadRule() {
+			this.names.add("data-source");
+			this.names.add("label");
+
+		}
+
+		public boolean asArray(String name) {
+			return names.contains(name);
+		}
+	}
+
+	public static class NameRule {
+
+		public String translate(String name) {
+			int last = 0;
+			int index;
+
+			while ((index = name.indexOf('-', last)) != -1) {
+				if (index + 1 == name.length()) break;
+				name = new StringBuilder(name.substring(0, index)).append(Character.toUpperCase(name.charAt(index + 1))).append(name.substring(index + 2)).toString();
+				last = index + 1;
+			}
+			return name;
+		}
+	}
+
 }

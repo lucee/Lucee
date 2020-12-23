@@ -37,6 +37,7 @@ import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
+import lucee.runtime.config.XMLConfigReader.NameRule;
 import lucee.runtime.config.XMLConfigReader.ReadRule;
 import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.JSONConverter;
@@ -194,7 +195,7 @@ public abstract class ConfigFactory {
 
 	static void translateConfigFile(Resource configFileOld, Resource configFileNew) throws ConverterException, IOException, SAXException {
 		// read the old config (XML)
-		Struct root = ConfigWebUtil.getAsStruct("cfLuceeConfiguration", new XMLConfigReader(configFileOld, true, new ReadRule()).getData());
+		Struct root = ConfigWebUtil.getAsStruct("cfLuceeConfiguration", new XMLConfigReader(configFileOld, true, new ReadRule(), new NameRule()).getData());
 
 		// store it as Json
 		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, true, true);
@@ -221,7 +222,7 @@ public abstract class ConfigFactory {
 		String name = res.getName();
 		// That step is not necessary anymore TODO remove
 		if (StringUtil.endsWithIgnoreCase(name, ".xml.cfm") || StringUtil.endsWithIgnoreCase(name, ".xml")) {
-			return ConfigWebUtil.getAsStruct("cfLuceeConfiguration", new XMLConfigReader(res, true, new ReadRule()).getData());
+			return ConfigWebUtil.getAsStruct("cfLuceeConfiguration", new XMLConfigReader(res, true, new ReadRule(), new NameRule()).getData());
 		}
 		return Caster.toStruct(new JSONExpressionInterpreter().interpret(null, IOUtil.toString(res, CharsetUtil.UTF8)));
 	}

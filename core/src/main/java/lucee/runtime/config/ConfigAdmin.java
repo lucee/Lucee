@@ -263,7 +263,7 @@ public final class ConfigAdmin {
 		checkWriteAccess();
 
 		// Struct resources = _getRootElement("resources");
-		Array rpElements = ConfigWebUtil.getAsArray("resources", "resource-provider", root);
+		Array rpElements = ConfigWebUtil.getAsArray("resources", "resourceProvider", root);
 		// Element[] rpElements = ConfigWebFactory.getChildren(resources, "resource-provider");
 		String s;
 		// update
@@ -343,8 +343,8 @@ public final class ConfigAdmin {
 		checkWriteAccess();
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update task settings");
-		Struct mail = _getRootElement("remote-clients");
-		mail.setEL("max-threads", Caster.toString(maxThreads, ""));
+		Struct mail = _getRootElement("remoteClients");
+		mail.setEL("maxThreads", Caster.toString(maxThreads, ""));
 	}
 
 	/**
@@ -366,7 +366,7 @@ public final class ConfigAdmin {
 		// Element[] children = XMLUtil.getChildElementsAsArray(logging);
 		Struct logger = null;
 		Struct tmp;
-		for (int i = 0; i < loggers.size(); i++) {
+		for (int i = 1; i <= loggers.size(); i++) {
 			tmp = Caster.toStruct(loggers.get(i, null), null);
 			if (tmp == null) continue;
 
@@ -381,15 +381,15 @@ public final class ConfigAdmin {
 		}
 		logger.setEL("name", "mail");
 		if ("console".equalsIgnoreCase(logFile)) {
-			setClass(logger, null, "appender-", ci.getLogEngine().appenderClassDefintion("console"));
-			setClass(logger, null, "layout-", ci.getLogEngine().layoutClassDefintion("pattern"));
+			setClass(logger, null, "appender", ci.getLogEngine().appenderClassDefintion("console"));
+			setClass(logger, null, "layout", ci.getLogEngine().layoutClassDefintion("pattern"));
 		}
 		else {
-			setClass(logger, null, "appender-", ci.getLogEngine().appenderClassDefintion("resource"));
-			setClass(logger, null, "layout-", ci.getLogEngine().layoutClassDefintion("classic"));
-			logger.setEL("appender-arguments", "path:" + logFile);
+			setClass(logger, null, "appender", ci.getLogEngine().appenderClassDefintion("resource"));
+			setClass(logger, null, "layout", ci.getLogEngine().layoutClassDefintion("classic"));
+			logger.setEL("appenderArguments", "path:" + logFile);
 		}
-		logger.setEL("log-level", level);
+		logger.setEL("logLevel", level);
 	}
 
 	/**
@@ -404,7 +404,7 @@ public final class ConfigAdmin {
 
 		if (!hasAccess) throw new SecurityException("no access to update mail server settings");
 		Struct mail = _getRootElement("mail");
-		mail.setEL("spool-enable", Caster.toString(spoolEnable, ""));
+		mail.setEL("spoolEnable", Caster.toString(spoolEnable, ""));
 	}
 
 	/**
@@ -442,7 +442,7 @@ public final class ConfigAdmin {
 		}
 
 		Struct mail = _getRootElement("mail");
-		mail.setEL("default-encoding", charset);
+		mail.setEL("defaultEncoding", charset);
 		// config.setMailDefaultEncoding(charset);
 	}
 
@@ -509,7 +509,7 @@ public final class ConfigAdmin {
 		server.setEL("ssl", Caster.toString(ssl));
 		server.setEL("life", Caster.toString(lifeTimeSpan));
 		server.setEL("idle", Caster.toString(idleTimeSpan));
-		server.setEL("reuse-connection", Caster.toString(reuseConnections));
+		server.setEL("reuseConnection", Caster.toString(reuseConnections));
 	}
 
 	/**
@@ -676,25 +676,25 @@ public final class ConfigAdmin {
 		// listener-type
 		String type = ConfigWebUtil.toListenerType(listenerType, null);
 		if (type != null) {
-			el.setEL("listener-type", type);
+			el.setEL("listenerType", type);
 		}
-		else if (el.containsKey("listener-type")) {
-			el.remove("listener-type");
+		else if (el.containsKey("listenerType")) {
+			el.remove("listenerType");
 		}
 
 		// listener-mode
 		String mode = ConfigWebUtil.toListenerMode(listenerMode, null);
 		if (mode != null) {
-			el.setEL("listener-mode", mode);
+			el.setEL("listenerMode", mode);
 		}
-		else if (el.containsKey("listener-mode")) {
-			el.remove("listener-mode");
+		else if (el.containsKey("listenerMode")) {
+			el.remove("listenerMode");
 		}
 
 		// others
-		el.setEL("inspect-template", ConfigWebUtil.inspectTemplate(inspect, ""));
-		el.setEL("toplevel", Caster.toString(toplevel));
-		el.setEL("readonly", Caster.toString(readOnly));
+		el.setEL("inspectTemplate", ConfigWebUtil.inspectTemplate(inspect, ""));
+		el.setEL("topLevel", Caster.toString(toplevel));
+		el.setEL("readOnly", Caster.toString(readOnly));
 
 		// set / to the end
 		if (!update) {
@@ -840,7 +840,7 @@ public final class ConfigAdmin {
 	public void removeCustomTag(String virtual) throws SecurityException {
 		checkWriteAccess();
 
-		Array children = ConfigWebUtil.getAsArray("custom-tag", "mapping", root);
+		Array children = ConfigWebUtil.getAsArray("customTag", "mapping", root);
 		for (int i = children.size(); i > 0; i--) {
 			Struct tmp = Caster.toStruct(children.get(i, null), null);
 			if (tmp == null) continue;
@@ -899,7 +899,7 @@ public final class ConfigAdmin {
 			throw new ExpressionException("physical must have a value when primary has value physical");
 		}
 
-		Array children = ConfigWebUtil.getAsArray("custom-tag", "mapping", root);
+		Array children = ConfigWebUtil.getAsArray("customTag", "mapping", root);
 		// Struct mappings = _getRootElement("custom-tag");
 
 		// Update
@@ -915,7 +915,7 @@ public final class ConfigAdmin {
 				el.setEL("physical", physical);
 				el.setEL("archive", archive);
 				el.setEL("primary", primary.equalsIgnoreCase("archive") ? "archive" : "physical");
-				el.setEL("inspect-template", ConfigWebUtil.inspectTemplate(inspect, ""));
+				el.setEL("inspectTemplate", ConfigWebUtil.inspectTemplate(inspect, ""));
 				el.removeEL(KeyImpl.init("trusted"));
 				return;
 			}
@@ -927,7 +927,7 @@ public final class ConfigAdmin {
 		if (physical.length() > 0) el.setEL("physical", physical);
 		if (archive.length() > 0) el.setEL("archive", archive);
 		el.setEL("primary", primary.equalsIgnoreCase("archive") ? "archive" : "physical");
-		el.setEL("inspect-template", ConfigWebUtil.inspectTemplate(inspect, ""));
+		el.setEL("inspectTemplate", ConfigWebUtil.inspectTemplate(inspect, ""));
 		el.setEL("virtual", virtual);
 	}
 
@@ -969,7 +969,7 @@ public final class ConfigAdmin {
 				el.setEL("physical", physical);
 				el.setEL("archive", archive);
 				el.setEL("primary", primary.equalsIgnoreCase("archive") ? "archive" : "physical");
-				el.setEL("inspect-template", ConfigWebUtil.inspectTemplate(inspect, ""));
+				el.setEL("inspectTemplate", ConfigWebUtil.inspectTemplate(inspect, ""));
 				el.removeEL(KeyImpl.init("trusted"));
 				return;
 			}
@@ -981,7 +981,7 @@ public final class ConfigAdmin {
 		if (physical.length() > 0) el.setEL("physical", physical);
 		if (archive.length() > 0) el.setEL("archive", archive);
 		el.setEL("primary", primary.equalsIgnoreCase("archive") ? "archive" : "physical");
-		el.setEL("inspect-template", ConfigWebUtil.inspectTemplate(inspect, ""));
+		el.setEL("inspectTemplate", ConfigWebUtil.inspectTemplate(inspect, ""));
 		el.setEL("virtual", virtual);
 	}
 
@@ -1149,7 +1149,7 @@ public final class ConfigAdmin {
 
 		if (name == null || name.length() == 0) throw new ExpressionException("class name can't be an empty value");
 
-		Array children = ConfigWebUtil.getAsArray("ext-tags", "ext-tag", root);
+		Array children = ConfigWebUtil.getAsArray("extTags", "extTag", root);
 
 		// Update
 		for (int i = 1; i <= children.size(); i++) {
@@ -1219,7 +1219,7 @@ public final class ConfigAdmin {
 		// check parameters
 		if (name == null || name.length() == 0) throw new ExpressionException("name for CFX Tag can be an empty value");
 
-		Array children = ConfigWebUtil.getAsArray("ext-tags", "ext-tag", root);
+		Array children = ConfigWebUtil.getAsArray("extTags", "extTag", root);
 		for (int i = children.size(); i > 0; i--) {
 			Struct tmp = Caster.toStruct(children.get(i, null), null);
 			if (tmp == null) continue;
@@ -1281,7 +1281,7 @@ public final class ConfigAdmin {
 		// check parameters
 		if (name == null || name.length() == 0) throw new ExpressionException("name can't be an empty value");
 
-		Array children = ConfigWebUtil.getAsArray("data-sources", "data-source", root);
+		Array children = ConfigWebUtil.getAsArray("dataSources", "dataSource", root);
 		for (int i = 1; i <= children.size(); i++) {
 			Struct tmp = Caster.toStruct(children.get(i, null), null);
 			if (tmp == null) continue;
@@ -1321,21 +1321,21 @@ public final class ConfigAdmin {
 				if (!StringUtil.isEmpty(dbdriver)) el.setEL("dbdriver", Caster.toString(dbdriver));
 
 				// Param Syntax
-				el.setEL("param-delimiter", (paramSyntax.delimiter));
-				el.setEL("param-leading-delimiter", (paramSyntax.leadingDelimiter));
-				el.setEL("param-separator", (paramSyntax.separator));
+				el.setEL("paramDelimiter", (paramSyntax.delimiter));
+				el.setEL("paramLeadingDelimiter", (paramSyntax.leadingDelimiter));
+				el.setEL("paramSeparator", (paramSyntax.separator));
 
-				if (literalTimestampWithTSOffset) el.setEL("literal-timestamp-with-tsoffset", "true");
-				else if (el.containsKey("literal-timestamp-with-tsoffset")) el.removeEL(KeyImpl.init("literal-timestamp-with-tsoffset"));
+				if (literalTimestampWithTSOffset) el.setEL("literalTimestampWithTSOffset", "true");
+				else if (el.containsKey("literalTimestampWithTSOffset")) el.removeEL(KeyImpl.init("literalTimestampWithTSOffset"));
 
-				if (alwaysSetTimeout) el.setEL("always-set-timeout", "true");
-				else if (el.containsKey("always-set-timeout")) el.removeEL(KeyImpl.init("always-set-timeout"));
+				if (alwaysSetTimeout) el.setEL("alwaysSetTimeout", "true");
+				else if (el.containsKey("alwaysSetTimeout")) el.removeEL(KeyImpl.init("alwaysSetTimeout"));
 
-				if (requestExclusive) el.setEL("request-exclusive", "true");
-				else if (el.containsKey("request-exclusive")) el.removeEL(KeyImpl.init("request-exclusive"));
+				if (requestExclusive) el.setEL("requestExclusive", "true");
+				else if (el.containsKey("requestExclusive")) el.removeEL(KeyImpl.init("requestExclusive"));
 
-				if (alwaysResetConnections) el.setEL("always-reset-connections", "true");
-				else if (el.containsKey("always-reset-connections")) el.removeEL(KeyImpl.init("always-reset-connections"));
+				if (alwaysResetConnections) el.setEL("alwaysResetConnections", "true");
+				else if (el.containsKey("alwaysResetConnections")) el.removeEL(KeyImpl.init("alwaysResetConnections"));
 
 				return;
 			}
@@ -1377,14 +1377,14 @@ public final class ConfigAdmin {
 		if (!StringUtil.isEmpty(dbdriver)) el.setEL("dbdriver", Caster.toString(dbdriver));
 
 		// Param Syntax
-		el.setEL("param-delimiter", (paramSyntax.delimiter));
-		el.setEL("param-leading-delimiter", (paramSyntax.leadingDelimiter));
-		el.setEL("param-separator", (paramSyntax.separator));
+		el.setEL("paramDelimiter", (paramSyntax.delimiter));
+		el.setEL("paramLeadingDelimiter", (paramSyntax.leadingDelimiter));
+		el.setEL("paramSeparator", (paramSyntax.separator));
 
-		if (literalTimestampWithTSOffset) el.setEL("literal-timestamp-with-tsoffset", "true");
-		if (alwaysSetTimeout) el.setEL("always-set-timeout", "true");
-		if (requestExclusive) el.setEL("request-exclusive", "true");
-		if (alwaysResetConnections) el.setEL("always-reset-connections", "true");
+		if (literalTimestampWithTSOffset) el.setEL("literalTimestampWithTSOffset", "true");
+		if (alwaysSetTimeout) el.setEL("alwaysSetTimeout", "true");
+		if (requestExclusive) el.setEL("requestExclusive", "true");
+		if (alwaysResetConnections) el.setEL("alwaysResetConnections", "true");
 
 	}
 
@@ -1590,11 +1590,11 @@ public final class ConfigAdmin {
 			String n = ConfigWebUtil.getAsString("id", el, "");
 			if (n.equalsIgnoreCase(id)) {
 				setClass(el, null, "", cd);
-				el.setEL("cfc-path", componentPath);
-				el.setEL("listener-cfc-path", listenerCfcPath);
-				el.setEL("startup-mode", GatewayEntryImpl.toStartup(startupMode, "automatic"));
+				el.setEL("cfcPath", componentPath);
+				el.setEL("listenerCFCPath", listenerCfcPath);
+				el.setEL("startupMode", GatewayEntryImpl.toStartup(startupMode, "automatic"));
 				el.setEL("custom", toStringURLStyle(custom));
-				el.setEL("read-only", Caster.toString(readOnly));
+				el.setEL("readOnly", Caster.toString(readOnly));
 				return;
 			}
 
@@ -1603,12 +1603,12 @@ public final class ConfigAdmin {
 		Struct el = new StructImpl(Struct.TYPE_LINKED);
 		children.appendEL(el);
 		el.setEL("id", id);
-		el.setEL("cfc-path", componentPath);
-		el.setEL("listener-cfc-path", listenerCfcPath);
-		el.setEL("startup-mode", GatewayEntryImpl.toStartup(startupMode, "automatic"));
+		el.setEL("cfcPath", componentPath);
+		el.setEL("listenerCFCPath", listenerCfcPath);
+		el.setEL("startupMode", GatewayEntryImpl.toStartup(startupMode, "automatic"));
 		setClass(el, null, "", cd);
 		el.setEL("custom", toStringURLStyle(custom));
-		el.setEL("read-only", Caster.toString(readOnly));
+		el.setEL("readOnly", Caster.toString(readOnly));
 
 	}
 
@@ -1621,7 +1621,7 @@ public final class ConfigAdmin {
 
 	private void _removeSearchEngine() {
 		Struct orm = _getRootElement("search");
-		removeClass(orm, "engine-");
+		removeClass(orm, "engine");
 	}
 
 	private void _removeAMFEngine() {
@@ -1632,8 +1632,8 @@ public final class ConfigAdmin {
 
 		// old arguments
 		flex.removeEL(KeyImpl.init("config"));
-		flex.removeEL(KeyImpl.init("caster-class"));
-		flex.removeEL(KeyImpl.init("caster-class-arguments"));
+		flex.removeEL(KeyImpl.init("casterClass"));
+		flex.removeEL(KeyImpl.init("casterClassArguments"));
 	}
 
 	public void updateSearchEngine(ClassDefinition cd) throws PageException {
@@ -1644,7 +1644,7 @@ public final class ConfigAdmin {
 
 	private void _updateSearchEngine(ClassDefinition cd) throws PageException {
 		Struct orm = _getRootElement("search");
-		setClass(orm, SearchEngine.class, "engine-", cd);
+		setClass(orm, SearchEngine.class, "engine", cd);
 	}
 
 	private void _updateAMFEngine(ClassDefinition cd, String caster, String config) throws PageException {
@@ -1654,15 +1654,15 @@ public final class ConfigAdmin {
 		if (config != null) flex.setEL("configuration", config);
 		// old arguments
 		flex.removeEL(KeyImpl.init("config"));
-		flex.removeEL(KeyImpl.init("caster-class"));
-		flex.removeEL(KeyImpl.init("caster-class-arguments"));
+		flex.removeEL(KeyImpl.init("casterClass"));
+		flex.removeEL(KeyImpl.init("casterClassArguments"));
 	}
 
 	public void removeSearchEngine() throws SecurityException {
 		checkWriteAccess();
 
 		Struct orm = _getRootElement("search");
-		removeClass(orm, "engine-");
+		removeClass(orm, "engine");
 
 	}
 
@@ -1675,7 +1675,7 @@ public final class ConfigAdmin {
 
 	private void _removeORMEngine() {
 		Struct orm = _getRootElement("orm");
-		removeClass(orm, "engine-");
+		removeClass(orm, "engine");
 		removeClass(orm, "");// in the beginning we had no prefix
 	}
 
@@ -1698,7 +1698,7 @@ public final class ConfigAdmin {
 	private void _updateORMEngine(ClassDefinition cd) throws PageException {
 		Struct orm = _getRootElement("orm");
 		removeClass(orm, "");// in the beginning we had no prefix
-		setClass(orm, ORMEngine.class, "engine-", cd);
+		setClass(orm, ORMEngine.class, "engine", cd);
 	}
 
 	private void _updateWebserviceHandler(ClassDefinition cd) throws PageException {
@@ -1733,39 +1733,39 @@ public final class ConfigAdmin {
 
 		Struct parent = _getRootElement("cache");
 
-		if (name.equalsIgnoreCase(Caster.toString(parent.get("default-template", null), null))) rem(parent, "default-template");
-		if (name.equalsIgnoreCase(Caster.toString(parent.get("default-object", null), null))) rem(parent, "default-object");
-		if (name.equalsIgnoreCase(Caster.toString(parent.get("default-query", null), null))) rem(parent, "default-query");
-		if (name.equalsIgnoreCase(Caster.toString(parent.get("default-resource", null), null))) rem(parent, "default-resource");
-		if (name.equalsIgnoreCase(Caster.toString(parent.get("default-function", null), null))) rem(parent, "default-function");
-		if (name.equalsIgnoreCase(Caster.toString(parent.get("default-include", null), null))) rem(parent, "default-include");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultTemplate", null), null))) rem(parent, "defaultTemplate");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultObject", null), null))) rem(parent, "defaultObject");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultQuery", null), null))) rem(parent, "defaultQuery");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultResource", null), null))) rem(parent, "defaultResource");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultFunction", null), null))) rem(parent, "defaultFunction");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultInclude", null), null))) rem(parent, "defaultInclude");
 
 		if (_default == ConfigPro.CACHE_TYPE_OBJECT) {
-			parent.setEL("default-object", name);
+			parent.setEL("defaultObject", name);
 		}
 		else if (_default == ConfigPro.CACHE_TYPE_TEMPLATE) {
-			parent.setEL("default-template", name);
+			parent.setEL("defaultTemplate", name);
 		}
 		else if (_default == ConfigPro.CACHE_TYPE_QUERY) {
-			parent.setEL("default-query", name);
+			parent.setEL("defaultQuery", name);
 		}
 		else if (_default == ConfigPro.CACHE_TYPE_RESOURCE) {
-			parent.setEL("default-resource", name);
+			parent.setEL("defaultResource", name);
 		}
 		else if (_default == ConfigPro.CACHE_TYPE_FUNCTION) {
-			parent.setEL("default-function", name);
+			parent.setEL("defaultFunction", name);
 		}
 		else if (_default == ConfigPro.CACHE_TYPE_INCLUDE) {
-			parent.setEL("default-include", name);
+			parent.setEL("defaultInclude", name);
 		}
 		else if (_default == ConfigPro.CACHE_TYPE_HTTP) {
-			parent.setEL("default-http", name);
+			parent.setEL("defaultHttp", name);
 		}
 		else if (_default == ConfigPro.CACHE_TYPE_FILE) {
-			parent.setEL("default-file", name);
+			parent.setEL("defaultFile", name);
 		}
 		else if (_default == ConfigPro.CACHE_TYPE_WEBSERVICE) {
-			parent.setEL("default-webservice", name);
+			parent.setEL("defaultWebservice", name);
 		}
 
 		// Update
@@ -1779,7 +1779,7 @@ public final class ConfigAdmin {
 			if (n.equalsIgnoreCase(name)) {
 				setClass(el, null, "", cd);
 				el.setEL("custom", toStringURLStyle(custom));
-				el.setEL("read-only", Caster.toString(readOnly));
+				el.setEL("readOnly", Caster.toString(readOnly));
 				el.setEL("storage", Caster.toString(storage));
 				return;
 			}
@@ -1792,7 +1792,7 @@ public final class ConfigAdmin {
 		el.setEL("name", name);
 		setClass(el, null, "", cd);
 		el.setEL("custom", toStringURLStyle(custom));
-		el.setEL("read-only", Caster.toString(readOnly));
+		el.setEL("readOnly", Caster.toString(readOnly));
 		el.setEL("storage", Caster.toString(storage));
 
 	}
@@ -1809,31 +1809,31 @@ public final class ConfigAdmin {
 
 		Struct parent = _getRootElement("cache");
 		if (type == ConfigPro.CACHE_TYPE_OBJECT) {
-			rem(parent, "default-object");
+			rem(parent, "defaultObject");
 		}
 		else if (type == ConfigPro.CACHE_TYPE_TEMPLATE) {
-			rem(parent, "default-template");
+			rem(parent, "defaultTemplate");
 		}
 		else if (type == ConfigPro.CACHE_TYPE_QUERY) {
-			rem(parent, "default-query");
+			rem(parent, "defaultQuery");
 		}
 		else if (type == ConfigPro.CACHE_TYPE_RESOURCE) {
-			rem(parent, "default-resource");
+			rem(parent, "defaultResource");
 		}
 		else if (type == ConfigPro.CACHE_TYPE_FUNCTION) {
-			rem(parent, "default-function");
+			rem(parent, "defaultFunction");
 		}
 		else if (type == ConfigPro.CACHE_TYPE_INCLUDE) {
-			rem(parent, "default-include");
+			rem(parent, "defaultInclude");
 		}
 		else if (type == ConfigPro.CACHE_TYPE_HTTP) {
-			rem(parent, "default-http");
+			rem(parent, "defaultHttp");
 		}
 		else if (type == ConfigPro.CACHE_TYPE_FILE) {
-			rem(parent, "default-file");
+			rem(parent, "defaultFile");
 		}
 		else if (type == ConfigPro.CACHE_TYPE_WEBSERVICE) {
-			rem(parent, "default-webservice");
+			rem(parent, "defaultWebservice");
 		}
 	}
 
@@ -1845,31 +1845,31 @@ public final class ConfigAdmin {
 
 		Struct parent = _getRootElement("cache");
 		if (type == ConfigPro.CACHE_TYPE_OBJECT) {
-			parent.setEL("default-object", name);
+			parent.setEL("defaultObject", name);
 		}
 		else if (type == ConfigPro.CACHE_TYPE_TEMPLATE) {
-			parent.setEL("default-template", name);
+			parent.setEL("defaultTemplate", name);
 		}
 		else if (type == ConfigPro.CACHE_TYPE_QUERY) {
-			parent.setEL("default-query", name);
+			parent.setEL("defaultQuery", name);
 		}
 		else if (type == ConfigPro.CACHE_TYPE_RESOURCE) {
-			parent.setEL("default-resource", name);
+			parent.setEL("defaultResource", name);
 		}
 		else if (type == ConfigPro.CACHE_TYPE_FUNCTION) {
-			parent.setEL("default-function", name);
+			parent.setEL("defaultFunction", name);
 		}
 		else if (type == ConfigPro.CACHE_TYPE_INCLUDE) {
-			parent.setEL("default-include", name);
+			parent.setEL("defaultInclude", name);
 		}
 		else if (type == ConfigPro.CACHE_TYPE_HTTP) {
-			parent.setEL("default-http", name);
+			parent.setEL("defaultHttp", name);
 		}
 		else if (type == ConfigPro.CACHE_TYPE_FILE) {
-			parent.setEL("default-file", name);
+			parent.setEL("defaultFile", name);
 		}
 		else if (type == ConfigPro.CACHE_TYPE_WEBSERVICE) {
-			parent.setEL("default-webservice", name);
+			parent.setEL("defaultWebservice", name);
 		}
 	}
 
@@ -1886,7 +1886,7 @@ public final class ConfigAdmin {
 
 	public void _removeResourceProvider(String scheme) throws PageException {
 
-		Array children = ConfigWebUtil.getAsArray("resources", "resource-provider", root);
+		Array children = ConfigWebUtil.getAsArray("resources", "resourceProvider", root);
 
 		// remove
 		for (int i = children.size(); i > 0; i--) {
@@ -1924,7 +1924,7 @@ public final class ConfigAdmin {
 		// check parameters
 		if (StringUtil.isEmpty(scheme)) throw new ExpressionException("scheme can't be an empty value");
 
-		Array children = ConfigWebUtil.getAsArray("resources", "resource-provider", root);
+		Array children = ConfigWebUtil.getAsArray("resources", "resourceProvider", root);
 
 		// Update
 		for (int i = 1; i <= children.size(); i++) {
@@ -1956,7 +1956,7 @@ public final class ConfigAdmin {
 
 		if (!hasAccess) throw new SecurityException("no access to update resources");
 
-		Array children = ConfigWebUtil.getAsArray("resources", "default-resource-provider", root);
+		Array children = ConfigWebUtil.getAsArray("resources", "defaultResourceProvider", root);
 
 		// Update
 		for (int i = 1; i <= children.size(); i++) {
@@ -2029,8 +2029,8 @@ public final class ConfigAdmin {
 		checkReadAccess();
 		// check parameters
 		Struct parent = _getRootElement("resources");
-		Array elProviders = ConfigWebUtil.getAsArray("resource-provider", parent);
-		Array elDefaultProviders = ConfigWebUtil.getAsArray("default-resource-provider", parent);
+		Array elProviders = ConfigWebUtil.getAsArray("resourceProvider", parent);
+		Array elDefaultProviders = ConfigWebUtil.getAsArray("defaultResourceProvider", parent);
 
 		ResourceProvider[] providers = config.getResourceProviders();
 		ResourceProvider defaultProvider = config.getDefaultResourceProvider();
@@ -2054,8 +2054,8 @@ public final class ConfigAdmin {
 	private void getResourceProviders(ResourceProvider[] providers, Query qry, Struct p, int row, Boolean def) throws PageException {
 		Array support = new ArrayImpl();
 		String cn = ConfigWebUtil.getAsString("class", p, null);
-		String name = ConfigWebUtil.getAsString("bundle-name", p, null);
-		String version = ConfigWebUtil.getAsString("bundle-version", p, null);
+		String name = ConfigWebUtil.getAsString("bundleName", p, null);
+		String version = ConfigWebUtil.getAsString("bundleVersion", p, null);
 		ClassDefinition cd = new ClassDefinitionImpl(cn, name, version, ThreadLocalPageContext.getConfig().getIdentification());
 
 		qry.setAt("scheme", row, p.get("scheme"));
@@ -2106,7 +2106,7 @@ public final class ConfigAdmin {
 		// check parameters
 		if (name == null || name.length() == 0) throw new ExpressionException("name for Datasource Connection can be an empty value");
 
-		Array children = ConfigWebUtil.getAsArray("data-sources", "data-source", root);
+		Array children = ConfigWebUtil.getAsArray("dataSources", "dataSource", root);
 		for (int i = children.size(); i > 0; i--) {
 			Struct tmp = Caster.toStruct(children.get(i, null), null);
 			if (tmp == null) continue;
@@ -2130,10 +2130,10 @@ public final class ConfigAdmin {
 		Struct parent = _getRootElement("cache");
 
 		// remove default flag
-		if (name.equalsIgnoreCase(Caster.toString(parent.get("default-object", null), null))) rem(parent, "default-object");
-		if (name.equalsIgnoreCase(Caster.toString(parent.get("default-template", null), null))) rem(parent, "default-template");
-		if (name.equalsIgnoreCase(Caster.toString(parent.get("default-query", null), null))) rem(parent, "default-query");
-		if (name.equalsIgnoreCase(Caster.toString(parent.get("default-resource", null), null))) rem(parent, "default-resource");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultObject", null), null))) rem(parent, "defaultObject");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultTemplate", null), null))) rem(parent, "defaultTemplate");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultQuery", null), null))) rem(parent, "defaultQuery");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultResource", null), null))) rem(parent, "defaultResource");
 
 		// remove element
 		Array children = ConfigWebUtil.getAsArray("connection", parent);
@@ -2228,7 +2228,7 @@ public final class ConfigAdmin {
 		// check parameters
 		if (StringUtil.isEmpty(url)) throw new ExpressionException("url for Remote Client can be an empty value");
 
-		Array children = ConfigWebUtil.getAsArray("remote-clients", "remote-client", root);
+		Array children = ConfigWebUtil.getAsArray("remoteClients", "remoteClient", root);
 		for (int i = children.size(); i > 0; i--) {
 			Struct tmp = Caster.toStruct(children.get(i, null), null);
 			if (tmp == null) continue;
@@ -2252,9 +2252,9 @@ public final class ConfigAdmin {
 
 		if (!hasAccess) throw new SecurityException("no access to update datsource connections");
 
-		Struct datasources = _getRootElement("data-sources");
+		Struct datasources = _getRootElement("dataSources");
 		datasources.setEL("psq", Caster.toString(psq, ""));
-		if (datasources.containsKey("preserve-single-quote")) rem(datasources, "preserve-single-quote");
+		if (datasources.containsKey("preserveSingleQuote")) rem(datasources, "preserveSingleQuote");
 	}
 
 	public void updateInspectTemplate(String str) throws SecurityException {
@@ -2264,7 +2264,7 @@ public final class ConfigAdmin {
 		if (!hasAccess) throw new SecurityException("no access to update");
 
 		Struct datasources = _getRootElement("java");
-		datasources.setEL("inspect-template", str);
+		datasources.setEL("inspectTemplate", str);
 
 	}
 
@@ -2275,8 +2275,8 @@ public final class ConfigAdmin {
 		if (!hasAccess) throw new SecurityException("no access to update");
 
 		Struct datasources = _getRootElement("application");
-		if (typeChecking == null) rem(datasources, "type-checking");
-		else datasources.setEL("type-checking", Caster.toString(typeChecking.booleanValue()));
+		if (typeChecking == null) rem(datasources, "typeChecking");
+		else datasources.setEL("typeChecking", Caster.toString(typeChecking.booleanValue()));
 
 	}
 
@@ -2286,10 +2286,10 @@ public final class ConfigAdmin {
 		if (!hasAccess) throw new SecurityException("no access to update");
 
 		Struct el = _getRootElement("application");
-		if (ts == null) rem(el, "cached-after");
+		if (ts == null) rem(el, "cachedAfter");
 		else {
 			if (ts.getMillis() < 0) throw new ApplicationException("value cannot be a negative number");
-			el.setEL("cached-after", ts.getDay() + "," + ts.getHour() + "," + ts.getMinute() + "," + ts.getSecond());
+			el.setEL("cachedAfter", ts.getDay() + "," + ts.getHour() + "," + ts.getMinute() + "," + ts.getSecond());
 		}
 	}
 
@@ -2345,7 +2345,7 @@ public final class ConfigAdmin {
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
 		Struct scope = _getRootElement("scope");
-		scope.setEL("cascade-to-resultset", Caster.toString(allow, ""));
+		scope.setEL("cascadeToResultset", Caster.toString(allow, ""));
 
 	}
 
@@ -2356,7 +2356,7 @@ public final class ConfigAdmin {
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
 		Struct scope = _getRootElement("scope");
-		scope.setEL("merge-url-form", Caster.toString(merge, ""));
+		scope.setEL("mergeUrlForm", Caster.toString(merge, ""));
 
 	}
 
@@ -2487,7 +2487,7 @@ public final class ConfigAdmin {
 		else rem(scope, "clienttimeout");
 
 		// deprecated
-		if (scope.containsKey("client-max-age")) rem(scope, "client-max-age");
+		if (scope.containsKey("clientMaxAge")) rem(scope, "clientMaxAge");
 
 	}
 
@@ -2501,7 +2501,7 @@ public final class ConfigAdmin {
 
 		// remove
 		if (StringUtil.isEmpty(writerType)) {
-			if (scope.containsKey("cfml-writer")) rem(scope, "cfml-writer");
+			if (scope.containsKey("cfmlWriter")) rem(scope, "cfmlWriter");
 			return;
 		}
 
@@ -2509,7 +2509,7 @@ public final class ConfigAdmin {
 		if (!"white-space".equalsIgnoreCase(writerType) && !"white-space-pref".equalsIgnoreCase(writerType) && !"regular".equalsIgnoreCase(writerType))
 			throw new ApplicationException("invalid writer type definition [" + writerType + "], valid types are [white-space, white-space-pref, regular]");
 
-		scope.setEL("cfml-writer", writerType.toLowerCase());
+		scope.setEL("cfmlWriter", writerType.toLowerCase());
 	}
 
 	public void updateSuppressContent(Boolean value) throws SecurityException {
@@ -2519,7 +2519,7 @@ public final class ConfigAdmin {
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
 		Struct scope = _getRootElement("setting");
-		scope.setEL("suppress-content", Caster.toString(value, ""));
+		scope.setEL("suppressContent", Caster.toString(value, ""));
 	}
 
 	public void updateShowVersion(Boolean value) throws SecurityException {
@@ -2529,7 +2529,7 @@ public final class ConfigAdmin {
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
 		Struct scope = _getRootElement("setting");
-		scope.setEL("show-version", Caster.toString(value, ""));
+		scope.setEL("showVersion", Caster.toString(value, ""));
 	}
 
 	public void updateAllowCompression(Boolean value) throws SecurityException {
@@ -2539,7 +2539,7 @@ public final class ConfigAdmin {
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
 		Struct scope = _getRootElement("setting");
-		scope.setEL("allow-compression", Caster.toString(value, ""));
+		scope.setEL("allowCompression", Caster.toString(value, ""));
 	}
 
 	public void updateContentLength(Boolean value) throws SecurityException {
@@ -2549,7 +2549,7 @@ public final class ConfigAdmin {
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
 		Struct scope = _getRootElement("setting");
-		scope.setEL("content-length", Caster.toString(value, ""));
+		scope.setEL("contentLength", Caster.toString(value, ""));
 	}
 
 	public void updateBufferOutput(Boolean value) throws SecurityException {
@@ -2559,8 +2559,8 @@ public final class ConfigAdmin {
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
 		Struct scope = _getRootElement("setting");
-		scope.setEL("buffering-output", Caster.toString(value, ""));
-		if (scope.containsKey("buffer-output")) rem(scope, "buffer-output");
+		scope.setEL("bufferingOutput", Caster.toString(value, ""));
+		if (scope.containsKey("bufferOutput")) rem(scope, "bufferOutput");
 	}
 
 	/**
@@ -2587,8 +2587,8 @@ public final class ConfigAdmin {
 		if (!hasAccess) throw new SecurityException("no access to update listener type");
 
 		Struct scope = _getRootElement("application");
-		scope.setEL("listener-type", type.toLowerCase().trim());
-		scope.setEL("listener-mode", mode.toLowerCase().trim());
+		scope.setEL("listenerType", type.toLowerCase().trim());
+		scope.setEL("listenerMode", mode.toLowerCase().trim());
 	}
 
 	public void updateCachedWithin(int type, Object value) throws SecurityException, ApplicationException {
@@ -2600,8 +2600,8 @@ public final class ConfigAdmin {
 		if (t == null) throw new ApplicationException("invalid cachedwithin type definition");
 		String v = Caster.toString(value, null);
 		Struct app = _getRootElement("application");
-		if (v != null) app.setEL("cached-within-" + t, v);
-		else rem(app, "cached-within-" + t);
+		if (v != null) app.setEL("cachedWithin" + StringUtil.ucFirst(t), v);
+		else rem(app, "cachedWithin" + StringUtil.ucFirst(t));
 	}
 
 	public void updateProxy(boolean enabled, String server, int port, String username, String password) throws SecurityException {
@@ -2736,7 +2736,7 @@ public final class ConfigAdmin {
 		if (!hasAccess) throw new SecurityException("no access to update script protect");
 
 		Struct scope = _getRootElement("application");
-		scope.setEL("script-protect", strScriptProtect.trim());
+		scope.setEL("scriptProtect", strScriptProtect.trim());
 	}
 
 	public void updateAllowURLRequestTimeout(Boolean allowURLRequestTimeout) throws SecurityException {
@@ -2745,7 +2745,7 @@ public final class ConfigAdmin {
 		if (!hasAccess) throw new SecurityException("no access to update AllowURLRequestTimeout");
 
 		Struct scope = _getRootElement("application");
-		scope.setEL("allow-url-requesttimeout", Caster.toString(allowURLRequestTimeout, ""));
+		scope.setEL("allowUrlRequesttimeout", Caster.toString(allowURLRequestTimeout, ""));
 	}
 
 	public void updateScriptProtect(int scriptProtect) throws SecurityException {
@@ -2796,8 +2796,8 @@ public final class ConfigAdmin {
 
 		Struct scope = _getRootElement("regional");
 		scope.setEL("timeserver", timeServer.trim());
-		if (useTimeServer != null) scope.setEL("use-timeserver", Caster.toString(useTimeServer));
-		else rem(scope, "use-timeserver");
+		if (useTimeServer != null) scope.setEL("useTimeserver", Caster.toString(useTimeServer));
+		else rem(scope, "useTimeserver");
 	}
 
 	/**
@@ -2814,8 +2814,8 @@ public final class ConfigAdmin {
 		Struct scope = _getRootElement("component");
 		// if(baseComponent.trim().length()>0)
 		rem(scope, "base");
-		scope.setEL("base-cfml", baseComponentCFML);
-		scope.setEL("base-lucee", baseComponentLucee);
+		scope.setEL("baseCfml", baseComponentCFML);
+		scope.setEL("baseLucee", baseComponentLucee);
 	}
 
 	public void updateComponentDeepSearch(Boolean deepSearch) throws SecurityException {
@@ -2825,10 +2825,10 @@ public final class ConfigAdmin {
 		// config.resetBaseComponentPage();
 		Struct scope = _getRootElement("component");
 		// if(baseComponent.trim().length()>0)
-		if (deepSearch != null) scope.setEL("deep-search", Caster.toString(deepSearch.booleanValue()));
+		if (deepSearch != null) scope.setEL("deepSearch", Caster.toString(deepSearch.booleanValue()));
 
 		else {
-			if (scope.containsKey("deep-search")) rem(scope, "deep-search");
+			if (scope.containsKey("deepSearch")) rem(scope, "deepSearch");
 		}
 
 	}
@@ -2840,7 +2840,7 @@ public final class ConfigAdmin {
 		// config.resetBaseComponentPage();
 		Struct scope = _getRootElement("component");
 		// if(baseComponent.trim().length()>0)
-		scope.setEL("component-default-import", componentDefaultImport);
+		scope.setEL("componentDefaultImport", componentDefaultImport);
 	}
 
 	/**
@@ -2859,10 +2859,10 @@ public final class ConfigAdmin {
 		Struct scope = _getRootElement("component");
 
 		if (StringUtil.isEmpty(strAccess)) {
-			scope.setEL("data-member-default-access", "");
+			scope.setEL("dataMemberDefaultAccess", "");
 		}
 		else {
-			scope.setEL("data-member-default-access", ComponentUtil.toStringAccess(ComponentUtil.toIntAccess(strAccess)));
+			scope.setEL("dataMemberDefaultAccess", ComponentUtil.toStringAccess(ComponentUtil.toIntAccess(strAccess)));
 		}
 	}
 
@@ -2878,7 +2878,7 @@ public final class ConfigAdmin {
 		if (!hasAccess) throw new SecurityException("no access to update trigger-data-member");
 
 		Struct scope = _getRootElement("component");
-		scope.setEL("trigger-data-member", Caster.toString(triggerDataMember, ""));
+		scope.setEL("triggerDataMember", Caster.toString(triggerDataMember, ""));
 	}
 
 	public void updateComponentUseShadow(Boolean useShadow) throws SecurityException {
@@ -2887,7 +2887,7 @@ public final class ConfigAdmin {
 		if (!hasAccess) throw new SecurityException("no access to update use-shadow");
 
 		Struct scope = _getRootElement("component");
-		scope.setEL("use-shadow", Caster.toString(useShadow, ""));
+		scope.setEL("useShadow", Caster.toString(useShadow, ""));
 	}
 
 	public void updateComponentLocalSearch(Boolean componentLocalSearch) throws SecurityException {
@@ -2896,7 +2896,7 @@ public final class ConfigAdmin {
 		if (!hasAccess) throw new SecurityException("no access to update component Local Search");
 
 		Struct scope = _getRootElement("component");
-		scope.setEL("local-search", Caster.toString(componentLocalSearch, ""));
+		scope.setEL("localSearch", Caster.toString(componentLocalSearch, ""));
 	}
 
 	public void updateComponentPathCache(Boolean componentPathCache) throws SecurityException {
@@ -2906,7 +2906,7 @@ public final class ConfigAdmin {
 
 		Struct scope = _getRootElement("component");
 		if (!Caster.toBooleanValue(componentPathCache, false)) config.clearComponentCache();
-		scope.setEL("use-cache-path", Caster.toString(componentPathCache, ""));
+		scope.setEL("useCachePath", Caster.toString(componentPathCache, ""));
 	}
 
 	public void updateCTPathCache(Boolean ctPathCache) throws SecurityException {
@@ -2914,8 +2914,8 @@ public final class ConfigAdmin {
 		if (!ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_CUSTOM_TAG)) throw new SecurityException("no access to update custom tag setting");
 
 		if (!Caster.toBooleanValue(ctPathCache, false)) config.clearCTCache();
-		Struct scope = _getRootElement("custom-tag");
-		scope.setEL("use-cache-path", Caster.toString(ctPathCache, ""));
+		Struct scope = _getRootElement("customTag");
+		scope.setEL("useCachePath", Caster.toString(ctPathCache, ""));
 	}
 
 	public void updateSecurity(String varUsage) throws SecurityException {
@@ -2923,8 +2923,8 @@ public final class ConfigAdmin {
 		Struct el = _getRootElement("security");
 
 		if (el != null) {
-			if (!StringUtil.isEmpty(varUsage)) el.setEL("variable-usage", Caster.toString(varUsage));
-			else rem(el, "variable-usage");
+			if (!StringUtil.isEmpty(varUsage)) el.setEL("variableUsage", Caster.toString(varUsage));
+			else rem(el, "variableUsage");
 		}
 
 	}
@@ -2963,11 +2963,11 @@ public final class ConfigAdmin {
 		if (timer != null) debugging.setEL("timer", Caster.toString(timer.booleanValue()));
 		else rem(debugging, "timer");
 
-		if (implicitAccess != null) debugging.setEL("implicit-access", Caster.toString(implicitAccess.booleanValue()));
-		else rem(debugging, "implicit-access");
+		if (implicitAccess != null) debugging.setEL("implicitAccess", Caster.toString(implicitAccess.booleanValue()));
+		else rem(debugging, "implicitAccess");
 
-		if (queryUsage != null) debugging.setEL("query-usage", Caster.toString(queryUsage.booleanValue()));
-		else rem(debugging, "query-usage");
+		if (queryUsage != null) debugging.setEL("queryUsage", Caster.toString(queryUsage.booleanValue()));
+		else rem(debugging, "queryUsage");
 
 	}
 
@@ -3000,7 +3000,7 @@ public final class ConfigAdmin {
 
 		Struct error = _getRootElement("error");
 		// if(template.trim().length()>0)
-		error.setEL("template-" + statusCode, template);
+		error.setEL("template" + statusCode, template);
 	}
 
 	public void updateErrorStatusCode(Boolean doStatusCode) throws SecurityException {
@@ -3009,7 +3009,7 @@ public final class ConfigAdmin {
 		if (!hasAccess) throw new SecurityException("no access to change error settings");
 
 		Struct error = _getRootElement("error");
-		error.setEL("status-code", Caster.toString(doStatusCode, ""));
+		error.setEL("statusCode", Caster.toString(doStatusCode, ""));
 	}
 
 	public void updateRegexType(String type) throws PageException {
@@ -3035,7 +3035,7 @@ public final class ConfigAdmin {
 
 		Struct component = _getRootElement("component");
 		// if(template.trim().length()>0)
-		component.setEL("dump-template", template);
+		component.setEL("dumpTemplate", template);
 	}
 
 	private Struct _getRootElement(String name) {
@@ -3097,7 +3097,7 @@ public final class ConfigAdmin {
 	}
 
 	private void removeSecurityFileAccess(Struct parent) {
-		Array children = ConfigWebUtil.getAsArray("file-access", parent);
+		Array children = ConfigWebUtil.getAsArray("fileAccess", parent);
 		// remove existing
 		if (children.size() > 0) {
 			for (int i = children.size(); i > 0; i--) {
@@ -3112,7 +3112,7 @@ public final class ConfigAdmin {
 		// insert
 		if (!ArrayUtil.isEmpty(fileAccess) && file != SecurityManager.VALUE_ALL) {
 			Struct fa;
-			Array children = ConfigWebUtil.getAsArray("file-access", parent);
+			Array children = ConfigWebUtil.getAsArray("fileAccess", parent);
 			for (int i = 0; i < fileAccess.length; i++) {
 				fa = new StructImpl();
 				fa.setEL("path", fileAccess[i].getAbsolutePath());
@@ -3235,7 +3235,7 @@ public final class ConfigAdmin {
 		type = type.toLowerCase().trim();
 
 		Struct scope = _getRootElement("scope");
-		scope.setEL("session-type", type);
+		scope.setEL("sessionType", type);
 	}
 
 	public void updateLocalMode(String mode) throws SecurityException {
@@ -3245,7 +3245,7 @@ public final class ConfigAdmin {
 
 		mode = mode.toLowerCase().trim();
 		Struct scope = _getRootElement("scope");
-		scope.setEL("local-mode", mode);
+		scope.setEL("localMode", mode);
 	}
 
 	public void updateRestList(Boolean list) throws SecurityException {
@@ -3619,16 +3619,16 @@ public final class ConfigAdmin {
 
 		Struct element = _getRootElement("charset");
 		if (StringUtil.isEmpty(charset)) {
-			if (config instanceof ConfigWeb) rem(element, "web-charset");
-			else element.setEL("web-charset", "UTF-8");
+			if (config instanceof ConfigWeb) rem(element, "webCharset");
+			else element.setEL("webCharset", "UTF-8");
 		}
 		else {
 			charset = checkCharset(charset);
-			element.setEL("web-charset", charset);
+			element.setEL("webCharset", charset);
 		}
 
 		Struct el = _getRootElement("regional");
-		rem(el, "default-encoding");// remove deprecated attribute
+		rem(el, "defaultEncoding");// remove deprecated attribute
 
 	}
 
@@ -3637,11 +3637,11 @@ public final class ConfigAdmin {
 
 		Struct element = _getRootElement("charset");
 		if (StringUtil.isEmpty(charset)) {
-			rem(element, "resource-charset");
+			rem(element, "resourceCharset");
 		}
 		else {
 			charset = checkCharset(charset);
-			element.setEL("resource-charset", charset);
+			element.setEL("resourceCharset", charset);
 
 		}
 
@@ -3655,11 +3655,11 @@ public final class ConfigAdmin {
 
 		Struct element = _getRootElement("charset");
 		if (StringUtil.isEmpty(charset, true)) {
-			rem(element, "template-charset");
+			rem(element, "templateCharset");
 		}
 		else {
 			charset = checkCharset(charset);
-			element.setEL("template-charset", charset);
+			element.setEL("templateCharset", charset);
 		}
 	}
 
@@ -3714,8 +3714,8 @@ public final class ConfigAdmin {
 		checkWriteAccess();
 		if (!ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_CUSTOM_TAG)) throw new SecurityException("Access Denied to update custom tag setting");
 
-		Struct element = _getRootElement("custom-tag");
-		element.setEL("custom-tag-deep-search", Caster.toString(customTagDeepSearch));
+		Struct element = _getRootElement("customTag");
+		element.setEL("customTagDeepSearch", Caster.toString(customTagDeepSearch));
 	}
 
 	public void resetId() throws PageException {
@@ -3734,8 +3734,8 @@ public final class ConfigAdmin {
 		checkWriteAccess();
 		if (!ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_CUSTOM_TAG)) throw new SecurityException("Access Denied to update custom tag setting");
 
-		Struct element = _getRootElement("custom-tag");
-		element.setEL("custom-tag-local-search", Caster.toString(customTagLocalSearch));
+		Struct element = _getRootElement("customTag");
+		element.setEL("customTagLocalSearch", Caster.toString(customTagLocalSearch));
 	}
 
 	public void updateCustomTagExtensions(String extensions) throws PageException {
@@ -3748,7 +3748,7 @@ public final class ConfigAdmin {
 		// throw new ApplicationException("you must define at least one extension");
 
 		// update charset
-		Struct element = _getRootElement("custom-tag");
+		Struct element = _getRootElement("customTag");
 		element.setEL("extensions", ListUtil.arrayToList(arr, ","));
 	}
 
@@ -3761,7 +3761,7 @@ public final class ConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManagerImpl.TYPE_REMOTE);
 		if (!hasAccess) throw new SecurityException("Access Denied to update remote client settings");
 
-		Struct clients = _getRootElement("remote-clients");
+		Struct clients = _getRootElement("remoteClients");
 
 		if (StringUtil.isEmpty(url)) throw new ExpressionException("[url] cannot be empty");
 		if (StringUtil.isEmpty(securityKey)) throw new ExpressionException("[securityKey] cannot be empty");
@@ -3770,7 +3770,7 @@ public final class ConfigAdmin {
 		securityKey = securityKey.trim();
 		adminPassword = adminPassword.trim();
 
-		Array children = ConfigWebUtil.getAsArray("remote-client", clients);
+		Array children = ConfigWebUtil.getAsArray("remoteClient", clients);
 
 		// Update
 		for (int i = 1; i <= children.size(); i++) {
@@ -3782,14 +3782,14 @@ public final class ConfigAdmin {
 				el.setEL("label", label);
 				el.setEL("type", type);
 				el.setEL("usage", usage);
-				el.setEL("server-username", serverUsername);
-				el.setEL("proxy-server", proxyServer);
-				el.setEL("proxy-username", proxyUsername);
-				el.setEL("proxy-port", proxyPort);
-				el.setEL("security-key", ConfigWebUtil.encrypt(securityKey));
-				el.setEL("admin-password", ConfigWebUtil.encrypt(adminPassword));
-				el.setEL("server-password", ConfigWebUtil.encrypt(serverPassword));
-				el.setEL("proxy-password", ConfigWebUtil.encrypt(proxyPassword));
+				el.setEL("serverUsername", serverUsername);
+				el.setEL("proxyServer", proxyServer);
+				el.setEL("proxyUsername", proxyUsername);
+				el.setEL("proxyPort", proxyPort);
+				el.setEL("securityKey", ConfigWebUtil.encrypt(securityKey));
+				el.setEL("adminPassword", ConfigWebUtil.encrypt(adminPassword));
+				el.setEL("serverPassword", ConfigWebUtil.encrypt(serverPassword));
+				el.setEL("proxyPassword", ConfigWebUtil.encrypt(proxyPassword));
 				return;
 			}
 		}
@@ -3801,14 +3801,14 @@ public final class ConfigAdmin {
 		el.setEL("url", url);
 		el.setEL("type", type);
 		el.setEL("usage", usage);
-		el.setEL("server-username", serverUsername);
-		el.setEL("proxy-server", proxyServer);
-		el.setEL("proxy-username", proxyUsername);
-		el.setEL("proxy-port", proxyPort);
-		el.setEL("security-key", ConfigWebUtil.encrypt(securityKey));
-		el.setEL("admin-password", ConfigWebUtil.encrypt(adminPassword));
-		el.setEL("server-password", ConfigWebUtil.encrypt(serverPassword));
-		el.setEL("proxy-password", ConfigWebUtil.encrypt(proxyPassword));
+		el.setEL("serverUsername", serverUsername);
+		el.setEL("proxyServer", proxyServer);
+		el.setEL("proxyUsername", proxyUsername);
+		el.setEL("proxyPort", proxyPort);
+		el.setEL("securityKey", ConfigWebUtil.encrypt(securityKey));
+		el.setEL("adminPassword", ConfigWebUtil.encrypt(adminPassword));
+		el.setEL("serverPassword", ConfigWebUtil.encrypt(serverPassword));
+		el.setEL("proxyPassword", ConfigWebUtil.encrypt(proxyPassword));
 		children.appendEL(el);
 	}
 
@@ -3880,7 +3880,7 @@ public final class ConfigAdmin {
 	}
 
 	private void _removeCacheHandler(String id) {
-		Array children = ConfigWebUtil.getAsArray("cache-handlers", "cache-handler", root);
+		Array children = ConfigWebUtil.getAsArray("cacheHandlers", "cacheHandler", root);
 		for (int i = children.size(); i > 0; i--) {
 			Struct el = Caster.toStruct(children.get(i, null), null);
 			if (el == null) continue;
@@ -3922,7 +3922,7 @@ public final class ConfigAdmin {
 	}
 
 	private void _updateCacheHandler(String id, ClassDefinition cd) throws PageException {
-		Array children = ConfigWebUtil.getAsArray("cache-handlers", "cache-handler", root);
+		Array children = ConfigWebUtil.getAsArray("cacheHandlers", "cacheHandler", root);
 		Struct ch = null;
 		// Update
 		for (int i = 1; i <= children.size(); i++) {
@@ -3946,7 +3946,7 @@ public final class ConfigAdmin {
 	}
 
 	public void updateExecutionLog(ClassDefinition cd, Struct args, boolean enabled) throws PageException {
-		Struct el = _getRootElement("execution-log");
+		Struct el = _getRootElement("executionLog");
 		setClass(el, null, "", cd);
 		el.setEL("arguments", toStringCSSStyle(args));
 		el.setEL("enabled", Caster.toString(enabled));
@@ -3977,7 +3977,7 @@ public final class ConfigAdmin {
 	public void removeCacheHandler(String id) throws PageException {
 		checkWriteAccess();
 
-		Array children = ConfigWebUtil.getAsArray("cache-handlers", "cache-handler", root);
+		Array children = ConfigWebUtil.getAsArray("cacheHandlers", "cacheHandler", root);
 		// Update
 		for (int i = children.size(); i > 0; i--) {
 			Struct tmp = Caster.toStruct(children.get(i, null), null);
@@ -4159,25 +4159,25 @@ public final class ConfigAdmin {
 
 		Struct orm = _getRootElement("orm");
 		orm.setEL("autogenmap", Caster.toString(oc.autogenmap(), "true"));
-		orm.setEL("event-handler", Caster.toString(oc.eventHandler(), ""));
-		orm.setEL("event-handling", Caster.toString(oc.eventHandling(), "false"));
-		orm.setEL("naming-strategy", Caster.toString(oc.namingStrategy(), ""));
-		orm.setEL("flush-at-request-end", Caster.toString(oc.flushAtRequestEnd(), "true"));
-		orm.setEL("cache-provider", Caster.toString(oc.getCacheProvider(), ""));
-		orm.setEL("cache-config", Caster.toString(oc.getCacheConfig(), "true"));
+		orm.setEL("eventHandler", Caster.toString(oc.eventHandler(), ""));
+		orm.setEL("eventHandling", Caster.toString(oc.eventHandling(), "false"));
+		orm.setEL("namingStrategy", Caster.toString(oc.namingStrategy(), ""));
+		orm.setEL("flushAtRequestEnd", Caster.toString(oc.flushAtRequestEnd(), "true"));
+		orm.setEL("cacheProvider", Caster.toString(oc.getCacheProvider(), ""));
+		orm.setEL("cacheConfig", Caster.toString(oc.getCacheConfig(), "true"));
 		orm.setEL("catalog", Caster.toString(oc.getCatalog(), ""));
-		orm.setEL("db-create", ORMConfigurationImpl.dbCreateAsString(oc.getDbCreate()));
+		orm.setEL("dbCreate", ORMConfigurationImpl.dbCreateAsString(oc.getDbCreate()));
 		orm.setEL("dialect", Caster.toString(oc.getDialect(), ""));
 		orm.setEL("schema", Caster.toString(oc.getSchema(), ""));
-		orm.setEL("log-sql", Caster.toString(oc.logSQL(), "false"));
-		orm.setEL("save-mapping", Caster.toString(oc.saveMapping(), "false"));
-		orm.setEL("secondary-cache-enable", Caster.toString(oc.secondaryCacheEnabled(), "false"));
-		orm.setEL("use-db-for-mapping", Caster.toString(oc.useDBForMapping(), "true"));
-		orm.setEL("orm-config", Caster.toString(oc.getOrmConfig(), ""));
-		orm.setEL("sql-script", Caster.toString(oc.getSqlScript(), "true"));
+		orm.setEL("logSql", Caster.toString(oc.logSQL(), "false"));
+		orm.setEL("saveMapping", Caster.toString(oc.saveMapping(), "false"));
+		orm.setEL("secondaryCacheEnable", Caster.toString(oc.secondaryCacheEnabled(), "false"));
+		orm.setEL("useDbForMapping", Caster.toString(oc.useDBForMapping(), "true"));
+		orm.setEL("ormConfig", Caster.toString(oc.getOrmConfig(), ""));
+		orm.setEL("sqlCcript", Caster.toString(oc.getSqlScript(), "true"));
 
 		if (oc.isDefaultCfcLocation()) {
-			rem(orm, "cfc-location");
+			rem(orm, "cfcLocation");
 		}
 		else {
 			Resource[] locations = oc.getCfcLocations();
@@ -4186,10 +4186,10 @@ public final class ConfigAdmin {
 				if (i != 0) sb.append(",");
 				sb.append(locations[i].getAbsolutePath());
 			}
-			orm.setEL("cfc-location", sb.toString());
+			orm.setEL("cfcLocation", sb.toString());
 		}
 
-		orm.setEL("sql-script", Caster.toString(oc.getSqlScript(), "true"));
+		orm.setEL("sqlScript", Caster.toString(oc.getSqlScript(), "true"));
 
 	}
 
@@ -4730,16 +4730,16 @@ public final class ConfigAdmin {
 					// class
 					ClassDefinition cd = RHExtension.toClassDefinition(config, map, null);
 					// component path
-					String cfcPath = Caster.toString(map.get("cfc-path"), null);
-					if (StringUtil.isEmpty(cfcPath)) cfcPath = Caster.toString(map.get("component-path"), null);
+					String cfcPath = Caster.toString(map.get("cfcPath"), null);
+					if (StringUtil.isEmpty(cfcPath)) cfcPath = Caster.toString(map.get("componentPath"), null);
 					// listener component path
-					String listenerCfcPath = Caster.toString(map.get("listener-cfc-path"), null);
-					if (StringUtil.isEmpty(listenerCfcPath)) listenerCfcPath = Caster.toString(map.get("listener-component-path"), null);
+					String listenerCfcPath = Caster.toString(map.get("listenerCFCPath"), null);
+					if (StringUtil.isEmpty(listenerCfcPath)) listenerCfcPath = Caster.toString(map.get("listenerComponentPath"), null);
 					// startup mode
-					String strStartupMode = Caster.toString(map.get("startup-mode"), "automatic");
+					String strStartupMode = Caster.toString(map.get("startupMode"), "automatic");
 					int startupMode = GatewayEntryImpl.toStartup(strStartupMode, GatewayEntryImpl.STARTUP_MODE_AUTOMATIC);
 					// read only
-					boolean readOnly = Caster.toBooleanValue(map.get("read-only"), false);
+					boolean readOnly = Caster.toBooleanValue(map.get("readOnly"), false);
 					// custom
 					Struct custom = Caster.toStruct(map.get("custom"), null);
 					/*
@@ -5296,7 +5296,7 @@ public final class ConfigAdmin {
 		Struct usage = config.getRemoteClientUsage();
 		usage.setEL(code, displayname);
 
-		Struct extensions = _getRootElement("remote-clients");
+		Struct extensions = _getRootElement("remoteClients");
 		extensions.setEL("usage", toStringURLStyle(usage));
 
 	}
@@ -5315,7 +5315,7 @@ public final class ConfigAdmin {
 				"Class [" + clazz.getName() + "] does not implement interface [" + Cluster.class.getName() + "] or [" + ClusterRemote.class.getName() + "]");
 
 		Struct scope = _getRootElement("scope");
-		setClass(scope, null, "cluster-", cd);
+		setClass(scope, null, "cluster", cd);
 		ScopeContext.clearClusterScope();
 	}
 
@@ -5324,7 +5324,7 @@ public final class ConfigAdmin {
 		if (cd.getClassName() == null) cd = new ClassDefinitionImpl(VideoExecuterNotSupported.class.getName());
 
 		Struct app = _getRootElement("video");
-		setClass(app, VideoExecuter.class, "video-executer-", cd);
+		setClass(app, VideoExecuter.class, "videoExecuter", cd);
 	}
 
 	public void updateAdminSyncClass(ClassDefinition cd) throws PageException {
@@ -5332,14 +5332,14 @@ public final class ConfigAdmin {
 		if (cd.getClassName() == null) cd = new ClassDefinitionImpl(AdminSyncNotSupported.class.getName());
 
 		Struct app = _getRootElement("application");
-		setClass(app, AdminSync.class, "admin-sync-", cd);
+		setClass(app, AdminSync.class, "adminSync", cd);
 	}
 
 	public void removeRemoteClientUsage(String code) {
 		Struct usage = config.getRemoteClientUsage();
 		usage.removeEL(KeyImpl.getInstance(code));
 
-		Struct extensions = _getRootElement("remote-clients");
+		Struct extensions = _getRootElement("remoteClients");
 		extensions.setEL("usage", toStringURLStyle(usage));
 
 	}
@@ -5367,11 +5367,11 @@ public final class ConfigAdmin {
 		if (!StringUtil.isEmpty(serial)) {
 			serial = serial.trim();
 			if (!new SerialNumber(serial).isValid(serial)) throw new SecurityException("Serial number is invalid");
-			root.setEL("serial-number", serial);
+			root.setEL("serialNumber", serial);
 		}
 		else {
 			try {
-				rem(root, "serial-number");
+				rem(root, "serialNumber");
 			}
 			catch (Throwable t) {
 				ExceptionUtil.rethrowIfNecessary(t);
@@ -5425,8 +5425,8 @@ public final class ConfigAdmin {
 		if (!hasAccess) throw new SecurityException("Access denied to change debugging settings");
 
 		Struct debugging = _getRootElement("debugging");
-		if (maxLogs == -1) rem(debugging, "max-records-logged");
-		else debugging.setEL("max-records-logged", Caster.toString(maxLogs));
+		if (maxLogs == -1) rem(debugging, "maxRecordsLogged");
+		else debugging.setEL("maxRecordsLogged", Caster.toString(maxLogs));
 	}
 
 	public void updateDebugEntry(String type, String iprange, String label, String path, String fullname, Struct custom) throws SecurityException, IOException {
@@ -5442,7 +5442,7 @@ public final class ConfigAdmin {
 		iprange = iprange.trim();
 		label = label.trim();
 
-		Array children = ConfigWebUtil.getAsArray("debugging", "debug-entry", root);
+		Array children = ConfigWebUtil.getAsArray("debugging", "debugEntry", root);
 
 		// Update
 		Struct el = null;
@@ -5479,7 +5479,7 @@ public final class ConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_DEBUGGING);
 		if (!hasAccess) throw new SecurityException("Access denied to change debugging settings");
 
-		Array children = ConfigWebUtil.getAsArray("debugging", "debug-entry", root);
+		Array children = ConfigWebUtil.getAsArray("debugging", "debugEntry", root);
 		String _id;
 		if (children.size() > 0) {
 			for (int i = children.size(); i > 0; i--) {
@@ -5543,10 +5543,10 @@ public final class ConfigAdmin {
 		}
 
 		el.setEL("level", LogUtil.levelToString(level, ""));
-		setClass(el, null, "appender-", appenderCD);
-		el.setEL("appender-arguments", toStringCSSStyle(appenderArgs));
-		setClass(el, null, "layout-", layoutCD);
-		el.setEL("layout-arguments", toStringCSSStyle(layoutArgs));
+		setClass(el, null, "appender", appenderCD);
+		el.setEL("appenderArguments", toStringCSSStyle(appenderArgs));
+		setClass(el, null, "layout", layoutCD);
+		el.setEL("layoutArguments", toStringCSSStyle(layoutArgs));
 
 		if (el.containsKey("appender")) rem(el, "appender");
 		if (el.containsKey("layout")) rem(el, "layout");
@@ -5559,44 +5559,44 @@ public final class ConfigAdmin {
 
 		checkWriteAccess();
 		if (dotNotationUpperCase == null) {
-			if (element.containsKey("dot-notation-upper-case")) rem(element, "dot-notation-upper-case");
+			if (element.containsKey("dotNotationUpperCase")) rem(element, "dotNotationUpperCase");
 		}
 		else {
-			element.setEL("dot-notation-upper-case", Caster.toString(dotNotationUpperCase));
+			element.setEL("dotNotationUpperCase", Caster.toString(dotNotationUpperCase));
 		}
 
 		// remove old settings
-		if (element.containsKey("supress-ws-before-arg")) rem(element, "supress-ws-before-arg");
+		if (element.containsKey("supressWsBeforeArg")) rem(element, "supressWsBeforeArg");
 
 		if (suppressWSBeforeArg == null) {
-			if (element.containsKey("suppress-ws-before-arg")) rem(element, "suppress-ws-before-arg");
+			if (element.containsKey("suppressWsBeforeArg")) rem(element, "suppressWsBeforeArg");
 		}
 		else {
-			element.setEL("suppress-ws-before-arg", Caster.toString(suppressWSBeforeArg));
+			element.setEL("suppressWsBeforeArg", Caster.toString(suppressWSBeforeArg));
 		}
 
 		// full null support
 		if (nullSupport == null) {
-			if (element.containsKey("full-null-support")) rem(element, "full-null-support");
+			if (element.containsKey("fullNullSupport")) rem(element, "fullNullSupport");
 		}
 		else {
-			element.setEL("full-null-support", Caster.toString(nullSupport));
+			element.setEL("fullNullSupport", Caster.toString(nullSupport));
 		}
 
 		// externalize-string-gte
 		if (externalizeStringGTE == null) {
-			if (element.containsKey("externalize-string-gte")) rem(element, "externalize-string-gte");
+			if (element.containsKey("externalizeStringGte")) rem(element, "externalizeStringGte");
 		}
 		else {
-			element.setEL("externalize-string-gte", Caster.toString(externalizeStringGTE));
+			element.setEL("externalizeStringGte", Caster.toString(externalizeStringGTE));
 		}
 
 		// handle Unquoted Attribute Values As String
 		if (handleUnQuotedAttrValueAsString == null) {
-			if (element.containsKey("handle-unquoted-attribute-value-as-string")) rem(element, "handle-unquoted-attribute-value-as-string");
+			if (element.containsKey("handleUnquotedAttributeValueAsString")) rem(element, "handleUnquotedAttributeValueAsString");
 		}
 		else {
-			element.setEL("handle-unquoted-attribute-value-as-string", Caster.toString(handleUnQuotedAttrValueAsString));
+			element.setEL("handleUnquotedAttributeValueAsString", Caster.toString(handleUnQuotedAttrValueAsString));
 		}
 
 	}
@@ -6217,7 +6217,7 @@ public final class ConfigAdmin {
 		}
 		set.add(key);
 
-		root.setEL("auth-keys", authKeysAsList(set));
+		root.setEL("authKeys", authKeysAsList(set));
 
 	}
 
@@ -6233,20 +6233,20 @@ public final class ConfigAdmin {
 			if (!key.equals(keys[i])) set.add(keys[i]);
 		}
 
-		root.setEL("auth-keys", authKeysAsList(set));
+		root.setEL("authKeys", authKeysAsList(set));
 	}
 
 	public void updateAPIKey(String key) throws SecurityException, ApplicationException {
 		checkWriteAccess();
 		key = key.trim();
 		if (!Decision.isGUId(key)) throw new ApplicationException("Passed API Key [" + key + "] is not valid");
-		root.setEL("api-key", key);
+		root.setEL("apiKey", key);
 
 	}
 
 	public void removeAPIKey() throws PageException {
 		checkWriteAccess();
-		if (root.containsKey("api-key")) rem(root, "api-key");
+		if (root.containsKey("apiKey")) rem(root, "apiKey");
 	}
 
 	private String authKeysAsList(Set<String> set) throws PageException {
@@ -6296,6 +6296,8 @@ public final class ConfigAdmin {
 	private static void setClass(Struct el, Class instanceOfClass, String prefix, ClassDefinition cd) throws PageException {
 		if (cd == null || StringUtil.isEmpty(cd.getClassName())) return;
 
+		if (prefix.endsWith("-")) prefix = prefix.substring(0, prefix.length() - 1);
+		boolean hp = !prefix.isEmpty();
 		// validate class
 		try {
 			Class clazz = cd.getClazz();
@@ -6306,21 +6308,23 @@ public final class ConfigAdmin {
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
-		el.setEL(prefix + "class", cd.getClassName().trim());
+		el.setEL(hp ? prefix + "Class" : "class", cd.getClassName().trim());
 		if (cd.isBundle()) {
-			el.setEL(prefix + "bundle-name", cd.getName());
-			if (cd.hasVersion()) el.setEL(prefix + "bundle-version", cd.getVersionAsString());
+			el.setEL(hp ? prefix + "BundleName" : "bundleName", cd.getName());
+			if (cd.hasVersion()) el.setEL(hp ? prefix + "BundleVersion" : "bundleVersion", cd.getVersionAsString());
 		}
 		else {
-			if (el.containsKey(prefix + "bundle-name")) el.remove(prefix + "bundle-name");
-			if (el.containsKey(prefix + "bundle-version")) el.remove(prefix + "bundle-version");
+			if (el.containsKey(hp ? prefix + "BundleName" : "bundleName")) el.remove(hp ? prefix + "BundleName" : "bundleName");
+			if (el.containsKey(hp ? prefix + "BundleVersion" : "bundleVersion")) el.remove(hp ? prefix + "BundleVersion" : "bundleVersion");
 		}
 	}
 
 	private void removeClass(Struct el, String prefix) {
-		el.removeEL(KeyImpl.init(prefix + "class"));
-		el.removeEL(KeyImpl.init(prefix + "bundle-name"));
-		el.removeEL(KeyImpl.init(prefix + "bundle-version"));
+		if (prefix.endsWith("-")) prefix = prefix.substring(0, prefix.length() - 1);
+		boolean hp = !prefix.isEmpty();
+		el.removeEL(KeyImpl.init(hp ? prefix + "Class" : "class"));
+		el.removeEL(KeyImpl.init(hp ? prefix + "BundleName" : "bundleName"));
+		el.removeEL(KeyImpl.init(hp ? prefix + "BundleVersion" : "bundleVersion"));
 	}
 
 	public final static class PluginFilter implements ResourceFilter {
@@ -6359,6 +6363,6 @@ public final class ConfigAdmin {
 		if (!hasAccess) throw new SecurityException("Accces Denied to update scope setting");
 
 		Struct scope = _getRootElement("scope");
-		scope.setEL("cgi-readonly", Caster.toString(cgiReadonly, ""));
+		scope.setEL("cgiReadOnly", Caster.toString(cgiReadonly, ""));
 	}
 }

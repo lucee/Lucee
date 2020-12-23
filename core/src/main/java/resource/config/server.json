@@ -4,21 +4,21 @@
 		"out":"system"
 		,"err":"system"
 	}
-	,"data-sources":{
-		"preserve-single-quote":"yes"
+	,"dataSources":{
+		"preserveSingleQuote":"yes"
 	}
 	,"mode":{
 		"develop":"false"
 	}
-	,"file-system":{
-		"temp-directory":"{lucee-config}/temp/"
-		,"fld-default-directory":"{lucee-config}/library/fld/"
-		,"tld-default-directory":"{lucee-config}/library/tld/"
-		,"function-default-directory":"{lucee-config}/library/function/"
-		,"tag-default-directory":"{lucee-config}/library/tag/"
+	,"fileSystem":{
+		"tempDirectory":"{lucee-config}/temp/"
+		,"fldDefaultDirectory":"{lucee-config}/library/fld/"
+		,"tldDefaultDirectory":"{lucee-config}/library/tld/"
+		,"functionDefaultDirectory":"{lucee-config}/library/function/"
+		,"tagDefaultDirectory":"{lucee-config}/library/tag/"
 	}
-	,"dump-writers":{
-		"dump-writer":[
+	,"dumpWriters":{
+		"dumpWriter":[
 			{
 				"name":"html"
 				,"class":"lucee.runtime.dump.HTMLDumpWriter"
@@ -39,15 +39,15 @@
 			}
 		]
 	}
-	,"remote-clients":{
+	,"remoteClients":{
 		"directory":"{lucee-config}remote-client/"
 	}
 	,"resources":{
-		"default-resource-provider":{
+		"defaultResourceProvider":{
 			"class":"lucee.commons.io.res.type.file.FileResourceProvider"
 			,"arguments":"lock-timeout:1000;"
 		}
-		,"resource-provider":[
+		,"resourceProvider":[
 			{
 				"scheme":"ftp"
 				,"class":"lucee.commons.io.res.type.ftp.FTPResourceProvider"
@@ -87,8 +87,8 @@
 	}
 	,"scope":{
 		"cascading":"standard"
-		,"cascade-to-resultset":"yes"
-		,"merge-url-form":"no"
+		,"cascadeToResultset":"yes"
+		,"mergeUrlForm":"no"
 		,"sessiontimeout":"0,0,30,0"
 		,"applicationtimeout":"1,0,0,0"
 		,"requesttimeout":"0,0,0,50"
@@ -96,12 +96,12 @@
 		,"clientmanagement":"no"
 		,"setclientcookies":"yes"
 		,"setdomaincookies":"no"
-		,"client-directory-max-size":"10mb"
-		,"client-max-age":"90"
+		,"clientDirectoryMaxSize":"10mb"
+		,"clientMaxAge":"90"
 	}
 	,"mail":{
-		"spool-interval":"5"
-		,"spool-enable":"yes"
+		"spoolInterval":"5"
+		,"spoolEnable":"yes"
 		,"timeout":"30"
 	}
 	,"mappings":{
@@ -112,9 +112,9 @@
 				,"physical":"{lucee-server}/context/"
 				,"archive":""
 				,"primary":"physical"
-				,"listener-mode":"modern"
-				,"listener-type":"curr2root"
-				,"inspect-template":"once"
+				,"listenerMode":"modern"
+				,"listenerType":"curr2root"
+				,"inspectTemplate":"once"
 			}
 			,{
 				"readonly":"yes"
@@ -122,47 +122,47 @@
 				,"physical":"{lucee-config}/context/"
 				,"archive":"{lucee-config}/context/lucee-context.lar"
 				,"primary":"physical"
-				,"listener-mode":"modern"
-				,"listener-type":"curr2root"
-				,"inspect-template":"once"
+				,"listenerMode":"modern"
+				,"listenerType":"curr2root"
+				,"inspectTemplate":"once"
 			}
 		]
 	}
-	,"custom-tag":{
+	,"customTag":{
 		"mapping":{
-			"inspect-template":"never"
+			"inspectTemplate":"never"
 			,"physical":"{lucee-config}/customtags/"
 		}
 	}
-	,"ext-tags":{
-		"ext-tag":{
+	,"extTags":{
+		"extTag":{
 			"type":"java"
 			,"name":"HelloWorld"
 			,"class":"lucee.cfx.example.HelloWorld"
 		}
 	}
 	,"component":{
-		"base-cfml":"/lucee/Component.cfc"
-		,"base-lucee":"/lucee/Component.lucee"
-		,"data-member-default-access":"public"
-		,"dump-template":"/lucee/component-dump.cfm"
+		"baseCfml":"/lucee/Component.cfc"
+		,"baseLucee":"/lucee/Component.lucee"
+		,"dataMemberDefaultAccess":"public"
+		,"dumpTemplate":"/lucee/component-dump.cfm"
 		,"mapping":[
 			{
 				"virtual":"/default"
 				,"physical":"{lucee-web}/components/"
 				,"primary":"physical"
-				,"inspect-template":"never"
+				,"inspectTemplate":"never"
 			}
 			,{
 				"virtual":"/default-server"
 				,"physical":"{lucee-server}/components/"
 				,"primary":"physical"
-				,"inspect-template":"never"
+				,"inspectTemplate":"never"
 			}
 		]
 	}
-	,"cache-handlers":{
-		"cache-handler":[
+	,"cacheHandlers":{
+		"cacheHandler":[
 			{
 				"id":"request"
 				,"class":"lucee.runtime.cache.tag.request.RequestCacheHandler"
@@ -177,17 +177,17 @@
 		"timeserver":"pool.ntp.org"
 	}
 	,"orm":{
-		"engine-class":"lucee.runtime.orm.DummyORMEngine"
+		"engineClass":"lucee.runtime.orm.DummyORMEngine"
 	}
 	,"debugging":{
-		"log-memory-usage":"no"
+		"logMemoryUsage":"no"
 		,"template":"/lucee/templates/debugging/debugging.cfm"
 		,"debug":"no"
-		,"show-query-usage":"no"
+		,"showQueryUsage":"no"
 	}
 	,"application":{
-		"listener-type":"mixed"
-		,"listener-mode":"curr2root"
+		"listenerType":"mixed"
+		,"listenerMode":"curr2root"
 	}
 	,"update":{
 		"location":"https://update.lucee.org"
@@ -197,119 +197,119 @@
 		"logger":[
 			{
 				"appender":"resource"
-				,"appender-arguments":"path:{lucee-config}/logs/mapping.log"
+				,"appenderArguments":"path:{lucee-config}/logs/mapping.log"
 				,"level":"error"
 				,"layout":"classic"
 				,"name":"mapping"
 			}
 			,{
 				"appender":"resource"
-				,"appender-arguments":"path:{lucee-config}/logs/rest.log"
+				,"appenderArguments":"path:{lucee-config}/logs/rest.log"
 				,"level":"error"
 				,"layout":"classic"
 				,"name":"rest"
 			}
 			,{
 				"appender":"resource"
-				,"appender-arguments":"path:{lucee-config}/logs/gateway.log"
+				,"appenderArguments":"path:{lucee-config}/logs/gateway.log"
 				,"level":"error"
 				,"layout":"classic"
 				,"name":"gateway"
 			}
 			,{
 				"appender":"resource"
-				,"appender-arguments":"path:{lucee-config}/logs/remoteclient.log"
+				,"appenderArguments":"path:{lucee-config}/logs/remoteclient.log"
 				,"level":"error"
 				,"layout":"classic"
 				,"name":"remoteclient"
 			}
 			,{
 				"appender":"resource"
-				,"appender-arguments":"path:{lucee-config}/logs/orm.log"
+				,"appenderArguments":"path:{lucee-config}/logs/orm.log"
 				,"level":"error"
 				,"layout":"classic"
 				,"name":"orm"
 			}
 			,{
 				"appender":"resource"
-				,"appender-arguments":"path:{lucee-config}/logs/mail.log"
+				,"appenderArguments":"path:{lucee-config}/logs/mail.log"
 				,"level":"error"
 				,"layout":"classic"
 				,"name":"mail"
 			}
 			,{
 				"appender":"resource"
-				,"appender-arguments":"path:{lucee-config}/logs/search.log"
+				,"appenderArguments":"path:{lucee-config}/logs/search.log"
 				,"level":"error"
 				,"layout":"classic"
 				,"name":"search"
 			}
 			,{
 				"appender":"resource"
-				,"appender-arguments":"path:{lucee-config}/logs/scheduler.log"
+				,"appenderArguments":"path:{lucee-config}/logs/scheduler.log"
 				,"level":"error"
 				,"layout":"classic"
 				,"name":"scheduler"
 			}
 			,{
 				"appender":"resource"
-				,"appender-arguments":"path:{lucee-config}/logs/scope.log"
+				,"appenderArguments":"path:{lucee-config}/logs/scope.log"
 				,"level":"error"
 				,"layout":"classic"
 				,"name":"scope"
 			}
 			,{
 				"appender":"resource"
-				,"appender-arguments":"path:{lucee-config}/logs/application.log"
+				,"appenderArguments":"path:{lucee-config}/logs/application.log"
 				,"level":"info"
 				,"layout":"classic"
 				,"name":"application"
 			}
 			,{
 				"appender":"resource"
-				,"appender-arguments":"path:{lucee-config}/logs/exception.log"
+				,"appenderArguments":"path:{lucee-config}/logs/exception.log"
 				,"level":"error"
 				,"layout":"classic"
 				,"name":"exception"
 			}
 			,{
 				"appender":"resource"
-				,"appender-arguments":"path:{lucee-config}/logs/trace.log"
+				,"appenderArguments":"path:{lucee-config}/logs/trace.log"
 				,"level":"error"
 				,"layout":"classic"
 				,"name":"trace"
 			}
 			,{
 				"appender":"resource"
-				,"appender-arguments":"path:{lucee-config}/logs/thread.log"
+				,"appenderArguments":"path:{lucee-config}/logs/thread.log"
 				,"level":"error"
 				,"layout":"classic"
 				,"name":"thread"
 			}
 			,{
 				"appender":"resource"
-				,"appender-arguments":"path:{lucee-config}/logs/deploy.log"
+				,"appenderArguments":"path:{lucee-config}/logs/deploy.log"
 				,"level":"error"
 				,"layout":"classic"
 				,"name":"deploy"
 			}
 			,{
 				"appender":"resource"
-				,"appender-arguments":"path:{lucee-config}/logs/requesttimeout.log"
+				,"appenderArguments":"path:{lucee-config}/logs/requesttimeout.log"
 				,"level":"error"
 				,"layout":"classic"
 				,"name":"requesttimeout"
 			}
 			,{
 				"appender":"resource"
-				,"appender-arguments":"path:{lucee-config}/logs/memory.log"
+				,"appenderArguments":"path:{lucee-config}/logs/memory.log"
 				,"level":"error"
 				,"layout":"classic"
 				,"name":"memory"
 			}
 			,{
 				"appender":"resource"
-				,"appender-arguments":"path:{lucee-config}/logs/datasource.log"
+				,"appenderArguments":"path:{lucee-config}/logs/datasource.log"
 				,"level":"error"
 				,"layout":"classic"
 				,"name":"datasource"
