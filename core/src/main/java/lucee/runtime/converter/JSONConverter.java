@@ -100,29 +100,36 @@ public final class JSONConverter extends ConverterSupport {
 	private final boolean multiline;
 	private int indent = 0;
 
+	private Key commentName;
+
 	/**
 	 * @param ignoreRemotingFetch
 	 * @param charset if set, characters not supported by the charset are escaped.
 	 * @param patternCf
 	 */
 	public JSONConverter(boolean ignoreRemotingFetch, Charset charset) {
-		this(ignoreRemotingFetch, charset, JSONDateFormat.PATTERN_CF, null, false);
+		this(ignoreRemotingFetch, charset, JSONDateFormat.PATTERN_CF, null, false, null);
 	}
 
 	public JSONConverter(boolean ignoreRemotingFetch, Charset charset, String pattern) {
-		this(ignoreRemotingFetch, charset, pattern, null, false);
+		this(ignoreRemotingFetch, charset, pattern, null, false, null);
 	}
 
 	public JSONConverter(boolean ignoreRemotingFetch, Charset charset, String pattern, Boolean preserveCase) {
-		this(ignoreRemotingFetch, charset, pattern, preserveCase, false);
+		this(ignoreRemotingFetch, charset, pattern, preserveCase, false, null);
 	}
 
 	public JSONConverter(boolean ignoreRemotingFetch, Charset charset, String pattern, Boolean preserveCase, boolean multiline) {
+		this(ignoreRemotingFetch, charset, pattern, preserveCase, multiline, null);
+	}
+
+	public JSONConverter(boolean ignoreRemotingFetch, Charset charset, String pattern, Boolean preserveCase, boolean multiline, String commentName) {
 		this.ignoreRemotingFetch = ignoreRemotingFetch;
 		charsetEncoder = charset != null ? charset.newEncoder() : null;// .canEncode("string");
 		this.pattern = pattern;
 		this._preserveCase = preserveCase;
 		this.multiline = multiline;
+		this.commentName = StringUtil.isEmpty(commentName) ? null : KeyImpl.init(commentName);
 	}
 
 	/**
@@ -202,10 +209,9 @@ public final class JSONConverter extends ConverterSupport {
 		sb.append(StringUtil.escapeJS(JSONDateFormat.format(dateTime, null, pattern), '"', charsetEncoder));
 
 		/*
-		 * try { sb.append(goIn()); sb.append("createDateTime(");
-		 * sb.append(DateFormat.call(null,dateTime,"yyyy,m,d")); sb.append(' ');
-		 * sb.append(TimeFormat.call(null,dateTime,"HH:mm:ss")); sb.append(')'); } catch (PageException e) {
-		 * throw new ConverterException(e); }
+		 * try { sb.append("createDateTime("); sb.append(DateFormat.call(null,dateTime,"yyyy,m,d"));
+		 * sb.append(' '); sb.append(TimeFormat.call(null,dateTime,"HH:mm:ss")); sb.append(')'); } catch
+		 * (PageException e) { throw new ConverterException(e); }
 		 */
 		// Januar, 01 2000 01:01:01
 	}
@@ -234,7 +240,6 @@ public final class JSONConverter extends ConverterSupport {
 	 */
 	private void _serializeList(PageContext pc, Set test, List list, StringBuilder sb, int queryFormat, Set<Object> done) throws ConverterException {
 
-		sb.append(goIn());
 		sb.append("[");
 		indentPlus(sb);
 		boolean doIt = false;
@@ -253,7 +258,6 @@ public final class JSONConverter extends ConverterSupport {
 
 	private void _serializeArray(PageContext pc, Set test, Object[] arr, StringBuilder sb, int queryFormat, Set<Object> done) throws ConverterException {
 
-		sb.append(goIn());
 		sb.append("[");
 		indentPlus(sb);
 		for (int i = 0; i < arr.length; i++) {
@@ -293,7 +297,19 @@ public final class JSONConverter extends ConverterSupport {
 			}
 		}
 
-		sb.append(goIn());
+		if (commentName != null) {
+			String comment = Caster.toString(struct.get(commentName, null), null);
+			if (!StringUtil.isEmpty(comment, true)) {
+				if (sb.length() > 0) nl(sb);
+				sb.append("/*");
+				nl(sb);
+				sb.append(comment.trim());
+				nl(sb);
+				sb.append("*/");
+				nl(sb);
+			}
+		}
+
 		sb.append("{");
 		indentPlus(sb);
 		Iterator<Entry<Key, Object>> it = struct.entryIterator();
@@ -386,7 +402,7 @@ public final class JSONConverter extends ConverterSupport {
 	 * @throws ConverterException
 	 */
 	private void _serializeMap(PageContext pc, Set test, Map map, StringBuilder sb, int queryFormat, Set<Object> done) throws ConverterException {
-		sb.append(goIn());
+
 		sb.append("{");
 		indentPlus(sb);
 		Iterator it = map.keySet().iterator();
@@ -465,7 +481,7 @@ public final class JSONConverter extends ConverterSupport {
 		Collection.Key[] _keys = CollectionUtil.keys(query);
 
 		if (queryFormat == SerializationSettings.SERIALIZE_AS_STRUCT) {
-			sb.append(goIn());
+
 			sb.append("[");
 			indentPlus(sb);
 			int rc = query.getRecordcount();
@@ -499,7 +515,6 @@ public final class JSONConverter extends ConverterSupport {
 			return;
 		}
 
-		sb.append(goIn());
 		sb.append("{");
 		indentPlus(sb);
 		/*
@@ -545,7 +560,6 @@ public final class JSONConverter extends ConverterSupport {
 					sb.append(',');
 				}
 				oDoIt = true;
-				sb.append(goIn());
 
 				sb.append(StringUtil.escapeJS(upperCase ? _keys[i].getUpperString() : _keys[i].getString(), '"', charsetEncoder));
 				sb.append(":[");
@@ -621,43 +635,43 @@ public final class JSONConverter extends ConverterSupport {
 
 		// NULL
 		if (object == null || object == CollectionUtil.NULL) {
-			sb.append(goIn());
+
 			sb.append("null");
 			return;
 		}
 		// String
 		if (object instanceof String || object instanceof StringBuilder) {
-			sb.append(goIn());
+
 			sb.append(StringUtil.escapeJS(object.toString(), '"', charsetEncoder));
 			return;
 		}
 		// TimeZone
 		if (object instanceof TimeZone) {
-			sb.append(goIn());
+
 			sb.append(StringUtil.escapeJS(((TimeZone) object).getID(), '"', charsetEncoder));
 			return;
 		}
 		// Locale
 		if (object instanceof Locale) {
-			sb.append(goIn());
+
 			sb.append(StringUtil.escapeJS(LocaleFactory.toString((Locale) object), '"', charsetEncoder));
 			return;
 		}
 		// Character
 		if (object instanceof Character) {
-			sb.append(goIn());
+
 			sb.append(StringUtil.escapeJS(String.valueOf(((Character) object).charValue()), '"', charsetEncoder));
 			return;
 		}
 		// Number
 		if (object instanceof Number) {
-			sb.append(goIn());
+
 			sb.append(Caster.toString(((Number) object)));
 			return;
 		}
 		// Boolean
 		if (object instanceof Boolean) {
-			sb.append(goIn());
+
 			sb.append(Caster.toString(((Boolean) object).booleanValue()));
 			return;
 		}
@@ -698,7 +712,7 @@ public final class JSONConverter extends ConverterSupport {
 		}
 		Object raw = LazyConverter.toRaw(object);
 		if (done.contains(raw)) {
-			sb.append(goIn());
+
 			sb.append("null");
 			return;
 		}
@@ -772,12 +786,12 @@ public final class JSONConverter extends ConverterSupport {
 
 	private void _serializeXML(Node node, StringBuilder sb) {
 		node = XMLCaster.toRawNode(node);
-		sb.append(goIn());
+
 		sb.append(StringUtil.escapeJS(XMLCaster.toString(node, ""), '"', charsetEncoder));
 	}
 
 	private void _serializeTimeSpan(TimeSpan ts, StringBuilder sb) throws ConverterException {
-		sb.append(goIn());
+
 		try {
 			sb.append(ts.castToDoubleValue());
 		}
@@ -804,13 +818,6 @@ public final class JSONConverter extends ConverterSupport {
 	public void writeOut(PageContext pc, Object source, Writer writer) throws ConverterException, IOException {
 		writer.write(serialize(pc, source, SerializationSettings.SERIALIZE_AS_ROW));
 		writer.flush();
-	}
-
-	/**
-	 * @return return current blockquote
-	 */
-	private String goIn() {
-		return "";
 	}
 
 	public static String serialize(PageContext pc, Object o) throws ConverterException {

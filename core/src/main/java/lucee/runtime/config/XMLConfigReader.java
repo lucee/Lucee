@@ -11,10 +11,10 @@ import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
+import org.xml.sax.ext.LexicalHandler;
 import org.xml.sax.helpers.DefaultHandler;
 
 import lucee.print;
-import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl;
@@ -37,7 +37,7 @@ import lucee.runtime.type.StructImpl;
  * Methoden (get, getDir) koennen FunctionLibs geladen werden. Die FunctionLibFactory erbt sich vom
  * DefaultHandler.
  */
-public final class XMLConfigReader extends DefaultHandler {
+public final class XMLConfigReader extends DefaultHandler implements LexicalHandler {
 	public static class ReadRule {
 		private Set<String> names = new HashSet<>();
 
@@ -81,6 +81,7 @@ public final class XMLConfigReader extends DefaultHandler {
 		xmlReader = XMLUtil.createXMLReader();
 		xmlReader.setContentHandler(this);
 		xmlReader.setErrorHandler(this);
+		xmlReader.setProperty("http://xml.org/sax/properties/lexical-handler", this);
 		// xmlReader.setEntityResolver(new FunctionLibEntityResolver());
 		xmlReader.parse(is);
 	}
@@ -104,6 +105,7 @@ public final class XMLConfigReader extends DefaultHandler {
 			}
 			else if (existing instanceof Struct) {
 				Array arr = new ArrayImpl();
+				arr.appendEL(existing);
 				arr.appendEL(current);
 				parent.setEL(qName, arr);
 			}
@@ -126,10 +128,10 @@ public final class XMLConfigReader extends DefaultHandler {
 	@Override
 	public void endElement(String uri, String name, String qName) {
 		if (trimBody) {
-			String body = (String) current.get("body", null);
+			String body = (String) current.get("_body_", null);
 			if (body != null) {
-				if (StringUtil.isEmpty(body, true)) current.remove("body");
-				else current.setEL("body", body.trim());
+				if (StringUtil.isEmpty(body, true)) current.remove("_body_");
+				else current.setEL("_body_", body.trim());
 			}
 		}
 		current = ancestor.pop();
@@ -137,27 +139,51 @@ public final class XMLConfigReader extends DefaultHandler {
 
 	@Override
 	public void characters(char ch[], int start, int length) {
-		String body = (String) current.get("body", null);
-		if (body == null) current.put("body", new String(ch, start, length));
-		else current.put("body", body + new String(ch, start, length));
+		String body = (String) current.get("_body_", null);
+		if (body == null) current.put("_body_", new String(ch, start, length));
+		else current.put("_body_", body + new String(ch, start, length));
 	}
 
 	public Struct getData() {
 		return root;
 	}
 
+	@Override
+	public void comment(char ch[], int start, int length) throws SAXException {
+		String comment = (String) current.get("_comment_", null);
+		if (comment == null) current.put("_comment_", new String(ch, start, length));
+		else current.put("_comment_", comment + new String(ch, start, length));
+	}
+
+	@Override
+	public void endCDATA() throws SAXException {}
+
+	@Override
+	public void endDTD() throws SAXException {}
+
+	@Override
+	public void endEntity(String arg0) throws SAXException {}
+
+	@Override
+	public void startCDATA() throws SAXException {}
+
+	@Override
+	public void startDTD(String arg0, String arg1, String arg2) throws SAXException {}
+
+	@Override
+	public void startEntity(String arg0) throws SAXException {}
+
 	public static void main(String[] args) throws Exception {
 
-		if (true) return;
 		Resource res = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Test/test/lucee-server/context/lucee-server.xml");
 		res = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Test/test/lucee-server/context/test.xml");
 		res = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Test/test/webapps/ROOT/WEB-INF/lucee/lucee-web.xml.cfm");
-		res = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Projects/Lucee/Lucee5/core/src/main/java/resource/config/server.xml");
-		Resource trg = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Projects/Lucee/Lucee5/core/src/main/java/resource/config/server.json");
+		res = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Projects/Lucee/Lucee5/core/src/main/java/resource/config/web.xml");
+		Resource trg = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Projects/Lucee/Lucee5/core/src/main/java/resource/config/web.json");
 
 		XMLConfigReader reader = new XMLConfigReader(res, true, new ReadRule());
 		String str = ser(reader.getData().get("cfLuceeConfiguration"));
-		IOUtil.write(trg, str, CharsetUtil.UTF8, false);
+		// IOUtil.write(trg, str, CharsetUtil.UTF8, false);
 		print.e(str);
 
 		// Object result = new JSONExpressionInterpreter().interpret(null, str);
@@ -167,7 +193,7 @@ public final class XMLConfigReader extends DefaultHandler {
 
 	private static String ser(Object var) throws PageException {
 		try {
-			JSONConverter json = new JSONConverter(true, Charset.forName("UTF-8"), JSONDateFormat.PATTERN_CF, true, true);
+			JSONConverter json = new JSONConverter(true, Charset.forName("UTF-8"), JSONDateFormat.PATTERN_CF, true, true, "_comment_");
 
 			// TODO get secure prefix from application.cfc
 			return json.serialize(null, var, SerializationSettings.SERIALIZE_AS_ROW);
@@ -176,5 +202,4 @@ public final class XMLConfigReader extends DefaultHandler {
 			throw Caster.toPageException(e);
 		}
 	}
-
 }

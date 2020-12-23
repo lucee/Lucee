@@ -20,6 +20,11 @@
 	,"dump-writers":{
 		"dump-writer":[
 			{
+				"name":"html"
+				,"class":"lucee.runtime.dump.HTMLDumpWriter"
+				,"default":"browser"
+			}
+			,{
 				"name":"text"
 				,"class":"lucee.runtime.dump.TextDumpWriter"
 				,"default":"console"
@@ -44,6 +49,11 @@
 		}
 		,"resource-provider":[
 			{
+				"scheme":"ftp"
+				,"class":"lucee.commons.io.res.type.ftp.FTPResourceProvider"
+				,"arguments":"lock-timeout:20000;socket-timeout:-1;client-timeout:60000"
+			}
+			,{
 				"scheme":"zip"
 				,"class":"lucee.commons.io.res.type.zip.ZipResourceProvider"
 				,"arguments":"lock-timeout:1000;case-sensitive:true;"
@@ -98,6 +108,16 @@
 		"mapping":[
 			{
 				"readonly":"yes"
+				,"virtual":"/lucee-server/"
+				,"physical":"{lucee-server}/context/"
+				,"archive":""
+				,"primary":"physical"
+				,"listener-mode":"modern"
+				,"listener-type":"curr2root"
+				,"inspect-template":"once"
+			}
+			,{
+				"readonly":"yes"
 				,"virtual":"/lucee/"
 				,"physical":"{lucee-config}/context/"
 				,"archive":"{lucee-config}/context/lucee-context.lar"
@@ -128,6 +148,12 @@
 		,"dump-template":"/lucee/component-dump.cfm"
 		,"mapping":[
 			{
+				"virtual":"/default"
+				,"physical":"{lucee-web}/components/"
+				,"primary":"physical"
+				,"inspect-template":"never"
+			}
+			,{
 				"virtual":"/default-server"
 				,"physical":"{lucee-server}/components/"
 				,"primary":"physical"
@@ -138,6 +164,10 @@
 	,"cache-handlers":{
 		"cache-handler":[
 			{
+				"id":"request"
+				,"class":"lucee.runtime.cache.tag.request.RequestCacheHandler"
+			}
+			,{
 				"id":"timespan"
 				,"class":"lucee.runtime.cache.tag.timespan.TimespanCacheHandler"
 			}
@@ -166,6 +196,13 @@
 	,"logging":{
 		"logger":[
 			{
+				"appender":"resource"
+				,"appender-arguments":"path:{lucee-config}/logs/mapping.log"
+				,"level":"error"
+				,"layout":"classic"
+				,"name":"mapping"
+			}
+			,{
 				"appender":"resource"
 				,"appender-arguments":"path:{lucee-config}/logs/rest.log"
 				,"level":"error"
