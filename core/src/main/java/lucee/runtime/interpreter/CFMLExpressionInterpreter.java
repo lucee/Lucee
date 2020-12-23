@@ -33,6 +33,8 @@ import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.TemplateException;
+import lucee.runtime.functions.arrays.JsonArray;
+import lucee.runtime.functions.struct.JsonStruct;
 import lucee.runtime.interpreter.ref.Ref;
 import lucee.runtime.interpreter.ref.Set;
 import lucee.runtime.interpreter.ref.cast.Casting;
@@ -83,6 +85,7 @@ import lucee.runtime.interpreter.ref.var.DynAssign;
 import lucee.runtime.interpreter.ref.var.Variable;
 import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.scope.ScopeSupport;
+import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.function.FunctionLibFunction;
 import lucee.transformer.library.function.FunctionLibFunctionArg;
@@ -170,8 +173,6 @@ public class CFMLExpressionInterpreter {
 	protected short mode = 0;
 
 	protected ParserString cfml;
-	// protected Document doc;
-	// protected FunctionLib[] fld;
 	protected PageContext pc;
 	private FunctionLib fld;
 	protected boolean allowNullConstant = false;
@@ -197,12 +198,31 @@ public class CFMLExpressionInterpreter {
 		this.cfml = new ParserString(str);
 		this.preciseMath = preciseMath;
 		init(pc);
-
-		if (LITERAL_ARRAY == null) LITERAL_ARRAY = fld.getFunction("_literalArray");
-		if (LITERAL_STRUCT == null) LITERAL_STRUCT = fld.getFunction("_literalStruct");
-		if (JSON_ARRAY == null) JSON_ARRAY = fld.getFunction("_jsonArray");
-		if (JSON_STRUCT == null) JSON_STRUCT = fld.getFunction("_jsonStruct");
-		if (LITERAL_ORDERED_STRUCT == null) LITERAL_ORDERED_STRUCT = fld.getFunction("_literalOrderedStruct");
+		if (fld != null) {
+			if (LITERAL_ARRAY == null) LITERAL_ARRAY = fld.getFunction("_literalArray");
+			if (LITERAL_STRUCT == null) LITERAL_STRUCT = fld.getFunction("_literalStruct");
+			if (JSON_ARRAY == null) JSON_ARRAY = fld.getFunction("_jsonArray");
+			if (JSON_STRUCT == null) JSON_STRUCT = fld.getFunction("_jsonStruct");
+			if (LITERAL_ORDERED_STRUCT == null) LITERAL_ORDERED_STRUCT = fld.getFunction("_literalOrderedStruct");
+		}
+		else {
+			if (JSON_ARRAY == null) {
+				// TODO read from FLD
+				JSON_ARRAY = new FunctionLibFunction(true);
+				JSON_ARRAY.setName("_jsonArray");
+				JSON_ARRAY.setFunctionClass(new ClassDefinitionImpl<>(JsonArray.class));
+				JSON_ARRAY.setArgType(FunctionLibFunction.ARG_DYNAMIC);
+				JSON_ARRAY.setReturn("array");
+			}
+			if (JSON_STRUCT == null) {
+				// TODO read from FLD
+				JSON_STRUCT = new FunctionLibFunction(true);
+				JSON_STRUCT.setName("_jsonStruct");
+				JSON_STRUCT.setFunctionClass(new ClassDefinitionImpl<>(JsonStruct.class));
+				JSON_STRUCT.setArgType(FunctionLibFunction.ARG_DYNAMIC);
+				JSON_STRUCT.setReturn("struct");
+			}
+		}
 
 		cfml.removeSpace();
 		Ref ref = assignOp();
@@ -226,13 +246,14 @@ public class CFMLExpressionInterpreter {
 		else {
 			this.config = (ConfigPro) ThreadLocalPageContext.getConfig();
 			if (config == null) {
+
 				try {
 					config = (ConfigPro) CFMLEngineFactory.getInstance().createConfig(null, "localhost", "/index.cfm");// TODO set a context root
 				}
 				catch (Exception e) {}
 			}
 		}
-		fld = config.getCombinedFLDs(dialect);
+		fld = config == null ? null : config.getCombinedFLDs(dialect);
 	}
 
 	/*
@@ -1000,7 +1021,7 @@ public class CFMLExpressionInterpreter {
 			return new BIFCall(LITERAL_ORDERED_STRUCT, new Ref[0]);
 		}
 
-		Ref[] args = functionArg(flf.getName(), false, flf, end);
+		Ref[] args = flf == null ? null : functionArg(flf.getName(), false, flf, end);
 		if (args != null && args.length > 0 && flf == LITERAL_ARRAY) {
 			if (args[0] instanceof LFunctionValue) {
 				for (int i = 1; i < args.length; i++) {

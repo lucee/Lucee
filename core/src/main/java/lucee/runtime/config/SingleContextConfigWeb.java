@@ -18,9 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.JspWriter;
 
-import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
-import org.xml.sax.SAXException;
 
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
@@ -76,6 +74,7 @@ import lucee.runtime.net.amf.AMFEngine;
 import lucee.runtime.net.mail.Server;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.rpc.WSHandler;
+import lucee.runtime.op.Caster;
 import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.orm.ORMEngine;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
@@ -1619,8 +1618,13 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	}
 
 	@Override
-	public void updatePassword(boolean server, String passwordOld, String passwordNew) throws PageException, IOException, SAXException, BundleException {
-		PasswordImpl.updatePassword(server ? cs : this, passwordOld, passwordNew);
+	public void updatePassword(boolean server, String passwordOld, String passwordNew) throws PageException {
+		try {
+			PasswordImpl.updatePassword(server ? cs : this, passwordOld, passwordNew);
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
 	}
 
 	@Override

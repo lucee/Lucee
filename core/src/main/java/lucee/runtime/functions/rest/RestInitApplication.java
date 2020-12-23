@@ -24,7 +24,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.Password;
-import lucee.runtime.config.XMLConfigAdmin;
+import lucee.runtime.config.ConfigAdmin;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.rest.Mapping;
@@ -84,7 +84,7 @@ public class RestInitApplication {
 
 	private static void update(PageContext pc, Resource dir, String virtual, Password webAdminPassword, boolean defaultMapping) throws PageException {
 		try {
-			XMLConfigAdmin admin = XMLConfigAdmin.newInstance(pc.getConfig(), webAdminPassword);
+			ConfigAdmin admin = ConfigAdmin.newInstance(pc.getConfig(), webAdminPassword);
 			admin.updateRestMapping(virtual, dir.getAbsolutePath(), defaultMapping);
 			admin.storeAndReload();
 		}

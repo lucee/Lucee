@@ -24,25 +24,34 @@ import java.util.ArrayList;
 
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
+import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
+import lucee.runtime.config.XMLConfigReader.ReadRule;
+import lucee.runtime.converter.ConverterException;
+import lucee.runtime.converter.JSONConverter;
+import lucee.runtime.converter.JSONDateFormat;
 import lucee.runtime.engine.InfoImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
+import lucee.runtime.exp.PageException;
+import lucee.runtime.interpreter.JSONExpressionInterpreter;
+import lucee.runtime.listener.SerializationSettings;
+import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.text.xml.XMLUtil;
+import lucee.runtime.type.Struct;
 
-public abstract class XMLConfigFactory {
+public abstract class ConfigFactory {
 
 	public static final int NEW_NONE = 0;
 	public static final int NEW_MINOR = 1;
@@ -86,8 +95,8 @@ public abstract class XMLConfigFactory {
 
 	public static class UpdateInfo {
 
-		public static final UpdateInfo NEW_NONE = new UpdateInfo(XMLConfigWebFactory.NEW_NONE);
-		public static final UpdateInfo NEW_FRESH = new UpdateInfo(XMLConfigWebFactory.NEW_FRESH);
+		public static final UpdateInfo NEW_NONE = new UpdateInfo(ConfigWebFactory.NEW_NONE);
+		public static final UpdateInfo NEW_FRESH = new UpdateInfo(ConfigWebFactory.NEW_FRESH);
 
 		public final Version oldVersion;
 		public final int updateType;
@@ -103,10 +112,10 @@ public abstract class XMLConfigFactory {
 		}
 
 		public String getUpdateTypeAsString() {
-			if (updateType == XMLConfigWebFactory.NEW_NONE) return "new-none";
-			if (updateType == XMLConfigWebFactory.NEW_FRESH) return "new-fresh";
-			if (updateType == XMLConfigWebFactory.NEW_FROM4) return "new-from4";
-			if (updateType == XMLConfigWebFactory.NEW_MINOR) return "new-minor";
+			if (updateType == ConfigWebFactory.NEW_NONE) return "new-none";
+			if (updateType == ConfigWebFactory.NEW_FRESH) return "new-fresh";
+			if (updateType == ConfigWebFactory.NEW_FROM4) return "new-from4";
+			if (updateType == ConfigWebFactory.NEW_MINOR) return "new-minor";
 			return "unkown:" + updateType;
 		}
 
@@ -149,33 +158,28 @@ public abstract class XMLConfigFactory {
 	 * @return returns the Document
 	 * @throws SAXException
 	 * @throws IOException
+	 * @throws PageException
 	 */
-	static Document loadDocument(Resource xmlFile) throws SAXException, IOException {
+	static Struct loadDocument(Resource file) throws SAXException, IOException, PageException {
 		InputStream is = null;
 		try {
-			return _loadDocument(is = IOUtil.toBufferedInputStream(xmlFile.getInputStream()));
+			return _loadDocument(file);
 		}
 		finally {
 			IOUtil.close(is);
 		}
 	}
 
-	static Document loadDocumentCreateIfFails(Resource configFile, String type) throws SAXException, IOException {
+	static Struct loadDocumentCreateIfFails(Resource configFile, String type) throws SAXException, IOException, PageException {
 		try {
-			InputStream is = null;
-			try {
-				return _loadDocument(is = IOUtil.toBufferedInputStream(configFile.getInputStream()));
-			}
-			finally {
-				IOUtil.close(is);
-			}
+			return _loadDocument(configFile);
 		}
 		catch (Exception e) {
 			// rename buggy config files
 			if (configFile.exists()) {
-				LogUtil.log(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, XMLConfigFactory.class.getName(),
+				LogUtil.log(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, ConfigFactory.class.getName(),
 						"Config file [" + configFile + "] was not valid and has been replaced");
-				LogUtil.log(ThreadLocalPageContext.getConfig(), XMLConfigFactory.class.getName(), e);
+				LogUtil.log(ThreadLocalPageContext.getConfig(), ConfigFactory.class.getName(), e);
 				int count = 1;
 				Resource bugFile;
 				Resource configDir = configFile.getParentResource();
@@ -186,7 +190,20 @@ public abstract class XMLConfigFactory {
 			createConfigFile(type, configFile);
 			return loadDocument(configFile);
 		}
+	}
 
+	static void translateConfigFile(Resource configFileOld, Resource configFileNew) throws ConverterException, IOException, SAXException {
+		// read the old config (XML)
+		Struct root = ConfigWebUtil.getAsStruct("cfLuceeConfiguration", new XMLConfigReader(configFileOld, true, new ReadRule()).getData());
+
+		// store it as Json
+		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, true, true);
+		String str = json.serialize(null, root, SerializationSettings.SERIALIZE_AS_ROW);
+		IOUtil.write(configFileNew, str, CharsetUtil.UTF8, false);
+
+		// TODO delete the old config after a certain time
+		// configFileOld.renameTo(configFileOld.getParentResource().getRealResource(configFileOld.getName()
+		// + ".bak"));
 	}
 
 	/**
@@ -196,22 +213,17 @@ public abstract class XMLConfigFactory {
 	 * @param configFile
 	 * @throws IOException
 	 */
-	static void createConfigFile(String xmlName, Resource configFile) throws IOException {
-		createFileFromResource("/resource/config/" + xmlName + ".xml", configFile.getAbsoluteResource());
+	static void createConfigFile(String name, Resource configFile) throws IOException {
+		createFileFromResource("/resource/config/" + name + ".json", configFile.getAbsoluteResource());
 	}
 
-	/**
-	 * load XML Document from XML File
-	 * 
-	 * @param is InoutStream to read
-	 * @return returns the Document
-	 * @throws SAXException
-	 * @throws IOException
-	 */
-	private static Document _loadDocument(InputStream is) throws SAXException, IOException {
-		InputSource source = new InputSource(is);
-
-		return XMLUtil.parse(source, null, false);
+	private static Struct _loadDocument(Resource res) throws SAXException, IOException, PageException {
+		String name = res.getName();
+		// That step is not necessary anymore TODO remove
+		if (StringUtil.endsWithIgnoreCase(name, ".xml.cfm") || StringUtil.endsWithIgnoreCase(name, ".xml")) {
+			return ConfigWebUtil.getAsStruct("cfLuceeConfiguration", new XMLConfigReader(res, true, new ReadRule()).getData());
+		}
+		return Caster.toStruct(new JSONExpressionInterpreter().interpret(null, IOUtil.toString(res, CharsetUtil.UTF8)));
 	}
 
 	/**
@@ -281,7 +293,7 @@ public abstract class XMLConfigFactory {
 	 * @throws IOException
 	 */
 	static void createFileFromResource(String resource, Resource file, String password) throws IOException {
-		LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, XMLConfigFactory.class.getName(), "Write file: [" + file +"]");
+		LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, ConfigFactory.class.getName(), "Write file: [" + file + "]");
 		if (file.exists()) file.delete();
 
 		InputStream is = InfoImpl.class.getResourceAsStream(resource);
@@ -306,7 +318,7 @@ public abstract class XMLConfigFactory {
 			createFileFromResource(resource, file, null);
 		}
 		catch (Exception e) {
-			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), XMLConfigFactory.class.getName(), e);
+			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), ConfigFactory.class.getName(), e);
 		}
 	}
 
@@ -320,7 +332,7 @@ public abstract class XMLConfigFactory {
 		if (!dir.exists()) dir.mkdirs();
 
 		Resource f = dir.getRealResource(name);
-		if (!f.exists() || doNew) XMLConfigFactory.createFileFromResourceEL(srcPath + name, f);
+		if (!f.exists() || doNew) ConfigFactory.createFileFromResourceEL(srcPath + name, f);
 		return f;
 
 	}
@@ -334,7 +346,7 @@ public abstract class XMLConfigFactory {
 	static void delete(Resource dbDir, String name) {
 		Resource f = dbDir.getRealResource(name);
 		if (f.exists()) {
-			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, XMLConfigFactory.class.getName(), "Delete file: [" + f +"]");
+			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, ConfigFactory.class.getName(), "Delete file: [" + f + "]");
 
 			f.delete();
 		}

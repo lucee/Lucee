@@ -27,8 +27,11 @@ import org.xml.sax.SAXException;
 import lucee.commons.digest.Hash;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.runtime.converter.ConverterException;
 import lucee.runtime.crypt.BlowfishEasy;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.op.Caster;
+import lucee.runtime.type.Struct;
 
 public class PasswordImpl implements Password {
 
@@ -158,6 +161,32 @@ public class PasswordImpl implements Password {
 		return null;
 	}
 
+	public static Password readFromStruct(Struct data, String salt, boolean isDefault) {
+		String prefix = isDefault ? "default-" : "";
+
+		// first we look for the hashed and salted password
+		String pw = ConfigWebFactory.getAttr(data, prefix + "hspw");
+		if (!StringUtil.isEmpty(pw, true)) {
+			// password is only of use when there is a salt as well
+			if (salt == null) return null;
+			return new PasswordImpl(ORIGIN_HASHED_SALTED, pw, salt, HASHED_SALTED);
+		}
+
+		// fall back to password that is hashed but not salted
+		pw = ConfigWebFactory.getAttr(data, prefix + "pw");
+		if (!StringUtil.isEmpty(pw, true)) {
+			return new PasswordImpl(ORIGIN_HASHED, pw, null, HASHED);
+		}
+
+		// fall back to encrypted password
+		String pwEnc = ConfigWebFactory.getAttr(data, prefix + "password");
+		if (!StringUtil.isEmpty(pwEnc, true)) {
+			String rawPassword = new BlowfishEasy("tpwisgh").decryptString(pwEnc);
+			return new PasswordImpl(ORIGIN_ENCRYPTED, rawPassword, salt);
+		}
+		return null;
+	}
+
 	public static boolean hasPassword(Element el) {
 		if (el == null) return false;
 
@@ -183,8 +212,24 @@ public class PasswordImpl implements Password {
 		return pw;
 	}
 
+	public static Password writeToStruct(Struct el, String passwordRaw, boolean isDefault) {
+		// salt
+		String salt = getSalt(el);
+
+		Password pw = new PasswordImpl(ORIGIN_UNKNOW, passwordRaw, salt);
+		writeToStruct(el, pw, isDefault);
+		return pw;
+	}
+
 	private static String getSalt(Element el) {
 		String salt = el.getAttribute("salt");
+		if (StringUtil.isEmpty(salt, true)) throw new RuntimeException("missing salt!");// this should never happen
+		return salt.trim();
+
+	}
+
+	private static String getSalt(Struct data) {
+		String salt = Caster.toString(data.get("salt", null), null);
 		if (StringUtil.isEmpty(salt, true)) throw new RuntimeException("missing salt!");// this should never happen
 		return salt.trim();
 
@@ -214,6 +259,36 @@ public class PasswordImpl implements Password {
 				}
 			}
 		}
+	}
+
+	public static void writeToStruct(Struct data, Password pw, boolean isDefault) {
+		String prefix = isDefault ? "default-" : "";
+		if (pw == null) {
+			if (data.containsKey(prefix + "hspw")) data.remove(prefix + "hspw");
+			if (data.containsKey(prefix + "pw")) data.remove(prefix + "pw");
+			if (data.containsKey(prefix + "password")) data.remove(prefix + "password");
+		}
+		else {
+			// remove backward compatibility
+			if (data.containsKey(prefix + "pw")) data.remove(prefix + "pw");
+			if (data.containsKey(prefix + "password")) data.remove(prefix + "password");
+
+			if (pw.getType() == HASHED_SALTED) data.setEL(prefix + "hspw", pw.getPassword());
+			// password is not hashed and salted
+			else {
+				PasswordImpl pwi;
+				if (pw instanceof PasswordImpl && (pwi = ((PasswordImpl) pw)).rawPassword != null) {
+					data.setEL(prefix + "hspw", hash(pwi.rawPassword, getSalt(data)));
+				}
+				else {
+					data.setEL(prefix + "pw", pw.getPassword());// this should never happen
+				}
+			}
+		}
+	}
+
+	public static void removeFromStruct(Struct root, boolean isDefault) {
+		writeToStruct(root, (Password) null, isDefault);
 	}
 
 	public static void removeFromXML(Element root, boolean isDefault) {
@@ -260,8 +335,10 @@ public class PasswordImpl implements Password {
 	 * @throws SAXException
 	 * @throws PageException
 	 * @throws BundleException
+	 * @throws ConverterException
 	 */
-	public static void updatePassword(ConfigPro config, String strPasswordOld, String strPasswordNew) throws SAXException, IOException, PageException, BundleException {
+	public static void updatePassword(ConfigPro config, String strPasswordOld, String strPasswordNew)
+			throws SAXException, IOException, PageException, BundleException, ConverterException {
 
 		// old salt
 		int pwType = config.getPasswordType(); // get type from password
@@ -283,17 +360,18 @@ public class PasswordImpl implements Password {
 
 	}
 
-	public static void updatePassword(ConfigPro config, Password passwordOld, Password passwordNew) throws SAXException, IOException, PageException, BundleException {
+	public static void updatePassword(ConfigPro config, Password passwordOld, Password passwordNew)
+			throws SAXException, IOException, PageException, BundleException, ConverterException {
 		if (!config.hasPassword()) {
 			((ConfigImpl) config).setPassword(passwordNew);
-			XMLConfigAdmin admin = XMLConfigAdmin.newInstance(config, passwordNew);
+			ConfigAdmin admin = ConfigAdmin.newInstance(config, passwordNew);
 			admin.setPassword(passwordNew);
 			admin.storeAndReload();
 		}
 		else {
 			ConfigWebUtil.checkPassword(config, "write", passwordOld);
 			ConfigWebUtil.checkGeneralWriteAccess(config, passwordOld);
-			XMLConfigAdmin admin = XMLConfigAdmin.newInstance(config, passwordOld);
+			ConfigAdmin admin = ConfigAdmin.newInstance(config, passwordOld);
 			admin.setPassword(passwordNew);
 			admin.storeAndReload();
 		}

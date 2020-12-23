@@ -89,11 +89,16 @@ public final class JSONConverter extends ConverterSupport {
 	private static final Key TO_JSON = KeyImpl.getInstance("_toJson");
 	private static final String NULL_STRING = "";
 
+	private static final String NL = "\n";
+
 	private boolean ignoreRemotingFetch;
 
 	private CharsetEncoder charsetEncoder;
 
-	private String pattern;
+	private final String pattern;
+	private final Boolean _preserveCase;
+	private final boolean multiline;
+	private int indent = 0;
 
 	/**
 	 * @param ignoreRemotingFetch
@@ -101,13 +106,23 @@ public final class JSONConverter extends ConverterSupport {
 	 * @param patternCf
 	 */
 	public JSONConverter(boolean ignoreRemotingFetch, Charset charset) {
-		this(ignoreRemotingFetch, charset, JSONDateFormat.PATTERN_CF);
+		this(ignoreRemotingFetch, charset, JSONDateFormat.PATTERN_CF, null, false);
 	}
 
 	public JSONConverter(boolean ignoreRemotingFetch, Charset charset, String pattern) {
+		this(ignoreRemotingFetch, charset, pattern, null, false);
+	}
+
+	public JSONConverter(boolean ignoreRemotingFetch, Charset charset, String pattern, Boolean preserveCase) {
+		this(ignoreRemotingFetch, charset, pattern, preserveCase, false);
+	}
+
+	public JSONConverter(boolean ignoreRemotingFetch, Charset charset, String pattern, Boolean preserveCase, boolean multiline) {
 		this.ignoreRemotingFetch = ignoreRemotingFetch;
 		charsetEncoder = charset != null ? charset.newEncoder() : null;// .canEncode("string");
 		this.pattern = pattern;
+		this._preserveCase = preserveCase;
+		this.multiline = multiline;
 	}
 
 	/**
@@ -221,14 +236,18 @@ public final class JSONConverter extends ConverterSupport {
 
 		sb.append(goIn());
 		sb.append("[");
+		indentPlus(sb);
 		boolean doIt = false;
 		ListIterator it = list.listIterator();
 		while (it.hasNext()) {
-			if (doIt) sb.append(',');
+			if (doIt) {
+				nl(sb);
+				sb.append(',');
+			}
 			doIt = true;
 			_serialize(pc, test, it.next(), sb, queryFormat, done);
 		}
-
+		indentMinus(sb);
 		sb.append(']');
 	}
 
@@ -236,10 +255,15 @@ public final class JSONConverter extends ConverterSupport {
 
 		sb.append(goIn());
 		sb.append("[");
+		indentPlus(sb);
 		for (int i = 0; i < arr.length; i++) {
-			if (i > 0) sb.append(',');
+			if (i > 0) {
+				nl(sb);
+				sb.append(',');
+			}
 			_serialize(pc, test, arr[i], sb, queryFormat, done);
 		}
+		indentMinus(sb);
 		sb.append(']');
 	}
 
@@ -256,7 +280,9 @@ public final class JSONConverter extends ConverterSupport {
 	public void _serializeStruct(PageContext pc, Set test, Struct struct, StringBuilder sb, int queryFormat, boolean addUDFs, Set<Object> done) throws ConverterException {
 
 		ApplicationContextSupport acs = pc == null ? null : (ApplicationContextSupport) pc.getApplicationContext();
-		boolean preserveCase = acs == null ? false : acs.getSerializationSettings().getPreserveCaseForStructKey(); // preserve case by default for Struct
+
+		// preserve case by default for Struct
+		boolean _preserveCase = getPreserveCase(acs);
 
 		// Component
 		if (struct instanceof Component) {
@@ -269,7 +295,7 @@ public final class JSONConverter extends ConverterSupport {
 
 		sb.append(goIn());
 		sb.append("{");
-
+		indentPlus(sb);
 		Iterator<Entry<Key, Object>> it = struct.entryIterator();
 		Entry<Key, Object> e;
 		String k;
@@ -279,12 +305,15 @@ public final class JSONConverter extends ConverterSupport {
 
 			e = it.next();
 			k = e.getKey().getString();
-			if (!preserveCase) k = k.toUpperCase();
+			if (!_preserveCase) k = k.toUpperCase();
 			value = e.getValue();
 
 			if (!addUDFs && (value instanceof UDF || value == null)) continue;
 
-			if (doIt) sb.append(',');
+			if (doIt) {
+				nl(sb);
+				sb.append(',');
+			}
 
 			doIt = true;
 			sb.append(StringUtil.escapeJS(k, '"', charsetEncoder));
@@ -312,15 +341,24 @@ public final class JSONConverter extends ConverterSupport {
 				Key key = KeyImpl.getInstance(props[i].getName());
 				value = scope.get(key, null);
 				if (!addUDFs && (value instanceof UDF || value == null)) continue;
-				if (doIt) sb.append(',');
+				if (doIt) {
+					nl(sb);
+					sb.append(',');
+				}
 				doIt = true;
 				sb.append(StringUtil.escapeJS(key.getString(), '"', charsetEncoder));
 				sb.append(':');
 				_serialize(pc, test, value, sb, queryFormat, done);
 			}
 		}
-
+		indentMinus(sb);
 		sb.append('}');
+	}
+
+	private boolean getPreserveCase(ApplicationContextSupport acs) {
+		if (_preserveCase != null) return _preserveCase.booleanValue();
+		else if (acs != null) return acs.getSerializationSettings().getPreserveCaseForStructKey();
+		return false;
 	}
 
 	private static String castToJson(PageContext pc, Component c, String defaultValue) throws ConverterException {
@@ -350,18 +388,21 @@ public final class JSONConverter extends ConverterSupport {
 	private void _serializeMap(PageContext pc, Set test, Map map, StringBuilder sb, int queryFormat, Set<Object> done) throws ConverterException {
 		sb.append(goIn());
 		sb.append("{");
-
+		indentPlus(sb);
 		Iterator it = map.keySet().iterator();
 		boolean doIt = false;
 		while (it.hasNext()) {
 			Object key = it.next();
-			if (doIt) sb.append(',');
+			if (doIt) {
+				nl(sb);
+				sb.append(',');
+			}
 			doIt = true;
 			sb.append(StringUtil.escapeJS(key.toString(), '"', charsetEncoder));
 			sb.append(':');
 			_serialize(pc, test, map.get(key), sb, queryFormat, done);
 		}
-
+		indentMinus(sb);
 		sb.append('}');
 	}
 
@@ -418,20 +459,28 @@ public final class JSONConverter extends ConverterSupport {
 	 */
 	private void _serializeQuery(PageContext pc, Set test, Query query, StringBuilder sb, int queryFormat, Set<Object> done) throws ConverterException {
 
-		ApplicationContextSupport acs = (ApplicationContextSupport) pc.getApplicationContext();
-		boolean preserveCase = acs.getSerializationSettings().getPreserveCaseForQueryColumn(); // UPPERCASE column keys by default for Query
+		ApplicationContextSupport acs = pc == null ? null : (ApplicationContextSupport) pc.getApplicationContext();
+		boolean preserveCase = getPreserveCase(acs); // UPPERCASE column keys by default for Query
 
 		Collection.Key[] _keys = CollectionUtil.keys(query);
 
 		if (queryFormat == SerializationSettings.SERIALIZE_AS_STRUCT) {
 			sb.append(goIn());
 			sb.append("[");
+			indentPlus(sb);
 			int rc = query.getRecordcount();
 			for (int row = 1; row <= rc; row++) {
-				if (row > 1) sb.append(',');
+				if (row > 1) {
+					nl(sb);
+					sb.append(',');
+				}
 				sb.append("{");
+				indentPlus(sb);
 				for (int col = 0; col < _keys.length; col++) {
-					if (col > 0) sb.append(',');
+					if (col > 0) {
+						nl(sb);
+						sb.append(',');
+					}
 					sb.append(StringUtil.escapeJS(preserveCase ? _keys[col].getString() : _keys[col].getUpperString(), '"', charsetEncoder));
 					sb.append(':');
 					try {
@@ -441,9 +490,10 @@ public final class JSONConverter extends ConverterSupport {
 						_serialize(pc, test, e.getMessage(), sb, queryFormat, done);
 					}
 				}
-
+				indentMinus(sb);
 				sb.append("}");
 			}
+			indentMinus(sb);
 			sb.append("]");
 
 			return;
@@ -451,7 +501,7 @@ public final class JSONConverter extends ConverterSupport {
 
 		sb.append(goIn());
 		sb.append("{");
-
+		indentPlus(sb);
 		/*
 		 * 
 		 * {"DATA":[["a","b"],["c","d"]]} {"DATA":{"aaa":["a","c"],"bbb":["b","d"]}}
@@ -460,22 +510,29 @@ public final class JSONConverter extends ConverterSupport {
 		if (queryFormat == SerializationSettings.SERIALIZE_AS_COLUMN) {
 			sb.append("\"ROWCOUNT\":");
 			sb.append(Caster.toString(query.getRecordcount()));
+			nl(sb);
 			sb.append(',');
 		}
 
 		// Columns
 		sb.append("\"COLUMNS\":[");
+		indentPlus(sb);
 		String[] cols = query.getColumns();
 		for (int i = 0; i < cols.length; i++) {
-			if (i > 0) sb.append(",");
+			if (i > 0) {
+				nl(sb);
+				sb.append(",");
+			}
 			sb.append(StringUtil.escapeJS(preserveCase ? cols[i] : cols[i].toUpperCase(), '"', charsetEncoder));
 		}
+		indentMinus(sb);
 		sb.append("],");
 
 		// Data
 		sb.append("\"DATA\":");
 		if (queryFormat == SerializationSettings.SERIALIZE_AS_COLUMN) {
 			sb.append('{');
+			indentPlus(sb);
 			boolean oDoIt = false;
 			int len = query.getRecordcount();
 			pc = ThreadLocalPageContext.get(pc);
@@ -483,15 +540,22 @@ public final class JSONConverter extends ConverterSupport {
 			if (pc != null) upperCase = pc.getCurrentTemplateDialect() == CFMLEngine.DIALECT_CFML && ((ConfigWebPro) pc.getConfig()).getDotNotationUpperCase();
 
 			for (int i = 0; i < _keys.length; i++) {
-				if (oDoIt) sb.append(',');
+				if (oDoIt) {
+					nl(sb);
+					sb.append(',');
+				}
 				oDoIt = true;
 				sb.append(goIn());
 
 				sb.append(StringUtil.escapeJS(upperCase ? _keys[i].getUpperString() : _keys[i].getString(), '"', charsetEncoder));
 				sb.append(":[");
+				indentPlus(sb);
 				boolean doIt = false;
 				for (int y = 1; y <= len; y++) {
-					if (doIt) sb.append(',');
+					if (doIt) {
+						nl(sb);
+						sb.append(',');
+					}
 					doIt = true;
 					try {
 						_serialize(pc, test, query.getAt(_keys[i], y), sb, queryFormat, done);
@@ -500,24 +564,32 @@ public final class JSONConverter extends ConverterSupport {
 						_serialize(pc, test, e.getMessage(), sb, queryFormat, done);
 					}
 				}
-
+				indentMinus(sb);
 				sb.append(']');
 			}
-
+			indentMinus(sb);
 			sb.append('}');
 		}
 		else {
 			sb.append('[');
+			indentPlus(sb);
 			boolean oDoIt = false;
 			int len = query.getRecordcount();
 			for (int row = 1; row <= len; row++) {
-				if (oDoIt) sb.append(',');
+				if (oDoIt) {
+					nl(sb);
+					sb.append(',');
+				}
 				oDoIt = true;
 
 				sb.append("[");
+				indentPlus(sb);
 				boolean doIt = false;
 				for (int col = 0; col < _keys.length; col++) {
-					if (doIt) sb.append(',');
+					if (doIt) {
+						nl(sb);
+						sb.append(',');
+					}
 					doIt = true;
 					try {
 						_serialize(pc, test, query.getAt(_keys[col], row), sb, queryFormat, done);
@@ -526,10 +598,13 @@ public final class JSONConverter extends ConverterSupport {
 						_serialize(pc, test, e.getMessage(), sb, queryFormat, done);
 					}
 				}
+				indentMinus(sb);
 				sb.append(']');
 			}
+			indentMinus(sb);
 			sb.append(']');
 		}
+		indentMinus(sb);
 		sb.append('}');
 	}
 
@@ -757,4 +832,23 @@ public final class JSONConverter extends ConverterSupport {
 		return defaultValue;
 	}
 
+	private void indentPlus(StringBuilder sb) {
+		if (!multiline) return;
+		indent++;
+		nl(sb);
+	}
+
+	private void indentMinus(StringBuilder sb) {
+		if (!multiline) return;
+		indent--;
+		nl(sb);
+	}
+
+	private void nl(StringBuilder sb) {
+		if (!multiline) return;
+		sb.append(NL);
+		for (int i = 0; i < indent; i++) {
+			sb.append('	');
+		}
+	}
 }

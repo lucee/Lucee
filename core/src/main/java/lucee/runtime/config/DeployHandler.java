@@ -81,14 +81,14 @@ public class DeployHandler {
 					ext = ResourceUtil.getExtension(child, null);
 					if ("lar".equalsIgnoreCase(ext)) {
 						// deployArchive(config,child,true);
-						XMLConfigAdmin.updateArchive((ConfigPro) config, child, true);
+						ConfigAdmin.updateArchive((ConfigPro) config, child, true);
 					}
 
 					// Lucee Extensions
-					else if ("lex".equalsIgnoreCase(ext)) XMLConfigAdmin._updateRHExtension((ConfigPro) config, child, true);
+					else if ("lex".equalsIgnoreCase(ext)) ConfigAdmin._updateRHExtension((ConfigPro) config, child, true);
 
 					// Lucee core
-					else if (config instanceof ConfigServer && "lco".equalsIgnoreCase(ext)) XMLConfigAdmin.updateCore((ConfigServerImpl) config, child, true);
+					else if (config instanceof ConfigServer && "lco".equalsIgnoreCase(ext)) ConfigAdmin.updateCore((ConfigServerImpl) config, child, true);
 				}
 				catch (Exception e) {
 					Log log = config.getLog("deploy");
@@ -108,7 +108,7 @@ public class DeployHandler {
 						Resource configDir = CFMLEngineImpl.getSeverContextConfigDirectory(engine.getCFMLEngineFactory());
 						Log log = config != null ? config.getLog("deploy") : null;
 						boolean sucess = DeployHandler.deployExtensions(config, extensions.toArray(new ExtensionDefintion[extensions.size()]), log);
-						if (sucess && configDir != null) XMLConfigFactory.updateRequiredExtension(engine, configDir, log);
+						if (sucess && configDir != null) ConfigFactory.updateRequiredExtension(engine, configDir, log);
 						LogUtil.log(config, Log.LEVEL_INFO, "deploy", "controller",
 								(sucess ? "sucessfully" : "unsucessfully") + " installed extensions:" + ListUtil.listToList(extensions, ", "));
 					}
@@ -219,7 +219,7 @@ public class DeployHandler {
 
 		// is the extension already installed
 		try {
-			if (XMLConfigAdmin.hasRHExtensions(ci, ed) != null) return false;
+			if (ConfigAdmin.hasRHExtensions(ci, ed) != null) return false;
 		}
 		catch (Exception e) {
 			if (log != null) log.error("extension", e);
@@ -248,7 +248,7 @@ public class DeployHandler {
 					res = SystemUtil.getTempDirectory().getRealResource(ed.getId() + "-" + ed.getVersion() + ".lex");
 					ResourceUtil.touch(res);
 					IOUtil.copy(ext.getSource(), res);
-					XMLConfigAdmin._updateRHExtension((ConfigPro) config, res, reload);
+					ConfigAdmin._updateRHExtension((ConfigPro) config, res, reload);
 					return true;
 				}
 				catch (Exception e) {
@@ -306,7 +306,7 @@ public class DeployHandler {
 						ResourceUtil.touch(res);
 
 						IOUtil.copy(ext.getSource(), res);
-						XMLConfigAdmin._updateRHExtension((ConfigPro) config, res, reload);
+						ConfigAdmin._updateRHExtension((ConfigPro) config, res, reload);
 						return true;
 					}
 				}
@@ -328,7 +328,7 @@ public class DeployHandler {
 				ResourceUtil.touch(res);
 
 				IOUtil.copy(ext.getSource(), res);
-				XMLConfigAdmin._updateRHExtension((ConfigPro) config, res, reload);
+				ConfigAdmin._updateRHExtension((ConfigPro) config, res, reload);
 				return true;
 			}
 			catch (Exception e) {
@@ -341,7 +341,7 @@ public class DeployHandler {
 		Resource res = downloadExtension(ci, ed, log);
 		if (res != null) {
 			try {
-				XMLConfigAdmin._updateRHExtension((ConfigPro) config, res, reload);
+				ConfigAdmin._updateRHExtension((ConfigPro) config, res, reload);
 				return true;
 			}
 			catch (Exception e) {

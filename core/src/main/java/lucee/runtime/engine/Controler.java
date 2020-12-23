@@ -41,7 +41,7 @@ import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.DeployHandler;
-import lucee.runtime.config.XMLConfigAdmin;
+import lucee.runtime.config.ConfigAdmin;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.functions.system.PagePoolClear;
 import lucee.runtime.lock.LockManagerImpl;
@@ -223,7 +223,7 @@ public final class Controler extends Thread {
 				ExceptionUtil.rethrowIfNecessary(t);
 			}
 			try {
-				XMLConfigAdmin.checkForChangesInConfigFile(configServer);
+				ConfigAdmin.checkForChangesInConfigFile(configServer);
 			}
 			catch (Throwable t) {
 				ExceptionUtil.rethrowIfNecessary(t);
@@ -383,7 +383,7 @@ public final class Controler extends Thread {
 				}
 
 				try {
-					XMLConfigAdmin.checkForChangesInConfigFile(config);
+					ConfigAdmin.checkForChangesInConfigFile(config);
 				}
 				catch (Throwable t) {
 					ExceptionUtil.rethrowIfNecessary(t);

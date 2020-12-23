@@ -21,11 +21,10 @@ package lucee.runtime.config;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import org.osgi.framework.BundleException;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import com.jacob.com.LibraryLoader;
@@ -40,17 +39,20 @@ import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ClassException;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.CFMLFactory;
+import lucee.runtime.converter.ConverterException;
 import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
+import lucee.runtime.type.Array;
+import lucee.runtime.type.Struct;
 import lucee.transformer.library.function.FunctionLibException;
 import lucee.transformer.library.tag.TagLibException;
 
 /**
  * 
  */
-public final class XMLConfigServerFactory extends XMLConfigFactory {
+public final class ConfigServerFactory extends ConfigFactory {
 
 	/**
 	 * creates a new ServletConfig Impl Object
@@ -67,9 +69,10 @@ public final class XMLConfigServerFactory extends XMLConfigFactory {
 	 * @throws TagLibException
 	 * @throws FunctionLibException
 	 * @throws BundleException
+	 * @throws ConverterException
 	 */
 	public static ConfigServerImpl newInstance(CFMLEngineImpl engine, Map<String, CFMLFactory> initContextes, Map<String, CFMLFactory> contextes, Resource configDir)
-			throws SAXException, ClassException, PageException, IOException, TagLibException, FunctionLibException, BundleException {
+			throws SAXException, ClassException, PageException, IOException, TagLibException, FunctionLibException, BundleException, ConverterException {
 
 		boolean isCLI = SystemUtil.isCLICall();
 		if (isCLI) {
@@ -88,7 +91,7 @@ public final class XMLConfigServerFactory extends XMLConfigFactory {
 				SystemUtil.setPrintWriter(SystemUtil.ERR, new PrintWriter(IOUtil.getWriter(err, "UTF-8")));
 			}
 		}
-		LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, XMLConfigServerFactory.class.getName(),
+		LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, ConfigServerFactory.class.getName(),
 				"===================================================================\n" + "SERVER CONTEXT\n"
 						+ "-------------------------------------------------------------------\n" + "- config:" + configDir + "\n" + "- loader-version:"
 						+ SystemUtil.getLoaderVersion() + "\n" + "- core-version:" + engine.getInfo().getVersion() + "\n"
@@ -99,24 +102,32 @@ public final class XMLConfigServerFactory extends XMLConfigFactory {
 		int iDoNew = getNew(engine, configDir, false, UpdateInfo.NEW_NONE).updateType;
 		boolean doNew = iDoNew != NEW_NONE;
 
-		Resource configFile = configDir.getRealResource("lucee-server.xml");
+		Resource configFileOld = configDir.getRealResource("lucee-server.xml");
+		Resource configFileNew = configDir.getRealResource(".CFConfig.json");
 
-		if (!configFile.exists()) {
-			configFile.createFile(true);
-			// InputStream in = new TextFile("").getClass().getResourceAsStream("/resource/config/server.xml");
-			createFileFromResource("/resource/config/server.xml", configFile.getAbsoluteResource(), "tpiasfap");
+		boolean hasConfigOld = false;
+		boolean hasConfigNew = configFileNew.exists() && configFileNew.length() > 0;
+		if (!hasConfigNew) {
+			hasConfigOld = configFileOld.exists() && configFileOld.length() > 0;
+		}
+		// translate to new
+		if (!hasConfigNew) {
+			if (hasConfigOld) {
+				translateConfigFile(configFileOld, configFileNew);
+			}
+			// create config file
+			else {
+				createConfigFile("server", configFileNew);
+				hasConfigNew = true;
+			}
 		}
 
-		Document doc = loadDocumentCreateIfFails(configFile, "server");
-
-		// get version
-		Element luceeConfiguration = doc.getDocumentElement();
-		String strVersion = luceeConfiguration.getAttribute("version");
-		double version = Caster.toDoubleValue(strVersion, 1.0d);
+		Struct root = loadDocumentCreateIfFails(configFileNew, "server");
+		double version = ConfigWebUtil.getAsDouble("version", root, 1.0d);
 		boolean cleanupDatasources = version < 5.0D;
 
-		ConfigServerImpl config = new ConfigServerImpl(engine, initContextes, contextes, configDir, configFile);
-		load(config, doc, false, doNew);
+		ConfigServerImpl config = new ConfigServerImpl(engine, initContextes, contextes, configDir, configFileNew);
+		load(config, root, false, doNew);
 
 		createContextFiles(configDir, config, doNew, cleanupDatasources);
 
@@ -163,26 +174,28 @@ public final class XMLConfigServerFactory extends XMLConfigFactory {
 	 * @throws PageException
 	 * @throws BundleException
 	 */
-	static void load(ConfigServerImpl configServer, Document doc, boolean isReload, boolean doNew)
+	static void load(ConfigServerImpl configServer, Struct root, boolean isReload, boolean doNew)
 			throws ClassException, PageException, IOException, TagLibException, FunctionLibException, BundleException {
 		ConfigBase.onlyFirstMatch = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.mapping.first", null), false);
-		XMLConfigWebFactory.load(null, configServer, doc, isReload, doNew);
-
-		loadLabel(configServer, doc);
+		ConfigWebFactory.load(null, configServer, root, isReload, doNew);
+		loadLabel(configServer, root);
 	}
 
-	private static void loadLabel(ConfigServerImpl configServer, Document doc) {
-		Element el = getChildByName(doc.getDocumentElement(), "labels");
-		Element[] children = getChildren(el, "label");
+	private static void loadLabel(ConfigServerImpl configServer, Struct root) {
+		Array children = ConfigWebUtil.getAsArray("labels", "label", root);
 
 		Map<String, String> labels = new HashMap<String, String>();
-		if (children != null) for (int i = 0; i < children.length; i++) {
-			el = children[i];
-
-			String id = el.getAttribute("id");
-			String name = el.getAttribute("name");
-			if (id != null && name != null) {
-				labels.put(id, name);
+		if (children != null) {
+			Iterator<?> it = children.getIterator();
+			Struct data;
+			while (it.hasNext()) {
+				data = Caster.toStruct(it.next(), null);
+				if (data == null) continue;
+				String id = ConfigWebUtil.getAsString("id", data, null);
+				String name = ConfigWebUtil.getAsString("name", data, null);
+				if (id != null && name != null) {
+					labels.put(id, name);
+				}
 			}
 		}
 		configServer.setLabels(labels);
@@ -217,7 +230,7 @@ public final class XMLConfigServerFactory extends XMLConfigFactory {
 			ResourceUtil.deleteEmptyFolders(wcdDir);
 		}
 		catch (IOException e) {
-			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(config), XMLConfigServerFactory.class.getName(), e);
+			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(config), ConfigServerFactory.class.getName(), e);
 		}
 
 		// Mail Server Drivers

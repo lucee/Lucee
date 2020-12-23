@@ -24,7 +24,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.Password;
-import lucee.runtime.config.XMLConfigAdmin;
+import lucee.runtime.config.ConfigAdmin;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
@@ -43,7 +43,7 @@ public class RestDeleteApplication {
 		ConfigWebPro config = (ConfigWebPro) pc.getConfig();
 
 		try {
-			XMLConfigAdmin admin = XMLConfigAdmin.newInstance(pc.getConfig(), webAdminPassword);
+			ConfigAdmin admin = ConfigAdmin.newInstance(pc.getConfig(), webAdminPassword);
 			Mapping[] mappings = config.getRestMappings();
 			Mapping mapping;
 			for (int i = 0; i < mappings.length; i++) {

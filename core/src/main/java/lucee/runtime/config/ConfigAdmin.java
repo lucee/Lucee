@@ -30,7 +30,6 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -49,13 +48,12 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 import org.w3c.dom.DOMException;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import com.allaire.cfx.CustomTag;
 
 import lucee.commons.digest.MD5;
+import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.FileUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
@@ -89,6 +87,8 @@ import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.cfx.CFXTagException;
 import lucee.runtime.cfx.CFXTagPool;
 import lucee.runtime.converter.ConverterException;
+import lucee.runtime.converter.JSONConverter;
+import lucee.runtime.converter.JSONDateFormat;
 import lucee.runtime.converter.WDDXConverter;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
@@ -99,12 +99,10 @@ import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.HTTPException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.SecurityException;
-import lucee.runtime.exp.XMLException;
 import lucee.runtime.extension.Extension;
 import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.functions.other.CreateObject;
-import lucee.runtime.functions.other.CreateUUID;
 import lucee.runtime.functions.other.URLEncodedFormat;
 import lucee.runtime.functions.string.Hash;
 import lucee.runtime.functions.system.IsZipFile;
@@ -112,6 +110,7 @@ import lucee.runtime.gateway.GatewayEngineImpl;
 import lucee.runtime.gateway.GatewayEntry;
 import lucee.runtime.gateway.GatewayEntryImpl;
 import lucee.runtime.listener.AppListenerUtil;
+import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.monitor.Monitor;
 import lucee.runtime.net.amf.AMFEngine;
 import lucee.runtime.net.ntp.NtpClient;
@@ -131,8 +130,6 @@ import lucee.runtime.search.SearchEngine;
 import lucee.runtime.security.SecurityManager;
 import lucee.runtime.security.SecurityManagerImpl;
 import lucee.runtime.security.SerialNumber;
-import lucee.runtime.text.xml.XMLCaster;
-import lucee.runtime.text.xml.XMLUtil;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection.Key;
@@ -148,6 +145,7 @@ import lucee.runtime.type.scope.ClusterRemote;
 import lucee.runtime.type.scope.ScopeContext;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ComponentUtil;
+import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.video.VideoExecuter;
 import lucee.runtime.video.VideoExecuterNotSupported;
@@ -158,11 +156,11 @@ import lucee.transformer.library.tag.TagLibException;
 /**
  * 
  */
-public final class XMLConfigAdmin {
+public final class ConfigAdmin {
 
 	private static final BundleInfo[] EMPTY = new BundleInfo[0];
 	private ConfigPro config;
-	private Document doc;
+	private Struct root;
 	private Password password;
 
 	/**
@@ -172,9 +170,10 @@ public final class XMLConfigAdmin {
 	 * @return returns a new instance of the class
 	 * @throws SAXException
 	 * @throws IOException
+	 * @throws PageException
 	 */
-	public static XMLConfigAdmin newInstance(Config config, Password password) throws XMLException, IOException {
-		return new XMLConfigAdmin((ConfigPro) config, password);
+	public static ConfigAdmin newInstance(Config config, Password password) throws IOException, PageException, SAXException {
+		return new ConfigAdmin((ConfigPro) config, password);
 	}
 
 	private void checkWriteAccess() throws SecurityException {
@@ -193,7 +192,7 @@ public final class XMLConfigAdmin {
 	 */
 	public void setPassword(Password password) throws SecurityException, DOMException, IOException {
 		checkWriteAccess();
-		PasswordImpl.writeToXML(doc.getDocumentElement(), password, false);
+		PasswordImpl.writeToStruct(root, password, false);
 	}
 
 	/*
@@ -202,16 +201,15 @@ public final class XMLConfigAdmin {
 	 * }
 	 */
 
-	public static void setVersion(Document doc, Version version) {
-		Element root = doc.getDocumentElement();
-		root.setAttribute("version", version.getMajor() + "." + version.getMinor());
+	public static void setVersion(Struct root, Version version) {
+		root.setEL("version", version.getMajor() + "." + version.getMinor());
 
 	}
 	/*
 	 * public void setId(String id) {
 	 * 
-	 * Element root=doc.getDocumentElement(); if(!StringUtil.isEmpty(root.getAttribute("id"))) return;
-	 * root.setAttribute("id",id); try { store(config); } catch (Exception e) {} }
+	 * Element root=doc.getDocumentElement(); if(!StringUtil.isEmpty(root.get("id"))) return;
+	 * root.setEL("id",id); try { store(config); } catch (Exception e) {} }
 	 */
 
 	/**
@@ -237,10 +235,10 @@ public final class XMLConfigAdmin {
 		}
 	}
 
-	private XMLConfigAdmin(ConfigPro config, Password password) throws IOException, XMLException {
+	private ConfigAdmin(ConfigPro config, Password password) throws IOException, PageException, SAXException {
 		this.config = config;
 		this.password = password;
-		doc = XMLUtil.createDocument(config.getConfigFile(), false);
+		root = ConfigWebFactory.loadDocument(config.getConfigFile());
 	}
 
 	public static void checkForChangesInConfigFile(Config config) {
@@ -252,9 +250,9 @@ public final class XMLConfigAdmin {
 		if (diff < 10 && diff > -10) return;
 		// reload
 		try {
-			XMLConfigAdmin admin = XMLConfigAdmin.newInstance(ci, null);
+			ConfigAdmin admin = ConfigAdmin.newInstance(ci, null);
 			admin._reload();
-			LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_INFO, XMLConfigAdmin.class.getName(), "reloaded the configuration [" + file + "] automatically");
+			LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_INFO, ConfigAdmin.class.getName(), "reloaded the configuration [" + file + "] automatically");
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
@@ -264,49 +262,56 @@ public final class XMLConfigAdmin {
 	private void addResourceProvider(String scheme, ClassDefinition cd, String arguments) throws PageException {
 		checkWriteAccess();
 
-		Element resources = _getRootElement("resources");
-		Element[] rpElements = XMLConfigWebFactory.getChildren(resources, "resource-provider");
+		// Struct resources = _getRootElement("resources");
+		Array rpElements = ConfigWebUtil.getAsArray("resources", "resource-provider", root);
+		// Element[] rpElements = ConfigWebFactory.getChildren(resources, "resource-provider");
 		String s;
 		// update
 		if (rpElements != null) {
-			for (int i = 0; i < rpElements.length; i++) {
-				s = rpElements[i].getAttribute("scheme");
+			Struct rpElement;
+			for (int i = 1; i <= rpElements.size(); i++) {
+				rpElement = Caster.toStruct(rpElements.getE(i));
+				s = Caster.toString(rpElement.get("scheme"));
 				if (!StringUtil.isEmpty(s) && s.equalsIgnoreCase(scheme)) {
-					setClass(rpElements[i], null, "", cd);
-					rpElements[i].setAttribute("scheme", scheme);
-					rpElements[i].setAttribute("arguments", arguments);
+					setClass(rpElement, null, "", cd);
+					rpElement.setEL("scheme", scheme);
+					rpElement.setEL("arguments", arguments);
 					return;
 				}
 			}
 		}
 		// Insert
-		Element el = doc.createElement("resource-provider");
-		resources.appendChild(XMLCaster.toRawNode(el));
+		Struct el = new StructImpl(Struct.TYPE_LINKED);
 		setClass(el, null, "", cd);
-		el.setAttribute("scheme", scheme);
-		el.setAttribute("arguments", arguments);
+		el.setEL("scheme", scheme);
+		el.setEL("arguments", arguments);
+		rpElements.appendEL(el);
 	}
 
 	public static synchronized void _storeAndReload(ConfigPro config)
-			throws PageException, SAXException, ClassException, IOException, TagLibException, FunctionLibException, BundleException {
-		XMLConfigAdmin admin = new XMLConfigAdmin(config, null);
+			throws PageException, SAXException, ClassException, IOException, TagLibException, FunctionLibException, BundleException, ConverterException {
+		ConfigAdmin admin = new ConfigAdmin(config, null);
 		admin._store();
 		admin._reload();
 	}
 
-	private synchronized void _storeAndReload() throws PageException, SAXException, ClassException, IOException, TagLibException, FunctionLibException, BundleException {
+	private synchronized void _storeAndReload()
+			throws PageException, SAXException, ClassException, IOException, TagLibException, FunctionLibException, BundleException, ConverterException {
 		_store();
 		_reload();
 	}
 
-	public synchronized void storeAndReload() throws PageException, SAXException, ClassException, IOException, TagLibException, FunctionLibException, BundleException {
+	public synchronized void storeAndReload()
+			throws PageException, SAXException, ClassException, IOException, TagLibException, FunctionLibException, BundleException, ConverterException {
 		checkWriteAccess();
 		_store();
 		_reload();
 	}
 
-	private synchronized void _store() throws PageException {
-		XMLCaster.writeTo(doc, config.getConfigFile());
+	private synchronized void _store() throws PageException, ConverterException, IOException {
+		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, true, true);
+		String str = json.serialize(null, root, SerializationSettings.SERIALIZE_AS_ROW);
+		IOUtil.write(config.getConfigFile(), str, CharsetUtil.UTF8, false);
 	}
 
 	private synchronized void _reload() throws PageException, SAXException, ClassException, IOException, TagLibException, FunctionLibException, BundleException {
@@ -316,15 +321,15 @@ public final class XMLConfigAdmin {
 		if (config instanceof ConfigServerImpl) {
 
 			ConfigServerImpl cs = (ConfigServerImpl) config;
-			XMLConfigServerFactory.reloadInstance(engine, cs);
+			ConfigServerFactory.reloadInstance(engine, cs);
 			ConfigWeb[] webs = cs.getConfigWebs();
 			for (int i = 0; i < webs.length; i++) {
-				XMLConfigWebFactory.reloadInstance(engine, (ConfigServerImpl) config, (ConfigWebImpl) webs[i], true);
+				ConfigWebFactory.reloadInstance(engine, (ConfigServerImpl) config, (ConfigWebImpl) webs[i], true);
 			}
 		}
 		else {
 			ConfigServerImpl cs = ((ConfigWebImpl) config).getConfigServerImpl();
-			XMLConfigWebFactory.reloadInstance(engine, cs, (ConfigWebImpl) config, false);
+			ConfigWebFactory.reloadInstance(engine, cs, (ConfigWebImpl) config, false);
 		}
 	}
 
@@ -338,8 +343,8 @@ public final class XMLConfigAdmin {
 		checkWriteAccess();
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update task settings");
-		Element mail = _getRootElement("remote-clients");
-		mail.setAttribute("max-threads", Caster.toString(maxThreads, ""));
+		Struct mail = _getRootElement("remote-clients");
+		mail.setEL("max-threads", Caster.toString(maxThreads, ""));
 	}
 
 	/**
@@ -357,21 +362,24 @@ public final class XMLConfigAdmin {
 		if (!hasAccess) throw new SecurityException("no access to update mail server settings");
 		ConfigWebUtil.getFile(config, config.getRootDirectory(), logFile, FileUtil.TYPE_FILE);
 
-		Element logging = XMLConfigWebFactory.getChildByName(doc.getDocumentElement(), "logging");
-		Element[] children = XMLUtil.getChildElementsAsArray(logging);
-		Element logger = null;
+		Array loggers = ConfigWebUtil.getAsArray("logging", "logger", root);
+		// Element[] children = XMLUtil.getChildElementsAsArray(logging);
+		Struct logger = null;
+		Struct tmp;
+		for (int i = 0; i < loggers.size(); i++) {
+			tmp = Caster.toStruct(loggers.get(i, null), null);
+			if (tmp == null) continue;
 
-		for (int i = 0; i < children.length; i++) {
-			if (children[i].getTagName().equals("logger") && "mail".equalsIgnoreCase(children[i].getAttribute("name"))) {
-				logger = children[i];
+			if ("mail".equalsIgnoreCase(ConfigWebUtil.getAsString("name", tmp, ""))) {
+				logger = tmp;
 				break;
 			}
 		}
 		if (logger == null) {
-			logger = doc.createElement("logger");
-			logging.appendChild(logger);
+			logger = new StructImpl(Struct.TYPE_LINKED);
+			loggers.appendEL(logger);
 		}
-		logger.setAttribute("name", "mail");
+		logger.setEL("name", "mail");
 		if ("console".equalsIgnoreCase(logFile)) {
 			setClass(logger, null, "appender-", ci.getLogEngine().appenderClassDefintion("console"));
 			setClass(logger, null, "layout-", ci.getLogEngine().layoutClassDefintion("pattern"));
@@ -379,9 +387,9 @@ public final class XMLConfigAdmin {
 		else {
 			setClass(logger, null, "appender-", ci.getLogEngine().appenderClassDefintion("resource"));
 			setClass(logger, null, "layout-", ci.getLogEngine().layoutClassDefintion("classic"));
-			logger.setAttribute("appender-arguments", "path:" + logFile);
+			logger.setEL("appender-arguments", "path:" + logFile);
 		}
-		logger.setAttribute("log-level", level);
+		logger.setEL("log-level", level);
 	}
 
 	/**
@@ -395,23 +403,9 @@ public final class XMLConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_MAIL);
 
 		if (!hasAccess) throw new SecurityException("no access to update mail server settings");
-		Element mail = _getRootElement("mail");
-		mail.setAttribute("spool-enable", Caster.toString(spoolEnable, ""));
-		// config.setMailSpoolEnable(spoolEnable);
+		Struct mail = _getRootElement("mail");
+		mail.setEL("spool-enable", Caster.toString(spoolEnable, ""));
 	}
-
-	/*
-	 * * sets if er interval is enable or not
-	 * 
-	 * @param interval
-	 * 
-	 * @throws SecurityException / public void setMailSpoolInterval(Integer interval) throws
-	 * SecurityException { checkWriteAccess(); boolean
-	 * hasAccess=ConfigWebUtil.hasAccess(config,SecurityManager.TYPE_MAIL); if(!hasAccess) throw new
-	 * SecurityException("no access to update mail server settings"); Element
-	 * mail=_getRootElement("mail"); mail.setAttribute("spool-interval",Caster.toString(interval,""));
-	 * //config.setMailSpoolInterval(interval); }
-	 */
 
 	/**
 	 * sets the timeout for the spooler for one job
@@ -423,9 +417,8 @@ public final class XMLConfigAdmin {
 		checkWriteAccess();
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_MAIL);
 		if (!hasAccess) throw new SecurityException("no access to update mail server settings");
-		Element mail = _getRootElement("mail");
-		mail.setAttribute("timeout", Caster.toString(timeout, ""));
-		// config.setMailTimeout(timeout);
+		Struct mail = _getRootElement("mail");
+		mail.setEL("timeout", Caster.toString(timeout, ""));
 	}
 
 	/**
@@ -448,8 +441,8 @@ public final class XMLConfigAdmin {
 			}
 		}
 
-		Element mail = _getRootElement("mail");
-		mail.setAttribute("default-encoding", charset);
+		Struct mail = _getRootElement("mail");
+		mail.setEL("default-encoding", charset);
 		// config.setMailDefaultEncoding(charset);
 	}
 
@@ -470,21 +463,23 @@ public final class XMLConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_MAIL);
 		if (!hasAccess) throw new SecurityException("no access to update mail server settings");
 
-		Element mail = _getRootElement("mail");
+		Struct mail = _getRootElement("mail");
 		if (port < 1) port = 21;
 
 		if (hostName == null || hostName.trim().length() == 0) throw new ExpressionException("Host (SMTP) cannot be an empty value");
 		hostName = hostName.trim();
 
-		Element[] children = XMLConfigWebFactory.getChildren(mail, "server");
+		Array children = ConfigWebUtil.getAsArray("server", mail);
 
 		boolean checkId = id > 0;
 
 		// Update
-		Element server = null;
+		Struct server = null;
 		String _hostName, _username;
-		for (int i = 0; i < children.length; i++) {
-			Element el = children[i];
+		for (int i = 1; i <= children.size(); i++) {
+			Struct el = Caster.toStruct(children.get(i, null), null);
+			if (el == null) continue;
+
 			if (checkId) {
 				if (i + 1 == id) {
 					server = el;
@@ -492,8 +487,8 @@ public final class XMLConfigAdmin {
 				}
 			}
 			else {
-				_hostName = StringUtil.emptyIfNull(el.getAttribute("smtp"));
-				_username = StringUtil.emptyIfNull(el.getAttribute("username"));
+				_hostName = StringUtil.emptyIfNull(Caster.toString(el.get("smtp", null)));
+				_username = StringUtil.emptyIfNull(Caster.toString(el.get("username", null)));
 				if (_hostName.equalsIgnoreCase(hostName) && _username.equals(StringUtil.emptyIfNull(username))) {
 					server = el;
 					break;
@@ -503,19 +498,18 @@ public final class XMLConfigAdmin {
 
 		// Insert
 		if (server == null) {
-			server = doc.createElement("server");
-			mail.appendChild(XMLCaster.toRawNode(server));
+			server = new StructImpl(Struct.TYPE_LINKED);
+			children.appendEL(server);
 		}
-		server.setAttribute("smtp", hostName);
-		server.setAttribute("username", username);
-		server.setAttribute("password", ConfigWebUtil.encrypt(password));
-		server.setAttribute("port", Caster.toString(port));
-		server.setAttribute("tls", Caster.toString(tls));
-		server.setAttribute("ssl", Caster.toString(ssl));
-		server.setAttribute("life", Caster.toString(lifeTimeSpan));
-		server.setAttribute("idle", Caster.toString(idleTimeSpan));
-		server.setAttribute("reuse-connection", Caster.toString(reuseConnections));
-
+		server.setEL("smtp", hostName);
+		server.setEL("username", username);
+		server.setEL("password", ConfigWebUtil.encrypt(password));
+		server.setEL("port", Caster.toString(port));
+		server.setEL("tls", Caster.toString(tls));
+		server.setEL("ssl", Caster.toString(ssl));
+		server.setEL("life", Caster.toString(lifeTimeSpan));
+		server.setEL("idle", Caster.toString(idleTimeSpan));
+		server.setEL("reuse-connection", Caster.toString(reuseConnections));
 	}
 
 	/**
@@ -526,18 +520,19 @@ public final class XMLConfigAdmin {
 	 */
 	public void removeMailServer(String hostName, String username) throws SecurityException {
 		checkWriteAccess();
-
-		Element mail = _getRootElement("mail");
-		Element[] children = XMLConfigWebFactory.getChildren(mail, "server");
+		Array children = ConfigWebUtil.getAsArray("mail", "server", root);
+		// Element mail = _getRootElement("mail");
+		// Element[] children = ConfigWebFactory.getChildren(mail, "server");
 		String _hostName, _username;
-		if (children.length > 0) {
-			for (int i = 0; i < children.length; i++) {
-				Element el = children[i];
-				_hostName = el.getAttribute("smtp");
-				_username = el.getAttribute("username");
+		if (children.size() > 0) {
+			for (int i = children.size(); i > 0; i--) {
+				Struct el = Caster.toStruct(children.get(i, null), null);
+				if (el == null) continue;
+				_hostName = Caster.toString(el.get("smtp", null), null);
+				_username = Caster.toString(el.get("username", null), null);
 				if (StringUtil.emptyIfNull(_hostName).equalsIgnoreCase(StringUtil.emptyIfNull(hostName))
 						&& StringUtil.emptyIfNull(_username).equalsIgnoreCase(StringUtil.emptyIfNull(username))) {
-					mail.removeChild(children[i]);
+					children.removeEL(i);
 				}
 			}
 		}
@@ -545,40 +540,41 @@ public final class XMLConfigAdmin {
 
 	public void removeLogSetting(String name) throws SecurityException {
 		checkWriteAccess();
-		Element logging = _getRootElement("logging");
-		Element[] children = XMLConfigWebFactory.getChildren(logging, "logger");
-		if (children.length > 0) {
+		Array children = ConfigWebUtil.getAsArray("logging", "logger", root);
+		if (children.size() > 0) {
 			String _name;
-			for (int i = 0; i < children.length; i++) {
-				Element el = children[i];
-				_name = el.getAttribute("name");
+			for (int i = children.size(); i > 0; i--) {
+				Struct el = Caster.toStruct(children.get(i, null), null);
+				if (el == null) continue;
+
+				_name = Caster.toString(el.get("name", null), null);
 
 				if (_name != null && _name.equalsIgnoreCase(name)) {
-					logging.removeChild(children[i]);
+					children.removeEL(i);
 				}
 			}
 		}
 	}
 
 	static void updateMapping(ConfigPro config, String virtual, String physical, String archive, String primary, short inspect, boolean toplevel, int listenerMode,
-			int listenerType, boolean readonly, boolean reload) throws SAXException, IOException, PageException, BundleException {
-		XMLConfigAdmin admin = new XMLConfigAdmin(config, null);
+			int listenerType, boolean readonly, boolean reload) throws SAXException, IOException, PageException, BundleException, ConverterException {
+		ConfigAdmin admin = new ConfigAdmin(config, null);
 		admin._updateMapping(virtual, physical, archive, primary, inspect, toplevel, listenerMode, listenerType, readonly);
 		admin._store();
 		if (reload) admin._reload();
 	}
 
 	static void updateComponentMapping(ConfigPro config, String virtual, String physical, String archive, String primary, short inspect, boolean reload)
-			throws SAXException, IOException, PageException, BundleException {
-		XMLConfigAdmin admin = new XMLConfigAdmin(config, null);
+			throws SAXException, IOException, PageException, BundleException, ConverterException {
+		ConfigAdmin admin = new ConfigAdmin(config, null);
 		admin._updateComponentMapping(virtual, physical, archive, primary, inspect);
 		admin._store();
 		if (reload) admin._reload();
 	}
 
 	static void updateCustomTagMapping(ConfigPro config, String virtual, String physical, String archive, String primary, short inspect, boolean reload)
-			throws SAXException, IOException, PageException, BundleException {
-		XMLConfigAdmin admin = new XMLConfigAdmin(config, null);
+			throws SAXException, IOException, PageException, BundleException, ConverterException {
+		ConfigAdmin admin = new ConfigAdmin(config, null);
 		admin._updateCustomTag(virtual, physical, archive, primary, inspect);
 		admin._store();
 		if (reload) admin._reload();
@@ -629,19 +625,22 @@ public final class XMLConfigAdmin {
 
 		if (!isArchive && archive.length() > 0 && physical.length() == 0) isArchive = true;
 
-		Element mappings = _getRootElement("mappings");
+		Array children = ConfigWebUtil.getAsArray("mappings", "mapping", root);
+		// Element mappings = _getRootElement("mappings");
+		// Element[] children = ConfigWebFactory.getChildren(mappings, "mapping");
 
-		// do we already have a record for it?
-		Element[] children = XMLConfigWebFactory.getChildren(mappings, "mapping");
-		Element el = null;
-		for (int i = 0; i < children.length; i++) {
-			String v = children[i].getAttribute("virtual");
-			if (v != null) {
+		Struct el = null;
+		for (int i = 1; i <= children.size(); i++) {
+			Struct tmp = Caster.toStruct(children.get(i, null), null);
+			if (tmp == null) continue;
+
+			String v = ConfigWebUtil.getAsString("virtual", tmp, null);
+			if (!StringUtil.isEmpty(v)) {
 				if (!v.equals("/") && v.endsWith("/")) v = v.substring(0, v.length() - 1);
 
 				if (v.equals(virtual)) {
-					el = children[i];
-					el.removeAttribute("trusted");
+					el = tmp;
+					el.remove("trusted");
 					break;
 				}
 			}
@@ -650,63 +649,65 @@ public final class XMLConfigAdmin {
 		// create element if necessary
 		boolean update = el != null;
 		if (el == null) {
-			el = doc.createElement("mapping");
-			mappings.appendChild(el);
-			el.setAttribute("virtual", virtual);
+			el = new StructImpl(Struct.TYPE_LINKED);
+			children.appendEL(el);
+			el.setEL("virtual", virtual);
 		}
 
 		// physical
 		if (physical.length() > 0) {
-			el.setAttribute("physical", physical);
+			el.setEL("physical", physical);
 		}
-		else if (el.hasAttribute("physical")) {
-			el.removeAttribute("physical");
+		else if (el.containsKey("physical")) {
+			el.remove("physical");
 		}
 
 		// archive
 		if (archive.length() > 0) {
-			el.setAttribute("archive", archive);
+			el.setEL("archive", archive);
 		}
-		else if (el.hasAttribute("archive")) {
-			el.removeAttribute("archive");
+		else if (el.containsKey("archive")) {
+			el.remove("archive");
 		}
 
 		// primary
-		el.setAttribute("primary", isArchive ? "archive" : "physical");
+		el.setEL("primary", isArchive ? "archive" : "physical");
 
 		// listener-type
 		String type = ConfigWebUtil.toListenerType(listenerType, null);
 		if (type != null) {
-			el.setAttribute("listener-type", type);
+			el.setEL("listener-type", type);
 		}
-		else if (el.hasAttribute("listener-type")) {
-			el.removeAttribute("listener-type");
+		else if (el.containsKey("listener-type")) {
+			el.remove("listener-type");
 		}
 
 		// listener-mode
 		String mode = ConfigWebUtil.toListenerMode(listenerMode, null);
 		if (mode != null) {
-			el.setAttribute("listener-mode", mode);
+			el.setEL("listener-mode", mode);
 		}
-		else if (el.hasAttribute("listener-mode")) {
-			el.removeAttribute("listener-mode");
+		else if (el.containsKey("listener-mode")) {
+			el.remove("listener-mode");
 		}
 
 		// others
-		el.setAttribute("inspect-template", ConfigWebUtil.inspectTemplate(inspect, ""));
-		el.setAttribute("toplevel", Caster.toString(toplevel));
-		el.setAttribute("readonly", Caster.toString(readOnly));
+		el.setEL("inspect-template", ConfigWebUtil.inspectTemplate(inspect, ""));
+		el.setEL("toplevel", Caster.toString(toplevel));
+		el.setEL("readonly", Caster.toString(readOnly));
 
 		// set / to the end
 		if (!update) {
-			children = XMLConfigWebFactory.getChildren(mappings, "mapping");
-			for (int i = 0; i < children.length; i++) {
-				String v = children[i].getAttribute("virtual");
+			children = ConfigWebUtil.getAsArray("mappings", "mapping", root);
+			for (int i = 1; i <= children.size(); i++) {
+				Struct tmp = Caster.toStruct(children.get(i, null), null);
+				if (tmp == null) continue;
+
+				String v = ConfigWebUtil.getAsString("virtual", tmp, null);
 
 				if (v != null && v.equals("/")) {
-					el = children[i];
-					mappings.removeChild(el);
-					mappings.appendChild(el);
+					children.removeEL(i);
+					children.appendEL(tmp);
 					return;
 				}
 
@@ -733,36 +734,41 @@ public final class XMLConfigAdmin {
 
 		if ((physical.length()) == 0) throw new ExpressionException("physical path cannot be an empty value");
 
-		Element rest = _getRootElement("rest");
-		Element[] children = XMLConfigWebFactory.getChildren(rest, "mapping");
+		Struct rest = _getRootElement("rest");
+		Array children = ConfigWebUtil.getAsArray("mapping", rest);
 
 		// remove existing default
 		if (_default) {
-			for (int i = 0; i < children.length; i++) {
-				if (Caster.toBooleanValue(children[i].getAttribute("default"), false)) children[i].setAttribute("default", "false");
+			for (int i = 1; i <= children.size(); i++) {
+				Struct tmp = Caster.toStruct(children.get(i, null), null);
+				if (tmp == null) continue;
+
+				if (Caster.toBooleanValue(tmp.get("default", null), false)) tmp.setEL("default", "false");
 			}
 		}
 
 		// Update
 		String v;
-		Element el = null;
-		for (int i = 0; i < children.length; i++) {
-			v = children[i].getAttribute("virtual");
+		Struct el = null;
+		for (int i = 1; i <= children.size(); i++) {
+			Struct tmp = Caster.toStruct(children.get(i, null), null);
+			if (tmp == null) continue;
+
+			v = ConfigWebUtil.getAsString("virtual", tmp, null);
 			if (v != null && v.equals(virtual)) {
-				el = children[i];
+				el = tmp;
 			}
 		}
 
 		// Insert
 		if (el == null) {
-			el = doc.createElement("mapping");
-			rest.appendChild(el);
+			el = new StructImpl(Struct.TYPE_LINKED);
+			children.appendEL(el);
 		}
 
-		el.setAttribute("virtual", virtual);
-		el.setAttribute("physical", physical);
-		el.setAttribute("default", Caster.toString(_default));
-
+		el.setEL("virtual", virtual);
+		el.setEL("physical", physical);
+		el.setEL("default", Caster.toString(_default));
 	}
 
 	/**
@@ -785,16 +791,16 @@ public final class XMLConfigAdmin {
 		if (!virtual.equals("/") && virtual.endsWith("/")) virtual = virtual.substring(0, virtual.length() - 1);
 		if (virtual.charAt(0) != '/') throw new ExpressionException("virtual path must start with [/]");
 
-		Element mappings = _getRootElement("mappings");
+		Array children = ConfigWebUtil.getAsArray("mappings", "mapping", root);
+		for (int i = children.size(); i > 0; i--) {
+			Struct tmp = Caster.toStruct(children.get(i, null), null);
+			if (tmp == null) continue;
 
-		Element[] children = XMLConfigWebFactory.getChildren(mappings, "mapping");
-		for (int i = 0; i < children.length; i++) {
-			String v = children[i].getAttribute("virtual");
+			String v = ConfigWebUtil.getAsString("virtual", tmp, null);
 			if (v != null) {
 				if (!v.equals("/") && v.endsWith("/")) v = v.substring(0, v.length() - 1);
 				if (v != null && v.equals(virtual)) {
-					Element el = children[i];
-					mappings.removeChild(el);
+					children.removeEL(i);
 				}
 			}
 		}
@@ -810,16 +816,16 @@ public final class XMLConfigAdmin {
 		if (virtual.endsWith("/")) virtual = virtual.substring(0, virtual.length() - 1);
 		if (virtual.charAt(0) != '/') virtual = "/" + virtual;
 
-		Element mappings = _getRootElement("rest");
+		Array children = ConfigWebUtil.getAsArray("rest", "mapping", root);
+		for (int i = children.size(); i > 0; i--) {
+			Struct tmp = Caster.toStruct(children.get(i, null), null);
+			if (tmp == null) continue;
 
-		Element[] children = XMLConfigWebFactory.getChildren(mappings, "mapping");
-		for (int i = 0; i < children.length; i++) {
-			String v = children[i].getAttribute("virtual");
+			String v = ConfigWebUtil.getAsString("virtual", tmp, null);
 			if (v != null) {
 				if (!v.equals("/") && v.endsWith("/")) v = v.substring(0, v.length() - 1);
 				if (v != null && v.equals(virtual)) {
-					Element el = children[i];
-					mappings.removeChild(el);
+					children.removeEL(i);
 				}
 			}
 		}
@@ -834,22 +840,29 @@ public final class XMLConfigAdmin {
 	public void removeCustomTag(String virtual) throws SecurityException {
 		checkWriteAccess();
 
-		Element mappings = _getRootElement("custom-tag");
-		Element[] children = XMLConfigWebFactory.getChildren(mappings, "mapping");
-		for (int i = 0; i < children.length; i++) {
-			if (virtual.equals(createVirtual(children[i]))) mappings.removeChild(children[i]);
+		Array children = ConfigWebUtil.getAsArray("custom-tag", "mapping", root);
+		for (int i = children.size(); i > 0; i--) {
+			Struct tmp = Caster.toStruct(children.get(i, null), null);
+			if (tmp == null) continue;
+
+			if (virtual.equals(createVirtual(tmp))) {
+				children.removeEL(i);
+			}
 		}
 	}
 
 	public void removeComponentMapping(String virtual) throws SecurityException {
 		checkWriteAccess();
 
-		Element mappings = _getRootElement("component");
-		Element[] children = XMLConfigWebFactory.getChildren(mappings, "mapping");
+		Array children = ConfigWebUtil.getAsArray("component", "mapping", root);
 		String v;
-		for (int i = 0; i < children.length; i++) {
-			v = createVirtual(children[i]);
-			if (virtual.equals(v)) mappings.removeChild(children[i]);
+		for (int i = children.size(); i > 0; i--) {
+			Struct tmp = Caster.toStruct(children.get(i, null), null);
+			if (tmp == null) continue;
+
+			if (virtual.equals(createVirtual(tmp))) {
+				children.removeEL(i);
+			}
 		}
 	}
 
@@ -886,33 +899,36 @@ public final class XMLConfigAdmin {
 			throw new ExpressionException("physical must have a value when primary has value physical");
 		}
 
-		Element mappings = _getRootElement("custom-tag");
+		Array children = ConfigWebUtil.getAsArray("custom-tag", "mapping", root);
+		// Struct mappings = _getRootElement("custom-tag");
 
 		// Update
 		String v;
-		Element[] children = XMLConfigWebFactory.getChildren(mappings, "mapping");
-		for (int i = 0; i < children.length; i++) {
-			Element el = children[i];
+		// Element[] children = ConfigWebFactory.getChildren(mappings, "mapping");
+		for (int i = 1; i <= children.size(); i++) {
+			Struct el = Caster.toStruct(children.get(i, null), null);
+			if (el == null) continue;
+
 			v = createVirtual(el);
 			if (v.equals(virtual)) {
-				el.setAttribute("virtual", v);
-				el.setAttribute("physical", physical);
-				el.setAttribute("archive", archive);
-				el.setAttribute("primary", primary.equalsIgnoreCase("archive") ? "archive" : "physical");
-				el.setAttribute("inspect-template", ConfigWebUtil.inspectTemplate(inspect, ""));
-				el.removeAttribute("trusted");
+				el.setEL("virtual", v);
+				el.setEL("physical", physical);
+				el.setEL("archive", archive);
+				el.setEL("primary", primary.equalsIgnoreCase("archive") ? "archive" : "physical");
+				el.setEL("inspect-template", ConfigWebUtil.inspectTemplate(inspect, ""));
+				el.removeEL(KeyImpl.init("trusted"));
 				return;
 			}
 		}
 
 		// Insert
-		Element el = doc.createElement("mapping");
-		mappings.appendChild(el);
-		if (physical.length() > 0) el.setAttribute("physical", physical);
-		if (archive.length() > 0) el.setAttribute("archive", archive);
-		el.setAttribute("primary", primary.equalsIgnoreCase("archive") ? "archive" : "physical");
-		el.setAttribute("inspect-template", ConfigWebUtil.inspectTemplate(inspect, ""));
-		el.setAttribute("virtual", virtual);
+		Struct el = new StructImpl(Struct.TYPE_LINKED);
+		children.appendEL(el);
+		if (physical.length() > 0) el.setEL("physical", physical);
+		if (archive.length() > 0) el.setEL("archive", archive);
+		el.setEL("primary", primary.equalsIgnoreCase("archive") ? "archive" : "physical");
+		el.setEL("inspect-template", ConfigWebUtil.inspectTemplate(inspect, ""));
+		el.setEL("virtual", virtual);
 	}
 
 	public void updateComponentMapping(String virtual, String physical, String archive, String primary, short inspect) throws ExpressionException, SecurityException {
@@ -936,48 +952,43 @@ public final class XMLConfigAdmin {
 			throw new ExpressionException("physical must have a value when primary has value physical");
 		}
 
-		Element mappings = _getRootElement("component");
-		Element[] children = XMLConfigWebFactory.getChildren(mappings, "mapping");
-		Element el;
-
-		/*
-		 * ignore when exists for(int i=0;i<children.length;i++) { el=children[i];
-		 * if(el.getAttribute("physical").equals(physical) && el.getAttribute("archive").equals(archive) &&
-		 * el.getAttribute("primary").equals(primary) &&
-		 * el.getAttribute("trusted").equals(Caster.toString(trusted))){ return; } }
-		 */
+		Array children = ConfigWebUtil.getAsArray("component", "mapping", root);
+		// Element mappings = _getRootElement("component");
+		// Element[] children = ConfigWebFactory.getChildren(mappings, "mapping");
+		Struct el;
 
 		// Update
 		String v;
-		for (int i = 0; i < children.length; i++) {
-			el = children[i];
+		for (int i = 1; i <= children.size(); i++) {
+			el = Caster.toStruct(children.get(i, null), null);
+			if (el == null) continue;
+
 			v = createVirtual(el); // if there is no virtual definition (old records), we use the position
 			if (v.equals(virtual)) {
-				el.setAttribute("virtual", v); // set to make sure it exists for the future
-				el.setAttribute("physical", physical);
-				el.setAttribute("archive", archive);
-				el.setAttribute("primary", primary.equalsIgnoreCase("archive") ? "archive" : "physical");
-				el.setAttribute("inspect-template", ConfigWebUtil.inspectTemplate(inspect, ""));
-				el.removeAttribute("trusted");
+				el.setEL("virtual", v); // set to make sure it exists for the future
+				el.setEL("physical", physical);
+				el.setEL("archive", archive);
+				el.setEL("primary", primary.equalsIgnoreCase("archive") ? "archive" : "physical");
+				el.setEL("inspect-template", ConfigWebUtil.inspectTemplate(inspect, ""));
+				el.removeEL(KeyImpl.init("trusted"));
 				return;
 			}
 		}
 
 		// Insert
-		el = doc.createElement("mapping");
-		mappings.appendChild(el);
-		if (physical.length() > 0) el.setAttribute("physical", physical);
-		if (archive.length() > 0) el.setAttribute("archive", archive);
-		el.setAttribute("primary", primary.equalsIgnoreCase("archive") ? "archive" : "physical");
-		el.setAttribute("inspect-template", ConfigWebUtil.inspectTemplate(inspect, ""));
-		el.setAttribute("virtual", virtual);
+		el = new StructImpl(Struct.TYPE_LINKED);
+		children.appendEL(el);
+		if (physical.length() > 0) el.setEL("physical", physical);
+		if (archive.length() > 0) el.setEL("archive", archive);
+		el.setEL("primary", primary.equalsIgnoreCase("archive") ? "archive" : "physical");
+		el.setEL("inspect-template", ConfigWebUtil.inspectTemplate(inspect, ""));
+		el.setEL("virtual", virtual);
 	}
 
-	public static String createVirtual(Element el) {
-		String str = el.getAttribute("virtual");
+	public static String createVirtual(Struct data) {
+		String str = ConfigWebFactory.getAttr(data, "virtual");
 		if (!StringUtil.isEmpty(str)) return str;
-
-		return createVirtual(el.getAttribute("physical"), el.getAttribute("archive"));
+		return createVirtual(ConfigWebFactory.getAttr(data, "physical"), ConfigWebFactory.getAttr(data, "archive"));
 	}
 
 	public static String createVirtual(String physical, String archive) {
@@ -1032,14 +1043,14 @@ public final class XMLConfigAdmin {
 		Version version = bf.getVersion();
 		if (version == null) version = OSGiUtil.toVersion(extVersion);
 
-		LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_INFO, XMLConfigAdmin.class.getName(), "failed to load [" + resJar + "] as OSGi Bundle");
+		LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_INFO, ConfigAdmin.class.getName(), "failed to load [" + resJar + "] as OSGi Bundle");
 		BundleBuilderFactory bbf = new BundleBuilderFactory(resJar, name);
 		bbf.setVersion(version);
 		bbf.setIgnoreExistingManifest(false);
 		bbf.build();
 
 		bf = BundleFile.getInstance(resJar);
-		LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_INFO, XMLConfigAdmin.class.getName(), "converted  [" + resJar + "] to an OSGi Bundle");
+		LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_INFO, ConfigAdmin.class.getName(), "converted  [" + resJar + "] to an OSGi Bundle");
 		return installBundle(config, bf);
 	}
 
@@ -1138,328 +1149,30 @@ public final class XMLConfigAdmin {
 
 		if (name == null || name.length() == 0) throw new ExpressionException("class name can't be an empty value");
 
-		renameOldstyleCFX();
-
-		Element tags = _getRootElement("ext-tags");
+		Array children = ConfigWebUtil.getAsArray("ext-tags", "ext-tag", root);
 
 		// Update
-		Element[] children = XMLConfigWebFactory.getChildren(tags, "ext-tag");
-		for (int i = 0; i < children.length; i++) {
-			String n = children[i].getAttribute("name");
+		for (int i = 1; i <= children.size(); i++) {
+			Struct tmp = Caster.toStruct(children.get(i, null), null);
+			if (tmp == null) continue;
+			String n = ConfigWebUtil.getAsString("name", tmp, null);
 
 			if (n != null && n.equalsIgnoreCase(name)) {
-				Element el = children[i];
-				if (!"java".equalsIgnoreCase(el.getAttribute("type"))) throw new ExpressionException("there is already a c++ cfx tag with this name");
+				Struct el = tmp;
+				if (!"java".equalsIgnoreCase(ConfigWebUtil.getAsString("type", el, ""))) throw new ExpressionException("there is already a c++ cfx tag with this name");
 				setClass(el, CustomTag.class, "", cd);
-				el.setAttribute("type", "java");
+				el.setEL("type", "java");
 				return;
 			}
 
 		}
 
 		// Insert
-		Element el = doc.createElement("ext-tag");
-		tags.appendChild(el);
+		Struct el = new StructImpl(Struct.TYPE_LINKED);
+		children.appendEL(el);
 		setClass(el, CustomTag.class, "", cd);
-		el.setAttribute("name", name);
-		el.setAttribute("type", "java");
-	}
-
-	private void renameOldstyleCFX() {
-
-		Element tags = _getRootElement("ext-tags", false, true);
-		if (tags != null) return;
-		tags = _getRootElement("cfx-tags", false, true);
-		if (tags == null) return;
-
-		Element newTags = _getRootElement("ext-tags");
-		Element[] children = XMLConfigWebFactory.getChildren(tags, "cfx-tag");
-		String type;
-		// copy
-		for (int i = 0; i < children.length; i++) {
-			Element el = doc.createElement("ext-tag");
-			newTags.appendChild(el);
-			type = children[i].getAttribute("type");
-			// java
-			if (type.equalsIgnoreCase("java")) {
-				el.setAttribute("class", children[i].getAttribute("class"));
-			}
-			// c++
-			else {
-				el.setAttribute("server-library", children[i].getAttribute("server-library"));
-				el.setAttribute("procedure", children[i].getAttribute("procedure"));
-				el.setAttribute("keep-alive", children[i].getAttribute("keep-alive"));
-
-			}
-			el.setAttribute("name", children[i].getAttribute("name"));
-			el.setAttribute("type", children[i].getAttribute("type"));
-		}
-
-		// remove old
-		for (int i = 0; i < children.length; i++) {
-			tags.removeChild(children[i]);
-		}
-		tags.getParentNode().removeChild(tags);
-	}
-
-	public static boolean fixLFI(Document doc) {
-		return "lucee-configuration".equals(doc.getDocumentElement().getNodeName());
-
-	}
-
-	/**
-	 * make sure every context has a salt
-	 */
-	public static boolean fixSaltAndPW(Document doc, Config config) {
-		if (doc == null) return false;
-		Element root = doc.getDocumentElement();
-
-		// salt
-		String salt = root.getAttribute("salt");
-		boolean rtn = false;
-		if (StringUtil.isEmpty(salt, true) || !Decision.isUUId(salt)) {
-			// create salt
-			root.setAttribute("salt", salt = CreateUUID.invoke());
-			rtn = true;
-		}
-
-		// no password yet
-		if (config instanceof ConfigServer && !root.hasAttribute("hspw") && !root.hasAttribute("pw") && !root.hasAttribute("password")) {
-			ConfigServer cs = (ConfigServer) config;
-			Resource pwFile = cs.getConfigDir().getRealResource("password.txt");
-			if (pwFile.isFile()) {
-				try {
-					String pw = IOUtil.toString(pwFile, (Charset) null);
-					if (!StringUtil.isEmpty(pw, true)) {
-						pw = pw.trim();
-						String hspw = new PasswordImpl(Password.ORIGIN_UNKNOW, pw, salt).getPassword();
-						root.setAttribute("hspw", hspw);
-						pwFile.delete();
-						rtn = true;
-					}
-				}
-				catch (IOException e) {
-					LogUtil.logGlobal(cs, "application", e);
-				}
-			}
-			else {
-				LogUtil.log(config, Log.LEVEL_ERROR, "application", "no password set and no password file found at [" + pwFile + "]");
-			}
-		}
-		return rtn;
-	}
-
-	// MUST remove
-	public static boolean fixPSQ(Document doc) {
-		if (doc == null) return false;
-
-		Element datasources = XMLConfigWebFactory.getChildByName(doc.getDocumentElement(), "data-sources", false, true);
-		if (datasources != null && datasources.hasAttribute("preserve-single-quote")) {
-			Boolean b = Caster.toBoolean(datasources.getAttribute("preserve-single-quote"), null);
-			if (b != null) datasources.setAttribute("psq", Caster.toString(!b.booleanValue()));
-			datasources.removeAttribute("preserve-single-quote");
-			return true;
-		}
-		return false;
-	}
-
-	/**
-	 * the following code remove all logging definitions spread over the complete xml and adds them to
-	 * the new "logging" tag
-	 * 
-	 * @param doc
-	 * @return
-	 */
-	public static boolean fixLogging(ConfigServerImpl cs, ConfigPro config, Document doc) {
-		if (doc == null) return false;
-
-		// if version is bigger than 4.2 there is nothing to do
-		Element luceeConfiguration = doc.getDocumentElement();
-		String strVersion = luceeConfiguration.getAttribute("version");
-		double version = Caster.toDoubleValue(strVersion, 1.0d);
-		((ConfigImpl) config).setVersion(version);
-
-		if (version >= 4.3D) return false;
-
-		// datasource
-		Element src = XMLConfigWebFactory.getChildByName(doc.getDocumentElement(), "datasource");
-		fixLogging(cs, doc, src, "datasource", false, "{lucee-config}/logs/datasource.log");
-
-		setVersion(doc, ConfigWebUtil.getEngine(config).getInfo().getVersion());
-
-		if (version >= 4.2D) return true;
-
-		// mapping
-		src = XMLConfigWebFactory.getChildByName(doc.getDocumentElement(), "mappings");
-		fixLogging(cs, doc, src, "mapping", false, "{lucee-config}/logs/mapping.log");
-
-		// rest
-		src = XMLConfigWebFactory.getChildByName(doc.getDocumentElement(), "rest");
-		fixLogging(cs, doc, src, "rest", false, "{lucee-config}/logs/rest.log");
-
-		// gateway
-		src = XMLConfigWebFactory.getChildByName(doc.getDocumentElement(), "gateways");
-		fixLogging(cs, doc, src, "gateway", false, "{lucee-config}/logs/gateway.log");
-
-		// remote clients
-		src = XMLConfigWebFactory.getChildByName(doc.getDocumentElement(), "remote-clients");
-		fixLogging(cs, doc, src, "remoteclient", false, "{lucee-config}/logs/remoteclient.log");
-
-		// orm
-		src = XMLConfigWebFactory.getChildByName(doc.getDocumentElement(), "orm");
-		fixLogging(cs, doc, src, "orm", false, "{lucee-config}/logs/orm.log");
-
-		// mail
-		src = XMLConfigWebFactory.getChildByName(doc.getDocumentElement(), "mail");
-		fixLogging(cs, doc, src, "mail", false, "{lucee-config}/logs/mail.log");
-
-		// search
-		src = XMLConfigWebFactory.getChildByName(doc.getDocumentElement(), "search");
-		fixLogging(cs, doc, src, "search", false, "{lucee-config}/logs/search.log");
-
-		// scheduler
-		src = XMLConfigWebFactory.getChildByName(doc.getDocumentElement(), "scheduler");
-		fixLogging(cs, doc, src, "scheduler", false, "{lucee-config}/logs/scheduler.log");
-
-		// scope
-		src = XMLConfigWebFactory.getChildByName(doc.getDocumentElement(), "scope");
-		fixLogging(cs, doc, src, "scope", false, "{lucee-config}/logs/scope.log");
-
-		// application
-		Element app = src = XMLConfigWebFactory.getChildByName(doc.getDocumentElement(), "application");
-		fixLogging(cs, doc, src, "application", "application-log", "application-log-level", false, "{lucee-config}/logs/application.log");
-
-		// exception
-		fixLogging(cs, doc, app, "exception", "exception-log", "exception-log-level", false, "{lucee-config}/logs/exception.log");
-
-		// trace
-		fixLogging(cs, doc, app, "trace", "trace-log", "trace-log-level", false, "{lucee-config}/logs/trace.log");
-
-		// thread
-		fixLogging(cs, doc, app, "thread", "thread-log", "thread-log-level", false, "{lucee-config}/logs/thread.log");
-
-		// deploy
-		fixLogging(cs, doc, app, "deploy", "deploy-log", "deploy-log-level", false, "{lucee-config}/logs/deploy.log");
-
-		// requesttimeout
-		fixLogging(cs, doc, app, "requesttimeout", "requesttimeout-log", "requesttimeout-log-level", false, "{lucee-config}/logs/requesttimeout.log");
-
-		setVersion(doc, ConfigWebUtil.getEngine(config).getInfo().getVersion());
-
-		return true;
-	}
-
-	private static boolean fixLogging(ConfigServerImpl cs, Document doc, Element src, String name, boolean deleteSourceAttributes, String defaultValue) {
-		return fixLogging(cs, doc, src, name, "log", "log-level", deleteSourceAttributes, defaultValue);
-	}
-
-	private static boolean fixLogging(ConfigServerImpl cs, Document doc, Element src, String name, String logName, String levelName, boolean deleteSourceAttributes,
-			String defaultValue) {
-
-		String path, level;
-		// Mapping logging
-
-		path = src.getAttribute(logName);
-		level = src.getAttribute(levelName);
-
-		if (StringUtil.isEmpty(path) && !StringUtil.isEmpty(defaultValue) && (cs == null || cs.getLog(name) == null)) {
-			// ignore defaultValue, when there is a setting in server context
-			path = defaultValue;
-		}
-		if (!StringUtil.isEmpty(path)) {
-			if (deleteSourceAttributes) src.removeAttribute(logName);
-			if (deleteSourceAttributes) src.removeAttribute(levelName);
-
-			Element logging = XMLConfigWebFactory.getChildByName(doc.getDocumentElement(), "logging");
-
-			// first of all we have to make sure this is not already existing, if it does we ignore the old
-			// settings
-			Element[] children = XMLUtil.getChildElementsAsArray(logging);
-			for (int i = 0; i < children.length; i++) {
-				if (children[i].getTagName().equals("logger") && name.equalsIgnoreCase(children[i].getAttribute("name"))) {
-					return false;
-				}
-			}
-
-			LogUtil.log(ThreadLocalPageContext.getConfig(cs), Log.LEVEL_INFO, XMLConfigAdmin.class.getName(), "move " + name + " logging");
-			Element logger = doc.createElement("logger");
-			logger.setAttribute("name", name);
-			if ("console".equalsIgnoreCase(path)) {
-				try {
-					setClass(logger, null, "appender-", cs.getLogEngine().appenderClassDefintion("console"));
-					setClass(logger, null, "layout-", cs.getLogEngine().layoutClassDefintion("pattern"));
-				}
-				catch (PageException e) {}
-			}
-			else {
-				try {
-					setClass(logger, null, "appender-", cs.getLogEngine().appenderClassDefintion("resource"));
-					setClass(logger, null, "layout-", cs.getLogEngine().layoutClassDefintion("classic"));
-				}
-				catch (PageException e) {}
-
-				logger.setAttribute("appender-arguments", "path:" + path);
-			}
-
-			if (!StringUtil.isEmpty(level, true)) logger.setAttribute("level", level.trim());
-
-			logging.appendChild(logger);
-
-			return true;
-		}
-		return false;
-	}
-
-	public static boolean fixS3(Document doc) {
-		if (doc == null) return false;
-		Element resources = XMLConfigWebFactory.getChildByName(doc.getDocumentElement(), "resources", false, true);
-
-		Element[] providers = XMLConfigWebFactory.getChildren(resources, "resource-provider");
-
-		// replace extension class with core class
-		boolean fixed = false;
-		if (providers != null) {
-			for (int i = 0; i < providers.length; i++) {
-				if ("s3".equalsIgnoreCase(providers[i].getAttribute("scheme"))) {
-					if ("lucee.extension.io.resource.type.s3.S3ResourceProvider".equalsIgnoreCase(providers[i].getAttribute("class"))
-							|| "lucee.commons.io.res.type.s3.S3ResourceProvider".equalsIgnoreCase(providers[i].getAttribute("class"))) {
-						resources.removeChild(providers[i]);
-						fixed = true;
-					}
-				}
-			}
-		}
-		return fixed;
-	}
-
-	public static boolean fixComponentMappings(ConfigPro config, Document doc) {
-		if (doc == null) return false;
-		if (!(config instanceof ConfigServer)) return false;
-
-		Element parent = XMLConfigWebFactory.getChildByName(doc.getDocumentElement(), "component", false, true);
-		Element[] mappings = XMLConfigWebFactory.getChildren(parent, "mapping");
-
-		int count = 0;
-		for (Element mapping: mappings) {
-			if ("/default-server".equalsIgnoreCase(mapping.getAttribute("virtual"))) {
-				count++;
-				if (count > 1) {
-					parent.removeChild(mapping);
-				}
-			}
-		}
-
-		if (count > 0) return false;
-
-		// ADD MAPPING
-		Element mapping = doc.createElement("mapping");
-		parent.appendChild(mapping);
-		mapping.setAttribute("virtual", "/default-server");
-		mapping.setAttribute("physical", "{lucee-server}/components/");
-		mapping.setAttribute("primary", "physical");
-		mapping.setAttribute("inspect-template", "never");
-		mapping.setAttribute("readonly", "true");
-		return true;
+		el.setEL("name", name);
+		el.setEL("type", "java");
 	}
 
 	public void verifyCFX(String name) throws PageException {
@@ -1506,15 +1219,14 @@ public final class XMLConfigAdmin {
 		// check parameters
 		if (name == null || name.length() == 0) throw new ExpressionException("name for CFX Tag can be an empty value");
 
-		renameOldstyleCFX();
+		Array children = ConfigWebUtil.getAsArray("ext-tags", "ext-tag", root);
+		for (int i = children.size(); i > 0; i--) {
+			Struct tmp = Caster.toStruct(children.get(i, null), null);
+			if (tmp == null) continue;
 
-		Element mappings = _getRootElement("ext-tags");
-
-		Element[] children = XMLConfigWebFactory.getChildren(mappings, "ext-tag");
-		for (int i = 0; i < children.length; i++) {
-			String n = children[i].getAttribute("name");
+			String n = ConfigWebUtil.getAsString("name", tmp, null);
 			if (n != null && n.equalsIgnoreCase(name)) {
-				mappings.removeChild(children[i]);
+				children.removeEL(i);
 			}
 		}
 	}
@@ -1569,61 +1281,61 @@ public final class XMLConfigAdmin {
 		// check parameters
 		if (name == null || name.length() == 0) throw new ExpressionException("name can't be an empty value");
 
-		Element datasources = _getRootElement("data-sources");
+		Array children = ConfigWebUtil.getAsArray("data-sources", "data-source", root);
+		for (int i = 1; i <= children.size(); i++) {
+			Struct tmp = Caster.toStruct(children.get(i, null), null);
+			if (tmp == null) continue;
 
-		// Update
-		Element[] children = XMLConfigWebFactory.getChildren(datasources, "data-source");
-		for (int i = 0; i < children.length; i++) {
-			String n = children[i].getAttribute("name");
+			String n = ConfigWebUtil.getAsString("name", tmp, "");
 
 			if (n.equalsIgnoreCase(name)) {
-				Element el = children[i];
-				if (password.equalsIgnoreCase("****************")) password = el.getAttribute("password");
+				Struct el = tmp;
+				if (password.equalsIgnoreCase("****************")) password = ConfigWebUtil.getAsString("password", el, null);
 
-				if (!StringUtil.isEmpty(newName) && !newName.equals(name)) el.setAttribute("name", newName);
+				if (!StringUtil.isEmpty(newName) && !newName.equals(name)) el.setEL("name", newName);
 				setClass(el, null, "", cd);
 
-				if (!StringUtil.isEmpty(id)) el.setAttribute("id", id);
-				else if (el.hasAttribute("id")) el.removeAttribute("id");
+				if (!StringUtil.isEmpty(id)) el.setEL(KeyConstants._id, id);
+				else if (el.containsKey(KeyConstants._id)) el.removeEL(KeyConstants._id);
 
-				el.setAttribute("dsn", dsn);
-				el.setAttribute("username", username);
-				el.setAttribute("password", ConfigWebUtil.encrypt(password));
+				el.setEL("dsn", dsn);
+				el.setEL("username", username);
+				el.setEL("password", ConfigWebUtil.encrypt(password));
 
-				el.setAttribute("host", host);
-				if (!StringUtil.isEmpty(timezone)) el.setAttribute("timezone", timezone);
-				else if (el.hasAttribute("timezone")) el.removeAttribute("timezone");
-				el.setAttribute("database", database);
-				el.setAttribute("port", Caster.toString(port));
-				el.setAttribute("connectionLimit", Caster.toString(connectionLimit));
-				el.setAttribute("connectionTimeout", Caster.toString(idleTimeout));
-				el.setAttribute("liveTimeout", Caster.toString(liveTimeout));
-				el.setAttribute("metaCacheTimeout", Caster.toString(metaCacheTimeout));
-				el.setAttribute("blob", Caster.toString(blob));
-				el.setAttribute("clob", Caster.toString(clob));
-				el.setAttribute("allow", Caster.toString(allow));
-				el.setAttribute("validate", Caster.toString(validate));
-				el.setAttribute("storage", Caster.toString(storage));
-				el.setAttribute("custom", toStringURLStyle(custom));
+				el.setEL("host", host);
+				if (!StringUtil.isEmpty(timezone)) el.setEL(KeyConstants._timezone, timezone);
+				else if (el.containsKey(KeyConstants._timezone)) el.removeEL(KeyConstants._timezone);
+				el.setEL("database", database);
+				el.setEL("port", Caster.toString(port));
+				el.setEL("connectionLimit", Caster.toString(connectionLimit));
+				el.setEL("connectionTimeout", Caster.toString(idleTimeout));
+				el.setEL("liveTimeout", Caster.toString(liveTimeout));
+				el.setEL("metaCacheTimeout", Caster.toString(metaCacheTimeout));
+				el.setEL("blob", Caster.toString(blob));
+				el.setEL("clob", Caster.toString(clob));
+				el.setEL("allow", Caster.toString(allow));
+				el.setEL("validate", Caster.toString(validate));
+				el.setEL("storage", Caster.toString(storage));
+				el.setEL("custom", toStringURLStyle(custom));
 
-				if (!StringUtil.isEmpty(dbdriver)) el.setAttribute("dbdriver", Caster.toString(dbdriver));
+				if (!StringUtil.isEmpty(dbdriver)) el.setEL("dbdriver", Caster.toString(dbdriver));
 
 				// Param Syntax
-				el.setAttribute("param-delimiter", (paramSyntax.delimiter));
-				el.setAttribute("param-leading-delimiter", (paramSyntax.leadingDelimiter));
-				el.setAttribute("param-separator", (paramSyntax.separator));
+				el.setEL("param-delimiter", (paramSyntax.delimiter));
+				el.setEL("param-leading-delimiter", (paramSyntax.leadingDelimiter));
+				el.setEL("param-separator", (paramSyntax.separator));
 
-				if (literalTimestampWithTSOffset) el.setAttribute("literal-timestamp-with-tsoffset", "true");
-				else if (el.hasAttribute("literal-timestamp-with-tsoffset")) el.removeAttribute("literal-timestamp-with-tsoffset");
+				if (literalTimestampWithTSOffset) el.setEL("literal-timestamp-with-tsoffset", "true");
+				else if (el.containsKey("literal-timestamp-with-tsoffset")) el.removeEL(KeyImpl.init("literal-timestamp-with-tsoffset"));
 
-				if (alwaysSetTimeout) el.setAttribute("always-set-timeout", "true");
-				else if (el.hasAttribute("always-set-timeout")) el.removeAttribute("always-set-timeout");
+				if (alwaysSetTimeout) el.setEL("always-set-timeout", "true");
+				else if (el.containsKey("always-set-timeout")) el.removeEL(KeyImpl.init("always-set-timeout"));
 
-				if (requestExclusive) el.setAttribute("request-exclusive", "true");
-				else if (el.hasAttribute("request-exclusive")) el.removeAttribute("request-exclusive");
+				if (requestExclusive) el.setEL("request-exclusive", "true");
+				else if (el.containsKey("request-exclusive")) el.removeEL(KeyImpl.init("request-exclusive"));
 
-				if (alwaysResetConnections) el.setAttribute("always-reset-connections", "true");
-				else if (el.hasAttribute("always-reset-connections")) el.removeAttribute("always-reset-connections");
+				if (alwaysResetConnections) el.setEL("always-reset-connections", "true");
+				else if (el.containsKey("always-reset-connections")) el.removeEL(KeyImpl.init("always-reset-connections"));
 
 				return;
 			}
@@ -1633,51 +1345,51 @@ public final class XMLConfigAdmin {
 				+ " This can be configured in the Server Admin, under Security, Access");
 
 		// Insert
-		Element el = doc.createElement("data-source");
-		datasources.appendChild(el);
-		if (!StringUtil.isEmpty(newName)) el.setAttribute("name", newName);
-		else el.setAttribute("name", name);
+		Struct el = new StructImpl(Struct.TYPE_LINKED);
+		children.appendEL(el);
+		if (!StringUtil.isEmpty(newName)) el.setEL("name", newName);
+		else el.setEL("name", name);
 		setClass(el, null, "", cd);
-		el.setAttribute("dsn", dsn);
+		el.setEL("dsn", dsn);
 
-		if (!StringUtil.isEmpty(id)) el.setAttribute("id", id);
-		else if (el.hasAttribute("id")) el.removeAttribute("id");
+		if (!StringUtil.isEmpty(id)) el.setEL(KeyConstants._id, id);
+		else if (el.containsKey(KeyConstants._id)) el.removeEL(KeyConstants._id);
 
-		if (username.length() > 0) el.setAttribute("username", username);
-		if (password.length() > 0) el.setAttribute("password", ConfigWebUtil.encrypt(password));
+		if (username.length() > 0) el.setEL(KeyConstants._username, username);
+		if (password.length() > 0) el.setEL(KeyConstants._password, ConfigWebUtil.encrypt(password));
 
-		el.setAttribute("host", host);
-		if (!StringUtil.isEmpty(timezone)) el.setAttribute("timezone", timezone);
-		el.setAttribute("database", database);
-		if (port > -1) el.setAttribute("port", Caster.toString(port));
-		if (connectionLimit > -1) el.setAttribute("connectionLimit", Caster.toString(connectionLimit));
-		if (idleTimeout > -1) el.setAttribute("connectionTimeout", Caster.toString(idleTimeout));
-		if (liveTimeout > -1) el.setAttribute("liveTimeout", Caster.toString(liveTimeout));
-		if (metaCacheTimeout > -1) el.setAttribute("metaCacheTimeout", Caster.toString(metaCacheTimeout));
+		el.setEL("host", host);
+		if (!StringUtil.isEmpty(timezone)) el.setEL("timezone", timezone);
+		el.setEL("database", database);
+		if (port > -1) el.setEL("port", Caster.toString(port));
+		if (connectionLimit > -1) el.setEL("connectionLimit", Caster.toString(connectionLimit));
+		if (idleTimeout > -1) el.setEL("connectionTimeout", Caster.toString(idleTimeout));
+		if (liveTimeout > -1) el.setEL("liveTimeout", Caster.toString(liveTimeout));
+		if (metaCacheTimeout > -1) el.setEL("metaCacheTimeout", Caster.toString(metaCacheTimeout));
 
-		el.setAttribute("blob", Caster.toString(blob));
-		el.setAttribute("clob", Caster.toString(clob));
-		el.setAttribute("validate", Caster.toString(validate));
-		el.setAttribute("storage", Caster.toString(storage));
-		if (allow > -1) el.setAttribute("allow", Caster.toString(allow));
-		el.setAttribute("custom", toStringURLStyle(custom));
+		el.setEL("blob", Caster.toString(blob));
+		el.setEL("clob", Caster.toString(clob));
+		el.setEL("validate", Caster.toString(validate));
+		el.setEL("storage", Caster.toString(storage));
+		if (allow > -1) el.setEL("allow", Caster.toString(allow));
+		el.setEL("custom", toStringURLStyle(custom));
 
-		if (!StringUtil.isEmpty(dbdriver)) el.setAttribute("dbdriver", Caster.toString(dbdriver));
+		if (!StringUtil.isEmpty(dbdriver)) el.setEL("dbdriver", Caster.toString(dbdriver));
 
 		// Param Syntax
-		el.setAttribute("param-delimiter", (paramSyntax.delimiter));
-		el.setAttribute("param-leading-delimiter", (paramSyntax.leadingDelimiter));
-		el.setAttribute("param-separator", (paramSyntax.separator));
+		el.setEL("param-delimiter", (paramSyntax.delimiter));
+		el.setEL("param-leading-delimiter", (paramSyntax.leadingDelimiter));
+		el.setEL("param-separator", (paramSyntax.separator));
 
-		if (literalTimestampWithTSOffset) el.setAttribute("literal-timestamp-with-tsoffset", "true");
-		if (alwaysSetTimeout) el.setAttribute("always-set-timeout", "true");
-		if (requestExclusive) el.setAttribute("request-exclusive", "true");
-		if (alwaysResetConnections) el.setAttribute("always-reset-connections", "true");
+		if (literalTimestampWithTSOffset) el.setEL("literal-timestamp-with-tsoffset", "true");
+		if (alwaysSetTimeout) el.setEL("always-set-timeout", "true");
+		if (requestExclusive) el.setEL("request-exclusive", "true");
+		if (alwaysResetConnections) el.setEL("always-reset-connections", "true");
 
 	}
 
-	static void removeJDBCDriver(ConfigPro config, ClassDefinition cd, boolean reload) throws IOException, SAXException, PageException, BundleException {
-		XMLConfigAdmin admin = new XMLConfigAdmin(config, null);
+	static void removeJDBCDriver(ConfigPro config, ClassDefinition cd, boolean reload) throws IOException, SAXException, PageException, BundleException, ConverterException {
+		ConfigAdmin admin = new ConfigAdmin(config, null);
 		admin._removeJDBCDriver(cd);
 		admin._store(); // store is necessary, otherwise it get lost
 
@@ -1688,14 +1400,16 @@ public final class XMLConfigAdmin {
 
 		if (!cd.isBundle()) throw new ApplicationException("missing bundle name");
 
-		Element parent = _getRootElement("jdbc");
+		Array children = ConfigWebUtil.getAsArray("jdbc", "driver", root);
 
 		// Remove
-		Element[] children = XMLConfigWebFactory.getChildren(parent, "driver");
-		for (int i = 0; i < children.length; i++) {
-			String n = children[i].getAttribute("class");
+		for (int i = children.size(); i > 0; i--) {
+			Struct tmp = Caster.toStruct(children.get(i, null), null);
+			if (tmp == null) continue;
+
+			String n = ConfigWebUtil.getAsString("class", tmp, "");
 			if (n.equalsIgnoreCase(cd.getClassName())) {
-				parent.removeChild(children[i]);
+				children.removeEL(i);
 				break;
 			}
 		}
@@ -1716,14 +1430,15 @@ public final class XMLConfigAdmin {
 
 		if (!cd.isBundle()) throw new ApplicationException("missing bundle name");
 
-		Element parent = _getRootElement("startup");
-
+		Array children = ConfigWebUtil.getAsArray("startup", "hook", root);
 		// Remove
-		Element[] children = XMLConfigWebFactory.getChildren(parent, "hook");
-		for (int i = 0; i < children.length; i++) {
-			String n = children[i].getAttribute("class");
+		for (int i = children.size(); i > 0; i--) {
+			Struct tmp = Caster.toStruct(children.get(i, null), null);
+			if (tmp == null) continue;
+
+			String n = ConfigWebUtil.getAsString("class", tmp, "");
 			if (n.equalsIgnoreCase(cd.getClassName())) {
-				parent.removeChild(children[i]);
+				children.removeEL(i);
 				break;
 			}
 		}
@@ -1768,28 +1483,30 @@ public final class XMLConfigAdmin {
 		// check if it is a bundle
 		if (!cd.isBundle()) throw new ApplicationException("missing bundle name for [" + label + "]");
 
-		Element parent = _getRootElement("jdbc");
+		Array children = ConfigWebUtil.getAsArray("jdbc", "driver", root);
 
 		// Update
-		Element child = null;
-		Element[] children = XMLConfigWebFactory.getChildren(parent, "driver");
-		for (int i = 0; i < children.length; i++) {
-			String n = children[i].getAttribute("class");
+		Struct child = null;
+		for (int i = 1; i <= children.size(); i++) {
+			Struct tmp = Caster.toStruct(children.get(i, null), null);
+			if (tmp == null) continue;
+
+			String n = ConfigWebUtil.getAsString("class", tmp, "");
 			if (n.equalsIgnoreCase(cd.getClassName())) {
-				child = children[i];
+				child = tmp;
 				break;
 			}
 		}
 
 		// Insert
 		if (child == null) {
-			child = doc.createElement("driver");
-			parent.appendChild(child);
+			child = new StructImpl(Struct.TYPE_LINKED);
+			children.appendEL(child);
 		}
 
-		child.setAttribute("label", label);
-		if (!StringUtil.isEmpty(id)) child.setAttribute("id", id);
-		else child.removeAttribute("id");
+		child.setEL("label", label);
+		if (!StringUtil.isEmpty(id)) child.setEL(KeyConstants._id, id);
+		else child.removeEL(KeyConstants._id);
 		// make sure the class exists
 		setClass(child, null, "", cd);
 
@@ -1810,23 +1527,25 @@ public final class XMLConfigAdmin {
 		// check if it is a bundle
 		if (!cd.isBundle()) throw new ApplicationException("missing bundle info");
 
-		Element parent = _getRootElement("startup");
+		Array children = ConfigWebUtil.getAsArray("startup", "hook", root);
 
 		// Update
-		Element child = null;
-		Element[] children = XMLConfigWebFactory.getChildren(parent, "hook");
-		for (int i = 0; i < children.length; i++) {
-			String n = children[i].getAttribute("class");
+		Struct child = null;
+		for (int i = 1; i <= children.size(); i++) {
+			Struct tmp = Caster.toStruct(children.get(i, null), null);
+			if (tmp == null) continue;
+
+			String n = ConfigWebUtil.getAsString("class", tmp, null);
 			if (n.equalsIgnoreCase(cd.getClassName())) {
-				child = children[i];
+				child = tmp;
 				break;
 			}
 		}
 
 		// Insert
 		if (child == null) {
-			child = doc.createElement("hook");
-			parent.appendChild(child);
+			child = new StructImpl(Struct.TYPE_LINKED);
+			children.appendEL(child);
 		}
 
 		// make sure the class exists
@@ -1861,59 +1580,60 @@ public final class XMLConfigAdmin {
 
 		if ((cd == null || StringUtil.isEmpty(cd.getClassName())) && StringUtil.isEmpty(componentPath)) throw new ExpressionException("you must define className or componentPath");
 
-		Element parent = _getRootElement("gateways");
+		Array children = ConfigWebUtil.getAsArray("gateways", "gateway", root);
 
 		// Update
-		Element[] children = XMLConfigWebFactory.getChildren(parent, "gateway");
-		for (int i = 0; i < children.length; i++) {
-			String n = children[i].getAttribute("id");
-			Element el = children[i];
+		for (int i = 1; i <= children.size(); i++) {
+			Struct el = Caster.toStruct(children.get(i, null), null);
+			if (el == null) continue;
+
+			String n = ConfigWebUtil.getAsString("id", el, "");
 			if (n.equalsIgnoreCase(id)) {
 				setClass(el, null, "", cd);
-				el.setAttribute("cfc-path", componentPath);
-				el.setAttribute("listener-cfc-path", listenerCfcPath);
-				el.setAttribute("startup-mode", GatewayEntryImpl.toStartup(startupMode, "automatic"));
-				el.setAttribute("custom", toStringURLStyle(custom));
-				el.setAttribute("read-only", Caster.toString(readOnly));
+				el.setEL("cfc-path", componentPath);
+				el.setEL("listener-cfc-path", listenerCfcPath);
+				el.setEL("startup-mode", GatewayEntryImpl.toStartup(startupMode, "automatic"));
+				el.setEL("custom", toStringURLStyle(custom));
+				el.setEL("read-only", Caster.toString(readOnly));
 				return;
 			}
 
 		}
 		// Insert
-		Element el = doc.createElement("gateway");
-		parent.appendChild(el);
-		el.setAttribute("id", id);
-		el.setAttribute("cfc-path", componentPath);
-		el.setAttribute("listener-cfc-path", listenerCfcPath);
-		el.setAttribute("startup-mode", GatewayEntryImpl.toStartup(startupMode, "automatic"));
+		Struct el = new StructImpl(Struct.TYPE_LINKED);
+		children.appendEL(el);
+		el.setEL("id", id);
+		el.setEL("cfc-path", componentPath);
+		el.setEL("listener-cfc-path", listenerCfcPath);
+		el.setEL("startup-mode", GatewayEntryImpl.toStartup(startupMode, "automatic"));
 		setClass(el, null, "", cd);
-		el.setAttribute("custom", toStringURLStyle(custom));
-		el.setAttribute("read-only", Caster.toString(readOnly));
+		el.setEL("custom", toStringURLStyle(custom));
+		el.setEL("read-only", Caster.toString(readOnly));
 
 	}
 
-	static void removeSearchEngine(ConfigPro config, boolean reload) throws IOException, SAXException, PageException, BundleException {
-		XMLConfigAdmin admin = new XMLConfigAdmin(config, null);
+	static void removeSearchEngine(ConfigPro config, boolean reload) throws IOException, SAXException, PageException, BundleException, ConverterException {
+		ConfigAdmin admin = new ConfigAdmin(config, null);
 		admin._removeSearchEngine();
 		admin._store();
 		if (reload) admin._reload();
 	}
 
 	private void _removeSearchEngine() {
-		Element orm = _getRootElement("search");
+		Struct orm = _getRootElement("search");
 		removeClass(orm, "engine-");
 	}
 
 	private void _removeAMFEngine() {
-		Element flex = _getRootElement("flex");
+		Struct flex = _getRootElement("flex");
 		removeClass(flex, "");
-		flex.removeAttribute("configuration");
-		flex.removeAttribute("caster");
+		flex.removeEL(KeyImpl.init("configuration"));
+		flex.removeEL(KeyImpl.init("caster"));
 
 		// old arguments
-		flex.removeAttribute("config");
-		flex.removeAttribute("caster-class");
-		flex.removeAttribute("caster-class-arguments");
+		flex.removeEL(KeyImpl.init("config"));
+		flex.removeEL(KeyImpl.init("caster-class"));
+		flex.removeEL(KeyImpl.init("caster-class-arguments"));
 	}
 
 	public void updateSearchEngine(ClassDefinition cd) throws PageException {
@@ -1923,44 +1643,44 @@ public final class XMLConfigAdmin {
 	}
 
 	private void _updateSearchEngine(ClassDefinition cd) throws PageException {
-		Element orm = _getRootElement("search");
+		Struct orm = _getRootElement("search");
 		setClass(orm, SearchEngine.class, "engine-", cd);
 	}
 
 	private void _updateAMFEngine(ClassDefinition cd, String caster, String config) throws PageException {
-		Element flex = _getRootElement("flex");
+		Struct flex = _getRootElement("flex");
 		setClass(flex, AMFEngine.class, "", cd);
-		if (caster != null) flex.setAttribute("caster", caster);
-		if (config != null) flex.setAttribute("configuration", config);
+		if (caster != null) flex.setEL("caster", caster);
+		if (config != null) flex.setEL("configuration", config);
 		// old arguments
-		flex.removeAttribute("config");
-		flex.removeAttribute("caster-class");
-		flex.removeAttribute("caster-class-arguments");
+		flex.removeEL(KeyImpl.init("config"));
+		flex.removeEL(KeyImpl.init("caster-class"));
+		flex.removeEL(KeyImpl.init("caster-class-arguments"));
 	}
 
 	public void removeSearchEngine() throws SecurityException {
 		checkWriteAccess();
 
-		Element orm = _getRootElement("search");
+		Struct orm = _getRootElement("search");
 		removeClass(orm, "engine-");
 
 	}
 
-	static void removeORMEngine(ConfigPro config, boolean reload) throws IOException, SAXException, PageException, BundleException {
-		XMLConfigAdmin admin = new XMLConfigAdmin(config, null);
+	static void removeORMEngine(ConfigPro config, boolean reload) throws IOException, SAXException, PageException, BundleException, ConverterException {
+		ConfigAdmin admin = new ConfigAdmin(config, null);
 		admin._removeORMEngine();
 		admin._store();
 		if (reload) admin._reload();
 	}
 
 	private void _removeORMEngine() {
-		Element orm = _getRootElement("orm");
+		Struct orm = _getRootElement("orm");
 		removeClass(orm, "engine-");
 		removeClass(orm, "");// in the beginning we had no prefix
 	}
 
 	private void _removeWebserviceHandler() {
-		Element orm = _getRootElement("webservice");
+		Struct orm = _getRootElement("webservice");
 		removeClass(orm, "");
 	}
 
@@ -1976,13 +1696,13 @@ public final class XMLConfigAdmin {
 	}
 
 	private void _updateORMEngine(ClassDefinition cd) throws PageException {
-		Element orm = _getRootElement("orm");
+		Struct orm = _getRootElement("orm");
 		removeClass(orm, "");// in the beginning we had no prefix
 		setClass(orm, ORMEngine.class, "engine-", cd);
 	}
 
 	private void _updateWebserviceHandler(ClassDefinition cd) throws PageException {
-		Element orm = _getRootElement("webservice");
+		Struct orm = _getRootElement("webservice");
 		setClass(orm, null, "", cd);
 	}
 
@@ -2011,68 +1731,74 @@ public final class XMLConfigAdmin {
 			throw new ExpressionException(e.getMessage());
 		}
 
-		Element parent = _getRootElement("cache");
+		Struct parent = _getRootElement("cache");
 
-		if (name.equalsIgnoreCase(parent.getAttribute("default-template"))) parent.removeAttribute("default-template");
-		if (name.equalsIgnoreCase(parent.getAttribute("default-object"))) parent.removeAttribute("default-object");
-		if (name.equalsIgnoreCase(parent.getAttribute("default-query"))) parent.removeAttribute("default-query");
-		if (name.equalsIgnoreCase(parent.getAttribute("default-resource"))) parent.removeAttribute("default-resource");
-		if (name.equalsIgnoreCase(parent.getAttribute("default-function"))) parent.removeAttribute("default-function");
-		if (name.equalsIgnoreCase(parent.getAttribute("default-include"))) parent.removeAttribute("default-include");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("default-template", null), null))) rem(parent, "default-template");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("default-object", null), null))) rem(parent, "default-object");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("default-query", null), null))) rem(parent, "default-query");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("default-resource", null), null))) rem(parent, "default-resource");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("default-function", null), null))) rem(parent, "default-function");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("default-include", null), null))) rem(parent, "default-include");
 
 		if (_default == ConfigPro.CACHE_TYPE_OBJECT) {
-			parent.setAttribute("default-object", name);
+			parent.setEL("default-object", name);
 		}
 		else if (_default == ConfigPro.CACHE_TYPE_TEMPLATE) {
-			parent.setAttribute("default-template", name);
+			parent.setEL("default-template", name);
 		}
 		else if (_default == ConfigPro.CACHE_TYPE_QUERY) {
-			parent.setAttribute("default-query", name);
+			parent.setEL("default-query", name);
 		}
 		else if (_default == ConfigPro.CACHE_TYPE_RESOURCE) {
-			parent.setAttribute("default-resource", name);
+			parent.setEL("default-resource", name);
 		}
 		else if (_default == ConfigPro.CACHE_TYPE_FUNCTION) {
-			parent.setAttribute("default-function", name);
+			parent.setEL("default-function", name);
 		}
 		else if (_default == ConfigPro.CACHE_TYPE_INCLUDE) {
-			parent.setAttribute("default-include", name);
+			parent.setEL("default-include", name);
 		}
 		else if (_default == ConfigPro.CACHE_TYPE_HTTP) {
-			parent.setAttribute("default-http", name);
+			parent.setEL("default-http", name);
 		}
 		else if (_default == ConfigPro.CACHE_TYPE_FILE) {
-			parent.setAttribute("default-file", name);
+			parent.setEL("default-file", name);
 		}
 		else if (_default == ConfigPro.CACHE_TYPE_WEBSERVICE) {
-			parent.setAttribute("default-webservice", name);
+			parent.setEL("default-webservice", name);
 		}
 
 		// Update
 		// boolean isUpdate=false;
-		Element[] children = XMLConfigWebFactory.getChildren(parent, "connection");
-		for (int i = 0; i < children.length; i++) {
-			String n = children[i].getAttribute("name");
-			Element el = children[i];
+		Array children = ConfigWebUtil.getAsArray("connection", parent);
+		for (int i = 1; i <= children.size(); i++) {
+			Struct el = Caster.toStruct(children.get(i, null), null);
+			if (el == null) continue;
+
+			String n = ConfigWebUtil.getAsString("name", el, "");
 			if (n.equalsIgnoreCase(name)) {
 				setClass(el, null, "", cd);
-				el.setAttribute("custom", toStringURLStyle(custom));
-				el.setAttribute("read-only", Caster.toString(readOnly));
-				el.setAttribute("storage", Caster.toString(storage));
+				el.setEL("custom", toStringURLStyle(custom));
+				el.setEL("read-only", Caster.toString(readOnly));
+				el.setEL("storage", Caster.toString(storage));
 				return;
 			}
 
 		}
 
 		// Insert
-		Element el = doc.createElement("connection");
-		parent.appendChild(el);
-		el.setAttribute("name", name);
+		Struct el = new StructImpl(Struct.TYPE_LINKED);
+		children.appendEL(el);
+		el.setEL("name", name);
 		setClass(el, null, "", cd);
-		el.setAttribute("custom", toStringURLStyle(custom));
-		el.setAttribute("read-only", Caster.toString(readOnly));
-		el.setAttribute("storage", Caster.toString(storage));
+		el.setEL("custom", toStringURLStyle(custom));
+		el.setEL("read-only", Caster.toString(readOnly));
+		el.setEL("storage", Caster.toString(storage));
 
+	}
+
+	private void rem(Struct sct, String key) {
+		sct.removeEL(KeyImpl.init(key));
 	}
 
 	public void removeCacheDefaultConnection(int type) throws PageException {
@@ -2081,33 +1807,33 @@ public final class XMLConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManagerImpl.TYPE_CACHE);
 		if (!hasAccess) throw new SecurityException("no access to update cache connections");
 
-		Element parent = _getRootElement("cache");
+		Struct parent = _getRootElement("cache");
 		if (type == ConfigPro.CACHE_TYPE_OBJECT) {
-			parent.removeAttribute("default-object");
+			rem(parent, "default-object");
 		}
 		else if (type == ConfigPro.CACHE_TYPE_TEMPLATE) {
-			parent.removeAttribute("default-template");
+			rem(parent, "default-template");
 		}
 		else if (type == ConfigPro.CACHE_TYPE_QUERY) {
-			parent.removeAttribute("default-query");
+			rem(parent, "default-query");
 		}
 		else if (type == ConfigPro.CACHE_TYPE_RESOURCE) {
-			parent.removeAttribute("default-resource");
+			rem(parent, "default-resource");
 		}
 		else if (type == ConfigPro.CACHE_TYPE_FUNCTION) {
-			parent.removeAttribute("default-function");
+			rem(parent, "default-function");
 		}
 		else if (type == ConfigPro.CACHE_TYPE_INCLUDE) {
-			parent.removeAttribute("default-include");
+			rem(parent, "default-include");
 		}
 		else if (type == ConfigPro.CACHE_TYPE_HTTP) {
-			parent.removeAttribute("default-http");
+			rem(parent, "default-http");
 		}
 		else if (type == ConfigPro.CACHE_TYPE_FILE) {
-			parent.removeAttribute("default-file");
+			rem(parent, "default-file");
 		}
 		else if (type == ConfigPro.CACHE_TYPE_WEBSERVICE) {
-			parent.removeAttribute("default-webservice");
+			rem(parent, "default-webservice");
 		}
 	}
 
@@ -2117,33 +1843,33 @@ public final class XMLConfigAdmin {
 
 		if (!hasAccess) throw new SecurityException("no access to update cache default connections");
 
-		Element parent = _getRootElement("cache");
+		Struct parent = _getRootElement("cache");
 		if (type == ConfigPro.CACHE_TYPE_OBJECT) {
-			parent.setAttribute("default-object", name);
+			parent.setEL("default-object", name);
 		}
 		else if (type == ConfigPro.CACHE_TYPE_TEMPLATE) {
-			parent.setAttribute("default-template", name);
+			parent.setEL("default-template", name);
 		}
 		else if (type == ConfigPro.CACHE_TYPE_QUERY) {
-			parent.setAttribute("default-query", name);
+			parent.setEL("default-query", name);
 		}
 		else if (type == ConfigPro.CACHE_TYPE_RESOURCE) {
-			parent.setAttribute("default-resource", name);
+			parent.setEL("default-resource", name);
 		}
 		else if (type == ConfigPro.CACHE_TYPE_FUNCTION) {
-			parent.setAttribute("default-function", name);
+			parent.setEL("default-function", name);
 		}
 		else if (type == ConfigPro.CACHE_TYPE_INCLUDE) {
-			parent.setAttribute("default-include", name);
+			parent.setEL("default-include", name);
 		}
 		else if (type == ConfigPro.CACHE_TYPE_HTTP) {
-			parent.setAttribute("default-http", name);
+			parent.setEL("default-http", name);
 		}
 		else if (type == ConfigPro.CACHE_TYPE_FILE) {
-			parent.setAttribute("default-file", name);
+			parent.setEL("default-file", name);
 		}
 		else if (type == ConfigPro.CACHE_TYPE_WEBSERVICE) {
-			parent.setAttribute("default-webservice", name);
+			parent.setEL("default-webservice", name);
 		}
 	}
 
@@ -2160,14 +1886,16 @@ public final class XMLConfigAdmin {
 
 	public void _removeResourceProvider(String scheme) throws PageException {
 
-		Element parent = _getRootElement("resources");
+		Array children = ConfigWebUtil.getAsArray("resources", "resource-provider", root);
 
 		// remove
-		Element[] children = XMLConfigWebFactory.getChildren(parent, "resource-provider");
-		for (int i = 0; i < children.length; i++) {
-			String elScheme = children[i].getAttribute("scheme");
+		for (int i = children.size(); i > 0; i--) {
+			Struct tmp = Caster.toStruct(children.get(i, null), null);
+			if (tmp == null) continue;
+
+			String elScheme = ConfigWebUtil.getAsString("scheme", tmp, "");
 			if (elScheme.equalsIgnoreCase(scheme)) {
-				parent.removeChild(children[i]);
+				children.removeEL(i);
 				break;
 			}
 		}
@@ -2196,27 +1924,27 @@ public final class XMLConfigAdmin {
 		// check parameters
 		if (StringUtil.isEmpty(scheme)) throw new ExpressionException("scheme can't be an empty value");
 
-		Element parent = _getRootElement("resources");
+		Array children = ConfigWebUtil.getAsArray("resources", "resource-provider", root);
 
 		// Update
-		Element[] children = XMLConfigWebFactory.getChildren(parent, "resource-provider");
-		for (int i = 0; i < children.length; i++) {
-			// String cn=children[i].getAttribute("class");
-			String elScheme = children[i].getAttribute("scheme");
+		for (int i = 1; i <= children.size(); i++) {
+			Struct el = Caster.toStruct(children.get(i, null), null);
+			if (el == null) continue;
+
+			String elScheme = ConfigWebUtil.getAsString("scheme", el, null);
 			if (elScheme.equalsIgnoreCase(scheme)) {
-				Element el = children[i];
 				setClass(el, null, "", cd);
-				el.setAttribute("scheme", scheme);
-				el.setAttribute("arguments", arguments);
+				el.setEL("scheme", scheme);
+				el.setEL("arguments", arguments);
 				return;
 			}
 		}
 
 		// Insert
-		Element el = doc.createElement("resource-provider");
-		parent.appendChild(el);
-		el.setAttribute("scheme", scheme);
-		el.setAttribute("arguments", arguments);
+		Struct el = new StructImpl();
+		children.appendEL(el);
+		el.setEL("scheme", scheme);
+		el.setEL("arguments", arguments);
 		setClass(el, null, "", cd);
 	}
 
@@ -2228,20 +1956,21 @@ public final class XMLConfigAdmin {
 
 		if (!hasAccess) throw new SecurityException("no access to update resources");
 
-		Element parent = _getRootElement("resources");
+		Array children = ConfigWebUtil.getAsArray("resources", "default-resource-provider", root);
 
 		// Update
-		Element[] children = XMLConfigWebFactory.getChildren(parent, "default-resource-provider");
-		for (int i = 0; i < children.length; i++) {
-			Element el = children[i];
-			el.setAttribute("arguments", arguments);
+		for (int i = 1; i <= children.size(); i++) {
+			Struct el = Caster.toStruct(children.get(i, null), null);
+			if (el == null) continue;
+
+			el.setEL("arguments", arguments);
 			return;
 		}
 
 		// Insert
-		Element el = doc.createElement("default-resource-provider");
-		parent.appendChild(el);
-		el.setAttribute("arguments", arguments);
+		Struct el = new StructImpl(Struct.TYPE_LINKED);
+		children.appendEL(el);
+		el.setEL("arguments", arguments);
 		setClass(el, null, "", cd);
 	}
 
@@ -2299,33 +2028,38 @@ public final class XMLConfigAdmin {
 	public Query getResourceProviders() throws PageException {
 		checkReadAccess();
 		// check parameters
-		Element parent = _getRootElement("resources");
-		Element[] elProviders = XMLConfigWebFactory.getChildren(parent, "resource-provider");
-		Element[] elDefaultProviders = XMLConfigWebFactory.getChildren(parent, "default-resource-provider");
+		Struct parent = _getRootElement("resources");
+		Array elProviders = ConfigWebUtil.getAsArray("resource-provider", parent);
+		Array elDefaultProviders = ConfigWebUtil.getAsArray("default-resource-provider", parent);
+
 		ResourceProvider[] providers = config.getResourceProviders();
 		ResourceProvider defaultProvider = config.getDefaultResourceProvider();
 
 		Query qry = new QueryImpl(new String[] { "support", "scheme", "caseSensitive", "default", "class", "bundleName", "bundleVersion", "arguments" },
-				elProviders.length + elDefaultProviders.length, "resourceproviders");
+				elProviders.size() + elDefaultProviders.size(), "resourceproviders");
 		int row = 1;
-		for (int i = 0; i < elDefaultProviders.length; i++) {
-			getResourceProviders(new ResourceProvider[] { defaultProvider }, qry, elDefaultProviders[i], row++, Boolean.TRUE);
+		for (int i = 1; i <= elDefaultProviders.size(); i++) {
+			Struct tmp = Caster.toStruct(elDefaultProviders.get(i, null), null);
+			if (tmp == null) continue;
+			getResourceProviders(new ResourceProvider[] { defaultProvider }, qry, tmp, row++, Boolean.TRUE);
 		}
-		for (int i = 0; i < elProviders.length; i++) {
-			getResourceProviders(providers, qry, elProviders[i], row++, Boolean.FALSE);
+		for (int i = 1; i <= elProviders.size(); i++) {
+			Struct tmp = Caster.toStruct(elProviders.get(i, null), null);
+			if (tmp == null) continue;
+			getResourceProviders(providers, qry, tmp, row++, Boolean.FALSE);
 		}
 		return qry;
 	}
 
-	private void getResourceProviders(ResourceProvider[] providers, Query qry, Element p, int row, Boolean def) throws PageException {
+	private void getResourceProviders(ResourceProvider[] providers, Query qry, Struct p, int row, Boolean def) throws PageException {
 		Array support = new ArrayImpl();
-		String cn = p.getAttribute("class");
-		String name = p.getAttribute("bundle-name");
-		String version = p.getAttribute("bundle-version");
+		String cn = ConfigWebUtil.getAsString("class", p, null);
+		String name = ConfigWebUtil.getAsString("bundle-name", p, null);
+		String version = ConfigWebUtil.getAsString("bundle-version", p, null);
 		ClassDefinition cd = new ClassDefinitionImpl(cn, name, version, ThreadLocalPageContext.getConfig().getIdentification());
 
-		qry.setAt("scheme", row, p.getAttribute("scheme"));
-		qry.setAt("arguments", row, p.getAttribute("arguments"));
+		qry.setAt("scheme", row, p.get("scheme"));
+		qry.setAt("arguments", row, p.get("arguments"));
 
 		qry.setAt("class", row, cd.getClassName());
 		qry.setAt("bundleName", row, cd.getName());
@@ -2348,13 +2082,14 @@ public final class XMLConfigAdmin {
 		// check parameters
 		if (StringUtil.isEmpty(className)) throw new ExpressionException("class name for jdbc driver cannot be empty");
 
-		Element parent = _getRootElement("jdbc");
+		Array children = ConfigWebUtil.getAsArray("jdbc", "driver", root);
+		for (int i = children.size(); i > 0; i--) {
+			Struct tmp = Caster.toStruct(children.get(i, null), null);
+			if (tmp == null) continue;
 
-		Element[] children = XMLConfigWebFactory.getChildren(parent, "driver");
-		for (int i = 0; i < children.length; i++) {
-			String n = children[i].getAttribute("class");
+			String n = ConfigWebUtil.getAsString("class", tmp, null);
 			if (n != null && n.equalsIgnoreCase(className)) {
-				parent.removeChild(children[i]);
+				children.removeEL(i);
 			}
 		}
 	}
@@ -2371,13 +2106,14 @@ public final class XMLConfigAdmin {
 		// check parameters
 		if (name == null || name.length() == 0) throw new ExpressionException("name for Datasource Connection can be an empty value");
 
-		Element datasources = _getRootElement("data-sources");
+		Array children = ConfigWebUtil.getAsArray("data-sources", "data-source", root);
+		for (int i = children.size(); i > 0; i--) {
+			Struct tmp = Caster.toStruct(children.get(i, null), null);
+			if (tmp == null) continue;
 
-		Element[] children = XMLConfigWebFactory.getChildren(datasources, "data-source");
-		for (int i = 0; i < children.length; i++) {
-			String n = children[i].getAttribute("name");
+			String n = ConfigWebUtil.getAsString("name", tmp, null);
 			if (n != null && n.equalsIgnoreCase(name)) {
-				datasources.removeChild(children[i]);
+				children.removeEL(i);
 			}
 		}
 	}
@@ -2391,18 +2127,21 @@ public final class XMLConfigAdmin {
 		// check parameters
 		if (StringUtil.isEmpty(name)) throw new ExpressionException("name for Cache Connection can not be an empty value");
 
-		Element parent = _getRootElement("cache");
+		Struct parent = _getRootElement("cache");
 
 		// remove default flag
-		if (name.equalsIgnoreCase(parent.getAttribute("default-object"))) parent.removeAttribute("default-object");
-		if (name.equalsIgnoreCase(parent.getAttribute("default-template"))) parent.removeAttribute("default-template");
-		if (name.equalsIgnoreCase(parent.getAttribute("default-query"))) parent.removeAttribute("default-query");
-		if (name.equalsIgnoreCase(parent.getAttribute("default-resource"))) parent.removeAttribute("default-resource");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("default-object", null), null))) rem(parent, "default-object");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("default-template", null), null))) rem(parent, "default-template");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("default-query", null), null))) rem(parent, "default-query");
+		if (name.equalsIgnoreCase(Caster.toString(parent.get("default-resource", null), null))) rem(parent, "default-resource");
 
 		// remove element
-		Element[] children = XMLConfigWebFactory.getChildren(parent, "connection");
-		for (int i = 0; i < children.length; i++) {
-			String n = children[i].getAttribute("name");
+		Array children = ConfigWebUtil.getAsArray("connection", parent);
+		for (int i = children.size(); i > 0; i--) {
+			Struct tmp = Caster.toStruct(children.get(i, null), null);
+			if (tmp == null) continue;
+
+			String n = ConfigWebUtil.getAsString("name", tmp, "");
 			if (n != null && n.equalsIgnoreCase(name)) {
 				Map<String, CacheConnection> conns = config.getCacheConnections();
 				CacheConnection cc = conns.get(n.toLowerCase());
@@ -2411,31 +2150,24 @@ public final class XMLConfigAdmin {
 					// CacheUtil.removeEL( config instanceof ConfigWeb ? (ConfigWeb) config : null, cc );
 				}
 
-				parent.removeChild(children[i]);
+				children.removeEL(i);
 			}
 		}
-
 	}
 
 	public boolean cacheConnectionExists(String name) throws ExpressionException, SecurityException {
-
 		checkReadAccess();
-
 		if (!ConfigWebUtil.hasAccess(config, SecurityManagerImpl.TYPE_CACHE)) throw new SecurityException("no access to check cache connection");
-
 		if (name == null || name.isEmpty()) throw new ExpressionException("name for Cache Connection can not be an empty value");
 
-		Element parent = _getRootElement("cache");
+		Array children = ConfigWebUtil.getAsArray("cache", "connection", root);
+		for (int i = 1; i <= children.size(); i++) {
+			Struct tmp = Caster.toStruct(children.get(i, null), null);
+			if (tmp == null) continue;
 
-		Element[] children = XMLConfigWebFactory.getChildren(parent, "connection");
-
-		for (int i = 0; i < children.length; i++) {
-
-			String n = children[i].getAttribute("name");
-
+			String n = ConfigWebUtil.getAsString("name", tmp, null);
 			if (n != null && n.equalsIgnoreCase(name)) return true;
 		}
-
 		return false;
 	}
 
@@ -2452,12 +2184,14 @@ public final class XMLConfigAdmin {
 	protected void _removeGatewayEntry(String name) throws PageException {
 		if (StringUtil.isEmpty(name)) throw new ExpressionException("name for Gateway Id can be an empty value");
 
-		Element parent = _getRootElement("gateways");
+		Array children = ConfigWebUtil.getAsArray("gateways", "gateway", root);
 
 		// remove element
-		Element[] children = XMLConfigWebFactory.getChildren(parent, "gateway");
-		for (int i = 0; i < children.length; i++) {
-			String n = children[i].getAttribute("id");
+		for (int i = children.size(); i > 0; i--) {
+			Struct tmp = Caster.toStruct(children.get(i, null), null);
+			if (tmp == null) continue;
+
+			String n = ConfigWebUtil.getAsString("id", tmp, null);
 			if (n != null && n.equalsIgnoreCase(name)) {
 
 				if (config instanceof ConfigWeb) {
@@ -2469,7 +2203,7 @@ public final class XMLConfigAdmin {
 						_removeGatewayEntry((ConfigWebPro) cw, name);
 					}
 				}
-				parent.removeChild(children[i]);
+				children.removeEL(i);
 			}
 		}
 	}
@@ -2494,13 +2228,14 @@ public final class XMLConfigAdmin {
 		// check parameters
 		if (StringUtil.isEmpty(url)) throw new ExpressionException("url for Remote Client can be an empty value");
 
-		Element clients = _getRootElement("remote-clients");
+		Array children = ConfigWebUtil.getAsArray("remote-clients", "remote-client", root);
+		for (int i = children.size(); i > 0; i--) {
+			Struct tmp = Caster.toStruct(children.get(i, null), null);
+			if (tmp == null) continue;
 
-		Element[] children = XMLConfigWebFactory.getChildren(clients, "remote-client");
-		for (int i = 0; i < children.length; i++) {
-			String n = children[i].getAttribute("url");
+			String n = ConfigWebUtil.getAsString("url", tmp, null);
 			if (n != null && n.equalsIgnoreCase(url)) {
-				clients.removeChild(children[i]);
+				children.removeEL(i);
 			}
 		}
 	}
@@ -2517,9 +2252,9 @@ public final class XMLConfigAdmin {
 
 		if (!hasAccess) throw new SecurityException("no access to update datsource connections");
 
-		Element datasources = _getRootElement("data-sources");
-		datasources.setAttribute("psq", Caster.toString(psq, ""));
-		if (datasources.hasAttribute("preserve-single-quote")) datasources.removeAttribute("preserve-single-quote");
+		Struct datasources = _getRootElement("data-sources");
+		datasources.setEL("psq", Caster.toString(psq, ""));
+		if (datasources.containsKey("preserve-single-quote")) rem(datasources, "preserve-single-quote");
 	}
 
 	public void updateInspectTemplate(String str) throws SecurityException {
@@ -2528,8 +2263,8 @@ public final class XMLConfigAdmin {
 
 		if (!hasAccess) throw new SecurityException("no access to update");
 
-		Element datasources = _getRootElement("java");
-		datasources.setAttribute("inspect-template", str);
+		Struct datasources = _getRootElement("java");
+		datasources.setEL("inspect-template", str);
 
 	}
 
@@ -2539,9 +2274,9 @@ public final class XMLConfigAdmin {
 
 		if (!hasAccess) throw new SecurityException("no access to update");
 
-		Element datasources = _getRootElement("application");
-		if (typeChecking == null) datasources.removeAttribute("type-checking");
-		else datasources.setAttribute("type-checking", Caster.toString(typeChecking.booleanValue()));
+		Struct datasources = _getRootElement("application");
+		if (typeChecking == null) rem(datasources, "type-checking");
+		else datasources.setEL("type-checking", Caster.toString(typeChecking.booleanValue()));
 
 	}
 
@@ -2550,11 +2285,11 @@ public final class XMLConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update");
 
-		Element el = _getRootElement("application");
-		if (ts == null) el.removeAttribute("cached-after");
+		Struct el = _getRootElement("application");
+		if (ts == null) rem(el, "cached-after");
 		else {
 			if (ts.getMillis() < 0) throw new ApplicationException("value cannot be a negative number");
-			el.setAttribute("cached-after", ts.getDay() + "," + ts.getHour() + "," + ts.getMinute() + "," + ts.getSecond());
+			el.setEL("cached-after", ts.getDay() + "," + ts.getHour() + "," + ts.getMinute() + "," + ts.getSecond());
 		}
 	}
 
@@ -2570,11 +2305,11 @@ public final class XMLConfigAdmin {
 
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
-		Element scope = _getRootElement("scope");
-		if (type.equalsIgnoreCase("strict")) scope.setAttribute("cascading", "strict");
-		else if (type.equalsIgnoreCase("small")) scope.setAttribute("cascading", "small");
-		else if (type.equalsIgnoreCase("standard")) scope.setAttribute("cascading", "standard");
-		else scope.setAttribute("cascading", "standard");
+		Struct scope = _getRootElement("scope");
+		if (type.equalsIgnoreCase("strict")) scope.setEL("cascading", "strict");
+		else if (type.equalsIgnoreCase("small")) scope.setEL("cascading", "small");
+		else if (type.equalsIgnoreCase("standard")) scope.setEL("cascading", "standard");
+		else scope.setEL("cascading", "standard");
 
 	}
 
@@ -2590,10 +2325,10 @@ public final class XMLConfigAdmin {
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
 		// lucee.print.ln("********........type:"+type);
-		Element scope = _getRootElement("scope");
-		if (type == ConfigWeb.SCOPE_STRICT) scope.setAttribute("cascading", "strict");
-		else if (type == ConfigWeb.SCOPE_SMALL) scope.setAttribute("cascading", "small");
-		else if (type == ConfigWeb.SCOPE_STANDARD) scope.setAttribute("cascading", "standard");
+		Struct scope = _getRootElement("scope");
+		if (type == ConfigWeb.SCOPE_STRICT) scope.setEL("cascading", "strict");
+		else if (type == ConfigWeb.SCOPE_SMALL) scope.setEL("cascading", "small");
+		else if (type == ConfigWeb.SCOPE_STANDARD) scope.setEL("cascading", "standard");
 
 	}
 
@@ -2609,8 +2344,8 @@ public final class XMLConfigAdmin {
 
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
-		Element scope = _getRootElement("scope");
-		scope.setAttribute("cascade-to-resultset", Caster.toString(allow, ""));
+		Struct scope = _getRootElement("scope");
+		scope.setEL("cascade-to-resultset", Caster.toString(allow, ""));
 
 	}
 
@@ -2620,8 +2355,8 @@ public final class XMLConfigAdmin {
 
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
-		Element scope = _getRootElement("scope");
-		scope.setAttribute("merge-url-form", Caster.toString(merge, ""));
+		Struct scope = _getRootElement("scope");
+		scope.setEL("merge-url-form", Caster.toString(merge, ""));
 
 	}
 
@@ -2638,17 +2373,17 @@ public final class XMLConfigAdmin {
 
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
-		Element scope = _getRootElement("scope");
+		Struct scope = _getRootElement("scope");
 
-		Element application = _getRootElement("application");
+		Struct application = _getRootElement("application");
 		if (span != null) {
 			if (span.getMillis() <= 0) throw new ApplicationException("value must be a positive number");
-			application.setAttribute("requesttimeout", span.getDay() + "," + span.getHour() + "," + span.getMinute() + "," + span.getSecond());
+			application.setEL("requesttimeout", span.getDay() + "," + span.getHour() + "," + span.getMinute() + "," + span.getSecond());
 		}
-		else application.removeAttribute("requesttimeout");
+		else rem(application, "requesttimeout");
 
 		// remove deprecated attribute
-		if (scope.hasAttribute("requesttimeout")) scope.removeAttribute("requesttimeout");
+		if (scope.containsKey("requesttimeout")) rem(scope, "requesttimeout");
 	}
 
 	/**
@@ -2663,9 +2398,9 @@ public final class XMLConfigAdmin {
 
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
-		Element scope = _getRootElement("scope");
-		if (span != null) scope.setAttribute("sessiontimeout", span.getDay() + "," + span.getHour() + "," + span.getMinute() + "," + span.getSecond());
-		else scope.removeAttribute("sessiontimeout");
+		Struct scope = _getRootElement("scope");
+		if (span != null) scope.setEL("sessiontimeout", span.getDay() + "," + span.getHour() + "," + span.getMinute() + "," + span.getSecond());
+		else rem(scope, "sessiontimeout");
 	}
 
 	public void updateClientStorage(String storage) throws SecurityException, ApplicationException {
@@ -2683,9 +2418,9 @@ public final class XMLConfigAdmin {
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 		storage = validateStorage(storage);
 
-		Element scope = _getRootElement("scope");
-		if (!StringUtil.isEmpty(storage, true)) scope.setAttribute(storageName + "storage", storage);
-		else scope.removeAttribute(storageName + "storage");
+		Struct scope = _getRootElement("scope");
+		if (!StringUtil.isEmpty(storage, true)) scope.setEL(storageName + "storage", storage);
+		else rem(scope, storageName + "storage");
 	}
 
 	private String validateStorage(String storage) throws ApplicationException {
@@ -2747,12 +2482,12 @@ public final class XMLConfigAdmin {
 
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
-		Element scope = _getRootElement("scope");
-		if (span != null) scope.setAttribute("clienttimeout", span.getDay() + "," + span.getHour() + "," + span.getMinute() + "," + span.getSecond());
-		else scope.removeAttribute("clienttimeout");
+		Struct scope = _getRootElement("scope");
+		if (span != null) scope.setEL("clienttimeout", span.getDay() + "," + span.getHour() + "," + span.getMinute() + "," + span.getSecond());
+		else rem(scope, "clienttimeout");
 
 		// deprecated
-		if (scope.hasAttribute("client-max-age")) scope.removeAttribute("client-max-age");
+		if (scope.containsKey("client-max-age")) rem(scope, "client-max-age");
 
 	}
 
@@ -2761,12 +2496,12 @@ public final class XMLConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
-		Element scope = _getRootElement("setting");
+		Struct scope = _getRootElement("setting");
 		writerType = writerType.trim();
 
 		// remove
 		if (StringUtil.isEmpty(writerType)) {
-			if (scope.hasAttribute("cfml-writer")) scope.removeAttribute("cfml-writer");
+			if (scope.containsKey("cfml-writer")) rem(scope, "cfml-writer");
 			return;
 		}
 
@@ -2774,19 +2509,8 @@ public final class XMLConfigAdmin {
 		if (!"white-space".equalsIgnoreCase(writerType) && !"white-space-pref".equalsIgnoreCase(writerType) && !"regular".equalsIgnoreCase(writerType))
 			throw new ApplicationException("invalid writer type definition [" + writerType + "], valid types are [white-space, white-space-pref, regular]");
 
-		scope.setAttribute("cfml-writer", writerType.toLowerCase());
+		scope.setEL("cfml-writer", writerType.toLowerCase());
 	}
-
-	/*
-	 * public void updateSuppressWhitespace(Boolean value) throws SecurityException {
-	 * checkWriteAccess(); boolean
-	 * hasAccess=ConfigWebUtil.hasAccess(config,SecurityManager.TYPE_SETTING);
-	 * 
-	 * if(!hasAccess) throw new SecurityException("no access to update scope setting");
-	 * 
-	 * Element scope=_getRootElement("setting");
-	 * scope.setAttribute("suppress-whitespace",Caster.toString(value,"")); }
-	 */
 
 	public void updateSuppressContent(Boolean value) throws SecurityException {
 		checkWriteAccess();
@@ -2794,8 +2518,8 @@ public final class XMLConfigAdmin {
 
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
-		Element scope = _getRootElement("setting");
-		scope.setAttribute("suppress-content", Caster.toString(value, ""));
+		Struct scope = _getRootElement("setting");
+		scope.setEL("suppress-content", Caster.toString(value, ""));
 	}
 
 	public void updateShowVersion(Boolean value) throws SecurityException {
@@ -2804,8 +2528,8 @@ public final class XMLConfigAdmin {
 
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
-		Element scope = _getRootElement("setting");
-		scope.setAttribute("show-version", Caster.toString(value, ""));
+		Struct scope = _getRootElement("setting");
+		scope.setEL("show-version", Caster.toString(value, ""));
 	}
 
 	public void updateAllowCompression(Boolean value) throws SecurityException {
@@ -2814,8 +2538,8 @@ public final class XMLConfigAdmin {
 
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
-		Element scope = _getRootElement("setting");
-		scope.setAttribute("allow-compression", Caster.toString(value, ""));
+		Struct scope = _getRootElement("setting");
+		scope.setEL("allow-compression", Caster.toString(value, ""));
 	}
 
 	public void updateContentLength(Boolean value) throws SecurityException {
@@ -2824,8 +2548,8 @@ public final class XMLConfigAdmin {
 
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
-		Element scope = _getRootElement("setting");
-		scope.setAttribute("content-length", Caster.toString(value, ""));
+		Struct scope = _getRootElement("setting");
+		scope.setEL("content-length", Caster.toString(value, ""));
 	}
 
 	public void updateBufferOutput(Boolean value) throws SecurityException {
@@ -2834,9 +2558,9 @@ public final class XMLConfigAdmin {
 
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
-		Element scope = _getRootElement("setting");
-		scope.setAttribute("buffering-output", Caster.toString(value, ""));
-		if (scope.hasAttribute("buffer-output")) scope.removeAttribute("buffer-output");
+		Struct scope = _getRootElement("setting");
+		scope.setEL("buffering-output", Caster.toString(value, ""));
+		if (scope.containsKey("buffer-output")) rem(scope, "buffer-output");
 	}
 
 	/**
@@ -2851,9 +2575,9 @@ public final class XMLConfigAdmin {
 
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
-		Element scope = _getRootElement("scope");
-		if (span != null) scope.setAttribute("applicationtimeout", span.getDay() + "," + span.getHour() + "," + span.getMinute() + "," + span.getSecond());
-		else scope.removeAttribute("applicationtimeout");
+		Struct scope = _getRootElement("scope");
+		if (span != null) scope.setEL("applicationtimeout", span.getDay() + "," + span.getHour() + "," + span.getMinute() + "," + span.getSecond());
+		else rem(scope, "applicationtimeout");
 	}
 
 	public void updateApplicationListener(String type, String mode) throws SecurityException {
@@ -2862,9 +2586,9 @@ public final class XMLConfigAdmin {
 
 		if (!hasAccess) throw new SecurityException("no access to update listener type");
 
-		Element scope = _getRootElement("application");
-		scope.setAttribute("listener-type", type.toLowerCase().trim());
-		scope.setAttribute("listener-mode", mode.toLowerCase().trim());
+		Struct scope = _getRootElement("application");
+		scope.setEL("listener-type", type.toLowerCase().trim());
+		scope.setEL("listener-mode", mode.toLowerCase().trim());
 	}
 
 	public void updateCachedWithin(int type, Object value) throws SecurityException, ApplicationException {
@@ -2875,9 +2599,9 @@ public final class XMLConfigAdmin {
 		String t = AppListenerUtil.toCachedWithinType(type, "");
 		if (t == null) throw new ApplicationException("invalid cachedwithin type definition");
 		String v = Caster.toString(value, null);
-		Element app = _getRootElement("application");
-		if (v != null) app.setAttribute("cached-within-" + t, v);
-		else app.removeAttribute("cached-within-" + t);
+		Struct app = _getRootElement("application");
+		if (v != null) app.setEL("cached-within-" + t, v);
+		else rem(app, "cached-within-" + t);
 	}
 
 	public void updateProxy(boolean enabled, String server, int port, String username, String password) throws SecurityException {
@@ -2886,12 +2610,12 @@ public final class XMLConfigAdmin {
 
 		if (!hasAccess) throw new SecurityException("no access to update listener type");
 
-		Element proxy = _getRootElement("proxy");
-		proxy.setAttribute("enabled", Caster.toString(enabled));
-		if (!StringUtil.isEmpty(server)) proxy.setAttribute("server", server);
-		if (port > 0) proxy.setAttribute("port", Caster.toString(port));
-		if (!StringUtil.isEmpty(username)) proxy.setAttribute("username", username);
-		if (!StringUtil.isEmpty(password)) proxy.setAttribute("password", password);
+		Struct proxy = _getRootElement("proxy");
+		proxy.setEL("enabled", Caster.toString(enabled));
+		if (!StringUtil.isEmpty(server)) proxy.setEL("server", server);
+		if (port > 0) proxy.setEL("port", Caster.toString(port));
+		if (!StringUtil.isEmpty(username)) proxy.setEL("username", username);
+		if (!StringUtil.isEmpty(password)) proxy.setEL("password", password);
 	}
 
 	/*
@@ -2916,8 +2640,8 @@ public final class XMLConfigAdmin {
 
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
-		Element scope = _getRootElement("scope");
-		scope.setAttribute("sessionmanagement", Caster.toString(sessionManagement, ""));
+		Struct scope = _getRootElement("scope");
+		scope.setEL("sessionmanagement", Caster.toString(sessionManagement, ""));
 	}
 
 	/**
@@ -2932,8 +2656,8 @@ public final class XMLConfigAdmin {
 
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
-		Element scope = _getRootElement("scope");
-		scope.setAttribute("clientmanagement", Caster.toString(clientManagement, ""));
+		Struct scope = _getRootElement("scope");
+		scope.setEL("clientmanagement", Caster.toString(clientManagement, ""));
 	}
 
 	/**
@@ -2947,8 +2671,8 @@ public final class XMLConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
-		Element scope = _getRootElement("scope");
-		scope.setAttribute("setclientcookies", Caster.toString(clientCookies, ""));
+		Struct scope = _getRootElement("scope");
+		scope.setEL("setclientcookies", Caster.toString(clientCookies, ""));
 	}
 
 	/**
@@ -2962,8 +2686,8 @@ public final class XMLConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
-		Element mode = _getRootElement("mode");
-		mode.setAttribute("develop", Caster.toString(developmode, ""));
+		Struct mode = _getRootElement("mode");
+		mode.setEL("develop", Caster.toString(developmode, ""));
 	}
 
 	/**
@@ -2977,8 +2701,8 @@ public final class XMLConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
-		Element scope = _getRootElement("scope");
-		scope.setAttribute("setdomaincookies", Caster.toString(domainCookies, ""));
+		Struct scope = _getRootElement("scope");
+		scope.setEL("setdomaincookies", Caster.toString(domainCookies, ""));
 	}
 
 	/**
@@ -2992,8 +2716,8 @@ public final class XMLConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update regional setting");
 
-		Element scope = _getRootElement("regional");
-		scope.setAttribute("locale", locale.trim());
+		Struct scope = _getRootElement("regional");
+		scope.setEL("locale", locale.trim());
 	}
 
 	public void updateMonitorEnabled(boolean updateMonitorEnabled) throws SecurityException {
@@ -3002,8 +2726,8 @@ public final class XMLConfigAdmin {
 	}
 
 	void _updateMonitorEnabled(boolean updateMonitorEnabled) {
-		Element scope = _getRootElement("monitoring");
-		scope.setAttribute("enabled", Caster.toString(updateMonitorEnabled));
+		Struct scope = _getRootElement("monitoring");
+		scope.setEL("enabled", Caster.toString(updateMonitorEnabled));
 	}
 
 	public void updateScriptProtect(String strScriptProtect) throws SecurityException {
@@ -3011,8 +2735,8 @@ public final class XMLConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update script protect");
 
-		Element scope = _getRootElement("application");
-		scope.setAttribute("script-protect", strScriptProtect.trim());
+		Struct scope = _getRootElement("application");
+		scope.setEL("script-protect", strScriptProtect.trim());
 	}
 
 	public void updateAllowURLRequestTimeout(Boolean allowURLRequestTimeout) throws SecurityException {
@@ -3020,8 +2744,8 @@ public final class XMLConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update AllowURLRequestTimeout");
 
-		Element scope = _getRootElement("application");
-		scope.setAttribute("allow-url-requesttimeout", Caster.toString(allowURLRequestTimeout, ""));
+		Struct scope = _getRootElement("application");
+		scope.setEL("allow-url-requesttimeout", Caster.toString(allowURLRequestTimeout, ""));
 	}
 
 	public void updateScriptProtect(int scriptProtect) throws SecurityException {
@@ -3039,8 +2763,8 @@ public final class XMLConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update regional setting");
 
-		Element regional = _getRootElement("regional");
-		regional.setAttribute("timezone", timeZone.trim());
+		Struct regional = _getRootElement("regional");
+		regional.setEL("timezone", timeZone.trim());
 
 	}
 
@@ -3070,10 +2794,10 @@ public final class XMLConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update regional setting");
 
-		Element scope = _getRootElement("regional");
-		scope.setAttribute("timeserver", timeServer.trim());
-		if (useTimeServer != null) scope.setAttribute("use-timeserver", Caster.toString(useTimeServer));
-		else scope.removeAttribute("use-timeserver");
+		Struct scope = _getRootElement("regional");
+		scope.setEL("timeserver", timeServer.trim());
+		if (useTimeServer != null) scope.setEL("use-timeserver", Caster.toString(useTimeServer));
+		else rem(scope, "use-timeserver");
 	}
 
 	/**
@@ -3087,11 +2811,11 @@ public final class XMLConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update component setting");
 		// config.resetBaseComponentPage();
-		Element scope = _getRootElement("component");
+		Struct scope = _getRootElement("component");
 		// if(baseComponent.trim().length()>0)
-		scope.removeAttribute("base");
-		scope.setAttribute("base-cfml", baseComponentCFML);
-		scope.setAttribute("base-lucee", baseComponentLucee);
+		rem(scope, "base");
+		scope.setEL("base-cfml", baseComponentCFML);
+		scope.setEL("base-lucee", baseComponentLucee);
 	}
 
 	public void updateComponentDeepSearch(Boolean deepSearch) throws SecurityException {
@@ -3099,12 +2823,12 @@ public final class XMLConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update component setting");
 		// config.resetBaseComponentPage();
-		Element scope = _getRootElement("component");
+		Struct scope = _getRootElement("component");
 		// if(baseComponent.trim().length()>0)
-		if (deepSearch != null) scope.setAttribute("deep-search", Caster.toString(deepSearch.booleanValue()));
+		if (deepSearch != null) scope.setEL("deep-search", Caster.toString(deepSearch.booleanValue()));
 
 		else {
-			if (scope.hasAttribute("deep-search")) scope.removeAttribute("deep-search");
+			if (scope.containsKey("deep-search")) rem(scope, "deep-search");
 		}
 
 	}
@@ -3114,9 +2838,9 @@ public final class XMLConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update component setting");
 		// config.resetBaseComponentPage();
-		Element scope = _getRootElement("component");
+		Struct scope = _getRootElement("component");
 		// if(baseComponent.trim().length()>0)
-		scope.setAttribute("component-default-import", componentDefaultImport);
+		scope.setEL("component-default-import", componentDefaultImport);
 	}
 
 	/**
@@ -3132,13 +2856,13 @@ public final class XMLConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update component setting");
 
-		Element scope = _getRootElement("component");
+		Struct scope = _getRootElement("component");
 
 		if (StringUtil.isEmpty(strAccess)) {
-			scope.setAttribute("data-member-default-access", "");
+			scope.setEL("data-member-default-access", "");
 		}
 		else {
-			scope.setAttribute("data-member-default-access", ComponentUtil.toStringAccess(ComponentUtil.toIntAccess(strAccess)));
+			scope.setEL("data-member-default-access", ComponentUtil.toStringAccess(ComponentUtil.toIntAccess(strAccess)));
 		}
 	}
 
@@ -3153,8 +2877,8 @@ public final class XMLConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update trigger-data-member");
 
-		Element scope = _getRootElement("component");
-		scope.setAttribute("trigger-data-member", Caster.toString(triggerDataMember, ""));
+		Struct scope = _getRootElement("component");
+		scope.setEL("trigger-data-member", Caster.toString(triggerDataMember, ""));
 	}
 
 	public void updateComponentUseShadow(Boolean useShadow) throws SecurityException {
@@ -3162,8 +2886,8 @@ public final class XMLConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update use-shadow");
 
-		Element scope = _getRootElement("component");
-		scope.setAttribute("use-shadow", Caster.toString(useShadow, ""));
+		Struct scope = _getRootElement("component");
+		scope.setEL("use-shadow", Caster.toString(useShadow, ""));
 	}
 
 	public void updateComponentLocalSearch(Boolean componentLocalSearch) throws SecurityException {
@@ -3171,8 +2895,8 @@ public final class XMLConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update component Local Search");
 
-		Element scope = _getRootElement("component");
-		scope.setAttribute("local-search", Caster.toString(componentLocalSearch, ""));
+		Struct scope = _getRootElement("component");
+		scope.setEL("local-search", Caster.toString(componentLocalSearch, ""));
 	}
 
 	public void updateComponentPathCache(Boolean componentPathCache) throws SecurityException {
@@ -3180,9 +2904,9 @@ public final class XMLConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update component Cache Path");
 
-		Element scope = _getRootElement("component");
+		Struct scope = _getRootElement("component");
 		if (!Caster.toBooleanValue(componentPathCache, false)) config.clearComponentCache();
-		scope.setAttribute("use-cache-path", Caster.toString(componentPathCache, ""));
+		scope.setEL("use-cache-path", Caster.toString(componentPathCache, ""));
 	}
 
 	public void updateCTPathCache(Boolean ctPathCache) throws SecurityException {
@@ -3190,17 +2914,17 @@ public final class XMLConfigAdmin {
 		if (!ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_CUSTOM_TAG)) throw new SecurityException("no access to update custom tag setting");
 
 		if (!Caster.toBooleanValue(ctPathCache, false)) config.clearCTCache();
-		Element scope = _getRootElement("custom-tag");
-		scope.setAttribute("use-cache-path", Caster.toString(ctPathCache, ""));
+		Struct scope = _getRootElement("custom-tag");
+		scope.setEL("use-cache-path", Caster.toString(ctPathCache, ""));
 	}
 
 	public void updateSecurity(String varUsage) throws SecurityException {
 		checkWriteAccess();
-		Element el = _getRootElement("security");
+		Struct el = _getRootElement("security");
 
 		if (el != null) {
-			if (!StringUtil.isEmpty(varUsage)) el.setAttribute("variable-usage", Caster.toString(varUsage));
-			else el.removeAttribute("variable-usage");
+			if (!StringUtil.isEmpty(varUsage)) el.setEL("variable-usage", Caster.toString(varUsage));
+			else rem(el, "variable-usage");
 		}
 
 	}
@@ -3216,34 +2940,34 @@ public final class XMLConfigAdmin {
 		checkWriteAccess();
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_DEBUGGING);
 		if (!hasAccess) throw new SecurityException("no access to change debugging settings");
-		Element debugging = _getRootElement("debugging");
+		Struct debugging = _getRootElement("debugging");
 
-		if (debug != null) debugging.setAttribute("debug", Caster.toString(debug.booleanValue()));
-		else debugging.removeAttribute("debug");
+		if (debug != null) debugging.setEL("debug", Caster.toString(debug.booleanValue()));
+		else rem(debugging, "debug");
 
-		if (database != null) debugging.setAttribute("database", Caster.toString(database.booleanValue()));
-		else debugging.removeAttribute("database");
+		if (database != null) debugging.setEL("database", Caster.toString(database.booleanValue()));
+		else rem(debugging, "database");
 
-		if (template != null) debugging.setAttribute("templenabled", Caster.toString(template.booleanValue()));
-		else debugging.removeAttribute("templenabled");
+		if (template != null) debugging.setEL("templenabled", Caster.toString(template.booleanValue()));
+		else rem(debugging, "templenabled");
 
-		if (exception != null) debugging.setAttribute("exception", Caster.toString(exception.booleanValue()));
-		else debugging.removeAttribute("exception");
+		if (exception != null) debugging.setEL("exception", Caster.toString(exception.booleanValue()));
+		else rem(debugging, "exception");
 
-		if (tracing != null) debugging.setAttribute("tracing", Caster.toString(tracing.booleanValue()));
-		else debugging.removeAttribute("tracing");
+		if (tracing != null) debugging.setEL("tracing", Caster.toString(tracing.booleanValue()));
+		else rem(debugging, "tracing");
 
-		if (dump != null) debugging.setAttribute("dump", Caster.toString(dump.booleanValue()));
-		else debugging.removeAttribute("dump");
+		if (dump != null) debugging.setEL("dump", Caster.toString(dump.booleanValue()));
+		else rem(debugging, "dump");
 
-		if (timer != null) debugging.setAttribute("timer", Caster.toString(timer.booleanValue()));
-		else debugging.removeAttribute("timer");
+		if (timer != null) debugging.setEL("timer", Caster.toString(timer.booleanValue()));
+		else rem(debugging, "timer");
 
-		if (implicitAccess != null) debugging.setAttribute("implicit-access", Caster.toString(implicitAccess.booleanValue()));
-		else debugging.removeAttribute("implicit-access");
+		if (implicitAccess != null) debugging.setEL("implicit-access", Caster.toString(implicitAccess.booleanValue()));
+		else rem(debugging, "implicit-access");
 
-		if (queryUsage != null) debugging.setAttribute("query-usage", Caster.toString(queryUsage.booleanValue()));
-		else debugging.removeAttribute("query-usage");
+		if (queryUsage != null) debugging.setEL("query-usage", Caster.toString(queryUsage.booleanValue()));
+		else rem(debugging, "query-usage");
 
 	}
 
@@ -3258,9 +2982,9 @@ public final class XMLConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to change debugging settings");
 
-		Element debugging = _getRootElement("debugging");
+		Struct debugging = _getRootElement("debugging");
 		// if(template.trim().length()>0)
-		debugging.setAttribute("template", template);
+		debugging.setEL("template", template);
 	}
 
 	/**
@@ -3274,9 +2998,9 @@ public final class XMLConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to change error settings");
 
-		Element error = _getRootElement("error");
+		Struct error = _getRootElement("error");
 		// if(template.trim().length()>0)
-		error.setAttribute("template-" + statusCode, template);
+		error.setEL("template-" + statusCode, template);
 	}
 
 	public void updateErrorStatusCode(Boolean doStatusCode) throws SecurityException {
@@ -3284,8 +3008,8 @@ public final class XMLConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to change error settings");
 
-		Element error = _getRootElement("error");
-		error.setAttribute("status-code", Caster.toString(doStatusCode, ""));
+		Struct error = _getRootElement("error");
+		error.setEL("status-code", Caster.toString(doStatusCode, ""));
 	}
 
 	public void updateRegexType(String type) throws PageException {
@@ -3293,9 +3017,9 @@ public final class XMLConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to change regex settings");
 
-		Element regex = _getRootElement("regex");
-		if (StringUtil.isEmpty(type)) regex.removeAttribute("type");
-		else regex.setAttribute("type", RegexFactory.toType(RegexFactory.toType(type), "perl"));
+		Struct regex = _getRootElement("regex");
+		if (StringUtil.isEmpty(type)) rem(regex, "type");
+		else regex.setEL("type", RegexFactory.toType(RegexFactory.toType(type), "perl"));
 	}
 
 	/**
@@ -3309,50 +3033,13 @@ public final class XMLConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update component setting");
 
-		Element component = _getRootElement("component");
+		Struct component = _getRootElement("component");
 		// if(template.trim().length()>0)
-		component.setAttribute("dump-template", template);
+		component.setEL("dump-template", template);
 	}
 
-	/*
-	 * * updates the if memory usage will be logged or not
-	 * 
-	 * @param logMemoryUsage
-	 * 
-	 * @throws SecurityException / public void updateLogMemoryUsage(boolean logMemoryUsage) throws
-	 * SecurityException { boolean
-	 * hasAccess=ConfigWebUtil.hasAccess(config,SecurityManager.TYPE_DEBUGGING); if(!hasAccess) throw
-	 * new SecurityException("no access to change debugging settings");
-	 * 
-	 * Element debugging=_getRootElement("debugging");
-	 * debugging.setAttribute("log-memory-usage",Caster.toString(logMemoryUsage)); }
-	 */
-
-	/*
-	 * * updates the Memory Logger
-	 * 
-	 * @param memoryLogger
-	 * 
-	 * @throws SecurityException / public void updateMemoryLogger(String memoryLogger) throws
-	 * SecurityException { boolean
-	 * hasAccess=ConfigWebUtil.hasAccess(config,SecurityManager.TYPE_DEBUGGING); if(!hasAccess) throw
-	 * new SecurityException("no access to change debugging settings");
-	 * 
-	 * Element debugging=_getRootElement("debugging");
-	 * if(memoryLogger.trim().length()>0)debugging.setAttribute("memory-log",memoryLogger); }
-	 */
-
-	private Element _getRootElement(String name) {
-		Element el = XMLConfigWebFactory.getChildByName(doc.getDocumentElement(), name);
-		if (el == null) {
-			el = doc.createElement(name);
-			doc.getDocumentElement().appendChild(el);
-		}
-		return el;
-	}
-
-	private Element _getRootElement(String name, boolean insertBefore, boolean doNotCreate) {
-		return XMLConfigWebFactory.getChildByName(doc.getDocumentElement(), name, insertBefore, doNotCreate);
+	private Struct _getRootElement(String name) {
+		return ConfigWebUtil.getAsStruct(name, root);
 	}
 
 	/**
@@ -3380,56 +3067,56 @@ public final class XMLConfigAdmin {
 		checkWriteAccess();
 		if (!(config instanceof ConfigServer)) throw new SecurityException("can't change security settings from this context");
 
-		Element security = _getRootElement("security");
+		Struct security = _getRootElement("security");
 		updateSecurityFileAccess(security, fileAccess, file);
-		security.setAttribute("setting", SecurityManagerImpl.toStringAccessValue(setting));
-		security.setAttribute("file", SecurityManagerImpl.toStringAccessValue(file));
-		security.setAttribute("direct_java_access", SecurityManagerImpl.toStringAccessValue(directJavaAccess));
-		security.setAttribute("mail", SecurityManagerImpl.toStringAccessValue(mail));
-		security.setAttribute("datasource", SecurityManagerImpl.toStringAccessValue(datasource));
-		security.setAttribute("mapping", SecurityManagerImpl.toStringAccessValue(mapping));
-		security.setAttribute("remote", SecurityManagerImpl.toStringAccessValue(remote));
-		security.setAttribute("custom_tag", SecurityManagerImpl.toStringAccessValue(customTag));
-		security.setAttribute("cfx_setting", SecurityManagerImpl.toStringAccessValue(cfxSetting));
-		security.setAttribute("cfx_usage", SecurityManagerImpl.toStringAccessValue(cfxUsage));
-		security.setAttribute("debugging", SecurityManagerImpl.toStringAccessValue(debugging));
-		security.setAttribute("search", SecurityManagerImpl.toStringAccessValue(search));
-		security.setAttribute("scheduled_task", SecurityManagerImpl.toStringAccessValue(scheduledTasks));
+		security.setEL("setting", SecurityManagerImpl.toStringAccessValue(setting));
+		security.setEL("file", SecurityManagerImpl.toStringAccessValue(file));
+		security.setEL("direct_java_access", SecurityManagerImpl.toStringAccessValue(directJavaAccess));
+		security.setEL("mail", SecurityManagerImpl.toStringAccessValue(mail));
+		security.setEL("datasource", SecurityManagerImpl.toStringAccessValue(datasource));
+		security.setEL("mapping", SecurityManagerImpl.toStringAccessValue(mapping));
+		security.setEL("remote", SecurityManagerImpl.toStringAccessValue(remote));
+		security.setEL("custom_tag", SecurityManagerImpl.toStringAccessValue(customTag));
+		security.setEL("cfx_setting", SecurityManagerImpl.toStringAccessValue(cfxSetting));
+		security.setEL("cfx_usage", SecurityManagerImpl.toStringAccessValue(cfxUsage));
+		security.setEL("debugging", SecurityManagerImpl.toStringAccessValue(debugging));
+		security.setEL("search", SecurityManagerImpl.toStringAccessValue(search));
+		security.setEL("scheduled_task", SecurityManagerImpl.toStringAccessValue(scheduledTasks));
 
-		security.setAttribute("tag_execute", SecurityManagerImpl.toStringAccessValue(tagExecute));
-		security.setAttribute("tag_import", SecurityManagerImpl.toStringAccessValue(tagImport));
-		security.setAttribute("tag_object", SecurityManagerImpl.toStringAccessValue(tagObject));
-		security.setAttribute("tag_registry", SecurityManagerImpl.toStringAccessValue(tagRegistry));
-		security.setAttribute("cache", SecurityManagerImpl.toStringAccessValue(cache));
-		security.setAttribute("gateway", SecurityManagerImpl.toStringAccessValue(gateway));
-		security.setAttribute("orm", SecurityManagerImpl.toStringAccessValue(orm));
+		security.setEL("tag_execute", SecurityManagerImpl.toStringAccessValue(tagExecute));
+		security.setEL("tag_import", SecurityManagerImpl.toStringAccessValue(tagImport));
+		security.setEL("tag_object", SecurityManagerImpl.toStringAccessValue(tagObject));
+		security.setEL("tag_registry", SecurityManagerImpl.toStringAccessValue(tagRegistry));
+		security.setEL("cache", SecurityManagerImpl.toStringAccessValue(cache));
+		security.setEL("gateway", SecurityManagerImpl.toStringAccessValue(gateway));
+		security.setEL("orm", SecurityManagerImpl.toStringAccessValue(orm));
 
-		security.setAttribute("access_read", SecurityManagerImpl.toStringAccessRWValue(accessRead));
-		security.setAttribute("access_write", SecurityManagerImpl.toStringAccessRWValue(accessWrite));
+		security.setEL("access_read", SecurityManagerImpl.toStringAccessRWValue(accessRead));
+		security.setEL("access_write", SecurityManagerImpl.toStringAccessRWValue(accessWrite));
 
 	}
 
-	private void removeSecurityFileAccess(Element parent) {
-		Element[] children = XMLConfigWebFactory.getChildren(parent, "file-access");
-
+	private void removeSecurityFileAccess(Struct parent) {
+		Array children = ConfigWebUtil.getAsArray("file-access", parent);
 		// remove existing
-		if (!ArrayUtil.isEmpty(children)) {
-			for (int i = children.length - 1; i >= 0; i--) {
-				parent.removeChild(children[i]);
+		if (children.size() > 0) {
+			for (int i = children.size(); i > 0; i--) {
+				children.removeEL(i);
 			}
 		}
 	}
 
-	private void updateSecurityFileAccess(Element parent, Resource[] fileAccess, short file) {
+	private void updateSecurityFileAccess(Struct parent, Resource[] fileAccess, short file) {
 		removeSecurityFileAccess(parent);
 
 		// insert
 		if (!ArrayUtil.isEmpty(fileAccess) && file != SecurityManager.VALUE_ALL) {
-			Element fa;
+			Struct fa;
+			Array children = ConfigWebUtil.getAsArray("file-access", parent);
 			for (int i = 0; i < fileAccess.length; i++) {
-				fa = doc.createElement("file-access");
-				fa.setAttribute("path", fileAccess[i].getAbsolutePath());
-				parent.appendChild(fa);
+				fa = new StructImpl();
+				fa.setEL("path", fileAccess[i].getAbsolutePath());
+				children.appendEL(fa);
 			}
 		}
 
@@ -3465,41 +3152,44 @@ public final class XMLConfigAdmin {
 		checkWriteAccess();
 		if (!(config instanceof ConfigServer)) throw new SecurityException("can't change security settings from this context");
 
-		Element security = _getRootElement("security");
-		Element[] children = XMLConfigWebFactory.getChildren(security, "accessor");
-		Element accessor = null;
-		for (int i = 0; i < children.length; i++) {
-			if (id.equals(children[i].getAttribute("id"))) {
-				accessor = children[i];
+		Struct security = _getRootElement("security");
+		Array children = ConfigWebUtil.getAsArray("accessor", security);
+		Struct accessor = null;
+		for (int i = 1; i <= children.size(); i++) {
+			Struct tmp = Caster.toStruct(children.get(i, null), null);
+			if (tmp == null) continue;
+
+			if (id.equals(tmp.get("id", ""))) {
+				accessor = tmp;
 			}
 		}
 		if (accessor == null) throw new ApplicationException("there is noc Security Manager for id [" + id + "]");
 		updateSecurityFileAccess(accessor, fileAccess, file);
 
-		accessor.setAttribute("setting", SecurityManagerImpl.toStringAccessValue(setting));
-		accessor.setAttribute("file", SecurityManagerImpl.toStringAccessValue(file));
-		accessor.setAttribute("direct_java_access", SecurityManagerImpl.toStringAccessValue(directJavaAccess));
-		accessor.setAttribute("mail", SecurityManagerImpl.toStringAccessValue(mail));
-		accessor.setAttribute("datasource", SecurityManagerImpl.toStringAccessValue(datasource));
-		accessor.setAttribute("mapping", SecurityManagerImpl.toStringAccessValue(mapping));
-		accessor.setAttribute("remote", SecurityManagerImpl.toStringAccessValue(remote));
-		accessor.setAttribute("custom_tag", SecurityManagerImpl.toStringAccessValue(customTag));
-		accessor.setAttribute("cfx_setting", SecurityManagerImpl.toStringAccessValue(cfxSetting));
-		accessor.setAttribute("cfx_usage", SecurityManagerImpl.toStringAccessValue(cfxUsage));
-		accessor.setAttribute("debugging", SecurityManagerImpl.toStringAccessValue(debugging));
-		accessor.setAttribute("search", SecurityManagerImpl.toStringAccessValue(search));
-		accessor.setAttribute("scheduled_task", SecurityManagerImpl.toStringAccessValue(scheduledTasks));
-		accessor.setAttribute("cache", SecurityManagerImpl.toStringAccessValue(cache));
-		accessor.setAttribute("gateway", SecurityManagerImpl.toStringAccessValue(gateway));
-		accessor.setAttribute("orm", SecurityManagerImpl.toStringAccessValue(orm));
+		accessor.setEL("setting", SecurityManagerImpl.toStringAccessValue(setting));
+		accessor.setEL("file", SecurityManagerImpl.toStringAccessValue(file));
+		accessor.setEL("direct_java_access", SecurityManagerImpl.toStringAccessValue(directJavaAccess));
+		accessor.setEL("mail", SecurityManagerImpl.toStringAccessValue(mail));
+		accessor.setEL("datasource", SecurityManagerImpl.toStringAccessValue(datasource));
+		accessor.setEL("mapping", SecurityManagerImpl.toStringAccessValue(mapping));
+		accessor.setEL("remote", SecurityManagerImpl.toStringAccessValue(remote));
+		accessor.setEL("custom_tag", SecurityManagerImpl.toStringAccessValue(customTag));
+		accessor.setEL("cfx_setting", SecurityManagerImpl.toStringAccessValue(cfxSetting));
+		accessor.setEL("cfx_usage", SecurityManagerImpl.toStringAccessValue(cfxUsage));
+		accessor.setEL("debugging", SecurityManagerImpl.toStringAccessValue(debugging));
+		accessor.setEL("search", SecurityManagerImpl.toStringAccessValue(search));
+		accessor.setEL("scheduled_task", SecurityManagerImpl.toStringAccessValue(scheduledTasks));
+		accessor.setEL("cache", SecurityManagerImpl.toStringAccessValue(cache));
+		accessor.setEL("gateway", SecurityManagerImpl.toStringAccessValue(gateway));
+		accessor.setEL("orm", SecurityManagerImpl.toStringAccessValue(orm));
 
-		accessor.setAttribute("tag_execute", SecurityManagerImpl.toStringAccessValue(tagExecute));
-		accessor.setAttribute("tag_import", SecurityManagerImpl.toStringAccessValue(tagImport));
-		accessor.setAttribute("tag_object", SecurityManagerImpl.toStringAccessValue(tagObject));
-		accessor.setAttribute("tag_registry", SecurityManagerImpl.toStringAccessValue(tagRegistry));
+		accessor.setEL("tag_execute", SecurityManagerImpl.toStringAccessValue(tagExecute));
+		accessor.setEL("tag_import", SecurityManagerImpl.toStringAccessValue(tagImport));
+		accessor.setEL("tag_object", SecurityManagerImpl.toStringAccessValue(tagObject));
+		accessor.setEL("tag_registry", SecurityManagerImpl.toStringAccessValue(tagRegistry));
 
-		accessor.setAttribute("access_read", SecurityManagerImpl.toStringAccessRWValue(accessRead));
-		accessor.setAttribute("access_write", SecurityManagerImpl.toStringAccessRWValue(accessWrite));
+		accessor.setEL("access_read", SecurityManagerImpl.toStringAccessRWValue(accessRead));
+		accessor.setEL("access_write", SecurityManagerImpl.toStringAccessRWValue(accessWrite));
 	}
 
 	/**
@@ -3522,13 +3212,12 @@ public final class XMLConfigAdmin {
 	 */
 	public void updateDefaultPassword(String password) throws SecurityException, DOMException, IOException {
 		checkWriteAccess();
-		((ConfigServerImpl) config).setDefaultPassword(PasswordImpl.writeToXML(doc.getDocumentElement(), password, true));
+		((ConfigServerImpl) config).setDefaultPassword(PasswordImpl.writeToStruct(root, password, true));
 	}
 
 	public void removeDefaultPassword() throws SecurityException {
 		checkWriteAccess();
-		Element root = doc.getDocumentElement();
-		PasswordImpl.removeFromXML(root, true);
+		PasswordImpl.removeFromStruct(root, true);
 		((ConfigServerImpl) config).setDefaultPassword(null);
 	}
 
@@ -3545,8 +3234,8 @@ public final class XMLConfigAdmin {
 
 		type = type.toLowerCase().trim();
 
-		Element scope = _getRootElement("scope");
-		scope.setAttribute("session-type", type);
+		Struct scope = _getRootElement("scope");
+		scope.setEL("session-type", type);
 	}
 
 	public void updateLocalMode(String mode) throws SecurityException {
@@ -3555,8 +3244,8 @@ public final class XMLConfigAdmin {
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
 		mode = mode.toLowerCase().trim();
-		Element scope = _getRootElement("scope");
-		scope.setAttribute("local-mode", mode);
+		Struct scope = _getRootElement("scope");
+		scope.setEL("local-mode", mode);
 	}
 
 	public void updateRestList(Boolean list) throws SecurityException {
@@ -3564,24 +3253,12 @@ public final class XMLConfigAdmin {
 		boolean hasAccess = true;// TODO ConfigWebUtil.hasAccess(config,SecurityManager.TYPE_REST);
 		if (!hasAccess) throw new SecurityException("no access to update rest setting");
 
-		Element rest = _getRootElement("rest");
+		Struct rest = _getRootElement("rest");
 		if (list == null) {
-			if (rest.hasAttribute("list")) rest.removeAttribute("list");
+			if (rest.containsKey("list")) rem(rest, "list");
 		}
-		else rest.setAttribute("list", Caster.toString(list.booleanValue()));
+		else rest.setEL("list", Caster.toString(list.booleanValue()));
 	}
-
-	/*
-	 * public void updateRestAllowChanges(Boolean allowChanges) throws SecurityException {
-	 * checkWriteAccess(); boolean hasAccess=true;// TODO
-	 * ConfigWebUtil.hasAccess(config,SecurityManager.TYPE_REST); if(!hasAccess) throw new
-	 * SecurityException("no access to update rest setting");
-	 * 
-	 * 
-	 * Element rest=_getRootElement("rest"); if(allowChanges==null) {
-	 * if(rest.hasAttribute("allow-changes"))rest.removeAttribute("allow-changes"); } else
-	 * rest.setAttribute("allow-changes", Caster.toString(allowChanges.booleanValue())); }
-	 */
 
 	/**
 	 * updates update settingd for Lucee
@@ -3596,15 +3273,15 @@ public final class XMLConfigAdmin {
 		if (!(config instanceof ConfigServer)) {
 			throw new SecurityException("can't change update setting from this context, access is denied");
 		}
-		Element update = _getRootElement("update");
-		update.setAttribute("type", type);
+		Struct update = _getRootElement("update");
+		update.setEL("type", type);
 		try {
 			location = HTTPUtil.toURL(location, HTTPUtil.ENCODED_AUTO).toString();
 		}
 		catch (Throwable e) {
 			ExceptionUtil.rethrowIfNecessary(e);
 		}
-		update.setAttribute("location", location);
+		update.setEL("location", location);
 	}
 
 	/**
@@ -3620,41 +3297,44 @@ public final class XMLConfigAdmin {
 		SecurityManagerImpl dsm = (SecurityManagerImpl) cs.getDefaultSecurityManager().cloneSecurityManager();
 		cs.setSecurityManager(id, dsm);
 
-		Element security = _getRootElement("security");
-		Element accessor = null;
+		Struct security = _getRootElement("security");
+		Struct accessor = null;
 
-		Element[] children = XMLConfigWebFactory.getChildren(security, "accessor");
-		for (int i = 0; i < children.length; i++) {
-			if (id.equals(children[i].getAttribute("id"))) {
-				accessor = children[i];
+		Array children = ConfigWebUtil.getAsArray("accessor", security);
+		for (int i = 1; i <= children.size(); i++) {
+			Struct tmp = Caster.toStruct(children.get(i, null), null);
+			if (tmp == null) continue;
+
+			if (id.equals(tmp.get("id"))) {
+				accessor = tmp;
 			}
 		}
 		if (accessor == null) {
-			accessor = doc.createElement("accessor");
-			security.appendChild(accessor);
+			accessor = new StructImpl(Struct.TYPE_LINKED);
+			children.appendEL(accessor);
 		}
 
 		updateSecurityFileAccess(accessor, dsm.getCustomFileAccess(), dsm.getAccess(SecurityManager.TYPE_FILE));
 
-		accessor.setAttribute("id", id);
-		accessor.setAttribute("setting", SecurityManagerImpl.toStringAccessValue(dsm.getAccess(SecurityManager.TYPE_SETTING)));
-		accessor.setAttribute("file", SecurityManagerImpl.toStringAccessValue(dsm.getAccess(SecurityManager.TYPE_FILE)));
-		accessor.setAttribute("direct_java_access", SecurityManagerImpl.toStringAccessValue(dsm.getAccess(SecurityManager.TYPE_DIRECT_JAVA_ACCESS)));
-		accessor.setAttribute("mail", SecurityManagerImpl.toStringAccessValue(dsm.getAccess(SecurityManager.TYPE_MAIL)));
-		accessor.setAttribute("datasource", SecurityManagerImpl.toStringAccessValue(dsm.getAccess(SecurityManager.TYPE_DATASOURCE)));
-		accessor.setAttribute("mapping", SecurityManagerImpl.toStringAccessValue(dsm.getAccess(SecurityManager.TYPE_MAPPING)));
-		accessor.setAttribute("custom_tag", SecurityManagerImpl.toStringAccessValue(dsm.getAccess(SecurityManager.TYPE_CUSTOM_TAG)));
-		accessor.setAttribute("cfx_setting", SecurityManagerImpl.toStringAccessValue(dsm.getAccess(SecurityManager.TYPE_CFX_SETTING)));
-		accessor.setAttribute("cfx_usage", SecurityManagerImpl.toStringAccessValue(dsm.getAccess(SecurityManager.TYPE_CFX_USAGE)));
-		accessor.setAttribute("debugging", SecurityManagerImpl.toStringAccessValue(dsm.getAccess(SecurityManager.TYPE_DEBUGGING)));
-		accessor.setAttribute("cache", SecurityManagerImpl.toStringAccessValue(dsm.getAccess(SecurityManagerImpl.TYPE_CACHE)));
-		accessor.setAttribute("gateway", SecurityManagerImpl.toStringAccessValue(dsm.getAccess(SecurityManagerImpl.TYPE_GATEWAY)));
-		accessor.setAttribute("orm", SecurityManagerImpl.toStringAccessValue(dsm.getAccess(SecurityManagerImpl.TYPE_ORM)));
+		accessor.setEL("id", id);
+		accessor.setEL("setting", SecurityManagerImpl.toStringAccessValue(dsm.getAccess(SecurityManager.TYPE_SETTING)));
+		accessor.setEL("file", SecurityManagerImpl.toStringAccessValue(dsm.getAccess(SecurityManager.TYPE_FILE)));
+		accessor.setEL("direct_java_access", SecurityManagerImpl.toStringAccessValue(dsm.getAccess(SecurityManager.TYPE_DIRECT_JAVA_ACCESS)));
+		accessor.setEL("mail", SecurityManagerImpl.toStringAccessValue(dsm.getAccess(SecurityManager.TYPE_MAIL)));
+		accessor.setEL("datasource", SecurityManagerImpl.toStringAccessValue(dsm.getAccess(SecurityManager.TYPE_DATASOURCE)));
+		accessor.setEL("mapping", SecurityManagerImpl.toStringAccessValue(dsm.getAccess(SecurityManager.TYPE_MAPPING)));
+		accessor.setEL("custom_tag", SecurityManagerImpl.toStringAccessValue(dsm.getAccess(SecurityManager.TYPE_CUSTOM_TAG)));
+		accessor.setEL("cfx_setting", SecurityManagerImpl.toStringAccessValue(dsm.getAccess(SecurityManager.TYPE_CFX_SETTING)));
+		accessor.setEL("cfx_usage", SecurityManagerImpl.toStringAccessValue(dsm.getAccess(SecurityManager.TYPE_CFX_USAGE)));
+		accessor.setEL("debugging", SecurityManagerImpl.toStringAccessValue(dsm.getAccess(SecurityManager.TYPE_DEBUGGING)));
+		accessor.setEL("cache", SecurityManagerImpl.toStringAccessValue(dsm.getAccess(SecurityManagerImpl.TYPE_CACHE)));
+		accessor.setEL("gateway", SecurityManagerImpl.toStringAccessValue(dsm.getAccess(SecurityManagerImpl.TYPE_GATEWAY)));
+		accessor.setEL("orm", SecurityManagerImpl.toStringAccessValue(dsm.getAccess(SecurityManagerImpl.TYPE_ORM)));
 
-		accessor.setAttribute("tag_execute", SecurityManagerImpl.toStringAccessValue(dsm.getAccess(SecurityManager.TYPE_TAG_EXECUTE)));
-		accessor.setAttribute("tag_import", SecurityManagerImpl.toStringAccessValue(dsm.getAccess(SecurityManager.TYPE_TAG_IMPORT)));
-		accessor.setAttribute("tag_object", SecurityManagerImpl.toStringAccessValue(dsm.getAccess(SecurityManager.TYPE_TAG_OBJECT)));
-		accessor.setAttribute("tag_registry", SecurityManagerImpl.toStringAccessValue(dsm.getAccess(SecurityManager.TYPE_TAG_REGISTRY)));
+		accessor.setEL("tag_execute", SecurityManagerImpl.toStringAccessValue(dsm.getAccess(SecurityManager.TYPE_TAG_EXECUTE)));
+		accessor.setEL("tag_import", SecurityManagerImpl.toStringAccessValue(dsm.getAccess(SecurityManager.TYPE_TAG_IMPORT)));
+		accessor.setEL("tag_object", SecurityManagerImpl.toStringAccessValue(dsm.getAccess(SecurityManager.TYPE_TAG_OBJECT)));
+		accessor.setEL("tag_registry", SecurityManagerImpl.toStringAccessValue(dsm.getAccess(SecurityManager.TYPE_TAG_REGISTRY)));
 
 	}
 
@@ -3668,12 +3348,14 @@ public final class XMLConfigAdmin {
 		checkWriteAccess();
 		((ConfigServerImpl) ConfigWebUtil.getConfigServer(config, password)).removeSecurityManager(id);
 
-		Element security = _getRootElement("security");
+		Array children = ConfigWebUtil.getAsArray("security", "accessor", root);
+		for (int i = children.size(); i > 0; i--) {
+			Struct tmp = Caster.toStruct(children.get(i, null), null);
+			if (tmp == null) continue;
 
-		Element[] children = XMLConfigWebFactory.getChildren(security, "accessor");
-		for (int i = 0; i < children.length; i++) {
-			if (id.equals(children[i].getAttribute("id"))) {
-				security.removeChild(children[i]);
+			String n = ConfigWebUtil.getAsString("id", tmp, "");
+			if (id.equals(n)) {
+				children.removeEL(i);
 			}
 		}
 	}
@@ -3935,31 +3617,31 @@ public final class XMLConfigAdmin {
 	public void updateWebCharset(String charset) throws PageException {
 		checkWriteAccess();
 
-		Element element = _getRootElement("charset");
+		Struct element = _getRootElement("charset");
 		if (StringUtil.isEmpty(charset)) {
-			if (config instanceof ConfigWeb) element.removeAttribute("web-charset");
-			else element.setAttribute("web-charset", "UTF-8");
+			if (config instanceof ConfigWeb) rem(element, "web-charset");
+			else element.setEL("web-charset", "UTF-8");
 		}
 		else {
 			charset = checkCharset(charset);
-			element.setAttribute("web-charset", charset);
+			element.setEL("web-charset", charset);
 		}
 
-		element = _getRootElement("regional");
-		element.removeAttribute("default-encoding");// remove deprecated attribute
+		Struct el = _getRootElement("regional");
+		rem(el, "default-encoding");// remove deprecated attribute
 
 	}
 
 	public void updateResourceCharset(String charset) throws PageException {
 		checkWriteAccess();
 
-		Element element = _getRootElement("charset");
+		Struct element = _getRootElement("charset");
 		if (StringUtil.isEmpty(charset)) {
-			element.removeAttribute("resource-charset");
+			rem(element, "resource-charset");
 		}
 		else {
 			charset = checkCharset(charset);
-			element.setAttribute("resource-charset", charset);
+			element.setEL("resource-charset", charset);
 
 		}
 
@@ -3971,13 +3653,13 @@ public final class XMLConfigAdmin {
 
 		checkWriteAccess();
 
-		Element element = _getRootElement("charset");
+		Struct element = _getRootElement("charset");
 		if (StringUtil.isEmpty(charset, true)) {
-			element.removeAttribute("template-charset");
+			rem(element, "template-charset");
 		}
 		else {
 			charset = checkCharset(charset);
-			element.setAttribute("template-charset", charset);
+			element.setEL("template-charset", charset);
 		}
 	}
 
@@ -4032,8 +3714,8 @@ public final class XMLConfigAdmin {
 		checkWriteAccess();
 		if (!ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_CUSTOM_TAG)) throw new SecurityException("Access Denied to update custom tag setting");
 
-		Element element = _getRootElement("custom-tag");
-		element.setAttribute("custom-tag-deep-search", Caster.toString(customTagDeepSearch));
+		Struct element = _getRootElement("custom-tag");
+		element.setEL("custom-tag-deep-search", Caster.toString(customTagDeepSearch));
 	}
 
 	public void resetId() throws PageException {
@@ -4052,8 +3734,8 @@ public final class XMLConfigAdmin {
 		checkWriteAccess();
 		if (!ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_CUSTOM_TAG)) throw new SecurityException("Access Denied to update custom tag setting");
 
-		Element element = _getRootElement("custom-tag");
-		element.setAttribute("custom-tag-local-search", Caster.toString(customTagLocalSearch));
+		Struct element = _getRootElement("custom-tag");
+		element.setEL("custom-tag-local-search", Caster.toString(customTagLocalSearch));
 	}
 
 	public void updateCustomTagExtensions(String extensions) throws PageException {
@@ -4066,8 +3748,8 @@ public final class XMLConfigAdmin {
 		// throw new ApplicationException("you must define at least one extension");
 
 		// update charset
-		Element element = _getRootElement("custom-tag");
-		element.setAttribute("extensions", ListUtil.arrayToList(arr, ","));
+		Struct element = _getRootElement("custom-tag");
+		element.setEL("extensions", ListUtil.arrayToList(arr, ","));
 	}
 
 	public void updateRemoteClient(String label, String url, String type, String securityKey, String usage, String adminPassword, String serverUsername, String serverPassword,
@@ -4079,7 +3761,7 @@ public final class XMLConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManagerImpl.TYPE_REMOTE);
 		if (!hasAccess) throw new SecurityException("Access Denied to update remote client settings");
 
-		Element clients = _getRootElement("remote-clients");
+		Struct clients = _getRootElement("remote-clients");
 
 		if (StringUtil.isEmpty(url)) throw new ExpressionException("[url] cannot be empty");
 		if (StringUtil.isEmpty(securityKey)) throw new ExpressionException("[securityKey] cannot be empty");
@@ -4088,45 +3770,46 @@ public final class XMLConfigAdmin {
 		securityKey = securityKey.trim();
 		adminPassword = adminPassword.trim();
 
-		Element[] children = XMLConfigWebFactory.getChildren(clients, "remote-client");
+		Array children = ConfigWebUtil.getAsArray("remote-client", clients);
 
 		// Update
-		for (int i = 0; i < children.length; i++) {
-			Element el = children[i];
-			String _url = el.getAttribute("url");
+		for (int i = 1; i <= children.size(); i++) {
+			Struct el = Caster.toStruct(children.get(i, null), null);
+			if (el == null) continue;
+
+			String _url = ConfigWebUtil.getAsString("url", el, "");
 			if (_url != null && _url.equalsIgnoreCase(url)) {
-				el.setAttribute("label", label);
-				el.setAttribute("type", type);
-				el.setAttribute("usage", usage);
-				el.setAttribute("server-username", serverUsername);
-				el.setAttribute("proxy-server", proxyServer);
-				el.setAttribute("proxy-username", proxyUsername);
-				el.setAttribute("proxy-port", proxyPort);
-				el.setAttribute("security-key", ConfigWebUtil.encrypt(securityKey));
-				el.setAttribute("admin-password", ConfigWebUtil.encrypt(adminPassword));
-				el.setAttribute("server-password", ConfigWebUtil.encrypt(serverPassword));
-				el.setAttribute("proxy-password", ConfigWebUtil.encrypt(proxyPassword));
+				el.setEL("label", label);
+				el.setEL("type", type);
+				el.setEL("usage", usage);
+				el.setEL("server-username", serverUsername);
+				el.setEL("proxy-server", proxyServer);
+				el.setEL("proxy-username", proxyUsername);
+				el.setEL("proxy-port", proxyPort);
+				el.setEL("security-key", ConfigWebUtil.encrypt(securityKey));
+				el.setEL("admin-password", ConfigWebUtil.encrypt(adminPassword));
+				el.setEL("server-password", ConfigWebUtil.encrypt(serverPassword));
+				el.setEL("proxy-password", ConfigWebUtil.encrypt(proxyPassword));
 				return;
 			}
 		}
 
 		// Insert
-		Element el = doc.createElement("remote-client");
+		Struct el = new StructImpl(Struct.TYPE_LINKED);
 
-		el.setAttribute("label", label);
-		el.setAttribute("url", url);
-		el.setAttribute("type", type);
-		el.setAttribute("usage", usage);
-		el.setAttribute("server-username", serverUsername);
-		el.setAttribute("proxy-server", proxyServer);
-		el.setAttribute("proxy-username", proxyUsername);
-		el.setAttribute("proxy-port", proxyPort);
-		el.setAttribute("security-key", ConfigWebUtil.encrypt(securityKey));
-		el.setAttribute("admin-password", ConfigWebUtil.encrypt(adminPassword));
-		el.setAttribute("server-password", ConfigWebUtil.encrypt(serverPassword));
-		el.setAttribute("proxy-password", ConfigWebUtil.encrypt(proxyPassword));
-
-		clients.appendChild(el);
+		el.setEL("label", label);
+		el.setEL("url", url);
+		el.setEL("type", type);
+		el.setEL("usage", usage);
+		el.setEL("server-username", serverUsername);
+		el.setEL("proxy-server", proxyServer);
+		el.setEL("proxy-username", proxyUsername);
+		el.setEL("proxy-port", proxyPort);
+		el.setEL("security-key", ConfigWebUtil.encrypt(securityKey));
+		el.setEL("admin-password", ConfigWebUtil.encrypt(adminPassword));
+		el.setEL("server-password", ConfigWebUtil.encrypt(serverPassword));
+		el.setEL("proxy-password", ConfigWebUtil.encrypt(proxyPassword));
+		children.appendEL(el);
 	}
 
 	public void updateMonitor(ClassDefinition cd, String type, String name, boolean logEnabled) throws PageException {
@@ -4135,15 +3818,16 @@ public final class XMLConfigAdmin {
 	}
 
 	void _updateMonitor(ClassDefinition cd, String type, String name, boolean logEnabled) throws PageException {
-		Element parent = _getRootElement("monitoring");
 		stopMonitor(ConfigWebUtil.toMonitorType(type, Monitor.TYPE_INTERVAL), name);
 
-		Element[] children = XMLConfigWebFactory.getChildren(parent, "monitor");
-		Element monitor = null;
+		Array children = ConfigWebUtil.getAsArray("monitoring", "monitor", root);
+		Struct monitor = null;
 		// Update
-		for (int i = 0; i < children.length; i++) {
-			Element el = children[i];
-			String _name = el.getAttribute("name");
+		for (int i = 1; i <= children.size(); i++) {
+			Struct el = Caster.toStruct(children.get(i, null), null);
+			if (el == null) continue;
+
+			String _name = ConfigWebUtil.getAsString("name", el, null);
 			if (_name != null && _name.equalsIgnoreCase(name)) {
 				monitor = el;
 				break;
@@ -4152,13 +3836,13 @@ public final class XMLConfigAdmin {
 
 		// Insert
 		if (monitor == null) {
-			monitor = doc.createElement("monitor");
-			parent.appendChild(monitor);
+			monitor = new StructImpl(Struct.TYPE_LINKED);
+			children.appendEL(monitor);
 		}
 		setClass(monitor, null, "", cd);
-		monitor.setAttribute("type", type);
-		monitor.setAttribute("name", name);
-		monitor.setAttribute("log", Caster.toString(logEnabled));
+		monitor.setEL("type", type);
+		monitor.setEL("name", name);
+		monitor.setEL("log", Caster.toString(logEnabled));
 	}
 
 	private void stopMonitor(int type, String name) {
@@ -4174,34 +3858,36 @@ public final class XMLConfigAdmin {
 		IOUtil.closeEL(monitor);
 	}
 
-	static void removeCacheHandler(ConfigPro config, String id, boolean reload) throws IOException, SAXException, PageException, BundleException {
-		XMLConfigAdmin admin = new XMLConfigAdmin(config, null);
+	static void removeCacheHandler(ConfigPro config, String id, boolean reload) throws IOException, SAXException, PageException, BundleException, ConverterException {
+		ConfigAdmin admin = new ConfigAdmin(config, null);
 		admin._removeCacheHandler(id);
 		admin._store();
 		if (reload) admin._reload();
 	}
 
 	private void _removeCache(ClassDefinition cd) {
-		Element parent = _getRootElement("caches");
-		Element[] children = XMLConfigWebFactory.getChildren(parent, "cache");
-		for (int i = 0; i < children.length; i++) {
-			Element el = children[i];
-			String _class = el.getAttribute("class");
+		Array children = ConfigWebUtil.getAsArray("caches", "cache", root);
+		for (int i = children.size(); i > 0; i--) {
+			Struct el = Caster.toStruct(children.get(i, null), null);
+			if (el == null) continue;
+
+			String _class = ConfigWebUtil.getAsString("virtual", el, null);
 			if (_class != null && _class.equalsIgnoreCase(cd.getClassName())) {
-				parent.removeChild(el);
+				children.removeEL(i);
 				break;
 			}
 		}
 	}
 
 	private void _removeCacheHandler(String id) {
-		Element parent = _getRootElement("cache-handlers");
-		Element[] children = XMLConfigWebFactory.getChildren(parent, "cache-handler");
-		for (int i = 0; i < children.length; i++) {
-			Element el = children[i];
-			String _id = el.getAttribute("id");
+		Array children = ConfigWebUtil.getAsArray("cache-handlers", "cache-handler", root);
+		for (int i = children.size(); i > 0; i--) {
+			Struct el = Caster.toStruct(children.get(i, null), null);
+			if (el == null) continue;
+
+			String _id = ConfigWebUtil.getAsString("id", el, null);
 			if (_id != null && _id.equalsIgnoreCase(id)) {
-				parent.removeChild(el);
+				children.removeEL(i);
 				break;
 			}
 		}
@@ -4213,14 +3899,14 @@ public final class XMLConfigAdmin {
 	}
 
 	private void _updateCache(ClassDefinition cd) throws PageException {
-		Element parent = _getRootElement("caches");
-
-		Element[] children = XMLConfigWebFactory.getChildren(parent, "cache");
-		Element ch = null;
+		Array children = ConfigWebUtil.getAsArray("caches", "cache", root);
+		Struct ch = null;
 		// Update
-		for (int i = 0; i < children.length; i++) {
-			Element el = children[i];
-			String _class = el.getAttribute("class");
+		for (int i = 1; i <= children.size(); i++) {
+			Struct el = Caster.toStruct(children.get(i, null), null);
+			if (el == null) continue;
+
+			String _class = ConfigWebUtil.getAsString("class", el, null);
 			if (_class != null && _class.equalsIgnoreCase(cd.getClassName())) {
 				ch = el;
 				break;
@@ -4229,21 +3915,21 @@ public final class XMLConfigAdmin {
 
 		// Insert
 		if (ch == null) {
-			ch = doc.createElement("cache");
-			parent.appendChild(ch);
+			ch = new StructImpl(Struct.TYPE_LINKED);
+			children.appendEL(ch);
 		}
 		setClass(ch, null, "", cd);
 	}
 
 	private void _updateCacheHandler(String id, ClassDefinition cd) throws PageException {
-		Element parent = _getRootElement("cache-handlers");
-
-		Element[] children = XMLConfigWebFactory.getChildren(parent, "cache-handler");
-		Element ch = null;
+		Array children = ConfigWebUtil.getAsArray("cache-handlers", "cache-handler", root);
+		Struct ch = null;
 		// Update
-		for (int i = 0; i < children.length; i++) {
-			Element el = children[i];
-			String _id = el.getAttribute("id");
+		for (int i = 1; i <= children.size(); i++) {
+			Struct el = Caster.toStruct(children.get(i, null), null);
+			if (el == null) continue;
+
+			String _id = ConfigWebUtil.getAsString("id", el, null);
 			if (_id != null && _id.equalsIgnoreCase(id)) {
 				ch = el;
 				break;
@@ -4252,18 +3938,18 @@ public final class XMLConfigAdmin {
 
 		// Insert
 		if (ch == null) {
-			ch = doc.createElement("cache-handler");
-			parent.appendChild(ch);
+			ch = new StructImpl(Struct.TYPE_LINKED);
+			children.appendEL(ch);
 		}
-		ch.setAttribute("id", id);
+		ch.setEL("id", id);
 		setClass(ch, null, "", cd);
 	}
 
 	public void updateExecutionLog(ClassDefinition cd, Struct args, boolean enabled) throws PageException {
-		Element el = _getRootElement("execution-log");
+		Struct el = _getRootElement("execution-log");
 		setClass(el, null, "", cd);
-		el.setAttribute("arguments", toStringCSSStyle(args));
-		el.setAttribute("enabled", Caster.toString(enabled));
+		el.setEL("arguments", toStringCSSStyle(args));
+		el.setEL("enabled", Caster.toString(enabled));
 	}
 
 	public void removeMonitor(String type, String name) throws SecurityException {
@@ -4275,15 +3961,15 @@ public final class XMLConfigAdmin {
 
 		stopMonitor(ConfigWebUtil.toMonitorType(type, Monitor.TYPE_INTERVAL), name);
 
-		Element parent = _getRootElement("monitoring");
-
-		Element[] children = XMLConfigWebFactory.getChildren(parent, "monitor");
+		Array children = ConfigWebUtil.getAsArray("monitoring", "monitor", root);
 		// Update
-		for (int i = 0; i < children.length; i++) {
-			Element el = children[i];
-			String _name = el.getAttribute("name");
+		for (int i = children.size(); i > 0; i--) {
+			Struct tmp = Caster.toStruct(children.get(i, null), null);
+			if (tmp == null) continue;
+
+			String _name = ConfigWebUtil.getAsString("name", tmp, null);
 			if (_name != null && _name.equalsIgnoreCase(name)) {
-				parent.removeChild(el);
+				children.removeEL(i);
 			}
 		}
 	}
@@ -4291,107 +3977,105 @@ public final class XMLConfigAdmin {
 	public void removeCacheHandler(String id) throws PageException {
 		checkWriteAccess();
 
-		Element parent = _getRootElement("cache-handlers");
-
-		Element[] children = XMLConfigWebFactory.getChildren(parent, "cache-handler");
+		Array children = ConfigWebUtil.getAsArray("cache-handlers", "cache-handler", root);
 		// Update
-		for (int i = 0; i < children.length; i++) {
-			Element el = children[i];
-			String _id = el.getAttribute("id");
+		for (int i = children.size(); i > 0; i--) {
+			Struct tmp = Caster.toStruct(children.get(i, null), null);
+			if (tmp == null) continue;
+
+			String _id = ConfigWebUtil.getAsString("id", tmp, null);
 			if (_id != null && _id.equalsIgnoreCase(id)) {
-				parent.removeChild(el);
+				children.removeEL(i);
 			}
 		}
 
 	}
 
 	public void updateExtensionInfo(boolean enabled) {
-		Element extensions = _getRootElement("extensions");
-		extensions.setAttribute("enabled", Caster.toString(enabled));
+		Struct extensions = _getRootElement("extensions");
+		extensions.setEL("enabled", Caster.toString(enabled));
 	}
 
-	public void updateRHExtensionProvider(String strUrl) throws MalformedURLException {
-		Element extensions = _getRootElement("extensions");
-		Element[] children = XMLConfigWebFactory.getChildren(extensions, "rhprovider");
+	public void updateRHExtensionProvider(String strUrl) throws MalformedURLException, PageException {
+		Array children = ConfigWebUtil.getAsArray("extensions", "rhprovider", root);
 		strUrl = strUrl.trim();
 
 		URL _url = HTTPUtil.toURL(strUrl, HTTPUtil.ENCODED_NO);
 		strUrl = _url.toExternalForm();
 
 		// Update
-		Element el;
+		Struct el;
 		String url;
-		for (int i = 0; i < children.length; i++) {
-			el = children[i];
-			url = el.getAttribute("url");
+		for (int i = 1; i <= children.size(); i++) {
+			Struct tmp = Caster.toStruct(children.get(i, null), null);
+			if (tmp == null) continue;
+
+			url = ConfigWebUtil.getAsString("url", tmp, null);
 			if (url != null && url.trim().equalsIgnoreCase(strUrl)) {
-				// el.setAttribute("cache-timeout",Caster.toString(cacheTimeout));
+				// el.setEL("cache-timeout",Caster.toString(cacheTimeout));
 				return;
 			}
 		}
 
 		// Insert
-		el = doc.createElement("rhprovider");
-
-		el.setAttribute("url", strUrl);
-		// el.setAttribute("cache-timeout",Caster.toString(cacheTimeout));
-
-		XMLUtil.prependChild(extensions, el);
+		el = new StructImpl(Struct.TYPE_LINKED);
+		el.setEL("url", strUrl);
+		children.prepend(el);
 	}
 
-	public void updateExtensionProvider(String strUrl) {
-		Element extensions = _getRootElement("extensions");
-		Element[] children = XMLConfigWebFactory.getChildren(extensions, "provider");
+	public void updateExtensionProvider(String strUrl) throws PageException {
+		Array children = ConfigWebUtil.getAsArray("extensions", "provider", root);
+
 		strUrl = strUrl.trim();
 
 		// Update
-		Element el;
+		Struct el;
 		String url;
-		for (int i = 0; i < children.length; i++) {
-			el = children[i];
-			url = el.getAttribute("url");
+		for (int i = 1; i <= children.size(); i++) {
+			Struct tmp = Caster.toStruct(children.get(i, null), null);
+			if (tmp == null) continue;
+
+			url = ConfigWebUtil.getAsString("url", tmp, null);
 			if (url != null && url.trim().equalsIgnoreCase(strUrl)) {
-				// el.setAttribute("cache-timeout",Caster.toString(cacheTimeout));
 				return;
 			}
 		}
 
 		// Insert
-		el = doc.createElement("provider");
-
-		el.setAttribute("url", strUrl);
-		// el.setAttribute("cache-timeout",Caster.toString(cacheTimeout));
-
-		XMLUtil.prependChild(extensions, el);
+		el = new StructImpl(Struct.TYPE_LINKED);
+		el.setEL("url", strUrl);
+		children.prepend(el);
 	}
 
 	public void removeExtensionProvider(String strUrl) {
-		Element parent = _getRootElement("extensions");
-		Element[] children = XMLConfigWebFactory.getChildren(parent, "provider");
+		Array children = ConfigWebUtil.getAsArray("extensions", "provider", root);
 		strUrl = strUrl.trim();
-		Element child;
+		Struct child;
 		String url;
-		for (int i = 0; i < children.length; i++) {
-			child = children[i];
-			url = child.getAttribute("url");
+		for (int i = children.size(); i > 0; i--) {
+			Struct tmp = Caster.toStruct(children.get(i, null), null);
+			if (tmp == null) continue;
+
+			url = ConfigWebUtil.getAsString("url", tmp, null);
 			if (url != null && url.trim().equalsIgnoreCase(strUrl)) {
-				parent.removeChild(child);
+				children.removeEL(i);
 				return;
 			}
 		}
 	}
 
 	public void removeRHExtensionProvider(String strUrl) {
-		Element parent = _getRootElement("extensions");
-		Element[] children = XMLConfigWebFactory.getChildren(parent, "rhprovider");
+		Array children = ConfigWebUtil.getAsArray("extensions", "rhprovider", root);
 		strUrl = strUrl.trim();
-		Element child;
+		Struct child;
 		String url;
-		for (int i = 0; i < children.length; i++) {
-			child = children[i];
-			url = child.getAttribute("url");
+		for (int i = children.size(); i > 0; i--) {
+			Struct tmp = Caster.toStruct(children.get(i, null), null);
+			if (tmp == null) continue;
+
+			url = ConfigWebUtil.getAsString("url", tmp, null);
 			if (url != null && url.trim().equalsIgnoreCase(strUrl)) {
-				parent.removeChild(child);
+				children.removeEL(i);
 				return;
 			}
 		}
@@ -4402,16 +4086,17 @@ public final class XMLConfigAdmin {
 
 		String uid = createUid(pc, extension.getProvider(), extension.getId());
 
-		Element extensions = _getRootElement("extensions");
-		Element[] children = XMLConfigWebFactory.getChildren(extensions, "extension");
+		Array children = ConfigWebUtil.getAsArray("extensions", "extension", root);
 
 		// Update
-		Element el;
+		Struct el;
 		String provider, id;
-		for (int i = 0; i < children.length; i++) {
-			el = children[i];
-			provider = el.getAttribute("provider");
-			id = el.getAttribute("id");
+		for (int i = 1; i <= children.size(); i++) {
+			el = Caster.toStruct(children.get(i, null), null);
+			if (el == null) continue;
+
+			provider = ConfigWebUtil.getAsString("provider", el, null);
+			id = ConfigWebUtil.getAsString("id", el, null);
 			if (uid.equalsIgnoreCase(createUid(pc, provider, id))) {
 				setExtensionAttrs(el, extension);
 				return;
@@ -4419,12 +4104,11 @@ public final class XMLConfigAdmin {
 		}
 
 		// Insert
-		el = doc.createElement("extension");
-
-		el.setAttribute("provider", extension.getProvider());
-		el.setAttribute("id", extension.getId());
+		el = new StructImpl(Struct.TYPE_LINKED);
+		el.setEL("provider", extension.getProvider());
+		el.setEL("id", extension.getId());
 		setExtensionAttrs(el, extension);
-		extensions.appendChild(el);
+		children.appendEL(el);
 	}
 
 	private String createUid(PageContext pc, String provider, String id) throws PageException {
@@ -4434,28 +4118,28 @@ public final class XMLConfigAdmin {
 		return Hash.invoke(pc.getConfig(), provider + id, null, null, 1);
 	}
 
-	private void setExtensionAttrs(Element el, Extension extension) {
-		el.setAttribute("version", extension.getVersion());
+	private void setExtensionAttrs(Struct el, Extension extension) {
+		el.setEL("version", extension.getVersion());
 
-		el.setAttribute("config", extension.getStrConfig());
-		// el.setAttribute("config",new ScriptConverter().serialize(extension.getConfig()));
+		el.setEL("config", extension.getStrConfig());
+		// el.setEL("config",new ScriptConverter().serialize(extension.getConfig()));
 
-		el.setAttribute("category", extension.getCategory());
-		el.setAttribute("description", extension.getDescription());
-		el.setAttribute("image", extension.getImage());
-		el.setAttribute("label", extension.getLabel());
-		el.setAttribute("name", extension.getName());
+		el.setEL("category", extension.getCategory());
+		el.setEL("description", extension.getDescription());
+		el.setEL("image", extension.getImage());
+		el.setEL("label", extension.getLabel());
+		el.setEL("name", extension.getName());
 
-		el.setAttribute("author", extension.getAuthor());
-		el.setAttribute("type", extension.getType());
-		el.setAttribute("codename", extension.getCodename());
-		el.setAttribute("video", extension.getVideo());
-		el.setAttribute("support", extension.getSupport());
-		el.setAttribute("documentation", extension.getDocumentation());
-		el.setAttribute("forum", extension.getForum());
-		el.setAttribute("mailinglist", extension.getMailinglist());
-		el.setAttribute("network", extension.getNetwork());
-		el.setAttribute("created", Caster.toString(extension.getCreated(), null));
+		el.setEL("author", extension.getAuthor());
+		el.setEL("type", extension.getType());
+		el.setEL("codename", extension.getCodename());
+		el.setEL("video", extension.getVideo());
+		el.setEL("support", extension.getSupport());
+		el.setEL("documentation", extension.getDocumentation());
+		el.setEL("forum", extension.getForum());
+		el.setEL("mailinglist", extension.getMailinglist());
+		el.setEL("network", extension.getNetwork());
+		el.setEL("created", Caster.toString(extension.getCreated(), null));
 
 	}
 
@@ -4464,8 +4148,8 @@ public final class XMLConfigAdmin {
 
 		if (!hasAccess) throw new SecurityException("Access Denied to update ORM Settings");
 
-		Element orm = _getRootElement("orm");
-		orm.getParentNode().removeChild(orm);
+		Struct orm = _getRootElement("orm");
+		if (root.containsKey("orm")) rem(root, "orm");
 	}
 
 	public void updateORMSetting(ORMConfiguration oc) throws SecurityException {
@@ -4473,27 +4157,27 @@ public final class XMLConfigAdmin {
 
 		if (!hasAccess) throw new SecurityException("Access Denied to update ORM Settings");
 
-		Element orm = _getRootElement("orm");
-		orm.setAttribute("autogenmap", Caster.toString(oc.autogenmap(), "true"));
-		orm.setAttribute("event-handler", Caster.toString(oc.eventHandler(), ""));
-		orm.setAttribute("event-handling", Caster.toString(oc.eventHandling(), "false"));
-		orm.setAttribute("naming-strategy", Caster.toString(oc.namingStrategy(), ""));
-		orm.setAttribute("flush-at-request-end", Caster.toString(oc.flushAtRequestEnd(), "true"));
-		orm.setAttribute("cache-provider", Caster.toString(oc.getCacheProvider(), ""));
-		orm.setAttribute("cache-config", Caster.toString(oc.getCacheConfig(), "true"));
-		orm.setAttribute("catalog", Caster.toString(oc.getCatalog(), ""));
-		orm.setAttribute("db-create", ORMConfigurationImpl.dbCreateAsString(oc.getDbCreate()));
-		orm.setAttribute("dialect", Caster.toString(oc.getDialect(), ""));
-		orm.setAttribute("schema", Caster.toString(oc.getSchema(), ""));
-		orm.setAttribute("log-sql", Caster.toString(oc.logSQL(), "false"));
-		orm.setAttribute("save-mapping", Caster.toString(oc.saveMapping(), "false"));
-		orm.setAttribute("secondary-cache-enable", Caster.toString(oc.secondaryCacheEnabled(), "false"));
-		orm.setAttribute("use-db-for-mapping", Caster.toString(oc.useDBForMapping(), "true"));
-		orm.setAttribute("orm-config", Caster.toString(oc.getOrmConfig(), ""));
-		orm.setAttribute("sql-script", Caster.toString(oc.getSqlScript(), "true"));
+		Struct orm = _getRootElement("orm");
+		orm.setEL("autogenmap", Caster.toString(oc.autogenmap(), "true"));
+		orm.setEL("event-handler", Caster.toString(oc.eventHandler(), ""));
+		orm.setEL("event-handling", Caster.toString(oc.eventHandling(), "false"));
+		orm.setEL("naming-strategy", Caster.toString(oc.namingStrategy(), ""));
+		orm.setEL("flush-at-request-end", Caster.toString(oc.flushAtRequestEnd(), "true"));
+		orm.setEL("cache-provider", Caster.toString(oc.getCacheProvider(), ""));
+		orm.setEL("cache-config", Caster.toString(oc.getCacheConfig(), "true"));
+		orm.setEL("catalog", Caster.toString(oc.getCatalog(), ""));
+		orm.setEL("db-create", ORMConfigurationImpl.dbCreateAsString(oc.getDbCreate()));
+		orm.setEL("dialect", Caster.toString(oc.getDialect(), ""));
+		orm.setEL("schema", Caster.toString(oc.getSchema(), ""));
+		orm.setEL("log-sql", Caster.toString(oc.logSQL(), "false"));
+		orm.setEL("save-mapping", Caster.toString(oc.saveMapping(), "false"));
+		orm.setEL("secondary-cache-enable", Caster.toString(oc.secondaryCacheEnabled(), "false"));
+		orm.setEL("use-db-for-mapping", Caster.toString(oc.useDBForMapping(), "true"));
+		orm.setEL("orm-config", Caster.toString(oc.getOrmConfig(), ""));
+		orm.setEL("sql-script", Caster.toString(oc.getSqlScript(), "true"));
 
 		if (oc.isDefaultCfcLocation()) {
-			orm.removeAttribute("cfc-location");
+			rem(orm, "cfc-location");
 		}
 		else {
 			Resource[] locations = oc.getCfcLocations();
@@ -4502,10 +4186,10 @@ public final class XMLConfigAdmin {
 				if (i != 0) sb.append(",");
 				sb.append(locations[i].getAbsolutePath());
 			}
-			orm.setAttribute("cfc-location", sb.toString());
+			orm.setEL("cfc-location", sb.toString());
 		}
 
-		orm.setAttribute("sql-script", Caster.toString(oc.getSqlScript(), "true"));
+		orm.setEL("sql-script", Caster.toString(oc.getSqlScript(), "true"));
 
 	}
 
@@ -4513,12 +4197,13 @@ public final class XMLConfigAdmin {
 		checkWriteAccess();
 		if (StringUtil.isEmpty(id, true)) return;
 
-		Element extensions = _getRootElement("extensions");
-		Element[] children = XMLConfigWebFactory.getChildren(extensions, "rhextension");
-		Element child;
+		Array children = ConfigWebUtil.getAsArray("extensions", "rhextension", root);
+		Struct child;
 		RHExtension rhe;
-		for (int i = 0; i < children.length; i++) {
-			child = children[i];
+		for (int i = children.size(); i > 0; i--) {
+			child = Caster.toStruct(children.get(i, null), null);
+			if (child == null) continue;
+
 			try {
 				rhe = new RHExtension(config, child);
 
@@ -4531,15 +4216,15 @@ public final class XMLConfigAdmin {
 
 			if (id.equalsIgnoreCase(rhe.getId()) || id.equalsIgnoreCase(rhe.getSymbolicName())) {
 				removeRHExtension(config, rhe, null, true);
-				extensions.removeChild(child);
-				// bundles=RHExtension.toBundleDefinitions(child.getAttribute("bundles"));
+				children.removeEL(i);
+				// bundles=RHExtension.toBundleDefinitions(child.get("bundles"));
 			}
 		}
 	}
 
 	public static void updateArchive(ConfigPro config, Resource arc, boolean reload) throws PageException {
 		try {
-			XMLConfigAdmin admin = new XMLConfigAdmin(config, null);
+			ConfigAdmin admin = new ConfigAdmin(config, null);
 			admin.updateArchive(config, arc);
 			admin._store();
 			if (reload) admin._reload();
@@ -4569,7 +4254,7 @@ public final class XMLConfigAdmin {
 			core = pf;
 			logger.log(Log.LEVEL_INFO, "Update-Engine", "Installing Lucee [" + v + "] (previous version was [" + cs.getEngine().getInfo().getVersion() + "] )");
 			//
-			XMLConfigAdmin admin = new XMLConfigAdmin(config, null);
+			ConfigAdmin admin = new ConfigAdmin(config, null);
 			admin.restart(config);
 		}
 		catch (Throwable t) {
@@ -4661,7 +4346,7 @@ public final class XMLConfigAdmin {
 
 	public static void _updateRHExtension(ConfigPro config, Resource ext, boolean reload) throws PageException {
 		try {
-			XMLConfigAdmin admin = new XMLConfigAdmin(config, null);
+			ConfigAdmin admin = new ConfigAdmin(config, null);
 			admin.updateRHExtension(config, ext, reload);
 		}
 		catch (Exception e) {
@@ -4722,13 +4407,13 @@ public final class XMLConfigAdmin {
 				if (!entry.isDirectory() && (startsWith(path, type, "jars") || startsWith(path, type, "jar") || startsWith(path, type, "bundles")
 						|| startsWith(path, type, "bundle") || startsWith(path, type, "lib") || startsWith(path, type, "libs")) && (StringUtil.endsWithIgnoreCase(path, ".jar"))) {
 
-					Object obj = XMLConfigAdmin.installBundle(config, zis, fileName, rhext.getVersion(), false, false);
+					Object obj = ConfigAdmin.installBundle(config, zis, fileName, rhext.getVersion(), false, false);
 					// jar is not a bundle, only a regular jar
 					if (!(obj instanceof BundleFile)) {
 						Resource tmp = (Resource) obj;
 						Resource tmpJar = tmp.getParentResource().getRealResource(ListUtil.last(path, "\\/"));
 						tmp.moveTo(tmpJar);
-						XMLConfigAdmin.updateJar(config, tmpJar, false);
+						ConfigAdmin.updateJar(config, tmpJar, false);
 					}
 				}
 
@@ -4913,7 +4598,7 @@ public final class XMLConfigAdmin {
 					ClassDefinition cd = RHExtension.toClassDefinition(config, map, null);
 					String scheme = map.get("scheme");
 					if (cd != null && cd.hasClass() && !StringUtil.isEmpty(scheme)) {
-						Struct args = new StructImpl();
+						Struct args = new StructImpl(Struct.TYPE_LINKED);
 						copyButIgnoreClassDef(map, args);
 						args.remove("scheme");
 						_updateResourceProvider(scheme, cd, args);
@@ -5082,7 +4767,7 @@ public final class XMLConfigAdmin {
 			ExceptionUtil.rethrowIfNecessary(t);
 			DeployHandler.moveToFailedFolder(rhext.getExtensionFile().getParentResource(), rhext.getExtensionFile());
 			try {
-				XMLConfigAdmin.removeRHExtensions((ConfigPro) config, new String[] { rhext.getId() }, false);
+				ConfigAdmin.removeRHExtensions((ConfigPro) config, new String[] { rhext.getId() }, false);
 			}
 			catch (Throwable t2) {
 				ExceptionUtil.rethrowIfNecessary(t2);
@@ -5135,7 +4820,7 @@ public final class XMLConfigAdmin {
 				}
 				candidatesToRemove = tmp.toArray(new BundleDefinition[tmp.size()]);
 			}
-			XMLConfigAdmin.cleanBundles(rhe, ci, candidatesToRemove);
+			ConfigAdmin.cleanBundles(rhe, ci, candidatesToRemove);
 
 			// FLD
 			removeFLDs(logger, rhe.getFlds()); // MUST check if others use one of this fld
@@ -5422,16 +5107,16 @@ public final class XMLConfigAdmin {
 	public void removeExtension(String provider, String id) throws SecurityException {
 		checkWriteAccess();
 
-		Element extensions = _getRootElement("extensions");
-		Element[] children = XMLConfigWebFactory.getChildren(extensions, "extension");
-		Element child;
+		Array children = ConfigWebUtil.getAsArray("extensions", "extension", root);
 		String _provider, _id;
-		for (int i = 0; i < children.length; i++) {
-			child = children[i];
-			_provider = child.getAttribute("provider");
-			_id = child.getAttribute("id");
+		for (int i = children.size(); i > 0; i--) {
+			Struct tmp = Caster.toStruct(children.get(i, null), null);
+			if (tmp == null) continue;
+
+			_provider = ConfigWebUtil.getAsString("provider", tmp, null);
+			_id = ConfigWebUtil.getAsString("id", tmp, null);
 			if (_provider != null && _provider.equalsIgnoreCase(provider) && _id != null && _id.equalsIgnoreCase(id)) {
-				extensions.removeChild(child);
+				children.removeEL(i);
 			}
 		}
 	}
@@ -5611,8 +5296,8 @@ public final class XMLConfigAdmin {
 		Struct usage = config.getRemoteClientUsage();
 		usage.setEL(code, displayname);
 
-		Element extensions = _getRootElement("remote-clients");
-		extensions.setAttribute("usage", toStringURLStyle(usage));
+		Struct extensions = _getRootElement("remote-clients");
+		extensions.setEL("usage", toStringURLStyle(usage));
 
 	}
 
@@ -5629,7 +5314,7 @@ public final class XMLConfigAdmin {
 		if (!Reflector.isInstaneOf(clazz, Cluster.class, false) && !Reflector.isInstaneOf(clazz, ClusterRemote.class, false)) throw new ApplicationException(
 				"Class [" + clazz.getName() + "] does not implement interface [" + Cluster.class.getName() + "] or [" + ClusterRemote.class.getName() + "]");
 
-		Element scope = _getRootElement("scope");
+		Struct scope = _getRootElement("scope");
 		setClass(scope, null, "cluster-", cd);
 		ScopeContext.clearClusterScope();
 	}
@@ -5638,7 +5323,7 @@ public final class XMLConfigAdmin {
 
 		if (cd.getClassName() == null) cd = new ClassDefinitionImpl(VideoExecuterNotSupported.class.getName());
 
-		Element app = _getRootElement("video");
+		Struct app = _getRootElement("video");
 		setClass(app, VideoExecuter.class, "video-executer-", cd);
 	}
 
@@ -5646,7 +5331,7 @@ public final class XMLConfigAdmin {
 
 		if (cd.getClassName() == null) cd = new ClassDefinitionImpl(AdminSyncNotSupported.class.getName());
 
-		Element app = _getRootElement("application");
+		Struct app = _getRootElement("application");
 		setClass(app, AdminSync.class, "admin-sync-", cd);
 	}
 
@@ -5654,8 +5339,8 @@ public final class XMLConfigAdmin {
 		Struct usage = config.getRemoteClientUsage();
 		usage.removeEL(KeyImpl.getInstance(code));
 
-		Element extensions = _getRootElement("remote-clients");
-		extensions.setAttribute("usage", toStringURLStyle(usage));
+		Struct extensions = _getRootElement("remote-clients");
+		extensions.setEL("usage", toStringURLStyle(usage));
 
 	}
 
@@ -5679,22 +5364,21 @@ public final class XMLConfigAdmin {
 			throw new SecurityException("Can't change serial number from this context, access is denied");
 		}
 
-		Element root = doc.getDocumentElement();
 		if (!StringUtil.isEmpty(serial)) {
 			serial = serial.trim();
 			if (!new SerialNumber(serial).isValid(serial)) throw new SecurityException("Serial number is invalid");
-			root.setAttribute("serial-number", serial);
+			root.setEL("serial-number", serial);
 		}
 		else {
 			try {
-				root.removeAttribute("serial-number");
+				rem(root, "serial-number");
 			}
 			catch (Throwable t) {
 				ExceptionUtil.rethrowIfNecessary(t);
 			}
 		}
 		try {
-			root.removeAttribute("serial");
+			rem(root, "serial");
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
@@ -5709,27 +5393,28 @@ public final class XMLConfigAdmin {
 		hash = hash.trim();
 		label = label.trim();
 
-		Element labels = _getRootElement("labels");
+		Array children = ConfigWebUtil.getAsArray("labels", "label", root);
 
 		// Update
-		Element[] children = XMLConfigWebFactory.getChildren(labels, "label");
-		for (int i = 0; i < children.length; i++) {
-			String h = children[i].getAttribute("id");
+		for (int i = 1; i <= children.size(); i++) {
+			Struct tmp = Caster.toStruct(children.get(i, null), null);
+			if (tmp == null) continue;
+
+			String h = ConfigWebUtil.getAsString("id", tmp, null);
 			if (h != null) {
 				if (h.equals(hash)) {
-					Element el = children[i];
-					if (label.equals(el.getAttribute("name"))) return false;
-					el.setAttribute("name", label);
+					if (label.equals(tmp.get("name", null))) return false;
+					tmp.setEL("name", label);
 					return true;
 				}
 			}
 		}
 
 		// Insert
-		Element el = doc.createElement("label");
-		labels.appendChild(el);
-		el.setAttribute("id", hash);
-		el.setAttribute("name", label);
+		Struct el = new StructImpl(Struct.TYPE_LINKED);
+		children.appendEL(el);
+		el.setEL("id", hash);
+		el.setEL("name", label);
 
 		return true;
 	}
@@ -5739,9 +5424,9 @@ public final class XMLConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_DEBUGGING);
 		if (!hasAccess) throw new SecurityException("Access denied to change debugging settings");
 
-		Element debugging = _getRootElement("debugging");
-		if (maxLogs == -1) debugging.removeAttribute("max-records-logged");
-		else debugging.setAttribute("max-records-logged", Caster.toString(maxLogs));
+		Struct debugging = _getRootElement("debugging");
+		if (maxLogs == -1) rem(debugging, "max-records-logged");
+		else debugging.setEL("max-records-logged", Caster.toString(maxLogs));
 	}
 
 	public void updateDebugEntry(String type, String iprange, String label, String path, String fullname, Struct custom) throws SecurityException, IOException {
@@ -5757,16 +5442,18 @@ public final class XMLConfigAdmin {
 		iprange = iprange.trim();
 		label = label.trim();
 
-		Element debugging = _getRootElement("debugging");
+		Array children = ConfigWebUtil.getAsArray("debugging", "debug-entry", root);
 
 		// Update
-		Element[] children = XMLConfigWebFactory.getChildren(debugging, "debug-entry");
-		Element el = null;
-		for (int i = 0; i < children.length; i++) {
-			String _id = children[i].getAttribute("id");
+		Struct el = null;
+		for (int i = 1; i <= children.size(); i++) {
+			Struct tmp = Caster.toStruct(children.get(i, null), null);
+			if (tmp == null) continue;
+
+			String _id = ConfigWebUtil.getAsString("id", tmp, null);
 			if (_id != null) {
 				if (_id.equals(id)) {
-					el = children[i];
+					el = tmp;
 					break;
 				}
 			}
@@ -5774,17 +5461,17 @@ public final class XMLConfigAdmin {
 
 		// Insert
 		if (el == null) {
-			el = doc.createElement("debug-entry");
-			debugging.appendChild(el);
-			el.setAttribute("id", id);
+			el = new StructImpl(Struct.TYPE_LINKED);
+			children.appendEL(el);
+			el.setEL("id", id);
 		}
 
-		el.setAttribute("type", type);
-		el.setAttribute("iprange", iprange);
-		el.setAttribute("label", label);
-		el.setAttribute("path", path);
-		el.setAttribute("fullname", fullname);
-		el.setAttribute("custom", toStringURLStyle(custom));
+		el.setEL("type", type);
+		el.setEL("iprange", iprange);
+		el.setEL("label", label);
+		el.setEL("path", path);
+		el.setEL("fullname", fullname);
+		el.setEL("custom", toStringURLStyle(custom));
 	}
 
 	public void removeDebugEntry(String id) throws SecurityException {
@@ -5792,25 +5479,26 @@ public final class XMLConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_DEBUGGING);
 		if (!hasAccess) throw new SecurityException("Access denied to change debugging settings");
 
-		Element debugging = _getRootElement("debugging");
-		Element[] children = XMLConfigWebFactory.getChildren(debugging, "debug-entry");
+		Array children = ConfigWebUtil.getAsArray("debugging", "debug-entry", root);
 		String _id;
-		if (children.length > 0) {
-			for (int i = 0; i < children.length; i++) {
-				Element el = children[i];
-				_id = el.getAttribute("id");
+		if (children.size() > 0) {
+			for (int i = children.size(); i > 0; i--) {
+				Struct el = Caster.toStruct(children.get(i, null), null);
+				if (el == null) continue;
+
+				_id = ConfigWebUtil.getAsString("id", el, null);
 				if (_id != null && _id.equalsIgnoreCase(id)) {
-					debugging.removeChild(children[i]);
+					children.removeEL(i);
 				}
 			}
 		}
 	}
 
 	public void updateLoginSettings(boolean captcha, boolean rememberMe, int delay) {
-		Element login = _getRootElement("login");
-		login.setAttribute("captcha", Caster.toString(captcha));
-		login.setAttribute("rememberme", Caster.toString(rememberMe));
-		login.setAttribute("delay", Caster.toString(delay));
+		Struct login = _getRootElement("login");
+		login.setEL("captcha", Caster.toString(captcha));
+		login.setEL("rememberme", Caster.toString(rememberMe));
+		login.setEL("delay", Caster.toString(delay));
 	}
 
 	public void updateLogSettings(String name, int level, ClassDefinition appenderCD, Struct appenderArgs, ClassDefinition layoutCD, Struct layoutArgs) throws PageException {
@@ -5833,97 +5521,100 @@ public final class XMLConfigAdmin {
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
-		Element parent = _getRootElement("logging");
+		Array children = ConfigWebUtil.getAsArray("logging", "logger", root);
 
 		// Update
-		Element[] children = XMLConfigWebFactory.getChildren(parent, "logger");
-		Element el = null;
-		for (int i = 0; i < children.length; i++) {
-			String n = children[i].getAttribute("name");
+		Struct el = null;
+		for (int i = 1; i <= children.size(); i++) {
+			Struct tmp = Caster.toStruct(children.get(i, null), null);
+			if (tmp == null) continue;
+
+			String n = ConfigWebUtil.getAsString("name", tmp, "");
 			if (name.equalsIgnoreCase(n)) {
-				el = children[i];
+				el = tmp;
 				break;
 			}
 		}
 		// Insert
 		if (el == null) {
-			el = doc.createElement("logger");
-			parent.appendChild(el);
-			el.setAttribute("name", name);
+			el = new StructImpl(Struct.TYPE_LINKED);
+			children.appendEL(el);
+			el.setEL("name", name);
 		}
 
-		el.setAttribute("level", LogUtil.levelToString(level, ""));
+		el.setEL("level", LogUtil.levelToString(level, ""));
 		setClass(el, null, "appender-", appenderCD);
-		el.setAttribute("appender-arguments", toStringCSSStyle(appenderArgs));
+		el.setEL("appender-arguments", toStringCSSStyle(appenderArgs));
 		setClass(el, null, "layout-", layoutCD);
-		el.setAttribute("layout-arguments", toStringCSSStyle(layoutArgs));
+		el.setEL("layout-arguments", toStringCSSStyle(layoutArgs));
 
-		if (el.hasAttribute("appender")) el.removeAttribute("appender");
-		if (el.hasAttribute("layout")) el.removeAttribute("layout");
+		if (el.containsKey("appender")) rem(el, "appender");
+		if (el.containsKey("layout")) rem(el, "layout");
 	}
 
 	public void updateCompilerSettings(Boolean dotNotationUpperCase, Boolean suppressWSBeforeArg, Boolean nullSupport, Boolean handleUnQuotedAttrValueAsString,
 			Integer externalizeStringGTE) throws PageException {
 
-		Element element = _getRootElement("compiler");
+		Struct element = _getRootElement("compiler");
 
 		checkWriteAccess();
 		if (dotNotationUpperCase == null) {
-			if (element.hasAttribute("dot-notation-upper-case")) element.removeAttribute("dot-notation-upper-case");
+			if (element.containsKey("dot-notation-upper-case")) rem(element, "dot-notation-upper-case");
 		}
 		else {
-			element.setAttribute("dot-notation-upper-case", Caster.toString(dotNotationUpperCase));
+			element.setEL("dot-notation-upper-case", Caster.toString(dotNotationUpperCase));
 		}
 
 		// remove old settings
-		if (element.hasAttribute("supress-ws-before-arg")) element.removeAttribute("supress-ws-before-arg");
+		if (element.containsKey("supress-ws-before-arg")) rem(element, "supress-ws-before-arg");
 
 		if (suppressWSBeforeArg == null) {
-			if (element.hasAttribute("suppress-ws-before-arg")) element.removeAttribute("suppress-ws-before-arg");
+			if (element.containsKey("suppress-ws-before-arg")) rem(element, "suppress-ws-before-arg");
 		}
 		else {
-			element.setAttribute("suppress-ws-before-arg", Caster.toString(suppressWSBeforeArg));
+			element.setEL("suppress-ws-before-arg", Caster.toString(suppressWSBeforeArg));
 		}
 
 		// full null support
 		if (nullSupport == null) {
-			if (element.hasAttribute("full-null-support")) element.removeAttribute("full-null-support");
+			if (element.containsKey("full-null-support")) rem(element, "full-null-support");
 		}
 		else {
-			element.setAttribute("full-null-support", Caster.toString(nullSupport));
+			element.setEL("full-null-support", Caster.toString(nullSupport));
 		}
 
 		// externalize-string-gte
 		if (externalizeStringGTE == null) {
-			if (element.hasAttribute("externalize-string-gte")) element.removeAttribute("externalize-string-gte");
+			if (element.containsKey("externalize-string-gte")) rem(element, "externalize-string-gte");
 		}
 		else {
-			element.setAttribute("externalize-string-gte", Caster.toString(externalizeStringGTE));
+			element.setEL("externalize-string-gte", Caster.toString(externalizeStringGTE));
 		}
 
 		// handle Unquoted Attribute Values As String
 		if (handleUnQuotedAttrValueAsString == null) {
-			if (element.hasAttribute("handle-unquoted-attribute-value-as-string")) element.removeAttribute("handle-unquoted-attribute-value-as-string");
+			if (element.containsKey("handle-unquoted-attribute-value-as-string")) rem(element, "handle-unquoted-attribute-value-as-string");
 		}
 		else {
-			element.setAttribute("handle-unquoted-attribute-value-as-string", Caster.toString(handleUnQuotedAttrValueAsString));
+			element.setEL("handle-unquoted-attribute-value-as-string", Caster.toString(handleUnQuotedAttrValueAsString));
 		}
 
 	}
 
-	Resource[] updateWebContexts(InputStream is, String realpath, boolean closeStream, boolean store) throws PageException, IOException, SAXException, BundleException {
+	Resource[] updateWebContexts(InputStream is, String realpath, boolean closeStream, boolean store)
+			throws PageException, IOException, SAXException, BundleException, ConverterException {
 		List<Resource> filesDeployed = new ArrayList<Resource>();
 
 		if (config instanceof ConfigWeb) {
-			XMLConfigAdmin._updateContextClassic(config, is, realpath, closeStream, filesDeployed);
+			ConfigAdmin._updateContextClassic(config, is, realpath, closeStream, filesDeployed);
 		}
-		else XMLConfigAdmin._updateWebContexts(config, is, realpath, closeStream, filesDeployed, store);
+		else ConfigAdmin._updateWebContexts(config, is, realpath, closeStream, filesDeployed, store);
 
 		return filesDeployed.toArray(new Resource[filesDeployed.size()]);
 	}
 
 	private static void _updateWebContexts(Config config, InputStream is, String realpath, boolean closeStream, List<Resource> filesDeployed, boolean store)
-			throws PageException, IOException, SAXException, BundleException {
+			throws PageException, IOException, SAXException, BundleException, ConverterException {
 		if (!(config instanceof ConfigServer)) throw new ApplicationException("Invalid context, you can only call this method from server context");
 		ConfigServer cs = (ConfigServer) config;
 
@@ -5937,14 +5628,15 @@ public final class XMLConfigAdmin {
 		if (store) _storeAndReload((ConfigPro) config);
 	}
 
-	Resource[] updateConfigs(InputStream is, String realpath, boolean closeStream, boolean store) throws PageException, IOException, SAXException, BundleException {
+	Resource[] updateConfigs(InputStream is, String realpath, boolean closeStream, boolean store)
+			throws PageException, IOException, SAXException, BundleException, ConverterException {
 		List<Resource> filesDeployed = new ArrayList<Resource>();
 		_updateConfigs(config, is, realpath, closeStream, filesDeployed, store);
 		return filesDeployed.toArray(new Resource[filesDeployed.size()]);
 	}
 
 	private static void _updateConfigs(Config config, InputStream is, String realpath, boolean closeStream, List<Resource> filesDeployed, boolean store)
-			throws PageException, IOException, SAXException, BundleException {
+			throws PageException, IOException, SAXException, BundleException, ConverterException {
 		Resource configs = config.getConfigDir(); // MUST get that dynamically
 		Resource trg = configs.getRealResource(realpath);
 		if (trg.exists()) trg.remove(true);
@@ -5955,14 +5647,15 @@ public final class XMLConfigAdmin {
 		if (store) _storeAndReload((ConfigPro) config);
 	}
 
-	Resource[] updateComponent(InputStream is, String realpath, boolean closeStream, boolean store) throws PageException, IOException, SAXException, BundleException {
+	Resource[] updateComponent(InputStream is, String realpath, boolean closeStream, boolean store)
+			throws PageException, IOException, SAXException, BundleException, ConverterException {
 		List<Resource> filesDeployed = new ArrayList<Resource>();
 		_updateComponent(config, is, realpath, closeStream, filesDeployed, store);
 		return filesDeployed.toArray(new Resource[filesDeployed.size()]);
 	}
 
 	private static void _updateComponent(Config config, InputStream is, String realpath, boolean closeStream, List<Resource> filesDeployed, boolean store)
-			throws PageException, IOException, SAXException, BundleException {
+			throws PageException, IOException, SAXException, BundleException, ConverterException {
 		Resource comps = config.getConfigDir().getRealResource("components"); // MUST get that dynamically
 		Resource trg = comps.getRealResource(realpath);
 		if (trg.exists()) trg.remove(true);
@@ -5973,14 +5666,15 @@ public final class XMLConfigAdmin {
 		if (store) _storeAndReload((ConfigPro) config);
 	}
 
-	Resource[] updateContext(InputStream is, String realpath, boolean closeStream, boolean store) throws PageException, IOException, SAXException, BundleException {
+	Resource[] updateContext(InputStream is, String realpath, boolean closeStream, boolean store)
+			throws PageException, IOException, SAXException, BundleException, ConverterException {
 		List<Resource> filesDeployed = new ArrayList<Resource>();
 		_updateContext(config, is, realpath, closeStream, filesDeployed, store);
 		return filesDeployed.toArray(new Resource[filesDeployed.size()]);
 	}
 
 	private static void _updateContext(Config config, InputStream is, String realpath, boolean closeStream, List<Resource> filesDeployed, boolean store)
-			throws PageException, IOException, SAXException, BundleException {
+			throws PageException, IOException, SAXException, BundleException, ConverterException {
 		Resource trg = config.getConfigDir().getRealResource("context").getRealResource(realpath);
 		if (trg.exists()) trg.remove(true);
 		Resource p = trg.getParentResource();
@@ -5992,15 +5686,15 @@ public final class XMLConfigAdmin {
 
 	@Deprecated
 	static Resource[] updateContextClassic(ConfigPro config, InputStream is, String realpath, boolean closeStream)
-			throws PageException, IOException, SAXException, BundleException {
+			throws PageException, IOException, SAXException, BundleException, ConverterException {
 		List<Resource> filesDeployed = new ArrayList<Resource>();
-		XMLConfigAdmin._updateContextClassic(config, is, realpath, closeStream, filesDeployed);
+		ConfigAdmin._updateContextClassic(config, is, realpath, closeStream, filesDeployed);
 		return filesDeployed.toArray(new Resource[filesDeployed.size()]);
 	}
 
 	@Deprecated
 	private static void _updateContextClassic(Config config, InputStream is, String realpath, boolean closeStream, List<Resource> filesDeployed)
-			throws PageException, IOException, SAXException, BundleException {
+			throws PageException, IOException, SAXException, BundleException, ConverterException {
 		if (config instanceof ConfigServer) {
 			ConfigWeb[] webs = ((ConfigServer) config).getConfigWebs();
 			if (webs.length == 0) return;
@@ -6030,7 +5724,7 @@ public final class XMLConfigAdmin {
 		_storeAndReload((ConfigPro) config);
 	}
 
-	public boolean removeConfigs(Config config, boolean store, String... realpathes) throws PageException, IOException, SAXException, BundleException {
+	public boolean removeConfigs(Config config, boolean store, String... realpathes) throws PageException, IOException, SAXException, BundleException, ConverterException {
 		if (ArrayUtil.isEmpty(realpathes)) return false;
 		boolean force = false;
 		for (int i = 0; i < realpathes.length; i++) {
@@ -6039,20 +5733,20 @@ public final class XMLConfigAdmin {
 		return force;
 	}
 
-	private boolean _removeConfigs(Config config, String realpath, boolean _store) throws PageException, IOException, SAXException, BundleException {
+	private boolean _removeConfigs(Config config, String realpath, boolean _store) throws PageException, IOException, SAXException, BundleException, ConverterException {
 
 		Resource context = config.getConfigDir(); // MUST get dyn
 		Resource trg = context.getRealResource(realpath);
 		if (trg.exists()) {
 			trg.remove(true);
-			if (_store) XMLConfigAdmin._storeAndReload((ConfigPro) config);
+			if (_store) ConfigAdmin._storeAndReload((ConfigPro) config);
 			ResourceUtil.removeEmptyFolders(context, null);
 			return true;
 		}
 		return false;
 	}
 
-	public boolean removeComponents(Config config, boolean store, String... realpathes) throws PageException, IOException, SAXException, BundleException {
+	public boolean removeComponents(Config config, boolean store, String... realpathes) throws PageException, IOException, SAXException, BundleException, ConverterException {
 		if (ArrayUtil.isEmpty(realpathes)) return false;
 		boolean force = false;
 		for (int i = 0; i < realpathes.length; i++) {
@@ -6061,20 +5755,21 @@ public final class XMLConfigAdmin {
 		return force;
 	}
 
-	private boolean _removeComponent(Config config, String realpath, boolean _store) throws PageException, IOException, SAXException, BundleException {
+	private boolean _removeComponent(Config config, String realpath, boolean _store) throws PageException, IOException, SAXException, BundleException, ConverterException {
 
 		Resource context = config.getConfigDir().getRealResource("components"); // MUST get dyn
 		Resource trg = context.getRealResource(realpath);
 		if (trg.exists()) {
 			trg.remove(true);
-			if (_store) XMLConfigAdmin._storeAndReload((ConfigPro) config);
+			if (_store) ConfigAdmin._storeAndReload((ConfigPro) config);
 			ResourceUtil.removeEmptyFolders(context, null);
 			return true;
 		}
 		return false;
 	}
 
-	public boolean removeContext(Config config, boolean store, Log logger, String... realpathes) throws PageException, IOException, SAXException, BundleException {
+	public boolean removeContext(Config config, boolean store, Log logger, String... realpathes)
+			throws PageException, IOException, SAXException, BundleException, ConverterException {
 		if (ArrayUtil.isEmpty(realpathes)) return false;
 		boolean force = false;
 		for (int i = 0; i < realpathes.length; i++) {
@@ -6084,20 +5779,21 @@ public final class XMLConfigAdmin {
 		return force;
 	}
 
-	private boolean _removeContext(Config config, String realpath, boolean _store) throws PageException, IOException, SAXException, BundleException {
+	private boolean _removeContext(Config config, String realpath, boolean _store) throws PageException, IOException, SAXException, BundleException, ConverterException {
 
 		Resource context = config.getConfigDir().getRealResource("context");
 		Resource trg = context.getRealResource(realpath);
 		if (trg.exists()) {
 			trg.remove(true);
-			if (_store) XMLConfigAdmin._storeAndReload((ConfigPro) config);
+			if (_store) ConfigAdmin._storeAndReload((ConfigPro) config);
 			ResourceUtil.removeEmptyFolders(context, null);
 			return true;
 		}
 		return false;
 	}
 
-	public boolean removeWebContexts(Config config, boolean store, Log logger, String... realpathes) throws PageException, IOException, SAXException, BundleException {
+	public boolean removeWebContexts(Config config, boolean store, Log logger, String... realpathes)
+			throws PageException, IOException, SAXException, BundleException, ConverterException {
 		if (ArrayUtil.isEmpty(realpathes)) return false;
 
 		if (config instanceof ConfigWeb) {
@@ -6112,7 +5808,7 @@ public final class XMLConfigAdmin {
 		return force;
 	}
 
-	private boolean _removeWebContexts(Config config, String realpath, boolean _store) throws PageException, IOException, SAXException, BundleException {
+	private boolean _removeWebContexts(Config config, String realpath, boolean _store) throws PageException, IOException, SAXException, BundleException, ConverterException {
 
 		if (config instanceof ConfigServer) {
 			ConfigServer cs = ((ConfigServer) config);
@@ -6213,8 +5909,9 @@ public final class XMLConfigAdmin {
 		if (trg.exists()) trg.remove(true);
 	}
 
-	public static void removeRHExtensions(ConfigPro config, String[] extensionIDs, boolean removePhysical) throws IOException, PageException, SAXException, BundleException {
-		XMLConfigAdmin admin = new XMLConfigAdmin(config, null);
+	public static void removeRHExtensions(ConfigPro config, String[] extensionIDs, boolean removePhysical)
+			throws IOException, PageException, SAXException, BundleException, ConverterException {
+		ConfigAdmin admin = new ConfigAdmin(config, null);
 
 		Map<String, BundleDefinition> oldMap = new HashMap<>();
 		BundleDefinition[] bds;
@@ -6229,7 +5926,7 @@ public final class XMLConfigAdmin {
 				}
 			}
 			catch (Exception e) {
-				LogUtil.log(config, "deploy", XMLConfigAdmin.class.getName(), e);
+				LogUtil.log(config, "deploy", ConfigAdmin.class.getName(), e);
 			}
 		}
 
@@ -6243,7 +5940,7 @@ public final class XMLConfigAdmin {
 					admin._storeAndReload((ConfigPro) webs[i]);
 				}
 				catch (Exception e) {
-					LogUtil.log(config, "deploy", XMLConfigAdmin.class.getName(), e);
+					LogUtil.log(config, "deploy", ConfigAdmin.class.getName(), e);
 				}
 			}
 		}
@@ -6251,23 +5948,26 @@ public final class XMLConfigAdmin {
 
 	}
 
-	public BundleDefinition[] _removeExtension(ConfigPro config, String extensionID, boolean removePhysical) throws IOException, PageException, SAXException, BundleException {
+	public BundleDefinition[] _removeExtension(ConfigPro config, String extensionID, boolean removePhysical)
+			throws IOException, PageException, SAXException, BundleException, ConverterException {
 		if (!Decision.isUUId(extensionID)) throw new IOException("id [" + extensionID + "] is invalid, it has to be a UUID");
 
-		Element extensions = _getRootElement("extensions");
-		Element[] children = XMLConfigWebFactory.getChildren(extensions, "rhextension");// LuceeHandledExtensions
+		Array children = ConfigWebUtil.getAsArray("extensions", "rhextension", root);
+
 		// Update
-		Element el;
+		Struct el;
 		String id;
 		String[] arr;
 		boolean storeChildren = false;
 		BundleDefinition[] bundles;
 		Log log = config.getLog("deploy");
-		for (int i = 0; i < children.length; i++) {
-			el = children[i];
-			id = el.getAttribute("id");
+		for (int i = children.size(); i > 0; i--) {
+			el = Caster.toStruct(children.get(i, null), null);
+			if (el == null) continue;
+
+			id = ConfigWebUtil.getAsString("id", el, null);
 			if (extensionID.equalsIgnoreCase(id)) {
-				bundles = RHExtension.toBundleDefinitions(el.getAttribute("bundles")); // get existing bundles before populate new ones
+				bundles = RHExtension.toBundleDefinitions(ConfigWebUtil.getAsString("bundles", el, null)); // get existing bundles before populate new ones
 
 				// bundles
 				arr = _removeExtensionCheckOtherUsage(children, el, "bundles");
@@ -6301,8 +6001,7 @@ public final class XMLConfigAdmin {
 				// plugins
 				arr = _removeExtensionCheckOtherUsage(children, el, "plugins");
 				removePlugins(config, log, arr);
-
-				extensions.removeChild(el);
+				children.removeEL(i);
 
 				return bundles;
 			}
@@ -6362,18 +6061,21 @@ public final class XMLConfigAdmin {
 		}
 	}
 
-	private String[] _removeExtensionCheckOtherUsage(Element[] children, Element curr, String type) {
-		String currVal = curr.getAttribute(type);
+	private String[] _removeExtensionCheckOtherUsage(Array children, Struct curr, String type) {
+		String currVal = ConfigWebUtil.getAsString(type, curr, null);
 		if (StringUtil.isEmpty(currVal)) return null;
 
 		String otherVal;
-		Element other;
+		Struct other;
 		Set<String> currSet = ListUtil.toSet(ListUtil.trimItems(ListUtil.listToStringArray(currVal, ',')));
 		String[] otherArr;
-		for (int i = 0; i < children.length; i++) {
-			other = children[i];
+		for (int i = children.size(); i > 0; i--) {
+			Struct tmp = Caster.toStruct(children.get(i, null), null);
+			if (tmp == null) continue;
+
+			other = tmp;
 			if (other == curr) continue;
-			otherVal = other.getAttribute(type);
+			otherVal = ConfigWebUtil.getAsString(type, other, null);
 			if (StringUtil.isEmpty(otherVal)) continue;
 			otherArr = ListUtil.trimItems(ListUtil.listToStringArray(otherVal, ','));
 			for (int y = 0; y < otherArr.length; y++) {
@@ -6395,19 +6097,23 @@ public final class XMLConfigAdmin {
 	 */
 	public BundleDefinition[] _updateExtension(ConfigPro config, RHExtension ext) throws IOException, BundleException, ApplicationException {
 		if (!Decision.isUUId(ext.getId())) throw new IOException("id [" + ext.getId() + "] is invalid, it has to be a UUID");
-		Element extensions = _getRootElement("extensions");
-		Element[] children = XMLConfigWebFactory.getChildren(extensions, "rhextension");// LuceeHandledExtensions
+
+		Array children = ConfigWebUtil.getAsArray("extensions", "rhextension", root);
+		// Struct extensions = _getRootElement("extensions");
+		// Element[] children = ConfigWebFactory.getChildren(extensions, "rhextension");//
+		// LuceeHandledExtensions
 
 		// Update
-		Element el;
+		Struct el;
 		String id;
 		BundleDefinition[] old;
-		for (int i = 0; i < children.length; i++) {
-			el = children[i];
-			// provider=el.getAttribute("provider");
-			id = el.getAttribute("id");
+		for (int i = 1; i <= children.size(); i++) {
+			el = Caster.toStruct(children.get(i, null), null);
+			if (el == null) continue;
+
+			id = ConfigWebUtil.getAsString("id", el, "");
 			if (ext.getId().equalsIgnoreCase(id)) {
-				old = RHExtension.toBundleDefinitions(el.getAttribute("bundles")); // get existing bundles before populate new ones
+				old = RHExtension.toBundleDefinitions(ConfigWebUtil.getAsString("bundles", el, null)); // get existing bundles before populate new ones
 				ext.populate(el);
 				old = minus(old, OSGiUtil.toBundleDefinitions(ext.getBundles()));
 				return old;
@@ -6415,9 +6121,9 @@ public final class XMLConfigAdmin {
 		}
 
 		// Insert
-		el = doc.createElement("rhextension");
+		el = new StructImpl(Struct.TYPE_LINKED);
 		ext.populate(el);
-		extensions.appendChild(el);
+		children.appendEL(el);
 		return null;
 	}
 
@@ -6438,16 +6144,22 @@ public final class XMLConfigAdmin {
 	}
 
 	private RHExtension getRHExtension(ConfigPro config, String id, RHExtension defaultValue) {
-		Element extensions = _getRootElement("extensions");
-		Element[] children = XMLConfigWebFactory.getChildren(extensions, "rhextension");// LuceeHandledExtensions
+		Array children = ConfigWebUtil.getAsArray("extensions", "rhextension", root);
 
-		if (children != null) for (int i = 0; i < children.length; i++) {
-			if (!id.equals(children[i].getAttribute("id"))) continue;
-			try {
-				return new RHExtension(config, children[i]);
-			}
-			catch (Exception e) {
-				return defaultValue;
+		if (children != null) {
+			for (int i = 1; i <= children.size(); i++) {
+				Struct tmp = Caster.toStruct(children.get(i, null), null);
+				if (tmp == null) continue;
+
+				String v = ConfigWebUtil.getAsString("id", tmp, null);
+				if (!id.equals(v)) continue;
+
+				try {
+					return new RHExtension(config, tmp);
+				}
+				catch (Exception e) {
+					return defaultValue;
+				}
 			}
 		}
 		return defaultValue;
@@ -6464,20 +6176,22 @@ public final class XMLConfigAdmin {
 	 * @throws SAXException
 	 */
 	public static RHExtension hasRHExtensions(ConfigPro config, ExtensionDefintion ed) throws PageException, SAXException, IOException {
-		XMLConfigAdmin admin = new XMLConfigAdmin(config, null);
+		ConfigAdmin admin = new ConfigAdmin(config, null);
 		return admin._hasRHExtensions(config, ed);
 	}
 
 	private RHExtension _hasRHExtensions(ConfigPro config, ExtensionDefintion ed) throws PageException {
 
-		Element extensions = _getRootElement("extensions");
-		Element[] children = XMLConfigWebFactory.getChildren(extensions, "rhextension");// LuceeHandledExtensions
+		Array children = ConfigWebUtil.getAsArray("extensions", "rhextension", root);
 		RHExtension tmp;
 		try {
-			for (int i = 0; i < children.length; i++) {
+			for (int i = 1; i <= children.size(); i++) {
+				Struct sct = Caster.toStruct(children.get(i, null), null);
+				if (sct == null) continue;
+
 				tmp = null;
 				try {
-					tmp = new RHExtension(config, children[i]);
+					tmp = new RHExtension(config, sct);
 				}
 				catch (Exception e) {}
 
@@ -6503,8 +6217,7 @@ public final class XMLConfigAdmin {
 		}
 		set.add(key);
 
-		Element root = doc.getDocumentElement();
-		root.setAttribute("auth-keys", authKeysAsList(set));
+		root.setEL("auth-keys", authKeysAsList(set));
 
 	}
 
@@ -6520,23 +6233,20 @@ public final class XMLConfigAdmin {
 			if (!key.equals(keys[i])) set.add(keys[i]);
 		}
 
-		Element root = doc.getDocumentElement();
-		root.setAttribute("auth-keys", authKeysAsList(set));
+		root.setEL("auth-keys", authKeysAsList(set));
 	}
 
 	public void updateAPIKey(String key) throws SecurityException, ApplicationException {
 		checkWriteAccess();
 		key = key.trim();
 		if (!Decision.isGUId(key)) throw new ApplicationException("Passed API Key [" + key + "] is not valid");
-		Element root = doc.getDocumentElement();
-		root.setAttribute("api-key", key);
+		root.setEL("api-key", key);
 
 	}
 
 	public void removeAPIKey() throws PageException {
 		checkWriteAccess();
-		Element root = doc.getDocumentElement();
-		if (root.hasAttribute("api-key")) root.removeAttribute("api-key");
+		if (root.containsKey("api-key")) rem(root, "api-key");
 	}
 
 	private String authKeysAsList(Set<String> set) throws PageException {
@@ -6583,7 +6293,7 @@ public final class XMLConfigAdmin {
 		ResourceUtil.copyRecursive(src, trgDir);
 	}
 
-	private static void setClass(Element el, Class instanceOfClass, String prefix, ClassDefinition cd) throws PageException {
+	private static void setClass(Struct el, Class instanceOfClass, String prefix, ClassDefinition cd) throws PageException {
 		if (cd == null || StringUtil.isEmpty(cd.getClassName())) return;
 
 		// validate class
@@ -6596,21 +6306,21 @@ public final class XMLConfigAdmin {
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
-		el.setAttribute(prefix + "class", cd.getClassName().trim());
+		el.setEL(prefix + "class", cd.getClassName().trim());
 		if (cd.isBundle()) {
-			el.setAttribute(prefix + "bundle-name", cd.getName());
-			if (cd.hasVersion()) el.setAttribute(prefix + "bundle-version", cd.getVersionAsString());
+			el.setEL(prefix + "bundle-name", cd.getName());
+			if (cd.hasVersion()) el.setEL(prefix + "bundle-version", cd.getVersionAsString());
 		}
 		else {
-			if (el.hasAttribute(prefix + "bundle-name")) el.removeAttribute(prefix + "bundle-name");
-			if (el.hasAttribute(prefix + "bundle-version")) el.removeAttribute(prefix + "bundle-version");
+			if (el.containsKey(prefix + "bundle-name")) el.remove(prefix + "bundle-name");
+			if (el.containsKey(prefix + "bundle-version")) el.remove(prefix + "bundle-version");
 		}
 	}
 
-	private void removeClass(Element el, String prefix) {
-		el.removeAttribute(prefix + "class");
-		el.removeAttribute(prefix + "bundle-name");
-		el.removeAttribute(prefix + "bundle-version");
+	private void removeClass(Struct el, String prefix) {
+		el.removeEL(KeyImpl.init(prefix + "class"));
+		el.removeEL(KeyImpl.init(prefix + "bundle-name"));
+		el.removeEL(KeyImpl.init(prefix + "bundle-version"));
 	}
 
 	public final static class PluginFilter implements ResourceFilter {
@@ -6631,16 +6341,16 @@ public final class XMLConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("Accces Denied to update queue settings");
 
-		Element queue = _getRootElement("queue");
+		Struct queue = _getRootElement("queue");
 		// max
-		if (max == null) queue.removeAttribute("max");
-		else queue.setAttribute("max", Caster.toString(max, ""));
+		if (max == null) rem(queue, "max");
+		else queue.setEL("max", Caster.toString(max, ""));
 		// total
-		if (timeout == null) queue.removeAttribute("timeout");
-		else queue.setAttribute("timeout", Caster.toString(timeout, ""));
+		if (timeout == null) rem(queue, "timeout");
+		else queue.setEL("timeout", Caster.toString(timeout, ""));
 		// enable
-		if (enable == null) queue.removeAttribute("enable");
-		else queue.setAttribute("enable", Caster.toString(enable, ""));
+		if (enable == null) rem(queue, "enable");
+		else queue.setEL("enable", Caster.toString(enable, ""));
 	}
 
 	public void updateCGIReadonly(Boolean cgiReadonly) throws SecurityException {
@@ -6648,35 +6358,7 @@ public final class XMLConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("Accces Denied to update scope setting");
 
-		Element scope = _getRootElement("scope");
-		scope.setAttribute("cgi-readonly", Caster.toString(cgiReadonly, ""));
-	}
-
-	public static boolean fixExtension(Config config, Document doc) {
-		if (doc == null) return false;
-		Element parent = XMLConfigWebFactory.getChildByName(doc.getDocumentElement(), "extensions", false, true);
-		Element[] extensions = XMLConfigWebFactory.getChildren(parent, "rhextension");
-
-		// replace extension class with core class
-		boolean fixed = false;
-		if (extensions != null) {
-			for (int i = 0; i < extensions.length; i++) {
-				if (extensions[i].hasAttribute("start-bundles")) continue;
-				// this will load the data from the .lex file
-				try {
-
-					Resource res = RHExtension.toResource(config, extensions[i], null);
-					Manifest mf = (res == null) ? null : RHExtension.getManifestFromFile(config, res);
-					if (mf != null) {
-						RHExtension.populate(extensions[i], mf);
-						fixed = true;
-					}
-				}
-				catch (Exception e) {
-					LogUtil.log(ThreadLocalPageContext.getConfig(config), XMLConfigAdmin.class.getName(), e);
-				}
-			}
-		}
-		return fixed;
+		Struct scope = _getRootElement("scope");
+		scope.setEL("cgi-readonly", Caster.toString(cgiReadonly, ""));
 	}
 }

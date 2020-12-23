@@ -18,7 +18,6 @@
  */
 package lucee.runtime.config;
 
-import java.io.IOException;
 import java.net.URL;
 import java.util.Collection;
 import java.util.Enumeration;
@@ -33,9 +32,6 @@ import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.JspWriter;
-
-import org.osgi.framework.BundleException;
-import org.xml.sax.SAXException;
 
 import lucee.commons.io.FileUtil;
 import lucee.commons.io.SystemUtil;
@@ -460,12 +456,22 @@ public class ConfigWebImpl extends ConfigImpl implements ServletConfig, ConfigWe
 	}
 
 	@Override
-	public void updatePassword(boolean server, String passwordOld, String passwordNew) throws PageException, IOException, SAXException, BundleException {
-		PasswordImpl.updatePassword(server ? configServer : this, passwordOld, passwordNew);
+	public void updatePassword(boolean server, String passwordOld, String passwordNew) throws PageException {
+		try {
+			PasswordImpl.updatePassword(server ? configServer : this, passwordOld, passwordNew);
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
 	}
 
-	public void updatePassword(boolean server, Password passwordOld, Password passwordNew) throws PageException, IOException, SAXException, BundleException {
-		PasswordImpl.updatePassword(server ? configServer : this, passwordOld, passwordNew);
+	public void updatePassword(boolean server, Password passwordOld, Password passwordNew) throws PageException {
+		try {
+			PasswordImpl.updatePassword(server ? configServer : this, passwordOld, passwordNew);
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
 	}
 
 	@Override

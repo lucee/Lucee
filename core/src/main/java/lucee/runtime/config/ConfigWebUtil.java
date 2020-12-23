@@ -59,12 +59,17 @@ import lucee.runtime.listener.ModernAppListener;
 import lucee.runtime.listener.NoneAppListener;
 import lucee.runtime.monitor.Monitor;
 import lucee.runtime.net.http.ReqRspUtil;
+import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.BundleBuilderFactory;
 import lucee.runtime.osgi.BundleFile;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.security.SecurityManager;
+import lucee.runtime.type.Array;
+import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection.Key;
+import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.tag.TagLib;
@@ -148,7 +153,7 @@ public final class ConfigWebUtil {
 		}
 		catch (IOException ioe) {
 			if (throwError) throw ioe;
-			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs != null ? cs : cw), XMLConfigAdmin.class.getName(), ioe);
+			LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs != null ? cs : cw), ConfigAdmin.class.getName(), ioe);
 		}
 	}
 
@@ -733,5 +738,49 @@ public final class ConfigWebUtil {
 			rst[i] = flds[i].duplicate(deepCopy);
 		}
 		return rst;
+	}
+
+	public static Array getAsArray(String parent, String child, Struct sct) {
+		return getAsArray(child, getAsStruct(parent, sct));
+	}
+
+	public static Struct getAsStruct(String name, Struct sct) {
+		Object obj = sct.get(name, null);
+		if (obj == null) {
+			Struct tmp = new StructImpl(Struct.TYPE_LINKED);
+			sct.put(name, tmp);
+			return tmp;
+		}
+		return (Struct) obj;
+	}
+
+	public static Array getAsArray(String name, Struct sct) {
+		Object obj = sct.get(KeyImpl.init(name), null);
+		if (obj == null) {
+			Array tmp = new ArrayImpl();
+			sct.put(name, tmp);
+			return tmp;
+		}
+
+		if (obj instanceof Array) return (Array) obj;
+
+		Array tmp = new ArrayImpl();
+		tmp.appendEL(obj);
+		sct.put(name, tmp);
+		return tmp;
+	}
+
+	public static String getAsString(String name, Struct sct, String defaultValue) {
+		if (sct == null) return defaultValue;
+		Object obj = sct.get(KeyImpl.init(name), null);
+		if (obj == null) return defaultValue;
+		return Caster.toString(obj, defaultValue);
+	}
+
+	public static double getAsDouble(String name, Struct sct, double defaultValue) {
+		if (sct == null) return defaultValue;
+		Object obj = sct.get(KeyImpl.init(name), null);
+		if (obj == null) return defaultValue;
+		return Caster.toDoubleValue(obj, false, defaultValue);
 	}
 }
