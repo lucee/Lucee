@@ -251,7 +251,7 @@ public abstract class ConfigFactory {
 			rem("application", root);
 		}
 
-		//////////////////// application ////////////////////
+		//////////////////// caches ////////////////////
 		{
 			Struct cache = ConfigWebUtil.getAsStruct("cache", root);
 			Struct caches = ConfigWebUtil.getAsStruct("caches", root);
@@ -269,16 +269,31 @@ public abstract class ConfigFactory {
 			while (it.hasNext()) {
 				Struct conn = Caster.toStruct(it.next(), null);
 				if (conn == null) continue;
-				move(conn, Caster.toString(conn.remove(KeyConstants._name, null), null), caches);
+				add(conn, Caster.toString(conn.remove(KeyConstants._name, null), null), caches);
 			}
 			rem("cache", root);
+		}
+
+		//////////////////// cache handlers ////////////////////
+		{
+			Struct handlers = ConfigWebUtil.getAsStruct("cacheHandlers", root);
+			Array handler = ConfigWebUtil.getAsArray("cacheHandler", handlers);
+
+			Key[] keys = handler.keys();
+			for (int i = keys.length - 1; i >= 0; i--) {
+				Key k = keys[i];
+				Struct data = Caster.toStruct(handler.get(k, null), null);
+				if (data == null) continue;
+				add(data, Caster.toString(data.remove(KeyConstants._id, null), null), handlers);
+				handler.remove(k, null);
+			}
 		}
 
 		remIfEmpty(root);
 
 		// TODO scope?
 		//////////////////// translate ////////////////////
-		// cacheDirectory,cacheDirectoryMaxSize, classicDateParsing,cacheClasses
+		// cacheDirectory,cacheDirectoryMaxSize, classicDateParsing,cacheClasses,cacheHandlers
 
 		// store it as Json
 		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, true, true);
@@ -315,7 +330,7 @@ public abstract class ConfigFactory {
 		if (val != null) to.setEL(KeyImpl.init(toKey), val);
 	}
 
-	private static void move(Object fromData, String toKey, Struct to) {
+	private static void add(Object fromData, String toKey, Struct to) {
 		if (fromData == null) return;
 		to.setEL(KeyImpl.init(toKey), fromData);
 	}

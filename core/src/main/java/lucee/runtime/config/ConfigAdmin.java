@@ -3850,14 +3850,14 @@ public final class ConfigAdmin {
 	}
 
 	private void _removeCacheHandler(String id) {
-		Array children = ConfigWebUtil.getAsArray("cacheHandlers", "cacheHandler", root);
-		for (int i = children.size(); i > 0; i--) {
-			Struct el = Caster.toStruct(children.get(i, null), null);
-			if (el == null) continue;
-
-			String _id = ConfigWebUtil.getAsString("id", el, null);
-			if (_id != null && _id.equalsIgnoreCase(id)) {
-				children.removeEL(i);
+		Struct handlers = ConfigWebUtil.getAsStruct("cacheHandlers", root);
+		Key[] keys = handlers.keys();
+		for (Key key: keys) {
+			String _id = key.getString();
+			if (_id.equalsIgnoreCase(id)) {
+				Struct el = Caster.toStruct(handlers.get(key, null), null);
+				if (el == null) continue;
+				handlers.removeEL(key);
 				break;
 			}
 		}
@@ -3892,15 +3892,17 @@ public final class ConfigAdmin {
 	}
 
 	private void _updateCacheHandler(String id, ClassDefinition cd) throws PageException {
-		Array children = ConfigWebUtil.getAsArray("cacheHandlers", "cacheHandler", root);
+		Struct handlers = ConfigWebUtil.getAsStruct("cacheHandlers", root);
+		Iterator<Entry<Key, Object>> it = handlers.entryIterator();
 		Struct ch = null;
 		// Update
-		for (int i = 1; i <= children.size(); i++) {
-			Struct el = Caster.toStruct(children.get(i, null), null);
-			if (el == null) continue;
-
-			String _id = ConfigWebUtil.getAsString("id", el, null);
+		Entry<Key, Object> entry;
+		while (it.hasNext()) {
+			entry = it.next();
+			String _id = entry.getKey().getString();
 			if (_id != null && _id.equalsIgnoreCase(id)) {
+				Struct el = Caster.toStruct(entry.getValue(), null);
+				if (el == null) continue;
 				ch = el;
 				break;
 			}
@@ -3909,9 +3911,8 @@ public final class ConfigAdmin {
 		// Insert
 		if (ch == null) {
 			ch = new StructImpl(Struct.TYPE_LINKED);
-			children.appendEL(ch);
+			handlers.setEL(id, ch);
 		}
-		ch.setEL("id", id);
 		setClass(ch, null, "", cd);
 	}
 
@@ -3945,20 +3946,17 @@ public final class ConfigAdmin {
 	}
 
 	public void removeCacheHandler(String id) throws PageException {
-		checkWriteAccess();
-
-		Array children = ConfigWebUtil.getAsArray("cacheHandlers", "cacheHandler", root);
-		// Update
-		for (int i = children.size(); i > 0; i--) {
-			Struct tmp = Caster.toStruct(children.get(i, null), null);
-			if (tmp == null) continue;
-
-			String _id = ConfigWebUtil.getAsString("id", tmp, null);
-			if (_id != null && _id.equalsIgnoreCase(id)) {
-				children.removeEL(i);
+		Struct handlers = ConfigWebUtil.getAsStruct("cacheHandlers", root);
+		Key[] keys = handlers.keys();
+		for (Key key: keys) {
+			String _id = key.getString();
+			if (_id.equalsIgnoreCase(id)) {
+				Struct el = Caster.toStruct(handlers.get(key, null), null);
+				if (el == null) continue;
+				handlers.removeEL(key);
+				break;
 			}
 		}
-
 	}
 
 	public void updateExtensionInfo(boolean enabled) {

@@ -161,16 +161,12 @@
 		]
 	}
 	,"cacheHandlers":{
-		"cacheHandler":[
-			{
-				"id":"request"
-				,"class":"lucee.runtime.cache.tag.request.RequestCacheHandler"
-			}
-			,{
-				"id":"timespan"
-				,"class":"lucee.runtime.cache.tag.timespan.TimespanCacheHandler"
-			}
-		]
+		"timespan":{
+			"class":"lucee.runtime.cache.tag.timespan.TimespanCacheHandler"
+		}
+		,"request":{
+			"class":"lucee.runtime.cache.tag.request.RequestCacheHandler"
+		}
 	}
 	,"orm":{
 		"engineClass":"lucee.runtime.orm.DummyORMEngine"

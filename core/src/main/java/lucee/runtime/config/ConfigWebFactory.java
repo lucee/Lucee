@@ -741,18 +741,21 @@ public final class ConfigWebFactory extends ConfigFactory {
 					}
 				}
 			}
-			Array handlers = ConfigWebUtil.getAsArray("cacheHandlers", "cacheHandler", root);
+			Struct handlers = ConfigWebUtil.getAsStruct("cacheHandlers", root);
 			if (handlers != null) {
 				ClassDefinition cd;
 				String strId;
-				Iterator<?> it = handlers.getIterator();
+				Iterator<Entry<Key, Object>> it = handlers.entryIterator();
+				Entry<Key, Object> entry;
 				Struct handler;
 				while (it.hasNext()) {
-					handler = Caster.toStruct(it.next(), null);
+					entry = it.next();
+
+					handler = Caster.toStruct(entry.getValue(), null);
 					if (handler == null) continue;
 
 					cd = getClassDefinition(handler, "", config.getIdentification());
-					strId = getAttr(handler, "id");
+					strId = entry.getKey().getString();
 
 					if (cd.hasClass() && !StringUtil.isEmpty(strId)) {
 						strId = strId.trim().toLowerCase();
