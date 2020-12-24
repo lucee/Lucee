@@ -190,7 +190,7 @@ public final class ConfigAdmin {
 	 * @throws DOMException
 	 * @throws ExpressionException
 	 */
-	public void setPassword(Password password) throws SecurityException, DOMException, IOException {
+	public void setPassword(Password password) throws SecurityException, IOException {
 		checkWriteAccess();
 		PasswordImpl.writeToStruct(root, password, false);
 	}
@@ -2274,9 +2274,8 @@ public final class ConfigAdmin {
 
 		if (!hasAccess) throw new SecurityException("no access to update");
 
-		Struct datasources = _getRootElement("application");
-		if (typeChecking == null) rem(datasources, "typeChecking");
-		else datasources.setEL("typeChecking", Caster.toString(typeChecking.booleanValue()));
+		if (typeChecking == null) rem(root, "typeChecking");
+		else root.setEL("typeChecking", Caster.toString(typeChecking.booleanValue()));
 
 	}
 
@@ -2285,11 +2284,10 @@ public final class ConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update");
 
-		Struct el = _getRootElement("application");
-		if (ts == null) rem(el, "cachedAfter");
+		if (ts == null) rem(root, "cachedAfter");
 		else {
 			if (ts.getMillis() < 0) throw new ApplicationException("value cannot be a negative number");
-			el.setEL("cachedAfter", ts.getDay() + "," + ts.getHour() + "," + ts.getMinute() + "," + ts.getSecond());
+			root.setEL("cachedAfter", ts.getDay() + "," + ts.getHour() + "," + ts.getMinute() + "," + ts.getSecond());
 		}
 	}
 
@@ -2373,17 +2371,11 @@ public final class ConfigAdmin {
 
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
-		Struct scope = _getRootElement("scope");
-
-		Struct application = _getRootElement("application");
 		if (span != null) {
 			if (span.getMillis() <= 0) throw new ApplicationException("value must be a positive number");
-			application.setEL("requesttimeout", span.getDay() + "," + span.getHour() + "," + span.getMinute() + "," + span.getSecond());
+			root.setEL("requestTimeout", span.getDay() + "," + span.getHour() + "," + span.getMinute() + "," + span.getSecond());
 		}
-		else rem(application, "requesttimeout");
-
-		// remove deprecated attribute
-		if (scope.containsKey("requesttimeout")) rem(scope, "requesttimeout");
+		else rem(root, "requestTimeout");
 	}
 
 	/**
@@ -2586,9 +2578,8 @@ public final class ConfigAdmin {
 
 		if (!hasAccess) throw new SecurityException("no access to update listener type");
 
-		Struct scope = _getRootElement("application");
-		scope.setEL("listenerType", type.toLowerCase().trim());
-		scope.setEL("listenerMode", mode.toLowerCase().trim());
+		root.setEL("listenerType", type.toLowerCase().trim());
+		root.setEL("listenerMode", mode.toLowerCase().trim());
 	}
 
 	public void updateCachedWithin(int type, Object value) throws SecurityException, ApplicationException {
@@ -2599,9 +2590,8 @@ public final class ConfigAdmin {
 		String t = AppListenerUtil.toCachedWithinType(type, "");
 		if (t == null) throw new ApplicationException("invalid cachedwithin type definition");
 		String v = Caster.toString(value, null);
-		Struct app = _getRootElement("application");
-		if (v != null) app.setEL("cachedWithin" + StringUtil.ucFirst(t), v);
-		else rem(app, "cachedWithin" + StringUtil.ucFirst(t));
+		if (v != null) root.setEL("cachedWithin" + StringUtil.ucFirst(t), v);
+		else rem(root, "cachedWithin" + StringUtil.ucFirst(t));
 	}
 
 	public void updateProxy(boolean enabled, String server, int port, String username, String password) throws SecurityException {
@@ -2734,8 +2724,7 @@ public final class ConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update script protect");
 
-		Struct scope = _getRootElement("application");
-		scope.setEL("scriptProtect", strScriptProtect.trim());
+		root.setEL("scriptProtect", strScriptProtect.trim());
 	}
 
 	public void updateAllowURLRequestTimeout(Boolean allowURLRequestTimeout) throws SecurityException {
@@ -2743,8 +2732,7 @@ public final class ConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update AllowURLRequestTimeout");
 
-		Struct scope = _getRootElement("application");
-		scope.setEL("allowUrlRequesttimeout", Caster.toString(allowURLRequestTimeout, ""));
+		root.setEL("requestTimeoutInURL", Caster.toString(allowURLRequestTimeout, ""));
 	}
 
 	public void updateScriptProtect(int scriptProtect) throws SecurityException {
@@ -3207,7 +3195,7 @@ public final class ConfigAdmin {
 	 * @throws IOException
 	 * @throws DOMException
 	 */
-	public void updateDefaultPassword(String password) throws SecurityException, DOMException, IOException {
+	public void updateDefaultPassword(String password) throws SecurityException, IOException {
 		checkWriteAccess();
 		((ConfigServerImpl) config).setDefaultPassword(PasswordImpl.writeToStruct(root, password, true));
 	}
@@ -3288,7 +3276,7 @@ public final class ConfigAdmin {
 	 * @throws DOMException
 	 * @throws PageException
 	 */
-	public void createSecurityManager(Password password, String id) throws DOMException, PageException {
+	public void createSecurityManager(Password password, String id) throws PageException {
 		checkWriteAccess();
 		ConfigServerImpl cs = (ConfigServerImpl) ConfigWebUtil.getConfigServer(config, password);
 		SecurityManagerImpl dsm = (SecurityManagerImpl) cs.getDefaultSecurityManager().cloneSecurityManager();
@@ -5317,8 +5305,7 @@ public final class ConfigAdmin {
 
 		if (cd.getClassName() == null) cd = new ClassDefinitionImpl(AdminSyncNotSupported.class.getName());
 
-		Struct app = _getRootElement("application");
-		setClass(app, AdminSync.class, "adminSync", cd);
+		setClass(root, AdminSync.class, "adminSync", cd);
 	}
 
 	public void removeRemoteClientUsage(String code) {

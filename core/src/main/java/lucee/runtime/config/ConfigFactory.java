@@ -20,13 +20,9 @@ package lucee.runtime.config;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import lucee.commons.io.CharsetUtil;
@@ -49,7 +45,6 @@ import lucee.runtime.interpreter.JSONExpressionInterpreter;
 import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.OSGiUtil;
-import lucee.runtime.text.xml.XMLUtil;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
@@ -199,7 +194,7 @@ public abstract class ConfigFactory {
 		// read the old config (XML)
 		Struct root = ConfigWebUtil.getAsStruct("cfLuceeConfiguration", new XMLConfigReader(configFileOld, true, new ReadRule(), new NameRule()).getData());
 
-		//////////////////// translate charset ////////////////////
+		//////////////////// charset ////////////////////
 		{
 			Struct charset = ConfigWebUtil.getAsStruct("charset", root);
 			Struct regional = ConfigWebUtil.getAsStruct("regional", root);
@@ -219,7 +214,7 @@ public abstract class ConfigFactory {
 
 			rem("charset", root);
 		}
-		//////////////////// translate regional ////////////////////
+		//////////////////// regional ////////////////////
 		{
 			Struct regional = ConfigWebUtil.getAsStruct("regional", root);
 			move("timezone", regional, root);
@@ -228,8 +223,33 @@ public abstract class ConfigFactory {
 			move("useTimeserver", regional, root);
 			rem("regional", root);
 		}
+		//////////////////// application ////////////////////
+		{
+			Struct application = ConfigWebUtil.getAsStruct("application", root);
+			Struct scope = ConfigWebUtil.getAsStruct("scope", root);
+			move("listenerType", application, root);
+			move("listenerMode", application, root);
+			move("typeChecking", application, root);
+			move("cachedAfter", application, root);
+			for (String type: ConfigWebFactory.STRING_CACHE_TYPES) {
+				move("cachedWithin" + StringUtil.ucFirst(type), application, root);
+			}
+			move("allowUrlRequesttimeout", "requestTimeoutInURL", application, root);
+			move("requesttimeout", "requestTimeout", scope, root);// deprecated but still supported
+			move("requesttimeout", "requestTimeout", application, root);
+			move("scriptProtect", application, root);
+			move("classicDateParsing", application, root);
+			move("cacheDirectory", application, root);
+			move("cacheDirectoryMaxSize", application, root);
+			move("adminSynchronisation", "adminSync", application, root);
+			move("adminSync", application, root);
+
+			rem("application", root);
+			// TODO scope?
+		}
 
 		//////////////////// translate ////////////////////
+		// cacheDirectory,cacheDirectoryMaxSize, classicDateParsing
 
 		// store it as Json
 		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, true, true);
@@ -275,64 +295,6 @@ public abstract class ConfigFactory {
 			return ConfigWebUtil.getAsStruct("cfLuceeConfiguration", new XMLConfigReader(res, true, new ReadRule(), new NameRule()).getData());
 		}
 		return Caster.toStruct(new JSONExpressionInterpreter().interpret(null, IOUtil.toString(res, CharsetUtil.UTF8)));
-	}
-
-	/**
-	 * return first direct child Elements of an Element with given Name
-	 * 
-	 * @param parent
-	 * @param nodeName
-	 * @return matching children
-	 */
-	static Element getChildByName(Node parent, String nodeName) {
-		return getChildByName(parent, nodeName, false);
-	}
-
-	static Element getChildByName(Node parent, String nodeName, boolean insertBefore) {
-		return getChildByName(parent, nodeName, insertBefore, false);
-	}
-
-	static Element getChildByName(Node parent, String nodeName, boolean insertBefore, boolean doNotCreate) {
-		if (parent == null) return null;
-		NodeList list = parent.getChildNodes();
-		int len = list.getLength();
-
-		for (int i = 0; i < len; i++) {
-			Node node = list.item(i);
-
-			if (node.getNodeType() == Node.ELEMENT_NODE && node.getNodeName().equalsIgnoreCase(nodeName)) {
-				return (Element) node;
-			}
-		}
-		if (doNotCreate) return null;
-
-		Element newEl = XMLUtil.getDocument(parent).createElement(nodeName);
-		if (insertBefore) parent.insertBefore(newEl, parent.getFirstChild());
-		else parent.appendChild(newEl);
-
-		return newEl;
-	}
-
-	/**
-	 * return all direct child Elements of an Element with given Name
-	 * 
-	 * @param parent
-	 * @param nodeName
-	 * @return matching children
-	 */
-	static Element[] getChildren(Node parent, String nodeName) {
-		if (parent == null) return new Element[0];
-		NodeList list = parent.getChildNodes();
-		int len = list.getLength();
-		ArrayList<Element> rtn = new ArrayList<Element>();
-
-		for (int i = 0; i < len; i++) {
-			Node node = list.item(i);
-			if (node.getNodeType() == Node.ELEMENT_NODE && node.getNodeName().equalsIgnoreCase(nodeName)) {
-				rtn.add((Element) node);
-			}
-		}
-		return rtn.toArray(new Element[rtn.size()]);
 	}
 
 	/**

@@ -205,6 +205,10 @@ public final class ConfigWebFactory extends ConfigFactory {
 	public static final boolean LOG = true;
 	private static final int DEFAULT_MAX_CONNECTION = 100;
 
+	public static final String[] STRING_CACHE_TYPES = new String[] { "function", "include", "query", "resource", "http", "file", "webservice" };
+	public static final int[] CACHE_TYPES = new int[] { Config.CACHEDWITHIN_FUNCTION, Config.CACHEDWITHIN_INCLUDE, Config.CACHEDWITHIN_QUERY, Config.CACHEDWITHIN_RESOURCE,
+			Config.CACHEDWITHIN_HTTP, Config.CACHEDWITHIN_FILE, Config.CACHEDWITHIN_WEBSERVICE };
+
 	/**
 	 * creates a new ServletConfig Impl Object
 	 * 
@@ -4954,9 +4958,6 @@ public final class ConfigWebFactory extends ConfigFactory {
 			boolean hasCS = configServer != null;
 			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 
-			Struct application = ConfigWebUtil.getAsStruct("application", root);
-			Struct scope = ConfigWebUtil.getAsStruct("scope", root);
-
 			// Listener type
 			ApplicationListener listener;
 			if (mode == ConfigPro.MODE_STRICT) {
@@ -4964,36 +4965,33 @@ public final class ConfigWebFactory extends ConfigFactory {
 			}
 			else {
 				String strLT = SystemUtil.getSystemPropOrEnvVar("lucee.listener.type", null);
-				if (StringUtil.isEmpty(strLT)) strLT = application == null ? null : getAttr(application, "listenerType");
+				if (StringUtil.isEmpty(strLT)) strLT = SystemUtil.getSystemPropOrEnvVar("lucee.application.listener", null);
+				if (StringUtil.isEmpty(strLT)) strLT = getAttr(root, new String[] { "listenerType", "applicationListener" });
 				listener = ConfigWebUtil.loadListener(strLT, null);
-
 				if (listener == null) {
 					if (hasCS && configServer.getApplicationListener() != null) listener = ConfigWebUtil.loadListener(configServer.getApplicationListener().getType(), null);
 					if (listener == null) listener = new MixedAppListener();
 				}
 			}
 
-			String[] strTypes = new String[] { "function", "include", "query", "resource", "http", "file", "webservice" };
-			int[] types = new int[] { Config.CACHEDWITHIN_FUNCTION, Config.CACHEDWITHIN_INCLUDE, Config.CACHEDWITHIN_QUERY, Config.CACHEDWITHIN_RESOURCE, Config.CACHEDWITHIN_HTTP,
-					Config.CACHEDWITHIN_FILE, Config.CACHEDWITHIN_WEBSERVICE };
-
 			// cachedwithin
-			for (int i = 0; i < types.length; i++) {
-				String cw = getAttr(application, "cachedWithin" + StringUtil.ucFirst(strTypes[i]));
-				if (!StringUtil.isEmpty(cw, true)) config.setCachedWithin(types[i], cw);
-				else if (hasCS) config.setCachedWithin(types[i], configServer.getCachedWithin(types[i]));
+			for (int i = 0; i < CACHE_TYPES.length; i++) {
+				String cw = getAttr(root, "cachedWithin" + StringUtil.ucFirst(STRING_CACHE_TYPES[i]));
+				if (!StringUtil.isEmpty(cw, true)) config.setCachedWithin(CACHE_TYPES[i], cw);
+				else if (hasCS) config.setCachedWithin(CACHE_TYPES[i], configServer.getCachedWithin(CACHE_TYPES[i]));
 			}
 
 			// Type Checking
 			Boolean typeChecking = Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.type.checking", null), null);
-			if (typeChecking == null) typeChecking = Caster.toBoolean(getAttr(application, "typeChecking"), null);
+			if (typeChecking == null) typeChecking = Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.udf.type.checking", null), null);
+			if (typeChecking == null) typeChecking = Caster.toBoolean(getAttr(root, new String[] { "typeChecking", "UDFTypeChecking" }), null);
 			if (typeChecking != null) config.setTypeChecking(typeChecking.booleanValue());
 			else if (hasCS) config.setTypeChecking(configServer.getTypeChecking());
 
 			// cached after
 			TimeSpan ts = null;
 			if (hasAccess) {
-				String ca = getAttr(application, "cachedAfter");
+				String ca = getAttr(root, "cachedAfter");
 				if (!StringUtil.isEmpty(ca)) ts = Caster.toTimespan(ca);
 			}
 			if (ts != null) config.setCachedAfterTimeRange(ts);
@@ -5002,7 +5000,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 			// Listener Mode
 			String strLM = SystemUtil.getSystemPropOrEnvVar("lucee.listener.mode", null);
-			if (StringUtil.isEmpty(strLM)) strLM = getAttr(application, "listenerMode");
+			if (StringUtil.isEmpty(strLM)) strLM = SystemUtil.getSystemPropOrEnvVar("lucee.application.mode", null);
+			if (StringUtil.isEmpty(strLM)) strLM = getAttr(root, new String[] { "listenerMode", "applicationMode" });
 			int listenerMode = ConfigWebUtil.toListenerMode(strLM, -1);
 			if (listenerMode == -1) {
 				if (hasCS) listenerMode = configServer.getApplicationListener() == null ? ApplicationListener.MODE_CURRENT2ROOT : configServer.getApplicationListener().getMode();
@@ -5017,7 +5016,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 				config.setAllowURLRequestTimeout(false);
 			}
 			else {
-				String allowURLReqTimeout = getAttr(application, "allowUrlRequesttimeout");
+				String allowURLReqTimeout = getAttr(root, new String[] { "requestTimeoutInURL", "allowUrlRequesttimeout" });
 				if (hasAccess && !StringUtil.isEmpty(allowURLReqTimeout)) {
 					config.setAllowURLRequestTimeout(Caster.toBooleanValue(allowURLReqTimeout, false));
 				}
@@ -5027,19 +5026,16 @@ public final class ConfigWebFactory extends ConfigFactory {
 			// Req Timeout
 			ts = null;
 			if (hasAccess) {
-				String reqTimeoutApplication = getAttr(application, "requesttimeout");
-				String reqTimeoutScope = scope == null ? null : getAttr(scope, "requesttimeout"); // deprecated
-
-				if (!StringUtil.isEmpty(reqTimeoutApplication)) ts = Caster.toTimespan(reqTimeoutApplication);
-				if (ts == null && !StringUtil.isEmpty(reqTimeoutScope)) ts = Caster.toTimespan(reqTimeoutScope);
+				String reqTimeout = SystemUtil.getSystemPropOrEnvVar("lucee.requesttimeout", null);
+				if (reqTimeout == null) reqTimeout = getAttr(root, "requesttimeout");
+				if (!StringUtil.isEmpty(reqTimeout)) ts = Caster.toTimespan(reqTimeout);
 			}
-
 			if (ts != null && ts.getMillis() > 0) config.setRequestTimeout(ts);
 			else if (hasCS) config.setRequestTimeout(configServer.getRequestTimeout());
 
 			// script-protect
 			String strScriptProtect = SystemUtil.getSystemPropOrEnvVar("lucee.script.protect", null);
-			if (StringUtil.isEmpty(strScriptProtect)) strScriptProtect = getAttr(application, "scriptProtect");
+			if (StringUtil.isEmpty(strScriptProtect)) strScriptProtect = getAttr(root, "scriptProtect");
 			if (hasAccess && !StringUtil.isEmpty(strScriptProtect)) {
 				config.setScriptProtect(AppListenerUtil.translateScriptProtect(strScriptProtect));
 			}
@@ -5051,8 +5047,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 					DateCaster.classicStyle = true;
 				}
 				else {
-					String strClassicDateParsing = getAttr(application, "classicDateParsing");
-
+					String strClassicDateParsing = getAttr(root, "classicDateParsing");
 					if (!StringUtil.isEmpty(strClassicDateParsing)) {
 						DateCaster.classicStyle = Caster.toBooleanValue(strClassicDateParsing, false);
 					}
@@ -5061,7 +5056,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 			// Cache
 			Resource configDir = config.getConfigDir();
-			String strCacheDirectory = getAttr(application, "cacheDirectory");
+			String strCacheDirectory = getAttr(root, "cacheDirectory");
 			if (hasAccess && !StringUtil.isEmpty(strCacheDirectory)) {
 				strCacheDirectory = ConfigWebUtil.translateOldPath(strCacheDirectory);
 				Resource res = ConfigWebUtil.getFile(configDir, strCacheDirectory, "cache", configDir, FileUtil.TYPE_DIR, config);
@@ -5071,15 +5066,16 @@ public final class ConfigWebFactory extends ConfigFactory {
 				config.setCacheDir(configDir.getRealResource("cache"));
 			}
 
-			String strMax = getAttr(application, "cacheDirectoryMaxSize");
+			// cache dir max size
+			String strMax = getAttr(root, "cacheDirectoryMaxSize");
 			if (hasAccess && !StringUtil.isEmpty(strMax)) {
 				config.setCacheDirSize(ByteSizeParser.parseByteSizeDefinition(strMax, config.getCacheDirSize()));
 			}
 			else if (hasCS) config.setCacheDirSize(configServer.getCacheDirSize());
 
 			// admin sync
-			ClassDefinition asc = getClassDefinition(application, "adminSync", config.getIdentification());
-			if (!asc.hasClass()) asc = getClassDefinition(application, "adminSynchronisation", config.getIdentification());
+			ClassDefinition asc = getClassDefinition(root, "adminSync", config.getIdentification());
+			if (!asc.hasClass()) asc = getClassDefinition(root, "adminSynchronisation", config.getIdentification());
 
 			if (hasAccess && asc.hasClass()) {
 				try {
