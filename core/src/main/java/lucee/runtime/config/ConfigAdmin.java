@@ -1731,69 +1731,65 @@ public final class ConfigAdmin {
 			throw new ExpressionException(e.getMessage());
 		}
 
-		Struct parent = _getRootElement("cache");
-
-		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultTemplate", null), null))) rem(parent, "defaultTemplate");
-		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultObject", null), null))) rem(parent, "defaultObject");
-		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultQuery", null), null))) rem(parent, "defaultQuery");
-		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultResource", null), null))) rem(parent, "defaultResource");
-		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultFunction", null), null))) rem(parent, "defaultFunction");
-		if (name.equalsIgnoreCase(Caster.toString(parent.get("defaultInclude", null), null))) rem(parent, "defaultInclude");
+		if (name.equalsIgnoreCase(Caster.toString(root.get("defaultTemplate", null), null))) rem(root, "defaultTemplate");
+		if (name.equalsIgnoreCase(Caster.toString(root.get("defaultObject", null), null))) rem(root, "defaultObject");
+		if (name.equalsIgnoreCase(Caster.toString(root.get("defaultQuery", null), null))) rem(root, "defaultQuery");
+		if (name.equalsIgnoreCase(Caster.toString(root.get("defaultResource", null), null))) rem(root, "defaultResource");
+		if (name.equalsIgnoreCase(Caster.toString(root.get("defaultFunction", null), null))) rem(root, "defaultFunction");
+		if (name.equalsIgnoreCase(Caster.toString(root.get("defaultInclude", null), null))) rem(root, "defaultInclude");
 
 		if (_default == ConfigPro.CACHE_TYPE_OBJECT) {
-			parent.setEL("defaultObject", name);
+			root.setEL("defaultObject", name);
 		}
 		else if (_default == ConfigPro.CACHE_TYPE_TEMPLATE) {
-			parent.setEL("defaultTemplate", name);
+			root.setEL("defaultTemplate", name);
 		}
 		else if (_default == ConfigPro.CACHE_TYPE_QUERY) {
-			parent.setEL("defaultQuery", name);
+			root.setEL("defaultQuery", name);
 		}
 		else if (_default == ConfigPro.CACHE_TYPE_RESOURCE) {
-			parent.setEL("defaultResource", name);
+			root.setEL("defaultResource", name);
 		}
 		else if (_default == ConfigPro.CACHE_TYPE_FUNCTION) {
-			parent.setEL("defaultFunction", name);
+			root.setEL("defaultFunction", name);
 		}
 		else if (_default == ConfigPro.CACHE_TYPE_INCLUDE) {
-			parent.setEL("defaultInclude", name);
+			root.setEL("defaultInclude", name);
 		}
 		else if (_default == ConfigPro.CACHE_TYPE_HTTP) {
-			parent.setEL("defaultHttp", name);
+			root.setEL("defaultHttp", name);
 		}
 		else if (_default == ConfigPro.CACHE_TYPE_FILE) {
-			parent.setEL("defaultFile", name);
+			root.setEL("defaultFile", name);
 		}
 		else if (_default == ConfigPro.CACHE_TYPE_WEBSERVICE) {
-			parent.setEL("defaultWebservice", name);
+			root.setEL("defaultWebservice", name);
 		}
 
 		// Update
 		// boolean isUpdate=false;
-		Array children = ConfigWebUtil.getAsArray("connection", parent);
-		for (int i = 1; i <= children.size(); i++) {
-			Struct el = Caster.toStruct(children.get(i, null), null);
-			if (el == null) continue;
-
-			String n = ConfigWebUtil.getAsString("name", el, "");
-			if (n.equalsIgnoreCase(name)) {
+		Struct conns = ConfigWebUtil.getAsStruct("caches", root);
+		Iterator<Key> it = conns.keyIterator();
+		Key key;
+		while (it.hasNext()) {
+			key = it.next();
+			if (key.getString().equalsIgnoreCase(name)) {
+				Struct el = Caster.toStruct(conns.get(key, null), null);
 				setClass(el, null, "", cd);
 				el.setEL("custom", toStringURLStyle(custom));
 				el.setEL("readOnly", Caster.toString(readOnly));
 				el.setEL("storage", Caster.toString(storage));
 				return;
 			}
-
 		}
 
 		// Insert
-		Struct el = new StructImpl(Struct.TYPE_LINKED);
-		children.appendEL(el);
-		el.setEL("name", name);
-		setClass(el, null, "", cd);
-		el.setEL("custom", toStringURLStyle(custom));
-		el.setEL("readOnly", Caster.toString(readOnly));
-		el.setEL("storage", Caster.toString(storage));
+		Struct data = new StructImpl(Struct.TYPE_LINKED);
+		conns.setEL(name, data);
+		setClass(data, null, "", cd);
+		data.setEL("custom", toStringURLStyle(custom));
+		data.setEL("readOnly", Caster.toString(readOnly));
+		data.setEL("storage", Caster.toString(storage));
 
 	}
 
@@ -3840,7 +3836,7 @@ public final class ConfigAdmin {
 	}
 
 	private void _removeCache(ClassDefinition cd) {
-		Array children = ConfigWebUtil.getAsArray("caches", "cache", root);
+		Array children = ConfigWebUtil.getAsArray("cacheClasses", root);
 		for (int i = children.size(); i > 0; i--) {
 			Struct el = Caster.toStruct(children.get(i, null), null);
 			if (el == null) continue;
@@ -3873,7 +3869,7 @@ public final class ConfigAdmin {
 	}
 
 	private void _updateCache(ClassDefinition cd) throws PageException {
-		Array children = ConfigWebUtil.getAsArray("caches", "cache", root);
+		Array children = ConfigWebUtil.getAsArray("cacheClasses", root);
 		Struct ch = null;
 		// Update
 		for (int i = 1; i <= children.size(); i++) {

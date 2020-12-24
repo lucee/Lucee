@@ -209,6 +209,11 @@ public final class ConfigWebFactory extends ConfigFactory {
 	public static final int[] CACHE_TYPES = new int[] { Config.CACHEDWITHIN_FUNCTION, Config.CACHEDWITHIN_INCLUDE, Config.CACHEDWITHIN_QUERY, Config.CACHEDWITHIN_RESOURCE,
 			Config.CACHEDWITHIN_HTTP, Config.CACHEDWITHIN_FILE, Config.CACHEDWITHIN_WEBSERVICE };
 
+	// TODO can we merge with aove?
+	public static final String[] STRING_CACHE_TYPES_MAX = new String[] { "resource", "function", "include", "query", "template", "object", "file", "http", "webservice" };
+	public static final int[] CACHE_TYPES_MAX = new int[] { ConfigPro.CACHE_TYPE_RESOURCE, ConfigPro.CACHE_TYPE_FUNCTION, ConfigPro.CACHE_TYPE_INCLUDE, ConfigPro.CACHE_TYPE_QUERY,
+			ConfigPro.CACHE_TYPE_TEMPLATE, ConfigPro.CACHE_TYPE_OBJECT, ConfigPro.CACHE_TYPE_FILE, ConfigPro.CACHE_TYPE_HTTP, ConfigPro.CACHE_TYPE_WEBSERVICE };
+
 	/**
 	 * creates a new ServletConfig Impl Object
 	 * 
@@ -2198,7 +2203,6 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 			// load cache defintions
 			{
-				Array caches = ConfigWebUtil.getAsArray("caches", "cache", root);
 				Map<String, ClassDefinition> map = new HashMap<String, ClassDefinition>();
 
 				// first add the server drivers, so they can be overwritten
@@ -2210,8 +2214,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 						map.put(cd.getClassName(), cd);
 					}
 				}
-
 				ClassDefinition cd;
+				Array caches = ConfigWebUtil.getAsArray("cacheClasses", root);
 				if (caches != null) {
 					Iterator<?> it = caches.getIterator();
 					Struct cache;
@@ -2235,59 +2239,60 @@ public final class ConfigWebFactory extends ConfigFactory {
 			Map<String, CacheConnection> caches = new HashMap<String, CacheConnection>();
 
 			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManagerImpl.TYPE_CACHE);
-			Struct eCache = ConfigWebUtil.getAsStruct("cache", root);
-
-			// check if we have an update or not
-			StringBuilder sb = new StringBuilder();
-			for (Entry<String, ClassDefinition> e: config.getCacheDefinitions().entrySet()) {
-				sb.append(e.getKey()).append(':').append(e.getValue().toString()).append(';');
-			}
-			String md5 = eCache != null ? getMD5(eCache, sb.toString(), hasCS ? configServer.getCacheMD5() : "") : "";
-			if (md5.equals(config.getCacheMD5())) {
-				return;
-			}
-			config.setCacheMD5(md5);
-
-			String[] typeNames = new String[] { "resource", "function", "include", "query", "template", "object", "file", "http", "webservice" };
-			int[] types = new int[] { ConfigPro.CACHE_TYPE_RESOURCE, ConfigPro.CACHE_TYPE_FUNCTION, ConfigPro.CACHE_TYPE_INCLUDE, ConfigPro.CACHE_TYPE_QUERY,
-					ConfigPro.CACHE_TYPE_TEMPLATE, ConfigPro.CACHE_TYPE_OBJECT, ConfigPro.CACHE_TYPE_FILE, ConfigPro.CACHE_TYPE_HTTP, ConfigPro.CACHE_TYPE_WEBSERVICE };
 
 			// default cache
-			for (int i = 0; i < types.length; i++) {
-				String def = eCache != null ? getAttr(eCache, "default" + StringUtil.ucFirst(typeNames[i])) : null;
+			for (int i = 0; i < CACHE_TYPES_MAX.length; i++) {
+				String def = getAttr(root, "default" + StringUtil.ucFirst(STRING_CACHE_TYPES_MAX[i]));
 				if (hasAccess && !StringUtil.isEmpty(def)) {
-					config.setCacheDefaultConnectionName(types[i], def);
+					config.setCacheDefaultConnectionName(CACHE_TYPES_MAX[i], def);
 				}
 				else if (hasCS) {
-					if (eCache != null && eCache.containsKey("default" + StringUtil.ucFirst(typeNames[i]))) config.setCacheDefaultConnectionName(types[i], "");
-					else config.setCacheDefaultConnectionName(types[i], configServer.getCacheDefaultConnectionName(types[i]));
+					if (root.containsKey("default" + StringUtil.ucFirst(STRING_CACHE_TYPES_MAX[i]))) config.setCacheDefaultConnectionName(CACHE_TYPES_MAX[i], "");
+					else config.setCacheDefaultConnectionName(CACHE_TYPES_MAX[i], configServer.getCacheDefaultConnectionName(CACHE_TYPES_MAX[i]));
 				}
-				else config.setCacheDefaultConnectionName(+types[i], "");
+				else config.setCacheDefaultConnectionName(+CACHE_TYPES_MAX[i], "");
+			}
+
+			{
+				Struct eCaches = ConfigWebUtil.getAsStruct("caches", root);
+
+				// check if we have an update or not
+				StringBuilder sb = new StringBuilder();
+				for (Entry<String, ClassDefinition> e: config.getCacheDefinitions().entrySet()) {
+					sb.append(e.getKey()).append(':').append(e.getValue().toString()).append(';');
+				}
+				String md5 = eCaches != null ? getMD5(eCaches, sb.toString(), hasCS ? configServer.getCacheMD5() : "") : "";
+				if (md5.equals(config.getCacheMD5())) {
+					return;
+				}
+				config.setCacheMD5(md5);
 			}
 
 			// cache connections
-			Array eConnections = ConfigWebUtil.getAsArray("connection", eCache);
+			Struct conns = ConfigWebUtil.getAsStruct("caches", root);
 
 			// if(hasAccess) {
 			ClassDefinition cd;
-			String name;
+			Key name;
 			CacheConnection cc;
 			// Class cacheClazz;
 			// caches
 			if (hasAccess) {
-				Iterator<?> it = eConnections.getIterator();
-				Struct eConnection;
+				Iterator<Entry<Key, Object>> it = conns.entryIterator();
+				Entry<Key, Object> entry;
+				Struct data;
 				while (it.hasNext()) {
-					eConnection = Caster.toStruct(it.next(), null);
-					name = getAttr(eConnection, "name");
-					cd = getClassDefinition(eConnection, "", config.getIdentification());
+					entry = it.next();
+					name = entry.getKey();
+					data = Caster.toStruct(entry.getValue(), null);
+					cd = getClassDefinition(data, "", config.getIdentification());
 					if (!cd.isBundle()) {
 						ClassDefinition _cd = config.getCacheDefinition(cd.getClassName());
 						if (_cd != null) cd = _cd;
 					}
 
 					{
-						Struct custom = toStruct(getAttr(eConnection, "custom"));
+						Struct custom = toStruct(getAttr(data, "custom"));
 
 						// Workaround for old EHCache class definitions
 						if (cd.getClassName() != null && cd.getClassName().endsWith(".EHCacheLite")) {
@@ -2301,10 +2306,10 @@ public final class ConfigWebFactory extends ConfigFactory {
 								&& (cd.getClassName().endsWith(".extension.io.cache.eh.EHCache") || cd.getClassName().endsWith("lucee.runtime.cache.eh.EHCache"))) {
 							cd = new ClassDefinitionImpl("org.lucee.extension.cache.eh.EHCache");
 						}
-						cc = new CacheConnectionImpl(config, name, cd, custom, Caster.toBooleanValue(getAttr(eConnection, "readOnly"), false),
-								Caster.toBooleanValue(getAttr(eConnection, "storage"), false));
+						cc = new CacheConnectionImpl(config, name.getString(), cd, custom, Caster.toBooleanValue(getAttr(data, "readOnly"), false),
+								Caster.toBooleanValue(getAttr(data, "storage"), false));
 						if (!StringUtil.isEmpty(name)) {
-							caches.put(name.toLowerCase(), cc);
+							caches.put(name.getLowerString(), cc);
 						}
 						else LogUtil.logGlobal(ThreadLocalPageContext.getConfig(configServer == null ? config : configServer), Log.LEVEL_ERROR, ConfigWebFactory.class.getName(),
 								"missing cache name");

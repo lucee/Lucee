@@ -20,6 +20,7 @@ package lucee.runtime.config;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Iterator;
 
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
@@ -45,9 +46,12 @@ import lucee.runtime.interpreter.JSONExpressionInterpreter;
 import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.OSGiUtil;
+import lucee.runtime.type.Array;
+import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.util.KeyConstants;
 
 public abstract class ConfigFactory {
 
@@ -245,16 +249,55 @@ public abstract class ConfigFactory {
 			move("adminSync", application, root);
 
 			rem("application", root);
-			// TODO scope?
 		}
 
+		//////////////////// application ////////////////////
+		{
+			Struct cache = ConfigWebUtil.getAsStruct("cache", root);
+			Struct caches = ConfigWebUtil.getAsStruct("caches", root);
+			Array conns = ConfigWebUtil.getAsArray("connection", cache);
+
+			// classes
+			move("cache", "cacheClasses", caches, root);
+
+			// defaults
+			for (String type: ConfigWebFactory.STRING_CACHE_TYPES_MAX) {
+				move("default" + StringUtil.ucFirst(type), cache, root);
+			}
+			// connections
+			Iterator<?> it = conns.getIterator();
+			while (it.hasNext()) {
+				Struct conn = Caster.toStruct(it.next(), null);
+				if (conn == null) continue;
+				move(conn, Caster.toString(conn.remove(KeyConstants._name, null), null), caches);
+			}
+			rem("cache", root);
+		}
+
+		remIfEmpty(root);
+
+		// TODO scope?
 		//////////////////// translate ////////////////////
-		// cacheDirectory,cacheDirectoryMaxSize, classicDateParsing
+		// cacheDirectory,cacheDirectoryMaxSize, classicDateParsing,cacheClasses
 
 		// store it as Json
 		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, true, true);
 		String str = json.serialize(null, root, SerializationSettings.SERIALIZE_AS_ROW);
 		IOUtil.write(configFileNew, str, CharsetUtil.UTF8, false);
+	}
+
+	private static void remIfEmpty(Collection coll) {
+		Key[] keys = coll.keys();
+		Object v;
+		Collection sub;
+		for (Key k: keys) {
+			v = coll.get(k, null);
+			if (v instanceof Collection) {
+				sub = (Collection) v;
+				if (sub.size() > 0) remIfEmpty(sub);
+				if (sub.size() == 0) coll.remove(k, null);
+			}
+		}
 	}
 
 	private static void rem(String key, Struct sct) {
@@ -270,6 +313,11 @@ public abstract class ConfigFactory {
 	private static void move(String fromKey, String toKey, Struct from, Struct to) {
 		Object val = from.remove(KeyImpl.init(fromKey), null);
 		if (val != null) to.setEL(KeyImpl.init(toKey), val);
+	}
+
+	private static void move(Object fromData, String toKey, Struct to) {
+		if (fromData == null) return;
+		to.setEL(KeyImpl.init(toKey), fromData);
 	}
 
 	private static void copy(String fromKey, String toKey, Struct from, Struct to) {

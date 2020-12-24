@@ -91,7 +91,6 @@
 		,"mergeUrlForm":"no"
 		,"sessiontimeout":"0,0,30,0"
 		,"applicationtimeout":"1,0,0,0"
-		,"requesttimeout":"0,0,0,50"
 		,"sessionmanagement":"yes"
 		,"clientmanagement":"no"
 		,"setclientcookies":"yes"
@@ -173,9 +172,6 @@
 			}
 		]
 	}
-	,"regional":{
-		"timeserver":"pool.ntp.org"
-	}
 	,"orm":{
 		"engineClass":"lucee.runtime.orm.DummyORMEngine"
 	}
@@ -184,10 +180,6 @@
 		,"template":"/lucee/templates/debugging/debugging.cfm"
 		,"debug":"no"
 		,"showQueryUsage":"no"
-	}
-	,"application":{
-		"listenerType":"mixed"
-		,"listenerMode":"curr2root"
 	}
 	,"update":{
 		"location":"https://update.lucee.org"
@@ -316,4 +308,8 @@
 			}
 		]
 	}
+	,"timeserver":"pool.ntp.org"
+	,"listenerType":"mixed"
+	,"listenerMode":"curr2root"
+	,"requestTimeout":"0,0,0,50"
 }

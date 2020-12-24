@@ -1,11 +1,5 @@
 {
 	"version":"2.0"
-	,"setting":{
-		
-	}
-	,"dataSources":{
-		
-	}
 	,"mode":{
 		"develop":"false"
 	}
@@ -28,9 +22,6 @@
 	,"scope":{
 		"clientDirectory":"{lucee-web}/client-scope/"
 		,"clientDirectoryMaxSize":"100mb"
-	}
-	,"mail":{
-		
 	}
 	,"scheduler":{
 		"directory":"{lucee-web}/scheduler/"
@@ -64,14 +55,9 @@
 		,"dataMemberDefaultAccess":"public"
 		,"useShadow":"yes"
 	}
-	,"regional":{
-		
-	}
 	,"debugging":{
 		"template":"/lucee/templates/debugging/debugging.cfm"
 	}
-	,"application":{
-		"cacheDirectory":"{lucee-web}/cache/"
-		,"cacheDirectoryMaxSize":"100mb"
-	}
+	,"cacheDirectory":"{lucee-web}/cache/"
+	,"cacheDirectoryMaxSize":"100mb"
 }
