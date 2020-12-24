@@ -1149,29 +1149,26 @@ public final class ConfigAdmin {
 
 		if (name == null || name.length() == 0) throw new ExpressionException("class name can't be an empty value");
 
-		Array children = ConfigWebUtil.getAsArray("extTags", "extTag", root);
-
+		Struct cfxs = ConfigWebUtil.getAsStruct("cfx", root);
+		Key[] keys = cfxs.keys();
 		// Update
-		for (int i = 1; i <= children.size(); i++) {
-			Struct tmp = Caster.toStruct(children.get(i, null), null);
-			if (tmp == null) continue;
-			String n = ConfigWebUtil.getAsString("name", tmp, null);
+		for (Key key: keys) {
+			String n = key.getString();
 
 			if (n != null && n.equalsIgnoreCase(name)) {
-				Struct el = tmp;
-				if (!"java".equalsIgnoreCase(ConfigWebUtil.getAsString("type", el, ""))) throw new ExpressionException("there is already a c++ cfx tag with this name");
-				setClass(el, CustomTag.class, "", cd);
-				el.setEL("type", "java");
+				Struct data = Caster.toStruct(cfxs.get(key, null), null);
+				if (data == null) continue;
+				if (!"java".equalsIgnoreCase(ConfigWebUtil.getAsString("type", data, ""))) throw new ExpressionException("there is already a c++ cfx tag with this name");
+				setClass(data, CustomTag.class, "", cd);
+				data.setEL("type", "java");
 				return;
 			}
-
 		}
 
 		// Insert
 		Struct el = new StructImpl(Struct.TYPE_LINKED);
-		children.appendEL(el);
+		cfxs.setEL(name, el);
 		setClass(el, CustomTag.class, "", cd);
-		el.setEL("name", name);
 		el.setEL("type", "java");
 	}
 
@@ -1219,14 +1216,12 @@ public final class ConfigAdmin {
 		// check parameters
 		if (name == null || name.length() == 0) throw new ExpressionException("name for CFX Tag can be an empty value");
 
-		Array children = ConfigWebUtil.getAsArray("extTags", "extTag", root);
-		for (int i = children.size(); i > 0; i--) {
-			Struct tmp = Caster.toStruct(children.get(i, null), null);
-			if (tmp == null) continue;
-
-			String n = ConfigWebUtil.getAsString("name", tmp, null);
+		Struct cfxs = ConfigWebUtil.getAsStruct("cfx", root);
+		Key[] keys = cfxs.keys();
+		for (Key key: keys) {
+			String n = key.getString();
 			if (n != null && n.equalsIgnoreCase(name)) {
-				children.removeEL(i);
+				cfxs.removeEL(key);
 			}
 		}
 	}

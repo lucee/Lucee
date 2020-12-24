@@ -4377,18 +4377,20 @@ public final class ConfigWebFactory extends ConfigFactory {
 				}
 
 				// Java CFX Tags
-				Array cfxTags = ConfigWebUtil.getAsArray("extTags", "extTag", root);
-				Iterator<?> it = cfxTags.getIterator();
+				Struct cfxs = ConfigWebUtil.getAsStruct("cfx", root);
+				Iterator<Entry<Key, Object>> it = cfxs.entryIterator();
 				Struct cfxTag;
+				Entry<Key, Object> entry;
 				while (it.hasNext()) {
-					cfxTag = Caster.toStruct(it.next(), null);
+					entry = it.next();
+					cfxTag = Caster.toStruct(entry.getValue(), null);
 					if (cfxTag == null) continue;
 
 					String type = getAttr(cfxTag, "type");
 					if (type != null) {
 						// Java CFX Tags
 						if (type.equalsIgnoreCase("java")) {
-							String name = getAttr(cfxTag, "name");
+							String name = entry.getKey().getString();
 							ClassDefinition cd = getClassDefinition(cfxTag, "", config.getIdentification());
 							if (!StringUtil.isEmpty(name) && cd.hasClass()) {
 								map.put(name.toLowerCase(), new JavaCFXTagClass(name, cd));

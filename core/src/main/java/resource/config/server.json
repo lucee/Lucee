@@ -133,13 +133,6 @@
 			,"physical":"{lucee-config}/customtags/"
 		}
 	}
-	,"extTags":{
-		"extTag":{
-			"type":"java"
-			,"name":"HelloWorld"
-			,"class":"lucee.cfx.example.HelloWorld"
-		}
-	}
 	,"component":{
 		"baseCfml":"/lucee/Component.cfc"
 		,"baseLucee":"/lucee/Component.lucee"
@@ -308,4 +301,10 @@
 	,"listenerType":"mixed"
 	,"listenerMode":"curr2root"
 	,"requestTimeout":"0,0,0,50"
+	,"cfx":{
+		"HelloWorld":{
+			"type":"java"
+			,"class":"lucee.cfx.example.HelloWorld"
+		}
+	}
 }

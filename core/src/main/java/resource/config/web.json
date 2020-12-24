@@ -43,13 +43,6 @@
 			,"physical":"{lucee-web}/customtags/"
 		}
 	}
-	,"extTags":{
-		"extTag":{
-			"type":"java"
-			,"name":"HelloWorld"
-			,"class":"lucee.cfx.example.HelloWorld"
-		}
-	}
 	,"component":{
 		"base":"/lucee/Component.cfc"
 		,"dataMemberDefaultAccess":"public"
@@ -60,4 +53,10 @@
 	}
 	,"cacheDirectory":"{lucee-web}/cache/"
 	,"cacheDirectoryMaxSize":"100mb"
+	,"cfx":{
+		"HelloWorld":{
+			"type":"java"
+			,"class":"lucee.cfx.example.HelloWorld"
+		}
+	}
 }

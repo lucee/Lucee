@@ -289,11 +289,26 @@ public abstract class ConfigFactory {
 			}
 		}
 
+		//////////////////// CFX ////////////////////
+		{
+			Struct extTags = ConfigWebUtil.getAsStruct("extTags", root);
+			Array extTag = ConfigWebUtil.getAsArray("extTag", extTags);
+			Struct cfx = ConfigWebUtil.getAsStruct("cfx", root);
+
+			Iterator<?> it = extTag.getIterator();
+			while (it.hasNext()) {
+				Struct conn = Caster.toStruct(it.next(), null);
+				if (conn == null) continue;
+				add(conn, Caster.toString(conn.remove(KeyConstants._name, null), null), cfx);
+			}
+			rem("extTags", root);
+		}
+
 		remIfEmpty(root);
 
 		// TODO scope?
 		//////////////////// translate ////////////////////
-		// cacheDirectory,cacheDirectoryMaxSize, classicDateParsing,cacheClasses,cacheHandlers
+		// cacheDirectory,cacheDirectoryMaxSize, classicDateParsing,cacheClasses,cacheHandlers,cfx
 
 		// store it as Json
 		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, true, true);
