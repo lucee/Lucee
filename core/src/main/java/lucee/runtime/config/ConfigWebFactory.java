@@ -4841,16 +4841,16 @@ public final class ConfigWebFactory extends ConfigFactory {
 		try {
 			boolean hasCS = configServer != null;
 
-			Struct compiler = ConfigWebUtil.getAsStruct("compiler", root);
+			// Struct compiler = ConfigWebUtil.getAsStruct("compiler", root);
 
 			// suppress WS between cffunction and cfargument
 			if (mode == ConfigPro.MODE_STRICT) {
 				config.setSuppressWSBeforeArg(true);
 			}
 			else {
+				//
 				String suppress = SystemUtil.getSystemPropOrEnvVar("lucee.suppress.ws.before.arg", null);
-				if (StringUtil.isEmpty(suppress, true)) suppress = compiler != null ? getAttr(compiler, "suppressWsBeforeArg") : null;
-				if (StringUtil.isEmpty(suppress, true)) suppress = compiler != null ? getAttr(compiler, "supressWsBeforeArg") : null;
+				if (StringUtil.isEmpty(suppress, true)) suppress = getAttr(root, new String[] { "suppressWhitespaceBeforeArgument", "suppressWhitespaceBeforecfargument" });
 				if (!StringUtil.isEmpty(suppress, true)) {
 					config.setSuppressWSBeforeArg(Caster.toBooleanValue(suppress, true));
 				}
@@ -4864,7 +4864,6 @@ public final class ConfigWebFactory extends ConfigFactory {
 				config.setDotNotationUpperCase(false);
 			}
 			else {
-
 				// Env Var
 				if (!hasCS) {
 					Boolean tmp = Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.preserve.case", null), null);
@@ -4872,7 +4871,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 						config.setDotNotationUpperCase(!tmp.booleanValue());
 					}
 				}
-				String _case = compiler != null ? getAttr(compiler, "dotNotationUpperCase") : null;
+				String _case = getAttr(root, "dotNotationUpperCase");
 				if (!StringUtil.isEmpty(_case, true)) {
 					config.setDotNotationUpperCase(Caster.toBooleanValue(_case, true));
 				}
@@ -4888,26 +4887,19 @@ public final class ConfigWebFactory extends ConfigFactory {
 				fns = true;
 			}
 			else {
-				String str = compiler != null ? getAttr(compiler, "fullNullSupport") : null; // TODO move to an other place, no longer a compiler setting
+				String str = getAttr(root, new String[] { "nullSupport", "fullNullSupport" });
 				if (StringUtil.isEmpty(str, true)) str = SystemUtil.getSystemPropOrEnvVar("lucee.full.null.support", null);
 
 				if (!StringUtil.isEmpty(str, true)) {
 					fns = Caster.toBooleanValue(str, hasCS ? configServer.getFullNullSupport() : false);
 				}
 			}
-
 			// when FNS is true or the lucee dialect is disabled we have no flip flop within a request. FNS is
 			// always the same
-			/*
-			 * if(fns ||
-			 * !Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.enable.dialect",null),false)) {
-			 * NullSupportHelper.fullNullSupport = fns; NullSupportHelper.simpleMode = true; }
-			 */
 			config.setFullNullSupport(fns);
-			// }
 
 			// default output setting
-			String output = compiler != null ? getAttr(compiler, "defaultFunctionOutput") : null;
+			String output = getAttr(root, "defaultFunctionOutput");
 			if (!StringUtil.isEmpty(output, true)) {
 				config.setDefaultFunctionOutput(Caster.toBooleanValue(output, true));
 			}
@@ -4916,7 +4908,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 			}
 
 			// suppress WS between cffunction and cfargument
-			String str = compiler != null ? getAttr(compiler, "externalizeStringGte") : null;
+			String str = getAttr(root, "externalizeStringGte");
 			if (Decision.isNumber(str)) {
 				config.setExternalizeStringGTE(Caster.toIntValue(str, -1));
 			}
@@ -4926,7 +4918,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 			// allow-lucee-dialect
 			if (!hasCS) {
-				str = compiler != null ? getAttr(compiler, "allowLuceeDialect") : null;
+				str = getAttr(root, "allowLuceeDialect");
 				if (str == null || !Decision.isBoolean(str)) str = SystemUtil.getSystemPropOrEnvVar("lucee.enable.dialect", null);
 				if (str != null && Decision.isBoolean(str)) {
 					config.setAllowLuceeDialect(Caster.toBooleanValue(str, false));
@@ -4941,7 +4933,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 				config.setHandleUnQuotedAttrValueAsString(false);
 			}
 			else {
-				str = compiler != null ? getAttr(compiler, "handleUnquotedAttributeValueAsString") : null;
+				str = getAttr(root, "handleUnquotedAttributeValueAsString");
 				if (str != null && Decision.isBoolean(str)) {
 					config.setHandleUnQuotedAttrValueAsString(Caster.toBooleanValue(str, true));
 				}

@@ -304,11 +304,26 @@ public abstract class ConfigFactory {
 			rem("extTags", root);
 		}
 
+		//////////////////// Compiler ////////////////////
+		{
+			Struct compiler = ConfigWebUtil.getAsStruct("compiler", root);
+			move("supressWsBeforeArg", "suppressWhitespaceBeforeArgument", compiler, root);// deprecated but still supported
+			move("suppressWsBeforeArg", "suppressWhitespaceBeforeArgument", compiler, root);
+			move("dotNotationUpperCase", compiler, root);
+			move("fullNullSupport", "nullSupport", compiler, root);
+			move("defaultFunctionOutput", compiler, root);
+			move("externalizeStringGte", compiler, root);
+			move("allowLuceeDialect", compiler, root);
+			move("handleUnquotedAttributeValueAsString", compiler, root);
+			rem("compiler", root);
+		}
+
 		remIfEmpty(root);
 
 		// TODO scope?
 		//////////////////// translate ////////////////////
-		// cacheDirectory,cacheDirectoryMaxSize, classicDateParsing,cacheClasses,cacheHandlers,cfx
+		// allowLuceeDialect,cacheDirectory,cacheDirectoryMaxSize,
+		// classicDateParsing,cacheClasses,cacheHandlers,cfx,defaultFunctionOutput,externalizeStringGte,handleUnquotedAttributeValueAsString
 
 		// store it as Json
 		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, true, true);

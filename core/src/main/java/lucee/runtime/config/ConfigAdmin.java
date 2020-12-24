@@ -5517,48 +5517,45 @@ public final class ConfigAdmin {
 	public void updateCompilerSettings(Boolean dotNotationUpperCase, Boolean suppressWSBeforeArg, Boolean nullSupport, Boolean handleUnQuotedAttrValueAsString,
 			Integer externalizeStringGTE) throws PageException {
 
-		Struct element = _getRootElement("compiler");
+		// Struct element = _getRootElement("compiler");
 
 		checkWriteAccess();
 		if (dotNotationUpperCase == null) {
-			if (element.containsKey("dotNotationUpperCase")) rem(element, "dotNotationUpperCase");
+			if (root.containsKey("dotNotationUpperCase")) rem(root, "dotNotationUpperCase");
 		}
 		else {
-			element.setEL("dotNotationUpperCase", Caster.toString(dotNotationUpperCase));
+			root.setEL("dotNotationUpperCase", dotNotationUpperCase);
 		}
-
-		// remove old settings
-		if (element.containsKey("supressWsBeforeArg")) rem(element, "supressWsBeforeArg");
 
 		if (suppressWSBeforeArg == null) {
-			if (element.containsKey("suppressWsBeforeArg")) rem(element, "suppressWsBeforeArg");
+			if (root.containsKey("suppressWhitespaceBeforeArgument")) rem(root, "suppressWhitespaceBeforeArgument");
 		}
 		else {
-			element.setEL("suppressWsBeforeArg", Caster.toString(suppressWSBeforeArg));
+			root.setEL("suppressWhitespaceBeforeArgument", suppressWSBeforeArg);
 		}
 
 		// full null support
 		if (nullSupport == null) {
-			if (element.containsKey("fullNullSupport")) rem(element, "fullNullSupport");
+			if (root.containsKey("nullSupport")) rem(root, "nullSupport");
 		}
 		else {
-			element.setEL("fullNullSupport", Caster.toString(nullSupport));
+			root.setEL("nullSupport", Caster.toString(nullSupport));
 		}
 
 		// externalize-string-gte
 		if (externalizeStringGTE == null) {
-			if (element.containsKey("externalizeStringGte")) rem(element, "externalizeStringGte");
+			if (root.containsKey("externalizeStringGte")) rem(root, "externalizeStringGte");
 		}
 		else {
-			element.setEL("externalizeStringGte", Caster.toString(externalizeStringGTE));
+			root.setEL("externalizeStringGte", Caster.toString(externalizeStringGTE));
 		}
 
 		// handle Unquoted Attribute Values As String
 		if (handleUnQuotedAttrValueAsString == null) {
-			if (element.containsKey("handleUnquotedAttributeValueAsString")) rem(element, "handleUnquotedAttributeValueAsString");
+			if (root.containsKey("handleUnquotedAttributeValueAsString")) rem(root, "handleUnquotedAttributeValueAsString");
 		}
 		else {
-			element.setEL("handleUnquotedAttributeValueAsString", Caster.toString(handleUnQuotedAttrValueAsString));
+			root.setEL("handleUnquotedAttributeValueAsString", Caster.toString(handleUnQuotedAttrValueAsString));
 		}
 
 	}
