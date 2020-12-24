@@ -3531,12 +3531,11 @@ public final class ConfigWebFactory extends ConfigFactory {
 	private static void _loadRegional(ConfigServer configServer, ConfigImpl config, Struct root, Log log) {
 		try {
 			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-			Struct regional = ConfigWebUtil.getAsStruct("regional", root);
 			boolean hasCS = configServer != null;
 
 			// timeZone
 			String strTimeZone = null;
-			if (regional != null) strTimeZone = getAttr(regional, "timezone");
+			strTimeZone = getAttr(root, new String[] { "timezone", "thisTimezone" });
 
 			if (!StringUtil.isEmpty(strTimeZone)) config.setTimeZone(TimeZone.getTimeZone(strTimeZone));
 			else if (hasCS) config.setTimeZone(configServer.getTimeZone());
@@ -3556,10 +3555,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 			Boolean useTimeServer = null;
 			if (!StringUtil.isEmpty(strTimeServer)) useTimeServer = Boolean.TRUE;
 
-			if (regional != null) {
-				if (StringUtil.isEmpty(strTimeServer)) strTimeServer = getAttr(regional, "timeserver");
-				if (useTimeServer == null) useTimeServer = Caster.toBoolean(getAttr(regional, "useTimeserver"), null);
-			}
+			if (StringUtil.isEmpty(strTimeServer)) strTimeServer = getAttr(root, "timeserver");
+			if (useTimeServer == null) useTimeServer = Caster.toBoolean(getAttr(root, "useTimeserver"), null);
 
 			if (!StringUtil.isEmpty(strTimeServer)) config.setTimeServer(strTimeServer);
 			else if (hasCS) config.setTimeServer(configServer.getTimeServer());
@@ -3568,9 +3565,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 			else if (hasCS) config.setUseTimeServer(((ConfigPro) configServer).getUseTimeServer());
 
 			// locale
-			String strLocale = null;
-			if (regional != null) strLocale = getAttr(regional, "locale");
-
+			String strLocale = getAttr(root, new String[] { "locale", "thisLocale" });
 			if (!StringUtil.isEmpty(strLocale)) config.setLocale(strLocale);
 			else if (hasCS) config.setLocale(configServer.getLocale());
 			else config.setLocale(Locale.US);
@@ -5136,6 +5131,16 @@ public final class ConfigWebFactory extends ConfigFactory {
 		String v = ConfigWebUtil.getAsString(name, data, null);
 		if (StringUtil.isEmpty(v)) return null;
 		return replaceConfigPlaceHolder(v);
+	}
+
+	public static String getAttr(Struct data, String[] names) {
+		String v;
+		for (String name: names) {
+			v = ConfigWebUtil.getAsString(name, data, null);
+			if (!StringUtil.isEmpty(v)) return replaceConfigPlaceHolder(v);
+		}
+		return null;
+
 	}
 
 	public static String replaceConfigPlaceHolder(String v) {

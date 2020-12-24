@@ -199,7 +199,7 @@ public abstract class ConfigFactory {
 		// read the old config (XML)
 		Struct root = ConfigWebUtil.getAsStruct("cfLuceeConfiguration", new XMLConfigReader(configFileOld, true, new ReadRule(), new NameRule()).getData());
 
-		//////////////////// translate ////////////////////
+		//////////////////// translate charset ////////////////////
 		{
 			Struct charset = ConfigWebUtil.getAsStruct("charset", root);
 			Struct regional = ConfigWebUtil.getAsStruct("regional", root);
@@ -219,6 +219,15 @@ public abstract class ConfigFactory {
 
 			rem("charset", root);
 		}
+		//////////////////// translate regional ////////////////////
+		{
+			Struct regional = ConfigWebUtil.getAsStruct("regional", root);
+			move("timezone", regional, root);
+			move("locale", regional, root);
+			move("timeserver", regional, root);
+			move("useTimeserver", regional, root);
+			rem("regional", root);
+		}
 
 		//////////////////// translate ////////////////////
 
@@ -226,10 +235,6 @@ public abstract class ConfigFactory {
 		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, true, true);
 		String str = json.serialize(null, root, SerializationSettings.SERIALIZE_AS_ROW);
 		IOUtil.write(configFileNew, str, CharsetUtil.UTF8, false);
-
-		// TODO delete the old config after a certain time
-		// configFileOld.renameTo(configFileOld.getParentResource().getRealResource(configFileOld.getName()
-		// + ".bak"));
 	}
 
 	private static void rem(String key, Struct sct) {

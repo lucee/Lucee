@@ -2716,8 +2716,7 @@ public final class ConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update regional setting");
 
-		Struct scope = _getRootElement("regional");
-		scope.setEL("locale", locale.trim());
+		root.setEL("locale", locale.trim());
 	}
 
 	public void updateMonitorEnabled(boolean updateMonitorEnabled) throws SecurityException {
@@ -2763,8 +2762,7 @@ public final class ConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update regional setting");
 
-		Struct regional = _getRootElement("regional");
-		regional.setEL("timezone", timeZone.trim());
+		root.setEL("timezone", timeZone.trim());
 
 	}
 
@@ -2794,10 +2792,9 @@ public final class ConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update regional setting");
 
-		Struct scope = _getRootElement("regional");
-		scope.setEL("timeserver", timeServer.trim());
-		if (useTimeServer != null) scope.setEL("useTimeserver", Caster.toString(useTimeServer));
-		else rem(scope, "useTimeserver");
+		root.setEL("timeserver", timeServer.trim());
+		if (useTimeServer != null) root.setEL("useTimeserver", Caster.toBooleanValue(useTimeServer));
+		else rem(root, "useTimeserver");
 	}
 
 	/**
