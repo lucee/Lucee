@@ -3459,41 +3459,27 @@ public final class ConfigWebFactory extends ConfigFactory {
 	private static void _loadCharset(ConfigServer configServer, ConfigImpl config, Struct root, Log log) {
 		try {
 			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-
-			Struct charset = ConfigWebUtil.getAsStruct("charset", root);
-			Struct regional = ConfigWebUtil.getAsStruct("regional", root);
-			Struct fileSystem = ConfigWebUtil.getAsStruct("fileSystem", root);
-
 			boolean hasCS = configServer != null;
 
 			// template
-			String template = null, fsCharset = null, fsEncoding = null;
-			template = SystemUtil.getSystemPropOrEnvVar("lucee.template.charset", null);
-			if (charset != null && StringUtil.isEmpty(template)) template = getAttr(charset, "templateCharset");
-			if (fileSystem != null) fsCharset = getAttr(fileSystem, "charset"); // deprecated but still supported
-			if (fileSystem != null) fsEncoding = getAttr(fileSystem, "encoding"); // deprecated but still supported
-
+			String template = SystemUtil.getSystemPropOrEnvVar("lucee.template.charset", null);
+			if (StringUtil.isEmpty(template)) template = getAttr(root, "templateCharset");
 			if (!StringUtil.isEmpty(template)) config.setTemplateCharset(template);
-			else if (!StringUtil.isEmpty(fsCharset)) config.setTemplateCharset(fsCharset);
-			else if (!StringUtil.isEmpty(fsEncoding)) config.setTemplateCharset(fsEncoding);
 			else if (hasCS) config.setTemplateCharset(configServer.getTemplateCharset());
 
 			// web
-			String web = null, defaultEncoding = null;
-			web = SystemUtil.getSystemPropOrEnvVar("lucee.web.charset", null);
-			if (charset != null && StringUtil.isEmpty(web)) web = getAttr(charset, "webCharset");
-			if (regional != null) defaultEncoding = getAttr(regional, "defaultEncoding"); // deprecated
-			// supported
+			String web = SystemUtil.getSystemPropOrEnvVar("lucee.web.charset", null);
+			if (StringUtil.isEmpty(web)) web = getAttr(root, "webCharset");
 			if (!StringUtil.isEmpty(web)) config.setWebCharset(web);
-			else if (!StringUtil.isEmpty(defaultEncoding)) config.setWebCharset(defaultEncoding);
 			else if (hasCS) config.setWebCharset(configServer.getWebCharset());
 
 			// resource
 			String resource = null;
 			resource = SystemUtil.getSystemPropOrEnvVar("lucee.resource.charset", null);
-			if (charset != null && StringUtil.isEmpty(resource)) resource = getAttr(charset, "resourceCharset");
+			if (StringUtil.isEmpty(resource)) resource = getAttr(root, "resourceCharset");
 			if (!StringUtil.isEmpty(resource)) config.setResourceCharset(resource);
 			else if (hasCS) config.setResourceCharset(configServer.getResourceCharset());
+
 		}
 		catch (Exception e) {
 			log(config, log, e);

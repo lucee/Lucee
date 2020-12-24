@@ -15,7 +15,6 @@ import org.xml.sax.ext.LexicalHandler;
 import org.xml.sax.helpers.DefaultHandler;
 
 import lucee.print;
-import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl;
@@ -165,16 +164,20 @@ public final class XMLConfigReader extends DefaultHandler implements LexicalHand
 	public void startEntity(String arg0) throws SAXException {}
 
 	public static void main(String[] args) throws Exception {
-		Resource res = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Test/test/lucee-server/context/lucee-server.xml");
-		res = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Test/test/lucee-server/context/test.xml");
-		res = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Test/test/webapps/ROOT/WEB-INF/lucee/lucee-web.xml.cfm");
-		res = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Projects/Lucee/Lucee5/core/src/main/java/resource/config/web.xml");
+		Resource src = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Projects/Lucee/Lucee5/core/src/main/java/resource/config/web.xml");
 		Resource trg = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Projects/Lucee/Lucee5/core/src/main/java/resource/config/web.json");
+		ConfigWebFactory.translateConfigFile(src, trg);
 
-		XMLConfigReader reader = new XMLConfigReader(res, true, new ReadRule(), new NameRule());
-		String str = ser(reader.getData().get("cfLuceeConfiguration"));
-		IOUtil.write(trg, str, CharsetUtil.UTF8, false);
-		print.e(str);
+		src = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Projects/Lucee/Lucee5/core/src/main/java/resource/config/server.xml");
+		trg = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Projects/Lucee/Lucee5/core/src/main/java/resource/config/server.json");
+		ConfigWebFactory.translateConfigFile(src, trg);
+
+		print.e("DONE!");
+		/*
+		 * XMLConfigReader reader = new XMLConfigReader(res, true, new ReadRule(), new NameRule()); String
+		 * str = ser(reader.getData().get("cfLuceeConfiguration")); IOUtil.write(trg, str, CharsetUtil.UTF8,
+		 * false); print.e(str);
+		 */
 
 		// Object result = new JSONExpressionInterpreter().interpret(null, str);
 		// print.e(result);

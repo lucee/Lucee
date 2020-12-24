@@ -3617,49 +3617,38 @@ public final class ConfigAdmin {
 	public void updateWebCharset(String charset) throws PageException {
 		checkWriteAccess();
 
-		Struct element = _getRootElement("charset");
 		if (StringUtil.isEmpty(charset)) {
-			if (config instanceof ConfigWeb) rem(element, "webCharset");
-			else element.setEL("webCharset", "UTF-8");
+			if (config instanceof ConfigWeb) rem(root, "webCharset");
+			else root.setEL("webCharset", "UTF-8");
 		}
 		else {
 			charset = checkCharset(charset);
-			element.setEL("webCharset", charset);
+			root.setEL("webCharset", charset);
 		}
-
-		Struct el = _getRootElement("regional");
-		rem(el, "defaultEncoding");// remove deprecated attribute
-
 	}
 
 	public void updateResourceCharset(String charset) throws PageException {
 		checkWriteAccess();
 
-		Struct element = _getRootElement("charset");
 		if (StringUtil.isEmpty(charset)) {
-			rem(element, "resourceCharset");
+			rem(root, "resourceCharset");
 		}
 		else {
 			charset = checkCharset(charset);
-			element.setEL("resourceCharset", charset);
-
+			root.setEL("resourceCharset", charset);
 		}
-
-		// update charset
-
 	}
 
 	public void updateTemplateCharset(String charset) throws PageException {
 
 		checkWriteAccess();
 
-		Struct element = _getRootElement("charset");
 		if (StringUtil.isEmpty(charset, true)) {
-			rem(element, "templateCharset");
+			rem(root, "templateCharset");
 		}
 		else {
 			charset = checkCharset(charset);
-			element.setEL("templateCharset", charset);
+			root.setEL("templateCharset", charset);
 		}
 	}
 

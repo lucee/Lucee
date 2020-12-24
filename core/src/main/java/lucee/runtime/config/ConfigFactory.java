@@ -50,6 +50,8 @@ import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.text.xml.XMLUtil;
+import lucee.runtime.type.Collection.Key;
+import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 
 public abstract class ConfigFactory {
@@ -193,9 +195,32 @@ public abstract class ConfigFactory {
 		}
 	}
 
-	static void translateConfigFile(Resource configFileOld, Resource configFileNew) throws ConverterException, IOException, SAXException {
+	public static void translateConfigFile(Resource configFileOld, Resource configFileNew) throws ConverterException, IOException, SAXException {
 		// read the old config (XML)
 		Struct root = ConfigWebUtil.getAsStruct("cfLuceeConfiguration", new XMLConfigReader(configFileOld, true, new ReadRule(), new NameRule()).getData());
+
+		//////////////////// translate ////////////////////
+		{
+			Struct charset = ConfigWebUtil.getAsStruct("charset", root);
+			Struct regional = ConfigWebUtil.getAsStruct("regional", root);
+			Struct fileSystem = ConfigWebUtil.getAsStruct("fileSystem", root);
+			copy("charset", "templateCharset", fileSystem, root);// deprecated but still supported
+			copy("encoding", "templateCharset", fileSystem, root);// deprecated but still supported
+			move("templateCharset", charset, root);
+
+			move("charset", "webCharset", charset, root);// deprecated but still supported
+			copy("encoding", "webCharset", fileSystem, root);// deprecated but still supported
+			copy("defaultEncoding", "webCharset", regional, root);// deprecated but still supported
+			move("webCharset", charset, root);
+
+			copy("charset", "resourceCharset", fileSystem, root);// deprecated but still supported
+			copy("encoding", "resourceCharset", fileSystem, root);// deprecated but still supported
+			move("resourceCharset", charset, root);
+
+			rem("charset", root);
+		}
+
+		//////////////////// translate ////////////////////
 
 		// store it as Json
 		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, true, true);
@@ -205,6 +230,26 @@ public abstract class ConfigFactory {
 		// TODO delete the old config after a certain time
 		// configFileOld.renameTo(configFileOld.getParentResource().getRealResource(configFileOld.getName()
 		// + ".bak"));
+	}
+
+	private static void rem(String key, Struct sct) {
+		sct.remove(KeyImpl.init(key), null);
+	}
+
+	private static void move(String key, Struct from, Struct to) {
+		Key k = KeyImpl.init(key);
+		Object val = from.remove(k, null);
+		if (val != null) to.setEL(k, val);
+	}
+
+	private static void move(String fromKey, String toKey, Struct from, Struct to) {
+		Object val = from.remove(KeyImpl.init(fromKey), null);
+		if (val != null) to.setEL(KeyImpl.init(toKey), val);
+	}
+
+	private static void copy(String fromKey, String toKey, Struct from, Struct to) {
+		Object val = from.get(KeyImpl.init(fromKey), null);
+		if (val != null) to.setEL(KeyImpl.init(toKey), val);
 	}
 
 	/**
