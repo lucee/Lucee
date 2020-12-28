@@ -93,7 +93,7 @@
 					<cfset c=structKeyExists(entry,'custom')?entry.custom:{}>
 				</cfif>
 				<cfset c.scopes=false>
-				<cfset driver.output(c,log,"admin")>
+				<cfset driver.output(c,duplicate(log),"admin")>
 			<cfelse>
 				Debug Data no longer available
 			</cfif> 
