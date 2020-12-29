@@ -4,12 +4,13 @@ import lucee.runtime.PageContext;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
+import lucee.runtime.ext.function.Function;
 import lucee.runtime.functions.closure.Reduce;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.util.StringListData;
 
-public class StringReduce extends BIF {
+public class StringReduce extends BIF implements Function {
 	private static final long serialVersionUID = -2153555241217815037L;
 
 	@Override
