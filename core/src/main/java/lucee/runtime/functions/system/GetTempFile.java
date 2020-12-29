@@ -30,10 +30,8 @@ import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.op.Caster;
-import lucee.print;
 
 public final class GetTempFile implements Function {
-
 	public static String call(PageContext pc, String strDir, String prefix) throws PageException {
 		return call(pc, strDir, prefix, ".tmp");
 	}
@@ -52,7 +50,6 @@ public final class GetTempFile implements Function {
 		try {
 			file.createFile(false);
 			// file.createNewFile();
-			print.e(file.getCanonicalPath());
 			return file.getCanonicalPath();
 		}
 		catch (IOException e) {
