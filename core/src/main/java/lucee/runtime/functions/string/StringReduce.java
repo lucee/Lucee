@@ -23,8 +23,8 @@ public class StringReduce extends BIF {
 		}
 	}
 
-	public static Object call(PageContext pc, String inputString, UDF value, Object initialValue) throws PageException {
-		StringListData stringList = new StringListData(inputString, "", false, false);
-		return Reduce.call(pc, (Object) stringList, value, initialValue);
+	public static Object call(PageContext pc, String str, UDF udf, Object initValue) throws PageException {
+		StringListData stringList = new StringListData(str, "", false, false);
+		return Reduce.call(pc, (Object) stringList, udf, initValue);
 	}
 }
