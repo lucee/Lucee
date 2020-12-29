@@ -20,13 +20,9 @@ public class StringEvery extends BIF {
 		return call(pc, Caster.toString(args[0]), Caster.toFunction(args[1]));
 	}
 
-	public static boolean call(PageContext pc, String inputString, Object value) throws PageException {
-		StringListData stringList = new StringListData(inputString, "", false, false);
-		if (value instanceof UDF) {
-			return Every.call(pc, (Object) stringList, (UDF) value);
-		}
-
-		throw new FunctionException(pc, "StringEvery", "2", "callback", "The callback argument is wrong", "");
+	public static boolean call(PageContext pc, String str, UDF udf) throws PageException {
+		StringListData stringList = new StringListData(str, "", false, false);
+		return Every.call(pc, (Object) stringList, udf);
 	}
 
 }
