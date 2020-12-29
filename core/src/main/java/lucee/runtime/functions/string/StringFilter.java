@@ -12,7 +12,7 @@ import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.util.StringListData;
 
-public class StringFilter extends BIF {
+public class StringFilter extends BIF implements Function {
 	private static final long serialVersionUID = -3273443514000974993L;
 
 	@Override
