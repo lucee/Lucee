@@ -9,7 +9,7 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.util.StringListData;
 
-public class StringSome extends BIF {
+public class StringSome extends BIF implements Function {
 	private static final long serialVersionUID = 4167438066376325970L;
 
 	@Override
