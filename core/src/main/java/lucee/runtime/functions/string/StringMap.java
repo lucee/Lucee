@@ -12,7 +12,7 @@ import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.util.StringListData;
 
-public class StringMap extends BIF {
+public class StringMap extends BIF implements Function {
 	private static final long serialVersionUID = 8643893144992203939L;
 
 	@Override
