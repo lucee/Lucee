@@ -23,20 +23,16 @@ public class StringMap extends BIF {
 		return call(pc, Caster.toString(args[0]), Caster.toFunction(args[1]));
 	}
 
-	public static String call(PageContext pc, String inputString, Object value) throws PageException {
-		StringListData stringList = new StringListData(inputString, "", false, false);
-		if (value instanceof UDF) {
-			ArrayImpl array = (ArrayImpl) Map.call(pc, (Object) stringList, (UDF) value);
-			Iterator it = array.getIterator();
-			Object e;
-			StringBuilder result = new StringBuilder();
-			while (it.hasNext()) {
-				e = it.next();
-				result.append(e);
-			}
-			return result.toString();
+	public static String call(PageContext pc, String str, UDF udf) throws PageException {
+		StringListData stringList = new StringListData(str, "", false, false);
+		ArrayImpl array = (ArrayImpl) Map.call(pc, (Object) stringList, udf);
+		Iterator it = array.getIterator();
+		Object e;
+		StringBuilder result = new StringBuilder();
+		while (it.hasNext()) {
+			e = it.next();
+			result.append(e);
 		}
-
-		throw new FunctionException(pc, "StringMap", "2", "callback", "The callback argument is wrong", "");
+		return result.toString();
 	}
 }
