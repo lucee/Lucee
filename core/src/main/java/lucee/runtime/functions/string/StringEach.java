@@ -9,7 +9,7 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.util.StringListData;
 
-public class StringEach extends BIF {
+public class StringEach extends BIF implements Function {
 	private static final long serialVersionUID = 2207105205243253849L;
 
 	@Override
@@ -20,13 +20,9 @@ public class StringEach extends BIF {
 		return call(pc, Caster.toString(args[0]), Caster.toFunction(args[1]));
 	}
 
-	public static String call(PageContext pc, String inputString, Object value) throws PageException {
-		StringListData stringList = new StringListData(inputString, "", false, false);
-		if (value instanceof UDF) {
-			return Each.call(pc, (Object) stringList, (UDF) value);
-		}
-
-		throw new FunctionException(pc, "StringEach", "2", "callback", "The callback argument is wrong", "");
+	public static String call(PageContext pc, String str, UDF udf) throws PageException {
+		StringListData stringList = new StringListData(str, "", false, false);
+		return Each.call(pc, (Object) stringList, udf);
 	}
 
 }
