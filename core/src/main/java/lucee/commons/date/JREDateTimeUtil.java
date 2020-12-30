@@ -167,7 +167,7 @@ public class JREDateTimeUtil extends DateTimeUtil {
 		int week = c.get(Calendar.WEEK_OF_YEAR);
 
 		if (week == 1 && c.get(Calendar.MONTH) == Calendar.DECEMBER) {
-			if (isLeapYear(c.get(Calendar.YEAR)) && c.get(Calendar.DAY_OF_WEEK) == 1) {
+			if (isLeapYear(c.get(Calendar.YEAR)) && c.get(Calendar.DAY_OF_WEEK) == 1 && c.get(Calendar.DAY_OF_MONTH) == 31) {
 				return 54;
 			}
 			return 53;
