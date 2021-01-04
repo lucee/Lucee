@@ -443,6 +443,22 @@ public abstract class ConfigFactory {
 			moveAsBool("statusCode", "errorStatusCode", error, root);
 		}
 
+		//////////////////// Extensions ////////////////////
+		{
+			Struct extensions = ConfigWebUtil.getAsStruct("extensions", root);
+			Array rhextension = ConfigWebUtil.getAsArray("rhextension", extensions);
+
+			Key[] keys = rhextension.keys();
+			for (int i = keys.length - 1; i >= 0; i--) {
+				Key k = keys[i];
+				Struct data = Caster.toStruct(rhextension.get(k, null), null);
+				if (data == null) continue;
+
+				add(data, Caster.toString(data.remove(KeyConstants._id, null), null), extensions);
+				rhextension.remove(k, null);
+			}
+		}
+
 		remIfEmpty(root);
 
 		// TODO scope?

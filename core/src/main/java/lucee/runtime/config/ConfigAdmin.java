@@ -4106,15 +4106,16 @@ public final class ConfigAdmin {
 		checkWriteAccess();
 		if (StringUtil.isEmpty(id, true)) return;
 
-		Array children = ConfigWebUtil.getAsArray("extensions", "rhextension", root);
+		Struct children = ConfigWebUtil.getAsStruct("extensions", root);
+		Key[] keys = children.keys();
 		Struct child;
 		RHExtension rhe;
-		for (int i = children.size(); i > 0; i--) {
-			child = Caster.toStruct(children.get(i, null), null);
+		for (Key key: keys) {
+			child = Caster.toStruct(children.get(key, null), null);
 			if (child == null) continue;
 
 			try {
-				rhe = new RHExtension(config, child);
+				rhe = new RHExtension(config, key.getString(), child);
 
 				// ed=ExtensionDefintion.getInstance(config,child);
 			}
@@ -4125,8 +4126,7 @@ public final class ConfigAdmin {
 
 			if (id.equalsIgnoreCase(rhe.getId()) || id.equalsIgnoreCase(rhe.getSymbolicName())) {
 				removeRHExtension(config, rhe, null, true);
-				children.removeEL(i);
-				// bundles=RHExtension.toBundleDefinitions(child.get("bundles"));
+				children.removeEL(key);
 			}
 		}
 	}
@@ -5856,7 +5856,8 @@ public final class ConfigAdmin {
 			throws IOException, PageException, SAXException, BundleException, ConverterException {
 		if (!Decision.isUUId(extensionID)) throw new IOException("id [" + extensionID + "] is invalid, it has to be a UUID");
 
-		Array children = ConfigWebUtil.getAsArray("extensions", "rhextension", root);
+		Struct children = ConfigWebUtil.getAsStruct("extensions", root);
+		Key[] keys = children.keys();
 
 		// Update
 		Struct el;
@@ -5865,11 +5866,11 @@ public final class ConfigAdmin {
 		boolean storeChildren = false;
 		BundleDefinition[] bundles;
 		Log log = config.getLog("deploy");
-		for (int i = children.size(); i > 0; i--) {
-			el = Caster.toStruct(children.get(i, null), null);
+		for (Key key: keys) {
+			el = Caster.toStruct(children.get(key, null), null);
 			if (el == null) continue;
 
-			id = ConfigWebUtil.getAsString("id", el, null);
+			id = key.getString();
 			if (extensionID.equalsIgnoreCase(id)) {
 				bundles = RHExtension.toBundleDefinitions(ConfigWebUtil.getAsString("bundles", el, null)); // get existing bundles before populate new ones
 
@@ -5905,7 +5906,7 @@ public final class ConfigAdmin {
 				// plugins
 				arr = _removeExtensionCheckOtherUsage(children, el, "plugins");
 				removePlugins(config, log, arr);
-				children.removeEL(i);
+				children.removeEL(key);
 
 				return bundles;
 			}
@@ -5965,16 +5966,16 @@ public final class ConfigAdmin {
 		}
 	}
 
-	private String[] _removeExtensionCheckOtherUsage(Array children, Struct curr, String type) {
+	private String[] _removeExtensionCheckOtherUsage(Struct children, Struct curr, String type) {
 		String currVal = ConfigWebUtil.getAsString(type, curr, null);
 		if (StringUtil.isEmpty(currVal)) return null;
-
+		Key[] keys = children.keys();
 		String otherVal;
 		Struct other;
 		Set<String> currSet = ListUtil.toSet(ListUtil.trimItems(ListUtil.listToStringArray(currVal, ',')));
 		String[] otherArr;
-		for (int i = children.size(); i > 0; i--) {
-			Struct tmp = Caster.toStruct(children.get(i, null), null);
+		for (Key key: keys) {
+			Struct tmp = Caster.toStruct(children.get(key, null), null);
 			if (tmp == null) continue;
 
 			other = tmp;
@@ -6002,21 +6003,18 @@ public final class ConfigAdmin {
 	public BundleDefinition[] _updateExtension(ConfigPro config, RHExtension ext) throws IOException, BundleException, ApplicationException {
 		if (!Decision.isUUId(ext.getId())) throw new IOException("id [" + ext.getId() + "] is invalid, it has to be a UUID");
 
-		Array children = ConfigWebUtil.getAsArray("extensions", "rhextension", root);
-		// Struct extensions = _getRootElement("extensions");
-		// Element[] children = ConfigWebFactory.getChildren(extensions, "rhextension");//
-		// LuceeHandledExtensions
-
+		Struct children = ConfigWebUtil.getAsStruct("extensions", root);
+		Key[] keys = children.keys();
 		// Update
 		Struct el;
 		String id;
 		BundleDefinition[] old;
-		for (int i = 1; i <= children.size(); i++) {
-			el = Caster.toStruct(children.get(i, null), null);
-			if (el == null) continue;
+		for (Key key: keys) {
 
-			id = ConfigWebUtil.getAsString("id", el, "");
+			id = key.getString();
 			if (ext.getId().equalsIgnoreCase(id)) {
+				el = Caster.toStruct(children.get(key, null), null);
+				if (el == null) continue;
 				old = RHExtension.toBundleDefinitions(ConfigWebUtil.getAsString("bundles", el, null)); // get existing bundles before populate new ones
 				ext.populate(el);
 				old = minus(old, OSGiUtil.toBundleDefinitions(ext.getBundles()));
@@ -6027,7 +6025,7 @@ public final class ConfigAdmin {
 		// Insert
 		el = new StructImpl(Struct.TYPE_LINKED);
 		ext.populate(el);
-		children.appendEL(el);
+		children.setEL(ext.getId(), el);
 		return null;
 	}
 
@@ -6048,18 +6046,19 @@ public final class ConfigAdmin {
 	}
 
 	private RHExtension getRHExtension(ConfigPro config, String id, RHExtension defaultValue) {
-		Array children = ConfigWebUtil.getAsArray("extensions", "rhextension", root);
+		Struct children = ConfigWebUtil.getAsStruct("extensions", root);
 
 		if (children != null) {
-			for (int i = 1; i <= children.size(); i++) {
-				Struct tmp = Caster.toStruct(children.get(i, null), null);
+			Key[] keys = children.keys();
+			for (Key key: keys) {
+				String _id = key.getString();
+				if (!id.equals(_id)) continue;
+
+				Struct tmp = Caster.toStruct(children.get(key, null), null);
 				if (tmp == null) continue;
 
-				String v = ConfigWebUtil.getAsString("id", tmp, null);
-				if (!id.equals(v)) continue;
-
 				try {
-					return new RHExtension(config, tmp);
+					return new RHExtension(config, _id, tmp);
 				}
 				catch (Exception e) {
 					return defaultValue;
@@ -6086,16 +6085,17 @@ public final class ConfigAdmin {
 
 	private RHExtension _hasRHExtensions(ConfigPro config, ExtensionDefintion ed) throws PageException {
 
-		Array children = ConfigWebUtil.getAsArray("extensions", "rhextension", root);
+		Struct children = ConfigWebUtil.getAsStruct("extensions", root);
+		Key[] keys = children.keys();
 		RHExtension tmp;
 		try {
-			for (int i = 1; i <= children.size(); i++) {
-				Struct sct = Caster.toStruct(children.get(i, null), null);
+			for (Key key: keys) {
+				Struct sct = Caster.toStruct(children.get(key, null), null);
 				if (sct == null) continue;
 
 				tmp = null;
 				try {
-					tmp = new RHExtension(config, sct);
+					tmp = new RHExtension(config, key.getString(), sct);
 				}
 				catch (Exception e) {}
 

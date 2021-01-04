@@ -52,13 +52,13 @@ import lucee.commons.lang.types.RefInteger;
 import lucee.commons.lang.types.RefIntegerImpl;
 import lucee.loader.util.Util;
 import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigAdmin;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebFactory;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.config.Constants;
 import lucee.runtime.config.DeployHandler;
-import lucee.runtime.config.ConfigAdmin;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.engine.ThreadLocalConfig;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -220,14 +220,14 @@ public class RHExtension implements Serializable {
 		}
 	}
 
-	public RHExtension(Config config, Struct data) throws PageException, IOException, BundleException {
+	public RHExtension(Config config, String id, Struct data) throws PageException, IOException, BundleException {
 		this.config = config;
 		// we have a newer version that holds the Manifest data
 		if (data.containsKey("start-bundles")) {
 			this.extensionFile = toResource(config, data);
 			boolean _softLoaded;
 			try {
-				readManifestConfig(data, extensionFile.getAbsolutePath(), null);
+				readManifestConfig(id, data, extensionFile.getAbsolutePath(), null);
 				_softLoaded = true;
 			}
 			catch (InvalidVersion iv) {
@@ -466,7 +466,7 @@ public class RHExtension implements Serializable {
 		readEventGatewayInstances(label, StringUtil.unwrap(attr.getValue("event-gateway-instance")), logger);
 	}
 
-	private void readManifestConfig(Struct data, String label, String _img) throws ApplicationException {
+	private void readManifestConfig(String id, Struct data, String label, String _img) throws ApplicationException {
 		boolean isWeb = config instanceof ConfigWeb;
 		type = isWeb ? "web" : "server";
 
@@ -478,7 +478,7 @@ public class RHExtension implements Serializable {
 		label = name;
 		readVersion(label, ConfigWebFactory.getAttr(data, "version"));
 		label += " : " + version;
-		readId(label, ConfigWebFactory.getAttr(data, "id"));
+		readId(label, StringUtil.isEmpty(id) ? ConfigWebFactory.getAttr(data, "id") : id);
 		readReleaseType(label, ConfigWebFactory.getAttr(data, "release-type"), isWeb);
 		description = ConfigWebFactory.getAttr(data, "description");
 		trial = Caster.toBooleanValue(ConfigWebFactory.getAttr(data, "trial"), false);

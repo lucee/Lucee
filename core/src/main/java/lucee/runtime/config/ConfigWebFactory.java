@@ -4421,25 +4421,28 @@ public final class ConfigWebFactory extends ConfigFactory {
 	 */
 	private static void _loadExtensionBundles(ConfigServerImpl cs, ConfigImpl config, Struct root, Log log) {
 		try {
-			Array children = ConfigWebUtil.getAsArray("extensions", "rhextension", root);
+			Struct children = ConfigWebUtil.getAsStruct("extensions", root);
+
 			String strBundles;
 			List<RHExtension> extensions = new ArrayList<RHExtension>();
-
 			RHExtension rhe;
-			Iterator<?> it = children.getIterator();
+
+			Iterator<Entry<Key, Object>> it = children.entryIterator();
+			Entry<Key, Object> e;
 			Struct child;
 			while (it.hasNext()) {
-				child = Caster.toStruct(it.next(), null);
+				e = it.next();
+				child = Caster.toStruct(e.getValue(), null);
 				if (child == null) continue;
 
 				BundleInfo[] bfsq;
 				try {
-					rhe = new RHExtension(config, child);
+					rhe = new RHExtension(config, e.getKey().getString(), child);
 					if (rhe.getStartBundles()) rhe.deployBundles(config);
 					extensions.add(rhe);
 				}
-				catch (Exception e) {
-					log.error("load-extension", e);
+				catch (Exception ex) {
+					log.error("load-extension", ex);
 					continue;
 				}
 			}
