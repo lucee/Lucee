@@ -17,28 +17,26 @@
 		,"functionDefaultDirectory":"{lucee-config}/library/function/"
 		,"tagDefaultDirectory":"{lucee-config}/library/tag/"
 	}
-	,"dumpWriters":{
-		"dumpWriter":[
-			{
-				"name":"html"
-				,"class":"lucee.runtime.dump.HTMLDumpWriter"
-				,"default":"browser"
-			}
-			,{
-				"name":"text"
-				,"class":"lucee.runtime.dump.TextDumpWriter"
-				,"default":"console"
-			}
-			,{
-				"name":"classic"
-				,"class":"lucee.runtime.dump.ClassicHTMLDumpWriter"
-			}
-			,{
-				"name":"simple"
-				,"class":"lucee.runtime.dump.SimpleHTMLDumpWriter"
-			}
-		]
-	}
+	,"dumpWriters":[
+		{
+			"name":"html"
+			,"class":"lucee.runtime.dump.HTMLDumpWriter"
+			,"default":"browser"
+		}
+		,{
+			"name":"text"
+			,"class":"lucee.runtime.dump.TextDumpWriter"
+			,"default":"console"
+		}
+		,{
+			"name":"classic"
+			,"class":"lucee.runtime.dump.ClassicHTMLDumpWriter"
+		}
+		,{
+			"name":"simple"
+			,"class":"lucee.runtime.dump.SimpleHTMLDumpWriter"
+		}
+	]
 	,"remoteClients":{
 		"directory":"{lucee-config}remote-client/"
 	}
@@ -141,8 +139,6 @@
 	,"debugging":{
 		"logMemoryUsage":"no"
 		,"template":"/lucee/templates/debugging/debugging.cfm"
-		,"debug":"no"
-		,"showQueryUsage":"no"
 	}
 	,"update":{
 		"location":"https://update.lucee.org"
@@ -306,4 +302,6 @@
 		}
 	]
 	,"preserveSingleQuote":false
+	,"debuggingEnabled":false
+	,"debuggingQueryUsage":false
 }

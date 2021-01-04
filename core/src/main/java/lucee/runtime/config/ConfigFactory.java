@@ -395,7 +395,54 @@ public abstract class ConfigFactory {
 			}
 		}
 
-		//
+		//////////////////// Debugging ////////////////////
+		{
+			Struct debugging = ConfigWebUtil.getAsStruct("debugging", root);
+			moveAsBool("debug", "debuggingEnabled", debugging, root);
+			moveAsBool("debugLogOutput", "debuggingLogOutput", debugging, root);
+			moveAsBool("database", "debuggingDatabase", debugging, root);
+			moveAsBool("exception", "debuggingException", debugging, root);
+			moveAsBool("templenabled", "debuggingTemplate", debugging, root);
+			moveAsBool("dump", "debuggingDump", debugging, root);
+			moveAsBool("tracing", "debuggingTracing", debugging, root);
+			moveAsBool("timer", "debuggingTimer", debugging, root);
+			moveAsBool("implicitAccess", "debuggingImplicitAccess", debugging, root);
+			moveAsBool("queryUsage", "debuggingQueryUsage", debugging, root);
+			moveAsBool("showQueryUsage", "debuggingQueryUsage", debugging, root);
+			moveAsInt("maxRecordsLogged", "debuggingMaxRecordsLogged", debugging, root);
+
+			Array entries = ConfigWebUtil.getAsArray("debugEntry", debugging);
+			add(entries, "debugTemplates", root);
+			rem("debugEntry", debugging);
+		}
+
+		//////////////////// Dump Writer ////////////////////
+		{
+			Struct dumpWriters = ConfigWebUtil.getAsStruct("dumpWriters", root);
+			Array dumpWriter = ConfigWebUtil.getAsArray("dumpWriter", dumpWriters);
+			add(dumpWriter, "dumpWriters", root);
+			rem("dumpWriter", dumpWriters);
+		}
+
+		//////////////////// Error ////////////////////
+		{
+			Struct error = ConfigWebUtil.getAsStruct("error", root);
+			String tmpl = Caster.toString(error.get("template", null), null);
+			String tmpl500 = Caster.toString(error.get("template500", null), null);
+			String tmpl404 = Caster.toString(error.get("template404", null), null);
+
+			// generalErrorTemplate
+			if (!StringUtil.isEmpty(tmpl500)) root.setEL("errorGeneralTemplate", tmpl500);
+			else if (!StringUtil.isEmpty(tmpl)) root.setEL("errorGeneralTemplate", tmpl);
+
+			// missingErrorTemplate
+			if (!StringUtil.isEmpty(tmpl404)) root.setEL("errorMissingTemplate", tmpl404);
+			else if (!StringUtil.isEmpty(tmpl)) root.setEL("errorMissingTemplate", tmpl);
+
+			moveAsBool("status", "errorStatusCode", error, root);
+			moveAsBool("statusCode", "errorStatusCode", error, root);
+		}
+
 		remIfEmpty(root);
 
 		// TODO scope?
@@ -405,7 +452,9 @@ public abstract class ConfigFactory {
 		// componentLocalSearch,componentUseCachePath,componentMappings
 		// classicDateParsing,cacheClasses,cacheHandlers,cfx,defaultFunctionOutput,externalizeStringGte,handleUnquotedAttributeValueAsString,
 		// constants, customTagUseCachePath, customTagLocalSearch, customTagDeepSearch, customTagExtensions,
-		// customTagMappings
+		// customTagMappings, debugTemplates,debuggingShowDump, debuggingImplicitAccess,
+		// debuggingQueryUsage, debuggingMaxRecordsLogged
+		// preserveSingleQuote,
 
 		// store it as Json
 		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, true, true);
@@ -445,6 +494,11 @@ public abstract class ConfigFactory {
 	private static void moveAsBool(String fromKey, String toKey, Struct from, Struct to) {
 		Object val = from.remove(KeyImpl.init(fromKey), null);
 		if (val != null && Decision.isCastableToBoolean(val)) to.setEL(KeyImpl.init(toKey), Caster.toBooleanValue(val, false));
+	}
+
+	private static void moveAsInt(String fromKey, String toKey, Struct from, Struct to) {
+		Object val = from.remove(KeyImpl.init(fromKey), null);
+		if (val != null && Decision.isCastableToNumeric(val)) to.setEL(KeyImpl.init(toKey), Caster.toIntValue(val, 0));
 	}
 
 	private static void add(Object fromData, String toKey, Struct to) {

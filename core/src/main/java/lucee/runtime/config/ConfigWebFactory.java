@@ -777,7 +777,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 	private static void _loadDumpWriter(ConfigServerImpl configServer, ConfigImpl config, Struct root, Log log) {
 		try {
 			boolean hasCS = configServer != null;
-			Array writers = ConfigWebUtil.getAsArray("dumpWriters", "dumpWriter", root);
+			Array writers = ConfigWebUtil.getAsArray("dumpWriters", root);
 
 			Struct sct = new StructImpl();
 
@@ -4212,11 +4212,11 @@ public final class ConfigWebFactory extends ConfigFactory {
 	private static void _loadDebug(ConfigServerImpl configServer, ConfigImpl config, Struct root, Log log) {
 		try {
 			boolean hasCS = configServer != null;
-			Struct debugging = ConfigWebUtil.getAsStruct("debugging", root);
 			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_DEBUGGING);
 
 			// Entries
-			Array entries = ConfigWebUtil.getAsArray("debugEntry", debugging);
+			// Struct debugging = ConfigWebUtil.getAsStruct("debugging", root);
+			Array entries = ConfigWebUtil.getAsArray("debugTemplates", root);
 			Map<String, DebugEntry> list = new HashMap<String, DebugEntry>();
 			if (hasCS) {
 				DebugEntry[] _entries = ((ConfigPro) configServer).getDebugEntries();
@@ -4243,14 +4243,14 @@ public final class ConfigWebFactory extends ConfigFactory {
 			config.setDebugEntries(list.values().toArray(new DebugEntry[list.size()]));
 
 			// debug
-			String strDebug = getAttr(debugging, "debug");
+			String strDebug = getAttr(root, "debuggingEnabled");
 			if (hasAccess && !StringUtil.isEmpty(strDebug)) {
 				config.setDebug(toBoolean(strDebug, false) ? ConfigImpl.CLIENT_BOOLEAN_TRUE : ConfigImpl.CLIENT_BOOLEAN_FALSE);
 			}
 			else if (hasCS) config.setDebug(configServer.debug() ? ConfigImpl.SERVER_BOOLEAN_TRUE : ConfigImpl.SERVER_BOOLEAN_FALSE);
 
 			// debug-log-output
-			String strDLO = getAttr(debugging, "debugLogOutput");
+			String strDLO = getAttr(root, "debuggingLogOutput");
 			if (hasAccess && !StringUtil.isEmpty(strDLO)) {
 				config.setDebugLogOutput(toBoolean(strDLO, false) ? ConfigImpl.CLIENT_BOOLEAN_TRUE : ConfigImpl.CLIENT_BOOLEAN_FALSE);
 			}
@@ -4261,21 +4261,24 @@ public final class ConfigWebFactory extends ConfigFactory {
 			String[] debugOptions = StringUtil.isEmpty(strDebugOption) ? null : ListUtil.listToStringArray(strDebugOption, ',');
 
 			int options = 0;
-			String str = getAttr(debugging, "database");
+			String str = getAttr(root, "debuggingDatabase");
+			if (StringUtil.isEmpty(str)) str = getAttr(root, "debuggingShowDatabase");
 			if (hasAccess && !StringUtil.isEmpty(str)) {
 				if (toBoolean(str, false)) options += ConfigPro.DEBUG_DATABASE;
 			}
 			else if (debugOptions != null && extractDebugOption("database", debugOptions)) options += ConfigPro.DEBUG_DATABASE;
 			else if (hasCS && configServer.hasDebugOptions(ConfigPro.DEBUG_DATABASE)) options += ConfigPro.DEBUG_DATABASE;
 
-			str = getAttr(debugging, "exception");
+			str = getAttr(root, "debuggingException");
+			if (StringUtil.isEmpty(str)) str = getAttr(root, "debuggingShowException");
 			if (hasAccess && !StringUtil.isEmpty(str)) {
 				if (toBoolean(str, false)) options += ConfigPro.DEBUG_EXCEPTION;
 			}
 			else if (debugOptions != null && extractDebugOption("exception", debugOptions)) options += ConfigPro.DEBUG_EXCEPTION;
 			else if (hasCS && configServer.hasDebugOptions(ConfigPro.DEBUG_EXCEPTION)) options += ConfigPro.DEBUG_EXCEPTION;
 
-			str = getAttr(debugging, "templenabled");
+			str = getAttr(root, "debuggingTemplate");
+			if (StringUtil.isEmpty(str)) str = getAttr(root, "debuggingShowTemplate");
 			if (hasAccess && !StringUtil.isEmpty(str)) {
 				if (toBoolean(str, false)) options += ConfigPro.DEBUG_TEMPLATE;
 			}
@@ -4284,36 +4287,41 @@ public final class ConfigWebFactory extends ConfigFactory {
 			// default is true
 			else options += ConfigPro.DEBUG_TEMPLATE;
 
-			str = getAttr(debugging, "dump");
+			str = getAttr(root, "debuggingDump");
+			if (StringUtil.isEmpty(str)) str = getAttr(root, "debuggingShowDump");
 			if (hasAccess && !StringUtil.isEmpty(str)) {
 				if (toBoolean(str, false)) options += ConfigPro.DEBUG_DUMP;
 			}
 			else if (debugOptions != null && extractDebugOption("dump", debugOptions)) options += ConfigPro.DEBUG_DUMP;
 			else if (hasCS && configServer.hasDebugOptions(ConfigPro.DEBUG_DUMP)) options += ConfigPro.DEBUG_DUMP;
 
-			str = getAttr(debugging, "tracing");
+			str = getAttr(root, "debuggingTracing");
+			if (StringUtil.isEmpty(str)) str = getAttr(root, "debuggingShowTracing");
+			if (StringUtil.isEmpty(str)) str = getAttr(root, "debuggingShowTrace");
 			if (hasAccess && !StringUtil.isEmpty(str)) {
 				if (toBoolean(str, false)) options += ConfigPro.DEBUG_TRACING;
 			}
 			else if (debugOptions != null && extractDebugOption("tracing", debugOptions)) options += ConfigPro.DEBUG_TRACING;
 			else if (hasCS && configServer.hasDebugOptions(ConfigPro.DEBUG_TRACING)) options += ConfigPro.DEBUG_TRACING;
 
-			str = getAttr(debugging, "timer");
+			str = getAttr(root, "debuggingTimer");
+			if (StringUtil.isEmpty(str)) str = getAttr(root, "debuggingShowTimer");
 			if (hasAccess && !StringUtil.isEmpty(str)) {
 				if (toBoolean(str, false)) options += ConfigPro.DEBUG_TIMER;
 			}
 			else if (debugOptions != null && extractDebugOption("timer", debugOptions)) options += ConfigPro.DEBUG_TIMER;
 			else if (hasCS && configServer.hasDebugOptions(ConfigPro.DEBUG_TIMER)) options += ConfigPro.DEBUG_TIMER;
 
-			str = getAttr(debugging, "implicitAccess");
+			str = getAttr(root, "debuggingImplicitAccess");
+			if (StringUtil.isEmpty(str)) str = getAttr(root, "debuggingShowImplicitAccess");
 			if (hasAccess && !StringUtil.isEmpty(str)) {
 				if (toBoolean(str, false)) options += ConfigPro.DEBUG_IMPLICIT_ACCESS;
 			}
 			else if (debugOptions != null && extractDebugOption("implicit-access", debugOptions)) options += ConfigPro.DEBUG_IMPLICIT_ACCESS;
 			else if (hasCS && configServer.hasDebugOptions(ConfigPro.DEBUG_IMPLICIT_ACCESS)) options += ConfigPro.DEBUG_IMPLICIT_ACCESS;
 
-			str = getAttr(debugging, "queryUsage");
-			if (StringUtil.isEmpty(str)) str = getAttr(debugging, "showQueryUsage");
+			str = getAttr(root, "debuggingQueryUsage");
+			if (StringUtil.isEmpty(str)) str = getAttr(root, "debuggingShowQueryUsage");
 			if (hasAccess && !StringUtil.isEmpty(str)) {
 				if (toBoolean(str, false)) options += ConfigPro.DEBUG_QUERY_USAGE;
 			}
@@ -4321,7 +4329,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 			else if (hasCS && configServer.hasDebugOptions(ConfigPro.DEBUG_QUERY_USAGE)) options += ConfigPro.DEBUG_QUERY_USAGE;
 
 			// max records logged
-			String strMax = getAttr(debugging, "maxRecordsLogged");
+			String strMax = getAttr(root, "debuggingMaxRecordsLogged");
+			if (StringUtil.isEmpty(str)) str = getAttr(root, "debuggingShowMaxRecordsLogged");
 			if (hasAccess && !StringUtil.isEmpty(strMax)) {
 				config.setDebugMaxRecordsLogged(Caster.toIntValue(strMax, 10));
 			}
@@ -4759,18 +4768,13 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 	private static void _loadError(ConfigServerImpl configServer, ConfigImpl config, Struct root, Log log) {
 		try {
-			Struct error = ConfigWebUtil.getAsStruct("error", root);
+			// Struct error = ConfigWebUtil.getAsStruct("error", root);
 			boolean hasCS = configServer != null;
 			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_DEBUGGING);
 
-			// error template
-			String template = getAttr(error, "template");
-
 			// 500
-			String template500 = getAttr(error, "template500");
-			if (StringUtil.isEmpty(template500)) template500 = getAttr(error, "template500");
-			if (StringUtil.isEmpty(template500)) template500 = getAttr(error, "500");
-			if (StringUtil.isEmpty(template500)) template500 = template;
+			String template500 = getAttr(root, "errorGeneralTemplate");
+			if (StringUtil.isEmpty(template500)) template500 = getAttr(root, "generalErrorTemplate");
 			if (hasAccess && !StringUtil.isEmpty(template500)) {
 				config.setErrorTemplate(500, template500);
 			}
@@ -4778,10 +4782,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 			else config.setErrorTemplate(500, "/lucee/templates/error/error." + TEMPLATE_EXTENSION);
 
 			// 404
-			String template404 = getAttr(error, "template404");
-			if (StringUtil.isEmpty(template404)) template404 = getAttr(error, "template404");
-			if (StringUtil.isEmpty(template404)) template404 = getAttr(error, "404");
-			if (StringUtil.isEmpty(template404)) template404 = template;
+			String template404 = getAttr(root, "errorMissingTemplate");
+			if (StringUtil.isEmpty(template404)) template404 = getAttr(root, "missingErrorTemplate");
 			if (hasAccess && !StringUtil.isEmpty(template404)) {
 				config.setErrorTemplate(404, template404);
 			}
@@ -4790,8 +4792,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 			// status code
 			Boolean bStausCode = Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.status.code", null), null);
-			if (bStausCode == null) bStausCode = Caster.toBoolean(getAttr(error, "statusCode"), null);
-			if (bStausCode == null) bStausCode = Caster.toBoolean(getAttr(error, "status"), null);
+			if (bStausCode == null) bStausCode = Caster.toBoolean(getAttr(root, "errorStatusCode"), null);
 
 			if (bStausCode != null && hasAccess) {
 				config.setErrorStatusCode(bStausCode.booleanValue());

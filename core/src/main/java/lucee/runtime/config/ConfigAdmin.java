@@ -2888,51 +2888,33 @@ public final class ConfigAdmin {
 		checkWriteAccess();
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_DEBUGGING);
 		if (!hasAccess) throw new SecurityException("no access to change debugging settings");
-		Struct debugging = _getRootElement("debugging");
 
-		if (debug != null) debugging.setEL("debug", Caster.toString(debug.booleanValue()));
-		else rem(debugging, "debug");
+		if (debug != null) root.setEL("debuggingEnabled", debug.booleanValue());
+		else rem(root, "debuggingEnabled");
 
-		if (database != null) debugging.setEL("database", Caster.toString(database.booleanValue()));
-		else rem(debugging, "database");
+		if (database != null) root.setEL("debuggingDatabase", database.booleanValue());
+		else rem(root, "debuggingDatabase");
 
-		if (template != null) debugging.setEL("templenabled", Caster.toString(template.booleanValue()));
-		else rem(debugging, "templenabled");
+		if (template != null) root.setEL("debuggingTemplate", template.booleanValue());
+		else rem(root, "debuggingTemplate");
 
-		if (exception != null) debugging.setEL("exception", Caster.toString(exception.booleanValue()));
-		else rem(debugging, "exception");
+		if (exception != null) root.setEL("debuggingException", exception.booleanValue());
+		else rem(root, "debuggingException");
 
-		if (tracing != null) debugging.setEL("tracing", Caster.toString(tracing.booleanValue()));
-		else rem(debugging, "tracing");
+		if (tracing != null) root.setEL("debuggingTracing", tracing.booleanValue());
+		else rem(root, "debuggingTracing");
 
-		if (dump != null) debugging.setEL("dump", Caster.toString(dump.booleanValue()));
-		else rem(debugging, "dump");
+		if (dump != null) root.setEL("debuggingDump", dump.booleanValue());
+		else rem(root, "debuggingDump");
 
-		if (timer != null) debugging.setEL("timer", Caster.toString(timer.booleanValue()));
-		else rem(debugging, "timer");
+		if (timer != null) root.setEL("debuggingTimer", timer.booleanValue());
+		else rem(root, "debuggingTimer");
 
-		if (implicitAccess != null) debugging.setEL("implicitAccess", Caster.toString(implicitAccess.booleanValue()));
-		else rem(debugging, "implicitAccess");
+		if (implicitAccess != null) root.setEL("debuggingImplicitAccess", implicitAccess.booleanValue());
+		else rem(root, "debuggingImplicitAccess");
 
-		if (queryUsage != null) debugging.setEL("queryUsage", Caster.toString(queryUsage.booleanValue()));
-		else rem(debugging, "queryUsage");
-
-	}
-
-	/**
-	 * updates the DebugTemplate
-	 * 
-	 * @param template
-	 * @throws SecurityException
-	 */
-	public void updateDebugTemplate(String template) throws SecurityException {
-		checkWriteAccess();
-		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-		if (!hasAccess) throw new SecurityException("no access to change debugging settings");
-
-		Struct debugging = _getRootElement("debugging");
-		// if(template.trim().length()>0)
-		debugging.setEL("template", template);
+		if (queryUsage != null) root.setEL("debuggingQueryUsage", queryUsage.booleanValue());
+		else rem(root, "debuggingQueryUsage");
 	}
 
 	/**
@@ -2946,9 +2928,8 @@ public final class ConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to change error settings");
 
-		Struct error = _getRootElement("error");
-		// if(template.trim().length()>0)
-		error.setEL("template" + statusCode, template);
+		if (statusCode == 404) root.setEL("errorMissingTemplate", template);
+		else root.setEL("errorGeneralTemplate", template);
 	}
 
 	public void updateErrorStatusCode(Boolean doStatusCode) throws SecurityException {
@@ -2956,8 +2937,7 @@ public final class ConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to change error settings");
 
-		Struct error = _getRootElement("error");
-		error.setEL("statusCode", Caster.toString(doStatusCode, ""));
+		root.setEL("errorStatusCode", Caster.toString(doStatusCode, ""));
 	}
 
 	public void updateRegexType(String type) throws PageException {
@@ -5352,9 +5332,8 @@ public final class ConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_DEBUGGING);
 		if (!hasAccess) throw new SecurityException("Access denied to change debugging settings");
 
-		Struct debugging = _getRootElement("debugging");
-		if (maxLogs == -1) rem(debugging, "maxRecordsLogged");
-		else debugging.setEL("maxRecordsLogged", Caster.toString(maxLogs));
+		if (maxLogs == -1) rem(root, "debuggingMaxRecordsLogged");
+		else root.setEL("debuggingMaxRecordsLogged", maxLogs);
 	}
 
 	public void updateDebugEntry(String type, String iprange, String label, String path, String fullname, Struct custom) throws SecurityException, IOException {
@@ -5370,7 +5349,7 @@ public final class ConfigAdmin {
 		iprange = iprange.trim();
 		label = label.trim();
 
-		Array children = ConfigWebUtil.getAsArray("debugging", "debugEntry", root);
+		Array children = ConfigWebUtil.getAsArray("debugTemplates", root);
 
 		// Update
 		Struct el = null;
@@ -5407,7 +5386,7 @@ public final class ConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_DEBUGGING);
 		if (!hasAccess) throw new SecurityException("Access denied to change debugging settings");
 
-		Array children = ConfigWebUtil.getAsArray("debugging", "debugEntry", root);
+		Array children = ConfigWebUtil.getAsArray("debugTemplates", root);
 		String _id;
 		if (children.size() > 0) {
 			for (int i = children.size(); i > 0; i--) {
