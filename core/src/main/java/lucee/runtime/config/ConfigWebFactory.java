@@ -3883,7 +3883,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 	private static void _loadConstants(ConfigServerImpl configServer, ConfigImpl config, Struct root) {
 		try {
 			boolean hasCS = configServer != null;
-			Array elConstants = ConfigWebUtil.getAsArray("constants", "constant", root);
+			Struct constants = ConfigWebUtil.getAsStruct("constants", root);
 
 			// Constants
 			Struct sct = null;
@@ -3892,17 +3892,19 @@ public final class ConfigWebFactory extends ConfigFactory {
 				if (sct != null) sct = (Struct) sct.duplicate(false);
 			}
 			if (sct == null) sct = new StructImpl();
-			String name;
-			if (elConstants != null) {
-				Iterator<?> it = elConstants.getIterator();
+			Key name;
+			if (constants != null) {
+				Iterator<Entry<Key, Object>> it = constants.entryIterator();
 				Struct con;
+				Entry<Key, Object> e;
 				while (it.hasNext()) {
+					e = it.next();
 					con = Caster.toStruct(it.next(), null);
 					if (con == null) continue;
 
-					name = getAttr(con, "name");
+					name = e.getKey();
 					if (StringUtil.isEmpty(name)) continue;
-					sct.setEL(KeyImpl.getInstance(name.trim()), getAttr(con, "value"));
+					sct.setEL(name, e.getValue());
 				}
 			}
 			config.setConstants(sct);

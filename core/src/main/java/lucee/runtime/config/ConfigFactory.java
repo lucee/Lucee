@@ -348,6 +348,22 @@ public abstract class ConfigFactory {
 				mapping.remove(k, null);
 			}
 		}
+		//////////////////// Constants ////////////////////
+		{
+			Struct constants = ConfigWebUtil.getAsStruct("constants", root);
+			Array constant = ConfigWebUtil.getAsArray("constant", constants);
+			rem("constant", constants);
+
+			Key[] keys = constant.keys();
+			for (int i = keys.length - 1; i >= 0; i--) {
+				Key k = keys[i];
+				Struct data = Caster.toStruct(constant.get(k, null), null);
+
+				if (data == null) continue;
+				constants.setEL(KeyImpl.init(Caster.toString(data.get(KeyConstants._name, null), null)), data.get(KeyConstants._value, null));
+			}
+		}
+
 		//
 		remIfEmpty(root);
 
