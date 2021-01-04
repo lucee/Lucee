@@ -839,13 +839,16 @@ public final class ConfigAdmin {
 	public void removeCustomTag(String virtual) throws SecurityException {
 		checkWriteAccess();
 
-		Array children = ConfigWebUtil.getAsArray("customTag", "mapping", root);
-		for (int i = children.size(); i > 0; i--) {
-			Struct tmp = Caster.toStruct(children.get(i, null), null);
-			if (tmp == null) continue;
+		Array mappings = ConfigWebUtil.getAsArray("customTagMappings", root);
+		Struct data;
+		String v;
+		for (int i = mappings.size(); i > 0; i--) {
+			data = Caster.toStruct(mappings.get(i, null), null);
+			if (data == null) continue;
+			v = createVirtual(data);
 
-			if (virtual.equals(createVirtual(tmp))) {
-				children.removeEL(i);
+			if (virtual.equals(v)) {
+				mappings.removeEL(i);
 			}
 		}
 	}
@@ -853,11 +856,16 @@ public final class ConfigAdmin {
 	public void removeComponentMapping(String virtual) throws SecurityException {
 		checkWriteAccess();
 
-		Struct children = ConfigWebUtil.getAsStruct("componentMappings", root);
-		Key[] keys = children.keys();
-		for (Key key: keys) {
-			if (virtual.equals(key.getString())) {
-				children.removeEL(key);
+		Array mappings = ConfigWebUtil.getAsArray("componentMappings", root);
+		Struct data;
+		String v;
+		for (int i = mappings.size(); i > 0; i--) {
+			data = Caster.toStruct(mappings.get(i, null), null);
+			if (data == null) continue;
+			v = createVirtual(data);
+
+			if (virtual.equals(v)) {
+				mappings.removeEL(i);
 			}
 		}
 	}
@@ -895,18 +903,15 @@ public final class ConfigAdmin {
 			throw new ExpressionException("physical must have a value when primary has value physical");
 		}
 
-		Array children = ConfigWebUtil.getAsArray("customTag", "mapping", root);
-		// Struct mappings = _getRootElement("custom-tag");
-
+		Array mappings = ConfigWebUtil.getAsArray("customTagMappings", root);
 		// Update
 		String v;
 		// Element[] children = ConfigWebFactory.getChildren(mappings, "mapping");
-		for (int i = 1; i <= children.size(); i++) {
-			Struct el = Caster.toStruct(children.get(i, null), null);
+		for (int i = mappings.size(); i > 0; i--) {
+			Struct el = Caster.toStruct(mappings.get(i, null), null);
 			if (el == null) continue;
-
 			v = createVirtual(el);
-			if (v.equals(virtual)) {
+			if (virtual.equals(v)) {
 				el.setEL("virtual", v);
 				el.setEL("physical", physical);
 				el.setEL("archive", archive);
@@ -919,12 +924,12 @@ public final class ConfigAdmin {
 
 		// Insert
 		Struct el = new StructImpl(Struct.TYPE_LINKED);
-		children.appendEL(el);
+		mappings.appendEL(el);
 		if (physical.length() > 0) el.setEL("physical", physical);
 		if (archive.length() > 0) el.setEL("archive", archive);
 		el.setEL("primary", primary.equalsIgnoreCase("archive") ? "archive" : "physical");
 		el.setEL("inspectTemplate", ConfigWebUtil.inspectTemplate(inspect, ""));
-		el.setEL("virtual", virtual);
+		el.setEL("virtual", StringUtil.isEmpty(virtual) ? createVirtual(el) : virtual);
 	}
 
 	public void updateComponentMapping(String virtual, String physical, String archive, String primary, short inspect) throws ExpressionException, SecurityException {
@@ -948,33 +953,37 @@ public final class ConfigAdmin {
 			throw new ExpressionException("physical must have a value when primary has value physical");
 		}
 
-		Struct componentMappings = ConfigWebUtil.getAsStruct("componentMappings", root);
+		Array componentMappings = ConfigWebUtil.getAsArray("componentMappings", root);
 		Struct el;
 
 		// Update
 		String v;
-		Key[] keys = componentMappings.keys();
-		for (Key key: keys) {
-			if (key.getString().equals(virtual)) {
-				el = Caster.toStruct(componentMappings.get(key, null), null);
-				if (el == null) continue;
+		Struct data;
+		for (int i = componentMappings.size(); i > 0; i--) {
+			data = Caster.toStruct(componentMappings.get(i, null), null);
+			if (data == null) continue;
 
-				el.setEL("physical", physical);
-				el.setEL("archive", archive);
-				el.setEL("primary", primary.equalsIgnoreCase("archive") ? "archive" : "physical");
-				el.setEL("inspectTemplate", ConfigWebUtil.inspectTemplate(inspect, ""));
-				el.removeEL(KeyImpl.init("trusted"));
+			v = createVirtual(data);
+
+			if (virtual.equals(v)) {
+				data.setEL("virtual", v);
+				data.setEL("physical", physical);
+				data.setEL("archive", archive);
+				data.setEL("primary", primary.equalsIgnoreCase("archive") ? "archive" : "physical");
+				data.setEL("inspectTemplate", ConfigWebUtil.inspectTemplate(inspect, ""));
+				data.removeEL(KeyImpl.init("trusted"));
 				return;
 			}
 		}
 
 		// Insert
 		el = new StructImpl(Struct.TYPE_LINKED);
-		componentMappings.setEL(virtual, el);
+		componentMappings.appendEL(el);
 		if (physical.length() > 0) el.setEL("physical", physical);
 		if (archive.length() > 0) el.setEL("archive", archive);
 		el.setEL("primary", primary.equalsIgnoreCase("archive") ? "archive" : "physical");
 		el.setEL("inspectTemplate", ConfigWebUtil.inspectTemplate(inspect, ""));
+		el.setEL("virtual", StringUtil.isEmpty(virtual) ? createVirtual(el) : virtual);
 	}
 
 	public static String createVirtual(Struct data) {
@@ -2865,8 +2874,7 @@ public final class ConfigAdmin {
 		if (!ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_CUSTOM_TAG)) throw new SecurityException("no access to update custom tag setting");
 
 		if (!Caster.toBooleanValue(ctPathCache, false)) config.clearCTCache();
-		Struct scope = _getRootElement("customTag");
-		scope.setEL("useCachePath", Caster.toString(ctPathCache, ""));
+		root.setEL("customTagUseCachePath", Caster.toString(ctPathCache, ""));
 	}
 
 	public void updateSecurity(String varUsage) throws SecurityException {
@@ -3652,8 +3660,7 @@ public final class ConfigAdmin {
 		checkWriteAccess();
 		if (!ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_CUSTOM_TAG)) throw new SecurityException("Access Denied to update custom tag setting");
 
-		Struct element = _getRootElement("customTag");
-		element.setEL("customTagDeepSearch", Caster.toString(customTagDeepSearch));
+		root.setEL("customTagDeepSearch", Caster.toString(customTagDeepSearch));
 	}
 
 	public void resetId() throws PageException {
@@ -3671,9 +3678,7 @@ public final class ConfigAdmin {
 	public void updateCustomTagLocalSearch(boolean customTagLocalSearch) throws SecurityException {
 		checkWriteAccess();
 		if (!ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_CUSTOM_TAG)) throw new SecurityException("Access Denied to update custom tag setting");
-
-		Struct element = _getRootElement("customTag");
-		element.setEL("customTagLocalSearch", Caster.toString(customTagLocalSearch));
+		root.setEL("customTagLocalSearch", Caster.toString(customTagLocalSearch));
 	}
 
 	public void updateCustomTagExtensions(String extensions) throws PageException {
@@ -3686,8 +3691,7 @@ public final class ConfigAdmin {
 		// throw new ApplicationException("you must define at least one extension");
 
 		// update charset
-		Struct element = _getRootElement("customTag");
-		element.setEL("extensions", ListUtil.arrayToList(arr, ","));
+		root.setEL("customTagExtensions", ListUtil.arrayToList(arr, ","));
 	}
 
 	public void updateRemoteClient(String label, String url, String type, String securityKey, String usage, String adminPassword, String serverUsername, String serverPassword,

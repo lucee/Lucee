@@ -127,12 +127,6 @@
 			}
 		]
 	}
-	,"customTag":{
-		"mapping":{
-			"inspectTemplate":"never"
-			,"physical":"{lucee-config}/customtags/"
-		}
-	}
 	,"cacheHandlers":{
 		"timespan":{
 			"class":"lucee.runtime.cache.tag.timespan.TimespanCacheHandler"
@@ -291,16 +285,24 @@
 	,"componentBaseLuceeDialect":"/lucee/Component.lucee"
 	,"componentDumpTemplate":"/lucee/component-dump.cfm"
 	,"componentDataMemberAccess":"public"
-	,"componentMappings":{
-		"/default-server":{
-			"physical":"{lucee-server}/components/"
+	,"componentMappings":[
+		{
+			"virtual":"/default"
+			,"physical":"{lucee-web}/components/"
 			,"primary":"physical"
 			,"inspectTemplate":"never"
 		}
-		,"/default":{
-			"physical":"{lucee-web}/components/"
+		,{
+			"virtual":"/default-server"
+			,"physical":"{lucee-server}/components/"
 			,"primary":"physical"
 			,"inspectTemplate":"never"
 		}
-	}
+	]
+	,"customTagMappings":[
+		{
+			"inspectTemplate":"never"
+			,"physical":"{lucee-config}/customtags/"
+		}
+	]
 }

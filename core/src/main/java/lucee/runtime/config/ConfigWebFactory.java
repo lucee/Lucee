@@ -2525,11 +2525,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_CUSTOM_TAG);
 			boolean hasCS = configServer != null;
 
-			Struct customTag = ConfigWebUtil.getAsStruct("customTag", root);
-			Array ctMappings = ConfigWebUtil.getAsArray("", customTag);
-
 			// do patch cache
-			String strDoPathcache = customTag != null ? getAttr(customTag, "useCachePath") : null;
+			String strDoPathcache = getAttr(root, "customTagUseCachePath");
 			if (hasAccess && !StringUtil.isEmpty(strDoPathcache, true)) {
 				config.setUseCTPathCache(Caster.toBooleanValue(strDoPathcache.trim(), true));
 			}
@@ -2542,7 +2539,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 				config.setDoLocalCustomTag(false);
 			}
 			else {
-				String strDoCTLocalSearch = customTag != null ? getAttr(customTag, "customTagLocalSearch") : null;
+				String strDoCTLocalSearch = getAttr(root, "customTagLocalSearch");
 				if (hasAccess && !StringUtil.isEmpty(strDoCTLocalSearch)) {
 					config.setDoLocalCustomTag(Caster.toBooleanValue(strDoCTLocalSearch.trim(), true));
 				}
@@ -2556,7 +2553,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 				config.setDoCustomTagDeepSearch(false);
 			}
 			else {
-				String strDoCTDeepSearch = customTag != null ? getAttr(customTag, "customTagDeepSearch") : null;
+				String strDoCTDeepSearch = getAttr(root, "customTagDeepSearch");
 				if (hasAccess && !StringUtil.isEmpty(strDoCTDeepSearch)) {
 					config.setDoCustomTagDeepSearch(Caster.toBooleanValue(strDoCTDeepSearch.trim(), false));
 				}
@@ -2570,7 +2567,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 				config.setCustomTagExtensions(Constants.getComponentExtensions());
 			}
 			else {
-				String strExtensions = customTag != null ? getAttr(customTag, "extensions") : null;
+				String strExtensions = getAttr(root, "customTagExtensions");
 				if (hasAccess && !StringUtil.isEmpty(strExtensions)) {
 					try {
 						String[] arr = ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(strExtensions, ","));
@@ -2583,17 +2580,21 @@ public final class ConfigWebFactory extends ConfigFactory {
 				}
 			}
 
+			// Struct customTag = ConfigWebUtil.getAsStruct("customTag", root);
+			Array ctMappings = ConfigWebUtil.getAsArray("customTagMappings", root);
+
 			// Web Mapping
 			boolean hasSet = false;
 			Mapping[] mappings = null;
 			if (hasAccess && ctMappings.size() > 0) {
+				Iterator<Object> it = ctMappings.valueIterator();
 				List<Mapping> list = new ArrayList<>();
-				Iterator<?> it = ctMappings.getIterator();
 				Struct ctMapping;
 				while (it.hasNext()) {
 					ctMapping = Caster.toStruct(it.next(), null);
 					if (ctMapping == null) continue;
 
+					String virtual = createVirtual(ctMapping);
 					String physical = getAttr(ctMapping, "physical");
 					String archive = getAttr(ctMapping, "archive");
 					boolean readonly = toBoolean(getAttr(ctMapping, "readonly"), false);
@@ -2604,12 +2605,10 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 					boolean physicalFirst = archive == null || !primary.equalsIgnoreCase("archive");
 					hasSet = true;
-					list.add(new MappingImpl(config, ConfigAdmin.createVirtual(ctMapping), physical, archive, inspTemp, physicalFirst, hidden, readonly, true, false, true, null,
-							-1, -1));
+					list.add(new MappingImpl(config, virtual, physical, archive, inspTemp, physicalFirst, hidden, readonly, true, false, true, null, -1, -1));
 				}
 				mappings = list.toArray(new Mapping[list.size()]);
 				config.setCustomTagMappings(mappings);
-
 			}
 
 			// Server Mapping
@@ -4658,20 +4657,18 @@ public final class ConfigWebFactory extends ConfigFactory {
 			}
 
 			// Web Mapping
-			Struct compMappings = ConfigWebUtil.getAsStruct("componentMappings", root);
+			Array compMappings = ConfigWebUtil.getAsArray("componentMappings", root);
 			hasSet = false;
 			Mapping[] mappings = null;
 			if (hasAccess && compMappings.size() > 0) {
-				Iterator<Entry<Key, Object>> it = compMappings.entryIterator();
+				Iterator<Object> it = compMappings.valueIterator();
 				List<Mapping> list = new ArrayList<>();
 				Struct cMapping;
-				Entry<Key, Object> e;
 				while (it.hasNext()) {
-					e = it.next();
-					cMapping = Caster.toStruct(e.getValue(), null);
+					cMapping = Caster.toStruct(it.next(), null);
 					if (cMapping == null) continue;
 
-					String virtual = e.getKey().getString();
+					String virtual = createVirtual(cMapping);
 					String physical = getAttr(cMapping, "physical");
 					String archive = getAttr(cMapping, "archive");
 					boolean readonly = toBoolean(getAttr(cMapping, "readonly"), false);

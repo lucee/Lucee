@@ -37,12 +37,6 @@
 			,"toplevel":"yes"
 		}
 	}
-	,"customTag":{
-		"mapping":{
-			"trusted":"yes"
-			,"physical":"{lucee-web}/customtags/"
-		}
-	}
 	,"debugging":{
 		"template":"/lucee/templates/debugging/debugging.cfm"
 	}
@@ -57,4 +51,10 @@
 	,"componentBase":"/lucee/Component.cfc"
 	,"componentDataMemberAccess":"public"
 	,"componentUseVariablesScope":true
+	,"customTagMappings":[
+		{
+			"trusted":"yes"
+			,"physical":"{lucee-web}/customtags/"
+		}
+	]
 }

@@ -335,19 +335,29 @@ public abstract class ConfigFactory {
 			moveAsBool("useShadow", "componentUseVariablesScope", component, root);
 
 			// mappings
-			Array mapping = ConfigWebUtil.getAsArray("mapping", component);
-			Struct componentMappings = ConfigWebUtil.getAsStruct("componentMappings", root);
-			root.setEL("componentMappings", componentMappings);
-			Key[] keys = mapping.keys();
-			for (int i = keys.length - 1; i >= 0; i--) {
-				Key k = keys[i];
-				Struct data = Caster.toStruct(mapping.get(k, null), null);
-
-				if (data == null) continue;
-				add(data, Caster.toString(data.remove(KeyConstants._virtual, null), null), componentMappings);
-				mapping.remove(k, null);
-			}
+			Array ctMappings = ConfigWebUtil.getAsArray("mapping", component);
+			add(ctMappings, "componentMappings", root);
+			rem("mapping", component);
 		}
+
+		//////////////////// Custom tags ////////////////////
+		{
+			Struct ct = ConfigWebUtil.getAsStruct("customTag", root);
+			moveAsBool("customTagUseCachePath", "customTagUseCachePath", ct, root);
+			moveAsBool("useCachePath", "customTagUseCachePath", ct, root);
+			moveAsBool("customTagLocalSearch", "customTagLocalSearch", ct, root);
+			moveAsBool("localSearch", "customTagLocalSearch", ct, root);
+			moveAsBool("deepSearch", "customTagDeepSearch", ct, root);
+			moveAsBool("customTagDeepSearch", "customTagDeepSearch", ct, root);
+			move("extensions", "customTagExtensions", ct, root);
+			move("customTagExtensions", "customTagExtensions", ct, root);
+			Array ctMappings = ConfigWebUtil.getAsArray("mapping", ct);
+			add(ctMappings, "customTagMappings", root);
+			rem("mapping", ct);
+		}
+
+		// useCachePath
+
 		//////////////////// Constants ////////////////////
 		{
 			Struct constants = ConfigWebUtil.getAsStruct("constants", root);
@@ -373,6 +383,7 @@ public abstract class ConfigFactory {
 		// ,componentDumpTemplate, componentDataMemberDefaultAccess,componentUseVariablesScope,
 		// componentLocalSearch,componentUseCachePath,componentMappings
 		// classicDateParsing,cacheClasses,cacheHandlers,cfx,defaultFunctionOutput,externalizeStringGte,handleUnquotedAttributeValueAsString,
+		// constants, customTagUseCachePath
 
 		// store it as Json
 		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, true, true);
@@ -424,7 +435,7 @@ public abstract class ConfigFactory {
 		if (val != null) to.setEL(KeyImpl.init(toKey), val);
 	}
 
-	private static String createVirtual(Struct data) {
+	static String createVirtual(Struct data) {
 		String str = ConfigWebFactory.getAttr(data, "virtual");
 		if (!StringUtil.isEmpty(str)) return str;
 		return createVirtual(ConfigWebFactory.getAttr(data, "physical"), ConfigWebFactory.getAttr(data, "archive"));
