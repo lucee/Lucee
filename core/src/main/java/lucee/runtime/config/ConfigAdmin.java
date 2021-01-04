@@ -112,7 +112,6 @@ import lucee.runtime.gateway.GatewayEntryImpl;
 import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.monitor.Monitor;
-import lucee.runtime.net.amf.AMFEngine;
 import lucee.runtime.net.ntp.NtpClient;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
@@ -1611,18 +1610,6 @@ public final class ConfigAdmin {
 		removeClass(orm, "engine");
 	}
 
-	private void _removeAMFEngine() {
-		Struct flex = _getRootElement("flex");
-		removeClass(flex, "");
-		flex.removeEL(KeyImpl.init("configuration"));
-		flex.removeEL(KeyImpl.init("caster"));
-
-		// old arguments
-		flex.removeEL(KeyImpl.init("config"));
-		flex.removeEL(KeyImpl.init("casterClass"));
-		flex.removeEL(KeyImpl.init("casterClassArguments"));
-	}
-
 	public void updateSearchEngine(ClassDefinition cd) throws PageException {
 		checkWriteAccess();
 		_updateSearchEngine(cd);
@@ -1632,17 +1619,6 @@ public final class ConfigAdmin {
 	private void _updateSearchEngine(ClassDefinition cd) throws PageException {
 		Struct orm = _getRootElement("search");
 		setClass(orm, SearchEngine.class, "engine", cd);
-	}
-
-	private void _updateAMFEngine(ClassDefinition cd, String caster, String config) throws PageException {
-		Struct flex = _getRootElement("flex");
-		setClass(flex, AMFEngine.class, "", cd);
-		if (caster != null) flex.setEL("caster", caster);
-		if (config != null) flex.setEL("configuration", config);
-		// old arguments
-		flex.removeEL(KeyImpl.init("config"));
-		flex.removeEL(KeyImpl.init("casterClass"));
-		flex.removeEL(KeyImpl.init("casterClassArguments"));
 	}
 
 	public void removeSearchEngine() throws SecurityException {
@@ -2161,7 +2137,6 @@ public final class ConfigAdmin {
 		if (!hasAccess) throw new SecurityException("no access to remove gateway entry");
 
 		_removeGatewayEntry(name);
-		_removeAMFEngine();
 	}
 
 	protected void _removeGatewayEntry(String name) throws PageException {
@@ -4468,21 +4443,6 @@ public final class ConfigAdmin {
 				}
 			}
 
-			// update AMF
-			if (!ArrayUtil.isEmpty(rhext.getAMFs())) {
-				Iterator<Map<String, String>> itl = rhext.getAMFs().iterator();
-				Map<String, String> map;
-				while (itl.hasNext()) {
-					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config, map, null);
-					if (cd != null && cd.hasClass()) {
-						_updateAMFEngine(cd, map.get("caster"), map.get("configuration"));
-						reloadNecessary = true;
-					}
-					logger.info("extension", "Update AMF engine [" + cd + "] from extension [" + rhext.getName() + ":" + rhext.getVersion() + "]");
-				}
-			}
-
 			// update Search
 			if (!ArrayUtil.isEmpty(rhext.getSearchs())) {
 				Iterator<Map<String, String>> itl = rhext.getSearchs().iterator();
@@ -4817,21 +4777,6 @@ public final class ConfigAdmin {
 						_removeResourceProvider(scheme);
 					}
 					logger.info("extension", "Remove resource [" + cd + "] from extension [" + rhe.getName() + ":" + rhe.getVersion() + "]");
-				}
-			}
-
-			// remove AMF
-			if (!ArrayUtil.isEmpty(rhe.getAMFs())) {
-				Iterator<Map<String, String>> itl = rhe.getAMFs().iterator();
-				Map<String, String> map;
-				while (itl.hasNext()) {
-					map = itl.next();
-					ClassDefinition cd = RHExtension.toClassDefinition(config, map, null);
-					if (cd != null && cd.hasClass()) {
-						_removeAMFEngine();
-						// reload=true;
-					}
-					logger.info("extension", "Remove search engine [" + cd + "] from extension [" + rhe.getName() + ":" + rhe.getVersion() + "]");
 				}
 			}
 

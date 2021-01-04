@@ -470,7 +470,7 @@ public abstract class ConfigFactory {
 		// constants, customTagUseCachePath, customTagLocalSearch, customTagDeepSearch, customTagExtensions,
 		// customTagMappings, debugTemplates,debuggingShowDump, debuggingImplicitAccess,
 		// debuggingQueryUsage, debuggingMaxRecordsLogged
-		// preserveSingleQuote,
+		// preserveSingleQuote,extensions,fileSystem
 
 		// store it as Json
 		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, true, true);

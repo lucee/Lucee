@@ -509,8 +509,6 @@ public final class ConfigWebFactory extends ConfigFactory {
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, ConfigWebFactory.class.getName(), "loaded remote clients");
 		_loadVideo(cs, config, root, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, ConfigWebFactory.class.getName(), "loaded video");
-		_loadFlex(cs, config, root, log);
-		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, ConfigWebFactory.class.getName(), "loaded flex");
 		settings(config, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, ConfigWebFactory.class.getName(), "loaded settings2");
 		_loadListener(cs, config, root, log);
@@ -1760,37 +1758,6 @@ public final class ConfigWebFactory extends ConfigFactory {
 			}
 
 			config.setRestMappings(mappings.values().toArray(new lucee.runtime.rest.Mapping[mappings.size()]));
-		}
-		catch (Exception e) {
-			log(config, log, e);
-		}
-	}
-
-	private static void _loadFlex(ConfigServerImpl configServer, ConfigImpl config, Struct root, Log log) {
-		try {
-			Struct el = ConfigWebUtil.getAsStruct("flex", root);
-
-			// engine - we init an engine for every context, but only the server context defines the engine
-			// class
-			if (config instanceof ConfigServerImpl && root != null) { // only server context
-
-				// arguments
-				Map<String, String> args = new HashMap<String, String>();
-				String _caster = getAttr(el, "caster");
-				if (_caster != null) args.put("caster", _caster);
-				String _config = getAttr(el, "configuration");
-				if (_config != null) args.put("configuration", _config);
-
-				ClassDefinition<AMFEngine> cd = getClassDefinition(el, "", config.getIdentification());
-				if (cd.hasClass()) ((ConfigServerImpl) config).setAMFEngine(cd, args);
-			}
-			else if (configServer != null && configServer.getAMFEngineClassDefinition() != null && configServer.getAMFEngineClassDefinition().hasClass()) { // only web contexts
-				AMFEngine engine = toAMFEngine(config, configServer.getAMFEngineClassDefinition(), null);
-				if (engine != null) {
-					engine.init((ConfigWeb) config, configServer.getAMFEngineArgs());
-					((ConfigWebImpl) config).setAMFEngine(engine);
-				}
-			}
 		}
 		catch (Exception e) {
 			log(config, log, e);
