@@ -459,6 +459,22 @@ public abstract class ConfigFactory {
 			}
 		}
 
+		//////////////////// Gateway ////////////////////
+		{
+			Struct gateways = ConfigWebUtil.getAsStruct("gateways", root);
+			Array gateway = ConfigWebUtil.getAsArray("gateway", gateways);
+
+			Key[] keys = gateway.keys();
+			for (int i = keys.length - 1; i >= 0; i--) {
+				Key k = keys[i];
+				Struct data = Caster.toStruct(gateway.get(k, null), null);
+				if (data == null) continue;
+
+				add(data, Caster.toString(data.remove(KeyConstants._id, null), null), gateways);
+				gateway.remove(k, null);
+			}
+		}
+
 		remIfEmpty(root);
 
 		// TODO scope?

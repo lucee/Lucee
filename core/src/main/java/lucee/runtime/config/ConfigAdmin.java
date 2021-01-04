@@ -1566,14 +1566,15 @@ public final class ConfigAdmin {
 
 		if ((cd == null || StringUtil.isEmpty(cd.getClassName())) && StringUtil.isEmpty(componentPath)) throw new ExpressionException("you must define className or componentPath");
 
-		Array children = ConfigWebUtil.getAsArray("gateways", "gateway", root);
+		Struct children = ConfigWebUtil.getAsStruct("gateways", root);
+		Key[] keys = children.keys();
 
 		// Update
-		for (int i = 1; i <= children.size(); i++) {
-			Struct el = Caster.toStruct(children.get(i, null), null);
+		for (Key key: keys) {
+			Struct el = Caster.toStruct(children.get(key, null), null);
 			if (el == null) continue;
 
-			String n = ConfigWebUtil.getAsString("id", el, "");
+			String n = key.getString();
 			if (n.equalsIgnoreCase(id)) {
 				setClass(el, null, "", cd);
 				el.setEL("cfcPath", componentPath);
@@ -1583,19 +1584,17 @@ public final class ConfigAdmin {
 				el.setEL("readOnly", Caster.toString(readOnly));
 				return;
 			}
-
 		}
+
 		// Insert
 		Struct el = new StructImpl(Struct.TYPE_LINKED);
-		children.appendEL(el);
-		el.setEL("id", id);
+		children.setEL(id, el);
 		el.setEL("cfcPath", componentPath);
 		el.setEL("listenerCFCPath", listenerCfcPath);
 		el.setEL("startupMode", GatewayEntryImpl.toStartup(startupMode, "automatic"));
 		setClass(el, null, "", cd);
 		el.setEL("custom", toStringURLStyle(custom));
 		el.setEL("readOnly", Caster.toString(readOnly));
-
 	}
 
 	static void removeSearchEngine(ConfigPro config, boolean reload) throws IOException, SAXException, PageException, BundleException, ConverterException {
@@ -2142,14 +2141,11 @@ public final class ConfigAdmin {
 	protected void _removeGatewayEntry(String name) throws PageException {
 		if (StringUtil.isEmpty(name)) throw new ExpressionException("name for Gateway Id can be an empty value");
 
-		Array children = ConfigWebUtil.getAsArray("gateways", "gateway", root);
-
+		Struct children = ConfigWebUtil.getAsStruct("gateways", root);
+		Key[] keys = children.keys();
 		// remove element
-		for (int i = children.size(); i > 0; i--) {
-			Struct tmp = Caster.toStruct(children.get(i, null), null);
-			if (tmp == null) continue;
-
-			String n = ConfigWebUtil.getAsString("id", tmp, null);
+		for (Key key: keys) {
+			String n = key.getString();
 			if (n != null && n.equalsIgnoreCase(name)) {
 
 				if (config instanceof ConfigWeb) {
@@ -2161,7 +2157,7 @@ public final class ConfigAdmin {
 						_removeGatewayEntry((ConfigWebPro) cw, name);
 					}
 				}
-				children.removeEL(i);
+				children.removeEL(key);
 			}
 		}
 	}

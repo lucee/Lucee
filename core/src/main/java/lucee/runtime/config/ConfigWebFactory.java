@@ -2388,11 +2388,10 @@ public final class ConfigWebFactory extends ConfigFactory {
 				}
 			}
 		}
-		Struct eGateWay = ConfigWebUtil.getAsStruct("gateways", root);
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManagerImpl.TYPE_GATEWAY);
 		GatewayEntry ge;
 		// cache connections
-		Array gateways = ConfigWebUtil.getAsArray("gateway", eGateWay);
+		Struct gateways = ConfigWebUtil.getAsStruct("gateways", root);
 
 		// if(hasAccess) {
 		String id;
@@ -2400,13 +2399,15 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 		// caches
 		if (hasAccess) {
-			Iterator<?> it = gateways.getIterator();
+			Iterator<Entry<Key, Object>> it = gateways.entryIterator();
+			Entry<Key, Object> e;
 			Struct eConnection;
 			while (it.hasNext()) {
-				eConnection = Caster.toStruct(it.next(), null);
+				e = it.next();
+				eConnection = Caster.toStruct(e.getValue(), null);
 				if (eConnection == null) continue;
 
-				id = getAttr(eConnection, "id").trim().toLowerCase();
+				id = e.getKey().getLowerString();
 
 				ge = new GatewayEntryImpl(engine, id, getClassDefinition(eConnection, "", config.getIdentification()), getAttr(eConnection, "cfcPath"),
 						getAttr(eConnection, "listenerCFCPath"), getAttr(eConnection, "startupMode"), toStruct(getAttr(eConnection, "custom")),
