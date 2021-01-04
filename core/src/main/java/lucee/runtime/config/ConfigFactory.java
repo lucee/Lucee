@@ -26,6 +26,7 @@ import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 import org.xml.sax.SAXException;
 
+import lucee.commons.digest.MD5;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
@@ -45,6 +46,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.interpreter.JSONExpressionInterpreter;
 import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.op.Caster;
+import lucee.runtime.op.Decision;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection;
@@ -162,7 +164,7 @@ public abstract class ConfigFactory {
 	 * @throws IOException
 	 * @throws PageException
 	 */
-	static Struct loadDocument(Resource file) throws SAXException, IOException, PageException {
+	static Struct loadDocument(Resource file) throws IOException, PageException {
 		InputStream is = null;
 		try {
 			return _loadDocument(file);
@@ -197,7 +199,6 @@ public abstract class ConfigFactory {
 	public static void translateConfigFile(Resource configFileOld, Resource configFileNew) throws ConverterException, IOException, SAXException {
 		// read the old config (XML)
 		Struct root = ConfigWebUtil.getAsStruct("cfLuceeConfiguration", new XMLConfigReader(configFileOld, true, new ReadRule(), new NameRule()).getData());
-
 		//////////////////// charset ////////////////////
 		{
 			Struct charset = ConfigWebUtil.getAsStruct("charset", root);
@@ -224,7 +225,7 @@ public abstract class ConfigFactory {
 			move("timezone", regional, root);
 			move("locale", regional, root);
 			move("timeserver", regional, root);
-			move("useTimeserver", regional, root);
+			moveAsBool("useTimeserver", "useTimeserver", regional, root);
 			rem("regional", root);
 		}
 		//////////////////// application ////////////////////
@@ -238,7 +239,7 @@ public abstract class ConfigFactory {
 			for (String type: ConfigWebFactory.STRING_CACHE_TYPES) {
 				move("cachedWithin" + StringUtil.ucFirst(type), application, root);
 			}
-			move("allowUrlRequesttimeout", "requestTimeoutInURL", application, root);
+			moveAsBool("allowUrlRequesttimeout", "requestTimeoutInURL", application, root);
 			move("requesttimeout", "requestTimeout", scope, root);// deprecated but still supported
 			move("requesttimeout", "requestTimeout", application, root);
 			move("scriptProtect", application, root);
@@ -307,23 +308,55 @@ public abstract class ConfigFactory {
 		//////////////////// Compiler ////////////////////
 		{
 			Struct compiler = ConfigWebUtil.getAsStruct("compiler", root);
-			move("supressWsBeforeArg", "suppressWhitespaceBeforeArgument", compiler, root);// deprecated but still supported
-			move("suppressWsBeforeArg", "suppressWhitespaceBeforeArgument", compiler, root);
-			move("dotNotationUpperCase", compiler, root);
-			move("fullNullSupport", "nullSupport", compiler, root);
+			moveAsBool("supressWsBeforeArg", "suppressWhitespaceBeforeArgument", compiler, root);// deprecated but still supported
+			moveAsBool("suppressWsBeforeArg", "suppressWhitespaceBeforeArgument", compiler, root);
+			moveAsBool("dotNotationUpperCase", "dotNotationUpperCase", compiler, root);
+			moveAsBool("fullNullSupport", "nullSupport", compiler, root);
 			move("defaultFunctionOutput", compiler, root);
 			move("externalizeStringGte", compiler, root);
-			move("allowLuceeDialect", compiler, root);
-			move("handleUnquotedAttributeValueAsString", compiler, root);
+			moveAsBool("allowLuceeDialect", "allowLuceeDialect", compiler, root);
+			moveAsBool("handleUnquotedAttributeValueAsString", "handleUnquotedAttributeValueAsString", compiler, root);
 			rem("compiler", root);
 		}
 
+		//////////////////// Component ////////////////////
+		{
+			Struct component = ConfigWebUtil.getAsStruct("component", root);
+			move("componentDefaultImport", "componentAutoImport", component, root);
+			move("base", "componentBase", component, root);// deprecated but still supported
+			move("baseCfml", "componentBase", component, root);
+			move("baseLucee", "componentBaseLuceeDialect", component, root);
+			moveAsBool("deepSearch", "componentDeepSearch", component, root);
+			move("dumpTemplate", "componentDumpTemplate", component, root);
+			move("dataMemberDefaultAccess", "componentDataMemberAccess", component, root);
+			moveAsBool("triggerDataMember", "componentImplicitNotation", component, root);
+			moveAsBool("localSearch", "componentLocalSearch", component, root);
+			moveAsBool("useCachePath", "componentUseCachePath", component, root);
+			moveAsBool("useShadow", "componentUseVariablesScope", component, root);
+
+			// mappings
+			Array mapping = ConfigWebUtil.getAsArray("mapping", component);
+			Struct componentMappings = ConfigWebUtil.getAsStruct("componentMappings", root);
+			root.setEL("componentMappings", componentMappings);
+			Key[] keys = mapping.keys();
+			for (int i = keys.length - 1; i >= 0; i--) {
+				Key k = keys[i];
+				Struct data = Caster.toStruct(mapping.get(k, null), null);
+
+				if (data == null) continue;
+				add(data, Caster.toString(data.remove(KeyConstants._virtual, null), null), componentMappings);
+				mapping.remove(k, null);
+			}
+		}
+		//
 		remIfEmpty(root);
 
 		// TODO scope?
 		//////////////////// translate ////////////////////
-		// allowLuceeDialect,cacheDirectory,cacheDirectoryMaxSize,
-		// classicDateParsing,cacheClasses,cacheHandlers,cfx,defaultFunctionOutput,externalizeStringGte,handleUnquotedAttributeValueAsString
+		// allowLuceeDialect,cacheDirectory,cacheDirectoryMaxSize,componentAutoImport,componentBase,componentBaseLuceeDialect,componentDeepSearch
+		// ,componentDumpTemplate, componentDataMemberDefaultAccess,componentUseVariablesScope,
+		// componentLocalSearch,componentUseCachePath,componentMappings
+		// classicDateParsing,cacheClasses,cacheHandlers,cfx,defaultFunctionOutput,externalizeStringGte,handleUnquotedAttributeValueAsString,
 
 		// store it as Json
 		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, true, true);
@@ -360,6 +393,11 @@ public abstract class ConfigFactory {
 		if (val != null) to.setEL(KeyImpl.init(toKey), val);
 	}
 
+	private static void moveAsBool(String fromKey, String toKey, Struct from, Struct to) {
+		Object val = from.remove(KeyImpl.init(fromKey), null);
+		if (val != null && Decision.isCastableToBoolean(val)) to.setEL(KeyImpl.init(toKey), Caster.toBooleanValue(val, false));
+	}
+
 	private static void add(Object fromData, String toKey, Struct to) {
 		if (fromData == null) return;
 		to.setEL(KeyImpl.init(toKey), fromData);
@@ -368,6 +406,16 @@ public abstract class ConfigFactory {
 	private static void copy(String fromKey, String toKey, Struct from, Struct to) {
 		Object val = from.get(KeyImpl.init(fromKey), null);
 		if (val != null) to.setEL(KeyImpl.init(toKey), val);
+	}
+
+	private static String createVirtual(Struct data) {
+		String str = ConfigWebFactory.getAttr(data, "virtual");
+		if (!StringUtil.isEmpty(str)) return str;
+		return createVirtual(ConfigWebFactory.getAttr(data, "physical"), ConfigWebFactory.getAttr(data, "archive"));
+	}
+
+	private static String createVirtual(String physical, String archive) {
+		return "/" + MD5.getDigestAsString(physical + ":" + archive, "");
 	}
 
 	/**
@@ -381,11 +429,16 @@ public abstract class ConfigFactory {
 		createFileFromResource("/resource/config/" + name + ".json", configFile.getAbsoluteResource());
 	}
 
-	private static Struct _loadDocument(Resource res) throws SAXException, IOException, PageException {
+	private static Struct _loadDocument(Resource res) throws IOException, PageException {
 		String name = res.getName();
 		// That step is not necessary anymore TODO remove
 		if (StringUtil.endsWithIgnoreCase(name, ".xml.cfm") || StringUtil.endsWithIgnoreCase(name, ".xml")) {
-			return ConfigWebUtil.getAsStruct("cfLuceeConfiguration", new XMLConfigReader(res, true, new ReadRule(), new NameRule()).getData());
+			try {
+				return ConfigWebUtil.getAsStruct("cfLuceeConfiguration", new XMLConfigReader(res, true, new ReadRule(), new NameRule()).getData());
+			}
+			catch (SAXException e) {
+				throw Caster.toPageException(e);
+			}
 		}
 		return Caster.toStruct(new JSONExpressionInterpreter().interpret(null, IOUtil.toString(res, CharsetUtil.UTF8)));
 	}

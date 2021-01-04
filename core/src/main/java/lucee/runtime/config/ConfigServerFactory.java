@@ -148,7 +148,7 @@ public final class ConfigServerFactory extends ConfigFactory {
 	 * @throws BundleException
 	 */
 	public static void reloadInstance(CFMLEngine engine, ConfigServerImpl configServer)
-			throws SAXException, ClassException, PageException, IOException, TagLibException, FunctionLibException, BundleException {
+			throws ClassException, PageException, IOException, TagLibException, FunctionLibException, BundleException {
 		Resource configFile = configServer.getConfigFile();
 		if (configFile == null) return;
 		if (second(configServer.getLoadTime()) > second(configFile.lastModified())) {

@@ -172,7 +172,7 @@ public final class ConfigAdmin {
 	 * @throws IOException
 	 * @throws PageException
 	 */
-	public static ConfigAdmin newInstance(Config config, Password password) throws IOException, PageException, SAXException {
+	public static ConfigAdmin newInstance(Config config, Password password) throws IOException, PageException {
 		return new ConfigAdmin((ConfigPro) config, password);
 	}
 
@@ -235,7 +235,7 @@ public final class ConfigAdmin {
 		}
 	}
 
-	private ConfigAdmin(ConfigPro config, Password password) throws IOException, PageException, SAXException {
+	private ConfigAdmin(ConfigPro config, Password password) throws IOException, PageException {
 		this.config = config;
 		this.password = password;
 		root = ConfigWebFactory.loadDocument(config.getConfigFile());
@@ -301,8 +301,7 @@ public final class ConfigAdmin {
 		_reload();
 	}
 
-	public synchronized void storeAndReload()
-			throws PageException, SAXException, ClassException, IOException, TagLibException, FunctionLibException, BundleException, ConverterException {
+	public synchronized void storeAndReload() throws PageException, ClassException, IOException, TagLibException, FunctionLibException, BundleException, ConverterException {
 		checkWriteAccess();
 		_store();
 		_reload();
@@ -314,7 +313,7 @@ public final class ConfigAdmin {
 		IOUtil.write(config.getConfigFile(), str, CharsetUtil.UTF8, false);
 	}
 
-	private synchronized void _reload() throws PageException, SAXException, ClassException, IOException, TagLibException, FunctionLibException, BundleException {
+	private synchronized void _reload() throws PageException, ClassException, IOException, TagLibException, FunctionLibException, BundleException {
 
 		// if(storeInMemoryData)XMLCaster.writeTo(doc,config.getConfigFile());
 		CFMLEngine engine = ConfigWebUtil.getEngine(config);
@@ -854,14 +853,11 @@ public final class ConfigAdmin {
 	public void removeComponentMapping(String virtual) throws SecurityException {
 		checkWriteAccess();
 
-		Array children = ConfigWebUtil.getAsArray("component", "mapping", root);
-		String v;
-		for (int i = children.size(); i > 0; i--) {
-			Struct tmp = Caster.toStruct(children.get(i, null), null);
-			if (tmp == null) continue;
-
-			if (virtual.equals(createVirtual(tmp))) {
-				children.removeEL(i);
+		Struct children = ConfigWebUtil.getAsStruct("componentMappings", root);
+		Key[] keys = children.keys();
+		for (Key key: keys) {
+			if (virtual.equals(key.getString())) {
+				children.removeEL(key);
 			}
 		}
 	}
@@ -952,20 +948,17 @@ public final class ConfigAdmin {
 			throw new ExpressionException("physical must have a value when primary has value physical");
 		}
 
-		Array children = ConfigWebUtil.getAsArray("component", "mapping", root);
-		// Element mappings = _getRootElement("component");
-		// Element[] children = ConfigWebFactory.getChildren(mappings, "mapping");
+		Struct componentMappings = ConfigWebUtil.getAsStruct("componentMappings", root);
 		Struct el;
 
 		// Update
 		String v;
-		for (int i = 1; i <= children.size(); i++) {
-			el = Caster.toStruct(children.get(i, null), null);
-			if (el == null) continue;
+		Key[] keys = componentMappings.keys();
+		for (Key key: keys) {
+			if (key.getString().equals(virtual)) {
+				el = Caster.toStruct(componentMappings.get(key, null), null);
+				if (el == null) continue;
 
-			v = createVirtual(el); // if there is no virtual definition (old records), we use the position
-			if (v.equals(virtual)) {
-				el.setEL("virtual", v); // set to make sure it exists for the future
 				el.setEL("physical", physical);
 				el.setEL("archive", archive);
 				el.setEL("primary", primary.equalsIgnoreCase("archive") ? "archive" : "physical");
@@ -977,12 +970,11 @@ public final class ConfigAdmin {
 
 		// Insert
 		el = new StructImpl(Struct.TYPE_LINKED);
-		children.appendEL(el);
+		componentMappings.setEL(virtual, el);
 		if (physical.length() > 0) el.setEL("physical", physical);
 		if (archive.length() > 0) el.setEL("archive", archive);
 		el.setEL("primary", primary.equalsIgnoreCase("archive") ? "archive" : "physical");
 		el.setEL("inspectTemplate", ConfigWebUtil.inspectTemplate(inspect, ""));
-		el.setEL("virtual", virtual);
 	}
 
 	public static String createVirtual(Struct data) {
@@ -2786,25 +2778,17 @@ public final class ConfigAdmin {
 		checkWriteAccess();
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update component setting");
-		// config.resetBaseComponentPage();
-		Struct scope = _getRootElement("component");
-		// if(baseComponent.trim().length()>0)
-		rem(scope, "base");
-		scope.setEL("baseCfml", baseComponentCFML);
-		scope.setEL("baseLucee", baseComponentLucee);
+		root.setEL("componentBase", baseComponentCFML);
+		root.setEL("componentBaseLuceeDialect", baseComponentLucee);
 	}
 
 	public void updateComponentDeepSearch(Boolean deepSearch) throws SecurityException {
 		checkWriteAccess();
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update component setting");
-		// config.resetBaseComponentPage();
-		Struct scope = _getRootElement("component");
-		// if(baseComponent.trim().length()>0)
-		if (deepSearch != null) scope.setEL("deepSearch", Caster.toString(deepSearch.booleanValue()));
-
+		if (deepSearch != null) root.setEL("componentDeepSearch", Caster.toString(deepSearch.booleanValue()));
 		else {
-			if (scope.containsKey("deepSearch")) rem(scope, "deepSearch");
+			if (root.containsKey("componentDeepSearch")) rem(root, "componentDeepSearch");
 		}
 
 	}
@@ -2813,10 +2797,7 @@ public final class ConfigAdmin {
 		checkWriteAccess();
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update component setting");
-		// config.resetBaseComponentPage();
-		Struct scope = _getRootElement("component");
-		// if(baseComponent.trim().length()>0)
-		scope.setEL("componentDefaultImport", componentDefaultImport);
+		root.setEL("componentAutoImport", componentDefaultImport);
 	}
 
 	/**
@@ -2832,13 +2813,11 @@ public final class ConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update component setting");
 
-		Struct scope = _getRootElement("component");
-
 		if (StringUtil.isEmpty(strAccess)) {
-			scope.setEL("dataMemberDefaultAccess", "");
+			root.setEL("componentDataMemberAccess", "");
 		}
 		else {
-			scope.setEL("dataMemberDefaultAccess", ComponentUtil.toStringAccess(ComponentUtil.toIntAccess(strAccess)));
+			root.setEL("componentDataMemberAccess", ComponentUtil.toStringAccess(ComponentUtil.toIntAccess(strAccess)));
 		}
 	}
 
@@ -2853,8 +2832,7 @@ public final class ConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update trigger-data-member");
 
-		Struct scope = _getRootElement("component");
-		scope.setEL("triggerDataMember", Caster.toString(triggerDataMember, ""));
+		root.setEL("componentImplicitNotation", Caster.toString(triggerDataMember, ""));
 	}
 
 	public void updateComponentUseShadow(Boolean useShadow) throws SecurityException {
@@ -2862,8 +2840,7 @@ public final class ConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update use-shadow");
 
-		Struct scope = _getRootElement("component");
-		scope.setEL("useShadow", Caster.toString(useShadow, ""));
+		root.setEL("componentUseVariablesScope", Caster.toString(useShadow, ""));
 	}
 
 	public void updateComponentLocalSearch(Boolean componentLocalSearch) throws SecurityException {
@@ -2871,8 +2848,7 @@ public final class ConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update component Local Search");
 
-		Struct scope = _getRootElement("component");
-		scope.setEL("localSearch", Caster.toString(componentLocalSearch, ""));
+		root.setEL("componentLocalSearch", Caster.toString(componentLocalSearch, ""));
 	}
 
 	public void updateComponentPathCache(Boolean componentPathCache) throws SecurityException {
@@ -2880,9 +2856,8 @@ public final class ConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update component Cache Path");
 
-		Struct scope = _getRootElement("component");
 		if (!Caster.toBooleanValue(componentPathCache, false)) config.clearComponentCache();
-		scope.setEL("useCachePath", Caster.toString(componentPathCache, ""));
+		root.setEL("componentUseCachePath", Caster.toString(componentPathCache, ""));
 	}
 
 	public void updateCTPathCache(Boolean ctPathCache) throws SecurityException {
@@ -3009,9 +2984,7 @@ public final class ConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update component setting");
 
-		Struct component = _getRootElement("component");
-		// if(template.trim().length()>0)
-		component.setEL("dumpTemplate", template);
+		root.setEL("componentDumpTemplate", template);
 	}
 
 	private Struct _getRootElement(String name) {

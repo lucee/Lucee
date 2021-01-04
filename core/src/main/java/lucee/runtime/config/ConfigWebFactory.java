@@ -338,7 +338,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 	 * @throws NoSuchAlgorithmException
 	 */
 	public static void reloadInstance(CFMLEngine engine, ConfigServerImpl cs, ConfigWebImpl cw, boolean force)
-			throws SAXException, ClassException, PageException, IOException, TagLibException, FunctionLibException, BundleException {
+			throws ClassException, PageException, IOException, TagLibException, FunctionLibException, BundleException {
 		Resource configFile = cw.getConfigFile();
 		Resource configDir = cw.getConfigDir();
 
@@ -542,7 +542,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 		if (root == null) return false;
 
 		// salt
-		String salt = getAttr(root, "salt");
+		String salt = getAttr(root, "adminSalt");
+		if (StringUtil.isEmpty(salt, true)) salt = getAttr(root, "salt");
 		boolean rtn = false;
 		if (StringUtil.isEmpty(salt, true) || !Decision.isUUId(salt)) {
 			// create salt
@@ -551,7 +552,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 		}
 
 		// no password yet
-		if (config instanceof ConfigServer && !root.containsKey("hspw") && !root.containsKey("pw") && !root.containsKey("password")) {
+		if (config instanceof ConfigServer && !root.containsKey("hspw") && !root.containsKey("adminhspw") && !root.containsKey("pw") && !root.containsKey("adminpw")
+				&& !root.containsKey("password") && !root.containsKey("adminpassword")) {
 			ConfigServer cs = (ConfigServer) config;
 			Resource pwFile = cs.getConfigDir().getRealResource("password.txt");
 			if (pwFile.isFile()) {
@@ -582,10 +584,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 		String str = json.serialize(null, root, SerializationSettings.SERIALIZE_AS_ROW);
 		IOUtil.write(config.getConfigFile(), str, CharsetUtil.UTF8, false);
 
-		try {
-			root = ConfigWebFactory.loadDocument(config.getConfigFile());
-		}
-		catch (SAXException e) {}
+		root = ConfigWebFactory.loadDocument(config.getConfigFile());
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, ConfigWebFactory.class.getName(), "reload xml");
 		return root;
 	}
@@ -2663,8 +2662,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 	}
 
 	private static Object toKey(Mapping m) {
-		if (!StringUtil.isEmpty(m.getStrPhysical(), true)) return m.getStrPhysical().toLowerCase().trim();
-		return (m.getStrPhysical() + ":" + m.getStrArchive()).toLowerCase();
+		if (!StringUtil.isEmpty(m.getStrPhysical(), true)) return m.getVirtual() + ":" + m.getStrPhysical().toLowerCase().trim();
+		return (m.getVirtual() + ":" + m.getStrPhysical() + ":" + m.getStrArchive()).toLowerCase();
 	}
 
 	/**
@@ -2683,11 +2682,12 @@ public final class ConfigWebFactory extends ConfigFactory {
 			config.setSalt(configServer.getSalt());
 		}
 		else {
-			// salt (every context need to have a salt)
+
 			salt = getAttr(root, "salt");
+			if (StringUtil.isEmpty(salt, true)) salt = getAttr(root, "adminSalt");
+			// salt (every context need to have a salt)
 			if (StringUtil.isEmpty(salt, true)) throw new RuntimeException("context is invalid, there is no salt!");
 			config.setSalt(salt = salt.trim());
-
 			// password
 			pw = PasswordImpl.readFromStruct(root, salt, false);
 			if (pw != null) {
@@ -4520,32 +4520,28 @@ public final class ConfigWebFactory extends ConfigFactory {
 	 */
 	private static void _loadComponent(ConfigServer configServer, ConfigImpl config, Struct root, int mode, Log log) {
 		try {
-			Struct component = ConfigWebUtil.getAsStruct("component", root);
 			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 			boolean hasSet = false;
 			boolean hasCS = configServer != null;
 
-			// String virtual="/component/";
-
-			if (component != null && hasAccess) {
+			if (hasAccess) {
 
 				// component-default-import
-				String strCDI = getAttr(component, "componentDefaultImport");
+				String strCDI = getAttr(root, "componentAutoImport");
 				if (StringUtil.isEmpty(strCDI, true) && configServer != null) {
 					strCDI = ((ConfigServerImpl) configServer).getComponentDefaultImport().toString();
 				}
 				if (!StringUtil.isEmpty(strCDI, true)) config.setComponentDefaultImport(strCDI);
 
 				// Base CFML
-				String strBase = getAttr(component, "baseCfml");
-				if (StringUtil.isEmpty(strBase, true)) strBase = getAttr(component, "base");
+				String strBase = getAttr(root, "componentBase");
 				if (StringUtil.isEmpty(strBase, true) && configServer != null) {
 					strBase = configServer.getBaseComponentTemplate(CFMLEngine.DIALECT_CFML);
 				}
 				config.setBaseComponentTemplate(CFMLEngine.DIALECT_CFML, strBase);
 
 				// Base Lucee
-				strBase = getAttr(component, "baseLucee");
+				strBase = getAttr(root, "componentBaseLuceeDialect");
 				if (StringUtil.isEmpty(strBase, true)) {
 					if (configServer != null) strBase = configServer.getBaseComponentTemplate(CFMLEngine.DIALECT_LUCEE);
 					else strBase = "/lucee/Component.lucee";
@@ -4558,7 +4554,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 					config.setDoComponentDeepSearch(false);
 				}
 				else {
-					String strDeepSearch = getAttr(component, "deepSearch");
+					String strDeepSearch = getAttr(root, "componentDeepSearch");
 					if (!StringUtil.isEmpty(strDeepSearch)) {
 						config.setDoComponentDeepSearch(Caster.toBooleanValue(strDeepSearch.trim(), false));
 					}
@@ -4568,7 +4564,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 				}
 
 				// Dump-Template
-				String strDumpRemplate = getAttr(component, "dumpTemplate");
+				String strDumpRemplate = getAttr(root, "componentDumpTemplate");
 				if ((strDumpRemplate == null || strDumpRemplate.trim().length() == 0) && configServer != null) {
 					strDumpRemplate = configServer.getComponentDumpTemplate();
 				}
@@ -4579,8 +4575,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 					config.setComponentDataMemberDefaultAccess(Component.ACCESS_PRIVATE);
 				}
 				else {
-					String strDmda = getAttr(component, "dataMemberDefaultAccess");
-					if (strDmda != null && strDmda.trim().length() > 0) {
+					String strDmda = getAttr(root, "componentDataMemberAccess");
+					if (!StringUtil.isEmpty(strDmda, true)) {
 						strDmda = strDmda.toLowerCase().trim();
 						if (strDmda.equals("remote")) config.setComponentDataMemberDefaultAccess(Component.ACCESS_REMOTE);
 						else if (strDmda.equals("public")) config.setComponentDataMemberDefaultAccess(Component.ACCESS_PUBLIC);
@@ -4597,7 +4593,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 					config.setTriggerComponentDataMember(true);
 				}
 				else {
-					Boolean tp = Caster.toBoolean(getAttr(component, "triggerDataMember"), null);
+					Boolean tp = Caster.toBoolean(getAttr(root, "componentImplicitNotation"), null);
 					if (tp != null) config.setTriggerComponentDataMember(tp.booleanValue());
 					else if (configServer != null) {
 						config.setTriggerComponentDataMember(configServer.getTriggerComponentDataMember());
@@ -4609,7 +4605,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 					config.setComponentLocalSearch(false);
 				}
 				else {
-					Boolean ls = Caster.toBoolean(getAttr(component, "localSearch"), null);
+					Boolean ls = Caster.toBoolean(getAttr(root, "componentLocalSearch"), null);
 					if (ls != null) config.setComponentLocalSearch(ls.booleanValue());
 					else if (configServer != null) {
 						config.setComponentLocalSearch(((ConfigServerImpl) configServer).getComponentLocalSearch());
@@ -4617,7 +4613,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 				}
 
 				// use cache path
-				Boolean ucp = Caster.toBoolean(getAttr(component, "useCachePath"), null);
+				Boolean ucp = Caster.toBoolean(getAttr(root, "componentUseCachePath"), null);
 				if (ucp != null) config.setUseComponentPathCache(ucp.booleanValue());
 				else if (configServer != null) {
 					config.setUseComponentPathCache(((ConfigServerImpl) configServer).useComponentPathCache());
@@ -4628,7 +4624,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 					config.setUseComponentShadow(false);
 				}
 				else {
-					Boolean ucs = Caster.toBoolean(getAttr(component, "useShadow"), null);
+					Boolean ucs = Caster.toBoolean(getAttr(root, "componentUseVariablesScope"), null);
 					if (ucs != null) config.setUseComponentShadow(ucs.booleanValue());
 					else if (configServer != null) {
 						config.setUseComponentShadow(configServer.useComponentShadow());
@@ -4660,17 +4656,20 @@ public final class ConfigWebFactory extends ConfigFactory {
 			}
 
 			// Web Mapping
-			Array cMappings = ConfigWebUtil.getAsArray("mapping", component);
+			Struct compMappings = ConfigWebUtil.getAsStruct("componentMappings", root);
 			hasSet = false;
 			Mapping[] mappings = null;
-			if (hasAccess && cMappings.size() > 0) {
+			if (hasAccess && compMappings.size() > 0) {
+				Iterator<Entry<Key, Object>> it = compMappings.entryIterator();
 				List<Mapping> list = new ArrayList<>();
-				Iterator<?> it = cMappings.getIterator();
 				Struct cMapping;
+				Entry<Key, Object> e;
 				while (it.hasNext()) {
-					cMapping = Caster.toStruct(it.next(), null);
+					e = it.next();
+					cMapping = Caster.toStruct(e.getValue(), null);
 					if (cMapping == null) continue;
 
+					String virtual = e.getKey().getString();
 					String physical = getAttr(cMapping, "physical");
 					String archive = getAttr(cMapping, "archive");
 					boolean readonly = toBoolean(getAttr(cMapping, "readonly"), false);
@@ -4679,7 +4678,6 @@ public final class ConfigWebFactory extends ConfigFactory {
 					int listMode = ConfigWebUtil.toListenerMode(getAttr(cMapping, "listenerMode"), -1);
 					int listType = ConfigWebUtil.toListenerType(getAttr(cMapping, "listenerType"), -1);
 					short inspTemp = inspectTemplate(cMapping);
-					String virtual = ConfigAdmin.createVirtual(cMapping);
 
 					String primary = getAttr(cMapping, "primary");
 
@@ -4720,8 +4718,6 @@ public final class ConfigWebFactory extends ConfigFactory {
 						// print.out("c:"+clones[index-1]);
 					}
 					hasSet = true;
-					// print.err("set:"+clones.length);
-
 					config.setComponentMappings(clones);
 				}
 			}
@@ -4840,8 +4836,6 @@ public final class ConfigWebFactory extends ConfigFactory {
 	private static void _loadCompiler(ConfigServerImpl configServer, ConfigImpl config, Struct root, int mode, Log log) {
 		try {
 			boolean hasCS = configServer != null;
-
-			// Struct compiler = ConfigWebUtil.getAsStruct("compiler", root);
 
 			// suppress WS between cffunction and cfargument
 			if (mode == ConfigPro.MODE_STRICT) {

@@ -43,11 +43,6 @@
 			,"physical":"{lucee-web}/customtags/"
 		}
 	}
-	,"component":{
-		"base":"/lucee/Component.cfc"
-		,"dataMemberDefaultAccess":"public"
-		,"useShadow":"yes"
-	}
 	,"debugging":{
 		"template":"/lucee/templates/debugging/debugging.cfm"
 	}
@@ -59,4 +54,7 @@
 			,"class":"lucee.cfx.example.HelloWorld"
 		}
 	}
+	,"componentBase":"/lucee/Component.cfc"
+	,"componentDataMemberAccess":"public"
+	,"componentUseVariablesScope":true
 }

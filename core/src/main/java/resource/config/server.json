@@ -133,26 +133,6 @@
 			,"physical":"{lucee-config}/customtags/"
 		}
 	}
-	,"component":{
-		"baseCfml":"/lucee/Component.cfc"
-		,"baseLucee":"/lucee/Component.lucee"
-		,"dataMemberDefaultAccess":"public"
-		,"dumpTemplate":"/lucee/component-dump.cfm"
-		,"mapping":[
-			{
-				"virtual":"/default"
-				,"physical":"{lucee-web}/components/"
-				,"primary":"physical"
-				,"inspectTemplate":"never"
-			}
-			,{
-				"virtual":"/default-server"
-				,"physical":"{lucee-server}/components/"
-				,"primary":"physical"
-				,"inspectTemplate":"never"
-			}
-		]
-	}
 	,"cacheHandlers":{
 		"timespan":{
 			"class":"lucee.runtime.cache.tag.timespan.TimespanCacheHandler"
@@ -305,6 +285,22 @@
 		"HelloWorld":{
 			"type":"java"
 			,"class":"lucee.cfx.example.HelloWorld"
+		}
+	}
+	,"componentBase":"/lucee/Component.cfc"
+	,"componentBaseLuceeDialect":"/lucee/Component.lucee"
+	,"componentDumpTemplate":"/lucee/component-dump.cfm"
+	,"componentDataMemberAccess":"public"
+	,"componentMappings":{
+		"/default-server":{
+			"physical":"{lucee-server}/components/"
+			,"primary":"physical"
+			,"inspectTemplate":"never"
+		}
+		,"/default":{
+			"physical":"{lucee-web}/components/"
+			,"primary":"physical"
+			,"inspectTemplate":"never"
 		}
 	}
 }
