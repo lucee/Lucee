@@ -305,4 +305,5 @@
 			,"physical":"{lucee-config}/customtags/"
 		}
 	]
+	,"preserveSingleQuote":false
 }

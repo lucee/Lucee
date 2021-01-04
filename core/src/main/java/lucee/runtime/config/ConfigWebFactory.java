@@ -2031,25 +2031,17 @@ public final class ConfigWebFactory extends ConfigFactory {
 			}
 
 			// Databases
-			Struct parent = ConfigWebUtil.getAsStruct("dataSources", root);
+			// Struct parent = ConfigWebUtil.getAsStruct("dataSources", root);
 
 			// PSQ
-			String strPSQ = parent != null ? getAttr(parent, "psq") : null;
-			if (parent != null && StringUtil.isEmpty(strPSQ)) {
-				// prior version was buggy, was the opposite
-				strPSQ = getAttr(parent, "preserveSingleQuote");
-				if (!StringUtil.isEmpty(strPSQ)) {
-					Boolean b = Caster.toBoolean(strPSQ, null);
-					if (b != null) strPSQ = b.booleanValue() ? "false" : "true";
-				}
-			}
+			String strPSQ = getAttr(root, "preserveSingleQuote");
 			if (access != SecurityManager.VALUE_NO && !StringUtil.isEmpty(strPSQ)) {
 				config.setPSQL(toBoolean(strPSQ, true));
 			}
 			else if (hasCS) config.setPSQL(configServer.getPSQL());
 
 			// Data Sources
-			Array dataSources = ConfigWebUtil.getAsArray("dataSource", parent);
+			Struct dataSources = ConfigWebUtil.getAsStruct("dataSources", root);
 			if (accessCount == -1) accessCount = dataSources.size();
 			if (dataSources.size() < accessCount) accessCount = dataSources.size();
 
@@ -2057,10 +2049,12 @@ public final class ConfigWebFactory extends ConfigFactory {
 			JDBCDriver jdbc;
 			ClassDefinition cd;
 			String id;
-			Iterator<?> it = dataSources.getIterator();
+			Iterator<Entry<Key, Object>> it = dataSources.entryIterator();
+			Entry<Key, Object> e;
 			Struct dataSource;
 			while (it.hasNext()) {
-				dataSource = Caster.toStruct(it.next(), null);
+				e = it.next();
+				dataSource = Caster.toStruct(e.getValue(), null);
 				if (dataSource == null) continue;
 
 				if (dataSource.containsKey("database")) {
@@ -2085,7 +2079,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 						int defLive = 60;
 						if (idle > 0) defLive = idle * 5;// for backward compatibility
 
-						setDatasource(config, datasources, getAttr(dataSource, "name"), cd, getAttr(dataSource, "host"), getAttr(dataSource, "database"),
+						setDatasource(config, datasources, e.getKey().getString(), cd, getAttr(dataSource, "host"), getAttr(dataSource, "database"),
 								Caster.toIntValue(getAttr(dataSource, "port"), -1), getAttr(dataSource, "dsn"), getAttr(dataSource, "username"),
 								ConfigWebUtil.decrypt(getAttr(dataSource, "password")), null, Caster.toIntValue(getAttr(dataSource, "connectionLimit"), DEFAULT_MAX_CONNECTION),
 								idle, Caster.toIntValue(getAttr(dataSource, "liveTimeout"), defLive), Caster.toLongValue(getAttr(dataSource, "metaCacheTimeout"), 60000),
@@ -2098,8 +2092,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 						);
 					}
-					catch (Exception e) {
-						log.error("Datasource", e);
+					catch (Exception ex) {
+						log.error("Datasource", ex);
 					}
 				}
 			}
@@ -5120,7 +5114,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 	public static String getAttr(Struct data, String name) {
 		String v = ConfigWebUtil.getAsString(name, data, null);
-		if (StringUtil.isEmpty(v)) return null;
+		if (v == null) return null;
+		if (StringUtil.isEmpty(v)) return "";
 		return replaceConfigPlaceHolder(v);
 	}
 

@@ -1265,26 +1265,19 @@ public final class ConfigAdmin {
 			int existingLength = getDatasourceLength(config);
 			maxLength = access - SecurityManager.NUMBER_OFFSET;
 			hasInsertAccess = maxLength > existingLength;
-			// print.ln("maxLength:"+maxLength);
-			// print.ln("existingLength:"+existingLength);
 		}
-		// print.ln("hasAccess:"+hasAccess);
-		// print.ln("hasInsertAccess:"+hasInsertAccess);
-
-		// boolean hasAccess=ConfigWebUtil.hasAccess(config,SecurityManager.TYPE_DATASOURCE);
 		if (!hasAccess) throw new SecurityException("no access to update datsource connections");
 
 		// check parameters
 		if (name == null || name.length() == 0) throw new ExpressionException("name can't be an empty value");
 
-		Array children = ConfigWebUtil.getAsArray("dataSources", "dataSource", root);
-		for (int i = 1; i <= children.size(); i++) {
-			Struct tmp = Caster.toStruct(children.get(i, null), null);
-			if (tmp == null) continue;
+		Struct children = ConfigWebUtil.getAsStruct("dataSources", root);
+		Key[] keys = children.keys();
+		for (Key key: keys) {
 
-			String n = ConfigWebUtil.getAsString("name", tmp, "");
-
-			if (n.equalsIgnoreCase(name)) {
+			if (key.getString().equalsIgnoreCase(name)) {
+				Struct tmp = Caster.toStruct(children.get(key, null), null);
+				if (tmp == null) continue;
 				Struct el = tmp;
 				if (password.equalsIgnoreCase("****************")) password = ConfigWebUtil.getAsString("password", el, null);
 
@@ -1342,9 +1335,7 @@ public final class ConfigAdmin {
 
 		// Insert
 		Struct el = new StructImpl(Struct.TYPE_LINKED);
-		children.appendEL(el);
-		if (!StringUtil.isEmpty(newName)) el.setEL("name", newName);
-		else el.setEL("name", name);
+		children.setEL(!StringUtil.isEmpty(newName) ? newName : name, el);
 		setClass(el, null, "", cd);
 		el.setEL("dsn", dsn);
 
@@ -2098,14 +2089,14 @@ public final class ConfigAdmin {
 		// check parameters
 		if (name == null || name.length() == 0) throw new ExpressionException("name for Datasource Connection can be an empty value");
 
-		Array children = ConfigWebUtil.getAsArray("dataSources", "dataSource", root);
-		for (int i = children.size(); i > 0; i--) {
-			Struct tmp = Caster.toStruct(children.get(i, null), null);
+		Struct children = ConfigWebUtil.getAsStruct("dataSources", root);
+		Key[] keys = children.keys();
+		for (Key key: keys) {
+			Struct tmp = Caster.toStruct(children.get(key, null), null);
 			if (tmp == null) continue;
 
-			String n = ConfigWebUtil.getAsString("name", tmp, null);
-			if (n != null && n.equalsIgnoreCase(name)) {
-				children.removeEL(i);
+			if (key.getString().equalsIgnoreCase(name)) {
+				children.removeEL(key);
 			}
 		}
 	}
@@ -2244,9 +2235,7 @@ public final class ConfigAdmin {
 
 		if (!hasAccess) throw new SecurityException("no access to update datsource connections");
 
-		Struct datasources = _getRootElement("dataSources");
-		datasources.setEL("psq", Caster.toString(psq, ""));
-		if (datasources.containsKey("preserveSingleQuote")) rem(datasources, "preserveSingleQuote");
+		root.setEL("preserveSingleQuote", Caster.toBooleanValue(psq, true));
 	}
 
 	public void updateInspectTemplate(String str) throws SecurityException {
@@ -2255,8 +2244,8 @@ public final class ConfigAdmin {
 
 		if (!hasAccess) throw new SecurityException("no access to update");
 
-		Struct datasources = _getRootElement("java");
-		datasources.setEL("inspectTemplate", str);
+		Struct data = _getRootElement("java");
+		data.setEL("inspectTemplate", str);
 
 	}
 

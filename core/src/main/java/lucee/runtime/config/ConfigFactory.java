@@ -356,8 +356,6 @@ public abstract class ConfigFactory {
 			rem("mapping", ct);
 		}
 
-		// useCachePath
-
 		//////////////////// Constants ////////////////////
 		{
 			Struct constants = ConfigWebUtil.getAsStruct("constants", root);
@@ -374,6 +372,29 @@ public abstract class ConfigFactory {
 			}
 		}
 
+		//////////////////// Datasource ////////////////////
+		{
+			Struct dataSources = ConfigWebUtil.getAsStruct("dataSources", root);
+			// preserveSingleQuote
+			Boolean b = Caster.toBoolean(dataSources.get("psq", null), null);
+			if (b == null) {
+				b = Caster.toBoolean(dataSources.get("preserveSingleQuote", null), null);
+				if (b != null) b = b.booleanValue() ? Boolean.FALSE : Boolean.TRUE;
+			}
+			if (b != null) root.setEL("preserveSingleQuote", b.booleanValue());
+
+			Array dataSource = ConfigWebUtil.getAsArray("dataSource", dataSources);
+
+			Key[] keys = dataSource.keys();
+			for (int i = keys.length - 1; i >= 0; i--) {
+				Key k = keys[i];
+				Struct data = Caster.toStruct(dataSource.get(k, null), null);
+				if (data == null) continue;
+				add(data, Caster.toString(data.remove(KeyConstants._name, null), null), dataSources);
+				dataSource.remove(k, null);
+			}
+		}
+
 		//
 		remIfEmpty(root);
 
@@ -383,7 +404,8 @@ public abstract class ConfigFactory {
 		// ,componentDumpTemplate, componentDataMemberDefaultAccess,componentUseVariablesScope,
 		// componentLocalSearch,componentUseCachePath,componentMappings
 		// classicDateParsing,cacheClasses,cacheHandlers,cfx,defaultFunctionOutput,externalizeStringGte,handleUnquotedAttributeValueAsString,
-		// constants, customTagUseCachePath
+		// constants, customTagUseCachePath, customTagLocalSearch, customTagDeepSearch, customTagExtensions,
+		// customTagMappings
 
 		// store it as Json
 		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, true, true);
