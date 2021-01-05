@@ -475,6 +475,15 @@ public abstract class ConfigFactory {
 			}
 		}
 
+		//////////////////// Java ////////////////////
+		{
+			Struct java = ConfigWebUtil.getAsStruct("java", root);
+			move("inspectTemplate", java, root);
+			move("compileType", java, root);
+		}
+
+		// inspectTemplate
+
 		remIfEmpty(root);
 
 		// TODO scope?
@@ -486,7 +495,7 @@ public abstract class ConfigFactory {
 		// constants, customTagUseCachePath, customTagLocalSearch, customTagDeepSearch, customTagExtensions,
 		// customTagMappings, debugTemplates,debuggingShowDump, debuggingImplicitAccess,
 		// debuggingQueryUsage, debuggingMaxRecordsLogged
-		// preserveSingleQuote,extensions,fileSystem
+		// preserveSingleQuote,extensions,fileSystem, gateways
 
 		// store it as Json
 		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, true, true);

@@ -2215,8 +2215,7 @@ public final class ConfigAdmin {
 
 		if (!hasAccess) throw new SecurityException("no access to update");
 
-		Struct data = _getRootElement("java");
-		data.setEL("inspectTemplate", str);
+		root.setEL("inspectTemplate", str);
 
 	}
 

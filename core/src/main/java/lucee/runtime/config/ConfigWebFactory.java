@@ -3810,10 +3810,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 	private static void _loadJava(ConfigServerImpl configServer, ConfigImpl config, Struct root, Log log) {
 		try {
 			boolean hasCS = configServer != null;
-			Struct java = ConfigWebUtil.getAsStruct("java", root);
 
-			//
-			String strInspectTemplate = getAttr(java, "inspectTemplate");
+			String strInspectTemplate = getAttr(root, "inspectTemplate");
 			if (!StringUtil.isEmpty(strInspectTemplate, true)) {
 				config.setInspectTemplate(ConfigWebUtil.inspectTemplate(strInspectTemplate, ConfigPro.INSPECT_ONCE));
 			}
@@ -3821,8 +3819,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 				config.setInspectTemplate(configServer.getInspectTemplate());
 			}
 
-			//
-			String strCompileType = getAttr(java, "compileType");
+			String strCompileType = getAttr(root, "compileType");
 			if (!StringUtil.isEmpty(strCompileType)) {
 				strCompileType = strCompileType.trim().toLowerCase();
 				if (strCompileType.equals("after-startup")) {
