@@ -390,8 +390,7 @@ public final class ConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_MAIL);
 
 		if (!hasAccess) throw new SecurityException("no access to update mail server settings");
-		Struct mail = _getRootElement("mail");
-		mail.setEL("spoolEnable", Caster.toString(spoolEnable, ""));
+		root.setEL("mailSpoolEnable", Caster.toString(spoolEnable, ""));
 	}
 
 	/**
@@ -404,8 +403,7 @@ public final class ConfigAdmin {
 		checkWriteAccess();
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_MAIL);
 		if (!hasAccess) throw new SecurityException("no access to update mail server settings");
-		Struct mail = _getRootElement("mail");
-		mail.setEL("timeout", Caster.toString(timeout, ""));
+		root.setEL("mailConnectionTimeout", Caster.toString(timeout, ""));
 	}
 
 	/**
@@ -428,9 +426,7 @@ public final class ConfigAdmin {
 			}
 		}
 
-		Struct mail = _getRootElement("mail");
-		mail.setEL("defaultEncoding", charset);
-		// config.setMailDefaultEncoding(charset);
+		root.setEL("mailDefaultEncoding", charset);
 	}
 
 	/**
@@ -450,13 +446,12 @@ public final class ConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_MAIL);
 		if (!hasAccess) throw new SecurityException("no access to update mail server settings");
 
-		Struct mail = _getRootElement("mail");
 		if (port < 1) port = 21;
 
 		if (hostName == null || hostName.trim().length() == 0) throw new ExpressionException("Host (SMTP) cannot be an empty value");
 		hostName = hostName.trim();
 
-		Array children = ConfigWebUtil.getAsArray("server", mail);
+		Array children = ConfigWebUtil.getAsArray("mailServers", root);
 
 		boolean checkId = id > 0;
 
@@ -489,14 +484,14 @@ public final class ConfigAdmin {
 			children.appendEL(server);
 		}
 		server.setEL("smtp", hostName);
-		server.setEL("username", username);
-		server.setEL("password", ConfigWebUtil.encrypt(password));
-		server.setEL("port", Caster.toString(port));
-		server.setEL("tls", Caster.toString(tls));
-		server.setEL("ssl", Caster.toString(ssl));
-		server.setEL("life", Caster.toString(lifeTimeSpan));
-		server.setEL("idle", Caster.toString(idleTimeSpan));
-		server.setEL("reuseConnection", Caster.toString(reuseConnections));
+		server.setEL(KeyConstants._username, username);
+		server.setEL(KeyConstants._password, ConfigWebUtil.encrypt(password));
+		server.setEL(KeyConstants._port, (port));
+		server.setEL("tls", (tls));
+		server.setEL("ssl", (ssl));
+		server.setEL("life", (lifeTimeSpan));
+		server.setEL("idle", (idleTimeSpan));
+		server.setEL("reuseConnection", (reuseConnections));
 	}
 
 	/**
@@ -507,9 +502,7 @@ public final class ConfigAdmin {
 	 */
 	public void removeMailServer(String hostName, String username) throws SecurityException {
 		checkWriteAccess();
-		Array children = ConfigWebUtil.getAsArray("mail", "server", root);
-		// Element mail = _getRootElement("mail");
-		// Element[] children = ConfigWebFactory.getChildren(mail, "server");
+		Array children = ConfigWebUtil.getAsArray("mailServers", root);
 		String _hostName, _username;
 		if (children.size() > 0) {
 			for (int i = children.size(); i > 0; i--) {
@@ -609,16 +602,17 @@ public final class ConfigAdmin {
 
 		if (!isArchive && archive.length() > 0 && physical.length() == 0) isArchive = true;
 
-		Array children = ConfigWebUtil.getAsArray("mappings", "mapping", root);
+		Struct children = ConfigWebUtil.getAsStruct("mappings", root);
+		Key[] keys = children.keys();
 		// Element mappings = _getRootElement("mappings");
 		// Element[] children = ConfigWebFactory.getChildren(mappings, "mapping");
 
 		Struct el = null;
-		for (int i = 1; i <= children.size(); i++) {
-			Struct tmp = Caster.toStruct(children.get(i, null), null);
+		for (Key key: keys) {
+			Struct tmp = Caster.toStruct(children.get(key, null), null);
 			if (tmp == null) continue;
 
-			String v = ConfigWebUtil.getAsString("virtual", tmp, null);
+			String v = key.getString();
 			if (!StringUtil.isEmpty(v)) {
 				if (!v.equals("/") && v.endsWith("/")) v = v.substring(0, v.length() - 1);
 
@@ -634,8 +628,7 @@ public final class ConfigAdmin {
 		boolean update = el != null;
 		if (el == null) {
 			el = new StructImpl(Struct.TYPE_LINKED);
-			children.appendEL(el);
-			el.setEL("virtual", virtual);
+			children.setEL(virtual, el);
 		}
 
 		// physical
@@ -682,16 +675,17 @@ public final class ConfigAdmin {
 
 		// set / to the end
 		if (!update) {
-			children = ConfigWebUtil.getAsArray("mappings", "mapping", root);
-			for (int i = 1; i <= children.size(); i++) {
-				Struct tmp = Caster.toStruct(children.get(i, null), null);
+			children = ConfigWebUtil.getAsStruct("mappings", root);
+			keys = children.keys();
+			for (Key key: keys) {
+				Struct tmp = Caster.toStruct(children.get(key, null), null);
 				if (tmp == null) continue;
 
-				String v = ConfigWebUtil.getAsString("virtual", tmp, null);
+				String v = key.getString();
 
 				if (v != null && v.equals("/")) {
-					children.removeEL(i);
-					children.appendEL(tmp);
+					children.removeEL(key);
+					children.setEL(v, tmp);
 					return;
 				}
 
@@ -775,16 +769,17 @@ public final class ConfigAdmin {
 		if (!virtual.equals("/") && virtual.endsWith("/")) virtual = virtual.substring(0, virtual.length() - 1);
 		if (virtual.charAt(0) != '/') throw new ExpressionException("virtual path must start with [/]");
 
-		Array children = ConfigWebUtil.getAsArray("mappings", "mapping", root);
-		for (int i = children.size(); i > 0; i--) {
-			Struct tmp = Caster.toStruct(children.get(i, null), null);
+		Struct children = ConfigWebUtil.getAsStruct("mappings", root);
+		Key[] keys = children.keys();
+		for (Key key: keys) {
+			Struct tmp = Caster.toStruct(children.get(key, null), null);
 			if (tmp == null) continue;
 
-			String v = ConfigWebUtil.getAsString("virtual", tmp, null);
+			String v = key.getString();
 			if (v != null) {
 				if (!v.equals("/") && v.endsWith("/")) v = v.substring(0, v.length() - 1);
 				if (v != null && v.equals(virtual)) {
-					children.removeEL(i);
+					children.removeEL(key);
 				}
 			}
 		}

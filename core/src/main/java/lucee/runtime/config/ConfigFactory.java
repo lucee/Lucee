@@ -523,6 +523,37 @@ public abstract class ConfigFactory {
 			moveAsInt("delay", "loginDelay", login, root);
 		}
 
+		//////////////////// Mail ////////////////////
+		{
+			Struct mail = ConfigWebUtil.getAsStruct("mail", root);
+			moveAsBool("sendPartial", "mailSendPartial", mail, root);
+			moveAsBool("userSet", "mailUserSet", mail, root);
+			moveAsInt("spoolInterval", "mailSpoolInterval", mail, root);
+			move("defaultEncoding", "mailDefaultEncoding", mail, root);
+			moveAsBool("spoolEnable", "mailSpoolEnable", mail, root);
+			moveAsInt("timeout", "mailConnectionTimeout", mail, root);
+
+			Array server = ConfigWebUtil.getAsArray("server", mail);
+			add(server, "mailServers", root);
+			rem("mail", root);
+		}
+		// Array _mappings = ConfigWebUtil.getAsArray("mappings", "mapping", root);
+
+		//////////////////// Mappings ////////////////////
+		{
+			Struct mappings = ConfigWebUtil.getAsStruct("mappings", root);
+			Array mapping = ConfigWebUtil.getAsArray("mapping", mappings);
+
+			Key[] keys = mapping.keys();
+			for (int i = keys.length - 1; i >= 0; i--) {
+				Key k = keys[i];
+				Struct data = Caster.toStruct(mapping.get(k, null), null);
+				if (data == null) continue;
+				add(data, Caster.toString(data.remove(KeyConstants._virtual, null), null), mappings);
+				mapping.remove(k, null);
+			}
+		}
+
 		remIfEmpty(root);
 
 		// TODO scope?
@@ -535,7 +566,7 @@ public abstract class ConfigFactory {
 		// customTagMappings, debugTemplates,debuggingShowDump, debuggingImplicitAccess,
 		// debuggingQueryUsage, debuggingMaxRecordsLogged
 		// preserveSingleQuote,extensions,fileSystem, gateways,jdbcDrivers, loginCaptcha, loginRememberme,
-		// loginDelay
+		// loginDelay, mailSendPartial, mailUserSet
 
 		// store it as Json
 		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, true, true);

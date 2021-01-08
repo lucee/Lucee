@@ -96,34 +96,25 @@
 		,"clientDirectoryMaxSize":"10mb"
 		,"clientMaxAge":"90"
 	}
-	,"mail":{
-		"spoolInterval":"5"
-		,"spoolEnable":"yes"
-		,"timeout":"30"
-	}
 	,"mappings":{
-		"mapping":[
-			{
-				"readonly":"yes"
-				,"virtual":"/lucee-server/"
-				,"physical":"{lucee-server}/context/"
-				,"archive":""
-				,"primary":"physical"
-				,"listenerMode":"modern"
-				,"listenerType":"curr2root"
-				,"inspectTemplate":"once"
-			}
-			,{
-				"readonly":"yes"
-				,"virtual":"/lucee/"
-				,"physical":"{lucee-config}/context/"
-				,"archive":"{lucee-config}/context/lucee-context.lar"
-				,"primary":"physical"
-				,"listenerMode":"modern"
-				,"listenerType":"curr2root"
-				,"inspectTemplate":"once"
-			}
-		]
+		"/lucee/":{
+			"readonly":"yes"
+			,"physical":"{lucee-config}/context/"
+			,"archive":"{lucee-config}/context/lucee-context.lar"
+			,"primary":"physical"
+			,"listenerMode":"modern"
+			,"listenerType":"curr2root"
+			,"inspectTemplate":"once"
+		}
+		,"/lucee-server/":{
+			"readonly":"yes"
+			,"physical":"{lucee-server}/context/"
+			,"archive":""
+			,"primary":"physical"
+			,"listenerMode":"modern"
+			,"listenerType":"curr2root"
+			,"inspectTemplate":"once"
+		}
 	}
 	,"cacheHandlers":{
 		"timespan":{
@@ -285,4 +276,7 @@
 			,"layout":"classic"
 		}
 	}
+	,"mailSpoolInterval":5
+	,"mailSpoolEnable":true
+	,"mailConnectionTimeout":30
 }

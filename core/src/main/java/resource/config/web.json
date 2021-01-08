@@ -27,10 +27,9 @@
 		"directory":"{lucee-web}/scheduler/"
 	}
 	,"mappings":{
-		"mapping":{
+		"/lucee/":{
 			"readonly":"yes"
 			,"trusted":"true"
-			,"virtual":"/lucee/"
 			,"physical":"{lucee-web}/context/"
 			,"archive":"{lucee-web}/context/lucee-context.lar"
 			,"primary":"physical"

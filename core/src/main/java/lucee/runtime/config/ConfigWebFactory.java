@@ -1553,7 +1553,14 @@ public final class ConfigWebFactory extends ConfigFactory {
 	private static void _loadMappings(ConfigServerImpl configServer, ConfigImpl config, Struct root, int mode, Log log) throws IOException {
 		try {
 			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_MAPPING);
-			Array _mappings = ConfigWebUtil.getAsArray("mappings", "mapping", root);
+			Struct _mappings = Caster.toStruct(root.get("mappings", null), null);
+			if (_mappings == null) _mappings = Caster.toStruct(root.get("CFMappings", null), null);
+			if (_mappings == null) _mappings = ConfigWebUtil.getAsStruct("mappings", root);
+			else {
+				root.setEL("mappings", _mappings);
+			}
+
+			// alias CFMappings
 
 			Map<String, Mapping> mappings = MapFactory.<String, Mapping>getConcurrentMap();
 			Mapping tmp;
@@ -1583,15 +1590,17 @@ public final class ConfigWebFactory extends ConfigFactory {
 			if (hasAccess) {
 				boolean hasServerContext = false;
 				if (_mappings != null) {
-					Iterator<?> it = _mappings.getIterator();
+					Iterator<Entry<Key, Object>> it = _mappings.entryIterator();
+					Entry<Key, Object> e;
 					Struct el;
 					while (it.hasNext()) {
-						el = Caster.toStruct(it.next(), null);
+						e = it.next();
+						el = Caster.toStruct(e.getValue(), null);
 						if (el == null) continue;
 
+						String virtual = e.getKey().getString();
 						String physical = getAttr(el, "physical");
 						String archive = getAttr(el, "archive");
-						String virtual = getAttr(el, "virtual");
 						String listType = getAttr(el, "listenerType");
 						String listMode = getAttr(el, "listenerMode");
 
@@ -3956,11 +3965,10 @@ public final class ConfigWebFactory extends ConfigFactory {
 			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_MAIL);
 
 			boolean hasCS = configServer != null;
-			Struct mail = ConfigWebUtil.getAsStruct("mail", root);
 
 			// Send partial
 			{
-				String strSendPartial = getAttr(mail, "sendPartial");
+				String strSendPartial = getAttr(root, "mailSendPartial");
 				if (!StringUtil.isEmpty(strSendPartial) && hasAccess) {
 					config.setMailSendPartial(toBoolean(strSendPartial, false));
 				}
@@ -3968,7 +3976,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 			}
 			// User set
 			{
-				String strUserSet = getAttr(mail, "userSet");
+				String strUserSet = getAttr(root, "mailUserSet");
 				if (!StringUtil.isEmpty(strUserSet) && hasAccess) {
 					config.setUserSet(toBoolean(strUserSet, false));
 				}
@@ -3976,25 +3984,25 @@ public final class ConfigWebFactory extends ConfigFactory {
 			}
 
 			// Spool Interval
-			String strSpoolInterval = getAttr(mail, "spoolInterval");
+			String strSpoolInterval = getAttr(root, "mailSpoolInterval");
 			if (!StringUtil.isEmpty(strSpoolInterval) && hasAccess) {
 				config.setMailSpoolInterval(Caster.toIntValue(strSpoolInterval, 30));
 			}
 			else if (hasCS) config.setMailSpoolInterval(configServer.getMailSpoolInterval());
 
-			String strEncoding = getAttr(mail, "defaultEncoding");
+			String strEncoding = getAttr(root, "mailDefaultEncoding");
 			if (!StringUtil.isEmpty(strEncoding) && hasAccess) config.setMailDefaultEncoding(strEncoding);
 			else if (hasCS) config.setMailDefaultEncoding(configServer.getMailDefaultCharset());
 
 			// Spool Enable
-			String strSpoolEnable = getAttr(mail, "spoolEnable");
+			String strSpoolEnable = getAttr(root, "mailSpoolEnable");
 			if (!StringUtil.isEmpty(strSpoolEnable) && hasAccess) {
 				config.setMailSpoolEnable(toBoolean(strSpoolEnable, false));
 			}
 			else if (hasCS) config.setMailSpoolEnable(configServer.isMailSpoolEnable());
 
 			// Timeout
-			String strTimeout = getAttr(mail, "timeout");
+			String strTimeout = getAttr(root, "mailConnectionTimeout");
 			if (!StringUtil.isEmpty(strTimeout) && hasAccess) {
 				config.setMailTimeout(Caster.toIntValue(strTimeout, 60));
 			}
@@ -4003,7 +4011,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 			// Servers
 			int index = 0;
 			// Server[] servers = null;
-			Array elServers = ConfigWebUtil.getAsArray("server", mail);
+			Array elServers = ConfigWebUtil.getAsArray("mailServers", root);
 			List<Server> servers = new ArrayList<Server>();
 			if (hasCS) {
 				Server[] readOnlyServers = configServer.getMailServers();
