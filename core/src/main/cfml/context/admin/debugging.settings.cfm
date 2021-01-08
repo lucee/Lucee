@@ -156,6 +156,7 @@ Redirtect to entry --->
 													<b>#_debug[item] ? stText.general.yes : stText.general.no#</b>
 													<input type="hidden" name="#item#" value="#_debug[item]#">
 												</cfif>
+												<cfif item EQ "implicitAccess"><div><b class="comment" style="color:##bf4f36">#stText.debug.settings[item&"Alert"]#</b></div></cfif>
 												<div class="comment">#stText.debug.settings[item&"Desc"]#</div>
 
 												<cfif item EQ "database">
