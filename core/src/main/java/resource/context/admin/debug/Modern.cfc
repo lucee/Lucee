@@ -34,13 +34,13 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 		}
 
 		void function onBeforeUpdate(struct custom){
-			throwWhenNotNumeric(custom,"minimal");
-			throwWhenNotNumeric(custom,"highlight");
+			throwWhenNotNumeric(arguments.custom,"minimal");
+			throwWhenNotNumeric(arguments.custom,"highlight");
 		}
 
 		private void function throwWhenEmpty(struct custom, string name){
-			if(!structKeyExists(custom,name) or len(trim(custom[name])) EQ 0)
-			throw "value for ["&name&"] is not defined";
+			if(!structKeyExists(arguments.custom, arguments.name) or len(trim(arguments.custom[arguments.name])) EQ 0)
+			throw "value for ["&arguments.name&"] is not defined";
 		}
 
 		private void function throwWhenNotNumeric(struct custom, string name){
@@ -50,8 +50,8 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 		}
 
 		private function isColumnEmpty(query qry,string columnName){
-			if(!QueryColumnExists(qry,columnName)) return true;
-			return !len(arrayToList(queryColumnData(qry,columnName),""));
+			if(!QueryColumnExists(arguments.qry, arguments.columnName)) return true;
+			return !len(arrayToList(queryColumnData(arguments.qry, arguments.columnName),""));
 		}
 
 		function isSectionOpen( string name ) {
@@ -70,7 +70,10 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 
 		function isEnabled( custom, key ) {
 
-			return structKeyExists( arguments.custom, arguments.key ) && ( arguments.custom[ arguments.key ] == "Enabled" || arguments.custom[ arguments.key ] == "true" );
+			return structKeyExists( arguments.custom, arguments.key ) 
+				&& ( arguments.custom[ arguments.key ] == "Enabled" 
+					|| arguments.custom[ arguments.key ] == "true" 
+			);
 		}
 
 
@@ -862,7 +865,7 @@ Reference Button
 						<div class="section-title">Abort</div>
 						<table>
 							<tr>
-								<td class="pad txt-r">#debugging.abort.template#:#debugging.abort.line#</td>
+								<td class="pad txt-r">#arguments.debugging.abort.template#:#arguments.debugging.abort.line#</td>
 							</tr>
 						</table>
 					</cfif>
