@@ -299,34 +299,42 @@ public class OSGiUtil {
 
 		className = className.trim();
 
+		String classPath = className.replace('.', '/') + ".class";
+
 		CFMLEngine engine = CFMLEngineFactory.getInstance();
 		BundleCollection bc = engine.getBundleCollection();
 		// first we try to load the class from the Lucee core
 		try {
 			// load from core
-			return bc.core.loadClass(className);
+			if (bc.core.getEntry(classPath) != null) {
+				return bc.core.loadClass(className);
+			}
 		}
 		catch (Exception e) {} // class is not visible to the Lucee core
 
 		// now we check all started bundled (not only bundles used by core)
 		Bundle[] bundles = bc.getBundleContext().getBundles();
 		for (Bundle b: bundles) {
-			if (b == bc.core) continue;
-			try {
-				return b.loadClass(className);
+			if (b != bc.core && b.getEntry(classPath) != null) {
+				try {
+					return b.loadClass(className);
+				}
+				catch (Exception e) {} // class is not visible to that bundle
 			}
-			catch (Exception e) {} // class is not visible to that bundle
 		}
 
 		// now we check lucee loader (SystemClassLoader?)
 		CFMLEngineFactory factory = engine.getCFMLEngineFactory();
-		try {
-			// print.e("loader:");
-			return factory.getClass().getClassLoader().loadClass(className);
+		{
+			ClassLoader cl = factory.getClass().getClassLoader();
+			if (cl.getResource(classPath) != null) {
+				try {
+					// print.e("loader:");
+					return cl.loadClass(className);
+				}
+				catch (Exception e) {}
+			}
 		}
-		catch (Exception e) {}
-
-		// if (!checkUnloadedBundles) return defaultValue;
 
 		// now we check bundles not loaded
 		Set<String> loaded = new HashSet<String>();
@@ -353,7 +361,12 @@ public class OSGiUtil {
 
 						if (b != null) {
 							startIfNecessary(b);
-							return b.loadClass(className);
+							if (b.getEntry(classPath) != null) {
+								try {
+									return b.loadClass(className);
+								}
+								catch (Exception e) {} // class is not visible to that bundle
+							}
 						}
 					}
 				}
