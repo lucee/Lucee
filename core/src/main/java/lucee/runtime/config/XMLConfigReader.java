@@ -172,6 +172,19 @@ public final class XMLConfigReader extends DefaultHandler implements LexicalHand
 		trg = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Projects/Lucee/Lucee5/core/src/main/java/resource/config/server.json");
 		ConfigWebFactory.translateConfigFile(src, trg);
 
+		src = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Test/test/webapps/ROOT/WEB-INF/lucee/lucee-web.xml.cfm");
+		trg = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Test/test/webapps/ROOT/WEB-INF/lucee/lucee-web.json");
+		ConfigWebFactory.translateConfigFile(src, trg);
+
+		src = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Test/test/lucee-server/context/lucee-server.xml");
+		trg = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Test/test/lucee-server/context/lucee-server.json");
+		ConfigWebFactory.translateConfigFile(src, trg);
+
+		src = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Test/test/webapps/ROOT/WEB-INF/lucee/.CFConfig.json");
+		src.delete();
+		src = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Test/test/lucee-server/context/.CFConfig.json");
+		src.delete();
+
 		print.e("DONE!");
 		/*
 		 * XMLConfigReader reader = new XMLConfigReader(res, true, new ReadRule(), new NameRule()); String
@@ -202,7 +215,7 @@ public final class XMLConfigReader extends DefaultHandler implements LexicalHand
 		public ReadRule() {
 			this.names.add("data-source");
 			this.names.add("label");
-
+			this.names.add("debugEntry");
 		}
 
 		public boolean asArray(String name) {
