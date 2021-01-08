@@ -2120,17 +2120,19 @@ public final class ConfigWebFactory extends ConfigFactory {
 				}
 			}
 		}
-
-		Array drivers = ConfigWebUtil.getAsArray("jdbc", "driver", root);
-
+		// jdbcDrivers
+		Struct jdbcDrivers = ConfigWebUtil.getAsStruct("jdbcDrivers", root);
+		Iterator<Entry<Key, Object>> it = jdbcDrivers.entryIterator();
+		Entry<Key, Object> e;
 		ClassDefinition cd;
 		String label, id, connStr;
-		Iterator<?> it = drivers.getIterator();
 		while (it.hasNext()) {
-			Struct driver = Caster.toStruct(it.next(), null);
+			e = it.next();
+			Struct driver = Caster.toStruct(e.getValue(), null);
 			if (driver == null) continue;
 
 			// class definition
+			driver.setEL(KeyConstants._class, e.getKey().getString());
 			cd = getClassDefinition(driver, "", config.getIdentification());
 			if (StringUtil.isEmpty(cd.getClassName()) && !StringUtil.isEmpty(cd.getName())) {
 				try {
@@ -2138,7 +2140,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 					String cn = JDBCDriver.extractClassName(bundle);
 					cd = new ClassDefinitionImpl(config.getIdentification(), cn, cd.getName(), cd.getVersion());
 				}
-				catch (Exception e) {}
+				catch (Exception ex) {}
 			}
 
 			label = getAttr(driver, "label");

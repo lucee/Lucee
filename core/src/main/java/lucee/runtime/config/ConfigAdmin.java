@@ -1386,16 +1386,12 @@ public final class ConfigAdmin {
 
 		if (!cd.isBundle()) throw new ApplicationException("missing bundle name");
 
-		Array children = ConfigWebUtil.getAsArray("jdbc", "driver", root);
-
+		Struct children = ConfigWebUtil.getAsStruct("jdbcDrivers", root);
+		Key[] keys = children.keys();
 		// Remove
-		for (int i = children.size(); i > 0; i--) {
-			Struct tmp = Caster.toStruct(children.get(i, null), null);
-			if (tmp == null) continue;
-
-			String n = ConfigWebUtil.getAsString("class", tmp, "");
-			if (n.equalsIgnoreCase(cd.getClassName())) {
-				children.removeEL(i);
+		for (Key key: keys) {
+			if (key.getString().equalsIgnoreCase(cd.getClassName())) {
+				children.removeEL(key);
 				break;
 			}
 		}
@@ -1469,16 +1465,15 @@ public final class ConfigAdmin {
 		// check if it is a bundle
 		if (!cd.isBundle()) throw new ApplicationException("missing bundle name for [" + label + "]");
 
-		Array children = ConfigWebUtil.getAsArray("jdbc", "driver", root);
-
+		Struct children = ConfigWebUtil.getAsStruct("jdbcDrivers", root);
+		Key[] keys = children.keys();
 		// Update
 		Struct child = null;
-		for (int i = 1; i <= children.size(); i++) {
-			Struct tmp = Caster.toStruct(children.get(i, null), null);
-			if (tmp == null) continue;
-
-			String n = ConfigWebUtil.getAsString("class", tmp, "");
-			if (n.equalsIgnoreCase(cd.getClassName())) {
+		for (Key key: keys) {
+			String n = key.getString();
+			if (key.getString().equalsIgnoreCase(cd.getClassName())) {
+				Struct tmp = Caster.toStruct(children.get(key, null), null);
+				if (tmp == null) continue;
 				child = tmp;
 				break;
 			}
@@ -1487,7 +1482,7 @@ public final class ConfigAdmin {
 		// Insert
 		if (child == null) {
 			child = new StructImpl(Struct.TYPE_LINKED);
-			children.appendEL(child);
+			children.setEL(cd.getClassName(), child);
 		}
 
 		child.setEL("label", label);
@@ -1495,6 +1490,7 @@ public final class ConfigAdmin {
 		else child.removeEL(KeyConstants._id);
 		// make sure the class exists
 		setClass(child, null, "", cd);
+		child.removeEL(KeyConstants._class);
 
 		// now unload again, JDBC driver can be loaded when necessary
 		if (cd.isBundle()) {
@@ -2040,14 +2036,11 @@ public final class ConfigAdmin {
 		// check parameters
 		if (StringUtil.isEmpty(className)) throw new ExpressionException("class name for jdbc driver cannot be empty");
 
-		Array children = ConfigWebUtil.getAsArray("jdbc", "driver", root);
-		for (int i = children.size(); i > 0; i--) {
-			Struct tmp = Caster.toStruct(children.get(i, null), null);
-			if (tmp == null) continue;
-
-			String n = ConfigWebUtil.getAsString("class", tmp, null);
-			if (n != null && n.equalsIgnoreCase(className)) {
-				children.removeEL(i);
+		Struct children = ConfigWebUtil.getAsStruct("jdbcDrivers", root);
+		Key[] keys = children.keys();
+		for (Key key: keys) {
+			if (key.getString().equalsIgnoreCase(className)) {
+				children.removeEL(key);
 			}
 		}
 	}

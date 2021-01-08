@@ -372,6 +372,23 @@ public abstract class ConfigFactory {
 			}
 		}
 
+		//////////////////// JDBC ////////////////////
+		{
+			Struct jdbc = ConfigWebUtil.getAsStruct("jdbc", root);
+			Array driver = ConfigWebUtil.getAsArray("driver", jdbc);
+			Struct jdbcDrivers = ConfigWebUtil.getAsStruct("jdbcDrivers", root);
+
+			Key[] keys = driver.keys();
+			for (int i = keys.length - 1; i >= 0; i--) {
+				Key k = keys[i];
+				Struct data = Caster.toStruct(driver.get(k, null), null);
+				if (data == null) continue;
+
+				add(data, Caster.toString(data.remove(KeyConstants._class, null), null), jdbcDrivers);
+				driver.remove(k, null);
+			}
+		}
+
 		//////////////////// Datasource ////////////////////
 		{
 			Struct dataSources = ConfigWebUtil.getAsStruct("dataSources", root);
@@ -482,8 +499,6 @@ public abstract class ConfigFactory {
 			move("compileType", java, root);
 		}
 
-		// inspectTemplate
-
 		remIfEmpty(root);
 
 		// TODO scope?
@@ -495,7 +510,7 @@ public abstract class ConfigFactory {
 		// constants, customTagUseCachePath, customTagLocalSearch, customTagDeepSearch, customTagExtensions,
 		// customTagMappings, debugTemplates,debuggingShowDump, debuggingImplicitAccess,
 		// debuggingQueryUsage, debuggingMaxRecordsLogged
-		// preserveSingleQuote,extensions,fileSystem, gateways
+		// preserveSingleQuote,extensions,fileSystem, gateways,jdbcDrivers
 
 		// store it as Json
 		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, true, true);
