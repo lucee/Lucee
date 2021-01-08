@@ -499,6 +499,22 @@ public abstract class ConfigFactory {
 			move("compileType", java, root);
 		}
 
+		//////////////////// Loggers ////////////////////
+		{
+			Struct logging = ConfigWebUtil.getAsStruct("logging", root);
+			Array logger = ConfigWebUtil.getAsArray("logger", logging);
+			Struct loggers = ConfigWebUtil.getAsStruct("loggers", root);
+
+			Key[] keys = logger.keys();
+			for (int i = keys.length - 1; i >= 0; i--) {
+				Key k = keys[i];
+				Struct data = Caster.toStruct(logger.get(k, null), null);
+				if (data == null) continue;
+				add(data, Caster.toString(data.remove(KeyConstants._name, null), null), loggers);
+				logger.remove(k, null);
+			}
+		}
+
 		remIfEmpty(root);
 
 		// TODO scope?

@@ -1783,18 +1783,20 @@ public final class ConfigWebFactory extends ConfigFactory {
 	private static void _loadLoggers(ConfigServerImpl configServer, ConfigImpl config, Struct root, boolean isReload) {
 		try {
 			config.clearLoggers(Boolean.FALSE);
-			Array children = ConfigWebUtil.getAsArray("logging", "logger", root);
+			Struct loggers = ConfigWebUtil.getAsStruct("loggers", root);
 			String name, appenderArgs, tmp, layoutArgs;
 			ClassDefinition cdAppender, cdLayout;
 			int level = Log.LEVEL_ERROR;
 			boolean readOnly = false;
-			Iterator<?> itt = children.getIterator();
+			Iterator<Entry<Key, Object>> itt = loggers.entryIterator();
+			Entry<Key, Object> entry;
 			Struct child;
 			while (itt.hasNext()) {
-				child = Caster.toStruct(itt.next(), null);
+				entry = itt.next();
+				child = Caster.toStruct(entry.getValue(), null);
 				if (child == null) continue;
 
-				name = StringUtil.trim(getAttr(child, "name"), "");
+				name = entry.getKey().getString();
 
 				// appender
 				cdAppender = getClassDefinition(child, "appender", config.getIdentification());
@@ -5106,11 +5108,9 @@ public final class ConfigWebFactory extends ConfigFactory {
 		int s = -1, e = -1, d = -1;
 		int prefixLen, start = -1, end;
 		String _name, _prop;
-		while (
-				(s = v.indexOf("{system:", start)) != -1 | /* don't change */
+		while ((s = v.indexOf("{system:", start)) != -1 | /* don't change */
 				(e = v.indexOf("{env:", start)) != -1 | /* don't change */
-				(d = v.indexOf("${", start)) != -1
-			) {
+				(d = v.indexOf("${", start)) != -1) {
 			boolean isSystem = false, isDollar = false;
 			// system
 			if (s > -1 && (e == -1 || e > s)) {

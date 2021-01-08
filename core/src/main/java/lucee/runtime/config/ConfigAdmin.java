@@ -360,24 +360,13 @@ public final class ConfigAdmin {
 		if (!hasAccess) throw new SecurityException("no access to update mail server settings");
 		ConfigWebUtil.getFile(config, config.getRootDirectory(), logFile, FileUtil.TYPE_FILE);
 
-		Array loggers = ConfigWebUtil.getAsArray("logging", "logger", root);
-		// Element[] children = XMLUtil.getChildElementsAsArray(logging);
-		Struct logger = null;
-		Struct tmp;
-		for (int i = 1; i <= loggers.size(); i++) {
-			tmp = Caster.toStruct(loggers.get(i, null), null);
-			if (tmp == null) continue;
+		Struct loggers = ConfigWebUtil.getAsStruct("loggers", root);
+		Struct logger = Caster.toStruct(loggers.get(KeyConstants._mail, null), null);
 
-			if ("mail".equalsIgnoreCase(ConfigWebUtil.getAsString("name", tmp, ""))) {
-				logger = tmp;
-				break;
-			}
-		}
 		if (logger == null) {
 			logger = new StructImpl(Struct.TYPE_LINKED);
-			loggers.appendEL(logger);
+			loggers.setEL(KeyConstants._mail, logger);
 		}
-		logger.setEL("name", "mail");
 		if ("console".equalsIgnoreCase(logFile)) {
 			setClass(logger, null, "appender", ci.getLogEngine().appenderClassDefintion("console"));
 			setClass(logger, null, "layout", ci.getLogEngine().layoutClassDefintion("pattern"));
@@ -538,17 +527,14 @@ public final class ConfigAdmin {
 
 	public void removeLogSetting(String name) throws SecurityException {
 		checkWriteAccess();
-		Array children = ConfigWebUtil.getAsArray("logging", "logger", root);
+		Struct children = ConfigWebUtil.getAsStruct("loggers", root);
 		if (children.size() > 0) {
 			String _name;
-			for (int i = children.size(); i > 0; i--) {
-				Struct el = Caster.toStruct(children.get(i, null), null);
-				if (el == null) continue;
-
-				_name = Caster.toString(el.get("name", null), null);
-
+			Key[] keys = children.keys();
+			for (Key key: keys) {
+				_name = key.getString();
 				if (_name != null && _name.equalsIgnoreCase(name)) {
-					children.removeEL(i);
+					children.removeEL(key);
 				}
 			}
 		}
@@ -5361,15 +5347,15 @@ public final class ConfigAdmin {
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
-		Array children = ConfigWebUtil.getAsArray("logging", "logger", root);
-
+		Struct children = ConfigWebUtil.getAsStruct("loggers", root);
+		Key[] keys = children.keys();
 		// Update
 		Struct el = null;
-		for (int i = 1; i <= children.size(); i++) {
-			Struct tmp = Caster.toStruct(children.get(i, null), null);
+		for (Key key: keys) {
+			Struct tmp = Caster.toStruct(children.get(key, null), null);
 			if (tmp == null) continue;
 
-			String n = ConfigWebUtil.getAsString("name", tmp, "");
+			String n = key.getString();
 			if (name.equalsIgnoreCase(n)) {
 				el = tmp;
 				break;
@@ -5378,8 +5364,7 @@ public final class ConfigAdmin {
 		// Insert
 		if (el == null) {
 			el = new StructImpl(Struct.TYPE_LINKED);
-			children.appendEL(el);
-			el.setEL("name", name);
+			children.setEL(name, el);
 		}
 
 		el.setEL("level", LogUtil.levelToString(level, ""));
