@@ -26,13 +26,13 @@ public class ArraySplice extends BIF implements Function {
 	public static Array call(PageContext pc, Array arr, double index, double length, Array replacements) throws PageException {
 		Array removed = new ArrayImpl();
 		// check index
-		if (index < 1) index = 1;
-		else if (index > arr.size()) index = arr.size();
+		if (index < 1) index = arr.size()+index+1;
+		else if (index > arr.size()) index = arr.size()+1;
 		int idx = (int) index;
 
 		// check len
 		int len = (int) length;
-		if (len == -1) len = (arr.size() - idx) + 1;
+		if (len == -1) len = (int) arr.size()-idx+1;
 		else if (len < -1) len = 0; // stupid ut how acf works
 		else {
 			int size = arr.size();
