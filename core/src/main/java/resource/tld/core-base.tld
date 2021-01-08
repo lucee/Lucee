@@ -8838,6 +8838,13 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 - The name of a DTD or Schema file
 - The URL of a DTD or Schema file; valid protocol identifiers include http, https, ftp, and file</description>
 		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>lenient</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>if set to true, the parser is more lenient and forgives invalid XML and does the best to interpret it.</description>
+		</attribute>
 	</tag>
 	<!-- x_ -->
 	<tag>

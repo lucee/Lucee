@@ -13782,9 +13782,9 @@ _- asc (default): ascending (a to z) sort order
 			<name>caseSensitive</name>
 			<type>boolean</type>
 			<required>No</required>
-		<description>Maintains the case of document elements and attributes.
+			<description>Maintains the case of document elements and attributes.
             Default: false</description>
-    </argument>
+    	</argument>
 		<argument>
 			<name>validator</name>
 			<type>string</type>
@@ -13794,6 +13794,13 @@ _- asc (default): ascending (a to z) sort order
 - The name of a DTD or Schema file
 - The URL of a DTD or Schema file; valid protocol identifiers include http, https, ftp, and file</description>
     </argument>
+		<argument>
+			<name>lenient</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>if set to true, the parser is more lenient and forgives invalid XML and does the best to interpret it.</description>
+		</argument>
 		<return>
 			<type>xml</type>
 		</return>
