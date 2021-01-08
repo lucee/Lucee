@@ -515,6 +515,14 @@ public abstract class ConfigFactory {
 			}
 		}
 
+		//////////////////// Login ////////////////////
+		{
+			Struct login = ConfigWebUtil.getAsStruct("login", root);
+			moveAsBool("captcha", "loginCaptcha", login, root);
+			moveAsBool("rememberme", "loginRememberme", login, root);
+			moveAsInt("delay", "loginDelay", login, root);
+		}
+
 		remIfEmpty(root);
 
 		// TODO scope?
@@ -526,7 +534,8 @@ public abstract class ConfigFactory {
 		// constants, customTagUseCachePath, customTagLocalSearch, customTagDeepSearch, customTagExtensions,
 		// customTagMappings, debugTemplates,debuggingShowDump, debuggingImplicitAccess,
 		// debuggingQueryUsage, debuggingMaxRecordsLogged
-		// preserveSingleQuote,extensions,fileSystem, gateways,jdbcDrivers
+		// preserveSingleQuote,extensions,fileSystem, gateways,jdbcDrivers, loginCaptcha, loginRememberme,
+		// loginDelay
 
 		// store it as Json
 		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, true, true);

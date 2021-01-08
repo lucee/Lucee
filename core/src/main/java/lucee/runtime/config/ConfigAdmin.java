@@ -5321,10 +5321,9 @@ public final class ConfigAdmin {
 	}
 
 	public void updateLoginSettings(boolean captcha, boolean rememberMe, int delay) {
-		Struct login = _getRootElement("login");
-		login.setEL("captcha", Caster.toString(captcha));
-		login.setEL("rememberme", Caster.toString(rememberMe));
-		login.setEL("delay", Caster.toString(delay));
+		root.setEL("loginCaptcha", captcha);
+		root.setEL("loginRememberme", rememberMe);
+		root.setEL("loginDelay", delay);
 	}
 
 	public void updateLogSettings(String name, int level, ClassDefinition appenderCD, Struct appenderArgs, ClassDefinition layoutCD, Struct layoutArgs) throws PageException {

@@ -3892,11 +3892,10 @@ public final class ConfigWebFactory extends ConfigFactory {
 		try {
 			// server context
 			if (config instanceof ConfigServer) {
-				Struct login = ConfigWebUtil.getAsStruct("login", root);
-				boolean captcha = Caster.toBooleanValue(getAttr(login, "captcha"), false);
-				boolean rememberme = Caster.toBooleanValue(getAttr(login, "rememberme"), true);
+				boolean captcha = Caster.toBooleanValue(getAttr(root, "loginCaptcha"), false);
+				boolean rememberme = Caster.toBooleanValue(getAttr(root, "loginRememberme"), true);
 
-				int delay = Caster.toIntValue(getAttr(login, "delay"), 1);
+				int delay = Caster.toIntValue(getAttr(root, "loginDelay"), 1);
 				ConfigServerImpl cs = (ConfigServerImpl) config;
 				cs.setLoginDelay(delay);
 				cs.setLoginCaptcha(captcha);
