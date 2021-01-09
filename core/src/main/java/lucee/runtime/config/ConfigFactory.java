@@ -554,6 +554,23 @@ public abstract class ConfigFactory {
 			}
 		}
 
+		//////////////////// Monitor ////////////////////
+		{
+			Struct monitoring = ConfigWebUtil.getAsStruct("monitoring", root);
+			Array monitor = ConfigWebUtil.getAsArray("monitor", monitoring);
+			moveAsBool("enabled", "monitorEnable", monitoring, root);
+
+			Struct monitors = ConfigWebUtil.getAsStruct("monitors", root);
+			Key[] keys = monitor.keys();
+			for (int i = keys.length - 1; i >= 0; i--) {
+				Key k = keys[i];
+				Struct data = Caster.toStruct(monitor.get(k, null), null);
+				if (data == null) continue;
+				add(data, Caster.toString(data.remove(KeyConstants._name, null), null), monitors);
+				monitor.remove(k, null);
+			}
+		}
+
 		remIfEmpty(root);
 
 		// TODO scope?

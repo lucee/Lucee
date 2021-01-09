@@ -2640,8 +2640,7 @@ public final class ConfigAdmin {
 	}
 
 	void _updateMonitorEnabled(boolean updateMonitorEnabled) {
-		Struct scope = _getRootElement("monitoring");
-		scope.setEL("enabled", Caster.toString(updateMonitorEnabled));
+		root.setEL("monitorEnable", Caster.toString(updateMonitorEnabled));
 	}
 
 	public void updateScriptProtect(String strScriptProtect) throws SecurityException {
@@ -3675,14 +3674,15 @@ public final class ConfigAdmin {
 	void _updateMonitor(ClassDefinition cd, String type, String name, boolean logEnabled) throws PageException {
 		stopMonitor(ConfigWebUtil.toMonitorType(type, Monitor.TYPE_INTERVAL), name);
 
-		Array children = ConfigWebUtil.getAsArray("monitoring", "monitor", root);
+		Struct children = ConfigWebUtil.getAsStruct("monitors", root);
+		Key[] keys = children.keys();
 		Struct monitor = null;
 		// Update
-		for (int i = 1; i <= children.size(); i++) {
-			Struct el = Caster.toStruct(children.get(i, null), null);
+		for (Key key: keys) {
+			Struct el = Caster.toStruct(children.get(key, null), null);
 			if (el == null) continue;
 
-			String _name = ConfigWebUtil.getAsString("name", el, null);
+			String _name = key.getString();
 			if (_name != null && _name.equalsIgnoreCase(name)) {
 				monitor = el;
 				break;
@@ -3692,7 +3692,7 @@ public final class ConfigAdmin {
 		// Insert
 		if (monitor == null) {
 			monitor = new StructImpl(Struct.TYPE_LINKED);
-			children.appendEL(monitor);
+			children.setEL(name, monitor);
 		}
 		setClass(monitor, null, "", cd);
 		monitor.setEL("type", type);
@@ -3817,15 +3817,12 @@ public final class ConfigAdmin {
 
 		stopMonitor(ConfigWebUtil.toMonitorType(type, Monitor.TYPE_INTERVAL), name);
 
-		Array children = ConfigWebUtil.getAsArray("monitoring", "monitor", root);
-		// Update
-		for (int i = children.size(); i > 0; i--) {
-			Struct tmp = Caster.toStruct(children.get(i, null), null);
-			if (tmp == null) continue;
-
-			String _name = ConfigWebUtil.getAsString("name", tmp, null);
+		Array children = ConfigWebUtil.getAsArray("monitors", root);
+		Key[] keys = children.keys();
+		for (Key key: keys) {
+			String _name = key.getString();
 			if (_name != null && _name.equalsIgnoreCase(name)) {
-				children.removeEL(i);
+				children.removeEL(key);
 			}
 		}
 	}
