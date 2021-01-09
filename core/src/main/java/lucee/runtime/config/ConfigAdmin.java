@@ -2888,9 +2888,8 @@ public final class ConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to change regex settings");
 
-		Struct regex = _getRootElement("regex");
-		if (StringUtil.isEmpty(type)) rem(regex, "type");
-		else regex.setEL("type", RegexFactory.toType(RegexFactory.toType(type), "perl"));
+		if (StringUtil.isEmpty(type)) rem(root, "regexType");
+		else root.setEL("regexType", RegexFactory.toType(RegexFactory.toType(type), "perl"));
 	}
 
 	/**
@@ -6158,16 +6157,15 @@ public final class ConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("Accces Denied to update queue settings");
 
-		Struct queue = _getRootElement("queue");
 		// max
-		if (max == null) rem(queue, "max");
-		else queue.setEL("max", Caster.toString(max, ""));
+		if (max == null) rem(root, "requestQueueMax");
+		else root.setEL("requestQueueMax", max);
 		// total
-		if (timeout == null) rem(queue, "timeout");
-		else queue.setEL("timeout", Caster.toString(timeout, ""));
+		if (timeout == null) rem(root, "requestQueueTimeout");
+		else root.setEL("requestQueueTimeout", timeout);
 		// enable
-		if (enable == null) rem(queue, "enable");
-		else queue.setEL("enable", Caster.toString(enable, ""));
+		if (enable == null) rem(root, "requestQueueEnable");
+		else root.setEL("requestQueueEnable", enable);
 	}
 
 	public void updateCGIReadonly(Boolean cgiReadonly) throws SecurityException {

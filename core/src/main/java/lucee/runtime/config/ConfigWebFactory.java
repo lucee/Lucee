@@ -464,8 +464,6 @@ public final class ConfigWebFactory extends ConfigFactory {
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, ConfigWebFactory.class.getName(), "loaded rest");
 		_loadExtensions(cs, config, root, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, ConfigWebFactory.class.getName(), "loaded extensions");
-		_loadPagePool(cs, config, root, log);
-		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, ConfigWebFactory.class.getName(), "loaded page pool");
 		_loadDataSources(cs, config, root, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, ConfigWebFactory.class.getName(), "loaded datasources");
 		_loadCache(cs, config, root, log);
@@ -1943,18 +1941,6 @@ public final class ConfigWebFactory extends ConfigFactory {
 		catch (Exception e) {
 			log(config, log, e);
 		}
-	}
-
-	/**
-	 * loads and sets the Page Pool
-	 * 
-	 * @param configServer
-	 * @param config
-	 * @param doc
-	 */
-	private static void _loadPagePool(ConfigServer configServer, Config config, Struct root, Log log) {
-		// TODO xml configuration fuer das erstellen
-		// config.setPagePool( new PagePool(10000,1000));
 	}
 
 	/**
@@ -3474,28 +3460,26 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 	private static void _loadQueue(ConfigServerImpl configServer, ConfigImpl config, Struct root, Log log) {
 		try {
-			Struct queue = ConfigWebUtil.getAsStruct("queue", root);
 
 			// Server
 			if (config instanceof ConfigServerImpl) {
 
 				// max
 				Integer max = Caster.toInteger(SystemUtil.getSystemPropOrEnvVar("lucee.queue.max", null), null);
-				if (max == null) max = Caster.toInteger(getAttr(queue, "max"), null);
+				if (max == null) max = Caster.toInteger(getAttr(root, "requestQueueMax"), null);
 				config.setQueueMax(Caster.toIntValue(max, 100));
 
 				// timeout
 				Long timeout = Caster.toLong(SystemUtil.getSystemPropOrEnvVar("lucee.queue.timeout", null), null);
-				if (timeout == null) timeout = Caster.toLong(getAttr(queue, "timeout"), null);
+				if (timeout == null) timeout = Caster.toLong(getAttr(root, "requestQueueTimeout"), null);
 				config.setQueueTimeout(Caster.toLongValue(timeout, 0L));
 
 				// enable
 				Boolean enable = Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.queue.enable", null), null);
-				if (enable == null) enable = Caster.toBoolean(getAttr(queue, "enable"), null);
+				if (enable == null) enable = Caster.toBoolean(getAttr(root, "requestQueueEnable"), null);
 				config.setQueueEnable(Caster.toBooleanValue(enable, false));
 
 				((ConfigServerImpl) config).setThreadQueue(config.getQueueEnable() ? new ThreadQueueImpl() : new ThreadQueueNone());
-
 			}
 			// Web
 			else {
@@ -4786,11 +4770,11 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 	private static void _loadRegex(ConfigServerImpl configServer, ConfigImpl config, Struct root, Log log) {
 		try {
-			Struct regex = ConfigWebUtil.getAsStruct("regex", root);
+			// Struct regex = ConfigWebUtil.getAsStruct("regex", root);
 			boolean hasCS = configServer != null;
 			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 
-			String strType = getAttr(regex, "type");
+			String strType = getAttr(root, "regexType");
 			int type = StringUtil.isEmpty(strType) ? RegexFactory.TYPE_UNDEFINED : RegexFactory.toType(strType, RegexFactory.TYPE_UNDEFINED);
 
 			if (hasAccess && type != RegexFactory.TYPE_UNDEFINED) {

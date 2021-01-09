@@ -571,6 +571,20 @@ public abstract class ConfigFactory {
 			}
 		}
 
+		//////////////////// queue ////////////////////
+		{
+			Struct queue = ConfigWebUtil.getAsStruct("queue", root);
+			moveAsInt("enable", "requestQueueEnable", queue, root);
+			moveAsInt("max", "requestQueueMax", queue, root);
+			moveAsInt("timeout", "requestQueueTimeout", queue, root);
+		}
+
+		//////////////////// regex ////////////////////
+		{
+			Struct regex = ConfigWebUtil.getAsStruct("regex", root);
+			move("type", "regexType", regex, root);
+		}
+
 		remIfEmpty(root);
 
 		// TODO scope?
@@ -583,7 +597,7 @@ public abstract class ConfigFactory {
 		// customTagMappings, debugTemplates,debuggingShowDump, debuggingImplicitAccess,
 		// debuggingQueryUsage, debuggingMaxRecordsLogged
 		// preserveSingleQuote,extensions,fileSystem, gateways,jdbcDrivers, loginCaptcha, loginRememberme,
-		// loginDelay, mailSendPartial, mailUserSet
+		// loginDelay, mailSendPartial, mailUserSet, requestQueueEnable, requestQueueMax,
 
 		// store it as Json
 		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, true, true);
