@@ -3838,7 +3838,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 	private static void _loadStartupHook(ConfigServerImpl configServer, ConfigImpl config, Struct root, Log log) {
 		try {
-			Array children = ConfigWebUtil.getAsArray("startup", "hook", root);
+			Array children = ConfigWebUtil.getAsArray("startupHooks", root);
 
 			if (children == null || children.size() == 0) return;
 

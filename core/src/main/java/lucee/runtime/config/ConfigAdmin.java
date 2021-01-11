@@ -1517,7 +1517,7 @@ public final class ConfigAdmin {
 
 		if (!cd.isBundle()) throw new ApplicationException("missing bundle name");
 
-		Array children = ConfigWebUtil.getAsArray("startup", "hook", root);
+		Array children = ConfigWebUtil.getAsArray("startupHooks", root);
 		Key[] keys = children.keys();
 		// Remove
 		for (int i = keys.length - 1; i >= 0; i--) {
@@ -1616,7 +1616,7 @@ public final class ConfigAdmin {
 		// check if it is a bundle
 		if (!cd.isBundle()) throw new ApplicationException("missing bundle info");
 
-		Array children = ConfigWebUtil.getAsArray("startup", "hook", root);
+		Array children = ConfigWebUtil.getAsArray("startupHooks", root);
 
 		// Update
 		Struct child = null;

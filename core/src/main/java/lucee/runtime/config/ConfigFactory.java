@@ -655,7 +655,15 @@ public abstract class ConfigFactory {
 			Struct mode = ConfigWebUtil.getAsStruct("mode", root);
 			moveAsBool("develop", "developMode", mode, root);
 		}
-		// allowCompression
+
+		//////////////////// startup Hooks ////////////////////
+		{
+			Struct startup = ConfigWebUtil.getAsStruct("startup", root);
+			Array hook = ConfigWebUtil.getAsArray("hook", startup);
+			add(hook, "startupHooks", root);
+			rem("startup", root);
+		}
+		// startupHooks
 		remIfEmpty(root);
 
 		// TODO scope?
@@ -671,7 +679,7 @@ public abstract class ConfigFactory {
 		// loginDelay, mailSendPartial, mailUserSet, requestQueueEnable, requestQueueMax, regexType,
 		// scheduledTasks<array>, localMode,
 		// cgiReadonly->cgiScopeReadonly,cascadeToResultset,mergeUrlForm,clientType,clientDirectory,clientDirectoryMaxSize,
-		// search,suppressContent,cfmlWriter,showVersion,showContentLength,allowCompression
+		// search,suppressContent,cfmlWriter,showVersion,showContentLength,allowCompression,startupHooks
 
 		root = sort(root);
 
