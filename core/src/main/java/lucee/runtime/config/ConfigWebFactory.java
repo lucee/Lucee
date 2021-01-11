@@ -2761,10 +2761,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 			Resource configDir = config.getConfigDir();
 			boolean hasCS = configServer != null;
 
-			Struct fileSystem = ConfigWebUtil.getAsStruct("fileSystem", root);
-
-			String strTempDirectory = null;
-			if (fileSystem != null) strTempDirectory = ConfigWebUtil.translateOldPath(getAttr(fileSystem, "tempDirectory"));
+			String strTempDirectory = ConfigWebUtil.translateOldPath(getAttr(root, "tempDirectory"));
 
 			Resource cst = null;
 			// Temp Dir
