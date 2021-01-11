@@ -1030,6 +1030,7 @@ public class KeyConstants {
 	public static final Key _bundleDirectory = KeyImpl._const("bundleDirectory");
 	public static final Key _bundleDirectories = KeyImpl._const("bundleDirectories");
 	public static final Key _virtual = KeyImpl._const("virtual");
+	public static final Key _clientMaxAge = KeyImpl._const("clientMaxAge");
 
 	private static Map<String, Key> _____keys;
 

@@ -610,9 +610,37 @@ public abstract class ConfigFactory {
 			rem("scheduler", root);
 		}
 
-		// Struct root = ConfigWebUtil.getAsStruct("cfLuceeConfiguration", new
-		// XMLConfigReader(configFileOld, true, new ReadRule(), new NameRule()).getData());
-		// <schedule><task>
+		//////////////////// Scope ////////////////////
+		{
+			Struct scope = ConfigWebUtil.getAsStruct("scope", root);
+			move("localMode", "localScopeMode", scope, root);
+			moveAsBool("cgiReadonly", "cgiScopeReadonly", scope, root);
+			move("sessionType", "sessionType", scope, root);
+			move("cascading", "scopeCascading", scope, root);
+			moveAsBool("cascadeToResultset", "cascadeToResultset", scope, root);
+			moveAsBool("mergeUrlForm", "mergeUrlForm", scope, root);
+			move("clientStorage", "clientStorage", scope, root);
+			move("sessionStorage", "sessionStorage", scope, root);
+			move("clientTimeout", "clientTimeout", scope, root);
+			move("sessionTimeout", "sessionTimeout", scope, root);
+			move("applicationTimeout", "applicationTimeout", scope, root);
+			move("clientType", "clientType", scope, root);
+			move("clientDirectory", "clientDirectory", scope, root);
+			move("clientDirectoryMaxSize", "clientDirectoryMaxSize", scope, root);
+			moveAsBool("sessionManagement", "sessionManagement", scope, root);
+			moveAsBool("setclientcookies", "clientCookies", scope, root);
+			moveAsBool("setdomaincookies", "domainCookies", scope, root);
+			moveAsBool("clientManagement", "clientManagement", scope, root);
+			if (!root.containsKey("clientTimeout")) {
+				int clientMaxAge = Caster.toIntValue(scope.get(KeyConstants._clientMaxAge, null), -1);
+				if (clientMaxAge >= 0) root.setEL("clientTimeout", "0,0," + clientMaxAge + ",0");
+			}
+			scope.removeEL(KeyConstants._clientMaxAge);
+			rem("scope", root);
+
+		}
+		// clientMaxAge
+
 		remIfEmpty(root);
 
 		// TODO scope?
@@ -626,7 +654,8 @@ public abstract class ConfigFactory {
 		// debuggingQueryUsage, debuggingMaxRecordsLogged
 		// preserveSingleQuote,extensions,fileSystem, gateways,jdbcDrivers, loginCaptcha, loginRememberme,
 		// loginDelay, mailSendPartial, mailUserSet, requestQueueEnable, requestQueueMax, regexType,
-		// scheduledTasks<array>
+		// scheduledTasks<array>, localMode,
+		// cgiReadonly->cgiScopeReadonly,cascadeToResultset,mergeUrlForm,clientType,clientDirectory,clientDirectoryMaxSize
 
 		root = sort(root);
 

@@ -1,6 +1,8 @@
 {
 	"cacheDirectory":"{lucee-web}/cache/"
 	,"cacheDirectoryMaxSize":"100mb"
+	,"clientDirectory":"{lucee-web}/client-scope/"
+	,"clientDirectoryMaxSize":"100mb"
 	,"componentBase":"/lucee/Component.cfc"
 	,"componentDataMemberAccess":"public"
 	,"componentUseVariablesScope":true
@@ -51,9 +53,5 @@
 	}
 	,"scheduler":{
 		"directory":"{lucee-web}/scheduler/"
-	}
-	,"scope":{
-		"clientDirectory":"{lucee-web}/client-scope/"
-		,"clientDirectoryMaxSize":"100mb"
 	}
 }

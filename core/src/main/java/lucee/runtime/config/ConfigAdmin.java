@@ -2364,11 +2364,10 @@ public final class ConfigAdmin {
 
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
-		Struct scope = _getRootElement("scope");
-		if (type.equalsIgnoreCase("strict")) scope.setEL("cascading", "strict");
-		else if (type.equalsIgnoreCase("small")) scope.setEL("cascading", "small");
-		else if (type.equalsIgnoreCase("standard")) scope.setEL("cascading", "standard");
-		else scope.setEL("cascading", "standard");
+		if (type.equalsIgnoreCase("strict")) root.setEL("scopeCascading", "strict");
+		else if (type.equalsIgnoreCase("small")) root.setEL("scopeCascading", "small");
+		else if (type.equalsIgnoreCase("standard")) root.setEL("scopeCascading", "standard");
+		else root.setEL("scopeCascading", "standard");
 
 	}
 
@@ -2383,11 +2382,9 @@ public final class ConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
-		// lucee.print.ln("********........type:"+type);
-		Struct scope = _getRootElement("scope");
-		if (type == ConfigWeb.SCOPE_STRICT) scope.setEL("cascading", "strict");
-		else if (type == ConfigWeb.SCOPE_SMALL) scope.setEL("cascading", "small");
-		else if (type == ConfigWeb.SCOPE_STANDARD) scope.setEL("cascading", "standard");
+		if (type == ConfigWeb.SCOPE_STRICT) root.setEL("scopeCascading", "strict");
+		else if (type == ConfigWeb.SCOPE_SMALL) root.setEL("scopeCascading", "small");
+		else if (type == ConfigWeb.SCOPE_STANDARD) root.setEL("scopeCascading", "standard");
 
 	}
 
@@ -2403,8 +2400,7 @@ public final class ConfigAdmin {
 
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
-		Struct scope = _getRootElement("scope");
-		scope.setEL("cascadeToResultset", Caster.toString(allow, ""));
+		root.setEL("cascadeToResultset", allow);
 
 	}
 
@@ -2414,8 +2410,7 @@ public final class ConfigAdmin {
 
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
-		Struct scope = _getRootElement("scope");
-		scope.setEL("mergeUrlForm", Caster.toString(merge, ""));
+		root.setEL("mergeUrlForm", merge);
 
 	}
 
@@ -2451,9 +2446,8 @@ public final class ConfigAdmin {
 
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
-		Struct scope = _getRootElement("scope");
-		if (span != null) scope.setEL("sessiontimeout", span.getDay() + "," + span.getHour() + "," + span.getMinute() + "," + span.getSecond());
-		else rem(scope, "sessiontimeout");
+		if (span != null) root.setEL("sessiontimeout", span.getDay() + "," + span.getHour() + "," + span.getMinute() + "," + span.getSecond());
+		else rem(root, "sessiontimeout");
 	}
 
 	public void updateClientStorage(String storage) throws SecurityException, ApplicationException {
@@ -2471,9 +2465,8 @@ public final class ConfigAdmin {
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 		storage = validateStorage(storage);
 
-		Struct scope = _getRootElement("scope");
-		if (!StringUtil.isEmpty(storage, true)) scope.setEL(storageName + "storage", storage);
-		else rem(scope, storageName + "storage");
+		if (!StringUtil.isEmpty(storage, true)) root.setEL(storageName + "Storage", storage);
+		else rem(root, storageName + "Storage");
 	}
 
 	private String validateStorage(String storage) throws ApplicationException {
@@ -2535,13 +2528,8 @@ public final class ConfigAdmin {
 
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
-		Struct scope = _getRootElement("scope");
-		if (span != null) scope.setEL("clienttimeout", span.getDay() + "," + span.getHour() + "," + span.getMinute() + "," + span.getSecond());
-		else rem(scope, "clienttimeout");
-
-		// deprecated
-		if (scope.containsKey("clientMaxAge")) rem(scope, "clientMaxAge");
-
+		if (span != null) root.setEL("clientTimeout", span.getDay() + "," + span.getHour() + "," + span.getMinute() + "," + span.getSecond());
+		else rem(root, "clientTimeout");
 	}
 
 	public void updateCFMLWriterType(String writerType) throws SecurityException, ApplicationException {
@@ -2628,9 +2616,8 @@ public final class ConfigAdmin {
 
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
-		Struct scope = _getRootElement("scope");
-		if (span != null) scope.setEL("applicationtimeout", span.getDay() + "," + span.getHour() + "," + span.getMinute() + "," + span.getSecond());
-		else rem(scope, "applicationtimeout");
+		if (span != null) root.setEL("applicationtimeout", span.getDay() + "," + span.getHour() + "," + span.getMinute() + "," + span.getSecond());
+		else rem(root, "applicationtimeout");
 	}
 
 	public void updateApplicationListener(String type, String mode) throws SecurityException {
@@ -2691,8 +2678,7 @@ public final class ConfigAdmin {
 
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
-		Struct scope = _getRootElement("scope");
-		scope.setEL("sessionmanagement", Caster.toString(sessionManagement, ""));
+		root.setEL("sessionManagement", Caster.toString(sessionManagement, ""));
 	}
 
 	/**
@@ -2722,8 +2708,7 @@ public final class ConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
-		Struct scope = _getRootElement("scope");
-		scope.setEL("setclientcookies", Caster.toString(clientCookies, ""));
+		root.setEL("clientCookies", clientCookies);
 	}
 
 	/**
@@ -3240,8 +3225,7 @@ public final class ConfigAdmin {
 
 		type = type.toLowerCase().trim();
 
-		Struct scope = _getRootElement("scope");
-		scope.setEL("sessionType", type);
+		root.setEL("sessionType", type);
 	}
 
 	public void updateLocalMode(String mode) throws SecurityException {
@@ -3250,8 +3234,7 @@ public final class ConfigAdmin {
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
 		mode = mode.toLowerCase().trim();
-		Struct scope = _getRootElement("scope");
-		scope.setEL("localMode", mode);
+		root.setEL("localScopeMode", mode);
 	}
 
 	public void updateRestList(Boolean list) throws SecurityException {
@@ -6316,8 +6299,7 @@ public final class ConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("Accces Denied to update scope setting");
 
-		Struct scope = _getRootElement("scope");
-		scope.setEL("cgiReadOnly", Caster.toString(cgiReadonly, ""));
+		root.setEL("cgiScopeReadOnly", Caster.toString(cgiReadonly, ""));
 	}
 
 }

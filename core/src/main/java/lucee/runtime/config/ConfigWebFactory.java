@@ -180,8 +180,6 @@ import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.dt.TimeSpan;
-import lucee.runtime.type.scope.Cluster;
-import lucee.runtime.type.scope.ClusterRemote;
 import lucee.runtime.type.scope.Undefined;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.KeyConstants;
@@ -3613,36 +3611,14 @@ public final class ConfigWebFactory extends ConfigFactory {
 	private static void _loadScope(ConfigServerImpl configServer, ConfigImpl config, Struct root, int mode, Log log) {
 		try {
 			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-			Struct scope = ConfigWebUtil.getAsStruct("scope", root);
 			boolean hasCS = configServer != null;
-
-			// Cluster Scope
-			if (!hasCS) {
-				ClassDefinition cd = scope != null ? getClassDefinition(scope, "cluster", config.getIdentification()) : null;
-				if (hasAccess && cd != null && cd.hasClass()) {
-					try {
-						Class clazz = cd.getClazz();
-						if (!Reflector.isInstaneOf(clazz, Cluster.class, false) && !Reflector.isInstaneOf(clazz, ClusterRemote.class, false)) throw new ApplicationException(
-								"class [" + clazz.getName() + "] does not implement interface [" + Cluster.class.getName() + "] or [" + ClusterRemote.class.getName() + "]");
-
-						config.setClusterClass(clazz);
-
-					}
-					catch (Exception e) {
-						LogUtil.logGlobal(ThreadLocalPageContext.getConfig(configServer == null ? config : configServer), ConfigWebFactory.class.getName(), e);
-					}
-
-				}
-			}
-			// else if(hasCS)
-			// config.setClassClusterScope(configServer.getClassClusterScope());
 
 			// Local Mode
 			if (mode == ConfigPro.MODE_STRICT) {
 				config.setLocalMode(Undefined.MODE_LOCAL_OR_ARGUMENTS_ALWAYS);
 			}
 			else {
-				String strLocalMode = scope != null ? getAttr(scope, "localMode") : null;
+				String strLocalMode = getAttr(root, "localMode");
 				if (hasAccess && !StringUtil.isEmpty(strLocalMode)) {
 					config.setLocalMode(strLocalMode);
 				}
@@ -3650,14 +3626,14 @@ public final class ConfigWebFactory extends ConfigFactory {
 			}
 
 			// CGI readonly
-			String strCGIReadonly = scope != null ? getAttr(scope, "cgiReadonly") : null;
+			String strCGIReadonly = getAttr(root, "cgiReadonly");
 			if (hasAccess && !StringUtil.isEmpty(strCGIReadonly)) {
 				config.setCGIScopeReadonly(Caster.toBooleanValue(strCGIReadonly, true));
 			}
 			else if (hasCS) config.setCGIScopeReadonly(configServer.getCGIScopeReadonly());
 
 			// Session-Type
-			String strSessionType = scope != null ? getAttr(scope, "sessionType") : null;
+			String strSessionType = getAttr(root, "sessionType");
 			if (hasAccess && !StringUtil.isEmpty(strSessionType)) {
 				config.setSessionType(AppListenerUtil.toSessionType(strSessionType, hasCS ? configServer.getSessionType() : Config.SESSION_TYPE_APPLICATION));
 			}
@@ -3668,7 +3644,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 				config.setScopeCascadingType(Config.SCOPE_STRICT);
 			}
 			else {
-				String strScopeCascadingType = scope != null ? getAttr(scope, "cascading") : null;
+				String strScopeCascadingType = getAttr(root, "scopeCascading");
 				if (hasAccess && !StringUtil.isEmpty(strScopeCascadingType)) {
 					config.setScopeCascadingType(ConfigWebUtil.toScopeCascading(strScopeCascadingType, Config.SCOPE_STANDARD));
 				}
@@ -3681,7 +3657,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 			}
 			else {
 				Boolean allowImplicidQueryCall = Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.cascade.to.resultset", null), null);
-				if (allowImplicidQueryCall == null) allowImplicidQueryCall = Caster.toBoolean(getAttr(scope, "cascadeToResultset"), null);
+				if (allowImplicidQueryCall == null) allowImplicidQueryCall = Caster.toBoolean(getAttr(root, "cascadeToResultset"), null);
 				if (hasAccess && allowImplicidQueryCall != null) {
 					config.setAllowImplicidQueryCall(allowImplicidQueryCall.booleanValue());
 				}
@@ -3689,7 +3665,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 			}
 
 			// Merge url and Form
-			String strMergeFormAndURL = scope != null ? getAttr(scope, "mergeUrlForm") : null;
+			String strMergeFormAndURL = getAttr(root, "mergeUrlForm");
 			if (hasAccess && !StringUtil.isEmpty(strMergeFormAndURL)) {
 				config.setMergeFormAndURL(toBoolean(strMergeFormAndURL, false));
 			}
@@ -3697,9 +3673,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 			// Client-Storage
 			{
-				String clientStorage = scope != null ? getAttr(scope, "clientstorage") : null;
-				if (StringUtil.isEmpty(clientStorage, true)) clientStorage = scope != null ? getAttr(scope, "clientStorage") : null;
-
+				String clientStorage = getAttr(root, "clientStorage");
 				if (hasAccess && !StringUtil.isEmpty(clientStorage)) {
 					config.setClientStorage(clientStorage);
 				}
@@ -3708,9 +3682,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 			// Session-Storage
 			{
-				String sessionStorage = scope != null ? getAttr(scope, "sessionstorage") : null;
-				if (StringUtil.isEmpty(sessionStorage, true)) sessionStorage = scope != null ? getAttr(scope, "sessionStorage") : null;
-
+				String sessionStorage = getAttr(root, "sessionStorage");
 				if (hasAccess && !StringUtil.isEmpty(sessionStorage)) {
 					config.setSessionStorage(sessionStorage);
 				}
@@ -3718,37 +3690,28 @@ public final class ConfigWebFactory extends ConfigFactory {
 			}
 
 			// Client Timeout
-			String clientTimeout = scope != null ? getAttr(scope, "clienttimeout") : null;
-			if (StringUtil.isEmpty(clientTimeout, true)) clientTimeout = scope != null ? getAttr(scope, "clientTimeout") : null;
-			if (StringUtil.isEmpty(clientTimeout, true)) {
-				// deprecated
-				clientTimeout = scope != null ? getAttr(scope, "clientMaxAge") : null;
-				int days = Caster.toIntValue(clientTimeout, -1);
-				if (days > 0) clientTimeout = days + ",0,0,0";
-				else clientTimeout = "";
-			}
+			String clientTimeout = getAttr(root, "clientTimeout");
 			if (hasAccess && !StringUtil.isEmpty(clientTimeout)) {
 				config.setClientTimeout(clientTimeout);
 			}
 			else if (hasCS) config.setClientTimeout(configServer.getClientTimeout());
 
 			// Session Timeout
-			String sessionTimeout = scope != null ? getAttr(scope, "sessiontimeout") : null;
+			String sessionTimeout = getAttr(root, "sessionTimeout");
 			if (hasAccess && !StringUtil.isEmpty(sessionTimeout)) {
 				config.setSessionTimeout(sessionTimeout);
 			}
 			else if (hasCS) config.setSessionTimeout(configServer.getSessionTimeout());
 
 			// App Timeout
-
-			String appTimeout = scope != null ? getAttr(scope, "applicationtimeout") : null;
+			String appTimeout = getAttr(root, "applicationTimeout");
 			if (hasAccess && !StringUtil.isEmpty(appTimeout)) {
 				config.setApplicationTimeout(appTimeout);
 			}
 			else if (hasCS) config.setApplicationTimeout(configServer.getApplicationTimeout());
 
 			// Client Type
-			String strClientType = scope != null ? getAttr(scope, "clienttype") : null;
+			String strClientType = getAttr(root, "clientType");
 			if (hasAccess && !StringUtil.isEmpty(strClientType)) {
 				config.setClientType(strClientType);
 			}
@@ -3756,7 +3719,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 			// Client
 			Resource configDir = config.getConfigDir();
-			String strClientDirectory = scope != null ? getAttr(scope, "clientDirectory") : null;
+			String strClientDirectory = getAttr(root, "clientDirectory");
 			if (hasAccess && !StringUtil.isEmpty(strClientDirectory)) {
 				strClientDirectory = ConfigWebUtil.translateOldPath(strClientDirectory);
 				Resource res = ConfigWebUtil.getFile(configDir, strClientDirectory, "client-scope", configDir, FileUtil.TYPE_DIR, config);
@@ -3766,35 +3729,35 @@ public final class ConfigWebFactory extends ConfigFactory {
 				config.setClientScopeDir(configDir.getRealResource("client-scope"));
 			}
 
-			String strMax = scope != null ? getAttr(scope, "clientDirectoryMaxSize") : null;
+			String strMax = getAttr(root, "clientDirectoryMaxSize");
 			if (hasAccess && !StringUtil.isEmpty(strMax)) {
 				config.setClientScopeDirSize(ByteSizeParser.parseByteSizeDefinition(strMax, config.getClientScopeDirSize()));
 			}
 			else if (hasCS) config.setClientScopeDirSize(configServer.getClientScopeDirSize());
 
 			// Session Management
-			String strSessionManagement = scope != null ? getAttr(scope, "sessionmanagement") : null;
+			String strSessionManagement = getAttr(root, "sessionManagement");
 			if (hasAccess && !StringUtil.isEmpty(strSessionManagement)) {
 				config.setSessionManagement(toBoolean(strSessionManagement, true));
 			}
 			else if (hasCS) config.setSessionManagement(configServer.isSessionManagement());
 
 			// Client Management
-			String strClientManagement = scope != null ? getAttr(scope, "clientmanagement") : null;
+			String strClientManagement = getAttr(root, "clientManagement");
 			if (hasAccess && !StringUtil.isEmpty(strClientManagement)) {
 				config.setClientManagement(toBoolean(strClientManagement, false));
 			}
 			else if (hasCS) config.setClientManagement(configServer.isClientManagement());
 
 			// Client Cookies
-			String strClientCookies = scope != null ? getAttr(scope, "setclientcookies") : null;
+			String strClientCookies = getAttr(root, "clientCookies");
 			if (hasAccess && !StringUtil.isEmpty(strClientCookies)) {
 				config.setClientCookies(toBoolean(strClientCookies, true));
 			}
 			else if (hasCS) config.setClientCookies(configServer.isClientCookies());
 
 			// Domain Cookies
-			String strDomainCookies = scope != null ? getAttr(scope, "setdomaincookies") : null;
+			String strDomainCookies = getAttr(root, "domainCookies");
 			if (hasAccess && !StringUtil.isEmpty(strDomainCookies)) {
 				config.setDomainCookies(toBoolean(strDomainCookies, false));
 			}

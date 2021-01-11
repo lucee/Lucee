@@ -1,17 +1,28 @@
 {
-	"componentBase":"/lucee/Component.cfc"
+	"applicationTimeout":"1,0,0,0"
+	,"cascadeToResultset":true
+	,"clientCookies":true
+	,"clientDirectoryMaxSize":"10mb"
+	,"clientManagement":false
+	,"clientTimeout":"0,0,90,0"
+	,"componentBase":"/lucee/Component.cfc"
 	,"componentBaseLuceeDialect":"/lucee/Component.lucee"
 	,"componentDataMemberAccess":"public"
 	,"componentDumpTemplate":"/lucee/component-dump.cfm"
 	,"debuggingEnabled":false
 	,"debuggingQueryUsage":false
+	,"domainCookies":false
 	,"listenerMode":"curr2root"
 	,"listenerType":"mixed"
 	,"mailConnectionTimeout":30
 	,"mailSpoolEnable":true
 	,"mailSpoolInterval":5
+	,"mergeUrlForm":false
 	,"preserveSingleQuote":false
 	,"requestTimeout":"0,0,0,50"
+	,"scopeCascading":"standard"
+	,"sessionManagement":true
+	,"sessionTimeout":"0,0,30,0"
 	,"timeserver":"pool.ntp.org"
 	,"version":"5.0"
 	,"cacheHandlers":{
@@ -257,19 +268,6 @@
 				,"arguments":"lock-timeout:10000;"
 			}
 		]
-	}
-	,"scope":{
-		"cascading":"standard"
-		,"cascadeToResultset":"yes"
-		,"mergeUrlForm":"no"
-		,"sessiontimeout":"0,0,30,0"
-		,"applicationtimeout":"1,0,0,0"
-		,"sessionmanagement":"yes"
-		,"clientmanagement":"no"
-		,"setclientcookies":"yes"
-		,"setdomaincookies":"no"
-		,"clientDirectoryMaxSize":"10mb"
-		,"clientMaxAge":"90"
 	}
 	,"system":{
 		"out":"system"
