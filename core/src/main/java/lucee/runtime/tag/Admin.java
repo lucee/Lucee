@@ -820,9 +820,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		else if (check("updateDefaultResourceProvider", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateDefaultResourceProvider();
 		else if (check("removeResourceProvider", ACCESS_FREE) && check2(ACCESS_WRITE)) doRemoveResourceProvider();
 
-		else if (check("getClusterClass", ACCESS_FREE) && check2(ACCESS_READ)) doGetClusterClass();
-		else if (check("updateClusterClass", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateClusterClass();
-
 		else if (check("getAdminSyncClass", ACCESS_FREE) && check2(ACCESS_READ)) doGetAdminSyncClass();
 		else if (check("updateAdminSyncClass", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateAdminSyncClass();
 
@@ -2164,17 +2161,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private void doGetResourceProviders() throws PageException {
 
 		pageContext.setVariable(getString("admin", action, "returnVariable"), admin.getResourceProviders());
-	}
-
-	private void doGetClusterClass() throws PageException {
-		pageContext.setVariable(getString("admin", action, "returnVariable"), config.getClusterClass().getName());
-	}
-
-	private void doUpdateClusterClass() throws PageException {
-		ClassDefinition cd = new ClassDefinitionImpl(getString("admin", action, "class"), getString("bundleName", null), getString("bundleVersion", null),
-				config.getIdentification());
-		admin.updateClusterClass(cd);
-		store();
 	}
 
 	private void doUpdateAdminSyncClass() throws PageException {

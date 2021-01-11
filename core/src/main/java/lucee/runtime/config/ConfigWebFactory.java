@@ -992,15 +992,6 @@ public final class ConfigWebFactory extends ConfigFactory {
 	 */
 	private static void _loadSecurity(ConfigServerImpl configServer, ConfigImpl config, Struct root, Log log) {
 		try {
-			// Serial Number
-			if (config instanceof ConfigServer) {
-				String serial = getAttr(root, "serialNumber");
-				if (!StringUtil.isEmpty(serial)) config.setSerialNumber(serial);
-			}
-			else if (configServer != null) {
-				config.setSerialNumber(configServer.getSerialNumber());
-			}
-
 			// Security Manger
 			SecurityManager securityManager = null;
 			if (config instanceof ConfigServerImpl) {
@@ -1033,7 +1024,6 @@ public final class ConfigWebFactory extends ConfigFactory {
 						cs.setSecurityManager(id, sm);
 					}
 				}
-
 			}
 
 			else if (configServer != null) {
@@ -3141,15 +3131,11 @@ public final class ConfigWebFactory extends ConfigFactory {
 		try {
 			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 
-			Struct setting = ConfigWebUtil.getAsStruct("setting", root);
 			boolean hasCS = configServer != null;
-			String str = null;
 
 			// suppress whitespace
-			str = null;
-			if (setting != null) {
-				str = getAttr(setting, "suppressContent");
-			}
+			String str = getAttr(root, "suppressContent");
+
 			if (!StringUtil.isEmpty(str) && hasAccess) {
 				config.setSuppressContent(toBoolean(str, false));
 			}
@@ -3157,8 +3143,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 			// CFML Writer
 			str = SystemUtil.getSystemPropOrEnvVar("lucee.cfml.writer", null);
-			if (StringUtil.isEmpty(str) && setting != null) {
-				str = getAttr(setting, "cfmlWriter");
+			if (StringUtil.isEmpty(str)) {
+				str = getAttr(root, "cfmlWriter");
 			}
 			if (!StringUtil.isEmpty(str) && hasAccess) {
 				if ("white-space".equalsIgnoreCase(str)) config.setCFMLWriterType(ConfigPro.CFML_WRITER_WS);
@@ -3169,41 +3155,27 @@ public final class ConfigWebFactory extends ConfigFactory {
 			else if (hasCS) config.setCFMLWriterType(configServer.getCFMLWriterType());
 
 			// show version
-			str = null;
-			if (setting != null) {
-				str = getAttr(setting, "showVersion");
-			}
+			str = getAttr(root, "showVersion");
 			if (!StringUtil.isEmpty(str) && hasAccess) {
 				config.setShowVersion(toBoolean(str, false));
 			}
 			else if (hasCS) config.setShowVersion(configServer.isShowVersion());
 
 			// close connection
-			str = null;
-			if (setting != null) {
-				str = getAttr(setting, "closeConnection");
-			}
+			str = getAttr(root, "closeConnection");
 			if (!StringUtil.isEmpty(str) && hasAccess) {
 				config.setCloseConnection(toBoolean(str, false));
 			}
 			else if (hasCS) config.setCloseConnection(configServer.closeConnection());
 
 			// content-length
-			str = null;
-			if (setting != null) {
-				str = getAttr(setting, "contentLength");
-			}
+			str = getAttr(root, "contentLength");
 			if (!StringUtil.isEmpty(str) && hasAccess) {
 				config.setContentLength(toBoolean(str, true));
 			}
 			else if (hasCS) config.setContentLength(configServer.contentLength());
 
-			// buffer-output
-			str = null;
-			if (setting != null) {
-				str = getAttr(setting, "bufferingOutput");
-				if (StringUtil.isEmpty(str)) str = getAttr(setting, "bufferOutput");
-			}
+			str = getAttr(root, "bufferTagBodyOutput");
 			Boolean b = Caster.toBoolean(str, null);
 			if (b != null && hasAccess) {
 				config.setBufferOutput(b.booleanValue());
@@ -3212,16 +3184,16 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 			// allow-compression
 			str = SystemUtil.getSystemPropOrEnvVar("lucee.allow.compression", null);
-			if (StringUtil.isEmpty(str) && setting != null) {
-				str = getAttr(setting, "allowCompression");
+			if (StringUtil.isEmpty(str)) {
+				str = getAttr(root, "allowCompression");
 			}
 			if (!StringUtil.isEmpty(str) && hasAccess) {
 				config.setAllowCompression(toBoolean(str, true));
 			}
 			else if (hasCS) config.setAllowCompression(configServer.allowCompression());
-			Struct mode = ConfigWebUtil.getAsStruct("mode", root);
+
 			// mode
-			String developMode = getAttr(mode, "develop");
+			String developMode = getAttr(root, "developMode");
 			if (!StringUtil.isEmpty(developMode) && hasAccess) {
 				config.setDevelopMode(toBoolean(developMode, false));
 			}

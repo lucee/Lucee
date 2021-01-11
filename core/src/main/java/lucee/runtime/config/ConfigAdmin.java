@@ -141,10 +141,6 @@ import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.dt.TimeSpan;
-import lucee.runtime.type.scope.Cluster;
-import lucee.runtime.type.scope.ClusterNotSupported;
-import lucee.runtime.type.scope.ClusterRemote;
-import lucee.runtime.type.scope.ScopeContext;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ComponentUtil;
 import lucee.runtime.type.util.KeyConstants;
@@ -2537,12 +2533,11 @@ public final class ConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
-		Struct scope = _getRootElement("setting");
 		writerType = writerType.trim();
 
 		// remove
 		if (StringUtil.isEmpty(writerType)) {
-			if (scope.containsKey("cfmlWriter")) rem(scope, "cfmlWriter");
+			if (root.containsKey("cfmlWriter")) rem(root, "cfmlWriter");
 			return;
 		}
 
@@ -2550,7 +2545,7 @@ public final class ConfigAdmin {
 		if (!"white-space".equalsIgnoreCase(writerType) && !"white-space-pref".equalsIgnoreCase(writerType) && !"regular".equalsIgnoreCase(writerType))
 			throw new ApplicationException("invalid writer type definition [" + writerType + "], valid types are [white-space, white-space-pref, regular]");
 
-		scope.setEL("cfmlWriter", writerType.toLowerCase());
+		root.setEL("cfmlWriter", writerType.toLowerCase());
 	}
 
 	public void updateSuppressContent(Boolean value) throws SecurityException {
@@ -2559,8 +2554,7 @@ public final class ConfigAdmin {
 
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
-		Struct scope = _getRootElement("setting");
-		scope.setEL("suppressContent", Caster.toString(value, ""));
+		root.setEL("suppressContent", Caster.toString(value, ""));
 	}
 
 	public void updateShowVersion(Boolean value) throws SecurityException {
@@ -2569,8 +2563,7 @@ public final class ConfigAdmin {
 
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
-		Struct scope = _getRootElement("setting");
-		scope.setEL("showVersion", Caster.toString(value, ""));
+		root.setEL("showVersion", Caster.toString(value, ""));
 	}
 
 	public void updateAllowCompression(Boolean value) throws SecurityException {
@@ -2579,8 +2572,7 @@ public final class ConfigAdmin {
 
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
-		Struct scope = _getRootElement("setting");
-		scope.setEL("allowCompression", Caster.toString(value, ""));
+		root.setEL("allowCompression", value);
 	}
 
 	public void updateContentLength(Boolean value) throws SecurityException {
@@ -2589,8 +2581,7 @@ public final class ConfigAdmin {
 
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
-		Struct scope = _getRootElement("setting");
-		scope.setEL("contentLength", Caster.toString(value, ""));
+		root.setEL("showContentLength", Caster.toString(value, ""));
 	}
 
 	public void updateBufferOutput(Boolean value) throws SecurityException {
@@ -2599,9 +2590,7 @@ public final class ConfigAdmin {
 
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
-		Struct scope = _getRootElement("setting");
-		scope.setEL("bufferingOutput", Caster.toString(value, ""));
-		if (scope.containsKey("bufferOutput")) rem(scope, "bufferOutput");
+		root.setEL("bufferTagBodyOutput", value);
 	}
 
 	/**
@@ -2616,8 +2605,8 @@ public final class ConfigAdmin {
 
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
-		if (span != null) root.setEL("applicationtimeout", span.getDay() + "," + span.getHour() + "," + span.getMinute() + "," + span.getSecond());
-		else rem(root, "applicationtimeout");
+		if (span != null) root.setEL("applicationTimeout", span.getDay() + "," + span.getHour() + "," + span.getMinute() + "," + span.getSecond());
+		else rem(root, "applicationTimeout");
 	}
 
 	public void updateApplicationListener(String type, String mode) throws SecurityException {
@@ -2693,8 +2682,7 @@ public final class ConfigAdmin {
 
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
-		Struct scope = _getRootElement("scope");
-		scope.setEL("clientmanagement", Caster.toString(clientManagement, ""));
+		root.setEL("clientManagement", Caster.toString(clientManagement, ""));
 	}
 
 	/**
@@ -2722,8 +2710,7 @@ public final class ConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
-		Struct mode = _getRootElement("mode");
-		mode.setEL("develop", Caster.toString(developmode, ""));
+		root.setEL("developMode", Caster.toString(developmode, ""));
 	}
 
 	/**
@@ -2737,8 +2724,7 @@ public final class ConfigAdmin {
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 		if (!hasAccess) throw new SecurityException("no access to update scope setting");
 
-		Struct scope = _getRootElement("scope");
-		scope.setEL("setdomaincookies", Caster.toString(domainCookies, ""));
+		root.setEL("domainCookies", Caster.toString(domainCookies, ""));
 	}
 
 	/**
@@ -5249,24 +5235,6 @@ public final class ConfigAdmin {
 		Struct extensions = _getRootElement("remoteClients");
 		extensions.setEL("usage", toStringURLStyle(usage));
 
-	}
-
-	public void updateClusterClass(ClassDefinition cd) throws PageException {
-		if (cd.getClassName() == null) cd = new ClassDefinitionImpl(ClusterNotSupported.class.getName(), null, null, null);
-
-		Class clazz = null;
-		try {
-			clazz = cd.getClazz();
-		}
-		catch (Exception e) {
-			throw Caster.toPageException(e);
-		}
-		if (!Reflector.isInstaneOf(clazz, Cluster.class, false) && !Reflector.isInstaneOf(clazz, ClusterRemote.class, false)) throw new ApplicationException(
-				"Class [" + clazz.getName() + "] does not implement interface [" + Cluster.class.getName() + "] or [" + ClusterRemote.class.getName() + "]");
-
-		Struct scope = _getRootElement("scope");
-		setClass(scope, null, "cluster", cd);
-		ScopeContext.clearClusterScope();
 	}
 
 	public void updateVideoExecuterClass(ClassDefinition cd) throws PageException {

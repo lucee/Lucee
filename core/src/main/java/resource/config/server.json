@@ -11,6 +11,7 @@
 	,"componentDumpTemplate":"/lucee/component-dump.cfm"
 	,"debuggingEnabled":false
 	,"debuggingQueryUsage":false
+	,"developMode":false
 	,"domainCookies":false
 	,"listenerMode":"curr2root"
 	,"listenerType":"mixed"
@@ -216,9 +217,6 @@
 			,"listenerType":"curr2root"
 			,"inspectTemplate":"once"
 		}
-	}
-	,"mode":{
-		"develop":"false"
 	}
 	,"orm":{
 		"engineClass":"lucee.runtime.orm.DummyORMEngine"

@@ -373,7 +373,6 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	private short inspectTemplate = INSPECT_ONCE;
 	private boolean typeChecking = true;
-	private String serial = "";
 	private String cacheMD5;
 	private boolean executionLogEnabled;
 	private ExecutionLogFactory executionLogFactory;
@@ -2975,13 +2974,9 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		this.inspectTemplate = inspectTemplate;
 	}
 
-	protected void setSerialNumber(String serial) {
-		this.serial = serial;
-	}
-
 	@Override
 	public String getSerialNumber() {
-		return serial;
+		return "";
 	}
 
 	protected void setCaches(Map<String, CacheConnection> caches) {

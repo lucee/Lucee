@@ -639,8 +639,23 @@ public abstract class ConfigFactory {
 			rem("scope", root);
 
 		}
-		// clientMaxAge
 
+		//////////////////// Setting ////////////////////
+		{
+			Struct setting = ConfigWebUtil.getAsStruct("setting", root);
+			moveAsBool("suppressContent", "suppressContent", setting, root);
+			move("cfmlWriter", "cfmlWriter", setting, root);
+			moveAsBool("showVersion", "showVersion", setting, root);
+			moveAsBool("closeConnection", "closeConnection", setting, root);
+			moveAsBool("contentLength", "showContentLength", setting, root);
+			moveAsBool("bufferOutput", "bufferTagBodyOutput", setting, root);
+			moveAsBool("bufferingOutput", "bufferTagBodyOutput", setting, root);
+			moveAsBool("allowCompression", "allowCompression", setting, root);
+
+			Struct mode = ConfigWebUtil.getAsStruct("mode", root);
+			moveAsBool("develop", "developMode", mode, root);
+		}
+		// allowCompression
 		remIfEmpty(root);
 
 		// TODO scope?
@@ -655,7 +670,8 @@ public abstract class ConfigFactory {
 		// preserveSingleQuote,extensions,fileSystem, gateways,jdbcDrivers, loginCaptcha, loginRememberme,
 		// loginDelay, mailSendPartial, mailUserSet, requestQueueEnable, requestQueueMax, regexType,
 		// scheduledTasks<array>, localMode,
-		// cgiReadonly->cgiScopeReadonly,cascadeToResultset,mergeUrlForm,clientType,clientDirectory,clientDirectoryMaxSize
+		// cgiReadonly->cgiScopeReadonly,cascadeToResultset,mergeUrlForm,clientType,clientDirectory,clientDirectoryMaxSize,
+		// search,suppressContent,cfmlWriter,showVersion,showContentLength,allowCompression
 
 		root = sort(root);
 

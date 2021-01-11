@@ -6,6 +6,7 @@
 	,"componentBase":"/lucee/Component.cfc"
 	,"componentDataMemberAccess":"public"
 	,"componentUseVariablesScope":true
+	,"developMode":false
 	,"version":"5.0"
 	,"cfx":{
 		"HelloWorld":{
@@ -37,9 +38,6 @@
 			,"primary":"physical"
 			,"toplevel":"yes"
 		}
-	}
-	,"mode":{
-		"develop":"false"
 	}
 	,"remoteClients":{
 		"directory":"{lucee-web}remote-client/"
