@@ -913,7 +913,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 	private static void _loadVersion(ConfigImpl config, Struct root, Log log) {
 		try {
 			String strVersion = getAttr(root, "version");
-			config.setVersion(Caster.toDoubleValue(strVersion, 1.0d));
+			config.setVersion(Caster.toDoubleValue(strVersion, 5.0d)); // cfconfig started with version 5
 		}
 		catch (Exception e) {
 			log(config, log, e);

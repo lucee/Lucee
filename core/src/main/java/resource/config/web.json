@@ -1,30 +1,30 @@
 {
-	"version":"2.0"
-	,"mode":{
-		"develop":"false"
-	}
-	,"resources":{
-		"resourceProvider":{
-			"scheme":"ram"
-			,"class":"lucee.commons.io.res.type.ram.RamResourceProvider"
-			,"arguments":"case-sensitive:true;lock-timeout:1000;"
+	"cacheDirectory":"{lucee-web}/cache/"
+	,"cacheDirectoryMaxSize":"100mb"
+	,"componentBase":"/lucee/Component.cfc"
+	,"componentDataMemberAccess":"public"
+	,"componentUseVariablesScope":true
+	,"version":"5.0"
+	,"cfx":{
+		"HelloWorld":{
+			"type":"java"
+			,"class":"lucee.cfx.example.HelloWorld"
 		}
 	}
-	,"remoteClients":{
-		"directory":"{lucee-web}remote-client/"
+	,"customTagMappings":[
+		{
+			"trusted":"yes"
+			,"physical":"{lucee-web}/customtags/"
+		}
+	]
+	,"debugging":{
+		"template":"/lucee/templates/debugging/debugging.cfm"
 	}
 	,"fileSystem":{
 		"deployDirectory":"{lucee-web}/cfclasses/"
 		,"tldDirectory":"{lucee-web}/library/tld/"
 		,"fldDirectory":"{lucee-web}/library/fld/"
 		,"tempDirectory":"{lucee-web}/temp/"
-	}
-	,"scope":{
-		"clientDirectory":"{lucee-web}/client-scope/"
-		,"clientDirectoryMaxSize":"100mb"
-	}
-	,"scheduler":{
-		"directory":"{lucee-web}/scheduler/"
 	}
 	,"mappings":{
 		"/lucee/":{
@@ -36,24 +36,24 @@
 			,"toplevel":"yes"
 		}
 	}
-	,"debugging":{
-		"template":"/lucee/templates/debugging/debugging.cfm"
+	,"mode":{
+		"develop":"false"
 	}
-	,"cacheDirectory":"{lucee-web}/cache/"
-	,"cacheDirectoryMaxSize":"100mb"
-	,"cfx":{
-		"HelloWorld":{
-			"type":"java"
-			,"class":"lucee.cfx.example.HelloWorld"
+	,"remoteClients":{
+		"directory":"{lucee-web}remote-client/"
+	}
+	,"resources":{
+		"resourceProvider":{
+			"scheme":"ram"
+			,"class":"lucee.commons.io.res.type.ram.RamResourceProvider"
+			,"arguments":"case-sensitive:true;lock-timeout:1000;"
 		}
 	}
-	,"componentBase":"/lucee/Component.cfc"
-	,"componentDataMemberAccess":"public"
-	,"componentUseVariablesScope":true
-	,"customTagMappings":[
-		{
-			"trusted":"yes"
-			,"physical":"{lucee-web}/customtags/"
-		}
-	]
+	,"scheduler":{
+		"directory":"{lucee-web}/scheduler/"
+	}
+	,"scope":{
+		"clientDirectory":"{lucee-web}/client-scope/"
+		,"clientDirectoryMaxSize":"100mb"
+	}
 }

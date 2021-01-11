@@ -20,6 +20,7 @@ package lucee.runtime.config;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Iterator;
 
 import org.osgi.framework.BundleException;
@@ -54,6 +55,7 @@ import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
+import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.util.KeyConstants;
 
 public abstract class ConfigFactory {
@@ -586,6 +588,11 @@ public abstract class ConfigFactory {
 			move("type", "regexType", regex, root);
 		}
 
+		//////////////////// version ////////////////////
+		{
+			root.setEL(KeyConstants._version, "5.0");
+		}
+
 		//////////////////// scheduler ////////////////////
 		if (config != null) {
 			Resource configDir = config.getConfigDir();
@@ -618,12 +625,34 @@ public abstract class ConfigFactory {
 		// customTagMappings, debugTemplates,debuggingShowDump, debuggingImplicitAccess,
 		// debuggingQueryUsage, debuggingMaxRecordsLogged
 		// preserveSingleQuote,extensions,fileSystem, gateways,jdbcDrivers, loginCaptcha, loginRememberme,
-		// loginDelay, mailSendPartial, mailUserSet, requestQueueEnable, requestQueueMax, regexType
+		// loginDelay, mailSendPartial, mailUserSet, requestQueueEnable, requestQueueMax, regexType,
+		// scheduledTasks<array>
+
+		root = sort(root);
 
 		// store it as Json
 		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, true, true);
 		String str = json.serialize(null, root, SerializationSettings.SERIALIZE_AS_ROW);
 		IOUtil.write(configFileNew, str, CharsetUtil.UTF8, false);
+	}
+
+	private static Struct sort(Struct root) {
+		Key[] keys = root.keys();
+		Arrays.sort(keys);
+		Struct sct = new StructImpl(Struct.TYPE_LINKED);
+		Object val;
+		// simple values first
+		for (Key key: keys) {
+			val = root.get(key, null);
+			if (Decision.isSimpleValue(val)) sct.setEL(key, val);
+		}
+		// simple values first
+		for (Key key: keys) {
+			val = root.get(key, null);
+			if (!Decision.isSimpleValue(val)) sct.setEL(key, val);
+		}
+
+		return sct;
 	}
 
 	private static void remIfEmpty(Collection coll) {
