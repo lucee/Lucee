@@ -24,6 +24,8 @@
 	,"scopeCascading":"standard"
 	,"sessionManagement":true
 	,"sessionTimeout":"0,0,30,0"
+	,"systemErr":"system"
+	,"systemOut":"system"
 	,"timeserver":"pool.ntp.org"
 	,"version":"5.0"
 	,"cacheHandlers":{
@@ -266,10 +268,6 @@
 				,"arguments":"lock-timeout:10000;"
 			}
 		]
-	}
-	,"system":{
-		"out":"system"
-		,"err":"system"
 	}
 	,"update":{
 		"location":"https://update.lucee.org"

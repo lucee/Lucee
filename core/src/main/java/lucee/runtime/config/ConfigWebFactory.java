@@ -2694,9 +2694,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 	private static void _loadTag(ConfigServerImpl configServer, ConfigImpl config, Struct root, Log log) {
 		try {
-			Struct parent = ConfigWebUtil.getAsStruct("tags", root);
 			{
-				Array tags = ConfigWebUtil.getAsArray("tag", parent);
+				Array tags = ConfigWebUtil.getAsArray("tags", root);
 				Struct tag;
 				ClassDefinition cd;
 				String nss, ns, n;
@@ -2716,7 +2715,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 			}
 
 			// set tag default values
-			Array defaults = ConfigWebUtil.getAsArray("default", parent);
+			Array defaults = ConfigWebUtil.getAsArray("tagDefaults", root);
 			if (defaults.size() > 0) {
 				Struct def;
 				String tagName, attrName, attrValue;
