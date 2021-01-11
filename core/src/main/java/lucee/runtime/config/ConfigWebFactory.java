@@ -3313,7 +3313,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 		try {
 
 			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-			Struct sys = ConfigWebUtil.getAsStruct("system", root);
+			// Struct sys = ConfigWebUtil.getAsStruct("system", root);
 
 			boolean hasCS = configServer != null;
 
@@ -3329,10 +3329,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 			out = SystemUtil.getSystemPropOrEnvVar("lucee.system.out", null);
 			err = SystemUtil.getSystemPropOrEnvVar("lucee.system.err", null);
 
-			if (sys != null) {
-				if (StringUtil.isEmpty(out)) out = getAttr(sys, "out");
-				if (StringUtil.isEmpty(err)) err = getAttr(sys, "err");
-			}
+			if (StringUtil.isEmpty(out)) out = getAttr(root, "systemOut");
+			if (StringUtil.isEmpty(err)) err = getAttr(root, "systemErr");
 
 			// OUT
 			PrintStream ps = toPrintStream(config, out, false);

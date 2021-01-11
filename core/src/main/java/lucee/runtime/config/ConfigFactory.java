@@ -663,6 +663,13 @@ public abstract class ConfigFactory {
 			add(hook, "startupHooks", root);
 			rem("startup", root);
 		}
+
+		//////////////////// System ////////////////////
+		{
+			Struct system = ConfigWebUtil.getAsStruct("system", root);
+			move("out", "systemOut", system, root);
+			move("err", "systemErr", system, root);
+		}
 		// startupHooks
 		remIfEmpty(root);
 
@@ -679,7 +686,7 @@ public abstract class ConfigFactory {
 		// loginDelay, mailSendPartial, mailUserSet, requestQueueEnable, requestQueueMax, regexType,
 		// scheduledTasks<array>, localMode,
 		// cgiReadonly->cgiScopeReadonly,cascadeToResultset,mergeUrlForm,clientType,clientDirectory,clientDirectoryMaxSize,
-		// search,suppressContent,cfmlWriter,showVersion,showContentLength,allowCompression,startupHooks
+		// search,suppressContent,cfmlWriter,showVersion,showContentLength,allowCompression,startupHooks,systemErr,systemOut
 
 		root = sort(root);
 
