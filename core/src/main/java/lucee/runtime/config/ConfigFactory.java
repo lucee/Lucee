@@ -28,6 +28,7 @@ import org.xml.sax.SAXException;
 
 import lucee.commons.digest.MD5;
 import lucee.commons.io.CharsetUtil;
+import lucee.commons.io.FileUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
@@ -196,7 +197,7 @@ public abstract class ConfigFactory {
 		}
 	}
 
-	public static void translateConfigFile(Resource configFileOld, Resource configFileNew) throws ConverterException, IOException, SAXException {
+	public static void translateConfigFile(ConfigPro config, Resource configFileOld, Resource configFileNew) throws ConverterException, IOException, SAXException {
 		// read the old config (XML)
 		Struct root = ConfigWebUtil.getAsStruct("cfLuceeConfiguration", new XMLConfigReader(configFileOld, true, new ReadRule(), new NameRule()).getData());
 		//////////////////// charset ////////////////////
@@ -585,6 +586,26 @@ public abstract class ConfigFactory {
 			move("type", "regexType", regex, root);
 		}
 
+		//////////////////// scheduler ////////////////////
+		if (config != null) {
+			Resource configDir = config.getConfigDir();
+			Struct scheduler = ConfigWebUtil.getAsStruct("scheduler", root);
+
+			// set scheduler
+			Resource schedulerDir = ConfigWebUtil.getFile(config.getRootDirectory(), ConfigWebFactory.getAttr(scheduler, "directory"), "scheduler", configDir, FileUtil.TYPE_DIR,
+					config);
+			Resource schedulerFile = schedulerDir.getRealResource("scheduler.xml");
+			if (schedulerFile.isFile()) {
+				Struct schedulerRoot = new XMLConfigReader(schedulerFile, true, new ReadRule(), new NameRule()).getData();
+				Array task = ConfigWebUtil.getAsArray("schedule", "task", schedulerRoot);
+				add(task, "scheduledTasks", root);
+			}
+			rem("scheduler", root);
+		}
+
+		// Struct root = ConfigWebUtil.getAsStruct("cfLuceeConfiguration", new
+		// XMLConfigReader(configFileOld, true, new ReadRule(), new NameRule()).getData());
+		// <schedule><task>
 		remIfEmpty(root);
 
 		// TODO scope?
@@ -597,7 +618,7 @@ public abstract class ConfigFactory {
 		// customTagMappings, debugTemplates,debuggingShowDump, debuggingImplicitAccess,
 		// debuggingQueryUsage, debuggingMaxRecordsLogged
 		// preserveSingleQuote,extensions,fileSystem, gateways,jdbcDrivers, loginCaptcha, loginRememberme,
-		// loginDelay, mailSendPartial, mailUserSet, requestQueueEnable, requestQueueMax,
+		// loginDelay, mailSendPartial, mailUserSet, requestQueueEnable, requestQueueMax, regexType
 
 		// store it as Json
 		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, true, true);

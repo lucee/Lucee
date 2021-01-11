@@ -279,10 +279,12 @@ public final class ConfigWebFactory extends ConfigFactory {
 		if (!hasConfigNew) {
 			hasConfigOld = configFileOld.exists() && configFileOld.length() > 0;
 		}
+		ConfigWebImpl configWeb = new ConfigWebImpl(factory, configServer, servletConfig, configDir, configFileNew);
+
 		// translate to new
 		if (!hasConfigNew) {
 			if (hasConfigOld) {
-				translateConfigFile(configFileOld, configFileNew);
+				translateConfigFile(configWeb, configFileOld, configFileNew);
 			}
 			// create config file
 			else {
@@ -298,7 +300,6 @@ public final class ConfigWebFactory extends ConfigFactory {
 		if (configDir.exists()) createHtAccess(configDir.getRealResource(".htaccess"));
 
 		createContextFiles(configDir, servletConfig, doNew);
-		ConfigWebImpl configWeb = new ConfigWebImpl(factory, configServer, servletConfig, configDir, configFileNew);
 
 		load(configServer, configWeb, root, false, doNew);
 		createContextFilesPost(configDir, configWeb, servletConfig, false, doNew);
@@ -4153,11 +4154,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 			if (config instanceof ConfigServer) return;
 
 			Resource configDir = config.getConfigDir();
-			Struct scheduler = ConfigWebUtil.getAsStruct("scheduler", root);
-
-			// set scheduler
-			Resource file = ConfigWebUtil.getFile(config.getRootDirectory(), getAttr(scheduler, "directory"), "scheduler", configDir, FileUtil.TYPE_DIR, config);
-			config.setScheduler(configServer.getCFMLEngine(), file);
+			Array scheduledTasks = ConfigWebUtil.getAsArray("scheduledTasks", root);
+			config.setScheduler(configServer.getCFMLEngine(), scheduledTasks);
 		}
 		catch (Exception e) {
 			log(config, log, e);

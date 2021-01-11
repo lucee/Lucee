@@ -110,10 +110,12 @@ public final class ConfigServerFactory extends ConfigFactory {
 		if (!hasConfigNew) {
 			hasConfigOld = configFileOld.exists() && configFileOld.length() > 0;
 		}
+		ConfigServerImpl config = new ConfigServerImpl(engine, initContextes, contextes, configDir, configFileNew);
+
 		// translate to new
 		if (!hasConfigNew) {
 			if (hasConfigOld) {
-				translateConfigFile(configFileOld, configFileNew);
+				translateConfigFile(config, configFileOld, configFileNew);
 			}
 			// create config file
 			else {
@@ -126,7 +128,6 @@ public final class ConfigServerFactory extends ConfigFactory {
 		double version = ConfigWebUtil.getAsDouble("version", root, 1.0d);
 		boolean cleanupDatasources = version < 5.0D;
 
-		ConfigServerImpl config = new ConfigServerImpl(engine, initContextes, contextes, configDir, configFileNew);
 		load(config, root, false, doNew);
 
 		createContextFiles(configDir, config, doNew, cleanupDatasources);

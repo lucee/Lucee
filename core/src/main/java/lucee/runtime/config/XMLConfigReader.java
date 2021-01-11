@@ -166,19 +166,19 @@ public final class XMLConfigReader extends DefaultHandler implements LexicalHand
 	public static void main(String[] args) throws Exception {
 		Resource src = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Projects/Lucee/Lucee5/core/src/main/java/resource/config/web.xml");
 		Resource trg = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Projects/Lucee/Lucee5/core/src/main/java/resource/config/web.json");
-		ConfigWebFactory.translateConfigFile(src, trg);
+		ConfigWebFactory.translateConfigFile(null, src, trg);
 
 		src = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Projects/Lucee/Lucee5/core/src/main/java/resource/config/server.xml");
 		trg = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Projects/Lucee/Lucee5/core/src/main/java/resource/config/server.json");
-		ConfigWebFactory.translateConfigFile(src, trg);
+		ConfigWebFactory.translateConfigFile(null, src, trg);
 
 		src = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Test/test/webapps/ROOT/WEB-INF/lucee/lucee-web.xml.cfm");
 		trg = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Test/test/webapps/ROOT/WEB-INF/lucee/lucee-web.json");
-		ConfigWebFactory.translateConfigFile(src, trg);
+		ConfigWebFactory.translateConfigFile(null, src, trg);
 
 		src = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Test/test/lucee-server/context/lucee-server.xml");
 		trg = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Test/test/lucee-server/context/lucee-server.json");
-		ConfigWebFactory.translateConfigFile(src, trg);
+		ConfigWebFactory.translateConfigFile(null, src, trg);
 
 		src = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Test/test/webapps/ROOT/WEB-INF/lucee/.CFConfig.json");
 		src.delete();

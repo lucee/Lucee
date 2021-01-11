@@ -135,6 +135,8 @@ import lucee.runtime.schedule.SchedulerImpl;
 import lucee.runtime.search.SearchEngine;
 import lucee.runtime.security.SecurityManager;
 import lucee.runtime.spooler.SpoolerEngine;
+import lucee.runtime.type.Array;
+import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
@@ -1639,15 +1641,14 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	 * @param logger
 	 * @throws PageException
 	 */
-	protected void setScheduler(CFMLEngine engine, Resource scheduleDirectory) throws PageException {
-		if (scheduleDirectory == null) {
-			if (this.scheduler == null) this.scheduler = new SchedulerImpl(engine, "<?xml version=\"1.0\"?>\n<schedule></schedule>", this);
+	protected void setScheduler(CFMLEngine engine, Array scheduledTasks) throws PageException {
+		if (scheduledTasks == null) {
+			if (this.scheduler == null) this.scheduler = new SchedulerImpl(engine, this, new ArrayImpl());
 			return;
 		}
 
-		if (!isDirectory(scheduleDirectory)) throw new ExpressionException("schedule task directory " + scheduleDirectory + " doesn't exist or is not a directory");
 		try {
-			if (this.scheduler == null) this.scheduler = new SchedulerImpl(engine, this, scheduleDirectory, SystemUtil.getCharset().name());
+			if (this.scheduler == null) this.scheduler = new SchedulerImpl(engine, this, scheduledTasks);
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
