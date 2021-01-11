@@ -18,6 +18,7 @@
  */
 package lucee.runtime.config;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
@@ -694,6 +695,17 @@ public abstract class ConfigFactory {
 			move("type", "updateType", update, root);
 		}
 
+		//////////////////// Resources ////////////////////
+		{
+			Struct resources = ConfigWebUtil.getAsStruct("resources", root);
+			Array providers = ConfigWebUtil.getAsArray("resourceProvider", resources);
+			Array defaultProviders = ConfigWebUtil.getAsArray("defaultResourceProvider", resources);
+
+			add(providers, "resourceProviders", root);
+			add(defaultProviders, "defaultResourceProvider", root);
+			rem("resources", root);
+		}
+
 		// startupHooks
 		remIfEmpty(root);
 
@@ -821,7 +833,17 @@ public abstract class ConfigFactory {
 				throw Caster.toPageException(e);
 			}
 		}
-		return Caster.toStruct(new JSONExpressionInterpreter().interpret(null, IOUtil.toString(res, CharsetUtil.UTF8)));
+		try {
+			return Caster.toStruct(new JSONExpressionInterpreter().interpret(null, IOUtil.toString(res, CharsetUtil.UTF8)));
+		}
+		catch (FileNotFoundException fnfe) {
+			Resource dir = res.getParentResource();
+			Resource ls = dir.getRealResource("lucee-server.xml");
+			Resource lw = dir.getRealResource("lucee-web.xml.cfm");
+			if (ls.isFile()) return _loadDocument(ls);
+			else if (lw.isFile()) return _loadDocument(lw);
+			else throw fnfe;
+		}
 	}
 
 	/**

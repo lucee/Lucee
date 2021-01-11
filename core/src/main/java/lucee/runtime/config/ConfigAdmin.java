@@ -260,8 +260,7 @@ public final class ConfigAdmin {
 	private void addResourceProvider(String scheme, ClassDefinition cd, String arguments) throws PageException {
 		checkWriteAccess();
 
-		// Struct resources = _getRootElement("resources");
-		Array rpElements = ConfigWebUtil.getAsArray("resources", "resourceProvider", root);
+		Array rpElements = ConfigWebUtil.getAsArray("resourceProviders", root);
 		// Element[] rpElements = ConfigWebFactory.getChildren(resources, "resource-provider");
 		String s;
 		// update
@@ -1947,7 +1946,7 @@ public final class ConfigAdmin {
 
 	public void _removeResourceProvider(String scheme) throws PageException {
 
-		Array children = ConfigWebUtil.getAsArray("resources", "resourceProvider", root);
+		Array children = ConfigWebUtil.getAsArray("resourceProviders", root);
 		Key[] keys = children.keys();
 
 		// remove
@@ -1987,7 +1986,7 @@ public final class ConfigAdmin {
 		// check parameters
 		if (StringUtil.isEmpty(scheme)) throw new ExpressionException("scheme can't be an empty value");
 
-		Array children = ConfigWebUtil.getAsArray("resources", "resourceProvider", root);
+		Array children = ConfigWebUtil.getAsArray("resourceProviders", root);
 
 		// Update
 		for (int i = 1; i <= children.size(); i++) {
@@ -2019,7 +2018,7 @@ public final class ConfigAdmin {
 
 		if (!hasAccess) throw new SecurityException("no access to update resources");
 
-		Array children = ConfigWebUtil.getAsArray("resources", "defaultResourceProvider", root);
+		Array children = ConfigWebUtil.getAsArray("defaultResourceProviders", root);
 
 		// Update
 		for (int i = 1; i <= children.size(); i++) {
@@ -2091,9 +2090,8 @@ public final class ConfigAdmin {
 	public Query getResourceProviders() throws PageException {
 		checkReadAccess();
 		// check parameters
-		Struct parent = _getRootElement("resources");
-		Array elProviders = ConfigWebUtil.getAsArray("resourceProvider", parent);
-		Array elDefaultProviders = ConfigWebUtil.getAsArray("defaultResourceProvider", parent);
+		Array elProviders = ConfigWebUtil.getAsArray("resourceProviders", root);
+		Array elDefaultProviders = ConfigWebUtil.getAsArray("defaultResourceProvider", root);
 
 		ResourceProvider[] providers = config.getResourceProviders();
 		ResourceProvider defaultProvider = config.getDefaultResourceProvider();

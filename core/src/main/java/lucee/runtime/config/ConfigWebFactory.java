@@ -588,9 +588,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 		try {
 			boolean hasCS = configServer != null;
 			config.clearResourceProviders();
-			Struct resources = ConfigWebUtil.getAsStruct("resources", root);
-			Array providers = ConfigWebUtil.getAsArray("resourceProvider", resources);
-			Array defaultProviders = ConfigWebUtil.getAsArray("defaultResourceProvider", resources);
+			Array providers = ConfigWebUtil.getAsArray("resourceProviders", root);
+			Array defaultProviders = ConfigWebUtil.getAsArray("defaultResourceProvider", root);
 
 			// Default Resource Provider
 			if (hasCS) config.setDefaultResourceProvider(configServer.getDefaultResourceProvider());
@@ -3509,8 +3508,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 	private static void _loadWS(ConfigServerImpl configServer, ConfigImpl config, Struct root, Log log) {
 		try {
-			Struct el = ConfigWebUtil.getAsStruct("webservice", root);
-			ClassDefinition cd = el != null ? getClassDefinition(el, "", config.getIdentification()) : null;
+			Struct ws = ConfigWebUtil.getAsStruct("webservice", root);
+			ClassDefinition cd = ws != null ? getClassDefinition(ws, "", config.getIdentification()) : null;
 			if (cd != null && !StringUtil.isEmpty(cd.getClassName())) {
 				config.setWSHandlerClassDefinition(cd);
 			}

@@ -42,13 +42,13 @@
 	,"remoteClients":{
 		"directory":"{lucee-web}remote-client/"
 	}
-	,"resources":{
-		"resourceProvider":{
+	,"resourceProviders":[
+		{
 			"scheme":"ram"
 			,"class":"lucee.commons.io.res.type.ram.RamResourceProvider"
 			,"arguments":"case-sensitive:true;lock-timeout:1000;"
 		}
-	}
+	]
 	,"scheduler":{
 		"directory":"{lucee-web}/scheduler/"
 	}

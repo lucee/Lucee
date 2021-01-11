@@ -72,6 +72,12 @@
 		"logMemoryUsage":"no"
 		,"template":"/lucee/templates/debugging/debugging.cfm"
 	}
+	,"defaultResourceProvider":[
+		{
+			"class":"lucee.commons.io.res.type.file.FileResourceProvider"
+			,"arguments":"lock-timeout:1000;"
+		}
+	]
 	,"dumpWriters":[
 		{
 			"name":"html"
@@ -228,47 +234,41 @@
 	,"remoteClients":{
 		"directory":"{lucee-config}remote-client/"
 	}
-	,"resources":{
-		"defaultResourceProvider":{
-			"class":"lucee.commons.io.res.type.file.FileResourceProvider"
-			,"arguments":"lock-timeout:1000;"
+	,"resourceProviders":[
+		{
+			"scheme":"ftp"
+			,"class":"lucee.commons.io.res.type.ftp.FTPResourceProvider"
+			,"arguments":"lock-timeout:20000;socket-timeout:-1;client-timeout:60000"
 		}
-		,"resourceProvider":[
-			{
-				"scheme":"ftp"
-				,"class":"lucee.commons.io.res.type.ftp.FTPResourceProvider"
-				,"arguments":"lock-timeout:20000;socket-timeout:-1;client-timeout:60000"
-			}
-			,{
-				"scheme":"zip"
-				,"class":"lucee.commons.io.res.type.zip.ZipResourceProvider"
-				,"arguments":"lock-timeout:1000;case-sensitive:true;"
-			}
-			,{
-				"scheme":"tar"
-				,"class":"lucee.commons.io.res.type.tar.TarResourceProvider"
-				,"arguments":"lock-timeout:1000;case-sensitive:true;"
-			}
-			,{
-				"scheme":"tgz"
-				,"class":"lucee.commons.io.res.type.tgz.TGZResourceProvider"
-				,"arguments":"lock-timeout:1000;case-sensitive:true;"
-			}
-			,{
-				"scheme":"http"
-				,"class":"lucee.commons.io.res.type.http.HTTPResourceProvider"
-				,"arguments":"lock-timeout:10000;case-sensitive:false;"
-			}
-			,{
-				"scheme":"https"
-				,"class":"lucee.commons.io.res.type.http.HTTPSResourceProvider"
-				,"arguments":"lock-timeout:10000;case-sensitive:false;"
-			}
-			,{
-				"scheme":"s3"
-				,"class":"lucee.commons.io.res.type.s3.S3ResourceProvider"
-				,"arguments":"lock-timeout:10000;"
-			}
-		]
-	}
+		,{
+			"scheme":"zip"
+			,"class":"lucee.commons.io.res.type.zip.ZipResourceProvider"
+			,"arguments":"lock-timeout:1000;case-sensitive:true;"
+		}
+		,{
+			"scheme":"tar"
+			,"class":"lucee.commons.io.res.type.tar.TarResourceProvider"
+			,"arguments":"lock-timeout:1000;case-sensitive:true;"
+		}
+		,{
+			"scheme":"tgz"
+			,"class":"lucee.commons.io.res.type.tgz.TGZResourceProvider"
+			,"arguments":"lock-timeout:1000;case-sensitive:true;"
+		}
+		,{
+			"scheme":"http"
+			,"class":"lucee.commons.io.res.type.http.HTTPResourceProvider"
+			,"arguments":"lock-timeout:10000;case-sensitive:false;"
+		}
+		,{
+			"scheme":"https"
+			,"class":"lucee.commons.io.res.type.http.HTTPSResourceProvider"
+			,"arguments":"lock-timeout:10000;case-sensitive:false;"
+		}
+		,{
+			"scheme":"s3"
+			,"class":"lucee.commons.io.res.type.s3.S3ResourceProvider"
+			,"arguments":"lock-timeout:10000;"
+		}
+	]
 }
