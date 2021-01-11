@@ -26,7 +26,10 @@
 	,"sessionTimeout":"0,0,30,0"
 	,"systemErr":"system"
 	,"systemOut":"system"
+	,"tempDirectory":"{lucee-config}/temp/"
 	,"timeserver":"pool.ntp.org"
+	,"updateLocation":"https://update.lucee.org"
+	,"updateType":"manual"
 	,"version":"5.0"
 	,"cacheHandlers":{
 		"timespan":{
@@ -90,8 +93,7 @@
 		}
 	]
 	,"fileSystem":{
-		"tempDirectory":"{lucee-config}/temp/"
-		,"fldDefaultDirectory":"{lucee-config}/library/fld/"
+		"fldDefaultDirectory":"{lucee-config}/library/fld/"
 		,"tldDefaultDirectory":"{lucee-config}/library/tld/"
 		,"functionDefaultDirectory":"{lucee-config}/library/function/"
 		,"tagDefaultDirectory":"{lucee-config}/library/tag/"
@@ -268,9 +270,5 @@
 				,"arguments":"lock-timeout:10000;"
 			}
 		]
-	}
-	,"update":{
-		"location":"https://update.lucee.org"
-		,"type":"manual"
 	}
 }

@@ -687,6 +687,13 @@ public abstract class ConfigFactory {
 			move("tempDirectory", "tempDirectory", fs, root);
 		}
 
+		//////////////////// Update ////////////////////
+		{
+			Struct update = ConfigWebUtil.getAsStruct("update", root);
+			move("location", "updateLocation", update, root);
+			move("type", "updateType", update, root);
+		}
+
 		// startupHooks
 		remIfEmpty(root);
 
@@ -703,7 +710,8 @@ public abstract class ConfigFactory {
 		// loginDelay, mailSendPartial, mailUserSet, requestQueueEnable, requestQueueMax, regexType,
 		// scheduledTasks<array>, localMode,
 		// cgiReadonly->cgiScopeReadonly,cascadeToResultset,mergeUrlForm,clientType,clientDirectory,clientDirectoryMaxSize,
-		// search,suppressContent,cfmlWriter,showVersion,showContentLength,allowCompression,startupHooks,systemErr,systemOut,tags,tagDefaults,tempDirectory
+		// search,suppressContent,cfmlWriter,showVersion,showContentLength,allowCompression,startupHooks,systemErr,systemOut,tags,
+		// tagDefaults,tempDirectory,updateLocation,updateType
 
 		root = sort(root);
 

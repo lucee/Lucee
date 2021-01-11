@@ -3248,15 +3248,14 @@ public final class ConfigAdmin {
 		if (!(config instanceof ConfigServer)) {
 			throw new SecurityException("can't change update setting from this context, access is denied");
 		}
-		Struct update = _getRootElement("update");
-		update.setEL("type", type);
+		root.setEL("updateType", type);
 		try {
 			location = HTTPUtil.toURL(location, HTTPUtil.ENCODED_AUTO).toString();
 		}
 		catch (Throwable e) {
 			ExceptionUtil.rethrowIfNecessary(e);
 		}
-		update.setEL("location", location);
+		root.setEL("updateLocation", location);
 	}
 
 	/**

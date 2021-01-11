@@ -3069,18 +3069,15 @@ public final class ConfigWebFactory extends ConfigFactory {
 			// Server
 			if (config instanceof ConfigServer && root != null) {
 				ConfigServer cs = (ConfigServer) config;
-				Struct update = ConfigWebUtil.getAsStruct("update", root);
+				cs.setUpdateType(getAttr(root, "updateType"));
 
-				if (update != null) {
-					cs.setUpdateType(getAttr(update, "type"));
-
-					String location = getAttr(update, "location");
-					if (location != null) {
-						location = location.trim();
-						if ("http://snapshot.lucee.org".equals(location) || "https://snapshot.lucee.org".equals(location)) location = "https://update.lucee.org";
-						if ("http://release.lucee.org".equals(location) || "https://release.lucee.org".equals(location)) location = "https://update.lucee.org";
-					}
+				String location = getAttr(root, "updateLocation");
+				if (location != null) {
+					location = location.trim();
+					if ("http://snapshot.lucee.org".equals(location) || "https://snapshot.lucee.org".equals(location)) location = "https://update.lucee.org";
+					if ("http://release.lucee.org".equals(location) || "https://release.lucee.org".equals(location)) location = "https://update.lucee.org";
 				}
+
 			}
 		}
 		catch (Exception e) {

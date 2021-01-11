@@ -7,6 +7,7 @@
 	,"componentDataMemberAccess":"public"
 	,"componentUseVariablesScope":true
 	,"developMode":false
+	,"tempDirectory":"{lucee-web}/temp/"
 	,"version":"5.0"
 	,"cfx":{
 		"HelloWorld":{
@@ -27,7 +28,6 @@
 		"deployDirectory":"{lucee-web}/cfclasses/"
 		,"tldDirectory":"{lucee-web}/library/tld/"
 		,"fldDirectory":"{lucee-web}/library/fld/"
-		,"tempDirectory":"{lucee-web}/temp/"
 	}
 	,"mappings":{
 		"/lucee/":{
