@@ -28,7 +28,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 					template : "#uri#\test.cfm",
 					forms : { Scene = 3 }
 				);
-				expect(trim(result.filecontent)).toBe("Asia/Calcutta");
+				expect(trim(result.filecontent)).toBe(gettimezone());
 			});
 		});
 	}
