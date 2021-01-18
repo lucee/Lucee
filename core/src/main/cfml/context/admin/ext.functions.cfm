@@ -568,7 +568,7 @@
 			if(!isNull(http.status_code) && http.status_code==200) {
 				return http.fileContent;
 			}
-			throw http.fileContent;
+			throw "Error: Download extension returned #encodeForHtml(http.status_code)# for #encodeForHtml(uri)#";
 		}
 	}
 
