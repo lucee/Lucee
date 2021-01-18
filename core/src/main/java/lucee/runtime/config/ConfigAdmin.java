@@ -3949,74 +3949,44 @@ public final class ConfigAdmin {
 	}
 
 	public void updateExtensionInfo(boolean enabled) {
-		Struct extensions = _getRootElement("extensions");
-		extensions.setEL("enabled", Caster.toString(enabled));
+		root.setEL("extensionEnabled", enabled);
 	}
 
 	public void updateRHExtensionProvider(String strUrl) throws MalformedURLException, PageException {
-		Array children = ConfigWebUtil.getAsArray("extensions", "rhprovider", root);
-		strUrl = strUrl.trim();
-
-		URL _url = HTTPUtil.toURL(strUrl, HTTPUtil.ENCODED_NO);
-		strUrl = _url.toExternalForm();
-
-		// Update
-		Struct el;
-		String url;
-		for (int i = 1; i <= children.size(); i++) {
-			Struct tmp = Caster.toStruct(children.get(i, null), null);
-			if (tmp == null) continue;
-
-			url = ConfigWebUtil.getAsString("url", tmp, null);
-			if (url != null && url.trim().equalsIgnoreCase(strUrl)) {
-				// el.setEL("cache-timeout",Caster.toString(cacheTimeout));
-				return;
-			}
-		}
-
-		// Insert
-		el = new StructImpl(Struct.TYPE_LINKED);
-		el.setEL("url", strUrl);
-		children.prepend(el);
+		updateExtensionProvider(strUrl);
 	}
 
 	public void updateExtensionProvider(String strUrl) throws PageException {
-		Array children = ConfigWebUtil.getAsArray("extensions", "provider", root);
+		Array children = ConfigWebUtil.getAsArray("extensionProviders", root);
 
 		strUrl = strUrl.trim();
 
 		// Update
-		Struct el;
 		String url;
 		for (int i = 1; i <= children.size(); i++) {
-			Struct tmp = Caster.toStruct(children.get(i, null), null);
-			if (tmp == null) continue;
+			url = Caster.toString(children.get(i, null), null);
+			if (url == null) continue;
 
-			url = ConfigWebUtil.getAsString("url", tmp, null);
-			if (url != null && url.trim().equalsIgnoreCase(strUrl)) {
+			if (url.trim().equalsIgnoreCase(strUrl)) {
 				return;
 			}
 		}
 
 		// Insert
-		el = new StructImpl(Struct.TYPE_LINKED);
-		el.setEL("url", strUrl);
-		children.prepend(el);
+		children.prepend(strUrl);
 	}
 
 	public void removeExtensionProvider(String strUrl) {
-		Array children = ConfigWebUtil.getAsArray("extensions", "provider", root);
+		Array children = ConfigWebUtil.getAsArray("extensionProviders", root);
 		Key[] keys = children.keys();
 		strUrl = strUrl.trim();
-		Struct child;
 		String url;
 		for (int i = keys.length - 1; i >= 0; i--) {
 			Key key = keys[i];
-			Struct tmp = Caster.toStruct(children.get(key, null), null);
-			if (tmp == null) continue;
+			url = Caster.toString(children.get(key, null), null);
+			if (url == null) continue;
 
-			url = ConfigWebUtil.getAsString("url", tmp, null);
-			if (url != null && url.trim().equalsIgnoreCase(strUrl)) {
+			if (url.trim().equalsIgnoreCase(strUrl)) {
 				children.removeEL(key);
 				return;
 			}
@@ -4024,52 +3994,7 @@ public final class ConfigAdmin {
 	}
 
 	public void removeRHExtensionProvider(String strUrl) {
-		Array children = ConfigWebUtil.getAsArray("extensions", "rhprovider", root);
-		Key[] keys = children.keys();
-		strUrl = strUrl.trim();
-		Struct child;
-		String url;
-		for (int i = keys.length - 1; i >= 0; i--) {
-			Key key = keys[i];
-			Struct tmp = Caster.toStruct(children.get(key, null), null);
-			if (tmp == null) continue;
-
-			url = ConfigWebUtil.getAsString("url", tmp, null);
-			if (url != null && url.trim().equalsIgnoreCase(strUrl)) {
-				children.removeEL(key);
-				return;
-			}
-		}
-	}
-
-	public void updateExtension(PageContext pc, Extension extension) throws PageException {
-		checkWriteAccess();
-
-		String uid = createUid(pc, extension.getProvider(), extension.getId());
-
-		Array children = ConfigWebUtil.getAsArray("extensions", "extension", root);
-
-		// Update
-		Struct el;
-		String provider, id;
-		for (int i = 1; i <= children.size(); i++) {
-			el = Caster.toStruct(children.get(i, null), null);
-			if (el == null) continue;
-
-			provider = ConfigWebUtil.getAsString("provider", el, null);
-			id = ConfigWebUtil.getAsString("id", el, null);
-			if (uid.equalsIgnoreCase(createUid(pc, provider, id))) {
-				setExtensionAttrs(el, extension);
-				return;
-			}
-		}
-
-		// Insert
-		el = new StructImpl(Struct.TYPE_LINKED);
-		el.setEL("provider", extension.getProvider());
-		el.setEL("id", extension.getId());
-		setExtensionAttrs(el, extension);
-		children.appendEL(el);
+		removeExtensionProvider(strUrl);
 	}
 
 	private String createUid(PageContext pc, String provider, String id) throws PageException {
@@ -4167,7 +4092,7 @@ public final class ConfigAdmin {
 			if (child == null) continue;
 
 			try {
-				rhe = new RHExtension(config, key.getString(), child);
+				rhe = new RHExtension(config, key.getString(), Caster.toString(child.get(KeyConstants._version), null), false);
 
 				// ed=ExtensionDefintion.getInstance(config,child);
 			}
@@ -4181,6 +4106,10 @@ public final class ConfigAdmin {
 				children.removeEL(key);
 			}
 		}
+	}
+
+	public void removeExtension(String provider, String id) throws PageException {
+		removeRHExtension(id);
 	}
 
 	public static void updateArchive(ConfigPro config, Resource arc, boolean reload) throws PageException {
@@ -5033,25 +4962,6 @@ public final class ConfigAdmin {
 		int index = name.indexOf('/');
 		if (index == -1) return name;
 		return name.substring(index + 1);
-	}
-
-	public void removeExtension(String provider, String id) throws SecurityException {
-		checkWriteAccess();
-
-		Array children = ConfigWebUtil.getAsArray("extensions", "extension", root);
-		Key[] keys = children.keys();
-		String _provider, _id;
-		for (int i = keys.length - 1; i >= 0; i--) {
-			Key key = keys[i];
-			Struct tmp = Caster.toStruct(children.get(key, null), null);
-			if (tmp == null) continue;
-
-			_provider = ConfigWebUtil.getAsString("provider", tmp, null);
-			_id = ConfigWebUtil.getAsString("id", tmp, null);
-			if (_provider != null && _provider.equalsIgnoreCase(provider) && _id != null && _id.equalsIgnoreCase(id)) {
-				children.removeEL(key);
-			}
-		}
 	}
 
 	public void verifyExtensionProvider(String strUrl) throws PageException {
@@ -5907,6 +5817,13 @@ public final class ConfigAdmin {
 				removePlugins(config, log, arr);
 				children.removeEL(key);
 
+				// remove files
+				String version = Caster.toString(el.get(KeyConstants._version, null), null);
+				Resource file = RHExtension.getMetaDataFile(config, id, version);
+				if (file.isFile()) file.delete();
+				file = RHExtension.getExtensionFile(config, id, version);
+				if (file.isFile()) file.delete();
+
 				return bundles;
 			}
 		}
@@ -6015,7 +5932,7 @@ public final class ConfigAdmin {
 				el = Caster.toStruct(children.get(key, null), null);
 				if (el == null) continue;
 				old = RHExtension.toBundleDefinitions(ConfigWebUtil.getAsString("bundles", el, null)); // get existing bundles before populate new ones
-				ext.populate(el);
+				ext.populate(el, false);
 				old = minus(old, OSGiUtil.toBundleDefinitions(ext.getBundles()));
 				return old;
 			}
@@ -6023,7 +5940,7 @@ public final class ConfigAdmin {
 
 		// Insert
 		el = new StructImpl(Struct.TYPE_LINKED);
-		ext.populate(el);
+		ext.populate(el, false);
 		children.setEL(ext.getId(), el);
 		return null;
 	}
@@ -6057,7 +5974,7 @@ public final class ConfigAdmin {
 				if (tmp == null) continue;
 
 				try {
-					return new RHExtension(config, _id, tmp);
+					return new RHExtension(config, _id, Caster.toString(tmp.get(KeyConstants._version), null), false);
 				}
 				catch (Exception e) {
 					return defaultValue;
@@ -6091,14 +6008,10 @@ public final class ConfigAdmin {
 			for (Key key: keys) {
 				Struct sct = Caster.toStruct(children.get(key, null), null);
 				if (sct == null) continue;
+				String v = Caster.toString(sct.get(KeyConstants._version));
+				if (!RHExtension.isInstalled(config, key.getString(), v)) continue;
 
-				tmp = null;
-				try {
-					tmp = new RHExtension(config, key.getString(), sct);
-				}
-				catch (Exception e) {}
-
-				if (tmp != null && ed.equals(tmp)) return tmp;
+				if (ed.equals(new ExtensionDefintion(key.getString(), v))) return new RHExtension(config, key.getString(), v, false);
 			}
 			return null;
 		}

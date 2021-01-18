@@ -46,6 +46,7 @@ import lucee.runtime.converter.JSONDateFormat;
 import lucee.runtime.engine.InfoImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.extension.RHExtension;
 import lucee.runtime.interpreter.JSONExpressionInterpreter;
 import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.op.Caster;
@@ -200,9 +201,10 @@ public abstract class ConfigFactory {
 		}
 	}
 
-	public static void translateConfigFile(ConfigPro config, Resource configFileOld, Resource configFileNew) throws ConverterException, IOException, SAXException {
+	public static void translateConfigFile(ConfigPro config, Resource configFileOld, Resource configFileNew, String mode) throws ConverterException, IOException, SAXException {
 		// read the old config (XML)
 		Struct root = ConfigWebUtil.getAsStruct("cfLuceeConfiguration", new XMLConfigReader(configFileOld, true, new ReadRule(), new NameRule()).getData());
+
 		//////////////////// charset ////////////////////
 		{
 			Struct charset = ConfigWebUtil.getAsStruct("charset", root);
@@ -469,15 +471,37 @@ public abstract class ConfigFactory {
 			Struct extensions = ConfigWebUtil.getAsStruct("extensions", root);
 			Array rhextension = ConfigWebUtil.getAsArray("rhextension", extensions);
 
+			rem("enabled", extensions);
+			rem("extension", extensions);
+
+			// extensions
 			Key[] keys = rhextension.keys();
 			for (int i = keys.length - 1; i >= 0; i--) {
 				Key k = keys[i];
 				Struct data = Caster.toStruct(rhextension.get(k, null), null);
 				if (data == null) continue;
-
-				add(data, Caster.toString(data.remove(KeyConstants._id, null), null), extensions);
+				String id = Caster.toString(data.get(KeyConstants._id, null), null);
+				String version = Caster.toString(data.get(KeyConstants._version, null), null);
+				String name = Caster.toString(data.get(KeyConstants._name, null), null);
+				RHExtension.storeMetaData(config, id, version, data);
+				Struct sct = new StructImpl(Struct.TYPE_LINKED);
+				if (name != null) sct.setEL(KeyConstants._name, name);
+				sct.setEL(KeyConstants._version, version);
+				add(sct, Caster.toString(data.remove(KeyConstants._id, null), null), extensions);
 				rhextension.remove(k, null);
 			}
+			// providers
+			Array rhprovider = ConfigWebUtil.getAsArray("rhprovider", extensions);
+			Array extensionProviders = ConfigWebUtil.getAsArray("extensionProviders", root);
+			Iterator<Object> it = rhprovider.valueIterator();
+			while (it.hasNext()) {
+				Struct data = Caster.toStruct(it.next(), null);
+				if (data == null) continue;
+
+				String url = Caster.toString(data.get(KeyConstants._url, null), null);
+				if (!StringUtil.isEmpty(url)) extensionProviders.appendEL(url);
+			}
+			rem("rhprovider", extensions);
 		}
 
 		//////////////////// Gateway ////////////////////
@@ -653,8 +677,11 @@ public abstract class ConfigFactory {
 			moveAsBool("bufferingOutput", "bufferTagBodyOutput", setting, root);
 			moveAsBool("allowCompression", "allowCompression", setting, root);
 
-			Struct mode = ConfigWebUtil.getAsStruct("mode", root);
-			moveAsBool("develop", "developMode", mode, root);
+			Struct _mode = ConfigWebUtil.getAsStruct("mode", root);
+			moveAsBool("develop", "developMode", _mode, root);
+
+			// now that mode is free we can use it for the admin mode
+			if (!StringUtil.isEmpty(mode)) root.setEL(KeyConstants._mode, mode);
 		}
 
 		//////////////////// startup Hooks ////////////////////

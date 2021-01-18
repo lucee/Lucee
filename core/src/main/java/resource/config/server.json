@@ -19,6 +19,7 @@
 	,"mailSpoolEnable":true
 	,"mailSpoolInterval":5
 	,"mergeUrlForm":false
+	,"mode":"single"
 	,"preserveSingleQuote":false
 	,"requestTimeout":"0,0,0,50"
 	,"scopeCascading":"standard"

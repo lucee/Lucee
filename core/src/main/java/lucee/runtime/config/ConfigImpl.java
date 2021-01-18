@@ -165,7 +165,6 @@ import lucee.transformer.library.tag.TagLibTagScript;
  */
 public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
-	private static final Extension[] EXTENSIONS_EMPTY = new Extension[0];
 	private static final RHExtension[] RHEXTENSIONS_EMPTY = new RHExtension[0];
 
 	private int mode = MODE_CUSTOM;
@@ -349,9 +348,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	private RHExtensionProvider[] rhextensionProviders = Constants.RH_EXTENSION_PROVIDERS;
 
-	private Extension[] extensions = EXTENSIONS_EMPTY;
 	private RHExtension[] rhextensions = RHEXTENSIONS_EMPTY;
-	private boolean extensionEnabled;
 	private boolean allowRealPath = true;
 
 	private DumpWriterEntry[] dmpWriterEntries;
@@ -2786,7 +2783,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	@Override
 	public Extension[] getExtensions() {
-		return extensions;
+		throw new PageRuntimeException("no longer supported");
 	}
 
 	@Override
@@ -2794,21 +2791,13 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		return rhextensions;
 	}
 
-	protected void setExtensions(Extension[] extensions) {
-		this.extensions = extensions;
-	}
-
 	protected void setExtensions(RHExtension[] extensions) {
 		this.rhextensions = extensions;
 	}
 
-	protected void setExtensionEnabled(boolean extensionEnabled) {
-		this.extensionEnabled = extensionEnabled;
-	}
-
 	@Override
 	public boolean isExtensionEnabled() {
-		return extensionEnabled;
+		throw new PageRuntimeException("no longer supported");
 	}
 
 	@Override

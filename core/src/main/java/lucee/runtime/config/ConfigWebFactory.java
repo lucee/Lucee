@@ -124,8 +124,6 @@ import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.SecurityException;
-import lucee.runtime.extension.Extension;
-import lucee.runtime.extension.ExtensionImpl;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.extension.RHExtensionProvider;
 import lucee.runtime.functions.other.CreateUUID;
@@ -282,7 +280,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 		// translate to new
 		if (!hasConfigNew) {
 			if (hasConfigOld) {
-				translateConfigFile(configWeb, configFileOld, configFileNew);
+				translateConfigFile(configWeb, configFileOld, configFileNew, "multi");
 			}
 			// create config file
 			else {
@@ -461,7 +459,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 		// loadApplication
 		_loadRest(cs, config, root, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, ConfigWebFactory.class.getName(), "loaded rest");
-		_loadExtensions(cs, config, root, log);
+		_loadExtensionProviders(cs, config, root, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, ConfigWebFactory.class.getName(), "loaded extensions");
 		_loadDataSources(cs, config, root, log);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, ConfigWebFactory.class.getName(), "loaded datasources");
@@ -2625,27 +2623,21 @@ public final class ConfigWebFactory extends ConfigFactory {
 	private static void _loadConfig(ConfigServerImpl configServer, ConfigImpl config, Struct root) {
 		String salt = null;
 		Password pw = null;
-		if (root == null && configServer != null) {
-			config.setPassword(configServer.getPassword());
-			config.setSalt(configServer.getSalt());
-		}
-		else {
 
-			salt = getAttr(root, "salt");
-			if (StringUtil.isEmpty(salt, true)) salt = getAttr(root, "adminSalt");
-			// salt (every context need to have a salt)
-			if (StringUtil.isEmpty(salt, true)) throw new RuntimeException("context is invalid, there is no salt!");
-			config.setSalt(salt = salt.trim());
-			// password
-			pw = PasswordImpl.readFromStruct(root, salt, false);
-			if (pw != null) {
-				config.setPassword(pw);
-				if (config instanceof ConfigWebImpl) ((ConfigWebImpl) config).setPasswordSource(ConfigWebImpl.PASSWORD_ORIGIN_WEB);
-			}
-			else if (configServer != null) {
-				((ConfigWebImpl) config).setPasswordSource(configServer.hasCustomDefaultPassword() ? ConfigWebImpl.PASSWORD_ORIGIN_DEFAULT : ConfigWebImpl.PASSWORD_ORIGIN_SERVER);
-				config.setPassword(configServer.getDefaultPassword());
-			}
+		salt = getAttr(root, "salt");
+		if (StringUtil.isEmpty(salt, true)) salt = getAttr(root, "adminSalt");
+		// salt (every context need to have a salt)
+		if (StringUtil.isEmpty(salt, true)) throw new RuntimeException("context is invalid, there is no salt!");
+		config.setSalt(salt = salt.trim());
+		// password
+		pw = PasswordImpl.readFromStruct(root, salt, false);
+		if (pw != null) {
+			config.setPassword(pw);
+			if (config instanceof ConfigWebImpl) ((ConfigWebImpl) config).setPasswordSource(ConfigWebImpl.PASSWORD_ORIGIN_WEB);
+		}
+		else if (configServer != null) {
+			((ConfigWebImpl) config).setPasswordSource(configServer.hasCustomDefaultPassword() ? ConfigWebImpl.PASSWORD_ORIGIN_DEFAULT : ConfigWebImpl.PASSWORD_ORIGIN_SERVER);
+			config.setPassword(configServer.getDefaultPassword());
 		}
 
 		if (config instanceof ConfigServerImpl) {
@@ -4320,7 +4312,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 				BundleInfo[] bfsq;
 				try {
-					rhe = new RHExtension(config, e.getKey().getString(), child);
+					rhe = new RHExtension(config, e.getKey().getString(), Caster.toString(child.get(KeyConstants._version), null), true);
 					if (rhe.getStartBundles()) rhe.deployBundles(config);
 					extensions.add(rhe);
 				}
@@ -4336,20 +4328,13 @@ public final class ConfigWebFactory extends ConfigFactory {
 		}
 	}
 
-	private static void _loadExtensions(ConfigServerImpl configServer, ConfigImpl config, Struct root, Log log) {
+	private static void _loadExtensionProviders(ConfigServerImpl configServer, ConfigImpl config, Struct root, Log log) {
 		try {
-
-			Struct extParent = ConfigWebUtil.getAsStruct("extensions", root);
-
-			String strEnabled = extParent != null ? getAttr(extParent, "enabled") : null;
-			if (!StringUtil.isEmpty(strEnabled)) {
-				config.setExtensionEnabled(Caster.toBooleanValue(strEnabled, false));
-			}
 
 			// RH Providers
 			{
 				// providers
-				Array xmlProviders = ConfigWebUtil.getAsArray("rhprovider", extParent);
+				Array xmlProviders = ConfigWebUtil.getAsArray("extensionProviders", root);
 				String strProvider;
 				Map<RHExtensionProvider, String> providers = new LinkedHashMap<RHExtensionProvider, String>();
 
@@ -4357,45 +4342,22 @@ public final class ConfigWebFactory extends ConfigFactory {
 					providers.put(Constants.RH_EXTENSION_PROVIDERS[i], "");
 				}
 				if (xmlProviders != null) {
-					Iterator<?> it = xmlProviders.getIterator();
-					Struct xmlProvider;
+					Iterator<?> it = xmlProviders.valueIterator();
+					String url;
 					while (it.hasNext()) {
-						xmlProvider = Caster.toStruct(it.next(), null);
-						if (xmlProvider == null) continue;
+						url = Caster.toString(it.next(), null);
+						if (StringUtil.isEmpty(url, true)) continue;
 
-						strProvider = getAttr(xmlProvider, "url");
-						if (!StringUtil.isEmpty(strProvider, true)) {
-							try {
-								providers.put(new RHExtensionProvider(strProvider.trim(), false), "");
-							}
-							catch (MalformedURLException e) {
-								LogUtil.logGlobal(ThreadLocalPageContext.getConfig(configServer == null ? config : configServer), ConfigWebFactory.class.getName(), e);
-							}
+						try {
+							providers.put(new RHExtensionProvider(url.trim(), false), "");
+						}
+						catch (MalformedURLException e) {
+							LogUtil.logGlobal(ThreadLocalPageContext.getConfig(configServer == null ? config : configServer), ConfigWebFactory.class.getName(), e);
 						}
 					}
 				}
 				config.setRHExtensionProviders(providers.keySet().toArray(new RHExtensionProvider[providers.size()]));
 			}
-
-			// extensions
-			Array xmlExtensions = ConfigWebUtil.getAsArray("extension", extParent);
-			Extension[] extensions = null;
-			if (xmlExtensions != null) {
-				List<Extension> list = new ArrayList<>();
-				Iterator<?> it = xmlExtensions.getIterator();
-				Struct xmlExtension;
-				while (it.hasNext()) {
-					xmlExtension = Caster.toStruct(it.next());
-					if (xmlExtension == null) continue;
-					list.add(new ExtensionImpl(getAttr(xmlExtension, "config"), getAttr(xmlExtension, "id"), getAttr(xmlExtension, "provider"), getAttr(xmlExtension, "version"),
-							getAttr(xmlExtension, "name"), getAttr(xmlExtension, "label"), getAttr(xmlExtension, "description"), getAttr(xmlExtension, "category"),
-							getAttr(xmlExtension, "image"), getAttr(xmlExtension, "author"), getAttr(xmlExtension, "codename"), getAttr(xmlExtension, "video"),
-							getAttr(xmlExtension, "support"), getAttr(xmlExtension, "documentation"), getAttr(xmlExtension, "forum"), getAttr(xmlExtension, "mailinglist"),
-							getAttr(xmlExtension, "network"), DateCaster.toDateAdvanced(getAttr(xmlExtension, "created"), null, null), getAttr(xmlExtension, "type")));
-				}
-				extensions = list.toArray(new Extension[list.size()]);
-			}
-			config.setExtensions(extensions == null ? new Extension[0] : extensions);
 		}
 		catch (Exception e) {
 			log(config, log, e);
@@ -5001,6 +4963,16 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 	public static String getAttr(Struct data, String name) {
 		String v = ConfigWebUtil.getAsString(name, data, null);
+		if (v == null) {
+			return null;
+		}
+		if (StringUtil.isEmpty(v)) return "";
+		return replaceConfigPlaceHolder(v);
+	}
+
+	public static String getAttr(Struct data, String name, String alias) {
+		String v = ConfigWebUtil.getAsString(name, data, null);
+		if (v == null) v = ConfigWebUtil.getAsString(alias, data, null);
 		if (v == null) return null;
 		if (StringUtil.isEmpty(v)) return "";
 		return replaceConfigPlaceHolder(v);

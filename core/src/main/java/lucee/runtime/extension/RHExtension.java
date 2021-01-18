@@ -35,10 +35,10 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import org.osgi.framework.BundleException;
-import org.w3c.dom.Element;
 
 import lucee.Info;
 import lucee.commons.digest.HashUtil;
+import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
@@ -59,6 +59,9 @@ import lucee.runtime.config.ConfigWebFactory;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.config.Constants;
 import lucee.runtime.config.DeployHandler;
+import lucee.runtime.converter.ConverterException;
+import lucee.runtime.converter.JSONConverter;
+import lucee.runtime.converter.JSONDateFormat;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.engine.ThreadLocalConfig;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -67,6 +70,8 @@ import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.functions.conversion.DeserializeJSON;
+import lucee.runtime.interpreter.JSONExpressionInterpreter;
+import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.osgi.BundleFile;
@@ -195,36 +200,29 @@ public class RHExtension implements Serializable {
 
 	public final boolean softLoaded;
 
-	public RHExtension(Config config, Element el) throws PageException, IOException, BundleException {
-		this.config = config;
-		// we have a newer version that holds the Manifest data
-		if (el.hasAttribute("start-bundles")) {
-			this.extensionFile = toResource(config, el);
-			boolean _softLoaded;
-			try {
-				readManifestConfig(el, extensionFile.getAbsolutePath(), null);
-				_softLoaded = true;
-			}
-			catch (InvalidVersion iv) {
-				throw iv;
-			}
-			catch (ApplicationException ae) {
-				init(toResource(config, el), false);
-				_softLoaded = false;
-			}
-			softLoaded = _softLoaded;
-		}
-		else {
-			init(toResource(config, el), false);
-			softLoaded = false;
-		}
+	public static boolean isInstalled(Config config, String id, String version) throws PageException, IOException, BundleException, ConverterException {
+		Resource res = toResource(config, id, version, null);
+		return res != null && res.isFile();
 	}
 
-	public RHExtension(Config config, String id, Struct data) throws PageException, IOException, BundleException {
+	public RHExtension(Config config, String id, String version, boolean installIfNecessary) throws PageException, IOException, BundleException, ConverterException {
 		this.config = config;
 		// we have a newer version that holds the Manifest data
-		if (data.containsKey("start-bundles")) {
-			this.extensionFile = toResource(config, data);
+		Resource res;
+		if (installIfNecessary) {
+			res = toResource(config, id, version, null);
+			if (res == null) {
+				DeployHandler.deployExtension(config, new ExtensionDefintion(id, version), null, false);
+				res = toResource(config, id, version);
+			}
+		}
+		else {
+			res = toResource(config, id, version);
+		}
+		Struct data = getMetaData(config, id, version);
+
+		if (data.containsKey("startBundles")) {
+			this.extensionFile = res;
 			boolean _softLoaded;
 			try {
 				readManifestConfig(id, data, extensionFile.getAbsolutePath(), null);
@@ -234,24 +232,24 @@ public class RHExtension implements Serializable {
 				throw iv;
 			}
 			catch (ApplicationException ae) {
-				init(toResource(config, data), false);
+				init(res, false);
 				_softLoaded = false;
 			}
 			softLoaded = _softLoaded;
 		}
 		else {
-			init(toResource(config, data), false);
+			init(res, false);
 			softLoaded = false;
 		}
 	}
 
-	public RHExtension(Config config, Resource ext, boolean moveIfNecessary) throws PageException, IOException, BundleException {
+	public RHExtension(Config config, Resource ext, boolean moveIfNecessary) throws PageException, IOException, BundleException, ConverterException {
 		this.config = config;
 		init(ext, moveIfNecessary);
 		softLoaded = false;
 	}
 
-	private void init(Resource ext, boolean moveIfNecessary) throws PageException, IOException, BundleException {
+	private void init(Resource ext, boolean moveIfNecessary) throws PageException, IOException, BundleException, ConverterException {
 		// make sure the config is registerd with the thread
 		if (ThreadLocalPageContext.getConfig() == null) ThreadLocalConfig.register(config);
 
@@ -261,7 +259,18 @@ public class RHExtension implements Serializable {
 		load(ext);
 
 		this.extensionFile = ext;
-		if (moveIfNecessary) move(ext);
+		if (moveIfNecessary) {
+			move(ext);
+			Struct data = new StructImpl(Struct.TYPE_LINKED);
+			populate(data, true);
+			storeMetaData(config, id, version, data);
+		}
+	}
+
+	public static void storeMetaData(Config config, String id, String version, Struct data) throws ConverterException, IOException {
+		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, true, true);
+		String str = json.serialize(null, data, SerializationSettings.SERIALIZE_AS_ROW);
+		IOUtil.write(getMetaDataFile(config, id, version), str, CharsetUtil.UTF8, false);
 	}
 
 	// copy the file to extension dir if it is not already there
@@ -269,7 +278,7 @@ public class RHExtension implements Serializable {
 		Resource trg;
 		Resource trgDir;
 		try {
-			trg = getExtensionFile(config, ext, id, name, version);
+			trg = getExtensionFile(config, id, version);
 			trgDir = trg.getParentResource();
 			trgDir.mkdirs();
 			if (!ext.getParentResource().equals(trgDir)) {
@@ -473,13 +482,13 @@ public class RHExtension implements Serializable {
 		Log logger = config.getLog("deploy");
 		Info info = ConfigWebUtil.getEngine(config).getInfo();
 
-		readSymbolicName(label, ConfigWebFactory.getAttr(data, "symbolic-name"));
+		readSymbolicName(label, ConfigWebFactory.getAttr(data, "symbolicName", "symbolic-name"));
 		readName(label, ConfigWebFactory.getAttr(data, "name"));
 		label = name;
 		readVersion(label, ConfigWebFactory.getAttr(data, "version"));
 		label += " : " + version;
 		readId(label, StringUtil.isEmpty(id) ? ConfigWebFactory.getAttr(data, "id") : id);
-		readReleaseType(label, ConfigWebFactory.getAttr(data, "release-type"), isWeb);
+		readReleaseType(label, ConfigWebFactory.getAttr(data, "releaseType", "release-type"), isWeb);
 		description = ConfigWebFactory.getAttr(data, "description");
 		trial = Caster.toBooleanValue(ConfigWebFactory.getAttr(data, "trial"), false);
 		if (_img == null) _img = ConfigWebFactory.getAttr(data, "image");
@@ -487,9 +496,9 @@ public class RHExtension implements Serializable {
 		String cat = ConfigWebFactory.getAttr(data, "category");
 		if (StringUtil.isEmpty(cat, true)) cat = ConfigWebFactory.getAttr(data, "categories");
 		readCategories(label, cat);
-		readCoreVersion(label, ConfigWebFactory.getAttr(data, "lucee-core-version"), info);
-		readLoaderVersion(label, ConfigWebFactory.getAttr(data, "lucee-loader-version"));
-		startBundles = Caster.toBooleanValue(ConfigWebFactory.getAttr(data, "start-bundles"), true);
+		readCoreVersion(label, ConfigWebFactory.getAttr(data, "luceeCoreVersion", "lucee-core-version"), info);
+		readLoaderVersion(label, ConfigWebFactory.getAttr(data, "luceeLoaderVersion", "lucee-loader-version"));
+		startBundles = Caster.toBooleanValue(ConfigWebFactory.getAttr(data, "startBundles", "start-bundles"), true);
 
 		readAMF(label, ConfigWebFactory.getAttr(data, "amf"), logger);
 		readResource(label, ConfigWebFactory.getAttr(data, "resource"), logger);
@@ -498,48 +507,10 @@ public class RHExtension implements Serializable {
 		readWebservice(label, ConfigWebFactory.getAttr(data, "webservice"), logger);
 		readMonitor(label, ConfigWebFactory.getAttr(data, "monitor"), logger);
 		readCache(label, ConfigWebFactory.getAttr(data, "cache"), logger);
-		readCacheHandler(label, ConfigWebFactory.getAttr(data, "cache-handler"), logger);
+		readCacheHandler(label, ConfigWebFactory.getAttr(data, "cacheHandler", "cache-handler"), logger);
 		readJDBC(label, ConfigWebFactory.getAttr(data, "jdbc"), logger);
 		readMapping(label, ConfigWebFactory.getAttr(data, "mapping"), logger);
-		readEventGatewayInstances(label, ConfigWebFactory.getAttr(data, "event-gateway-instance"), logger);
-	}
-
-	private void readManifestConfig(Element el, String label, String _img) throws ApplicationException {
-		boolean isWeb = config instanceof ConfigWeb;
-		type = isWeb ? "web" : "server";
-
-		Log logger = config.getLog("deploy");
-		Info info = ConfigWebUtil.getEngine(config).getInfo();
-
-		readSymbolicName(label, el.getAttribute("symbolic-name"));
-		readName(label, el.getAttribute("name"));
-		label = name;
-		readVersion(label, el.getAttribute("version"));
-		label += " : " + version;
-		readId(label, el.getAttribute("id"));
-		readReleaseType(label, el.getAttribute("release-type"), isWeb);
-		description = el.getAttribute("description");
-		trial = Caster.toBooleanValue(el.getAttribute("trial"), false);
-		if (_img == null) _img = el.getAttribute("image");
-		image = _img;
-		String cat = el.getAttribute("category");
-		if (StringUtil.isEmpty(cat, true)) cat = el.getAttribute("categories");
-		readCategories(label, cat);
-		readCoreVersion(label, el.getAttribute("lucee-core-version"), info);
-		readLoaderVersion(label, el.getAttribute("lucee-loader-version"));
-		startBundles = Caster.toBooleanValue(el.getAttribute("start-bundles"), true);
-
-		readAMF(label, el.getAttribute("amf"), logger);
-		readResource(label, el.getAttribute("resource"), logger);
-		readSearch(label, el.getAttribute("search"), logger);
-		readORM(label, el.getAttribute("orm"), logger);
-		readWebservice(label, el.getAttribute("webservice"), logger);
-		readMonitor(label, el.getAttribute("monitor"), logger);
-		readCache(label, el.getAttribute("cache"), logger);
-		readCacheHandler(label, el.getAttribute("cache-handler"), logger);
-		readJDBC(label, el.getAttribute("jdbc"), logger);
-		readMapping(label, el.getAttribute("mapping"), logger);
-		readEventGatewayInstances(label, el.getAttribute("event-gateway-instance"), logger);
+		readEventGatewayInstances(label, ConfigWebFactory.getAttr(data, "eventGatewayInstance", "event-gateway-instance"), logger);
 	}
 
 	private void readMapping(String label, String str, Log logger) {
@@ -767,39 +738,40 @@ public class RHExtension implements Serializable {
 		}
 	}
 
-	public static Resource toResource(Config config, Struct data) throws ApplicationException {
-		String fileName = ConfigWebFactory.getAttr(data, "file-name");
-		if (StringUtil.isEmpty(fileName)) throw new ApplicationException("missing attribute [file-name]");
+	public static Resource toResource(Config config, String id, String version) throws PageException {
+		String fileName = HashUtil.create64BitHashAsString(id + version, Character.MAX_RADIX) + ".lex";
 		Resource res = getExtensionDir(config).getRealResource(fileName);
 		if (!res.exists()) throw new ApplicationException("Extension [" + fileName + "] was not found at [" + res + "]");
 		return res;
 	}
 
-	public static Resource toResource(Config config, Element el) throws ApplicationException {
-		String fileName = el.getAttribute("file-name");
-		if (StringUtil.isEmpty(fileName)) throw new ApplicationException("missing attribute [file-name]");
-		Resource res = getExtensionDir(config).getRealResource(fileName);
-		if (!res.exists()) throw new ApplicationException("Extension [" + fileName + "] was not found at [" + res + "]");
-		return res;
-	}
-
-	public static Resource toResource(Config config, Element el, Resource defaultValue) {
-		String fileName = el.getAttribute("file-name");
-		if (StringUtil.isEmpty(fileName)) return defaultValue;
+	public static Resource toResource(Config config, String id, String version, Resource defaultValue) throws PageException {
+		String fileName = toHash(id, version, "lex");
 		Resource res = getExtensionDir(config).getRealResource(fileName);
 		if (!res.exists()) return defaultValue;
 		return res;
 	}
 
-	private static Resource getExtensionFile(Config config, Resource ext, String id, String name, String version) {
-		String fileName = toHash(id, name, version, ResourceUtil.getExtension(ext, "lex"));
-		// String
-		// fileName=HashUtil.create64BitHashAsString(id+version,Character.MAX_RADIX)+"."+ResourceUtil.getExtension(ext,
-		// "lex");
+	public static Resource getExtensionFile(Config config, String id, String version) {
+		String fileName = toHash(id, version, "lex");
 		return getExtensionDir(config).getRealResource(fileName);
 	}
 
-	public static String toHash(String id, String name, String version, String ext) {
+	private Struct getMetaData(Config config, String id, String version) throws PageException, IOException, BundleException {
+		Resource file = getMetaDataFile(config, id, version);
+		if (file.isFile()) return Caster.toStruct(new JSONExpressionInterpreter().interpret(null, IOUtil.toString(file, CharsetUtil.UTF8)));
+		load(getExtensionFile(config, id, version));
+		Struct data = new StructImpl();
+		populate(data, true);
+		return data;
+	}
+
+	public static Resource getMetaDataFile(Config config, String id, String version) {
+		String fileName = toHash(id, version, "mf");
+		return getExtensionDir(config).getRealResource(fileName);
+	}
+
+	public static String toHash(String id, String version, String ext) {
 		if (ext == null) ext = "lex";
 		return HashUtil.create64BitHashAsString(id + version, Character.MAX_RADIX) + "." + ext;
 	}
@@ -820,7 +792,7 @@ public class RHExtension implements Serializable {
 		return count.toInt();
 	}
 
-	public static void correctExtensions(Config config) throws PageException, IOException, BundleException {
+	public static void correctExtensions(Config config) throws PageException, IOException, BundleException, ConverterException {
 
 		// extension defined in xml
 		RHExtension[] xmlArrExtensions = ((ConfigPro) config).getRHExtensions();
@@ -870,55 +842,21 @@ public class RHExtension implements Serializable {
 		return arrBDs;
 	}
 
-	public static void populate(Element el, Manifest manifest) {
-		Attributes attr = manifest.getMainAttributes();
-		pop(el, attr, "id", null);
-		pop(el, attr, "name", null);
-		pop(el, attr, "version", null);
-		pop(el, attr, "start-bundles", "false");
-		pop(el, attr, "release-type", "all");
-		pop(el, attr, "description", null);
-		pop(el, attr, "trial", null);
-		pop(el, attr, "image", null);
-		pop(el, attr, "categories", null);
-		pop(el, attr, "category", null);
-		pop(el, attr, "lucee-core-version", null);
-		pop(el, attr, "lucee-loader-version", null);
-		pop(el, attr, "amf", null);
-		pop(el, attr, "resource", null);
-		pop(el, attr, "search", null);
-		pop(el, attr, "orm", null);
-		pop(el, attr, "webservice", null);
-		pop(el, attr, "monitor", null);
-		pop(el, attr, "cache", null);
-		pop(el, attr, "cache-handler", null);
-		pop(el, attr, "jdbc", null);
-		pop(el, attr, "mapping", null);
-		pop(el, attr, "event-gateway-instance", null);
-	}
-
-	private static void pop(Element el, Attributes attr, String name, String defaultValue) {
-		String val = StringUtil.unwrap(attr.getValue(name));
-		if (!StringUtil.isEmpty(val)) el.setAttribute(name, val);
-		else if (defaultValue != null) el.setAttribute(name, defaultValue);
-		else el.removeAttribute(name);
-	}
-
-	public void populate(Struct el) {
-		el.setEL("file-name", extensionFile.getName());
+	public void populate(Struct el, boolean full) {
 		String id = getId();
 		String name = getName();
 		if (StringUtil.isEmpty(name)) name = id;
-		el.setEL("id", id);
 		el.setEL("name", name);
 		el.setEL("version", getVersion());
+		if (!full) return;
+		el.setEL("id", id);
 
 		// newly added
 		// start bundles (IMPORTANT:this key is used to reconize a newer entry, so do not change)
-		el.setEL("start-bundles", Caster.toString(getStartBundles()));
+		el.setEL("startBundles", Caster.toString(getStartBundles()));
 
 		// release type
-		el.setEL("release-type", toReleaseType(getReleaseType(), "all"));
+		el.setEL("releaseType", toReleaseType(getReleaseType(), "all"));
 
 		// Description
 		if (StringUtil.isEmpty(getDescription())) el.setEL("description", toStringForAttr(getDescription()));
@@ -944,12 +882,12 @@ public class RHExtension implements Serializable {
 		else el.removeEL(KeyImpl.init("categories"));
 
 		// core version
-		if (minCoreVersion != null) el.setEL("lucee-core-version", toStringForAttr(minCoreVersion.toString()));
-		else el.removeEL(KeyImpl.init("lucee-core-version"));
+		if (minCoreVersion != null) el.setEL("luceeCoreVersion", toStringForAttr(minCoreVersion.toString()));
+		else el.removeEL(KeyImpl.init("luceeCoreVersion"));
 
 		// loader version
-		if (minLoaderVersion > 0) el.setEL("loader-version", Caster.toString(minLoaderVersion));
-		else el.removeEL(KeyImpl.init("loader-version"));
+		if (minLoaderVersion > 0) el.setEL("loaderVersion", Caster.toString(minLoaderVersion));
+		else el.removeEL(KeyImpl.init("loaderVersion"));
 
 		// amf
 		if (!StringUtil.isEmpty(amfsJson)) el.setEL("amf", toStringForAttr(amfsJson));
@@ -980,24 +918,24 @@ public class RHExtension implements Serializable {
 		else el.removeEL(KeyImpl.init("cache"));
 
 		// cache-handler
-		if (!StringUtil.isEmpty(cacheHandlersJson)) el.setEL("cache-handler", toStringForAttr(cacheHandlersJson));
-		else el.removeEL(KeyImpl.init("cache-handler"));
+		if (!StringUtil.isEmpty(cacheHandlersJson)) el.setEL("cacheHandler", toStringForAttr(cacheHandlersJson));
+		else el.removeEL(KeyImpl.init("cacheHandler"));
 
 		// jdbc
 		if (!StringUtil.isEmpty(jdbcsJson)) el.setEL("jdbc", toStringForAttr(jdbcsJson));
 		else el.removeEL(KeyImpl.init("jdbc"));
 
 		// startup-hook
-		if (!StringUtil.isEmpty(startupHooksJson)) el.setEL("startup-hook", toStringForAttr(startupHooksJson));
-		else el.removeEL(KeyImpl.init("startup-hook"));
+		if (!StringUtil.isEmpty(startupHooksJson)) el.setEL("startupHook", toStringForAttr(startupHooksJson));
+		else el.removeEL(KeyImpl.init("startupHook"));
 
 		// mapping
 		if (!StringUtil.isEmpty(mappingsJson)) el.setEL("mapping", toStringForAttr(mappingsJson));
 		else el.removeEL(KeyImpl.init("mapping"));
 
 		// event-gateway-instances
-		if (!StringUtil.isEmpty(eventGatewayInstancesJson)) el.setEL("event-gateway-instances", toStringForAttr(eventGatewayInstancesJson));
-		else el.removeEL(KeyImpl.init("event-gateway-instances"));
+		if (!StringUtil.isEmpty(eventGatewayInstancesJson)) el.setEL("eventGatewayInstances", toStringForAttr(eventGatewayInstancesJson));
+		else el.removeEL(KeyImpl.init("eventGatewayInstances"));
 	}
 
 	private String toStringForAttr(String str) {
@@ -1038,21 +976,6 @@ public class RHExtension implements Serializable {
 					ExceptionUtil.rethrowIfNecessary(t);
 					log.error("extension", t);
 				}
-			}
-		}
-		return qry;
-	}
-
-	public static Query toQuery(Config config, Element[] children) throws PageException {
-		Log log = config.getLog("deploy");
-		Query qry = createQuery();
-		for (int i = 0; i < children.length; i++) {
-			try {
-				new RHExtension(config, children[i]).populate(qry); // ,i+1
-			}
-			catch (Throwable t) {
-				ExceptionUtil.rethrowIfNecessary(t);
-				log.error("extension", t);
 			}
 		}
 		return qry;
