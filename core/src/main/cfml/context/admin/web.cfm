@@ -1,13 +1,15 @@
-<cfif structKeyExists(form, "captchaValue")>
-	<cfset session.cap = form.captchaValue>
-</cfif>
-<cfsilent>
-<cfparam name="request.disableFrame" default="false" type="boolean">
-<cfparam name="request.setCFApplication" default="true" type="boolean">
+<cfscript>
+	if(getConfigSettings().mode=="single") {
+		location url="server.cfm" addtoken="no";
+	}
+	if(structKeyExists(form, "captchaValue")){
+		session.cap = form.captchaValue;
+	}
+	param name="request.disableFrame" default="false" type="boolean";
+	param name="request.setCFApplication" default="true" type="boolean";
 
-<cfif request.setCFApplication>
-	<cfapplication
-		name="webadmin#server.lucee.version#"
+	if(request.setCFApplication) {
+		application name="webadmin#server.lucee.version#"
 		sessionmanagement="yes"
 		clientmanagement="no"
 		setclientcookies="yes"
@@ -18,9 +20,9 @@
 		sessiontimeout="#createTimeSpan(0,0,30,0)#"
 		applicationtimeout="#createTimeSpan(1,0,0,0)#"
 		localmode="update"
-		webcharset="utf-8"
-		>
-</cfif>
+		webcharset="utf-8";
+	}
+</cfscript><cfsilent>
 
 <!--- todo: remember screenwidth, so images have the correct width etc. --->
 <!--- PK: instead of session.screenWidth, we now have:

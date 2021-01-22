@@ -21,11 +21,13 @@
   <script language="CFML">
     <![CDATA[
 // set a password for the admin
-    admin 
-		action="updatePassword"
-		type="web"
-		oldPassword=""
-		newPassword="webweb";
+	if(getConfigSettings().mode!="single") {
+	    admin 
+			action="updatePassword"
+			type="web"
+			oldPassword=""
+			newPassword="webweb";
+	}
     admin 
 		action="updatePassword"
 		type="server"

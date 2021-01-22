@@ -38,6 +38,8 @@ this.xmlFeatures = {
     disallowDoctypeDecl: true
 };
 
+request.singleMode=!isNull(url.sm);
+
 public function onRequestStart() {
 	// if not logged in, we only allow access to admin|web|server[.cfm]
 	if(!structKeyExists(session, "passwordWeb") && !structKeyExists(session, "passwordServer")){

@@ -27,20 +27,21 @@
 </head>
 
 <cfparam name="attributes.onload" default="">
-
-<body id="body" class="admin-#request.adminType# #request.adminType#<cfif application.adminfunctions.getdata('fullscreen') eq 1> full</cfif>" onload="#attributes.onload#">
+<cfset mode=getConfigSettings().mode=="single"?"single":request.adminType>
+<body id="body" class="admin-#mode# #mode#<cfif application.adminfunctions.getdata('fullscreen') eq 1> full</cfif>" onload="#attributes.onload#">
 	<div id="<cfif !hasNavigation>login<cfelse>layout</cfif>">
 		<table id="layouttbl">
 			<tbody>
 				<tr id="tr-header">	<!--- TODO: not sure where height of 275px is coming from? forcing here 113px/63px !--->
 					<td colspan="2">
 						<div id="header">
-							<!--- http://localhost:9090/context5/res/img/web-lucee.png.cfm --->
-							<a id="logo" class="sprite" href="#home#"></a>
-							<div id="admin-tabs" class="clearfix">
-								<a href="server.cfm#homeQS#" class="sprite server"></a>
-								<a href="web.cfm#homeQS#" class="sprite web"></a>
-							</div>
+								<a id="logo" class="sprite" href="#home#"></a>
+							<cfif not request.singleMode>
+								<div id="admin-tabs" class="clearfix">
+									<a href="server.cfm#homeQS#" class="sprite server"></a>
+									<a href="web.cfm#homeQS#" class="sprite web"></a>
+								</div>
+							</cfif>
 						</div>	<!--- #header !--->
 					</td>
 				</tr>
