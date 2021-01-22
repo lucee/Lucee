@@ -783,4 +783,23 @@ public final class ConfigWebUtil {
 		if (obj == null) return defaultValue;
 		return Caster.toDoubleValue(obj, false, defaultValue);
 	}
+
+	public static short toAdminMode(String mode, short defaultValue) {
+		if (StringUtil.isEmpty(mode, true)) return defaultValue;
+
+		mode = mode.trim();
+		if ("multi".equalsIgnoreCase(mode)) return ConfigImpl.ADMINMODE_MULTI;
+		if ("single".equalsIgnoreCase(mode)) return ConfigImpl.ADMINMODE_SINGLE;
+		if ("auto".equalsIgnoreCase(mode)) return ConfigImpl.ADMINMODE_AUTO;
+
+		return defaultValue;
+	}
+
+	public static String toAdminMode(short mode, String defaultValue) {
+		if (ConfigImpl.ADMINMODE_MULTI == mode) return "multi";
+		if (ConfigImpl.ADMINMODE_SINGLE == mode) return "single";
+		if (ConfigImpl.ADMINMODE_AUTO == mode) return "auto";
+
+		return defaultValue;
+	}
 }

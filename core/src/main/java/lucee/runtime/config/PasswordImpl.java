@@ -77,7 +77,6 @@ public class PasswordImpl implements Password {
 
 	@Override
 	public Password isEqual(Config config, String other) {
-
 		// an already hashed password that matches
 		if (password.equals(other)) return this;
 
@@ -270,7 +269,7 @@ public class PasswordImpl implements Password {
 
 	public static void updatePassword(ConfigPro config, Password passwordOld, Password passwordNew) throws IOException, PageException, BundleException, ConverterException {
 		if (!config.hasPassword()) {
-			((ConfigImpl) config).setPassword(passwordNew);
+			config.setPassword(passwordNew);
 			ConfigAdmin admin = ConfigAdmin.newInstance(config, passwordNew);
 			admin.setPassword(passwordNew);
 			admin.storeAndReload();

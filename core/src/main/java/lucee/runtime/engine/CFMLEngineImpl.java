@@ -109,20 +109,21 @@ import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
 import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigAdmin;
+import lucee.runtime.config.ConfigFactory;
+import lucee.runtime.config.ConfigFactory.UpdateInfo;
+import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigServer;
+import lucee.runtime.config.ConfigServerFactory;
 import lucee.runtime.config.ConfigServerImpl;
 import lucee.runtime.config.ConfigWeb;
+import lucee.runtime.config.ConfigWebFactory;
 import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.config.DeployHandler;
 import lucee.runtime.config.Identification;
 import lucee.runtime.config.Password;
-import lucee.runtime.config.ConfigAdmin;
-import lucee.runtime.config.ConfigFactory;
-import lucee.runtime.config.ConfigFactory.UpdateInfo;
-import lucee.runtime.config.ConfigServerFactory;
-import lucee.runtime.config.ConfigWebFactory;
 import lucee.runtime.engine.listener.CFMLServletContextListener;
 import lucee.runtime.exp.Abort;
 import lucee.runtime.exp.ApplicationException;
@@ -894,13 +895,21 @@ public final class CFMLEngineImpl implements CFMLEngine {
 		try {
 			if (ConfigWebFactory.LOG) LogUtil.log(configServer, Log.LEVEL_INFO, "startup", "load Context");
 			// Load Config
-			RefBoolean isCustomSetting = new RefBooleanImpl();
-			Resource configDir = getConfigDirectory(sg, configServer, countExistingContextes, isCustomSetting);
 			if (ConfigWebFactory.LOG) LogUtil.log(configServer, Log.LEVEL_INFO, "startup", "got context directory");
 
+			boolean multi = configServer.getAdminMode() == ConfigImpl.ADMINMODE_MULTI;
 			CFMLFactoryImpl factory = new CFMLFactoryImpl(this, sg);
 			if (ConfigWebFactory.LOG) LogUtil.log(configServer, Log.LEVEL_INFO, "startup", "init factory");
-			ConfigWebPro config = ConfigWebFactory.newInstance(this, factory, configServer, configDir, isCustomSetting.toBooleanValue(), sg);
+			ConfigWebPro config;
+			if (multi) {
+				RefBoolean isCustomSetting = new RefBooleanImpl();
+				Resource configDir = getConfigDirectory(sg, configServer, countExistingContextes, isCustomSetting);
+				config = ConfigWebFactory.newInstanceMulti(this, factory, configServer, configDir, isCustomSetting.toBooleanValue(), sg);
+			}
+			else {
+				config = ConfigWebFactory.newInstanceSingle(this, factory, configServer, sg);
+			}
+
 			if (ConfigWebFactory.LOG) LogUtil.log(configServer, Log.LEVEL_INFO, "startup", "loaded config");
 			factory.setConfig(config);
 			return factory;

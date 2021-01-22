@@ -228,56 +228,49 @@ public final class ConfigWebFactory extends ConfigFactory {
 	 * @throws ConverterException
 	 */
 
-	public static ConfigWebImpl newInstance(CFMLEngine engine, CFMLFactoryImpl factory, ConfigServerImpl configServer, Resource configDir, boolean isConfigDirACustomSetting,
+	public static ConfigWebPro newInstanceMulti(CFMLEngine engine, CFMLFactoryImpl factory, ConfigServerImpl configServer, Resource configDir, boolean isConfigDirACustomSetting,
 			ServletConfig servletConfig)
 			throws SAXException, ClassException, PageException, IOException, TagLibException, FunctionLibException, NoSuchAlgorithmException, BundleException, ConverterException {
 
-		String hash = SystemUtil.hash(servletConfig.getServletContext());
-		Map<String, String> labels = configServer.getLabels();
-		String label = null;
-		if (labels != null) {
-			label = labels.get(hash);
-		}
-		if (label == null) label = hash;
+		// boolean multi = configServer.getAdminMode() == ConfigImpl.ADMINMODE_MULTI;
 
 		// make sure the web context does not point to the same directory as the server context
-		if (configDir.equals(configServer.getConfigDir()))
-			throw new ApplicationException("the web context [" + label + "] has defined the same configuration directory [" + configDir + "] as the server context");
-
+		if (configDir.equals(configServer.getConfigDir())) {
+			throw new ApplicationException(
+					"the web context [" + createLabel(configServer, servletConfig) + "] has defined the same configuration directory [" + configDir + "] as the server context");
+		}
 		ConfigWeb[] webs = configServer.getConfigWebs();
 		if (!ArrayUtil.isEmpty(webs)) {
 			for (int i = 0; i < webs.length; i++) {
 				// not sure this is necessary if(hash.equals(((ConfigWebImpl)webs[i]).getHash())) continue;
-				if (configDir.equals(webs[i].getConfigDir())) throw new ApplicationException(
-						"the web context [" + label + "] has defined the same configuration directory [" + configDir + "] as the web context [" + webs[i].getLabel() + "]");
+				if (configDir.equals(webs[i].getConfigDir())) throw new ApplicationException("the web context [" + createLabel(configServer, servletConfig)
+						+ "] has defined the same configuration directory [" + configDir + "] as the web context [" + webs[i].getLabel() + "]");
 			}
 		}
 
 		LogUtil.logGlobal(configServer, Log.LEVEL_INFO, ConfigWebFactory.class.getName(),
-				"===================================================================\n" + "WEB CONTEXT (" + label + ")\n"
+				"===================================================================\n" + "WEB CONTEXT (" + createLabel(configServer, servletConfig) + ")\n"
 						+ "-------------------------------------------------------------------\n" + "- config:" + configDir + (isConfigDirACustomSetting ? " (custom setting)" : "")
-						+ "\n" + "- webroot:" + ReqRspUtil.getRootPath(servletConfig.getServletContext()) + "\n" + "- hash:" + hash + "\n" + "- label:" + label + "\n"
+						+ "\n" + "- webroot:" + ReqRspUtil.getRootPath(servletConfig.getServletContext()) + "\n" + "- label:" + createLabel(configServer, servletConfig) + "\n"
 						+ "===================================================================\n"
 
 		);
 
-		int iDoNew = getNew(engine, configDir, false, UpdateInfo.NEW_NONE).updateType;
-		boolean doNew = iDoNew != NEW_NONE;
-
+		boolean doNew = getNew(engine, configDir, false, UpdateInfo.NEW_NONE).updateType != NEW_NONE;
+		ConfigWebPro configWeb;
 		Resource configFileOld = configDir.getRealResource("lucee-web.xml." + TEMPLATE_EXTENSION);
 		Resource configFileNew = configDir.getRealResource(".CFConfig.json");
-
 		String strPath = servletConfig.getServletContext().getRealPath("/WEB-INF");
 		Resource path = ResourcesImpl.getFileResourceProvider().getResource(strPath);
-
 		boolean hasConfigOld = false;
 		boolean hasConfigNew = configFileNew.exists() && configFileNew.length() > 0;
 		if (!hasConfigNew) {
 			hasConfigOld = configFileOld.exists() && configFileOld.length() > 0;
 		}
-		ConfigWebImpl configWeb = new ConfigWebImpl(factory, configServer, servletConfig, configDir, configFileNew);
+		configWeb = new ConfigWebImpl(factory, configServer, servletConfig, configDir, configFileNew);
 
 		// translate to new
+		Struct root = null;
 		if (!hasConfigNew) {
 			if (hasConfigOld) {
 				translateConfigFile(configWeb, configFileOld, configFileNew, "multi");
@@ -288,8 +281,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 				hasConfigNew = true;
 			}
 		}
-
-		Struct root = loadDocumentCreateIfFails(configFileNew, "web");
+		root = loadDocumentCreateIfFails(configFileNew, "web");
 
 		// htaccess
 		if (path.exists()) createHtAccess(path.getRealResource(".htaccess"));
@@ -297,13 +289,45 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 		createContextFiles(configDir, servletConfig, doNew);
 
-		load(configServer, configWeb, root, false, doNew);
+		load(configServer, (ConfigWebImpl) configWeb, root, false, doNew);
 		createContextFilesPost(configDir, configWeb, servletConfig, false, doNew);
 
 		// call web.cfc for this context
 		((CFMLEngineImpl) ConfigWebUtil.getEngine(configWeb)).onStart(configWeb, false);
 
 		return configWeb;
+	}
+
+	public static ConfigWebPro newInstanceSingle(CFMLEngine engine, CFMLFactoryImpl factory, ConfigServerImpl configServer, ServletConfig servletConfig)
+			throws SAXException, ClassException, PageException, IOException, TagLibException, FunctionLibException, NoSuchAlgorithmException, BundleException, ConverterException {
+
+		Resource configDir = configServer.getConfigDir();
+
+		LogUtil.logGlobal(configServer, Log.LEVEL_INFO, ConfigWebFactory.class.getName(),
+				"===================================================================\n" + "WEB CONTEXT (SINGLE) (" + createLabel(configServer, servletConfig) + ")\n"
+						+ "-------------------------------------------------------------------\n" + "- config:" + configDir + "\n" + "- webroot:"
+						+ ReqRspUtil.getRootPath(servletConfig.getServletContext()) + "\n" + "- label:" + createLabel(configServer, servletConfig) + "\n"
+						+ "===================================================================\n"
+
+		);
+
+		boolean doNew = configServer.getUpdateInfo().updateType != NEW_NONE;
+
+		ConfigWebPro configWeb = new SingleContextConfigWeb(factory, configServer, servletConfig);
+		createContextFiles(configDir, servletConfig, doNew);
+		createContextFilesPost(configDir, configWeb, servletConfig, false, doNew);
+		return configWeb;
+	}
+
+	private static String createLabel(ConfigServerImpl configServer, ServletConfig servletConfig) {
+		String hash = SystemUtil.hash(servletConfig.getServletContext());
+		Map<String, String> labels = configServer.getLabels();
+		String label = null;
+		if (labels != null) {
+			label = labels.get(hash);
+		}
+		if (label == null) label = hash;
+		return label;
 	}
 
 	private static void createHtAccess(Resource htAccess) {
@@ -333,7 +357,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 	 * @throws FunctionLibException
 	 * @throws BundleException
 	 * @throws NoSuchAlgorithmException
-	 */
+	 */ // MUST
 	public static void reloadInstance(CFMLEngine engine, ConfigServerImpl cs, ConfigWebImpl cw, boolean force)
 			throws ClassException, PageException, IOException, TagLibException, FunctionLibException, BundleException {
 		Resource configFile = cw.getConfigFile();
@@ -1227,7 +1251,6 @@ public final class ConfigWebFactory extends ConfigFactory {
 		String badContent = "<cfcomponent displayname=\"Component\" hint=\"This is the Base Component\">\n</cfcomponent>";
 		String badVersion = "704b5bd8597be0743b0c99a644b65896";
 		f = contextDir.getRealResource("Component." + COMPONENT_EXTENSION);
-
 		if (!f.exists()) createFileFromResourceEL("/resource/context/Component." + COMPONENT_EXTENSION, f);
 		else if (doNew && badVersion.equals(ConfigWebUtil.createMD5FromResource(f))) {
 			createFileFromResourceEL("/resource/context/Component." + COMPONENT_EXTENSION, f);
@@ -1361,7 +1384,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 	}
 
-	private static void createContextFilesPost(Resource configDir, ConfigImpl config, ServletConfig servletConfig, boolean isEventGatewayContext, boolean doNew) {
+	private static void createContextFilesPost(Resource configDir, ConfigWebPro config, ServletConfig servletConfig, boolean isEventGatewayContext, boolean doNew) {
 		Resource contextDir = configDir.getRealResource("context");
 		if (!contextDir.exists()) contextDir.mkdirs();
 
@@ -2357,7 +2380,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 	private static void _loadGateway(ConfigServerImpl configServer, ConfigImpl config, Struct root) {
 		boolean hasCS = configServer != null;
-
+		// MUSST
 		GatewayEngineImpl engine = hasCS ? ((GatewayEngineImpl) ((ConfigWebPro) config).getGatewayEngine()) : null;
 		Map<String, GatewayEntry> mapGateways = new HashMap<String, GatewayEntry>();
 
@@ -2636,8 +2659,9 @@ public final class ConfigWebFactory extends ConfigFactory {
 			if (config instanceof ConfigWebImpl) ((ConfigWebImpl) config).setPasswordSource(ConfigWebImpl.PASSWORD_ORIGIN_WEB);
 		}
 		else if (configServer != null) {
+
 			((ConfigWebImpl) config).setPasswordSource(configServer.hasCustomDefaultPassword() ? ConfigWebImpl.PASSWORD_ORIGIN_DEFAULT : ConfigWebImpl.PASSWORD_ORIGIN_SERVER);
-			config.setPassword(configServer.getDefaultPassword());
+			if (configServer.getDefaultPassword() != null) config.setPassword(configServer.getDefaultPassword());
 		}
 
 		if (config instanceof ConfigServerImpl) {
@@ -3116,6 +3140,10 @@ public final class ConfigWebFactory extends ConfigFactory {
 			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
 
 			boolean hasCS = configServer != null;
+
+			if (!hasCS) {
+				((ConfigServerImpl) config).setAdminMode(ConfigWebUtil.toAdminMode(getAttr(root, "mode"), ConfigImpl.ADMINMODE_SINGLE));
+			}
 
 			// suppress whitespace
 			String str = getAttr(root, "suppressContent");
@@ -4068,7 +4096,10 @@ public final class ConfigWebFactory extends ConfigFactory {
 	 */
 	private static void _loadScheduler(ConfigServer configServer, ConfigImpl config, Struct root, Log log) {
 		try {
-			if (config instanceof ConfigServer) return;
+			if (config instanceof ConfigServer) {
+				short mode = ConfigWebUtil.toAdminMode(getAttr(root, "mode"), ConfigImpl.ADMINMODE_SINGLE);
+				if (mode == ConfigImpl.ADMINMODE_MULTI) return;
+			}
 
 			Resource configDir = config.getConfigDir();
 			Array scheduledTasks = ConfigWebUtil.getAsArray("scheduledTasks", root);

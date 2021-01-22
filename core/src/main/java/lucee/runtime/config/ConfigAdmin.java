@@ -158,7 +158,7 @@ public final class ConfigAdmin {
 
 	private static final BundleInfo[] EMPTY = new BundleInfo[0];
 	private ConfigPro config;
-	private Struct root;
+	private final Struct root;
 	private Password password;
 
 	/**
@@ -319,12 +319,23 @@ public final class ConfigAdmin {
 			ConfigServerFactory.reloadInstance(engine, cs);
 			ConfigWeb[] webs = cs.getConfigWebs();
 			for (int i = 0; i < webs.length; i++) {
-				ConfigWebFactory.reloadInstance(engine, (ConfigServerImpl) config, (ConfigWebImpl) webs[i], true);
+				if (webs[i] instanceof ConfigWebImpl) ConfigWebFactory.reloadInstance(engine, (ConfigServerImpl) config, (ConfigWebImpl) webs[i], true);
 			}
 		}
-		else {
+		else if (config instanceof ConfigWebImpl) {
 			ConfigServerImpl cs = ((ConfigWebImpl) config).getConfigServerImpl();
 			ConfigWebFactory.reloadInstance(engine, cs, (ConfigWebImpl) config, false);
+		}
+		else if (config instanceof SingleContextConfigWeb) {
+			SingleContextConfigWeb sccw = (SingleContextConfigWeb) config;
+
+			ConfigServerImpl cs = sccw.getConfigServerImpl();
+			ConfigServerFactory.reloadInstance(engine, cs);
+			/*
+			 * ConfigWeb[] webs = cs.getConfigWebs(); for (int i = 0; i < webs.length; i++) { if (webs[i]
+			 * instanceof ConfigWebImpl) ConfigWebFactory.reloadInstance(engine, (ConfigServerImpl) config,
+			 * (ConfigWebImpl) webs[i], true); }
+			 */
 		}
 	}
 

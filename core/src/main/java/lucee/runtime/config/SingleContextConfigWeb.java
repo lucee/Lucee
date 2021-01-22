@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TimeZone;
 
+import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -33,6 +34,7 @@ import lucee.commons.lang.CharSet;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lock.KeyLock;
 import lucee.runtime.CFMLFactory;
+import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.CIPage;
 import lucee.runtime.Mapping;
 import lucee.runtime.PageContext;
@@ -99,10 +101,19 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	private ConfigServerImpl cs;
 	protected Password password;
 	private final ConfigWebHelper helper;
+	private final ServletConfig config;
+	private final CFMLFactoryImpl factory;
+	private SCCWIdentificationWeb id;
 
-	public SingleContextConfigWeb(ConfigServerImpl cs) {
+	public SingleContextConfigWeb(CFMLFactoryImpl factory, ConfigServerImpl cs, ServletConfig config) {
+		this.factory = factory;
 		this.cs = cs;
+		this.config = config;
 		helper = new ConfigWebHelper(cs, this);
+	}
+
+	public ConfigServerImpl getConfigServerImpl() {
+		return cs;
 	}
 
 	@Override
@@ -1334,8 +1345,8 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 
 	@Override
 	public IdentificationWeb getIdentification() {
-		// TODO Auto-generated method stub
-		return null;
+		if (id == null) id = new SCCWIdentificationWeb(cs.getIdentification());
+		return id;
 	}
 
 	@Override
@@ -1400,122 +1411,114 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 
 	@Override
 	public AMFEngine getAMFEngine() {
-		// TODO Auto-generated method stub
-		return null;
+		return helper.getAMFEngine();
 	}
 
 	@Override
-	public ConfigServer getConfigServer(Password arg0) throws PageException {
-		// TODO Auto-generated method stub
-		return null;
+	public ConfigServer getConfigServer(Password password) throws PageException {
+		cs.checkAccess(password);
+		return cs;
 	}
 
 	@Override
 	public Resource getConfigServerDir() {
-		// TODO Auto-generated method stub
-		return null;
+		return cs.getConfigDir();
 	}
 
 	@Override
 	public CFMLFactory getFactory() {
-		// TODO Auto-generated method stub
-		return null;
+		return factory;
 	}
 
 	@Override
 	public String getLabel() {
-		// TODO Auto-generated method stub
-		return null;
+		return helper.getLabel();
 	}
 
 	@Override
 	public LockManager getLockManager() {
-		// TODO Auto-generated method stub
-		return null;
+		return helper.getLockManager();
 	}
 
 	@Override
-	public SearchEngine getSearchEngine(PageContext arg0) throws PageException {
-		// TODO Auto-generated method stub
-		return null;
+	public SearchEngine getSearchEngine(PageContext pc) throws PageException {
+		return helper.getSearchEngine(pc);
 	}
 
 	@Override
-	public JspWriter getWriter(PageContext arg0, HttpServletRequest arg1, HttpServletResponse arg2) {
-		// TODO Auto-generated method stub
-		return null;
+	public JspWriter getWriter(PageContext pc, HttpServletRequest req, HttpServletResponse rsp) {
+		return getCFMLWriter(pc, req, rsp);
 	}
 
 	@Override
-	public String getInitParameter(String arg0) {
-		// TODO Auto-generated method stub
-		return null;
+	public String getInitParameter(String name) {
+		return config.getInitParameter(name);
 	}
 
 	@Override
 	public Enumeration<String> getInitParameterNames() {
-		// TODO Auto-generated method stub
-		return null;
+		return config.getInitParameterNames();
 	}
 
 	@Override
 	public ServletContext getServletContext() {
-		// TODO Auto-generated method stub
-		return null;
+		return config.getServletContext();
 	}
 
 	@Override
 	public String getServletName() {
-		// TODO Auto-generated method stub
-		return null;
+		return config.getServletName();
 	}
 
 	@Override
 	public Mapping getDefaultServerTagMapping() {
-		// TODO Auto-generated method stub
-		return null;
+		return cs.defaultTagMapping;
+	}
+
+	// FYI used by Extensions, do not remove
+	public Mapping getApplicationMapping(String virtual, String physical) {
+		return getApplicationMapping("application", virtual, physical, null, true, false);
 	}
 
 	@Override
 	public Mapping getApplicationMapping(String type, String virtual, String physical, String archive, boolean physicalFirst, boolean ignoreVirtual) {
-		// TODO Auto-generated method stub
-		return null;
+		return getApplicationMapping(type, virtual, physical, archive, physicalFirst, ignoreVirtual, true, true);
 	}
 
 	@Override
 	public Collection<Mapping> getServerFunctionMappings() {
-		// TODO Auto-generated method stub
-		return null;
+		return helper.getServerFunctionMappings();
 	}
 
 	@Override
 	public Mapping getServerFunctionMapping(String mappingName) {
-		// TODO Auto-generated method stub
-		return null;
+		return helper.getServerFunctionMapping(mappingName);
 	}
 
 	@Override
 	public Collection<Mapping> getServerTagMappings() {
-		// TODO Auto-generated method stub
-		return null;
+		return helper.getServerTagMappings();
 	}
 
 	@Override
 	public Mapping getServerTagMapping(String mappingName) {
-		// TODO Auto-generated method stub
-		return null;
+		return helper.getServerTagMapping(mappingName);
 	}
 
 	@Override
 	public Map<String, String> getAllLabels() {
-		// TODO Auto-generated method stub
-		return null;
+		return cs.getLabels();
 	}
 
 	@Override
 	public boolean isDefaultPassword() {
-		// TODO Auto-generated method stub
+		// TODO no sure about this
 		return false;
+	}
+
+	@Override
+	public short getAdminMode() {
+		return cs.getAdminMode();
 	}
 
 	@Override
@@ -1535,14 +1538,12 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 
 	@Override
 	public GatewayEngine getGatewayEngine() {
-		// TODO Auto-generated method stub
-		return null;
+		return helper.getGatewayEngineImpl();
 	}
 
 	@Override
 	public WSHandler getWSHandler() throws PageException {
-		// TODO Auto-generated method stub
-		return null;
+		return helper.getWSHandler();
 	}
 
 	@Override
@@ -1620,7 +1621,7 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	@Override
 	public void updatePassword(boolean server, String passwordOld, String passwordNew) throws PageException {
 		try {
-			PasswordImpl.updatePassword(server ? cs : this, passwordOld, passwordNew);
+			PasswordImpl.updatePassword(cs, passwordOld, passwordNew);
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
@@ -1629,10 +1630,7 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 
 	@Override
 	public Password updatePasswordIfNecessary(boolean server, String passwordRaw) {
-		if (server) {
-			return PasswordImpl.updatePasswordIfNecessary(cs, cs.password, passwordRaw);
-		}
-		return PasswordImpl.updatePasswordIfNecessary(this, password, passwordRaw);
+		return PasswordImpl.updatePasswordIfNecessary(cs, cs.password, passwordRaw);
 	}
 
 	@Override
@@ -1642,16 +1640,60 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 
 	@Override
 	public boolean hasIndividualSecurityManager() {
-		return helper.hasIndividualSecurityManager(this);
+		return false;
 	}
 
 	@Override
 	public short getPasswordSource() {
-		return helper.getPasswordSource();
+		return ConfigWebImpl.PASSWORD_ORIGIN_SERVER;
 	}
 
 	@Override
 	public void reset() {
 		helper.reset();
+	}
+
+	@Override
+	public void setPassword(Password pw) {
+		cs.setPassword(pw);
+	}
+
+	private static class SCCWIdentificationWeb implements IdentificationWeb {
+
+		private IdentificationServer id;
+
+		public SCCWIdentificationWeb(IdentificationServer id) {
+			this.id = id;
+		}
+
+		@Override
+		public String getApiKey() {
+			return id.getApiKey();
+		}
+
+		@Override
+		public String getId() {
+			return id.getId();
+		}
+
+		@Override
+		public String getSecurityKey() {
+			return id.getSecurityKey();
+		}
+
+		@Override
+		public String getSecurityToken() {
+			return id.getSecurityToken();
+		}
+
+		@Override
+		public String toQueryString() {
+			return id.toQueryString();
+		}
+
+		@Override
+		public IdentificationServer getServerIdentification() {
+			return id;
+		}
 	}
 }

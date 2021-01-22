@@ -323,4 +323,8 @@ public interface ConfigPro extends Config {
 	public long lastModified();
 
 	public Collection<RHExtension> getAllRHExtensions();
+
+	public void setPassword(Password pw);
+
+	public short getAdminMode();
 }

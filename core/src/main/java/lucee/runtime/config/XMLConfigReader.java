@@ -14,7 +14,6 @@ import org.xml.sax.XMLReader;
 import org.xml.sax.ext.LexicalHandler;
 import org.xml.sax.helpers.DefaultHandler;
 
-import lucee.print;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourcesImpl;
@@ -189,7 +188,6 @@ public final class XMLConfigReader extends DefaultHandler implements LexicalHand
 		src = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Test/test/lucee-server/context/.CFConfig.json");
 		src.delete();
 
-		print.e("DONE!");
 		/*
 		 * XMLConfigReader reader = new XMLConfigReader(res, true, new ReadRule(), new NameRule()); String
 		 * str = ser(reader.getData().get("cfLuceeConfiguration")); IOUtil.write(trg, str, CharsetUtil.UTF8,

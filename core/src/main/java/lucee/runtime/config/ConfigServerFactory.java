@@ -98,9 +98,8 @@ public final class ConfigServerFactory extends ConfigFactory {
 						+ "===================================================================\n"
 
 		);
-
-		int iDoNew = getNew(engine, configDir, false, UpdateInfo.NEW_NONE).updateType;
-		boolean doNew = iDoNew != NEW_NONE;
+		UpdateInfo ui = getNew(engine, configDir, false, UpdateInfo.NEW_NONE);
+		boolean doNew = ui.updateType != NEW_NONE;
 
 		Resource configFileOld = configDir.getRealResource("lucee-server.xml");
 		Resource configFileNew = configDir.getRealResource(".CFConfig.json");
@@ -110,12 +109,12 @@ public final class ConfigServerFactory extends ConfigFactory {
 		if (!hasConfigNew) {
 			hasConfigOld = configFileOld.exists() && configFileOld.length() > 0;
 		}
-		ConfigServerImpl config = new ConfigServerImpl(engine, initContextes, contextes, configDir, configFileNew);
+		ConfigServerImpl config = new ConfigServerImpl(engine, initContextes, contextes, configDir, configFileNew, ui);
 
 		// translate to new
 		if (!hasConfigNew) {
 			if (hasConfigOld) {
-				translateConfigFile(config, configFileOld, configFileNew);
+				translateConfigFile(config, configFileOld, configFileNew, "multi");
 			}
 			// create config file
 			else {
