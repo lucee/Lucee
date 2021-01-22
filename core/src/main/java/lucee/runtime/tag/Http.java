@@ -205,6 +205,12 @@ public final class Http extends BodyTagImpl {
 	public static final short ENCODED_YES = HTTPUtil.ENCODED_YES;
 	public static final short ENCODED_NO = HTTPUtil.ENCODED_NO;
 
+	public static final int POOL_MAX_CONN = 500;
+	public static final int POOL_MAX_CONN_PER_ROUTE = 50;
+	public static final int POOL_CONN_TTL_MS = 15000;
+	public static final int POOL_CONN_INACTIVITY_DURATION = 300;
+	
+
 	static {
 		// Protocol myhttps = new Protocol("https", new EasySSLProtocolSocketFactory(), 443);
 		// Protocol.registerProtocol("https", new Protocol("https", new EasySSLProtocolSocketFactory(),
@@ -1467,14 +1473,14 @@ public final class Http extends BodyTagImpl {
 					Registry<ConnectionSocketFactory> reg = RegistryBuilder.<ConnectionSocketFactory>create().register("http", PlainConnectionSocketFactory.getSocketFactory())
 									.register("https", gsslsf).build();
 					gcm = new PoolingHttpClientConnectionManager(new DefaultHttpClientConnectionOperatorImpl(reg), null, 15000, TimeUnit.MILLISECONDS);
-					gcm.setDefaultMaxPerRoute(50);
-					gcm.setMaxTotal(500);
+					gcm.setDefaultMaxPerRoute(POOL_MAX_CONN_PER_ROUTE);
+					gcm.setMaxTotal(POOL_MAX_CONN);
 					gcm.setDefaultSocketConfig(SocketConfig.copy(SocketConfig.DEFAULT).setTcpNoDelay(true).setSoReuseAddress(true).setSoLinger(0).build());
-					gcm.setValidateAfterInactivity(300);
+					gcm.setValidateAfterInactivity(POOL_CONN_INACTIVITY_DURATION);
 				}
 				builder.setConnectionManager(gcm);
 				builder.setConnectionManagerShared(true);
-				builder.setConnectionTimeToLive(15000, TimeUnit.MILLISECONDS);
+				builder.setConnectionTimeToLive(POOL_CONN_TTL_MS, TimeUnit.MILLISECONDS);
 				builder.setConnectionReuseStrategy(new DefaultClientConnectionReuseStrategy());
 			}
 		}
