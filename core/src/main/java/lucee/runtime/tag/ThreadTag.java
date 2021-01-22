@@ -180,8 +180,7 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 			// supported at the moment");
 			type = TYPE_TASK;
 		}
-		// FUTURE remove "deamon", which is a misspelling
-		else if ("daemon".equals(strType) || "deamon".equals(strType)) {
+		else if ("daemon".equals(strType)) {
 			type = TYPE_DAEMON;
 		}
 		else {

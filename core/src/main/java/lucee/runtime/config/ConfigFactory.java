@@ -28,6 +28,7 @@ import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 import org.xml.sax.SAXException;
 
+import lucee.aprint;
 import lucee.commons.digest.MD5;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.FileUtil;
@@ -726,6 +727,16 @@ public abstract class ConfigFactory {
 		{
 			Struct resources = ConfigWebUtil.getAsStruct("resources", root);
 			Array providers = ConfigWebUtil.getAsArray("resourceProvider", resources);
+
+			// Ram -> Cache (Ram is no longer supported)
+			Iterator<Object> it = providers.valueIterator();
+			Struct data;
+			while (it.hasNext()) {
+				data = Caster.toStruct(it.next(), null);
+				if (Caster.toString(data.get(KeyConstants._class, ""), "").equals("lucee.commons.io.res.type.ram.RamResourceProvider"))
+					data.setEL(KeyConstants._class, "lucee.commons.io.res.type.cache.CacheResourceProvider");
+			}
+
 			Array defaultProviders = ConfigWebUtil.getAsArray("defaultResourceProvider", resources);
 
 			add(providers, "resourceProviders", root);
@@ -758,6 +769,8 @@ public abstract class ConfigFactory {
 		JSONConverter json = new JSONConverter(true, CharsetUtil.UTF8, JSONDateFormat.PATTERN_CF, true, true);
 		String str = json.serialize(null, root, SerializationSettings.SERIALIZE_AS_ROW);
 		IOUtil.write(configFileNew, str, CharsetUtil.UTF8, false);
+
+		aprint.o("DONE!");
 	}
 
 	private static Struct sort(Struct root) {

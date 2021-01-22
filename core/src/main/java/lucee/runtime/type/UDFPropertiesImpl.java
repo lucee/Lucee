@@ -78,14 +78,6 @@ public final class UDFPropertiesImpl extends UDFPropertiesBase {
 
 	}
 
-	// FUTURE remove, only used in archives maybe
-	public UDFPropertiesImpl(Page page, PageSource pageSource, FunctionArgument[] arguments, int index, String functionName, String strReturnType, String strReturnFormat,
-			boolean output, int access, Boolean bufferOutput, String displayName, String description, String hint, Boolean secureJson, Boolean verifyClient, Object cachedWithin,
-			Integer localMode, int modifier, StructImpl meta) {
-		this(page, pageSource, 0, 0, arguments, index, functionName, CFTypes.toShortStrict(strReturnType, CFTypes.TYPE_UNKNOW), strReturnType, strReturnFormat, output, access,
-				bufferOutput, displayName, description, hint, secureJson, verifyClient, cachedWithin, localMode, modifier, meta);
-	}
-
 	public UDFPropertiesImpl(Page page, PageSource pageSource, int startLine, int endLine, FunctionArgument[] arguments, int index, String functionName, String strReturnType,
 			String strReturnFormat, boolean output, int access, Boolean bufferOutput, String displayName, String description, String hint, Boolean secureJson, Boolean verifyClient,
 			Object cachedWithin, Integer localMode, int modifier, StructImpl meta) {
@@ -93,26 +85,11 @@ public final class UDFPropertiesImpl extends UDFPropertiesBase {
 				output, access, bufferOutput, displayName, description, hint, secureJson, verifyClient, cachedWithin, localMode, modifier, meta);
 	}
 
-	// FUTURE remove, only used in archives maybe
-	public UDFPropertiesImpl(Page page, PageSource pageSource, FunctionArgument[] arguments, int index, String functionName, short returnType, String strReturnFormat,
-			boolean output, int access, Boolean bufferOutput, String displayName, String description, String hint, Boolean secureJson, Boolean verifyClient, Object cachedWithin,
-			Integer localMode, int modifier, StructImpl meta) {
-		this(page, pageSource, 0, 0, arguments, index, functionName, returnType, CFTypes.toString(returnType, "any"), strReturnFormat, output, access, bufferOutput, displayName,
-				description, hint, secureJson, verifyClient, cachedWithin, localMode, modifier, meta);
-	}
-
 	public UDFPropertiesImpl(Page page, PageSource pageSource, int startLine, int endLine, FunctionArgument[] arguments, int index, String functionName, short returnType,
 			String strReturnFormat, boolean output, int access, Boolean bufferOutput, String displayName, String description, String hint, Boolean secureJson, Boolean verifyClient,
 			Object cachedWithin, Integer localMode, int modifier, StructImpl meta) {
 		this(page, pageSource, startLine, endLine, arguments, index, functionName, returnType, CFTypes.toString(returnType, "any"), strReturnFormat, output, access, bufferOutput,
 				displayName, description, hint, secureJson, verifyClient, cachedWithin, localMode, modifier, meta);
-	}
-
-	// FUTURE remove, only used in archives maybe
-	public UDFPropertiesImpl(Page page, PageSource pageSource, FunctionArgument[] arguments, int index, String functionName, short returnType, String strReturnFormat,
-			boolean output, int access) {
-		this(page, pageSource, 0, 0, arguments, index, functionName, returnType, CFTypes.toString(returnType, "any"), strReturnFormat, output, access, null, "", "", "", null, null,
-				null, null, Component.MODIFIER_NONE, null);
 	}
 
 	public UDFPropertiesImpl(Page page, PageSource pageSource, int startLine, int endLine, FunctionArgument[] arguments, int index, String functionName, short returnType,

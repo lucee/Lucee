@@ -48,6 +48,7 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpOptions;
+import org.apache.http.client.methods.HttpPatch;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
@@ -87,7 +88,6 @@ import lucee.commons.net.URLEncoder;
 import lucee.commons.net.http.Header;
 import lucee.commons.net.http.httpclient.CachingGZIPInputStream;
 import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
-import lucee.commons.net.http.httpclient.HTTPPatchFactory;
 import lucee.commons.net.http.httpclient.HTTPResponse4Impl;
 import lucee.commons.net.http.httpclient.ResourceBody;
 import lucee.runtime.PageContext;
@@ -831,7 +831,7 @@ public final class Http extends BodyTagImpl {
 			}
 			else if (this.method == METHOD_PATCH) {
 				isBinary = true;
-				eeReq = HTTPPatchFactory.getHTTPPatch(url);
+				eeReq = new HttpPatch(url);
 				req = (HttpRequestBase) eeReq;
 			}
 			else {

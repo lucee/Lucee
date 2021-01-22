@@ -46,7 +46,7 @@
 	,"resourceProviders":[
 		{
 			"scheme":"ram"
-			,"class":"lucee.commons.io.res.type.ram.RamResourceProvider"
+			,"class":"lucee.commons.io.res.type.cache.CacheResourceProvider"
 			,"arguments":"case-sensitive:true;lock-timeout:1000;"
 		}
 	]
