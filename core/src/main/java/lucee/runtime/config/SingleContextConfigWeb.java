@@ -27,6 +27,7 @@ import lucee.commons.io.log.LogEngine;
 import lucee.commons.io.log.LoggerAndSourceData;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
+import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.io.res.ResourcesImpl.ResourceProviderFactory;
 import lucee.commons.io.res.type.compress.Compress;
 import lucee.commons.io.res.util.ResourceClassLoader;
@@ -58,6 +59,7 @@ import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.DeprecatedException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
+import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.exp.SecurityException;
 import lucee.runtime.exp.TemplateException;
 import lucee.runtime.extension.Extension;
@@ -73,6 +75,7 @@ import lucee.runtime.monitor.ActionMonitorCollector;
 import lucee.runtime.monitor.IntervallMonitor;
 import lucee.runtime.monitor.RequestMonitor;
 import lucee.runtime.net.amf.AMFEngine;
+import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.net.mail.Server;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.rpc.WSHandler;
@@ -104,12 +107,23 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	private final ServletConfig config;
 	private final CFMLFactoryImpl factory;
 	private SCCWIdentificationWeb id;
+	private Resource rootDir;
 
 	public SingleContextConfigWeb(CFMLFactoryImpl factory, ConfigServerImpl cs, ServletConfig config) {
+		factory.setConfig(this);
 		this.factory = factory;
 		this.cs = cs;
 		this.config = config;
+
+		ResourceProvider frp = ResourcesImpl.getFileResourceProvider();
+		this.rootDir = frp.getResource(ReqRspUtil.getRootPath(config.getServletContext()));
+
+		// Fix for tomcat
+		if (this.rootDir.getName().equals(".") || this.rootDir.getName().equals("..")) this.rootDir = this.rootDir.getParentResource();
+
 		helper = new ConfigWebHelper(cs, this);
+
+		reload();
 	}
 
 	public ConfigServerImpl getConfigServerImpl() {
@@ -338,7 +352,7 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 
 	@Override
 	public PageSource getPageSource(Mapping[] mappings, String realPath, boolean onlyTopLevel) {
-		return cs.getPageSource(mappings, realPath, onlyTopLevel);
+		throw new PageRuntimeException(new DeprecatedException("method not supported"));
 	}
 
 	@Override
@@ -360,17 +374,17 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 
 	@Override
 	public Resource getPhysical(Mapping[] mappings, String realPath, boolean alsoDefaultMapping) {
-		return cs.getPhysical(mappings, realPath, alsoDefaultMapping);
+		throw new PageRuntimeException(new DeprecatedException("method not supported"));
 	}
 
 	@Override
 	public Resource[] getPhysicalResources(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping) {
-		return cs.getPhysicalResources(pc, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping);
+		throw new PageRuntimeException(new DeprecatedException("method not supported"));
 	}
 
 	@Override
 	public Resource getPhysicalResourceExisting(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping) {
-		return cs.getPhysicalResourceExisting(pc, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping);
+		throw new PageRuntimeException(new DeprecatedException("method not supported"));
 	}
 
 	@Override
@@ -505,7 +519,7 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 
 	@Override
 	public Resource getRootDirectory() {
-		return null;
+		return rootDir;
 	}
 
 	@Override
@@ -1695,5 +1709,9 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 		public IdentificationServer getServerIdentification() {
 			return id;
 		}
+	}
+
+	public void reload() {
+		// this.mappings = null;
 	}
 }

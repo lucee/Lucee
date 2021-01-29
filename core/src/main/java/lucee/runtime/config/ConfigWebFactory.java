@@ -312,7 +312,6 @@ public final class ConfigWebFactory extends ConfigFactory {
 		);
 
 		boolean doNew = configServer.getUpdateInfo().updateType != NEW_NONE;
-
 		ConfigWebPro configWeb = new SingleContextConfigWeb(factory, configServer, servletConfig);
 		createContextFiles(configDir, servletConfig, doNew);
 		createContextFilesPost(configDir, configWeb, servletConfig, false, doNew);
@@ -436,6 +435,9 @@ public final class ConfigWebFactory extends ConfigFactory {
 		if (config instanceof ConfigWeb) ConfigWebUtil.deployWebContext(cs, (ConfigWeb) config, false);
 		if (config instanceof ConfigWeb) ConfigWebUtil.deployWeb(cs, (ConfigWeb) config, false);
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, ConfigWebFactory.class.getName(), "deploy web context");
+		if (config instanceof ConfigServerImpl) _loadAdminMode((ConfigServerImpl) config, root);
+		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, ConfigWebFactory.class.getName(), "loaded admin mode");
+
 		_loadConfig(cs, config, root);
 		int mode = config.getMode();
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, ConfigWebFactory.class.getName(), "loaded config");
@@ -1181,12 +1183,11 @@ public final class ConfigWebFactory extends ConfigFactory {
 		if (!contextDir.exists()) contextDir.mkdirs();
 
 		// custom locale files
-		{
+		if (doNew) {
 			Resource dir = configDir.getRealResource("locales");
 			if (!dir.exists()) dir.mkdirs();
 			Resource file = dir.getRealResource("pt-PT-date.df");
 			if (!file.exists()) createFileFromResourceEL("/resource/locales/pt-PT-date.df", file);
-		}
 
 		// video
 		Resource videoDir = configDir.getRealResource("video");
@@ -1194,7 +1195,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 		Resource video = videoDir.getRealResource("video.xml");
 		if (!video.exists()) createFileFromResourceEL("/resource/video/video.xml", video);
-
+		}
 		// bin
 		Resource binDir = configDir.getRealResource("bin");
 		if (!binDir.exists()) binDir.mkdirs();
@@ -1220,12 +1221,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 		// remove old cacerts files, they are now only in the server context
 		Resource secDir = configDir.getRealResource("security");
 		Resource f = null;
-		if (secDir.exists()) {
-			f = secDir.getRealResource("cacerts");
-			if (f.exists()) f.delete();
-
-		}
-		else secDir.mkdirs();
+		if (!secDir.exists()) secDir.mkdirs();
 		f = secDir.getRealResource("antisamy-basic.xml");
 		if (!f.exists() || doNew) createFileFromResourceEL("/resource/security/antisamy-basic.xml", f);
 
@@ -1678,7 +1674,6 @@ public final class ConfigWebFactory extends ConfigFactory {
 			}
 
 			if (!finished) {
-
 				if ((config instanceof ConfigWebImpl) && ResourceUtil.isUNCPath(config.getRootDirectory().getPath())) {
 
 					tmp = new MappingImpl(config, "/", config.getRootDirectory().getPath(), null, ConfigPro.INSPECT_UNDEFINED, true, true, true, true, false, false, null, -1, -1);
@@ -1687,7 +1682,6 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 					tmp = new MappingImpl(config, "/", "/", null, ConfigPro.INSPECT_UNDEFINED, true, true, true, true, false, false, null, -1, -1);
 				}
-
 				mappings.put("/", tmp);
 			}
 
@@ -2591,7 +2585,6 @@ public final class ConfigWebFactory extends ConfigFactory {
 				for (int i = 0; i < clones.length; i++) {
 					m = ((MappingImpl) originals[i]).cloneReadOnly(config);
 					map.put(toKey(m), m);
-					// clones[i]=((MappingImpl)m[i]).cloneReadOnly(config);
 				}
 
 				if (mappings != null) {
@@ -3135,15 +3128,14 @@ public final class ConfigWebFactory extends ConfigFactory {
 	 * @param config
 	 * @param doc
 	 */
+	private static void _loadAdminMode(ConfigServerImpl config, Struct root) {
+		config.setAdminMode(ConfigWebUtil.toAdminMode(getAttr(root, "mode"), ConfigImpl.ADMINMODE_SINGLE));
+	}
+
 	private static void _loadSetting(ConfigServerImpl configServer, ConfigImpl config, Struct root, Log log) {
 		try {
 			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
-
 			boolean hasCS = configServer != null;
-
-			if (!hasCS) {
-				((ConfigServerImpl) config).setAdminMode(ConfigWebUtil.toAdminMode(getAttr(root, "mode"), ConfigImpl.ADMINMODE_SINGLE));
-			}
 
 			// suppress whitespace
 			String str = getAttr(root, "suppressContent");
@@ -4097,7 +4089,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 	private static void _loadScheduler(ConfigServer configServer, ConfigImpl config, Struct root, Log log) {
 		try {
 			if (config instanceof ConfigServer) {
-				short mode = ConfigWebUtil.toAdminMode(getAttr(root, "mode"), ConfigImpl.ADMINMODE_SINGLE);
+				short mode = ((ConfigServerImpl) config).getAdminMode();
+				// short mode = ConfigWebUtil.toAdminMode(getAttr(root, "mode"), ConfigImpl.ADMINMODE_SINGLE);
 				if (mode == ConfigImpl.ADMINMODE_MULTI) return;
 			}
 
@@ -4579,7 +4572,6 @@ public final class ConfigWebFactory extends ConfigFactory {
 				for (int i = 0; i < clones.length; i++) {
 					m = ((MappingImpl) originals[i]).cloneReadOnly(config);
 					map.put(toKey(m), m);
-					// clones[i]=((MappingImpl)m[i]).cloneReadOnly(config);
 				}
 
 				if (mappings != null) {

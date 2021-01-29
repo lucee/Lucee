@@ -318,8 +318,9 @@ public final class ConfigAdmin {
 			ConfigServerImpl cs = (ConfigServerImpl) config;
 			ConfigServerFactory.reloadInstance(engine, cs);
 			ConfigWeb[] webs = cs.getConfigWebs();
-			for (int i = 0; i < webs.length; i++) {
-				if (webs[i] instanceof ConfigWebImpl) ConfigWebFactory.reloadInstance(engine, (ConfigServerImpl) config, (ConfigWebImpl) webs[i], true);
+			for (ConfigWeb web: webs) {
+				if (web instanceof ConfigWebImpl) ConfigWebFactory.reloadInstance(engine, (ConfigServerImpl) config, (ConfigWebImpl) web, true);
+				else if (web instanceof SingleContextConfigWeb) ((SingleContextConfigWeb) web).reload();
 			}
 		}
 		else if (config instanceof ConfigWebImpl) {
@@ -331,6 +332,7 @@ public final class ConfigAdmin {
 
 			ConfigServerImpl cs = sccw.getConfigServerImpl();
 			ConfigServerFactory.reloadInstance(engine, cs);
+			sccw.reload();
 			/*
 			 * ConfigWeb[] webs = cs.getConfigWebs(); for (int i = 0; i < webs.length; i++) { if (webs[i]
 			 * instanceof ConfigWebImpl) ConfigWebFactory.reloadInstance(engine, (ConfigServerImpl) config,

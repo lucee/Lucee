@@ -783,103 +783,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	@Override
 	public PageSource getPageSourceExisting(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping,
 			boolean onlyPhysicalExisting) {
-		realPath = realPath.replace('\\', '/');
-		String lcRealPath = StringUtil.toLowerCase(realPath) + '/';
-		Mapping mapping;
-		PageSource ps;
-		Mapping rootApp = null;
-		if (mappings != null) {
-			for (int i = 0; i < mappings.length; i++) {
-				mapping = mappings[i];
-				// we keep this for later
-				if ("/".equals(mapping.getVirtual())) {
-					rootApp = mapping;
-					continue;
-				}
-				if (lcRealPath.startsWith(mapping.getVirtualLowerCaseWithSlash(), 0)) {
-					ps = mapping.getPageSource(realPath.substring(mapping.getVirtual().length()));
-					if (onlyPhysicalExisting) {
-						if (ps.physcalExists()) return ps;
-					}
-					else if (ps.exists()) return ps;
-				}
-			}
-		}
-
-		/// special mappings
-		if (useSpecialMappings && lcRealPath.startsWith("/mapping-", 0)) {
-			String virtual = "/mapping-tag";
-			// tag mappings
-			Mapping[] tagMappings = (this instanceof ConfigWebPro) ? new Mapping[] { ((ConfigWebPro) this).getDefaultServerTagMapping(), getDefaultTagMapping() }
-					: new Mapping[] { getDefaultTagMapping() };
-			if (lcRealPath.startsWith(virtual, 0)) {
-				for (int i = 0; i < tagMappings.length; i++) {
-					mapping = tagMappings[i];
-					// if(lcRealPath.startsWith(mapping.getVirtualLowerCaseWithSlash(),0)) {
-					ps = mapping.getPageSource(realPath.substring(virtual.length()));
-					if (onlyPhysicalExisting) {
-						if (ps.physcalExists()) return ps;
-					}
-					else if (ps.exists()) return ps;
-					// }
-				}
-			}
-
-			// customtag mappings
-			tagMappings = getCustomTagMappings();
-			virtual = "/mapping-customtag";
-			if (lcRealPath.startsWith(virtual, 0)) {
-				for (int i = 0; i < tagMappings.length; i++) {
-					mapping = tagMappings[i];
-					// if(lcRealPath.startsWith(mapping.getVirtualLowerCaseWithSlash(),0)) {
-					ps = mapping.getPageSource(realPath.substring(virtual.length()));
-					if (onlyPhysicalExisting) {
-						if (ps.physcalExists()) return ps;
-					}
-					else if (ps.exists()) return ps;
-					// }
-				}
-			}
-		}
-
-		// component mappings (only used for gateway)
-		if (pc != null && ((PageContextImpl) pc).isGatewayContext()) {
-			boolean isCFC = Constants.isComponentExtension(ResourceUtil.getExtension(realPath, null));
-			if (isCFC) {
-				Mapping[] cmappings = getComponentMappings();
-				for (int i = 0; i < cmappings.length; i++) {
-					ps = cmappings[i].getPageSource(realPath);
-					if (onlyPhysicalExisting) {
-						if (ps.physcalExists()) return ps;
-					}
-					else if (ps.exists()) return ps;
-				}
-			}
-		}
-
-		// config mappings
-		for (int i = 0; i < this.mappings.length - 1; i++) {
-			mapping = this.mappings[i];
-			if ((!onlyTopLevel || mapping.isTopLevel()) && lcRealPath.startsWith(mapping.getVirtualLowerCaseWithSlash(), 0)) {
-				ps = mapping.getPageSource(realPath.substring(mapping.getVirtual().length()));
-				if (onlyPhysicalExisting) {
-					if (ps.physcalExists()) return ps;
-				}
-				else if (ps.exists()) return ps;
-			}
-		}
-
-		if (useDefaultMapping) {
-			if (rootApp != null) mapping = rootApp;
-			else mapping = this.mappings[this.mappings.length - 1];
-
-			ps = mapping.getPageSource(realPath);
-			if (onlyPhysicalExisting) {
-				if (ps.physcalExists()) return ps;
-			}
-			else if (ps.exists()) return ps;
-		}
-		return null;
+		return ConfigWebUtil.getPageSourceExisting(pc, this, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, onlyPhysicalExisting);
 	}
 
 	@Override
@@ -893,95 +797,10 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		return getPageSources(pc, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, useComponentMappings, onlyFirstMatch);
 	}
 
-	public PageSource[] getPageSources(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping,
+	public PageSource[] getPageSources(PageContext pc, Mapping[] appMappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping,
 			boolean useComponentMappings, boolean onlyFirstMatch) {
-		realPath = realPath.replace('\\', '/');
-		String lcRealPath = StringUtil.toLowerCase(realPath) + '/';
-		Mapping mapping;
-		Mapping rootApp = null;
-		PageSource ps;
-		List<PageSource> list = new ArrayList<PageSource>();
 
-		if (mappings != null) {
-			for (int i = 0; i < mappings.length; i++) {
-				mapping = mappings[i];
-				// we keep this for later
-				if ("/".equals(mapping.getVirtual())) {
-					rootApp = mapping;
-					continue;
-				}
-				// print.err(lcRealPath+".startsWith"+(mapping.getStrPhysical()));
-				if (lcRealPath.startsWith(mapping.getVirtualLowerCaseWithSlash(), 0)) {
-					ps = mapping.getPageSource(realPath.substring(mapping.getVirtual().length()));
-					if (onlyFirstMatch) return new PageSource[] { ps };
-					else list.add(ps);
-				}
-			}
-		}
-
-		/// special mappings
-		if (useSpecialMappings && lcRealPath.startsWith("/mapping-", 0)) {
-			String virtual = "/mapping-tag";
-			// tag mappings
-			Mapping[] tagMappings = (this instanceof ConfigWebPro) ? new Mapping[] { ((ConfigWebPro) this).getDefaultServerTagMapping(), getDefaultTagMapping() }
-					: new Mapping[] { getDefaultTagMapping() };
-			if (lcRealPath.startsWith(virtual, 0)) {
-				for (int i = 0; i < tagMappings.length; i++) {
-					ps = tagMappings[i].getPageSource(realPath.substring(virtual.length()));
-					if (ps.exists()) {
-						if (onlyFirstMatch) return new PageSource[] { ps };
-						else list.add(ps);
-					}
-				}
-			}
-
-			// customtag mappings
-			tagMappings = getCustomTagMappings();
-			virtual = "/mapping-customtag";
-			if (lcRealPath.startsWith(virtual, 0)) {
-				for (int i = 0; i < tagMappings.length; i++) {
-					ps = tagMappings[i].getPageSource(realPath.substring(virtual.length()));
-					if (ps.exists()) {
-						if (onlyFirstMatch) return new PageSource[] { ps };
-						else list.add(ps);
-					}
-				}
-			}
-		}
-
-		// component mappings (only used for gateway)
-		if (useComponentMappings || (pc != null && ((PageContextImpl) pc).isGatewayContext())) {
-			boolean isCFC = Constants.isComponentExtension(ResourceUtil.getExtension(realPath, null));
-			if (isCFC) {
-				Mapping[] cmappings = getComponentMappings();
-				for (int i = 0; i < cmappings.length; i++) {
-					ps = cmappings[i].getPageSource(realPath);
-					if (ps.exists()) {
-						if (onlyFirstMatch) return new PageSource[] { ps };
-						else list.add(ps);
-					}
-				}
-			}
-		}
-
-		// config mappings
-		for (int i = 0; i < this.mappings.length - 1; i++) {
-			mapping = this.mappings[i];
-			if ((!onlyTopLevel || mapping.isTopLevel()) && lcRealPath.startsWith(mapping.getVirtualLowerCaseWithSlash(), 0)) {
-				ps = mapping.getPageSource(realPath.substring(mapping.getVirtual().length()));
-				if (onlyFirstMatch) return new PageSource[] { ps };
-				else list.add(ps);
-			}
-		}
-
-		if (useDefaultMapping) {
-			if (rootApp != null) mapping = rootApp;
-			else mapping = this.mappings[this.mappings.length - 1];
-			ps = mapping.getPageSource(realPath);
-			if (onlyFirstMatch) return new PageSource[] { ps };
-			else list.add(ps);
-		}
-		return list.toArray(new PageSource[list.size()]);
+		return ConfigWebUtil.getPageSources(pc, this, appMappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, useComponentMappings, onlyFirstMatch);
 	}
 
 	/**
@@ -998,95 +817,20 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	@Override
 	public Resource[] getPhysicalResources(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping) {
 		// now that archives can be used the same way as physical resources, there is no need anymore to
-		// limit to that
+		// limit to that FUTURE remove
 		throw new PageRuntimeException(new DeprecatedException("method not supported"));
 	}
 
 	@Override
 	public Resource getPhysicalResourceExisting(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping) {
 		// now that archives can be used the same way as physical resources, there is no need anymore to
-		// limit to that
+		// limit to that FUTURE remove
 		throw new PageRuntimeException(new DeprecatedException("method not supported"));
 	}
 
 	@Override
 	public PageSource toPageSource(Mapping[] mappings, Resource res, PageSource defaultValue) {
-		Mapping mapping;
-		String path;
-
-		// app mappings
-		if (mappings != null) {
-			for (int i = 0; i < mappings.length; i++) {
-				mapping = mappings[i];
-
-				// Physical
-				if (mapping.hasPhysical()) {
-					path = ResourceUtil.getPathToChild(res, mapping.getPhysical());
-					if (path != null) {
-						return mapping.getPageSource(path);
-					}
-				}
-				// Archive
-				if (mapping.hasArchive() && res.getResourceProvider() instanceof CompressResourceProvider) {
-					Resource archive = mapping.getArchive();
-					CompressResource cr = ((CompressResource) res);
-					if (archive.equals(cr.getCompressResource())) {
-						return mapping.getPageSource(cr.getCompressPath());
-					}
-				}
-			}
-		}
-
-		// config mappings
-		for (int i = 0; i < this.mappings.length; i++) {
-			mapping = this.mappings[i];
-
-			// Physical
-			if (mapping.hasPhysical()) {
-				path = ResourceUtil.getPathToChild(res, mapping.getPhysical());
-				if (path != null) {
-					return mapping.getPageSource(path);
-				}
-			}
-			// Archive
-			if (mapping.hasArchive() && res.getResourceProvider() instanceof CompressResourceProvider) {
-				Resource archive = mapping.getArchive();
-				CompressResource cr = ((CompressResource) res);
-				if (archive.equals(cr.getCompressResource())) {
-					return mapping.getPageSource(cr.getCompressPath());
-				}
-			}
-		}
-
-		// map resource to root mapping when same filesystem
-		Mapping rootMapping = this.mappings[this.mappings.length - 1];
-		Resource root;
-		if (rootMapping.hasPhysical() && res.getResourceProvider().getScheme().equals((root = rootMapping.getPhysical()).getResourceProvider().getScheme())) {
-
-			String realpath = "";
-			while (root != null && !ResourceUtil.isChildOf(res, root)) {
-				root = root.getParentResource();
-				realpath += "../";
-			}
-			String p2c = ResourceUtil.getPathToChild(res, root);
-			if (StringUtil.startsWith(p2c, '/') || StringUtil.startsWith(p2c, '\\')) p2c = p2c.substring(1);
-			realpath += p2c;
-
-			return rootMapping.getPageSource(realpath);
-
-		}
-		// MUST better impl than this
-		if (this instanceof ConfigWebPro) {
-			Resource parent = res.getParentResource();
-			if (parent != null && !parent.equals(res)) {
-				Mapping m = ((ConfigWebPro) this).getApplicationMapping("application", "/", parent.getAbsolutePath(), null, true, false);
-				return m.getPageSource(res.getName());
-			}
-		}
-
-		// Archive
-		// MUST check archive
-		return defaultValue;
+		return ConfigWebUtil.toPageSource(this, mappings, res, defaultValue);
 	}
 
 	@Override

@@ -7,7 +7,6 @@
 	,"componentDataMemberAccess":"public"
 	,"componentUseVariablesScope":true
 	,"developMode":false
-	,"mode":"single"
 	,"tempDirectory":"{lucee-web}/temp/"
 	,"version":"5.0"
 	,"cfx":{

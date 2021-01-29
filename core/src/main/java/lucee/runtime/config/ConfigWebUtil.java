@@ -40,6 +40,8 @@ import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.filter.ExtensionResourceFilter;
+import lucee.commons.io.res.type.compress.CompressResource;
+import lucee.commons.io.res.type.compress.CompressResourceProvider;
 import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
@@ -48,6 +50,8 @@ import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.Mapping;
 import lucee.runtime.PageContext;
+import lucee.runtime.PageContextImpl;
+import lucee.runtime.PageSource;
 import lucee.runtime.crypt.BlowfishEasy;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
@@ -788,7 +792,7 @@ public final class ConfigWebUtil {
 		if (StringUtil.isEmpty(mode, true)) return defaultValue;
 
 		mode = mode.trim();
-		if ("multi".equalsIgnoreCase(mode)) return ConfigImpl.ADMINMODE_MULTI;
+		if ("multi".equalsIgnoreCase(mode) || "multiple".equalsIgnoreCase(mode) || "double".equalsIgnoreCase(mode)) return ConfigImpl.ADMINMODE_MULTI;
 		if ("single".equalsIgnoreCase(mode)) return ConfigImpl.ADMINMODE_SINGLE;
 		if ("auto".equalsIgnoreCase(mode)) return ConfigImpl.ADMINMODE_AUTO;
 
@@ -800,6 +804,287 @@ public final class ConfigWebUtil {
 		if (ConfigImpl.ADMINMODE_SINGLE == mode) return "single";
 		if (ConfigImpl.ADMINMODE_AUTO == mode) return "auto";
 
+		return defaultValue;
+	}
+
+	public static Mapping getMapping(Config config, String virtual, Mapping defaultValue) {
+		for (Mapping m: config.getMappings()) {
+			if (m.getVirtualLowerCaseWithSlash().equalsIgnoreCase(virtual) || m.getVirtualLowerCase().equalsIgnoreCase(virtual)) return m;
+		}
+		return defaultValue;
+	}
+
+	public static PageSource[] getPageSources(PageContext pc, ConfigPro config, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings,
+			boolean useDefaultMapping, boolean useComponentMappings, boolean onlyFirstMatch) {
+		realPath = realPath.replace('\\', '/');
+		String lcRealPath = StringUtil.toLowerCase(realPath) + '/';
+		Mapping mapping;
+		Mapping rootApp = null;
+		PageSource ps;
+		List<PageSource> list = new ArrayList<PageSource>();
+
+		if (mappings != null) {
+			for (int i = 0; i < mappings.length; i++) {
+				mapping = mappings[i];
+				// we keep this for later
+				if ("/".equals(mapping.getVirtual())) {
+					rootApp = mapping;
+					continue;
+				}
+				// print.err(lcRealPath+".startsWith"+(mapping.getStrPhysical()));
+				if (lcRealPath.startsWith(mapping.getVirtualLowerCaseWithSlash(), 0)) {
+					ps = mapping.getPageSource(realPath.substring(mapping.getVirtual().length()));
+					if (onlyFirstMatch) return new PageSource[] { ps };
+					else list.add(ps);
+				}
+			}
+		}
+
+		/// special mappings
+		if (useSpecialMappings && lcRealPath.startsWith("/mapping-", 0)) {
+			String virtual = "/mapping-tag";
+			// tag mappings
+			Mapping[] tagMappings = (config instanceof ConfigWebPro) ? new Mapping[] { ((ConfigWebPro) config).getDefaultServerTagMapping(), config.getDefaultTagMapping() }
+					: new Mapping[] { config.getDefaultTagMapping() };
+			if (lcRealPath.startsWith(virtual, 0)) {
+				for (int i = 0; i < tagMappings.length; i++) {
+					ps = tagMappings[i].getPageSource(realPath.substring(virtual.length()));
+					if (ps.exists()) {
+						if (onlyFirstMatch) return new PageSource[] { ps };
+						else list.add(ps);
+					}
+				}
+			}
+
+			// customtag mappings
+			tagMappings = config.getCustomTagMappings();
+			virtual = "/mapping-customtag";
+			if (lcRealPath.startsWith(virtual, 0)) {
+				for (int i = 0; i < tagMappings.length; i++) {
+					ps = tagMappings[i].getPageSource(realPath.substring(virtual.length()));
+					if (ps.exists()) {
+						if (onlyFirstMatch) return new PageSource[] { ps };
+						else list.add(ps);
+					}
+				}
+			}
+		}
+
+		// component mappings (only used for gateway)
+		if (useComponentMappings || (pc != null && ((PageContextImpl) pc).isGatewayContext())) {
+			boolean isCFC = Constants.isComponentExtension(ResourceUtil.getExtension(realPath, null));
+			if (isCFC) {
+				Mapping[] cmappings = config.getComponentMappings();
+				for (int i = 0; i < cmappings.length; i++) {
+					ps = cmappings[i].getPageSource(realPath);
+					if (ps.exists()) {
+						if (onlyFirstMatch) return new PageSource[] { ps };
+						else list.add(ps);
+					}
+				}
+			}
+		}
+
+		Mapping[] thisMappings = config.getMappings();
+
+		// config mappings
+		for (int i = 0; i < thisMappings.length - 1; i++) {
+			mapping = thisMappings[i];
+			if ((!onlyTopLevel || mapping.isTopLevel()) && lcRealPath.startsWith(mapping.getVirtualLowerCaseWithSlash(), 0)) {
+				ps = mapping.getPageSource(realPath.substring(mapping.getVirtual().length()));
+				if (onlyFirstMatch) return new PageSource[] { ps };
+				else list.add(ps);
+			}
+		}
+
+		if (useDefaultMapping) {
+			if (rootApp != null) mapping = rootApp;
+			else mapping = thisMappings[thisMappings.length - 1];
+			ps = mapping.getPageSource(realPath);
+			if (onlyFirstMatch) return new PageSource[] { ps };
+			else list.add(ps);
+		}
+		return list.toArray(new PageSource[list.size()]);
+	}
+
+	public static PageSource getPageSourceExisting(PageContext pc, ConfigPro config, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings,
+			boolean useDefaultMapping, boolean onlyPhysicalExisting) {
+		realPath = realPath.replace('\\', '/');
+		String lcRealPath = StringUtil.toLowerCase(realPath) + '/';
+		Mapping mapping;
+		PageSource ps;
+		Mapping rootApp = null;
+		if (mappings != null) {
+			for (int i = 0; i < mappings.length; i++) {
+				mapping = mappings[i];
+				// we keep this for later
+				if ("/".equals(mapping.getVirtual())) {
+					rootApp = mapping;
+					continue;
+				}
+				if (lcRealPath.startsWith(mapping.getVirtualLowerCaseWithSlash(), 0)) {
+					ps = mapping.getPageSource(realPath.substring(mapping.getVirtual().length()));
+					if (onlyPhysicalExisting) {
+						if (ps.physcalExists()) return ps;
+					}
+					else if (ps.exists()) return ps;
+				}
+			}
+		}
+
+		/// special mappings
+		if (useSpecialMappings && lcRealPath.startsWith("/mapping-", 0)) {
+			String virtual = "/mapping-tag";
+			// tag mappings
+			Mapping[] tagMappings = (config instanceof ConfigWebPro) ? new Mapping[] { ((ConfigWebPro) config).getDefaultServerTagMapping(), config.getDefaultTagMapping() }
+					: new Mapping[] { config.getDefaultTagMapping() };
+			if (lcRealPath.startsWith(virtual, 0)) {
+				for (int i = 0; i < tagMappings.length; i++) {
+					mapping = tagMappings[i];
+					// if(lcRealPath.startsWith(mapping.getVirtualLowerCaseWithSlash(),0)) {
+					ps = mapping.getPageSource(realPath.substring(virtual.length()));
+					if (onlyPhysicalExisting) {
+						if (ps.physcalExists()) return ps;
+					}
+					else if (ps.exists()) return ps;
+					// }
+				}
+			}
+
+			// customtag mappings
+			tagMappings = config.getCustomTagMappings();
+			virtual = "/mapping-customtag";
+			if (lcRealPath.startsWith(virtual, 0)) {
+				for (int i = 0; i < tagMappings.length; i++) {
+					mapping = tagMappings[i];
+					// if(lcRealPath.startsWith(mapping.getVirtualLowerCaseWithSlash(),0)) {
+					ps = mapping.getPageSource(realPath.substring(virtual.length()));
+					if (onlyPhysicalExisting) {
+						if (ps.physcalExists()) return ps;
+					}
+					else if (ps.exists()) return ps;
+					// }
+				}
+			}
+		}
+
+		// component mappings (only used for gateway)
+		if (pc != null && ((PageContextImpl) pc).isGatewayContext()) {
+			boolean isCFC = Constants.isComponentExtension(ResourceUtil.getExtension(realPath, null));
+			if (isCFC) {
+				Mapping[] cmappings = config.getComponentMappings();
+				for (int i = 0; i < cmappings.length; i++) {
+					ps = cmappings[i].getPageSource(realPath);
+					if (onlyPhysicalExisting) {
+						if (ps.physcalExists()) return ps;
+					}
+					else if (ps.exists()) return ps;
+				}
+			}
+		}
+		Mapping[] thisMappings = config.getMappings();
+
+		// config mappings
+		for (int i = 0; i < thisMappings.length - 1; i++) {
+			mapping = thisMappings[i];
+			if ((!onlyTopLevel || mapping.isTopLevel()) && lcRealPath.startsWith(mapping.getVirtualLowerCaseWithSlash(), 0)) {
+				ps = mapping.getPageSource(realPath.substring(mapping.getVirtual().length()));
+				if (onlyPhysicalExisting) {
+					if (ps.physcalExists()) return ps;
+				}
+				else if (ps.exists()) return ps;
+			}
+		}
+
+		if (useDefaultMapping) {
+			if (rootApp != null) mapping = rootApp;
+			else mapping = thisMappings[thisMappings.length - 1];
+
+			ps = mapping.getPageSource(realPath);
+			if (onlyPhysicalExisting) {
+				if (ps.physcalExists()) return ps;
+			}
+			else if (ps.exists()) return ps;
+		}
+		return null;
+	}
+
+	public static PageSource toPageSource(ConfigPro config, Mapping[] mappings, Resource res, PageSource defaultValue) {
+		Mapping mapping;
+		String path;
+
+		// app mappings
+		if (mappings != null) {
+			for (int i = 0; i < mappings.length; i++) {
+				mapping = mappings[i];
+
+				// Physical
+				if (mapping.hasPhysical()) {
+					path = ResourceUtil.getPathToChild(res, mapping.getPhysical());
+					if (path != null) {
+						return mapping.getPageSource(path);
+					}
+				}
+				// Archive
+				if (mapping.hasArchive() && res.getResourceProvider() instanceof CompressResourceProvider) {
+					Resource archive = mapping.getArchive();
+					CompressResource cr = ((CompressResource) res);
+					if (archive.equals(cr.getCompressResource())) {
+						return mapping.getPageSource(cr.getCompressPath());
+					}
+				}
+			}
+		}
+		Mapping[] thisMappings = config.getMappings();
+		// config mappings
+		for (int i = 0; i < thisMappings.length; i++) {
+			mapping = thisMappings[i];
+
+			// Physical
+			if (mapping.hasPhysical()) {
+				path = ResourceUtil.getPathToChild(res, mapping.getPhysical());
+				if (path != null) {
+					return mapping.getPageSource(path);
+				}
+			}
+			// Archive
+			if (mapping.hasArchive() && res.getResourceProvider() instanceof CompressResourceProvider) {
+				Resource archive = mapping.getArchive();
+				CompressResource cr = ((CompressResource) res);
+				if (archive.equals(cr.getCompressResource())) {
+					return mapping.getPageSource(cr.getCompressPath());
+				}
+			}
+		}
+
+		// map resource to root mapping when same filesystem
+		Mapping rootMapping = thisMappings[thisMappings.length - 1];
+		Resource root;
+		if (rootMapping.hasPhysical() && res.getResourceProvider().getScheme().equals((root = rootMapping.getPhysical()).getResourceProvider().getScheme())) {
+
+			String realpath = "";
+			while (root != null && !ResourceUtil.isChildOf(res, root)) {
+				root = root.getParentResource();
+				realpath += "../";
+			}
+			String p2c = ResourceUtil.getPathToChild(res, root);
+			if (StringUtil.startsWith(p2c, '/') || StringUtil.startsWith(p2c, '\\')) p2c = p2c.substring(1);
+			realpath += p2c;
+
+			return rootMapping.getPageSource(realpath);
+
+		}
+		// MUST better impl than this
+		if (config instanceof ConfigWebPro) {
+			Resource parent = res.getParentResource();
+			if (parent != null && !parent.equals(res)) {
+				Mapping m = ((ConfigWebPro) config).getApplicationMapping("application", "/", parent.getAbsolutePath(), null, true, false);
+				return m.getPageSource(res.getName());
+			}
+		}
+
+		// Archive
+		// MUST check archive
 		return defaultValue;
 	}
 }
