@@ -2,6 +2,7 @@ package lucee.runtime.config;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.Serializable;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.Collection;
@@ -1681,7 +1682,9 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 		cs.setPassword(pw);
 	}
 
-	private static class SCCWIdentificationWeb implements IdentificationWeb {
+	private static class SCCWIdentificationWeb implements IdentificationWeb, Serializable {
+
+		private static final long serialVersionUID = -9020697769127921035L;
 
 		private IdentificationServer id;
 

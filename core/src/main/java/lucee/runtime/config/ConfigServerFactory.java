@@ -114,7 +114,7 @@ public final class ConfigServerFactory extends ConfigFactory {
 		// translate to new
 		if (!hasConfigNew) {
 			if (hasConfigOld) {
-				translateConfigFile(config, configFileOld, configFileNew, "multi");
+				translateConfigFile(config, configFileOld, configFileNew, "multi", true);
 			}
 			// create config file
 			else {

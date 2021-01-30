@@ -202,7 +202,8 @@ public abstract class ConfigFactory {
 		}
 	}
 
-	public static void translateConfigFile(ConfigPro config, Resource configFileOld, Resource configFileNew, String mode) throws ConverterException, IOException, SAXException {
+	public static void translateConfigFile(ConfigPro config, Resource configFileOld, Resource configFileNew, String mode, boolean isServer)
+			throws ConverterException, IOException, SAXException {
 		// read the old config (XML)
 		Struct root = ConfigWebUtil.getAsStruct("cfLuceeConfiguration", new XMLConfigReader(configFileOld, true, new ReadRule(), new NameRule()).getData());
 
@@ -731,10 +732,24 @@ public abstract class ConfigFactory {
 			// Ram -> Cache (Ram is no longer supported)
 			Iterator<Object> it = providers.valueIterator();
 			Struct data;
+			boolean hasRam = false;
 			while (it.hasNext()) {
 				data = Caster.toStruct(it.next(), null);
-				if (Caster.toString(data.get(KeyConstants._class, ""), "").equals("lucee.commons.io.res.type.ram.RamResourceProvider"))
+				if (Caster.toString(data.get(KeyConstants._class, ""), "").equals("lucee.commons.io.res.type.ram.RamResourceProvider")) {
+					hasRam = true;
 					data.setEL(KeyConstants._class, "lucee.commons.io.res.type.cache.CacheResourceProvider");
+				}
+				if (Caster.toString(data.get(KeyConstants._class, ""), "").equals("lucee.commons.io.res.type.cache.CacheResourceProvider")) {
+					hasRam = true;
+				}
+			}
+			// we need the ram cache set in server, so we can go to single mode without harm
+			if (isServer && !hasRam) {
+				Struct sct = new StructImpl(Struct.TYPE_LINKED);
+				sct.setEL("scheme", "ram");
+				sct.setEL(KeyConstants._class, "lucee.commons.io.res.type.cache.CacheResourceProvider");
+				sct.setEL(KeyConstants._arguments, "case-sensitive:true;lock-timeout:1000");
+				providers.appendEL(sct);
 			}
 
 			Array defaultProviders = ConfigWebUtil.getAsArray("defaultResourceProvider", resources);

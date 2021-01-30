@@ -1,8 +1,11 @@
 {
 	"applicationTimeout":"1,0,0,0"
+	,"cacheDirectory":"{lucee-config}/cache/"
+	,"cacheDirectoryMaxSize":"100mb"
 	,"cascadeToResultset":true
 	,"clientCookies":true
-	,"clientDirectoryMaxSize":"10mb"
+	,"clientDirectory":"{lucee-config}/client-scope/"
+	,"clientDirectoryMaxSize":"100mb"
 	,"clientManagement":false
 	,"clientTimeout":"0,0,90,0"
 	,"componentBase":"/lucee/Component.cfc"
@@ -104,6 +107,7 @@
 		,"tldDefaultDirectory":"{lucee-config}/library/tld/"
 		,"functionDefaultDirectory":"{lucee-config}/library/function/"
 		,"tagDefaultDirectory":"{lucee-config}/library/tag/"
+		,"deployDirectory":"{lucee-config}/cfclasses/"
 	}
 	,"loggers":{
 		"datasource":{
@@ -270,6 +274,11 @@
 			"scheme":"s3"
 			,"class":"lucee.commons.io.res.type.s3.S3ResourceProvider"
 			,"arguments":"lock-timeout:10000;"
+		}
+		,{
+			"scheme":"ram"
+			,"class":"lucee.commons.io.res.type.cache.CacheResourceProvider"
+			,"arguments":"case-sensitive:true;lock-timeout:1000;"
 		}
 	]
 }

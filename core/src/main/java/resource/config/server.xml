@@ -56,10 +56,10 @@ Path placeholders:
 		fld-default-directory="{lucee-config}/library/fld/" 
 		tld-default-directory="{lucee-config}/library/tld/"
 		function-default-directory="{lucee-config}/library/function/"
-		tag-default-directory="{lucee-config}/library/tag/">
+		tag-default-directory="{lucee-config}/library/tag/"
+		deploy-directory="{lucee-config}/cfclasses/">
 	</file-system>
-	
-	
+		
 	<!--
 		writers you can select with attribute format at tag dump
 		name - name of the writer
@@ -174,6 +174,14 @@ Path placeholders:
     		class="lucee.commons.io.res.type.smb.SMBResourceProvider"
     		arguments=""/>
     	-->
+    	<!--
+        arguments:
+		lock-timeout   - 	define how long a request wait for a lock
+	 	-->
+    	<resource-provider 
+    		scheme="ram"
+    		class="lucee.commons.io.res.type.ram.RamResourceProvider"
+    		arguments="case-sensitive:true;lock-timeout:1000;"/>
     </resources>
 	
 
@@ -211,8 +219,8 @@ Path placeholders:
 		clientmanagement="no" 
 		setclientcookies="yes" 
 		setdomaincookies="no"
-		
-		client-directory-max-size="10mb"
+		client-directory="{lucee-config}/client-scope/"
+		client-directory-max-size="100mb"
 		client-max-age="90"
 		
 		/>
@@ -263,7 +271,6 @@ Path placeholders:
 			listener-mode="modern"
 			listener-type="curr2root"
 			inspect-template="once"/>
-
 	</mappings>	
 	
 	<custom-tag>
@@ -362,7 +369,9 @@ Path placeholders:
 	-->
 	<application
 		listener-type="mixed"
-		listener-mode="curr2root"/>
+		listener-mode="curr2root"
+		cache-directory="{lucee-config}/cache/"
+		cache-directory-max-size="100mb"/>
 	
 	<update 
 		location="https://update.lucee.org" 

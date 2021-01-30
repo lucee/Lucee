@@ -273,7 +273,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 		Struct root = null;
 		if (!hasConfigNew) {
 			if (hasConfigOld) {
-				translateConfigFile(configWeb, configFileOld, configFileNew, "multi");
+				translateConfigFile(configWeb, configFileOld, configFileNew, "", false);
 			}
 			// create config file
 			else {
@@ -1189,12 +1189,12 @@ public final class ConfigWebFactory extends ConfigFactory {
 			Resource file = dir.getRealResource("pt-PT-date.df");
 			if (!file.exists()) createFileFromResourceEL("/resource/locales/pt-PT-date.df", file);
 
-		// video
-		Resource videoDir = configDir.getRealResource("video");
-		if (!videoDir.exists()) videoDir.mkdirs();
+			// video
+			Resource videoDir = configDir.getRealResource("video");
+			if (!videoDir.exists()) videoDir.mkdirs();
 
-		Resource video = videoDir.getRealResource("video.xml");
-		if (!video.exists()) createFileFromResourceEL("/resource/video/video.xml", video);
+			Resource video = videoDir.getRealResource("video.xml");
+			if (!video.exists()) createFileFromResourceEL("/resource/video/video.xml", video);
 		}
 		// bin
 		Resource binDir = configDir.getRealResource("bin");
@@ -4411,8 +4411,9 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 				// Base CFML
 				String strBase = getAttr(root, "componentBase");
-				if (StringUtil.isEmpty(strBase, true) && configServer != null) {
-					strBase = configServer.getBaseComponentTemplate(CFMLEngine.DIALECT_CFML);
+				if (StringUtil.isEmpty(strBase, true)) {
+					if (configServer != null) strBase = configServer.getBaseComponentTemplate(CFMLEngine.DIALECT_CFML);
+					else strBase = "/lucee/Component.cfc";
 				}
 				config.setBaseComponentTemplate(CFMLEngine.DIALECT_CFML, strBase);
 

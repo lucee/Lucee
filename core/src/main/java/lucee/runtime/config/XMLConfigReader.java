@@ -165,11 +165,11 @@ public final class XMLConfigReader extends DefaultHandler implements LexicalHand
 	public static void main(String[] args) throws Exception {
 		Resource src = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Projects/Lucee/Lucee5/core/src/main/java/resource/config/web.xml");
 		Resource trg = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Projects/Lucee/Lucee5/core/src/main/java/resource/config/web.json");
-		ConfigWebFactory.translateConfigFile(null, src, trg, "single");
+		ConfigWebFactory.translateConfigFile(null, src, trg, "", false);
 
 		src = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Projects/Lucee/Lucee5/core/src/main/java/resource/config/server.xml");
 		trg = ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Projects/Lucee/Lucee5/core/src/main/java/resource/config/server.json");
-		ConfigWebFactory.translateConfigFile(null, src, trg, "single");
+		ConfigWebFactory.translateConfigFile(null, src, trg, "single", true);
 
 		// src =
 		// ResourcesImpl.getFileResourceProvider().getResource("/Users/mic/Test/test/webapps/ROOT/WEB-INF/lucee/lucee-web.xml.cfm");
