@@ -21,6 +21,7 @@ import javax.servlet.jsp.JspWriter;
 
 import org.osgi.framework.Version;
 
+import lucee.commons.collection.MapFactory;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogEngine;
@@ -31,6 +32,7 @@ import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.io.res.ResourcesImpl.ResourceProviderFactory;
 import lucee.commons.io.res.type.compress.Compress;
 import lucee.commons.io.res.util.ResourceClassLoader;
+import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CharSet;
 import lucee.commons.lang.ClassException;
 import lucee.commons.lock.KeyLock;
@@ -38,6 +40,7 @@ import lucee.runtime.CFMLFactory;
 import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.CIPage;
 import lucee.runtime.Mapping;
+import lucee.runtime.MappingImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageSource;
 import lucee.runtime.cache.CacheConnection;
@@ -108,6 +111,7 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	private final CFMLFactoryImpl factory;
 	private SCCWIdentificationWeb id;
 	private Resource rootDir;
+	private Mapping[] mappings;
 
 	public SingleContextConfigWeb(CFMLFactoryImpl factory, ConfigServerImpl cs, ServletConfig config) {
 		factory.setConfig(this);
@@ -342,7 +346,12 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 
 	@Override
 	public Mapping[] getMappings() {
-		return cs.getMappings();
+		if (mappings == null) {
+			synchronized (this) {
+				if (mappings == null) createMapping();
+			}
+		}
+		return mappings;// cs.getMappings();
 	}
 
 	@Override
@@ -358,18 +367,18 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	@Override
 	public PageSource getPageSourceExisting(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping,
 			boolean onlyPhysicalExisting) {
-		return cs.getPageSourceExisting(pc, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, onlyPhysicalExisting);
+		return ConfigWebUtil.getPageSourceExisting(pc, this, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, onlyPhysicalExisting);
 	}
 
 	@Override
 	public PageSource[] getPageSources(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping) {
-		return cs.getPageSources(pc, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping);
+		return ConfigWebUtil.getPageSources(pc, this, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, false, onlyFirstMatch);
 	}
 
 	@Override
 	public PageSource[] getPageSources(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping,
 			boolean useComponentMappings) {
-		return cs.getPageSources(pc, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, useComponentMappings);
+		return ConfigWebUtil.getPageSources(pc, this, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, useComponentMappings, onlyFirstMatch);
 	}
 
 	@Override
@@ -389,7 +398,7 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 
 	@Override
 	public PageSource toPageSource(Mapping[] mappings, Resource res, PageSource defaultValue) {
-		return cs.toPageSource(mappings, res, defaultValue);
+		return ConfigWebUtil.toPageSource(this, mappings, res, defaultValue);
 	}
 
 	@Override
@@ -1712,6 +1721,39 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	}
 
 	public void reload() {
-		// this.mappings = null;
+		this.mappings = null;
+	}
+
+	private void createMapping() {
+		// Mapping
+		Map<String, Mapping> mappings = MapFactory.<String, Mapping>getConcurrentMap();
+		Mapping tmp;
+		boolean finished = false;
+		Mapping[] sm = cs.getMappings();
+		if (sm != null) {
+			for (int i = 0; i < sm.length; i++) {
+				if (!sm[i].isHidden()) {
+					if ("/".equals(sm[i].getVirtual())) finished = true;
+					if (sm[i] instanceof MappingImpl) {
+						tmp = ((MappingImpl) sm[i]).cloneReadOnly(this);
+						mappings.put(tmp.getVirtualLowerCase(), tmp);
+
+					}
+					else {
+						tmp = sm[i];
+						mappings.put(tmp.getVirtualLowerCase(), tmp);
+					}
+				}
+			}
+		}
+		if (!finished) {
+			if (ResourceUtil.isUNCPath(getRootDirectory().getPath())) {
+				mappings.put("/", new MappingImpl(this, "/", getRootDirectory().getPath(), null, ConfigPro.INSPECT_UNDEFINED, true, true, true, true, false, false, null, -1, -1));
+			}
+			else {
+				mappings.put("/", new MappingImpl(this, "/", "/", null, ConfigPro.INSPECT_UNDEFINED, true, true, true, true, false, false, null, -1, -1, true, true));
+			}
+		}
+		this.mappings = ConfigWebUtil.sort(mappings.values().toArray(new Mapping[mappings.size()]));
 	}
 }
