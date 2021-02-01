@@ -4096,7 +4096,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 			Resource configDir = config.getConfigDir();
 			Array scheduledTasks = ConfigWebUtil.getAsArray("scheduledTasks", root);
-			config.setScheduler(configServer.getCFMLEngine(), scheduledTasks);
+			config.setScheduler(configServer != null ? configServer.getCFMLEngine() : ((ConfigServer) config).getCFMLEngine(), scheduledTasks);
 		}
 		catch (Exception e) {
 			log(config, log, e);
