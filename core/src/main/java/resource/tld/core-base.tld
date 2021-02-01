@@ -7861,6 +7861,18 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<description>Label to display with timing information.
             Default: " "</description>
 		</attribute>
+		<attribute>
+			<name>unit</name>
+			<type>string</type>
+			<required>No</required>
+			<default>milli</default>
+			<description>Base unit for the timing, valid values are:
+
+- nano: nano seconds
+- micro : micro seconds
+- milli (default): milli seconds
+- second: seconds</description>
+    	    	</attribute>
 	</tag>
 	<!-- Transaction -->
 	<tag>
