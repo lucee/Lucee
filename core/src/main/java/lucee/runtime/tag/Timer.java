@@ -24,6 +24,8 @@ import lucee.runtime.PageSource;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.BodyTagImpl;
+import lucee.commons.lang.StringUtil;
+import lucee.runtime.op.Caster;
 
 public final class Timer extends BodyTagImpl {
 
@@ -32,15 +34,24 @@ public final class Timer extends BodyTagImpl {
 	private static final int TYPE_OUTLINE = 2;
 	private static final int TYPE_COMMENT = 3;
 
+	private static final int UNIT_NANO = 1;
+	private static final int UNIT_MILLI = 2;
+	private static final int UNIT_MICRO = 4;
+	private static final int UNIT_SECOND = 8;
+
 	private String label = "";
 	private int type = TYPE_DEBUG;
-	private long time;
+	private int unit = UNIT_MILLI;
+	private String unitDesc = "ms";
+	private double time;
 
 	@Override
 	public void release() {
 		super.release();
 		type = TYPE_DEBUG;
+		unit = UNIT_MILLI;
 		label = "";
+		unitDesc = "ms";
 	}
 
 	/**
@@ -60,12 +71,56 @@ public final class Timer extends BodyTagImpl {
 		else if ("debug".equals(strType)) type = TYPE_DEBUG;
 		else if ("inline".equals(strType)) type = TYPE_INLINE;
 		else if ("outline".equals(strType)) type = TYPE_OUTLINE;
-		else throw new ApplicationException("invalid value [" + strType + "] for attribute [type], valid values are [comment,debug,inline,outline]");
+		else throw new ApplicationException("Invalid value [" + strType + "] for attribute [type], valid values are [comment, debug, inline, outline]");
 	}
+
+	/**
+	 * @param unit the unit to set
+	 * @throws ApplicationException
+	 */
+	public void setUnit(String strUnit) throws ApplicationException {
+		if (!StringUtil.isEmpty(strUnit, true)) {
+			char c = strUnit.charAt(0);	
+			if (c == 'n' || c == 'N') {
+				this.unit = UNIT_NANO;
+				this.unitDesc = "ns";
+				return;
+			} else if (c == 'm' || c == 'M') {
+				if ("micro".equalsIgnoreCase(strUnit.trim())) {
+					this.unit = UNIT_MICRO;
+					this.unitDesc = "us";
+					return;
+				}
+				this.unit = UNIT_MILLI;
+				this.unitDesc = "ms"; // default
+				return;
+			} else if (c == 's' || c == 'S') {
+				this.unit = UNIT_SECOND;
+				this.unitDesc = "s";
+				return;
+			}
+			new ApplicationException("Invalid value [" + strUnit + "] for attribute [unit], valid values are [nano, micro, milli, second]");
+		} 
+		this.unit = UNIT_MILLI;
+		this.unitDesc = "ms"; // default		
+	}
+
+	private double getCurrentTime() {
+		switch (this.unit){
+			case UNIT_NANO:
+				return System.nanoTime();
+			case UNIT_MICRO:	
+				return System.nanoTime() / 1000;
+			case UNIT_SECOND:	
+				return System.currentTimeMillis() / 1000;
+			default:
+				return System.currentTimeMillis();
+		}
+	}	
 
 	@Override
 	public int doStartTag() {
-		time = System.currentTimeMillis();
+		time = getCurrentTime();
 		if (TYPE_OUTLINE == type) {
 			try {
 				pageContext.write("<fieldset class=\"cftimer\">");
@@ -85,24 +140,27 @@ public final class Timer extends BodyTagImpl {
 	}
 
 	public void _doEndTag() throws IOException {
-		long exe = (System.currentTimeMillis() - time);
+		long exe = Caster.toLong(getCurrentTime() - time);
 		if (TYPE_INLINE == type) {
-
-			pageContext.write("" + label + ": " + exe + "ms");
+			pageContext.write("" + label + ": " + exe + unitDesc + "");
 		}
 		else if (TYPE_OUTLINE == type) {
-			pageContext.write("<legend align=\"top\">" + label + ": " + exe + "ms</legend></fieldset>");
+			pageContext.write("<legend align=\"top\">" + label + ": " + exe +  unitDesc + "</legend></fieldset>");
 		}
 		else if (TYPE_COMMENT == type) {
-			pageContext.write("<!-- " + label + ": " + exe + "ms -->");
+			pageContext.write("<!-- " + label + ": " + exe + unitDesc + " -->");
 		}
 		else if (TYPE_DEBUG == type) {
 
 			if (pageContext.getConfig().debug()) {
 				PageSource curr = pageContext.getCurrentTemplatePageSource();
+				// TODO need to include unitDesc?
 				pageContext.getDebugger().addTimer(label, exe, curr == null ? "unknown template" : curr.getDisplayPath());
 			}
 		}
+
+		/* <legend align='top'>aaa</legend></fieldset> */
+
 	}
 
 	@Override
@@ -114,4 +172,5 @@ public final class Timer extends BodyTagImpl {
 	public int doAfterBody() {
 		return SKIP_BODY;
 	}
+
 }
