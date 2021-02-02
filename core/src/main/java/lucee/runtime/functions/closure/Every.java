@@ -127,7 +127,7 @@ public class Every extends BIF implements ClosureFunc {
 		else if (obj instanceof StringListData) {
 			res = invoke(pc, (StringListData) obj, udf, execute, futures);
 		}
-		else throw new FunctionException(pc, "Every", 1, "data", "cannot iterate througth this type " + Caster.toTypeName(obj.getClass()));
+		else throw new FunctionException(pc, "Every", 1, "data", "Cannot iterate over this type [" + Caster.toTypeName(obj.getClass()) + "]");
 
 		if (parallel) res = afterCall(pc, futures, execute);
 

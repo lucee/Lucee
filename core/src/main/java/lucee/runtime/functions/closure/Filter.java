@@ -131,7 +131,7 @@ public class Filter extends BIF implements ClosureFunc {
 		else if (obj instanceof StringListData) {
 			coll = invoke(pc, (StringListData) obj, udf, execute, futures);
 		}
-		else throw new FunctionException(pc, "Filter", 1, "data", "cannot iterate througth this type " + Caster.toTypeName(obj.getClass()));
+		else throw new FunctionException(pc, "Filter", 1, "data", "Cannot iterate over this type [" + Caster.toTypeName(obj.getClass()) + "]");
 
 		if (parallel) afterCall(pc, coll, futures, execute);
 
