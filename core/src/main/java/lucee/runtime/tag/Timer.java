@@ -80,7 +80,7 @@ public final class Timer extends BodyTagImpl {
 	 */
 	public void setUnit(String strUnit) throws ApplicationException {
 		if (!StringUtil.isEmpty(strUnit, true)) {
-			char c = strUnit.charAt(0);	
+			char c = strUnit.charAt(0);
 			if (c == 'n' || c == 'N') {
 				this.unit = UNIT_NANO;
 				this.unitDesc = "ns";
@@ -99,19 +99,19 @@ public final class Timer extends BodyTagImpl {
 				this.unitDesc = "s";
 				return;
 			}
-			new ApplicationException("Invalid value [" + strUnit + "] for attribute [unit], valid values are [nano, micro, milli, second]");
+			throw new ApplicationException("Invalid value [" + strUnit + "] for attribute [unit], valid values are [nano, micro, milli, second]");
 		} 
 		this.unit = UNIT_MILLI;
-		this.unitDesc = "ms"; // default		
+		this.unitDesc = "ms"; // default
 	}
 
 	private double getCurrentTime() {
 		switch (this.unit){
 			case UNIT_NANO:
 				return System.nanoTime();
-			case UNIT_MICRO:	
+			case UNIT_MICRO:
 				return System.nanoTime() / 1000;
-			case UNIT_SECOND:	
+			case UNIT_SECOND:
 				return System.currentTimeMillis() / 1000;
 			default:
 				return System.currentTimeMillis();
