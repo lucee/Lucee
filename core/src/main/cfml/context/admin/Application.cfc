@@ -38,13 +38,14 @@ this.xmlFeatures = {
     disallowDoctypeDecl: true
 };
 
-request.singleMode=!isNull(url.sm);
+request.singleMode=getConfigSettings().mode=="single";
 
 public function onRequestStart() {
 	// if not logged in, we only allow access to admin|web|server[.cfm]
 	if(!structKeyExists(session, "passwordWeb") && !structKeyExists(session, "passwordServer")){
 		var fileName=listLast(cgi.script_name,"/");
-		if(fileName!="admin.cfm" && fileName!="web.cfm" && fileName!="server.cfm") {
+		
+		if(fileName!="admin.cfm" && fileName!="web.cfm" && fileName!="server.cfm" && fileName!="index.cfm") {
 			cfsetting(showdebugoutput:false);
 			cfheader(statuscode="404" statustext="Invalid access");
 			cfcontent(reset="true");

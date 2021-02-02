@@ -27,7 +27,7 @@
 </head>
 
 <cfparam name="attributes.onload" default="">
-<cfset mode=getConfigSettings().mode=="single"?"single":request.adminType>
+<cfset mode=request.singleMode?"single":request.adminType>
 <body id="body" class="admin-#mode# #mode#<cfif application.adminfunctions.getdata('fullscreen') eq 1> full</cfif>" onload="#attributes.onload#">
 	<div id="<cfif !hasNavigation>login<cfelse>layout</cfif>">
 		<table id="layouttbl">

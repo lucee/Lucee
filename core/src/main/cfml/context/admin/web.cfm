@@ -1,7 +1,9 @@
 <cfscript>
-	if(getConfigSettings().mode=="single") {
-		location url="server.cfm" addtoken="no";
+	
+	if(request.singleMode && right(cgi.script_name,9)!="index.cfm") {
+		location url="index.cfm" addtoken=false;
 	}
+
 	if(structKeyExists(form, "captchaValue")){
 		session.cap = form.captchaValue;
 	}
@@ -43,7 +45,7 @@
 <cfparam name="request.adminType" default="web">
 <cfparam name="form.rememberMe" default="s">
 <cfset ad = request.adminType>
-<cfset request.self = request.adminType & ".cfm">
+<cfset request.self = (request.singleMode?"index": request.adminType )& ".cfm">
 
 <cfparam name="cookie.lucee_admin_lang" default="en">
 <cfset session.lucee_admin_lang = cookie.lucee_admin_lang>
