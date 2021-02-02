@@ -35,12 +35,15 @@ public final class ArrayToStruct extends BIF {
 
 	private static final long serialVersionUID = 2050803318757965798L;
 
-	public static Struct call(PageContext pc, Array arr) throws PageException {
-		Struct sct = new StructImpl();
+	public static Struct call(PageContext pc, Array arr, boolean valueAsKey) throws PageException {
+		Struct sct = new StructImpl(Struct.TYPE_LINKED);
 		int[] keys = arr.intKeys();
 		for (int i = 0; i < keys.length; i++) {
 			int key = keys[i];
-			sct.set(KeyImpl.toKey(key + ""), arr.getE(key));
+			if (valueAsKey)
+				sct.set(KeyImpl.toKey(arr.getE(key) + ""), key);
+			else
+				sct.set(KeyImpl.toKey(key + ""), arr.getE(key));
 		}
 
 		return sct;
@@ -48,7 +51,8 @@ public final class ArrayToStruct extends BIF {
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
-		if (args.length == 1) return call(pc, Caster.toArray(args[0]));
-		else throw new FunctionException(pc, "ArrayToStruct", 1, 1, args.length);
+		if (args.length == 1) return call(pc, Caster.toArray(args[0]), false);
+		else if (args.length == 2) return call(pc, Caster.toArray(args[0]), Caster.toBooleanValue(args[1]));
+		else throw new FunctionException(pc, "ArrayToStruct", 1, 2, args.length);
 	}
 }
