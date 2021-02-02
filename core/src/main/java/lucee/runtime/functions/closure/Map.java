@@ -75,7 +75,7 @@ public class Map extends BIF implements ClosureFunc {
 
 		ExecutorService execute = null;
 		List<Future<Data<Object>>> futures = null;
-		if (parallel) {
+		if (parallel && maxThreads > 1) {
 			execute = Executors.newFixedThreadPool(maxThreads);
 			futures = new ArrayList<Future<Data<Object>>>();
 		}
