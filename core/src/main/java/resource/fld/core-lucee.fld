@@ -517,7 +517,16 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<required>No</required>
 			<description>
 				When with argument "nameOrPath" a "Bundle-SymbolicName" was set, this argument takes a "Bundle-Version" otherwise a possible delimiter for the given string list from argument "nameOrPath".
-				
+			</description>
+		</argument>
+		<argument>
+			<name>relatedBundles</name>
+			<alias>requiredBundles</alias>
+			<type>array</type>
+			<required>No</required>
+			<description>
+				addional related bundles required by the main bundle. Must be an array of struct that looks like this:
+				[{name:bundle-name,version:bundle-version}]
 			</description>
 		</argument>
 		<return>

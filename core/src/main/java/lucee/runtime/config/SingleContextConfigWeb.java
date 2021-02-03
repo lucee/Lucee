@@ -23,7 +23,6 @@ import javax.servlet.jsp.JspWriter;
 import org.osgi.framework.Version;
 
 import lucee.commons.collection.MapFactory;
-import lucee.commons.io.FileUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogEngine;
@@ -94,7 +93,6 @@ import lucee.runtime.schedule.Scheduler;
 import lucee.runtime.search.SearchEngine;
 import lucee.runtime.security.SecurityManager;
 import lucee.runtime.spooler.SpoolerEngine;
-import lucee.runtime.spooler.SpoolerEngineImpl;
 import lucee.runtime.tag.TagHandlerPool;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Struct;
@@ -115,8 +113,8 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	private SCCWIdentificationWeb id;
 	private Resource rootDir;
 	private Mapping[] mappings;
-	private Resource remoteClientDirectory;
-	private SpoolerEngineImpl spoolerEngine;
+	// private Resource remoteClientDirectory;
+	// private SpoolerEngineImpl spoolerEngine;
 
 	public SingleContextConfigWeb(CFMLFactoryImpl factory, ConfigServerImpl cs, ServletConfig config) {
 		factory.setConfig(this);
@@ -803,21 +801,23 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 
 	@Override
 	public SpoolerEngine getSpoolerEngine() {
-		if (spoolerEngine == null) {
-			Resource dir = getRemoteClientDirectory();
-			if (dir != null && !dir.exists()) dir.mkdirs();
-			SpoolerEngineImpl se = (SpoolerEngineImpl) cs.getSpoolerEngine();
-			spoolerEngine = new SpoolerEngineImpl(this, dir, "Remote Client Spooler", getLog("remoteclient"), se.getMaxThreads());
-		}
-		return spoolerEngine;
+		return cs.getSpoolerEngine();
+		/*
+		 * if (spoolerEngine == null) { Resource dir = getRemoteClientDirectory(); if (dir != null &&
+		 * !dir.exists()) dir.mkdirs(); SpoolerEngineImpl se = (SpoolerEngineImpl) cs.getSpoolerEngine();
+		 * spoolerEngine = new SpoolerEngineImpl(this, dir, "Remote Client Spooler", getLog("remoteclient"),
+		 * se.getMaxThreads()); } return spoolerEngine;
+		 */
 	}
 
 	@Override
 	public Resource getRemoteClientDirectory() {
-		if (remoteClientDirectory == null) {
-			return remoteClientDirectory = ConfigWebUtil.getFile(getRootDirectory(), "client-task", "client-task", getConfigDir(), FileUtil.TYPE_DIR, this);
-		}
-		return remoteClientDirectory;
+		return cs.getRemoteClientDirectory();
+		/*
+		 * if (remoteClientDirectory == null) { return remoteClientDirectory =
+		 * ConfigWebUtil.getFile(getRootDirectory(), "client-task", "client-task", getConfigDir(),
+		 * FileUtil.TYPE_DIR, this); } return remoteClientDirectory;
+		 */
 	}
 
 	@Override

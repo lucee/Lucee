@@ -3296,17 +3296,20 @@ public final class ConfigWebFactory extends ConfigFactory {
 			// init spooler engine
 			Resource dir = config.getRemoteClientDirectory();
 			if (dir != null && !dir.exists()) dir.mkdirs();
-			if (config.getSpoolerEngine() == null) {
-				config.setSpoolerEngine(new SpoolerEngineImpl(config, dir, "Remote Client Spooler", config.getLog("remoteclient"), maxThreads));
+
+			SpoolerEngineImpl se = (SpoolerEngineImpl) config.getSpoolerEngine();
+			if (se == null) {
+				config.setSpoolerEngine(se = new SpoolerEngineImpl(dir, "Remote Client Spooler", config.getLog("remoteclient"), maxThreads));
 			}
 			else {
-				SpoolerEngineImpl engine = (SpoolerEngineImpl) config.getSpoolerEngine();
-				engine.setConfig(config);
-				engine.setLog(config.getLog("remoteclient"));
-				engine.setPersisDirectory(dir);
-				engine.setMaxThreads(maxThreads);
-
+				se.setLog(config.getLog("remoteclient"));
+				se.setPersisDirectory(dir);
+				se.setMaxThreads(maxThreads);
 			}
+			if (config instanceof ConfigWeb) {
+				se.init((ConfigWeb) config);
+			}
+
 		}
 		catch (Exception e) {
 			log(config, log, e);

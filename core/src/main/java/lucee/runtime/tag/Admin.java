@@ -86,6 +86,7 @@ import lucee.runtime.cfx.customtag.JavaCFXTagClass;
 import lucee.runtime.config.AdminSync;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigAdmin;
+import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.ConfigServerImpl;
@@ -235,6 +236,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	private Struct attributes = new StructImpl();
 	private String action = null;
 	private short type;
+	private boolean singleMode;
 	private Password password;
 	private ConfigAdmin admin;
 	private ConfigPro config;
@@ -312,7 +314,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		}
 
 		// Type
-		type = toType(getString("type", "web"), true);
+		singleMode = config.getAdminMode() == ConfigImpl.ADMINMODE_SINGLE;
+		type = singleMode ? TYPE_SERVER : toType(getString("type", "web"), true);
 
 		// has Password
 		if (action.equals("haspassword")) {
@@ -5293,11 +5296,11 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	}
 
 	private void throwNoAccessWhenWeb() throws ApplicationException {
-		if (type == TYPE_WEB) throw new ApplicationException("Action [" + action + "] is not available for Web Admin ( Server Admin only )");
+		if (!singleMode && type == TYPE_WEB) throw new ApplicationException("Action [" + action + "] is not available for Web Admin ( Server Admin only )");
 	}
 
 	private void throwNoAccessWhenServer() throws ApplicationException {
-		if (type == TYPE_SERVER) {
+		if (!singleMode && type == TYPE_SERVER) {
 			throw new ApplicationException("Action [" + action + "] is not available for Server Admin ( Web Admin only )");
 		}
 	}

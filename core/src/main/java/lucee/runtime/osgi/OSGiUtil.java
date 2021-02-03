@@ -1648,20 +1648,20 @@ public class OSGiUtil {
 		public BundleDefinition(String name, String version) throws BundleException {
 			this.name = name;
 			if (name == null) throw new IllegalArgumentException("Name cannot be null");
-			setVersion(VersionDefinition.EQ, version);
+			if (!StringUtil.isEmpty(version, true)) setVersion(VersionDefinition.EQ, version);
 		}
 
 		public BundleDefinition(String name, Version version) {
 			this.name = name;
 			if (name == null) throw new IllegalArgumentException("Name cannot be null");
-			setVersion(VersionDefinition.EQ, version);
+			if (version != null) setVersion(VersionDefinition.EQ, version);
 		}
 
 		public BundleDefinition(Bundle bundle) {
 			this.name = bundle.getSymbolicName();
 			if (name == null) throw new IllegalArgumentException("Name cannot be null");
 
-			setVersion(VersionDefinition.EQ, bundle.getVersion());
+			if (bundle.getVersion() != null) setVersion(VersionDefinition.EQ, bundle.getVersion());
 			this.bundle = bundle;
 		}
 
@@ -1675,6 +1675,13 @@ public class OSGiUtil {
 		 * @return
 		 */
 		public Bundle getLoadedBundle() {
+			return bundle;
+		}
+
+		public Bundle getBundle(Identification id, List<Resource> addionalDirectories, boolean startIfNecessary) throws BundleException {
+			if (bundle == null) {
+				bundle = OSGiUtil.loadBundle(name, getVersion(), id, addionalDirectories, startIfNecessary);
+			}
 			return bundle;
 		}
 

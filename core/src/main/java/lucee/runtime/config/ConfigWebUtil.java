@@ -1087,4 +1087,13 @@ public final class ConfigWebUtil {
 		// MUST check archive
 		return defaultValue;
 	}
+
+	public static ConfigWeb toConfigWeb(Config config) {
+		if (config instanceof ConfigWeb) return (ConfigWeb) config;
+		Config c = ThreadLocalPageContext.getConfig();
+		if (c instanceof ConfigWeb) return (ConfigWeb) config;
+
+		// TODO config.getServerConfigWeb();
+		return (ConfigWeb) config;
+	}
 }

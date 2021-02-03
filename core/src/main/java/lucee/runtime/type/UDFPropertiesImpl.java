@@ -155,7 +155,7 @@ public final class UDFPropertiesImpl extends UDFPropertiesBase {
 			String relPathwV = ExternalizableUtil.readString(in);
 
 			PageContextImpl pc = (PageContextImpl) ThreadLocalPageContext.get();
-			ConfigWebPro cw = (ConfigWebPro) ThreadLocalPageContext.getConfig(pc);
+			ConfigPro cw = (ConfigPro) ThreadLocalPageContext.getConfig(pc);
 
 			ps = toPageSource(pc, cw, mapping, relPath, relPathwV);
 		}
