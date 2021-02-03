@@ -114,7 +114,7 @@ public class ListAsArray extends ArraySupport implements Array, List {
 	public final Object getE(PageContext pc, int key) throws PageException {
 		if (key <= 0) {
 			Integer idx = list.size() + key <= 0 ? 0 : list.size() + key;
-			if (idx == 0 || key == 0) {
+			if (key == 0) {
 				throw new ExpressionException("Array index [" + key + "] out of range, array size is [" + list.size() + "]");
 			}
 			Object rtn = list.get(idx);
