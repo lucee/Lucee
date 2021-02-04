@@ -1,12 +1,17 @@
 package lucee.runtime.functions.system;
 
+import java.lang.reflect.Method;
+
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
+import lucee.runtime.image.ImageUtil;
 import lucee.runtime.extension.RHExtension;
+import lucee.runtime.op.Caster;
 import lucee.runtime.type.Query;
 
 public class ExtensionList extends BIF {
@@ -18,7 +23,20 @@ public class ExtensionList extends BIF {
 
 		Query qry = RHExtension.toQuery(config, ((ConfigWebPro) pc.getConfig()).getServerRHExtensions(), null);
 		RHExtension.toQuery(config, ((ConfigWebPro) pc.getConfig()).getRHExtensions(), qry);
-
+		try {
+			for(int i=1; i <= qry.getRecordcount(); i++){
+				Object image = qry.getAt("image", i, null);
+				if( !StringUtil.isEmpty(image, true) ) {
+					byte[] imgByte = Caster.toBinary(image);
+					ImageUtil img = new ImageUtil();
+					Method m = img.getClass().getDeclaredMethod("toImage",new Class[] { PageContext.class, Object.class, boolean.class });
+					m.setAccessible(true);
+					qry.setAt("image", i, m.invoke(null, new Object[] { pc, imgByte, false }));
+				}
+			}
+		}
+		catch (Exception e) {
+		}
 		return qry;
 	}
 
