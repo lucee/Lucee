@@ -4105,7 +4105,7 @@ public final class ConfigAdmin {
 			if (child == null) continue;
 
 			try {
-				rhe = new RHExtension(config, key.getString(), Caster.toString(child.get(KeyConstants._version), null), false);
+				rhe = new RHExtension(config, key.getString(), Caster.toString(child.get(KeyConstants._version), null), null, false);
 
 				// ed=ExtensionDefintion.getInstance(config,child);
 			}
@@ -5987,7 +5987,7 @@ public final class ConfigAdmin {
 				if (tmp == null) continue;
 
 				try {
-					return new RHExtension(config, _id, Caster.toString(tmp.get(KeyConstants._version), null), false);
+					return new RHExtension(config, _id, Caster.toString(tmp.get(KeyConstants._version), null), null, false);
 				}
 				catch (Exception e) {
 					return defaultValue;
@@ -6024,7 +6024,7 @@ public final class ConfigAdmin {
 				String v = Caster.toString(sct.get(KeyConstants._version));
 				if (!RHExtension.isInstalled(config, key.getString(), v)) continue;
 
-				if (ed.equals(new ExtensionDefintion(key.getString(), v))) return new RHExtension(config, key.getString(), v, false);
+				if (ed.equals(new ExtensionDefintion(key.getString(), v))) return new RHExtension(config, key.getString(), v, null, false);
 			}
 			return null;
 		}

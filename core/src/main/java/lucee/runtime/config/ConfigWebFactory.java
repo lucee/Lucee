@@ -4339,7 +4339,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 				BundleInfo[] bfsq;
 				try {
-					rhe = new RHExtension(config, e.getKey().getString(), Caster.toString(child.get(KeyConstants._version), null), true);
+					rhe = new RHExtension(config, e.getKey().getString(), Caster.toString(child.get(KeyConstants._version), null),
+							Caster.toString(child.get(KeyConstants._resource), null), true);
 					if (rhe.getStartBundles()) rhe.deployBundles(config);
 					extensions.add(rhe);
 				}

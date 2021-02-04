@@ -205,7 +205,8 @@ public class RHExtension implements Serializable {
 		return res != null && res.isFile();
 	}
 
-	public RHExtension(Config config, String id, String version, boolean installIfNecessary) throws PageException, IOException, BundleException, ConverterException {
+	public RHExtension(Config config, String id, String version, String resource, boolean installIfNecessary)
+			throws PageException, IOException, BundleException, ConverterException {
 		this.config = config;
 		// we have a newer version that holds the Manifest data
 		Resource res;
@@ -746,8 +747,9 @@ public class RHExtension implements Serializable {
 	}
 
 	public static Resource toResource(Config config, String id, String version, Resource defaultValue) throws PageException {
+		Resource res;
 		String fileName = toHash(id, version, "lex");
-		Resource res = getExtensionDir(config).getRealResource(fileName);
+		res = getExtensionDir(config).getRealResource(fileName);
 		if (!res.exists()) return defaultValue;
 		return res;
 	}
