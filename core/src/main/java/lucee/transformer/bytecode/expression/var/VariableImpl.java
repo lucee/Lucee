@@ -792,11 +792,12 @@ public class VariableImpl extends ExpressionBase implements Variable {
 	private static boolean isNamed(String funcName, Argument[] args) throws TransformerException {
 		if (ArrayUtil.isEmpty(args)) return false;
 		boolean named = false;
+		boolean unNamed = false; 
 		for (int i = 0; i < args.length; i++) {
 			if (args[i] instanceof NamedArgument) named = true;
-			else if (named) throw new TransformerException("invalid argument for function " + funcName + ", you can not mix named and unnamed arguments", args[i].getStart());
+			else unNamed = true;
+			if ( named && unNamed ) throw new TransformerException("Invalid argument for function " + funcName + ", you can't mix named and unnamed arguments", args[i].getStart());
 		}
-
 		return named;
 	}
 
