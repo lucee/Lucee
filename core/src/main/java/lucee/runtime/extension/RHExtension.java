@@ -205,16 +205,18 @@ public class RHExtension implements Serializable {
 		return res != null && res.isFile();
 	}
 
-	public RHExtension(Config config, String id, String version, String resource, boolean installIfNecessary)
+	public RHExtension(ConfigPro config, String id, String version, String resource, boolean installIfNecessary)
 			throws PageException, IOException, BundleException, ConverterException {
 		this.config = config;
 		// we have a newer version that holds the Manifest data
 		Resource res;
 		if (installIfNecessary) {
-			res = toResource(config, id, version, null);
+			res = StringUtil.isEmpty(version) ? null : toResource(config, id, version, null);
 			if (res == null) {
-				DeployHandler.deployExtension(config, new ExtensionDefintion(id, version), null, false);
-				res = toResource(config, id, version);
+				if (!StringUtil.isEmpty(resource) && (res = ResourceUtil.toResourceExisting(config, resource, null)) != null) {
+					DeployHandler.deployExtension(config, res);
+				}
+				else DeployHandler.deployExtension(config, new ExtensionDefintion(id, version), null, false);
 			}
 		}
 		else {

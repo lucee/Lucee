@@ -435,4 +435,8 @@ public class DeployHandler {
 	public static List<ExtensionDefintion> getLocalExtensions(Config config, boolean validate) {
 		return ((ConfigPro) config).loadLocalExtensions(validate);
 	}
+
+	public static void deployExtension(ConfigPro config, Resource ext) throws PageException {
+		ConfigAdmin._updateRHExtension(config, ext, true);
+	}
 }
