@@ -22,6 +22,7 @@
 package lucee.runtime.functions.arrays;
 
 import java.util.Iterator;
+import java.util.Map.Entry;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.FunctionException;
@@ -32,6 +33,7 @@ import lucee.runtime.type.Array;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
+import lucee.runtime.type.Collection.Key;
 
 public final class ArrayToStruct extends BIF {
 
