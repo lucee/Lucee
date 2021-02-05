@@ -287,7 +287,7 @@ public final class HTTPServletRequestWrap implements HttpServletRequest, Seriali
 					bytes = null;
 				}
 				if (is == null) is = req.getInputStream();
-				IOUtil.copy(is, fos, true, true);
+				IOUtil.copy(is, fos, 0xfffff, true, true);
 
 			}
 			catch (Exception e) {}
