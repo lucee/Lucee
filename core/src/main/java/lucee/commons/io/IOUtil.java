@@ -322,12 +322,6 @@ public final class IOUtil {
 		return false;
 	}
 
-	public static void main(String[] args) throws IOException {
-		ByteArrayInputStream in = new ByteArrayInputStream("12345678901".getBytes());
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		copyMax(in, out, 10);// 0xffff
-	}
-
 	private static final void merge(InputStream in1, InputStream in2, OutputStream out, int blockSize) throws IOException {
 		copy(in1, out, blockSize);
 		copy(in2, out, blockSize);
