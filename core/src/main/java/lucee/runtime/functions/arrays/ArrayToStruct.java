@@ -37,15 +37,13 @@ public final class ArrayToStruct extends BIF {
 
 	public static Struct call(PageContext pc, Array arr, boolean valueAsKey) throws PageException {
 		Struct sct = new StructImpl(Struct.TYPE_LINKED);
-		int[] keys = arr.intKeys();
-		for (int i = 0; i < keys.length; i++) {
-			int key = keys[i];
-			if (valueAsKey)
-				sct.set(KeyImpl.toKey(arr.getE(key) + ""), key);
-			else
-				sct.set(KeyImpl.toKey(key + ""), arr.getE(key));
+		Iterator<Entry<Key, Object>> it = arr.entryIterator();
+		Entry<Key, Object> e;
+		while (it.hasNext()) {
+			e = it.next();
+			if (valueAsKey) sct.set(Caster.toKey(e.getValue()), e.getKey());
+			else sct.set(e.getKey(), e.getValue());
 		}
-
 		return sct;
 	}
 
