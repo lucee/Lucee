@@ -21,6 +21,8 @@
  */
 package lucee.runtime.functions.arrays;
 
+import java.util.Iterator;
+
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
