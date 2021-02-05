@@ -83,6 +83,19 @@ public final class IOUtil {
 		}
 	}
 
+	public static final void copy(InputStream in, OutputStream out, int blockSize, boolean closeIS, boolean closeOS) throws IOException {
+		try {
+			copy(in, out, blockSize);// 65535
+		}
+		finally {
+			if (closeIS && closeOS) close(in, out);
+			else {
+				if (closeIS) close(in);
+				if (closeOS) close(out);
+			}
+		}
+	}
+
 	/**
 	 * copy an inputstream to an outputstream
 	 * 
