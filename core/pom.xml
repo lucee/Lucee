@@ -366,42 +366,12 @@
       <version>1.0.1.0002L</version>
       <scope>provided</scope>
     </dependency>
-    <dependency>
-      <groupId>sun.jndi</groupId>
-      <artifactId>ldap</artifactId>
-      <version>1.2.4</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>sun.jndi</groupId>
-      <artifactId>ldapbp</artifactId>
-      <version>1.2.4</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>sun.jndi</groupId>
-      <artifactId>ldapsec</artifactId>
-      <version>1.2.4</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>sun.jndi</groupId>
-      <artifactId>providerutil</artifactId>
-      <version>1.2.4</version>
-      <scope>provided</scope>
-    </dependency>
 	  <dependency>
 		  <groupId>javax.mail</groupId>
 		  <artifactId>activation</artifactId>
 		  <version>1.6.2.0000L</version>
       <scope>provided</scope>
 	  </dependency>
-    <dependency>
-      <groupId>sun.security</groupId>
-      <artifactId>jaas</artifactId>
-      <version>1.2.4</version>
-      <scope>provided</scope>
-    </dependency>
     <dependency>
       <groupId>tagsoup</groupId>
       <artifactId>tagsoup</artifactId>
