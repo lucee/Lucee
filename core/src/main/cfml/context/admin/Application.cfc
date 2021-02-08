@@ -39,7 +39,7 @@ this.xmlFeatures = {
 };
 
 request.singleMode=getConfigSettings().mode=="single";
-
+if(request.singleMode)request.adminType="server";
 public function onRequestStart() {
 	// if not logged in, we only allow access to admin|web|server[.cfm]
 	if(!structKeyExists(session, "passwordWeb") && !structKeyExists(session, "passwordServer")){

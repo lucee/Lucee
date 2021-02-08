@@ -727,6 +727,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		else if (check("updatecustomtag", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateCustomTag();
 		else if (check("updateComponentMapping", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateComponentMapping();
 		else if (check("stopThread", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doStopThread();
+		else if (check("updateAdminMode", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doUpdateAdminMode();
 
 		else if (check("updatejavacfx", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateJavaCFX();
 		else if (check("updatedebug", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateDebug();
@@ -4185,6 +4186,12 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	 * getInt("admin", "updateUpdateLogSettings", "maxfile"), getInt("admin", "updateUpdateLogSettings",
 	 * "maxfilesize") ); store(); adminSync.broadcast(attributes, config); }
 	 */
+
+	private void doUpdateAdminMode() throws PageException {
+		admin.updateUpdateAdminMode(getString("admin", "updateAdminMode", "mode"));
+		store();
+		adminSync.broadcast(attributes, config);
+	}
 
 	private void doUpdateMonitor() throws PageException {
 		ClassDefinition cd = new ClassDefinitionImpl(getString("admin", action, "class"), getString("bundleName", null), getString("bundleVersion", null),

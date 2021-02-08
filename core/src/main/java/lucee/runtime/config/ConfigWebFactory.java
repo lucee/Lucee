@@ -4324,7 +4324,6 @@ public final class ConfigWebFactory extends ConfigFactory {
 	private static void _loadExtensionBundles(ConfigServerImpl cs, ConfigImpl config, Struct root, Log log) {
 		try {
 			Struct children = ConfigWebUtil.getAsStruct("extensions", root);
-
 			String strBundles;
 			List<RHExtension> extensions = new ArrayList<RHExtension>();
 			RHExtension rhe;
@@ -4339,11 +4338,11 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 				BundleInfo[] bfsq;
 				try {
-					String res = Caster.toString(child.get(KeyConstants._resource), null);
-					if (StringUtil.isEmpty(res)) res = Caster.toString(child.get(KeyConstants._path), null);
-					if (StringUtil.isEmpty(res)) res = Caster.toString(child.get(KeyConstants._url), null);
+					String res = Caster.toString(child.get(KeyConstants._resource, null), null);
+					if (StringUtil.isEmpty(res)) res = Caster.toString(child.get(KeyConstants._path, null), null);
+					if (StringUtil.isEmpty(res)) res = Caster.toString(child.get(KeyConstants._url, null), null);
 
-					rhe = new RHExtension(config, e.getKey().getString(), Caster.toString(child.get(KeyConstants._version), null), res, true);
+					rhe = new RHExtension(config, e.getKey().getString(), Caster.toString(child.get(KeyConstants._version, null), null), res, true);
 					if (rhe.getStartBundles()) rhe.deployBundles(config);
 					extensions.add(rhe);
 				}

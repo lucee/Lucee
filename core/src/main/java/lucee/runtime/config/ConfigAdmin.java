@@ -134,6 +134,7 @@ import lucee.runtime.security.SecurityManagerImpl;
 import lucee.runtime.security.SerialNumber;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
+import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Query;
@@ -3784,6 +3785,54 @@ public final class ConfigAdmin {
 		children.appendEL(el);
 	}
 
+	public void updateUpdateAdminMode(String mode, boolean merge, boolean keep) throws PageException, IOException {
+		checkWriteAccess();
+
+		if (config.getAdminMode() == ConfigImpl.ADMINMODE_MULTI) {
+			// copy the content from all web cfconfig into the server cfconfig
+			if (merge) {
+				ConfigWeb[] webs = ((ConfigServer) config).getConfigWebs();
+				for (ConfigWeb cw: webs) {
+					merge(root, ConfigWebFactory.loadDocument(cw.getConfigFile()));
+				}
+			}
+
+			// delete all the server configs
+			if (!keep) {
+				ConfigWeb[] webs = ((ConfigServer) config).getConfigWebs();
+				for (ConfigWeb cw: webs) {
+					cw.getConfigFile().delete();
+				}
+			}
+		}
+
+		if (StringUtil.isEmpty(mode, true)) return;
+		mode = mode.trim();
+
+		if (mode.equalsIgnoreCase("m") || mode.equalsIgnoreCase("multi") || mode.equalsIgnoreCase("multiple")) mode = "multi";
+		else if (mode.equalsIgnoreCase("s") || mode.equalsIgnoreCase("single")) mode = "single";
+		else throw new ApplicationException("invalid mode [" + mode + "], valid modes are [single,multi]");
+
+		root.setEL(KeyConstants._mode, mode);
+	}
+
+	private void merge(Collection server, Collection web) {
+		Key[] keys = web.keys();
+		Object exServer, exWeb;
+		for (Key key: keys) {
+			exServer = server.get(key, null);
+
+			if (exServer instanceof Collection) {
+				exWeb = web.get(key, null);
+				if (exWeb instanceof Collection) merge((Collection) exServer, (Collection) exWeb);
+			}
+			else {
+				if (server instanceof Array) ((Array) server).appendEL(web.get(key, null)); // TODO can create a duplicate
+				else server.setEL(key, web.get(key, null));
+			}
+		}
+	}
+
 	public void updateMonitor(ClassDefinition cd, String type, String name, boolean logEnabled) throws PageException {
 		checkWriteAccess();
 		_updateMonitor(cd, type, name, logEnabled);
@@ -6192,5 +6241,4 @@ public final class ConfigAdmin {
 
 		root.setEL("cgiScopeReadOnly", Caster.toString(cgiReadonly, ""));
 	}
-
 }
