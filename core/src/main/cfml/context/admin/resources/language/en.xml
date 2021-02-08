@@ -985,7 +985,7 @@ sct[""bracketNotation""] --> keyname: "bracketNotation"</data>
 	<data key="proxy.portdescription">Port for the proxy server (default:80)</data>
 	<data key="proxy.port">Port</data>
 	<data key="proxy.usernamedescription">Username for the proxy</data>
-	<data key="proxy.server">Server</data>
+	<data key="proxy.server">Define a global proxy, that will be used in several tags by default (cfhttp,cfftp,cfmail ...) </data>
 	<data key="proxy.settings">Proxy settings</data>
 	<data key="proxy.passworddescription">Password for the proxy</data>
 	<data key="proxy.username">Username</data>

@@ -328,7 +328,7 @@
 		<custom key="proxy.passworddescription">Passwort für den Proxy</custom>
 		<custom key="proxy.port">Port</custom>
 		<custom key="proxy.portdescription">Port für den Proxy Server (Vorgabe:80)</custom>
-		<custom key="proxy.server">Server</custom>
+		<custom key="proxy.server">Definieren Sie einen globalen Proxy, der standardmäßig in mehreren Tags verwendet wird (cfhttp, cfftp, cfmail ...)</custom>
 		<custom key="proxy.serverdescription">URL eines Proxy Server im Stil 'http://myproxyserver.org/'</custom>
 	
 		<custom key="proxy.settings">Proxy Einstellungen</custom>

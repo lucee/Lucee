@@ -124,17 +124,12 @@ function doEnableProxy(enableProxy) {
 
 
 
-<table class="tbl" width="600">
+<table class="maintbl" width="600">
 
 <cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 
-<tr>
-	<td colspan="2">#stText.proxy[request.adminType]#</td>
-</tr>
-
-<tr>
-	<td colspan="2"><h2>#stText.proxy.settings#</h2></td>
-</tr>
+<div class="pageintro">#stText.proxy[request.adminType]#
+<h2>#stText.proxy.settings#</h2></div>
 <!--- Server --->
 <tr>
 	<th scope="row">#stText.proxy.server#</th>
