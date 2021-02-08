@@ -364,7 +364,7 @@ body.server #contenttd {
 	content: " ";
 	left:5px;
 	top:8px;
-	background-image: url('../img/admin_sprite-{appendix}.png.cfm');
+	background-image: url('../img/admin6_sprite-{appendix}.png.cfm');
 	background-repeat: no-repeat;
 	background-position: -105px -20px;
 }
@@ -1389,7 +1389,7 @@ body.full #logo { display: block; position: absolute; top: 0px; left: 0; width: 
 }
 
 .sprite,#sprite			{ 
-	background-image: url( '../img/admin_sprite-{appendix}.png.cfm' ); 
+	background-image: url( '../img/admin6_sprite-{appendix}.png.cfm' ); 
 	background-repeat: no-repeat; 
 	background-size: 200px 400px;
 }
