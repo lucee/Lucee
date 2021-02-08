@@ -4981,6 +4981,7 @@ Permits searching collections by title or displaying a separate title from the k
 			<name>application</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
+			<default>true</default>
 			<description>Specifies whether to log the application name if one has been specified in a cfapplication tag.</description>
 		</attribute>
 	</tag>
