@@ -4188,7 +4188,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 	 */
 
 	private void doUpdateAdminMode() throws PageException {
-		admin.updateUpdateAdminMode(getString("admin", "updateAdminMode", "mode"));
+		admin.updateUpdateAdminMode(getString("admin", "updateAdminMode", "mode"), getBool("admin", "updateAdminMode", "merge"), getBool("admin", "updateAdminMode", "keep"));
 		store();
 		adminSync.broadcast(attributes, config);
 	}
