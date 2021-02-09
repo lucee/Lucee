@@ -30,6 +30,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.nio.file.Files;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileTime;
 
 import lucee.commons.digest.Hash;
 import lucee.commons.digest.HashUtil;
@@ -822,6 +825,8 @@ public final class FileTag extends BodyTagImpl {
 		SecurityManager sm = pc.getConfig().getSecurityManager();
 		checkFile(pc, sm, file, serverPassword, false, false, false, false);
 
+		File files = new File(Caster.toString(file));
+		BasicFileAttributes attr;
 		Struct sct = new StructImpl();
 
 		// fill data to query
@@ -831,7 +836,13 @@ public final class FileTag extends BodyTagImpl {
 		if (file instanceof File) sct.setEL("execute", ((File) file).canExecute());
 		sct.setEL("read", file.canRead());
 		sct.setEL("write", file.canWrite());
-
+		try {
+			attr = Files.readAttributes(files.toPath(), BasicFileAttributes.class);
+			sct.set("fileCreated", new DateTimeImpl(pc, attr.creationTime().toMillis(), false));
+		}
+		catch (Exception e) {
+			sct.set("fileCreated", "");
+		}
 		sct.setEL("dateLastModified", new DateTimeImpl(pc, file.lastModified(), false));
 		sct.setEL("attributes", getFileAttribute(file));
 		if (SystemUtil.isUnix()) sct.setEL(KeyConstants._mode, new ModeObjectWrap(file));

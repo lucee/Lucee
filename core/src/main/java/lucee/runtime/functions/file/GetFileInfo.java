@@ -18,6 +18,11 @@
  **/
 package lucee.runtime.functions.file;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileTime;
+
 import lucee.commons.io.res.Resource;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
@@ -31,6 +36,8 @@ public class GetFileInfo {
 
 	public static Struct call(PageContext pc, Object oSrc) throws PageException {
 		Resource src = Caster.toResource(pc, oSrc, true);
+		File file = new File(Caster.toString(oSrc));
+		BasicFileAttributes attr;
 		pc.getConfig().getSecurityManager().checkFileLocation(src);
 
 		Struct sct = new StructImpl();
@@ -39,6 +46,13 @@ public class GetFileInfo {
 		sct.set("canWrite", Caster.toBoolean(src.isWriteable()));
 		sct.set("isHidden", Caster.toBoolean(src.getAttribute(Resource.ATTRIBUTE_HIDDEN)));
 		sct.set("lastmodified", new DateTimeImpl(pc, src.lastModified(), false));
+		try {
+			attr = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
+			sct.set("fileCreated", new DateTimeImpl(pc, attr.creationTime().toMillis(), false));
+		}
+		catch (Exception e) {
+			sct.set("fileCreated", "");
+		}
 		sct.set(KeyConstants._name, src.getName());
 		sct.set(KeyConstants._parent, src.getParent());
 		sct.set(KeyConstants._path, src.getAbsolutePath());
