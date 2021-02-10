@@ -108,14 +108,18 @@ public class ClassicLayout extends Layout {
 		// Message
 		data.append('"');
 		if (msg == null && event.getMessage() != null) msg = event.getMessage().toString();
-		data.append(StringUtil.replace(msg, "\"", "\"\"", false));
+		msg = StringUtil.replace(msg, "\"", "\"\"", false);
+		data.append(msg);
 		ThrowableInformation ti = event.getThrowableInformation();
 		if (ti != null) {
 			Throwable t = ti.getThrowable();
 			data.append(';');
 			String em = ExceptionUtil.getMessage(t);
-			data.append(StringUtil.replace(em, "\"", "\"\"", false));
-			data.append(';');
+			em = StringUtil.replace(em, "\"", "\"\"", false);
+			if (!em.equals(msg)){
+				data.append(em);
+				data.append(';');
+			}
 			String est = ExceptionUtil.getStacktrace(t, false, true);
 			data.append(StringUtil.replace(est, "\"", "\"\"", false));
 		}
