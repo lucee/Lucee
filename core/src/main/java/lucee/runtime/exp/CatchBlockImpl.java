@@ -437,12 +437,12 @@ public class CatchBlockImpl extends StructImpl implements CatchBlock, Castable, 
 	}
 
 	public Object callWithNamedValues(PageContext pc, String methodName, Struct args) throws PageException {
-		throw new ApplicationException("named arguments not supported");
+		throw new ApplicationException("Named arguments not supported");
 	}
 
 	@Override
 	public Object callWithNamedValues(PageContext pc, Key methodName, Struct args) throws PageException {
-		throw new ApplicationException("named arguments not supported");
+		throw new ApplicationException("Named arguments not supported");
 	}
 
 	public boolean isInitalized() {

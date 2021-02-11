@@ -185,7 +185,7 @@ public final class DatabaseException extends PageExceptionImpl {
 		}
 
 		// create error detail
-		DatabaseException de = new DatabaseException("datasource [" + datasource + "] doesn't exist", null, null, null);
+		DatabaseException de = new DatabaseException("Datasource [" + datasource + "] doesn't exist", null, null, null);
 		de.setDetail(ExceptionUtil.createSoundexDetail(datasource, list.iterator(), "datasource names"));
 		de.setAdditional(KeyConstants._Datasource, datasource);
 		return de;
