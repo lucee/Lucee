@@ -1051,7 +1051,7 @@ public final class XMLConfigAdmin {
 
 		ConfigPro ci = ((ConfigPro) config);
 		Log logger = ci.getLog("deploy");
-		logger.log(Log.LEVEL_INFO, "extension", "Install Bundle [" + bf.getName() + "-" + bf.getVersion().toString() + ".jar" + "]");
+		logger.log(Log.LEVEL_INFO, "extension", "Install Bundle [" + bf.getSymbolicName() + "-" + bf.getVersion().toString() + ".jar" + "]");
 
 		CFMLEngine engine = CFMLEngineFactory.getInstance();
 		CFMLEngineFactory factory = engine.getCFMLEngineFactory();
