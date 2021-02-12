@@ -5528,7 +5528,7 @@ public final class XMLConfigAdmin {
 		if (ArrayUtil.isEmpty(names)) return;
 		Resource file = config.getTldFile();
 		for (int i = 0; i < names.length; i++) {
-			logger.log(Log.LEVEL_INFO, "extension", "Remove TLD file " + names[i]);
+			logger.log(Log.LEVEL_INFO, "extension", "Remove TLD file [" + names[i] + "]");
 			removeFromDirectory(file, names[i]);
 		}
 	}
@@ -5537,7 +5537,7 @@ public final class XMLConfigAdmin {
 		if (ArrayUtil.isEmpty(relpath)) return;
 		Resource dir = config.getEventGatewayDirectory();// get Event gateway Directory
 		for (int i = 0; i < relpath.length; i++) {
-			logger.log(Log.LEVEL_INFO, "extension", "Remove Event Gateway " + relpath[i]);
+			logger.log(Log.LEVEL_INFO, "extension", "Remove Event Gateway [" + relpath[i] + "]");
 			removeFromDirectory(dir, relpath[i]);
 		}
 	}
@@ -5546,7 +5546,7 @@ public final class XMLConfigAdmin {
 		if (ArrayUtil.isEmpty(relpath)) return;
 		Resource file = config.getDefaultFunctionMapping().getPhysical();
 		for (int i = 0; i < relpath.length; i++) {
-			logger.log(Log.LEVEL_INFO, "extension", "Remove Function " + relpath[i]);
+			logger.log(Log.LEVEL_INFO, "extension", "Remove Function [" + relpath[i] +"]";
 			removeFromDirectory(file, relpath[i]);
 		}
 	}
@@ -5561,7 +5561,7 @@ public final class XMLConfigAdmin {
 			ZipEntry entry = file.getEntry("META-INF/MANIFEST.MF");
 
 			// no manifest
-			if (entry == null) throw new ApplicationException("Cannot remove " + Constants.NAME + " Archive [" + archive + "], file is to old, the file does not have a MANIFEST.");
+			if (entry == null) throw new ApplicationException("Cannot remove [" + Constants.NAME + "] Archive [" + archive + "], file is to old, the file does not have a MANIFEST.");
 
 			is = file.getInputStream(entry);
 			Manifest manifest = new Manifest(is);
@@ -6086,7 +6086,7 @@ public final class XMLConfigAdmin {
 		if (ArrayUtil.isEmpty(realpathes)) return false;
 		boolean force = false;
 		for (int i = 0; i < realpathes.length; i++) {
-			logger.log(Log.LEVEL_INFO, "extension", "remove " + realpathes[i]);
+			logger.log(Log.LEVEL_INFO, "extension", "Remove [" + realpathes[i] + "]");
 			if (_removeContext(config, realpathes[i], store)) force = true;
 		}
 		return force;
