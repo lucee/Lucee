@@ -70,7 +70,7 @@ public class BIF extends MemberSupport implements UDFPlus {
 		// BIF not found
 		if (flf == null) {
 			Key[] keys = CollectionUtil.toKeys(fl.getFunctions().keySet());
-			throw new ApplicationException(ExceptionUtil.similarKeyMessage(keys, name, "Built in function", "Built in functions", null, false));
+			throw new ApplicationException(ExceptionUtil.similarKeyMessage(keys, name, "Built in function", "Built in functions", null));
 		}
 		try {
 			this.id = Hash.md5(name);

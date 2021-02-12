@@ -62,7 +62,7 @@ public abstract class StructSupport implements Map, Struct {
 			if (k.equals(key)) return new ExpressionException("the value from key [" + key.getString() + "] " + appendix + " is NULL, which is the same as not existing in CFML");
 		}
 		config = ThreadLocalPageContext.getConfig(config);
-		if (config != null && config.debug()) return new ExpressionException(ExceptionUtil.similarKeyMessage(sct, key.getString(), "key", "keys", in, true));
+		if (config != null && config.debug()) return new ExpressionException(ExceptionUtil.similarKeyMessage(sct, key.getString(), "key", "keys", in), ExceptionUtil.similarKeyMessage(sct, key.getString(), "key", "keys", in, true));
 
 		return new ExpressionException("key [" + key.getString() + "] doesn't exist" + appendix);
 	}
