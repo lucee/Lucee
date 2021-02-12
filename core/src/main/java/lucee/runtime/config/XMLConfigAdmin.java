@@ -4740,13 +4740,13 @@ public final class XMLConfigAdmin {
 
 				// flds
 				if (!entry.isDirectory() && startsWith(path, type, "flds") && (StringUtil.endsWithIgnoreCase(path, ".fld") || StringUtil.endsWithIgnoreCase(path, ".fldx"))) {
-					logger.log(Log.LEVEL_INFO, "extension", "Deploy fld [" + fileName + "]");
+					logger.log(Log.LEVEL_INFO, "extension", "Deploy FLD [" + fileName + "]");
 					updateFLD(zis, fileName, false);
 					reloadNecessary = true;
 				}
 				// tlds
 				if (!entry.isDirectory() && startsWith(path, type, "tlds") && (StringUtil.endsWithIgnoreCase(path, ".tld") || StringUtil.endsWithIgnoreCase(path, ".tldx"))) {
-					logger.log(Log.LEVEL_INFO, "extension", "Deploy tld/tldx [" + fileName + "]");
+					logger.log(Log.LEVEL_INFO, "extension", "Deploy TLD/TLDX [" + fileName + "]");
 					updateTLD(zis, fileName, false);
 					reloadNecessary = true;
 				}
@@ -4754,7 +4754,7 @@ public final class XMLConfigAdmin {
 				// tags
 				if (!entry.isDirectory() && startsWith(path, type, "tags")) {
 					String sub = subFolder(entry);
-					logger.log(Log.LEVEL_INFO, "extension", "Deploy tag [" + sub + "]");
+					logger.log(Log.LEVEL_INFO, "extension", "Deploy Tag [" + sub + "]");
 					updateTag(zis, sub, false);
 					// clearTags=true;
 					reloadNecessary = true;
@@ -4763,7 +4763,7 @@ public final class XMLConfigAdmin {
 				// functions
 				if (!entry.isDirectory() && startsWith(path, type, "functions")) {
 					String sub = subFolder(entry);
-					logger.log(Log.LEVEL_INFO, "extension", "Deploy function [" + sub + "]");
+					logger.log(Log.LEVEL_INFO, "extension", "Deploy Function [" + sub + "]");
 					updateFunction(zis, sub, false);
 					// clearFunction=true;
 					reloadNecessary = true;
@@ -4772,7 +4772,7 @@ public final class XMLConfigAdmin {
 				// mappings
 				if (!entry.isDirectory() && (startsWith(path, type, "archives") || startsWith(path, type, "mappings"))) {
 					String sub = subFolder(entry);
-					logger.log(Log.LEVEL_INFO, "extension", "deploy mapping " + sub);
+					logger.log(Log.LEVEL_INFO, "extension", "Deploy Mapping [" + sub + "]");
 					updateArchive(zis, sub, false);
 					reloadNecessary = true;
 					// clearFunction=true;
@@ -4791,7 +4791,7 @@ public final class XMLConfigAdmin {
 				String realpath;
 				if (!entry.isDirectory() && startsWith(path, type, "context") && !StringUtil.startsWith(fileName(entry), '.')) {
 					realpath = path.substring(8);
-					logger.log(Log.LEVEL_INFO, "extension", "Deploy context [" + realpath + "]");
+					logger.log(Log.LEVEL_INFO, "extension", "Deploy Context [" + realpath + "]");
 					updateContext(zis, realpath, false, false);
 				}
 				// web contextS
@@ -4811,26 +4811,26 @@ public final class XMLConfigAdmin {
 					else index = 4; // web
 
 					realpath = path.substring(index);
-					logger.log(Log.LEVEL_INFO, "extension", "Deploy application [" + realpath + "]");
+					logger.log(Log.LEVEL_INFO, "extension", "Deploy Application [" + realpath + "]");
 					updateApplication(zis, realpath, false);
 				}
 				// configs
 				if (!entry.isDirectory() && (startsWith(path, type, "config")) && !StringUtil.startsWith(fileName(entry), '.')) {
 					realpath = path.substring(7);
-					logger.log(Log.LEVEL_INFO, "extension", "Deploy config [" + realpath + "]");
+					logger.log(Log.LEVEL_INFO, "extension", "Deploy Config [" + realpath + "]");
 					updateConfigs(zis, realpath, false, false);
 				}
 				// components
 				if (!entry.isDirectory() && (startsWith(path, type, "components")) && !StringUtil.startsWith(fileName(entry), '.')) {
 					realpath = path.substring(11);
-					logger.log(Log.LEVEL_INFO, "extension", "Deploy component [" + realpath + "]");
+					logger.log(Log.LEVEL_INFO, "extension", "Deploy Component [" + realpath + "]");
 					updateComponent(zis, realpath, false, false);
 				}
 
 				// plugins
 				if (!entry.isDirectory() && (startsWith(path, type, "plugins")) && !StringUtil.startsWith(fileName(entry), '.')) {
 					realpath = path.substring(8);
-					logger.log(Log.LEVEL_INFO, "extension", "Deploy plugin [" + realpath + "]");
+					logger.log(Log.LEVEL_INFO, "extension", "Deploy Plugin [" + realpath + "]");
 					updatePlugin(zis, realpath, false);
 				}
 
@@ -4860,7 +4860,7 @@ public final class XMLConfigAdmin {
 						_updateCache(cd);
 						reloadNecessary = true;
 					}
-					logger.info("extension", "Update cache [" + cd + "] from extension [" + rhext.getName() + ":" + rhext.getVersion() + "]");
+					logger.info("extension", "Update Cache [" + cd + "] from extension [" + rhext.getName() + ":" + rhext.getVersion() + "]");
 				}
 			}
 
@@ -4876,7 +4876,7 @@ public final class XMLConfigAdmin {
 						_updateCacheHandler(_id, cd);
 						reloadNecessary = true;
 					}
-					logger.info("extension", "Update cache handler [" + cd + "] from extension [" + rhext.getName() + ":" + rhext.getVersion() + "]");
+					logger.info("extension", "Update Cache Handler [" + cd + "] from Extension [" + rhext.getName() + ":" + rhext.getVersion() + "]");
 				}
 			}
 
@@ -4891,7 +4891,7 @@ public final class XMLConfigAdmin {
 						_updateAMFEngine(cd, map.get("caster"), map.get("configuration"));
 						reloadNecessary = true;
 					}
-					logger.info("extension", "Update AMF engine [" + cd + "] from extension [" + rhext.getName() + ":" + rhext.getVersion() + "]");
+					logger.info("extension", "Update AMF engine [" + cd + "] from Extension [" + rhext.getName() + ":" + rhext.getVersion() + "]");
 				}
 			}
 
@@ -4906,7 +4906,7 @@ public final class XMLConfigAdmin {
 						_updateSearchEngine(cd);
 						reloadNecessary = true;
 					}
-					logger.info("extension", "Update search engine [" + cd + "] from extension [" + rhext.getName() + ":" + rhext.getVersion() + "]");
+					logger.info("extension", "Update Search Engine [" + cd + "] from Extension [" + rhext.getName() + ":" + rhext.getVersion() + "]");
 				}
 			}
 
@@ -4925,7 +4925,7 @@ public final class XMLConfigAdmin {
 						_updateResourceProvider(scheme, cd, args);
 						reloadNecessary = true;
 					}
-					logger.info("extension", "Update resource provider [" + scheme + "] from extension [" + rhext.getName() + ":" + rhext.getVersion() + "]");
+					logger.info("extension", "Update Resource Provider [" + scheme + "] from Extension [" + rhext.getName() + ":" + rhext.getVersion() + "]");
 				}
 			}
 
@@ -4941,7 +4941,7 @@ public final class XMLConfigAdmin {
 						_updateORMEngine(cd);
 						reloadNecessary = true;
 					}
-					logger.info("extension", "Update orm engine [" + cd + "] from extension [" + rhext.getName() + ":" + rhext.getVersion() + "]");
+					logger.info("extension", "Update ORM engine [" + cd + "] from Extension [" + rhext.getName() + ":" + rhext.getVersion() + "]");
 				}
 			}
 
@@ -4957,7 +4957,7 @@ public final class XMLConfigAdmin {
 						_updateWebserviceHandler(cd);
 						reloadNecessary = true;
 					}
-					logger.info("extension", "Update webservice handler [" + cd + "] from extension [" + rhext.getName() + ":" + rhext.getVersion() + "]");
+					logger.info("extension", "Update webservice handler [" + cd + "] from Extension [" + rhext.getName() + ":" + rhext.getVersion() + "]");
 				}
 			}
 
@@ -4973,7 +4973,7 @@ public final class XMLConfigAdmin {
 						_updateMonitor(cd, map.get("type"), map.get("name"), true);
 						reloadNecessary = true;
 					}
-					logger.info("extension", "Update monitor engine [" + cd + "] from extension [" + rhext.getName() + ":" + rhext.getVersion() + "]");
+					logger.info("extension", "Update monitor engine [" + cd + "] from Extension [" + rhext.getName() + ":" + rhext.getVersion() + "]");
 				}
 			}
 
@@ -4990,7 +4990,7 @@ public final class XMLConfigAdmin {
 						_updateJDBCDriver(_label, _id, cd);
 						reloadNecessary = true;
 					}
-					logger.info("extension", "Update JDBC Driver [" + _label + ":" + cd + "] from extension [" + rhext.getName() + ":" + rhext.getVersion() + "]");
+					logger.info("extension", "Update JDBC Driver [" + _label + ":" + cd + "] from Extension [" + rhext.getName() + ":" + rhext.getVersion() + "]");
 				}
 			}
 
@@ -5005,7 +5005,7 @@ public final class XMLConfigAdmin {
 						_updateStartupHook(cd);
 						reloadNecessary = true;
 					}
-					logger.info("extension", "Update Startup Hook [" + cd + "] from extension [" + rhext.getName() + ":" + rhext.getVersion() + "]");
+					logger.info("extension", "Update Startup Hook [" + cd + "] from Extension [" + rhext.getName() + ":" + rhext.getVersion() + "]");
 				}
 			}
 
@@ -5073,7 +5073,7 @@ public final class XMLConfigAdmin {
 						_updateGatewayEntry(id, cd, cfcPath, listenerCfcPath, startupMode, custom, readOnly);
 					}
 
-					logger.info("extension", "Update event gateway entry [" + id + "] from extension [" + rhext.getName() + ":" + rhext.getVersion() + "]");
+					logger.info("extension", "Update Event Gateway entry [" + id + "] from Extension [" + rhext.getName() + ":" + rhext.getVersion() + "]");
 				}
 			}
 
@@ -5546,7 +5546,7 @@ public final class XMLConfigAdmin {
 		if (ArrayUtil.isEmpty(relpath)) return;
 		Resource file = config.getDefaultFunctionMapping().getPhysical();
 		for (int i = 0; i < relpath.length; i++) {
-			logger.log(Log.LEVEL_INFO, "extension", "Remove Function [" + relpath[i] +"]";
+			logger.log(Log.LEVEL_INFO, "extension", "Remove Function [" + relpath[i] +"]");
 			removeFromDirectory(file, relpath[i]);
 		}
 	}
@@ -5561,7 +5561,7 @@ public final class XMLConfigAdmin {
 			ZipEntry entry = file.getEntry("META-INF/MANIFEST.MF");
 
 			// no manifest
-			if (entry == null) throw new ApplicationException("Cannot remove [" + Constants.NAME + "] Archive [" + archive + "], file is to old, the file does not have a MANIFEST.");
+			if (entry == null) throw new ApplicationException("Cannot remove [" + Constants.NAME + "] Archive [" + archive + "], file is too old, the file does not have a MANIFEST.");
 
 			is = file.getInputStream(entry);
 			Manifest manifest = new Manifest(is);
