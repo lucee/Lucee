@@ -1049,6 +1049,10 @@ public final class XMLConfigAdmin {
 		BundleFile _bf = OSGiUtil.getBundleFile(bf.getSymbolicName(), bf.getVersion(), null, null, false, null);
 		if (_bf != null) return _bf;
 
+		ConfigPro ci = ((ConfigPro) config);
+		Log logger = ci.getLog("deploy");
+		logger.log(Log.LEVEL_INFO, "extension", "Install Bundle [" + bf.getName() + "-" + bf.getVersion().toString() + ".jar" + "]");
+
 		CFMLEngine engine = CFMLEngineFactory.getInstance();
 		CFMLEngineFactory factory = engine.getCFMLEngineFactory();
 
@@ -4711,6 +4715,8 @@ public final class XMLConfigAdmin {
 			cleanBundles(rhext, ci, existing);// clean after populating the new ones
 			// ConfigWebAdmin.updateRHExtension(ci,rhext);
 
+			logger.log(Log.LEVEL_INFO, "extension", "Update Extension [" + rhext.getName() + ":" + rhext.getVersion() + "]");
+
 			ZipInputStream zis = new ZipInputStream(IOUtil.toBufferedInputStream(rhext.getExtensionFile().getInputStream()));
 			ZipEntry entry;
 			String path;
@@ -5119,6 +5125,8 @@ public final class XMLConfigAdmin {
 		Log logger = ci.getLog("deploy");
 
 		// MUST check replacementRH everywhere
+
+		logger.log(Log.LEVEL_INFO, "extension", "Remove Extension [" + rhe.getName() + ":" + rhe.getVersion() + "]");
 
 		try {
 			// remove the bundles
