@@ -320,7 +320,7 @@
 
 			// rename older to otherVersions
 
-			if(queryColumnExists(data.extensions,"older") || !queryColumnExists(data.extensions,"otherVersions")) {
+			if(queryColumnExists(data.extensions,"older") && !queryColumnExists(data.extensions,"otherVersions")) {
 				data.extensions.addColumn("otherVersions",data.extensions.columnData('older'));
 				data.extensions.deleteColumn("older");
 				//QuerySetColumn(data.extensions,"older","otherVersions");
