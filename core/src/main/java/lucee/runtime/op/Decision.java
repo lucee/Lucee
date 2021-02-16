@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.regex.Pattern;
+import java.math.BigDecimal;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -112,7 +113,8 @@ public final class Decision {
 		else if (value instanceof CharSequence || value instanceof Character) {
 			boolean numeric = true;
 			try {
-				Double num = Double.parseDouble(value.toString());
+				// Double num = Double.parseDouble(value.toString());
+				BigDecimal result = new BigDecimal(value.toString());
 			}
 			catch (NumberFormatException e) {
 				numeric = false;
