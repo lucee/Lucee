@@ -4863,7 +4863,7 @@ public final class XMLConfigAdmin {
 						reloadNecessary = true;
 						logger.info("extension", "Update Cache [" + cd + "] from extension " + extName );
 					} else {
-						logger.error("extension", "Failed to Update Cache [" + cd + "] from extension " + extName);
+						logger.error("extension", "Unsupported config, failed to update Cache [" + cd + "] from extension " + extName);
 					}
 				}
 			}
@@ -4881,7 +4881,7 @@ public final class XMLConfigAdmin {
 						reloadNecessary = true;
 						logger.info("extension", "Update Cache Handler [" + cd + "] from Extension " + extName);
 					} else {
-						logger.error("extension", "Failed to update Cache Handler [" + cd + "] from Extension " + extName);
+						logger.error("extension", "Unsupported config, failed to update Cache Handler [" + cd + "] from Extension " + extName);
 					}
 				}
 			}
@@ -4898,7 +4898,7 @@ public final class XMLConfigAdmin {
 						reloadNecessary = true;
 						logger.info("extension", "Update AMF engine [" + cd + "] from Extension " + extName);
 					} else {
-						logger.error("extension", "Failed to update AMF engine [" + cd + "] from Extension " + extName);
+						logger.error("extension", "Unsupported config, failed to update AMF engine [" + cd + "] from Extension " + extName);
 					}
 				}
 			}
@@ -4915,7 +4915,7 @@ public final class XMLConfigAdmin {
 						reloadNecessary = true;
 						logger.info("extension", "Update Search Engine [" + cd + "] from Extension " + extName);
 					} else {
-						logger.error("extension", "Failed to update Search Engine [" + cd + "] from Extension " + extName);
+						logger.error("extension", "Unsupported config, failed to update Search Engine [" + cd + "] from Extension " + extName);
 					}
 				}
 			}
@@ -4936,7 +4936,7 @@ public final class XMLConfigAdmin {
 						reloadNecessary = true;
 						logger.info("extension", "Update Resource Provider [" + scheme + "] from Extension " + extName);
 					} else{
-						logger.error("extension", "Failed to update Resource Provider [" + scheme + "] from Extension " + extName);
+						logger.error("extension", "Unsupported config, failed to update Resource Provider [" + scheme + "] from Extension " + extName);
 					}
 				}
 			}
@@ -4954,7 +4954,7 @@ public final class XMLConfigAdmin {
 						reloadNecessary = true;
 						logger.info("extension", "Update ORM engine [" + cd + "] from Extension " + extName);
 					} else {
-						logger.error("extension", "Failed to update ORM engine [" + cd + "] from Extension " + extName);
+						logger.error("extension", "Unsupported config, failed to update ORM engine [" + cd + "] from Extension " + extName);
 					}
 				}
 			}
@@ -4970,9 +4970,9 @@ public final class XMLConfigAdmin {
 					if (cd != null && cd.hasClass()) {
 						_updateWebserviceHandler(cd);
 						reloadNecessary = true;
-						logger.info("extension", "Update webservice handler [" + cd + "] from Extension " + extName);
+						logger.info("extension", "Update Webservice Handler [" + cd + "] from Extension " + extName);
 					} else {
-						logger.error("extension", "Failed to update webservice handler [" + cd + "] from Extension " + extName);
+						logger.error("extension", "Unsupported config, failed to update Webservice Handler [" + cd + "] from Extension " + extName);
 					}
 				}
 			}
@@ -4988,9 +4988,9 @@ public final class XMLConfigAdmin {
 						_updateMonitorEnabled(true);
 						_updateMonitor(cd, map.get("type"), map.get("name"), true);
 						reloadNecessary = true;
-						logger.info("extension", "Update monitor engine [" + cd + "] from Extension " + extName);
+						logger.info("extension", "Update Monitor Engine [" + cd + "] from Extension " + extName);
 					} else {
-						logger.error("extension", "Failed to update monitor engine [" + cd + "] from Extension " + extName);
+						logger.error("extension", "Unsupported config, failed to update Monitor Engine [" + cd + "] from Extension " + extName);
 					}
 				}
 			}
@@ -5009,7 +5009,7 @@ public final class XMLConfigAdmin {
 						reloadNecessary = true;
 						logger.info("extension", "Update JDBC Driver [" + _label + ":" + cd + "] from Extension " + extName);
 					} else {
-						logger.error("extension", "Failed to update JDBC Driver [" + _label + ":" + cd + "] from Extension " + extName);
+						logger.error("extension", "Unsupported config, failed to update JDBC Driver [" + _label + ":" + cd + "] from Extension " + extName);
 					}
 				}
 			}
@@ -5026,7 +5026,7 @@ public final class XMLConfigAdmin {
 						reloadNecessary = true;
 						logger.info("extension", "Update Startup Hook [" + cd + "] from Extension " + extName);
 					} else {
-						logger.error("extension", "Failed to update Startup Hook [" + cd + "] from Extension " + extName);
+						logger.error("extension", "Unsupported config, failed to update Startup Hook [" + cd + "] from Extension " + extName);
 					}
 				}
 			}
@@ -5095,7 +5095,7 @@ public final class XMLConfigAdmin {
 						_updateGatewayEntry(id, cd, cfcPath, listenerCfcPath, startupMode, custom, readOnly);
 						logger.info("extension", "Update Event Gateway entry [" + id + "] from Extension " + extName);
 					} else {
-						logger.error("extension", "Failed to update Event Gateway entry [" + id + "] from Extension " + extName);
+						logger.error("extension", "Unsupported config, failed to update Event Gateway entry [" + id + "] from Extension " + extName);
 					}
 				}
 			}
