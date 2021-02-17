@@ -4936,7 +4936,7 @@ public final class XMLConfigAdmin {
 						reloadNecessary = true;
 						logger.info("extension", "Update Resource Provider [" + scheme + "] from Extension " + extName);
 					} else{
-						logger.info("extension", "Failed to update Resource Provider [" + scheme + "] from Extension " + extName);
+						logger.error("extension", "Failed to update Resource Provider [" + scheme + "] from Extension " + extName);
 					}
 				}
 			}
