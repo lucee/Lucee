@@ -110,7 +110,7 @@ public class DeployHandler {
 						boolean sucess = DeployHandler.deployExtensions(config, extensions.toArray(new ExtensionDefintion[extensions.size()]), log);
 						if (sucess && configDir != null) ConfigFactory.updateRequiredExtension(engine, configDir, log);
 						LogUtil.log(config, Log.LEVEL_INFO, "deploy", "controller",
-								(sucess ? "sucessfully" : "unsucessfully") + " installed extensions:" + ListUtil.listToList(extensions, ", "));
+								(sucess ? "Successfully installed" : "Failed to install") + " extensions: [" + ListUtil.listToList(extensions, ", ") +"]"); 
 					}
 					catch (Exception e) {
 						Log log = config.getLog("deploy");
@@ -244,7 +244,7 @@ public class DeployHandler {
 			if (ext != null && ed.getVersion() != null) {
 				Resource res = null;
 				try {
-					if (log != null) log.info("extension", "installing the extension " + ed + " from local provider");
+					if (log != null) log.info("extension", "Installing extension [" + ed + "] from local provider");
 					res = SystemUtil.getTempDirectory().getRealResource(ed.getId() + "-" + ed.getVersion() + ".lex");
 					ResourceUtil.touch(res);
 					IOUtil.copy(ext.getSource(), res);
@@ -288,7 +288,7 @@ public class DeployHandler {
 					if (apiKey != null) qs.append("&ioid=").append(apiKey);
 
 					url = new URL(url, "/rest/extension/provider/info/" + ed.getId() + qs);
-					if (log != null) log.info("extension", "check for a newer version at " + url);
+					if (log != null) log.info("extension", "Check for a newer version at [" + url + "]");
 					rsp = HTTPEngine.get(url, null, null, -1, false, "UTF-8", "", null, new Header[] { new HeaderImpl("accept", "application/json") });
 
 					if (rsp.getStatusCode() != 200) continue;
@@ -299,7 +299,7 @@ public class DeployHandler {
 
 					// the local version is as good as the remote
 					if (remoteVersion != null && remoteVersion.compareTo(ext.getVersion()) <= 0) {
-						if (log != null) log.info("extension", "installing the extension " + ed + " from local provider");
+						if (log != null) log.info("extension", "Installing extension [" + ed + "] from local provider");
 
 						// avoid that the exzension from provider get removed
 						Resource res = SystemUtil.getTempDirectory().getRealResource(ed.getId() + "-" + ed.getVersion() + ".lex");
@@ -323,7 +323,7 @@ public class DeployHandler {
 		// extension
 		if (ext != null) {
 			try {
-				if (log != null) log.info("extension", "installing the extension " + ed + " from local provider");
+				if (log != null) log.info("extension", "Installing extension [" + ed + "] from local provider");
 				Resource res = SystemUtil.getTempDirectory().getRealResource(ext.getSource().getName());
 				ResourceUtil.touch(res);
 
@@ -337,7 +337,7 @@ public class DeployHandler {
 		}
 
 		// if not we try to download it
-		if (log != null) log.info("extension", "installing the extension " + ed + " from remote extension provider");
+		if (log != null) log.info("extension", "Installing extension [" + ed + "] from remote extension provider");
 		Resource res = downloadExtension(ci, ed, log);
 		if (res != null) {
 			try {
@@ -367,7 +367,7 @@ public class DeployHandler {
 				addQueryParam(qs, "version", ed.getVersion());
 
 				url = new URL(url, "/rest/extension/provider/full/" + ed.getId() + qs);
-				if (log != null) log.info("main", "check for extension at : " + url);
+				if (log != null) log.info("main", "Check for extension at [" + url + "]");
 
 				rsp = HTTPEngine.get(url, null, null, -1, true, "UTF-8", "", null, new Header[] { new HeaderImpl("accept", "application/cfml") });
 
@@ -378,12 +378,12 @@ public class DeployHandler {
 					Resource res = SystemUtil.getTempDirectory().getRealResource(ed.getId() + "-" + ed.getVersion() + ".lex");
 					ResourceUtil.touch(res);
 					IOUtil.copy(rsp.getContentAsStream(), res, true);
-					if (log != null) log.info("main", "downloaded extension [" + ed + "] to [" + res + "]");
+					if (log != null) log.info("main", "Downloaded extension [" + ed + "] to [" + res + "]");
 					return res;
 
 				}
 				else {
-					if (log != null) log.warn("main", "failed (" + rsp.getStatusCode() + ") to load extension: " + ed + " from " + url);
+					if (log != null) log.warn("main", "Failed (" + rsp.getStatusCode() + ") to load extension: [" + ed + "] from [" + url + "]");
 				}
 			}
 			catch (Exception e) {
