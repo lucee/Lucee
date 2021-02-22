@@ -298,7 +298,7 @@ loop struct=driverNames index="name" item="componentPath" {
 	  host: '#data.hostname#'
 	, port: #data.port#
 	, username: '#replace(data.username,"'","''","all")#'
-	, password:  <li style="overflow-wrap: break-word;">'#data.passwordEncrypted?:''#'</li>
+	, password:  <span style="overflow-wrap: break-word;">'#data.passwordEncrypted?:''#'</span>
 	, ssl: #data.ssl?:false#
 	, tls: #data.tls?:false#<cfif
 	!isNull(data.life)>
