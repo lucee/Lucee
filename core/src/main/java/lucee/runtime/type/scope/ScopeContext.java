@@ -763,7 +763,7 @@ public final class ScopeContext {
 	 * @return session matching the context
 	 * @throws PageException
 	 */
-	public Application getApplicationScope(PageContext pc, RefBoolean isNew) {
+	public Application getApplicationScope(PageContext pc, boolean createUpdateIfNotExist, RefBoolean isNew) {
 		ApplicationContext appContext = pc.getApplicationContext();
 		// getApplication Scope from Context
 		ApplicationImpl application;
@@ -771,11 +771,13 @@ public final class ScopeContext {
 		if (objApp != null) {
 			application = (ApplicationImpl) objApp;
 			if (application.isExpired()) {
+				if (!createUpdateIfNotExist) return null;
 				application.release(pc);
 				isNew.setValue(true);
 			}
 		}
 		else {
+			if (!createUpdateIfNotExist) return null;
 			application = new ApplicationImpl();
 			applicationContexts.put(appContext.getName(), application);
 			isNew.setValue(true);
