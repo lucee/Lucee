@@ -18,6 +18,9 @@
  */
 package lucee.runtime.net.http;
 
+import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.HARD;
+import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.SOFT;
+
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -31,7 +34,6 @@ import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.WeakHashMap;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletInputStream;
@@ -41,6 +43,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.collections4.map.ReferenceMap;
 import org.xml.sax.InputSource;
 
 import lucee.commons.io.CharsetUtil;
@@ -72,7 +75,7 @@ import lucee.runtime.type.util.CollectionUtil;
 public final class ReqRspUtil {
 
 	private static final Cookie[] EMPTY = new Cookie[0];
-	private static Map<String, String> rootPathes = new WeakHashMap<>();
+	private static Map<String, String> rootPathes = new ReferenceMap<String, String>(HARD, SOFT);
 
 	public static String get(Pair<String, Object>[] items, String name) {
 		for (int i = 0; i < items.length; i++) {

@@ -42,7 +42,8 @@ public final class ClassicAppListener extends AppListenerSupport {
 	@Override
 	public void onRequest(PageContext pc, PageSource requestedPage, RequestListener rl) throws PageException {
 
-		PageSource application = AppListenerUtil.getApplicationPageSource(pc, requestedPage, Constants.CFML_CLASSIC_APPLICATION_EVENT_HANDLER, mode);
+		PageSource application = AppListenerUtil.getApplicationPageSource(pc, requestedPage, Constants.CFML_CLASSIC_APPLICATION_EVENT_HANDLER, mode,
+				ApplicationListener.TYPE_CLASSIC);
 
 		_onRequest(pc, requestedPage, application, rl);
 	}
@@ -144,7 +145,8 @@ public final class ClassicAppListener extends AppListenerSupport {
 		_onTimeout(pc);
 	}
 
-	public static void _onTimeout(PageContext pc) {}
+	public static void _onTimeout(PageContext pc) {
+	}
 
 	@Override
 	public boolean hasOnApplicationStart() {

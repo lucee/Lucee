@@ -26,6 +26,7 @@ import java.util.TimeZone;
 
 import org.osgi.framework.Version;
 
+import lucee.print;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
@@ -102,10 +103,23 @@ public final class AppListenerUtil {
 	private static final TimeSpan FIVE_MINUTES = new TimeSpanImpl(0, 0, 5, 0);
 	private static final TimeSpan ONE_MINUTE = new TimeSpanImpl(0, 0, 1, 0);
 
-	public static PageSource getApplicationPageSource(PageContext pc, PageSource requestedPage, String filename, int mode) {
-		if (mode == ApplicationListener.MODE_CURRENT) return getApplicationPageSourceCurrent(requestedPage, filename);
-		if (mode == ApplicationListener.MODE_ROOT) return getApplicationPageSourceRoot(pc, filename);
-		return getApplicationPageSourceCurr2Root(pc, requestedPage, filename);
+	public static PageSource getApplicationPageSource(PageContext pc, PageSource requestedPage, String filename, int mode, int type) {
+		print.e("__>" + requestedPage.getPhyscalFile().getParent());
+		PageSource ps = ((ConfigPro) pc.getConfig()).getApplicationPageSource(pc, requestedPage.getPhyscalFile().getParent(), filename, mode, null);
+		if (ps != null) return ps;
+		print.e("not cached.....");
+
+		if (mode == ApplicationListener.MODE_CURRENT) ps = getApplicationPageSourceCurrent(requestedPage, filename);
+		else if (mode == ApplicationListener.MODE_ROOT) ps = getApplicationPageSourceRoot(pc, filename);
+		else ps = getApplicationPageSourceCurr2Root(pc, requestedPage, filename);
+
+		if (ps != null) ((ConfigPro) pc.getConfig()).putApplicationPageSource(requestedPage.getPhyscalFile().getParent(), ps, filename, mode, isCFC(type));
+		return ps;
+	}
+
+	private static boolean isCFC(int type) {
+		if (type == ApplicationListener.TYPE_CLASSIC) return false;
+		return true;
 	}
 
 	public static PageSource getApplicationPageSourceCurrent(PageSource requestedPage, String filename) {
