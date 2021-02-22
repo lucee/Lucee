@@ -66,6 +66,7 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Md5;
 import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.net.IPRange;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.CIPage;
@@ -83,6 +84,7 @@ import lucee.runtime.cfx.CFXTagPool;
 import lucee.runtime.cfx.customtag.CFXTagPoolImpl;
 import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.component.ImportDefintionImpl;
+import lucee.runtime.config.ConfigWebUtil.CacheElement;
 import lucee.runtime.customtag.InitFile;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
@@ -411,6 +413,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	private Regex regex; // TODO add possibility to configure
 
+	private long applicationPathhCacheTimeout = Caster.toLongValue(SystemUtil.getSystemPropOrEnvVar("lucee.application.path.cache.timeout", null), 0);
+
 	/**
 	 * @return the allowURLRequestTimeout
 	 */
@@ -441,6 +445,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		clearFunctionCache();
 		clearCTCache();
 		clearComponentCache();
+		clearApplicationCache();
 		// clearComponentMetadata();
 	}
 
@@ -2240,6 +2245,10 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (componentPathCache != null) componentPathCache.clear();
 	}
 
+	public void flushApplicationPathCache() {
+		if (applicationPathCache != null) applicationPathCache.clear();
+	}
+
 	public void flushCTPathCache() {
 		if (ctPatchCache != null) ctPatchCache.clear();
 	}
@@ -2923,13 +2932,13 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	}
 
 	private Map<String, SoftReference<PageSource>> componentPathCache = null;// new ArrayList<Page>();
+	private Map<String, SoftReference<ConfigWebUtil.CacheElement>> applicationPathCache = null;// new ArrayList<Page>();
 	private Map<String, SoftReference<InitFile>> ctPatchCache = null;// new ArrayList<Page>();
 	private Map<String, SoftReference<UDF>> udfCache = new ConcurrentHashMap<String, SoftReference<UDF>>();
 
 	@Override
 	public CIPage getCachedPage(PageContext pc, String pathWithCFC) throws TemplateException {
 		if (componentPathCache == null) return null;
-
 		SoftReference<PageSource> tmp = componentPathCache.get(pathWithCFC.toLowerCase());
 		PageSource ps = tmp == null ? null : tmp.get();
 		if (ps == null) return null;
@@ -2947,6 +2956,32 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (componentPathCache == null) componentPathCache = new ConcurrentHashMap<String, SoftReference<PageSource>>();// MUSTMUST new
 		// ReferenceMap(ReferenceMap.SOFT,ReferenceMap.SOFT);
 		componentPathCache.put(pathWithCFC.toLowerCase(), new SoftReference<PageSource>(ps));
+	}
+
+	@Override
+	public PageSource getApplicationPageSource(PageContext pc, String path, String filename, int mode, RefBoolean isCFC) {
+		if (applicationPathCache == null) return null;
+		String id = (path + ":" + filename + ":" + mode).toLowerCase();
+
+		SoftReference<CacheElement> tmp = applicationPathhCacheTimeout <= 0 ? null : applicationPathCache.get(id);
+		if (tmp != null) {
+			CacheElement ce = tmp.get();
+			if ((ce.created + applicationPathhCacheTimeout) >= System.currentTimeMillis()) {
+				if (ce.pageSource.loadPage(pc, false, (Page) null) != null) {
+					if (isCFC != null) isCFC.setValue(ce.isCFC);
+					return ce.pageSource;
+				}
+			}
+		}
+		return null;
+	}
+
+	@Override
+	public void putApplicationPageSource(String path, PageSource ps, String filename, int mode, boolean isCFC) {
+		if (applicationPathhCacheTimeout <= 0) return;
+		if (applicationPathCache == null) applicationPathCache = new ConcurrentHashMap<String, SoftReference<CacheElement>>();// MUSTMUST new
+		String id = (path + ":" + filename + ":" + mode).toLowerCase();
+		applicationPathCache.put(id, new SoftReference<CacheElement>(new CacheElement(ps, isCFC)));
 	}
 
 	@Override
@@ -3031,6 +3066,12 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	public void clearComponentCache() {
 		if (componentPathCache == null) return;
 		componentPathCache.clear();
+	}
+
+	@Override
+	public void clearApplicationCache() {
+		if (applicationPathCache == null) return;
+		applicationPathCache.clear();
 	}
 
 	@Override
@@ -3336,7 +3377,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 			}
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 
 		if (list == null) loggers.clear();
 		else {

@@ -1183,7 +1183,6 @@ public final class ConfigAdmin {
 
 		// copy to jar directory
 		File jar = new File(factory.getBundleDirectory(), bf.getSymbolicName() + "-" + bf.getVersion().toString() + (".jar"));
-
 		InputStream is = bf.getInputStream();
 		OutputStream os = new FileOutputStream(jar);
 		try {
@@ -1192,7 +1191,6 @@ public final class ConfigAdmin {
 		finally {
 			IOUtil.close(is, os);
 		}
-
 		return BundleFile.getInstance(jar);
 	}
 
@@ -1521,7 +1519,8 @@ public final class ConfigAdmin {
 				try {
 					OSGiUtil.uninstall(bl);
 				}
-				catch (BundleException e) {}
+				catch (BundleException e) {
+				}
 			}
 		}
 	}
@@ -1553,7 +1552,8 @@ public final class ConfigAdmin {
 				try {
 					OSGiUtil.uninstall(bl);
 				}
-				catch (BundleException e) {}
+				catch (BundleException e) {
+				}
 			}
 		}
 	}
@@ -1570,7 +1570,8 @@ public final class ConfigAdmin {
 			}
 			config.getStartups().remove(cd.getClassName());
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 	}
 
 	public void updateJDBCDriver(String label, String id, ClassDefinition cd) throws PageException {
@@ -1619,7 +1620,8 @@ public final class ConfigAdmin {
 				try {
 					OSGiUtil.uninstall(bl);
 				}
-				catch (BundleException e) {}
+				catch (BundleException e) {
+				}
 			}
 		}
 	}
@@ -1660,7 +1662,8 @@ public final class ConfigAdmin {
 				try {
 					OSGiUtil.uninstall(bl);
 				}
-				catch (BundleException e) {}
+				catch (BundleException e) {
+				}
 			}
 		}
 	}

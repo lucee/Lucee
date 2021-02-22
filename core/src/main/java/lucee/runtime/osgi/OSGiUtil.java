@@ -51,6 +51,7 @@ import org.osgi.framework.Version;
 import org.osgi.framework.wiring.BundleRevision;
 import org.osgi.resource.Requirement;
 
+import lucee.commons.io.FileUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
@@ -310,7 +311,8 @@ public class OSGiUtil {
 				return bc.core.loadClass(className);
 			}
 		}
-		catch (Exception e) {} // class is not visible to the Lucee core
+		catch (Exception e) {
+		} // class is not visible to the Lucee core
 
 		// now we check all started bundled (not only bundles used by core)
 		Bundle[] bundles = bc.getBundleContext().getBundles();
@@ -319,7 +321,8 @@ public class OSGiUtil {
 				try {
 					return b.loadClass(className);
 				}
-				catch (Exception e) {} // class is not visible to that bundle
+				catch (Exception e) {
+				} // class is not visible to that bundle
 			}
 		}
 
@@ -332,7 +335,8 @@ public class OSGiUtil {
 					// print.e("loader:");
 					return cl.loadClass(className);
 				}
-				catch (Exception e) {}
+				catch (Exception e) {
+				}
 			}
 		}
 
@@ -357,7 +361,8 @@ public class OSGiUtil {
 						try {
 							b = _loadBundle(bc.getBundleContext(), bf.getFile());
 						}
-						catch (IOException e) {}
+						catch (IOException e) {
+						}
 
 						if (b != null) {
 							startIfNecessary(b);
@@ -365,7 +370,8 @@ public class OSGiUtil {
 								try {
 									return b.loadClass(className);
 								}
-								catch (Exception e) {} // class is not visible to that bundle
+								catch (Exception e) {
+								} // class is not visible to that bundle
 							}
 						}
 					}
@@ -573,12 +579,14 @@ public class OSGiUtil {
 		try {
 			localDir = " (" + factory.getBundleDirectory() + ")";
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 		String upLoc = "";
 		try {
 			upLoc = " (" + factory.getUpdateLocation() + ")";
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 
 		if (versionsFound.length() > 0) throw new BundleException("The OSGi Bundle with name [" + name + "] is not available in version [" + version + "] locally" + localDir
 				+ " or from the update provider" + upLoc + ", the following versions are available locally [" + versionsFound + "].");
@@ -852,14 +860,15 @@ public class OSGiUtil {
 	}
 
 	private static BundleFile _getBundleFile(CFMLEngineFactory factory, String name, Version version, List<Resource> addionalDirectories, StringBuilder versionsFound) {
+		Resource match = null;
 		try {
 			Resource dir = ResourceUtil.toResource(factory.getBundleDirectory());
-
 			// first we check if there is a file match (fastest solution)
 			if (version != null) {
 				List<Resource> jars = createPossibleNameMatches(dir, addionalDirectories, name, version);
 				for (Resource jar: jars) {
-					if (jar.exists()) {
+					if (jar.isFile()) {
+						match = jar;
 						BundleFile bf = BundleFile.getInstance(jar);
 						if (bf.isBundle() && name.equalsIgnoreCase(bf.getSymbolicName())) {
 							if (version.equals(bf.getVersion())) {
@@ -874,7 +883,7 @@ public class OSGiUtil {
 			// now we make a closer filename test
 			String curr;
 			if (version != null) {
-				Resource match = null;
+				match = null;
 				String v = version.toString();
 				for (Resource child: children) {
 					curr = child.getName();
@@ -902,6 +911,7 @@ public class OSGiUtil {
 				for (Resource child: children) {
 					curr = child.getName();
 					if (curr.startsWith(name + "-") || curr.startsWith(name.replace('-', '.') + "-") || curr.startsWith(name.replace('.', '-') + "-")) {
+						match = child;
 						bf = BundleFile.getInstance(child);
 						if (bf.isBundle() && name.equalsIgnoreCase(bf.getSymbolicName())) {
 							matches.add(bf);
@@ -925,6 +935,7 @@ public class OSGiUtil {
 			// now we check by Manifest comparsion
 			BundleFile bf;
 			for (Resource child: children) {
+				match = child;
 				bf = BundleFile.getInstance(child);
 				if (bf.isBundle() && name.equalsIgnoreCase(bf.getSymbolicName())) {
 					if (version == null || version.equals(bf.getVersion())) {
@@ -938,7 +949,28 @@ public class OSGiUtil {
 			}
 
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+			log(e);
+			if (match != null) {
+				if (FileUtil.isLocked(match)) {
+					log(Log.LEVEL_ERROR, "cannot load the bundle [" + match + "], bundle seem to have a windows lock");
+
+					// in case the file exists, but is locked we create a copy of if and use that copy
+					BundleFile bf;
+					try {
+						bf = BundleFile.getInstance(FileUtil.createTempResourceFromLockedResource(match, false));
+						if (bf.isBundle() && name.equalsIgnoreCase(bf.getSymbolicName())) {
+							if (version.equals(bf.getVersion())) {
+								return bf;
+							}
+						}
+					}
+					catch (Exception e1) {
+						log(e1);
+					}
+				}
+			}
+		}
 		return null;
 	}
 
@@ -1023,7 +1055,8 @@ public class OSGiUtil {
 				}
 			}
 		}
-		catch (IOException ioe) {}
+		catch (IOException ioe) {
+		}
 
 		return list;
 	}
@@ -1073,7 +1106,8 @@ public class OSGiUtil {
 			try {
 				return _loadBundle(bc, bf.getFile());
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 		}
 
 		return defaultValue;
@@ -1842,7 +1876,8 @@ public class OSGiUtil {
 					bootDelegation = ListUtil.trimItems(ListUtil.listToStringArray(StringUtil.unwrap(bd), ','));
 				}
 			}
-			catch (IOException ioe) {}
+			catch (IOException ioe) {
+			}
 			finally {
 				IOUtil.closeEL(is);
 			}
@@ -1939,7 +1974,8 @@ public class OSGiUtil {
 					try {
 						BundleUtil.addBundle(engine.getCFMLEngineFactory(), engine.getBundleContext(), jars[i], ((PageContextImpl) pc).getLog("application")).start();
 					}
-					catch (BundleException e) {}
+					catch (BundleException e) {
+					}
 				}
 			}
 		}

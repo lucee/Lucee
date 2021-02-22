@@ -21,7 +21,6 @@ package lucee.commons.io.res.type.file;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,6 +28,7 @@ import java.io.OutputStream;
 import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.DosFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
@@ -85,7 +85,8 @@ public final class FileResource extends File implements Resource {
 				Files.copy(((File) res).toPath(), this.toPath(), COPY_OPTIONS);
 				return;
 			}
-			catch (Exception exception) {}
+			catch (Exception exception) {
+			}
 		}
 
 		IOUtil.copy(res, this.getOutputStream(append), true);
@@ -108,7 +109,8 @@ public final class FileResource extends File implements Resource {
 				Files.copy(this.toPath(), ((File) res).toPath(), COPY_OPTIONS);
 				return;
 			}
-			catch (Exception exception) {}
+			catch (Exception exception) {
+			}
 		}
 
 		IOUtil.copy(this, res.getOutputStream(append), true);
@@ -237,8 +239,9 @@ public final class FileResource extends File implements Resource {
 		// provider.lock(this);
 		provider.read(this);
 		try {
-			// return new BufferedInputStream(new ResourceInputStream(this,new FileInputStream(this)));
-			return new BufferedInputStream(new FileInputStream(this));
+
+			return new BufferedInputStream(Files.newInputStream(toPath(), StandardOpenOption.READ));
+			// return new BufferedInputStream(new FileInputStream(this));
 		}
 		catch (IOException ioe) {
 			// provider.unlock(this);
@@ -366,7 +369,8 @@ public final class FileResource extends File implements Resource {
 			moveTo(dest);
 			return true;
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 		return false;
 	}
 
@@ -394,7 +398,8 @@ public final class FileResource extends File implements Resource {
 				return ModeUtil.toOctalMode(line);
 
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 
 		}
 		int mode = SystemUtil.isWindows() && exists() ? 0111 : 0;
@@ -545,7 +550,8 @@ public final class FileResource extends File implements Resource {
 		try {
 			provider.read(this);
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 
 		return super.exists();
 	}

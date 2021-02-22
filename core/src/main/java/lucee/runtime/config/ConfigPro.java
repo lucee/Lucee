@@ -18,6 +18,7 @@ import lucee.commons.io.res.type.compress.Compress;
 import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.lang.CharSet;
 import lucee.commons.lang.ClassException;
+import lucee.commons.lang.types.RefBoolean;
 import lucee.runtime.CIPage;
 import lucee.runtime.Mapping;
 import lucee.runtime.PageContext;
@@ -217,6 +218,8 @@ public interface ConfigPro extends Config {
 
 	public void clearComponentCache();
 
+	public void clearApplicationCache();
+
 	public Map<String, ConfigBase.Startup> getStartups();
 
 	public AdminSync getAdminSync() throws ClassException;
@@ -327,4 +330,8 @@ public interface ConfigPro extends Config {
 	public void setPassword(Password pw);
 
 	public short getAdminMode();
+
+	public PageSource getApplicationPageSource(PageContext pc, String path, String filename, int mode, RefBoolean isCFC);
+
+	public void putApplicationPageSource(String path, PageSource ps, String filename, int mode, boolean isCFC);
 }
