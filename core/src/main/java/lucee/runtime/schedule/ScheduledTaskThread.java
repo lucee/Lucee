@@ -140,7 +140,8 @@ public class ScheduledTaskThread extends Thread {
 			try {
 				scheduler.removeIfNoLonerValid(task);
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 		}
 
 	}
@@ -234,12 +235,14 @@ public class ScheduledTaskThread extends Thread {
 	private void sleepEL(long when, long now) {
 		long millis = when - now;
 		try {
-			while (true) {
-				SystemUtil.wait(this, millis);
-				if (stop) break;
-				millis = when - System.currentTimeMillis();
-				if (millis <= 0) break;
-				millis = 10;
+			if (millis > 0) {
+				while (true) {
+					SystemUtil.wait(this, millis);
+					if (stop) break;
+					millis = when - System.currentTimeMillis();
+					if (millis <= 0) break;
+					millis = 10;
+				}
 			}
 		}
 		catch (Exception e) {

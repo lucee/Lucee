@@ -100,7 +100,8 @@ public class ModernAppListener extends AppListenerSupport {
 	public void onRequest(PageContext pc, PageSource requestedPage, RequestListener rl) throws PageException {
 		// on requestStart
 		PageSource appPS = AppListenerUtil.getApplicationPageSource(pc, requestedPage,
-				pc.getRequestDialect() == CFMLEngine.DIALECT_CFML ? Constants.CFML_APPLICATION_EVENT_HANDLER : Constants.LUCEE_APPLICATION_EVENT_HANDLER, mode);
+				pc.getRequestDialect() == CFMLEngine.DIALECT_CFML ? Constants.CFML_APPLICATION_EVENT_HANDLER : Constants.LUCEE_APPLICATION_EVENT_HANDLER, mode,
+				ApplicationListener.TYPE_MODERN);
 		_onRequest(pc, requestedPage, appPS, rl);
 	}
 
