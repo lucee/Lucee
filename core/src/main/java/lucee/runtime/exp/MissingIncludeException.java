@@ -43,6 +43,7 @@ public final class MissingIncludeException extends PageExceptionImpl {
 	 */
 	public MissingIncludeException(PageSource pageSource) {
 		super(createMessage(pageSource), "missinginclude");
+		setMapping(pageSource);
 		setDetail(pageSource);
 		this.pageSource = pageSource;
 
@@ -50,13 +51,18 @@ public final class MissingIncludeException extends PageExceptionImpl {
 
 	public MissingIncludeException(PageSource pageSource, String msg) {
 		super(msg, "missinginclude");
+		setMapping(pageSource);
 		setDetail(pageSource);
 		this.pageSource = pageSource;
 
 	}
 
-	private void setDetail(PageSource ps) {
+	private void setMapping(PageSource ps) {
 		setAdditional(KeyConstants._Mapping, ps.getMapping().getVirtual());
+	}
+
+	private void setDetail(PageSource ps) {
+		setAdditional(KeyConstants._Detail, "File not found: " + ps.getDisplayPath());
 	}
 
 	/**
@@ -69,7 +75,7 @@ public final class MissingIncludeException extends PageExceptionImpl {
 	private static String createMessage(PageSource pageSource) {
 		String dsp = pageSource.getDisplayPath();
 		if (dsp == null) return "Page " + pageSource.getRealpathWithVirtual() + " not found";
-		return "Page " + pageSource.getRealpathWithVirtual() + " [" + dsp + "] not found";
+		return "Page " + pageSource.getRealpathWithVirtual() + " not found";
 	}
 
 	@Override
