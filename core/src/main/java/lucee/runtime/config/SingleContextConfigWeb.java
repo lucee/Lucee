@@ -1519,6 +1519,11 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	}
 
 	@Override
+	public TimeSpan getApplicationPathhCacheTimeout() {
+		return cs.getApplicationPathhCacheTimeout();
+	}
+
+	@Override
 	public String getServletName() {
 		return config.getServletName();
 	}

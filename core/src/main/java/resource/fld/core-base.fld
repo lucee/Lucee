@@ -88,6 +88,17 @@
 			<type>array</type>
 		</return>
 	</function>
+	
+	<!-- ApplicationPathCacheClear -->
+	<function>
+		<name>ApplicationPathCacheClear</name>
+		<class>lucee.runtime.functions.other.ApplicationPathCacheClear</class>
+		<description>flush the application.[cfc|cfm] path cache</description>
+		<return>
+			<type>void</type>
+		</return>
+	</function>
+	
 	<!-- arrayAppend -->
 	<function>
 		<name>arrayAppend</name>

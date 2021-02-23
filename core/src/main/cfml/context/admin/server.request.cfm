@@ -54,6 +54,7 @@ Defaults --->
 					scriptProtect="#form.scriptProtect#"
 					AllowURLRequestTimeout="#structKeyExists(form,'AllowURLRequestTimeout') and form.AllowURLRequestTimeout#"
 					requestTimeout="#CreateTimeSpan(form.request_days,form.request_hours,form.request_minutes,form.request_seconds)#"
+					applicationPathTimeout="#CreateTimeSpan(form.apppath_days?:0,form.apppath_hours?:0,form.apppath_minutes?:0,form.apppath_seconds?:0)#"
 					remoteClients="#request.getRemoteClients()#">
 
 				<cfif request.admintype =="server">
@@ -568,6 +569,77 @@ Error Output --->
 						</cfif>
 					</td>
 				</tr>
+
+<!--- 
+
+<cfset stText.application.appPathEnvVar="This can also be defined int the enviroment variables as follows">
+<cfset stText.application.appPathTimeout="Timeout for the Application Path Cache">
+<cfset stText.application.appPathTimeoutDesc="If set to greater than 0 Lucee will cache the Path to the Application.[cfc|cfm] file to use for that time. So Lucee does not serach the Application.cfc with every request. If set to 0 the cache is disabled. ">
+
+
+				<tr>
+					<th scope="row">#stText.application.appPathTimeout#</th>
+					<td>
+						<cfset timeout=appSettings.requestTimeout>
+						<table class="maintbl" style="width:auto">
+							<thead>
+								<tr>
+									<th>#stText.General.Days#</th>
+									<th>#stText.General.Hours#</th>
+									<th>#stText.General.Minutes#</th>
+									<th>#stText.General.Seconds#</th>
+								</tr>
+							</thead>
+							<tbody>
+								<cfif hasAccess>
+									<tr>
+										<td><cfinputClassic type="text" name="apppath_days" value="#appSettings.applicationPathTimeout_day#"
+											class="number" required="yes" validate="integer"
+											message="#stText.Scopes.TimeoutDaysValue#request#stText.Scopes.TimeoutEndValue#"></td>
+										<td><cfinputClassic type="text" name="apppath_hours" value="#appSettings.applicationPathTimeout_hour#"
+											class="number" required="yes" validate="integer"
+											message="#stText.Scopes.TimeoutHoursValue#request#stText.Scopes.TimeoutEndValue#"></td>
+										<td><cfinputClassic type="text" name="apppath_minutes" value="#appSettings.applicationPathTimeout_minute#"
+											class="number" required="yes" validate="integer"
+											message="#stText.Scopes.TimeoutMinutesValue#request#stText.Scopes.TimeoutEndValue#"></td>
+										<td><cfinputClassic type="text" name="apppath_seconds" value="#appSettings.applicationPathTimeout_second#"
+											class="number" required="yes" validate="integer"
+											message="#stText.Scopes.TimeoutSecondsValue#request#stText.Scopes.TimeoutEndValue#"></td>
+									</tr>
+								<cfelse>
+									<tr>
+										<td class="right"><b>#appSettings.applicationPathTimeout_day#</b></td>
+										<td class="right"><b>#appSettings.applicationPathTimeout_hour#</b></td>
+										<td class="right"><b>#appSettings.applicationPathTimeout_minute#</b></td>
+										<td class="right"><b>#appSettings.applicationPathTimeout_second#</b></td>
+									</tr>
+								</cfif>
+							</tbody>
+
+						</table>
+						<div class="comment">#stText.application.appPathTimeoutDesc#</div>
+
+
+<cfsavecontent variable="codeSample">
+	LUCEE_APPLICATION_PATH_CACHE_TIMEOUT=60000
+</cfsavecontent>
+<cfset renderCodingTip( codeSample,stText.application.appPathEnvVar)>
+
+					</td>
+				</tr>
+
+
+
+
+
+
+
+--->
+
+
+
+
+
 				<cfif hasAccess>
 					<cfmodule template="remoteclients.cfm" colspan="3">
 				</cfif>
