@@ -330,4 +330,6 @@ public interface ConfigPro extends Config {
 	public PageSource getApplicationPageSource(PageContext pc, String path, String filename, int mode, RefBoolean isCFC);
 
 	public void putApplicationPageSource(String path, PageSource ps, String filename, int mode, boolean isCFC);
+
+	public TimeSpan getApplicationPathhCacheTimeout();
 }

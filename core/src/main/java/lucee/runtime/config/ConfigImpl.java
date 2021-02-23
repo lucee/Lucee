@@ -4009,4 +4009,9 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	protected void setRegex(Regex regex) {
 		this.regex = regex;
 	}
+
+	@Override
+	public TimeSpan getApplicationPathhCacheTimeout() {
+		return TimeSpanImpl.fromMillis(applicationPathhCacheTimeout);
+	}
 }

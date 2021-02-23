@@ -860,7 +860,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private boolean check(String action, short access) throws ApplicationException {
 		if (this.action.equalsIgnoreCase(action)) {
-			if (access == ACCESS_FREE) {}
+			if (access == ACCESS_FREE) {
+			}
 			else if (access == ACCESS_NOT_WHEN_SERVER) {
 				throwNoAccessWhenServer();
 			}
@@ -1147,7 +1148,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		try {
 			admin.removeAPIKey();
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 		store();
 	}
 
@@ -1159,7 +1161,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		try {
 			admin.updateAuthKey(getString("key", null));
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 		store();
 	}
 
@@ -1167,7 +1170,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		try {
 			admin.removeAuthKeys(getString("key", null));
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 		store();
 	}
 
@@ -1720,8 +1724,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		admin.updateDebugTemplate(getString("admin", action, "debugTemplate"));
 		store();
 		adminSync.broadcast(attributes, config);
-		if (!Caster.toBoolean(getString("debug", "")))
-			doPurgeDebugPool(); // purge the debug log pool when disabling debug to free up memory		
+		if (!Caster.toBoolean(getString("debug", ""))) doPurgeDebugPool(); // purge the debug log pool when disabling debug to free up memory
 	}
 
 	private void doGetDebugSetting() throws PageException {
@@ -2581,7 +2584,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 				try {
 					qry.setAt(KeyConstants._info, i + 1, BundleFile.getInstance(children[i]).info());
 				}
-				catch (Exception e) {}
+				catch (Exception e) {
+				}
 			}
 		}
 		pageContext.setVariable(getString("admin", action, "returnVariable"), qry);
@@ -3334,7 +3338,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 				headers = bf.getHeaders();
 
 			}
-			catch (BundleException e) {}
+			catch (BundleException e) {
+			}
 
 		}
 
@@ -3434,7 +3439,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 					}
 
 				}
-				catch (BundleException e) {}
+				catch (BundleException e) {
+				}
 
 			}
 
@@ -3523,7 +3529,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 					}
 				}
 			}
-			catch (Exception ex) {}
+			catch (Exception ex) {
+			}
 		}
 	}
 
@@ -4373,11 +4380,20 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		sct.set("scriptProtect", AppListenerUtil.translateScriptProtect(config.getScriptProtect()));
 
 		// request timeout
-		sct.set("requestTimeout", config.getRequestTimeout());
-		sct.set("requestTimeout_day", Caster.toInteger(config.getRequestTimeout().getDay()));
-		sct.set("requestTimeout_hour", Caster.toInteger(config.getRequestTimeout().getHour()));
-		sct.set("requestTimeout_minute", Caster.toInteger(config.getRequestTimeout().getMinute()));
-		sct.set("requestTimeout_second", Caster.toInteger(config.getRequestTimeout().getSecond()));
+		TimeSpan ts = config.getRequestTimeout();
+		sct.set("requestTimeout", ts);
+		sct.set("requestTimeout_day", Caster.toInteger(ts.getDay()));
+		sct.set("requestTimeout_hour", Caster.toInteger(ts.getHour()));
+		sct.set("requestTimeout_minute", Caster.toInteger(ts.getMinute()));
+		sct.set("requestTimeout_second", Caster.toInteger(ts.getSecond()));
+
+		// application path timeout
+		ts = config.getApplicationPathhCacheTimeout();
+		sct.set("applicationPathTimeout", ts);
+		sct.set("applicationPathTimeout_day", Caster.toInteger(ts.getDay()));
+		sct.set("applicationPathTimeout_hour", Caster.toInteger(ts.getHour()));
+		sct.set("applicationPathTimeout_minute", Caster.toInteger(ts.getMinute()));
+		sct.set("applicationPathTimeout_second", Caster.toInteger(ts.getSecond()));
 
 		// AllowURLRequestTimeout
 		sct.set("AllowURLRequestTimeout", Caster.toBoolean(config.isAllowURLRequestTimeout()));

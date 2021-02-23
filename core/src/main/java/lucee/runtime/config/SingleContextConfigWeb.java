@@ -1666,4 +1666,9 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	public void putApplicationPageSource(String path, PageSource ps, String filename, int mode, boolean isCFC) {
 		cs.putApplicationPageSource(path, ps, filename, mode, isCFC);
 	}
+
+	@Override
+	public TimeSpan getApplicationPathhCacheTimeout() {
+		return cs.getApplicationPathhCacheTimeout();
+	}
 }
