@@ -3832,6 +3832,23 @@ type of the result returned:
 		</return>
 	</function>
 	
+	<!-- DirectoryInfo -->
+	<function>
+		<name>DirectoryInfo</name>
+		<class>lucee.runtime.functions.file.DirectoryInfo</class>
+		<description>returns detailed info about the given directory.</description>
+		<argument>
+			<name>source</name>
+			<alias>Directory</alias>
+			<type>string</type>
+			<required>Yes</required>
+			<description>directory path</description>
+		</argument>
+		<return>
+			<type>struct</type>
+		</return>
+	</function>
+	
 	<!-- encrypt -->
 	<function>
 		<name>encrypt</name>

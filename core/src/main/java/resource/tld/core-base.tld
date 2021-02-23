@@ -1071,7 +1071,7 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 		<attribute>
 			<type>string</type>
 			<name>action</name>
-			<values>list,create,delete,forcedelete,rename,copy</values>
+			<values>list,create,delete,forcedelete,rename,copy,info</values>
 			<default-value>list</default-value>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
