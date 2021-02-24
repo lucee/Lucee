@@ -4,6 +4,10 @@ component {
 		return "variables";
 	}
 
+	variables._closure = function(){
+		return "closure";
+	}
+
 	public function init(){
 		this.variable = "this";
 		return this;

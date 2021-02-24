@@ -20,6 +20,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				str = sample.getThisVariableScope();
 				expect(str).toBe("this");
 			});
+
+			it(title="check that a closure in the `variables` scope isn't accessible", body=function( currentSpec ) {
+				expect( function(){
+					sample._closure();
+				}).toThrow();
+			});
+			
 		});
 	}
 }
