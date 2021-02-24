@@ -515,7 +515,7 @@ public final class Schedule extends TagImpl {
 		ScheduleTask[] tasks = scheduler.getAllScheduleTasks();
 		final String v = "VARCHAR";
 		String[] cols = new String[] { "task", "path", "file", "startdate", "starttime", "enddate", "endtime", "url", "port", "interval", "timeout", "username", "password",
-				"proxyserver", "proxyport", "proxyuser", "proxypassword", "resolveurl", "publish", "valid", "paused", "autoDelete", "unique" };
+				"proxyserver", "proxyport", "proxyuser", "proxypassword", "resolveurl", "publish", "valid", "paused", "autoDelete", "uniqueTask" };
 		String[] types = new String[] { v, v, v, "DATE", "OTHER", "DATE", "OTHER", v, v, v, v, v, v, v, v, v, v, v, "BOOLEAN", v, "BOOLEAN", "BOOLEAN", "BOOLEAN" };
 		lucee.runtime.type.Query query = new QueryImpl(cols, types, tasks.length, "query");
 		try {
@@ -554,7 +554,7 @@ public final class Schedule extends TagImpl {
 
 				query.setAt("paused", row, Caster.toBoolean(task.isPaused()));
 				query.setAt("autoDelete", row, Caster.toBoolean(((ScheduleTaskImpl) task).isAutoDelete()));
-				query.setAt("unique", row, Caster.toBoolean(((ScheduleTaskImpl) task).unique()));
+				query.setAt("uniqueTask", row, Caster.toBoolean(((ScheduleTaskImpl) task).unique()));
 
 			}
 			pageContext.setVariable(result, query);
