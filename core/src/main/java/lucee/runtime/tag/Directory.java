@@ -24,6 +24,9 @@ import static lucee.runtime.tag.util.FileUtil.NAMECONFLICT_UNDEFINED;
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
+import java.nio.file.Files;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileTime;
 
 import lucee.commons.io.ModeUtil;
 import lucee.commons.io.res.Resource;
@@ -525,7 +528,16 @@ public final class Directory extends TagImpl {
 		sct.setEL(KeyConstants._size, Long.valueOf(directory.length()));
 		sct.setEL("isReadable", directory.isReadable());
 		sct.setEL(KeyConstants._path, directory.getAbsolutePath());
-		sct.setEL("dateLastModified", new DateTimeImpl(pc, directory.lastModified(), false));
+		sct.setEL("dateLastModified", new DateTimeImpl(pc.getConfig()));
+		File file = new File(Caster.toString(directory));
+		BasicFileAttributes attr;
+		try {
+			attr = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
+			sct.setEL("directoryCreated", new DateTimeImpl(pc, attr.creationTime().toMillis(), false));
+		}
+		catch (Exception e) {
+			sct.setEL("directoryCreated", "");
+		}
 
 		return sct;
 	}
