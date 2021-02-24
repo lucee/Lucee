@@ -369,7 +369,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				try {
 					doc = XMLConfigWebFactory.loadDocument(config.getConfigFile());
 				}
-				catch (SAXException e) {}
+				catch (SAXException e) {
+				}
 			}
 			if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "fixed LFI");
 
@@ -548,7 +549,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		try {
 			doc = XMLConfigWebFactory.loadDocument(config.getConfigFile());
 		}
-		catch (SAXException e) {}
+		catch (SAXException e) {
+		}
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "reload xml");
 		return doc;
 	}
@@ -1412,7 +1414,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					hasChanged = true;
 				}
 			}
-			catch (IOException e) {}
+			catch (IOException e) {
+			}
 
 			// change Compile type
 			if (hasChanged) {
@@ -2096,7 +2099,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					String cn = JDBCDriver.extractClassName(bundle);
 					cd = new ClassDefinitionImpl(config.getIdentification(), cn, cd.getName(), cd.getVersion());
 				}
-				catch (Exception e) {}
+				catch (Exception e) {
+				}
 			}
 
 			label = getAttr(driver, "label");
@@ -2188,8 +2192,15 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 			// has changes
 
-			String md5 = eCache != null ? getMD5(eCache, hasCS ? configServer.getCacheMD5() : "") : "";
-			if (md5.equals(config.getCacheMD5())) return;
+			// check if we have an update or not
+			StringBuilder sb = new StringBuilder();
+			for (Entry<String, ClassDefinition> e: config.getCacheDefinitions().entrySet()) {
+				sb.append(e.getKey()).append(':').append(e.getValue().toString()).append(';');
+			}
+			String md5 = eCache != null ? getMD5(eCache, sb.toString(), hasCS ? configServer.getCacheMD5() : "") : "";
+			if (md5.equals(config.getCacheMD5())) {
+				return;
+			}
 			config.setCacheMD5(md5);
 
 			String[] typeNames = new String[] { "resource", "function", "include", "query", "template", "object", "file", "http", "webservice" };
@@ -2326,9 +2337,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		}
 	}
 
-	private static String getMD5(Node node, String parentMD5) {
+	private static String getMD5(Node node, String cacheDef, String parentMD5) {
 		try {
-			return MD5.getDigestAsString(XMLCaster.toString(node, "") + ":" + parentMD5);
+			return MD5.getDigestAsString(new StringBuilder().append(XMLCaster.toString(node, "")).append(':').append(cacheDef).append(':').append(parentMD5).toString());
 		}
 		catch (IOException e) {
 			return "";
@@ -2431,7 +2442,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				else if (item.length == 1) sct.setEL(KeyImpl.init(URLDecoder.decode(item[0], true).trim()), "");
 			}
 		}
-		catch (PageException ee) {}
+		catch (PageException ee) {
+		}
 
 		return sct;
 	}
@@ -2522,7 +2534,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						String[] arr = ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(strExtensions, ","));
 						config.setCustomTagExtensions(ListUtil.trimItems(arr));
 					}
-					catch (PageException e) {}
+					catch (PageException e) {
+					}
 				}
 				else if (hasCS) {
 					config.setCustomTagExtensions(configServer.getCustomTagExtensions());
@@ -2654,7 +2667,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					try {
 						keys[i] = URLDecoder.decode(keys[i], "UTF-8", true);
 					}
-					catch (UnsupportedEncodingException e) {}
+					catch (UnsupportedEncodingException e) {
+					}
 				}
 
 				csi.setAuthenticationKeys(keys);
@@ -3385,7 +3399,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 					return (PrintStream) ClassUtil.loadInstance(classname);
 				}
-				catch (Exception e) {}
+				catch (Exception e) {
+				}
 			}
 			// file
 			else if (StringUtil.startsWithIgnoreCase(streamtype, "file:")) {
@@ -3395,7 +3410,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					Resource res = ConfigWebUtil.getFile(config, config.getConfigDir(), strRes, ResourceUtil.TYPE_FILE);
 					if (res != null) return new PrintStream(res.getOutputStream(), true);
 				}
-				catch (Exception e) {}
+				catch (Exception e) {
+				}
 			}
 			else if (StringUtil.startsWithIgnoreCase(streamtype, "log")) {
 				try {
@@ -3408,7 +3424,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					}
 					return new PrintStream(new RetireOutputStream(log, true, 5, null));
 				}
-				catch (Exception e) {}
+				catch (Exception e) {
+				}
 			}
 		}
 		return iserror ? CFMLEngineImpl.CONSOLE_ERR : CFMLEngineImpl.CONSOLE_OUT;
@@ -3932,7 +3949,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 							fin.invoke(existing.instance, new Object[0]);
 						}
 					}
-					catch (Exception e) {}
+					catch (Exception e) {
+					}
 				}
 				Class clazz = cd.getClazz();
 
@@ -4186,7 +4204,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					list.put(id, new DebugEntry(id, getAttr(e, "type"), getAttr(e, "iprange"), getAttr(e, "label"), e.getAttribute("path"), getAttr(e, "fullname"),
 							toStruct(getAttr(e, "custom"))));
 				}
-				catch (IOException ioe) {}
+				catch (IOException ioe) {
+				}
 			}
 			config.setDebugEntries(list.values().toArray(new DebugEntry[list.size()]));
 
@@ -4285,7 +4304,8 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 						}
 					}
 				}
-				catch (SecurityException e) {}
+				catch (SecurityException e) {
+				}
 			}
 
 			if (hasAccess) {
