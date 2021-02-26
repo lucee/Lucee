@@ -9935,28 +9935,28 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>queryRenameColumn</name>
 		<class>lucee.runtime.functions.query.QueryRenameColumn</class>
 		<keywords>query</keywords>
-		<member-name>renameColumnn</member-name>
+		<member-name>renameColumn</member-name>
 		<description>Rename a column</description>
 		<introduced>6.0.0</introduced>
 		<argument>
 			<name>query</name>
 			<type>query</type>
 			<required>Yes</required>
-		<description>Name of a query object.</description>
-    </argument>
+			<description>Name of a query object.</description>
+		</argument>
 		<argument>
 			<name>column</name>
 			<alias>columnname</alias>
 			<type>string</type>
 			<required>Yes</required>
-		<description></description>
-    </argument>
+			<description></description>
+		</argument>
 		<argument>
 			<name>newColumnName</name>
 			<type>string</type>
 			<required>Yes</required>
-		<description></description>
-    </argument>
+			<description></description>
+		</argument>
 		<return>
 			<type>void</type>
 		</return>

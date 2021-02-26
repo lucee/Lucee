@@ -33,14 +33,14 @@ public final class QueryRenameColumn extends BIF {
 
 	private static final long serialVersionUID = -242783888553490683L;
 
-	public static boolean call(PageContext pc, Query query, String columnName, String newColumnName) throws PageException {
+	public static String call(PageContext pc, Query query, String columnName, String newColumnName) throws PageException {
 		query.rename(KeyImpl.init(columnName), KeyImpl.init(newColumnName));
-		return true;
+		return null;
 	}
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
-		if (args.length == 2) return call(pc, Caster.toQuery(args[0]), Caster.toString(args[1]), Caster.toString(args[2]));
-		throw new FunctionException(pc, "QueryRenameColumn", 2, 2, args.length);
+		if (args.length == 3) return call(pc, Caster.toQuery(args[0]), Caster.toString(args[1]), Caster.toString(args[2]));
+		throw new FunctionException(pc, "QueryRenameColumn", 3, 3, args.length);
 	}
 }
