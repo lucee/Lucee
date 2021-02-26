@@ -129,7 +129,7 @@ public final class Execute extends BodyTagImpl {
 	 * @throws ApplicationException
 	 **/
 	public void setTimeout(double timeout) throws ApplicationException {
-		if (timeout < 0) throw new ApplicationException("value must be a positive number now [" + Caster.toString(timeout) + "]");
+		if (timeout < 0) throw new ApplicationException("Attribute [timeout] must be a positive number, was [" + Caster.toString(timeout) + "]");
 		this.timeout = (long) (timeout * 1000L);
 	}
 
@@ -246,7 +246,7 @@ public final class Execute extends BodyTagImpl {
 		if (execute.hasException()) throw execute.getException();
 		if (!execute.hasFinished()) {
 			execute.abort(terminateOnTimeout);
-			throw new ApplicationException("timeout [" + (timeout) + " ms] expired while executing [" + ListUtil.listToList(arguments, " ") + "]");
+			throw new ApplicationException("Timeout [" + (timeout) + " ms] expired while executing [" + ListUtil.listToList(arguments, " ") + "]");
 		}
 
 	}
@@ -254,7 +254,7 @@ public final class Execute extends BodyTagImpl {
 	@Override
 	public int doEndTag() throws PageException {
 		if (pageContext.getConfig().getSecurityManager().getAccess(SecurityManager.TYPE_TAG_EXECUTE) == SecurityManager.VALUE_NO)
-			throw new SecurityException("can't access tag [execute]", "access is prohibited by security manager");
+			throw new SecurityException("Can't access tag [execute]", "Access is prohibited by Security Manager");
 		try {
 			_execute();
 		}
