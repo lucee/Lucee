@@ -20,6 +20,7 @@ package lucee.runtime.listener;
 
 import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lang.types.RefBooleanImpl;
+import lucee.runtime.Page;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
@@ -38,10 +39,10 @@ public final class MixedAppListener extends ModernAppListener {
 	public void onRequest(PageContext pc, PageSource requestedPage, RequestListener rl) throws PageException {
 
 		RefBoolean isCFC = new RefBooleanImpl(false);
-		PageSource appPS = getApplicationPageSource(pc, requestedPage, mode, isCFC);
+		Page appP = getApplicationPage(pc, requestedPage, mode, isCFC);
 
-		if (isCFC.toBooleanValue()) _onRequest(pc, requestedPage, appPS, rl);
-		else ClassicAppListener._onRequest(pc, requestedPage, appPS, rl);
+		if (isCFC.toBooleanValue()) _onRequest(pc, requestedPage, appP, rl);
+		else ClassicAppListener._onRequest(pc, requestedPage, appP, rl);
 	}
 
 	@Override
@@ -49,40 +50,51 @@ public final class MixedAppListener extends ModernAppListener {
 		return "mixed";
 	}
 
-	private static PageSource getApplicationPageSource(PageContext pc, PageSource requestedPage, int mode, RefBoolean isCFC) {
+	private static Page getApplicationPage(PageContext pc, PageSource requestedPage, int mode, RefBoolean isCFC) throws PageException {
 		PageSource ps = ((ConfigPro) pc.getConfig()).getApplicationPageSource(pc, requestedPage.getPhyscalFile().getParent(), "Application.[cfc|cfm]", mode, isCFC);
 		if (ps != null) {
-			return ps;
+			Page p = ps.loadPage(pc, false, null);
+			if (p != null) return p;
 		}
 
-		if (mode == ApplicationListener.MODE_CURRENT2ROOT) ps = getApplicationPageSourceCurrToRoot(pc, requestedPage, isCFC);
-		else if (mode == ApplicationListener.MODE_CURRENT_OR_ROOT) ps = getApplicationPageSourceCurrOrRoot(pc, requestedPage, isCFC);
-		else if (mode == ApplicationListener.MODE_CURRENT) ps = getApplicationPageSourceCurrent(requestedPage, isCFC);
-		else ps = getApplicationPageSourceRoot(pc, isCFC);
-		if (ps != null)
-			((ConfigPro) pc.getConfig()).putApplicationPageSource(requestedPage.getPhyscalFile().getParent(), ps, "Application.[cfc|cfm]", mode, isCFC.toBooleanValue());
+		Page p;
+		if (mode == ApplicationListener.MODE_CURRENT2ROOT) p = getApplicationPageCurrToRoot(pc, requestedPage, isCFC);
+		else if (mode == ApplicationListener.MODE_CURRENT_OR_ROOT) p = getApplicationPageCurrOrRoot(pc, requestedPage, isCFC);
+		else if (mode == ApplicationListener.MODE_CURRENT) p = getApplicationPageCurrent(pc, requestedPage, isCFC);
+		else p = getApplicationPageRoot(pc, isCFC);
+		if (p != null) ((ConfigPro) pc.getConfig()).putApplicationPageSource(requestedPage.getPhyscalFile().getParent(), p.getPageSource(), "Application.[cfc|cfm]", mode,
+				isCFC.toBooleanValue());
 
-		return ps;
+		return p;
 	}
 
-	private static PageSource getApplicationPageSourceCurrent(PageSource requestedPage, RefBoolean isCFC) {
-		PageSource res = requestedPage.getRealPage(Constants.CFML_APPLICATION_EVENT_HANDLER);
-		if (res.exists()) {
-			isCFC.setValue(true);
-			return res;
+	private static Page getApplicationPageCurrent(PageContext pc, PageSource requestedPage, RefBoolean isCFC) throws PageException {
+		PageSource ps = requestedPage.getRealPage(Constants.CFML_APPLICATION_EVENT_HANDLER);
+		if (ps != null) {
+			Page p = ps.loadPage(pc, false, null);
+			if (p != null) {
+				isCFC.setValue(true);
+				return p;
+			}
 		}
-		res = requestedPage.getRealPage(Constants.CFML_CLASSIC_APPLICATION_EVENT_HANDLER);
-		if (res.exists()) return res;
+		ps = requestedPage.getRealPage(Constants.CFML_CLASSIC_APPLICATION_EVENT_HANDLER);
+		if (ps != null) {
+			Page p = ps.loadPage(pc, false, null);
+			if (p != null) {
+				return p;
+			}
+		}
 		return null;
 	}
 
-	private static PageSource getApplicationPageSourceCurrToRoot(PageContext pc, PageSource requestedPage, RefBoolean isCFC) {
-		PageSource res = getApplicationPageSourceCurrent(requestedPage, isCFC);
-		if (res != null) return res;
+	private static Page getApplicationPageCurrToRoot(PageContext pc, PageSource requestedPage, RefBoolean isCFC) throws PageException {
+		Page p = getApplicationPageCurrent(pc, requestedPage, isCFC);
+		if (p != null) return p;
 
 		Array arr = lucee.runtime.type.util.ListUtil.listToArrayRemoveEmpty(requestedPage.getRealpathWithVirtual(), "/");
 		// Config config = pc.getConfig();
 		String path;
+		PageSource ps;
 		for (int i = arr.size() - 1; i > 0; i--) {
 			StringBuilder sb = new StringBuilder("/");
 			for (int y = 1; y < i; y++) {
@@ -90,34 +102,51 @@ public final class MixedAppListener extends ModernAppListener {
 				sb.append('/');
 			}
 			path = sb.toString();
-			res = ((PageContextImpl) pc).getPageSourceExisting(path.concat(Constants.CFML_APPLICATION_EVENT_HANDLER));
-			if (res != null) {
-				isCFC.setValue(true);
-				return res;
+			ps = ((PageContextImpl) pc).getPageSource(path.concat(Constants.CFML_APPLICATION_EVENT_HANDLER));
+			if (ps != null) {
+				p = ps.loadPage(pc, false, null);
+				if (p != null) {
+					isCFC.setValue(true);
+					return p;
+				}
 			}
-			res = ((PageContextImpl) pc).getPageSourceExisting(path.concat(Constants.CFML_CLASSIC_APPLICATION_EVENT_HANDLER));
-			if (res != null) return res;
+			ps = ((PageContextImpl) pc).getPageSource(path.concat(Constants.CFML_CLASSIC_APPLICATION_EVENT_HANDLER));
+			if (ps != null) {
+				p = ps.loadPage(pc, false, null);
+				if (p != null) {
+					return p;
+				}
+			}
 		}
 		return null;
 	}
 
-	private static PageSource getApplicationPageSourceCurrOrRoot(PageContext pc, PageSource requestedPage, RefBoolean isCFC) {
+	private static Page getApplicationPageCurrOrRoot(PageContext pc, PageSource requestedPage, RefBoolean isCFC) throws PageException {
 		// current
-		PageSource res = getApplicationPageSourceCurrent(requestedPage, isCFC);
-		if (res != null) return res;
+		Page p = getApplicationPageCurrent(pc, requestedPage, isCFC);
+		if (p != null) return p;
 
 		// root
-		return getApplicationPageSourceRoot(pc, isCFC);
+		return getApplicationPageRoot(pc, isCFC);
 	}
 
-	private static PageSource getApplicationPageSourceRoot(PageContext pc, RefBoolean isCFC) {
-		PageSource ps = ((PageContextImpl) pc).getPageSourceExisting("/" + Constants.CFML_APPLICATION_EVENT_HANDLER);
+	private static Page getApplicationPageRoot(PageContext pc, RefBoolean isCFC) throws PageException {
+		PageSource ps = ((PageContextImpl) pc).getPageSource("/" + Constants.CFML_APPLICATION_EVENT_HANDLER);
 		if (ps != null) {
-			isCFC.setValue(true);
-			return ps;
+			Page p = ps.loadPage(pc, false, null);
+			if (p != null) {
+				isCFC.setValue(true);
+				return p;
+			}
+
 		}
-		ps = ((PageContextImpl) pc).getPageSourceExisting("/" + Constants.CFML_CLASSIC_APPLICATION_EVENT_HANDLER);
-		if (ps != null) return ps;
+		ps = ((PageContextImpl) pc).getPageSource("/" + Constants.CFML_CLASSIC_APPLICATION_EVENT_HANDLER);
+		if (ps != null) {
+			Page p = ps.loadPage(pc, false, null);
+			if (p != null) {
+				return p;
+			}
+		}
 		return null;
 	}
 

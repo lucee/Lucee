@@ -35,6 +35,7 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Mapping;
 import lucee.runtime.MappingImpl;
+import lucee.runtime.Page;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
@@ -102,16 +103,20 @@ public final class AppListenerUtil {
 	private static final TimeSpan FIVE_MINUTES = new TimeSpanImpl(0, 0, 5, 0);
 	private static final TimeSpan ONE_MINUTE = new TimeSpanImpl(0, 0, 1, 0);
 
-	public static PageSource getApplicationPageSource(PageContext pc, PageSource requestedPage, String filename, int mode, int type) {
+	public static Page getApplicationPage(PageContext pc, PageSource requestedPage, String filename, int mode, int type) throws PageException {
 		PageSource ps = ((ConfigPro) pc.getConfig()).getApplicationPageSource(pc, requestedPage.getPhyscalFile().getParent(), filename, mode, null);
-		if (ps != null) return ps;
+		if (ps != null) {
+			Page p = ps.loadPage(pc, false, null);
+			if (p != null) return p;
+		}
 
-		if (mode == ApplicationListener.MODE_CURRENT) ps = getApplicationPageSourceCurrent(requestedPage, filename);
-		else if (mode == ApplicationListener.MODE_ROOT) ps = getApplicationPageSourceRoot(pc, filename);
-		else ps = getApplicationPageSourceCurr2Root(pc, requestedPage, filename);
+		Page p;
+		if (mode == ApplicationListener.MODE_CURRENT) p = getApplicationPageCurrent(pc, requestedPage, filename);
+		else if (mode == ApplicationListener.MODE_ROOT) p = getApplicationPageRoot(pc, filename);
+		else p = getApplicationPageCurr2Root(pc, requestedPage, filename);
 
-		if (ps != null) ((ConfigPro) pc.getConfig()).putApplicationPageSource(requestedPage.getPhyscalFile().getParent(), ps, filename, mode, isCFC(type));
-		return ps;
+		if (p != null) ((ConfigPro) pc.getConfig()).putApplicationPageSource(requestedPage.getPhyscalFile().getParent(), p.getPageSource(), filename, mode, isCFC(type));
+		return p;
 	}
 
 	private static boolean isCFC(int type) {
@@ -119,23 +124,22 @@ public final class AppListenerUtil {
 		return true;
 	}
 
-	public static PageSource getApplicationPageSourceCurrent(PageSource requestedPage, String filename) {
-		PageSource res = requestedPage.getRealPage(filename);
-		if (res.exists()) return res;
-		return null;
-	}
-
-	public static PageSource getApplicationPageSourceRoot(PageContext pc, String filename) {
-		PageSource ps = ((PageContextImpl) pc).getPageSourceExisting("/".concat(filename));
-		if (ps != null) return ps;
-		return null;
-	}
-
-	public static PageSource getApplicationPageSourceCurr2Root(PageContext pc, PageSource requestedPage, String filename) {
+	public static Page getApplicationPageCurrent(PageContext pc, PageSource requestedPage, String filename) throws PageException {
 		PageSource ps = requestedPage.getRealPage(filename);
-		if (ps.exists()) {
-			return ps;
-		}
+
+		return ps.loadPage(pc, false, null);
+	}
+
+	public static Page getApplicationPageRoot(PageContext pc, String filename) throws PageException {
+		PageSource ps = ((PageContextImpl) pc).getPageSource("/".concat(filename));
+		return ps.loadPage(pc, false, null);
+	}
+
+	public static Page getApplicationPageCurr2Root(PageContext pc, PageSource requestedPage, String filename) throws PageException {
+		PageSource ps = requestedPage.getRealPage(filename);
+		Page p = ps.loadPage(pc, false, null);
+		if (p != null) return p;
+
 		Array arr = lucee.runtime.type.util.ListUtil.listToArrayRemoveEmpty(requestedPage.getRealpathWithVirtual(), "/");
 		// Config config = pc.getConfig();
 		for (int i = arr.size() - 1; i > 0; i--) {
@@ -145,10 +149,9 @@ public final class AppListenerUtil {
 				sb.append('/');
 			}
 			sb.append(filename);
-			ps = ((PageContextImpl) pc).getPageSourceExisting(sb.toString());
-			if (ps != null) {
-				return ps;
-			}
+			ps = ((PageContextImpl) pc).getPageSource(sb.toString());
+			p = ps.loadPage(pc, false, null);
+			if (p != null) return p;
 		}
 		return null;
 	}
