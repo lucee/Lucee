@@ -323,10 +323,10 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 	public Object set(int row, Object value) throws DatabaseException {
 		query.disableIndex();
 		// query.disconnectCache();
-		if (row < 1) throw new DatabaseException("invalid row number [" + row + "]", "valid row numbers a greater or equal to one", null, null);
+		if (row < 1) throw new DatabaseException("invalid row number [" + row + "]", "valid row numbers are greater or equal to one", null, null);
 		if (row > size) {
 			if (size == 0) throw new DatabaseException("cannot set a value to an empty query, you first have to add a row", null, null, null);
-			throw new DatabaseException("invalid row number [" + row + "]", "valid row numbers goes from 1 to " + size, null, null);
+			throw new DatabaseException("invalid row number [" + row + "]", "valid row numbers go from 1 to " + size, null, null);
 		}
 		synchronized (sync) {
 			value = reDefineType(value);
@@ -393,7 +393,7 @@ public class QueryColumnImpl implements QueryColumnPro, Objects {
 	public Object removeRow(int row) throws DatabaseException {
 		query.disableIndex();
 		// query.disconnectCache();
-		if (row < 1 || row > size) throw new DatabaseException("invalid row number [" + row + "]", "valid rows goes from 1 to " + size, null, null);
+		if (row < 1 || row > size) throw new DatabaseException("invalid row number [" + row + "]", "valid rows go from 1 to " + size, null, null);
 		synchronized (sync) {
 			Object o = data[row - 1];
 			for (int i = row; i < size; i++) {
