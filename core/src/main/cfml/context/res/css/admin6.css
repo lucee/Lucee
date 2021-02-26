@@ -444,7 +444,7 @@ tr.notOK td {background-color:#f9e0e0;}
 	border-spacing: 3px
 }
 .maintbl + .maintbl {
-	margin-top: 150px;
+	margin-top: 15px;
 }
 .autowidth {
 	width: auto;
