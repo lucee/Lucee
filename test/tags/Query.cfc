@@ -358,5 +358,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		}
 		catch(local.e){}
 	}
+
 } 
 </cfscript>
