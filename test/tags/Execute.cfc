@@ -21,6 +21,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertTrue(find('"session"',x)>0);
 	}
 	
+	public function testDirectoryArg() {
+		cfexecute(name="curl", arguments=["https://update.lucee.org/rest/update/provider/echoGet"] ,variable="variables.x", directory=getTempDirectory());
+		assertTrue(find('"session"',x)>0);
+	}
+	
 	public function testTimeout() {
 		try {
 			cfexecute(name="curl", timeout="0.01", arguments="https://update.lucee.org/rest/update/provider/echoGet" ,variable="variables.x");
