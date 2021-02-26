@@ -335,5 +335,5 @@ public interface ConfigPro extends Config {
 
 	public void putApplicationPageSource(String path, PageSource ps, String filename, int mode, boolean isCFC);
 
-	public TimeSpan getApplicationPathhCacheTimeout();
+	public long getApplicationPathCacheTimeout();
 }

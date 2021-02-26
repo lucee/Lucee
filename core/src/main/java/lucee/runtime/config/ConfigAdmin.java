@@ -2445,6 +2445,19 @@ public final class ConfigAdmin {
 		else rem(root, "requestTimeout");
 	}
 
+	public void updateApplicationPathTimeout(TimeSpan span) throws SecurityException, ApplicationException {
+		checkWriteAccess();
+		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+
+		if (!hasAccess) throw new SecurityException("no access to update scope setting");
+
+		if (span != null) {
+			if (span.getMillis() <= 0) throw new ApplicationException("value must be a positive number");
+			root.setEL("applicationPathTimeout", span.getDay() + "," + span.getHour() + "," + span.getMinute() + "," + span.getSecond());
+		}
+		else rem(root, "applicationPathTimeout");
+	}
+
 	/**
 	 * updates session timeout value
 	 * 

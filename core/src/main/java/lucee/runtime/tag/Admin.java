@@ -4383,7 +4383,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		sct.set("requestTimeout_second", Caster.toInteger(ts.getSecond()));
 
 		// application path timeout
-		ts = config.getApplicationPathhCacheTimeout();
+		ts = TimeSpanImpl.fromMillis(config.getApplicationPathCacheTimeout());
 		sct.set("applicationPathTimeout", ts);
 		sct.set("applicationPathTimeout_day", Caster.toInteger(ts.getDay()));
 		sct.set("applicationPathTimeout_hour", Caster.toInteger(ts.getHour()));
@@ -4916,6 +4916,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void doUpdateApplicationListener() throws PageException {
 		admin.updateApplicationListener(getString("admin", action, "listenerType"), getString("admin", action, "listenerMode"));
+		admin.updateApplicationPathTimeout(getTimespan("admin", action, "applicationPathTimeout"));
 
 		store();
 		adminSync.broadcast(attributes, config);

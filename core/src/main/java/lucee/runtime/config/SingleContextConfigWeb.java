@@ -1519,8 +1519,8 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	}
 
 	@Override
-	public TimeSpan getApplicationPathhCacheTimeout() {
-		return cs.getApplicationPathhCacheTimeout();
+	public long getApplicationPathCacheTimeout() {
+		return cs.getApplicationPathCacheTimeout();
 	}
 
 	@Override

@@ -413,7 +413,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	private Regex regex; // TODO add possibility to configure
 
-	private long applicationPathhCacheTimeout = Caster.toLongValue(SystemUtil.getSystemPropOrEnvVar("lucee.application.path.cache.timeout", null), 0);
+	private long applicationPathCacheTimeout = 20000;
 
 	/**
 	 * @return the allowURLRequestTimeout
@@ -2963,10 +2963,10 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		if (applicationPathCache == null) return null;
 		String id = (path + ":" + filename + ":" + mode).toLowerCase();
 
-		SoftReference<CacheElement> tmp = applicationPathhCacheTimeout <= 0 ? null : applicationPathCache.get(id);
+		SoftReference<CacheElement> tmp = getApplicationPathCacheTimeout() <= 0 ? null : applicationPathCache.get(id);
 		if (tmp != null) {
 			CacheElement ce = tmp.get();
-			if ((ce.created + applicationPathhCacheTimeout) >= System.currentTimeMillis()) {
+			if ((ce.created + getApplicationPathCacheTimeout()) >= System.currentTimeMillis()) {
 				if (ce.pageSource.loadPage(pc, false, (Page) null) != null) {
 					if (isCFC != null) isCFC.setValue(ce.isCFC);
 					return ce.pageSource;
@@ -2978,10 +2978,19 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	@Override
 	public void putApplicationPageSource(String path, PageSource ps, String filename, int mode, boolean isCFC) {
-		if (applicationPathhCacheTimeout <= 0) return;
+		if (getApplicationPathCacheTimeout() <= 0) return;
 		if (applicationPathCache == null) applicationPathCache = new ConcurrentHashMap<String, SoftReference<CacheElement>>();// MUSTMUST new
 		String id = (path + ":" + filename + ":" + mode).toLowerCase();
 		applicationPathCache.put(id, new SoftReference<CacheElement>(new CacheElement(ps, isCFC)));
+	}
+
+	@Override
+	public long getApplicationPathCacheTimeout() {
+		return applicationPathCacheTimeout;
+	}
+
+	protected void setApplicationPathCacheTimeout(long applicationPathCacheTimeout) {
+		this.applicationPathCacheTimeout = applicationPathCacheTimeout;
 	}
 
 	@Override
@@ -3742,8 +3751,4 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		this.regex = regex;
 	}
 
-	@Override
-	public TimeSpan getApplicationPathhCacheTimeout() {
-		return TimeSpanImpl.fromMillis(applicationPathhCacheTimeout);
-	}
 }

@@ -1484,7 +1484,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 					hasChanged = true;
 				}
 			}
-			catch (IOException e) {}
+			catch (IOException e) {
+			}
 
 			// change Compile type
 			if (hasChanged) {
@@ -2140,7 +2141,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 					String cn = JDBCDriver.extractClassName(bundle);
 					cd = new ClassDefinitionImpl(config.getIdentification(), cn, cd.getName(), cd.getVersion());
 				}
-				catch (Exception ex) {}
+				catch (Exception ex) {
+				}
 			}
 
 			label = getAttr(driver, "label");
@@ -2269,8 +2271,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 						} //
 						else if (cd.getClassName() != null
 								&& (cd.getClassName().endsWith(".extension.io.cache.eh.EHCache") || cd.getClassName().endsWith("lucee.runtime.cache.eh.EHCache"))) {
-							cd = new ClassDefinitionImpl("org.lucee.extension.cache.eh.EHCache");
-						}
+									cd = new ClassDefinitionImpl("org.lucee.extension.cache.eh.EHCache");
+								}
 						cc = new CacheConnectionImpl(config, name.getString(), cd, custom, Caster.toBooleanValue(getAttr(data, "readOnly"), false),
 								Caster.toBooleanValue(getAttr(data, "storage"), false));
 						if (!StringUtil.isEmpty(name)) {
@@ -2461,7 +2463,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 				else if (item.length == 1) sct.setEL(KeyImpl.init(URLDecoder.decode(item[0], true).trim()), "");
 			}
 		}
-		catch (PageException ee) {}
+		catch (PageException ee) {
+		}
 
 		return sct;
 	}
@@ -2537,7 +2540,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 						String[] arr = ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(strExtensions, ","));
 						config.setCustomTagExtensions(ListUtil.trimItems(arr));
 					}
-					catch (PageException e) {}
+					catch (PageException e) {
+					}
 				}
 				else if (hasCS) {
 					config.setCustomTagExtensions(configServer.getCustomTagExtensions());
@@ -2666,7 +2670,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 					try {
 						keys[i] = URLDecoder.decode(keys[i], "UTF-8", true);
 					}
-					catch (UnsupportedEncodingException e) {}
+					catch (UnsupportedEncodingException e) {
+					}
 				}
 
 				csi.setAuthenticationKeys(keys);
@@ -3369,7 +3374,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 					return (PrintStream) ClassUtil.loadInstance(classname);
 				}
-				catch (Exception e) {}
+				catch (Exception e) {
+				}
 			}
 			// file
 			else if (StringUtil.startsWithIgnoreCase(streamtype, "file:")) {
@@ -3379,7 +3385,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 					Resource res = ConfigWebUtil.getFile(config, config.getConfigDir(), strRes, ResourceUtil.TYPE_FILE);
 					if (res != null) return new PrintStream(res.getOutputStream(), true);
 				}
-				catch (Exception e) {}
+				catch (Exception e) {
+				}
 			}
 			else if (StringUtil.startsWithIgnoreCase(streamtype, "log")) {
 				try {
@@ -3392,7 +3399,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 					}
 					return new PrintStream(new RetireOutputStream(log, true, 5, null));
 				}
-				catch (Exception e) {}
+				catch (Exception e) {
+				}
 			}
 		}
 		return iserror ? CFMLEngineImpl.CONSOLE_ERR : CFMLEngineImpl.CONSOLE_OUT;
@@ -3864,7 +3872,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 							fin.invoke(existing.instance, new Object[0]);
 						}
 					}
-					catch (Exception e) {}
+					catch (Exception e) {
+					}
 				}
 				Class clazz = cd.getClazz();
 
@@ -4139,7 +4148,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 						list.put(id, new DebugEntry(id, getAttr(e, "type"), getAttr(e, "iprange"), getAttr(e, "label"), getAttr(e, "path"), getAttr(e, "fullname"),
 								toStruct(getAttr(e, "custom"))));
 					}
-					catch (IOException ioe) {}
+					catch (IOException ioe) {
+					}
 				}
 			}
 			config.setDebugEntries(list.values().toArray(new DebugEntry[list.size()]));
@@ -4274,7 +4284,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 						}
 					}
 				}
-				catch (SecurityException e) {}
+				catch (SecurityException e) {
+				}
 			}
 
 			if (hasAccess) {
@@ -4900,6 +4911,16 @@ public final class ConfigWebFactory extends ConfigFactory {
 			}
 			if (ts != null && ts.getMillis() > 0) config.setRequestTimeout(ts);
 			else if (hasCS) config.setRequestTimeout(configServer.getRequestTimeout());
+
+			// application Path Timeout
+			ts = null;
+			if (hasAccess) {
+				String reqTimeout = SystemUtil.getSystemPropOrEnvVar("lucee.application.path.cache.timeout", null);
+				if (reqTimeout == null) reqTimeout = getAttr(root, "applicationPathTimeout");
+				if (!StringUtil.isEmpty(reqTimeout)) ts = Caster.toTimespan(reqTimeout);
+			}
+			if (ts != null && ts.getMillis() > 0) config.setApplicationPathCacheTimeout(ts.getMillis());
+			else if (hasCS) config.setApplicationPathCacheTimeout(configServer.getApplicationPathCacheTimeout());
 
 			// script-protect
 			String strScriptProtect = SystemUtil.getSystemPropOrEnvVar("lucee.script.protect", null);
