@@ -358,5 +358,22 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		}
 		catch(local.e){}
 	}
+
+	public void function testRenameColumn() {
+		local.qry = QueryNew("col");
+		QueryAddRow(local.qry );
+		QuerySetCell(qry, "col", 1);
+
+		QueryColumnRename(qry,"col","col2");
+		QueryAddRow(local.qry );
+		QuerySetCell(qry, "col2", 2);
+
+		assertEquals(2,qry.recordcount);
+		assertEquals("col2",qry.columnList);
+		
+		qry.columnRename(qry,"col2","col3");
+		assertEquals("col3",qry.columnList);
+	}
+
 } 
 </cfscript>
