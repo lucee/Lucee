@@ -1323,7 +1323,7 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 
 	@Override
 	public RHExtension[] getServerRHExtensions() {
-		return cs.getServerRHExtensions();
+		return cs.getRHExtensions();
 	}
 
 	@Override

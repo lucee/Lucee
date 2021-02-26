@@ -4334,18 +4334,20 @@ public final class ConfigWebFactory extends ConfigFactory {
 	 */
 	private static void _loadExtensionBundles(ConfigServerImpl cs, ConfigImpl config, Struct root, Log log) {
 		try {
-			Struct children = ConfigWebUtil.getAsStruct("extensions", root);
+			Array children = ConfigWebUtil.getAsArray("extensions", root);
 			String strBundles;
 			List<RHExtension> extensions = new ArrayList<RHExtension>();
 			RHExtension rhe;
 
-			Iterator<Entry<Key, Object>> it = children.entryIterator();
+			Iterator<Object> it = children.valueIterator();
 			Entry<Key, Object> e;
 			Struct child;
+			String id;
 			while (it.hasNext()) {
-				e = it.next();
-				child = Caster.toStruct(e.getValue(), null);
+				child = Caster.toStruct(it.next(), null);
 				if (child == null) continue;
+				id = Caster.toString(child.get(KeyConstants._id, null), null);
+				if (StringUtil.isEmpty(id)) continue;
 
 				BundleInfo[] bfsq;
 				try {
@@ -4353,7 +4355,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 					if (StringUtil.isEmpty(res)) res = Caster.toString(child.get(KeyConstants._path, null), null);
 					if (StringUtil.isEmpty(res)) res = Caster.toString(child.get(KeyConstants._url, null), null);
 
-					rhe = new RHExtension(config, e.getKey().getString(), Caster.toString(child.get(KeyConstants._version, null), null), res, true);
+					rhe = new RHExtension(config, id, Caster.toString(child.get(KeyConstants._version, null), null), res, true);
 					if (rhe.getStartBundles()) rhe.deployBundles(config);
 					extensions.add(rhe);
 				}
