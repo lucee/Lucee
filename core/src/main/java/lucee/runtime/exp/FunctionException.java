@@ -97,7 +97,7 @@ public final class FunctionException extends ExpressionException {
 	}
 
 	public FunctionException(PageContext pc, String functionName, String badArgumentPosition, String badArgumentName, String message, String detail) {
-		super("invalid call of the function " + functionName + ", " + (badArgumentPosition) + " Argument (" + badArgumentName + ") is invalid, " + message, detail);
+		super("Invalid call of the function [" + functionName + "], " + (badArgumentPosition) + " Argument [" + badArgumentName + "] is invalid, " + message, detail);
 		setAdditional(KeyConstants._pattern, getFunctionInfo(pc, functionName));
 	}
 
