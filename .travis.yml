@@ -1,5 +1,11 @@
 language: java
 
+# cache the maven dependancies
+# could cache /home/travis/build/lucee/Lucee/cache too?
+cache:
+  directories:
+    - $HOME/.m2
+
 jdk:
 #  - oraclejdk9
   - openjdk8
