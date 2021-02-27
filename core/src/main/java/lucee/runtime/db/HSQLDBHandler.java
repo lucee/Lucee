@@ -57,6 +57,7 @@ import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.util.CollectionUtil;
 
+import lucee.commons.lang.SystemOut;
 /**
  * class to reexecute queries on the resultset object inside the cfml environment
  */
@@ -103,28 +104,49 @@ public final class HSQLDBHandler {
 		Statement stat;
 		usedTables.add(name);
 		stat = conn.createStatement();
-		Key[] keys = CollectionUtil.keys(query);
+
+		// TODO, only need to load the referenced columns, not the whole source table
+		
+		Key[] cols = CollectionUtil.keys(query);
 		int[] types = query.getTypes();
 		int[] innerTypes = toInnerTypes(types);
 		// CREATE STATEMENT
+		// use double qoutes around column and tables names to avoid problems with reserved words
 		String comma = "";
+		String escape = "\"";
 		StringBuilder create = new StringBuilder("CREATE TABLE " + name + " (");
 		StringBuilder insert = new StringBuilder("INSERT INTO  " + name + " (");
+		//StringBuilder create = new StringBuilder("CREATE TABLE ").append(escape).append(name).append(escape).append(" (");
+		//StringBuilder insert = new StringBuilder("INSERT INTO  ").append(escape).append(name).append(escape).append(" (");
+		
 		StringBuilder values = new StringBuilder("VALUES (");
-		for (int i = 0; i < keys.length; i++) {
-			String key = keys[i].getString();
+		for (int i = 0; i < cols.length; i++) {
+			String col = cols[i].getString();
 			String type = (doSimpleTypes) ? "VARCHAR_IGNORECASE" : toUsableType(types[i]);
 
-			create.append(comma + key);
-			create.append(" ");
-			create.append(type);
-			insert.append(comma + key);
-			values.append(comma + "?");
+			create.append(comma + col);		create.append(" ");		create.append(type);
+			// this doesn't
+			//create.append(comma);		create.append(escape);		create.append(col);		create.append(escape);	create.append(" ");		create.append(type);
+
+			// insert.append(comma + col);
+			// this works
+			insert.append(comma);
+			insert.append(escape);
+			insert.append(col);
+			insert.append(escape);
+
+			values.append(comma);
+			values.append("?");
 			comma = ",";
 		}
 		create.append(")");
 		insert.append(")");
 		values.append(")");
+
+		SystemOut.print("SQL: " + Caster.toString(create));
+		SystemOut.print("SQL: " + Caster.toString(insert));
+		SystemOut.print("SQL: " + Caster.toString(values));
+
 		stat.execute(create.toString());
 		PreparedStatement prepStat = conn.prepareStatement(insert.toString() + values.toString());
 
@@ -132,12 +154,12 @@ public final class HSQLDBHandler {
 		// HashMap integerTypes=getIntegerTypes(types);
 
 		int count = query.getRecordcount();
-		QueryColumn[] columns = new QueryColumn[keys.length];
-		for (int i = 0; i < keys.length; i++) {
-			columns[i] = query.getColumn(keys[i]);
+		QueryColumn[] columns = new QueryColumn[cols.length];
+		for (int i = 0; i < cols.length; i++) {
+			columns[i] = query.getColumn(cols[i]);
 		}
 		for (int y = 0; y < count; y++) {
-			for (int i = 0; i < keys.length; i++) {
+			for (int i = 0; i < cols.length; i++) {
 				int type = innerTypes[i];
 				Object value = columns[i].get(y + 1, null);
 
@@ -153,13 +175,13 @@ public final class HSQLDBHandler {
 						// print.out(new java.util.Date(new
 						// Date(DateCaster.toDateAdvanced(value,pc.getTimeZone()).getTime()).getTime()));
 
-						prepStat.setTimestamp(i + 1, (value.equals("")) ? null : new Timestamp(DateCaster.toDateAdvanced(query.getAt(keys[i], y + 1), pc.getTimeZone()).getTime()));
+						prepStat.setTimestamp(i + 1, (value.equals("")) ? null : new Timestamp(DateCaster.toDateAdvanced(query.getAt(cols[i], y + 1), pc.getTimeZone()).getTime()));
 						// prepStat.setObject(i+1,Caster.toDate(value,null));
 						// prepStat.setDate(i+1,(value==null || value.equals(""))?null:new
 						// Date(DateCaster.toDateAdvanced(value,pc.getTimeZone()).getTime()));
 					}
 					else if (type == TIME)
-						prepStat.setTime(i + 1, (value.equals("")) ? null : new Time(DateCaster.toDateAdvanced(query.getAt(keys[i], y + 1), pc.getTimeZone()).getTime()));
+						prepStat.setTime(i + 1, (value.equals("")) ? null : new Time(DateCaster.toDateAdvanced(query.getAt(cols[i], y + 1), pc.getTimeZone()).getTime()));
 					else if (type == TIMESTAMP)
 						prepStat.setTimestamp(i + 1, (value.equals("")) ? null : new Timestamp(DateCaster.toDateAdvanced(query.getAt(keys[i], y + 1), pc.getTimeZone()).getTime()));
 					else if (type == DOUBLE) prepStat.setDouble(i + 1, (value.equals("")) ? 0 : Caster.toDoubleValue(query.getAt(keys[i], y + 1)));
