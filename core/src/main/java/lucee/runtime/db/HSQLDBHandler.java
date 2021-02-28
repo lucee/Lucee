@@ -121,7 +121,7 @@ public final class HSQLDBHandler {
 		
 		StringBuilder values = new StringBuilder("VALUES (");
 		for (int i = 0; i < cols.length; i++) {
-			String col = cols[i].getString();
+			String col = StringUtil.toUpperCase(cols[i].getString()); // quoted objects are case insensitive
 			String type = (doSimpleTypes) ? "VARCHAR_IGNORECASE" : toUsableType(types[i]);
 
 			//create.append(comma + col);		create.append(" ");		create.append(type);
