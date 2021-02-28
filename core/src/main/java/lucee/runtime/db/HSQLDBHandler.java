@@ -114,10 +114,10 @@ public final class HSQLDBHandler {
 		// use double qoutes around column and tables names to avoid problems with reserved words
 		String comma = "";
 		String escape = "\"";
-		StringBuilder create = new StringBuilder("CREATE TABLE " + name + " (");
-		StringBuilder insert = new StringBuilder("INSERT INTO  " + name + " (");
-		//StringBuilder create = new StringBuilder("CREATE TABLE ").append(escape).append(name).append(escape).append(" (");
-		//StringBuilder insert = new StringBuilder("INSERT INTO  ").append(escape).append(name).append(escape).append(" (");
+		//StringBuilder create = new StringBuilder("CREATE TABLE " + name + " (");
+		//StringBuilder insert = new StringBuilder("INSERT INTO  " + name + " (");
+		StringBuilder create = new StringBuilder("CREATE TABLE ").append(escape).append(StringUtil.toUpperCase(name)).append(escape).append(" (");
+		StringBuilder insert = new StringBuilder("INSERT INTO  ").append(escape).append(StringUtil.toUpperCase(name)).append(escape).append(" (");
 		
 		StringBuilder values = new StringBuilder("VALUES (");
 		for (int i = 0; i < cols.length; i++) {
