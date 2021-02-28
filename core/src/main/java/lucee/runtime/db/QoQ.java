@@ -613,7 +613,7 @@ public final class QoQ {
 	 * @throws PageException
 	 */
 	private QueryImpl getSingleTable(PageContext pc, Column table) throws PageException {
-		return (QueryImpl) Caster.toQuery(pc.getVariable(table.getFullName()));
+		return (QueryImpl)Caster.toQuery(pc.getVariable(StringUtil.removeQuotes(table.getFullName(), true)));
 	}
 
 	/**
