@@ -124,9 +124,9 @@ public final class HSQLDBHandler {
 			String col = cols[i].getString();
 			String type = (doSimpleTypes) ? "VARCHAR_IGNORECASE" : toUsableType(types[i]);
 
-			create.append(comma + col);		create.append(" ");		create.append(type);
+			//create.append(comma + col);		create.append(" ");		create.append(type);
 			// this doesn't
-			//create.append(comma);		create.append(escape);		create.append(col);		create.append(escape);	create.append(" ");		create.append(type);
+			create.append(comma);		create.append(escape);		create.append(col);		create.append(escape);	create.append(" ");		create.append(type);
 
 			// insert.append(comma + col);
 			// this works
