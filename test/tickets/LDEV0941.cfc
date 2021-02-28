@@ -1,7 +1,8 @@
 <cfcomponent extends="org.lucee.cfml.test.LuceeTestCase">
 	<cfscript>
 		function beforeAll(){
-			uri = createURI("testFolder");
+            uri = createURI("testFolder");
+            afterAll();
 			if(not directoryExists(uri)){
 				Directorycreate(uri);
 			}
@@ -29,10 +30,16 @@
 			var baseURI="/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
 			return baseURI&""&calledName;
 		}
+
+		function afterAll(){
+			if(directoryExists(uri)){
+				directoryDelete(uri,true);
+			}
+		}
 	</cfscript>
 
 	<cffunction name="zipfunctiononFolder" access="private" returntype="Any">
-		<cfset path ="#getDirectoryFromPath(getCurrenttemplatepath())#" />
+        <cfset path ="#getDirectoryFromPath(getCurrenttemplatepath())#" />
 		<cfzip action="zip" source="#path#testFolder" file="#path#test.zip">
 		<cfzip action="list" name="record" file="#path#test.zip" showDirectory="true">
 		<cfset serializedqry =  serializeJSON(record,true)>
