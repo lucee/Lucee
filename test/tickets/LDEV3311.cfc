@@ -48,7 +48,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 				}).toThrow(); // reserved words need to be both DOUBLE QUOTED and in UPPER CASE
 
 				var q = QueryExecute(
-					sql = 'SELECT "UNIQUE".* FROM "UNIQUE", t2 WHERE "UNIQUE".id = t2.id',
+					sql = 'SELECT "UNIQUE".* FROM UNIQUE t2 WHERE "UNIQUE".id = t2.id',
 					options = { dbtype: 'query' }
 				);
 				expect( q ).toBeQuery();
@@ -66,7 +66,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 			it( 'Qoq select * from table with reserved word as table name' , function() {
 				var q = QueryExecute(
-					sql = 'SELECT "UNIQUE".* FROM "UNIQUE"', 
+					sql = 'SELECT "UNIQUE".* FROM UNIQUE', 
 					options = { dbtype: 'query' }
 				);
 				expect( q ).toBeQuery();
