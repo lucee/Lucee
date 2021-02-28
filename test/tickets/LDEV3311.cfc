@@ -39,8 +39,16 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 			it( 'QoQ select * from table with reserved word as table name with HSQLDB' , function() {
 				// force fallback to hsqldb via join
+
+				expect(function(){
+					var q = QueryExecute(
+						sql = "SELECT UNIQUE.* FROM UNIQUE, t2 WHERE UNIQUE.id = t2.id",
+						options = { dbtype: 'query' }
+					);
+				}).toThrow(); // reserved words need to be both DOUBLE QUOTED and in UPPER CASE
+
 				var q = QueryExecute(
-					sql = "SELECT unique.* FROM unique, t2 WHERE unique.id = t2.id",
+					sql = 'SELECT "UNIQUE".* FROM "UNIQUE", t2 WHERE "UNIQUE".id = t2.id',
 					options = { dbtype: 'query' }
 				);
 				expect( q ).toBeQuery();
@@ -58,7 +66,14 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 			it( 'Qoq select * from table with reserved word as table name' , function() {
 				var q = QueryExecute(
-					sql = "SELECT unique.* FROM unique",
+					sql = 'SELECT "UNIQUE".* FROM "UNIQUE"', 
+					options = { dbtype: 'query' }
+				);
+				expect( q ).toBeQuery();
+				expect( q.recordcount ).toBe(1);
+
+				var q = QueryExecute(
+					sql = 'SELECT UNIQUE.* FROM UNIQUE', 
 					options = { dbtype: 'query' }
 				);
 				expect( q ).toBeQuery();
