@@ -407,7 +407,7 @@ public final class HSQLDBHandler {
 						sql.setSQLString(modSql);
 						if (sql.getItems() != null && sql.getItems().length > 0) sql = new SQLImpl(sql.toString());
 
-						addTable(conn, pc, modTableName, Caster.toQuery(pc.getVariable(tableName)), doSimpleTypes, usedTables);
+						addTable(conn, pc, modTableName, Caster.toQuery(pc.getVariable(tableName.replace('"', ''))), doSimpleTypes, usedTables); // strip any double quotes around table names
 					}
 					DBUtil.setReadOnlyEL(conn, true);
 					try {
