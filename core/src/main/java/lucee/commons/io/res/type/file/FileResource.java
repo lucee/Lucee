@@ -21,7 +21,6 @@ package lucee.commons.io.res.type.file;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,6 +28,7 @@ import java.io.OutputStream;
 import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.DosFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
@@ -79,9 +79,14 @@ public final class FileResource extends File implements Resource {
 
 	@Override
 	public void copyFrom(Resource res, boolean append) throws IOException {
+
 		if (res instanceof File && (!append || !this.isFile())) {
-			Files.copy(((File) res).toPath(), this.toPath(), COPY_OPTIONS);
-			return;
+			try {
+				Files.copy(((File) res).toPath(), this.toPath(), COPY_OPTIONS);
+				return;
+			}
+			catch (Exception exception) {
+			}
 		}
 
 		IOUtil.copy(res, this.getOutputStream(append), true);
@@ -98,13 +103,17 @@ public final class FileResource extends File implements Resource {
 
 	@Override
 	public void copyTo(Resource res, boolean append) throws IOException {
+
 		if (res instanceof File && (!append || !res.isFile())) {
-			Files.copy(this.toPath(), ((File) res).toPath(), COPY_OPTIONS);
-			return;
+			try {
+				Files.copy(this.toPath(), ((File) res).toPath(), COPY_OPTIONS);
+				return;
+			}
+			catch (Exception exception) {
+			}
 		}
 
 		IOUtil.copy(this, res.getOutputStream(append), true);
-
 		boolean e = canExecute();
 		boolean w = canWrite();
 		boolean r = canRead();
@@ -112,6 +121,7 @@ public final class FileResource extends File implements Resource {
 		if (e && res instanceof File) ((File) res).setExecutable(true);
 		if (w != res.canWrite()) res.setWritable(w);
 		if (r != res.canRead()) res.setReadable(r);
+
 	}
 
 	@Override
@@ -201,7 +211,8 @@ public final class FileResource extends File implements Resource {
 		if (dest instanceof File) {
 			provider.lock(this);
 			try {
-				if (dest.exists() && !dest.delete()) throw new IOException("Can't move file [" + this.getAbsolutePath() + "] cannot remove existing file [" + dest.getAbsolutePath() + "]");
+				if (dest.exists() && !dest.delete())
+					throw new IOException("Can't move file [" + this.getAbsolutePath() + "] cannot remove existing file [" + dest.getAbsolutePath() + "]");
 
 				done = super.renameTo((File) dest);
 				/*
@@ -228,8 +239,9 @@ public final class FileResource extends File implements Resource {
 		// provider.lock(this);
 		provider.read(this);
 		try {
-			// return new BufferedInputStream(new ResourceInputStream(this,new FileInputStream(this)));
-			return new BufferedInputStream(new FileInputStream(this));
+
+			return new BufferedInputStream(Files.newInputStream(toPath(), StandardOpenOption.READ));
+			// return new BufferedInputStream(new FileInputStream(this));
 		}
 		catch (IOException ioe) {
 			// provider.unlock(this);
@@ -357,7 +369,8 @@ public final class FileResource extends File implements Resource {
 			moveTo(dest);
 			return true;
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 		return false;
 	}
 
@@ -385,7 +398,8 @@ public final class FileResource extends File implements Resource {
 				return ModeUtil.toOctalMode(line);
 
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 
 		}
 		int mode = SystemUtil.isWindows() && exists() ? 0111 : 0;
@@ -536,7 +550,8 @@ public final class FileResource extends File implements Resource {
 		try {
 			provider.read(this);
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 
 		return super.exists();
 	}

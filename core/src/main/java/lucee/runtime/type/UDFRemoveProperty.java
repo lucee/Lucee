@@ -47,7 +47,7 @@ public final class UDFRemoveProperty extends UDFGSProperty {
 	public UDFRemoveProperty(Component component, Property prop) {
 		super(component, "remove" + StringUtil.ucFirst(PropertyFactory.getSingularName(prop)), getFunctionArgument(prop), CFTypes.TYPE_BOOLEAN);
 		this.prop = prop;
-		this.propName = KeyImpl.getInstance(prop.getName());
+		this.propName = KeyImpl.init(prop.getName());
 	}
 
 	private static FunctionArgument[] getFunctionArgument(Property prop) {

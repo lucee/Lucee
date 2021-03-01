@@ -361,7 +361,7 @@ public final class Directory extends TagImpl {
 	 **/
 	public void setNameconflict(String nameconflict) throws ApplicationException {
 
-		this.nameconflict = FileUtil.toNameConflict(nameconflict, NAMECONFLICT_UNDEFINED | NAMECONFLICT_ERROR | NAMECONFLICT_OVERWRITE, NAMECONFLICT_DEFAULT);
+		this.nameconflict = FileUtil.toNameConflict(nameconflict, NAMECONFLICT_UNDEFINED | NAMECONFLICT_ERROR | NAMECONFLICT_OVERWRITE | NAMECONFLICT_SKIP, NAMECONFLICT_DEFAULT);
 	}
 
 	@Override

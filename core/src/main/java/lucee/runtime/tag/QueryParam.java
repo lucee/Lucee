@@ -37,11 +37,13 @@ import static java.sql.Types.TINYINT;
 import static java.sql.Types.VARCHAR;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
 
 import javax.servlet.jsp.tagext.Tag;
 
+import lucee.commons.io.CharsetUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.db.SQLCaster;
 import lucee.runtime.db.SQLItemImpl;
@@ -89,12 +91,15 @@ public final class QueryParam extends TagImpl {
 	 */
 	private double maxlength = -1;
 
+	private Charset charset;
+
 	@Override
 	public void release() {
 		separator = ",";
 		list = false;
 		maxlength = -1;
 		item = new SQLItemImpl();
+		charset = null;
 	}
 
 	/**
@@ -134,6 +139,10 @@ public final class QueryParam extends TagImpl {
 	 **/
 	public void setMaxlength(double maxlength) {
 		this.maxlength = maxlength;
+	}
+
+	public void setCharset(String charset) {
+		this.charset = CharsetUtil.toCharset(charset);
 	}
 
 	/**
@@ -204,14 +213,14 @@ public final class QueryParam extends TagImpl {
 				int len = arr.size();
 				StringBuffer sb = new StringBuffer();
 				for (int i = 1; i <= len; i++) {
-					query.setParam(item.clone(check(arr.getE(i), item.getType())));
+					query.setParam(item.clone(check(arr.getE(i), item.getType(), (int) maxlength, charset)));
 					if (i > 1) sb.append(',');
 					sb.append('?');
 				}
 				write(sb.toString());
 			}
 			else {
-				check(item.getValue(), item.getType());
+				check(item.getValue(), item.getType(), (int) maxlength, charset);
 				query.setParam(item);
 				write("?");
 			}
@@ -222,8 +231,8 @@ public final class QueryParam extends TagImpl {
 		return SKIP_BODY;
 	}
 
-	private Object check(Object value, int type) throws PageException {
-		if (maxlength != -1) {
+	public static Object check(Object value, int type, int maxlength, Charset charset) throws PageException {
+		if (maxlength != -1 || charset != null) {
 
 			String str;
 			if (BIGINT == type || INTEGER == type || SMALLINT == type || TINYINT == type) {
@@ -237,9 +246,19 @@ public final class QueryParam extends TagImpl {
 			}
 			else str = Caster.toString(value);
 
-			if (str.length() > maxlength) throw new DatabaseException(
-					"value [" + value + "] is too large, defined maxlength is [" + Caster.toString(maxlength) + "] but length of value is [" + str.length() + "]", null, null,
-					null);
+			if (charset != null) {
+				if (!StringUtil.isCompatibleWith(str, charset)) throw new DatabaseException(
+						"the given value [" + (str.length() > 20 ? str.substring(0, 20) + "..." : str) + "] is not compatible with the requested charset [" + charset + "] ", null,
+						null, null);
+			}
+			if (maxlength > 0) {
+				int len = charset == null ? str.length() : str.getBytes(charset).length;
+				if (len > maxlength) {
+					throw new DatabaseException(
+							"value [" + value + "] is too large, defined maxlength is [" + Caster.toString(maxlength) + "] but binary length of value is [" + len + "]", null, null,
+							null);
+				}
+			}
 		}
 		return value;
 	}

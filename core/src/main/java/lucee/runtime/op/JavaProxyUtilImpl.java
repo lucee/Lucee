@@ -3,6 +3,7 @@ package lucee.runtime.op;
 import lucee.runtime.Component;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.java.JavaProxy;
+import lucee.runtime.type.UDF;
 import lucee.runtime.util.JavaProxyUtil;
 
 public class JavaProxyUtilImpl implements JavaProxyUtil {
@@ -12,11 +13,16 @@ public class JavaProxyUtilImpl implements JavaProxyUtil {
 		return JavaProxy.call(config, cfc, methodName, arguments);
 	}
 
+	// FUTURE add to interface
+	public Object call(ConfigWeb config, UDF udf, String methodName, Object... arguments) {
+		return JavaProxy.call(config, udf, methodName, arguments);
+	}
+
 	@Override
 	public boolean toBoolean(Object obj) {
 		return JavaProxy.toBoolean(obj);
 	}
-
+ 
 	@Override
 	public float toFloat(Object obj) {
 		return JavaProxy.toFloat(obj);
@@ -52,6 +58,7 @@ public class JavaProxyUtilImpl implements JavaProxyUtil {
 		return JavaProxy.toShort(obj);
 	}
 
+	@Override
 	public String toString(Object obj) {
 		return JavaProxy.toString(obj);
 	}
@@ -61,6 +68,7 @@ public class JavaProxyUtilImpl implements JavaProxyUtil {
 		return JavaProxy.to(obj, clazz);
 	}
 
+	@Override
 	public Object to(Object obj, String className) {
 		return JavaProxy.to(obj, className);
 	}

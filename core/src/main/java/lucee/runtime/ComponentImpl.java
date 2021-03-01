@@ -62,10 +62,11 @@ import lucee.runtime.component.Member;
 import lucee.runtime.component.MetaDataSoftReference;
 import lucee.runtime.component.MetadataUtil;
 import lucee.runtime.component.Property;
+import lucee.runtime.component.StaticStruct;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.debug.DebugEntryTemplate;
 import lucee.runtime.dump.DumpData;
@@ -375,7 +376,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			base = ComponentLoader.searchComponent(pageContext, componentPage.getPageSource(), properties.extend, Boolean.TRUE, null, true, executeConstr);
 		}
 		else {
-			CIPage p = ((ConfigWebImpl) pageContext.getConfig()).getBaseComponentPage(pageSource.getDialect(), pageContext);
+			CIPage p = ((ConfigWebPro) pageContext.getConfig()).getBaseComponentPage(pageSource.getDialect(), pageContext);
 			if (!componentPage.getPageSource().equals(p.getPageSource())) {
 				base = ComponentLoader.loadComponent(pageContext, p, "Component", false, false, true, executeConstr);
 			}
@@ -421,17 +422,18 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			scope = new ComponentScopeThis(this);
 		}
 		initProperties();
-
-		// invoke static constructor
-		if (!componentPage._static.isInit()) {
-			componentPage._static.setInit(true);// this needs to happen before the call
-			try {
-				componentPage.staticConstructor(pageContext, this);
-			}
-			catch (Throwable t) {
-				ExceptionUtil.rethrowIfNecessary(t);
-				componentPage._static.setInit(false);
-				throw Caster.toPageException(t);
+		StaticStruct ss = componentPage.getStaticStruct();
+		synchronized (ss) {
+			// invoke static constructor
+			if (!ss.isInit()) {
+				ss.setInit(true);// this needs to happen before the call
+				try {
+					componentPage.staticConstructor(pageContext, this);
+				}
+				catch (Exception e) {
+					ss.setInit(false);
+					throw Caster.toPageException(e);
+				}
 			}
 		}
 	}
@@ -617,7 +619,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		// INFO duplicate code is for faster execution -> less contions
 
 		// debug yes
-		if (pc.getConfig().debug()) {
+		if (pc.getConfig().debug() && ((ConfigPro) pc.getConfig()).hasDebugOptions(ConfigPro.DEBUG_TEMPLATE)) {
 			DebugEntryTemplate debugEntry = pc.getDebugger().getEntry(pc, pageSource, udf.getFunctionName());// new DebugEntry(src,udf.getFunctionName());
 			long currTime = pc.getExecutionTime();
 			long time = System.nanoTime();
@@ -1526,7 +1528,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 
 		boolean supressWSBeforeArg = dialect != CFMLEngine.DIALECT_CFML || pc.getConfig().getSuppressWSBeforeArg();
 
-		Class<?> skeleton = comp.getJavaAccessClass(pc, new RefBooleanImpl(false), ((ConfigImpl) pc.getConfig()).getExecutionLogEnabled(), false, false, supressWSBeforeArg);
+		Class<?> skeleton = comp.getJavaAccessClass(pc, new RefBooleanImpl(false), ((ConfigPro) pc.getConfig()).getExecutionLogEnabled(), false, false, supressWSBeforeArg);
 		if (skeleton != null) sct.set(KeyConstants._skeleton, skeleton);
 
 		HttpServletRequest req = pc.getHttpServletRequest();
@@ -1593,8 +1595,8 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		}
 		if (arr.size() != 0) {
 			Collections.sort(arr, new ComparatorImpl());
-			sct.set(KeyConstants._functions, arr);
 		}
+		sct.set(KeyConstants._functions, arr);
 	}
 
 	private static class ComparatorImpl implements Comparator {

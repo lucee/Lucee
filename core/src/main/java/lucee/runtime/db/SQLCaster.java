@@ -128,7 +128,8 @@ public final class SQLCaster {
 				if (value instanceof lucee.runtime.type.Array) return Caster.toList(value);
 				if (value instanceof lucee.runtime.type.Struct) return Caster.toMap(value);
 
-				return value;// toSQLObject(value); TODO alle lucee spezifischen typen sollten in sql typen uebersetzt werden
+				return value;// toSQLObject(value); TODO alle lucee spezifischen typen sollten in
+								// sql typen uebersetzt werden
 			}
 		}
 		catch (PageException pe) {
@@ -297,7 +298,8 @@ public final class SQLCaster {
 		case Types.TIME:
 			try {
 
-				// stat.setObject(parameterIndex, new Time((Caster.toDate(value,null).getTime())), type);
+				// stat.setObject(parameterIndex, new Time((Caster.toDate(value,null).getTime())),
+				// type);
 				stat.setTime(parameterIndex, new Time(Caster.toDate(value, tz).getTime()), JREDateTimeUtil.getThreadCalendar(tz));
 			}
 			catch (PageException pe) {
@@ -307,7 +309,8 @@ public final class SQLCaster {
 			return;
 		case Types.TIMESTAMP:
 			try {
-				// stat.setObject(parameterIndex, new Timestamp((Caster.toDate(value,null).getTime())), type);
+				// stat.setObject(parameterIndex, new
+				// Timestamp((Caster.toDate(value,null).getTime())), type);
 				// stat.setObject(parameterIndex, value, type);
 				stat.setTimestamp(parameterIndex, new Timestamp(Caster.toDate(value, tz).getTime()), JREDateTimeUtil.getThreadCalendar(tz));
 			}
@@ -326,7 +329,8 @@ public final class SQLCaster {
 		 */
 		default:
 			stat.setObject(parameterIndex, value, type);
-			// throw new DatabaseException(toStringType(item.getType())+" is not a supported Type",null,null);
+			// throw new DatabaseException(toStringType(item.getType())+" is not a supported
+			// Type",null,null);
 
 		}
 	}
@@ -689,7 +693,7 @@ public final class SQLCaster {
 	 */
 
 	/**
-	 * cast a String SQL Type to int Type
+	 * cast a String SQL Type, e.g. from cfqueryparam, to int Type
 	 * 
 	 * @param strType
 	 * @return SQL Type as int
@@ -722,6 +726,7 @@ public final class SQLCaster {
 			else if (first == 'D') {
 				if (strType.equals("DATALINK")) return Types.DATALINK;
 				else if (strType.equals("DATE")) return Types.DATE;
+				else if (strType.equals("DATETIME")) return Types.TIMESTAMP;
 				else if (strType.equals("DISTINCT")) return Types.DISTINCT;
 				else if (strType.equals("DECIMAL")) return Types.DECIMAL;
 				else if (strType.equals("DOUBLE")) return Types.DOUBLE;
@@ -769,7 +774,8 @@ public final class SQLCaster {
 				else if (strType.equals("SQLXML")) return Types.SQLXML;
 			}
 			else if (first == 'T') {
-				if (strType.equals("TIME")) return Types.TIME;
+				if (strType.equals("TEXT")) return Types.VARCHAR;
+				else if (strType.equals("TIME")) return Types.TIME;
 				else if (strType.equals("TIMESTAMP")) return Types.TIMESTAMP;
 				else if (strType.equals("TINYINT")) return Types.TINYINT;
 			}

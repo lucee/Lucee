@@ -56,7 +56,7 @@ import lucee.runtime.component.AbstractFinal.UDFB;
 import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.component.Property;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
@@ -276,7 +276,7 @@ public final class ComponentUtil {
 	 */
 	private static Class registerTypeMapping(Class clazz) throws PageException {
 		PageContext pc = ThreadLocalPageContext.get();
-		WSServer server = ((ConfigWebImpl) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getWSServer(pc);
+		WSServer server = ((ConfigWebPro) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getWSServer(pc);
 		return registerTypeMapping(server, clazz);
 	}
 
@@ -584,7 +584,7 @@ public final class ComponentUtil {
 
 	private static Type toType(String cfType, boolean axistype) throws PageException {
 		Class clazz = Caster.cfTypeToClass(cfType);
-		if (axistype) clazz = ((ConfigWebImpl) ThreadLocalPageContext.getConfig()).getWSHandler().toWSTypeClass(clazz);
+		if (axistype) clazz = ((ConfigWebPro) ThreadLocalPageContext.getConfig()).getWSHandler().toWSTypeClass(clazz);
 		return Type.getType(clazz);
 
 	}
@@ -684,12 +684,12 @@ public final class ComponentUtil {
 
 			Collection.Key[] other = c.keys(access);
 
-			if (other.length == 0) return new ExpressionException("component [" + c.getCallName() + "] has no " + strAccess + " function with name [" + key + "]");
+			if (other.length == 0) return new ExpressionException("Component [" + c.getCallName() + "] has no " + strAccess + " function with name [" + key + "]");
 
-			return new ExpressionException("component [" + c.getCallName() + "] has no " + strAccess + " function with name [" + key + "]",
-					"accessible functions are [" + ListUtil.arrayToList(other, ",") + "]");
+			return new ExpressionException("Component [" + c.getCallName() + "] has no " + strAccess + " function with name [" + key + "]",
+					"Accessible functions are [" + ListUtil.arrayToList(other, ", ") + "]");
 		}
-		return new ExpressionException("member [" + key + "] of component [" + c.getCallName() + "] is not a function", "Member is of type [" + Caster.toTypeName(member) + "]");
+		return new ExpressionException("Member [" + key + "] of component [" + c.getCallName() + "] is not a function", "Member is of type [" + Caster.toTypeName(member) + "]");
 	}
 
 	public static Property[] getProperties(Component c, boolean onlyPeristent, boolean includeBaseProperties, boolean preferBaseProperties, boolean inheritedMappedSuperClassOnly) {
@@ -712,7 +712,7 @@ public final class ComponentUtil {
 
 	public static Component toComponent(Object obj) throws ExpressionException {
 		if (obj instanceof Component) return (Component) obj;
-		throw new ExpressionException("can't cast class [" + Caster.toClassName(obj) + "] to a class of type Component");
+		throw new ExpressionException("Can't cast class [" + Caster.toClassName(obj) + "] to a class of type [Component]");
 	}
 
 	public static PageSource getPageSource(Component cfc) {
@@ -788,7 +788,7 @@ public final class ComponentUtil {
 		func.set(KeyConstants._name, udf.getFunctionName());
 		func.set(KeyConstants._output, Caster.toBoolean(udf.getOutput()));
 		func.set(KeyConstants._returntype, udf.getReturnTypeAsString());
-		func.set("modifier", udf.getModifier() == Component.MODIFIER_NONE ? "" : ComponentUtil.toModifier(udf.getModifier(), ""));
+		func.set(KeyConstants._modifier, udf.getModifier() == Component.MODIFIER_NONE ? "" : ComponentUtil.toModifier(udf.getModifier(), ""));
 		func.set(KeyConstants._description, udf.getDescription());
 		if (udf.getLocalMode() != null) func.set("localMode", AppListenerUtil.toLocalMode(udf.getLocalMode().intValue(), ""));
 
@@ -796,9 +796,9 @@ public final class ComponentUtil {
 
 		if (udf.getStartLine() > 0 && udf.getEndLine() > 0) {
 			Struct pos = new StructImpl();
-			pos.set("start", udf.getStartLine());
-			pos.set("end", udf.getEndLine());
-			func.setEL("position", pos);
+			pos.set(KeyConstants._start, udf.getStartLine());
+			pos.set(KeyConstants._end, udf.getEndLine());
+			func.setEL(KeyConstants._position, pos);
 		}
 
 		int format = udf.getReturnFormat();

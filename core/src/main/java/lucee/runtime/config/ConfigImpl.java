@@ -57,8 +57,6 @@ import lucee.commons.io.res.ResourcesImpl;
 import lucee.commons.io.res.ResourcesImpl.ResourceProviderFactory;
 import lucee.commons.io.res.filter.ExtensionResourceFilter;
 import lucee.commons.io.res.type.compress.Compress;
-import lucee.commons.io.res.type.compress.CompressResource;
-import lucee.commons.io.res.type.compress.CompressResourceProvider;
 import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CharSet;
@@ -68,6 +66,7 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.Md5;
 import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.net.IPRange;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.CIPage;
@@ -76,7 +75,6 @@ import lucee.runtime.Mapping;
 import lucee.runtime.MappingImpl;
 import lucee.runtime.Page;
 import lucee.runtime.PageContext;
-import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
 import lucee.runtime.cache.CacheConnection;
@@ -86,6 +84,7 @@ import lucee.runtime.cfx.CFXTagPool;
 import lucee.runtime.cfx.customtag.CFXTagPoolImpl;
 import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.component.ImportDefintionImpl;
+import lucee.runtime.config.ConfigWebUtil.CacheElement;
 import lucee.runtime.customtag.InitFile;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
@@ -105,7 +104,6 @@ import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.exp.SecurityException;
 import lucee.runtime.exp.TemplateException;
 import lucee.runtime.extension.Extension;
-import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.ExtensionProvider;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.extension.RHExtensionProvider;
@@ -127,6 +125,8 @@ import lucee.runtime.orm.ORMEngine;
 import lucee.runtime.osgi.BundleInfo;
 import lucee.runtime.osgi.EnvClassLoader;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
+import lucee.runtime.regex.Regex;
+import lucee.runtime.regex.RegexFactory;
 import lucee.runtime.rest.RestSettingImpl;
 import lucee.runtime.rest.RestSettings;
 import lucee.runtime.schedule.Scheduler;
@@ -134,6 +134,8 @@ import lucee.runtime.schedule.SchedulerImpl;
 import lucee.runtime.search.SearchEngine;
 import lucee.runtime.security.SecurityManager;
 import lucee.runtime.spooler.SpoolerEngine;
+import lucee.runtime.type.Array;
+import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
@@ -141,7 +143,6 @@ import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.dt.TimeSpanImpl;
-import lucee.runtime.type.scope.Cluster;
 import lucee.runtime.type.scope.ClusterNotSupported;
 import lucee.runtime.type.scope.Undefined;
 import lucee.runtime.type.util.KeyConstants;
@@ -161,37 +162,14 @@ import lucee.transformer.library.tag.TagLibTagScript;
 /**
  * Hold the definitions of the Lucee configuration.
  */
-public abstract class ConfigImpl implements Config {
+public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
-	public static final int CLIENT_BOOLEAN_TRUE = 0;
-	public static final int CLIENT_BOOLEAN_FALSE = 1;
-	public static final int SERVER_BOOLEAN_TRUE = 2;
-	public static final int SERVER_BOOLEAN_FALSE = 3;
-
-	public static final int DEBUG_DATABASE = 1;
-	public static final int DEBUG_EXCEPTION = 2;
-	public static final int DEBUG_TRACING = 4;
-	public static final int DEBUG_TIMER = 8;
-	public static final int DEBUG_IMPLICIT_ACCESS = 16;
-	public static final int DEBUG_QUERY_USAGE = 32;
-	public static final int DEBUG_DUMP = 64;
-
-	private static final Extension[] EXTENSIONS_EMPTY = new Extension[0];
 	private static final RHExtension[] RHEXTENSIONS_EMPTY = new RHExtension[0];
 
-	public static final int MODE_CUSTOM = 1;
-	public static final int MODE_STRICT = 2;
-
-	public static final int CFML_WRITER_REFULAR = 1;
-	public static final int CFML_WRITER_WS = 2;
-	public static final int CFML_WRITER_WS_PREF = 3;
-
-	public static final String DEFAULT_STORAGE_SESSION = "memory";
-	public static final String DEFAULT_STORAGE_CLIENT = "cookie";
-
-	public static final int QUERY_VAR_USAGE_IGNORE = 1;
-	public static final int QUERY_VAR_USAGE_WARN = 2;
-	public static final int QUERY_VAR_USAGE_ERROR = 4;
+	// FUTURE add to interface
+	public static final short ADMINMODE_SINGLE = 1;
+	public static final short ADMINMODE_MULTI = 2;
+	public static final short ADMINMODE_AUTO = 4;
 
 	private int mode = MODE_CUSTOM;
 
@@ -264,6 +242,7 @@ public abstract class ConfigImpl implements Config {
 	private int spoolInterval = 30;
 	private boolean spoolEnable = true;
 	private boolean sendPartial = false;
+	private boolean userSet = true;
 
 	private Server[] mailServers;
 
@@ -373,9 +352,7 @@ public abstract class ConfigImpl implements Config {
 
 	private RHExtensionProvider[] rhextensionProviders = Constants.RH_EXTENSION_PROVIDERS;
 
-	private Extension[] extensions = EXTENSIONS_EMPTY;
 	private RHExtension[] rhextensions = RHEXTENSIONS_EMPTY;
-	private boolean extensionEnabled;
 	private boolean allowRealPath = true;
 
 	private DumpWriterEntry[] dmpWriterEntries;
@@ -397,7 +374,6 @@ public abstract class ConfigImpl implements Config {
 
 	private short inspectTemplate = INSPECT_ONCE;
 	private boolean typeChecking = true;
-	private String serial = "";
 	private String cacheMD5;
 	private boolean executionLogEnabled;
 	private ExecutionLogFactory executionLogFactory;
@@ -431,12 +407,18 @@ public abstract class ConfigImpl implements Config {
 	private boolean queueEnable = false;
 	private int varUsage;
 
-	public static boolean onlyFirstMatch = false;
 	private TimeSpan cachedAfterTimeRange;
+
+	private static Map<String, Startup> startups;
+
+	private Regex regex; // TODO add possibility to configure
+
+	private long applicationPathCacheTimeout = 20000;
 
 	/**
 	 * @return the allowURLRequestTimeout
 	 */
+	@Override
 	public boolean isAllowURLRequestTimeout() {
 		return allowURLRequestTimeout;
 	}
@@ -463,6 +445,7 @@ public abstract class ConfigImpl implements Config {
 		clearFunctionCache();
 		clearCTCache();
 		clearComponentCache();
+		clearApplicationCache();
 		// clearComponentMetadata();
 	}
 
@@ -486,22 +469,7 @@ public abstract class ConfigImpl implements Config {
 		this.configFile = configFile;
 	}
 
-	protected static TagLib[] duplicate(TagLib[] tlds, boolean deepCopy) {
-		TagLib[] rst = new TagLib[tlds.length];
-		for (int i = 0; i < tlds.length; i++) {
-			rst[i] = tlds[i].duplicate(deepCopy);
-		}
-		return rst;
-	}
-
-	protected static FunctionLib[] duplicate(FunctionLib[] flds, boolean deepCopy) {
-		FunctionLib[] rst = new FunctionLib[flds.length];
-		for (int i = 0; i < flds.length; i++) {
-			rst[i] = flds[i].duplicate(deepCopy);
-		}
-		return rst;
-	}
-
+	@Override
 	public long lastModified() {
 		return configFileLastModified;
 	}
@@ -542,10 +510,12 @@ public abstract class ConfigImpl implements Config {
 	 * 
 	 * @return Array of Function Library Deskriptors
 	 */
+	@Override
 	public FunctionLib[] getFLDs(int dialect) {
 		return dialect == CFMLEngine.DIALECT_CFML ? cfmlFlds : luceeFlds;
 	}
 
+	@Override
 	public FunctionLib getCombinedFLDs(int dialect) {
 		if (dialect == CFMLEngine.DIALECT_CFML) {
 			if (combinedCFMLFLDs == null) combinedCFMLFLDs = FunctionLibFactory.combineFLDs(cfmlFlds);
@@ -561,6 +531,7 @@ public abstract class ConfigImpl implements Config {
 	 * 
 	 * @return Array of Tag Library Deskriptors
 	 */
+	@Override
 	public TagLib[] getTLDs(int dialect) {
 		return dialect == CFMLEngine.DIALECT_CFML ? cfmlTlds : luceeTlds;
 	}
@@ -605,6 +576,7 @@ public abstract class ConfigImpl implements Config {
 		return clientCookies;
 	}
 
+	@Override
 	public boolean isDevelopMode() {
 		return developMode;
 	}
@@ -630,13 +602,15 @@ public abstract class ConfigImpl implements Config {
 	}
 
 	// FUTURE add to interface
+	@Override
 	public boolean isMailSendPartial() {
 		return sendPartial;
 	}
 
 	// FUTURE add to interface and impl
+	@Override
 	public boolean isUserset() {
-		return true;
+		return userSet;
 	}
 
 	@Override
@@ -659,6 +633,7 @@ public abstract class ConfigImpl implements Config {
 		this.varUsage = varUsage;
 	}
 
+	@Override
 	public int getQueryVarUsage() {
 		return varUsage;
 	}
@@ -672,10 +647,12 @@ public abstract class ConfigImpl implements Config {
 	}
 
 	// do not remove, ised in Hibernate extension
+	@Override
 	public ClassLoader getClassLoaderEnv() {
 		return new EnvClassLoader(this);
 	}
 
+	@Override
 	public ClassLoader getClassLoaderCore() {
 		return new lucee.commons.lang.ClassLoaderHelper().getClass().getClassLoader();
 	}
@@ -683,11 +660,13 @@ public abstract class ConfigImpl implements Config {
 	 * public ClassLoader getClassLoaderLoader() { return new TP().getClass().getClassLoader(); }
 	 */
 
+	@Override
 	public ResourceClassLoader getResourceClassLoader() {
 		if (resourceCL == null) throw new RuntimeException("no RCL defined yet!");
 		return resourceCL;
 	}
 
+	@Override
 	public ResourceClassLoader getResourceClassLoader(ResourceClassLoader defaultValue) {
 		if (resourceCL == null) return defaultValue;
 		return resourceCL;
@@ -708,6 +687,7 @@ public abstract class ConfigImpl implements Config {
 		return true;
 	}
 
+	@Override
 	public boolean debugLogOutput() {
 		return debug() && debugLogOutput == CLIENT_BOOLEAN_TRUE || debugLogOutput == SERVER_BOOLEAN_TRUE;
 	}
@@ -753,6 +733,7 @@ public abstract class ConfigImpl implements Config {
 		return password;
 	}
 
+	@Override
 	public Password isPasswordEqual(String password) {
 		if (this.password == null) return null;
 		return ((PasswordImpl) this.password).isEqual(this, password);
@@ -774,6 +755,7 @@ public abstract class ConfigImpl implements Config {
 		return mappings;
 	}
 
+	@Override
 	public lucee.runtime.rest.Mapping[] getRestMappings() {
 		if (restMappings == null) restMappings = new lucee.runtime.rest.Mapping[0];
 		return restMappings;
@@ -803,103 +785,7 @@ public abstract class ConfigImpl implements Config {
 	@Override
 	public PageSource getPageSourceExisting(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping,
 			boolean onlyPhysicalExisting) {
-		realPath = realPath.replace('\\', '/');
-		String lcRealPath = StringUtil.toLowerCase(realPath) + '/';
-		Mapping mapping;
-		PageSource ps;
-		Mapping rootApp = null;
-		if (mappings != null) {
-			for (int i = 0; i < mappings.length; i++) {
-				mapping = mappings[i];
-				// we keep this for later
-				if ("/".equals(mapping.getVirtual())) {
-					rootApp = mapping;
-					continue;
-				}
-				if (lcRealPath.startsWith(mapping.getVirtualLowerCaseWithSlash(), 0)) {
-					ps = mapping.getPageSource(realPath.substring(mapping.getVirtual().length()));
-					if (onlyPhysicalExisting) {
-						if (ps.physcalExists()) return ps;
-					}
-					else if (ps.exists()) return ps;
-				}
-			}
-		}
-
-		/// special mappings
-		if (useSpecialMappings && lcRealPath.startsWith("/mapping-", 0)) {
-			String virtual = "/mapping-tag";
-			// tag mappings
-			Mapping[] tagMappings = (this instanceof ConfigWebImpl) ? new Mapping[] { ((ConfigWebImpl) this).getDefaultServerTagMapping(), getDefaultTagMapping() }
-					: new Mapping[] { getDefaultTagMapping() };
-			if (lcRealPath.startsWith(virtual, 0)) {
-				for (int i = 0; i < tagMappings.length; i++) {
-					mapping = tagMappings[i];
-					// if(lcRealPath.startsWith(mapping.getVirtualLowerCaseWithSlash(),0)) {
-					ps = mapping.getPageSource(realPath.substring(virtual.length()));
-					if (onlyPhysicalExisting) {
-						if (ps.physcalExists()) return ps;
-					}
-					else if (ps.exists()) return ps;
-					// }
-				}
-			}
-
-			// customtag mappings
-			tagMappings = getCustomTagMappings();
-			virtual = "/mapping-customtag";
-			if (lcRealPath.startsWith(virtual, 0)) {
-				for (int i = 0; i < tagMappings.length; i++) {
-					mapping = tagMappings[i];
-					// if(lcRealPath.startsWith(mapping.getVirtualLowerCaseWithSlash(),0)) {
-					ps = mapping.getPageSource(realPath.substring(virtual.length()));
-					if (onlyPhysicalExisting) {
-						if (ps.physcalExists()) return ps;
-					}
-					else if (ps.exists()) return ps;
-					// }
-				}
-			}
-		}
-
-		// component mappings (only used for gateway)
-		if (pc != null && ((PageContextImpl) pc).isGatewayContext()) {
-			boolean isCFC = Constants.isComponentExtension(ResourceUtil.getExtension(realPath, null));
-			if (isCFC) {
-				Mapping[] cmappings = getComponentMappings();
-				for (int i = 0; i < cmappings.length; i++) {
-					ps = cmappings[i].getPageSource(realPath);
-					if (onlyPhysicalExisting) {
-						if (ps.physcalExists()) return ps;
-					}
-					else if (ps.exists()) return ps;
-				}
-			}
-		}
-
-		// config mappings
-		for (int i = 0; i < this.mappings.length - 1; i++) {
-			mapping = this.mappings[i];
-			if ((!onlyTopLevel || mapping.isTopLevel()) && lcRealPath.startsWith(mapping.getVirtualLowerCaseWithSlash(), 0)) {
-				ps = mapping.getPageSource(realPath.substring(mapping.getVirtual().length()));
-				if (onlyPhysicalExisting) {
-					if (ps.physcalExists()) return ps;
-				}
-				else if (ps.exists()) return ps;
-			}
-		}
-
-		if (useDefaultMapping) {
-			if (rootApp != null) mapping = rootApp;
-			else mapping = this.mappings[this.mappings.length - 1];
-
-			ps = mapping.getPageSource(realPath);
-			if (onlyPhysicalExisting) {
-				if (ps.physcalExists()) return ps;
-			}
-			else if (ps.exists()) return ps;
-		}
-		return null;
+		return ConfigWebUtil.getPageSourceExisting(pc, this, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, onlyPhysicalExisting);
 	}
 
 	@Override
@@ -913,95 +799,10 @@ public abstract class ConfigImpl implements Config {
 		return getPageSources(pc, mappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, useComponentMappings, onlyFirstMatch);
 	}
 
-	public PageSource[] getPageSources(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping,
+	public PageSource[] getPageSources(PageContext pc, Mapping[] appMappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping,
 			boolean useComponentMappings, boolean onlyFirstMatch) {
-		realPath = realPath.replace('\\', '/');
-		String lcRealPath = StringUtil.toLowerCase(realPath) + '/';
-		Mapping mapping;
-		Mapping rootApp = null;
-		PageSource ps;
-		List<PageSource> list = new ArrayList<PageSource>();
 
-		if (mappings != null) {
-			for (int i = 0; i < mappings.length; i++) {
-				mapping = mappings[i];
-				// we keep this for later
-				if ("/".equals(mapping.getVirtual())) {
-					rootApp = mapping;
-					continue;
-				}
-				// print.err(lcRealPath+".startsWith"+(mapping.getStrPhysical()));
-				if (lcRealPath.startsWith(mapping.getVirtualLowerCaseWithSlash(), 0)) {
-					ps = mapping.getPageSource(realPath.substring(mapping.getVirtual().length()));
-					if (onlyFirstMatch) return new PageSource[] { ps };
-					else list.add(ps);
-				}
-			}
-		}
-
-		/// special mappings
-		if (useSpecialMappings && lcRealPath.startsWith("/mapping-", 0)) {
-			String virtual = "/mapping-tag";
-			// tag mappings
-			Mapping[] tagMappings = (this instanceof ConfigWebImpl) ? new Mapping[] { ((ConfigWebImpl) this).getDefaultServerTagMapping(), getDefaultTagMapping() }
-					: new Mapping[] { getDefaultTagMapping() };
-			if (lcRealPath.startsWith(virtual, 0)) {
-				for (int i = 0; i < tagMappings.length; i++) {
-					ps = tagMappings[i].getPageSource(realPath.substring(virtual.length()));
-					if (ps.exists()) {
-						if (onlyFirstMatch) return new PageSource[] { ps };
-						else list.add(ps);
-					}
-				}
-			}
-
-			// customtag mappings
-			tagMappings = getCustomTagMappings();
-			virtual = "/mapping-customtag";
-			if (lcRealPath.startsWith(virtual, 0)) {
-				for (int i = 0; i < tagMappings.length; i++) {
-					ps = tagMappings[i].getPageSource(realPath.substring(virtual.length()));
-					if (ps.exists()) {
-						if (onlyFirstMatch) return new PageSource[] { ps };
-						else list.add(ps);
-					}
-				}
-			}
-		}
-
-		// component mappings (only used for gateway)
-		if (useComponentMappings || (pc != null && ((PageContextImpl) pc).isGatewayContext())) {
-			boolean isCFC = Constants.isComponentExtension(ResourceUtil.getExtension(realPath, null));
-			if (isCFC) {
-				Mapping[] cmappings = getComponentMappings();
-				for (int i = 0; i < cmappings.length; i++) {
-					ps = cmappings[i].getPageSource(realPath);
-					if (ps.exists()) {
-						if (onlyFirstMatch) return new PageSource[] { ps };
-						else list.add(ps);
-					}
-				}
-			}
-		}
-
-		// config mappings
-		for (int i = 0; i < this.mappings.length - 1; i++) {
-			mapping = this.mappings[i];
-			if ((!onlyTopLevel || mapping.isTopLevel()) && lcRealPath.startsWith(mapping.getVirtualLowerCaseWithSlash(), 0)) {
-				ps = mapping.getPageSource(realPath.substring(mapping.getVirtual().length()));
-				if (onlyFirstMatch) return new PageSource[] { ps };
-				else list.add(ps);
-			}
-		}
-
-		if (useDefaultMapping) {
-			if (rootApp != null) mapping = rootApp;
-			else mapping = this.mappings[this.mappings.length - 1];
-			ps = mapping.getPageSource(realPath);
-			if (onlyFirstMatch) return new PageSource[] { ps };
-			else list.add(ps);
-		}
-		return list.toArray(new PageSource[list.size()]);
+		return ConfigWebUtil.getPageSources(pc, this, appMappings, realPath, onlyTopLevel, useSpecialMappings, useDefaultMapping, useComponentMappings, onlyFirstMatch);
 	}
 
 	/**
@@ -1018,94 +819,20 @@ public abstract class ConfigImpl implements Config {
 	@Override
 	public Resource[] getPhysicalResources(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping) {
 		// now that archives can be used the same way as physical resources, there is no need anymore to
-		// limit to that
+		// limit to that FUTURE remove
 		throw new PageRuntimeException(new DeprecatedException("method not supported"));
 	}
 
 	@Override
 	public Resource getPhysicalResourceExisting(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping) {
 		// now that archives can be used the same way as physical resources, there is no need anymore to
-		// limit to that
+		// limit to that FUTURE remove
 		throw new PageRuntimeException(new DeprecatedException("method not supported"));
 	}
 
+	@Override
 	public PageSource toPageSource(Mapping[] mappings, Resource res, PageSource defaultValue) {
-		Mapping mapping;
-		String path;
-
-		// app mappings
-		if (mappings != null) {
-			for (int i = 0; i < mappings.length; i++) {
-				mapping = mappings[i];
-
-				// Physical
-				if (mapping.hasPhysical()) {
-					path = ResourceUtil.getPathToChild(res, mapping.getPhysical());
-					if (path != null) {
-						return mapping.getPageSource(path);
-					}
-				}
-				// Archive
-				if (mapping.hasArchive() && res.getResourceProvider() instanceof CompressResourceProvider) {
-					Resource archive = mapping.getArchive();
-					CompressResource cr = ((CompressResource) res);
-					if (archive.equals(cr.getCompressResource())) {
-						return mapping.getPageSource(cr.getCompressPath());
-					}
-				}
-			}
-		}
-
-		// config mappings
-		for (int i = 0; i < this.mappings.length; i++) {
-			mapping = this.mappings[i];
-
-			// Physical
-			if (mapping.hasPhysical()) {
-				path = ResourceUtil.getPathToChild(res, mapping.getPhysical());
-				if (path != null) {
-					return mapping.getPageSource(path);
-				}
-			}
-			// Archive
-			if (mapping.hasArchive() && res.getResourceProvider() instanceof CompressResourceProvider) {
-				Resource archive = mapping.getArchive();
-				CompressResource cr = ((CompressResource) res);
-				if (archive.equals(cr.getCompressResource())) {
-					return mapping.getPageSource(cr.getCompressPath());
-				}
-			}
-		}
-
-		// map resource to root mapping when same filesystem
-		Mapping rootMapping = this.mappings[this.mappings.length - 1];
-		Resource root;
-		if (rootMapping.hasPhysical() && res.getResourceProvider().getScheme().equals((root = rootMapping.getPhysical()).getResourceProvider().getScheme())) {
-
-			String realpath = "";
-			while (root != null && !ResourceUtil.isChildOf(res, root)) {
-				root = root.getParentResource();
-				realpath += "../";
-			}
-			String p2c = ResourceUtil.getPathToChild(res, root);
-			if (StringUtil.startsWith(p2c, '/') || StringUtil.startsWith(p2c, '\\')) p2c = p2c.substring(1);
-			realpath += p2c;
-
-			return rootMapping.getPageSource(realpath);
-
-		}
-		// MUST better impl than this
-		if (this instanceof ConfigWebImpl) {
-			Resource parent = res.getParentResource();
-			if (parent != null && !parent.equals(res)) {
-				Mapping m = ((ConfigWebImpl) this).getApplicationMapping("application", "/", parent.getAbsolutePath(), null, true, false);
-				return m.getPageSource(res.getName());
-			}
-		}
-
-		// Archive
-		// MUST check archive
-		return defaultValue;
+		return ConfigWebUtil.toPageSource(this, mappings, res, defaultValue);
 	}
 
 	@Override
@@ -1123,7 +850,8 @@ public abstract class ConfigImpl implements Config {
 	 * 
 	 * @param password
 	 */
-	protected void setPassword(Password password) {
+	@Override
+	public void setPassword(Password password) {
 		this.password = password;
 	}
 
@@ -1220,6 +948,7 @@ public abstract class ConfigImpl implements Config {
 		}
 	}
 
+	@Override
 	public TagLib getCoreTagLib(int dialect) {
 		TagLib[] tlds = dialect == CFMLEngine.DIALECT_CFML ? cfmlTlds : luceeTlds;
 
@@ -1242,7 +971,7 @@ public abstract class ConfigImpl implements Config {
 			isDefault = index == 0;
 			mappingName = "/mapping-tag" + (isDefault ? "" : index) + "";
 
-			m = new MappingImpl(this, mappingName, tagDirectory.getAbsolutePath(), null, ConfigImpl.INSPECT_NEVER, true, true, true, true, false, true, null, -1, -1);
+			m = new MappingImpl(this, mappingName, tagDirectory.getAbsolutePath(), null, ConfigPro.INSPECT_NEVER, true, true, true, true, false, true, null, -1, -1);
 			if (isDefault) defaultTagMapping = m;
 			tagMappings.put(mappingName, m);
 
@@ -1252,7 +981,7 @@ public abstract class ConfigImpl implements Config {
 			// now overwrite with new data
 			if (tagDirectory.isDirectory()) {
 				String[] files = tagDirectory
-						.list(new ExtensionResourceFilter(getMode() == ConfigImpl.MODE_STRICT ? Constants.getComponentExtensions() : Constants.getExtensions()));
+						.list(new ExtensionResourceFilter(getMode() == ConfigPro.MODE_STRICT ? Constants.getComponentExtensions() : Constants.getExtensions()));
 				for (int i = 0; i < files.length; i++) {
 					if (tlc != null) createTag(tlc, files[i], mappingName);
 					if (tll != null) createTag(tll, files[i], mappingName);
@@ -1317,19 +1046,6 @@ public abstract class ConfigImpl implements Config {
 		tl.setTag(tlt);
 	}
 
-	/*
-	 * protected void setFunctionDirectory(Resource functionDirectory) { this.functionMapping= new
-	 * MappingImpl(this,"/mapping-function/",functionDirectory.getAbsolutePath(),null,ConfigImpl.
-	 * INSPECT_NEVER,true,true,true,true,false,true,null,-1,-1); FunctionLib
-	 * flc=cfmlFlds[cfmlFlds.length-1]; FunctionLib fll=luceeFlds[luceeFlds.length-1];
-	 * 
-	 * // now overwrite with new data if(functionDirectory.isDirectory()) { String[]
-	 * files=functionDirectory.list(new ExtensionResourceFilter(Constants.getTemplateExtensions()));
-	 * 
-	 * for(String file:files) { if(flc!=null)createFunction(flc, file); if(fll!=null)createFunction(fll,
-	 * file); } combinedCFMLFLDs=null; combinedLuceeFLDs=null; } }
-	 */
-
 	protected void setFunctionDirectory(List<Resource> listFunctionDirectory) {
 		Iterator<Resource> it = listFunctionDirectory.iterator();
 		int index = -1;
@@ -1341,7 +1057,7 @@ public abstract class ConfigImpl implements Config {
 			index++;
 			isDefault = index == 0;
 			mappingName = "/mapping-function" + (isDefault ? "" : index) + "";
-			MappingImpl mapping = new MappingImpl(this, mappingName, functionDirectory.getAbsolutePath(), null, ConfigImpl.INSPECT_NEVER, true, true, true, true, false, true, null,
+			MappingImpl mapping = new MappingImpl(this, mappingName, functionDirectory.getAbsolutePath(), null, ConfigPro.INSPECT_NEVER, true, true, true, true, false, true, null,
 					-1, -1);
 			if (isDefault) defaultFunctionMapping = mapping;
 			this.functionMappings.put(mappingName, mapping);
@@ -1604,6 +1320,10 @@ public abstract class ConfigImpl implements Config {
 		this.sendPartial = sendPartial;
 	}
 
+	protected void setUserSet(boolean userSet) {
+		this.userSet = userSet;
+	}
+
 	/**
 	 * @param mailTimeout The mailTimeout to set.
 	 */
@@ -1669,15 +1389,14 @@ public abstract class ConfigImpl implements Config {
 	 * @param logger
 	 * @throws PageException
 	 */
-	protected void setScheduler(CFMLEngine engine, Resource scheduleDirectory) throws PageException {
-		if (scheduleDirectory == null) {
-			if (this.scheduler == null) this.scheduler = new SchedulerImpl(engine, "<?xml version=\"1.0\"?>\n<schedule></schedule>", this);
+	protected void setScheduler(CFMLEngine engine, Array scheduledTasks) throws PageException {
+		if (scheduledTasks == null) {
+			if (this.scheduler == null) this.scheduler = new SchedulerImpl(engine, this, new ArrayImpl());
 			return;
 		}
 
-		if (!isDirectory(scheduleDirectory)) throw new ExpressionException("schedule task directory " + scheduleDirectory + " doesn't exist or is not a directory");
 		try {
-			if (this.scheduler == null) this.scheduler = new SchedulerImpl(engine, this, scheduleDirectory, SystemUtil.getCharset().name());
+			if (this.scheduler == null) this.scheduler = new SchedulerImpl(engine, this, scheduledTasks);
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
@@ -1838,6 +1557,7 @@ public abstract class ConfigImpl implements Config {
 		return getBaseComponentPageSource(dialect, ThreadLocalPageContext.get());
 	}
 
+	@Override
 	public PageSource getBaseComponentPageSource(int dialect, PageContext pc) {
 		PageSource base = dialect == CFMLEngine.DIALECT_CFML ? baseComponentPageSourceCFML : baseComponentPageSourceLucee;
 
@@ -1877,6 +1597,7 @@ public abstract class ConfigImpl implements Config {
 		this.restList = restList;
 	}
 
+	@Override
 	public boolean getRestList() {
 		return restList;
 	}
@@ -2001,18 +1722,21 @@ public abstract class ConfigImpl implements Config {
 		return deployDirectory;
 	}
 
+	@Override
 	public Resource getLibraryDirectory() {
 		Resource dir = getConfigDir().getRealResource("lib");
 		if (!dir.exists()) dir.mkdir();
 		return dir;
 	}
 
+	@Override
 	public Resource getEventGatewayDirectory() {
 		Resource dir = getConfigDir().getRealResource("context/admin/gdriver");
 		if (!dir.exists()) dir.mkdir();
 		return dir;
 	}
 
+	@Override
 	public Resource getClassesDirectory() {
 		Resource dir = getConfigDir().getRealResource("classes");
 		if (!dir.exists()) dir.mkdir();
@@ -2076,6 +1800,7 @@ public abstract class ConfigImpl implements Config {
 		this.suppresswhitespace = suppresswhitespace;
 	}
 
+	@Override
 	public boolean isSuppressContent() {
 		return suppressContent;
 	}
@@ -2116,6 +1841,7 @@ public abstract class ConfigImpl implements Config {
 		return CharsetUtil.toCharset(webCharset);
 	}
 
+	@Override
 	public CharSet getWebCharSet() {
 		return webCharset;
 	}
@@ -2138,6 +1864,7 @@ public abstract class ConfigImpl implements Config {
 		return CharsetUtil.toCharset(resourceCharset);
 	}
 
+	@Override
 	public CharSet getResourceCharSet() {
 		return resourceCharset;
 	}
@@ -2256,6 +1983,7 @@ public abstract class ConfigImpl implements Config {
 		cacheHandlerClasses.put(id, chc);
 	}
 
+	@Override
 	public Iterator<Entry<String, Class<CacheHandler>>> getCacheHandlers() {
 		return cacheHandlerClasses.entrySet().iterator();
 	}
@@ -2284,10 +2012,12 @@ public abstract class ConfigImpl implements Config {
 	/**
 	 * @return return the resource providers
 	 */
+	@Override
 	public ResourceProviderFactory[] getResourceProviderFactories() {
 		return ((ResourcesImpl) resources).getResourceProviderFactories();
 	}
 
+	@Override
 	public boolean hasResourceProvider(String scheme) {
 		ResourceProviderFactory[] factories = ((ResourcesImpl) resources).getResourceProviderFactories();
 		for (int i = 0; i < factories.length; i++) {
@@ -2375,6 +2105,7 @@ public abstract class ConfigImpl implements Config {
 		return clientScopeDir;
 	}
 
+	@Override
 	public Resource getSessionScopeDir() {
 		if (sessionScopeDir == null) sessionScopeDir = getConfigDir().getRealResource("session-scope");
 		return sessionScopeDir;
@@ -2418,6 +2149,7 @@ public abstract class ConfigImpl implements Config {
 		return rpcClassLoader;
 	}
 
+	@Override
 	public ClassLoader getRPCClassLoader(boolean reload, ClassLoader[] parents) throws IOException {
 
 		if (rpcClassLoader != null && !reload) return rpcClassLoader;
@@ -2499,16 +2231,22 @@ public abstract class ConfigImpl implements Config {
 		return useComponentShadow;
 	}
 
+	@Override
 	public boolean useComponentPathCache() {
 		return useComponentPathCache;
 	}
 
+	@Override
 	public boolean useCTPathCache() {
 		return useCTPathCache;
 	}
 
 	public void flushComponentPathCache() {
 		if (componentPathCache != null) componentPathCache.clear();
+	}
+
+	public void flushApplicationPathCache() {
+		if (applicationPathCache != null) applicationPathCache.clear();
 	}
 
 	public void flushCTPathCache() {
@@ -2573,6 +2311,7 @@ public abstract class ConfigImpl implements Config {
 		this.out = out;
 	}
 
+	@Override
 	public DatasourceConnectionPool getDatasourceConnectionPool() {
 		return pool;
 	}
@@ -2595,6 +2334,7 @@ public abstract class ConfigImpl implements Config {
 		this.doLocalCustomTag = doLocalCustomTag;
 	}
 
+	@Override
 	public boolean doComponentDeepSearch() {
 		return doComponentTagDeepSearch;
 	}
@@ -2627,6 +2367,7 @@ public abstract class ConfigImpl implements Config {
 		return version;
 	}
 
+	@Override
 	public boolean closeConnection() {
 		return closeConnection;
 	}
@@ -2635,10 +2376,12 @@ public abstract class ConfigImpl implements Config {
 		this.closeConnection = closeConnection;
 	}
 
+	@Override
 	public boolean contentLength() {
 		return contentLength;
 	}
 
+	@Override
 	public boolean allowCompression() {
 		return allowCompression;
 	}
@@ -2789,36 +2532,28 @@ public abstract class ConfigImpl implements Config {
 		this.rhextensionProviders = extensionProviders;
 	}
 
+	@Override
 	public RHExtensionProvider[] getRHExtensionProviders() {
 		return rhextensionProviders;
 	}
 
 	@Override
 	public Extension[] getExtensions() {
-		return extensions;
+		throw new PageRuntimeException("no longer supported");
 	}
 
+	@Override
 	public RHExtension[] getRHExtensions() {
 		return rhextensions;
-	}
-
-	public abstract RHExtension[] getServerRHExtensions();
-
-	protected void setExtensions(Extension[] extensions) {
-		this.extensions = extensions;
 	}
 
 	protected void setExtensions(RHExtension[] extensions) {
 		this.rhextensions = extensions;
 	}
 
-	protected void setExtensionEnabled(boolean extensionEnabled) {
-		this.extensionEnabled = extensionEnabled;
-	}
-
 	@Override
 	public boolean isExtensionEnabled() {
-		return extensionEnabled;
+		throw new PageRuntimeException("no longer supported");
 	}
 
 	@Override
@@ -2865,6 +2600,7 @@ public abstract class ConfigImpl implements Config {
 		this.adminSync = null;
 	}
 
+	@Override
 	public AdminSync getAdminSync() throws ClassException {
 		if (adminSync == null) {
 			adminSync = (AdminSync) ClassUtil.loadInstance(getAdminSyncClass());
@@ -2886,6 +2622,7 @@ public abstract class ConfigImpl implements Config {
 		this.useTimeServer = useTimeServer;
 	}
 
+	@Override
 	public boolean getUseTimeServer() {
 		return useTimeServer;
 	}
@@ -2893,26 +2630,32 @@ public abstract class ConfigImpl implements Config {
 	/**
 	 * @return the tagMappings
 	 */
+	@Override
 	public Collection<Mapping> getTagMappings() {
 		return tagMappings.values();
 	}
 
+	@Override
 	public Mapping getTagMapping(String mappingName) {
 		return tagMappings.get(mappingName);
 	}
 
+	@Override
 	public Mapping getDefaultTagMapping() {
 		return defaultTagMapping;
 	}
 
+	@Override
 	public Mapping getFunctionMapping(String mappingName) {
 		return functionMappings.get(mappingName);
 	}
 
+	@Override
 	public Mapping getDefaultFunctionMapping() {
 		return defaultFunctionMapping;
 	}
 
+	@Override
 	public Collection<Mapping> getFunctionMappings() {
 		return functionMappings.values();
 	}
@@ -2936,8 +2679,8 @@ public abstract class ConfigImpl implements Config {
 			Resource physical = getConfigDir().getRealResource("jsr223");
 			if (!physical.exists()) physical.mkdirs();
 
-			this.scriptMapping = new MappingImpl(this, "/mapping-script/", physical.getAbsolutePath(), null, ConfigImpl.INSPECT_NEVER, true, true, true, true, false, true, null,
-					-1, -1);
+			this.scriptMapping = new MappingImpl(this, "/mapping-script/", physical.getAbsolutePath(), null, ConfigPro.INSPECT_NEVER, true, true, true, true, false, true, null, -1,
+					-1);
 		}
 		return scriptMapping;
 	}
@@ -2960,6 +2703,7 @@ public abstract class ConfigImpl implements Config {
 		return inspectTemplate;
 	}
 
+	@Override
 	public boolean getTypeChecking() {
 		return typeChecking;
 	}
@@ -2975,12 +2719,9 @@ public abstract class ConfigImpl implements Config {
 		this.inspectTemplate = inspectTemplate;
 	}
 
-	protected void setSerialNumber(String serial) {
-		this.serial = serial;
-	}
-
+	@Override
 	public String getSerialNumber() {
-		return serial;
+		return "";
 	}
 
 	protected void setCaches(Map<String, CacheConnection> caches) {
@@ -3090,6 +2831,7 @@ public abstract class ConfigImpl implements Config {
 		this.cacheMD5 = cacheMD5;
 	}
 
+	@Override
 	public boolean getExecutionLogEnabled() {
 		return executionLogEnabled;
 	}
@@ -3098,6 +2840,7 @@ public abstract class ConfigImpl implements Config {
 		this.executionLogEnabled = executionLogEnabled;
 	}
 
+	@Override
 	public ExecutionLogFactory getExecutionLogFactory() {
 		return executionLogFactory;
 	}
@@ -3106,6 +2849,7 @@ public abstract class ConfigImpl implements Config {
 		this.executionLogFactory = executionLogFactory;
 	}
 
+	@Override
 	public ORMEngine resetORMEngine(PageContext pc, boolean force) throws PageException {
 		// String name = pc.getApplicationContext().getName();
 		// ormengines.remove(name);
@@ -3153,6 +2897,7 @@ public abstract class ConfigImpl implements Config {
 		return engine;
 	}
 
+	@Override
 	public ClassDefinition<? extends ORMEngine> getORMEngineClassDefintion() {
 		return cdORMEngine;
 	}
@@ -3181,17 +2926,19 @@ public abstract class ConfigImpl implements Config {
 		this.ormConfig = ormConfig;
 	}
 
+	@Override
 	public ORMConfiguration getORMConfig() {
 		return ormConfig;
 	}
 
 	private Map<String, SoftReference<PageSource>> componentPathCache = null;// new ArrayList<Page>();
+	private Map<String, SoftReference<ConfigWebUtil.CacheElement>> applicationPathCache = null;// new ArrayList<Page>();
 	private Map<String, SoftReference<InitFile>> ctPatchCache = null;// new ArrayList<Page>();
 	private Map<String, SoftReference<UDF>> udfCache = new ConcurrentHashMap<String, SoftReference<UDF>>();
 
+	@Override
 	public CIPage getCachedPage(PageContext pc, String pathWithCFC) throws TemplateException {
 		if (componentPathCache == null) return null;
-
 		SoftReference<PageSource> tmp = componentPathCache.get(pathWithCFC.toLowerCase());
 		PageSource ps = tmp == null ? null : tmp.get();
 		if (ps == null) return null;
@@ -3204,12 +2951,49 @@ public abstract class ConfigImpl implements Config {
 		}
 	}
 
+	@Override
 	public void putCachedPageSource(String pathWithCFC, PageSource ps) {
 		if (componentPathCache == null) componentPathCache = new ConcurrentHashMap<String, SoftReference<PageSource>>();// MUSTMUST new
 		// ReferenceMap(ReferenceMap.SOFT,ReferenceMap.SOFT);
 		componentPathCache.put(pathWithCFC.toLowerCase(), new SoftReference<PageSource>(ps));
 	}
 
+	@Override
+	public PageSource getApplicationPageSource(PageContext pc, String path, String filename, int mode, RefBoolean isCFC) {
+		if (applicationPathCache == null) return null;
+		String id = (path + ":" + filename + ":" + mode).toLowerCase();
+
+		SoftReference<CacheElement> tmp = getApplicationPathCacheTimeout() <= 0 ? null : applicationPathCache.get(id);
+		if (tmp != null) {
+			CacheElement ce = tmp.get();
+			if ((ce.created + getApplicationPathCacheTimeout()) >= System.currentTimeMillis()) {
+				if (ce.pageSource.loadPage(pc, false, (Page) null) != null) {
+					if (isCFC != null) isCFC.setValue(ce.isCFC);
+					return ce.pageSource;
+				}
+			}
+		}
+		return null;
+	}
+
+	@Override
+	public void putApplicationPageSource(String path, PageSource ps, String filename, int mode, boolean isCFC) {
+		if (getApplicationPathCacheTimeout() <= 0) return;
+		if (applicationPathCache == null) applicationPathCache = new ConcurrentHashMap<String, SoftReference<CacheElement>>();// MUSTMUST new
+		String id = (path + ":" + filename + ":" + mode).toLowerCase();
+		applicationPathCache.put(id, new SoftReference<CacheElement>(new CacheElement(ps, isCFC)));
+	}
+
+	@Override
+	public long getApplicationPathCacheTimeout() {
+		return applicationPathCacheTimeout;
+	}
+
+	protected void setApplicationPathCacheTimeout(long applicationPathCacheTimeout) {
+		this.applicationPathCacheTimeout = applicationPathCacheTimeout;
+	}
+
+	@Override
 	public InitFile getCTInitFile(PageContext pc, String key) {
 		if (ctPatchCache == null) return null;
 
@@ -3222,11 +3006,13 @@ public abstract class ConfigImpl implements Config {
 		return null;
 	}
 
+	@Override
 	public void putCTInitFile(String key, InitFile initFile) {
 		if (ctPatchCache == null) ctPatchCache = new ConcurrentHashMap<String, SoftReference<InitFile>>();// MUSTMUST new ReferenceMap(ReferenceMap.SOFT,ReferenceMap.SOFT);
 		ctPatchCache.put(key.toLowerCase(), new SoftReference<InitFile>(initFile));
 	}
 
+	@Override
 	public Struct listCTCache() {
 		Struct sct = new StructImpl();
 		if (ctPatchCache == null) return sct;
@@ -3242,25 +3028,30 @@ public abstract class ConfigImpl implements Config {
 		return sct;
 	}
 
+	@Override
 	public void clearCTCache() {
 		if (ctPatchCache == null) return;
 		ctPatchCache.clear();
 	}
 
+	@Override
 	public void clearFunctionCache() {
 		udfCache.clear();
 	}
 
+	@Override
 	public UDF getFromFunctionCache(String key) {
 		SoftReference<UDF> tmp = udfCache.get(key);
 		if (tmp == null) return null;
 		return tmp.get();
 	}
 
+	@Override
 	public void putToFunctionCache(String key, UDF udf) {
 		udfCache.put(key, new SoftReference<UDF>(udf));
 	}
 
+	@Override
 	public Struct listComponentCache() {
 		Struct sct = new StructImpl();
 		if (componentPathCache == null) return sct;
@@ -3280,11 +3071,19 @@ public abstract class ConfigImpl implements Config {
 		return sct;
 	}
 
+	@Override
 	public void clearComponentCache() {
 		if (componentPathCache == null) return;
 		componentPathCache.clear();
 	}
 
+	@Override
+	public void clearApplicationCache() {
+		if (applicationPathCache == null) return;
+		applicationPathCache.clear();
+	}
+
+	@Override
 	public ImportDefintion getComponentDefaultImport() {
 		return componentDefaultImport;
 	}
@@ -3300,6 +3099,7 @@ public abstract class ConfigImpl implements Config {
 	/**
 	 * @return the componentLocalSearch
 	 */
+	@Override
 	public boolean getComponentLocalSearch() {
 		return componentLocalSearch;
 	}
@@ -3314,6 +3114,7 @@ public abstract class ConfigImpl implements Config {
 	/**
 	 * @return the componentLocalSearch
 	 */
+	@Override
 	public boolean getComponentRootSearch() {
 		return componentRootSearch;
 	}
@@ -3327,6 +3128,7 @@ public abstract class ConfigImpl implements Config {
 
 	private final Map<String, SoftReference<Compress>> compressResources = new ConcurrentHashMap<String, SoftReference<Compress>>();
 
+	@Override
 	public Compress getCompressInstance(Resource zipFile, int format, boolean caseSensitive) throws IOException {
 		SoftReference<Compress> tmp = compressResources.get(zipFile.getPath());
 		Compress compress = tmp == null ? null : tmp.get();
@@ -3347,10 +3149,12 @@ public abstract class ConfigImpl implements Config {
 		return false;
 	}
 
+	@Override
 	public String getClientStorage() {
 		return clientStorage;
 	}
 
+	@Override
 	public String getSessionStorage() {
 		return sessionStorage;
 	}
@@ -3397,11 +3201,13 @@ public abstract class ConfigImpl implements Config {
 		this.debugEntries = debugEntries;
 	}
 
+	@Override
 	public DebugEntry[] getDebugEntries() {
 		if (debugEntries == null) debugEntries = new DebugEntry[0];
 		return debugEntries;
 	}
 
+	@Override
 	public DebugEntry getDebugEntry(String ip, DebugEntry defaultValue) {
 		if (debugEntries.length == 0) return defaultValue;
 		InetAddress ia;
@@ -3425,6 +3231,7 @@ public abstract class ConfigImpl implements Config {
 		this.debugMaxRecordsLogged = debugMaxRecordsLogged;
 	}
 
+	@Override
 	public int getDebugMaxRecordsLogged() {
 		return debugMaxRecordsLogged;
 	}
@@ -3435,10 +3242,12 @@ public abstract class ConfigImpl implements Config {
 		this.dotNotationUpperCase = dotNotationUpperCase;
 	}
 
+	@Override
 	public boolean getDotNotationUpperCase() {
 		return dotNotationUpperCase;
 	}
 
+	@Override
 	public boolean preserveCase() {
 		return !dotNotationUpperCase;
 	}
@@ -3449,6 +3258,7 @@ public abstract class ConfigImpl implements Config {
 		this.defaultFunctionOutput = defaultFunctionOutput;
 	}
 
+	@Override
 	public boolean getDefaultFunctionOutput() {
 		return defaultFunctionOutput;
 	}
@@ -3459,6 +3269,7 @@ public abstract class ConfigImpl implements Config {
 		this.getSuppressWSBeforeArg = getSuppressWSBeforeArg;
 	}
 
+	@Override
 	public boolean getSuppressWSBeforeArg() {
 		return getSuppressWSBeforeArg;
 	}
@@ -3488,6 +3299,7 @@ public abstract class ConfigImpl implements Config {
 	}
 
 	// do not move to Config interface, do instead setCFMLWriterClass
+	@Override
 	public int getCFMLWriterType() {
 		return writerType;
 	}
@@ -3499,6 +3311,7 @@ public abstract class ConfigImpl implements Config {
 	private JDBCDriver[] drivers;
 	private Resource logDir;
 
+	@Override
 	public boolean getBufferOutput() {
 		return bufferOutput;
 	}
@@ -3511,6 +3324,7 @@ public abstract class ConfigImpl implements Config {
 		return debugOptions;
 	}
 
+	@Override
 	public boolean hasDebugOptions(int debugOption) {
 		return (debugOptions & debugOption) > 0;
 	}
@@ -3523,16 +3337,16 @@ public abstract class ConfigImpl implements Config {
 		this.checkForChangesInConfigFile = checkForChangesInConfigFile;
 	}
 
+	@Override
 	public boolean checkForChangesInConfigFile() {
 		return checkForChangesInConfigFile;
 	}
-
-	public abstract Cluster createClusterScope() throws PageException;
 
 	protected void setExternalizeStringGTE(int externalizeStringGTE) {
 		this.externalizeStringGTE = externalizeStringGTE;
 	}
 
+	@Override
 	public int getExternalizeStringGTE() {
 		return externalizeStringGTE;
 	}
@@ -3572,7 +3386,8 @@ public abstract class ConfigImpl implements Config {
 
 			}
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 
 		if (list == null) loggers.clear();
 		else {
@@ -3600,6 +3415,7 @@ public abstract class ConfigImpl implements Config {
 		return las;
 	}
 
+	@Override
 	public Map<String, LoggerAndSourceData> getLoggers() {
 		return loggers;
 	}
@@ -3614,6 +3430,7 @@ public abstract class ConfigImpl implements Config {
 		return getLog(name, true);
 	}
 
+	@Override
 	public Log getLog(String name, boolean createIfNecessary) {
 		LoggerAndSourceData lsd = _getLoggerAndSourceData(name, createIfNecessary);
 		if (lsd == null) return null;
@@ -3629,6 +3446,7 @@ public abstract class ConfigImpl implements Config {
 		return las;
 	}
 
+	@Override
 	public Map<Key, Map<Key, Object>> getTagDefaultAttributeValues() {
 		return tagDefaultAttributeValues == null ? null : Duplicator.duplicateMap(tagDefaultAttributeValues, new HashMap<Key, Map<Key, Object>>(), true);
 	}
@@ -3655,10 +3473,12 @@ public abstract class ConfigImpl implements Config {
 		return cachedWithins.get(type);
 	}
 
+	@Override
 	public Resource getPluginDirectory() {
 		return getConfigDir().getRealResource("context/admin/plugin");
 	}
 
+	@Override
 	public Resource getLogDirectory() {
 		if (logDir == null) {
 			logDir = getConfigDir().getRealResource("logs");
@@ -3671,30 +3491,30 @@ public abstract class ConfigImpl implements Config {
 		this.salt = salt;
 	}
 
+	@Override
 	public String getSalt() {
 		return this.salt;
 	}
 
+	@Override
 	public int getPasswordType() {
 		if (password == null) return Password.HASHED_SALTED;// when there is no password, we will have a HS password
 		return password.getType();
 	}
 
+	@Override
 	public String getPasswordSalt() {
 		if (password == null || password.getSalt() == null) return this.salt;
 		return password.getSalt();
 	}
 
+	@Override
 	public int getPasswordOrigin() {
 		if (password == null) return Password.ORIGIN_UNKNOW;
 		return password.getOrigin();
 	}
 
-	public static ConfigServer getConfigServer(Config config, Password password) throws PageException {
-		if (config instanceof ConfigServer) return (ConfigServer) config;
-		return ((ConfigWeb) config).getConfigServer(password);
-	}
-
+	@Override
 	public Collection<BundleDefinition> getExtensionBundleDefintions() {
 		if (this.extensionBundles == null) {
 			RHExtension[] rhes = getRHExtensions();
@@ -3708,8 +3528,10 @@ public abstract class ConfigImpl implements Config {
 				catch (Exception e) {
 					continue;
 				}
-				if (bis != null) for (BundleInfo bi: bis) {
-					extensionBundles.put(bi.getSymbolicName() + "|" + bi.getVersionAsString(), bi.toBundleDefinition());
+				if (bis != null) {
+					for (BundleInfo bi: bis) {
+						extensionBundles.put(bi.getSymbolicName() + "|" + bi.getVersionAsString(), bi.toBundleDefinition());
+					}
 				}
 			}
 			this.extensionBundles = extensionBundles;
@@ -3717,24 +3539,16 @@ public abstract class ConfigImpl implements Config {
 		return extensionBundles.values();
 	}
 
-	/**
-	 * get the extension bundle definition not only from this context, get it from all contexts,
-	 * including the server context
-	 * 
-	 * @return
-	 */
-	public abstract Collection<BundleDefinition> getAllExtensionBundleDefintions();
-
-	public abstract Collection<RHExtension> getAllRHExtensions();
-
 	protected void setJDBCDrivers(JDBCDriver[] drivers) {
 		this.drivers = drivers;
 	}
 
+	@Override
 	public JDBCDriver[] getJDBCDrivers() {
 		return drivers;
 	}
 
+	@Override
 	public JDBCDriver getJDBCDriverByClassName(String className, JDBCDriver defaultValue) {
 		for (JDBCDriver d: drivers) {
 			if (d.cd.getClassName().equals(className)) return d;
@@ -3742,6 +3556,7 @@ public abstract class ConfigImpl implements Config {
 		return defaultValue;
 	}
 
+	@Override
 	public JDBCDriver getJDBCDriverById(String id, JDBCDriver defaultValue) {
 		if (!StringUtil.isEmpty(id)) {
 			for (JDBCDriver d: drivers) {
@@ -3751,6 +3566,7 @@ public abstract class ConfigImpl implements Config {
 		return defaultValue;
 	}
 
+	@Override
 	public JDBCDriver getJDBCDriverByBundle(String bundleName, Version version, JDBCDriver defaultValue) {
 		for (JDBCDriver d: drivers) {
 			if (d.cd.getName().equals(bundleName) && (version == null || version.equals(d.cd.getVersion()))) return d;
@@ -3758,6 +3574,7 @@ public abstract class ConfigImpl implements Config {
 		return defaultValue;
 	}
 
+	@Override
 	public JDBCDriver getJDBCDriverByCD(ClassDefinition cd, JDBCDriver defaultValue) {
 		for (JDBCDriver d: drivers) {
 
@@ -3766,6 +3583,7 @@ public abstract class ConfigImpl implements Config {
 		return defaultValue;
 	}
 
+	@Override
 	public int getQueueMax() {
 		return queueMax;
 	}
@@ -3774,6 +3592,7 @@ public abstract class ConfigImpl implements Config {
 		this.queueMax = queueMax;
 	}
 
+	@Override
 	public long getQueueTimeout() {
 		return queueTimeout;
 	}
@@ -3782,6 +3601,7 @@ public abstract class ConfigImpl implements Config {
 		this.queueTimeout = queueTimeout;
 	}
 
+	@Override
 	public boolean getQueueEnable() {
 		return queueEnable;
 	}
@@ -3792,6 +3612,7 @@ public abstract class ConfigImpl implements Config {
 
 	private boolean cgiScopeReadonly = true;
 
+	@Override
 	public boolean getCGIScopeReadonly() {
 		return cgiScopeReadonly;
 	}
@@ -3828,6 +3649,7 @@ public abstract class ConfigImpl implements Config {
 
 	private boolean allowLuceeDialect = false;
 
+	@Override
 	public boolean allowLuceeDialect() {
 		return allowLuceeDialect;
 	}
@@ -3840,12 +3662,6 @@ public abstract class ConfigImpl implements Config {
 	 * public boolean installExtension(ExtensionDefintion ed) throws PageException { return
 	 * DeployHandler.deployExtension(this, ed, getLog("deploy"),true); }
 	 */
-	/**
-	 * 
-	 * @param validate if true Lucee checks if the file is a valid zip file
-	 * @return
-	 */
-	public abstract List<ExtensionDefintion> loadLocalExtensions(boolean validate);
 
 	private Map<String, ClassDefinition> cacheDefinitions;
 
@@ -3853,14 +3669,17 @@ public abstract class ConfigImpl implements Config {
 		this.cacheDefinitions = caches;
 	}
 
+	@Override
 	public Map<String, ClassDefinition> getCacheDefinitions() {
 		return this.cacheDefinitions;
 	}
 
+	@Override
 	public ClassDefinition getCacheDefinition(String className) {
 		return this.cacheDefinitions.get(className);
 	}
 
+	@Override
 	public Resource getAntiSamyPolicy() {
 		return getConfigDir().getRealResource("security/antisamy-basic.xml");
 	}
@@ -3900,6 +3719,7 @@ public abstract class ConfigImpl implements Config {
 
 	private LogEngine logEngine;
 
+	@Override
 	public LogEngine getLogEngine() {
 		if (logEngine == null) logEngine = LogEngine.getInstance(this);
 		return logEngine;
@@ -3909,12 +3729,26 @@ public abstract class ConfigImpl implements Config {
 		this.cachedAfterTimeRange = ts;
 	}
 
+	@Override
 	public TimeSpan getCachedAfterTimeRange() {
 		if (this.cachedAfterTimeRange != null && this.cachedAfterTimeRange.getMillis() <= 0) this.cachedAfterTimeRange = null;
 		return this.cachedAfterTimeRange;
 	}
 
-	public abstract void checkPassword() throws PageException;
-	// TODO Auto-generated m
+	@Override
+	public Map<String, Startup> getStartups() {
+		if (startups == null) startups = new HashMap<>();
+		return startups;
+	}
+
+	@Override
+	public Regex getRegex() {
+		if (regex == null) regex = RegexFactory.toRegex(RegexFactory.TYPE_PERL, null);
+		return regex;
+	}
+
+	protected void setRegex(Regex regex) {
+		this.regex = regex;
+	}
 
 }

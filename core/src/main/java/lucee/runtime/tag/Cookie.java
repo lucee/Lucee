@@ -18,14 +18,18 @@
  **/
 package lucee.runtime.tag;
 
+import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.TagImpl;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.listener.ApplicationContextSupport;
 import lucee.runtime.listener.CookieData;
+import lucee.runtime.listener.SessionCookieData;
+import lucee.runtime.listener.SessionCookieDataImpl;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.scope.CookieImpl;
 import lucee.runtime.type.util.KeyConstants;
 
 /**
@@ -65,6 +69,8 @@ public final class Cookie extends TagImpl {
 	private boolean preservecase;
 	private boolean encode = true;
 
+	private short samesite = SessionCookieData.SAMESITE_EMPTY;
+
 	@Override
 	public void release() {
 		super.release();
@@ -77,6 +83,7 @@ public final class Cookie extends TagImpl {
 		httponly = false;
 		preservecase = false;
 		encode = true;
+		samesite = SessionCookieData.SAMESITE_EMPTY;
 	}
 
 	/**
@@ -165,6 +172,10 @@ public final class Cookie extends TagImpl {
 		this.encode = encode;
 	}
 
+	public void setSamesite(String samesite) throws ApplicationException {
+		this.samesite = SessionCookieDataImpl.toSamesite(samesite);
+	}
+
 	@Override
 	public int doStartTag() throws PageException {
 		Key key = KeyImpl.getInstance(name);
@@ -179,7 +190,7 @@ public final class Cookie extends TagImpl {
 
 			}
 		}
-		pageContext.cookieScope().setCookie(key, value, expires, secure, path, domain, httponly, preservecase, encode);
+		((CookieImpl) pageContext.cookieScope()).setCookie(key, value, expires, secure, path, domain, httponly, preservecase, encode, samesite);
 		return SKIP_BODY;
 	}
 

@@ -28,7 +28,6 @@ import lucee.runtime.PageContext;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
@@ -127,12 +126,12 @@ public abstract class StorageScopeCache extends StorageScopeImpl {
 		Object val = cache.getValue(key, null);
 
 		if (val instanceof StorageValue) {
-			ScopeContext.info(log,
+			ScopeContext.debug(log,
 					"load existing data from  cache [" + cacheName + "] to create " + strType + " scope for " + pc.getApplicationContext().getName() + "/" + pc.getCFID());
 			return (StorageValue) val;
 		}
 		else {
-			ScopeContext.info(log, "create new " + strType + " scope for " + pc.getApplicationContext().getName() + "/" + pc.getCFID() + " in cache [" + cacheName + "]");
+			ScopeContext.debug(log, "create new " + strType + " scope for " + pc.getApplicationContext().getName() + "/" + pc.getCFID() + " in cache [" + cacheName + "]");
 		}
 		return null;
 	}
@@ -155,7 +154,7 @@ public abstract class StorageScopeCache extends StorageScopeImpl {
 			}
 		}
 		catch (Exception pe) {
-			Log log = ((ConfigImpl) ThreadLocalPageContext.getConfig(pc)).getLog("scope");
+			Log log = ThreadLocalPageContext.getConfig(pc).getLog("scope");
 			ScopeContext.error(log, pe);
 			// LogUtil.log(ThreadLocalPageContext.getConfig(pc), StorageScopeCache.class.getName(), pe);
 		}
@@ -171,7 +170,7 @@ public abstract class StorageScopeCache extends StorageScopeImpl {
 			}
 		}
 		catch (Exception pe) {
-			Log log = ((ConfigImpl) ThreadLocalPageContext.getConfig(pc)).getLog("scope");
+			Log log = ThreadLocalPageContext.getConfig(pc).getLog("scope");
 			ScopeContext.error(log, pe);
 			// LogUtil.log(ThreadLocalPageContext.getConfig(pc), StorageScopeCache.class.getName(), pe);
 		}

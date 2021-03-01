@@ -6,6 +6,17 @@
   <property name="srcDoc" location="${src}/doc"/>
   <property name="srcTB" location="${testbox}"/>
 
+  <macrodef name="echots">
+    <attribute name="message"/>
+    <sequential>
+      <local name="timestamp" />
+      <tstamp>
+        <format property="timestamp" pattern="yyyy-MM-dd HH:mm:ss" />
+      </tstamp>
+      <echo message="---------- ${timestamp} - @{message} ----------" />
+    </sequential>
+  </macrodef>
+
 <target name="all">
 
 	<!-- first we need to separate the lucee context from the admin  -->
@@ -17,15 +28,18 @@
     	</fileset>
 	</copy>
 
-
+	<echots message="Starting Lucee"/>
   <script language="CFML">
     <![CDATA[
+	systemOutput("---------- #DateTimeFormat(now(),'yyyy-mm-dd HH:nn:ss')# - Lucee Started ----------", true);
 // set a password for the admin
-    admin 
-		action="updatePassword"
-		type="web"
-		oldPassword=""
-		newPassword="webweb";
+	if(getConfigSettings().mode!="single") {
+	    admin 
+			action="updatePassword"
+			type="web"
+			oldPassword=""
+			newPassword="webweb";
+	}
     admin 
 		action="updatePassword"
 		type="server"
@@ -49,7 +63,7 @@
 		primary="physical"
 		trusted="no";
 	
-
+	systemOutput("Generating archive #temp#/lucee-context.lar", true);
 	// create an archive from the mapping
 	admin 
 		action="createArchive"
@@ -80,7 +94,7 @@
 		primary="physical"
 		trusted="no";
 	
-
+	systemOutput("Generating archive #temp#/lucee-admin.lar", true);
 	// create an archive from the mapping
 	admin 
 		action="createArchive"
@@ -98,7 +112,7 @@
 /************************************
                LUCEE/DOC
 ************************************/
-
+	
 	// create "/lucee/doc" mapping
 	admin 
 		action="updateMapping"
@@ -111,7 +125,7 @@
 		primary="physical"
 		trusted="no";
 	
-
+	systemOutput("Generating archive #temp#/lucee-doc.lar", true);
 	// create an archive from the mapping
 	admin 
 		action="createArchive"
@@ -141,7 +155,7 @@
 		primary="physical"
 		trusted="no";
 	
-
+	systemOutput("Generating archive #temp#/testbox.lar", true);
 	// create an archive from the mapping
 	admin 
 		action="createArchive"

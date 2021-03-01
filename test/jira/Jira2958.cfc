@@ -40,7 +40,7 @@
 
 	</cffunction>
 
-	<cffunction name="testXMLChildren">
+	<!---TODO <cffunction name="testXMLChildren">
 		<cfxml variable="local.MyDoc">
 		<MyDoc>this is a test<test>test 2</test>
 		<myTag>
@@ -56,7 +56,7 @@
 			_remove(MyDoc.Mydoc.xmlChildren[1]&"")
 		)>
 
-	</cffunction>
+	</cffunction>--->
 
 	<cfscript>
 	function _remove(str) {

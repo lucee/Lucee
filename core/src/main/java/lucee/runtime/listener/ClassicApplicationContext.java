@@ -36,7 +36,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.runtime.Mapping;
 import lucee.runtime.PageContext;
 import lucee.runtime.cache.CacheConnection;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.exp.ApplicationException;
@@ -49,6 +49,7 @@ import lucee.runtime.net.s3.Properties;
 import lucee.runtime.net.s3.PropertiesImpl;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.orm.ORMConfiguration;
+import lucee.runtime.regex.Regex;
 import lucee.runtime.rest.RestSettings;
 import lucee.runtime.tag.listener.TagListener;
 import lucee.runtime.type.Collection;
@@ -151,6 +152,10 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 
 	private Map<Key, Object> customAttrs;
 
+	private boolean allowImplicidQueryCall;
+
+	private Regex regex;
+
 	/**
 	 * constructor of the class
 	 * 
@@ -169,38 +174,39 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 		applicationTimeout = config.getApplicationTimeout();
 		loginStorage = Scope.SCOPE_COOKIE;
 		scriptProtect = config.getScriptProtect();
-		typeChecking = ((ConfigImpl) config).getTypeChecking();
-		allowCompression = ((ConfigImpl) config).allowCompression();
+		typeChecking = ((ConfigPro) config).getTypeChecking();
+		allowCompression = ((ConfigPro) config).allowCompression();
 		this.isDefault = isDefault;
 		this.defaultDataSource = config.getDefaultDataSource();
 		this.localMode = config.getLocalMode();
 		this.queryPSQ = config.getPSQL();
-		this.queryVarUsage = ((ConfigImpl) config).getQueryVarUsage();
-		this.queryCachedAfter = ((ConfigImpl) config).getCachedAfterTimeRange();
+		this.queryVarUsage = ((ConfigPro) config).getQueryVarUsage();
+		this.queryCachedAfter = ((ConfigPro) config).getCachedAfterTimeRange();
 
 		this.locale = config.getLocale();
 		this.timeZone = config.getTimeZone();
 		this.fullNullSupport = config.getFullNullSupport();
 		this.scopeCascading = config.getScopeCascadingType();
+		this.allowImplicidQueryCall = config.allowImplicidQueryCall();
 
-		this.webCharset = ((ConfigImpl) config).getWebCharSet();
-		this.resourceCharset = ((ConfigImpl) config).getResourceCharSet();
-		this.bufferOutput = ((ConfigImpl) config).getBufferOutput();
-		suppressRemoteComponentContent = ((ConfigImpl) config).isSuppressContent();
+		this.webCharset = ((ConfigPro) config).getWebCharSet();
+		this.resourceCharset = ((ConfigPro) config).getResourceCharSet();
+		this.bufferOutput = ((ConfigPro) config).getBufferOutput();
+		suppressRemoteComponentContent = ((ConfigPro) config).isSuppressContent();
 		this.sessionType = config.getSessionType();
 		this.sessionCluster = config.getSessionCluster();
 		this.clientCluster = config.getClientCluster();
-		this.clientstorage = ((ConfigImpl) config).getClientStorage();
-		this.sessionstorage = ((ConfigImpl) config).getSessionStorage();
+		this.clientstorage = ((ConfigPro) config).getClientStorage();
+		this.sessionstorage = ((ConfigPro) config).getSessionStorage();
 
 		this.source = source;
 		this.triggerComponentDataMember = config.getTriggerComponentDataMember();
 		this.restSettings = config.getRestSetting();
 		this.javaSettings = new JavaSettingsImpl();
 		this.wstype = WS_TYPE_AXIS1;
-		cgiScopeReadonly = ((ConfigImpl) config).getCGIScopeReadonly();
-		this.antiSamyPolicy = ((ConfigImpl) config).getAntiSamyPolicy();
-
+		cgiScopeReadonly = ((ConfigPro) config).getCGIScopeReadonly();
+		this.antiSamyPolicy = ((ConfigPro) config).getAntiSamyPolicy();
+		this.regex = ((ConfigPro) config).getRegex();
 	}
 
 	/**
@@ -252,6 +258,7 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 		dbl.timeZone = timeZone;
 		dbl.fullNullSupport = fullNullSupport;
 		dbl.scopeCascading = scopeCascading;
+		dbl.allowImplicidQueryCall = allowImplicidQueryCall;
 		dbl.webCharset = webCharset;
 		dbl.resourceCharset = resourceCharset;
 		dbl.sessionType = sessionType;
@@ -857,6 +864,16 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	}
 
 	@Override
+	public boolean getAllowImplicidQueryCall() {
+		return allowImplicidQueryCall;
+	}
+
+	@Override
+	public void setAllowImplicidQueryCall(boolean allowImplicidQueryCall) {
+		this.allowImplicidQueryCall = allowImplicidQueryCall;
+	}
+
+	@Override
 	public boolean getAllowCompression() {
 		return allowCompression;
 	}
@@ -1084,5 +1101,15 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 
 	public Map<Key, Object> getCustomAttributes() {
 		return customAttrs;
+	}
+
+	@Override
+	public Regex getRegex() {
+		return regex;
+	}
+
+	@Override
+	public void setRegex(Regex regex) {
+		this.regex = regex;
 	}
 }

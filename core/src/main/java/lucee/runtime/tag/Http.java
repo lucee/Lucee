@@ -48,6 +48,7 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpOptions;
+import org.apache.http.client.methods.HttpPatch;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
@@ -87,7 +88,6 @@ import lucee.commons.net.URLEncoder;
 import lucee.commons.net.http.Header;
 import lucee.commons.net.http.httpclient.CachingGZIPInputStream;
 import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
-import lucee.commons.net.http.httpclient.HTTPPatchFactory;
 import lucee.commons.net.http.httpclient.HTTPResponse4Impl;
 import lucee.commons.net.http.httpclient.ResourceBody;
 import lucee.runtime.PageContext;
@@ -188,14 +188,14 @@ public final class Http extends BodyTagImpl {
 	private static final Key STATUSCODE = KeyConstants._statuscode;
 	private static final Key CHARSET = KeyConstants._charset;
 
-	private static final Key ERROR_DETAIL = KeyImpl.intern("errordetail");
-	private static final Key STATUS_CODE = KeyImpl.intern("status_code");
-	private static final Key STATUS_TEXT = KeyImpl.intern("status_text");
-	private static final Key HTTP_VERSION = KeyImpl.intern("http_version");
+	private static final Key ERROR_DETAIL = KeyImpl.getInstance("errordetail");
+	private static final Key STATUS_CODE = KeyImpl.getInstance("status_code");
+	private static final Key STATUS_TEXT = KeyImpl.getInstance("status_text");
+	private static final Key HTTP_VERSION = KeyImpl.getInstance("http_version");
 
-	private static final Key EXPLANATION = KeyImpl.intern("explanation");
-	private static final Key RESPONSEHEADER = KeyImpl.intern("responseheader");
-	private static final Key SET_COOKIE = KeyImpl.intern("set-cookie");
+	private static final Key EXPLANATION = KeyImpl.getInstance("explanation");
+	private static final Key RESPONSEHEADER = KeyImpl.getInstance("responseheader");
+	private static final Key SET_COOKIE = KeyImpl.getInstance("set-cookie");
 
 	private static final short AUTH_TYPE_BASIC = 0;
 	private static final short AUTH_TYPE_NTLM = 1;
@@ -831,7 +831,7 @@ public final class Http extends BodyTagImpl {
 			}
 			else if (this.method == METHOD_PATCH) {
 				isBinary = true;
-				eeReq = HTTPPatchFactory.getHTTPPatch(url);
+				eeReq = new HttpPatch(url);
 				req = (HttpRequestBase) eeReq;
 			}
 			else {
@@ -1145,7 +1145,7 @@ public final class Http extends BodyTagImpl {
 			Struct responseHeader = new StructImpl();
 			Struct cookie;
 			Array setCookie = new ArrayImpl();
-			Query cookies = new QueryImpl(new String[] { "name", "value", "path", "domain", "expires", "secure", "httpOnly" }, 0, "cookies");
+			Query cookies = new QueryImpl(new String[] { "name", "value", "path", "domain", "expires", "secure", "httpOnly", "samesite" }, 0, "cookies");
 
 			for (int i = 0; i < headers.length; i++) {
 				lucee.commons.net.http.Header header = headers[i];
@@ -1158,8 +1158,8 @@ public final class Http extends BodyTagImpl {
 				}
 				else {
 					// print.ln(header.getName()+"-"+header.getValue());
-					Object value = responseHeader.get(KeyImpl.getInstance(header.getName()), null);
-					if (value == null) responseHeader.set(KeyImpl.getInstance(header.getName()), header.getValue());
+					Object value = responseHeader.get(KeyImpl.init(header.getName()), null);
+					if (value == null) responseHeader.set(KeyImpl.init(header.getName()), header.getValue());
 					else {
 						Array arr = null;
 						if (value instanceof Array) {
@@ -1167,7 +1167,7 @@ public final class Http extends BodyTagImpl {
 						}
 						else {
 							arr = new ArrayImpl();
-							responseHeader.set(KeyImpl.getInstance(header.getName()), arr);
+							responseHeader.set(KeyImpl.init(header.getName()), arr);
 							arr.appendEL(value);
 						}
 						arr.appendEL(header.getValue());

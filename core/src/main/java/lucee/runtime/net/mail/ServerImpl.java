@@ -79,7 +79,7 @@ public final class ServerImpl implements Server, Serializable {
 					port = Caster.toIntValue(tmp);
 				}
 				catch (ExpressionException e) {
-					throw new MailException("port definition is invalid [" + tmp + "]");
+					throw new MailException("Mail server port definition is invalid [" + tmp + "]");
 				}
 			}
 			host = host.substring(0, index).trim();

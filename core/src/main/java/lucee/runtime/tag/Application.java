@@ -52,7 +52,10 @@ import lucee.runtime.listener.SerializationSettings;
 import lucee.runtime.listener.SessionCookieData;
 import lucee.runtime.net.proxy.ProxyDataImpl;
 import lucee.runtime.op.Caster;
+import lucee.runtime.op.Decision;
 import lucee.runtime.orm.ORMUtil;
+import lucee.runtime.regex.Regex;
+import lucee.runtime.regex.RegexFactory;
 import lucee.runtime.tag.listener.TagListener;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection.Key;
@@ -111,6 +114,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 	private Locale locale;
 	private TimeZone timeZone;
 	private Boolean nullSupport;
+	private Boolean enableNULLSupport;
 	private Boolean queryPSQ;
 	private int queryVarUsage;
 	private TimeSpan queryCachedAfter;
@@ -119,8 +123,8 @@ public final class Application extends TagImpl implements DynamicAttributes {
 	private CharSet resourceCharset;
 	private short sessionType = -1;
 	private short wsType = -1;
-	private boolean sessionCluster;
-	private boolean clientCluster;
+	private Boolean sessionCluster;
+	private Boolean clientCluster;
 	private Boolean compression;
 
 	private Boolean ormenabled;
@@ -146,8 +150,9 @@ public final class Application extends TagImpl implements DynamicAttributes {
 	private Struct caches;
 	private UDF onmissingtemplate;
 	private short scopeCascading = -1;
+	private Boolean searchQueries = null;
 	private Boolean suppress;
-	private boolean cgiReadOnly = true;
+	private Boolean cgiReadOnly = null;
 	private SessionCookieData sessionCookie;
 	private AuthCookieData authCookie;
 	private Object functionpaths;
@@ -156,6 +161,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 	private Struct javaSettings;
 	private Struct xmlFeatures;
 	private Map<Key, Object> dynAttrs;
+	private Regex regex;
 
 	@Override
 	public void release() {
@@ -197,6 +203,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		locale = null;
 		timeZone = null;
 		nullSupport = null;
+		enableNULLSupport = null;
 		queryPSQ = null;
 		queryVarUsage = 0;
 		queryCachedAfter = null;
@@ -204,8 +211,8 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		resourceCharset = null;
 		sessionType = -1;
 		wsType = -1;
-		sessionCluster = false;
-		clientCluster = false;
+		sessionCluster = null;
+		clientCluster = null;
 		compression = null;
 
 		ormenabled = null;
@@ -216,7 +223,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		// appContext=null;
 
 		triggerDataMember = null;
-		cgiReadOnly = true;
+		cgiReadOnly = null;
 
 		cacheFunction = null;
 		cacheQuery = null;
@@ -230,12 +237,14 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		antiSamyPolicyResource = null;
 		onmissingtemplate = null;
 		scopeCascading = -1;
+		searchQueries = null;
 		authCookie = null;
 		sessionCookie = null;
 		blockedExtForFileUpload = null;
 		javaSettings = null;
 		xmlFeatures = null;
 		dynAttrs = null;
+		regex = null;
 	}
 
 	@Override
@@ -295,6 +304,10 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		this.blockedExtForFileUpload = blockedExt;
 	}
 
+	public void setSearchresults(boolean searchQueries) {
+		this.searchQueries = searchQueries;
+	}
+
 	/**
 	 * @param datasource the datasource to set
 	 * @throws PageException
@@ -351,6 +364,10 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		this.nullSupport = nullSupport;
 	}
 
+	public void setEnablenullsupport(boolean enableNULLSupport) {
+		this.enableNULLSupport = enableNULLSupport;
+	}
+
 	public void setVariableusage(String varUsage) throws ApplicationException {
 		this.queryVarUsage = AppListenerUtil.toVariableUsage(varUsage);
 	}
@@ -369,6 +386,10 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		short tmp = ConfigWebUtil.toScopeCascading(scopeCascading, NULL);
 		if (tmp == NULL) throw new ApplicationException("invalid value (" + scopeCascading + ") for attribute [ScopeCascading], valid values are [strict,small,standard]");
 		this.scopeCascading = tmp;
+	}
+
+	public void setSearchQueries(boolean searchQueries) throws ApplicationException {
+		this.searchQueries = searchQueries;
 	}
 
 	public void setSearchimplicitscopes(boolean searchImplicitScopes) throws ApplicationException {
@@ -651,6 +672,21 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		this.xmlFeatures = xmlFeatures;
 	}
 
+	public void setRegex(Object data) throws PageException {
+		if (Decision.isSimpleValue(data)) {
+			regex = RegexFactory.toRegex(RegexFactory.toType(Caster.toString(data)), null);
+		}
+		else {
+			Struct sct = Caster.toStruct(data);
+			Object o = sct.get(KeyConstants._type, null);
+			if (o == null) o = sct.get("engine", null);
+			if (o == null) o = sct.get("dialect", null);
+			if (o != null) {
+				regex = RegexFactory.toRegex(RegexFactory.toType(Caster.toString(o)), null);
+			}
+		}
+	}
+
 	@Override
 	public int doStartTag() throws PageException {
 
@@ -804,6 +840,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		if (locale != null) ac.setLocale(locale);
 		if (timeZone != null) ac.setTimeZone(timeZone);
 		if (nullSupport != null) ((ApplicationContextSupport) ac).setFullNullSupport(nullSupport);
+		if (enableNULLSupport != null) ((ApplicationContextSupport) ac).setFullNullSupport(enableNULLSupport);
 		if (queryPSQ != null) ((ApplicationContextSupport) ac).setQueryPSQ(queryPSQ);
 		if (queryVarUsage != 0) ((ApplicationContextSupport) ac).setQueryVarUsage(queryVarUsage);
 		if (queryCachedAfter != null) ((ApplicationContextSupport) ac).setQueryCachedAfter(queryCachedAfter);
@@ -826,15 +863,14 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		if (sessionCookie != null) acs.setSessionCookie(sessionCookie);
 		if (authCookie != null) acs.setAuthCookie(authCookie);
 		if (tag != null) ac.setTagAttributeDefaultValues(pageContext, tag);
-		ac.setClientCluster(clientCluster);
-		ac.setSessionCluster(sessionCluster);
-		ac.setCGIScopeReadonly(cgiReadOnly);
+		if (clientCluster != null) ac.setClientCluster(clientCluster.booleanValue());
+		if (sessionCluster != null) ac.setSessionCluster(sessionCluster.booleanValue());
+		if (cgiReadOnly != null) ac.setCGIScopeReadonly(cgiReadOnly.booleanValue());
 		if (s3 != null) ac.setS3(AppListenerUtil.toS3(s3));
 		if (ftp != null) ((ApplicationContextSupport) ac).setFTP(AppListenerUtil.toFTP(ftp));
 
 		// Scope cascading
 		if (scopeCascading != -1) ac.setScopeCascading(scopeCascading);
-
 		if (blockedExtForFileUpload != null) {
 			if (ac instanceof ClassicApplicationContext) {
 				((ClassicApplicationContext) ac).setBlockedextforfileupload(blockedExtForFileUpload);
@@ -845,8 +881,9 @@ public final class Application extends TagImpl implements DynamicAttributes {
 			ApplicationContextSupport appContextSup = ((ApplicationContextSupport) ac);
 
 			if (javaSettings != null) appContextSup.setJavaSettings(JavaSettingsImpl.newInstance(new JavaSettingsImpl(), javaSettings));
-
 			if (xmlFeatures != null) appContextSup.setXmlFeatures(xmlFeatures);
+			if (searchQueries != null) appContextSup.setAllowImplicidQueryCall(searchQueries.booleanValue());
+			if (regex != null) appContextSup.setRegex(regex);
 		}
 
 		// ORM
@@ -860,7 +897,6 @@ public final class Application extends TagImpl implements DynamicAttributes {
 			initORM = true;
 			if (ormsettings != null) AppListenerUtil.setORMConfiguration(pageContext, ac, ormsettings);
 		}
-
 		return initORM;
 	}
 
@@ -880,5 +916,4 @@ public final class Application extends TagImpl implements DynamicAttributes {
 	public int doEndTag() {
 		return EVAL_PAGE;
 	}
-
 }

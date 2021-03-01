@@ -36,9 +36,9 @@ import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.cache.tag.query.QueryCacheItem;
 import lucee.runtime.cache.tag.timespan.TimespanCacheHandler;
 import lucee.runtime.cache.tag.udf.UDFArgConverter;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.db.SQL;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
@@ -72,7 +72,7 @@ public class CacheHandlerCollectionImpl implements CacheHandlerCollection {
 	protected CacheHandlerCollectionImpl(ConfigWeb cw, int cacheType) {
 		this.cw = cw;
 
-		Iterator<Entry<String, Class<CacheHandler>>> it = ((ConfigWebImpl) cw).getCacheHandlers();
+		Iterator<Entry<String, Class<CacheHandler>>> it = ((ConfigWebPro) cw).getCacheHandlers();
 		Entry<String, Class<CacheHandler>> e;
 		CacheHandler ch;
 		while (it.hasNext()) {
@@ -289,23 +289,23 @@ public class CacheHandlerCollectionImpl implements CacheHandlerCollection {
 
 	public static String toStringCacheName(int type, String defaultValue) {
 		switch (type) {
-		case ConfigImpl.CACHE_TYPE_FUNCTION:
+		case ConfigPro.CACHE_TYPE_FUNCTION:
 			return "function";
-		case ConfigImpl.CACHE_TYPE_INCLUDE:
+		case ConfigPro.CACHE_TYPE_INCLUDE:
 			return "include";
-		case ConfigImpl.CACHE_TYPE_OBJECT:
+		case ConfigPro.CACHE_TYPE_OBJECT:
 			return "object";
-		case ConfigImpl.CACHE_TYPE_QUERY:
+		case ConfigPro.CACHE_TYPE_QUERY:
 			return "query";
-		case ConfigImpl.CACHE_TYPE_RESOURCE:
+		case ConfigPro.CACHE_TYPE_RESOURCE:
 			return "resource";
-		case ConfigImpl.CACHE_TYPE_TEMPLATE:
+		case ConfigPro.CACHE_TYPE_TEMPLATE:
 			return "template";
-		case ConfigImpl.CACHE_TYPE_HTTP:
+		case ConfigPro.CACHE_TYPE_HTTP:
 			return "http";
-		case ConfigImpl.CACHE_TYPE_FILE:
+		case ConfigPro.CACHE_TYPE_FILE:
 			return "file";
-		case ConfigImpl.CACHE_TYPE_WEBSERVICE:
+		case ConfigPro.CACHE_TYPE_WEBSERVICE:
 			return "webservice";
 		}
 		return defaultValue;

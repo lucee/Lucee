@@ -411,7 +411,7 @@ public final class HTTPUtil {
 			pc.getHttpServletRequest().setAttribute("lucee.forward.request_uri", realPath);
 
 			RequestDispatcher disp = context.getRequestDispatcher(realPath);
-			if (disp == null) throw new PageServletException(new ApplicationException("Page " + realPath + " not found"));
+			if (disp == null) throw new PageServletException(new ApplicationException("Page [" + realPath + "] not found"));
 
 			// populateRequestAttributes();
 			disp.forward(removeWrap(pc.getHttpServletRequest()), pc.getHttpServletResponse());
@@ -462,7 +462,7 @@ public final class HTTPUtil {
 
 	private static RequestDispatcher getRequestDispatcher(PageContext pc, String realPath) throws PageServletException {
 		RequestDispatcher disp = pc.getServletContext().getRequestDispatcher(realPath);
-		if (disp == null) throw new PageServletException(new ApplicationException("Page " + realPath + " not found"));
+		if (disp == null) throw new PageServletException(new ApplicationException("Page [" + realPath + "] not found"));
 		return disp;
 	}
 

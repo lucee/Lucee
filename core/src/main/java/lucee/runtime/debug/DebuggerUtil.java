@@ -22,8 +22,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigImpl;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.Struct;
@@ -63,7 +63,7 @@ public class DebuggerUtil {
 
 	public static boolean debugQueryUsage(PageContext pageContext, Query query) {
 		if (pageContext.getConfig().debug() && query instanceof Query) {
-			if (((ConfigWebImpl) pageContext.getConfig()).hasDebugOptions(ConfigImpl.DEBUG_QUERY_USAGE)) {
+			if (((ConfigWebPro) pageContext.getConfig()).hasDebugOptions(ConfigPro.DEBUG_QUERY_USAGE)) {
 				query.enableShowQueryUsage();
 				return true;
 			}

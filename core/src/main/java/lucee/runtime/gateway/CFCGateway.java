@@ -25,6 +25,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
+import lucee.runtime.type.util.KeyConstants;
 
 public class CFCGateway implements GatewaySupport {
 
@@ -50,11 +51,11 @@ public class CFCGateway implements GatewaySupport {
 
 		// requestURI=engine.toRequestURI(cfcPath);
 		Struct args = new StructImpl(Struct.TYPE_LINKED);
-		args.setEL("id", id);
-		args.setEL("config", Caster.toStruct(config, null, false));
+		args.setEL(KeyConstants._id, id);
+		args.setEL(KeyConstants._config, Caster.toStruct(config, null, false));
 		if (!StringUtil.isEmpty(cfcPath)) {
 			try {
-				args.setEL("listener", this.engine.getComponent(cfcPath, id));
+				args.setEL(KeyConstants._listener, this.engine.getComponent(cfcPath, id));
 			}
 			catch (PageException e) {
 				engine.log(this, GatewayEngine.LOGLEVEL_ERROR, e.getMessage());

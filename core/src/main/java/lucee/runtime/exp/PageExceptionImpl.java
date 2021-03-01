@@ -326,7 +326,7 @@ public abstract class PageExceptionImpl extends PageException {
 	public Struct getErrorBlock(PageContext pc, ErrorPage ep) {
 		Struct struct = new StructImpl();
 
-		struct.setEL("browser", pc.cgiScope().get("HTTP_USER_AGENT", ""));
+		struct.setEL(KeyConstants._browser, pc.cgiScope().get("HTTP_USER_AGENT", ""));
 		struct.setEL("datetime", new DateTimeImpl(pc));
 		struct.setEL("diagnostics", getMessage() + ' ' + getDetail() + "<br>The error occurred on line " + getLine(pc.getConfig()) + " in file " + getFile(pc.getConfig()) + ".");
 		struct.setEL("GeneratedContent", getGeneratedContent(pc));

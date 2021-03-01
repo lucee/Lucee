@@ -18,12 +18,15 @@
  **/
 package lucee.runtime.functions.query;
 
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
+import lucee.runtime.type.Array;
+import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.Struct;
@@ -34,7 +37,14 @@ import lucee.runtime.type.StructImpl;
  */
 public class QueryRowData extends BIF {
 
-	public static Struct call(PageContext pc, Query query, double rowNumber) throws PageException {
+	// is this needed?
+	private static final long serialVersionUID = -5234853923691806118L;
+
+	public static Object call(PageContext pc, Query query, double rowNumber) throws PageException {
+		return call(pc, query, rowNumber, "struct");
+	}
+
+	public static Object call(PageContext pc, Query query, double rowNumber, String returnFormat) throws PageException {
 
 		int row = Caster.toInteger(rowNumber);
 
@@ -43,6 +53,15 @@ public class QueryRowData extends BIF {
 
 		Collection.Key[] colNames = query.getColumnNames();
 
+		if (!StringUtil.isEmpty(returnFormat, true)) {
+			if ("array".equalsIgnoreCase(returnFormat.trim())) {
+				Array resultArray = new ArrayImpl();
+				for (int col = 0; col < colNames.length; col++) {
+					resultArray.append(query.getAt(colNames[col], row, NullSupportHelper.empty(pc)));
+				}
+				return resultArray;
+			}
+		}
 		Struct result = new StructImpl();
 
 		for (int col = 0; col < colNames.length; col++)
@@ -53,7 +72,7 @@ public class QueryRowData extends BIF {
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
-
-		return call(pc, Caster.toQuery(args[0]), Caster.toInteger(args[1]));
+		if (args.length == 2) return call(pc, Caster.toQuery(args[0]), Caster.toDouble(args[1]));
+		else return call(pc, Caster.toQuery(args[0]), Caster.toInteger(args[1]), Caster.toString(args[2]));
 	}
 }

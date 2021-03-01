@@ -24,7 +24,7 @@ import org.objectweb.asm.commons.GeneratorAdapter;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.op.Caster;
 import lucee.transformer.Factory;
 import lucee.transformer.Position;
@@ -83,7 +83,7 @@ public class LitStringImpl extends ExpressionBase implements LitString, ExprStri
 		// write to a file instead to the bytecode
 		// str(0,10);
 		// print.ds(str);
-		int externalizeStringGTE = ((ConfigImpl) bc.getConfig()).getExternalizeStringGTE();
+		int externalizeStringGTE = ((ConfigPro) bc.getConfig()).getExternalizeStringGTE();
 
 		if (externalizeStringGTE > -1 && str.length() > externalizeStringGTE && StringUtil.indexOfIgnoreCase(bc.getMethod().getName(), "call") != -1) {
 			try {

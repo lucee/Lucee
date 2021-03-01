@@ -27,6 +27,7 @@ public class QueryStruct extends StructImpl implements QueryResult {
 	private String cacheType;
 	private int updateCount;
 	private Key[] columnNames;
+	private boolean isSingleRecord = false;
 
 	public QueryStruct(String name, SQL sql, TemplateLine templateLine) {
 		super(Struct.TYPE_LINKED);
@@ -48,8 +49,8 @@ public class QueryStruct extends StructImpl implements QueryResult {
 		int top = dp.getMaxlevel();
 
 		comment.append("Execution Time: ").append(Caster.toString(FormatUtil.formatNSAsMSDouble(getExecutionTime()))).append(" ms \n");
-		comment.append("Record Count: ").append(Caster.toString(size()));
-		if (size() > top) comment.append(" (showing top ").append(Caster.toString(top)).append(")");
+		comment.append("Record Count: ").append(Caster.toString(getRecordcount()));
+		if (getRecordcount() > top) comment.append(" (showing top ").append(Caster.toString(top)).append(")");
 		comment.append("\n");
 		comment.append("Cached: ").append(isCached() ? "Yes\n" : "No\n");
 		if (isCached()) {
@@ -62,8 +63,8 @@ public class QueryStruct extends StructImpl implements QueryResult {
 
 		dt.setTitle("Struct (from Query)");
 		if (dp.getMetainfo()) dt.setComment(comment.toString());
-		return dt;
 
+		return dt;
 	}
 
 	@Override
@@ -124,6 +125,9 @@ public class QueryStruct extends StructImpl implements QueryResult {
 
 	@Override
 	public int getRecordcount() {
+		if (isSingleRecord) {
+			return (size() > 0) ? 1 : 0;
+		}
 		return size();
 	}
 
@@ -150,6 +154,10 @@ public class QueryStruct extends StructImpl implements QueryResult {
 	@Override
 	public void setColumnNames(Key[] columnNames) throws PageException {
 		this.columnNames = columnNames;
+	}
+
+	public void setSingleRecord(boolean value) {
+		this.isSingleRecord = value;
 	}
 
 	public static QueryStruct toQueryStruct(QueryImpl q, Key columnName) throws PageException {

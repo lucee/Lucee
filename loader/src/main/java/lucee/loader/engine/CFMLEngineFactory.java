@@ -114,11 +114,9 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 	private final LoggerImpl logger;
 
+	// do not remove/ranme, grapped by core directly
 	protected ServletConfig config;
 
-	/**
-	 * Constructor of the class
-	 */
 	protected CFMLEngineFactory(final ServletConfig config) {
 		File logFile = null;
 		this.config = config;
@@ -149,9 +147,9 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	 * returns instance of this factory (singelton = always the same instance) do auto update when
 	 * changes occur
 	 *
-	 * @param config
+	 * @param config servlet config
 	 * @return Singelton Instance of the Factory
-	 * @throws ServletException
+	 * @throws ServletException servlet exception
 	 */
 	public synchronized static CFMLEngine getInstance(final ServletConfig config) throws ServletException {
 
@@ -178,7 +176,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	 * changes occur
 	 *
 	 * @return Singelton Instance of the Factory
-	 * @throws RuntimeException
+	 * @throws RuntimeException runtime exception
 	 */
 	public static CFMLEngine getInstance() throws RuntimeException {
 		if (singelton != null) return singelton;
@@ -193,10 +191,10 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	/**
 	 * returns instance of this factory (singelton always the same instance)
 	 *
-	 * @param config
-	 * @param listener
+	 * @param config servlet config
+	 * @param listener listener
 	 * @return Singelton Instance of the Factory
-	 * @throws ServletException
+	 * @throws ServletException servlet exception
 	 */
 	public static CFMLEngine getInstance(final ServletConfig config, final EngineChangeListener listener) throws ServletException {
 		getInstance(config);
@@ -297,11 +295,11 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		final File[] patches = PATCH_ENABLED ? patcheDir.listFiles(new ExtensionFilter(new String[] { ".lco" })) : null;
 		File lucee = null;
 		if (patches != null) {
-			for (final File patche: patches) {
-				if (patche.getName().startsWith("tmp.lco")) patche.delete();
-				else if (patche.lastModified() < coreCreated) patche.delete();
-				else if (patche.length() < 1000000L) patche.delete();
-				else if (lucee == null || Util.isNewerThan(toVersion(patche.getName(), VERSION_ZERO), toVersion(lucee.getName(), VERSION_ZERO))) lucee = patche;
+			for (final File patch : patches) {
+				if (patch.getName().startsWith("tmp.lco")) patch.delete();
+				else if (patch.lastModified() < coreCreated) patch.delete();
+				else if (patch.length() < 1000000L) patch.delete();
+				else if (lucee == null || Util.isNewerThan(toVersion(patch.getName(), VERSION_ZERO), toVersion(lucee.getName(), VERSION_ZERO))) lucee = patch;
 			}
 		}
 		if (lucee != null && Util.isNewerThan(coreVersion, toVersion(lucee.getName(), VERSION_ZERO))) lucee = null;
@@ -311,8 +309,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		try {
 			// Load core version when no patch available
 			if (lucee == null) {
-				log(Logger.LOG_DEBUG, "Load Build in Core");
-				//
+				log(Logger.LOG_DEBUG, "Load built-in Core");
 
 				final String coreExt = "lco";
 				final String coreExtPack = "lco.pack.gz";
@@ -327,10 +324,18 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 					is = new TP().getClass().getResourceAsStream("/core/core." + coreExt);
 					if (is == null) {
 						is = new TP().getClass().getResourceAsStream("/core/core." + coreExtPack);
-						isPack200 = true;
+						if (is != null) {
+							isPack200 = true;
+						}
 					}
-					os = new BufferedOutputStream(new FileOutputStream(isPack200 ? rcPack200 : rc));
-					copy(is, os);
+
+					if (is != null) {
+						os = new BufferedOutputStream(new FileOutputStream(isPack200 ? rcPack200 : rc));
+						copy(is, os);
+					}
+					else {
+						System.err.println("/core/core." + coreExt + " not found");
+					}
 				}
 				finally {
 					closeEL(is);
@@ -344,19 +349,29 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 					rcPack200.delete();
 				}
 
-				lucee = new File(patcheDir, getVersion(rc) + "." + coreExt);
-				try {
-					is = new FileInputStream(rc);
-					os = new BufferedOutputStream(new FileOutputStream(lucee));
-					copy(is, os);
+				CFMLEngine engine = null;
+				if (rc.exists()) {
+					lucee = new File(patcheDir, getVersion(rc) + "." + coreExt);
+
+					try {
+						is = new FileInputStream(rc);
+						os = new BufferedOutputStream(new FileOutputStream(lucee));
+						copy(is, os);
+					}
+					finally {
+						closeEL(is);
+						closeEL(os);
+						rc.delete();
+					}
+
+					engine = _getCore(lucee);
 				}
-				finally {
-					closeEL(is);
-					closeEL(os);
-					rc.delete();
+				else {
+					// TODO: LDEV-2805 set engine's classloader to use local class files
+					// engine =
 				}
 
-				setEngine(_getCore(lucee));
+				setEngine(engine);
 			}
 			else {
 
@@ -548,43 +563,18 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 	}
 
-	/**
-	 * method to initialize an update of the CFML Engine. checks if there is a new Version and update it
-	 * when a new version is available
-	 *
-	 * @param password
-	 * @return has updated
-	 * @throws IOException
-	 * @throws ServletException
-	 */
 	public boolean update(final Password password, final Identification id) throws IOException, ServletException {
 		if (!singelton.can(CFMLEngine.CAN_UPDATE, password)) throw new IOException("Access denied to update CFMLEngine");
 		// new RunUpdate(this).start();
 		return _update(id);
 	}
 
-	/**
-	 * restart the cfml engine
-	 *
-	 * @param password
-	 * @return has updated
-	 * @throws IOException
-	 * @throws ServletException
-	 */
 	public boolean restart(final Password password) throws IOException, ServletException {
 		if (!singelton.can(CFMLEngine.CAN_RESTART_ALL, password)) throw new IOException("Access denied to restart CFMLEngine");
 
 		return _restart();
 	}
 
-	/**
-	 * restart the cfml engine
-	 *
-	 * @param password
-	 * @return has updated
-	 * @throws IOException
-	 * @throws ServletException
-	 */
 	public boolean restart(final String configId, final Password password) throws IOException, ServletException {
 		if (!singelton.can(CFMLEngine.CAN_RESTART_CONTEXT, password))// TODO restart single context
 			throw new IOException("Access denied to restart CFML Context (configId:" + configId + ")");
@@ -715,7 +705,8 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			code = conn.getResponseCode();
 		}
 		catch (UnknownHostException e) {
-			log(Logger.LOG_ERROR, "Failed to download the bundle  [" + symbolicName + ":" + symbolicVersion + "] from [" + updateUrl + "] and copy to [" + jar + "]"); // MUST remove
+			log(Logger.LOG_ERROR, "Failed to download the bundle  [" + symbolicName + ":" + symbolicVersion + "] from [" + updateUrl + "] and copy to [" + jar + "]"); // MUST
+																																										// remove
 			throw new IOException("Failed to download the bundle  [" + symbolicName + ":" + symbolicVersion + "] from [" + updateUrl + "] and copy to [" + jar + "]", e);
 		}
 		// the update provider is not providing a download for this
@@ -972,8 +963,8 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 
 			// no download available!
 			if (code != 200) {
-				final String msg = "Lucee failed to download the core for version [" + version.toString() + "] from " + updateUrl
-						+ ", please download it manually and copy to [" + patchDir + "]";
+				final String msg = "Lucee failed to download the core for version [" + version.toString() + "] from " + updateUrl + ", please download it manually and copy to ["
+						+ patchDir + "]";
 				log(Logger.LOG_ERROR, msg);
 				conn.disconnect();
 				throw new IOException(msg);
@@ -1102,10 +1093,10 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	 * method to initialize an update of the CFML Engine. checks if there is a new Version and update it
 	 * when a new version is available
 	 *
-	 * @param password
+	 * @param password password for lucee
 	 * @return has updated
-	 * @throws IOException
-	 * @throws ServletException
+	 * @throws IOException io exception
+	 * @throws ServletException servlet exception
 	 */
 	public boolean removeLatestUpdate(final Password password) throws IOException, ServletException {
 		if (!singelton.can(CFMLEngine.CAN_UPDATE, password)) throw new IOException("Access denied to update CFMLEngine");
@@ -1198,7 +1189,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	 * return directory to lucee resource root
 	 *
 	 * @return lucee root directory
-	 * @throws IOException
+	 * @throws IOException exception thrown
 	 */
 	public File getResourceRoot() throws IOException {
 		if (resourceRoot == null) {

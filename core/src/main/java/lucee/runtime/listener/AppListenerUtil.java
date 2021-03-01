@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.TimeZone;
 
 import org.osgi.framework.Version;
 
@@ -34,13 +35,14 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Mapping;
 import lucee.runtime.MappingImpl;
+import lucee.runtime.Page;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.db.ApplicationDataSource;
 import lucee.runtime.db.ClassDefinition;
@@ -81,47 +83,63 @@ import lucee.transformer.library.ClassDefinitionImpl;
 
 public final class AppListenerUtil {
 
-	public static final Collection.Key ACCESS_KEY_ID = KeyImpl.intern("accessKeyId");
-	public static final Collection.Key AWS_SECRET_KEY = KeyImpl.intern("awsSecretKey");
-	public static final Collection.Key SECRET_KEY = KeyImpl.intern("secretKey");
-	public static final Collection.Key DEFAULT_LOCATION = KeyImpl.intern("defaultLocation");
-	public static final Collection.Key ACL = KeyImpl.intern("acl");
-	public static final Collection.Key CONNECTION_STRING = KeyImpl.intern("connectionString");
+	public static final Collection.Key ACCESS_KEY_ID = KeyImpl.getInstance("accessKeyId");
+	public static final Collection.Key AWS_SECRET_KEY = KeyImpl.getInstance("awsSecretKey");
+	public static final Collection.Key SECRET_KEY = KeyImpl.getInstance("secretKey");
+	public static final Collection.Key DEFAULT_LOCATION = KeyImpl.getInstance("defaultLocation");
+	public static final Collection.Key ACL = KeyConstants._acl;
+	public static final Collection.Key CONNECTION_STRING = KeyConstants._connectionString;
 
-	public static final Collection.Key BLOB = KeyImpl.intern("blob");
-	public static final Collection.Key CLOB = KeyImpl.intern("clob");
-	public static final Collection.Key CONNECTION_LIMIT = KeyImpl.intern("connectionLimit");
-	public static final Collection.Key CONNECTION_TIMEOUT = KeyImpl.intern("connectionTimeout");
-	public static final Collection.Key META_CACHE_TIMEOUT = KeyImpl.intern("metaCacheTimeout");
-	public static final Collection.Key ALLOW = KeyImpl.intern("allow");
-	public static final Collection.Key DISABLE_UPDATE = KeyImpl.intern("disableUpdate");
+	public static final Collection.Key BLOB = KeyImpl.getInstance("blob");
+	public static final Collection.Key CLOB = KeyImpl.getInstance("clob");
+	public static final Collection.Key CONNECTION_LIMIT = KeyImpl.getInstance("connectionLimit");
+	public static final Collection.Key CONNECTION_TIMEOUT = KeyImpl.getInstance("connectionTimeout");
+	public static final Collection.Key IDLE_TIMEOUT = KeyImpl.getInstance("idleTimeout");
+	public static final Collection.Key LIVE_TIMEOUT = KeyImpl.getInstance("liveTimeout");
+	public static final Collection.Key META_CACHE_TIMEOUT = KeyImpl.getInstance("metaCacheTimeout");
+	public static final Collection.Key ALLOW = KeyImpl.getInstance("allow");
+	public static final Collection.Key DISABLE_UPDATE = KeyImpl.getInstance("disableUpdate");
 
 	private static final TimeSpan FIVE_MINUTES = new TimeSpanImpl(0, 0, 5, 0);
 	private static final TimeSpan ONE_MINUTE = new TimeSpanImpl(0, 0, 1, 0);
 
-	public static PageSource getApplicationPageSource(PageContext pc, PageSource requestedPage, String filename, int mode) {
-		if (mode == ApplicationListener.MODE_CURRENT) return getApplicationPageSourceCurrent(requestedPage, filename);
-		if (mode == ApplicationListener.MODE_ROOT) return getApplicationPageSourceRoot(pc, filename);
-		return getApplicationPageSourceCurr2Root(pc, requestedPage, filename);
-	}
-
-	public static PageSource getApplicationPageSourceCurrent(PageSource requestedPage, String filename) {
-		PageSource res = requestedPage.getRealPage(filename);
-		if (res.exists()) return res;
-		return null;
-	}
-
-	public static PageSource getApplicationPageSourceRoot(PageContext pc, String filename) {
-		PageSource ps = ((PageContextImpl) pc).getPageSourceExisting("/".concat(filename));
-		if (ps != null) return ps;
-		return null;
-	}
-
-	public static PageSource getApplicationPageSourceCurr2Root(PageContext pc, PageSource requestedPage, String filename) {
-		PageSource ps = requestedPage.getRealPage(filename);
-		if (ps.exists()) {
-			return ps;
+	public static Page getApplicationPage(PageContext pc, PageSource requestedPage, String filename, int mode, int type) throws PageException {
+		PageSource ps = ((ConfigPro) pc.getConfig()).getApplicationPageSource(pc, requestedPage.getPhyscalFile().getParent(), filename, mode, null);
+		if (ps != null) {
+			Page p = ps.loadPage(pc, false, null);
+			if (p != null) return p;
 		}
+
+		Page p;
+		if (mode == ApplicationListener.MODE_CURRENT) p = getApplicationPageCurrent(pc, requestedPage, filename);
+		else if (mode == ApplicationListener.MODE_ROOT) p = getApplicationPageRoot(pc, filename);
+		else p = getApplicationPageCurr2Root(pc, requestedPage, filename);
+
+		if (p != null) ((ConfigPro) pc.getConfig()).putApplicationPageSource(requestedPage.getPhyscalFile().getParent(), p.getPageSource(), filename, mode, isCFC(type));
+		return p;
+	}
+
+	private static boolean isCFC(int type) {
+		if (type == ApplicationListener.TYPE_CLASSIC) return false;
+		return true;
+	}
+
+	public static Page getApplicationPageCurrent(PageContext pc, PageSource requestedPage, String filename) throws PageException {
+		PageSource ps = requestedPage.getRealPage(filename);
+
+		return ps.loadPage(pc, false, null);
+	}
+
+	public static Page getApplicationPageRoot(PageContext pc, String filename) throws PageException {
+		PageSource ps = ((PageContextImpl) pc).getPageSource("/".concat(filename));
+		return ps.loadPage(pc, false, null);
+	}
+
+	public static Page getApplicationPageCurr2Root(PageContext pc, PageSource requestedPage, String filename) throws PageException {
+		PageSource ps = requestedPage.getRealPage(filename);
+		Page p = ps.loadPage(pc, false, null);
+		if (p != null) return p;
+
 		Array arr = lucee.runtime.type.util.ListUtil.listToArrayRemoveEmpty(requestedPage.getRealpathWithVirtual(), "/");
 		// Config config = pc.getConfig();
 		for (int i = arr.size() - 1; i > 0; i--) {
@@ -131,10 +149,9 @@ public final class AppListenerUtil {
 				sb.append('/');
 			}
 			sb.append(filename);
-			ps = ((PageContextImpl) pc).getPageSourceExisting(sb.toString());
-			if (ps != null) {
-				return ps;
-			}
+			ps = ((PageContextImpl) pc).getPageSource(sb.toString());
+			p = ps.loadPage(pc, false, null);
+			if (p != null) return p;
 		}
 		return null;
 	}
@@ -197,6 +214,10 @@ public final class AppListenerUtil {
 
 		}
 
+		TimeZone timezone = null;
+		Object obj = data.get(KeyConstants._timezone, null);
+		if (obj != null) timezone = Caster.toTimeZone(obj, null);
+
 		// first check for {class:... , connectionString:...}
 		Object oConnStr = data.get(CONNECTION_STRING, null);
 		if (oConnStr != null) {
@@ -208,13 +229,15 @@ public final class AppListenerUtil {
 					Caster.toString(data.get(KeyConstants._bundleVersion, null), null), ThreadLocalPageContext.getConfig().getIdentification());
 
 			try {
+				int idle = Caster.toIntValue(data.get(IDLE_TIMEOUT, null), -1);
+				if (idle == -1) idle = Caster.toIntValue(data.get(CONNECTION_TIMEOUT, null), 1);
 				return ApplicationDataSource.getInstance(config, name, cd, Caster.toString(oConnStr), user, pass, listener, Caster.toBooleanValue(data.get(BLOB, null), false),
-						Caster.toBooleanValue(data.get(CLOB, null), false), Caster.toIntValue(data.get(CONNECTION_LIMIT, null), -1),
-						Caster.toIntValue(data.get(CONNECTION_TIMEOUT, null), 1), Caster.toLongValue(data.get(META_CACHE_TIMEOUT, null), 60000L),
-						Caster.toTimeZone(data.get(KeyConstants._timezone, null), null), Caster.toIntValue(data.get(ALLOW, null), DataSource.ALLOW_ALL),
-						Caster.toBooleanValue(data.get(KeyConstants._storage, null), false), Caster.toBooleanValue(data.get(KeyConstants._readonly, null), false),
-						Caster.toBooleanValue(data.get(KeyConstants._validate, null), false), Caster.toBooleanValue(data.get("requestExclusive", null), false),
-						Caster.toBooleanValue(data.get("alwaysResetConnections", null), false), readliteralTimestampWithTSOffset(data), log);
+						Caster.toBooleanValue(data.get(CLOB, null), false), Caster.toIntValue(data.get(CONNECTION_LIMIT, null), -1), idle,
+						Caster.toIntValue(data.get(LIVE_TIMEOUT, null), 60), Caster.toLongValue(data.get(META_CACHE_TIMEOUT, null), 60000L), timezone,
+						Caster.toIntValue(data.get(ALLOW, null), DataSource.ALLOW_ALL), Caster.toBooleanValue(data.get(KeyConstants._storage, null), false),
+						Caster.toBooleanValue(data.get(KeyConstants._readonly, null), false), Caster.toBooleanValue(data.get(KeyConstants._validate, null), false),
+						Caster.toBooleanValue(data.get("requestExclusive", null), false), Caster.toBooleanValue(data.get("alwaysResetConnections", null), false),
+						readliteralTimestampWithTSOffset(data), log);
 			}
 			catch (Exception cnfe) {
 				throw Caster.toPageException(cnfe);
@@ -225,14 +248,17 @@ public final class AppListenerUtil {
 		DataSourceDefintion dbt = DBUtil.getDataSourceDefintionForType(config, type, null);
 		if (dbt == null) throw new ApplicationException("no datasource type [" + type + "] found");
 		try {
+
+			int idle = Caster.toIntValue(data.get(IDLE_TIMEOUT, null), -1);
+			if (idle == -1) idle = Caster.toIntValue(data.get(CONNECTION_TIMEOUT, null), 1);
+
 			return new DataSourceImpl(config, name, dbt.classDefinition, Caster.toString(data.get(KeyConstants._host)), dbt.connectionString,
 					Caster.toString(data.get(KeyConstants._database)), Caster.toIntValue(data.get(KeyConstants._port, null), -1), user, pass, listener,
-					Caster.toIntValue(data.get(CONNECTION_LIMIT, null), -1), Caster.toIntValue(data.get(CONNECTION_TIMEOUT, null), 1),
+					Caster.toIntValue(data.get(CONNECTION_LIMIT, null), -1), idle, Caster.toIntValue(data.get(LIVE_TIMEOUT, null), 1),
 					Caster.toLongValue(data.get(META_CACHE_TIMEOUT, null), 60000L), Caster.toBooleanValue(data.get(BLOB, null), false),
 					Caster.toBooleanValue(data.get(CLOB, null), false), DataSource.ALLOW_ALL, Caster.toStruct(data.get(KeyConstants._custom, null), null, false),
-					Caster.toBooleanValue(data.get(KeyConstants._readonly, null), false), true, Caster.toBooleanValue(data.get(KeyConstants._storage, null), false),
-					Caster.toTimeZone(data.get(KeyConstants._timezone, null), null), "", ParamSyntax.toParamSyntax(data, ParamSyntax.DEFAULT),
-					readliteralTimestampWithTSOffset(data), Caster.toBooleanValue(data.get("alwaysSetTimeout", null), false),
+					Caster.toBooleanValue(data.get(KeyConstants._readonly, null), false), true, Caster.toBooleanValue(data.get(KeyConstants._storage, null), false), timezone, "",
+					ParamSyntax.toParamSyntax(data, ParamSyntax.DEFAULT), readliteralTimestampWithTSOffset(data), Caster.toBooleanValue(data.get("alwaysSetTimeout", null), false),
 					Caster.toBooleanValue(data.get("requestExclusive", null), false), Caster.toBooleanValue(data.get("alwaysResetConnections", null), false), log);
 		}
 		catch (Exception cnfe) {
@@ -274,7 +300,7 @@ public final class AppListenerUtil {
 		Iterator<Entry<Key, Object>> it = sct.entryIterator();
 		Entry<Key, Object> e;
 		java.util.List<Mapping> mappings = new ArrayList<Mapping>();
-		ConfigWebImpl config = (ConfigWebImpl) cw;
+		ConfigWebPro config = (ConfigWebPro) cw;
 		String virtual;
 		while (it.hasNext()) {
 			e = it.next();
@@ -386,7 +412,7 @@ public final class AppListenerUtil {
 	}
 
 	private static Mapping[] toMappings(ConfigWeb cw, String type, Object o, boolean useStructNames, Resource source) throws PageException {
-		ConfigWebImpl config = (ConfigWebImpl) cw;
+		ConfigWebPro config = (ConfigWebPro) cw;
 		Array array;
 		if (o instanceof String) {
 			array = ListUtil.listToArrayRemoveEmpty(Caster.toString(o), ',');
@@ -509,7 +535,7 @@ public final class AppListenerUtil {
 
 	public static void setORMConfiguration(PageContext pc, ApplicationContext ac, Struct sct) throws PageException {
 		if (sct == null) sct = new StructImpl();
-		ConfigImpl config = (ConfigImpl) pc.getConfig();
+		ConfigPro config = (ConfigPro) pc.getConfig();
 		PageSource curr = pc.getCurrentTemplatePageSource();
 		Resource res = curr == null ? null : curr.getResourceTranslated(pc).getParentResource();
 		ac.setORMConfiguration(ORMConfigurationImpl.load(config, ac, sct, res, config.getORMConfig()));
@@ -705,7 +731,11 @@ public final class AppListenerUtil {
 				Caster.toBooleanValue(data.get(KeyConstants._secure, null), SessionCookieDataImpl.DEFAULT.isSecure()),
 				toTimespan(data.get(KeyConstants._timeout, null), SessionCookieDataImpl.DEFAULT.getTimeout()),
 				Caster.toString(data.get(KeyConstants._domain, null), SessionCookieDataImpl.DEFAULT.getDomain()),
-				Caster.toBooleanValue(data.get(DISABLE_UPDATE, null), SessionCookieDataImpl.DEFAULT.isDisableUpdate()));
+				Caster.toBooleanValue(data.get(DISABLE_UPDATE, null), SessionCookieDataImpl.DEFAULT.isDisableUpdate()),
+				SessionCookieDataImpl.toSamesite(Caster.toString(data.get(KeyConstants._SameSite, null), null), SessionCookieDataImpl.DEFAULT.getSamesite()),
+				Caster.toString(data.get(KeyConstants._path, null), SessionCookieDataImpl.DEFAULT.getPath())
+
+		);
 	}
 
 	public static AuthCookieData toAuthCookie(ConfigWeb config, Struct data) {
@@ -846,7 +876,7 @@ public final class AppListenerUtil {
 
 			// abs path
 			if (path.startsWith("/")) {
-				ConfigWebImpl cwi = (ConfigWebImpl) config;
+				ConfigWebPro cwi = (ConfigWebPro) config;
 				PageSource ps = cwi.getPageSourceExisting(pc, ac == null ? null : ac.getMappings(), path, false, false, true, false);
 				if (ps != null) {
 					res = ps.getResource();
@@ -889,23 +919,23 @@ public final class AppListenerUtil {
 	public static int toVariableUsage(String str, int defaultValue) {
 		if (str == null) return defaultValue;
 		str = str.trim().toLowerCase();
-		if ("ignore".equals(str)) return ConfigImpl.QUERY_VAR_USAGE_IGNORE;
-		if ("warn".equals(str)) return ConfigImpl.QUERY_VAR_USAGE_WARN;
-		if ("warning".equals(str)) return ConfigImpl.QUERY_VAR_USAGE_WARN;
-		if ("error".equals(str)) return ConfigImpl.QUERY_VAR_USAGE_ERROR;
+		if ("ignore".equals(str)) return ConfigPro.QUERY_VAR_USAGE_IGNORE;
+		if ("warn".equals(str)) return ConfigPro.QUERY_VAR_USAGE_WARN;
+		if ("warning".equals(str)) return ConfigPro.QUERY_VAR_USAGE_WARN;
+		if ("error".equals(str)) return ConfigPro.QUERY_VAR_USAGE_ERROR;
 
 		Boolean b = Caster.toBoolean(str, null);
 		if (b != null) {
-			return b.booleanValue() ? ConfigImpl.QUERY_VAR_USAGE_ERROR : ConfigImpl.QUERY_VAR_USAGE_IGNORE;
+			return b.booleanValue() ? ConfigPro.QUERY_VAR_USAGE_ERROR : ConfigPro.QUERY_VAR_USAGE_IGNORE;
 		}
 
 		return defaultValue;
 	}
 
 	public static String toVariableUsage(int i, String defaultValue) {
-		if (ConfigImpl.QUERY_VAR_USAGE_IGNORE == i) return "ignore";
-		if (ConfigImpl.QUERY_VAR_USAGE_WARN == i) return "warn";
-		if (ConfigImpl.QUERY_VAR_USAGE_ERROR == i) return "error";
+		if (ConfigPro.QUERY_VAR_USAGE_IGNORE == i) return "ignore";
+		if (ConfigPro.QUERY_VAR_USAGE_WARN == i) return "warn";
+		if (ConfigPro.QUERY_VAR_USAGE_ERROR == i) return "error";
 
 		return defaultValue;
 	}

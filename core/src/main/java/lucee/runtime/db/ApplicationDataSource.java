@@ -34,20 +34,20 @@ public class ApplicationDataSource extends DataSourceSupport {
 	private String connStr;
 
 	private ApplicationDataSource(Config config, String name, ClassDefinition cd, String connStr, String username, String password, TagListener listener, boolean blob,
-			boolean clob, int connectionLimit, int connectionTimeout, long metaCacheTimeout, TimeZone timezone, int allow, boolean storage, boolean readOnly, boolean validate,
-			boolean requestExclusive, boolean alwaysResetConnections, boolean literalTimestampWithTSOffset, Log log) {
-		super(config, name, cd, username, ConfigWebUtil.decrypt(password), listener, blob, clob, connectionLimit, connectionTimeout, metaCacheTimeout, timezone,
+			boolean clob, int connectionLimit, int idleTimeout, int liveTimeout, long metaCacheTimeout, TimeZone timezone, int allow, boolean storage, boolean readOnly,
+			boolean validate, boolean requestExclusive, boolean alwaysResetConnections, boolean literalTimestampWithTSOffset, Log log) {
+		super(config, name, cd, username, ConfigWebUtil.decrypt(password), listener, blob, clob, connectionLimit, idleTimeout, liveTimeout, metaCacheTimeout, timezone,
 				allow < 0 ? ALLOW_ALL : allow, storage, readOnly, validate, requestExclusive, alwaysResetConnections, literalTimestampWithTSOffset, log);
 
 		this.connStr = connStr;
 	}
 
 	public static DataSource getInstance(Config config, String name, ClassDefinition cd, String connStr, String username, String password, TagListener listener, boolean blob,
-			boolean clob, int connectionLimit, int connectionTimeout, long metaCacheTimeout, TimeZone timezone, int allow, boolean storage, boolean readOnly, boolean validate,
-			boolean requestExclusive, boolean alwaysResetConnections, boolean literalTimestampWithTSOffset, Log log) {
+			boolean clob, int connectionLimit, int idleTimeout, int liveTimeout, long metaCacheTimeout, TimeZone timezone, int allow, boolean storage, boolean readOnly,
+			boolean validate, boolean requestExclusive, boolean alwaysResetConnections, boolean literalTimestampWithTSOffset, Log log) {
 
-		return new ApplicationDataSource(config, name, cd, connStr, username, password, listener, blob, clob, connectionLimit, connectionTimeout, metaCacheTimeout, timezone, allow,
-				storage, readOnly, validate, requestExclusive, alwaysResetConnections, literalTimestampWithTSOffset, log);
+		return new ApplicationDataSource(config, name, cd, connStr, username, password, listener, blob, clob, connectionLimit, idleTimeout, liveTimeout, metaCacheTimeout, timezone,
+				allow, storage, readOnly, validate, requestExclusive, alwaysResetConnections, literalTimestampWithTSOffset, log);
 	}
 
 	@Override
@@ -89,7 +89,7 @@ public class ApplicationDataSource extends DataSourceSupport {
 	public DataSource cloneReadOnly() {
 		try {
 			return new ApplicationDataSource(ThreadLocalPageContext.getConfig(), getName(), getClassDefinition(), connStr, getUsername(), getPassword(), getListener(), isBlob(),
-					isClob(), getConnectionLimit(), getConnectionTimeout(), getMetaCacheTimeout(), getTimeZone(), allow, isStorage(), isReadOnly(), validate(),
+					isClob(), getConnectionLimit(), getIdleTimeout(), getLiveTimeout(), getMetaCacheTimeout(), getTimeZone(), allow, isStorage(), isReadOnly(), validate(),
 					isRequestExclusive(), isAlwaysResetConnections(), getLiteralTimestampWithTSOffset(), getLog());
 		}
 		catch (Exception e) {

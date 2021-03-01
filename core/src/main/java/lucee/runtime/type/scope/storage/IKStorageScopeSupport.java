@@ -23,13 +23,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.collection.MapFactory;
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
+import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.config.Config;
+import lucee.runtime.db.DataSource;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -37,8 +38,11 @@ import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.op.Caster;
+import lucee.runtime.op.Decision;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.type.Collection;
+import lucee.runtime.type.Struct;
+import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.DateTimeImpl;
 import lucee.runtime.type.dt.TimeSpan;
@@ -72,6 +76,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		FIX_KEYS.add(KeyConstants._lastvisit);
 		FIX_KEYS.add(KeyConstants._hitcount);
 		FIX_KEYS.add(KeyConstants._timecreated);
+		FIX_KEYS.add(KeyConstants._csrf_token);
 	}
 
 	protected static Set<Collection.Key> ignoreSet = new HashSet<Collection.Key>();
@@ -92,7 +97,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	protected int type;
 	private long timeSpan = -1;
 	private String storage;
-	private final Map<Collection.Key, String> tokens = new ConcurrentHashMap<Collection.Key, String>();
+	private Struct tokens = new StructImpl();
 	private long lastModified;
 
 	private IKHandler handler;
@@ -111,6 +116,14 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 
 		if (_lastvisit == null) _lastvisit = timecreated;
 		lastvisit = _lastvisit == null ? 0 : _lastvisit.getTime();
+		ApplicationContext ac = pc.getApplicationContext();
+		if (ac != null && ac.getSessionCluster() && isSessionStorage(pc)) {
+			IKStorageScopeItem csrfTokens = data.getOrDefault(KeyConstants._csrf_token, null);
+			Object val = csrfTokens == null ? null : csrfTokens.getValue();
+			if (Decision.isStruct(val)) {
+				this.tokens = Caster.toStruct(val, null);
+			}
+		}
 
 		this.hitcount = (type == SCOPE_CLIENT) ? Caster.toIntValue(data.getOrDefault(KeyConstants._hitcount, ONE), 1) : 1;
 		this.strType = strType;
@@ -237,6 +250,10 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		else {
 			data0.put(KeyConstants._sessionid, new IKStorageScopeItem(pc.getApplicationContext().getName() + "_" + pc.getCFID() + "_" + pc.getCFToken()));
 		}
+		ApplicationContext ac = pc.getApplicationContext();
+		if (ac != null && ac.getSessionCluster() && isSessionStorage(pc)) {
+			data0.put(KeyConstants._csrf_token, new IKStorageScopeItem(this.tokens));
+		}
 		data0.put(KeyConstants._timecreated, new IKStorageScopeItem(timecreated));
 	}
 
@@ -285,6 +302,10 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 
 		if (type == SCOPE_CLIENT) {
 			data0.put(KeyConstants._hitcount, new IKStorageScopeItem(new Double(hitcount)));
+		}
+		ApplicationContext ac = pc.getApplicationContext();
+		if (ac != null && (this.tokens == null || this.tokens.isEmpty()) && ac.getSessionCluster() && isSessionStorage(pc)) {
+			data0.remove(KeyConstants._csrf_token);
 		}
 		store(pc);
 	}
@@ -682,6 +703,19 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	protected static DateTime doNowIfNull(Config config, DateTime dt) {
 		if (dt == null) return new DateTimeImpl(config);
 		return dt;
+	}
+
+	private boolean isSessionStorage(PageContext pc) {
+		ApplicationContext ac = pc.getApplicationContext();
+		String storage = ac == null ? null : ac.getSessionstorage();
+		if (StringUtil.isEmpty(storage)) return false;
+
+		// datasource?
+		DataSource ds = pc.getDataSource(storage, null);
+		if (ds != null && ds.isStorage()) return true;
+
+		// cache
+		return CacheUtil.getCache(pc, storage, null) != null;
 	}
 
 	// protected abstract IKStorageValue loadData(PageContext pc, String appName, String name,String

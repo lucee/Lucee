@@ -33,7 +33,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
@@ -159,7 +159,7 @@ public class GetApplicationSettings extends BIF {
 		// ws settings
 		try {
 			Struct wssettings = new StructImpl(Struct.TYPE_LINKED);
-			wssettings.setEL(KeyConstants._type, AppListenerUtil.toWSType(ac.getWSType(), ((ConfigWebImpl) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getTypeAsString()));
+			wssettings.setEL(KeyConstants._type, AppListenerUtil.toWSType(ac.getWSType(), ((ConfigWebPro) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getTypeAsString()));
 			sct.setEL("wssettings", wssettings);
 		}
 		catch (Exception e) {} // in case the extension is not loaded this will fail // TODO check if the extension is installed
@@ -238,7 +238,6 @@ public class GetApplicationSettings extends BIF {
 			Iterator<Entry<Collection.Key, Object>> iit;
 			Entry<Collection.Key, Object> ee;
 			Struct tmp;
-			// TagLib lib = ((ConfigImpl)pc.getConfig()).getCoreTagLib();
 			while (it.hasNext()) {
 				e = it.next();
 				iit = e.getValue().entrySet().iterator();
@@ -360,6 +359,7 @@ public class GetApplicationSettings extends BIF {
 
 		if (source.getConnectionLimit() >= 0) s.setEL(AppListenerUtil.CONNECTION_LIMIT, Caster.toDouble(source.getConnectionLimit()));
 		if (source.getConnectionTimeout() != 1) s.setEL(AppListenerUtil.CONNECTION_TIMEOUT, Caster.toDouble(source.getConnectionTimeout()));
+
 		s.setEL(AppListenerUtil.CONNECTION_STRING, source.getDsnTranslated());
 		if (source.getMetaCacheTimeout() != 60000) s.setEL(AppListenerUtil.META_CACHE_TIMEOUT, Caster.toDouble(source.getMetaCacheTimeout()));
 		s.setEL(KeyConstants._username, source.getUsername());
@@ -376,6 +376,7 @@ public class GetApplicationSettings extends BIF {
 			if (dsp.isRequestExclusive()) s.setEL("alwaysResetConnections", dsp.isAlwaysResetConnections());
 			Object res = TagListener.toCFML(dsp.getListener(), null);
 			if (res != null) s.setEL("listener", res);
+			if (dsp.getLiveTimeout() != 1) s.setEL(AppListenerUtil.LIVE_TIMEOUT, Caster.toDouble(dsp.getLiveTimeout()));
 		}
 		if (source instanceof DataSourceImpl) {
 			DataSourceImpl di = ((DataSourceImpl) source);

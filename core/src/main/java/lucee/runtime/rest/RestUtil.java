@@ -53,6 +53,13 @@ public class RestUtil {
 		return index - 1;
 	}
 
+	/**
+	 * clears the PageContext output buffer andsets the REST response's status code and message
+	 *
+	 * @param pc
+	 * @param status
+	 * @param msg
+	 */
 	public static void setStatus(PageContext pc, int status, String msg) {
 		pc.clear();
 		if (msg != null) {
@@ -64,7 +71,6 @@ public class RestUtil {
 		HttpServletResponse rsp = pc.getHttpServletResponse();
 		rsp.setHeader("Connection", "close"); // IE unter IIS6, Win2K3 und Resin
 		rsp.setStatus(status);
-
 	}
 
 	public static void release(Mapping[] mappings) {

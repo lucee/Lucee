@@ -90,6 +90,7 @@ public final class Mail extends BodyTagImpl {
 	private DateTime sendTime;
 
 	private Object listener;
+	// private String regex = "^[\\w-_\\.+]*[\\w-_\\.]\\@([\\w]+\\.)+[\\w]+[\\w]$";
 
 	@Override
 	public void release() {
@@ -125,7 +126,7 @@ public final class Mail extends BodyTagImpl {
 			smtp.getProxyData().setServer(proxyserver);
 		}
 		catch (Exception e) {
-			throw new ApplicationException("attribute [proxyserver] of the tag [mail] is invalid", e.getMessage());
+			throw new ApplicationException("Attribute [proxyserver] of the tag [mail] is invalid", e.getMessage());
 		}
 	}
 
@@ -142,7 +143,7 @@ public final class Mail extends BodyTagImpl {
 			smtp.getProxyData().setPort((int) proxyport);
 		}
 		catch (Exception e) {
-			throw new ApplicationException("attribute [proxyport] of the tag [mail] is invalid", e.getMessage());
+			throw new ApplicationException("Attribute [proxyport] of the tag [mail] is invalid", e.getMessage());
 		}
 	}
 
@@ -157,7 +158,7 @@ public final class Mail extends BodyTagImpl {
 			smtp.getProxyData().setUsername(proxyuser);
 		}
 		catch (Exception e) {
-			throw new ApplicationException("attribute [proxyuser] of the tag [mail] is invalid", e.getMessage());
+			throw new ApplicationException("Attribute [proxyuser] of the tag [mail] is invalid", e.getMessage());
 		}
 	}
 
@@ -172,7 +173,7 @@ public final class Mail extends BodyTagImpl {
 			smtp.getProxyData().setPassword(proxypassword);
 		}
 		catch (Exception e) {
-			throw new ApplicationException("attribute [proxypassword] of the tag [mail] is invalid", e.getMessage());
+			throw new ApplicationException("Attribute [proxypassword] of the tag [mail] is invalid", e.getMessage());
 		}
 	}
 
@@ -183,12 +184,16 @@ public final class Mail extends BodyTagImpl {
 	 * @throws PageException
 	 **/
 	public void setFrom(Object from) throws PageException {
-		if (StringUtil.isEmpty(from, true)) throw new ApplicationException("attribute [from] cannot be empty");
+		String msg = "Attribute [from] of the tag [mail] cannot be empty";
+		if (StringUtil.isEmpty(from, true)) throw new ApplicationException(msg);
+
 		try {
 			smtp.setFrom(from);
 		}
 		catch (Exception e) {
-			throw Caster.toPageException(e);
+			ApplicationException ae = new ApplicationException("Attribute [from] of the tag [mail] is invalid", e.getMessage());
+			ae.initCause(e);
+			throw ae;
 		}
 	}
 
@@ -199,12 +204,14 @@ public final class Mail extends BodyTagImpl {
 	 * @throws ApplicationException
 	 **/
 	public void setTo(Object to) throws ApplicationException {
-		if (StringUtil.isEmpty(to)) return;
+		if (StringUtil.isEmpty(to, true)) throw new ApplicationException("Attribute [to] of the tag [mail] cannot be empty");
 		try {
 			smtp.addTo(to);
 		}
 		catch (Exception e) {
-			throw new ApplicationException("attribute [to] of the tag [mail] is invalid", e.getMessage());
+			ApplicationException ae = new ApplicationException("Attribute [to] of the tag [mail] is invalid", e.getMessage());
+			ae.initCause(e);
+			throw ae;
 		}
 	}
 
@@ -216,12 +223,14 @@ public final class Mail extends BodyTagImpl {
 	 * @throws ApplicationException
 	 **/
 	public void setCc(Object cc) throws ApplicationException {
-		if (StringUtil.isEmpty(cc)) return;
+		if (StringUtil.isEmpty(cc, true)) return;
 		try {
 			smtp.addCC(cc);
 		}
 		catch (Exception e) {
-			throw new ApplicationException("attribute [cc] of the tag [mail] is invalid", e.getMessage());
+			ApplicationException ae = new ApplicationException("Attribute [cc] of the tag [mail] is invalid", e.getMessage());
+			ae.initCause(e);
+			throw ae;
 		}
 	}
 
@@ -233,12 +242,14 @@ public final class Mail extends BodyTagImpl {
 	 * @throws ApplicationException
 	 **/
 	public void setBcc(Object bcc) throws ApplicationException {
-		if (StringUtil.isEmpty(bcc)) return;
+		if (StringUtil.isEmpty(bcc, true)) return;
 		try {
 			smtp.addBCC(bcc);
 		}
 		catch (Exception e) {
-			throw new ApplicationException("attribute [bcc] of the tag [mail] is invalid", e.getMessage());
+			ApplicationException ae = new ApplicationException("Attribute [bcc] of the tag [mail] is invalid", e.getMessage());
+			ae.initCause(e);
+			throw ae;
 		}
 	}
 
@@ -247,12 +258,14 @@ public final class Mail extends BodyTagImpl {
 	 * @throws ApplicationException
 	 */
 	public void setFailto(Object failto) throws ApplicationException {
-		if (StringUtil.isEmpty(failto)) return;
+		if (StringUtil.isEmpty(failto, true)) return;
 		try {
 			smtp.addFailTo(failto);
 		}
 		catch (Exception e) {
-			throw new ApplicationException("attribute [failto] of the tag [mail] is invalid", e.getMessage());
+			ApplicationException ae = new ApplicationException("Attribute [failto] of the tag [mail] is invalid", e.getMessage());
+			ae.initCause(e);
+			throw ae;
 		}
 	}
 
@@ -261,12 +274,14 @@ public final class Mail extends BodyTagImpl {
 	 * @throws ApplicationException
 	 */
 	public void setReplyto(Object replyto) throws ApplicationException {
-		if (StringUtil.isEmpty(replyto)) return;
+		if (StringUtil.isEmpty(replyto, true)) return;
 		try {
 			smtp.addReplyTo(replyto);
 		}
 		catch (Exception e) {
-			throw new ApplicationException("attribute [replyto] of the tag [mail] is invalid", e.getMessage());
+			ApplicationException ae = new ApplicationException("Attribute [replyto] of the tag [mail] is invalid", e.getMessage());
+			ae.initCause(e);
+			throw ae;
 		}
 	}
 
@@ -277,11 +292,14 @@ public final class Mail extends BodyTagImpl {
 	 * @throws ApplicationException
 	 **/
 	public void setType(String type) throws ApplicationException {
-		type = type.toLowerCase().trim();
+		if (StringUtil.isEmpty(type, true)) type = "text/plain";
+		else type = type.toLowerCase().trim();
+
 		if (type.equals("text/plain") || type.equals("plain") || type.equals("text")) getPart().isHTML(false);
 		// mail.setType(lucee.runtime.mail.Mail.TYPE_TEXT);
 		else if (type.equals("text/html") || type.equals("html") || type.equals("htm")) getPart().isHTML(true);
-		else throw new ApplicationException("attribute type of tag mail has an invalid values", "valid values are [plain,text,html] but value is now [" + type + "]");
+		else throw new ApplicationException("Attribute [type] of tag [mail]  has an invalid value [" + type + "]",
+				"Valid values are [plain, text, html] but value is now [" + type + "]");
 		// throw new ApplicationException(("invalid type "+type);
 	}
 
@@ -322,10 +340,8 @@ public final class Mail extends BodyTagImpl {
 	public void setMimeattach(String strMimeattach, String fileName, String type, String disposition, String contentID, boolean removeAfterSend) throws PageException {
 		Resource file = ResourceUtil.toResourceNotExisting(pageContext, strMimeattach);
 		pageContext.getConfig().getSecurityManager().checkFileLocation(file);
-		if (!file.exists()) throw new ApplicationException("can't attach file " + strMimeattach + ", this file doesn't exist");
-
+		if (!file.exists()) throw new ApplicationException("Cannot attach file to mail [" + strMimeattach + "], the file doesn't exist");
 		smtp.addAttachment(file, fileName, type, disposition, contentID, removeAfterSend);
-
 	}
 
 	public void setMimeattach(String strMimeattach) throws PageException {
@@ -489,8 +505,8 @@ public final class Mail extends BodyTagImpl {
 			else valid = false;
 		}
 
-		if (!valid) throw new ExpressionException("the value of attribute priority is invalid [" + strPriority + "], " + "the value should be an integer between [1-5] or "
-				+ "one of the following [highest,urgent,high,normal,low,lowest,non-urgent]");
+		if (!valid) throw new ExpressionException("Attribute [priority] of the tag [mail] is invalid [" + strPriority + "], " + "The value should be an integer between [1-5] or "
+				+ "one of the following [highest, urgent, high, normal, low, lowest, non-urgent]");
 
 	}
 

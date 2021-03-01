@@ -9,9 +9,22 @@
 		<cfargument name="extensions" required="yes" type="query">
 		<cfset var result=variables.getdataByid(arguments.data.id,arguments.extensions)>
 
+		<cfset sort = []>
+		<cfloop list="#Arraytolist(result.otherVersions)#" index="i">
+			<cfif !listcontainsnocase(i,"-")>
+				<cfset sortversion = arrayappend(sort,toVersionSortable(i))>
+			</cfif>
+		</cfloop>
+		<cfif !listContainsNoCase(result.version,"-SNAPSHOT")>
+			<cfset sortversion = arrayAppend(sort,toVersionSortable(result.version))>
+		</cfif>
+		<cfset latest = arraySort(sort,"text","desc")>
+		<cfset getInstalledVersion = listfirst(trim(arguments.data.version),"-")>
 		<cfif result.count()==0><cfreturn false></cfif>
-		<cfif arguments.data.version LT result.version>
-			<cfreturn true>
+		<cfif arrayIndexExists(sort,1)>
+			<cfif sort[1] gt toVersionSortable(getInstalledVersion)>
+				<cfreturn true>
+			</cfif>
 		</cfif>
 
 		<cfreturn false>
@@ -152,21 +165,18 @@
 		<cfreturn detail>
 	</cffunction>
 
-
-	<cffunction name="getDumpNailOld" returntype="string" output="no">
-		<cfargument name="imgUrl" required="yes" type="string">
-		<cfargument name="width" required="yes" type="number" default="80">
-		<cfargument name="height" required="yes" type="number" default="40">
-
-		<cfreturn "data:image/png;base64,#imgURL#">
-		<cfreturn "thumbnail.cfm?img=#urlEncodedFormat(imgUrl)#&width=#width#&height=#height#">
-	</cffunction>
-
 	<cffunction name="getDumpNail" localmode=true>
 		<cfargument name="src" required="yes" type="string">
 		<cfargument name="width" required="yes" type="number" default="80">
 		<cfargument name="height" required="yes" type="number" default="40">
 		<cfset local.empty=("R0lGODlhMQApAIAAAGZmZgAAACH5BAEAAAAALAAAAAAxACkAAAIshI+py+0Po5y02ouz3rz7D4biSJbmiabqyrbuC8fyTNf2jef6zvf+DwwKeQUAOw==")>
+		
+
+		<!--- no image passed in --->
+		<cfif len(arguments.src) EQ 0>
+			<cfreturn "data:image/png;base64,#empty#">
+		</cfif>
+
 		<cftry>
 			<cfset local.id=hash(arguments.src&":"&arguments.width&"-"&arguments.height)>
 			<cfset mimetypes={png:'png',gif:'gif',jpg:'jpeg'}>
@@ -180,82 +190,52 @@
 				</cfif>
 			</cfif>
 			<cfset cache=true>
+			<cfset serversideDN=true>
 
 			<!--- copy and shrink to local dir --->
-			<cfset tmpfile=expandPath("{temp-directory}/admin-ext-thumbnails/__"&id&"."&ext)>
-			<cfset fileName = id&"."&ext>
+			<cfset local.tmpdir=expandPath("{temp-directory}/thumbnails/")>
+			<cfif !directoryExists(tmpdir)>
+				<cfset directoryCreate(tmpdir)>
+			</cfif>
+			<cfset local.tmpfile=tmpdir&"__"&id&"."&ext>
+			<cfset local.fileName = id&"."&ext>
+
+			<!--- already in cache --->
 			<cfif cache && fileExists(tmpfile)>
-				<cffile action="read" file="#tmpfile#" variable="b64">
-			<cfelseif len(arguments.src) EQ 0>
-				<cfset local.b64=empty>
-			<cfelse>
-				<cfif len(arguments.src)<500 && (isValid("URL", arguments.src) || fileExists(arguments.src))>
-					<cffile action="readbinary" file="#arguments.src#" variable="data">
-					<cfset arguments.src=toBase64(data)>
-				<cfelse>
-					<cfset data=toBinary(src)>
-				</cfif>
-				
-				
-				<cffile action="write" file="#tmpfile#" output="#src#" createPath="true">
-				<cfif  extensionExists("B737ABC4-D43F-4D91-8E8E973E37C40D1B")> <!--- image extension --->
-					<cfset img=imageRead(data)>
+				<cfreturn "data:image/png;base64,#toBase64(fileReadBinary(tmpfile))#">
+			</cfif>
 
-					<!--- shrink images if needed --->
-					<cfif img.height GT arguments.height or img.width GT arguments.width>
-						<cfif img.height GT arguments.height >
-							<cfset imageResize(img,"",arguments.height)>
-						</cfif>
-						<cfif img.width GT arguments.width>
-							<cfset imageResize(img,arguments.width,"")>
-						</cfif>
-						<cfset data=toBinary(img)>
-							
-						<cfset local.b64=toBase64(data)>
-						<cffile action="write" file="#tmpfile#" output="#local.b64#" createPath="true">
-					</cfif>
-				<cfelse>
-					<cfoutput>
-						<cfset imgSrc = "data:image/png;base64,#src#" >
-						<img src="#imgSrc#" id="img_#id#" style="display:none" />
-						<canvas id="myCanvas_#id#"  style="display:none" ></canvas>
-						<script>
-							var img = document.getElementById("img_#id#");
-							var canvas = document.getElementById("myCanvas_#id#");
-							var ctx = canvas.getContext("2d");
 			
-							canvas.height =  img.height > 50 ? 50 :  img.height ;
-							ctx.drawImage(img, 0, 0, 0, canvas.height);
-							canvas.width = img.width > 90 ? 90 :  img.width ;
-							ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-							ImageURL = canvas.toDataURL();
-
-							var block = ImageURL.split(";");
-							// Get the content type of the image
-							var contentType = block[0].split(":")[1];// In this case "image/gif"
-							// get the real base64 content of the file
-							var realData = block[1].split(",")[1];
-							var oAjax = new XMLHttpRequest();
-							oAjax.onreadystatechange = function() {
-								if(this.readyState == 4 && this.status == 200) {
-								}
-							};
-
-							var data = "imgSrc="+encodeURIComponent(realData);
-							var ajaxURL = "/lucee/admin/ImgProcess.cfm?file=#fileName#";
-							oAjax.open("POST", ajaxURL, true);
-							oAjax.send(data);
-
-						</script>
-					</cfoutput>
-				</cfif>	
+			<cfif len(arguments.src)<500 && (isValid("URL", arguments.src) || fileExists(arguments.src))>
+				<cfset local.data=fileReadBinary(arguments.src)>
+			<cfelse>
+				<cfset local.data=toBinary(src)>
 			</cfif>
-			<cfif fileExists(tmpfile)>
-				<cffile action="read" file="#tmpfile#" variable="b64">
+			
+			<!--- is the image extension installed? --->
+			<cfif serversideDN && extensionExists("B737ABC4-D43F-4D91-8E8E973E37C40D1B")> 
+				<cfset local.img=imageRead(data)>
+				<!--- shrink images if needed --->
+				<cfif  (img.width*img.height) GT 1000000 && (img.height GT arguments.height or img.width GT arguments.width)>
+					<cfif img.height GT arguments.height >
+						<cfset imageResize(img,"",arguments.height)>
+					</cfif>
+					<cfif img.width GT arguments.width>
+						<cfset imageResize(img,arguments.width,"")>
+					</cfif>
+					<!--- we go this way to influence the quality of the image --->
+					<cfset imagewrite(image:img,destination:tmpfile)>
+					<cfset local.b64=toBase64(fileReadBinary(tmpfile))>
+				</cfif>
+			</cfif>	
+
+			<cfif isNull(local.b64)>
+				<cfset local.b64=toBase64(data)>
 			</cfif>
+				
 
 			<cfcatch>
+			<cfset systemOutput(cfcatch,1,1)>
 				<cfset local.b64=local.empty>
 			</cfcatch>
 		</cftry>

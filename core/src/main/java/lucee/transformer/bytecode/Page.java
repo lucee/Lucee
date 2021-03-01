@@ -172,6 +172,12 @@ public final class Page extends BodyBase implements Root {
 
 	private static final Method STATIC_COMPONENT_CONSTR = new Method("staticConstructor", Types.VOID, new Type[] { Types.PAGE_CONTEXT, Types.COMPONENT_IMPL });
 
+	// MethodVisitor mv = cw.visitMethod(Opcodes.ACC_STATIC, "<clinit>", "()V", null, null);
+	private static final Method CINIT = new Method("<clinit>", Types.VOID, new Type[] {});
+
+	// public StaticStruct getStaticStruct()
+	private static final Method GET_STATIC_STRUCT = new Method("getStaticStruct", Types.STATIC_STRUCT, new Type[] {});
+
 	// void init(PageContext pc,Component Impl c) throws PageException
 	private static final Method INIT_COMPONENT3 = new Method("initComponent", Types.VOID, new Type[] { Types.PAGE_CONTEXT, Types.COMPONENT_IMPL, Types.BOOLEAN_VALUE });
 	private static final Method INIT_INTERFACE = new Method("initInterface", Types.VOID, new Type[] { Types.INTERFACE_IMPL });
@@ -186,6 +192,7 @@ public final class Page extends BodyBase implements Root {
 			Types.BOOLEAN_VALUE, // realpath
 			Types.MAP // meta
 	});
+	private static final Method CONSTR_STATIC_STRUCT = new Method("<init>", Types.VOID, new Type[] {});
 
 	// void init(PageContext pageContext,ComponentPage componentPage)
 	private static final Method INIT_COMPONENT = new Method("init", Types.VOID, new Type[] { Types.PAGE_CONTEXT, Types.COMPONENT_PAGE_IMPL, Types.BOOLEAN_VALUE });
@@ -218,7 +225,7 @@ public final class Page extends BodyBase implements Root {
 	private static final Method CONSTR_COMPONENT_IMPL15 = new Method("<init>", Types.VOID,
 			new Type[] { Types.COMPONENT_PAGE_IMPL, Types.BOOLEAN, Types.BOOLEAN_VALUE, Types.STRING, Types.STRING, Types.STRING, Types.STRING, Types.STRING, Types.BOOLEAN_VALUE,
 					Types.STRING, Types.BOOLEAN_VALUE, Types.BOOLEAN_VALUE, Types.INT_VALUE, Types.BOOLEAN_VALUE, Types.STRUCT_IMPL });
-	private static final Method SET_EL = new Method("setEL", Types.OBJECT, new Type[] { Types.STRING, Types.OBJECT });
+	private static final Method SET_EL = new Method("setEL", Types.OBJECT, new Type[] { Types.COLLECTION_KEY, Types.OBJECT });
 	public static final Method UNDEFINED_SCOPE = new Method("us", Types.UNDEFINED, new Type[] {});
 	private static final Method FLUSH_AND_POP = new Method("flushAndPop", Types.VOID, new Type[] { Types.PAGE_CONTEXT, Types.BODY_CONTENT });
 	private static final Method CLEAR_AND_POP = new Method("clearAndPop", Types.VOID, new Type[] { Types.PAGE_CONTEXT, Types.BODY_CONTENT });
@@ -451,11 +458,13 @@ public final class Page extends BodyBase implements Root {
 
 		// newInstance/initComponent/call
 		if (isComponent()) {
+			writeOutGetStaticStruct(constr, keys, cw, comp, className);
 			writeOutNewComponent(constr, keys, cw, comp, className);
 			writeOutInitComponent(constr, keys, cw, comp, className);
 
 		}
 		else if (isInterface()) {
+			writeOutGetStaticStruct(constr, keys, cw, comp, className);
 			writeOutNewInterface(constr, keys, cw, comp, className);
 			writeOutInitInterface(constr, keys, cw, comp, className);
 		}
@@ -877,7 +886,33 @@ public final class Page extends BodyBase implements Root {
 		cv.visitAfter(bc);
 	}
 
+	private void writeOutGetStaticStruct(ConstrBytecodeContext constr, List<LitString> keys, ClassWriter cw, TagCIObject component, String name) throws TransformerException {
+		// public final static StaticStruct _static = new StaticStruct();
+		FieldVisitor fv = cw.visitField(Opcodes.ACC_PRIVATE + Opcodes.ACC_STATIC + Opcodes.ACC_FINAL, "staticStruct", "Llucee/runtime/component/StaticStruct;", null, null);
+		fv.visitEnd();
+
+		{
+			final GeneratorAdapter ga = new GeneratorAdapter(Opcodes.ACC_STATIC, CINIT, null, null, cw);
+			ga.newInstance(Types.STATIC_STRUCT);
+			ga.dup();
+			ga.invokeConstructor(Types.STATIC_STRUCT, CONSTR_STATIC_STRUCT);
+			ga.putStatic(Type.getType(name), "staticStruct", Types.STATIC_STRUCT);
+			ga.returnValue();
+			ga.endMethod();
+		}
+
+		// public StaticStruct getStaticStruct() {return _static;}
+		{
+			final GeneratorAdapter ga = new GeneratorAdapter(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, GET_STATIC_STRUCT, null, null, cw);
+			ga.getStatic(Type.getType(name), "staticStruct", Types.STATIC_STRUCT);
+			ga.returnValue();
+			ga.endMethod();
+		}
+
+	}
+
 	private void writeOutStaticConstructor(ConstrBytecodeContext constr, List<LitString> keys, ClassWriter cw, TagCIObject component, String name) throws TransformerException {
+
 		// if(true) return;
 		final GeneratorAdapter adapter = new GeneratorAdapter(Opcodes.ACC_PUBLIC + Opcodes.ACC_FINAL, STATIC_COMPONENT_CONSTR, null, new Type[] { Types.PAGE_EXCEPTION }, cw);
 		BytecodeContext bc = new BytecodeContext(null, constr, this, keys, cw, name, adapter, STATIC_COMPONENT_CONSTR, writeLog(), suppressWSbeforeArg, output, returnValue);
@@ -1414,7 +1449,9 @@ public final class Page extends BodyBase implements Root {
 			entry = (Map.Entry) it.next();
 			attr = (Attribute) entry.getValue();
 			adapter.loadLocal(sct);
-			adapter.push(attr.getName());
+
+			// adapter.push(attr.getName());
+			bc.getFactory().registerKey(bc, bc.getFactory().createLitString(attr.getName()), false);
 			if (attr.getValue() instanceof Literal) ExpressionUtil.writeOutSilent(attr.getValue(), bc, Expression.MODE_REF);
 			else adapter.push("[runtime expression]");
 
@@ -1445,15 +1482,8 @@ public final class Page extends BodyBase implements Root {
 		extractFunctions(bc, body, funcs, pageType);
 		writeUDFProperties(bc, funcs, pageType);
 
-		writeTags(bc, extractProperties(body));
+		// writeTags(bc, extractProperties(body));
 
-		if (pageType == IFunction.PAGE_TYPE_COMPONENT) {
-			GeneratorAdapter adapter = bc.getAdapter();
-			adapter.loadArg(1);
-			adapter.loadArg(0);
-			adapter.visitVarInsn(Opcodes.ALOAD, 0);
-			adapter.invokeVirtual(Types.COMPONENT_IMPL, CHECK_INTERFACE);
-		}
 		if (pageType != IFunction.PAGE_TYPE_INTERFACE) {
 			int rtn = -1;
 			if (bc.returnValue()) {
@@ -1467,6 +1497,15 @@ public final class Page extends BodyBase implements Root {
 
 			if (rtn != -1) bc.getAdapter().loadLocal(rtn);
 			else ASMConstants.NULL(bc.getAdapter());
+		}
+
+		// checkInterface
+		if (pageType == IFunction.PAGE_TYPE_COMPONENT) {
+			GeneratorAdapter adapter = bc.getAdapter();
+			adapter.loadArg(1);
+			adapter.loadArg(0);
+			adapter.visitVarInsn(Opcodes.ALOAD, 0);
+			adapter.invokeVirtual(Types.COMPONENT_IMPL, CHECK_INTERFACE);
 		}
 	}
 

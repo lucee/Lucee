@@ -120,7 +120,7 @@ public final class ExceptionUtil {
 		String list = null;
 		if (listAll) {
 			Arrays.sort(_keys);
-			list = ListUtil.arrayToList(_keys, ",");
+			list = ListUtil.arrayToList(_keys, ", ");
 		}
 
 		String keySearchedSoundex = StringUtil.soundex(keySearched);
@@ -228,6 +228,12 @@ public final class ExceptionUtil {
 		}
 		else return res.getAbsolutePath();
 		return template;
+	}
+
+	public static Throwable toThrowable(StackTraceElement[] stackTrace) {
+		Throwable t = new Throwable();
+		t.setStackTrace(stackTrace);
+		return t;
 	}
 
 }

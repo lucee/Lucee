@@ -43,8 +43,8 @@ import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.db.SQL;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
@@ -75,9 +75,9 @@ import lucee.runtime.type.util.ListUtil;
 public final class DebuggerImpl implements Debugger {
 	private static final long serialVersionUID = 3957043879267494311L;
 
-	private static final Collection.Key IMPLICIT_ACCESS = KeyImpl.intern("implicitAccess");
-	private static final Collection.Key GENERIC_DATA = KeyImpl.intern("genericData");
-	private static final Collection.Key PAGE_PARTS = KeyImpl.intern("pageParts");
+	private static final Collection.Key IMPLICIT_ACCESS = KeyImpl.getInstance("implicitAccess");
+	private static final Collection.Key GENERIC_DATA = KeyImpl.getInstance("genericData");
+	private static final Collection.Key PAGE_PARTS = KeyImpl.getInstance("pageParts");
 	// private static final Collection.Key OUTPUT_LOG= KeyImpl.intern("outputLog");
 
 	private static final int MAX_PARTS = 100;
@@ -109,10 +109,32 @@ public final class DebuggerImpl implements Debugger {
 
 	private ApplicationException outputContext;
 
+	private long queryTime = 0;
+
 	final static Comparator DEBUG_ENTRY_TEMPLATE_COMPARATOR = new DebugEntryTemplateComparator();
 	final static Comparator DEBUG_ENTRY_TEMPLATE_PART_COMPARATOR = new DebugEntryTemplatePartComparator();
 
-	private static final Key CACHE_TYPE = KeyImpl.init("cacheType");
+	private static final Key CACHE_TYPE = KeyImpl.getInstance("cacheType");
+
+	private static final Key[] PAGE_COLUMNS = new Collection.Key[] { KeyConstants._id, KeyConstants._count, KeyConstants._min, KeyConstants._max, KeyConstants._avg,
+			KeyConstants._app, KeyConstants._load, KeyConstants._query, KeyConstants._total, KeyConstants._src };
+	private static final Key[] QUERY_COLUMNS = new Collection.Key[] { KeyConstants._name, KeyConstants._time, KeyConstants._sql, KeyConstants._src, KeyConstants._line,
+			KeyConstants._count, KeyConstants._datasource, KeyConstants._usage, CACHE_TYPE };
+	private static final String[] QUERY_COLUMN_TYPES = new String[] { "VARCHAR", "DOUBLE", "VARCHAR", "VARCHAR", "DOUBLE", "DOUBLE", "VARCHAR", "ANY", "VARCHAR" };
+	private static final Key[] GEN_DATA_COLUMNS = new Collection.Key[] { KeyConstants._category, KeyConstants._name, KeyConstants._value };
+	private static final Key[] TIMER_COLUMNS = new Collection.Key[] { KeyConstants._label, KeyConstants._time, KeyConstants._template };
+	private static final Key[] DUMP_COLUMNS = new Collection.Key[] { KeyConstants._output, KeyConstants._template, KeyConstants._line };
+
+	private static final Key[] PAGE_PART_COLUMNS = new Collection.Key[] { KeyConstants._id, KeyConstants._count, KeyConstants._min, KeyConstants._max, KeyConstants._avg,
+			KeyConstants._total, KeyConstants._path, KeyConstants._start, KeyConstants._end, KeyConstants._startLine, KeyConstants._endLine, KeyConstants._snippet };
+
+	private static final Key[] TRACES_COLUMNS = new Collection.Key[] { KeyConstants._type, KeyConstants._category, KeyConstants._text, KeyConstants._template, KeyConstants._line,
+			KeyConstants._action, KeyConstants._varname, KeyConstants._varvalue, KeyConstants._time };
+
+	private static final Key[] IMPLICIT_ACCESS_COLUMNS = new Collection.Key[] { KeyConstants._template, KeyConstants._line, KeyConstants._scope, KeyConstants._count,
+			KeyConstants._name };
+
+	private static final Double ZERO = Double.valueOf(0);
 
 	@Override
 	public void reset() {
@@ -131,6 +153,7 @@ public final class DebuggerImpl implements Debugger {
 		outputLog = null;
 		abort = null;
 		outputContext = null;
+		queryTime = 0;
 	}
 
 	public DebuggerImpl() {}
@@ -210,7 +233,7 @@ public final class DebuggerImpl implements Debugger {
 
 	public static boolean debugQueryUsage(PageContext pageContext, QueryResult qr) {
 		if (pageContext.getConfig().debug() && qr instanceof Query) {
-			if (((ConfigWebImpl) pageContext.getConfig()).hasDebugOptions(ConfigImpl.DEBUG_QUERY_USAGE)) {
+			if (((ConfigWebPro) pageContext.getConfig()).hasDebugOptions(ConfigPro.DEBUG_QUERY_USAGE)) {
 				((Query) qr).enableShowQueryUsage();
 				return true;
 			}
@@ -220,7 +243,7 @@ public final class DebuggerImpl implements Debugger {
 
 	public static boolean debugQueryUsage(PageContext pageContext, Query qry) {
 		if (pageContext.getConfig().debug() && qry instanceof Query) {
-			if (((ConfigWebImpl) pageContext.getConfig()).hasDebugOptions(ConfigImpl.DEBUG_QUERY_USAGE)) {
+			if (((ConfigWebPro) pageContext.getConfig()).hasDebugOptions(ConfigPro.DEBUG_QUERY_USAGE)) {
 				qry.enableShowQueryUsage();
 				return true;
 			}
@@ -228,14 +251,14 @@ public final class DebuggerImpl implements Debugger {
 		return false;
 	}
 
-	private String _toString(long value) {
-		if (value <= 0) return "0";
-		return String.valueOf(value);
+	private Double _toDouble(long value) {
+		if (value <= 0) return ZERO;
+		return Double.valueOf(value);
 	}
 
-	private String _toString(int value) {
-		if (value <= 0) return "0";
-		return String.valueOf(value);
+	private Double _toDouble(int value) {
+		if (value <= 0) return ZERO;
+		return Double.valueOf(value);
 	}
 
 	@Override
@@ -253,6 +276,10 @@ public final class DebuggerImpl implements Debugger {
 
 	public void addQuery(QueryResult qr, String datasource, String name, SQL sql, int recordcount, TemplateLine tl, long time) {
 		queries.add(new QueryResultEntryImpl(qr, datasource, name, sql, recordcount, tl, time));
+	}
+
+	public void addQuery(long time) {
+		queryTime += time;
 	}
 
 	@Override
@@ -291,7 +318,7 @@ public final class DebuggerImpl implements Debugger {
 	public static lucee.runtime.config.DebugEntry getDebugEntry(PageContext pc) {
 
 		String addr = pc.getHttpServletRequest().getRemoteAddr();
-		lucee.runtime.config.DebugEntry debugEntry = ((ConfigImpl) pc.getConfig()).getDebugEntry(addr, null);
+		lucee.runtime.config.DebugEntry debugEntry = ((ConfigPro) pc.getConfig()).getDebugEntry(addr, null);
 		return debugEntry;
 	}
 
@@ -370,112 +397,133 @@ public final class DebuggerImpl implements Debugger {
 
 	@Override
 	public Struct getDebuggingData(PageContext pc, boolean addAddionalInfo) throws DatabaseException {
+		PageContextImpl pci = (PageContextImpl) pc;
 		Struct debugging = new StructImpl();
 
 		// datasources
-		debugging.setEL(KeyConstants._datasources, ((ConfigImpl) pc.getConfig()).getDatasourceConnectionPool().meta());
+		debugging.setEL(KeyConstants._datasources, ((ConfigPro) pc.getConfig()).getDatasourceConnectionPool().meta());
 
-		// queries
-		List<QueryEntry> queries = getQueries();
-		Struct qryExe = new StructImpl();
-		ListIterator<QueryEntry> qryIt = queries.listIterator();
-		Collection.Key[] cols = new Collection.Key[] { KeyConstants._name, KeyConstants._time, KeyConstants._sql, KeyConstants._src, KeyConstants._line, KeyConstants._count,
-				KeyConstants._datasource, KeyConstants._usage, CACHE_TYPE };
-		String[] types = new String[] { "VARCHAR", "DOUBLE", "VARCHAR", "VARCHAR", "DOUBLE", "DOUBLE", "VARCHAR", "ANY", "VARCHAR" };
+		ConfigPro ci = (ConfigPro) ThreadLocalPageContext.getConfig(pc);
+		//////////////////////////////////////////
+		//////// QUERIES ///////////////////////////
+		//////////////////////////////////////////
+		long queryTime = 0;
+		if (ci.hasDebugOptions(ConfigPro.DEBUG_DATABASE)) {
+			List<QueryEntry> queries = getQueries();
+			Query qryQueries = null;
+			try {
+				qryQueries = new QueryImpl(QUERY_COLUMNS, QUERY_COLUMN_TYPES, queries.size(), "query");
+			}
+			catch (DatabaseException e) {
+				qryQueries = new QueryImpl(QUERY_COLUMNS, queries.size(), "query");
+			}
+			debugging.setEL(KeyConstants._queries, qryQueries);
 
-		Query qryQueries = null;
-		try {
-			qryQueries = new QueryImpl(cols, types, queries.size(), "query");
+			Struct qryExe = new StructImpl();
+			ListIterator<QueryEntry> qryIt = queries.listIterator();
+
+			int row = 0;
+			try {
+				QueryEntry qe;
+				while (qryIt.hasNext()) {
+					row++;
+					qe = qryIt.next();
+					queryTime += qe.getExecutionTime();
+					qryQueries.setAt(KeyConstants._name, row, qe.getName() == null ? "" : qe.getName());
+					qryQueries.setAt(KeyConstants._time, row, Long.valueOf(qe.getExecutionTime()));
+					qryQueries.setAt(KeyConstants._sql, row, qe.getSQL().toString());
+					if (qe instanceof QueryResultEntryImpl) {
+						TemplateLine tl = ((QueryResultEntryImpl) qe).getTemplateLine();
+						if (tl != null) {
+							qryQueries.setAt(KeyConstants._src, row, tl.template);
+							qryQueries.setAt(KeyConstants._line, row, tl.line);
+						}
+					}
+					else qryQueries.setAt(KeyConstants._src, row, qe.getSrc());
+					qryQueries.setAt(KeyConstants._count, row, Integer.valueOf(qe.getRecordcount()));
+					qryQueries.setAt(KeyConstants._datasource, row, qe.getDatasource());
+					qryQueries.setAt(CACHE_TYPE, row, qe.getCacheType());
+
+					Struct usage = getUsage(qe);
+					if (usage != null) qryQueries.setAt(KeyConstants._usage, row, usage);
+
+					Object o = qryExe.get(KeyImpl.init(qe.getSrc()), null);
+					if (o == null) qryExe.setEL(KeyImpl.init(qe.getSrc()), Long.valueOf(qe.getExecutionTime()));
+					else qryExe.setEL(KeyImpl.init(qe.getSrc()), Long.valueOf(((Long) o).longValue() + qe.getExecutionTime()));
+				}
+			}
+			catch (PageException dbe) {}
 		}
-		catch (DatabaseException e) {
-			qryQueries = new QueryImpl(cols, queries.size(), "query");
+		else {
+			queryTime = this.queryTime;
 		}
-		int row = 0;
-		try {
-			QueryEntry qe;
-			while (qryIt.hasNext()) {
-				row++;
-				qe = qryIt.next();
-				qryQueries.setAt(KeyConstants._name, row, qe.getName() == null ? "" : qe.getName());
-				qryQueries.setAt(KeyConstants._time, row, Long.valueOf(qe.getExecutionTime()));
-				qryQueries.setAt(KeyConstants._sql, row, qe.getSQL().toString());
-				if (qe instanceof QueryResultEntryImpl) {
-					TemplateLine tl = ((QueryResultEntryImpl) qe).getTemplateLine();
-					if (tl != null) {
-						qryQueries.setAt(KeyConstants._src, row, tl.template);
-						qryQueries.setAt(KeyConstants._line, row, tl.line);
+
+		//////////////////////////////////////////
+		//////// PAGES ///////////////////////////
+		//////////////////////////////////////////
+		long totalTime = 0;
+		ArrayList<DebugEntryTemplate> arrPages = null;
+		if (ci.hasDebugOptions(ConfigPro.DEBUG_TEMPLATE)) {
+			int row = 0;
+			arrPages = toArray();
+			int len = arrPages.size();
+			Query qryPage = new QueryImpl(PAGE_COLUMNS, len, "query");
+			debugging.setEL(KeyConstants._pages, qryPage);
+			if (len > 0) {
+				try {
+					DebugEntryTemplate de;
+					// PageSource ps;
+					for (int i = 0; i < len; i++) {
+						row++;
+						de = arrPages.get(i);
+						// ps = de.getPageSource();
+						totalTime += de.getFileLoadTime() + de.getExeTime();
+						qryPage.setAt(KeyConstants._id, row, de.getId());
+						qryPage.setAt(KeyConstants._count, row, _toDouble(de.getCount()));
+						qryPage.setAt(KeyConstants._min, row, _toDouble(de.getMin()));
+						qryPage.setAt(KeyConstants._max, row, _toDouble(de.getMax()));
+						qryPage.setAt(KeyConstants._avg, row, _toDouble(de.getExeTime() / de.getCount()));
+						qryPage.setAt(KeyConstants._app, row, _toDouble(de.getExeTime() - de.getQueryTime()));
+						qryPage.setAt(KeyConstants._load, row, _toDouble(de.getFileLoadTime()));
+						qryPage.setAt(KeyConstants._query, row, _toDouble(de.getQueryTime()));
+						qryPage.setAt(KeyConstants._total, row, _toDouble(de.getFileLoadTime() + de.getExeTime()));
+						qryPage.setAt(KeyConstants._src, row, de.getSrc());
 					}
 				}
-				else qryQueries.setAt(KeyConstants._src, row, qe.getSrc());
-				qryQueries.setAt(KeyConstants._count, row, Integer.valueOf(qe.getRecordcount()));
-				qryQueries.setAt(KeyConstants._datasource, row, qe.getDatasource());
-				qryQueries.setAt(CACHE_TYPE, row, qe.getCacheType());
-
-				Struct usage = getUsage(qe);
-				if (usage != null) qryQueries.setAt(KeyConstants._usage, row, usage);
-
-				Object o = qryExe.get(KeyImpl.init(qe.getSrc()), null);
-				if (o == null) qryExe.setEL(KeyImpl.init(qe.getSrc()), Long.valueOf(qe.getExecutionTime()));
-				else qryExe.setEL(KeyImpl.init(qe.getSrc()), Long.valueOf(((Long) o).longValue() + qe.getExecutionTime()));
+				catch (PageException dbe) {}
 			}
 		}
-		catch (PageException dbe) {}
-
-		// Pages
-		// src,load,app,query,total
-		row = 0;
-		ArrayList<DebugEntryTemplate> arrPages = toArray();
-		int len = arrPages.size();
-		Query qryPage = new QueryImpl(new Collection.Key[] { KeyConstants._id, KeyConstants._count, KeyConstants._min, KeyConstants._max, KeyConstants._avg, KeyConstants._app,
-				KeyConstants._load, KeyConstants._query, KeyConstants._total, KeyConstants._src }, len, "query");
-
-		try {
-			DebugEntryTemplate de;
-			// PageSource ps;
-			for (int i = 0; i < len; i++) {
-				row++;
-				de = arrPages.get(i);
-				// ps = de.getPageSource();
-
-				qryPage.setAt(KeyConstants._id, row, de.getId());
-				qryPage.setAt(KeyConstants._count, row, _toString(de.getCount()));
-				qryPage.setAt(KeyConstants._min, row, _toString(de.getMin()));
-				qryPage.setAt(KeyConstants._max, row, _toString(de.getMax()));
-				qryPage.setAt(KeyConstants._avg, row, _toString(de.getExeTime() / de.getCount()));
-				qryPage.setAt(KeyConstants._app, row, _toString(de.getExeTime() - de.getQueryTime()));
-				qryPage.setAt(KeyConstants._load, row, _toString(de.getFileLoadTime()));
-				qryPage.setAt(KeyConstants._query, row, _toString(de.getQueryTime()));
-				qryPage.setAt(KeyConstants._total, row, _toString(de.getFileLoadTime() + de.getExeTime()));
-				qryPage.setAt(KeyConstants._src, row, de.getSrc());
-			}
+		else {
+			totalTime = pci.getEndTimeNS() > pci.getStartTimeNS() ? pci.getEndTimeNS() - pci.getStartTimeNS() : 0;
 		}
-		catch (PageException dbe) {}
 
-		// Pages Parts
-		List<DebugEntryTemplatePart> filteredPartEntries = null;
-		boolean hasParts = partEntries != null && !partEntries.isEmpty() && !arrPages.isEmpty();
+		//////////////////////////////////////////
+		//////// TIMES ///////////////////////////
+		//////////////////////////////////////////
+		Struct times = new StructImpl();
+		times.setEL(KeyConstants._total, Caster.toDouble(totalTime));
+		times.setEL(KeyConstants._query, Caster.toDouble(queryTime));
+		debugging.setEL(KeyConstants._times, times);
+
+		//////////////////////////////////////////
+		//////// PAGE PARTS ///////////////////////////
+		//////////////////////////////////////////
+		boolean hasParts = partEntries != null && !partEntries.isEmpty() && arrPages != null && !arrPages.isEmpty();
 		int qrySize = 0;
-
+		Query qryPart = null;
 		if (hasParts) {
-
+			qryPart = new QueryImpl(PAGE_PART_COLUMNS, qrySize, "query");
+			debugging.setEL(PAGE_PARTS, qryPart);
 			String slowestTemplate = arrPages.get(0).getPath();
-
-			filteredPartEntries = new ArrayList();
-
+			List<DebugEntryTemplatePart> filteredPartEntries = new ArrayList();
 			java.util.Collection<DebugEntryTemplatePartImpl> col = partEntries.values();
 			for (DebugEntryTemplatePart detp: col) {
 
 				if (detp.getPath().equals(slowestTemplate)) filteredPartEntries.add(detp);
 			}
-
 			qrySize = Math.min(filteredPartEntries.size(), MAX_PARTS);
-		}
 
-		Query qryPart = new QueryImpl(new Collection.Key[] { KeyConstants._id, KeyConstants._count, KeyConstants._min, KeyConstants._max, KeyConstants._avg, KeyConstants._total,
-				KeyConstants._path, KeyConstants._start, KeyConstants._end, KeyConstants._startLine, KeyConstants._endLine, KeyConstants._snippet }, qrySize, "query");
-
-		if (hasParts) {
-			row = 0;
+			int row = 0;
 			Collections.sort(filteredPartEntries, DEBUG_ENTRY_TEMPLATE_PART_COMPARATOR);
 
 			DebugEntryTemplatePart[] parts = new DebugEntryTemplatePart[qrySize];
@@ -491,19 +539,19 @@ public final class DebuggerImpl implements Debugger {
 					de = parts[i];
 
 					qryPart.setAt(KeyConstants._id, row, de.getId());
-					qryPart.setAt(KeyConstants._count, row, _toString(de.getCount()));
-					qryPart.setAt(KeyConstants._min, row, _toString(de.getMin()));
-					qryPart.setAt(KeyConstants._max, row, _toString(de.getMax()));
-					qryPart.setAt(KeyConstants._avg, row, _toString(de.getExeTime() / de.getCount()));
-					qryPart.setAt(KeyConstants._start, row, _toString(de.getStartPosition()));
-					qryPart.setAt(KeyConstants._end, row, _toString(de.getEndPosition()));
-					qryPart.setAt(KeyConstants._total, row, _toString(de.getExeTime()));
+					qryPart.setAt(KeyConstants._count, row, _toDouble(de.getCount()));
+					qryPart.setAt(KeyConstants._min, row, _toDouble(de.getMin()));
+					qryPart.setAt(KeyConstants._max, row, _toDouble(de.getMax()));
+					qryPart.setAt(KeyConstants._avg, row, _toDouble(de.getExeTime() / de.getCount()));
+					qryPart.setAt(KeyConstants._start, row, _toDouble(de.getStartPosition()));
+					qryPart.setAt(KeyConstants._end, row, _toDouble(de.getEndPosition()));
+					qryPart.setAt(KeyConstants._total, row, _toDouble(de.getExeTime()));
 					qryPart.setAt(KeyConstants._path, row, de.getPath());
 
 					if (de instanceof DebugEntryTemplatePartImpl) {
 
-						qryPart.setAt(KeyConstants._startLine, row, _toString(((DebugEntryTemplatePartImpl) de).getStartLine()));
-						qryPart.setAt(KeyConstants._endLine, row, _toString(((DebugEntryTemplatePartImpl) de).getEndLine()));
+						qryPart.setAt(KeyConstants._startLine, row, _toDouble(((DebugEntryTemplatePartImpl) de).getStartLine()));
+						qryPart.setAt(KeyConstants._endLine, row, _toDouble(((DebugEntryTemplatePartImpl) de).getEndLine()));
 						qryPart.setAt(KeyConstants._snippet, row, ((DebugEntryTemplatePartImpl) de).getSnippet());
 					}
 				}
@@ -511,23 +559,29 @@ public final class DebuggerImpl implements Debugger {
 			catch (PageException dbe) {}
 		}
 
-		// exceptions
-		len = exceptions == null ? 0 : exceptions.size();
-
-		Array arrExceptions = new ArrayImpl();
-		if (len > 0) {
-			Iterator<CatchBlock> it = exceptions.iterator();
-			row = 0;
-			while (it.hasNext()) {
-				arrExceptions.appendEL(it.next());
+		//////////////////////////////////////////
+		//////// EXCEPTIONS ///////////////////////////
+		//////////////////////////////////////////
+		if (ci.hasDebugOptions(ConfigPro.DEBUG_EXCEPTION)) {
+			int len = exceptions == null ? 0 : exceptions.size();
+			Array arrExceptions = new ArrayImpl();
+			debugging.setEL(KeyConstants._exceptions, arrExceptions);
+			if (len > 0) {
+				Iterator<CatchBlock> it = exceptions.iterator();
+				while (it.hasNext()) {
+					arrExceptions.appendEL(it.next());
+				}
 			}
-
 		}
 
-		// generic data
-		Query qryGenData = new QueryImpl(new Collection.Key[] { KeyConstants._category, KeyConstants._name, KeyConstants._value }, 0, "query");
+		//////////////////////////////////////////
+		//////// GENERIC DATA ///////////////////////////
+		//////////////////////////////////////////
+		Query qryGenData = null;
 		Map<String, Map<String, List<String>>> genData = getGenericData();
 		if (genData != null && genData.size() > 0) {
+			qryGenData = new QueryImpl(GEN_DATA_COLUMNS, 0, "query");
+			debugging.setEL(GENERIC_DATA, qryGenData);
 			Iterator<Entry<String, Map<String, List<String>>>> it = genData.entrySet().iterator();
 			Entry<String, Map<String, List<String>>> e;
 			Iterator<Entry<String, List<String>>> itt;
@@ -553,107 +607,130 @@ public final class DebuggerImpl implements Debugger {
 			}
 		}
 
-		// output log
-		// Query qryOutputLog=getOutputText();
-
-		// timers
-		len = timers == null ? 0 : timers.size();
-		Query qryTimers = new QueryImpl(new Collection.Key[] { KeyConstants._label, KeyConstants._time, KeyConstants._template }, len, "timers");
-		if (len > 0) {
-			try {
-				Iterator<DebugTimerImpl> it = timers.iterator();
-				DebugTimer timer;
-				row = 0;
-				while (it.hasNext()) {
-					timer = it.next();
-					row++;
-					qryTimers.setAt(KeyConstants._label, row, timer.getLabel());
-					qryTimers.setAt(KeyConstants._template, row, timer.getTemplate());
-					qryTimers.setAt(KeyConstants._time, row, Caster.toDouble(timer.getTime()));
+		//////////////////////////////////////////
+		//////// TIMERS ///////////////////////////
+		//////////////////////////////////////////
+		if (ci.hasDebugOptions(ConfigPro.DEBUG_TIMER)) {
+			int len = timers == null ? 0 : timers.size();
+			Query qryTimers = new QueryImpl(TIMER_COLUMNS, len, "timers");
+			debugging.setEL(KeyConstants._timers, qryTimers);
+			if (len > 0) {
+				try {
+					Iterator<DebugTimerImpl> it = timers.iterator();
+					DebugTimer timer;
+					int row = 0;
+					while (it.hasNext()) {
+						timer = it.next();
+						row++;
+						qryTimers.setAt(KeyConstants._label, row, timer.getLabel());
+						qryTimers.setAt(KeyConstants._template, row, timer.getTemplate());
+						qryTimers.setAt(KeyConstants._time, row, Caster.toDouble(timer.getTime()));
+					}
 				}
+				catch (PageException dbe) {}
 			}
-			catch (PageException dbe) {}
 		}
 
-		// dumps
-		len = dumps == null ? 0 : dumps.size();
-		if (!((ConfigImpl) pc.getConfig()).hasDebugOptions(ConfigImpl.DEBUG_DUMP)) len = 0;
-		Query qryDumps = new QueryImpl(new Collection.Key[] { KeyConstants._output, KeyConstants._template, KeyConstants._line }, len, "dumps");
-		if (len > 0) {
-			try {
-				Iterator<DebugDump> it = dumps.iterator();
-				DebugDump dd;
-				row = 0;
-				while (it.hasNext()) {
-					dd = it.next();
-					row++;
-					qryDumps.setAt(KeyConstants._output, row, dd.getOutput());
-					if (!StringUtil.isEmpty(dd.getTemplate())) qryDumps.setAt(KeyConstants._template, row, dd.getTemplate());
-					if (dd.getLine() > 0) qryDumps.setAt(KeyConstants._line, row, new Double(dd.getLine()));
-				}
-			}
-			catch (PageException dbe) {}
-		}
-
-		// traces
-		len = traces == null ? 0 : traces.size();
-		if (!((ConfigImpl) pc.getConfig()).hasDebugOptions(ConfigImpl.DEBUG_TRACING)) len = 0;
-		Query qryTraces = new QueryImpl(new Collection.Key[] { KeyConstants._type, KeyConstants._category, KeyConstants._text, KeyConstants._template, KeyConstants._line,
-				KeyConstants._action, KeyConstants._varname, KeyConstants._varvalue, KeyConstants._time }, len, "traces");
-		if (len > 0) {
-			try {
-				Iterator<DebugTraceImpl> it = traces.iterator();
-				DebugTraceImpl trace;
-				row = 0;
-				while (it.hasNext()) {
-					trace = it.next();
-					row++;
-					qryTraces.setAt(KeyConstants._type, row, DebugTraceImpl.toType(trace.getType(), "INFO"));
-					if (!StringUtil.isEmpty(trace.getCategory())) qryTraces.setAt(KeyConstants._category, row, trace.getCategory());
-					if (!StringUtil.isEmpty(trace.getText())) qryTraces.setAt(KeyConstants._text, row, trace.getText());
-					if (!StringUtil.isEmpty(trace.getTemplate())) qryTraces.setAt(KeyConstants._template, row, trace.getTemplate());
-					if (trace.getLine() > 0) qryTraces.setAt(KeyConstants._line, row, new Double(trace.getLine()));
-					if (!StringUtil.isEmpty(trace.getAction())) qryTraces.setAt(KeyConstants._action, row, trace.getAction());
-					if (!StringUtil.isEmpty(trace.getVarName())) qryTraces.setAt(KeyImpl.init("varname"), row, trace.getVarName());
-					if (!StringUtil.isEmpty(trace.getVarValue())) qryTraces.setAt(KeyImpl.init("varvalue"), row, trace.getVarValue());
-					qryTraces.setAt(KeyConstants._time, row, new Double(trace.getTime()));
-				}
-			}
-			catch (PageException dbe) {}
-		}
-
-		// scope access
-		len = implicitAccesses == null ? 0 : implicitAccesses.size();
-		Query qryImplicitAccesseses = new QueryImpl(
-				new Collection.Key[] { KeyConstants._template, KeyConstants._line, KeyConstants._scope, KeyConstants._count, KeyConstants._name }, len, "implicitAccess");
-		if (len > 0) {
-			try {
-				Iterator<ImplicitAccessImpl> it = implicitAccesses.values().iterator();
-				ImplicitAccessImpl das;
-				row = 0;
-				while (it.hasNext()) {
-					das = it.next();
-					row++;
-					qryImplicitAccesseses.setAt(KeyConstants._template, row, das.getTemplate());
-					qryImplicitAccesseses.setAt(KeyConstants._line, row, new Double(das.getLine()));
-					qryImplicitAccesseses.setAt(KeyConstants._scope, row, das.getScope());
-					qryImplicitAccesseses.setAt(KeyConstants._count, row, new Double(das.getCount()));
-					qryImplicitAccesseses.setAt(KeyConstants._name, row, das.getName());
-
-				}
-			}
-			catch (PageException dbe) {}
-		}
-
-		// history
+		//////////////////////////////////////////
+		//////// HISTORY ///////////////////////////
+		//////////////////////////////////////////
 		Query history = new QueryImpl(new Collection.Key[] {}, 0, "history");
+		debugging.setEL(KeyConstants._history, history);
+
 		try {
 			history.addColumn(KeyConstants._id, historyId);
 			history.addColumn(KeyConstants._level, historyLevel);
 		}
 		catch (PageException e) {}
 
-		// abort
+		//////////////////////////////////////////
+		//////// DUMPS ///////////////////////////
+		//////////////////////////////////////////
+		if (ci.hasDebugOptions(ConfigPro.DEBUG_DUMP)) {
+			int len = dumps == null ? 0 : dumps.size();
+			if (!((ConfigPro) pc.getConfig()).hasDebugOptions(ConfigPro.DEBUG_DUMP)) len = 0;
+			Query qryDumps = null;
+			qryDumps = new QueryImpl(DUMP_COLUMNS, len, "dumps");
+			debugging.setEL(KeyConstants._dumps, qryDumps);
+			if (len > 0) {
+				try {
+					Iterator<DebugDump> it = dumps.iterator();
+					DebugDump dd;
+					int row = 0;
+					while (it.hasNext()) {
+						dd = it.next();
+						row++;
+						qryDumps.setAt(KeyConstants._output, row, dd.getOutput());
+						if (!StringUtil.isEmpty(dd.getTemplate())) qryDumps.setAt(KeyConstants._template, row, dd.getTemplate());
+						if (dd.getLine() > 0) qryDumps.setAt(KeyConstants._line, row, new Double(dd.getLine()));
+					}
+				}
+				catch (PageException dbe) {}
+			}
+		}
+
+		//////////////////////////////////////////
+		//////// TRACES ///////////////////////////
+		//////////////////////////////////////////
+		if (ci.hasDebugOptions(ConfigPro.DEBUG_TRACING)) {
+			int len = traces == null ? 0 : traces.size();
+			if (!((ConfigPro) pc.getConfig()).hasDebugOptions(ConfigPro.DEBUG_TRACING)) len = 0;
+			Query qryTraces = null;
+			qryTraces = new QueryImpl(TRACES_COLUMNS, len, "traces");
+			debugging.setEL(KeyConstants._traces, qryTraces);
+			if (len > 0) {
+				try {
+					Iterator<DebugTraceImpl> it = traces.iterator();
+					DebugTraceImpl trace;
+					int row = 0;
+					while (it.hasNext()) {
+						trace = it.next();
+						row++;
+						qryTraces.setAt(KeyConstants._type, row, DebugTraceImpl.toType(trace.getType(), "INFO"));
+						if (!StringUtil.isEmpty(trace.getCategory())) qryTraces.setAt(KeyConstants._category, row, trace.getCategory());
+						if (!StringUtil.isEmpty(trace.getText())) qryTraces.setAt(KeyConstants._text, row, trace.getText());
+						if (!StringUtil.isEmpty(trace.getTemplate())) qryTraces.setAt(KeyConstants._template, row, trace.getTemplate());
+						if (trace.getLine() > 0) qryTraces.setAt(KeyConstants._line, row, new Double(trace.getLine()));
+						if (!StringUtil.isEmpty(trace.getAction())) qryTraces.setAt(KeyConstants._action, row, trace.getAction());
+						if (!StringUtil.isEmpty(trace.getVarName())) qryTraces.setAt(KeyImpl.getInstance("varname"), row, trace.getVarName());
+						if (!StringUtil.isEmpty(trace.getVarValue())) qryTraces.setAt(KeyImpl.getInstance("varvalue"), row, trace.getVarValue());
+						qryTraces.setAt(KeyConstants._time, row, new Double(trace.getTime()));
+					}
+				}
+				catch (PageException dbe) {}
+			}
+		}
+
+		//////////////////////////////////////////
+		//////// SCOPE ACCESS ////////////////////
+		//////////////////////////////////////////
+		if (ci.hasDebugOptions(ConfigPro.DEBUG_IMPLICIT_ACCESS)) {
+			int len = implicitAccesses == null ? 0 : implicitAccesses.size();
+			Query qryImplicitAccesseses = new QueryImpl(IMPLICIT_ACCESS_COLUMNS, len, "implicitAccess");
+			debugging.setEL(IMPLICIT_ACCESS, qryImplicitAccesseses);
+			if (len > 0) {
+				try {
+					Iterator<ImplicitAccessImpl> it = implicitAccesses.values().iterator();
+					ImplicitAccessImpl das;
+					int row = 0;
+					while (it.hasNext()) {
+						das = it.next();
+						row++;
+						qryImplicitAccesseses.setAt(KeyConstants._template, row, das.getTemplate());
+						qryImplicitAccesseses.setAt(KeyConstants._line, row, new Double(das.getLine()));
+						qryImplicitAccesseses.setAt(KeyConstants._scope, row, das.getScope());
+						qryImplicitAccesseses.setAt(KeyConstants._count, row, new Double(das.getCount()));
+						qryImplicitAccesseses.setAt(KeyConstants._name, row, das.getName());
+
+					}
+				}
+				catch (PageException dbe) {}
+			}
+		}
+
+		//////////////////////////////////////////
+		//////// ABORT /////////////////////////
+		//////////////////////////////////////////
 		if (abort != null) {
 			Struct sct = new StructImpl();
 			sct.setEL(KeyConstants._template, abort.template);
@@ -661,37 +738,17 @@ public final class DebuggerImpl implements Debugger {
 			debugging.setEL(KeyConstants._abort, sct);
 		}
 
-		// sopes
+		//////////////////////////////////////////
+		//////// SCOPES /////////////////////////
+		//////////////////////////////////////////
 		if (addAddionalInfo) {
 			Struct scopes = new StructImpl();
-			scopes.setEL("cgi", pc.cgiScope());
+			scopes.setEL(KeyConstants._cgi, pc.cgiScope());
 			debugging.setEL(KeyConstants._scope, scopes);
 		}
-		/*
-		 * Struct scopes = new StructImpl(); try { scopes.setEL("application", pc.applicationScope());
-		 * scopes.setEL("session", pc.sessionScope()); scopes.setEL("client", pc.clientScope()); } catch
-		 * (PageException e) {} scopes.setEL("request", pc.requestScope()); scopes.setEL("cookie",
-		 * pc.cookieScope()); scopes.setEL("cgi", pc.cgiScope()); scopes.setEL("form", pc.formScope());
-		 * scopes.setEL("url", pc.urlScope());
-		 */
-		debugging.setEL(KeyImpl.init("starttime"), new DateTimeImpl(starttime, false));
-		PageContextImpl pci = (PageContextImpl) pc;
+
+		debugging.setEL(KeyImpl.getInstance("starttime"), new DateTimeImpl(starttime, false));
 		debugging.setEL(KeyConstants._id, pci.getRequestId() + "-" + pci.getId());
-
-		debugging.setEL(KeyConstants._pages, qryPage);
-		debugging.setEL(PAGE_PARTS, qryPart);
-		debugging.setEL(KeyConstants._queries, qryQueries);
-		debugging.setEL(KeyConstants._timers, qryTimers);
-		debugging.setEL(KeyConstants._traces, qryTraces);
-		debugging.setEL(KeyConstants._dumps, qryDumps);
-		// debugging.setEL("scope", scopes);
-
-		debugging.setEL(IMPLICIT_ACCESS, qryImplicitAccesseses);
-		debugging.setEL(GENERIC_DATA, qryGenData);
-		// debugging.setEL(OUTPUT_LOG,qryOutputLog);
-
-		debugging.setEL(KeyConstants._history, history);
-		debugging.setEL(KeyConstants._exceptions, arrExceptions);
 
 		return debugging;
 	}
@@ -770,7 +827,7 @@ public final class DebuggerImpl implements Debugger {
 
 	@Override
 	public DebugTrace[] getTraces(PageContext pc) {
-		if (pc != null && ((ConfigImpl) pc.getConfig()).hasDebugOptions(ConfigImpl.DEBUG_TRACING)) return traces.toArray(new DebugTrace[traces.size()]);
+		if (pc != null && ((ConfigPro) pc.getConfig()).hasDebugOptions(ConfigPro.DEBUG_TRACING)) return traces.toArray(new DebugTrace[traces.size()]);
 		return new DebugTrace[0];
 	}
 
@@ -797,10 +854,15 @@ public final class DebuggerImpl implements Debugger {
 
 	@Override
 	public void addImplicitAccess(String scope, String name) {
+		addImplicitAccess(null, scope, name);
+	}
+
+	// FUTURE add to interface
+	public void addImplicitAccess(PageContext pc, String scope, String name) {
 		if (implicitAccesses.size() > 1000) return;
 		try {
-			SystemUtil.TemplateLine tl = SystemUtil.getCurrentContext(null);
-			String key = tl + ":" + scope + ":" + name;
+			SystemUtil.TemplateLine tl = SystemUtil.getCurrentContext(pc);
+			String key = tl.toString(new StringBuilder()).append(':').append(scope).append(':').append(name).toString();
 			ImplicitAccessImpl dsc = implicitAccesses.get(key);
 			if (dsc != null) dsc.inc();
 			else implicitAccesses.put(key, new ImplicitAccessImpl(scope, name, tl.template, tl.line));

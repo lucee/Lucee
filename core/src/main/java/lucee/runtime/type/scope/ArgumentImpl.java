@@ -350,8 +350,8 @@ public final class ArgumentImpl extends ScopeSupport implements Argument, ArrayP
 		throw new ExpressionException("can not overwrite arguments scope");
 	}
 
-	public ArrayList toArrayList() {
-		ArrayList list = new ArrayList();
+	public ArrayList<Object> toArrayList() {
+		ArrayList<Object> list = new ArrayList<Object>();
 		Object[] arr = toArray();
 		for (int i = 0; i < arr.length; i++) {
 			list.add(arr[i]);
@@ -372,13 +372,37 @@ public final class ArgumentImpl extends ScopeSupport implements Argument, ArrayP
 
 	@Override
 	public Object removeEL(int intKey) {
+		return remove(intKey, null);
+	}
+
+	public Object remove(int intKey, Object defaultValue) {
 		Key[] keys = keys();
 		for (int i = 0; i < keys.length; i++) {
 			if ((i + 1) == intKey) {
 				return super.removeEL(keys[i]);
 			}
 		}
-		return null;
+		return defaultValue;
+	}
+
+	@Override
+	public Object pop() throws PageException {
+		return removeE(size());
+	}
+
+	@Override
+	public synchronized Object pop(Object defaultValue) {
+		return remove(size(), defaultValue);
+	}
+
+	@Override
+	public Object shift() throws PageException {
+		return removeE(1);
+	}
+
+	@Override
+	public synchronized Object shift(Object defaultValue) {
+		return remove(1, defaultValue);
 	}
 
 	@Override

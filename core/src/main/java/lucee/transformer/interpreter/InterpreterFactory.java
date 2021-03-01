@@ -1,11 +1,12 @@
 package lucee.transformer.interpreter;
 
 import lucee.runtime.config.Config;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.transformer.Context;
+import lucee.transformer.Factory;
 import lucee.transformer.FactoryBase;
 import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
-import lucee.transformer.bytecode.cast.CastOther;
 import lucee.transformer.expression.ExprBoolean;
 import lucee.transformer.expression.ExprDouble;
 import lucee.transformer.expression.ExprFloat;
@@ -24,6 +25,7 @@ import lucee.transformer.interpreter.cast.CastBoolean;
 import lucee.transformer.interpreter.cast.CastDouble;
 import lucee.transformer.interpreter.cast.CastFloat;
 import lucee.transformer.interpreter.cast.CastInt;
+import lucee.transformer.interpreter.cast.CastOther;
 import lucee.transformer.interpreter.cast.CastString;
 import lucee.transformer.interpreter.expression.var.EmptyArray;
 import lucee.transformer.interpreter.expression.var.EmptyStruct;
@@ -37,8 +39,12 @@ import lucee.transformer.interpreter.literal.LitStringImpl;
 import lucee.transformer.interpreter.literal.Null;
 import lucee.transformer.interpreter.literal.NullConstant;
 import lucee.transformer.interpreter.op.OpBool;
+import lucee.transformer.interpreter.op.OpContional;
 import lucee.transformer.interpreter.op.OpDecision;
 import lucee.transformer.interpreter.op.OpDouble;
+import lucee.transformer.interpreter.op.OpElvis;
+import lucee.transformer.interpreter.op.OpNegate;
+import lucee.transformer.interpreter.op.OpNegateNumber;
 import lucee.transformer.interpreter.op.OpString;
 
 public class InterpreterFactory extends FactoryBase {
@@ -50,6 +56,13 @@ public class InterpreterFactory extends FactoryBase {
 	private final LitDouble DOUBLE_ZERO;
 	private final LitDouble DOUBLE_ONE;
 	private Config config;
+
+	private static InterpreterFactory instance;
+
+	public static Factory getInstance(Config config) {
+		if (instance == null) instance = new InterpreterFactory(config == null ? ThreadLocalPageContext.getConfig() : config);
+		return instance;
+	}
 
 	public InterpreterFactory(Config config) {
 		TRUE = createLitBoolean(true);
@@ -261,20 +274,17 @@ public class InterpreterFactory extends FactoryBase {
 
 	@Override
 	public Expression opNegate(Expression expr, Position start, Position end) {
-		// TODO Auto-generated method stub
-		return null;
+		return OpNegate.toExprBoolean(expr, start, end);
 	}
 
 	@Override
 	public ExprDouble opNegateNumber(Expression expr, int operation, Position start, Position end) {
-		// TODO Auto-generated method stub
-		return null;
+		return OpNegateNumber.toExprDouble(expr, operation, start, end);
 	}
 
 	@Override
 	public Expression opContional(Expression cont, Expression left, Expression right) {
-		// TODO Auto-generated method stub
-		return null;
+		return OpContional.toExpr(cont, left, right);
 	}
 
 	@Override
@@ -284,8 +294,7 @@ public class InterpreterFactory extends FactoryBase {
 
 	@Override
 	public Expression opElvis(Variable left, Expression right) {
-		// TODO Auto-generated method stub
-		return null;
+		return OpElvis.toExpr(left, right);
 	}
 
 	@Override

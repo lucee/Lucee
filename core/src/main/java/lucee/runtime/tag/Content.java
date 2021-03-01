@@ -168,7 +168,7 @@ public final class Content extends BodyTagImpl {
 		HttpServletResponse rsp = pageContext.getHttpServletResponse();
 
 		// check committed
-		if (rsp.isCommitted()) throw new ApplicationException("content is already flushed", "you can't rewrite head of response after part of the page is flushed");
+		if (rsp.isCommitted()) throw new ApplicationException("Content was already flushed", "you can't rewrite the header of a response after part of the page was flushed");
 
 		// set type
 		if (!StringUtil.isEmpty(type, true)) {
@@ -244,6 +244,8 @@ public final class Content extends BodyTagImpl {
 				IOUtil.flushEL(os);
 				IOUtil.closeEL(is, os);
 				if (deletefile && file != null) ResourceUtil.removeEL(file, true);
+				// disable debugging output
+				((PageContextImpl) pageContext).getDebugger().setOutput(false);
 				((PageContextImpl) pageContext).getRootOut().setClosed(true);
 			}
 			throw new PostContentAbort();
@@ -259,7 +261,7 @@ public final class Content extends BodyTagImpl {
 			return pageContext.getResponseStream();
 		}
 		catch (IllegalStateException ise) {
-			throw new TemplateException("content is already send to user, flush");
+			throw new TemplateException("Content was already sent to user, flush");
 		}
 	}
 

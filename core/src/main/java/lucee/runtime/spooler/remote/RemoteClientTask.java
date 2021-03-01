@@ -29,9 +29,9 @@ import lucee.runtime.type.util.KeyConstants;
 
 public class RemoteClientTask extends SpoolerTaskWS {
 
-	public static final Collection.Key PASSWORD = KeyImpl.intern("password");
-	public static final Collection.Key ATTRIBUTE_COLLECTION = KeyImpl.intern("attributeCollection");
-	public static final Collection.Key CALLER_ID = KeyImpl.intern("callerId");
+	public static final Collection.Key PASSWORD = KeyImpl.getInstance("password");
+	public static final Collection.Key ATTRIBUTE_COLLECTION = KeyImpl.getInstance("attributeCollection");
+	public static final Collection.Key CALLER_ID = KeyImpl.getInstance("callerId");
 	private StructImpl args;
 	private String action;
 	private String type;

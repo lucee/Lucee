@@ -58,8 +58,13 @@ public class VersionInfo {
 		if (version != null) return;
 		String content = "9000000:" + System.currentTimeMillis();
 		try {
-			content = getContentAsString(new TP().getClass().getClassLoader().getResourceAsStream("lucee/version"), "UTF-8");
-
+			InputStream is = new TP().getClass().getClassLoader().getResourceAsStream("lucee/version");
+			if (is != null) {
+				content = getContentAsString(is, "UTF-8");
+			}
+			else {
+				System.err.println("lucee/version not found");
+			}
 		}
 		catch (final IOException e) {}
 

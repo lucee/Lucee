@@ -83,19 +83,43 @@ private function isColumnEmpty(query query, string columnName){
 		<cfargument name="context" type="string" default="web"><cfsilent>
 <cfset var time=getTickCount()>
 <cfset var _cgi=structKeyExists(arguments.debugging,'cgi')?arguments.debugging.cgi:cgi>
+<cfscript>
+	if(isNull(arguments.debugging.pages)) 
+		local.pages=queryNew('id,count,min,max,avg,app,load,query,total,src');
+	else local.pages=arguments.debugging.pages;
 
-<cfset var pages=arguments.debugging.pages>
-<cfset var queries=arguments.debugging.queries>
-<cfif not isDefined('arguments.debugging.timers')>
-	<cfset arguments.debugging.timers=queryNew('label,time,template')>
-</cfif>
-<cfif not isDefined('arguments.debugging.traces')>
-	<cfset arguments.debugging.traces=queryNew('type,category,text,template,line,var,total,trace')>
-</cfif>
-<cfset var timers=arguments.debugging.timers>
-<cfset var traces=arguments.debugging.traces>
+	var hasQueries=!isNull(arguments.debugging.queries);
+	if(!hasQueries) 
+		local.queries=queryNew('name,time,sql,src,line,count,datasource,usage,cacheTypes');
+	else local.queries=arguments.debugging.queries;
+
+	if(isNull(arguments.debugging.exceptions)) 
+		local.exceptions=[];
+	else local.exceptions=arguments.debugging.exceptions;
+
+	if(isNull(arguments.debugging.timers)) 
+		local.timers=queryNew('label,time,template');
+	else local.timers=arguments.debugging.timers;
+
+	if(isNull(arguments.debugging.traces)) 
+		local.traces=queryNew('type,category,text,template,line,var,total,trace');
+	else local.traces=arguments.debugging.traces;
+
+	if(isNull(arguments.debugging.dumps)) 
+		local.dumps=queryNew('output,template,line');
+	else local.dumps=arguments.debugging.dumps;
+
+	if(isNull(arguments.debugging.implicitAccess)) 
+		local.implicitAccess=queryNew('template,line,scope,count,name');
+	else local.implicitAccess=arguments.debugging.implicitAccess;
+
+	if(isNull(arguments.debugging.dumps)) 
+		local.dumps=queryNew('output,template,line');
+	else local.dumps=arguments.debugging.dumps;
+
+	local.times=arguments.debugging.times;
+</cfscript>
 <cfset querySort(pages,"avg","desc")>
-<cfset var implicitAccess=arguments.debugging.implicitAccess>
 <cfset querySort(implicitAccess,"template,line,count","asc,asc,desc")>
 
 <cfparam name="arguments.custom.unit" default="millisecond">
@@ -106,7 +130,7 @@ private function isColumnEmpty(query query, string columnName){
 
 <cfset var unit={
 millisecond:"ms"
-,microsecond:"�s"
+,microsecond:"μs"
 ,nanosecond:"ns"
 
 }>
@@ -181,17 +205,18 @@ millisecond:"ms"
 	<p class="cfdebug"><hr/><b class="cfdebuglge"><a name="cfdebug_execution">Execution Time</a></b></p>
 	<a name="cfdebug_templates">
 		<table border="1" cellpadding="2" cellspacing="0" class="cfdebug">
+		<cfif pages.recordcount>
 		<tr>
 			<td class="cfdebug" align="center"><b>Total Time</b></td>
 			<td class="cfdebug" align="center"><b>Avg Time</b></td>
 			<td class="cfdebug" align="center"><b>Count</b></td>
 			<td class="cfdebug"><b>Template</b></td>
-		</tr>
+		</tr></cfif>
 <cfset var loa=0>
 <cfset var tot=0>
 <cfset var q=0>
-<cfparam name="custom.minimal" default="0">
-<cfparam name="custom.highlight" default="250000">
+<cfparam name="arguments.custom.minimal" default="0">
+<cfparam name="arguments.custom.highlight" default="250000">
 <cfloop query="pages">
 		<cfset tot=tot+pages.total><cfset q=q+pages.query>
 		<cfif pages.avg LT arguments.custom.minimal*1000><cfcontinue></cfif>
@@ -203,23 +228,33 @@ millisecond:"ms"
 			<td align="left" class="cfdebug" nowrap><cfif bad><font color="red"><span class="template_overage"></cfif>#pages.src#<cfif bad></span></font></cfif></td>
 		</tr>
 </cfloop>                
-            
+<cfscript>
+if(!pages.recordcount || !hasQueries) {
+	tot=arguments.debugging.times.total;
+	q=arguments.debugging.times.query;
+	loa=0;
+		
+}
+</cfscript>     
+<cfif pages.recordcount>
+	
 <tr>
-	<td align="right" class="cfdebug" nowrap><i>#formatUnit(arguments.custom.unit, loa)#</i></td><td colspan=2>&nbsp;</td>
+	<td align="right" class="cfdebug" nowrap><i>#formatUnit(arguments.custom.unit, loa)#</i></td><cfif pages.recordcount><td colspan=2>&nbsp;</td></cfif>
 	<td align="left" class="cfdebug"><i>STARTUP, PARSING, COMPILING, LOADING, &amp; SHUTDOWN</i></td>
 </tr>
+</cfif>
 <tr>
-	<td align="right" class="cfdebug" nowrap><i>#formatUnit(arguments.custom.unit, tot-q-loa)#</i></td><td colspan=2>&nbsp;</td>
+	<td align="right" class="cfdebug" nowrap><i>#formatUnit(arguments.custom.unit, tot-q-loa)#</i></td><cfif pages.recordcount><td colspan=2>&nbsp;</td></cfif>
 	<td align="left" class="cfdebug"><i>APPLICATION EXECUTION TIME</i></td>
 </tr>
-<cfif listfirst(formatUnit(custom.unit, q)," ") gt 0>
+<cfif listfirst(formatUnit(arguments.custom.unit, q)," ") gt 0>
 	<tr>
-		<td align="right" class="cfdebug" nowrap><i>#formatUnit(arguments.custom.unit, q)#</i></td><td colspan=2>&nbsp;</td>
+		<td align="right" class="cfdebug" nowrap><i>#formatUnit(arguments.custom.unit, q)#</i></td><cfif pages.recordcount><td colspan=2>&nbsp;</td></cfif>
 		<td align="left" class="cfdebug"><i>QUERY EXECUTION TIME</i></td>
 	</tr>
 </cfif>	
 <tr>
-	<td align="right" class="cfdebug" nowrap><i><b>#formatUnit(arguments.custom.unit, tot)#</i></b></td><td colspan=2>&nbsp;</td>
+	<td align="right" class="cfdebug" nowrap><i><b>#formatUnit(arguments.custom.unit, tot)#</i></b></td><cfif pages.recordcount><td colspan=2>&nbsp;</td></cfif>
 	<td align="left" class="cfdebug"><i><b>TOTAL EXECUTION TIME</b></i></td>
 </tr>
 </table>
@@ -240,7 +275,7 @@ millisecond:"ms"
 			<td class="cfdebug"><b>Detail</b></td>
 			<td class="cfdebug"><b>Template</b></td>
 		</tr>
-<Cfset var exp="">		
+<cfset var exp="">
 <cfloop array="#exceptions#" index="exp">
 		<tr>
 			<td class="cfdebug" nowrap>#exp.type#</td>
@@ -337,7 +372,7 @@ millisecond:"ms"
 <cfif queries.recordcount>
 <p class="cfdebug"><hr/><b class="cfdebuglge"><a name="cfdebug_sql">SQL Queries</a></b></p>
 <cfloop query="queries">	
-<code><b>#queries.name#</b> (Datasource=#queries.datasource#, Time=#formatUnit(custom.unit, queries.time)#, Records=#queries.count#) in <cfif len(queries.src)>#queries.src#:#queries.line#</cfif></code><br />
+<code><b>#queries.name#</b> (Datasource=#queries.datasource#, Time=#formatUnit(arguments.custom.unit, queries.time)#, Records=#queries.count#) in <cfif len(queries.src)>#queries.src#:#queries.line#</cfif></code><br />
 <cfif ListFindNoCase(queries.columnlist,'usage') and IsStruct(queries.usage)><cfset var usage=queries.usage><cfset var lstNeverRead="">
 <cfloop collection="#usage#" index="local.item" item="local._val"><cfif not _val><cfset lstNeverRead=ListAppend(lstNeverRead,item,', ')></cfif></cfloop>
 <cfif len(lstNeverRead)><font color="red">the following colum(s) are never read within the request:#lstNeverRead#</font><br /></cfif>

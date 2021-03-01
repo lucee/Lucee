@@ -146,7 +146,7 @@ public final class StructImplKey extends StructSupport implements Struct {
 	@Override
 	public Object remove(Collection.Key key) throws PageException {
 		Object obj = _map.remove(key);
-		if (obj == null) throw new ExpressionException("can't remove key [" + key.getString() + "] from struct, key doesn't exist");
+		if (obj == null) throw new ExpressionException("Cannot remove key [" + key.getString() + "] from struct, the key doesn't exist");
 		return obj;
 	}
 
@@ -193,7 +193,7 @@ public final class StructImplKey extends StructSupport implements Struct {
 	 * @return returns an invalid key Exception
 	 */
 	protected ExpressionException invalidKey(String key) {
-		return new ExpressionException("key [" + key + "] doesn't exist in struct");
+		return new ExpressionException("Key [" + key + "] doesn't exist in struct");
 	}
 
 	/**
@@ -260,7 +260,7 @@ public final class StructImplKey extends StructSupport implements Struct {
 	 */
 	@Override
 	public String castToString() throws ExpressionException {
-		throw new ExpressionException("Can't cast Complex Object Type Struct to String", "Use Built-In-Function \"serialize(Struct):String\" to create a String from Struct");
+		throw new ExpressionException("Cannot cast [Struct] to String", "Use Built-In-Function \"serialize(Struct):String\" to create a String from Struct");
 	}
 
 	/**
@@ -276,7 +276,7 @@ public final class StructImplKey extends StructSupport implements Struct {
 	 */
 	@Override
 	public boolean castToBooleanValue() throws ExpressionException {
-		throw new ExpressionException("can't cast Complex Object Type Struct to a boolean value");
+		throw new ExpressionException("Cannot cast [Struct] to a boolean value");
 	}
 
 	/**
@@ -292,7 +292,7 @@ public final class StructImplKey extends StructSupport implements Struct {
 	 */
 	@Override
 	public double castToDoubleValue() throws ExpressionException {
-		throw new ExpressionException("can't cast Complex Object Type Struct to a number value");
+		throw new ExpressionException("Cannot cast [Struct] to a numeric value");
 	}
 
 	/**
@@ -308,7 +308,7 @@ public final class StructImplKey extends StructSupport implements Struct {
 	 */
 	@Override
 	public DateTime castToDateTime() throws ExpressionException {
-		throw new ExpressionException("can't cast Complex Object Type Struct to a Date");
+		throw new ExpressionException("Cannot cast [Struct] to a Date");
 	}
 
 	/**
@@ -324,7 +324,7 @@ public final class StructImplKey extends StructSupport implements Struct {
 	 */
 	@Override
 	public int compareTo(boolean b) throws ExpressionException {
-		throw new ExpressionException("can't compare Complex Object Type Struct with a boolean value");
+		throw new ExpressionException("Cannot compare a [Struct] with a boolean value");
 	}
 
 	/**
@@ -332,7 +332,7 @@ public final class StructImplKey extends StructSupport implements Struct {
 	 */
 	@Override
 	public int compareTo(DateTime dt) throws PageException {
-		throw new ExpressionException("can't compare Complex Object Type Struct with a DateTime Object");
+		throw new ExpressionException("Cannot compare a [Struct] with a DateTime Object");
 	}
 
 	/**
@@ -340,7 +340,7 @@ public final class StructImplKey extends StructSupport implements Struct {
 	 */
 	@Override
 	public int compareTo(double d) throws PageException {
-		throw new ExpressionException("can't compare Complex Object Type Struct with a numeric value");
+		throw new ExpressionException("Cannot compare a [Struct] with a numeric value");
 	}
 
 	/**
@@ -348,7 +348,7 @@ public final class StructImplKey extends StructSupport implements Struct {
 	 */
 	@Override
 	public int compareTo(String str) throws PageException {
-		throw new ExpressionException("can't compare Complex Object Type Struct with a String");
+		throw new ExpressionException("Cannot compare a [Struct] with a String");
 	}
 
 	@Override

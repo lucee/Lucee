@@ -36,7 +36,7 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.transformer.bytecode.util.ClassRenamer;
 
@@ -50,7 +50,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	}
 
 	private Resource directory;
-	private ConfigImpl config;
+	private ConfigPro config;
 	private final ClassLoader[] parents;
 
 	private Map<String, String> loadedClasses = new ConcurrentHashMap<String, String>();
@@ -88,7 +88,7 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 
 	public PhysicalClassLoader(Config c, Resource directory, ClassLoader[] parentClassLoaders, boolean includeCoreCL) throws IOException {
 		super(parentClassLoaders == null || parentClassLoaders.length == 0 ? c.getClassLoader() : parentClassLoaders[0]);
-		config = (ConfigImpl) c;
+		config = (ConfigPro) c;
 
 		// ClassLoader resCL = parent!=null?parent:config.getResourceClassLoader(null);
 
@@ -126,10 +126,6 @@ public final class PhysicalClassLoader extends ExtendableClassLoader {
 	}
 
 	private Class<?> loadClass(String name, boolean resolve, boolean loadFromFS) throws ClassNotFoundException {
-		if (loadedClasses.containsKey(name) || unavaiClasses.containsKey(name)) {
-			return super.loadClass(name, false); // Use default CL cache
-		}
-
 		// First, check if the class has already been loaded
 		Class<?> c = findLoadedClass(name);
 		if (c == null) {

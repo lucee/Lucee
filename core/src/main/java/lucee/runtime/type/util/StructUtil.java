@@ -257,10 +257,8 @@ public final class StructUtil {
 		if (Struct.TYPE_LINKED == type) return "ordered";
 		if (Struct.TYPE_WEAKED == type) return "weak";
 		if (Struct.TYPE_REGULAR == type) return "regular";
-		if (Struct.TYPE_REGULAR == type) return "regular";
 		if (Struct.TYPE_SOFT == type) return "soft";
 		if (Struct.TYPE_SYNC == type) return "synchronized";
-		if (Struct.TYPE_UNDEFINED == type) return "undefined";
 
 		return defaultValue;
 	}
@@ -280,5 +278,15 @@ public final class StructUtil {
 			sb.append(keys[i].getString()).append(';');
 		}
 		return Long.toString(HashUtil.create64BitHash(sb), Character.MAX_RADIX);
+	}
+
+	public static Struct getMetaData(Struct sct) throws PageException {
+		Struct res = new StructImpl();
+		if (sct instanceof StructImpl) {
+			int type = ((StructImpl) sct).getType();
+			res.set(KeyConstants._type, toType(type, "unsynchronized"));
+			res.set("ordered", type == Struct.TYPE_LINKED ? "ordered" : "unordered");
+		}
+		return res;
 	}
 }

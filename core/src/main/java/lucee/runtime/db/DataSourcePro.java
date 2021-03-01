@@ -16,4 +16,8 @@ public interface DataSourcePro extends DataSource {
 	public int getDefaultTransactionIsolation();
 
 	public TagListener getListener();
+
+	public int getIdleTimeout();
+
+	public int getLiveTimeout();
 }

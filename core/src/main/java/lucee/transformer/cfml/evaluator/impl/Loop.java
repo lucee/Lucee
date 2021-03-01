@@ -21,7 +21,7 @@ package lucee.transformer.cfml.evaluator.impl;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.exp.TemplateException;
 import lucee.transformer.bytecode.BytecodeFactory;
 import lucee.transformer.bytecode.Page;
@@ -190,7 +190,7 @@ public final class Loop extends EvaluatorSupport {
 			try {
 				transformer = tagLib.getExprTransfomer();
 				Page page = ASMUtil.getAncestorPage(tag);
-				ConfigImpl config = (ConfigImpl) page.getConfig();
+				ConfigPro config = (ConfigPro) page.getConfig();
 				Data data = new Data(BytecodeFactory.getInstance(config), page, new SourceCode(text, false, page.getSourceCode().getDialect()), new EvaluatorPool(),
 						new TransfomerSettings(page.getSourceCode().getDialect() == CFMLEngine.DIALECT_CFML && config.getDotNotationUpperCase(),
 								page.getSourceCode().getDialect() == CFMLEngine.DIALECT_CFML && config.getHandleUnQuotedAttrValueAsString(), page.ignoreScopes),

@@ -36,7 +36,7 @@ import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lang.types.RefBooleanImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DataSourceUtil;
 import lucee.runtime.db.DatasourceConnection;
@@ -167,7 +167,7 @@ public class DatasourceAppender extends JDBCAppender implements Appender {
 		if (pool == null) {
 			if (first != null) first.setValue(true);
 			if (datasource == null) datasource = config.getDataSource(datasourceName);
-			this.pool = ((ConfigImpl) config).getDatasourceConnectionPool();
+			this.pool = ((ConfigPro) config).getDatasourceConnectionPool();
 		}
 		return pool;
 	}
@@ -197,7 +197,7 @@ public class DatasourceAppender extends JDBCAppender implements Appender {
 	}
 
 	private Logger getConsoleLogger() {
-		ConfigImpl config = (ConfigImpl) ThreadLocalPageContext.getConfig();
+		ConfigPro config = (ConfigPro) ThreadLocalPageContext.getConfig();
 		if (logger == null) {
 			LogAdapter la = (LogAdapter) config.getLog("console_datasource_appender", true); // TODO use log level from this logger...
 			logger = la.getLogger();

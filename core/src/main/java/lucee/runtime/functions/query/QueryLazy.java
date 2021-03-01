@@ -58,9 +58,9 @@ public class QueryLazy extends BIF {
 	private static int RETURN_TYPE_STRUCT = 3;
 
 	private static final long serialVersionUID = 2886504786460447165L;
-	private static final Key BLOCKFACTOR = KeyImpl.init("blockfactor");
-	private static final Key MAXROWS = KeyImpl.init("maxrows");
-	private static final Key COLUMNKEY = KeyImpl.init("columnkey");
+	private static final Key BLOCKFACTOR = KeyImpl.getInstance("blockfactor");
+	private static final Key MAXROWS = KeyImpl.getInstance("maxrows");
+	private static final Key COLUMNKEY = KeyImpl.getInstance("columnkey");
 
 	public static String call(PageContext pc, String sql, UDF listener) throws PageException {
 		return call(pc, sql, listener, null, null);
@@ -286,8 +286,8 @@ public class QueryLazy extends BIF {
 
 		if (isMySQL) stat.setFetchSize(Integer.MIN_VALUE); // this is necessary for mysql otherwise all data are loaded into memory
 		else if (fetchsize > 0) stat.setFetchSize(fetchsize);
-
-		if (timeout != null && ((int) timeout.getSeconds()) > 0) DataSourceUtil.setQueryTimeoutSilent(stat, (int) timeout.getSeconds());
+		int to = QueryImpl.getSeconds(timeout);
+		if (to > 0) DataSourceUtil.setQueryTimeoutSilent(stat, to);
 	}
 
 	private static void setItems(PageContext pc, TimeZone tz, PreparedStatement preStat, SQLItem[] items) throws DatabaseException, PageException, SQLException {

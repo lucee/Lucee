@@ -315,7 +315,7 @@ public class HTTPClient implements Objects, Iteratorable {
 					}
 					is = rsp.getContentAsStream();
 					ApplicationException ae = new ApplicationException("remote component throws the following error:" + msg);
-					if (!hasMsg) ae.setAdditional(KeyImpl.init("respone-body"), IOUtil.toString(is, mt.getCharset()));
+					if (!hasMsg) ae.setAdditional(KeyImpl.getInstance("respone-body"), IOUtil.toString(is, mt.getCharset()));
 
 					throw ae;
 				}

@@ -1,6 +1,5 @@
 package lucee.commons.cpu;
 
-import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
 import java.util.ArrayList;
@@ -10,7 +9,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
-import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ExceptionUtil;
@@ -46,18 +44,6 @@ public class CPULogger {
 
 	public Logger getLogger() {
 		return logger;
-	}
-
-	public static void main(String[] args) {
-		Busy busy = new Busy();
-		busy.start();
-		List<Listener> listeners = new ArrayList<>();
-		listeners.add(new ConsoleListener(false));
-		CPULogger x = new CPULogger(100, 0.01, listeners);
-		x.startIt();
-		SystemUtil.sleep(10000);
-		x.stopIt();
-		busy.run = false;
 	}
 
 	private static class Logger extends Thread {
@@ -131,24 +117,6 @@ public class CPULogger {
 			return staticData;
 		}
 
-	}
-
-	private static class Busy extends Thread {
-		private boolean run = true;
-
-		@Override
-		public void run() {
-			while (run) {
-				// print.e(System.currentTimeMillis());
-				try {
-					IOUtil.toBytes(new File("/Users/mic/Downloads/Taufe Mika.m4v"));
-				}
-				catch (Exception e) {
-
-				}
-				// SystemUtil.sleep(1);
-			}
-		}
 	}
 
 	private static class Data {

@@ -683,8 +683,12 @@
 		<custom key="settings.dbconnlimitdesc">Beschränkt die Anzahl Verbindungen die zur Datenbank aufgebaut werden.</custom>
 		<custom key="settings.dbconnlimitinf">- inf -</custom>
 	
-		<custom key="settings.dbconntimeout">Verbindungs Timeout (in Minuten)</custom>
-		<custom key="settings.dbconntimeoutdesc">Definiert wie lange eine stehende Verbindung aufrechterhalten wird, bevor Sie beendet wird.</custom>
+		<custom key="settings.dbidletimeout">Inaktivitäts Timeout (in Minuten)</custom>
+		<custom key="settings.dbidletimeoutdesc">Definiert wie lange eine stehende unverwendete Verbindung aufrechterhalten wird, bevor Sie beendet wird.</custom>
+
+		<custom key="settings.dblivetimeout">Verbindungs Timeout</custom>
+		<custom key="settings.dblivetimeoutdesc">Definiert wie lange eine stehende Verbindung aufrechterhalten wird, bevor Sie beendet wird.</custom>
+
 		<custom key="settings.dbdatabase">Datenbank</custom>
 		<custom key="settings.dbdatabasedesc">Name der Datenbank, welche verbunden werden soll.</custom>
 		<custom key="settings.dbhost">Host/Server</custom>
@@ -1303,8 +1307,8 @@
 		<custom key="security.accessreaddesc">define the access for reading data</custom>
 		<custom key="security.accesswrite">Access Write</custom>
 		<custom key="security.accesswritedesc">define the access for writing data</custom>
-		<custom key="security.cfmlenvironment">CFML Enviroment</custom>
-		<custom key="security.cfmlenvironmentdescription">Settings that have an effect on how Lucee code interacts with the host enviroment</custom>
+		<custom key="security.cfmlenvironment">CFML Environment</custom>
+		<custom key="security.cfmlenvironmentdescription">Settings that have an effect on how Lucee code interacts with the host environment</custom>
 	
 		<custom key="security.cfx">CFX</custom>
 		<custom key="security.cfxdescription">The settings for the cfx tags can be changed. The globally defined CFX tags defined in the &quot;server administrator&quot; can be used as well.</custom>
@@ -1415,12 +1419,17 @@
 		<custom key="settings.dbcheck">Check</custom>
 		<custom key="settings.dbclob">Clob</custom>
 		<custom key="settings.dbclobdesc">Enable long text retrieval (&lt;abbr title=&quot;character large object&quot;&gt;CLOB&lt;/abbr&gt;)</custom>
-		<custom key="settings.dbconnlimit">Connection limit (max)</custom>
-	
+		<custom key="settings.dbconnlimit">Connection limit (max)</custom>	
 		<custom key="settings.dbconnlimitdesc">Restricts the maximum number of connections at one time</custom>
 		<custom key="settings.dbconnlimitinf">- inf -</custom>
-		<custom key="settings.dbconntimeout">Connection timeout (in minutes)</custom>
-		<custom key="settings.dbconntimeoutdesc">Define a time in minutes for how long a connection is kept alive before it will be closed</custom>
+		
+		<custom key="settings.dbidletimeout">Connection idle timeout (in minutes)</custom>
+		<custom key="settings.dbidletimeoutdesc">Define how long an idle connection will be kept alive, before being closed</custom>
+		
+		<custom key="settings.dblivetimeout">Connection timeout</custom>
+		<custom key="settings.dblivetimeoutdesc">Define how long a connection will be kept alive, before being closed</custom>
+
+
 		<custom key="settings.dbdatabase">Database</custom>
 		<custom key="settings.dbdatabasedesc">Name of the database to connect</custom>
 	

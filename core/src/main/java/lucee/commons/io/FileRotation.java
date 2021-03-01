@@ -51,7 +51,7 @@ public class FileRotation {
 				}
 			}
 			res.renameTo(parent.getRealResource(name + "." + StringUtil.addZeros(1, lenMaxFileSize) + ".bak"));
-			res = parent.getRealResource(name);// new File(parent,name);
+			res = parent.getRealResource(name);
 			res.createNewFile();
 			writeHeader = true;
 		}

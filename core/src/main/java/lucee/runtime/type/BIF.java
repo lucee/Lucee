@@ -32,7 +32,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageSource;
 import lucee.runtime.component.MemberSupport;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.dump.DumpTable;
@@ -57,14 +57,14 @@ public class BIF extends MemberSupport implements UDFPlus {
 	private final FunctionLibFunction flf;
 	private short rtnType = CFTypes.TYPE_UNKNOW;
 	private Component owner;
-	private final ConfigImpl ci;
+	private final ConfigPro cp;
 	private FunctionArgument[] args;
 	private String id;
 
 	public BIF(PageContext pc, String name) throws ApplicationException {
 		super(Component.ACCESS_PUBLIC);
-		ci = (ConfigImpl) pc.getConfig();
-		FunctionLib fl = ci.getCombinedFLDs(pc.getCurrentTemplateDialect());
+		cp = (ConfigPro) pc.getConfig();
+		FunctionLib fl = cp.getCombinedFLDs(pc.getCurrentTemplateDialect());
 		flf = fl.getFunction(name);
 
 		// BIF not found
@@ -82,7 +82,7 @@ public class BIF extends MemberSupport implements UDFPlus {
 
 	public BIF(Config config, FunctionLibFunction flf) {
 		super(Component.ACCESS_PUBLIC);
-		ci = (ConfigImpl) config;
+		cp = (ConfigPro) config;
 		this.flf = flf;
 	}
 
@@ -182,7 +182,7 @@ public class BIF extends MemberSupport implements UDFPlus {
 
 	@Override
 	public UDF duplicate() {
-		return new BIF(ci, flf);
+		return new BIF(cp, flf);
 	}
 
 	@Override
