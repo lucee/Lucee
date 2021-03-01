@@ -211,7 +211,7 @@ public final class QueryParam extends TagImpl {
 				write(sb.toString());
 			}
 			else {
-				check(item.getValue(), item.getType());
+				check(item.getValue(), item.getType(), (int) maxlength, charset);
 				String vals;
 				vals = "";
 				if(vals == item.getValue() && (item.getType() == 4 || item.getType() == -7 || item.getType() == -5)) throw new ApplicationException("Invalid data ['"+ item.getValue() +"'] for CFSQLTYPE in CFQUERYPARAM" );
