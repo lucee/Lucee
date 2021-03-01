@@ -160,7 +160,8 @@ public final class HSQLDBHandler {
 		stopwatch.start();
 
 		Key[] cols = CollectionUtil.keys(query);
-		String[] usedCols = null;
+		ArrayList<String> usedCols = new ArrayList<String>();
+		
 		int[] types = query.getTypes();
 		int[] innerTypes = toInnerTypes(types);
 		String comma = "";
@@ -172,9 +173,9 @@ public final class HSQLDBHandler {
 
 		for (int i = 0; i < cols.length; i++) {
 			String col = StringUtil.toUpperCase(cols[i].getString()); // quoted objects are case insensitive in HSQLDB
-			colName = Caster.toKey(cols[i].getString());
-			if (true || !tableCols.containsKey(colName)){
-				usedCols[usedCols.length] = col;
+			//colName = Caster.toKey(cols[i].getString());
+			if (tableCols == null || tableCols.containsKey(col)){
+				usedCols.add(col);
 
 				insert.append(comma);
 				insert.append(escape);
@@ -189,6 +190,11 @@ public final class HSQLDBHandler {
 		insert.append(")");
 		values.append(")");
 
+		if (tableCols != null && usedCols.size() == 0){
+			SystemOut.print("Populate Table, table has no used columns: " + name);
+			return;
+		}
+
 		SystemOut.print("SQL: " + Caster.toString(insert));
 		SystemOut.print("SQL: " + Caster.toString(values));
 		
@@ -196,19 +202,15 @@ public final class HSQLDBHandler {
 		// HashMap integerTypes=getIntegerTypes(types);
 		PreparedStatement prepStat = conn.prepareStatement(insert.toString() + values.toString());
 
-		int count = query.getRecordcount();
-
-		if (usedCols.length == 0){
-			SystemOut.print("Populate Table, table has no used columns: " + name);
-			return;
-		}			
+		int rows = query.getRecordcount();	
+		int count = usedCols.size();
 		
-		QueryColumn[] columns = new QueryColumn[usedCols.length];
-		for (int i = 0; i < usedCols.length; i++) {
-			columns[i] = query.getColumn(usedCols[i]);
+		QueryColumn[] columns = new QueryColumn[count];
+		for (int i = 0; i < count; i++) {
+			columns[i] = query.getColumn(usedCols.get(i));
 		}
-		for (int y = 0; y < count; y++) {
-			for (int i = 0; i < usedCols.length; i++) {
+		for (int y = 0; y < rows; y++) {
+			for (int i = 0; i < count; i++) {
 				int type = innerTypes[i];
 				Object value = columns[i].get(y + 1, null);
 
@@ -223,17 +225,17 @@ public final class HSQLDBHandler {
 						// print.out(new java.util.Date(new
 						// Date(DateCaster.toDateAdvanced(value,pc.getTimeZone()).getTime()).getTime()));
 
-						prepStat.setTimestamp(i + 1, (value.equals("")) ? null : new Timestamp(DateCaster.toDateAdvanced(query.getAt(usedCols[i], y + 1), pc.getTimeZone()).getTime()));
+						prepStat.setTimestamp(i + 1, (value.equals("")) ? null : new Timestamp(DateCaster.toDateAdvanced(query.getAt(usedCols.get(i), y + 1), pc.getTimeZone()).getTime()));
 						// prepStat.setObject(i+1,Caster.toDate(value,null));
 						// prepStat.setDate(i+1,(value==null || value.equals(""))?null:new
 						// Date(DateCaster.toDateAdvanced(value,pc.getTimeZone()).getTime()));
 					}
 					else if (type == TIME)
-						prepStat.setTime(i + 1, (value.equals("")) ? null : new Time(DateCaster.toDateAdvanced(query.getAt(usedCols[i], y + 1), pc.getTimeZone()).getTime()));
+						prepStat.setTime(i + 1, (value.equals("")) ? null : new Time(DateCaster.toDateAdvanced(query.getAt(usedCols.get(i), y + 1), pc.getTimeZone()).getTime()));
 					else if (type == TIMESTAMP)
-						prepStat.setTimestamp(i + 1, (value.equals("")) ? null : new Timestamp(DateCaster.toDateAdvanced(query.getAt(usedCols[i], y + 1), pc.getTimeZone()).getTime()));
-					else if (type == DOUBLE) prepStat.setDouble(i + 1, (value.equals("")) ? 0 : Caster.toDoubleValue(query.getAt(usedCols[i], y + 1)));
-					else if (type == INT) prepStat.setLong(i + 1, (value.equals("")) ? 0 : Caster.toLongValue(query.getAt(usedCols[i], y + 1)));
+						prepStat.setTimestamp(i + 1, (value.equals("")) ? null : new Timestamp(DateCaster.toDateAdvanced(query.getAt(usedCols.get(i), y + 1), pc.getTimeZone()).getTime()));
+					else if (type == DOUBLE) prepStat.setDouble(i + 1, (value.equals("")) ? 0 : Caster.toDoubleValue(query.getAt(usedCols.get(i), y + 1)));
+					else if (type == INT) prepStat.setLong(i + 1, (value.equals("")) ? 0 : Caster.toLongValue(query.getAt(usedCols.get(i), y + 1)));
 					else if (type == STRING) prepStat.setObject(i + 1, Caster.toString(value));
 				}
 
@@ -344,15 +346,22 @@ public final class HSQLDBHandler {
 	private static Struct getUsedColumnsForQuery(Connection conn, SQL sql) throws SQLException {
 		Stopwatch stopwatch = new Stopwatch(Stopwatch.UNIT_MILLI);
 		stopwatch.start();
+
 		ResultSet rs = null;
 		ResultSetMetaData rsmd = null;
 		String view = "V_QOQ_TEMP";
 		Struct tables = new StructImpl();
+
+		return tables;
+		/*
+		// this doesn't work yet, I think due to hsqldb being ancient aka 1.8.0
+		// INFORMATION_SCHEMA.VIEW_COLUMN_USAGE doesn't exist
+		// if VIEW_COLUMN_USAGE doesn't contain all the columns required, we could use the QoQ parser?
+
 		try {
 			Statement stat = conn.createStatement();
 			stat.execute("CREATE VIEW " + view + " AS " + sql.toString());
-
-			// this doesn't work, I think due to hsqldb being ancient aka 1.8.0
+			
 			StringBuilder viewUsage = new StringBuilder("SELECT COLUMN_NAME, TABLE_NAME ");
 			viewUsage.append("FROM INFORMATION_SCHEMA.VIEW_COLUMN_USAGE WHERE VIEW_NAME='");
 			viewUsage.append(view);
@@ -393,6 +402,7 @@ public final class HSQLDBHandler {
 		}
 		SystemOut.print("getUsedColumnsForQuery: took " + stopwatch.time());
 		return tables;
+		*/
 	}
 
 	/**
@@ -552,17 +562,20 @@ public final class HSQLDBHandler {
 					}
 					
 					// create the sql as a view, to find out which table columns are needed
-					Struct tableColumns = getUsedColumnsForQuery(conn, sql);
+					Struct allTableColumns = getUsedColumnsForQuery(conn, sql);
+					Struct tableColumns = null;
 					
 					// load data into tables
 					it = usedTables.iterator();
 					while (it.hasNext()) {
 						tableName = it.next().toString();
 						tableKey = Caster.toKey(tableName);
-						// only populate if there are used columns
-						if (tableColumns.containsKey(tableKey)){ 
+						
+						tableColumns = allTableColumns.containsKey(tableKey) ? ((Struct) tableColumns.get(tableKey)) : null;
+						// only populate tables with data if there are used columns, or no needed column data at all
+						if (tableColumns != null || allTableColumns.size() == 0){
 							populateTable(conn, pc, tableName, Caster.toQuery(pc.getVariable(StringUtil.removeQuotes(tableName, true))), 
-								doSimpleTypes, ((Struct) tableColumns.get(tableKey))); 
+								doSimpleTypes, tableColumns); 
 						}
 					}
 
