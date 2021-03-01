@@ -102,7 +102,7 @@ public final class FunctionException extends ExpressionException {
 	}
 
 	public FunctionException(PageContext pc, String functionName, int min, int max, int actual) {
-		super(actual < min ? "too few arguments for function call" : "too many arguments for function call");
+		super(actual < min ? "too few arguments for function [" + functionName+ "] call" : "too many arguments for function [" + functionName+ "] call");
 	}
 
 	private static String getFunctionInfo(PageContext pc, String functionName) {
