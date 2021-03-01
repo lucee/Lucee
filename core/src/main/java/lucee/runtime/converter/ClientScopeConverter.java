@@ -128,6 +128,6 @@ public class ClientScopeConverter {
 		// Date
 		else if (object instanceof Date) return Caster.toString(object, null);
 
-		throw new ConverterException("can't convert complex value " + Caster.toTypeName(object) + " to a simple value");
+		throw new ConverterException("Can't convert complex value [" + Caster.toTypeName(object) + "] to a simple value");
 	}
 }

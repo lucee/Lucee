@@ -1,6 +1,20 @@
 <!---
 Defaults --->
 
+<cfif structKeyExists(form,"adminMode")>
+		
+	<cfadmin
+		action="updateAdminMode"
+		type="#request.adminType#"
+		password="#session["password"&request.adminType]#"
+		mode="#form.adminMode#"
+		merge="#!isNull(form.switch) && form.switch=="merge"#"
+		keep="#!isNull(form.keep)#">
+	<cflocation url="#request.self#?action=#url.action#" addtoken=false>
+</cfif>
+
+
+<cfset current.label = "Lucee " & server.lucee.version & " - " & current.label>
 <cfset error.message="">
 <cfset error.detail="">
 <cfparam name="form.mainAction" default="none">
@@ -46,14 +60,8 @@ Defaults --->
 		<cfset error.cfcatch=cfcatch>
 	</cfcatch>
 </cftry>
-<cfadmin 
-	action="surveillance" 
-	type="#request.adminType#" 
-	password="#session["password"&request.adminType]#" 
-	returnVariable="surveillance">
-
 <!---
-Redirtect to entry --->
+Redirect to entry --->
 <cfif cgi.request_method EQ "POST" and error.message EQ "" and form.mainAction NEQ "none">
 	<cflocation url="#request.self#" addtoken="no">
 </cfif>
@@ -89,6 +97,7 @@ Error Output --->
 <cfhtmlbody>
     <script src="../res/js/echarts-all.js.cfm" type="text/javascript"></script>
     <script type="text/javascript">
+    	var chartTimer;
     	labels={'heap':"Heap",'nonheap':"Non-Heap",'cpuSystem':"Whole System",'cpuProcess':"Lucee Process"};
 		function requestData(){
 			jQuery.ajax({
@@ -129,7 +138,8 @@ Error Output --->
 						}
 						window[chrt].setOption(cpuSystemChartOption); // passed the data into the chats
 					});
-					setTimeout(requestData, 1000);
+					if (chartTimer !== null)
+						chartTimer = setTimeout(requestData, 5000);
 				}
 			})
 		}
@@ -143,7 +153,7 @@ Error Output --->
 				backgroundColor: ["#EFEDE5"],
 				tooltip : {'trigger':'axis',
 					formatter : function (params) {
-						return 'Series' + "<br>" + params[0][0] + ": " + params[0][2] + "%" + '<br>' +params[0][1] ;
+						return 'Series' + "<br>" + params[0].seriesName + ": " + params[0].value + "%" + '<br>' +params[0].name ;
 					}
 				},
 
@@ -185,9 +195,9 @@ Error Output --->
 				formatter : function (params) {
 					var series2 = "";
 					if(params.length == 2) {
-						series2 =  params[1][0] + ": "+ params[1][2] + "%" + '<br>' +params[0][1];
+						series2 =  params[1].seriesName + ": "+ params[1].value + "%" + '<br>' +params[0].name;
 					}
-					return 'Series' + "<br>" + params[0][0] + ": " + params[0][2] + "%" + '<br>'  + series2;
+					return 'Series' + "<br>" + params[0].seriesName + ": " + params[0].value + "%" + '<br>'  + series2;
 				}
 			},
 			legend: {
@@ -247,6 +257,10 @@ Error Output --->
 	<div class="pageintro">
 		#stText.Overview.introdesc[request.adminType]#
 	</div>
+	
+
+
+
 
 	<cfadmin
 		action="getInfo"
@@ -301,6 +315,7 @@ Error Output --->
 			</div>
 		</cfif>
 	</cfif>
+
 	<cfset systemInfo=GetSystemMetrics()>
 
 
@@ -324,6 +339,87 @@ Error Output --->
 			<cfset flds=listToArray(valueList(flds.displayname))>
 		</cfif>
 	</cfif>
+
+
+
+
+	<cfset stText.Overview.modeMulti="You are in Multi Mode">
+	<cfset stText.Overview.modeSingle="You are in Single Mode">
+	<cfset stText.Overview.modeMultiDesc="You are running Lucee in Multi Mode, this means you have a single Server Administrator where you can set settings for all web contexts/webs and a Web Administrator for every single web context/web.">
+	<cfset stText.Overview.modeSingleDesc="You are running Lucee in Single Mode, this means you only have a single Administrator, one place where you do all your configurations for all web contexts/webs.
+"> 
+	
+	<cfset stText.Overview.modeMultiSwitch="Switch to Single Mode?">
+	<cfset stText.Overview.modeSingleSwitch="Switch to Multi Mode?">
+	<cfset stText.Overview.modeMultiSwitchDesc="You wanna activate Lucee in Single Mode, this means you only have a single Administrator, one place where you do all your configurations for all web contexts/webs.">
+	<cfset stText.Overview.modeSingleSwitchDesc="You wanna activate Multi Mode, mean having a Server Administrator where you can set settings for all web contexts/webs and a Web Administrator for every single web context/web, you can simply switch to Multi Mode here.">
+
+
+	<cfset stText.Overview.switchMerge="Merge and Switch">
+	<cfset stText.Overview.switchMergeDesc="All settings from all web contexts/webs get stored into the server context">
+	<cfset stText.Overview.switchLeave="Just Switch">
+	<cfset stText.Overview.switchLeaveDesc="Switch to single mode and forget all settings done in all web contexts/webs">
+	
+	<cfset stText.Overview.switchKeep="keep all web context/web configuration in place, so i can go back to multi mode">
+
+
+	<cfset stText.Buttons.switch="Switch">
+
+
+<cfif request.adminType=="server">
+	
+		
+	<cfformClassic onerror="customError" action="#request.self#?action=overview" method="post">
+		<input type="hidden" name="adminMode" value="#request.singlemode?"multi":"single"#">
+		<h2>#stText.Overview[request.singlemode?"modeSingle":"modeMulti"]#</h2>
+		<div class="itemintro">#stText.Overview[request.singlemode?"modeSingleDesc":"modeMultiDesc"]#</div>
+		<table class="maintbl">
+		<tbody>
+			<tr>
+				<th scope="row">
+					<h4>#stText.Overview[request.singlemode?"modeSingleSwitch":"modeMultiSwitch"]#</h4>
+#stText.Overview[request.singlemode?"modeSingleSwitchDesc":"modeMultiSwitchDesc"]#
+				</th>
+				<cfif !request.singleMode>
+	
+				<td>
+					<ul class="radiolist" id="sp_options">
+						<li>
+							<label>
+								<input type="radio" class="radio" name="switch" value="merge" checked="checked">
+								<b>#stText.Overview.switchMerge#</b>
+							</label>
+							<div class="comment">#stText.Overview.switchMergeDesc#</div>
+						</li>
+						<li>
+							<label>
+								<input type="radio" class="radio" name="switch" value="leave">
+								<b>#stText.Overview.switchLeave#</b>
+							</label>
+							<div class="comment">#stText.Overview.switchLeaveDesc#</div>
+						</li>
+					</ul>
+					<br><br>
+					<input type="checkbox" class="checkbox" name="keep" value="keep" checked="checked">
+					<div class="comment">#stText.Overview.switchKeep#</div>
+				</td>
+				</cfif>
+			</tr>
+		</tbody>
+		<tfoot>
+			<tr>
+				<td colspan="2">
+					<input type="submit" class="b button submit" name="mainAction1" value="#stText.Buttons.switch#">
+				</td>
+			</tr>
+		</tfoot>
+		</table>
+</cfformClassic>
+
+</cfif>
+
+
+
 
 
 
@@ -473,7 +569,11 @@ Error Output --->
 		</tr>
 
 
-
+		<cfadmin
+		action="getMinVersion"
+		type="server"
+		password="#session["password"&request.adminType]#"
+		returnVariable="minVersion">
 		<tr>
 			<td valign="top" colspan="3">
 				<br>
@@ -497,7 +597,7 @@ Error Output --->
 									<th nowrap="nowrap" scope="row">#stText.Overview.ReleaseDate#</th>
 									<td>#lsDateFormat(server.lucee['release-date'])#</td>
 								</tr>
-								<cfif request.adminType EQ "web">
+								<cfif !request.singleMode && request.adminType EQ "web">
 								<tr>
 									<th nowrap="nowrap" scope="row">#stText.Overview.label#</th>
 									<td>#info.label#</td>
@@ -536,6 +636,10 @@ Error Output --->
 									<td>#cgi.remote_addr#</td>
 								</tr>
 								<tr>
+									<th scope="row">Loader Version</th>
+									<td>#minversion#</td>
+								</tr>
+								<tr>
 									<th scope="row">#stText.overview.servletContainer#</th>
 									<td>#server.servlet.name#</td>
 								</tr>
@@ -562,7 +666,7 @@ Error Output --->
 									</cfif>
 									</td>
 								</tr>
-								<cfif request.adminType EQ "web">
+								<cfif !request.singleMode && request.adminType EQ "web">
 									<tr>
 										<th scope="row">#stText.Overview.hash#</th>
 										<td>#info.hash#</td>
@@ -659,14 +763,14 @@ Error Output --->
 						<!--- Prof Support --->
 						<tr>
 							<td>
-								<a href="http://lucee.org/support.html" target="_blank">#stText.Overview.Professional#</a>
+								<a href="https://lucee.org/support.html" target="_blank">#stText.Overview.Professional#</a>
 								<div class="comment">#stText.Overview.ProfessionalDesc#</div>
 							</td>
 						</tr>
 						<!--- Doc --->
 						<tr>
 							<td>
-								<a href="http://docs.lucee.org" target="_blank">#stText.Overview.onlineDocsLink#</a>
+								<a href="https://docs.lucee.org" target="_blank">#stText.Overview.onlineDocsLink#</a>
 								<div class="comment">#stText.Overview.onlineDocsDesc#</div>
 							</td>
 						</tr>
@@ -680,7 +784,7 @@ Error Output --->
 						<!--- Mailing List --->
 						<tr>
 							<td>
-								<a href="http://groups.google.com/group/lucee" target="_blank">#stText.Overview.Mailinglist#</a>
+								<a href="https://groups.google.com/group/lucee" target="_blank">#stText.Overview.Mailinglist#</a>
 								<div class="comment">#stText.Overview.MailinglistDesc#</div>
 							</td>
 						</tr>
@@ -694,7 +798,7 @@ Error Output --->
 						<!--- Blog --->
 						<tr>
 							<td>
-								<a href="http://blog.lucee.org/" target="_blank">#stText.Overview.blog#</a>
+								<a href="http://blog.lucee.org" target="_blank">#stText.Overview.blog#</a>
 								<div class="comment">#stText.Overview.blogDesc#</div>
 							</td>
 						</tr>
@@ -772,7 +876,12 @@ Error Output --->
 <cfscript>
 	function getJavaVersion() {
 		var verArr=listToArray(server.java.version,'.');
-		if(verArr[1]>2) return verArr[1];
-		return verArr[2];
+		if(verArr[1]>2) {
+			return verArr[1];
+		} else if (verArr.len() GT 1) {
+			return verArr[2];
+		} else {
+		    return val(server.java.version);
+		}
 	}
 </cfscript>

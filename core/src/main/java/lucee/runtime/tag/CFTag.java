@@ -36,7 +36,7 @@ import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.component.ComponentLoader;
 import lucee.runtime.component.Member;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.customtag.CustomTagUtil;
 import lucee.runtime.customtag.InitFile;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -69,26 +69,28 @@ import lucee.runtime.util.QueryStack;
 import lucee.runtime.util.QueryStackImpl;
 import lucee.transformer.library.tag.TagLibTag;
 import lucee.transformer.library.tag.TagLibTagAttr;
+import lucee.transformer.library.tag.TagLibTagScript;
 
 /**
  * Creates a CFML Custom Tag
  **/
 public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttributes, AppendixTag {
 
-	private static Collection.Key GENERATED_CONTENT = KeyImpl.intern("GENERATEDCONTENT");
-	private static Collection.Key EXECUTION_MODE = KeyImpl.intern("EXECUTIONMODE");
-	private static Collection.Key EXECUTE_BODY = KeyImpl.intern("EXECUTEBODY");
-	private static Collection.Key PARENT = KeyImpl.intern("PARENT");
+	private static Collection.Key GENERATED_CONTENT = KeyConstants._GENERATEDCONTENT;
+	private static Collection.Key EXECUTION_MODE = KeyConstants._EXECUTIONMODE;
+	private static Collection.Key EXECUTE_BODY = KeyConstants._EXECUTEBODY;
+	private static Collection.Key PARENT = KeyConstants._PARENT;
 	private static Collection.Key CFCATCH = KeyConstants._CFCATCH;
-	private static Collection.Key SOURCE = KeyImpl.intern("SOURCE");
+	private static Collection.Key SOURCE = KeyConstants._SOURCE;
 
-	private static final Collection.Key ON_ERROR = KeyImpl.intern("onError");
-	private static final Collection.Key ON_FINALLY = KeyImpl.intern("onFinally");
-	private static final Collection.Key ON_START_TAG = KeyImpl.intern("onStartTag");
-	private static final Collection.Key ON_END_TAG = KeyImpl.intern("onEndTag");
+	private static final Collection.Key ON_ERROR = KeyConstants._onError;
+	private static final Collection.Key ON_FINALLY = KeyConstants._onFinally;
+	private static final Collection.Key ON_START_TAG = KeyConstants._onStartTag;
+	private static final Collection.Key ON_END_TAG = KeyConstants._onEndTag;
 
-	private static final Collection.Key ATTRIBUTE_TYPE = KeyImpl.intern("attributetype");
-	private static final Collection.Key RT_EXPR_VALUE = KeyImpl.intern("rtexprvalue");
+	private static final Collection.Key ATTRIBUTE_TYPE = KeyImpl.getInstance("attributetype");
+	private static final Collection.Key SCRIPT = KeyConstants._script;
+	private static final Collection.Key RT_EXPR_VALUE = KeyImpl.getInstance("rtexprvalue");
 	private static final String MARKER = "2w12801";
 
 	/**
@@ -341,7 +343,7 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
 		catch (PageException e) {
 			Mapping m = source.getPageSource().getMapping();
 
-			ConfigWebImpl c = (ConfigWebImpl) pageContext.getConfig();
+			ConfigWebPro c = (ConfigWebPro) pageContext.getConfig();
 			if (m == c.getDefaultTagMapping()) m = c.getDefaultServerTagMapping();
 			else m = null;
 			// is te page source from a tag mapping, so perhaps it was moved from server to web context
@@ -472,6 +474,22 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
 
 		// type
 		String type = Caster.toString(meta.get(ATTRIBUTE_TYPE, "dynamic"), "dynamic");
+
+		// script
+		String script = Caster.toString(meta.get(SCRIPT, null), null);
+		if (!StringUtil.isEmpty(script, true)) {
+			script = script.trim();
+			TagLibTagScript tlts = new TagLibTagScript(tag);
+			if ("multiple".equalsIgnoreCase(script) || Caster.toBooleanValue(script, false)) {
+				tlts = new TagLibTagScript(tag);
+				tlts.setType(TagLibTagScript.TYPE_MULTIPLE);
+			}
+			else if ("single".equalsIgnoreCase(script)) {
+				tlts = new TagLibTagScript(tag);
+				tlts.setType(TagLibTagScript.TYPE_SINGLE);
+			}
+			if (tlts != null) tag.setScript(tlts);
+		}
 
 		if ("fixed".equalsIgnoreCase(type)) tag.setAttributeType(TagLibTag.ATTRIBUTE_TYPE_FIXED);
 		// else if("mixed".equalsIgnoreCase(type))tag.setAttributeType(TagLibTag.ATTRIBUTE_TYPE_MIXED);
@@ -616,7 +634,7 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
 				throw new PageRuntimeException(pe);
 			}
 			finally {
-				writeEnclosingWriter();
+				// writeEnclosingWriter();
 			}
 		}
 	}

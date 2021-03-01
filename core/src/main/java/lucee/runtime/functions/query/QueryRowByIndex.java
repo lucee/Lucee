@@ -4,6 +4,7 @@ import java.util.Map;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.ApplicationException;
+import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
 import lucee.runtime.op.Caster;
@@ -23,17 +24,30 @@ public class QueryRowByIndex extends BIF {
 		return Caster.toDoubleValue(getIndex(query, index));
 	}
 
+	public static double call(PageContext pc, Query query, String index, double defaultValue) {
+		return Caster.toDoubleValue(getIndex(query, index, (int) defaultValue));
+	}
+
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
-		return call(pc, Caster.toQuery(args[0]), Caster.toString(args[1]));
+		if (args.length == 2) return call(pc, Caster.toQuery(args[0]), Caster.toString(args[1]));
+		else if (args.length == 3) return call(pc, Caster.toQuery(args[0]), Caster.toString(args[1]), Caster.toDoubleValue(args[2]));
+		throw new FunctionException(pc, "QueryRowByIndex", 2, 3, args.length);
 	}
 
 	public static int getIndex(Query query, String index) throws ApplicationException {
 		Map<Key, Integer> indexes = ((QueryImpl) query).getIndexes();
-		if (indexes == null) throw new ApplicationException("the query does not have no index table defined [" + index + "]");
+		if (indexes == null) throw new ApplicationException("Query is not indexed, index [" + index + "] not found");
 		Integer indx = indexes.get(KeyImpl.getInstance(index));
-		if (indx == null) throw new ApplicationException("there is no index with the value [" + index + "]");
+		if (indx == null) throw new ApplicationException("Query does not have an index for the column [" + index + "]");
 		return indx;
+	}
 
+	public static int getIndex(Query query, String index, int defaultValue) {
+		Map<Key, Integer> indexes = ((QueryImpl) query).getIndexes();
+		if (indexes == null) return defaultValue;
+		Integer indx = indexes.get(KeyImpl.getInstance(index));
+		if (indx == null) return defaultValue;
+		return indx;
 	}
 }

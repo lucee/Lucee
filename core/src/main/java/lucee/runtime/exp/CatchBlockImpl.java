@@ -57,13 +57,13 @@ public class CatchBlockImpl extends StructImpl implements CatchBlock, Castable, 
 
 	private static final long serialVersionUID = -3680961614605720352L;
 
-	public static final Key ERROR_CODE = KeyImpl.intern("ErrorCode");
-	public static final Key CAUSE = KeyImpl.intern("Cause");
-	public static final Key EXTENDEDINFO = KeyImpl.intern("ExtendedInfo");
-	public static final Key EXTENDED_INFO = KeyImpl.intern("Extended_Info");
-	public static final Key TAG_CONTEXT = KeyImpl.intern("TagContext");
-	public static final Key STACK_TRACE = KeyImpl.intern("StackTrace");
-	public static final Key ADDITIONAL = KeyImpl.intern("additional");
+	public static final Key ERROR_CODE = KeyImpl.getInstance("ErrorCode");
+	public static final Key CAUSE = KeyConstants._Cause;
+	public static final Key EXTENDEDINFO = KeyImpl.getInstance("ExtendedInfo");
+	public static final Key EXTENDED_INFO = KeyImpl.getInstance("Extended_Info");
+	public static final Key TAG_CONTEXT = KeyImpl.getInstance("TagContext");
+	public static final Key STACK_TRACE = KeyImpl.getInstance("StackTrace");
+	public static final Key ADDITIONAL = KeyImpl.getInstance("additional");
 
 	private PageException exception;
 
@@ -97,7 +97,11 @@ public class CatchBlockImpl extends StructImpl implements CatchBlock, Castable, 
 						continue;
 					}
 					key = KeyImpl.init(Reflector.removeGetterPrefix(getter.getName()));
-					if (STACK_TRACE.equalsIgnoreCase(key)) continue;
+
+					if (KeyConstants._Message.equalsIgnoreCase(key) || KeyConstants._Detail.equalsIgnoreCase(key)) {
+						if (getter.getReturnType() != String.class) continue;
+					}
+					else if (STACK_TRACE.equalsIgnoreCase(key) || KeyConstants._type.equalsIgnoreCase(key) || CAUSE.equalsIgnoreCase(key)) continue;
 					setEL(key, new Pair(throwable, key, getter, false));
 				}
 			}
@@ -433,12 +437,12 @@ public class CatchBlockImpl extends StructImpl implements CatchBlock, Castable, 
 	}
 
 	public Object callWithNamedValues(PageContext pc, String methodName, Struct args) throws PageException {
-		throw new ApplicationException("named arguments not supported");
+		throw new ApplicationException("Named arguments not supported");
 	}
 
 	@Override
 	public Object callWithNamedValues(PageContext pc, Key methodName, Struct args) throws PageException {
-		throw new ApplicationException("named arguments not supported");
+		throw new ApplicationException("Named arguments not supported");
 	}
 
 	public boolean isInitalized() {

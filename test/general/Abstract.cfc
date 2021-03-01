@@ -22,7 +22,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			assertTrue(find("the interface [",e.message));
 			assertTrue(find("] cannot be used as a component.",e.message));
 		}
-		if(notFailed)fail("cannot instantiate a interface");
+		if(notFailed)fail("cannot instantiate an interface");
 	}
 
 	public void function testCannotInstantiateAbstractComponent(){
@@ -71,7 +71,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		catch(e){
 			assertTrue(find("does not implement the function",e.message));
 		}
-		if(notFailed)fail("non abstract component that not implement a abstract function");
+		if(notFailed)fail("non abstract component that not implement an abstract function");
 	}
 
 	public void function testOverwriteFinalMethod(){

@@ -117,7 +117,7 @@ public final class NumberFormat {
 		boolean foundZero = false;
 
 		int maskLen = str.length();
-		if (maskLen == 0) throw new InvalidMaskException("mask can't be a empty value");
+		if (maskLen == 0) throw new InvalidMaskException("mask can't be an empty value");
 
 		StringBuilder maskBuffer = new StringBuilder(str);
 

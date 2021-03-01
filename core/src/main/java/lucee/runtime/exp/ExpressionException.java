@@ -31,7 +31,7 @@ import lucee.runtime.type.KeyImpl;
  */
 public class ExpressionException extends PageExceptionImpl {
 
-	private static final Collection.Key ERR_NUMBER = KeyImpl.intern("ErrNumber");
+	private static final Collection.Key ERR_NUMBER = KeyImpl.getInstance("ErrNumber");
 
 	/**
 	 * Class Constuctor

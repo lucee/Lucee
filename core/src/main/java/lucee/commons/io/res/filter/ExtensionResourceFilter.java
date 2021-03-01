@@ -20,6 +20,7 @@ package lucee.commons.io.res.filter;
 
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
+import lucee.runtime.type.util.ListUtil;
 
 /**
  * Filter fuer die <code>listFiles</code> Methode des FIle Objekt, zum filtern von FIles mit einer
@@ -30,6 +31,7 @@ public final class ExtensionResourceFilter implements ResourceFilter {
 	private String[] extensions;
 	private final boolean allowDir;
 	private final boolean ignoreCase;
+	private final boolean mustExists;
 	// private int extLen;
 
 	public static final ExtensionResourceFilter EXTENSION_JAR_NO_DIR = new ExtensionResourceFilter(".jar", false);
@@ -50,18 +52,22 @@ public final class ExtensionResourceFilter implements ResourceFilter {
 	 * @param extension Endung die geprueft werden soll.
 	 */
 	public ExtensionResourceFilter(String extension, boolean allowDir) {
-		this(new String[] { extension }, allowDir, true);
+		this(new String[] { extension }, allowDir, true, true);
 	}
 
 	public ExtensionResourceFilter(String[] extensions) {
-		this(extensions, false, true);
+		this(extensions, false, true, true);
 	}
 
 	public ExtensionResourceFilter(String[] extensions, boolean allowDir) {
-		this(extensions, allowDir, true);
+		this(extensions, allowDir, true, true);
 	}
 
 	public ExtensionResourceFilter(String[] extensions, boolean allowDir, boolean ignoreCase) {
+		this(extensions, allowDir, ignoreCase, true);
+	}
+
+	public ExtensionResourceFilter(String[] extensions, boolean allowDir, boolean ignoreCase, boolean mustExists) {
 		String[] tmp = new String[extensions.length];
 		for (int i = 0; i < extensions.length; i++) {
 			if (!StringUtil.startsWith(extensions[i], '.')) tmp[i] = "." + extensions[i];
@@ -70,6 +76,7 @@ public final class ExtensionResourceFilter implements ResourceFilter {
 		this.extensions = tmp;
 		this.allowDir = allowDir;
 		this.ignoreCase = ignoreCase;
+		this.mustExists = mustExists;
 	}
 
 	public void addExtension(String extension) {
@@ -88,7 +95,7 @@ public final class ExtensionResourceFilter implements ResourceFilter {
 	@Override
 	public boolean accept(Resource res) {
 		if (res.isDirectory()) return allowDir;
-		if (res.exists()) {
+		if (!mustExists || res.exists()) {
 			String name = res.getName();
 			for (int i = 0; i < extensions.length; i++) {
 				if (ignoreCase) {
@@ -120,5 +127,15 @@ public final class ExtensionResourceFilter implements ResourceFilter {
 	 */
 	public String[] getExtensions() {
 		return extensions;
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		for (String ext: getExtensions()) {
+			if (sb.length() > 0) sb.append(',');
+			sb.append(ListUtil.trim(ext, "."));
+		}
+		return sb.toString();
 	}
 }

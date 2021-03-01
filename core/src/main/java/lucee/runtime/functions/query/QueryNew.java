@@ -18,8 +18,10 @@
  **/
 package lucee.runtime.functions.query;
 
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
@@ -44,25 +46,31 @@ public final class QueryNew extends BIF {
 
 	private static final long serialVersionUID = -4313766961671090938L;
 
-	/** @deprecated used by old lucee archives */
-	@Deprecated
-	public static lucee.runtime.type.Query call(PageContext pc, String columnNames) throws PageException {
-		return call(pc, (Object) columnNames);
-	}
-
-	/** @deprecated used by old lucee archives */
-	@Deprecated
-	public static lucee.runtime.type.Query call(PageContext pc, String columnNames, String columnTypes) throws PageException {
-		return call(pc, (Object) columnNames, (Object) columnTypes);
-	}
-
-	/** @deprecated used by old lucee archives */
-	@Deprecated
-	public static lucee.runtime.type.Query call(PageContext pc, String columnNames, String columnTypes, Object data) throws PageException {
-		return call(pc, (Object) columnNames, (Object) columnTypes, data);
-	}
-
 	public static lucee.runtime.type.Query call(PageContext pc, Object columnNames) throws PageException {
+		Array arr = toArray(pc, columnNames, 1);
+		if (arr.size() > 0 && Decision.isStruct(arr.getE(1))) {
+			QueryImpl qry = new QueryImpl(new Key[0], arr.size(), "");
+			Iterator<Object> it = arr.valueIterator();
+			Iterator<Entry<Key, Object>> rit;
+			int row = 0;
+			Entry<Key, Object> e;
+			Set<Key> containsCache = new HashSet<>();
+			while (it.hasNext()) {
+				rit = Caster.toStruct(it.next()).entryIterator();
+				row++;
+				while (rit.hasNext()) {
+					e = rit.next();
+					// add column
+					if (!containsCache.contains(e.getKey())) {
+						qry.addColumn(e.getKey(), new ArrayImpl());
+						containsCache.add(e.getKey());
+					}
+					qry.setAt(e.getKey(), row, e.getValue());
+				}
+			}
+			return qry;
+		}
+
 		return new QueryImpl(toArray(pc, columnNames, 1), 0, "query");
 	}
 
@@ -178,7 +186,7 @@ public final class QueryNew extends BIF {
 	private static Array toArray(PageContext pc, Object columnNames, int index) throws PageException {
 		if (Decision.isArray(columnNames)) return Caster.toArray(columnNames);
 		String str = Caster.toString(columnNames, null);
-		if (str == null) throw new FunctionException(pc, "QueryNew", index, index == 1 ? "columnNames" : "columnTypes", "cannot cast to a array or a string list");
+		if (str == null) throw new FunctionException(pc, "QueryNew", index, index == 1 ? "columnNames" : "columnTypes", "cannot cast to an array or a string list");
 		return ListUtil.listToArrayTrim(str, ",");
 	}
 }

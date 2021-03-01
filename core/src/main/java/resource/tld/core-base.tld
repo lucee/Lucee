@@ -5,7 +5,7 @@
 	<tlib-version>1.0</tlib-version>
 	<cfml-version>1.0</cfml-version>
 	<short-name>tbase</short-name>
-	<uri>http://www.lucee.org/cf-tld-3-1</uri>
+	<uri>https://www.lucee.org/cf-tld-3-1</uri>
 	<display-name>Lucee Core Tag Library</display-name>
 	<description></description>
 	<name-space>cf</name-space>
@@ -123,7 +123,7 @@
 			<script-support>optional</script-support>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>used to a address a specific loop instead of the nearest one.</description>
+			<description>used to an address a specific loop instead of the nearest one.</description>
 		</attribute>
 	</tag>
 
@@ -778,7 +778,7 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<script-support>optional</script-support>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>used to a address a specific loop instead of the nearest one.</description>
+			<description>used to an address a specific loop instead of the nearest one.</description>
 		</attribute>
 	</tag>
 	<!-- Content -->
@@ -941,6 +941,15 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>if set to true, Lucee url encodes the given name and value if necessary.</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>samesite</name>
+			<values>Strict,Lax,None</values>
+			<default-value></default-value>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>It will help to prevent Cross-Site Request Forgeries. Enabling this attribute on the cookie will instruct the browser to afford this cookie certain protections.</description>
 		</attribute>
 	</tag>
 	<!-- DBInfo -->
@@ -1311,6 +1320,13 @@ Example:
 			<rtexprvalue>true</rtexprvalue>
 			<description>Variable in which to put program error stream output. If neither errorFile nor errorVariable is specified, the error stream is discarded.</description>
 		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>directory</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>The working directory in which to execute the command</description>
+		</attribute>
 	</tag>
 	<!-- Exit -->
 	<tag>
@@ -1367,8 +1383,7 @@ Example:
 			<type>struct</type>
 			<name>columnMap</name>
 			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-		    <status>unimplemented</status>
+			<rtexprvalue>true</rtexprvalue>		    
 		<description>Used only for the create action with a query attribute.
             A structure specifying a mapping between the names of the columns in the object specified by the query attribute
             and the columns of the feed format, as described in the Query attribute section.
@@ -1709,6 +1724,22 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<rtexprvalue>true</rtexprvalue>
 			<description>Name of the result value (default:cffile)</description>
 		</attribute>
+		<attribute>
+			<type>any</type>
+			<name>allowedExtensions</name>
+			<alias>allowExtension,allowedExtension</alias>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>String list or string array of extensions allowed, this overwrites any other setting including the attribute [blockedExtensions] and settings done for example in the Application.cfc. </description>
+		</attribute>
+		<attribute>
+			<type>any</type>
+			<name>blockedExtensions</name>
+			<alias>blockExtension,blockedExtension</alias>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>String list or string array of extensions blocked, this overwrites any setting done for example in the Application.cfc.</description>
+		</attribute>
 	</tag>
 	<!-- Flush -->
 	<tag>
@@ -1919,7 +1950,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<name>failIfExists</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>throw a error if local file already exist or overwrite it</description>
+			<description>throw an error if local file already exists or overwrite it</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -3388,7 +3419,9 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>
-			if set to true (default value) URL encodes the value of the attribute "URL" if necessary (no double encoding is happening).
+				Specifies whether to URL encode the the URL.
+				If not set at all (auto mode), it only encodes when necessary to avoid double encoding.
+				If set to true it encodes the URL, if set to false it does not touch it.
 			This setting has no influence on the values from httpparam type="url", for this use the attribute "encoded" from httpparam</description>
 		</attribute>
 		<attribute>
@@ -3741,7 +3774,10 @@ To use cached data, the tag must be called with the exact same arguments.</descr
 			<rtexprvalue>true</rtexprvalue>
 			<description>
 				Applies to type "cgi" and "url", ignored for all other types.
-				 Specifies whether to URL encode the the values defined with the tag, but only if necessary (no double encoding).</description>
+				Specifies whether to URL encode the the values defined with the tag.
+				If not set at all (auto mode), it only encodes when necessary to avoid double encoding.
+				If set to true it encodes the value, if set to false it does not touch it.
+			</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -3779,7 +3815,7 @@ To use cached data, the tag must be called with the exact same arguments.</descr
 			<type>multiple</type>
 			<rtexprvalue>true</rtexprvalue>
 		</script>
-		<description>Retrieves and deletes e-mail messages from a Imap mail server.
+		<description>Retrieves and deletes e-mail messages from an Imap mail server.
 		This tag works exactly the same way as the cfmail tag. It has the same attributes.
 		The Internet Message Access Protocol or IMAP is one of two of the most prevalent Internet standard protocols for e-mail retrieval,
 		the other being POP3. Virtually all modern e-mail clients and servers support both protocols as a means of transferring e-mail messages from a server,
@@ -3840,11 +3876,22 @@ To use cached data, the tag must be called with the exact same arguments.</descr
 		<attribute>
 			<type>string</type>
 			<name>action</name>
-			<values>getHeaderOnly,getAll,delete</values>
+			<values>getHeaderOnly,getAll,delete,open,close,markread,createfolder,deletefolder,renamefolder,listallfolders,movemail</values>
 			<default-value>getHeaderOnly</default-value>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Specifies the mail action.</description>
+			<description>Specifies the mail action.
+- getHeaderOnly
+- getAll
+- delete
+- open
+- close
+- markread
+- createfolder
+- deletefolder
+- renamefolder
+- listallfolders
+- movemail</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -3951,7 +3998,10 @@ To use cached data, the tag must be called with the exact same arguments.</descr
 			<name>taglib</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Path to a custom tag libraray or a jsp tld</description>
+			<description>Path to a custom tag library or a jsp tld
+				
+As cfimport is a compiler directive, Application.cfc mappings won't work, but mappings configured via the web admin will.
+</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -3993,6 +4043,7 @@ If you import a CFML custom tag directory and specify an empty value, "", for th
 		<attribute>
 			<type>string</type>
 			<name>displayName</name>
+			<alias>name</alias>
 			<required>no</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>A value to be displayed when using introspection to show a descriptive name for the interface.</description>
@@ -4699,7 +4750,7 @@ Permits searching collections by title or displaying a separate title from the k
 	<tag>
 		<name>location</name>
 		<tag-class>lucee.runtime.tag.Location</tag-class>
-		<body-content>empty</body-content>
+		<body-content>free</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
 		<script>
 			<type>multiple</type>
@@ -4836,7 +4887,7 @@ Permits searching collections by title or displaying a separate title from the k
 			<name>text</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>a exception to log.</description>
+			<description>an exception to log.</description>
 		</attribute>
 		<attribute>
 			<type>any</type>
@@ -5131,7 +5182,7 @@ Lucee uses the number of characters in the file.</description>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		    <status>implemented</status>
-			<description>used to a address this loop from a "break" or "continue" statement (instead of the nearest one).</description>
+			<description>used to an address this loop from a "break" or "continue" statement (instead of the nearest one).</description>
 		</attribute>
 
 
@@ -5169,7 +5220,7 @@ Lucee uses the number of characters in the file.</description>
 		<attribute>
 			<type>object</type>
 			<name>to</name>
-			<required>false</required>
+			<required>true</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>The name of the e-mail message recipient.</description>
 		</attribute>
@@ -5214,6 +5265,7 @@ Lucee uses the number of characters in the file.</description>
 			<type>string</type>
 			<name>type</name>
 			<required>false</required>
+			<default>text/plain</default>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Specifies extended type attributes for the message.</description>
 		</attribute>
@@ -5237,9 +5289,25 @@ Lucee uses the number of characters in the file.</description>
 			<type>any</type>
 			<name>listener</name>
 			<required>false</required>
-			<status>hidden</status>
 			<rtexprvalue>true</rtexprvalue>
-			<description></description>
+			<description>
+				listener for the mail. the listener can have 2 (optinal) functions, "before" and "after" that get triggered before and after sending the mail.
+				The functions get all data about the mail. 
+				Listener is only used when "async" (spoolenable) is set to true.
+				This attribute overwrites any mail listener defined in the application.cfc/cfapplication.
+				
+				The "before" function can also modify some data, by returning a struct containg the following keys:
+				from, to, bcc, replyto, replyto, subject
+				
+				the listener can be a component looking like this:
+				component {
+					function before(lastExecution,nextExecution,created,id,type,detail,tries,remainingtries,closed,caller,advanced){} 
+					function after(lastExecution,nextExecution,created,id,type,detail,tries,remainingtries,closed,caller,advanced,passed,exception){}}
+				
+				a struct looking like this:
+				component {before:function(...){}, after:function(...){}}
+				
+			</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -5569,7 +5637,7 @@ Lucee uses the number of characters in the file.</description>
 			<type>multiple</type>
 			<rtexprvalue>true</rtexprvalue>
 		</script>
-		<description>Flushes a object cache or returns the current size.</description>
+		<description>Flushes an object cache or returns the current size.</description>
 		<attribute-type>fixed</attribute-type>
 		<attribute>
 			<type>string</type>
@@ -6294,11 +6362,13 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 		<attribute>
 			<type>string</type>
 			<name>columnkey</name>
-			<alias>columnname,column</alias>
-			<status>hidden</status>
+			<alias>columnname,column,keycolumn</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>When return type is set to "struct", the value of this column is used as key in the struct for every record.</description>
+			<description>When return type is set to "struct", the value of this column can be used as key in the struct for every record.
+				If not set then the query must not return more than one record, and the keys of the returned struct are the column names
+				and the values are the column values for the single record that is returned. 
+			</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -6327,7 +6397,7 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>support the following values:
-			- query: for doing a query on a existing query object
+			- query: for doing a query on an existing query object
 			- hql: for doing a query on orm </description>
 		</attribute>
 		<attribute>
@@ -6352,7 +6422,6 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 			<alias>tag</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<status>hidden</status>
 			<description>tags stored with the cache.</description>
 		</attribute>
 		<attribute>
@@ -6488,7 +6557,12 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<rtexprvalue>true</rtexprvalue>
 			<description>one of the following values:
 			- query: default for all dbtype expect "hql", returns a query object
-			- array_of_entity: works only with dbtype "hql" and is also the default value for dbtype "hql"</description>
+			- array_of_entity: works only with dbtype "hql" and is also the default value for dbtype "hql"
+			- array: returns an array, where each element is a struct with a query record
+			- struct: returns either a struct of structs where the key is specified by the keyColumn attribute
+			and each value is a struct with a query record, or a single record if keyColumn is not set, where
+			each key is a column name and each value has its corresponding value.
+			</description>
 		</attribute>
 		<attribute>
 			<type>timezone</type>
@@ -6506,7 +6580,7 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<description>
 			if "lazy" is set to true (default "false") Lucee does not initially load all the data from the datasource,
 			in that case the data are only loaded when requested, so this means the data are depending on the datasource connection.
-			if the datasource connection is gone and the data are not requested yet, lucee throws a error if you try to access the data.
+			if the datasource connection is gone and the data are not requested yet, lucee throws an error if you try to access the data.
 			lazy is only working when the following attributes are not used: cachewithin,cacheafter,result
 			</description>
 		</attribute>
@@ -6535,17 +6609,39 @@ To use cached data, the current query must use the same SQL statement, data sour
 		<attribute>
 			<name>listener</name>
 			<type>any</type>
-			<status>hidden</status>
 			<required>false</required>
-			<description></description>
+			<description>
+				listener for the query. the listener can have 3 (optinal) functions, "before" "after" and "error" that get triggered before and after executing the query and in case of an exception.
+				The functions get all data about the query. 
+				This attributes overwrites any query listener defined in the application.cfc/cfapplication.
+				All the functions can also modify all data, by returning a struct containg the keys to overwrite following the same structure as the input coming in the argument scope.
+				
+				the listener can be a component looking like this:
+				component {
+					function before(cachedAfter, cachedWithin, columnName, datasource, dbtype, debug, maxrows, name, ormoptions, username, password, result, returntype, timeout, timezone, unique, sql, args, params, caller){} 
+					function after(result,meta,cachedAfter, cachedWithin, columnName, datasource, dbtype, debug, maxrows, name, ormoptions, username, password, result, returntype, timeout, timezone, unique, sql, args, params, caller){} 
+					function error(exception,lastExecution,nextExecution,created,id,type,detail,tries,remainingtries,closed,caller,advanced,passed,exception){}}
+				
+				or a struct looking like this:
+				component {before:function(...){}, after:function(...){}, error:function(...){}}
+				
+			</description>
 		</attribute>
 		<attribute>
 			<name>async</name>
 			<type>boolean</type>
 			<default>false</default>
-			<status>hidden</status>
 			<required>false</required>
-			<description></description>
+			<description>if set to true, the query is executed asynchronously by the Lucee Task manager,
+			if set to false (default) the query is executed in the same thread that executes the request.
+			</description>
+		</attribute>
+		<attribute>
+			<name>cacheid</name>
+			<type>string</type>
+			<status>unimplemented</status>
+			<required>false</required>
+			<description>Attribute not supported</description>
 		</attribute>
 	</tag>
 
@@ -6595,7 +6691,16 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Maximum length of the parameter. The default value is the length of the string specified in
-	the value attribute.</description>
+	the value attribute. if the attribute charset is defined, this comparsion will be byte based.</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>charset</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>This attribute is used for 2 things:
+			- it checks if the given value is compatible with that charset
+			- to check the binary length of the value (see attribute maxlength).</description>
 		</attribute>
 		<attribute>
 			<type>number</type>
@@ -7110,7 +7215,6 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<type>boolean</type>
 			<name>autoDelete</name>
 			<required>false</required>
-			<status>hidden</status>
 			<rtexprvalue>true</rtexprvalue>
 			<description>if set to true, the scheduled task get deleted when there is no possible future execution.</description>
 		</attribute>
@@ -7333,7 +7437,6 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<type>string</type>
 			<name>info</name>
 			<required>false</required>
-			<status>hidden</status>
 			<rtexprvalue>true</rtexprvalue>
 			<description>name of variable created for all information for this tag.</description>
 		</attribute>
@@ -7341,7 +7444,6 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<type>boolean</type>
 			<name>listen</name>
 			<required>false</required>
-			<status>hidden</status>
 			<rtexprvalue>true</rtexprvalue>
 			<description>do log all action, so it can report more detail with info.</description>
 		</attribute>
@@ -7613,7 +7715,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<alias>retryIntervall</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>when type task, this attribute define a execution plan for additional tries of execution.
+			<description>when type task, this attribute define an execution plan for additional tries of execution.
 			you can define a single rule or multiple rules as array
 
 			Example single rule:
@@ -7637,6 +7739,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		<attribute>
 			<type>string</type>
 			<name>name</name>
+			<alias>names</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>The name of the thread to which the action applies:
@@ -8735,6 +8838,13 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 - The name of a DTD or Schema file
 - The URL of a DTD or Schema file; valid protocol identifiers include http, https, ftp, and file</description>
 		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>lenient</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>if set to true, the parser is more lenient and forgives invalid XML and does the best to interpret it.</description>
+		</attribute>
 	</tag>
 	<!-- x_ -->
 	<tag>
@@ -8757,6 +8867,10 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		<handle-exception>true</handle-exception>
 		<body-content>free</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
+		<script>
+			<type>multiple</type>
+			<rtexprvalue>true</rtexprvalue>
+		</script>
 		<description>Creates a Custom Tag</description>
 		<attribute-type>dynamic</attribute-type>
 	</tag>
@@ -8792,7 +8906,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		<attribute>
 			<type>string</type>
 			<name>label</name>
-			<description>used to a address this loop from a "break" or "continue" statement (instead of the nearest one).</description>
+			<description>used to an address this loop from a "break" or "continue" statement (instead of the nearest one).</description>
 		</attribute>
 	</tag>
 

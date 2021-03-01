@@ -42,7 +42,7 @@ public interface Cache {
 	 * return cache entry that match the key, throws a CacheException when entry does not exist or is
 	 * stale
 	 * 
-	 * @param key key name to get a entry for
+	 * @param key key name to get an entry for
 	 * @return matching cache entry
 	 * @throws IOException thrown when fail to execute
 	 */
@@ -51,6 +51,9 @@ public interface Cache {
 	/**
 	 * return value that match the key, throws a CacheException when entry does not exist or is stale
 	 * 
+	 * @param key key of the value to get
+	 * @throws IOException in case action fails
+	 * @return cache entry
 	 */
 	public Object getValue(String key) throws IOException;
 
@@ -75,38 +78,48 @@ public interface Cache {
 	/**
 	 * puts a cache entry to the cache, overwrite existing entries that already exists inside the cache
 	 * with the same key
+	 * 
+	 * @param key name of the key
+	 * @param value value to add
+	 * @param idleTime idle time
+	 * @param until live time
+	 * @throws IOException in case action fails
 	 */
 	public void put(String key, Object value, Long idleTime, Long until) throws IOException;
 
 	/**
-	 * check if there is a entry inside the cache that match the given key
+	 * check if there is an entry inside the cache that match the given key
 	 * 
-	 * @param key
+	 * @param key name of the key
 	 * @return contains a value that match this key
+	 * @throws IOException in case action fails
 	 */
 	public boolean contains(String key) throws IOException;
 
 	/**
 	 * remove entry that match this key
 	 * 
-	 * @param key
+	 * @param key name of the key
 	 * @return returns if there was a removal
+	 * @throws IOException in case action fails
 	 */
 	public boolean remove(String key) throws IOException;
 
 	/**
 	 * remove all entries that match the given filter
 	 * 
-	 * @param filter
+	 * @param filter filter for elements returned
 	 * @return returns the count of the removal or -1 if this information is not available
+	 * @throws IOException in case action fails
 	 */
 	public int remove(CacheKeyFilter filter) throws IOException;
 
 	/**
 	 * remove all entries that match the given filter
 	 * 
-	 * @param filter
+	 * @param filter filter for elements returned
 	 * @return returns the count of the removal or -1 if this information is not available
+	 * @throws IOException in case action fails
 	 */
 	public int remove(CacheEntryFilter filter) throws IOException;
 
@@ -116,6 +129,7 @@ public interface Cache {
 	 * changes to the cache are NOT reflected in the set, and vice-versa.
 	 * 
 	 * @return a set of the keys contained in this cache.
+	 * @throws IOException in case action fails
 	 */
 	public List<String> keys() throws IOException;
 
@@ -124,8 +138,9 @@ public interface Cache {
 	 * Returns a List of the keys contained in this cache that match the given filter. The set is NOT
 	 * backed by the cache, so changes to the cache are NOT reflected in the set, and vice-versa.
 	 * 
-	 * @param filter
+	 * @param filter filter for elements returned
 	 * @return a set of the keys contained in this cache.
+	 * @throws IOException in case action fails
 	 */
 	public List<String> keys(CacheKeyFilter filter) throws IOException;
 
@@ -134,8 +149,9 @@ public interface Cache {
 	 * Returns a List of the keys contained in this cache that match the given filter. The set is NOT
 	 * backed by the cache, so changes to the cache are NOT reflected in the set, and vice-versa.
 	 * 
-	 * @param filter
+	 * @param filter filter for elements returned
 	 * @return a set of the keys contained in this cache.
+	 * @throws IOException in case action fails
 	 */
 	public List<String> keys(CacheEntryFilter filter) throws IOException;
 
@@ -144,6 +160,7 @@ public interface Cache {
 	 * to the cache are NOT reflected in the set, and vice-versa.
 	 * 
 	 * @return a set of the entries contained in this cache.
+	 * @throws IOException in case action fails
 	 */
 	public List<Object> values() throws IOException;
 
@@ -151,7 +168,9 @@ public interface Cache {
 	 * Returns a list of values containing in this cache that match the given filter. The set is NOT
 	 * backed by the cache, so changes to the cache are NOT reflected in the set, and vice-versa.
 	 * 
+	 * @param filter filter for elements returned
 	 * @return a set of the entries contained in this cache.
+	 * @throws IOException in case action fails
 	 */
 	public List<Object> values(CacheKeyFilter filter) throws IOException;
 
@@ -159,7 +178,9 @@ public interface Cache {
 	 * Returns a list of values containing in this cache that match the given filter. The set is NOT
 	 * backed by the cache, so changes to the cache are NOT reflected in the set, and vice-versa.
 	 * 
+	 * @param filter filter for elements returned
 	 * @return a set of the entries contained in this cache.
+	 * @throws IOException in case action fails
 	 */
 	public List<Object> values(CacheEntryFilter filter) throws IOException;
 
@@ -169,6 +190,7 @@ public interface Cache {
 	 * set, and vice-versa.
 	 * 
 	 * @return a set of the entries contained in this cache.
+	 * @throws IOException in case action fails
 	 */
 	public List<CacheEntry> entries() throws IOException;
 
@@ -177,7 +199,9 @@ public interface Cache {
 	 * the returned set is a CacheEntry. The set is NOT backed by the cache, so changes to the cache are
 	 * NOT reflected in the set, and vice-versa.
 	 * 
+	 * @param filter filter for elements returned
 	 * @return a set of the entries contained in this cache.
+	 * @throws IOException in case action fails
 	 */
 	public List<CacheEntry> entries(CacheKeyFilter filter) throws IOException;
 
@@ -186,7 +210,9 @@ public interface Cache {
 	 * the returned set is a CacheEntry. The set is NOT backed by the cache, so changes to the cache are
 	 * NOT reflected in the set, and vice-versa.
 	 * 
+	 * @param filter filter for elements returned
 	 * @return a set of the entries contained in this cache.
+	 * @throws IOException in case action fails
 	 */
 	public List<CacheEntry> entries(CacheEntryFilter filter) throws IOException;
 
@@ -195,6 +221,7 @@ public interface Cache {
 	 * implementation, when information is not available -1 is returned
 	 * 
 	 * @return access count
+	 * @throws IOException in case action fails
 	 */
 	public long hitCount() throws IOException;
 
@@ -203,11 +230,15 @@ public interface Cache {
 	 * optional and depends on the implementation, when information is not available -1 is returned
 	 * 
 	 * @return access count
+	 * @throws IOException in case action fails
 	 */
 	public long missCount() throws IOException;
 
 	/**
 	 * get all information data available for this cache
+	 * 
+	 * @return custom info as a struct
+	 * @throws IOException in case action fails
 	 */
 	public Struct getCustomInfo() throws IOException;
 

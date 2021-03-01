@@ -269,7 +269,7 @@ public interface ListUtil {
 	public String sort(String list, String sortType, String sortOrder, String delimiter) throws PageException;
 
 	/**
-	 * cast a Object Array to a String Array
+	 * cast an Object Array to a String Array
 	 * 
 	 * @param array
 	 * @return String Array
@@ -282,7 +282,7 @@ public interface ListUtil {
 	public String[] toStringArray(List<String> list);
 
 	/**
-	 * cast a Object Array to a String Array
+	 * cast an Object Array to a String Array
 	 * 
 	 * @param array
 	 * @param defaultValue
@@ -291,7 +291,7 @@ public interface ListUtil {
 	public String[] toStringArray(Array array, String defaultValue);
 
 	/**
-	 * cast a Object Array to a String Array and trim all values
+	 * cast an Object Array to a String Array and trim all values
 	 * 
 	 * @param array
 	 * @return String Array

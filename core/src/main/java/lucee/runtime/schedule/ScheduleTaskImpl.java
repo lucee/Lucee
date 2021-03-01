@@ -23,12 +23,12 @@ import java.lang.Thread.State;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.Md5;
 import lucee.commons.net.HTTPUtil;
 import lucee.commons.security.Credentials;
-import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.op.Caster;
@@ -40,7 +40,8 @@ import lucee.runtime.type.dt.Time;
  */
 public final class ScheduleTaskImpl implements ScheduleTask {
 
-	public static int INTERVAL_EVEREY = -1;
+	public static final int INTERVAL_EVEREY = -1;
+	public static final int INTERVAL_YEAR = 4;
 	private String task;
 	private short operation = OPERATION_HTTP_REQUEST;
 	private Resource file;
@@ -136,7 +137,7 @@ public final class ScheduleTaskImpl implements ScheduleTask {
 	}
 
 	/**
-	 * translate a String interval definition to a int definition
+	 * translate a String interval definition to an int definition
 	 * 
 	 * @param interval
 	 * @return interval
@@ -171,7 +172,7 @@ public final class ScheduleTaskImpl implements ScheduleTask {
 	 * @throws MalformedURLException
 	 */
 	private static URL toURL(String url, int port) throws MalformedURLException {
-		URL u = HTTPUtil.toURL(url, true);
+		URL u = HTTPUtil.toURL(url, HTTPUtil.ENCODED_AUTO);
 		if (port == -1) return u;
 		return new URL(u.getProtocol(), u.getHost(), port, u.getFile());
 	}
@@ -278,9 +279,7 @@ public final class ScheduleTaskImpl implements ScheduleTask {
 
 	@Override
 	public void setValid(boolean valid) {
-		if (this.valid && !valid) log(Log.LEVEL_INFO, "setValid==false", new Throwable());
 		this.valid = valid;
-
 	}
 
 	/**
@@ -343,7 +342,7 @@ public final class ScheduleTaskImpl implements ScheduleTask {
 			if (thread.isAlive()) {
 				if (thread.getState() == State.BLOCKED) {
 					((SchedulerImpl) scheduler).getConfig().getLog("scheduler").info("scheduler", "thread is blocked");
-					thread.stop();
+					SystemUtil.stop(thread);
 				}
 				else if (thread.getState() != State.TERMINATED) {
 					return; // existing is still fine, so nothing to start
@@ -353,6 +352,7 @@ public final class ScheduleTaskImpl implements ScheduleTask {
 
 		}
 		this.thread = new ScheduledTaskThread(engine, scheduler, this);
+		setValid(true);
 		thread.start();
 	}
 
@@ -374,13 +374,13 @@ public final class ScheduleTaskImpl implements ScheduleTask {
 		return scheduler;
 	}
 
-	private void log(int level, String msg) {
+	public void log(int level, String msg) {
 		String logName = "schedule task:" + task;
-		((ConfigImpl) ((SchedulerImpl) scheduler).getConfig()).getLog("scheduler").log(level, logName, msg);
+		((SchedulerImpl) scheduler).getConfig().getLog("scheduler").log(level, logName, msg);
 	}
 
-	private void log(int level, String msg, Throwable t) {
+	public void log(int level, String msg, Throwable t) {
 		String logName = "schedule task:" + task;
-		((ConfigImpl) ((SchedulerImpl) scheduler).getConfig()).getLog("scheduler").log(level, logName, msg, t);
+		((SchedulerImpl) scheduler).getConfig().getLog("scheduler").log(level, logName, msg, t);
 	}
 }

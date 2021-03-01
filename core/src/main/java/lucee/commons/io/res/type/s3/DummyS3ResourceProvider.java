@@ -89,12 +89,6 @@ public final class DummyS3ResourceProvider implements ResourceProviderPro {
 	}
 
 	private PageException notInstalled() {
-		/*
-		 * if(tryToInstall){ try { ConfigWebImpl config = (ConfigWebImpl)
-		 * ThreadLocalPageContext.getConfig(); if(config.installServerExtension(S3)) return new
-		 * ApplicationException("S3 Resource installed, with the next request the extension should work.");
-		 * } finally { tryToInstall=false; } }
-		 */
 		return new ApplicationException("No S3 Resource installed!", "Check out the Extension Store in the Lucee Administrator for \"S3\".");
 	}
 

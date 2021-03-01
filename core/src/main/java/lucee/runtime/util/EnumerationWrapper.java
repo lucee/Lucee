@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * class to make a enumaration from a ser, map or iterator
+ * class to make an enumaration from a ser, map or iterator
  */
 public final class EnumerationWrapper<E> implements Enumeration<E> {
 
@@ -54,7 +54,7 @@ public final class EnumerationWrapper<E> implements Enumeration<E> {
 	}
 
 	/**
-	 * @param it Constructor with a iterator
+	 * @param it Constructor with an iterator
 	 */
 	public EnumerationWrapper(Iterator<E> it) {
 		this.it = it;

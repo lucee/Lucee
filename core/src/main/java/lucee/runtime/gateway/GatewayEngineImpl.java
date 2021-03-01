@@ -45,7 +45,6 @@ import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
 import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.config.ConfigWebImpl;
 import lucee.runtime.config.Constants;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ExpressionException;
@@ -63,7 +62,7 @@ public class GatewayEngineImpl implements GatewayEngine {
 
 	private static final Object OBJ = new Object();
 
-	private static final Collection.Key AMF_FORWARD = KeyImpl.init("AMF-Forward");
+	private static final Collection.Key AMF_FORWARD = KeyImpl.getInstance("AMF-Forward");
 
 	private Map<String, GatewayEntry> entries = new HashMap<String, GatewayEntry>();
 	private ConfigWeb config;
@@ -71,7 +70,7 @@ public class GatewayEngineImpl implements GatewayEngine {
 
 	public GatewayEngineImpl(ConfigWeb config) {
 		this.config = config;
-		this.log = ((ConfigWebImpl) config).getLog("gateway");
+		this.log = config.getLog("gateway");
 
 	}
 
@@ -221,7 +220,7 @@ public class GatewayEngineImpl implements GatewayEngine {
 					if (g instanceof GatewaySupport) {
 						Thread t = ((GatewaySupport) g).getThread();
 						t.interrupt();
-						SystemUtil.patienceStop(t, 1000);
+						SystemUtil.stop(t);
 					}
 				}
 				catch (IOException e) {

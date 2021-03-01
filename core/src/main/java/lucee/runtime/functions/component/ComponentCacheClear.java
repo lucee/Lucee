@@ -19,11 +19,11 @@
 package lucee.runtime.functions.component;
 
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 
 public class ComponentCacheClear {
 	public static String call(PageContext pc) {
-		ConfigImpl config = (ConfigImpl) pc.getConfig();
+		ConfigPro config = (ConfigPro) pc.getConfig();
 		config.clearComponentCache();
 		return null;
 	}

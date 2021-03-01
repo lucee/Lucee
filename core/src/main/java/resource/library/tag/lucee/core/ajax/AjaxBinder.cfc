@@ -53,13 +53,13 @@
 				<cfset local.param = listGetAt(local.param,2,':') />
 			</cfif>		
 			<cfset local.bind = arrayNew(1) />
-			<cfset local.bind.add(local.param) />
-			<cfset local.bind.add(local.event)/>
-			<cfset local.bind.add(local.containerId)/>
+			<cfset local.bind.append(local.param) />
+			<cfset local.bind.append(local.event)/>
+			<cfset local.bind.append(local.containerId)/>
 			<!--- if no label refer to the dom name attribute --->
 			<cfif local.label eq ""><cfset local.label = local.param/></cfif>
-			<cfset local.bind.add(local.label)/>
-			<cfset local.result.add(local.bind) />		
+			<cfset local.bind.append(local.label)/>
+			<cfset local.result.append(local.bind) />		
 		</cfloop>
 			
 		<cfreturn local.result />

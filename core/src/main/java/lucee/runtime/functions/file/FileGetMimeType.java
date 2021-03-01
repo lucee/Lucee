@@ -23,6 +23,7 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
+import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
@@ -33,7 +34,22 @@ public class FileGetMimeType {
 	}
 
 	public static String call(PageContext pc, Object oSrc, boolean checkHeader) throws PageException {
-		Resource src = Caster.toResource(pc, oSrc, false);
+		Resource src = null;
+		byte[] barr = null;
+		try {
+			src = Caster.toResource(pc, oSrc, false);
+		}
+		catch (ExpressionException e) {
+			barr = Caster.toBinary(oSrc, null);
+			if (barr == null) throw e;
+
+		}
+		if (barr != null) {
+			String mimeType = IOUtil.getMimeType(barr, null);
+			if (StringUtil.isEmpty(mimeType, true)) return "application/octet-stream";
+			return mimeType;
+		}
+
 		if (!src.exists()) {
 			String mimeType = IOUtil.getMimeType(src.getName(), null);
 			if (!StringUtil.isEmpty(mimeType)) return mimeType;

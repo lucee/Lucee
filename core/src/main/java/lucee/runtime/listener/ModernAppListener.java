@@ -39,6 +39,7 @@ import lucee.runtime.CFMLFactory;
 import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.Component;
 import lucee.runtime.ComponentPageImpl;
+import lucee.runtime.Page;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
@@ -79,18 +80,18 @@ public class ModernAppListener extends AppListenerSupport {
 
 	public static final ModernAppListener instance = new ModernAppListener();
 
-	private static final Collection.Key ON_REQUEST_START = KeyImpl.intern("onRequestStart");
-	private static final Collection.Key ON_CFCREQUEST = KeyImpl.intern("onCFCRequest");
-	private static final Collection.Key ON_REQUEST = KeyImpl.intern("onRequest");
-	private static final Collection.Key ON_REQUEST_END = KeyImpl.intern("onRequestEnd");
-	private static final Collection.Key ON_ABORT = KeyImpl.intern("onAbort");
-	private static final Collection.Key ON_APPLICATION_START = KeyImpl.intern("onApplicationStart");
-	private static final Collection.Key ON_APPLICATION_END = KeyImpl.intern("onApplicationEnd");
-	private static final Collection.Key ON_SESSION_START = KeyImpl.intern("onSessionStart");
-	private static final Collection.Key ON_SESSION_END = KeyImpl.intern("onSessionEnd");
-	private static final Collection.Key ON_DEBUG = KeyImpl.intern("onDebug");
-	private static final Collection.Key ON_ERROR = KeyImpl.intern("onError");
-	private static final Collection.Key ON_MISSING_TEMPLATE = KeyImpl.intern("onMissingTemplate");
+	private static final Collection.Key ON_REQUEST_START = KeyImpl.getInstance("onRequestStart");
+	private static final Collection.Key ON_CFCREQUEST = KeyImpl.getInstance("onCFCRequest");
+	private static final Collection.Key ON_REQUEST = KeyImpl.getInstance("onRequest");
+	private static final Collection.Key ON_REQUEST_END = KeyImpl.getInstance("onRequestEnd");
+	private static final Collection.Key ON_ABORT = KeyImpl.getInstance("onAbort");
+	private static final Collection.Key ON_APPLICATION_START = KeyImpl.getInstance("onApplicationStart");
+	private static final Collection.Key ON_APPLICATION_END = KeyImpl.getInstance("onApplicationEnd");
+	private static final Collection.Key ON_SESSION_START = KeyImpl.getInstance("onSessionStart");
+	private static final Collection.Key ON_SESSION_END = KeyImpl.getInstance("onSessionEnd");
+	private static final Collection.Key ON_DEBUG = KeyImpl.getInstance("onDebug");
+	private static final Collection.Key ON_ERROR = KeyConstants._onError;
+	private static final Collection.Key ON_MISSING_TEMPLATE = KeyImpl.getInstance("onMissingTemplate");
 
 	// private Map<String,Component> apps=new HashMap<String,Component>();// TODO no longer use this,
 	// find a better way to store components for end methods
@@ -99,18 +100,20 @@ public class ModernAppListener extends AppListenerSupport {
 	@Override
 	public void onRequest(PageContext pc, PageSource requestedPage, RequestListener rl) throws PageException {
 		// on requestStart
-		PageSource appPS = AppListenerUtil.getApplicationPageSource(pc, requestedPage,
-				pc.getRequestDialect() == CFMLEngine.DIALECT_CFML ? Constants.CFML_APPLICATION_EVENT_HANDLER : Constants.LUCEE_APPLICATION_EVENT_HANDLER, mode);
+		Page appPS = AppListenerUtil.getApplicationPage(pc, requestedPage,
+				pc.getRequestDialect() == CFMLEngine.DIALECT_CFML ? Constants.CFML_APPLICATION_EVENT_HANDLER : Constants.LUCEE_APPLICATION_EVENT_HANDLER, mode,
+				ApplicationListener.TYPE_MODERN);
 		_onRequest(pc, requestedPage, appPS, rl);
 	}
 
-	protected void _onRequest(PageContext pc, PageSource requestedPage, PageSource appPS, RequestListener rl) throws PageException {
+	protected void _onRequest(PageContext pc, PageSource requestedPage, Page appP, RequestListener rl) throws PageException {
 		PageContextImpl pci = (PageContextImpl) pc;
 		pci.setAppListenerType(ApplicationListener.TYPE_MODERN);
-		if (appPS != null) {
-			String callPath = appPS.getComponentName();
+		if (appP != null) {
+			String callPath = appP.getPageSource().getComponentName();
 
-			Component app = ComponentLoader.loadComponent(pci, appPS, callPath, false, false);
+			Component app = ComponentLoader.loadComponent(pci, appP, callPath, false, false, false, true);
+
 			// init
 			ModernApplicationContext appContext = initApplicationContext(pci, app);
 

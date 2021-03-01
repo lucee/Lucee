@@ -181,9 +181,13 @@ public interface DataSource extends Cloneable {
 	public abstract int getConnectionLimit();
 
 	/**
-	 * @return Returns the connectionTimeout.
+	 * @return Returns the connection idle timeout.
 	 */
+	// FUTURE @Deprecated
 	public abstract int getConnectionTimeout();
+
+	// FUTURE public abstract int getIdleTimeout();
+	// FUTURE public abstract int getLiveTimeout();
 
 	/**
 	 * network timeout in seconds

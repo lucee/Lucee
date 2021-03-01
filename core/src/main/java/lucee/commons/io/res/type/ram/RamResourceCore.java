@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Core of a Ram Resource, holds the concrete data for a existing resource
+ * Core of a Ram Resource, holds the concrete data for an existing resource
  */
 public final class RamResourceCore implements Serializable {
 

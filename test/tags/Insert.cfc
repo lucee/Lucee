@@ -5,7 +5,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 		variables.str = {
 					class: 'com.mysql.cj.jdbc.Driver'
 					, bundleName:'com.mysql.cj'
-					, bundleVersion:'8.0.9'
+					, bundleVersion:'8.0.15'
 					, connectionString: 'jdbc:mysql://'&request.mySQL.server&':'&request.mySQL.port&'/'&request.mySQL.database
 					&'?useUnicode=true&characterEncoding=UTF-8&useLegacyDatetimeCode=true&serverTimezone=CET'
 					, username: request.mySQL.username

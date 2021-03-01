@@ -32,13 +32,13 @@ import lucee.commons.net.http.HTTPResponse;
 import lucee.commons.net.http.Header;
 import lucee.runtime.net.proxy.ProxyDataImpl;
 
-public class HTTPUtilImpl implements HTTPUtil {
+public class HTTPUtilImpl implements lucee.runtime.util.HTTPUtil {
 
-	private static HTTPUtil instance = new HTTPUtilImpl();
+	private static lucee.runtime.util.HTTPUtil instance = new HTTPUtilImpl();
 
 	private HTTPUtilImpl() {}
 
-	public static HTTPUtil getInstance() {
+	public static lucee.runtime.util.HTTPUtil getInstance() {
 		return instance;
 	}
 
@@ -112,8 +112,9 @@ public class HTTPUtilImpl implements HTTPUtil {
 		return toURL(strUrl, port, true);
 	}
 
+	@Override
 	public URL toURL(String strUrl, int port, boolean encodeIfNecessary) throws MalformedURLException {
-		return lucee.commons.net.HTTPUtil.toURL(strUrl, port, encodeIfNecessary);
+		return lucee.commons.net.HTTPUtil.toURL(strUrl, port, encodeIfNecessary ? lucee.commons.net.HTTPUtil.ENCODED_AUTO : lucee.commons.net.HTTPUtil.ENCODED_NO);
 	}
 
 	/**
@@ -121,7 +122,7 @@ public class HTTPUtilImpl implements HTTPUtil {
 	 */
 	@Override
 	public URL toURL(String strUrl) throws MalformedURLException {
-		return lucee.commons.net.HTTPUtil.toURL(strUrl, true);
+		return lucee.commons.net.HTTPUtil.toURL(strUrl, lucee.commons.net.HTTPUtil.ENCODED_AUTO);
 	}
 
 	@Override

@@ -162,7 +162,7 @@ public final class VariableInterpreter {
 	}
 
 	public static Object _variable(PageContext pc, String str, Object value, Scope scope) throws PageException {
-		// define a ohter enviroment for the function
+		// define another environment for the function
 		if (scope != null) {
 
 			// Variables Scope

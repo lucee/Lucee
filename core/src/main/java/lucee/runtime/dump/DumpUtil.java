@@ -606,7 +606,7 @@ public class DumpUtil {
 						Struct sct = new StructImpl();
 						sct.setEL(KeyConstants._id, b.getBundleId());
 						sct.setEL(KeyConstants._name, b.getSymbolicName());
-						sct.setEL("location", b.getLocation());
+						sct.setEL(KeyConstants._location, b.getLocation());
 						sct.setEL(KeyConstants._version, b.getVersion().toString());
 
 						DumpTable bd = new DumpTable("#6289a3", "#dee3e9", "#000000");

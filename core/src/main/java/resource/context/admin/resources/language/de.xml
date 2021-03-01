@@ -7,7 +7,7 @@
 	<data key="general.dialect.lucee">Lucee Dialekt</data>
 	<data key="general.dialect.cfmlDesc">Die folgendenen Einstellungen spezifisch für den CFML Dialekt. Diese Einstellungen haben keinen Einfluss auf den Lucee Dialekt.</data>
 
-	<data key="services.update.locdesc">Definieren Sie die URL von der ein Lucee Update bezogen werden kann, typischerweise &apos;http://release.lucee.org&apos;</data>
+	<data key="services.update.locdesc">Definieren Sie die URL von der ein Lucee Update bezogen werden kann, typischerweise &apos;https://update.lucee.org&apos;</data>
 	<data key="services.update.type_manually">Manuell</data>
 	<data key="services.update.location">URL</data>
 	<data key="services.update.settitle">Einstellungen</data>
@@ -157,6 +157,7 @@ und Optimierungen innerhalb ihrer Version einspielen.</data>
 	<data key="menu.server.regional">Regionales</data>
 	<data key="overview.langPerf">Performance/Language</data>
 	<data key="menu.server.compiler">Language/Compiler</data>
+	<data key="menu.server.regex">Regex</data>
 	<data key="menu.server.security">Sicherheit</data>
 	<data key="menu.server.charset">Charset</data>
 	<data key="menu.server.scope">Scope</data>
@@ -166,6 +167,7 @@ und Optimierungen innerhalb ihrer Version einspielen.</data>
 	<data key="menu.server.error">Error</data>
 	<data key="menu.server.logging">Logging</data>
 	<data key="menu.server.export">Export</data>
+	<data key="menu.server.proxy">Proxy</data>
 	<data key="menu.services.label">Dienste</data>
 	<data key="menu.services.gateway">Event Gateway</data>
 	<data key="menu.services.cache">Cache</data>
@@ -327,6 +329,9 @@ und Optimierungen innerhalb ihrer Version einspielen.</data>
 	<data key="ext.availableversion">Verfügbare Version</data>
 	<data key="ext.provider">Provider</data>
 	<data key="ext.documentation">Dokumentation</data>
+	<data key="ext.projectUrl">Startseite</data>
+	<data key="ext.sourceUrl">Quellcode</data>
+	<data key="ext.documentationUrl">Dokumentation</data>
 	<data key="ext.installeddesc">Diese Applikation ist bereits installiert.</data>
 	<data key="ext.installedServer">Installiert im Server Administrator</data>
 	<data key="ext.installedServerDesc">
@@ -354,7 +359,7 @@ und Optimierungen innerhalb ihrer Version einspielen.</data>
 	<data key="remote.adminpassworddesc.server">Passwort für den Zugriff auf den Remote Lucee Server Administrator</data>
 	<data key="remote.urlpath">Pfad</data>
 	<data key="remote.urlmissing">Die Remote Client URL fehlt</data>
-	<data key="remote.urlserverdesc">Remote Client Server (Beispiel: http://lucee.org)</data>
+	<data key="remote.urlserverdesc">Remote Client Server (Beispiel: https://lucee.org)</data>
 	<data key="remote.proxyport">Port</data>
 	<data key="remote.labelmissing">Die Bezeichnung für den Remote Client fehlt</data>
 	<data key="remote.proxypassword">Passwort</data>
@@ -649,6 +654,8 @@ Diese werden dann am Ende eines Request ausgegeben, falls sie ein Debug Template
 	<data key="debug.memorylogger">Memory Logger</data>
 	<data key="debug.settings.queryUsage">Query Usage</data>
 	<data key="debug.settings.queryUsageDesc">Select this option to log the query usage information.</data>
+	<data key="debug.settings.template">Template</data>
+	<data key="debug.settings.templateDesc">Select this option log template activity for all cfm and cfc templates.</data>
 	<data key="debug.settings.database">Database Activity</data>
 	<data key="debug.settings.databaseDesc">Select this option to log the database activity for the SQL Query events and Stored Procedure events.</data>
 	<data key="debug.settings.exception"> Exceptions </data>
@@ -663,6 +670,9 @@ Diese werden dann am Ende eines Request ausgegeben, falls sie ein Debug Template
 	<data key="debug.settings.timerDesc">Select this option to show timer event information. Timers let a developer track the execution time of the code between the start and end tags of the CFTIMER tag.</data>
 	<data key="debug.settings.implicitAccess">Implicit variable Access</data>
 	<data key="debug.settings.implicitAccessDesc">Select this option to log all accesses to scopes, queries and threads that happens implicit (cascaded).</data>
+	<data key="debug.switchTemplate">Switch Debug Template</data>
+	<data key="debug.selectDebugTemplate">Select Debug Template</data>
+
 	<data key="general.enabled">Enabled</data>
 
 	<data key="compiler.nullSupport">Null Support</data>
@@ -674,6 +684,7 @@ Diese werden dann am Ende eines Request ausgegeben, falls sie ein Debug Template
 	<data key="compiler.nullSupportPartialDesc">Lucee has only a partial null support.</data>
 
 
+	<data key="setting.compiler">Lucee Regular Expression (regex) Einstellungen.</data>
 	<data key="setting.compiler">Lucee Compiler Einstellungen, dies beeinflusst wie der Lucee Compiler den Source Code übersetzt. Das ändern dieser Einstellungen löscht alle existierenden Class Files.</data>
 	<data key="setting.dotNotation">Key case</data>
 
@@ -850,6 +861,7 @@ When checked, any requested files will be inspected only once for potential upda
 	<data key="buttons.filter">filter</data>
 	<data key="buttons.agree">einverstanden</data>
 	<data key="buttons.submit">senden</data>
+	<data key="buttons.reload">neu laden</data>
 	<data key="buttons.stop">stop</data>
 	<data key="buttons.ok">OK</data>
 	<data key="buttons.purge">leeren</data>
@@ -1023,6 +1035,15 @@ When checked, any requested files will be inspected only once for potential upda
 	<data key="settings.dbValidate">Validate</data>
 	<data key="settings.dbValidateDesc">Validiert Verbindung bevor sie verwendet wird (funktioniert nur mit JDBC 4.0 Treibern)</data>
 	<data key="settings.dbconntimeoutdesc">Definiert wie lange eine stehende Verbindung aufrechterhalten wird, bevor Sie beendet wird.</data>
+
+
+	<data key="settings.dbidletimeout">Inaktivitäts Timeout (in Minuten)</data>
+	<data key="settings.dbidletimeoutdesc">Definiert wie lange eine stehende unverwendete Verbindung aufrechterhalten wird, bevor Sie beendet wird.</data>
+
+	<data key="settings.dblivetimeout">Verbindungs Timeout</data>
+	<data key="settings.dblivetimeoutdesc">Definiert wie lange eine stehende Verbindung aufrechterhalten wird, bevor Sie beendet wird.</data>
+
+
 	<data key="settings.dbportdesc">Der Port der Datenbank die angesprochen werden soll.</data>
 	<data key="settings.dbconnlimitdesc">Beschränkt die Anzahl Verbindungen die zur Datenbank aufgebaut werden.</data>
 	<data key="settings.listdatasourcesdescserver">Datenquellen welche hier erstellt wurden, stehen allen Webkontexten zur Verfügung, jedoch kann die Konfiguration der Datenquelle nur hier geändert werden.</data>

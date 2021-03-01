@@ -42,7 +42,7 @@ public interface Collection extends Dumpable, Iteratorable, Cloneable, Serializa
 	public Collection.Key[] keys();
 
 	/**
-	 * removes value from collection and return it when it exists, otherwise throws a exception
+	 * removes value from collection and return it when it exists, otherwise throws an exception
 	 * 
 	 * @param key key of the collection
 	 * @return removed Object
@@ -94,7 +94,7 @@ public interface Collection extends Dumpable, Iteratorable, Cloneable, Serializa
 	public Object get(Collection.Key key) throws PageException;
 
 	/**
-	 * return a value from the collection, if key doesn't exist, dont throw a exception, returns null
+	 * return a value from the collection, if key doesn't exist, dont throw an exception, returns null
 	 * 
 	 * @param key key of the value to get
 	 * @param defaultValue value returned when no value exists for given key
@@ -105,7 +105,7 @@ public interface Collection extends Dumpable, Iteratorable, Cloneable, Serializa
 	public Object get(String key, Object defaultValue);
 
 	/**
-	 * return a value from the collection, if key doesn't exist, dont throw a exception, returns null
+	 * return a value from the collection, if key doesn't exist, dont throw an exception, returns null
 	 * 
 	 * @param key key of the value to get
 	 * @param defaultValue value returned when no value exists for given key
@@ -136,7 +136,7 @@ public interface Collection extends Dumpable, Iteratorable, Cloneable, Serializa
 	public Object set(Collection.Key key, Object value) throws PageException;
 
 	/**
-	 * sets a value to the collection, if key doesn't exist, dont throw a exception, returns null
+	 * sets a value to the collection, if key doesn't exist, dont throw an exception, returns null
 	 * 
 	 * @param key key of the value to get
 	 * @param value value to set
@@ -147,7 +147,7 @@ public interface Collection extends Dumpable, Iteratorable, Cloneable, Serializa
 	public Object setEL(String key, Object value);
 
 	/**
-	 * sets a value to the collection, if key doesn't exist, dont throw a exception, returns null
+	 * sets a value to the collection, if key doesn't exist, dont throw an exception, returns null
 	 * 
 	 * @param key key of the value to get
 	 * @param value value to set

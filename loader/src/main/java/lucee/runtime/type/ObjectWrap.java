@@ -20,7 +20,7 @@ package lucee.runtime.type;
 import lucee.runtime.exp.PageException;
 
 /**
- * Wraps a other Object
+ * Wraps another Object
  */
 public interface ObjectWrap {
 

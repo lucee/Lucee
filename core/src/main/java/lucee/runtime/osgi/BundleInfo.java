@@ -36,7 +36,6 @@ import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 
 import lucee.commons.io.IOUtil;
-import lucee.commons.io.compress.Pack200Util;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.type.file.FileResource;
 import lucee.commons.lang.ExceptionUtil;
@@ -66,7 +65,7 @@ public class BundleInfo implements Serializable {
 	private Map<String, Object> headers;
 	private static Map<String, BundleInfo> bundles = new HashMap<String, BundleInfo>();
 
-	public static BundleInfo getInstance(String id, InputStream is, boolean closeStream, boolean isPack200) throws IOException, BundleException {
+	public static BundleInfo getInstance(String id, InputStream is, boolean closeStream) throws IOException, BundleException {
 		BundleInfo bi = bundles.get(id);
 		if (bi != null) return bi;
 
@@ -74,8 +73,7 @@ public class BundleInfo implements Serializable {
 
 		try {
 			FileOutputStream os = new FileOutputStream(tmp);
-			if (isPack200) Pack200Util.pack2Jar(is, os, closeStream, true);
-			else IOUtil.copy(is, os, closeStream, true);
+			IOUtil.copy(is, os, closeStream, true);
 			bundles.put(id, bi = new BundleInfo(tmp));
 			return bi;
 		}

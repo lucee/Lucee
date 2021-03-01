@@ -166,7 +166,7 @@ public final class JSConverter extends ConverterSupport {
 	}
 
 	/**
-	 * serialize a Array
+	 * serialize an Array
 	 * 
 	 * @param name
 	 * @param array Array to serialize

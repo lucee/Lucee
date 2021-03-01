@@ -44,7 +44,7 @@ public final class Else extends EvaluatorSupport {
 			throw new EvaluatorException("Wrong Context, tag [" + libTag.getFullName() + "] must be direct inside a [" + ifName + "] tag");
 		}
 
-		// check if is there a elseif tag after this tag
+		// check if is there an elseif tag after this tag
 		if (ASMUtil.hasSisterTagAfter(tag, "elseif")) throw new EvaluatorException("Wrong Context, tag [cfelseif] can't be after tag [else]");
 		// check if tag else is unique
 		if (ASMUtil.hasSisterTagWithSameName(tag)) throw new EvaluatorException("Wrong Context, tag [else] must be once inside the tag [if]");

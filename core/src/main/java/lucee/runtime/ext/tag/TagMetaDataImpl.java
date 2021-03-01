@@ -26,7 +26,7 @@ public class TagMetaDataImpl implements TagMetaData {
 	private int attrMin;
 	private int attrMax;
 	private int attrType;
-	private List attrs = new ArrayList();
+	private List<TagMetaDataAttr> attrs = new ArrayList<TagMetaDataAttr>();
 	private int bodyContent;
 	private String description;
 	private boolean isBodyRE;
@@ -75,11 +75,11 @@ public class TagMetaDataImpl implements TagMetaData {
 
 	@Override
 	public TagMetaDataAttr[] getAttributes() {
-		return (TagMetaDataAttr[]) attrs.toArray(new TagMetaDataAttr[attrs.size()]);
+		return attrs.toArray(new TagMetaDataAttr[attrs.size()]);
 	}
 
 	/**
-	 * adds a attribute to the tag
+	 * adds an attribute to the tag
 	 * 
 	 * @param attr
 	 */

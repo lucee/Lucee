@@ -29,7 +29,7 @@ import javax.management.ObjectName;
 
 import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.db.DatasourceConnectionPool;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
@@ -43,10 +43,10 @@ public final class GetSystemInfo implements Function {
 
 	public static Struct call(PageContext pc) throws PageException {
 		Struct sct = new StructImpl();
-		ConfigWebImpl config = (ConfigWebImpl) pc.getConfig();
+		ConfigWebPro config = (ConfigWebPro) pc.getConfig();
 		CFMLFactoryImpl factory = (CFMLFactoryImpl) config.getFactory();
 		ScopeContext sc = factory.getScopeContext();
-		OperatingSystemMXBean osBean = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
+		OperatingSystemMXBean osBean = ManagementFactory.getOperatingSystemMXBean();
 
 		// threads/requests
 		sct.put("activeRequests", factory.getActiveRequests());
@@ -101,7 +101,7 @@ public final class GetSystemInfo implements Function {
 		}
 	}
 
-	public static int getConnections(ConfigWebImpl config) {
+	public static int getConnections(ConfigWebPro config) {
 		int count = 0;
 		DatasourceConnectionPool pool = config.getDatasourceConnectionPool();
 		Iterator<Integer> it = pool.openConnections().values().iterator();

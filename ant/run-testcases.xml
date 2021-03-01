@@ -27,6 +27,8 @@
 
 <script language="CFML">
 <![CDATA[
+encodeForHTML("abc"); // test if ESAPI extension exist right away
+systemOutput("---------- #DateTimeFormat(now(),'yyyy-mm-dd HH:nn:ss')# - Lucee Started ----------", true);
 if (execute) {
 
 request.basedir = basedir;

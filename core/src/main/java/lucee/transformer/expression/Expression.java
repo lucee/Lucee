@@ -24,7 +24,7 @@ import lucee.transformer.Position;
 import lucee.transformer.TransformerException;
 
 /**
- * A Expression (Operation, Literal aso.)
+ * An Expression (Operation, Literal aso.)
  */
 public interface Expression {
 

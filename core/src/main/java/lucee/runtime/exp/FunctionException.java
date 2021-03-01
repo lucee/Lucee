@@ -21,7 +21,7 @@ package lucee.runtime.exp;
 import java.util.ArrayList;
 
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.function.FunctionLibFunction;
@@ -97,18 +97,18 @@ public final class FunctionException extends ExpressionException {
 	}
 
 	public FunctionException(PageContext pc, String functionName, String badArgumentPosition, String badArgumentName, String message, String detail) {
-		super("invalid call of the function " + functionName + ", " + (badArgumentPosition) + " Argument (" + badArgumentName + ") is invalid, " + message, detail);
+		super("Invalid call of the function [" + functionName + "], " + (badArgumentPosition) + " Argument [" + badArgumentName + "] is invalid, " + message, detail);
 		setAdditional(KeyConstants._pattern, getFunctionInfo(pc, functionName));
 	}
 
 	public FunctionException(PageContext pc, String functionName, int min, int max, int actual) {
-		super(actual < min ? "too few arguments for function call" : "too many arguments for function call");
+		super(actual < min ? "too few arguments for function [" + functionName+ "] call" : "too many arguments for function [" + functionName+ "] call");
 	}
 
 	private static String getFunctionInfo(PageContext pc, String functionName) {
 		FunctionLib[] flds;
 		int dialect = pc.getCurrentTemplateDialect();
-		flds = ((ConfigImpl) pc.getConfig()).getFLDs(dialect);
+		flds = ((ConfigPro) pc.getConfig()).getFLDs(dialect);
 
 		FunctionLibFunction function = null;
 		for (int i = 0; i < flds.length; i++) {

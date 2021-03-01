@@ -87,21 +87,21 @@ public final class Select extends BodyTagImpl {
 	 * @param cssclass The cssclass to set.
 	 */
 	public void setClass(String cssclass) {
-		attributes.setEL("class", cssclass);
+		attributes.setEL(KeyConstants._class, cssclass);
 	}
 
 	/**
 	 * @param cssstyle The cssstyle to set.
 	 */
 	public void setStyle(String cssstyle) {
-		attributes.setEL("style", cssstyle);
+		attributes.setEL(KeyConstants._style, cssstyle);
 	}
 
 	/**
 	 * @param id The id to set.
 	 */
 	public void setId(String id) {
-		attributes.setEL("id", id);
+		attributes.setEL(KeyConstants._id, id);
 	}
 
 	/**
@@ -131,7 +131,7 @@ public final class Select extends BodyTagImpl {
 	 * @param tabindex The tabindex to set.
 	 */
 	public void setTabindex(String tabindex) {
-		attributes.setEL("class", tabindex);
+		attributes.setEL("tabindex", tabindex);
 	}
 
 	/**
@@ -145,14 +145,14 @@ public final class Select extends BodyTagImpl {
 	 * @param title The title to set.
 	 */
 	public void setDir(String dir) {
-		attributes.setEL("dir", dir);
+		attributes.setEL(KeyConstants._dir, dir);
 	}
 
 	/**
 	 * @param title The title to set.
 	 */
 	public void setLang(String lang) {
-		attributes.setEL("lang", lang);
+		attributes.setEL(KeyConstants._lang, lang);
 	}
 
 	/**
@@ -322,7 +322,7 @@ public final class Select extends BodyTagImpl {
 	}
 
 	private void setDisabled(boolean disabled) {
-		if (disabled) attributes.setEL("disabled", "disabled");
+		if (disabled) attributes.setEL(KeyConstants._disabled, "disabled");
 	}
 
 	/**

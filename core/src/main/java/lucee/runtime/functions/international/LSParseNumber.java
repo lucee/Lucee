@@ -18,12 +18,12 @@
  **/
 package lucee.runtime.functions.international;
 
+import java.lang.ref.SoftReference;
 import java.text.NumberFormat;
 import java.text.ParsePosition;
-import java.util.Collections;
 import java.util.Locale;
 import java.util.Map;
-import java.util.WeakHashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.ExpressionException;
@@ -38,7 +38,7 @@ public final class LSParseNumber implements Function {
 
 	private static final long serialVersionUID = 2219030609677513651L;
 
-	private static Map<Locale, NumberFormat> formatters = Collections.synchronizedMap(new WeakHashMap<Locale, NumberFormat>());
+	private static Map<Locale, SoftReference<NumberFormat>> formatters = new ConcurrentHashMap<Locale, SoftReference<NumberFormat>>();
 
 	public static double call(PageContext pc, String string) throws PageException {
 		return toDoubleValue(pc.getLocale(), string);
@@ -49,7 +49,8 @@ public final class LSParseNumber implements Function {
 	}
 
 	public static double toDoubleValue(Locale locale, String str) throws PageException {
-		NumberFormat nf = formatters.remove(locale);
+		SoftReference<NumberFormat> tmp = formatters.remove(locale);
+		NumberFormat nf = tmp == null ? null : tmp.get();
 		if (nf == null) {
 			nf = NumberFormat.getInstance(locale);
 		}
@@ -66,7 +67,7 @@ public final class LSParseNumber implements Function {
 			return result.doubleValue();
 		}
 		finally {
-			formatters.put(locale, nf);
+			formatters.put(locale, new SoftReference<NumberFormat>(nf));
 		}
 	}
 

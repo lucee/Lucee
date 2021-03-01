@@ -24,7 +24,6 @@ import java.util.Map;
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.PageContextThread;
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -105,7 +104,7 @@ public class AsyncRequestMonitor implements RequestMonitorPro {
 				}
 				catch (IOException e) {
 					if (logEnabled) {
-						Log log = ((ConfigImpl) pc.getConfig()).getLog("io");
+						Log log = pc.getConfig().getLog("io");
 						if (log != null) log.log(Log.LEVEL_ERROR, "io", e);
 					}
 				}

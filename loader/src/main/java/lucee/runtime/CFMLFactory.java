@@ -41,21 +41,17 @@ public abstract class CFMLFactory extends JspFactory {
 	public abstract void resetPageContext();
 
 	/**
-	 * similar to getPageContext Method but return the concrete implementation of the Lucee PageCOntext
+	 * similar to getPageContext Method but return the concrete implementation of the Lucee PageContext
 	 * and take the HTTP Version of the Servlet Objects
 	 * 
-	 * @param servlet
-	 * @param req
-	 * @param rsp
-	 * @param errorPageURL
-	 * @param needsSession
-	 * @param bufferSize
-	 * @param autoflush
-	 * @return return the pageContext
-	 * @deprecated use instead <code>getLuceePageContext(HttpServlet servlet,
-			HttpServletRequest req, HttpServletResponse rsp,
-			String errorPageURL, boolean needsSession, int bufferSize,
-			boolean autoflush,boolean register)</code>
+	 * @param servlet servlet
+	 * @param req http request
+	 * @param rsp http response
+	 * @param errorPageURL error page URL
+	 * @param needsSession need session
+	 * @param bufferSize buffer size
+	 * @param autoflush auto flush
+	 * @return page context created
 	 */
 	@Deprecated
 	public abstract PageContext getLuceePageContext(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp, String errorPageURL, boolean needsSession, int bufferSize,
@@ -65,13 +61,13 @@ public abstract class CFMLFactory extends JspFactory {
 	 * similar to getPageContext Method but return the concrete implementation of the Lucee PageCOntext
 	 * and take the HTTP Version of the Servlet Objects
 	 * 
-	 * @param servlet
-	 * @param req
-	 * @param rsp
-	 * @param errorPageURL
-	 * @param needsSession
-	 * @param bufferSize
-	 * @param autoflush
+	 * @param servlet servlet
+	 * @param req http request
+	 * @param rsp http response
+	 * @param errorPageURL error page URL
+	 * @param needsSession need session
+	 * @param bufferSize buffer size
+	 * @param autoflush auto flush
 	 * @param register register the PageContext to the current thread
 	 * @param timeout timeout in ms, if the value is smaller than 1 it is ignored and the value comming
 	 *            from the context is used
@@ -83,7 +79,7 @@ public abstract class CFMLFactory extends JspFactory {
 	/**
 	 * Similar to the releasePageContext Method, but take lucee PageContext as entry
 	 * 
-	 * @param pc
+	 * @param pc page context
 	 * @deprecated use instead <code>releaseLuceePageContext(PageContext pc, boolean unregister)</code>
 	 */
 	@Deprecated
@@ -92,7 +88,7 @@ public abstract class CFMLFactory extends JspFactory {
 	/**
 	 * Similar to the releasePageContext Method, but take lucee PageContext as entry
 	 * 
-	 * @param pc
+	 * @param pc page context
 	 * @param unregister unregister from current thread
 	 */
 	public abstract void releaseLuceePageContext(PageContext pc, boolean unregister);

@@ -67,7 +67,7 @@ public final class Condition extends StatementBaseNoFinal implements HasBodies {
 	}
 
 	/**
-	 * adds a else statement
+	 * adds an else statement
 	 * 
 	 * @param condition
 	 * @param body

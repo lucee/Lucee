@@ -3,6 +3,7 @@ package lucee.transformer.cfml.script.java.function;
 import java.io.File;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -17,6 +18,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.compiler.SourceCode;
 import lucee.runtime.Component;
 import lucee.runtime.PageSource;
+import lucee.runtime.functions.other.CreateUniqueId;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection;
@@ -35,6 +37,7 @@ public class JavaFunctionDef implements FunctionDef {
 	protected Class<?>[] args;
 	protected Class<?> rtn;
 	protected boolean throwException;
+	private static long _id = 0;
 
 	public JavaFunctionDef(Class<?> javaClassName, String javaMethodName, Class<?>[] args, Class<?> rtn) {
 		this(javaClassName, javaMethodName, args, rtn, false);
@@ -91,11 +94,11 @@ public class JavaFunctionDef implements FunctionDef {
 		int index = parent.lastIndexOf('.');
 		if (index == -1) {
 			pack = "";
-			className = parent + "$" + id;
+			className = parent + "$" + id + id(); // TODO id should not be necessary, but rename the class does not work, we first have to update ASM.
 		}
 		else {
 			pack = parent.substring(0, index);
-			className = parent.substring(index + 1) + "$" + id;
+			className = parent.substring(index + 1) + "$" + id + CreateUniqueId.invoke();
 		}
 
 		StringBuilder sb = new StringBuilder();
@@ -125,7 +128,8 @@ public class JavaFunctionDef implements FunctionDef {
 		return outerShell(ps, pack, className, id, functionName, javaClass, sb.toString());
 	}
 
-	private SourceCode outerShell(PageSource ps, String pack, String className, String id, String functionName, Class<?> javaFunctionClass, String javaFunctionCode) {
+	private SourceCode outerShell(final PageSource ps, final String pack, final String className, final String id, final String functionName, Class<?> javaFunctionClass,
+			String javaFunctionCode) {
 
 		StringBuilder sb = new StringBuilder();
 		if (!pack.isEmpty()) sb.append("package " + pack + ";\n");
@@ -190,7 +194,7 @@ public class JavaFunctionDef implements FunctionDef {
 
 	private String b(Boolean b) {
 		if (b == null) return "null";
-		return b ? "Booleam.TRUE" : "Boolean.FALSE";
+		return b ? "Boolean.TRUE" : "Boolean.FALSE";
 	}
 
 	private String createCallFunction(Class<?> clazz) {
@@ -237,7 +241,7 @@ public class JavaFunctionDef implements FunctionDef {
 		sb.append("	return new FunctionArgument[] {");
 		for (int i = 0; i < argNames.length; i++) {
 			if (i > 0) sb.append(',');
-			sb.append("new FunctionArgumentImpl(lucee.runtime.type.KeyImpl.init(").append(esc(argNames[i])).append("),").append(esc(Caster.toClassName(args[i]))).append(",")
+			sb.append("new FunctionArgumentImpl(lucee.runtime.type.KeyImpl.intern(").append(esc(argNames[i])).append("),").append(esc(Caster.toClassName(args[i]))).append(",")
 					.append("(short)").append(CFTypes.toShortStrict(Caster.toTypeName(args[i]), (short) 0)).append(',')
 					.append("false,FunctionArgument.DEFAULT_TYPE_NULL, true,\"\",").append(esc(argHints[i])).append(")\n");
 		}
@@ -276,16 +280,11 @@ public class JavaFunctionDef implements FunctionDef {
 
 		else if (Array.class == clazz) sb.append("engine.getCastUtil().toArray(");
 		else if (BigDecimal.class == clazz) sb.append("engine.getCastUtil().toBigDecimal(");
-		else if (BigInteger.class == clazz) sb.append("engine.getCastUtil().toBigInteger(");
 		else if (byte[].class == clazz) sb.append("engine.getCastUtil().toBinary(");
-		else if (CharSequence.class == clazz) sb.append("engine.getCastUtil().toCharSequence(");
 		else if (Collection.class == clazz) sb.append("engine.getCastUtil().toCollection(");
 		else if (Component.class == clazz) sb.append("engine.getCastUtil().toComponent(");
 		else if (File.class == clazz) sb.append("engine.getCastUtil().toFile(");
-		else if (UDF.class == clazz) sb.append("engine.getCastUtil().toFunction(");
 		else if (Iterator.class == clazz) sb.append("engine.getCastUtil().toIterator(");
-		else if (java.util.Collection.class == clazz) sb.append("engine.getCastUtil().toJavaCollection(");
-		else if (List.class == clazz) sb.append("engine.getCastUtil().toList(");
 		else if (Locale.class == clazz) sb.append("engine.getCastUtil().toLocale(");
 		else if (Map.class == clazz) sb.append("engine.getCastUtil().toMap(");
 		else if (Object[].class == clazz) sb.append("engine.getCastUtil().toNativeArray(");
@@ -297,7 +296,17 @@ public class JavaFunctionDef implements FunctionDef {
 		else if (TimeSpan.class == clazz) sb.append("engine.getCastUtil().toTimeSpan(");
 		else if (TimeZone.class == clazz) sb.append("engine.getCastUtil().toTimeZone(");
 		else if (Object.class == clazz) sb.append("(");
-		else sb.append("(" + Caster.toClassName(clazz) + ")(");
+
+		// FUTURE add this methods to cast interface
+		else if (BigInteger.class == clazz) sb.append("lucee.runtime.op.Caster.toBigInteger(");
+		else if (CharSequence.class == clazz) sb.append("lucee.runtime.op.Caster.toCharSequence(");
+		else if (UDF.class == clazz) sb.append("lucee.runtime.op.Caster.toFunction(");
+		else if (java.util.Collection.class == clazz) sb.append("lucee.runtime.op.Caster.toJavaCollection(");
+		else if (List.class == clazz) sb.append("lucee.runtime.op.Caster.toList(");
+		else if (Date.class == clazz) sb.append("lucee.runtime.op.Caster.toDate(");
+		else sb.append("(" + Caster.toClassName(clazz) + ")lucee.runtime.op.Caster.castTo(\"" + Caster.toClassName(clazz) + "\",");
+		// else sb.append("(" + Caster.toClassName(clazz) + ")(");
+
 	}
 
 	private static String[] toArgumentNames(List<Argument> args) {
@@ -328,5 +337,11 @@ public class JavaFunctionDef implements FunctionDef {
 			i++;
 		}
 		return arr;
+	}
+
+	public static synchronized String id() {
+		_id++;
+		if (_id < 0) _id = 1;
+		return Long.toString(_id, Character.MAX_RADIX);
 	}
 }

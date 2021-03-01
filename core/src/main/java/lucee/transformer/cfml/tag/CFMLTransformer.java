@@ -34,7 +34,7 @@ import lucee.commons.lang.types.RefBooleanImpl;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.MappingImpl;
 import lucee.runtime.PageSource;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.config.Constants;
 import lucee.runtime.config.Identification;
@@ -42,7 +42,6 @@ import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageExceptionImpl;
 import lucee.runtime.exp.TemplateException;
 import lucee.runtime.op.Caster;
-import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
@@ -145,7 +144,7 @@ public final class CFMLTransformer {
 	 * @throws TemplateException
 	 * @throws IOException
 	 */
-	public Page transform(Factory factory, ConfigImpl config, PageSource ps, TagLib[] tlibs, FunctionLib[] flibs, boolean returnValue, boolean ignoreScopes)
+	public Page transform(Factory factory, ConfigPro config, PageSource ps, TagLib[] tlibs, FunctionLib[] flibs, boolean returnValue, boolean ignoreScopes)
 			throws TemplateException, IOException {
 		Page p;
 		SourceCode sc;
@@ -159,6 +158,20 @@ public final class CFMLTransformer {
 		while (true) {
 			try {
 				sc = new PageSourceCode(ps, charset, writeLog);
+
+				// script files (cfs)
+				if (Constants.isCFMLScriptExtension(ListUtil.last(ps.getRealpath(), '.'))) {
+					boolean isCFML = ps.getDialect() == CFMLEngine.DIALECT_CFML;
+					TagLibTag scriptTag = CFMLTransformer.getTLT(sc, isCFML ? Constants.CFML_SCRIPT_TAG_NAME : Constants.LUCEE_SCRIPT_TAG_NAME, config.getIdentification());
+
+					sc.setPos(0);
+					SourceCode original = sc;
+
+					// try inside a cfscript
+					String text = "<" + scriptTag.getFullName() + ">" + original.getText() + "\n</" + scriptTag.getFullName() + ">";
+					sc = new PageSourceCode(ps, text, charset, writeLog);
+				}
+
 				p = transform(factory, config, sc, tlibs, flibs, ps.getResource().lastModified(), dotUpper, returnValue, ignoreScopes);
 				break;
 			}
@@ -280,7 +293,7 @@ public final class CFMLTransformer {
 	 * @return uebersetztes CFXD Dokument Element.
 	 * @throws TemplateException
 	 */
-	public Page transform(Factory factory, ConfigImpl config, SourceCode sc, TagLib[] tlibs, FunctionLib[] flibs, long sourceLastModified, Boolean dotNotationUpperCase,
+	public Page transform(Factory factory, ConfigPro config, SourceCode sc, TagLib[] tlibs, FunctionLib[] flibs, long sourceLastModified, Boolean dotNotationUpperCase,
 			boolean returnValue, boolean ignoreScope) throws TemplateException {
 		boolean dnuc;
 		if (dotNotationUpperCase == null) {
@@ -1255,7 +1268,7 @@ public final class CFMLTransformer {
 		int start = cfml.getPos();
 
 		if (!cfml.isCurrentBetween('a', 'z') && !cfml.isCurrent('_')) {
-			if (throwError) throw new TemplateException(cfml, "Invalid Identifier, the following character cannot be part of a identifier [" + cfml.getCurrent() + "]");
+			if (throwError) throw new TemplateException(cfml, "Invalid Identifier, the following character cannot be part of an identifier [" + cfml.getCurrent() + "]");
 			return null;
 		}
 		do {
@@ -1365,7 +1378,7 @@ public final class CFMLTransformer {
 		if (req.length() > 0) doc.append("\nRequired:\n").append(req);
 		if (opt.length() > 0) doc.append("\nOptional:\n").append(opt);
 
-		pe.setAdditional(KeyImpl.init("Documentation"), doc);
+		pe.setAdditional(KeyConstants._Documentation, doc);
 	}
 
 }

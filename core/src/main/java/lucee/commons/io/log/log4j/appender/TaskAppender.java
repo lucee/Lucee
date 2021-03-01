@@ -25,25 +25,27 @@ import org.apache.log4j.spi.Filter;
 import org.apache.log4j.spi.LoggingEvent;
 
 import lucee.commons.io.log.log4j.appender.task.Task;
-import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.spooler.SpoolerEngine;
+import lucee.runtime.spooler.SpoolerEngineImpl;
 
 public class TaskAppender implements Appender, AppenderState {
 
 	private Appender appender;
 	private SpoolerEngine spoolerEngine;
 	private boolean closed;
+	private ConfigWeb config;
 
-	public TaskAppender(Config config, Appender appender) {
+	public TaskAppender(ConfigWeb config, Appender appender) {
 		if (appender instanceof AppenderState) closed = ((AppenderState) appender).isClosed();
 		this.appender = appender;
 		spoolerEngine = config.getSpoolerEngine();
-
+		this.config = config;
 	}
 
 	@Override
 	public void doAppend(LoggingEvent le) {
-		spoolerEngine.add(new Task(appender, le));
+		((SpoolerEngineImpl) spoolerEngine).add(config, new Task(appender, le));
 	}
 
 	@Override

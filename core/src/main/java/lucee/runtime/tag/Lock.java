@@ -21,7 +21,7 @@ package lucee.runtime.tag;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.debug.ActiveLock;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.LockException;
@@ -39,6 +39,7 @@ import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.scope.ApplicationImpl;
 import lucee.runtime.type.scope.RequestImpl;
 import lucee.runtime.type.scope.ServerImpl;
+import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.util.PageContextUtil;
 
 /**
@@ -195,7 +196,7 @@ public final class Lock extends BodyTagTryCatchFinallyImpl {
 	public void setName(String name) throws ApplicationException {
 		if (name == null) return;
 		this.name = name.trim();
-		if (name.length() == 0) throw new ApplicationException("invalid attribute definition", "attribute [name] can't be a empty string");
+		if (name.length() == 0) throw new ApplicationException("invalid attribute definition", "attribute [name] can't be an empty string");
 	}
 
 	public void setResult(String result) throws ApplicationException {
@@ -244,8 +245,8 @@ public final class Lock extends BodyTagTryCatchFinallyImpl {
 			}
 		}
 		Struct cflock = new StructImpl();
-		cflock.set("succeeded", Boolean.TRUE);
-		cflock.set("errortext", "");
+		cflock.set(KeyConstants._succeeded, Boolean.TRUE);
+		cflock.set(KeyConstants._errortext, "");
 		pageContext.setVariable(result, cflock);
 		start = System.nanoTime();
 		try {
@@ -262,8 +263,8 @@ public final class Lock extends BodyTagTryCatchFinallyImpl {
 			_release(pageContext, System.nanoTime() - start);
 			name = null;
 
-			cflock.set("succeeded", Boolean.FALSE);
-			cflock.set("errortext", msg);
+			cflock.set(KeyConstants._succeeded, Boolean.FALSE);
+			cflock.set(KeyConstants._errortext, msg);
 
 			if (throwontimeout) throw new LockException(LockException.OPERATION_TIMEOUT, this.name, msg);
 
@@ -271,8 +272,8 @@ public final class Lock extends BodyTagTryCatchFinallyImpl {
 		}
 		catch (InterruptedException e) {
 			_release(pageContext, System.nanoTime() - start);
-			cflock.set("succeeded", Boolean.FALSE);
-			cflock.set("errortext", e.getMessage());
+			cflock.set(KeyConstants._succeeded, Boolean.FALSE);
+			cflock.set(KeyConstants._errortext, e.getMessage());
 
 			if (throwontimeout) throw Caster.toPageException(e);
 
@@ -296,7 +297,7 @@ public final class Lock extends BodyTagTryCatchFinallyImpl {
 	private void _release(PageContext pc, long exe) {
 		ActiveLock al = ((PageContextImpl) pc).releaseActiveLock();
 		// listener
-		((ConfigWebImpl) pc.getConfig()).getActionMonitorCollector().log(pageContext, "lock", "Lock", exe, al.name + ":" + al.timeoutInMillis);
+		((ConfigWebPro) pc.getConfig()).getActionMonitorCollector().log(pageContext, "lock", "Lock", exe, al.name + ":" + al.timeoutInMillis);
 
 	}
 

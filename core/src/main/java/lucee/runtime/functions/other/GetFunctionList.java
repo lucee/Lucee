@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
@@ -61,7 +61,7 @@ public final class GetFunctionList implements Function {
 		// synchronized(sct) {
 		// hasSet=true;
 		FunctionLib[] flds;
-		flds = ((ConfigImpl) pc.getConfig()).getFLDs(dialect);
+		flds = ((ConfigPro) pc.getConfig()).getFLDs(dialect);
 		FunctionLibFunction func;
 		Map<String, FunctionLibFunction> _functions;
 		Iterator<Entry<String, FunctionLibFunction>> it;

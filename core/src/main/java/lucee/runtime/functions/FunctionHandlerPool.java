@@ -60,7 +60,7 @@ public final class FunctionHandlerPool {
 			// JAR
 			else clazz = ClassUtil.loadClass(className);
 
-			if (Reflector.isInstaneOf(clazz, BIF.class, false)) bif = (BIF) clazz.newInstance();
+			if (Reflector.isInstaneOf(clazz, BIF.class, false)) bif = (BIF) ClassUtil.newInstance(clazz);
 			else bif = new BIFProxy(clazz);
 		}
 		catch (Exception e) {
