@@ -137,15 +137,15 @@ function mem(type) {
 					// get parent
 					var p = getDirectoryFromPath(arguments.path);
 					p = left(p, p.len() - 1);
-					p = listTrim(p, "\/");
+					p = listCompact(p, "\/");
 
 					// get grand parent
 					var pp = getDirectoryFromPath(p);
 					pp = left(pp, pp.len() - 1);
-					pp = listTrim(pp, "\/");
+					pp = listCompact(pp, "\/");
 
 					// only testcases in sub directory of "test" are allowed
-					var _test = listTrim(test,"\/");
+					var _test = listCompact(test,"\/");
 					return (_test == pp || _test == p) && left(name, 1) != "_";
 				}
 			};
