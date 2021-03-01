@@ -3,13 +3,13 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	function run( testResults , testBox ) {
 
 		describe( 'QofQ' , function(){
-			var t1 = queryNew("id,unique,and,order,by,table,type,select,distinct"); 
-			var t1 = queryNew("id,zac,unique"); 
-			var t2 = queryNew("id"); 
+			var t1 = queryNew( "id,unique,and,order,by,table,type,select,distinct" ); 
+			var t1 = queryNew( "id,zac,unique" ); 
+			var t2 = queryNew( "id" ); 
 			var unique = t1; 
 			var q = "";
-			queryAddRow(t1);
-			queryAddRow(t2);
+			queryAddRow( t1 );
+			queryAddRow( t2 );
 			// add dummy data, force all cols to be varchar
 			loop list="#t1.columnList()#" item="local.col" {
 				querySetCell( t1, col, "lucee rocks", 1 );
@@ -23,7 +23,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 					options = { dbtype: 'query' }
 				);
 				expect( q ).toBeQuery();
-				expect( q.recordcount ).toBe(1);
+				expect( q.recordcount ).toBe( 1 );
 			});
 
 
@@ -34,7 +34,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 					options = { dbtype: 'query' }
 				);
 				expect( q ).toBeQuery();
-				expect( q.recordcount ).toBe(1);
+				expect( q.recordcount ).toBe( 1 );
 			});
 
 			it( 'QoQ select * from table with reserved word as table name with HSQLDB' , function() {
@@ -52,7 +52,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 					options = { dbtype: 'query' }
 				);
 				expect( q ).toBeQuery();
-				expect( q.recordcount ).toBe(1);
+				expect( q.recordcount ).toBe( 1 );
 			});
 
 			it( 'Qoq select * from table with reserved word as column name' , function() {
@@ -61,7 +61,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 					options = { dbtype: 'query' }
 				);
 				expect( q ).toBeQuery();
-				expect( q.recordcount ).toBe(1);
+				expect( q.recordcount ).toBe( 1 );
 			});
 
 			it( 'Qoq select * from table with reserved word as table name' , function() {
@@ -77,7 +77,21 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 					options = { dbtype: 'query' }
 				);
 				expect( q ).toBeQuery();
-				expect( q.recordcount ).toBe(1);
+				expect( q.recordcount ).toBe( 1 );
+			});
+
+			it( 'Qoq select * from 100k row table' , function() {
+				var q1 = extensionList();
+				loop times=100000 {
+					local.r = QueryAddRow( q1 );
+					QuerySetRow(q1, r, QueryRowData( q1, 1 ));
+				}
+				var q = QueryExecute(
+					sql = 'SELECT q1.id FROM t1, q1 where q1.id = t1.id', 
+					options = { dbtype: 'query' }
+				);
+				expect( q ).toBeQuery();
+				expect( q.recordcount ).toBe( 0 );
 			});
 			
 		});
