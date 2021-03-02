@@ -10,18 +10,22 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function run( testResults, testBox ){
 		describe( "test case for LDEV-2410", function() {
 			it(title = "checking the file with READONLY Attribute", body = function( currentSpec ) {
-				variables.myfile = FileOpen(path, "write");
 				FileWrite(path,"I am in readonly file");
 				fileSetAttribute(path,'readonly');
 				expect(getfileinfo(path).canRead).toBe(true);
 				expect(getfileinfo(path).canWrite).toBe(false);
-			});	
+			});
 			it(title = "checking the file with NORMAL Attribute", body = function( currentSpec ) {
-				fileSetAttribute(path,'normal');
-				FileWrite(path,"I am in normal file");
-				expect(getfileinfo(path).canRead).toBe(true);
-				expect(getfileinfo(path).canWrite).toBe(true);
-			});	
+				try{
+					fileSetAttribute(path,'normal');
+					FileWrite(path,"I am in normal file");
+					res = getfileinfo(path).canWrite;
+				}
+				catch(any e){
+					res = e.message;
+				}
+				expect(res).toBe(true);
+			});
 		});
 	}
 
