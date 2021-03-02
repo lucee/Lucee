@@ -15,7 +15,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				expect(getfileinfo(path).canRead).toBe(true);
 				expect(getfileinfo(path).canWrite).toBe(false);
 			});
-			it(title = "checking the file with NORMAL Attribute", body = function( currentSpec ) {
+			it(title = "Checking changing file attribute to NORMAL from READONLY", body = function( currentSpec ) {
 				try{
 					fileSetAttribute(path,'normal');
 					FileWrite(path,"I am in normal file");
