@@ -24,7 +24,7 @@
 ]]></echo>
 <echots message="start TestBox testcases"/>
 
-
+<!-- TODO this is hard to debug, any errors, it just fails with zero feedback -->
 <script language="CFML">
 <![CDATA[
 encodeForHTML("abc"); // test if ESAPI extension exist right away
@@ -146,6 +146,9 @@ try {
 	out=SystemOut.setOut(nullValue());
 	//err=SystemOut.setErr(nullValue());
 
+	request._tick = getTickCount();
+	request.overhead = [];
+
 	silent {
 		try {
 
@@ -190,11 +193,13 @@ try {
 	} // onBundleStart = function
 	,onBundleEnd = function(cfc, testResults){
 		var bundle = arrayLast(testResults.getBundleStats());
+		var oh = (getTickCount()-request._tick)-bundle.totalDuration;
+		request._tick = getTickCount();
+		ArrayAppend(request.overhead, oh);
 		try {
 			SystemOut.setOut(out);
 			//SystemOut.setErr(err);
-
-			systemOutput(TAB & " (#bundle.totalPass# tests passed in #NumberFormat(bundle.totalDuration, ',')# ms)",true);
+			systemOutput(TAB & " (#bundle.totalPass# tests passed in #NumberFormat(bundle.totalDuration)# ms)", true);
 			//mem("non_heap");
 			//mem("heap");
 
@@ -344,6 +349,9 @@ Begin Stack Trace
 	echo("Lucee Version: #server.lucee.version#" & NL);
 	echo("Java Version: #server.java.version#" & NL);
 	echo("Execution time: (#NumberFormat(result.getTotalDuration()/1000)# s)" & NL);
+	echo("Average Test Overhead: (#NumberFormat(ArrayAvg(request.overhead))# ms)" & NL);
+	echo("Total Test Overhead: (#NumberFormat(ArraySum(request.overhead))# ms)" & NL);
+	
 	echo("=============================================================" & NL & NL);
 	echo("->Bundles/Suites/Specs: #result.getTotalBundles()#/#result.getTotalSuites()#/#result.getTotalSpecs()#" & NL);
 	echo("->Pass:     #result.getTotalPass()#" & NL);
