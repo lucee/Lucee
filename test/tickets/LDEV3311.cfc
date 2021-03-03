@@ -82,12 +82,18 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 			it( 'Qoq select * from 100k row table' , function() {
 				var q1 = extensionList();
+				// strip out complex columns (works ok in java 11 but fails on 8)
+				q1 = QueryExecute(
+					sql = 'SELECT ID,VERSION,NAME,SYMBOLICNAME,TYPE,DESCRIPTION,IMAGE,RELEASETYPE,TRIAL,STARTBUNDLES,BUNDLES from q1', 
+					options = { dbtype: 'query' }
+				);
+				var q2 = QueryNew("id");
 				loop times=100000 {
 					local.r = QueryAddRow( q1 );
 					QuerySetRow(q1, r, QueryRowData( q1, 1 ));
 				}
 				var q = QueryExecute(
-					sql = 'SELECT q1.id FROM t1, q1 where q1.id = t1.id', 
+					sql = 'SELECT q1.id FROM q2, q1 where q1.id = q2.id', 
 					options = { dbtype: 'query' }
 				);
 				expect( q ).toBeQuery();
