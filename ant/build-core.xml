@@ -11,7 +11,7 @@
   <property name="bundleName" value="Lucee Core"/>
   <property name="bundleSymbolicName" value="lucee.core"/>
   
-  <property name="testboxVersion" value="4.2.1"/>
+  <property name="testboxVersion" value="4.3.0"/>
   <property name="testboxURL" 
     value="https://downloads.ortussolutions.com/ortussolutions/testbox/${testboxVersion}/testbox-${testboxVersion}.zip"/>
   <property name="extURL" value="https://extension.lucee.org/rest/extension/provider/full/"/>
