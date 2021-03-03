@@ -2,14 +2,14 @@
 <project default="run" basedir="." name="Lucee">
 
 <macrodef name="echots">
-    <attribute name="message"/>
-    <sequential>
-      <local name="timestamp" />
-      <tstamp>
-        <format property="timestamp" pattern="yyyy-MM-dd HH:mm:ss" />
-      </tstamp>
-      <echo message="---------- ${timestamp} - @{message} ----------" />
-    </sequential>
+	<attribute name="message"/>
+	<sequential>
+	  <local name="timestamp" />
+	  <tstamp>
+		<format property="timestamp" pattern="yyyy-MM-dd HH:mm:ss" />
+	  </tstamp>
+	  <echo message="---------- ${timestamp} - @{message} ----------" />
+	</sequential>
   </macrodef>
 
 <target name="run">
@@ -64,7 +64,7 @@ try {
 		}
 	}
 
-    // strips off the stack trace to exclude testbox and back to the first .cfc call in the stack
+	// strips off the stack trace to exclude testbox and back to the first .cfc call in the stack
 	function printStackTrace( st ){
 		local.i = find( "/testbox/", arguments.st );
 		if ( i eq 0 ){ // dump it all out
@@ -75,10 +75,10 @@ try {
 		local.tmp2 = reverse( local.tmp );
 		local.i = find( ":cfc.", local.tmp2 ); // find the first cfc line
 		if ( local.i gt 0 ){
-            local.i = len( local.tmp )-i;
-            local.j = find( ")", local.tmp, local.i ); // find the end of the line
+			local.i = len( local.tmp )-i;
+			local.j = find( ")", local.tmp, local.i ); // find the end of the line
 			local.tmp = mid( local.tmp, 1, local.j );
-        }
+		}
 		systemOutput( TAB & local.tmp, true );
 	};
 
@@ -103,7 +103,7 @@ try {
 
 	systemOutput("set password #dateTimeFormat(now())#", true);
 
-	if (len(request.testFilter))
+	if (len(request.testFilter) gt 0)
 		systemOutput(NL & "Filtering only tests containing: [" & request.testFilter & "]" & NL, true);	
 
 	// output deploy log
@@ -244,9 +244,8 @@ try {
 											}
 										}
 									}
-								} else {
-									systemOutput(NL);
-								}
+								} 
+								systemOutput(NL);
 							} // if !isNull
 
 							if (!isNull(specStat.error) && !isEmpty(specStat.error)){

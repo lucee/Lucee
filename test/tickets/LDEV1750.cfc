@@ -30,7 +30,11 @@
 
 	public void function testSqlAttrNobody(){
 
-		var sql = "select * from variables.qry";
+		// var sql = "select * from variables.qry";
+		// break test to demonstrate new test output
+		var q = QueryNew("a,unique");
+		var sql = "select q.unique from variables.qry q1, q where q.a = q1.name "; 
+
 
 		query name="local.q2" dbtype="query" sql=sql;
 	}
