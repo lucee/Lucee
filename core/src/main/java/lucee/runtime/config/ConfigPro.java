@@ -27,7 +27,7 @@ import lucee.runtime.cache.tag.CacheHandler;
 import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.customtag.InitFile;
 import lucee.runtime.db.ClassDefinition;
-import lucee.runtime.db.DatasourceConnectionPool;
+import lucee.runtime.db.DataSource;
 import lucee.runtime.db.JDBCDriver;
 import lucee.runtime.engine.ExecutionLogFactory;
 import lucee.runtime.exp.PageException;
@@ -128,7 +128,14 @@ public interface ConfigPro extends Config {
 
 	public RHExtension[] getServerRHExtensions();
 
-	public DatasourceConnectionPool getDatasourceConnectionPool();
+	// zhis only exists for the hibernate extension that uses this
+	public MockPool getDatasourceConnectionPool();
+
+	public DatasourceConnPool getDatasourceConnectionPool(lucee.runtime.db.DataSource ds, String user, String pass);
+
+	public Collection<DatasourceConnPool> getDatasourceConnectionPools();
+
+	public void removeDatasourceConnectionPool(DataSource ds);
 
 	public void clearCTCache();
 

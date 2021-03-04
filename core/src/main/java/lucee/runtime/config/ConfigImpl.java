@@ -88,7 +88,8 @@ import lucee.runtime.config.ConfigWebUtil.CacheElement;
 import lucee.runtime.customtag.InitFile;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
-import lucee.runtime.db.DatasourceConnectionPool;
+import lucee.runtime.db.DataSourcePro;
+import lucee.runtime.db.DatasourceConnectionFactory;
 import lucee.runtime.db.JDBCDriver;
 import lucee.runtime.dump.DumpWriter;
 import lucee.runtime.dump.DumpWriterEntry;
@@ -325,7 +326,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	private PrintWriter out = SystemUtil.getPrintWriter(SystemUtil.OUT);
 	private PrintWriter err = SystemUtil.getPrintWriter(SystemUtil.ERR);
 
-	private DatasourceConnectionPool pool = new DatasourceConnectionPool();
+	private Map<String, DatasourceConnPool> pools = new HashMap<>();
 
 	private boolean doCustomTagDeepSearch = false;
 	private boolean doComponentTagDeepSearch = false;
@@ -2312,8 +2313,44 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	}
 
 	@Override
-	public DatasourceConnectionPool getDatasourceConnectionPool() {
+	public DatasourceConnPool getDatasourceConnectionPool(DataSource ds, String user, String pass) {
+		String id = DatasourceConnectionFactory.createId(ds, user, pass);
+		DatasourceConnPool pool = pools.get(id);
+		if (pool == null) {
+			synchronized (id) {
+				pool = pools.get(id);
+				if (pool == null) {// TODO add config but from where?
+					DataSourcePro dsp = (DataSourcePro) ds;
+
+					pool = new DatasourceConnPool(this, ds, user, pass, "datasource",
+							DatasourceConnPool.createPoolConfig(null, null, null, dsp.getMinIdle(), dsp.getMaxIdle(), dsp.getMaxTotal(), 0, 0, 0, 0, 0, null));
+					pools.put(id, pool);
+				}
+			}
+		}
 		return pool;
+	}
+
+	@Override
+	public MockPool getDatasourceConnectionPool() {
+		return new MockPool();
+	}
+
+	@Override
+	public Collection<DatasourceConnPool> getDatasourceConnectionPools() {
+		return pools.values();
+	}
+
+	@Override
+	public void removeDatasourceConnectionPool(DataSource ds) {
+		for (Entry<String, DatasourceConnPool> e: pools.entrySet()) {
+			if (e.getValue().getFactory().getDatasource().getName().equalsIgnoreCase(ds.getName())) {
+				synchronized (e.getKey()) {
+					pools.remove(e.getKey());
+				}
+				e.getValue().clear();
+			}
+		}
 	}
 
 	@Override

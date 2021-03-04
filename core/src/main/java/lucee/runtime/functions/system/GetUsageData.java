@@ -40,6 +40,7 @@ import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.ConfigWebUtil;
+import lucee.runtime.config.DatasourceConnPool;
 import lucee.runtime.debug.ActiveLock;
 import lucee.runtime.debug.ActiveQuery;
 import lucee.runtime.engine.CFMLEngineImpl;
@@ -63,6 +64,9 @@ public final class GetUsageData implements Function {
 	private static final Key START_TIME = KeyImpl.getInstance("starttime");
 	private static final Key CACHED_QUERIES = KeyImpl.getInstance("cachedqueries");
 	private static final Key OPEN_CONNECTIONS = KeyImpl.getInstance("openconnections");
+	private static final Key ACTIVE_CONNECTIONS = KeyImpl.getInstance("activeconnections");
+	private static final Key IDLE_CONNECTIONS = KeyImpl.getInstance("idleconnections");
+	private static final Key WAITING_FOR_CONNECTION = KeyImpl.getInstance("waitingForConnection");
 	private static final Key ELEMENTS = KeyImpl.getInstance("elements");
 	private static final Key USERS = KeyImpl.getInstance("users");
 	private static final Key QUERIES = KeyImpl.getInstance("queries");
@@ -114,7 +118,7 @@ public final class GetUsageData implements Function {
 		ConfigWebPro web;
 		Map<Integer, PageContextImpl> pcs;
 		PageContextImpl _pc;
-		int row, openConnections = 0;
+		int row, active = 0, idle = 0, waiters = 0;
 		CFMLFactoryImpl factory;
 		ActiveQuery[] queries;
 		ActiveQuery aq;
@@ -167,9 +171,10 @@ public final class GetUsageData implements Function {
 				}
 			}
 
-			Iterator<Integer> _it = web.getDatasourceConnectionPool().openConnections().values().iterator();
-			while (_it.hasNext()) {
-				openConnections += _it.next().intValue();
+			for (DatasourceConnPool pool: web.getDatasourceConnectionPools()) {
+				active += pool.getNumActive();
+				idle += pool.getNumIdle();
+				waiters += pool.getNumWaiters();
 			}
 
 			// Template Cache
@@ -193,7 +198,10 @@ public final class GetUsageData implements Function {
 		ds.setEL(CACHED_QUERIES, Caster.toDouble(pc.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_QUERY, null).size(pc))); // there is only one cache for all contexts
 		// ds.setEL(CACHED_QUERIES, Caster.toDouble(pc.getQueryCache().size(pc))); // there is only one
 		// cache for all contexts
-		ds.setEL(OPEN_CONNECTIONS, Caster.toDouble(openConnections));
+		ds.setEL(OPEN_CONNECTIONS, Caster.toDouble(active + idle));
+		ds.setEL(ACTIVE_CONNECTIONS, Caster.toDouble(active));
+		ds.setEL(IDLE_CONNECTIONS, Caster.toDouble(idle));
+		ds.setEL(WAITING_FOR_CONNECTION, Caster.toDouble(waiters));
 
 		// Memory
 		Struct mem = new StructImpl();

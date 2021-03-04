@@ -38,6 +38,7 @@ import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.DatasourceConnPool;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
@@ -267,7 +268,8 @@ public final class HSQLDBHandler {
 				query.setExecutionTime(stopwatch.time());
 				return query;
 			}
-			catch (PageException ex) {}
+			catch (PageException ex) {
+			}
 
 		}
 		catch (PageException e) {
@@ -332,10 +334,13 @@ public final class HSQLDBHandler {
 
 			QueryImpl nqr = null;
 			ConfigPro config = (ConfigPro) pc.getConfig();
-			DatasourceConnectionPool pool = config.getDatasourceConnectionPool();
-			DatasourceConnection dc = pool.getDatasourceConnection(config, config.getDataSource(QOQ_DATASOURCE_NAME), "sa", "");
-			Connection conn = dc.getConnection();
+			DatasourceConnection dc = null;
+			Connection conn = null;
 			try {
+				DatasourceConnPool pool = config.getDatasourceConnectionPool(config.getDataSource(QOQ_DATASOURCE_NAME), "sa", "");
+				dc = pool.borrowObject();
+				conn = dc.getConnection();
+
 				DBUtil.setAutoCommitEL(conn, false);
 
 				// sql.setSQLString(HSQLUtil.sqlToZQL(sql.getSQLString(),false));
@@ -371,9 +376,11 @@ public final class HSQLDBHandler {
 
 			}
 			finally {
-				removeAll(conn, usedTables);
-				DBUtil.setAutoCommitEL(conn, true);
-				pool.releaseDatasourceConnection(dc);
+				if (conn != null) {
+					removeAll(conn, usedTables);
+					DBUtil.setAutoCommitEL(conn, true);
+				}
+				if (dc != null) ((DatasourceConnectionPro) dc).release();
 
 				// manager.releaseConnection(dc);
 			}

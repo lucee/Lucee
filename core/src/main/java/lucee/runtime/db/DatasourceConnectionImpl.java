@@ -41,7 +41,7 @@ import lucee.commons.db.DBUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.DatasourceConnPool;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.spooler.Task;
@@ -54,13 +54,14 @@ public final class DatasourceConnectionImpl implements DatasourceConnectionPro, 
 	// private static final int MAX_PS = 100;
 	private Connection connection;
 	private DataSourcePro datasource;
-	private long time;
-	private final long start;
+	private long lastUsed;
+	private final long created;
 	private String username;
 	private String password;
 	private int transactionIsolationLevel = -1;
 	private int requestId = -1;
 	private Boolean supportsGetGeneratedKeys;
+	private DatasourceConnPool pool;
 
 	/**
 	 * @param connection
@@ -68,10 +69,11 @@ public final class DatasourceConnectionImpl implements DatasourceConnectionPro, 
 	 * @param pass
 	 * @param user
 	 */
-	public DatasourceConnectionImpl(Connection connection, DataSourcePro datasource, String username, String password) {
+	public DatasourceConnectionImpl(DatasourceConnPool pool, Connection connection, DataSourcePro datasource, String username, String password) {
+		this.pool = pool;
 		this.connection = connection;
 		this.datasource = datasource;
-		this.time = this.start = System.currentTimeMillis();
+		this.lastUsed = this.created = System.currentTimeMillis();
 		this.username = username;
 		this.password = password;
 
@@ -97,7 +99,7 @@ public final class DatasourceConnectionImpl implements DatasourceConnectionPro, 
 		int timeout = datasource.getIdleTimeout();
 		if (timeout <= 0) return false;
 		timeout *= 60000;
-		return (time + timeout) < System.currentTimeMillis();
+		return (lastUsed + timeout) < System.currentTimeMillis();
 	}
 
 	@Override
@@ -105,12 +107,12 @@ public final class DatasourceConnectionImpl implements DatasourceConnectionPro, 
 		int timeout = datasource.getLiveTimeout();
 		if (timeout <= 0) return false;
 		timeout *= 60000;
-		return (start + timeout) < System.currentTimeMillis();
+		return (created + timeout) < System.currentTimeMillis();
 	}
 
 	@Override
 	public DatasourceConnection using() throws PageException {
-		time = System.currentTimeMillis();
+		lastUsed = System.currentTimeMillis();
 		if (datasource.isAlwaysResetConnections()) {
 			try {
 				connection.setAutoCommit(true);
@@ -205,7 +207,7 @@ public final class DatasourceConnectionImpl implements DatasourceConnectionPro, 
 
 	@Override
 	public Object execute(Config config) throws PageException {
-		((ConfigPro) config).getDatasourceConnectionPool().releaseDatasourceConnection(this);
+		release();
 		return null;
 	}
 
@@ -488,6 +490,11 @@ public final class DatasourceConnectionImpl implements DatasourceConnectionPro, 
 	@Override
 	public int getDefaultTransactionIsolation() {
 		return datasource.getDefaultTransactionIsolation();
+	}
+
+	@Override
+	public void release() {
+		pool.returnObject(this);
 	}
 
 }

@@ -94,6 +94,7 @@ import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.config.Constants;
+import lucee.runtime.config.DatasourceConnPool;
 import lucee.runtime.config.DebugEntry;
 import lucee.runtime.config.DeployHandler;
 import lucee.runtime.config.Password;
@@ -2635,6 +2636,9 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		int idleTimeout = getInt("connectionTimeout", -1);
 		if (idleTimeout == -1) idleTimeout = getInt("idleTimeout", -1);
 		int liveTimeout = getInt("liveTimeout", -1);
+		int minIdle = getInt("minIdle", -1);
+		int maxIdle = getInt("maxIdle", -1);
+		int maxTotal = getInt("maxTotal", -1);
 		long metaCacheTimeout = getLong("metaCacheTimeout", 60000);
 		boolean blob = getBoolV("blob", false);
 		boolean clob = getBoolV("clob", false);
@@ -2647,9 +2651,9 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		// config.getDatasourceConnectionPool().remove(name);
 		DataSourcePro ds = null;
 		try {
-			ds = new DataSourceImpl(config, name, cd, host, dsn, database, port, username, password, null, connLimit, idleTimeout, liveTimeout, metaCacheTimeout, blob, clob, allow,
-					custom, false, validate, storage, null, dbdriver, ps, literalTimestampWithTSOffset, alwaysSetTimeout, requestExclusive, alwaysResetConnections,
-					config.getLog("application"));
+			ds = new DataSourceImpl(config, name, cd, host, dsn, database, port, username, password, null, connLimit, idleTimeout, liveTimeout, minIdle, maxIdle, maxTotal,
+					metaCacheTimeout, blob, clob, allow, custom, false, validate, storage, null, dbdriver, ps, literalTimestampWithTSOffset, alwaysSetTimeout, requestExclusive,
+					alwaysResetConnections, config.getLog("application"));
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
@@ -2878,9 +2882,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 	private void _doVerifyDatasource(DataSourcePro ds, String username, String password) throws PageException {
 		try {
-			DataSourceManager manager = pageContext.getDataSourceManager();
-			DatasourceConnectionImpl dc = new DatasourceConnectionImpl(ds.getConnection(config, username, password), ds, username, password);
-			manager.releaseConnection(pageContext, dc);
+			DatasourceConnectionImpl dc = new DatasourceConnectionImpl(null, ds.getConnection(config, username, password), ds, username, password);
+			dc.close();
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
@@ -4053,7 +4056,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		Iterator it = ds.keySet().iterator();
 		lucee.runtime.type.Query qry = new QueryImpl(new String[] { "name", "host", "classname", "bundleName", "bundleVersion", "dsn", "DsnTranslated", "database", "port",
 				"timezone", "username", "password", "passwordEncrypted", "readonly", "grant", "drop", "create", "revoke", "alter", "select", "delete", "update", "insert",
-				"connectionLimit", "openConnections", "connectionTimeout", "clob", "blob", "validate", "storage", "customSettings", "metaCacheTimeout" }, ds.size(), "query");
+				"connectionLimit", "openConnections", "idleConnections", "activeConnections", "waitingForConnection", "connectionTimeout", "clob", "blob", "validate", "storage",
+				"customSettings", "metaCacheTimeout" }, ds.size(), "query");
 
 		int row = 0;
 
@@ -4086,10 +4090,23 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 			qry.setAt(KeyConstants._grant, row, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_GRANT)));
 			qry.setAt(KeyConstants._revoke, row, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_REVOKE)));
 			qry.setAt(KeyConstants._alter, row, Boolean.valueOf(d.hasAllow(DataSource.ALLOW_ALTER)));
-			int oc = config.getDatasourceConnectionPool().openConnections(key.toString());
-			qry.setAt("openConnections", row, oc < 0 ? 0 : oc);
+
+			// open connections
+			int idle = 0, active = 0, waiters = 0;
+			for (DatasourceConnPool pool: config.getDatasourceConnectionPools()) {
+				if (!d.getName().equalsIgnoreCase(pool.getFactory().getDatasource().getName())) continue;
+				idle += pool.getNumIdle();
+				active += pool.getNumActive();
+				waiters += pool.getNumWaiters();
+			}
+
+			qry.setAt("openConnections", row, idle + active);
+			qry.setAt("idleConnections", row, idle);
+			qry.setAt("activeConnections", row, active);
+			qry.setAt("waitingForConnection", row, waiters);
 			qry.setAt("connectionLimit", row, d.getConnectionLimit() < 1 ? "" : Caster.toString(d.getConnectionLimit()));
 			qry.setAt("connectionTimeout", row, d.getConnectionTimeout() < 1 ? "" : Caster.toString(d.getConnectionTimeout()));
+			// MUST add live and idle timeout and everything else posible
 			qry.setAt("customSettings", row, d.getCustoms());
 			qry.setAt("blob", row, Boolean.valueOf(d.isBlob()));
 			qry.setAt("clob", row, Boolean.valueOf(d.isClob()));
