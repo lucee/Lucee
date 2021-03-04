@@ -65,6 +65,7 @@ import lucee.commons.io.res.filter.NotResourceFilter;
 import lucee.commons.io.res.filter.OrResourceFilter;
 import lucee.commons.io.res.filter.ResourceFilter;
 import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.ClassUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.IDGenerator;
 import lucee.commons.lang.StringUtil;
@@ -792,7 +793,6 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 
 		else if (check("getdefaultpassword", ACCESS_FREE) && check2(ACCESS_READ)) doGetDefaultPassword();
 		else if (check("getContexts", ACCESS_FREE) && check2(ACCESS_READ)) doGetContexts();
-		else if (check("getContextes", ACCESS_FREE) && check2(ACCESS_READ)) doGetContexts();
 		else if (check("updatedefaultpassword", ACCESS_FREE) && check2(ACCESS_WRITE)) doUpdateDefaultPassword();
 		else if (check("hasindividualsecurity", ACCESS_FREE) && check2(ACCESS_READ)) doHasIndividualSecurity();
 		else if (check("resetpassword", ACCESS_FREE) && check2(ACCESS_WRITE)) doResetPassword();
@@ -839,6 +839,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		else if (check("changeVersionTo", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doChangeVersionTo();
 		else if (check("getUpdate", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doGetUpdate();
 		else if (check("getMinVersion", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_READ)) getMinVersion();
+		else if (check("getLoaderInfo", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_READ)) getLoaderInfo();
 		else if (check("listPatches", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_READ)) listPatches();
 		else if (check("updateupdate", ACCESS_NOT_WHEN_WEB) && check2(ACCESS_WRITE)) doUpdateUpdate();
 		else if (check("getSerial", ACCESS_FREE) && check2(ACCESS_READ)) doGetSerial();
@@ -2272,6 +2273,19 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		try {
 
 			pageContext.setVariable(getString("admin", action, "returnVariable"), VersionInfo.getIntVersion().toString());
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+	}
+
+	private void getLoaderInfo() throws PageException {
+		try {
+			Struct sct = new StructImpl();
+			sct.set("LoaderVersion", VersionInfo.getIntVersion().toString());
+			sct.set("LuceeVersion", pageContext.getConfig().getFactory().getEngine().getInfo().getVersion().toString());
+			sct.set("LoaderPath", ClassUtil.getSourcePathForClass("lucee.loader.servlet.CFMLServlet", ""));
+			pageContext.setVariable(getString("admin", action, "returnVariable"), sct);
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);

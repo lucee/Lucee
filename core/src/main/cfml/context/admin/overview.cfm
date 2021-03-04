@@ -569,7 +569,11 @@ Error Output --->
 		</tr>
 
 
-
+		<cfadmin
+		action="getMinVersion"
+		type="server"
+		password="#session["password"&request.adminType]#"
+		returnVariable="minVersion">
 		<tr>
 			<td valign="top" colspan="3">
 				<br>
@@ -630,6 +634,10 @@ Error Output --->
 								<tr>
 									<th scope="row">#stText.Overview.remote_addr#</th>
 									<td>#cgi.remote_addr#</td>
+								</tr>
+								<tr>
+									<th scope="row">Loader Version</th>
+									<td>#minversion#</td>
 								</tr>
 								<tr>
 									<th scope="row">#stText.overview.servletContainer#</th>

@@ -8,7 +8,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				} catch( any e ){
 					var result = e.message;
 				}
-				expect(result).toBe("too few arguments for function call");
+				expect(result).toBe("too few arguments for function [ArrayAppend] call");
 			});
 
 			it( title='Checking arrayPrepend member function without any params',body=function( currentSpec ) {
@@ -18,7 +18,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				} catch( any e ){
 					var result = e.message;
 				}
-				expect(result).toBe("too few arguments for function call");
+				expect(result).toBe("too few arguments for function [ArrayPrepend] call");
 			});
 
 			it( title='Checking arraySort member function without any params',body=function( currentSpec ) {
@@ -28,7 +28,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				} catch( any e ){
 					var result = e.message;
 				}
-				expect(result).toBe("too few arguments for function call");
+				expect(result).toBe("too few arguments for function [ArraySort] call");
 			});
 		});
 	}

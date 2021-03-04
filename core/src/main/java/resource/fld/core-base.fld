@@ -9786,7 +9786,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>QueryClear</name>
 		<class>lucee.runtime.functions.query.QueryClear</class>
-		<member-name>prepend</member-name>
+		<member-name>clear</member-name>
 		<keywords>query</keywords>
 		<description>Clears all rows from a query</description>
 		<argument>

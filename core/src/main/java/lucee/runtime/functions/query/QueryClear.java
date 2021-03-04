@@ -19,7 +19,7 @@ public class QueryClear extends BIF implements Function {
 
 	@Override
 	public Object invoke(PageContext pc, Object[] args) throws PageException {
-		if (args.length == 2) return call(pc, Caster.toQuery(args[0]));
+		if (args.length == 1) return call(pc, Caster.toQuery(args[0]));
 
 		throw new FunctionException(pc, "QueryClear", 1, 1, args.length);
 	}
