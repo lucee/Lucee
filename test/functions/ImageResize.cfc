@@ -28,7 +28,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		variables.image=imagenew(variables.binary);
 	}
 
-	public void function test() localmode="true"{
+	public void function testImageResize() localmode="true"{
 		var info=image.info();
 		assertEquals(92,info.width);
 		assertEquals(59,info.height);
@@ -44,7 +44,26 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		var info=image.info();
 		assertEquals(92,info.width);
 		assertEquals(59,info.height);
-		
+	}
+	public void function testImageResizeInterpolation() localmode="true"{
+		local.resample = "highestQuality,highQuality,mediumQuality,highestPerformance,highPerformance,mediumPerformance,"
+			"nearest,bilinear,bicubic,bessel,blackman,hamming,hanning,hermite,lanczos,mitchell,quadratic";
+
+		loop list="#local.resample#" item="local.interpolation" {
+			expect(ImageResize( image=image, width=20, height=20, interpolation=local.interpolation)).toBeNull();
+		}
+	}
+	public void function testImageResizeBlurFactor() localmode="true"{
+		expect(function(){
+			ImageResize( image=image, width=20, height=20, blurFactor=-1)
+		}).toThrow();
+		expect(function(){
+			ImageResize( image=image, width=20, height=20, blurFactor=11)
+		}).toThrow();
+
+		expect(ImageResize( image=image, width=20, height=20, blurFactor=5)).toBeNull();
+		expect(ImageResize( image=image, width=20, height=20, blurFactor=0)).toBeNull();
+		expect(ImageResize( image=image, width=20, height=20, blurFactor=10)).toBeNull();
 	}  
 
 } 
