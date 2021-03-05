@@ -3057,10 +3057,14 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 		Entry<String, SoftReference<InitFile>> entry;
 		SoftReference<InitFile> v;
+		InitFile initFile;
 		while (it.hasNext()) {
 			entry = it.next();
 			v = entry.getValue();
-			if (v != null) sct.setEL(entry.getKey(), v.get().getPageSource().getDisplayPath());
+			if (v != null) {
+				initFile = v.get();
+				if (initFile != null) sct.setEL(entry.getKey(), initFile.getPageSource().getDisplayPath());
+			}
 		}
 		return sct;
 	}
