@@ -161,7 +161,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 
 	StaticScope _static;
 
-	boolean insideStaticConstr;
+	Map<Long, Boolean> insideStaticConstr = new HashMap<>();
 
 	private AbstractFinal absFin;
 
@@ -423,16 +423,18 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		}
 		initProperties();
 		StaticStruct ss = componentPage.getStaticStruct();
-		synchronized (ss) {
-			// invoke static constructor
-			if (!ss.isInit()) {
-				ss.setInit(true);// this needs to happen before the call
-				try {
-					componentPage.staticConstructor(pageContext, this);
-				}
-				catch (Exception e) {
-					ss.setInit(false);
-					throw Caster.toPageException(e);
+		if (!ss.isInit()) {
+			synchronized (ss) {
+				// invoke static constructor
+				if (!ss.isInit()) {
+					ss.setInit(true);// this needs to happen before the call
+					try {
+						componentPage.staticConstructor(pageContext, this);
+					}
+					catch (Exception e) {
+						ss.setInit(false);
+						throw Caster.toPageException(e);
+					}
 				}
 			}
 		}
@@ -692,7 +694,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 
 	@Override
 	public Variables beforeStaticConstructor(PageContext pc) {
-		insideStaticConstr = true;
+		insideStaticConstr.put(ThreadLocalPageContext.getThreadId(pc), Boolean.TRUE);
 		Variables parent = pc.variablesScope();
 		pc.setVariablesScope(_static);
 		return parent;
@@ -700,7 +702,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 
 	@Override
 	public void afterStaticConstructor(PageContext pc, Variables parent) {
-		insideStaticConstr = false;
+		insideStaticConstr.remove(ThreadLocalPageContext.getThreadId(pc));
 		pc.setVariablesScope(parent);
 	}
 
@@ -1684,9 +1686,9 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	/*
 	 * @deprecated injected is not used
 	 */
-	public void registerUDF(Collection.Key key, UDF udf, boolean useShadow, boolean injected) throws ApplicationException {
+	public void registerUDF(Key key, UDF udf, boolean useShadow, boolean injected) throws ApplicationException {
 		if (udf instanceof UDFPlus) ((UDFPlus) udf).setOwnerComponent(this);
-		if (insideStaticConstr) {
+		if (insideStaticConstr.getOrDefault(ThreadLocalPageContext.getThreadId(null), Boolean.FALSE)) {
 			_static.put(key, udf);
 			return;
 		}
