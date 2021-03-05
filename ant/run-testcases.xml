@@ -29,6 +29,7 @@
 <![CDATA[
 encodeForHTML("abc"); // test if ESAPI extension exist right away
 systemOutput("---------- #DateTimeFormat(now(),'yyyy-mm-dd HH:nn:ss')# - Lucee Started ----------", true);
+request._start = getTickCount();
 if (execute) {
 
 request.basedir = basedir;
@@ -114,10 +115,10 @@ try {
 	deployLog=logsDir&server.separator.file&"deploy.log";
 	//dump(deployLog);
 	content=fileRead(deployLog);
-	systemOutput("-------------- Deploy Log ------------",true);
+	systemOutput("-------------- Deploy.Log ------------",true);
 	systemOutput(content,true);
 	systemOutput("--------------------------------------",true);
-
+	
 
 	// create "/test" mapping
 	admin
@@ -148,6 +149,21 @@ try {
 
 	request._tick = getTickCount();
 	request.overhead = [];
+
+	admin 
+		action="getMappings"
+		type="web"
+		password="#request.WEBADMINPASSWORD#"
+		returnVariable="mappings";
+		
+	systemOutput("-------------- Mappings --------------", true);
+	loop query="mappings" {
+		systemOutput("#mappings.virtual# #TAB# #mappings.strPhysical# " 
+			& (len(mappings.strArchive) ? "[#mappings.strArchive#] " : "")
+			& (len(mappings.inspect) ? "(#mappings.inspect#)" : ""), true);
+	}
+	
+	systemOutput(NL & "-------------- Start Tests -----------", true);
 
 	silent {
 		try {
@@ -348,16 +364,17 @@ Begin Stack Trace
 	echo("TestBox Version: #tb.getVersion()#" & NL);
 	echo("Lucee Version: #server.lucee.version#" & NL);
 	echo("Java Version: #server.java.version#" & NL);
-	echo("Execution time: (#NumberFormat(result.getTotalDuration()/1000)# s)" & NL);
+	echo("Total Execution time: (#NumberFormat((getTickCount()-request._start)/1000)# s)" & NL);
+	echo("Test Execution time: (#NumberFormat(result.getTotalDuration()/1000)# s)" & NL);	
 	echo("Average Test Overhead: (#NumberFormat(ArrayAvg(request.overhead))# ms)" & NL);
 	echo("Total Test Overhead: (#NumberFormat(ArraySum(request.overhead))# ms)" & NL);
 	
 	echo("=============================================================" & NL & NL);
-	echo("->Bundles/Suites/Specs: #result.getTotalBundles()#/#result.getTotalSuites()#/#result.getTotalSpecs()#" & NL);
-	echo("->Pass:     #result.getTotalPass()#" & NL);
-	echo("->Skipped:  #result.getTotalSkipped()#" & NL);
-	echo("->Failures: #result.getTotalFail()#" & NL);
-	echo("->Errors:   #result.getTotalError()#" & NL);
+	echo("-> Bundles/Suites/Specs: #result.getTotalBundles()#/#result.getTotalSuites()#/#result.getTotalSpecs()#" & NL);
+	echo("-> Pass:     #result.getTotalPass()#" & NL);
+	echo("-> Skipped:  #result.getTotalSkipped()#" & NL);
+	echo("-> Failures: #result.getTotalFail()#" & NL);
+	echo("-> Errors:   #result.getTotalError()#" & NL);
 
 		if (!isEmpty(failedTestCases)){
 			echo(NL);
