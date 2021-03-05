@@ -108,7 +108,6 @@ import lucee.runtime.type.it.StringIterator;
 import lucee.runtime.type.scope.Argument;
 import lucee.runtime.type.scope.ArgumentImpl;
 import lucee.runtime.type.scope.ArgumentIntKey;
-import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.scope.Variables;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ComponentUtil;
@@ -171,7 +170,8 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	/**
 	 * Constructor of the Component, USED ONLY FOR DESERIALIZE
 	 */
-	public ComponentImpl() {}
+	public ComponentImpl() {
+	}
 
 	/**
 	 * constructor of the class
@@ -563,12 +563,11 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	}
 
 	Object _call(PageContext pc, Collection.Key key, Struct namedArgs, Object[] args, boolean superAccess) throws PageException {
-
 		Member member = getMember(pc, key, false, superAccess);
-
 		if (member instanceof UDF) {
 			return _call(pc, key, (UDF) member, namedArgs, args);
 		}
+
 		return onMissingMethod(pc, -1, member, key.getString(), args, namedArgs, superAccess);
 	}
 
@@ -861,6 +860,14 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			if (member.getAccess() <= access) return member;
 			return null;
 		}
+
+		// static
+		member = staticScope().getMember(null, key, null);
+		if (member != null) {
+			if (member.getAccess() <= access) return member;
+			return null;
+		}
+
 		return null;
 	}
 
@@ -884,6 +891,11 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		// check data
 		Member member = _data.get(key);
 		if (isAccessible(pc, member)) return member;
+
+		// static
+		member = staticScope().getMember(pc, key, null);
+		if (member != null) return member;
+
 		return null;
 	}
 
@@ -2342,7 +2354,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	}
 
 	@Override
-	public Scope staticScope() {
+	public StaticScope staticScope() {
 		return _static;
 	}
 

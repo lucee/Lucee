@@ -168,6 +168,10 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 		return defaultValue;
 	}
 
+	public Member getMember(PageContext pc, Key key, Member defaultValue) {
+		return _get(ThreadLocalPageContext.get(pc), key, null);
+	}
+
 	private Member _setIfExists(PageContext pc, Key key, Object value) throws PageException {
 		// does the current struct has this key
 		StaticStruct ss = cp.getStaticStruct();
@@ -406,7 +410,8 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 	}
 
 	@Override
-	public void setBind(boolean bind) {}
+	public void setBind(boolean bind) {
+	}
 
 	@Override
 	public boolean isBind() {
