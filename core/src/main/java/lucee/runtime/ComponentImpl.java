@@ -565,11 +565,12 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	}
 
 	Object _call(PageContext pc, Collection.Key key, Struct namedArgs, Object[] args, boolean superAccess) throws PageException {
+
 		Member member = getMember(pc, key, false, superAccess);
+
 		if (member instanceof UDF) {
 			return _call(pc, key, (UDF) member, namedArgs, args);
 		}
-
 		return onMissingMethod(pc, -1, member, key.getString(), args, namedArgs, superAccess);
 	}
 
@@ -869,7 +870,6 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			if (member.getAccess() <= access) return member;
 			return null;
 		}
-
 		return null;
 	}
 
@@ -888,8 +888,9 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			Component ac = ComponentUtil.getActiveComponent(pc, this);
 			return SuperComponent.superMember((ComponentImpl) ac.getBaseComponent());
 		}
-		if (superAccess) return _udfs.get(key);
-
+		if (superAccess) {
+			return _udfs.get(key);
+		}
 		// check data
 		Member member = _data.get(key);
 		if (member != null && isAccessible(pc, member)) return member;
@@ -910,7 +911,6 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	}
 
 	boolean isAccessible(PageContext pc, int access) {
-
 		if (access <= ACCESS_PUBLIC) return true;
 		else if (access == ACCESS_PRIVATE && isPrivate(pc)) return true;
 		else if (access == ACCESS_PACKAGE && isPackage(pc)) return true;
@@ -1686,7 +1686,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	/*
 	 * @deprecated injected is not used
 	 */
-	public void registerUDF(Collection.Key key, UDF udf, boolean useShadow, boolean injected) throws ApplicationException {
+	public void registerUDF(Key key, UDF udf, boolean useShadow, boolean injected) throws ApplicationException {
 		if (udf instanceof UDFPlus) ((UDFPlus) udf).setOwnerComponent(this);
 		if (insideStaticConstr.getOrDefault(ThreadLocalPageContext.getThreadId(null), Boolean.FALSE)) {
 			_static.put(key, udf);

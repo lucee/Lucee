@@ -109,7 +109,6 @@ public final class AppListenerUtil {
 			Page p = ps.loadPage(pc, false, null);
 			if (p != null) return p;
 		}
-
 		Page p;
 		if (mode == ApplicationListener.MODE_CURRENT) p = getApplicationPageCurrent(pc, requestedPage, filename);
 		else if (mode == ApplicationListener.MODE_ROOT) p = getApplicationPageRoot(pc, filename);
