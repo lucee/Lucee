@@ -108,7 +108,6 @@ import lucee.runtime.type.it.StringIterator;
 import lucee.runtime.type.scope.Argument;
 import lucee.runtime.type.scope.ArgumentImpl;
 import lucee.runtime.type.scope.ArgumentIntKey;
-import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.scope.Variables;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ComponentUtil;
@@ -171,7 +170,8 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	/**
 	 * Constructor of the Component, USED ONLY FOR DESERIALIZE
 	 */
-	public ComponentImpl() {}
+	public ComponentImpl() {
+	}
 
 	/**
 	 * constructor of the class
@@ -861,6 +861,13 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			if (member.getAccess() <= access) return member;
 			return null;
 		}
+
+		// static
+		member = staticScope().getMember(null, key, null);
+		if (member != null) {
+			if (member.getAccess() <= access) return member;
+			return null;
+		}
 		return null;
 	}
 
@@ -879,27 +886,29 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			Component ac = ComponentUtil.getActiveComponent(pc, this);
 			return SuperComponent.superMember((ComponentImpl) ac.getBaseComponent());
 		}
-		if (superAccess) return _udfs.get(key);
-
+		if (superAccess) {
+			return _udfs.get(key);
+		}
 		// check data
 		Member member = _data.get(key);
-		if (isAccessible(pc, member)) return member;
+		if (member != null && isAccessible(pc, member)) return member;
+
+		// static
+		member = staticScope().getMember(pc, key, null);
+		if (member != null) return member;
+
 		return null;
 	}
 
 	boolean isAccessible(PageContext pc, Member member) {
-		// TODO geschwindigkeit
-		if (member != null) {
-			int access = member.getAccess();
-			if (access <= ACCESS_PUBLIC) return true;
-			else if (access == ACCESS_PRIVATE && isPrivate(pc)) return true;
-			else if (access == ACCESS_PACKAGE && isPackage(pc)) return true;
-		}
+		int access = member.getAccess();
+		if (access <= ACCESS_PUBLIC) return true;
+		else if (access == ACCESS_PRIVATE && isPrivate(pc)) return true;
+		else if (access == ACCESS_PACKAGE && isPackage(pc)) return true;
 		return false;
 	}
 
 	boolean isAccessible(PageContext pc, int access) {
-
 		if (access <= ACCESS_PUBLIC) return true;
 		else if (access == ACCESS_PRIVATE && isPrivate(pc)) return true;
 		else if (access == ACCESS_PACKAGE && isPackage(pc)) return true;
@@ -2342,7 +2351,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	}
 
 	@Override
-	public Scope staticScope() {
+	public StaticScope staticScope() {
 		return _static;
 	}
 
