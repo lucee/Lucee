@@ -890,7 +890,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 
 		// check data
 		Member member = _data.get(key);
-		if (isAccessible(pc, member)) return member;
+		if (member != null && isAccessible(pc, member)) return member;
 
 		// static
 		member = staticScope().getMember(pc, key, null);
@@ -900,13 +900,10 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	}
 
 	boolean isAccessible(PageContext pc, Member member) {
-		// TODO geschwindigkeit
-		if (member != null) {
-			int access = member.getAccess();
-			if (access <= ACCESS_PUBLIC) return true;
-			else if (access == ACCESS_PRIVATE && isPrivate(pc)) return true;
-			else if (access == ACCESS_PACKAGE && isPackage(pc)) return true;
-		}
+		int access = member.getAccess();
+		if (access <= ACCESS_PUBLIC) return true;
+		else if (access == ACCESS_PRIVATE && isPrivate(pc)) return true;
+		else if (access == ACCESS_PACKAGE && isPackage(pc)) return true;
 		return false;
 	}
 
