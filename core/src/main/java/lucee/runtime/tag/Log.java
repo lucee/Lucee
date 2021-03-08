@@ -69,7 +69,7 @@ public final class Log extends TagImpl {
 	/**
 	 * Specifies whether to log the application name if one has been specified in an application tag.
 	 */
-	private boolean application;
+	private boolean application = true;
 	private CharSet charset = null;
 
 	private boolean async;
