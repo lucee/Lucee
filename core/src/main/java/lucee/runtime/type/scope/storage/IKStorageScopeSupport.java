@@ -201,7 +201,8 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		try {
 			return getInstance(scope, handler, appName, name, pc, existing, log);
 		}
-		catch (PageException e) {}
+		catch (PageException e) {
+		}
 		return defaultValue;
 	}
 
@@ -300,10 +301,13 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	 *         scope (cfid,cftoken,urltoken)
 	 */
 	public boolean hasContent() {
-		if (size() == (type == SCOPE_CLIENT ? 6 : 5) && containsKey(KeyConstants._urltoken) && containsKey(KeyConstants._cftoken) && containsKey(KeyConstants._cfid)) {
-			return false;
-		}
-		return true;
+		int size = size();
+		if (size == 0) return false;
+		if (size > 7) return true;
+		if (size == 7 && !containsKey("csrf_token")) return true;
+
+		return !(containsKey(KeyConstants._cfid) && containsKey(KeyConstants._cftoken) && containsKey(KeyConstants._urltoken) && containsKey(KeyConstants._timecreated)
+				&& containsKey(KeyConstants._lastvisit) && (type == SCOPE_CLIENT ? containsKey(KeyConstants._hitcount) : containsKey(KeyConstants._sessionid)));
 	}
 
 	@Override
