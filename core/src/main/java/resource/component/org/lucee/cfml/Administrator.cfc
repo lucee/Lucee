@@ -1687,7 +1687,7 @@ component {
 	*/
 	public query function getContextes(){
 		admin
-			action="getContextes"
+			action="getContexts"
 			type="#variables.type#"
 			password="#variables.password#"
 			returnVariable="local.contextes";
