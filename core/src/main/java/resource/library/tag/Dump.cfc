@@ -13,7 +13,7 @@ component {
 	// Meta data
 	this.metadata.hint="Outputs the elements, variables and values of most kinds of CFML objects. Useful for debugging. You can display the contents of simple and complex variables, objects, components, user-defined functions, and other elements.";
 	this.metadata.attributetype="fixed";
-	this.metadata.attributes={
+	this.metadata.attributes=[
 		"var": {required:false, type:"any",hint="Variable to display. Enclose a variable name in pound signs."},
 		"eval": {required:false, type:"string",hint="name of the variable to display, also used as label, when no label defined."},
 		"expand": {required:false, type:"boolean",default:true,hint="expands views"},
@@ -39,7 +39,7 @@ component {
 		"contextlevel": {required:false, type:"number",default:2,hidden:true},
 		"async": {required:false, type="boolean", default=false, hint="if true and output is not to browser, Lucee builds the output in a new thread that runs in parallel to the thread that called the dump.  please note that if the calling thread modifies the data before the dump takes place, it is possible that the dump will show the modified data."},
 		"enabled": { required: false, type: "boolean", default: true, hint: "dumps are enabled by default, pass false to short circuit a dump execution and effectively disable it" }
-	};
+	];
 
 
 	/* ==================================================================================================
