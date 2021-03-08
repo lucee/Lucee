@@ -4,17 +4,17 @@
 
 	<!--- Meta data --->
 	<cfset this.metadata.attributetype="fixed">
-    <cfset this.metadata.attributes={
-		name:      		{required:false,type:"string",default:"_cf_layout_#randRange(1,999999999)#"},
-		title:     		{required:false,type:"string",default:""},
-		selected : 		{required:false,type:"Boolean",default:"false"},
-		disabled : 		{required:false,type:"Boolean",default:"false"},		
-		source:			{required:false,type:"string",default:""},
-		onBindError:	{required:false,type:"string",default:""},
-		refreshOnActivate: {required:false,type:"Boolean",default:"false"},
-		style:			{required:false,type:"string",default:""},
-		overflow:		{required:false,type:"string",default:"auto"}
-	}>
+    <cfset this.metadata.attributes=[
+		"name":      		{required:false,type:"string",default:"_cf_layout_#randRange(1,999999999)#"},
+		"title":     		{required:false,type:"string",default:""},
+		"selected" : 		{required:false,type:"Boolean",default:"false"},
+		"disabled" : 		{required:false,type:"Boolean",default:"false"},		
+		"source":			{required:false,type:"string",default:""},
+		"onBindError":	{required:false,type:"string",default:""},
+		"refreshOnActivate": {required:false,type:"Boolean",default:"false"},
+		"style":			{required:false,type:"string",default:""},
+		"overflow":		{required:false,type:"string",default:"auto"}
+	]>
          
     <cffunction name="init" output="no" returntype="void"
       hint="invoked after tag is constructed">
