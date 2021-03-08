@@ -23,7 +23,6 @@
 			"tabsEnable" :	{required:false, type:"string",default:"",hint=""},
 			"tabsDisable" : 	{required:false, type:"string",default:"",hint=""},
 			"tabsLoad" : 		{required:false, type:"string",default:"",hint=""}
-			"zactabsLoad" : 		{required:false, type:"string",default:"",hint=""}
 		];
 	</cfscript>
          
