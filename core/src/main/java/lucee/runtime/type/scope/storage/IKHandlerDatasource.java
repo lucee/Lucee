@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
@@ -34,6 +35,8 @@ import lucee.runtime.type.util.KeyConstants;
 public class IKHandlerDatasource implements IKHandler {
 
 	public static final String PREFIX = "cf";
+
+	protected boolean storeEmpty = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.store.empty", null), true);
 
 	@Override
 	public IKStorageValue loadData(PageContext pc, String appName, String name, String strType, int type, Log log) throws PageException {
@@ -127,8 +130,14 @@ public class IKHandlerDatasource implements IKHandler {
 			dc = pool.borrowObject();
 			SQLExecutor executor = SQLExecutionFactory.getInstance(dc);
 			IKStorageValue existingVal = loadData(pc, appName, name, storageScope.getTypeAsString(), storageScope.getType(), log);
-			IKStorageValue sv = new IKStorageValue(IKStorageScopeSupport.prepareToStore(data, existingVal, storageScope.lastModified()));
-			executor.update(ci, cfid, appName, dc, storageScope.getType(), sv, storageScope.getTimeSpan(), log);
+
+			if (storeEmpty || storageScope.hasContent()) {
+				IKStorageValue sv = new IKStorageValue(IKStorageScopeSupport.prepareToStore(data, existingVal, storageScope.lastModified()));
+				executor.update(ci, cfid, appName, dc, storageScope.getType(), sv, storageScope.getTimeSpan(), log);
+			}
+			else if (existingVal != null) {
+				executor.delete(ci, cfid, appName, dc, storageScope.getType(), log);
+			}
 		}
 		catch (Exception e) {
 			ScopeContext.error(log, e);
