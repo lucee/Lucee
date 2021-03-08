@@ -14,31 +14,31 @@ component {
 	this.metadata.hint="Outputs the elements, variables and values of most kinds of CFML objects. Useful for debugging. You can display the contents of simple and complex variables, objects, components, user-defined functions, and other elements.";
 	this.metadata.attributetype="fixed";
 	this.metadata.attributes={
-		var:{required:false,type:"any",hint="Variable to display. Enclose a variable name in pound signs."},
-		eval:{required:false,type:"string",hint="name of the variable to display, also used as label, when no label defined."},
-		expand:{required:false,type:"boolean",default:true,hint="expands views"},
-		label:{required:false,type:"string",default:"",hint="header for the dump output."},
-		top:{required:false,type:"number",default:9999,hint="The number of rows to display."},
-		showUDFs:{required:false,type:"boolean",default:true,hint="show UDFs in cfdump output."},
-		show:{required:false,type:"string",default:"all",hint="show column or keys."},
-		output:{required:false,type:"string",default:"browser",hint="Where to send the results:
+		"var": {required:false, type:"any",hint="Variable to display. Enclose a variable name in pound signs."},
+		"eval": {required:false, type:"string",hint="name of the variable to display, also used as label, when no label defined."},
+		"expand": {required:false, type:"boolean",default:true,hint="expands views"},
+		"label": {required:false, type:"string",default:"",hint="header for the dump output."},
+		"top": {required:false, type:"number",default:9999,hint="The number of rows to display."},
+		"showUDFs": {required:false, type:"boolean",default:true,hint="show UDFs in cfdump output."},
+		"show": {required:false, type:"string",default:"all",hint="show column or keys."},
+		"output": {required:false, type:"string",default:"browser",hint="Where to send the results:
 - console: the result is written to the console (System.out).
 - debug: the result is send to the debug output.
 - browser (default): the result is written the the browser response stream."},
-		metainfo:{required:false,type:"boolean",default:true,hint="Includes information about the query in the cfdump results."},
-		keys:{required:false,type:"number",default:9999,hint="For a structure, number of keys to display."},
-		hide:{required:false,type:"string",default:"all",hint="hide column or keys."},
-		format:{required:false,type:"string",default:"",hint="specify the output format of the dump, the following formats are supported:
+		"metainfo": {required:false, type:"boolean",default:true,hint="Includes information about the query in the cfdump results."},
+		"keys": {required:false, type:"number",default:9999,hint="For a structure, number of keys to display."},
+		"hide": {required:false, type:"string",default:"all",hint="hide column or keys."},
+		"format": {required:false, type:"string",default:"",hint="specify the output format of the dump, the following formats are supported:
 - simple: - a simple html output (no javascript or css)
 - text (default when output equal console): plain text output (no html)
 - html (default when output  equal ""browser""): regular output with html/css/javascript
 - classic: classic view with html/css/javascript
 - javascript or js: regular output with javascript"
 },
-		abort:{required:false,type:"boolean",default:false,hint="stops further processing of request."},
-		contextlevel:{required:false,type:"number",default:2,hidden:true},
-		async:{required:false, type="boolean", default=false, hint="if true and output is not to browser, Lucee builds the output in a new thread that runs in parallel to the thread that called the dump.  please note that if the calling thread modifies the data before the dump takes place, it is possible that the dump will show the modified data."},
-		enabled: { required: false, type: "boolean", default: true, hint: "dumps are enabled by default, pass false to short circuit a dump execution and effectively disable it" }
+		"abort": {required:false, type:"boolean",default:false,hint="stops further processing of request."},
+		"contextlevel": {required:false, type:"number",default:2,hidden:true},
+		"async": {required:false, type="boolean", default=false, hint="if true and output is not to browser, Lucee builds the output in a new thread that runs in parallel to the thread that called the dump.  please note that if the calling thread modifies the data before the dump takes place, it is possible that the dump will show the modified data."},
+		"enabled": { required: false, type: "boolean", default: true, hint: "dumps are enabled by default, pass false to short circuit a dump execution and effectively disable it" }
 	};
 
 
