@@ -31,7 +31,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			cfexecute(name="curl", timeout="0.01", arguments="https://update.lucee.org/rest/update/provider/echoGet" ,variable="variables.x");
 		}
 		catch(e) {
-			assertTrue(find('expired',e.message)>0);
+			expect(e.message).toInclude('expired');
 		}
 	}
 
