@@ -28,9 +28,17 @@ Redirtect to entry --->
 <cfif cgi.request_method EQ "POST" and error.message EQ "" and form.mainAction neq stText.Buttons.verify>
 	<cflocation url="#request.self#?action=#url.action#" addtoken="no">
 </cfif>
-<cfset hasReadOnly=false>
-<cfset hasReadable=false>
-<cfloop query="logs"><cfif logs.readonly><cfset hasReadOnly=true><cfelse><cfset hasReadable=true></cfif></cfloop>
+<cfscript>
+	hasReadOnly = false;
+	hasReadable = false;
+	loop query="logs"{
+		if (logs.readonly)
+			hasReadOnly = true;
+		else
+			hasReadable = true;
+	}
+	QuerySort( logs, "name" );
+</cfscript>
 
 <!---
 <cfloop query="connections">
