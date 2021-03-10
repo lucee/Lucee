@@ -106,6 +106,8 @@ try {
 
 	if (len(request.testFilter) gt 0)
 		systemOutput(NL & "Filtering only tests containing: [" & request.testFilter & "]" & NL, true);	
+	else
+		systemOutput(NL & 'Running all tests, you can filter which tests are run with the command line parameter -DtestFilter="image"'& NL, true);	
 
 	// output deploy log
 	pc=getPageContext();
