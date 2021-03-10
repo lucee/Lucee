@@ -29,9 +29,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
             [java]    [script]                 /Users/mic/Projects/Lucee5/source/cfml/context/admin/server.cfm:2
             */
 
-            //variables.adminRoot = "/admin/";
+            variables.adminRoot = "/admin/";
+            //variables.adminPage = "server.cfm"; 
             variables.adminPage = "index.cfm"; // server.cfm or web.cfm don't work???
-            variables.adminPage = "server.cfm"; // server.cfm or web.cfm don't work???
+            
+            variables.cookies = {}; // need to be authenticated to the admin, for subsequent requests after login
         }
        
         describe(title="Testing Lucee Admin pages", asyncAll=false, body=function(){
@@ -50,36 +52,45 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
                 );
                 //systemOutput(loginResult);
                 expect( loginResult.status ).toBe( 200, "Status code" );
+                variables.cookies = {
+                     cfid: loginResult.session.cfid,
+                     cftoken: loginResult.session.cftoken
+                };
             });
 
             it("Fetch and test admin pages", function(){
                 //systemOutput("------------- get admin urls", true);
                 // adminPage = "server.cfm";
-                local._adminUrls = _internalRequest( 
-                    template: adminRoot & adminPage, 
-                    urls : { testUrls: true }
+                local._adminUrls = _internalRequest(
+                    template: adminRoot & adminPage,
+                    urls : { testUrls: true },
+                    cookies: variables.cookies
                 );
                 
                 expect( _adminUrls.status ).toBe( 200, "Status Code" );
-                //expect(_adminUrls).toBeJson();
+                //expect(_adminUrls.fileContent).toBeJson();
                 expect( isJson( _adminUrls.fileContent ) ).toBeTrue();
                 local.adminUrls = deserializeJson( _adminUrls.fileContent );
                 expect(adminUrls ).toBeArray();
         
                 // systemOutput( adminUrls, true );
-
+                systemOutput("", true );
                 loop array="#adminUrls#" item="local.testUrl" {
                     local.page = local.testUrl; // i.e "server.cfm?action=plugin&plugin=PerformanceAnalyzer"
-                    //systemOutput( page, true );
+                    // systemOutput("", true );
                     
                     local.params = listRest( page, "?" );
-                    local.result = _internalRequest( 
-                        template: adminRoot & listFirst( page, "?" ), 
-                        urls : queryStringToStruct( local.params )
-                    );  // BUT this always returns the login page with index.cfm???
-                    
-                    //fileWrite("c:\tmp\#queryStringToStruct( local.params ).action#.html", local.result.fileContent );
-                    // systemOutput( page & " " & local.result.status, true );
+                    local.start = getTickCount();
+                    local.result = _internalRequest(
+                        template: adminRoot & listFirst( page, "?" ),
+                        urls : queryStringToStruct( local.params ),
+                        cookies: variables.cookies
+                    );
+                    local.TAB = chr(9);
+                    if (structCount(local.result)){
+                        //fileWrite("c:\tmp\#queryStringToStruct( local.params ).action#.html", local.result.fileContent );
+                        systemOutput( TAB & TAB & adminRoot & page & " " & TAB & NumberFormat(getTickCount()-local.start) & " ms", true );
+                    }
                     // this expect() maybe isn't even needed as _internalRequest throws the stack trace anyway??
                     expect( local.result.status ).toBeBetween( 200, 399, adminRoot & page & " returned status code: " & local.result.status);
                     
