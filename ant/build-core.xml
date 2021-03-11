@@ -247,10 +247,10 @@
       var ignoredAvailable = [];
       for (var b in availableBundles){
           if (!usedBundles.hasOwnProperty( b ))
-            ignoredAvailable.push( " - " + b );
+            ignoredAvailable.push( " - " + b + "\t[" + availableBundles[b].path + "]" );
       }
       if (ignoredAvailable.length){
-        echo.setMessage("Bundles not defined in MANIFEST.MF:");
+        echo.setMessage("WARNING: pom.xml bundles not defined in MANIFEST.MF:");
         echo.perform();
         echo.setMessage(ignoredAvailable.join("\n"));
         echo.perform();
@@ -259,7 +259,7 @@
       if (missingBundles.length){
           echo.setMessage("");
           echo.perform();
-          echo.setMessage("Missing required bundles from MANIFEST.MF");
+          echo.setMessage("ERROR: Missing Require-Bundles from MANIFEST.MF:");
           echo.perform();
           echo.setMessage(missingBundles.join("\n"));
           echo.perform();
