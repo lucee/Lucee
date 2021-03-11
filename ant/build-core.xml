@@ -192,6 +192,8 @@
       */
 
       var availableBundles = {};
+      var usedBundles = {};
+      var missingBundles = [];
 
       for (var i = 0 ; i < bundles.length ; i++) {
         var bundle = bundles[i].trim();
@@ -215,17 +217,12 @@
         if (reqBundleFrag != null && reqBundleFrag.indexOf( reqBundle ) != -1){
           echo.setMessage("SKIP (Require-Bundle-Fragment) [" + reqBundle + "]");
           echo.perform();
+          delete availableBundles[reqBundle];
           continue;
         }
 
         if (!availableBundles.hasOwnProperty(reqBundle)){
-          echo.setMessage("");
-          echo.perform();
-          echo.setMessage("MISSING REQUIRED BUNDLE [" + reqBundle + "]");
-          echo.perform();
-          echo.setMessage("");
-          echo.perform();
-          //throw "Missing Required Bundle: " + reqBundle; // TODO once fixed
+          missingBundles.push(" - " + reqBundle);
         } else {
           //echo.setMessage("[" + reqBundle + "]");
           //echo.perform();
@@ -240,9 +237,39 @@
           copy.perform();
           echo.setMessage("- add " + jarName);
           echo.perform();
+          
+          usedBundles[reqBundle] = true;
         }
       }
-      
+      echo.setMessage("");
+      echo.perform();
+
+      var ignoredAvailable = [];
+      for (var b in availableBundles){
+          if (!usedBundles.hasOwnProperty( b ))
+            ignoredAvailable.push( " - " + b );
+      }
+      if (ignoredAvailable.length){
+        echo.setMessage("Bundles not defined in MANIFEST.MF:");
+        echo.perform();
+        echo.setMessage(ignoredAvailable.join("\n"));
+        echo.perform();
+      }
+
+      if (missingBundles.length){
+          echo.setMessage("");
+          echo.perform();
+          echo.setMessage("Missing required bundles from MANIFEST.MF");
+          echo.perform();
+          echo.setMessage(missingBundles.join("\n"));
+          echo.perform();
+          echo.setMessage("");
+          echo.perform();
+          // throw "Missing Required Bundles: " + reqBundle; // TODO once fixed
+      }
+
+      echo.setMessage("");
+      echo.perform();
       //project.setProperty(prefix+"version", version);
      ]]>
   </scriptdef>
