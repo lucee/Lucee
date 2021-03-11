@@ -175,9 +175,12 @@
       var attrs = manifest.getMainAttributes();
       var reqBundles = attrs.getValue("Require-Bundle").split(",");
       var reqBundleFrag = attrs.getValue("Require-Bundle-Fragment");
+      if (reqBundleFrag != null)
+        reqBundleFrag = reqBundleFrag.split(",");
 
       /*
       echo.setMessage("---------- Bundles -------------------");
+      echo.perform();
       echo.setMessage(bundles.join(",\n"));
       echo.perform();
       echo.setMessage("");
@@ -189,8 +192,14 @@
       echo.perform();
       echo.setMessage("");
       echo.perform();
-      */
 
+      echo.setMessage("---------- Require-Bundle-Fragment-----");
+      echo.perform();
+      echo.setMessage(reqBundleFrag.join(",\n"));
+      echo.perform();
+      echo.setMessage("");
+      echo.perform();
+      */
       var availableBundles = {};
       var usedBundles = {};
       var missingBundles = [];
@@ -211,23 +220,17 @@
         };
       }
 
+      for (var f in reqBundleFrag){
+        reqBundles.push(reqBundleFrag[f]);
+      }
+
       for (var r = 0 ; r < reqBundles.length ; r++) {
         var reqBundle = reqBundles[r];
-
-        if (reqBundleFrag != null && reqBundleFrag.indexOf( reqBundle ) != -1){
-          echo.setMessage("SKIP (Require-Bundle-Fragment) [" + reqBundle + "]");
-          echo.perform();
-          delete availableBundles[reqBundle];
-          continue;
-        }
 
         if (!availableBundles.hasOwnProperty(reqBundle)){
           missingBundles.push(" - " + reqBundle);
         } else {
-          //echo.setMessage("[" + reqBundle + "]");
-          //echo.perform();
           var srcBundle = availableBundles[reqBundle];
-
           // now we add the bundle
           var jarName = srcBundle.name + "-" + srcBundle.version + ".jar";
           var trgJar = new java.io.File(target+"/" + jarName);
@@ -257,15 +260,16 @@
       }
 
       if (missingBundles.length){
-          echo.setMessage("");
-          echo.perform();
+          if (ignoredAvailable.length){
+            echo.setMessage("");
+            echo.perform();
+          }
           echo.setMessage("ERROR: Missing Require-Bundles from MANIFEST.MF:");
           echo.perform();
           echo.setMessage(missingBundles.join("\n"));
           echo.perform();
-          echo.setMessage("");
-          echo.perform();
-          // throw "Missing Required Bundles: " + reqBundle; // TODO once fixed
+          // TODO once missing bundles are fixed
+          // throw "Missing Required Bundles: " + reqBundle; 
       }
 
       echo.setMessage("");
