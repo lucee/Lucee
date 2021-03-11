@@ -171,7 +171,7 @@
       var echo = project.createTask( "echo" );
 
       // read the core Manifest
-      manifest = new java.util.jar.Manifest(new java.io.FileInputStream(new java.io.File(coreManifestPath)));
+      var manifest = new java.util.jar.Manifest(new java.io.FileInputStream(new java.io.File( coreManifestPath )));
       var attrs = manifest.getMainAttributes();
       var reqBundles = attrs.getValue("Require-Bundle").split(",");
       var reqBundleFrag = attrs.getValue("Require-Bundle-Fragment");
@@ -202,7 +202,7 @@
         var name = attrs.getValue("Bundle-SymbolicName");
         var version = attrs.getValue("Bundle-Version");
 
-        availableBundles[name+";bundle-version="+version] = {
+        availableBundles[ name+";bundle-version="+version ] = {
           name: name,
           version: version,
           path: bundle
@@ -220,11 +220,11 @@
 
         if (!availableBundles.hasOwnProperty(reqBundle)){
           echo.setMessage("");
-          echo.perform();          
+          echo.perform();
           echo.setMessage("MISSING REQUIRED BUNDLE [" + reqBundle + "]");
           echo.perform();
           echo.setMessage("");
-          echo.perform();          
+          echo.perform();
           //throw "Missing Required Bundle: " + reqBundle; // TODO once fixed
         } else {
           //echo.setMessage("[" + reqBundle + "]");
@@ -242,48 +242,6 @@
           echo.perform();
         }
       }
-      /*
-      for (var i = 0 ; i < bundles.length ; i++) {
-        var bundle = bundles[i].trim();
-
-        echo.setMessage("[" + bundle + "]");
-
-        // first we read the manifest
-        var manifest = new java.util.jar.JarFile( bundles[i] ).getManifest();
-        var attrs = manifest.getMainAttributes();
-        var name = attrs.getValue("Bundle-SymbolicName");
-        var version = attrs.getValue("Bundle-Version");
-
-        var exist = reqBundle.indexOf( name+";bundle-version="+version ) != -1 ||
-          (reqBundleFrag != null && reqBundleFrag.indexOf( name+";bundle-version="+version ) != -1);
-
-        // not a bundle lucee defines in the manifest
-        if( !exist ) {
-          echo.setMessage("");
-          echo.perform();
-          echo.setMessage("- SKIPPING BUNDLE "+name+"-"+version+".jar ");
-          echo.perform();
-          echo.setMessage(bundles[i]);
-          echo.perform();
-          echo.setMessage(attrs.toString());
-          echo.perform();
-          echo.setMessage("");
-          echo.perform();
-          continue;
-        }
-
-        // now we add the bundle
-        var trgJar = new java.io.File(target+"/"+name+"-"+version+".jar");
-        var copy = project.createTask( "copy" );
-        copy.setFile(new java.io.File(bundles[i]));
-        copy.setTofile(trgJar);
-        copy.perform();
-
-        var echo = project.createTask( "echo" );
-        echo.setMessage("- add "+name+"-"+version+".jar");
-        echo.perform();        
-      }
-      */
       
       //project.setProperty(prefix+"version", version);
      ]]>
