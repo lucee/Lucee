@@ -165,115 +165,108 @@
      <attribute name="target" />
      <attribute name="coremanifest" />
      <![CDATA[
-      var bundles = attributes.get("bundles").split(java.io.File.pathSeparator);
-      var target = attributes.get("target");
-      var coreManifestPath = attributes.get("coremanifest");
-      var echo = project.createTask( "echo" );
+      var bundles = attributes.get("bundles").split( java.io.File.pathSeparator );
+      var target = attributes.get( "target" );
+      var coreManifestPath = attributes.get( "coremanifest" );
+      var _echo = project.createTask( "echo" );
+      var echo = function( message, newline ){
+        _echo.setMessage( message );
+        _echo.perform();
+        if (newline){
+          _echo.setMessage( "" );
+          _echo.perform();
+        }
+      };
 
       // read the core Manifest
-      var manifest = new java.util.jar.Manifest(new java.io.FileInputStream(new java.io.File( coreManifestPath )));
+      var manifest = new java.util.jar.Manifest( new java.io.FileInputStream( new java.io.File( coreManifestPath ) ) );
       var attrs = manifest.getMainAttributes();
-      var reqBundles = attrs.getValue("Require-Bundle").split(",");
-      var reqBundleFrag = attrs.getValue("Require-Bundle-Fragment");
-      if (reqBundleFrag != null)
-        reqBundleFrag = reqBundleFrag.split(",");
+      var reqBundles = attrs.getValue("Require-Bundle").split( "," );
+      var reqBundleFrag = attrs.getValue( "Require-Bundle-Fragment" );
+      if ( reqBundleFrag != null )
+        reqBundleFrag = reqBundleFrag.split( "," );
 
       /*
-      echo.setMessage("---------- Bundles -------------------");
-      echo.perform();
-      echo.setMessage(bundles.join(",\n"));
-      echo.perform();
-      echo.setMessage("");
-      echo.perform();
+      echo( "---------- Bundles -------------------" );
+      echo( bundles.join(",\n"), true );
 
-      echo.setMessage("---------- Require-Bundle -------------");
-      echo.perform();
-      echo.setMessage(reqBundles.join(",\n"));
-      echo.perform();
-      echo.setMessage("");
-      echo.perform();
-
-      echo.setMessage("---------- Require-Bundle-Fragment-----");
-      echo.perform();
-      echo.setMessage(reqBundleFrag.join(",\n"));
-      echo.perform();
-      echo.setMessage("");
-      echo.perform();
+      echo( "---------- Require-Bundle -------------" );
+      echo( reqBundles.join(",\n"), true );
+      
+      echo( "---------- Require-Bundle-Fragment-----" );
+      echo( reqBundleFrag.join( ",\n" ), true );
       */
+
       var availableBundles = {};
-      var usedBundles = {};
-      var missingBundles = [];
 
-      for (var i = 0 ; i < bundles.length ; i++) {
-        var bundle = bundles[i].trim();
-
+      for ( var i = 0 ; i < bundles.length ; i++ ) {
+        var bundle = bundles[ i ].trim();
         // first we read the manifest
         var manifest = new java.util.jar.JarFile( bundles[i] ).getManifest();
         var attrs = manifest.getMainAttributes();
-        var name = attrs.getValue("Bundle-SymbolicName");
-        var version = attrs.getValue("Bundle-Version");
+        var name = attrs.getValue( "Bundle-SymbolicName" );
+        var version = attrs.getValue( "Bundle-Version" );
 
-        availableBundles[ name+";bundle-version="+version ] = {
+        availableBundles[ name + ";bundle-version=" + version ] = {
           name: name,
           version: version,
           path: bundle
         };
       }
 
-      for (var f in reqBundleFrag){
-        reqBundles.push(reqBundleFrag[f]);
+      // treat Require-Bundle-Fragment as Require-Bundle
+      for ( var f in reqBundleFrag ){
+        reqBundles.push( reqBundleFrag[ f ] );
       }
 
-      for (var r = 0 ; r < reqBundles.length ; r++) {
-        var reqBundle = reqBundles[r];
+      // copy any required bundles
 
-        if (!availableBundles.hasOwnProperty(reqBundle)){
+      var usedBundles = {};
+      var missingBundles = [];
+
+      for ( var r = 0 ; r < reqBundles.length ; r++ ) {
+        var reqBundle = reqBundles[ r ];
+
+        if ( !availableBundles.hasOwnProperty( reqBundle ) ){
           missingBundles.push(" - " + reqBundle);
         } else {
-          var srcBundle = availableBundles[reqBundle];
+          var srcBundle = availableBundles[ reqBundle ];
           // now we add the bundle
           var jarName = srcBundle.name + "-" + srcBundle.version + ".jar";
-          var trgJar = new java.io.File(target+"/" + jarName);
+          var trgJar = new java.io.File( target+"/" + jarName );
           var copy = project.createTask( "copy" );
-          copy.setFile(new java.io.File( srcBundle.path ));
-          copy.setTofile(trgJar);
+          copy.setFile( new java.io.File( srcBundle.path ) );
+          copy.setTofile( trgJar );
           copy.perform();
-          echo.setMessage("- add " + jarName);
-          echo.perform();
+          echo( "- add " + jarName );
           
-          usedBundles[reqBundle] = true;
+          usedBundles[ reqBundle ] = true;
         }
       }
-      echo.setMessage("");
-      echo.perform();
+      echo( "" );
+
+      // all done, report any potential problems
 
       var ignoredAvailable = [];
-      for (var b in availableBundles){
+      for ( var b in availableBundles ){
           if (!usedBundles.hasOwnProperty( b ))
             ignoredAvailable.push( " - " + b + "\t[" + availableBundles[b].path + "]" );
       }
-      if (ignoredAvailable.length){
-        echo.setMessage("WARNING: pom.xml bundles not defined in MANIFEST.MF:");
-        echo.perform();
-        echo.setMessage(ignoredAvailable.join("\n"));
-        echo.perform();
+      if ( ignoredAvailable.length ){
+        echo( "WARNING: pom.xml bundles not defined in MANIFEST.MF:" );
+        echo( ignoredAvailable.join("\n") );
       }
 
-      if (missingBundles.length){
-          if (ignoredAvailable.length){
-            echo.setMessage("");
-            echo.perform();
+      if ( missingBundles.length ){
+          if ( ignoredAvailable.length ){
+            echo( "" );
           }
-          echo.setMessage("ERROR: Missing Require-Bundles from MANIFEST.MF:");
-          echo.perform();
-          echo.setMessage(missingBundles.join("\n"));
-          echo.perform();
+          echo( "ERROR: Missing Required-Bundles from MANIFEST.MF:" );
+          echo( missingBundles.join("\n") );
           // TODO once missing bundles are fixed
           // throw "Missing Required Bundles: " + reqBundle; 
       }
-
-      echo.setMessage("");
-      echo.perform();
+      echo( "" );
       //project.setProperty(prefix+"version", version);
      ]]>
   </scriptdef>
