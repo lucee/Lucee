@@ -165,45 +165,108 @@
      <attribute name="target" />
      <attribute name="coremanifest" />
      <![CDATA[
-      var bundles = attributes.get("bundles").split(java.io.File.pathSeparator);
-      var target = attributes.get("target");
-      var coreManifestPath = attributes.get("coremanifest");
-      
+      var bundles = attributes.get("bundles").split( java.io.File.pathSeparator );
+      var target = attributes.get( "target" );
+      var coreManifestPath = attributes.get( "coremanifest" );
+      var _echo = project.createTask( "echo" );
+      var echo = function( message, newline ){
+        _echo.setMessage( message );
+        _echo.perform();
+        if (newline){
+          _echo.setMessage( "" );
+          _echo.perform();
+        }
+      };
 
       // read the core Manifest
-      manifest = new java.util.jar.Manifest(new java.io.FileInputStream(new java.io.File(coreManifestPath)));
-      var attrs=manifest.getMainAttributes();
-      var reqBundle=attrs.getValue("Require-Bundle");
-      var reqBundleFrag=attrs.getValue("Require-Bundle-Fragment");
+      var manifest = new java.util.jar.Manifest( new java.io.FileInputStream( new java.io.File( coreManifestPath ) ) );
+      var attrs = manifest.getMainAttributes();
+      var reqBundles = attrs.getValue("Require-Bundle").split( "," );
+      var reqBundleFrag = attrs.getValue( "Require-Bundle-Fragment" );
+      if ( reqBundleFrag != null )
+        reqBundleFrag = reqBundleFrag.split( "," );
 
-      for(var i=0;i<bundles.length;i++) {
+      /*
+      echo( "---------- Bundles -------------------" );
+      echo( bundles.join(",\n"), true );
 
-        // first we read the manifest
-        var manifest = new java.util.jar.JarFile(bundles[i]).getManifest();
-        var attrs=manifest.getMainAttributes();
-        var name=attrs.getValue("Bundle-SymbolicName");
-        var version=attrs.getValue("Bundle-Version");
-
-        var exist=reqBundle.indexOf(name+";bundle-version="+version)!=-1 ||
-          (reqBundleFrag!=null && reqBundleFrag.indexOf(name+";bundle-version="+version)!=-1);
-
-        // not a bundle lucee defines in the manifest
-        if(!exist) continue;
-
-
-
-        // now we add the bundle
-        var trgJar=new java.io.File(target+"/"+name+"-"+version+".jar");
-        var copy = project.createTask( "copy" );
-        copy.setFile(new java.io.File(bundles[i]));
-        copy.setTofile(trgJar);
-        copy.perform();
-
-        var echo = project.createTask( "echo" );
-        echo.setMessage("- add "+name+"-"+version+".jar");
-        echo.perform();        
-      }
+      echo( "---------- Require-Bundle -------------" );
+      echo( reqBundles.join(",\n"), true );
       
+      echo( "---------- Require-Bundle-Fragment-----" );
+      echo( reqBundleFrag.join( ",\n" ), true );
+      */
+
+      var availableBundles = {};
+
+      for ( var i = 0 ; i < bundles.length ; i++ ) {
+        var bundle = bundles[ i ].trim();
+        // first we read the manifest
+        var manifest = new java.util.jar.JarFile( bundles[i] ).getManifest();
+        var attrs = manifest.getMainAttributes();
+        var name = attrs.getValue( "Bundle-SymbolicName" );
+        var version = attrs.getValue( "Bundle-Version" );
+
+        availableBundles[ name + ";bundle-version=" + version ] = {
+          name: name,
+          version: version,
+          path: bundle
+        };
+      }
+
+      // treat Require-Bundle-Fragment as Require-Bundle
+      for ( var f in reqBundleFrag ){
+        reqBundles.push( reqBundleFrag[ f ] );
+      }
+
+      // copy any required bundles
+
+      var usedBundles = {};
+      var missingBundles = [];
+
+      for ( var r = 0 ; r < reqBundles.length ; r++ ) {
+        var reqBundle = reqBundles[ r ];
+
+        if ( !availableBundles.hasOwnProperty( reqBundle ) ){
+          missingBundles.push(" - " + reqBundle);
+        } else {
+          var srcBundle = availableBundles[ reqBundle ];
+          // now we add the bundle
+          var jarName = srcBundle.name + "-" + srcBundle.version + ".jar";
+          var trgJar = new java.io.File( target+"/" + jarName );
+          var copy = project.createTask( "copy" );
+          copy.setFile( new java.io.File( srcBundle.path ) );
+          copy.setTofile( trgJar );
+          copy.perform();
+          echo( "- add " + jarName );
+          
+          usedBundles[ reqBundle ] = true;
+        }
+      }
+      echo( "" );
+
+      // all done, report any potential problems
+
+      var ignoredAvailable = [];
+      for ( var b in availableBundles ){
+          if (!usedBundles.hasOwnProperty( b ))
+            ignoredAvailable.push( " - " + b + "\t[" + availableBundles[b].path + "]" );
+      }
+      if ( ignoredAvailable.length ){
+        echo( "WARNING: pom.xml bundles not defined in MANIFEST.MF:" );
+        echo( ignoredAvailable.join("\n") );
+      }
+
+      if ( missingBundles.length ){
+          if ( ignoredAvailable.length ){
+            echo( "" );
+          }
+          echo( "ERROR: Missing Required-Bundles from MANIFEST.MF:" );
+          echo( missingBundles.join("\n") );
+          // TODO once missing bundles are fixed
+          // throw "Missing Required Bundles: " + reqBundle; 
+      }
+      echo( "" );
       //project.setProperty(prefix+"version", version);
      ]]>
   </scriptdef>
@@ -813,6 +876,7 @@
       <jvmarg value="-Dlucee.enable.dialect=true"/>
       <jvmarg value="-Dlucee.extensions.install=true"/>
       <jvmarg value="-Dlucee.full.null.support=false"/>
+      <jvmarg value="-Djava.net.useSystemProxies=true"/>
     </java>
     <echo>${exc}</echo>
 
@@ -848,6 +912,7 @@
       <jvmarg value="-Dlucee.enable.dialect=true"/>
       <jvmarg value="-Dlucee.extensions.install=true"/>
       <jvmarg value="-Dlucee.full.null.support=false"/>
+      <jvmarg value="-Djava.net.useSystemProxies=true"/>
       <!--
       <jvmarg value="-Dlucee.system.out=file:.../out.txt"/>
       <jvmarg value="-Dlucee.system.err=file:.../err.txt"/>
