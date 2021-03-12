@@ -699,7 +699,7 @@ public final class Http extends BodyTagImpl {
 		ssl(builder);
 
 		// redirect
-		if (redirect) builder.setRedirectStrategy(new DefaultRedirectStrategy());
+		if (redirect) builder.setRedirectStrategy(DefaultRedirectStrategy.INSTANCE);
 		else builder.disableRedirectHandling();
 
 		// cookies
@@ -887,7 +887,8 @@ public final class Http extends BodyTagImpl {
 				else if (type == HttpParamBean.TYPE_HEADER) {
 					if (param.getName().equalsIgnoreCase("content-type")) hasContentType = true;
 
-					if (param.getName().equalsIgnoreCase("Content-Length")) {}
+					if (param.getName().equalsIgnoreCase("Content-Length")) {
+					}
 					else if (param.getName().equalsIgnoreCase("Accept-Encoding")) {
 						acceptEncoding.append(headerValue(param.getValueAsString()));
 						acceptEncoding.append(", ");
@@ -1264,7 +1265,8 @@ public final class Http extends BodyTagImpl {
 						IOUtil.write(file, str, ((PageContextImpl) pageContext).getWebCharset(), false);
 
 					}
-					catch (IOException e1) {}
+					catch (IOException e1) {
+					}
 				}
 
 				// store to variable
@@ -1740,7 +1742,8 @@ public final class Http extends BodyTagImpl {
 			try {
 				is = new GZIPInputStream(is);
 			}
-			catch (IOException e) {}
+			catch (IOException e) {
+			}
 		}
 
 		try {
@@ -1752,14 +1755,16 @@ public final class Http extends BodyTagImpl {
 				try {
 					return IOUtil.toString(is, cs);
 				}
-				catch (IOException e) {}
+				catch (IOException e) {
+				}
 			}
 			// Binary
 			else {
 				try {
 					return IOUtil.toBytes(is);
 				}
-				catch (IOException e) {}
+				catch (IOException e) {
+				}
 			}
 		}
 		finally {
