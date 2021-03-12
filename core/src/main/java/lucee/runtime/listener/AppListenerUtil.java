@@ -103,14 +103,17 @@ public final class AppListenerUtil {
 	private static final TimeSpan ONE_MINUTE = new TimeSpanImpl(0, 0, 1, 0);
 
 	public static PageSource getApplicationPageSource(PageContext pc, PageSource requestedPage, String filename, int mode, int type) {
-		PageSource ps = ((ConfigPro) pc.getConfig()).getApplicationPageSource(pc, requestedPage.getPhyscalFile().getParent(), filename, mode, null);
-		if (ps != null) return ps;
-
+		PageSource ps;
+		Resource res = requestedPage.getPhyscalFile();
+		if (res != null) {
+			ps = ((ConfigPro) pc.getConfig()).getApplicationPageSource(pc, res.getParent(), filename, mode, null);
+			if (ps != null) return ps;
+		}
 		if (mode == ApplicationListener.MODE_CURRENT) ps = getApplicationPageSourceCurrent(requestedPage, filename);
 		else if (mode == ApplicationListener.MODE_ROOT) ps = getApplicationPageSourceRoot(pc, filename);
 		else ps = getApplicationPageSourceCurr2Root(pc, requestedPage, filename);
 
-		if (ps != null) ((ConfigPro) pc.getConfig()).putApplicationPageSource(requestedPage.getPhyscalFile().getParent(), ps, filename, mode, isCFC(type));
+		if (res != null && ps != null) ((ConfigPro) pc.getConfig()).putApplicationPageSource(requestedPage.getPhyscalFile().getParent(), ps, filename, mode, isCFC(type));
 		return ps;
 	}
 

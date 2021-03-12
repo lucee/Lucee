@@ -18,6 +18,7 @@
  **/
 package lucee.runtime.listener;
 
+import lucee.commons.io.res.Resource;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lang.types.RefBooleanImpl;
 import lucee.runtime.PageContext;
@@ -50,16 +51,20 @@ public final class MixedAppListener extends ModernAppListener {
 	}
 
 	private static PageSource getApplicationPageSource(PageContext pc, PageSource requestedPage, int mode, RefBoolean isCFC) {
-		PageSource ps = ((ConfigPro) pc.getConfig()).getApplicationPageSource(pc, requestedPage.getPhyscalFile().getParent(), "Application.[cfc|cfm]", mode, isCFC);
-		if (ps != null) {
-			return ps;
+		PageSource ps;
+		Resource res = requestedPage.getPhyscalFile();
+		if (res != null) {
+			ps = ((ConfigPro) pc.getConfig()).getApplicationPageSource(pc, res.getParent(), "Application.[cfc|cfm]", mode, isCFC);
+			if (ps != null) {
+				return ps;
+			}
 		}
 
 		if (mode == ApplicationListener.MODE_CURRENT2ROOT) ps = getApplicationPageSourceCurrToRoot(pc, requestedPage, isCFC);
 		else if (mode == ApplicationListener.MODE_CURRENT_OR_ROOT) ps = getApplicationPageSourceCurrOrRoot(pc, requestedPage, isCFC);
 		else if (mode == ApplicationListener.MODE_CURRENT) ps = getApplicationPageSourceCurrent(requestedPage, isCFC);
 		else ps = getApplicationPageSourceRoot(pc, isCFC);
-		if (ps != null)
+		if (res != null && ps != null)
 			((ConfigPro) pc.getConfig()).putApplicationPageSource(requestedPage.getPhyscalFile().getParent(), ps, "Application.[cfc|cfm]", mode, isCFC.toBooleanValue());
 
 		return ps;
