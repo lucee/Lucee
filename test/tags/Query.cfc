@@ -17,7 +17,7 @@
  * 
  ---><cfscript>
 component extends="org.lucee.cfml.test.LuceeTestCase"	{
-	processingdirective pageencoding="UTF-8";
+	//processingdirective pageencoding="UTF-8";
 	variables.suffix="Query";
 
 	public function beforeTests(){
