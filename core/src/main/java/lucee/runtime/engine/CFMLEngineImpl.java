@@ -189,6 +189,10 @@ import lucee.runtime.video.VideoUtilImpl;
  */
 public final class CFMLEngineImpl implements CFMLEngine {
 
+	static {
+		System.setProperty("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.NoOpLog");
+	}
+
 	public static final PrintStream CONSOLE_ERR = System.err;
 	public static final PrintStream CONSOLE_OUT = System.out;
 
@@ -529,7 +533,8 @@ public final class CFMLEngineImpl implements CFMLEngine {
 				try {
 					existingMap.put(ed.getSource().getName(), ed);
 				}
-				catch (ApplicationException e) {}
+				catch (ApplicationException e) {
+				}
 			}
 		}
 
