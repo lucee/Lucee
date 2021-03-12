@@ -1,4 +1,4 @@
-<!--- 
+﻿<!--- 
  *
  * Copyright (c) 2014, the Railo Company LLC. All rights reserved.
  *
@@ -17,7 +17,7 @@
  * 
  ---><cfscript>
 component extends="org.lucee.cfml.test.LuceeTestCase"	{
-	
+	processingdirective pageencoding="UTF-8";
 	variables.suffix="Query";
 
 	public function beforeTests(){
