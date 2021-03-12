@@ -6644,7 +6644,7 @@ Default list delimiter: comma character.</description>
 			<alias>string</alias>
 			<type>any</type>
 			<required>Yes</required>
-		<description>String to hash.</description>
+		<description>String or byte array to hash.</description>
     </argument>
 		<argument>
 			<name>algorithm</name>
