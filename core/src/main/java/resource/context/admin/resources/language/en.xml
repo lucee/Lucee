@@ -1178,7 +1178,7 @@ sct[""bracketNotation""] --> keyname: "bracketNotation"</data>
 	<data key="settings.dballowed">Allowed operations</data>
 	<data key="Settings.dbStorage">Storage</data>
 	<data key="Settings.openConn">Open Connections</data>
-	<data key="Settings.dbStorageDesc">Allow to use this datasource as client/session storage.</data>
+	<data key="Settings.dbStorageDesc">Allow using this datasource for client/session/log storage.</data>
 	<data key="settings.dbport">Port</data>
 	<data key="settings.preservesinglequotesdescription">Preserve single quotes (&quot;) in the SQL defined with the tag cfquery</data>
 	<data key="settings.dbconntimeout">Connection timeout (in minutes)</data>
