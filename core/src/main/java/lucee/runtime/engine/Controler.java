@@ -312,6 +312,8 @@ public final class Controler extends Thread {
 				}
 				ThreadLocalConfig.register(config);
 
+				LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_TRACE, Controler.class.getName(), "Running background Controller maintence (every minute).");
+
 				try {
 					((SchedulerImpl) config.getScheduler()).startIfNecessary();
 				}
@@ -405,6 +407,9 @@ public final class Controler extends Thread {
 				if (config == null) {
 					config = cfmlFactory.getConfig();
 				}
+
+				LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_TRACE, Controler.class.getName(),"Running background Controller maintence (every hour).");
+
 				ThreadLocalConfig.register(config);
 
 				// time server offset
