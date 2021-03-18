@@ -333,6 +333,7 @@ public final class Http extends BodyTagImpl {
 	private String clientCert;
 	/** Password used to decrypt the client certificate. */
 	private String clientCertPassword;
+	private static SSLConnectionSocketFactoryImpl defaultSSLConnectionSocketFactoryImpl;
 
 	@Override
 	public void release() {
@@ -1406,6 +1407,7 @@ public final class Http extends BodyTagImpl {
 	}
 
 	private void ssl(HttpClientBuilder builder) throws PageException {
+		final SSLConnectionSocketFactory sslsf;
 		try {
 			// SSLContext sslcontext = SSLContexts.createSystemDefault();
 			SSLContext sslcontext = SSLContext.getInstance("TLSv1.2");
@@ -1419,11 +1421,15 @@ public final class Http extends BodyTagImpl {
 				kmf.init(clientStore, this.clientCertPassword.toCharArray());
 
 				sslcontext.init(kmf.getKeyManagers(), null, new java.security.SecureRandom());
+				sslsf = new SSLConnectionSocketFactoryImpl(sslcontext, new DefaultHostnameVerifierImpl());
 			}
 			else {
 				sslcontext.init(null, null, new java.security.SecureRandom());
+				if (defaultSSLConnectionSocketFactoryImpl == null)
+					defaultSSLConnectionSocketFactoryImpl = new SSLConnectionSocketFactoryImpl(sslcontext, new DefaultHostnameVerifierImpl());
+				sslsf = defaultSSLConnectionSocketFactoryImpl;
 			}
-			final SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactoryImpl(sslcontext, new DefaultHostnameVerifierImpl());
+
 			builder.setSSLSocketFactory(sslsf);
 			Registry<ConnectionSocketFactory> reg = RegistryBuilder.<ConnectionSocketFactory>create().register("http", PlainConnectionSocketFactory.getSocketFactory())
 					.register("https", sslsf).build();

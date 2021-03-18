@@ -414,6 +414,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	private Regex regex; // TODO add possibility to configure
 
 	private long applicationPathhCacheTimeout = Caster.toLongValue(SystemUtil.getSystemPropOrEnvVar("lucee.application.path.cache.timeout", null), 0);
+	private ClassLoader envClassLoader;
 
 	/**
 	 * @return the allowURLRequestTimeout
@@ -649,7 +650,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	// do not remove, ised in Hibernate extension
 	@Override
 	public ClassLoader getClassLoaderEnv() {
-		return new EnvClassLoader(this);
+		if (envClassLoader == null) envClassLoader = new EnvClassLoader(this);
+		return envClassLoader;
 	}
 
 	@Override
@@ -3151,9 +3153,8 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 			if (t != null) {
 				ApplicationException ae = new ApplicationException("cannot initialize ORM Engine [" + cdORMEngine + "], make sure you have added all the required jar files");
-
-				ae.setStackTrace(t.getStackTrace());
-				ae.setDetail(t.getMessage());
+				ae.initCause(t);
+				throw ae;
 
 			}
 			ormengines.put(name, engine);
