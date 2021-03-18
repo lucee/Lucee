@@ -69,6 +69,7 @@ import com.intergral.fusiondebug.server.FDControllerFactory;
 
 import lucee.VersionInfo;
 import lucee.commons.io.log.Log;
+import lucee.commons.lang.ConcurrentHashMapAsHashtable;
 import lucee.loader.TP;
 import lucee.loader.osgi.BundleCollection;
 import lucee.loader.osgi.BundleLoader;
@@ -121,6 +122,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	 * Constructor of the class
 	 */
 	protected CFMLEngineFactory(final ServletConfig config) {
+		System.setProperty("org.apache.commons.logging.LogFactory.HashtableImpl", ConcurrentHashMapAsHashtable.class.getName());
 		File logFile = null;
 		this.config = config;
 		try {
@@ -280,7 +282,8 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		try {
 			Thread.sleep(5000);
 		}
-		catch (InterruptedException e) {}
+		catch (InterruptedException e) {
+		}
 
 		BundleUtil.stop(felix, false);
 	}
@@ -657,7 +660,8 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			try {
 				newLucee.delete();
 			}
-			catch (final Exception ee) {}
+			catch (final Exception ee) {
+			}
 			log(e);
 			e.printStackTrace();
 			return false;

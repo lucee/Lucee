@@ -76,6 +76,7 @@ import org.apache.http.protocol.HttpContext;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.SystemUtil;
+import lucee.commons.io.log.Log;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
@@ -751,6 +752,8 @@ public final class Http extends BodyTagImpl {
 				httpHost = new HttpHost(_url.getHost(), _url.getPort(), _url.getProtocol());
 				host = _url.getHost();
 				url = _url.toExternalForm();
+				Log log = pageContext.getConfig().getLog("application");
+				if (log != null) log.info("cfhttp", "calling: " + url);
 				if (sbQS.length() > 0) {
 					// no existing QS
 					if (StringUtil.isEmpty(_url.getQuery())) {

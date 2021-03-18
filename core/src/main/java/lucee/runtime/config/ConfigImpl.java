@@ -433,6 +433,7 @@ public abstract class ConfigImpl implements Config {
 
 	public static boolean onlyFirstMatch = false;
 	private TimeSpan cachedAfterTimeRange;
+	private ClassLoader envClassLoader;
 
 	private static Map<String, Startup> startups;
 
@@ -675,7 +676,8 @@ public abstract class ConfigImpl implements Config {
 
 	// do not remove, ised in Hibernate extension
 	public ClassLoader getClassLoaderEnv() {
-		return new EnvClassLoader(this);
+		if (envClassLoader == null) envClassLoader = new EnvClassLoader(this);
+		return envClassLoader;
 	}
 
 	public ClassLoader getClassLoaderCore() {
@@ -3574,7 +3576,8 @@ public abstract class ConfigImpl implements Config {
 
 			}
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 
 		if (list == null) loggers.clear();
 		else {
