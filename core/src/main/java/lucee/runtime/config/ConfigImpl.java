@@ -414,7 +414,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	private Regex regex; // TODO add possibility to configure
 
-	private long applicationPathhCacheTimeout = Caster.toLongValue(SystemUtil.getSystemPropOrEnvVar("lucee.application.path.cache.timeout", null), 20000);
+	private long applicationPathCacheTimeout = Caster.toLongValue(SystemUtil.getSystemPropOrEnvVar("lucee.application.path.cache.timeout", null), 20000);
 	private ClassLoader envClassLoader;
 
 	/**
