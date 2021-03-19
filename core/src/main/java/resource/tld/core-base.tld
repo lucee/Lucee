@@ -1048,6 +1048,22 @@ Patterns are also supported, i.e.
 			<rtexprvalue>true</rtexprvalue>
 			<description>User name to connect to the database.</description>
 		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>Filter</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Filter for type="tables" with a wildcard, defaults to all types when empty.
+
+- "TABLE"
+- "VIEW"
+- "SYSTEM TABLE"
+- "GLOBAL TEMPORARY"
+- "LOCAL TEMPORARY"
+- "ALIAS"
+- "SYNONYM"
+</description>
+		</attribute>
 	</tag>
 
 	<!-- Defaultcase -->

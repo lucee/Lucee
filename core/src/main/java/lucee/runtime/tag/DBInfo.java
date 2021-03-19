@@ -114,6 +114,7 @@ public final class DBInfo extends TagImpl {
 	private String procedure;
 	private String username;
 	private String strType;
+	private String filter;
 
 	@Override
 	public void release() {
@@ -127,7 +128,7 @@ public final class DBInfo extends TagImpl {
 		table = null;
 		procedure = null;
 		username = null;
-
+		filter = null;
 	}
 
 	/**
@@ -245,6 +246,13 @@ public final class DBInfo extends TagImpl {
 	 */
 	public void setUsername(String username) {
 		this.username = username;
+	}
+
+	/**
+	 * @param username the username to set
+	 */
+	public void setFilter(String filter) {
+		this.filter = filter;
 	}
 
 	@Override
@@ -630,7 +638,8 @@ public final class DBInfo extends TagImpl {
 		stopwatch.start();
 
 		pattern = setCase(metaData, pattern);
-		lucee.runtime.type.Query qry = new QueryImpl(metaData.getTables(dbname(conn), null, StringUtil.isEmpty(pattern) ? "%" : pattern, null), "query", pageContext.getTimeZone());
+		lucee.runtime.type.Query qry = new QueryImpl(metaData.getTables(dbname(conn), null, StringUtil.isEmpty(pattern) ? "%" : pattern, 
+			StringUtil.isEmpty(filter) ? null : new String[] { filter }), "query", pageContext.getTimeZone());
 		qry.setExecutionTime(stopwatch.time());
 
 		pageContext.setVariable(name, qry);
