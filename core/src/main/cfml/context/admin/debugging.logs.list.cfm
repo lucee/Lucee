@@ -116,7 +116,8 @@
 							<cfset el=logs[i]>
 							<cfset _total=0><cfloop query="el.pages"><cfset _total+=el.pages.total></cfloop>
 							<cfset _query=0><cfloop query="el.pages"><cfset _query+=el.pages.query></cfloop>
-							<cfset _app=0><cfloop query="el.pages"><cfset _app+=el.pages.app></cfloop>								
+							<cfset _app=0><cfloop query="el.pages"><cfset _app+=el.pages.app></cfloop>
+							<cfset _path=el.scope.cgi.SCRIPT_NAME& (len(el.scope.cgi.QUERY_STRING)?"?"& el.scope.cgi.QUERY_STRING:"")>
 							<cfif 
 								doFilter(session.debugFilter.path,_path,false) and 
 								doFilterMin(session.debugFilter.query,_query) and 
