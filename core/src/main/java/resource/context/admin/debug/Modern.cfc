@@ -159,10 +159,7 @@ if(structKeyExists(arguments.custom, "metrics_Charts")) {
 		local.times=arguments.debugging.times;
 
 		var time=getTickCount();
-		var _cgi=structKeyExists(arguments.debugging,'cgi')?arguments.debugging.cgi:cgi;
-		
-		
-		
+		var _cgi = arguments?.debugging?.scope?.cgi ?: cgi;
 
 		this.allSections = this.buildSectionStruct();
 		var isExecOrder  = this.isSectionOpen( "ExecOrder" );
