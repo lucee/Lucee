@@ -74,7 +74,7 @@
 				echo(' (CFML Version '&server.ColdFusion.ProductVersion&')');
 				echo(NL);
 				
-				echo("Template: #htmlEditFormat(_cgi.SCRIPT_NAME)# (#htmlEditFormat(getBaseTemplatePath())#)");
+				echo("Template: #encodeForHtml(_cgi.REQUEST_URL)# (#encodeForHtml(getBaseTemplatePath())#)");
 				echo(NL);
 				
 				echo("Time Stamp: #LSDateFormat(now())# #LSTimeFormat(now())#");
