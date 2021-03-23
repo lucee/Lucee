@@ -435,6 +435,7 @@ public abstract class ConfigFactory {
 			moveAsBool("implicitAccess", "debuggingImplicitAccess", debugging, root);
 			moveAsBool("queryUsage", "debuggingQueryUsage", debugging, root);
 			moveAsBool("showQueryUsage", "debuggingQueryUsage", debugging, root);
+			moveAsBool("thread", "debuggingThread", debugging, root);
 			moveAsInt("maxRecordsLogged", "debuggingMaxRecordsLogged", debugging, root);
 
 			Array entries = ConfigWebUtil.getAsArray("debugEntry", debugging);
