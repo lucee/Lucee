@@ -742,7 +742,7 @@ you can see the log result at the end of every request, if a debug template is d
 	<data key="debug.settings.implicitAccessDesc">Select this option to log all accesses to scopes, queries and threads that happens implicit (cascaded).</data>
 	<data key="debug.settings.implicitAccessAlert">(Development use only), high performance impact</data>
 	<data key="debug.settings.thread">Debug Threads</data>
-	<data key="debug.settings.threadDesc">Select this option to also log threads.</data>
+	<data key="debug.settings.threadDesc">Select this option to also log out individual threads.</data>
 	<data key="debug.settings.threadAlert">Depending on your application, this may produce a large volume of debug entries.</data>
 
 	<!-- debugging.logs -->
