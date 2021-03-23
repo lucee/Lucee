@@ -229,8 +229,9 @@ public final class Log extends TagImpl {
 					while (it.hasNext()) {
 						keys[index++] = KeyImpl.init(it.next());
 					}
-
-					throw new ApplicationException(ExceptionUtil.similarKeyMessage(keys, log, "attribute log", "log names", null, true));
+					String msg = ExceptionUtil.similarKeyMessage(keys, log, "attribute log", "log names", null, true);
+					String detail = ExceptionUtil.similarKeyMessage(keys, log, "log names", null, true);
+					throw new ApplicationException(msg+ " " +detail);
 				}
 			}
 		}
