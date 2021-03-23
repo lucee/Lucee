@@ -1,6 +1,6 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"{
-	function run( testResults, testBox ){
-		describe( "Test case for LDEV-3384", function() {
+    function run( testResults, testBox ){
+        describe( "Test case for LDEV-3384", function() {
             it(title="dateDiff function", body=function( currentSpec ){
                 expect(dateDiff("s",now(),now())).toBe(0);
                 expect(dateDiff("s",createDateTime(2010,10,10,10,10,10),createDateTime(2010,10,10,11,10,10))).toBe(3600);
