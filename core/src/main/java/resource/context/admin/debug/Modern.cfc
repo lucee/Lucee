@@ -3,8 +3,8 @@
 	<cfscript>
 	  fields=array(
 group("Debugging Tab","Debugging tag includes execution time,Custom debugging output",2)
-,field("Minimal Execution Time","minimal","0",true,{_appendix:"microseconds",_bottom:"Execution times for templates, includes, modules, custom tags, and component method calls. Outputs only templates taking longer than the time (in microseconds) defined above."},"text40")
-,field("Highlight","highlight","250000",true,{_appendix:"microseconds",_bottom:"Highlight templates taking longer than the following (in microseconds) in red."},"text50")
+,field("Minimal Execution Time","minimal","0",true,{_appendix:"microseconds",_bottom:"Execution times for templates, includes, modules, custom tags, and component method calls. Outputs only templates taking longer than the time (in microseconds) defined above."},"text50")
+,field("Highlight","highlight","250000",true,{_appendix:"microseconds",_bottom:"Highlight templates taking longer than the following (in microseconds) in red."},"text60")
 ,field("Expression","expression","Enabled",false,"Enter expression to evaluate","checkbox","Enabled")
 ,field("General Debug Information ","general","Enabled",false,
 "Select this option to show general information about this request. General items are Lucee Version, Template, Time Stamp, User Locale, User Agent, User IP, and Host Name. ",
@@ -98,7 +98,7 @@ group("Debugging Tab","Debugging tag includes execution time,Custom debugging ou
 		}
 	</cfscript>
 
-	<cffunction name="output" returntype="void">
+	<cffunction name="output" returntype="void" localmode="true">
 		<cfargument name="custom" type="struct" required="yes" />
 		<cfargument name="debugging" required="true" type="struct" />
 		<cfargument name="context" type="string" default="web" />
@@ -954,34 +954,47 @@ Reference Button
 										<th><cfif isExecOrder>Order<cfelse><a onclick="__LUCEE.debug.setFlag( 'ExecOrder' ); __LUCEE.util.addClass( this, 'selected' );" class="sortby" title="Order by ID (starting with the next request)">Order</a></cfif></th>
 									</tr>
 									</thead>
-									<cfset loa=0>
-									<cfset tot=0>
-									<cfset q=0>
 									<cfset var hasBad = false>
-									<tbody>
-										<cfloop query="pages">
-											<cfset tot=tot+pages.total>
-											<cfset q=q+pages.query>
-											<cfif pages.avg LT arguments.custom.minimal * 1000>
-												<cfcontinue>
+									
+									<cfset local.pagesDisplayed = 0>
+									<cfset local.showPages = true>
+									<cfset local.bypassMinimalFilter = false>
+									<cfloop condition="showPages eq true">
+										<cfset local.loa = 0>
+										<cfset local.tot = 0>
+										<cfset local.q = 0>
+										<tbody>
+											<cfloop query="pages">
+												<cfset tot = tot + pages.total>
+												<cfset q = q + pages.query>
+												<cfif pages.avg LT arguments.custom.minimal * 1000 && !local.bypassMinimalFilter>
+													<cfcontinue>
+												</cfif>
+												<cfset pagesDisplayed++>
+												<cfset bad=pages.avg GTE arguments.custom.highlight * 1000>
+												<cfif bad>
+													<cfset hasBad = true>
+												</cfif>
+												<cfset loa = loa + pages.load>
+												<tr class="nowrap #bad ? 'red' : ''#">
+													<td class="txt-r" title="#pages.total#">#unitFormat(arguments.custom.unit, pages.total,true)#</td>
+													<td class="txt-r" title="#pages.load#">#unitFormat(arguments.custom.unit, pages.load,true)#</td>
+													<td class="txt-r" title="#pages.app#">#unitFormat(arguments.custom.unit, pages.app,true)#</td>
+													<cfif queries.recordcount><td class="txt-r" title="#pages.query#">#unitFormat(arguments.custom.unit, pages.query,true)#</td></cfif>
+													<td class="txt-r">#pages.count#</td>
+													<td class="txt-r" title="#pages.avg#"><cfif pages.count GT 1>#unitFormat(arguments.custom.unit, pages.avg,true)#<cfelse>-</cfif></td>
+													<td id="-lucee-debugging-pages-#pages.currentRow#" oncontextmenu="__LUCEE.debug.selectText( this.id );">#pages.src#</td>
+													<td class="txt-r faded" title="#pages.id#">#ordermap[pages.id]#</td>
+												</tr>
+											</cfloop>
+											<cfif pagesDisplayed gt 0 || bypassMinimalFilter>
+												<cfset showPages = false>
+											<cfelse>
+												<!-- if there are no templates displayed at all due to a minimal execution time filter, show them all -->
+												<cfset bypassMinimalFilter = true>
 											</cfif>
-											<cfset bad=pages.avg GTE arguments.custom.highlight * 1000>
-											<cfif bad>
-												<cfset hasBad = true>
-											</cfif>
-											<cfset loa=loa+pages.load>
-											<tr class="nowrap #bad ? 'red' : ''#">
-												<td class="txt-r" title="#pages.total#">#unitFormat(arguments.custom.unit, pages.total,true)#</td>
-												<td class="txt-r" title="#pages.load#">#unitFormat(arguments.custom.unit, pages.load,true)#</td>
-												<td class="txt-r" title="#pages.app#">#unitFormat(arguments.custom.unit, pages.app,true)#</td>
-												<cfif queries.recordcount><td class="txt-r" title="#pages.query#">#unitFormat(arguments.custom.unit, pages.query,true)#</td></cfif>
-												<td class="txt-r">#pages.count#</td>
-												<td class="txt-r" title="#pages.avg#"><cfif pages.count GT 1>#unitFormat(arguments.custom.unit, pages.avg,true)#<cfelse>-</cfif></td>
-												<td id="-lucee-debugging-pages-#pages.currentRow#" oncontextmenu="__LUCEE.debug.selectText( this.id );">#pages.src#</td>
-												<td class="txt-r faded" title="#pages.id#">#ordermap[pages.id]#</td>
-											</tr>
-										</cfloop>
-									</tbody>
+										</tbody>
+									</cfloop>
 									<cfif hasBad>
 										<tfoot>
 											<tr class="red">
