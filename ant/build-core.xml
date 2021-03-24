@@ -422,6 +422,7 @@
     <property name="temp" location="${rootDir}/temp"/>
     <property name="loader" location="${temp}/loader"/>
     <property name="core" location="${temp}/core"/>
+    <property name="deployLco" value=""/>
     <!-- <property file="${rootDir}/build.properties"/> -->
 
 
@@ -1284,6 +1285,30 @@
 
   </target>
 
+  <scriptdef name="deployLco" language="javascript" loaderRef="sharedbuild-loaderRef">
+     <attribute name="srcdir" />
+     <attribute name="deploydir" />
+     <attribute name="name" />
+     <![CDATA[
+          var srcDir = attributes.get("srcdir");
+          var deployDir = attributes.get("deploydir");
+          var name = attributes.get("name");
+          
+          if (deployDir && String(deployDir).length >= 0) {
+            var path = deployDir + "/" + name;
+            var echo = project.createTask( "echo" );
+            var copy = project.createTask( "copy" );
+
+            copy.setFile( new java.io.File( srcDir + "/" + name ) );
+            copy.setTofile( new java.io.File( path ) );
+            echo.setMessage( "Deploying lco: " + name );
+            echo.perform();
+
+            copy.perform();
+          }
+     ]]>
+  </scriptdef>
+
   <target name="_buildLoaderMaven" depends="__build,setMvnEnv,addExtensions,addBundles,addFelix" description="generate the loader jar" >  
     <echots message="build core"/>
     <!-- create the luce core -->
@@ -1301,19 +1326,21 @@
     <currentTime property="ct" />
     <echo file="${outputDir}/lucee/version" message="${version}:${ct}" encoding="UTF-8"/>
 
-    
+    <!-- optionally copy lco file to an existing Lucee install -->
+    <deployLco
+      srcdir="${trgLoader}" 
+      deploydir="${deployLco}"
+      name="${version}.lco"/>
+
     <delete dir="${temp}"/>
     <echots message="done with the ant part, now maven build the loader"/>
     
   </target>
 
-
   <target name="setAntEnv" description="set the variable right for ant">
     <echo>before:${goal}</echo>
     <property name="goal" location="${temp}/loader"/>
-<echo>after:${goal}</echo>
-    
-
+    <echo>after:${goal}</echo>
   </target>
 
   <target name="buildLoaderAnt" depends="__build,setAntEnv,addExtensions,addBundles,addFelix" description="generate the loader jar" >  
@@ -1335,15 +1362,19 @@
     <echo file="${temp}/loader/lucee/version" message="${version}:${ct}" encoding="UTF-8"/>
 
     <echots message="build loader"/>
-    
 
-    <!-- genrates the jar from the loader -->
+    <!-- generates the jar from the loader -->
     <jar 
       basedir="${temp}/loader" 
       jarfile="${trgLoader}/lucee-${version}.jar" 
       manifest="${goal}/META-INF/MANIFEST.MF"/>
       <echots message="build-jar-ant:${goal}/META-INF/MANIFEST.MF"/>
-    
+  
+    <!-- optionally copy lco file to an existing Lucee install -->
+    <deployLco
+      srcdir="${trgLoader}" 
+      deploydir="${deployLco}"
+      name="${version}.lco"/>
 
     <delete dir="${temp}"/>
     <echots message="done"/>
