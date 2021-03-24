@@ -47,6 +47,8 @@ import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.DatasourceConnPool;
 import lucee.runtime.db.SQL;
+import lucee.runtime.db.SQLCaster;
+import lucee.runtime.db.SQLItem;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.CatchBlock;
@@ -119,9 +121,11 @@ public final class DebuggerImpl implements Debugger {
 
 	private static final Key[] PAGE_COLUMNS = new Collection.Key[] { KeyConstants._id, KeyConstants._count, KeyConstants._min, KeyConstants._max, KeyConstants._avg,
 			KeyConstants._app, KeyConstants._load, KeyConstants._query, KeyConstants._total, KeyConstants._src };
-	private static final Key[] QUERY_COLUMNS = new Collection.Key[] { KeyConstants._name, KeyConstants._time, KeyConstants._sql, KeyConstants._src, KeyConstants._line,
+	private static final Key[] QUERY_COLUMNS = new Collection.Key[] { KeyConstants._name, KeyConstants._time, KeyConstants._sql, 
+			KeyConstants._paramValue, KeyConstants._paramType, KeyConstants._src, KeyConstants._line,
 			KeyConstants._count, KeyConstants._datasource, KeyConstants._usage, CACHE_TYPE };
-	private static final String[] QUERY_COLUMN_TYPES = new String[] { "VARCHAR", "DOUBLE", "VARCHAR", "VARCHAR", "DOUBLE", "DOUBLE", "VARCHAR", "ANY", "VARCHAR" };
+	private static final String[] QUERY_COLUMN_TYPES = new String[] { "VARCHAR", "DOUBLE", "VARCHAR", "VARCHAR", 
+			"VARCHAR", "VARCHAR", "DOUBLE", "DOUBLE", "VARCHAR", "ANY", "VARCHAR" };
 	private static final Key[] GEN_DATA_COLUMNS = new Collection.Key[] { KeyConstants._category, KeyConstants._name, KeyConstants._value };
 	private static final Key[] TIMER_COLUMNS = new Collection.Key[] { KeyConstants._label, KeyConstants._time, KeyConstants._template };
 	private static final Key[] DUMP_COLUMNS = new Collection.Key[] { KeyConstants._output, KeyConstants._template, KeyConstants._line };
@@ -446,7 +450,17 @@ public final class DebuggerImpl implements Debugger {
 					qryQueries.setAt(KeyConstants._count, row, Integer.valueOf(qe.getRecordcount()));
 					qryQueries.setAt(KeyConstants._datasource, row, qe.getDatasource());
 					qryQueries.setAt(CACHE_TYPE, row, qe.getCacheType());
-
+					SQLItem[] params = qe.getSQL().getItems();
+					StringBuilder paramValue = new StringBuilder();
+					StringBuilder paramType = new StringBuilder();
+					for (int i = 0; i < params.length; i++) {
+						paramValue.append(params[i].getValue()).toString();
+						if(i < params.length-1) paramValue.append(",");
+						paramType.append(SQLCaster.toStringType(params[i].getType(), "")).toString();
+						if (i < params.length-1) paramType.append(",");
+					}
+					qryQueries.setAt("paramValue", row, paramValue.toString());
+					qryQueries.setAt("paramType", row, paramType.toString());
 					Struct usage = getUsage(qe);
 					if (usage != null) qryQueries.setAt(KeyConstants._usage, row, usage);
 

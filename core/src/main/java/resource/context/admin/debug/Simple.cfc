@@ -694,6 +694,18 @@
 													<td id="-lucee-debug-query-sql-#queries.currentRow#" colspan="6" oncontextmenu="__LUCEE.debug.selectText( this.id );"><pre>#trim( queries.sql )#</pre></td>
 												</tr>
 
+												<cfif !isEmpty(queries.paramValue) && !isEmpty(queries.paramType)>
+													<tr class="sort-group">
+														<th class="label">Params:</th>
+														<td colspan="8" id="-lucee-debugging-query-sql-#queries.currentRow#" colspan="7" oncontextmenu="__LUCEE.debug.selectText( this.id );">
+															<cfset paramValue1 = listtoarray(queries.paramValue,",")>
+															<cfset paramType1 = listtoarray(queries.paramType, ",")>
+															<cfoutput><pre><b> Query Parameter Value(s) - </b><br><br><cfloop from="1" to="#arraylen(paramValue1)#" index="i">###i# Parameter(#paramType1[i]#) = #paramValue1[i]#<br></cfloop></pre>
+															</cfoutput>
+														</td>
+													</tr>
+												</cfif>
+												
 												<cfif listFindNoCase(queries.columnlist, 'usage') && isStruct(queries.usage)>
 
 													<cfset local.usage=queries.usage>

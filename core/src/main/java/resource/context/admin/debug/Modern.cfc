@@ -1283,6 +1283,7 @@ Reference Button
 										<cfloop query="queries">
 											<thead>
 												<tr>
+													<th></th>
 													<th>Name</th>
 													<th>Records</th>
 													<th>Time (ms)</th>
@@ -1294,6 +1295,7 @@ Reference Button
 											</thead>	
 											<tbody>
 												<tr>
+													<th></th>
 													<td>#queries.name#</td>
 													<td class="txt-r">#queries.count#</td>
 													<td class="txt-r">#unitFormat(arguments.custom.unit, queries.time,prettify)#</td>
@@ -1303,9 +1305,20 @@ Reference Button
 													<cfif hasCachetype><td>#isEmpty(queries.cacheType)?"none":queries.cacheType#</td></cfif>
 												</tr>
 												<tr class="sort-group">
+													<th class="label">SQL:</th>
 													<td colspan="8" id="-lucee-debugging-query-sql-#queries.currentRow#" colspan="7" oncontextmenu="__LUCEE.debug.selectText( this.id );"><pre>#trim( queries.sql )#</pre></td>
 												</tr>
-
+												<cfif !isEmpty(queries.paramValue) && !isEmpty(queries.paramType)>
+													<tr class="sort-group">
+														<th class="label">Params:</th>
+														<td colspan="8" id="-lucee-debugging-query-sql-#queries.currentRow#" colspan="7" oncontextmenu="__LUCEE.debug.selectText( this.id );">
+															<cfset paramValue1 = listtoarray(queries.paramValue,",")>
+															<cfset paramType1 = listtoarray(queries.paramType, ",")>
+															<cfoutput><pre><b> Query Parameter Value(s) - </b><br><br><cfloop from="1" to="#arraylen(paramValue1)#" index="i">###i# Parameter(#paramType1[i]#) = #paramValue1[i]#<br></cfloop></pre>
+															</cfoutput>
+														</td>
+													</tr>
+												</cfif>
 												<cfif listFindNoCase(queries.columnlist, 'usage') && isStruct(queries.usage)>
 													<tr class="sort-group">
 														

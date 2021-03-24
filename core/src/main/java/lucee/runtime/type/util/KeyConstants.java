@@ -200,6 +200,8 @@ public class KeyConstants {
 	public static final Key _Printing = KeyImpl._const("Printing");
 	public static final Key _Producer = KeyImpl._const("Producer");
 	public static final Key _Properties = KeyImpl._const("Properties");
+	public static final Key _paramValue = KeyImpl._const("paramValue");
+	public static final Key _paramType = KeyImpl._const("paramType");
 	public static final Key _Q = KeyImpl._const("Q");
 	public static final Key _QRY = KeyImpl._const("QRY");
 	public static final Key _QUERY = KeyImpl._const("QUERY");

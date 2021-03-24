@@ -377,7 +377,15 @@ if(!pages.recordcount || !hasQueries) {
 <cfloop collection="#usage#" index="local.item" item="local._val"><cfif not _val><cfset lstNeverRead=ListAppend(lstNeverRead,item,', ')></cfif></cfloop>
 <cfif len(lstNeverRead)><font color="red">the following colum(s) are never read within the request:#lstNeverRead#</font><br /></cfif>
 </cfif>
-<pre>#queries.sql#</pre></cfloop>
+<pre>#queries.sql#</pre>
+<cfif !isEmpty(queries.paramValue) && !isEmpty(queries.paramType)>
+<cfset paramValue1 = listtoarray(queries.paramValue,",")>
+<cfset paramType1 = listtoarray(queries.paramType, ",")>
+<cfoutput>
+	<pre><b> Query Parameter Value(s) - </b><br><br><cfloop from="1" to="#arraylen(paramValue1)#" index="i">###i# Parameter(#paramType1[i]#) = #paramValue1[i]#<br></cfloop></pre>
+</cfoutput>
+</cfif>
+</cfloop>
 </cfif>
 
 
