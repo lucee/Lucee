@@ -1,8 +1,8 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"{
-	function run( testResults, testBox ){
-		describe( "Test case for LDEV-3387", function() {
+    function run( testResults, testBox ){
+        describe( "Test case for LDEV-3387", function() {  
             path = getDirectoryFromPath(getCurrentTemplatePath());
-            it(title="xmlTransform() with simple xsl file", body=function(){
+            it(title="xmlTransform() with simple xsl file", body=function( currentSpec ){
                 try{
                     hasError = false;
                     xsl_String = fileread("#path#LDEV3387/xml-xsl.xsl");
@@ -15,7 +15,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
                 expect(hasError).toBe(false);
                 expect(isValid("string",res)).toBe(true);
             });
-            it(title="xmlTransform() with xml-to-json.xsl file", body=function(){
+            it(title="xmlTransform() with xml-to-json.xsl file", body=function( currentSpec ){
                 try{
                     hasError = false;
                     xsl_String = fileread("#path#LDEV3387/xml-to-json.xsl");
