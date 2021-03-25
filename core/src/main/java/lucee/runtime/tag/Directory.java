@@ -422,7 +422,7 @@ public final class Directory extends TagImpl {
 		}
 
 		boolean typeArray = (listInfo == LIST_INFO_ARRAY_NAME) || (listInfo == LIST_INFO_ARRAY_PATH);
-		boolean namesOnly = (listInfo == LIST_INFO_ARRAY_NAME) || (listInfo == LIST_INFO_QUERY_NAME);
+		boolean namesOnly = (listInfo == LIST_INFO_ARRAY_NAME) || (listInfo == LIST_INFO_QUERY_NAME) || (listInfo == LIST_INFO_ARRAY_PATH);
 		Array array = null;
 		Object rtn;
 
@@ -437,15 +437,15 @@ public final class Directory extends TagImpl {
 
 		if (!directory.exists()) {
 			if (directory instanceof FileResource) return rtn;
-			throw new ApplicationException("directory [" + directory.toString() + "] doesn't exist");
+			throw new ApplicationException("Directory [" + directory.toString() + "] doesn't exist");
 		}
 		if (!directory.isDirectory()) {
 			if (directory instanceof FileResource) return rtn;
-			throw new ApplicationException("file [" + directory.toString() + "] exists, but isn't a directory");
+			throw new ApplicationException("File [" + directory.toString() + "] exists, but isn't a directory");
 		}
 		if (!directory.isReadable()) {
 			if (directory instanceof FileResource) return rtn;
-			throw new ApplicationException("no access to read directory [" + directory.toString() + "]");
+			throw new ApplicationException("No access to read directory [" + directory.toString() + "]");
 		}
 
 		long startNS = System.nanoTime();
@@ -454,7 +454,7 @@ public final class Directory extends TagImpl {
 
 			if (namesOnly) {
 				if (typeArray) {
-					_fillArrayPathOrName(array, directory, filter, 0, recurse, namesOnly);
+					_fillArrayPathOrName(array, directory, filter, 0, recurse, (listInfo == LIST_INFO_ARRAY_NAME));
 					return array;
 				}
 
@@ -587,7 +587,7 @@ public final class Directory extends TagImpl {
 		if (list == null || list.length == 0) return count;
 		for (int i = 0; i < list.length; i++) {
 			if (filter == null || filter.accept(list[i])) {
-				arr.appendEL(onlyName ? list[i].getName() : list[i].getAbsolutePath());
+				arr.appendEL(onlyName ? list[i].getName() : list[i].getAbsolutePath() );
 				count++;
 
 			}
@@ -858,7 +858,7 @@ public final class Directory extends TagImpl {
 		else if ("dir".equals(strType)) return TYPE_DIR;
 		else if ("directory".equals(strType)) return TYPE_DIR;
 		else if ("file".equals(strType)) return TYPE_FILE;
-		else throw new ApplicationException("invalid type [" + strType + "], valid types are [all,directory,file]");
+		else throw new ApplicationException("Invalid type [" + strType + "], valid types are [all, directory, file]");
 	}
 
 }
