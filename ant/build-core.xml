@@ -423,6 +423,7 @@
     <property name="loader" location="${temp}/loader"/>
     <property name="core" location="${temp}/core"/>
     <property name="deployLco" value=""/>
+    <property name="compileTestBox" value="false"/>
     <!-- <property file="${rootDir}/build.properties"/> -->
 
 
@@ -872,6 +873,7 @@
       <jvmarg value="-Dsrc=${srcCFML}/context"/>
       <jvmarg value="-Dtemp=${temp}/archive"/>
       <jvmarg value="-Dtestbox=${temp}/testbox/testbox"/>
+      <jvmarg value="-DcompileTestBox=${compileTestBox}"/>
       <jvmarg value="-Dlucee.base.dir=${temp}/archive/base"/>
       <jvmarg value="-Dlucee.web.dir=${temp}/archive/webroot"/>
       <jvmarg value="-Dlucee.enable.dialect=true"/>
