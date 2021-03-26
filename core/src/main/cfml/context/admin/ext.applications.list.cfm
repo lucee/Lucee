@@ -374,12 +374,6 @@ Latest version: #latest.v#</cfif>"><cfif hasUpdates>
 		});
 	}
 	</script>
-	<style>
-		.btn {
-			color:white;
-			background-color:##CC0000;
-		}
-	</style>
 	</cfhtmlbody>
 </cfoutput>
 <cfif structKeyExists(request, "refresh") && request.refresh EQ true>
