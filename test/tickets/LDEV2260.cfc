@@ -1,10 +1,12 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function beforeAll(){
 		application action="update" 
-			datasource={
-	  		class: 'org.hsqldb.jdbcDriver'
-			, bundleName: "org.hsqldb.hsqldb"
-			, connectionString: 'jdbc:hsqldb:file:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db'
+				datasource={
+			class: 'org.h2.Driver'
+			, bundleName: 'org.h2'
+			, bundleVersion: '1.3.172'
+			, connectionString: 'jdbc:h2:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db;MODE=MySQL'
+			, connectionLimit:100 // default:-1
 		};
 
 		try{
