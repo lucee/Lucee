@@ -987,7 +987,8 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<description>Type of information to get:
 - dbnames: database name and type
 - tables: information to all tables
-- columns: column information to a single table/view
+- columns: column information to a table/view, accepts wildcards like '%''
+- columns_minimal: column information to a single table/view, but no FK / PK information (faster)
 - version: version information of the database
 - procedures: information to all procedures
 - procedure_columns: column information to a single procedure
@@ -1033,7 +1034,12 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<name>table</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Name of the table from which you retrieve information.</description>
+			<description>Name of the table from which you retrieve information. 
+			
+Patterns are also supported, i.e. 
+- use % to fetch all columns, from every table.
+- use SCHEMA.% to fetch all columns, from every table, from a scheme.
+</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -1041,6 +1047,22 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>User name to connect to the database.</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>Filter</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Filter for type="tables" with a wildcard, defaults to all types when empty.
+
+- "TABLE"
+- "VIEW"
+- "SYSTEM TABLE"
+- "GLOBAL TEMPORARY"
+- "LOCAL TEMPORARY"
+- "ALIAS"
+- "SYNONYM"
+</description>
 		</attribute>
 	</tag>
 
