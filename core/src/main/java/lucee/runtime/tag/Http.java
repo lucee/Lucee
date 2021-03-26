@@ -696,6 +696,8 @@ public final class Http extends BodyTagImpl {
 	private void _doEndTag() throws PageException, IOException {
 
 		long start = System.nanoTime();
+		boolean safeToMemory = !StringUtil.isEmpty(result, true);
+
 		HttpClientBuilder builder = HTTPEngine4Impl.getHttpClientBuilder();
 		ssl(builder);
 
@@ -1073,7 +1075,7 @@ public final class Http extends BodyTagImpl {
 
 			Struct cfhttp = new StructImpl();
 			cfhttp.setEL(ERROR_DETAIL, "");
-			pageContext.setVariable(result, cfhttp);
+			if (safeToMemory) pageContext.setVariable(result, cfhttp);
 
 			/////////////////////////////////////////// EXECUTE
 			/////////////////////////////////////////// /////////////////////////////////////////////////
@@ -1202,7 +1204,7 @@ public final class Http extends BodyTagImpl {
 
 			// we still don't know the mime type
 			byte[] barr = null;
-			if (!isText) {
+			if (!isText && safeToMemory) {
 				barr = contentAsBinary(rsp, contentEncoding);
 				String mt = IOUtil.getMimeType(barr, null);
 				if (mt != null) {
@@ -1215,7 +1217,7 @@ public final class Http extends BodyTagImpl {
 			// is multipart
 			boolean isMultipart = MultiPartResponseUtils.isMultipart(mimetype);
 
-			cfhttp.set(KeyConstants._text, Caster.toBoolean(isText));
+			if (safeToMemory) cfhttp.set(KeyConstants._text, Caster.toBoolean(isText));
 
 			// mimetype charset
 			// boolean responseProvideCharset=false;
@@ -1252,22 +1254,17 @@ public final class Http extends BodyTagImpl {
 
 			// filecontent
 
-			if (isText && getAsBinary != GET_AS_BINARY_YES) {
+			if (isText && getAsBinary != GET_AS_BINARY_YES && safeToMemory) {
+				// store to memory
 				String str;
 				if (barr == null) str = contentAsString(rsp, responseCharset, contentEncoding, e);
 				else str = IOUtil.toString(barr, responseCharset);
-
 				cfhttp.set(KeyConstants._filecontent, str);
 
 				// store to file
 				if (file != null) {
-					try {
+					IOUtil.write(file, str, ((PageContextImpl) pageContext).getWebCharset(), false);
 
-						IOUtil.write(file, str, ((PageContextImpl) pageContext).getWebCharset(), false);
-
-					}
-					catch (IOException e1) {
-					}
 				}
 
 				// store to variable
@@ -1278,7 +1275,7 @@ public final class Http extends BodyTagImpl {
 			}
 			// Binary
 			else {
-				if (barr == null) barr = contentAsBinary(rsp, contentEncoding);
+				if (barr == null && safeToMemory) barr = contentAsBinary(rsp, contentEncoding);
 
 				// IF Multipart response get file content and parse parts
 				if (barr != null) {
@@ -1289,12 +1286,12 @@ public final class Http extends BodyTagImpl {
 						cfhttp.set(KeyConstants._filecontent, barr);
 					}
 				}
-				else cfhttp.set(KeyConstants._filecontent, "");
 
 				// store to file
 				if (file != null) {
 					try {
 						if (barr != null) IOUtil.copy(new ByteArrayInputStream(barr), file, true);
+						else storeTo(rsp, contentEncoding, file);
 					}
 					catch (IOException ioe) {
 						throw Caster.toPageException(ioe);
@@ -1358,6 +1355,30 @@ public final class Http extends BodyTagImpl {
 			}
 		}
 		return barr;
+	}
+
+	private void storeTo(HTTPResponse4Impl rsp, String contentEncoding, Resource target) throws PageException, IOException {
+		InputStream is = null;
+		if (target != null && isGzipEncoded(contentEncoding)) {
+			if (method != METHOD_HEAD) {
+				is = rsp.getContentAsStream();
+				is = rsp.getStatusCode() != 200 ? new CachingGZIPInputStream(is) : new GZIPInputStream(is);
+			}
+			try {
+				if (is != null) IOUtil.copy(is, target, true);
+			}
+			catch (EOFException eof) {
+				if (is instanceof CachingGZIPInputStream) {
+					IOUtil.copy(((CachingGZIPInputStream) is).getRawData(), target, true);
+				}
+				else throw eof;
+			}
+		}
+		else {
+			if (method != METHOD_HEAD) {
+				IOUtil.copy(rsp.getContentAsStream(), target, true);
+			}
+		}
 	}
 
 	private String contentAsString(HTTPResponse4Impl rsp, Charset responseCharset, String contentEncoding, Executor4 e) throws PageException {
