@@ -32,11 +32,6 @@ component {
 	this.setClientCookies 	= true;
 	this.scriptProtect		= false;
 
- 	/*this.datasource = {
-	  class: 'org.hsqldb.jdbcDriver'
-	, connectionString: 'jdbc:hsqldb:file:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db'
-	};*/
-
 	this.datasource={
 	  		class: 'org.h2.Driver'
 	  		, bundleName: 'org.h2'
