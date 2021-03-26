@@ -32,12 +32,37 @@
       <mkdir dir="${outputDir}"/>
   </target>
 
-  <target name="core" depends="withTestcases,setEnv,buildLoaderAnt" description="build only Lucee itself">
+  <target name="core" depends="withTestcases,setEnv" description="build Lucee and run testcases">
+      <property name="buildLoaderJar" value="true"/>
+      
+      <echots message="Full Build, build .lco and .jar and run testcases"/>
+      <antcall target="buildLoaderAnt">
+        <param name="compileTestBox" value="true"/><!-- needed for cfml build archives-->
+        <param name="buildLoaderJar" value="true"/>
+      </antcall>
+
       <delete dir="${outputDir}"/>
   </target>
 
+  <target name="fast" depends="setEnv" description="build only Lucee itself">
+      <property name="target" location="target"/>
+      
+      <echots message="Fast Build, only build .lco and .jar"/>
+      <antcall target="buildLoaderAnt">
+          <param name="compileTestBox" value="false"/><!-- needed for cfml build archives-->
+          <param name="buildLoaderJar" value="true"/>
+      </antcall>
 
-  <target name="fast" depends="setEnv,buildLoaderAnt" description="build only Lucee itself">
+      <delete dir="${outputDir}"/>
+  </target>
+
+  <target name="quick" depends="setEnv" description="build only Lucee itself, only the .lco file">
+
+      <echots message="Quick Build, only build .lco"/>
+      <antcall target="buildLoaderAnt">
+        <param name="compileTestBox" value="false"/><!-- needed for cfml build archives-->
+      </antcall>
+      
       <delete dir="${outputDir}"/>
   </target>
 

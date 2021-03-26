@@ -195,8 +195,9 @@
 
                     <property name="outputDir" value="${project.build.outputDirectory}" />
                     <property name="testcases" value="true" />
-
-
+                    <property name="compileTestBox" value="true"/><!-- needed for cfml build archives-->
+                    <property name="buildLoaderJar" value="true"/>
+                    
 
                     <!-- <property name="sourceDir" value="${project.build.sourceDirectory}" /> -->
                     <property name="baseDir" value="${basedir}" />

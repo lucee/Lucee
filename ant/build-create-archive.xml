@@ -5,7 +5,6 @@
 	<property name="srcAdmin" location="${src}/admin"/>
 	<property name="srcDoc" location="${src}/doc"/>
 	<property name="srcTB" location="${testbox}"/>
-	<property name="compileTestBox" value="${compileTestBox}"/>
 
 	<macrodef name="echots">
 		<attribute name="message"/>
@@ -30,7 +29,7 @@
 	</copy>
 
 	<echots message="Starting Lucee"/>
-  <script language="CFML">
+	<script language="CFML">
 	<![CDATA[
 	systemOutput("---------- #DateTimeFormat(now(),'yyyy-mm-dd HH:nn:ss')# - Lucee Started ----------", true);
 
@@ -168,6 +167,8 @@
 			addCFMLFiles="true"
 			addNonCFMLFiles="true"
 			ignoreScopes="false";
+	} else {
+		systemOutput( DateTimeFormat(now(),'yyyy-mm-dd HH:nn:ss') & " skipped TestBox (fast mode)", true);	
 	}
 	systemOutput( DateTimeFormat(now(),'yyyy-mm-dd HH:nn:ss') & " finished", true);
 	]]>
