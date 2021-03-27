@@ -276,14 +276,22 @@ public final class HSQLDBHandler {
 			qoqException = e;
 		}
 
-		// Debugging option to completely disable HyperSQL for testing
-		if (qoqException != null && hsqldbDisable) {
-			throw Caster.toPageException(qoqException);
-		}
+		
+		if (qoqException != null){
+			// Debugging option to to log all QoQ that fall back on hsqldb in the datasource log
+			if (hsqldbDebug) {
+				pc.getConfig().getLog("datasource").error("QoQ [" + sql.getSQLString() + "] errored and is falling back to HyperSQL.", qoqException);
+			}
 
-		// Debugging option to to log all QoQ that fall back on hsqldb in the datasource log
-		if (qoqException != null && hsqldbDebug) {
-			pc.getConfig().getLog("datasource").error("QoQ [" + sql.getSQLString() + "] errored and is falling back to HyperSQL.", qoqException);
+			// Log an exception if debugging is enabled
+			if (pc.getConfig().debug()) {
+				pc.getDebugger().addException(pc.getConfig(), Caster.toPageException(qoqException));
+			}
+
+			// Debugging option to completely disable HyperSQL for testing
+			if ( hsqldbDisable) {
+				throw Caster.toPageException(qoqException);
+			}
 		}
 
 		// SECOND Chance with hsqldb
@@ -369,7 +377,7 @@ public final class HSQLDBHandler {
 
 				}
 				catch (SQLException e) {
-					DatabaseException de = new DatabaseException("there is a problem to execute sql statement on query", null, sql, null);
+					DatabaseException de = new DatabaseException("QoQ HSQLDB: error executing sql statement on query", null, sql, null);
 					de.setDetail(e.getMessage());
 					throw de;
 				}
