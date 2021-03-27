@@ -64,7 +64,8 @@ public abstract class Page implements Serializable {
 	 * method to invoke a page
 	 * 
 	 * @param pc PageContext
-	 * @throws Throwable
+	 * @throws Throwable throwable
+	 * @return null
 	 */
 	public Object call(final PageContext pc) throws Throwable {
 		return null;
@@ -81,6 +82,8 @@ public abstract class Page implements Serializable {
 
 	/**
 	 * return the time when the file was compiled
+	 * 
+	 * @return compile time
 	 */
 	public long getCompileTime() {
 		return 0;
@@ -111,7 +114,7 @@ public abstract class Page implements Serializable {
 	}
 
 	/**
-	 * @param pageSource
+	 * @param pageSource page source
 	 */
 	public void setPageSource(final PageSource pageSource) {
 		this.pageSource = pageSource;
