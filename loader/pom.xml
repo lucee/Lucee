@@ -149,7 +149,7 @@
         <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-          <version>2.10.3</version>
+          <version>3.2.0</version>
 
           <executions>
             <execution>
@@ -157,10 +157,14 @@
               <goals>
                 <goal>jar</goal>
               </goals>
-            <!-- add this to disable checking
+            
             <configuration>
+               <source>8</source>
+               <detectJavaApiLink>false</detectJavaApiLink>
+               <!-- add this to disable checking
                 <additionalparam>-Xdoclint:none</additionalparam>
-            </configuration> -->
+               -->
+            </configuration> 
             </execution>
           </executions>
         </plugin>
