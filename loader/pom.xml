@@ -161,6 +161,7 @@
             <configuration>
                <source>8</source>
                <detectJavaApiLink>false</detectJavaApiLink>
+               <quiet>true</quiet>
                <!-- add this to disable checking
                 <additionalparam>-Xdoclint:none</additionalparam>
                -->
