@@ -23,7 +23,7 @@ public interface Variables extends Scope {
 	/**
 	 * sets if scope is bound to a closure
 	 * 
-	 * @param bind
+	 * @param bind bind 
 	 */
 	public void setBind(boolean bind);
 

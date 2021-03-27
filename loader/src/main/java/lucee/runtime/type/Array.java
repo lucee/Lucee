@@ -39,6 +39,7 @@ public interface Array extends Collection, Cloneable, Objects {
 	 * return object a given position, key can only be an integer from 1 to array len
 	 * 
 	 * @param key key as integer
+	 * @param defaultValue default value
 	 * @return value at key position
 	 */
 	public Object get(int key, Object defaultValue);
@@ -48,7 +49,7 @@ public interface Array extends Collection, Cloneable, Objects {
 	 * 
 	 * @param key key as integer
 	 * @return value at key position
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public Object getE(int key) throws PageException;
 
@@ -64,10 +65,10 @@ public interface Array extends Collection, Cloneable, Objects {
 	/**
 	 * set value at defined position
 	 * 
-	 * @param key
-	 * @param value
+	 * @param key key
+	 * @param value value
 	 * @return defined value
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public Object setE(int key, Object value) throws PageException;
 
@@ -82,7 +83,7 @@ public interface Array extends Collection, Cloneable, Objects {
 	 * @param key position to insert
 	 * @param value value to insert
 	 * @return has done or not
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public boolean insert(int key, Object value) throws PageException;
 
@@ -91,7 +92,7 @@ public interface Array extends Collection, Cloneable, Objects {
 	 * 
 	 * @param o value to insert
 	 * @return inserted value
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public Object append(Object o) throws PageException;
 
@@ -102,7 +103,7 @@ public interface Array extends Collection, Cloneable, Objects {
 	 * 
 	 * @param o value to insert
 	 * @return inserted value
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public Object prepend(Object o) throws PageException;
 
@@ -110,7 +111,7 @@ public interface Array extends Collection, Cloneable, Objects {
 	 * resize array to defined size
 	 * 
 	 * @param to new minimum size of the array
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public void resize(int to) throws PageException;
 
@@ -119,7 +120,7 @@ public interface Array extends Collection, Cloneable, Objects {
 	 * 
 	 * @param sortType search type (text,textnocase,numeric)
 	 * @param sortOrder (asc,desc)
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 * @deprecated use instead <code>sort(Comparator comp)</code>
 	 */
 	@Deprecated
@@ -145,7 +146,7 @@ public interface Array extends Collection, Cloneable, Objects {
 	 * 
 	 * @param key key to remove
 	 * @return returns if value is removed or not
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public Object removeE(int key) throws PageException;
 
@@ -160,7 +161,7 @@ public interface Array extends Collection, Cloneable, Objects {
 	/**
 	 * contains this key
 	 * 
-	 * @param key
+	 * @param key key
 	 * @return returns if collection has a key with given name
 	 */
 	public boolean containsKey(int key);

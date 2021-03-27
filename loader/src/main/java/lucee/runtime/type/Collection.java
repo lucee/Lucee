@@ -184,23 +184,26 @@ public interface Collection extends Dumpable, Iteratorable, Cloneable, Serializa
 
 		/**
 		 * return key as String
+		 * @return string
 		 */
 		public String getString();
 
 		/**
 		 * return key as lower case String
+		 * @return lower case string
 		 */
 		public String getLowerString();
 
 		/**
 		 * return key as upper case String
+		 * @return upper case string
 		 */
 		public String getUpperString();
 
 		/**
 		 * return char at given position
 		 * 
-		 * @param index
+		 * @param index index
 		 * @return character at given position
 		 */
 		public char charAt(int index);
@@ -208,7 +211,7 @@ public interface Collection extends Dumpable, Iteratorable, Cloneable, Serializa
 		/**
 		 * return lower case char a given position
 		 * 
-		 * @param index
+		 * @param index index
 		 * @return lower case char from given position
 		 */
 		public char lowerCharAt(int index);
@@ -216,7 +219,7 @@ public interface Collection extends Dumpable, Iteratorable, Cloneable, Serializa
 		/**
 		 * return upper case char a given position
 		 * 
-		 * @param index
+		 * @param index index
 		 * @return upper case char from given position
 		 */
 		public char upperCharAt(int index);
@@ -224,7 +227,7 @@ public interface Collection extends Dumpable, Iteratorable, Cloneable, Serializa
 		/**
 		 * compare to object, ignore case of input
 		 * 
-		 * @param key
+		 * @param key key
 		 * @return is equal to given key?
 		 */
 		public boolean equalsIgnoreCase(Collection.Key key);

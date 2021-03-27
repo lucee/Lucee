@@ -35,7 +35,7 @@ public interface Cookie extends Scope, UserScope {
 	 * @param secure set secure or not
 	 * @param path path of the cookie
 	 * @param domain domain of the cookie
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 * @deprecated
 	 */
 	@Deprecated
@@ -50,7 +50,7 @@ public interface Cookie extends Scope, UserScope {
 	 * @param secure secute or not
 	 * @param path path of the cookie
 	 * @param domain domain of the cookie
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 * @deprecated
 	 */
 	@Deprecated
@@ -83,7 +83,7 @@ public interface Cookie extends Scope, UserScope {
 	 *            Note that the browser must have httponly compatibility.
 	 * @param preserveCase if true, keep the case of the name as it is
 	 * @param encode if true, url encode the name and the value
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract void setCookie(Collection.Key name, Object value, Object expires, boolean secure, String path, String domain, boolean httpOnly, boolean preserveCase,
 			boolean encode) throws PageException;
@@ -101,7 +101,7 @@ public interface Cookie extends Scope, UserScope {
 	 *            Note that the browser must have httponly compatibility.
 	 * @param preserveCase if true, keep the case of the name as it is
 	 * @param encode if true, url encode the name and the value
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract void setCookie(Collection.Key name, Object value, int expires, boolean secure, String path, String domain, boolean httpOnly, boolean preserveCase,
 			boolean encode) throws PageException;
