@@ -1122,7 +1122,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			if (i > 0) sb.append(delim);
 			sb.append(columnNames[i].getString());
 		}
-		return (uppercase ? sb.toString().getUpperString() : sb.toString());
+		return (upperCase ? sb.toString().getUpperString() : sb.toString());
 	}
 	/*
 	 * public String getColumnlist() { return getColumnlist(true); }
