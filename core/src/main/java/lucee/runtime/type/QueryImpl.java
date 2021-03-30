@@ -128,6 +128,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	private QueryColumnImpl[] columns;
 	private Collection.Key[] columnNames;
+	private ResultSetMetaData metaData;
 	private SQL sql;
 	private Map<Integer, Integer> currRow = new ConcurrentHashMap<Integer, Integer>();
 	private int recordcount = 0;
@@ -413,6 +414,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 		try {
 			ResultSetMetaData meta = result.getMetaData();
+			setMetaData(meta);
 			columncount = meta.getColumnCount();
 
 			// set header arrays
@@ -2796,7 +2798,11 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	@Override
 	public ResultSetMetaData getMetaData() throws SQLException {
-		throw new SQLException("method is not implemented");
+		return this.metaData;
+	}
+
+	private void setMetaData(ResultSetMetaData metaData) {
+		this.metaData = metaData;
 	}
 
 	@Override
@@ -2832,6 +2838,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			this.name = other.name;
 			this.recordcount = other.recordcount;
 			this.sql = other.sql;
+			this.metaData = other.metaData;
 			this.updateCount = other.updateCount;
 
 		}
@@ -3138,6 +3145,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			}
 			newResult.currRow = new ConcurrentHashMap<Integer, Integer>();
 			newResult.sql = qry.getSql();
+			newResult.metaData = qry.getMetaData();
 			if (qry instanceof QueryImpl) newResult.templateLine = ((QueryImpl) qry).getTemplateLine();
 			else newResult.templateLine = new TemplateLine(qry.getTemplate(), 0);
 			newResult.recordcount = qry.getRecordcount();
