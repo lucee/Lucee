@@ -1,46 +1,47 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project default="all" basedir="." name="Lucee">
 
-  <property name="srcCFML" location="${temp}/context"/>
-  <property name="srcAdmin" location="${src}/admin"/>
-  <property name="srcDoc" location="${src}/doc"/>
-  <property name="srcTB" location="${testbox}"/>
+	<property name="srcCFML" location="${temp}/context"/>
+	<property name="srcAdmin" location="${src}/admin"/>
+	<property name="srcDoc" location="${src}/doc"/>
+	<property name="srcTB" location="${testbox}"/>
 
-  <macrodef name="echots">
-    <attribute name="message"/>
-    <sequential>
-      <local name="timestamp" />
-      <tstamp>
-        <format property="timestamp" pattern="yyyy-MM-dd HH:mm:ss" />
-      </tstamp>
-      <echo message="---------- ${timestamp} - @{message} ----------" />
-    </sequential>
-  </macrodef>
+	<macrodef name="echots">
+		<attribute name="message"/>
+		<sequential>
+			<local name="timestamp" />
+			<tstamp>
+				<format property="timestamp" pattern="yyyy-MM-dd HH:mm:ss" />
+			</tstamp>
+			<echo message="---------- ${timestamp} - @{message} ----------" />
+		</sequential>
+	</macrodef>
 
 <target name="all">
 
 	<!-- first we need to separate the lucee context from the admin  -->
 	<copy todir="${srcCFML}">
-    	<fileset dir="${src}">
-    		<include name="**/*"/>
-    		<exclude name="admin/**"/>
-    		<exclude name="doc/**"/>
-    	</fileset>
+		<fileset dir="${src}">
+			<include name="**/*"/>
+			<exclude name="admin/**"/>
+			<exclude name="doc/**"/>
+		</fileset>
 	</copy>
 
 	<echots message="Starting Lucee"/>
-  <script language="CFML">
-    <![CDATA[
+	<script language="CFML">
+	<![CDATA[
 	systemOutput("---------- #DateTimeFormat(now(),'yyyy-mm-dd HH:nn:ss')# - Lucee Started ----------", true);
+
 // set a password for the admin
 	if(getConfigSettings().mode!="single") {
-	    admin 
+		admin 
 			action="updatePassword"
 			type="web"
 			oldPassword=""
 			newPassword="webweb";
 	}
-    admin 
+	admin 
 		action="updatePassword"
 		type="server"
 		oldPassword=""
@@ -48,9 +49,10 @@
 
 
 /************************************
-               LUCEE
+			   LUCEE
 ************************************/
 // create "/lucee" mapping
+	systemOutput("#DateTimeFormat(now(),'yyyy-mm-dd HH:nn:ss')# Generating archive #temp#/lucee-context.lar ", true);
 	// set a mapping
 	admin 
 		action="updateMapping"
@@ -62,8 +64,7 @@
 		archive=""
 		primary="physical"
 		trusted="no";
-	
-	systemOutput("Generating archive #temp#/lucee-context.lar", true);
+
 	// create an archive from the mapping
 	admin 
 		action="createArchive"
@@ -79,9 +80,10 @@
 
 
 /************************************
-               LUCEE/ADMIN
+			   LUCEE/ADMIN
 ************************************/
 
+	systemOutput("#DateTimeFormat(now(),'yyyy-mm-dd HH:nn:ss')# Generating archive #temp#/lucee-admin.lar ", true);
 	// create "/lucee/admin" mapping
 	admin 
 		action="updateMapping"
@@ -93,8 +95,7 @@
 		archive=""
 		primary="physical"
 		trusted="no";
-	
-	systemOutput("Generating archive #temp#/lucee-admin.lar", true);
+
 	// create an archive from the mapping
 	admin 
 		action="createArchive"
@@ -110,9 +111,9 @@
 
 
 /************************************
-               LUCEE/DOC
+			   LUCEE/DOC
 ************************************/
-	
+	systemOutput("#DateTimeFormat(now(),'yyyy-mm-dd HH:nn:ss')# Generating archive #temp#/lucee-doc.lar ", true);
 	// create "/lucee/doc" mapping
 	admin 
 		action="updateMapping"
@@ -125,7 +126,6 @@
 		primary="physical"
 		trusted="no";
 	
-	systemOutput("Generating archive #temp#/lucee-doc.lar", true);
 	// create an archive from the mapping
 	admin 
 		action="createArchive"
@@ -138,37 +138,40 @@
 		addNonCFMLFiles="true"
 		ignoreScopes="false";
 
-
-/************************************
-               TESTBOX
-************************************/
-
-	// create "/testbox" mapping
-	admin 
-		action="updateMapping"
-		type="web"
-		password="webweb"
-		virtual="/testbox"
-		physical="#srcTB#"
-		toplevel="true"
-		archive=""
-		primary="physical"
-		trusted="no";
-	
-	systemOutput("Generating archive #temp#/testbox.lar", true);
-	// create an archive from the mapping
-	admin 
-		action="createArchive"
-		type="web"
-		password="webweb"
+	if ( compileTestBox ) {
+		/************************************
+					TESTBOX
+		************************************/
+	systemOutput( DateTimeFormat(now(),'yyyy-mm-dd HH:nn:ss') & " Generating archive #temp#/testbox.lar ", true);
+		// create "/testbox" mapping
+		admin 
+			action="updateMapping"
+			type="web"
+			password="webweb"
+			virtual="/testbox"
+			physical="#srcTB#"
+			toplevel="true"
+			archive=""
+			primary="physical"
+			trusted="no";
 		
-		file="#temp#/testbox.lar"
-		virtual="/testbox"
-		addCFMLFiles="true"
-		addNonCFMLFiles="true"
-		ignoreScopes="false";
 	
-    ]]>
+		// create an archive from the mapping
+		admin 
+			action="createArchive"
+			type="web"
+			password="webweb"
+			
+			file="#temp#/testbox.lar"
+			virtual="/testbox"
+			addCFMLFiles="true"
+			addNonCFMLFiles="true"
+			ignoreScopes="false";
+	} else {
+		systemOutput( DateTimeFormat(now(),'yyyy-mm-dd HH:nn:ss') & " skipped TestBox (fast mode)", true);	
+	}
+	systemOutput( DateTimeFormat(now(),'yyyy-mm-dd HH:nn:ss') & " finished", true);
+	]]>
   </script>
 </target>
 </project>
