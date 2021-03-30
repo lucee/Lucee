@@ -134,7 +134,7 @@ public abstract class CFMLEngineFactorySupport {
 	 * replace path placeholder with the real path, placeholders are
 	 * [{temp-directory},{system-directory},{home-directory}]
 	 * 
-	 * @param path
+	 * @param path path
 	 * @return updated path
 	 */
 	public static String parsePlaceHolder(String path) {

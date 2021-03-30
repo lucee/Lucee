@@ -66,14 +66,14 @@ public interface SQLItem {
 	public abstract void setType(int type);
 
 	/**
-	 * @param object
+	 * @param object object
 	 * @return cloned SQL Item
 	 */
 	public abstract SQLItem clone(Object object);
 
 	/**
 	 * @return CF compatible Type
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract Object getValueForCF() throws PageException;
 

@@ -46,15 +46,15 @@ public interface Debugger {
 	/**
 	 * @param pc current PagContext
 	 * @param source Page Source for the entry
-	 * @return returns a single DebugEntry
+	 * @return returns a single DebugEntry.
 	 */
 	public DebugEntryTemplate getEntry(PageContext pc, PageSource source);
 
 	/**
 	 * @param pc current PagContext
 	 * @param source Page Source for the entry
-	 * @param key
-	 * @return returns a single DebugEntry with a key
+	 * @param key key
+	 * @return returns a single DebugEntry with a key.
 	 */
 	public DebugEntryTemplate getEntry(PageContext pc, PageSource source, String key);
 
@@ -65,7 +65,7 @@ public interface Debugger {
 	 * @param source Page Source for the entry
 	 * @param startPos start position in the file
 	 * @param endPos end position in the file
-	 * @return
+	 * @return returns a debug entry.
 	 */
 	public DebugEntryTemplatePart getEntry(PageContext pc, PageSource source, int startPos, int endPos);
 
@@ -82,37 +82,41 @@ public interface Debugger {
 	public List<QueryEntry> getQueries();
 
 	/**
-	 * @param pc
-	 * @throws IOException
+	 * @param pc page context
+	 * @throws IOException IO Exception
 	 */
 	public void writeOut(PageContext pc) throws IOException;
 
 	/**
 	 * returns the Debugging Info
 	 * 
+	 * @param pc page context
 	 * @return debugging Info
+	 * @throws PageException Page Exception
 	 */
 	public Struct getDebuggingData(PageContext pc) throws PageException;
 
 	public Struct getDebuggingData(PageContext pc, boolean addAddionalInfo) throws PageException;
 
 	/**
-	 * adds ne Timer info to debug
+	 * adds new Timer info to debug
 	 * 
-	 * @param label
-	 * @param exe
+	 * @param label Label
+	 * @param exe Execution time
+	 * @param template Template
+	 * @return debug timer object
 	 */
 	public DebugTimer addTimer(String label, long exe, String template);
 
 	/**
 	 * add new Trace to debug
 	 * 
-	 * @param type
-	 * @param category
-	 * @param text
-	 * @param page
-	 * @param varName
-	 * @param varValue
+	 * @param type type
+	 * @param category category
+	 * @param text text
+	 * @param page page 
+	 * @param varName variable name
+	 * @param varValue variable value
 	 * @return debug trace object
 	 */
 	public DebugTrace addTrace(int type, String category, String text, PageSource page, String varName, String varValue);
@@ -132,13 +136,13 @@ public interface Debugger {
 	/**
 	 * add new query execution time
 	 * 
-	 * @param query
-	 * @param datasource
-	 * @param name
-	 * @param sql
-	 * @param recordcount
-	 * @param src
-	 * @param time
+	 * @param query query
+	 * @param datasource datasource name
+	 * @param name name
+	 * @param sql sql
+	 * @param recordcount recordcount
+	 * @param src src
+	 * @param time time
 	 * @deprecated use instead
 	 * @see #addQuery(Query, String, String, SQL, int, PageSource, long)
 	 */
@@ -148,13 +152,13 @@ public interface Debugger {
 	/**
 	 * add new query execution time
 	 * 
-	 * @param query
-	 * @param datasource
-	 * @param name
-	 * @param sql
-	 * @param recordcount
-	 * @param src
-	 * @param time
+	 * @param query query
+	 * @param datasource datasource
+	 * @param name name
+	 * @param sql sql
+	 * @param recordcount recordcount
+	 * @param src src
+	 * @param time time
 	 */
 	public void addQuery(Query query, String datasource, String name, SQL sql, int recordcount, PageSource src, long time);
 

@@ -29,9 +29,9 @@ public interface ORMUtil {
 
 	/**
 	 * 
-	 * @param pc
+	 * @param pc Page Context
 	 * @param force if set to false the engine is on loaded when the configuration has changed
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public void resetEngine(PageContext pc, boolean force) throws PageException;
 
@@ -55,9 +55,10 @@ public interface ORMUtil {
 	 * if the given component has defined a datasource in the meta data, lucee is returning this
 	 * datasource, otherwise the default orm datasource is returned
 	 * 
-	 * @param pc
-	 * @param cfc
-	 * @param defaultValue
+	 * @param pc Page Context
+	 * @param cfc Component
+	 * @param defaultValue default value
+	 * @return Return the Datasource
 	 */
 	public DataSource getDataSource(PageContext pc, Component cfc, DataSource defaultValue);
 
@@ -65,10 +66,10 @@ public interface ORMUtil {
 	 * if the given component has defined a datasource in the meta data, lucee is returning this
 	 * datasource, otherwise the default orm datasource is returned
 	 * 
-	 * @param pc
-	 * @param cfc
-	 * @return
-	 * @throws PageException
+	 * @param pc Page Context
+	 * @param cfc Component
+	 * @return Returns the datasource.
+	 * @throws PageException Page Exception
 	 */
 	public DataSource getDataSource(PageContext pc, Component cfc) throws PageException;
 

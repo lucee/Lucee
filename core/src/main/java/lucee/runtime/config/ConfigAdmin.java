@@ -1381,7 +1381,7 @@ public final class ConfigAdmin {
 			maxLength = access - SecurityManager.NUMBER_OFFSET;
 			hasInsertAccess = maxLength > existingLength;
 		}
-		if (!hasAccess) throw new SecurityException("no access to update datsource connections");
+		if (!hasAccess) throw new SecurityException("no access to update datasource connections");
 
 		// check parameters
 		if (name == null || name.length() == 0) throw new ExpressionException("name can't be an empty value");
@@ -2325,7 +2325,7 @@ public final class ConfigAdmin {
 		checkWriteAccess();
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_DATASOURCE);
 
-		if (!hasAccess) throw new SecurityException("no access to update datsource connections");
+		if (!hasAccess) throw new SecurityException("no access to update datasource connections");
 
 		root.setEL("preserveSingleQuote", Caster.toBooleanValue(psq, true));
 	}
