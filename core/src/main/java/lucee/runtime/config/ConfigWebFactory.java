@@ -4243,6 +4243,11 @@ public final class ConfigWebFactory extends ConfigFactory {
 			else if (debugOptions != null && extractDebugOption("queryUsage", debugOptions)) options += ConfigPro.DEBUG_QUERY_USAGE;
 			else if (hasCS && configServer.hasDebugOptions(ConfigPro.DEBUG_QUERY_USAGE)) options += ConfigPro.DEBUG_QUERY_USAGE;
 
+			str = getAttr(root, "debuggingThread");
+			if (hasAccess && !StringUtil.isEmpty(str)) {
+				if (toBoolean(str, false)) options += ConfigPro.DEBUG_THREAD;
+			}
+
 			// max records logged
 			String strMax = getAttr(root, "debuggingMaxRecordsLogged");
 			if (StringUtil.isEmpty(str)) str = getAttr(root, "debuggingShowMaxRecordsLogged");

@@ -1615,7 +1615,7 @@ component {
 			timer=isNull(arguments.timer) || isEmpty(arguments.timer) ? existing.timer : arguments.timer
 			implicitAccess=isNull(arguments.implicitAccess) || isEmpty(arguments.implicitAccess) ? existing.implicitAccess : arguments.implicitAccess
 			queryUsage=isNull(arguments.queryUsage) || isEmpty(arguments.queryUsage) ? existing.queryUsage : arguments.queryUsage
-
+			thread=isNull(arguments.thread) || isEmpty(arguments.thread) ? existing.thread : arguments.thread
 			debugTemplate=""
 			remoteClients="#variables.remoteClients#";
 	}
@@ -1637,7 +1637,8 @@ component {
 			timer=""
 			implicitAccess=""
 			queryUsage=""
-
+			thread=""
+			
 			debugTemplate=""
 			remoteClients="#variables.remoteClients#";
 	}

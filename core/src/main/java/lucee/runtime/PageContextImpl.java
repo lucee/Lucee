@@ -588,7 +588,10 @@ public final class PageContextImpl extends PageContext {
 		}
 
 		if (config.debug()) {
-			if (!gatewayContext && !isChild) config.getDebuggerPool().store(this, debugger);
+			boolean skipLogThread = isChild;
+			if (skipLogThread && config.hasDebugOptions(ConfigPro.DEBUG_THREAD))
+				skipLogThread = false;
+			if (!gatewayContext && !skipLogThread) config.getDebuggerPool().store(this, debugger);
 			debugger.reset();
 		}
 		else debugger.resetTraces(); // traces can alo be used when debugging is off

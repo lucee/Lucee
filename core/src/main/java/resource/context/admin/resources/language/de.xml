@@ -670,6 +670,10 @@ Diese werden dann am Ende eines Request ausgegeben, falls sie ein Debug Template
 	<data key="debug.settings.timerDesc">Select this option to show timer event information. Timers let a developer track the execution time of the code between the start and end tags of the CFTIMER tag.</data>
 	<data key="debug.settings.implicitAccess">Implicit variable Access</data>
 	<data key="debug.settings.implicitAccessDesc">Select this option to log all accesses to scopes, queries and threads that happens implicit (cascaded).</data>
+	<data key="debug.settings.thread">Debug Threads</data>
+	<data key="debug.settings.threadDesc">Select this option to also log out individual threads.</data>
+	<data key="debug.settings.threadAlert">Depending on your application, this may produce a large volume of debug entries.</data>
+
 	<data key="debug.switchTemplate">Switch Debug Template</data>
 	<data key="debug.selectDebugTemplate">Select Debug Template</data>
 

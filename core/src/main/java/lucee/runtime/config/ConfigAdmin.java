@@ -2962,7 +2962,7 @@ public final class ConfigAdmin {
 	 * @throws SecurityException
 	 */
 	public void updateDebug(Boolean debug, Boolean template, Boolean database, Boolean exception, Boolean tracing, Boolean dump, Boolean timer, Boolean implicitAccess,
-			Boolean queryUsage) throws SecurityException {
+			Boolean queryUsage, Boolean thread) throws SecurityException {
 		checkWriteAccess();
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_DEBUGGING);
 		if (!hasAccess) throw new SecurityException("no access to change debugging settings");
@@ -2993,6 +2993,9 @@ public final class ConfigAdmin {
 
 		if (queryUsage != null) root.setEL("debuggingQueryUsage", queryUsage.booleanValue());
 		else rem(root, "debuggingQueryUsage");
+
+		if (queryUsage != null) root.setEL("debuggingThread", thread.booleanValue());
+		else rem(root, "debuggingThread");
 	}
 
 	/**
