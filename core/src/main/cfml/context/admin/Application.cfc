@@ -44,6 +44,8 @@ public function onRequestStart() {
 	// if not logged in, we only allow access to admin|web|server[.cfm]
 	if(!structKeyExists(session, "passwordWeb") && !structKeyExists(session, "passwordServer")){
 		var fileName=listLast(cgi.script_name,"/");
+		if ( GetDirectoryFromPath(ExpandPath(cgi.SCRIPT_NAME)) neq GetDirectoryFromPath(GetCurrentTemplatePath()) )
+			fileName="";
 		
 		if(fileName!="admin.cfm" && fileName!="web.cfm" && fileName!="server.cfm" && fileName!="index.cfm") {
 			cfsetting(showdebugoutput:false);
