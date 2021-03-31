@@ -242,7 +242,7 @@
 
 			<cfif isNull(local.b64) && isBinary(data)>
 				<!--- cache it anyway as it's a slow download --->
-				<cfset FileWrite(data, tmpfile)>
+				<cfset FileWrite(tmpfile, data)>
 				<cfset local.b64=toBase64(data)>
 			</cfif>				
 
