@@ -61,6 +61,35 @@
 		<status>hidden</status>
 		<description>Tag for the Lucee web/server administrator</description>
 		<attribute-type>dynamic</attribute-type>
+		<attribute>
+			<type>string</type>
+			<name>action</name>
+			<values>collection,compileMapping,connect,createArchive,createSecurityManager,defaultSecurityManager,executeSpoolerTask,getApplicationListener,getApplicationSetting,getCharset,getComponent,getContexts,getCustomTagMappings,getCustomtagSetting,getDatasource,getDatasourceDriverList,getDatasources,getDatasourceSetting,getDebug,getDebugData,getDebuggingList,getDefaultPassword,getDefaultSecurityManager,getError,getErrorList,getExtensionInfo,getExtensionProviders,getExtensions,getFLDs,getJavaCFXTags,getLocales,getMailServers,getMailSetting,getMappings,getLoaderInfo,getMinVersion,getOutputSetting,getPluginDirectory,getProxy,getRegional,getRemoteClient,getRemoteClients,getRemoteClientUsage,getScope,getSecurityManager,getSpoolerTasks,getTimeZones,getTLDs,getUpdate,hasPassword,index,purgeDebugPool,removeCFX,removeCustomTag,removeDatasource,removeDefaultPassword,removeExtension,removeMailServer,removeMapping,removeProxy,removeRemoteClient,removeSecurityManager,removeSpoolerTask,removeUpdate,resetId,resetPassword,restart,runUpdate,schedule,securityManager,storageGet,storageSet,updateApplicationListener,updateApplicationSetting,updateCharset,updateComponent,updateCustomTag,updateCustomTagSetting,updateDatasource,updateDebug,updateDefaultPassword,updateDefaultSecurity,updateDefaultSecurityManager,updateError,updateExtension,updateJavaCFX,updateMailServer,updateMailSetting,updateMapping,updateOutputSetting,updatePassword,updateProxy,updatePSQ,updateRegional,updateRemoteClient,updateScope,updateSecurityManager,UpdateUpdate,verifyDatasource,verifyJavaCFX,verifyMailServer,verifyRemoteClient</values>
+			<required>true</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Defines the action to be performed by the tag</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>type</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Defines the type of admin server or web</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>password</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Password of the admin</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>returnVariable</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Name of the variable to store the result</description>
+		</attribute>
 	</tag>
 
 	<!-- Associate -->
