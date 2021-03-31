@@ -738,6 +738,16 @@ body.server .button, body.server .submit, body.server .reset {
 	top: 1px;
 }
 
+body.server .btn {
+	color:white;
+	background-color:#CC0000;
+}
+
+body.web .btn {
+	color:white;
+	background-color:#0f75a8;
+}
+
 .btn-mini {
 	display:inline-block;
 	outline:none;
