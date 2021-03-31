@@ -513,19 +513,21 @@ public final class Directory extends TagImpl {
 		// fill data to query
 		// query.addRow(list.length);
 		boolean isDir;
+		boolean modeSupported = directory.getResourceProvider().isModeSupported();
 		for (int i = 0; i < list.length; i++) {
+			isDir = list[i].isDirectory();
 			if (filter == null || filter.accept(list[i])) {
 				query.addRow(1);
 				count++;
 				query.setAt(KeyConstants._name, count, list[i].getName());
-				isDir = list[i].isDirectory();
 				query.setAt(KeyConstants._size, count, new Double(isDir ? 0 : list[i].length()));
 				query.setAt(KeyConstants._type, count, isDir ? "Dir" : "File");
-				if (directory.getResourceProvider().isModeSupported()) {
-
+				if (modeSupported) {
 					query.setAt(MODE, count, new ModeObjectWrap(list[i]));
 				}
 				query.setAt(DATE_LAST_MODIFIED, count, new Date(list[i].lastModified()));
+				// TODO File Attributes are Windows only...
+				// this is slow as it fetches each the attributes one at a time
 				query.setAt(ATTRIBUTES, count, getFileAttribute(list[i], true));
 
 				if (hasMeta) {
@@ -534,7 +536,7 @@ public final class Directory extends TagImpl {
 
 				query.setAt(DIRECTORY, count, dir);
 			}
-			if (recurse && list[i].isDirectory()) count = _fillQueryAll(query, list[i], filter, count, hasMeta, recurse);
+			if (recurse && isDir) count = _fillQueryAll(query, list[i], filter, count, hasMeta, recurse);
 		}
 		return count;
 	}
@@ -841,6 +843,8 @@ public final class Directory extends TagImpl {
 	}
 
 	private static String getFileAttribute(Resource file, boolean exists) {
+		// TODO this is slow as it fetches attributes one at a time
+		// also Windows only!
 		return exists && !file.isWriteable() ? "R".concat(file.isHidden() ? "H" : "") : file.isHidden() ? "H" : "";
 	}
 
