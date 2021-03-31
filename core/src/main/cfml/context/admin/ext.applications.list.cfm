@@ -341,7 +341,12 @@ Latest version: #latest.v#</cfif>"><cfif hasUpdates>
 <cfhtmlbody>
 <script type="text/javascript">
 	$(document).ready(function(){
-		var version = 'Release';
+		if('#server.lucee.state#' == 'SNAPSHOT')
+			var version = 'Snapshot';
+		else if('#server.lucee.state#' == 'RC')
+			var version = 'Pre_release';
+		else
+			var version = 'Release';
 		enableVersion(version, "intial");
 		$("##btn_"+version).addClass("btn");
 	});
@@ -350,25 +355,33 @@ Latest version: #latest.v#</cfif>"><cfif hasUpdates>
 		$("##extList").find('div').each(function(index) {
 			var xx = $(this).attr('id');
 			if(i== 'intial'){
-				$('##'+xx).show();
+				$('##div_'+v).show();
 				if("div_"+v != xx){
 					$('##'+xx).hide();
 				}
 				$(".btn").removeClass('btn');
 				$("##btn_"+v).addClass("btn");
 			} else {
-				if("div_"+v == xx){
-					if($('##'+xx).is(':visible')){
-						$('##'+xx).hide();
-						$("##btn_"+v).removeClass('btn');
-					} else {
-						$('##'+xx).show();
-						$("##btn_"+v).addClass("btn");
-					}
-					if(!$('##div_Release').is(':visible') && !$('##div_Pre_release').is(':visible') && !$('##div_Snapshot').is(':visible')){
-						$('##'+xx).show();
-						$("##btn_"+v).addClass("btn")
-					}
+				if("div_"+v == 'div_Release'){
+					$("##btn_Pre_release").removeClass('btn');
+					$("##btn_Snapshot").removeClass('btn');
+					$("##btn_"+v).addClass("btn");
+					$('##'+xx).hide();
+					$('##div_Release').show();
+				}
+				if("div_"+v == 'div_Pre_release') {
+					$("##btn_Release").removeClass('btn');
+					$("##btn_Snapshot").removeClass('btn');
+					$("##btn_"+v).addClass("btn");
+					$('##'+xx).hide();
+					$('##div_Pre_release').show();
+				}
+				if("div_"+v == 'div_Snapshot') {
+					$("##btn_Release").removeClass('btn');
+					$("##btn_Pre_release").removeClass('btn');
+					$("##btn_"+v).addClass("btn");
+					$('##'+xx).hide();
+					$('##div_Snapshot').show();	
 				}
 			}
 		});
