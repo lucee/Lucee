@@ -189,6 +189,10 @@
 					<cfset ext="png"><!--- base64 encoded binary --->
 				</cfif>
 			</cfif>
+			<cfif !StructKeyExists(mimetype, ext)>
+				<cfset ext="png">
+			</cfif>
+
 			<cfset cache=true>
 			<cfset serversideDN=true>
 
@@ -197,45 +201,53 @@
 			<cfif !directoryExists(tmpdir)>
 				<cfset directoryCreate(tmpdir)>
 			</cfif>
-			<cfset local.tmpfile=tmpdir&"__"&id&"."&ext>
+			<cfset local.tmpfile = tmpdir & "/extLogo__" & id & "." & ext>
 			<cfset local.fileName = id&"."&ext>
 
-			<!--- already in cache --->
+			<!--- already in cache 
+				TODO cache busting?????
+			--->
 			<cfif cache && fileExists(tmpfile)>
 				<cfreturn "data:image/png;base64,#toBase64(fileReadBinary(tmpfile))#">
 			</cfif>
-
 			
-			<cfif len(arguments.src)<500 && (isValid("URL", arguments.src) || fileExists(arguments.src))>
-				<cfset local.data=fileReadBinary(arguments.src)>
+			<cfif (isValid("URL", arguments.src)) || fileExists(arguments.src)>
+				<!--- fetching from an url can be slow, over 1s --->
+				<cfset local.data=FileReadBinary(arguments.src)>
 			<cfelse>
-				<cfset local.data=toBinary(src)>
+				<cfset local.data=toBinary(arguments.src)>
 			</cfif>
 			
 			<!--- is the image extension installed? --->
 			<cfif serversideDN && extensionExists("B737ABC4-D43F-4D91-8E8E973E37C40D1B")> 
-				<cfset local.img=imageRead(data)>
-				<!--- shrink images if needed --->
-				<cfif  (img.width*img.height) GT 1000000 && (img.height GT arguments.height or img.width GT arguments.width)>
-					<cfif img.height GT arguments.height >
-						<cfset imageResize(img,"",arguments.height)>
+				<cfif isImage(data)>
+					<cfset local.img=imageRead(data)>
+					<!--- shrink images if needed --->
+					<cfif  (img.width*img.height) GT 1000000 && (img.height GT arguments.height or img.width GT arguments.width)>
+						<cfif img.height GT arguments.height >
+							<cfset imageResize(img,"",arguments.height)>
+						</cfif>
+						<cfif img.width GT arguments.width>
+							<cfset imageResize(img,arguments.width,"")>
+						</cfif>
 					</cfif>
-					<cfif img.width GT arguments.width>
-						<cfset imageResize(img,arguments.width,"")>
-					</cfif>
-					<!--- we go this way to influence the quality of the image --->
+					<!--- we go this way to influence the quality of the image 
+						and cache the local file
+
+					--->
 					<cfset imagewrite(image:img,destination:tmpfile)>
 					<cfset local.b64=toBase64(fileReadBinary(tmpfile))>
 				</cfif>
 			</cfif>	
 
-			<cfif isNull(local.b64)>
+			<cfif isNull(local.b64) && isBinary(data)>
+				<!--- cache it anyway as it's a slow download --->
+				<cfset FileWrite(data, tmpfile)>
 				<cfset local.b64=toBase64(data)>
-			</cfif>
-				
+			</cfif>				
 
 			<cfcatch>
-			<cfset systemOutput(cfcatch,1,1)>
+				<cfset systemOutput(cfcatch,1,1)>
 				<cfset local.b64=local.empty>
 			</cfcatch>
 		</cftry>

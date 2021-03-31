@@ -22,7 +22,7 @@ function printError(error,boolean longversion=false) {
 	else if(arguments.error.message EQ arguments.error.detail)arguments.error.detail="";
 
 	// log to log file
-	if(arguments.error.message NEQ "" && arguments.error.detail NEQ "" || !isNull(error.cfcatch) ){
+	if(arguments.error.message NEQ "" && arguments.error.detail NEQ "" || !isNull(arguments.error.cfcatch) ){
 		if(isNull(error.cfcatch))
 			log type="error" log="application" text=error.message&";"&error.detail;
 		else
