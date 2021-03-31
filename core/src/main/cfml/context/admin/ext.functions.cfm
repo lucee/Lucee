@@ -189,7 +189,7 @@
 					<cfset ext="png"><!--- base64 encoded binary --->
 				</cfif>
 			</cfif>
-			<cfif !StructKeyExists(mimetype, ext)>
+			<cfif !StructKeyExists(mimetypes, ext)>
 				<cfset ext="png">
 			</cfif>
 
