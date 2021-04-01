@@ -768,6 +768,7 @@ you can see the log result at the end of every request, if a debug template is d
 	<data key="debug.filterPath">Only Outputs records where the path match the following pattern.</data>
 	<data key="debug.detailTitle">Detail</data>
 	<data key="debug.detailDesc">Detailed information about a single Request</data>
+	<data key="debug.scopeLoookups">Scope Lookups</data>
 	<data key="debug.switchTemplate">Switch Debug Template</data>
 	<data key="debug.selectDebugTemplate">Select Debug Template</data>
 
