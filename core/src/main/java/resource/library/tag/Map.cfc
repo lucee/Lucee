@@ -8,30 +8,30 @@
 	
 	<!--- Meta data --->
 	<cfset this.metadata.attributetype="fixed">
-    <cfset this.metadata.attributes={
-		name:				{required:false,type:"string",default:"_cfmap_#randRange(1,9999999)#"},
-		onLoad : 			{required:false,type:"string",default:""},
-		onNotFound : 		{required:false,type:"string",default:""},
-		onError :		 	{required:false,type:"string",default:""},
-		centeraddress : 	{required:false,type:"string",default:""},
-		centerlatitude : 	{required:false,type:"string",default:""},
-		centerlongitude : 	{required:false,type:"string",default:""},
-		height : 			{required:false,type:"numeric",default:400},
-		width : 			{required:false,type:"numeric",default:400},
-		zoomlevel :   		{required:false,type:"numeric",default:3},
-		overview  :         {required:false,type:"boolean",default:false},
-		showscale  :        {required:false,type:"boolean",default:false},	
-		type :				{required:false,type:"string",default:"map"},
-		showcentermarker :  {required:false,type:"boolean",default:true},
-		markerwindowcontent:{required:false,type:"string",default:""},
-		tip :				{required:false,type:"string",default:""},
-		typecontrol : 		{required:false,type:"string",default:"basic"},
-		zoomcontrol : 		{required:false,type:"string",default:"small"},
-		continuouszoom :    {required:false,type:"boolean",default:true},
-		doubleclickzoom :	{required:false,type:"boolean",default:true},
-		markercolor : 	    {required:false,type:"string",default:''},
-		markericon : 	    {required:false,type:"string",default:''}	
-	}>
+    <cfset this.metadata.attributes=[
+		"name":				{required:false,type:"string",default:"_cfmap_#randRange(1,9999999)#"},
+		"onLoad" : 			{required:false,type:"string",default:""},
+		"onNotFound" : 		{required:false,type:"string",default:""},
+		"onError" :		 	{required:false,type:"string",default:""},
+		"centerAddress" : 	{required:false,type:"string",default:""},
+		"centerLatitude" : 	{required:false,type:"string",default:""},
+		"centerLongitude" : 	{required:false,type:"string",default:""},
+		"height" : 			{required:false,type:"numeric",default:400},
+		"width" : 			{required:false,type:"numeric",default:400},
+		"zoomLevel" :   		{required:false,type:"numeric",default:3},
+		"overview"  :         {required:false,type:"boolean",default:false},
+		"showScale"  :        {required:false,type:"boolean",default:false},	
+		"type" :				{required:false,type:"string",default:"map"},
+		"showCenterMarker" :  {required:false,type:"boolean",default:true},
+		"markerWindowContent":{required:false,type:"string",default:""},
+		"tip" :				{required:false,type:"string",default:""},
+		"typeControl" : 		{required:false,type:"string",default:"basic"},
+		"zoomControl" : 		{required:false,type:"string",default:"small"},
+		"continuousZoom" :    {required:false,type:"boolean",default:true},
+		"doubleClickZoom" :	{required:false,type:"boolean",default:true},
+		"markerColor" : 	    {required:false,type:"string",default:''},
+		"markerIcon" : 	    {required:false,type:"string",default:''}	
+	]>
      
     <cffunction name="init" output="no" returntype="void"
       hint="invoked after tag is constructed">

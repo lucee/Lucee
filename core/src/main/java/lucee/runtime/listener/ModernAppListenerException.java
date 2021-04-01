@@ -33,14 +33,13 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageExceptionImpl;
 import lucee.runtime.op.Duplicator;
 import lucee.runtime.type.Collection;
-import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.util.KeyConstants;
 
 public final class ModernAppListenerException extends PageException {
 
-	private static final Collection.Key ROOT_CAUSE = KeyImpl.intern("rootCause");
-	private static final Collection.Key CAUSE = KeyImpl.intern("cause");
+	private static final Collection.Key ROOT_CAUSE = KeyConstants._rootCause;
+	private static final Collection.Key CAUSE = KeyConstants._cause;
 	private PageException rootCause;
 	private String eventName;
 

@@ -147,7 +147,7 @@ public class JavaSettingsImpl implements JavaSettings {
 		// load paths
 		List<Resource> paths;
 		{
-			Object obj = sct.get(KeyImpl.init("loadPaths"), null);
+			Object obj = sct.get(KeyImpl.getInstance("loadPaths"), null);
 			if (obj != null) {
 				paths = loadPaths(ThreadLocalPageContext.get(), obj);
 			}
@@ -157,28 +157,28 @@ public class JavaSettingsImpl implements JavaSettings {
 		// bundles paths
 		List<Resource> bundles;
 		{
-			Object obj = sct.get(KeyImpl.init("bundlePaths"), null);
-			if (obj == null) obj = sct.get(KeyImpl.init("bundles"), null);
-			if (obj == null) obj = sct.get(KeyImpl.init("bundleDirectory"), null);
-			if (obj == null) obj = sct.get(KeyImpl.init("bundleDirectories"), null);
+			Object obj = sct.get(KeyImpl.getInstance("bundlePaths"), null);
+			if (obj == null) obj = sct.get(KeyImpl.getInstance("bundles"), null);
+			if (obj == null) obj = sct.get(KeyImpl.getInstance("bundleDirectory"), null);
+			if (obj == null) obj = sct.get(KeyImpl.getInstance("bundleDirectories"), null);
 			if (obj != null) {
 				bundles = loadPaths(ThreadLocalPageContext.get(), obj);
 			}
 			else bundles = new ArrayList<Resource>();
 		}
 		// loadCFMLClassPath
-		Boolean loadCFMLClassPath = Caster.toBoolean(sct.get(KeyImpl.init("loadCFMLClassPath"), null), null);
-		if (loadCFMLClassPath == null) loadCFMLClassPath = Caster.toBoolean(sct.get(KeyImpl.init("loadColdFusionClassPath"), null), null);
+		Boolean loadCFMLClassPath = Caster.toBoolean(sct.get(KeyImpl.getInstance("loadCFMLClassPath"), null), null);
+		if (loadCFMLClassPath == null) loadCFMLClassPath = Caster.toBoolean(sct.get(KeyImpl.getInstance("loadColdFusionClassPath"), null), null);
 		if (loadCFMLClassPath == null) loadCFMLClassPath = base.loadCFMLClassPath();
 
 		// reloadOnChange
-		boolean reloadOnChange = Caster.toBooleanValue(sct.get(KeyImpl.init("reloadOnChange"), null), base.reloadOnChange());
+		boolean reloadOnChange = Caster.toBooleanValue(sct.get(KeyImpl.getInstance("reloadOnChange"), null), base.reloadOnChange());
 
 		// watchInterval
-		int watchInterval = Caster.toIntValue(sct.get(KeyImpl.init("watchInterval"), null), base.watchInterval());
+		int watchInterval = Caster.toIntValue(sct.get(KeyImpl.getInstance("watchInterval"), null), base.watchInterval());
 
 		// watchExtensions
-		Object obj = sct.get(KeyImpl.init("watchExtensions"), null);
+		Object obj = sct.get(KeyImpl.getInstance("watchExtensions"), null);
 		List<String> extensions = new ArrayList<String>();
 		if (obj != null) {
 			Array arr;

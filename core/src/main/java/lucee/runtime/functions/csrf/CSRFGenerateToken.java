@@ -44,8 +44,7 @@ public class CSRFGenerateToken implements Function {
 
 	public static CSRFTokenSupport getStorageScope(PageContext pc) throws PageException {
 		Session session = pc.sessionScope();
-		if (!(session instanceof CSRFTokenSupport))
-			throw new ExpressionException("Session scope does not support CSRF Tokens");
+		if (!(session instanceof CSRFTokenSupport)) throw new ExpressionException("Session scope does not support CSRF Tokens");
 		return (CSRFTokenSupport) session;
 	}
 }

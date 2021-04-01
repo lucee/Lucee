@@ -49,8 +49,6 @@ public final class CFMLWriterWSPref extends CFMLWriterImpl implements WhiteSpace
 
 	static {
 
-		// TODO: set EXCLUDE_TAGS to values from WebConfigImpl
-
 		for (String s: EXCLUDE_TAGS)
 			if (s.length() < minTagLen) minTagLen = s.length();
 

@@ -52,6 +52,13 @@
 			log=el;
 		}
 	}
+	
+	if (url.format eq "json") {
+		setting showdebugoutput="false";
+		content reset="yes" type="application/json";
+		echo(serializeJson(log));
+		abort;		
+	}
 </cfscript>
 <cfoutput>
 	<cfif !isSimpleValue(log) && structCount(drivers)>

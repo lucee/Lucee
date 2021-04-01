@@ -43,8 +43,9 @@ import lucee.commons.lang.PhysicalClassLoader;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.ConfigWeb;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
@@ -149,7 +150,7 @@ public final class MappingImpl implements Mapping {
 		this.lcVirtual = this.virtual.toLowerCase();
 		this.lcVirtualWithSlash = lcVirtual.endsWith("/") ? this.lcVirtual : this.lcVirtual + '/';
 
-		ServletContext cs = (config instanceof ConfigWebImpl) ? ((ConfigWebImpl) config).getServletContext() : null;
+		ServletContext cs = (config instanceof ConfigWeb) ? ((ConfigWeb) config).getServletContext() : null;
 
 		// Physical
 		physical = ConfigWebUtil.getExistingResource(cs, strPhysical, null, config.getConfigDir(), FileUtil.TYPE_DIR, config, checkPhysicalFromWebroot);
@@ -289,7 +290,7 @@ public final class MappingImpl implements Mapping {
 		}
 	}
 
-	public void clearUnused(ConfigImpl config) {
+	public void clearUnused(Config config) {
 		synchronized (pageSourcePool) {
 			pageSourcePool.clearUnused(config);
 		}
@@ -349,7 +350,7 @@ public final class MappingImpl implements Mapping {
 	 * @return cloned mapping
 	 * @throws IOException
 	 */
-	public MappingImpl cloneReadOnly(ConfigImpl config) {
+	public MappingImpl cloneReadOnly(Config config) {
 		return new MappingImpl(config, virtual, strPhysical, strArchive, inspect, physicalFirst, hidden, true, topLevel, appMapping, ignoreVirtual, appListener, listenerMode,
 				listenerType, checkPhysicalFromWebroot, checkArchiveFromWebroot);
 	}
@@ -437,9 +438,7 @@ public final class MappingImpl implements Mapping {
 
 	@Override
 	public void check() {
-		// if(config instanceof ConfigServer) return;
-		// ConfigWebImpl cw=(ConfigWebImpl) config;
-		ServletContext cs = (config instanceof ConfigWebImpl) ? ((ConfigWebImpl) config).getServletContext() : null;
+		ServletContext cs = (config instanceof ConfigWeb) ? ((ConfigWeb) config).getServletContext() : null;
 
 		// Physical
 		if (getPhysical() == null && strPhysical != null && strPhysical.length() > 0) {
@@ -566,7 +565,7 @@ public final class MappingImpl implements Mapping {
 	}
 
 	public boolean getDotNotationUpperCase() {
-		return ((ConfigImpl) config).getDotNotationUpperCase();
+		return ((ConfigPro) config).getDotNotationUpperCase();
 	}
 
 	public void shrink() {
@@ -613,7 +612,7 @@ public final class MappingImpl implements Mapping {
 		}
 
 		public Mapping toMapping() {
-			ConfigWebImpl cwi = (ConfigWebImpl) ThreadLocalPageContext.getConfig();
+			ConfigWebPro cwi = (ConfigWebPro) ThreadLocalPageContext.getConfig();
 			return cwi.getApplicationMapping(type, virtual, physical, archive, physicalFirst, ignoreVirtual);
 		}
 	}

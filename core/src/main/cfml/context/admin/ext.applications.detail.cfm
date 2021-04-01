@@ -1,7 +1,4 @@
 <cfscript>
-
-
-
 	function toOrderedArray(array arr, boolean desc=false) {
 		arraySort(arr,function(l,r) {
 			if(desc) {
@@ -23,10 +20,9 @@
 		}
 	}
 
-
-available=getDataByid(url.id,getExternalData(providerURLs));
-installed=getDataByid(url.id,extensions);
-isInstalled=installed.count() GT 0;
+	available=getDataByid(url.id,getExternalData(providerURLs));
+	installed=getDataByid(url.id,extensions);
+	isInstalled=installed.count() GT 0;
 
 
 // all version that can be installed
@@ -34,8 +30,7 @@ isInstalled=installed.count() GT 0;
 	// other Versions
 	if(!isNull(available.otherVersions) && !isSimpleValue(available.otherVersions)) {
 		all=duplicate(available.otherVersions);
-	}
-	else {
+	} else {
 		all=[];
 	}
 		
@@ -116,8 +111,9 @@ isInstalled=installed.count() GT 0;
 				<td valign="top" style="width:200px;">
 					<cfif !isNull(app.image)>
 						<cfset dn=getDumpNail(app.image,400,400)>
+
 						<div style="width:100%;overflow:auto;">
-							<img src="#dn#" alt="#stText.ext.extThumbnail#" />
+							<img width="400" src="#dn#" alt="#stText.ext.extThumbnail#" />
 						</div>
 					</cfif>
 				</td>
@@ -279,7 +275,7 @@ if(isInstalled) installedVersion=toVersionSortable(installed.version);
 							</cfif>
 						</cfloop>
 					</select>
-					<input type="button" class="button submit" onclick="versionSelected(this, version)"  value="#isInstalled?stText.Buttons.upDown:stText.Buttons.install#">
+					<input type="button" class="button" onclick="versionSelected(this, version)"  value="#isInstalled?stText.Buttons.upDown:stText.Buttons.install#">
 				</td>
 			</tr>
 		</cfif>

@@ -2,16 +2,16 @@
 
 	<!--- Meta data --->
 	<cfset this.metadata.attributetype="fixed">
-    <cfset this.metadata.attributes={
-	    name:      	    {required:false,type:"string",default:""},
-		address:      	{required:false,type:"string",default:""},
-		latitude:     	{required:false,type:"string",default:""},
-		longitude : 	{required:false,type:"string",default:""},
-		tip:		    {required:false,type:"string",default:""},
-		markerwindowcontent:	{required:false,type:"string",default:""},
-		markercolor : 	    {required:false,type:"string",default:''},
-		markericon : 	    {required:false,type:"string",default:''}	
-	}>
+    <cfset this.metadata.attributes=[
+	    "name":      	    {required:false,type:"string",default:""},
+		"address":      	{required:false,type:"string",default:""},
+		"latitude":     	{required:false,type:"string",default:""},
+		"longitude" : 	{required:false,type:"string",default:""},
+		"tip":		    {required:false,type:"string",default:""},
+		"markerWindowContent":	{required:false,type:"string",default:""},
+		"markerColor" : 	    {required:false,type:"string",default:''},
+		"markerIcon" : 	    {required:false,type:"string",default:''}	
+	]>
         
     <cffunction name="init" output="no" returntype="void"
       hint="invoked after tag is constructed">

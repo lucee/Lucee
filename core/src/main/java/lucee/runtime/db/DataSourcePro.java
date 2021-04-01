@@ -20,4 +20,10 @@ public interface DataSourcePro extends DataSource {
 	public int getIdleTimeout();
 
 	public int getLiveTimeout();
+
+	public int getMinIdle();
+
+	public int getMaxIdle();
+
+	public int getMaxTotal();
 }

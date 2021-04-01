@@ -40,9 +40,9 @@ import lucee.commons.lang.types.RefIntegerSync;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.compiler.CFMLCompilerImpl.Result;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.config.Constants;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -356,7 +356,7 @@ public final class PageSourceImpl implements PageSource {
 					else {
 						LogUtil.log(config, Log.LEVEL_DEBUG, "compile", "load class from binary  [" + getDisplayPath() + "]");
 						byte[] bytes = IOUtil.toBytes(classFile);
-						if (bytes.length > 0) pcn.set(page = newInstance(mapping.getPhysicalClass(this.getClassName(), bytes)));
+						if (ClassUtil.isBytecode(bytes)) pcn.set(page = newInstance(mapping.getPhysicalClass(this.getClassName(), bytes)));
 					}
 				}
 				catch (Exception e) {
@@ -427,7 +427,7 @@ public final class PageSourceImpl implements PageSource {
 
 	private Page _compile(ConfigWeb config, Resource classRootDir, Page existing, boolean returnValue, boolean ignoreScopes, boolean split)
 			throws IOException, SecurityException, IllegalArgumentException, PageException {
-		ConfigWebImpl cwi = (ConfigWebImpl) config;
+		ConfigWebPro cwi = (ConfigWebPro) config;
 		int dialect = getDialect();
 
 		long now;
@@ -1020,7 +1020,7 @@ public final class PageSourceImpl implements PageSource {
 	@Override
 	public int getDialect() {
 		Config c = getMapping().getConfig();
-		if (!((ConfigImpl) c).allowLuceeDialect()) return CFMLEngine.DIALECT_CFML;
+		if (!((ConfigPro) c).allowLuceeDialect()) return CFMLEngine.DIALECT_CFML;
 		// MUST improve performance on this
 		ConfigWeb cw = null;
 

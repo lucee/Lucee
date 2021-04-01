@@ -21,6 +21,11 @@
 	error.message="";
 	error.detail="";
 </cfscript>
+<cfadmin
+    action="getloaderinfo"
+    type="#request.adminType#"
+    password="#session["password"&request.adminType]#"
+    returnVariable="loaderInfo">
 <cftry>
 <cfswitch expression="#url.action2#">
 	<cfcase value="settings">
@@ -169,7 +174,9 @@
 <cfelse>
 	<!--- <h1>#stText.services.update.luceeProvider#</h1>--->
 	<p>
-		#replace(stText.services.update.titleDesc,'{version}',"<b>"&server.lucee.version&"</b>") #
+		Current Version <b>( #server.lucee.version# )</b><br><br>
+		#stText.services.update.titleDesc#
+		<!--- #replace(stText.services.update.titleDesc,'{version}',"<b>"&server.lucee.version&"</b>") # --->
 	</p>
 
 	<cfset hiddenFormContents = "" >
@@ -195,9 +202,9 @@
 			<div class="whitePanel">
 				<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 					<select name="UPDATE" id="upt_version"  class="large">
-						<option value="">--- select the version ---</option>
+						<!--- <option value="">--- select the version ---</option> --->
 						<cfloop list="#listVrs#" index="key">
-							<cfif len(versionsStr[key].upgrade) || len(versionsStr[key].downgrade)>
+							<cfif len(versionsStr[key].upgrade) gt 0|| len(versionsStr[key].downgrade) gt 0>
 								<optgroup class="td_#UcFirst(Lcase(key))#" label="#stText.services.update.short[key]#">
 									<cfloop array="#versionsStr[key].upgrade#" index="i">
 										<option class="td_#UcFirst(Lcase(key))#" value="#i#">#stText.services.update.upgradeTo# #i#</option>
@@ -207,8 +214,13 @@
 										<option class="td_#UcFirst(Lcase(key))#" value="#i#">#stText.services.update.downgradeTo# #i#</option>
 									</cfloop>
 								</optgroup>
+							<cfelseif len(versionsStr[key].upgrade) eq 0>
+								<cfset session.empUpgrade = true>
 							</cfif>
 						</cfloop>
+						<cfif isdefined("session.empUpgrade") && session.empUpgrade eq true>
+							<option value="">--- select the version ---</option>
+						</cfif>
 					</select>
 					<input type="button" class="button submit"
 						onclick="changeVersion(this, UPDATE)" 
@@ -394,7 +406,7 @@
 			});
 		</script>
 	</cfhtmlbody>
-
-	<p class="comment">* #replace(stText.services.update.titleDesc2,'{min-version}',"<b>"&minVersion&"</b>") #</p>
+	<cfset stText.services.update.titleDesc2 = replaceListNoCase(stText.services.update.titleDesc2,'{min-version},{server.lucee.loaderPath}','<b>#minVersion#</b>,<b>#listDeleteAt(loaderInfo.LoaderPath,listlen(loaderInfo.LoaderPath,"\/"),"\/")#</b>')>
+	<p class="comment">* #replace(stText.services.update.titleDesc2,'{context}',"<b class='error'>"&#expandPath("{lucee-server}\patches")#&"</b>") #</p>
 	
 </cfoutput>

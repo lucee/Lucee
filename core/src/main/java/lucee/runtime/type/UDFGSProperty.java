@@ -51,8 +51,8 @@ public abstract class UDFGSProperty extends MemberSupport implements UDFPlus {
 
 	private static final long serialVersionUID = 285652503901488683L;
 
-	private static final Collection.Key MIN_LENGTH = KeyImpl.intern("minLength");
-	private static final Collection.Key MAX_LENGTH = KeyImpl.intern("maxLength");
+	private static final Collection.Key MIN_LENGTH = KeyImpl.getInstance("minLength");
+	private static final Collection.Key MAX_LENGTH = KeyImpl.getInstance("maxLength");
 
 	protected final FunctionArgument[] arguments;
 	protected final String name;

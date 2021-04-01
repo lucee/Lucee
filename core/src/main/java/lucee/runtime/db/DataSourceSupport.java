@@ -21,6 +21,7 @@ package lucee.runtime.db;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.ref.SoftReference;
+import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.SQLException;
@@ -32,6 +33,7 @@ import org.osgi.framework.BundleException;
 
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.ClassException;
+import lucee.commons.lang.ClassUtil;
 import lucee.commons.sql.SQLUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -66,10 +68,13 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 	private final boolean requestExclusive;
 	private final boolean literalTimestampWithTSOffset;
 	private final boolean alwaysResetConnections;
+	private final int minIdle;
+	private final int maxIdle;
+	private final int maxTotal;
 
 	public DataSourceSupport(Config config, String name, ClassDefinition cd, String username, String password, TagListener listener, boolean blob, boolean clob,
-			int connectionLimit, int idleTimeout, int liveTimeout, long metaCacheTimeout, TimeZone timezone, int allow, boolean storage, boolean readOnly, boolean validate,
-			boolean requestExclusive, boolean alwaysResetConnections, boolean literalTimestampWithTSOffset, Log log) {
+			int connectionLimit, int idleTimeout, int liveTimeout, int minIdle, int maxIdle, int maxTotal, long metaCacheTimeout, TimeZone timezone, int allow, boolean storage,
+			boolean readOnly, boolean validate, boolean requestExclusive, boolean alwaysResetConnections, boolean literalTimestampWithTSOffset, Log log) {
 		this.name = name;
 		this.cd = cd;// _initializeCD(null, cd, config);
 		this.blob = blob;
@@ -90,6 +95,9 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 		this.alwaysResetConnections = alwaysResetConnections;
 		this.log = log;
 		this.literalTimestampWithTSOffset = literalTimestampWithTSOffset;
+		this.minIdle = minIdle;
+		this.maxIdle = maxIdle;
+		this.maxTotal = maxTotal;
 	}
 
 	@Override
@@ -109,6 +117,18 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 		catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+		catch (IllegalArgumentException e) {
+			throw new RuntimeException(e);
+		}
+		catch (InvocationTargetException e) {
+			throw new RuntimeException(e.getTargetException());
+		}
+		catch (NoSuchMethodException e) {
+			throw new RuntimeException(e);
+		}
+		catch (SecurityException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	public static Connection _getConnection(Config config, Driver driver, String connStrTrans, String user, String pass) throws SQLException {
@@ -118,29 +138,44 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 
 		if (defaultTransactionIsolation == -1) {
 			Connection c = driver.connect(connStrTrans, props);
-			defaultTransactionIsolation = c.getTransactionIsolation();
+			defaultTransactionIsolation = getValidTransactionIsolation(c, Connection.TRANSACTION_READ_COMMITTED);
 			return c;
 		}
 		return driver.connect(connStrTrans, props);
 	}
 
+	private static int getValidTransactionIsolation(Connection conn, int defaultValue) {
+		try {
+			int transactionIsolation = conn.getTransactionIsolation();
+			if (transactionIsolation == Connection.TRANSACTION_READ_COMMITTED) return Connection.TRANSACTION_READ_COMMITTED;
+			if (transactionIsolation == Connection.TRANSACTION_SERIALIZABLE) return Connection.TRANSACTION_SERIALIZABLE;
+			if (SQLUtil.isOracle(conn)) return defaultValue;
+			if (transactionIsolation == Connection.TRANSACTION_READ_UNCOMMITTED) return Connection.TRANSACTION_READ_UNCOMMITTED;
+			if (transactionIsolation == Connection.TRANSACTION_REPEATABLE_READ) return Connection.TRANSACTION_REPEATABLE_READ;
+		}
+		catch (Exception e) {
+		}
+		return defaultValue;
+	}
+
 	@Override
 	public int getDefaultTransactionIsolation() {
-		if (defaultTransactionIsolation == -1) return Connection.TRANSACTION_READ_COMMITTED;// never happens
 		return defaultTransactionIsolation;
 	}
 
-	private Driver initialize(Config config) throws BundleException, InstantiationException, IllegalAccessException, IOException {
+	private Driver initialize(Config config) throws BundleException, InstantiationException, IllegalAccessException, IOException, IllegalArgumentException,
+			InvocationTargetException, NoSuchMethodException, SecurityException {
 		if (driver == null) {
 			return driver = _initializeDriver(cd, config);
 		}
 		return driver;
 	}
 
-	private static Driver _initializeDriver(ClassDefinition cd, Config config) throws ClassException, BundleException, InstantiationException, IllegalAccessException {
+	private static Driver _initializeDriver(ClassDefinition cd, Config config) throws ClassException, BundleException, InstantiationException, IllegalAccessException,
+			IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		// load the class
-		Class clazz = cd.getClazz();
-		return (Driver) clazz.newInstance();
+		Driver d = (Driver) ClassUtil.newInstance(cd.getClazz());
+		return d;
 	}
 
 	public static void verify(Config config, ClassDefinition cd, String connStrTranslated, String user, String pass) throws ClassException, BundleException, SQLException {
@@ -153,6 +188,18 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 			throw new RuntimeException(e);
 		}
 		catch (IllegalAccessException e) {
+			throw new RuntimeException(e);
+		}
+		catch (IllegalArgumentException e) {
+			throw new RuntimeException(e);
+		}
+		catch (InvocationTargetException e) {
+			throw new RuntimeException(e.getTargetException());
+		}
+		catch (NoSuchMethodException e) {
+			throw new RuntimeException(e);
+		}
+		catch (SecurityException e) {
 			throw new RuntimeException(e);
 		}
 	}
@@ -250,6 +297,21 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 	@Override
 	public int getNetworkTimeout() {
 		return NETWORK_TIMEOUT_IN_SECONDS;
+	}
+
+	@Override
+	public int getMinIdle() {
+		return minIdle;
+	}
+
+	@Override
+	public int getMaxIdle() {
+		return maxIdle;
+	}
+
+	@Override
+	public int getMaxTotal() {
+		return maxTotal;
 	}
 
 	@Override

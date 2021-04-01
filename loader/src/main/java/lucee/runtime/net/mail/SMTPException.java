@@ -28,7 +28,7 @@ public abstract class SMTPException extends Exception {
 	/**
 	 * constructor of the class
 	 * 
-	 * @param message
+	 * @param message message
 	 */
 	public SMTPException(final String message) {
 		super(message);

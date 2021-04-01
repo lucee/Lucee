@@ -21,6 +21,11 @@ public final class RegexFactory {
 		return defaultValue;
 	}
 
+	public static Regex toRegex(boolean useJavaAsRegexEngine) {
+		if (useJavaAsRegexEngine) return new JavaRegex();
+		return new Perl5Regex();
+	}
+
 	public static int toType(String regexName, int defaultValue) {
 		if (StringUtil.isEmpty(regexName, true)) return defaultValue;
 		regexName = regexName.trim();

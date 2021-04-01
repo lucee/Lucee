@@ -81,9 +81,10 @@ private function isColumnEmpty(query query, string columnName){
     	<cfargument name="custom" type="struct" required="yes">
 		<cfargument name="debugging" required="true" type="struct">
 		<cfargument name="context" type="string" default="web"><cfsilent>
-<cfset var time=getTickCount()>
-<cfset var _cgi=structKeyExists(arguments.debugging,'cgi')?arguments.debugging.cgi:cgi>
 <cfscript>
+	var time=getTickCount();
+	var _cgi = arguments?.debugging?.scope?.cgi ?: cgi;
+
 	if(isNull(arguments.debugging.pages)) 
 		local.pages=queryNew('id,count,min,max,avg,app,load,query,total,src');
 	else local.pages=arguments.debugging.pages;
@@ -169,7 +170,7 @@ millisecond:"ms"
 		</tr>
 		<tr>
 			<td class="cfdebug" nowrap> Template </td>
-			<td class="cfdebug">#HTMLEditFormat(_cgi.SCRIPT_NAME)# (#HTMLEditFormat(expandPath(_cgi.SCRIPT_NAME))#)</td>
+			<td class="cfdebug">#encodeForHtml(_cgi.REQUEST_URL)# <br> #encodeForHtml(expandPath(_cgi.SCRIPT_NAME))#</td>
 		</tr>
 		<tr>
 			<td class="cfdebug" nowrap> Time Stamp </td>
@@ -215,8 +216,8 @@ millisecond:"ms"
 <cfset var loa=0>
 <cfset var tot=0>
 <cfset var q=0>
-<cfparam name="custom.minimal" default="0">
-<cfparam name="custom.highlight" default="250000">
+<cfparam name="arguments.custom.minimal" default="0">
+<cfparam name="arguments.custom.highlight" default="250000">
 <cfloop query="pages">
 		<cfset tot=tot+pages.total><cfset q=q+pages.query>
 		<cfif pages.avg LT arguments.custom.minimal*1000><cfcontinue></cfif>
@@ -247,7 +248,7 @@ if(!pages.recordcount || !hasQueries) {
 	<td align="right" class="cfdebug" nowrap><i>#formatUnit(arguments.custom.unit, tot-q-loa)#</i></td><cfif pages.recordcount><td colspan=2>&nbsp;</td></cfif>
 	<td align="left" class="cfdebug"><i>APPLICATION EXECUTION TIME</i></td>
 </tr>
-<cfif listfirst(formatUnit(custom.unit, q)," ") gt 0>
+<cfif listfirst(formatUnit(arguments.custom.unit, q)," ") gt 0>
 	<tr>
 		<td align="right" class="cfdebug" nowrap><i>#formatUnit(arguments.custom.unit, q)#</i></td><cfif pages.recordcount><td colspan=2>&nbsp;</td></cfif>
 		<td align="left" class="cfdebug"><i>QUERY EXECUTION TIME</i></td>
@@ -275,7 +276,7 @@ if(!pages.recordcount || !hasQueries) {
 			<td class="cfdebug"><b>Detail</b></td>
 			<td class="cfdebug"><b>Template</b></td>
 		</tr>
-<Cfset var exp="">		
+<cfset var exp="">
 <cfloop array="#exceptions#" index="exp">
 		<tr>
 			<td class="cfdebug" nowrap>#exp.type#</td>
@@ -372,7 +373,7 @@ if(!pages.recordcount || !hasQueries) {
 <cfif queries.recordcount>
 <p class="cfdebug"><hr/><b class="cfdebuglge"><a name="cfdebug_sql">SQL Queries</a></b></p>
 <cfloop query="queries">	
-<code><b>#queries.name#</b> (Datasource=#queries.datasource#, Time=#formatUnit(custom.unit, queries.time)#, Records=#queries.count#) in <cfif len(queries.src)>#queries.src#:#queries.line#</cfif></code><br />
+<code><b>#queries.name#</b> (Datasource=#queries.datasource#, Time=#formatUnit(arguments.custom.unit, queries.time)#, Records=#queries.count#) in <cfif len(queries.src)>#queries.src#:#queries.line#</cfif></code><br />
 <cfif ListFindNoCase(queries.columnlist,'usage') and IsStruct(queries.usage)><cfset var usage=queries.usage><cfset var lstNeverRead="">
 <cfloop collection="#usage#" index="local.item" item="local._val"><cfif not _val><cfset lstNeverRead=ListAppend(lstNeverRead,item,', ')></cfif></cfloop>
 <cfif len(lstNeverRead)><font color="red">the following colum(s) are never read within the request:#lstNeverRead#</font><br /></cfif>

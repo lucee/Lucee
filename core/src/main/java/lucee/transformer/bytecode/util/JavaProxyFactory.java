@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -51,7 +52,9 @@ import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
+import lucee.runtime.op.JavaProxyUtilImpl;
 import lucee.runtime.reflection.Reflector;
+import lucee.runtime.type.UDF;
 import lucee.runtime.util.JavaProxyUtil;
 import lucee.transformer.bytecode.visitor.ArrayVisitor;
 
@@ -61,6 +64,10 @@ import lucee.transformer.bytecode.visitor.ArrayVisitor;
  */
 public class JavaProxyFactory {
 
+	private static final short TYPE_CFC = 1;
+	private static final short TYPE_UDF = 2;
+
+	private static final String UDF_NAME = "L" + Types.UDF.getInternalName() + ";";
 	private static final String COMPONENT_NAME = "L" + Types.COMPONENT.getInternalName() + ";";
 	private static final String CONFIG_WEB_NAME = "L" + Types.CONFIG_WEB.getInternalName() + ";";
 
@@ -69,12 +76,18 @@ public class JavaProxyFactory {
 	private static final Type CFML_ENGINE_FACTORY = Type.getType(CFMLEngineFactory.class);
 	private static final Type CFML_ENGINE = Type.getType(CFMLEngine.class);
 	private static final Type JAVA_PROXY_UTIL = Type.getType(JavaProxyUtil.class);
+	private static final Type JAVA_PROXY_UTIL_IMPL = Type.getType(JavaProxyUtilImpl.class);
 
-	private static final org.objectweb.asm.commons.Method CALL = new org.objectweb.asm.commons.Method("call", Types.OBJECT,
+	private static final org.objectweb.asm.commons.Method CALL_CFC = new org.objectweb.asm.commons.Method("call", Types.OBJECT,
 			new Type[] { Types.CONFIG_WEB, Types.COMPONENT, Types.STRING, Types.OBJECT_ARRAY });
+	private static final org.objectweb.asm.commons.Method CALL_UDF = new org.objectweb.asm.commons.Method("call", Types.OBJECT,
+			new Type[] { Types.CONFIG_WEB, Types.UDF, Types.STRING, Types.OBJECT_ARRAY });
 
-	private static final org.objectweb.asm.commons.Method CONSTRUCTOR = new org.objectweb.asm.commons.Method("<init>", Types.VOID,
+	private static final org.objectweb.asm.commons.Method CONSTRUCTOR_CONFIG_CFC = new org.objectweb.asm.commons.Method("<init>", Types.VOID,
 			new Type[] { Types.CONFIG_WEB, Types.COMPONENT });
+	private static final org.objectweb.asm.commons.Method CONSTRUCTOR_CONFIG_UDF = new org.objectweb.asm.commons.Method("<init>", Types.VOID,
+			new Type[] { Types.CONFIG_WEB, Types.UDF });
+
 	private static final org.objectweb.asm.commons.Method SUPER_CONSTRUCTOR = new org.objectweb.asm.commons.Method("<init>", Types.VOID, new Type[] {});
 
 	private static final org.objectweb.asm.commons.Method TO_BOOLEAN = new org.objectweb.asm.commons.Method("toBoolean", Types.BOOLEAN_VALUE, new Type[] { Types.OBJECT });
@@ -104,20 +117,100 @@ public class JavaProxyFactory {
 	private static final org.objectweb.asm.commons.Method GET_JAVA_PROXY_UTIL = new org.objectweb.asm.commons.Method("getJavaProxyUtil", Types.OBJECT, // FUTURE change to JavaProxy
 			new Type[] {});
 
-	/*
-	 * 
-	 * public static Object to(Object obj, Class clazz) { return obj; }
-	 */
+	public static Object createProxy(PageContext pc, UDF udf, Class interf) throws PageException, IOException {
+		PageContextImpl pci = (PageContextImpl) pc;
+		ClassLoader parent = ClassUtil.getClassLoader(interf);
+		ClassLoader[] parents = new ClassLoader[] { parent };
 
-	/*
-	 * public static Object createProxy(Config config,Component cfc, String className) throws
-	 * PageException, IOException { return createProxy(cfc, null,
-	 * ClassUtil.loadClass(config.getClassLoader(), className)); }
-	 */
+		if (!interf.isInterface()) throw new IOException("definition [" + interf.getName() + "] is a class and not a interface");
+
+		Type typeExtends = Types.OBJECT;
+		Type typeInterface = Type.getType(interf);
+		String strInterface = typeInterface.getInternalName();
+
+		String className = createClassName("udf", Object.class, interf);
+
+		// get ClassLoader
+		PhysicalClassLoader pcl = null;
+		try {
+			pcl = (PhysicalClassLoader) pci.getRPCClassLoader(false, parents);
+		}
+		catch (IOException e) {
+			throw Caster.toPageException(e);
+		}
+		Resource classFile = pcl.getDirectory().getRealResource(className.concat(".class"));
+
+		// check if already exists, if yes return
+		if (classFile.exists()) {
+			try {
+				Object obj = newInstance(pcl, className, pc.getConfig(), udf);
+				if (obj != null) return obj;
+			}
+			catch (Throwable t) {
+				ExceptionUtil.rethrowIfNecessary(t);
+			}
+		}
+
+		ClassWriter cw = ASMUtil.getClassWriter();
+
+		cw.visit(Opcodes.V1_6, Opcodes.ACC_PUBLIC, className, null, typeExtends.getInternalName(), new String[] { strInterface });
+
+		// field Component
+		FieldVisitor _fv = cw.visitField(Opcodes.ACC_PRIVATE, "udf", UDF_NAME, null, null);
+		_fv.visitEnd();
+		_fv = cw.visitField(Opcodes.ACC_PRIVATE, "config", CONFIG_WEB_NAME, null, null);
+		_fv.visitEnd();
+
+		// Constructor
+		GeneratorAdapter adapter = new GeneratorAdapter(Opcodes.ACC_PUBLIC, CONSTRUCTOR_CONFIG_UDF, null, null, cw);
+		Label begin = new Label();
+		adapter.visitLabel(begin);
+		adapter.loadThis();
+		adapter.invokeConstructor(Types.OBJECT, SUPER_CONSTRUCTOR);
+
+		// adapter.putField(JAVA_PROXY, arg1, arg2)
+		adapter.visitVarInsn(Opcodes.ALOAD, 0);
+		adapter.visitVarInsn(Opcodes.ALOAD, 1);
+		adapter.visitFieldInsn(Opcodes.PUTFIELD, className, "config", CONFIG_WEB_NAME);
+
+		adapter.visitVarInsn(Opcodes.ALOAD, 0);
+		adapter.visitVarInsn(Opcodes.ALOAD, 2);
+		adapter.visitFieldInsn(Opcodes.PUTFIELD, className, "udf", UDF_NAME);
+
+		adapter.visitInsn(Opcodes.RETURN);
+		Label end = new Label();
+		adapter.visitLabel(end);
+		adapter.visitLocalVariable("config", CONFIG_WEB_NAME, null, begin, end, 1);
+		adapter.visitLocalVariable("udf", UDF_NAME, null, begin, end, 2);
+
+		// adapter.returnValue();
+		adapter.endMethod();
+
+		// create methods
+		Set<Class> cDone = new HashSet<Class>();
+		Map<String, Class> mDone = new HashMap<String, Class>();
+		_createProxy(cw, cDone, mDone, udf, interf, className);
+		cw.visitEnd();
+
+		// create class file
+		byte[] barr = cw.toByteArray();
+
+		try {
+			ResourceUtil.touch(classFile);
+			IOUtil.copy(new ByteArrayInputStream(barr), classFile, true);
+
+			pcl = (PhysicalClassLoader) pci.getRPCClassLoader(true, parents);
+			Class<?> clazz = pcl.loadClass(className, barr);
+			return newInstance(clazz, pc.getConfig(), udf);
+		}
+		catch (Throwable t) {
+			ExceptionUtil.rethrowIfNecessary(t);
+			throw Caster.toPageException(t);
+		}
+	}
 
 	public static Object createProxy(PageContext pc, Component cfc, Class extendz, Class... interfaces) throws PageException, IOException {
 		PageContextImpl pci = (PageContextImpl) pc;
-		// ((ConfigImpl)pci.getConfig()).getClassLoaderEnv()
 		ClassLoader[] parents = extractClassLoaders(null, interfaces);
 
 		if (extendz == null) extendz = Object.class;
@@ -135,8 +228,7 @@ public class JavaProxyFactory {
 			strInterfaces[i] = typeInterfaces[i].getInternalName();
 		}
 
-		String className = createClassName(extendz, interfaces);
-		// Mapping mapping = cfc.getPageSource().getMapping();
+		String className = createClassName("cfc", extendz, interfaces);
 
 		// get ClassLoader
 		PhysicalClassLoader pcl = null;
@@ -158,18 +250,9 @@ public class JavaProxyFactory {
 				ExceptionUtil.rethrowIfNecessary(t);
 			}
 		}
-
-		/*
-		 * String classNameOriginal=component.getPageSource().getFullClassName(); String
-		 * realOriginal=classNameOriginal.replace('.','/'); Resource classFileOriginal =
-		 * mapping.getClassRootDirectory().getRealResource(realOriginal.concat(".class"));
-		 */
 		ClassWriter cw = ASMUtil.getClassWriter();
 
 		cw.visit(Opcodes.V1_6, Opcodes.ACC_PUBLIC, className, null, typeExtends.getInternalName(), strInterfaces);
-		// BytecodeContext statConstr = null;//new
-		// BytecodeContext(null,null,null,cw,real,ga,Page.STATIC_CONSTRUCTOR);
-		// BytecodeContext constr = null;//new BytecodeContext(null,null,null,cw,real,ga,Page.CONSTRUCTOR);
 
 		// field Component
 		FieldVisitor _fv = cw.visitField(Opcodes.ACC_PRIVATE, "cfc", COMPONENT_NAME, null, null);
@@ -178,14 +261,13 @@ public class JavaProxyFactory {
 		_fv.visitEnd();
 
 		// Constructor
-		GeneratorAdapter adapter = new GeneratorAdapter(Opcodes.ACC_PUBLIC, CONSTRUCTOR, null, null, cw);
+		GeneratorAdapter adapter = new GeneratorAdapter(Opcodes.ACC_PUBLIC, CONSTRUCTOR_CONFIG_CFC, null, null, cw);
 		Label begin = new Label();
 		adapter.visitLabel(begin);
 		adapter.loadThis();
 		adapter.invokeConstructor(Types.OBJECT, SUPER_CONSTRUCTOR);
 
 		// adapter.putField(JAVA_PROXY, arg1, arg2)
-
 		adapter.visitVarInsn(Opcodes.ALOAD, 0);
 		adapter.visitVarInsn(Opcodes.ALOAD, 1);
 		adapter.visitFieldInsn(Opcodes.PUTFIELD, className, "config", CONFIG_WEB_NAME);
@@ -228,7 +310,7 @@ public class JavaProxyFactory {
 		}
 	}
 
-	private static ClassLoader[] extractClassLoaders(ClassLoader cl, Class[] classes) {
+	private static ClassLoader[] extractClassLoaders(ClassLoader cl, Class... classes) {
 		HashSet<ClassLoader> set = new HashSet<>();
 		if (cl != null) {
 			set.add(cl);
@@ -240,6 +322,29 @@ public class JavaProxyFactory {
 			}
 		}
 		return set.toArray(new ClassLoader[set.size()]);
+	}
+	// _createProxy(cw, cDone, mDone, udf, interf, className);
+
+	private static void _createProxy(ClassWriter cw, Set<Class> cDone, Map<String, Class> mDone, UDF udf, Class clazz, String className) throws IOException {
+		if (cDone.contains(clazz)) return;
+
+		cDone.add(clazz);
+
+		// super class
+		Class superClass = clazz.getSuperclass();
+		if (superClass != null) _createProxy(cw, cDone, mDone, udf, superClass, className);
+
+		// interfaces
+		Class[] interfaces = clazz.getInterfaces();
+		if (interfaces != null) for (int i = 0; i < interfaces.length; i++) {
+			_createProxy(cw, cDone, mDone, udf, interfaces[i], className);
+		}
+
+		Method[] methods = clazz.getMethods();
+		if (methods != null) for (int i = 0; i < methods.length; i++) {
+			if (methods[i].isDefault() || Modifier.isStatic(methods[i].getModifiers())) continue;
+			_createMethod(cw, mDone, methods[i], className, TYPE_UDF);
+		}
 	}
 
 	private static void _createProxy(ClassWriter cw, Set<Class> cDone, Map<String, Class> mDone, Component cfc, Class clazz, String className) throws IOException {
@@ -259,11 +364,11 @@ public class JavaProxyFactory {
 
 		Method[] methods = clazz.getMethods();
 		if (methods != null) for (int i = 0; i < methods.length; i++) {
-			_createMethod(cw, mDone, methods[i], className);
+			_createMethod(cw, mDone, methods[i], className, TYPE_CFC);
 		}
 	}
 
-	private static void _createMethod(ClassWriter cw, Map<String, Class> mDone, Method src, String className) throws IOException {
+	private static void _createMethod(ClassWriter cw, Map<String, Class> mDone, Method src, String className, short type) throws IOException {
 		final Class<?>[] classArgs = src.getParameterTypes();
 		final Class<?> classRtn = src.getReturnType();
 
@@ -294,7 +399,7 @@ public class JavaProxyFactory {
 
 		adapter.invokeStatic(CFML_ENGINE_FACTORY, GET_INSTANCE);
 		adapter.invokeInterface(CFML_ENGINE, GET_JAVA_PROXY_UTIL);
-		adapter.checkCast(JAVA_PROXY_UTIL);
+		adapter.checkCast(type == TYPE_CFC ? JAVA_PROXY_UTIL : JAVA_PROXY_UTIL_IMPL); // FUTURE get rid of IMPL
 
 		// Java Proxy.call(cfc,"add",new Object[]{arg0})
 		// config (first argument)
@@ -303,7 +408,8 @@ public class JavaProxyFactory {
 
 		// cfc (second argument)
 		adapter.visitVarInsn(Opcodes.ALOAD, 0);
-		adapter.visitFieldInsn(Opcodes.GETFIELD, className, "cfc", COMPONENT_NAME);
+		if (type == TYPE_CFC) adapter.visitFieldInsn(Opcodes.GETFIELD, className, "cfc", COMPONENT_NAME);
+		else adapter.visitFieldInsn(Opcodes.GETFIELD, className, "udf", UDF_NAME);
 
 		// name (3th argument)
 		adapter.push(src.getName());
@@ -316,7 +422,7 @@ public class JavaProxyFactory {
 
 			adapter.invokeStatic(CFML_ENGINE_FACTORY, GET_INSTANCE);
 			adapter.invokeInterface(CFML_ENGINE, GET_JAVA_PROXY_UTIL);
-			adapter.checkCast(JAVA_PROXY_UTIL);
+			adapter.checkCast(JAVA_PROXY_UTIL); // FUTURE adapter.checkCast(JAVA_PROXY_UTIL);
 
 			adapter.loadArg(y);
 			if (classArgs[y] == boolean.class) adapter.invokeInterface(JAVA_PROXY_UTIL, _BOOLEAN);
@@ -332,7 +438,8 @@ public class JavaProxyFactory {
 			av.visitEndItem(adapter);
 		}
 		av.visitEnd();
-		adapter.invokeInterface(JAVA_PROXY_UTIL, CALL);
+		if (type == TYPE_CFC) adapter.invokeInterface(JAVA_PROXY_UTIL, CALL_CFC);
+		else adapter.invokeVirtual(JAVA_PROXY_UTIL_IMPL, CALL_UDF);
 
 		// CFMLEngineFactory.getInstance().getCastUtil().toBooleanValue(o);
 
@@ -370,12 +477,22 @@ public class JavaProxyFactory {
 
 		adapter.visitInsn(rtn);
 		adapter.endMethod();
-
 	}
 
 	private static boolean needCastring(Class<?> classRtn) {
 		return classRtn == boolean.class || classRtn == byte.class || classRtn == char.class || classRtn == double.class || classRtn == float.class || classRtn == int.class
 				|| classRtn == long.class || classRtn == short.class || classRtn == String.class;
+	}
+
+	private static Object newInstance(PhysicalClassLoader cl, String className, ConfigWeb config, UDF udf) throws IllegalArgumentException, InstantiationException,
+			IllegalAccessException, InvocationTargetException, SecurityException, NoSuchMethodException, ClassNotFoundException {
+		return newInstance(cl.loadClass(className), config, udf);
+	}
+
+	private static Object newInstance(Class<?> _clazz, ConfigWeb config, UDF udf)
+			throws IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException, SecurityException, NoSuchMethodException {
+		Constructor<?> constr = _clazz.getConstructor(new Class[] { ConfigWeb.class, UDF.class });
+		return constr.newInstance(new Object[] { config, udf });
 	}
 
 	private static Object newInstance(PhysicalClassLoader cl, String className, ConfigWeb config, Component cfc) throws IllegalArgumentException, InstantiationException,
@@ -389,7 +506,7 @@ public class JavaProxyFactory {
 		return constr.newInstance(new Object[] { config, cfc });
 	}
 
-	private static String createClassName(Class extendz, Class[] interfaces) throws IOException {
+	private static String createClassName(String appendix, Class extendz, Class... interfaces) throws IOException {
 		if (extendz == null) extendz = Object.class;
 
 		StringBuilder sb = new StringBuilder(extendz.getName());
@@ -404,10 +521,10 @@ public class JavaProxyFactory {
 
 			sb.append(lucee.runtime.type.util.ListUtil.arrayToList(arr, ";"));
 		}
+		sb.append(appendix).append(';');
 
 		String key = KeyGenerator.createVariable(sb.toString());
 
 		return key;
 	}
-
 }

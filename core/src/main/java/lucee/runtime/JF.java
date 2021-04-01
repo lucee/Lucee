@@ -2,6 +2,7 @@ package lucee.runtime;
 
 import java.util.HashSet;
 
+import lucee.commons.lang.ClassUtil;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.exp.PageException;
@@ -116,7 +117,7 @@ public abstract class JF implements UDF {
 	@Override
 	public UDF duplicate() {
 		try {
-			return this.getClass().newInstance();
+			return (UDF) ClassUtil.newInstance(this.getClass());
 		}
 		catch (Exception e) {
 			return this;

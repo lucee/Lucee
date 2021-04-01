@@ -47,12 +47,13 @@ import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.Identification;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.OSGiUtil;
+import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.util.ListUtil;
 
@@ -146,20 +147,31 @@ public final class ClassUtil {
 			version = OSGiUtil.toVersion(strVersion.trim(), null);
 			if (version == null) throw new ClassException("Version definition [" + strVersion + "] is invalid.");
 		}
-		return loadClassByBundle(className, name, version, id, addionalDirectories);
+		return loadClassByBundle(className, new BundleDefinition(name, version), null, id, addionalDirectories);
 	}
 
 	public static Class loadClassByBundle(String className, String name, Version version, Identification id, List<Resource> addionalDirectories)
 			throws BundleException, ClassException {
+		return loadClassByBundle(className, new BundleDefinition(name, version), null, id, addionalDirectories);
+	}
+
+	public static Class<?> loadClassByBundle(String className, BundleDefinition bundle, BundleDefinition[] relatedBundles, Identification id, List<Resource> addionalDirectories)
+			throws BundleException, ClassException {
 		try {
-			return OSGiUtil.loadBundle(name, version, id, addionalDirectories, true).loadClass(className);
+			if (relatedBundles != null) {
+				for (BundleDefinition rb: relatedBundles) {
+					rb.getBundle(id, addionalDirectories, true);
+				}
+			}
+			return bundle.getBundle(id, addionalDirectories, true).loadClass(className);
 		}
 		catch (ClassNotFoundException e) {
 			String appendix = "";
 			if (!StringUtil.isEmpty(e.getMessage(), true)) appendix = " " + e.getMessage();
-			if (version == null) throw new ClassException("In the OSGi Bundle with the name [" + name + "] was no class with name [" + className + "] found." + appendix);
-			throw new ClassException(
-					"In the OSGi Bundle with the name [" + name + "] and the version [" + version + "] was no class with name [" + className + "] found." + appendix);
+			if (bundle.getVersion() == null)
+				throw new ClassException("In the OSGi Bundle with the name [" + bundle.getName() + "] was no class with name [" + className + "] found." + appendix);
+			throw new ClassException("In the OSGi Bundle with the name [" + bundle.getName() + "] and the version [" + bundle.getVersion() + "] was no class with name ["
+					+ className + "] found." + appendix);
 		}
 	}
 
@@ -377,13 +389,18 @@ public final class ClassUtil {
 	 */
 	public static Object loadInstance(Class clazz) throws ClassException {
 		try {
-			return clazz.newInstance();
+			return newInstance(clazz);
 		}
 		catch (InstantiationException e) {
 			throw new ClassException("the specified class object [" + clazz.getName() + "()] cannot be instantiated");
 		}
 		catch (IllegalAccessException e) {
 			throw new ClassException("can't load class because the currently executing method does not have access to the definition of the specified class");
+		}
+		catch (Exception e) {
+			ClassException ce = new ClassException(e.getMessage() == null ? e.getClass().getName() : e.getMessage());
+			ce.setStackTrace(e.getStackTrace());
+			return e;
 		}
 	}
 
@@ -403,7 +420,7 @@ public final class ClassUtil {
 	 */
 	public static Object loadInstance(Class clazz, Object defaultValue) {
 		try {
-			return clazz.newInstance();
+			return newInstance(clazz);
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
@@ -592,6 +609,8 @@ public final class ClassUtil {
 
 	private static final byte BCF = (byte) ICF;// CF
 	private static final byte B33 = (byte) I33;// 33
+	private static final Class[] EMPTY_CLASS = new Class[0];
+	private static final Object[] EMPTY_OBJ = new Object[0];
 
 	/**
 	 * check if given stream is a bytecode stream, if yes remove bytecode mark
@@ -917,9 +936,14 @@ public final class ClassUtil {
 		if (cl != null) return cl;
 
 		Config config = ThreadLocalPageContext.getConfig();
-		if (config instanceof ConfigImpl) {
-			return ((ConfigImpl) config).getClassLoaderCore();
+		if (config instanceof ConfigPro) {
+			return ((ConfigPro) config).getClassLoaderCore();
 		}
 		return new lucee.commons.lang.ClassLoaderHelper().getClass().getClassLoader();
+	}
+
+	public static Object newInstance(Class clazz)
+			throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+		return clazz.getConstructor(EMPTY_CLASS).newInstance(EMPTY_OBJ);
 	}
 }

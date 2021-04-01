@@ -106,7 +106,7 @@ public abstract class StorageScopeCookie extends StorageScopeImpl {
 
 		boolean isHttpOnly = true, isSecure = false;
 		String domain = null;
-		short samesite = CookieData.SAMESITE_NONE;
+		short samesite = CookieData.SAMESITE_EMPTY;
 		if (ac instanceof ApplicationContextSupport) {
 			SessionCookieData settings = ((ApplicationContextSupport) ac).getSessionCookie();
 			if (settings != null) {
@@ -170,14 +170,14 @@ public abstract class StorageScopeCookie extends StorageScopeImpl {
 					}
 				}
 
-				ScopeContext.info(log, "load data from cookie for " + strType + " scope for " + pc.getApplicationContext().getName() + "/" + pc.getCFID());
+				ScopeContext.debug(log, "load data from cookie for " + strType + " scope for " + pc.getApplicationContext().getName() + "/" + pc.getCFID());
 				return sct;
 			}
 			catch (Exception e) {
 
 			}
 		}
-		ScopeContext.info(log, "create new " + strType + " scope for " + pc.getApplicationContext().getName() + "/" + pc.getCFID());
+		ScopeContext.debug(log, "create new " + strType + " scope for " + pc.getApplicationContext().getName() + "/" + pc.getCFID());
 
 		return new StructImpl();
 	}

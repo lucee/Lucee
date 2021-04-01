@@ -24,7 +24,7 @@ import javax.script.ScriptEngineFactory;
 
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.config.Constants;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -124,13 +124,13 @@ public class ScriptEngineFactoryImpl implements ScriptEngineFactory {
 	}
 
 	private String getScriptTagName() {
-		String prefix = ((ConfigImpl) ThreadLocalPageContext.getConfig()).getCoreTagLib(dialect).getNameSpaceAndSeparator();
+		String prefix = ((ConfigPro) ThreadLocalPageContext.getConfig()).getCoreTagLib(dialect).getNameSpaceAndSeparator();
 		return prefix + (dialect == CFMLEngine.DIALECT_CFML ? Constants.CFML_SCRIPT_TAG_NAME : Constants.LUCEE_SCRIPT_TAG_NAME);
 
 	}
 
 	private String getSetTagName() {
-		String prefix = ((ConfigImpl) ThreadLocalPageContext.getConfig()).getCoreTagLib(dialect).getNameSpaceAndSeparator();
+		String prefix = ((ConfigPro) ThreadLocalPageContext.getConfig()).getCoreTagLib(dialect).getNameSpaceAndSeparator();
 		return prefix + (dialect == CFMLEngine.DIALECT_CFML ? Constants.CFML_SET_TAG_NAME : Constants.LUCEE_SET_TAG_NAME);
 
 	}

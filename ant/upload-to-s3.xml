@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project default="run" basedir="." name="Lucee">
+<project default="run" basedir="." name="LuceeUploadToS3">
 
 <macrodef name="echots">
     <attribute name="message"/>

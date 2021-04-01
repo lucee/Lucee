@@ -290,6 +290,7 @@ public class BytecodeFactory extends FactoryBase {
 		return OpNegate.toExprBoolean(expr, start, end);
 	}
 
+	@Override
 	public Expression removeCastString(Expression expr) {
 		while (true) {
 			if (expr instanceof CastString) {
@@ -332,7 +333,7 @@ public class BytecodeFactory extends FactoryBase {
 			return;
 		}
 		name.writeOut(bc, Expression.MODE_REF);
-		bc.getAdapter().invokeStatic(Page.KEY_IMPL, INIT);
+		bc.getAdapter().invokeStatic(Page.KEY_IMPL, Page.KEY_INTERN);
 		// bc.getAdapter().invokeStatic(Types.CASTER, TO_KEY);
 		return;
 	}

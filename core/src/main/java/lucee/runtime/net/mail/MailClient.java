@@ -89,11 +89,11 @@ public abstract class MailClient implements PoolItem {
 		return _store != null && _store.isConnected();
 	}
 
-	private static final Collection.Key FULLNAME = KeyImpl.init("FULLNAME");
-	private static final Collection.Key UNREAD = KeyImpl.init("UNREAD");
-	private static final Collection.Key PARENT = KeyImpl.init("PARENT");
-	private static final Collection.Key TOTALMESSAGES = KeyImpl.init("TOTALMESSAGES");
-	private static final Collection.Key NEW = KeyImpl.init("NEW");
+	private static final Collection.Key FULLNAME = KeyImpl.getInstance("FULLNAME");
+	private static final Collection.Key UNREAD = KeyImpl.getInstance("UNREAD");
+	private static final Collection.Key PARENT = KeyImpl.getInstance("PARENT");
+	private static final Collection.Key TOTALMESSAGES = KeyImpl.getInstance("TOTALMESSAGES");
+	private static final Collection.Key NEW = KeyImpl.getInstance("NEW");
 
 	/**
 	 * Simple authenicator implmentation
@@ -114,24 +114,24 @@ public abstract class MailClient implements PoolItem {
 		}
 	}
 
-	private static final Collection.Key DATE = KeyImpl.init("date");
-	private static final Collection.Key SUBJECT = KeyImpl.init("subject");
-	private static final Collection.Key SIZE = KeyImpl.init("size");
-	private static final Collection.Key FROM = KeyImpl.init("from");
-	private static final Collection.Key MESSAGE_NUMBER = KeyImpl.init("messagenumber");
-	private static final Collection.Key MESSAGE_ID = KeyImpl.init("messageid");
-	private static final Collection.Key REPLYTO = KeyImpl.init("replyto");
-	private static final Collection.Key CC = KeyImpl.init("cc");
-	private static final Collection.Key BCC = KeyImpl.init("bcc");
-	private static final Collection.Key TO = KeyImpl.init("to");
-	private static final Collection.Key UID = KeyImpl.init("uid");
-	private static final Collection.Key HEADER = KeyImpl.init("header");
-	private static final Collection.Key BODY = KeyImpl.init("body");
-	private static final Collection.Key CIDS = KeyImpl.init("cids");
-	private static final Collection.Key TEXT_BODY = KeyImpl.init("textBody");
-	private static final Collection.Key HTML_BODY = KeyImpl.init("HTMLBody");
-	private static final Collection.Key ATTACHMENTS = KeyImpl.init("attachments");
-	private static final Collection.Key ATTACHMENT_FILES = KeyImpl.init("attachmentfiles");
+	private static final Collection.Key DATE = KeyImpl.getInstance("date");
+	private static final Collection.Key SUBJECT = KeyImpl.getInstance("subject");
+	private static final Collection.Key SIZE = KeyImpl.getInstance("size");
+	private static final Collection.Key FROM = KeyImpl.getInstance("from");
+	private static final Collection.Key MESSAGE_NUMBER = KeyImpl.getInstance("messagenumber");
+	private static final Collection.Key MESSAGE_ID = KeyImpl.getInstance("messageid");
+	private static final Collection.Key REPLYTO = KeyImpl.getInstance("replyto");
+	private static final Collection.Key CC = KeyImpl.getInstance("cc");
+	private static final Collection.Key BCC = KeyImpl.getInstance("bcc");
+	private static final Collection.Key TO = KeyImpl.getInstance("to");
+	private static final Collection.Key UID = KeyImpl.getInstance("uid");
+	private static final Collection.Key HEADER = KeyImpl.getInstance("header");
+	private static final Collection.Key BODY = KeyImpl.getInstance("body");
+	private static final Collection.Key CIDS = KeyImpl.getInstance("cids");
+	private static final Collection.Key TEXT_BODY = KeyImpl.getInstance("textBody");
+	private static final Collection.Key HTML_BODY = KeyImpl.getInstance("HTMLBody");
+	private static final Collection.Key ATTACHMENTS = KeyImpl.getInstance("attachments");
+	private static final Collection.Key ATTACHMENT_FILES = KeyImpl.getInstance("attachmentfiles");
 
 	public static final int TYPE_POP3 = 0;
 	public static final int TYPE_IMAP = 1;

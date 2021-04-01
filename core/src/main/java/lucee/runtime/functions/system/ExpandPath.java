@@ -32,9 +32,9 @@ import lucee.runtime.Mapping;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
@@ -61,7 +61,7 @@ public final class ExpandPath implements Function {
 		if (StringUtil.startsWith(relPath, '/')) {
 
 			PageContextImpl pci = (PageContextImpl) pc;
-			ConfigWebImpl cwi = (ConfigWebImpl) config;
+			ConfigWebPro cwi = (ConfigWebPro) config;
 			PageSource[] sources = cwi.getPageSources(pci, mergeMappings(pc.getApplicationContext().getMappings(), pc.getApplicationContext().getComponentMappings()), relPath,
 					false, pci.useSpecialMappings(), true);
 
@@ -168,7 +168,7 @@ public final class ExpandPath implements Function {
 		// virtual file system path
 		int index = path.indexOf("://");
 		if (index != -1) {
-			ResourceProviderFactory[] factories = ((ConfigImpl) pc.getConfig()).getResourceProviderFactories();
+			ResourceProviderFactory[] factories = ((ConfigPro) pc.getConfig()).getResourceProviderFactories();
 			String scheme = path.substring(0, index).toLowerCase().trim();
 			for (int i = 0; i < factories.length; i++) {
 				if (scheme.equalsIgnoreCase(factories[i].getScheme())) return scheme + "://" + StringUtil.replace(path.substring(index + 3), "//", "/", false);

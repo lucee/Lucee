@@ -37,7 +37,6 @@ import lucee.commons.io.IOUtil;
 import lucee.commons.io.res.Resource;
 import lucee.loader.util.Util;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
@@ -55,7 +54,7 @@ public class ProfileCollection {
 
 	private void init(Config config, boolean initProfiles) throws ApplicationException {
 		// get the video directory
-		Resource dir = ((ConfigImpl) config).getVideoDirectory();
+		Resource dir = config.getVideoDirectory();
 
 		// get the video.xml
 		Resource xml = dir.getRealResource("video.xml");

@@ -187,7 +187,7 @@ public interface VideoProfile {
 	/**
 	 * set the type of the output format (see constants "TYPE_xxx" of this class)
 	 * 
-	 * @param type
+	 * @param type output format type
 	 */
 	public void setType(String type);
 

@@ -51,4 +51,7 @@ public interface Operation extends Expression {
 
 	public static final int OPERATION3_BETWEEN = 50;
 	public static final int OPERATION3_LIKE = 51;
+
+	public boolean hasAggregate();
+
 }

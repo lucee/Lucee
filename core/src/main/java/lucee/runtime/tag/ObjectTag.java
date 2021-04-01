@@ -118,7 +118,8 @@ public final class ObjectTag extends TagImpl {
 		}
 		else {
 			if (type == null) throw new ApplicationException("Too few attributes defined for tag [object]");
-			throw new ApplicationException("Wrong value for attribute [type]", "types are [com,java,webservice,corba] and the only supported type (at the moment) are [webservice,com,component,java]");
+			throw new ApplicationException("Wrong value for attribute [type]",
+					"types are [com,java,webservice,corba] and the only supported type (at the moment) are [webservice,com,component,java]");
 		}
 
 		return SKIP_BODY;

@@ -41,6 +41,7 @@ import lucee.runtime.op.date.DateCaster;
 import lucee.runtime.reflection.Reflector;
 import lucee.runtime.reflection.pairs.MethodInstance;
 import lucee.runtime.type.Collection;
+import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.ObjectWrap;
 import lucee.runtime.type.Objects;
 import lucee.runtime.type.Struct;
@@ -259,7 +260,7 @@ public class JavaObject implements Objects, ObjectWrap {
 
 		try {
 			// get method
-			MethodInstance mi = Reflector.getMethodInstance(this, clazz, methodName, arguments);
+			MethodInstance mi = Reflector.getMethodInstance(this, clazz, KeyImpl.init(methodName), arguments);
 			// call static method if exist
 			if (Modifier.isStatic(mi.getMethod().getModifiers())) {
 				return mi.invoke(null);

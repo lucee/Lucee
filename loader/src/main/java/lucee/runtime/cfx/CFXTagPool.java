@@ -37,9 +37,9 @@ public interface CFXTagPool {
 	/**
 	 * return custom tag that match the name
 	 * 
-	 * @param name
+	 * @param name custom tag name
 	 * @return matching tag
-	 * @throws CFXTagException
+	 * @throws CFXTagException CFX Tag Exception
 	 */
 	public CustomTag getCustomTag(String name) throws CFXTagException;
 
@@ -48,7 +48,7 @@ public interface CFXTagPool {
 	/**
 	 * realese custom tag
 	 * 
-	 * @param ct
+	 * @param ct Custom Tag
 	 */
 	public void releaseCustomTag(CustomTag ct);
 

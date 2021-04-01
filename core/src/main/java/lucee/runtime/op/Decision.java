@@ -101,28 +101,6 @@ public final class Decision {
 				|| (value instanceof Date);
 	}
 
-	/**
-	 * tests if value is Numeric
-	 * 
-	 * @param value value to test
-	 * @return is value numeric
-	 */
-	public static boolean isNumber(Object value) {
-		if (value instanceof Number) return true;
-		else if (value instanceof CharSequence || value instanceof Character) {
-			boolean numeric = true;
-	        try {
-	            Double num = Double.parseDouble(value.toString());
-	        } catch (NumberFormatException e) {
-	            numeric = false;
-	        }
-	        if(numeric) return true;
-			return isNumber(value.toString());
-		}
-
-		else return false;
-	}
-
 	public static boolean isCastableToNumeric(Object o) {
 
 		if (isNumber(o)) return true;
@@ -163,6 +141,21 @@ public final class Decision {
 	}
 
 	/**
+	 * tests if value is Numeric
+	 * 
+	 * @param value value to test
+	 * @return is value numeric
+	 */
+	public static boolean isNumber(Object value) {
+		if (value instanceof Number) return true;
+		else if (value instanceof CharSequence || value instanceof Character) {
+			return isNumber(value.toString());
+		}
+
+		else return false;
+	}
+
+	/**
 	 * tests if String value is Numeric
 	 * 
 	 * @param str value to test
@@ -175,8 +168,9 @@ public final class Decision {
 		int pos = 0;
 		int len = str.length();
 		if (len == 0) return false;
-		char curr = str.charAt(pos);
+		char curr = str.charAt(pos), nxt;
 
+		// +/- at beginning
 		if (curr == '+' || curr == '-') {
 			if (len == ++pos) return false;
 			curr = str.charAt(pos);
@@ -195,7 +189,18 @@ public final class Decision {
 			}
 			else if (curr > '9') {
 				if (curr == 'e' || curr == 'E') {
+					// is it follow by +/-, that is fine
+					if (pos + 1 < len) {
+						nxt = str.charAt(pos + 1);
+						if (nxt == '+' || nxt == '-') {
+							curr = nxt;
+							pos++;
+						}
+					}
+
+					// e cannot be azt the end and not more than once
 					if (pos + 1 >= len || hasExp) return false;
+
 					hasExp = true;
 					hasDot = true;
 				}
@@ -924,7 +929,7 @@ public final class Decision {
 					int len = path.length();
 					for (int i = 0; i < len; i++) {
 
-						if ("?<>:*|\"".indexOf(path.charAt(i)) > -1) return false;
+						if ("?<>*|\"".indexOf(path.charAt(i)) > -1) return false;
 					}
 				}
 			}

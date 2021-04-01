@@ -31,9 +31,10 @@ public interface VariableUtil {
 	/**
 	 * return a property from the given Object, when property doesn't exists return null
 	 * 
-	 * @param pc
+	 * @param pc Page Context
 	 * @param coll Collection to check
 	 * @param key to get from Collection
+	 * @param defaultValue default value
 	 * @return value or null
 	 * @deprecated use instead
 	 */
@@ -43,9 +44,10 @@ public interface VariableUtil {
 	/**
 	 * return a property from the given Object, when property doesn't exists return null
 	 * 
-	 * @param pc
+	 * @param pc Page Context
 	 * @param coll Collection to check
 	 * @param key to get from Collection
+	 * @param defaultValue default value
 	 * @return value or null
 	 */
 	public Object getCollection(PageContext pc, Object coll, Collection.Key key, Object defaultValue);
@@ -53,9 +55,10 @@ public interface VariableUtil {
 	/**
 	 * return a property from the given Object, when property doesn't exists return null
 	 * 
-	 * @param pc
+	 * @param pc Page Context
 	 * @param coll Collection to check
 	 * @param key to get from Collection
+	 * @param defaultValue default value
 	 * @return value or null
 	 * @deprecated use instead
 	 *             <code>get(PageContext pc, Object coll, Collection.Key key, Object defaultValue);</code>
@@ -66,9 +69,10 @@ public interface VariableUtil {
 	/**
 	 * return a property from the given Object, when property doesn't exists return null
 	 * 
-	 * @param pc
+	 * @param pc Page Context
 	 * @param coll Collection to check
 	 * @param key to get from Collection
+	 * @param defaultValue default value
 	 * @return value or null
 	 */
 	public abstract Object get(PageContext pc, Object coll, Collection.Key key, Object defaultValue);
@@ -76,9 +80,10 @@ public interface VariableUtil {
 	/**
 	 * return a property from the given Object, when property doesn't exists return null
 	 * 
-	 * @param pc
+	 * @param pc Page Context
 	 * @param coll Collection to check
 	 * @param key to get from Collection
+	 * @param defaultValue default value
 	 * @return value or null
 	 */
 	public abstract Object getLight(PageContext pc, Object coll, String key, Object defaultValue);
@@ -87,34 +92,34 @@ public interface VariableUtil {
 	 * return a property from the given Object, when coll is a query return a Column,when property
 	 * doesn't exists throw exception
 	 * 
-	 * @param pc
+	 * @param pc Page Context
 	 * @param coll Collection to check
 	 * @param key to get from Collection
 	 * @return value value to get
-	 * @throws PageException
+	 * @throws PageException Page Context
 	 */
 	public abstract Object getCollection(PageContext pc, Object coll, String key) throws PageException;
 
 	/**
 	 * return a property from the given Object, when property doesn't exists throw exception
 	 * 
-	 * @param pc
+	 * @param pc Page Context
 	 * @param coll Collection to check
 	 * @param key to get from Collection
 	 * @return value value to get
-	 * @throws PageException
+	 * @throws PageException Page Context
 	 */
 	public abstract Object get(PageContext pc, Object coll, String key) throws PageException;
 
 	/**
 	 * sets a value to the Object
 	 * 
-	 * @param pc
+	 * @param pc Page Context
 	 * @param coll Collection to check
 	 * @param key to get from Collection
 	 * @param value Value to set
 	 * @return value setted
-	 * @throws PageException
+	 * @throws PageException Page Context
 	 * @deprecated use instead
 	 *             <code>set(PageContext pc, Object coll, Collection.Key key,Object value)</code>
 	 */
@@ -126,7 +131,7 @@ public interface VariableUtil {
 	/**
 	 * sets a value to the Object
 	 * 
-	 * @param pc
+	 * @param pc Page Context
 	 * @param coll Collection to check
 	 * @param key to get from Collection
 	 * @param value Value to set
@@ -140,7 +145,7 @@ public interface VariableUtil {
 	/**
 	 * sets a value to the Object
 	 * 
-	 * @param pc
+	 * @param pc Page Context
 	 * @param coll Collection to check
 	 * @param key to get from Collection
 	 * @param value Value to set
@@ -151,8 +156,8 @@ public interface VariableUtil {
 	/**
 	 * remove value from Collection
 	 * 
-	 * @param coll
-	 * @param key
+	 * @param coll Collection
+	 * @param key key 
 	 * @return has cleared or not
 	 */
 	@Deprecated
@@ -163,10 +168,10 @@ public interface VariableUtil {
 	/**
 	 * clear value from Collection
 	 * 
-	 * @param coll
-	 * @param key
+	 * @param coll Collection
+	 * @param key key 
 	 * @return has cleared or not
-	 * @throws PageException
+	 * @throws PageException Page Context
 	 */
 	@Deprecated
 	public abstract Object remove(Object coll, String key) throws PageException;
@@ -176,24 +181,24 @@ public interface VariableUtil {
 	/**
 	 * call a Function (UDF, Method) with or witout named values
 	 * 
-	 * @param pc
+	 * @param pc Page Context
 	 * @param coll Collection of the UDF Function
 	 * @param key name of the function
 	 * @param args arguments to call the function
 	 * @return return value of the function
-	 * @throws PageException
+	 * @throws PageException Page Context
 	 */
 	public abstract Object callFunction(PageContext pc, Object coll, String key, Object[] args) throws PageException;
 
 	/**
 	 * call a Function (UDF, Method) without Named Values
 	 * 
-	 * @param pc
+	 * @param pc Page Context
 	 * @param coll Collection of the UDF Function
 	 * @param key name of the function
 	 * @param args arguments to call the function
 	 * @return return value of the function
-	 * @throws PageException
+	 * @throws PageException Page Context
 	 * @deprecated use instead
 	 *             <code>callFunctionWithoutNamedValues(PageContext pc, Object coll, Collection.Key key, Object[] args)</code>
 	 */
@@ -203,24 +208,24 @@ public interface VariableUtil {
 	/**
 	 * call a Function (UDF, Method) without Named Values
 	 * 
-	 * @param pc
+	 * @param pc Page Context
 	 * @param coll Collection of the UDF Function
 	 * @param key name of the function
 	 * @param args arguments to call the function
 	 * @return return value of the function
-	 * @throws PageException
+	 * @throws PageException Page Context
 	 */
 	public Object callFunctionWithoutNamedValues(PageContext pc, Object coll, Collection.Key key, Object[] args) throws PageException;
 
 	/**
 	 * call a Function (UDF, Method) with Named Values
 	 * 
-	 * @param pc
+	 * @param pc Page Context
 	 * @param coll Collection of the UDF Function
 	 * @param key name of the function
 	 * @param args arguments to call the function
 	 * @return return value of the function
-	 * @throws PageException
+	 * @throws PageException Page Context
 	 * @deprecated use instead
 	 *             <code>callFunctionWithNamedValues(PageContext pc, Object coll, Collection.Key key, Object[] args)</code>
 	 */
@@ -230,12 +235,12 @@ public interface VariableUtil {
 	/**
 	 * call a Function (UDF, Method) with Named Values
 	 * 
-	 * @param pc
+	 * @param pc Page Context
 	 * @param coll Collection of the UDF Function
 	 * @param key name of the function
 	 * @param args arguments to call the function
 	 * @return return value of the function
-	 * @throws PageException
+	 * @throws PageException Page Context
 	 */
 	public Object callFunctionWithNamedValues(PageContext pc, Object coll, Collection.Key key, Object[] args) throws PageException;
 

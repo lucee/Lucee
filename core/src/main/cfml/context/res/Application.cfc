@@ -39,7 +39,6 @@ component {
 
 
 	function onMissingTemplate(target) {
-
 		if (variables.isDebug)
 			onApplicationStart();		// disable cache for debug/develop
 

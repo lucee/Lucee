@@ -118,6 +118,7 @@ public interface ApplicationContext extends Serializable {
 	public boolean getSecureJson();
 
 	/**
+	 * @return Default Datasource
 	 * @deprecated use instead getDefDataSource()
 	 */
 	@Deprecated
@@ -126,6 +127,7 @@ public interface ApplicationContext extends Serializable {
 	public boolean isORMEnabled();
 
 	/**
+	 * @return ORM Datasource
 	 * @deprecated use instead getDefaultDataSource()
 	 */
 	@Deprecated
@@ -228,10 +230,10 @@ public interface ApplicationContext extends Serializable {
 	public void setDefaultCacheName(int type, String cacheName);
 
 	/**
-	 * merge the field with same name to array if true, otherwise to a comma separated string list
+	 * merge the fields with same name to array if true, otherwise to a comma separated string list
 	 * 
 	 * @param scope scope type, one of the following: Scope.SCOPE_FORM or Scope.SCOPE_URL
-	 * @return
+	 * @return Returns a list of fields.
 	 */
 	public boolean getSameFieldAsArray(int scope);
 
@@ -252,14 +254,14 @@ public interface ApplicationContext extends Serializable {
 	/**
 	 * default datasource name (String) or datasource (DataSource Object)
 	 * 
-	 * @return
+	 * @return Returns the Default Datasource.
 	 */
 	public Object getDefDataSource();
 
 	/**
 	 * orm datasource name (String) or datasource (DataSource Object)
 	 * 
-	 * @return
+	 * @return Returns the Default ORM Datasource.
 	 */
 	public Object getORMDataSource();
 

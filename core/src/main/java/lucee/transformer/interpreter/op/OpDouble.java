@@ -49,11 +49,6 @@ public final class OpDouble extends ExpressionBase implements ExprDouble {
 		return new OpDouble(left, right, operation);
 	}
 
-	/**
-	 *
-	 * @see lucee.transformer.bytecode.expression.ExpressionBase#_writeOut(org.objectweb.asm.commons.GeneratorAdapter,
-	 *      int)
-	 */
 	@Override
 	public Class<?> _writeOut(InterpreterContext ic, int mode) throws PageException {
 		return writeOutDouble(ic, mode);

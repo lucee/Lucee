@@ -32,11 +32,13 @@ import java.util.Iterator;
 import java.util.Set;
 
 import lucee.commons.db.DBUtil;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.DatasourceConnPool;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
@@ -69,6 +71,13 @@ public final class HSQLDBHandler {
 	Executer executer = new Executer();
 	QoQ qoq = new QoQ();
 	private static Object lock = new SerializableObject();
+	private static boolean hsqldbDisable;
+	private static boolean hsqldbDebug;
+
+	static {
+		hsqldbDisable = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.qoq.hsqldb.disable", "false"), false);
+		hsqldbDebug = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.qoq.hsqldb.debug", "false"), false);
+	}
 
 	/**
 	 * constructor of the class
@@ -241,27 +250,49 @@ public final class HSQLDBHandler {
 		String prettySQL = null;
 		Selects selects = null;
 
+		Exception qoqException = null;
+
 		// First Chance
 		try {
 			SelectParser parser = new SelectParser();
 			selects = parser.parse(sql.getSQLString());
-			QueryImpl q = qoq.execute(pc, sql, selects, maxrows);
+			QueryImpl q = (QueryImpl) qoq.execute(pc, sql, selects, maxrows);
 			q.setExecutionTime(stopwatch.time());
 			return q;
 		}
 		catch (SQLParserException spe) {
-			// sp
+			qoqException = spe;
 			prettySQL = SQLPrettyfier.prettyfie(sql.getSQLString());
 			try {
 				QueryImpl query = executer.execute(pc, sql, prettySQL, maxrows);
 				query.setExecutionTime(stopwatch.time());
 				return query;
 			}
-			catch (PageException ex) {}
+			catch (PageException ex) {
+			}
 
 		}
-		catch (PageException e) {}
-		// if(true) throw new RuntimeException();
+		catch (PageException e) {
+			qoqException = e;
+		}
+
+		
+		if (qoqException != null){
+			// Debugging option to to log all QoQ that fall back on hsqldb in the datasource log
+			if (hsqldbDebug) {
+				pc.getConfig().getLog("datasource").error("QoQ [" + sql.getSQLString() + "] errored and is falling back to HyperSQL.", qoqException);
+			}
+
+			// Log an exception if debugging is enabled
+			if (pc.getConfig().debug()) {
+				pc.getDebugger().addException(pc.getConfig(), Caster.toPageException(qoqException));
+			}
+
+			// Debugging option to completely disable HyperSQL for testing
+			if ( hsqldbDisable) {
+				throw Caster.toPageException(qoqException);
+			}
+		}
 
 		// SECOND Chance with hsqldb
 		try {
@@ -310,11 +341,14 @@ public final class HSQLDBHandler {
 		synchronized (lock) {
 
 			QueryImpl nqr = null;
-			ConfigImpl config = (ConfigImpl) pc.getConfig();
-			DatasourceConnectionPool pool = config.getDatasourceConnectionPool();
-			DatasourceConnection dc = pool.getDatasourceConnection(config, config.getDataSource(QOQ_DATASOURCE_NAME), "sa", "");
-			Connection conn = dc.getConnection();
+			ConfigPro config = (ConfigPro) pc.getConfig();
+			DatasourceConnection dc = null;
+			Connection conn = null;
 			try {
+				DatasourceConnPool pool = config.getDatasourceConnectionPool(config.getDataSource(QOQ_DATASOURCE_NAME), "sa", "");
+				dc = pool.borrowObject();
+				conn = dc.getConnection();
+
 				DBUtil.setAutoCommitEL(conn, false);
 
 				// sql.setSQLString(HSQLUtil.sqlToZQL(sql.getSQLString(),false));
@@ -343,16 +377,18 @@ public final class HSQLDBHandler {
 
 				}
 				catch (SQLException e) {
-					DatabaseException de = new DatabaseException("there is a problem to execute sql statement on query", null, sql, null);
+					DatabaseException de = new DatabaseException("QoQ HSQLDB: error executing sql statement on query", null, sql, null);
 					de.setDetail(e.getMessage());
 					throw de;
 				}
 
 			}
 			finally {
-				removeAll(conn, usedTables);
-				DBUtil.setAutoCommitEL(conn, true);
-				pool.releaseDatasourceConnection(dc);
+				if (conn != null) {
+					removeAll(conn, usedTables);
+					DBUtil.setAutoCommitEL(conn, true);
+				}
+				if (dc != null) ((DatasourceConnectionPro) dc).release();
 
 				// manager.releaseConnection(dc);
 			}

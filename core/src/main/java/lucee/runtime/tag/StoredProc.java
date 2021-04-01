@@ -49,7 +49,7 @@ import lucee.runtime.cache.tag.CacheHandlerPro;
 import lucee.runtime.cache.tag.CacheItem;
 import lucee.runtime.cache.tag.query.StoredProcCacheItem;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.Constants;
 import lucee.runtime.db.CFTypes;
@@ -89,12 +89,12 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 	private static final int TYPE_NAME = 7;
 	// |PRECISION|LENGTH|SCALE|RADIX|NULLABLE|REMARKS|SEQUENCE|OVERLOAD|DEFAULT_VALUE
 
-	private static final lucee.runtime.type.Collection.Key KEY_SC = KeyImpl.intern("StatusCode");
+	private static final lucee.runtime.type.Collection.Key KEY_SC = KeyImpl.getInstance("StatusCode");
 
-	private static final lucee.runtime.type.Collection.Key COUNT = KeyImpl.intern("count_afsdsfgdfgdsfsdfsgsdgsgsdgsasegfwef");
+	private static final lucee.runtime.type.Collection.Key COUNT = KeyImpl.getInstance("count_afsdsfgdfgdsfsdfsgsdgsgsdgsasegfwef");
 
 	private static final ProcParamBean STATUS_CODE;
-	private static final lucee.runtime.type.Collection.Key STATUSCODE = KeyImpl.intern("StatusCode");
+	private static final lucee.runtime.type.Collection.Key STATUSCODE = KeyImpl.getInstance("StatusCode");
 
 	static {
 		STATUS_CODE = new ProcParamBean();
@@ -704,7 +704,7 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 			res.set(KeyConstants._cached, Caster.toBoolean(isFromCache));
 
 			if (pageContext.getConfig().debug() && debug) {
-				boolean logdb = ((ConfigImpl) pageContext.getConfig()).hasDebugOptions(ConfigImpl.DEBUG_DATABASE);
+				boolean logdb = ((ConfigPro) pageContext.getConfig()).hasDebugOptions(ConfigPro.DEBUG_DATABASE);
 				if (logdb) pageContext.getDebugger().addQuery(null, dsn, procedure, _sql, count, pageContext.getCurrentPageSource(), (int) exe);
 			}
 

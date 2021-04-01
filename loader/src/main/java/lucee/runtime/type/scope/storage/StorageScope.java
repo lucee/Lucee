@@ -50,25 +50,29 @@ public interface StorageScope extends SharedScope {
 
 	/**
 	 * store content on persistent layer
+	 * 
+	 * @param config config
 	 */
 	public void store(Config config);
 
 	/**
 	 * remove stored data from persistent layer
+	 * 
+	 * @param config config
 	 */
 	public void unstore(Config config);
 
 	/**
 	 * sets the name of the storage used, this is not the storage type!
 	 * 
-	 * @param storage
+	 * @param storage storage name
 	 */
 	public void setStorage(String storage);
 
 	/**
 	 * return the name of the storage used, this is not the storage type!
 	 * 
-	 * @return
+	 * @return Returns the storage name.
 	 */
 	public String getStorage();
 

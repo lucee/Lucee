@@ -128,6 +128,7 @@ import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.dt.DateTimeImpl;
+import lucee.runtime.type.dt.Time;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.dt.TimeSpanImpl;
 import lucee.runtime.type.scope.ObjectStruct;
@@ -2303,6 +2304,14 @@ public final class Caster {
 			return toList(((ObjectWrap) o).getEmbededObject());
 		}
 		else if (o instanceof Struct) {
+			if (o instanceof Component) {
+				try {
+					Object tmp = Reflector.componentToClass(ThreadLocalPageContext.get(), (Component) o, List.class);
+					if (tmp instanceof List) return (List) tmp;
+				}
+				catch (PageException e) {}
+			}
+
 			Struct sct = (Struct) o;
 			ArrayList arr = new ArrayList();
 
@@ -2614,6 +2623,13 @@ public final class Caster {
 	 */
 	public static Map toMap(Object o, boolean duplicate) throws PageException {
 		if (o instanceof Struct) {
+			if (o instanceof Component) {
+				try {
+					Object tmp = Reflector.componentToClass(ThreadLocalPageContext.get(), (Component) o, Map.class);
+					if (tmp instanceof Map) return (Map) tmp;
+				}
+				catch (PageException e) {}
+			}
 			if (duplicate) return (Map) Duplicator.duplicate(o, false);
 			return ((Struct) o);
 		}
@@ -3542,174 +3558,175 @@ public final class Caster {
 	 * @throws PageException
 	 */
 	public static Object castTo(PageContext pc, String type, Object o, boolean alsoPattern) throws PageException {
-		type = StringUtil.toLowerCase(type).trim();
-		if (type.length() > 2) {
-			char first = type.charAt(0);
+		type = type.trim();
+		String lctype = StringUtil.toLowerCase(type);
+		if (lctype.length() > 2) {
+			char first = lctype.charAt(0);
 			switch (first) {
 			case 'a':
-				if (type.equals("any")) {
+				if (lctype.equals("any")) {
 					return o;
 				}
-				else if (type.equals("array")) {
+				else if (lctype.equals("array")) {
 					return toArray(o);
 				}
 				break;
 			case 'b':
-				if (type.equals("boolean") || type.equals("bool")) {
+				if (lctype.equals("boolean") || lctype.equals("bool")) {
 					return toBoolean(o);
 				}
-				else if (type.equals("binary")) {
+				else if (lctype.equals("binary")) {
 					return toBinary(o);
 				}
-				else if (type.equals("byte[]")) {
+				else if (lctype.equals("byte[]")) {
 					return toBinary(o);
 				}
-				else if (type.equals("base64")) {
+				else if (lctype.equals("base64")) {
 					return toBase64(o, null);
 				}
-				else if (type.equals("bigdecimal") || type.equals("big_decimal")) {
+				else if (lctype.equals("bigdecimal") || lctype.equals("big_decimal")) {
 					return toBigDecimal(o);
 				}
-				else if (type.equals("biginteger") || type.equals("big_integer")) {
+				else if (lctype.equals("biginteger") || lctype.equals("big_integer")) {
 					return toBigInteger(o);
 				}
 				break;
 			case 'c':
-				if (alsoPattern && type.equals("creditcard")) {
+				if (alsoPattern && lctype.equals("creditcard")) {
 					return toCreditCard(o);
 				}
 				break;
 			case 'd':
-				if (type.equals("date")) {
+				if (lctype.equals("date")) {
 					return DateCaster.toDateAdvanced(o, pc.getTimeZone());
 				}
-				else if (type.equals("datetime")) {
+				else if (lctype.equals("datetime")) {
 					return DateCaster.toDateAdvanced(o, pc.getTimeZone());
 				}
-				else if (type.equals("double")) {
+				else if (lctype.equals("double")) {
 					return toDouble(o);
 				}
-				else if (type.equals("decimal")) {
+				else if (lctype.equals("decimal")) {
 					return toDecimal(o);
 				}
 				break;
 			case 'e':
-				if (type.equals("eurodate")) {
+				if (lctype.equals("eurodate")) {
 					return DateCaster.toEuroDate(o, pc.getTimeZone());
 				}
-				else if (alsoPattern && type.equals("email")) {
+				else if (alsoPattern && lctype.equals("email")) {
 					return toEmail(o);
 				}
 				break;
 			case 'f':
-				if (type.equals("float")) {
+				if (lctype.equals("float")) {
 					return toDouble(o);
 				}
-				else if (type.equals("function")) {
+				else if (lctype.equals("function")) {
 					return toFunction(o);
 				}
 				break;
 			case 'g':
-				if (type.equals("guid")) {
+				if (lctype.equals("guid")) {
 					return toGUId(o);
 				}
 				break;
 			case 'i':
-				if (type.equals("integer") || type.equals("int")) {
+				if (lctype.equals("integer") || lctype.equals("int")) {
 					return toInteger(o);
 				}
 				break;
 			case 'l':
-				if (type.equals("long")) {
+				if (lctype.equals("long")) {
 					return toLong(o);
 				}
 				break;
 			case 'n':
-				if (type.equals("numeric")) {
+				if (lctype.equals("numeric")) {
 					return toDouble(o);
 				}
-				else if (type.equals("number")) {
+				else if (lctype.equals("number")) {
 					return toDouble(o);
 				}
-				else if (type.equals("node")) {
+				else if (lctype.equals("node")) {
 					return toXML(o);
 				}
 				break;
 			case 'o':
-				if (type.equals("object")) {
+				if (lctype.equals("object")) {
 					return o;
 				}
-				else if (type.equals("other")) {
+				else if (lctype.equals("other")) {
 					return o;
 				}
 				break;
 			case 'p':
-				if (alsoPattern && type.equals("phone")) {
+				if (alsoPattern && lctype.equals("phone")) {
 					return toPhone(o);
 				}
 				break;
 			case 'q':
-				if (type.equals("query")) {
+				if (lctype.equals("query")) {
 					return toQuery(o);
 				}
 				break;
 			case 's':
-				if (type.equals("string")) {
+				if (lctype.equals("string")) {
 					return toString(o);
 				}
-				else if (type.equals("struct")) {
+				else if (lctype.equals("struct")) {
 					return toStruct(o);
 				}
-				else if (type.equals("short")) {
+				else if (lctype.equals("short")) {
 					return toShort(o);
 				}
-				else if (alsoPattern && (type.equals("ssn") || type.equals("social_security_number"))) {
+				else if (alsoPattern && (lctype.equals("ssn") || lctype.equals("social_security_number"))) {
 					return toSSN(o);
 				}
 				break;
 			case 't':
-				if (type.equals("timespan")) {
+				if (lctype.equals("timespan")) {
 					return toTimespan(o);
 				}
-				if (type.equals("time")) {
+				if (lctype.equals("time")) {
 					return DateCaster.toDateAdvanced(o, pc.getTimeZone());
 				}
-				if (alsoPattern && type.equals("telephone")) {
+				if (alsoPattern && lctype.equals("telephone")) {
 					return toPhone(o);
 				}
 				break;
 			case 'u':
-				if (type.equals("uuid")) {
+				if (lctype.equals("uuid")) {
 					return toUUId(o);
 				}
-				if (alsoPattern && type.equals("url")) {
+				if (alsoPattern && lctype.equals("url")) {
 					return toURL(o);
 				}
-				if (type.equals("usdate")) {
+				if (lctype.equals("usdate")) {
 					return DateCaster.toUSDate(o, pc.getTimeZone());
 					// return DateCaster.toDate(o,pc.getTimeZone());
 				}
 				break;
 			case 'v':
-				if (type.equals("variablename")) {
+				if (lctype.equals("variablename")) {
 					return toVariableName(o);
 				}
-				else if (type.equals("void")) {
+				else if (lctype.equals("void")) {
 					return toVoid(o);
 				}
-				else if (type.equals("variable_name")) {
+				else if (lctype.equals("variable_name")) {
 					return toVariableName(o);
 				}
-				else if (type.equals("variable-name")) {
+				else if (lctype.equals("variable-name")) {
 					return toVariableName(o);
 				}
 				break;
 			case 'x':
-				if (type.equals("xml")) {
+				if (lctype.equals("xml")) {
 					return toXML(o);
 				}
 			case 'z':
-				if (alsoPattern && (type.equals("zip") || type.equals("zipcode"))) {
+				if (alsoPattern && (lctype.equals("zip") || lctype.equals("zipcode"))) {
 					return toZip(o);
 				}
 				break;
@@ -3717,8 +3734,8 @@ public final class Caster {
 		}
 
 		// <type>[]
-		if (type.endsWith("[]")) {
-			String componentType = type.substring(0, type.length() - 2);
+		if (lctype.endsWith("[]")) {
+			String componentType = lctype.substring(0, lctype.length() - 2);
 			Object[] src = toNativeArray(o);
 			Array trg = new ArrayImpl();
 			for (int i = 0; i < src.length; i++) {
@@ -3884,8 +3901,31 @@ public final class Caster {
 		if (o instanceof Component) {
 			Component comp = ((Component) o);
 			if (comp.instanceOf(strType)) return o;
+
+			try {
+				Class<?> trgClass = ClassUtil.loadClass(strType);
+				if (trgClass.isInterface()) {
+					return Reflector.componentToClass(pc, comp, trgClass);
+				}
+			}
+			catch (ClassException ce) {
+				throw Caster.toPageException(ce);
+			}
+
 			throw new ExpressionException("can't cast Component of Type [" + comp.getAbsName() + "] to [" + strType + "]");
 		}
+		if (o instanceof UDF) {
+			try {
+				Class<?> trgClass = ClassUtil.loadClass(strType);
+				if (trgClass.isInterface()) {
+					return Reflector.udfToClass(pc, (UDF) o, trgClass);
+				}
+			}
+			catch (ClassException ce) {
+				throw Caster.toPageException(ce);
+			}
+		}
+
 		if (o instanceof Pojo) {
 			Component cfc = toComponent(pc, ((Pojo) o), strType, null);
 			if (cfc != null) return cfc;
@@ -4124,7 +4164,7 @@ public final class Caster {
 	 * @return casted Double
 	 */
 	public static Double toRef(double d) {
-		return new Double(d);
+		return Double.valueOf(d);
 	}
 
 	/**
@@ -4158,6 +4198,13 @@ public final class Caster {
 	public static Collection toCollection(Object o) throws PageException {
 		if (o instanceof Collection) return (Collection) o;
 		else if (o instanceof Node) return XMLCaster.toXMLStruct((Node) o, false);
+		else if (o instanceof Component) {
+			try {
+				Object tmp = Reflector.componentToClass(ThreadLocalPageContext.get(), (Component) o, Collection.class);
+				if (tmp instanceof Collection) return (Collection) tmp;
+			}
+			catch (PageException e) {}
+		}
 		else if (o instanceof Map) {
 			return MapAsStruct.toStruct((Map) o, true);// StructImpl((Map)o);
 		}
@@ -4208,6 +4255,13 @@ public final class Caster {
 	public static Collection toCollection(Object o, Collection defaultValue) {
 		if (o instanceof Collection) return (Collection) o;
 		else if (o instanceof Node) return XMLCaster.toXMLStruct((Node) o, false);
+		else if (o instanceof Component) {
+			try {
+				Object tmp = Reflector.componentToClass(ThreadLocalPageContext.get(), (Component) o, Collection.class);
+				if (tmp instanceof Collection) return (Collection) tmp;
+			}
+			catch (PageException e) {}
+		}
 		else if (o instanceof Map) {
 			return MapAsStruct.toStruct((Map) o, true);
 		}
@@ -4699,7 +4753,15 @@ public final class Caster {
 
 		if (Reflector.isInstaneOf(obj.getClass(), trgClass, false)) return obj;
 
-		return Caster.castTo(pc, Caster.toClassName(trgClass), obj, false);
+		if (obj instanceof Component) {
+			if (trgClass == Component.class) return obj;
+			Component comp = ((Component) obj);
+			if (trgClass.isInterface()) { // TODO allow not only intefaces
+				return Reflector.componentToClass(pc, comp, trgClass);
+			}
+		}
+
+		return castTo(pc, Caster.toClassName(trgClass), obj, false);
 	}
 
 	public static Objects toObjects(PageContext pc, Object obj) throws PageException {
@@ -4761,11 +4823,26 @@ public final class Caster {
 
 	public static CharSequence toCharSequence(Object obj) throws PageException {
 		if (obj instanceof CharSequence) return (CharSequence) obj;
+		if (obj instanceof Component) {
+			try {
+				Object tmp = Reflector.componentToClass(ThreadLocalPageContext.get(), (Component) obj, CharSequence.class);
+				if (tmp instanceof CharSequence) return (CharSequence) tmp;
+			}
+			catch (PageException pe) {}
+		}
 		return Caster.toString(obj);
 	}
 
 	public static CharSequence toCharSequence(Object obj, CharSequence defaultValue) {
 		if (obj instanceof CharSequence) return (CharSequence) obj;
+		if (obj instanceof Component) {
+			try {
+				Object tmp = Reflector.componentToClass(ThreadLocalPageContext.get(), (Component) obj, CharSequence.class);
+				if (tmp instanceof CharSequence) return (CharSequence) tmp;
+			}
+			catch (PageException pe) {}
+		}
+
 		String str = Caster.toString(obj, null);
 		if (str == null) return defaultValue;
 		return str;
@@ -4887,5 +4964,20 @@ public final class Caster {
 				Reflector.callSetter(pojo, p.getName().toLowerCase(), v);
 			}
 		}
+	}
+
+	public static long toTime(lucee.runtime.type.dt.Date date, Time time, TimeZone tz) {
+		if (time == null) return date.getTime();
+		tz = ThreadLocalPageContext.getTimeZone(tz);
+		Calendar c = JREDateTimeUtil.getThreadCalendar(tz);
+		c.setTimeInMillis(date.getTime());
+		int y = c.get(Calendar.YEAR);
+		int m = c.get(Calendar.MONTH);
+		int d = c.get(Calendar.DAY_OF_MONTH);
+		c.setTimeInMillis(time.getTime());
+		c.set(Calendar.YEAR, y);
+		c.set(Calendar.MONTH, m);
+		c.set(Calendar.DAY_OF_MONTH, d);
+		return c.getTimeInMillis();
 	}
 }

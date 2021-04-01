@@ -29,6 +29,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		variables.dir1=root&"a/";
 		variables.file2=root&"a/b.txt";
 		variables.target=root&"test.zip";
+		variables.targetStored=root&"testStored.zip";
 		variables.unzip=root&"unzip";
 
 		if(directoryExists(root)) directoryDelete(root,true);
@@ -74,6 +75,17 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 			zip action="list" file=target name="local.qry";
 			assertEquals(4,qry.recordcount);
 			assertEquals('1/2.cfm,a.txt,b.txt,b/c/a.txt',listSort(valueList(qry.name),'textnocase'));
+			
+			// zip no compression
+			if(fileExists(targetStored)) fileDelete(targetStored);
+			zip action="zip" file=targetStored compressionMethod="store"{
+				zipparam entryPath = "/1/2.cfm" source =variables.file1;
+				zipparam source =variables.file1;
+				zipparam source =variables.dir1;
+				zipparam prefix="n/m" source =variables.dir1;
+			}
+			// without compression, a zip file using store should be larger than a standard zip file
+			assertTrue(getFileInfo(targetStored).size GT getFileInfo(target).size);
 		
 
 		}

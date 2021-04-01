@@ -81,7 +81,6 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.FunctionArgument;
-import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.UDFGSProperty;
@@ -161,7 +160,7 @@ public class UDFUtil {
 		if (req.length() > 0) doc.append("\nRequired:\n").append(req);
 		if (opt.length() > 0) doc.append("\nOptional:\n").append(opt);
 
-		pe.setAdditional(KeyImpl.init("Documentation"), doc);
+		pe.setAdditional(KeyConstants._Documentation, doc);
 
 	}
 

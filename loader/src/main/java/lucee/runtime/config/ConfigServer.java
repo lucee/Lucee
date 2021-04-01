@@ -37,7 +37,7 @@ public interface ConfigServer extends Config {
 	public abstract ConfigWeb[] getConfigWebs();
 
 	/**
-	 * @param realpath
+	 * @param realpath path
 	 * @return returns config web matching given realpath
 	 */
 	public abstract ConfigWeb getConfigWeb(String realpath);
@@ -48,7 +48,7 @@ public interface ConfigServer extends Config {
 	public abstract Map<String, CFMLFactory> getJSPFactoriesAsMap();
 
 	/**
-	 * @param id
+	 * @param id for the security manager
 	 * @return returns SecurityManager matching config
 	 */
 	public abstract SecurityManager getSecurityManager(String id);
@@ -78,13 +78,13 @@ public interface ConfigServer extends Config {
 
 	/**
 	 * @param strUpdateLocation The updateLocation to set.
-	 * @throws MalformedURLException
+	 * @throws MalformedURLException Malformed URL Exception
 	 */
 	public abstract void setUpdateLocation(String strUpdateLocation) throws MalformedURLException;
 
 	/**
 	 * @param strUpdateLocation The updateLocation to set.
-	 * @param defaultValue
+	 * @param defaultValue default value
 	 */
 	public abstract void setUpdateLocation(String strUpdateLocation, URL defaultValue);
 
@@ -103,7 +103,7 @@ public interface ConfigServer extends Config {
 
 	/**
 	 * @deprecated use instead getEngine
-	 * @return
+	 * @return returns the CFML Engine.
 	 */
 	@Deprecated
 	public abstract CFMLEngine getCFMLEngine();

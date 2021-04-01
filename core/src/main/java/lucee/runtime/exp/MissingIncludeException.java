@@ -23,15 +23,16 @@ import lucee.runtime.PageSource;
 import lucee.runtime.config.Config;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.util.KeyConstants;
 
 /**
  * Exception thrown when missing include
  */
 public final class MissingIncludeException extends PageExceptionImpl {
 
-	private static final Collection.Key MISSING_FILE_NAME = KeyImpl.intern("MissingFileName");
-	private static final Collection.Key MISSING_FILE_NAME_REL = KeyImpl.intern("MissingFileName_rel");
-	private static final Collection.Key MISSING_FILE_NAME_ABS = KeyImpl.intern("MissingFileName_abs");
+	private static final Collection.Key MISSING_FILE_NAME = KeyImpl.getInstance("MissingFileName");
+	private static final Collection.Key MISSING_FILE_NAME_REL = KeyImpl.getInstance("MissingFileName_rel");
+	private static final Collection.Key MISSING_FILE_NAME_ABS = KeyImpl.getInstance("MissingFileName_abs");
 
 	private PageSource pageSource;
 
@@ -55,7 +56,7 @@ public final class MissingIncludeException extends PageExceptionImpl {
 	}
 
 	private void setDetail(PageSource ps) {
-		setAdditional(KeyImpl.init("Mapping"), ps.getMapping().getVirtual());
+		setAdditional(KeyConstants._Mapping, ps.getMapping().getVirtual());
 	}
 
 	/**
@@ -67,8 +68,8 @@ public final class MissingIncludeException extends PageExceptionImpl {
 
 	private static String createMessage(PageSource pageSource) {
 		String dsp = pageSource.getDisplayPath();
-		if (dsp == null) return "Page " + pageSource.getRealpathWithVirtual() + " not found";
-		return "Page " + pageSource.getRealpathWithVirtual() + " [" + dsp + "] not found";
+		if (dsp == null) return "Page [" + pageSource.getRealpathWithVirtual() + "] not found";
+		return "Page [" + pageSource.getRealpathWithVirtual() + "] [" + dsp + "] not found";
 	}
 
 	@Override

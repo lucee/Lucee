@@ -24,6 +24,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.servlet.jsp.tagext.Tag;
 
+import lucee.commons.lang.ClassUtil;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.Identification;
 import lucee.runtime.exp.ExpressionException;
@@ -84,9 +85,7 @@ public final class TagHandlerPool {
 
 	private Tag loadTag(String className, String tagBundleName, String tagBundleVersion, Identification id) throws PageException {
 		try {
-			return (Tag) new ClassDefinitionImpl(className, tagBundleName, tagBundleVersion, id).getClazz().newInstance();
-			// Class<Tag> clazz = ClassUtil.loadClass(config.getClassLoader(),tagClass);
-			// return clazz.newInstance();
+			return (Tag) ClassUtil.newInstance(new ClassDefinitionImpl(className, tagBundleName, tagBundleVersion, id).getClazz());
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);

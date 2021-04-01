@@ -943,7 +943,7 @@ public final class SystemUtil {
 		sct.setEL(KeyConstants._used, Caster.toDouble(used));
 		sct.setEL(KeyConstants._max, Caster.toDouble(max));
 		sct.setEL(KeyConstants._init, Caster.toDouble(init));
-		sct.setEL(KeyImpl.init("available"), Caster.toDouble(max - used));
+		sct.setEL(KeyConstants._available, Caster.toDouble(max - used));
 		return sct;
 	}
 

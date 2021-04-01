@@ -257,7 +257,7 @@ public class HTTPEngine4Impl {
 		builder.setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build());
 
 		// redirect
-		if (redirect) builder.setRedirectStrategy(new DefaultRedirectStrategy());
+		if (redirect) builder.setRedirectStrategy(DefaultRedirectStrategy.INSTANCE);
 		else builder.disableRedirectHandling();
 
 		HttpHost hh = new HttpHost(url.getHost(), url.getPort());

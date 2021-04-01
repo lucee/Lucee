@@ -76,19 +76,26 @@
 			<cfadmin 
 				action="updateDebugSetting"
 				type="#request.adminType#"
-				password="#session["password"&request.adminType]#"
-				
+				password="#session["password"&request.adminType]#"				
                 maxLogs="#form.maxLogs#"
 				remoteClients="#request.getRemoteClients()#">
 			
 		</cfcase>
+	<!--- CLEAR DEBUG POOL OF LOGS --->
+	<cfcase value="#stText.Buttons.Purge#">
+		<cfadmin 
+			action="PurgeDebugPool"
+			type="#request.adminType#"
+			password="#session["password"&request.adminType]#"
+			remoteClients="#request.getRemoteClients()#">
+		<cfset logs = []>
+	</cfcase>
 	<!--- reset to server setting --->
 		<cfcase value="#stText.Buttons.resetServerAdmin#">
 			<cfadmin 
 				action="updateDebugSetting"
 				type="#request.adminType#"
-				password="#session["password"&request.adminType]#"
-				
+				password="#session["password"&request.adminType]#"				
                 maxLogs=""
 				remoteClients="#request.getRemoteClients()#">
 			
@@ -142,13 +149,19 @@ Redirtect to entry --->
     
     <cfreturn (arguments.time/1000000)&" ms">
 </cffunction> 
-    
+<cfscript>
+	param name="url.action2" default="list";
+	param name="url.format" default="";
 
-
-<cfparam name="url.action2" default="list">
-
-<cfif url.action2 EQ "list">
-	<cfinclude template="debugging.logs.list.cfm">
-<cfelse>
-	<cfinclude template="debugging.logs.detail.cfm">
-</cfif>
+	if (url.action2 EQ "list") {
+		if (url.format eq "json") {
+			setting showdebugoutput="false";
+			content reset="yes" type="application/json";
+			echo(serializeJson(logs));
+			abort;		
+		}
+		include template="debugging.logs.list.cfm";
+	} else {
+		include template="debugging.logs.detail.cfm";
+	}
+</cfscript>

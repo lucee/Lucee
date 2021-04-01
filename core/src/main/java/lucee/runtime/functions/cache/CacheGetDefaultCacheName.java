@@ -22,7 +22,7 @@ import lucee.runtime.PageContext;
 import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
@@ -41,7 +41,7 @@ public final class CacheGetDefaultCacheName extends BIF {
 		if (type == Config.CACHE_TYPE_NONE)
 			throw new FunctionException(pc, "CacheGetDefaultCacheName", 1, "type", "invalid type definition [" + strType + "], valid types are [object,resource,template,query]");
 
-		ConfigImpl config = (ConfigImpl) pc.getConfig();
+		ConfigPro config = (ConfigPro) pc.getConfig();
 		CacheConnection conn = config.getCacheDefaultConnection(type);
 		if (conn == null) throw new ExpressionException("there is no default cache defined for type [" + strType + "]");
 

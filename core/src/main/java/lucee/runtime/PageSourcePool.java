@@ -27,7 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import lucee.commons.collection.LongKeyList;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.Config;
 import lucee.runtime.dump.DumpData;
 import lucee.runtime.dump.DumpProperties;
 import lucee.runtime.dump.DumpTable;
@@ -162,9 +162,9 @@ public final class PageSourcePool implements Dumpable {
 	/**
 	 * clear unused pages from page pool
 	 */
-	public void clearUnused(ConfigImpl config) {
+	public void clearUnused(Config config) {
 		if (size() > maxSize) {
-			LogUtil.log(config, Log.LEVEL_INFO, PageSourcePool.class.getName(), "PagePool: " + size() + ">(" + maxSize + ")");
+			LogUtil.log(config, Log.LEVEL_INFO, PageSourcePool.class.getName(), "PagePool size [" + size() + "] has exceeded max size [" + maxSize + "]. Clearing unused...");
 			String[] keys = keys();
 			LongKeyList list = new LongKeyList();
 			for (int i = 0; i < keys.length; i++) {
@@ -181,6 +181,7 @@ public final class PageSourcePool implements Dumpable {
 				if (key == null) break;
 				remove(key.toString());
 			}
+			LogUtil.log(config, Log.LEVEL_INFO, PageSourcePool.class.getName(), "New pagePool size [" + size() + "].");
 		}
 	}
 

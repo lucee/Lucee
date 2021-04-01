@@ -167,6 +167,7 @@ und Optimierungen innerhalb ihrer Version einspielen.</data>
 	<data key="menu.server.error">Error</data>
 	<data key="menu.server.logging">Logging</data>
 	<data key="menu.server.export">Export</data>
+	<data key="menu.server.proxy">Proxy</data>
 	<data key="menu.services.label">Dienste</data>
 	<data key="menu.services.gateway">Event Gateway</data>
 	<data key="menu.services.cache">Cache</data>
@@ -328,6 +329,9 @@ und Optimierungen innerhalb ihrer Version einspielen.</data>
 	<data key="ext.availableversion">Verfügbare Version</data>
 	<data key="ext.provider">Provider</data>
 	<data key="ext.documentation">Dokumentation</data>
+	<data key="ext.projectUrl">Startseite</data>
+	<data key="ext.sourceUrl">Quellcode</data>
+	<data key="ext.documentationUrl">Dokumentation</data>
 	<data key="ext.installeddesc">Diese Applikation ist bereits installiert.</data>
 	<data key="ext.installedServer">Installiert im Server Administrator</data>
 	<data key="ext.installedServerDesc">
@@ -666,6 +670,10 @@ Diese werden dann am Ende eines Request ausgegeben, falls sie ein Debug Template
 	<data key="debug.settings.timerDesc">Select this option to show timer event information. Timers let a developer track the execution time of the code between the start and end tags of the CFTIMER tag.</data>
 	<data key="debug.settings.implicitAccess">Implicit variable Access</data>
 	<data key="debug.settings.implicitAccessDesc">Select this option to log all accesses to scopes, queries and threads that happens implicit (cascaded).</data>
+	<data key="debug.settings.thread">Debug Threads</data>
+	<data key="debug.settings.threadDesc">Select this option to also log out individual threads.</data>
+	<data key="debug.settings.threadAlert">Depending on your application, this may produce a large volume of debug entries.</data>
+
 	<data key="debug.switchTemplate">Switch Debug Template</data>
 	<data key="debug.selectDebugTemplate">Select Debug Template</data>
 
@@ -1046,7 +1054,7 @@ When checked, any requested files will be inspected only once for potential upda
 	<data key="settings.dballowed">Erlaubte Operationen</data>
 	<data key="Settings.dbStorage">Storage</data>
 	<data key="Settings.openConn">Offene Verbindungen</data>
-	<data key="Settings.dbStorageDesc">Erlauben die Datenquelle als Storage für den Client/Session Scope zu verwenden.</data>
+	<data key="Settings.dbStorageDesc">Diese Datenquelle als Storage für den Client/Session Scope oder die Protokollen zulassen.</data>
 	<data key="settings.dbport">Port</data>
 	<data key="settings.preservesinglequotesdescription">Erhält die einfachen Anführungszeichen (&apos;) in den SQL-Statements, die im Tag CFQuery definiert werden.</data>
 	<data key="settings.dbconntimeout">Verbindungs Timeout (in Minuten)</data>
