@@ -1487,13 +1487,20 @@ sort direction:
 		<class>lucee.runtime.functions.arrays.ArrayToStruct</class>
 		<member-name>toStruct</member-name>
 		<keywords>array,struct</keywords>
-		<description>Transform the array to a struct, the index of the array is the key of the struct</description>
+		<description>Transform the array to a struct, by default, the index of the array is the key of the struct</description>
 		<argument>
 			<name>array</name>
 			<type>array</type>
 			<required>Yes</required>
-		<description>array to translate</description>
-    </argument>
+			<description>array to translate</description>
+		</argument>
+		<argument>
+			<name>valueAsKey</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>use the value as the key of the struct, rather than the index</description>
+		</argument>
 		<return>
 			<type>struct</type>
 		</return>
