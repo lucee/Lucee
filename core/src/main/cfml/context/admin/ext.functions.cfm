@@ -274,8 +274,7 @@
 	* get information from specific ExtensionProvider, if an extension is provided by multiple providers only the for the newest (version) is returned
 	*/
 	function getExternalData(required string[] providers, boolean forceReload=false, numeric timeSpan=60, boolean useLocalProvider=true) {
-		var datas={};
-
+		var datas={};		
 		providers.each(parallel:true,closure:function(value){
 				var data=getProviderInfo(arguments.value,forceReload,timespan);
 				datas[arguments.value]=data;
@@ -341,7 +340,12 @@
 	    dump(q);*/
 
 		loop struct="#datas#" index="local.provider" item="local.data" {
-			if(structKeyExists(data,"error")) continue;
+			if (structKeyExists(data,"error")){
+				var err = "getExternalData() #local.provider# #data.error#";
+				trace text="#err#";
+				WriteLog(type="ERROR", text=err);
+				continue;
+			}
 
 			// rename older to otherVersions
 

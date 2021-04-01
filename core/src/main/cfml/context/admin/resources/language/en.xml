@@ -67,8 +67,8 @@
 	<data key="services.update.titleDesc">Upgrade or Downgrade the version by selecting from the drop-down box below.</data>
 	<data key="services.update.titleDesc2"> You cannot downgrade below {min-version} because your lucee.jar has bundled this version. To go below this version you need to replace your lucee.jar {server.lucee.loaderPath} OR .ico file {context} with an older version</data>
 	<data key="services.update.downgradeVersion">To downgrade your version below {minVersion} you need to replace your lucee.jar with an older version one you can download {url}. This is because the lucee.jars always bundles a version itself and it will always use at least that version.</data>
-	<data key="services.update.installExtns">All of the extensions are installed / Couldn't able to reach the server for list the Uninstalled Extensions. Please check your Internet Connection.</data>
-	<data key="services.update.chkInternet">Couldn't able to reach the server for list the "Uninstalled Extensions". Please check your Internet Connection</data>
+	<data key="services.update.installExtns">All of the extensions are installed / Unable to reach the Server for list the Uninstalled Extensions. Please check your Internet Connection.</data>
+	<data key="services.update.chkInternet">Unable to reach the server for list the "Uninstalled Extensions". Please check your Internet Connection</data>
 
 	<data key="services.certificate.desc">List SSL Certificates for a specific Host or install them.</data>
 	<data key="services.certificate.host">Host</data>
@@ -311,10 +311,10 @@
 	<data key="ext.version">Version</data>
 	<data key="ext.appupdate">Update</data>
 	<data key="ext.created">Release Date</data>
-	<data key="ext.notinstalled">Not installed</data>
+	<data key="ext.notinstalled">Available to Install</data>
 	<data key="ext.codename">Code Name</data>
 	<data key="ext.stepof">Step {current} of {total}</data>
-	<data key="ext.notinstalleddesc">These applications are not yet installed on the system.</data>
+	<data key="ext.notinstalleddesc">Applications available to be installed on this Server.</data>
 	<data key="ext.uninstallmissingcfc">Can&apos;t uninstall. Install.cfc is missing. Please uninstall the application manually.</data>
 	<data key="ext.application">Application</data>
 	<data key="ext.applabel">Application</data>
@@ -332,19 +332,19 @@
 	<data key="ext.projectUrl">Homepage</data>
 	<data key="ext.sourceUrl">Source Code</data>
 	<data key="ext.documentationUrl">Documentation</data>	
-	<data key="ext.installeddesc">These applications are already installed on the system.</data>
+	<data key="ext.installeddesc">Applications installed on this Server.</data>
 	<data key="ext.installedServer">Installed in Server Administrator</data>
 	<data key="ext.installedServerDesc">This Extension is already installed in the Server Administrator, you have 2 options, you can overwrite it for the current web context by installing it here as well or you can change it in the Server Administrator what will affect all Web Contexts.</data>
 	<data key="ext.free">Free</data>
 	<data key="ext.price">Price</data>
 	<data key="ext.licenseagreement">License agreement</data>
-	<data key="ext.uploadextension">Upload new extension (experimental)</data>
-	<data key="ext.uploadextensiondesc">If you downloaded an extension, you can add the extension here.</data>
+	<data key="ext.uploadextension">Upload new Extension</data>
+	<data key="ext.uploadextensiondesc">If you manually downloaded an extension, or built your own, you can install the extension here. You can also just drop the .lex file in the Server's /deploy directory.</data>
 	<data key="ext.upload">upload</data>
 	<data key="ext.nofileuploaded">You have not uploaded a file!&lt;br&gt;Please first choose a file.</data>
 	<data key="ext.extThumbnail">Extension thumbnail</data>
 	<data key="ext.msgAfterNotAgreed">Because you did not agree with the license, the extension was not installed.&lt;br&gt;In case you installed the extension before, you will need to uninstall it, if you do not wish to agree with it's license anymore.</data>
-	<data key="ext.extzipfile">Extension zip file</data>
+	<data key="ext.extzipfile">Extension zip (*.lex) file</data>
 	<data key="ext.viewdetails">View details</data>
 	<data key="ext.theError">The error</data>
 	<data key="ext.errorFileUpload">The file could not be uploaded.</data>

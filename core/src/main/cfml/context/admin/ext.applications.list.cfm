@@ -1,7 +1,9 @@
 <cfscript>
 	hasAccess=true;
-	external=getExternalData(providerURLs,true);
-	existing={};
+	timer label="getExternalData"{
+		external = getExternalData(providerURLs,true);
+	}
+	existing = {};
 
 	function getLatestVersion(id) {
 		loop query=external {
@@ -141,101 +143,96 @@ Latest version: #latest.v#</cfif>"><cfif hasUpdates>
 	<h2>#stText.ext.notInstalled#</h2>
 	<div class="itemintro">#stText.ext.notInstalleddesc#</div>
 <cfif external.recordcount eq extensions.recordcount>
-	<cfset app_error.message = #stText.services.update.installExtns#>
+	<cfset app_error.message = stText.services.update.installExtns>
 	<cfset printerror(app_error)>
 <cfelseif external.recordcount lt extensions.recordcount>
-	<cfset app_error.message = #stText.services.update.chkInternet#>
+	<Cfdump var=#external#><cfdump var=#extensions#><cfabort>
+	<cfset app_error.message = stText.services.update.chkInternet>
 	<cfset printerror(app_error)>
 <cfelse>
 
-<cfscript>
-	existingIds = structKeyArray(existing);
-	unInstalledExt=external;
-
-	for(row=unInstalledExt.recordcount;row>=1;row--) {
-
-		rt = unInstalledExt.releaseType[row];
-		id = unInstalledExt.id[row];
-		// not for this admin type
-		if(!isnull(rt) and !isEmpty(rt) and rt != "all" and rt != request.adminType) {
-			queryDeleteRow(unINstalledExt,row);
+	<cfscript>
+		existingIds = StructKeyArray(existing);
+		availableExt = duplicate(external);
+		for(row = availableExt.recordcount ; row >= 1; row-- ) {
+			rt = availableExt.releaseType[row];
+			id = availableExt.id[row];
+			// not for this admin type
+			if( !isnull(rt) and !isEmpty(rt) and rt != "all" and rt != request.adminType) {
+				QueryDeleteRow( availableExt , row );
+			}
+			// remove if already installed
+			if(ArrayFindNoCase( existingIds, id )) {
+				QueryDeleteRow( availableExt, row );
+			}
 		}
-		// remove if already installed
-		if(arrayFindNoCase(existingIds,id)) {
-			queryDeleteRow(unINstalledExt,row);
+	</cfscript>
+
+	<!--- FILTER --->
+	<cfif availableExt.recordcount GT 30>
+		<div class="filterform">
+			<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
+				<ul>
+					<li>
+						<label for="filter2">#stText.search.searchterm#:</label>
+						<input type="text" name="filter2" id="filter2" class="txt" value="#session.extFilter.filter2#" />
+					</li>
+					<li>
+						<input type="submit" class="button submit" name="mainAction" value="#stText.buttons.filter#" />
+					</li>
+				</ul>
+				<div class="clear"></div>
+			</cfformClassic>
+		</div><br>
+	</cfif>
+
+	<cfscript>
+		VersionStr = {
+			'pre_release': QueryNew( availableExt.columnlist ),
+			'snapshot': QueryNew( availableExt.columnlist ),
+			'release': QueryNew( availableExt.columnlist )
+		};
+
+		loop query=availableExt {
+			if(findNoCase("-ALPHA",availableExt.version) || findNoCase("-BETA",availableExt.version) || findNoCase("-RC",availableExt.version)) 
+				addRow(availableExt,VersionStr.pre_release,availableExt.currentrow);
+			else if(findNoCase("-SNAPSHOT",availableExt.version)) 
+				addRow(availableExt,VersionStr.snapshot,availableExt.currentrow);
+			else
+				addRow(availableExt,VersionStr.release,availableExt.currentrow);
 		}
-	}
 
-</cfscript>
-
-
-<!--- FILTER --->
-	<cfif unInstalledExt.recordcount GT 30>
-
-	<div class="filterform">
-		<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
-			<ul>
-				<li>
-					<label for="filter2">#stText.search.searchterm#:</label>
-					<input type="text" name="filter2" id="filter2" class="txt" value="#session.extFilter.filter2#" />
-				</li>
-				<li>
-					<input type="submit" class="button submit" name="mainAction" value="#stText.buttons.filter#" />
-				</li>
-			</ul>
-			<div class="clear"></div>
-		</cfformClassic>
-	</div><br>
-</cfif>
-
-<cfscript>
-	VersionStr = {
-		'pre_release':queryNew(unInstalledExt.columnlist),
-		'snapshot':queryNew(unInstalledExt.columnlist),
-		'release':queryNew(unInstalledExt.columnlist)
-	};
-
-	loop query=unInstalledExt {
-		if(findNoCase("-ALPHA",unInstalledExt.version) || findNoCase("-BETA",unInstalledExt.version) || findNoCase("-RC",unInstalledExt.version)) 
-			addRow(unInstalledExt,VersionStr.pre_release,unInstalledExt.currentrow);
-		else if(findNoCase("-SNAPSHOT",unInstalledExt.version)) 
-			addRow(unInstalledExt,VersionStr.snapshot,unInstalledExt.currentrow);
-		else
-			addRow(unInstalledExt,VersionStr.release,unInstalledExt.currentrow);
-	}
-
-	function addRow(src,trg,srcRow) {
-		var trgRow=queryAddRow(arguments.trg);
-		loop array=queryColumnArray(arguments.src) item="local.col" {
-			querySetCell(arguments.trg,col,queryGetCell(arguments.src,col,arguments.srcRow),trgRow);
+		function addRow( src, trg, srcRow ) {
+			var trgRow = queryAddRow( arguments.trg );
+			loop array=queryColumnArray(arguments.src) item="local.col" {
+				querySetCell(arguments.trg, col, QueryGetCell( arguments.src, col, arguments.srcRow ), trgRow );
+			}
 		}
-	}
 
 		private function toVersionSortable(required string version) localMode=true {
-		version=unwrap(version.trim());
-		arr=listToArray(arguments.version,'.');
-		
-		// OSGi compatible version
-		if(arr.len()==4 && isNumeric(arr[1]) && isNumeric(arr[2]) && isNumeric(arr[3])) {
-			try{ return toOSGiVersion(version).sortable; }catch(local.e){};
+			version = unwrap(version.trim());
+			arr = listToArray(arguments.version,'.');
+			
+			// OSGi compatible version
+			if(arr.len()==4 && isNumeric(arr[1]) && isNumeric(arr[2]) && isNumeric(arr[3])) {
+				try{ 
+					return toOSGiVersion(version).sortable; }
+				catch(local.e){};
+			}
+
+			rtn="";
+			loop array=arr index="i" item="v" {
+				if(len(v)<5)
+				rtn&="."&repeatString("0",5-len(v))&v;
+				else
+					rtn&="."&v;
+			} 
+			return rtn;	
 		}
 
-		rtn="";
-		loop array=arr index="i" item="v" {
-			if(len(v)<5)
-			 rtn&="."&repeatString("0",5-len(v))&v;
-			else
-				rtn&="."&v;
-		} 
-		return 	rtn;
-	}
-
-
-</cfscript>
-
-
-<cfset noneLasCounter=0>
- <cfif isQuery(external)>
+		noneLasCounter = 0;
+	</cfscript>
+<cfif isQuery(external)>
 	<cfset hiddenFormContents = "" >
 	<cfset count = 1>
 
@@ -291,15 +288,14 @@ Latest version: #latest.v#</cfif>"><cfif hasUpdates>
 	</div>
 	
 </cfif>
-	<cfif listnotinstalled eq 0 and unInstalledExt.recordcount gt 30>
+	<cfif listnotinstalled eq 0 and availableExt.recordcount gt 30>
 		<b>#stText.ext.searchbox# [#session.extFilter.filter2#]</b>
 	</cfif>
-
-<cfif noneLasCounter>
-	<div class="message" style="border-color: ##FC6;color:##C93;">
-		Extensions with a yellow border are not provided by the Lucee Association Switzerland and do not neccessarily follow our guidelines. These extensions are not reviewed by the Lucee Association Switzerland.
-	</div>
-</cfif>
+	<cfif noneLasCounter>
+		<div class="message" style="border-color: ##FC6;color:##C93;">
+			Extensions with a yellow border are not provided by the Lucee Association Switzerland and do not neccessarily follow our guidelines. These extensions are not reviewed by the Lucee Association Switzerland.
+		</div>
+	</cfif>
 </cfif>
 
 <!--- upload own extension --->
@@ -334,12 +330,10 @@ Latest version: #latest.v#</cfif>"><cfif hasUpdates>
 				</tr>
 			</tfoot>
 		</table>
-	</cfformClassic>
-
-	
+	</cfformClassic>	
 
 <cfhtmlbody>
-<script type="text/javascript">
+	<script type="text/javascript">
 	$(document).ready(function(){
 		if('#server.lucee.state#' == 'SNAPSHOT')
 			var version = 'Snapshot';
@@ -387,7 +381,7 @@ Latest version: #latest.v#</cfif>"><cfif hasUpdates>
 		});
 	}
 	</script>
-	</cfhtmlbody>
+</cfhtmlbody>
 </cfoutput>
 <cfif structKeyExists(request, "refresh") && request.refresh EQ true>
 	<script type="text/javascript">
