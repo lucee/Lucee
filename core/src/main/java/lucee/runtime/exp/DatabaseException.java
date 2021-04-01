@@ -86,13 +86,15 @@ public final class DatabaseException extends PageExceptionImpl {
 
 	private void set(SQLException sqle, String detail) {
 		String sqleMessage = sqle != null ? sqle.getMessage() : "";
-		if (detail != null) {
-			if (!StringUtil.isEmpty(sqleMessage)) setDetail(detail + "\n" + sqleMessage);
-			else setDetail(detail);
-		}
-		else {
-			if (!StringUtil.isEmpty(sqleMessage)) setDetail(sqleMessage);
-		}
+		if (!StringUtil.isEmpty(sqleMessage)){
+			if (detail != null) {
+				setDetail(detail + "\n" + sqleMessage);
+			} else {
+				setDetail(detail);
+			}
+		} else {
+			setDetail(detail);
+		}		
 	}
 
 	private void set(SQLException sqle) {
