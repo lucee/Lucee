@@ -275,7 +275,7 @@ if(isInstalled) installedVersion=toVersionSortable(installed.version);
 							</cfif>
 						</cfloop>
 					</select>
-					<input type="button" class="button submit" onclick="versionSelected(this, version)"  value="#isInstalled?stText.Buttons.upDown:stText.Buttons.install#">
+					<input type="button" class="button" onclick="versionSelected(this, version)"  value="#isInstalled?stText.Buttons.upDown:stText.Buttons.install#">
 				</td>
 			</tr>
 		</cfif>
