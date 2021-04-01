@@ -474,7 +474,7 @@ public final class ConfigAdmin {
 			if (el == null) continue;
 
 			if (checkId) {
-				if (i + 1 == id) {
+				if (i == id) {
 					server = el;
 					break;
 				}
