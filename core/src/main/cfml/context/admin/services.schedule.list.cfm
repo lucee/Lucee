@@ -265,11 +265,11 @@ Redirtect to entry --->
 				<tfoot>
 					<tr>
 						<td colspan="6">
-							<input type="submit" class="bl button submit" name="mainAction" value="#stText.Buttons.Execute#">
-							<input type="reset" class="bm button reset" name="cancel" value="#stText.Buttons.Cancel#">
-							<input type="submit" class="bm button submit" name="mainAction" value="#stText.Buttons.Delete#">
-							<input type="submit" class="bm button submit" name="mainAction" value="#stText.Schedule.pause#">
-							<input type="submit" class="br button submit" name="mainAction" value="#stText.Schedule.resume#">
+							<input type="submit" class="bl button submit enablebutton" name="mainAction" value="#stText.Buttons.Execute#">
+							<input type="reset" class="bm button reset enablebutton" id="clickCancel" name="cancel" value="#stText.Buttons.Cancel#">
+							<input type="submit" class="bm button submit enablebutton" name="mainAction" value="#stText.Buttons.Delete#">
+							<input type="submit" class="bm button submit enablebutton" name="mainAction" value="#stText.Schedule.pause#">
+							<input type="submit" class="br button submit enablebutton" name="mainAction" value="#stText.Schedule.resume#">
 						</td>
 					</tr>
 				</tfoot>
