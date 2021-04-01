@@ -1019,7 +1019,7 @@ public class CFMLExpressionInterpreter {
 
 	protected Ref json(FunctionLibFunction flf, char start, char end) throws PageException {
 		if (!cfml.isCurrent(start)) return null;
-
+		/*
 		String[] str = cfml.toString().split(",");
 		if(cfml.getCurrent() == '{' && cfml.getNext() != '}' && str.length >1) {
 			outer:for(int i=0; i<str.length; i++) {
@@ -1035,6 +1035,7 @@ public class CFMLExpressionInterpreter {
 				}
 			}
 		}
+		*/
 
 		if (cfml.forwardIfCurrent('[', ':', ']') || cfml.forwardIfCurrent('[', '=', ']')) {
 			return new BIFCall(LITERAL_ORDERED_STRUCT, new Ref[0]);
