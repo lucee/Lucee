@@ -9331,7 +9331,9 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<name>autosuggest</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Specifies entry completion suggestions to
+			<status>deprecated</status>
+			<description>This attribute is deprecated.
+					Specifies entry completion suggestions to
                     display as the user types into a text input. The
                     user can select a suggestion to complete the text
                     entry.
@@ -9348,7 +9350,8 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<name>autosuggestBindDelay</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>The minimum time between autosuggest bind
+			<status>deprecated</status>
+			<description>This attribute is deprecated.The minimum time between autosuggest bind
                     expression invocations, in seconds. Use this
                     attribute to limit the number of requests that are
                     sent to the server when a user types.
@@ -9359,7 +9362,8 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<name>autosuggestMinLength</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>The minimum number of characters required in
+			<status>deprecated</status>
+			<description>This attribute is deprecated.The minimum number of characters required in
                     the text box before invoking a bind expression to
                     return items for suggestion.
                     Valid only for cfinput type="text".</description>
@@ -9369,14 +9373,16 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<name>delimiter</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>The delimiter to use to separate entries in a static autosuggest list. This attribute is meaningful only if the autosuggest attribute is a string of delimited values.</description>
+			<status>deprecated</status>
+			<description>This attribute is deprecated. The delimiter to use to separate entries in a static autosuggest list. This attribute is meaningful only if the autosuggest attribute is a string of delimited values.</description>
 		</attribute>
 		<attribute>
 			<type>number</type>
 			<name>maxResultsDisplayed</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>The maximum number suggestions to display in the autosuggest list.
+			<status>deprecated</status>
+			<description>This attribute is deprecated. The maximum number suggestions to display in the autosuggest list.
 Valid only for cfinput type="text".</description>
 		</attribute>
 		<attribute>
@@ -9384,21 +9390,24 @@ Valid only for cfinput type="text".</description>
 			<name>onBindError</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>The name of a JavaScript function to execute if evaluating a bind expression, including an autosuggest bind expression, results in an error. The function must take two attributes: an HTTP status code and a message.</description>
+			<status>deprecated</status>
+			<description>This attribute is deprecated. The name of a JavaScript function to execute if evaluating a bind expression, including an autosuggest bind expression, results in an error. The function must take two attributes: an HTTP status code and a message.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
 			<name>showAutosuggestLoadingIcon</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>A Boolean value that specifies whether to display an animated icon when loading an autosuggest value for a text input.</description>
+			<status>deprecated</status>
+			<description>This attribute is deprecated. A Boolean value that specifies whether to display an animated icon when loading an autosuggest value for a text input.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
 			<name>sourceForTooltip</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>The URL of a page to display as a tool tip. The page can include HTML markup to control the format, and the tip can include images.
+			<status>deprecated</status>
+			<description>This attribute is deprecated. The URL of a page to display as a tool tip. The page can include HTML markup to control the format, and the tip can include images.
 If you specify this attribute, an animated icon appears with the text "Loading..." while the tip is being loaded.</description>
 		</attribute>
 		<attribute>
@@ -9406,7 +9415,8 @@ If you specify this attribute, an animated icon appears with the text "Loading..
 			<name>typeahead</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>A Boolean value that specifies whether the autosuggest feature should automatically complete a user's entry with the first result in the suggestion list.
+			<status>deprecated</status>
+			<description>This attribute is deprecated. A Boolean value that specifies whether the autosuggest feature should automatically complete a user's entry with the first result in the suggestion list.
 Valid only for cfinput type="text".</description>
 		</attribute>
 		<attribute>
@@ -9414,7 +9424,8 @@ Valid only for cfinput type="text".</description>
 			<name>validateAt</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>How to do the validation; one or more of the following:
+			<status>deprecated</status>
+			<description>This attribute is deprecated. How to do the validation; one or more of the following:
             onSubmit, onServer or onBlur.
             onBlur and onSubmit are identical in Flash forms. For
             multiple values, use a comma-delimited list.
@@ -9494,7 +9505,8 @@ Valid only for cfinput type="text".</description>
 			<name>bind</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		<description>A Flash bind expression that populates the field with
+			<status>deprecated</status>
+		<description>This attribute is deprecated. A Flash bind expression that populates the field with
             information from other form fields.</description>
     </attribute>
 		<attribute>
@@ -9502,7 +9514,8 @@ Valid only for cfinput type="text".</description>
 			<name>bindAttribute</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		<description>Specifies the HTML tag attribute whose value is
+			<status>deprecated</status>
+		<description>This attribute is deprecated. Specifies the HTML tag attribute whose value is
                     set by the bind attribute. You can only specify
                     attributes in the browser's HTML DOM tree, not
                     Lucee-specific attributes.
@@ -9514,7 +9527,8 @@ Valid only for cfinput type="text".</description>
 			<name>bindOnLoad</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		<description>A Boolean value that specifies whether to
+			<status>deprecated</status>
+		<description>This attribute is deprecated. A Boolean value that specifies whether to
                         execute the bind attribute expression when first
                         loading the form.
                         Ignored if there is no bind attribute.
