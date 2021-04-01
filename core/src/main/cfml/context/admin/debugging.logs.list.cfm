@@ -11,7 +11,7 @@
 					<td>
 						<select name="maxLogs">
 							<cfset selected=false>
-							<cfloop list="10,20,50,100,200,500,1000" index="idx">
+							<cfloop list="10,20,50,100,200,500,1000,5000,10000" index="idx">
 								<option <cfif idx EQ setting.maxLogs><cfset selected=true>selected="selected"</cfif> value="#idx#">#idx#</option>
 							</cfloop>
 							<cfif !selected>
