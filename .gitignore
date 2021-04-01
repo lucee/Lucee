@@ -25,6 +25,7 @@ WEB-INF
 *.iml
 *.ipr
 *.iws
+*.jfr
 
 .idea/
 .vscode/settings.json

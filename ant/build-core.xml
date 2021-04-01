@@ -405,6 +405,10 @@
       <arg value="-f"/>
       <arg value="${ant}/build-create-archive.xml"/>
 
+      <!---
+      <jvmarg value="-XX:StartFlightRecording=disk=true,dumponexit=true,filename=${temp}/../lucee-compile.jfr,maxsize=1024m,maxage=1d,settings=profile,path-to-gc-roots=true"/>
+      -->
+
       <jvmarg value="-Dsrc=${srcCFML}/context"/>
       <jvmarg value="-Dtemp=${temp}/archive"/>
       <jvmarg value="-Dtestbox=${temp}/testbox/testbox"/>
@@ -414,7 +418,6 @@
       <jvmarg value="-Dlucee.enable.dialect=true"/>
       <jvmarg value="-Dlucee.extensions.install=true"/>
       <jvmarg value="-Dlucee.full.null.support=false"/>
-      <jvmarg value="-Djava.net.useSystemProxies=true"/>
     </java>
     <echo>${exc}</echo>
 
@@ -460,8 +463,8 @@
       <jvmarg value="-Dlucee.enable.dialect=true"/>
       <jvmarg value="-Dlucee.extensions.install=true"/>
       <jvmarg value="-Dlucee.full.null.support=false"/>
-      <jvmarg value="-Djava.net.useSystemProxies=true"/>
       <!--
+      <jvmarg value="-XX:StartFlightRecording=disk=true,dumponexit=true,filename=${temp}/../lucee-testcases.jfr,maxsize=1024m,maxage=1d,settings=profile,path-to-gc-roots=true"/>
       <jvmarg value="-Dlucee.system.out=file:.../out.txt"/>
       <jvmarg value="-Dlucee.system.err=file:.../err.txt"/>
       -->
