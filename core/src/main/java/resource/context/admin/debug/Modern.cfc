@@ -159,10 +159,7 @@ if(structKeyExists(arguments.custom, "metrics_Charts")) {
 		local.times=arguments.debugging.times;
 
 		var time=getTickCount();
-		var _cgi=structKeyExists(arguments.debugging,'cgi')?arguments.debugging.cgi:cgi;
-		
-		
-		
+		var _cgi = arguments?.debugging?.scope?.cgi ?: cgi;
 
 		this.allSections = this.buildSectionStruct();
 		var isExecOrder  = this.isSectionOpen( "ExecOrder" );
@@ -805,7 +802,7 @@ Reference Button
 						<cfset isOpen = this.isSectionOpen( sectionId )>
 						<table>
 
-							<cfset renderSectionHeadTR( sectionId, "Template:", "#HTMLEditFormat(_cgi.SCRIPT_NAME)# (#HTMLEditFormat(expandPath(_cgi.SCRIPT_NAME))#)" )>
+							<cfset renderSectionHeadTR( sectionId, "Template:", "#encodeForHtml(_cgi.REQUEST_URL)# <br> #encodeForHtml(expandPath(_cgi.SCRIPT_NAME))#" )>
 
 							<tr>
 								<td class="pad label">User Agent:</td>

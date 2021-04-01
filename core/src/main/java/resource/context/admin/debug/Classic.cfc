@@ -81,9 +81,10 @@ private function isColumnEmpty(query query, string columnName){
     	<cfargument name="custom" type="struct" required="yes">
 		<cfargument name="debugging" required="true" type="struct">
 		<cfargument name="context" type="string" default="web"><cfsilent>
-<cfset var time=getTickCount()>
-<cfset var _cgi=structKeyExists(arguments.debugging,'cgi')?arguments.debugging.cgi:cgi>
 <cfscript>
+	var time=getTickCount();
+	var _cgi = arguments?.debugging?.scope?.cgi ?: cgi;
+
 	if(isNull(arguments.debugging.pages)) 
 		local.pages=queryNew('id,count,min,max,avg,app,load,query,total,src');
 	else local.pages=arguments.debugging.pages;
@@ -169,7 +170,7 @@ millisecond:"ms"
 		</tr>
 		<tr>
 			<td class="cfdebug" nowrap> Template </td>
-			<td class="cfdebug">#HTMLEditFormat(_cgi.SCRIPT_NAME)# (#HTMLEditFormat(expandPath(_cgi.SCRIPT_NAME))#)</td>
+			<td class="cfdebug">#encodeForHtml(_cgi.REQUEST_URL)# <br> #encodeForHtml(expandPath(_cgi.SCRIPT_NAME))#</td>
 		</tr>
 		<tr>
 			<td class="cfdebug" nowrap> Time Stamp </td>
