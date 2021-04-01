@@ -116,7 +116,7 @@
 							<cfset el=logs[i]>
 							<cfset _total=0><cfloop query="el.pages"><cfset _total+=el.pages.total></cfloop>
 							<cfset _query=0><cfloop query="el.pages"><cfset _query+=el.pages.query></cfloop>
-							<cfset _app=0><cfloop query="el.pages"><cfset _app+=el.pages.app></cfloop>	
+							<cfset _app=0><cfloop query="el.pages"><cfset _app+=el.pages.app></cfloop>
 							<cfset _path=el.scope.cgi.SCRIPT_NAME& (len(el.scope.cgi.QUERY_STRING)?"?"& el.scope.cgi.QUERY_STRING:"")>
 							<cfif 
 								doFilter(session.debugFilter.path,_path,false) and 
@@ -124,7 +124,7 @@
 								doFilterMin(session.debugFilter.app,_app) and 
 								doFilterMin(session.debugFilter.total,_total)> 
 								<tr>
-									<td><a href="#request.self#?action=#url.action#&action2=detail&id=#hash(el.id&":"&el.startTime)#">#_path#</a></td>
+									<td><a href="#request.self#?action=#url.action#&action2=detail&id=#hash(el.id&":"&el.startTime)#">#encodeForHtml(el.scope.cgi.REQUEST_URL)#</a></td>
 									<td>#LSDateFormat(el.starttime)# #LSTimeFormat(el.starttime)#</td>
 									<td nowrap align="right"><cfif listFirst(formatUnit(_query)," ") gt 0>#formatUnit(_query)#<cfelse>-</cfif></td>
 									<td nowrap align="right">#formatUnit(_app)#</td>
