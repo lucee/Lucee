@@ -146,7 +146,6 @@ Latest version: #latest.v#</cfif>"><cfif hasUpdates>
 	<cfset app_error.message = stText.services.update.installExtns>
 	<cfset printerror(app_error)>
 <cfelseif external.recordcount lt extensions.recordcount>
-	<Cfdump var=#external#><cfdump var=#extensions#><cfabort>
 	<cfset app_error.message = stText.services.update.chkInternet>
 	<cfset printerror(app_error)>
 <cfelse>
