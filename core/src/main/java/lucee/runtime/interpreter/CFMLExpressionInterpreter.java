@@ -212,6 +212,8 @@ public class CFMLExpressionInterpreter {
 			// data.put(str+":"+preciseMath,ref);
 			return ref.getValue(pc);
 		}
+		if (cfml.toString().length() > 1024) throw new InterpreterException("Syntax Error, invalid Expression", "[" + cfml.toString().substring(0,1024) + "]");
+		
 		throw new InterpreterException("Syntax Error, invalid Expression [" + cfml.toString() + "]");
 	}
 
