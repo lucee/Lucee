@@ -39,6 +39,8 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.jsp.tagext.Tag;
@@ -189,6 +191,7 @@ import lucee.runtime.type.util.ListUtil;
 import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.tag.TagLib;
+import lucee.runtime.exp.ExpressionException;
 
 /**
  * 
@@ -2624,6 +2627,13 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		String cn = getString("admin", action, "classname");
 		if ("com.microsoft.jdbc.sqlserver.SQLServerDriver".equals(cn)) {
 			cn = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
+		}
+
+		Pattern pattern = Pattern.compile("[a-zA-Z0-9_]*");
+     	Matcher matcher = pattern.matcher(getString("admin", action, "newName"));
+		
+		if (matcher.matches() == false) {
+			throw new ExpressionException("Trying to create a data source with a name that is invalid. Data source Names must match proper variable naming conventions");
 		}
 
 		ClassDefinition cd = new ClassDefinitionImpl(cn, getString("bundleName", null), getString("bundleVersion", null), config.getIdentification());
