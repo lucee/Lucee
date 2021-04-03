@@ -1440,7 +1440,11 @@ public final class Http extends BodyTagImpl {
 		final SSLConnectionSocketFactory sslsf;
 		try {
 			// SSLContext sslcontext = SSLContexts.createSystemDefault();
+<<<<<<< HEAD
 			SSLContext sslcontext = SSLContext.getInstance("TLS");
+=======
+			SSLContext sslcontext = SSLContext.getInstance("TLSv1.2");
+>>>>>>> 5644ebbd6... [WS] fix
 			if (!StringUtil.isEmpty(this.clientCert)) {
 				// Use discardable connexion manager if Client certificate is used
 				if (this.clientCertPassword == null) this.clientCertPassword = "";
