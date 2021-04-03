@@ -125,7 +125,7 @@ public final class For extends StatementBaseNoFinal implements FlowControlBreak,
 
 		// Check if the thread is interrupted
 		adapter.invokeStatic(TYPE_THREAD, METHOD_INTERRUPTED);
-		// Thread hasn't been interrupted, go to afterUpdate
+		// Thread hasn't been interrupted, go to endPreempt
 		adapter.ifZCmp(Opcodes.IFEQ, endPreempt);
 		// Thread interrupted, throw Interrupted Exception
 		adapter.throwException(TYPE_EXCEPTION, "Timeout in For loop");
