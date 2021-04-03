@@ -77,7 +77,7 @@ import org.apache.http.protocol.HttpContext;
 
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
-import lucee.commons.io.SystemUtil; 
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
