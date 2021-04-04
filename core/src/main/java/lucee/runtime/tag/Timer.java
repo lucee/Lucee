@@ -75,7 +75,7 @@ public final class Timer extends BodyTagImpl {
 		else if ("debug".equals(strType)) type = TYPE_DEBUG;
 		else if ("inline".equals(strType)) type = TYPE_INLINE;
 		else if ("outline".equals(strType)) type = TYPE_OUTLINE;
-		else throw new ApplicationException("Invalid value [" + strType + "] for attribute [type], valid values are [comment, debug, inline, outline]");
+		else throw new ApplicationException("Tag [timer] has an invalid value [" + strType + "] for attribute [type], valid values are [comment, debug, inline, outline]");
 	}
 
 	/**
