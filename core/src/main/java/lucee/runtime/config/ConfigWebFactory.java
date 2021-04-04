@@ -4701,10 +4701,15 @@ public final class ConfigWebFactory extends ConfigFactory {
 					String res = Caster.toString(child.get(KeyConstants._resource, null), null);
 					if (StringUtil.isEmpty(res)) res = Caster.toString(child.get(KeyConstants._path, null), null);
 					if (StringUtil.isEmpty(res)) res = Caster.toString(child.get(KeyConstants._url, null), null);
-
-					rhe = new RHExtension(config, id, Caster.toString(child.get(KeyConstants._version, null), null), res, true);
-					if (rhe.getStartBundles()) rhe.deployBundles(config);
-					extensions.add(rhe);
+					
+					if (StringUtil.isEmpty(res)){
+						throw new ApplicationException("loadExtensionBundles: missing [resource, path, url] attribute for [" 
+							+ Caster.toString(child.get(KeyConstants._name, null), null)+ "]");
+					} else {
+						rhe = new RHExtension(config, id, Caster.toString(child.get(KeyConstants._version, null), null), res, true);
+						if (rhe.getStartBundles()) rhe.deployBundles(config);
+						extensions.add(rhe);
+					}
 				}
 				catch (Throwable t) {
 					ExceptionUtil.rethrowIfNecessary(t);
