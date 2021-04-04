@@ -7938,6 +7938,25 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<description>Label to display with timing information.
             Default: " "</description>
 		</attribute>
+		<attribute>
+			<name>unit</name>
+			<type>string</type>
+			<required>No</required>
+			<default>milli</default>
+			<description>Base unit for the timing, valid values are:
+
+- nano: nano seconds
+- micro : micro seconds
+- milli: milli seconds (default)
+- second: seconds</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>variable</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>The name of the variable in which to save the timer exection time itno.</description>
+		</attribute>
 	</tag>
 	<!-- Transaction -->
 	<tag>
