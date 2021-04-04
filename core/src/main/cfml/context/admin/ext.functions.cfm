@@ -4,34 +4,31 @@
 		<cfreturn RandRange(1,0)>
 	</cffunction>
 
-	<cffunction name="updateAvailable" output="no">
+	<cffunction name="updateAvailable" output="no" localmode="true">
 		<cfargument name="data" required="yes" type="struct">
 		<cfargument name="extensions" required="yes" type="query">
 		<cfset var result=variables.getdataByid(arguments.data.id,arguments.extensions)>
 
-		<cfset sort = []>
-		<cfloop list="#Arraytolist(result.otherVersions)#" index="i">
+		<cfset local.sort = []>
+		<cfset local.sortversion= ""> <!--- not even used --->
+		<cfloop list="#Arraytolist(result.otherVersions)#" index="local.i">
 			<cfif !listcontainsnocase(i,"-")>
-				<cfset sortversion = arrayappend(sort,toVersionSortable(i))>
+				<cfset sortversion = arrayappend(sort, variables.toVersionSortable(i))>
 			</cfif>
 		</cfloop>
 		<cfif !listContainsNoCase(result.version,"-SNAPSHOT")>
-			<cfset sortversion = arrayAppend(sort,toVersionSortable(result.version))>
+			<cfset sortversion = arrayAppend(sort, variables.toVersionSortable(result.version))>
 		</cfif>
 		<cfset latest = arraySort(sort,"text","desc")>
 		<cfset getInstalledVersion = listfirst(trim(arguments.data.version),"-")>
 		<cfif result.count()==0><cfreturn false></cfif>
 		<cfif arrayIndexExists(sort,1)>
-			<cfif sort[1] gt toVersionSortable(getInstalledVersion)>
+			<cfif sort[1] gt variables.toVersionSortable(getInstalledVersion)>
 				<cfreturn true>
 			</cfif>
 		</cfif>
-
 		<cfreturn false>
 	</cffunction>
-
-
-
 
 	<cffunction name="doFilter" returntype="string" output="false">
 		<cfargument name="filter" required="yes" type="string">
@@ -48,24 +45,13 @@
 		</cfif>
 	</cffunction>
 
-
-
-
-
-
-
-<cfscript>
-
-</cfscript>
 	<cffunction name="loadCFC" returntype="struct" output="yes">
 		<cfargument name="provider" required="yes" type="string">
 		<cfset systemOutput("deprecated function call:<print-stack-trace>",true,true)>
 		<cfreturn createObject('component',"ExtensionProviderProxy").init(arguments.provider)>
 	</cffunction>
 
-
 	<cfset request.loadCFC=loadCFC>
-
 
 	<cffunction name="getDetail" returntype="struct" output="yes">
 		<cfargument name="hashProvider" required="yes" type="string">
@@ -114,11 +100,8 @@
 
 </cfscript>
 	<cffunction name="getInstalledById" returntype="struct" output="yes">
-
 		<cfreturn tmp>
 	</cffunction>
-
-
 
 	<cffunction name="getDownloadDetails" returntype="struct" output="yes">
 		<cfargument name="hashProvider" required="yes" type="string">
@@ -136,8 +119,8 @@
 		</cfloop>
 		<cfreturn struct()>
 	</cffunction>
-	<cfset request.getDownloadDetails=getDownloadDetails>
 
+	<cfset request.getDownloadDetails=getDownloadDetails>
 
 	<cffunction name="getDetailFromExtension" returntype="struct" output="yes">
 		<cfargument name="hashProvider" required="yes" type="string">
@@ -456,17 +439,14 @@
     	return datas;
 	}
 
-
-
 	function getProviderInfoAsync(required string provider){
 		thread args=arguments {
 			getProviderInfo(args.provider, true, 60, 50);
 		}
 	}
 
-
 	function getProviderInfo(required string provider, boolean forceReload=false, numeric timeSpan=60, timeout=10){
-		if(provider=="local" || provider=="") {
+		if(arguments.provider=="local" || arguments.provider=="") {
 			local.provider={};
 			provider.meta.title="Local Extension Provider";
 			provider.meta.description="Extensions located at: ";
@@ -476,13 +456,13 @@
 		}
 
     	// request (within request we only try once to load the data)
-        if(!forceReload and
+        if(!arguments.forceReload and
 			StructKeyExists(request,"rhproviders") and
 			StructKeyExists(request.rhproviders,provider) and
 			isStruct(request.rhproviders[provider]))
         		return request.rhproviders[provider];
         // from session
-        if(!forceReload and
+        if(!arguments.forceReload and
         	  StructKeyExists(session,"rhproviders") and
 			  StructKeyExists(session.rhproviders,provider) and
 			  StructKeyExists(session.rhproviders[provider],'lastModified') and
@@ -601,7 +581,6 @@
 		}
 	}
 
-
 	function toVersionSortable(required string version) localMode=true {
 		version=variables.unwrap(arguments.version.trim());
 		arr=listToArray(arguments.version,'.');
@@ -621,7 +600,6 @@
 		}
 		return 	rtn;
 	}
-
 
 	struct function toOSGiVersion(required string version, boolean ignoreInvalidVersion=false){
 		local.arr=listToArray(arguments.version,'.');
@@ -664,11 +642,7 @@
 					&"."&repeatString("0",4-len(sct.qualifier))&sct.qualifier
 					&"."&repeatString("0",3-len(sct.qualifier_appendix_nbr))&sct.qualifier_appendix_nbr;
 
-
-
 		return sct;
-
-
 	}
 
 	function unwrap(String str) {

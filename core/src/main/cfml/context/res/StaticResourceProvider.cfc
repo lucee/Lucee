@@ -106,7 +106,7 @@ component {
 			result.isText ? replace(fileRead( result.path ),'{appendix}',hash(server.lucee.version&server.lucee['release-date'],'quick'),'all') : 
 			fileReadBinary( result.path );
 
-		result.etag = hash( result.contents&":"&nameAppendix );
+		result.etag = hash( result.contents&":"&arguments.nameAppendix );
 				
 		this.resources[ arguments.filename ] = result;
 

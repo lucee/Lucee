@@ -209,7 +209,7 @@ Latest version: #latest.v#</cfif>"><cfif hasUpdates>
 		}
 
 		private function toVersionSortable(required string version) localMode=true {
-			version = unwrap(version.trim());
+			version = unwrap(arguments.version.trim());
 			arr = listToArray(arguments.version,'.');
 			
 			// OSGi compatible version
