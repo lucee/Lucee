@@ -6162,30 +6162,27 @@ public final class ConfigAdmin {
 	private RHExtension getRHExtension(final ConfigPro config, final String id, final RHExtension defaultValue) {
 		Array children = ConfigWebUtil.getAsArray("extensions", root);
 
-		Log logger = config.getLog("deploy");
-		logger.log(Log.LEVEL_INFO, "debug", "getRHExtension: " + id + " returns "  + defaultValue);
-
+		//Log logger = config.getLog("deploy");
+		//logger.log(Log.LEVEL_ERROR, "debug", "getRHExtension: " + children.toString());
 		if (children != null) {
 			int[] keys = children.intKeys();
 			for (int i: keys) {
-
+				//logger.log(Log.LEVEL_ERROR, "debug", "getRHExtension: " + " i " + i + ", " + id );
 				Struct tmp = Caster.toStruct(children.get(i, null), null);
 				if (tmp == null) continue;
-
-				String _id = Caster.toString(tmp.get(KeyConstants._id, null), null);
+				String _id = id = Caster.toString(tmp.get(KeyConstants._id, null), null);
 				if (!id.equals(_id)) continue;
-
 				try {
 					return new RHExtension(config, _id, Caster.toString(tmp.get(KeyConstants._version), null), null, false);
 				}
 				catch (Exception e) {
-					logger.log(Log.LEVEL_ERROR, "debug", "getRHExtension: " + id + " on error threw [" + e.getMessage() + "]");
+					//logger.log(Log.LEVEL_ERROR, "debug", "getRHExtension: " + " i " + i + ", " + id + " on error threw [" + e.getMessage() + "]");
 					return defaultValue;
 				}
 			}
 		}
 
-		logger.log(Log.LEVEL_DEBUG, "debug", "getRHExtension: [" + id + "] returned default ["  + defaultValue + "]");
+		//logger.log(Log.LEVEL_DEBUG, "debug", "getRHExtension: [" + id + "] returned default ["  + defaultValue + "]");
 
 		return defaultValue;
 	}
