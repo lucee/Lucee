@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import lucee.commons.db.DBUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.StringUtil;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DataSourceManager;
 import lucee.runtime.db.DatasourceConnection;
@@ -196,7 +196,7 @@ public final class Insert extends TagImpl {
 
 				if (pageContext.getConfig().debug()) {
 					String dsn = ds instanceof DataSource ? ((DataSource) ds).getName() : Caster.toString(ds);
-					boolean logdb = ((ConfigImpl) pageContext.getConfig()).hasDebugOptions(ConfigImpl.DEBUG_DATABASE);
+					boolean logdb = ((ConfigPro) pageContext.getConfig()).hasDebugOptions(ConfigPro.DEBUG_DATABASE);
 					if (logdb) {
 						boolean debugUsage = DebuggerImpl.debugQueryUsage(pageContext, (QueryResult) query);
 						DebuggerImpl di = (DebuggerImpl) pageContext.getDebugger();
@@ -276,7 +276,7 @@ public final class Insert extends TagImpl {
 
 		StringBuffer names = new StringBuffer();
 		StringBuffer values = new StringBuffer();
-		ArrayList items = new ArrayList();
+		ArrayList<SQLItem> items = new ArrayList<SQLItem>();
 		String field;
 		for (int i = 0; i < fields.length; i++) {
 			field = StringUtil.trim(fields[i], null);
@@ -313,7 +313,7 @@ public final class Insert extends TagImpl {
 		sql.append(values);
 		sql.append(")");
 
-		return new SQLImpl(sql.toString(), (SQLItem[]) items.toArray(new SQLItem[items.size()]));
+		return new SQLImpl(sql.toString(), items.toArray(new SQLItem[items.size()]));
 	}
 
 }

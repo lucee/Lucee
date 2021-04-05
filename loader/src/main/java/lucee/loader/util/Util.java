@@ -4,17 +4,17 @@
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 package lucee.loader.util;
 
@@ -62,13 +62,6 @@ public class Util {
 		HTTP_TIME_STRING_FORMAT.setTimeZone(TimeZone.getTimeZone("GMT"));
 	}
 
-	/**
-	 * @deprecated use instead CFMLEngineFactory.getInstance.getIOUtil().copy(...) copy a inputstream to
-	 *             a outputstream
-	 * @param in
-	 * @param out
-	 * @throws IOException
-	 */
 	@Deprecated
 	public final static void copy(final InputStream in, final OutputStream out) throws IOException {
 		final byte[] buffer = new byte[0xffff];
@@ -92,10 +85,10 @@ public class Util {
 
 	/**
 	 * @deprecated use instead CFMLEngineFactory.getInstance.getIOUtil().toString (InputStream is,
-	 *             Charset cs) read String data from a InputStream and returns it as String Object
+	 *             Charset cs) read String data from an InputStream and returns it as String Object
 	 * @param is InputStream to read data from.
 	 * @return readed data from InputStream
-	 * @throws IOException
+	 * @throws IOException in case it is not possible to convert to a string
 	 */
 	@Deprecated
 	public static String toString(final InputStream is) throws IOException {
@@ -112,14 +105,9 @@ public class Util {
 		return content.toString();
 	}
 
-	/**
-	 * @deprecated use instead CFMLEngineFactory.getInstance.getCastUtil().toBooleanValue (...)
-	 * @param str
-	 * @throws IOException
-	 */
 	@Deprecated
 	public static boolean toBooleanValue(String str) throws IOException {
-		str = str.trim().toLowerCase();
+		str = str == null ? null : str.trim().toLowerCase();
 
 		if ("true".equals(str)) return true;
 		if ("false".equals(str)) return false;
@@ -128,22 +116,12 @@ public class Util {
 		throw new IOException("can't cast string to a boolean value");
 	}
 
-	/**
-	 * @deprecated use instead CFMLEngineFactory.getInstance.getIOUtil().closeSilent (InputStream
-	 *             is,OutputStream os) close inputstream without a Exception
-	 * @param is
-	 * @param os
-	 */
 	@Deprecated
 	public static void closeEL(final InputStream is, final OutputStream os) {
 		closeEL(is);
 		closeEL(os);
 	}
 
-	/**
-	 * @deprecated no replacement
-	 * @param zf
-	 */
 	@Deprecated
 	public static void closeEL(final ZipFile zf) {
 		try {
@@ -152,11 +130,6 @@ public class Util {
 		catch (final Throwable e) {}
 	}
 
-	/**
-	 * @deprecated use instead CFMLEngineFactory.getInstance.getIOUtil().closeSilent (InputStream is)
-	 *             close inputstream without a Exception
-	 * @param is
-	 */
 	@Deprecated
 	public static void closeEL(final InputStream is) {
 		try {
@@ -165,11 +138,6 @@ public class Util {
 		catch (final Throwable e) {}
 	}
 
-	/**
-	 * @deprecated use instead CFMLEngineFactory.getInstance.getIOUtil().closeSilent(Reader r) close
-	 *             reader without a Exception
-	 * @param r
-	 */
 	@Deprecated
 	public static void closeEL(final Reader r) {
 		try {
@@ -178,11 +146,6 @@ public class Util {
 		catch (final Throwable e) {}
 	}
 
-	/**
-	 * @deprecated use instead CFMLEngineFactory.getInstance.getIOUtil().closeSilent(Writer w) close
-	 *             reader without a Exception
-	 * @param w
-	 */
 	@Deprecated
 	public static void closeEL(final Writer w) {
 		try {
@@ -191,11 +154,6 @@ public class Util {
 		catch (final Throwable e) {}
 	}
 
-	/**
-	 * @deprecated use instead CFMLEngineFactory.getInstance.getIOUtil().closeSilent (InputStream
-	 *             is,OutputStream os) close outputstream without a Exception
-	 * @param os
-	 */
 	@Deprecated
 	public static void closeEL(final OutputStream os) {
 		try {
@@ -204,14 +162,6 @@ public class Util {
 		catch (final Throwable e) {}
 	}
 
-	/**
-	 * @deprecated use instead CFMLEngineFactory.getInstance.getIOUtil().toString(...)
-	 * @param is inputStream to get content From
-	 * @param charset
-	 * @return returns content from a file inputted by input stream
-	 * @throws IOException
-	 * @throws PageException
-	 */
 	@Deprecated
 	public static String getContentAsString(final InputStream is, final String charset) throws IOException, PageException {
 		final BufferedReader br = (charset == null) ? new BufferedReader(new InputStreamReader(is)) : new BufferedReader(new InputStreamReader(is, charset));
@@ -229,8 +179,8 @@ public class Util {
 
 	/**
 	 * check if string is empty (null or "")
-	 * 
-	 * @param str
+	 *
+	 * @param str input string
 	 * @return is empty or not
 	 */
 	public static boolean isEmpty(final String str) {
@@ -240,7 +190,8 @@ public class Util {
 	/**
 	 * check if string is empty (null or "")
 	 * 
-	 * @param str
+	 * @param str input string
+	 * @param trim trim it
 	 * @return is empty or not
 	 */
 	public static boolean isEmpty(final String str, final boolean trim) {
@@ -250,7 +201,8 @@ public class Util {
 
 	/**
 	 * @deprecated no replacement
-	 * @param str
+	 * @param str input string
+	 * @return length of  String
 	 */
 	@Deprecated
 	public static int length(final String str) {
@@ -289,10 +241,7 @@ public class Util {
 	}
 
 	/**
-	 * @deprecated use instead CFMLEngineFactory.getInstance().getResourceUtil(). parsePlaceHolder(...)
-	 *             replace path placeholder with the real path, placeholders are
-	 *             [{temp-directory},{system-directory},{home-directory}]
-	 * @param path
+	 * @param path path to parse
 	 * @return updated path
 	 */
 	@Deprecated
@@ -348,13 +297,11 @@ public class Util {
 	}
 
 	/**
-	 * @deprecated no replacement Returns the canonical form of this abstract pathname.
-	 * @param file file to get canonical form from it
 	 * 
+	 * @param file file to get canonical form from it
+	 *
 	 * @return The canonical pathname string denoting the same file or directory as this abstract
 	 *         pathname
-	 * 
-	 * @throws SecurityException If a required system property value cannot be accessed.
 	 */
 	@Deprecated
 	public static File getCanonicalFileEL(final File file) {
@@ -366,26 +313,16 @@ public class Util {
 		}
 	}
 
-	/**
-	 * @deprecated deprecated with no replacement
-	 * @param date
-	 */
 	@Deprecated
 	public static String toHTTPTimeString(final Date date) {
 		return replace(HTTP_TIME_STRING_FORMAT.format(date), "+00:00", "", true);
 	}
 
-	/**
-	 * @deprecated deprecated with no replacement
-	 */
 	@Deprecated
 	public static String toHTTPTimeString() {
 		return replace(HTTP_TIME_STRING_FORMAT.format(new Date()), "+00:00", "", true);
 	}
 
-	/**
-	 * @deprecated deprecated with no replacement
-	 */
 	@Deprecated
 	public static boolean hasUpperCase(final String str) {
 		if (isEmpty(str)) return false;
@@ -394,7 +331,8 @@ public class Util {
 
 	/**
 	 * @deprecated use instead CFMLEngineFactory.getInstance().getIOUtil(). toBufferedInputStream (...)
-	 * @param is
+	 * @param is input stream
+	 * @return buffered output stream
 	 */
 	@Deprecated
 	public static BufferedInputStream toBufferedInputStream(final InputStream is) {
@@ -404,7 +342,8 @@ public class Util {
 
 	/**
 	 * @deprecated use instead CFMLEngineFactory.getInstance().getIOUtil(). toBufferedOutputStream (...)
-	 * @param os
+	 * @param os output steam to buffer
+	 * @return buffered output stream
 	 */
 	@Deprecated
 	public static BufferedOutputStream toBufferedOutputStream(final OutputStream os) {
@@ -414,9 +353,9 @@ public class Util {
 
 	/**
 	 * @deprecated use instead CFMLEngineFactory.getInstance.getIOUtil().copy(...)
-	 * @param in
-	 * @param out
-	 * @throws IOException
+	 * @param in input resource
+	 * @param out output resource
+	 * @throws IOException exception thrown in case copy fails
 	 */
 	@Deprecated
 	public static void copy(final Resource in, final Resource out) throws IOException {
@@ -436,8 +375,9 @@ public class Util {
 
 	/**
 	 * @deprecated use instead CFMLEngineFactory.getInstance().getStringUtil(). toVariableName (...)
-	 * @param str
-	 * @param addIdentityNumber
+	 * @param str input string
+	 * @param addIdentityNumber add identity number or not
+	 * @return variable name
 	 */
 	@Deprecated
 	public static String toVariableName(final String str, final boolean addIdentityNumber) {
@@ -446,8 +386,9 @@ public class Util {
 
 	/**
 	 * @deprecated use instead CFMLEngineFactory.getInstance().getStringUtil().first(...);
-	 * @param str
-	 * @param delimiter
+	 * @param str input string
+	 * @param delimiter delimiter to split
+	 * @return first item in string
 	 */
 	@Deprecated
 	public static String first(final String str, final String delimiter) {
@@ -456,8 +397,9 @@ public class Util {
 
 	/**
 	 * @deprecated use instead CFMLEngineFactory.getInstance().getStringUtil().last(...);
-	 * @param str
-	 * @param delimiter
+	 * @param str input string
+	 * @param delimiter delimiter to split
+	 * @return last item in string
 	 */
 	@Deprecated
 	public static String last(final String str, final String delimiter) {
@@ -466,8 +408,9 @@ public class Util {
 
 	/**
 	 * @deprecated use instead CFMLEngineFactory.getInstance().getStringUtil().removeQuotes (...);
-	 * @param str
-	 * @param trim
+	 * @param str string to removes quotes from
+	 * @param trim trim it or not
+	 * @return string without quotes
 	 */
 	@Deprecated
 	public static String removeQuotes(final String str, final boolean trim) {
@@ -483,8 +426,8 @@ public class Util {
 	/**
 	 * check left value against right value
 	 * 
-	 * @param left
-	 * @param right
+	 * @param left left operand
+	 * @param right right operand
 	 * @return returns if right is newer than left
 	 */
 	public static boolean isNewerThan(final Version left, final Version right) {
@@ -580,4 +523,29 @@ public class Util {
 		}
 	}
 
+	/**
+	 * returns a system setting by either a Java property name or a System environment variable
+	 * 
+	 * @param name - either a lowercased Java property name (e.g. lucee.controller.disabled) or an
+	 *            UPPERCASED Environment variable name ((e.g. LUCEE_CONTROLLER_DISABLED))
+	 * @param defaultValue - value to return if the neither the property nor the environment setting was
+	 *            found
+	 * @return - the value of the property referenced by propOrEnv or the defaultValue if not found
+	 */
+	public static String _getSystemPropOrEnvVar(String name, String defaultValue) { // FUTURE remove _ in front of the name
+		// env
+		String value = System.getenv(name);
+		if (!Util.isEmpty(value)) return value;
+
+		// prop
+		value = System.getProperty(name);
+		if (!Util.isEmpty(value)) return value;
+
+		// env 2
+		name = name.replace('.', '_').toUpperCase();
+		value = System.getenv(name);
+		if (!Util.isEmpty(value)) return value;
+
+		return defaultValue;
+	}
 }

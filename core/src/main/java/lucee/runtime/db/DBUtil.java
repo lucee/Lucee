@@ -20,7 +20,7 @@ package lucee.runtime.db;
 
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.transformer.library.ClassDefinitionImpl;
 
@@ -101,7 +101,7 @@ public class DBUtil {
 
 	private static JDBCDriver getJDBCDriver(Config config, String id, String className, String bundleName, String bundleVersion, String connStr) {
 		// FUTURE remove the hardcoded fallback
-		ConfigImpl ci = (ConfigImpl) config;
+		ConfigPro ci = (ConfigPro) config;
 		JDBCDriver jdbc = ci.getJDBCDriverById(id, null);
 		if (jdbc != null) return improve(jdbc, connStr);
 

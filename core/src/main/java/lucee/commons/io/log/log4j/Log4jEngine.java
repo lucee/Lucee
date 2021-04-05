@@ -70,7 +70,7 @@ public class Log4jEngine extends LogEngine {
 				RollingResourceAppender.DEFAULT_MAX_BACKUP_INDEX, timeout, listener); // no open stream at all
 
 		if (async) {
-			a = new TaskAppender(config, a);
+			a = new TaskAppender(ConfigWebUtil.toConfigWeb(config), a);
 		}
 		return new LogAdapter(_getLogger(config, a, name, level));
 	}
@@ -418,7 +418,7 @@ public class Log4jEngine extends LogEngine {
 
 	private Appender toAppender(Object l) {
 		if (l instanceof Appender) return (Appender) l;
-		throw new RuntimeException("cannot convert [" + l + "] to a Appender");
+		throw new RuntimeException("cannot convert [" + l + "] to an Appender");
 	}
 
 	private Layout toLayout(Object l) {

@@ -33,7 +33,7 @@ import java.sql.Time;
 import java.sql.Types;
 import java.util.Date;
 
-import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.io.SystemUtil.TemplateLine;
 import lucee.commons.lang.FormatUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.sql.SQLUtil;
@@ -55,6 +55,7 @@ import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.functions.arrays.ArrayFind;
+import lucee.runtime.functions.system.ContractPath;
 import lucee.runtime.op.Caster;
 import lucee.runtime.query.caster.Cast;
 import lucee.runtime.query.caster.OtherCast;
@@ -67,14 +68,24 @@ import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryColumn;
 import lucee.runtime.type.QueryColumnImpl;
 import lucee.runtime.type.QueryImpl;
+import lucee.runtime.type.query.QueryResult;
 import lucee.runtime.type.query.SimpleQuery;
 
 public class QueryUtil {
 
 	public static Cast toCast(ResultSet result, int type) throws SQLException {
-		if (type == Types.TIMESTAMP) return Cast.TIMESTAMP;
-		else if (type == Types.TIME) return Cast.TIME;
-		else if (type == Types.DATE) return Cast.DATE;
+		if (type == Types.TIMESTAMP) {
+			if (isTeradata(result)) return Cast.TIMESTAMP_NOTZ;
+			return Cast.TIMESTAMP;
+		}
+		else if (type == Types.TIME) {
+			if (isTeradata(result)) return Cast.TIME_NOTZ;
+			return Cast.TIME;
+		}
+		else if (type == Types.DATE) {
+			if (isTeradata(result)) return Cast.DATE_NOTZ;
+			return Cast.DATE;
+		}
 		else if (type == Types.CLOB) return Cast.CLOB;
 		else if (type == Types.BLOB) return Cast.BLOB;
 		else if (type == Types.BIT) return Cast.BIT;
@@ -130,8 +141,24 @@ public class QueryUtil {
 
 			return SQLUtil.isOracle(conn);
 		}
-		catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
+		catch (Exception e) {
+			return false;
+		}
+	}
+
+	private static boolean isTeradata(ResultSet result) {
+		try {
+			if (result == null) return false;
+
+			Statement stat = result.getStatement();
+			if (stat == null) return false;
+
+			Connection conn = stat.getConnection();
+			if (conn == null) return false;
+
+			return SQLUtil.isTeradata(conn);
+		}
+		catch (Exception e) {
 			return false;
 		}
 	}
@@ -205,10 +232,16 @@ public class QueryUtil {
 
 		StringBuilder comment = new StringBuilder();
 
-		// table.appendRow(1, new SimpleDumpData("SQL"), new SimpleDumpData(sql.toString()));
-		String template = query.getTemplate();
-		if (!StringUtil.isEmpty(template)) comment.append("Template: ").append(template).append("\n");
-		// table.appendRow(1, new SimpleDumpData("Template"), new SimpleDumpData(template));
+		// template
+		String tmpl = null;
+		if (query instanceof QueryResult) {
+			TemplateLine tl = ((QueryResult) query).getTemplateLine();
+			if (tl != null) tmpl = tl.toString(pageContext, true);
+		}
+		else {
+			tmpl = query.getTemplate();
+		}
+		if (!StringUtil.isEmpty(tmpl)) comment.append("Template: ").append(ContractPath.call(pageContext, tmpl)).append("\n");
 
 		int top = dp.getMaxlevel(); // in Query dump maxlevel is used as Top
 
@@ -272,7 +305,7 @@ public class QueryUtil {
 			throw new DatabaseException("invalid index [" + index + "], index must be between 0 and " + (query.getRecordcount() - 1), null, null, null);
 		if (index + count > query.getRecordcount())
 			throw new DatabaseException("invalid count [" + count + "], count+index [" + (count + index) + "] must less or equal to " + (query.getRecordcount()), null, null, null);
-
+		// MUST better and faster impl
 		for (int row = count; row >= 1; row--) {
 			query.removeRow(index + row);
 		}

@@ -87,7 +87,7 @@ public final class FeedHandler extends DefaultHandler {
 			init(source);
 		}
 		finally {
-			IOUtil.closeEL(is);
+			IOUtil.close(is);
 		}
 	}
 
@@ -210,9 +210,6 @@ public final class FeedHandler extends DefaultHandler {
 		}
 		parents.add(data);
 		data = sct;
-
-		// <enclosure url="http://www.scripting.com/mp3s/weatherReportDicksPicsVol7.mp3" length="6182912"
-		// type="audio/mpeg"/>
 	}
 
 	private String name(String name, String qName) {

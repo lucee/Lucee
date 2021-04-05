@@ -19,7 +19,7 @@
 package lucee.runtime.exp;
 
 /**
- * This Exception will be Throwed, when page Excecution will be aborted (tag abort).
+ * This Exception will be thrown, when page Excecution is aborted (tag abort).
  */
 public class Abort extends AbortException {
 

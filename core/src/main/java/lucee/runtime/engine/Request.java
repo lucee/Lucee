@@ -40,6 +40,7 @@ public class Request extends Thread {
 			ThreadQueue tmp = pc.getConfig().getThreadQueue();
 			tmp.enter(pc);
 			queue = tmp;
+
 			if (type == TYPE_CFML) pc.executeCFML(pc.getHttpServletRequest().getServletPath(), throwExcpetion, true);
 			else if (type == TYPE_LUCEE) pc.execute(pc.getHttpServletRequest().getServletPath(), throwExcpetion, true);
 			else pc.executeRest(pc.getHttpServletRequest().getServletPath(), throwExcpetion);

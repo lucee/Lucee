@@ -2,14 +2,14 @@
 <project default="run" basedir="." name="Lucee">
 
 <macrodef name="echots">
-    <attribute name="message"/>
-    <sequential>
-      <local name="timestamp" />
-      <tstamp>
-        <format property="timestamp" pattern="yyyy-MM-dd HH:mm:ss" />
-      </tstamp>
-      <echo message="---------- ${timestamp} - @{message} ----------" />
-    </sequential>
+	<attribute name="message"/>
+	<sequential>
+	  <local name="timestamp" />
+	  <tstamp>
+		<format property="timestamp" pattern="yyyy-MM-dd HH:mm:ss" />
+	  </tstamp>
+	  <echo message="---------- ${timestamp} - @{message} ----------" />
+	</sequential>
   </macrodef>
 
 <target name="run">
@@ -24,13 +24,18 @@
 ]]></echo>
 <echots message="start TestBox testcases"/>
 
-
+<!-- TODO this is hard to debug, any errors, it just fails with zero feedback -->
 <script language="CFML">
 <![CDATA[
+encodeForHTML("abc"); // test if ESAPI extension exist right away
+systemOutput("---------- #DateTimeFormat(now(),'yyyy-mm-dd HH:nn:ss')# - Lucee Started ----------", true);
+request._start = getTickCount();
 if (execute) {
 
 request.basedir = basedir;
 request.srcall = srcall;
+request.testFilter = testFilter;
+
 request.WEBADMINPASSWORD = "webweb";
 request.SERVERADMINPASSWORD = "webweb";
 server.WEBADMINPASSWORD = request.WEBADMINPASSWORD;
@@ -41,8 +46,8 @@ NL = "
 TAB = "	";
 
 fixCase = {};
-for (el in ["bundleId", "debugBuffer", "endTime", "error", "failMessage", "failOrigin", "globalException", "name", "parentId", "path", "specStats", "startTime", "status", "suiteId", "suiteStats", "totalDuration", "totalError", "totalFail", "totalPass", "totalSkipped", "totalSpecs", "totalSuites"
-]) {
+for (el in ["bundleId", "debugBuffer", "endTime", "error", "failMessage", "failOrigin", "globalException", "name", "parentId", "path", "specStats", 
+	"startTime", "status", "suiteId", "suiteStats", "totalDuration", "totalError", "totalFail", "totalPass", "totalSkipped", "totalSpecs", "totalSuites"]) {
 	fixCase[ucase(el)] = el;
 }
 
@@ -50,17 +55,35 @@ failedTestCases = [];
 
 try {
 
-function mem(type) {
-    var qry = getMemoryUsage(type);
-    loop query=qry {
-        var perc = int(100 / qry.max * qry.used);
-        if(qry.max<0 || qry.used<0 || perc<90)
-        	continue;
-        systemOutput(TAB & replace(ucFirst(type), '_', ' ') & " " & qry.name & ": " & perc & "%", true);
-    }
-}
+	function mem(type) {
+		var qry = getMemoryUsage(type);
+		loop query=qry {
+			var perc = int(100 / qry.max * qry.used);
+			if(qry.max<0 || qry.used<0 || perc<90)
+				continue;
+			systemOutput(TAB & replace(ucFirst(type), '_', ' ') & " " & qry.name & ": " & perc & "%", true);
+		}
+	}
 
-// set a password for the admin
+	// strips off the stack trace to exclude testbox and back to the first .cfc call in the stack
+	function printStackTrace( st ){
+		local.i = find( "/testbox/", arguments.st );
+		if ( i eq 0 ){ // dump it all out
+			systemOutput( TAB & arguments.st, true );
+			return;
+		}
+		local.tmp = mid( arguments.st, 1, i ); // strip out anything after testbox
+		local.tmp2 = reverse( local.tmp );
+		local.i = find( ":cfc.", local.tmp2 ); // find the first cfc line
+		if ( local.i gt 0 ){
+			local.i = len( local.tmp )-i;
+			local.j = find( ")", local.tmp, local.i ); // find the end of the line
+			local.tmp = mid( local.tmp, 1, local.j );
+		}
+		systemOutput( TAB & local.tmp, true );
+	};
+
+	// set a password for the admin
 	try {
 		admin
 			action="updatePassword"
@@ -81,18 +104,23 @@ function mem(type) {
 
 	systemOutput("set password #dateTimeFormat(now())#", true);
 
+	if (len(request.testFilter) gt 0)
+		systemOutput(NL & "Filtering only tests containing: [" & request.testFilter & "]" & NL, true);	
+	else
+		systemOutput(NL & 'Running all tests, to run a subset of test(s), use the parameter -DtestFilter="image"'& NL, true);	
+
 	// output deploy log
 	pc=getPageContext();
 	config=pc.getConfig();
 	configDir=config.getConfigServerDir();
 	logsDir=configDir&server.separator.file&"logs";
 	deployLog=logsDir&server.separator.file&"deploy.log";
-	dump(deployLog);
+	//dump(deployLog);
 	content=fileRead(deployLog);
-	systemOutput("-------------- Deploy Log ------------",true);
+	systemOutput("-------------- Deploy.Log ------------",true);
 	systemOutput(content,true);
 	systemOutput("--------------------------------------",true);
-
+	
 
 	// create "/test" mapping
 	admin
@@ -114,12 +142,30 @@ function mem(type) {
 		action="update"
 		componentpaths = "#[{archive:testboxArchive}]#";
 
-	systemOutput("update componentpaths #dateTimeFormat(now())#", true);
+	systemOutput("update componentpaths #dateTimeFormat(now())#" & NL, true);
 
 	// load testbox
 	SystemOut=createObject("java", "lucee.commons.lang.SystemOut");
 	out=SystemOut.setOut(nullValue());
 	//err=SystemOut.setErr(nullValue());
+
+	request._tick = getTickCount();
+	request.overhead = [];
+
+	admin 
+		action="getMappings"
+		type="web"
+		password="#request.WEBADMINPASSWORD#"
+		returnVariable="mappings";
+		
+	systemOutput("-------------- Mappings --------------", true);
+	loop query="mappings" {
+		systemOutput("#mappings.virtual# #TAB# #mappings.strPhysical# " 
+			& (len(mappings.strArchive) ? "[#mappings.strArchive#] " : "")
+			& (len(mappings.inspect) ? "(#mappings.inspect#)" : ""), true);
+	}
+	
+	systemOutput(NL & "-------------- Start Tests -----------", true);
 
 	silent {
 		try {
@@ -131,19 +177,20 @@ function mem(type) {
 		//			echo(arguments.path&"
 		//");
 					var name=listLast(arguments.path,"\/");
+					if (len(request.testFilter) gt 0 and FindNoCase(request.testFilter, arguments.path) eq 0) return false;
 
 					// get parent
 					var p = getDirectoryFromPath(arguments.path);
 					p = left(p, p.len() - 1);
-					p = listTrim(p, "\/");
+					p = listCompact(p, "\/");
 
 					// get grand parent
 					var pp = getDirectoryFromPath(p);
 					pp = left(pp, pp.len() - 1);
-					pp = listTrim(pp, "\/");
+					pp = listCompact(pp, "\/");
 
 					// only testcases in sub directory of "test" are allowed
-					var _test = listTrim(test,"\/");
+					var _test = listCompact(test,"\/");
 					return (_test == pp || _test == p) && left(name, 1) != "_";
 				}
 			};
@@ -157,24 +204,27 @@ function mem(type) {
 		var meta = getComponentMetadata(cfc);
 		SystemOut.setOut(out);
 		//SystemOut.setErr(err);
-		systemOutput("=============================================================" & NL & meta.name, false);
+		//"=============================================================" 
+		systemOutput(TAB & meta.name, false);
 		SystemOut.setOut(nullValue());
 		//SystemOut.setErr(nullValue());
 	} // onBundleStart = function
 	,onBundleEnd = function(cfc, testResults){
 		var bundle = arrayLast(testResults.getBundleStats());
+		var oh = (getTickCount()-request._tick)-bundle.totalDuration;
+		request._tick = getTickCount();
+		ArrayAppend(request.overhead, oh);
 		try {
 			SystemOut.setOut(out);
 			//SystemOut.setErr(err);
-
-			systemOutput(" (#bundle.totalPass# tests passed in #LSNumberFormat(bundle.totalDuration, ',')# ms)",true);
+			systemOutput(TAB & " (#bundle.totalPass# tests passed in #NumberFormat(bundle.totalDuration)# ms)", true);
 			//mem("non_heap");
 			//mem("heap");
 
 		// we have an error
 		if ((bundle.totalFail + bundle.totalError) > 0) {
 
-			systemOutput("	Suites/Specs: #bundle.totalSuites#/#bundle.totalSpecs#
+			systemOutput("ERRORED" & NL & "	Suites/Specs: #bundle.totalSuites#/#bundle.totalSpecs#
 	Failures: #bundle.totalFail#
 	Errors:   #bundle.totalError#
 	Pass:     #bundle.totalPass#
@@ -197,24 +247,28 @@ function mem(type) {
 								};
 								failedTestCases.append(failedTestCase);
 
-								systemOutput(NL & TAB & "Failed: " & specStat.name & " --> " & specStat.failMessage, true);
+								systemOutput(NL & specStat.name);
+								systemOutput(NL & TAB & "Failed: " & specStat.failMessage, true);
 
 								if (!isNull(specStat.failOrigin) && !isEmpty(specStat.failOrigin)){
 
 									var rawStackTrace = specStat.failOrigin;
 									var testboxPath = getDirectoryFromPath(rawStackTrace[1].template);
 
-									systemOutput(TAB & TAB & "at", true);
+									//systemOutput(TAB & TAB & "at", true);
 
-									loop array=rawStackTrace item="local.st" {
+									loop array=rawStackTrace item="local.st" index="local.i" {
 
 										if (!st.template.hasPrefix(testboxPath)){
-											var frame = st.template & ":" & st.line;
-											failedTestCase.stackTrace.append(frame);
-											systemOutput(TAB & frame, true);
+											if (local.i eq 1 or st.template does not contain "testbox"){
+												var frame = st.template & ":" & st.line;
+												failedTestCase.stackTrace.append(frame);
+												systemOutput(TAB & frame, true);
+											}
 										}
 									}
-								}
+								} 
+								systemOutput(NL);
 							} // if !isNull
 
 							if (!isNull(specStat.error) && !isEmpty(specStat.error)){
@@ -228,20 +282,35 @@ function mem(type) {
 								};
 								failedTestCases.append(failedTestCase);
 
-								systemOutput(NL & TAB & "Errored: " & specStat.name & " --> " & specStat.error.Message, true);
+								systemOutput(NL & specStat.name);
+								systemOutput(NL & TAB & "Errored: " & specStat.error.Message, true);
+								if (len(specStat.error.Detail))
+									systemOutput(TAB & "Detail: " & specStat.error.Detail, true);
 
 								if (!isNull(specStat.error.TagContext) && !isEmpty(specStat.error.TagContext)){
 
 									var rawStackTrace = specStat.error.TagContext;
 
-									systemOutput(TAB & TAB & "at", true);
+									//systemOutput(TAB & TAB & "at", true);
 
-									loop array=rawStackTrace item="local.st" {
-
-										var frame = st.template & ":" & st.line;
-										failedTestCase.stackTrace.append(frame);
-										systemOutput(TAB & frame, true);
+									loop array=rawStackTrace item="local.st" index="local.i" {
+										if (local.i eq 1 or st.template does not contain "testbox"){
+											var frame = st.template & ":" & st.line;
+											failedTestCase.stackTrace.append(frame);
+											systemOutput(TAB & frame, true);
+										}
 									}
+									systemOutput(NL);
+									/*
+									if (arrayLen(rawStackTrace) gt 0){
+										systemOutput(TAB & rawStackTrace[1].codePrintPlain, true);
+										systemOutput(NL);
+									}
+									*/
+								}
+								if (!isNull(specStat.error.StackTrace) && !isEmpty(specStat.error.StackTrace)){
+									printStackTrace(specStat.error.StackTrace);
+									systemOutput(NL);
 								}
 
 							//	systemOutput(NL & serialize(specStat.error), true);
@@ -251,8 +320,7 @@ function mem(type) {
 					}
 				}
 			}
-
-			systemOutput(NL & replace(serialize(bundle), fixCase), true);
+			//systemOutput(serializeJson(bundle.suiteStats));
 		}
 
 	// exceptions
@@ -294,26 +362,29 @@ Begin Stack Trace
 	} // silent
 
 
-	echo("=============================================================" & NL);
+	echo(NL & NL & "=============================================================" & NL);
 	echo("TestBox Version: #tb.getVersion()#" & NL);
 	echo("Lucee Version: #server.lucee.version#" & NL);
 	echo("Java Version: #server.java.version#" & NL);
-	echo("Global Stats (#result.getTotalDuration()# ms)" & NL);
-	echo("=============================================================" & NL);
-	echo("->[Bundles/Suites/Specs: #result.getTotalBundles()#/#result.getTotalSuites()#/#result.getTotalSpecs()#]" & NL);
-	echo("->[Pass:     #result.getTotalPass()#]" & NL);
-	echo("->[Skipped:  #result.getTotalSkipped()#]" & NL);
-	echo("->[Failures: #result.getTotalFail()#]" & NL);
-	echo("->[Errors:   #result.getTotalError()#]" & NL);
+	echo("Total Execution time: (#NumberFormat((getTickCount()-request._start)/1000)# s)" & NL);
+	echo("Test Execution time: (#NumberFormat(result.getTotalDuration()/1000)# s)" & NL);	
+	echo("Average Test Overhead: (#NumberFormat(ArrayAvg(request.overhead))# ms)" & NL);
+	echo("Total Test Overhead: (#NumberFormat(ArraySum(request.overhead))# ms)" & NL);
+	
+	echo("=============================================================" & NL & NL);
+	echo("-> Bundles/Suites/Specs: #result.getTotalBundles()#/#result.getTotalSuites()#/#result.getTotalSpecs()#" & NL);
+	echo("-> Pass:     #result.getTotalPass()#" & NL);
+	echo("-> Skipped:  #result.getTotalSkipped()#" & NL);
+	echo("-> Failures: #result.getTotalFail()#" & NL);
+	echo("-> Errors:   #result.getTotalError()#" & NL);
 
 		if (!isEmpty(failedTestCases)){
-
 			echo(NL);
 			for (el in failedTestCases){
-				echo(TAB & el.type & ": " & el.bundle & "." & el.testCase & " ---> " & el.errMessage & NL);
+				echo(el.type & ": " & el.bundle & NL & TAB & el.testCase & NL);
+				echo(TAB & el.errMessage & NL);
 				if (!isEmpty(el.stackTrace)){
-
-					echo(TAB & TAB & "at" & NL);
+					//echo(TAB & TAB & "at" & NL);
 					for (frame in el.stackTrace){
 						echo(TAB & TAB & frame & NL);
 					}

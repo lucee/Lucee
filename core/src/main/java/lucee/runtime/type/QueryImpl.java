@@ -58,12 +58,13 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import lucee.commons.db.DBUtil;
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.SystemUtil.TemplateLine;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.converter.ScriptConverter;
 import lucee.runtime.db.DataSourceUtil;
@@ -120,8 +121,10 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	private static final long serialVersionUID = 1035795427320192551L; // do not chnage
 
-	public static final Collection.Key GENERATED_KEYS = KeyImpl.intern("GENERATED_KEYS");
-	public static final Collection.Key GENERATEDKEYS = KeyImpl.intern("GENERATEDKEYS");
+	public static final Collection.Key GENERATED_KEYS = KeyImpl.getInstance("GENERATED_KEYS");
+	public static final Collection.Key GENERATEDKEYS = KeyImpl.getInstance("GENERATEDKEYS");
+
+	private boolean populating;
 
 	private QueryColumnImpl[] columns;
 	private Collection.Key[] columnNames;
@@ -134,11 +137,24 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	private String name;
 	private int updateCount;
 	private QueryImpl generatedKeys;
-	private String template;
+	private TemplateLine templateLine;
+
+	private Collection.Key indexName;
+	private Map<Collection.Key, Integer> indexes;// = new
+	// ConcurrentHashMap<Collection.Key,Integer>();
 
 	@Override
 	public String getTemplate() {
-		return template;
+		return templateLine == null ? null : templateLine.template;
+	}
+
+	@Override
+	public TemplateLine getTemplateLine() { // FUTURE add to interface
+		return templateLine;
+	}
+
+	public void setTemplateLine(TemplateLine templateLine) {
+		this.templateLine = templateLine;
 	}
 
 	@Override
@@ -160,7 +176,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		// stopwatch.start();
 		long start = System.nanoTime();
 		try {
-			fillResult(this, null, null, null, result, maxrow, false, false, tz);
+			fillResult(this, null, null, null, result, maxrow, true, false, tz);
 		}
 		catch (SQLException e) {
 			throw new DatabaseException(e, null);
@@ -200,31 +216,28 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	 * @throws PageException
 	 */
 	public QueryImpl(PageContext pc, DatasourceConnection dc, SQL sql, int maxrow, int fetchsize, TimeSpan timeout, String name) throws PageException {
-		this(pc, dc, sql, maxrow, fetchsize, timeout, name, null, false, true);
+		this(pc, dc, sql, maxrow, fetchsize, timeout, name, null, false, true, null);
 	}
 
-	public QueryImpl(PageContext pc, DatasourceConnection dc, SQL sql, int maxrow, int fetchsize, TimeSpan timeout, String name, String template) throws PageException {
-		this(pc, dc, sql, maxrow, fetchsize, timeout, name, template, false, true);
-	}
-
-	public QueryImpl(PageContext pc, DatasourceConnection dc, SQL sql, int maxrow, int fetchsize, TimeSpan timeout, String name, String template, boolean createUpdateData,
-			boolean allowToCachePreperadeStatement) throws PageException {
+	public QueryImpl(PageContext pc, DatasourceConnection dc, SQL sql, int maxrow, int fetchsize, TimeSpan timeout, String name, TemplateLine templateLine,
+			boolean createUpdateData, boolean allowToCachePreperadeStatement, Collection.Key indexName) throws PageException {
 		this.name = name;
-		this.template = template;
+		this.templateLine = templateLine;
+		this.indexName = indexName;
 		this.sql = sql;
 		execute(pc, dc, sql, maxrow, fetchsize, timeout, createUpdateData, allowToCachePreperadeStatement, this, null, null);
 	}
 
 	public static QueryStruct toStruct(PageContext pc, DatasourceConnection dc, SQL sql, Collection.Key keyName, int maxrow, int fetchsize, TimeSpan timeout, String name,
-			String template, boolean createUpdateData, boolean allowToCachePreperadeStatement) throws PageException {
-		QueryStruct sct = new QueryStruct(name, sql, template);
+			TemplateLine templateLine, boolean createUpdateData, boolean allowToCachePreperadeStatement) throws PageException {
+		QueryStruct sct = new QueryStruct(name, sql, templateLine);
 		execute(pc, dc, sql, maxrow, fetchsize, timeout, createUpdateData, allowToCachePreperadeStatement, null, sct, keyName);
 		return sct;
 	}
 
-	public static QueryArray toArray(PageContext pc, DatasourceConnection dc, SQL sql, int maxrow, int fetchsize, TimeSpan timeout, String name, String template,
+	public static QueryArray toArray(PageContext pc, DatasourceConnection dc, SQL sql, int maxrow, int fetchsize, TimeSpan timeout, String name, TemplateLine templateLine,
 			boolean createUpdateData, boolean allowToCachePreperadeStatement) throws PageException {
-		QueryArray arr = new QueryArray(name, sql, template);
+		QueryArray arr = new QueryArray(name, sql, templateLine);
 		execute(pc, dc, sql, maxrow, fetchsize, timeout, createUpdateData, allowToCachePreperadeStatement, null, arr, null);
 		return arr;
 	}
@@ -276,12 +289,10 @@ public class QueryImpl implements Query, Objects, QueryResult {
 					// res=stat.getResultSet();
 					// if(fillResult(dc,res, maxrow, true,createGeneratedKeys,tz))break;
 					if (fillResult(qry, qr, keyName, dc, stat.getResultSet(), maxrow, true, createGeneratedKeys, tz)) break;
-
 				}
 				else if ((uc = setUpdateCount(qry != null ? qry : qr, stat)) != -1) {
 					if (uc > 0 && createGeneratedKeys && qry != null) qry.setGeneratedKeys(dc, stat, tz);
 				}
-
 				else break;
 
 				try {
@@ -381,7 +392,15 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	private static void setAttributes(Statement stat, int maxrow, int fetchsize, TimeSpan timeout) throws SQLException {
 		if (maxrow > -1) stat.setMaxRows(maxrow);
 		if (fetchsize > 0) stat.setFetchSize(fetchsize);
-		if (timeout != null && ((int) timeout.getSeconds()) > 0) DataSourceUtil.setQueryTimeoutSilent(stat, (int) timeout.getSeconds());
+		int to = getSeconds(timeout);
+		if (to > 0) DataSourceUtil.setQueryTimeoutSilent(stat, to);
+	}
+
+	public static int getSeconds(TimeSpan timeout) {
+		if (timeout == null) return 0;
+		if (timeout.getSeconds() > 0) return Caster.toIntValue(timeout.getSeconds());
+		if (timeout.getMillis() > 0) return 1;
+		return 0;
 	}
 
 	private static boolean fillResult(QueryImpl qry, QueryResult qr, Collection.Key keyName, DatasourceConnection dc, ResultSet result, int maxrow, boolean closeResult,
@@ -447,14 +466,43 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 			// fill QUERY
 			if (qry != null) {
-				while (result.next()) {
-					if (maxrow > -1 && recordcount >= maxrow) {
-						break;
+				qry.populating = true;
+				int index = -1;
+				if (qry.indexName != null) {
+					qry.indexes = new ConcurrentHashMap<Collection.Key, Integer>();
+					for (int i = 0; i < columnNames.length; i++) {
+						if (columnNames[i].equalsIgnoreCase(qry.indexName)) {
+							index = i;
+							break;
+						}
 					}
-					for (int i = 0; i < usedColumns.length; i++) {
-						columns[i].add(casts[i].toCFType(tz, result, usedColumns[i] + 1));
+				}
+				if (index != -1) {
+					Object o;
+					while (result.next()) {
+						if (maxrow > -1 && recordcount >= maxrow) {
+							break;
+						}
+						for (int i = 0; i < usedColumns.length; i++) {
+							o = casts[i].toCFType(tz, result, usedColumns[i] + 1);
+							if (index == i) {
+								qry.indexes.put(Caster.toKey(o), recordcount + 1);
+							}
+							columns[i].add(o);
+						}
+						++recordcount;
 					}
-					++recordcount;
+				}
+				else {
+					while (result.next()) {
+						if (maxrow > -1 && recordcount >= maxrow) {
+							break;
+						}
+						for (int i = 0; i < usedColumns.length; i++) {
+							columns[i].add(casts[i].toCFType(tz, result, usedColumns[i] + 1));
+						}
+						++recordcount;
+					}
 				}
 			}
 			// fill QueryResult
@@ -478,16 +526,31 @@ public class QueryImpl implements Query, Objects, QueryResult {
 					}
 					if (qa != null) qa.appendEL(sct);
 					else {
-						k = sct.get(keyName, CollectionUtil.NULL);
-						if (k == CollectionUtil.NULL) {
-							Struct keys = new StructImpl();
-							for (Collection.Key tmp: columnNames) {
-								keys.set(tmp, "");
+						// QueryStruct
+						if (keyName == null) {
+							// single record struct
+							if (recordcount > 0) {
+								throw new ApplicationException("Attribute [keyColumn] is required when return type is set to Struct and more than one record is returned");
 							}
-							throw StructSupport.invalidKey(null, keys, keyName, "resultset");
+
+							qs.setSingleRecord(true);
+							for (Collection.Key tmp: columnNames) {
+								qs.set(tmp, sct.get(tmp));
+							}
 						}
-						if (k == null) k = "";
-						qs.set(KeyImpl.toKey(k), sct);
+						else {
+							// struct of structs with keyName column as key
+							k = sct.get(keyName, CollectionUtil.NULL);
+							if (k == CollectionUtil.NULL) {
+								Struct keys = new StructImpl();
+								for (Collection.Key tmp: columnNames) {
+									keys.set(tmp, "");
+								}
+								throw StructSupport.invalidKey(null, keys, keyName, "resultset");
+							}
+							if (k == null) k = "";
+							qs.set(KeyImpl.toKey(k), sct);
+						}
 					}
 
 					++recordcount;
@@ -495,7 +558,9 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			}
 		}
 		finally {
+
 			if (qry != null) {
+				qry.populating = false;
 				qry.columncount = columncount;
 				qry.recordcount = recordcount;
 				qry.columnNames = columnNames;
@@ -504,7 +569,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			else {
 				qr.setColumnNames(columnNames);
 			}
-			if (closeResult) IOUtil.closeEL(result);
+			if (closeResult) IOUtil.close(result);
 		}
 		return true;
 	}
@@ -525,7 +590,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	}
 
 	/**
-	 * constructor of the class, to generate a empty resultset (no database execution)
+	 * constructor of the class, to generate an empty resultset (no database execution)
 	 * 
 	 * @param strColumns columns for the resultset
 	 * @param rowNumber count of rows to generate (empty fields)
@@ -547,7 +612,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	}
 
 	/**
-	 * constructor of the class, to generate a empty resultset (no database execution)
+	 * constructor of the class, to generate an empty resultset (no database execution)
 	 * 
 	 * @param strColumns columns for the resultset
 	 * @param rowNumber count of rows to generate (empty fields)
@@ -572,7 +637,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	}
 
 	/**
-	 * constructor of the class, to generate a empty resultset (no database execution)
+	 * constructor of the class, to generate an empty resultset (no database execution)
 	 * 
 	 * @param strColumns columns for the resultset
 	 * @param strTypes array of the types
@@ -594,7 +659,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	}
 
 	/**
-	 * constructor of the class, to generate a empty resultset (no database execution)
+	 * constructor of the class, to generate an empty resultset (no database execution)
 	 * 
 	 * @param strColumns columns for the resultset
 	 * @param strTypes array of the types
@@ -616,28 +681,28 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	}
 
 	/**
-	 * constructor of the class, to generate a empty resultset (no database execution)
+	 * constructor of the class, to generate an empty resultset (no database execution)
 	 * 
 	 * @param arrColumns columns for the resultset
 	 * @param rowNumber count of rows to generate (empty fields)
 	 * @param name
-	 * @throws DatabaseException
+	 * @throws PageException
 	 */
-	public QueryImpl(Array arrColumns, int rowNumber, String name) throws DatabaseException {
+	public QueryImpl(Array arrColumns, int rowNumber, String name) throws PageException {
 		this.name = name;
 		columncount = arrColumns.size();
 		recordcount = rowNumber;
 		columnNames = new Collection.Key[columncount];
 		columns = new QueryColumnImpl[columncount];
 		for (int i = 0; i < columncount; i++) {
-			columnNames[i] = KeyImpl.init(arrColumns.get(i + 1, "").toString().trim());
+			columnNames[i] = KeyImpl.init(Caster.toString(arrColumns.get(i + 1, "")).trim());
 			columns[i] = new QueryColumnImpl(this, columnNames[i], Types.OTHER, recordcount);
 		}
 		validateColumnNames(columnNames);
 	}
 
 	/**
-	 * constructor of the class, to generate a empty resultset (no database execution)
+	 * constructor of the class, to generate an empty resultset (no database execution)
 	 * 
 	 * @param arrColumns columns for the resultset
 	 * @param arrTypes type of the columns
@@ -659,26 +724,14 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		validateColumnNames(columnNames);
 	}
 
-	/**
-	 * constructor of the class
-	 * 
-	 * @param columnNames columns definition as String Array
-	 * @param arrColumns values
-	 * @param name
-	 * @throws DatabaseException
-	 */
-
-	public QueryImpl(String[] strColumnNames, Array[] arrColumns, String name) throws DatabaseException {
-		this(CollectionUtil.toKeys(strColumnNames, true), arrColumns, name);
-	}
-
 	private static void validateColumnNames(Key[] columnNames) throws DatabaseException {
 		Set<String> testMap = new HashSet<String>();
 		for (int i = 0; i < columnNames.length; i++) {
 
 			// Only allow column names that are valid variable name
 			// if(!Decision.isSimpleVariableName(columnNames[i]))
-			// throw new DatabaseException("invalid column name ["+columnNames[i]+"] for query", "column names
+			// throw new DatabaseException("invalid column name ["+columnNames[i]+"] for query",
+			// "column names
 			// must start with a letter and can be followed by
 			// letters numbers and underscores [_]. RegExp:[a-zA-Z][a-zA-Z0-9_]*",null,null,null);
 
@@ -831,7 +884,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	private boolean getKeyCase(PageContext pc) {
 		pc = ThreadLocalPageContext.get(pc);
-		return pc != null && pc.getCurrentTemplateDialect() == CFMLEngine.DIALECT_CFML && !((ConfigWebImpl) pc.getConfig()).preserveCase();
+		return pc != null && pc.getCurrentTemplateDialect() == CFMLEngine.DIALECT_CFML && !((ConfigWebPro) pc.getConfig()).preserveCase();
 	}
 
 	@Override
@@ -880,7 +933,8 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			if (key.equals(KeyConstants._CURRENTROW)) return new Double(row);
 			if (key.equals(KeyConstants._COLUMNLIST)) return getColumnlist(getKeyCase(ThreadLocalPageContext.get()));
 		}
-		throw new DatabaseException("column [" + key + "] not found in query, columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get())) + "]", null, sql, null);
+		throw new DatabaseException("Column [" + key + "] not found in query", 
+			"available columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get()),", ") + "]", sql, null);
 	}
 
 	@Override
@@ -917,10 +971,10 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		QueryColumn removed = removeColumnEL(key);
 		if (removed == null) {
 			if (key.equals(KeyConstants._RECORDCOUNT) || key.equals(KeyConstants._CURRENTROW) || key.equals(KeyConstants._COLUMNLIST))
-				throw new DatabaseException("can't remove " + key + " this is not a column",
-						"existing columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get())) + "]", null, null);
-			throw new DatabaseException("can't remove column [" + key + "], this column doesn't exist",
-					"existing columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get())) + "]", null, null);
+				throw new DatabaseException("Cannot remove [" + key + "], it is not a column",
+						"available columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get()),", ") + "]", null, null);
+			throw new DatabaseException("Cannot remove column [" + key + "], it doesn't exist",
+					"available columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get()),", ") + "]", null, null);
 		}
 		return removed;
 	}
@@ -984,11 +1038,18 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	@Override
 	public Object setAt(Collection.Key key, int row, Object value) throws PageException {
+		return setAt(key, row, value, false);
+	}
+
+	// Pass trustType=true to optimize operations such as QoQ where lots of values are being moved
+	// around between query objects but we know the types are already fine and don't need to
+	// redefine them every time
+	public Object setAt(Collection.Key key, int row, Object value, boolean trustType) throws PageException {
 		int index = getIndexFromKey(key);
 		if (index != -1) {
-			return columns[index].set(row, value);
+			return columns[index].set(row, value, trustType);
 		}
-		throw new DatabaseException("column [" + key + "] does not exist", "columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get())) + "]", sql, null);
+		throw new DatabaseException("Column [" + key + "] does not exist", "columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get()),", ") + "]", sql, null);
 	}
 
 	@Override
@@ -1050,18 +1111,23 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	 * 
 	 * @return string list
 	 */
+
 	public String getColumnlist(boolean upperCase) {
+		return getColumnlist(upperCase, ",");
+	}
+
+	public String getColumnlist(boolean upperCase, String delim) {
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < columnNames.length; i++) {
-			if (i > 0) sb.append(',');
-			sb.append(upperCase ? columnNames[i].getUpperString() : columnNames[i].getString());
+			if (i > 0) sb.append(delim);
+			sb.append(columnNames[i].getString());
 		}
-		return sb.toString();
+		return (upperCase ? sb.toString().toUpperCase() : sb.toString());
 	}
 	/*
 	 * public String getColumnlist() { return getColumnlist(true); }
 	 */
-
+	
 	public boolean go(int index) {
 		return go(index, getPid());
 	}
@@ -1122,7 +1188,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	}
 
 	public void sort(int[] rows) throws PageException {
-		if (rows.length != getRecordcount()) throw new ApplicationException("row count is invalid");
+		if (rows.length != getRecordcount()) throw new ApplicationException("Query Sort row count is invalid, [" + rows.length + "] is not [" + getRecordcount() + "]");
 		for (int i = 0; i < columns.length; i++) {
 			columns[i].sort(rows);
 		}
@@ -1136,7 +1202,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		Arrays.sort(arr, (type == Types.BIGINT || type == Types.BIT || type == Types.INTEGER || type == Types.SMALLINT || type == Types.TINYINT || type == Types.DECIMAL
 				|| type == Types.DOUBLE || type == Types.NUMERIC || type == Types.REAL) ?
 
-						(Comparator) new NumberSortRegisterComparator(order == ORDER_ASC) : (Comparator) new SortRegisterComparator(null, order == ORDER_ASC, true, true));
+						(Comparator) new NumberSortRegisterComparator(order == ORDER_ASC) : (Comparator) new SortRegisterComparator(null, order == ORDER_ASC, false, false));
 
 		for (int i = 0; i < columns.length; i++) {
 			column = columns[i];
@@ -1180,11 +1246,13 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	public boolean addColumn(Collection.Key columnName, Array content, int type) throws DatabaseException {
 		// disconnectCache();
 		// TODO Meta type
-		content = (Array) Duplicator.duplicate(content, false);
+		if (content == null) content = new ArrayImpl();
+		else content = (Array) Duplicator.duplicate(content, false);
 
-		if (getIndexFromKey(columnName) != -1) throw new DatabaseException("column name [" + columnName.getString() + "] already exist", null, sql, null);
+		if (getIndexFromKey(columnName) != -1) throw new DatabaseException("Column name [" + columnName.getString() + "] already exists", null, sql, null);
 		if (content.size() != getRecordcount()) {
-			// throw new DatabaseException("array for the new column has not the same size like the query
+			// throw new DatabaseException("array for the new column has not the same size like the
+			// query
 			// (arrayLen!=query.recordcount)");
 			if (content.size() > getRecordcount()) addRow(content.size() - getRecordcount());
 			else content.setEL(getRecordcount(), "");
@@ -1217,44 +1285,12 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	@Override
 	public Object clone() {
-		return cloneQuery(true);
+		return cloneQuery(this, true);
 	}
 
 	@Override
 	public Collection duplicate(boolean deepCopy) {
-		return cloneQuery(deepCopy);
-	}
-
-	/**
-	 * @return clones the query object
-	 */
-	public QueryImpl cloneQuery(boolean deepCopy) {
-		QueryImpl newResult = new QueryImpl();
-		boolean inside = ThreadLocalDuplication.set(this, newResult);
-		try {
-			if (columnNames != null) {
-				newResult.columnNames = new Collection.Key[columnNames.length];
-				newResult.columns = new QueryColumnImpl[columnNames.length];
-				for (int i = 0; i < columnNames.length; i++) {
-					newResult.columnNames[i] = columnNames[i];
-					newResult.columns[i] = columns[i].cloneColumnImpl(deepCopy);
-				}
-			}
-			newResult.currRow = new ConcurrentHashMap<Integer, Integer>();
-			newResult.sql = sql;
-			newResult.template = template;
-			newResult.recordcount = recordcount;
-			newResult.columncount = columncount;
-			newResult.cacheType = cacheType;
-			newResult.name = name;
-			newResult.exeTime = exeTime;
-			newResult.updateCount = updateCount;
-			if (generatedKeys != null) newResult.generatedKeys = generatedKeys.cloneQuery(false);
-			return newResult;
-		}
-		finally {
-			if (!inside) ThreadLocalDuplication.reset();
-		}
+		return cloneQuery(this, deepCopy);
 	}
 
 	@Override
@@ -1290,7 +1326,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			if (key.equals(KeyConstants._CURRENTROW)) return new QueryColumnRef(this, key, Types.INTEGER);
 			if (key.equals(KeyConstants._COLUMNLIST)) return new QueryColumnRef(this, key, Types.INTEGER);
 		}
-		throw new DatabaseException("key [" + key.getString() + "] not found in query, columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get())) + "]", null, sql,
+		throw new DatabaseException("Column [" + key.getString() + "] not found in query, Columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get()), ", ") + "]", null, sql,
 				null);
 	}
 
@@ -1305,7 +1341,9 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	@Override
 	public synchronized void rename(Collection.Key columnName, Collection.Key newColumnName) throws ExpressionException {
 		int index = getIndexFromKey(columnName);
-		if (index == -1) throw new ExpressionException("invalid column name definitions");
+		if (index == -1) {
+			throw new ExpressionException("Cannot rename Column [" + columnName.getString() + "] to [" + newColumnName.getString() + "], original column doesn't exist");
+		}
 		columnNames[index] = newColumnName;
 		columns[index].setKey(newColumnName);
 	}
@@ -1333,8 +1371,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 		StringBuffer sb = new StringBuffer();
 
-		sb.append("Query\n");
-		sb.append("---------------------------------------------------\n");
+		sb.append("| Query: ").append(this.name).append("\tRecordCount: ").append(getRecordcount()).append('\n');
 
 		if (sql != null) {
 			sb.append(sql + "\n");
@@ -1346,8 +1383,6 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			sb.append("---------------------------------------------------\n");
 		}
 
-		sb.append("Recordcount: " + getRecordcount() + "\n");
-		sb.append("---------------------------------------------------\n");
 		String trenner = "";
 		for (int i = 0; i < keys.length; i++) {
 			trenner += "+---------------------";
@@ -1360,8 +1395,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			sb.append(getToStringField(keys[i].getString()));
 		}
 		sb.append("|\n");
-		sb.append(trenner);
-		sb.append(trenner);
+		sb.append(trenner.replace('-', '='));
 
 		// body
 		for (int i = 0; i < recordcount; i++) {
@@ -1484,7 +1518,6 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	}
 
 	private int getIndexFromKey(Collection.Key key) {
-
 		for (int i = 0; i < columnNames.length; i++) {
 			if (columnNames[i].equalsIgnoreCase(key)) return i;
 		}
@@ -1613,6 +1646,10 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	@Override
 	public int getColumnCount() {
 		return columncount;
+	}
+
+	public Map<Key, Integer> getIndexes() {
+		return indexes;
 	}
 
 	@Override
@@ -3094,23 +3131,28 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		QueryImpl newResult = new QueryImpl();
 		boolean inside = ThreadLocalDuplication.set(qry, newResult);
 		try {
-			newResult.columnNames = qry.getColumnNames();
-			newResult.columns = new QueryColumnImpl[newResult.columnNames.length];
-			QueryColumn col;
-			for (int i = 0; i < newResult.columnNames.length; i++) {
-				col = qry.getColumn(newResult.columnNames[i], null);
-				newResult.columns[i] = QueryUtil.duplicate2QueryColumnImpl(newResult, col, deepCopy);
+
+			Key[] tmp = qry.getColumnNames();
+			if (tmp != null) {
+				newResult.columnNames = new Collection.Key[tmp.length];
+				newResult.columns = new QueryColumnImpl[tmp.length];
+				QueryColumn col;
+				for (int i = 0; i < tmp.length; i++) {
+					newResult.columnNames[i] = tmp[i];
+					newResult.columns[i] = QueryUtil.duplicate2QueryColumnImpl(newResult, qry.getColumn(tmp[i], null), deepCopy);
+				}
 			}
 			newResult.currRow = new ConcurrentHashMap<Integer, Integer>();
 			newResult.sql = qry.getSql();
-			newResult.template = qry.getTemplate();
+			if (qry instanceof QueryImpl) newResult.templateLine = ((QueryImpl) qry).getTemplateLine();
+			else newResult.templateLine = new TemplateLine(qry.getTemplate(), 0);
 			newResult.recordcount = qry.getRecordcount();
 			newResult.columncount = newResult.columnNames.length;
 			newResult.cacheType = qry.getCacheType();
 			newResult.name = qry.getName();
 			newResult.exeTime = qry.getExecutionTime();
 			newResult.updateCount = qry.getUpdateCount();
-			if (qry.getGeneratedKeys() != null) newResult.generatedKeys = ((QueryImpl) qry.getGeneratedKeys()).cloneQuery(false);
+			if (qry.getGeneratedKeys() != null) cloneQuery(newResult.generatedKeys = ((QueryImpl) qry.getGeneratedKeys()), false);
 			return newResult;
 		}
 		finally {
@@ -3127,5 +3169,12 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	public boolean equals(Object obj) {
 		if (!(obj instanceof Collection)) return false;
 		return CollectionUtil.equals(this, (Collection) obj);
+	}
+
+	public void disableIndex() {
+		if (!populating) {
+			this.indexes = null;
+			this.indexName = null;
+		}
 	}
 }

@@ -25,8 +25,8 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWeb;
+import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.config.Password;
 import lucee.runtime.config.PasswordImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -221,6 +221,8 @@ public final class SecurityManagerImpl implements Cloneable, SecurityManager {
 	 * @return return int access value (VALUE_ALL,VALUE_LOCAL,VALUE_NO,VALUE_NONE,VALUE_YES)
 	 */
 	public static short toShortAccessValue(String accessValue, short defaultValue) {
+		if (accessValue == null) return defaultValue;
+
 		accessValue = accessValue.trim().toLowerCase();
 		if (accessValue.equals("no")) return VALUE_NO;
 		else if (accessValue.equals("yes")) return VALUE_YES;
@@ -405,7 +407,7 @@ public final class SecurityManagerImpl implements Cloneable, SecurityManager {
 
 		if (config == null || spw == null) return false;
 		try {
-			ConfigImpl.getConfigServer(config, spw);
+			ConfigWebUtil.getConfigServer(config, spw);
 			return true;
 		}
 		catch (PageException e) {

@@ -1,5 +1,6 @@
 package lucee.runtime.type.query;
 
+import lucee.commons.io.SystemUtil.TemplateLine;
 import lucee.commons.lang.FormatUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
@@ -10,6 +11,7 @@ import lucee.runtime.dump.DumpTable;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
 import lucee.runtime.type.Collection;
+import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 
@@ -19,18 +21,19 @@ public class QueryStruct extends StructImpl implements QueryResult {
 
 	private final SQL sql;
 	private long executionTime;
-	private final String template;
+	private final TemplateLine templateLine;
 	private final String name;
 
 	private String cacheType;
 	private int updateCount;
 	private Key[] columnNames;
+	private boolean isSingleRecord = false;
 
-	public QueryStruct(String name, SQL sql, String template) {
+	public QueryStruct(String name, SQL sql, TemplateLine templateLine) {
 		super(Struct.TYPE_LINKED);
 		this.name = name;
 		this.sql = sql;
-		this.template = template;
+		this.templateLine = templateLine;
 	}
 
 	@Override
@@ -40,14 +43,14 @@ public class QueryStruct extends StructImpl implements QueryResult {
 		StringBuilder comment = new StringBuilder();
 
 		// table.appendRow(1, new SimpleDumpData("SQL"), new SimpleDumpData(sql.toString()));
-		String template = getTemplate();
-		if (!StringUtil.isEmpty(template)) comment.append("Template: ").append(template).append("\n");
+		TemplateLine tl = getTemplateLine();
+		if (tl != null) comment.append("Template: ").append(tl.toString(pageContext, true)).append("\n");
 
 		int top = dp.getMaxlevel();
 
 		comment.append("Execution Time: ").append(Caster.toString(FormatUtil.formatNSAsMSDouble(getExecutionTime()))).append(" ms \n");
-		comment.append("Record Count: ").append(Caster.toString(size()));
-		if (size() > top) comment.append(" (showing top ").append(Caster.toString(top)).append(")");
+		comment.append("Record Count: ").append(Caster.toString(getRecordcount()));
+		if (getRecordcount() > top) comment.append(" (showing top ").append(Caster.toString(top)).append(")");
 		comment.append("\n");
 		comment.append("Cached: ").append(isCached() ? "Yes\n" : "No\n");
 		if (isCached()) {
@@ -60,13 +63,13 @@ public class QueryStruct extends StructImpl implements QueryResult {
 
 		dt.setTitle("Struct (from Query)");
 		if (dp.getMetainfo()) dt.setComment(comment.toString());
-		return dt;
 
+		return dt;
 	}
 
 	@Override
 	public Collection duplicate(boolean deepCopy) {
-		QueryStruct qa = new QueryStruct(name, sql, template);
+		QueryStruct qa = new QueryStruct(name, sql, templateLine);
 		qa.cacheType = cacheType;
 		qa.columnNames = columnNames;
 		qa.executionTime = executionTime;
@@ -75,14 +78,17 @@ public class QueryStruct extends StructImpl implements QueryResult {
 		return qa;
 	}
 
+	@Override
 	public SQL getSql() {
 		return sql;
 	}
 
+	@Override
 	public void setCacheType(String cacheType) {
 		this.cacheType = cacheType;
 	}
 
+	@Override
 	public String getCacheType() {
 		return cacheType;
 	}
@@ -92,24 +98,36 @@ public class QueryStruct extends StructImpl implements QueryResult {
 		return cacheType != null;
 	}
 
+	@Override
 	public long getExecutionTime() {
 		return executionTime;
 	}
 
+	@Override
 	public void setExecutionTime(long executionTime) {
 		this.executionTime = executionTime;
 	}
 
+	@Override
 	public String getTemplate() {
-		return template;
+		return templateLine == null ? null : templateLine.template;
 	}
 
+	@Override
+	public TemplateLine getTemplateLine() {
+		return templateLine;
+	}
+
+	@Override
 	public String getName() {
 		return name;
 	}
 
 	@Override
 	public int getRecordcount() {
+		if (isSingleRecord) {
+			return (size() > 0) ? 1 : 0;
+		}
 		return size();
 	}
 
@@ -138,8 +156,12 @@ public class QueryStruct extends StructImpl implements QueryResult {
 		this.columnNames = columnNames;
 	}
 
-	public static QueryStruct toQueryStruct(lucee.runtime.type.Query q, Key columnName) throws PageException {
-		QueryStruct qs = new QueryStruct(q.getName(), q.getSql(), q.getTemplate());
+	public void setSingleRecord(boolean value) {
+		this.isSingleRecord = value;
+	}
+
+	public static QueryStruct toQueryStruct(QueryImpl q, Key columnName) throws PageException {
+		QueryStruct qs = new QueryStruct(q.getName(), q.getSql(), q.getTemplateLine());
 		qs.setCacheType(q.getCacheType());
 		qs.setColumnNames(q.getColumnNames());
 		qs.setExecutionTime(q.getExecutionTime());

@@ -456,7 +456,7 @@ public final class VariableUtilImpl implements VariableUtil {
 				return ArrayUtil.set(coll, Caster.toIntValue(key.getString()) - 1, value);
 			}
 			catch (Exception e) {
-				throw new ExpressionException("invalid index [" + key.getString() + "] for Native Array, can't expand Native Arrays");
+				throw new ExpressionException("Invalid index [" + key.getString() + "] for Native Array, can't expand Native Arrays");
 			}
 		}
 		// Node
@@ -472,7 +472,7 @@ public final class VariableUtilImpl implements VariableUtil {
 			}
 			catch (PageException pe) {}
 		}
-		throw new ExpressionException("can't assign value to a Object of this type [" + Type.getName(coll) + "] with key " + key.getString());
+		throw new ExpressionException("Can't assign value to an Object of this type [" + Type.getName(coll) + "] with key [" + key.getString() + "]");
 	}
 
 	/**
@@ -534,7 +534,7 @@ public final class VariableUtilImpl implements VariableUtil {
 			}
 			catch (PageException pe) {}
 		}
-		throw new ExpressionException("can't assign value to a Object of this type [" + Type.getName(coll) + "] with key " + key);
+		throw new ExpressionException("Can't assign value to an Object of this type [" + Type.getName(coll) + "] with key [" + key + "]");
 	}
 
 	/**
@@ -709,14 +709,14 @@ public final class VariableUtilImpl implements VariableUtil {
 		else if (coll instanceof Map) {
 			Object obj = ((Map) coll).remove(key);
 			// if(obj==null)obj=((Map)coll).remove(MapAsStruct.getCaseSensitiveKey((Map)coll, key));
-			if (obj == null) throw new ExpressionException("can't remove key [" + key + "] from map");
+			if (obj == null) throw new ExpressionException("Can't remove key [" + key + "] from map");
 			return obj;
 		}
 		// List
 		else if (coll instanceof List) {
 			int i = Caster.toIntValue(key);
 			Object obj = ((List) coll).remove(i);
-			if (obj == null) throw new ExpressionException("can't remove index [" + key + "] from list");
+			if (obj == null) throw new ExpressionException("Can't remove index [" + key + "] from list");
 			return obj;
 		}
 		/*
@@ -726,7 +726,7 @@ public final class VariableUtilImpl implements VariableUtil {
 		 * }
 		 */
 		// TODO Support for Node
-		throw new ExpressionException("can't remove key [" + key + "] from Object of type [" + Caster.toTypeName(coll) + "]");
+		throw new ExpressionException("Can't remove key [" + key + "] from Object of type [" + Caster.toTypeName(coll) + "]");
 	}
 
 	@Override
@@ -739,7 +739,7 @@ public final class VariableUtilImpl implements VariableUtil {
 		else if (coll instanceof Map) {
 			Object obj = ((Map) coll).remove(key.getString());
 			// if(obj==null)obj=((Map)coll).remove(MapAsStruct.getCaseSensitiveKey((Map)coll, key));
-			if (obj == null) throw new ExpressionException("can't remove key [" + key + "] from map");
+			if (obj == null) throw new ExpressionException("Can't remove key [" + key + "] from map");
 			return obj;
 		}
 		// List
@@ -756,7 +756,7 @@ public final class VariableUtilImpl implements VariableUtil {
 		 * }
 		 */
 		// TODO Support for Node
-		throw new ExpressionException("can't remove key [" + key + "] from Object of type [" + Caster.toTypeName(coll) + "]");
+		throw new ExpressionException("Can't remove key [" + key + "] from Object of type [" + Caster.toTypeName(coll) + "]");
 	}
 
 	/**

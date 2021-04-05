@@ -5,9 +5,9 @@ component{
 	
 
     this.datasource = {
-	  class: 'org.hsqldb.jdbcDriver'
-		, connectionString: 'jdbc:hsqldb:file:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db2'
-	};  
+	  class: 'org.h2.Driver'
+		, connectionString: 'jdbc:h2:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db2;MODE=MySQL'
+	}; 
 
 	// ORM settings
 	this.ormEnabled = true;

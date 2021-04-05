@@ -26,6 +26,7 @@ import java.io.PrintStream;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
+import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.functions.dynamicEvaluation.Serialize;
@@ -53,9 +54,9 @@ public final class SystemOutput implements Function {
 				string = obj.toString();
 			}
 		}
-		PrintStream stream = System.out;
+		PrintStream stream = CFMLEngineImpl.CONSOLE_OUT;
 		// string+=":"+Thread.currentThread().getId();
-		if (doErrorStream) stream = System.err;
+		if (doErrorStream) stream = CFMLEngineImpl.CONSOLE_ERR;
 		if (string != null) {
 			if (StringUtil.indexOfIgnoreCase(string, "<print-stack-trace>") != -1) {
 				String st = ExceptionUtil.getStacktrace(new Exception("Stack trace"), false);

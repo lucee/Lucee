@@ -17,15 +17,17 @@
  */
 package lucee.runtime.component;
 
-import lucee.commons.collection.concurrent.ConcurrentHashMapNullSupport;
+import java.util.concurrent.ConcurrentHashMap;
+
 import lucee.runtime.type.Collection.Key;
 
-public class StaticStruct extends ConcurrentHashMapNullSupport<Key, Member> {
+public class StaticStruct extends ConcurrentHashMap<Key, Member> {
 
 	private static final long serialVersionUID = 4964717564860928637L;
 	private boolean init;
 
-	public StaticStruct() {}
+	public StaticStruct() {
+	}
 
 	public boolean isInit() {
 		return init;

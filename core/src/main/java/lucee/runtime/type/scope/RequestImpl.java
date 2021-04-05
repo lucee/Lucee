@@ -36,6 +36,7 @@ import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.it.EntryIterator;
+import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.type.util.StructSupport;
 
 public final class RequestImpl extends StructSupport implements Request {
@@ -108,7 +109,7 @@ public final class RequestImpl extends StructSupport implements Request {
 			Enumeration<String> names = _req.getAttributeNames();
 			List<Key> list = new ArrayList<Key>();
 			while (names.hasMoreElements()) {
-				list.add(KeyImpl.getInstance(names.nextElement()));
+				list.add(KeyImpl.init(names.nextElement()));
 			}
 			return list;
 		}
@@ -148,9 +149,9 @@ public final class RequestImpl extends StructSupport implements Request {
 	@Override
 	public void clear() {
 		synchronized (_req) {
-			Enumeration<String> names = _req.getAttributeNames();
-			while (names.hasMoreElements()) {
-				_req.removeAttribute(names.nextElement());
+			Iterator<String> names = ListUtil.toIterator(_req.getAttributeNames());
+			while (names.hasNext()) {
+				_req.removeAttribute(names.next());
 			}
 		}
 	}
@@ -186,10 +187,10 @@ public final class RequestImpl extends StructSupport implements Request {
 			}
 
 			value = defaultValue;
-			Enumeration<String> names = _req.getAttributeNames();
+			Iterator<String> it = ListUtil.toIterator(_req.getAttributeNames());
 			String k;
-			while (names.hasMoreElements()) {
-				k = names.nextElement();
+			while (it.hasNext()) {
+				k = it.next();
 				if (k.equalsIgnoreCase(key.getString())) {
 					value = _req.getAttribute(k);
 					_req.removeAttribute(k);

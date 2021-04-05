@@ -214,9 +214,9 @@ list all mappings and display necessary edit fields --->
 				<tfoot>
 					 <tr>
 						<td colspan="#columns#">
-							<input type="submit" class="button submit" name="mainAction" value="#stText.Buttons.verify#">
-							<input type="submit" class="button submit" name="mainAction" value="#stText.Buttons.Delete#">
-							<input type="reset" class="reset" name="cancel" value="#stText.Buttons.Cancel#">
+							<input type="submit" class="button submit enablebutton" name="mainAction" value="#stText.Buttons.verify#">
+							<input type="submit" class="button submit enablebutton" name="mainAction" value="#stText.Buttons.Delete#">
+							<input type="reset" class="reset enablebutton" name="cancel" id="clickCancel" value="#stText.Buttons.Cancel#">
 						</td>	
 					</tr>
 				</tfoot>
@@ -236,7 +236,7 @@ list all mappings and display necessary edit fields --->
 						</th>
 						<td>
 							<cfinputClassic onKeyDown="checkTheBox(this)" type="text" 
-							name="url" value="" required="yes" class="xlarge">
+							name="url_1" value="" required="yes" class="xlarge">
 							<div class="comment">#stText.ext.prov.hostDesc#</div>
 						</td>
 					</tr>

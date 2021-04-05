@@ -185,8 +185,8 @@ public final class XMLUtilImpl implements XMLUtil {
 	 * @param xml XML InputSource
 	 * @param isHtml is a HTML or XML Object
 	 * @return parsed Document
-	 * @throws SAXException
-	 * @throws IOException
+	 * @throws SAXException SAX Exception
+	 * @throws IOException IO Exception
 	 */
 	public final Document parse(InputSource xml, InputSource validator, boolean isHtml) throws SAXException, IOException {
 
@@ -416,9 +416,9 @@ public final class XMLUtilImpl implements XMLUtil {
 	/**
 	 * returns the Node Type As String
 	 * 
-	 * @param node
-	 * @param cftype
-	 * @return
+	 * @param node node
+	 * @param cftype CF Type
+	 * @return Returns the Node type.
 	 */
 	public String getTypeAsString(Node node, boolean cftype) {
 		String suffix = cftype ? "" : "_NODE";
@@ -511,7 +511,7 @@ public final class XMLUtilImpl implements XMLUtil {
 		if (value instanceof byte[]) {
 			return new InputSource(new ByteArrayInputStream((byte[]) value));
 		}
-		throw engine.getExceptionUtil().createXMLException("can't cast object of type [" + value + "] to a Input for xml parser");
+		throw engine.getExceptionUtil().createXMLException("can't cast object of type [" + value + "] to an Input for xml parser");
 	}
 
 	public InputSource toInputSource(PageContext pc, String xml) throws IOException, PageException {
@@ -607,7 +607,7 @@ public final class XMLUtilImpl implements XMLUtil {
 		if (value instanceof byte[]) {
 			return new InputSource(new ByteArrayInputStream((byte[]) value));
 		}
-		throw CFMLEngineFactory.getInstance().getExceptionUtil().createExpressionException("can't cast object of type [" + value + "] to a Input for xml parser");
+		throw CFMLEngineFactory.getInstance().getExceptionUtil().createExpressionException("can't cast object of type [" + value + "] to an Input for xml parser");
 	}
 
 	@Override

@@ -30,35 +30,35 @@ public interface QueryColumn extends Collection, Reference, Castable {
 	/**
 	 * removes the value but dont the index
 	 * 
-	 * @param row
+	 * @param row row number
 	 * @return removed Object
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public Object remove(int row) throws PageException;
 
 	/**
 	 * remove a row from query
 	 * 
-	 * @param row
+	 * @param row row number
 	 * @return removed value
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public Object removeRow(int row) throws PageException;
 
 	/**
 	 * removes method with int as key
 	 * 
-	 * @param row
+	 * @param row row number
 	 * @return removed Object
 	 */
 	public Object removeEL(int row);
 
 	/**
-	 * get method with a int as key, return empty default value for invalid row
+	 * get method with an int as key, return empty default value for invalid row
 	 * 
 	 * @param row row to get value
 	 * @return row value
-	 * @throws PageException
+	 * @throws PageException Page Exceptiontion
 	 * @deprecated use instead <code>get(int row, Object defaultValue)</code>
 	 */
 	@Deprecated
@@ -75,12 +75,12 @@ public interface QueryColumn extends Collection, Reference, Castable {
 	public Object get(int row, Object emptyValue);
 
 	/**
-	 * set method with a int as key
+	 * set method with an int as key
 	 * 
 	 * @param row row to set
 	 * @param value value to set
 	 * @return setted value
-	 * @throws PageException
+	 * @throws PageException Page Exceptionn
 	 */
 	public Object set(int row, Object value) throws PageException;
 
@@ -92,7 +92,7 @@ public interface QueryColumn extends Collection, Reference, Castable {
 	public void add(Object value);
 
 	/**
-	 * setExpressionLess method with a int as key
+	 * setExpressionLess method with an int as key
 	 * 
 	 * @param row row to set
 	 * @param value value to set
@@ -118,7 +118,7 @@ public interface QueryColumn extends Collection, Reference, Castable {
 	/**
 	 * cuts row to defined size
 	 * 
-	 * @param maxrows
+	 * @param maxrows max rows
 	 */
 	public void cutRowsTo(int maxrows);
 

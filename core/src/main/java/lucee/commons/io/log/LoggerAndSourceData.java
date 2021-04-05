@@ -24,7 +24,7 @@ import java.util.Map.Entry;
 
 import lucee.commons.digest.HashUtil;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.engine.ThreadLocalPageContext;
 
@@ -134,7 +134,7 @@ public final class LoggerAndSourceData {
 	}
 
 	private LogEngine eng() {
-		return ((ConfigImpl) config).getLogEngine();
+		return ((ConfigPro) config).getLogEngine();
 	}
 
 	/*

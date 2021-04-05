@@ -48,6 +48,7 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpOptions;
+import org.apache.http.client.methods.HttpPatch;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
@@ -87,7 +88,6 @@ import lucee.commons.net.URLEncoder;
 import lucee.commons.net.http.Header;
 import lucee.commons.net.http.httpclient.CachingGZIPInputStream;
 import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
-import lucee.commons.net.http.httpclient.HTTPPatchFactory;
 import lucee.commons.net.http.httpclient.HTTPResponse4Impl;
 import lucee.commons.net.http.httpclient.ResourceBody;
 import lucee.runtime.PageContext;
@@ -133,7 +133,7 @@ import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.util.PageContextUtil;
 import lucee.runtime.util.URLResolver;
 
-// MUST change behavor of mltiple headers now is a array, it das so?
+// MUST change behavor of mltiple headers now is an array, it das so?
 
 /**
  * Lets you execute HTTP POST and GET operations on files. Using cfhttp, you can execute standard
@@ -188,17 +188,21 @@ public final class Http extends BodyTagImpl {
 	private static final Key STATUSCODE = KeyConstants._statuscode;
 	private static final Key CHARSET = KeyConstants._charset;
 
-	private static final Key ERROR_DETAIL = KeyImpl.intern("errordetail");
-	private static final Key STATUS_CODE = KeyImpl.intern("status_code");
-	private static final Key STATUS_TEXT = KeyImpl.intern("status_text");
-	private static final Key HTTP_VERSION = KeyImpl.intern("http_version");
+	private static final Key ERROR_DETAIL = KeyImpl.getInstance("errordetail");
+	private static final Key STATUS_CODE = KeyImpl.getInstance("status_code");
+	private static final Key STATUS_TEXT = KeyImpl.getInstance("status_text");
+	private static final Key HTTP_VERSION = KeyImpl.getInstance("http_version");
 
-	private static final Key EXPLANATION = KeyImpl.intern("explanation");
-	private static final Key RESPONSEHEADER = KeyImpl.intern("responseheader");
-	private static final Key SET_COOKIE = KeyImpl.intern("set-cookie");
+	private static final Key EXPLANATION = KeyImpl.getInstance("explanation");
+	private static final Key RESPONSEHEADER = KeyImpl.getInstance("responseheader");
+	private static final Key SET_COOKIE = KeyImpl.getInstance("set-cookie");
 
 	private static final short AUTH_TYPE_BASIC = 0;
 	private static final short AUTH_TYPE_NTLM = 1;
+
+	public static final short ENCODED_AUTO = HTTPUtil.ENCODED_AUTO;
+	public static final short ENCODED_YES = HTTPUtil.ENCODED_YES;
+	public static final short ENCODED_NO = HTTPUtil.ENCODED_NO;
 
 	static {
 		// Protocol myhttps = new Protocol("https", new EasySSLProtocolSocketFactory(), 443);
@@ -319,7 +323,7 @@ public final class Http extends BodyTagImpl {
 	private String workStation = null;
 	private String domain = null;
 	private boolean preauth = true;
-	private boolean encoded = true;
+	private short encoded = ENCODED_AUTO;
 
 	private boolean compression = true;
 
@@ -329,6 +333,7 @@ public final class Http extends BodyTagImpl {
 	private String clientCert;
 	/** Password used to decrypt the client certificate. */
 	private String clientCertPassword;
+	private static SSLConnectionSocketFactoryImpl defaultSSLConnectionSocketFactoryImpl;
 
 	@Override
 	public void release() {
@@ -368,7 +373,7 @@ public final class Http extends BodyTagImpl {
 		workStation = null;
 		domain = null;
 		preauth = true;
-		encoded = true;
+		encoded = ENCODED_AUTO;
 		compression = true;
 		clientCert = null;
 		clientCertPassword = null;
@@ -383,7 +388,7 @@ public final class Http extends BodyTagImpl {
 	}
 
 	public void setEncodeurl(boolean encoded) {
-		this.encoded = encoded;
+		this.encoded = encoded ? ENCODED_YES : ENCODED_NO;
 	}
 
 	/**
@@ -679,29 +684,25 @@ public final class Http extends BodyTagImpl {
 	public int doEndTag() throws PageException {
 
 		// because commons
-		// PrintStream out = System .out;
 		try {
-			// System.setOut(new PrintStream(DevNullOutputStream.DEV_NULL_OUTPUT_STREAM));
 			_doEndTag();
 			return EVAL_PAGE;
 		}
 		catch (IOException e) {
 			throw Caster.toPageException(e);
 		}
-		finally {
-			// System.setOut(out);
-		}
-
 	}
 
 	private void _doEndTag() throws PageException, IOException {
 
 		long start = System.nanoTime();
+		boolean safeToMemory = !StringUtil.isEmpty(result, true);
+
 		HttpClientBuilder builder = HTTPEngine4Impl.getHttpClientBuilder();
 		ssl(builder);
 
 		// redirect
-		if (redirect) builder.setRedirectStrategy(new DefaultRedirectStrategy());
+		if (redirect) builder.setRedirectStrategy(DefaultRedirectStrategy.INSTANCE);
 		else builder.disableRedirectHandling();
 
 		// cookies
@@ -737,10 +738,11 @@ public final class Http extends BodyTagImpl {
 				int type = param.getType();
 				// URL
 				if (type == HttpParamBean.TYPE_URL) {
+					short enc = param.getEncoded();
 					if (sbQS.length() > 0) sbQS.append('&');
-					sbQS.append(param.getEncoded() ? urlenc(param.getName(), charset) : param.getName());
+					sbQS.append(enc != ENCODED_NO ? urlenc(param.getName(), charset, enc == ENCODED_AUTO) : param.getName());
 					sbQS.append('=');
-					sbQS.append(param.getEncoded() ? urlenc(param.getValueAsString(), charset) : param.getValueAsString());
+					sbQS.append(param.getEncoded() != ENCODED_NO ? urlenc(param.getValueAsString(), charset, enc == ENCODED_AUTO) : param.getValueAsString());
 				}
 			}
 
@@ -832,7 +834,7 @@ public final class Http extends BodyTagImpl {
 			}
 			else if (this.method == METHOD_PATCH) {
 				isBinary = true;
-				eeReq = HTTPPatchFactory.getHTTPPatch(url);
+				eeReq = new HttpPatch(url);
 				req = (HttpRequestBase) eeReq;
 			}
 			else {
@@ -878,14 +880,18 @@ public final class Http extends BodyTagImpl {
 				}
 				// CGI
 				else if (type == HttpParamBean.TYPE_CGI) {
-					if (param.getEncoded()) req.addHeader(urlenc(param.getName(), charset), urlenc(param.getValueAsString(), charset));
+					if (param.getEncoded() != ENCODED_NO) {
+						boolean isAuto = param.getEncoded() == ENCODED_AUTO;
+						req.addHeader(urlenc(param.getName(), charset, isAuto), urlenc(param.getValueAsString(), charset, isAuto));
+					}
 					else req.addHeader(param.getName(), param.getValueAsString());
 				}
 				// Header
 				else if (type == HttpParamBean.TYPE_HEADER) {
 					if (param.getName().equalsIgnoreCase("content-type")) hasContentType = true;
 
-					if (param.getName().equalsIgnoreCase("Content-Length")) {}
+					if (param.getName().equalsIgnoreCase("Content-Length")) {
+					}
 					else if (param.getName().equalsIgnoreCase("Accept-Encoding")) {
 						acceptEncoding.append(headerValue(param.getValueAsString()));
 						acceptEncoding.append(", ");
@@ -1069,7 +1075,7 @@ public final class Http extends BodyTagImpl {
 
 			Struct cfhttp = new StructImpl();
 			cfhttp.setEL(ERROR_DETAIL, "");
-			pageContext.setVariable(result, cfhttp);
+			if (safeToMemory) pageContext.setVariable(result, cfhttp);
 
 			/////////////////////////////////////////// EXECUTE
 			/////////////////////////////////////////// /////////////////////////////////////////////////
@@ -1143,7 +1149,7 @@ public final class Http extends BodyTagImpl {
 			Struct responseHeader = new StructImpl();
 			Struct cookie;
 			Array setCookie = new ArrayImpl();
-			Query cookies = new QueryImpl(new String[] { "name", "value", "path", "domain", "expires", "secure", "httpOnly" }, 0, "cookies");
+			Query cookies = new QueryImpl(new String[] { "name", "value", "path", "domain", "expires", "secure", "httpOnly", "samesite" }, 0, "cookies");
 
 			for (int i = 0; i < headers.length; i++) {
 				lucee.commons.net.http.Header header = headers[i];
@@ -1156,8 +1162,8 @@ public final class Http extends BodyTagImpl {
 				}
 				else {
 					// print.ln(header.getName()+"-"+header.getValue());
-					Object value = responseHeader.get(KeyImpl.getInstance(header.getName()), null);
-					if (value == null) responseHeader.set(KeyImpl.getInstance(header.getName()), header.getValue());
+					Object value = responseHeader.get(KeyImpl.init(header.getName()), null);
+					if (value == null) responseHeader.set(KeyImpl.init(header.getName()), header.getValue());
 					else {
 						Array arr = null;
 						if (value instanceof Array) {
@@ -1165,7 +1171,7 @@ public final class Http extends BodyTagImpl {
 						}
 						else {
 							arr = new ArrayImpl();
-							responseHeader.set(KeyImpl.getInstance(header.getName()), arr);
+							responseHeader.set(KeyImpl.init(header.getName()), arr);
 							arr.appendEL(value);
 						}
 						arr.appendEL(header.getValue());
@@ -1198,7 +1204,7 @@ public final class Http extends BodyTagImpl {
 
 			// we still don't know the mime type
 			byte[] barr = null;
-			if (!isText) {
+			if (!isText && safeToMemory) {
 				barr = contentAsBinary(rsp, contentEncoding);
 				String mt = IOUtil.getMimeType(barr, null);
 				if (mt != null) {
@@ -1211,7 +1217,7 @@ public final class Http extends BodyTagImpl {
 			// is multipart
 			boolean isMultipart = MultiPartResponseUtils.isMultipart(mimetype);
 
-			cfhttp.set(KeyConstants._text, Caster.toBoolean(isText));
+			if (safeToMemory) cfhttp.set(KeyConstants._text, Caster.toBoolean(isText));
 
 			// mimetype charset
 			// boolean responseProvideCharset=false;
@@ -1248,21 +1254,17 @@ public final class Http extends BodyTagImpl {
 
 			// filecontent
 
-			if (isText && getAsBinary != GET_AS_BINARY_YES) {
+			if (isText && getAsBinary != GET_AS_BINARY_YES && safeToMemory) {
+				// store to memory
 				String str;
 				if (barr == null) str = contentAsString(rsp, responseCharset, contentEncoding, e);
 				else str = IOUtil.toString(barr, responseCharset);
-
 				cfhttp.set(KeyConstants._filecontent, str);
 
 				// store to file
 				if (file != null) {
-					try {
+					IOUtil.write(file, str, ((PageContextImpl) pageContext).getWebCharset(), false);
 
-						IOUtil.write(file, str, ((PageContextImpl) pageContext).getWebCharset(), false);
-
-					}
-					catch (IOException e1) {}
 				}
 
 				// store to variable
@@ -1273,7 +1275,7 @@ public final class Http extends BodyTagImpl {
 			}
 			// Binary
 			else {
-				if (barr == null) barr = contentAsBinary(rsp, contentEncoding);
+				if (barr == null && safeToMemory) barr = contentAsBinary(rsp, contentEncoding);
 
 				// IF Multipart response get file content and parse parts
 				if (barr != null) {
@@ -1284,12 +1286,12 @@ public final class Http extends BodyTagImpl {
 						cfhttp.set(KeyConstants._filecontent, barr);
 					}
 				}
-				else cfhttp.set(KeyConstants._filecontent, "");
 
 				// store to file
 				if (file != null) {
 					try {
 						if (barr != null) IOUtil.copy(new ByteArrayInputStream(barr), file, true);
+						else storeTo(rsp, contentEncoding, file);
 					}
 					catch (IOException ioe) {
 						throw Caster.toPageException(ioe);
@@ -1340,7 +1342,7 @@ public final class Http extends BodyTagImpl {
 				throw Caster.toPageException(t);
 			}
 			finally {
-				IOUtil.closeEL(is);
+				IOUtil.close(is);
 			}
 		}
 		else {
@@ -1353,6 +1355,30 @@ public final class Http extends BodyTagImpl {
 			}
 		}
 		return barr;
+	}
+
+	private void storeTo(HTTPResponse4Impl rsp, String contentEncoding, Resource target) throws PageException, IOException {
+		InputStream is = null;
+		if (target != null && isGzipEncoded(contentEncoding)) {
+			if (method != METHOD_HEAD) {
+				is = rsp.getContentAsStream();
+				is = rsp.getStatusCode() != 200 ? new CachingGZIPInputStream(is) : new GZIPInputStream(is);
+			}
+			try {
+				if (is != null) IOUtil.copy(is, target, true);
+			}
+			catch (EOFException eof) {
+				if (is instanceof CachingGZIPInputStream) {
+					IOUtil.copy(((CachingGZIPInputStream) is).getRawData(), target, true);
+				}
+				else throw eof;
+			}
+		}
+		else {
+			if (method != METHOD_HEAD) {
+				IOUtil.copy(rsp.getContentAsStream(), target, true);
+			}
+		}
 	}
 
 	private String contentAsString(HTTPResponse4Impl rsp, Charset responseCharset, String contentEncoding, Executor4 e) throws PageException {
@@ -1384,7 +1410,13 @@ public final class Http extends BodyTagImpl {
 			throw Caster.toPageException(ioe);
 		}
 		finally {
-			IOUtil.closeEL(is);
+			try {
+				IOUtil.close(is);
+			}
+			catch (IOException ioe) {
+				throw Caster.toPageException(ioe);
+
+			}
 		}
 
 		if (str == null) str = "";
@@ -1396,6 +1428,7 @@ public final class Http extends BodyTagImpl {
 	}
 
 	private void ssl(HttpClientBuilder builder) throws PageException {
+		final SSLConnectionSocketFactory sslsf;
 		try {
 			// SSLContext sslcontext = SSLContexts.createSystemDefault();
 			SSLContext sslcontext = SSLContext.getInstance("TLSv1.2");
@@ -1409,11 +1442,15 @@ public final class Http extends BodyTagImpl {
 				kmf.init(clientStore, this.clientCertPassword.toCharArray());
 
 				sslcontext.init(kmf.getKeyManagers(), null, new java.security.SecureRandom());
+				sslsf = new SSLConnectionSocketFactoryImpl(sslcontext, new DefaultHostnameVerifierImpl());
 			}
 			else {
 				sslcontext.init(null, null, new java.security.SecureRandom());
+				if (defaultSSLConnectionSocketFactoryImpl == null)
+					defaultSSLConnectionSocketFactoryImpl = new SSLConnectionSocketFactoryImpl(sslcontext, new DefaultHostnameVerifierImpl());
+				sslsf = defaultSSLConnectionSocketFactoryImpl;
 			}
-			final SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactoryImpl(sslcontext, new DefaultHostnameVerifierImpl());
+
 			builder.setSSLSocketFactory(sslsf);
 			Registry<ConnectionSocketFactory> reg = RegistryBuilder.<ConnectionSocketFactory>create().register("http", PlainConnectionSocketFactory.getSocketFactory())
 					.register("https", sslsf).build();
@@ -1573,9 +1610,9 @@ public final class Http extends BodyTagImpl {
 		return sb.toString();
 	}
 
-	private static String urlenc(String str, String charset) throws UnsupportedEncodingException {
-		if (!ReqRspUtil.needEncoding(str, false)) return str;
-		return URLEncoder.encode(str, charset);
+	private static String urlenc(String str, String charset, boolean checkIfNeeded) throws UnsupportedEncodingException {
+		if (checkIfNeeded && !ReqRspUtil.needEncoding(str, false)) return str;
+		return URLEncoder.encode(str, CharsetUtil.toCharset(charset));
 	}
 
 	@Override
@@ -1732,7 +1769,8 @@ public final class Http extends BodyTagImpl {
 			try {
 				is = new GZIPInputStream(is);
 			}
-			catch (IOException e) {}
+			catch (IOException e) {
+			}
 		}
 
 		try {
@@ -1744,14 +1782,16 @@ public final class Http extends BodyTagImpl {
 				try {
 					return IOUtil.toString(is, cs);
 				}
-				catch (IOException e) {}
+				catch (IOException e) {
+				}
 			}
 			// Binary
 			else {
 				try {
 					return IOUtil.toBytes(is);
 				}
-				catch (IOException e) {}
+				catch (IOException e) {
+				}
 			}
 		}
 		finally {

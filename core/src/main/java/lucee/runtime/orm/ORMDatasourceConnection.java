@@ -37,9 +37,11 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 
+import lucee.commons.io.IOUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.db.DataSource;
+import lucee.runtime.db.DataSourcePro;
 import lucee.runtime.db.DatasourceConnection;
 import lucee.runtime.db.DatasourceConnectionImpl;
 import lucee.runtime.db.DatasourceConnectionPro;
@@ -49,6 +51,11 @@ import lucee.runtime.exp.PageRuntimeException;
 import lucee.runtime.op.Caster;
 
 public class ORMDatasourceConnection implements DatasourceConnectionPro {
+
+	@Override
+	public DatasourceConnection using() throws PageException {
+		return this;
+	}
 
 	private DataSource datasource;
 	private Connection connection;
@@ -386,6 +393,7 @@ public class ORMDatasourceConnection implements DatasourceConnectionPro {
 	}
 
 	// used only with java 7, do not set @Override
+	@Override
 	public void abort(Executor executor) throws SQLException {
 		connection.abort(executor);
 	}
@@ -403,5 +411,15 @@ public class ORMDatasourceConnection implements DatasourceConnectionPro {
 	@Override
 	public boolean isAutoCommit() throws SQLException {
 		return connection.getAutoCommit();
+	}
+
+	@Override
+	public int getDefaultTransactionIsolation() {
+		return ((DataSourcePro) datasource).getDefaultTransactionIsolation();
+	}
+
+	@Override
+	public void release() {
+		IOUtil.closeEL(connection);
 	}
 }

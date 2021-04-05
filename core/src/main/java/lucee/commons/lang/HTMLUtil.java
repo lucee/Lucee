@@ -134,7 +134,7 @@ public final class HTMLUtil {
 		String lcValue = value.toLowerCase();
 		try {
 			if (lcValue.startsWith("http://") || lcValue.startsWith("news://") || lcValue.startsWith("goopher://") || lcValue.startsWith("javascript:"))
-				list.add(HTTPUtil.toURL(value, true));
+				list.add(HTTPUtil.toURL(value, HTTPUtil.ENCODED_AUTO));
 			else {
 
 				list.add(new URL(baseURL, value.toString()));

@@ -19,7 +19,7 @@
 package lucee.runtime.type.comparator;
 
 /**
- * a value of a array with information of old position in array
+ * a value of an array with information of old position in array
  */
 public final class SortRegister {
 

@@ -34,7 +34,8 @@ import lucee.commons.net.http.HTTPResponse;
 import lucee.commons.net.http.Header;
 import lucee.commons.security.Credentials;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.engine.ThreadLocalConfig;
+import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.functions.other.CreateUUID;
 import lucee.runtime.net.proxy.ProxyData;
@@ -56,6 +57,7 @@ class ExecutionThread extends Thread {
 
 	@Override
 	public void run() {
+		if (ThreadLocalPageContext.getConfig() == null && config != null) ThreadLocalConfig.register(config);
 		execute(config, task, charset);
 	}
 
@@ -107,7 +109,7 @@ class ExecutionThread extends Thread {
 			rsp = HTTPEngine.get(new URL(url), user, pass, task.getTimeout(), true, charset, null, proxy, headers);
 			if (rsp != null) {
 				int sc = rsp.getStatusCode();
-				if (sc >= 200 && sc < 300) log.info(logName, "sucessfully called URL [" + url + "], response code " + sc);
+				if (sc >= 200 && sc < 300) log.info(logName, "successfully called URL [" + url + "], response code " + sc);
 				else log.warn(logName, "called URL [" + url + "] returned response code " + sc);
 			}
 
@@ -170,11 +172,10 @@ class ExecutionThread extends Thread {
 			}
 			HTTPEngine.closeEL(rsp);
 		}
-		if (!hasError) log.log(Log.LEVEL_INFO, logName, "executed");
 	}
 
 	private static Log getLog(Config config) {
-		return ((ConfigImpl) config).getLog("scheduler");
+		return config.getLog("scheduler");
 	}
 
 	private static boolean isText(HTTPResponse rsp) {

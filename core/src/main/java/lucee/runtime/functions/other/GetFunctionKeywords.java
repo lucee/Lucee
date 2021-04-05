@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.Set;
 
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.functions.arrays.ArraySort;
 import lucee.runtime.op.Caster;
@@ -35,14 +35,15 @@ import lucee.transformer.library.function.FunctionLibFunction;
 import lucee.transformer.library.tag.TagLib;
 
 public class GetFunctionKeywords {
-	private static Array keywords;
+	private final static Object token = new Object();
+	private static Array keywords = null;
 
 	public static Array call(PageContext pc) throws PageException {
-		synchronized (keywords) {
+		synchronized (token) {
 			if (keywords == null) {
 				Set<String> set = new HashSet<String>();
 				FunctionLib[] flds;
-				flds = ((ConfigImpl) pc.getConfig()).getFLDs(pc.getCurrentTemplateDialect());
+				flds = ((ConfigPro) pc.getConfig()).getFLDs(pc.getCurrentTemplateDialect());
 				Map<String, FunctionLibFunction> functions;
 				Iterator<FunctionLibFunction> it;
 				FunctionLibFunction flf;

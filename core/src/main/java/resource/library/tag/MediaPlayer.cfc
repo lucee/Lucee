@@ -2,31 +2,31 @@
 
 <!--- Meta data --->
 	<cfset this.metadata.attributetype="fixed">
-    <cfset this.metadata.attributes={
-		align:{required:false,type:"string",default:"left",hint:'Specifies the horizontal alignment of the media player. You can select from left, right, and center.'},
-		autoplay:{required:false,type:"boolean",default:false,hint:'A Boolean value that specifies if the media player must automatically play the FLV file on loading the CFM page'},
-		bgcolor:{required:false,type:"string",default:"##6b7c85",hint:'The background color of the media player specified as a Hexadecimal value or or a recognized color name, for example red.'},
-		controlbar:{required:false,type:"boolean",default:true,hint:'A Boolean value that specifies if you want to display the control panel for the media player'},
-		hideborder:{required:false,type:"boolean",default:true,hint:'A Boolean value that specifies if you want a border for the media player panel'},
-		hidetitle:{required:false,type:"boolean",default:false,hint:'If true, displays the title.'},
-		title:{required:false,type:"string",hint:'Title for the video, if not set, the video file name is used.'},
-		fullScreenControl:{required:false,type:"boolean",default:true,hint:'Whether full screen is enabled'},
-		height:{required:false,type:"numeric",default:"360",hint:'Height of the media player, in pixels.'},
-		width:{required:false,type:"numeric",default:"480",hint:'Width of the media player, in pixels.'},
-		name:{required:false,type:"string",hint:'Name of the media player. the name attribute is required when you invoke JavaScript functions.'},
-		onComplete:{required:false,type:"string",default:"",hint:'Custom JavaScript function to run when the FLV file has finished playing.'},
-		load:{required:false,type:"boolean",default:true,hint:'if set to true, start loading before play was pressed.'},
-		onLoad:{required:false,type:"string",default:"",hint:'Custom JavaScript function to run on loading of the player component.'},
-		onStart:{required:false,type:"string",default:"",hint:'Custom JavaScript function to run when the FLV file starts playing.'},
-		quality:{required:false,type:"string",default:"high",hint:'The quality of the media playback (only used for flash fallback)'},
-		source:{required:true,type:"any",hint:'The URL (absolute or relative to the current page) to the movie files, supported formats are (mp4,ogg,webm). not every Browser supports the same format, define as many formats possible. You can define the urls as string list or as array'},
-		delimiter:{required:false,type:"string",default:",",hint:'delimiter used to separate urls in source attribute, default is comma'},
-		style:{required:false,type:"string",default:"",hint:''},
-		wmode:{required:false,type:"string",default:"window",hint:'Specifies the absolute positioning and layering capabilities in your browser'},
-		image:{required:false,type:"string",default:"",hint:'image displayed when movie is stopped'},
-		printJSControls:{required:false,type:"boolean",default:false,hint:'it set to true, all possible JS Controls ar printed after the video.'}
+    <cfset this.metadata.attributes=[
+		"align": {required:false,type:"string",default:"left",hint:'Specifies the horizontal alignment of the media player. You can select from left, right, and center.'},
+		"autoplay": {required:false,type:"boolean",default:false,hint:'A Boolean value that specifies if the media player must automatically play the FLV file on loading the CFM page'},
+		"bgColor": {required:false,type:"string",default:"##6b7c85",hint:'The background color of the media player specified as a Hexadecimal value or or a recognized color name, for example red.'},
+		"controlBar": {required:false,type:"boolean",default:true,hint:'A Boolean value that specifies if you want to display the control panel for the media player'},
+		"hideBorder": {required:false,type:"boolean",default:true,hint:'A Boolean value that specifies if you want a border for the media player panel'},
+		"hideTitle": {required:false,type:"boolean",default:false,hint:'If true, displays the title.'},
+		"title": {required:false,type:"string",hint:'Title for the video, if not set, the video file name is used.'},
+		"fullScreenControl": {required:false,type:"boolean",default:true,hint:'Whether full screen is enabled'},
+		"height": {required:false,type:"numeric",default:"360",hint:'Height of the media player, in pixels.'},
+		"width": {required:false,type:"numeric",default:"480",hint:'Width of the media player, in pixels.'},
+		"name": {required:false,type:"string",hint:'Name of the media player. the name attribute is required when you invoke JavaScript functions.'},
+		"onComplete": {required:false,type:"string",default:"",hint:'Custom JavaScript function to run when the FLV file has finished playing.'},
+		"load": {required:false,type:"boolean",default:true,hint:'if set to true, start loading before play was pressed.'},
+		"onLoad": {required:false,type:"string",default:"",hint:'Custom JavaScript function to run on loading of the player component.'},
+		"onStart": {required:false,type:"string",default:"",hint:'Custom JavaScript function to run when the FLV file starts playing.'},
+		"quality": {required:false,type:"string",default:"high",hint:'The quality of the media playback (only used for flash fallback)'},
+		"source": {required:true,type:"any",hint:'The URL (absolute or relative to the current page) to the movie files, supported formats are (mp4,ogg,webm). not every Browser supports the same format, define as many formats possible. You can define the urls as string list or as array'},
+		"delimiter": {required:false,type:"string",default:",",hint:'delimiter used to separate urls in source attribute, default is comma'},
+		"style": {required:false,type:"string",default:"",hint:''},
+		"wmode": {required:false,type:"string",default:"window",hint:'Specifies the absolute positioning and layering capabilities in your browser'},
+		"image": {required:false,type:"string",default:"",hint:'image displayed when movie is stopped'},
+		"printJSControls": {required:false,type:"boolean",default:false,hint:'it set to true, all possible JS Controls ar printed after the video.'}
 		
-	}>
+	]>
     
     <cfset variables.swfPlayer="/mapping-tag/build/player.swf">
     <cfset variables.cssFile="/mapping-tag/build/mediaelementplayer.min.css.cfm">
@@ -79,7 +79,7 @@
         	<cfset src=ListToArray(attributes.source,attributes.delimiter)>
         <cfelse>
         	<cfthrow message="invalid type for attribute source"
-                detail="value must be a string list or a array">
+                detail="value must be a string list or an array">
 		</cfif>
         
         <!--- hideborder --->

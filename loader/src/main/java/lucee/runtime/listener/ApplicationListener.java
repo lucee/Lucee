@@ -51,63 +51,70 @@ public interface ApplicationListener {
 	public String getType();
 
 	/**
-	 * this method will be called the application self
+	 * this method will be called the Application self
 	 * 
-	 * @param pc
-	 * @param requestedPage
-	 * @throws PageException
+	 * @param pc Page Context
+	 * @param requestedPage Requested Page
+	 * @param rl Request Listener
+	 * @throws PageException Page Exception
 	 */
 	public void onRequest(PageContext pc, PageSource requestedPage, RequestListener rl) throws PageException;
 
 	/**
-	 * this method will be called when a new session starts
+	 * this method will be called when a new Session starts
 	 * 
-	 * @throws PageException
+	 * @param pc Page Context
+	 * @throws PageException Page Exception
 	 */
 	public void onSessionStart(PageContext pc) throws PageException;
 
 	/**
-	 * this method will be called when a session ends
+	 * this method will be called when a Session ends
 	 * 
-	 * @param cfmlFactory
-	 * @param applicationName
-	 * @param cfid
-	 * @throws PageException
+	 * @param cfmlFactory CFML Factory
+	 * @param applicationName Application Name
+	 * @param cfid cfid
+	 * @throws PageException Page Exception
 	 */
 	public void onSessionEnd(CFMLFactory cfmlFactory, String applicationName, String cfid) throws PageException;
 
 	/**
-	 * this method will be called when a new application context starts
+	 * this method will be called when a new Application Context starts
 	 * 
-	 * @throws PageException
+	 * @param pc Page Context
+	 * @return success or failure
+	 * @throws PageException Page Exception
 	 */
 	public boolean onApplicationStart(PageContext pc) throws PageException;
 
 	/**
-	 * this method will be called when a application scope ends
-	 * 
-	 * @throws PageException
+	 * this method will be called when an Application scope ends
+	 *
+	 * @param cfmlFactory CFML Factory
+	 * @param applicationName Application Name
+	 * @throws PageException Page Exception
 	 */
 	public void onApplicationEnd(CFMLFactory cfmlFactory, String applicationName) throws PageException;
 
 	/**
-	 * this method will be called when a server starts
+	 * this method will be called when a Server starts
 	 * 
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public void onServerStart() throws PageException;
 
 	/**
-	 * this method will be called when the server shutdown correctly (no crashes)
+	 * this method will be called when the Server shutdown correctly (no crashes)
 	 * 
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public void onServerEnd() throws PageException;
 
 	/**
-	 * this method will be called if server has a error (exception) not throwed by a try-catch block
+	 * this method will be called if Server has an error (exception) not thrown by a try-catch block
 	 * 
-	 * @param pe PageExcpetion Exception that has been throwed
+	 * @param pc Page Context
+	 * @param pe PageException Exception that has been thrown
 	 */
 	public void onError(PageContext pc, PageException pe);
 
@@ -115,12 +122,15 @@ public interface ApplicationListener {
 	 * called after "onRequestEnd" to generate debugging output, will only be called when debugging is
 	 * enabled
 	 * 
-	 * @throws PageException
+	 * @param pc Page Context
+	 * @throws PageException Page Exception
 	 */
 	public void onDebug(PageContext pc) throws PageException;
 
 	/**
-	 * will be called when server is run int a timeout
+	 * will be called when the Server runs into a timeout
+	 * 
+	 * @param pc Page Context
 	 */
 	public void onTimeout(PageContext pc);
 

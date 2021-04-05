@@ -43,7 +43,7 @@ public final class HttpParam extends TagImpl {
 	 * @param encoded
 	 */
 	public void setEncoded(boolean encoded) {
-		param.setEncoded(encoded);
+		param.setEncoded(encoded ? Http.ENCODED_YES : Http.ENCODED_NO);
 	}
 
 	/**

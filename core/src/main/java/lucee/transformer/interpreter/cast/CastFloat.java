@@ -10,7 +10,7 @@ import lucee.transformer.interpreter.InterpreterContext;
 import lucee.transformer.interpreter.expression.ExpressionBase;
 
 /**
- * cast a Expression to a Double
+ * cast an Expression to a Double
  */
 public final class CastFloat extends ExpressionBase implements ExprFloat, Cast {
 
@@ -22,7 +22,7 @@ public final class CastFloat extends ExpressionBase implements ExprFloat, Cast {
 	}
 
 	/**
-	 * Create a String expression from a Expression
+	 * Create a String expression from an Expression
 	 * 
 	 * @param expr
 	 * @return String expression
@@ -37,10 +37,6 @@ public final class CastFloat extends ExpressionBase implements ExprFloat, Cast {
 		return new CastFloat(expr);
 	}
 
-	/**
-	 * @see lucee.transformer.expression.Expression#_writeOut(org.objectweb.asm.commons.GeneratorAdapter,
-	 *      int)
-	 */
 	@Override
 	public Class<?> _writeOut(InterpreterContext ic, int mode) throws PageException {
 		if (mode == MODE_VALUE) {

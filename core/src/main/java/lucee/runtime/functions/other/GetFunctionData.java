@@ -27,7 +27,7 @@ import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.FunctionException;
@@ -53,11 +53,11 @@ import lucee.transformer.library.tag.TagLibFactory;
 
 public final class GetFunctionData implements Function {
 	private static final Collection.Key SOURCE = KeyConstants._source;
-	private static final Collection.Key RETURN_TYPE = KeyImpl.intern("returnType");
-	private static final Collection.Key ARGUMENT_TYPE = KeyImpl.intern("argumentType");
-	private static final Collection.Key ARG_MIN = KeyImpl.intern("argMin");
-	private static final Collection.Key ARG_MAX = KeyImpl.intern("argMax");
-	static final Collection.Key INTRODUCED = KeyImpl.intern("introduced");
+	private static final Collection.Key RETURN_TYPE = KeyImpl.getInstance("returnType");
+	private static final Collection.Key ARGUMENT_TYPE = KeyImpl.getInstance("argumentType");
+	private static final Collection.Key ARG_MIN = KeyImpl.getInstance("argMin");
+	private static final Collection.Key ARG_MAX = KeyImpl.getInstance("argMax");
+	static final Collection.Key INTRODUCED = KeyImpl.getInstance("introduced");
 
 	public static Struct call(PageContext pc, String strFunctionName) throws PageException {
 		return _call(pc, strFunctionName, pc.getCurrentTemplateDialect());
@@ -73,14 +73,14 @@ public final class GetFunctionData implements Function {
 	private static Struct _call(PageContext pc, String strFunctionName, int dialect) throws PageException {
 
 		FunctionLib[] flds;
-		flds = ((ConfigImpl) pc.getConfig()).getFLDs(dialect);
+		flds = ((ConfigPro) pc.getConfig()).getFLDs(dialect);
 
 		FunctionLibFunction function = null;
 		for (int i = 0; i < flds.length; i++) {
 			function = flds[i].getFunction(strFunctionName.toLowerCase());
 			if (function != null) break;
 		}
-		if (function == null) throw new ExpressionException("function [" + strFunctionName + "] is not a built in function");
+		if (function == null) throw new ExpressionException("Function [" + strFunctionName + "] is not a built in function");
 
 		// CFML Based Function
 		Class clazz = null;
@@ -98,7 +98,7 @@ public final class GetFunctionData implements Function {
 	}
 
 	private static Struct javaBasedFunction(FunctionLibFunction function) throws PageException {
-		Struct sct = new StructImpl();
+		Struct sct = new StructImpl(StructImpl.TYPE_LINKED);
 		sct.set(KeyConstants._name, function.getName());
 		sct.set(KeyConstants._status, TagLibFactory.toStatus(function.getStatus()));
 		if (function.getIntroduced() != null) sct.set(INTRODUCED, function.getIntroduced().toString());
@@ -114,7 +114,7 @@ public final class GetFunctionData implements Function {
 		sct.set(KeyConstants._type, "java");
 		String[] names = function.getMemberNames();
 		if (!ArrayUtil.isEmpty(names) && function.getMemberType() != CFTypes.TYPE_UNKNOW) {
-			StructImpl mem = new StructImpl();
+			StructImpl mem = new StructImpl(StructImpl.TYPE_LINKED);
 			sct.set(KeyConstants._member, mem);
 			mem.set(KeyConstants._name, names[0]);
 			mem.set(KeyConstants._chaining, Caster.toBoolean(function.getMemberChaining()));
@@ -129,7 +129,7 @@ public final class GetFunctionData implements Function {
 			ArrayList<FunctionLibFunctionArg> args = function.getArg();
 			for (int i = 0; i < args.size(); i++) {
 				FunctionLibFunctionArg arg = args.get(i);
-				Struct _arg = new StructImpl();
+				Struct _arg = new StructImpl(StructImpl.TYPE_LINKED);
 				_arg.set(KeyConstants._required, arg.getRequired() ? Boolean.TRUE : Boolean.FALSE);
 				_arg.set(KeyConstants._type, StringUtil.emptyIfNull(arg.getTypeAsString()));
 				_arg.set(KeyConstants._name, StringUtil.emptyIfNull(arg.getName()));
@@ -147,7 +147,7 @@ public final class GetFunctionData implements Function {
 	}
 
 	private static Struct cfmlBasedFunction(PageContext pc, FunctionLibFunction function) throws PageException {
-		Struct sct = new StructImpl();
+		Struct sct = new StructImpl(StructImpl.TYPE_LINKED);
 		ArrayList<FunctionLibFunctionArg> args = function.getArg();
 
 		String filename = Caster.toString(args.get(0).getDefaultValue());
@@ -162,7 +162,7 @@ public final class GetFunctionData implements Function {
 		sct.set(RETURN_TYPE, StringUtil.emptyIfNull(udf.getReturnTypeAsString()));
 		sct.set(KeyConstants._type, "cfml");
 		sct.set(SOURCE, udf.getSource());
-		sct.set(KeyConstants._status, "implemeted");
+		sct.set(KeyConstants._status, "implemented");
 
 		FunctionArgument[] fas = udf.getFunctionArguments();
 		Array _args = new ArrayImpl();
@@ -172,7 +172,7 @@ public final class GetFunctionData implements Function {
 			FunctionArgument fa = fas[i];
 			Struct meta = fa.getMetaData();
 
-			Struct _arg = new StructImpl();
+			Struct _arg = new StructImpl(StructImpl.TYPE_LINKED);
 			if (fa.isRequired()) min++;
 			max++;
 			_arg.set(KeyConstants._required, fa.isRequired() ? Boolean.TRUE : Boolean.FALSE);
@@ -181,8 +181,8 @@ public final class GetFunctionData implements Function {
 			_arg.set(KeyConstants._description, StringUtil.emptyIfNull(fa.getHint()));
 
 			String status;
-			if (meta == null) status = "implemeted";
-			else status = TagLibFactory.toStatus(TagLibFactory.toStatus(Caster.toString(meta.get(KeyConstants._status, "implemeted"))));
+			if (meta == null) status = "implemented";
+			else status = TagLibFactory.toStatus(TagLibFactory.toStatus(Caster.toString(meta.get(KeyConstants._status, "implemented"))));
 
 			_arg.set(KeyConstants._status, status);
 

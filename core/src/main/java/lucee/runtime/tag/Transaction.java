@@ -72,7 +72,7 @@ public final class Transaction extends BodyTagTryCatchFinallyImpl {
 		else if (strAction.equals("rollback")) action = ACTION_ROLLBACK;
 		else if (strAction.equals("setsavepoint")) action = ACTION_SET_SAVEPOINT;
 		else {
-			throw new DatabaseException("attribute action has an invalid value, valid values are [begin,commit,setsavepoint and rollback]", null, null, null);
+			throw new DatabaseException("Attribute [action] has an invalid value, valid values are [begin,commit,setsavepoint and rollback]", null, null, null);
 		}
 
 	}
@@ -89,7 +89,7 @@ public final class Transaction extends BodyTagTryCatchFinallyImpl {
 		else if (isolation.equals("serializable")) this.isolation = Connection.TRANSACTION_SERIALIZABLE;
 		else if (isolation.equals("none")) this.isolation = Connection.TRANSACTION_NONE;
 		else throw new DatabaseException(
-				"transaction has an invalid isolation level (attribute isolation, valid values are [read_uncommitted,read_committed,repeatable_read,serializable])", null, null,
+				"Transaction has an invalid isolation level (attribute [isolation], valid values are [read_uncommitted,read_committed,repeatable_read,serializable])", null, null,
 				null);
 	}
 
@@ -107,7 +107,7 @@ public final class Transaction extends BodyTagTryCatchFinallyImpl {
 		innerTag = true;
 		switch (action) {
 		/*
-		 * nested transaction no longer throw a exception, they are simply ignored case ACTION_NONE: throw
+		 * nested transaction no longer throw an exception, they are simply ignored case ACTION_NONE: throw
 		 * new
 		 * DatabaseException("you can't have a nested transaction with no action defined",null,null,null);
 		 * case ACTION_BEGIN: throw new

@@ -398,11 +398,12 @@
 				<table border="0" cellpadding="0" cellspacing="0" width="100%">
 					<tr>
 						<td width="100">
-							<cfif url.startrow GT 1><a href="#request.self#?action=#url.action#&startrow=#url.startrow-url.maxrow#" class="comment"><img src="resources/img/arrow-left.gif.cfm" border="0" hspace="4">#stText.remote.previous#</a><cfelse>&nbsp;</cfif>
+							<cfif url.startrow GT 1><a href="#request.self#?action=#url.action#&startrow=#url.startrow-url.maxrow#" class="comment"><img src="../res/img/arrow-left.jpg.cfm" title="Previous" width="25" height="25"
+							 border= "5px solid ##555;" hspace="4"></a><cfelse>&nbsp;</cfif>
 						</td>
 						<td style="text-align:center"><b>#url.startrow# #stText.remote.to# #to# #stText.remote.from# #result.open+result.closed#</b></td>
 						<td width="100" style="text-align:right">
-							<cfif to LT result.open+result.closed><a href="#request.self#?action=#url.action#&startrow=#url.startrow+url.maxrow#" class="comment">#stText.remote.next#<img src="resources/img/arrow-right.gif.cfm" border="0" hspace="4"></a><cfelse>&nbsp;</cfif>
+							<cfif to LT result.open+result.closed><a href="#request.self#?action=#url.action#&startrow=#url.startrow+url.maxrow#" class="comment"><img src="../res/img/arrow-right.jpg.cfm" title="Next" width="25" height="25"></a><cfelse>&nbsp;</cfif>
 						</td>
 					</tr>
 				</table>
@@ -415,7 +416,7 @@
 				<thead>
 					<tr>
 						<th width="3%">
-							<input type="checkbox" class="checkbox" name="row" onclick="selectAll(this)">
+							<input type="checkbox" class="checkbox" name="row" id="selectAll" onclick="selectAll(this)">
 						</th>
 						<th width="20%">#stText.remote.ot.type#</th>
 						<th width="39%">#stText.remote.ot.name#</th>
@@ -468,7 +469,7 @@
 							<!--- and now display --->
 							<tr>
 								<td>
-									<input type="checkbox" class="checkbox" name="row_#tasks.currentrow#" value="#tasks.currentrow#">
+									<input type="checkbox" class="checkbox checkAll" id="checkAll" name="row_#tasks.currentrow#" value="#tasks.currentrow#">
 								</td>
 								<td class="tblContent#css#"><input type="hidden" name="id_#tasks.currentrow#" value="#tasks.id#">
 									#tasks.type#
@@ -506,10 +507,10 @@
 					<tfoot>
 						 <tr>
 							<td colspan="6">
-								<input type="reset" class="bl button reset" name="cancel" value="#stText.Buttons.Cancel#">
-								<input type="submit" class="bm button submit" name="mainAction" value="#stText.Buttons.Execute#">
-								<input type="submit" class="bm button submit" name="mainAction" value="#stText.Buttons.Delete#">
-								<input type="submit" class="br button" name="mainAction" value="#stText.Buttons.DeleteAll#">
+								<input type="reset" class="bl button reset enablebutton" id="clickCancel" name="cancel" value="#stText.Buttons.Cancel#">
+								<input type="submit" class="bm button submit enablebutton" name="mainAction" value="#stText.Buttons.Execute#">
+								<input type="submit" class="bm button submit enablebutton" name="mainAction" value="#stText.Buttons.Delete#">
+								<input type="submit" class="br button enablebutton" name="mainAction" disabled style="opacity:0.5" value="#stText.Buttons.DeleteAll#">
 							</td>	
 						</tr>
 					</tfoot>

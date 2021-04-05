@@ -24,13 +24,14 @@ import lucee.runtime.exp.PageException;
 public interface DataSourceManager {
 
 	/**
-	 * return a database connection matching to datsource name
+	 * return a database connection matching to datasource name
 	 * 
-	 * @param datasource datasource whished
+	 * @param pc page context
+	 * @param datasource datasource name
 	 * @param user username to datasource
 	 * @param pass password to datasource
-	 * @return return a Db Connection9n Object
-	 * @throws PageException
+	 * @return return a Db Connection Object
+	 * @throws PageException Page Exception
 	 * @deprecated use instead
 	 *             <code>getConnection(PageContext pc,DataSource ds, String user, String pass)</code>
 	 */
@@ -38,13 +39,14 @@ public interface DataSourceManager {
 	public DatasourceConnection getConnection(PageContext pc, String datasource, String user, String pass) throws PageException;
 
 	/**
-	 * return a database connection matching to datsource name
+	 * return a database connection matching to datasource name
 	 * 
-	 * @param ds datasource whished
+	 * @param pc page context
+	 * @param ds datasource name
 	 * @param user username to datasource
 	 * @param pass password to datasource
 	 * @return return a Db Connection Object
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public DatasourceConnection getConnection(PageContext pc, DataSource ds, String user, String pass) throws PageException;
 
@@ -72,7 +74,7 @@ public interface DataSourceManager {
 	/**
 	 * rollback hanging transaction
 	 * 
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract void rollback() throws PageException;
 
@@ -81,7 +83,7 @@ public interface DataSourceManager {
 	/**
 	 * commit hanging transaction
 	 * 
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract void commit() throws PageException;
 
@@ -97,7 +99,7 @@ public interface DataSourceManager {
 
 	/**
 	 * @deprecated use instead <code>remove(DataSource datasource)</code>
-	 * @param datasource
+	 * @param datasource datasource name
 	 */
 	@Deprecated
 	public abstract void remove(String datasource);

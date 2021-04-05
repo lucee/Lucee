@@ -37,7 +37,7 @@ public final class URLImpl extends ScopeSupport implements URL, ScriptProtected 
 	private String encoding = null;
 	private int scriptProtected = ScriptProtected.UNDEFINED;
 	private static final URLItem[] empty = new URLItem[0];
-	private static final Collection.Key REQUEST_TIMEOUT = KeyImpl.intern("RequestTimeout");
+	private static final Collection.Key REQUEST_TIMEOUT = KeyImpl.getInstance("RequestTimeout");
 	private URLItem[] raw = empty;
 
 	/**

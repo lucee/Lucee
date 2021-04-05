@@ -23,10 +23,8 @@ component {
 	this.sessiontimeout=createTimeSpan(0,0,3,0);
 	if(url.storage) {
 		this.datasources.test={
-		  	class: 'org.hsqldb.jdbcDriver'
-			, bundleName: 'org.hsqldb.hsqldb'
-			, bundleVersion: '2.3.2'
-			, connectionString: 'jdbc:hsqldb:file:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db'
+		  	class: 'org.h2.Driver'
+		, connectionString: 'jdbc:h2:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db;MODE=MySQL'
 			, storage: true
 		};
 		this.sessionStorage="test";

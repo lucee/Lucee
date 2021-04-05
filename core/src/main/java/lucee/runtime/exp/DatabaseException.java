@@ -31,7 +31,6 @@ import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DatasourceConnection;
 import lucee.runtime.db.SQL;
 import lucee.runtime.op.Caster;
-import lucee.runtime.type.KeyImpl;
 import lucee.runtime.type.util.KeyConstants;
 
 /**
@@ -87,13 +86,15 @@ public final class DatabaseException extends PageExceptionImpl {
 
 	private void set(SQLException sqle, String detail) {
 		String sqleMessage = sqle != null ? sqle.getMessage() : "";
-		if (detail != null) {
-			if (!StringUtil.isEmpty(sqleMessage)) setDetail(detail + "\n" + sqleMessage);
-			else setDetail(detail);
-		}
-		else {
-			if (!StringUtil.isEmpty(sqleMessage)) setDetail(sqleMessage);
-		}
+		if (!StringUtil.isEmpty(sqleMessage)){
+			if (detail != null) {
+				setDetail(detail + "\n" + sqleMessage);
+			} else {
+				setDetail(detail);
+			}
+		} else {
+			setDetail(detail);
+		}		
 	}
 
 	private void set(SQLException sqle) {
@@ -111,10 +112,10 @@ public final class DatabaseException extends PageExceptionImpl {
 			try {
 				DatabaseMetaData md = dc.getConnection().getMetaData();
 				md.getDatabaseProductName();
-				setAdditional(KeyImpl.init("DatabaseName"), md.getDatabaseProductName());
-				setAdditional(KeyImpl.init("DatabaseVersion"), md.getDatabaseProductVersion());
-				setAdditional(KeyImpl.init("DriverName"), md.getDriverName());
-				setAdditional(KeyImpl.init("DriverVersion"), md.getDriverVersion());
+				setAdditional(KeyConstants._DatabaseName, md.getDatabaseProductName());
+				setAdditional(KeyConstants._DatabaseVersion, md.getDatabaseProductVersion());
+				setAdditional(KeyConstants._DriverName, md.getDriverName());
+				setAdditional(KeyConstants._DriverVersion, md.getDriverVersion());
 				// setAdditional("url",md.getURL());
 
 				if (!"__default__".equals(dc.getDatasource().getName())) setAdditional(KeyConstants._Datasource, dc.getDatasource().getName());
@@ -186,7 +187,7 @@ public final class DatabaseException extends PageExceptionImpl {
 		}
 
 		// create error detail
-		DatabaseException de = new DatabaseException("datasource [" + datasource + "] doesn't exist", null, null, null);
+		DatabaseException de = new DatabaseException("Datasource [" + datasource + "] doesn't exist", null, null, null);
 		de.setDetail(ExceptionUtil.createSoundexDetail(datasource, list.iterator(), "datasource names"));
 		de.setAdditional(KeyConstants._Datasource, datasource);
 		return de;

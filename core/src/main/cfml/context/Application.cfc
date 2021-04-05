@@ -22,7 +22,7 @@ component {
 	this.sessionmanagement="yes";
 	this.sessionStorage="memory";
 	this.sessiontimeout="#createTimeSpan(0,0,30,0)#";
-	this.setclientcookies="yes";
+	this.setclientcookies="no";
 	this.setdomaincookies="no"; 
 	this.applicationtimeout="#createTimeSpan(1,0,0,0)#";
 	this.localmode="update";

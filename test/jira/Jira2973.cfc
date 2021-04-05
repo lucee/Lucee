@@ -19,29 +19,29 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	
 	public void function testArraySome() localMode="true" {
-		_arraySome(false);
+		_arraySome (false);
 	}
 
 	public void function testArraySomeParallel() localMode="true" {
-		_arraySome(true);
+		_arraySome (true);
 	}
 
-	private void function _arraySome(boolean parallel) localMode="true" {
+	private void function _arraySome (boolean parallel) localMode="true" {
 		
 		arr=['a','b','c'];
 		//arr[5]='e';
 		
 		// base test
-		res=ArraySome(arr, function(value ){return value =='b';},parallel);
+		res=ArraySome (arr, function(value ){return value =='b';},parallel);
 		assertEquals(true,res);
 		
-		res=ArraySome(arr, function(value ){return value =='d';},parallel);
+		res=ArraySome (arr, function(value ){return value =='d';},parallel);
 		assertEquals(false,res);
 		
 
 		// closure output
 		savecontent variable="c" {
-			res=ArraySome(['a'], function(){
+			res=ArraySome (['a'], function(){
 							echo(serialize(arguments));
  							return false;
  

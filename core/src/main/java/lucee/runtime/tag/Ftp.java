@@ -44,6 +44,7 @@ import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.dt.DateTimeImpl;
+import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 
 /**
@@ -59,11 +60,11 @@ public final class Ftp extends TagImpl {
 	private static final int PORT_FTP = 21;
 	private static final int PORT_SFTP = 22;
 
-	private static final Key SUCCEEDED = KeyImpl.intern("succeeded");
-	private static final Key ERROR_CODE = KeyImpl.intern("errorCode");
-	private static final Key ERROR_TEXT = KeyImpl.intern("errorText");
-	private static final Key RETURN_VALUE = KeyImpl.intern("returnValue");
-	private static final Key CFFTP = KeyImpl.intern("cfftp");
+	private static final Key SUCCEEDED = KeyConstants._succeeded;
+	private static final Key ERROR_CODE = KeyImpl.getInstance("errorCode");
+	private static final Key ERROR_TEXT = KeyImpl.getInstance("errorText");
+	private static final Key RETURN_VALUE = KeyImpl.getInstance("returnValue");
+	private static final Key CFFTP = KeyImpl.getInstance("cfftp");
 
 	/*
 	 * private static final Key = KeyImpl.getInstance(); private static final Key =
@@ -192,9 +193,9 @@ public final class Ftp extends TagImpl {
 				else if (action.equals("exists")) client = actionExists();
 				// else if(action.equals("copy")) client=actionCopy();
 
-				else throw new ApplicationException("attribute action has an invalid value [" + action + "]",
-						"valid values are [open,close,listDir,createDir,removeDir,changeDir,getCurrentDir,"
-								+ "getCurrentURL,existsFile,existsDir,exists,getFile,putFile,rename,remove]");
+				else throw new ApplicationException("Attribute [action] has an invalid value [" + action + "]",
+						"valid values are [open, close, listDir, createDir, removeDir, changeDir, getCurrentDir, "
+								+ "getCurrentURL, existsFile, existsDir, exists, getFile, putFile, rename, remove]");
 
 			}
 			catch (IOException ioe) {
@@ -395,7 +396,7 @@ public final class Ftp extends TagImpl {
 		required("localfile", localfile);
 
 		AFTPClient client = getClient();
-		Resource local = ResourceUtil.toResourceExisting(pageContext, localfile);// new File(localfile);
+		Resource local = ResourceUtil.toResourceExisting(pageContext, localfile);
 		// if(failifexists && local.exists()) throw new ApplicationException("File ["+local+"] already
 		// exist, if you want to overwrite, set attribute
 		// failIfExists to false");
@@ -407,7 +408,7 @@ public final class Ftp extends TagImpl {
 			client.storeFile(remotefile, is);
 		}
 		finally {
-			IOUtil.closeEL(is);
+			IOUtil.close(is);
 		}
 		writeCfftp(client);
 
@@ -426,9 +427,10 @@ public final class Ftp extends TagImpl {
 		required("localfile", localfile);
 
 		AFTPClient client = getClient();
-		Resource local = ResourceUtil.toResourceExistingParent(pageContext, localfile);// new File(localfile);
+		Resource local = ResourceUtil.toResourceExistingParent(pageContext, localfile);
 		pageContext.getConfig().getSecurityManager().checkFileLocation(local);
-		if (failifexists && local.exists()) throw new ApplicationException("File [" + local + "] already exist, if you want to overwrite, set attribute failIfExists to false");
+		if (failifexists && local.exists())
+			throw new ApplicationException("FTP File [" + local + "] already exists, if you want to overwrite, set attribute [failIfExists] to false");
 		OutputStream fos = null;
 		client.setFileType(getType(local));
 		boolean success = false;
@@ -437,7 +439,7 @@ public final class Ftp extends TagImpl {
 			success = client.retrieveFile(remotefile, fos);
 		}
 		finally {
-			IOUtil.closeEL(fos);
+			IOUtil.close(fos);
 			if (!success) local.delete();
 		}
 		writeCfftp(client);
@@ -622,7 +624,7 @@ public final class Ftp extends TagImpl {
 	}
 
 	/**
-	 * close a existing ftp connection
+	 * close an existing ftp connection
 	 * 
 	 * @return FTPCLient
 	 * @throws PageException
@@ -637,7 +639,7 @@ public final class Ftp extends TagImpl {
 	}
 
 	/**
-	 * throw a error if the value is empty (null)
+	 * throw an error if the value is empty (null)
 	 * 
 	 * @param attributeName
 	 * @param atttributValue
@@ -645,7 +647,7 @@ public final class Ftp extends TagImpl {
 	 */
 	private void required(String attributeName, String atttributValue) throws ApplicationException {
 		if (atttributValue == null)
-			throw new ApplicationException("invalid attribute constelation for the tag ftp", "attribute [" + attributeName + "] is required, if action is [" + action + "]");
+			throw new ApplicationException("Invalid combination of attributes for the tag [ftp]", "attribute [" + attributeName + "] is required, if action is [" + action + "]");
 	}
 
 	/**

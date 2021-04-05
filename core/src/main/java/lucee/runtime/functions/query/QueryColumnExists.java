@@ -31,7 +31,7 @@ public class QueryColumnExists extends BIF {
 	private static final long serialVersionUID = -661796711105724696L;
 
 	public static boolean call(PageContext pc, Query qry, String key) {
-		return call(pc, qry, KeyImpl.getInstance(key));
+		return call(pc, qry, KeyImpl.init(key));
 	}
 
 	public static boolean call(PageContext pc, Query qry, Collection.Key key) {

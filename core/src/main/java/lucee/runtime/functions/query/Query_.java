@@ -29,6 +29,7 @@ import lucee.runtime.type.Array;
 import lucee.runtime.type.FunctionValue;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryImpl;
+import lucee.runtime.type.util.CollectionUtil;
 
 public final class Query_ extends BIF {
 
@@ -51,7 +52,7 @@ public final class Query_ extends BIF {
 			}
 			else throw new DatabaseException("invalid argument for function query, only named argument are allowed", "example: query(column1:array(1,2,3))", null, null);
 		}
-		Query query = new QueryImpl(names, columns, "query");
+		Query query = new QueryImpl(CollectionUtil.toKeys(names, true), columns, "query");
 		return query;
 	}
 

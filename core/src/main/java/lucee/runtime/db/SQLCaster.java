@@ -113,7 +113,10 @@ public final class SQLCaster {
 			case Types.VARCHAR:
 			case Types.LONGVARCHAR:
 			case CFTypes.VARCHAR2:
+			case Types.NCHAR:
+			case Types.LONGNVARCHAR:
 			case Types.NVARCHAR:
+			case Types.SQLXML:
 				return Caster.toString(value);
 			case Types.TIME:
 				return new Time(Caster.toDate(value, null).getTime());
@@ -125,7 +128,8 @@ public final class SQLCaster {
 				if (value instanceof lucee.runtime.type.Array) return Caster.toList(value);
 				if (value instanceof lucee.runtime.type.Struct) return Caster.toMap(value);
 
-				return value;// toSQLObject(value); TODO alle lucee spezifischen typen sollten in sql typen uebersetzt werden
+				return value;// toSQLObject(value); TODO alle lucee spezifischen typen sollten in
+								// sql typen uebersetzt werden
 			}
 		}
 		catch (PageException pe) {
@@ -273,7 +277,10 @@ public final class SQLCaster {
 			return;
 		case Types.VARCHAR:
 		case Types.LONGVARCHAR:
+		case Types.LONGNVARCHAR:
+		case Types.NVARCHAR:
 		case CFTypes.VARCHAR2:
+		case Types.SQLXML:
 			stat.setObject(parameterIndex, Caster.toString(value), type);
 			//// stat.setString(parameterIndex,Caster.toString(value));
 			return;
@@ -291,7 +298,8 @@ public final class SQLCaster {
 		case Types.TIME:
 			try {
 
-				// stat.setObject(parameterIndex, new Time((Caster.toDate(value,null).getTime())), type);
+				// stat.setObject(parameterIndex, new Time((Caster.toDate(value,null).getTime())),
+				// type);
 				stat.setTime(parameterIndex, new Time(Caster.toDate(value, tz).getTime()), JREDateTimeUtil.getThreadCalendar(tz));
 			}
 			catch (PageException pe) {
@@ -301,7 +309,8 @@ public final class SQLCaster {
 			return;
 		case Types.TIMESTAMP:
 			try {
-				// stat.setObject(parameterIndex, new Timestamp((Caster.toDate(value,null).getTime())), type);
+				// stat.setObject(parameterIndex, new
+				// Timestamp((Caster.toDate(value,null).getTime())), type);
 				// stat.setObject(parameterIndex, value, type);
 				stat.setTimestamp(parameterIndex, new Timestamp(Caster.toDate(value, tz).getTime()), JREDateTimeUtil.getThreadCalendar(tz));
 			}
@@ -320,7 +329,8 @@ public final class SQLCaster {
 		 */
 		default:
 			stat.setObject(parameterIndex, value, type);
-			// throw new DatabaseException(toStringType(item.getType())+" is not a supported Type",null,null);
+			// throw new DatabaseException(toStringType(item.getType())+" is not a supported
+			// Type",null,null);
 
 		}
 	}
@@ -349,7 +359,8 @@ public final class SQLCaster {
 		int type = item.getType();
 
 		// string types
-		if (type == Types.VARCHAR || type == Types.LONGVARCHAR || type == Types.CHAR || type == Types.CLOB || type == Types.NVARCHAR) {
+		if (type == Types.VARCHAR || type == Types.LONGVARCHAR || type == Types.CHAR || type == Types.CLOB || type == Types.NVARCHAR || type == Types.NCHAR || type == Types.SQLXML
+				|| type == Types.NCLOB || type == Types.LONGNVARCHAR) {
 			return (matchString(item));
 		}
 		// long types
@@ -419,7 +430,7 @@ public final class SQLCaster {
 
 		int type = item.getType();
 		// char varchar
-		if (type == Types.VARCHAR || type == Types.LONGVARCHAR || type == CFTypes.VARCHAR2 || type == Types.NVARCHAR) {
+		if (type == Types.VARCHAR || type == Types.LONGVARCHAR || type == CFTypes.VARCHAR2 || type == Types.NVARCHAR || type == Types.LONGNVARCHAR || type == Types.SQLXML) {
 			return Caster.toString(item.getValue());
 		}
 		// char types
@@ -501,7 +512,7 @@ public final class SQLCaster {
 
 	public static Object toCFType(Object value, int type) throws PageException {
 		// char varchar
-		if (type == Types.VARCHAR || type == Types.LONGVARCHAR || type == CFTypes.VARCHAR2 || type == Types.NVARCHAR) {
+		if (type == Types.VARCHAR || type == Types.LONGVARCHAR || type == CFTypes.VARCHAR2 || type == Types.NVARCHAR || type == Types.LONGNVARCHAR || type == Types.SQLXML) {
 			return Caster.toString(value);
 		}
 		// char types
@@ -566,6 +577,12 @@ public final class SQLCaster {
 			return "CF_SQL_BLOB";
 		case Types.CHAR:
 			return "CF_SQL_CHAR";
+		case Types.NCLOB:
+			return "CF_SQL_NCLOB";
+		case Types.SQLXML:
+			return "CF_SQL_SQLXML";
+		case Types.NCHAR:
+			return "CF_SQL_NCHAR";
 		case Types.CLOB:
 			return "CF_SQL_CLOB";
 		case Types.DATALINK:
@@ -596,6 +613,8 @@ public final class SQLCaster {
 			return "CF_SQL_VARCHAR";
 		case Types.NVARCHAR:
 			return "CF_SQL_NVARCHAR";
+		case Types.LONGNVARCHAR:
+			return "CF_SQL_LONGNVARCHAR";
 		case CFTypes.VARCHAR2:
 			return "CF_SQL_VARCHAR2";
 		case Types.LONGVARBINARY:
@@ -674,7 +693,7 @@ public final class SQLCaster {
 	 */
 
 	/**
-	 * cast a String SQL Type to int Type
+	 * cast a String SQL Type, e.g. from cfqueryparam, to int Type
 	 * 
 	 * @param strType
 	 * @return SQL Type as int
@@ -707,6 +726,7 @@ public final class SQLCaster {
 			else if (first == 'D') {
 				if (strType.equals("DATALINK")) return Types.DATALINK;
 				else if (strType.equals("DATE")) return Types.DATE;
+				else if (strType.equals("DATETIME")) return Types.TIMESTAMP;
 				else if (strType.equals("DISTINCT")) return Types.DISTINCT;
 				else if (strType.equals("DECIMAL")) return Types.DECIMAL;
 				else if (strType.equals("DOUBLE")) return Types.DOUBLE;
@@ -723,6 +743,7 @@ public final class SQLCaster {
 				// if(strType.equals("LONG"))return Types.INTEGER;
 				if (strType.equals("LONGVARBINARY")) return Types.LONGVARBINARY;
 				else if (strType.equals("LONGVARCHAR")) return Types.LONGVARCHAR;
+				else if (strType.equals("LONGNVARCHAR")) return Types.LONGNVARCHAR;
 			}
 			else if (first == 'M') {
 				if (strType.equals("MONEY")) return Types.DOUBLE;
@@ -753,7 +774,8 @@ public final class SQLCaster {
 				else if (strType.equals("SQLXML")) return Types.SQLXML;
 			}
 			else if (first == 'T') {
-				if (strType.equals("TIME")) return Types.TIME;
+				if (strType.equals("TEXT")) return Types.VARCHAR;
+				else if (strType.equals("TIME")) return Types.TIME;
 				else if (strType.equals("TIMESTAMP")) return Types.TIMESTAMP;
 				else if (strType.equals("TINYINT")) return Types.TINYINT;
 			}
@@ -787,6 +809,10 @@ public final class SQLCaster {
 		case Types.VARCHAR:
 		case Types.CLOB:
 		case Types.CHAR:
+		case Types.NCLOB:
+		case Types.LONGNVARCHAR:
+		case Types.NCHAR:
+		case Types.SQLXML:
 			return lucee.commons.lang.CFTypes.TYPE_STRING;
 
 		case Types.TIME:

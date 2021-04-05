@@ -60,7 +60,14 @@ public class ObjectLoad {
 			throw Caster.toPageException(e);
 		}
 		finally {
-			if (closeStream) IOUtil.closeEL(is);
+			if (closeStream) {
+				try {
+					IOUtil.close(is);
+				}
+				catch (IOException e) {
+					throw Caster.toPageException(e);
+				}
+			}
 		}
 	}
 

@@ -18,6 +18,24 @@
  */
 package lucee.runtime.tag;
 
+import java.lang.ref.SoftReference;
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
+
+import javax.servlet.jsp.JspException;
+
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.ExceptionUtil;
@@ -31,7 +49,7 @@ import lucee.runtime.cache.tag.CacheHandlerPro;
 import lucee.runtime.cache.tag.CacheItem;
 import lucee.runtime.cache.tag.query.StoredProcCacheItem;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.Constants;
 import lucee.runtime.db.CFTypes;
@@ -61,20 +79,6 @@ import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.dt.DateTime;
 import lucee.runtime.type.util.KeyConstants;
 
-import javax.servlet.jsp.JspException;
-import java.sql.CallableStatement;
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Types;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
 public class StoredProc extends BodyTagTryCatchFinallySupport {
 	// private static final int PROCEDURE_CAT=1;
 	// private static final int PROCEDURE_SCHEM=2;
@@ -85,12 +89,12 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 	private static final int TYPE_NAME = 7;
 	// |PRECISION|LENGTH|SCALE|RADIX|NULLABLE|REMARKS|SEQUENCE|OVERLOAD|DEFAULT_VALUE
 
-	private static final lucee.runtime.type.Collection.Key KEY_SC = KeyImpl.intern("StatusCode");
+	private static final lucee.runtime.type.Collection.Key KEY_SC = KeyImpl.getInstance("StatusCode");
 
-	private static final lucee.runtime.type.Collection.Key COUNT = KeyImpl.intern("count_afsdsfgdfgdsfsdfsgsdgsgsdgsasegfwef");
+	private static final lucee.runtime.type.Collection.Key COUNT = KeyImpl.getInstance("count_afsdsfgdfgdsfsdfsgsdgsgsdgsasegfwef");
 
 	private static final ProcParamBean STATUS_CODE;
-	private static final lucee.runtime.type.Collection.Key STATUSCODE = KeyImpl.intern("StatusCode");
+	private static final lucee.runtime.type.Collection.Key STATUSCODE = KeyImpl.getInstance("StatusCode");
 
 	static {
 		STATUS_CODE = new ProcParamBean();
@@ -251,10 +255,10 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 	}
 
 	public void addProcParam(ProcParamBean param) {
-		Log log = pageContext.getConfig().getLog("datasource");
-		if (log.getLogLevel() >= Log.LEVEL_DEBUG) // log entry added to troubleshoot LDEV-1147
-			log.debug("LDEV1147", String.format("  param %s = %s", param.getVariable(), param.getValue()));
 
+		if (getLog().getLogLevel() >= Log.LEVEL_DEBUG) { // log entry added to troubleshoot LDEV-1147
+			getLog().debug("StoredProc", String.format("  param [%s] %s = %s", SQLCaster.toStringType(param.getType(), "?"), param.getVariable(), param.getValue()));
+		}
 		params.add(param);
 	}
 
@@ -274,7 +278,7 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 		return EVAL_BODY_INCLUDE;
 	}
 
-	private void returnValue(DatasourceConnection dc) throws PageException {
+	private void createReturnValue(DatasourceConnection dc) throws PageException {
 
 		Connection conn = dc.getConnection();
 
@@ -283,49 +287,51 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 			String proc = this.procedure.trim().toUpperCase();
 
 			/**
-			 * The procedure name can have 1, 2, or 3 dot delimited parts
-			 * 1 part might be:
-			 * 		PROC.OBJECT_NAME
-			 * 		SYNO.SYNONYM_NAME
-			 * 2 parts might be:
-			 * 		PROC.OWNER, PROC.OBJECT_NAME
-			 * 		PROC.OBJECT_NAME, PROC.PROCEDURE_NAME
-			 * 		SYNO.SYNONYM_NAME, PROC.PROCEDURE_NAME
-			 * 3 parts is:
-			 * 		PROC.OWNER, PROC.OBJECT_NAME, PROC.PROCEDURE_NAME
+			 * The procedure name can have 1, 2, or 3 dot delimited parts 1 part might be: PROC.OBJECT_NAME
+			 * SYNO.SYNONYM_NAME 2 parts might be: PROC.OWNER, PROC.OBJECT_NAME PROC.OBJECT_NAME,
+			 * PROC.PROCEDURE_NAME SYNO.SYNONYM_NAME, PROC.PROCEDURE_NAME 3 parts is: PROC.OWNER,
+			 * PROC.OBJECT_NAME, PROC.PROCEDURE_NAME
 			 */
 
 			try {
 				DataSourceSupport ds = ((DataSourceSupport) dc.getDatasource());
 				long cacheTimeout = ds.getMetaCacheTimeout();
-				Map<String, ProcMetaCollection> procParamsCache = ds.getProcedureColumnCache();
-				String cacheId = procedure.toLowerCase();
-				ProcMetaCollection procParams = procParamsCache.get(cacheId);
+				Map<String, SoftReference<ProcMetaCollection>> procParamsCache = ds.getProcedureColumnCache();
+				int numCfProcParams = this.params.size();
+				String cacheId = procedure.toLowerCase() + "-" + numCfProcParams + "-" + ds.getUsername(); // each user might see different procs
+				SoftReference<ProcMetaCollection> tmp = procParamsCache.get(cacheId);
+				ProcMetaCollection procParams = tmp == null ? null : tmp.get();
 
 				if (procParams == null || (cacheTimeout >= 0 && (procParams.created + cacheTimeout) < System.currentTimeMillis())) {
 
 					String owner = null, procName = null, name = null, sql = null;
 					String[] parts = proc.split("\\.");
-					List<String> params = new ArrayList<>(4);
+					List<String> params = new ArrayList<>(6);
 
 					if (parts.length == 1) {
 
-						sql = "SELECT DISTINCT PROC.OWNER, PROC.OBJECT_NAME, PROC.PROCEDURE_NAME, PROC.OBJECT_TYPE \n" +
-								"FROM ALL_PROCEDURES PROC \n" +
-								"\tLEFT JOIN ALL_SYNONYMS SYN ON PROC.OBJECT_NAME = SYN.TABLE_NAME \n" +
-								"WHERE ((PROC.OBJECT_NAME = ? OR SYN.SYNONYM_NAME = ?) AND PROC.OBJECT_TYPE='PROCEDURE')";
+						sql = "SELECT DISTINCT PROC.OWNER, PROC.OBJECT_NAME, PROC.PROCEDURE_NAME, null as SYN_OWNER, PROC.OBJECT_TYPE, PROC.OBJECT_ID \n"
+								+ "    ,(SELECT COUNT(ARGS.IN_OUT) FROM ALL_ARGUMENTS ARGS WHERE ARGS.OBJECT_ID=PROC.OBJECT_ID) AS ARGS_COUNT \n"
+								+ "    ,CASE PROC.OWNER WHEN USER THEN 1 \n" + "        WHEN 'PUBLIC' THEN 2 \n" + "        ELSE 3 END AS OWNER_ORDER \n"
+								+ "FROM   ALL_PROCEDURES PROC \n" + "WHERE  PROC.OBJECT_NAME = ? OR PROC.PROCEDURE_NAME = ? \n" + "    UNION \n"
+								+ "SELECT DISTINCT PROC.OWNER, PROC.OBJECT_NAME, PROC.PROCEDURE_NAME, SYN.OWNER as SYN_OWNER, PROC.OBJECT_TYPE, PROC.OBJECT_ID \n"
+								+ "    ,(SELECT COUNT(ARGS.IN_OUT) FROM ALL_ARGUMENTS ARGS WHERE ARGS.OBJECT_ID=PROC.OBJECT_ID) AS ARGS_COUNT \n"
+								+ "    ,CASE SYN.OWNER WHEN USER THEN 1 \n" + "        WHEN 'PUBLIC' THEN 2 \n" + "        ELSE 3 END AS OWNER_ORDER \n"
+								+ "FROM ALL_PROCEDURES PROC JOIN ALL_SYNONYMS SYN ON SYN.TABLE_NAME=PROC.OBJECT_NAME \n" + "WHERE SYN.SYNONYM_NAME = ? \n"
+								+ "ORDER BY OWNER_ORDER, PROCEDURE_NAME DESC";
 
+						params.add(parts[0]);
 						params.add(parts[0]);
 						params.add(parts[0]);
 					}
 					else if (parts.length == 2) {
 
-						sql = "SELECT DISTINCT\tPROC.OWNER, PROC.OBJECT_NAME, PROC.PROCEDURE_NAME, PROC.OBJECT_TYPE \n" +
-								"FROM ALL_PROCEDURES PROC \n" +
-								"\tLEFT JOIN ALL_SYNONYMS SYN ON PROC.OBJECT_NAME = SYN.TABLE_NAME \n" +
-								"WHERE (PROC.OWNER = ? AND PROC.OBJECT_NAME= ? AND PROC.OBJECT_TYPE='PROCEDURE') \n" +
-								"\tOR (PROC.OBJECT_NAME = ? AND PROC.PROCEDURE_NAME = ? AND PROC.OBJECT_TYPE='PACKAGE') \n" +
-								"\tOR (SYN.SYNONYM_NAME = ? AND PROC.PROCEDURE_NAME = ? AND PROC.OBJECT_TYPE='PACKAGE')";
+						sql = "SELECT DISTINCT\tPROC.OWNER, PROC.OBJECT_NAME, PROC.PROCEDURE_NAME, PROC.OBJECT_TYPE, PROC.OBJECT_ID \n"
+								+ "\t,(SELECT COUNT(ARGS.IN_OUT) FROM ALL_ARGUMENTS ARGS WHERE ARGS.OBJECT_ID=PROC.OBJECT_ID) AS ARGS_COUNT \n" + "FROM ALL_PROCEDURES PROC \n"
+								+ "\tLEFT JOIN ALL_SYNONYMS SYN ON PROC.OBJECT_NAME = SYN.TABLE_NAME \n"
+								+ "WHERE (PROC.OWNER = ? AND PROC.OBJECT_NAME= ? AND PROC.OBJECT_TYPE='PROCEDURE') \n"
+								+ "\tOR (PROC.OBJECT_NAME = ? AND PROC.PROCEDURE_NAME = ? AND PROC.OBJECT_TYPE='PACKAGE') \n"
+								+ "\tOR (SYN.SYNONYM_NAME = ? AND PROC.PROCEDURE_NAME = ? AND PROC.OBJECT_TYPE='PACKAGE')";
 
 						params.add(parts[0]);
 						params.add(parts[1]);
@@ -335,12 +341,9 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 						params.add(parts[1]);
 					}
 					else if (parts.length == 3) {
-						sql = "SELECT PROC.OWNER, PROC.OBJECT_NAME, PROC.PROCEDURE_NAME, PROC.OBJECT_TYPE \n" +
-								"FROM ALL_PROCEDURES PROC \n" +
-								"WHERE PROC.OWNER = ?\n" +
-								"\tAND PROC.OBJECT_NAME = ?\n" +
-								"\tAND PROC.PROCEDURE_NAME = ?" +
-								"\tAND PROC.OBJECT_TYPE = 'PACKAGE'";
+						sql = "SELECT PROC.OWNER, PROC.OBJECT_NAME, PROC.PROCEDURE_NAME, PROC.OBJECT_TYPE, PROC.OBJECT_ID \n"
+								+ "\t,(SELECT COUNT(ARGS.IN_OUT) FROM ALL_ARGUMENTS ARGS WHERE ARGS.OBJECT_ID=PROC.OBJECT_ID) AS ARGS_COUNT \n" + "FROM ALL_PROCEDURES PROC \n"
+								+ "WHERE PROC.OWNER = ? \n" + "\tAND PROC.OBJECT_NAME = ? \n" + "\tAND PROC.PROCEDURE_NAME = ? \n" + "\tAND PROC.OBJECT_TYPE = 'PACKAGE'";
 
 						params.add(parts[0]);
 						params.add(parts[1]);
@@ -349,7 +352,7 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 
 					PreparedStatement preparedStatement = conn.prepareStatement(sql);
 					int ix = 1;
-					for (String p : params)
+					for (String p: params)
 						preparedStatement.setString(ix++, p);
 
 					ResultSet resultSet = preparedStatement.executeQuery();
@@ -365,13 +368,17 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 							_objName = null;
 						}
 
-						ResultSet procColumns = conn.getMetaData().getProcedureColumns(_objName, _owner, _procName, "%");
-						procParams = createProcMetaCollection(procColumns);
-						procParamsCache.put(cacheId, procParams);
+						ResultSet procColumns = conn.getMetaData().getProcedureColumns(_objName, _owner, _procName, null);
+						procParams = getProcMetaCollection(procColumns);
+						if (procParams != null) procParamsCache.put(cacheId, new SoftReference<ProcMetaCollection>(procParams));
+
+						if (getLog().getLogLevel() >= Log.LEVEL_DEBUG) { // log entry added to troubleshoot LDEV-1147
+							getLog().debug("StoredProc", "PROC OBJECT_ID: " + resultSet.getInt("OBJECT_ID"));
+						}
 					}
 					else {
-						Log log = pageContext.getConfig().getLog("datasource");
-						if (log.getLogLevel() >= Log.LEVEL_INFO) log.info(StoredProc.class.getSimpleName(), "procedure " + procedure + " not found in view ALL_PROCEDURES");
+						if (getLog().getLogLevel() >= Log.LEVEL_INFO)
+							getLog().info(StoredProc.class.getSimpleName(), "procedure " + procedure + " not found in view ALL_PROCEDURES");
 					}
 				}
 
@@ -405,9 +412,11 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 								param.setDirection(ProcParamBean.DIRECTION_OUT);
 								if (result != null) param.setVariable(result.getName());
 
-								if (params.size() < index)
-									throw new DatabaseException("you have only defined [" + params.size() + "] procparam tags, but the procedure/function called is expecting more",
-											null, null, dc);
+								if (params.size() < index) {
+									String message = "Params passed are [" + getParamTypesPassed() + "] but the procedure/function expects ["
+											+ ProcMetaCollection.getParamTypeList(procParams.metas) + "]";
+									throw new DatabaseException(message, null, null, dc);
+								}
 								else if (params.size() == index) params.add(param);
 								else params.add(index, param);
 							}
@@ -460,20 +469,54 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 		}
 	}
 
-	private ProcMetaCollection createProcMetaCollection(ResultSet res) throws SQLException {
+	/**
+	 * @param rsProcColumns the result from DatabaseMetaData.getProcedureColumns()
+	 */
+	private ProcMetaCollection getProcMetaCollection(ResultSet rsProcColumns) throws SQLException {
 		/*
-		 * try { print.out(new QueryImpl(res,"qry")); } catch (PageException e) {}
+		 * try { print.out(new QueryImpl(rsProcColumns, "q", pageContext.getTimeZone())); } catch
+		 * (PageException e) {} //
 		 */
-		ArrayList<ProcMeta> list = new ArrayList<ProcMeta>();
+		Map<String, List<ProcMeta>> allProcs = new HashMap<>();
 		try {
-			while (res.next()) {
-				list.add(new ProcMeta(res.getInt(COLUMN_TYPE), getDataType(res)));
+			while (rsProcColumns.next()) {
+				String schem = rsProcColumns.getString("PROCEDURE_SCHEM");
+				String cat = rsProcColumns.getString("PROCEDURE_CAT");
+				String name = rsProcColumns.getString("PROCEDURE_NAME");
+				String fqProcName = (schem == null ? "" : schem + ".") + (cat == null ? "" : cat + ".") + name;
+
+				List<ProcMeta> lpm = allProcs.computeIfAbsent(fqProcName, p -> new ArrayList<>());
+				lpm.add(new ProcMeta(rsProcColumns.getInt(COLUMN_TYPE), getDataType(rsProcColumns)));
 			}
 		}
 		finally {
-			IOUtil.closeEL(res);
+			IOUtil.close(rsProcColumns);
 		}
-		return new ProcMetaCollection(list);
+
+		if (getLog().getLogLevel() >= Log.LEVEL_DEBUG) {
+			StringBuilder sb = new StringBuilder(64);
+			Iterator<Entry<String, List<ProcMeta>>> it = allProcs.entrySet().iterator();
+			while (it.hasNext()) {
+				Entry<String, List<ProcMeta>> e = it.next();
+				sb.append((sb.length() == 0) ? "Identified procedures: " : ", ");
+				sb.append('{');
+				sb.append(e.getKey());
+				sb.append("(");
+				sb.append(ProcMetaCollection.getParamTypeList(e.getValue()));
+				sb.append(")}");
+			}
+			getLog().debug("StoredProc", sb.toString());
+		}
+
+		ProcMetaCollection result = null;
+		Iterator<Entry<String, List<ProcMeta>>> it = allProcs.entrySet().iterator();
+		while (it.hasNext()) {
+			Entry<String, List<ProcMeta>> e = it.next();
+			result = new ProcMetaCollection(e.getKey(), e.getValue());
+			break; // TODO: should we try to find best match according to params if there is more than one match?
+		}
+
+		return result;
 	}
 
 	private int getDataType(ResultSet res) throws SQLException {
@@ -515,8 +558,7 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 		DatasourceConnection dc = ds instanceof DataSource ? manager.getConnection(pageContext, (DataSource) ds, username, password)
 				: manager.getConnection(pageContext, Caster.toString(ds), username, password);
 
-		// create returnValue
-		returnValue(dc);
+		createReturnValue(dc);
 
 		String sql = createSQL();
 
@@ -525,14 +567,12 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 			params.add(0, returnValue);
 		}
 
-		Log log = pageContext.getConfig().getLog("datasource");
-
 		SQLImpl _sql = new SQLImpl(sql);
 		CallableStatement callStat = null;
 		try {
 
-			if (log.getLogLevel() >= Log.LEVEL_DEBUG) // log entry added to troubleshoot LDEV-1147
-				log.debug("LDEV1147", sql + " [" + params.size() + " params]");
+			if (getLog().getLogLevel() >= Log.LEVEL_DEBUG) // log entry added to troubleshoot LDEV-1147
+				getLog().debug("StoredProc", sql + " [" + params.size() + " params]");
 
 			callStat = dc.getConnection().prepareCall(sql);
 			if (blockfactor > 0) callStat.setFetchSize(blockfactor);
@@ -570,15 +610,11 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 				cacheHandler = pageContext.getConfig().getCacheHandlerCollection(Config.CACHE_TYPE_QUERY, null).getInstanceMatchingObject(cachedWithin, null);
 
 				if (cacheHandler instanceof CacheHandlerPro) {
-
 					CacheItem cacheItem = ((CacheHandlerPro) cacheHandler).get(pageContext, cacheId, cachedWithin);
-
 					if (cacheItem != null) cacheValue = ((StoredProcCacheItem) cacheItem).getStruct();
 				}
 				else if (cacheHandler != null) { // TODO this else block can be removed when all cache handlers implement CacheHandlerPro
-
 					CacheItem cacheItem = cacheHandler.get(pageContext, cacheId);
-
 					if (cacheItem != null) cacheValue = ((StoredProcCacheItem) cacheItem).getStruct();
 					// cacheValue = pageContext.getQueryCache().get(pageContext,_sql,dsn,username,password,cachedafter);
 				}
@@ -611,7 +647,7 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 								}
 							}
 							finally {
-								IOUtil.closeEL(rs);
+								IOUtil.close(rs);
 							}
 						}
 					}
@@ -642,7 +678,6 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 				}
 
 				if (cacheHandler != null) {
-
 					cacheStruct.set(COUNT, Caster.toDouble(count));
 					cacheHandler.set(pageContext, cacheId, cachedWithin, new StoredProcCacheItem(cacheStruct, procedure, System.currentTimeMillis() - start));
 					// pageContext.getQueryCache().set(pageContext,_sql,dsn,username,password,cache,cachedbefore);
@@ -669,23 +704,23 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 			res.set(KeyConstants._cached, Caster.toBoolean(isFromCache));
 
 			if (pageContext.getConfig().debug() && debug) {
-				boolean logdb = ((ConfigImpl) pageContext.getConfig()).hasDebugOptions(ConfigImpl.DEBUG_DATABASE);
+				boolean logdb = ((ConfigPro) pageContext.getConfig()).hasDebugOptions(ConfigPro.DEBUG_DATABASE);
 				if (logdb) pageContext.getDebugger().addQuery(null, dsn, procedure, _sql, count, pageContext.getCurrentPageSource(), (int) exe);
 			}
 
-			// log
-			if (log.getLogLevel() >= Log.LEVEL_INFO) {
-				log.info(StoredProc.class.getSimpleName(), "executed [" + sql.trim() + "] in " + DecimalFormat.call(pageContext, exe / 1000000D) + " ms");
+			if (getLog().getLogLevel() >= Log.LEVEL_INFO) {
+				getLog().info(StoredProc.class.getSimpleName(), "executed [" + sql.trim() + "] in " + DecimalFormat.call(pageContext, exe / 1000000D) + " ms");
 			}
 		}
 		catch (SQLException e) {
-			// log
-			log.error(StoredProc.class.getSimpleName(), e);
-			throw new DatabaseException(e, new SQLImpl(sql), dc);
+			getLog().error(StoredProc.class.getSimpleName(), e);
+			DatabaseException dbe = new DatabaseException(e, new SQLImpl(sql), dc);
+			String details = String.format("Parameter types passed (%d): %s", this.params.size(), getParamTypesPassed());
+			dbe.setDetail(details);
+			throw dbe;
 		}
 		catch (PageException pe) {
-			// log
-			log.error(StoredProc.class.getSimpleName(), pe);
+			getLog().error(StoredProc.class.getSimpleName(), pe);
 			throw pe;
 		}
 		finally {
@@ -705,7 +740,7 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 	}
 
 	private String createSQL() {
-		StringBuilder sb = new StringBuilder();
+		StringBuilder sb = new StringBuilder(64);
 
 		if (returnValue != null) sb.append("{? = call ");
 		else sb.append("{ call ");
@@ -713,10 +748,10 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 		sb.append(procedure);
 		sb.append('(');
 
-		int incount = params.size();
-		for (int i = 0; i < incount; i++) {
-			if (i == 0) sb.append('?');
-			else sb.append(",?");
+		int numParams = params.size();
+		for (int i = 0; i < numParams; i++) {
+			if (i > 0) sb.append(",");
+			sb.append('?');
 		}
 		sb.append(") }");
 
@@ -746,4 +781,13 @@ public class StoredProc extends BodyTagTryCatchFinallySupport {
 	public void setTimeout(double timeout) {
 		this.timeout = (int) timeout;
 	}
+
+	private Log getLog() {
+		return pageContext.getConfig().getLog("datasource");
+	}
+
+	private String getParamTypesPassed() {
+		return this.params.stream().map(ppb -> SQLCaster.toStringType(ppb.getType(), "?")).collect(Collectors.joining(", "));
+	}
+
 }

@@ -25,14 +25,8 @@ public interface RefLong {
 
 	public void setValue(long value);
 
-	/**
-	 * operation plus
-	 */
 	public void plus(long value);
 
-	/**
-	 * operation minus
-	 */
 	public void minus(long value);
 
 	/**

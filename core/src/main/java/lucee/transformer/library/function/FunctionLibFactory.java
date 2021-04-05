@@ -109,7 +109,12 @@ public final class FunctionLibFactory extends DefaultHandler {
 			throw new FunctionLibException("File not found: " + e.getMessage());
 		}
 		finally {
-			IOUtil.closeEL(r);
+			try {
+				IOUtil.close(r);
+			}
+			catch (IOException e) {
+				throw new FunctionLibException("closing failed: " + e.getMessage());
+			}
 		}
 	}
 
@@ -455,7 +460,7 @@ public final class FunctionLibFactory extends DefaultHandler {
 	}
 
 	/**
-	 * copy function from one FunctionLib to a other
+	 * copy function from one FunctionLib to another
 	 * 
 	 * @param extFL
 	 * @param newFL

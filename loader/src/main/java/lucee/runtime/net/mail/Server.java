@@ -46,7 +46,7 @@ public interface Server {
 	public abstract String getUsername();
 
 	/**
-	 * @return if has a authenatication or not
+	 * @return Returns if it has authentication or not
 	 */
 	public abstract boolean hasAuthentication();
 
@@ -64,7 +64,7 @@ public interface Server {
 	 * verify the server properties
 	 * 
 	 * @return is ok
-	 * @throws SMTPException
+	 * @throws SMTPException SMTP Exception
 	 */
 	public abstract boolean verify() throws SMTPException;
 

@@ -51,7 +51,7 @@ public final class CastString extends ExpressionBase implements ExprString, Cast
 	}
 
 	/**
-	 * Create a String expression from a Expression
+	 * Create a String expression from an Expression
 	 * 
 	 * @param expr
 	 * @param pos
