@@ -4702,10 +4702,11 @@ public final class ConfigWebFactory extends ConfigFactory {
 					if (StringUtil.isEmpty(res)) res = Caster.toString(child.get(KeyConstants._path, null), null);
 					if (StringUtil.isEmpty(res)) res = Caster.toString(child.get(KeyConstants._url, null), null);
 					
-					if (StringUtil.isEmpty(res)){
-						throw new ApplicationException("loadExtensionBundles: missing [resource, path, url] attribute for [" 
-							+ Caster.toString(child.get(KeyConstants._name, null), null)+ "]");
+					if (false && StringUtil.isEmpty(res)){
+						throw new ApplicationException("loadExtensionBundles: extension is missing [resource, path, url] attribute for [" 
+							+ Caster.toString(child.get(KeyConstants._name, null), null) + "]");
 					} else {
+						// will throw a NPE if res is empty
 						rhe = new RHExtension(config, id, Caster.toString(child.get(KeyConstants._version, null), null), res, true);
 						if (rhe.getStartBundles()) rhe.deployBundles(config);
 						extensions.add(rhe);

@@ -4398,6 +4398,10 @@ public final class ConfigAdmin {
 
 		RHExtension existingRH = getRHExtension(ci, rhext.getId(), null);
 		if (existingRH != null) {
+			if ( rhext.getId().compareTo(existingRH.getId()) != 0 ){
+				throw new ApplicationException("updateRHExtension: getRHExtension returned the wrong extension, " +  existingRH.getId() + ", expected " + rhext.getId() );
+			}
+			logger.log(Log.LEVEL_INFO, extName, "Uninstalling previous version [" + existingRH.getName() + ":" + existingRH.getVersion() + "]");// + rhext.getId() + " " + existingRH.getId());
 			// same version
 			if (existingRH.getVersion().compareTo(rhext.getVersion()) == 0) {
 				removeRHExtension(config, existingRH, rhext, false);
