@@ -1102,7 +1102,7 @@ Patterns are also supported, i.e.
 		<allow-removing-literal>yes</allow-removing-literal>
 		<body-content>must</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
-		<description>Handles interactions with directories.</description>
+		<description>Defines a default action inside a cfswitch statement, when none of the cfcase condition statements are true.</description>
 		<attribute-type>fixed</attribute-type>
 	</tag>
 
