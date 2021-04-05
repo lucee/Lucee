@@ -4702,7 +4702,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 					if (StringUtil.isEmpty(res)) res = Caster.toString(child.get(KeyConstants._path, null), null);
 					if (StringUtil.isEmpty(res)) res = Caster.toString(child.get(KeyConstants._url, null), null);
 					
-					if (false && StringUtil.isEmpty(res)){
+					if (StringUtil.isEmpty(res)){
 						throw new ApplicationException("loadExtensionBundles: extension is missing [resource, path, url] attribute for [" 
 							+ Caster.toString(child.get(KeyConstants._name, null), null) + "]");
 					} else {
