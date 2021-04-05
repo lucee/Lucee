@@ -29,7 +29,7 @@ public interface Reference {
 
 	/**
 	 * @return returns the value of the Variable
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 * @deprecated use instead <code>{@link #getKey()}</code>
 	 */
 	@Deprecated
@@ -37,14 +37,14 @@ public interface Reference {
 
 	/**
 	 * @return returns the value of the Variable
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract Collection.Key getKey() throws PageException;
 
 	/**
 	 * @param pc PageContext of the current Request
 	 * @return returns the value of the Variable
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract Object get(PageContext pc) throws PageException;
 
@@ -59,7 +59,7 @@ public interface Reference {
 	 * @param pc PageContext of the current Request
 	 * @param value resets the value of the variable
 	 * @return new Value set
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract Object set(PageContext pc, Object value) throws PageException;
 
@@ -73,16 +73,16 @@ public interface Reference {
 	/**
 	 * clears the variable from collection
 	 * 
-	 * @param pc
+	 * @param pc Page Context
 	 * @return removed Object
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract Object remove(PageContext pc) throws PageException;
 
 	/**
 	 * clears the variable from collection
 	 * 
-	 * @param pc
+	 * @param pc Page Context
 	 * @return removed Object
 	 */
 	public abstract Object removeEL(PageContext pc);
@@ -90,16 +90,16 @@ public interface Reference {
 	/**
 	 * create it when not exist
 	 * 
-	 * @param pc
+	 * @param pc Page Context
 	 * @return removed Object
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract Object touch(PageContext pc) throws PageException;
 
 	/**
 	 * create it when not exist
 	 * 
-	 * @param pc
+	 * @param pc Page Context
 	 * @return removed Object
 	 */
 	public abstract Object touchEL(PageContext pc);

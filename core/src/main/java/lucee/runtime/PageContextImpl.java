@@ -588,7 +588,10 @@ public final class PageContextImpl extends PageContext {
 		}
 
 		if (config.debug()) {
-			if (!gatewayContext && !isChild) config.getDebuggerPool().store(this, debugger);
+			boolean skipLogThread = isChild;
+			if (skipLogThread && config.hasDebugOptions(ConfigPro.DEBUG_THREAD))
+				skipLogThread = false;
+			if (!gatewayContext && !skipLogThread) config.getDebuggerPool().store(this, debugger);
 			debugger.reset();
 		}
 		else debugger.resetTraces(); // traces can alo be used when debugging is off
@@ -655,7 +658,7 @@ public final class PageContextImpl extends PageContext {
 
 		cookie.release(this);
 		application = null;// not needed at the moment -> application.releaseAfterRequest();
-		applicationContext = null;
+		applicationContext = null;// do not release may used by child threads
 
 		// Properties
 		requestTimeout = -1;
@@ -721,7 +724,16 @@ public final class PageContextImpl extends PageContext {
 		tagName = null;
 		parentTags = null;
 		_psq = null;
+		dummy = false;
 		listenSettings = false;
+
+		if (ormSession != null) {
+			try {
+				releaseORM();
+			}
+			catch (Exception e) {
+			}
+		}
 	}
 
 	private void releaseORM() throws PageException {
@@ -791,7 +803,8 @@ public final class PageContextImpl extends PageContext {
 		try {
 			getOut().flush();
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 	}
 
 	@Override
@@ -1246,7 +1259,7 @@ public final class PageContextImpl extends PageContext {
 		if (application == null) {
 			if (!applicationContext.hasName())
 				throw new ExpressionException("there is no application context defined for this application", hintAplication("you can define an application context"));
-			application = scopeContext.getApplicationScope(this, DUMMY_BOOL);
+			application = scopeContext.getApplicationScope(this, true, DUMMY_BOOL);
 		}
 		return application;
 	}
@@ -1254,7 +1267,7 @@ public final class PageContextImpl extends PageContext {
 	private String hintAplication(String prefix) {
 		boolean isCFML = getRequestDialect() == CFMLEngine.DIALECT_CFML;
 		return prefix + " with the tag " + (isCFML ? lucee.runtime.config.Constants.CFML_APPLICATION_TAG_NAME : lucee.runtime.config.Constants.LUCEE_APPLICATION_TAG_NAME)
-				+ "or with the " + (isCFML ? lucee.runtime.config.Constants.CFML_APPLICATION_EVENT_HANDLER : lucee.runtime.config.Constants.LUCEE_APPLICATION_EVENT_HANDLER);
+				+ " or with the " + (isCFML ? lucee.runtime.config.Constants.CFML_APPLICATION_EVENT_HANDLER : lucee.runtime.config.Constants.LUCEE_APPLICATION_EVENT_HANDLER);
 
 	}
 
@@ -1593,10 +1606,10 @@ public final class PageContextImpl extends PageContext {
 				if (!hasMin && !hasMax) throw new ExpressionException("you need to define one of the following attributes [min,max], when type is set to [range]");
 
 				if (hasMin && number < min)
-					throw new ExpressionException("The number [" + Caster.toString(number) + "] is too small, the number must be at least [" + Caster.toString(min) + "]");
+					throw new ExpressionException("The number [" + Caster.toString(number) + "] is to small, the number must be at least [" + Caster.toString(min) + "]");
 
 				if (hasMax && number > max)
-					throw new ExpressionException("The number [" + Caster.toString(number) + "] is too big, the number cannot be bigger than [" + Caster.toString(max) + "]");
+					throw new ExpressionException("The number [" + Caster.toString(number) + "] is to big, the number cannot be bigger than [" + Caster.toString(max) + "]");
 
 				setVariable(name, Caster.toDouble(number));
 			}
@@ -1793,7 +1806,8 @@ public final class PageContextImpl extends PageContext {
 			if (value == null) removeVariable(name);
 			else setVariable(name, value);
 		}
-		catch (PageException e) {}
+		catch (PageException e) {
+		}
 	}
 
 	@Override
@@ -2076,7 +2090,8 @@ public final class PageContextImpl extends PageContext {
 				if (!Abort.isSilentAbort(pe))
 					forceWrite(getConfig().getDefaultDumpWriter(DumpWriter.DEFAULT_RICH).toString(this, pe.toDumpData(this, 9999, DumpUtil.toDumpProperties()), true));
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 		}
 	}
 
@@ -2223,7 +2238,8 @@ public final class PageContextImpl extends PageContext {
 					pathInfo = path.substring(srvPath.length());
 				}
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 
 			// Service mapping
 			if (StringUtil.isEmpty(pathInfo) || pathInfo.equals("/")) {// ToDo
@@ -2447,6 +2463,14 @@ public final class PageContextImpl extends PageContext {
 			log(false);
 		}
 		catch (Throwable t) {
+			if (ormSession != null) {
+				try {
+					releaseORM();
+					removeLastPageSource(true);
+				}
+				catch (Exception e) {
+				}
+			}
 			PageException pe;
 			if (t instanceof ThreadDeath && getTimeoutStackTrace() != null) {
 				t = pe = new RequestTimeoutException(this, (ThreadDeath) t);
@@ -2548,7 +2572,8 @@ public final class PageContextImpl extends PageContext {
 			// print.o(getOut().getClass().getName());
 			getOut().clear();
 		}
-		catch (IOException e) {}
+		catch (IOException e) {
+		}
 	}
 
 	@Override
@@ -2920,7 +2945,8 @@ public final class PageContextImpl extends PageContext {
 		try {
 			sessionScope().removeEL(KeyImpl.init(name));
 		}
-		catch (PageException e) {}
+		catch (PageException e) {
+		}
 
 	}
 
@@ -3061,7 +3087,12 @@ public final class PageContextImpl extends PageContext {
 		session = null;
 		application = null;
 		client = null;
-		this.applicationContext = (ApplicationContextSupport) applicationContext;
+
+		if (applicationContext != null) this.applicationContext = (ApplicationContextSupport) applicationContext;
+		else applicationContext = this.applicationContext;
+
+		if (applicationContext == null) return;
+
 		setFullNullSupport();
 		int scriptProtect = applicationContext.getScriptProtect();
 
@@ -3090,22 +3121,19 @@ public final class PageContextImpl extends PageContext {
 		// AppListenerSupport listener = (AppListenerSupport) config.get ApplicationListener();
 		KeyLock<String> lock = config.getContextLock();
 		String name = StringUtil.emptyIfNull(applicationContext.getName());
-		String token = name + ":" + getCFID();
 
-		Lock tokenLock = lock.lock(token, getRequestTimeout());
-		// print.o("outer-lock :"+token);
-		try {
-			// check session before executing any code
-			initSession = applicationContext.isSetSessionManagement() && listener.hasOnSessionStart(this) && !scopeContext.hasExistingSessionScope(this);
-
-			// init application
-
+		// Application
+		application = scopeContext.getApplicationScope(this, false, null);// this is needed that the
+		// application scope is initilized
+		if (application == null) {
+			// because we had no lock so far, it could be that we more than one thread here at the same time
 			Lock nameLock = lock.lock(name, getRequestTimeout());
-			// print.o("inner-lock :"+token);
 			try {
 				RefBoolean isNew = new RefBooleanImpl(false);
-				application = scopeContext.getApplicationScope(this, isNew);// this is needed that the application scope is initilized
+				application = scopeContext.getApplicationScope(this, true, isNew);
+				// now within the lock, we get the application
 				if (isNew.toBooleanValue()) {
+
 					try {
 						if (!((AppListenerSupport) listener).onApplicationStart(this, application)) {
 							scopeContext.removeApplicationScope(this);
@@ -3122,16 +3150,27 @@ public final class PageContextImpl extends PageContext {
 				// print.o("inner-unlock:"+token);
 				lock.unlock(nameLock);
 			}
-
-			// init session
-			if (initSession) {
-				// session must be initlaized here
-				((AppListenerSupport) listener).onSessionStart(this, scopeContext.getSessionScope(this, DUMMY_BOOL));
-			}
 		}
-		finally {
-			// print.o("outer-unlock:"+token);
-			lock.unlock(tokenLock);
+
+		// Session
+		initSession = applicationContext.isSetSessionManagement() && listener.hasOnSessionStart(this) && !scopeContext.hasExistingSessionScope(this);
+		if (initSession) {
+			String token = name + ":" + getCFID();
+			Lock tokenLock = lock.lock(token, getRequestTimeout());
+			try {
+				// we need to check it again within the lock, to make sure the call is exclusive
+				initSession = applicationContext.isSetSessionManagement() && listener.hasOnSessionStart(this) && !scopeContext.hasExistingSessionScope(this);
+
+				// init session
+				if (initSession) {
+					// session must be initlaized here
+					((AppListenerSupport) listener).onSessionStart(this, scopeContext.getSessionScope(this, DUMMY_BOOL));
+				}
+			}
+			finally {
+				// print.o("outer-unlock:"+token);
+				lock.unlock(tokenLock);
+			}
 		}
 		return true;
 	}
@@ -3392,6 +3431,7 @@ public final class PageContextImpl extends PageContext {
 
 	private String tagName;
 
+	private boolean dummy;
 	private boolean listenSettings;
 
 	public boolean isTrusted(Page page) {
@@ -3750,6 +3790,15 @@ public final class PageContextImpl extends PageContext {
 			if (parentTags == null) parentTags = new ArrayList<String>();
 			parentTags.add(tagName);
 		}
+	}
+
+	public boolean isDummy() {
+		return dummy;
+	}
+
+	public PageContextImpl setDummy(boolean dummy) {
+		this.dummy = dummy;
+		return this;
 	}
 
 	public TimeSpan getCachedAfterTimeRange() { // FUTURE add to interface

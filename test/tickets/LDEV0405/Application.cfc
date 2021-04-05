@@ -24,17 +24,17 @@ component {
 
  	this.datasources ={ 
  		"ds1":{
-	  		class: 'org.hsqldb.jdbcDriver', 
-	  		connectionString: 'jdbc:hsqldb:file:#getDirectoryFromPath(getCurrentTemplatePath())#/datasources/ds1/db'}
+	  		class: 'org.h2.Driver', 
+	  		connectionString: 'jdbc:h2:#getDirectoryFromPath(getCurrentTemplatePath())#/datasources/ds_1/db;MODE=MySQL'}
 	  	,"ds2":{
-	  		class: 'org.hsqldb.jdbcDriver', 
-	  		connectionString: 'jdbc:hsqldb:file:#getDirectoryFromPath(getCurrentTemplatePath())#/datasources/ds2/db'}
+	  		class: 'org.h2.Driver', 
+	  		connectionString: 'jdbc:h2:#getDirectoryFromPath(getCurrentTemplatePath())#/datasources/ds_2/db;MODE=MySQL'}
 	  	,"ds3":{
-	  		class: 'org.hsqldb.jdbcDriver', 
-	  		connectionString: 'jdbc:hsqldb:file:#getDirectoryFromPath(getCurrentTemplatePath())#/datasources/ds3/db'}
+	  		class: 'org.h2.Driver', 
+	  		connectionString: 'jdbc:h2:#getDirectoryFromPath(getCurrentTemplatePath())#/datasources/ds_3/db;MODE=MySQL'}
 	  	,"ds4":{
-	  		class: 'org.hsqldb.jdbcDriver', 
-	  		connectionString: 'jdbc:hsqldb:file:#getDirectoryFromPath(getCurrentTemplatePath())#/datasources/ds4/db'}
+	  		class: 'org.h2.Driver', 
+	  		connectionString: 'jdbc:h2:#getDirectoryFromPath(getCurrentTemplatePath())#/datasources/ds_4/db;MODE=MySQL'}
 	  	
 	};
 

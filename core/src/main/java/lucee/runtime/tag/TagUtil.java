@@ -47,7 +47,7 @@ import lucee.runtime.PageSource;
 import lucee.runtime.component.ComponentLoader;
 import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWebPro;
-import lucee.runtime.config.XMLConfigWebFactory;
+import lucee.runtime.config.ConfigWebFactory;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
@@ -258,7 +258,7 @@ public class TagUtil {
 
 		}
 		catch (Exception e) {
-			XMLConfigWebFactory.log(cw, log, e);
+			ConfigWebFactory.log(cw, log, e);
 		}
 		finally {
 			pc.getConfig().getFactory().releaseLuceePageContext(pc, true);

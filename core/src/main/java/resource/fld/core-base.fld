@@ -88,6 +88,17 @@
 			<type>array</type>
 		</return>
 	</function>
+	
+	<!-- ApplicationPathCacheClear -->
+	<function>
+		<name>ApplicationPathCacheClear</name>
+		<class>lucee.runtime.functions.other.ApplicationPathCacheClear</class>
+		<description>flush the application.[cfc|cfm] path cache</description>
+		<return>
+			<type>void</type>
+		</return>
+	</function>
+	
 	<!-- arrayAppend -->
 	<function>
 		<name>arrayAppend</name>
@@ -1274,14 +1285,15 @@ Remember CFML arrays start at 1 not 0.</description>
 			<name>sorttype_or_closure</name>
 			<alias>sort_type,sortType,closure,function,udf,callback</alias>
 			<type>object</type>
-			<required>Yes</required>
+			<required>No</required>
+			<default>textnocase</default>
 		<description>
 value can be a string or a closure/function.
 		
 a string must be one of the following values:
 - "numeric": sorts numbers
 - "text": sorts text alphabetically, taking case into account (case sensitive)
-- "textnocase": sorts text alphabetically, without regard to case (case insensitive)
+- "textnocase" (default): sorts text alphabetically, without regard to case (case insensitive)
 
 if you define a closure/function, the closure/function must accept 2 parameters of any type and return:
 -1, if first parameter is "smaller" than second parameter
@@ -1311,6 +1323,57 @@ sort direction:
     </argument>
 		<return>
 			<type>boolean</type>
+		</return>
+	</function>
+	
+	<!-- ArraySplice -->
+	<function>
+		<name>ArraySplice</name>
+		<class>lucee.runtime.functions.arrays.ArraySplice</class>
+		<member-name>splice</member-name>
+		<keywords>array</keywords>
+		<description>Modifies an array by removing elements and adding new elements. 
+			It starts from the index, removes as many elements as specified by elementCountForRemoval, 
+			and puts the replacements starting from index position.
+			Return the removed elements.
+		</description>
+		<argument>
+			<name>array</name>
+			<type>array</type>
+			<required>Yes</required>
+			<description>the array to modify.</description>
+		</argument>
+		<argument>
+			<name>index</name>
+			<alias>offset</alias>
+			<type>numeric</type>
+			<required>Yes</required>
+			<description>The position at which to start modifying the array. If the index is greater than the length of the array,
+				the index is set to the length of the array. 
+				If the index is less than 1, the index is set to 1.
+			</description>
+		</argument>
+		<argument>
+			<name>length</name>
+			<alias>len,elementCountForRemoval</alias>
+			<type>numeric</type>
+			<required>No</required>
+			<description>The number of elements to be removed starting with the start index.
+				If length is 0 or smaller than -1, no elements get removed.
+				if length is -1 or GTE than array length-index, all elements after index get removed.
+			</description>
+		</argument>
+		<argument>
+			<name>replacements</name>
+			<alias>replacement</alias>
+			<type>array</type>
+			<required>No</required>
+			<description>
+				Array to be added to the array starting with index.
+			</description>
+		</argument>
+		<return>
+			<type>array</type>
 		</return>
 	</function>
 	
@@ -1424,13 +1487,20 @@ sort direction:
 		<class>lucee.runtime.functions.arrays.ArrayToStruct</class>
 		<member-name>toStruct</member-name>
 		<keywords>array,struct</keywords>
-		<description>Transform the array to a struct, the index of the array is the key of the struct</description>
+		<description>Transform the array to a struct, by default, the index of the array is the key of the struct</description>
 		<argument>
 			<name>array</name>
 			<type>array</type>
 			<required>Yes</required>
-		<description>array to translate</description>
-    </argument>
+			<description>array to translate</description>
+		</argument>
+		<argument>
+			<name>valueAsKey</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>use the value as the key of the struct, rather than the index</description>
+		</argument>
 		<return>
 			<type>struct</type>
 		</return>
@@ -2215,7 +2285,6 @@ sort direction:
 		<name>TrimWhiteSpace</name>
 		<class>lucee.runtime.functions.string.TrimWhiteSpace</class>
 		<member-name>trimWhiteSpace</member-name>
-		<status>hidden</status>
 		<keywords>string</keywords>
 		<description>clean white space of the given string</description>
 		<argument>
@@ -2287,8 +2356,7 @@ sort direction:
 	<function>
 		<name>ComponentListPackage</name>
 		<class>lucee.runtime.functions.component.ComponentListPackage</class>
-		<status>hidden</status>
-		<description>this implementation is experimentell. list all components in a certain package, throws an application exception if package does not exist.</description>
+		<description>List all components in a certain package, throws an application exception if package does not exist.</description>
 		<argument>
 			<name>package</name>
 			<alias>packageName,name</alias>
@@ -2629,7 +2697,6 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<!-- WebserviceNew -->
 	<function>
 		<name>WebserviceNew</name>
-		<status>hidden</status>
 		<class>lucee.runtime.functions.other.WebserviceProxy</class>
         <introduced>5.0.0.0</introduced>
         <description>create a Webservice Proxy object, a reference to a remote webservice</description>
@@ -3498,7 +3565,7 @@ Filter to be used to filter the results:
 			<description>Query columns by which to sort a directory listing. Delimited list of columns from query output.
 To qualify a column, use one of the following values:
 asc: ascending (a to z) sort order.
-dec: descending (z to a) sort order.
+desc: descending (z to a) sort order.
 </description>
 		</argument>
 		<argument>
@@ -4311,7 +4378,6 @@ EntitySave(entity, [forceinsert])</description>
     			<name>name</name>
     			<alias>queryName</alias>
     			<type>string</type>
-    			<status>hidden</status>
     			<required>No</required>
     			<description>name of the query produced, visible in dumps or debugging output.</description>
     	    </argument>
@@ -4326,8 +4392,7 @@ EntitySave(entity, [forceinsert])</description>
     	<function>
     		<name>QueryLazy</name>
     		<class>lucee.runtime.functions.query.QueryLazy</class>
-    		<status>hidden</status>
-			<keywords>query</keywords>
+    		<keywords>query</keywords>
 			<description>Executes a SQL query without loading the data entierly to memory. Instead it calls the given Function with every single row</description>
     		<argument>
     			<name>sql</name>
@@ -4717,6 +4782,18 @@ The browser uses file extension to determine file type. </description>
 			<description>Action to take if filename is the same as that of a file in the directory.</description>
     	</argument>
 		<argument>
+			<name>allowedExtensions</name>
+			<type>any</type>
+			<required>no</required>
+			<description>String list or string array of allowed extensions.</description>
+    	</argument>
+		<argument>
+			<name>blockedExtensions</name>
+			<type>any</type>
+			<required>no</required>
+			<description>String list or string array of not allowed extensions.</description>
+    	</argument>
+		<argument>
 			<name>mode</name>
 			<type>string</type>
 			<required>no</required>
@@ -4766,6 +4843,18 @@ The browser uses file extension to determine file type. </description>
 			<type>string</type>
 			<required>no</required>
 			<description>Action to take if filename is the same as that of a file in the directory.</description>
+    	</argument>
+		<argument>
+			<name>allowedExtensions</name>
+			<type>any</type>
+			<required>no</required>
+			<description>String list or string array of allowed extensions.</description>
+    	</argument>
+		<argument>
+			<name>blockedExtensions</name>
+			<type>any</type>
+			<required>no</required>
+			<description>String list or string array of not allowed extensions.</description>
     	</argument>
 		<argument>
 			<name>mode</name>
@@ -5190,7 +5279,6 @@ Set the attribute to normal to make a file not read-only and not hidden.</descri
 		<class>lucee.runtime.functions.string.FindLast</class>
 		<member-name>findLast</member-name>
 		<member-position>2</member-position>
-		<status>hidden</status>
 		<keywords>string,find</keywords>
 		<description>Finds the last occurrence of a substring in a string, from a
         specified start position. The search is case-sensitive.</description>
@@ -5224,7 +5312,6 @@ Set the attribute to normal to make a file not read-only and not hidden.</descri
 		<class>lucee.runtime.functions.string.FindLastNoCase</class>
 		<member-name>findLastNoCase</member-name>
 		<member-position>2</member-position>
-		<status>hidden</status>
 		<keywords>string,find</keywords>
 		<description>Finds the last occurrence of a substring in a string, from a
         specified start position. If substring is not in string,
@@ -5445,6 +5532,16 @@ Example Values:
 			<required>no</required>
 			<description>if true only data members from this scope are returned (no functions), default is false</description>
 		</argument>
+		<return>
+			<type>struct</type>
+		</return>
+	</function>
+	<!-- GetConfigSettings -->
+	<function>
+		<name>GetConfigSettings</name>
+		<class>lucee.runtime.functions.system.GetConfigSettings</class>
+		<description></description>
+		<status>hidden</status>
 		<return>
 			<type>struct</type>
 		</return>
@@ -6037,6 +6134,16 @@ The returned number of unallocated bytes is a hint, but not a guarantee, that it
 			<type>struct</type>
 		</return>
 	</function>
+    <!-- getHTTPRequestHeaders -->
+    <function>
+        <name>getHTTPRequestHeaders</name>
+        <class>lucee.runtime.functions.other.GetHTTPRequestHeaders</class>
+		<status>hidden</status>
+        <description>Returns a Struct with HTTP Request Headers</description>
+        <return>
+            <type>struct</type>
+        </return>
+    </function>
 	<!-- getHttpTimeString -->
 	<function>
 		<name>getHttpTimeString</name>
@@ -6100,6 +6207,8 @@ if this attribute is not provided all types are returned.</description>
 		<name>getMetadata</name>
 		<class>lucee.runtime.functions.other.GetMetaData</class>
 		<description>Returns back meta information depending on the object passed in</description>
+		<member-name>getMetadata</member-name>
+		<member-type>any</member-type>
 		<argument>
 			<name>object</name>
 			<alias>value</alias>
@@ -6480,6 +6589,14 @@ if this attribute is not provided all types are returned.</description>
 			<required>Yes</required>
 		<description>Prefix of a temporary file to create in the dir directory</description>
     </argument>
+	<argument>
+    		<name>extension</name>
+			<alias>ext</alias>
+    		<type>string</type>
+			<required>No</required>
+			<Default>tmp</Default>
+		<description>Creates temporary files with user defined extension, default is .tmp</description>
+	</argument>
 		<return>
 			<type>string</type>
 		</return>
@@ -6633,7 +6750,7 @@ Default list delimiter: comma character.</description>
 			<alias>string</alias>
 			<type>any</type>
 			<required>Yes</required>
-		<description>String to hash.</description>
+		<description>String or byte array to hash.</description>
     </argument>
 		<argument>
 			<name>algorithm</name>
@@ -7748,7 +7865,6 @@ The following things are considered to be empty:
 		</argument>
 		<argument>
 			<name>includeEmptyFields</name>
-			<status>hidden</status>
 			<type>boolean</type>
 			<required>No</required>
 			<default>true</default>
@@ -8428,7 +8544,6 @@ The following things are considered to be empty:
 		</argument>
 		<argument>
 			<name>includeEmptyFields</name>
-			<status>hidden</status>
 			<type>boolean</type>
 			<required>No</required>
 			<default>true</default>
@@ -8490,7 +8605,6 @@ The following things are considered to be empty:
 	<!-- ListQualifiedToArray -->
 	<function>
 		<name>ListQualifiedToArray</name>
-		<status>hidden</status>
 		<class>lucee.runtime.functions.list.ListQualifiedToArray</class>
 		<keywords>list,string,array</keywords>
 		<member-name>listQualifiedToArray</member-name>
@@ -8673,13 +8787,15 @@ The following things are considered to be empty:
 		</argument>
 		<argument>
 			<name>sort_type</name>
+			<alias>sortType</alias>
 			<type>string</type>
-			<required>Yes</required>
+			<required>No</required>
+			<default>textnocase</default>
 			<description>
 			there are different sort types:
-			- numeric (sort by number)
-			- text (sorts text alphabetically and case sensitive)
-			- textnocase (sorts text alphabetically and ignore case sensitivity)
+			- numeric - sort by number
+			- text - sorts text alphabetically and case sensitive
+			- textnocase (default) - sorts text alphabetically and ignore case sensitivity
 			</description>
 		</argument>
 		<argument>
@@ -9561,6 +9677,153 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>number</type>
 		</return>
 	</function>
+	
+	<!-- queryAppend -->
+	<function>
+		<name>queryAppend</name>
+		<class>lucee.runtime.functions.query.QueryAppend</class>
+		<member-name>append</member-name>
+		<keywords>query</keywords>
+		<description>Adds all values of one query to the end of another query. Both queries need to have the same columns.</description>
+		<argument>
+			<name>query1</name>
+			<type>query</type>
+			<required>Yes</required>
+			<description>query to add data.</description>
+		</argument>
+		<argument>
+			<name>query2</name>
+			<type>query</type>
+			<required>Yes</required>
+			<description>query to get data from.</description>
+		</argument>
+		<return>
+			<type>query</type>
+		</return>
+	</function>
+	
+	<!-- QueryPrepend -->
+	<function>
+		<name>QueryPrepend</name>
+		<class>lucee.runtime.functions.query.QueryPrepend</class>
+		<member-name>prepend</member-name>
+		<keywords>query</keywords>
+		<description>Adds all values of one query the begin to another query. Both queries need to have the same columns.</description>
+		<argument>
+			<name>query1</name>
+			<type>query</type>
+			<required>Yes</required>
+			<description>query to add data.</description>
+		</argument>
+		<argument>
+			<name>query2</name>
+			<type>query</type>
+			<required>Yes</required>
+			<description>query to get data from.</description>
+		</argument>
+		<return>
+			<type>query</type>
+		</return>
+	</function>
+	
+	<!-- QueryInsertAt -->
+	<function>
+		<name>QueryInsertAt</name>
+		<class>lucee.runtime.functions.query.QueryInsertAt</class>
+		<member-name>insertAt</member-name>
+		<keywords>query</keywords>
+		<description>Adds data (query,struct or array) into query.</description>
+		<argument>
+			<name>query</name>
+			<type>query</type>
+			<required>Yes</required>
+			<description>query to add data.</description>
+		</argument>
+		<argument>
+			<name>value</name>
+			<type>any</type>
+			<required>Yes</required>
+			<description>data to insert, can be a query, a struct or an array.</description>
+		</argument>
+		<argument>
+			<name>index</name>
+			<type>numeric</type>
+			<required>Yes</required>
+			<description>position to insert data into, existing data get moved to the "right".</description>
+		</argument>
+		<return>
+			<type>query</type>
+		</return>
+	</function>
+	
+	<!-- QueryRowSwap -->
+	<function>
+		<name>QueryRowSwap</name>
+		<class>lucee.runtime.functions.query.QueryRowSwap</class>
+		<member-name>rowSwap</member-name>
+		<keywords>query</keywords>
+		<description>swaps one row of a query with an other.</description>
+		<argument>
+			<name>query</name>
+			<type>query</type>
+			<required>Yes</required>
+			<description>query to swap rows.</description>
+		</argument>
+		<argument>
+			<name>source</name>
+			<alias>sourceRow,src</alias>
+			<type>numeric</type>
+			<required>Yes</required>
+			<description>The row to swap.</description>
+		</argument>
+		<argument>
+			<name>destination</name>
+			<alias>destinationRow,dest,target</alias>
+			<type>numeric</type>
+			<required>Yes</required>
+			<description>The row to be swapped with.</description>
+		</argument>
+		<return>
+			<type>query</type>
+		</return>
+	</function>
+	
+	
+	<!-- QueryReverse -->
+	<function>
+		<name>QueryReverse</name>
+		<class>lucee.runtime.functions.query.QueryReverse</class>
+		<member-name>reverse</member-name>
+		<keywords>query</keywords>
+		<description>reverse the row order of a complete query</description>
+		<argument>
+			<name>query</name>
+			<type>query</type>
+			<required>Yes</required>
+			<description>query to reverse rows.</description>
+		</argument>
+		<return>
+			<type>query</type>
+		</return>
+	</function>
+	
+	<!-- QueryClear -->
+	<function>
+		<name>QueryClear</name>
+		<class>lucee.runtime.functions.query.QueryClear</class>
+		<member-name>clear</member-name>
+		<keywords>query</keywords>
+		<description>Clears all rows from a query</description>
+		<argument>
+			<name>query</name>
+			<type>query</type>
+			<required>Yes</required>
+			<description>query to clear all data.</description>
+		</argument>
+		<return>
+			<type>query</type>
+		</return>
+	</function>
 	<!-- queryColumnCount -->
 	<function>
 		<name>queryColumnCount</name>
@@ -9689,6 +9952,38 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<return>
 			<type>array</type>
+		</return>
+	</function>
+
+	<!-- queryRenameColumn -->
+	<function>
+		<name>queryRenameColumn</name>
+		<class>lucee.runtime.functions.query.QueryRenameColumn</class>
+		<keywords>query</keywords>
+		<member-name>renameColumn</member-name>
+		<description>Rename a column</description>
+		<introduced>6.0.0</introduced>
+		<argument>
+			<name>query</name>
+			<type>query</type>
+			<required>Yes</required>
+			<description>Name of a query object.</description>
+		</argument>
+		<argument>
+			<name>column</name>
+			<alias>columnname</alias>
+			<type>string</type>
+			<required>Yes</required>
+			<description></description>
+		</argument>
+		<argument>
+			<name>newColumnName</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description></description>
+		</argument>
+		<return>
+			<type>void</type>
 		</return>
 	</function>
 
@@ -13565,9 +13860,9 @@ _- asc (default): ascending (a to z) sort order
 			<name>caseSensitive</name>
 			<type>boolean</type>
 			<required>No</required>
-		<description>Maintains the case of document elements and attributes.
+			<description>Maintains the case of document elements and attributes.
             Default: false</description>
-    </argument>
+    	</argument>
 		<argument>
 			<name>validator</name>
 			<type>string</type>
@@ -13577,6 +13872,13 @@ _- asc (default): ascending (a to z) sort order
 - The name of a DTD or Schema file
 - The URL of a DTD or Schema file; valid protocol identifiers include http, https, ftp, and file</description>
     </argument>
+		<argument>
+			<name>lenient</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>if set to true, the parser is more lenient and forgives invalid XML and does the best to interpret it.</description>
+		</argument>
 		<return>
 			<type>xml</type>
 		</return>

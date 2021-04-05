@@ -35,6 +35,7 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.Mapping;
 import lucee.runtime.MappingImpl;
+import lucee.runtime.Page;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
@@ -102,29 +103,46 @@ public final class AppListenerUtil {
 	private static final TimeSpan FIVE_MINUTES = new TimeSpanImpl(0, 0, 5, 0);
 	private static final TimeSpan ONE_MINUTE = new TimeSpanImpl(0, 0, 1, 0);
 
-	public static PageSource getApplicationPageSource(PageContext pc, PageSource requestedPage, String filename, int mode) {
-		if (mode == ApplicationListener.MODE_CURRENT) return getApplicationPageSourceCurrent(requestedPage, filename);
-		if (mode == ApplicationListener.MODE_ROOT) return getApplicationPageSourceRoot(pc, filename);
-		return getApplicationPageSourceCurr2Root(pc, requestedPage, filename);
-	}
-
-	public static PageSource getApplicationPageSourceCurrent(PageSource requestedPage, String filename) {
-		PageSource res = requestedPage.getRealPage(filename);
-		if (res.exists()) return res;
-		return null;
-	}
-
-	public static PageSource getApplicationPageSourceRoot(PageContext pc, String filename) {
-		PageSource ps = ((PageContextImpl) pc).getPageSourceExisting("/".concat(filename));
-		if (ps != null) return ps;
-		return null;
-	}
-
-	public static PageSource getApplicationPageSourceCurr2Root(PageContext pc, PageSource requestedPage, String filename) {
-		PageSource ps = requestedPage.getRealPage(filename);
-		if (ps.exists()) {
-			return ps;
+	public static Page getApplicationPage(PageContext pc, PageSource requestedPage, String filename, int mode, int type) throws PageException {
+		Resource res = requestedPage.getPhyscalFile();
+		if (res != null) {
+			PageSource ps = ((ConfigPro) pc.getConfig()).getApplicationPageSource(pc, res.getParent(), filename, mode, null);
+			if (ps != null) {
+				Page p = ps.loadPage(pc, false, null);
+				if (p != null) return p;
+			}
 		}
+		Page p;
+		if (mode == ApplicationListener.MODE_CURRENT) p = getApplicationPageCurrent(pc, requestedPage, filename);
+		else if (mode == ApplicationListener.MODE_ROOT) p = getApplicationPageRoot(pc, filename);
+		else p = getApplicationPageCurr2Root(pc, requestedPage, filename);
+
+		if (res != null && p != null)
+			((ConfigPro) pc.getConfig()).putApplicationPageSource(requestedPage.getPhyscalFile().getParent(), p.getPageSource(), filename, mode, isCFC(type));
+		return p;
+	}
+
+	private static boolean isCFC(int type) {
+		if (type == ApplicationListener.TYPE_CLASSIC) return false;
+		return true;
+	}
+
+	public static Page getApplicationPageCurrent(PageContext pc, PageSource requestedPage, String filename) throws PageException {
+		PageSource ps = requestedPage.getRealPage(filename);
+
+		return ps.loadPage(pc, false, null);
+	}
+
+	public static Page getApplicationPageRoot(PageContext pc, String filename) throws PageException {
+		PageSource ps = ((PageContextImpl) pc).getPageSource("/".concat(filename));
+		return ps.loadPage(pc, false, null);
+	}
+
+	public static Page getApplicationPageCurr2Root(PageContext pc, PageSource requestedPage, String filename) throws PageException {
+		PageSource ps = requestedPage.getRealPage(filename);
+		Page p = ps.loadPage(pc, false, null);
+		if (p != null) return p;
+
 		Array arr = lucee.runtime.type.util.ListUtil.listToArrayRemoveEmpty(requestedPage.getRealpathWithVirtual(), "/");
 		// Config config = pc.getConfig();
 		for (int i = arr.size() - 1; i > 0; i--) {
@@ -134,10 +152,9 @@ public final class AppListenerUtil {
 				sb.append('/');
 			}
 			sb.append(filename);
-			ps = ((PageContextImpl) pc).getPageSourceExisting(sb.toString());
-			if (ps != null) {
-				return ps;
-			}
+			ps = ((PageContextImpl) pc).getPageSource(sb.toString());
+			p = ps.loadPage(pc, false, null);
+			if (p != null) return p;
 		}
 		return null;
 	}
@@ -219,7 +236,8 @@ public final class AppListenerUtil {
 				if (idle == -1) idle = Caster.toIntValue(data.get(CONNECTION_TIMEOUT, null), 1);
 				return ApplicationDataSource.getInstance(config, name, cd, Caster.toString(oConnStr), user, pass, listener, Caster.toBooleanValue(data.get(BLOB, null), false),
 						Caster.toBooleanValue(data.get(CLOB, null), false), Caster.toIntValue(data.get(CONNECTION_LIMIT, null), -1), idle,
-						Caster.toIntValue(data.get(LIVE_TIMEOUT, null), 60), Caster.toLongValue(data.get(META_CACHE_TIMEOUT, null), 60000L), timezone,
+						Caster.toIntValue(data.get(LIVE_TIMEOUT, null), 60), Caster.toIntValue(data.get("minIdle", null), 60), Caster.toIntValue(data.get("maxIdle", null), 60),
+						Caster.toIntValue(data.get("maxTotal", null), 60), Caster.toLongValue(data.get(META_CACHE_TIMEOUT, null), 60000L), timezone,
 						Caster.toIntValue(data.get(ALLOW, null), DataSource.ALLOW_ALL), Caster.toBooleanValue(data.get(KeyConstants._storage, null), false),
 						Caster.toBooleanValue(data.get(KeyConstants._readonly, null), false), Caster.toBooleanValue(data.get(KeyConstants._validate, null), false),
 						Caster.toBooleanValue(data.get("requestExclusive", null), false), Caster.toBooleanValue(data.get("alwaysResetConnections", null), false),
@@ -241,6 +259,7 @@ public final class AppListenerUtil {
 			return new DataSourceImpl(config, name, dbt.classDefinition, Caster.toString(data.get(KeyConstants._host)), dbt.connectionString,
 					Caster.toString(data.get(KeyConstants._database)), Caster.toIntValue(data.get(KeyConstants._port, null), -1), user, pass, listener,
 					Caster.toIntValue(data.get(CONNECTION_LIMIT, null), -1), idle, Caster.toIntValue(data.get(LIVE_TIMEOUT, null), 1),
+					Caster.toIntValue(data.get("minIdle", null), 0), Caster.toIntValue(data.get("maxIdle", null), 0), Caster.toIntValue(data.get("maxTotal", null), 0),
 					Caster.toLongValue(data.get(META_CACHE_TIMEOUT, null), 60000L), Caster.toBooleanValue(data.get(BLOB, null), false),
 					Caster.toBooleanValue(data.get(CLOB, null), false), DataSource.ALLOW_ALL, Caster.toStruct(data.get(KeyConstants._custom, null), null, false),
 					Caster.toBooleanValue(data.get(KeyConstants._readonly, null), false), true, Caster.toBooleanValue(data.get(KeyConstants._storage, null), false), timezone, "",

@@ -52,6 +52,7 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
+import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.net.URLEncoder;
 import lucee.runtime.exp.PageException;
 
@@ -71,7 +72,20 @@ public final class IOUtil {
 	 */
 	public static final void copy(InputStream in, OutputStream out, boolean closeIS, boolean closeOS) throws IOException {
 		try {
-			copy(in, out, 0xffff);
+			copy(in, out, 0xffff);// 65535
+		}
+		finally {
+			if (closeIS && closeOS) close(in, out);
+			else {
+				if (closeIS) close(in);
+				if (closeOS) close(out);
+			}
+		}
+	}
+
+	public static final void copy(InputStream in, OutputStream out, int blockSize, boolean closeIS, boolean closeOS) throws IOException {
+		try {
+			copy(in, out, blockSize);// 65535
 		}
 		finally {
 			if (closeIS && closeOS) close(in, out);
@@ -294,6 +308,31 @@ public final class IOUtil {
 		while ((len = in.read(buffer)) != -1) {
 			out.write(buffer, 0, len);
 		}
+	}
+
+	/**
+	 * copy data from in to out, if max is reached an exception is thrown, max must be the multiply of
+	 * blocksize
+	 * 
+	 * @param in
+	 * @param out
+	 * @param blockSize
+	 * @param max
+	 * @throws IOException
+	 */
+	public static final boolean copyMax(InputStream in, OutputStream out, long max) throws IOException {
+		byte[] buffer = new byte[0xffff];
+		int len;
+		long total = 0;
+		while ((len = in.read(buffer)) != -1) {
+			total += len;
+			out.write(buffer, 0, len);
+			if (total > max) {
+				// print.e("reached:" + len + ":" + total);
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private static final void merge(InputStream in1, InputStream in2, OutputStream out, int blockSize) throws IOException {
@@ -1066,6 +1105,12 @@ public final class IOUtil {
 	public static byte[] toBytes(InputStream is, boolean closeStream) throws IOException {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		copy(is, baos, closeStream, true);
+		return baos.toByteArray();
+	}
+
+	public static byte[] toBytesMax(InputStream is, long max, RefBoolean maxReached) throws IOException {
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		maxReached.setValue(copyMax(is, baos, max));
 		return baos.toByteArray();
 	}
 

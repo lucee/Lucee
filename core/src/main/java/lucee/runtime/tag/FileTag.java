@@ -1205,7 +1205,7 @@ public final class FileTag extends BodyTagImpl {
 					throw new ApplicationException("Invalid file [" + file + "]", e.getMessage());
 				}
 			}
-			else if (!file.isFile()) throw new ApplicationException("Source file [" + file.toString() + "] is not a file");
+			// else if (!file.isFile()) throw new ApplicationException("Source file [" + file.toString() + "] is not a file");
 			else throw new ApplicationException("Source file [" + file.toString() + "] doesn't exist");
 		}
 		else if (!file.isFile()) throw new ApplicationException("Source file [" + file.toString() + "] is not a file");

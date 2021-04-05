@@ -28,7 +28,7 @@ public final class ScheduleException extends Exception {
 	/**
 	 * constructor of the class
 	 * 
-	 * @param message
+	 * @param message message
 	 */
 	public ScheduleException(final String message) {
 		super(message);

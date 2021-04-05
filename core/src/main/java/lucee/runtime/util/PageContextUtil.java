@@ -50,6 +50,7 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.RequestTimeoutException;
 import lucee.runtime.listener.ApplicationListener;
+import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.op.Caster;
 import lucee.runtime.op.CreationImpl;
 import lucee.runtime.type.dt.TimeSpan;
@@ -163,7 +164,7 @@ public class PageContextUtil {
 					String rootDir = contextRoot.getAbsolutePath();
 
 					for (ServletConfig conf: configs) {
-						if (lucee.commons.io.SystemUtil.arePathsSame(rootDir, conf.getServletContext().getRealPath("/"))) {
+						if (lucee.commons.io.SystemUtil.arePathsSame(rootDir, ReqRspUtil.getRootPath(conf.getServletContext()))) {
 							servletConfig = conf;
 							break;
 						}
@@ -191,7 +192,8 @@ public class PageContextUtil {
 	public static TimeSpan remainingTime(PageContext pc, boolean throwWhenAlreadyTimeout) throws RequestTimeoutException {
 		long ms = pc.getRequestTimeout() - (System.currentTimeMillis() - pc.getStartTime());
 		if (ms > 0) {
-			if (ms < 5) {}
+			if (ms < 5) {
+			}
 			else if (ms < 10) ms = ms - 1;
 			else if (ms < 50) ms = ms - 5;
 			else if (ms < 200) ms = ms - 10;

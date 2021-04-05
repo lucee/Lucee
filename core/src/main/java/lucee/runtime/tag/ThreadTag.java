@@ -42,6 +42,7 @@ import lucee.runtime.ext.tag.DynamicAttributes;
 import lucee.runtime.op.Caster;
 import lucee.runtime.spooler.ExecutionPlan;
 import lucee.runtime.spooler.ExecutionPlanImpl;
+import lucee.runtime.spooler.SpoolerEngineImpl;
 import lucee.runtime.thread.ChildSpoolerTask;
 import lucee.runtime.thread.ChildThread;
 import lucee.runtime.thread.ChildThreadImpl;
@@ -180,8 +181,7 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 			// supported at the moment");
 			type = TYPE_TASK;
 		}
-		// FUTURE remove "deamon", which is a misspelling
-		else if ("daemon".equals(strType) || "deamon".equals(strType)) {
+		else if ("daemon".equals(strType)) {
 			type = TYPE_DAEMON;
 		}
 		else {
@@ -311,7 +311,7 @@ public final class ThreadTag extends BodyTagImpl implements DynamicAttributes {
 			else {
 				ChildThreadImpl ct = new ChildThreadImpl((PageContextImpl) pc, currentPage, name.getString(), threadIndex, attrs, true);
 				ct.setPriority(priority);
-				((ConfigPro) pc.getConfig()).getSpoolerEngine().add(new ChildSpoolerTask(ct, plans));
+				((SpoolerEngineImpl) ((ConfigPro) pc.getConfig()).getSpoolerEngine()).add(pc.getConfig(), new ChildSpoolerTask(ct, plans));
 			}
 
 		}

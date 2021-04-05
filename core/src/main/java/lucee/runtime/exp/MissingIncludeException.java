@@ -68,8 +68,8 @@ public final class MissingIncludeException extends PageExceptionImpl {
 
 	private static String createMessage(PageSource pageSource) {
 		String dsp = pageSource.getDisplayPath();
-		if (dsp == null) return "Page " + pageSource.getRealpathWithVirtual() + " not found";
-		return "Page " + pageSource.getRealpathWithVirtual() + " [" + dsp + "] not found";
+		if (dsp == null) return "Page [" + pageSource.getRealpathWithVirtual() + "] not found";
+		return "Page [" + pageSource.getRealpathWithVirtual() + "] [" + dsp + "] not found";
 	}
 
 	@Override

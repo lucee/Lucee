@@ -76,10 +76,16 @@ public class CertificateInstaller {
 		tm = new SavingTrustManager(defaultTrustManager);
 		context.init(null, new TrustManager[] { tm }, null);
 
-		checkCertificate();
-
-		if (tm.chain == null) throw new IOException("Could not obtain server certificate chain");
-
+		IOException e = checkCertificate();
+		
+		if (tm.chain == null) {
+			if (e == null) {
+				throw new IOException("Could not obtain server certificate chain");
+			}
+			else {
+				throw new IOException("Could not obtain server certificate chain, [ "+ e +" ]");
+			}
+		}
 	}
 
 	public void installAll() throws IOException, KeyStoreException, NoSuchAlgorithmException, CertificateException {

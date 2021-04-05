@@ -18,15 +18,11 @@
  */
 package lucee.runtime.config;
 
-import java.io.IOException;
 import java.net.URL;
 import java.util.Collection;
 import java.util.Enumeration;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
@@ -34,52 +30,38 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.jsp.JspWriter;
 
-import org.osgi.framework.BundleException;
-import org.xml.sax.SAXException;
-
-import lucee.commons.io.FileUtil;
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
 import lucee.commons.io.res.ResourcesImpl;
-import lucee.commons.lang.ClassUtil;
-import lucee.commons.lang.StringUtil;
 import lucee.commons.lock.KeyLock;
 import lucee.runtime.CFMLFactory;
 import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.CIPage;
 import lucee.runtime.Mapping;
-import lucee.runtime.MappingImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.cache.tag.CacheHandlerCollection;
 import lucee.runtime.cfx.CFXTagPool;
 import lucee.runtime.compiler.CFMLCompilerImpl;
-import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.debug.DebuggerPool;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.engine.ThreadQueue;
-import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.SecurityException;
 import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.gateway.GatewayEngine;
-import lucee.runtime.gateway.GatewayEngineImpl;
 import lucee.runtime.gateway.GatewayEntry;
 import lucee.runtime.lock.LockManager;
-import lucee.runtime.lock.LockManagerImpl;
 import lucee.runtime.monitor.ActionMonitor;
 import lucee.runtime.monitor.ActionMonitorCollector;
 import lucee.runtime.monitor.IntervallMonitor;
 import lucee.runtime.monitor.RequestMonitor;
 import lucee.runtime.net.amf.AMFEngine;
-import lucee.runtime.net.amf.AMFEngineDummy;
 import lucee.runtime.net.http.ReqRspUtil;
-import lucee.runtime.net.rpc.DummyWSHandler;
 import lucee.runtime.net.rpc.WSHandler;
-import lucee.runtime.net.rpc.ref.WSHandlerReflector;
 import lucee.runtime.op.Caster;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
 import lucee.runtime.search.SearchEngine;
@@ -97,19 +79,13 @@ public class ConfigWebImpl extends ConfigImpl implements ServletConfig, ConfigWe
 	private final ServletConfig config;
 	private final ConfigServerImpl configServer;
 	private SecurityManager securityManager;
-	private static final LockManager lockManager = LockManagerImpl.getInstance(false);
 
 	private Resource rootDir;
-	private Map<String, Mapping> serverTagMappings;
-	private Map<String, Mapping> serverFunctionMappings;
 
-	private GatewayEngineImpl gatewayEngine;
 	private final CFMLFactoryImpl factory;
 
-	protected IdentificationWeb id;
-	private SearchEngine searchEngine;
-	private AMFEngine amfEngine;
 	private final ConfigWebHelper helper;
+	private short passwordSource;
 
 	// private File deployDirectory;
 
@@ -233,7 +209,7 @@ public class ConfigWebImpl extends ConfigImpl implements ServletConfig, ConfigWe
 
 	@Override
 	public LockManager getLockManager() {
-		return lockManager;
+		return helper.getLockManager();
 	}
 
 	/**
@@ -256,16 +232,7 @@ public class ConfigWebImpl extends ConfigImpl implements ServletConfig, ConfigWe
 
 	@Override
 	public Collection<Mapping> getServerTagMappings() {
-		if (serverTagMappings == null) {
-			Iterator<Entry<String, Mapping>> it = getConfigServerImpl().tagMappings.entrySet().iterator();// .cloneReadOnly(this);
-			Entry<String, Mapping> e;
-			serverTagMappings = new ConcurrentHashMap<String, Mapping>();
-			while (it.hasNext()) {
-				e = it.next();
-				serverTagMappings.put(e.getKey(), ((MappingImpl) e.getValue()).cloneReadOnly(this));
-			}
-		}
-		return serverTagMappings.values();
+		return helper.getServerTagMappings();
 	}
 
 	@Override
@@ -275,28 +242,17 @@ public class ConfigWebImpl extends ConfigImpl implements ServletConfig, ConfigWe
 
 	@Override
 	public Mapping getServerTagMapping(String mappingName) {
-		getServerTagMappings(); // necessary to make sure it exists
-		return serverTagMappings.get(mappingName);
+		return helper.getServerTagMapping(mappingName);
 	}
 
 	@Override
 	public Collection<Mapping> getServerFunctionMappings() {
-		if (serverFunctionMappings == null) {
-			Iterator<Entry<String, Mapping>> it = getConfigServerImpl().functionMappings.entrySet().iterator();
-			Entry<String, Mapping> e;
-			serverFunctionMappings = new ConcurrentHashMap<String, Mapping>();
-			while (it.hasNext()) {
-				e = it.next();
-				serverFunctionMappings.put(e.getKey(), ((MappingImpl) e.getValue()).cloneReadOnly(this));
-			}
-		}
-		return serverFunctionMappings.values();
+		return helper.getServerFunctionMappings();
 	}
 
 	@Override
 	public Mapping getServerFunctionMapping(String mappingName) {
-		getServerFunctionMappings();// call this to make sure it exists
-		return serverFunctionMappings.get(mappingName);
+		return helper.getServerFunctionMapping(mappingName);
 	}
 
 	public Mapping getDefaultServerFunctionMapping() {
@@ -331,16 +287,7 @@ public class ConfigWebImpl extends ConfigImpl implements ServletConfig, ConfigWe
 
 	@Override
 	public String getLabel() {
-		String hash = getHash();
-		String label = hash;
-		Map<String, String> labels = configServer.getLabels();
-		if (labels != null) {
-			String l = labels.get(hash);
-			if (!StringUtil.isEmpty(l)) {
-				label = l;
-			}
-		}
-		return label;
+		return helper.getLabel();
 	}
 
 	@Override
@@ -355,13 +302,13 @@ public class ConfigWebImpl extends ConfigImpl implements ServletConfig, ConfigWe
 
 	@Override
 	public Map<String, GatewayEntry> getGatewayEntries() {
-		return getGatewayEngineImpl().getEntries();
+		return helper.getGatewayEngineImpl().getEntries();
 	}
 
 	@Override
 	protected void setGatewayEntries(Map<String, GatewayEntry> gatewayEntries) {
 		try {
-			getGatewayEngineImpl().addEntries(this, gatewayEntries);
+			helper.getGatewayEngineImpl().addEntries(this, gatewayEntries);
 		}
 		catch (Exception e) {
 			LogUtil.log(ThreadLocalPageContext.getConfig(this), ConfigWebImpl.class.getName(), e);
@@ -370,18 +317,7 @@ public class ConfigWebImpl extends ConfigImpl implements ServletConfig, ConfigWe
 
 	@Override
 	public GatewayEngine getGatewayEngine() {
-		return getGatewayEngineImpl();
-	}
-
-	private GatewayEngineImpl getGatewayEngineImpl() {
-		if (gatewayEngine == null) {
-			gatewayEngine = new GatewayEngineImpl(this);
-		}
-		return gatewayEngine;
-	}
-
-	public void setGatewayEngine(GatewayEngineImpl gatewayEngine) {
-		this.gatewayEngine = gatewayEngine;
+		return helper.getGatewayEngineImpl();
 	}
 
 	@Override
@@ -460,12 +396,22 @@ public class ConfigWebImpl extends ConfigImpl implements ServletConfig, ConfigWe
 	}
 
 	@Override
-	public void updatePassword(boolean server, String passwordOld, String passwordNew) throws PageException, IOException, SAXException, BundleException {
-		PasswordImpl.updatePassword(server ? configServer : this, passwordOld, passwordNew);
+	public void updatePassword(boolean server, String passwordOld, String passwordNew) throws PageException {
+		try {
+			PasswordImpl.updatePassword(server ? configServer : this, passwordOld, passwordNew);
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
 	}
 
-	public void updatePassword(boolean server, Password passwordOld, Password passwordNew) throws PageException, IOException, SAXException, BundleException {
-		PasswordImpl.updatePassword(server ? configServer : this, passwordOld, passwordNew);
+	public void updatePassword(boolean server, Password passwordOld, Password passwordNew) throws PageException {
+		try {
+			PasswordImpl.updatePassword(server ? configServer : this, passwordOld, passwordNew);
+		}
+		catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
 	}
 
 	@Override
@@ -525,12 +471,12 @@ public class ConfigWebImpl extends ConfigImpl implements ServletConfig, ConfigWe
 	}
 
 	protected void setIdentification(IdentificationWeb id) {
-		this.id = id;
+		helper.setIdentification(id);
 	}
 
 	@Override
 	public IdentificationWeb getIdentification() {
-		return id;
+		return helper.getIdentification();
 	}
 
 	@Override
@@ -575,20 +521,7 @@ public class ConfigWebImpl extends ConfigImpl implements ServletConfig, ConfigWe
 
 	@Override
 	public SearchEngine getSearchEngine(PageContext pc) throws PageException {
-		if (searchEngine == null) {
-			try {
-				Object o = ClassUtil.loadInstance(getSearchEngineClassDefinition().getClazz());
-				if (o instanceof SearchEngine) searchEngine = (SearchEngine) o;
-				else throw new ApplicationException("class [" + o.getClass().getName() + "] does not implement the interface SearchEngine");
-
-				searchEngine.init(this,
-						ConfigWebUtil.getFile(getConfigDir(), ConfigWebUtil.translateOldPath(getSearchEngineDirectory()), "search", getConfigDir(), FileUtil.TYPE_DIR, this));
-			}
-			catch (Exception e) {
-				throw Caster.toPageException(e);
-			}
-		}
-		return searchEngine;
+		return helper.getSearchEngine(pc);
 	}
 
 	@Override
@@ -602,13 +535,12 @@ public class ConfigWebImpl extends ConfigImpl implements ServletConfig, ConfigWe
 	}
 
 	protected void setAMFEngine(AMFEngine engine) {
-		amfEngine = engine;
+		helper.setAMFEngine(engine);
 	}
 
 	@Override
 	public AMFEngine getAMFEngine() {
-		if (amfEngine == null) return AMFEngineDummy.getInstance();
-		return amfEngine;
+		return helper.getAMFEngine();
 	}
 
 	/*
@@ -626,24 +558,9 @@ public class ConfigWebImpl extends ConfigImpl implements ServletConfig, ConfigWe
 		return configServer.loadLocalExtensions(validate);
 	}
 
-	private short passwordSource;
-
 	@Override
 	public WSHandler getWSHandler() throws PageException {
-		if (wsHandler == null) {
-			ClassDefinition cd = getWSHandlerClassDefinition();
-			if (isEmpty(cd)) cd = configServer.getWSHandlerClassDefinition();
-			try {
-				if (isEmpty(cd)) return new DummyWSHandler();
-				Object obj = ClassUtil.newInstance(cd.getClazz());
-				if (obj instanceof WSHandler) wsHandler = (WSHandler) obj;
-				else wsHandler = new WSHandlerReflector(obj);
-			}
-			catch (Exception e) {
-				throw Caster.toPageException(e);
-			}
-		}
-		return wsHandler;
+		return helper.getWSHandler();
 	}
 
 	protected void setPasswordSource(short passwordSource) {
@@ -658,5 +575,10 @@ public class ConfigWebImpl extends ConfigImpl implements ServletConfig, ConfigWe
 	@Override
 	public void checkPassword() throws PageException {
 		configServer.checkPassword();
+	}
+
+	@Override
+	public short getAdminMode() {
+		return configServer.getAdminMode();
 	}
 }

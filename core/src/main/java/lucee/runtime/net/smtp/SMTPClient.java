@@ -88,6 +88,7 @@ import lucee.runtime.net.proxy.ProxyDataImpl;
 import lucee.runtime.net.smtp.SMTPConnectionPool.SessionAndTransport;
 import lucee.runtime.op.Caster;
 import lucee.runtime.spooler.ComponentSpoolerTaskListener;
+import lucee.runtime.spooler.SpoolerEngineImpl;
 import lucee.runtime.spooler.SpoolerTask;
 import lucee.runtime.spooler.SpoolerTaskListener;
 import lucee.runtime.spooler.UDFSpoolerTaskListener;
@@ -762,7 +763,7 @@ public final class SMTPClient implements Serializable {
 		if (spool == SPOOL_YES || (spool == SPOOL_UNDEFINED && config.isMailSpoolEnable())) {
 			MailSpoolerTask mst = new MailSpoolerTask(this, servers, sendTime);
 			if (listener != null) mst.setListener(toListener(mst, listener));
-			config.getSpoolerEngine().add(mst);
+			((SpoolerEngineImpl) config.getSpoolerEngine()).add(config, mst);
 		}
 		else _send(config, servers);
 	}

@@ -1,7 +1,4 @@
 <cfscript>
-
-
-
 	function toOrderedArray(array arr, boolean desc=false) {
 		arraySort(arr,function(l,r) {
 			if(desc) {
@@ -23,10 +20,9 @@
 		}
 	}
 
-
-available=getDataByid(url.id,getExternalData(providerURLs));
-installed=getDataByid(url.id,extensions);
-isInstalled=installed.count() GT 0;
+	available=getDataByid(url.id,getExternalData(providerURLs));
+	installed=getDataByid(url.id,extensions);
+	isInstalled=installed.count() GT 0;
 
 
 // all version that can be installed
@@ -34,8 +30,7 @@ isInstalled=installed.count() GT 0;
 	// other Versions
 	if(!isNull(available.otherVersions) && !isSimpleValue(available.otherVersions)) {
 		all=duplicate(available.otherVersions);
-	}
-	else {
+	} else {
 		all=[];
 	}
 		
@@ -280,7 +275,7 @@ if(isInstalled) installedVersion=toVersionSortable(installed.version);
 							</cfif>
 						</cfloop>
 					</select>
-					<input type="button" class="button submit" onclick="versionSelected(this, version)"  value="#isInstalled?stText.Buttons.upDown:stText.Buttons.install#">
+					<input type="button" class="button" onclick="versionSelected(this, version)"  value="#isInstalled?stText.Buttons.upDown:stText.Buttons.install#">
 				</td>
 			</tr>
 		</cfif>

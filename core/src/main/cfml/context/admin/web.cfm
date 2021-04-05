@@ -1,13 +1,17 @@
-<cfif structKeyExists(form, "captchaValue")>
-	<cfset session.cap = form.captchaValue>
-</cfif>
-<cfsilent>
-<cfparam name="request.disableFrame" default="false" type="boolean">
-<cfparam name="request.setCFApplication" default="true" type="boolean">
+<cfscript>
+	
+	if(request.singleMode && right(cgi.script_name,9)!="index.cfm") {
+		location url="index.cfm" addtoken=false;
+	}
 
-<cfif request.setCFApplication>
-	<cfapplication
-		name="webadmin#server.lucee.version#"
+	if(structKeyExists(form, "captchaValue")){
+		session.cap = form.captchaValue;
+	}
+	param name="request.disableFrame" default="false" type="boolean";
+	param name="request.setCFApplication" default="true" type="boolean";
+
+	if(request.setCFApplication) {
+		application name="webadmin#server.lucee.version#"
 		sessionmanagement="yes"
 		clientmanagement="no"
 		setclientcookies="yes"
@@ -18,9 +22,9 @@
 		sessiontimeout="#createTimeSpan(0,0,30,0)#"
 		applicationtimeout="#createTimeSpan(1,0,0,0)#"
 		localmode="update"
-		webcharset="utf-8"
-		>
-</cfif>
+		webcharset="utf-8";
+	}
+</cfscript><cfsilent>
 
 <!--- todo: remember screenwidth, so images have the correct width etc. --->
 <!--- PK: instead of session.screenWidth, we now have:
@@ -41,7 +45,7 @@
 <cfparam name="request.adminType" default="web">
 <cfparam name="form.rememberMe" default="s">
 <cfset ad = request.adminType>
-<cfset request.self = request.adminType & ".cfm">
+<cfset request.self = (request.singleMode?"index": request.adminType )& ".cfm">
 
 <cfparam name="cookie.lucee_admin_lang" default="en">
 <cfset session.lucee_admin_lang = cookie.lucee_admin_lang>
@@ -384,6 +388,7 @@
 	else current.action="overview";
 
 	strNav ="";
+	adminUrls = []; // track menu urls for automated testing
 	for(i=1;i lte arrayLen(navigation);i=i+1) {
 		stNavi = navigation[i];
 		hasChildren=structKeyExists(stNavi,"children");
@@ -415,6 +420,7 @@
 
 					isfavorite = application.adminfunctions.isfavorite(_action);
 					li = '<li' & (isfavorite ? ' class="favorite"':'') & '><a '&(isActive?'id="sprite" class="menu_active"':'class="menu_inactive"')&' href="' & request.self & '?action=' &ListCompact( _action,'.') & '"> ' & stCld.label & '</a></li>';
+					ArrayAppend(adminUrls, request.self & '?action=' &ListCompact( _action,'.'));
 					if (isfavorite)
 					{
 						favoriteLis &= '<li class="favorite"><a href="#request.self#?action=#_action#">#stNavi.label# - #stCld.label#</a></li>';
@@ -427,7 +433,10 @@
 		strNav = strNav &'';
 		hasChildren=hasChildren and len(subNav) GT 0;
 		if (!hasChildren) {
-			if (toBool(stNavi,"display"))strNav = strNav & '<li><a href="' & request.self & '?action=' & stNavi.action & '">' & stNavi.label & '</a></li>';
+			if (toBool(stNavi,"display")){
+				strNav = strNav & '<li><a href="' & request.self & '?action=' & stNavi.action & '">' & stNavi.label & '</a></li>';
+				ArrayAppend(adminUrls, request.self & '?action=' & stNavi.action);
+			}
 			//if (toBool(stNavi,"display"))strNav = strNav & '<div class="navtop"><a class="navtop" href="' & request.self & '?action=' & stNavi.action & '">' & stNavi.label & '</a></div>';
 		}
 		else {
@@ -460,6 +469,14 @@
 		return "nav_" & rereplace(arguments.value, "[^0-9a-zA-Z]", "_", "all");
 	}
 	request.getRemoteClients=getRemoteClients;
+
+	// used for automated testing of lucee admin via testbox
+	if (structKeyExists(url, "testUrls") && url.testUrls){
+		setting showdebugoutput="false";
+		content reset="yes" type="application/json";
+		echo(adminUrls.toJson()); abort;
+	}
+
 </cfscript>
 
 <cfif (!structKeyExists(session, "password" & request.adminType))>

@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import lucee.commons.db.DBUtil;
+import lucee.commons.io.IOUtil;
 import lucee.commons.lang.Pair;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
@@ -56,12 +57,14 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 		this.config = c;
 	}
 
-	public int getOpenConnections(PageContext pc, String ds, String user, String pass) throws PageException {
-		return config.getDatasourceConnectionPool().getOpenConnection(pc.getDataSource(ds), user, pass);
-	}
+	/*
+	 * public long getOpenConnections(PageContext pc, String ds, String user, String pass) throws
+	 * PageException { return config.getDatasourceConnectionPool(pc.getDataSource(ds), user,
+	 * pass).getBorrowedCount(); }
+	 */
 
-	public int getOpenConnections(PageContext pc, DataSource ds, String user, String pass) throws PageException {
-		return config.getDatasourceConnectionPool().getOpenConnection(ds, user, pass);
+	public long getOpenConnections(PageContext pc, DataSource ds, String user, String pass) throws PageException {
+		return config.getDatasourceConnectionPool(ds, user, pass).getBorrowedCount();
 	}
 
 	@Override
@@ -72,7 +75,7 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 	@Override
 	public DatasourceConnection getConnection(PageContext pc, DataSource ds, String user, String pass) throws PageException {
 		if (autoCommit && !((DataSourcePro) ds).isRequestExclusive()) {
-			return config.getDatasourceConnectionPool().getDatasourceConnection(ThreadLocalPageContext.getConfig(pc), ds, user, pass);
+			return config.getDatasourceConnectionPool(ds, user, pass).borrowObject();
 		}
 		pc = ThreadLocalPageContext.get(pc);
 		// DatasourceConnection newDC = _getConnection(pc,ds,user,pass);
@@ -82,7 +85,7 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 
 			// first time that datasource is used within this transaction
 			if (existingDC == null) {
-				DatasourceConnection newDC = config.getDatasourceConnectionPool().getDatasourceConnection(config, ds, user, pass);
+				DatasourceConnection newDC = config.getDatasourceConnectionPool(ds, user, pass).borrowObject();
 				if (!autoCommit) {
 					newDC.setAutoCommit(false);
 					if (isolation != Connection.TRANSACTION_NONE) DBUtil.setTransactionIsolationEL(newDC.getConnection(), isolation);
@@ -175,7 +178,10 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 
 	private void releaseConnection(PageContext pc, DatasourceConnection dc, boolean ignoreRequestExclusive) {
 		if (autoCommit && (ignoreRequestExclusive || !((DataSourcePro) dc.getDatasource()).isRequestExclusive())) {
-			config.getDatasourceConnectionPool().releaseDatasourceConnection(dc, pc != null && ((PageContextImpl) pc).getTimeoutStackTrace() != null);
+			if (pc != null && ((PageContextImpl) pc).getTimeoutStackTrace() != null) {
+				IOUtil.closeEL(dc);
+			}
+			((DatasourceConnectionPro) dc).release();
 		}
 	}
 
@@ -294,7 +300,7 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 
 	@Override
 	public void remove(DataSource datasource) {
-		config.getDatasourceConnectionPool().remove(datasource);
+		config.removeDatasourceConnectionPool(datasource);
 	}
 
 	@Override

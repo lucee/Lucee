@@ -218,10 +218,9 @@ list all mappings and display necessary edit fields --->
 				<tfoot>
 					 <tr>
 						<td colspan="#columns#">
-							<input type="submit" class="button submit verify" name="mainAction" value="#stText.Buttons.verify#" 
-							disabled="disabled">
-							<input type="reset" class="reset" name="cancel" value="#stText.Buttons.Cancel#" disabled="disabled">
-							<input type="submit" class="button submit deleteBtn" name="mainAction" value="#stText.Buttons.Delete#" disabled="disabled">
+							<input type="submit" class="button submit enablebutton verify" name="mainAction" value="#stText.Buttons.verify#">
+							<input type="submit" class="button submit enablebutton deleteBtn" name="mainAction" value="#stText.Buttons.Delete#" disabled="disabled">
+							<input type="reset" class="reset enablebutton" name="cancel" id="clickCancel" value="#stText.Buttons.Cancel#" disabled="disabled">
 						</td>	
 					</tr>
 				</tfoot>

@@ -24,6 +24,10 @@ public interface ORMConfiguration {
 	public static final int DBCREATE_NONE = 0;
 	public static final int DBCREATE_UPDATE = 1;
 	public static final int DBCREATE_DROP_CREATE = 2;
+	// FUTURE enable
+	// public static final int DBCREATE_CREATE = 3;
+	// public static final int DBCREATE_CREATE_DROP = 4;
+	// public static final int DBCREATE_VALIDATE = 5;
 
 	public String hash();
 

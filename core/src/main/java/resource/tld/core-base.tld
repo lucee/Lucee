@@ -61,6 +61,35 @@
 		<status>hidden</status>
 		<description>Tag for the Lucee web/server administrator</description>
 		<attribute-type>dynamic</attribute-type>
+		<attribute>
+			<type>string</type>
+			<name>action</name>
+			<values>collection,compileMapping,connect,createArchive,createSecurityManager,defaultSecurityManager,executeSpoolerTask,getApplicationListener,getApplicationSetting,getCharset,getComponent,getContexts,getCustomTagMappings,getCustomtagSetting,getDatasource,getDatasourceDriverList,getDatasources,getDatasourceSetting,getDebug,getDebugData,getDebuggingList,getDefaultPassword,getDefaultSecurityManager,getError,getErrorList,getExtensionInfo,getExtensionProviders,getExtensions,getFLDs,getJavaCFXTags,getLocales,getMailServers,getMailSetting,getMappings,getLoaderInfo,getMinVersion,getOutputSetting,getPluginDirectory,getProxy,getRegional,getRemoteClient,getRemoteClients,getRemoteClientUsage,getScope,getSecurityManager,getSpoolerTasks,getTimeZones,getTLDs,getUpdate,hasPassword,index,purgeDebugPool,removeCFX,removeCustomTag,removeDatasource,removeDefaultPassword,removeExtension,removeMailServer,removeMapping,removeProxy,removeRemoteClient,removeSecurityManager,removeSpoolerTask,removeUpdate,resetId,resetPassword,restart,runUpdate,schedule,securityManager,storageGet,storageSet,updateApplicationListener,updateApplicationSetting,updateCharset,updateComponent,updateCustomTag,updateCustomTagSetting,updateDatasource,updateDebug,updateDefaultPassword,updateDefaultSecurity,updateDefaultSecurityManager,updateError,updateExtension,updateJavaCFX,updateMailServer,updateMailSetting,updateMapping,updateOutputSetting,updatePassword,updateProxy,updatePSQ,updateRegional,updateRemoteClient,updateScope,updateSecurityManager,UpdateUpdate,verifyDatasource,verifyJavaCFX,verifyMailServer,verifyRemoteClient</values>
+			<required>true</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Defines the action to be performed by the tag</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>type</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Defines the type of admin server or web</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>password</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Password of the admin</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>returnVariable</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Name of the variable to store the result</description>
+		</attribute>
 	</tag>
 
 	<!-- Associate -->
@@ -987,7 +1016,8 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<description>Type of information to get:
 - dbnames: database name and type
 - tables: information to all tables
-- columns: column information to a single table/view
+- columns: column information to a table/view, accepts wildcards like '%''
+- columns_minimal: column information to a single table/view, but no FK / PK information (faster)
 - version: version information of the database
 - procedures: information to all procedures
 - procedure_columns: column information to a single procedure
@@ -1033,7 +1063,12 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<name>table</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Name of the table from which you retrieve information.</description>
+			<description>Name of the table from which you retrieve information. 
+			
+Patterns are also supported, i.e. 
+- use % to fetch all columns, from every table.
+- use SCHEMA.% to fetch all columns, from every table, from a scheme.
+</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -1041,6 +1076,22 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>User name to connect to the database.</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>Filter</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Filter for type="tables" with a wildcard, defaults to all types when empty.
+
+- "TABLE"
+- "VIEW"
+- "SYSTEM TABLE"
+- "GLOBAL TEMPORARY"
+- "LOCAL TEMPORARY"
+- "ALIAS"
+- "SYNONYM"
+</description>
 		</attribute>
 	</tag>
 
@@ -1326,7 +1377,6 @@ Example:
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>The working directory in which to execute the command</description>
-			<status>hidden</status>
 		</attribute>
 	</tag>
 	<!-- Exit -->
@@ -4982,6 +5032,7 @@ Permits searching collections by title or displaying a separate title from the k
 			<name>application</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
+			<default>true</default>
 			<description>Specifies whether to log the application name if one has been specified in a cfapplication tag.</description>
 		</attribute>
 	</tag>
@@ -5290,9 +5341,25 @@ Lucee uses the number of characters in the file.</description>
 			<type>any</type>
 			<name>listener</name>
 			<required>false</required>
-			<status>hidden</status>
 			<rtexprvalue>true</rtexprvalue>
-			<description></description>
+			<description>
+				listener for the mail. the listener can have 2 (optinal) functions, "before" and "after" that get triggered before and after sending the mail.
+				The functions get all data about the mail. 
+				Listener is only used when "async" (spoolenable) is set to true.
+				This attribute overwrites any mail listener defined in the application.cfc/cfapplication.
+				
+				The "before" function can also modify some data, by returning a struct containg the following keys:
+				from, to, bcc, replyto, replyto, subject
+				
+				the listener can be a component looking like this:
+				component {
+					function before(lastExecution,nextExecution,created,id,type,detail,tries,remainingtries,closed,caller,advanced){} 
+					function after(lastExecution,nextExecution,created,id,type,detail,tries,remainingtries,closed,caller,advanced,passed,exception){}}
+				
+				a struct looking like this:
+				component {before:function(...){}, after:function(...){}}
+				
+			</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -6348,7 +6415,6 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 			<type>string</type>
 			<name>columnkey</name>
 			<alias>columnname,column,keycolumn</alias>
-			<status>hidden</status>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>When return type is set to "struct", the value of this column can be used as key in the struct for every record.
@@ -6408,7 +6474,6 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 			<alias>tag</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<status>hidden</status>
 			<description>tags stored with the cache.</description>
 		</attribute>
 		<attribute>
@@ -6596,17 +6661,32 @@ To use cached data, the current query must use the same SQL statement, data sour
 		<attribute>
 			<name>listener</name>
 			<type>any</type>
-			<status>hidden</status>
 			<required>false</required>
-			<description></description>
+			<description>
+				listener for the query. the listener can have 3 (optinal) functions, "before" "after" and "error" that get triggered before and after executing the query and in case of an exception.
+				The functions get all data about the query. 
+				This attributes overwrites any query listener defined in the application.cfc/cfapplication.
+				All the functions can also modify all data, by returning a struct containg the keys to overwrite following the same structure as the input coming in the argument scope.
+				
+				the listener can be a component looking like this:
+				component {
+					function before(cachedAfter, cachedWithin, columnName, datasource, dbtype, debug, maxrows, name, ormoptions, username, password, result, returntype, timeout, timezone, unique, sql, args, params, caller){} 
+					function after(result,meta,cachedAfter, cachedWithin, columnName, datasource, dbtype, debug, maxrows, name, ormoptions, username, password, result, returntype, timeout, timezone, unique, sql, args, params, caller){} 
+					function error(exception,lastExecution,nextExecution,created,id,type,detail,tries,remainingtries,closed,caller,advanced,passed,exception){}}
+				
+				or a struct looking like this:
+				component {before:function(...){}, after:function(...){}, error:function(...){}}
+				
+			</description>
 		</attribute>
 		<attribute>
 			<name>async</name>
 			<type>boolean</type>
 			<default>false</default>
-			<status>hidden</status>
 			<required>false</required>
-			<description></description>
+			<description>if set to true, the query is executed asynchronously by the Lucee Task manager,
+			if set to false (default) the query is executed in the same thread that executes the request.
+			</description>
 		</attribute>
 		<attribute>
 			<name>cacheid</name>
@@ -7187,7 +7267,6 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<type>boolean</type>
 			<name>autoDelete</name>
 			<required>false</required>
-			<status>hidden</status>
 			<rtexprvalue>true</rtexprvalue>
 			<description>if set to true, the scheduled task get deleted when there is no possible future execution.</description>
 		</attribute>
@@ -7410,7 +7489,6 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<type>string</type>
 			<name>info</name>
 			<required>false</required>
-			<status>hidden</status>
 			<rtexprvalue>true</rtexprvalue>
 			<description>name of variable created for all information for this tag.</description>
 		</attribute>
@@ -7418,7 +7496,6 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<type>boolean</type>
 			<name>listen</name>
 			<required>false</required>
-			<status>hidden</status>
 			<rtexprvalue>true</rtexprvalue>
 			<description>do log all action, so it can report more detail with info.</description>
 		</attribute>
@@ -8813,6 +8890,13 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 - The name of a DTD or Schema file
 - The URL of a DTD or Schema file; valid protocol identifiers include http, https, ftp, and file</description>
 		</attribute>
+		<attribute>
+			<type>boolean</type>
+			<name>lenient</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>if set to true, the parser is more lenient and forgives invalid XML and does the best to interpret it.</description>
+		</attribute>
 	</tag>
 	<!-- x_ -->
 	<tag>
@@ -9247,7 +9331,9 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<name>autosuggest</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Specifies entry completion suggestions to
+			<status>deprecated</status>
+			<description>This attribute is deprecated.
+					Specifies entry completion suggestions to
                     display as the user types into a text input. The
                     user can select a suggestion to complete the text
                     entry.
@@ -9264,7 +9350,8 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<name>autosuggestBindDelay</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>The minimum time between autosuggest bind
+			<status>deprecated</status>
+			<description>This attribute is deprecated.The minimum time between autosuggest bind
                     expression invocations, in seconds. Use this
                     attribute to limit the number of requests that are
                     sent to the server when a user types.
@@ -9275,7 +9362,8 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<name>autosuggestMinLength</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>The minimum number of characters required in
+			<status>deprecated</status>
+			<description>This attribute is deprecated.The minimum number of characters required in
                     the text box before invoking a bind expression to
                     return items for suggestion.
                     Valid only for cfinput type="text".</description>
@@ -9285,14 +9373,16 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<name>delimiter</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>The delimiter to use to separate entries in a static autosuggest list. This attribute is meaningful only if the autosuggest attribute is a string of delimited values.</description>
+			<status>deprecated</status>
+			<description>This attribute is deprecated. The delimiter to use to separate entries in a static autosuggest list. This attribute is meaningful only if the autosuggest attribute is a string of delimited values.</description>
 		</attribute>
 		<attribute>
 			<type>number</type>
 			<name>maxResultsDisplayed</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>The maximum number suggestions to display in the autosuggest list.
+			<status>deprecated</status>
+			<description>This attribute is deprecated. The maximum number suggestions to display in the autosuggest list.
 Valid only for cfinput type="text".</description>
 		</attribute>
 		<attribute>
@@ -9300,21 +9390,24 @@ Valid only for cfinput type="text".</description>
 			<name>onBindError</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>The name of a JavaScript function to execute if evaluating a bind expression, including an autosuggest bind expression, results in an error. The function must take two attributes: an HTTP status code and a message.</description>
+			<status>deprecated</status>
+			<description>This attribute is deprecated. The name of a JavaScript function to execute if evaluating a bind expression, including an autosuggest bind expression, results in an error. The function must take two attributes: an HTTP status code and a message.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
 			<name>showAutosuggestLoadingIcon</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>A Boolean value that specifies whether to display an animated icon when loading an autosuggest value for a text input.</description>
+			<status>deprecated</status>
+			<description>This attribute is deprecated. A Boolean value that specifies whether to display an animated icon when loading an autosuggest value for a text input.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
 			<name>sourceForTooltip</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>The URL of a page to display as a tool tip. The page can include HTML markup to control the format, and the tip can include images.
+			<status>deprecated</status>
+			<description>This attribute is deprecated. The URL of a page to display as a tool tip. The page can include HTML markup to control the format, and the tip can include images.
 If you specify this attribute, an animated icon appears with the text "Loading..." while the tip is being loaded.</description>
 		</attribute>
 		<attribute>
@@ -9322,7 +9415,8 @@ If you specify this attribute, an animated icon appears with the text "Loading..
 			<name>typeahead</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>A Boolean value that specifies whether the autosuggest feature should automatically complete a user's entry with the first result in the suggestion list.
+			<status>deprecated</status>
+			<description>This attribute is deprecated. A Boolean value that specifies whether the autosuggest feature should automatically complete a user's entry with the first result in the suggestion list.
 Valid only for cfinput type="text".</description>
 		</attribute>
 		<attribute>
@@ -9330,7 +9424,8 @@ Valid only for cfinput type="text".</description>
 			<name>validateAt</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>How to do the validation; one or more of the following:
+			<status>deprecated</status>
+			<description>This attribute is deprecated. How to do the validation; one or more of the following:
             onSubmit, onServer or onBlur.
             onBlur and onSubmit are identical in Flash forms. For
             multiple values, use a comma-delimited list.
@@ -9410,7 +9505,8 @@ Valid only for cfinput type="text".</description>
 			<name>bind</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		<description>A Flash bind expression that populates the field with
+			<status>deprecated</status>
+		<description>This attribute is deprecated. A Flash bind expression that populates the field with
             information from other form fields.</description>
     </attribute>
 		<attribute>
@@ -9418,7 +9514,8 @@ Valid only for cfinput type="text".</description>
 			<name>bindAttribute</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		<description>Specifies the HTML tag attribute whose value is
+			<status>deprecated</status>
+		<description>This attribute is deprecated. Specifies the HTML tag attribute whose value is
                     set by the bind attribute. You can only specify
                     attributes in the browser's HTML DOM tree, not
                     Lucee-specific attributes.
@@ -9430,7 +9527,8 @@ Valid only for cfinput type="text".</description>
 			<name>bindOnLoad</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		<description>A Boolean value that specifies whether to
+			<status>deprecated</status>
+		<description>This attribute is deprecated. A Boolean value that specifies whether to
                         execute the bind attribute expression when first
                         loading the form.
                         Ignored if there is no bind attribute.

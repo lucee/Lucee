@@ -239,7 +239,7 @@ public final class XMLUtil {
 
 	private static TransformerFactory _newTransformerFactory() {
 
-		Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigPro) ThreadLocalPageContext.getConfig()));
+		Thread.currentThread().setContextClassLoader(EnvClassLoader.getInstance((ConfigPro) ThreadLocalPageContext.getConfig()));
 		TransformerFactory factory = null;
 		Class clazz = null;
 		try {
@@ -249,13 +249,15 @@ public final class XMLUtil {
 			try {
 				clazz = ClassUtil.loadClass("org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl");
 			}
-			catch (Exception ee) {}
+			catch (Exception ee) {
+			}
 		}
 		if (clazz != null) {
 			try {
 				factory = (TransformerFactory) ClassUtil.loadInstance(clazz);
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 		}
 		if (factory == null) return factory = TransformerFactory.newInstance();
 		LogUtil.log(null, Log.LEVEL_INFO, "application", "xml", factory.getClass().getName() + " is used as TransformerFactory");
@@ -392,7 +394,7 @@ public final class XMLUtil {
 
 	private static Class<DocumentBuilderFactory> _newDocumentBuilderFactoryClass() {
 		if (dbf == null) {
-			Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigPro) ThreadLocalPageContext.getConfig()));
+			Thread.currentThread().setContextClassLoader(EnvClassLoader.getInstance((ConfigPro) ThreadLocalPageContext.getConfig()));
 			Class<DocumentBuilderFactory> clazz = null;
 			try {
 				clazz = ClassUtil.loadClass("com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl");
@@ -401,7 +403,8 @@ public final class XMLUtil {
 				try {
 					clazz = ClassUtil.loadClass("org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl");
 				}
-				catch (Exception ee) {}
+				catch (Exception ee) {
+				}
 			}
 			if (clazz != null) {
 				dbf = clazz;
@@ -440,7 +443,8 @@ public final class XMLUtil {
 			try {
 				factory = (DocumentBuilderFactory) ClassUtil.loadInstance(clazz);
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 		}
 		if (factory == null) factory = DocumentBuilderFactory.newInstance();
 		return factory;
@@ -448,7 +452,7 @@ public final class XMLUtil {
 
 	private static SAXParserFactory newSAXParserFactory() {
 		if (saxParserFactory == null) {
-			Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigPro) ThreadLocalPageContext.getConfig()));
+			Thread.currentThread().setContextClassLoader(EnvClassLoader.getInstance((ConfigPro) ThreadLocalPageContext.getConfig()));
 			saxParserFactory = SAXParserFactory.newInstance();
 		}
 		return saxParserFactory;
@@ -469,21 +473,24 @@ public final class XMLUtil {
 	}
 
 	public static XMLReader createXMLReader() throws SAXException {
-		Thread.currentThread().setContextClassLoader(new EnvClassLoader((ConfigPro) ThreadLocalPageContext.getConfig()));
+		Thread.currentThread().setContextClassLoader(EnvClassLoader.getInstance((ConfigPro) ThreadLocalPageContext.getConfig()));
 		try {
 			return XMLReaderFactory.createXMLReader("com.sun.org.apache.xerces.internal.parsers.SAXParser");
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 
 		try {
 			return XMLReaderFactory.createXMLReader("org.apache.xerces.internal.parsers.SAXParser");
 		}
-		catch (Exception ee) {}
+		catch (Exception ee) {
+		}
 
 		try {
 			return XMLReaderFactory.createXMLReader("org.apache.xerces.parsers.SAXParser");
 		}
-		catch (Exception ee) {}
+		catch (Exception ee) {
+		}
 
 		try {
 			return newSAXParserFactory().newSAXParser().getXMLReader();
@@ -865,7 +872,8 @@ public final class XMLUtil {
 				try {
 					return new XMLMultiElementStruct(array, false);
 				}
-				catch (PageException e) {}
+				catch (PageException e) {
+				}
 			}
 			if (first != null) return first;
 		}
@@ -976,7 +984,8 @@ public final class XMLUtil {
 			try {
 				return new XMLMultiElementStruct(array, false);
 			}
-			catch (PageException e) {}
+			catch (PageException e) {
+			}
 		}
 		return null;
 	}

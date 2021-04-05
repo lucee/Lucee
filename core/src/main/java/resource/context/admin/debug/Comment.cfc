@@ -56,6 +56,7 @@
 		*/
 		function output(struct custom, struct debugging, string context="web") {
 			var NL=variables.NL;
+			var _cgi = arguments?.debugging?.scope?.cgi ?: cgi;
 			if (not StructKeyExists(arguments.custom, "unit"))
 				 arguments.custom["unit"] = "millisecond";
 			writeOutput("<!--"&NL);
@@ -73,7 +74,7 @@
 				echo(' (CFML Version '&server.ColdFusion.ProductVersion&')');
 				echo(NL);
 				
-				echo("Template: #htmlEditFormat(cgi.SCRIPT_NAME)# (#htmlEditFormat(getBaseTemplatePath())#)");
+				echo("Template: #encodeForHtml(_cgi.REQUEST_URL)# (#encodeForHtml(getBaseTemplatePath())#)");
 				echo(NL);
 				
 				echo("Time Stamp: #LSDateFormat(now())# #LSTimeFormat(now())#");
@@ -85,13 +86,13 @@
 				echo("Locale: #ucFirst(getLocale())#");
 				echo(NL);
 				
-				echo("User Agent: #cgi.http_user_agent#");
+				echo("User Agent: #_cgi.http_user_agent#");
 				echo(NL);
 				
-				echo("Remote IP: #cgi.remote_addr#");
+				echo("Remote IP: #_cgi.remote_addr#");
 				echo(NL);
 				
-				echo("Host Name: #cgi.server_name#");
+				echo("Host Name: #_cgi.server_name#");
 				echo(NL);
 				
 				if(StructKeyExists(server.os,"archModel") and StructKeyExists(server.java,"archModel")) {

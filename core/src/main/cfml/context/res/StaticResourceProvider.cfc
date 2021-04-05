@@ -53,11 +53,10 @@ component {
 				var resInfo = getResInfo( replace(filename,"-"&nameAppendix,""),nameAppendix );
 			}
 		}
-		
 		if ( resInfo.exists ) {
 
-			header name='Expires'       value='#getHttpTimeString( now() + 10 )#';
-			header name='Cache-Control' value='max-age=#86400 * 10#';
+			header name='Expires'       value='#getHttpTimeString( now()  )#';
+			//header name='Cache-Control' value='max-age=#86400 * 10#';
 			header name='ETag'          value=resInfo.etag;
 			if (CGI.HTTP_IF_NONE_MATCH == resInfo.etag ) {
 
@@ -107,7 +106,7 @@ component {
 			result.isText ? replace(fileRead( result.path ),'{appendix}',hash(server.lucee.version&server.lucee['release-date'],'quick'),'all') : 
 			fileReadBinary( result.path );
 
-		result.etag = hash( result.contents&":"&nameAppendix );
+		result.etag = hash( result.contents&":"&arguments.nameAppendix );
 				
 		this.resources[ arguments.filename ] = result;
 

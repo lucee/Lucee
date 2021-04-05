@@ -20,9 +20,7 @@ import lucee.runtime.osgi.OSGiUtil;
 public class JavaCCompiler {
 
 	public static JavaFunction compile(PageSource parent, SourceCode sc) throws JavaCompilerException {
-
 		ClassLoader cl = CFMLEngineFactory.getInstance().getCFMLEngineFactory().getClass().getClassLoader();
-
 		Collection<SourceCode> compilationUnits = new ArrayList<>();
 		compilationUnits.add(sc);
 		DynamicClassLoader dcl = new DynamicClassLoader(cl);

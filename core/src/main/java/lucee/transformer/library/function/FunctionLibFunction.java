@@ -271,7 +271,10 @@ public final class FunctionLibFunction {
 	 */
 	public void setFunctionClass(String value, Identification id, Attributes attrs) {
 		functionCD = ClassDefinitionImpl.toClassDefinition(value, id, attrs);
+	}
 
+	public void setFunctionClass(ClassDefinition cd) {
+		functionCD = cd;
 	}
 
 	/**

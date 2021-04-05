@@ -8,26 +8,26 @@
     <cfset this.metadata.hint="Creates a pop-up window in the browser. Does not create a separate browser pop-up instance. ">
     
     
-    <cfset this.metadata.attributes={
-		name:			{required:false,type:"string",default:"_cf_window_#randRange(1,999999999)#",hint:""},
-		title:      	{required:false,type:"string",default:"",hint:""},		
-		source:			{required:false,type:"string",default:"",hint:""},
-		onBindError:	{required:false,type:"string",default:"",hint:""},
-		modal:      	{required:false,type:"boolean",default:false,hint:""},
-	  	refreshOnShow: 	{required:false,type:"boolean",default:false,hint:""},
-		width:  		{required:false,type:"numeric",default:500,hint:""},
-		height:			{required:false,type:"numeric",default:300,hint:""},	
-		minWidth:  		{required:false,type:"numeric",default:150,hint:""},
-		minHeight:		{required:false,type:"numeric",default:150,hint:""},
-		initShow:   	{required:false,type:"boolean",default:false,hint:""},
-		resizable:  	{required:false,type:"boolean",default:true,hint:""},
-		draggable:  	{required:false,type:"boolean",default:true,hint:""},
-		onBindError:	{required:false,type:"string",default:"",hint:""},
-		jsLib:  		{required:false,type:"string",default:"jquery",hint:""},
-		x:		        {required:false,type:"numeric",default:-1,hint:""},
-		y:		        {required:false,type:"numeric",default:-1,hint:""},
-		buttons:        {required:false,type:"string",default:"{}",hint:""}					
-	}>
+    <cfset this.metadata.attributes=[
+		"name":			{required:false,type:"string",default:"_cf_window_#randRange(1,999999999)#",hint:""},
+		"title":      	{required:false,type:"string",default:"",hint:""},		
+		"source":			{required:false,type:"string",default:"",hint:""},
+		"onBindError":	{required:false,type:"string",default:"",hint:""},
+		"modal":      	{required:false,type:"boolean",default:false,hint:""},
+	  	"refreshOnShow": 	{required:false,type:"boolean",default:false,hint:""},
+		"width":  		{required:false,type:"numeric",default:500,hint:""},
+		"height":			{required:false,type:"numeric",default:300,hint:""},	
+		"minWidth":  		{required:false,type:"numeric",default:150,hint:""},
+		"minHeight":		{required:false,type:"numeric",default:150,hint:""},
+		"initShow":   	{required:false,type:"boolean",default:false,hint:""},
+		"resizable":  	{required:false,type:"boolean",default:true,hint:""},
+		"draggable":  	{required:false,type:"boolean",default:true,hint:""},
+		"onBindError":	{required:false,type:"string",default:"",hint:""},
+		"jsLib":  		{required:false,type:"string",default:"jquery",hint:""},
+		"x":		        {required:false,type:"numeric",default:-1,hint:""},
+		"y":		        {required:false,type:"numeric",default:-1,hint:""},
+		"buttons":        {required:false,type:"string",default:"{}",hint:""}					
+	]>
          
     <cffunction name="init" output="no" returntype="void"
       hint="invoked after tag is constructed">

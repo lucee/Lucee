@@ -3,12 +3,15 @@ component {
 	this.name	=	Hash( GetCurrentTemplatePath() ) & "2s";
 	this.sessionManagement 	= false;
 
-	this.datasource ={
-	  		class: 'org.hsqldb.jdbcDriver'
-			, bundleName: 'org.hsqldb.hsqldb'
-			, bundleVersion: '2.3.2'
-			, connectionString: 'jdbc:hsqldb:file:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db'
-		};
+	
+	this.datasource = {
+		  class: 'org.h2.Driver'
+		, bundleName: 'org.h2'
+		, bundleVersion: '1.3.172'
+		, connectionString: 'jdbc:h2:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db;MODE=MySQL'
+		, connectionLimit:100 // default:-1
+	};
+	
 
 	// ORM settings
 	this.ormEnabled = true;

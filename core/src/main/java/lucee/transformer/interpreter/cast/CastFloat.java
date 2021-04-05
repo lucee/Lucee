@@ -37,10 +37,6 @@ public final class CastFloat extends ExpressionBase implements ExprFloat, Cast {
 		return new CastFloat(expr);
 	}
 
-	/**
-	 * @see lucee.transformer.expression.Expression#_writeOut(org.objectweb.asm.commons.GeneratorAdapter,
-	 *      int)
-	 */
 	@Override
 	public Class<?> _writeOut(InterpreterContext ic, int mode) throws PageException {
 		if (mode == MODE_VALUE) {

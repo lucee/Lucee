@@ -52,6 +52,13 @@
 			log=el;
 		}
 	}
+	
+	if (url.format eq "json") {
+		setting showdebugoutput="false";
+		content reset="yes" type="application/json";
+		echo(serializeJson(log));
+		abort;		
+	}
 </cfscript>
 <cfoutput>
 	<cfif !isSimpleValue(log) && structCount(drivers)>
@@ -93,7 +100,7 @@
 					<cfset c=structKeyExists(entry,'custom')?entry.custom:{}>
 				</cfif>
 				<cfset c.scopes=false>
-				<cfset driver.output(c,log,"admin")>
+				<cfset driver.output(c,duplicate(log),"admin")>
 			<cfelse>
 				Debug Data no longer available
 			</cfif> 

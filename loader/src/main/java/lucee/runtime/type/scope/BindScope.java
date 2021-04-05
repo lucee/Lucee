@@ -23,7 +23,7 @@ public interface BindScope {
 	/**
 	 * sets if scope is bound to another variable for using outside of a udf
 	 * 
-	 * @param bind
+	 * @param bind bind
 	 */
 	public void setBind(boolean bind);
 

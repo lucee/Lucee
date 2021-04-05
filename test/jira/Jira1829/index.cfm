@@ -29,9 +29,9 @@ entitySave(e);
 ormFlush();
 
 
-qry=ORMExecuteQuery( "from E where id in ( ? )", [1] );
+// see https://mycuteblog.com/fix-for-hibernate-legacy-style-query-parameters-no-longer-supported/
+//qry=ORMExecuteQuery( "from E where id in ( ? )", [1] );
 qry=ORMExecuteQuery( "from E where id in ( :id )", {id:1} );
-
 
 
 
