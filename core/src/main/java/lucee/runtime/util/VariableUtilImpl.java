@@ -781,42 +781,32 @@ public final class VariableUtilImpl implements VariableUtil {
 
 	@Override
 	public Object callFunctionWithoutNamedValues(PageContext pc, Object coll, Collection.Key key, Object[] args) throws PageException {
+		if (pc.getConfig().debug()) {  // TODO ConfigPro.DEBUG_TEMPLATE, ((ConfigPro) 
+			DebugEntryTemplate debugEntry = pc.getDebugger().getEntry(pc, pc.getCurrentTemplatePageSource(), key.toString());
+			long currTime = pc.getExecutionTime();
+			long time = System.nanoTime();
+
+			Object result = _callFunctionWithoutNamedValues(pc, coll, key, args);
+
+			long diff = ((System.nanoTime() - time) - (pc.getExecutionTime() - currTime));
+			pc.setExecutionTime(pc.getExecutionTime() + diff);
+			debugEntry.updateExeTime(diff);
+
+			return result;
+		} else {
+			return _callFunctionWithoutNamedValues(pc, coll, key, args);
+		}
+	}
+	
+	private Object _callFunctionWithoutNamedValues(PageContext pc, Object coll, Collection.Key key, Object[] args) throws PageException {
 		// Objects
 		if (coll instanceof Objects) {
-			if (pc.getConfig().debug()) {  // TODO ConfigPro.DEBUG_TEMPLATE, ((ConfigPro) 
-				DebugEntryTemplate debugEntry = pc.getDebugger().getEntry(pc, null, key.toString());
-				long currTime = pc.getExecutionTime();
-				long time = System.nanoTime();
-
-				Object result = ((Objects) coll).call(pc, key, args);
-
-				long diff = ((System.nanoTime() - time) - (pc.getExecutionTime() - currTime));
-				pc.setExecutionTime(pc.getExecutionTime() + diff);
-				debugEntry.updateExeTime(diff);
-
-				return result;
-			} else {
-				return ((Objects) coll).call(pc, key, args);
-			}			
+			return ((Objects) coll).call(pc, key, args);
 		}
 		// call UDF
 		Object prop = getLight(pc, coll, key, null);
 		if (prop instanceof UDF) {
-			if (pc.getConfig().debug()) {  // TODO ConfigPro.DEBUG_TEMPLATE, ((ConfigPro) 
-				DebugEntryTemplate debugEntry = pc.getDebugger().getEntry(pc, null, key.toString());
-				long currTime = pc.getExecutionTime();
-				long time = System.nanoTime();
-
-				Object result = ((UDF) prop).call(pc, key, args, false);
-
-				long diff = ((System.nanoTime() - time) - (pc.getExecutionTime() - currTime));
-				pc.setExecutionTime(pc.getExecutionTime() + diff);
-				debugEntry.updateExeTime(diff);
-
-				return result;
-			} else {
-				return ((UDF) prop).call(pc, key, args, false);
-			}
+			return ((UDF) prop).call(pc, key, args, false);
 		}
 		// Strings
 		if (coll instanceof String) {
