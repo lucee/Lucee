@@ -42,7 +42,7 @@ public class DebuggerPool {
 	}
 
 	public void store(PageContext pc, Debugger debugger) {
-		if (ReqRspUtil.getScriptName(pc, pc.getHttpServletRequest()).indexOf("/lucee/") == 0) return;
+		//if (ReqRspUtil.getScriptName(pc, pc.getHttpServletRequest()).indexOf("/lucee/") == 0) return;
 		synchronized (queue) {
 			try {
 				queue.add((Struct) Duplicator.duplicate(debugger.getDebuggingData(pc, true), true));
