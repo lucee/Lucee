@@ -34,6 +34,7 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.PageContext;
+import lucee.runtime.debug.DebugEntryTemplate;
 import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
@@ -780,6 +781,24 @@ public final class VariableUtilImpl implements VariableUtil {
 
 	@Override
 	public Object callFunctionWithoutNamedValues(PageContext pc, Object coll, Collection.Key key, Object[] args) throws PageException {
+		if (pc.getConfig().debug()) {  // TODO ConfigPro.DEBUG_TEMPLATE, ((ConfigPro) 
+			DebugEntryTemplate debugEntry = pc.getDebugger().getEntry(pc, pc.getCurrentTemplatePageSource(), key.toString());
+			long currTime = pc.getExecutionTime();
+			long time = System.nanoTime();
+
+			Object result = _callFunctionWithoutNamedValues(pc, coll, key, args);
+
+			long diff = ((System.nanoTime() - time) - (pc.getExecutionTime() - currTime));
+			pc.setExecutionTime(pc.getExecutionTime() + diff);
+			debugEntry.updateExeTime(diff);
+
+			return result;
+		} else {
+			return _callFunctionWithoutNamedValues(pc, coll, key, args);
+		}
+	}
+	
+	private Object _callFunctionWithoutNamedValues(PageContext pc, Object coll, Collection.Key key, Object[] args) throws PageException {
 		// Objects
 		if (coll instanceof Objects) {
 			return ((Objects) coll).call(pc, key, args);
