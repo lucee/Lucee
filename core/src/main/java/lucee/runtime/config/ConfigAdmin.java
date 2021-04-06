@@ -1137,15 +1137,15 @@ public final class ConfigAdmin {
 	}
 
 	public void updateJar(Resource resJar) throws IOException, BundleException {
-		updateJar(config, resJar, true);
+		updateJar(config, "extension", resJar, true); // TODO extName
 	}
 
-	public static void updateJar(Config config, Resource resJar, boolean reloadWhenClassicJar) throws IOException, BundleException {
+	public static void updateJar(Config config, String extName, Resource resJar, boolean reloadWhenClassicJar) throws IOException, BundleException {
 		BundleFile bf = BundleFile.getInstance(resJar);
 
 		// resJar is a bundle
 		if (bf.isBundle()) {
-			bf = installBundle(config, bf);
+			bf = installBundle(config, extName, bf);
 			OSGiUtil.loadBundle(bf);
 			return;
 		}
@@ -1157,21 +1157,36 @@ public final class ConfigAdmin {
 		// if there is an existing, has the file changed?
 		if (fileLib.length() != resJar.length()) {
 			IOUtil.closeEL(config.getClassLoader());
+
+			Log logger = config.getLog("deploy"); 
+			logger.log(Log.LEVEL_DEBUG, extName, "Update Jar [" + bf.getSymbolicName() + "-" + bf.getVersion().toString() + ".jar" + "]");
+
 			ResourceUtil.copy(resJar, fileLib);
 			if (reloadWhenClassicJar) ConfigWebUtil.reloadLib(config);
+		}
+	}
+
+	static void updateJar(Config config, InputStream is, String fileName, boolean closeStream) throws IOException, BundleException {
+		Resource tmp = SystemUtil.getTempDirectory().getRealResource(fileName);
+		try {
+			IOUtil.copy(is, tmp, closeStream);
+			updateJar(config, "extension", tmp, true); // TODO extName
+		}
+		finally {
+			tmp.delete();
 		}
 	}
 
 	/*
 	 * important! returns null when not a bundle!
 	 */
-	static BundleFile installBundle(Config config, Resource resJar, String extVersion, boolean convert2bundle) throws IOException, BundleException {
+	static BundleFile installBundle(Config config, Resource resJar, String extName, String extVersion, boolean convert2bundle) throws IOException, BundleException {
 
 		BundleFile bf = BundleFile.getInstance(resJar);
 
 		// resJar is a bundle
 		if (bf.isBundle()) {
-			return installBundle(config, bf);
+			return installBundle(config, extName, bf);
 		}
 
 		if (!convert2bundle) return null;
@@ -1184,25 +1199,25 @@ public final class ConfigAdmin {
 		Version version = bf.getVersion();
 		if (version == null) version = OSGiUtil.toVersion(extVersion);
 
-		LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_INFO, ConfigAdmin.class.getName(), "Failed to load [" + resJar + "] as OSGi Bundle");
+		LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_DEBUG, ConfigAdmin.class.getName(), "Failed to load [" + resJar + "] as OSGi Bundle");
 		BundleBuilderFactory bbf = new BundleBuilderFactory(resJar, name);
 		bbf.setVersion(version);
 		bbf.setIgnoreExistingManifest(false);
 		bbf.build();
 
 		bf = BundleFile.getInstance(resJar);
-		LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_INFO, ConfigAdmin.class.getName(), "Converted  [" + resJar + "] to an OSGi Bundle");
-		return installBundle(config, bf);
+		LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_DEBUG, ConfigAdmin.class.getName(), "Converted  [" + resJar + "] to an OSGi Bundle");
+		return installBundle(config, extName, bf);
 	}
 
-	private static BundleFile installBundle(Config config, BundleFile bf) throws IOException, BundleException {
+	private static BundleFile installBundle(Config config, String extName, BundleFile bf) throws IOException, BundleException {
 
 		// does this bundle already exists
 		BundleFile _bf = OSGiUtil.getBundleFile(bf.getSymbolicName(), bf.getVersion(), null, null, false, null);
 		if (_bf != null) return _bf;
 
 		Log logger = config.getLog("deploy");
-		logger.log(Log.LEVEL_INFO, "extension", "Install Bundle [" + bf.getSymbolicName() + "-" + bf.getVersion().toString() + ".jar" + "]");
+		logger.log(Log.LEVEL_DEBUG, extName, "Install Bundle [" + bf.getSymbolicName() + "-" + bf.getVersion().toString() + ".jar" + "]");
 
 		CFMLEngine engine = CFMLEngineFactory.getInstance();
 		CFMLEngineFactory factory = engine.getCFMLEngineFactory();
@@ -1232,9 +1247,9 @@ public final class ConfigAdmin {
 	 * @throws IOException
 	 * @throws BundleException
 	 */
-	static Bundle updateBundle(Config config, InputStream is, String name, String extensionVersion, boolean closeStream) throws IOException, BundleException {
-		Object obj = installBundle(config, is, name, extensionVersion, closeStream, false);
-		if (!(obj instanceof BundleFile)) throw new BundleException("input is not an OSGi Bundle.");
+	static Bundle updateBundle(Config config, InputStream is, String fileName, String extName, String extensionVersion, boolean closeStream) throws IOException, BundleException {
+		Object obj = installBundle(config, is, fileName, extName, extensionVersion, closeStream, false);
+		if (!(obj instanceof BundleFile)) throw new BundleException("Input is not an OSGi Bundle [" + fileName + "]");
 
 		BundleFile bf = (BundleFile) obj;
 		return OSGiUtil.loadBundle(bf);
@@ -1251,29 +1266,18 @@ public final class ConfigAdmin {
 	 * @throws IOException
 	 * @throws BundleException
 	 */
-	public static Object installBundle(Config config, InputStream is, String name, String extensionVersion, boolean closeStream, boolean convert2bundle)
+	public static Object installBundle(Config config, InputStream is, String fileName, String extName, String extensionVersion, boolean closeStream, boolean convert2bundle)
 			throws IOException, BundleException {
-		Resource tmp = SystemUtil.getTempDirectory().getRealResource(name);
-		OutputStream os = tmp.getOutputStream();
+		Resource tmpRes = SystemUtil.getTempDirectory().getRealResource(fileName);
+		OutputStream os = tmpRes.getOutputStream();
 		IOUtil.copy(is, os, closeStream, true);
 
-		BundleFile bf = installBundle(config, tmp, extensionVersion, convert2bundle);
+		BundleFile bf = installBundle(config, tmpRes, extName, extensionVersion, convert2bundle);
 		if (bf != null) {
-			tmp.delete();
+			tmpRes.delete();
 			return bf;
 		}
-		return tmp;
-	}
-
-	static void updateJar(Config config, InputStream is, String name, boolean closeStream) throws IOException, BundleException {
-		Resource tmp = SystemUtil.getTempDirectory().getRealResource(name);
-		try {
-			IOUtil.copy(is, tmp, closeStream);
-			updateJar(config, tmp, true);
-		}
-		finally {
-			tmp.delete();
-		}
+		return tmpRes;
 	}
 
 	/**
@@ -4433,13 +4437,13 @@ public final class ConfigAdmin {
 				if (!entry.isDirectory() && (startsWith(path, type, "jars") || startsWith(path, type, "jar") || startsWith(path, type, "bundles")
 						|| startsWith(path, type, "bundle") || startsWith(path, type, "lib") || startsWith(path, type, "libs")) && (StringUtil.endsWithIgnoreCase(path, ".jar"))) {
 
-					Object obj = ConfigAdmin.installBundle(config, zis, fileName, rhext.getVersion(), false, false);
+					Object obj = ConfigAdmin.installBundle(config, zis, extName, fileName, rhext.getVersion(), false, false);
 					// jar is not a bundle, only a regular jar
 					if (!(obj instanceof BundleFile)) {
 						Resource tmp = (Resource) obj;
 						Resource tmpJar = tmp.getParentResource().getRealResource(ListUtil.last(path, "\\/"));
 						tmp.moveTo(tmpJar);
-						ConfigAdmin.updateJar(config, tmpJar, false);
+						ConfigAdmin.updateJar(config, extName, tmpJar, false);
 					}
 				}
 

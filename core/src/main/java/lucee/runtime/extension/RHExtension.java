@@ -727,13 +727,13 @@ public class RHExtension implements Serializable {
 				if (!entry.isDirectory() && (startsWith(path, type, "jars") || startsWith(path, type, "jar") || startsWith(path, type, "bundles")
 						|| startsWith(path, type, "bundle") || startsWith(path, type, "lib") || startsWith(path, type, "libs")) && (StringUtil.endsWithIgnoreCase(path, ".jar"))) {
 
-					Object obj = ConfigAdmin.installBundle(config, zis, fileName, version, false, false);
+					Object obj = ConfigAdmin.installBundle(config, zis, getName(), fileName, version, false, false);
 					// jar is not a bundle, only a regular jar
 					if (!(obj instanceof BundleFile)) {
 						Resource tmp = (Resource) obj;
 						Resource tmpJar = tmp.getParentResource().getRealResource(ListUtil.last(path, "\\/"));
 						tmp.moveTo(tmpJar);
-						ConfigAdmin.updateJar(config, tmpJar, false);
+						ConfigAdmin.updateJar(config, getName(), tmpJar, false);
 					}
 				}
 
