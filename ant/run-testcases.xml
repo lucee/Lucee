@@ -80,7 +80,13 @@ server.custom_build_env = {
 	MONGODB_USERNAME: "",
 	MONGODB_PASSWORD: "",  // DON'T COMMIT
 	MONGODB_PORT: 27017,
-	MONGODB_DB: "lucee"	
+	MONGODB_DB: "lucee",
+
+	ORACLE_SERVER: "localhost",
+	ORACLE_USERNAME: "lucee",
+	ORACLE_PASSWORD: "aaa",  // DON'T COMMIT
+	ORACLE_PORT: 1521,
+	ORACLE_DATABASE: "lucee",
 };
 
 server._getSystemPropOrEnvVars = function ( string props="", string prefix="", boolean stripPrefix=true, boolean allowEmpty=false ) localmode=true{
@@ -192,7 +198,7 @@ server.getDatasource = function ( required string dbtype, string dbFile="" ) loc
 				};
 			}
 			break;
-		case "mongoDB":{
+		case "mongoDB":
 			mongoDB = server._getSystemPropOrEnvVars( "SERVER, PORT, DB", "MONGODB_");
 			mongoDBcreds = server._getSystemPropOrEnvVars( "USERNAME, PASSWORD", "MONGODB_");
 			if ( structCount( mongoDb ) gt 0 ){
@@ -206,7 +212,19 @@ server.getDatasource = function ( required string dbtype, string dbFile="" ) loc
 				return mongoDB;
 			}
 			break;
-		}
+		case "oracle":
+			oracle = server._getSystemPropOrEnvVars( "SERVER, USERNAME, PASSWORD, PORT, DATABASE", "ORACLE_");	
+			if ( structCount( oracle ) gt 0 ){
+				return {
+					class: 'oracle.jdbc.OracleDriver'
+					, bundleName: 'ojdbc6'
+					, bundleVersion: '11.2.0.4'
+					, connectionString: 'jdbc:oracle:thin:@#oracle.server#:#oracle.port#/#oracle.database#'
+					, username: oracle.username
+					, password: oracle.password
+				};
+			}
+			break;
 		default:
 			break;
 	}
