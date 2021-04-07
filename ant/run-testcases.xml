@@ -84,9 +84,45 @@ server.custom_build_env = {
 
 	ORACLE_SERVER: "localhost",
 	ORACLE_USERNAME: "lucee",
-	ORACLE_PASSWORD: "aaa",  // DON'T COMMIT
+	ORACLE_PASSWORD: "",  // DON'T COMMIT
 	ORACLE_PORT: 1521,
-	ORACLE_DATABASE: "lucee",
+	ORACLE_DATABASE: "lucee"
+
+	/*
+	
+	TODO + THE REST OF THE MYSQL
+
+	FTP_SERVER: "localhost"
+	FTP_USERNAME: "lucee"
+	FTP_PASSWORD: "",  // DON'T COMMIT
+	FTP_PORT: 21,
+	FTP_BASE_PATH: "/test",
+
+	SFTP_SERVER="localhost"
+	SFTP_USERNAME: "lucee"
+	SFTP_PASSWORD: "",  // DON'T COMMIT
+	SFTP_PORT: 21,
+	SFTP_BASE_PATH: "/test",
+
+	MAIL_USERNAME
+	MAIL_PASSWORD
+	
+	// IMAP related settings
+	IMAP_SERVER
+	IMAP_PORT_SECURE
+	IMAP_PORT_INSECURE
+	
+	S3_ACCESS_ID
+	S3_SECRET_KEY
+
+	POP_SERVER
+	POP_PORT_SECURE
+	POP_PORT_INSECURE
+
+	SMTP_SERVER
+	SMTP_PORT_SECURE
+	SMTP_PORT_INSECURE
+	*/
 };
 
 server._getSystemPropOrEnvVars = function ( string props="", string prefix="", boolean stripPrefix=true, boolean allowEmpty=false ) localmode=true{
