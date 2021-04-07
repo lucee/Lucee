@@ -793,18 +793,6 @@ public final class VariableUtilImpl implements VariableUtil {
 		if (coll instanceof String) {
 			return MemberUtil.call(pc, coll, key, args, new short[] { CFTypes.TYPE_STRING }, new String[] { "string" });
 		}
-		// Locale
-		if (coll instanceof Locale) {
-			return MemberUtil.call(pc, coll, key, args, new short[] { CFTypes.TYPE_LOCALE }, new String[] { "locale" });
-		}
-		// TimeZone
-		if (coll instanceof TimeZone) {
-			return MemberUtil.call(pc, coll, key, args, new short[] { CFTypes.TYPE_TIMEZONE }, new String[] { "timezone" });
-		}
-		// Boolean
-		if (coll instanceof Boolean) {
-			return MemberUtil.call(pc, coll, key, args, new short[] { CFTypes.TYPE_BOOLEAN }, new String[] { "boolean" });
-		}
 		// Map || XML
 		if (coll instanceof Map) {
 			if (coll instanceof Node) return MemberUtil.call(pc, coll, key, args, new short[] { CFTypes.TYPE_XML, CFTypes.TYPE_STRUCT }, new String[] { "xml", "struct" });
@@ -818,9 +806,21 @@ public final class VariableUtilImpl implements VariableUtil {
 		if (coll instanceof Date) {
 			return MemberUtil.call(pc, coll, key, args, new short[] { CFTypes.TYPE_DATETIME }, new String[] { "date" });
 		}
+		// Boolean
+		if (coll instanceof Boolean) {
+			return MemberUtil.call(pc, coll, key, args, new short[] { CFTypes.TYPE_BOOLEAN }, new String[] { "boolean" });
+		}
 		// Number
 		if (coll instanceof Number) {
 			return MemberUtil.call(pc, coll, key, args, new short[] { CFTypes.TYPE_NUMERIC }, new String[] { "numeric" });
+		}
+		// Locale
+		if (coll instanceof Locale) {
+			return MemberUtil.call(pc, coll, key, args, new short[] { CFTypes.TYPE_LOCALE }, new String[] { "locale" });
+		}
+		// TimeZone
+		if (coll instanceof TimeZone) {
+			return MemberUtil.call(pc, coll, key, args, new short[] { CFTypes.TYPE_TIMEZONE }, new String[] { "timezone" });
 		}
 
 		// call Object Wrapper
