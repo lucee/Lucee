@@ -3,19 +3,13 @@ component extends = "org.lucee.cfml.test.LuceeTestCase"{
 	function beforeAll() {
 		variables.uri = createURI("LDEV2586");
 
-		variables.credencials=getCredencials();
-		if(structCount(variables.credencials)) {
+		variables.msSQL = server.getDatasource("mssql");
+		if( structCount(msSQL) ) {
 			// define datasource
 			application action="update" 
-				datasource={
-				'LDEV2586': {
-			 	class: 'com.microsoft.sqlserver.jdbc.SQLServerDriver'
-				, bundleName: 'com.microsoft.sqlserver.mssql-jdbc'
-				, bundleVersion: '7.0.0'
-				, connectionString: 'jdbc:sqlserver://'&msSQL.server&':'&msSQL.port&';DATABASENAME='&msSQL.database&';sendStringParametersAsUnicode=true;SelectMethod=direct'
-				, username: msSQL.username
-				, password: msSQL.password
-			}};
+				datasource = {
+					'LDEV2586': msSQL
+				};
 
 			// create necessary tables
 			query datasource="LDEV2586" {
@@ -41,9 +35,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase"{
 
 	function run( testResults , testBox ) {
 		describe( "Test case for LDEV-2586", function() {
-
-
-
+			
 			it(title = " cfqueryparam does handle decimal value = 1000 with maxLength = 8 ",skip=!hasCredencials(), body = function( currentSpec ) {
 				query name="local.test" datasource="LDEV2586" {
 					echo("SELECT * FROM LDEV2586");
@@ -84,39 +76,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase"{
 		return baseURI&""&calledName;
 	}
 
-
 	private boolean function hasCredencials() {
-		return structCount(getCredencials());
-	}
-
-	private struct function getCredencials() {
-		// getting the credetials from the enviroment variables
-		var msSQL={};
-		if(
-			!isNull(server.system.environment.MSSQL_SERVER) && 
-			!isNull(server.system.environment.MSSQL_USERNAME) && 
-			!isNull(server.system.environment.MSSQL_PASSWORD) && 
-			!isNull(server.system.environment.MSSQL_PORT) && 
-			!isNull(server.system.environment.MSSQL_DATABASE)) {
-			msSQL.server=server.system.environment.MSSQL_SERVER;
-			msSQL.username=server.system.environment.MSSQL_USERNAME;
-			msSQL.password=server.system.environment.MSSQL_PASSWORD;
-			msSQL.port=server.system.environment.MSSQL_PORT;
-			msSQL.database=server.system.environment.MSSQL_DATABASE;
-		}
-		// getting the credetials from the system variables
-		else if(
-			!isNull(server.system.properties.MSSQL_SERVER) && 
-			!isNull(server.system.properties.MSSQL_USERNAME) && 
-			!isNull(server.system.properties.MSSQL_PASSWORD) && 
-			!isNull(server.system.properties.MSSQL_PORT) &&
-			!isNull(server.system.properties.MSSQL_DATABASE)) {
-			msSQL.server=server.system.properties.MSSQL_SERVER;
-			msSQL.username=server.system.properties.MSSQL_USERNAME;
-			msSQL.password=server.system.properties.MSSQL_PASSWORD;
-			msSQL.port=server.system.properties.MSSQL_PORT;
-			msSQL.database=server.system.properties.MSSQL_DATABASE;
-		}
-		return msSQL;
+		return structCount(server.getDatasource("mssql"));
 	}
 }
