@@ -55,7 +55,7 @@ component {
 		}
 		if ( resInfo.exists ) {
 
-			header name='Expires'       value='#getHttpTimeString( now()  )#';
+			header name='Expires'       value='#getHttpTimeString( now() + 0.01 )#'; // 0.01 % of 1 day, 24m
 			//header name='Cache-Control' value='max-age=#86400 * 10#';
 			header name='ETag'          value=resInfo.etag;
 			if (CGI.HTTP_IF_NONE_MATCH == resInfo.etag ) {
