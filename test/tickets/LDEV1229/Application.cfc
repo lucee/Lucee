@@ -3,15 +3,9 @@ component {
 	this.name	=	'test';
 	this.sessionManagement 	= false;
 	
-	if(url.db=='h2') {
-		this.datasource={
-	  		class: 'org.h2.Driver'
-	  		, bundleName:"org.h2"
-			, connectionString: 'jdbc:h2:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db;MODE=MySQL'
-		};
-
-	}
-	else {
+	if (url.db=='h2') {
+		this.datasource = server.getDatasource("h2", "#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db" );
+	} else {
 		mySQL = getCredentials();
 		if(mySQL.count()!=0){
 			this.datasource={

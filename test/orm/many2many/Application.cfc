@@ -4,10 +4,7 @@
 	this.name = hash(getCurrentTemplatePath()) & getTickCount();
  	if(directoryExists("datasource"))directoryDelete("datasource",true);
 
- 	this.datasources.test = {
-	  class: "org.h2.Driver"
-		, connectionString: 'jdbc:h2:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db;MODE=MySQL'
-	};
+ 	this.datasources.test = server.getDatasource("h2", "#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db" );
 	this.datasource = 'test'; 
 		
 	this.ormEnabled = true; 

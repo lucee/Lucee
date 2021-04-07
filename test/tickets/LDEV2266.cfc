@@ -45,11 +45,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		var ds={};
 
 		// H2
-		var ds['h2']={
-	  		class: 'org.h2.Driver'
-	  		,bundleName:"org.h2"
-	  		, connectionString: 'jdbc:h2:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/dbh2;MODE=MySQL'
-		};
+		var ds['h2'] = server.getDatasource("h2", "#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/dbh2" );
 		
 		// MySQL
 		var mySQL=getCredencials();
