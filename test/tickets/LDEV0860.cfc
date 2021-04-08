@@ -28,7 +28,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		if(!variables.has) return;
 		transaction isolation="read_uncommitted" {
 			query name="local.qry" {
-				echo("SELECT owner, table_name FROM dba_tables where table_name like 'MAP_%'");
+				echo("SELECT table_name FROM user_tables where table_name like 'MAP_%'");
 			}
 		}
 	}
@@ -38,7 +38,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		if(!variables.has) return;
 		transaction isolation="read_committed" {
 			query name="local.qry" {
-				echo("SELECT owner, table_name FROM dba_tables where table_name like 'MAP_%'");
+				echo("SELECT table_name FROM user_tables where table_name like 'MAP_%'");
 			}
 		}
 	}
@@ -48,7 +48,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		if(!variables.has) return;
 		transaction isolation="repeatable_read" {
 			query name="local.qry" {
-				echo("SELECT owner, table_name FROM dba_tables where table_name like 'MAP_%'");
+				echo("SELECT table_name FROM user_tables where table_name like 'MAP_%'");
 			}
 		}
 	}
@@ -58,7 +58,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		if(!variables.has) return;
 		transaction isolation="serializable" {
 			query name="local.qry" {
-				echo("SELECT owner, table_name FROM dba_tables where table_name like 'MAP_%'");
+				echo("SELECT table_name FROM user_tables where table_name like 'MAP_%'");
 			}
 		}
 	}

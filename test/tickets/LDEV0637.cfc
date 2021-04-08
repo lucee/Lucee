@@ -61,7 +61,7 @@ END;
 		storedproc procedure="lucee_bug_test.testproc";
 	}
 
-	public void function testStoredProc2(){
+	public void function testStoredProc2() skip="true"{  // no system access
 		if(!variables.has) return;
 		// calling people_web_app.lucee_bug_test.testproc
   		storedproc procedure="system.lucee_bug_test.testproc";
@@ -75,7 +75,7 @@ END;
 		}
 	}
 
-	public void function testStoredProcIn2(){
+	public void function testStoredProcIn2() skip="true"{  // no system access
 		if(!variables.has) return;
 		// calling people_web_app.lucee_bug_test.testproc2('foo')
   		storedproc procedure="system.lucee_bug_test.testproc2" {
