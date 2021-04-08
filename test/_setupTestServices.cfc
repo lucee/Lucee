@@ -158,8 +158,10 @@ component {
 						case "smtp":
 							break;
 						case "ftp":
+							verify = verifyFTP(cfg, service);
 							break;
 						case "sftp":
+							verify = verifyFTP(cfg, service);
 							break;
 						case "mongoDb":
 							verify = verifyMongo(cfg);
@@ -207,7 +209,21 @@ component {
 		*/
 		var name = conn.command("buildInfo").version; // & ", " & q.name;
 		//conn.disconnect();
-		return name;
+		return "Server Version " & name;
+	}
+
+	public function verifyFTP ( ftp, service ){
+		ftp action = "open" 
+			connection = "conn" 
+			secure= (arguments.service contains "sftp")
+			username = arguments.ftp.username
+			password = arguments.ftp.password
+			server = arguments.ftp.server
+			port= arguments.ftp.port;
+		
+		ftp action = "close" connection = conn;
+		
+		return "Connection Verified";
 	}
 
 	public function addSupportFunctions() {
@@ -222,7 +238,7 @@ component {
 					props = server.system[ src ];
 				for (k in keys){
 					k = prefix & trim( k );
-					if ( !isNull( props[ k ] ) && Len( props[ k ] ) neq 0 ){
+					if ( !isNull( props[ k ] ) && Len( Trim( props[ k ] ) ) neq 0 ){
 						kk = k;
 						if ( arguments.stripPrefix )
 							kk = ListRest( k, "_" ); // return DATABASE for MSSQL_DATABASE
@@ -263,7 +279,7 @@ component {
 					return {
 						class: 'com.microsoft.sqlserver.jdbc.SQLServerDriver'
 						, bundleName: 'mssqljdbc4'
-						, bundleVersion: '4.0.2206.100'
+					, bundleVersion: '4.0.2206.100'
 						, connectionString: 'jdbc:sqlserver://#msSQL.SERVER#:#msSQL.PORT#;DATABASENAME=#msSQL.DATABASE#;sendStringParametersAsUnicode=true;SelectMethod=direct'
 						, username: msSQL.username
 						, password: msSQL.password
