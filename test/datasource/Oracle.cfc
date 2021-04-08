@@ -26,7 +26,22 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	variables.TABLE="testOracleTbl";
 
 	public function setUp(){
-		variables.has=defineDatasource();		
+		variables.has=defineDatasource();
+	}
+
+	private boolean function defineDatasource(){
+		var orcl = server.getDatasource("oracle");
+		if(orcl.count()==0) return false;
+
+		// otherwise we get the following on travis ORA-00604: error occurred at recursive SQL level 1 / ORA-01882: timezone region not found
+		var tz=getTimeZone();
+		//var d1=tz.getDefault();
+		tz.setDefault(tz);
+		//throw d1&":"&tz.getDefault();
+
+		application action="update" datasource="#orcl#";
+	
+		return true;
 	}
 
 
@@ -101,7 +116,7 @@ END;
 		echo(now()&"start:testConnection
 			");
 		query name="local.qry" {
-			echo("SELECT owner, table_name FROM dba_tables where table_name like 'MAP_%'");
+			echo("SELECT table_name FROM user_tables where table_name like 'MAP_%'");
 		}
 		echo(now()&"endpublic:testConnection
 			");
@@ -109,20 +124,7 @@ END;
 		
 	}
 
-	private boolean function defineDatasource(){
-		var orcl = server.getDatasource("oracle");
-		if(orcl.count()==0) return false;
-
-		// otherwise we get the following on travis ORA-00604: error occurred at recursive SQL level 1 / ORA-01882: timezone region not found
-		var tz=getTimeZone();
-		//var d1=tz.getDefault();
-		tz.setDefault(tz);
-		//throw d1&":"&tz.getDefault();
-
-		application action="update" datasource="#orcl#";
 	
-		return true;
-	}
 
 } 
 </cfscript>
