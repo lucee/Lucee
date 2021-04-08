@@ -110,7 +110,7 @@ component {
 			"SFTP_PORT": 22,
 			"SFTP_BASE_PATH": "/test",
 			
-			"S3_ACCESS_ID": "test",
+			"S3_ACCESS_KEY_ID": "test",
 			"S3_SECRET_KEY": "",
 
 			"MAIL_USERNAME": "lucee",
@@ -150,6 +150,7 @@ component {
 				try {
 					switch ( service ){
 						case "s3":
+							s3 = verifyS3(cfg);
 							break;
 						case "imap":
 							break;
@@ -200,19 +201,19 @@ component {
 		return ArrayToList( dbDesc, ", " );
 	}
 	
-	public function verifyMongo ( mongo ){
-		var conn = MongoDBConnect( arguments.mongo.db, arguments.mongo.server, arguments.mongo.port );
+	public function verifyMongo ( mongo ) localmode=true {
+		conn = MongoDBConnect( arguments.mongo.db, arguments.mongo.server, arguments.mongo.port );
 		/*
 		var q = extensionList().filter(function(row){
 			return row.name contains "mongo";
 		});
 		*/
-		var name = conn.command("buildInfo").version; // & ", " & q.name;
+		name = conn.command("buildInfo").version; // & ", " & q.name;
 		//conn.disconnect();
-		return "Server Version " & name;
+		return "MongoDB " & name;
 	}
 
-	public function verifyFTP ( ftp, service ){
+	public function verifyFTP ( ftp, service ) localmode=true {
 		ftp action = "open" 
 			connection = "conn" 
 			secure= (arguments.service contains "sftp")
@@ -221,10 +222,18 @@ component {
 			server = arguments.ftp.server
 			port= arguments.ftp.port;
 		
-		ftp action = "close" connection = conn;
+		ftp action = "close" connection = "conn";
 		
 		return "Connection Verified";
 	}
+
+	public function verifyS3 ( s3 ) localmode=true{
+		bucketName = "lucee-testsuite";
+		base = "s3://#arguments.s3.ACCESS_KEY_ID#:#arguments.s3.SECRET_KEY#@/#bucketName#";
+		DirectoryExists( base );		
+		return "s3 Connection Verified";
+	}
+		
 
 	public function addSupportFunctions() {
 		server._getSystemPropOrEnvVars = function ( string props="", string prefix="", boolean stripPrefix=true, boolean allowEmpty=false ) localmode=true{
@@ -382,7 +391,7 @@ component {
 					return pop;
 				}
 			case "s3":
-				s3 = server._getSystemPropOrEnvVars( "ACCESS_ID, S3_SECRET_KEY", "S3_" );
+				s3 = server._getSystemPropOrEnvVars( "ACCESS_KEY_ID, SECRET_KEY", "S3_" );
 				return s3;
 			default:
 				break;
