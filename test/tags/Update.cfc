@@ -3,7 +3,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 		if(isNotSupported()) return;
 		request.mySQL = getCredentials();
 		request.mySQL.storage = true;
-		variables.str = mySql;
+		variables.str = request.mySql;
 		tableCreation();
 	}
 

@@ -38,9 +38,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function afterAll(){
 		if(isNotSupported()) return;
 		query name="test" datasource=getDatasource() {
-			echo( "
-					DROP DATABASE IF EXISTS `LDEV1980DB` 
-				");
+			echo( "DROP TABLE IF EXISTS `TestDsnTBL` ");
 		}
 	}
 
