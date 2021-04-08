@@ -593,6 +593,7 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
 					bodyContent.writeOut(bodyContent.getEnclosingWriter());
 					bodyContent.clearBuffer();
 				}
+				_doCFCFinally();
 				throw Caster.toPageException(t);
 			}
 		}
