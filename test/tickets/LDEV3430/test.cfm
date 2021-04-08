@@ -40,8 +40,3 @@
     }
     writeoutput(res);
 </cfscript>
-
-
-
-
-
