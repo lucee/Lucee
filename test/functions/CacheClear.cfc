@@ -8,21 +8,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 
 	private struct function getMongoDBCredentials() {
 		// getting the credetials from the enviroment variables
-		var mongoDB={};
-		if(!isNull(server.system.environment.MONGODB_SERVER) && !isNull(server.system.environment.MONGODB_PORT) && !isNull(server.system.environment.MONGODB_USERNAME) && !isNull(server.system.environment.MONGODB_PASSWORD)) {
-			mongoDB.server=server.system.environment.MONGODB_SERVER;
-			mongoDB.port=server.system.environment.MONGODB_PORT;
-			mongoDB.user=server.system.environment.MONGODB_USERNAME;
-			mongoDB.pass=server.system.environment.MONGODB_PASSWORD;
-		}
-		// getting the credetials from the system variables
-		else if(!isNull(server.system.properties.MONGODB_SERVER) && !isNull(server.system.properties.MONGODB_PORT) && !isNull(server.system.properties.MONGODB_USERNAME) && !isNull(server.system.properties.MONGODB_PASSWORD)) {
-			mongoDB.server=server.system.properties.MONGODB_SERVER;
-			mongoDB.port=server.system.properties.MONGODB_PORT;
-			mongoDB.user=server.system.properties.MONGODB_USERNAME;
-			mongoDB.pass=server.system.properties.MONGODB_PASSWORD;
-		}
-		return mongoDB;
+		return server.getDatasource("mongoDB");
 	}
 
 	private void function defineDatasource(id, boolean asMongo=false){

@@ -40,22 +40,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 	}
 
 	private boolean function hasCredencials() {
-		if(
-			!isNull(server.system.environment.MSSQL_SERVER) && 
-			!isNull(server.system.environment.MSSQL_USERNAME) && 
-			!isNull(server.system.environment.MSSQL_PASSWORD) && 
-			!isNull(server.system.environment.MSSQL_PORT) && 
-			!isNull(server.system.environment.MSSQL_DATABASE)) {
-			return true;
-		}
-		else if(
-			!isNull(server.system.properties.MSSQL_SERVER) && 
-			!isNull(server.system.properties.MSSQL_USERNAME) && 
-			!isNull(server.system.properties.MSSQL_PASSWORD) && 
-			!isNull(server.system.properties.MSSQL_PORT) && 
-			!isNull(server.system.properties.MSSQL_DATABASE)) {
-			return true;
-		}
+		msSQL
 		return false;
 	}
 }

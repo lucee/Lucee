@@ -18,24 +18,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 		return baseURI&""&calledName;
 	}
 
-
 	private boolean function hasCredentials() {
-		if(
-			!isNull(server.system.environment.MYSQL_SERVER) &&
-			!isNull(server.system.environment.MYSQL_USERNAME) &&
-			!isNull(server.system.environment.MYSQL_PASSWORD) &&
-			!isNull(server.system.environment.MYSQL_PORT) &&
-			!isNull(server.system.environment.MYSQL_DATABASE)) {
-			return true;
-		}
-		else if(
-			!isNull(server.system.properties.MYSQL_SERVER) &&
-			!isNull(server.system.properties.MYSQL_USERNAME) &&
-			!isNull(server.system.properties.MYSQL_PASSWORD) &&
-			!isNull(server.system.properties.MYSQL_PORT) &&
-			!isNull(server.system.properties.MYSQL_DATABASE)) {
-			return true;
-		}
-		return false;
+		return structCount(server.getDatasource("mysql"));
 	}
 }

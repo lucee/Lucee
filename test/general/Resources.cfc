@@ -510,17 +510,7 @@ private function assertEqualPaths(string path1, string path2) {
 
 	private struct function getCredencials() {
 		// getting the credetials from the enviroment variables
-		var s3={};
-		if(!isNull(server.system.environment.S3_ACCESS_ID) && !isNull(server.system.environment.S3_SECRET_KEY)) {
-			s3.accessKeyId=server.system.environment.S3_ACCESS_ID;
-			s3.awsSecretKey=server.system.environment.S3_SECRET_KEY;
-		}
-		// getting the credetials from the system variables
-		else if(!isNull(server.system.properties.S3_ACCESS_ID) && !isNull(server.system.properties.S3_SECRET_KEY)) {
-			s3.accessKeyId=server.system.properties.S3_ACCESS_ID;
-			s3.awsSecretKey=server.system.properties.S3_SECRET_KEY;
-		}
-		return s3;
+		return server.getTestService("s3");
 	}
 
 	
@@ -591,7 +581,7 @@ private function assertEqualPaths(string path1, string path2) {
 
 	public void function testS3() localmode=true{
 		var s3=getCredencials();
-		if(!isNull(s3.accessKeyId)) {
+		if(!isNull(s3.ACCESS_KEY_ID)) {
 			application action="update" s3=s3; 
 			test("s3","s3:///");
 		}
@@ -599,7 +589,7 @@ private function assertEqualPaths(string path1, string path2) {
 
 	public void function testS3AsMapping() localmode=true{
 		var s3=getCredencials();
-		if(!isNull(s3.accessKeyId)) {
+		if(!isNull(s3.ACCESS_KEY_ID)) {
 			application action="update" s3=s3; 
 			addMapping("/testress3","s3:///");
 			test("s3","/testress3/");

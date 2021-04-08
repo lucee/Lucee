@@ -136,6 +136,8 @@ try {
 
 	systemOutput("set /test mapping #dateTimeFormat(now())#", true);
 
+	// you can also provide a json file with your environment variables, i.e. just set LUCEE_BUILD_ENV="c:\work\lucee\loader\env.json"
+	setupTestServices = new test._setupTestServices().setup();	
 
 	// set the testbox mapping
 	application
@@ -370,6 +372,8 @@ Begin Stack Trace
 	echo("Test Execution time: (#NumberFormat(result.getTotalDuration()/1000)# s)" & NL);	
 	echo("Average Test Overhead: (#NumberFormat(ArrayAvg(request.overhead))# ms)" & NL);
 	echo("Total Test Overhead: (#NumberFormat(ArraySum(request.overhead))# ms)" & NL);
+
+	
 	
 	echo("=============================================================" & NL & NL);
 	echo("-> Bundles/Suites/Specs: #result.getTotalBundles()#/#result.getTotalSuites()#/#result.getTotalSpecs()#" & NL);
@@ -377,6 +381,11 @@ Begin Stack Trace
 	echo("-> Skipped:  #result.getTotalSkipped()#" & NL);
 	echo("-> Failures: #result.getTotalFail()#" & NL);
 	echo("-> Errors:   #result.getTotalError()#" & NL);
+	
+	servicesReport = new test._setupTestServices().reportServiceSkipped();
+	for (s in servicesReport){
+		echo ( s & NL );
+	}
 
 		if (!isEmpty(failedTestCases)){
 			echo(NL);
@@ -401,8 +410,8 @@ Begin Stack Trace
 	catch(e){
 		echo("-------------------------------------------------------" & NL);
 		echo("Testcase failed:" & NL);
-		echo(e.message & NL);
-		echo(serialize(e) & NL);
+		echo( e.message & NL);
+		echo( ReReplace( Serialize(e), "[\r\n]\s*([\r\n]|\Z)", Chr(10), "ALL" ) & NL); // avoid too much whitespace from dump
 		echo("-------------------------------------------------------" & NL);
 		rethrow;
 	}
