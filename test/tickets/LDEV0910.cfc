@@ -80,7 +80,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 		result.imap =  server.getTestService("imap");
 		result.pop =  server.getTestService("pop");
 		result.smtp = server.getTestService("smtp");
-		SystemOutput(result);
 		return result;
 	}
 }

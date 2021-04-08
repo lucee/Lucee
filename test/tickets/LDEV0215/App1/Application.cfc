@@ -5,16 +5,9 @@ component {
 	this.sessionTimeout = createTimeSpan(0,0,30,0);
 
 	mySQL = mySqlCredentials();
+	mySQL.storage = true;
 	datasource = "my-ldev-215"
-	this.datasources[datasource] ={
-		  class: 'org.gjt.mm.mysql.Driver'
-		, bundleName:'com.mysql.jdbc'
-		, bundleVersion:'5.1.38'
-		, connectionString: 'jdbc:mysql://'&mySQL.server&':'&mySQL.port&'/'&mySQL.database&'?useUnicode=true&characterEncoding=UTF-8&useLegacyDatetimeCode=true'
-		, username: mySQL.username
-		, password: mySQL.password
-		, storage:true
-	};
+	this.datasources[datasource] = mySQL;
 	this.dataSource = datasource;
 
 	this.clientStorage = datasource;
@@ -36,40 +29,6 @@ component {
 	}
 
 	private struct function mySqlCredentials() {
-		// getting the credentials from the enviroment variables
-		var mySQL={};
-		if(isNull(server.system)){
-			server.system = structNew();
-			currSystem = createObject("java", "java.lang.System");
-			server.system.environment = currSystem.getenv();
-			server.system.properties = currSystem.getproperties();
-		}
-
-		if(
-			!isNull(server.system.environment.MYSQL_SERVER) &&
-			!isNull(server.system.environment.MYSQL_USERNAME) &&
-			!isNull(server.system.environment.MYSQL_PASSWORD) &&
-			!isNull(server.system.environment.MYSQL_PORT) &&
-			!isNull(server.system.environment.MYSQL_DATABASE)) {
-			mySQL.server=server.system.environment.MYSQL_SERVER;
-			mySQL.username=server.system.environment.MYSQL_USERNAME;
-			mySQL.password=server.system.environment.MYSQL_PASSWORD;
-			mySQL.port=server.system.environment.MYSQL_PORT;
-			mySQL.database=server.system.environment.MYSQL_DATABASE;
-		}
-		// getting the credentials from the system variables
-		else if(
-			!isNull(server.system.properties.MYSQL_SERVER) &&
-			!isNull(server.system.properties.MYSQL_USERNAME) &&
-			!isNull(server.system.properties.MYSQL_PASSWORD) &&
-			!isNull(server.system.properties.MYSQL_PORT) &&
-			!isNull(server.system.properties.MYSQL_DATABASE)) {
-			mySQL.server=server.system.properties.MYSQL_SERVER;
-			mySQL.username=server.system.properties.MYSQL_USERNAME;
-			mySQL.password=server.system.properties.MYSQL_PASSWORD;
-			mySQL.port=server.system.properties.MYSQL_PORT;
-			mySQL.database=server.system.properties.MYSQL_DATABASE;
-		}
-		return mysql;
+		return server.getDatasource("mysql");
 	}
 }

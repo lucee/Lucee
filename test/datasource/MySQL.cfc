@@ -240,8 +240,7 @@ END
 
 
 	private struct function getDatasource(){
-		var mySQL = server.getDatasource("mysql");
-		return  mysql;
+		return server.getDatasource("mysql");
 	}
 
 	private struct function getDatasource2(){
