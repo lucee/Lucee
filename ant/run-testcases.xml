@@ -53,222 +53,6 @@ for (el in ["bundleId", "debugBuffer", "endTime", "error", "failMessage", "failO
 
 failedTestCases = [];
 
-// rather than using env vars, you can define servers for testing here, just set a password etc
-// a server configuration is only valid when all the requested properties have a value, 
-// empty strings are ignored, so the following configs will be ignored due to *_PASSWORD being empty
-
-server.custom_build_env = {
-	MSSQL_SERVER: "127.0.0.1",
-	MSSQL_USERNAME: "lucee",
-	MSSQL_PASSWORD: "", // DON'T COMMIT
-	MSSQL_PORT: 1433,
-	MSSQL_DATABASE: "lucee-test", 
-	
-	MYSQL_SERVER: "localhost",
-	MYSQL_USERNAME: "lucee",
-	MYSQL_PASSWORD: "",  // DON'T COMMIT
-	MYSQL_PORT: 3306,
-	MYSQL_DATABASE: "lucee",
-
-	POSTGRES_SERVER: "localhost",
-	POSTGRES_USERNAME: "lucee",
-	POSTGRES_PASSWORD: "",  // DON'T COMMIT
-	POSTGRES_PORT: 5432,
-	POSTGRES_DATABASE: "lucee",
-	
-	MONGODB_SERVER: "localhost",
-	MONGODB_USERNAME: "",
-	MONGODB_PASSWORD: "",  // DON'T COMMIT
-	MONGODB_PORT: 27017,
-	MONGODB_DB: "lucee",
-
-	ORACLE_SERVER: "localhost",
-	ORACLE_USERNAME: "lucee",
-	ORACLE_PASSWORD: "",  // DON'T COMMIT
-	ORACLE_PORT: 1521,
-	ORACLE_DATABASE: "lucee"
-
-	/*
-	
-	TODO + THE REST OF THE MYSQL
-
-	FTP_SERVER: "localhost"
-	FTP_USERNAME: "lucee"
-	FTP_PASSWORD: "",  // DON'T COMMIT
-	FTP_PORT: 21,
-	FTP_BASE_PATH: "/test",
-
-	SFTP_SERVER="localhost"
-	SFTP_USERNAME: "lucee"
-	SFTP_PASSWORD: "",  // DON'T COMMIT
-	SFTP_PORT: 21,
-	SFTP_BASE_PATH: "/test",
-
-	MAIL_USERNAME
-	MAIL_PASSWORD
-	
-	// IMAP related settings
-	IMAP_SERVER
-	IMAP_PORT_SECURE
-	IMAP_PORT_INSECURE
-	
-	S3_ACCESS_ID
-	S3_SECRET_KEY
-
-	POP_SERVER
-	POP_PORT_SECURE
-	POP_PORT_INSECURE
-
-	SMTP_SERVER
-	SMTP_PORT_SECURE
-	SMTP_PORT_INSECURE
-	*/
-};
-
-server._getSystemPropOrEnvVars = function ( string props="", string prefix="", boolean stripPrefix=true, boolean allowEmpty=false ) localmode=true{
-	st = [=];
-	keys = arguments.props.split( "," );
-	n = arrayLen( keys ) ;
-	loop list="custom,environment,properties" item="src" {
-		if ( src eq "custom" )
-			props = server.custom_build_env; // server.system is readonly
-		else
-			props = server.system[ src ];
-		for (k in keys){
-			k = prefix & trim( k );
-			if ( !isNull( props[ k ] ) && Len( props[ k ] ) neq 0 ){
-				kk = k;
-				if ( arguments.stripPrefix )
-					kk = ListRest( k, "_" ); // return DATABASE for MSSQL_DATABASE
-				st[ kk ] = props[ k ];
-			}
-		}
-		if ( structCount( st ) eq n )
-			break;
-		else 
-			st = {};
-	}
-	if ( structCount( st ) eq n ){
-		//systemOutput( st, true);
-		return st; // all or nothing
-	} else {
-		return {};
-	}
-};
-
-/* you can also provide a json file with your environment variables, just set LUCEE_BUILD_ENV to an env.json file path
-
-i.e.
-{
-    "_______________DONT COMMIT_______________": true,
-    "MSSQL_PASSWORD": "secret"
-}
-
-*/
-
-build_cfg =  server._getSystemPropOrEnvVars( "LUCEE_BUILD_ENV", "", false );
-
-if ( structKeyExists( build_cfg, "LUCEE_BUILD_ENV" ) ){
-	env = build_cfg.LUCEE_BUILD_ENV;
-	if (!FileExists(env)){
-		systemOutput( "ERROR: LUCEE_BUILD_ENV [#env#] file doesn't exist", true);
-	} else {
-		f = fileRead( env );
-		if ( isJson( f ) ){
-			structAppend( server.custom_build_env, deserializeJson( f ) );
-			systemOutput( "IMPORTED: LUCEE_BUILD_ENV [#env#] configuation ", true );
-		} else {
-			systemOutput( "ERROR: LUCEE_BUILD_ENV [#env#] wasn't json", true );
-		}
-	}
-}
-
-// use this rather than all the boilerplate
-server.getDatasource = function ( required string dbtype, string dbFile="" ) localmode=true {
-	switch ( arguments.dbtype ){
-		case "mssql":
-			mssql = server._getSystemPropOrEnvVars( "SERVER, USERNAME, PASSWORD, PORT, DATABASE", "MSSQL_");
-			if ( structCount( msSql ) gt 0){
-				return {
-					class: 'com.microsoft.sqlserver.jdbc.SQLServerDriver'
-					, bundleName: 'mssqljdbc4'
-					, bundleVersion: '4.0.2206.100'
-					, connectionString: 'jdbc:sqlserver://#msSQL.SERVER#:#msSQL.PORT#;DATABASENAME=#msSQL.DATABASE#;sendStringParametersAsUnicode=true;SelectMethod=direct'
-					, username: msSQL.username
-					, password: msSQL.password
-				};
-			}
-			break;
-		case "mysql":
-			mysql = server._getSystemPropOrEnvVars( "SERVER, USERNAME, PASSWORD, PORT, DATABASE", "MYSQL_");	
-			if ( structCount( mySql ) gt 0 ){
-				return {
-					class: 'com.mysql.cj.jdbc.Driver'
-					, bundleName: 'com.mysql.cj'
-					, bundleVersion: '8.0.19'
-					, connectionString: 'jdbc:mysql://#mySQL.server#:#mySQL.port#/#mySQL.database#?useUnicode=true&characterEncoding=UTF-8&useLegacyDatetimeCode=true&useSSL=false'
-					, username: mySQL.username
-					, password: mySQL.password
-				};
-			}
-			break;
-		case "postgres":
-			pgsql = server._getSystemPropOrEnvVars( "SERVER, USERNAME, PASSWORD, PORT, DATABASE", "POSTGRES_");	
-			if ( structCount( pgsql ) gt 0 ){
-				return {
-					class: 'org.postgresql.Driver'
-					, bundleName: 'org.postgresql.jdbc42'
-					, bundleVersion: '9.4.1212'
-					, connectionString: 'jdbc:postgresql://#pgsql.server#:#pgsql.port#/#pgsql.database#'
-					, username: pgsql.username
-					, password: pgsql.password
-				};
-			}
-			break;
-		case "h2":
-			if ( Len( arguments.dbFile ) ){
-				return {
-					class: 'org.h2.Driver'
-					, bundleName: 'org.h2'
-					, connectionString: 'jdbc:h2:#arguments.dbFile#/datasource/db;MODE=MySQL'
-				};
-			}
-			break;
-		case "mongoDB":
-			mongoDB = server._getSystemPropOrEnvVars( "SERVER, PORT, DB", "MONGODB_");
-			mongoDBcreds = server._getSystemPropOrEnvVars( "USERNAME, PASSWORD", "MONGODB_");
-			if ( structCount( mongoDb ) gt 0 ){
-				if (structCount( mongoDBcreds ) eq 2 ){
-					StructAppend(mongoDB, mongoDBcreds)
-				} else {
-					// _getSystemPropOrEnvVars ignores empty variables
-					mongoDB.USERNAME="";
-					mongoDB.PASSWORD="";
-				}
-				return mongoDB;
-			}
-			break;
-		case "oracle":
-			oracle = server._getSystemPropOrEnvVars( "SERVER, USERNAME, PASSWORD, PORT, DATABASE", "ORACLE_");	
-			if ( structCount( oracle ) gt 0 ){
-				return {
-					class: 'oracle.jdbc.OracleDriver'
-					, bundleName: 'ojdbc6'
-					, bundleVersion: '11.2.0.4'
-					, connectionString: 'jdbc:oracle:thin:@#oracle.server#:#oracle.port#/#oracle.database#'
-					, username: oracle.username
-					, password: oracle.password
-				};
-			}
-			break;
-		default:
-			break;
-	}
-	SystemOutput("#NL# Warning database: [ #arguments.dbtype# ] is not configured", true);
-	return {};
-}
-
-
 try {
 
 	function mem(type) {
@@ -352,6 +136,8 @@ try {
 
 	systemOutput("set /test mapping #dateTimeFormat(now())#", true);
 
+	// you can also provide a json file with your environment variables, i.e. just set LUCEE_BUILD_ENV="c:\work\lucee\loader\env.json"
+	setupTestServices = new test._setupTestServices().setup();	
 
 	// set the testbox mapping
 	application
@@ -586,6 +372,8 @@ Begin Stack Trace
 	echo("Test Execution time: (#NumberFormat(result.getTotalDuration()/1000)# s)" & NL);	
 	echo("Average Test Overhead: (#NumberFormat(ArrayAvg(request.overhead))# ms)" & NL);
 	echo("Total Test Overhead: (#NumberFormat(ArraySum(request.overhead))# ms)" & NL);
+
+	
 	
 	echo("=============================================================" & NL & NL);
 	echo("-> Bundles/Suites/Specs: #result.getTotalBundles()#/#result.getTotalSuites()#/#result.getTotalSpecs()#" & NL);
@@ -593,6 +381,11 @@ Begin Stack Trace
 	echo("-> Skipped:  #result.getTotalSkipped()#" & NL);
 	echo("-> Failures: #result.getTotalFail()#" & NL);
 	echo("-> Errors:   #result.getTotalError()#" & NL);
+	
+	servicesReport = new test._setupTestServices().reportServiceSkipped();
+	for (s in servicesReport){
+		echo ( s & NL );
+	}
 
 		if (!isEmpty(failedTestCases)){
 			echo(NL);
@@ -617,8 +410,8 @@ Begin Stack Trace
 	catch(e){
 		echo("-------------------------------------------------------" & NL);
 		echo("Testcase failed:" & NL);
-		echo(e.message & NL);
-		echo(serialize(e) & NL);
+		echo( e.message & NL);
+		echo( ReReplace( Serialize(e), "[\r\n]\s*([\r\n]|\Z)", Chr(10), "ALL" ) & NL); // avoid too much whitespace from dump
 		echo("-------------------------------------------------------" & NL);
 		rethrow;
 	}
