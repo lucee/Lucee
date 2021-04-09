@@ -59,6 +59,17 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 	public void function testLen(){
 		assertEquals(3,"abc".len());
+		assertEquals(0, [].len());
+		assertEquals(0, {}.len());
+		assertEquals(0, {}.len());
+		assertEquals(3, ["abc", "xyz", 1].len());
+		assertEquals(3, {a=1, b=2, c=3}.len());
+		assertEquals(3, [a=1, b=2, c=3].len());
+		local.a = [];
+		arrayResize(local.a, 3)
+		$assert.isEqual(3, local.a.len());
+		local.q = queryNew("i", "integer", [{i=1}, {i=2}, {i=3}]);
+		$assert.isEqual(3, local.q.len());
 	}
 	public void function testRemoveChars(){
 		assertEquals("aefghijklm","abcdefghijklm".RemoveChars(2,3));
