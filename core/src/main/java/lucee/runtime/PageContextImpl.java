@@ -60,6 +60,7 @@ import lucee.commons.db.DBUtil;
 import lucee.commons.io.BodyContentStack;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.IOUtil;
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.cache.exp.CacheException;
 import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
@@ -355,6 +356,8 @@ public final class PageContextImpl extends PageContext {
 	private StackTraceElement[] timeoutStacktrace;
 
 	private boolean fullNullSupport;
+
+	private static final boolean READ_CFID_FROM_URL = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.read.cfid.from.url", "true"), true);
 
 	/**
 	 * default Constructor
@@ -2627,8 +2630,8 @@ public final class PageContextImpl extends PageContext {
 	private void initIdAndToken() {
 		boolean setCookie = true;
 		// From URL
-		Object oCfid = urlScope().get(KeyConstants._cfid, null);
-		Object oCftoken = urlScope().get(KeyConstants._cftoken, null);
+		Object oCfid = READ_CFID_FROM_URL ? urlScope().get(KeyConstants._cfid, null) : null;
+		Object oCftoken = READ_CFID_FROM_URL ? urlScope().get(KeyConstants._cftoken, null) : null;
 
 		// if CFID comes from URL, we only accept if already exists
 		if (oCfid != null) {
