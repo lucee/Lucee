@@ -485,7 +485,7 @@ public final class ScopeContext {
 		if (httpSession == null) return false;
 
 		Session session = (Session) httpSession.getAttribute(pc.getApplicationContext().getName());
-		return session instanceof JSession;
+		return session instanceof JSession && !session.isExpired();
 	}
 
 	private boolean hasExistingCFSessionScope(PageContext pc, String cfid) {
@@ -725,7 +725,9 @@ public final class ScopeContext {
 			jSession = (JSession) session;
 			try {
 				if (jSession.isExpired()) {
-					jSession.touch();
+					if (httpSession == null) jSession.touch();
+					else jSession = createNewJSession(pc, httpSession, isNew);
+
 				}
 				debug(getLog(), "use existing JSession for " + appContext.getName() + "/" + pc.getCFID());
 
@@ -743,15 +745,20 @@ public final class ScopeContext {
 		else {
 			// if there is no HTTPSession
 			if (httpSession == null) return getCFSessionScope(pc, isNew);
-
-			debug(getLog(), "create new JSession for " + appContext.getName() + "/" + pc.getCFID());
-			jSession = new JSession();
-			httpSession.setAttribute(appContext.getName(), jSession);
-			isNew.setValue(true);
-			Map<String, Scope> context = getSubMap(cfSessionContexts, appContext.getName());
-			context.put(pc.getCFID(), jSession);
+			jSession = createNewJSession(pc, httpSession, isNew);
 		}
 		jSession.touchBeforeRequest(pc);
+		return jSession;
+	}
+
+	private JSession createNewJSession(PageContext pc, HttpSession httpSession, RefBoolean isNew) {
+		ApplicationContext appContext = pc.getApplicationContext();
+		debug(getLog(), "create new JSession for " + appContext.getName() + "/" + pc.getCFID());
+		JSession jSession = new JSession();
+		httpSession.setAttribute(appContext.getName(), jSession);
+		isNew.setValue(true);
+		Map<String, Scope> context = getSubMap(cfSessionContexts, appContext.getName());
+		context.put(pc.getCFID(), jSession);
 		return jSession;
 	}
 
