@@ -331,7 +331,7 @@ if(isInstalled) installedVersion=toVersionSortable(installed.version);
 	function versionSelected(v, i){
 		var version = $("##versions").val();
 		if(version == "")
-			$( ".msg" ).append( "<div class='error'>Please Choose any version</div>" );
+			$( ".msg" ).empty().append( "<div class='error'>Please Choose any version</div>" );
 		else
 			$( "##versionForm" ).submit();
 	}
