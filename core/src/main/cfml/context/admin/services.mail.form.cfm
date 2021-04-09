@@ -26,7 +26,7 @@ loop struct=driverNames index="name" item="componentPath" {
 		active[type]=id;
 
 		$(document).ready(function(){
-				$(btn).css('background-color','#request.adminType=="web"?'##39c':'##c00'#');
+				$(btn).css('background-color','#request.adminType=="web"?'##0f75a8':'##c00'#');
 				$(btn).css('color','white');
 				$('##button_'+old).css('background-color','');
 				bodies[old]=$('##div_'+old).detach();
@@ -89,7 +89,7 @@ loop struct=driverNames index="name" item="componentPath" {
 					type="button"
 					class="#orientation# button"
 					name="changeConnection"
-					<cfif active> style="color:white;background-color:#(request.adminType=="web"?'##39c':'##c00')#;"</cfif>
+					<cfif active> style="color:white;background-color:#(request.adminType=="web"?'##0f75a8':'##c00')#;"</cfif>
 					value="#_name#">
 				<cfsavecontent variable="tmpContent">
 					<div id="div_#id#">
@@ -298,7 +298,7 @@ loop struct=driverNames index="name" item="componentPath" {
 	  host: '#data.hostname#'
 	, port: #data.port#
 	, username: '#replace(data.username,"'","''","all")#'
-	, password:  <li style="overflow-wrap: break-word;">'#data.passwordEncrypted?:''#'</li>
+	, password:  <span style="overflow-wrap: break-word;">'#data.passwordEncrypted?:''#'</span>
 	, ssl: #data.ssl?:false#
 	, tls: #data.tls?:false#<cfif
 	!isNull(data.life)>

@@ -107,7 +107,7 @@ public interface ScheduleTask {
 	public abstract URL getUrl();
 
 	/**
-	 * @param nextExecution
+	 * @param nextExecution Next Execution
 	 */
 	public abstract void setNextExecution(long nextExecution);
 

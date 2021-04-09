@@ -3,6 +3,7 @@ package lucee.runtime.type.scope.storage;
 import java.io.IOException;
 import java.util.Map;
 
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.cache.Cache;
 import lucee.commons.io.log.Log;
 import lucee.runtime.PageContext;
@@ -17,6 +18,8 @@ import lucee.runtime.type.Collection;
 import lucee.runtime.type.scope.ScopeContext;
 
 public class IKHandlerCache implements IKHandler {
+
+	protected boolean storeEmpty = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.store.empty", null), false);
 
 	@Override
 	public IKStorageValue loadData(PageContext pc, String appName, String name, String strType, int type, Log log) throws PageException {
@@ -50,14 +53,15 @@ public class IKHandlerCache implements IKHandler {
 			synchronized (StorageScopeCache.getToken(key)) {
 				Object existingVal = cache.getValue(key, null);
 
-				// FUTURE add IKStorageValue to loader and then the byte array impl is no longer needed
-				cache.put(key,
-						deserializeIKStorageValueSupported(cache) ? new IKStorageValue(IKStorageScopeSupport.prepareToStore(data, existingVal, storageScope.lastModified()))
-								: IKStorageValue.toByteRepresentation(IKStorageScopeSupport.prepareToStore(data, existingVal, storageScope.lastModified())),
-
-						// new
-						// IKStorageValue(IKStorageScopeSupport.prepareToStore(data,existingVal,storageScope.lastModified())),
-						new Long(storageScope.getTimeSpan()), null);
+				if (storeEmpty || storageScope.hasContent()) {
+					cache.put(key,
+							deserializeIKStorageValueSupported(cache) ? new IKStorageValue(IKStorageScopeSupport.prepareToStore(data, existingVal, storageScope.lastModified()))
+									: IKStorageValue.toByteRepresentation(IKStorageScopeSupport.prepareToStore(data, existingVal, storageScope.lastModified())),
+							new Long(storageScope.getTimeSpan()), null);
+				}
+				else if (existingVal != null) {
+					cache.remove(key);
+				}
 			}
 		}
 		catch (Exception e) {
@@ -83,7 +87,8 @@ public class IKHandlerCache implements IKHandler {
 				cache.remove(key);
 			}
 		}
-		catch (Exception pe) {}
+		catch (Exception pe) {
+		}
 	}
 
 	private static Cache getCache(PageContext pc, String cacheName) throws PageException {

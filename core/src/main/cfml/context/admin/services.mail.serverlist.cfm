@@ -134,9 +134,9 @@ loop query="ms" {
 						<input type="hidden" name="mainAction" value="#stText.Buttons.Update#">
 						<input type="hidden" name="contextType" value="#contextType#">
 						<cfif contextType=="local" or request.adminType=='server'>
-							<input type="submit" class="bl button submit" name="subAction" value="#stText.Buttons.Verify#">
-							<input type="reset" class="bm button reset" name="cancel" value="#stText.Buttons.Cancel#">
-							<input type="submit" class="br button submit" name="subAction" value="#stText.Buttons.Delete#">
+							<input type="submit" class="bl button submit enablebutton" name="subAction" value="#stText.Buttons.Verify#">
+							<input type="reset" class="bm button reset enablebutton" id="clickCancel" name="cancel" value="#stText.Buttons.Cancel#">
+							<input type="submit" class="br button submit enablebutton" name="subAction" value="#stText.Buttons.Delete#">
 						<cfelse>
 							<input type="submit" class="blr button submit" name="subAction" value="#stText.Buttons.Verify#">
 						

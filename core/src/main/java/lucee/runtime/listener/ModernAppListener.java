@@ -39,6 +39,7 @@ import lucee.runtime.CFMLFactory;
 import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.Component;
 import lucee.runtime.ComponentPageImpl;
+import lucee.runtime.Page;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
@@ -99,18 +100,20 @@ public class ModernAppListener extends AppListenerSupport {
 	@Override
 	public void onRequest(PageContext pc, PageSource requestedPage, RequestListener rl) throws PageException {
 		// on requestStart
-		PageSource appPS = AppListenerUtil.getApplicationPageSource(pc, requestedPage,
-				pc.getRequestDialect() == CFMLEngine.DIALECT_CFML ? Constants.CFML_APPLICATION_EVENT_HANDLER : Constants.LUCEE_APPLICATION_EVENT_HANDLER, mode);
+		Page appPS = AppListenerUtil.getApplicationPage(pc, requestedPage,
+				pc.getRequestDialect() == CFMLEngine.DIALECT_CFML ? Constants.CFML_APPLICATION_EVENT_HANDLER : Constants.LUCEE_APPLICATION_EVENT_HANDLER, mode,
+				ApplicationListener.TYPE_MODERN);
 		_onRequest(pc, requestedPage, appPS, rl);
 	}
 
-	protected void _onRequest(PageContext pc, PageSource requestedPage, PageSource appPS, RequestListener rl) throws PageException {
+	protected void _onRequest(PageContext pc, PageSource requestedPage, Page appP, RequestListener rl) throws PageException {
 		PageContextImpl pci = (PageContextImpl) pc;
 		pci.setAppListenerType(ApplicationListener.TYPE_MODERN);
-		if (appPS != null) {
-			String callPath = appPS.getComponentName();
+		if (appP != null) {
+			String callPath = appP.getPageSource().getComponentName();
 
-			Component app = ComponentLoader.loadComponent(pci, appPS, callPath, false, false);
+			Component app = ComponentLoader.loadComponent(pci, appP, callPath, false, false, false, true);
+
 			// init
 			ModernApplicationContext appContext = initApplicationContext(pci, app);
 

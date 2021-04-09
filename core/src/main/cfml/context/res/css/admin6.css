@@ -444,7 +444,7 @@ tr.notOK td {background-color:#f9e0e0;}
 	border-spacing: 3px
 }
 .maintbl + .maintbl {
-	margin-top: 150px;
+	margin-top: 15px;
 }
 .autowidth {
 	width: auto;
@@ -736,6 +736,16 @@ body.server .button, body.server .submit, body.server .reset {
 	color:#ccc;
 	position: relative;
 	top: 1px;
+}
+
+body.server .btn {
+	color:white;
+	background-color:#CC0000;
+}
+
+body.web .btn {
+	color:white;
+	background-color:#0f75a8;
 }
 
 .btn-mini {

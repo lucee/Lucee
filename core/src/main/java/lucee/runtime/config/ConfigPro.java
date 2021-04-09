@@ -18,6 +18,7 @@ import lucee.commons.io.res.type.compress.Compress;
 import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.lang.CharSet;
 import lucee.commons.lang.ClassException;
+import lucee.commons.lang.types.RefBoolean;
 import lucee.runtime.CIPage;
 import lucee.runtime.Mapping;
 import lucee.runtime.PageContext;
@@ -26,7 +27,7 @@ import lucee.runtime.cache.tag.CacheHandler;
 import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.customtag.InitFile;
 import lucee.runtime.db.ClassDefinition;
-import lucee.runtime.db.DatasourceConnectionPool;
+import lucee.runtime.db.DataSource;
 import lucee.runtime.db.JDBCDriver;
 import lucee.runtime.engine.ExecutionLogFactory;
 import lucee.runtime.exp.PageException;
@@ -62,6 +63,7 @@ public interface ConfigPro extends Config {
 	public static final int DEBUG_QUERY_USAGE = 32;
 	public static final int DEBUG_DUMP = 64;
 	public static final int DEBUG_TEMPLATE = 128;
+	public static final int DEBUG_THREAD = 256;
 
 	public static final int MODE_CUSTOM = 1;
 	public static final int MODE_STRICT = 2;
@@ -127,7 +129,14 @@ public interface ConfigPro extends Config {
 
 	public RHExtension[] getServerRHExtensions();
 
-	public DatasourceConnectionPool getDatasourceConnectionPool();
+	// zhis only exists for the hibernate extension that uses this
+	public MockPool getDatasourceConnectionPool();
+
+	public DatasourceConnPool getDatasourceConnectionPool(lucee.runtime.db.DataSource ds, String user, String pass);
+
+	public Collection<DatasourceConnPool> getDatasourceConnectionPools();
+
+	public void removeDatasourceConnectionPool(DataSource ds);
 
 	public void clearCTCache();
 
@@ -216,6 +225,8 @@ public interface ConfigPro extends Config {
 	public Resource getEventGatewayDirectory();
 
 	public void clearComponentCache();
+
+	public void clearApplicationCache();
 
 	public Map<String, ConfigBase.Startup> getStartups();
 
@@ -327,4 +338,10 @@ public interface ConfigPro extends Config {
 	public void setPassword(Password pw);
 
 	public short getAdminMode();
+
+	public PageSource getApplicationPageSource(PageContext pc, String path, String filename, int mode, RefBoolean isCFC);
+
+	public void putApplicationPageSource(String path, PageSource ps, String filename, int mode, boolean isCFC);
+
+	public long getApplicationPathCacheTimeout();
 }

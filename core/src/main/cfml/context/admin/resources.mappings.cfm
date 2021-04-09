@@ -10,6 +10,11 @@ Defaults --->
 <cfparam name="url.action2" default="list">
 <cfparam name="form.subAction" default="none">
 <cfparam name="error" default="#struct(message:"",detail:"")#">
+<cfadmin 
+	action="getMappings"
+	type="#request.adminType#"
+	password="#session["password"&request.adminType]#"
+	returnVariable="mappings">
 
 <cfadmin 
 	action="securityManager"
@@ -158,7 +163,10 @@ Defaults --->
 				<cfloop index="idx" from="1" to="#arrayLen(data.virtuals)#">
 					
 					<cfif isDefined("data.rows[#idx#]") and data.virtuals[idx] NEQ "">
-					
+						<cfif false && fileExists(mappings.archive[#idx#])>
+							<!--- TODO see LDEV-2379 --->
+							<cfset filedelete(mappings.archive[#idx#])>
+						</cfif>
 					<cfadmin 
 						action="removeMapping"
 						type="#request.adminType#"
@@ -198,11 +206,6 @@ Error Output--->
 </span><br><br></cfoutput>
 </cfif>
 
-<cfadmin 
-	action="getMappings"
-	type="#request.adminType#"
-	password="#session["password"&request.adminType]#"
-	returnVariable="mappings">
 
 <cfif url.action2 EQ "create">
 	<cfinclude template="resources.mappings.edit.cfm">

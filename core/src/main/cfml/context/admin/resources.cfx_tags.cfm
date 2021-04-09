@@ -211,10 +211,10 @@ Redirtect to entry --->
 							<td colspan="4">
 								<input type="hidden" name="type_#idx#" value="java">
 								<input type="hidden" name="mainAction" value="updateJava">
-								<input type="submit" class="bl button submit" name="subAction" value="#stText.Buttons.Verify#">
-								<input type="submit" class="bm button submit" name="subAction" value="#stText.Buttons.save#">
-								<input type="reset" class="bm reset" name="cancel" value="#stText.Buttons.Cancel#">
-								<input type="submit" class="br button submit" name="subAction" value="#stText.Buttons.Delete#">
+								<input type="submit" class="bl button submit enablebutton" name="subAction" value="#stText.Buttons.Verify#">
+								<input type="submit" class="bm button submit enablebutton" name="subAction" value="#stText.Buttons.save#">
+								<input type="reset" class="bm reset enablebutton" name="cancel" id="clickCancel" value="#stText.Buttons.Cancel#">
+								<input type="submit" class="br button submit enablebutton" name="subAction" value="#stText.Buttons.Delete#">
 							</td>
 						</tr>
 					</tfoot>

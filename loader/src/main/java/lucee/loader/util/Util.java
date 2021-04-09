@@ -202,6 +202,7 @@ public class Util {
 	/**
 	 * @deprecated no replacement
 	 * @param str input string
+	 * @return length of  String
 	 */
 	@Deprecated
 	public static int length(final String str) {
@@ -376,6 +377,7 @@ public class Util {
 	 * @deprecated use instead CFMLEngineFactory.getInstance().getStringUtil(). toVariableName (...)
 	 * @param str input string
 	 * @param addIdentityNumber add identity number or not
+	 * @return variable name
 	 */
 	@Deprecated
 	public static String toVariableName(final String str, final boolean addIdentityNumber) {
@@ -386,6 +388,7 @@ public class Util {
 	 * @deprecated use instead CFMLEngineFactory.getInstance().getStringUtil().first(...);
 	 * @param str input string
 	 * @param delimiter delimiter to split
+	 * @return first item in string
 	 */
 	@Deprecated
 	public static String first(final String str, final String delimiter) {
@@ -396,6 +399,7 @@ public class Util {
 	 * @deprecated use instead CFMLEngineFactory.getInstance().getStringUtil().last(...);
 	 * @param str input string
 	 * @param delimiter delimiter to split
+	 * @return last item in string
 	 */
 	@Deprecated
 	public static String last(final String str, final String delimiter) {
@@ -406,6 +410,7 @@ public class Util {
 	 * @deprecated use instead CFMLEngineFactory.getInstance().getStringUtil().removeQuotes (...);
 	 * @param str string to removes quotes from
 	 * @param trim trim it or not
+	 * @return string without quotes
 	 */
 	@Deprecated
 	public static String removeQuotes(final String str, final boolean trim) {

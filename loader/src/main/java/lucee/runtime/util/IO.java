@@ -32,113 +32,113 @@ public interface IO {
 	/**
 	 * close stream silently (no Exception)
 	 * 
-	 * @param is
+	 * @param is Input Stream
 	 */
 	public void closeSilent(InputStream is);
 
 	/**
 	 * close stream silently (no Exception)
 	 * 
-	 * @param os
+	 * @param os Output Stream
 	 */
 	public void closeSilent(OutputStream os);
 
 	/**
 	 * close streams silently (no Exception)
 	 * 
-	 * @param is
-	 * @param os
+	 * @param is Input Stream
+	 * @param os Output Stream
 	 */
 	public void closeSilent(InputStream is, OutputStream os);
 
 	/**
 	 * close streams silently (no Exception)
 	 * 
-	 * @param r
+	 * @param r Reader
 	 */
 	public void closeSilent(Reader r);
 
 	/**
 	 * close streams silently (no Exception)
 	 * 
-	 * @param w
+	 * @param w Writer
 	 */
 	public void closeSilent(Writer w);
 
 	/**
 	 * close any object with a close method silently
 	 * 
-	 * @param o
+	 * @param o Object
 	 */
 	public void closeSilent(Object o);
 
 	/**
 	 * converts an InputStream to a String
 	 * 
-	 * @param is
-	 * @param charset
-	 * @return
-	 * @throws IOException
+	 * @param is Input Stream
+	 * @param charset Charset
+	 * @return Returns the Content.
+	 * @throws IOException IO Exception
 	 */
 	public String toString(InputStream is, Charset charset) throws IOException;
 
 	/**
 	 * reads the content of a Resource
 	 * 
-	 * @param res
-	 * @param charset
-	 * @return
-	 * @throws IOException
+	 * @param res Resource
+	 * @param charset Charset
+	 * @return Returns the Content.
+	 * @throws IOException IO Exception
 	 */
 	public String toString(Resource res, Charset charset) throws IOException;
 
 	/**
-	 * converts a byte array to a String
+	 * converts a Byte Array to a String
 	 * 
-	 * @param barr
-	 * @param charset
-	 * @return
-	 * @throws IOException
+	 * @param barr Byte Array
+	 * @param charset Charset
+	 * @return Returns the Content.
+	 * @throws IOException IO Exception
 	 */
 	public String toString(byte[] barr, Charset charset) throws IOException;
 
 	/**
-	 * reads readers data as String
+	 * reads Readers data as String
 	 * 
-	 * @param r
-	 * @return
-	 * @throws IOException
+	 * @param r Reader
+	 * @return Returns the Content.
+	 * @throws IOException IO Exception
 	 */
 	public String toString(Reader r) throws IOException;
 
 	/**
-	 * copy data from input stream to output stream
+	 * copy data from Input Stream to Output Stream
 	 * 
-	 * @param in
-	 * @param out
-	 * @param closeIS close input stream when done
-	 * @param closeOS close output stream when done
-	 * @throws IOException
+	 * @param in Input stream
+	 * @param out Output stream
+	 * @param closeIS close Input Stream when done
+	 * @param closeOS close Output Stream when done
+	 * @throws IOException IO Exception
 	 */
 	public void copy(InputStream in, OutputStream out, boolean closeIS, boolean closeOS) throws IOException;
 
 	/**
-	 * copy data from reader to writer
+	 * copy data from Reader to Writer
 	 * 
-	 * @param in
-	 * @param out
-	 * @param closeR close the reader when done
-	 * @param closeW close the writer when done
-	 * @throws IOException
+	 * @param in Input stream
+	 * @param out Output stream
+	 * @param closeR close the Reader when done
+	 * @param closeW close the Writer when done
+	 * @throws IOException IO Exception
 	 */
 	public void copy(Reader in, Writer out, boolean closeR, boolean closeW) throws IOException;
 
 	/**
-	 * copy content from source to target
+	 * copy content from Source to Target
 	 * 
-	 * @param src
-	 * @param trg
-	 * @throws IOException
+	 * @param src Source
+	 * @param trg Target
+	 * @throws IOException IO Exception
 	 */
 	public void copy(Resource src, Resource trg) throws IOException;
 

@@ -1096,4 +1096,18 @@ public final class ConfigWebUtil {
 		// TODO config.getServerConfigWeb();
 		return (ConfigWeb) config;
 	}
+
+	public static class CacheElement {
+
+		public final long created;
+		public final PageSource pageSource;
+		public final boolean isCFC;
+
+		public CacheElement(PageSource pageSource, boolean isCFC) {
+			this.created = System.currentTimeMillis();
+			this.pageSource = pageSource;
+			this.isCFC = isCFC;
+		}
+
+	}
 }

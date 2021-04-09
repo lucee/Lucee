@@ -901,13 +901,16 @@ public final class ConfigServerImpl extends ConfigImpl implements ConfigServer {
 		ConfigWeb[] webs = getConfigWebs();
 		try {
 			ConfigServerFactory.reloadInstance(engine, this);
-			for (int i = 0; i < webs.length; i++) {
-				ConfigWebFactory.reloadInstance(engine, this, (ConfigWebImpl) webs[i], true);
+			for (ConfigWeb web: webs) {
+				if (web instanceof ConfigWebImpl) ConfigWebFactory.reloadInstance(engine, this, (ConfigWebImpl) web, true);
+				else if (web instanceof SingleContextConfigWeb) ((SingleContextConfigWeb) web).reload();
 			}
+
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);
 		}
+
 	}
 
 	public void setAdminMode(short adminMode) {

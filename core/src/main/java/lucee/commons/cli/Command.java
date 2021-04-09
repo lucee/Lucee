@@ -46,7 +46,7 @@ public class Command {
 		if (!StringUtil.isEmpty(workingDir, true)) {
 			Resource res = ResourceUtil.toResourceExisting(pc, workingDir);
 			if (!res.isDirectory()) throw new IOException("CFEXECUTE Directory [" + workingDir + "] is not a existing directory");
-			if (dir instanceof FileResource) dir = (FileResource) res;
+			if (res instanceof FileResource) dir = (FileResource) res;
 			else throw new IOException("CFEXECUTE directory [" + workingDir + "] must be a local directory, scheme [" + res.getResourceProvider().getScheme() + "] is not supported in this context.");
 		}
 		return Runtime.getRuntime().exec(commands, null, dir);

@@ -25,7 +25,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		if(isNotSupported()) return;
 		s3Details = getCredentials();
 		bucketName = "lucee-testsuite";
-		base = "s3://#s3Details.ACCESSKEYID#:#s3Details.AWSSECRETKEY#@/#bucketName#";
+		base = "s3://#s3Details.S3_ACCESS_KEY_ID#:#s3Details.S3_SECRET_KEY#@/#bucketName#";
 
 	}
 
@@ -75,18 +75,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	}
 
 	private struct function getCredentials() {
-		var s3 = {};
-		if(!isNull(server.system.environment.S3_ACCESS_ID) && !isNull(server.system.environment.S3_SECRET_KEY)) {
-			// getting the credentials from the environment variables
-			s3.ACCESSKEYID=server.system.environment.S3_ACCESS_ID;
-			s3.AWSSECRETKEY=server.system.environment.S3_SECRET_KEY;
-		}
-		else if(!isNull(server.system.properties.S3_ACCESS_ID) && !isNull(server.system.properties.S3_SECRET_KEY)) {
-			// getting the credentials from the system variables
-			s3.ACCESSKEYID=server.system.properties.S3_ACCESS_ID;
-			s3.AWSSECRETKEY=server.system.properties.S3_SECRET_KEY;
-		}
-		return s3;
+		return server.getTestService("s3");
 	}
 
 

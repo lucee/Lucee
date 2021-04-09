@@ -850,10 +850,10 @@ public class RHExtension implements Serializable {
 		String id = getId();
 		String name = getName();
 		if (StringUtil.isEmpty(name)) name = id;
+		el.setEL("id", id);
 		el.setEL("name", name);
 		el.setEL("version", getVersion());
 		if (!full) return;
-		el.setEL("id", id);
 
 		// newly added
 		// start bundles (IMPORTANT:this key is used to reconize a newer entry, so do not change)

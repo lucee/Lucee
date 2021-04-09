@@ -254,12 +254,16 @@ public final class ConfigServerFactory extends ConfigFactory {
 		create("/resource/context/admin/logging/layout/",
 				new String[] { "ClassicLayout.cfc", "HTMLLayout.cfc", "PatternLayout.cfc", "XMLLayout.cfc", "Layout.cfc", "Field.cfc", "Group.cfc" }, lay, doNew);
 
-		// Security
+		// Security / SSL
 		Resource secDir = configDir.getRealResource("security");
 		if (!secDir.exists()) secDir.mkdirs();
 		Resource res = create("/resource/security/", "cacerts", secDir, false);
-		System.setProperty("javax.net.ssl.trustStore", res.toString());
-
+		if (SystemUtil.getSystemPropOrEnvVar("lucee.use.lucee.SSL.TrustStore", "").equalsIgnoreCase("true"))
+			System.setProperty("javax.net.ssl.trustStore", res.toString());
+		// Allow using system proxies
+		if (!SystemUtil.getSystemPropOrEnvVar("lucee.disable.systemProxies", "").equalsIgnoreCase("true"))
+			System.setProperty("java.net.useSystemProxies", "true"); // it defaults to false
+		
 		// Jacob
 		if (SystemUtil.isWindows()) {
 

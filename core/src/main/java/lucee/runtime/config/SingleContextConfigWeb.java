@@ -36,6 +36,7 @@ import lucee.commons.io.res.util.ResourceClassLoader;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CharSet;
 import lucee.commons.lang.ClassException;
+import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lock.KeyLock;
 import lucee.runtime.CFMLFactory;
 import lucee.runtime.CFMLFactoryImpl;
@@ -53,7 +54,6 @@ import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.customtag.InitFile;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
-import lucee.runtime.db.DatasourceConnectionPool;
 import lucee.runtime.db.JDBCDriver;
 import lucee.runtime.debug.DebuggerPool;
 import lucee.runtime.dump.DumpWriter;
@@ -745,8 +745,13 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	}
 
 	@Override
-	public DatasourceConnectionPool getDatasourceConnectionPool() {
-		return cs.getDatasourceConnectionPool();
+	public DatasourceConnPool getDatasourceConnectionPool(DataSource ds, String user, String pass) {
+		return cs.getDatasourceConnectionPool(ds, user, pass);
+	}
+
+	@Override
+	public Collection<DatasourceConnPool> getDatasourceConnectionPools() {
+		return cs.getDatasourceConnectionPools();
 	}
 
 	@Override
@@ -1056,6 +1061,11 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	}
 
 	@Override
+	public void clearApplicationCache() {
+		cs.clearApplicationCache();
+	}
+
+	@Override
 	public ImportDefintion getComponentDefaultImport() {
 		return cs.getComponentDefaultImport();
 	}
@@ -1317,12 +1327,22 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 
 	@Override
 	public RHExtension[] getServerRHExtensions() {
-		return cs.getServerRHExtensions();
+		return cs.getRHExtensions();
 	}
 
 	@Override
 	public Cluster createClusterScope() throws PageException {
 		return cs.createClusterScope();
+	}
+
+	@Override
+	public PageSource getApplicationPageSource(PageContext pc, String path, String filename, int mode, RefBoolean isCFC) {
+		return cs.getApplicationPageSource(pc, path, filename, mode, isCFC);
+	}
+
+	@Override
+	public void putApplicationPageSource(String path, PageSource ps, String filename, int mode, boolean isCFC) {
+		cs.putApplicationPageSource(path, ps, filename, mode, isCFC);
 	}
 
 	@Override
@@ -1500,6 +1520,11 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	@Override
 	public ServletContext getServletContext() {
 		return config.getServletContext();
+	}
+
+	@Override
+	public long getApplicationPathCacheTimeout() {
+		return cs.getApplicationPathCacheTimeout();
 	}
 
 	@Override
@@ -1771,5 +1796,15 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 			}
 		}
 		this.mappings = ConfigWebUtil.sort(mappings.values().toArray(new Mapping[mappings.size()]));
+	}
+
+	@Override
+	public void removeDatasourceConnectionPool(DataSource ds) {
+		cs.removeDatasourceConnectionPool(ds);
+	}
+
+	@Override
+	public MockPool getDatasourceConnectionPool() {
+		return cs.getDatasourceConnectionPool();
 	}
 }

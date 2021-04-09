@@ -54,6 +54,7 @@ import lucee.runtime.op.Caster;
 import lucee.runtime.op.Decision;
 import lucee.runtime.osgi.OSGiUtil;
 import lucee.runtime.type.Array;
+import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
@@ -434,6 +435,7 @@ public abstract class ConfigFactory {
 			moveAsBool("implicitAccess", "debuggingImplicitAccess", debugging, root);
 			moveAsBool("queryUsage", "debuggingQueryUsage", debugging, root);
 			moveAsBool("showQueryUsage", "debuggingQueryUsage", debugging, root);
+			moveAsBool("thread", "debuggingThread", debugging, root);
 			moveAsInt("maxRecordsLogged", "debuggingMaxRecordsLogged", debugging, root);
 
 			Array entries = ConfigWebUtil.getAsArray("debugEntry", debugging);
@@ -472,7 +474,7 @@ public abstract class ConfigFactory {
 		{
 			Struct extensions = ConfigWebUtil.getAsStruct("extensions", root);
 			Array rhextension = ConfigWebUtil.getAsArray("rhextension", extensions);
-
+			Array newExtensions = new ArrayImpl();
 			rem("enabled", extensions);
 			rem("extension", extensions);
 
@@ -487,11 +489,15 @@ public abstract class ConfigFactory {
 				String name = Caster.toString(data.get(KeyConstants._name, null), null);
 				RHExtension.storeMetaData(config, id, version, data);
 				Struct sct = new StructImpl(Struct.TYPE_LINKED);
-				if (name != null) sct.setEL(KeyConstants._name, name);
+				sct.setEL(KeyConstants._id, id);
 				sct.setEL(KeyConstants._version, version);
-				add(sct, Caster.toString(data.remove(KeyConstants._id, null), null), extensions);
+				if (name != null) sct.setEL(KeyConstants._name, name);
+				// add(sct, Caster.toString(data.remove(KeyConstants._id, null), null), extensions);
+				newExtensions.appendEL(sct);
 				rhextension.remove(k, null);
 			}
+			root.setEL("extensions", newExtensions);
+
 			// providers
 			Array rhprovider = ConfigWebUtil.getAsArray("rhprovider", extensions);
 			Array extensionProviders = ConfigWebUtil.getAsArray("extensionProviders", root);

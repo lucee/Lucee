@@ -85,5 +85,5 @@
 </cfif>
 
 <cfif not hasAction and not hasDisplay>
-<cfset printError(struct(message:"there is no action [#url.pluginAction#] or diplay handler [#expandPath(dspFile)#] defined for "&url.plugin,detail:''))>
+<cfset printError(struct(message:"there is no action [#url.pluginAction#] or display handler [#expandPath(dspFile)#] defined for "&url.plugin,detail:''))>
 </cfif>

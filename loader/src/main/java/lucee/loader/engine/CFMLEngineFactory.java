@@ -69,6 +69,7 @@ import com.intergral.fusiondebug.server.FDControllerFactory;
 
 import lucee.VersionInfo;
 import lucee.commons.io.log.Log;
+import lucee.commons.lang.ConcurrentHashMapAsHashtable;
 import lucee.loader.TP;
 import lucee.loader.osgi.BundleCollection;
 import lucee.loader.osgi.BundleLoader;
@@ -118,6 +119,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	protected ServletConfig config;
 
 	protected CFMLEngineFactory(final ServletConfig config) {
+		System.setProperty("org.apache.commons.logging.LogFactory.HashtableImpl", ConcurrentHashMapAsHashtable.class.getName());
 		File logFile = null;
 		this.config = config;
 		try {
@@ -273,7 +275,8 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		try {
 			Thread.sleep(5000);
 		}
-		catch (InterruptedException e) {}
+		catch (InterruptedException e) {
+		}
 
 		BundleUtil.stop(felix, false);
 	}
@@ -295,7 +298,7 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 		final File[] patches = PATCH_ENABLED ? patcheDir.listFiles(new ExtensionFilter(new String[] { ".lco" })) : null;
 		File lucee = null;
 		if (patches != null) {
-			for (final File patch : patches) {
+			for (final File patch: patches) {
 				if (patch.getName().startsWith("tmp.lco")) patch.delete();
 				else if (patch.lastModified() < coreCreated) patch.delete();
 				else if (patch.length() < 1000000L) patch.delete();
@@ -642,7 +645,8 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 			try {
 				newLucee.delete();
 			}
-			catch (final Exception ee) {}
+			catch (final Exception ee) {
+			}
 			log(e);
 			e.printStackTrace();
 			return false;
@@ -1079,10 +1083,10 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	 * method to initialize an update of the CFML Engine. checks if there is a new Version and update it
 	 * when a new version is available
 	 *
-	 * @param password
+	 * @param password password
 	 * @return has updated
-	 * @throws IOException
-	 * @throws ServletException
+	 * @throws IOException io exception
+	 * @throws ServletException servlet exception
 	 */
 	public boolean removeUpdate(final Password password) throws IOException, ServletException {
 		if (!singelton.can(CFMLEngine.CAN_UPDATE, password)) throw new IOException("Access denied to update CFMLEngine");
@@ -1107,8 +1111,8 @@ public class CFMLEngineFactory extends CFMLEngineFactorySupport {
 	 * updates the engine when an update is available
 	 *
 	 * @return has updated
-	 * @throws IOException
-	 * @throws ServletException
+	 * @throws IOException io exception
+	 * @throws ServletException servlet exception
 	 */
 	private boolean removeUpdate() throws IOException, ServletException {
 		final File patchDir = getPatchDirectory();

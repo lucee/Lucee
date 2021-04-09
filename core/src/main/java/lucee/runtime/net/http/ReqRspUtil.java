@@ -18,7 +18,11 @@
  */
 package lucee.runtime.net.http;
 
+import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.HARD;
+import static org.apache.commons.collections4.map.AbstractReferenceMap.ReferenceStrength.SOFT;
+
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
@@ -29,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletInputStream;
@@ -38,6 +43,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.collections4.map.ReferenceMap;
 import org.xml.sax.InputSource;
 
 import lucee.commons.io.CharsetUtil;
@@ -69,6 +75,7 @@ import lucee.runtime.type.util.CollectionUtil;
 public final class ReqRspUtil {
 
 	private static final Cookie[] EMPTY = new Cookie[0];
+	private static Map<String, String> rootPathes = new ReferenceMap<String, String>(HARD, SOFT);
 
 	public static String get(Pair<String, Object>[] items, String name) {
 		for (int i = 0; i < items.length; i++) {
@@ -522,12 +529,20 @@ public final class ReqRspUtil {
 	public static String getRootPath(ServletContext sc) {
 
 		if (sc == null) throw new RuntimeException("cannot determinate webcontext root, because the ServletContext is null");
+		String id = new StringBuilder().append(sc.getContextPath()).append(':').append(sc.hashCode()).toString();
+		String root = rootPathes.get(id);
+		if (!StringUtil.isEmpty(root, true)) return root;
 
-		String root = sc.getRealPath("/");
-
+		root = sc.getRealPath("/");
 		if (root == null) throw new RuntimeException("cannot determinate webcontext root, the ServletContext from class [" + sc.getClass().getName()
 				+ "] is returning null for the method call sc.getRealPath(\"/\"), possibly due to configuration problem.");
 
+		try {
+			root = new File(root).getCanonicalPath();
+		}
+		catch (IOException e) {
+		}
+		rootPathes.put(id, root);
 		return root;
 	}
 
@@ -538,13 +553,15 @@ public final class ReqRspUtil {
 			try {
 				return new JSONExpressionInterpreter().interpret(pc, toString(data, charset));
 			}
-			catch (PageException pe) {}
+			catch (PageException pe) {
+			}
 			break;
 		case UDF.RETURN_FORMAT_SERIALIZE:
 			try {
 				return new CFMLExpressionInterpreter().interpret(pc, toString(data, charset));
 			}
-			catch (PageException pe) {}
+			catch (PageException pe) {
+			}
 			break;
 		case UDF.RETURN_FORMAT_WDDX:
 			try {
@@ -552,7 +569,8 @@ public final class ReqRspUtil {
 				converter.setTimeZone(pc.getTimeZone());
 				return converter.deserialize(toString(data, charset), false);
 			}
-			catch (Exception pe) {}
+			catch (Exception pe) {
+			}
 			break;
 		case UDF.RETURN_FORMAT_XML:
 			try {
@@ -560,13 +578,15 @@ public final class ReqRspUtil {
 				InputSource validator = null;
 				return XMLCaster.toXMLStruct(XMLUtil.parse(xml, validator, false), true);
 			}
-			catch (Exception pe) {}
+			catch (Exception pe) {
+			}
 			break;
 		case UDF.RETURN_FORMAT_JAVA:
 			try {
 				return JavaConverter.deserialize(new ByteArrayInputStream(data));
 			}
-			catch (Exception pe) {}
+			catch (Exception pe) {
+			}
 			break;
 		}
 

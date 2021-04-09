@@ -286,50 +286,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	}
 
 	private struct function getCredentials(){
-		var result={};
-
-		if(isNull(server.system)){
-			// for lucee 4.5
-			server.system = structNew();
-			currSystem = createObject("java", "java.lang.System");
-			server.system.environment = currSystem.getenv();
-			server.system.properties = currSystem.getproperties();
-		}
-
-		if(
-			!isNull(server.system.environment.MAIL_USERNAME) &&
-			!isNull(server.system.environment.MAIL_PASSWORD) &&
-			!isNull(server.system.environment.IMAP_SERVER) &&
-			!isNull(server.system.environment.IMAP_PORT_SECURE) &&
-			!isNull(server.system.environment.IMAP_PORT_INSECURE)
-		){
-			// getting the credentials from the environment variables
-			var result={};
-			// Common settings
-			result.username=server.system.environment.MAIL_USERNAME;
-			result.password=server.system.environment.MAIL_PASSWORD;
-			// IMAP related settings
-			result.IMAP.server=server.system.environment.IMAP_SERVER;
-			result.IMAP.securePort=server.system.environment.IMAP_PORT_SECURE;
-			result.IMAP.insecurePort=server.system.environment.IMAP_PORT_INSECURE;
-		}else if(
-			!isNull(server.system.properties.MAIL_USERNAME) &&
-			!isNull(server.system.properties.MAIL_PASSWORD) &&
-			!isNull(server.system.properties.IMAP_SERVER) &&
-			!isNull(server.system.properties.IMAP_PORT_SECURE) &&
-			!isNull(server.system.properties.IMAP_PORT_INSECURE)
-		){
-			// getting the credentials from the system properties
-			var result={};
-			// Common settings
-			result.username=server.system.properties.MAIL_USERNAME;
-			result.password=server.system.properties.MAIL_PASSWORD;
-			// IMAP related settings
-			result.IMAP.server=server.system.properties.IMAP_SERVER;
-			result.IMAP.securePort=server.system.properties.IMAP_PORT_SECURE;
-			result.IMAP.insecurePort=server.system.properties.IMAP_PORT_INSECURE;
-		}
-
-		return result;
+		return server.getTestService("imap");
 	}
 }

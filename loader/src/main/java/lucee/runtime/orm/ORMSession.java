@@ -30,43 +30,44 @@ public interface ORMSession {
 	/**
 	 * flush all elements in all sessions (for all datasources)
 	 * 
-	 * @param pc
-	 * @throws PageException
+	 * @param pc Page Context
+	 * @throws PageException Page Exception
 	 */
 	public void flushAll(PageContext pc) throws PageException;
 
 	/**
 	 * flush all elements in the default sessions
 	 * 
-	 * @param pc
-	 * @throws PageException
+	 * @param pc Page Context
+	 * @throws PageException Page Exception
 	 */
 	public void flush(PageContext pc) throws PageException;
 
 	/**
 	 * flush all elements in a specific sessions defined by datasource name
 	 * 
-	 * @param pc
-	 * @throws PageException
+	 * @param pc Page Context
+	 * @param datasource Datasource name
+	 * @throws PageException Page Exception
 	 */
 	public void flush(PageContext pc, String datasource) throws PageException;
 
 	/**
 	 * delete elememt from datasource
 	 * 
-	 * @param pc
-	 * @param obj
-	 * @throws PageException
+	 * @param pc Page Context
+	 * @param obj Object
+	 * @throws PageException Page Exception
 	 */
 	public void delete(PageContext pc, Object obj) throws PageException;
 
 	/**
 	 * insert entity into datasource, even the entry already exist
 	 * 
-	 * @param pc
-	 * @param obj
-	 * @param forceInsert
-	 * @throws PageException
+	 * @param pc Page Context
+	 * @param obj Object
+	 * @param forceInsert force insert
+	 * @throws PageException Page Exception
 	 */
 	public void save(PageContext pc, Object obj, boolean forceInsert) throws PageException;
 
@@ -74,15 +75,19 @@ public interface ORMSession {
 	 * Reloads data for an entity that is already loaded. This method refetches data from the database
 	 * and repopulates the entity with the refreshed data.
 	 * 
-	 * @param obj
+	 * @param pc Page Context
+	 * @param obj Object
+	 * @throws PageException Page Exception
 	 */
 	public void reload(PageContext pc, Object obj) throws PageException;
 
 	/**
 	 * creates an entity matching the given name
 	 * 
-	 * @param entityName
-	 * @return
+	 * @param pc Page Context
+	 * @param entityName entity name
+	 * @return component
+	 * @throws PageException Page Exception
 	 */
 	public Component create(PageContext pc, String entityName) throws PageException;
 
@@ -92,26 +97,27 @@ public interface ORMSession {
 	 * is no persistent instance currently associated with the session, it is loaded. The given instance
 	 * is not associated with the session. User have to use the returned object from this session.
 	 * 
-	 * @param pc
-	 * @param obj
-	 * @throws PageException
+	 * @param pc Page Context
+	 * @param obj Object
+	 * @return component
+	 * @throws PageException Page Exception
 	 */
 	public Component merge(PageContext pc, Object obj) throws PageException;
 
 	/**
 	 * clear all elements in the default sessions
 	 * 
-	 * @param pc
-	 * @throws PageException
+	 * @param pc Page Context
+	 * @throws PageException Page Exception
 	 */
 	public void clear(PageContext pc) throws PageException;
 
 	/**
 	 * clear all elements in a specific sessions defined by datasource name
 	 * 
-	 * @param pc
-	 * @param dataSource
-	 * @throws PageException
+	 * @param pc Page Context
+	 * @param dataSource Datasource Name
+	 * @throws PageException Page Exception
 	 */
 	public void clear(PageContext pc, String dataSource) throws PageException;
 
@@ -119,9 +125,11 @@ public interface ORMSession {
 	 * load and return an Object that match given filter, if there is more than one Object matching the
 	 * filter, only the first Object is returned
 	 * 
-	 * @param name
-	 * @param filter
-	 * @return
+	 * @param pc Page Context
+	 * @param name name
+	 * @param filter filter
+	 * @return Returns an object
+	 * @throws PageException Page Exception
 	 */
 	public Component load(PageContext pc, String name, Struct filter) throws PageException;
 
@@ -131,8 +139,11 @@ public interface ORMSession {
 	 * load and return an Object that match given id, if there is more than one Object matching the id,
 	 * only the first Object is returned
 	 * 
-	 * @param name
-	 * @param id
+	 * @param pc Page Context
+	 * @param name name
+	 * @param id id
+	 * @return Returns an object
+	 * @throws PageException Page Exception
 	 */
 	public Component load(PageContext pc, String name, String id) throws PageException; // FUTURE deprecate
 
@@ -141,56 +152,65 @@ public interface ORMSession {
 	/**
 	 * load and return an Array of Objects matching given filter
 	 * 
-	 * @param name
-	 * @param filter
-	 * @return
+	 * @param pc Page Context
+	 * @param name name
+	 * @param filter filter
+	 * @return array of objects
+	 * @throws PageException Page Exception
 	 */
 	public Array loadAsArray(PageContext pc, String name, Struct filter) throws PageException;
 
 	/**
 	 * load and return an Array of Objects matching given filter
 	 * 
-	 * @param name
-	 * @param filter
-	 * @param options
-	 * @return
+	 * @param pc Page Context
+	 * @param name name
+	 * @param filter filter
+	 * @param options options
+	 * @return array of objects
+	 * @throws PageException Page Exception
 	 */
 	public Array loadAsArray(PageContext pc, String name, Struct filter, Struct options) throws PageException;
 
 	/**
-	 * @param pc
-	 * @param name
-	 * @param filter
-	 * @param options
-	 * @param order
-	 * @return
-	 * @throws PageException
+	 * @param pc Page Context
+	 * @param name name
+	 * @param filter filter
+	 * @param options options
+	 * @param order order
+	 * @return array of objects
+	 * @throws PageException Page Exception
 	 */
 	public Array loadAsArray(PageContext pc, String name, Struct filter, Struct options, String order) throws PageException;
 
 	/**
 	 * load and return an Array of Objects matching given id
 	 * 
-	 * @param name
-	 * @param id
+	 * @param pc Page Context
+	 * @param name name
+	 * @param id id
+	 * @return array
+	 * @throws PageException Page Exception
 	 */
 	public Array loadAsArray(PageContext pc, String name, String id) throws PageException;
 
 	/**
-	 * @param pc
-	 * @param name
-	 * @param id
-	 * @param order
-	 * @return
-	 * @throws PageException
+	 * @param pc Page Context
+	 * @param name name
+	 * @param id id 
+	 * @param order order
+	 * @return array
+	 * @throws PageException Page Exception
 	 */
 	public Array loadAsArray(PageContext pc, String name, String id, String order) throws PageException;
 
 	/**
 	 * load and return an Array of Objects matching given sampleEntity
 	 * 
-	 * @param pc
-	 * @param obj
+	 * @param pc Page Context
+	 * @param obj object
+	 * @return array
+	 * @throws PageException Page Exception
 	 */
 	public Array loadByExampleAsArray(PageContext pc, Object obj) throws PageException;
 
@@ -198,8 +218,10 @@ public interface ORMSession {
 	 * load and return an Object that match given sampleEntity, if there is more than one Object matching
 	 * the id, only the first Object is returned
 	 * 
-	 * @param pc
-	 * @param obj
+	 * @param pc Page Context
+	 * @param obj object
+	 * @return Component
+	 * @throws PageException Page Exception
 	 */
 	public Component loadByExample(PageContext pc, Object obj) throws PageException;
 
@@ -224,31 +246,32 @@ public interface ORMSession {
 	/**
 	 * close all elements in all sessions
 	 * 
-	 * @param pc
-	 * @throws PageException
+	 * @param pc Page Context
+	 * @throws PageException Page Exception
 	 */
 	public void closeAll(PageContext pc) throws PageException;
 
 	/**
 	 * close all elements in the default sessions
 	 * 
-	 * @param pc
-	 * @throws PageException
+	 * @param pc Page Context
+	 * @throws PageException Page Exception
 	 */
 	public void close(PageContext pc) throws PageException;
 
 	/**
 	 * close all elements in a specific sessions defined by datasource name
 	 * 
-	 * @param pc
-	 * @param datasource
-	 * @throws PageException
+	 * @param pc Page Context
+	 * @param datasource Datsource Name
+	 * @throws PageException Page Exception
 	 */
 	public void close(PageContext pc, String datasource) throws PageException;
 
 	/**
 	 * is session valid or not
 	 * 
+	 * @param ds datasource
 	 * @return is session valid
 	 */
 	public boolean isValid(DataSource ds);

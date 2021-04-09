@@ -33,35 +33,37 @@ public interface SpoolerEngine {
 	/**
 	 * adds a task to the engine
 	 * 
-	 * @param task
+	 * @param task task
 	 */
 	public void add(SpoolerTask task);
 
 	/**
 	 * remove that task from Spooler
 	 * 
-	 * @param task
+	 * @param task task
 	 */
 	public void remove(SpoolerTask task);
 
 	/**
 	 * remove a task that match given id
 	 * 
-	 * @param id
+	 * @param id task id
 	 */
 	public void remove(String id);
 
 	/**
 	 * execute task by id and return error thrown by task
 	 * 
-	 * @param id
+	 * @param id task id
+	 * @return Exception thrown by task
 	 */
 	public PageException execute(String id);
 
 	/**
 	 * execute task and return error thrown by task
 	 * 
-	 * @param task
+	 * @param task task
+	 * @return Exception thrown by task
 	 */
 	public PageException execute(SpoolerTask task);
 

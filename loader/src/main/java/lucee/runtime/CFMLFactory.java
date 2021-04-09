@@ -71,6 +71,8 @@ public abstract class CFMLFactory extends JspFactory {
 	 * @param register register the PageContext to the current thread
 	 * @param timeout timeout in ms, if the value is smaller than 1 it is ignored and the value comming
 	 *            from the context is used
+	 * @param register2RunningThreads register to running threads
+	 * @param ignoreScopes ignore scopes
 	 * @return return the PageContext
 	 */
 	public abstract PageContext getLuceePageContext(HttpServlet servlet, HttpServletRequest req, HttpServletResponse rsp, String errorPageURL, boolean needsSession, int bufferSize,
@@ -118,7 +120,7 @@ public abstract class CFMLFactory extends JspFactory {
 
 	/**
 	 * @deprecated no replacement
-	 * @param label
+	 * @param label a label
 	 */
 	@Deprecated
 	public abstract void setLabel(String label);

@@ -284,7 +284,7 @@ public interface Config {
 	public abstract boolean hasPassword();
 
 	/**
-	 * @param password
+	 * @param password password
 	 * @return return if a password is set
 	 */
 	public abstract boolean passwordEqual(Password password);
@@ -315,6 +315,7 @@ public interface Config {
 	public abstract long getLoadTime();
 
 	/**
+	 * @param dialect dialect
 	 * @return Returns the baseComponent.
 	 */
 	public abstract String getBaseComponentTemplate(int dialect);
@@ -347,6 +348,7 @@ public interface Config {
 	public abstract String getDebugTemplate();
 
 	/**
+	 * @param statusCode status code
 	 * @return Returns the error Template for given status code.
 	 */
 	public abstract String getErrorTemplate(int statusCode);
@@ -405,14 +407,14 @@ public interface Config {
 
 	/**
 	 * @return Returns the cfxTagPool.
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 */
 	public abstract CFXTagPool getCFXTagPool() throws PageException;
 
 	/**
-	 * @param password
+	 * @param password password
 	 * @return ConfigServer
-	 * @throws PageException
+	 * @throws PageException Page Exception
 	 * @deprecated use instead ConfigWeb.getConfigServer(Password password)
 	 */
 	@Deprecated
@@ -449,11 +451,13 @@ public interface Config {
 
 	/**
 	 * return the compile type of this context
+	 * @return compile type
 	 */
 	public short getCompileType();
 
 	/**
 	 * return the all datasources
+	 * @return all datasources
 	 */
 	public DataSource[] getDataSources();
 
@@ -485,6 +489,7 @@ public interface Config {
 	/**
 	 * return if proxy is enabled or not
 	 * 
+	 * @param host Host
 	 * @return is proxy enabled
 	 */
 	public boolean isProxyEnableFor(String host);
@@ -529,7 +534,7 @@ public interface Config {
 	/**
 	 * returns the default DumpWriter
 	 * 
-	 * @param defaultType
+	 * @param defaultType default type
 	 * @return default DumpWriter
 	 */
 	public abstract DumpWriter getDefaultDumpWriter(int defaultType);
@@ -538,7 +543,7 @@ public interface Config {
 	 * returns the DumpWriter matching key
 	 * 
 	 * @param key key for DumpWriter
-	 * @param defaultType
+	 * @param defaultType default type
 	 * @return matching DumpWriter
 	 * @throws PageException if there is no DumpWriter for this key
 	 */
@@ -558,7 +563,7 @@ public interface Config {
 	/**
 	 * define if components has a "shadow" in the component variables scope or not.
 	 * 
-	 * @return
+	 * @return if the component has a shadow scope.
 	 */
 	public abstract boolean useComponentShadow();
 
@@ -665,6 +670,7 @@ public interface Config {
 	 * @param mappings per application mappings
 	 * @param realPath path to get PageSource for
 	 * @param onlyTopLevel checks only toplevel mappings
+	 * @return Page Source
 	 * @deprecated use instead getPageSources or getPageSourceExisting
 	 */
 	@Deprecated
@@ -680,6 +686,8 @@ public interface Config {
 	 * @param onlyTopLevel checks only toplevel mappings
 	 * @param useSpecialMappings invoke special mappings like "mapping-tag" or "mapping-customtag"
 	 * @param useDefaultMapping also invoke the always existing default mapping "/"
+	 * @param onlyPhysicalExisting only Physical existing
+	 * @return Page Source
 	 */
 	public PageSource getPageSourceExisting(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping,
 			boolean onlyPhysicalExisting);
@@ -693,6 +701,7 @@ public interface Config {
 	 * @param onlyTopLevel checks only toplevel mappings
 	 * @param useSpecialMappings invoke special mappings like "mapping-tag" or "mapping-customtag"
 	 * @param useDefaultMapping also invoke the always existing default mapping "/"
+	 * @return All Page Sources
 	 * @deprecated use instead
 	 */
 	@Deprecated
@@ -708,6 +717,7 @@ public interface Config {
 	 * @param useSpecialMappings invoke special mappings like "mapping-tag" or "mapping-customtag"
 	 * @param useDefaultMapping also invoke the always existing default mapping "/"
 	 * @param useComponentMappings also invoke component mappings
+	 * @return All Page Sources
 	 */
 	public PageSource[] getPageSources(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping,
 			boolean useComponentMappings);
@@ -717,7 +727,8 @@ public interface Config {
 	 * 
 	 * @param mappings per application mappings
 	 * @param relPath path to get PageSource for
-	 * @param alsoDefaultMapping
+	 * @param alsoDefaultMapping also default mapping
+	 * @return Resource
 	 * @deprecated use instead getPhysicalResources or getPhysicalResourceExisting
 	 */
 	@Deprecated
@@ -732,6 +743,7 @@ public interface Config {
 	 * @param onlyTopLevel checks only toplevel mappings
 	 * @param useSpecialMappings invoke special mappings like "mapping-tag" or "mapping-customtag"
 	 * @param useDefaultMapping also invoke the always existing default mapping "/"
+	 * @return Resource
 	 */
 	public Resource[] getPhysicalResources(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping);
 
@@ -744,6 +756,7 @@ public interface Config {
 	 * @param onlyTopLevel checks only toplevel mappings
 	 * @param useSpecialMappings invoke special mappings like "mapping-tag" or "mapping-customtag"
 	 * @param useDefaultMapping also invoke the always existing default mapping "/"
+	 * @return Resource
 	 */
 	public Resource getPhysicalResourceExisting(PageContext pc, Mapping[] mappings, String realPath, boolean onlyTopLevel, boolean useSpecialMappings, boolean useDefaultMapping);
 
@@ -796,7 +809,7 @@ public interface Config {
 	/**
 	 * if free permspace gen is lower than 10000000 bytes, lucee shrinks all classloaders
 	 * 
-	 * @param check
+	 * @param check check
 	 */
 	public void checkPermGenSpace(boolean check);
 

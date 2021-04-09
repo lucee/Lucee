@@ -42,7 +42,7 @@ component {
 		if (variables.isDebug)
 			onApplicationStart();		// disable cache for debug/develop
 
-		Application.objects.missingTemplateHandler.onMissingTemplate(target);
+		Application.objects.missingTemplateHandler.onMissingTemplate(arguments.target);
 	}
 
 }

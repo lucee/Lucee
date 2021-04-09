@@ -754,7 +754,7 @@ public class Input extends TagImpl {
 	 */
 	public void setValidateat(String validateAt) throws ApplicationException {
 		this.validateAt = validateAt;
-		throw new ApplicationException("attribute validateAt is not supported for tag input ");
+		throw new ApplicationException("attribute [validateAt] is not supported for tag input ");
 
 	}
 

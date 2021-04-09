@@ -88,11 +88,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 	private void function defineDatasource(){
 		application action="update" 
 			datasource={
-	  		class: 'org.hsqldb.jdbcDriver'
-			, bundleName: 'org.hsqldb.hsqldb'
-			//, bundleVersion: arguments.version
-			, connectionString: 'jdbc:hsqldb:file:#getDirectoryFromPath(getCurrentTemplatePath())#/LDEV1304/db'
+			class: 'org.h2.Driver'
+			, bundleName: 'org.h2'
+			, bundleVersion: '1.3.172'
+			, connectionString: 'jdbc:h2:#getDirectoryFromPath(getCurrentTemplatePath())#/LDEV1304/db;MODE=MySQL'
+			, connectionLimit:100 // default:-1
 		};
 	}
-} 
+}
 </cfscript>

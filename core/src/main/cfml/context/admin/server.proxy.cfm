@@ -122,14 +122,11 @@ function doEnableProxy(enableProxy) {
 }
 </script>
 
-
-
 <table class="maintbl" width="600">
-
 <cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
-
 <div class="pageintro">#stText.proxy[request.adminType]#
 <h2>#stText.proxy.settings#</h2></div>
+
 <!--- Server --->
 <tr>
 	<th scope="row">#stText.proxy.server#</th>
@@ -224,5 +221,8 @@ function doEnableProxy(enableProxy) {
 	
 </cfformClassic>
 
-</table></cfoutput>
-<br><br>
+</table>
+<br>
+<b>java.net.useSystemProxies:</b> is set to #server.system.properties["java.net.useSystemProxies"]?: " (not set)"#
+<br>
+</cfoutput>

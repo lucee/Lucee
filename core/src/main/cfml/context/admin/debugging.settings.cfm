@@ -22,7 +22,8 @@
 	type="#request.adminType#"
 	password="#session["password"&request.adminType]#"
 	returnVariable="access"
-	secType="debugging">
+	secType="debugging"
+	secValue="yes">
 <cfset hasAccess=access>
 
 
@@ -43,6 +44,7 @@
 					implicitAccess="#isDefined('form.implicitAccess') && form.implicitAccess#"
 					queryUsage="#isDefined('form.queryUsage') && form.queryUsage#"
 					template="#isDefined('form.template') && form.template#"
+					thread="#isDefined('form.thread') && form.thread#"
 
 
 					debugTemplate=""
@@ -61,7 +63,7 @@
 					timer=""
 					implicitAccess=""
 					queryUsage=""
-
+					thread=""
 
 					debugTemplate=""
 					remoteClients="#request.getRemoteClients()#">
@@ -144,7 +146,7 @@ Redirtect to entry --->
 									<div class="comment">#stText.debug.settings.generalYes#</div>
 									<table class="maintbl autowidth" id="debugoptionstbl">
 									<tbody>
-										<cfloop list="template,database,exception,tracing,dump,timer,implicitAccess" item="item">
+										<cfloop list="template,database,exception,tracing,dump,timer,implicitAccess,thread" item="item">
 										<tr>
 											<th scope="row">#stText.debug.settings[item]#</th>
 											<td>
@@ -156,7 +158,11 @@ Redirtect to entry --->
 													<b>#_debug[item] ? stText.general.yes : stText.general.no#</b>
 													<input type="hidden" name="#item#" value="#_debug[item]#">
 												</cfif>
-												<cfif item EQ "implicitAccess"><div><b class="comment" style="color:##bf4f36">#stText.debug.settings[item&"Alert"]#</b></div></cfif>
+												<cfif structKeyExists(stText.debug.settings, item&"Alert")>
+													<div>
+														<b class="comment" style="color:##bf4f36">#stText.debug.settings[item&"Alert"]#</b>
+													</div>
+												</cfif>
 												<div class="comment">#stText.debug.settings[item&"Desc"]#</div>
 
 												<cfif item EQ "database">

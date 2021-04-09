@@ -32,24 +32,24 @@ public interface ActionMonitor extends Monitor {
 	/**
 	 * logs certain action within a Request
 	 * 
-	 * @param pc
-	 * @param type
-	 * @param label
-	 * @param executionTime
-	 * @param data
-	 * @throws IOException
+	 * @param pc page context
+	 * @param type type
+	 * @param label label
+	 * @param executionTime execution time
+	 * @param data data 
+	 * @throws IOException IO Exception
 	 */
 	public void log(PageContext pc, String type, String label, long executionTime, Object data) throws IOException;
 
 	/**
 	 * logs certain action outside a Request, like sending mails
 	 * 
-	 * @param config
-	 * @param type
-	 * @param label
-	 * @param executionTime
-	 * @param data
-	 * @throws IOException
+	 * @param config config
+	 * @param type type
+	 * @param label label
+	 * @param executionTime execution time
+	 * @param data data
+	 * @throws IOException IO Exception
 	 */
 	public void log(ConfigWeb config, String type, String label, long executionTime, Object data) throws IOException;
 

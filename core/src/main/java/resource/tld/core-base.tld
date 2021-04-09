@@ -61,6 +61,35 @@
 		<status>hidden</status>
 		<description>Tag for the Lucee web/server administrator</description>
 		<attribute-type>dynamic</attribute-type>
+		<attribute>
+			<type>string</type>
+			<name>action</name>
+			<values>collection,compileMapping,connect,createArchive,createSecurityManager,defaultSecurityManager,executeSpoolerTask,getApplicationListener,getApplicationSetting,getCharset,getComponent,getContexts,getCustomTagMappings,getCustomTagSetting,getDatasource,getDatasourceDriverList,getDatasources,getDatasourceSetting,getDebug,getDebugData,getDebuggingList,getDefaultPassword,getDefaultSecurityManager,getError,getErrorList,getExtensionInfo,getExtensionProviders,getExtensions,getFLDs,getJavaCFXTags,getLocales,getMailServers,getMailSetting,getMappings,getLoaderInfo,getMinVersion,getOutputSetting,getPluginDirectory,getProxy,getRegional,getRemoteClient,getRemoteClients,getRemoteClientUsage,getScope,getSecurityManager,getSpoolerTasks,getTimeZones,getTLDs,getUpdate,hasPassword,index,purgeDebugPool,removeCFX,removeCustomTag,removeDatasource,removeDefaultPassword,removeExtension,removeMailServer,removeMapping,removeProxy,removeRemoteClient,removeSecurityManager,removeSpoolerTask,removeUpdate,resetId,resetPassword,restart,runUpdate,schedule,securityManager,storageGet,storageSet,updateApplicationListener,updateApplicationSetting,updateCharset,updateComponent,updateCustomTag,updateCustomTagSetting,updateDatasource,updateDebug,updateDefaultPassword,updateDefaultSecurity,updateDefaultSecurityManager,updateError,updateExtension,updateJavaCFX,updateMailServer,updateMailSetting,updateMapping,updateOutputSetting,updatePassword,updateProxy,updatePSQ,updateRegional,updateRemoteClient,updateScope,updateSecurityManager,UpdateUpdate,verifyDatasource,verifyJavaCFX,verifyMailServer,verifyRemoteClient</values>
+			<required>true</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Defines the action to be performed by the tag</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>type</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Defines the type of admin server or web</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>password</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Password of the admin</description>
+		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>returnVariable</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Name of the variable to store the result</description>
+		</attribute>
 	</tag>
 
 	<!-- Associate -->
@@ -162,21 +191,20 @@
 		<attribute>
 			<type>string</type>
 			<name>action</name>
-			<values>cache,flush,clientcache,servercache,optimal,content,put,get</values>
+			<values>cache,flush,clientCache,serverCache,optimal,content,put,get</values>
 			<default-value>cache</default-value>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>
 			- cache (default): server-side and client-side template caching.
             - flush: refresh cached pages (template caching).
-            - clientcache: browser-side caching only. To cache a personalized page, use this option.
-            - servercache: server-side caching only. Not recommended.
+            - clientCache: browser-side caching only. To cache a personalized page, use this option.
+            - serverCache: server-side caching only. Not recommended.
             - optimal: same as "cache".
             - content: same as cache, but cache only the body of the tag, not the complete template (template caching).
             - put: adds a key value pair to object cache (see function cachePut for more details)
             - get: gets value matching given key from object cache (see function cacheGet for more details)
             </description>
-
     </attribute>
 		<attribute>
 			<type>string</type>
@@ -260,7 +288,7 @@ block, for example, if a specified id value is invalid</description>
 		</attribute>
 		<attribute>
 			<type>timespan</type>
-			<name>timespan</name>
+			<name>timeSpan</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>The interval until the item is flushed from the cache.
@@ -270,7 +298,7 @@ The default action is to flush the item when it is idle for the time specified b
 		</attribute>
 		<attribute>
 			<type>timespan</type>
-			<name>idletime</name>
+			<name>idleTime</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Flushes the cached item if it is not accessed for the specified time span:
@@ -286,7 +314,7 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>cachedirectory</name>
+			<name>cacheDirectory</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Absolute path of cache directory (alias for directory).</description>
@@ -354,7 +382,7 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 		<description>The date that is initially selected. It is highlighted in a
             color determined by the form skin. Must be in mm/dd/yyyy
             or dd/mm/yyyy format, depending on the current locale.
-            (Use the setlocale tag to set the locale, if necessary.)</description>
+            (Use the setLocale tag to set the locale, if necessary.)</description>
     </attribute>
 		<attribute>
 			<type>date</type>
@@ -571,7 +599,7 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 		<attribute>
 			<type>string</type>
 			<name>action</name>
-			<values>create,repair,delete,optimize,list,map,categorylist</values>
+			<values>create,repair,delete,optimize,list,map,categoryList</values>
 			<default-value>list</default-value>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
@@ -649,14 +677,14 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>displayname</name>
+			<name>displayName</name>
 			<alias>display</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>A string to be displayed when using introspection to show
             information about the CFC. The information appears on the
             heading, following the component name.
-            If the style attribute is set to document, the displayname
+            If the style attribute is set to document, the displayName
             attribute is used as the name of the service element in the WSDL.</description>
 		</attribute>
 		<attribute>
@@ -698,7 +726,7 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>serviceportname</name>
+			<name>servicePortName</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<status>unimplemented</status>
@@ -707,7 +735,7 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>serviceaddress</name>
+			<name>serviceAddress</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<status>unimplemented</status>
@@ -716,16 +744,16 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>porttypename</name>
+			<name>portTypeName</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<status>unimplemented</status>
-			<description>Specifies the name of the porttype element in the WSDL.
+			<description>Specifies the name of the portType element in the WSDL.
             This attribute applies only when style="document".</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>bindingname</name>
+			<name>bindingName</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Specifies the name of the binding element in the WSDL.
@@ -733,7 +761,7 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>wsdlfile</name>
+			<name>wsdlFile</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		    <status>unimplemented</status>
@@ -929,7 +957,7 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 		</attribute>
 		<attribute>
 			<type>boolean</type>
-			<name>preservecase</name>
+			<name>preserveCase</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>if set to true Lucee keep the original case for the name, otherwise the name is converted to a upper case string</description>
@@ -944,7 +972,7 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>samesite</name>
+			<name>sameSite</name>
 			<values>Strict,Lax,None</values>
 			<default-value></default-value>
 			<required>false</required>
@@ -985,16 +1013,17 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<required>true</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Type of information to get:
-- dbnames: database name and type
+- dbNames: database name and type
 - tables: information to all tables
-- columns: column information to a single table/view
+- columns: column information to a table/view, accepts wildcards like '%''
+- columns_minimal: column information to a single table/view, but no FK / PK information (faster)
 - version: version information of the database
 - procedures: information to all procedures
 - procedure_columns: column information to a single procedure
-- foreignkeys: information to all foreignkeys
+- foreignKeys: information to all foreignKeys
 - index: information to all indexes
 
-,tables,columns,version,procedures,foreignkeys,index,users
+,tables,columns,version,procedures,foreignKeys,index,users
 
 
 </description>
@@ -1009,7 +1038,7 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 		<attribute>
 			<type>string</type>
 			<name>dbname</name>
-			<alias>dbnames</alias>
+			<alias>dbNames</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Name of the database</description>
@@ -1033,7 +1062,12 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<name>table</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Name of the table from which you retrieve information.</description>
+			<description>Name of the table from which you retrieve information. 
+			
+Patterns are also supported, i.e. 
+- use % to fetch all columns, from every table.
+- use SCHEMA.% to fetch all columns, from every table, from a scheme.
+</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -1042,16 +1076,32 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 			<rtexprvalue>true</rtexprvalue>
 			<description>User name to connect to the database.</description>
 		</attribute>
+		<attribute>
+			<type>string</type>
+			<name>Filter</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>Filter for type="tables" with a wildcard, defaults to all types when empty.
+
+- "TABLE"
+- "VIEW"
+- "SYSTEM TABLE"
+- "GLOBAL TEMPORARY"
+- "LOCAL TEMPORARY"
+- "ALIAS"
+- "SYNONYM"
+</description>
+		</attribute>
 	</tag>
 
-	<!-- Defaultcase -->
+	<!-- DefaultCase -->
 	<tag>
-		<name>defaultcase</name>
+		<name>defaultCase</name>
 		<tag-class>lucee.runtime.tag.Defaultcase</tag-class>
 		<allow-removing-literal>yes</allow-removing-literal>
 		<body-content>must</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
-		<description>Handles interactions with directories.</description>
+		<description>Defines a default action inside a cfswitch statement, when none of the cfcase condition statements are true.</description>
 		<attribute-type>fixed</attribute-type>
 	</tag>
 
@@ -1071,7 +1121,7 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 		<attribute>
 			<type>string</type>
 			<name>action</name>
-			<values>list,create,delete,forcedelete,rename,copy</values>
+			<values>list,create,delete,forceDelete,rename,copy</values>
 			<default-value>list</default-value>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
@@ -1079,7 +1129,7 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>listinfo</name>
+			<name>listInfo</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>
@@ -1088,7 +1138,7 @@ A return value from the CreateTimeSpan function, for example, "#CreateTimeSpan(0
 		</attribute>
 		<attribute>
 			<type>object</type>
-			<name>storeacl</name>
+			<name>storeAcl</name>
 			<alias>acl</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
@@ -1099,7 +1149,7 @@ Example:
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>storelocation</name>
+			<name>storeLocation</name>
 			<alias>storage</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
@@ -1117,7 +1167,7 @@ Example:
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>serverpassword</name>
+			<name>serverPassword</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>allow you to access filesystem, also when access is denied for your context</description>
@@ -1197,7 +1247,7 @@ Example:
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>nameconflict</name>
+			<name>nameConflict</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>When used with action="copy" the possible values are: [Overwrite]|Error.  When used with action="create" the possible values are: [Error]|Skip. Ignored for all other actions.</description>
@@ -1339,7 +1389,7 @@ Example:
 			<rtexprvalue>true</rtexprvalue>
 		</script>
 		<description>Used to: Abort the processing of the currently executing CFML custom tag, exit the template
-	within the currently executing CFML custom tag and reexecute a section of code within the currently
+	within the currently executing CFML custom tag and re-execute a section of code within the currently
 	executing CFML custom tag</description>
 		<attribute-type>fixed</attribute-type>
 		<attribute>
@@ -1348,9 +1398,9 @@ Example:
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<script-support>optional</script-support>
-		<description>exittag: aborts processing of currently executing tag
-            exittemplate: exits page of currently executing tag
-            loop: reexecutes body of currently executing tag</description>
+		<description>exitTag: aborts processing of currently executing tag
+            exitTemplate: exits page of currently executing tag
+            loop: re-executes body of currently executing tag</description>
     </attribute>
 	</tag>
 	<!-- Feed -->
@@ -1563,7 +1613,7 @@ Example:
 		<attribute-type>fixed</attribute-type>
 		<attribute>
 			<type>object</type>
-			<name>storeacl</name>
+			<name>storeAcl</name>
 			<alias>acl</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
@@ -1575,14 +1625,14 @@ Example:
 		<attribute>
 			<type>string</type>
 			<name>action</name>
-			<values>info,move,rename,copy,delete,read,readbinary,write,append,upload,uploadall,touch</values>
+			<values>info,move,rename,copy,delete,read,readBinary,write,append,upload,uploadAll,touch</values>
 			<required>true</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Type of file manipulation that the tag performs.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>serverpassword</name>
+			<name>serverPassword</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>allow you to access filesystem, also when access is denied for your context</description>
@@ -1619,7 +1669,7 @@ If omitted, the file's attributes are maintained.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>filefield</name>
+			<name>fileField</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Name of form field used to select the file.</description>
@@ -1633,7 +1683,7 @@ If omitted, the file's attributes are maintained.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>nameconflict</name>
+			<name>nameConflict</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Action to take if filename is the same as that of a file in the directory.</description>
@@ -1695,10 +1745,10 @@ If omitted, the file's attributes are maintained.</description>
 			<introduced>5.0.0.0</introduced>
 		<description>
 possible values are:
-String "request": If original content was created within the current request, cached content data isused.
-a timespan (created with function CreateTimeSpan): If original content date falls within the time span, cached content data isused.
+String "request": If original content was created within the current request, cached content data is used.
+a timeSpan (created with function CreateTimeSpan): If original content date falls within the time span, cached content data is used.
 
-To use cached data, the tag must be called with the exact same arguments. Only used by action "read" and "readbinary"</description>
+To use cached data, the tag must be called with the exact same arguments. Only used by action "read" and "readBinary"</description>
     	</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -1709,7 +1759,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 		</attribute>
 		<attribute>
 			<type>boolean</type>
-			<name>fixnewline</name>
+			<name>fixNewLine</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>- true: changes embedded line-ending characters in string
@@ -1804,7 +1854,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 		<attribute>
 			<type>string</type>
 			<name>action</name>
-			<values>copy,exists,existsfile,existsdir,open,close,changedir,createdir,listdir,removedir,getfile,putfile,rename,remove,getcurrentdir,getcurrenturl</values>
+			<values>copy,exists,existsFile,existsDir,open,close,changeDir,createDir,listDir,removeDir,getFile,putFile,rename,remove,getCurrentDir,getCurrentUrl</values>
 			<required>true</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>the action that should be execute</description>
@@ -1883,14 +1933,14 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 		</attribute>
 		<attribute>
 			<type>number</type>
-			<name>retrycount</name>
+			<name>retryCount</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>retry count</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
-			<name>stoponerror</name>
+			<name>stopOnError</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>define if execution halt on error or not</description>
@@ -2330,9 +2380,9 @@ To use cached data, the tag must be called with the exact same arguments. Only u
     </description>
 		</attribute>
 	</tag>
-	<!-- Graphdata -->
+	<!-- GraphData -->
 	<tag>
-		<name>graphdata</name>
+		<name>graphData</name>
 		<tag-class>lucee.runtime.tag.GraphData</tag-class>
 		<body-content>empty</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
@@ -2361,7 +2411,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>The color to use when graphing the data point. The default is to use the values from the cfgraph
-		tag colorlist attribute or the built-in default list of colors. Line graphs ignore this attribute.</description>
+		tag colorList attribute or the built-in default list of colors. Line graphs ignore this attribute.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -2439,8 +2489,8 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<name>align</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Alignment value. Options are: Top, Left, Bottom, Baseline, Texttop, Absbottom, Middle,
-	Absmiddle, Right.</description>
+			<description>Alignment value. Options are: Top, Left, Bottom, Baseline, TextTop, AbsBottom, Middle,
+	AbsMiddle, Right.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -2506,8 +2556,8 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<alias>textColour</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Color value for text in the grid control. Options are: black (default), magenta, cyan, orange, darkgray,
-		pink, gray, white, lightgray, yellow. A hex value can be entered in the form: textColor = "##xxxxxx" where x is 0-9 or A-F. Use two
+			<description>Color value for text in the grid control. Options are: black (default), magenta, cyan, orange, darkGray,
+		pink, gray, white, lightGray, yellow. A hex value can be entered in the form: textColor = "##xxxxxx" where x is 0-9 or A-F. Use two
 		pound signs or no pound signs.</description>
 		</attribute>
 		<attribute>
@@ -2639,7 +2689,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Text color value for the grid control row headers. Entries are: black (default), magenta, cyan,
-		orange, darkgray, pink, gray, white, lightgray, yellow. A hex value can be entered in the form: rowHeaderTextColor = "##xxxxxx"
+		orange, darkGray, pink, gray, white, lightGray, yellow. A hex value can be entered in the form: rowHeaderTextColor = "##xxxxxx"
 		Where x is 0-9 or A-F. Use two pound signs or no pound signs.</description>
 		</attribute>
 		<attribute>
@@ -2698,7 +2748,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Color value for the grid control column headers. Valid entries are: black (default), magenta,
-		cyan, orange, darkgray, pink, gray, white, lightgray, yellow.A hex value can be entered in the form:
+		cyan, orange, darkGray, pink, gray, white, lightGray, yellow.A hex value can be entered in the form:
 		colHeaderTextColor = "##xxxxxx"
 		where x is 0-9 or A-F. Use either two pound signs or no pound signs.</description>
 		</attribute>
@@ -2709,7 +2759,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Background color value for the grid control. Entries are: black, magenta, cyan,
-		orange, darkgray, pink, gray, white, lightgray, yellow. A hex value can be entered in the form: bgColor = "##xxxxxx"
+		orange, darkGray, pink, gray, white, lightGray, yellow. A hex value can be entered in the form: bgColor = "##xxxxxx"
 		where x is 0-9 or A-F. Use either two pound signs or no pound signs.</description>
 		</attribute>
 		<attribute>
@@ -2925,7 +2975,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<rtexprvalue>true</rtexprvalue>
 			<description>Color value for grid element text in the grid column, or an expression you can use to manipulate text
 		color in grid column elements. Valid color entries are: black (default), magenta, cyan, orange,
-		arkgray, pink, gray, white, lightgray, yellow</description>
+		darkGray, pink, gray, white, lightGray, yellow</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -2933,8 +2983,8 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Color value for the background of the grid column, or an expression you can use to manipulate grid
-		column background color. Valid color entries are: black, magenta, cyan, orange, darkgray, pink, gray,
-		white (default), lightgray, yellow.</description>
+		column background color. Valid color entries are: black, magenta, cyan, orange, darkGray, pink, gray,
+		white (default), lightGray, yellow.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -3024,7 +3074,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Color value for the grid control column header text. Entries are: black (default), magenta,
-		cyan, orange, darkgray, pink, gray, white, lightgray, yellow.</description>
+		cyan, orange, darkGray, pink, gray, white, lightGray, yellow.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -3270,7 +3320,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 	</tag>
 	<!-- HtmlBody -->
 	<tag>
-		<name>htmlbody</name>
+		<name>htmlBody</name>
 		<tag-class>lucee.runtime.tag.HtmlBody</tag-class>
 		<body-content>free</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
@@ -3295,7 +3345,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<name>variable</name>
 			<required>no</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Name of variable to contain the text for htmlbody.</description>
+			<description>Name of variable to contain the text for htmlBody.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -3322,7 +3372,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<description>possible actions are:
 - append (default): append text to the html head
 - read: return the text already set to html head
-- reset: reset/remove text already set to hrml head
+- reset: reset/remove text already set to html head
 - write: write text to html head, overwrite already existing text in html head
 - flush: writes the buffer in the html head to the response stream
 			</description>
@@ -3330,7 +3380,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 	</tag>
 	<!-- HtmlHead -->
 	<tag>
-		<name>htmlhead</name>
+		<name>htmlHead</name>
 		<tag-class>lucee.runtime.tag.HtmlHead</tag-class>
 		<body-content>free</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
@@ -3363,7 +3413,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<name>variable</name>
 			<required>no</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Name of variable to contain the text for htmlhead.</description>
+			<description>Name of variable to contain the text for htmlHead.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -3382,7 +3432,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<description>possible actions are:
 - append (default): append text to the html head
 - read: return the text already set to html head
-- reset: reset/remove text already set to hrml head
+- reset: reset/remove text already set to html head
 - write: write text to html head, overwrite already existing text in html head
 - flush: writes the buffer in the html head to the response stream
 			</description>
@@ -3401,7 +3451,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 		</script>
 		<description>Lets you execute HTTP POST and GET operations on files. Using cfhttp, you can execute standard
   GET operations and create a query object from a text file. POST operations lets you upload MIME file
-  types to a server, or post cookie, formfield, URL, file, or CGI variables directly to a specified server.</description>
+  types to a server, or post cookie, form field, URL, file, or CGI variables directly to a specified server.</description>
 		<attribute-type>fixed</attribute-type>
 		<attribute>
 			<type>string</type>
@@ -3414,7 +3464,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 		</attribute>
 		<attribute>
 			<type>boolean</type>
-			<name>encodeurl</name>
+			<name>encodeUrl</name>
 			<alias>encoded,encode</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
@@ -3444,10 +3494,10 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 		</attribute>
 		<attribute>
 			<type>boolean</type>
-			<name>addtoken</name>
+			<name>addToken</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>if yes add urltoken as cookie</description>
+			<description>if yes add urlToken as cookie</description>
 		</attribute>
 		<attribute>
 			<type>number</type>
@@ -3484,7 +3534,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 		</attribute>
 		<attribute>
 			<type>boolean</type>
-			<name>preauth</name>
+			<name>preAuth</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>if set to true (default), Lucee sends the basic authentication (username password) always (Preemptive Basic Authentication),
@@ -3499,7 +3549,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>multiparttype</name>
+			<name>multiPartType</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<status>deprecated</status>
@@ -3628,7 +3678,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<rtexprvalue>true</rtexprvalue>
 			<description>Boolean indicating whether to redirect execution or stop execution. The default is Yes. If set
 	to No and throwOnError = "yes", execution stops if cfhttp fails, and the status code and associated
-	error message are returned in the variable cfhttp.statuscode. To see where execution would have been
+	error message are returned in the variable cfhttp.statusCode. To see where execution would have been
 	redirected, use the variable cfhttp.responseHeader[LOCATION]. The key LOCATION identifies the path of
 	redirection. Lucee will follow up to five redirections on a request. if this limit is exceeded,
 	Lucee behaves as if redirect = "no".</description>
@@ -3656,7 +3706,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 		</attribute>
 		<attribute>
 			<type>boolean</type>
-			<name>firstrowasheaders</name>
+			<name>firstRowAsHeaders</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>sets if first row of csv is file</description>
@@ -3673,14 +3723,14 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<name>workstation</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>The workstation the authentication request is originating from. Essentially, the computer name for this machine. this attribute is only used when authenication type is "NTLM"</description>
+			<description>The workstation the authentication request is originating from. Essentially, the computer name for this machine. this attribute is only used when authentication type is "NTLM"</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
 			<name>domain</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>The domain to authenticate within. this attribute is only used when authenication type is "NTLM"</description>
+			<description>The domain to authenticate within. this attribute is only used when authentication type is "NTLM"</description>
 		</attribute>
  		<attribute>
 			<type>string</type>
@@ -3706,8 +3756,8 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<introduced>5.0.0.0</introduced>
 		<description>
 possible values are:
-String "request": If original content was created within the current request, cached content data isused.
-a timespan (created with function CreateTimeSpan): If original content date falls within the time span, cached content data isused.
+String "request": If original content was created within the current request, cached content data is used.
+a timeSpan (created with function CreateTimeSpan): If original content date falls within the time span, cached content data is used.
 
 To use cached data, the tag must be called with the exact same arguments.</description>
     	</attribute>
@@ -3876,7 +3926,7 @@ To use cached data, the tag must be called with the exact same arguments.</descr
 		<attribute>
 			<type>string</type>
 			<name>action</name>
-			<values>getHeaderOnly,getAll,delete,open,close,markread,createfolder,deletefolder,renamefolder,listallfolders,movemail</values>
+			<values>getHeaderOnly,getAll,delete,open,close,markRead,createFolder,deleteFolder,renameFolder,listAllFolders,moveMail</values>
 			<default-value>getHeaderOnly</default-value>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
@@ -3886,12 +3936,12 @@ To use cached data, the tag must be called with the exact same arguments.</descr
 - delete
 - open
 - close
-- markread
-- createfolder
-- deletefolder
-- renamefolder
-- listallfolders
-- movemail</description>
+- markRead
+- createFolder
+- deleteFolder
+- renameFolder
+- listAllFolders
+- moveMail</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -3964,7 +4014,7 @@ To use cached data, the tag must be called with the exact same arguments.</descr
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>newfolder</name>
+			<name>newFolder</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description></description>
@@ -3991,7 +4041,7 @@ To use cached data, the tag must be called with the exact same arguments.</descr
 			<type>single</type>
 			<rtexprvalue>false</rtexprvalue>
 		</script>
-		<description>To import a JSP Taglibrary or a CFML Custom Tag Directory</description>
+		<description>To import a JSP Tag Library or a CFML Custom Tag Directory</description>
 		<attribute-type>fixed</attribute-type>
 		<attribute>
 			<type>string</type>
@@ -4099,8 +4149,8 @@ both functions must have the same attributes; otherwise
 			<rtexprvalue>true</rtexprvalue>
 			<description>
 possible values are:
-String "request": If original content was created within the current request, cached content data isused.
-a timespan (created with function CreateTimeSpan): If original content date falls within the time span, cached content data isused.
+String "request": If original content was created within the current request, cached content data is used.
+a timeSpan (created with function CreateTimeSpan): If original content date falls within the time span, cached content data is used.
 
 To use cached data, the function must be called with the exact same arguments.
 		</description>
@@ -4322,11 +4372,11 @@ Permits searching collections by title or displaying a separate title from the k
 		</attribute>
 		<attribute>
 			<type>boolean</type>
-			<name>throwontimeout</name>
+			<name>throwOnTimeout</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		    <status>unimplemented</status>
-			<description>Specifies how timeout conditions are handled. If the value is true, an exception is enerated to provide notification of the timeout. If the value is No, execution continues. Default is no.</description>
+			<description>Specifies how timeout conditions are handled. If the value is true, an exception is generated to provide notification of the timeout. If the value is No, execution continues. Default is no.</description>
 		</attribute>
 	</tag>
 
@@ -4430,7 +4480,7 @@ Permits searching collections by title or displaying a separate title from the k
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>returnvariable</name>
+			<name>returnVariable</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Name of a variable for the invocation result.</description>
@@ -4466,35 +4516,35 @@ Permits searching collections by title or displaying a separate title from the k
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>proxyserver</name>
+			<name>proxyServer</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>The proxy server required to access the webservice URL.</description>
 		</attribute>
 		<attribute>
 			<type>number</type>
-			<name>proxyport</name>
+			<name>proxyPort</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>The port to use on The proxy server.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>proxyuser</name>
+			<name>proxyUser</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>The user ID to send to the proxy server.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>proxypassword</name>
+			<name>proxyPassword</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>The user's password on the proxy server.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>serviceport</name>
+			<name>servicePort</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		    <status>unimplemented</status>
@@ -4600,7 +4650,7 @@ Permits searching collections by title or displaying a separate title from the k
 		<attribute>
 			<type>string</type>
 			<name>action</name>
-			<values>add,delete,modifydn,modify,query</values>
+			<values>add,delete,modifyDn,modify,query</values>
 			<default-value>query</default-value>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
@@ -4777,10 +4827,10 @@ Permits searching collections by title or displaying a separate title from the k
 		</attribute>
 		<attribute>
 			<type>number</type>
-			<name>statuscode</name>
+			<name>statusCode</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>statuscode used for the redirect (301 or 302)</description>
+			<description>statusCode used for the redirect (301 or 302)</description>
 		</attribute>
 	</tag>
 
@@ -4859,7 +4909,7 @@ Permits searching collections by title or displaying a separate title from the k
 		<attribute>
 			<type>string</type>
 			<name>result</name>
-			<alias>variable,variablename</alias>
+			<alias>variable,variableName</alias>
 			<required>false</required>
 			<default>cflock</default>
 			<rtexprvalue>true</rtexprvalue>
@@ -4919,7 +4969,7 @@ Permits searching collections by title or displaying a separate title from the k
 			<required>false</required>
 			<status>deprecated</status>
 			<rtexprvalue>true</rtexprvalue>
-		<description>Define instead a log reference in the Lucee Administrator and use the name of the genrated log with the attribute log.
+		<description>Define instead a log reference in the Lucee Administrator and use the name of the generated log with the attribute log.
 		 Specify only the main part of the filename.
             For example, to log to the Testing.log file, specify
             "Testing".
@@ -4930,7 +4980,7 @@ Permits searching collections by title or displaying a separate title from the k
 		<attribute>
 			<type>boolean</type>
 			<name>async</name>
-			<alias>spoolenable</alias>
+			<alias>spoolEnable</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<default>false</default>
@@ -4981,6 +5031,7 @@ Permits searching collections by title or displaying a separate title from the k
 			<name>application</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
+			<default>true</default>
 			<description>Specifies whether to log the application name if one has been specified in a cfapplication tag.</description>
 		</attribute>
 	</tag>
@@ -5064,7 +5115,7 @@ Permits searching collections by title or displaying a separate title from the k
 			<name>maxRows</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Specifies the maximum number of rows to display in the output section. You cannot use this attribute together with the attribute endrow.</description>
+			<description>Specifies the maximum number of rows to display in the output section. You cannot use this attribute together with the attribute endRow.</description>
 		</attribute>
 
 		<attribute>
@@ -5133,14 +5184,14 @@ Lucee uses the number of characters in the file.</description>
 
 		<attribute>
 			<type>number</type>
-			<name>startline</name>
+			<name>startLine</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>start line</description>
 		</attribute>
 		<attribute>
 			<type>number</type>
-			<name>endline</name>
+			<name>endLine</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>end line</description>
@@ -5241,14 +5292,14 @@ Lucee uses the number of characters in the file.</description>
 		</attribute>
 		<attribute>
 			<type>object</type>
-			<name>replyto</name>
+			<name>replyTo</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Address(es) to which the recipient is directed to send replies.</description>
 		</attribute>
 		<attribute>
 			<type>object</type>
-			<name>failto</name>
+			<name>failTo</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Address to which mailing systems should send delivery failure notifications. Sets the mail envelope reverse-path value.</description>
@@ -5279,7 +5330,7 @@ Lucee uses the number of characters in the file.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>mimeattach</name>
+			<name>mimeAttach</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Specifies the path of the file to be attached to the e-mail message. An attached file
@@ -5291,18 +5342,18 @@ Lucee uses the number of characters in the file.</description>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>
-				listener for the mail. the listener can have 2 (optinal) functions, "before" and "after" that get triggered before and after sending the mail.
+				listener for the mail. the listener can have 2 (optional) functions, "before" and "after" that get triggered before and after sending the mail.
 				The functions get all data about the mail. 
-				Listener is only used when "async" (spoolenable) is set to true.
+				Listener is only used when "async" (spoolEnable) is set to true.
 				This attribute overwrites any mail listener defined in the application.cfc/cfapplication.
 				
-				The "before" function can also modify some data, by returning a struct containg the following keys:
-				from, to, bcc, replyto, replyto, subject
+				The "before" function can also modify some data, by returning a struct containing the following keys:
+				from, to, bcc, replyTo, failTo, subject
 				
 				the listener can be a component looking like this:
 				component {
-					function before(lastExecution,nextExecution,created,id,type,detail,tries,remainingtries,closed,caller,advanced){} 
-					function after(lastExecution,nextExecution,created,id,type,detail,tries,remainingtries,closed,caller,advanced,passed,exception){}}
+					function before(lastExecution,nextExecution,created,id,type,detail,tries,remainingTries,closed,caller,advanced){}
+					function after(lastExecution,nextExecution,created,id,type,detail,tries,remainingTries,closed,caller,advanced,passed,exception){}}
 				
 				a struct looking like this:
 				component {before:function(...){}, after:function(...){}}
@@ -5394,7 +5445,7 @@ Lucee uses the number of characters in the file.</description>
 		</attribute>
 		<attribute>
 			<type>number</type>
-			<name>wraptext</name>
+			<name>wrapText</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Specifies the maximum line length, in characters of the mail text. If a line has more than the specified number of characters, replaces the last white space character, such as a tab or space, preceding the specified position with a line break. If there are no white space characters, inserts a line break at the specified position. A common value for this attribute is 72.</description>
@@ -5409,7 +5460,7 @@ Lucee uses the number of characters in the file.</description>
 		<attribute>
 			<type>boolean</type>
 			<name>async</name>
-			<alias>spoolenable</alias>
+			<alias>spoolEnable</alias>
 			<default>true</default>
 			<required>false</required>
 			<default>true</default>
@@ -5417,11 +5468,11 @@ Lucee uses the number of characters in the file.</description>
 			<description>if set to true, the mail is sent asynchronously by the Lucee Task manager (with multiple tries),
 			if set to false the mail is sent in the same thread that executes the request, which is useful for troubleshooting because you get an error message if there is one.
 			This setting overrides the setting with the same name in the Lucee Administrator.
-			This attribute replaces the old "spoolenable" attribute which is still supported as an alias.</description>
+			This attribute replaces the old "spoolEnable" attribute which is still supported as an alias.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
-			<name>usetls</name>
+			<name>useTls</name>
 			<alias>tls,starttls</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
@@ -5439,7 +5490,7 @@ Lucee uses the number of characters in the file.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
-			<name>usessl</name>
+			<name>useSsl</name>
 			<alias>ssl,secure</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
@@ -5511,7 +5562,7 @@ Lucee uses the number of characters in the file.</description>
 		</attribute>
 		<attribute>
 			<type>number</type>
-			<name>wraptext</name>
+			<name>wrapText</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Specifies the maximum line length, in characters of the mail text</description>
@@ -5589,7 +5640,7 @@ Lucee uses the number of characters in the file.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>contentid</name>
+			<name>contentId</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>The Identifier for the attached file. This ID should be globally unique and is used to identify the file in an IMG or other tag in the mail body that references the file content. </description>
@@ -5666,7 +5717,7 @@ Lucee uses the number of characters in the file.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>filterignorecase</name>
+			<name>filterIgnoreCase</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>filter for the elements to delete</description>
@@ -5712,10 +5763,10 @@ Lucee uses the number of characters in the file.</description>
 - array: an array of values
 - binary: a binary value
 - boolean: a Boolean value
-- creditcard: a 13-16 digit number conforming to the mod10 algorithm
+- creditCard: a 13-16 digit number conforming to the mod10 algorithm
 - date or time: a date-time value
 - email: a valid e-mail address
-- eurodate: a date-time value. Any date part must be in the format dd/mm/yy. The format can use /, -, or . characters as delimiters
+- euroDate: a date-time value. Any date part must be in the format dd/mm/yy. The format can use /, -, or . characters as delimiters
 - float or numeric: a numeric value
 - guid: a Universally Unique Identifier of the form "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" where "X" is a hexadecimal number
 - integer: an integer
@@ -5728,7 +5779,7 @@ Lucee uses the number of characters in the file.</description>
 - telephone: a standard U.S. telephone number
 - url: an http, https, ftp, file, mailto, or news URL
 - uuid: a Universally Unique Identifier, formatted "XXXXXXXX-XXXX-XXXX-XXXXXXXXXXXXXXX", where "X" is a hexadecimal number. See CreateUUID
-- usdate: a U.S. date of the format mm/dd/yy, with 1-2 digit days and months, 1-4 digit years
+- usDate: a U.S. date of the format mm/dd/yy, with 1-2 digit days and months, 1-4 digit years
 - variableName: a string formatted according to variable naming conventions
 - xml: XML objects and XML strings
 - zipcode: U.S., 5- or 9-digit format ZIP codes
@@ -5765,10 +5816,10 @@ Lucee uses the number of characters in the file.</description>
 		</attribute>
 		<attribute>
 			<type>int</type>
-			<name>maxlength</name>
+			<name>maxLength</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>define the maxlength of a value for this types: email, url and string</description>
+			<description>define the maxLength of a value for this types: email, url and string</description>
 		</attribute>
 	</tag>
 
@@ -5909,7 +5960,7 @@ Lucee uses the number of characters in the file.</description>
 	</tag>
 	<!-- ProcessingDirective -->
 	<tag>
-		<name>processingdirective</name>
+		<name>processingDirective</name>
 		<tag-class>lucee.runtime.tag.ProcessingDirective</tag-class>
 		<tte-class>lucee.transformer.cfml.evaluator.impl.ProcessingDirective</tte-class>
 		<handle-exception>true</handle-exception>
@@ -5932,7 +5983,7 @@ Lucee uses the number of characters in the file.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
-			<name>executionlog</name>
+			<name>executionLog</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Boolean indicating whether to write execution log or not.</description>
@@ -5953,13 +6004,13 @@ Lucee uses the number of characters in the file.</description>
 declare how variable keys defined by dot notation are handled.
 If set to false converts all struct keys defined with "dot notation" to upper case.
 Example:
-- sct.dotNotation --> keyname: "DOTNOTATION"
-- sct["bracketNotation"] --> keyname: "bracketNotation"
+- sct.dotNotation --> keyName: "DOTNOTATION"
+- sct["bracketNotation"] --> keyName: "bracketNotation"
 
 If set to true keep all struct keys defined with "dot notation" in original case (according to the "bracket notation").
 Example:
-sct.dotNotation --> keyname: "dotNotation"
-sct["bracketNotation"] --> keyname: "bracketNotation"
+sct.dotNotation --> keyName: "dotNotation"
+sct["bracketNotation"] --> keyName: "bracketNotation"
 			</description>
 		</attribute>
 
@@ -5993,7 +6044,7 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 
 	<!-- ProcParam -->
 	<tag>
-		<name>procparam</name>
+		<name>procParam</name>
 		<tag-class>lucee.runtime.tag.ProcParam</tag-class>
 
 		<body-content>empty</body-content>
@@ -6039,7 +6090,7 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 
 		<attribute>
 			<type>string</type>
-			<name>sqltype</name>
+			<name>sqlType</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>The SQL type that the parameter (any type) will be bound to.</description>
@@ -6051,7 +6102,7 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 			<rtexprvalue>true</rtexprvalue>
 			<status>deprecated</status>
 			<description>
-			This attribute has been deprecated, use instead the attribute "sqltype" that has exact the same functionality.
+			This attribute has been deprecated, use instead the attribute "sqlType" that has exact the same functionality.
 			</description>
 		</attribute>
 		<attribute>
@@ -6158,7 +6209,7 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>displayname</name>
+			<name>displayName</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>A value to be displayed when using introspection to show
@@ -6199,7 +6250,7 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 <!--
 		<attribute>
 			<type>number</type>
-			<name>batchsize</name>
+			<name>batchSize</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description></description>
@@ -6227,7 +6278,7 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>collectiontype</name>
+			<name>collectionType</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description></description>
@@ -6255,14 +6306,14 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 		</attribute>
 		<attribute>
 			<type>boolean</type>
-			<name>dynamicinsert</name>
+			<name>dynamicInsert</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description></description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
-			<name>dynamicupdate</name>
+			<name>dynamicUpdate</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description></description>
@@ -6283,14 +6334,14 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>entityname</name>
+			<name>entityName</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description></description>
 		</attribute>
 		<attribute>
 			<type>number</type>
-			<name>fetchbatchsize</name>
+			<name>fetchBatchSize</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description></description>
@@ -6304,7 +6355,7 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>fkcolumn</name>
+			<name>fkColumn</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description></description>
@@ -6361,8 +6412,8 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>columnkey</name>
-			<alias>columnname,column,keycolumn</alias>
+			<name>columnKey</name>
+			<alias>columnName,column,keyColumn</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>When return type is set to "struct", the value of this column can be used as key in the struct for every record.
@@ -6468,7 +6519,7 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>The maximum number of seconds for the query to execute before returning an error
-		indicating that the query has timed-out. Value can be a number (seconds) or a Timespan Object. The minimum and maximum allowable values
+		indicating that the query has timed-out. Value can be a number (seconds) or a TimeSpan Object. The minimum and maximum allowable values
 		vary, depending on the driver.</description>
 		</attribute>
 		<attribute>
@@ -6485,8 +6536,8 @@ sct["bracketNotation"] --> keyname: "bracketNotation"
 			<rtexprvalue>true</rtexprvalue>
 			<description>
 possible values are:
-String "request": If original query was created within the current request, cached query data isused.
-a timespan (created with function CreateTimeSpan): If original query date falls within the time span, cached query data isused.
+String "request": If original query was created within the current request, cached query data is used.
+a timeSpan (created with function CreateTimeSpan): If original query date falls within the time span, cached query data is used.
 
 To use cached data, the current query must use the same SQL statement, data source, query name, user name, and password.</description>
     	</attribute>
@@ -6516,7 +6567,7 @@ To use cached data, the current query must use the same SQL statement, data sour
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>cachename</name>
+			<name>cacheName</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<status>deprecated</status>
@@ -6534,11 +6585,11 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<name>unique</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Specifies if the object parameter is unique, used only for dbtype=orm or hql</description>
+			<description>Specifies if the object parameter is unique, used only for dbType=orm or hql</description>
 		</attribute>
 		<attribute>
 			<type>struct</type>
-			<name>ormoptions</name>
+			<name>ormOptions</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Object parameter for the entity.</description>
@@ -6552,12 +6603,12 @@ To use cached data, the current query must use the same SQL statement, data sour
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>returntype</name>
+			<name>returnType</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>one of the following values:
-			- query: default for all dbtype expect "hql", returns a query object
-			- array_of_entity: works only with dbtype "hql" and is also the default value for dbtype "hql"
+			- query: default for all dbType expect "hql", returns a query object
+			- array_of_entity: works only with dbType "hql" and is also the default value for dbType "hql"
 			- array: returns an array, where each element is a struct with a query record
 			- struct: returns either a struct of structs where the key is specified by the keyColumn attribute
 			and each value is a struct with a query record, or a single record if keyColumn is not set, where
@@ -6581,7 +6632,7 @@ To use cached data, the current query must use the same SQL statement, data sour
 			if "lazy" is set to true (default "false") Lucee does not initially load all the data from the datasource,
 			in that case the data are only loaded when requested, so this means the data are depending on the datasource connection.
 			if the datasource connection is gone and the data are not requested yet, lucee throws an error if you try to access the data.
-			lazy is only working when the following attributes are not used: cachewithin,cacheafter,result
+			lazy is only working when the following attributes are not used: cacheWithin,cacheAfter,result
 			</description>
 		</attribute>
 		<attribute>
@@ -6598,7 +6649,7 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<default>0</default>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>the level for the current pagesource</description>
+			<description>the level for the current pageSource</description>
 		</attribute>
 		<attribute>
 			<name>sql</name>
@@ -6611,16 +6662,16 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<type>any</type>
 			<required>false</required>
 			<description>
-				listener for the query. the listener can have 3 (optinal) functions, "before" "after" and "error" that get triggered before and after executing the query and in case of an exception.
+				listener for the query. the listener can have 3 (optional) functions, "before" "after" and "error" that get triggered before and after executing the query and in case of an exception.
 				The functions get all data about the query. 
 				This attributes overwrites any query listener defined in the application.cfc/cfapplication.
-				All the functions can also modify all data, by returning a struct containg the keys to overwrite following the same structure as the input coming in the argument scope.
+				All the functions can also modify all data, by returning a struct containing the keys to overwrite following the same structure as the input coming in the argument scope.
 				
 				the listener can be a component looking like this:
 				component {
-					function before(cachedAfter, cachedWithin, columnName, datasource, dbtype, debug, maxrows, name, ormoptions, username, password, result, returntype, timeout, timezone, unique, sql, args, params, caller){} 
-					function after(result,meta,cachedAfter, cachedWithin, columnName, datasource, dbtype, debug, maxrows, name, ormoptions, username, password, result, returntype, timeout, timezone, unique, sql, args, params, caller){} 
-					function error(exception,lastExecution,nextExecution,created,id,type,detail,tries,remainingtries,closed,caller,advanced,passed,exception){}}
+					function before(cachedAfter, cachedWithin, columnName, datasource, dbType, debug, maxRows, name, ormOptions, username, password, result, returnType, timeout, timezone, unique, sql, args, params, caller){}
+					function after(result,meta,cachedAfter, cachedWithin, columnName, datasource, dbType, debug, maxRows, name, ormOptions, username, password, result, returnType, timeout, timezone, unique, sql, args, params, caller){}
+					function error(exception,lastExecution,nextExecution,created,id,type,detail,tries,remainingTries,closed,caller,advanced,passed,exception){}}
 				
 				or a struct looking like this:
 				component {before:function(...){}, after:function(...){}, error:function(...){}}
@@ -6637,7 +6688,7 @@ To use cached data, the current query must use the same SQL statement, data sour
 			</description>
 		</attribute>
 		<attribute>
-			<name>cacheid</name>
+			<name>cacheId</name>
 			<type>string</type>
 			<status>unimplemented</status>
 			<required>false</required>
@@ -6647,7 +6698,7 @@ To use cached data, the current query must use the same SQL statement, data sour
 
 	<!-- QueryParam -->
 	<tag>
-		<name>queryparam</name>
+		<name>queryParam</name>
 		<tag-class>lucee.runtime.tag.QueryParam</tag-class>
 
 		<body-content>empty</body-content>
@@ -6670,7 +6721,7 @@ To use cached data, the current query must use the same SQL statement, data sour
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>sqltype</name>
+			<name>sqlType</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>The SQL type that the parameter (any type) will be bound to.</description>
@@ -6682,7 +6733,7 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<rtexprvalue>true</rtexprvalue>
 			<status>deprecated</status>
 			<description>
-			This attribute has been deprecated, use instead the attribute "sqltype" that has exact the same functionality.
+			This attribute has been deprecated, use instead the attribute "sqlType" that has exact the same functionality.
 			</description>
 		</attribute>
 		<attribute>
@@ -6691,7 +6742,7 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Maximum length of the parameter. The default value is the length of the string specified in
-	the value attribute. if the attribute charset is defined, this comparsion will be byte based.</description>
+	the value attribute. if the attribute charset is defined, this comparison will be byte based.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -6700,7 +6751,7 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<rtexprvalue>true</rtexprvalue>
 			<description>This attribute is used for 2 things:
 			- it checks if the given value is compatible with that charset
-			- to check the binary length of the value (see attribute maxlength).</description>
+			- to check the binary length of the value (see attribute maxLength).</description>
 		</attribute>
 		<attribute>
 			<type>number</type>
@@ -6818,14 +6869,14 @@ To use cached data, the current query must use the same SQL statement, data sour
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>ownerpassword</name>
+			<name>ownerPassword</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Specifies an owner password. PDF format only.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>userpassword</name>
+			<name>userPassword</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Specifies a user password. PDF format only.</description>
@@ -6900,9 +6951,9 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<description>Specifies one or more named formulas. Terminate each formula specification with a semicolon.</description>
 		</attribute>
 	</tag>
-	<!-- Reportparam -->
+	<!-- ReportParam -->
 	<tag>
-		<name>Reportparam</name>
+		<name>ReportParam</name>
 		<tag-class>lucee.runtime.tag.ReportParam</tag-class>
 		<tte-class>lucee.transformer.cfml.evaluator.impl.ReportParam</tte-class>
 		<body-content>empty</body-content>
@@ -7029,7 +7080,7 @@ To use cached data, the current query must use the same SQL statement, data sour
     	</attribute>
 		<attribute>
 			<type>string</type>
-			<name>serverpassword</name>
+			<name>serverPassword</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>allow you to access filesystem, also when access is denied for your context</description>
@@ -7206,7 +7257,7 @@ To use cached data, the current query must use the same SQL statement, data sour
 		<attribute>
 			<type>string</type>
 			<name>result</name>
-			<alias>returnvariable</alias>
+			<alias>returnVariable</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>return variable name of action list</description>
@@ -7405,10 +7456,10 @@ To use cached data, the current query must use the same SQL statement, data sour
 		<body-content>empty</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
 		<description>Define a CFML variable. If the variable exists, cfset resets it to the specified value.</description>
-		<attribute-type>noname</attribute-type>
+		<attribute-type>noName</attribute-type>
 		<attribute>
 			<type>any</type>
-			<name>noname</name>
+			<name>noName</name>
 			<description>Content of the tag set</description>
 		</attribute>
 	</tag>
@@ -7516,7 +7567,7 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<type>multiple</type>
 			<rtexprvalue>true</rtexprvalue>
 		</script>
-		<description>Stops the time from starttag to endtag</description>
+		<description>Stops the time from startTag to endTag</description>
 		<attribute-type>fixed</attribute-type>
 		<attribute>
 			<type>string</type>
@@ -7535,7 +7586,7 @@ To use cached data, the current query must use the same SQL statement, data sour
 	</tag>
 	<!-- StoredProc -->
 	<tag>
-		<name>storedproc</name>
+		<name>storedProc</name>
 		<tag-class>lucee.runtime.tag.StoredProc</tag-class>
 		<body-content>free</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
@@ -7627,8 +7678,8 @@ To use cached data, the current query must use the same SQL statement, data sour
 			<rtexprvalue>true</rtexprvalue>
 		<description>
 possible values are:
-String "request": If original query was created within the current request, cached query data isused.
-a timespan (created with function CreateTimeSpan): If original query date falls within the time span, cached query data isused.
+String "request": If original query was created within the current request, cached query data is used.
+a timeSpan (created with function CreateTimeSpan): If original query date falls within the time span, cached query data is used.
 
 To use cached data, the current query must use the same SQL statement, data source, query name, user name, and password.</description>
     </attribute>
@@ -7636,7 +7687,7 @@ To use cached data, the current query must use the same SQL statement, data sour
 
 		<attribute>
 			<type>string</type>
-			<name>cachename</name>
+			<name>cacheName</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<status>deprecated</status>
@@ -7838,7 +7889,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		</attribute>
 		<attribute>
 			<type>numeric</type>
-			<name>contextlevel</name>
+			<name>contextLevel</name>
 			<status>hidden</status>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
@@ -7908,14 +7959,14 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		<attribute>
 			<type>string</type>
 			<name>action</name>
-			<values>begin,commit,setsavepoint,rollback</values>
+			<values>begin,commit,setSavePoint,rollback</values>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 <description>
 - begin: The start of the block of code to execute.
 - commit: Commits a pending transaction.
 - rollback: Rolls back a pending transaction.
-- setsavepoint: Saves a specific state within a transaction
+- setSavePoint: Saves a specific state within a transaction
 </description>
     </attribute>
 		<attribute>
@@ -8108,7 +8159,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		<!-- JW -->
 		<attribute>
 			<type>struct</type>
-			<name>passthrough</name>
+			<name>passThrough</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>attribute to pass natively vales to player</description>
@@ -8210,62 +8261,62 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>foregroundcolor</name>
-			<alias>foregroundcolour</alias>
+			<name>foreGroundColor</name>
+			<alias>foreGroundColour</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>alias for fgcolor</description>
+			<description>alias for fgColor</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
 			<name>foreground</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>alias for fgcolor</description>
+			<description>alias for fgColor</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>fgcolor</name>
-			<alias>fgcolour</alias>
+			<name>fgColor</name>
+			<alias>fgColour</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>foreground color</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>bgcolor</name>
-			<alias>bgcolour</alias>
+			<name>bgColor</name>
+			<alias>bgColour</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>background color</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>backgroundcolor</name>
-			<alias>backgroundcolour</alias>
+			<name>backGroundColor</name>
+			<alias>backGroundColour</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>alias for bgcolor</description>
+			<description>alias for bgColor</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
 			<name>background</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>alias for bgcolor</description>
+			<description>alias for bgColor</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>screencolor</name>
-			<alias>screencolour</alias>
+			<name>screenColor</name>
+			<alias>screenColour</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description></description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>lightcolor</name>
-			<alias>lightcolour</alias>
+			<name>lightColor</name>
+			<alias>lightColour</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description></description>
@@ -8279,14 +8330,14 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		</attribute>
 		<attribute>
 			<type>boolean</type>
-			<name>allowfullscreen</name>
+			<name>allowFullScreen</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description></description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>linktarget</name>
+			<name>linkTarget</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description></description>
@@ -8300,7 +8351,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		</attribute>
 		<attribute>
 			<type>boolean</type>
-			<name>linkfromdisplay</name>
+			<name>linkFromDisplay</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description></description>
@@ -8317,7 +8368,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<name>download</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Set this to true to show a download button in the player controlbar</description>
+			<description>Set this to true to show a download button in the player control bar</description>
 		</attribute>
 	</tag>
 
@@ -8455,16 +8506,16 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>fgcolor</name>
-			<alias>fgcolour</alias>
+			<name>fgColor</name>
+			<alias>fgColour</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description></description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>bgcolor</name>
-			<alias>bgcolour</alias>
+			<name>bgColor</name>
+			<alias>bgColour</alias>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description></description>
@@ -8539,10 +8590,10 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>nameconflict</name>
+			<name>nameConflict</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Action to take if filename is the same as that of a file in the directory. (error,skip,overwrite,makeunique)</description>
+			<description>Action to take if filename is the same as that of a file in the directory. (error,skip,overwrite,makeUnique)</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -8567,7 +8618,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		</attribute>
 		<attribute>
 			<type>number</type>
-			<name>buffersize</name>
+			<name>bufferSize</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description></description>
@@ -8588,14 +8639,14 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>audiobitrate</name>
+			<name>audioBitrate</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>audio bitrate, default same as input or part of defined quality (example: 10kbps, 10mbps, 10bps)</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>audiosamplerate</name>
+			<name>audioSampleRate</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>audio sampling rate, default same as input or part of defined quality</description>
@@ -8617,7 +8668,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		</attribute>
 		<attribute>
 			<type>number</type>
-			<name>framerate</name>
+			<name>frameRate</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>how many frames are used per second (alias for fps)</description>
@@ -8702,14 +8753,14 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>videocodec</name>
+			<name>videoCodec</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>force video codec</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>audiocodec</name>
+			<name>audioCodec</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>force audio codec</description>
@@ -8913,7 +8964,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 
 	<!-- Form -->
 	<tag>
-		<name>formclassic</name>
+		<name>formClassic</name>
 		<tag-class>lucee.runtime.tag.Form</tag-class>
 		<allow-removing-literal>yes</allow-removing-literal>
 		<body-content>must</body-content>
@@ -9105,7 +9156,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		</attribute>
 		<attribute>
 			<type>boolean</type>
-			<name>preloader</name>
+			<name>preLoader</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		    <status>unimplemented</status>
@@ -9164,7 +9215,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>acceptcharset</name>
+			<name>acceptCharset</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>passed through to form tag created, only used for type html.</description>
@@ -9192,70 +9243,70 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>onclick</name>
+			<name>onClick</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>passed through to form tag created, only used for type html.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>ondblclick</name>
+			<name>onDblClick</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>passed through to form tag created, only used for type html.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>onmousedown</name>
+			<name>onMouseDown</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>passed through to form tag created, only used for type html.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>onmouseup</name>
+			<name>onMouseUp</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>passed through to form tag created, only used for type html.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>onmouseover</name>
+			<name>onMouseOver</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>passed through to form tag created, only used for type html.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>onmousemove</name>
+			<name>onMouseMove</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>passed through to form tag created, only used for type html.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>onmouseout</name>
+			<name>onMouseOut</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>passed through to form tag created, only used for type html.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>onkeypress</name>
+			<name>onKeyPress</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>passed through to form tag created, only used for type html.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>onkeyup</name>
+			<name>onKeyUp</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>passed through to form tag created, only used for type html.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>onkeydown</name>
+			<name>onKeyDown</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>passed through to form tag created, only used for type html.</description>
@@ -9265,7 +9316,7 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 
 	<!-- Input -->
 	<tag>
-		<name>inputclassic</name>
+		<name>inputClassic</name>
 		<tag-class  >lucee.runtime.tag.Input</tag-class>
 		<body-content>empty</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
@@ -9276,10 +9327,12 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 
 		<attribute>
 			<type>string</type>
-			<name>autosuggest</name>
+			<name>autoSuggest</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Specifies entry completion suggestions to
+			<status>deprecated</status>
+			<description>This attribute is deprecated.
+					Specifies entry completion suggestions to
                     display as the user types into a text input. The
                     user can select a suggestion to complete the text
                     entry.
@@ -9293,10 +9346,11 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		</attribute>
 		<attribute>
 			<type>number</type>
-			<name>autosuggestBindDelay</name>
+			<name>autoSuggestBindDelay</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>The minimum time between autosuggest bind
+			<status>deprecated</status>
+			<description>This attribute is deprecated.The minimum time between autoSuggest bind
                     expression invocations, in seconds. Use this
                     attribute to limit the number of requests that are
                     sent to the server when a user types.
@@ -9304,10 +9358,11 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 		</attribute>
 		<attribute>
 			<type>number</type>
-			<name>autosuggestMinLength</name>
+			<name>autoSuggestMinLength</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>The minimum number of characters required in
+			<status>deprecated</status>
+			<description>This attribute is deprecated.The minimum number of characters required in
                     the text box before invoking a bind expression to
                     return items for suggestion.
                     Valid only for cfinput type="text".</description>
@@ -9317,14 +9372,16 @@ If you terminate a thread, the thread scope includes an ERROR metadata structure
 			<name>delimiter</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>The delimiter to use to separate entries in a static autosuggest list. This attribute is meaningful only if the autosuggest attribute is a string of delimited values.</description>
+			<status>deprecated</status>
+			<description>This attribute is deprecated. The delimiter to use to separate entries in a static autoSuggest list. This attribute is meaningful only if the autoSuggest attribute is a string of delimited values.</description>
 		</attribute>
 		<attribute>
 			<type>number</type>
 			<name>maxResultsDisplayed</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>The maximum number suggestions to display in the autosuggest list.
+			<status>deprecated</status>
+			<description>This attribute is deprecated. The maximum number suggestions to display in the autoSuggest list.
 Valid only for cfinput type="text".</description>
 		</attribute>
 		<attribute>
@@ -9332,29 +9389,33 @@ Valid only for cfinput type="text".</description>
 			<name>onBindError</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>The name of a JavaScript function to execute if evaluating a bind expression, including an autosuggest bind expression, results in an error. The function must take two attributes: an HTTP status code and a message.</description>
+			<status>deprecated</status>
+			<description>This attribute is deprecated. The name of a JavaScript function to execute if evaluating a bind expression, including an autoSuggest bind expression, results in an error. The function must take two attributes: an HTTP status code and a message.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
-			<name>showAutosuggestLoadingIcon</name>
+			<name>showAutoSuggestLoadingIcon</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>A Boolean value that specifies whether to display an animated icon when loading an autosuggest value for a text input.</description>
+			<status>deprecated</status>
+			<description>This attribute is deprecated. A Boolean value that specifies whether to display an animated icon when loading an autoSuggest value for a text input.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
 			<name>sourceForTooltip</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>The URL of a page to display as a tool tip. The page can include HTML markup to control the format, and the tip can include images.
+			<status>deprecated</status>
+			<description>This attribute is deprecated. The URL of a page to display as a tool tip. The page can include HTML markup to control the format, and the tip can include images.
 If you specify this attribute, an animated icon appears with the text "Loading..." while the tip is being loaded.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
-			<name>typeahead</name>
+			<name>typeAhead</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>A Boolean value that specifies whether the autosuggest feature should automatically complete a user's entry with the first result in the suggestion list.
+			<status>deprecated</status>
+			<description>This attribute is deprecated. A Boolean value that specifies whether the autoSuggest feature should automatically complete a user's entry with the first result in the suggestion list.
 Valid only for cfinput type="text".</description>
 		</attribute>
 		<attribute>
@@ -9362,7 +9423,8 @@ Valid only for cfinput type="text".</description>
 			<name>validateAt</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>How to do the validation; one or more of the following:
+			<status>deprecated</status>
+			<description>This attribute is deprecated. How to do the validation; one or more of the following:
             onSubmit, onServer or onBlur.
             onBlur and onSubmit are identical in Flash forms. For
             multiple values, use a comma-delimited list.
@@ -9384,7 +9446,7 @@ Valid only for cfinput type="text".</description>
             - reset: form reset button.
             - submit: form submission button.
             - text: text entry box.
-            - datefield: Flash only; date entry field with an
+            - dateField: Flash only; date entry field with an
               expanding calendar for selecting dates.</description>
     </attribute>
 		<attribute>
@@ -9421,7 +9483,7 @@ Valid only for cfinput type="text".</description>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>date: verifies format mm/dd/yy.
-            eurodate: verifies date format dd/mm/yyyy.
+            euroDate: verifies date format dd/mm/yyyy.
             time: verifies time format hh:mm:ss.
             float: verifies floating point format.
             integer: verifies integer format.
@@ -9430,7 +9492,7 @@ Valid only for cfinput type="text".</description>
                 begin with digit 1 - 9.
             zipcode: verifies, in U.S. formats only, 5- or 9-digit
                 format #####-####. The separator can be a blank.
-            creditcard: strips blanks and dashes; verifies number using
+            creditCard: strips blanks and dashes; verifies number using
                 mod10 algorithm. Number must have 13-16 digits.
             social_security_number: verifies format ###-##-####. The
                 separator can be a blank.
@@ -9442,7 +9504,8 @@ Valid only for cfinput type="text".</description>
 			<name>bind</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		<description>A Flash bind expression that populates the field with
+			<status>deprecated</status>
+		<description>This attribute is deprecated. A Flash bind expression that populates the field with
             information from other form fields.</description>
     </attribute>
 		<attribute>
@@ -9450,7 +9513,8 @@ Valid only for cfinput type="text".</description>
 			<name>bindAttribute</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		<description>Specifies the HTML tag attribute whose value is
+			<status>deprecated</status>
+		<description>This attribute is deprecated. Specifies the HTML tag attribute whose value is
                     set by the bind attribute. You can only specify
                     attributes in the browser's HTML DOM tree, not
                     Lucee-specific attributes.
@@ -9462,7 +9526,8 @@ Valid only for cfinput type="text".</description>
 			<name>bindOnLoad</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		<description>A Boolean value that specifies whether to
+			<status>deprecated</status>
+		<description>This attribute is deprecated. A Boolean value that specifies whether to
                         execute the bind attribute expression when first
                         loading the form.
                         Ignored if there is no bind attribute.
@@ -9485,7 +9550,7 @@ Valid only for cfinput type="text".</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>accesskey</name>
+			<name>accessKey</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>passed through to input tag created, only used for type html.</description>
@@ -9515,7 +9580,7 @@ Valid only for cfinput type="text".</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>daynames</name>
+			<name>dayNames</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>A comma-delimited list that sets the names of the
@@ -9562,7 +9627,7 @@ Valid only for cfinput type="text".</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>hspace</name>
+			<name>hSpace</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>passed through to form tag created, only used for type html.</description>
@@ -9588,7 +9653,7 @@ Valid only for cfinput type="text".</description>
              - 9 = [0-9]
              - ? = Any character
              - all other = the literal character
-            In Flash for type=datefield use:
+            In Flash for type=dateField use:
              - D = day; can use 0-2 mask characters.
              - M = month; can use 0-4 mask characters.
              - Y = year; can use 0, 2, or 4 characters.
@@ -9596,28 +9661,28 @@ Valid only for cfinput type="text".</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>notab</name>
+			<name>noTab</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>passed through to form tag created, only used for type html.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>datafld</name>
+			<name>dataFld</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>passed through to form tag created, only used for type html.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>datasrc</name>
+			<name>dataSrc</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>passed through to form tag created, only used for type html.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>dataformatas</name>
+			<name>dataFormatAs</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>passed through to form tag created, only used for type html.</description>
@@ -9634,7 +9699,7 @@ Valid only for cfinput type="text".</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>ismap</name>
+			<name>isMap</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>passed through to form tag created, only used for type html.</description>
@@ -9657,7 +9722,7 @@ Valid only for cfinput type="text".</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>usemap</name>
+			<name>useMap</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>passed through to form tag created, only used for type html.</description>
@@ -9776,7 +9841,7 @@ Valid only for cfinput type="text".</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>onDblclick</name>
+			<name>onDblClick</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>passed through to form tag created, only used for type html.</description>
@@ -9825,7 +9890,7 @@ Valid only for cfinput type="text".</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>onselect</name>
+			<name>onSelect</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>passed through to form tag created, only used for type html.</description>
@@ -9921,35 +9986,35 @@ Valid only for cfinput type="text".</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>formaction</name>
+			<name>formAction</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>HTML attribute: Overrides the form's action attribute. Must be a valid URL that defines where to send the data when the form is submitted (for type="submit" and type="image")</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>formenctype</name>
+			<name>formEncType</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>HTML attribute: Overrides the form's enctype attribute. Specifies how form-data should be encoded before sending it to the server (for type="submit" and type="image")</description>
+			<description>HTML attribute: Overrides the form's encType attribute. Specifies how form-data should be encoded before sending it to the server (for type="submit" and type="image")</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>formmethod</name>
+			<name>formMethod</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>HTML attribute: Overrides the form's method attribute. Defines the HTTP method for sending data to the action URL (for type="submit" and type="image")</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>formnovalidate</name>
+			<name>formNoValidate</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>HTML attribute: Overrides the form's novalidate attribute. If present the input field should not be validated when submitted</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>formtarget</name>
+			<name>formTarget</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>HTML attribute: Overrides the form's target attribute. Specifies the target window used when the form is submitted (for type="submit" and type="image")</description>
@@ -9959,7 +10024,7 @@ Valid only for cfinput type="text".</description>
 			<name>list</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>HTML attribute: Refers to a datalist containing predefined options for the input field</description>
+			<description>HTML attribute: Refers to a dataList containing predefined options for the input field</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -10000,7 +10065,7 @@ Valid only for cfinput type="text".</description>
 
 	<!-- Select -->
 	<tag>
-		<name>Selectclassic</name>
+		<name>SelectClassic</name>
 		<tag-class>lucee.runtime.tag.Select</tag-class>
 		<body-content>must</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
@@ -10011,7 +10076,7 @@ Valid only for cfinput type="text".</description>
 		<attribute-type>fixed</attribute-type>
 		<attribute>
 			<type>string</type>
-			<name>datafld</name>
+			<name>dataFld</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>passed through to form tag created, only used for type html.</description>
@@ -10025,14 +10090,14 @@ Valid only for cfinput type="text".</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>datasrc</name>
+			<name>dataSrc</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>passed through to form tag created, only used for type html.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>dataformatas</name>
+			<name>dataFormatAs</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>passed through to form tag created, only used for type html.</description>
@@ -10074,7 +10139,7 @@ Valid only for cfinput type="text".</description>
 
 		<attribute>
 			<type>string</type>
-			<name>onmousedown</name>
+			<name>onMouseDown</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>JavaScript to run
@@ -10082,7 +10147,7 @@ Valid only for cfinput type="text".</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>onmouseup</name>
+			<name>onMouseUp</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>JavaScript to run
@@ -10090,35 +10155,35 @@ Valid only for cfinput type="text".</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>onmouseover</name>
+			<name>onMouseOver</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>passed through to form tag created, only used for type html.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>onmousemove</name>
+			<name>onMouseMove</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>passed through to form tag created, only used for type html.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>onmouseout</name>
+			<name>onMouseOut</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>passed through to form tag created, only used for type html.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>onkeypress</name>
+			<name>onKeyPress</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>passed through to form tag created, only used for type html.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>onkeyup</name>
+			<name>onKeyUp</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>JavaScript to run
@@ -10126,15 +10191,12 @@ Valid only for cfinput type="text".</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>onkeydown</name>
+			<name>onKeyDown</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		<description>JavaScript to run when the user depresses a keyboard
             key in the control.</description>
 		</attribute>
-
-
-
 
 		<attribute>
 			<type>string</type>
@@ -10255,7 +10317,7 @@ Valid only for cfinput type="text".</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>onDblclick</name>
+			<name>onDblClick</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>passed through to form tag created, only used for type html.</description>

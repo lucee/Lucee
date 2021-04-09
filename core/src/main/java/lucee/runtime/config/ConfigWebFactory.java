@@ -1484,7 +1484,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 					hasChanged = true;
 				}
 			}
-			catch (IOException e) {}
+			catch (IOException e) {
+			}
 
 			// change Compile type
 			if (hasChanged) {
@@ -1981,8 +1982,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 			// Default query of query DB
 			try {
 				setDatasource(config, datasources, QOQ_DATASOURCE_NAME, new ClassDefinitionImpl("org.hsqldb.jdbcDriver", "hsqldb", "1.8.0", config.getIdentification()),
-						"hypersonic-hsqldb", "", -1, "jdbc:hsqldb:.", "sa", "", null, DEFAULT_MAX_CONNECTION, -1, -1, 60000, true, true, DataSource.ALLOW_ALL, false, false, null,
-						new StructImpl(), "", ParamSyntax.DEFAULT, false, false, false, false);
+						"hypersonic-hsqldb", "", -1, "jdbc:hsqldb:.", "sa", "", null, DEFAULT_MAX_CONNECTION, -1, -1, 60000, 0, 0, 0, true, true, DataSource.ALLOW_ALL, false,
+						false, null, new StructImpl(), "", ParamSyntax.DEFAULT, false, false, false, false);
 			}
 			catch (Exception e) {
 				log.error("Datasource", e);
@@ -2049,11 +2050,12 @@ public final class ConfigWebFactory extends ConfigFactory {
 						setDatasource(config, datasources, e.getKey().getString(), cd, getAttr(dataSource, "host"), getAttr(dataSource, "database"),
 								Caster.toIntValue(getAttr(dataSource, "port"), -1), getAttr(dataSource, "dsn"), getAttr(dataSource, "username"),
 								ConfigWebUtil.decrypt(getAttr(dataSource, "password")), null, Caster.toIntValue(getAttr(dataSource, "connectionLimit"), DEFAULT_MAX_CONNECTION),
-								idle, Caster.toIntValue(getAttr(dataSource, "liveTimeout"), defLive), Caster.toLongValue(getAttr(dataSource, "metaCacheTimeout"), 60000),
-								toBoolean(getAttr(dataSource, "blob"), true), toBoolean(getAttr(dataSource, "clob"), true),
-								Caster.toIntValue(getAttr(dataSource, "allow"), DataSource.ALLOW_ALL), toBoolean(getAttr(dataSource, "validate"), false),
-								toBoolean(getAttr(dataSource, "storage"), false), getAttr(dataSource, "timezone"), toStruct(getAttr(dataSource, "custom")),
-								getAttr(dataSource, "dbdriver"), ParamSyntax.toParamSyntax(dataSource, ParamSyntax.DEFAULT),
+								idle, Caster.toIntValue(getAttr(dataSource, "liveTimeout"), defLive), Caster.toIntValue(getAttr(dataSource, "minIdle"), 0),
+								Caster.toIntValue(getAttr(dataSource, "maxIdle"), 0), Caster.toIntValue(getAttr(dataSource, "maxTotal"), 0),
+								Caster.toLongValue(getAttr(dataSource, "metaCacheTimeout"), 60000), toBoolean(getAttr(dataSource, "blob"), true),
+								toBoolean(getAttr(dataSource, "clob"), true), Caster.toIntValue(getAttr(dataSource, "allow"), DataSource.ALLOW_ALL),
+								toBoolean(getAttr(dataSource, "validate"), false), toBoolean(getAttr(dataSource, "storage"), false), getAttr(dataSource, "timezone"),
+								toStruct(getAttr(dataSource, "custom")), getAttr(dataSource, "dbdriver"), ParamSyntax.toParamSyntax(dataSource, ParamSyntax.DEFAULT),
 								toBoolean(getAttr(dataSource, "literalTimestampWithTSOffset"), false), toBoolean(getAttr(dataSource, "alwaysSetTimeout"), false),
 								toBoolean(getAttr(dataSource, "requestExclusive"), false), toBoolean(getAttr(dataSource, "alwaysResetConnections"), false)
 
@@ -2140,7 +2142,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 					String cn = JDBCDriver.extractClassName(bundle);
 					cd = new ClassDefinitionImpl(config.getIdentification(), cn, cd.getName(), cd.getVersion());
 				}
-				catch (Exception ex) {}
+				catch (Exception ex) {
+				}
 			}
 
 			label = getAttr(driver, "label");
@@ -2269,8 +2272,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 						} //
 						else if (cd.getClassName() != null
 								&& (cd.getClassName().endsWith(".extension.io.cache.eh.EHCache") || cd.getClassName().endsWith("lucee.runtime.cache.eh.EHCache"))) {
-							cd = new ClassDefinitionImpl("org.lucee.extension.cache.eh.EHCache");
-						}
+									cd = new ClassDefinitionImpl("org.lucee.extension.cache.eh.EHCache");
+								}
 						cc = new CacheConnectionImpl(config, name.getString(), cd, custom, Caster.toBooleanValue(getAttr(data, "readOnly"), false),
 								Caster.toBooleanValue(getAttr(data, "storage"), false));
 						if (!StringUtil.isEmpty(name)) {
@@ -2461,20 +2464,23 @@ public final class ConfigWebFactory extends ConfigFactory {
 				else if (item.length == 1) sct.setEL(KeyImpl.init(URLDecoder.decode(item[0], true).trim()), "");
 			}
 		}
-		catch (PageException ee) {}
+		catch (PageException ee) {
+		}
 
 		return sct;
 	}
 
 	private static void setDatasource(ConfigImpl config, Map<String, DataSource> datasources, String datasourceName, ClassDefinition cd, String server, String databasename,
-			int port, String dsn, String user, String pass, TagListener listener, int connectionLimit, int idleTimeout, int liveTimeout, long metaCacheTimeout, boolean blob,
-			boolean clob, int allow, boolean validate, boolean storage, String timezone, Struct custom, String dbdriver, ParamSyntax ps, boolean literalTimestampWithTSOffset,
-			boolean alwaysSetTimeout, boolean requestExclusive, boolean alwaysResetConnections) throws BundleException, ClassException, SQLException {
+			int port, String dsn, String user, String pass, TagListener listener, int connectionLimit, int idleTimeout, int liveTimeout, int minIdle, int maxIdle, int maxTotal,
+			long metaCacheTimeout, boolean blob, boolean clob, int allow, boolean validate, boolean storage, String timezone, Struct custom, String dbdriver, ParamSyntax ps,
+			boolean literalTimestampWithTSOffset, boolean alwaysSetTimeout, boolean requestExclusive, boolean alwaysResetConnections)
+			throws BundleException, ClassException, SQLException {
 
 		datasources.put(datasourceName.toLowerCase(),
-				new DataSourceImpl(config, datasourceName, cd, server, dsn, databasename, port, user, pass, listener, connectionLimit, idleTimeout, liveTimeout, metaCacheTimeout,
-						blob, clob, allow, custom, false, validate, storage, StringUtil.isEmpty(timezone, true) ? null : TimeZoneUtil.toTimeZone(timezone, null), dbdriver, ps,
-						literalTimestampWithTSOffset, alwaysSetTimeout, requestExclusive, alwaysResetConnections, config.getLog("application")));
+				new DataSourceImpl(config, datasourceName, cd, server, dsn, databasename, port, user, pass, listener, connectionLimit, idleTimeout, liveTimeout, minIdle, maxIdle,
+						maxTotal, metaCacheTimeout, blob, clob, allow, custom, false, validate, storage,
+						StringUtil.isEmpty(timezone, true) ? null : TimeZoneUtil.toTimeZone(timezone, null), dbdriver, ps, literalTimestampWithTSOffset, alwaysSetTimeout,
+						requestExclusive, alwaysResetConnections, config.getLog("application")));
 
 	}
 
@@ -2537,7 +2543,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 						String[] arr = ListUtil.toStringArray(ListUtil.listToArrayRemoveEmpty(strExtensions, ","));
 						config.setCustomTagExtensions(ListUtil.trimItems(arr));
 					}
-					catch (PageException e) {}
+					catch (PageException e) {
+					}
 				}
 				else if (hasCS) {
 					config.setCustomTagExtensions(configServer.getCustomTagExtensions());
@@ -2666,7 +2673,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 					try {
 						keys[i] = URLDecoder.decode(keys[i], "UTF-8", true);
 					}
-					catch (UnsupportedEncodingException e) {}
+					catch (UnsupportedEncodingException e) {
+					}
 				}
 
 				csi.setAuthenticationKeys(keys);
@@ -3369,7 +3377,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 
 					return (PrintStream) ClassUtil.loadInstance(classname);
 				}
-				catch (Exception e) {}
+				catch (Exception e) {
+				}
 			}
 			// file
 			else if (StringUtil.startsWithIgnoreCase(streamtype, "file:")) {
@@ -3379,7 +3388,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 					Resource res = ConfigWebUtil.getFile(config, config.getConfigDir(), strRes, ResourceUtil.TYPE_FILE);
 					if (res != null) return new PrintStream(res.getOutputStream(), true);
 				}
-				catch (Exception e) {}
+				catch (Exception e) {
+				}
 			}
 			else if (StringUtil.startsWithIgnoreCase(streamtype, "log")) {
 				try {
@@ -3392,7 +3402,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 					}
 					return new PrintStream(new RetireOutputStream(log, true, 5, null));
 				}
-				catch (Exception e) {}
+				catch (Exception e) {
+				}
 			}
 		}
 		return iserror ? CFMLEngineImpl.CONSOLE_ERR : CFMLEngineImpl.CONSOLE_OUT;
@@ -3864,7 +3875,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 							fin.invoke(existing.instance, new Object[0]);
 						}
 					}
-					catch (Exception e) {}
+					catch (Exception e) {
+					}
 				}
 				Class clazz = cd.getClazz();
 
@@ -4139,7 +4151,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 						list.put(id, new DebugEntry(id, getAttr(e, "type"), getAttr(e, "iprange"), getAttr(e, "label"), getAttr(e, "path"), getAttr(e, "fullname"),
 								toStruct(getAttr(e, "custom"))));
 					}
-					catch (IOException ioe) {}
+					catch (IOException ioe) {
+					}
 				}
 			}
 			config.setDebugEntries(list.values().toArray(new DebugEntry[list.size()]));
@@ -4230,6 +4243,11 @@ public final class ConfigWebFactory extends ConfigFactory {
 			else if (debugOptions != null && extractDebugOption("queryUsage", debugOptions)) options += ConfigPro.DEBUG_QUERY_USAGE;
 			else if (hasCS && configServer.hasDebugOptions(ConfigPro.DEBUG_QUERY_USAGE)) options += ConfigPro.DEBUG_QUERY_USAGE;
 
+			str = getAttr(root, "debuggingThread");
+			if (hasAccess && !StringUtil.isEmpty(str)) {
+				if (toBoolean(str, false)) options += ConfigPro.DEBUG_THREAD;
+			}
+
 			// max records logged
 			String strMax = getAttr(root, "debuggingMaxRecordsLogged");
 			if (StringUtil.isEmpty(str)) str = getAttr(root, "debuggingShowMaxRecordsLogged");
@@ -4274,7 +4292,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 						}
 					}
 				}
-				catch (SecurityException e) {}
+				catch (SecurityException e) {
+				}
 			}
 
 			if (hasAccess) {
@@ -4323,18 +4342,20 @@ public final class ConfigWebFactory extends ConfigFactory {
 	 */
 	private static void _loadExtensionBundles(ConfigServerImpl cs, ConfigImpl config, Struct root, Log log) {
 		try {
-			Struct children = ConfigWebUtil.getAsStruct("extensions", root);
+			Array children = ConfigWebUtil.getAsArray("extensions", root);
 			String strBundles;
 			List<RHExtension> extensions = new ArrayList<RHExtension>();
 			RHExtension rhe;
 
-			Iterator<Entry<Key, Object>> it = children.entryIterator();
+			Iterator<Object> it = children.valueIterator();
 			Entry<Key, Object> e;
 			Struct child;
+			String id;
 			while (it.hasNext()) {
-				e = it.next();
-				child = Caster.toStruct(e.getValue(), null);
+				child = Caster.toStruct(it.next(), null);
 				if (child == null) continue;
+				id = Caster.toString(child.get(KeyConstants._id, null), null);
+				if (StringUtil.isEmpty(id)) continue;
 
 				BundleInfo[] bfsq;
 				try {
@@ -4342,7 +4363,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 					if (StringUtil.isEmpty(res)) res = Caster.toString(child.get(KeyConstants._path, null), null);
 					if (StringUtil.isEmpty(res)) res = Caster.toString(child.get(KeyConstants._url, null), null);
 
-					rhe = new RHExtension(config, e.getKey().getString(), Caster.toString(child.get(KeyConstants._version, null), null), res, true);
+					rhe = new RHExtension(config, id, Caster.toString(child.get(KeyConstants._version, null), null), res, true);
 					if (rhe.getStartBundles()) rhe.deployBundles(config);
 					extensions.add(rhe);
 				}
@@ -4621,6 +4642,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 			Struct proxy = ConfigWebUtil.getAsStruct("proxy", root);
 
 			// proxy server
+			boolean enabled = Caster.toBooleanValue(getAttr(proxy, "enabled"), true);
 			String server = getAttr(proxy, "server");
 			String username = getAttr(proxy, "username");
 			String password = getAttr(proxy, "password");
@@ -4630,7 +4652,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 			Set<String> includes = proxy != null ? ProxyDataImpl.toStringSet(getAttr(proxy, "includes")) : null;
 			Set<String> excludes = proxy != null ? ProxyDataImpl.toStringSet(getAttr(proxy, "excludes")) : null;
 
-			if (hasAccess && !StringUtil.isEmpty(server)) {
+			if (enabled && hasAccess && !StringUtil.isEmpty(server)) {
 				ProxyDataImpl pd = (ProxyDataImpl) ProxyDataImpl.getInstance(server, port, username, password);
 				pd.setExcludes(excludes);
 				pd.setIncludes(includes);
@@ -4900,6 +4922,16 @@ public final class ConfigWebFactory extends ConfigFactory {
 			}
 			if (ts != null && ts.getMillis() > 0) config.setRequestTimeout(ts);
 			else if (hasCS) config.setRequestTimeout(configServer.getRequestTimeout());
+
+			// application Path Timeout
+			ts = null;
+			if (hasAccess) {
+				String reqTimeout = SystemUtil.getSystemPropOrEnvVar("lucee.application.path.cache.timeout", null);
+				if (reqTimeout == null) reqTimeout = getAttr(root, "applicationPathTimeout");
+				if (!StringUtil.isEmpty(reqTimeout)) ts = Caster.toTimespan(reqTimeout);
+			}
+			if (ts != null && ts.getMillis() > 0) config.setApplicationPathCacheTimeout(ts.getMillis());
+			else if (hasCS) config.setApplicationPathCacheTimeout(configServer.getApplicationPathCacheTimeout());
 
 			// script-protect
 			String strScriptProtect = SystemUtil.getSystemPropOrEnvVar("lucee.script.protect", null);

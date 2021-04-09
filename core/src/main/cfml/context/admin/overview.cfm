@@ -298,6 +298,16 @@ Error Output --->
 	type="#request.adminType#"
 	password="#session["password"&request.adminType]#"
 	returnVariable="contexts">
+<cfadmin
+    action="getExtensions"
+    type="server"
+    password="#session["password"&request.adminType]#"
+    returnVariable="docsServer">
+<cfadmin
+    action="getExtensions"
+    type="web"
+    password="#session["password"&request.adminType]#"
+    returnVariable="docsWeb">
 
 	<cfif request.adminType EQ "server">
 		<cfset names=StructKeyArray(info.servlets)>
@@ -569,7 +579,11 @@ Error Output --->
 		</tr>
 
 
-
+		<cfadmin
+		action="getMinVersion"
+		type="server"
+		password="#session["password"&request.adminType]#"
+		returnVariable="minVersion">
 		<tr>
 			<td valign="top" colspan="3">
 				<br>
@@ -630,6 +644,10 @@ Error Output --->
 								<tr>
 									<th scope="row">#stText.Overview.remote_addr#</th>
 									<td>#cgi.remote_addr#</td>
+								</tr>
+								<tr>
+									<th scope="row">Loader Version</th>
+									<td>#minversion#</td>
 								</tr>
 								<tr>
 									<th scope="row">#stText.overview.servletContainer#</th>
@@ -769,7 +787,12 @@ Error Output --->
 						<!--- Reference --->
 						<tr>
 							<td>
-								<a href="../doc/index.cfm" target="_blank">#stText.Overview.localRefLink#</a>
+								<cfif Listfind(valueList(docsServer.name),"Lucee Documentation") eq 0 && Listfind(valueList(docsWeb.name),"Lucee Documentation") eq 0>
+									<a href="#cgi.script_name#?action=ext.applications" title="#stText.overview.installDocsLink#">
+										#stText.Overview.localRefLink#</a>
+								<cfelse>
+									<a href="../doc/index.cfm" target="_blank">#stText.Overview.localRefLink#</a>
+								</cfif>
 								<div class="comment">#stText.Overview.localRefDesc#</div>
 							</td>
 						</tr>

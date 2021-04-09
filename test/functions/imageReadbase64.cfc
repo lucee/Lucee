@@ -11,15 +11,15 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 		describe( "test case for ImageReadBase64", function() {
 
 			it(title = "Checking with ImageReadBase64", body = function( currentSpec ) {
-				newImg = imageNew("",200,200,"rgb","red");
-				getbase64 = imagewriteBase64(newImg,path&'readBase64.txt','jpg');
+				var newImg = imageNew("",200,200,"rgb","red");
+				var getbase64 = imagewriteBase64(newImg,path&'readBase64.txt','jpg');
 				cfimage( action="write", source = ImageReadBase64(getbase64), destination = path&'readbase64Img.png', overwrite = "yes");
 			  	expect(fileExists(path&"readbase64Img.png")).tobe("true");
 			});
 
 			it(title = "Checking with Image.ImageReadBase64", body = function( currentSpec ) {
-				getImg = imageRead("https://lucee.org/assets/img/logo.png");
-				base64 = getImg.writeBase64(path&"getbase64.txt","jpg");
+				var getImg = imageNew("",200,200,"rgb","red");
+				var base64 = getImg.writeBase64(path&"getbase64.txt","jpg");
 				cfimage( action = "write", source = ImageReadBase64(base64), destination = path&'base64Img.png', overwrite = "yes" );
 			  	expect( fileExists(path&"base64Img.png") ).tobe("true");
 			});

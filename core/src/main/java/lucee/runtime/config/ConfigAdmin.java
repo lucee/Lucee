@@ -474,7 +474,7 @@ public final class ConfigAdmin {
 			if (el == null) continue;
 
 			if (checkId) {
-				if (i + 1 == id) {
+				if (i == id) {
 					server = el;
 					break;
 				}
@@ -1183,7 +1183,6 @@ public final class ConfigAdmin {
 
 		// copy to jar directory
 		File jar = new File(factory.getBundleDirectory(), bf.getSymbolicName() + "-" + bf.getVersion().toString() + (".jar"));
-
 		InputStream is = bf.getInputStream();
 		OutputStream os = new FileOutputStream(jar);
 		try {
@@ -1192,7 +1191,6 @@ public final class ConfigAdmin {
 		finally {
 			IOUtil.close(is, os);
 		}
-
 		return BundleFile.getInstance(jar);
 	}
 
@@ -1383,7 +1381,7 @@ public final class ConfigAdmin {
 			maxLength = access - SecurityManager.NUMBER_OFFSET;
 			hasInsertAccess = maxLength > existingLength;
 		}
-		if (!hasAccess) throw new SecurityException("no access to update datsource connections");
+		if (!hasAccess) throw new SecurityException("no access to update datasource connections");
 
 		// check parameters
 		if (name == null || name.length() == 0) throw new ExpressionException("name can't be an empty value");
@@ -1521,7 +1519,8 @@ public final class ConfigAdmin {
 				try {
 					OSGiUtil.uninstall(bl);
 				}
-				catch (BundleException e) {}
+				catch (BundleException e) {
+				}
 			}
 		}
 	}
@@ -1553,7 +1552,8 @@ public final class ConfigAdmin {
 				try {
 					OSGiUtil.uninstall(bl);
 				}
-				catch (BundleException e) {}
+				catch (BundleException e) {
+				}
 			}
 		}
 	}
@@ -1570,7 +1570,8 @@ public final class ConfigAdmin {
 			}
 			config.getStartups().remove(cd.getClassName());
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 	}
 
 	public void updateJDBCDriver(String label, String id, ClassDefinition cd) throws PageException {
@@ -1619,7 +1620,8 @@ public final class ConfigAdmin {
 				try {
 					OSGiUtil.uninstall(bl);
 				}
-				catch (BundleException e) {}
+				catch (BundleException e) {
+				}
 			}
 		}
 	}
@@ -1660,7 +1662,8 @@ public final class ConfigAdmin {
 				try {
 					OSGiUtil.uninstall(bl);
 				}
-				catch (BundleException e) {}
+				catch (BundleException e) {
+				}
 			}
 		}
 	}
@@ -2322,7 +2325,7 @@ public final class ConfigAdmin {
 		checkWriteAccess();
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_DATASOURCE);
 
-		if (!hasAccess) throw new SecurityException("no access to update datsource connections");
+		if (!hasAccess) throw new SecurityException("no access to update datasource connections");
 
 		root.setEL("preserveSingleQuote", Caster.toBooleanValue(psq, true));
 	}
@@ -2440,6 +2443,19 @@ public final class ConfigAdmin {
 			root.setEL("requestTimeout", span.getDay() + "," + span.getHour() + "," + span.getMinute() + "," + span.getSecond());
 		}
 		else rem(root, "requestTimeout");
+	}
+
+	public void updateApplicationPathTimeout(TimeSpan span) throws SecurityException, ApplicationException {
+		checkWriteAccess();
+		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+
+		if (!hasAccess) throw new SecurityException("no access to update scope setting");
+
+		if (span != null) {
+			if (span.getMillis() <= 0) throw new ApplicationException("value must be a positive number");
+			root.setEL("applicationPathTimeout", span.getDay() + "," + span.getHour() + "," + span.getMinute() + "," + span.getSecond());
+		}
+		else rem(root, "applicationPathTimeout");
 	}
 
 	/**
@@ -2946,7 +2962,7 @@ public final class ConfigAdmin {
 	 * @throws SecurityException
 	 */
 	public void updateDebug(Boolean debug, Boolean template, Boolean database, Boolean exception, Boolean tracing, Boolean dump, Boolean timer, Boolean implicitAccess,
-			Boolean queryUsage) throws SecurityException {
+			Boolean queryUsage, Boolean thread) throws SecurityException {
 		checkWriteAccess();
 		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_DEBUGGING);
 		if (!hasAccess) throw new SecurityException("no access to change debugging settings");
@@ -2977,6 +2993,9 @@ public final class ConfigAdmin {
 
 		if (queryUsage != null) root.setEL("debuggingQueryUsage", queryUsage.booleanValue());
 		else rem(root, "debuggingQueryUsage");
+
+		if (queryUsage != null) root.setEL("debuggingThread", thread.booleanValue());
+		else rem(root, "debuggingThread");
 	}
 
 	/**
@@ -3785,7 +3804,7 @@ public final class ConfigAdmin {
 		children.appendEL(el);
 	}
 
-	public void updateUpdateAdminMode(String mode, boolean merge, boolean keep) throws PageException, IOException {
+	public void updateUpdateAdminMode(String mode, boolean merge, boolean keep) throws PageException {
 		checkWriteAccess();
 
 		if (config.getAdminMode() == ConfigImpl.ADMINMODE_MULTI) {
@@ -3793,7 +3812,12 @@ public final class ConfigAdmin {
 			if (merge) {
 				ConfigWeb[] webs = ((ConfigServer) config).getConfigWebs();
 				for (ConfigWeb cw: webs) {
-					merge(root, ConfigWebFactory.loadDocument(cw.getConfigFile()));
+					try {
+						merge(root, ConfigWebFactory.loadDocument(cw.getConfigFile()));
+					}
+					catch (IOException e) {
+						throw Caster.toPageException(e);
+					}
 				}
 			}
 
@@ -4145,18 +4169,18 @@ public final class ConfigAdmin {
 		checkWriteAccess();
 		if (StringUtil.isEmpty(id, true)) return;
 
-		Struct children = ConfigWebUtil.getAsStruct("extensions", root);
-		Key[] keys = children.keys();
+		Array children = ConfigWebUtil.getAsArray("extensions", root);
+		int[] keys = children.intKeys();
 		Struct child;
 		RHExtension rhe;
-		for (Key key: keys) {
+		int key;
+		for (int i = keys.length - 1; i >= 0; i--) {
+			key = keys[i];
 			child = Caster.toStruct(children.get(key, null), null);
 			if (child == null) continue;
 
 			try {
-				rhe = new RHExtension(config, key.getString(), Caster.toString(child.get(KeyConstants._version), null), null, false);
-
-				// ed=ExtensionDefintion.getInstance(config,child);
+				rhe = new RHExtension(config, Caster.toString(child.get(KeyConstants._id), null), Caster.toString(child.get(KeyConstants._version), null), null, false);
 			}
 			catch (Throwable t) {
 				ExceptionUtil.rethrowIfNecessary(t);
@@ -5827,8 +5851,8 @@ public final class ConfigAdmin {
 			throws IOException, PageException, BundleException, ConverterException {
 		if (!Decision.isUUId(extensionID)) throw new IOException("id [" + extensionID + "] is invalid, it has to be a UUID");
 
-		Struct children = ConfigWebUtil.getAsStruct("extensions", root);
-		Key[] keys = children.keys();
+		Array children = ConfigWebUtil.getAsArray("extensions", root);
+		int[] keys = children.intKeys();
 
 		// Update
 		Struct el;
@@ -5837,11 +5861,13 @@ public final class ConfigAdmin {
 		boolean storeChildren = false;
 		BundleDefinition[] bundles;
 		Log log = config.getLog("deploy");
-		for (Key key: keys) {
+		int key;
+		for (int i = keys.length - 1; i >= 0; i--) {
+			key = keys[i];
 			el = Caster.toStruct(children.get(key, null), null);
 			if (el == null) continue;
 
-			id = key.getString();
+			id = Caster.toString(el.get(KeyConstants._id), null);
 			if (extensionID.equalsIgnoreCase(id)) {
 				bundles = RHExtension.toBundleDefinitions(ConfigWebUtil.getAsString("bundles", el, null)); // get existing bundles before populate new ones
 
@@ -5944,7 +5970,7 @@ public final class ConfigAdmin {
 		}
 	}
 
-	private String[] _removeExtensionCheckOtherUsage(Struct children, Struct curr, String type) {
+	private String[] _removeExtensionCheckOtherUsage(Array children, Struct curr, String type) {
 		String currVal = ConfigWebUtil.getAsString(type, curr, null);
 		if (StringUtil.isEmpty(currVal)) return null;
 		Key[] keys = children.keys();
@@ -5952,7 +5978,9 @@ public final class ConfigAdmin {
 		Struct other;
 		Set<String> currSet = ListUtil.toSet(ListUtil.trimItems(ListUtil.listToStringArray(currVal, ',')));
 		String[] otherArr;
-		for (Key key: keys) {
+		Key key;
+		for (int i = keys.length - 1; i >= 0; i--) {
+			key = keys[i];
 			Struct tmp = Caster.toStruct(children.get(key, null), null);
 			if (tmp == null) continue;
 
@@ -5976,23 +6004,24 @@ public final class ConfigAdmin {
 	 *         returned
 	 * @throws IOException
 	 * @throws BundleException
-	 * @throws ApplicationException
+	 * @throws PageException
 	 */
-	public BundleDefinition[] _updateExtension(ConfigPro config, RHExtension ext) throws IOException, BundleException, ApplicationException {
+	public BundleDefinition[] _updateExtension(ConfigPro config, RHExtension ext) throws IOException, BundleException, PageException {
 		if (!Decision.isUUId(ext.getId())) throw new IOException("id [" + ext.getId() + "] is invalid, it has to be a UUID");
 
-		Struct children = ConfigWebUtil.getAsStruct("extensions", root);
-		Key[] keys = children.keys();
+		Array children = ConfigWebUtil.getAsArray("extensions", root);
+		int[] keys = children.intKeys();
+		int key;
 		// Update
 		Struct el;
 		String id;
 		BundleDefinition[] old;
-		for (Key key: keys) {
-
-			id = key.getString();
+		for (int i = keys.length - 1; i >= 0; i--) {
+			key = keys[i];
+			el = Caster.toStruct(children.get(key, null), null);
+			if (el == null) continue;
+			id = Caster.toString(el.get(KeyConstants._id), null);
 			if (ext.getId().equalsIgnoreCase(id)) {
-				el = Caster.toStruct(children.get(key, null), null);
-				if (el == null) continue;
 				old = RHExtension.toBundleDefinitions(ConfigWebUtil.getAsString("bundles", el, null)); // get existing bundles before populate new ones
 				ext.populate(el, false);
 				old = minus(old, OSGiUtil.toBundleDefinitions(ext.getBundles()));
@@ -6003,7 +6032,7 @@ public final class ConfigAdmin {
 		// Insert
 		el = new StructImpl(Struct.TYPE_LINKED);
 		ext.populate(el, false);
-		children.setEL(ext.getId(), el);
+		children.appendEL(el);
 		return null;
 	}
 
@@ -6024,16 +6053,17 @@ public final class ConfigAdmin {
 	}
 
 	private RHExtension getRHExtension(ConfigPro config, String id, RHExtension defaultValue) {
-		Struct children = ConfigWebUtil.getAsStruct("extensions", root);
+		Array children = ConfigWebUtil.getAsArray("extensions", root);
 
 		if (children != null) {
-			Key[] keys = children.keys();
-			for (Key key: keys) {
-				String _id = key.getString();
-				if (!id.equals(_id)) continue;
+			int[] keys = children.intKeys();
+			for (int i: keys) {
 
-				Struct tmp = Caster.toStruct(children.get(key, null), null);
+				Struct tmp = Caster.toStruct(children.get(i, null), null);
 				if (tmp == null) continue;
+
+				String _id = id = Caster.toString(tmp.get(KeyConstants._id, null), null);
+				if (!id.equals(_id)) continue;
 
 				try {
 					return new RHExtension(config, _id, Caster.toString(tmp.get(KeyConstants._version), null), null, false);
@@ -6063,17 +6093,19 @@ public final class ConfigAdmin {
 
 	private RHExtension _hasRHExtensions(ConfigPro config, ExtensionDefintion ed) throws PageException {
 
-		Struct children = ConfigWebUtil.getAsStruct("extensions", root);
-		Key[] keys = children.keys();
+		Array children = ConfigWebUtil.getAsArray("extensions", root);
+		int[] keys = children.intKeys();
 		RHExtension tmp;
 		try {
-			for (Key key: keys) {
+			String id, v;
+			for (int key: keys) {
 				Struct sct = Caster.toStruct(children.get(key, null), null);
 				if (sct == null) continue;
-				String v = Caster.toString(sct.get(KeyConstants._version));
-				if (!RHExtension.isInstalled(config, key.getString(), v)) continue;
+				id = Caster.toString(sct.get(KeyConstants._id));
+				v = Caster.toString(sct.get(KeyConstants._version));
+				if (!RHExtension.isInstalled(config, id, v)) continue;
 
-				if (ed.equals(new ExtensionDefintion(key.getString(), v))) return new RHExtension(config, key.getString(), v, null, false);
+				if (ed.equals(new ExtensionDefintion(id, v))) return new RHExtension(config, id, v, null, false);
 			}
 			return null;
 		}

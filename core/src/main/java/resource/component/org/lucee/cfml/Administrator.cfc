@@ -1599,8 +1599,9 @@ component {
 	* @dump this option sets to enable output produced with help of the tag cfdump and send to debugging.
 	* @timer this option sets to show timer event information.
 	* @implicitAccess this option sets to log all accesses to scopes, queries and threads that happens implicit (cascaded).
+	* @thread this option sets to log all child threads 
 	*/
-	public void function updateDebug( boolean debug, boolean database, boolean queryUsage, boolean exception, boolean tracing, boolean dump, boolean timer, boolean implicitAccess ){
+	public void function updateDebug( boolean debug, boolean database, boolean queryUsage, boolean exception, boolean tracing, boolean dump, boolean timer, boolean implicitAccess, boolean thread ){
 		var existing = getDebug();
 		admin
 			action="updateDebug"
@@ -1615,7 +1616,7 @@ component {
 			timer=isNull(arguments.timer) || isEmpty(arguments.timer) ? existing.timer : arguments.timer
 			implicitAccess=isNull(arguments.implicitAccess) || isEmpty(arguments.implicitAccess) ? existing.implicitAccess : arguments.implicitAccess
 			queryUsage=isNull(arguments.queryUsage) || isEmpty(arguments.queryUsage) ? existing.queryUsage : arguments.queryUsage
-
+			thread=isNull(arguments.thread) || isEmpty(arguments.thread) ? existing.thread : arguments.thread
 			debugTemplate=""
 			remoteClients="#variables.remoteClients#";
 	}
@@ -1637,7 +1638,8 @@ component {
 			timer=""
 			implicitAccess=""
 			queryUsage=""
-
+			thread=""
+			
 			debugTemplate=""
 			remoteClients="#variables.remoteClients#";
 	}
@@ -1687,7 +1689,7 @@ component {
 	*/
 	public query function getContextes(){
 		admin
-			action="getContextes"
+			action="getContexts"
 			type="#variables.type#"
 			password="#variables.password#"
 			returnVariable="local.contextes";

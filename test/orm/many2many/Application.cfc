@@ -4,10 +4,7 @@
 	this.name = hash(getCurrentTemplatePath()) & getTickCount();
  	if(directoryExists("datasource"))directoryDelete("datasource",true);
 
- 	this.datasources.test = {
-	  class: 'org.hsqldb.jdbcDriver'
-	, connectionString: 'jdbc:hsqldb:file:#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db'
-	};
+ 	this.datasources.test = server.getDatasource("h2", "#getDirectoryFromPath(getCurrentTemplatePath())#/datasource/db" );
 	this.datasource = 'test'; 
 		
 	this.ormEnabled = true; 
