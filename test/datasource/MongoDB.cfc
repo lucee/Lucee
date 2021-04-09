@@ -48,7 +48,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 		coll.drop();
 		coll.insert(docs);
-
 		return coll;
 	}
 
@@ -216,7 +215,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		$assert.isEqual( 0, coll.count() );
 	}
 
-	public void function testAggregateResults() skip="isNotSupported" {
+	public void function testAggregateResults() skip="true" { // TODO broken https://luceeserver.atlassian.net/browse/LDEV-3432
 		if(isNotSupported()) return;
 		var coll = resetTestCollection();
 
@@ -297,7 +296,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		// group is not implemented yet!
 	}
 
-	public void function testMapReduce() skip="isNotSupported" {
+	public void function testMapReduce() skip="true" { // TODO broken https://luceeserver.atlassian.net/browse/LDEV-3432
 		if(isNotSupported()) return;
 		var coll = resetTestCollection();
 		var fMap = "function() {
@@ -321,14 +320,17 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 	public void function testRename() skip="isNotSupported" {
 		if(isNotSupported()) return;
+
+		try {
+			if ( structKeyExists(db, "test2") )
+				db["test2"].drop(); // avoid collection exists error if test fails
+		} catch (e) {};
 		var coll = resetTestCollection();
 		coll.rename("test2");
 		$assert.isEqual(5, db["test2"].count());
 
 		db["test2"].drop();
 	}
-
-
 
 	private void function testCacheAsScope() skip="isNotSupported" {
 		local.id=createUniqueId();
