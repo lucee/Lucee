@@ -165,6 +165,7 @@ public final class DebuggerImpl implements Debugger {
 		return getEntry(pc, source, null);
 	}
 
+	// add pages entry
 	@Override
 	public DebugEntryTemplate getEntry(PageContext pc, PageSource source, String key) {
 		lastEntry = System.currentTimeMillis();
@@ -184,6 +185,7 @@ public final class DebuggerImpl implements Debugger {
 		return de;
 	}
 
+	// add page parts entry
 	@Override
 	public DebugEntryTemplatePart getEntry(PageContext pc, PageSource source, int startPos, int endPos) {
 		String src = DebugEntryTemplatePartImpl.getSrc(source == null ? "" : source.getDisplayPath(), startPos, endPos);
