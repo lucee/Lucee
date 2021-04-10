@@ -4823,7 +4823,10 @@ Permits searching collections by title or displaying a separate title from the k
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Yes or No. clientManagement must be enabled, see cfapplication. Yes appends client variable
-		information to the URL you specify in the url.</description>
+		information to the URL you specify in the url.
+
+		Default is false (since Lucee 6, previously was true)
+		</description>
 		</attribute>
 		<attribute>
 			<type>number</type>
