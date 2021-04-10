@@ -1012,7 +1012,7 @@ Reference Button
 					<!--- Page Parts --->
 					<cfif pageParts.recordcount>
 
-						<cfset sectionId = "Templates">
+						<cfset sectionId = "PageParts">
 						<cfset isOpen = this.isSectionOpen( sectionId )>
 
 						<div class="section-title">Page Parts</div>
@@ -1058,7 +1058,9 @@ Reference Button
 													<cfset hasBad = true>
 												</cfif>
 												<tr class="nowrap #bad ? 'red' : ''#" 
-														title="#EncodeForHtmlAttribute(pageParts.path & chr(10) & pageParts.path & chr(10) & pageParts.snippet)#">
+														<!--- we don't show snippet for security reasons
+															title="#EncodeForHtmlAttribute(pageParts.path & chr(10) & pageParts.path & chr(10) & pageParts.snippet)#" --->
+														>
 													<td class="txt-r">#unitFormat(arguments.custom.unit, pageParts.total,true)#</td>
 													<td class="txt-r">#unitFormat(arguments.custom.unit, pageParts.count,true)#</td>
 													<td class="txt-r">#unitFormat(arguments.custom.unit, pageParts.min,true)#</td>
