@@ -7823,13 +7823,13 @@ The following things are considered to be empty:
 	<function>
 		<name>len</name>
 		<class>lucee.runtime.functions.string.Len</class>
-		<description>Determines the length of a string, array,struct,query ...</description>
+		<description>Determines the length of a string, array or struct</description>
 		<argument>
 			<name>value</name>
 			<alias>string,object</alias>
 			<type>object</type>
 			<required>Yes</required>
-		<description>the length of a string</description>
+		<description>the object to measure the length of</description>
     </argument>
 		<return>
 			<type>number</type>
