@@ -16,7 +16,7 @@
  * 
  ---><cfcomponent><cfscript>
 
-this.name="webadmin#server.lucee.version#";
+this.name="lucee-admin-#server.lucee.version#";
 this.clientmanagement="no";
 this.clientstorage="file"; 
 this.scriptprotect="all";
@@ -34,8 +34,8 @@ this.tag.cookie.sameSite = "strict";
 
 this.xmlFeatures = {
 	externalGeneralEntities: false,
-    secure: true,
-    disallowDoctypeDecl: true
+	secure: true,
+	disallowDoctypeDecl: true
 };
 
 request.singleMode=getConfigSettings().mode=="single";
@@ -51,7 +51,7 @@ public function onRequestStart() {
 			cfsetting(showdebugoutput:false);
 			cfheader(statuscode="404" statustext="Invalid access");
 			cfcontent(reset="true");
-        	abort;
+			abort;
 		}
 	}
 }
@@ -59,7 +59,7 @@ public function onRequestStart() {
 public function onApplicationStart(){
 	if(structKeyExists(server.system.environment,"LUCEE_ADMIN_ENABLED") && server.system.environment.LUCEE_ADMIN_ENABLED EQ false){
 		cfheader(statuscode="404" statustext="Invalid access");
-        abort;
+		abort;
 	}
 }
 

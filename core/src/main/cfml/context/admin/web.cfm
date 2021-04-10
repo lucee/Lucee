@@ -178,7 +178,6 @@
 <cfinclude template="resources/text.cfm">
 <cfinclude template="web_functions.cfm">
 
-
 <cfif !structKeyExists(application, "adminfunctions") or (structKeyExists(session, "alwaysNew") && session.alwaysNew)>
 	<cfset application.adminfunctions = new adminfunctions() />
 </cfif>
@@ -207,7 +206,7 @@
 			<cfset language.__position=structKeyExists(xml.xmlRoot.XmlAttributes,"position")?xml.xmlRoot.XmlAttributes.position:0>
 		</cfif>
 		<cftry>
-				<cfset xml = XmlSearch(xml, "/languages/language[@key='#lCase(trim(arguments.lang))#']")[1]>
+			<cfset xml = XmlSearch(xml, "/languages/language[@key='#lCase(trim(arguments.lang))#']")[1]>
 			<cfcatch>
 				<!--- fallback to english --->
 				<cfset xml = XmlSearch(xml, "/languages/language[@key='en']")[1]>

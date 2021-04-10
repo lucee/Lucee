@@ -1,67 +1,67 @@
 <!--- TODO: cleanup! !--->
 <!--- language files are deployed to {lucee-web}/context/admin/resources/language by ConfigWebFactory.java and are read from there !--->
 
-<cfset sHelpURL = "https://www.lucee.org/help/stHelp.json">
-<cfparam name="request.stLocalHelp" default="#structNew()#">
-<cfparam name="request.stWebMediaHelp" default="#structNew()#">
-<cfparam name="request.stWebHelp" default="#structNew()#">
-<cfparam name="application.stText" default="#structNew()#">
-<!---
-<cfset structDelete(application, "stText")>
-<cfset structDelete(application, "stWebHelp")>
---->
+<cfscript>
+	sHelpURL = "https://www.lucee.org/help/stHelp.json";
+	param name="request.stLocalHelp" default="#structNew()#";
+	param name="request.stWebMediaHelp" default="#structNew()#";
+	param name="request.stWebHelp" default="#structNew()#";
+	param name="application.stText" default="#structNew()#";
 
-<cfif structKeyExists(form, "lang") ||  !structKeyExists(application, "languages") || !structKeyExists(application.stText, session.lucee_admin_lang) || structKeyExists(url, "reinit")>
+	//structDelete(application, "stText");
+	//structDelete(application, "stWebHelp");
 
-	<cfinclude template="menu.cfm">
-	<cfset langData  = getAvailableLanguages()>
+	if ( structKeyExists( form, "lang" )
+			|| !structKeyExists( application, "languages" )
+			|| !structKeyExists( application.stText, session.lucee_admin_lang )
+			|| structKeyExists( url, "reinit" ) ){
 
-	<cfset languages = {}>
-	<cfloop collection="#langData#" item="value" index="key">
-		
-		<cfset languages[key] = value.name>
-	</cfloop>
-    <cfset application.languages = languages>
+		cfinclude( template="menu.cfm" );
 
-    <cfif !application.languages.keyExists( session.lucee_admin_lang )>
-    	
-    	<cfset systemOutput("Admin language file for [#session.lucee_admin_lang#] was not found, defaulting to English", true)>
-    	<cfset session.lucee_admin_lang = "en">
-    </cfif>
+		langData  = getAvailableLanguages();
 
-	<cfset application.stText.en = GetFromXMLNode( langData.en.xml.XMLRoot.XMLChildren )>
+		languages = {};
+		loop collection="#langData#" item="value" index="key" {
+			languages[key] = value.name;
+		}
+		application.languages = languages;
 
-	<cfset StructDelete(application, "notTranslated")>
-	
-	<!--- now read the actual file when not english--->
-    <cfif session.lucee_admin_lang != "en">
+		if ( !application.languages.keyExists( session.lucee_admin_lang ) ){
+			systemOutput("Admin language file for [#session.lucee_admin_lang#] was not found, defaulting to English", true);
+			session.lucee_admin_lang = "en";
+		}
 
-    	<cfset langXml = langData[ session.lucee_admin_lang ].xml>
+		application.stText.en = GetFromXMLNode( langData.en.xml.XMLRoot.XMLChildren );
+		StructDelete( application, "notTranslated" );
 
-        <cfset application.stText[ session.lucee_admin_lang ] = GetFromXMLNode( langXml.XMLRoot.XMLChildren, application.stText.en )>
-	</cfif>
+		//  now read the actual file when not english
+		if ( session.lucee_admin_lang != "en" ){
+			langXml = langData[ session.lucee_admin_lang ].xml;
+			// load the translation, using english as the fallback, thus allowing incomplete translations
+			application.stText[ session.lucee_admin_lang ], GetFromXMLNode( langXml.XMLRoot.XMLChildren, application.stText.en );
+		}
 
-	<cfset stText = application.stText[ session.lucee_admin_lang ]>
+		stText = application.stText[ session.lucee_admin_lang ];
 
-    <cftry>
-        <cfadmin 
-        action="hasRemoteClientUsage"
-        type="#request.adminType#"
-        password="#session["password"&request.adminType]#"
-        
-        returnVariable="request.hasRemoteClientUsage">	
-    	<cfcatch>
-        	<cfset request.hasRemoteClientUsage=true>
-        </cfcatch>
-    </cftry>
-    
-    <cfset stText.menuStruct.web = createMenu(stText.menu,"web")>
-	<cfset stText.menuStruct.server = createMenu(stText.menu, "server")>
-    
-<cfelse>
-    <cfset languages=application.languages>
-	<cfset stText = application.stText[session.lucee_admin_lang]>
-</cfif>
+		// TODO why is this here??
+		try {
+			admin
+				action="hasRemoteClientUsage"
+				type="#request.adminType#"
+				password="#session["password"&request.adminType]#"
+				returnVariable="request.hasRemoteClientUsage";
+		} catch (e){
+				request.hasRemoteClientUsage=true;
+		}
+
+		stText.menuStruct.web = createMenu( stText.menu, "web" );
+		stText.menuStruct.server = createMenu( stText.menu, "server" );
+
+	} else{
+		languages=application.languages;
+		stText = application.stText[session.lucee_admin_lang];
+	}
+</cfscript>
 
 <!--- TODO  what is thios good for? it does not work, URL does not exist
 <cfif not structKeyExists(application, "stWebHelp") or structKeyExists(url, "reinit")>
@@ -75,7 +75,7 @@
 	</cftry>
 <cfelse>
 	<cfset stHelp = application.stWebHelp>
-</cfif>	
+</cfif>
 <cfset request.stWebHelp = stHelp>
 --->
 <cfset request.stWebHelp = {}>
@@ -84,7 +84,7 @@
 <!---
 --->
 
-<!--- 
+<!---
 
 You can use this code in order to write the structs into an XML file corresponding to the resources struct
 
@@ -125,24 +125,24 @@ You can use this code in order to write the structs into an XML file correspondi
 <cffunction name="GetFromXMLNode" returntype="any" output="No">
 	<cfargument name="stXML" required="Yes">
 	<cfargument name="base" required="no" default="#{}#" type="struct">
-	
-    <cfset var doCreate=false>
-    <cfif not StructKeyExists(application,'notTranslated')>
-    	<cfset application.notTranslated={}>
-        <cfset var doCreate=true>
-    </cfif>
-	
-	<cfset var el        = "">
+
+	<cfset var doCreate=false>
+	<cfif not StructKeyExists(application,'notTranslated')>
+		<cfset application.notTranslated={}>
+		<cfset var doCreate=true>
+	</cfif>
+
+	<cfset var el = "">
 	<cfset var stRet = arguments.base>
 	<cfloop array="#arguments.stXML#" index="el">
 		<cftry>
 			<cfset variables.setStructElement(stRet, el.XMLAttributes.key, el.XMLText)>
-            <cfif doCreate>
+			<cfif doCreate>
 				<!--- <cfset application.notTranslated[el.XMLAttributes.key]=el.XMLText>--->
-            <cfelse>
-            	<cfset StructDelete(application.notTranslated,el.XMLAttributes.key,false)>
+			<cfelse>
+				<cfset StructDelete(application.notTranslated,el.XMLAttributes.key,false)>
 			</cfif>
-			
+
 			<cfcatch>
 			</cfcatch>
 		</cftry>
@@ -182,10 +182,8 @@ You can use this code in order to write the structs into an XML file correspondi
 	<cfargument name="sKey" required="Yes">
 	<cfargument name="value" required="Yes">
 	<cfset var lst = "">
-	<cfset var idx = "">
-	<cfset var stTmp = {}>
-	<cfset stTmp = arguments.st>
-	<cfset idx = listGetAt(arguments.sKey, 1, ".")>
+	<cfset var idx = listGetAt(arguments.sKey, 1, ".")>
+	<cfset var stTmp = arguments.st>
 	<cfloop from="2" to="#ListLen(arguments.sKey, '.')#" index="lst">
 		<cfif not structKeyExists(stTmp, idx)>
 			<cfset stTmp[idx] = {}>
@@ -197,16 +195,16 @@ You can use this code in order to write the structs into an XML file correspondi
 	<cfreturn arguments.st>
 </cffunction>
 
-<cffunction name="getAvailableLanguages" output="No" returntype="struct" 
+<cffunction name="getAvailableLanguages" output="No" returntype="struct"
 	hint="Returns a struct where the key is the language code and the value is the language's name.">
 
 	<cfdirectory name="local.qDir" directory="language" action="list" mode="listnames" filter="*.xml">
-    
+
 	<cfset var result = {}>
 	<cfloop query="qDir">
 
 		<cffile action="read" file="language/#qDir.name#" charset="UTF-8" variable="local.sContent">
-		
+
 		<cfset var xml  = XMLParse(sContent)>
 		<cfset var lang = xml.language.XMLAttributes.Key>
 
