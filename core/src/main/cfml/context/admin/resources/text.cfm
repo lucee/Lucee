@@ -38,7 +38,7 @@
 		if ( session.lucee_admin_lang != "en" ){
 			langXml = langData[ session.lucee_admin_lang ].xml;
 			// load the translation, using english as the fallback, thus allowing incomplete translations
-			application.stText[ session.lucee_admin_lang ], GetFromXMLNode( langXml.XMLRoot.XMLChildren, application.stText.en );
+			application.stText[ session.lucee_admin_lang ] = GetFromXMLNode( langXml.XMLRoot.XMLChildren, application.stText.en );
 		}
 
 		stText = application.stText[ session.lucee_admin_lang ];
