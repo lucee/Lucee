@@ -221,8 +221,9 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 
 	public static boolean hasInstance(int scope, IKHandler handler, String appName, String name, PageContext pc) {
 		try {
-			if (Scope.SCOPE_SESSION == scope) return handler.loadData(pc, appName, name, "session", Scope.SCOPE_SESSION, null) != null;
-			else if (Scope.SCOPE_CLIENT == scope) return handler.loadData(pc, appName, name, "client", Scope.SCOPE_CLIENT, null) != null;
+			Log log = ThreadLocalPageContext.getConfig(pc).getLog("scope");
+			if (Scope.SCOPE_SESSION == scope) return handler.loadData(pc, appName, name, "session", Scope.SCOPE_SESSION, log) != null;
+			else if (Scope.SCOPE_CLIENT == scope) return handler.loadData(pc, appName, name, "client", Scope.SCOPE_CLIENT, log) != null;
 			return false;
 		}
 		catch (PageException e) {

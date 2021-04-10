@@ -118,7 +118,7 @@ public abstract class StorageScopeDatasource extends StorageScopeImpl {
 		boolean _isNew = query.getRecordcount() == 0;
 
 		if (_isNew) {
-			ScopeContext.debug(log,
+			ScopeContext.info(log,
 					"create new " + strType + " scope for " + pc.getApplicationContext().getName() + "/" + pc.getCFID() + " in datasource [" + datasourceName + "]");
 			return null;
 		}
@@ -128,7 +128,7 @@ public abstract class StorageScopeDatasource extends StorageScopeImpl {
 
 		try {
 			Struct s = (Struct) pc.evaluate(str);
-			ScopeContext.debug(log, "load existing data from [" + datasourceName + "." + PREFIX + "_" + strType + "_data] to create " + strType + " scope for "
+			ScopeContext.info(log, "load existing data from [" + datasourceName + "." + PREFIX + "_" + strType + "_data] to create " + strType + " scope for "
 					+ pc.getApplicationContext().getName() + "/" + pc.getCFID());
 			return s;
 		}

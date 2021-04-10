@@ -308,7 +308,7 @@ public final class ScopeContext {
 			client.setStorage(storage);
 			context.put(pc.getCFID(), client);
 		}
-		else getLog().log(Log.LEVEL_DEBUG, "scope-context", "use existing client scope for " + appContext.getName() + "/" + pc.getCFID() + " from storage " + storage);
+		else getLog().log(Log.LEVEL_INFO, "scope-context", "use existing client scope for " + appContext.getName() + "/" + pc.getCFID() + " from storage " + storage);
 
 		client.touchBeforeRequest(pc);
 		return client;
@@ -646,7 +646,7 @@ public final class ScopeContext {
 			isNew.setValue(true);
 		}
 		else {
-			getLog().log(Log.LEVEL_DEBUG, "scope-context", "use existing session scope for " + appContext.getName() + "/" + pc.getCFID() + " from storage " + storage);
+			getLog().log(Log.LEVEL_INFO, "scope-context", "use existing session scope for " + appContext.getName() + "/" + pc.getCFID() + " from storage " + storage);
 		}
 		session.touchBeforeRequest(pc);
 		return session;
@@ -727,7 +727,7 @@ public final class ScopeContext {
 				if (jSession.isExpired()) {
 					jSession.touch();
 				}
-				debug(getLog(), "use existing JSession for " + appContext.getName() + "/" + pc.getCFID());
+				info(getLog(), "use existing JSession for " + appContext.getName() + "/" + pc.getCFID());
 
 			}
 			catch (ClassCastException cce) {
@@ -744,7 +744,7 @@ public final class ScopeContext {
 			// if there is no HTTPSession
 			if (httpSession == null) return getCFSessionScope(pc, isNew);
 
-			debug(getLog(), "create new JSession for " + appContext.getName() + "/" + pc.getCFID());
+			info(getLog(), "create new JSession for " + appContext.getName() + "/" + pc.getCFID());
 			jSession = new JSession();
 			httpSession.setAttribute(appContext.getName(), jSession);
 			isNew.setValue(true);
@@ -908,7 +908,7 @@ public final class ScopeContext {
 					StorageScope scope = (StorageScope) o;
 					if (scope.lastVisit() + timespan < now && !(scope instanceof MemoryScope)) {
 						getLog().log(Log.LEVEL_INFO, "scope-context",
-								"remove from memory " + strType + " scope for " + applicationName + "/" + cfid + " from storage " + scope.getStorage());
+								"remove from memory [" + strType + "] scope for [" + applicationName + "/" + cfid + "] from storage [" + scope.getStorage() + "]");
 
 						fhm.remove(arrClients[y]);
 						count--;
@@ -967,7 +967,7 @@ public final class ScopeContext {
 							fhm.remove(cfids[y]);
 							scope.release(ThreadLocalPageContext.get());
 							getLog().log(Log.LEVEL_INFO, "scope-context",
-									"remove memory based " + VariableInterpreter.scopeInt2String(type) + " scope for " + applicationName + "/" + cfid);
+									"remove memory based " + VariableInterpreter.scopeInt2String(type) + " scope for [" + applicationName + "/" + cfid + "]");
 							count--;
 						}
 					}

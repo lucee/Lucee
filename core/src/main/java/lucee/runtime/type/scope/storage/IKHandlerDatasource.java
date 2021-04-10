@@ -85,7 +85,7 @@ public class IKHandlerDatasource implements IKHandler {
 
 		try {
 			IKStorageValue data = (IKStorageValue) JavaConverter.deserialize(str);
-			ScopeContext.debug(log, "load existing data from [" + name + "." + PREFIX + "_" + strType + "_data] to create " + strType + " scope for "
+			ScopeContext.info(log, "load existing data from [" + name + "." + PREFIX + "_" + strType + "_data] to create " + strType + " scope for "
 					+ pc.getApplicationContext().getName() + "/" + pc.getCFID());
 			return data;
 		}
