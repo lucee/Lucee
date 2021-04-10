@@ -48,7 +48,7 @@ public final class Location extends TagImpl {
 	@Override
 	public void release() {
 		super.release();
-		addtoken = true;
+		addtoken = false;
 		url = "";
 		statuscode = 302;
 	}
