@@ -113,6 +113,7 @@ import lucee.runtime.dump.SimpleHTMLDumpWriter;
 import lucee.runtime.dump.TextDumpWriter;
 import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.engine.ConsoleExecutionLog;
+import lucee.runtime.engine.DebugExecutionLog;
 import lucee.runtime.engine.ExecutionLog;
 import lucee.runtime.engine.ExecutionLogFactory;
 import lucee.runtime.engine.InfoImpl;
@@ -1909,6 +1910,7 @@ public final class ConfigWebFactory extends ConfigFactory {
 			if (!StringUtil.isEmpty(strClass)) {
 				try {
 					if ("console".equalsIgnoreCase(strClass)) clazz = ConsoleExecutionLog.class;
+					else if ("debug".equalsIgnoreCase(strClass)) clazz = DebugExecutionLog.class;
 					else {
 						ClassDefinition cd = el != null ? getClassDefinition(el, "", config.getIdentification()) : null;
 
