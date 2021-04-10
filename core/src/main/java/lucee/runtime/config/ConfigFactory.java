@@ -916,7 +916,7 @@ public abstract class ConfigFactory {
 	 * @throws IOException
 	 */
 	static void createFileFromResource(String resource, Resource file, String password) throws IOException {
-		LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_INFO, ConfigFactory.class.getName(), "Write file: [" + file + "]");
+		LogUtil.logGlobal(ThreadLocalPageContext.getConfig(), Log.LEVEL_DEBUG, ConfigFactory.class.getName(), "Write file: [" + file + "]");
 		if (file.exists()) file.delete();
 
 		InputStream is = InfoImpl.class.getResourceAsStream(resource);
