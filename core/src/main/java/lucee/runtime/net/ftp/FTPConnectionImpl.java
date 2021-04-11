@@ -38,7 +38,7 @@ public final class FTPConnectionImpl implements FTPConnection {
 	private final String proxypassword;
 	private final String fingerprint;
 	private final boolean stopOnError;
-	private final boolean secure;
+	private final String secure;
 	private final String key;
 	private final String passphrase;
 
@@ -63,7 +63,7 @@ public final class FTPConnectionImpl implements FTPConnection {
 	 * @param passphrase
 	 */
 	public FTPConnectionImpl(String name, String server, String username, String password, int port, int timeout, short transferMode, boolean passive, String proxyserver,
-			int proxyport, String proxyuser, String proxypassword, String fingerprint, boolean stopOnError, boolean secure, String key, String passphrase) {
+			int proxyport, String proxyuser, String proxypassword, String fingerprint, boolean stopOnError, String secure, String key, String passphrase) {
 
 		this.name = (name == null) ? null : name.toLowerCase().trim();
 		this.server = server;
@@ -106,7 +106,7 @@ public final class FTPConnectionImpl implements FTPConnection {
 	 * @param secure
 	 */
 	public FTPConnectionImpl(String name, String server, String username, String password, int port, int timeout, short transferMode, boolean passive, String proxyserver,
-			int proxyport, String proxyuser, String proxypassword, String fingerprint, boolean stopOnError, boolean secure) {
+			int proxyport, String proxyuser, String proxypassword, String fingerprint, boolean stopOnError, String secure) {
 
 		this(name, server, username, password, port, timeout, transferMode, passive, proxyserver, proxyport, proxyuser, proxypassword, fingerprint, stopOnError, secure, null,
 				null);
@@ -218,7 +218,7 @@ public final class FTPConnectionImpl implements FTPConnection {
 	}
 
 	@Override
-	public boolean secure() {
+	public String secure() {
 		return secure;
 	}
 

@@ -1858,7 +1858,7 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 		<attribute>
 			<type>string</type>
 			<name>action</name>
-			<values>copy,exists,existsFile,existsDir,open,close,changeDir,createDir,listDir,removeDir,getFile,putFile,rename,remove,getCurrentDir,getCurrentUrl</values>
+			<values>copy,exists,existsFile,existsDir,open,close,changeDir,createDir,getCurrentDir,getCurrentUrl,listDir,removeDir,getFile,putFile,quote,rename,remove</values>
 			<required>true</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>the action that should be execute</description>
@@ -2043,11 +2043,14 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<description>the ssh fingerprint</description>
 		</attribute>
 		<attribute>
-			<type>boolean</type>
+			<type>string</type>
 			<name>secure</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Secure connection (sftp|shh) or not.</description>
+			<description>Secure connection
+- false FTP (default)
+- true SFTP
+- sftp FTPS.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -2072,7 +2075,13 @@ To use cached data, the tag must be called with the exact same arguments. Only u
 			<rtexprvalue>true</rtexprvalue>
 			<description>the passphrase that protects ssh private key</description>
 		</attribute>
-		
+		<attribute>
+			<type>string</type>
+			<name>actionParams</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<description>used with action="quote" to execute custom ftp commands</description>
+		</attribute>
 		
 	</tag>
 
