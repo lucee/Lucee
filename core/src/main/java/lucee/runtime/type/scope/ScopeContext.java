@@ -104,7 +104,6 @@ public final class ScopeContext {
 	private StorageScopeEngine client;
 	private StorageScopeEngine session;
 	private CFMLFactoryImpl factory;
-	private Log log;
 
 	public ScopeContext(CFMLFactoryImpl factory) {
 		this.factory = factory;
@@ -114,11 +113,7 @@ public final class ScopeContext {
 	 * @return the log
 	 */
 	private Log getLog() {
-		if (log == null) {
-			this.log = factory.getConfig().getLog("scope");
-
-		}
-		return log;
+		return factory.getConfig().getLog("scope");
 	}
 
 	public void debug(String msg) {
