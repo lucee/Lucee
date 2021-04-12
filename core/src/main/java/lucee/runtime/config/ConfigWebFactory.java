@@ -572,8 +572,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 		}
 
 		// no password yet
-		if (config instanceof ConfigServer && !root.containsKey("hspw") && !root.containsKey("adminhspw") && !root.containsKey("pw") && !root.containsKey("adminpw")
-				&& !root.containsKey("password") && !root.containsKey("adminpassword")) {
+		if (config instanceof ConfigServer && StringUtil.isEmpty(root.get("hspw",""), true) && StringUtil.isEmpty(root.get("adminhspw",""), true) && StringUtil.isEmpty(root.get("pw",""), true) && StringUtil.isEmpty(root.get("adminpw",""), true) 
+			&& StringUtil.isEmpty(root.get("password",""), true) && StringUtil.isEmpty(root.get("adminpassword",""), true)) {
 			ConfigServer cs = (ConfigServer) config;
 			Resource pwFile = cs.getConfigDir().getRealResource("password.txt");
 			if (pwFile.isFile()) {
