@@ -30,18 +30,23 @@ import lucee.runtime.op.Caster;
 
 public class FileAppend {
 
-	public static String call(PageContext pc, String path, Object data) throws PageException {
-		return call(pc, path, data, ((PageContextImpl) pc).getResourceCharset().name());
+	public static String call(PageContext pc, Object file, Object data) throws PageException {
+		return call(pc, file, data, ((PageContextImpl) pc).getResourceCharset().name());
 	}
 
-	public static String call(PageContext pc, String path, Object data, String charset) throws PageException {
+	public static String call(PageContext pc, Object file, Object data, String charset) throws PageException {
 		FileStreamWrapper fsw = null;
 		if (StringUtil.isEmpty(charset, true)) charset = ((PageContextImpl) pc).getResourceCharset().name();
 
 		try {
-			Resource res = Caster.toResource(pc, path, false);
-			pc.getConfig().getSecurityManager().checkFileLocation(res);
-			fsw = new FileStreamWrapperWrite(res, charset, true, false);
+			if (file instanceof FileStreamWrapper) {
+				fsw = (FileStreamWrapper) file;
+			}
+			else {
+				Resource res = Caster.toResource(pc, file, false);
+				pc.getConfig().getSecurityManager().checkFileLocation(res);
+				fsw = new FileStreamWrapperWrite(res, charset, true, false);
+			}
 			fsw.write(data);
 		}
 		catch (IOException e) {
