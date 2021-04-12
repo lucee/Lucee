@@ -33,6 +33,7 @@ import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.exp.ExpressionException;
+import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.interpreter.ref.Ref;
 import lucee.runtime.interpreter.ref.cast.Casting;
@@ -124,6 +125,7 @@ public class MemberUtil {
 					}
 					return new BIFCall(coll, member, refs.toArray(new Ref[refs.size()])).getValue(pc);
 				}
+				else throw new FunctionException(pc, member.getName(), member.getArgMin(), _args.size(), args.length);
 			}
 		}
 

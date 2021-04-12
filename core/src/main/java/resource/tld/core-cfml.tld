@@ -15,9 +15,9 @@
 		<el-class>lucee.transformer.cfml.expression.CFMLExprTransformer</el-class>
 	</el>
 
-<!-- ajaximport -->
+<!-- ajaxImport -->
 	<tag>
-		<name>ajaximport</name>
+		<name>ajaxImport</name>
 		<tag-class>lucee.runtime.tag.AjaxImport</tag-class>
 		<body-content>empty</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
@@ -153,7 +153,7 @@
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>paramn</name>
+			<name>param</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>The name of a registered parameter for the applet. </description>
@@ -196,7 +196,7 @@
 		
 		<attribute>
 			<type>object</type>
-			<name>defaultdatasource</name>
+			<name>defaultDatasource</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>the default datasource for this environment</description>
@@ -401,7 +401,7 @@ Specifies how Lucee stores session variables:
 		</attribute>
 		<attribute>
 			<type>any</type>
-			<name>functionpaths</name>
+			<name>functionPaths</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Array or String list of paths where you have your functions.</description>
@@ -424,14 +424,14 @@ Specifies how Lucee stores session variables:
 		</attribute>
 		<attribute>
 			<type>any</type>
-			<name>customtagpaths</name>
+			<name>customTagPaths</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Contains custom tag paths.</description>
 		</attribute>
 		<attribute>
 			<type>any</type>
-			<name>componentpaths</name>
+			<name>componentPaths</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Contains component paths.</description>
@@ -486,7 +486,7 @@ Specifies how Lucee stores session variables:
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>localmode</name>
+			<name>localMode</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Defines how the local scope of a function is invoked when a variable with no scope definition is used (default value set in the Lucee administrator).
@@ -521,43 +521,43 @@ Specifies how Lucee stores session variables:
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>tags/attributes default value in the following structure:
-#{location:{addtoken=false}}#</description>
+#{location:{addToken=false}}#</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
-			<name>ormenabled</name>
+			<name>ormEnabled</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Specifies whether ORM should be enabled for the current application context.The default is false.</description>
 		</attribute>
 		<attribute>
 			<type>struct</type>
-			<name>ormsettings</name>
+			<name>ormSettings</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>
 A struct that defines all the ORM settings, the following keys are supported:
-- autogenmap(default:true): Specifies whether Lucee should automatically generate mapping for the persistent CFCs. If autogenmap=false, mapping should be provided in the form of "{cfc-name}.cfc.hbm.xml" files.
-- automanageSession(default:true; not supported yet): Lets you specify if Lucee must manage Hibernate session automatically. If enabled: Lucee manages the session completely. That is, it decides when to flush the session, when to clear the session, and when to close the session. If disabled: The application is responsible for managing flushing, clearing, or closing of the session. The only exception is (in the case of transaction), when the transaction commits, the application flushes the session. Lucee closes the ORM session at the end of request irrespective of this flag being enabled or disabled.
-- cacheconfig: Specifies the location of the configuration file that should be used by the secondary cache provider.This setting is used only when secondarycacheenabled=true.
-- cacheprovider: Specifies the cache provider that should be used by ORM as secondary cache.
+- autoGenMap(default:true): Specifies whether Lucee should automatically generate mapping for the persistent CFCs. If autoGenMap=false, mapping should be provided in the form of "{cfc-name}.cfc.hbm.xml" files.
+- autoManageSession(default:true; not supported yet): Lets you specify if Lucee must manage Hibernate session automatically. If enabled: Lucee manages the session completely. That is, it decides when to flush the session, when to clear the session, and when to close the session. If disabled: The application is responsible for managing flushing, clearing, or closing of the session. The only exception is (in the case of transaction), when the transaction commits, the application flushes the session. Lucee closes the ORM session at the end of request irrespective of this flag being enabled or disabled.
+- cacheConfig: Specifies the location of the configuration file that should be used by the secondary cache provider.This setting is used only when secondaryCacheEnabled=true.
+- cacheProvider: Specifies the cache provider that should be used by ORM as secondary cache.
 - catalog: Specifies the default Catalog that should be used by ORM.
-- cfclocation: Specifies the directory (or array of directories) that should be used by Lucee to search for persistent CFCs to generate the mapping. If cfclocation is set, Lucee looks at only the paths specified in it. If it is not set, Lucee looks at the application directory, its sub-directories, and its mapped directories to search for persistent CFCs.
+- cfcLocation: Specifies the directory (or array of directories) that should be used by Lucee to search for persistent CFCs to generate the mapping. If cfcLocation is set, Lucee looks at only the paths specified in it. If it is not set, Lucee looks at the application directory, its sub-directories, and its mapped directories to search for persistent CFCs.
 - datasource: Specifies the data source that should be used by ORM. If it is not specified here, then the data source specified for the application is picked up.
-- dbcreate(default:none): Hibernate can automatically create the tables for your application in the database. dbCreate takes the following values:
+- dbCreate(default:none): Hibernate can automatically create the tables for your application in the database. dbCreate takes the following values:
 -- update: Setting this value creates the table if it does not exist or update the table if it exists.
--- dropcreate: Setting this value drops the table if it exists and then creates it.
+-- dropCreate: Setting this value drops the table if it exists and then creates it.
 -- none: Setting this value does not change anything in the database schema.
 - dialect: Specifies the dialect.Lucee supports the following dialects: [Cache 2007.1, Cache71, Cache 2007.1, DB2, DB2/390, DB2/400, DB2390, DB2400, DB2AS400, DB2OS390, DataDirectOracle9, Derby, Firebird, FrontBase, H2, H2DB, HSQL, HSQLDB, Informix, Ingres, Interbase, JDataStore, MSSQL, Mckoi, MckoiSQL, MicrosoftSQLServer, Mimer, MimerSQL, MySQL, MySQL/InnoDB, MySQL/MyISAM, MySQL5, MySQL5/InnoDB, MySQL5InnoDB, MySQLInnoDB, MySQLMyISAM, MySQLwithInnoDB, MySQLwithMyISAM, Oracle, Oracle10g, Oracle8i, Oracle9, Oracle9i, Pointbase, PostgreSQL, PostgresPlus, Progress, SAPDB, SQLServer, Sybase, Sybase11, SybaseASE15, SybaseAnywhere, com.ddtek.jdbc.db2.DB2Driver, com.microsoft.jdbc.sqlserver.SQLServerDriver, oracle.jdbc.driver.OracleDriver, org.firebirdsql.jdbc.FBDriver, org.gjt.mm.mysql.Driver, org.h2.Driver, org.hsqldb.jdbcDriver, org.postgresql.Driver]
 - eventHandling(default:false): Specifies whether ORM Event callbacks should be given.
-- flushatrequestend(default:true): Specifies whether ormflush should be called automatically at request end. If flushatrequestend is false, ormflush is not called automatically at request end.
+- flushAtRequestEnd(default:true): Specifies whether ormFlush should be called automatically at request end. If FlushAtRequestEnd is false, ormFlush is not called automatically at request end.
 - logSQL(default:false): Specifies whether the SQL queries that are executed by ORM will be logged. If LogSQL=true, the SQL queries are logged to the console.
-- ormconfig: The Hibernate configuration file. This file contains various configuration parameters like, dialect, cache settings, and mapping files that are required for the application. For more details, see www.hibernate.org/hib_docs/reference/en/html/session-configuration.html. The settings defined in the ormsettings override the settings defined in the Hibernate Configuration XML file.The connection information in the Hibernate Configuration XML file is however ignored because Lucee uses its own connection pool. You will need to use this only when you need to use a hibernate setting that is not available using ormsetting.
-- savemapping(default:false): Specifies whether the generated Hibernate mapping file has to be saved to disc. If you set the value to true, the Hibernate mapping XML file is saved with the filename "CFC name".hbm.xml in the same directory as the CFC. If any value of savemapping is specified in CFC, it will override the value specified in the ormsetting.
+- ormConfig: The Hibernate configuration file. This file contains various configuration parameters like, dialect, cache settings, and mapping files that are required for the application. For more details, see www.hibernate.org/hib_docs/reference/en/html/session-configuration.html. The settings defined in the ormSettings override the settings defined in the Hibernate Configuration XML file.The connection information in the Hibernate Configuration XML file is however ignored because Lucee uses its own connection pool. You will need to use this only when you need to use a hibernate setting that is not available using ormsetting.
+- saveMapping(default:false): Specifies whether the generated Hibernate mapping file has to be saved to disc. If you set the value to true, the Hibernate mapping XML file is saved with the filename "CFC name".hbm.xml in the same directory as the CFC. If any value of saveMapping is specified in CFC, it will override the value specified in the ormsetting.
 - schema: Specifies the default Schema that should be used by ORM.
-- secondarycacheenabled(default:false): Specifies whether secondary caching should be enabled
+- secondaryCacheEnabled(default:false): Specifies whether secondary caching should be enabled
 - skipCFCWithError(default:false;not implemented yet): Lets you specify if Lucee must skip the CFCs that have errors. If set to true, Lucee ignores the CFCs that have errors.
-- sqlscript: Path to the SQL script file that gets executed after ORM is initialized. This applies if dbcreate is set to dropcreate. This must be the absolute file path or the path relative to the application.The SQL script file lets you populate the tables before the application is accessed.
+- sqlScript: Path to the SQL script file that gets executed after ORM is initialized. This applies if dbCreate is set to dropCreate. This must be the absolute file path or the path relative to the application.The SQL script file lets you populate the tables before the application is accessed.
 - useDBForMapping(default:true): Specifies whether the database has to be inspected to identify the missing information required to generate the Hibernate mapping. The database is inspected to get the column data type, primary key and foreign key information.
 </description>
 		</attribute>
@@ -702,21 +702,21 @@ A struct that defines default ftp settings, this settings can be overwritten as 
 		</attribute>
 		<attribute>
 			<type>String</type>
-			<name>webcharset</name>
+			<name>webCharset</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>character set used for output streams, form-, url-, and cgi scope variables and reading/writing the header</description>
 		</attribute>
 		<attribute>
 			<type>String</type>
-			<name>resourcecharset</name>
+			<name>resourceCharset</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>character set used for reading from/writing to various resources</description>
 		</attribute>
 		<attribute>
 			<type>String</type>
-			<name>scopecascading</name>
+			<name>scopeCascading</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>
@@ -731,8 +731,8 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<name>searchImplicitScopes</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>alias to the attribute "scopecascading", takes a boolean value where true is equal to "standard" and false is equal to "struct" scope cascading mode.
-			For details see the description for the attribute "scopecascading".</description>
+			<description>alias to the attribute "scopeCascading", takes a boolean value where true is equal to "standard" and false is equal to "struct" scope cascading mode.
+			For details see the description for the attribute "scopeCascading".</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -744,14 +744,14 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 		</attribute>
 		<attribute>
 			<type>struct</type>
-			<name>authcookie</name>
+			<name>authCookie</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>cfauthorization cookie behaviour</description>
 		</attribute>
 		<attribute>
 			<type>struct</type>
-			<name>sessioncookie</name>
+			<name>sessionCookie</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>session cookie behaviour</description>
@@ -824,7 +824,7 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<name>regex</name>
 			<type>any</type>
 			<required>false</required>
-			<description>allow to define a struct containg the configuration for regular expressions, 
+			<description>allow to define a struct containing the configuration for regular expressions,
 			ATM only the key "engine" is supported, with the possible values [java,perl] to choose the regex dialect.</description>
 		</attribute>
 	</tag>
@@ -851,7 +851,7 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<name>type</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>the type of the argumentany (array, binary, boolean, date, guid, numeric, query, string, struct, uuid)</description>
+			<description>the type of the argument any (array, binary, boolean, date, guid, numeric, query, string, struct, uuid)</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
@@ -870,7 +870,7 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>displayname</name>
+			<name>displayName</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>name to display (only used by components)</description>
@@ -884,7 +884,7 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>passby</name>
+			<name>passBy</name>
 			<values>reference,value</values>
 			<default-value>reference</default-value>
 			
@@ -1057,7 +1057,7 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 		</attribute>
 		<attribute>
 			<type>boolean</type>
-			<name>bufferoutput</name>
+			<name>bufferOutput</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>this attribute is only used when output of the function is set to false. if this attribute is set to true (default) the output written to the body of the function is buffered and in case of an exception also outputted.
@@ -1090,7 +1090,7 @@ no: the function is processed as if it were within a cfsilent tag </description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>displayname</name>
+			<name>displayName</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Display Name of the Function</description>
@@ -1162,8 +1162,8 @@ no: the function is processed as if it were within a cfsilent tag </description>
 			<rtexprvalue>true</rtexprvalue>
 		<description>
 possible values are:
-String "request": If original content was created within the current request, cached content data isused.
-a timespan (created with function CreateTimeSpan): If original content date falls within the time span, cached content data isused. 
+String "request": If original content was created within the current request, cached content data is used.
+a timespan (created with function CreateTimeSpan): If original content date falls within the time span, cached content data is used.
 
 To use cached data, the function must be called with the exact same arguments.</description>
     </attribute>
@@ -1237,7 +1237,7 @@ To use cached data, the function must be called with the exact same arguments.</
 		<attribute-type>fixed</attribute-type>
 		<attribute>
 			<type>number</type>
-			<name>idletimeout</name>
+			<name>idleTimeout</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		    <status>unimplemented</status>
@@ -1245,24 +1245,24 @@ To use cached data, the function must be called with the exact same arguments.</
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>applicationtoken</name>
+			<name>applicationToken</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		    <status>unimplemented</status>
-			<description>The login that applies to the application. To let users log in to only one application, specify a unique value for that application. To let users log in to multiple applications, specify the same value for those applications. If you do not set a value for the applicationtoken attribute, the default value is CFAUTHORIZATION_applicationname.</description>
+			<description>The login that applies to the application. To let users log in to only one application, specify a unique value for that application. To let users log in to multiple applications, specify the same value for those applications. If you do not set a value for the applicationToken attribute, the default value is CFAUTHORIZATION_applicationName.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>cookiedomain</name>
+			<name>cookieDomain</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		    <status>unimplemented</status>
 			<description>Domain of the cookie that is used to mark a user as logged in. Use this attribute to enable a user login cookie to work with multiple clustered servers in the same domain.</description>
 		</attribute>
 	</tag>
-	<!-- Loginuser -->
+	<!-- LoginUser -->
 	<tag>
-		<name>loginuser</name>
+		<name>loginUser</name>
 		<tag-class>lucee.runtime.tag.Loginuser</tag-class>
 		<body-content>empty</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
@@ -1545,7 +1545,7 @@ Each type-value pair must start with a hyphen.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>completepath</name>
+			<name>completePath</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Yes passes the root level of the treename.path form variable when the cftree is submitted. If
@@ -1554,7 +1554,7 @@ Each type-value pair must start with a hyphen.</description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
-			<name>appendkey</name>
+			<name>appendKey</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Yes or No. When used with href, Yes passes the CFTREEITEMKEY variable along with the value of
@@ -1701,7 +1701,7 @@ Each type-value pair must start with a hyphen.</description>
             - object: returns the tree as a Lucee structure with the
               name specified by the name attribute, For details of the
               structure contents, see "object format", below.
-            - xml: Generates an XMLrepresentation of the tree.
+            - xml: Generates an XML representation of the tree.
               In XML format forms, includes the generated XML in the
               form. and puts the XML in a string variable with the name
               specified by the name attribute.
@@ -1960,28 +1960,28 @@ Each type-value pair must start with a hyphen.</description>
 			<name>tickMarkMajor</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Yes to render major tickmarks in the slider scale. </description>
+			<description>Yes to render major tickMarks in the slider scale. </description>
 		</attribute>
 		<attribute>
 			<type>boolean</type>
 			<name>tickMarkMinor</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<description>Yes to render minor tickmarks in the slider scale. </description>
+			<description>Yes to render minor tickMarks in the slider scale. </description>
 		</attribute>
 		<attribute>
 			<type>string</type>
 			<name>tickMarkImages</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		<description>image used for tickmarks</description>
+		<description>image used for tickMarks</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
 			<name>tickMarkLabels</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-		<description>label used for tickmarks</description>
+		<description>label used for tickMarks</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
@@ -2187,14 +2187,14 @@ dWord: creates a value of 0 (zero)</description>
 		</attribute>
 		<attribute>
 			<type>number</type>
-			<name>endrow</name>
+			<name>endRow</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>Last row of query that is included. You cannot use this attribute together with the attribute maxRows.</description>
 		</attribute>
 		<attribute>
 			<type>string</type>
-			<name>encodefor</name>
+			<name>encodeFor</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<description>encode for what, valid values are:
@@ -2219,7 +2219,7 @@ dWord: creates a value of 0 (zero)</description>
 		<tdbt-class>lucee.transformer.cfml.script.CFMLScriptTransformer</tdbt-class>
 		<ttt-class>lucee.transformer.bytecode.statement.tag.TagScript</ttt-class>
 		<tte-class>lucee.transformer.cfml.evaluator.impl.Script</tte-class>
-		<body-content>tagdependent</body-content>
+		<body-content>tagDependent</body-content>
 		<body-rtexprvalue>false</body-rtexprvalue>
 		<description>Encloses a code segment containing cfscript.</description>
 		<attribute-type>fixed</attribute-type>
@@ -2341,7 +2341,7 @@ dWord: creates a value of 0 (zero)</description>
 		<attribute-type>fixed</attribute-type>
 		<attribute>
 			<type>boolean</type>
-			<name>bufferoutput</name>
+			<name>bufferOutput</name>
 			<script-support>optional</script-support>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>

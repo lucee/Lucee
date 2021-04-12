@@ -165,6 +165,7 @@ public final class DebuggerImpl implements Debugger {
 		return getEntry(pc, source, null);
 	}
 
+	// add pages entry
 	@Override
 	public DebugEntryTemplate getEntry(PageContext pc, PageSource source, String key) {
 		lastEntry = System.currentTimeMillis();
@@ -184,6 +185,7 @@ public final class DebuggerImpl implements Debugger {
 		return de;
 	}
 
+	// add page parts entry
 	@Override
 	public DebugEntryTemplatePart getEntry(PageContext pc, PageSource source, int startPos, int endPos) {
 		String src = DebugEntryTemplatePartImpl.getSrc(source == null ? "" : source.getDisplayPath(), startPos, endPos);
@@ -517,8 +519,6 @@ public final class DebuggerImpl implements Debugger {
 		int qrySize = 0;
 		Query qryPart = null;
 		if (hasParts) {
-			qryPart = new QueryImpl(PAGE_PART_COLUMNS, qrySize, "query");
-			debugging.setEL(PAGE_PARTS, qryPart);
 			String slowestTemplate = arrPages.get(0).getPath();
 			List<DebugEntryTemplatePart> filteredPartEntries = new ArrayList();
 			java.util.Collection<DebugEntryTemplatePartImpl> col = partEntries.values();
@@ -527,6 +527,9 @@ public final class DebuggerImpl implements Debugger {
 				if (detp.getPath().equals(slowestTemplate)) filteredPartEntries.add(detp);
 			}
 			qrySize = Math.min(filteredPartEntries.size(), MAX_PARTS);
+
+			qryPart = new QueryImpl(PAGE_PART_COLUMNS, qrySize, "query");
+			debugging.setEL(PAGE_PARTS, qryPart);
 
 			int row = 0;
 			Collections.sort(filteredPartEntries, DEBUG_ENTRY_TEMPLATE_PART_COMPARATOR);

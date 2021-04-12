@@ -38,7 +38,7 @@
 		<member-position>2</member-position>
 		<description>Extracts the given date part from the date object</description>
 		<argument>
-			<name>datepart</name>
+			<name>datePart</name>
 			<type>string</type>
 			<required>Yes</required>
 		<description>one of the following:
@@ -59,7 +59,7 @@
 			<name>date</name>
 			<type>datetime</type>
 			<required>Yes</required>
-			<description>dateobject the get part from</description>
+			<description>date object the get part from</description>
 		</argument>
 		<argument>
 			<name>locale</name>
@@ -709,7 +709,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<class>lucee.runtime.functions.string.MonthShortAsString</class>
 		<description>Returns the string label for the given month in short format</description>
 		<argument>
-			<name>monthnumber</name>
+			<name>monthNumber</name>
 			<type>number</type>
 			<required>Yes</required>
 			<description></description>

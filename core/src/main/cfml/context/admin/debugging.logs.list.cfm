@@ -121,7 +121,7 @@
 							<cfset _total=0><cfloop query="el.pages"><cfset _total+=el.pages.total></cfloop>
 							<cfset _query=0><cfloop query="el.pages"><cfset _query+=el.pages.query></cfloop>
 							<cfset _app=0><cfloop query="el.pages"><cfset _app+=el.pages.app></cfloop>	
-							<cfset _scope=el.implicitAccess.recordCount>
+							<cfset _scope=el.implicitAccess.recordCount ?: 0>
 							<cfset _path=el.scope.cgi.SCRIPT_NAME& (len(el.scope.cgi.QUERY_STRING)?"?"& el.scope.cgi.QUERY_STRING:"")>
 							<cfif 
 								doFilter(session.debugFilter.path,_path,false) and 
@@ -135,7 +135,7 @@
 									<td nowrap align="right"><cfif listFirst(formatUnit(_query)," ") gt 0>#formatUnit(_query)#<cfelse>-</cfif></td>
 									<td nowrap align="right">#formatUnit(_app)#</td>
 									<td nowrap align="right">#formatUnit(_total)#</td>
-									<td nowrap align="right">#lsNumberFormat(_scope)#</td>
+									<td nowrap align="right"><cfif _scope eq 0><cfelse>#lsNumberFormat(_scope)#</cfif></td>
 								</tr>
 							</cfif>
 						</cfloop>

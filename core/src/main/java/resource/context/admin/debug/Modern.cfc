@@ -156,6 +156,10 @@ if(structKeyExists(arguments.custom, "metrics_Charts")) {
 			local.dumps=queryNew('output,template,line');
 		else local.dumps=arguments.debugging.dumps;
 
+		if(isNull(arguments.debugging.pageParts)) 
+			local.pageParts=QueryNew('id,count,min,max,avg,total,path,start,end,startLine,endLine,snippet');
+		else local.pageParts=arguments.debugging.pageParts;
+
 		local.times=arguments.debugging.times;
 
 		var time=getTickCount();
@@ -1005,14 +1009,89 @@ Reference Button
 						</table>
 					</cfif>
 
+					<!--- Page Parts --->
+					<cfif pageParts.recordcount>
 
+						<cfset sectionId = "PageParts">
+						<cfset isOpen = this.isSectionOpen( sectionId )>
 
+						<div class="section-title">Page Parts</div>
+						<table>
 
+							<cfset renderSectionHeadTR( sectionId, 
+								"#pageParts.recordcount# Page Part#pageParts.recordcount GT 1 ? 's' : ''# Executed" )>
 
-
-
-
-
+							<tr>
+								<td id="-lucee-debugging-#sectionId#" class="#isOpen ? '' : 'collapsed'#">
+									<table class="details">
+									<thead>
+									<tr>
+										<th>Total (ms)</th>
+										<th>Count</th>
+										<th>Min (ms)</th>
+										<th>Max (ms)</th>
+										<th>Avg (ms)</th>
+										<th>Template</th>
+										<th>Lines</th>
+										<th>Start</th>
+										<th>End</th>
+									</tr>
+									</thead>
+									<cfset var hasBad = false>
+									
+									<cfset local.pagePartsDisplayed = 0>
+									<cfset local.pagePartsShow = true>
+									<cfset local.bypassMinimalFilter = false>
+									<cfloop condition="pagePartsShow eq true">
+										<cfset local.loa = 0>
+										<cfset local.tot = 0>
+										<cfset local.q = 0>
+										<tbody>
+											<cfloop query="pageParts">
+												<cfset tot = tot + pageParts.total>
+												<cfif pageParts.avg LT arguments.custom.minimal * 1000 && !local.bypassMinimalFilter>
+													<cfcontinue>
+												</cfif>
+												<cfset pagePartsDisplayed++>
+												<cfset bad=pageParts.avg GTE arguments.custom.highlight * 1000>
+												<cfif bad>
+													<cfset hasBad = true>
+												</cfif>
+												<tr class="nowrap #bad ? 'red' : ''#" 
+														<!--- we don't show snippet for security reasons
+															title="#EncodeForHtmlAttribute(pageParts.path & chr(10) & pageParts.path & chr(10) & pageParts.snippet)#" --->
+														>
+													<td class="txt-r">#unitFormat(arguments.custom.unit, pageParts.total,true)#</td>
+													<td class="txt-r">#unitFormat(arguments.custom.unit, pageParts.count,true)#</td>
+													<td class="txt-r">#unitFormat(arguments.custom.unit, pageParts.min,true)#</td>
+													<td class="txt-r">#unitFormat(arguments.custom.unit, pageParts.max,true)#</td>
+													<td class="txt-r">#unitFormat(arguments.custom.unit, pageParts.avg,true)#</td>
+													<td>#encodeForHtml(pageParts.path)#</td>
+													<td title="lines">#pageParts.startLine# - #pageParts.endLine#</td>
+													<td class="txt-r">#pageParts.start#</td>
+													<td class="txt-r">#pageParts.end#</td>
+												</tr>
+											</cfloop>
+											<cfif pagePartsDisplayed gt 0 || bypassMinimalFilter>
+												<cfset pagePartsShow = false>
+											<cfelse>
+												<!-- if there are no templates displayed at all due to a minimal execution time filter, show them all -->
+												<cfset bypassMinimalFilter = true>
+											</cfif>
+										</tbody>
+									</cfloop>
+									<cfif hasBad>
+										<tfoot>
+											<tr class="red">
+												<td colspan="5">red = over #unitFormat( arguments.custom.unit, arguments.custom.highlight * 1000 ,true)# ms average execution time</td>
+											</tr>
+										</tfoot>
+									</cfif>
+								</table>
+								</td>
+							</tr>
+						</table>
+					</cfif>
 
 					<!--- Exceptions --->
 					<cfif structKeyExists( local, "exceptions" ) && arrayLen( local.exceptions )>
@@ -1112,14 +1191,14 @@ Reference Button
 									<table class="details">
 									<thead>
 										<tr>
-											<th align="center">Label</th>
+											<th>Label</th>
 											<th>Time (ms)</th>
 											<th>Template</th>
 										</tr>
 									<tbody>
 										<cfloop query="timers">
 											<tr>
-												<td class="txt-r">#timers.label#</td>
+												<td>#timers.label#</td>
 												<td class="txt-r">#unitFormat( arguments.custom.unit, timers.time * 1000000,prettify )#</td>
 												<td class="txt-r">#timers.template#</td>
 											</tr>
@@ -1706,6 +1785,19 @@ ldSelectTab(null,'-lucee-debugging');
 	<cfscript>
 
 		function unitFormat( string unit, numeric time, boolean prettify=false ) {
+			var result = _unitFormat( arguments.unit, arguments.time );
+			if ( !arguments.prettify ) {
+				return result;
+			} else {
+				result = NumberFormat( result, ",0.00" );
+				if (result eq 0)
+					return "-";
+				return result;
+			}
+			
+		}
+
+		function _unitFormat( string unit, numeric time) {
 			/*if ( !arguments.prettify ) {
 				return NumberFormat( arguments.time / 1000000, ",0.000" );
 			}*/
