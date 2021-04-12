@@ -51,7 +51,7 @@ public final class GetTagList implements Function {
 	}
 
 	private static lucee.runtime.type.Struct _call(PageContext pc, int dialect) throws PageException {
-		Struct sct = new StructImpl();
+		Struct sct = new StructImpl(StructImpl.TYPE_LINKED);
 		// synchronized(sct) {
 		// hasSet=true;
 		TagLib[] tlds;
