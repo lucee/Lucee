@@ -3,7 +3,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
         variables.uri = createURI("LDEV3430");
     }
     function run( testResults, testBox ) {
-        return; // TODO disable failing test
         describe("Testcase for LDEV-3430", function() {
             it( title="ORMExecuteQuery() with positional argument(hql)", body=function( currentSpec ){
                 local.result = _InternalRequest(
