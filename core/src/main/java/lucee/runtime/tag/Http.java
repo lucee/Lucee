@@ -1431,7 +1431,7 @@ public final class Http extends BodyTagImpl {
 		final SSLConnectionSocketFactory sslsf;
 		try {
 			// SSLContext sslcontext = SSLContexts.createSystemDefault();
-			SSLContext sslcontext = SSLContext.getInstance("TLSv1.2");
+			SSLContext sslcontext = SSLContext.getInstance("TLSv1.3");
 			if (!StringUtil.isEmpty(this.clientCert)) {
 				if (this.clientCertPassword == null) this.clientCertPassword = "";
 				File ksFile = new File(this.clientCert);
