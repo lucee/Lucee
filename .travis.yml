@@ -1,3 +1,4 @@
+dist: focal
 language: java
 
 # cache the maven dependancies
