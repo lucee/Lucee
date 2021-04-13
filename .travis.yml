@@ -1,4 +1,3 @@
-dist: bionic 
 language: java
 
 # cache the maven dependancies

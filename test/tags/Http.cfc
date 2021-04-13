@@ -61,6 +61,6 @@ component extends="org.lucee.cfml.test.LuceeTestCase" {
 		expect(isJson(res.filecontent)).toBeTrue();
 		var tlsReport = DeserializeJson(res.filecontent);
 		SystemOutput("", true);
-		SystemOutput("CFHTTP is using [#tlsReport.tls_version#] rated [#tlsReport.rating#]", true);
+		SystemOutput("CFHTTP is using [#tlsReport.tls_version#] (jvm default)", true);
 	}
 }
