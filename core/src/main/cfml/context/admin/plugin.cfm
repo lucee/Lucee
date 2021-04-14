@@ -7,7 +7,7 @@
 </cfif>
 
 <!--- avoid concurrency problems when resetting plugins --->
-<Cflock name="lucee_admin_plugins_last_updated">
+<cflock name="lucee_admin_plugins_last_updated">
 	<cfscript>
 		if (not StructKeyExists(application.plugin, request.adminType))
 			application.plugin[request.adminType] = {};

@@ -3,7 +3,7 @@
 
   <groupId>org.lucee</groupId>
   <artifactId>lucee</artifactId>
-  <version>5.3.8.95-SNAPSHOT</version>
+  <version>5.3.8.168-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Lucee Loader Build</name>
@@ -300,7 +300,7 @@
 	<dependency>
     <groupId>org.apache.felix</groupId>
     <artifactId>org.apache.felix.framework</artifactId>
-    <version>6.0.2</version><!-- 4.6.1 -->
+    <version>6.0.3</version><!-- 4.6.1 -->
     <scope>compile</scope>
   </dependency>
   <dependency>
@@ -358,7 +358,7 @@
   <dependency>
 	  <groupId>org.apache.commons</groupId>
 	  <artifactId>commons-collections4</artifactId>
-	  <version>4.0</version>
+	  <version>4.4</version>
     <scope>provided</scope>
   </dependency>
   <dependency>
@@ -638,6 +638,12 @@
         <artifactId>javax.websocket-api</artifactId>
         <version>1.1</version>
         <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>net.java.dev.jna</groupId>
+      <artifactId>jna</artifactId>
+      <version>5.5.0</version>
+      <scope>provided</scope>
     </dependency>
   <!-- <dependency>
     <groupId>xdb</groupId>

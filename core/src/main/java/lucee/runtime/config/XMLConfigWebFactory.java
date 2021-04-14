@@ -354,7 +354,6 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 */
 	synchronized static void load(ConfigServerImpl cs, ConfigImpl config, Document doc, boolean isReload, boolean doNew) throws IOException {
 		if (LOG) LogUtil.logGlobal(ThreadLocalPageContext.getConfig(cs == null ? config : cs), Log.LEVEL_INFO, XMLConfigWebFactory.class.getName(), "start reading config");
-
 		ThreadLocalConfig.register(config);
 		boolean reload = false;
 
@@ -408,7 +407,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 					log(config, null, e);
 				}
 			}
-
+			// reload when an old version of xml got updated
 			if (reload) {
 				doc = reload(doc, config, cs);
 				reload = false;
@@ -2140,21 +2139,11 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	 * } return cd; }
 	 */
 
-	/**
-	 * @param configServer
-	 * @param config
-	 * @param doc
-	 */
-	/**
-	 * @param configServer
-	 * @param config
-	 * @param doc
-	 */
 	private static void _loadCache(ConfigServerImpl configServer, ConfigImpl config, Document doc, Log log) {
 		try {
 			boolean hasCS = configServer != null;
 
-			// load Cache info
+			// load cache defintions
 			{
 				Element parent = doc != null ? getChildByName(doc.getDocumentElement(), "caches") : null;
 				Element[] children = parent != null ? getChildren(parent, "cache") : new Element[0];
@@ -2171,13 +2160,12 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 				}
 
 				ClassDefinition cd;
-				String label;
 				for (Element child: children) {
 					cd = getClassDefinition(child, "", config.getIdentification());
 
 					// check if it is a bundle
 					if (!cd.isBundle()) {
-						log.error("Datasource", "[" + cd + "] does not have bundle info");
+						log.error("Cache", "[" + cd + "] does not have bundle info");
 						continue;
 					}
 					map.put(cd.getClassName(), cd);
@@ -2188,14 +2176,17 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			Map<String, CacheConnection> caches = new HashMap<String, CacheConnection>();
 
 			boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManagerImpl.TYPE_CACHE);
-			// print.o("LOAD CACHE:"+hasAccess+":"+hasCS);
-
 			Element eCache = doc != null ? getChildByName(doc.getDocumentElement(), "cache") : null;
 
-			// has changes
-
-			String md5 = eCache != null ? getMD5(eCache, hasCS ? configServer.getCacheMD5() : "") : "";
-			if (md5.equals(config.getCacheMD5())) return;
+			// check if we have an update or not
+			StringBuilder sb = new StringBuilder();
+			for (Entry<String, ClassDefinition> e: config.getCacheDefinitions().entrySet()) {
+				sb.append(e.getKey()).append(':').append(e.getValue().toString()).append(';');
+			}
+			String md5 = eCache != null ? getMD5(eCache, sb.toString(), hasCS ? configServer.getCacheMD5() : "") : "";
+			if (md5.equals(config.getCacheMD5())) {
+				return;
+			}
 			config.setCacheMD5(md5);
 
 			String[] typeNames = new String[] { "resource", "function", "include", "query", "template", "object", "file", "http", "webservice" };
@@ -2245,10 +2236,9 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 
 					} //
 					else if (cd.getClassName() != null
-							&& (cd.getClassName().endsWith(".extension.io.cache.eh.EHCache") || cd.getClassName().endsWith("lucee.runtime.cache.eh.EHCache")))
+							&& (cd.getClassName().endsWith(".extension.io.cache.eh.EHCache") || cd.getClassName().endsWith("lucee.runtime.cache.eh.EHCache"))) {
 						cd = new ClassDefinitionImpl("org.lucee.extension.cache.eh.EHCache");
-					// else cacheClazz = cd.getClazz();
-
+					}
 					cc = new CacheConnectionImpl(config, name, cd, custom, Caster.toBooleanValue(getAttr(eConnection, "read-only"), false),
 							Caster.toBooleanValue(getAttr(eConnection, "storage"), false));
 					if (!StringUtil.isEmpty(name)) {
@@ -2332,9 +2322,10 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 		}
 	}
 
-	private static String getMD5(Node node, String parentMD5) {
+	private static String getMD5(Node node, String cacheDef, String parentMD5) {
+
 		try {
-			return MD5.getDigestAsString(XMLCaster.toString(node, "") + ":" + parentMD5);
+			return MD5.getDigestAsString(new StringBuilder().append(XMLCaster.toString(node, "")).append(':').append(cacheDef).append(':').append(parentMD5).toString());
 		}
 		catch (IOException e) {
 			return "";
@@ -5077,22 +5068,31 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 	public static String replaceConfigPlaceHolder(String v) {
 		if (StringUtil.isEmpty(v) || v.indexOf('{') == -1) return v;
 
-		int s = -1, e = -1;
+		int s = -1, e = -1, d = -1;
 		int prefixLen, start = -1, end;
 		String _name, _prop;
-		while ((s = v.indexOf("{system:", start)) != -1 | /* don't change */ (e = v.indexOf("{env:", start)) != -1) {
-			boolean isSystem = false;
+		while (
+				(s = v.indexOf("{system:", start)) != -1 | /* don't change */
+				(e = v.indexOf("{env:", start)) != -1 | /* don't change */
+				(d = v.indexOf("${", start)) != -1
+			) {
+			boolean isSystem = false, isDollar = false;
 			// system
-			if (s != -1 && (e == -1 || e > s)) {
+			if (s > -1 && (e == -1 || e > s)) {
 				start = s;
 				prefixLen = 8;
 				isSystem = true;
 			}
 			// env
-			else {
+			else if (e > -1) {
 				start = e;
 				prefixLen = 5;
-
+			}
+			// dollar
+			else {
+				start = d;
+				prefixLen = 2;
+				isDollar = true;
 			}
 
 			end = v.indexOf('}', start);
@@ -5102,7 +5102,14 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			if (end > prefixLen) {
 				_name = v.substring(start + prefixLen, end);
 				// print.e(_name);
-				_prop = isSystem ? System.getProperty(_name) : System.getenv(_name);
+				if (isDollar) {
+					String[] _parts = _name.split(":");
+					_prop = SystemUtil.getSystemPropOrEnvVar(_parts[0], (_parts.length > 1) ? _parts[1] : null);
+				}
+				else {
+					_prop = isSystem ? System.getProperty(_name) : System.getenv(_name);
+				}
+
 				if (_prop != null) {
 					v = new StringBuilder().append(v.substring(0, start)).append(_prop).append(v.substring(end + 1)).toString();
 					start += _prop.length();
@@ -5112,6 +5119,7 @@ public final class XMLConfigWebFactory extends XMLConfigFactory {
 			else start = end; // set start to end for the next round
 			s = -1;
 			e = -1; // reset index
+			d = -1; // I don't think we need this?
 		}
 		return v;
 	}

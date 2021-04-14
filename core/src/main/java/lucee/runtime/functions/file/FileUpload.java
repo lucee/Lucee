@@ -18,6 +18,8 @@
  **/
 package lucee.runtime.functions.file;
 
+import lucee.commons.io.res.filter.ExtensionResourceFilter;
+import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.security.SecurityManager;
@@ -56,8 +58,20 @@ public class FileUpload {
 		SecurityManager securityManager = pc.getConfig().getSecurityManager();
 
 		int nc = FileUtil.toNameConflict(nameConflict);
-		int m = FileTag.toMode(mode);
+		ExtensionResourceFilter allowedFilter = null;
+		// mode
+		int m = -1;
+		try {
+			m = FileTag.toMode(mode);
+		}
+		catch (Exception e) {
+			// undoc feature for compatibility to ACF FUTURE remove and add allowedExtension argument
+			// blockedExtension?
+			if (!StringUtil.isEmpty(mode) && mode.contains("*.")) {
+				allowedFilter = FileUtil.toExtensionFilter(mode);
+			}
+		}
 
-		return FileTag.actionUpload(pc, securityManager, fileField, destination, nc, accept, true, m, attributes, acl, null);
+		return FileTag.actionUpload(pc, securityManager, fileField, destination, nc, accept, allowedFilter, null, true, m, attributes, acl, null);
 	}
 }

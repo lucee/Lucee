@@ -47,6 +47,7 @@ public final class Xml extends BodyTagImpl {
 	private boolean casesensitive;
 
 	private String strXML;
+	private boolean lenient = false;
 
 	@Override
 	public void release() {
@@ -55,6 +56,7 @@ public final class Xml extends BodyTagImpl {
 		casesensitive = false;
 		strXML = null;
 		validator = null;
+		lenient = false;
 	}
 
 	/**
@@ -75,6 +77,10 @@ public final class Xml extends BodyTagImpl {
 		this.casesensitive = casesensitive;
 	}
 
+	public void setLenient(boolean lenient) {
+		this.lenient = lenient;
+	}
+
 	@Override
 	public int doStartTag() {
 		return EVAL_BODY_BUFFERED;
@@ -84,7 +90,7 @@ public final class Xml extends BodyTagImpl {
 	public int doEndTag() throws PageException {
 		try {
 			InputSource vis = StringUtil.isEmpty(validator) ? null : XMLUtil.toInputSource(pageContext, validator);
-			pageContext.setVariable(variable, XMLCaster.toXMLStruct(XMLUtil.parse(new InputSource(new StringReader(strXML)), vis, false), casesensitive));
+			pageContext.setVariable(variable, XMLCaster.toXMLStruct(XMLUtil.parse(new InputSource(new StringReader(strXML)), vis, lenient), casesensitive));
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);

@@ -42,12 +42,12 @@ public final class QuerySlice extends BIF {
 
 		int len = qry.getRecordcount();
 		if (offset > 0) {
-			if (len < offset) throw new FunctionException(pc, "querySlice", 2, "offset", "offset can be greater than recordcount of the query");
+			if (len < offset) throw new FunctionException(pc, "querySlice", 2, "offset", "offset cannot be greater than the recordcount of the query");
 
 			int to = 0;
 			if (length > 0) to = (int) (offset + length - 1);
 			else if (length <= 0) to = (int) (len + length);
-			if (len < to) throw new FunctionException(pc, "querySlice", 3, "length", "offset+length can be greater than recordcount of the query");
+			if (len < to) throw new FunctionException(pc, "querySlice", 3, "length", "offset+length cannot be greater than the recordcount of the query");
 
 			return get(qry, (int) offset, to);
 		}

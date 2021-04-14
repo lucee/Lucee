@@ -164,6 +164,7 @@ public class ConfigWebHelper {
 					checkPhysicalFromWebroot, checkArchiveFromWebroot);
 			applicationMappings.put(key, new SoftReference<Mapping>(m));
 		}
+		else m.check();
 
 		return m;
 	}

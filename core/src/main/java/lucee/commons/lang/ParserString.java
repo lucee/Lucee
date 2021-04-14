@@ -112,8 +112,8 @@ public final class ParserString {
 	}
 
 	/**
-	 * Stellt den internen Zeiger auf die vorhergehnde Position. ueberlappungen ausserhalb des Index
-	 * des Textes werden ignoriert.
+	 * Stellt den internen Zeiger auf die vorhergehnde Position. ueberlappungen ausserhalb des Index des
+	 * Textes werden ignoriert.
 	 */
 	public void previous() {
 		pos--;
@@ -341,8 +341,8 @@ public final class ParserString {
 	}
 
 	/**
-	 * Stellt den Zeiger eins nach vorn, wenn das aktuelle Zeichen das selbe ist wie das
-	 * Eingegebene, gibt zurueck ob es das selbe Zeichen war oder nicht.
+	 * Stellt den Zeiger eins nach vorn, wenn das aktuelle Zeichen das selbe ist wie das Eingegebene,
+	 * gibt zurueck ob es das selbe Zeichen war oder nicht.
 	 * 
 	 * @param c char Zeichen zum Vergleich.
 	 * @return boolean
@@ -356,8 +356,8 @@ public final class ParserString {
 	}
 
 	/**
-	 * Gibt zurueck ob das aktuelle und die folgenden Zeichen die selben sind, wie in der
-	 * angegebenen Zeichenkette.
+	 * Gibt zurueck ob das aktuelle und die folgenden Zeichen die selben sind, wie in der angegebenen
+	 * Zeichenkette.
 	 * 
 	 * @param str String Zeichen zum Vergleich.
 	 * @return boolean
@@ -371,9 +371,8 @@ public final class ParserString {
 	}
 
 	/**
-	 * Gibt zurueck ob das aktuelle und die folgenden Zeichen die selben sind, wie in der
-	 * angegebenen Zeichenkette, wenn ja wird der Zeiger um die Laenge des String nach vorne
-	 * gesetzt.
+	 * Gibt zurueck ob das aktuelle und die folgenden Zeichen die selben sind, wie in der angegebenen
+	 * Zeichenkette, wenn ja wird der Zeiger um die Laenge des String nach vorne gesetzt.
 	 * 
 	 * @param str String Zeichen zum Vergleich.
 	 * @return boolean
@@ -411,8 +410,8 @@ public final class ParserString {
 	}
 
 	/**
-	 * Gibt zurueck ob das aktuelle und die folgenden Zeichen die selben sind gefolgt nicht von
-	 * einem word character, wenn ja wird der Zeiger um die Laenge des String nach vorne gesetzt.
+	 * Gibt zurueck ob das aktuelle und die folgenden Zeichen die selben sind gefolgt nicht von einem
+	 * word character, wenn ja wird der Zeiger um die Laenge des String nach vorne gesetzt.
 	 * 
 	 * @param str String Zeichen zum Vergleich.
 	 * @return boolean
@@ -488,8 +487,8 @@ public final class ParserString {
 	}
 
 	/**
-	 * Gibt zurueck ob first den folgenden Zeichen entspricht, gefolgt von Leerzeichen und second,
-	 * wenn ja wird der Zeiger um die Laenge der uebereinstimmung nach vorne gestellt.
+	 * Gibt zurueck ob first den folgenden Zeichen entspricht, gefolgt von Leerzeichen und second, wenn
+	 * ja wird der Zeiger um die Laenge der uebereinstimmung nach vorne gestellt.
 	 * 
 	 * @param first Erste Zeichen zum Vergleich (Vor den Leerzeichen).
 	 * @param second Zweite Zeichen zum Vergleich (Nach den Leerzeichen).
@@ -547,8 +546,8 @@ public final class ParserString {
 	}
 
 	/**
-	 * Gibt zurueck ob first den folgenden Zeichen entspricht, gefolgt von Leerzeichen und second,
-	 * wenn ja wird der Zeiger um die Laenge der uebereinstimmung nach vorne gestellt.
+	 * Gibt zurueck ob first den folgenden Zeichen entspricht, gefolgt von Leerzeichen und second, wenn
+	 * ja wird der Zeiger um die Laenge der uebereinstimmung nach vorne gestellt.
 	 * 
 	 * @param first Erste Zeichen zum Vergleich (Vor den Leerzeichen).
 	 * @param second Zweite Zeichen zum Vergleich (Nach den Leerzeichen).
@@ -599,8 +598,8 @@ public final class ParserString {
 	}
 
 	/**
-	 * Gibt zurueck ob first den folgenden Zeichen entspricht, gefolgt von Leerzeichen und second,
-	 * wenn ja wird der Zeiger um die Laenge der uebereinstimmung nach vorne gestellt.
+	 * Gibt zurueck ob first den folgenden Zeichen entspricht, gefolgt von Leerzeichen und second, wenn
+	 * ja wird der Zeiger um die Laenge der uebereinstimmung nach vorne gestellt.
 	 * 
 	 * @param first Erste Zeichen zum Vergleich (Vor den Leerzeichen).
 	 * @param second Zweite Zeichen zum Vergleich (Nach den Leerzeichen).
@@ -709,8 +708,8 @@ public final class ParserString {
 	}
 
 	/**
-	 * Stellt den internen Zeiger an den Anfang der naechsten Zeile, gibt zurueck ob eine weitere
-	 * Zeile existiert oder ob es bereits die letzte Zeile war.
+	 * Stellt den internen Zeiger an den Anfang der naechsten Zeile, gibt zurueck ob eine weitere Zeile
+	 * existiert oder ob es bereits die letzte Zeile war.
 	 * 
 	 * @return Existiert eine weitere Zeile.
 	 */
@@ -726,8 +725,8 @@ public final class ParserString {
 	}
 
 	/**
-	 * Gibt eine Untermenge des CFMLString als Zeichenkette zurueck, ausgehend von start bis zum
-	 * Ende des CFMLString.
+	 * Gibt eine Untermenge des CFMLString als Zeichenkette zurueck, ausgehend von start bis zum Ende
+	 * des CFMLString.
 	 * 
 	 * @param start Von wo aus die Untermege ausgegeben werden soll.
 	 * @return Untermenge als Zeichenkette
@@ -749,8 +748,8 @@ public final class ParserString {
 	}
 
 	/**
-	 * Gibt eine Untermenge des CFMLString als Zeichenkette in Kleinbuchstaben zurueck, ausgehend
-	 * von start bis zum Ende des CFMLString.
+	 * Gibt eine Untermenge des CFMLString als Zeichenkette in Kleinbuchstaben zurueck, ausgehend von
+	 * start bis zum Ende des CFMLString.
 	 * 
 	 * @param start Von wo aus die Untermenge ausgegeben werden soll.
 	 * @return Untermenge als Zeichenkette in Kleinbuchstaben.
@@ -760,8 +759,8 @@ public final class ParserString {
 	}
 
 	/**
-	 * Gibt eine Untermenge des CFMLString als Zeichenkette in Kleinbuchstaben zurueck, ausgehend
-	 * von start mit einer maximalen Laenge count.
+	 * Gibt eine Untermenge des CFMLString als Zeichenkette in Kleinbuchstaben zurueck, ausgehend von
+	 * start mit einer maximalen Laenge count.
 	 * 
 	 * @param start Von wo aus die Untermenge ausgegeben werden soll.
 	 * @param count Wie lange die zurueckgegebene Zeichenkette maximal sein darf.
@@ -772,8 +771,8 @@ public final class ParserString {
 	}
 
 	/**
-	 * Gibt eine Untermenge des CFMLString als CFMLString zurueck, ausgehend von start bis zum Ende
-	 * des CFMLString.
+	 * Gibt eine Untermenge des CFMLString als CFMLString zurueck, ausgehend von start bis zum Ende des
+	 * CFMLString.
 	 * 
 	 * @param start Von wo aus die Untermenge ausgegeben werden soll.
 	 * @return Untermenge als CFMLString
@@ -795,8 +794,7 @@ public final class ParserString {
 		/*
 		 * NICE die untermenge direkter ermiiteln, das problem hierbei sind die lines
 		 * 
-		 * int endPos=start+count; int LineFrom=-1; int LineTo=-1; for(int i=0;i<lines.length;i++) {
-		 * if() }
+		 * int endPos=start+count; int LineFrom=-1; int LineTo=-1; for(int i=0;i<lines.length;i++) { if() }
 		 * 
 		 * return new CFMLString( 0, String.valueOf(text,start,count).toCharArray(),
 		 * String.valueOf(lcText,start,count).toCharArray(), lines);
@@ -818,8 +816,7 @@ public final class ParserString {
 	}
 
 	/**
-	 * Setzt die Position des Zeigers innerhalb des CFMLString, ein ungueltiger index wird
-	 * ignoriert.
+	 * Setzt die Position des Zeigers innerhalb des CFMLString, ein ungueltiger index wird ignoriert.
 	 * 
 	 * @param pos Position an die der Zeiger gestellt werde soll.
 	 */
@@ -855,9 +852,9 @@ public final class ParserString {
 	}
 
 	/**
-	 * Gibt zurueck, ausgehend von der aktuellen Position, wann das naechste Zeichen folgt das
-	 * gleich ist wie die Eingabe, falls keines folgt wird -1 zurueck gegeben. Gross- und
-	 * Kleinschreibung der Zeichen werden igoriert.
+	 * Gibt zurueck, ausgehend von der aktuellen Position, wann das naechste Zeichen folgt das gleich
+	 * ist wie die Eingabe, falls keines folgt wird -1 zurueck gegeben. Gross- und Kleinschreibung der
+	 * Zeichen werden igoriert.
 	 * 
 	 * @param c gesuchtes Zeichen
 	 * @return Zeichen das gesucht werden soll.

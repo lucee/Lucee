@@ -209,7 +209,7 @@ public final class FeedHandler extends DefaultHandler {
 			}
 		}
 		parents.add(data);
-		data = sct;		
+		data = sct;
 	}
 
 	private String name(String name, String qName) {

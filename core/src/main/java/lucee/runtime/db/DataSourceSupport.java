@@ -132,15 +132,27 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 
 		if (defaultTransactionIsolation == -1) {
 			Connection c = driver.connect(connStrTrans, props);
-			defaultTransactionIsolation = c.getTransactionIsolation();
+			defaultTransactionIsolation = getValidTransactionIsolation(c, Connection.TRANSACTION_READ_COMMITTED);
 			return c;
 		}
 		return driver.connect(connStrTrans, props);
 	}
 
+	private static int getValidTransactionIsolation(Connection conn, int defaultValue) {
+		try {
+			int transactionIsolation = conn.getTransactionIsolation();
+			if (transactionIsolation == Connection.TRANSACTION_READ_COMMITTED) return Connection.TRANSACTION_READ_COMMITTED;
+			if (transactionIsolation == Connection.TRANSACTION_SERIALIZABLE) return Connection.TRANSACTION_SERIALIZABLE;
+			if (SQLUtil.isOracle(conn)) return defaultValue;
+			if (transactionIsolation == Connection.TRANSACTION_READ_UNCOMMITTED) return Connection.TRANSACTION_READ_UNCOMMITTED;
+			if (transactionIsolation == Connection.TRANSACTION_REPEATABLE_READ) return Connection.TRANSACTION_REPEATABLE_READ;
+		}
+		catch (Exception e) {}
+		return defaultValue;
+	}
+
 	@Override
 	public int getDefaultTransactionIsolation() {
-		if (defaultTransactionIsolation == -1 || defaultTransactionIsolation == Connection.TRANSACTION_NONE) return Connection.TRANSACTION_READ_COMMITTED;
 		return defaultTransactionIsolation;
 	}
 

@@ -1054,16 +1054,16 @@ public final class XMLConfigAdmin {
 
 		// copy to jar directory
 		File jar = new File(factory.getBundleDirectory(), bf.getSymbolicName() + "-" + bf.getVersion().toString() + (".jar"));
-
-		InputStream is = bf.getInputStream();
-		OutputStream os = new FileOutputStream(jar);
-		try {
-			IOUtil.copy(is, os, false, false);
+		if (!jar.isFile()) {
+			InputStream is = bf.getInputStream();
+			OutputStream os = new FileOutputStream(jar);
+			try {
+				IOUtil.copy(is, os, false, false);
+			}
+			finally {
+				IOUtil.close(is, os);
+			}
 		}
-		finally {
-			IOUtil.close(is, os);
-		}
-
 		return BundleFile.getInstance(jar);
 	}
 
@@ -1389,14 +1389,16 @@ public final class XMLConfigAdmin {
 					setClass(logger, null, "appender-", cs.getLogEngine().appenderClassDefintion("console"));
 					setClass(logger, null, "layout-", cs.getLogEngine().layoutClassDefintion("pattern"));
 				}
-				catch (PageException e) {}
+				catch (PageException e) {
+				}
 			}
 			else {
 				try {
 					setClass(logger, null, "appender-", cs.getLogEngine().appenderClassDefintion("resource"));
 					setClass(logger, null, "layout-", cs.getLogEngine().layoutClassDefintion("classic"));
 				}
-				catch (PageException e) {}
+				catch (PageException e) {
+				}
 
 				logger.setAttribute("appender-arguments", "path:" + path);
 			}
@@ -1707,7 +1709,8 @@ public final class XMLConfigAdmin {
 				try {
 					OSGiUtil.uninstall(bl);
 				}
-				catch (BundleException e) {}
+				catch (BundleException e) {
+				}
 			}
 		}
 	}
@@ -1736,7 +1739,8 @@ public final class XMLConfigAdmin {
 				try {
 					OSGiUtil.uninstall(bl);
 				}
-				catch (BundleException e) {}
+				catch (BundleException e) {
+				}
 			}
 		}
 	}
@@ -1753,7 +1757,8 @@ public final class XMLConfigAdmin {
 			}
 			config.getStartups().remove(cd.getClassName());
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 	}
 
 	public void updateJDBCDriver(String label, String id, ClassDefinition cd) throws PageException {
@@ -1800,7 +1805,8 @@ public final class XMLConfigAdmin {
 				try {
 					OSGiUtil.uninstall(bl);
 				}
-				catch (BundleException e) {}
+				catch (BundleException e) {
+				}
 			}
 		}
 	}
@@ -1839,7 +1845,8 @@ public final class XMLConfigAdmin {
 				try {
 					OSGiUtil.uninstall(bl);
 				}
-				catch (BundleException e) {}
+				catch (BundleException e) {
+				}
 			}
 		}
 	}
@@ -6479,7 +6486,8 @@ public final class XMLConfigAdmin {
 				try {
 					tmp = new RHExtension(config, children[i]);
 				}
-				catch (Exception e) {}
+				catch (Exception e) {
+				}
 
 				if (tmp != null && ed.equals(tmp)) return tmp;
 			}

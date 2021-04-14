@@ -69,7 +69,7 @@ public final class Log extends TagImpl {
 	/**
 	 * Specifies whether to log the application name if one has been specified in an application tag.
 	 */
-	private boolean application;
+	private boolean application = true;
 	private CharSet charset = null;
 
 	private boolean async;
@@ -80,7 +80,7 @@ public final class Log extends TagImpl {
 		log = DEfAULT_LOG;
 		type = lucee.commons.io.log.Log.LEVEL_INFO;
 		file = null;
-		application = false;
+		application = true;
 		charset = null;
 		exception = null;
 		text = null;
@@ -239,7 +239,7 @@ public final class Log extends TagImpl {
 		}
 
 		String contextName = pageContext.getApplicationContext().getName();
-		if (contextName == null || application) contextName = "";
+		if (contextName == null || !application) contextName = "";
 		if (exception != null) {
 			if (StringUtil.isEmpty(text)) logger.log(type, contextName, exception);
 			else logger.log(type, contextName, text, exception);

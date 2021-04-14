@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import lucee.commons.lang.RandomUtil;
+import lucee.commons.lang.StringUtil;
 import lucee.commons.net.URLDecoder;
 import lucee.commons.net.URLItem;
 import lucee.runtime.net.http.ReqRspUtil;
@@ -108,8 +109,9 @@ public class ScopeUtil {
 			Struct tokens = Caster.toStruct(mapTokens, null, false);
 			String token;
 			if (!forceNew) {
-				token = Caster.toString(tokens.get(key, null), null);
-				if (token != null) return token;
+				Object tmp = tokens.get(key, null);
+				token = tmp == null ? null : Caster.toString(tmp, null);
+				if (!StringUtil.isEmpty(token)) return token;
 			}
 			token = RandomUtil.createRandomStringLC(40);
 			tokens.setEL(key, token);
@@ -117,8 +119,9 @@ public class ScopeUtil {
 		}
 		String token;
 		if (!forceNew) {
-			token = Caster.toString(mapTokens.get(key), null);
-			if (token != null) return token;
+			Object tmp = mapTokens.get(key);
+			token = tmp == null ? null : Caster.toString(tmp, null);
+			if (!StringUtil.isEmpty(token)) return token;
 		}
 
 		token = RandomUtil.createRandomStringLC(40);

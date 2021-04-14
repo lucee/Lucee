@@ -37,7 +37,8 @@ component {
 },
 		abort:{required:false,type:"boolean",default:false,hint="stops further processing of request."},
 		contextlevel:{required:false,type:"number",default:2,hidden:true},
-		async:{required:false, type="boolean", default=false, hint="if true and output is not to browser, Lucee builds the output in a new thread that runs in parallel to the thread that called the dump.  please note that if the calling thread modifies the data before the dump takes place, it is possible that the dump will show the modified data."}
+		async:{required:false, type="boolean", default=false, hint="if true and output is not to browser, Lucee builds the output in a new thread that runs in parallel to the thread that called the dump.  please note that if the calling thread modifies the data before the dump takes place, it is possible that the dump will show the modified data."},
+		enabled: { required: false, type: "boolean", default: true, hint: "dumps are enabled by default, pass false to short circuit a dump execution and effectively disable it" }
 	};
 
 
@@ -55,6 +56,9 @@ component {
 		// inital settings
 
 		var attrib = arguments.attributes;
+
+		if (!attrib.enabled)
+			return false;
 
 		//eval
 		if(not structKeyExists(attrib,'var') and structKeyExists(attrib,'eval')) {
@@ -106,7 +110,6 @@ component {
 			var meta = dumpStruct(structKeyExists(attrib,'var') ? attrib.var : nullValue(), attrib.top, attrib.show, attrib.hide, attrib.keys, attrib.metaInfo, attrib.showUDFs);
 		}
 
-
 		if (attrib.async && (attrib.output NEQ "browser")) {
 
 			thread name="dump-#createUUID()#" attrib="#attrib#" meta="#meta#" context="#context#" caller="#arguments.caller#" {
@@ -117,7 +120,6 @@ component {
 
 			doOutput(attrib, meta, context, arguments.caller);
 		}
-
 
 		if (attrib.abort)
 			abort;

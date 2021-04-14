@@ -48,6 +48,7 @@ import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.Mapping;
 import lucee.runtime.PageContext;
+import lucee.runtime.PageSource;
 import lucee.runtime.crypt.BlowfishEasy;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
@@ -733,5 +734,19 @@ public final class ConfigWebUtil {
 			rst[i] = flds[i].duplicate(deepCopy);
 		}
 		return rst;
+	}
+
+	public static class CacheElement {
+
+		public final long created;
+		public final PageSource pageSource;
+		public final boolean isCFC;
+
+		public CacheElement(PageSource pageSource, boolean isCFC) {
+			this.created = System.currentTimeMillis();
+			this.pageSource = pageSource;
+			this.isCFC = isCFC;
+		}
+
 	}
 }

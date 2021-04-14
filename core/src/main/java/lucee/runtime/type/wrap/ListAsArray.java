@@ -180,9 +180,10 @@ public class ListAsArray extends ArraySupport implements Array, List {
 		try {
 			return list.remove(key - 1);
 		}
-		catch (Throwable t) {
-			ExceptionUtil.rethrowIfNecessary(t);
-			throw new ExpressionException("can not remove Element at position [" + key + "]", t.getMessage());
+		catch (Exception e) {
+			ExpressionException ee = new ExpressionException("can not remove Element at position [" + key + "]", e.getMessage());
+			ee.setStackTrace(e.getStackTrace());
+			throw ee;
 		}
 	}
 
@@ -201,6 +202,54 @@ public class ListAsArray extends ArraySupport implements Array, List {
 			return removeE(key);
 		}
 		catch (PageException e) {
+			return defaultValue;
+		}
+	}
+
+	@Override
+	public Object pop() throws PageException {
+		if (size() == 0) throw new ExpressionException("can not pop Element from array, array is empty");
+		try {
+			return list.remove(size() - 1);
+		}
+		catch (Exception e) {
+			ExpressionException ee = new ExpressionException("can not pop Element from array", e.getMessage());
+			ee.setStackTrace(e.getStackTrace());
+			throw ee;
+		}
+	}
+
+	@Override
+	public Object pop(Object defaultValue) {
+		if (size() == 0) return defaultValue;
+		try {
+			return list.remove(size() - 1);
+		}
+		catch (Exception e) {
+			return defaultValue;
+		}
+	}
+
+	@Override
+	public Object shift() throws PageException {
+		if (size() == 0) throw new ExpressionException("can not pop Element from array, array is empty");
+		try {
+			return list.remove(0);
+		}
+		catch (Exception e) {
+			ExpressionException ee = new ExpressionException("can not pop Element from array", e.getMessage());
+			ee.setStackTrace(e.getStackTrace());
+			throw ee;
+		}
+	}
+
+	@Override
+	public Object shift(Object defaultValue) {
+		if (size() == 0) return defaultValue;
+		try {
+			return list.remove(0);
+		}
+		catch (Exception e) {
 			return defaultValue;
 		}
 	}
