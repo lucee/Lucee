@@ -263,6 +263,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		long start = System.nanoTime();
 		// stopwatch.start();
 		boolean hasResult = false;
+		boolean hasPossibleGeneratedKeys = false;
 		// boolean closeStatement=true;
 		try {
 			SQLItem[] items = sql.getItems();
@@ -283,15 +284,41 @@ public class QueryImpl implements Query, Objects, QueryResult {
 				hasResult = QueryUtil.execute(pc, preStat);
 			}
 			int uc;
+			int resultsetCount = 0;
 			// ResultSet res;
 			do {
+				resultsetCount++;
 				if (hasResult) {
 					// res=stat.getResultSet();
 					// if(fillResult(dc,res, maxrow, true,createGeneratedKeys,tz))break;
-					if (fillResult(qry, qr, keyName, dc, stat.getResultSet(), maxrow, true, createGeneratedKeys, tz)) break;
+					if (fillResult(qry, qr, keyName, dc, stat.getResultSet(), maxrow, true, createGeneratedKeys, tz)){
+						/*
+						 * Some SQL implementations (e.g. SQL Server) allow both a resultset *and* keys to be generated
+						 * in a single statement. For example:
+						 * 
+						 * insert into XXXX (col1, col2) OUTPUT INSERTED.* values (1, 'a'), (2, 'b'), (3, 'c')
+						 * 
+						 * In the above, the "OUTPUT INSERTED.*" will return a recordset of all the changes.
+						 */
+						if( resultsetCount == 1 && !hasPossibleGeneratedKeys ){
+							/*
+							 * We should check for any generated keys now, because in the MSSQL driver if we have a single
+							 * resultset (INSERT or UPDATE) that has an OUTPUT clause, the generated keys are only available
+							 * right now.
+							 * 
+							 * If we get back false, then an exception happened. However, we will still want to check back
+							 * later in care there are other statements executed later that could return a resultset.
+							 */
+							hasPossibleGeneratedKeys = !qry.setGeneratedKeys(dc, stat, tz);
+						}
+						break;
+					}
 				}
 				else if ((uc = setUpdateCount(qry != null ? qry : qr, stat)) != -1) {
-					if (uc > 0 && createGeneratedKeys && qry != null) qry.setGeneratedKeys(dc, stat, tz);
+					if (uc > 0){
+						// since we had some updates, we need to flag that the generated keys need to be checked
+						hasPossibleGeneratedKeys = true;
+					} 
 				}
 				else break;
 
@@ -300,7 +327,24 @@ public class QueryImpl implements Query, Objects, QueryResult {
 					hasResult = stat.getMoreResults();
 				}
 				catch (Throwable t) {
-					ExceptionUtil.rethrowIfNecessary(t);
+					/*
+					 * The JTDS driver (and possibly other drivers) throw exceptions as soon
+					 * as the query is executed, however the MSSQL driver will delay throwing
+					 * the execution until you try to request the recordset.
+					 * 
+					 * So we need to check if a SQLException is being thrown and if so, we need
+					 * to rethrow it.
+					 * 
+					 * NOTE � I'm not sure why exceptions here were generally being thrown away.
+					 *        Seems like an exception should be re-thrown in any use cases, but
+					 *        since there may be reasons some drivers are ignoring exceptions, we
+					 *        only rethrow if the MSSQL driver is generating SQL exceptions.
+					 */ 
+					if( DataSourceUtil.isMSSQLDriver(dc) && (t instanceof SQLException) ){
+						throw t;
+					} else {
+						ExceptionUtil.rethrowIfNecessary(t);
+					}
 					break;
 				}
 			}
@@ -314,6 +358,18 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			throw Caster.toPageException(e);
 		}
 		finally {
+			// we need to look for any possible generated keys from the query
+			if( createGeneratedKeys && hasPossibleGeneratedKeys && qry != null ){
+				/*
+				 * The MSSQL driver recommends always checking for generated keys after
+				 * all recordsets have been parsed. This will prevent the 
+				 * Statement.getGeneratedKeys() from advancing the recordset.
+				 * 
+				 * See the following link for more information:
+				 * https://social.technet.microsoft.com/Forums/ie/en-US/a91f8aa2-6ec0-447d-8b95-9e99e1da56fb/the-statement-must-be-executed-before-any-results-can-be-obtained-error-with-jdbc-20?forum=sqldataaccess
+				 */
+				qry.setGeneratedKeys(dc, stat, tz);
+			}
 			// if(closeStatement)
 			DBUtil.closeEL(stat);
 		}
@@ -348,8 +404,8 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	private boolean setGeneratedKeys(DatasourceConnection dc, Statement stat, TimeZone tz) {
 		try {
 			ResultSet rs = stat.getGeneratedKeys();
-			setGeneratedKeys(dc, rs, tz);
-			return true;
+		   // We need to know if we successfully updated the generated keys or not/
+			return setGeneratedKeys(dc, rs, tz);
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
@@ -357,15 +413,30 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		}
 	}
 
-	private void setGeneratedKeys(DatasourceConnection dc, ResultSet rs, TimeZone tz) throws PageException {
-		generatedKeys = new QueryImpl(rs, "", tz);
+	private boolean setGeneratedKeys(DatasourceConnection dc, ResultSet rs, TimeZone tz) throws PageException {
+		QueryImpl results = new QueryImpl(rs, "", tz);
+		int columnCount = results.getColumnCount();
 
 		// ACF compatibility action
-		if (generatedKeys.getColumnCount() == 1 && DataSourceUtil.isMSSQL(dc)) {
-			generatedKeys.renameEL(GENERATED_KEYS, KeyConstants._IDENTITYCOL);
-			generatedKeys.renameEL(GENERATEDKEYS, KeyConstants._IDENTITYCOL);
-			generatedKeys.renameEL(KeyConstants._ID, KeyConstants._IDENTITYCOL);
+		if (columnCount == 1 && DataSourceUtil.isMSSQL(dc)) {
+			results.renameEL(GENERATED_KEYS, KeyConstants._IDENTITYCOL);
+			results.renameEL(GENERATEDKEYS, KeyConstants._IDENTITYCOL);
+			results.renameEL(KeyConstants._ID, KeyConstants._IDENTITYCOL);
 		}
+
+		/*
+		 * The SQL Server driver can end up advancing to a new recordset that is not part
+		 * of the resultset for a INSERT/UPDATE operation. So if we do not find the identity
+		 * column or we have more than once column, we should just ignore the results. 
+		 */
+		if (DataSourceUtil.isMSSQLDriver(dc) && ((columnCount > 1) || !hasColumn(results, KeyConstants._IDENTITYCOL))) {
+			return false;
+		}
+
+		// save the results
+		generatedKeys = results;
+
+		return true;
 	}
 
 	private static void setItems(PageContext pc, TimeZone tz, PreparedStatement preStat, SQLItem[] items) throws DatabaseException, PageException, SQLException {
@@ -1322,6 +1393,16 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		}
 		throw new DatabaseException("key [" + key.getString() + "] not found in query, columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get())) + "]", null, sql,
 				null);
+	}
+
+	private static boolean hasColumn(Query qry, Collection.Key key) {
+		try {
+			// check if the column exists, if not an exception is thrown 
+			qry.getColumn(key);
+			return true;
+		} catch (Throwable t){
+			return false;
+		}
 	}
 
 	private void renameEL(Collection.Key src, Collection.Key trg) {
