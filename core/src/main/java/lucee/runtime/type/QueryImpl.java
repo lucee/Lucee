@@ -310,6 +310,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 							 * If we get back false, then an exception happened. However, we will still want to check back later
 							 * in care there are other statements executed later that could return a resultset.
 							 */
+							print.ds("kkkkkkkkkkk");
 							hasPossibleGeneratedKeys = qry != null && !qry.setGeneratedKeys(dc, stat, tz);
 						}
 						break;
@@ -424,7 +425,8 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		 * for a INSERT/UPDATE operation. So if we do not find the identity column or we have more than once
 		 * column, we should just ignore the results.
 		 */
-		if (DataSourceUtil.isMSSQLDriver(dc) && ((columnCount > 1) || !hasColumn(results, KeyConstants._IDENTITYCOL))) {
+
+		if (DataSourceUtil.isMSSQLDriver(dc) && ((columnCount > 1) || results.getIndexFromKey(KeyConstants._IDENTITYCOL) == -1)) {
 			return false;
 		}
 
@@ -1388,17 +1390,6 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		}
 		throw new DatabaseException("key [" + key.getString() + "] not found in query, columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get())) + "]", null, sql,
 				null);
-	}
-
-	private static boolean hasColumn(Query qry, Collection.Key key) {
-		try {
-			// check if the column exists, if not an exception is thrown
-			qry.getColumn(key);
-			return true;
-		}
-		catch (Throwable t) {
-			return false;
-		}
 	}
 
 	private void renameEL(Collection.Key src, Collection.Key trg) {

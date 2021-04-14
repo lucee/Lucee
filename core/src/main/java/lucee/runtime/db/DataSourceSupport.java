@@ -68,6 +68,7 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 	private final boolean requestExclusive;
 	private final boolean literalTimestampWithTSOffset;
 	private final boolean alwaysResetConnections;
+	private Boolean mssql;
 
 	public DataSourceSupport(Config config, String name, ClassDefinition cd, String username, String password, TagListener listener, boolean blob, boolean clob,
 			int connectionLimit, int idleTimeout, int liveTimeout, long metaCacheTimeout, TimeZone timezone, int allow, boolean storage, boolean readOnly, boolean validate,
@@ -147,7 +148,8 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 			if (transactionIsolation == Connection.TRANSACTION_READ_UNCOMMITTED) return Connection.TRANSACTION_READ_UNCOMMITTED;
 			if (transactionIsolation == Connection.TRANSACTION_REPEATABLE_READ) return Connection.TRANSACTION_REPEATABLE_READ;
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 		return defaultValue;
 	}
 
@@ -310,6 +312,16 @@ public abstract class DataSourceSupport implements DataSourcePro, Cloneable, Ser
 	// FUTURE add to interface
 	public final boolean getLiteralTimestampWithTSOffset() {
 		return literalTimestampWithTSOffset;
+	}
+
+	@Override
+	public final Boolean isMSSQL() {
+		return mssql;
+	}
+
+	@Override
+	public final void setMSSQL(boolean isMSSQL) {
+		mssql = isMSSQL ? Boolean.TRUE : Boolean.FALSE;
 	}
 
 	@Override
