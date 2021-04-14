@@ -310,7 +310,6 @@ public class QueryImpl implements Query, Objects, QueryResult {
 							 * If we get back false, then an exception happened. However, we will still want to check back later
 							 * in care there are other statements executed later that could return a resultset.
 							 */
-							print.ds("kkkkkkkkkkk");
 							hasPossibleGeneratedKeys = qry != null && !qry.setGeneratedKeys(dc, stat, tz);
 						}
 						break;
