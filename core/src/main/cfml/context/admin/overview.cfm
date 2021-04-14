@@ -439,8 +439,7 @@ Error Output --->
 			<cfhtmlbody>
 				<script type="text/javascript">
 					$( function() {
-
-						$('##updateInfoDesc').load('update.cfm?#session.urltoken#&adminType=#request.admintype#');
+						$('##updateInfoDesc').load('?action=update&adminType=#request.admintype#');
 					} );
 				</script>
 			</cfhtmlbody>

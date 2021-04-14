@@ -313,6 +313,7 @@
 	<data key="ext.version">Version</data>
 	<data key="ext.appupdate">Update</data>
 	<data key="ext.created">Release Date</data>
+	<data key="ext.releaseStatus">Release Status</data>
 	<data key="ext.notinstalled">Available to Install</data>
 	<data key="ext.codename">Code Name</data>
 	<data key="ext.stepof">Step {current} of {total}</data>
