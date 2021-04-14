@@ -21,11 +21,6 @@
 	error.message="";
 	error.detail="";
 </cfscript>
-<cfadmin
-    action="getloaderinfo"
-    type="#request.adminType#"
-    password="#session["password"&request.adminType]#"
-    returnVariable="loaderInfo">
 <cftry>
 <cfswitch expression="#url.action2#">
 	<cfcase value="settings">
@@ -48,7 +43,15 @@
 		<cfset error.cfcatch=cfcatch>
 	</cfcatch>
 </cftry>
- <cfif request.admintype EQ "web"><cflocation url="#request.self#" addtoken="no"></cfif>
+<cfif request.admintype EQ "web"><cflocation url="#request.self#" addtoken="no"></cfif>
+
+<!--- only available for server --->
+<cfadmin
+    action="getloaderinfo"
+    type="#request.adminType#"
+    password="#session["password"&request.adminType]#"
+    returnVariable="loaderInfo">
+
 <cfset error.message="">
 <cfset error.detail="">
 
