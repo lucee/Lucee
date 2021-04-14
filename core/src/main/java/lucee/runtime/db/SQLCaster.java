@@ -821,7 +821,7 @@ public final class SQLCaster {
 		case Types.NCHAR:
 			return lucee.commons.lang.CFTypes.TYPE_STRING;
 		case Types.SQLXML:
-			return lucee.commons.lang.CFTypes.TYPE_XML2;
+			return lucee.commons.lang.CFTypes.TYPE_XML;
 
 		case Types.TIME:
 		case Types.TIMESTAMP:
