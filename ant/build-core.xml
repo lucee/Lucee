@@ -67,6 +67,7 @@
     <property name="temp" location="${rootDir}/temp"/>
     <property name="loader" location="${temp}/loader"/>
     <property name="core" location="${temp}/core"/>
+    <property name="tmpContext" location="${temp}/context"/>
     <property name="deployLco" value=""/>    
     <!-- <property file="${rootDir}/build.properties"/> -->
 
@@ -193,6 +194,8 @@
     <mkdir dir="${loader}"/>
     <mkdir dir="${temp}/agent"/>
     <mkdir dir="${cache}"/>
+    <mkdir dir="${tmpContext}"/>
+    <mkdir dir="${tmpContext}/cfml"/>
 
   </target>
 
@@ -217,27 +220,35 @@
     </target> 
 
   <target name="copyDeployFiles" depends="init,check" description="copy files from source/cfml to source/java/core/src/resource">
-    <echots message="copy files from source/cfml to source/java/core/src/resource"/>
+    <echots message="copying files from ${srcCFML} and ${srcCore}/resource to ${tmpContext}/cfml"/>
 
-    <copy todir="${srcCore}/resource/context/" overwrite="true">
-      <fileset dir="${srcCFML}/context/">
-        <include name="*.cfm"/>
-        <include name="*.cfc"/>
-        <include name="*.lucee"/>
-        <include name="*.xml"/>
+    <!-- context files are both under cfml and java, merge them in a temp directory, avoid duplicated files  -->
+
+    <copy todir="${tmpContext}/context" overwrite="true">
+      <fileset dir="${srcCore}/resource/">
+        <include name="**/*"/>
       </fileset>
     </copy>
 
-    <copy todir="${srcCore}/resource/context/admin/resources/language/" overwrite="true">
+    <copy todir="${tmpContext}/cfml" overwrite="true">
+      <fileset dir="${srcCFML}/context">
+        <include name="**/*"/>
+      </fileset>
+    </copy>
+    
+    <copy todir="${tmpContext}/cfml/doc" overwrite="true">
+      <fileset dir="${srcCFML}/context/doc">
+        <include name="**/*"/>
+      </fileset>
+    </copy>
+
+    <copy todir="${tmpContext}/context/admin/resources/language/" overwrite="true">
       <fileset dir="${srcCFML}/context/admin/resources/language/">
-        <include name="*.cfm"/>
-        <include name="*.cfc"/>
-        <include name="*.lucee"/>
         <include name="*.xml"/>
       </fileset>
     </copy>
 
-    <copy todir="${srcCore}/resource/context/gateway"  overwrite="true">
+    <copy todir="${tmpContext}/cfml/gateway"  overwrite="true">
       <fileset dir="${srcCFML}/context/gateway">
         <include name="*.cfm"/>
         <include name="*.cfc"/>
@@ -246,7 +257,7 @@
       </fileset>
     </copy>
 
-    <copy todir="${srcCore}/resource/context/templates/error"  overwrite="true">
+    <copy todir="${tmpContext}/cfml/templates/error"  overwrite="true">
       <fileset dir="${srcCFML}/context/templates/error">
         <include name="*.cfm"/>
         <include name="*.cfc"/>
@@ -255,7 +266,7 @@
       </fileset>
     </copy>
 
-    <copy todir="${srcCore}/resource/context/admin/plugin"  overwrite="true">
+    <copy todir="${tmpContext}/context/admin/plugin"  overwrite="true">
       <fileset dir="${srcCFML}/context/admin/plugin">
         <include name="**/*.cfm"/>
         <include name="**/*.cfc"/>
@@ -263,6 +274,31 @@
         <include name="**/*.xml"/>
       </fileset>
     </copy>
+
+    <!--  separate the lucee context from the admin and docs -->
+    <copy todir="${tmpContext}/cfml-context">
+      <fileset dir="${tmpContext}/cfml/">
+        <include name="**/*"/>
+        <exclude name="admin/**"/>
+        <exclude name="doc/**"/>
+      </fileset>
+    </copy>
+
+    <copy todir="${tmpContext}/cfml-context/admin/resources/language/" overwrite="true">
+      <fileset dir="${srcCFML}/context/admin/resources/language/">
+        <include name="*.xml"/>
+      </fileset>
+    </copy>
+
+    <copy todir="${tmpContext}/cfml-context/admin/plugin"  overwrite="true">
+      <fileset dir="${srcCFML}/context/admin/plugin">
+        <include name="**/*.cfm"/>
+        <include name="**/*.cfc"/>
+        <include name="**/*.lucee"/>
+        <include name="**/*.xml"/>
+      </fileset>
+    </copy>
+
   </target>
 
   <target name="agent" depends="copyDeployFiles" description="create external-agent  jar used as backup when dynamic agent fails" >
@@ -331,13 +367,24 @@
        <classpath refid="classpath" />
     </javac>
 
-    <!-- copy all non java files -->
+    <!-- copy all non java files from src -->
     <copy todir="${core}">
       <fileset dir="${srcCore}">
         <exclude name="**/*.java"/>
         <exclude name=".*"/>
       </fileset>
     </copy>
+
+    <!-- copy all non java files from temp context -->
+    <copy todir="${core}/resource/context">
+      <fileset dir="${tmpContext}/cfml-context">
+        <exclude name="**/*.java"/>
+        <exclude name="**/*.js"/>        
+        <exclude name="debug/**"/>
+        <exclude name=".*"/>
+      </fileset>
+    </copy>
+
 
     <!-- set date in default properties -->
     <loadfile property="defprop"
@@ -409,7 +456,7 @@
       <jvmarg value="-XX:StartFlightRecording=disk=true,dumponexit=true,filename=${temp}/../lucee-compile.jfr,maxsize=1024m,maxage=1d,settings=profile,path-to-gc-roots=true"/>
       -->
 
-      <jvmarg value="-Dsrc=${srcCFML}/context"/>
+      <jvmarg value="-Dsrc=${tmpContext}"/>
       <jvmarg value="-Dtemp=${temp}/archive"/>
       <jvmarg value="-Dtestbox=${temp}/testbox/testbox"/>
       <jvmarg value="-DcompileTestBox=${compileTestBox}"/>
