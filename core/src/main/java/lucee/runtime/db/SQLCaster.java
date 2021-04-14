@@ -26,6 +26,7 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLXML;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.sql.Types;
@@ -55,7 +56,8 @@ import lucee.runtime.type.sql.ClobImpl;
  */
 public final class SQLCaster {
 
-	private SQLCaster() {}
+	private SQLCaster() {
+	}
 
 	/**
 	 * 
@@ -275,12 +277,17 @@ public final class SQLCaster {
 				else throw pe;
 			}
 			return;
+
+		case Types.SQLXML:
+			SQLXML xml = stat.getConnection().createSQLXML();
+			xml.setString(Caster.toString(value));
+			stat.setObject(parameterIndex, xml, type);
+			return;
 		case Types.VARCHAR:
 		case Types.LONGVARCHAR:
 		case Types.LONGNVARCHAR:
 		case Types.NVARCHAR:
 		case CFTypes.VARCHAR2:
-		case Types.SQLXML:
 			stat.setObject(parameterIndex, Caster.toString(value), type);
 			//// stat.setString(parameterIndex,Caster.toString(value));
 			return;
@@ -812,8 +819,9 @@ public final class SQLCaster {
 		case Types.NCLOB:
 		case Types.LONGNVARCHAR:
 		case Types.NCHAR:
-		case Types.SQLXML:
 			return lucee.commons.lang.CFTypes.TYPE_STRING;
+		case Types.SQLXML:
+			return lucee.commons.lang.CFTypes.TYPE_XML2;
 
 		case Types.TIME:
 		case Types.TIMESTAMP:
