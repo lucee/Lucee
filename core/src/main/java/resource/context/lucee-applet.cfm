@@ -1,1 +1,0 @@
-<cfcontent type="application/x-zip-compressed" file="lucee-applet.jar">
