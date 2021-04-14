@@ -288,7 +288,6 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			int uc;
 			int resultsetCount = 0;
 			// ResultSet res;
-			ResultSet genKeys;
 			do {
 				resultsetCount++;
 
