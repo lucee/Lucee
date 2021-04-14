@@ -115,7 +115,7 @@ Defaults --->
 							toplevel="#mapping.toplevel#"
 			remoteClients="#request.getRemoteClients()#">--->
 						
-						<cfelse><CFHEADER NAME="Content-Disposition" VALUE="inline; filename=#filename#"><!--- 
+						<cfelse><cfheader name="Content-Disposition" value="inline; filename=#filename#"><!---
 						 ---><cfcontent file="#target#" deletefile="yes" type="application/unknow"></cfif>
 					</cfif>
 				</cfloop>

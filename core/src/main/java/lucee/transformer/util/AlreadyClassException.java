@@ -41,6 +41,7 @@ public class AlreadyClassException extends IOException {
 		return encrypted;
 	}
 
+	@Override
 	public String toString() {
 		return res.getAbsolutePath();
 	}

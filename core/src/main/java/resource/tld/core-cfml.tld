@@ -816,7 +816,11 @@ Depending on this setting Lucee scans certain scopes to find a variable called f
 			<name>xmlFeatures</name>
 			<type>struct</type>
 			<required>false</required>
-			<description>Allows to set XML Features to prevent XXE attacks</description>
+			<description>Allows to set XML Features to prevent XXE attacks
+
+	- disallowDoctypeDecl (true / false) 
+	- externalGeneralEntities (true/false)
+	 - secure (true/false)</description>
 		</attribute>
 		<attribute>
 			<name>regex</name>

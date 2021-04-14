@@ -8,7 +8,7 @@
 
 			INSERT INTO @results  [id], [metadata] )
 			VALUES (
-				1, <CFQUERYPARAM cfsqltype="cf_sql_sqlxml" value="<metadata><param /></metadata>" />
+				1, <cfqueryparam cfsqltype="cf_sql_sqlxml" value="<metadata><param /></metadata>" />
 			)
 
 			SELECT * FROM @results
@@ -27,7 +27,7 @@
 
 			INSERT INTO @results ( [id], [metadata] )
 			VALUES	(
-				1, <CFQUERYPARAM cfsqltype="cf_sql_sqlxml" null="true" />
+				1, <cfqueryparam cfsqltype="cf_sql_sqlxml" null="true" />
 			)
 
 			SELECT * FROM @results

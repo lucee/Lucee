@@ -31,8 +31,8 @@ public final class DBPoolClear implements Function {
 	}
 
 	public static boolean call(PageContext pc, String dataSourceName) {
-		if (StringUtil.isEmpty(dataSourceName)) ((ConfigPro) pc.getConfig()).getDatasourceConnectionPool().clear(true);
-		else((ConfigPro) pc.getConfig()).getDatasourceConnectionPool().clear(dataSourceName, true);
+		if (StringUtil.isEmpty(dataSourceName)) ((ConfigPro) pc.getConfig()).getDatasourceConnectionPool().clear(true, false);
+		else((ConfigPro) pc.getConfig()).getDatasourceConnectionPool().clear(dataSourceName, true, false);
 		return true;
 	}
 }

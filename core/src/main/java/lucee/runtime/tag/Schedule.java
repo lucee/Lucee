@@ -499,7 +499,7 @@ public final class Schedule extends TagImpl {
 	 */
 	private void doDelete() throws PageException {
 		try {
-			scheduler.removeScheduleTask(task, false);
+			scheduler.removeScheduleTask(task, true);
 		}
 		catch (Exception e) {
 			throw Caster.toPageException(e);

@@ -183,7 +183,7 @@ component {
 			cfmlWriter="#arguments.cfmlWriter#"
 			suppressContent=isNull(arguments.suppressContent) || isEmpty(arguments.suppressContent) ? existing.suppressContent : arguments.suppressContent
 			allowCompression=isNull(arguments.allowCompression) || isEmpty(arguments.allowCompression) ? existing.allowCompression : arguments.allowCompression
-			bufferOutput=isNull(arguments.bufferOutput) || isEmpty(arguments.bufferOutput) ? existing.bufferOutput : arguments.allowCompression
+			bufferOutput=isNull(arguments.bufferOutput) || isEmpty(arguments.bufferOutput) ? existing.bufferOutput : arguments.bufferOutput
 			contentLength=""
 
 			remoteClients="#variables.remoteClients#";
@@ -2916,7 +2916,106 @@ component {
 			password="#variables.password#";
 	}
 
+
+	/**
+	 * Takes a config JSON string that may contain environment varialbes or system properties
+	 * and returns a JSONstring that replaces the variables with their values or defaults if exist
+	 */
+	public string function resolveConfigVars(required string config) localMode=true {
+
+		parts = splitConfigString(arguments.config);
+
+		resolvedParts = parts.map((e) => {
+			return resolveConfigArg(e);
+		});
+
+		return resolvedParts.toList("");
+	}
+
 	/* Private functions */
+
+	/**
+	 * splits a config string to an array separating the literal text from variables
+	 * in the format ${VARIABLE_NAME:default}, e.g. the input string
+	 * "/prefix${VARIABLE_NAME:default}/suffix" will return the array
+	 * [ "/prefix", "${VARIABLE_NAME:default}", "/suffix" ]
+	 */
+	private array function splitConfigString(string conf) localMode=true {
+
+		arr = [];
+		pos = 0;
+
+		do {
+			last = pos + 1;
+			pos  = find("${", arguments.conf, last);
+			if (pos > 0) {
+				part = substring(arguments.conf, last, pos - 1);
+				arr.append(part);
+
+				close = find("}", arguments.conf, pos);
+				if (close > 0) {
+					part = substring(arguments.conf, pos , close);
+					arr.append(part);
+					pos = close;
+				}
+			}
+		} while (pos > 0);
+
+		part = mid(arguments.conf, last);
+		arr.append(part);
+
+		return arr;
+	}
+
+
+	/**
+	 * resolves a single config arg wrapped with ${...} and returns the environment variable
+	 * or system property with that name if exists, a default if set using the colon notation,
+	 * or the arg name itself if neither exist
+	 */
+	private string function resolveConfigArg(required string input) localMode=true {
+
+		arg = arguments.input;
+
+		if (!arg.hasPrefix("${") || !arg.hasSuffix("}"))
+			return arg;
+
+		// strip ${} by removing the first two, and the last, characters
+		arg = left(right(arg, -2), -1);
+
+		numParts = listLen(arg, ":");
+
+		name    = arg;
+		default = "";
+		if (numParts == 2) {
+			name    = listFirst(arg, ":");
+			default = listLast(arg, ":");
+		}
+
+		if (Server.system.environment.keyExists(name)) {
+			return Server.system.environment[name];
+		}
+
+		if (Server.system.properties.keyExists(name)) {
+			return Server.system.properties[name];
+		}
+
+		if (!isEmpty(default))
+			return default;
+
+		// return input if not found and no default
+		return arguments.input;
+	}
+
+
+	/**
+	 * helper function for substring from-to, as opposed to mid's from-count
+	 */
+	private string function substring(input, from, to) localMode=true {
+		return mid(arguments.input, from, arguments.to + 1 - arguments.from);
+	}
+
+
 	private struct function ComponentListPackageAsStruct(string package, cfcNames=structnew("linked")){
 		try{
 			local._cfcNames=ComponentListPackage(package);

@@ -469,6 +469,8 @@
     <echo message="${name.explanation}"/> -->
     <echo message="Root: ${rootDir}"/>
     <echo message="Required-Extensions: ${reqExt.labels}"/>
+    <echo message="Java: ${java.version}" />       
+    <echo message="Java: ${java.home}" />       
                     
     
     <!-- Create the time stamp -->
@@ -1273,7 +1275,7 @@
       basedir="${temp}/loader" 
       jarfile="${trgLoader}/lucee-${version}.jar" 
       manifest="${goal}/META-INF/MANIFEST.MF"/>
-      <echots message="buil-jar-ant:${goal}/META-INF/MANIFEST.MF"/>
+      <echots message="build-jar-ant:${goal}/META-INF/MANIFEST.MF"/>
     
 
     <delete dir="${temp}"/>

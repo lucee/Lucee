@@ -59,6 +59,13 @@ public class EnvClassLoader extends URLClassLoader {
 		}
 	};
 
+	private static final EnvClassLoader NULL_INSTANCE = new EnvClassLoader(null);
+
+	public static EnvClassLoader getInstance(ConfigPro config) {
+		if (config != null) return (EnvClassLoader) config.getClassLoaderEnv();
+		return NULL_INSTANCE;
+	}
+
 	public EnvClassLoader(ConfigPro config) {
 		super(new URL[0], config != null ? config.getClassLoaderCore() : new lucee.commons.lang.ClassLoaderHelper().getClass().getClassLoader());
 		this.config = config;
@@ -149,7 +156,8 @@ public class EnvClassLoader extends URLClassLoader {
 						}
 					}
 				}
-				catch (IOException e) {}
+				catch (IOException e) {
+				}
 				finally {
 					inside.set(Boolean.FALSE);
 				}
@@ -232,7 +240,8 @@ public class EnvClassLoader extends URLClassLoader {
 				if (b != null)
 					notFound.put(new SoftReference<String>(new StringBuilder(b.getSymbolicName()).append(':').append(b.getVersion()).append(':').append(name).toString()), EMPTY);
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 
 		}
 		return obj;

@@ -47,14 +47,8 @@ Defaults --->
 		<cfset error.cfcatch=cfcatch>
 	</cfcatch>
 </cftry>
-<cfadmin 
-	action="surveillance" 
-	type="#request.adminType#" 
-	password="#session["password"&request.adminType]#" 
-	returnVariable="surveillance">
-
 <!---
-Redirtect to entry --->
+Redirect to entry --->
 <cfif cgi.request_method EQ "POST" and error.message EQ "" and form.mainAction NEQ "none">
 	<cflocation url="#request.self#" addtoken="no">
 </cfif>
@@ -90,6 +84,7 @@ Error Output --->
 <cfhtmlbody>
     <script src="../res/js/echarts-all.js.cfm" type="text/javascript"></script>
     <script type="text/javascript">
+    	var chartTimer;
     	labels={'heap':"Heap",'nonheap':"Non-Heap",'cpuSystem':"Whole System",'cpuProcess':"Lucee Process"};
 		function requestData(){
 			jQuery.ajax({
@@ -130,7 +125,8 @@ Error Output --->
 						}
 						window[chrt].setOption(cpuSystemChartOption); // passed the data into the chats
 					});
-					setTimeout(requestData, 1000);
+					if (chartTimer !== null)
+						chartTimer = setTimeout(requestData, 5000);
 				}
 			})
 		}
@@ -773,7 +769,12 @@ Error Output --->
 <cfscript>
 	function getJavaVersion() {
 		var verArr=listToArray(server.java.version,'.');
-		if(verArr[1]>2) return verArr[1];
-		return verArr[2];
+		if(verArr[1]>2) {
+			return verArr[1];
+		} else if (verArr.len() GT 1) {
+			return verArr[2];
+		} else {
+		    return val(server.java.version);
+		}
 	}
 </cfscript>

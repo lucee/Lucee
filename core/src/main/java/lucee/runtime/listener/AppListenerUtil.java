@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.TimeZone;
 
 import org.osgi.framework.Version;
 
@@ -101,10 +102,24 @@ public final class AppListenerUtil {
 	private static final TimeSpan FIVE_MINUTES = new TimeSpanImpl(0, 0, 5, 0);
 	private static final TimeSpan ONE_MINUTE = new TimeSpanImpl(0, 0, 1, 0);
 
-	public static PageSource getApplicationPageSource(PageContext pc, PageSource requestedPage, String filename, int mode) {
-		if (mode == ApplicationListener.MODE_CURRENT) return getApplicationPageSourceCurrent(requestedPage, filename);
-		if (mode == ApplicationListener.MODE_ROOT) return getApplicationPageSourceRoot(pc, filename);
-		return getApplicationPageSourceCurr2Root(pc, requestedPage, filename);
+	public static PageSource getApplicationPageSource(PageContext pc, PageSource requestedPage, String filename, int mode, int type) {
+		PageSource ps;
+		Resource res = requestedPage.getPhyscalFile();
+		if (res != null) {
+			ps = ((ConfigPro) pc.getConfig()).getApplicationPageSource(pc, res.getParent(), filename, mode, null);
+			if (ps != null) return ps;
+		}
+		if (mode == ApplicationListener.MODE_CURRENT) ps = getApplicationPageSourceCurrent(requestedPage, filename);
+		else if (mode == ApplicationListener.MODE_ROOT) ps = getApplicationPageSourceRoot(pc, filename);
+		else ps = getApplicationPageSourceCurr2Root(pc, requestedPage, filename);
+
+		if (res != null && ps != null) ((ConfigPro) pc.getConfig()).putApplicationPageSource(requestedPage.getPhyscalFile().getParent(), ps, filename, mode, isCFC(type));
+		return ps;
+	}
+
+	private static boolean isCFC(int type) {
+		if (type == ApplicationListener.TYPE_CLASSIC) return false;
+		return true;
 	}
 
 	public static PageSource getApplicationPageSourceCurrent(PageSource requestedPage, String filename) {
@@ -199,6 +214,10 @@ public final class AppListenerUtil {
 
 		}
 
+		TimeZone timezone = null;
+		Object obj = data.get(KeyConstants._timezone, null);
+		if (obj != null) timezone = Caster.toTimeZone(obj, null);
+
 		// first check for {class:... , connectionString:...}
 		Object oConnStr = data.get(CONNECTION_STRING, null);
 		if (oConnStr != null) {
@@ -214,11 +233,11 @@ public final class AppListenerUtil {
 				if (idle == -1) idle = Caster.toIntValue(data.get(CONNECTION_TIMEOUT, null), 1);
 				return ApplicationDataSource.getInstance(config, name, cd, Caster.toString(oConnStr), user, pass, listener, Caster.toBooleanValue(data.get(BLOB, null), false),
 						Caster.toBooleanValue(data.get(CLOB, null), false), Caster.toIntValue(data.get(CONNECTION_LIMIT, null), -1), idle,
-						Caster.toIntValue(data.get(LIVE_TIMEOUT, null), 1), Caster.toLongValue(data.get(META_CACHE_TIMEOUT, null), 60000L),
-						Caster.toTimeZone(data.get(KeyConstants._timezone, null), null), Caster.toIntValue(data.get(ALLOW, null), DataSource.ALLOW_ALL),
-						Caster.toBooleanValue(data.get(KeyConstants._storage, null), false), Caster.toBooleanValue(data.get(KeyConstants._readonly, null), false),
-						Caster.toBooleanValue(data.get(KeyConstants._validate, null), false), Caster.toBooleanValue(data.get("requestExclusive", null), false),
-						Caster.toBooleanValue(data.get("alwaysResetConnections", null), false), readliteralTimestampWithTSOffset(data), log);
+						Caster.toIntValue(data.get(LIVE_TIMEOUT, null), 60), Caster.toLongValue(data.get(META_CACHE_TIMEOUT, null), 60000L), timezone,
+						Caster.toIntValue(data.get(ALLOW, null), DataSource.ALLOW_ALL), Caster.toBooleanValue(data.get(KeyConstants._storage, null), false),
+						Caster.toBooleanValue(data.get(KeyConstants._readonly, null), false), Caster.toBooleanValue(data.get(KeyConstants._validate, null), false),
+						Caster.toBooleanValue(data.get("requestExclusive", null), false), Caster.toBooleanValue(data.get("alwaysResetConnections", null), false),
+						readliteralTimestampWithTSOffset(data), log);
 			}
 			catch (Exception cnfe) {
 				throw Caster.toPageException(cnfe);
@@ -238,9 +257,8 @@ public final class AppListenerUtil {
 					Caster.toIntValue(data.get(CONNECTION_LIMIT, null), -1), idle, Caster.toIntValue(data.get(LIVE_TIMEOUT, null), 1),
 					Caster.toLongValue(data.get(META_CACHE_TIMEOUT, null), 60000L), Caster.toBooleanValue(data.get(BLOB, null), false),
 					Caster.toBooleanValue(data.get(CLOB, null), false), DataSource.ALLOW_ALL, Caster.toStruct(data.get(KeyConstants._custom, null), null, false),
-					Caster.toBooleanValue(data.get(KeyConstants._readonly, null), false), true, Caster.toBooleanValue(data.get(KeyConstants._storage, null), false),
-					Caster.toTimeZone(data.get(KeyConstants._timezone, null), null), "", ParamSyntax.toParamSyntax(data, ParamSyntax.DEFAULT),
-					readliteralTimestampWithTSOffset(data), Caster.toBooleanValue(data.get("alwaysSetTimeout", null), false),
+					Caster.toBooleanValue(data.get(KeyConstants._readonly, null), false), true, Caster.toBooleanValue(data.get(KeyConstants._storage, null), false), timezone, "",
+					ParamSyntax.toParamSyntax(data, ParamSyntax.DEFAULT), readliteralTimestampWithTSOffset(data), Caster.toBooleanValue(data.get("alwaysSetTimeout", null), false),
 					Caster.toBooleanValue(data.get("requestExclusive", null), false), Caster.toBooleanValue(data.get("alwaysResetConnections", null), false), log);
 		}
 		catch (Exception cnfe) {
@@ -714,7 +732,8 @@ public final class AppListenerUtil {
 				toTimespan(data.get(KeyConstants._timeout, null), SessionCookieDataImpl.DEFAULT.getTimeout()),
 				Caster.toString(data.get(KeyConstants._domain, null), SessionCookieDataImpl.DEFAULT.getDomain()),
 				Caster.toBooleanValue(data.get(DISABLE_UPDATE, null), SessionCookieDataImpl.DEFAULT.isDisableUpdate()),
-				SessionCookieDataImpl.toSamesite(Caster.toString(data.get(KeyConstants._SameSite, null), null), SessionCookieDataImpl.DEFAULT.getSamesite())
+				SessionCookieDataImpl.toSamesite(Caster.toString(data.get(KeyConstants._SameSite, null), null), SessionCookieDataImpl.DEFAULT.getSamesite()),
+				Caster.toString(data.get(KeyConstants._path, null), SessionCookieDataImpl.DEFAULT.getPath())
 
 		);
 	}

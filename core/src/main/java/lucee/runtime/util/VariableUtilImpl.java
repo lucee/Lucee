@@ -472,7 +472,7 @@ public final class VariableUtilImpl implements VariableUtil {
 			}
 			catch (PageException pe) {}
 		}
-		throw new ExpressionException("Can't assign value to an Object of this type [" + Type.getName(coll) + "] with key [" + key.getString() +"]");
+		throw new ExpressionException("Can't assign value to an Object of this type [" + Type.getName(coll) + "] with key [" + key.getString() + "]");
 	}
 
 	/**
@@ -534,7 +534,7 @@ public final class VariableUtilImpl implements VariableUtil {
 			}
 			catch (PageException pe) {}
 		}
-		throw new ExpressionException("Can't assign value to an Object of this type [" + Type.getName(coll) + "] with key [" + key +"]");
+		throw new ExpressionException("Can't assign value to an Object of this type [" + Type.getName(coll) + "] with key [" + key + "]");
 	}
 
 	/**

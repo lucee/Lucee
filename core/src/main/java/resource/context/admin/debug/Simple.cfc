@@ -307,7 +307,7 @@
 					</cfif>
 
 					<!--- Abort --->
-					<cfif structKeyExists(debugging,"abort")>
+					<cfif structKeyExists(arguments.debugging,"abort")>
 						<div class="section-title">Abort</div>
 						<table>
 							<tr>
@@ -633,7 +633,7 @@
 						<cfset local.total  =0>
 						<cfset local.records=0>
 						<cfset local.openConns=0>
-						<cfloop struct="#debugging.datasources#" index="dsn" item="item">
+						<cfloop struct="#arguments.debugging.datasources#" index="dsn" item="item">
 							<cfset local.openConns=item.openConnections>
 						</cfloop>
 
@@ -657,7 +657,7 @@
 											<th>Open Connections</th>
 											<th>Max Connections</th>
 										</tr>
-										<cfloop struct="#debugging.datasources#" index="local.dsName" item="local.dsData">
+										<cfloop struct="#arguments.debugging.datasources#" index="local.dsName" item="local.dsData">
 										<tr>
 											<td class="txt-r">#dsData.name#</td>
 											<td class="txt-r">#dsData.openConnections#</td>
@@ -836,7 +836,7 @@
 
 				<cfoutput>
 				  cookieName: 	"#variables.cookieName#"
-				, bitmaskAll: 	#bitmaskAll#
+				, bitmaskAll: 	#variables.bitmaskAll#
 				, allSections: 	#serializeJSON( this.allSections )#
 				</cfoutput>
 
@@ -880,7 +880,7 @@
 				, selectText:	__LUCEE.util.selectText
 			};
 
-			<cfif !structKeyExists(Cookie, variables.cookieName) || (Cookie[variables.cookieName] == bitmaskAll)>
+			<cfif !structKeyExists(Cookie, variables.cookieName) || (Cookie[variables.cookieName] == variables.bitmaskAll)>
 				var luceeStyle = document.createElement("style");
 				luceeStyle.type = 'text/css';
 				luceeStyle.innerHTML = "#-lucee-debug .collapsed { display: none; }";

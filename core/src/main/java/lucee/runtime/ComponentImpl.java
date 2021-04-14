@@ -108,7 +108,6 @@ import lucee.runtime.type.it.StringIterator;
 import lucee.runtime.type.scope.Argument;
 import lucee.runtime.type.scope.ArgumentImpl;
 import lucee.runtime.type.scope.ArgumentIntKey;
-import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.scope.Variables;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ComponentUtil;
@@ -162,7 +161,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 
 	StaticScope _static;
 
-	boolean insideStaticConstr;
+	Map<Long, Boolean> insideStaticConstr = new HashMap<>();
 
 	private AbstractFinal absFin;
 
@@ -171,7 +170,8 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	/**
 	 * Constructor of the Component, USED ONLY FOR DESERIALIZE
 	 */
-	public ComponentImpl() {}
+	public ComponentImpl() {
+	}
 
 	/**
 	 * constructor of the class
@@ -423,16 +423,18 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		}
 		initProperties();
 		StaticStruct ss = componentPage.getStaticStruct();
-		synchronized (ss) {
-			// invoke static constructor
-			if (!ss.isInit()) {
-				ss.setInit(true);// this needs to happen before the call
-				try {
-					componentPage.staticConstructor(pageContext, this);
-				}
-				catch (Exception e) {
-					ss.setInit(false);
-					throw Caster.toPageException(e);
+		if (!ss.isInit()) {
+			synchronized (ss) {
+				// invoke static constructor
+				if (!ss.isInit()) {
+					ss.setInit(true);// this needs to happen before the call
+					try {
+						componentPage.staticConstructor(pageContext, this);
+					}
+					catch (Exception e) {
+						ss.setInit(false);
+						throw Caster.toPageException(e);
+					}
 				}
 			}
 		}
@@ -692,7 +694,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 
 	@Override
 	public Variables beforeStaticConstructor(PageContext pc) {
-		insideStaticConstr = true;
+		insideStaticConstr.put(ThreadLocalPageContext.getThreadId(pc), Boolean.TRUE);
 		Variables parent = pc.variablesScope();
 		pc.setVariablesScope(_static);
 		return parent;
@@ -700,7 +702,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 
 	@Override
 	public void afterStaticConstructor(PageContext pc, Variables parent) {
-		insideStaticConstr = false;
+		insideStaticConstr.remove(ThreadLocalPageContext.getThreadId(pc));
 		pc.setVariablesScope(parent);
 	}
 
@@ -861,6 +863,13 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			if (member.getAccess() <= access) return member;
 			return null;
 		}
+
+		// static
+		member = staticScope().getMember(null, key, null);
+		if (member != null) {
+			if (member.getAccess() <= access) return member;
+			return null;
+		}
 		return null;
 	}
 
@@ -879,27 +888,29 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 			Component ac = ComponentUtil.getActiveComponent(pc, this);
 			return SuperComponent.superMember((ComponentImpl) ac.getBaseComponent());
 		}
-		if (superAccess) return _udfs.get(key);
-
+		if (superAccess) {
+			return _udfs.get(key);
+		}
 		// check data
 		Member member = _data.get(key);
-		if (isAccessible(pc, member)) return member;
+		if (member != null && isAccessible(pc, member)) return member;
+
+		// static
+		member = staticScope().getMember(pc, key, null);
+		if (member != null) return member;
+
 		return null;
 	}
 
 	boolean isAccessible(PageContext pc, Member member) {
-		// TODO geschwindigkeit
-		if (member != null) {
-			int access = member.getAccess();
-			if (access <= ACCESS_PUBLIC) return true;
-			else if (access == ACCESS_PRIVATE && isPrivate(pc)) return true;
-			else if (access == ACCESS_PACKAGE && isPackage(pc)) return true;
-		}
+		int access = member.getAccess();
+		if (access <= ACCESS_PUBLIC) return true;
+		else if (access == ACCESS_PRIVATE && isPrivate(pc)) return true;
+		else if (access == ACCESS_PACKAGE && isPackage(pc)) return true;
 		return false;
 	}
 
 	boolean isAccessible(PageContext pc, int access) {
-
 		if (access <= ACCESS_PUBLIC) return true;
 		else if (access == ACCESS_PRIVATE && isPrivate(pc)) return true;
 		else if (access == ACCESS_PACKAGE && isPackage(pc)) return true;
@@ -1595,8 +1606,8 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 		}
 		if (arr.size() != 0) {
 			Collections.sort(arr, new ComparatorImpl());
-			sct.set(KeyConstants._functions, arr);
 		}
+		sct.set(KeyConstants._functions, arr);
 	}
 
 	private static class ComparatorImpl implements Comparator {
@@ -1675,9 +1686,9 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	/*
 	 * @deprecated injected is not used
 	 */
-	public void registerUDF(Collection.Key key, UDF udf, boolean useShadow, boolean injected) throws ApplicationException {
+	public void registerUDF(Key key, UDF udf, boolean useShadow, boolean injected) throws ApplicationException {
 		if (udf instanceof UDFPlus) ((UDFPlus) udf).setOwnerComponent(this);
-		if (insideStaticConstr) {
+		if (insideStaticConstr.getOrDefault(ThreadLocalPageContext.getThreadId(null), Boolean.FALSE)) {
 			_static.put(key, udf);
 			return;
 		}
@@ -2342,7 +2353,7 @@ public final class ComponentImpl extends StructSupport implements Externalizable
 	}
 
 	@Override
-	public Scope staticScope() {
+	public StaticScope staticScope() {
 		return _static;
 	}
 

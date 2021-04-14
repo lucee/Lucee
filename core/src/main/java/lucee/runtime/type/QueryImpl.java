@@ -190,7 +190,8 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	/**
 	 * Constructor of the class only for internal usage (cloning/deserialize)
 	 */
-	public QueryImpl() {}
+	public QueryImpl() {
+	}
 
 	public QueryImpl(ResultSet result, String name, TimeZone tz) throws PageException {
 		this.name = name;
@@ -291,10 +292,10 @@ public class QueryImpl implements Query, Objects, QueryResult {
 				if (hasResult) {
 					// res=stat.getResultSet();
 					// if(fillResult(dc,res, maxrow, true,createGeneratedKeys,tz))break;
-					if (fillResult(qry, qr, keyName, dc, stat.getResultSet(), maxrow, true, createGeneratedKeys, tz)){
+					if (fillResult(qry, qr, keyName, dc, stat.getResultSet(), maxrow, true, createGeneratedKeys, tz)) {
 						/*
-						 * Some SQL implementations (e.g. SQL Server) allow both a resultset *and* keys to be generated
-						 * in a single statement. For example:
+						 * Some SQL implementations (e.g. SQL Server) allow both a resultset *and* keys to be generated in a
+						 * single statement. For example:
 						 * 
 						 * insert into XXXX (col1, col2) OUTPUT INSERTED.* values (1, 'a'), (2, 'b'), (3, 'c')
 						 * 
@@ -346,41 +347,33 @@ public class QueryImpl implements Query, Objects, QueryResult {
 						}
 						break;
 					}
-
 				}
 				else if ((uc = setUpdateCount(qry != null ? qry : qr, stat)) != -1) {
-					if (uc > 0){
+					if (uc > 0) {
 						// since we had some updates, we need to flag that the generated keys need to be checked
 						hasPossibleGeneratedKeys = true;
-					} 
+					}
 				}
 				else break;
 
-				try {
-					// hasResult=stat.getMoreResults(Statement.CLOSE_CURRENT_RESULT);
-					hasResult = stat.getMoreResults();
-				}
-				catch (Throwable t) {
-					/*
-					 * The JTDS driver (and possibly other drivers) throw exceptions as soon
-					 * as the query is executed, however the MSSQL driver will delay throwing
-					 * the execution until you try to request the recordset.
-					 * 
-					 * So we need to check if a SQLException is being thrown and if so, we need
-					 * to rethrow it.
-					 * 
-					 * NOTE — I'm not sure why exceptions here were generally being thrown away.
-					 *        Seems like an exception should be re-thrown in any use cases, but
-					 *        since there may be reasons some drivers are ignoring exceptions, we
-					 *        only rethrow if the MSSQL driver is generating SQL exceptions.
-					 */ 
-					if( DataSourceUtil.isMSSQLDriver(dc) && (t instanceof SQLException) ){
-						throw t;
-					} else {
-						ExceptionUtil.rethrowIfNecessary(t);
-					}
-					break;
-				}
+				// try {
+				// hasResult=stat.getMoreResults(Statement.CLOSE_CURRENT_RESULT);
+				hasResult = stat.getMoreResults();
+				// }
+				// catch (SQLException e) {
+				/*
+				 * The JTDS driver (and possibly other drivers) throw exceptions as soon as the query is executed,
+				 * however the MSSQL driver will delay throwing the execution until you try to request the
+				 * recordset.
+				 * 
+				 * So we need to check if a SQLException is being thrown and if so, we need to rethrow it.
+				 * 
+				 */
+				// if (DataSourceUtil.isMSSQLDriver(dc)) {
+				// throw e;
+				// }
+				// break;
+				// }
 			}
 			while (true);
 		}
@@ -393,14 +386,15 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		}
 		finally {
 			// we need to look for any possible generated keys from the query
-			if( createGeneratedKeys && hasPossibleGeneratedKeys && qry != null ){
+			if (createGeneratedKeys && hasPossibleGeneratedKeys && qry != null) {
 				/*
-				 * The MSSQL driver recommends always checking for generated keys after
-				 * all recordsets have been parsed. This will prevent the 
-				 * Statement.getGeneratedKeys() from advancing the recordset.
+				 * The MSSQL driver recommends always checking for generated keys after all recordsets have been
+				 * parsed. This will prevent the Statement.getGeneratedKeys() from advancing the recordset.
 				 * 
 				 * See the following link for more information:
-				 * https://social.technet.microsoft.com/Forums/ie/en-US/a91f8aa2-6ec0-447d-8b95-9e99e1da56fb/the-statement-must-be-executed-before-any-results-can-be-obtained-error-with-jdbc-20?forum=sqldataaccess
+				 * https://social.technet.microsoft.com/Forums/ie/en-US/a91f8aa2-6ec0-447d-8b95-9e99e1da56fb/the-
+				 * statement-must-be-executed-before-any-results-can-be-obtained-error-with-jdbc-20?forum=
+				 * sqldataaccess
 				 */
 				qry.setGeneratedKeys(dc, stat, tz);
 			}
@@ -438,7 +432,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	private boolean setGeneratedKeys(DatasourceConnection dc, Statement stat, TimeZone tz) {
 		try {
 			ResultSet rs = stat.getGeneratedKeys();
-		   // We need to know if we successfully updated the generated keys or not/
+			// We need to know if we successfully updated the generated keys or not/
 			return setGeneratedKeys(dc, rs, tz);
 		}
 		catch (Throwable t) {
@@ -459,11 +453,12 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		}
 
 		/*
-		 * The SQL Server driver can end up advancing to a new recordset that is not part
-		 * of the resultset for a INSERT/UPDATE operation. So if we do not find the identity
-		 * column or we have more than once column, we should just ignore the results. 
+		 * The SQL Server driver can end up advancing to a new recordset that is not part of the resultset
+		 * for a INSERT/UPDATE operation. So if we do not find the identity column or we have more than once
+		 * column, we should just ignore the results.
 		 */
-		if (DataSourceUtil.isMSSQLDriver(dc) && ((columnCount > 1) || !hasColumn(results, KeyConstants._IDENTITYCOL))) {
+
+		if (DataSourceUtil.isMSSQLDriver(dc) && ((columnCount > 1) || results.getIndexFromKey(KeyConstants._IDENTITYCOL) == -1)) {
 			return false;
 		}
 
@@ -631,16 +626,31 @@ public class QueryImpl implements Query, Objects, QueryResult {
 					}
 					if (qa != null) qa.appendEL(sct);
 					else {
-						k = sct.get(keyName, CollectionUtil.NULL);
-						if (k == CollectionUtil.NULL) {
-							Struct keys = new StructImpl();
-							for (Collection.Key tmp: columnNames) {
-								keys.set(tmp, "");
+						// QueryStruct
+						if (keyName == null) {
+							// single record struct
+							if (recordcount > 0) {
+								throw new ApplicationException("Attribute [keyColumn] is required when return type is set to Struct and more than one record is returned");
 							}
-							throw StructSupport.invalidKey(null, keys, keyName, "resultset");
+
+							qs.setSingleRecord(true);
+							for (Collection.Key tmp: columnNames) {
+								qs.set(tmp, sct.get(tmp));
+							}
 						}
-						if (k == null) k = "";
-						qs.set(KeyImpl.toKey(k), sct);
+						else {
+							// struct of structs with keyName column as key
+							k = sct.get(keyName, CollectionUtil.NULL);
+							if (k == CollectionUtil.NULL) {
+								Struct keys = new StructImpl();
+								for (Collection.Key tmp: columnNames) {
+									keys.set(tmp, "");
+								}
+								throw StructSupport.invalidKey(null, keys, keyName, "resultset");
+							}
+							if (k == null) k = "";
+							qs.set(KeyImpl.toKey(k), sct);
+						}
 					}
 
 					++recordcount;
@@ -1412,16 +1422,6 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		}
 		throw new DatabaseException("key [" + key.getString() + "] not found in query, columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get())) + "]", null, sql,
 				null);
-	}
-
-	private static boolean hasColumn(Query qry, Collection.Key key) {
-		try {
-			// check if the column exists, if not an exception is thrown 
-			qry.getColumn(key);
-			return true;
-		} catch (Throwable t){
-			return false;
-		}
 	}
 
 	private void renameEL(Collection.Key src, Collection.Key trg) {

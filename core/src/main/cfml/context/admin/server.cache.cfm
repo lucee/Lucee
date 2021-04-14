@@ -103,9 +103,12 @@ Defaults --->
 --->
 
 
-
+<cfset stText.setting.applicationCacheClear="Clear Application path Cache">
+<cfset stText.setting.applicationCache="Application path Cache">
+<cfset stText.setting.applicationCacheDesc="Press the button above to clear the Application path cache. This cache caches the location of the Application.[cfc|cfm] files.">
 
 <cfset btnClearComponentCache=replace(stText.setting.componentCacheClear,'{count}',structCount(componentCacheList()))>
+<cfset btnClearApplicationCache=replace(stText.setting.applicationCacheClear,'{count}',0)>
 <cfset btnClearCTCache=replace(stText.setting.ctCacheClear,'{count}',structCount(ctCacheList()))>
 </cfsilent>
 <cfif hasAccess>
@@ -114,6 +117,9 @@ Defaults --->
 		
 			<cfcase value="#btnClearComponentCache#">
 				<cfset componentCacheClear()>
+			</cfcase>
+			<cfcase value="#btnClearApplicationCache#">
+				<cfset ApplicationPathCacheClear()>
 			</cfcase>
 			<cfcase value="#btnClearCTCache#">
 				<cfset ctCacheClear()>
@@ -359,6 +365,29 @@ Create Datasource --->
 &lt;cfobjectcache type="template"	action="clear"&gt;
 						</cfsavecontent>
 						<cfset renderCodingTip( codeSample, stText.settings.codetip )>
+					</td>
+				</tr>
+				<cfset stText.setting.applicationCache="Application path Cache">
+				<cfset stText.setting.applicationCacheDesc="Press the button above to clear the Application path cache. This cache caches the location of the Application.[cfc|cfm] files.">
+				<!--- Application.cfc Path Cache --->
+				<tr>
+					<th scope="row">#stText.setting.applicationCache#</th>
+					<td class="fieldPadded">
+						<input class="button submit" type="submit" name="mainAction" value="#btnClearApplicationCache#">
+						<div class="comment">#stText.setting.applicationCacheDesc#</div>
+
+
+						<cfsavecontent variable="codeSample">
+							applicationPathCacheClear();
+						</cfsavecontent>
+						<cfset renderCodingTip( codeSample, stText.settings.codetip )>
+
+						<div class="warning nofocus">
+							This feature is experimental.
+							If you have any problems while using this functionality,
+							please post the bugs and errors in our
+							<a href="https://issues.lucee.org" target="_blank">bugtracking system</a>. 
+						</div>
 					</td>
 				</tr>
 				

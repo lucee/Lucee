@@ -2157,6 +2157,7 @@ public class SimpleQuery implements Query, ResultSet, Objects, QueryResult {
 		return templateLine.template;
 	}
 
+	@Override
 	public TemplateLine getTemplateLine() {
 		return templateLine;
 	}

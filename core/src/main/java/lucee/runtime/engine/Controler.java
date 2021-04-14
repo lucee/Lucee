@@ -72,6 +72,8 @@ public final class Controler extends Thread {
 	// private final ShutdownHook shutdownHook;
 	private ControllerState state;
 
+	private boolean poolValidate;
+
 	/**
 	 * @param contextes
 	 * @param interval
@@ -82,6 +84,7 @@ public final class Controler extends Thread {
 		this.interval = interval;
 		this.state = state;
 		this.configServer = configServer;
+		this.poolValidate = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.datasource.pool.validate", null), true);
 		// shutdownHook=new ShutdownHook(configServer);
 		// Runtime.getRuntime().addShutdownHook(shutdownHook);
 	}
@@ -331,7 +334,7 @@ public final class Controler extends Thread {
 
 				// clear unused DB Connections
 				try {
-					((ConfigPro) config).getDatasourceConnectionPool().clear(false);
+					((ConfigPro) config).getDatasourceConnectionPool().clear(false, this.poolValidate);
 				}
 				catch (Throwable t) {
 					ExceptionUtil.rethrowIfNecessary(t);

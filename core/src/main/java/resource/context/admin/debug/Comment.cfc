@@ -290,10 +290,10 @@
  	}   
     
 function formatUnits(query data,array columns, string unit){
-	loop query="data" {
-    	loop array="#columns#" index="local.col" {
-        	if(listfirst(formatUnit(unit,data[col])," ") gt 0)data[col]=formatUnit(unit,data[col]);
-    		else data[col]='-';
+	loop query="arguments.data" {
+    	loop array="#arguments.columns#" index="local.col" {
+        	if(listfirst(formatUnit(arguments.unit,arguments.data[col])," ") gt 0)data[col]=formatUnit(arguments.unit,arguments.data[col]);
+    		else arguments.data[col]='-';
         }
     }
 }

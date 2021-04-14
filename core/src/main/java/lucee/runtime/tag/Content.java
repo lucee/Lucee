@@ -244,6 +244,8 @@ public final class Content extends BodyTagImpl {
 				IOUtil.flushEL(os);
 				IOUtil.closeEL(is, os);
 				if (deletefile && file != null) ResourceUtil.removeEL(file, true);
+				// disable debugging output
+				((PageContextImpl) pageContext).getDebugger().setOutput(false);
 				((PageContextImpl) pageContext).getRootOut().setClosed(true);
 			}
 			throw new PostContentAbort();

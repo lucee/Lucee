@@ -28,6 +28,7 @@ import lucee.commons.collection.MapFactory;
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
+import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.config.Config;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.dump.DumpData;
@@ -116,7 +117,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		if (_lastvisit == null) _lastvisit = timecreated;
 		lastvisit = _lastvisit == null ? 0 : _lastvisit.getTime();
 		ApplicationContext ac = pc.getApplicationContext();
-		if (ac != null && ac.getSessionCluster() && isSessionStorageDatasource(pc)) {
+		if (ac != null && ac.getSessionCluster() && isSessionStorage(pc)) {
 			IKStorageScopeItem csrfTokens = data.getOrDefault(KeyConstants._csrf_token, null);
 			Object val = csrfTokens == null ? null : csrfTokens.getValue();
 			if (Decision.isStruct(val)) {
@@ -213,14 +214,16 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		try {
 			return getInstance(scope, handler, appName, name, pc, existing, log);
 		}
-		catch (PageException e) {}
+		catch (PageException e) {
+		}
 		return defaultValue;
 	}
 
 	public static boolean hasInstance(int scope, IKHandler handler, String appName, String name, PageContext pc) {
 		try {
-			if (Scope.SCOPE_SESSION == scope) return handler.loadData(pc, appName, name, "session", Scope.SCOPE_SESSION, null) != null;
-			else if (Scope.SCOPE_CLIENT == scope) return handler.loadData(pc, appName, name, "client", Scope.SCOPE_CLIENT, null) != null;
+			Log log = ThreadLocalPageContext.getConfig(pc).getLog("scope");
+			if (Scope.SCOPE_SESSION == scope) return handler.loadData(pc, appName, name, "session", Scope.SCOPE_SESSION, log) != null;
+			else if (Scope.SCOPE_CLIENT == scope) return handler.loadData(pc, appName, name, "client", Scope.SCOPE_CLIENT, log) != null;
 			return false;
 		}
 		catch (PageException e) {
@@ -250,7 +253,7 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 			data0.put(KeyConstants._sessionid, new IKStorageScopeItem(pc.getApplicationContext().getName() + "_" + pc.getCFID() + "_" + pc.getCFToken()));
 		}
 		ApplicationContext ac = pc.getApplicationContext();
-		if (ac != null && ac.getSessionCluster() && isSessionStorageDatasource(pc)) {
+		if (ac != null && ac.getSessionCluster() && isSessionStorage(pc)) {
 			data0.put(KeyConstants._csrf_token, new IKStorageScopeItem(this.tokens));
 		}
 		data0.put(KeyConstants._timecreated, new IKStorageScopeItem(timecreated));
@@ -302,6 +305,10 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		if (type == SCOPE_CLIENT) {
 			data0.put(KeyConstants._hitcount, new IKStorageScopeItem(new Double(hitcount)));
 		}
+		ApplicationContext ac = pc.getApplicationContext();
+		if (ac != null && (this.tokens == null || this.tokens.isEmpty()) && ac.getSessionCluster() && isSessionStorage(pc)) {
+			data0.remove(KeyConstants._csrf_token);
+		}
 		store(pc);
 	}
 
@@ -316,10 +323,13 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 	 *         scope (cfid,cftoken,urltoken)
 	 */
 	public boolean hasContent() {
-		if (size() == (type == SCOPE_CLIENT ? 6 : 5) && containsKey(KeyConstants._urltoken) && containsKey(KeyConstants._cftoken) && containsKey(KeyConstants._cfid)) {
-			return false;
-		}
-		return true;
+		int size = size();
+		if (size == 0) return false;
+		if (size > 7) return true;
+		if (size == 7 && !containsKey(KeyConstants._csrf_token)) return true;
+
+		return !(containsKey(KeyConstants._cfid) && containsKey(KeyConstants._cftoken) && containsKey(KeyConstants._urltoken) && containsKey(KeyConstants._timecreated)
+				&& containsKey(KeyConstants._lastvisit) && (type == SCOPE_CLIENT ? containsKey(KeyConstants._hitcount) : containsKey(KeyConstants._sessionid)));
 	}
 
 	@Override
@@ -700,11 +710,17 @@ public abstract class IKStorageScopeSupport extends StructSupport implements Sto
 		return dt;
 	}
 
-	private boolean isSessionStorageDatasource(PageContext pc) {
+	private boolean isSessionStorage(PageContext pc) {
 		ApplicationContext ac = pc.getApplicationContext();
 		String storage = ac == null ? null : ac.getSessionstorage();
-		DataSource ds = storage == null ? null : pc.getDataSource(storage, null);
-		return ds != null && ds.isStorage();
+		if (StringUtil.isEmpty(storage)) return false;
+
+		// datasource?
+		DataSource ds = pc.getDataSource(storage, null);
+		if (ds != null && ds.isStorage()) return true;
+
+		// cache
+		return CacheUtil.getCache(pc, storage, null) != null;
 	}
 
 	// protected abstract IKStorageValue loadData(PageContext pc, String appName, String name,String

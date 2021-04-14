@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
+import lucee.commons.db.DBUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.ResourceProvider;
 import lucee.commons.io.res.ResourceProviderPro;
@@ -63,21 +64,14 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 	public static final int DBTYPE_ANSI92 = 0;
 	public static final int DBTYPE_MSSQL = 1;
 	public static final int DBTYPE_MYSQL = 2;
-
 	private static final int MAXAGE = 5000;
 
-	// private static final int CONNECTION_ID = 0;
-
 	private String scheme = "ds";
-
 	boolean caseSensitive = true;
-	// private Resources resources;
 	private long lockTimeout = 1000;
 	private ResourceLockImpl lock = new ResourceLockImpl(lockTimeout, caseSensitive);
 	private DatasourceManagerImpl _manager;
 	private String defaultPrefix = "rdr";
-	// private DataSourceManager manager;
-	// private Core core;
 	private Map cores = new WeakHashMap();
 	private Map<String, SoftReference<Attr>> attrCache = new ConcurrentHashMap<String, SoftReference<Attr>>();
 	private Map<String, SoftReference<Attr>> attrsCache = new ConcurrentHashMap<String, SoftReference<Attr>>();
@@ -235,7 +229,6 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 			}
 			finally {
 				release(dc);
-				// manager.releaseConnection(CONNECTION_ID,dc);
 			}
 		}
 		return core;
@@ -291,9 +284,6 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 	public Attr[] getAttrs(ConnectionData data, int pathHash, String path) throws PageException {
 		if (StringUtil.isEmpty(data.getDatasourceName())) return null;
 
-		// Attr[] attrs = getFromCache(data, path);
-		// if(attrs!=null) return attrs;
-
 		DatasourceConnection dc = null;
 		try {
 			dc = getDatasourceConnection(data);
@@ -308,7 +298,6 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 					putToCache(data, rtn[index].getParent(), rtn[index].getName(), rtn[index]);
 					index++;
 				}
-				// putToCache(data, path, rtn);
 				return rtn;
 			}
 		}
@@ -317,16 +306,13 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 		}
 		finally {
 			release(dc);
-			// manager.releaseConnection(CONNECTION_ID,dc);
 		}
 		return null;
 	}
 
 	public void create(ConnectionData data, int fullPathHash, int pathHash, String path, String name, int type) throws IOException {
 		if (StringUtil.isEmpty(data.getDatasourceName())) throw new IOException("Missing datasource definition");
-
 		removeFromCache(data, path, name);
-
 		DatasourceConnection dc = null;
 		try {
 			dc = getDatasourceConnection(data);
@@ -344,10 +330,8 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 	}
 
 	public void delete(ConnectionData data, int fullPathHash, String path, String name) throws IOException {
-
 		Attr attr = getAttr(data, fullPathHash, path, name);
 		if (attr == null) throw new IOException("Can't delete resource [" + path + name + "], resource does not exist");
-
 		DatasourceConnection dc = null;
 		try {
 			dc = getDatasourceConnection(data);
@@ -414,7 +398,6 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 		}
 		finally {
 			removeFromCache(data, path, name);
-			// manager.releaseConnection(CONNECTION_ID,dc);
 		}
 	}
 
@@ -425,13 +408,9 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 			try {
 				getCore(data).setLastModified(dc, data.getPrefix(), attr, time);
 			}
-			/*
-			 * catch (SQLException e) { return false; }
-			 */
 			finally {
 				removeFromCache(data, path, name);
 				release(dc);
-				// manager.releaseConnection(CONNECTION_ID,dc);
 			}
 		}
 		catch (Throwable t) {
@@ -494,17 +473,6 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 		attrCache.put(data.key() + path + name, new SoftReference<Attr>(attr));
 		return attr;
 	}
-
-	/*
-	 * private Attr[] getFromCache(ConnectionData data, String path) { String key=data.key()+path;
-	 * Attr[] attrs= (Attr[]) attrsCache.get(key);
-	 * 
-	 * / *if(attr!=null && attr.timestamp()+MAXAGE<System.currentTimeMillis()) { attrCache.remove(key);
-	 * return null; }* / return attrs; }
-	 * 
-	 * private Attr[] putToCache(ConnectionData data, String path, Attr[] attrs) {
-	 * attrsCache.put(data.key()+path, attrs); return attrs; }
-	 */
 
 	public class ConnectionData {
 		private String username;
@@ -583,14 +551,12 @@ public final class DatasourceResourceProvider implements ResourceProviderPro {
 	 */
 	void release(DatasourceConnection dc) {
 		if (dc != null) {
-
 			try {
 				dc.getConnection().commit();
 				dc.getConnection().setAutoCommit(true);
-				dc.getConnection().setTransactionIsolation(((DatasourceConnectionPro) dc).getDefaultTransactionIsolation());
+				DBUtil.setTransactionIsolationEL(dc.getConnection(), ((DatasourceConnectionPro) dc).getDefaultTransactionIsolation());
 			}
 			catch (SQLException e) {}
-
 			getManager().releaseConnection(ThreadLocalPageContext.get(), dc);
 		}
 	}

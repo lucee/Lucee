@@ -1307,8 +1307,8 @@
 		<custom key="security.accessreaddesc">define the access for reading data</custom>
 		<custom key="security.accesswrite">Access Write</custom>
 		<custom key="security.accesswritedesc">define the access for writing data</custom>
-		<custom key="security.cfmlenvironment">CFML Enviroment</custom>
-		<custom key="security.cfmlenvironmentdescription">Settings that have an effect on how Lucee code interacts with the host enviroment</custom>
+		<custom key="security.cfmlenvironment">CFML Environment</custom>
+		<custom key="security.cfmlenvironmentdescription">Settings that have an effect on how Lucee code interacts with the host environment</custom>
 	
 		<custom key="security.cfx">CFX</custom>
 		<custom key="security.cfxdescription">The settings for the cfx tags can be changed. The globally defined CFX tags defined in the &quot;server administrator&quot; can be used as well.</custom>

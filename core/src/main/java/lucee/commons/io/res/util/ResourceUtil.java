@@ -860,6 +860,10 @@ public final class ResourceUtil {
 		return strFileName.substring(0, pos);
 	}
 
+	public static String getName(Resource res) {
+		return getName(res.getName());
+	}
+
 	/**
 	 * split a FileName in Parts
 	 * 

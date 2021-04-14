@@ -426,7 +426,7 @@ for every argument defined lucee tries to call a matching setter method
 		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/search.log" level="error" layout="classic" name="search"/>
 		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/scheduler.log" level="error" layout="classic" name="scheduler"/>
 		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/scope.log" level="error" layout="classic" name="scope"/>
-		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/application.log" level="error" layout="classic" name="application"/>
+		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/application.log" level="info" layout="classic" name="application"/>
 		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/exception.log" level="error" layout="classic" name="exception"/>
 		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/trace.log" level="error" layout="classic" name="trace"/>
 		<logger appender="resource" appender-arguments="path:{lucee-config}/logs/thread.log" level="error" layout="classic" name="thread"/>
