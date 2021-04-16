@@ -25,12 +25,15 @@ component output="no" {
 			variables.id = arguments.id;
 			variables.config = arguments.config;
 			variables.useNIOWatcher = arguments.config.useNIOWatcher ?: false;
+			variables.verboseLogging = arguments.config.verboseLogging ?: false;
 			if ( len( arguments.listener ) == 0 ) {
 				logger( "init Listener is not a component", "Error" );
 				return;
 			}
 			logger( "init [#GetComponentMetaData( arguments.listener ).path#], useNIOWatcher: #variables.useNIOWatcher#" );
 			variables.listener = arguments.listener;
+
+			variables.listenerAllChanges = structKeyExists( variables.listener, config.changesFunction ); 
 		} catch (any cfcatch) {
 			_handleError( cfcatch, "init" );
 		}
@@ -38,7 +41,7 @@ component output="no" {
 
 	public void function start() output=false {
 
-		var sleepStep = ( variables.config.interval < 500 ) ? variables.config.interval : 500; 
+		var sleepStep = ( variables.config.interval < 500 ) ? variables.config.interval : 500; // ms
 		var i = -1;
 		var cfcatch = "";
 		var startTime = getTickCount();
@@ -57,10 +60,11 @@ component output="no" {
 
 			logger( "start polling Directory [#variables.config.directory#]" );
 
-			var funcNames = {
+			var listenerMethods = {
 				add: config.addFunction,
 				change: config.changeFunction,
-				delete: config.deleteFunction
+				delete: config.deleteFunction,
+				changes: config.changesFunction
 			};
 			try {
 				/*  check if the directory actually exists
@@ -105,16 +109,27 @@ component output="no" {
 			if ( startTime == -1 ) {
 				//  don't compare during first run, nothing will have changed at start
 				startTime = getTickCount();
+				if ( variables.listenerAllChanges ) {
+					local.allChanges = {
+						add: [], 
+						change: [],
+						delete: []
+					};
+				}
 				if ( variables.useNIOWatcher ){
 					try {
 						var events = variables.watcher.poll();
 						// broadcast any changes to the DirectoryWatcherListener.cfc
 						//logger(local.events.toJson());
-						for (var event in events){
-							var method = variables.methods[event.type];
-							variables.listener[method](event.file);
+						for ( var event in events ){
+							var listenerMethod = variables.methods[ event.type ];
+							if ( structKeyExists( variables.listener, listenerMethod ) )
+								variables.listener[ listenerMethod ]( event.file );
+							if ( variables.listenerAllChanges )
+								local.allChanges[ mid( listenerMethod, 3) ].append( event.file );
+							
 						}
-					} catch (e){
+					} catch ( e ){
 						variables.watcher.close();
 						_handleError( cfcatch, "pollEvents()" );
 						break;
@@ -122,25 +137,30 @@ component output="no" {
 				} else {
 					// old skool cfdirectory
 					try {
-						var coll = compareFiles( files, funcNames, config.directory, config.recurse, variables._filter );
+						var coll = compareFiles( files, listenerMethods, config.directory, config.recurse, variables._filter );
 						files = coll.data;
 						var name = "";
-						var funcName = "";
+						var listenerMethod = "";
 						// broadcast any changes to the DirectoryWatcherListener.cfc
 						for ( name in coll.diff ) {
 							try {
-								funcName=coll.diff[name].action;
-								if ( len( funcName ) ) {
-									variables.listener[ funcName ]( coll.diff[name] );
+								listenerMethod = coll.diff[ name ].action;
+								if ( len( listenerMethod ) && structKeyExists( variables.listener, listenerMethod ) ) {
+									variables.listener[ listenerMethod ]( coll.diff[ name ] );
 								}
+								if ( variables.listenerAllChanges )
+									local.allChanges[ mid( listenerMethod, 3 ) ].append( coll.diff[ name ] );
 							} catch ( any cfcatch ) {
 								_handleError( cfcatch, "start" );
 							}
 						}
-					} catch ( any cfcatch ) {
+					} catch ( e ) {
 						_handleError( cfcatch, "compareFiles" );
 					}
 				}
+				if ( variables.listenerAllChanges
+							&& (local.allChanges.add.len() || local.allChanges.change.len() || local.allChanges.delete.len()) )
+						variables.listener[listenerMethods.changes]( local.allChanges );
 			}
 			if ( getState() != "running" ) {
 				break;
@@ -182,12 +202,13 @@ component output="no" {
 			var sct={};
 
 			loop query="dir"{
-				sct[ dir.directory & server.separator.file & dir.name ] = createElement( dir );
+				sct[ dir.directory & server.separator.file & dir.name ] = createFileInfo( dir );
 			}
 
 			return sct;
 		} catch (any cfcatch) {
 			_handleError( cfcatch, "loadFiles" );
+			return {};
 		}
 	}
 
@@ -202,7 +223,7 @@ component output="no" {
 		}
 	}
 
-	private struct function compareFiles( required struct last, required struct funcNames,
+	private struct function compareFiles( required struct last, required struct listenerMethods,
 			required string directory, boolean recurse="false", string fileFilter="*" ) output=false {
 		var cfcatch = "";
 		try {
@@ -217,26 +238,26 @@ component output="no" {
 			loop query="dir" {
 				name= dir.directory & server.separator.file & dir.name;
 				// populate the struct with all currently found files/directories
-				sct[ name ] = createElement(dir);
+				sct[ name ] = createFileInfo(dir);
 					// file existed already
 				if ( StructKeyExists( arguments.last, name ) ){
 					// date last modified has changed?
 					if ( dir.dateLastModified NEQ arguments.last[ name ].dateLastModified ) {
-						tmp = createElement( dir );
-						tmp.action = arguments.funcNames.change;
-						diff[name] = tmp;
+						tmp = createFileInfo( dir );
+						tmp.action = arguments.listenerMethods.change;
+						diff[ name ] = tmp;
 					}
 					// new file
 				} else {
-					tmp = createElement( dir );
-					tmp.action = funcNames.add;
+					tmp = createFileInfo( dir );
+					tmp.action = listenerMethods.add;
 					diff[ name ] = tmp;
 				}
 			}
 			//  check if files are deleted
 			for ( name in last ) {
 				if ( !StructKeyExists( sct, name ) ) {
-					last[ name ].action = funcNames.delete;
+					last[ name ].action = listenerMethods.delete;
 					diff[ name ] = last[ name ];
 				}
 			}
@@ -249,7 +270,7 @@ component output="no" {
 		}
 	}
 
-	private struct function createElement( required query dir ) output=false {
+	private struct function createFileInfo( required query dir ) output=false {
 		return {
 			"dateLastModified": dir.dateLastModified,
 			"size": dir.size,
@@ -304,8 +325,11 @@ component output="no" {
 	}
 
 	private void function logger( required string text, required string type="information" ) output=false {
+		if ( arguments.type == "information" && !variables.verboseLogging )
+			return;
+		local.stack = variables.verboseLogging ? ListLAst(ListGetAt(CallStackGet('string'),2,";"),"/\") : "";
 		writeLog (
-			text="DirectoryWatcher: [#variables.id#, #getState()#] #arguments.text# #ListLAst(ListGetAt(CallStackGet('string'),2,";"),"/\")#",
+			text="DirectoryWatcher: [#variables.id#, #getState()#] #arguments.text# #local.stack#",
 			file=variables.logFileName,
 			type=arguments.type
 		);

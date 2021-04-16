@@ -77,7 +77,7 @@ component {
 						changes.append( { 
 							"type": kind.name(), 
 							"file": {
-								"dateLastModified": createObject( "java", "lucee.runtime.op.Caster" ).toDate( file.lastModified() ),
+								"dateLastModified": createObject( "java", "lucee.runtime.op.Caster" ).toDate( file.lastModified() ), // TODO not working!!!
 								"size": file.length(),
 								"name": file.getName(),
 								"directory": GetDirectoryFromPath( file.getAbsolutePath() )

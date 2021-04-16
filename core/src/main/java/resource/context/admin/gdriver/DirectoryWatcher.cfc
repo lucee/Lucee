@@ -5,6 +5,7 @@
 		field("Directory", "directory", "", true, "The directory you want to watch", "text")
 		, field("Watch subdirectories", "recurse", "true", true, "Watch the directory and all subdirectories too", "checkbox")
 		, field("Use Java WatchService", "useNIOWatcher","true",true,"Use the Java WatchService (only works with local filesystem)", "checkbox")
+		, field("Verbose logging", "verboseLogging", "true",true,"Enable verbose logging for debugging", "checkbox")
 		, field("Interval (ms)", "interval", "60000",true,"The interval between checks, in miliseconds", "text")
 		, field("File filter","extensions","*",true,"The comma separated list of file filters to match (* = all files). Examples: *user*,*.gif,2010*,myfilename.txt","text")
 
@@ -13,6 +14,7 @@
 		, field("Change", "changeFunction", "onChange",true,"Function to be called when a File changes", "text")
 		, field("Add", "addFunction", "onAdd",true,"Function to be called when a File is added", "text")
 		, field("Delete", "deleteFunction", "onDelete",true,"Function to be called when a File is removed", "text")
+		, field("Changes", "changesFunction", "onChanges",true,"Function to be called once with all changes", "text")
 	)>
 
 	<cffunction name="getClass" returntype="string">
