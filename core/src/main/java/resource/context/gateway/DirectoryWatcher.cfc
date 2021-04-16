@@ -38,7 +38,7 @@ component output="no" {
 
 	public void function start() output=false {
 
-		var sleepStep = iif( variables.config.interval < 500, 'variables.config.interval', de( 500 ) );
+		var sleepStep = ( variables.config.interval < 500 ) ? variables.config.interval : 500; 
 		var i = -1;
 		var cfcatch = "";
 		var startTime = getTickCount();
