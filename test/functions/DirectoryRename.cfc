@@ -1,7 +1,7 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function beforeAll(){
 		variables.name=ListFirst(ListLast(getCurrentTemplatePath(),"\/"),".");
-		variables.parent=getDirectoryFromPath(getCurrentTemplatePath())&name&"/";
+		variables.parent=getDirectoryFromPath(getCurrentTemplatePath())&name&"\";
 		
 	}
 	function afterAll(){
@@ -15,7 +15,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					nn="DirectoryRename-"&createUUID();
 					dir2=parent&nn;
 					directoryCreate(dir);
-					directoryRename(dir,dir2);
+					newPath = directoryRename(dir,dir2);
+					assertEquals(nn, listLast(newpath, "/\"));
+					assertEquals(dir2, newPath);
+					assertEquals(true, directoryExists(newPath));
+					assertEquals(true, !isEmpty(newPath));
 					assertEquals("#false#", "#directoryExists(dir)#");
 					assertEquals("#true#", "#directoryExists(dir2)#");
 
@@ -24,7 +28,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					directoryRename(dir,nn);
 					assertEquals("#false#", "#directoryExists(dir)#");
 					assertEquals("#true#", "#directoryExists(dir2)#");
-				}
+				} 
 			});
 		});	
 	}
