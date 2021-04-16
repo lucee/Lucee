@@ -72,7 +72,7 @@ public class BIF extends MemberSupport implements UDFPlus {
 			Key[] keys = CollectionUtil.toKeys(fl.getFunctions().keySet());
 			String msg = ExceptionUtil.similarKeyMessage(keys, name, "Built in function", "Built in functions", null, false);
 			String detail = ExceptionUtil.similarKeyMessage(keys, name, "Built in functions", null, false);
-			throw new ApplicationException(msg+ " " +detail);
+			throw new ApplicationException(msg, detail);
 		}
 		try {
 			this.id = Hash.md5(name);
