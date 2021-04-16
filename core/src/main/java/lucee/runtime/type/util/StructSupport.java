@@ -64,7 +64,7 @@ public abstract class StructSupport implements Map, Struct {
 		config = ThreadLocalPageContext.getConfig(config);
 		String msg = ExceptionUtil.similarKeyMessage(sct, key.getString(), "key", "keys", in, true);
 		String detail = ExceptionUtil.similarKeyMessage(sct, key.getString(), "keys", in, true);
-		if (config != null && config.debug()) return new ExpressionException(msg+ " " +detail);
+		if (config != null && config.debug()) return new ExpressionException(msg, detail);
 
 		return new ExpressionException("key [" + key.getString() + "] doesn't exist" + appendix);
 	}
