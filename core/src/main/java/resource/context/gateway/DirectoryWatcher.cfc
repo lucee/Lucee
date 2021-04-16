@@ -1,282 +1,313 @@
-<!--- 
+/*
  * Copyright (c) 2014, the Railo Company Ltd. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either 
+ * License as published by the Free Software Foundation; either
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public 
+ *
+ * You should have received a copy of the GNU Lesser General Public
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
- ---><cfcomponent output="no">
+ *
+ */
+component output="no" {
+	variables.logFileName = "DirectoryWatcher";
+	variables.state="stopped";
 
-	<cfset variables.logFileName = "DirectoryWatcher" />
-	<cfset variables.state="stopped" />
-
-	<cffunction name="init" access="public" output="no" returntype="void">
-		<cfargument name="id" required="true" type="string">
-		<cfargument name="config" required="true" type="struct">
-		<cfargument name="listener" required="false" type="component">
-		<cfset var cfcatch = "" />
-		<cftry>
-			<cfset variables.id=arguments.id>
-			<cfset variables.config=arguments.config>
-			<cfif len(arguments.listener) eq 0>
-				<cflog text="init #variables.id# Listener is not a component" type="Error" file="#variables.logFileName#">
-				<cfreturn>
-			</cfif>
-			<cflog text="init #variables.id# [#GetComponentMetaData(arguments.listener).path#]" type="information" file="#variables.logFileName#">
-			<cfset variables.listener=arguments.listener>
-			<cfcatch>
-				<cfset _handleError(cfcatch, "init") />
-			</cfcatch>
-		</cftry>
-	</cffunction>
-
-	<cffunction name="start" access="public" output="no" returntype="void">
-		<cfset var sleepStep = iif(variables.config.interval lt 500, 'variables.config.interval', de(500)) />
-		<cfset var i=-1 />
-		<cfset var cfcatch = "" />
-		<cfset var startTime = getTickCount()>
-
-		<cfif not StructKeyExists(variables, "listener")>
-			<cfset setState("stopped")/>
-			<cfreturn>
-		</cfif>
-
-		<cftry>
-			<cfwhile variables.state EQ "stopping">
-				<cfset sleep(10)>
-			</cfwhile>
-			<cfset setState("running")>
-
-			<cfset variables._filter = cleanExtensions(variables.config.extensions) />
-
-			<cflog text="start #variables.id# Directory[#variables.config.directory#]" type="information" file="#variables.logFileName#">
-			<cfset var funcNames={add:config.addFunction, change:config.changeFunction, delete:config.deleteFunction}>
-			<cftry>
-				<!--- check if the directory actually exists
-
-				https://luceeserver.atlassian.net/browse/LDEV-1767
-
-				 --->
-				<cfif not DirectoryExists(variables.config.directory)>
-					<cflog text="start #variables.id# Directory [#variables.config.directory#] does not exist or is not a directory" type="Error" file="#variables.logFileName#" />
-				</cfif>
-				<cfcatch>
-					<cflog text="poll #variables.id# Directory [#variables.config.directory#] DirectoryExists threw #cfcatch.message# #cfcatch.stacktrace#" 	type="Error" 	file="#variables.logFileName#" />
-					<cfset setState("stopped") />
-					<cfreturn>
-				</cfcatch>
-			</cftry>
-			<cfif not StructKeyExists(variables.config,"recurse")>
-				<cfset variables.config.recurse=false>
-			</cfif>
-
-			<cfset var files=loadFiles(variables.config.directory, variables.config.recurse, variables._filter) />
-			<cfcatch>
-				<cfset _handleError(cfcatch, "start") />
-			</cfcatch>
-		</cftry>
-
-		<!--- first execution --->
-		<cfwhile variables.state EQ "running">
-			<cfif startTime eq -1>
-				<!--- don't compare during first run, nothing will have changed at start --->
-				<cfset startTime = getTickCount()>			
-				<cftry>
-					<cfset var coll=compareFiles(files,funcNames,config.directory, config.recurse, variables._filter)>
-					<cfset files=coll.data>
-					<cfset var name="">
-					<cfset var funcName="">
-					<cfcatch>
-						<cfset _handleError(cfcatch, "start") />
-					</cfcatch>
-				</cftry>
-				<cfloop collection="#coll.diff#" item="name">
-					<cftry>
-						<cfset funcName=coll.diff[name].action>
-						<cfif len(funcName)>
-							<cfset variables.listener[funcName](coll.diff[name])>
-						</cfif>
-						<cfcatch>
-							<cfset _handleError(cfcatch, "start") />
-						</cfcatch>
-					</cftry>
-				</cfloop>
-			</cfif>		
-			<cfif variables.state NEQ "running">
-				<cfbreak />
-			</cfif>
-			<!--- large directories can take a while and involve heavy io --->
-			<cfscript>
-				var executionTime = getTickCount() - startTime;
-				var warningTimeout = 1000;
-				if (structKeyExists(variables.config, "warningTimeout") )
-					warningTimeout = variables.config.warningTimeout;
-				if (warningTimeout gt 0 and executionTime gt warningTimeout)
-					cflog (text="poll #variables.id# Directory [#variables.config.directory#] took #(executionTime)#ms",
-							type="Information", 	
-							file="#variables.logFileName#");
-				startTime = -1;		
-			</cfscript>
-			<!--- sleep untill the next run, but cut it into half seconds, so we can stop the gateway --->
-			<cfloop from="#sleepStep#" to="#variables.config.interval#" step="#sleepStep#" index="i">
-				<cfset sleep(sleepStep) />
-				<cfif variables.state neq "running">
-					<cfbreak />
-				</cfif>
-			</cfloop>
-			<!--- some extra sleeping if --->
-			<cfif variables.config.interval mod sleepStep and variables.state eq "running">
-				<cfset sleep((variables.config.interval mod sleepStep)) />
-			</cfif>
-		</cfwhile>
-		<cfset setState("stopped") />
-	</cffunction>
-
-	<cffunction name="loadFiles" access="private" output="no" returntype="struct">
-		<cfargument name="directory" type="string" required="yes">
-		<cfargument name="recurse" type="boolean" required="no" default="#false#">
-		<cfargument name="fileFilter" type="string" required="no" default="*" />
-		<cfset var cfcatch = "" />
-		<cftry>
-			<cfset var dir = getFiles(arguments.directory, arguments.recurse, arguments.fileFilter) />
-			<cfset var sct={} />
-			<cfloop query="dir">
-				<cfset sct[dir.directory&server.separator.file&dir.name] = createElement(dir) />
-			</cfloop>
-			<cfreturn sct />
-			<cfcatch>
-				<cfset _handleError(cfcatch, "loadFiles")/>
-			</cfcatch>
-		</cftry>
-	</cffunction>
-
-	<cffunction name="getFiles" access="private" output="no" returntype="query">
-		<cfargument name="directory" type="string" required="yes">
-		<cfargument name="recurse" type="boolean" required="no" default="false" />
-		<cfargument name="fileFilter" type="string" required="no" default="*" />
-		<cfset var cfcatch = "" />
-		<cftry>
-			<cfset var qDir = "" />
-			<cfdirectory directory="#arguments.directory#" action="list" name="qDir" type="file"
-				filter="#arguments.fileFilter#" recurse="#arguments.recurse#" />
-			<cfreturn qDir />
-			<cfcatch>
-				<cfset _handleError(cfcatch, "getFiles") />
-			</cfcatch>
-		</cftry>
-	</cffunction>
-
-	<cffunction name="compareFiles" access="private" output="no" returntype="struct">
-		<cfargument name="last" type="struct" required="yes">
-		<cfargument name="funcNames" type="struct" required="yes">
-		<cfargument name="directory" type="string" required="yes">
-		<cfargument name="recurse" type="boolean" required="no" default="false" />
-		<cfargument name="fileFilter" type="string" required="no" default="*" />
-		<cfset var cfcatch = "" />
-		<cftry>
-			<cfset var dir = getFiles(arguments.directory, arguments.recurse, arguments.fileFilter) />
-			<cfset var sct={}>
-			<cfset var diff={}>
-			<cfset var name="">
-			<cfset var tmp="">
-			<!--- check for new and changed files --->
-			<cfloop query="dir">
-				<cfset name=dir.directory&server.separator.file&dir.name>
-				<!--- populate the struct with all currently found files/directories --->
-				<cfset sct[name]=createElement(dir)>
-				<!--- file existed already --->
-				<cfif StructKeyExists(arguments.last,name)>
-					<!--- date last modified has changed? --->
-					<cfif dir.dateLastModified NEQ arguments.last[name].dateLastModified>
-						<cfset tmp = createElement(dir)>
-						<cfset tmp.action = arguments.funcNames.change>
-						<cfset diff[name] = tmp>
-					</cfif>
-				<!--- new file --->
-				<cfelse>
-					<cfset tmp=createElement(dir)>
-					<cfset tmp.action=funcNames.add>
-					<cfset diff[name]=tmp>
-				</cfif>
-			</cfloop>
-
-			<!--- check if files are deleted --->
-			<cfloop collection="#last#" item="name">
-				<cfif not StructKeyExists(sct,name)>
-					<cfset last[name].action=funcNames.delete>
-					<cfset diff[name]=last[name]>
-				</cfif>
-			</cfloop>
-			<cfreturn {data:sct,diff:diff}>
-			<cfcatch>
-				<cfset _handleError(cfcatch, "compareFiles") />
-			</cfcatch>
-		</cftry>
-	</cffunction>
-
-	<cffunction name="createElement" access="private" output="no" returntype="struct">
-		<cfargument name="dir" type="query" required="yes">
-		<cfreturn {dateLastModified:dir.dateLastModified, size:dir.size, name:dir.name, directory:dir.directory,id:variables.id}>
-	</cffunction>
-
-	<cffunction name="stop" access="public" output="no" returntype="void">
-		<cflog text="stop #variables.id#" type="information" file="#variables.logFileName#">
-		<cfset variables.setState("stopping")>
-	</cffunction>
-
-	<cffunction name="restart" access="public" output="no" returntype="void">
-		<cflog text="restart #variables.id#" type="information" file="#variables.logFileName#">
-		<cfif state EQ "running"><cfset stop()></cfif>
-		<cfset start()>
-	</cffunction>
-
-	<cffunction name="setState" access="public" output="no" returntype="void">
-		<cfargument name="newState" type="string" required="yes">
-		<cflog text="poll #variables.id# #arguments.newState#"
-				type="Information" 	
-				file="#variables.logFileName#" />
-		<cfscript>
-			switch (arguments.newState){
-				case "stopping":					
-				case "running":
-				case "stopped":
-					variables.state=arguments.newState;
-					break;
-				default:
-					throw (message="Unknown state: #arguments.newState#");
+	public void function init(required string id, required struct config, component listener) output=false {
+		var cfcatch = "";
+		try {
+			variables.id = arguments.id;
+			variables.config = arguments.config;
+			variables.useNIOWatcher = arguments.config.useNIOWatcher ?: false;
+			if ( len( arguments.listener ) == 0 ) {
+				logger( "init Listener is not a component", "Error" );
+				return;
 			}
-		</cfscript>		
-	</cffunction>	
+			logger( "init [#GetComponentMetaData( arguments.listener ).path#], useNIOWatcher: #variables.useNIOWatcher#" );
+			variables.listener = arguments.listener;
+		} catch (any cfcatch) {
+			_handleError( cfcatch, "init" );
+		}
+	}
 
-	<cffunction name="getState" access="public" output="no" returntype="string">
-		<cfreturn variables.state />
-	</cffunction>
+	public void function start() output=false {
 
-	<cffunction name="sendMessage" access="public" output="no" returntype="string">
-		<cfargument name="data" required="false" type="struct">
-		<cfreturn "sendGatewayMessage() has not been implemented for the event gateway [DirectoryWatcher]. If you want to modify it, please edit the following CFC:"& expandpath("./") & "DirectoryWatcher.cfc">
-	</cffunction>
+		var sleepStep = iif( variables.config.interval < 500, 'variables.config.interval', de( 500 ) );
+		var i = -1;
+		var cfcatch = "";
+		var startTime = getTickCount();
+		if ( !StructKeyExists(variables, "listener" ) ) {
+			setState( "stopped" );
+			return;
+		}
+		
+		try {
+			while ( variables.state EQ "stopping" ){
+				sleep(10);
+			}
 
-	<cffunction name="cleanExtensions" access="private" output="no" returntype="string">
-		<cfargument name="extensions" required="true" type="string">
-		<!--- replace the commas and optional trailing spaces with pipes ("|"), because that's the delimiter cfdirectory works with. --->
-		<cfreturn rereplace(trim(arguments.extensions), " *, *", "|", "all") />
-	</cffunction>
+			setState( "running" );
+			variables._filter = cleanExtensions( variables.config.extensions );
 
-	<cffunction name="_handleError" returntype="void" access="private" output="no">
-		<cfargument name="catchData" required="yes" />
-		<cfargument name="functionName" type="string" required="no" default="unknown" />
-		<cflog text="#variables.id# Function #arguments.functionName#: #arguments.catchData.message# #arguments.catchData.detail# #arguments.catchData.stacktrace#"
-		type="error" file="#variables.logFileName#" />
-	</cffunction>
+			logger( "start polling Directory [#variables.config.directory#]" );
 
-</cfcomponent>
+			var funcNames = {
+				add: config.addFunction,
+				change: config.changeFunction,
+				delete: config.deleteFunction
+			};
+			try {
+				/*  check if the directory actually exists
+
+					https://luceeserver.atlassian.net/browse/LDEV-1767
+
+					*/
+				if ( !DirectoryExists(variables.config.directory) ) {
+					logger( "start Directory [#variables.config.directory#] does not exist or is not a directory", "Error" );
+				}
+			} catch (any cfcatch) {
+				logger( "poll Directory [#variables.config.directory#] DirectoryExists threw #cfcatch.message# #cfcatch.stacktrace#", "Error" );
+				setState( "stopped" );
+				return;
+			}
+			if ( !StructKeyExists( variables.config, "recurse" ) ) {
+				variables.config.recurse = false;
+			}
+			if ( variables.useNIOWatcher ){
+				variables.methods = {
+					ENTRY_CREATE: config.addFunction,
+					ENTRY_MODIFY: config.changeFunction,
+					ENTRY_DELETE: config.deleteFunction
+				};
+				try {
+					// not supported on MacOS
+					variables.watcher = new WatchService(variables.config.directory, variables.config.recurse, variables.methods);
+				} catch (e){
+					_handleError( cfcatch, "useNIOWatcher" );
+					variables.useNIOWatcher = false; // fall back to cfdirectory
+				}
+			} 
+			if ( !variables.useNIOWatcher ){
+				local.files = loadFiles( variables.config.directory, variables.config.recurse, variables._filter );
+			}
+
+		} catch (any cfcatch) {
+			_handleError(cfcatch, "start");
+		}
+		//  first execution
+		while ( getState() EQ "running"){
+			if ( startTime == -1 ) {
+				//  don't compare during first run, nothing will have changed at start
+				startTime = getTickCount();
+				if ( variables.useNIOWatcher ){
+					try {
+						var events = variables.watcher.poll();
+						// broadcast any changes to the DirectoryWatcherListener.cfc
+						//logger(local.events.toJson());
+						for (var event in events){
+							var method = variables.methods[event.type];
+							variables.listener[method](event.file);
+						}
+					} catch (e){
+						variables.watcher.close();
+						_handleError( cfcatch, "pollEvents()" );
+						break;
+					}
+				} else {
+					// old skool cfdirectory
+					try {
+						var coll = compareFiles( files, funcNames, config.directory, config.recurse, variables._filter );
+						files = coll.data;
+						var name = "";
+						var funcName = "";
+						// broadcast any changes to the DirectoryWatcherListener.cfc
+						for ( name in coll.diff ) {
+							try {
+								funcName=coll.diff[name].action;
+								if ( len( funcName ) ) {
+									variables.listener[ funcName ]( coll.diff[name] );
+								}
+							} catch ( any cfcatch ) {
+								_handleError( cfcatch, "start" );
+							}
+						}
+					} catch ( any cfcatch ) {
+						_handleError( cfcatch, "compareFiles" );
+					}
+				}
+			}
+			if ( getState() != "running" ) {
+				break;
+			}
+			//  large directories can take a while and involve heavy io
+
+			var executionTime = getTickCount() - startTime;
+			var warningTimeout = 1000;
+			if ( structKeyExists( variables.config, "warningTimeout" ) )
+				warningTimeout = variables.config.warningTimeout;
+			if ( warningTimeout gt 0 and executionTime gt warningTimeout )
+				logger( "poll Directory [#variables.config.directory#] took #(executionTime)#ms" );
+			startTime = -1;
+			//  sleep until the next run, but cut it into half seconds, so we can stop the gateway
+			for ( i = 0 ; i <= variables.config.interval ; i =  i + sleepStep ) {
+				//logger( getState() & " sleeping: " & sleepStep & " " & variables.config.interval  & " " & i );
+				sleep( sleepStep );
+				i = i + sleepStep;
+				if ( getState() != "running" ) {
+					break;
+				}
+			}
+			//  some extra sleeping if
+			if ( variables.config.interval mod sleepStep && getState() == "running" ) {
+				//logger( "extra sleeping" );
+				sleep( (variables.config.interval mod sleepStep) );
+			}
+			// logger( "end loop" );
+		}
+		if (useNIOWatcher)
+			variables.watcher.close();
+		setState("stopped");
+	}
+
+	private struct function loadFiles( required string directory, boolean recurse="#false#", string fileFilter="*" ) output=false {
+		var cfcatch = "";
+		try {
+			var dir = getFiles( arguments.directory, arguments.recurse, arguments.fileFilter );
+			var sct={};
+
+			loop query="dir"{
+				sct[ dir.directory & server.separator.file & dir.name ] = createElement( dir );
+			}
+
+			return sct;
+		} catch (any cfcatch) {
+			_handleError( cfcatch, "loadFiles" );
+		}
+	}
+
+	private query function getFiles(required string directory, boolean recurse="false", string fileFilter="*") output=false {
+		var cfcatch = "";
+		try {
+			var qDir = "";
+			directory filter=arguments.fileFilter directory=arguments.directory recurse=arguments.recurse name="qDir", type="file", action="list";
+			return qDir;
+		} catch ( any cfcatch ) {
+			_handleError( cfcatch, "getFiles" );
+		}
+	}
+
+	private struct function compareFiles( required struct last, required struct funcNames,
+			required string directory, boolean recurse="false", string fileFilter="*" ) output=false {
+		var cfcatch = "";
+		try {
+			logger( "polling Directory [#variables.config.directory#]" );
+			var dir = getFiles( arguments.directory, arguments.recurse, arguments.fileFilter );
+			var sct = {};
+			var diff = {};
+			var name = "";
+			var tmp = "";
+			//  check for new and changed files
+
+			loop query="dir" {
+				name= dir.directory & server.separator.file & dir.name;
+				// populate the struct with all currently found files/directories
+				sct[ name ] = createElement(dir);
+					// file existed already
+				if ( StructKeyExists( arguments.last, name ) ){
+					// date last modified has changed?
+					if ( dir.dateLastModified NEQ arguments.last[ name ].dateLastModified ) {
+						tmp = createElement( dir );
+						tmp.action = arguments.funcNames.change;
+						diff[name] = tmp;
+					}
+					// new file
+				} else {
+					tmp = createElement( dir );
+					tmp.action = funcNames.add;
+					diff[ name ] = tmp;
+				}
+			}
+			//  check if files are deleted
+			for ( name in last ) {
+				if ( !StructKeyExists( sct, name ) ) {
+					last[ name ].action = funcNames.delete;
+					diff[ name ] = last[ name ];
+				}
+			}
+			return {
+				data: sct,
+				diff: diff
+			};
+		} catch ( e ) {
+			_handleError( cfcatch, "compareFiles" );
+		}
+	}
+
+	private struct function createElement( required query dir ) output=false {
+		return {
+			"dateLastModified": dir.dateLastModified,
+			"size": dir.size,
+			"name": dir.name,
+			"directory": dir.directory,
+			"id": variables.id
+		};
+	}
+
+	public void function stop() output=false {
+		logger( "stop" );
+		variables.setState( "stopping" );
+	}
+
+	public void function restart() output=false {
+		logger( "restart" );
+		if ( getState() EQ "running" )
+			stop();
+		start();
+	}
+
+	public void function setState( required string newState ) output=false {
+		logger( "Change state to [#arguments.newState#]" );
+		switch ( arguments.newState ){
+			case "stopping":
+			case "running":
+			case "stopped":
+				variables.state = arguments.newState;
+				break;
+			default:
+				throw (message="Unknown state: #arguments.newState#");
+		}
+	}
+
+	public string function getState() output=false {
+		return variables.state;
+	}
+
+	public string function sendMessage( struct data ) output=false {
+		return "sendGatewayMessage() has !been implemented for the event gateway [DirectoryWatcher]. "
+			& "If you want to modify it, please edit the following CFC:"& expandpath("./") & "DirectoryWatcher.cfc";
+	}
+
+	private string function cleanExtensions( required string extensions ) output=false {
+		//  replace the commas and optional trailing spaces with pipes ("|"), because that's the delimiter cfdirectory works with.
+		return reReplace( trim( arguments.extensions ), " *, *", "|", "all" );
+	}
+
+	private void function _handleError( required catchData, string functionName="unknown" ) output=false {
+		logger("ERROR in function #arguments.functionName#: #arguments.catchData.message#"
+			& "#arguments.catchData.detail# #arguments.catchData.stacktrace# ", "error");
+	}
+
+	private void function logger( required string text, required string type="information" ) output=false {
+		writeLog (
+			text="DirectoryWatcher: [#variables.id#, #getState()#] #arguments.text# #ListLAst(ListGetAt(CallStackGet('string'),2,";"),"/\")#",
+			file=variables.logFileName,
+			type=arguments.type
+		);
+	}
+}

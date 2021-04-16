@@ -14,19 +14,21 @@
  * You should have received a copy of the GNU Lesser General Public 
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
- ---><cfcomponent>
-	
-	<cffunction name="onAdd" access="public" output="no" returntype="void">
-    	<cfargument name="data" type="struct" required="yes">
-		<cflog text="add:#serialize(data)#" type="information" file="DirectoryWatcher">
-	</cffunction>
-	<cffunction name="onDelete" access="public" output="no" returntype="void">
-    	<cfargument name="data" type="struct" required="yes">
-		<cflog text="delete:#serialize(data)#" type="information" file="DirectoryWatcher">
-	</cffunction>
-	<cffunction name="onChange" access="public" output="no" returntype="void">
-    	<cfargument name="data" type="struct" required="yes">
-		<cflog text="change:#serialize(data)#" type="information" file="DirectoryWatcher">
-	</cffunction>
+ --->
+ component {
 
-</cfcomponent>
+	variables.logFileName = "DirectoryWatcher";
+
+	public void function onAdd(required struct data) output=false {
+		writeLog( text="File added: #serializeJson(data)#", file=variables.logFileName, type="information" );
+	}
+
+	public void function onDelete(required struct data) output=false {
+		writeLog( text="File deleted: #serializeJson(data)#", file=variables.logFileName, type="information" );
+	}
+
+	public void function onChange(required struct data) output=false {
+		writeLog ( text="File changed: #serializeJson(data)#", file=variables.logFileName, type="information" );
+	}
+
+}
