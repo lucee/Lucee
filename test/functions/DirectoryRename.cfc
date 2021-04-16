@@ -19,7 +19,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 					assertEquals(nn, listLast(newpath, "/\"));
 					assertEquals(replaceNoCase(dir2,"\", "/","all"), replaceNoCase(newPath,"\", "/","all"));
 					assertEquals(true, directoryExists(newPath));
-					assertEquals(true, !isEmpty(newPath));
+					assertEquals(false, isEmpty(newPath));
 					assertEquals("#false#", "#directoryExists(dir)#");
 					assertEquals("#true#", "#directoryExists(dir2)#");
 
