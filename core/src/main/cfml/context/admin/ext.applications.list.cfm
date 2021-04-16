@@ -336,6 +336,11 @@ Latest version: #latest.v#
 
 <cfhtmlbody>
 	<script type="text/javascript">
+	$(document).ready(function(){
+		var version = 'Release';
+		enableVersion(version, "intial");
+		$("##btn_"+version).addClass("btn");
+	});
 	
 	function enableVersion(v){
 		var $pre =  $("##btn_Pre_release");
