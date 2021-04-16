@@ -22,6 +22,8 @@ import java.math.BigDecimal;
 import java.sql.Array;
 import java.sql.Blob;
 import java.sql.Clob;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -279,7 +281,20 @@ public final class SQLCaster {
 			return;
 
 		case Types.SQLXML:
-			SQLXML xml = stat.getConnection().createSQLXML();
+			// SQLXML is a JDBC 4 feature not supported in JDBC 3.
+			SQLXML xml = null;
+			Connection conn = stat.getConnection();
+			try {
+				xml = conn.createSQLXML();
+			}
+			catch (Exception e) {
+				DatabaseMetaData md = conn.getMetaData();
+				if (md.getJDBCMajorVersion() < 4)
+					throw new DatabaseException("The data type [SQLXML] is not supported with this datasource.", "The datasource JDBC driver compatibility is up to the versions ["
+							+ md.getJDBCMajorVersion() + "." + md.getJDBCMinorVersion() + "], but this feature needs at least [4.0]", null, null);
+				throw Caster.toPageException(e);
+			}
+
 			xml.setString(Caster.toString(value));
 			stat.setObject(parameterIndex, xml, type);
 			return;
