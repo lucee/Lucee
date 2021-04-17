@@ -34,12 +34,13 @@ public class GatewayThread extends Thread {
 		this.engine = engine;
 		this.gateway = gateway;
 		this.action = action;
+		this.setName("EventGateway-" + gateway.getId()); // name the thread
 		if (gateway instanceof GatewaySupport) ((GatewaySupport) gateway).setThread(this);
 	}
 
 	@Override
 	public void run() {
-		// MUST handle timout
+		// MUST handle timeout
 		try {
 			if (action == START) gateway.doStart();
 			else if (action == STOP) gateway.doStop();
