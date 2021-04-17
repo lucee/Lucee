@@ -11,10 +11,10 @@
 
 		, group("CFC Listener Function Definition", "Definition for the CFC Listener Functions, when empty no listener is called", 3)
 
-		, field("Change", "changeFunction", "onChange",true,"Function to be called when a File changes", "text")
-		, field("Add", "addFunction", "onAdd",true,"Function to be called when a File is added", "text")
-		, field("Delete", "deleteFunction", "onDelete",true,"Function to be called when a File is removed", "text")
-		, field("Changes", "changesFunction", "onChanges",true,"Function to be called once with all changes", "text")
+		, field("Change", "changeFunction", "onChange", false,"Function to be called when a File changes", "text")
+		, field("Add", "addFunction", "onAdd", false, "Function to be called when a File is added", "text")
+		, field("Delete", "deleteFunction", "onDelete", false, "Function to be called when a File is removed", "text")
+		, field("Changes", "changesFunction", "onChanges", false, "Function to be called once with all changes", "text")
 	)>
 
 	<cffunction name="getClass" returntype="string">

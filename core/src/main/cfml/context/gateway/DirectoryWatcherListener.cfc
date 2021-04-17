@@ -16,22 +16,21 @@
  * 
  --->
  component {
-
-	variables.logFileName = "DirectoryWatcher";
+	variables.logFileName = "directoryWatcher";
 
 	public void function onAdd( required struct data ) output=false {
-		writeLog( text="File added: #serializeJson( arguments.data )#", file=variables.logFileName, type="information" );
+		writeLog( text="onAdd: #serializeJson( arguments.data )#", file=variables.logFileName, type="information" );
 	}
 
 	public void function onDelete( required struct data ) output=false {
-		writeLog( text="File deleted: #serializeJson( arguments.data )#", file=variables.logFileName, type="information" );
+		writeLog( text="onDelete: #serializeJson( arguments.data )#", file=variables.logFileName, type="information" );
 	}
 
 	public void function onChange( required struct data ) output=false {
-		writeLog ( text="File changed: #serializeJson( arguments.data )#", file=variables.logFileName, type="information" );
+		writeLog ( text="onChange: #serializeJson( arguments.data )#", file=variables.logFileName, type="information" );
 	}
 
 	public void function onChanges( required struct data ) output=false {
-		writeLog ( text="File change(s): #serializeJson( arguments.data )#", file=variables.logFileName, type="information" );
+		writeLog ( text="onChanges: #serializeJson( arguments.data )#", file=variables.logFileName, type="information" );
 	}
 }

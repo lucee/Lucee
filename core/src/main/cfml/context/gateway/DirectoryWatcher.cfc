@@ -16,8 +16,12 @@
  *
  */
 component output="no" {
-	variables.logFileName = "DirectoryWatcher";
-	variables.state="stopped";
+
+	variables.logFileName = "directoryWatcher";
+	variables.state = "stopped";
+	variables.allChangesHandler = false;
+	variables.warningTimeout = 1000; // ms
+	variables.validConfig = false;
 
 	public void function init(required string id, required struct config, component listener) output=false {
 		var cfcatch = "";
@@ -33,179 +37,190 @@ component output="no" {
 			logger( "init [#GetComponentMetaData( arguments.listener ).path#], useNIOWatcher: #variables.useNIOWatcher#" );
 			variables.listener = arguments.listener;
 
-			variables.listenerAllChanges = structKeyExists( variables.listener, config.changesFunction ); 
-		} catch (any cfcatch) {
-			_handleError( cfcatch, "init" );
-		}
-	}
+			if ( structKeyExists( variables.config, "warningTimeout" ) )
+				variables.warningTimeout = arguments.config.warningTimeout;
 
-	public void function start() output=false {
+			if ( !StructKeyExists( variables.config, "recurse" ) )
+				variables.config.recurse = false;
 
-		var sleepStep = ( variables.config.interval < 500 ) ? variables.config.interval : 500; // ms
-		var i = -1;
-		var cfcatch = "";
-		var startTime = getTickCount();
-		if ( !StructKeyExists(variables, "listener" ) ) {
-			setState( "stopped" );
-			return;
-		}
-		
-		try {
-			while ( variables.state EQ "stopping" ){
-				sleep(10);
-			}
-
-			setState( "running" );
 			variables._filter = cleanExtensions( variables.config.extensions );
 
-			logger( "start polling Directory [#variables.config.directory#]" );
+			variables.eventHandlers = {};
+			loop list="addFunction,changeFunction,deleteFunction,changesFunction" item="local.f" {
+				if ( structKeyExists(arguments.config, f) && len( trim( arguments.config[ f ] ) ) gt 0 )
+					variables.eventHandlers[ replaceNoCase( f, "function", "" ) ] = trim( arguments.config[ f ] );
+			}
+			if ( eventHandlers.count() eq 0){
+				logger ( text="No event handlers configured!", type="error" );
+				structDelete( variables, "listener" ); // nothing to do
+				return;
+			}
 
-			var listenerMethods = {
-				add: config.addFunction,
-				change: config.changeFunction,
-				delete: config.deleteFunction,
-				changes: config.changesFunction
-			};
+			if ( structKeyExists( variables.eventHandlers, "changes" ) )
+				variables.allChangesHandler = true; // the listener has an onChanges method
+
+			if ( variables.verboseLogging ){ // logout config
+				loop collection=#variables# item="local.v"{
+					if ( ! isCustomFunction( variables[v] ) )
+						logger (v & ": " & serializeJson( variables[v] ));
+				}
+			}
+
 			try {
-				/*  check if the directory actually exists
-
-					https://luceeserver.atlassian.net/browse/LDEV-1767
-
-					*/
-				if ( !DirectoryExists(variables.config.directory) ) {
-					logger( "start Directory [#variables.config.directory#] does not exist or is not a directory", "Error" );
+				/*  check if the directory actually exists */
+				if ( !DirectoryExists( variables.config.directory ) ) {
+					logger( "Directory [#variables.config.directory#] does not exist or is not a directory", "Error" );
+					setState( "stopped" );
+					return;
 				}
 			} catch (any cfcatch) {
 				logger( "poll Directory [#variables.config.directory#] DirectoryExists threw #cfcatch.message# #cfcatch.stacktrace#", "Error" );
 				setState( "stopped" );
 				return;
 			}
-			if ( !StructKeyExists( variables.config, "recurse" ) ) {
-				variables.config.recurse = false;
+
+			variables.validConfig = true;
+
+		} catch (any cfcatch) {
+			_handleError( cfcatch, "init" );
+		}
+	}
+
+	// this is a loop which runs in a background thread, sleeping between intervals
+	public void function start() output=false localmode=true{
+		if ( !variables.validConfig ) {
+			setState( "stopped" );
+			logger( "Start(), invalid config, aborting" , "warning" );
+			return;
+		}
+
+		logger( "Start(), watching Directory [#variables.config.directory#]" );
+
+		// the loop sleeps every 500ms, so it wakes up so it can be interrupted, for shutdown etc
+		var sleepStep = ( variables.config.interval < 500 ) ? variables.config.interval : 500; // ms
+		var startTime = -1;
+		try {
+			while ( getState() EQ "stopping" ){
+				logger( "waiting to stop, " & sleepStep );
+				sleep( sleepStep + 1 );
 			}
+
+			setState( "running" );
+
 			if ( variables.useNIOWatcher ){
-				variables.methods = {
-					ENTRY_CREATE: config.addFunction,
-					ENTRY_MODIFY: config.changeFunction,
-					ENTRY_DELETE: config.deleteFunction
-				};
 				try {
+					closeWatcher();
 					// not supported on MacOS
-					variables.watcher = new WatchService(variables.config.directory, variables.config.recurse, variables.methods);
+					variables.watcher = new WatchService( variables.config.directory, variables.config.recurse );
 				} catch (e){
 					_handleError( cfcatch, "useNIOWatcher" );
 					variables.useNIOWatcher = false; // fall back to cfdirectory
 				}
-			} 
+			}
 			if ( !variables.useNIOWatcher ){
+				// may fall back to this  if WatchService not available, so no else if
 				local.files = loadFiles( variables.config.directory, variables.config.recurse, variables._filter );
 			}
 
 		} catch (any cfcatch) {
-			_handleError(cfcatch, "start");
+			_handleError(cfcatch, "startup");
 		}
 		//  first execution
 		while ( getState() EQ "running"){
-			if ( startTime == -1 ) {
-				//  don't compare during first run, nothing will have changed at start
+
+			if ( startTime eq -1 ) {
+				//  don't compare during first run, nothing will have changed at the first execution
 				startTime = getTickCount();
-				if ( variables.listenerAllChanges ) {
+			} else {
+				logger( "Polling for changes" );
+				startTime = getTickCount();
+				if ( variables.allChangesHandler ) {
 					local.allChanges = {
-						add: [], 
+						add: [],
 						change: [],
 						delete: []
 					};
 				}
 				if ( variables.useNIOWatcher ){
+					// file system event driven, low overhead
 					try {
 						var events = variables.watcher.poll();
-						// broadcast any changes to the DirectoryWatcherListener.cfc
-						//logger(local.events.toJson());
 						for ( var event in events ){
-							var listenerMethod = variables.methods[ event.type ];
-							if ( structKeyExists( variables.listener, listenerMethod ) )
-								variables.listener[ listenerMethod ]( event.file );
-							if ( variables.listenerAllChanges )
-								local.allChanges[ mid( listenerMethod, 3) ].append( event.file );
-							
+							triggerEventHandler( event.action, event );
+							if ( variables.allChangesHandler )
+								local.allChanges[ event.action ].append( event );
 						}
 					} catch ( e ){
-						variables.watcher.close();
 						_handleError( cfcatch, "pollEvents()" );
+						//variables.watcher.close();
 						break;
 					}
 				} else {
-					// old skool cfdirectory
+					// old skool cfdirectory, slower
 					try {
-						var coll = compareFiles( files, listenerMethods, config.directory, config.recurse, variables._filter );
-						files = coll.data;
-						var name = "";
-						var listenerMethod = "";
-						// broadcast any changes to the DirectoryWatcherListener.cfc
-						for ( name in coll.diff ) {
-							try {
-								listenerMethod = coll.diff[ name ].action;
-								if ( len( listenerMethod ) && structKeyExists( variables.listener, listenerMethod ) ) {
-									variables.listener[ listenerMethod ]( coll.diff[ name ] );
-								}
-								if ( variables.listenerAllChanges )
-									local.allChanges[ mid( listenerMethod, 3 ) ].append( coll.diff[ name ] );
-							} catch ( any cfcatch ) {
-								_handleError( cfcatch, "start" );
-							}
+						var coll = compareFiles( files, config.directory, config.recurse, variables._filter );
+						files = coll.data; // stash for the next cycle, to compare against
+						for ( var name in coll.diff ) {
+							triggerEventHandler( coll.diff[ name ].action, coll.diff[ name ] );
+							if ( variables.allChangesHandler )
+								local.allChanges[ coll.diff[ name ].action ].append( coll.diff[ name ] );
 						}
 					} catch ( e ) {
-						_handleError( cfcatch, "compareFiles" );
+						_handleError( cfcatch, "compareFiles()" );
 					}
 				}
-				if ( variables.listenerAllChanges
-							&& (local.allChanges.add.len() || local.allChanges.change.len() || local.allChanges.delete.len()) )
-						variables.listener[listenerMethods.changes]( local.allChanges );
+				if ( variables.allChangesHandler
+							&& ( local.allChanges.add.len() || local.allChanges.change.len() || local.allChanges.delete.len() ) ){
+					triggerEventHandler( "changes", local.allChanges );
+				}
+				logger( "polled" );
 			}
 			if ( getState() != "running" ) {
 				break;
 			}
-			//  large directories can take a while and involve heavy io
 
-			var executionTime = getTickCount() - startTime;
-			var warningTimeout = 1000;
-			if ( structKeyExists( variables.config, "warningTimeout" ) )
-				warningTimeout = variables.config.warningTimeout;
-			if ( warningTimeout gt 0 and executionTime gt warningTimeout )
-				logger( "poll Directory [#variables.config.directory#] took #(executionTime)#ms" );
-			startTime = -1;
+			if ( startTime gt 0 ){
+				//  large directories can take a while and involve heavy io
+				var executionTime = getTickCount() - startTime;
+				if ( variables.warningTimeout gt 0 and executionTime gt variables.warningTimeout )
+					logger( "Polling Directory [#variables.config.directory#] took #(executionTime)#ms", "warning" );
+			}
+
 			//  sleep until the next run, but cut it into half seconds, so we can stop the gateway
-			for ( i = 0 ; i <= variables.config.interval ; i =  i + sleepStep ) {
-				//logger( getState() & " sleeping: " & sleepStep & " " & variables.config.interval  & " " & i );
+			for ( var i = 0 ; i <= variables.config.interval ; i =  i + sleepStep ) {
+				logger( "Sleeping for: " & sleepStep & " ( " & i & " / " & variables.config.interval & " )");
 				sleep( sleepStep );
-				i = i + sleepStep;
+				// i = i + sleepStep;
 				if ( getState() != "running" ) {
 					break;
 				}
 			}
 			//  some extra sleeping if
 			if ( variables.config.interval mod sleepStep && getState() == "running" ) {
-				//logger( "extra sleeping" );
+				logger( "extra sleeping", "debug" );
 				sleep( (variables.config.interval mod sleepStep) );
 			}
-			// logger( "end loop" );
 		}
-		if (useNIOWatcher)
-			variables.watcher.close();
-		setState("stopped");
+		closeWatcher();
+		setState( "stopped" );
+	}
+
+	public any function triggerEventHandler ( required string method, struct file ){
+		if ( structKeyExists( variables.eventHandlers, arguments.method ) )
+			variables.listener[ variables.eventHandlers[ arguments.method ] ]( arguments.file );
+		else
+			logger("No handler found for #method#", "warning");
 	}
 
 	private struct function loadFiles( required string directory, boolean recurse="#false#", string fileFilter="*" ) output=false {
 		var cfcatch = "";
 		try {
 			var dir = getFiles( arguments.directory, arguments.recurse, arguments.fileFilter );
-			var sct={};
-
-			loop query="dir"{
-				sct[ dir.directory & server.separator.file & dir.name ] = createFileInfo( dir );
+			var files = [=];
+			loop query="dir" {
+				files[ dir.directory & server.separator.file & dir.name ] = createFileInfo( dir );
 			}
-
-			return sct;
+			return files;
 		} catch (any cfcatch) {
 			_handleError( cfcatch, "loadFiles" );
 			return {};
@@ -223,8 +238,7 @@ component output="no" {
 		}
 	}
 
-	private struct function compareFiles( required struct last, required struct listenerMethods,
-			required string directory, boolean recurse="false", string fileFilter="*" ) output=false {
+	private struct function compareFiles( required struct last, required string directory, boolean recurse="false", string fileFilter="*" ) output=false {
 		var cfcatch = "";
 		try {
 			logger( "polling Directory [#variables.config.directory#]" );
@@ -244,20 +258,20 @@ component output="no" {
 					// date last modified has changed?
 					if ( dir.dateLastModified NEQ arguments.last[ name ].dateLastModified ) {
 						tmp = createFileInfo( dir );
-						tmp.action = arguments.listenerMethods.change;
+						tmp.action = "change";
 						diff[ name ] = tmp;
 					}
 					// new file
 				} else {
 					tmp = createFileInfo( dir );
-					tmp.action = listenerMethods.add;
+					tmp.action = "add";
 					diff[ name ] = tmp;
 				}
 			}
 			//  check if files are deleted
 			for ( name in last ) {
 				if ( !StructKeyExists( sct, name ) ) {
-					last[ name ].action = listenerMethods.delete;
+					last[ name ].action = "delete";
 					diff[ name ] = last[ name ];
 				}
 			}
@@ -272,23 +286,34 @@ component output="no" {
 
 	private struct function createFileInfo( required query dir ) output=false {
 		return {
-			"dateLastModified": dir.dateLastModified,
-			"size": dir.size,
-			"name": dir.name,
-			"directory": dir.directory,
-			"id": variables.id
+			"name" = dir.name,
+			"size" = dir.size,
+			"dateLastModified" = dir.dateLastModified,
+			"directory" = dir.directory,
+			"id" = variables.id
 		};
 	}
 
+	public void function closeWatcher() output=false {
+		if ( structKeyExists( variables, "watcher" ) ) {
+			variables.watcher.close();
+			structDelete( variables, "watcher" );
+		}
+	}
+
 	public void function stop() output=false {
-		logger( "stop" );
-		variables.setState( "stopping" );
+		logger( "stop()" );
+		if ( getState() eq "running" and getState() neq "stopping" )
+			variables.setState( "stopping" );
+		else {
+			closeWatcher();
+			variables.setState( "stopped" );
+		}
 	}
 
 	public void function restart() output=false {
-		logger( "restart" );
-		if ( getState() EQ "running" )
-			stop();
+		logger( "restart()" );
+		stop(); // this just sets a flag
 		start();
 	}
 
@@ -320,8 +345,8 @@ component output="no" {
 	}
 
 	private void function _handleError( required catchData, string functionName="unknown" ) output=false {
-		logger("ERROR in function #arguments.functionName#: #arguments.catchData.message#"
-			& "#arguments.catchData.detail# #arguments.catchData.stacktrace# ", "error");
+		logger( "ERROR in function #arguments.functionName#: #arguments.catchData.message#"
+			& "#arguments.catchData.detail# #arguments.catchData.stacktrace# ", "error" );
 	}
 
 	private void function logger( required string text, required string type="information" ) output=false {
@@ -329,7 +354,7 @@ component output="no" {
 			return;
 		local.stack = variables.verboseLogging ? ListLAst(ListGetAt(CallStackGet('string'),2,";"),"/\") : "";
 		writeLog (
-			text="DirectoryWatcher: [#variables.id#, #getState()#] #arguments.text# #local.stack#",
+			text="[#variables.id#, #getState()#] #arguments.text# #local.stack#",
 			file=variables.logFileName,
 			type=arguments.type
 		);
