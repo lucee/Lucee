@@ -39,59 +39,62 @@ component {
 	}
 
 	public any function poll() {
-		var _poll = variables.watcher.take();
-		if ( IsNull(_poll) )
+		//writeLog( text="WatchService.Poll()", file="DirectoryWatcher" );
+		var _poll = variables.watcher.poll();
+		if ( IsNull (_poll) ){
 			return [];
-		else
+		} else {
 			return handleEvents( _poll );
-	}
-
-	public any function take() {
-		return variables.watcher.take();
+		}
 	}
 
 	public void function close() {
+		//writeLog( text="WatchService.close()", file="DirectoryWatcher" );
 		variables.watcher.close();
+		variables.watcher = false;
 	}
 
 	private Array function handleEvents( required any key ) {
+		//writeLog( text="WatchService.handleEvents", file="DirectoryWatcher" );
 		var changes = [];
-		if ( !IsNull( arguments.key ) ) {
-			var path = variables.pathKeys.get( arguments.key );
-			if ( !IsNull( path ) ) {
-				for ( var event in arguments.key.pollEvents() ) {
-					var kind = event.kind();
-					//writeLog( text="#Serialize(kind)#", type="error");
-					if ( kind !== variables.events.OVERFLOW ) {
-						var relativePath = event.context();
-						// in the case of ENTRY_CREATE, ENTRY_DELETE, and ENTRY_MODIFY events the context is a Path
-						// that is the relative path between the directory registered with the watch service, and the entry that is created, deleted, or modified.
-						var affectedPath = path.resolve( relativePath );
-						var file = affectedPath.toFile();
+		var path = variables.pathKeys.get( arguments.key );
+		if ( !IsNull( path ) ) {
+			for ( var event in arguments.key.pollEvents() ) {
+				var kind = event.kind();
+				//writeLog( text="#Serialize(kind)#", type="error");
+				if ( kind !== variables.events.OVERFLOW ) {
+					var relativePath = event.context();
+					// in the case of ENTRY_CREATE, ENTRY_DELETE, and ENTRY_MODIFY events the context is a Path
+					// that is the relative path between the directory registered with the watch service, and the entry that is created, deleted, or modified.
+					var affectedPath = path.resolve( relativePath );
+					var file = affectedPath.toFile();
 
-						if ( variables.recursive && kind === variables.events.ENTRY_CREATE ) {
-							if ( file.isDirectory() ) {
-								register( affectedPath, variables.recursive );
-							}
+					if ( variables.recursive && kind === variables.events.ENTRY_CREATE ) {
+						if ( file.isDirectory() ) {
+							register( affectedPath, variables.recursive );
 						}
-						changes.append( { 
-							"type": kind.name(), 
-							"file": {
-								"dateLastModified": createObject( "java", "lucee.runtime.op.Caster" ).toDate( file.lastModified() ), // TODO not working!!!
-								"size": file.length(),
-								"name": file.getName(),
-								"directory": GetDirectoryFromPath( file.getAbsolutePath() )
-							} 
-						} );
 					}
-				}
-				var valid = arguments.key.reset()
-				if ( !valid ) {
-					variables.keys.remove( arguments.key );
+					var action = "";
+					if ( kind === variables.events.ENTRY_CREATE )
+						action = "add";
+					else if ( kind === variables.events.ENTRY_DELETE )
+						action = "delete";
+					else if ( kind === variables.events.ENTRY_MODIFY )
+						action = "change";
+					else
+						throw "Unsupported event: [#kind.name()#]";
+
+					changes.append( {
+						"action" = action,
+						"name" = file.getName(),
+						"size" = file.length(),
+						"dateLastModified" = createObject( "java", "lucee.runtime.op.Caster" ).toDate( file.lastModified() ), // TODO not working!!!
+						"directory" = GetDirectoryFromPath( file.getAbsolutePath() )
+					} );
 				}
 			}
 		}
 		return changes;
-	}	
+	}
 
 }
