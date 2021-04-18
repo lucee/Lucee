@@ -44,10 +44,11 @@
 	
 	// order
 	toOrderedArray(all,true);
-	versionStr = {};
-	versionStr.snapShot = [];
-	versionStr.pre_release = [];
-	versionStr.release = [];
+	versionStr = {
+		snapShot: [],
+		pre_release: [],
+		release: []
+	};
 	if(len(all)){
 		for(versions in all ){
 			if(FindNoCase("SNAPSHOT", versions)){
@@ -59,6 +60,15 @@
 			}
 		}
 	}
+	if (arrayLen(versionStr.release) gt 0)
+		ext_status="Released";
+	else if (arrayLen(versionStr.pre_release))
+		ext_status="Pre Release";
+	else if (arrayLen(versionStr.snapshot))
+		ext_status="Snapshot";
+	else 
+		ext_status="Not Available";
+
 </cfscript>
 
 
@@ -87,10 +97,11 @@
 	<cfset app=installed>
 </cfif>
 <cfset lasProvider=(app.provider?:"")=="local" || findNoCase("lucee.org",app.provider?:'') GT 0>
-<cfoutput>
+<cfoutput encodeFor="html">
 	<!--- title and description --->
 	<div class="modheader">
 		<h2>#app.name# (<cfif isInstalled>#stText.ext.installed#<cfelseif isServerInstalled>#stText.ext.installedServer#<cfelse>#stText.ext.notInstalled#</cfif>)</h2>
+				
 		<cfif !lasProvider>
 		<div class="warning" style="color:##C93">This extension is not provided by the Lucee Association Switzerland and does not neccessarily follow our guidelines. This extension is not reviewed by the Lucee Association Switzerland.
 		For any sugestion to improve the Extension or any issue you encounter, please contact the author of the extension directly.</div>
@@ -102,8 +113,6 @@
 		<br /><br />
 	</div>
 
-	
-					
 	<table class="contentlayout">
 		<tbody>
 			<tr>
@@ -120,6 +129,10 @@
 				<td valign="top">
 					<table class="maintbl">
 						<tbody>
+							<tr class="extension">
+								<th scope="row">#stText.ext.releaseStatus#</th>
+								<td class="extension-status">#ext_status#</td>
+							</tr>
 							<!--- Extension Version --->
 							<cfif isInstalled>
 								<tr>
@@ -136,13 +149,19 @@
 									<th scope="row">Type</th>
 									<td>#installed.trial?"Trial":"Full"# Version</td>
 								</tr>
-
+								<cfif arrayLen(installed.categories)>
+									<tr>
+										<th scope="row">#stText.ext.category#</th>
+										<td>#arrayToList(installed.categories,', ')#</td>
+									</tr>
+								</cfif>
 							<cfelse>
 								<tr>
 									<th scope="row">#stText.ext.availableVersion#</th>
 									<td>#arrayToList(all,', ')#</td>
 								</tr>
 							</cfif>
+						
 							
 							<!--- price --->
 							<cfif !isNull(available.price) && len(trim(available.price))>
@@ -156,6 +175,11 @@
 								<tr>
 									<th scope="row">#stText.ext.category#</th>
 									<td>#available.category#</td>
+								</tr>
+							<cfelseif arrayLen(installed.categories)>
+								<tr>
+									<th scope="row">#stText.ext.category#</th>
+									<td>#arrayToList(installed.categories,', ')#</td>
 								</tr>
 							</cfif>
 							<!--- author --->
@@ -232,7 +256,7 @@ if(isInstalled) installedVersion=toVersionSortable(installed.version);
 			<input type="hidden" name="mainAction_" value="#isInstalled?stText.Buttons.upDown:stText.Buttons.install#">
 			<input type="hidden" name="provider" value="#isNull(available.provider)?"":available.provider#">
 			
-		<table class="maintbl autowidth">
+		<table class="maintbl autowidth version-selector">
 		<tbody>
 		<cfset types="Release,Pre_Release,SnapShot">
 		<cfif arrayLen(all)>
@@ -335,13 +359,7 @@ if(isInstalled) installedVersion=toVersionSortable(installed.version);
 		else
 			$( "##versionForm" ).submit();
 	}
-	</script>
-	<style>
-		.btn {
-			color:white;
-			background-color:##CC0000;
-		}
-	</style>
+	</script>	
 </cfhtmlbody>
 
 

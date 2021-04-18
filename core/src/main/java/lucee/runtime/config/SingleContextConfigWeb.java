@@ -1387,12 +1387,12 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 
 	@Override
 	public ConfigServer getConfigServer(String arg0) throws PageException {
-		return getConfigServer(arg0);
+		return cs.getConfigServer(arg0);
 	}
 
 	@Override
 	public ConfigServer getConfigServer(String arg0, long arg1) throws PageException {
-		return getConfigServer(arg0, arg1);
+		return cs.getConfigServer(arg0, arg1);
 	}
 
 	@Override

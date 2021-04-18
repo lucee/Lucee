@@ -61,6 +61,8 @@
 		<cfloop query="providers">
 			<cfif hash(providers.url) EQ arguments.hashProvider>
 				<cfset detail.provider=loadCFC(providers.url)>
+				<Cfdump var=#detail.provider#>
+				<cfabort>
 				<cfset var apps=detail.provider.listApplications()>
 				<cfset detail.info=detail.provider.getInfo()>
 				<cfset detail.url=providers.url>
@@ -148,7 +150,7 @@
 		<cfreturn detail>
 	</cffunction>
 
-	<cffunction name="getDumpNail" localmode=true>
+	<cffunction name="getDumpNail" localmode=true output="false">
 		<cfargument name="src" required="yes" type="string">
 		<cfargument name="width" required="yes" type="number" default="80">
 		<cfargument name="height" required="yes" type="number" default="40">

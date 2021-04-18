@@ -3607,7 +3607,7 @@ type of the result returned:
 			<description>if set to false, expects all parent directories to exist, true (default) will generate necessary directories</description>
 		</argument>
 		<return>
-			<type>void</type>
+			<type>String</type>
 		</return>
 	</function>
 

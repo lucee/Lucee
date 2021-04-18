@@ -30,6 +30,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.servlet.http.HttpServletResponse;
+
 import lucee.commons.io.SystemUtil;
 import lucee.commons.io.SystemUtil.TemplateLine;
 import lucee.commons.io.res.util.ResourceSnippet;
@@ -760,6 +762,11 @@ public final class DebuggerImpl implements Debugger {
 			scopes.setEL(KeyConstants._cgi, pc.cgiScope());
 			debugging.setEL(KeyConstants._scope, scopes);
 		}
+
+		HttpServletResponse rsp = pc.getHttpServletResponse();
+		debugging.setEL(KeyImpl.getInstance("statusCode"), rsp.getStatus());
+		debugging.setEL(KeyImpl.getInstance("contentType"), rsp.getContentType());
+		// TODO ContentLength ReqRspUtil?
 
 		debugging.setEL(KeyImpl.getInstance("starttime"), new DateTimeImpl(starttime, false));
 		debugging.setEL(KeyConstants._id, pci.getRequestId() + "-" + pci.getId());

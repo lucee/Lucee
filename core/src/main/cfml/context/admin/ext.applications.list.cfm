@@ -99,12 +99,10 @@
 						}
 					}
 					dn=getDumpNail(img,130,50);
-					</cfscript><div class="extensionthumb">
-
-					
-
+					</cfscript>
+					<div class="extensionthumb">
 						<a <cfif _type=="web">href="#link#"<cfelse>style="border-color: ##E0E0E0;"</cfif> title="#_extensions.name#
-Categories: #arrayToList(cat)# 
+#arrayToList(cat)# 
 Installed version: #_extensions.version#<cfif hasUpdates>
 Latest version: #latest.v#</cfif>"><cfif hasUpdates>
        <div class="ribbon-wrapper" <cfif _type=="server">style="border-color:##bf4f36"</cfif>><div class="ribbon" <cfif _type=="server">style="background-color:##bf4f36"</cfif>>UPDATE ME!</div></div>
@@ -234,19 +232,18 @@ Latest version: #latest.v#</cfif>"><cfif hasUpdates>
 <cfif isQuery(external)>
 	<cfset hiddenFormContents = "" >
 	<cfset count = 1>
-
-	<cfloop list="Release,Pre_Release,SnapShot" index="key">
-		<span><input 
-			<cfif count EQ 1>class="bl button" <cfelseif count EQ 3> class="br button" <cfelse> class="bm button" </cfif>
-			style="width:180px"
-			name="changeConnection" 
-			id="btn_#UcFirst(Lcase(key))#" 
-			value="#stText.services.update.short[key]# (#versionStr[key].RecordCount#)" 
-			onclick="enableVersion('#UcFirst(Lcase(key))#');"  
-			type="button"></span>
-		<cfsavecontent variable="tmpContent">
-			<div id="div_#UcFirst(Lcase(key))#" >
-
+	<div class="version-selector">
+		<cfloop list="Release,Pre_Release,SnapShot" index="key">
+			<span><input 
+				<cfif count EQ 1>class="bl btn button" <cfelseif count EQ 3> class="br btn button" <cfelse> class="bm btn button" </cfif>
+				style="width:180px"
+				name="changeConnection" 
+				id="btn_#UcFirst(Lcase(key))#" 
+				value="#stText.services.update.short[key]# (#versionStr[key].RecordCount#)" 
+				onclick="enableVersion('#UcFirst(Lcase(key))#');"  
+				type="button"></span>
+			<cfsavecontent variable="tmpContent">
+				
 				<cfloop query="#versionStr[key]#" group="id">
 					<cfif  (
 						session.extFilter.filter2 eq ""
@@ -255,32 +252,38 @@ Latest version: #latest.v#</cfif>"><cfif hasUpdates>
 						or doFilter(session.extFilter.filter2,info.title?:'',false)
 					)
 					>
-							<cfset link="#request.self#?action=#url.action#&action2=detail&id=#versionStr[key].id#">
-							<cfset dn=getDumpNail(versionStr[key].image,130,50)>
-							<div class="extensionthumb">
+						<cfscript>
+							link="?action=#url.action#&action2=detail&id=#versionStr[key].id#";
+							latest=getLatestVersion(versionStr[key].id);
+							dn=getDumpNail(versionStr[key].image,130,50);
+						</cfscript>
+							<div class="extensionthumb" data-release-type="#UcFirst(Lcase(key))#">
 								<cfset lasProvider=(versionStr[key].provider?:"")=="local" || findNoCase("lucee.org",versionStr[key].provider) GT 0>
 								<cfif not lasProvider><cfset noneLasCounter++></cfif>
-								<a <cfif not lasProvider> style="border-color: ###(lasProvider?'9C9':'FC6')#;"</cfif> href="#link#" title="#stText.ext.viewdetails#">
+								<a <cfif not lasProvider> style="border-color: ###(lasProvider?'9C9':'FC6')#;"</cfif> href="#link#" 
+									title="#versionStr[key].name#
+#arrayToList(cat)# 
+Latest version: #latest.v#
+">
 									<div class="extimg">
 										<cfif len(dn)>
-
-											 <img src="#dn#" style="max-width:130px;max-height:50px"  alt="#stText.ext.extThumbnail#" />
+											<img src="#dn#" style="max-width:130px;max-height:50px"  alt="#stText.ext.extThumbnail#" />
 										</cfif>
 									</div>
 									<cfset listnotinstalled = listnotinstalled+1>
 									<b title="#versionStr[key].name#">#cut(versionStr[key].name,30)#</b><br />
 									<!------>
-									<cfif structKeyExists(versionStr[key],"price") and versionStr[key].price GT 0>#versionStr[key].price# <cfif structKeyExists(versionStr[key],"currency")>#versionStr[key].currency#<cfelse>USD</cfif><cfelse>#stText.ext.free#</cfif>
+									<cfif structKeyExists(versionStr[key],"price") and versionStr[key].price GT 0>#versionStr[key].price# 
+										<cfif structKeyExists(versionStr[key],"currency")>#versionStr[key].currency#<cfelse>USD</cfif><cfelse>#stText.ext.free#</cfif>
 								</a>
 							</div>
 						</cfif>
 				</cfloop>
-			</div>
-			</cfsavecontent>
-			<cfset hiddenFormContents &= tmpContent>
-			<cfset count = count+1>
-	</cfloop>
-
+				</cfsavecontent>
+				<cfset hiddenFormContents &= tmpContent>
+				<cfset count = count+1>
+		</cfloop>
+	</div>
 	<div id="extList" class="extensionlist topBottomSpace">
 		#hiddenFormContents#
 		<div class="clear"></div>
@@ -333,51 +336,37 @@ Latest version: #latest.v#</cfif>"><cfif hasUpdates>
 
 <cfhtmlbody>
 	<script type="text/javascript">
-	$(document).ready(function(){
-		if('#server.lucee.state#' == 'SNAPSHOT')
-			var version = 'Snapshot';
-		else if('#server.lucee.state#' == 'RC')
-			var version = 'Pre_release';
-		else
-			var version = 'Release';
-		enableVersion(version, "intial");
-		$("##btn_"+version).addClass("btn");
-	});
+	
+	function enableVersion(v){
+		var $pre =  $("##btn_Pre_release");
+		var $snap = $("##btn_Snapshot");
+		var $rel = $("##btn_Release");
 
-	function enableVersion(v, i){
-		$("##extList").find('div').each(function(index) {
-			var xx = $(this).attr('id');
-			if(i== 'intial'){
-				$('##div_'+v).show();
-				if("div_"+v != xx){
-					$('##'+xx).hide();
-				}
-				$(".btn").removeClass('btn');
-				$("##btn_"+v).addClass("btn");
-			} else {
-				if("div_"+v == 'div_Release'){
-					$("##btn_Pre_release").removeClass('btn');
-					$("##btn_Snapshot").removeClass('btn');
-					$("##btn_"+v).addClass("btn");
-					$('##'+xx).hide();
-					$('##div_Release').show();
-				}
-				if("div_"+v == 'div_Pre_release') {
-					$("##btn_Release").removeClass('btn');
-					$("##btn_Snapshot").removeClass('btn');
-					$("##btn_"+v).addClass("btn");
-					$('##'+xx).hide();
-					$('##div_Pre_release').show();
-				}
-				if("div_"+v == 'div_Snapshot') {
-					$("##btn_Release").removeClass('btn');
-					$("##btn_Pre_release").removeClass('btn');
-					$("##btn_"+v).addClass("btn");
-					$('##'+xx).hide();
-					$('##div_Snapshot').show();	
-				}
+		switch (v){
+			case "Release":
+				$pre.removeClass('btn');
+				$snap.removeClass('btn');
+				$rel.addClass('btn');
+				break;
+			case "Pre_release":
+				$rel.removeClass('btn');
+				$snap.removeClass('btn');
+				$pre.addClass('btn');
+				break;
+			case "Snapshot":
+				$rel.removeClass('btn');
+				$pre.removeClass('btn');
+				$snap.addClass('btn');
+				break;
+			default:
+				throw new Error("unknown: " + v);
+		}
+
+		$("##extList .extensionthumb").each(
+			function () {
+				$(this).toggle( $(this).data('release-type') == v);
 			}
-		});
+		);
 	}
 	</script>
 </cfhtmlbody>

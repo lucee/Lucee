@@ -27,5 +27,5 @@ WEB-INF
 *.iws
 *.jfr
 
-.idea/
-.vscode/settings.json
+/.vscode
+/.idea
