@@ -287,12 +287,14 @@ public final class SQLCaster {
 			try {
 				xml = conn.createSQLXML();
 			}
-			catch (Exception e) {
+			catch (Throwable t) {// must be a throwable because it throws for example a AbstractMethodError with JDTS, but could also
+									// be other
+				ExceptionUtil.rethrowIfNecessary(t);
 				DatabaseMetaData md = conn.getMetaData();
 				if (md.getJDBCMajorVersion() < 4)
 					throw new DatabaseException("The data type [SQLXML] is not supported with this datasource.", "The datasource JDBC driver compatibility is up to the versions ["
 							+ md.getJDBCMajorVersion() + "." + md.getJDBCMinorVersion() + "], but this feature needs at least [4.0]", null, null);
-				throw Caster.toPageException(e);
+				throw Caster.toPageException(t);
 			}
 
 			xml.setString(Caster.toString(value));
