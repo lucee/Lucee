@@ -54,6 +54,11 @@ component {
 		variables.watcher = false;
 	}
 
+	private function utcTimeToDate(time) {
+		var utc0 = createDateTime(1970,1,1,0,0,0,0,"UTC");
+		return dateAdd( "l", arguments.time, utc0 );
+	}
+
 	private Array function handleEvents( required any key ) {
 		//writeLog( text="WatchService.handleEvents", file="DirectoryWatcher" );
 		var changes = [];
@@ -88,7 +93,7 @@ component {
 						"action" = action,
 						"name" = file.getName(),
 						"size" = file.length(),
-						"dateLastModified" = createObject( "java", "lucee.runtime.op.Caster" ).toDate( file.lastModified() ), // TODO not working!!!
+						"dateLastModified" = utcTimeToDate( file.lastModified() ),
 						"directory" = GetDirectoryFromPath( file.getAbsolutePath() )
 					} );
 				}
