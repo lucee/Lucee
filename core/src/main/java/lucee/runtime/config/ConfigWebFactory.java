@@ -1325,7 +1325,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 		Resource gwDir = componentsDir.getRealResource("lucee/extension/gateway/");
 		create("/resource/context/gateway/",
 				new String[] { "TaskGateway." + COMPONENT_EXTENSION, "DummyGateway." + COMPONENT_EXTENSION, "DirectoryWatcher." + COMPONENT_EXTENSION,
-						"DirectoryWatcherListener." + COMPONENT_EXTENSION, "MailWatcher." + COMPONENT_EXTENSION, "MailWatcherListener." + COMPONENT_EXTENSION,
+						"DirectoryWatcherListener." + COMPONENT_EXTENSION, "WatchService." + COMPONENT_EXTENSION, 
+						"MailWatcher." + COMPONENT_EXTENSION, "MailWatcherListener." + COMPONENT_EXTENSION,
 						"AsynchronousEvents." + COMPONENT_EXTENSION, "AsynchronousEventsListener." + COMPONENT_EXTENSION },
 				gwDir, doNew);
 

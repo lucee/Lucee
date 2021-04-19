@@ -241,7 +241,9 @@ public final class ConfigServerFactory extends ConfigFactory {
 		// Gateway Drivers
 		Resource gDir = adminDir.getRealResource("gdriver");
 		create("/resource/context/admin/gdriver/",
-				new String[] { "TaskGatewayDriver.cfc", "AsynchronousEvents.cfc", "DirectoryWatcher.cfc", "MailWatcher.cfc", "Gateway.cfc", "Field.cfc", "Group.cfc" }, gDir,
+				new String[] { "TaskGatewayDriver.cfc", "AsynchronousEvents.cfc", 
+					"DirectoryWatcher.cfc", "WatchService.cfc", 
+					"MailWatcher.cfc", "Gateway.cfc", "Field.cfc", "Group.cfc" }, gDir,
 				doNew);
 
 		// Logging/appender
