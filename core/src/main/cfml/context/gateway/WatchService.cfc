@@ -2,27 +2,22 @@ component {
 
 	public any function init( required String directory, Boolean recursive = false ) {
 		variables.recursive = arguments.recursive;
+		variables.watcher = CreateObject( "java", "java.nio.file.FileSystems" ).getDefault().newWatchService();
+		variables.events = CreateObject( "java", "java.nio.file.StandardWatchEventKinds" );
+		variables.pathkeys =  CreateObject( "java", "java.util.HashMap" ).init();
+		
 		var file = CreateObject( "java", "java.io.File" ).init( arguments.directory );
 		if ( !file.isDirectory() ) {
 			throw( "Directory '#arguments.directory#' does not exist or is not a directory" );
 		}
-		var dir = CreateObject( "java", "java.nio.file.Paths" );
-		variables.path = dir.get( arguments.directory, [] );
-
-		variables.watcher = CreateObject( "java", "java.nio.file.FileSystems" ).getDefault().newWatchService();
-		variables.events = CreateObject( "java", "java.nio.file.StandardWatchEventKinds" );
-		variables.pathKeys =  CreateObject( "java", "java.util.HashMap" ).init();
-
-		path.register( variables.watcher, [
-			variables.events.ENTRY_MODIFY,
-			variables.events.ENTRY_DELETE,
-			variables.events.ENTRY_CREATE
-		] );
+		
+		register(file.toPath(), arguments.recursive);
 		return this;
 	}
 
 	private void function register( required any path, required Boolean recursive ) {
-		var key = arguments.path.register(variables.watcher, [
+		//writelog( text="register(#arguments.path#, #arguments.recursive#)", file="DirectoryWatcher" );
+		var key = arguments.path.register( variables.watcher, [
 			variables.events.ENTRY_CREATE,
 			variables.events.ENTRY_MODIFY,
 			variables.events.ENTRY_DELETE
@@ -30,7 +25,7 @@ component {
 		variables.pathKeys.put( key, arguments.path );
 		if ( arguments.recursive ) {
 			var files = arguments.path.toFile().listFiles();
-			for (var file in files) {
+			for ( var file in files ) {
 				if ( file.isDirectory() ) {
 					register( file.toPath(), arguments.recursive );
 				}
@@ -54,8 +49,8 @@ component {
 		variables.watcher = false;
 	}
 
-	private function utcTimeToDate( time ) {
-		return dateAdd( "l", arguments.time, 0 );
+	private function utcTimeToDate(required numeric javaFileLastModified) {
+		return dateAdd( "l", arguments.javaFileLastModified, 25569 );
 	}
 
 	private Array function handleEvents( required any key ) {
