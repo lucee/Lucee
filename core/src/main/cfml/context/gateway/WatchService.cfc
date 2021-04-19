@@ -54,9 +54,8 @@ component {
 		variables.watcher = false;
 	}
 
-	private function utcTimeToDate(time) {
-		var utc0 = createDateTime(1970,1,1,0,0,0,0,"UTC");
-		return dateAdd( "l", arguments.time, utc0 );
+	private function utcTimeToDate( time ) {
+		return dateAdd( "l", arguments.time, 0 );
 	}
 
 	private Array function handleEvents( required any key ) {
