@@ -176,7 +176,7 @@
 									<th scope="row">#stText.ext.category#</th>
 									<td>#available.category#</td>
 								</tr>
-							<cfelseif arrayLen(installed.categories)>
+							<cfelseif structKeyExists(installed, "categories") and arrayLen(installed.categories)>
 								<tr>
 									<th scope="row">#stText.ext.category#</th>
 									<td>#arrayToList(installed.categories,', ')#</td>
