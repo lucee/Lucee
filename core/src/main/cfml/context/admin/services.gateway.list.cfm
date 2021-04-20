@@ -1,3 +1,8 @@
+<cfadmin 
+	action="getGatewayEntries"
+	type="#request.adminType#"
+	password="#session["password"&request.adminType]#"
+	returnVariable="entriesevent">
 <cftry>
 	<cfset stVeritfyMessages = StructNew()>
 	<cfswitch expression="#form.mainAction#">
@@ -288,9 +293,17 @@ Redirtect to entry --->
 		<cfset _drivers=ListSort(StructKeyList(drivers),'textnocase')>
 	    <cfif listLen(_drivers)>
 			<h2>#stText.Settings.gateway.titleCreate#</h2>
+			<div class="msg"></div>
 			<cfformClassic onerror="customError" action="#request.self#?action=#url.action#&action2=create" method="post">
 				<table class="maintbl">
 					<tbody>
+						<tr>
+							<td>
+								<cfif arrayIndexExists(queryColumnData(entriesevent,"id"),1)>
+									<input type="hidden" name="existingEvents" value='#serialize(queryColumnData(entriesevent,'id'))#'>
+								</cfif>
+							</td>
+						</tr>
 						<tr>
 							<th scope="row">#stText.Settings.gateway.id#</th>
 							<td><cfinputClassic type="text" name="_id" value="" class="medium" required="yes" message="#stText.Settings.gateway.nameMissing#"></td>
@@ -310,7 +323,7 @@ Redirtect to entry --->
 					<tfoot>
 						<tr>
 							<td colspan="2">
-								<input type="submit" class="bl button submit" name="run" value="#stText.Buttons.create#">
+								<input type="submit" class="bl button submit" onclick="return createEventevent(this, _id, existingEvents,'eventGateway')" name="run" value="#stText.Buttons.create#">
 								<input type="reset" class="br button reset" name="cancel" value="#stText.Buttons.Cancel#">
 							</td>
 						</tr>

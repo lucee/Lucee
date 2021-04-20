@@ -134,6 +134,18 @@ function customError(errors){
 	disableBlockUI=true;
 }
 
+var disableBlockUI = false;
+function createEventevent(v, i, events, eventName) {
+	var json = JSON.parse(events.value);
+	for (j = 0; j < json.length; j++) {
+		if (json[j] == i.value) {
+			$(".msg").empty().append("<div class='error'>Can't overwrite <b>" + eventName + "</b>. Already same name is available. </div>");
+			disableBlockUI = true;
+			return false;
+		}
+	}
+}
+
 function createWaitBlockUI(msg)
 {
 	var _blockUI=function() {
