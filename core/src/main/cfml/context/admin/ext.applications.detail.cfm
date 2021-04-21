@@ -97,7 +97,7 @@
 	<cfset app=installed>
 </cfif>
 <cfset lasProvider=(app.provider?:"")=="local" || findNoCase("lucee.org",app.provider?:'') GT 0>
-<cfoutput encodeFor="html">
+<cfoutput>
 	<!--- title and description --->
 	<div class="modheader">
 		<h2>#app.name# (<cfif isInstalled>#stText.ext.installed#<cfelseif isServerInstalled>#stText.ext.installedServer#<cfelse>#stText.ext.notInstalled#</cfif>)</h2>
