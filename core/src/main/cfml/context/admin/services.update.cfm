@@ -369,7 +369,7 @@
 				else{
 					submitted = true;
 					$('##group_Connection').hide();
-					url='changeto.cfm?#session.urltoken#&adminType=#request.admintype#&version='+frm.value;
+					url='?action=changeto&adminType=#request.admintype#&version='+frm.value;
 					$(document).ready(function(){
 						$('##updateInfoDesc').html('<img src="../res/img/spinner16.gif.cfm">');
 						disableBlockUI=true;
