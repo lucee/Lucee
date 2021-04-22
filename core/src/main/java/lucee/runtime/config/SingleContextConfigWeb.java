@@ -1106,6 +1106,11 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	}
 
 	@Override
+	public String getCfidStorage() {
+		return cs.getCfidStorage();
+	}
+
+	@Override
 	public DebugEntry[] getDebugEntries() {
 		return cs.getDebugEntries();
 	}

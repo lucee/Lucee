@@ -4149,6 +4149,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		admin.updateClientTimeout(getTimespan("admin", action, "clientTimeout"));
 		admin.updateSessionTimeout(getTimespan("admin", action, "sessionTimeout"));
 		admin.updateClientStorage(getString("admin", action, "clientStorage"));
+		admin.updateCfidStorage(getString("admin", action, "cfidStorage"));
 		admin.updateSessionStorage(getString("admin", action, "sessionStorage"));
 		admin.updateApplicationTimeout(getTimespan("admin", action, "applicationTimeout"));
 		admin.updateSessionType(getString("admin", action, "sessionType"));
@@ -4469,6 +4470,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		sct.set("localmode", localMode);
 		sct.set("sessionManagement", Caster.toBoolean(config.isSessionManagement()));
 		sct.set("clientManagement", Caster.toBoolean(config.isClientManagement()));
+		sct.set("cfidStorage", config.getCfidStorage());
 		sct.set("domainCookies", Caster.toBoolean(config.isDomainCookies()));
 		sct.set("clientCookies", Caster.toBoolean(config.isClientCookies()));
 		sct.set("clientStorage", config.getClientStorage());

@@ -89,6 +89,7 @@ public class GetApplicationSettings extends BIF {
 		sct.setEL("clientManagement", Caster.toBoolean(ac.isSetClientManagement()));
 		sct.setEL("clientStorage", ac.getClientstorage());
 		sct.setEL("sessionStorage", ac.getSessionstorage());
+		sct.setEL("cfidStorage", ac.getCfidstorage());
 		sct.setEL("customTagPaths", toArray(ac.getCustomTagMappings()));
 		sct.setEL("componentPaths", toArray(ac.getComponentMappings()));
 		sct.setEL("loginStorage", AppListenerUtil.translateLoginStorage(ac.getLoginStorage()));
@@ -162,8 +163,9 @@ public class GetApplicationSettings extends BIF {
 			wssettings.setEL(KeyConstants._type, AppListenerUtil.toWSType(ac.getWSType(), ((ConfigWebPro) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getTypeAsString()));
 			sct.setEL("wssettings", wssettings);
 		}
-		catch (Exception e) {} // in case the extension is not loaded this will fail // TODO check if the extension is installed
-		// query
+		catch (Exception e) {
+		} // in case the extension is not loaded this will fail // TODO check if the extension is installed
+			// query
 		{
 			Struct query = new StructImpl(Struct.TYPE_LINKED);
 			query.setEL("varusage", AppListenerUtil.toVariableUsage(acs.getQueryVarUsage(), "ignore"));

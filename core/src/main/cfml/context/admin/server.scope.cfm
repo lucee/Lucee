@@ -47,6 +47,7 @@ Defaults --->
 					clientCookies="#isDefined("form.clientCookies") and form.clientCookies#"
 					domaincookies="#isDefined("form.domaincookies") and form.domaincookies#"
 					sessionStorage="#form.sessionStorage#"
+					cfidStorage="#form.cfidStorage#"
 					clientStorage="#form.clientStorage#"
 					cgiReadonly="#isDefined("form.cgiReadonly") and form.cgiReadonly#"
 					remoteClients="#request.getRemoteClients()#">
@@ -73,6 +74,7 @@ Defaults --->
 					clientTimeout=""
 					sessionStorage=""
 					clientStorage=""
+					cfidStorage=""
 					cgiReadonly=""
 					remoteClients="#request.getRemoteClients()#">
 				
@@ -395,6 +397,10 @@ Error Output --->
 						- cookie: the data are stored in the users cookie<br>
 						- &lt;cache-name&gt;: name of a cache instance that has ""Storage"" enabled<br>
 						- &lt;datasource-name&gt;: name of a datasource instance that has ""Storage"" enabled">
+				<cfset stText.Scopes.cfidStorageDesc="Rule how Lucee does load the cfid that defines the session for a user.<br>
+						- load the cfid from URL and if not present from cookie (CFML Default)<br>
+						- load the cfid from the Cookie and if not present from the URL<br>
+						- load the cfid from the Cookie">
 				<cfset stText.Scopes.ClientStorageDesc="Default Storage for Session, possible values are:<br>
 						- memory: the data are only in the memory, so in fact no persistent storage<br>
 						- file: the data are stored in the local filesystem<br>
@@ -454,6 +460,25 @@ Error Output --->
 					</td>
 				</tr>
 				
+
+				<!--- cfid management --->
+				<tr>
+					<th scope="row">#stText.Scopes.cfidStorage#</th>
+					<td>
+						<select name="cfidStorage" class="medium">
+							<option value="cookieOnly" <cfif scope.cfidStorage EQ "cookieOnly">selected</cfif>>#ucFirst(stText.Scopes.cookieOnly)#</option>
+							<option value="cookieIfNotUrl" <cfif scope.cfidStorage EQ "cookieIfNotUrl">selected</cfif>>#ucFirst(stText.Scopes.cookieIfNotUrl)#</option>
+							<option value="urlIfNotCookie" <cfif scope.cfidStorage EQ "urlIfNotCookie">selected</cfif>>#ucFirst(stText.Scopes.urlIfNotCookie)#</option>
+						</select>
+						<div class="comment">#stText.Scopes.cfidStorageDesc#</div>
+
+						<cfsavecontent variable="codeSample">
+							this.cfidStorage = "#scope.cfidStorage#";
+						</cfsavecontent>
+						<cfset renderCodingTip( codeSample )>
+					</td>
+				</tr>
+
 				<!--- client storage --->
 				<tr>
 					<th scope="row">#stText.Scopes.clientStorage#</th>

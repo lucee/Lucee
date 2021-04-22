@@ -73,6 +73,7 @@ public interface ConfigPro extends Config {
 
 	public static final String DEFAULT_STORAGE_SESSION = "memory";
 	public static final String DEFAULT_STORAGE_CLIENT = "cookie";
+	public static final String DEFAULT_STORAGE_CFID = "cookieOnly";
 
 	public static final int QUERY_VAR_USAGE_IGNORE = 1;
 	public static final int QUERY_VAR_USAGE_WARN = 2;
@@ -202,6 +203,8 @@ public interface ConfigPro extends Config {
 	public String getSessionStorage();
 
 	public String getClientStorage();
+
+	public String getCfidStorage();
 
 	public boolean getBufferOutput();
 

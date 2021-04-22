@@ -2607,9 +2607,33 @@ public final class PageContextImpl extends PageContext {
 	 */
 	private void initIdAndToken() {
 		boolean setCookie = true;
-		// From URL
-		Object oCfid = urlScope().get(KeyConstants._cfid, null);
-		Object oCftoken = urlScope().get(KeyConstants._cftoken, null);
+
+		Object oCfid = null;
+		Object oCftoken = null;
+
+		if ("cookieOnly".equals(config.getCfidStorage())) {
+			setCookie = false; // todo
+			oCfid = cookieScope().get(KeyConstants._cfid, null);
+			oCftoken = cookieScope().get(KeyConstants._cftoken, null);
+		}
+
+		if ("urlIfNotCookie".equals(config.getCfidStorage())) {
+			oCfid = cookieScope().get(KeyConstants._cfid, null);
+			oCftoken = cookieScope().get(KeyConstants._cftoken, null);
+			if (oCfid == null) {
+				oCfid = urlScope().get(KeyConstants._cfid, null);
+				oCftoken = urlScope().get(KeyConstants._cftoken, null);
+			}
+		}
+
+		if ("cookieIfNotUrl".equals(config.getCfidStorage())) {
+			oCfid = urlScope().get(KeyConstants._cfid, null);
+			oCftoken = urlScope().get(KeyConstants._cftoken, null);
+			if (oCfid == null) {
+				oCfid = cookieScope().get(KeyConstants._cfid, null);
+				oCftoken = cookieScope().get(KeyConstants._cftoken, null);
+			}
+		}
 
 		// if CFID comes from URL, we only accept if already exists
 		if (oCfid != null) {
@@ -2623,13 +2647,6 @@ public final class PageContextImpl extends PageContext {
 				oCfid = null;
 				oCftoken = null;
 			}
-		}
-
-		// Cookie
-		if (oCfid == null) {
-			setCookie = false;
-			oCfid = cookieScope().get(KeyConstants._cfid, null);
-			oCftoken = cookieScope().get(KeyConstants._cftoken, null);
 		}
 
 		// check cookie value

@@ -3677,6 +3677,15 @@ public final class ConfigWebFactory extends ConfigFactory {
 				else if (hasCS) config.setSessionStorage(configServer.getSessionStorage());
 			}
 
+			// cfid management
+			{
+				String cfidStorage = getAttr(root, "cfidStorage");
+				if (hasAccess && !StringUtil.isEmpty(cfidStorage)) {
+					config.setCfidStorage(cfidStorage);
+				}
+				else if (hasCS) config.setCfidStorage(configServer.getCfidStorage());
+			}
+
 			// Client Timeout
 			String clientTimeout = getAttr(root, "clientTimeout");
 			if (hasAccess && !StringUtil.isEmpty(clientTimeout)) {

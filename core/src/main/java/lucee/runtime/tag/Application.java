@@ -87,6 +87,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 	private Boolean setSessionManagement;
 	private String clientstorage;
 	private String sessionstorage;
+	private String cfidStorage;
 	private Boolean setClientManagement;
 	private TimeSpan applicationTimeout;
 	private TimeSpan sessionTimeout;
@@ -170,6 +171,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		setDomainCookies = null;
 		setSessionManagement = null;
 		clientstorage = null;
+		cfidStorage = null;
 		sessionstorage = null;
 		setClientManagement = null;
 		sessionTimeout = null;
@@ -426,6 +428,10 @@ public final class Application extends TagImpl implements DynamicAttributes {
 
 	public void setSessionstorage(String sessionstorage) {
 		this.sessionstorage = sessionstorage;
+	}
+
+	public void setCfidStorage(String cfidStorage) {
+		this.cfidStorage = cfidStorage;
 	}
 
 	/**
@@ -738,6 +744,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		if (sessionTimeout != null) ac.setSessionTimeout(sessionTimeout);
 		if (clientTimeout != null) ac.setClientTimeout(clientTimeout);
 		if (requestTimeout != null) ac.setRequestTimeout(requestTimeout);
+		if (cfidStorage != null) ac.setCfidstorage(cfidStorage);
 		if (clientstorage != null) {
 			ac.setClientstorage(clientstorage);
 		}

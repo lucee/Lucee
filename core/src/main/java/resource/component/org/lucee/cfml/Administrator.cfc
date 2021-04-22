@@ -2093,6 +2093,7 @@ component {
 			clientTimeout=isNull(arguments.clientTimeout) || isEmpty(arguments.clientTimeout) ? existing.clientTimeout : arguments.clientTimeout
 			sessionTimeout=isNull(arguments.sessionTimeout) || isEmpty(arguments.sessionTimeout) ? existing.sessionTimeout : arguments.sessionTimeout
 			clientStorage=isNull(arguments.clientStorage) || isEmpty(arguments.clientStorage) ? existing.clientStorage : arguments.clientStorage
+			cfidStorage=isNull(arguments.cfidStorage) || isEmpty(arguments.cfidStorage) ? existing.cfidStorage : arguments.cfidStorage
 			sessionStorage=isNull(arguments.sessionStorage) || isEmpty(arguments.sessionStorage) ? existing.sessionStorage : arguments.sessionStorage
 			applicationTimeout=isNull(arguments.applicationTimeout) || isEmpty(arguments.applicationTimeout) ? existing.applicationTimeout : arguments.applicationTimeout
 			sessionType=isNull(arguments.sessionType) || isEmpty(arguments.sessionType) ? existing.sessionType : arguments.sessionType
@@ -2120,6 +2121,7 @@ component {
 			sessionTimeout=""
 			clientStorage=""
 			sessionStorage=""
+			cfidStorage=""
 			applicationTimeout=""
 			sessionType=""
 			localMode=""

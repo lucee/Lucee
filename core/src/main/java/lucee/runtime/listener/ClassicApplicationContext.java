@@ -82,6 +82,7 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	private int loginStorage = -1;
 	private String clientstorage;
 	private String sessionstorage;
+	private String cfidstorage;
 	private int scriptProtect;
 	private boolean typeChecking;
 	private Mapping[] mappings;
@@ -1111,5 +1112,15 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	@Override
 	public void setRegex(Regex regex) {
 		this.regex = regex;
+	}
+
+	@Override
+	public void setCfidstorage(String cfidstorage) {
+		this.cfidstorage = cfidstorage;
+	}
+
+	@Override
+	public String getCfidstorage() {
+		return this.cfidstorage;
 	}
 }

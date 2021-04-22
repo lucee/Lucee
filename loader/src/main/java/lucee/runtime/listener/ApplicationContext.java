@@ -100,6 +100,11 @@ public interface ApplicationContext extends Serializable {
 	public abstract String getClientstorage();
 
 	/**
+	 * @return Returns the cfidstorage.
+	 */
+	public abstract String getCfidstorage();
+
+	/**
 	 * @return if application context has a name
 	 */
 	public abstract boolean hasName();
@@ -156,6 +161,8 @@ public interface ApplicationContext extends Serializable {
 	public void setClientTimeout(TimeSpan clientTimeout);
 
 	public void setClientstorage(String clientstorage);
+
+	public void setCfidstorage(String cfidstorage);
 
 	public void setSessionstorage(String sessionstorage);
 

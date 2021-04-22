@@ -194,7 +194,8 @@ public abstract class ConfigFactory {
 				int count = 1;
 				Resource bugFile;
 				Resource configDir = configFile.getParentResource();
-				while ((bugFile = configDir.getRealResource("lucee-" + type + "." + (count++) + ".buggy")).exists()) {}
+				while ((bugFile = configDir.getRealResource("lucee-" + type + "." + (count++) + ".buggy")).exists()) {
+				}
 				IOUtil.copy(configFile, bugFile);
 				configFile.delete();
 			}
@@ -653,6 +654,7 @@ public abstract class ConfigFactory {
 			moveAsBool("mergeUrlForm", "mergeUrlForm", scope, root);
 			move("clientStorage", "clientStorage", scope, root);
 			move("sessionStorage", "sessionStorage", scope, root);
+			move("cfidStorage", "cfidStorage", scope, root);
 			move("clientTimeout", "clientTimeout", scope, root);
 			move("sessionTimeout", "sessionTimeout", scope, root);
 			move("applicationTimeout", "applicationTimeout", scope, root);
