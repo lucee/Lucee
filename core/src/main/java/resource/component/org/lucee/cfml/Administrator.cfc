@@ -369,6 +369,7 @@ component {
 		boolean allowedCreate=false,
 		boolean allowedGrant=false,
 
+		struct custom={},
 		boolean customUseUnicode=false,
 		string customCharacterEncoding=false,
 		boolean customUseOldAliasMetadataBehavior=false,
@@ -386,18 +387,17 @@ component {
 		driverNames=ComponentListPackageAsStruct("dbdriver",driverNames);
 
 		var driver=createObject("component", drivernames[ arguments.type ]);
-		var custom=structNew();
+		// var custom=structNew();
 		loop collection="#arguments#" item="key"{
-			if(findNoCase("custom",key) EQ 1){
+			if( key != "custom" && findNoCase("custom",key) EQ 1){
 				l=len(key);
-				custom[mid(key,8,l-8+1)]=arguments[key];
+				arguments.custom[mid(key,8,l-8+1)]=arguments[key];
 			}
 		}
 
 		if( arguments.type == "MSSQL" ){
-			custom["databaseName"] = arguments.database;
+			arguments.custom["databaseName"] = arguments.database;
 		}
-
 		admin
 			action="updateDatasource"
 			type="#variables.type#"
@@ -438,7 +438,7 @@ component {
 			allowed_create="#getArguments(arguments, 'allowedCreate',false)#"
 			allowed_grant="#getArguments(arguments, 'allowedGrant',false)#"
 			verify="#arguments.verify#"
-			custom="#custom#"
+			custom="#arguments.custom#"
 			dbdriver="#arguments.type#"
 			remoteClients="#variables.remoteClients#";
 	}
