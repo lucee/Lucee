@@ -97,7 +97,7 @@
 	<cfset app=installed>
 </cfif>
 <cfset lasProvider=(app.provider?:"")=="local" || findNoCase("lucee.org",app.provider?:'') GT 0>
-<cfoutput>
+<cfoutput encodeFor="html">
 	<!--- title and description --->
 	<div class="modheader">
 		<h2>#app.name# (<cfif isInstalled>#stText.ext.installed#<cfelseif isServerInstalled>#stText.ext.installedServer#<cfelse>#stText.ext.notInstalled#</cfif>)</h2>
@@ -293,8 +293,8 @@ if(isInstalled) installedVersion=toVersionSortable(installed.version);
 											}
 											options='<option value="#v#" class="td_#UcFirst(Lcase(key))#" >#btn# #v#</option>'&options;
 										}
+										writeOutput(options);
 										</cfscript>
-										#options#
 								</optgroup>
 							</cfif>
 						</cfloop>
