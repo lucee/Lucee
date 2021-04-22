@@ -1,25 +1,33 @@
 component {
-	pgSQL = getCredentials();
+    pgSQL = getCredentials();
     this.name = "test3426";
     this.datasources["LDEV_3426"] = pgSQL;
-	this.datasource = "LDEV_3426"
+    this.datasource = "LDEV_3426"
     public function onRequestStart(){
-		query{
-			echo("DROP TABLE IF EXISTS LDEV3426_Primary");
-		}
+        if( StructIsEmpty(pgSQL) ){
+            writeoutput("Datasource credentials was not available"); // Datasource credentials was not available means need to stop the iterations.
+            abort;
+        }
         query{
-			echo("DROP TABLE IF EXISTS LDEV3426_test");
-		}
-		query{
-			echo("CREATE TABLE LDEV3426_Primary( id SERIAL NOT NULL PRIMARY KEY, test VARCHAR(50))");
-		}
-	}
+        echo("DROP TABLE IF EXISTS LDEV3426_test");
+        }
+        query{
+            echo("DROP TABLE IF EXISTS LDEV3426_Primary");
+        }
+        query{
+            echo("CREATE TABLE LDEV3426_Primary( id SERIAL NOT NULL PRIMARY KEY, test VARCHAR(50))");
+        }
+    }
     private struct function getCredentials() {
-    	return server.getDatasource("postgres");
-	}
+        return server.getDatasource("postgres");
+    }
     public function onRequestEnd(){
-		query{
-			echo("DROP TABLE IF EXISTS LDEV3426_Primary");
-		}
-	}
+        if( StructIsEmpty(pgSQL) ) return;
+        query{
+            echo("DROP TABLE IF EXISTS LDEV3426_test");
+        }
+        query{
+            echo("DROP TABLE IF EXISTS LDEV3426_Primary");
+        }
+    }
 }
