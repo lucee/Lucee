@@ -12,8 +12,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 				fileWrite(_file,"ABC");
 				fileAppend(_file,"DEF","UTF-8");
 				assertEquals("ABCDEF",trim(fileRead(_file)));
-				_another_file = fileOpen(dir&"test.txt");
-				fileAppend(_file,"GHI","UTF-8");
+				fileResource = fileOpen(dir&"test.txt", "write");
+				fileAppend(fileResource,"ABCDEFGHI","UTF-8");
 				assertEquals("ABCDEFGHI",trim(fileRead(_file)));
 			});
 		});
