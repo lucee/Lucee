@@ -1099,7 +1099,7 @@ Reference Button
 						<cfset sectionId = "Exceptions">
 						<cfset isOpen = this.isSectionOpen( sectionId )>
 
-						<div class="section-title">Caught Exceptions</div>
+						<div class="section-title">Exceptions</div>
 						<table>
 
 							<cfset renderSectionHeadTR( sectionId, "#arrayLen(local.exceptions)# Exception#arrayLen( local.exceptions ) GT 1 ? 's' : ''# Caught" )>

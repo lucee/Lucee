@@ -189,7 +189,7 @@
 					QuerySetCell(qry,"template",sct.tagcontext[1].template&":"&sct.tagcontext[1].line,row);
 				}
 				//dump(qry);
-				print("Caught Exceptions",array('type','message','detail','template'),qry);
+				print("Exceptions",array('type','message','detail','template'),qry);
 			}
 			
 			
