@@ -388,10 +388,10 @@ component {
 
 		var driver=createObject("component", drivernames[ arguments.type ]);
 		// var custom=structNew();
-		loop collection="#arguments#" item="key"{
-			if( key != "custom" && findNoCase("custom",key) EQ 1){
-				l=len(key);
-				arguments.custom[mid(key,8,l-8+1)]=arguments[key];
+		loop collection="#arguments#" item="local.key"{
+			if( local.key != "custom" && findNoCase("custom",local.key) EQ 1){
+				local.l=len(local.key);
+				arguments.custom[mid(local.key,8,local.l-8+1)]=arguments[local.key];
 			}
 		}
 
