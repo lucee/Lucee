@@ -293,8 +293,8 @@ if(isInstalled) installedVersion=toVersionSortable(installed.version);
 											}
 											options='<option value="#v#" class="td_#UcFirst(Lcase(key))#" >#btn# #v#</option>'&options;
 										}
+										writeOutput(options);
 										</cfscript>
-										#options#
 								</optgroup>
 							</cfif>
 						</cfloop>
