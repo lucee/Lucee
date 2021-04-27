@@ -14164,4 +14164,19 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     		<type>boolean</type>
     	</return>
     </function>
+    
+    <function>
+		<name>StringSort</name>
+		<class>lucee.runtime.functions.string.StringSort</class>
+		<description>Returns a string containing the sorted characters from the input.</description>
+    	<argument>
+			<name>inputString</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>Input string.</description>
+    	</argument>
+    	<return>
+    		<type>string</type>
+    	</return>
+    </function>
 </func-lib>
