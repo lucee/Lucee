@@ -29,7 +29,6 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.lang.Md5;
 import lucee.commons.net.HTTPUtil;
 import lucee.commons.security.Credentials;
-import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.op.Caster;
@@ -377,11 +376,11 @@ public final class ScheduleTaskImpl implements ScheduleTask {
 
 	public void log(int level, String msg) {
 		String logName = "schedule task:" + task;
-		((ConfigImpl) ((SchedulerImpl) scheduler).getConfig()).getLog("scheduler").log(level, logName, msg);
+		((SchedulerImpl) scheduler).getConfig().getLog("scheduler").log(level, logName, msg);
 	}
 
 	public void log(int level, String msg, Throwable t) {
 		String logName = "schedule task:" + task;
-		((ConfigImpl) ((SchedulerImpl) scheduler).getConfig()).getLog("scheduler").log(level, logName, msg, t);
+		((SchedulerImpl) scheduler).getConfig().getLog("scheduler").log(level, logName, msg, t);
 	}
 }

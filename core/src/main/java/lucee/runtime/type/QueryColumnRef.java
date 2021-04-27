@@ -407,7 +407,7 @@ public final class QueryColumnRef implements QueryColumn {
 	 */
 	public Array listToArray() throws PageException {
 
-		if (this.query instanceof QueryImpl) return ListUtil.listToArray(((QueryImpl) this.query).getColumnlist(false), ",");
+		if (this.query instanceof QueryImpl) return ListUtil.listToArray(((QueryImpl) this.query).getColumnlist(false, ", "), ",");
 
 		throw new ApplicationException("Query is not of type QueryImpl. Use instead Query.columnArray() or Query.columnList().listToArray().");
 	}

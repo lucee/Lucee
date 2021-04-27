@@ -43,7 +43,15 @@
 		<cfset error.cfcatch=cfcatch>
 	</cfcatch>
 </cftry>
- <cfif request.admintype EQ "web"><cflocation url="#request.self#" addtoken="no"></cfif>
+<cfif request.admintype EQ "web"><cflocation url="#request.self#" addtoken="no"></cfif>
+
+<!--- only available for server --->
+<cfadmin
+    action="getloaderinfo"
+    type="#request.adminType#"
+    password="#session["password"&request.adminType]#"
+    returnVariable="loaderInfo">
+
 <cfset error.message="">
 <cfset error.detail="">
 
@@ -169,7 +177,9 @@
 <cfelse>
 	<!--- <h1>#stText.services.update.luceeProvider#</h1>--->
 	<p>
-		#replace(stText.services.update.titleDesc,'{version}',"<b>"&server.lucee.version&"</b>") #
+		Current Version <b>( #server.lucee.version# )</b><br><br>
+		#stText.services.update.titleDesc#
+		<!--- #replace(stText.services.update.titleDesc,'{version}',"<b>"&server.lucee.version&"</b>") # --->
 	</p>
 
 	<cfset hiddenFormContents = "" >
@@ -359,7 +369,7 @@
 				else{
 					submitted = true;
 					$('##group_Connection').hide();
-					url='changeto.cfm?#session.urltoken#&adminType=#request.admintype#&version='+frm.value;
+					url='?action=changeto&adminType=#request.admintype#&version='+frm.value;
 					$(document).ready(function(){
 						$('##updateInfoDesc').html('<img src="../res/img/spinner16.gif.cfm">');
 						disableBlockUI=true;
@@ -399,7 +409,7 @@
 			});
 		</script>
 	</cfhtmlbody>
-
-	<p class="comment">* #replace(stText.services.update.titleDesc2,'{min-version}',"<b>"&minVersion&"</b>") #</p>
+	<cfset stText.services.update.titleDesc2 = replaceListNoCase(stText.services.update.titleDesc2,'{min-version},{server.lucee.loaderPath}','<b>#minVersion#</b>,<b>#listDeleteAt(loaderInfo.LoaderPath,listlen(loaderInfo.LoaderPath,"\/"),"\/")#</b>')>
+	<p class="comment">* #replace(stText.services.update.titleDesc2,'{context}',"<b class='error'>"&#expandPath("{lucee-server}\patches")#&"</b>") #</p>
 	
 </cfoutput>

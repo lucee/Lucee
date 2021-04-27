@@ -103,7 +103,7 @@
 						addNonCFMLFiles="#data.addNonCFMLFiles[idx]#"
 						append="#not doDownload#"
 						remoteClients="#request.getRemoteClients()#">
-						<cfif doDownload><CFHEADER NAME="Content-Disposition" VALUE="inline; filename=#filename#"><!--- 
+						<cfif doDownload><cfheader name="Content-Disposition" value="inline; filename=#filename#"><!---
 						 ---><cfcontent file="#target#" deletefile="yes" type="application/unknow"></cfif>
 					</cfif>
 				</cfloop>

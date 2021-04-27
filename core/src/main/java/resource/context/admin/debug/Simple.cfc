@@ -101,9 +101,10 @@
 		<cfif !structKeyExists(arguments.custom,'scopes')><cfset arguments.custom.scopes=false></cfif>
 		<cfif !structKeyExists(arguments.custom,'general')><cfset arguments.custom.general="Enabled"></cfif>
 
-		<cfset var time=getTickCount() />
-		<cfset var _cgi=structKeyExists(arguments.debugging,'cgi')?arguments.debugging.cgi:cgi />
 		<cfscript>
+			var time=getTickCount();
+			var _cgi = arguments?.debugging?.scope?.cgi ?: cgi
+
 			if(isNull(arguments.debugging.pages)) 
 				local.pages=queryNew('id,count,min,max,avg,app,load,query,total,src');
 			else local.pages=arguments.debugging.pages;
@@ -251,7 +252,7 @@
 						<cfset isOpen = this.isSectionOpen( sectionId )>
 						<table>
 
-							<cfset renderSectionHeadTR( sectionId, "Template:", "#HTMLEditFormat(_cgi.SCRIPT_NAME)# (#HTMLEditFormat(expandPath(_cgi.SCRIPT_NAME))#)" )>
+							<cfset renderSectionHeadTR( sectionId, "Template:", "#encodeForHtml(_cgi.REQUEST_URL)#<br>#encodeForHtml(expandPath(_cgi.SCRIPT_NAME))#" )>
 
 							<tr>
 								<td class="pad label">User Agent:</td>
@@ -307,7 +308,7 @@
 					</cfif>
 
 					<!--- Abort --->
-					<cfif structKeyExists(debugging,"abort")>
+					<cfif structKeyExists(arguments.debugging,"abort")>
 						<div class="section-title">Abort</div>
 						<table>
 							<tr>
@@ -414,7 +415,7 @@
 						<cfset sectionId = "Exceptions">
 						<cfset isOpen = this.isSectionOpen( sectionId )>
 
-						<div class="section-title">Caught Exceptions</div>
+						<div class="section-title">Exceptions</div>
 						<table>
 
 							<cfset renderSectionHeadTR( sectionId, "#arrayLen(exceptions)# Exception#arrayLen( exceptions ) GT 1 ? 's' : ''# Caught" )>
@@ -633,7 +634,7 @@
 						<cfset local.total  =0>
 						<cfset local.records=0>
 						<cfset local.openConns=0>
-						<cfloop struct="#debugging.datasources#" index="dsn" item="item">
+						<cfloop struct="#arguments.debugging.datasources#" index="dsn" item="item">
 							<cfset local.openConns=item.openConnections>
 						</cfloop>
 
@@ -657,7 +658,7 @@
 											<th>Open Connections</th>
 											<th>Max Connections</th>
 										</tr>
-										<cfloop struct="#debugging.datasources#" index="local.dsName" item="local.dsData">
+										<cfloop struct="#arguments.debugging.datasources#" index="local.dsName" item="local.dsData">
 										<tr>
 											<td class="txt-r">#dsData.name#</td>
 											<td class="txt-r">#dsData.openConnections#</td>
@@ -836,7 +837,7 @@
 
 				<cfoutput>
 				  cookieName: 	"#variables.cookieName#"
-				, bitmaskAll: 	#bitmaskAll#
+				, bitmaskAll: 	#variables.bitmaskAll#
 				, allSections: 	#serializeJSON( this.allSections )#
 				</cfoutput>
 
@@ -880,7 +881,7 @@
 				, selectText:	__LUCEE.util.selectText
 			};
 
-			<cfif !structKeyExists(Cookie, variables.cookieName) || (Cookie[variables.cookieName] == bitmaskAll)>
+			<cfif !structKeyExists(Cookie, variables.cookieName) || (Cookie[variables.cookieName] == variables.bitmaskAll)>
 				var luceeStyle = document.createElement("style");
 				luceeStyle.type = 'text/css';
 				luceeStyle.innerHTML = "#-lucee-debug .collapsed { display: none; }";

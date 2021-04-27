@@ -13,15 +13,12 @@
  * You should have received a copy of the GNU Lesser General Public 
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  * 
- ---><cfsetting showdebugoutput="false">
+ ---> 
+<cfsetting showdebugoutput="false">
 <cftry>
-<cfparam name="session.alwaysNew" default="true" type="boolean">
-<cfinclude template="services.update.functions.cfm">
-
-
-
-
-
+	<cfparam name="session.alwaysNew" default="true" type="boolean">
+	<cfparam name="hasUpdate" default="false">
+	<cfinclude template="services.update.functions.cfm">
 
 	<cfset adminType=url.adminType>
 	<cfset request.adminType=url.adminType>
@@ -63,8 +60,22 @@
 				</cfloop>
 				<cfset available = listlast(get_stable)>
 				<cfset hasUpdate = curr LT available>
-			<cfelse>	
-				<cfset hasUpdate=structKeyExists(updateInfo,"available") && curr LT updateInfo.available>
+			<cfelseif structKeyExists(updateInfo,"available")>
+				<cfset ava_ver = listfirst(updateInfo.available,"-")>
+				<cfset cur_ver = listfirst(curr,"-")>
+				<cfloop from="1" to="#listlen(cur_ver,".")#" index="i">
+					<cfif len(listgetat(ava_ver,i,".")) eq 1>
+						<cfset last = 0&listgetat(ava_ver,i,".")>
+						<cfset ava_ver = listsetat(ava_ver,i,last,".")>
+					</cfif>
+					<cfif len(listgetat(cur_ver,i,".")) eq 1>
+						<cfset last = 0&listgetat(cur_ver,i,".")>
+						<cfset cur_ver = listsetat(cur_ver,i,last,".")>
+					</cfif>
+				</cfloop>
+				<cfset ava_ver = ava_ver&"-"&listlast(updateInfo.available,"-")>
+				<cfset cur_ver = cur_ver&"-"&listlast(curr,"-")>
+				<cfset hasUpdate = structKeyExists(updateInfo,"available") && ava_ver gt cur_ver>
 			</cfif>
 		</cfif>
 
@@ -82,7 +93,6 @@
 				type="#adminType#"
 				password="#password#"
 				returnVariable="providers">
-			
 		
 			<cfset request.adminType=url.adminType>
 			<cfset external=getAllExternalData()>
@@ -99,9 +109,9 @@
 					<cfset uid=extensions.id>
 					<cfset link="">
 					<cfset dn="">
-					<cfset link="#self#?action=ext.applications&action2=detail&id=#uid#">
+					<cfset link="?action=ext.applications&action2=detail&id=#uid#">
 					<cfoutput>
-						<a href="#link#" style="color:red;text-decoration:none;">- #extensions.name#</a><br>
+						<a href="#link#" style="color:red;text-decoration:none;">- #extensions.name#</a> #extensions.version#<br>
 					</cfoutput>
 				</cfloop>
 			</cfsavecontent>
@@ -138,10 +148,7 @@
 					</cfif>
 				</cfloop>
 			</cfif>
-		</cfloop>
---->
-
-
+		</cfloop> --->
 
 		<cfsavecontent variable="content" trim="true">
 			<cfoutput>
@@ -200,3 +207,5 @@
 		</cfoutput>
 	</cfcatch>
 </cftry>
+<!-- no updates available -->
+<cfabort>

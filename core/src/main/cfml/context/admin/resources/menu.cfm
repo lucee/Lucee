@@ -29,8 +29,8 @@
 				struct(action:"error",label:arguments.stMenu.server.error),
 				struct(action:"logging",label:arguments.stMenu.server.logging),
 				struct(action:"regex",label:(arguments.stMenu.server.regex?:"Regex")),
-				struct(action:"export",label:arguments.stMenu.server.export),
-				struct(action:"proxy",label:arguments.stMenu.server.proxy)
+				struct(action:"export",label:arguments.stMenu.server.export)
+				//,struct(action:"proxy",label:arguments.stMenu.server.proxy)
 			)
 		),
 		struct(

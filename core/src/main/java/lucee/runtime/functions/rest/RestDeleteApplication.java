@@ -22,9 +22,9 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.cache.CacheUtil;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.Password;
-import lucee.runtime.config.XMLConfigAdmin;
+import lucee.runtime.config.ConfigAdmin;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.op.Caster;
@@ -40,10 +40,10 @@ public class RestDeleteApplication {
 		Password webAdminPassword = CacheUtil.getPassword(pc, strWebAdminPassword, false);
 
 		Resource dir = RestDeleteApplication.toResource(pc, dirPath);
-		ConfigWebImpl config = (ConfigWebImpl) pc.getConfig();
+		ConfigWebPro config = (ConfigWebPro) pc.getConfig();
 
 		try {
-			XMLConfigAdmin admin = XMLConfigAdmin.newInstance((ConfigWebImpl) pc.getConfig(), webAdminPassword);
+			ConfigAdmin admin = ConfigAdmin.newInstance(pc.getConfig(), webAdminPassword);
 			Mapping[] mappings = config.getRestMappings();
 			Mapping mapping;
 			for (int i = 0; i < mappings.length; i++) {

@@ -56,12 +56,7 @@ public class DummyORMEngine implements ORMEngine {
 	}
 
 	private PageException notInstalled(PageContext pc) {
-		/*
-		 * if(tryToInstall){ try { ConfigWebImpl config = (ConfigWebImpl)
-		 * ThreadLocalPageContext.getConfig(pc); if(config.installServerExtension(HIBERNATE)) return new
-		 * ApplicationException("Hibernate ORM Engine installed, with the next request the extension should work."
-		 * ); } finally { tryToInstall=false; } }
-		 */
+
 		return new ApplicationException("No ORM Engine installed!", "Check out the Extension Store in the Lucee Administrator for \"ORM\".");
 	}
 

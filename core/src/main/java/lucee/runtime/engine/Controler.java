@@ -36,12 +36,13 @@ import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.Mapping;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigAdmin;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigServer;
 import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
+import lucee.runtime.config.DatasourceConnPool;
 import lucee.runtime.config.DeployHandler;
-import lucee.runtime.config.XMLConfigAdmin;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.functions.system.PagePoolClear;
 import lucee.runtime.lock.LockManagerImpl;
@@ -72,6 +73,8 @@ public final class Controler extends Thread {
 	// private final ShutdownHook shutdownHook;
 	private ControllerState state;
 
+	private boolean poolValidate;
+
 	/**
 	 * @param contextes
 	 * @param interval
@@ -82,6 +85,7 @@ public final class Controler extends Thread {
 		this.interval = interval;
 		this.state = state;
 		this.configServer = configServer;
+		this.poolValidate = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.datasource.pool.validate", null), true);
 		// shutdownHook=new ShutdownHook(configServer);
 		// Runtime.getRuntime().addShutdownHook(shutdownHook);
 	}
@@ -202,7 +206,8 @@ public final class Controler extends Thread {
 			try {
 				RHExtension.correctExtensions(configServer);
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 		}
 
 		// every 10 seconds
@@ -220,7 +225,7 @@ public final class Controler extends Thread {
 				ExceptionUtil.rethrowIfNecessary(t);
 			}
 			try {
-				XMLConfigAdmin.checkForChangesInConfigFile(configServer);
+				ConfigAdmin.checkForChangesInConfigFile(configServer);
 			}
 			catch (Throwable t) {
 				ExceptionUtil.rethrowIfNecessary(t);
@@ -259,7 +264,8 @@ public final class Controler extends Thread {
 				try {
 					RHExtension.correctExtensions(config);
 				}
-				catch (Exception e) {}
+				catch (Exception e) {
+				}
 
 				// try{checkStorageScopeFile(config,Session.SCOPE_CLIENT);}catch(Throwable t)
 				// {ExceptionUtil.rethrowIfNecessary(t);}
@@ -306,8 +312,10 @@ public final class Controler extends Thread {
 				}
 				ThreadLocalConfig.register(config);
 
+				LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_TRACE, Controler.class.getName(), "Running background Controller maintenance (every minute).");
+
 				try {
-					((SchedulerImpl) ((ConfigWebImpl) config).getScheduler()).startIfNecessary();
+					((SchedulerImpl) config.getScheduler()).startIfNecessary();
 				}
 				catch (Exception e) {
 					LogUtil.log(ThreadLocalPageContext.getConfig(configServer), Controler.class.getName(), e);
@@ -315,7 +323,7 @@ public final class Controler extends Thread {
 
 				// double check templates
 				try {
-					((ConfigWebImpl) config).getCompiler().checkWatched();
+					((ConfigWebPro) config).getCompiler().checkWatched();
 				}
 				catch (Exception e) {
 					LogUtil.log(ThreadLocalPageContext.getConfig(configServer), Controler.class.getName(), e);
@@ -331,11 +339,17 @@ public final class Controler extends Thread {
 
 				// clear unused DB Connections
 				try {
-					((ConfigImpl) config).getDatasourceConnectionPool().clear(false);
+					for (DatasourceConnPool pool: ((ConfigPro) config).getDatasourceConnectionPools()) {
+						try {
+							pool.evict();
+						}
+						catch (Exception ex) {
+						}
+					}
 				}
-				catch (Throwable t) {
-					ExceptionUtil.rethrowIfNecessary(t);
+				catch (Exception e) {
 				}
+
 				// clear all unused scopes
 				try {
 					cfmlFactory.getScopeContext().clearUnused();
@@ -354,10 +368,11 @@ public final class Controler extends Thread {
 				 */
 				// contract Page Pool
 				try {
-					doClearPagePools((ConfigWebImpl) config);
+					doClearPagePools(config);
 				}
-				catch (Exception e) {}
-				// try{checkPermGenSpace((ConfigWebImpl) config);}catch(Throwable t)
+				catch (Exception e) {
+				}
+				// try{checkPermGenSpace((ConfigWebPro) config);}catch(Throwable t)
 				// {ExceptionUtil.rethrowIfNecessary(t);}
 				try {
 					doCheckMappings(config);
@@ -380,7 +395,7 @@ public final class Controler extends Thread {
 				}
 
 				try {
-					XMLConfigAdmin.checkForChangesInConfigFile(config);
+					ConfigAdmin.checkForChangesInConfigFile(config);
 				}
 				catch (Throwable t) {
 					ExceptionUtil.rethrowIfNecessary(t);
@@ -392,6 +407,9 @@ public final class Controler extends Thread {
 				if (config == null) {
 					config = cfmlFactory.getConfig();
 				}
+
+				LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_TRACE, Controler.class.getName(),"Running background Controller maintenance (every hour).");
+
 				ThreadLocalConfig.register(config);
 
 				// time server offset
@@ -437,7 +455,7 @@ public final class Controler extends Thread {
 		}
 	}
 
-	private void doClearPagePools(ConfigWebImpl config) {
+	private void doClearPagePools(ConfigWeb config) {
 		PagePoolClear.clear(null, config, true);
 	}
 

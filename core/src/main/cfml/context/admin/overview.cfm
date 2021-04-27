@@ -1,6 +1,19 @@
 <!---
 Defaults --->
 
+<cfif structKeyExists(form,"adminMode")>
+		
+	<cfadmin
+		action="updateAdminMode"
+		type="#request.adminType#"
+		password="#session["password"&request.adminType]#"
+		mode="#form.adminMode#"
+		merge="#!isNull(form.switch) && form.switch=="merge"#"
+		keep="#!isNull(form.keep)#">
+	<cflocation url="#request.self#?action=#url.action#" addtoken=false>
+</cfif>
+
+
 <cfset current.label = "Lucee " & server.lucee.version & " - " & current.label>
 <cfset error.message="">
 <cfset error.detail="">
@@ -47,14 +60,8 @@ Defaults --->
 		<cfset error.cfcatch=cfcatch>
 	</cfcatch>
 </cftry>
-<cfadmin 
-	action="surveillance" 
-	type="#request.adminType#" 
-	password="#session["password"&request.adminType]#" 
-	returnVariable="surveillance">
-
 <!---
-Redirtect to entry --->
+Redirect to entry --->
 <cfif cgi.request_method EQ "POST" and error.message EQ "" and form.mainAction NEQ "none">
 	<cflocation url="#request.self#" addtoken="no">
 </cfif>
@@ -90,6 +97,7 @@ Error Output --->
 <cfhtmlbody>
     <script src="../res/js/echarts-all.js.cfm" type="text/javascript"></script>
     <script type="text/javascript">
+    	var chartTimer;
     	labels={'heap':"Heap",'nonheap':"Non-Heap",'cpuSystem':"Whole System",'cpuProcess':"Lucee Process"};
 		function requestData(){
 			jQuery.ajax({
@@ -130,7 +138,8 @@ Error Output --->
 						}
 						window[chrt].setOption(cpuSystemChartOption); // passed the data into the chats
 					});
-					setTimeout(requestData, 1000);
+					if (chartTimer !== null)
+						chartTimer = setTimeout(requestData, 5000);
 				}
 			})
 		}
@@ -248,6 +257,10 @@ Error Output --->
 	<div class="pageintro">
 		#stText.Overview.introdesc[request.adminType]#
 	</div>
+	
+
+
+
 
 	<cfadmin
 		action="getInfo"
@@ -285,6 +298,16 @@ Error Output --->
 	type="#request.adminType#"
 	password="#session["password"&request.adminType]#"
 	returnVariable="contexts">
+<cfadmin
+    action="getExtensions"
+    type="server"
+    password="#session["password"&request.adminType]#"
+    returnVariable="docsServer">
+<cfadmin
+    action="getExtensions"
+    type="web"
+    password="#session["password"&request.adminType]#"
+    returnVariable="docsWeb">
 
 	<cfif request.adminType EQ "server">
 		<cfset names=StructKeyArray(info.servlets)>
@@ -302,6 +325,7 @@ Error Output --->
 			</div>
 		</cfif>
 	</cfif>
+
 	<cfset systemInfo=GetSystemMetrics()>
 
 
@@ -328,14 +352,94 @@ Error Output --->
 
 
 
+
+	<cfset stText.Overview.modeMulti="You are in Multi Mode">
+	<cfset stText.Overview.modeSingle="You are in Single Mode">
+	<cfset stText.Overview.modeMultiDesc="You are running Lucee in Multi Mode, this means you have a single Server Administrator where you can set settings for all web contexts/webs and a Web Administrator for every single web context/web.">
+	<cfset stText.Overview.modeSingleDesc="You are running Lucee in Single Mode, this means you only have a single Administrator, one place where you do all your configurations for all web contexts/webs.
+"> 
+	
+	<cfset stText.Overview.modeMultiSwitch="Switch to Single Mode?">
+	<cfset stText.Overview.modeSingleSwitch="Switch to Multi Mode?">
+	<cfset stText.Overview.modeMultiSwitchDesc="You wanna activate Lucee in Single Mode, this means you only have a single Administrator, one place where you do all your configurations for all web contexts/webs.">
+	<cfset stText.Overview.modeSingleSwitchDesc="You wanna activate Multi Mode, mean having a Server Administrator where you can set settings for all web contexts/webs and a Web Administrator for every single web context/web, you can simply switch to Multi Mode here.">
+
+
+	<cfset stText.Overview.switchMerge="Merge and Switch">
+	<cfset stText.Overview.switchMergeDesc="All settings from all web contexts/webs get stored into the server context">
+	<cfset stText.Overview.switchLeave="Just Switch">
+	<cfset stText.Overview.switchLeaveDesc="Switch to single mode and forget all settings done in all web contexts/webs">
+	
+	<cfset stText.Overview.switchKeep="keep all web context/web configuration in place, so i can go back to multi mode">
+
+
+	<cfset stText.Buttons.switch="Switch">
+
+
+<cfif request.adminType=="server">
+	
+		
+	<cfformClassic onerror="customError" action="#request.self#?action=overview" method="post">
+		<input type="hidden" name="adminMode" value="#request.singlemode?"multi":"single"#">
+		<h2>#stText.Overview[request.singlemode?"modeSingle":"modeMulti"]#</h2>
+		<div class="itemintro">#stText.Overview[request.singlemode?"modeSingleDesc":"modeMultiDesc"]#</div>
+		<table class="maintbl">
+		<tbody>
+			<tr>
+				<th scope="row">
+					<h4>#stText.Overview[request.singlemode?"modeSingleSwitch":"modeMultiSwitch"]#</h4>
+#stText.Overview[request.singlemode?"modeSingleSwitchDesc":"modeMultiSwitchDesc"]#
+				</th>
+				<cfif !request.singleMode>
+	
+				<td>
+					<ul class="radiolist" id="sp_options">
+						<li>
+							<label>
+								<input type="radio" class="radio" name="switch" value="merge" checked="checked">
+								<b>#stText.Overview.switchMerge#</b>
+							</label>
+							<div class="comment">#stText.Overview.switchMergeDesc#</div>
+						</li>
+						<li>
+							<label>
+								<input type="radio" class="radio" name="switch" value="leave">
+								<b>#stText.Overview.switchLeave#</b>
+							</label>
+							<div class="comment">#stText.Overview.switchLeaveDesc#</div>
+						</li>
+					</ul>
+					<br><br>
+					<input type="checkbox" class="checkbox" name="keep" value="keep" checked="checked">
+					<div class="comment">#stText.Overview.switchKeep#</div>
+				</td>
+				</cfif>
+			</tr>
+		</tbody>
+		<tfoot>
+			<tr>
+				<td colspan="2">
+					<input type="submit" class="b button submit" name="mainAction1" value="#stText.Buttons.switch#">
+				</td>
+			</tr>
+		</tfoot>
+		</table>
+</cfformClassic>
+
+</cfif>
+
+
+
+
+
+
 	<table>
 		<tr>
 			<div id="updateInfoDesc"><div style="text-align: center;"><img src="../res/img/spinner16.gif.cfm"></div></div>
 			<cfhtmlbody>
 				<script type="text/javascript">
 					$( function() {
-
-						$('##updateInfoDesc').load('update.cfm?#session.urltoken#&adminType=#request.admintype#');
+						$('##updateInfoDesc').load('?action=update&adminType=#request.admintype#');
 					} );
 				</script>
 			</cfhtmlbody>
@@ -474,7 +578,11 @@ Error Output --->
 		</tr>
 
 
-
+		<cfadmin
+		action="getMinVersion"
+		type="server"
+		password="#session["password"&request.adminType]#"
+		returnVariable="minVersion">
 		<tr>
 			<td valign="top" colspan="3">
 				<br>
@@ -498,7 +606,7 @@ Error Output --->
 									<th nowrap="nowrap" scope="row">#stText.Overview.ReleaseDate#</th>
 									<td>#lsDateFormat(server.lucee['release-date'])#</td>
 								</tr>
-								<cfif request.adminType EQ "web">
+								<cfif !request.singleMode && request.adminType EQ "web">
 								<tr>
 									<th nowrap="nowrap" scope="row">#stText.Overview.label#</th>
 									<td>#info.label#</td>
@@ -537,6 +645,10 @@ Error Output --->
 									<td>#cgi.remote_addr#</td>
 								</tr>
 								<tr>
+									<th scope="row">Loader Version</th>
+									<td>#minversion#</td>
+								</tr>
+								<tr>
 									<th scope="row">#stText.overview.servletContainer#</th>
 									<td>#server.servlet.name#</td>
 								</tr>
@@ -563,7 +675,7 @@ Error Output --->
 									</cfif>
 									</td>
 								</tr>
-								<cfif request.adminType EQ "web">
+								<cfif !request.singleMode && request.adminType EQ "web">
 									<tr>
 										<th scope="row">#stText.Overview.hash#</th>
 										<td>#info.hash#</td>
@@ -674,7 +786,12 @@ Error Output --->
 						<!--- Reference --->
 						<tr>
 							<td>
-								<a href="../doc/index.cfm" target="_blank">#stText.Overview.localRefLink#</a>
+								<cfif Listfind(valueList(docsServer.name),"Lucee Documentation") eq 0 && Listfind(valueList(docsWeb.name),"Lucee Documentation") eq 0>
+									<a href="#cgi.script_name#?action=ext.applications" title="#stText.overview.installDocsLink#">
+										#stText.overview.installDocsLink#</a>
+								<cfelse>
+									<a href="../doc/index.cfm" target="_blank">#stText.Overview.localRefLink#</a>
+								</cfif>
 								<div class="comment">#stText.Overview.localRefDesc#</div>
 							</td>
 						</tr>
@@ -773,7 +890,12 @@ Error Output --->
 <cfscript>
 	function getJavaVersion() {
 		var verArr=listToArray(server.java.version,'.');
-		if(verArr[1]>2) return verArr[1];
-		return verArr[2];
+		if(verArr[1]>2) {
+			return verArr[1];
+		} else if (verArr.len() GT 1) {
+			return verArr[2];
+		} else {
+		    return val(server.java.version);
+		}
 	}
 </cfscript>

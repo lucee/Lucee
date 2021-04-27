@@ -56,6 +56,7 @@
 		*/
 		function output(struct custom, struct debugging, string context="web") {
 			var NL=variables.NL;
+			var _cgi = arguments?.debugging?.scope?.cgi ?: cgi;
 			if (not StructKeyExists(arguments.custom, "unit"))
 				 arguments.custom["unit"] = "millisecond";
 			writeOutput("<!--"&NL);
@@ -73,7 +74,7 @@
 				echo(' (CFML Version '&server.ColdFusion.ProductVersion&')');
 				echo(NL);
 				
-				echo("Template: #htmlEditFormat(cgi.SCRIPT_NAME)# (#htmlEditFormat(getBaseTemplatePath())#)");
+				echo("Template: #encodeForHtml(_cgi.REQUEST_URL)# (#encodeForHtml(getBaseTemplatePath())#)");
 				echo(NL);
 				
 				echo("Time Stamp: #LSDateFormat(now())# #LSTimeFormat(now())#");
@@ -85,13 +86,13 @@
 				echo("Locale: #ucFirst(getLocale())#");
 				echo(NL);
 				
-				echo("User Agent: #cgi.http_user_agent#");
+				echo("User Agent: #_cgi.http_user_agent#");
 				echo(NL);
 				
-				echo("Remote IP: #cgi.remote_addr#");
+				echo("Remote IP: #_cgi.remote_addr#");
 				echo(NL);
 				
-				echo("Host Name: #cgi.server_name#");
+				echo("Host Name: #_cgi.server_name#");
 				echo(NL);
 				
 				if(StructKeyExists(server.os,"archModel") and StructKeyExists(server.java,"archModel")) {
@@ -188,7 +189,7 @@
 					QuerySetCell(qry,"template",sct.tagcontext[1].template&":"&sct.tagcontext[1].line,row);
 				}
 				//dump(qry);
-				print("Caught Exceptions",array('type','message','detail','template'),qry);
+				print("Exceptions",array('type','message','detail','template'),qry);
 			}
 			
 			
@@ -290,10 +291,10 @@
  	}   
     
 function formatUnits(query data,array columns, string unit){
-	loop query="data" {
-    	loop array="#columns#" index="local.col" {
-        	if(listfirst(formatUnit(unit,data[col])," ") gt 0)data[col]=formatUnit(unit,data[col]);
-    		else data[col]='-';
+	loop query="arguments.data" {
+    	loop array="#arguments.columns#" index="local.col" {
+        	if(listfirst(formatUnit(arguments.unit,arguments.data[col])," ") gt 0)data[col]=formatUnit(arguments.unit,arguments.data[col]);
+    		else arguments.data[col]='-';
         }
     }
 }

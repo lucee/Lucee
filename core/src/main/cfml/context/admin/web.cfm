@@ -1,13 +1,17 @@
-<cfif structKeyExists(form, "captchaValue")>
-	<cfset session.cap = form.captchaValue>
-</cfif>
-<cfsilent>
-<cfparam name="request.disableFrame" default="false" type="boolean">
-<cfparam name="request.setCFApplication" default="true" type="boolean">
+<cfscript>
+	
+	if(request.singleMode && right(cgi.script_name,9)!="index.cfm") {
+		location url="index.cfm" addtoken=false;
+	}
 
-<cfif request.setCFApplication>
-	<cfapplication
-		name="webadmin#server.lucee.version#"
+	if(structKeyExists(form, "captchaValue")){
+		session.cap = form.captchaValue;
+	}
+	param name="request.disableFrame" default="false" type="boolean";
+	param name="request.setCFApplication" default="true" type="boolean";
+
+	if(request.setCFApplication) {
+		application name="webadmin#server.lucee.version#"
 		sessionmanagement="yes"
 		clientmanagement="no"
 		setclientcookies="yes"
@@ -18,9 +22,9 @@
 		sessiontimeout="#createTimeSpan(0,0,30,0)#"
 		applicationtimeout="#createTimeSpan(1,0,0,0)#"
 		localmode="update"
-		webcharset="utf-8"
-		>
-</cfif>
+		webcharset="utf-8";
+	}
+</cfscript><cfsilent>
 
 <!--- todo: remember screenwidth, so images have the correct width etc. --->
 <!--- PK: instead of session.screenWidth, we now have:
@@ -41,7 +45,7 @@
 <cfparam name="request.adminType" default="web">
 <cfparam name="form.rememberMe" default="s">
 <cfset ad = request.adminType>
-<cfset request.self = request.adminType & ".cfm">
+<cfset request.self = (request.singleMode?"index": request.adminType )& ".cfm">
 
 <cfparam name="cookie.lucee_admin_lang" default="en">
 <cfset session.lucee_admin_lang = cookie.lucee_admin_lang>
@@ -82,10 +86,10 @@
 			<cfif form.rememberMe != "s">
 				<cfcookie
 					expires="#dateAdd(form.rememberMe, 1, now())#"
-					name="lucee_admin_pw_#server.lucee.version#_#ad#"
+					name="lucee_admin_pw_#ad#"
 					value="#hashedPassword#">
 			<cfelse>
-				<cfcookie expires="Now" name="lucee_admin_pw_#server.lucee.version#_#ad#" value="">
+				<cfcookie expires="Now" name="lucee_admin_pw_#ad#" value="">
 			</cfif>
 			<cfif isDefined("cookie.lucee_admin_lastpage") && cookie.lucee_admin_lastpage != "logout">
 				<cfset url.action = cookie.lucee_admin_lastpage>
@@ -112,20 +116,21 @@
 		<cfif form.rememberMe != "s">
 			<cfcookie
 				expires="#dateAdd(form.rememberMe,1,now())#"
-				name="lucee_admin_pw_#server.lucee.version#_#ad#"
+				name="lucee_admin_pw_#ad#"
 				value="#hashedPassword#">
 		<cfelse>
-			<cfcookie expires="Now" name="lucee_admin_pw_#server.lucee.version#_#ad#" value="">
+			<cfcookie expires="Now" name="lucee_admin_pw_#ad#" value="">
 		</cfif>
 	</cfif>
 </cfif>
-
 <!--- cookie ---->
+
 <cfset fromCookie=false>
-<cfif !structKeyExists(session, "password" & request.adminType) && structKeyExists(cookie,'lucee_admin_pw_#server.lucee.version#_#ad#')>
+<cfif !structKeyExists(session, "password" & request.adminType) && structKeyExists(cookie,'lucee_admin_pw_#ad#')>
 	<cfset fromCookie=true>
+	
 	<cftry>
-		<cfset session["password" & ad]=cookie['lucee_admin_pw_#server.lucee.version#_#ad#']>
+		<cfset session["password" & ad]=cookie['lucee_admin_pw_#ad#']>
 		<cfcatch></cfcatch>
 	</cftry>
 </cfif>
@@ -173,7 +178,6 @@
 <cfinclude template="resources/text.cfm">
 <cfinclude template="web_functions.cfm">
 
-
 <cfif !structKeyExists(application, "adminfunctions") or (structKeyExists(session, "alwaysNew") && session.alwaysNew)>
 	<cfset application.adminfunctions = new adminfunctions() />
 </cfif>
@@ -202,7 +206,7 @@
 			<cfset language.__position=structKeyExists(xml.xmlRoot.XmlAttributes,"position")?xml.xmlRoot.XmlAttributes.position:0>
 		</cfif>
 		<cftry>
-				<cfset xml = XmlSearch(xml, "/languages/language[@key='#lCase(trim(arguments.lang))#']")[1]>
+			<cfset xml = XmlSearch(xml, "/languages/language[@key='#lCase(trim(arguments.lang))#']")[1]>
 			<cfcatch>
 				<!--- fallback to english --->
 				<cfset xml = XmlSearch(xml, "/languages/language[@key='en']")[1]>
@@ -383,6 +387,7 @@
 	else current.action="overview";
 
 	strNav ="";
+	adminUrls = []; // track menu urls for automated testing
 	for(i=1;i lte arrayLen(navigation);i=i+1) {
 		stNavi = navigation[i];
 		hasChildren=structKeyExists(stNavi,"children");
@@ -414,6 +419,7 @@
 
 					isfavorite = application.adminfunctions.isfavorite(_action);
 					li = '<li' & (isfavorite ? ' class="favorite"':'') & '><a '&(isActive?'id="sprite" class="menu_active"':'class="menu_inactive"')&' href="' & request.self & '?action=' &ListCompact( _action,'.') & '"> ' & stCld.label & '</a></li>';
+					ArrayAppend(adminUrls, request.self & '?action=' &ListCompact( _action,'.'));
 					if (isfavorite)
 					{
 						favoriteLis &= '<li class="favorite"><a href="#request.self#?action=#_action#">#stNavi.label# - #stCld.label#</a></li>';
@@ -426,7 +432,10 @@
 		strNav = strNav &'';
 		hasChildren=hasChildren and len(subNav) GT 0;
 		if (!hasChildren) {
-			if (toBool(stNavi,"display"))strNav = strNav & '<li><a href="' & request.self & '?action=' & stNavi.action & '">' & stNavi.label & '</a></li>';
+			if (toBool(stNavi,"display")){
+				strNav = strNav & '<li><a href="' & request.self & '?action=' & stNavi.action & '">' & stNavi.label & '</a></li>';
+				ArrayAppend(adminUrls, request.self & '?action=' & stNavi.action);
+			}
 			//if (toBool(stNavi,"display"))strNav = strNav & '<div class="navtop"><a class="navtop" href="' & request.self & '?action=' & stNavi.action & '">' & stNavi.label & '</a></div>';
 		}
 		else {
@@ -459,6 +468,14 @@
 		return "nav_" & rereplace(arguments.value, "[^0-9a-zA-Z]", "_", "all");
 	}
 	request.getRemoteClients=getRemoteClients;
+
+	// used for automated testing of lucee admin via testbox
+	if (structKeyExists(url, "testUrls") && url.testUrls){
+		setting showdebugoutput="false";
+		content reset="yes" type="application/json";
+		echo(adminUrls.toJson()); abort;
+	}
+
 </cfscript>
 
 <cfif (!structKeyExists(session, "password" & request.adminType))>
@@ -503,6 +520,7 @@
 				$(function() {
 					initMenu();
 					__blockUI=function() {
+						chartTimer = null; // stop the overview page graphs from updating after navigation
 						setTimeout(createWaitBlockUI(<cfoutput>"#JSStringFormat(stText.general.wait)#"</cfoutput>),1000);
 					}
 					$('.submit,.menu_inactive,.menu_active').click(__blockUI);
@@ -524,7 +542,7 @@
 		</cfmodule>
 	</cfif>
 </cfif>
-<cfif (current.action != "overview" || current.action != "chartAjax") && current.action != "services.restart">
+<cfif (current.action != "changeto" || current.action != "overview" || current.action != "chartAjax" || current.action != "update") && current.action != "services.restart">
 	<cfcookie name="lucee_admin_lastpage" value="overview" expires="NEVER">
 <cfelseif current.action == "services.restart">
 	<cfcookie name="lucee_admin_lastpage" value="services.restart" expires="NEVER">

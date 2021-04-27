@@ -31,16 +31,16 @@ import org.apache.log4j.spi.ThrowableInformation;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.log.log4j.LogAdapter;
 import lucee.commons.io.log.log4j.layout.DatasourceLayout;
-import lucee.commons.lang.SystemOut;
 import lucee.commons.lang.types.RefBoolean;
 import lucee.commons.lang.types.RefBooleanImpl;
 import lucee.runtime.PageContext;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.DatasourceConnPool;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DataSourceUtil;
 import lucee.runtime.db.DatasourceConnection;
-import lucee.runtime.db.DatasourceConnectionPool;
+import lucee.runtime.db.DatasourceConnectionPro;
 import lucee.runtime.db.SQL;
 import lucee.runtime.db.SQLImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -61,7 +61,7 @@ public class DatasourceAppender extends JDBCAppender implements Appender {
 		return tableName;
 	}
 
-	private DatasourceConnectionPool pool;
+	private DatasourceConnPool pool;
 	private boolean ignore = true;
 	private DAThreadLocal in = new DAThreadLocal();
 	private Logger logger;
@@ -94,7 +94,8 @@ public class DatasourceAppender extends JDBCAppender implements Appender {
 					getConnection();
 					ignore = false;
 				}
-				catch (Exception e) {}
+				catch (Exception e) {
+				}
 			}
 
 			if (!ignore) super.append(event);
@@ -112,7 +113,7 @@ public class DatasourceAppender extends JDBCAppender implements Appender {
 
 		try {
 			RefBoolean first = new RefBooleanImpl(false);
-			DatasourceConnection conn = pool(first).getDatasourceConnection(config, datasource, username, password);
+			DatasourceConnection conn = pool(first).borrowObject();
 			if (first.toBooleanValue()) touchTable(conn);
 			return conn;
 		}
@@ -163,11 +164,11 @@ public class DatasourceAppender extends JDBCAppender implements Appender {
 
 	}
 
-	private DatasourceConnectionPool pool(RefBoolean first) throws PageException {
+	private DatasourceConnPool pool(RefBoolean first) throws PageException {
 		if (pool == null) {
 			if (first != null) first.setValue(true);
 			if (datasource == null) datasource = config.getDataSource(datasourceName);
-			this.pool = ((ConfigImpl) config).getDatasourceConnectionPool();
+			this.pool = ((ConfigPro) config).getDatasourceConnectionPool(datasource, username, password);
 		}
 		return pool;
 	}
@@ -176,13 +177,8 @@ public class DatasourceAppender extends JDBCAppender implements Appender {
 	protected void closeConnection(Connection conn) {
 		boolean closed = false;
 		if (conn instanceof DatasourceConnection) {
-			try {
-				pool(null).releaseDatasourceConnection((DatasourceConnection) conn);
-				closed = true;
-			}
-			catch (PageException e) {
-				SystemOut.printDate(e);
-			}
+			((DatasourceConnectionPro) conn).release();
+			closed = true;
 		}
 		if (!closed) IOUtil.closeEL(conn);
 	}
@@ -197,7 +193,7 @@ public class DatasourceAppender extends JDBCAppender implements Appender {
 	}
 
 	private Logger getConsoleLogger() {
-		ConfigImpl config = (ConfigImpl) ThreadLocalPageContext.getConfig();
+		ConfigPro config = (ConfigPro) ThreadLocalPageContext.getConfig();
 		if (logger == null) {
 			LogAdapter la = (LogAdapter) config.getLog("console_datasource_appender", true); // TODO use log level from this logger...
 			logger = la.getLogger();

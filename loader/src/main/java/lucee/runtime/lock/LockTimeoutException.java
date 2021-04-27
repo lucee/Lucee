@@ -28,7 +28,7 @@ public final class LockTimeoutException extends Exception {
 	/**
 	 * @param type type of the log
 	 * @param name name of the Lock
-	 * @param timeout
+	 * @param timeout lock timeout
 	 */
 	public LockTimeoutException(final int type, final String name, final int timeout) {
 		// A timeout occurred while attempting to lock lockname

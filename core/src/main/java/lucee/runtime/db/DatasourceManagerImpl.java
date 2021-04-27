@@ -25,10 +25,12 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import lucee.commons.db.DBUtil;
+import lucee.commons.io.IOUtil;
 import lucee.commons.lang.Pair;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.DatabaseException;
 import lucee.runtime.exp.DeprecatedException;
@@ -45,29 +47,24 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 
 	public static final String QOQ_DATASOURCE_NAME = "_queryofquerydb";
 
-	private ConfigImpl config;
-
+	private ConfigPro config;
 	boolean autoCommit = true;
 	private int isolation = Connection.TRANSACTION_NONE;
 	private Map<DataSource, DatasourceConnection> transConns = new HashMap<DataSource, DatasourceConnection>();
-
 	private boolean inside;
 
-	/**
-	 * constructor of the class
-	 * 
-	 * @param pc
-	 */
-	public DatasourceManagerImpl(ConfigImpl c) {
+	public DatasourceManagerImpl(ConfigPro c) {
 		this.config = c;
 	}
 
-	public int getOpenConnections(PageContext pc, String ds, String user, String pass) throws PageException {
-		return config.getDatasourceConnectionPool().getOpenConnection(pc.getDataSource(ds), user, pass);
-	}
+	/*
+	 * public long getOpenConnections(PageContext pc, String ds, String user, String pass) throws
+	 * PageException { return config.getDatasourceConnectionPool(pc.getDataSource(ds), user,
+	 * pass).getBorrowedCount(); }
+	 */
 
-	public int getOpenConnections(PageContext pc, DataSource ds, String user, String pass) throws PageException {
-		return config.getDatasourceConnectionPool().getOpenConnection(ds, user, pass);
+	public long getOpenConnections(PageContext pc, DataSource ds, String user, String pass) throws PageException {
+		return config.getDatasourceConnectionPool(ds, user, pass).getBorrowedCount();
 	}
 
 	@Override
@@ -78,9 +75,8 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 	@Override
 	public DatasourceConnection getConnection(PageContext pc, DataSource ds, String user, String pass) throws PageException {
 		if (autoCommit && !((DataSourcePro) ds).isRequestExclusive()) {
-			return config.getDatasourceConnectionPool().getDatasourceConnection(ThreadLocalPageContext.getConfig(pc), ds, user, pass);
+			return config.getDatasourceConnectionPool(ds, user, pass).borrowObject();
 		}
-
 		pc = ThreadLocalPageContext.get(pc);
 		// DatasourceConnection newDC = _getConnection(pc,ds,user,pass);
 		DatasourceConnectionPro existingDC = null;
@@ -89,10 +85,10 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 
 			// first time that datasource is used within this transaction
 			if (existingDC == null) {
-				DatasourceConnection newDC = config.getDatasourceConnectionPool().getDatasourceConnection(config, ds, user, pass);
+				DatasourceConnection newDC = config.getDatasourceConnectionPool(ds, user, pass).borrowObject();
 				if (!autoCommit) {
 					newDC.setAutoCommit(false);
-					if (isolation != Connection.TRANSACTION_NONE) newDC.setTransactionIsolation(isolation);
+					if (isolation != Connection.TRANSACTION_NONE) DBUtil.setTransactionIsolationEL(newDC.getConnection(), isolation);
 				}
 				transConns.put(ds, newDC);
 				return newDC;
@@ -104,7 +100,7 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 					if (autoCommit) {
 						if (!existingDC.getAutoCommit()) {
 							existingDC.setAutoCommit(true);
-							existingDC.getConnection().setTransactionIsolation(existingDC.getDefaultTransactionIsolation());
+							DBUtil.setTransactionIsolationEL(existingDC.getConnection(), existingDC.getDefaultTransactionIsolation());
 						}
 					}
 					else {
@@ -121,7 +117,7 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 			if (autoCommit) {
 				if (!existingDC.getAutoCommit()) {
 					existingDC.setAutoCommit(true);
-					existingDC.getConnection().setTransactionIsolation(existingDC.getDefaultTransactionIsolation());
+					DBUtil.setTransactionIsolationEL(existingDC.getConnection(), existingDC.getDefaultTransactionIsolation());
 				}
 			}
 			else {
@@ -130,19 +126,15 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 					if (isolation != Connection.TRANSACTION_NONE) existingDC.setTransactionIsolation(isolation);
 				}
 			}
-
 			return existingDC;
 		}
 		catch (SQLException e) {
 			throw new DatabaseException(e, null, existingDC);
-			// ExceptionHandler.printStackTrace(e);
 		}
-		// return newDC;
 	}
 
 	public void add(PageContext pc, ORMSession session) throws PageException {
 		if (autoCommit || inside) return;
-
 		inside = true;
 		try {
 			DataSource[] sources = session.getDataSources();
@@ -156,32 +148,25 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 	}
 
 	private void _add(PageContext pc, ORMSession session, DataSource ds) throws PageException {
-		// ORMDatasourceConnection newDC = new ORMDatasourceConnection(pc,session,ds);
 		DatasourceConnectionPro existingDC = null;
 		try {
 			existingDC = (DatasourceConnectionPro) transConns.get(ds);
-			//
 			if (existingDC == null) {
 				if (isolation == Connection.TRANSACTION_NONE) isolation = Connection.TRANSACTION_SERIALIZABLE;
-
 				ORMDatasourceConnection newDC = new ORMDatasourceConnection(pc, session, ds, isolation);
-
 				transConns.put(ds, newDC);
 				return;
 			}
-
 			if (!DatasourceConnectionImpl.equals(existingDC, ds, null, null)) {
 				// releaseConnection(pc,newDC);
 				throw new DatabaseException("can't use different connections to the same datasource inside a single transaction", null, null, existingDC);
 			}
-
 			if (existingDC.isAutoCommit()) {
 				existingDC.setAutoCommit(false);
 			}
 			return;
 		}
 		catch (SQLException e) {
-			// ExceptionHandler.printStackTrace(e);
 			throw new DatabaseException(e, null, existingDC);
 		}
 	}
@@ -193,7 +178,10 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 
 	private void releaseConnection(PageContext pc, DatasourceConnection dc, boolean ignoreRequestExclusive) {
 		if (autoCommit && (ignoreRequestExclusive || !((DataSourcePro) dc.getDatasource()).isRequestExclusive())) {
-			config.getDatasourceConnectionPool().releaseDatasourceConnection(dc, pc != null && ((PageContextImpl) pc).getTimeoutStackTrace() != null);
+			if (pc != null && ((PageContextImpl) pc).getTimeoutStackTrace() != null) {
+				IOUtil.closeEL(dc);
+			}
+			((DatasourceConnectionPro) dc).release();
 		}
 	}
 
@@ -206,18 +194,15 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 	@Override
 	public void begin(String isolation) {
 		this.autoCommit = false;
-
 		if (isolation.equalsIgnoreCase("read_uncommitted")) this.isolation = Connection.TRANSACTION_READ_UNCOMMITTED;
 		else if (isolation.equalsIgnoreCase("read_committed")) this.isolation = Connection.TRANSACTION_READ_COMMITTED;
 		else if (isolation.equalsIgnoreCase("repeatable_read")) this.isolation = Connection.TRANSACTION_REPEATABLE_READ;
 		else if (isolation.equalsIgnoreCase("serializable")) this.isolation = Connection.TRANSACTION_SERIALIZABLE;
 		else this.isolation = Connection.TRANSACTION_NONE;
-
 	}
 
 	@Override
 	public void begin(int isolation) {
-		// print.out("begin:"+autoCommit);
 		this.autoCommit = false;
 		this.isolation = isolation;
 	}
@@ -225,7 +210,6 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 	@Override
 	public void rollback() throws DatabaseException {
 		if (autoCommit || transConns.size() == 0) return;
-
 		Iterator<DatasourceConnection> it = this.transConns.values().iterator();
 		DatasourceConnection dc = null;
 		Pair<DatasourceConnection, Exception> pair = null;
@@ -316,7 +300,7 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 
 	@Override
 	public void remove(DataSource datasource) {
-		config.getDatasourceConnectionPool().remove(datasource);
+		config.removeDatasourceConnectionPool(datasource);
 	}
 
 	@Override
@@ -348,7 +332,7 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 						continue;
 					}
 					dc.setAutoCommit(true);
-					dc.setTransactionIsolation(((DatasourceConnectionPro) dc).getDefaultTransactionIsolation());
+					DBUtil.setTransactionIsolationEL(dc.getConnection(), ((DatasourceConnectionPro) dc).getDefaultTransactionIsolation());
 
 				}
 				catch (Exception e) {
@@ -381,5 +365,4 @@ public final class DatasourceManagerImpl implements DataSourceManager {
 	public void releaseORM() {
 		end(true);
 	}
-
 }

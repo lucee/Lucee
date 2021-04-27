@@ -182,6 +182,12 @@ final class Perl5Util {
 		for (int i = 0; i < groupCount; i++) {
 			beginOff = result.beginOffset(i);
 			endOff = result.endOffset(i);
+			if (beginOff == -1 && endOff == -1) {
+				posArray.appendEL(Integer.valueOf(0));
+				lenArray.appendEL(Integer.valueOf(0));
+				matchArray.appendEL(null);
+				continue;
+			}
 			posArray.appendEL(Integer.valueOf(beginOff + 1));
 			lenArray.appendEL(Integer.valueOf(endOff - beginOff));
 			matchArray.appendEL(input.substring(beginOff, endOff));

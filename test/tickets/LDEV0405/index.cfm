@@ -24,11 +24,13 @@ function save(string nbr) {
 	e.setUnitId("1");
 	e.setEntityId("2");
 	e.setEntityTypeId("3");
+	systemOutput(nbr);
 	
 	query datasource="ds#nbr#" name="local.q" {
-		echo("select * from INFORMATION_SCHEMA.system_sessions");
-	}
+		echo("select * from INFORMATION_SCHEMA.sessions");  // hyperSQL uses system_sessions, h2 only has sessions
+	}	
 	echo("-"&q.recordcount);
+	
 
 	entitySave(e);
 	//dump(entityLoad("Comp"&nbr));

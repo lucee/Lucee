@@ -64,7 +64,7 @@ import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.NullSupportHelper;
 import lucee.runtime.converter.ScriptConverter;
 import lucee.runtime.db.DataSourceUtil;
@@ -289,12 +289,10 @@ public class QueryImpl implements Query, Objects, QueryResult {
 					// res=stat.getResultSet();
 					// if(fillResult(dc,res, maxrow, true,createGeneratedKeys,tz))break;
 					if (fillResult(qry, qr, keyName, dc, stat.getResultSet(), maxrow, true, createGeneratedKeys, tz)) break;
-
 				}
 				else if ((uc = setUpdateCount(qry != null ? qry : qr, stat)) != -1) {
 					if (uc > 0 && createGeneratedKeys && qry != null) qry.setGeneratedKeys(dc, stat, tz);
 				}
-
 				else break;
 
 				try {
@@ -528,16 +526,31 @@ public class QueryImpl implements Query, Objects, QueryResult {
 					}
 					if (qa != null) qa.appendEL(sct);
 					else {
-						k = sct.get(keyName, CollectionUtil.NULL);
-						if (k == CollectionUtil.NULL) {
-							Struct keys = new StructImpl();
-							for (Collection.Key tmp: columnNames) {
-								keys.set(tmp, "");
+						// QueryStruct
+						if (keyName == null) {
+							// single record struct
+							if (recordcount > 0) {
+								throw new ApplicationException("Attribute [keyColumn] is required when return type is set to Struct and more than one record is returned");
 							}
-							throw StructSupport.invalidKey(null, keys, keyName, "resultset");
+
+							qs.setSingleRecord(true);
+							for (Collection.Key tmp: columnNames) {
+								qs.set(tmp, sct.get(tmp));
+							}
 						}
-						if (k == null) k = "";
-						qs.set(KeyImpl.toKey(k), sct);
+						else {
+							// struct of structs with keyName column as key
+							k = sct.get(keyName, CollectionUtil.NULL);
+							if (k == CollectionUtil.NULL) {
+								Struct keys = new StructImpl();
+								for (Collection.Key tmp: columnNames) {
+									keys.set(tmp, "");
+								}
+								throw StructSupport.invalidKey(null, keys, keyName, "resultset");
+							}
+							if (k == null) k = "";
+							qs.set(KeyImpl.toKey(k), sct);
+						}
 					}
 
 					++recordcount;
@@ -673,16 +686,16 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	 * @param arrColumns columns for the resultset
 	 * @param rowNumber count of rows to generate (empty fields)
 	 * @param name
-	 * @throws DatabaseException
+	 * @throws PageException
 	 */
-	public QueryImpl(Array arrColumns, int rowNumber, String name) throws DatabaseException {
+	public QueryImpl(Array arrColumns, int rowNumber, String name) throws PageException {
 		this.name = name;
 		columncount = arrColumns.size();
 		recordcount = rowNumber;
 		columnNames = new Collection.Key[columncount];
 		columns = new QueryColumnImpl[columncount];
 		for (int i = 0; i < columncount; i++) {
-			columnNames[i] = KeyImpl.init(arrColumns.get(i + 1, "").toString().trim());
+			columnNames[i] = KeyImpl.init(Caster.toString(arrColumns.get(i + 1, "")).trim());
 			columns[i] = new QueryColumnImpl(this, columnNames[i], Types.OTHER, recordcount);
 		}
 		validateColumnNames(columnNames);
@@ -871,7 +884,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 	private boolean getKeyCase(PageContext pc) {
 		pc = ThreadLocalPageContext.get(pc);
-		return pc != null && pc.getCurrentTemplateDialect() == CFMLEngine.DIALECT_CFML && !((ConfigWebImpl) pc.getConfig()).preserveCase();
+		return pc != null && pc.getCurrentTemplateDialect() == CFMLEngine.DIALECT_CFML && !((ConfigWebPro) pc.getConfig()).preserveCase();
 	}
 
 	@Override
@@ -920,7 +933,8 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			if (key.equals(KeyConstants._CURRENTROW)) return new Double(row);
 			if (key.equals(KeyConstants._COLUMNLIST)) return getColumnlist(getKeyCase(ThreadLocalPageContext.get()));
 		}
-		throw new DatabaseException("column [" + key + "] not found in query, columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get())) + "]", null, sql, null);
+		throw new DatabaseException("Column [" + key + "] not found in query", 
+			"available columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get()),", ") + "]", sql, null);
 	}
 
 	@Override
@@ -957,10 +971,10 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		QueryColumn removed = removeColumnEL(key);
 		if (removed == null) {
 			if (key.equals(KeyConstants._RECORDCOUNT) || key.equals(KeyConstants._CURRENTROW) || key.equals(KeyConstants._COLUMNLIST))
-				throw new DatabaseException("can't remove " + key + " this is not a column",
-						"existing columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get())) + "]", null, null);
-			throw new DatabaseException("can't remove column [" + key + "], this column doesn't exist",
-					"existing columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get())) + "]", null, null);
+				throw new DatabaseException("Cannot remove [" + key + "], it is not a column",
+						"available columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get()),", ") + "]", null, null);
+			throw new DatabaseException("Cannot remove column [" + key + "], it doesn't exist",
+					"available columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get()),", ") + "]", null, null);
 		}
 		return removed;
 	}
@@ -1035,7 +1049,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		if (index != -1) {
 			return columns[index].set(row, value, trustType);
 		}
-		throw new DatabaseException("column [" + key + "] does not exist", "columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get())) + "]", sql, null);
+		throw new DatabaseException("Column [" + key + "] does not exist", "columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get()),", ") + "]", sql, null);
 	}
 
 	@Override
@@ -1097,18 +1111,23 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	 * 
 	 * @return string list
 	 */
+
 	public String getColumnlist(boolean upperCase) {
+		return getColumnlist(upperCase, ",");
+	}
+
+	public String getColumnlist(boolean upperCase, String delim) {
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < columnNames.length; i++) {
-			if (i > 0) sb.append(',');
-			sb.append(upperCase ? columnNames[i].getUpperString() : columnNames[i].getString());
+			if (i > 0) sb.append(delim);
+			sb.append(columnNames[i].getString());
 		}
-		return sb.toString();
+		return (upperCase ? sb.toString().toUpperCase() : sb.toString());
 	}
 	/*
 	 * public String getColumnlist() { return getColumnlist(true); }
 	 */
-
+	
 	public boolean go(int index) {
 		return go(index, getPid());
 	}
@@ -1169,7 +1188,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	}
 
 	public void sort(int[] rows) throws PageException {
-		if (rows.length != getRecordcount()) throw new ApplicationException("row count is invalid");
+		if (rows.length != getRecordcount()) throw new ApplicationException("Query Sort row count is invalid, [" + rows.length + "] is not [" + getRecordcount() + "]");
 		for (int i = 0; i < columns.length; i++) {
 			columns[i].sort(rows);
 		}
@@ -1230,7 +1249,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		if (content == null) content = new ArrayImpl();
 		else content = (Array) Duplicator.duplicate(content, false);
 
-		if (getIndexFromKey(columnName) != -1) throw new DatabaseException("column name [" + columnName.getString() + "] already exist", null, sql, null);
+		if (getIndexFromKey(columnName) != -1) throw new DatabaseException("Column name [" + columnName.getString() + "] already exists", null, sql, null);
 		if (content.size() != getRecordcount()) {
 			// throw new DatabaseException("array for the new column has not the same size like the
 			// query
@@ -1307,7 +1326,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			if (key.equals(KeyConstants._CURRENTROW)) return new QueryColumnRef(this, key, Types.INTEGER);
 			if (key.equals(KeyConstants._COLUMNLIST)) return new QueryColumnRef(this, key, Types.INTEGER);
 		}
-		throw new DatabaseException("key [" + key.getString() + "] not found in query, columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get())) + "]", null, sql,
+		throw new DatabaseException("Column [" + key.getString() + "] not found in query, Columns are [" + getColumnlist(getKeyCase(ThreadLocalPageContext.get()), ", ") + "]", null, sql,
 				null);
 	}
 
@@ -1323,7 +1342,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	public synchronized void rename(Collection.Key columnName, Collection.Key newColumnName) throws ExpressionException {
 		int index = getIndexFromKey(columnName);
 		if (index == -1) {
-			throw new ExpressionException("Cannot rename column [" + columnName.getString() + "] to [" + newColumnName.getString() + "], original column doesn't exist");
+			throw new ExpressionException("Cannot rename Column [" + columnName.getString() + "] to [" + newColumnName.getString() + "], original column doesn't exist");
 		}
 		columnNames[index] = newColumnName;
 		columns[index].setKey(newColumnName);

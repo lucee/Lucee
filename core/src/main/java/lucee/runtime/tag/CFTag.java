@@ -36,7 +36,7 @@ import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.component.ComponentLoader;
 import lucee.runtime.component.Member;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.customtag.CustomTagUtil;
 import lucee.runtime.customtag.InitFile;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -343,7 +343,7 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
 		catch (PageException e) {
 			Mapping m = source.getPageSource().getMapping();
 
-			ConfigWebImpl c = (ConfigWebImpl) pageContext.getConfig();
+			ConfigWebPro c = (ConfigWebPro) pageContext.getConfig();
 			if (m == c.getDefaultTagMapping()) m = c.getDefaultServerTagMapping();
 			else m = null;
 			// is te page source from a tag mapping, so perhaps it was moved from server to web context
@@ -593,6 +593,7 @@ public class CFTag extends BodyTagTryCatchFinallyImpl implements DynamicAttribut
 					bodyContent.writeOut(bodyContent.getEnclosingWriter());
 					bodyContent.clearBuffer();
 				}
+				_doCFCFinally();
 				throw Caster.toPageException(t);
 			}
 		}

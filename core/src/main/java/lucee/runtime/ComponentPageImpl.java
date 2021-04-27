@@ -36,11 +36,12 @@ import lucee.commons.io.res.Resource;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.CFTypes;
 import lucee.commons.lang.ExceptionUtil;
+import lucee.commons.lang.HTMLEntities;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.lang.mimetype.MimeType;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.component.StaticStruct;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.converter.BinaryConverter;
 import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.JSONConverter;
@@ -130,8 +131,8 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 			// load the cfc
 			try {
 				if (internalCall && strRemotePersisId != null) {
-					ConfigWebImpl config = (ConfigWebImpl) pc.getConfig();
-					GatewayEngineImpl engine = config.getGatewayEngine();
+					ConfigWebPro config = (ConfigWebPro) pc.getConfig();
+					GatewayEngineImpl engine = (GatewayEngineImpl) config.getGatewayEngine();
 					component = engine.getPersistentRemoteCFC(strRemotePersisId);
 
 					if (component == null) {
@@ -159,18 +160,20 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 
 			// METHOD INVOCATION
 			String qs = ReqRspUtil.getQueryString(pc.getHttpServletRequest());
+
 			if (pc.getBasePageSource() == this.getPageSource() && pc.getConfig().debug()) pc.getDebugger().setOutput(false);
+
 			boolean isPost = pc.getHttpServletRequest().getMethod().equalsIgnoreCase("POST");
 
 			boolean suppressContent = pc.getRequestDialect() == CFMLEngine.DIALECT_LUCEE || ((PageContextImpl) pc).getSuppressContent();
 			if (suppressContent) pc.clear();
-			Object method;
 
 			if (fromRest) {
-
 				callRest(pc, component, Caster.toString(req.getAttribute("rest-path"), ""), (Result) req.getAttribute("rest-result"), suppressContent);
 				return null;
 			}
+
+			Object method;
 
 			// POST
 			if (isPost) {
@@ -186,7 +189,6 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 					// close(pc);
 					return null;
 				}
-
 			}
 
 			// GET
@@ -266,7 +268,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 		return pc.urlScope().get(key, defaultValue);
 	}
 
-	private void callRest(PageContext pc, Component component, String path, Result result, boolean suppressContent) throws IOException, ConverterException {
+	private void callRest(PageContext pc, Component component, String path, Result result, boolean suppressContent) throws PageException, IOException, ConverterException {
 		String method = pc.getHttpServletRequest().getMethod();
 		String[] subPath = result.getPath();
 		Struct cMeta;
@@ -361,11 +363,13 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 				}
 				catch (PageException pe) {
 					pc.getConfig().getLog("rest").error("REST", pe);
+					throw pe;
 				}
 			}
 		}
+
 		if (status == 404) {
-			RestUtil.setStatus(pc, 404, "no rest service for [" + path + "] found");
+			RestUtil.setStatus(pc, 404, "no rest service for [" + HTMLEntities.escapeHTML(path) + "] found");
 			pc.getConfig().getLog("rest").error("REST", "404; no rest service for [" + path + "] found");
 		}
 		else if (status == 405) {
@@ -438,6 +442,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 		catch (PageException e) {
 			RestUtil.setStatus(pc, 500, ExceptionUtil.getMessage(e));
 			pc.getConfig().getLog("rest").error("REST", e);
+			throw e;
 		}
 		finally {
 			if (suppressContent) pc.unsetSilent();
@@ -483,6 +488,7 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 				}
 			}
 		}
+
 		// convert result
 		if (rtn != null && !hasContent) {
 			Props props = new Props();
@@ -971,12 +977,12 @@ public abstract class ComponentPageImpl extends ComponentPage implements PagePro
 		}
 		// create a wsdl file
 		else {
-			((ConfigWebImpl) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getWSServer(pc).doGet(pc, pc.getHttpServletRequest(), pc.getHttpServletResponse(), component);
+			((ConfigWebPro) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getWSServer(pc).doGet(pc, pc.getHttpServletRequest(), pc.getHttpServletResponse(), component);
 		}
 	}
 
 	private void callWebservice(PageContext pc, Component component) throws IOException, ServletException, PageException {
-		((ConfigWebImpl) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getWSServer(pc).doPost(pc, pc.getHttpServletRequest(), pc.getHttpServletResponse(), component);
+		((ConfigWebPro) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getWSServer(pc).doPost(pc, pc.getHttpServletRequest(), pc.getHttpServletResponse(), component);
 	}
 
 	/**

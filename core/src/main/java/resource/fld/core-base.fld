@@ -6,7 +6,7 @@
 	<short-name>fbase</short-name>
 	<uri>https://www.lucee.org/cf-fld-3-1</uri>
 	<display-name>Lucee Core Function Library</display-name>
-	<description>All build in Functions of Lucee</description>
+	<description>All built in Functions of Lucee</description>
 	
 	<!-- abs -->
 	<function>
@@ -88,6 +88,17 @@
 			<type>array</type>
 		</return>
 	</function>
+	
+	<!-- ApplicationPathCacheClear -->
+	<function>
+		<name>ApplicationPathCacheClear</name>
+		<class>lucee.runtime.functions.other.ApplicationPathCacheClear</class>
+		<description>flush the application.[cfc|cfm] path cache</description>
+		<return>
+			<type>void</type>
+		</return>
+	</function>
+	
 	<!-- arrayAppend -->
 	<function>
 		<name>arrayAppend</name>
@@ -429,6 +440,7 @@ All elements in the array must contain values that can be converted to numeric.<
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -491,6 +503,7 @@ All elements in the array must contain values that can be converted to numeric.<
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -530,6 +543,7 @@ All elements in the array must contain values that can be converted to numeric.<
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -721,6 +735,7 @@ Remember CFML arrays start at 1 not 0.</description>
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -760,6 +775,7 @@ Remember CFML arrays start at 1 not 0.</description>
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -776,8 +792,8 @@ Remember CFML arrays start at 1 not 0.</description>
 		<class>lucee.runtime.functions.list.ListMap</class>
 		<member-name>listMap,map</member-name>
 		<keywords>string,list,iterator</keywords>
-		<description>Calls the given closure with every element in the given array.
-		the function returns an array that contains all values returned by the closure.</description>
+		<description>Calls the given closure with every element in the given list.
+		The function returns a list that contains all values returned by the closure.</description>
 		<argument>
 			<name>list</name>
 			<type>string</type>
@@ -821,6 +837,7 @@ Remember CFML arrays start at 1 not 0.</description>
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -862,6 +879,7 @@ Remember CFML arrays start at 1 not 0.</description>
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -910,6 +928,7 @@ Remember CFML arrays start at 1 not 0.</description>
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -951,7 +970,7 @@ Remember CFML arrays start at 1 not 0.</description>
 			<name>array</name>
 			<type>array</type>
 			<required>Yes</required>
-			<description>array to substract data from</description>
+			<description>array to extract data from</description>
 	    </argument>
 		<argument>
 			<name>start</name>
@@ -1053,6 +1072,58 @@ Remember CFML arrays start at 1 not 0.</description>
 			<type>boolean</type>
 		</return>
 	</function>
+	
+	<!-- arrayPop -->
+	<function>
+		<name>arrayPop</name>
+		<class>lucee.runtime.functions.arrays.ArrayPop</class>
+		<member-name>pop</member-name>
+		<member-chaining>false</member-chaining>
+		<keywords>array</keywords>
+		<description>pops the last element from an array. In case the array is empty an exception is thrown, 
+			unless the second argument "defaultValue" is provided, in that case that value is returned.</description>
+		<argument>
+			<name>array</name>
+			<type>array</type>
+			<required>Yes</required>
+			<description>Name of an array</description>
+    	</argument>
+		<argument>
+			<name>defaultValue</name>
+			<type>any</type>
+			<required>no</required>
+			<description>this value is returned in case the array is empty</description>
+    	</argument>
+		<return>
+			<type>any</type>
+		</return>
+	</function>
+	
+	<!-- arrayPush -->
+	<function>
+		<name>arrayPush</name>
+		<class>lucee.runtime.functions.arrays.ArrayPush</class>
+		<member-name>push</member-name>
+		<member-chaining>false</member-chaining>
+		<keywords>array</keywords>
+		<description>Inserts an array element at the end of an array and return the new size of the array.</description>
+		<argument>
+			<name>array</name>
+			<type>array</type>
+			<required>Yes</required>
+			<description>Name of an array</description>
+    	</argument>
+		<argument>
+			<name>value</name>
+			<type>any</type>
+			<required>Yes</required>
+			<description>value to prepend</description>
+    	</argument>
+		<return>
+			<type>numeric</type>
+		</return>
+	</function>
+	
 	<!-- arrayResize -->
 	<function>
 		<name>arrayResize</name>
@@ -1138,6 +1209,33 @@ Remember CFML arrays start at 1 not 0.</description>
 			<type>boolean</type>
 		</return>
 	</function>
+	
+	<!-- arrayShift -->
+	<function>
+		<name>arrayShift</name>
+		<class>lucee.runtime.functions.arrays.ArrayShift</class>
+		<member-name>shift</member-name>
+		<member-chaining>false</member-chaining>
+		<keywords>array</keywords>
+		<description>pops the first element from an array and shift the rest of the values to the left. In case the array is empty an exception is thrown, 
+			unless the second argument "defaultValue" is provided, in that case that value is returned.</description>
+		<argument>
+			<name>array</name>
+			<type>array</type>
+			<required>Yes</required>
+			<description>array to shift</description>
+    	</argument>
+		<argument>
+			<name>defaultValue</name>
+			<type>any</type>
+			<required>No</required>
+			<description>this value is returned in case the array is empty</description>
+    	</argument>
+		<return>
+			<type>any</type>
+		</return>
+	</function>
+	
 	<!-- arraySlice -->
 	<function>
 		<name>arraySlice</name>
@@ -1184,17 +1282,18 @@ Remember CFML arrays start at 1 not 0.</description>
 		<description>Name of an array </description>
     </argument>
 		<argument>
-			<name>sorttype_or_closure</name>
+			<name>sortType_or_closure</name>
 			<alias>sort_type,sortType,closure,function,udf,callback</alias>
 			<type>object</type>
-			<required>Yes</required>
+			<required>No</required>
+			<default>textNoCase</default>
 		<description>
 value can be a string or a closure/function.
 		
 a string must be one of the following values:
 - "numeric": sorts numbers
 - "text": sorts text alphabetically, taking case into account (case sensitive)
-- "textnocase": sorts text alphabetically, without regard to case (case insensitive)
+- "textNoCase" (default): sorts text alphabetically, without regard to case (case insensitive)
 
 if you define a closure/function, the closure/function must accept 2 parameters of any type and return:
 -1, if first parameter is "smaller" than second parameter
@@ -1224,6 +1323,57 @@ sort direction:
     </argument>
 		<return>
 			<type>boolean</type>
+		</return>
+	</function>
+	
+	<!-- ArraySplice -->
+	<function>
+		<name>ArraySplice</name>
+		<class>lucee.runtime.functions.arrays.ArraySplice</class>
+		<member-name>splice</member-name>
+		<keywords>array</keywords>
+		<description>Modifies an array by removing elements and adding new elements. 
+			It starts from the index, removes as many elements as specified by elementCountForRemoval, 
+			and puts the replacements starting from index position.
+			Return the removed elements.
+		</description>
+		<argument>
+			<name>array</name>
+			<type>array</type>
+			<required>Yes</required>
+			<description>the array to modify.</description>
+		</argument>
+		<argument>
+			<name>index</name>
+			<alias>offset</alias>
+			<type>numeric</type>
+			<required>Yes</required>
+			<description>The position at which to start modifying the array. If the index is greater than the length of the array,
+				the index is set to the length of the array. 
+				If the index is less than 1, the index is set to 1.
+			</description>
+		</argument>
+		<argument>
+			<name>length</name>
+			<alias>len,elementCountForRemoval</alias>
+			<type>numeric</type>
+			<required>No</required>
+			<description>The number of elements to be removed starting with the start index.
+				If length is 0 or smaller than -1, no elements get removed.
+				if length is -1 or GTE than array length-index, all elements after index get removed.
+			</description>
+		</argument>
+		<argument>
+			<name>replacements</name>
+			<alias>replacement</alias>
+			<type>array</type>
+			<required>No</required>
+			<description>
+				Array to be added to the array starting with index.
+			</description>
+		</argument>
+		<return>
+			<type>array</type>
 		</return>
 	</function>
 	
@@ -1276,6 +1426,34 @@ sort direction:
 			<type>boolean</type>
 		</return>
 	</function>
+	
+	<!-- arrayUnShift -->
+	<function>
+		<name>arrayUnShift</name>
+		<class>lucee.runtime.functions.arrays.ArrayUnShift</class>
+		<member-name>unShift</member-name>
+		<member-chaining>false</member-chaining>
+		<keywords>array</keywords>
+		<description>Adds an element at the beginning of the array and shifts the rest of the elements to the right.</description>
+		<argument>
+			<name>array</name>
+			<type>array</type>
+			<required>Yes</required>
+			<description>array to add element</description>
+    	</argument>
+		<argument>
+			<name>value</name>
+			<type>any</type>
+			<required>Yes</required>
+			<description>element to add.</description>
+    	</argument>
+		<return>
+			<type>numeric</type>
+		</return>
+	</function>
+	
+	
+	
 	<!-- arrayToList -->
 	<function>
 		<name>arrayToList</name>
@@ -1297,7 +1475,7 @@ sort direction:
 			<type>string</type>
 			<required>No</required>
 			<default>,</default>
-		<description>Character or multicharacter string to separate list elements. The default value is comma.</description>
+		<description>Character or multiCharacter string to separate list elements. The default value is comma.</description>
     </argument>
 		<return>
 			<type>string</type>
@@ -1309,13 +1487,20 @@ sort direction:
 		<class>lucee.runtime.functions.arrays.ArrayToStruct</class>
 		<member-name>toStruct</member-name>
 		<keywords>array,struct</keywords>
-		<description>Transform the array to a struct, the index of the array is the key of the struct</description>
+		<description>Transform the array to a struct, by default, the index of the array is the key of the struct</description>
 		<argument>
 			<name>array</name>
 			<type>array</type>
 			<required>Yes</required>
-		<description>array to translate</description>
-    </argument>
+			<description>array to translate</description>
+		</argument>
+		<argument>
+			<name>valueAsKey</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>use the value as the key of the struct, rather than the index</description>
+		</argument>
 		<return>
 			<type>struct</type>
 		</return>
@@ -1350,7 +1535,7 @@ sort direction:
 		<member-name>aSin</member-name>
 		<class>lucee.runtime.functions.math.ASin</class>
 		<keywords>number,math</keywords>
-		<description>Determines the arcsine of a number. The arcsine is the angle
+		<description>Determines the arcSine of a number. The arcSine is the angle
         whose sine is number.</description>
 		<argument>
 			<name>number</name>
@@ -1368,7 +1553,7 @@ sort direction:
 		<member-name>atn</member-name>
 		<class>lucee.runtime.functions.math.Atn</class>
 		<keywords>number,math</keywords>
-		<description>Arctangent function. The arctangent is the angle whose tangent
+		<description>ArcTangent function. The arcTangent is the angle whose tangent
         is number.</description>
 		<argument>
 			<name>number</name>
@@ -1396,7 +1581,7 @@ sort direction:
 		<description>A string containing encoded binary data.</description>
     </argument>
 		<argument>
-			<name>binaryencoding</name>
+			<name>binaryEncoding</name>
 			<alias>encoding</alias>
 			<type>string</type>
 			<required>Yes</required>
@@ -1906,7 +2091,7 @@ sort direction:
 			<alias>name,key</alias>
 			<type>string</type>
 			<required>yes</required>
-			<description>name of the element you need metadat for</description>
+			<description>name of the element to get metadata from</description>
 		</argument>
 		<argument>
 			<name>cacheName</name>
@@ -2100,7 +2285,6 @@ sort direction:
 		<name>TrimWhiteSpace</name>
 		<class>lucee.runtime.functions.string.TrimWhiteSpace</class>
 		<member-name>trimWhiteSpace</member-name>
-		<status>hidden</status>
 		<keywords>string</keywords>
 		<description>clean white space of the given string</description>
 		<argument>
@@ -2172,8 +2356,7 @@ sort direction:
 	<function>
 		<name>ComponentListPackage</name>
 		<class>lucee.runtime.functions.component.ComponentListPackage</class>
-		<status>hidden</status>
-		<description>this implementation is experimentell. list all components in a certain package, throws an application exception if package does not exist.</description>
+		<description>List all components in a certain package, throws an application exception if package does not exist.</description>
 		<argument>
 			<name>package</name>
 			<alias>packageName,name</alias>
@@ -2236,7 +2419,7 @@ sort direction:
 	<function>
 		<name>ctCacheClear</name>
 		<class>lucee.runtime.functions.other.CTCacheClear</class>
-		<description>flush the customtag path cache</description>
+		<description>flush the customTag path cache</description>
 		<return>
 			<type>void</type>
 		</return>
@@ -2245,7 +2428,7 @@ sort direction:
 	<function>
 		<name>ctCacheList</name>
 		<class>lucee.runtime.functions.other.CTCacheList</class>
-		<description>list elements in the customtag path cache</description>
+		<description>list elements in the customTag path cache</description>
 		<return>
 			<type>struct</type>
 		</return>
@@ -2514,7 +2697,6 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<!-- WebserviceNew -->
 	<function>
 		<name>WebserviceNew</name>
-		<status>hidden</status>
 		<class>lucee.runtime.functions.other.WebserviceProxy</class>
         <introduced>5.0.0.0</introduced>
         <description>create a Webservice Proxy object, a reference to a remote webservice</description>
@@ -2687,12 +2869,12 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<member-position>3</member-position>
 		
 		<description>Adds units of time to a date.
-        [datepart - quickly]
+        [datePart - quickly]
         yyyy: Year; q: Quarter; m: Month; y: Day of year; d: Day
         w: Weekday; ww: Week; h: Hour; n: Minute; s: Second;
         l: Millisecond</description>
 		<argument>
-			<name>datepart</name>
+			<name>datePart</name>
 			<type>string</type>
 			<required>Yes</required>
 		<description>one of the following:
@@ -2713,7 +2895,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>number</name>
 			<type>number</type>
 			<required>Yes</required>
-		<description>Number of units of datepart to add to date (positive, to get dates in the future; negative, to get dates in the past). Number must be an integer.</description>
+		<description>Number of units of datePart to add to date (positive, to get dates in the future; negative, to get dates in the past). Number must be an integer.</description>
     </argument>
 		<argument>
 			<name>date</name>
@@ -2745,7 +2927,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<description>datetime object</description>
     </argument>
 		<argument>
-			<name>datepart</name>
+			<name>datePart</name>
 			<type>string</type>
 			<required>No</required>
 			<default>s</default>
@@ -2795,7 +2977,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<member-position>2</member-position>
 		<description>Determines the number of given date parts between two different dates</description>
 		<argument>
-			<name>datepart</name>
+			<name>datePart</name>
 			<type>string</type>
 			<required>Yes</required>
 		<description>String that specifies the units in which to count:
@@ -2868,7 +3050,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<description>Determines the day of the week as a string from 1-7</description>
 		<argument>
 			<name>day_of_week</name>
-			<alias>dayofweek</alias>
+			<alias>dayOfWeek</alias>
 			<type>number</type>
 			<required>Yes</required>
 		<description>Integer, in the range 1 (Sunday) - 7 (Saturday).</description>
@@ -2946,7 +3128,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>date</name>
 			<type>datetime</type>
 			<required>Yes</required>
-		<description>Dateobject</description>
+		<description>Date object</description>
     </argument>
 		<argument>
 			<name>timezone</name>
@@ -2974,7 +3156,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<description>clears all existing datasource connection</description>
 		<argument>
 			<name>datasource</name>
-			<alias>datasourcename,name,ds</alias>
+			<alias>datasourceName,name,ds</alias>
 			<type>string</type>
 			<required>no</required>
 			<description>specific datasource to clear, if not set all datasources get removed.</description>
@@ -3383,7 +3565,7 @@ Filter to be used to filter the results:
 			<description>Query columns by which to sort a directory listing. Delimited list of columns from query output.
 To qualify a column, use one of the following values:
 asc: ascending (a to z) sort order.
-dec: descending (z to a) sort order.
+desc: descending (z to a) sort order.
 </description>
 		</argument>
 		<argument>
@@ -3425,7 +3607,7 @@ type of the result returned:
 			<description>if set to false, expects all parent directories to exist, true (default) will generate necessary directories</description>
 		</argument>
 		<return>
-			<type>void</type>
+			<type>String</type>
 		</return>
 	</function>
 
@@ -3471,7 +3653,7 @@ type of the result returned:
 			<type>any</type>
 		</return>
 	</function>
-	<!-- _javabaseddump -->
+	<!-- _javaBasedDump -->
 	<function>
 		<name>_dump</name>
 		<class>lucee.runtime.functions.other.Dump</class>
@@ -3526,7 +3708,7 @@ type of the result returned:
 		<description></description>
     </argument>
 		<argument>
-			<name>metainfo</name>
+			<name>metaInfo</name>
 			<type>boolean</type>
 			<required>No</required>
 		<description></description>
@@ -3581,7 +3763,7 @@ type of the result returned:
 		<description></description>
     </argument>
 		<argument>
-			<name>metainfo</name>
+			<name>metaInfo</name>
 			<type>boolean</type>
 			<required>No</required>
 			<default>true</default>
@@ -3620,7 +3802,7 @@ type of the result returned:
 		<description>The object to duplicate</description>
     </argument>
 		<argument>
-			<name>deepcopy</name>
+			<name>deepCopy</name>
 			<type>boolean</type>
 			<required>No</required>
 			<default>true</default>
@@ -3645,7 +3827,7 @@ type of the result returned:
 			<description>The array object to duplicate</description>
 		</argument>
 		<argument>
-			<name>deepcopy</name>
+			<name>deepCopy</name>
 			<type>boolean</type>
 			<required>No</required>
 			<default>true</default>
@@ -3670,7 +3852,7 @@ type of the result returned:
 			<description>The query object to duplicate</description>
 		</argument>
 		<argument>
-			<name>deepcopy</name>
+			<name>deepCopy</name>
 			<type>boolean</type>
 			<required>No</required>
 			<default>true</default>
@@ -3695,7 +3877,7 @@ type of the result returned:
 			<description>The query object to duplicate</description>
 		</argument>
 		<argument>
-			<name>deepcopy</name>
+			<name>deepCopy</name>
 			<type>boolean</type>
 			<required>No</required>
 			<default>true</default>
@@ -3845,9 +4027,9 @@ EntityDelete(entity)</description>
 	<function>
 		<name>entityLoad</name>
 		<class>lucee.runtime.functions.orm.EntityLoad</class>
-		<description>Loads and returns an array of entities of the specified entityname.
-EntityLoad (entityname, filtercriteria [,unique] 
-EntityLoad(entityname, filtercriteria, sortorder [, options])</description>
+		<description>Loads and returns an array of entities of the specified entityName.
+EntityLoad (entityName, filterCriteria [,unique]
+EntityLoad(entityName, filterCriteria, sortOrder [, options])</description>
 		<argument>
 			<name>name</name>
 			<type>string</type>
@@ -3860,7 +4042,7 @@ EntityLoad(entityname, filtercriteria, sortorder [, options])</description>
 			<type>any</type>
 			<required>no</required>
 		<description>The primary key value of the entity that must be loaded or Key-value pair (Struct) of property names and values. 
-		If there are more than one key-value pair, then the AND operator is used.If specified, loads and returns an array of entities of the specified entity name that matches the filtercriteria.</description>
+		If there are more than one key-value pair, then the AND operator is used.If specified, loads and returns an array of entities of the specified entity name that matches the filterCriteria.</description>
     </argument>
 		<argument>
 			<name>uniqueOrOrder</name>
@@ -3871,11 +4053,11 @@ EntityLoad(entityname, filtercriteria, sortorder [, options])</description>
 		
 - unique:
 If unique is set to true, then the entity is returned.
-If you are sure that only one record exists that matches this filtercriteria, then you can specify unique=true, so that a single entity is returned instead of an array.
+If you are sure that only one record exists that matches this filterCriteria, then you can specify unique=true, so that a single entity is returned instead of an array.
 If you set unique=true and multiple records are returned, then an exception occurs.
 
 - order:
-String used to specify the sortorder of the entities that are returned.If specified, loads and returns an array of entities that satisfy the filtercriteria sorted as specified by the sortorder.
+String used to specify the sortOrder of the entities that are returned.If specified, loads and returns an array of entities that satisfy the filterCriteria sorted as specified by the sortOrder.
 		
 		</description>
     </argument>
@@ -3885,11 +4067,11 @@ String used to specify the sortorder of the entities that are returned.If specif
 			<required>no</required>
 		<description>
 The following options to customize the output (only used when second argument is "id"):
-- ignorecase: Ignores the case of sort order when set to true. Use only if you specify the sortorder parameter.
+- ignoreCase: Ignores the case of sort order when set to true. Use only if you specify the sortOrder parameter.
 - offset: Specifies the position from which to retrieve the objects.
 - maxResults: Specifies the maximum number of objects to be retrieved.
 - cacheable: Whether the result has to be cached in the secondary cache. Default is false.
-- cachename: Name of the cache in secondary cache.
+- cacheName: Name of the cache in secondary cache.
 - timeout: Specifies the timeout value (in seconds) for the query.
 		</description>
     </argument>
@@ -4038,7 +4220,7 @@ If you set unique=true and multiple records are returned, then an exception occu
 		<name>EntitySave</name>
 		<class>lucee.runtime.functions.orm.EntitySave</class>
 		<description>Saves or updates data of the entity and all related entities to the database.
-EntitySave(entity, [forceinsert])</description>
+EntitySave(entity, [forceInsert])</description>
 		<argument>
 			<name>entity</name>
 			<type>object</type>
@@ -4196,7 +4378,6 @@ EntitySave(entity, [forceinsert])</description>
     			<name>name</name>
     			<alias>queryName</alias>
     			<type>string</type>
-    			<status>hidden</status>
     			<required>No</required>
     			<description>name of the query produced, visible in dumps or debugging output.</description>
     	    </argument>
@@ -4211,9 +4392,8 @@ EntitySave(entity, [forceinsert])</description>
     	<function>
     		<name>QueryLazy</name>
     		<class>lucee.runtime.functions.query.QueryLazy</class>
-    		<status>hidden</status>
-			<keywords>query</keywords>
-			<description>Executes a SQL query without loading the data entierly to memory. Instead it calls the given Function with every single row</description>
+    		<keywords>query</keywords>
+			<description>Executes a SQL query without loading the data entirely to memory. Instead it calls the given Function with every single row</description>
     		<argument>
     			<name>sql</name>
     			<type>string</type>
@@ -4313,7 +4493,7 @@ EntitySave(entity, [forceinsert])</description>
 			<name>placeholder</name>
 			<type>boolean</type>
 			<required>No</required>
-			<description>If true (default false), Lucee also tries to create a placeholder for the begining of the Tag</description>
+			<description>If true (default false), Lucee also tries to create a placeholder for the beginning of the Tag</description>
 		</argument>
 		<return>
 			<type>string</type>
@@ -4380,7 +4560,7 @@ EntitySave(entity, [forceinsert])</description>
 		<argument>
 			<name>file</name>
 			<alias>filePath</alias>
-			<type>string</type>
+			<type>any</type>
 			<required>Yes</required>
 			<description>file path</description>
 		</argument>
@@ -4596,9 +4776,22 @@ The browser uses file extension to determine file type. </description>
     	</argument>
 		<argument>
 			<name>nameConflict</name>
+			<alias>onConflict</alias>
 			<type>string</type>
 			<required>no</required>
 			<description>Action to take if filename is the same as that of a file in the directory.</description>
+    	</argument>
+		<argument>
+			<name>allowedExtensions</name>
+			<type>any</type>
+			<required>no</required>
+			<description>String list or string array of allowed extensions.</description>
+    	</argument>
+		<argument>
+			<name>blockedExtensions</name>
+			<type>any</type>
+			<required>no</required>
+			<description>String list or string array of not allowed extensions.</description>
     	</argument>
 		<argument>
 			<name>mode</name>
@@ -4650,6 +4843,18 @@ The browser uses file extension to determine file type. </description>
 			<type>string</type>
 			<required>no</required>
 			<description>Action to take if filename is the same as that of a file in the directory.</description>
+    	</argument>
+		<argument>
+			<name>allowedExtensions</name>
+			<type>any</type>
+			<required>no</required>
+			<description>String list or string array of allowed extensions.</description>
+    	</argument>
+		<argument>
+			<name>blockedExtensions</name>
+			<type>any</type>
+			<required>no</required>
+			<description>String list or string array of not allowed extensions.</description>
     	</argument>
 		<argument>
 			<name>mode</name>
@@ -5074,7 +5279,6 @@ Set the attribute to normal to make a file not read-only and not hidden.</descri
 		<class>lucee.runtime.functions.string.FindLast</class>
 		<member-name>findLast</member-name>
 		<member-position>2</member-position>
-		<status>hidden</status>
 		<keywords>string,find</keywords>
 		<description>Finds the last occurrence of a substring in a string, from a
         specified start position. The search is case-sensitive.</description>
@@ -5108,7 +5312,6 @@ Set the attribute to normal to make a file not read-only and not hidden.</descri
 		<class>lucee.runtime.functions.string.FindLastNoCase</class>
 		<member-name>findLastNoCase</member-name>
 		<member-position>2</member-position>
-		<status>hidden</status>
 		<keywords>string,find</keywords>
 		<description>Finds the last occurrence of a substring in a string, from a
         specified start position. If substring is not in string,
@@ -5333,6 +5536,16 @@ Example Values:
 			<type>struct</type>
 		</return>
 	</function>
+	<!-- GetConfigSettings -->
+	<function>
+		<name>GetConfigSettings</name>
+		<class>lucee.runtime.functions.system.GetConfigSettings</class>
+		<description></description>
+		<status>hidden</status>
+		<return>
+			<type>struct</type>
+		</return>
+	</function>
 
 	<!-- getBaseTagData -->
 	<function>
@@ -5341,13 +5554,13 @@ Example Values:
 		<description>Used within a custom tag. Finds calling (ancestor) tag by
         name and accesses its data.</description>
 		<argument>
-			<name>tagname</name>
+			<name>tagName</name>
 			<type>string</type>
 			<required>Yes</required>
 		<description>Ancestor tag name for which to return data</description>
     </argument>
 		<argument>
-			<name>instancenumber</name>
+			<name>instanceNumber</name>
 			<type>number</type>
 			<required>No</required>
 			<default>1</default>
@@ -5551,12 +5764,24 @@ Example Values:
             <default>array</default>
             <description>the type of the returned value, possible values are: [array], string, html, json</description>
         </argument>
+		<argument>
+            <name>offset</name>
+            <type>number</type>
+            <required>false</required>
+            <default>0</default>
+            <description>the number of frames to skip, default is 0</description>
+        </argument>
+		<argument>
+            <name>maxFrames</name>
+            <type>number</type>
+            <required>false</required>
+            <default>0</default>
+            <description>the maximum number of frames to return, default is 0 which means all</description>
+        </argument>
 		<return>
 			<type>any</type>
 		</return>
 	</function>
-	
-	
 	
 	<!-- GetFunctionCalledName -->
 	<function>
@@ -5717,7 +5942,7 @@ The returned number of unallocated bytes is a hint, but not a guarantee, that it
     </argument>
 		<argument>
 			<name>dspLocale</name>
-			<alias>inlocale</alias>
+			<alias>inLocale</alias>
 			<type>locale</type>
 			<required>No</required>
 		<description>The locale in which to return the name. The default is the locale defined for the request.</description>
@@ -5822,10 +6047,10 @@ The returned number of unallocated bytes is a hint, but not a guarantee, that it
 		<class>lucee.runtime.functions.other.GetTagData</class>
 		<description>return information to a Tag as Struct</description>
 		<argument>
-			<name>nameSpaceWithSeperator</name>
+			<name>nameSpaceWithSeparator</name>
 			<type>string</type>
 			<required>Yes</required>
-			<description>The namespace of the tag with the seperator Example: cf, rc: aso.</description>
+			<description>The namespace of the tag with the separator Example: cf, rc: aso.</description>
 		</argument>
 		<argument>
 			<name>tagName</name>
@@ -5909,6 +6134,16 @@ The returned number of unallocated bytes is a hint, but not a guarantee, that it
 			<type>struct</type>
 		</return>
 	</function>
+    <!-- getHTTPRequestHeaders -->
+    <function>
+        <name>getHTTPRequestHeaders</name>
+        <class>lucee.runtime.functions.other.GetHTTPRequestHeaders</class>
+		<status>hidden</status>
+        <description>Returns a Struct with HTTP Request Headers</description>
+        <return>
+            <type>struct</type>
+        </return>
+    </function>
 	<!-- getHttpTimeString -->
 	<function>
 		<name>getHttpTimeString</name>
@@ -5972,6 +6207,8 @@ if this attribute is not provided all types are returned.</description>
 		<name>getMetadata</name>
 		<class>lucee.runtime.functions.other.GetMetaData</class>
 		<description>Returns back meta information depending on the object passed in</description>
+		<member-name>getMetadata</member-name>
+		<member-type>any</member-type>
 		<argument>
 			<name>object</name>
 			<alias>value</alias>
@@ -6056,6 +6293,7 @@ if this attribute is not provided all types are returned.</description>
 			<type>any</type>
 		</return>
 	</function> -->
+	
 	
 	<!-- getPageContext -->
 	<function>
@@ -6205,7 +6443,7 @@ if this attribute is not provided all types are returned.</description>
 			<name>mustUnderstand</name>
 			<type>boolean</type>
 			<required>No</required>
-			<description>Sets the SOAP mustunderstand value for this header.</description>
+			<description>Sets the SOAP mustUnderstand value for this header.</description>
     	</argument>
 		<return>
 			<type>boolean</type>
@@ -6241,7 +6479,7 @@ if this attribute is not provided all types are returned.</description>
 			<name>mustUnderstand</name>
 			<type>boolean</type>
 			<required>No</required>
-			<description>Sets the SOAP mustunderstand value for this header.</description>
+			<description>Sets the SOAP mustUnderstand value for this header.</description>
     	</argument>
 		<return>
 			<type>boolean</type>
@@ -6351,6 +6589,14 @@ if this attribute is not provided all types are returned.</description>
 			<required>Yes</required>
 		<description>Prefix of a temporary file to create in the dir directory</description>
     </argument>
+	<argument>
+    		<name>extension</name>
+			<alias>ext</alias>
+    		<type>string</type>
+			<required>No</required>
+			<Default>tmp</Default>
+		<description>Creates temporary files with user defined extension, default is .tmp</description>
+	</argument>
 		<return>
 			<type>string</type>
 		</return>
@@ -6405,6 +6651,15 @@ if this attribute is not provided all types are returned.</description>
     	</argument>
 		<return>
 			<type>struct</type>
+		</return>
+	</function>
+	<!-- clearTimeZone -->
+	<function>
+		<name>clearTimeZone</name>
+		<class>lucee.runtime.functions.dateTime.ClearTimeZone</class>
+		<description>resets the timezone for the current request to Lucee default setting.</description>
+		<return>
+			<type>void</type>
 		</return>
 	</function>
 	<!-- getTimeZone -->
@@ -6495,7 +6750,7 @@ Default list delimiter: comma character.</description>
 			<alias>string</alias>
 			<type>any</type>
 			<required>Yes</required>
-		<description>String to hash.</description>
+		<description>String or byte array to hash.</description>
     </argument>
 		<argument>
 			<name>algorithm</name>
@@ -6566,9 +6821,9 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>HMAC</name>
 		<class>lucee.runtime.functions.displayFormatting.HMAC</class>
 		<description>Creates Hash-based Message Authentication Code for the given string based on the algorithm and encoding. 
-		Hash-based Message Authentication Code (HMAC) is used to verify the data integrity and authenticity of a messagetransmitted. 
+		Hash-based Message Authentication Code (HMAC) is used to verify the data integrity and authenticity of a message transmitted.
 		It involves a cryptographic hash function in combination with a secret key. 
-		The cryptographic hashfunction can be Message Digest 5 (MD5), Secure Hash Algorithm (SHA), and so on</description>
+		The cryptographic hash function can be Message Digest 5 (MD5), Secure Hash Algorithm (SHA), and so on</description>
 		<argument>
 			<name>message</name>
 			<type>object</type>
@@ -6969,11 +7224,11 @@ The following things are considered to be empty:
 			<description>charset used for the request, if not set the web charset is used.</description>
     	</argument>
 		<argument>
-			<name>addtoken</name>
+			<name>addToken</name>
 			<type>boolean</type>
 			<default>false</default>
 			<required>no</required>
-			<description>if yes add urltoken as cookie</description>
+			<description>if yes add urlToken as cookie</description>
     	</argument>
 		<return>
 			<type>struct</type>
@@ -7482,7 +7737,7 @@ The following things are considered to be empty:
 			<type>string</type>
 			<required>Yes</required>
 		<description>Data type to which to convert variable:
-		bigdecimal (converts to java.math.BigDecimal)
+		bigDecimal (converts to java.math.BigDecimal)
 - boolean
 - byte
 - char
@@ -7568,13 +7823,13 @@ The following things are considered to be empty:
 	<function>
 		<name>len</name>
 		<class>lucee.runtime.functions.string.Len</class>
-		<description>Determines the length of a string, array,struct,query ...</description>
+		<description>Determines the length of a string, array or struct</description>
 		<argument>
 			<name>value</name>
 			<alias>string,object</alias>
 			<type>object</type>
 			<required>Yes</required>
-		<description>the length of a string</description>
+		<description>the object to measure the length of</description>
     </argument>
 		<return>
 			<type>number</type>
@@ -7610,7 +7865,6 @@ The following things are considered to be empty:
 		</argument>
 		<argument>
 			<name>includeEmptyFields</name>
-			<status>hidden</status>
 			<type>boolean</type>
 			<required>No</required>
 			<default>true</default>
@@ -7705,7 +7959,7 @@ The following things are considered to be empty:
 		<class>lucee.runtime.functions.list.ListCompact</class>
 		<keywords>list,string</keywords>
 		<member-name>listCompact</member-name>
-		<description>remove empty items at the and and at the start of the list</description>
+		<description>Removes any empty items from the start and end of the list</description>
 		<argument>
 			<name>list</name>
 			<type>string</type>
@@ -7914,6 +8168,7 @@ The following things are considered to be empty:
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -8289,7 +8544,6 @@ The following things are considered to be empty:
 		</argument>
 		<argument>
 			<name>includeEmptyFields</name>
-			<status>hidden</status>
 			<type>boolean</type>
 			<required>No</required>
 			<default>true</default>
@@ -8351,7 +8605,6 @@ The following things are considered to be empty:
 	<!-- ListQualifiedToArray -->
 	<function>
 		<name>ListQualifiedToArray</name>
-		<status>hidden</status>
 		<class>lucee.runtime.functions.list.ListQualifiedToArray</class>
 		<keywords>list,string,array</keywords>
 		<member-name>listQualifiedToArray</member-name>
@@ -8534,13 +8787,15 @@ The following things are considered to be empty:
 		</argument>
 		<argument>
 			<name>sort_type</name>
+			<alias>sortType</alias>
 			<type>string</type>
-			<required>Yes</required>
+			<required>No</required>
+			<default>textNoCase</default>
 			<description>
 			there are different sort types:
-			- numeric (sort by number)
-			- text (sorts text alphabetically and case sensitive)
-			- textnocase (sorts text alphabetically and ignore case sensitivity)
+			- numeric - sort by number
+			- text - sorts text alphabetically and case sensitive
+			- textNoCase (default) - sorts text alphabetically and ignore case sensitivity
 			</description>
 		</argument>
 		<argument>
@@ -8971,7 +9226,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<description>Returns the string label for the given month</description>
 		<argument>
 			<name>month</name>
-			<alias>monthnumber,number</alias>
+			<alias>monthNumber,number</alias>
 			<type>number</type>
 			<required>Yes</required>
 		<description>a number between 1 and 12</description>
@@ -9001,17 +9256,17 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>ObjectEquals</name>
 		<class>lucee.runtime.functions.other.ObjectEquals</class>
-		<description>compares simply and complex objects for equality, attention string comparsion is case sensitive</description>
+		<description>compares simply and complex objects for equality, attention string comparison is case sensitive</description>
 		<argument>
 			<name>left</name>
-			<alias>param1,clientobject</alias>
+			<alias>param1,clientObject</alias>
 			<type>any</type>
 			<required>yes</required>
 			<description>left operant</description>
    		</argument>
 		<argument>
 			<name>right</name>
-			<alias>param2,originalobject</alias>
+			<alias>param2,originalObject</alias>
 			<type>any</type>
 			<required>yes</required>
 			<description>right operant</description>
@@ -9346,7 +9601,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>query</name>
 		<class>lucee.runtime.functions.query.Query_</class>
 		<keywords>query</keywords>
-		<description>create ans populates a query object in the form query(columnName1:[1,2,3],columnName2:[4,5,6])</description>
+		<description>Create and populate a query object in the form query(columnName1:[1,2,3],columnName2:[4,5,6])</description>
 		<argument-type>dynamic</argument-type>
 		<return>
 			<type>query</type>
@@ -9370,7 +9625,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     </argument>
 		<argument>
 			<name>column</name>
-			<alias>columnname</alias>
+			<alias>columnName</alias>
 			<type>string</type>
 			<required>Yes</required>
 		<description></description>
@@ -9422,6 +9677,153 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>number</type>
 		</return>
 	</function>
+	
+	<!-- queryAppend -->
+	<function>
+		<name>queryAppend</name>
+		<class>lucee.runtime.functions.query.QueryAppend</class>
+		<member-name>append</member-name>
+		<keywords>query</keywords>
+		<description>Adds all values of one query to the end of another query. Both queries need to have the same columns.</description>
+		<argument>
+			<name>query1</name>
+			<type>query</type>
+			<required>Yes</required>
+			<description>query to add data.</description>
+		</argument>
+		<argument>
+			<name>query2</name>
+			<type>query</type>
+			<required>Yes</required>
+			<description>query to get data from.</description>
+		</argument>
+		<return>
+			<type>query</type>
+		</return>
+	</function>
+	
+	<!-- QueryPrepend -->
+	<function>
+		<name>QueryPrepend</name>
+		<class>lucee.runtime.functions.query.QueryPrepend</class>
+		<member-name>prepend</member-name>
+		<keywords>query</keywords>
+		<description>Adds all values of one query the begin to another query. Both queries need to have the same columns.</description>
+		<argument>
+			<name>query1</name>
+			<type>query</type>
+			<required>Yes</required>
+			<description>query to add data.</description>
+		</argument>
+		<argument>
+			<name>query2</name>
+			<type>query</type>
+			<required>Yes</required>
+			<description>query to get data from.</description>
+		</argument>
+		<return>
+			<type>query</type>
+		</return>
+	</function>
+	
+	<!-- QueryInsertAt -->
+	<function>
+		<name>QueryInsertAt</name>
+		<class>lucee.runtime.functions.query.QueryInsertAt</class>
+		<member-name>insertAt</member-name>
+		<keywords>query</keywords>
+		<description>Adds data (query,struct or array) into query.</description>
+		<argument>
+			<name>query</name>
+			<type>query</type>
+			<required>Yes</required>
+			<description>query to add data.</description>
+		</argument>
+		<argument>
+			<name>value</name>
+			<type>any</type>
+			<required>Yes</required>
+			<description>data to insert, can be a query, a struct or an array.</description>
+		</argument>
+		<argument>
+			<name>index</name>
+			<type>numeric</type>
+			<required>Yes</required>
+			<description>position to insert data into, existing data get moved to the "right".</description>
+		</argument>
+		<return>
+			<type>query</type>
+		</return>
+	</function>
+	
+	<!-- QueryRowSwap -->
+	<function>
+		<name>QueryRowSwap</name>
+		<class>lucee.runtime.functions.query.QueryRowSwap</class>
+		<member-name>rowSwap</member-name>
+		<keywords>query</keywords>
+		<description>swaps one row of a query with an other.</description>
+		<argument>
+			<name>query</name>
+			<type>query</type>
+			<required>Yes</required>
+			<description>query to swap rows.</description>
+		</argument>
+		<argument>
+			<name>source</name>
+			<alias>sourceRow,src</alias>
+			<type>numeric</type>
+			<required>Yes</required>
+			<description>The row to swap.</description>
+		</argument>
+		<argument>
+			<name>destination</name>
+			<alias>destinationRow,dest,target</alias>
+			<type>numeric</type>
+			<required>Yes</required>
+			<description>The row to be swapped with.</description>
+		</argument>
+		<return>
+			<type>query</type>
+		</return>
+	</function>
+	
+	
+	<!-- QueryReverse -->
+	<function>
+		<name>QueryReverse</name>
+		<class>lucee.runtime.functions.query.QueryReverse</class>
+		<member-name>reverse</member-name>
+		<keywords>query</keywords>
+		<description>reverse the row order of a complete query</description>
+		<argument>
+			<name>query</name>
+			<type>query</type>
+			<required>Yes</required>
+			<description>query to reverse rows.</description>
+		</argument>
+		<return>
+			<type>query</type>
+		</return>
+	</function>
+	
+	<!-- QueryClear -->
+	<function>
+		<name>QueryClear</name>
+		<class>lucee.runtime.functions.query.QueryClear</class>
+		<member-name>clear</member-name>
+		<keywords>query</keywords>
+		<description>Clears all rows from a query</description>
+		<argument>
+			<name>query</name>
+			<type>query</type>
+			<required>Yes</required>
+			<description>query to clear all data.</description>
+		</argument>
+		<return>
+			<type>query</type>
+		</return>
+	</function>
 	<!-- queryColumnCount -->
 	<function>
 		<name>queryColumnCount</name>
@@ -9445,7 +9847,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>queryClose</name>
 		<class>lucee.runtime.functions.query.QueryClose</class>
 		<keywords>query</keywords>
-		<description>When using lazy="true", it is important to close the resultset during a request or it will continue to use heap memory.</description>
+		<description>When using lazy="true", it is important to close the resultSet during a request or it will continue to use heap memory.</description>
 		<argument>
 			<name>query</name>
 			<type>query</type>
@@ -9553,6 +9955,38 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</return>
 	</function>
 
+	<!-- queryRenameColumn -->
+	<function>
+		<name>queryRenameColumn</name>
+		<class>lucee.runtime.functions.query.QueryRenameColumn</class>
+		<keywords>query</keywords>
+		<member-name>renameColumn</member-name>
+		<description>Rename a column</description>
+		<introduced>6.0.0</introduced>
+		<argument>
+			<name>query</name>
+			<type>query</type>
+			<required>Yes</required>
+			<description>Name of a query object.</description>
+		</argument>
+		<argument>
+			<name>column</name>
+			<alias>columnName</alias>
+			<type>string</type>
+			<required>Yes</required>
+			<description></description>
+		</argument>
+		<argument>
+			<name>newColumnName</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description></description>
+		</argument>
+		<return>
+			<type>void</type>
+		</return>
+	</function>
+
 	<!-- queryRowData -->
     	<function>
     		<name>queryRowData</name>
@@ -9572,8 +10006,16 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     			<required>Yes</required>
     			<description>position of the row to be returned</description>
     	    </argument>
+			<argument>
+    			<name>format</name>
+    			<type>string</type>
+    			<required>No</required>
+    			<description>struct or array</description>
+				<default>struct</default>
+				<alias>returnFormat</alias>
+    	    </argument>
     		<return>
-    			<type>struct</type>
+    			<type>any</type>
     		</return>
     	</function>
 
@@ -9801,14 +10243,14 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<description>Creates an empty query (query object).</description>
 		<argument>
 			<name>columnNames</name>
-			<alias>names,columns,columnlist</alias>
+			<alias>names,columns,columnList</alias>
 			<type>object</type>
 			<required>Yes</required>
 			<description>column names for the query created, allowed are comma-delimited string lists or an array.</description>
     	</argument>
 		<argument>
 			<name>columnTypes</name>
-			<alias>types,columntypelist</alias>
+			<alias>types,columnTypeList</alias>
 			<type>object</type>
 			<required>No</required>
 			<description>column types for the query created, allowed are comma-delimited string lists or an array.</description>
@@ -9886,6 +10328,40 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<type>boolean</type>
 		</return>
 	</function>
+
+	<!-- querySetRow -->
+    	<function>
+    		<name>querySetRow</name>
+    		<class>lucee.runtime.functions.query.QuerySetRow</class>
+    		<member-name>setRow</member-name>
+    		<keywords>query</keywords>
+			<description>Adds a row to a query, either by struct or array</description>
+    		<argument>
+    			<name>query</name>
+    			<type>query</type>
+    			<required>Yes</required>
+    			<description>query object do get data from</description>
+    	    </argument>
+    		<argument>
+    			<name>rowNumber</name>
+				<alias>row</alias>
+    			<type>number</type>
+    			<required>No</required>
+    			<description>position of the row to updated, otherwise a new row is added</description>
+				<default>0</default>
+    	    </argument>
+			<argument>
+    			<name>rowData</name>
+    			<type>any</type>
+    			<required>yes</required>
+    			<description>a struct or array</description>
+				<alias>data</alias>
+    	    </argument>
+    		<return>
+    			<type>boolean</type>
+    		</return>
+    	</function>
+
 	<!-- querySlice -->
 	<function>
 		<name>querySlice</name>
@@ -9931,7 +10407,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     </argument>
 		<argument>
 			<name>columnNameOrSortFunc</name>
-			<alias>column_name,columnnames,columnname,name,names,column_names,sort,function,udf,sortFunction,sortFunc</alias>
+			<alias>column_name,columnNames,columnName,name,names,column_names,sort,function,udf,sortFunction,sortFunc</alias>
 			<type>any</type>
 			<required>Yes</required>
 		<description>a list of names, a single column name or a function used as comparator.</description>
@@ -10052,7 +10528,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<description>A positive integer. Position in the string at which to start search. The default value is 1.</description>
     	</argument>
 		<argument>
-			<name>returnsubexpressions</name>
+			<name>returnSubExpressions</name>
 			<type>boolean</type>
 			<required>No</required>
 		<description></description>
@@ -10109,7 +10585,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<description></description>
     	</argument>
 		<argument>
-			<name>returnsubexpressions</name>
+			<name>returnSubExpressions</name>
 			<type>boolean</type>
 			<required>No</required>
 			<description>True: if the regular expression is found, the first array
@@ -10553,7 +11029,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<alias>dir,directory,path</alias>
 			<type>string</type>
 			<required>yes</required>
-			<description>Path to the directory to be registered or reseted.</description>
+			<description>Path to the directory to be registered or reset.</description>
 	    </argument>
 		<argument>
 			<name>password</name>
@@ -10579,7 +11055,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<alias>dir,directory,path</alias>
 			<type>string</type>
 			<required>yes</required>
-			<description>Path to the directory to be registered or reseted.</description>
+			<description>Path to the directory to be registered or reset.</description>
 	    </argument>
 		<argument>
 			<name>serviceMapping</name>
@@ -10747,7 +11223,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>rTrim</name>
 		<class>lucee.runtime.functions.string.RTrim</class>
-		<member-name>rtrim</member-name>
+		<member-name>rTrim</member-name>
 		<keywords>string</keywords>
 		<description>Removes spaces from the end of a string.</description>
 		<argument>
@@ -11087,7 +11563,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>serialize</name>
 		<class>lucee.runtime.functions.dynamicEvaluation.Serialize</class>
-		<description>opposite of evaluate, this function serialize all cfml object and all serializble Java objects. can also serilize Components.</description>
+		<description>opposite of evaluate, this function serialize all cfml object and all serializable Java objects. can also serialize Components.</description>
 		<argument>
 			<name>object</name>
 			<type>any</type>
@@ -11103,6 +11579,8 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>SerializeJSON</name>
 		<class>lucee.runtime.functions.conversion.SerializeJSON</class>
+		<member-name>toJson</member-name>
+		<member-type>any</member-type>
 		<keywords>string,formatting,json,javascript</keywords>
 		<description>Converts CFML data into a JSON (JavaScript Object Notation) representation of the data.</description>
 		<argument>
@@ -11352,7 +11830,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 	<function>
 		<name>SSLCertificateList</name>
 		<class>lucee.runtime.functions.other.SSLCertificateList</class>
-		<description>list all Certificates availble on a specific host</description>
+		<description>list all Certificates available on a specific host</description>
 		<argument>
 			<name>host</name>
 			<type>string</type>
@@ -11410,9 +11888,9 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</return>
 	</function>
 	
-	<!-- stringlen -->
+	<!-- stringLen -->
 	<function>
-		<name>stringlen</name>
+		<name>stringLen</name>
 		<class>lucee.runtime.functions.string.StringLen</class>
 		<member-name>len</member-name>
 		<keywords>string</keywords>
@@ -11574,7 +12052,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<description>Element to remove</description>
     </argument>
 		<argument>
-			<name>indicatenotexisting</name>
+			<name>indicateNotExisting</name>
 			<alias>indicateExists</alias>
 			<type>boolean</type>
 			<required>No</required>
@@ -11615,6 +12093,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -11654,6 +12133,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -11692,6 +12172,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -11729,6 +12210,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -11767,6 +12249,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -11804,7 +12287,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<alias>initial,initalValue</alias>
 			<type>object</type>
 			<required>No</required>
-            <description>inital value passed as part of the first closure call</description>
+            <description>initial value passed as part of the first closure call</description>
         </argument>
 		<return>
 			<type>any</type>
@@ -11831,14 +12314,14 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<alias>function,callback,udf</alias>
 			<type>function</type>
 			<required>Yes</required>
-			<description>function/closure that implements the following constructor [function(any result, object value, [, numericindex [, array]]):any].</description>
+			<description>function/closure that implements the following constructor [function(any result, object value, [, numericIndex [, array]]):any].</description>
 		</argument>
 		<argument>
 			<name>initialValue</name>
 			<alias>initial,initalValue</alias>
 			<type>object</type>
 			<required>No</required>
-            <description>inital value passed as part of the first closure call</description>
+            <description>initial value passed as part of the first closure call</description>
         </argument>
 		<return>
 			<type>any</type>
@@ -11850,9 +12333,9 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>ListReduce</name>
 		<class>lucee.runtime.functions.list.ListReduce</class>
 		<member-name>listReduce</member-name>
-		<keywords>array,iterator</keywords>
-		<description>Iterates over every entry of the given array and calls the closure with every element. 
-		This function will reduce the array to a single value and will return the value.</description>
+		<keywords>list,iterator</keywords>
+		<description>Iterates over every entry of the given list and calls the closure with every element. 
+		This function will reduce the list to a single value and will return the value.</description>
 		<argument>
 			<name>list</name>
 			<alias>string</alias>
@@ -11872,7 +12355,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<alias>initial,initalValue</alias>
 			<type>object</type>
 			<required>No</required>
-            <description>inital value passed as part of the first closure call</description>
+            <description>initial value passed as part of the first closure call</description>
         </argument>
 		<argument>
 			<name>delimiter</name>
@@ -11927,7 +12410,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<alias>initial,initalValue</alias>
 			<type>object</type>
 			<required>No</required>
-            <description>inital value passed as part of the first closure call</description>
+            <description>initial value passed as part of the first closure call</description>
         </argument>
 		<return>
 			<type>any</type>
@@ -11962,7 +12445,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<alias>initial,initalValue</alias>
 			<type>object</type>
 			<required>No</required>
-            <description>inital value passed as part of the first closure call</description>
+            <description>initial value passed as part of the first closure call</description>
         </argument>
 		<return>
 			<type>any</type>
@@ -11997,6 +12480,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -12036,6 +12520,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -12075,6 +12560,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -12091,7 +12577,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<name>ListSome</name>
 		<class>lucee.runtime.functions.list.ListSome</class>
 		<member-name>listSome,some</member-name>
-		<keywords>array,iterator</keywords>
+		<keywords>list,iterator</keywords>
 		<description>This function calls a given closure/function with every element in a given string list and returns true, if one of the closure calls returns true.</description>
 		<argument>
 			<name>list</name>
@@ -12137,6 +12623,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -12176,6 +12663,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -12215,6 +12703,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -12253,6 +12742,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -12293,6 +12783,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -12354,6 +12845,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -12393,6 +12885,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -12422,7 +12915,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<alias>function,callback,udf</alias>
 			<type>function</type>
 			<required>Yes</required>
-			<description>function/closure that implements the following constructor [function(struct row [number rownumber, query query]):boolean].</description>
+			<description>function/closure that implements the following constructor [function(struct row [number rowNumber, query query]):boolean].</description>
 		</argument>
 		<argument>
 			<name>parallel</name>
@@ -12432,6 +12925,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		</argument>
 		<argument>
 			<name>maxThreads</name>
+			<alias>maxThreadCount</alias>
 			<type>number</type>
 			<required>No</required>
 			<default>20</default>
@@ -12587,7 +13081,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<description>Value to add.</description>
     </argument>
 		<argument>
-			<name>allowoverwrite</name>
+			<name>allowOverwrite</name>
 			<alias>overwrite</alias>
 			<type>boolean</type>
 			<required>No</required>
@@ -12621,16 +13115,14 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		<class>lucee.runtime.functions.struct.StructKeyArray</class>
 		<member-name>keyArray</member-name>
 		<keywords>struct</keywords>
-		<description>Finds the keys in a struct.
-        An array of keys; if structure does not exist, CFML
-        throws an exception.</description>
+		<description>Returns an Array with the keys of the Struct</description>
 		<argument>
 			<name>struct</name>
 			<alias>structure,object</alias>
 			<type>struct</type>
 			<required>Yes</required>
-		<description>Structure from which to extract a list of keys</description>
-    </argument>
+			<description>Structure from which to extract a list of keys</description>
+		</argument>
 		<return>
 			<type>array</type>
 		</return>
@@ -12716,8 +13208,6 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 				leave original key in struct
 			</description>
 		</argument>
-		
-		
 		<return>
 			<type>number</type>
 		</return>
@@ -12770,7 +13260,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 		define one of the following:
 - numeric: sorts numbers
 - text: sorts text alphabetically, taking case into account (case sensitive)
-- textnocase: sorts text alphabetically, without regard to case (case insensitive)
+- textNoCase: sorts text alphabetically, without regard to case (case insensitive)
 </description>
     </argument>
 		<argument>
@@ -12821,6 +13311,24 @@ _- asc (default): ascending (a to z) sort order
     </argument>
 		<return>
 			<type>boolean</type>
+		</return>
+	</function>
+	<!-- structValueArray -->
+	<function>
+		<name>structValueArray</name>
+		<class>lucee.runtime.functions.struct.StructValueArray</class>
+		<member-name>valueArray</member-name>
+		<keywords>struct</keywords>
+		<description>Returns an Array with the values of the Struct</description>
+		<argument>
+			<name>struct</name>
+			<alias>structure,object</alias>
+			<type>struct</type>
+			<required>Yes</required>
+			<description>Structure from which to extract a list of keys</description>
+		</argument>
+		<return>
+			<type>array</type>
 		</return>
 	</function>
 	
@@ -12945,7 +13453,7 @@ _- asc (default): ascending (a to z) sort order
 			<name>radix</name>
 			<type>any</type>
 			<required>no</required>
-			<description>the base for tranlation of the given value, default is 10, possible values are [2-36,bin,oct,dec,hex]</description>
+			<description>the base for translation of the given value, default is 10, possible values are [2-36,bin,oct,dec,hex]</description>
 		</argument>
 		<return>
 			<type>number</type>
@@ -12965,14 +13473,14 @@ _- asc (default): ascending (a to z) sort order
 		<description>A variable.</description>
     </argument>
 		<argument>
-			<name>javascriptvar</name>
+			<name>javascriptVar</name>
 			<type>string</type>
 			<required>Yes</required>
 		<description>A string that specifies the name of the JavaScript variable
             that the ToScript function creates.</description>
     </argument>
 		<argument>
-			<name>outputformat</name>
+			<name>outputFormat</name>
 			<type>boolean</type>
 			<required>No</required>
 			<default>true</default>
@@ -13073,7 +13581,7 @@ _- asc (default): ascending (a to z) sort order
 			<name>doLowerIfAllUppercase</name>
 			<type>boolean</type>
 			<required>false</required>
-		    <description>If true, then if the input string contains letters and they are all UPPERCASE, then the input string is first lowercased.
+		    <description>If true, then if the input string contains letters and they are all UPPERCASE, then the input string is first lower cased.
 		    When combined with the doAll argument, this is especially useful to clean user input of names when they are all UPPERCASE, e.g. converting "SUSI Q. SORGOLIS" to
 		    "Susi Q. Sorgolis" while preserving the CaSe if the input is e.g. "Ronald McDonald"</description>
 		</argument>
@@ -13352,9 +13860,9 @@ _- asc (default): ascending (a to z) sort order
 			<name>caseSensitive</name>
 			<type>boolean</type>
 			<required>No</required>
-		<description>Maintains the case of document elements and attributes.
+			<description>Maintains the case of document elements and attributes.
             Default: false</description>
-    </argument>
+    	</argument>
 		<argument>
 			<name>validator</name>
 			<type>string</type>
@@ -13364,6 +13872,13 @@ _- asc (default): ascending (a to z) sort order
 - The name of a DTD or Schema file
 - The URL of a DTD or Schema file; valid protocol identifiers include http, https, ftp, and file</description>
     </argument>
+		<argument>
+			<name>lenient</name>
+			<type>boolean</type>
+			<required>No</required>
+			<default>false</default>
+			<description>if set to true, the parser is more lenient and forgives invalid XML and does the best to interpret it.</description>
+		</argument>
 		<return>
 			<type>xml</type>
 		</return>
@@ -13647,6 +14162,21 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     	</argument>
     	<return>
     		<type>boolean</type>
+    	</return>
+    </function>
+    
+    <function>
+		<name>StringSort</name>
+		<class>lucee.runtime.functions.string.StringSort</class>
+		<description>Returns a string containing the sorted characters from the input.</description>
+    	<argument>
+			<name>inputString</name>
+			<type>string</type>
+			<required>Yes</required>
+			<description>Input string.</description>
+    	</argument>
+    	<return>
+    		<type>string</type>
     	</return>
     </function>
 </func-lib>

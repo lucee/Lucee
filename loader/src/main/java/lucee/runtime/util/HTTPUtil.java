@@ -50,24 +50,39 @@ public interface HTTPUtil {
 	/**
 	 * make a http request to given url
 	 * 
-	 * @param url
-	 * @param username
-	 * @param password
-	 * @param timeout
-	 * @param charset
-	 * @param useragent
-	 * @param proxyserver
-	 * @param proxyport
-	 * @param proxyuser
-	 * @param proxypassword
+	 * @param url url
+	 * @param username username
+	 * @param password password 
+	 * @param timeout timeoute
+	 * @param charset charset
+	 * @param useragent user agent
+	 * @param proxyserver proxy server
+	 * @param proxyport proxy port
+	 * @param proxyuser proxy user
+	 * @param proxypassword proxy password
+	 * @param headers headers
 	 * @return resulting inputstream
-	 * @throws IOException
+	 * @throws IOException IO Exception
 	 */
 	public HTTPResponse get(URL url, String username, String password, int timeout, String charset, String useragent, String proxyserver, int proxyport, String proxyuser,
 			String proxypassword, Header[] headers) throws IOException;
 
 	/**
 	 * 
+	 * @param url url
+	 * @param username username
+	 * @param password password
+	 * @param timeout timeout
+	 * @param charset charset
+	 * @param useragent user agent
+	 * @param proxyserver proxy server
+	 * @param proxyport proxy port
+	 * @param proxyuser proxy user
+	 * @param proxypassword proxy password
+	 * @param headers headers
+	 * @param body body
+	 * @return resulting inputstream
+	 * @throws IOException IO Exception
 	 * @deprecated use instead
 	 * @see #put(URL, String, String, int, String, String, String, String, int, String, String,
 	 *      Header[], Object)
@@ -88,10 +103,10 @@ public interface HTTPUtil {
 	/**
 	 * cast a string to a url
 	 * 
-	 * @param strUrl
-	 * @param port
+	 * @param strUrl url
+	 * @param port port
 	 * @return url from string
-	 * @throws MalformedURLException
+	 * @throws MalformedURLException Malformed URL Exception
 	 * @deprecated use instead
 	 * @see #toURL(String, int, boolean)
 	 * 
@@ -101,11 +116,11 @@ public interface HTTPUtil {
 
 	/**
 	 * 
-	 * @param strUrl
-	 * @param port
-	 * @param encodeIfNecessary
+	 * @param strUrl url
+	 * @param port port
+	 * @param encodeIfNecessary encode I fNecessary
 	 * @return URL generated
-	 * @throws MalformedURLException
+	 * @throws MalformedURLException Malformed URL Exception
 	 */
 	public URL toURL(String strUrl, int port, boolean encodeIfNecessary) throws MalformedURLException;
 
@@ -114,7 +129,7 @@ public interface HTTPUtil {
 	 * 
 	 * @param strUrl string represent a url
 	 * @return url from string
-	 * @throws MalformedURLException
+	 * @throws MalformedURLException Malformed URL Exception
 	 */
 	public URL toURL(String strUrl) throws MalformedURLException;
 
@@ -128,7 +143,7 @@ public interface HTTPUtil {
 	 * @param str String to translate
 	 * @param charset charset used for translation
 	 * @return encoded String
-	 * @throws UnsupportedEncodingException
+	 * @throws UnsupportedEncodingException Unsupported Encoding Exception
 	 */
 	public String encode(String str, String charset) throws UnsupportedEncodingException;
 
@@ -138,15 +153,15 @@ public interface HTTPUtil {
 	 * @param str encoded string
 	 * @param charset charset used
 	 * @return raw string
-	 * @throws UnsupportedEncodingException
+	 * @throws UnsupportedEncodingException Unsupported Encoding Exception
 	 */
 	public String decode(String str, String charset) throws UnsupportedEncodingException;
 
 	/**
 	 * remove port information if the port is the default port for this protocol (http=80,https=443)
 	 * 
-	 * @param url
-	 * @return
+	 * @param url url
+	 * @return Returns a Url.
 	 */
 	public URL removeUnecessaryPort(URL url);
 

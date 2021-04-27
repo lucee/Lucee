@@ -25,7 +25,7 @@ import lucee.commons.io.log.Log;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngineFactory;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.text.xml.XMLUtil;
 
@@ -38,7 +38,7 @@ public class EnvClassLoader extends URLClassLoader {
 	private static SoftReference<String> EMPTY = new SoftReference<String>(null);
 	private static Map<SoftReference<String>, SoftReference<String>> notFound = new java.util.concurrent.ConcurrentHashMap<>();
 
-	private ConfigImpl config;
+	private Config config;
 	private Map<String, SoftReference<Object[]>> callerCache = new ConcurrentHashMap<String, SoftReference<Object[]>>();
 
 	private static final short CLASS = 1;
@@ -59,7 +59,14 @@ public class EnvClassLoader extends URLClassLoader {
 		}
 	};
 
-	public EnvClassLoader(ConfigImpl config) {
+	private static final EnvClassLoader NULL_INSTANCE = new EnvClassLoader(null);
+
+	public static EnvClassLoader getInstance(ConfigPro config) {
+		if (config != null) return (EnvClassLoader) config.getClassLoaderEnv();
+		return NULL_INSTANCE;
+	}
+
+	public EnvClassLoader(ConfigPro config) {
 		super(new URL[0], config != null ? config.getClassLoaderCore() : new lucee.commons.lang.ClassLoaderHelper().getClass().getClassLoader());
 		this.config = config;
 	}
@@ -149,7 +156,8 @@ public class EnvClassLoader extends URLClassLoader {
 						}
 					}
 				}
-				catch (IOException e) {}
+				catch (IOException e) {
+				}
 				finally {
 					inside.set(Boolean.FALSE);
 				}
@@ -232,7 +240,8 @@ public class EnvClassLoader extends URLClassLoader {
 				if (b != null)
 					notFound.put(new SoftReference<String>(new StringBuilder(b.getSymbolicName()).append(':').append(b.getVersion()).append(':').append(name).toString()), EMPTY);
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 
 		}
 		return obj;

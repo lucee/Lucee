@@ -132,7 +132,7 @@ public class Ansi92 extends SQLExecutorSupport {
 			query = new QueryImpl(pc, dc, sqlSelect, -1, -1, null, scopeName + "_storage");
 		}
 
-		ScopeContext.info(log, sqlSelect.toString());
+		ScopeContext.debug(log, sqlSelect.toString());
 		return query;
 	}
 
@@ -158,7 +158,7 @@ public class Ansi92 extends SQLExecutorSupport {
 			throws SQLException, PageException {
 		SQLImpl sql = new SQLImpl(strSQL, new SQLItem[] { new SQLItemImpl(createExpires(config, timeSpan), Types.VARCHAR),
 				new SQLItemImpl(serialize(data, ignoreSet), Types.VARCHAR), new SQLItemImpl(cfid, Types.VARCHAR), new SQLItemImpl(applicationName, Types.VARCHAR) });
-		ScopeContext.info(log, sql.toString());
+		ScopeContext.debug(log, sql.toString());
 
 		return execute(null, conn, sql, tz);
 	}
@@ -181,7 +181,7 @@ public class Ansi92 extends SQLExecutorSupport {
 		String strSQL = "DELETE FROM " + PREFIX + "_" + strType + "_data WHERE cfid=? AND name=?";
 		SQLImpl sql = new SQLImpl(strSQL, new SQLItem[] { new SQLItemImpl(cfid, Types.VARCHAR), new SQLItemImpl(applicationName, Types.VARCHAR) });
 		execute(null, dc.getConnection(), sql, ThreadLocalPageContext.getTimeZone());
-		ScopeContext.info(log, sql.toString());
+		ScopeContext.debug(log, sql.toString());
 
 	}
 

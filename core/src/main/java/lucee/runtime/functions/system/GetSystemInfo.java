@@ -20,7 +20,6 @@ package lucee.runtime.functions.system;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.OperatingSystemMXBean;
-import java.util.Iterator;
 
 import javax.management.Attribute;
 import javax.management.AttributeList;
@@ -29,8 +28,8 @@ import javax.management.ObjectName;
 
 import lucee.runtime.CFMLFactoryImpl;
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigWebImpl;
-import lucee.runtime.db.DatasourceConnectionPool;
+import lucee.runtime.config.ConfigWebPro;
+import lucee.runtime.config.DatasourceConnPool;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.Function;
 import lucee.runtime.type.Struct;
@@ -43,10 +42,10 @@ public final class GetSystemInfo implements Function {
 
 	public static Struct call(PageContext pc) throws PageException {
 		Struct sct = new StructImpl();
-		ConfigWebImpl config = (ConfigWebImpl) pc.getConfig();
+		ConfigWebPro config = (ConfigWebPro) pc.getConfig();
 		CFMLFactoryImpl factory = (CFMLFactoryImpl) config.getFactory();
 		ScopeContext sc = factory.getScopeContext();
-		OperatingSystemMXBean osBean = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
+		OperatingSystemMXBean osBean = ManagementFactory.getOperatingSystemMXBean();
 
 		// threads/requests
 		sct.put("activeRequests", factory.getActiveRequests());
@@ -54,7 +53,18 @@ public final class GetSystemInfo implements Function {
 		sct.put("queueRequests", config.getThreadQueue().size());
 
 		// Datasource connections
-		sct.put("activeDatasourceConnections", getConnections(config));
+		{
+			// TODO provide more data
+			int idle = 0, active = 0, waiters = 0;
+			for (DatasourceConnPool pool: config.getDatasourceConnectionPools()) {
+				idle += pool.getNumIdle();
+				active += pool.getNumActive();
+				idle += pool.getNumWaiters();
+			}
+			sct.put("activeDatasourceConnections", active);
+			sct.put("idleDatasourceConnections", idle);
+			sct.put("waitingForConn", waiters);
+		}
 
 		// tasks
 		sct.put("tasksOpen", config.getSpoolerEngine().getOpenTaskCount());
@@ -101,15 +111,4 @@ public final class GetSystemInfo implements Function {
 		}
 	}
 
-	public static int getConnections(ConfigWebImpl config) {
-		int count = 0;
-		DatasourceConnectionPool pool = config.getDatasourceConnectionPool();
-		Iterator<Integer> it = pool.openConnections().values().iterator();
-		Integer i;
-		while (it.hasNext()) {
-			i = it.next();
-			if (i != null) count += i.intValue();
-		}
-		return count;
-	}
 }

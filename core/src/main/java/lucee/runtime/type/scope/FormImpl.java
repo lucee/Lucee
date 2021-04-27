@@ -26,6 +26,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
@@ -46,7 +47,6 @@ import lucee.commons.lang.ByteNameValuePair;
 import lucee.commons.lang.StringUtil;
 import lucee.commons.net.URLItem;
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.listener.ApplicationContext;
@@ -156,7 +156,7 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 
 	private void initializeMultiPart(PageContext pc, boolean scriptProteced) {
 		// get temp directory
-		Resource tempDir = ((ConfigImpl) pc.getConfig()).getTempDirectory();
+		Resource tempDir = pc.getConfig().getTempDirectory();
 		Resource tempFile;
 
 		// Create a new file upload handler
@@ -229,10 +229,10 @@ public final class FormImpl extends ScopeSupport implements Form, ScriptProtecte
 		}
 	}
 
-	public static synchronized String getFileName() {
-		count++;
-		if (count < 0) count = 1;
-		return "tmp-" + Long.toString(count, Character.MAX_RADIX) + ".upload";
+	private static String getFileName() {
+		UUID uuid = UUID.randomUUID();
+		String setUUID = uuid.toString();
+		return "tmp-" + setUUID + ".upload";
 	}
 
 	/*

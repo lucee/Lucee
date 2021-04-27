@@ -52,6 +52,7 @@ public interface SearchEngine {
 
 	/**
 	 * @return returns all collections as a query object
+	 * @throws SearchException if no matching Collection exist
 	 */
 	public abstract Query getCollectionsAsQuery() throws SearchException;
 
@@ -61,9 +62,9 @@ public interface SearchEngine {
 	 * @param name The Name of the Collection
 	 * @param path the path to store
 	 * @param language The language of the collection
-	 * @param allowOverwrite
+	 * @param allowOverwrite Allow Overwrite
 	 * @return New SearchCollection
-	 * @throws SearchException
+	 * @throws SearchException Search Exception
 	 */
 	public abstract SearchCollection createCollection(String name, Resource path, String language, boolean allowOverwrite) throws SearchException;
 

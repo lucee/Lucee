@@ -5,7 +5,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 	}
 
 	function run( testResults , testBox ) {
-		describe( "test suite for LDEV2549", function() {
+		describe( "test suite for LDEV2549",skip=isNotSupported(), function() {
 			it(title = "query param not working without CFSQLTYPE for date type values", body = function( currentSpec ) {
 				local.result = _InternalRequest(
 					template : "#uri#/LDEV2549.cfm",
@@ -27,5 +27,10 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 	private string function createURI(string calledName){
 		var baseURI = "/test/#listLast(getDirectoryFromPath(getCurrenttemplatepath()),"\/")#/";
 		return baseURI&""&calledName;
+	}
+
+	private boolean function isNotSupported() {
+		// getting the credetials from the enviroment variables
+		return ( structCount(server.getDatasource("mssql")) eq 0 );		
 	}
 }

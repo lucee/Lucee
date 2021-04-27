@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project default="all" basedir="." name="LuceeBuildUtils">
+    
+  <scriptdef name="readManifestEntry" language="javascript" loaderRef="sharedbuild-loaderRef">
+    <attribute name="file" />
+    <attribute name="variable" />
+    <attribute name="key" />
+    <![CDATA[
+        var filename = attributes.get("file");
+        var variable = attributes.get("variable");
+        var key = attributes.get("key");
+        
+        var manifest;
+        if (filename != null) {
+            manifest = new java.util.jar.Manifest(new java.io.FileInputStream(new java.io.File(filename)));
+        } else {
+            self.fail("missing file definition!");
+        }
+
+        var attrs=manifest.getMainAttributes();
+        project.setProperty(variable, attrs.getValue(key));
+    ]]>
+</scriptdef>
+
+  <scriptdef name="listDirectory" language="javascript" loaderRef="sharedbuild-loaderRef">
+    <attribute name="directory" />
+    <attribute name="delimiter" />
+    <attribute name="returnvalue" />
+    <![CDATA[
+        var dir = new java.io.File(attributes.get("directory"));
+        var del = attributes.get("delimiter");
+        var rtn = attributes.get("returnvalue");
+
+        var sb=new java.lang.StringBuilder();
+        var children = dir.listFiles();
+        if(children!=null)for(var i=0;i<children.length;i++) {
+          var path=children[i].getPath();
+          if(!path.endsWith(".jar")) continue;
+          if(sb.length()>0) sb.append(del);
+          sb.append(children[i]);
+        }
+        project.setProperty(rtn, sb.toString());
+    ]]>
+  </scriptdef>
+  <scriptdef name="unwrap" language="javascript" loaderRef="sharedbuild-loaderRef">
+     <attribute name="text" />
+     <attribute name="property" />
+     <![CDATA[
+      var text = attributes.get("text");
+      text=text.trim();
+      if(text.startsWith('"') && text.endsWith('"')) {
+        text=text.substring(1,text.length()-1);
+      }
+      project.setProperty(attributes.get("property"), text);
+     ]]>
+  </scriptdef>
+
+  <scriptdef name="updatedate" language="javascript" loaderRef="sharedbuild-loaderRef">
+     <attribute name="text" />
+     <attribute name="date" />
+     <attribute name="property" />
+     <![CDATA[
+      var text = attributes.get("text");
+      var date = attributes.get("date");
+      
+      var index=text.indexOf("lucee.core.release.date");
+      if(index!=-1) {
+        var start=text.indexOf('"',index);
+        var end=text.indexOf('"',start+1);
+        if(start!=-1 && end!=-1) {
+          text=text.substring(0,start+1)+date+text.substring(end);
+        }
+      }
+
+      project.setProperty(attributes.get("property"), text);
+     ]]>
+  </scriptdef>
+
+  <scriptdef name="felix" language="javascript" loaderRef="sharedbuild-loaderRef">
+     <attribute name="property" />
+     <attribute name="dependencies" />
+     <attribute name="separator" />
+     <![CDATA[
+      var dep = attributes.get("dependencies");
+      var sep = attributes.get("separator");
+      var arr=dep.split(sep);
+      
+      var rtn="";
+      for(var i=0;i<arr.length;i++){
+        if(arr[i].indexOf("felix")!=-1) {
+          rtn=arr[i];
+          break;
+        } 
+      }
+
+      var res=arr[0];
+      project.setProperty(attributes.get("property"), rtn);
+     ]]>
+  </scriptdef>
+  
+  <scriptdef name="currentTime" language="javascript" loaderRef="sharedbuild-loaderRef">
+     <attribute name="property" />
+     <![CDATA[
+      project.setProperty(attributes.get("property"), new Date().getTime());
+     ]]>
+  </scriptdef>
+  
+  <scriptdef name="deployLco" language="javascript" loaderRef="sharedbuild-loaderRef">
+     <attribute name="srcdir" />
+     <attribute name="deploydir" />
+     <attribute name="name" />
+     <![CDATA[
+          var srcDir = attributes.get("srcdir");
+          var deployDir = attributes.get("deploydir");
+          var name = attributes.get("name");
+          
+          if (deployDir && String(deployDir).length >= 0) {
+            var path = deployDir + "/" + name;
+            var echo = project.createTask( "echo" );
+            var copy = project.createTask( "copy" );
+
+            copy.setFile( new java.io.File( srcDir + "/" + name ) );
+            copy.setTofile( new java.io.File( path ) );
+            echo.setMessage( "Deploying lco: " + name );
+            echo.perform();
+
+            copy.perform();
+          }
+     ]]>
+  </scriptdef>
+
+
+</project>

@@ -21,7 +21,7 @@ package lucee.runtime.tag;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.debug.ActiveLock;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.LockException;
@@ -297,7 +297,7 @@ public final class Lock extends BodyTagTryCatchFinallyImpl {
 	private void _release(PageContext pc, long exe) {
 		ActiveLock al = ((PageContextImpl) pc).releaseActiveLock();
 		// listener
-		((ConfigWebImpl) pc.getConfig()).getActionMonitorCollector().log(pageContext, "lock", "Lock", exe, al.name + ":" + al.timeoutInMillis);
+		((ConfigWebPro) pc.getConfig()).getActionMonitorCollector().log(pageContext, "lock", "Lock", exe, al.name + ":" + al.timeoutInMillis);
 
 	}
 

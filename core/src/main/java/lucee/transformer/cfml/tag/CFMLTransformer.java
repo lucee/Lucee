@@ -34,7 +34,7 @@ import lucee.commons.lang.types.RefBooleanImpl;
 import lucee.loader.engine.CFMLEngine;
 import lucee.runtime.MappingImpl;
 import lucee.runtime.PageSource;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.config.Constants;
 import lucee.runtime.config.Identification;
@@ -144,7 +144,7 @@ public final class CFMLTransformer {
 	 * @throws TemplateException
 	 * @throws IOException
 	 */
-	public Page transform(Factory factory, ConfigImpl config, PageSource ps, TagLib[] tlibs, FunctionLib[] flibs, boolean returnValue, boolean ignoreScopes)
+	public Page transform(Factory factory, ConfigPro config, PageSource ps, TagLib[] tlibs, FunctionLib[] flibs, boolean returnValue, boolean ignoreScopes)
 			throws TemplateException, IOException {
 		Page p;
 		SourceCode sc;
@@ -293,7 +293,7 @@ public final class CFMLTransformer {
 	 * @return uebersetztes CFXD Dokument Element.
 	 * @throws TemplateException
 	 */
-	public Page transform(Factory factory, ConfigImpl config, SourceCode sc, TagLib[] tlibs, FunctionLib[] flibs, long sourceLastModified, Boolean dotNotationUpperCase,
+	public Page transform(Factory factory, ConfigPro config, SourceCode sc, TagLib[] tlibs, FunctionLib[] flibs, long sourceLastModified, Boolean dotNotationUpperCase,
 			boolean returnValue, boolean ignoreScope) throws TemplateException {
 		boolean dnuc;
 		if (dotNotationUpperCase == null) {

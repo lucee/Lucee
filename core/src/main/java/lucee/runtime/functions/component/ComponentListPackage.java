@@ -36,7 +36,7 @@ import lucee.runtime.Mapping;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.Constants;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.PageException;
@@ -81,7 +81,7 @@ public class ComponentListPackage implements Function {
 
 	private static Set<String> _call(PageContext pc, String packageName) throws IOException, ApplicationException {
 		PageContextImpl pci = (PageContextImpl) pc;
-		ConfigWebImpl config = (ConfigWebImpl) pc.getConfig();
+		ConfigWebPro config = (ConfigWebPro) pc.getConfig();
 		Set<String> rtn = null;
 		// var SEP=server.separator.file;
 

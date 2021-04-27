@@ -1,9 +1,9 @@
 component Displayname = "test" Output="true"{
     public any function writeTest(){
         var sWrite =  "
-            <CFIF True>
-                <CFSET sDateFormatStringDefault = 'dd.mm.##yyyy##'>
-            </CFIF>";
+            <cfif True>
+                <cfset sDateFormatStringDefault = 'dd.mm.##yyyy##'>
+            </cfif>";
         myFile = fileOpen(expandPath("./result.txt"), "write");
         fileWriteLine(myFile, sWrite); 
         fileClose(myFile);
@@ -24,8 +24,8 @@ component Displayname = "test" Output="true"{
 
     public any function writeTest2(){
         var sWrite =  "
-            <CFIF True>
-                <CFSET sDateFormatStringDefault = 'dd.mm.##yyyy##'>
+            <cfif True>
+                <cfset sDateFormatStringDefault = 'dd.mm.##yyyy##'>
             ";
         myFile = fileOpen(expandPath("./result.txt"), "write");
         fileWriteLine(myFile, sWrite); 

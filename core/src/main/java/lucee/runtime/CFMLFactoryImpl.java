@@ -50,9 +50,8 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SizeOf;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
-import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.config.ConfigWeb;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.config.Constants;
 import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.engine.JspEngineInfoImpl;
@@ -83,7 +82,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 	private static final long MAX_AGE = 5 * 60000; // 5 minutes
 	private static final int MAX_SIZE = 10000;
 	private static JspEngineInfo info = new JspEngineInfoImpl("1.0");
-	private ConfigWebImpl config;
+	private ConfigWebPro config;
 	ConcurrentLinkedDeque<PageContextImpl> pcs = new ConcurrentLinkedDeque<PageContextImpl>();
 	private final Map<Integer, PageContextImpl> runningPcs = new ConcurrentHashMap<Integer, PageContextImpl>();
 	private final Map<Integer, PageContextImpl> runningChildPcs = new ConcurrentHashMap<Integer, PageContextImpl>();
@@ -291,7 +290,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 				long timeout = pc.getRequestTimeout();
 				// reached timeout
 				if (pc.getStartTime() + timeout < System.currentTimeMillis() && Long.MAX_VALUE != timeout) {
-					Log log = ((ConfigImpl) pc.getConfig()).getLog("requesttimeout");
+					Log log = pc.getConfig().getLog("requesttimeout");
 					if (reachedConcurrentReqThreshold() && reachedMemoryThreshold() && reachedCPUThreshold()) {
 						if (log != null) {
 							PageContext root = pc.getRootPageContext();
@@ -308,7 +307,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 					else {
 						if (log != null) {
 							PageContext root = pc.getRootPageContext();
-							log.log(Log.LEVEL_ERROR, "controller", "reach request timeout with " + (root != null && root != pc ? "thread" : "request") + " [" + pc.getId()
+							log.log(Log.LEVEL_WARN, "controller", "reach request timeout with " + (root != null && root != pc ? "thread" : "request") + " [" + pc.getId()
 									+ "], but the request is not killed because we did not reach all thresholds set. ATM we have " + getActiveRequests() + " active request(s) and "
 									+ getActiveThreads() + " active cfthreads " + getPath(pc) + "." + MonitorState.getBlockedThreads(pc) + RequestTimeoutException.locks(pc),
 									ExceptionUtil.toThrowable(pc.getThread().getStackTrace()));
@@ -317,10 +316,10 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 				}
 				// after 10 seconds downgrade priority of the thread
 				else if (pc.getStartTime() + 10000 < System.currentTimeMillis() && pc.getThread().getPriority() != Thread.MIN_PRIORITY) {
-					Log log = ((ConfigImpl) pc.getConfig()).getLog("requesttimeout");
+					Log log = pc.getConfig().getLog("requesttimeout");
 					if (log != null) {
 						PageContext root = pc.getRootPageContext();
-						log.log(Log.LEVEL_WARN, "controller", "downgrade priority of the a " + (root != null && root != pc ? "thread" : "request") + " at " + getPath(pc) + ". "
+						log.log(Log.LEVEL_INFO, "controller", "downgrade priority of the a " + (root != null && root != pc ? "thread" : "request") + " at " + getPath(pc) + ". "
 								+ MonitorState.getBlockedThreads(pc) + RequestTimeoutException.locks(pc), ExceptionUtil.toThrowable(pc.getThread().getStackTrace()));
 					}
 					try {
@@ -334,17 +333,17 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		}
 	}
 
-	private boolean reachedConcurrentReqThreshold() {
+	public boolean reachedConcurrentReqThreshold() {
 		if (concurrentReqThreshold == 0) return true;
 		return concurrentReqThreshold <= runningPcs.size();
 	}
 
-	private boolean reachedMemoryThreshold() {
+	public boolean reachedMemoryThreshold() {
 		if (memoryThreshold == 0) return true;
 		return memoryThreshold <= SystemUtil.getMemoryPercentage();
 	}
 
-	private boolean reachedCPUThreshold() {
+	public boolean reachedCPUThreshold() {
 		if (cpuThreshold == 0) return true;
 		return cpuThreshold <= SystemUtil.getCpuPercentage();
 	}
@@ -403,10 +402,6 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		return config;
 	}
 
-	public ConfigWebImpl getConfigWebImpl() {
-		return config;
-	}
-
 	/**
 	 * @return Returns the scopeContext.
 	 */
@@ -419,7 +414,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 	 */
 	@Override
 	public Object getLabel() {
-		return ((ConfigWebImpl) getConfig()).getLabel();
+		return getConfig().getLabel();
 	}
 
 	/**
@@ -448,7 +443,7 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		return _servlet;
 	}
 
-	public void setConfig(ConfigWebImpl config) {
+	public void setConfig(ConfigWebPro config) {
 		this.config = config;
 	}
 
@@ -478,10 +473,10 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		Struct data, sctThread, scopes;
 		Thread thread;
 		Entry<Integer, PageContextImpl> e;
-		ConfigWebImpl cw;
+		ConfigWebPro cw;
 		while (it.hasNext()) {
 			pc = it.next();
-			cw = (ConfigWebImpl) pc.getConfig();
+			cw = (ConfigWebPro) pc.getConfig();
 			data = new StructImpl();
 			sctThread = new StructImpl();
 			scopes = new StructImpl();
@@ -520,12 +515,14 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 			try {
 				if (pc.getConfig().debug()) data.setEL("debugger", pc.getDebugger().getDebuggingData(pc));
 			}
-			catch (PageException e2) {}
+			catch (PageException e2) {
+			}
 
 			try {
 				data.setEL(KeyConstants._id, Hash.call(pc, pc.getId() + ":" + pc.getStartTime()));
 			}
-			catch (PageException e1) {}
+			catch (PageException e1) {
+			}
 
 			data.setEL(KeyConstants._hash, cw.getHash());
 			data.setEL("contextId", cw.getIdentification().getId());
@@ -538,17 +535,20 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 			try {
 				scopes.setEL(KeyConstants._application, pc.applicationScope());
 			}
-			catch (PageException pe) {}
+			catch (PageException pe) {
+			}
 
 			try {
 				scopes.setEL(KeyConstants._session, pc.sessionScope());
 			}
-			catch (PageException pe) {}
+			catch (PageException pe) {
+			}
 
 			try {
 				scopes.setEL(KeyConstants._client, pc.clientScope());
 			}
-			catch (PageException pe) {}
+			catch (PageException pe) {
+			}
 			scopes.setEL(KeyConstants._cookie, pc.cookieScope());
 			scopes.setEL(KeyConstants._variables, pc.variablesScope());
 			if (!(pc.localScope() instanceof LocalNotSupportedScope)) {
@@ -572,7 +572,6 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 		PageContext pc;
 		while (it.hasNext()) {
 			pc = it.next();
-			// Log log = ((ConfigImpl)pc.getConfig()).getLog("application");
 			try {
 				String id = Hash.call(pc, pc.getId() + ":" + pc.getStartTime());
 				if (id.equals(threadId)) {
@@ -587,7 +586,8 @@ public final class CFMLFactoryImpl extends CFMLFactory {
 					break;
 				}
 			}
-			catch (PageException e1) {}
+			catch (PageException e1) {
+			}
 
 		}
 		// }

@@ -26,7 +26,7 @@
 		}
 		finally{
 			var q = new Query( );
-			q.execute( sql="delete from users where firstName = 'unitTest'" );
+			q.execute( sql="delete from users1428 where firstName = 'unitTest'" );
 		}
 	}
 
@@ -56,7 +56,7 @@
 		}
 		finally{
 			var q = new Query( );
-			q.execute( sql="delete from users where firstName = 'unitTest'" );
+			q.execute( sql="delete from users1428 where firstName = 'unitTest'" );
 		}
 	}
 
@@ -78,14 +78,14 @@
 			ORMFlush();
 			ORMClearSession();
 
-			result = q.execute(sql="select * from users where userName = 'unitTest'");
+			result = q.execute(sql="select * from users1428 where userName = 'unitTest'");
 			echo("#result.getResult().recordcount#|" );
 		}
 		catch(any e){
 			echo(e.detail & e.message & e.stackTrace);
 		}
 		finally{
-			q.execute(sql="delete from users where userName = 'unitTest'");
+			q.execute(sql="delete from users1428 where userName = 'unitTest'");
 		}
 	}
 

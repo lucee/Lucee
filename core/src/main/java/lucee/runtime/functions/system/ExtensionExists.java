@@ -2,7 +2,7 @@ package lucee.runtime.functions.system;
 
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWebPro;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
@@ -19,8 +19,8 @@ public class ExtensionExists extends BIF implements Function {
 	}
 
 	public static boolean call(PageContext pc, String id, String version) throws PageException {
-		if (find(id, version, ((ConfigWebImpl) pc.getConfig()).getServerRHExtensions())) return true;
-		if (find(id, version, ((ConfigWebImpl) pc.getConfig()).getRHExtensions())) return true;
+		if (find(id, version, ((ConfigWebPro) pc.getConfig()).getServerRHExtensions())) return true;
+		if (find(id, version, ((ConfigWebPro) pc.getConfig()).getRHExtensions())) return true;
 		return false;
 	}
 

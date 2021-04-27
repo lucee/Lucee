@@ -33,7 +33,7 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.CasterException;
 import lucee.runtime.exp.PageException;
@@ -69,7 +69,7 @@ public final class Log extends TagImpl {
 	/**
 	 * Specifies whether to log the application name if one has been specified in an application tag.
 	 */
-	private boolean application;
+	private boolean application = true;
 	private CharSet charset = null;
 
 	private boolean async;
@@ -80,7 +80,7 @@ public final class Log extends TagImpl {
 		log = DEfAULT_LOG;
 		type = lucee.commons.io.log.Log.LEVEL_INFO;
 		file = null;
-		application = false;
+		application = true;
 		charset = null;
 		exception = null;
 		text = null;
@@ -214,14 +214,13 @@ public final class Log extends TagImpl {
 
 		if (text == null && exception == null) throw new ApplicationException("Tag [log] requires one of the following attributes [text, exception]");
 		PageContextImpl pci = (PageContextImpl) pageContext;
-		ConfigImpl config = (ConfigImpl) pageContext.getConfig();
 		lucee.commons.io.log.Log logger;
 		if (file == null) {
 			logger = pci.getLog(log.toLowerCase(), false);
 			if (logger == null) {
 				// for backward compatibility
 				if ("console".equalsIgnoreCase(log))
-					logger = ((ConfigImpl) pageContext.getConfig()).getLogEngine().getConsoleLog(false, "cflog", lucee.commons.io.log.Log.LEVEL_INFO);
+					logger = ((ConfigPro) pageContext.getConfig()).getLogEngine().getConsoleLog(false, "cflog", lucee.commons.io.log.Log.LEVEL_INFO);
 				else {
 					java.util.Collection<String> set = pci.getLogNames();
 					Iterator<String> it = set.iterator();
@@ -240,7 +239,7 @@ public final class Log extends TagImpl {
 		}
 
 		String contextName = pageContext.getApplicationContext().getName();
-		if (contextName == null || application) contextName = "";
+		if (contextName == null || !application) contextName = "";
 		if (exception != null) {
 			if (StringUtil.isEmpty(text)) logger.log(type, contextName, exception);
 			else logger.log(type, contextName, text, exception);
@@ -255,7 +254,7 @@ public final class Log extends TagImpl {
 
 	private static lucee.commons.io.log.Log getFileLog(PageContext pc, String file, CharSet charset, boolean async) throws PageException {
 
-		ConfigImpl config = (ConfigImpl) pc.getConfig();
+		ConfigPro config = (ConfigPro) pc.getConfig();
 		Resource logDir = config.getLogDirectory();
 		Resource res = logDir.getRealResource(file);
 		lucee.commons.io.log.Log log = FileLogPool.instance.get(res, CharsetUtil.toCharset(charset));

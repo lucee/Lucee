@@ -31,7 +31,6 @@ import lucee.commons.io.log.Log;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigImpl;
 import lucee.runtime.engine.CFMLEngineImpl;
 import lucee.runtime.engine.ThreadLocalConfig;
 import lucee.runtime.engine.ThreadLocalPageContext;
@@ -109,13 +108,15 @@ public class ScheduledTaskThread extends Thread {
 
 		// stop this thread itself
 		SystemUtil.notify(this);
+		if (this.isAlive()) SystemUtil.sleep(1);
 		SystemUtil.stop(this);
+
 		if (this.isAlive()) log.log(Log.LEVEL_WARN, "scheduler", "task [" + task.getTask() + "] could not be stopped.", ExceptionUtil.toThrowable(this.getStackTrace()));
 		else log.info("scheduler", "task [" + task.getTask() + "] stopped");
 	}
 
 	private void stop(Log log, ExecutionThread et) {
-		SystemUtil.stop(exeThread);
+		if (exeThread != null) SystemUtil.stop(exeThread);
 		if (et != null && et.isAlive())
 			log.log(Log.LEVEL_WARN, "scheduler", "task thread [" + task.getTask() + "] could not be stopped.", ExceptionUtil.toThrowable(et.getStackTrace()));
 		else log.info("scheduler", "task thread [" + task.getTask() + "] stopped");
@@ -139,7 +140,8 @@ public class ScheduledTaskThread extends Thread {
 			try {
 				scheduler.removeIfNoLonerValid(task);
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 		}
 
 	}
@@ -167,7 +169,6 @@ public class ScheduledTaskThread extends Thread {
 			execution = startDate + startTime;
 		}
 		else execution = calculateNextExecution(today, false);
-		// long sleep=execution-today;
 
 		log(Log.LEVEL_INFO, "First execution");
 
@@ -209,7 +210,7 @@ public class ScheduledTaskThread extends Thread {
 	private void log(int level, String msg) {
 		try {
 			String logName = "schedule task:" + task.getTask();
-			((ConfigImpl) scheduler.getConfig()).getLog("scheduler").log(level, logName, msg);
+			scheduler.getConfig().getLog("scheduler").log(level, logName, msg);
 
 		}
 		catch (Exception e) {
@@ -221,7 +222,7 @@ public class ScheduledTaskThread extends Thread {
 	private void log(int level, Exception e) {
 		try {
 			String logName = "schedule task:" + task.getTask();
-			((ConfigImpl) scheduler.getConfig()).getLog("scheduler").log(level, logName, e);
+			scheduler.getConfig().getLog("scheduler").log(level, logName, e);
 
 		}
 		catch (Exception ee) {
@@ -233,11 +234,14 @@ public class ScheduledTaskThread extends Thread {
 	private void sleepEL(long when, long now) {
 		long millis = when - now;
 		try {
-			while (true) {
-				SystemUtil.wait(this, millis);
-				millis = when - System.currentTimeMillis();
-				if (millis <= 0) break;
-				millis = 10;
+			if (millis > 0) {
+				while (true) {
+					SystemUtil.wait(this, millis);
+					if (stop) break;
+					millis = when - System.currentTimeMillis();
+					if (millis <= 0) break;
+					millis = 10;
+				}
 			}
 		}
 		catch (Exception e) {
@@ -314,17 +318,6 @@ public class ScheduledTaskThread extends Thread {
 		// print.e("res:" + new Date(res));
 	}
 
-	/*
-	 * public static void main(String[] args) { DateTimeUtil util = DateTimeUtil.getInstance(); TimeZone
-	 * tz = TimeZone.getTimeZone("CET"); long now = System.currentTimeMillis(); boolean notNow = true;
-	 * long start = 1602277200000L; long endTime = 86400000; int intervall = -1; int amount = 300;
-	 * 
-	 * long res = calculateNextExecution(util, now, notNow, tz, start, endTime, intervall, amount);
-	 * print.e(res); print.e(new Date(now)); print.e(new Date(start)); print.e(new Date(res));
-	 * 
-	 * long millis = res - now; print.e(millis); }
-	 */
-
 	private long calculateNextExecution(long now, boolean notNow) {
 		if (intervall == ScheduleTaskImpl.INTERVAL_EVEREY) return calculateNextExecutionEvery(util, now, notNow, timeZone, start, endTime, amount);
 		return calculateNextExecutionNotEvery(util, now, notNow, timeZone, start, intervall);
@@ -394,9 +387,24 @@ public class ScheduledTaskThread extends Thread {
 		return next;
 	}
 
+	//
+	//
+	/*
+	 * public static void main(String[] args) {
+	 * 
+	 * for (long now: new long[] { 1616806800000L, 1616893200000L, 1616976000000L, 1635120000000L }) {
+	 * calculateNextExecutionEvery(DateTimeUtil.getInstance(), now, false, TimeZone.getDefault(),
+	 * 1556319600000L, 72000000L, 21600 * 2); }
+	 * 
+	 * }
+	 */
+
 	private static long calculateNextExecutionEvery(DateTimeUtil util, long now, boolean notNow, TimeZone timeZone, long start, long endTime, int amount) {
 		Calendar c = JREDateTimeUtil.getThreadCalendar(timeZone);
-
+		// print.e("----------------------------------");
+		// print.e("now:" + new Date(now));
+		// print.e("start:" + new Date(start));
+		// print.e(amount);
 		// get the current years, so we only have to search this year
 
 		// extract the time in day info (we do not seconds in day to avoid DST issues)
@@ -414,14 +422,16 @@ public class ScheduledTaskThread extends Thread {
 		c.set(Calendar.MILLISECOND, 0);
 		c.setTimeInMillis(c.getTimeInMillis() + endTime);
 		long end = c.getTimeInMillis();
+		// print.e("end:" + c.getTime());
 
 		c.setTimeInMillis(now);
 		c.set(Calendar.HOUR_OF_DAY, startHour);
-		revertDST(c, Calendar.HOUR_OF_DAY, startHour, Calendar.SECOND, amount);
+		revertDST(c, startHour, Calendar.SECOND, amount);
 		c.set(Calendar.MINUTE, startMinute);
 		c.set(Calendar.SECOND, startSecond);
 		c.set(Calendar.MILLISECOND, startMilliSecond);
 		long next = c.getTimeInMillis();
+		// print.e("start:" + new Date(next));
 
 		// is it already in the future or we want not now
 		while (next <= now) {
@@ -432,11 +442,8 @@ public class ScheduledTaskThread extends Thread {
 			}
 
 			c.add(Calendar.SECOND, amount);
-			// print.e("-now:" + new Date(now));
-			// print.e("-next:" + c.getTime());
-			// print.e("-end:" + new Date(end));
-
 			next = c.getTimeInMillis();
+			// print.e("- " + c.getTime());
 			// we reach end so we set it to start tomorrow
 			if (next > end) {
 				c.setTimeInMillis(now);
@@ -445,22 +452,23 @@ public class ScheduledTaskThread extends Thread {
 				c.set(Calendar.SECOND, startSecond);
 				c.set(Calendar.MILLISECOND, startMilliSecond);
 				c.add(Calendar.DAY_OF_MONTH, 1);
+				// print.e("next0:" + c.getTime());
 				return c.getTimeInMillis();
 			}
 		}
+		// print.e("next2:" + new Date(next));
 		return next;
 	}
 
-	private static void revertDST(Calendar c, int hourExpected, int startHour, int intervall, int amount) {
+	private static void revertDST(Calendar c, int hourExpected, int intervall, int amount) {
 		int hour = c.get(Calendar.HOUR_OF_DAY);
 		if (hour == hourExpected) return;
 		// go back until it shifts
-		// print.e("::" + c.getTime());
 		while (true) {
+			// print.e("- " + c.getTime());
 			c.add(intervall, -amount);
-			// print.e(c.getTime());
 			hour = c.get(Calendar.HOUR_OF_DAY);
-			if (hour == hourExpected) {
+			if (hour <= hourExpected) {
 				c.add(intervall, amount);
 				break;
 			}

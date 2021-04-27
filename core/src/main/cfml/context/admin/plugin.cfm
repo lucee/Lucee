@@ -2,12 +2,15 @@
 <cfparam name="application.pluginLanguage.de" default="#struct()#">
 <cfparam name="application.pluginLanguage.en" default="#struct()#">
 <cfparam name="url.pluginAction" default="overview">
+<cfif url.pluginAction.len() EQ 0>
+	<cfset url.pluginAction = "overview">
+</cfif>
 <cfif not structKeyExists(url,"plugin")>
 	<cflocation url="#request.self#" addtoken="no">
 </cfif>
 
 <!--- avoid concurrency problems when resetting plugins --->
-<Cflock name="lucee_admin_plugins_last_updated">
+<cflock name="lucee_admin_plugins_last_updated">
 	<cfscript>
 		if (not StructKeyExists(application.plugin, request.adminType))
 			application.plugin[request.adminType] = {};
@@ -60,7 +63,7 @@
 	<cfset rtnAction= plugin.component._action(url.pluginAction,lang,app,req)>    
 	<!--- cfset rtnAction= plugin.component[url.pluginAction](lang,app,req)--->
 </cfif>
-<cfif not isDefined('rtnAction')>
+<cfif rtnAction?:"".len() EQ 0>
 	<cfset rtnAction=url.pluginAction>
 </cfif>
 
@@ -85,5 +88,5 @@
 </cfif>
 
 <cfif not hasAction and not hasDisplay>
-<cfset printError(struct(message:"there is no action [#url.pluginAction#] or diplay handler [#expandPath(dspFile)#] defined for "&url.plugin,detail:''))>
+<cfset printError(struct(message:"there is no action [#url.pluginAction#] or display handler [#expandPath(dspFile)#] defined for "&url.plugin,detail:''))>
 </cfif>

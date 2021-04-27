@@ -109,7 +109,7 @@ public final class QoQ {
 			arrSelects[i].getFroms();
 			Column[] froms = arrSelects[i].getFroms();
 
-			if (froms.length > 1) throw new DatabaseException("QoQ can only select from a single tables at a time.", null, sql, null);
+			if (froms.length > 1) throw new DatabaseException("Native QoQ can only select from a single tables at a time, falling back to HSQLDB.", sql.toString(), sql, null);
 
 			// Lookup actual Query variable on page
 			Query source = getSingleTable(pc, froms[0]);
@@ -186,24 +186,24 @@ public final class QoQ {
 				target.sort(c.getColumn(), col.isDirectionBackward() ? Query.ORDER_DESC : Query.ORDER_ASC);
 			}
 			else {
-				throw new DatabaseException("ORDER BY items must be a column name/alias from the first select list if the statement contains a UNION operator", null, sql, null);
+				throw new DatabaseException("ORDER BY items must be a column name/alias from the first select list if the statement contains a UNION operator", sql.toString(), sql, null);
 			}
 		}
 	}
 
 	/**
-	 * Process a single select statement. If this is a union, append it to the incoming "previous"
-	 * Query and return the new, combined query with all rows
+	 * Process a single select statement. If this is a union, append it to the incoming "previous" Query
+	 * and return the new, combined query with all rows
 	 * 
 	 * @param pc PageContext
 	 * @param select Select instance
 	 * @param source Source query to pull data from
-	 * @param previous Previous query in case of union. May be empty if this is the first select in
-	 *            the union
+	 * @param previous Previous query in case of union. May be empty if this is the first select in the
+	 *            union
 	 * @param maxrows max rows from cfquery tag. Not necessarily the same as TOP
 	 * @param sql SQL object
-	 * @param hasOrders Is this overall Selects instance ordered? This affects whether we can
-	 *            optimize maxrows or not
+	 * @param hasOrders Is this overall Selects instance ordered? This affects whether we can optimize
+	 *            maxrows or not
 	 * @param isUnion Is this select part of a union of several selects
 	 * @return
 	 * @throws PageException
@@ -957,9 +957,8 @@ public final class QoQ {
 	 * *
 	 * 
 	 * @param expression / private void print(ZExpression expression) {
-	 * print.ln("Operator:"+expression.getOperator().toLowerCase()); int
-	 * len=expression.nbOperands(); for(int i=0;i<len;i++) { print.ln("	["+i+"]=	"
-	 * +expression.getOperand(i)); } }/*
+	 * print.ln("Operator:"+expression.getOperator().toLowerCase()); int len=expression.nbOperands();
+	 * for(int i=0;i<len;i++) { print.ln("	["+i+"]=	" +expression.getOperand(i)); } }/*
 	 * 
 	 * 
 	 * 
@@ -1015,7 +1014,8 @@ public final class QoQ {
 
 	private Object executeXor(PageContext pc, SQL sql, Query source, Operation2 expression, int row) throws PageException {
 		return Caster.toBooleanValue(executeExp(pc, sql, source, expression.getLeft(), row)) ^ Caster.toBooleanValue(executeExp(pc, sql, source, expression.getRight(), row))
-				? Boolean.TRUE : Boolean.FALSE;
+				? Boolean.TRUE
+				: Boolean.FALSE;
 	}
 
 	/**

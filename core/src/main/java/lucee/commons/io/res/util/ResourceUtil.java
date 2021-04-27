@@ -49,7 +49,7 @@ import lucee.runtime.PageContextImpl;
 import lucee.runtime.PageSource;
 import lucee.runtime.PageSourceImpl;
 import lucee.runtime.config.Config;
-import lucee.runtime.config.ConfigWebImpl;
+import lucee.runtime.config.ConfigWeb;
 import lucee.runtime.config.Constants;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
@@ -212,8 +212,8 @@ public final class ResourceUtil {
 		}
 		if (StringUtil.startsWith(path, '/')) {
 			PageContextImpl pci = (PageContextImpl) pc;
-			ConfigWebImpl cwi = (ConfigWebImpl) pc.getConfig();
-			PageSource[] sources = cwi.getPageSources(pci, ExpandPath.mergeMappings(pc.getApplicationContext().getMappings(), pc.getApplicationContext().getComponentMappings()),
+			ConfigWeb cw = pc.getConfig();
+			PageSource[] sources = cw.getPageSources(pci, ExpandPath.mergeMappings(pc.getApplicationContext().getMappings(), pc.getApplicationContext().getComponentMappings()),
 					path, false, pci.useSpecialMappings(), true, false);
 			if (!ArrayUtil.isEmpty(sources)) {
 
@@ -282,8 +282,8 @@ public final class ResourceUtil {
 
 		if (StringUtil.startsWith(destination, '/')) {
 			PageContextImpl pci = (PageContextImpl) pc;
-			ConfigWebImpl cwi = (ConfigWebImpl) pc.getConfig();
-			PageSource[] sources = cwi.getPageSources(pci, ExpandPath.mergeMappings(pc.getApplicationContext().getMappings(), pc.getApplicationContext().getComponentMappings()),
+			ConfigWeb cw = pc.getConfig();
+			PageSource[] sources = cw.getPageSources(pci, ExpandPath.mergeMappings(pc.getApplicationContext().getMappings(), pc.getApplicationContext().getComponentMappings()),
 					destination, false, pci.useSpecialMappings(), true);
 			if (!ArrayUtil.isEmpty(sources)) {
 				for (int i = 0; i < sources.length; i++) {
@@ -327,8 +327,8 @@ public final class ResourceUtil {
 		boolean isUNC;
 		if (!(isUNC = isUNCPath(destination)) && StringUtil.startsWith(destination, '/')) {
 			PageContextImpl pci = (PageContextImpl) pc;
-			ConfigWebImpl cwi = (ConfigWebImpl) pc.getConfig();
-			PageSource[] sources = cwi.getPageSources(pci, ExpandPath.mergeMappings(pc.getApplicationContext().getMappings(), pc.getApplicationContext().getComponentMappings()),
+			ConfigWeb cw = pc.getConfig();
+			PageSource[] sources = cw.getPageSources(pci, ExpandPath.mergeMappings(pc.getApplicationContext().getMappings(), pc.getApplicationContext().getComponentMappings()),
 					destination, false, pci.useSpecialMappings(), SystemUtil.isWindows(), checkComponentMappings);
 			if (!ArrayUtil.isEmpty(sources)) {
 				for (int i = 0; i < sources.length; i++) {
@@ -858,6 +858,10 @@ public final class ResourceUtil {
 		int pos = strFileName.lastIndexOf('.');
 		if (pos == -1) return strFileName;
 		return strFileName.substring(0, pos);
+	}
+
+	public static String getName(Resource res) {
+		return getName(res.getName());
 	}
 
 	/**

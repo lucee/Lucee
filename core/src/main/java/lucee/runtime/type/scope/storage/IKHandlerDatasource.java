@@ -7,15 +7,17 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import lucee.commons.io.SystemUtil;
 import lucee.commons.io.log.Log;
 import lucee.commons.lang.ExceptionUtil;
 import lucee.runtime.PageContext;
 import lucee.runtime.PageContextImpl;
-import lucee.runtime.config.ConfigImpl;
+import lucee.runtime.config.ConfigPro;
+import lucee.runtime.config.DatasourceConnPool;
 import lucee.runtime.converter.JavaConverter;
 import lucee.runtime.db.DataSource;
 import lucee.runtime.db.DatasourceConnection;
-import lucee.runtime.db.DatasourceConnectionPool;
+import lucee.runtime.db.DatasourceConnectionPro;
 import lucee.runtime.debug.DebuggerUtil;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
@@ -34,15 +36,18 @@ public class IKHandlerDatasource implements IKHandler {
 
 	public static final String PREFIX = "cf";
 
+	protected boolean storeEmpty = Caster.toBooleanValue(SystemUtil.getSystemPropOrEnvVar("lucee.store.empty", null), false);
+
 	@Override
 	public IKStorageValue loadData(PageContext pc, String appName, String name, String strType, int type, Log log) throws PageException {
-		ConfigImpl config = (ConfigImpl) ThreadLocalPageContext.getConfig(pc);
-		DatasourceConnectionPool pool = config.getDatasourceConnectionPool();
-		DatasourceConnection dc = pool.getDatasourceConnection(config, pc.getDataSource(name), null, null);
-		SQLExecutor executor = SQLExecutionFactory.getInstance(dc);
 		Query query;
-
+		ConfigPro config = (ConfigPro) ThreadLocalPageContext.getConfig(pc);
+		DatasourceConnection dc = null;
 		try {
+			DatasourceConnPool pool = config.getDatasourceConnectionPool(pc.getDataSource(name), null, null);
+			dc = pool.borrowObject();
+			SQLExecutor executor = SQLExecutionFactory.getInstance(dc);
+
 			if (!dc.getDatasource().isStorage()) throw new ApplicationException("storage usage for this datasource is disabled, you can enable this in the Lucee administrator.");
 			query = executor.select(config, pc.getCFID(), pc.getApplicationContext().getName(), dc, type, log, true);
 		}
@@ -50,7 +55,7 @@ public class IKHandlerDatasource implements IKHandler {
 			throw Caster.toPageException(se);
 		}
 		finally {
-			if (dc != null) pool.releaseDatasourceConnection(dc);
+			if (dc != null) ((DatasourceConnectionPro) dc).release();
 		}
 
 		if (query != null && config.debug()) {
@@ -73,13 +78,14 @@ public class IKHandlerDatasource implements IKHandler {
 			try {
 				return toIKStorageValue((Struct) pc.evaluate(str));
 			}
-			catch (Exception e) {}
+			catch (Exception e) {
+			}
 			return null;
 		}
 
 		try {
 			IKStorageValue data = (IKStorageValue) JavaConverter.deserialize(str);
-			ScopeContext.debug(log, "load existing data from [" + name + "." + PREFIX + "_" + strType + "_data] to create " + strType + " scope for "
+			ScopeContext.info(log, "load existing data from [" + name + "." + PREFIX + "_" + strType + "_data] to create " + strType + " scope for "
 					+ pc.getApplicationContext().getName() + "/" + pc.getCFID());
 			return data;
 		}
@@ -114,39 +120,45 @@ public class IKHandlerDatasource implements IKHandler {
 	@Override
 	public void store(IKStorageScopeSupport storageScope, PageContext pc, String appName, final String name, String cfid, Map<Key, IKStorageScopeItem> data, Log log) {
 		DatasourceConnection dc = null;
-		ConfigImpl ci = (ConfigImpl) ThreadLocalPageContext.getConfig(pc);
-		DatasourceConnectionPool pool = ci.getDatasourceConnectionPool();
+		ConfigPro ci = (ConfigPro) ThreadLocalPageContext.getConfig(pc);
 		try {
 			pc = ThreadLocalPageContext.get(pc);
 			DataSource ds;
 			if (pc != null) ds = pc.getDataSource(name);
 			else ds = ci.getDataSource(name);
-			dc = pool.getDatasourceConnection(null, ds, null, null);
+			DatasourceConnPool pool = ci.getDatasourceConnectionPool(ds, null, null);
+			dc = pool.borrowObject();
 			SQLExecutor executor = SQLExecutionFactory.getInstance(dc);
 			IKStorageValue existingVal = loadData(pc, appName, name, storageScope.getTypeAsString(), storageScope.getType(), log);
-			IKStorageValue sv = new IKStorageValue(IKStorageScopeSupport.prepareToStore(data, existingVal, storageScope.lastModified()));
-			executor.update(ci, cfid, appName, dc, storageScope.getType(), sv, storageScope.getTimeSpan(), log);
+
+			if (storeEmpty || storageScope.hasContent()) {
+				IKStorageValue sv = new IKStorageValue(IKStorageScopeSupport.prepareToStore(data, existingVal, storageScope.lastModified()));
+				executor.update(ci, cfid, appName, dc, storageScope.getType(), sv, storageScope.getTimeSpan(), log);
+			}
+			else if (existingVal != null) {
+				executor.delete(ci, cfid, appName, dc, storageScope.getType(), log);
+			}
 		}
 		catch (Exception e) {
 			ScopeContext.error(log, e);
 		}
 		finally {
-			if (dc != null) pool.releaseDatasourceConnection(dc);
+			if (dc != null) ((DatasourceConnectionPro) dc).release();
 		}
 	}
 
 	@Override
 	public void unstore(IKStorageScopeSupport storageScope, PageContext pc, String appName, String name, String cfid, Log log) {
-		ConfigImpl ci = (ConfigImpl) ThreadLocalPageContext.getConfig(pc);
+		ConfigPro ci = (ConfigPro) ThreadLocalPageContext.getConfig(pc);
 		DatasourceConnection dc = null;
 
-		DatasourceConnectionPool pool = ci.getDatasourceConnectionPool();
 		try {
 			pc = ThreadLocalPageContext.get(pc);// FUTURE change method interface
 			DataSource ds;
 			if (pc != null) ds = pc.getDataSource(name);
 			else ds = ci.getDataSource(name);
-			dc = pool.getDatasourceConnection(null, ds, null, null);
+			DatasourceConnPool pool = ci.getDatasourceConnectionPool(ds, null, null);
+			dc = pool.borrowObject();
 			SQLExecutor executor = SQLExecutionFactory.getInstance(dc);
 			executor.delete(ci, cfid, appName, dc, storageScope.getType(), log);
 		}
@@ -155,7 +167,7 @@ public class IKHandlerDatasource implements IKHandler {
 			ScopeContext.error(log, t);
 		}
 		finally {
-			if (dc != null) pool.releaseDatasourceConnection(dc);
+			if (dc != null) ((DatasourceConnectionPro) dc).release();
 		}
 	}
 

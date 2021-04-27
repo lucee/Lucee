@@ -361,7 +361,7 @@ public final class Directory extends TagImpl {
 	 **/
 	public void setNameconflict(String nameconflict) throws ApplicationException {
 
-		this.nameconflict = FileUtil.toNameConflict(nameconflict, NAMECONFLICT_UNDEFINED | NAMECONFLICT_ERROR | NAMECONFLICT_OVERWRITE, NAMECONFLICT_DEFAULT);
+		this.nameconflict = FileUtil.toNameConflict(nameconflict, NAMECONFLICT_UNDEFINED | NAMECONFLICT_ERROR | NAMECONFLICT_OVERWRITE | NAMECONFLICT_SKIP, NAMECONFLICT_DEFAULT);
 	}
 
 	@Override
@@ -377,7 +377,10 @@ public final class Directory extends TagImpl {
 		else if (action.equals("create")) actionCreate(pageContext, directory, serverPassword, createPath, mode, acl, storage, nameconflict);
 		else if (action.equals("delete")) actionDelete(pageContext, directory, recurse, serverPassword);
 		else if (action.equals("forcedelete")) actionDelete(pageContext, directory, true, serverPassword);
-		else if (action.equals("rename")) actionRename(pageContext, directory, strNewdirectory, serverPassword, createPath, acl, storage);
+		else if (action.equals("rename")) {
+			String res = actionRename(pageContext, directory, strNewdirectory, serverPassword, createPath, acl, storage);
+			if (!StringUtil.isEmpty(name) && res != null) pageContext.setVariable(name, res);
+		}
 		else if (action.equals("copy")) {
 			if (StringUtil.isEmpty(destination, true) && !StringUtil.isEmpty(strNewdirectory, true)) {
 				destination = strNewdirectory.trim();
@@ -731,6 +734,10 @@ public final class Directory extends TagImpl {
 		// check if file
 		if (dir.isFile()) throw new ApplicationException("can't delete [" + dir.toString() + "], it isn't a directory, it's a file");
 
+		// check directory is empty
+		Resource[] dirList = dir.listResources();
+		if (dirList != null && dirList.length > 0 && forceDelete == false) throw new ApplicationException("directory [" + dir.toString() + "] is not empty","set recurse=true to delete sub-directories and files too");
+		
 		// delete directory
 		try {
 			dir.remove(forceDelete);
@@ -745,7 +752,7 @@ public final class Directory extends TagImpl {
 	 * 
 	 * @throws PageException
 	 */
-	public static void actionRename(PageContext pc, Resource directory, String strNewdirectory, String serverPassword, boolean createPath, Object acl, String storage)
+	public static String actionRename(PageContext pc, Resource directory, String strNewdirectory, String serverPassword, boolean createPath, Object acl, String storage)
 			throws PageException {
 		// check directory
 		SecurityManager securityManager = pc.getConfig().getSecurityManager();
@@ -776,6 +783,7 @@ public final class Directory extends TagImpl {
 
 		// set S3 stuff
 		setS3Attrs(pc, directory, acl, storage);
+		return newdirectory.toString();
 
 	}
 

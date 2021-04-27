@@ -157,7 +157,7 @@ public final class GetTagData implements Function {
 					_attr.set(KeyConstants._type, src.get(KeyConstants._type, "any"));
 					_attr.set(KeyConstants._required, Caster.toBoolean(src.get(KeyConstants._required, ""), null));
 					_attr.set("scriptSupport", "none");
-					_attrs.setEL(e.getKey().getLowerString(), _attr);
+					_attrs.setEL(e.getKey(), _attr);
 
 				}
 			}

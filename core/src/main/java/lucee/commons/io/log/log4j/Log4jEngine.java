@@ -70,7 +70,7 @@ public class Log4jEngine extends LogEngine {
 				RollingResourceAppender.DEFAULT_MAX_BACKUP_INDEX, timeout, listener); // no open stream at all
 
 		if (async) {
-			a = new TaskAppender(config, a);
+			a = new TaskAppender(ConfigWebUtil.toConfigWeb(config), a);
 		}
 		return new LogAdapter(_getLogger(config, a, name, level));
 	}

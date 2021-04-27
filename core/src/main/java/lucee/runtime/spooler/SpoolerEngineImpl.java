@@ -39,6 +39,8 @@ import lucee.commons.lang.ExceptionUtil;
 import lucee.commons.lang.SerializableObject;
 import lucee.commons.lang.StringUtil;
 import lucee.runtime.config.Config;
+import lucee.runtime.config.ConfigWeb;
+import lucee.runtime.config.ConfigWebUtil;
 import lucee.runtime.engine.ThreadLocalConfig;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.DatabaseException;
@@ -78,7 +80,6 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 	private Resource _persisDirectory;
 	private long count = 0;
 	private Log log;
-	private Config config;
 	private int add = 0;
 
 	private Resource closedDirectory;
@@ -86,20 +87,21 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 
 	private int maxThreads;
 
-	public SpoolerEngineImpl(Config config, Resource persisDirectory, String label, Log log, int maxThreads) {
-		this.config = config;
-		this._persisDirectory = persisDirectory;
+	private boolean init;
 
+	public SpoolerEngineImpl(Resource persisDirectory, String label, Log log, int maxThreads) {
+		this._persisDirectory = persisDirectory;
 		closedDirectory = persisDirectory.getRealResource("closed");
 		openDirectory = persisDirectory.getRealResource("open");
-		// calculateSize();
-
 		this.maxThreads = maxThreads;
 		this.label = label;
 		this.log = log;
-		// print.ds(persisDirectory.getAbsolutePath());
-		// load();
-		if (getOpenTaskCount() > 0) start();
+	}
+
+	public void init(ConfigWeb config) {
+		if (init) return;
+		if (getOpenTaskCount() > 0) start(config);
+		init = true;
 	}
 
 	/*
@@ -123,12 +125,17 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 	}
 
 	@Override
+
 	public synchronized void add(SpoolerTask task) {
+		add(ConfigWebUtil.toConfigWeb(ThreadLocalPageContext.getConfig()), task);
+	}
+
+	public synchronized void add(ConfigWeb config, SpoolerTask task) {
 		// if there is no plan execute and forget
 		if (task.getPlans() == null) {
-			if (task instanceof Task) start((Task) task);
+			if (task instanceof Task) start(config, (Task) task);
 			else {
-				start(new TaskWrap(task));
+				start(config, new TaskWrap(task));
 				log.error("spooler", "make class " + task.getClass().getName() + " a Task class");
 			}
 			return;
@@ -137,17 +144,17 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 		// openTasks.add(task);
 		add++;
 		if (task.nextExecution() == 0) task.setNextExecution(System.currentTimeMillis());
-		task.setId(createId(task));
-		store(task);
-		start();
+		task.setId(createId(config, task));
+		store(config, task);
+		start(config);
 	}
 
 	// add to interface
-	public void add(Task task) {
-		start(task);
+	public void add(ConfigWeb config, Task task) {
+		start(config, task);
 	}
 
-	private void start(Task task) {
+	private void start(ConfigWeb config, Task task) {
 		if (task == null) return;
 		synchronized (task) {
 			if (simpleThread == null || !simpleThread.isAlive()) {
@@ -163,9 +170,9 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 		}
 	}
 
-	private void start() {
+	public void start(ConfigWeb config) {
 		if (thread == null || !thread.isAlive()) {
-			thread = new SpoolerThread(this);
+			thread = new SpoolerThread(config, this);
 			thread.setPriority(Thread.MIN_PRIORITY);
 			thread.start();
 		}
@@ -208,9 +215,9 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 		return task;
 	}
 
-	private void store(SpoolerTask task) {
+	private void store(ConfigWeb config, SpoolerTask task) {
 		ObjectOutputStream oos = null;
-		Resource persis = getFile(task);
+		Resource persis = getFile(config, task);
 		if (persis.exists()) persis.delete();
 		try {
 			oos = new ObjectOutputStream(persis.getOutputStream());
@@ -229,13 +236,13 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 		}
 	}
 
-	private void unstore(SpoolerTask task) {
-		Resource persis = getFile(task);
+	private void unstore(ConfigWeb config, SpoolerTask task) {
+		Resource persis = getFile(config, task);
 		boolean exists = persis.exists();
 		if (exists) persis.delete();
 	}
 
-	private void log(SpoolerTask task, Exception e, boolean before) {
+	private void log(ConfigWeb config, SpoolerTask task, Exception e, boolean before) {
 		if (task instanceof SpoolerTaskPro) {
 			SpoolerTaskPro taskp = (SpoolerTaskPro) task;
 			SpoolerTaskListener listener = taskp.getListener();
@@ -245,14 +252,14 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 		else log.log(Log.LEVEL_ERROR, "remote-client", "failed to execute: " + task.subject(), e);
 	}
 
-	private Resource getFile(SpoolerTask task) {
-		Resource dir = getPersisDirectory().getRealResource(task.closed() ? "closed" : "open");
+	private Resource getFile(ConfigWeb config, SpoolerTask task) {
+		Resource dir = getPersisDirectory(config).getRealResource(task.closed() ? "closed" : "open");
 		dir.mkdirs();
 		return dir.getRealResource(task.getId() + ".tsk");
 	}
 
-	private String createId(SpoolerTask task) {
-		Resource dir = getPersisDirectory().getRealResource(task.closed() ? "closed" : "open");
+	private String createId(ConfigWeb config, SpoolerTask task) {
+		Resource dir = getPersisDirectory(config).getRealResource(task.closed() ? "closed" : "open");
 		dir.mkdirs();
 
 		String id = null;
@@ -419,10 +426,12 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 		private SpoolerEngineImpl engine;
 		private boolean sleeping;
 		private final int maxThreads;
+		private ConfigWeb config;
 
-		public SpoolerThread(SpoolerEngineImpl engine) {
+		public SpoolerThread(ConfigWeb config, SpoolerEngineImpl engine) {
 			this.maxThreads = engine.getMaxThreads();
 			this.engine = engine;
+			this.config = config;
 			try {
 				this.setPriority(MIN_PRIORITY);
 			}
@@ -438,7 +447,7 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 			// SpoolerTask[] tasks;
 			SpoolerTask task = null;
 			long nextExection;
-			ThreadLocalConfig.register(engine.config);
+			ThreadLocalConfig.register(config);
 			// ThreadLocalPageContext.register(engine.);
 			List<TaskThread> runningTasks = new ArrayList<TaskThread>();
 			TaskThread tt;
@@ -454,7 +463,7 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 					if (task == null) continue;
 
 					if (task.nextExecution() <= System.currentTimeMillis()) {
-						tt = new TaskThread(engine, task);
+						tt = new TaskThread(config, engine, task);
 						tt.start();
 						runningTasks.add(tt);
 					}
@@ -517,8 +526,10 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 
 		private SpoolerEngineImpl engine;
 		private SpoolerTask task;
+		private ConfigWeb config;
 
-		public TaskThread(SpoolerEngineImpl engine, SpoolerTask task) {
+		public TaskThread(ConfigWeb config, SpoolerEngineImpl engine, SpoolerTask task) {
+			this.config = config;
 			this.engine = engine;
 			this.task = task;
 		}
@@ -529,7 +540,7 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 
 		@Override
 		public void run() {
-			ThreadLocalConfig.register(engine.config);
+			ThreadLocalConfig.register(config);
 			engine.execute(task);
 			ThreadLocalConfig.release();
 
@@ -543,7 +554,12 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 	 */
 	@Override
 	public void remove(SpoolerTask task) {
-		unstore(task);
+		unstore(ConfigWebUtil.toConfigWeb(ThreadLocalPageContext.getConfig()), task);
+		// if(!openTasks.remove(task))closedTasks.remove(task);
+	}
+
+	public void remove(ConfigWeb config, SpoolerTask task) {
+		unstore(config, task);
 		// if(!openTasks.remove(task))closedTasks.remove(task);
 	}
 
@@ -589,17 +605,21 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 
 	@Override
 	public PageException execute(SpoolerTask task) {
+		return execute(ConfigWebUtil.toConfigWeb(ThreadLocalPageContext.getConfig()), task);
+	}
+
+	public PageException execute(ConfigWeb config, SpoolerTask task) {
 		try {
-			log(task, null, true);
+			log(config, task, null, true);
 			if (task instanceof SpoolerTaskSupport) // FUTURE this is bullshit, call the execute method directly, but you have to rewrite them for that
 				((SpoolerTaskSupport) task)._execute(config);
 			else task.execute(config);
-			unstore(task);
+			unstore(config, task);
 
 			task.setLastExecution(System.currentTimeMillis());
 			task.setNextExecution(-1);
 			task.setClosed(true);
-			log(task, null, false);
+			log(config, task, null, false);
 			task = null;
 		}
 		catch (Exception e) {
@@ -607,15 +627,15 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 			task.setNextExecution(calculateNextExecution(task));
 
 			if (task.nextExecution() == -1) {
-				unstore(task);
+				unstore(config, task);
 				task.setClosed(true);
-				log(task, e, false);
-				store(task);
+				log(config, task, e, false);
+				store(config, task);
 				task = null;
 			}
 			else {
-				log(task, e, false);
-				store(task);
+				log(config, task, e, false);
+				store(config, task);
 			}
 
 			return Caster.toPageException(e);
@@ -631,7 +651,7 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 		this._persisDirectory = persisDirectory;
 	}
 
-	public Resource getPersisDirectory() {
+	public Resource getPersisDirectory(ConfigWeb config) {
 		if (_persisDirectory == null) {
 			_persisDirectory = config.getRemoteClientDirectory();
 		}
@@ -640,10 +660,6 @@ public class SpoolerEngineImpl implements SpoolerEngine {
 
 	public void setLog(Log log) {
 		this.log = log;
-	}
-
-	public void setConfig(Config config) {
-		this.config = config;
 	}
 
 }

@@ -311,7 +311,7 @@ Error Output--->
 			<br />
 			#stText.Schedule.CurrentDateTime#&nbsp;
 			#dateFormat(now(),'mmmm dd yyyy')# #timeFormat(now(),'HH:mm:ss')# <!---(mmmm dd yyyy HH:mm:ss)--->
-		</div><cfset css="color:white;background-color:#request.adminType EQ "web"?'##39c':'##c00'#;">
+		</div><cfset css="color:white;background-color:#request.adminType EQ "web"?'##0f75a8':'##c00'#;">
 
 			<input style="margin-left:0px;#iif(task.interval EQ 'once','css',de(''))#"
 					type="submit" class="bl button submit" name="interval" value="once">

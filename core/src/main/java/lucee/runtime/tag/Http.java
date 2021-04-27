@@ -48,6 +48,7 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpOptions;
+import org.apache.http.client.methods.HttpPatch;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
@@ -87,7 +88,6 @@ import lucee.commons.net.URLEncoder;
 import lucee.commons.net.http.Header;
 import lucee.commons.net.http.httpclient.CachingGZIPInputStream;
 import lucee.commons.net.http.httpclient.HTTPEngine4Impl;
-import lucee.commons.net.http.httpclient.HTTPPatchFactory;
 import lucee.commons.net.http.httpclient.HTTPResponse4Impl;
 import lucee.commons.net.http.httpclient.ResourceBody;
 import lucee.runtime.PageContext;
@@ -333,6 +333,7 @@ public final class Http extends BodyTagImpl {
 	private String clientCert;
 	/** Password used to decrypt the client certificate. */
 	private String clientCertPassword;
+	private static SSLConnectionSocketFactoryImpl defaultSSLConnectionSocketFactoryImpl;
 
 	@Override
 	public void release() {
@@ -695,11 +696,13 @@ public final class Http extends BodyTagImpl {
 	private void _doEndTag() throws PageException, IOException {
 
 		long start = System.nanoTime();
+		boolean safeToMemory = !StringUtil.isEmpty(result, true);
+
 		HttpClientBuilder builder = HTTPEngine4Impl.getHttpClientBuilder();
 		ssl(builder);
 
 		// redirect
-		if (redirect) builder.setRedirectStrategy(new DefaultRedirectStrategy());
+		if (redirect) builder.setRedirectStrategy(DefaultRedirectStrategy.INSTANCE);
 		else builder.disableRedirectHandling();
 
 		// cookies
@@ -831,7 +834,7 @@ public final class Http extends BodyTagImpl {
 			}
 			else if (this.method == METHOD_PATCH) {
 				isBinary = true;
-				eeReq = HTTPPatchFactory.getHTTPPatch(url);
+				eeReq = new HttpPatch(url);
 				req = (HttpRequestBase) eeReq;
 			}
 			else {
@@ -887,7 +890,8 @@ public final class Http extends BodyTagImpl {
 				else if (type == HttpParamBean.TYPE_HEADER) {
 					if (param.getName().equalsIgnoreCase("content-type")) hasContentType = true;
 
-					if (param.getName().equalsIgnoreCase("Content-Length")) {}
+					if (param.getName().equalsIgnoreCase("Content-Length")) {
+					}
 					else if (param.getName().equalsIgnoreCase("Accept-Encoding")) {
 						acceptEncoding.append(headerValue(param.getValueAsString()));
 						acceptEncoding.append(", ");
@@ -1071,7 +1075,7 @@ public final class Http extends BodyTagImpl {
 
 			Struct cfhttp = new StructImpl();
 			cfhttp.setEL(ERROR_DETAIL, "");
-			pageContext.setVariable(result, cfhttp);
+			if (safeToMemory) pageContext.setVariable(result, cfhttp);
 
 			/////////////////////////////////////////// EXECUTE
 			/////////////////////////////////////////// /////////////////////////////////////////////////
@@ -1200,7 +1204,7 @@ public final class Http extends BodyTagImpl {
 
 			// we still don't know the mime type
 			byte[] barr = null;
-			if (!isText) {
+			if (!isText && safeToMemory) {
 				barr = contentAsBinary(rsp, contentEncoding);
 				String mt = IOUtil.getMimeType(barr, null);
 				if (mt != null) {
@@ -1213,7 +1217,7 @@ public final class Http extends BodyTagImpl {
 			// is multipart
 			boolean isMultipart = MultiPartResponseUtils.isMultipart(mimetype);
 
-			cfhttp.set(KeyConstants._text, Caster.toBoolean(isText));
+			if (safeToMemory) cfhttp.set(KeyConstants._text, Caster.toBoolean(isText));
 
 			// mimetype charset
 			// boolean responseProvideCharset=false;
@@ -1250,21 +1254,17 @@ public final class Http extends BodyTagImpl {
 
 			// filecontent
 
-			if (isText && getAsBinary != GET_AS_BINARY_YES) {
+			if (isText && getAsBinary != GET_AS_BINARY_YES && safeToMemory) {
+				// store to memory
 				String str;
 				if (barr == null) str = contentAsString(rsp, responseCharset, contentEncoding, e);
 				else str = IOUtil.toString(barr, responseCharset);
-
 				cfhttp.set(KeyConstants._filecontent, str);
 
 				// store to file
 				if (file != null) {
-					try {
+					IOUtil.write(file, str, ((PageContextImpl) pageContext).getWebCharset(), false);
 
-						IOUtil.write(file, str, ((PageContextImpl) pageContext).getWebCharset(), false);
-
-					}
-					catch (IOException e1) {}
 				}
 
 				// store to variable
@@ -1275,7 +1275,7 @@ public final class Http extends BodyTagImpl {
 			}
 			// Binary
 			else {
-				if (barr == null) barr = contentAsBinary(rsp, contentEncoding);
+				if (barr == null && safeToMemory) barr = contentAsBinary(rsp, contentEncoding);
 
 				// IF Multipart response get file content and parse parts
 				if (barr != null) {
@@ -1286,12 +1286,12 @@ public final class Http extends BodyTagImpl {
 						cfhttp.set(KeyConstants._filecontent, barr);
 					}
 				}
-				else cfhttp.set(KeyConstants._filecontent, "");
 
 				// store to file
 				if (file != null) {
 					try {
 						if (barr != null) IOUtil.copy(new ByteArrayInputStream(barr), file, true);
+						else storeTo(rsp, contentEncoding, file);
 					}
 					catch (IOException ioe) {
 						throw Caster.toPageException(ioe);
@@ -1357,6 +1357,30 @@ public final class Http extends BodyTagImpl {
 		return barr;
 	}
 
+	private void storeTo(HTTPResponse4Impl rsp, String contentEncoding, Resource target) throws PageException, IOException {
+		InputStream is = null;
+		if (target != null && isGzipEncoded(contentEncoding)) {
+			if (method != METHOD_HEAD) {
+				is = rsp.getContentAsStream();
+				is = rsp.getStatusCode() != 200 ? new CachingGZIPInputStream(is) : new GZIPInputStream(is);
+			}
+			try {
+				if (is != null) IOUtil.copy(is, target, true);
+			}
+			catch (EOFException eof) {
+				if (is instanceof CachingGZIPInputStream) {
+					IOUtil.copy(((CachingGZIPInputStream) is).getRawData(), target, true);
+				}
+				else throw eof;
+			}
+		}
+		else {
+			if (method != METHOD_HEAD) {
+				IOUtil.copy(rsp.getContentAsStream(), target, true);
+			}
+		}
+	}
+
 	private String contentAsString(HTTPResponse4Impl rsp, Charset responseCharset, String contentEncoding, Executor4 e) throws PageException {
 		String str;
 		InputStream is = null;
@@ -1404,9 +1428,10 @@ public final class Http extends BodyTagImpl {
 	}
 
 	private void ssl(HttpClientBuilder builder) throws PageException {
+		final SSLConnectionSocketFactory sslsf;
 		try {
 			// SSLContext sslcontext = SSLContexts.createSystemDefault();
-			SSLContext sslcontext = SSLContext.getInstance("TLSv1.2");
+			SSLContext sslcontext = SSLContext.getInstance("TLS");
 			if (!StringUtil.isEmpty(this.clientCert)) {
 				if (this.clientCertPassword == null) this.clientCertPassword = "";
 				File ksFile = new File(this.clientCert);
@@ -1417,11 +1442,15 @@ public final class Http extends BodyTagImpl {
 				kmf.init(clientStore, this.clientCertPassword.toCharArray());
 
 				sslcontext.init(kmf.getKeyManagers(), null, new java.security.SecureRandom());
+				sslsf = new SSLConnectionSocketFactoryImpl(sslcontext, new DefaultHostnameVerifierImpl());
 			}
 			else {
 				sslcontext.init(null, null, new java.security.SecureRandom());
+				if (defaultSSLConnectionSocketFactoryImpl == null)
+					defaultSSLConnectionSocketFactoryImpl = new SSLConnectionSocketFactoryImpl(sslcontext, new DefaultHostnameVerifierImpl());
+				sslsf = defaultSSLConnectionSocketFactoryImpl;
 			}
-			final SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactoryImpl(sslcontext, new DefaultHostnameVerifierImpl());
+
 			builder.setSSLSocketFactory(sslsf);
 			Registry<ConnectionSocketFactory> reg = RegistryBuilder.<ConnectionSocketFactory>create().register("http", PlainConnectionSocketFactory.getSocketFactory())
 					.register("https", sslsf).build();
@@ -1740,7 +1769,8 @@ public final class Http extends BodyTagImpl {
 			try {
 				is = new GZIPInputStream(is);
 			}
-			catch (IOException e) {}
+			catch (IOException e) {
+			}
 		}
 
 		try {
@@ -1752,14 +1782,16 @@ public final class Http extends BodyTagImpl {
 				try {
 					return IOUtil.toString(is, cs);
 				}
-				catch (IOException e) {}
+				catch (IOException e) {
+				}
 			}
 			// Binary
 			else {
 				try {
 					return IOUtil.toBytes(is);
 				}
-				catch (IOException e) {}
+				catch (IOException e) {
+				}
 			}
 		}
 		finally {
