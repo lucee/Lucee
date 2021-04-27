@@ -391,7 +391,7 @@ component {
 		loop collection="#arguments#" item="local.key"{
 			if( key != "custom" && findNoCase("custom",key) EQ 1){
 				local.l=len(key);
-				arguments.custom[mid(key,8,l-8+1)]=arguments[key];
+				arguments.custom[mid(key,7,l-7+1)]=arguments[key];
 			}
 		}
 
