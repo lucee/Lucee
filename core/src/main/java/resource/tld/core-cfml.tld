@@ -302,6 +302,18 @@ Specifies how Lucee stores session variables:
 </description>
 		</attribute>
 		<attribute>
+			<type>string</type>
+			<name>cfidStorage</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+<description>
+Rule how Lucee does load the cfid that defines the session for a user.
+- load the cfid from URL and if not present from cookie 
+- load the cfid from the Cookie and if not present from the URL
+- load the cfid from the Cookie (CFML Default)
+</description>
+		</attribute>
+		<attribute>
 			<type>boolean</type>
 			<name>clientCluster</name>
 			<required>false</required>

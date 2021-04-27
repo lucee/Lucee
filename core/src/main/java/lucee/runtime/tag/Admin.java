@@ -21,34 +21,28 @@ package lucee.runtime.tag;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Dictionary;
 import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 import java.util.TimeZone;
-import java.util.jar.Attributes;
-import java.util.jar.Manifest;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.jsp.tagext.Tag;
 
+import org.apache.oro.text.regex.Pattern;
+import org.apache.tika.sax.xpath.Matcher;
+import org.apache.tools.ant.taskdefs.Manifest;
+import org.hsqldb.lib.HashMap;
+import org.hsqldb.lib.HashSet;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
+import org.xml.sax.Attributes;
 
+import edu.emory.mathcs.backport.java.util.Arrays;
+import edu.emory.mathcs.backport.java.util.Collections;
 import lucee.VersionInfo;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.digest.Base64Encoder;
@@ -118,6 +112,7 @@ import lucee.runtime.engine.ExecutionLogFactory;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.DeprecatedException;
+import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageExceptionImpl;
 import lucee.runtime.exp.SecurityException;
@@ -126,6 +121,7 @@ import lucee.runtime.ext.tag.TagImpl;
 import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.extension.RHExtensionProvider;
+import lucee.runtime.functions.closure.Map;
 import lucee.runtime.functions.query.QuerySort;
 import lucee.runtime.gateway.GatewayEngineImpl;
 import lucee.runtime.gateway.GatewayEntry;
@@ -174,6 +170,7 @@ import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.List;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
@@ -184,6 +181,7 @@ import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.dt.TimeSpanImpl;
 import lucee.runtime.type.scope.Cluster;
 import lucee.runtime.type.scope.ClusterEntryImpl;
+import lucee.runtime.type.scope.URL;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ComponentUtil;
 import lucee.runtime.type.util.KeyConstants;
@@ -191,7 +189,6 @@ import lucee.runtime.type.util.ListUtil;
 import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.tag.TagLib;
-import lucee.runtime.exp.ExpressionException;
 
 /**
  * 
@@ -1428,7 +1425,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		sct.set("timer", Caster.toBoolean(config.hasDebugOptions(ConfigPro.DEBUG_TIMER)));
 		sct.set("implicitAccess", Caster.toBoolean(config.hasDebugOptions(ConfigPro.DEBUG_IMPLICIT_ACCESS)));
 		sct.set("queryUsage", Caster.toBoolean(config.hasDebugOptions(ConfigPro.DEBUG_QUERY_USAGE)));
-		sct.set("thread", Caster.toBoolean(config.hasDebugOptions(ConfigPro.DEBUG_THREAD)));		
+		sct.set("thread", Caster.toBoolean(config.hasDebugOptions(ConfigPro.DEBUG_THREAD)));
 	}
 
 	private void doGetError() throws PageException {
@@ -2630,8 +2627,8 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		}
 
 		Pattern pattern = Pattern.compile("[a-zA-Z0-9_]*");
-     	Matcher matcher = pattern.matcher(getString("admin", action, "newName"));
-		
+		Matcher matcher = pattern.matcher(getString("admin", action, "newName"));
+
 		if (matcher.matches() == false) {
 			throw new ExpressionException("Trying to create a data source with a name that is invalid. Data source Names must match proper variable naming conventions");
 		}
@@ -4161,6 +4158,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		admin.updateClientTimeout(getTimespan("admin", action, "clientTimeout"));
 		admin.updateSessionTimeout(getTimespan("admin", action, "sessionTimeout"));
 		admin.updateClientStorage(getString("admin", action, "clientStorage"));
+		admin.updateCfidStorage(getString("admin", action, "cfidStorage"));
 		admin.updateSessionStorage(getString("admin", action, "sessionStorage"));
 		admin.updateApplicationTimeout(getTimespan("admin", action, "applicationTimeout"));
 		admin.updateSessionType(getString("admin", action, "sessionType"));
@@ -4484,6 +4482,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		sct.set("domainCookies", Caster.toBoolean(config.isDomainCookies()));
 		sct.set("clientCookies", Caster.toBoolean(config.isClientCookies()));
 		sct.set("clientStorage", config.getClientStorage());
+		sct.set("cfidStorage", config.getCfidStorage());
 		sct.set("sessionStorage", config.getSessionStorage());
 		sct.set("cgiReadonly", config.getCGIScopeReadonly());
 

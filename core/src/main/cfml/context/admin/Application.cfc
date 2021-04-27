@@ -22,6 +22,7 @@ this.clientstorage="file";
 this.scriptprotect="all";
 this.sessionmanagement="yes";
 this.sessionStorage="memory";
+this.cfidStorage="cookieOnly";
 this.sessiontimeout="#createTimeSpan(0,0,30,0)#";
 this.setclientcookies="yes";
 this.setdomaincookies="no"; 

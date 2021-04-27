@@ -18,11 +18,7 @@
  */
 package lucee.runtime.config;
 
-import static lucee.runtime.db.DatasourceManagerImpl.QOQ_DATASOURCE_NAME;
-
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
@@ -30,31 +26,25 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.MalformedURLException;
-import java.nio.charset.Charset;
 import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 import java.util.TimeZone;
-import java.util.UUID;
 
 import javax.servlet.ServletConfig;
 
+import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.hsqldb.lib.HashMap;
+import org.objectweb.asm.commons.Method;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.xml.sax.SAXException;
 
+import jcifs.dcerpc.UUID;
 import lucee.Info;
 import lucee.commons.collection.MapFactory;
 import lucee.commons.date.TimeZoneConstants;
@@ -95,6 +85,8 @@ import lucee.runtime.cache.tag.timespan.TimespanCacheHandler;
 import lucee.runtime.cfx.customtag.CFXTagClass;
 import lucee.runtime.cfx.customtag.JavaCFXTagClass;
 import lucee.runtime.component.ImportDefintion;
+import lucee.runtime.config.ConfigFactory.UpdateInfo;
+import lucee.runtime.config.ConfigWebFactory.MonitorTemp;
 //import lucee.runtime.config.ajax.AjaxFactory;
 import lucee.runtime.config.component.ComponentFactory;
 import lucee.runtime.converter.ConverterException;
@@ -127,6 +119,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.SecurityException;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.extension.RHExtensionProvider;
+import lucee.runtime.functions.closure.Map;
 import lucee.runtime.functions.other.CreateUUID;
 import lucee.runtime.gateway.GatewayEngineImpl;
 import lucee.runtime.gateway.GatewayEntry;
@@ -176,6 +169,7 @@ import lucee.runtime.tag.listener.TagListener;
 import lucee.runtime.type.Array;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.List;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.dt.TimeSpan;
@@ -183,7 +177,9 @@ import lucee.runtime.type.scope.Undefined;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
+import lucee.runtime.util.Charset;
 import lucee.runtime.video.VideoExecuter;
+import lucee.transformer.cfml.evaluator.impl.File;
 import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.function.FunctionLibException;
@@ -572,8 +568,9 @@ public final class ConfigWebFactory extends ConfigFactory {
 		}
 
 		// no password yet
-		if (config instanceof ConfigServer && StringUtil.isEmpty(root.get("hspw",""), true) && StringUtil.isEmpty(root.get("adminhspw",""), true) && StringUtil.isEmpty(root.get("pw",""), true) && StringUtil.isEmpty(root.get("adminpw",""), true) 
-			&& StringUtil.isEmpty(root.get("password",""), true) && StringUtil.isEmpty(root.get("adminpassword",""), true)) {
+		if (config instanceof ConfigServer && StringUtil.isEmpty(root.get("hspw", ""), true) && StringUtil.isEmpty(root.get("adminhspw", ""), true)
+				&& StringUtil.isEmpty(root.get("pw", ""), true) && StringUtil.isEmpty(root.get("adminpw", ""), true) && StringUtil.isEmpty(root.get("password", ""), true)
+				&& StringUtil.isEmpty(root.get("adminpassword", ""), true)) {
 			ConfigServer cs = (ConfigServer) config;
 			Resource pwFile = cs.getConfigDir().getRealResource("password.txt");
 			if (pwFile.isFile()) {
@@ -1325,9 +1322,8 @@ public final class ConfigWebFactory extends ConfigFactory {
 		Resource gwDir = componentsDir.getRealResource("lucee/extension/gateway/");
 		create("/resource/context/gateway/",
 				new String[] { "TaskGateway." + COMPONENT_EXTENSION, "DummyGateway." + COMPONENT_EXTENSION, "DirectoryWatcher." + COMPONENT_EXTENSION,
-						"DirectoryWatcherListener." + COMPONENT_EXTENSION, "WatchService." + COMPONENT_EXTENSION, 
-						"MailWatcher." + COMPONENT_EXTENSION, "MailWatcherListener." + COMPONENT_EXTENSION,
-						"AsynchronousEvents." + COMPONENT_EXTENSION, "AsynchronousEventsListener." + COMPONENT_EXTENSION },
+						"DirectoryWatcherListener." + COMPONENT_EXTENSION, "WatchService." + COMPONENT_EXTENSION, "MailWatcher." + COMPONENT_EXTENSION,
+						"MailWatcherListener." + COMPONENT_EXTENSION, "AsynchronousEvents." + COMPONENT_EXTENSION, "AsynchronousEventsListener." + COMPONENT_EXTENSION },
 				gwDir, doNew);
 
 		// resources/language
@@ -3678,6 +3674,15 @@ public final class ConfigWebFactory extends ConfigFactory {
 					config.setSessionStorage(sessionStorage);
 				}
 				else if (hasCS) config.setSessionStorage(configServer.getSessionStorage());
+			}
+
+			// cfid management
+			{
+				String cfidStorage = getAttr(root, "cfidStorage");
+				if (hasAccess && !StringUtil.isEmpty(cfidStorage)) {
+					config.setCfidStorage(cfidStorage);
+				}
+				else if (hasCS) config.setCfidStorage(configServer.getCfidStorage());
 			}
 
 			// Client Timeout

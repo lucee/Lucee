@@ -20,19 +20,9 @@ package lucee.runtime;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.charset.Charset;
-import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 import java.util.Stack;
 import java.util.TimeZone;
 
@@ -56,6 +46,10 @@ import javax.servlet.jsp.tagext.BodyTag;
 import javax.servlet.jsp.tagext.Tag;
 import javax.servlet.jsp.tagext.TryCatchFinally;
 
+import org.hsqldb.lib.HashMap;
+import org.hsqldb.lib.HashSet;
+
+import edu.emory.mathcs.backport.java.util.LinkedList;
 import lucee.commons.db.DBUtil;
 import lucee.commons.io.BodyContentStack;
 import lucee.commons.io.CharsetUtil;
@@ -123,6 +117,7 @@ import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageExceptionBox;
 import lucee.runtime.exp.RequestTimeoutException;
 import lucee.runtime.ext.tag.TagImpl;
+import lucee.runtime.functions.closure.Map;
 import lucee.runtime.functions.dynamicEvaluation.Serialize;
 import lucee.runtime.interpreter.CFMLExpressionInterpreter;
 import lucee.runtime.interpreter.VariableInterpreter;
@@ -165,6 +160,7 @@ import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.Iterator;
 import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.List;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.SVArray;
 import lucee.runtime.type.Struct;
@@ -210,12 +206,14 @@ import lucee.runtime.type.scope.VariablesImpl;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.CollectionUtil;
 import lucee.runtime.type.util.KeyConstants;
+import lucee.runtime.util.Charset;
 import lucee.runtime.util.PageContextUtil;
 import lucee.runtime.util.VariableUtil;
 import lucee.runtime.util.VariableUtilImpl;
 import lucee.runtime.writer.BodyContentUtil;
 import lucee.runtime.writer.CFMLWriter;
 import lucee.runtime.writer.DevNullBodyContent;
+import lucee.transformer.bytecode.Statement;
 
 /**
  * page context for every page object. the PageContext is a jsp page context expanded by CFML
@@ -592,8 +590,7 @@ public final class PageContextImpl extends PageContext {
 
 		if (config.debug()) {
 			boolean skipLogThread = isChild;
-			if (skipLogThread && config.hasDebugOptions(ConfigPro.DEBUG_THREAD))
-				skipLogThread = false;
+			if (skipLogThread && config.hasDebugOptions(ConfigPro.DEBUG_THREAD)) skipLogThread = false;
 			if (!gatewayContext && !skipLogThread) config.getDebuggerPool().store(this, debugger);
 			debugger.reset();
 		}
@@ -2629,9 +2626,33 @@ public final class PageContextImpl extends PageContext {
 	 */
 	private void initIdAndToken() {
 		boolean setCookie = true;
-		// From URL
-		Object oCfid = READ_CFID_FROM_URL ? urlScope().get(KeyConstants._cfid, null) : null;
-		Object oCftoken = READ_CFID_FROM_URL ? urlScope().get(KeyConstants._cftoken, null) : null;
+
+		Object oCfid = null;
+		Object oCftoken = null;
+
+		if ("cookieOnly".equals(config.getCfidStorage())) {
+			setCookie = false; // todo
+			oCfid = cookieScope().get(KeyConstants._cfid, null);
+			oCftoken = cookieScope().get(KeyConstants._cftoken, null);
+		}
+
+		if ("urlIfNotCookie".equals(config.getCfidStorage())) {
+			oCfid = cookieScope().get(KeyConstants._cfid, null);
+			oCftoken = cookieScope().get(KeyConstants._cftoken, null);
+			if (oCfid == null) {
+				oCfid = urlScope().get(KeyConstants._cfid, null);
+				oCftoken = urlScope().get(KeyConstants._cftoken, null);
+			}
+		}
+
+		if ("cookieIfNotUrl".equals(config.getCfidStorage())) {
+			oCfid = urlScope().get(KeyConstants._cfid, null);
+			oCftoken = urlScope().get(KeyConstants._cftoken, null);
+			if (oCfid == null) {
+				oCfid = cookieScope().get(KeyConstants._cfid, null);
+				oCftoken = cookieScope().get(KeyConstants._cftoken, null);
+			}
+		}
 
 		// if CFID comes from URL, we only accept if already exists
 		if (oCfid != null) {
@@ -2645,13 +2666,6 @@ public final class PageContextImpl extends PageContext {
 				oCfid = null;
 				oCftoken = null;
 			}
-		}
-
-		// Cookie
-		if (oCfid == null) {
-			setCookie = false;
-			oCfid = cookieScope().get(KeyConstants._cfid, null);
-			oCftoken = cookieScope().get(KeyConstants._cftoken, null);
 		}
 
 		// check cookie value

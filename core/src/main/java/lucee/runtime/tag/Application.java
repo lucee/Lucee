@@ -18,14 +18,12 @@
  */
 package lucee.runtime.tag;
 
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Locale;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.TimeZone;
 
 import javax.servlet.jsp.tagext.DynamicAttributes;
+
+import org.hsqldb.lib.HashMap;
 
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.res.Resource;
@@ -41,6 +39,7 @@ import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.ExpressionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.tag.TagImpl;
+import lucee.runtime.functions.closure.Map;
 import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.listener.ApplicationContext;
 import lucee.runtime.listener.ApplicationContextSupport;
@@ -88,6 +87,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 	private String clientstorage;
 	private String sessionstorage;
 	private Boolean setClientManagement;
+	private String cfidStorage;
 	private TimeSpan applicationTimeout;
 	private TimeSpan sessionTimeout;
 	private TimeSpan clientTimeout;
@@ -172,6 +172,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		clientstorage = null;
 		sessionstorage = null;
 		setClientManagement = null;
+		cfidStorage = null;
 		sessionTimeout = null;
 		clientTimeout = null;
 		requestTimeout = null;
@@ -426,6 +427,10 @@ public final class Application extends TagImpl implements DynamicAttributes {
 
 	public void setSessionstorage(String sessionstorage) {
 		this.sessionstorage = sessionstorage;
+	}
+
+	public void setCfidStorage(String cfidStorage) {
+		this.cfidStorage = cfidStorage;
 	}
 
 	/**
@@ -738,6 +743,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		if (sessionTimeout != null) ac.setSessionTimeout(sessionTimeout);
 		if (clientTimeout != null) ac.setClientTimeout(clientTimeout);
 		if (requestTimeout != null) ac.setRequestTimeout(requestTimeout);
+		if (cfidStorage != null) ac.setCfidstorage(cfidStorage);
 		if (clientstorage != null) {
 			ac.setClientstorage(clientstorage);
 		}

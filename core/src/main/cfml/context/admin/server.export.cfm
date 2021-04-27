@@ -155,6 +155,8 @@ component {
 	this.sessionTimeout = createTimeSpan( #scope.sessionTimeout_day#, #scope.sessionTimeout_hour#, #scope.sessionTimeout_minute#, #scope.sessionTimeout_second# ); 
 	this.sessionStorage = "#scope.sessionStorage#";
 	
+	this.cfidStorage = "#scope.cfidStorage#";
+
 	// client scope enabled or not
 	this.clientManagement = #scope.clientManagement#; 
 	this.clientTimeout = createTimeSpan( #scope.clientTimeout_day#, #scope.clientTimeout_hour#, #scope.clientTimeout_minute#, #scope.clientTimeout_second# );

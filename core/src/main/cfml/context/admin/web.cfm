@@ -17,6 +17,7 @@
 		setclientcookies="yes"
 		setdomaincookies="no"
 		clientStorage="file"
+		cfidStorage="cookieOnly"
 		sessionStorage="memory"
 		scriptprotect="all"
 		sessiontimeout="#createTimeSpan(0,0,30,0)#"

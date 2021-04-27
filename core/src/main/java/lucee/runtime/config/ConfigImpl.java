@@ -18,26 +18,15 @@
  */
 package lucee.runtime.config;
 
-import static lucee.runtime.db.DatasourceManagerImpl.QOQ_DATASOURCE_NAME;
-
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.ref.SoftReference;
 import java.net.InetAddress;
-import java.net.URL;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.TimeZone;
-import java.util.concurrent.ConcurrentHashMap;
 
+import org.hsqldb.lib.HashMap;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 
@@ -84,6 +73,8 @@ import lucee.runtime.cfx.CFXTagPool;
 import lucee.runtime.cfx.customtag.CFXTagPoolImpl;
 import lucee.runtime.component.ImportDefintion;
 import lucee.runtime.component.ImportDefintionImpl;
+import lucee.runtime.config.ConfigBase.Startup;
+import lucee.runtime.config.ConfigImpl.ComponentMetaData;
 import lucee.runtime.config.ConfigWebUtil.CacheElement;
 import lucee.runtime.customtag.InitFile;
 import lucee.runtime.db.ClassDefinition;
@@ -108,6 +99,7 @@ import lucee.runtime.extension.Extension;
 import lucee.runtime.extension.ExtensionProvider;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.extension.RHExtensionProvider;
+import lucee.runtime.functions.closure.Map;
 import lucee.runtime.functions.other.CreateUniqueId;
 import lucee.runtime.functions.system.ContractPath;
 import lucee.runtime.gateway.GatewayEntry;
@@ -139,15 +131,19 @@ import lucee.runtime.type.Array;
 import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.List;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.dt.TimeSpanImpl;
 import lucee.runtime.type.scope.ClusterNotSupported;
+import lucee.runtime.type.scope.URL;
 import lucee.runtime.type.scope.Undefined;
 import lucee.runtime.type.util.KeyConstants;
+import lucee.runtime.util.Charset;
 import lucee.runtime.video.VideoExecuterNotSupported;
+import lucee.transformer.cfml.evaluator.impl.File;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.function.FunctionLibException;
 import lucee.transformer.library.function.FunctionLibFactory;
@@ -237,6 +233,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	private Resource configDir;
 	private String sessionStorage = DEFAULT_STORAGE_SESSION;
 	private String clientStorage = DEFAULT_STORAGE_CLIENT;
+	private String cfidStorage = DEFAULT_STORAGE_CFID;
 
 	private long loadTime;
 
@@ -3203,6 +3200,15 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 
 	protected void setClientStorage(String clientStorage) {
 		this.clientStorage = clientStorage;
+	}
+
+	@Override
+	public String getCfidStorage() {
+		return cfidStorage;
+	}
+
+	protected void setCfidStorage(String cfidStorage) {
+		this.cfidStorage = cfidStorage;
 	}
 
 	protected void setSessionStorage(String sessionStorage) {

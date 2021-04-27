@@ -1,11 +1,6 @@
 package lucee.runtime.config;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 import org.osgi.framework.Version;
 
@@ -35,11 +30,13 @@ import lucee.runtime.exp.TemplateException;
 import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.extension.RHExtensionProvider;
+import lucee.runtime.functions.closure.Map;
 import lucee.runtime.orm.ORMConfiguration;
 import lucee.runtime.orm.ORMEngine;
 import lucee.runtime.osgi.OSGiUtil.BundleDefinition;
 import lucee.runtime.regex.Regex;
 import lucee.runtime.type.Collection.Key;
+import lucee.runtime.type.List;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.TimeSpan;
@@ -73,6 +70,7 @@ public interface ConfigPro extends Config {
 	public static final int CFML_WRITER_WS_PREF = 3;
 
 	public static final String DEFAULT_STORAGE_SESSION = "memory";
+	public static final String DEFAULT_STORAGE_CFID = "cookieOnly";
 	public static final String DEFAULT_STORAGE_CLIENT = "cookie";
 
 	public static final int QUERY_VAR_USAGE_IGNORE = 1;
@@ -205,6 +203,8 @@ public interface ConfigPro extends Config {
 	public String getClientStorage();
 
 	public boolean getBufferOutput();
+
+	public String getCfidStorage();
 
 	public int getCFMLWriterType();
 

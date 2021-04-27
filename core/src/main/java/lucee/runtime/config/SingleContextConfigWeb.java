@@ -3,15 +3,8 @@ package lucee.runtime.config;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Serializable;
-import java.net.URL;
-import java.nio.charset.Charset;
-import java.util.Collection;
 import java.util.Enumeration;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.TimeZone;
 
 import javax.servlet.ServletConfig;
@@ -51,6 +44,7 @@ import lucee.runtime.cache.tag.CacheHandlerCollection;
 import lucee.runtime.cfx.CFXTagPool;
 import lucee.runtime.compiler.CFMLCompilerImpl;
 import lucee.runtime.component.ImportDefintion;
+import lucee.runtime.config.ConfigBase.Startup;
 import lucee.runtime.customtag.InitFile;
 import lucee.runtime.db.ClassDefinition;
 import lucee.runtime.db.DataSource;
@@ -71,6 +65,7 @@ import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.ExtensionProvider;
 import lucee.runtime.extension.RHExtension;
 import lucee.runtime.extension.RHExtensionProvider;
+import lucee.runtime.functions.closure.Map;
 import lucee.runtime.gateway.GatewayEngine;
 import lucee.runtime.listener.ApplicationListener;
 import lucee.runtime.lock.LockManager;
@@ -95,10 +90,13 @@ import lucee.runtime.security.SecurityManager;
 import lucee.runtime.spooler.SpoolerEngine;
 import lucee.runtime.tag.TagHandlerPool;
 import lucee.runtime.type.Collection.Key;
+import lucee.runtime.type.List;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.scope.Cluster;
+import lucee.runtime.type.scope.URL;
+import lucee.runtime.util.Charset;
 import lucee.runtime.writer.CFMLWriter;
 import lucee.transformer.library.function.FunctionLib;
 import lucee.transformer.library.tag.TagLib;
@@ -1103,6 +1101,11 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	@Override
 	public String getSessionStorage() {
 		return cs.getSessionStorage();
+	}
+
+	@Override
+	public String getCfidStorage() {
+		return cs.getCfidStorage();
 	}
 
 	@Override

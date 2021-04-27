@@ -21,14 +21,12 @@ package lucee.runtime.config;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
-import java.util.Iterator;
 
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 import org.xml.sax.SAXException;
 
-import lucee.aprint;
+import edu.emory.mathcs.backport.java.util.Arrays;
 import lucee.commons.digest.MD5;
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.FileUtil;
@@ -39,6 +37,7 @@ import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
 import lucee.commons.lang.StringUtil;
 import lucee.loader.engine.CFMLEngine;
+import lucee.runtime.config.ConfigFactory.UpdateInfo;
 import lucee.runtime.config.XMLConfigReader.NameRule;
 import lucee.runtime.config.XMLConfigReader.ReadRule;
 import lucee.runtime.converter.ConverterException;
@@ -194,7 +193,8 @@ public abstract class ConfigFactory {
 				int count = 1;
 				Resource bugFile;
 				Resource configDir = configFile.getParentResource();
-				while ((bugFile = configDir.getRealResource("lucee-" + type + "." + (count++) + ".buggy")).exists()) {}
+				while ((bugFile = configDir.getRealResource("lucee-" + type + "." + (count++) + ".buggy")).exists()) {
+				}
 				IOUtil.copy(configFile, bugFile);
 				configFile.delete();
 			}
@@ -655,6 +655,7 @@ public abstract class ConfigFactory {
 			move("clientStorage", "clientStorage", scope, root);
 			move("sessionStorage", "sessionStorage", scope, root);
 			move("clientTimeout", "clientTimeout", scope, root);
+			move("cfidStorage", "cfidStorage", scope, root);
 			move("sessionTimeout", "sessionTimeout", scope, root);
 			move("applicationTimeout", "applicationTimeout", scope, root);
 			move("clientType", "clientType", scope, root);

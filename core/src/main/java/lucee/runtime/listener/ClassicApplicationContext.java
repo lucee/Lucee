@@ -18,13 +18,10 @@
  */
 package lucee.runtime.listener;
 
-import java.nio.charset.Charset;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.TimeZone;
-import java.util.concurrent.ConcurrentHashMap;
+
+import org.hsqldb.lib.HashSet;
 
 import lucee.commons.io.CharsetUtil;
 import lucee.commons.io.log.Log;
@@ -43,6 +40,7 @@ import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.DeprecatedException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
+import lucee.runtime.functions.closure.Map;
 import lucee.runtime.net.mail.Server;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.s3.Properties;
@@ -56,11 +54,13 @@ import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.CustomType;
 import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.List;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.util.ArrayUtil;
+import lucee.runtime.util.Charset;
 
 /**
  * This class resolves the Application settings that are defined in cfapplication tag attributes,
@@ -82,6 +82,7 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	private int loginStorage = -1;
 	private String clientstorage;
 	private String sessionstorage;
+	private String cfidstorage;
 	private int scriptProtect;
 	private boolean typeChecking;
 	private Mapping[] mappings;
@@ -1111,5 +1112,15 @@ public class ClassicApplicationContext extends ApplicationContextSupport {
 	@Override
 	public void setRegex(Regex regex) {
 		this.regex = regex;
+	}
+
+	@Override
+	public void setCfidstorage(String cfidstorage) {
+		this.cfidstorage = cfidstorage;
+	}
+
+	@Override
+	public String getCfidstorage() {
+		return this.cfidstorage;
 	}
 }

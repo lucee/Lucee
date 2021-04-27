@@ -19,35 +19,28 @@
 package lucee.runtime.config;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.jar.Attributes;
-import java.util.jar.Manifest;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 
+import org.apache.tools.ant.taskdefs.Manifest;
+import org.apache.tools.zip.ZipEntry;
+import org.hsqldb.lib.HashMap;
+import org.hsqldb.lib.HashSet;
+import org.objectweb.asm.commons.Method;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Version;
 import org.w3c.dom.DOMException;
+import org.xml.sax.Attributes;
+import org.xml.sax.SAXException;
 
 import com.allaire.cfx.CustomTag;
 
@@ -86,6 +79,7 @@ import lucee.runtime.cache.CacheConnection;
 import lucee.runtime.cache.CacheUtil;
 import lucee.runtime.cfx.CFXTagException;
 import lucee.runtime.cfx.CFXTagPool;
+import lucee.runtime.config.ConfigAdmin.PluginFilter;
 import lucee.runtime.converter.ConverterException;
 import lucee.runtime.converter.JSONConverter;
 import lucee.runtime.converter.JSONDateFormat;
@@ -102,6 +96,7 @@ import lucee.runtime.exp.SecurityException;
 import lucee.runtime.extension.Extension;
 import lucee.runtime.extension.ExtensionDefintion;
 import lucee.runtime.extension.RHExtension;
+import lucee.runtime.functions.closure.Map;
 import lucee.runtime.functions.other.CreateObject;
 import lucee.runtime.functions.other.URLEncodedFormat;
 import lucee.runtime.functions.string.Hash;
@@ -137,17 +132,20 @@ import lucee.runtime.type.ArrayImpl;
 import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.List;
 import lucee.runtime.type.Query;
 import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.dt.TimeSpan;
+import lucee.runtime.type.scope.URL;
 import lucee.runtime.type.util.ArrayUtil;
 import lucee.runtime.type.util.ComponentUtil;
 import lucee.runtime.type.util.KeyConstants;
 import lucee.runtime.type.util.ListUtil;
 import lucee.runtime.video.VideoExecuter;
 import lucee.runtime.video.VideoExecuterNotSupported;
+import lucee.transformer.cfml.evaluator.impl.File;
 import lucee.transformer.library.ClassDefinitionImpl;
 import lucee.transformer.library.function.FunctionLibException;
 import lucee.transformer.library.tag.TagLibException;
@@ -2480,6 +2478,16 @@ public final class ConfigAdmin {
 
 	public void updateSessionStorage(String storage) throws SecurityException, ApplicationException {
 		updateStorage("session", storage);
+	}
+
+	public void updateCfidStorage(String storage) throws SecurityException, ApplicationException {
+		checkWriteAccess();
+		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+
+		if (!hasAccess) throw new SecurityException("no access to update scope setting");
+
+		if (!StringUtil.isEmpty(storage, true)) root.setEL("cfidStorage", storage);
+		else rem(root, "cfidStorage");
 	}
 
 	private void updateStorage(String storageName, String storage) throws SecurityException, ApplicationException {

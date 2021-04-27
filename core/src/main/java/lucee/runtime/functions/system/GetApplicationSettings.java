@@ -18,10 +18,6 @@
  */
 package lucee.runtime.functions.system;
 
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import lucee.commons.date.TimeZoneUtil;
 import lucee.commons.io.log.LogUtil;
 import lucee.commons.io.res.Resource;
@@ -43,6 +39,7 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.FunctionException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.ext.function.BIF;
+import lucee.runtime.functions.closure.Map;
 import lucee.runtime.i18n.LocaleFactory;
 import lucee.runtime.listener.AppListenerUtil;
 import lucee.runtime.listener.ApplicationContext;
@@ -90,6 +87,7 @@ public class GetApplicationSettings extends BIF {
 		sct.setEL("clientStorage", ac.getClientstorage());
 		sct.setEL("sessionStorage", ac.getSessionstorage());
 		sct.setEL("customTagPaths", toArray(ac.getCustomTagMappings()));
+		sct.setEL("cfidStorage", ac.getCfidstorage());
 		sct.setEL("componentPaths", toArray(ac.getComponentMappings()));
 		sct.setEL("loginStorage", AppListenerUtil.translateLoginStorage(ac.getLoginStorage()));
 		sct.setEL(KeyConstants._mappings, toStruct(ac.getMappings()));
@@ -162,7 +160,8 @@ public class GetApplicationSettings extends BIF {
 			wssettings.setEL(KeyConstants._type, AppListenerUtil.toWSType(ac.getWSType(), ((ConfigWebPro) ThreadLocalPageContext.getConfig(pc)).getWSHandler().getTypeAsString()));
 			sct.setEL("wssettings", wssettings);
 		}
-		catch (Exception e) {} // in case the extension is not loaded this will fail // TODO check if the extension is installed
+		catch (Exception e) {
+		} // in case the extension is not loaded this will fail // TODO check if the extension is installed
 		// query
 		{
 			Struct query = new StructImpl(Struct.TYPE_LINKED);

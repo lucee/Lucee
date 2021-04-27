@@ -18,19 +18,12 @@
  */
 package lucee.runtime.listener;
 
-import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.nio.charset.Charset;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 import java.util.TimeZone;
-import java.util.concurrent.ConcurrentHashMap;
 
+import org.hsqldb.lib.HashMap;
+import org.objectweb.asm.commons.Method;
 import org.osgi.framework.BundleException;
 
 import lucee.commons.date.TimeZoneUtil;
@@ -65,6 +58,7 @@ import lucee.runtime.exp.ApplicationException;
 import lucee.runtime.exp.DeprecatedException;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.exp.PageRuntimeException;
+import lucee.runtime.functions.closure.Map;
 import lucee.runtime.i18n.LocaleFactory;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.net.mail.Server;
@@ -86,6 +80,7 @@ import lucee.runtime.type.Collection;
 import lucee.runtime.type.Collection.Key;
 import lucee.runtime.type.CustomType;
 import lucee.runtime.type.KeyImpl;
+import lucee.runtime.type.List;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.StructImpl;
 import lucee.runtime.type.UDF;
@@ -93,6 +88,7 @@ import lucee.runtime.type.UDFCustomType;
 import lucee.runtime.type.dt.TimeSpan;
 import lucee.runtime.type.scope.Scope;
 import lucee.runtime.type.util.KeyConstants;
+import lucee.runtime.util.Charset;
 import lucee.transformer.library.ClassDefinitionImpl;
 
 /**
@@ -107,6 +103,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private static final Collection.Key CLIENT_MANAGEMENT = KeyConstants._clientManagement;
 	private static final Collection.Key CLIENT_STORAGE = KeyImpl.getInstance("clientStorage");
 	private static final Collection.Key SESSION_STORAGE = KeyImpl.getInstance("sessionStorage");
+	private static final Collection.Key CFID_STORAGE = KeyImpl.getInstance("cfidStorage");
 	private static final Collection.Key LOGIN_STORAGE = KeyImpl.getInstance("loginStorage");
 	private static final Collection.Key SESSION_TYPE = KeyImpl.getInstance("sessionType");
 	private static final Collection.Key WS_SETTINGS = KeyImpl.getInstance("wssettings");
@@ -199,6 +196,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private Mapping[] ctmappings;
 	private Mapping[] cmappings;
 	private DataSource[] dataSources;
+	private String cfidStorage;
 
 	private lucee.runtime.net.s3.Properties s3;
 	private FTPConnectionData ftp;
@@ -247,6 +245,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean initSessionStorage;
 	private boolean initSessionCluster;
 	private boolean initClientCluster;
+	private boolean initCfidStorage;
 	private boolean initLoginStorage;
 	private boolean initSessionType;
 	private boolean initWS;
@@ -344,6 +343,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		this.sessionCluster = config.getSessionCluster();
 		this.clientCluster = config.getClientCluster();
 		this.sessionStorage = ci.getSessionStorage();
+		this.cfidStorage = ci.getCfidStorage();
 		this.clientStorage = ci.getClientStorage();
 		this.allowImplicidQueryCall = config.allowImplicidQueryCall();
 
@@ -571,6 +571,16 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 			initScriptProtect = true;
 		}
 		return scriptProtect;
+	}
+
+	@Override
+	public String getCfidstorage() {
+		if (!initCfidStorage) {
+			String str = Caster.toString(get(component, CFID_STORAGE, null), null);
+			if (!StringUtil.isEmpty(str)) cfidStorage = str;
+			initCfidStorage = true;
+		}
+		return cfidStorage;
 	}
 
 	@Override
@@ -963,7 +973,8 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 			else LogUtil.log(ThreadLocalPageContext.getConfig(config), Log.LEVEL_ERROR, ModernApplicationContext.class.getName(),
 					"method [init(Config,String[],Struct[]):void] for class [" + cd.toString() + "] is not static");
 		}
-		catch (Exception e) {}
+		catch (Exception e) {
+		}
 		initCacheConnections.put(id, cc);
 		return cc;
 
@@ -1319,6 +1330,12 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	public void setSessionstorage(String sessionstorage) {
 		initSessionStorage = true;
 		this.sessionStorage = sessionstorage;
+	}
+
+	@Override
+	public void setCfidstorage(String cfidstorage) {
+		initCfidStorage = true;
+		this.cfidStorage = cfidstorage;
 	}
 
 	@Override

@@ -149,7 +149,8 @@
 	}
 
 	private function changeCfidStorage( opt ){
-		action="getScope"
+		admin 
+			action="getScope"
 			type="server"
 			password="#server.SERVERADMINPASSWORD#"
 			returnVariable="local.scope";
