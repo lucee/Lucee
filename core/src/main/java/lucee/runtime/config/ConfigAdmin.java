@@ -932,7 +932,7 @@ public final class ConfigAdmin {
 				tasks.removeEL(key);
 			}
 		}
-		if (!exist) throw ScheduleException("can't delete schedule task [ " + name + " ], task doesn't exist");
+		if (!exist) throw new ExpressionException("can't delete schedule task [ " + name + " ], task doesn't exist");
 	}
 
 	public void removeComponentMapping(String virtual) throws SecurityException {
