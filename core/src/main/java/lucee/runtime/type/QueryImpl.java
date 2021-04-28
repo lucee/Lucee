@@ -414,7 +414,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 
 		try {
 			ResultSetMetaData meta = result.getMetaData();
-			setMetaData(meta);
+			if (qry != null) qry.setMetaData(meta);
 			columncount = meta.getColumnCount();
 
 			// set header arrays
