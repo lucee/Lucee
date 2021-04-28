@@ -411,9 +411,10 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		int recordcount = 0, columncount = 0;
 		Collection.Key[] columnNames = null;
 		QueryColumnImpl[] columns = null;
+		ResultSetMetaData meta = null;
 
 		try {
-			ResultSetMetaData meta = result.getMetaData();
+			meta = result.getMetaData();
 			columncount = meta.getColumnCount();
 
 			// set header arrays
