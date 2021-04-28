@@ -3146,7 +3146,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			}
 			newResult.currRow = new ConcurrentHashMap<Integer, Integer>();
 			newResult.sql = qry.getSql();
-			newResult.metadata = qry.getMetaData();
+			newResult.metadata = qry.metadata;
 			if (qry instanceof QueryImpl) newResult.templateLine = ((QueryImpl) qry).getTemplateLine();
 			else newResult.templateLine = new TemplateLine(qry.getTemplate(), 0);
 			newResult.recordcount = qry.getRecordcount();
