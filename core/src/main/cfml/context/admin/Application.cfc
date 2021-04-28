@@ -30,7 +30,9 @@ this.localmode="update";
 this.web.charset="utf-8";
 this.sessionCookie.httpOnly = true; // prevent access to session cookies from javascript
 this.sessionCookie.sameSite = "strict";
+this.sessionCookie.path = getAppFolderPath();  // the admin is always in a folder nested two directories deep
 this.tag.cookie.sameSite = "strict";
+this.tag.cookie.path = getAppFolderPath();
 
 this.xmlFeatures = {
 	externalGeneralEntities: false,
@@ -61,6 +63,11 @@ public function onApplicationStart(){
 		cfheader(statuscode="404" statustext="Invalid access");
 		abort;
 	}
+}
+
+private function getAppFolderPath() cachedwithin="request"{
+	var folder = listToArray( cgi.SCRIPT_NAME , "/" );
+	return "/#folder[1]#/#folder[2]#/";
 }
 
 </cfscript></cfcomponent>
