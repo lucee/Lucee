@@ -212,11 +212,15 @@ public class RHExtension implements Serializable {
 		Resource res;
 		if (installIfNecessary) {
 			res = StringUtil.isEmpty(version) ? null : toResource(config, id, version, null);
+
 			if (res == null) {
 				if (!StringUtil.isEmpty(resource) && (res = ResourceUtil.toResourceExisting(config, resource, null)) != null) {
 					DeployHandler.deployExtension(config, res);
 				}
-				else DeployHandler.deployExtension(config, new ExtensionDefintion(id, version), null, false);
+				else {
+					DeployHandler.deployExtension(config, new ExtensionDefintion(id, version), null, false);
+					res = RHExtension.toResource(config, id, version);
+				}
 			}
 		}
 		else {
@@ -359,10 +363,10 @@ public class RHExtension implements Serializable {
 				else if (!entry.isDirectory() && (startsWith(path, type, "jars") || startsWith(path, type, "jar") || startsWith(path, type, "bundles")
 						|| startsWith(path, type, "bundle") || startsWith(path, type, "lib") || startsWith(path, type, "libs")) && (StringUtil.endsWithIgnoreCase(path, ".jar"))) {
 
-					jars.add(fileName);
-					BundleInfo bi = BundleInfo.getInstance(fileName, zis, false);
-					if (bi.isBundle()) bundles.add(bi);
-				}
+							jars.add(fileName);
+							BundleInfo bi = BundleInfo.getInstance(fileName, zis, false);
+							if (bi.isBundle()) bundles.add(bi);
+						}
 
 				// flds
 				else if (!entry.isDirectory() && startsWith(path, type, "flds") && (StringUtil.endsWithIgnoreCase(path, ".fld") || StringUtil.endsWithIgnoreCase(path, ".fldx")))
