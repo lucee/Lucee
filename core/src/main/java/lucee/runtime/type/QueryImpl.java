@@ -3148,7 +3148,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			newResult.sql = qry.getSql();
 			try {
 				newResult.metadata = qry.getMetaData();
-			catch (SQLException e) {
+			} catch (SQLException e) {
 				// Do nothing on exception, falls back to null
 			}
 			if (qry instanceof QueryImpl) newResult.templateLine = ((QueryImpl) qry).getTemplateLine();
