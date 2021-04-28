@@ -3129,7 +3129,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 		return exeTime;
 	}
 
-	public static QueryImpl cloneQuery(Query qry, boolean deepCopy) throws SQLException {
+	public static QueryImpl cloneQuery(Query qry, boolean deepCopy) {
 		QueryImpl newResult = new QueryImpl();
 		boolean inside = ThreadLocalDuplication.set(qry, newResult);
 		try {
@@ -3146,7 +3146,11 @@ public class QueryImpl implements Query, Objects, QueryResult {
 			}
 			newResult.currRow = new ConcurrentHashMap<Integer, Integer>();
 			newResult.sql = qry.getSql();
-			newResult.metadata = qry.getMetaData();
+			try {
+				newResult.metadata = qry.getMetaData();
+			catch (SQLException e) {
+				// Do nothing on exception, falls back to null
+			}
 			if (qry instanceof QueryImpl) newResult.templateLine = ((QueryImpl) qry).getTemplateLine();
 			else newResult.templateLine = new TemplateLine(qry.getTemplate(), 0);
 			newResult.recordcount = qry.getRecordcount();
