@@ -2797,7 +2797,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 	}
 
 	@Override
-	public ResultSetMetaData getMetaData() throws SQLException {
+	public ResultSetMetaData getMetaData() {
 		return this.metaData;
 	}
 
