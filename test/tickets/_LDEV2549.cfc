@@ -30,7 +30,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 	}
 
 	private boolean function isNotSupported() {
-		// getting the credetials from the enviroment variables
+		// getting the credentials from the environment variables
 		return ( structCount(server.getDatasource("mssql")) eq 0 );		
 	}
 }

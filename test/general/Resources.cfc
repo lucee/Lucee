@@ -508,8 +508,8 @@ private function assertEqualPaths(string path1, string path2) {
 
 	}
 
-	private struct function getCredencials() {
-		// getting the credetials from the enviroment variables
+	private struct function getCredentials() {
+		// getting the credentials from the environment variables
 		return server.getTestService("s3");
 	}
 
@@ -580,7 +580,7 @@ private function assertEqualPaths(string path1, string path2) {
 
 
 	public void function testS3() localmode=true{
-		var s3=getCredencials();
+		var s3=getCredentials();
 		if(!isNull(s3.ACCESS_KEY_ID)) {
 			application action="update" s3=s3; 
 			test("s3","s3:///");
@@ -588,7 +588,7 @@ private function assertEqualPaths(string path1, string path2) {
 	}
 
 	public void function testS3AsMapping() localmode=true{
-		var s3=getCredencials();
+		var s3=getCredentials();
 		if(!isNull(s3.ACCESS_KEY_ID)) {
 			application action="update" s3=s3; 
 			addMapping("/testress3","s3:///");

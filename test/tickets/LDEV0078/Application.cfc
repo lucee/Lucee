@@ -2,7 +2,7 @@ component {
 
 	this.name	=	Hash( GetCurrentTemplatePath() );
 	this.sessionManagement 	= false;
-	mySQL=getCredencials();
+	mySQL=getCredentials();
 	this.datasource = mySql;	
 
 	// ORM settings
@@ -34,7 +34,7 @@ component {
 		}
 	}
 
-	private struct function getCredencials() {
+	private struct function getCredentials() {
 		return server.getDatasource("mysql");
 	}
 

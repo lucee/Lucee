@@ -1,6 +1,6 @@
 component {
 
-	pgSQL = getCredencials();
+	pgSQL = getCredentials();
 
 	this.name = "luceetest";
 	this.datasources["pgSQL_DSN"] = pgSQL;
@@ -15,7 +15,7 @@ component {
 		}
 	}
 	
-	private struct function getCredencials() {
+	private struct function getCredentials() {
 		return server.getDatasource("postgres");
 	}
 

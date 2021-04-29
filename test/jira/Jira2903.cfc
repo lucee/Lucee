@@ -29,7 +29,7 @@
 	}
 
 	private boolean function defineDatasource(){
-		var pgsql=getCredencials();
+		var pgsql=getCredentials();
 		if(pgsql.count()==0) return false;
 		application action="update" datasource="#pgsql#";
 /*
@@ -40,8 +40,8 @@
 	}
 
 
-	private struct function getCredencials() {
-		// getting the credetials from the enviroment variables
+	private struct function getCredentials() {
+		// getting the credentials from the environment variables
 		return server.getDatasource("postgres");
 	}
 

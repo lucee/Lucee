@@ -1,6 +1,6 @@
 component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function isNotSupported() {
-		variables.mySql = getCredencials();
+		variables.mySql = getCredentials();
 		if(!isNull(variables.mySql)){
 			return false;
 		} else{
@@ -15,7 +15,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 	
 	function run( testResults , testBox ) {
-		if(!hasCredencials()) return;
+		if(!hasCredentials()) return;
 		describe( "Checking MYSQL JDBC drivers", function() {
 			it( title='test with version 5.1.20',skip=isNotSupported(), body=function( currentSpec ) {
 				defineDatasource('com.mysql.jdbc.Driver',  'com.mysql.jdbc', '5.1.20');
@@ -217,12 +217,12 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 		return local.qry;
 	}
 
-	private boolean function hasCredencials() {
-		return structCount(getCredencials());
+	private boolean function hasCredentials() {
+		return structCount(getCredentials());
 	}
 
-	private struct function getCredencials() {
-		// getting the credetials from the enviroment variables
+	private struct function getCredentials() {
+		// getting the credentials from the environment variables
 		return server.getDatasource("mysql");
 	}
 }
