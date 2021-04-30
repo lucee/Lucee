@@ -52,10 +52,11 @@
 	b1.addTags(t2);
 	b2.addTags(t1);
 	b2.addTags(t2);
-	t1.addBookmarks(b1);
+	
+	/*t1.addBookmarks(b1);
 	t1.addBookmarks(b2);
 	t2.addBookmarks(b1);
-	t2.addBookmarks(b2);
+	t2.addBookmarks(b2);*/
 	transaction {
 		entitySave(t1);
 		entitySave(t2);
