@@ -18,6 +18,7 @@
 		setdomaincookies="no"
 		clientStorage="file"
 		sessionStorage="memory"
+		cfidStorage="cookie"
 		scriptprotect="all"
 		sessiontimeout="#createTimeSpan(0,0,30,0)#"
 		applicationtimeout="#createTimeSpan(1,0,0,0)#"

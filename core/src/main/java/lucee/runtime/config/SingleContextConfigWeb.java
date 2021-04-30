@@ -1006,6 +1006,11 @@ public class SingleContextConfigWeb extends ConfigBase implements ConfigWebPro {
 	}
 
 	@Override
+	public String getCfidStorage() {
+		return cs.getCfidStorage();
+	}
+
+	@Override
 	public CIPage getCachedPage(PageContext pc, String pathWithCFC) throws TemplateException {
 		return cs.getCachedPage(pc, pathWithCFC);
 	}

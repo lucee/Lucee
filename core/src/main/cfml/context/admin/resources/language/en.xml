@@ -870,6 +870,12 @@ you can see the log result at the end of every request, if a debug template is d
 
 	<data key="scopes.localmodeModernDesc">the local scope is always invoked</data>
 	<data key="scopes.localmodeClassicDesc">the local scope is only invoked when the key already exists in it</data>
+
+	<data key="Scopes.cfidStorage">Session origin</data>
+	<data key="Scopes.cookieBeforeUrl">load the cfid from URL and if not present from cookie</data>
+	<data key="Scopes.urlBeforeCookie">load the cfid from Cookie and if not present from the URL</data>
+	<data key="Scopes.cookieOnly">load the cfid from the Cookie</data>
+
 	<!-- server.scope.cfm -->
 	<data key="Scopes.SessionStorage">Session Storage</data>
 	<data key="Scopes.ClientStorage">Client Storage</data>

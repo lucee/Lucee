@@ -654,6 +654,7 @@ public abstract class ConfigFactory {
 			moveAsBool("mergeUrlForm", "mergeUrlForm", scope, root);
 			move("clientStorage", "clientStorage", scope, root);
 			move("sessionStorage", "sessionStorage", scope, root);
+			move("cfidStorage", "cfidStorage", scope, root);
 			move("clientTimeout", "clientTimeout", scope, root);
 			move("sessionTimeout", "sessionTimeout", scope, root);
 			move("applicationTimeout", "applicationTimeout", scope, root);

@@ -4154,6 +4154,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		admin.updateAllowImplicidQueryCall(getBoolObject("admin", action, "allowImplicidQueryCall"));
 		admin.updateMergeFormAndUrl(getBoolObject("admin", action, "mergeFormAndUrl"));
 		admin.updateSessionManagement(getBoolObject("admin", action, "sessionManagement"));
+		admin.updateCfidStorage(getString("admin", action, "cfidStorage"));
 		admin.updateClientManagement(getBoolObject("admin", action, "clientManagement"));
 		admin.updateDomaincookies(getBoolObject("admin", action, "domainCookies"));
 		admin.updateClientCookies(getBoolObject("admin", action, "clientCookies"));
@@ -4481,6 +4482,7 @@ public final class Admin extends TagImpl implements DynamicAttributes {
 		sct.set("localmode", localMode);
 		sct.set("sessionManagement", Caster.toBoolean(config.isSessionManagement()));
 		sct.set("clientManagement", Caster.toBoolean(config.isClientManagement()));
+		sct.set("cfidStorage", config.getCfidStorage());
 		sct.set("domainCookies", Caster.toBoolean(config.isDomainCookies()));
 		sct.set("clientCookies", Caster.toBoolean(config.isClientCookies()));
 		sct.set("clientStorage", config.getClientStorage());

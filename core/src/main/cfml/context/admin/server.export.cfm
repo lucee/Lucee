@@ -154,6 +154,8 @@ component {
 	// untouched session lifespan
 	this.sessionTimeout = createTimeSpan( #scope.sessionTimeout_day#, #scope.sessionTimeout_hour#, #scope.sessionTimeout_minute#, #scope.sessionTimeout_second# ); 
 	this.sessionStorage = "#scope.sessionStorage#";
+
+	this.cfidStorage = "#scope.cfidStorage#";
 	
 	// client scope enabled or not
 	this.clientManagement = #scope.clientManagement#; 

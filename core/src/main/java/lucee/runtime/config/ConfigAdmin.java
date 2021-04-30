@@ -2478,6 +2478,16 @@ public final class ConfigAdmin {
 		updateStorage("client", storage);
 	}
 
+	public void updateCfidStorage(String storage) throws SecurityException, ApplicationException {
+		checkWriteAccess();
+		boolean hasAccess = ConfigWebUtil.hasAccess(config, SecurityManager.TYPE_SETTING);
+
+		if (!hasAccess) throw new SecurityException("no access to update scope setting");
+
+		if (!StringUtil.isEmpty(storage, true)) root.setEL("cfidStorage", storage);
+		else rem(root, "cfidStorage");
+	}
+
 	public void updateSessionStorage(String storage) throws SecurityException, ApplicationException {
 		updateStorage("session", storage);
 	}

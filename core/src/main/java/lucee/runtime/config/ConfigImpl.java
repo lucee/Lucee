@@ -237,6 +237,7 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 	private Resource configDir;
 	private String sessionStorage = DEFAULT_STORAGE_SESSION;
 	private String clientStorage = DEFAULT_STORAGE_CLIENT;
+	private String cfidStorage = DEFAULT_STORAGE_CFID;
 
 	private long loadTime;
 
@@ -3201,12 +3202,21 @@ public abstract class ConfigImpl extends ConfigBase implements ConfigPro {
 		return sessionStorage;
 	}
 
+	@Override
+	public String getCfidStorage() {
+		return cfidStorage;
+	}
+
 	protected void setClientStorage(String clientStorage) {
 		this.clientStorage = clientStorage;
 	}
 
 	protected void setSessionStorage(String sessionStorage) {
 		this.sessionStorage = sessionStorage;
+	}
+
+	protected void setCfidStorage(String cfidStorage) {
+		this.cfidStorage = cfidStorage;
 	}
 
 	private Map<String, ComponentMetaData> componentMetaData = null;

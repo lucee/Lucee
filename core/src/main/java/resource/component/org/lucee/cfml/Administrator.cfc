@@ -2094,6 +2094,7 @@ component {
 			clientCookies=isNull(arguments.clientCookies) || isEmpty(arguments.clientCookies) ? existing.clientCookies : arguments.clientCookies
 			clientTimeout=isNull(arguments.clientTimeout) || isEmpty(arguments.clientTimeout) ? existing.clientTimeout : arguments.clientTimeout
 			sessionTimeout=isNull(arguments.sessionTimeout) || isEmpty(arguments.sessionTimeout) ? existing.sessionTimeout : arguments.sessionTimeout
+			cfidStorage=isNull(arguments.cfidStorage) || isEmpty(arguments.cfidStorage) ? existing.cfidStorage : arguments.cfidStorage
 			clientStorage=isNull(arguments.clientStorage) || isEmpty(arguments.clientStorage) ? existing.clientStorage : arguments.clientStorage
 			sessionStorage=isNull(arguments.sessionStorage) || isEmpty(arguments.sessionStorage) ? existing.sessionStorage : arguments.sessionStorage
 			applicationTimeout=isNull(arguments.applicationTimeout) || isEmpty(arguments.applicationTimeout) ? existing.applicationTimeout : arguments.applicationTimeout
@@ -2120,6 +2121,7 @@ component {
 			clientCookies=""
 			clientTimeout=""
 			sessionTimeout=""
+			cfidStorage=""
 			clientStorage=""
 			sessionStorage=""
 			applicationTimeout=""

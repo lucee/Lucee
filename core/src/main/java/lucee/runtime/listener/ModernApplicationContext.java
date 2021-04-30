@@ -107,6 +107,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private static final Collection.Key CLIENT_MANAGEMENT = KeyConstants._clientManagement;
 	private static final Collection.Key CLIENT_STORAGE = KeyImpl.getInstance("clientStorage");
 	private static final Collection.Key SESSION_STORAGE = KeyImpl.getInstance("sessionStorage");
+	private static final Collection.Key CFID_STORAGE = KeyImpl.getInstance("cfidStorage");
 	private static final Collection.Key LOGIN_STORAGE = KeyImpl.getInstance("loginStorage");
 	private static final Collection.Key SESSION_TYPE = KeyImpl.getInstance("sessionType");
 	private static final Collection.Key WS_SETTINGS = KeyImpl.getInstance("wssettings");
@@ -194,6 +195,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 
 	private String clientStorage;
 	private String sessionStorage;
+	private String cfidStorage;
 	private String secureJsonPrefix = "//";
 	private boolean secureJson;
 	private Mapping[] ctmappings;
@@ -242,6 +244,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	private boolean initAllowCompression;
 	private boolean initDefaultAttributeValues;
 	private boolean initClientStorage;
+	private boolean initCfidStorage;
 	private boolean initSecureJsonPrefix;
 	private boolean initSecureJson;
 	private boolean initSessionStorage;
@@ -345,6 +348,7 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 		this.clientCluster = config.getClientCluster();
 		this.sessionStorage = ci.getSessionStorage();
 		this.clientStorage = ci.getClientStorage();
+		this.cfidStorage = ci.getCfidStorage();
 		this.allowImplicidQueryCall = config.allowImplicidQueryCall();
 
 		this.triggerComponentDataMember = config.getTriggerComponentDataMember();
@@ -557,6 +561,16 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 			initClientStorage = true;
 		}
 		return clientStorage;
+	}
+
+	@Override
+	public String getCfidstorage() {
+		if (!initCfidStorage) {
+			String str = Caster.toString(get(component, CFID_STORAGE, null), null);
+			if (!StringUtil.isEmpty(str)) cfidStorage = str;
+			initCfidStorage = true;
+		}
+		return cfidStorage;
 	}
 
 	@Override
@@ -1313,6 +1327,12 @@ public class ModernApplicationContext extends ApplicationContextSupport {
 	public void setClientstorage(String clientstorage) {
 		initClientStorage = true;
 		this.clientStorage = clientstorage;
+	}
+
+	@Override
+	public void setCfidstorage(String cfidstorage) {
+		initCfidStorage = true;
+		this.cfidStorage = cfidstorage;
 	}
 
 	@Override

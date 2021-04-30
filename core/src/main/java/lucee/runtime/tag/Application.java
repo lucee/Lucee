@@ -88,6 +88,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 	private String clientstorage;
 	private String sessionstorage;
 	private Boolean setClientManagement;
+	private String cfidStorage;
 	private TimeSpan applicationTimeout;
 	private TimeSpan sessionTimeout;
 	private TimeSpan clientTimeout;
@@ -171,6 +172,7 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		setSessionManagement = null;
 		clientstorage = null;
 		sessionstorage = null;
+		cfidStorage = null;
 		setClientManagement = null;
 		sessionTimeout = null;
 		clientTimeout = null;
@@ -425,7 +427,12 @@ public final class Application extends TagImpl implements DynamicAttributes {
 	}
 
 	public void setSessionstorage(String sessionstorage) {
+		System.out.println("sessionStorage----->>>" + sessionstorage);
 		this.sessionstorage = sessionstorage;
+	}
+
+	public void setCfidStorage(String cfidStorage) {
+		this.cfidStorage = cfidStorage;
 	}
 
 	/**
@@ -738,11 +745,15 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		if (sessionTimeout != null) ac.setSessionTimeout(sessionTimeout);
 		if (clientTimeout != null) ac.setClientTimeout(clientTimeout);
 		if (requestTimeout != null) ac.setRequestTimeout(requestTimeout);
+		if (cfidStorage != null) ac.setCfidstorage(cfidStorage);
 		if (clientstorage != null) {
 			ac.setClientstorage(clientstorage);
 		}
+		System.out.println("set, before if----->>>" + sessionstorage);
 		if (sessionstorage != null) {
+			System.out.println("set, inside if----->>>" + sessionstorage);
 			ac.setSessionstorage(sessionstorage);
+			System.out.println("set, inside if--- ac.getCfidstorage() -->>>" + ac.getCfidstorage());
 		}
 		if (customTagMappings != null) ac.setCustomTagMappings(customTagMappings);
 		if (componentMappings != null) ac.setComponentMappings(componentMappings);
