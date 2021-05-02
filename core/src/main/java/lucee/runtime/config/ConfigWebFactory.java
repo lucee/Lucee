@@ -1231,10 +1231,12 @@ public final class ConfigWebFactory extends ConfigFactory {
 		if (!f.exists() || doNew) createFileFromResourceEL("/resource/context/lucee-context.lar", f);
 		else createFileFromResourceCheckSizeDiffEL("/resource/context/lucee-context.lar", f);
 
-		// lucee-admin
-		f = contextDir.getRealResource("lucee-admin.lar");
-		if (!f.exists() || doNew) createFileFromResourceEL("/resource/context/lucee-admin.lar", f);
-		else createFileFromResourceCheckSizeDiffEL("/resource/context/lucee-admin.lar", f);
+		// lucee-admin (only deploy if enabled)
+		if (Caster.toBoolean(SystemUtil.getSystemPropOrEnvVar("lucee.admin.enabled", "true"), true)) {
+			f = contextDir.getRealResource("lucee-admin.lar");
+			if (!f.exists() || doNew) createFileFromResourceEL("/resource/context/lucee-admin.lar", f);
+			else createFileFromResourceCheckSizeDiffEL("/resource/context/lucee-admin.lar", f);
+		}
 
 		// lucee-doc
 		f = contextDir.getRealResource("lucee-doc.lar");
