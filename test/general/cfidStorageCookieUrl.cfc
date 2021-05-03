@@ -75,7 +75,7 @@
 				); // this returns json
 
 				local.status = deserializeJson( local.result.fileContent );
-				systemOutput(status);
+				//systemOutput(status);
 				assertEquals( local.status.cfidStorage, "cookieBeforeUrl" );
 				assertNotEquals( local.status.sessionCFID, local.urlCFID ); // i.e. not the cookie cfid
 				assertEquals( local.status.sessionCFID, local.cookies.cfid ); 
