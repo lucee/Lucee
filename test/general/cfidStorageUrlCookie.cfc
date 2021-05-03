@@ -31,9 +31,9 @@
 		variables.session1 = local.result.session.cfid;
 		local.result = _internalRequest(template: createURI("cfidStorage/urlCookie/index.cfm"));
 		variables.session2 = local.result.session.cfid;
-		systemOutput("", true);
-		systemOutput(variables.session1, true);
-		systemOutput(variables.session2, true);
+		//systemOutput("", true);
+		//systemOutput(variables.session1, true);
+		//systemOutput(variables.session2, true);
 	}
 
 	function run( testResults , testBox ) {
