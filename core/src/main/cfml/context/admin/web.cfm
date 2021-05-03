@@ -526,7 +526,7 @@
 		</cfmodule>
 	</cfif>
 </cfif>
-<cfif (current.action != "overview" || current.action != "chartAjax") && current.action != "services.restart">
+<cfif (current.action != "changeTo" || current.action != "overview" || current.action != "chartAjax") && current.action != "services.restart">
 	<cfcookie name="lucee_admin_lastpage" value="overview" expires="NEVER">
 <cfelseif current.action == "services.restart">
 	<cfcookie name="lucee_admin_lastpage" value="services.restart" expires="NEVER">
