@@ -65,7 +65,7 @@ public final class GetTagList implements Function {
 
 			Map<String, TagLibTag> tags = tlds[i].getTags();
 			Iterator<String> it = tags.keySet().iterator();
-			Struct inner = new StructImpl();
+			Struct inner = new StructImpl(StructImpl.TYPE_LINKED);
 			sct.set(ns, inner);
 			ArrayList<String> tagList = new ArrayList<>();
 			while (it.hasNext()) {
