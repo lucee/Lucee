@@ -111,9 +111,6 @@
         <!-- Admin -->
         <not><isset property="extAdmin"/></not>
         <not><isset property="extAdminVersion"/></not>
-        <!-- Doc -->
-        <not><isset property="extDoc"/></not>
-        <not><isset property="extDocVersion"/></not>
         <!-- Form -->
         <not><isset property="extForm"/></not>
         <not><isset property="extFormVersion"/></not>
@@ -215,7 +212,7 @@
         </sequential>
     </macrodef>
 
-    <target name="check" depends="check-mysql,check-mssql,check-postgre,check-jdts,check-chart,check-s3,check-ehcache,check-hibernate,check-lucene,check-pdf,check-admin,check-doc,check-form,check-axis,check-image,check-esapi,check-ajax,check-compress,check-testbox">
+    <target name="check" depends="check-mysql,check-mssql,check-postgre,check-jdts,check-chart,check-s3,check-ehcache,check-hibernate,check-lucene,check-pdf,check-admin,check-form,check-axis,check-image,check-esapi,check-ajax,check-compress,check-testbox">
       <mkdir dir="${temp}/loader/extensions/"/>
     </target> 
 

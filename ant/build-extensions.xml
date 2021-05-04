@@ -152,7 +152,6 @@
 		<available file="${cache}/${extS3}-${extS3Version}.lex" property="s3.present"/>
 		<available file="${cache}/${extEHCache}-${extEHCacheVersion}.lex" property="ehcache.present"/>
 		<available file="${cache}/${extAdmin}-${extAdminVersion}.lex" property="admin.present"/>
-		<available file="${cache}/${extDoc}-${extDocVersion}.lex" property="doc.present"/>
 		<available file="${cache}/${extHibernate}-${extHibernateVersion}.lex" property="hibernate.present"/>
 		<available file="${cache}/${extLucene}-${extLuceneVersion}.lex" property="lucene.present"/>
 		<available file="${cache}/${extPDF}-${extPDFVersion}.lex" property="pdf.present"/>
@@ -196,9 +195,6 @@
 	</target>
 	<target name="check-admin" depends="check-cache" unless="admin.present">
 		<get src="${extURL}${extAdmin}?version=${extAdminVersion}" dest="${cache}/${extAdmin}-${extAdminVersion}.lex"/>
-	</target>
-	<target name="check-doc" depends="check-cache" unless="doc.present">
-		<get src="${extURL}${extDoc}?version=${extDocVersion}" dest="${cache}/${extDoc}-${extDocVersion}.lex"/>
 	</target>
 	<target name="check-form" depends="check-cache" unless="form.present">
 		<get src="${extURL}${extForm}?version=${extFormVersion}" dest="${cache}/${extForm}-${extFormVersion}.lex"/>
@@ -360,17 +356,7 @@
 		<echo>add:${goal}/extensions/${ext_admin.filename}</echo>
 		<echo file="${goal}/extensions/.index" append="true">${ext_admin.filename};</echo>
 		
-		<!-- add extension Doc -->
-		<loadmf jar="${cache}/${extDoc}-${extDocVersion}.lex" prefix="ext_doc."/>
-		<toFileName id="${ext_doc.id}" name="${ext_doc.name}" version="${ext_doc.version}" property="ext_doc.filename"/>
-		<copy 
-			file="${cache}/${extDoc}-${extDocVersion}.lex" 
-			todir="${goal}/extensions/"/>
-		<move 
-			file="${goal}/extensions/${extDoc}-${extDocVersion}.lex" 
-			tofile="${goal}/extensions/${ext_doc.filename}"/>
-		<echo>add:${goal}/extensions/${ext_doc.filename}</echo>
-		<echo file="${goal}/extensions/.index" append="true">${ext_doc.filename};</echo>
+
 		
 		<!-- add extension Form -->
 		<loadmf jar="${cache}/${extForm}-${extFormVersion}.lex" prefix="ext_form."/>
