@@ -13392,6 +13392,7 @@ _- asc (default): ascending (a to z) sort order
 	<function>
 		<name>toBase64</name>
 		<class>lucee.runtime.functions.string.ToBase64</class>
+		<member-name>toBase64</member-name>
 		<description>Calculates the Base64 representation of a string or binary
         object. The Base64 format uses printable characters, allowing
         binary data to be sent in forms and e-mail, and stored in a
