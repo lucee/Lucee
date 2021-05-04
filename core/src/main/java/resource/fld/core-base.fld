@@ -6741,6 +6741,7 @@ Default list delimiter: comma character.</description>
 	<function>
 		<name>hash</name>
 		<class>lucee.runtime.functions.string.Hash</class>
+		<member-name>hash</member-name>
 		<description>Converts a variable-length string to a 32-byte, hexadecimal
         string, using the MD5 algorithm. (It is not possible to convert
         the hash result back to the source string.)
