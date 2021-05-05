@@ -4,8 +4,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 			it(title = "Checking with hash()", body = function( currentSpec ) {
 			
-				testString = "MEANINGLESS_VALUE"
-                assertEquals(hash(testString), testString.hash())
+			testString = "MEANINGLESS_VALUE";
+                	assertEquals(hash(testString), testString.hash());
 			});		
 		});	
 	}
