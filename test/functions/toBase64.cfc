@@ -4,8 +4,8 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 
 			it(title = "Checking with toBase64", body = function( currentSpec ) {
 
-				testString = "MEANINGLESS_VALUE"
-                assertEquals(toBase64(testString), testString.toBase64())
+			testString = "MEANINGLESS_VALUE";
+                	assertEquals(toBase64(testString), testString.toBase64());
 			});		
 		});	
 	}
