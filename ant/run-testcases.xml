@@ -109,6 +109,8 @@ function mem(type) {
 
 	systemOutput("set /test mapping #dateTimeFormat(now())#", true);
 
+	// you can also provide a json file with your environment variables, i.e. just set LUCEE_BUILD_ENV="c:\work\lucee\loader\env.json"
+	setupTestServices = new test._setupTestServices().setup();	
 
 	// set the testbox mapping
 	application
