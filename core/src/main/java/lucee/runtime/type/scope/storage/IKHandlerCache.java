@@ -45,10 +45,10 @@ public class IKHandlerCache implements IKHandler {
 	}
 
 	@Override
-	public void store(IKStorageScopeSupport storageScope, PageContext pc, String appName, String name, String cfid, Map<Collection.Key, IKStorageScopeItem> data, Log log) {
+	public void store(IKStorageScopeSupport storageScope, PageContext pc, String appName, String name, Map<Collection.Key, IKStorageScopeItem> data, Log log) {
 		try {
 			Cache cache = getCache(ThreadLocalPageContext.get(pc), name);
-			String key = StorageScopeCache.getKey(cfid, appName, storageScope.getTypeAsString());
+			String key = StorageScopeCache.getKey(pc.getCFID(), appName, storageScope.getTypeAsString());
 
 			synchronized (StorageScopeCache.getToken(key)) {
 				Object existingVal = cache.getValue(key, null);
@@ -78,10 +78,10 @@ public class IKHandlerCache implements IKHandler {
 	}
 
 	@Override
-	public void unstore(IKStorageScopeSupport storageScope, PageContext pc, String appName, String name, String cfid, Log log) {
+	public void unstore(IKStorageScopeSupport storageScope, PageContext pc, String appName, String name, Log log) {
 		try {
 			Cache cache = getCache(pc, name);
-			String key = StorageScopeCache.getKey(cfid, appName, storageScope.getTypeAsString());
+			String key = StorageScopeCache.getKey(pc.getCFID(), appName, storageScope.getTypeAsString());
 
 			synchronized (StorageScopeCache.getToken(key)) {
 				cache.remove(key);
