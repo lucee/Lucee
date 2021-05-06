@@ -26,9 +26,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.CopyOption;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.DosFileAttributeView;
 import java.nio.file.attribute.DosFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
@@ -484,7 +487,9 @@ public final class FileResource extends File implements Resource {
 
 		try {
 			provider.lock(this);
-			Runtime.getRuntime().exec("attrib -R " + getAbsolutePath());
+			Path path = FileSystems.getDefault().getPath(getAbsolutePath());
+			DosFileAttributeView dosView = Files.getFileAttributeView(path, DosFileAttributeView.class);
+			dosView.setReadOnly(false);
 		}
 		catch (IOException ioe) {
 			return false;
@@ -733,15 +738,17 @@ public final class FileResource extends File implements Resource {
 		if (!SystemUtil.isWindows()) return;
 
 		provider.lock(this);
+		Path path = FileSystems.getDefault().getPath(getAbsolutePath());
+		DosFileAttributeView dosView = Files.getFileAttributeView(path, DosFileAttributeView.class);
 		try {
 			if (attribute == ATTRIBUTE_ARCHIVE) {
-				Files.setAttribute(this.toPath(), "dos:archive", value);
+				dosView.setArchive(value);
 			}
 			else if (attribute == ATTRIBUTE_HIDDEN) {
-				Files.setAttribute(this.toPath(), "dos:hidden", value);
+				dosView.setHidden(value);
 			}
 			else if (attribute == ATTRIBUTE_SYSTEM) {
-				Files.setAttribute(this.toPath(), "dos:system", value);
+				dosView.setSystem(value);
 			}
 		}
 		catch (IOException e) {
