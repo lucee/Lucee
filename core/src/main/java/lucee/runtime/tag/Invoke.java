@@ -233,6 +233,10 @@ public final class Invoke extends BodyTagImpl implements DynamicAttributes {
 		if (username != null) {
 			if (password == null) password = "";
 		}
+
+		// execute
+		if (StringUtil.isEmpty(method, true)) throw new ApplicationException("Attribute [method] for tag [invoke] is required in this context.");
+
 		ProxyData pd = StringUtil.isEmpty(proxy.getServer()) ? null : proxy;
 		WSClient ws = username != null ? ((ConfigWebPro) ThreadLocalPageContext.getConfig()).getWSHandler().getWSClient(webservice, username, password, pd)
 				: ((ConfigWebPro) ThreadLocalPageContext.getConfig()).getWSHandler().getWSClient(webservice, null, null, pd);
