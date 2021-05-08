@@ -3765,7 +3765,7 @@ Use POST to send information to a server page or a CGI program for processing. P
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 			<introduced>6.0.0.96</introduced>
-			<description>Flag allowing to disable connection reuse on one off requests.<description>
+			<description>Flag allowing to disable connection reuse on one off requests.</description>
 		</attribute>
 		<attribute>
 			<type>object</type>
