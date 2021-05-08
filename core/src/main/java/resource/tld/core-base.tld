@@ -3760,6 +3760,14 @@ Use POST to send information to a server page or a CGI program for processing. P
 			<description>Password used to decrypt the client certificate.</description>
 		</attribute>
 		<attribute>
+			<type>boolean</type>
+			<name>pooling</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<introduced>6.0.0.96</introduced>
+			<description>Flag allowing to disable connection reuse on one off requests.<description>
+		</attribute>
+		<attribute>
 			<type>object</type>
 			<name>cachedWithin</name>
 			<required>false</required>
