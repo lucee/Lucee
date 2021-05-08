@@ -26,6 +26,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
+
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -59,6 +63,7 @@ import org.apache.http.impl.client.DefaultRedirectStrategy;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 import org.apache.http.impl.cookie.BasicClientCookie;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.BasicHttpContext;
@@ -91,6 +96,7 @@ import lucee.runtime.type.util.CollectionUtil;
 public class HTTPEngine4Impl {
 
 	private static PoolingHttpClientConnectionManager connMan;
+	private static Registry<ConnectionSocketFactory> csfReg;
 
 	/**
 	 * does a http get request
@@ -230,20 +236,88 @@ public class HTTPEngine4Impl {
 
 	public static HttpClientBuilder getHttpClientBuilder() {
 		HttpClientBuilder builder = HttpClients.custom();
-		/*
-		 * if(connMan==null) { connMan = new PoolingHttpClientConnectionManager(); // Increase max total
-		 * connection to 200 connMan.setMaxTotal(200); // Increase default max connection per route to 20
-		 * connMan.setDefaultMaxPerRoute(20); // Increase max connections for localhost:80 to 50 //HttpHost
-		 * localhost = new HttpHost("locahost", 80); //cm.setMaxPerRoute(new HttpRoute(localhost), 50); }
-		 * builder.setConnectionManager(connMan);
-		 */
 		return builder;
 	}
 
+	public static void setConnectionManager(HttpClientBuilder builder, boolean pooling) {
+		initDefaultConnectionFactoryRegistry();
+		if (!pooling) {
+			builder.setConnectionManager(
+					new BasicHttpClientConnectionManager(new DefaultHttpClientConnectionOperatorImpl(csfReg))
+				)
+				.setConnectionManagerShared(false);
+			return;
+		}
+		if (connMan == null) {
+			connMan = new PoolingHttpClientConnectionManager(new DefaultHttpClientConnectionOperatorImpl(reg), null, POOL_CONN_TTL_MS, TimeUnit.MILLISECONDS);
+			connMan.setDefaultMaxPerRoute(POOL_MAX_CONN_PER_ROUTE);
+			connMan.setMaxTotal(POOL_MAX_CONN);
+			connMan.setDefaultSocketConfig(SocketConfig.copy(SocketConfig.DEFAULT).setTcpNoDelay(true).setSoReuseAddress(true).setSoLinger(0).build());
+			connMan.setValidateAfterInactivity(POOL_CONN_INACTIVITY_DURATION);
+		}
+		builder.setConnectionManager(connMan)
+			.setConnectionManagerShared(true)
+			.setConnectionTimeToLive(POOL_CONN_TTL_MS, TimeUnit.MILLISECONDS)
+			.setConnectionReuseStrategy(new DefaultClientConnectionReuseStrategy());
+	}
+
+	private static void initDefaultConnectionFactoryRegistry(){
+		if (csfReg == null) {
+			/* Default TLS settings */
+			SSLContext sslcontext = SSLContext.getInstance("TLS");
+			sslcontext.init(null, null, new java.security.SecureRandom());
+			SSLConnectionSocketFactory defaultsslsf = new SSLConnectionSocketFactoryImpl(sslcontext, new DefaultHostnameVerifierImpl());
+			/* Register connection handlers */
+			csfReg = RegistryBuilder.<ConnectionSocketFactory>create()
+					.register("http", PlainConnectionSocketFactory.getSocketFactory())
+					.register("https", defaultsslsf)
+					.build();
+		}
+	}
+
+	public static void setConnectionManager(HttpClientBuilder builder, boolean pooling, String clientCert, String clientCertPassword) {
+        if (StringUtil.isEmpty(clientCert)) {
+            return getConnectionManager(builder, pooling);
+        }
+        // FIXME : create a clientCert Hashmap to allow reusable connexions with client_certs
+        // Currently, clientCert force usePool to being ignored
+		if (clientCertPassword == null) clientCertPassword = "";
+        // Load the client cert
+        File ksFile = new File(clientCert);
+        KeyStore clientStore = KeyStore.getInstance("PKCS12");
+        clientStore.load(new FileInputStream(ksFile), clientCertPassword.toCharArray());
+
+        // Prepare the keys
+        KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+        kmf.init(clientStore, clientCertPassword.toCharArray());
+        // Init SSL Context
+        sslcontext.init(kmf.getKeyManagers(), null, new java.security.SecureRandom());
+        // Configure the socket factory
+		SSLContext sslcontext = SSLContext.getInstance("TLS");
+        sslsf = new SSLConnectionSocketFactoryImpl(sslcontext, new DefaultHostnameVerifierImpl());
+        // Fill in the registry
+        Registry<ConnectionSocketFactory> reg = RegistryBuilder.<ConnectionSocketFactory>create()
+            .register("http", PlainConnectionSocketFactory.getSocketFactory())
+            .register("https", sslsf)
+            .build();
+        // Provide a one off connection manager
+        HttpClientConnectionManager cm = new BasicHttpClientConnectionManager(new DefaultHttpClientConnectionOperatorImpl(reg), null, -1, TimeUnit.MILLISECONDS); 
+        builder.setConnectionManager(cm)
+			.setConnectionManagerShared(false);
+	}
+
 	public static void releaseConnectionManager() {
-		/*
-		 * if(connMan!=null) { connMan.close(); connMan=null; }
-		 */
+		if(connMan!=null) { 
+			connMan.close(); 
+			connMan=null; 
+		}
+	}
+
+	public static void closeIdleConnections() {
+		if (connMan!=null) {
+			connMan.closeIdleConnections(POOL_CONN_TTL_MS, TimeUnit.MILLISECONDS);
+			connMan.closeExpiredConnections();
+		}
 	}
 
 	private static HTTPResponse _invoke(URL url, HttpUriRequest request, String username, String password, long timeout, boolean redirect, String charset, String useragent,
