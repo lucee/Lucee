@@ -326,6 +326,7 @@ public class HTTPEngine4Impl {
 		proxy = ProxyDataImpl.validate(proxy, url.getHost());
 
 		HttpClientBuilder builder = getHttpClientBuilder();
+		setConnectionManager(builder);
 
 		// LDEV-2321
 		builder.setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build());
