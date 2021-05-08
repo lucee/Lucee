@@ -31,15 +31,11 @@ import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
-
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
 
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpHost;
@@ -54,12 +50,7 @@ import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.methods.HttpTrace;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.config.Registry;
-import org.apache.http.config.RegistryBuilder;
 import org.apache.http.config.SocketConfig;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.socket.PlainConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.FormBodyPart;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
@@ -69,8 +60,6 @@ import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultRedirectStrategy;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.DefaultClientConnectionReuseStrategy;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
@@ -110,9 +99,6 @@ import lucee.runtime.exp.RequestTimeoutException;
 import lucee.runtime.ext.tag.BodyTagImpl;
 import lucee.runtime.net.http.MultiPartResponseUtils;
 import lucee.runtime.net.http.ReqRspUtil;
-import lucee.runtime.net.http.sni.DefaultHostnameVerifierImpl;
-import lucee.runtime.net.http.sni.DefaultHttpClientConnectionOperatorImpl;
-import lucee.runtime.net.http.sni.SSLConnectionSocketFactoryImpl;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.proxy.ProxyDataImpl;
 import lucee.runtime.op.Caster;
@@ -204,18 +190,6 @@ public final class Http extends BodyTagImpl {
 	public static final short ENCODED_AUTO = HTTPUtil.ENCODED_AUTO;
 	public static final short ENCODED_YES = HTTPUtil.ENCODED_YES;
 	public static final short ENCODED_NO = HTTPUtil.ENCODED_NO;
-
-	public static final int POOL_MAX_CONN = 500;
-	public static final int POOL_MAX_CONN_PER_ROUTE = 50;
-	public static final int POOL_CONN_TTL_MS = 15000;
-	public static final int POOL_CONN_INACTIVITY_DURATION = 300;
-	
-
-	static {
-		// Protocol myhttps = new Protocol("https", new EasySSLProtocolSocketFactory(), 443);
-		// Protocol.registerProtocol("https", new Protocol("https", new EasySSLProtocolSocketFactory(),
-		// 443));
-	}
 
 	private ArrayList<HttpParamBean> params = new ArrayList<HttpParamBean>();
 
@@ -342,7 +316,6 @@ public final class Http extends BodyTagImpl {
 	private String clientCert;
 	/** Password used to decrypt the client certificate. */
 	private String clientCertPassword;
-	private static SSLConnectionSocketFactoryImpl defaultSSLConnectionSocketFactoryImpl;
 
 	@Override
 	public void release() {
@@ -714,7 +687,7 @@ public final class Http extends BodyTagImpl {
 		boolean safeToMemory = !StringUtil.isEmpty(result, true);
 
 		HttpClientBuilder builder = HTTPEngine4Impl.getHttpClientBuilder();
-		ssl(builder);
+		HTTPEngine4Impl.setConnectionManager(builder, this.usePool,  this.clientCert, this.clientCertPassword);
 
 		// redirect
 		if (redirect) builder.setRedirectStrategy(DefaultRedirectStrategy.INSTANCE);
@@ -1440,70 +1413,6 @@ public final class Http extends BodyTagImpl {
 			str = new URLResolver().transform(str, e.response.getTargetURL(), false);
 		}
 		return str;
-	}
-
-	private static PoolingHttpClientConnectionManager gcm;
-	private static SSLConnectionSocketFactory gsslsf;
-	private void ssl(HttpClientBuilder builder) throws PageException {
-		final SSLConnectionSocketFactory sslsf;
-		try {
-			// SSLContext sslcontext = SSLContexts.createSystemDefault();
-			SSLContext sslcontext = SSLContext.getInstance("TLS");
-			if (!this.usePool || !StringUtil.isEmpty(this.clientCert)) {
-				if (!StringUtil.isEmpty(this.clientCert)) {
-					// FIXME create a clientCert Hashmap to allow reusable certified connections
-					// Currently, clientCert force usePool to being ignored
-					// Step 1, load the client cert
-					if (this.clientCertPassword == null) this.clientCertPassword = "";
-					File ksFile = new File(this.clientCert);
-					KeyStore clientStore = KeyStore.getInstance("PKCS12");
-					clientStore.load(new FileInputStream(ksFile), this.clientCertPassword.toCharArray());
-	
-					// Prepare the keys
-					KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-					kmf.init(clientStore, this.clientCertPassword.toCharArray());
-					// Init SSL Context
-					sslcontext.init(kmf.getKeyManagers(), null, new java.security.SecureRandom());
-					sslsf = new SSLConnectionSocketFactoryImpl(sslcontext, new DefaultHostnameVerifierImpl());
-				} else {
-					// Init default ssl context
-					sslcontext.init(null, null, new java.security.SecureRandom());
-					if (defaultSSLConnectionSocketFactoryImpl == null)
-						defaultSSLConnectionSocketFactoryImpl = new SSLConnectionSocketFactoryImpl(sslcontext, new DefaultHostnameVerifierImpl());
-					sslsf = defaultSSLConnectionSocketFactoryImpl;
-				}
-				// Bind to the http client
-				builder.setSSLSocketFactory(sslsf);
-				Registry<ConnectionSocketFactory> reg = RegistryBuilder.<ConnectionSocketFactory>create().register("http", PlainConnectionSocketFactory.getSocketFactory())
-						.register("https", sslsf).build();
-				// Provide a one of connection manager
-				PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager(new DefaultHttpClientConnectionOperatorImpl(reg), null, -1, TimeUnit.MILLISECONDS); 
-				builder.setConnectionManager(cm);
-			} else {
-				// Use shared context in all other cases
-				if (gsslsf == null) {
-					sslcontext.init(null, null, new java.security.SecureRandom());
-					gsslsf = new SSLConnectionSocketFactoryImpl(sslcontext, new DefaultHostnameVerifierImpl());
-				}
-				builder.setSSLSocketFactory(gsslsf);
-				if (gcm == null) {
-					Registry<ConnectionSocketFactory> reg = RegistryBuilder.<ConnectionSocketFactory>create().register("http", PlainConnectionSocketFactory.getSocketFactory())
-									.register("https", gsslsf).build();
-					gcm = new PoolingHttpClientConnectionManager(new DefaultHttpClientConnectionOperatorImpl(reg), null, 15000, TimeUnit.MILLISECONDS);
-					gcm.setDefaultMaxPerRoute(POOL_MAX_CONN_PER_ROUTE);
-					gcm.setMaxTotal(POOL_MAX_CONN);
-					gcm.setDefaultSocketConfig(SocketConfig.copy(SocketConfig.DEFAULT).setTcpNoDelay(true).setSoReuseAddress(true).setSoLinger(0).build());
-					gcm.setValidateAfterInactivity(POOL_CONN_INACTIVITY_DURATION);
-				}
-				builder.setConnectionManager(gcm);
-				builder.setConnectionManagerShared(true);
-				builder.setConnectionTimeToLive(POOL_CONN_TTL_MS, TimeUnit.MILLISECONDS);
-				builder.setConnectionReuseStrategy(new DefaultClientConnectionReuseStrategy());
-			}
-		}
-		catch (Exception e) {
-			throw Caster.toPageException(e);
-		}
 	}
 
 	private TimeSpan checkRemainingTimeout() throws RequestTimeoutException {
