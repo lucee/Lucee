@@ -665,7 +665,7 @@ public final class Http extends BodyTagImpl {
 	}
 
 
-	public void setUsePool(boolean usePool) {
+	public void setPooling(boolean usePool) {
 		this.usePool = usePool;
 	}
 
