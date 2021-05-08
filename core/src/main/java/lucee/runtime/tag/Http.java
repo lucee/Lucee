@@ -336,6 +336,8 @@ public final class Http extends BodyTagImpl {
 
 	private Object cachedWithin;
 
+	private boolean usePool = true;
+
 	/** The full path to a PKCS12 format file that contains the client certificate for the request. */
 	private String clientCert;
 	/** Password used to decrypt the client certificate. */
@@ -385,6 +387,7 @@ public final class Http extends BodyTagImpl {
 		clientCert = null;
 		clientCertPassword = null;
 		cachedWithin = null;
+		usePool = true;
 	}
 
 	/**
@@ -659,6 +662,11 @@ public final class Http extends BodyTagImpl {
 	public void setCachedwithin(Object cachedwithin) {
 		if (StringUtil.isEmpty(cachedwithin)) return;
 		this.cachedWithin = cachedwithin;
+	}
+
+
+	public void setUsePool(boolean usePool) {
+		this.usePool = usePool;
 	}
 
 	@Override
@@ -1440,33 +1448,38 @@ public final class Http extends BodyTagImpl {
 		final SSLConnectionSocketFactory sslsf;
 		try {
 			// SSLContext sslcontext = SSLContexts.createSystemDefault();
-<<<<<<< HEAD
 			SSLContext sslcontext = SSLContext.getInstance("TLS");
-=======
-			SSLContext sslcontext = SSLContext.getInstance("TLSv1.2");
->>>>>>> 5644ebbd6... [WS] fix
-			if (!StringUtil.isEmpty(this.clientCert)) {
-				// Use discardable connexion manager if Client certificate is used
-				if (this.clientCertPassword == null) this.clientCertPassword = "";
-				File ksFile = new File(this.clientCert);
-				KeyStore clientStore = KeyStore.getInstance("PKCS12");
-				clientStore.load(new FileInputStream(ksFile), this.clientCertPassword.toCharArray());
-
-				KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-				kmf.init(clientStore, this.clientCertPassword.toCharArray());
-
-				sslcontext.init(kmf.getKeyManagers(), null, new java.security.SecureRandom());
-				sslsf = new SSLConnectionSocketFactoryImpl(sslcontext, new DefaultHostnameVerifierImpl());
+			if (!this.usePool || !StringUtil.isEmpty(this.clientCert)) {
+				if (!StringUtil.isEmpty(this.clientCert)) {
+					// FIXME create a clientCert Hashmap to allow reusable certified connections
+					// Currently, clientCert force usePool to being ignored
+					// Step 1, load the client cert
+					if (this.clientCertPassword == null) this.clientCertPassword = "";
+					File ksFile = new File(this.clientCert);
+					KeyStore clientStore = KeyStore.getInstance("PKCS12");
+					clientStore.load(new FileInputStream(ksFile), this.clientCertPassword.toCharArray());
+	
+					// Prepare the keys
+					KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+					kmf.init(clientStore, this.clientCertPassword.toCharArray());
+					// Init SSL Context
+					sslcontext.init(kmf.getKeyManagers(), null, new java.security.SecureRandom());
+					sslsf = new SSLConnectionSocketFactoryImpl(sslcontext, new DefaultHostnameVerifierImpl());
+				} else {
+					// Init default ssl context
+					sslcontext.init(null, null, new java.security.SecureRandom());
+					if (defaultSSLConnectionSocketFactoryImpl == null)
+						defaultSSLConnectionSocketFactoryImpl = new SSLConnectionSocketFactoryImpl(sslcontext, new DefaultHostnameVerifierImpl());
+					sslsf = defaultSSLConnectionSocketFactoryImpl;
+				}
+				// Bind to the http client
 				builder.setSSLSocketFactory(sslsf);
 				Registry<ConnectionSocketFactory> reg = RegistryBuilder.<ConnectionSocketFactory>create().register("http", PlainConnectionSocketFactory.getSocketFactory())
 						.register("https", sslsf).build();
-				PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager(new DefaultHttpClientConnectionOperatorImpl(reg), null, -1, TimeUnit.MILLISECONDS); // TODO
-				// review
-				// -1
-				// setting
+				// Provide a one of connection manager
+				PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager(new DefaultHttpClientConnectionOperatorImpl(reg), null, -1, TimeUnit.MILLISECONDS); 
 				builder.setConnectionManager(cm);
-			}
-			else {
+			} else {
 				// Use shared context in all other cases
 				if (gsslsf == null) {
 					sslcontext.init(null, null, new java.security.SecureRandom());
