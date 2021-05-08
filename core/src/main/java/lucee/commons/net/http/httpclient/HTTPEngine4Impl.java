@@ -276,33 +276,33 @@ public class HTTPEngine4Impl {
 	}
 
 	public static void setConnectionManager(HttpClientBuilder builder, boolean pooling, String clientCert, String clientCertPassword) {
-        if (StringUtil.isEmpty(clientCert)) {
-            return getConnectionManager(builder, pooling);
-        }
-        // FIXME : create a clientCert Hashmap to allow reusable connexions with client_certs
-        // Currently, clientCert force usePool to being ignored
+		if (StringUtil.isEmpty(clientCert)) {
+			return getConnectionManager(builder, pooling);
+		}
+		// FIXME : create a clientCert Hashmap to allow reusable connexions with client_certs
+		// Currently, clientCert force usePool to being ignored
 		if (clientCertPassword == null) clientCertPassword = "";
-        // Load the client cert
-        File ksFile = new File(clientCert);
-        KeyStore clientStore = KeyStore.getInstance("PKCS12");
-        clientStore.load(new FileInputStream(ksFile), clientCertPassword.toCharArray());
+		// Load the client cert
+		File ksFile = new File(clientCert);
+		KeyStore clientStore = KeyStore.getInstance("PKCS12");
+		clientStore.load(new FileInputStream(ksFile), clientCertPassword.toCharArray());
 
-        // Prepare the keys
-        KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-        kmf.init(clientStore, clientCertPassword.toCharArray());
-        // Init SSL Context
-        sslcontext.init(kmf.getKeyManagers(), null, new java.security.SecureRandom());
-        // Configure the socket factory
+		// Prepare the keys
+		KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+		kmf.init(clientStore, clientCertPassword.toCharArray());
+		// Init SSL Context
+		sslcontext.init(kmf.getKeyManagers(), null, new java.security.SecureRandom());
+		// Configure the socket factory
 		SSLContext sslcontext = SSLContext.getInstance("TLS");
-        sslsf = new SSLConnectionSocketFactoryImpl(sslcontext, new DefaultHostnameVerifierImpl());
-        // Fill in the registry
-        Registry<ConnectionSocketFactory> reg = RegistryBuilder.<ConnectionSocketFactory>create()
-            .register("http", PlainConnectionSocketFactory.getSocketFactory())
-            .register("https", sslsf)
-            .build();
-        // Provide a one off connection manager
-        HttpClientConnectionManager cm = new BasicHttpClientConnectionManager(new DefaultHttpClientConnectionOperatorImpl(reg), null, -1, TimeUnit.MILLISECONDS); 
-        builder.setConnectionManager(cm)
+		sslsf = new SSLConnectionSocketFactoryImpl(sslcontext, new DefaultHostnameVerifierImpl());
+		// Fill in the registry
+		Registry<ConnectionSocketFactory> reg = RegistryBuilder.<ConnectionSocketFactory>create()
+			.register("http", PlainConnectionSocketFactory.getSocketFactory())
+			.register("https", sslsf)
+			.build();
+		// Provide a one off connection manager
+		HttpClientConnectionManager cm = new BasicHttpClientConnectionManager(new DefaultHttpClientConnectionOperatorImpl(reg)); 
+		builder.setConnectionManager(cm)
 			.setConnectionManagerShared(false);
 	}
 
