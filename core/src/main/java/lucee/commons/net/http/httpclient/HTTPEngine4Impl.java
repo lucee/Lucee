@@ -18,6 +18,8 @@
  **/
 package lucee.commons.net.http.httpclient;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -53,6 +55,12 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.ClientContext;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.config.SocketConfig;
+import org.apache.http.conn.HttpClientConnectionManager;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.ContentType;
@@ -61,6 +69,7 @@ import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.DefaultClientConnectionReuseStrategy;
 import org.apache.http.impl.client.DefaultRedirectStrategy;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
@@ -88,6 +97,7 @@ import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.net.http.ReqRspUtil;
 import lucee.runtime.net.http.sni.DefaultHostnameVerifierImpl;
+import lucee.runtime.net.http.sni.DefaultHttpClientConnectionOperatorImpl;
 import lucee.runtime.net.http.sni.SSLConnectionSocketFactoryImpl;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.proxy.ProxyDataImpl;
@@ -249,29 +259,36 @@ public class HTTPEngine4Impl {
 		return builder;
 	}
 
-	public static void setConnectionManager(HttpClientBuilder builder, boolean pooling) {
-		initDefaultConnectionFactoryRegistry();
-		if (!pooling) {
-			builder.setConnectionManager(
-					new BasicHttpClientConnectionManager(new DefaultHttpClientConnectionOperatorImpl(csfReg))
-				)
-				.setConnectionManagerShared(false);
-			return;
-		}
-		if (connMan == null) {
-			connMan = new PoolingHttpClientConnectionManager(new DefaultHttpClientConnectionOperatorImpl(reg), null, POOL_CONN_TTL_MS, TimeUnit.MILLISECONDS);
-			connMan.setDefaultMaxPerRoute(POOL_MAX_CONN_PER_ROUTE);
-			connMan.setMaxTotal(POOL_MAX_CONN);
-			connMan.setDefaultSocketConfig(SocketConfig.copy(SocketConfig.DEFAULT).setTcpNoDelay(true).setSoReuseAddress(true).setSoLinger(0).build());
-			connMan.setValidateAfterInactivity(POOL_CONN_INACTIVITY_DURATION);
-		}
-		builder.setConnectionManager(connMan)
-			.setConnectionManagerShared(true)
-			.setConnectionTimeToLive(POOL_CONN_TTL_MS, TimeUnit.MILLISECONDS)
-			.setConnectionReuseStrategy(new DefaultClientConnectionReuseStrategy());
+	public static void setConnectionManager(HttpClientBuilder builder) throws PageException {
+		setConnectionManager(builder, true);
 	}
 
-	private static void initDefaultConnectionFactoryRegistry(){
+	public static void setConnectionManager(HttpClientBuilder builder, boolean pooling) throws PageException {
+		try {
+			initDefaultConnectionFactoryRegistry();
+			if (!pooling) {
+				HttpClientConnectionManager cm = new BasicHttpClientConnectionManager(new DefaultHttpClientConnectionOperatorImpl(csfReg), null); 
+				builder.setConnectionManager(cm)
+					.setConnectionManagerShared(false);
+				return;
+			}
+			if (connMan == null) {
+				connMan = new PoolingHttpClientConnectionManager(new DefaultHttpClientConnectionOperatorImpl(csfReg), null, POOL_CONN_TTL_MS, TimeUnit.MILLISECONDS);
+				connMan.setDefaultMaxPerRoute(POOL_MAX_CONN_PER_ROUTE);
+				connMan.setMaxTotal(POOL_MAX_CONN);
+				connMan.setDefaultSocketConfig(SocketConfig.copy(SocketConfig.DEFAULT).setTcpNoDelay(true).setSoReuseAddress(true).setSoLinger(0).build());
+				connMan.setValidateAfterInactivity(POOL_CONN_INACTIVITY_DURATION);
+			}
+			builder.setConnectionManager(connMan)
+				.setConnectionManagerShared(true)
+				.setConnectionTimeToLive(POOL_CONN_TTL_MS, TimeUnit.MILLISECONDS)
+				.setConnectionReuseStrategy(new DefaultClientConnectionReuseStrategy());
+		} catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
+	}
+
+	private static void initDefaultConnectionFactoryRegistry() throws java.security.GeneralSecurityException {
 		if (csfReg == null) {
 			/* Default TLS settings */
 			SSLContext sslcontext = SSLContext.getInstance("TLS");
@@ -285,35 +302,40 @@ public class HTTPEngine4Impl {
 		}
 	}
 
-	public static void setConnectionManager(HttpClientBuilder builder, boolean pooling, String clientCert, String clientCertPassword) {
-		if (StringUtil.isEmpty(clientCert)) {
-			return getConnectionManager(builder, pooling);
-		}
-		// FIXME : create a clientCert Hashmap to allow reusable connexions with client_certs
-		// Currently, clientCert force usePool to being ignored
-		if (clientCertPassword == null) clientCertPassword = "";
-		// Load the client cert
-		File ksFile = new File(clientCert);
-		KeyStore clientStore = KeyStore.getInstance("PKCS12");
-		clientStore.load(new FileInputStream(ksFile), clientCertPassword.toCharArray());
+	public static void setConnectionManager(HttpClientBuilder builder, boolean pooling, String clientCert, String clientCertPassword) throws PageException {
+		try {
+			if (StringUtil.isEmpty(clientCert)) {
+				setConnectionManager(builder, pooling);
+				return;
+			}
+			// FIXME : create a clientCert Hashmap to allow reusable connexions with client_certs
+			// Currently, clientCert force usePool to being ignored
+			if (clientCertPassword == null) clientCertPassword = "";
+			// Load the client cert
+			File ksFile = new File(clientCert);
+			KeyStore clientStore = KeyStore.getInstance("PKCS12");
+			clientStore.load(new FileInputStream(ksFile), clientCertPassword.toCharArray());
 
-		// Prepare the keys
-		KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-		kmf.init(clientStore, clientCertPassword.toCharArray());
-		// Init SSL Context
-		sslcontext.init(kmf.getKeyManagers(), null, new java.security.SecureRandom());
-		// Configure the socket factory
-		SSLContext sslcontext = SSLContext.getInstance("TLS");
-		sslsf = new SSLConnectionSocketFactoryImpl(sslcontext, new DefaultHostnameVerifierImpl());
-		// Fill in the registry
-		Registry<ConnectionSocketFactory> reg = RegistryBuilder.<ConnectionSocketFactory>create()
-			.register("http", PlainConnectionSocketFactory.getSocketFactory())
-			.register("https", sslsf)
-			.build();
-		// Provide a one off connection manager
-		HttpClientConnectionManager cm = new BasicHttpClientConnectionManager(new DefaultHttpClientConnectionOperatorImpl(reg)); 
-		builder.setConnectionManager(cm)
-			.setConnectionManagerShared(false);
+			// Prepare the keys
+			KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+			kmf.init(clientStore, clientCertPassword.toCharArray());
+			// Init SSL Context
+			SSLContext sslcontext = SSLContext.getInstance("TLS");
+			// Configure the socket factory
+			sslcontext.init(kmf.getKeyManagers(), null, new java.security.SecureRandom());
+			SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactoryImpl(sslcontext, new DefaultHostnameVerifierImpl());
+			// Fill in the registry
+			Registry<ConnectionSocketFactory> reg = RegistryBuilder.<ConnectionSocketFactory>create()
+				.register("http", PlainConnectionSocketFactory.getSocketFactory())
+				.register("https", sslsf)
+				.build();
+			// Provide a one off connection manager
+			HttpClientConnectionManager cm = new BasicHttpClientConnectionManager(new DefaultHttpClientConnectionOperatorImpl(reg), null); 
+			builder.setConnectionManager(cm)
+				.setConnectionManagerShared(false);
+		} catch (Exception e) {
+			throw Caster.toPageException(e);
+		}
 	}
 
 	public static void releaseConnectionManager() {
@@ -336,7 +358,11 @@ public class HTTPEngine4Impl {
 		proxy = ProxyDataImpl.validate(proxy, url.getHost());
 
 		HttpClientBuilder builder = getHttpClientBuilder();
-		setConnectionManager(builder);
+		try {
+			setConnectionManager(builder);
+		} catch (PageException e) {
+			// Ignore pooling if an issue happens
+		}
 
 		// LDEV-2321
 		builder.setDefaultRequestConfig(RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build());
