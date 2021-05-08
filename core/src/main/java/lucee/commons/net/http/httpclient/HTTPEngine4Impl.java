@@ -21,6 +21,7 @@ package lucee.commons.net.http.httpclient;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -52,6 +53,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.protocol.ClientContext;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
@@ -85,6 +87,8 @@ import lucee.runtime.PageContextImpl;
 import lucee.runtime.engine.ThreadLocalPageContext;
 import lucee.runtime.exp.PageException;
 import lucee.runtime.net.http.ReqRspUtil;
+import lucee.runtime.net.http.sni.DefaultHostnameVerifierImpl;
+import lucee.runtime.net.http.sni.SSLConnectionSocketFactoryImpl;
 import lucee.runtime.net.proxy.ProxyData;
 import lucee.runtime.net.proxy.ProxyDataImpl;
 import lucee.runtime.op.Caster;
@@ -93,11 +97,17 @@ import lucee.runtime.tag.Http;
 import lucee.runtime.type.dt.TimeSpanImpl;
 import lucee.runtime.type.util.CollectionUtil;
 
+
 public class HTTPEngine4Impl {
 
 	private static PoolingHttpClientConnectionManager connMan;
 	private static Registry<ConnectionSocketFactory> csfReg;
 
+	public static final int POOL_MAX_CONN = 500;
+	public static final int POOL_MAX_CONN_PER_ROUTE = 50;
+	public static final int POOL_CONN_TTL_MS = 15000;
+	public static final int POOL_CONN_INACTIVITY_DURATION = 300;
+	
 	/**
 	 * does a http get request
 	 * 
