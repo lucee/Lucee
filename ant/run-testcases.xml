@@ -189,7 +189,7 @@ try {
 							case ( checkTestFilter( arguments.path ) ):
 								return "excluded by testFilter";
 							case ( FindNoCase( request.testFolder, testDir ) neq 1 ):
-								return "not under test dir";
+								return "not under test dir (#request.testFolder#, #testDir#)";
 							case fileExists( testDir & "/Application.cfc" ):
 								return "test in directory with Application.cfc";
 							default:
