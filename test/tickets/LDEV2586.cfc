@@ -7,15 +7,7 @@ component extends = "org.lucee.cfml.test.LuceeTestCase"{
 		if(structCount(variables.credencials)) {
 			// define datasource
 			application action="update" 
-				datasource={
-				'LDEV2586': {
-			 	class: 'com.microsoft.sqlserver.jdbc.SQLServerDriver'
-				, bundleName: 'com.microsoft.sqlserver.mssql-jdbc'
-				, bundleVersion: '7.0.0'
-				, connectionString: 'jdbc:sqlserver://'&msSQL.server&':'&msSQL.port&';DATABASENAME='&msSQL.database&';sendStringParametersAsUnicode=true;SelectMethod=direct'
-				, username: msSQL.username
-				, password: msSQL.password
-			}};
+				datasource=server.getDatasource("mssql");
 
 			// create necessary tables
 			query datasource="LDEV2586" {

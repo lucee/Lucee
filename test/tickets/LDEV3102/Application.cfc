@@ -3,14 +3,7 @@ component {
 	msSQL = getcredentials();
 
 	this.name = "luceetest";
-	this.datasources["ldev3102_DSN"] = {
-	 	class: 'com.microsoft.sqlserver.jdbc.SQLServerDriver'
-		, bundleName: 'com.microsoft.sqlserver.mssql-jdbc'
-		, bundleVersion: '7.0.0'
-		, connectionString: 'jdbc:sqlserver://'&msSQL.server&':'&msSQL.port&';DATABASENAME='&msSQL.database&';sendStringParametersAsUnicode=true;SelectMethod=direct'
-		, username: msSQL.username
-		, password: msSQL.password
-	};
+	this.datasources["ldev3102_DSN"] = server.getDatasource("mssql");
 	this.datasource = "ldev3102_DSN";
 
 	public function onRequestStart(){

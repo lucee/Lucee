@@ -98,15 +98,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 
 		application action="update" 
 
-			datasource="#
-			{
-	  class: 'oracle.jdbc.OracleDriver'
-	, bundleName: 'ojdbc7'
-	, bundleVersion: '12.1.0.2'
-	, connectionString: 'jdbc:oracle:thin:@#orc.server#:#orc.port#/#orc.database#'
-	, username: orc.username
-	, password: orc.password
-}#";
+			datasource="#server.getDatasource("oracle")#";
 	
 	return true;
 	}

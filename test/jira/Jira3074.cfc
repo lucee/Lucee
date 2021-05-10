@@ -11,14 +11,7 @@
 		var mySQL=getCredencials();
 		if(mySQL.count()==0) return false;
 		application action="update" 
-			datasource="# {
-	  class: 'org.gjt.mm.mysql.Driver'
-	, bundleName:'com.mysql.jdbc'
-	, bundleVersion:'5.1.38'
-	, connectionString: 'jdbc:mysql://'&mySQL.server&':'&mySQL.port&'/'&mySQL.database&'?useUnicode=true&characterEncoding=UTF-8&useLegacyDatetimeCode=true'
-	, username: mySQL.username
-	, password: mySQL.password
-}#";
+			datasource="#server.getDatasource("mysql")#";
 	
 	return true;
 	}
