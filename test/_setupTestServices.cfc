@@ -136,19 +136,21 @@ component {
 		systemOutput( "", true) ;		
 		systemOutput("-------------- Test Services ------------", true );
 
-		loop list="MySQL,MSsql,postgres,h2,oracle,mongoDb,smtp,pop,imap,s3,ftp,sftp" item="service" {
-			cfg = server.getTestService( service=service, verify=true );
-			server.test_services[ service ]= {
+		services = ListToArray("oracle,MySQL,MSsql,postgres,h2,mongoDb,smtp,pop,imap,s3,ftp,sftp");
+		// take a while, do them in parallel
+		services.each( function( service ) localmode=true {
+			cfg = server.getTestService( service=arguments.service, verify=true );
+			server.test_services[ arguments.service ]= {
 				valid: false,
 				missedTests: 0
 			};
 			if ( StructCount(cfg) eq 0 ){
-				systemOutput( "Service [ #service# ] not configured", true) ;
+				systemOutput( "Service [ #arguments.service# ] not configured", true) ;
 			} else {
 				// validate the cfg
 				verify = "configured, but not tested";
 				try {
-					switch ( service ){
+					switch ( arguments.service ){
 						case "s3":
 							s3 = verifyS3(cfg);
 							break;
@@ -159,10 +161,10 @@ component {
 						case "smtp":
 							break;
 						case "ftp":
-							verify = verifyFTP(cfg, service);
+							verify = verifyFTP(cfg, arguments.service);
 							break;
 						case "sftp":
-							verify = verifyFTP(cfg, service);
+							verify = verifyFTP(cfg, arguments.service);
 							break;
 						case "mongoDb":
 							verify = verifyMongo(cfg);
@@ -171,14 +173,14 @@ component {
 							verify = verifyDatasource(cfg);
 							break;
 					}
-					systemOutput( "Service [ #service# ] is [ #verify# ]", true) ;
-					server.test_services[service].valid = true;
+					systemOutput( "Service [ #arguments.service# ] is [ #verify# ]", true) ;
+					server.test_services[arguments.service].valid = true;
 				} catch (e) {
-					systemOutput( "ERROR Service [ #service# ] threw [ #cfcatch.message# ]", true);
+					systemOutput( "ERROR Service [ #arguments.service# ] threw [ #cfcatch.message# ]", true);
 				}
 			}
-		}
-		systemOutput( " ", true) ;
+		}, true, 4);
+		systemOutput( " ", true);
 	}
 
 	public array function reportServiceSkipped () localmode=true {
