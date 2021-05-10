@@ -228,7 +228,7 @@ try {
 					};
 
 					allowed = isValidTestCase( arguments.path );
-					SystemOutput( arguments.path & " :: " & allowed, true );
+					//SystemOutput( arguments.path & " :: " & allowed, true );
 					if ( allowed != "" ){
 						//SystemOutput( arguments.path & " :: " & allowed, true );
 						return false;
