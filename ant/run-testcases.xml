@@ -181,6 +181,8 @@ try {
 						// get parent
 						var testDir = getDirectoryFromPath( arguments.path );
 						testDir = listCompact(left( testDir, testDir.len() - 1 ), "\/" );
+						if ( left( arguments.path, 1 ) eq "/")
+							testDir = "/" & testDir; // avoid issues with non windows paths
 						var name = listLast( arguments.path, "\/" );
 
 						switch ( true ){
