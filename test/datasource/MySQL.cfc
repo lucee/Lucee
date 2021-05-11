@@ -234,6 +234,16 @@ END
 		
 	}
 
+	function testExceptionOnAccessDenied(){
+		// test mysql user cannot access or drop other databases
+		if(!variables.has) return;
+		expect(function(){
+			query  {
+				echo( "DROP DATABASE IF EXISTS `database_doesnt_exist` ");
+			}
+		}).toThrow();
+	}
+
 
 	private boolean function defineDatasource(){
 		var sct=getDatasource();
