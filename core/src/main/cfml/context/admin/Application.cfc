@@ -42,7 +42,7 @@ public function onRequestStart() {
 	// if not logged in, we only allow access to admin|web|server[.cfm]
 	if(!structKeyExists(session, "passwordWeb") && !structKeyExists(session, "passwordServer")){
 		var fileName=listLast(cgi.script_name,"/");
-		if(fileName!="admin.cfm" && fileName!="web.cfm" && fileName!="server.cfm") {
+		if(fileName!="admin.cfm" && fileName!="web.cfm" && fileName!="server.cfm" && fileName!="restart.cfm") {
 			cfsetting(showdebugoutput:false);
 			cfheader(statuscode="404" statustext="Invalid access");
 			cfcontent(reset="true");

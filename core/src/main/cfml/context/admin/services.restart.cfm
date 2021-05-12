@@ -44,7 +44,7 @@ Error Output --->
 	function restart(field) {
 		field.disabled = true;
 		submitted = true;
-		url='?action=restart&adminType=#request.admintype#';
+		url='restart.cfm?adminType=#request.admintype#';
 		//createWaitBlockUI("restart in progress ...");
 		$('##updateInfoDesc').html('<img src="../res/img/spinner16.gif.cfm">');
 		disableBlockUI = true;
@@ -65,7 +65,8 @@ Error Output --->
 				}
 			})
 			.fail(function( xhr, textStatus, errorThrown ) {
-				$('##updateInfoDesc').html( "<b>" + xhr.status + "</b><br>"  + $.trim(errorThrown));
+				console.log(xhr);
+				$('##updateInfoDesc').addClass("error").html( "<b>" + xhr.status + "</b><br>"  + xhr.responseText);
 			})
 			.always(function() {
 				field.disabled = false;
