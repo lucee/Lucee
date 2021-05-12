@@ -18,6 +18,18 @@
  */
 package lucee.commons.io.res.type.file;
 
+import lucee.commons.io.IOUtil;
+import lucee.commons.io.ModeUtil;
+import lucee.commons.io.SystemUtil;
+import lucee.commons.io.res.ContentType;
+import lucee.commons.io.res.Resource;
+import lucee.commons.io.res.ResourceProvider;
+import lucee.commons.io.res.filter.ResourceFilter;
+import lucee.commons.io.res.filter.ResourceNameFilter;
+import lucee.commons.io.res.util.ResourceOutputStream;
+import lucee.commons.io.res.util.ResourceUtil;
+import lucee.commons.lang.ExceptionUtil;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -33,21 +45,11 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.DosFileAttributeView;
 import java.nio.file.attribute.DosFileAttributes;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
 import java.util.List;
-
-import lucee.commons.cli.Command;
-import lucee.commons.io.IOUtil;
-import lucee.commons.io.ModeUtil;
-import lucee.commons.io.SystemUtil;
-import lucee.commons.io.res.ContentType;
-import lucee.commons.io.res.Resource;
-import lucee.commons.io.res.ResourceProvider;
-import lucee.commons.io.res.filter.ResourceFilter;
-import lucee.commons.io.res.filter.ResourceNameFilter;
-import lucee.commons.io.res.util.ResourceOutputStream;
-import lucee.commons.io.res.util.ResourceUtil;
-import lucee.commons.lang.ExceptionUtil;
+import java.util.Set;
 
 /**
  * Implementation og Resource for the local filesystem (java.io.File)
@@ -393,22 +395,34 @@ public final class FileResource extends File implements Resource {
 		if (SystemUtil.isUnix()) {
 			try {
 				// TODO geht nur fuer file
-				String line = Command.execute("ls -ld " + getPath(), false).getOutput();
+				Path path = FileSystems.getDefault().getPath(getPath());
+				Set<PosixFilePermission> filePermissions = Files.getPosixFilePermissions(path);
 
-				line = line.trim();
-				line = line.substring(0, line.indexOf(' '));
-				// print.ln(getPath());
-				return ModeUtil.toOctalMode(line);
-
+				return ModeUtil.posixToOctalMode(filePermissions);
 			}
 			catch (Exception e) {
 			}
 
 		}
+
 		int mode = SystemUtil.isWindows() && exists() ? 0111 : 0;
 		if (super.canRead()) mode += 0444;
 		if (super.canWrite()) mode += 0222;
 		return mode;
+	}
+
+	private static int getModeFromPermissions(boolean read, boolean write, boolean execute) {
+		int result = 0;
+		if (read) {
+			result += 4;
+		}
+		if (write) {
+			result += 2;
+		}
+		if (execute) {
+			result += 1;
+		}
+		return result;
 	}
 
 	@Override
@@ -416,17 +430,11 @@ public final class FileResource extends File implements Resource {
 		// TODO unter windows mit setReadable usw.
 		if (!SystemUtil.isUnix()) return;
 		provider.lock(this);
-		try {
-			// print.ln(ModeUtil.toStringMode(mode));
-			if (Runtime.getRuntime().exec(new String[] { "chmod", ModeUtil.toStringMode(mode), getPath() }).waitFor() != 0)
-				throw new IOException("chmod  [" + ModeUtil.toStringMode(mode) + "] [" + toString() + "] failed");
-		}
-		catch (InterruptedException e) {
-			throw new IOException("Interrupted waiting for chmod [" + toString() + "]");
-		}
-		finally {
-			provider.unlock(this);
-		}
+
+		Path path = FileSystems.getDefault().getPath(getPath());
+		Files.setPosixFilePermissions(path, PosixFilePermissions.fromString(ModeUtil.toStringMode(mode)));
+
+		provider.unlock(this);
 	}
 
 	@Override

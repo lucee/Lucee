@@ -19,6 +19,8 @@
 package lucee.commons.io;
 
 import java.io.IOException;
+import java.nio.file.attribute.PosixFilePermission;
+import java.util.Set;
 
 public final class ModeUtil {
 
@@ -41,6 +43,41 @@ public final class ModeUtil {
 		if (strMode.length() == 9 || strMode.length() == 10) return _toOctalMode(strMode);
 		if (strMode.length() <= 4 && strMode.length() > 0) return Integer.parseInt(strMode, 8);
 		throw new IOException("can't translate [" + strMode + "] to a mode value");
+	}
+
+	public static int posixToOctalMode(Set<PosixFilePermission> filePermissions) {
+		int mode = 0100000;
+		mode += 0100 * _posixToOctalMode(
+				filePermissions.contains(PosixFilePermission.OWNER_READ),
+				filePermissions.contains(PosixFilePermission.OWNER_WRITE),
+				filePermissions.contains(PosixFilePermission.OWNER_EXECUTE));
+
+		//noinspection OctalInteger
+		mode += 010 * _posixToOctalMode(
+				filePermissions.contains(PosixFilePermission.GROUP_READ),
+				filePermissions.contains(PosixFilePermission.GROUP_WRITE),
+				filePermissions.contains(PosixFilePermission.GROUP_EXECUTE));
+
+		mode += _posixToOctalMode(
+				filePermissions.contains(PosixFilePermission.OTHERS_READ),
+				filePermissions.contains(PosixFilePermission.OTHERS_WRITE),
+				filePermissions.contains(PosixFilePermission.OTHERS_EXECUTE));
+
+		return mode;
+	}
+
+	private static int _posixToOctalMode(boolean read, boolean write, boolean execute) {
+		int result = 0;
+		if (read) {
+			result += 4;
+		}
+		if (write) {
+			result += 2;
+		}
+		if (execute) {
+			result += 1;
+		}
+		return result;
 	}
 
 	private static int _toOctalMode(String strMode) {
