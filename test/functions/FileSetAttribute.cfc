@@ -78,21 +78,21 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
             });
         });
         describe( title="Testcase for LDEV-2349", body=function() {
-            it( title="FileCopy- Destination file losses the original access mode",body=function( currentSpec ) {
+            it( title="Checking FileCopy- Destination file access mode with file attribute readonly",body=function( currentSpec ) {
                 filewrite(path&"\newfile.txt","This is new file");
                 filesetattribute(path&"\newfile.txt","readonly");
                 filecopy(path&"\newfile.txt",path&"\desFile.txt");
                 assertEquals("FALSE",getfileinfo(path&"\newfile.txt").canwrite);
                 assertEquals("FALSE",getfileinfo(path&"\desFile.txt").canwrite);
             });
-            it( title="FileCopy- Destination file losses the original access mode",body=function( currentSpec ) {
+            it( title="Checking FileCopy- Destination file access mode with file attribute hidden",skip=isNotSupported(),body=function( currentSpec ) {
                 filewrite(path&"\newfile1.txt","This is new file");
                 filesetattribute(path&"\newfile1.txt","hidden");
                 filecopy(path&"\newfile1.txt",path&"\desFile1.txt");
                 assertEquals("TRUE",getfileinfo(path&"\newfile1.txt").ishidden);
                 assertEquals("TRUE",getfileinfo(path&"\desFile1.txt").ishidden);
             });
-            it( title="FileCopy- Destination file losses the original access mode",body=function( currentSpec ) {
+            it( title="Checking FileCopy- Destination file access mode with file attribute normal",body=function( currentSpec ) {
                 filewrite(path&"\newfile2.txt","This is new file");
                 filesetattribute(path&"\newfile2.txt","normal");
                 filecopy(path&"\newfile2.txt",path&"\desFile2.txt");
