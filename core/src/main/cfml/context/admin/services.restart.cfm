@@ -44,28 +44,33 @@ Error Output --->
 	function restart(field) {
 		field.disabled = true;
 		submitted = true;
-		url='?action=restart&#session.urltoken#&adminType=#request.admintype#';
-		$(document).ready(function(){
-			//createWaitBlockUI("restart in progress ...");
-			$('##updateInfoDesc').html('<img src="../res/img/spinner16.gif.cfm">');
-			disableBlockUI = true;
-	 		$.get(url, function(response) {
-		  		//window.location=('#request.self#?action=#url.action#');
-	 			//http://localhost:8080/context/admin/server.cfm?action=services.restart
-	 			field.disabled = false;
-	 			//$.unblockUI();
-		  		if ((response+"").trim()==""){
+		url='?action=restart&adminType=#request.admintype#';
+		//createWaitBlockUI("restart in progress ...");
+		$('##updateInfoDesc').html('<img src="../res/img/spinner16.gif.cfm">');
+		disableBlockUI = true;
+
+		$.ajax(url )
+			.done(function( data, textStatus, jqXHR ) {
+				var response = $.trim(data);
+				if (response == ""){
 					setTimeout(function(){
 						// load the admin page to trigger a deploy, so css/js loads correctly
 						$.get("?", function(response) {
-							$('##updateInfoDesc').html("<p>#stText.services.update.restartOKDesc#</p>");
+							window.location=('?action=overview');
 						});
 					}, 1000); // give Lucee enough time to startup, otherwise, the admin login may show without css/js
 				} else {
-					window.location=('?action=#url.action#'); //$('##updateInfoDesc').html(response);
+					$('##updateInfoDesc').html(response);
+					//window.location=('?action=#url.action#'); 
 				}
-	 		});
-		});
+			})
+			.fail(function( xhr, textStatus, errorThrown ) {
+				$('##updateInfoDesc').html( "<b>" + xhr.status + "</b><br>"  + $.trim(errorThrown));
+			})
+			.always(function() {
+				field.disabled = false;
+			});
+		
 	}
 </script>
 
@@ -79,24 +84,18 @@ Error Output --->
 <br>
 <br>
 <div id="updateInfoDesc" style="text-align: center;">
-<p>#stText.services.update.restartDesc#</p>
+	<p>#stText.services.update.restartDesc#</p>
 </div>
 <div style="text-align: center;">
-
-</cfoutput>
-
-<!---
-restart --->
-<cfoutput>
-<table class="tbl" width="740">
-<form method="post">
-<cfmodule template="remoteclients.cfm" colspan="2">
-<tr>
-	<td colspan="2">
-		<input type="button" class="button submit" name="mainAction" value="#stText.services.update.restart#" onclick="restart(this)">
-	</td>
-</tr>
-</form>
-</table>
+	<form method="post">
+		<table class="tbl" width="740">	
+		<cfmodule template="remoteclients.cfm" colspan="2">
+		<tr>
+			<td colspan="2">
+				<input type="button" class="button submit" name="mainAction" value="#stText.services.update.restart#" onclick="restart(this)">
+			</td>
+		</tr>
+		</table>
+	</form>
 </div>
 </cfoutput>
