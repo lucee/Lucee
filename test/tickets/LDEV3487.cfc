@@ -3,8 +3,9 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
         variables.uri = createURI("LDEV3487");
     }
     function run( testResults, testBox ) {
+        var skip = structIsEmpty(server.getDatasource("mysql"));
         describe("Testcase for LDEV-3487", function() {
-            it( title="Check generatedKey in insert operation for MySQL", body=function( currentSpec ){
+            it( title="Check generatedKey in insert operation for MySQL", skip=skip, body=function( currentSpec ){
                 try{
                     local.result = _InternalRequest(
                         template : "#uri#\test.cfm"

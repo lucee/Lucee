@@ -47,6 +47,6 @@ component extends = "org.lucee.cfml.test.LuceeTestCase" {
 	}
 
 	function isMSSQLNotSupported() {
-		return isNull(server.system.environment.MsSQL_SERVER) && isNull(server.system.properties.MsSQL_SERVER);
+		return structIsEmpty(server.getDatasource("mssql"));
 	}
 }
