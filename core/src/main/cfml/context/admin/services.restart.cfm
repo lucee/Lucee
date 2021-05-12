@@ -25,7 +25,7 @@
 --->
 
 <!---
-Redirtect to entry --->
+Redirect to entry --->
 <cfif cgi.request_method EQ "POST" and error.message EQ "">
 	<cflocation url="#request.self#?action=#url.action#" addtoken="no">
 </cfif>
@@ -44,30 +44,32 @@ Error Output --->
 	function restart(field) {
 		field.disabled = true;
 		submitted = true;
-		url='restart.cfm?#session.urltoken#&adminType=#request.admintype#';
+		url='?action=restart&#session.urltoken#&adminType=#request.admintype#';
 		$(document).ready(function(){
 			//createWaitBlockUI("restart in progress ...");
 			$('##updateInfoDesc').html('<img src="../res/img/spinner16.gif.cfm">');
-			disableBlockUI=true;
-
-
+			disableBlockUI = true;
 	 		$.get(url, function(response) {
-	      		//window.location=('#request.self#?action=#url.action#');
+		  		//window.location=('#request.self#?action=#url.action#');
 	 			//http://localhost:8080/context/admin/server.cfm?action=services.restart
 	 			field.disabled = false;
 	 			//$.unblockUI();
-	      		if((response+"").trim()=="")
-					$('##updateInfoDesc').html("<p>#stText.services.update.restartOKDesc#</p>");
-				else
-					window.location=('#request.self#?action=#url.action#'); //$('##updateInfoDesc').html(response);
+		  		if ((response+"").trim()==""){
+					setTimeout(function(){
+						// load the admin page to trigger a deploy, so css/js loads correctly
+						$.get("?", function(response) {
+							$('##updateInfoDesc').html("<p>#stText.services.update.restartOKDesc#</p>");
+						});
+					}, 1000); // give Lucee enough time to startup, otherwise, the admin login may show without css/js
+				} else {
+					window.location=('?action=#url.action#'); //$('##updateInfoDesc').html(response);
+				}
 	 		});
 		});
 	}
 </script>
 
 </cfhtmlbody>
-
-
 
 
 <br>

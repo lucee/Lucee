@@ -10,3 +10,4 @@
 		<cfdump var="#cfcatch#">
 	</cfcatch>
 </cftry>
+<cfabort>
