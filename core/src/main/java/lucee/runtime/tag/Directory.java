@@ -23,7 +23,9 @@ import static lucee.runtime.tag.util.FileUtil.NAMECONFLICT_UNDEFINED;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import lucee.commons.io.ModeUtil;
 import lucee.commons.io.res.Resource;
@@ -645,7 +647,13 @@ public final class Directory extends TagImpl {
 		}
 		// if(!directory.mkdirs()) throw new ApplicationException("can't create directory
 		// ["+directory.toString()+"]");
+		List<Resource> files = new ArrayList<>();
 		try {
+			Resource parent = directory.getParentResource();
+			while (!parent.exists()) {
+				files.add(parent);
+				parent = parent.getParentResource();
+			}
 			directory.createDirectory(createPath);
 		}
 		catch (IOException ioe) {
@@ -658,7 +666,10 @@ public final class Directory extends TagImpl {
 		// Set Mode
 		if (mode != -1) {
 			try {
-				directory.setMode(mode);
+				for(Resource file : files) {
+					file.setMode(mode);
+				}
+				//directory.setMode(mode);
 				// FileUtil.setMode(directory,mode);
 			}
 			catch (IOException e) {

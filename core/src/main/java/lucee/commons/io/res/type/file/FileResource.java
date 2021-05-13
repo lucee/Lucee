@@ -6,34 +6,18 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either 
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public 
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  */
 package lucee.commons.io.res.type.file;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.file.CopyOption;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
-import java.nio.file.StandardOpenOption;
-import java.nio.file.attribute.DosFileAttributes;
-import java.util.ArrayList;
-import java.util.List;
-
-import lucee.commons.cli.Command;
 import lucee.commons.io.IOUtil;
 import lucee.commons.io.ModeUtil;
 import lucee.commons.io.SystemUtil;
@@ -45,6 +29,27 @@ import lucee.commons.io.res.filter.ResourceNameFilter;
 import lucee.commons.io.res.util.ResourceOutputStream;
 import lucee.commons.io.res.util.ResourceUtil;
 import lucee.commons.lang.ExceptionUtil;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.CopyOption;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.DosFileAttributeView;
+import java.nio.file.attribute.DosFileAttributes;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Implementation og Resource for the local filesystem (java.io.File)
@@ -58,7 +63,7 @@ public final class FileResource extends File implements Resource {
 
 	/**
 	 * Constructor for the factory
-	 * 
+	 *
 	 * @param pathname
 	 */
 	FileResource(FileResourceProvider provider, String pathname) {
@@ -68,7 +73,7 @@ public final class FileResource extends File implements Resource {
 
 	/**
 	 * Inner Constr constructor to create parent/child
-	 * 
+	 *
 	 * @param parent
 	 * @param child
 	 */
@@ -390,22 +395,34 @@ public final class FileResource extends File implements Resource {
 		if (SystemUtil.isUnix()) {
 			try {
 				// TODO geht nur fuer file
-				String line = Command.execute("ls -ld " + getPath(), false).getOutput();
+				Path path = FileSystems.getDefault().getPath(getPath());
+				Set<PosixFilePermission> filePermissions = Files.getPosixFilePermissions(path);
 
-				line = line.trim();
-				line = line.substring(0, line.indexOf(' '));
-				// print.ln(getPath());
-				return ModeUtil.toOctalMode(line);
-
+				return ModeUtil.posixToOctalMode(filePermissions);
 			}
 			catch (Exception e) {
 			}
 
 		}
+
 		int mode = SystemUtil.isWindows() && exists() ? 0111 : 0;
 		if (super.canRead()) mode += 0444;
 		if (super.canWrite()) mode += 0222;
 		return mode;
+	}
+
+	private static int getModeFromPermissions(boolean read, boolean write, boolean execute) {
+		int result = 0;
+		if (read) {
+			result += 4;
+		}
+		if (write) {
+			result += 2;
+		}
+		if (execute) {
+			result += 1;
+		}
+		return result;
 	}
 
 	@Override
@@ -413,17 +430,11 @@ public final class FileResource extends File implements Resource {
 		// TODO unter windows mit setReadable usw.
 		if (!SystemUtil.isUnix()) return;
 		provider.lock(this);
-		try {
-			// print.ln(ModeUtil.toStringMode(mode));
-			if (Runtime.getRuntime().exec(new String[] { "chmod", ModeUtil.toStringMode(mode), getPath() }).waitFor() != 0)
-				throw new IOException("chmod  [" + ModeUtil.toStringMode(mode) + "] [" + toString() + "] failed");
-		}
-		catch (InterruptedException e) {
-			throw new IOException("Interrupted waiting for chmod [" + toString() + "]");
-		}
-		finally {
-			provider.unlock(this);
-		}
+
+		Path path = FileSystems.getDefault().getPath(getPath());
+		Files.setPosixFilePermissions(path, PosixFilePermissions.fromString(ModeUtil.toStringMode(mode)));
+
+		provider.unlock(this);
 	}
 
 	@Override
@@ -484,7 +495,9 @@ public final class FileResource extends File implements Resource {
 
 		try {
 			provider.lock(this);
-			Runtime.getRuntime().exec("attrib -R " + getAbsolutePath());
+			Path path = FileSystems.getDefault().getPath(getAbsolutePath());
+			DosFileAttributeView dosView = Files.getFileAttributeView(path, DosFileAttributeView.class);
+			dosView.setReadOnly(false);
 		}
 		catch (IOException ioe) {
 			return false;
@@ -733,15 +746,17 @@ public final class FileResource extends File implements Resource {
 		if (!SystemUtil.isWindows()) return;
 
 		provider.lock(this);
+		Path path = FileSystems.getDefault().getPath(getAbsolutePath());
+		DosFileAttributeView dosView = Files.getFileAttributeView(path, DosFileAttributeView.class);
 		try {
 			if (attribute == ATTRIBUTE_ARCHIVE) {
-				Files.setAttribute(this.toPath(), "dos:archive", value);
+				dosView.setArchive(value);
 			}
 			else if (attribute == ATTRIBUTE_HIDDEN) {
-				Files.setAttribute(this.toPath(), "dos:hidden", value);
+				dosView.setHidden(value);
 			}
 			else if (attribute == ATTRIBUTE_SYSTEM) {
-				Files.setAttribute(this.toPath(), "dos:system", value);
+				dosView.setSystem(value);
 			}
 		}
 		catch (IOException e) {

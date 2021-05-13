@@ -6,19 +6,21 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either 
  * version 2.1 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public 
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  **/
 package lucee.commons.io;
 
 import java.io.IOException;
+import java.nio.file.attribute.PosixFilePermission;
+import java.util.Set;
 
 public final class ModeUtil {
 
@@ -32,7 +34,7 @@ public final class ModeUtil {
 
 	/**
 	 * translate a string mode (777 or drwxrwxrwx to an octal value)
-	 * 
+	 *
 	 * @param strMode
 	 * @return
 	 */
@@ -41,6 +43,41 @@ public final class ModeUtil {
 		if (strMode.length() == 9 || strMode.length() == 10) return _toOctalMode(strMode);
 		if (strMode.length() <= 4 && strMode.length() > 0) return Integer.parseInt(strMode, 8);
 		throw new IOException("can't translate [" + strMode + "] to a mode value");
+	}
+
+	public static int posixToOctalMode(Set<PosixFilePermission> filePermissions) {
+		int mode = 0100000;
+		mode += 0100 * _posixToOctalMode(
+				filePermissions.contains(PosixFilePermission.OWNER_READ),
+				filePermissions.contains(PosixFilePermission.OWNER_WRITE),
+				filePermissions.contains(PosixFilePermission.OWNER_EXECUTE));
+
+		//noinspection OctalInteger
+		mode += 010 * _posixToOctalMode(
+				filePermissions.contains(PosixFilePermission.GROUP_READ),
+				filePermissions.contains(PosixFilePermission.GROUP_WRITE),
+				filePermissions.contains(PosixFilePermission.GROUP_EXECUTE));
+
+		mode += _posixToOctalMode(
+				filePermissions.contains(PosixFilePermission.OTHERS_READ),
+				filePermissions.contains(PosixFilePermission.OTHERS_WRITE),
+				filePermissions.contains(PosixFilePermission.OTHERS_EXECUTE));
+
+		return mode;
+	}
+
+	private static int _posixToOctalMode(boolean read, boolean write, boolean execute) {
+		int result = 0;
+		if (read) {
+			result += 4;
+		}
+		if (write) {
+			result += 2;
+		}
+		if (execute) {
+			result += 1;
+		}
+		return result;
 	}
 
 	private static int _toOctalMode(String strMode) {
@@ -68,7 +105,7 @@ public final class ModeUtil {
 
 	/**
 	 * translate an octal mode value (73) to a string representation ("111")
-	 * 
+	 *
 	 * @param strMode
 	 * @return
 	 */
@@ -81,7 +118,7 @@ public final class ModeUtil {
 
 	/**
 	 * update a string mode with another (111+222=333 or 333+111=333 or 113+202=313)
-	 * 
+	 *
 	 * @param existing
 	 * @param update
 	 * @return
@@ -93,7 +130,7 @@ public final class ModeUtil {
 
 	/**
 	 * update octal mode with another
-	 * 
+	 *
 	 * @param existingOctal
 	 * @param updateOctal
 	 * @return
@@ -105,7 +142,7 @@ public final class ModeUtil {
 
 	/**
 	 * check mode for a specific permission
-	 * 
+	 *
 	 * @param role
 	 * @param permission
 	 * @param mode
@@ -117,7 +154,7 @@ public final class ModeUtil {
 
 	/**
 	 * check if mode is readable for owner
-	 * 
+	 *
 	 * @param octalMode
 	 * @return
 	 */
@@ -127,7 +164,7 @@ public final class ModeUtil {
 
 	/**
 	 * check if mode is writeable for owner
-	 * 
+	 *
 	 * @param octalMode
 	 * @return
 	 */
@@ -137,7 +174,7 @@ public final class ModeUtil {
 
 	/**
 	 * check if mode is executable for owner
-	 * 
+	 *
 	 * @param octalMode
 	 * @return
 	 */
