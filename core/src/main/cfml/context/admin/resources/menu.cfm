@@ -78,8 +78,8 @@
 		struct(action:"debugging",label:arguments.stMenu.debugging.label,
 			children:array(
 				struct(action:"settings",label:arguments.stMenu.debugging.settings),
-				struct(action:"templates",label:arguments.stMenu.debugging.templates),
 				struct(action:"logs",label:arguments.stMenu.debugging.logs)
+				<!--- struct(action:"templates",label:arguments.stMenu.debugging.templates), --->
 			)
 		),
 		struct(action:"security",label:arguments.stMenu.security.label,

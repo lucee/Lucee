@@ -165,3 +165,50 @@ Redirtect to entry --->
 		include template="debugging.logs.detail.cfm";
 	}
 </cfscript>
+<!--- <cfoutput>
+<h2>#stText.debug.settingTitle#</h2>
+	<div class="pageintro">
+		#stText.debug.settingDesc#
+	</div>
+	<cfformClassic onerror="customError" action="#request.self#?action=debugging.logs" method="post" name="debug_settings">
+		<table class="maintbl">
+			<tbody>
+				<tr>
+					<th scope="row">#stText.debug.maxLogs#</th>
+					<td>
+						<select name="maxLogs">
+							<cfset selected=false>
+							<cfloop list="10,20,50,100,200,500,1000,5000,10000" index="idx">
+								<option <cfif idx EQ setting.maxLogs><cfset selected=true>selected="selected"</cfif> value="#idx#">#idx#</option>
+							</cfloop>
+							<cfif !selected>
+								<option selected="selected" value="#setting.maxLogs#">#setting.maxLogs#</option>
+							</cfif>
+						</select>
+					</td>
+				</tr>
+				<!---
+				<tr>
+					<th scope="row">#stText.debug.minExeTime#</th>
+					<td><input name="minExeTime" value="0" style="width:60px"/> ms<br /><span class="comment">#stText.debug.minExeTimeDesc#</span></td>
+				</tr>
+				<tr>
+					<th scope="row">#stText.debug.pathRestriction#</th>
+					<td><input name="minExeTime" value="0" style="width:60px"/> ms<br /><span class="comment">#stText.debug.pathRestrictionDesc#</span></td>
+				</tr>
+				--->
+				<cfmodule template="remoteclients.cfm" colspan="2">
+			</tbody>
+			<tfoot>
+				<tr>
+					<td colspan="2">
+						<input type="submit" class="bl button submit" name="mainAction" value="#stText.Buttons.Update#">
+						<input type="submit" class="bm button submit" name="mainAction" value="#stText.Buttons.Purge#">
+						<input type="reset" class="<cfif request.adminType EQ "web">bm<cfelse>br</cfif> button reset" name="cancel" value="#stText.Buttons.Cancel#">
+						<cfif request.adminType EQ "web"><input class="br button submit" type="submit" name="mainAction" value="#stText.Buttons.resetServerAdmin#"></cfif>
+					</td>
+				</tr>
+			</tfoot>
+		</table>
+	</cfformClassic>
+</cfoutput> --->

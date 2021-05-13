@@ -73,7 +73,7 @@
 <!--- 
 Redirtect to entry --->
 <cfif cgi.request_method EQ "POST" and error.message EQ "" and form.mainAction neq "none">
-	<cflocation url="#request.self#?action=#url.action#" addtoken="no">
+	<cflocation url="#request.self#?action=debugging.settings" addtoken="no">
 </cfif>
 
 
