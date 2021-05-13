@@ -50,7 +50,7 @@ Error Output --->
 		disableBlockUI = true;
 
 		$.ajax(url )
-			.done(function( data, textStatus, jqXHR ) {
+			.done(function( data, textStatus, xhr ) {
 				var response = $.trim(data);
 				if (response == ""){
 					setTimeout(function(){
@@ -60,13 +60,12 @@ Error Output --->
 						});
 					}, 1000); // give Lucee enough time to startup, otherwise, the admin login may show without css/js
 				} else {
-					$('##updateInfoDesc').html(response);
+					$('##updateInfoDesc').addClass("error").attr("style", null).html(response);
 					//window.location=('?action=#url.action#'); 
 				}
 			})
 			.fail(function( xhr, textStatus, errorThrown ) {
-				console.log(xhr);
-				$('##updateInfoDesc').addClass("error").html( "<b>" + xhr.status + "</b><br>"  + xhr.responseText);
+				$('##updateInfoDesc').addClass("error").attr("style", null).html( "<b>" + xhr.status + "</b><br>"  + xhr.responseText);
 			})
 			.always(function() {
 				field.disabled = false;
