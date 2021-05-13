@@ -488,7 +488,7 @@
 	</cfif>
 <cfelse>
 	<cfsavecontent variable="content">
-		<cfif !findOneOf("\/",current.action)>
+		<cfif !findOneOf("\/",current.action) && fileExists("#current.action#.cfm")>
 			<cfinclude template="#current.action#.cfm">
 		<cfelse>
 			<cfset current.label = "Error">
