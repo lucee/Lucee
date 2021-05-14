@@ -664,7 +664,7 @@ public final class Directory extends TagImpl {
 		setS3Attrs(pc, directory, acl, storage);
 
 		// Set Mode
-		if (mode != -1) {
+		if (mode != -1 && createPath) {
 			try {
 				for(Resource file : files) {
 					file.setMode(mode);
