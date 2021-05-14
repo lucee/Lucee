@@ -108,7 +108,43 @@ END;
 		
 	}
 
+	// LDEV-2543
+	public void function testStoredProcXmlType() localmode=true skip=true {
+		if(!variables.has) return;
 
+		```
+		<cfquery name="qry">
+			CREATE OR REPLACE PROCEDURE SP_XMLTEST_BUG(
+				cur_XMLOut OUT sys_refcursor
+			) AS
+				BEGIN
+				OPEN cur_XMLOut FOR
+					SELECT XMLSerialize(DOCUMENT XMLELEMENT("SystemDate",to_char(sysdate,'YYYYMMDD'))) AS xml
+					FROM DUAL;
+				END;
+		</cfquery>
+		```
+		storedproc procedure="SP_XMLTEST_BUG" {
+			procresult name="qTest";
+		}
+		expect ( qTest.xml ).toInclude( "<SystemDate>" ); // works due to XMLSerialize
+		
+		```
+		<cfquery name="qry">
+			CREATE OR REPLACE PROCEDURE SP_XMLTEST_BUG( cur_XMLOut OUT sys_refcursor) AS
+				BEGIN
+				  OPEN cur_XMLOut FOR
+					SELECT XMLELEMENT("SystemDate",to_char(sysdate,'YYYYMMDD')) AS xml
+					FROM DUAL;
+				END;
+		</cfquery>
+		```
+		storedproc procedure="SP_XMLTEST_BUG" {
+			procresult name="qTest";
+		}
+		//systemOutput( "-----222-----[" & qTest.toString() & "]", true );
+		expect ( qTest ).toInclude( "<SystemDate>" ); // fails, an empty string is returned
+	}
 
 	public void function testConnection(){
 		if(!variables.has) return;
