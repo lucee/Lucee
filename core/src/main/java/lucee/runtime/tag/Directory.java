@@ -649,10 +649,12 @@ public final class Directory extends TagImpl {
 		// ["+directory.toString()+"]");
 		List<Resource> files = new ArrayList<>();
 		try {
-			Resource parent = directory.getParentResource();
-			while (!parent.exists()) {
-				files.add(parent);
-				parent = parent.getParentResource();
+			if(createPath) {
+				Resource parent = directory.getParentResource();
+				while (!parent.exists()) {
+					files.add(parent);
+					parent = parent.getParentResource();
+				}
 			}
 			directory.createDirectory(createPath);
 		}
@@ -664,12 +666,14 @@ public final class Directory extends TagImpl {
 		setS3Attrs(pc, directory, acl, storage);
 
 		// Set Mode
-		if (mode != -1 && createPath) {
+		if (mode != -1) {
 			try {
-				for(Resource file : files) {
-					file.setMode(mode);
+				if(createPath) {
+					for(Resource file : files) {
+						file.setMode(mode);
+					}
 				}
-				//directory.setMode(mode);
+				directory.setMode(mode);
 				// FileUtil.setMode(directory,mode);
 			}
 			catch (IOException e) {
