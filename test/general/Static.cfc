@@ -140,6 +140,11 @@ component extends="org.lucee.cfml.test.LuceeTestCase"	{
 		assertEquals("2-2",static.StaticConstructorLifeCycle::getCount());
 	}
 
+	public void function testStaticVariable() skip=true {
+		// LDEV-3465
+		var v = new static.StaticVariableExtend().test();
+		expect(v).toBe("foo");
+	}
 } 
 
 
