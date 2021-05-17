@@ -37,7 +37,7 @@ import lucee.runtime.type.util.StructSupport;
  */
 public final class ClusterNotSupported extends StructSupport implements Cluster {
 
-	private static final String NOT_SUPPORTED = "to enable the cluster scope please install a cluster scope impementation with the help of the extenson manager";
+	private static final String NOT_SUPPORTED = "to enable the cluster scope, please install a cluster scope implementation with the help of the extension manager";
 
 	@Override
 	public int size() {
