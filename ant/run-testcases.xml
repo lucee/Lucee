@@ -151,64 +151,58 @@ try {
 
 	systemOutput(NL & "-------------- Start Tests -----------", true);
 	silent {
-		try {
-			testResults = new test._testRunner().runTests();
-		} catch(e) {
-			testResults = {};
-			systemOutput( cfcatch.message, true );
-		}
+		testResults = new test._testRunner().runTests();
 	}
-	echo( NL & NL & "---------- post test result #structKeyList(testResults)# ----------------" & NL ); // DEBUG, full run doesn't get here?
 	result = testResults.result;
 	failedTestcases = testResults.failedTestcases;
 	tb = testResults.tb;
 
-	echo(NL & NL & "=============================================================" & NL);
-	echo("TestBox Version: #tb.getVersion()#" & NL);
-	echo("Lucee Version: #server.lucee.version#" & NL);
-	echo("Java Version: #server.java.version#" & NL);
-	echo("Total Execution time: (#NumberFormat( ( getTickCount()-request._start) / 1000 )# s)" & NL);
-	echo("Test Execution time: (#NumberFormat( result.getTotalDuration() /1000 )# s)" & NL);
-	echo("Average Test Overhead: (#NumberFormat( ArrayAvg( request.overhead ) )# ms)" & NL);
-	echo("Total Test Overhead: (#NumberFormat( ArraySum( request.overhead ) )# ms)" & NL);
+	systemOutput( NL & NL & "=============================================================", true );
+	systemOutput( "TestBox Version: #tb.getVersion()#", true );
+	systemOutput( "Lucee Version: #server.lucee.version#", true );
+	systemOutput( "Java Version: #server.java.version#", true );
+	systemOutput( "Total Execution time: (#NumberFormat( ( getTickCount()-request._start) / 1000 )# s)", true );
+	systemOutput( "Test Execution time: (#NumberFormat( result.getTotalDuration() /1000 )# s)", true );
+	systemOutput( "Average Test Overhead: (#NumberFormat( ArrayAvg( request.overhead ) )# ms)", true );
+	systemOutput( "Total Test Overhead: (#NumberFormat( ArraySum( request.overhead ) )# ms)", true );
 
-	echo("=============================================================" & NL & NL);
-	echo("-> Bundles/Suites/Specs: #result.getTotalBundles()#/#result.getTotalSuites()#/#result.getTotalSpecs()#" & NL);
-	echo("-> Pass:     #result.getTotalPass()#" & NL);
-	echo("-> Skipped:  #result.getTotalSkipped()#" & NL);
-	echo("-> Failures: #result.getTotalFail()#" & NL);
-	echo("-> Errors:   #result.getTotalError()#" & NL);
+	systemOutput( "=============================================================" & NL, true );
+	systemOutput( "-> Bundles/Suites/Specs: #result.getTotalBundles()#/#result.getTotalSuites()#/#result.getTotalSpecs()#", true );
+	systemOutput( "-> Pass:     #result.getTotalPass()#", true );
+	systemOutput( "-> Skipped:  #result.getTotalSkipped()#", true );
+	systemOutput( "-> Failures: #result.getTotalFail()#", true );
+	systemOutput( "-> Errors:   #result.getTotalError()#", true );
 
 	servicesReport = new test._setupTestServices().reportServiceSkipped();
-	for (s in servicesReport){
-		echo ( s & NL );
+	for ( s in servicesReport ){
+		systemOutput ( s, true );
 	}
 
 	if ( !isEmpty( failedTestCases ) ){
-		echo( NL );
+		systemOutput( NL );
 		for ( el in failedTestCases ){
-			echo( el.type & ": " & el.bundle & NL & TAB & el.testCase & NL );
-			echo( TAB & el.errMessage & NL );
+			systemOutput( el.type & ": " & el.bundle & NL & TAB & el.testCase, true );
+			systemOutput( TAB & el.errMessage, true );
 			if ( !isEmpty( el.stackTrace ) ){
-				//echo(TAB & TAB & "at" & NL);
+				//systemOutput( TAB & TAB & "at", true);
 				for ( frame in el.stackTrace ){
-					echo( TAB & TAB & frame & NL );
+					systemOutput( TAB & TAB & frame, true );
 				}
 			}
-			echo( NL );
+			systemOutput( NL );
 		}
-		echo( NL );
+		systemOutput( NL );
 	}
 
 	if ( ( result.getTotalFail() + result.getTotalError() ) > 0 ) {
 		throw "TestBox could not successfully execute all testcases: #result.getTotalFail()# tests failed; #result.getTotalError()# tests errored.";
 	}
 } catch( e ){
-	echo( "-------------------------------------------------------" & NL );
-	echo( "Testcase failed:" & NL );
-	echo( e.message & NL );
-	echo( ReReplace( Serialize( e ), "[\r\n]\s*([\r\n]|\Z)", Chr( 10 ) , "ALL" ) & NL ); // avoid too much whitespace from dump
-	echo( "-------------------------------------------------------" & NL );
+	systemOutput( "-------------------------------------------------------", true );
+	systemOutput( "Testcase failed:", true );
+	systemOutput( e.message, true );
+	systemOutput( ReReplace( Serialize( e.stacktrace ), "[\r\n]\s*([\r\n]|\Z)", Chr( 10 ) , "ALL" ), true ); // avoid too much whitespace from dump
+	systemOutput( "-------------------------------------------------------", true );
 	rethrow;
 }
 

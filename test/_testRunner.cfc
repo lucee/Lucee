@@ -269,13 +269,12 @@ Begin Stack Trace
 		//SystemOut.setOut(out);
 		//SystemOut.setErr(err);
 	} // try
-	
+
 	testResults = {
 		result: tb.getResult(),
 		failedTestCases: failedTestCases,
 		tb: tb
-	};
-	systemOutput("--------------------before return #structKeyList(testResults)#--------------------",true);
+	};	
 	return testResults;
 }
 
