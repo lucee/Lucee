@@ -114,19 +114,17 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 
 	private Member _get(PageContext pc, Key key, Member defaultValue) {
 		// does the current struct has this key
-
 		StaticStruct ss = cp.getStaticStruct();
-		if (ss.isEmpty()) return null;
-		Member m = ss.get(key);
+		if (!ss.isEmpty()) {
+			Member m = ss.get(key);
 
-		if (m != null) {
-			if (c.isAccessible(pc, m)) return m;
-			return null;
+			if (m != null) {
+				if (c.isAccessible(pc, m)) return m;
+				return null;
+			}
 		}
-
 		// if not the parent
 		if (base != null) return base._get(pc, key, defaultValue);
-
 		return null;
 	}
 
@@ -265,11 +263,13 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 		if (base != null) base._entries(map, access);
 
 		// fill accessable keys
-		Iterator<Entry<Key, Member>> it = cp.getStaticStruct().entrySet().iterator();
-		Entry<Key, Member> e;
-		while (it.hasNext()) {
-			e = it.next();
-			if (e.getValue().getAccess() <= access) map.put(e.getKey(), e.getValue().getValue());
+		if (!cp.getStaticStruct().isEmpty()) {
+			Iterator<Entry<Key, Member>> it = cp.getStaticStruct().entrySet().iterator();
+			Entry<Key, Member> e;
+			while (it.hasNext()) {
+				e = it.next();
+				if (e.getValue().getAccess() <= access) map.put(e.getKey(), e.getValue().getValue());
+			}
 		}
 		return map;
 	}
@@ -279,11 +279,13 @@ public class StaticScope extends StructSupport implements Variables, Objects {
 		if (base != null) base.all(map);
 
 		// fill accessable keys
-		Iterator<Entry<Key, Member>> it = cp.getStaticStruct().entrySet().iterator();
-		Entry<Key, Member> e;
-		while (it.hasNext()) {
-			e = it.next();
-			map.put(e.getKey(), e.getValue());
+		if (!cp.getStaticStruct().isEmpty()) {
+			Iterator<Entry<Key, Member>> it = cp.getStaticStruct().entrySet().iterator();
+			Entry<Key, Member> e;
+			while (it.hasNext()) {
+				e = it.next();
+				map.put(e.getKey(), e.getValue());
+			}
 		}
 		return map;
 	}
