@@ -277,6 +277,7 @@ Redirtect to entry --->
 		</table>
 	</cfformClassic>
 
+	<div class="box" style="padding-bottom: 10px">#stText.debug.list.Templates#</div>
 	<cfset error.message="">
 	<cfset error.detail="">
 	<cfparam name="url.action1" default="list">
@@ -370,14 +371,13 @@ Redirtect to entry --->
 			}
 		</script>
 		
-				#stText.debug.list.createDesc#
+		<div class="itemintro">#stText.debug.list.createDesc#</div>
 
 		<!--- LIST --->
 		<cfloop list="server,web" index="k">
 			<cfset isWeb=k EQ "web">
 			<cfset qry=variables["qry"&k]>
 			<cfif qry.recordcount>
-				<h2>#stText.debug.list[k & "title"]#</h2>
 				<div class="itemintro">#stText.debug.list[k & "titleDesc"]#</div>
 				<cfformClassic onerror="customError" action="#request.self#?action=#url.action#" method="post">
 					<table class="maintbl">

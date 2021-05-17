@@ -800,6 +800,7 @@ you can see the log result at the end of every request, if a debug template is d
 	<data key="debug.list.serverTitleDesc">Readonly debug templates are generated within the ""server administrator"" for all web instances and can not be modified by the ""web administrator"".</data>
 	<data key="debug.list.webTitleDesc">list of existing debug templates defined.</data>
 	<data key="debug.list.createDesc">define a debug template, to show the debug information at the end of a request, defining a template is not necessary to log the debug information.</data>
+	<data key="debug.list.Templates">Debugging Templates</data>
 	<data key="debug.createTitle">Create a Template for a specific IP Range</data>
 
 	<!-- info.bundle.cfm -->
