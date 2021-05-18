@@ -516,7 +516,7 @@ public class QueryImpl implements Query, Objects, QueryResult {
 					if (maxrow > -1 && recordcount >= maxrow) {
 						break;
 					}
-					sct = new StructImpl();
+					sct = new StructImpl(Struct.TYPE_LINKED);
 					Object val;
 
 					for (int i = 0; i < usedColumns.length; i++) {
