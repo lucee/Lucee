@@ -8,7 +8,7 @@ component {
         return isNull(FormNullVar)? nullValue() : FormNullVar;
     }
     public any function testScopeWithPrefix(){
-        var NullVar = nullValue(); // to do create Null value
-        return isNull(local.NullVar)? nullValue() : local.NullVar;
+        var prefixNullVar = nullValue(); // to do create Null value
+        return isNull(local.prefixNullVar)? nullValue() : local.prefixNullVar;
     }
 }
