@@ -39,7 +39,7 @@ public final class StructDelete extends BIF {
 	}
 
 	public static boolean call(PageContext pc, Struct struct, String key, boolean indicatenotexisting) throws TemplateException {
-		if(indicatenotexisting && !struct.containsKey(key)) throw new TemplateException("Cannot delete item with key " + key, "The key doesn't exists.");
+		if(indicatenotexisting && !struct.containsKey(key)) throw new TemplateException("Cannot delete item with key " + key, "The key doesn't exist.");
 		return struct.removeEL(KeyImpl.init(key)) != null || !indicatenotexisting;
 	}
 
