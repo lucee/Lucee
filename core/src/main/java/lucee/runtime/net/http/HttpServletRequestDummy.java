@@ -724,7 +724,7 @@ public final class HttpServletRequestDummy implements HttpServletRequest, Serial
 
 	private static HttpSession getSessionEL(HttpServletRequest req) {
 		try {
-			return req.getSession();
+			return req.getSession(false);
 		}
 		catch (Throwable t) {
 			ExceptionUtil.rethrowIfNecessary(t);
