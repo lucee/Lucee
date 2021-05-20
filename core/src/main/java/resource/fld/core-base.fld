@@ -14153,14 +14153,7 @@ You can find a list of all available timezones in the Lucee administrator (Setti
 			<name>hash</name>
 			<type>string</type>
 			<required>Yes</required>
-			<description>Degrees of parallelism, a number between 1 and 10.</description>
-    	</argument>
-    	<argument>
-			<name>variant</name>
-			<type>string</type>
-			<required>No</required>
-			<default>argon2i</default>
-			<description>Either Argon2i, Argon2d or Argon2id</description>
+			<description>The hash of input.</description>
     	</argument>
     	<return>
     		<type>boolean</type>
