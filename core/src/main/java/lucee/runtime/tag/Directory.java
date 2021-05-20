@@ -536,7 +536,6 @@ public final class Directory extends TagImpl {
 			sct.setEL("directoryCreated", new DateTimeImpl(pc, attr.creationTime().toMillis(), false));
 		}
 		catch (Exception e) {
-			sct.setEL("directoryCreated", "");
 		}
 
 		return sct;
