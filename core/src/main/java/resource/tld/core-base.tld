@@ -1121,7 +1121,7 @@ Patterns are also supported, i.e.
 		<attribute>
 			<type>string</type>
 			<name>action</name>
-			<values>list,create,delete,forceDelete,rename,copy</values>
+			<values>list,create,delete,forceDelete,rename,copy,info</values>
 			<default-value>list</default-value>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
