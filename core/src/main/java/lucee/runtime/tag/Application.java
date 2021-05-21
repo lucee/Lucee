@@ -427,11 +427,10 @@ public final class Application extends TagImpl implements DynamicAttributes {
 	}
 
 	public void setSessionstorage(String sessionstorage) {
-		System.out.println("sessionStorage----->>>" + sessionstorage);
 		this.sessionstorage = sessionstorage;
 	}
 
-	public void setCfidStorage(String cfidStorage) {
+	public void setCfidstorage(String cfidStorage) {
 		this.cfidStorage = cfidStorage;
 	}
 
@@ -741,19 +740,18 @@ public final class Application extends TagImpl implements DynamicAttributes {
 			dynAttrs = null;
 		}
 
+		ApplicationContextSupport acs = (ApplicationContextSupport) ac;
+
 		if (applicationTimeout != null) ac.setApplicationTimeout(applicationTimeout);
 		if (sessionTimeout != null) ac.setSessionTimeout(sessionTimeout);
 		if (clientTimeout != null) ac.setClientTimeout(clientTimeout);
 		if (requestTimeout != null) ac.setRequestTimeout(requestTimeout);
-		if (cfidStorage != null) ac.setCfidstorage(cfidStorage);
+		if (cfidStorage != null) acs.setCfidstorage(cfidStorage);
 		if (clientstorage != null) {
 			ac.setClientstorage(clientstorage);
 		}
-		System.out.println("set, before if----->>>" + sessionstorage);
 		if (sessionstorage != null) {
-			System.out.println("set, inside if----->>>" + sessionstorage);
 			ac.setSessionstorage(sessionstorage);
-			System.out.println("set, inside if--- ac.getCfidstorage() -->>>" + ac.getCfidstorage());
 		}
 		if (customTagMappings != null) ac.setCustomTagMappings(customTagMappings);
 		if (componentMappings != null) ac.setComponentMappings(componentMappings);
@@ -774,7 +772,6 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		}
 		if (logs != null) {
 			try {
-				ApplicationContextSupport acs = (ApplicationContextSupport) ac;
 				acs.setLoggers(ApplicationContextSupport.initLog(pageContext.getConfig(), logs));
 			}
 			catch (Exception e) {
@@ -782,7 +779,6 @@ public final class Application extends TagImpl implements DynamicAttributes {
 			}
 		}
 		if (mails != null) {
-			ApplicationContextSupport acs = (ApplicationContextSupport) ac;
 			try {
 				acs.setMailServers(AppListenerUtil.toMailServers(pageContext.getConfig(), mails, null));
 			}
@@ -792,7 +788,6 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		}
 		if (caches != null) {
 			try {
-				ApplicationContextSupport acs = (ApplicationContextSupport) ac;
 				Iterator<Entry<Key, Object>> it = caches.entryIterator();
 				Entry<Key, Object> e;
 				String name;
@@ -829,8 +824,6 @@ public final class Application extends TagImpl implements DynamicAttributes {
 		if (onmissingtemplate != null && ac instanceof ClassicApplicationContext) {
 			((ClassicApplicationContext) ac).setOnMissingTemplate(onmissingtemplate);
 		}
-
-		ApplicationContextSupport acs = (ApplicationContextSupport) ac;
 
 		if (scriptrotect != null) ac.setScriptProtect(AppListenerUtil.translateScriptProtect(scriptrotect));
 		if (functionpaths != null) acs.setFunctionDirectories(AppListenerUtil.loadResources(pageContext.getConfig(), ac, functionpaths, true));

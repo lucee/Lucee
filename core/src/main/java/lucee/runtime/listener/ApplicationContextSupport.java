@@ -480,4 +480,8 @@ public abstract class ApplicationContextSupport implements ApplicationContext {
 
 	public abstract void setRegex(Regex regex);
 
+	public abstract void setCfidstorage(String cfidstorage);
+
+	public abstract String getCfidstorage();
+
 }
