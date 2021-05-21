@@ -24,6 +24,9 @@ import static lucee.runtime.tag.util.FileUtil.NAMECONFLICT_UNDEFINED;
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
+import java.nio.file.Files;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileTime;
 
 import lucee.commons.io.ModeUtil;
 import lucee.commons.io.res.Resource;
@@ -61,6 +64,8 @@ import lucee.runtime.type.QueryImpl;
 import lucee.runtime.type.Struct;
 import lucee.runtime.type.UDF;
 import lucee.runtime.type.util.KeyConstants;
+import lucee.runtime.type.StructImpl;
+import lucee.runtime.type.dt.DateTimeImpl;
 
 /**
  * Handles interactions with directories.
@@ -387,6 +392,10 @@ public final class Directory extends TagImpl {
 			}
 			actionCopy(pageContext, directory, destination, serverPassword, createPath, acl, storage, filter, recurse, nameconflict);
 		}
+		else if (action.equals("info")) {
+			Object res = getInfo(pageContext, directory, null);
+			if (!StringUtil.isEmpty(name) && res != null) pageContext.setVariable(name, res);
+		}
 		else throw new ApplicationException("invalid action [" + action + "] for the tag directory");
 
 		return SKIP_BODY;
@@ -506,6 +515,35 @@ public final class Directory extends TagImpl {
 		}
 
 		return rtn;
+	}
+
+	public static Struct getInfo(PageContext pc, Resource directory, String serverPassword) throws PageException {
+			
+		SecurityManager securityManager = pc.getConfig().getSecurityManager();
+		securityManager.checkFileLocation(pc.getConfig(), directory, serverPassword);
+
+			
+		if (!directory.exists()) throw new ApplicationException("directory [" + directory.toString() + "] doesn't exist");
+		if (!directory.isDirectory()) throw new ApplicationException("[" + directory.toString() + "] isn't a directory");
+		if (!directory.canRead()) throw new ApplicationException("no access to read directory [" + directory.toString() + "]");
+
+		securityManager.checkFileLocation(pc.getConfig(), directory, serverPassword);
+		Struct sct = new StructImpl();
+		sct.setEL("directoryName", directory.getName());
+		sct.setEL(KeyConstants._size, Long.valueOf(directory.length()));
+		sct.setEL("isReadable", directory.isReadable());
+		sct.setEL(KeyConstants._path, directory.getAbsolutePath());
+		sct.setEL("dateLastModified", new DateTimeImpl(pc.getConfig()));
+		File file = new File(Caster.toString(directory));
+		BasicFileAttributes attr;
+		try {
+			attr = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
+			sct.setEL("directoryCreated", new DateTimeImpl(pc, attr.creationTime().toMillis(), false));
+		}
+		catch (Exception e) {
+		}
+
+		return sct;
 	}
 
 	private static int _fillQueryAll(Query query, Resource directory, ResourceFilter filter, int count, boolean hasMeta, boolean recurse) throws PageException, IOException {
