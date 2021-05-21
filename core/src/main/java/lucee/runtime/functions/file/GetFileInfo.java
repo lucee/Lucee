@@ -51,7 +51,6 @@ public class GetFileInfo {
 			sct.set("fileCreated", new DateTimeImpl(pc, attr.creationTime().toMillis(), false));
 		}
 		catch (Exception e) {
-			sct.set("fileCreated", "");
 		}
 		sct.set(KeyConstants._name, src.getName());
 		sct.set(KeyConstants._parent, src.getParent());

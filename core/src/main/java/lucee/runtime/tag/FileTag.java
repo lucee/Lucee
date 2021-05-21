@@ -841,7 +841,6 @@ public final class FileTag extends BodyTagImpl {
 			sct.set("fileCreated", new DateTimeImpl(pc, attr.creationTime().toMillis(), false));
 		}
 		catch (Exception e) {
-			sct.set("fileCreated", "");
 		}
 		sct.setEL("dateLastModified", new DateTimeImpl(pc, file.lastModified(), false));
 		sct.setEL("attributes", getFileAttribute(file));
