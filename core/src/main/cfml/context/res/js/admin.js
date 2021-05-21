@@ -64,17 +64,18 @@ function initMenu() {
 	);
 }
 
-$("#clickCheckbox").change(function() {
-	set = $("#clickCheckbox")[0].checked;
-	if(set == true) {
-		$(".enablebutton").attr({disabled:false,style:"opacity:1"});
-	}
-	else if(set == false) {
-		$(".enablebutton").attr({disabled:true,style:"opacity:0.5"});
+$(".checkbox").change(function () {
+	$(".enablebutton").attr({ disabled: true, style: "opacity:0.5" });
+	if ($(".checkbox:checked").length) {
+		$(".enablebutton").attr({ disabled: false, style: "opacity:1" });
 	}
 });
-$("#clickCancel").click(function() {
-	$(".enablebutton").attr({disabled:true,style:"opacity:0.5"});
+$("#clickCancel").click(function () {
+	if ($('.maintbl').find('input[name="rowreadonly"]').prop("checked"))
+		$('.maintbl').find('input[name="rowreadonly"]').trigger('click')
+	else
+		$('.maintbl').find("input.checkbox").prop("checked", false)
+	$(".enablebutton").attr({ disabled: true, style: "opacity:0.5" });
 });
 
 function initMenu2() {
