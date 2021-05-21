@@ -12,7 +12,7 @@ component extends="org.lucee.cfml.test.LuceeTestCase"{
 	function run( testResults , testBox ) {
 		describe( "test case for getFileInfo", function() {
 			it(title = "Checking with getFileInfo function", body = function( currentSpec ) {
-                info = getFileInfo( uri&"\test.txt" );
+                local.info = getFileInfo( uri&"\test.txt" );
 				expect( info.canRead ).toBeTrue();
 				expect( info.canWrite ).toBeTrue();
 				expect( info.isHidden ).toBeFalse();
