@@ -18,8 +18,11 @@
  **/
 package lucee.commons.io;
 
+import lucee.print;
+
 import java.io.IOException;
 import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Set;
 
 public final class ModeUtil {
@@ -44,6 +47,32 @@ public final class ModeUtil {
 		if (strMode.length() <= 4 && strMode.length() > 0) return Integer.parseInt(strMode, 8);
 		throw new IOException("can't translate [" + strMode + "] to a mode value");
 	}
+
+	public static Set<PosixFilePermission> fromInt(int perms) {
+		final char[] ds = Integer.toString(perms).toCharArray();
+		final char[] ss = {'-','-','-','-','-','-','-','-','-'};
+		for (int i = ds.length-1; i >= 0; i--) {
+			int n = ds[i] - '0';
+			if (i == ds.length-1) {
+				if ((n & 1) != 0) ss[8] = 'x';
+				if ((n & 2) != 0) ss[7] = 'w';
+				if ((n & 4) != 0) ss[6] = 'r';
+			}
+			else if (i == ds.length-2) {
+				if ((n & 1) != 0) ss[5] = 'x';
+				if ((n & 2) != 0) ss[4] = 'w';
+				if ((n & 4) != 0) ss[3] = 'r';
+			}
+			else if (i == ds.length-3) {
+				if ((n & 1) != 0) ss[2] = 'x';
+				if ((n & 2) != 0) ss[1] = 'w';
+				if ((n & 4) != 0) ss[0] = 'r';
+			}
+		}
+		String sperms = new String(ss);
+		return PosixFilePermissions.fromString(sperms);
+	}
+
 
 	public static int posixToOctalMode(Set<PosixFilePermission> filePermissions) {
 		int mode = 0100000;
@@ -110,7 +139,9 @@ public final class ModeUtil {
 	 * @return
 	 */
 	public static String toStringMode(int octalMode) {
+		print.ds("octalModeINT = " + octalMode);
 		String str = Integer.toString(octalMode, 8);
+		print.ds("octalModeSTR = " + str);
 		while (str.length() < 3)
 			str = "0" + str;
 		return str;

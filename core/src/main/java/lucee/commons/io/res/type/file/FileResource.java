@@ -432,7 +432,7 @@ public final class FileResource extends File implements Resource {
 		provider.lock(this);
 
 		Path path = FileSystems.getDefault().getPath(getPath());
-		Files.setPosixFilePermissions(path, PosixFilePermissions.fromString(ModeUtil.toStringMode(mode)));
+		Files.setPosixFilePermissions(path, ModeUtil.fromInt(mode));
 
 		provider.unlock(this);
 	}
