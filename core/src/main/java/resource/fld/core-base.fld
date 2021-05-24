@@ -14179,4 +14179,29 @@ You can find a list of all available timezones in the Lucee administrator (Setti
     		<type>string</type>
     	</return>
     </function>
+
+    <function>
+    		<name>StringFilter</name>
+    		<member-name>filter</member-name>
+    		<class>lucee.runtime.functions.string.StringFilter</class>
+    		<description>Filters a string to its elements for which the callback function returns true.</description>
+        	<argument>
+    			<name>string</name>
+    			<type>string</type>
+    			<alias>inputString,object</alias>
+    			<required>Yes</required>
+    			<alias>string</alias>
+    			<description>Input string.</description>
+        	</argument>
+        	<argument>
+    			<name>closure</name>
+    			<type>any</type>
+    			<alias>function,callback,udf</alias>
+    			<required>Yes</required>
+    			<description> Closure or a function reference that will be called for each of the iteration.</description>
+    		</argument>
+        	<return>
+        		<type>string</type>
+        	</return>
+        </function>
 </func-lib>
